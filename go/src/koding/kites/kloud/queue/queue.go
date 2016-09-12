@@ -26,7 +26,7 @@ func (q *Queue) RunCheckers(interval time.Duration) {
 		q.Log.Warning("not running cleaner queue for aws koding provider")
 	}
 
-	for _ = range time.Tick(interval) {
+	for range time.Tick(interval) {
 		// do not block the next tick
 		go q.CheckAWS()
 	}

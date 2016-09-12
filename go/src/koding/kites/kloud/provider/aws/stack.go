@@ -191,11 +191,11 @@ type Stack struct {
 // Ensure Provider implements the kloud.StackProvider interface.
 //
 // StackProvider is an interface for team kloud API.
-var _ stack.StackProvider = (*Provider)(nil)
+var _ stack.Provider = (*Provider)(nil)
 
 // Stack gives a kloud.Stacker value that implements stack
 // methods for the AWS cloud.
-func (p *Provider) Stack(ctx context.Context) (stack.Stacker, error) {
+func (p *Provider) Stack(ctx context.Context) (stack.Stack, error) {
 	bs, err := p.BaseStack(ctx)
 	if err != nil {
 		return nil, err
@@ -212,5 +212,11 @@ func (p *Provider) Stack(ctx context.Context) (stack.Stacker, error) {
 	bs.BuildResources = s.buildResources
 	bs.WaitResources = s.waitResources
 	bs.UpdateResources = s.updateResources
+
 	return s, nil
+}
+
+// Meta implements the stack.Provider interface.
+func (p *Provider) Meta() interface{} {
+	return &AwsMeta{}
 }

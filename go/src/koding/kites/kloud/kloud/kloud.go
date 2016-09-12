@@ -26,7 +26,6 @@ import (
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/provider"
 	awsprovider "koding/kites/kloud/provider/aws"
-	"koding/kites/kloud/provider/vagrant"
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stackplan/stackcred"
@@ -78,9 +77,6 @@ type Config struct {
 
 	// Defines the base domain for domain creation
 	HostedZone string `required:"true"`
-
-	// Defines the default AMI Tag to use for koding provider
-	AMITag string
 
 	// MaxResults limits the max items fetched per page for each
 	// AWS Describe* API calls.
@@ -195,15 +191,12 @@ func New(conf *Config) (*Kloud, error) {
 		Debug:          conf.DebugMode,
 		KloudSecretKey: conf.KloudSecretKey,
 		CredStore:      stackcred.NewStore(storeOpts),
+		TunnelURL:      conf.TunnelURL,
 	}
 
+	// TODO(rjeczalik): refactor queue to work for any provider
 	awsProvider := &awsprovider.Provider{
 		BaseProvider: bp.New("aws"),
-	}
-
-	vagrantProvider := &vagrant.Provider{
-		BaseProvider: bp.New("vagrant"),
-		TunnelURL:    conf.TunnelURL,
 	}
 
 	go runQueue(awsProvider, sess, conf)
@@ -231,14 +224,11 @@ func New(conf *Config) (*Kloud, error) {
 	kld.Log = sess.Log
 	kld.SecretKey = conf.KloudSecretKey
 
-	err = kld.AddProvider("aws", awsProvider)
-	if err != nil {
-		return nil, err
-	}
-
-	err = kld.AddProvider("vagrant", vagrantProvider)
-	if err != nil {
-		return nil, err
+	for name, fn := range provider.All {
+		err = kld.AddProvider(name, fn(bp.New(name)))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var gwSrv *keygen.Server

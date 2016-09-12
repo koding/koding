@@ -29,60 +29,70 @@ func NewProvider(name string) *Provider {
 	}
 }
 
-// ensure *Provider implements the kloud.Interface interface
+// ensure *Provider implements the stack.Interface interface
 var _ stack.Interface = (*Provider)(nil)
 
-// Machine implements the kloud.Provider interface.
-func (p *Provider) Machine(context.Context, string) (interface{}, error) {
+// Machine implements the stack.Provider interface.
+func (p *Provider) Machine(context.Context, string) (stack.Machine, error) {
 	return nil, p.err
 }
 
-// Build implements the kloud.Builder interface.
+// Stack implements the stack.Provider interface.
+func (p *Provider) Stack(context.Context) (stack.Stack, error) {
+	return nil, p.err
+}
+
+// Meta implements the stack.Provider interface.
+func (p *Provider) Meta() interface{} {
+	return nil
+}
+
+// Build implements the stack.Builder interface.
 func (p *Provider) Build(context.Context) error {
 	return p.err
 }
 
-// Destroy implements the kloud.Destroyer interface.
+// Destroy implements the stack.Destroyer interface.
 func (p *Provider) Destroy(context.Context) error {
 	return p.err
 }
 
-// Info implements the kloud.Infoer interface.
+// Info implements the stack.Infoer interface.
 func (p *Provider) Info(context.Context) (map[string]string, error) {
 	return nil, p.err
 }
 
-// Stop implements the kloud.Stoper interface.
+// Stop implements the stack.Stoper interface.
 func (p *Provider) Stop(context.Context) error {
 	return p.err
 }
 
-// Start implements the kloud.Starter interface.
+// Start implements the stack.Starter interface.
 func (p *Provider) Start(context.Context) error {
 	return p.err
 }
 
-// Reinit implements the kloud.Reiniter interface.
+// Reinit implements the stack.Reiniter interface.
 func (p *Provider) Reinit(context.Context) error {
 	return p.err
 }
 
-// Resize implements the kloud.Resizeer interface.
+// Resize implements the stack.Resizeer interface.
 func (p *Provider) Resize(context.Context) error {
 	return p.err
 }
 
-// Restart implements the kloud.Restarter interface.
+// Restart implements the stack.Restarter interface.
 func (p *Provider) Restart(context.Context) error {
 	return p.err
 }
 
-// CreateSnapshot implements the kloud.CreateSnapshoter interface.
+// CreateSnapshot implements the stack.CreateSnapshoter interface.
 func (p *Provider) CreateSnapshot(context.Context) error {
 	return p.err
 }
 
-// DeleteSnapshot implements the kloud.DeleteSnapshoter interface.
+// DeleteSnapshot implements the stack.DeleteSnapshoter interface.
 func (p *Provider) DeleteSnapshot(context.Context) error {
 	return p.err
 }

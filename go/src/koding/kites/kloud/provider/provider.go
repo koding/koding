@@ -21,6 +21,10 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+// All is a global lookup map used ny kloud to register
+// available stack providers.
+var All = make(map[string]func(*BaseProvider) stack.Provider)
+
 // BaseProvider implements common functionality for stack providers (aws, vagrant).
 //
 // In longer term kloud controllers should be refactored and this functionality
@@ -39,6 +43,7 @@ type BaseProvider struct {
 	Kite           *kite.Kite
 	KloudSecretKey string
 	Debug          bool
+	TunnelURL      string
 
 	Userdata  *userdata.Userdata
 	CredStore stackcred.Store

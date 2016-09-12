@@ -19,6 +19,12 @@ import (
 
 func init() {
 	stackplan.MetaFuncs["vagrant"] = func() interface{} { return &VagrantMeta{} }
+
+	stack.Providers["vagrant"] = func(bp *provider.BaseProvider) interface{} {
+		return &Provider{
+			BaseProvider: bp,
+		}
+	}
 }
 
 var _ stack.Validator = (*VagrantMeta)(nil)

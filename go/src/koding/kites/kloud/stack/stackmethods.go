@@ -56,7 +56,7 @@ func (req *MigrateRequest) Valid() error {
 // If the requested provider does not implement the Migrater interface,
 // the method return with a ErrProviderNotImplemented error.
 func (k *Kloud) Migrate(r *kite.Request) (interface{}, error) {
-	fn := func(s Stacker, ctx context.Context) (interface{}, error) {
+	fn := func(s Stack, ctx context.Context) (interface{}, error) {
 		m, ok := s.(Migrater)
 		if !ok {
 			return nil, NewError(ErrProviderNotImplemented)
@@ -98,7 +98,7 @@ func (req *ApplyRequest) Valid() error {
 
 // Apply provides apply as a kite method.
 func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
-	return k.stackMethod(r, Stacker.Apply)
+	return k.stackMethod(r, Stack.Apply)
 }
 
 /// AUTHENTICATE
@@ -133,7 +133,7 @@ func (req *AuthenticateRequest) Valid() error {
 
 // Authenticate provides authenticate as a kite method.
 func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
-	return k.stackMethod(r, Stacker.Authenticate)
+	return k.stackMethod(r, Stack.Authenticate)
 }
 
 /// BOOTSTRAP
@@ -165,7 +165,7 @@ func (req *BootstrapRequest) Valid() error {
 
 // Bootstrap provides bootstrap as a kite method.
 func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
-	return k.stackMethod(r, Stacker.Bootstrap)
+	return k.stackMethod(r, Stack.Bootstrap)
 }
 
 /// PLAN
@@ -195,7 +195,7 @@ func (req *PlanRequest) Valid() error {
 
 // Plan provides plan as a kite method.
 func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
-	return k.stackMethod(r, Stacker.Plan)
+	return k.stackMethod(r, Stack.Plan)
 }
 
 /// STATUS
