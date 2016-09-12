@@ -7,9 +7,18 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/vagrantapi"
 	"koding/kites/kloud/provider"
+	"koding/kites/kloud/stack"
 
 	"golang.org/x/net/context"
 )
+
+func init() {
+	provider.All["vagrant"] = func(bp *provider.BaseProvider) stack.Provider {
+		return &Provider{
+			BaseProvider: bp,
+		}
+	}
+}
 
 // TODO(rjeczalik): kloud refactoring notes:
 //
@@ -23,7 +32,7 @@ type Provider struct {
 	*provider.BaseProvider
 }
 
-func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) {
+func (p *Provider) Machine(ctx context.Context, id string) (stack.Machine, error) {
 	bm, err := p.BaseMachine(ctx, id)
 	if err != nil {
 		return nil, err
