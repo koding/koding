@@ -23,7 +23,11 @@ reducer = (state = null, action) ->
 
     when customer.LOAD.SUCCESS, customer.CREATE.SUCCESS, customer.UPDATE.SUCCESS
       normalized = normalize action.result, customer.schema
-      return immutable normalized.first 'subscriptions'
+
+      if subscription = normalized.first 'subscriptions'
+        return immutable subscription
+
+      return null
 
     when customer.REMOVE.SUCCESS, REMOVE.SUCCESS
       return null
