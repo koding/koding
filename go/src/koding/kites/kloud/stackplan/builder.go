@@ -544,8 +544,11 @@ func (b *Builder) BuildTemplate(content, contentID string) error {
 	return nil
 }
 
-// BuildUserData finalizes the user_data sections for all instance resources.
-func (b *Builder) BuildUserData(instance map[string]interface{}, resourceName string) error {
+// InterplateField interpolates a field that can't contain variables within it
+// with null_resource provider.
+//
+// User to interpolate content of user_data fields for kloud providers.
+func (b *Builder) InterpolateField(resource map[string]interface{}, resourceName, field string) {
 	// Build provisioning script if available - the script needs to be
 	// base64-encoded to ensure the eventual formatting and terraform
 	// interpolation won't break YAML encoding of the cloud-init
@@ -563,8 +566,8 @@ func (b *Builder) BuildUserData(instance map[string]interface{}, resourceName st
 	//
 	//   https://github.com/hashicorp/terraform/issues/4084
 	//
-	if cmd, ok := instance["user_data"].(string); ok {
-		instance["user_data"] = fmt.Sprintf("${base64encode(null_resource.%s.triggers.user_data)}", resourceName)
+	if s, ok := resource[field].(string); ok && s != "" {
+		resource[field] = fmt.Sprintf("${base64encode(null_resource.%s.triggers.field)}", resourceName)
 
 		nullRes, ok := b.Template.Resource["null_resource"].(map[string]interface{})
 		if !ok {
@@ -592,10 +595,8 @@ func (b *Builder) BuildUserData(instance map[string]interface{}, resourceName st
 			res["depends_on"] = []interface{}{}
 		}
 
-		triggers["user_data"] = UserData(cmd)
+		triggers[field] = s
 	}
-
-	return nil
 }
 
 // UpdateStack updates jComputeStack document using b.Stack field.

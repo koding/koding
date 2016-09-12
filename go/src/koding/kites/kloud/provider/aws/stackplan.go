@@ -119,7 +119,7 @@ func (s *Stack) InjectAWSData() (stackplan.KiteMap, error) {
 			Hostname: s.Req.Username, // no typo here. hostname = username
 		}
 
-		s.Builder.BuildUserData(instance, resourceName)
+		s.Builder.InterpolateField(instance, resourceName, "user_data")
 
 		if b, ok := instance["debug"].(bool); ok && b {
 			s.Debug = true

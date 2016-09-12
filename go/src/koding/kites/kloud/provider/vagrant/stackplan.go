@@ -195,7 +195,7 @@ func (s *Stack) InjectVagrantData() (string, stackplan.KiteMap, error) {
 
 		tunnel := s.newTunnel(resourceName)
 
-		s.Builder.BuildUserData(box, resourceName)
+		s.Builder.InterpolateField(box, resourceName, "user_data")
 
 		if b, ok := box["debug"].(bool); ok && b {
 			s.Debug = true

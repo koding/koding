@@ -137,21 +137,6 @@ type Credential struct {
 	Meta       interface{}
 }
 
-// UserData injects header/footer into custom script and ensures it has
-// a shebang line.
-func UserData(content string) string {
-	var buf bytes.Buffer
-
-	// If there's no shebang, execute the script with sh.
-	if !strings.HasPrefix(content, "#!") {
-		fmt.Fprintln(&buf, "#!/bin/sh")
-	}
-
-	fmt.Fprintln(&buf, content)
-
-	return buf.String()
-}
-
 // DefaultKlientTimeout specifies the maximum time we're going to try to
 // connect to klient before timing out.
 var DefaultKlientTimeout = 5 * time.Minute
