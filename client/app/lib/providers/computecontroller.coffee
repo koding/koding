@@ -22,14 +22,15 @@ ManagedKiteChecker   = require './managed/managedkitechecker'
 envDataProvider      = require 'app/userenvironmentdataprovider'
 Tracker              = require 'app/util/tracker'
 getGroup             = require 'app/util/getGroup'
-createShareModal = require 'stack-editor/editor/createShareModal'
+createShareModal     = require 'stack-editor/editor/createShareModal'
+isGroupDisabled      = require 'app/util/isGroupDisabled'
 
 { actions : HomeActions } = require 'home/flux'
 
 require './config'
 
-
 module.exports = class ComputeController extends KDController
+
 
   @providers = globals.config.providers
   @Error     = {
@@ -48,6 +49,11 @@ module.exports = class ComputeController extends KDController
     do @reset
 
     mainController.ready =>
+
+      @bindGroupStatusEvents()
+
+      if isGroupDisabled groupsController.getCurrentGroup()
+        return @disabled = yes
 
       @on 'MachineBuilt',             => do @reset
       @on 'MachineDestroyed',         => do @reset
@@ -78,6 +84,17 @@ module.exports = class ComputeController extends KDController
 
         @info machine for machine in @machines
 
+
+  bindGroupStatusEvents: ->
+
+    { groupsController } = kd.singletons
+
+    # /cc @cihangir: not sure if this is the right way to bind the event.
+    groupsController.on 'payment_status_changed', ({ oldStatus, newStatus }) =>
+      wasDisabled = @disabled
+      @disabled = isGroupDisabled getGroup()
+
+      do @reset  unless @disabled isnt wasDisabled
 
   # ComputeController internal helpers
   #
@@ -201,6 +218,10 @@ module.exports = class ComputeController extends KDController
   fetchStacks: do (queue = []) ->
 
     (callback = kd.noop, force = no) -> kd.singletons.mainController.ready =>
+
+      if @disabled
+        callback null, []
+        return
 
       if @stacks.length > 0 and not force
         callback null, @stacks
