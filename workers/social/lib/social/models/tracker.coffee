@@ -1,6 +1,7 @@
 bongo        = require 'bongo'
 KodingError  = require '../error'
 KodingLogger = require './kodinglogger'
+goals        = require './goals'
 JUser        = require './user'
 
 { secure, signature } = bongo
@@ -95,7 +96,6 @@ module.exports = class Tracker extends bongo.Base
   @track = (username, event, options = {}, callback = -> ) ->
 
     return callback null  unless KONFIG.sendEventsToSegment
-
     _.extend options, @properties[event.subject]
 
     # use `forcedRecipientEmail` for both username and email
@@ -103,8 +103,11 @@ module.exports = class Tracker extends bongo.Base
       username = forcedRecipientUsername
       event.to = forcedRecipientEmail
 
-    event.from       or= defaultFromMail
-    event.properties   = @addDefaults { options, username }
+    event.from or= defaultFromMail
+    event.properties = @addDefaults { options, username }
+
+    event.properties.options ?= {}
+    event.properties.options = _.assign event.properties.options, goals.getProps event.subject
 
     require('./socialapi/requests').publishMailEvent event, (err) ->
       callback err # do not cause trailing parameters
