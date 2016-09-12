@@ -18,8 +18,10 @@ reducer = (state = null, action) ->
       normalized = normalize action.result, customer.schema
       c = normalized.first 'customer'
 
-      card = normalized.entities.sources[c.default_source]
-      return immutable card
+      if c.default_source
+        return normalized.entities.sources[c.default_source]
+
+      return null
 
     when REMOVE.SUCCESS, customer.REMOVE.SUCCESS
       return null
