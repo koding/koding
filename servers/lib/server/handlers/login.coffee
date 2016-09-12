@@ -8,13 +8,13 @@ koding                     = require './../bongo'
 module.exports = (req, res) ->
 
   { JUser } = koding.models
-  { username, password, tfcode, redirect, groupName, token } = req.body
+  { username, password, tfcode, redirect, groupName, token, tid } = req.body
 
   clientId =  getClientId req, res
 
   return handleClientIdNotFound res, req unless clientId
 
-  options = { username, password, tfcode, groupName, invitationToken: token }
+  options = { username, password, tfcode, groupName, invitationToken: token, tid }
 
   JUser.login clientId, options, (err, info) ->
 
