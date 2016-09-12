@@ -17,7 +17,9 @@ module.exports = class DisabledAdminModal extends ReactView
 
     switch status
       when 'expired'
-        onClick = -> router.handleRoute '/Home/team-billing'
+        onClick = =>
+          @destroy()
+          router.handleRoute '/Home/team-billing'
         <TrialEndedAdminModal
           isOpen={yes}
           onButtonClick={onClick} />
