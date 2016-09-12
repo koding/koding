@@ -175,8 +175,11 @@ module.exports = class StackEditorView extends kd.View
     @createOutputView()
     @createMainButtons()
 
-    @providersView.on 'ItemSelected', (credentialItem) =>
+    # if stackTemplate is initialized make save button disabled
+    @saveButton.disable()  if stackTemplate?.machines.length
 
+    @providersView.on 'ItemSelected', (credentialItem) =>
+      @saveButton.enable() # credential change, enable button
       credential = credentialItem.getData()
 
       @credentialStatusView.setCredential credential
@@ -185,7 +188,7 @@ module.exports = class StackEditorView extends kd.View
       credentialItem.inuseView.show()
 
     @providersView.on 'ItemDeleted', (credential) =>
-
+      @saveButton.enable() # credential change, enable button
       { identifier } = credential.getData()
       if identifier in @credentialStatusView.credentials
         @credentialStatusView.setCredential() # To unset active credential since it's deleted
@@ -237,6 +240,7 @@ module.exports = class StackEditorView extends kd.View
 
       editorView.on 'EditorReady', =>
         ace.on 'FileContentChanged', =>
+          @saveButton.enable()
           @changedContents[key] = ace.isContentChanged()
 
 
