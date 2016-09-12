@@ -12,46 +12,76 @@ textStyles = require 'lab/Text/Text.stylus'
 
 module.exports = class SubscriptionHeader extends Component
 
-  render: ->
-    { title, teamSize, isTrial, endsAt
-      nextBillingAmount, freeCredit } = @props
+  renderTitle: ->
+
+    { loading, title } = @props
+
+    title = if loading then 'Loading' else title
+
+    <Col xs={8}>
+      <Label size="medium">
+        <strong>{title}</strong>
+      </Label>
+    </Col>
+
+
+  renderFreeCredit: ->
+
+    { freeCredit } = @props
+
+    <Col xs={4} className={textStyles.right}>
+      <Label size="small" type="info">Free Credit: </Label>
+      <Label size="small" type="success">${freeCredit}</Label>
+    </Col>
+
+
+  renderSubtitle: ->
+
+    { loading, isTrial, endsAt } = @props
 
     isDanger = no
-    if isTrial
-      daysLeft = Math.max 0, dateDiffInDays(new Date(Number endsAt), new Date)
-      subtitle = "You have #{daysLeft} days left in your trial."
-      isDanger = yes  if daysLeft < 4
-    else
-      billingDate = moment(Number endsAt).format 'MMM Do, YYYY'
-      subtitle = "Your next billing date is #{billingDate}."
-      title = "#{title} (#{teamSize} Developers)"
+    subtitle = switch
+      when loading
+        "Loading subscription info..."
+
+      when isTrial
+        daysLeft = Math.max 0, dateDiffInDays(new Date(Number endsAt), new Date)
+        isDanger = daysLeft < 4
+        "You have #{daysLeft} days left in your trial."
+
+      else
+        billingDate = moment(Number @props.endsAt).format 'MMM Do, YYYY'
+        "Your next billing date is #{billingDate}."
+
+    <Col xs={8}>
+      <Label size="small" type={if isDanger then 'danger' else 'info'}>
+        <em>{subtitle}</em>
+      </Label>
+    </Col>
+
+
+  renderNextBillingAmount: ->
+
+    return  if @props.isTrial
+
+    { nextBillingAmount } = @props
+
+    <Col xs={4} className={textStyles.right}>
+      <Label size="small" type="info">
+        Next Bill Amount: <strong>${nextBillingAmount or 0}</strong>
+      </Label>
+    </Col>
+
+
+  render: ->
+
+    { loading } = @props
 
     <Row>
-
-      <Col xs={8}>
-        <Label size="medium">
-          <strong>{title}</strong>
-        </Label>
-      </Col>
-
-      <Col xs={4} className={textStyles.right}>
-        <Label size="small" type="info">Free Credit: </Label>
-        <Label size="small" type="success">${@props.freeCredit}</Label>
-      </Col>
-
-      <Col xs={8}>
-        <Label size="small" type={if isDanger then 'danger' else 'info'}>
-          <em>{subtitle}</em>
-        </Label>
-      </Col>
-
-      {unless @props.isTrial
-        <Col xs={4} className={textStyles.right}>
-          <Label size="small" type="info">
-            Next Bill Amount: <strong>${nextBillingAmount}</strong>
-          </Label>
-        </Col>
-      }
+      {@renderTitle()}
+      {@renderFreeCredit()  unless loading}
+      {@renderSubtitle()}
+      {@renderNextBillingAmount()  unless loading}
     </Row>
 
 
