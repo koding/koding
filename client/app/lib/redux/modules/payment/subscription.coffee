@@ -1,5 +1,7 @@
 immutable = require 'app/util/immutable'
 { createSelector } = require 'reselect'
+dateDiffInDays = require 'app/util/dateDiffInDays'
+
 customer = require './customer'
 
 { makeNamespace, expandActionType,
@@ -64,15 +66,34 @@ remove = ->
 # Selectors
 ##
 
-plan = (state) -> state.subscription.plan
+plan = (state) -> state.subscription?.plan
 
-isTrial = (state) -> state.subscription.status is 'trialing'
+isTrialing = (state) -> state.subscription?.status is 'trialing'
 
-endsAt = (state) -> state.subscription.current_period_end
+hasNoCard = (state) -> not state.creditCard
 
-pricePerSeat = (state) -> state.subscription.plan.amount / 100
+isTrial = createSelector(
+  isTrialing
+  hasNoCard
+  (trialing, noCard) -> noCard and trialing
+)
 
-trialDays = (state) -> plan(state).trial_period_days
+
+endsAt = (state) ->
+  if sub = state.subscription
+  then Number(sub.current_period_end) * 1000
+  else Date.now()
+
+pricePerSeat = (state) ->
+
+  if p = plan(state) then p.amount / 100 else 0
+
+trialDays = (state) -> plan(state)?.trial_period_days
+
+daysLeft = createSelector(
+  endsAt
+  (end) -> dateDiffInDays(new Date(Number end), new Date)
+)
 
 
 module.exports = _.assign reducer, {
@@ -83,7 +104,7 @@ module.exports = _.assign reducer, {
   LOAD, CREATE, REMOVE
 
   # Selectors
-  plan, isTrial, endsAt, pricePerSeat
+  plan, isTrial, endsAt, pricePerSeat, trialDays, daysLeft
 }
 
 
