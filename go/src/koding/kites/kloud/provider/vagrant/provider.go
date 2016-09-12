@@ -13,7 +13,6 @@ import (
 
 // TODO(rjeczalik): kloud refactoring notes:
 //
-//   - create provider.MetaFunc for custom machine metadata handling
 //   - create modelhelpers.DB and move function helpers to methods,
 //     so it's posible to use it with non-global *mongodb.MongoDB
 //     values
@@ -22,8 +21,6 @@ import (
 // Provider implements machine management operations.
 type Provider struct {
 	*provider.BaseProvider
-
-	TunnelURL string
 }
 
 func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) {
