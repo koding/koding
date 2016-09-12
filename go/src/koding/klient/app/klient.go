@@ -59,20 +59,6 @@ var (
 	// the implementation of New() doesn't have any error to be returned yet it
 	// returns, so it's totally safe to neglect the error
 	cookieJar, _ = cookiejar.New(nil)
-
-	logFiles = []string{
-		"/var/log/klient.log",
-		"/var/log/klient.err",
-		"/var/log/kd.log",
-		"/var/log/upstart/klient.log",
-		"/var/log/upstart/klient.err",
-		"/var/log/upstart/kd.log",
-		"/Library/Logs/klient.log",
-		"/Library/Logs/kd.log",
-		"/var/log/cloud-init-output.log",
-		"/var/log/cloud-init.log",
-		"/var/lib/koding/user-data.sh",
-	}
 )
 
 // Klient is the central app which provides all available methods.
@@ -567,7 +553,7 @@ func (k *Klient) Run() {
 		// Additionally do not block startup routine with log uploading.
 		time.Sleep(k.logUploadDelay)
 
-		for _, file := range logFiles {
+		for _, file := range uploader.LogFiles {
 			_, err := k.uploader.UploadFile(file, k.config.LogUploadInterval)
 			if err != nil && !os.IsNotExist(err) {
 				k.log.Warning("failed to upload %q: %s", file, err)

@@ -91,6 +91,7 @@ type VagrantCreateOptions struct {
 	CustomScript     string           `json:"customScript,omitempty"`
 	FilePath         string           `json:"filePath"`
 	ForwardedPorts   []*ForwardedPort `json:"forwarded_ports,omitempty"`
+	LogFiles         []string         `json:"logFiles,omitempty"`
 	TLSProxyHostname string           `json:"tlsProxyHostname,omitempty"`
 	Dirty            bool             `json:"forceDestroy,omitempty"`
 }

@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 
+	"koding/klient/uploader"
 	"koding/klientctl/config"
 	"koding/klientctl/metrics"
 
@@ -329,6 +330,8 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 		fmt.Println(FailedInstallingKlient)
 		return 1, fmt.Errorf("error verifying the installation of klient: %s", err)
 	}
+
+	uploader.FixPerms()
 
 	// track metrics
 	metrics.TrackInstall(config.VersionNum())

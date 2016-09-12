@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
-	"koding/klientctl/config"
 	"net/http"
 	"net/url"
 	"os"
@@ -14,6 +13,9 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+
+	"koding/klient/uploader"
+	"koding/klientctl/config"
 
 	"github.com/codegangsta/cli"
 	kiteconfig "github.com/koding/kite/config"
@@ -217,6 +219,8 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		fmt.Println(FailedStartKlient)
 		return 1
 	}
+
+	uploader.FixPerms()
 
 	fmt.Printf("Successfully updated to latest version of %s.\n", config.Name)
 	return 0
