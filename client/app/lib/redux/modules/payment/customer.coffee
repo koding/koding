@@ -59,10 +59,18 @@ remove = ->
   }
 
 
+coupon = (state) -> state.customer?.discount?.coupon
+
+email = (state) -> state.customer?.email
+
+
 module.exports = _.assign reducer, {
   namespace: withNamespace()
   schema
   reducer
+
+  coupon, email
+
   load, create, update, remove
   LOAD, CREATE, UPDATE, REMOVE
 }
