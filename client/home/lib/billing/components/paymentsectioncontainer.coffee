@@ -1,4 +1,4 @@
-{ formValueSelector } = require 'redux-form'
+{ isDirty } = require 'redux-form'
 { connect } = require 'react-redux'
 { createSelector } = require 'reselect'
 
@@ -28,8 +28,13 @@ formMessage = createSelector(
       else null
 )
 
+submitting = (formName) -> (state) -> state.form[formName]?.submitting
+
 mapStateToProps = (state) ->
   return {
+    hasCard: state.creditCard
+    submitting: submitting('create-credit-card')(state)
+    isDirty: isDirty('create-credit-card')(state)
     message: formMessage state
   }
 
@@ -39,6 +44,7 @@ mapDispatchToProps = (dispatch) ->
   }
 
 module.exports = connect(
-  mapStateToProps, mapDispatchToProps
+  mapStateToProps
+  mapDispatchToProps
 )(PaymentSection)
 

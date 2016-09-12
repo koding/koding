@@ -5,22 +5,33 @@ React = require 'react'
 Button = require 'lab/Button'
 CreateCreditCardForm = require './creditcardcontainer'
 
+Icon = require 'lab/Icon'
+
 module.exports = class PaymentSection extends React.Component
 
-  onSubmit: -> @_form.submit()
+  onSubmit: -> @_form.getWrappedInstance().submit()
 
   render: ->
 
-    { message, onMessageClose } = @props
+    { message, onMessageClose, isDirty, hasCard, submitting, loading } = @props
 
     <DashboardSection title='Payment Information'>
-      {<PaymentSectionMessage {...message} onCloseClick={onMessageClose} />  if message}
-      <CreateCreditCardForm ref={(f) => @_form = f} />
+
+      {message and
+        <PaymentSectionMessage {...message} onCloseClick={onMessageClose} />}
+
+      <CreateCreditCardForm loading={loading} ref={(f) => @_form = f} />
+
       <Footer border>
         <Row style={{margin: '0'}} between='xs'>
           <Col>
-            <Button size='small' onClick={@onSubmit.bind this}>SAVE</Button>
-            <Button size='small' type='link-secondary'>REMOVE CARD</Button>
+            <Button
+              size='small'
+              disabled={not isDirty or submitting}
+              onClick={@onSubmit.bind this}>SAVE</Button>
+
+            {hasCard and
+              <Button size='small' type='link-secondary'>REMOVE CARD</Button>}
           </Col>
           <Col>
             <Button size='small' type='link-primary-6'>PAYMENT HISTORY</Button>
@@ -47,13 +58,7 @@ ErrorIcon = ->
   one = require 'app/sprites/1x/cc-error.png'
   two = require 'app/sprites/2x/cc-error.png'
 
-  imgOne = new Image
-  imgOne.src = one
-  { naturalHeight: height, naturalWidth: width } = imgOne
-
-  src = if global.devicePixelRatio >= 2 then two else one
-
-  <span><img src={src} style={{height, width}} /></span>
+  <Icon 1x={one} 2x={two} />
 
 
 SuccessIcon = ->
@@ -61,10 +66,4 @@ SuccessIcon = ->
   one = require 'app/sprites/1x/cc-error.png'
   two = require 'app/sprites/2x/cc-error.png'
 
-  imgOne = new Image
-  imgOne.src = one
-  { naturalHeight: height, naturalWidth: width } = imgOne
-
-  src = if global.devicePixelRatio >= 2 then two else one
-
-  <span><img src={src} style={{height, width}} /></span>
+  <Icon 1x={one} 2x={two} />
