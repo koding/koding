@@ -1,5 +1,6 @@
 @import '~lab/Colors/Colors.stylus'
 
+$fs-xsmall = 13px
 $fs-small = 14px
 $fs-medium = 16px
 $fs-large = 20px
@@ -22,6 +23,8 @@ $fw-bolder = 900
   em
     font-style              italic
 
+.xsmall
+  font-size                 $fs-xsmall
 .small
   font-size                 $fs-small
 .medium
