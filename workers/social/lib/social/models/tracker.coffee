@@ -2,7 +2,6 @@ bongo        = require 'bongo'
 KodingError  = require '../error'
 KodingLogger = require './kodinglogger'
 goals        = require './goals'
-JUser        = require './user'
 
 { secure, signature } = bongo
 
@@ -51,6 +50,7 @@ module.exports = class Tracker extends bongo.Base
 
     return callback null  unless KONFIG.sendEventsToSegment
 
+
     # use `forcedRecipientEmail` for both username and email
     if forcedRecipientEmail
       username     = forcedRecipientUsername
@@ -58,7 +58,11 @@ module.exports = class Tracker extends bongo.Base
 
     traits = @addDefaults traits
 
+    # JUser is required here to avoid circularity
+    JUser = require './user'
     JUser.one { username }, (err, user) ->
+
+      console.log username, user.customData  if user
 
       traits.transaction_id = tid  if tid = user?.customData.tid
 
