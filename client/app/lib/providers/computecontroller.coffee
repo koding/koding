@@ -22,6 +22,7 @@ ManagedKiteChecker   = require './managed/managedkitechecker'
 envDataProvider      = require 'app/userenvironmentdataprovider'
 Tracker              = require 'app/util/tracker'
 getGroup             = require 'app/util/getGroup'
+createShareModal = require 'stack-editor/editor/createShareModal'
 
 { actions : HomeActions } = require 'home/flux'
 
@@ -1260,6 +1261,48 @@ module.exports = class ComputeController extends KDController
 
     kd.singletons.appManager.quitByName 'IDE', ->
       kd.singletons.router.handleRoute route
+
+
+  makeTeamDefault: (stackTemplate, revive) ->
+
+    if revive
+      stackTemplate = remote.revive stackTemplate
+    { credentials, config: { requiredProviders } } = stackTemplate
+
+    { groupsController, reactor } = kd.singletons
+
+    createShareModal (needShare, modal) =>
+
+      groupsController.setDefaultTemplate stackTemplate, (err) =>
+
+        reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
+        reactor.dispatch 'REMOVE_PRIVATE_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
+
+        Tracker.track Tracker.STACKS_MAKE_DEFAULT
+
+        if needShare
+        then @shareCredentials credentials, requiredProviders, -> modal.destroy()
+        else modal.destroy()
+
+
+  shareCredentials: (credentials, requiredProviders, callback) ->
+
+    for selectedProvider in requiredProviders
+      break  if selectedProvider in ['aws', 'vagrant']
+
+    selectedProvider ?= (Object.keys credentials ? { aws: yes }).first
+    selectedProvider ?= 'aws'
+
+    creds = Object.keys credentials
+    { groupsController } = kd.singletons
+
+    if creds.length > 0 and credential = credentials["#{selectedProvider}"]?.first
+      remote.api.JCredential.one credential, (err, credential) ->
+        { slug } = groupsController.getCurrentGroup()
+        credential.shareWith { target: slug }, (err) ->
+          showError 'Failed to share credential'  if err
+          callback()
+    else showError 'Failed to share credential'
 
 
   ###*
