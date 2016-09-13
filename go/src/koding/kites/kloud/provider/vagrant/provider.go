@@ -66,6 +66,10 @@ func (p *Provider) Machine(ctx context.Context, id string) (stack.Machine, error
 	}, nil
 }
 
+func (*Provider) Meta() interface{} {
+	return &VagrantMeta{}
+}
+
 func (p *Provider) tunnelURL() (*url.URL, error) {
 	if p.TunnelURL == "" {
 		return nil, errors.New("no tunnel URL provided")
