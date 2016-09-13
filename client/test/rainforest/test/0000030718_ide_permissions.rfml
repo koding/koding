@@ -1,0 +1,102 @@
+#! 6fdb23c2-314d-480c-9c19-0889c6999a0c
+# title: IDE: Permissions
+# start_uri: /
+# tags: ide
+# browsers: chrome_1440_900, osx_chrome
+#
+ 
+Enter '{{rainqa1.username}}' in the 'Username or Email' field, enter 'qatester' in the 'Password' field and click 'Sign In'
+Do you see 'example_1 is not build yet' modal with green 'BUILD STACK' button or 'example_1 is turned off' modal with green 'TURN IT ON' button or 'You don't have any VMs' modal with 'SHOW STACKS' button or file tree and some editor/terminal active (like on screenshot http://snag.gy/2oIRb.jpg)?
+
+Click 'STACKS', click 'My Stacks' and click red 'RE-INIT STACK' button
+Do you see 'Reinitialize Stack?' modal with 'PROCEED' and 'CANCEL' buttons?
+
+Click 'PROCEED' button and close the 'Stack catalog'. Close the form with 'no found' message if displayed.
+Do you see 'Reinitializing stack...' message that automatically disappears? Do you see green 'Build stack' button?
+
+Click 'BUILD STACK' button (or  'TURN IT ON' button) and wait until process finished (it may take 1-3 minutes)
+Do you see file tree and some editor/terminal active (the goal is to see something like this http://snag.gy/2oIRb.jpg)? 
+
+Click '+' icon in the header at the right of tabs and click 'New File' in menu ( http://snag.gy/TxUAk.jpg )
+Do you see a new editor tab named 'Untitled.txt'?
+
+Enter 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum {{random.number}}' text in the editor
+Do you see a dot displayed at the left of 'Untitled.txt' name in the editor header  (like on screenshot http://snag.gy/1sJCy.jpg )?
+
+Mouse over the editor header where the file 'Untitled.txt' is opened, click down arrow icon and click 'Save' in the menu ( http://snag.gy/7yOOm.jpg )
+Do you see a new modal with 'Filename', 'Select a folder' fields and 'Save' and 'Cancel' buttons?
+
+Enter 'testfile{{random.number}}.txt' in the 'Filename' field and click 'Save'
+Is modal closed? Do you see 'testfile{{random.number}}.txt' title of the opened file instead of 'Untitled.txt'? Do you see a new 'testfile{{random.number}}.txt' file in the file tree?
+
+Mouse over the editor header where the file 'testfile{{random.number}}.txt' is opened and click down 'x' icon
+Is editor tab closed?
+
+Click down arrow icon at the right of 'testfile{{random.number}}.txt' file in the file tree, mouse over 'Set permissions' section and disable 'Read' and 'Write' toggles for owner ( http://snag.gy/UhCoH.jpg ) and click 'Set'
+Are toggles turned to gray?
+
+Double click the 'testfile{{random.number}}.txt' file in the file tree
+Do you see an overlay with 'Access Denied The file can't be opened because you don't have permission to see its contents. Read more about permissions here.' text?
+
+Click Ok then click down arrow icon at the right of 'testfile{{random.number}}.txt' file in the file tree, mouse over 'Set permissions' section and enable 'Read' toggle for owner and click 'Set'
+Is 'Read' toggle turned to green?
+
+Double click the 'testfile{{random.number}}.txt' file in the file tree
+Do you see an overlay with 'Read-only file This file is read-only. You won't be able to save your changes. Read more about permissions here.' text? Do you see new editor tab with file content opened?
+
+Click Ok then click the editor area and try to enter any text
+Are you unable to make any changes in the editor?
+
+Mouse over the editor header where the file 'testfile{{random.number}}.txt' is opened and click down 'x' icon
+Is editor tab closed?
+
+Click down arrow icon at the right of 'testfile{{random.number}}.txt' file in the file tree, mouse over 'Set permissions' section and enable 'Read' and 'Write' toggles for owner and click 'Set'
+Are toggles turned to green?
+
+Double click the 'testfile{{random.number}}.txt' file in the file tree
+Do you see new editor tab with file content opened?
+
+ Click the editor area and try to enter any text
+Is entered text displayed correctly in the editor? Do you see a dot at the left of file name in the editor tab?
+
+Open file menu ( http://snag.gy/TWkUs.jpg ) and click 'Save'
+Did dot disappear in the editor header?
+
+Mouse over the editor header where the file 'testfile{{random.number}.txt' is opened and click 'x' icon
+Is editor tab closed?
+
+Open filetree menu ( http://snag.gy/Rmoax.jpg ) and click 'New folder' in the menu
+Do you see new folder 'NewFolder' added to the file tree? Is folder name displayed in edit mode?
+
+Enter '{{random.address_state}}{{random.number}}' folder name and press Enter
+Do you see folder '{{random.address_state}}{{random.number}}' with arrow icon at the left in the file tree?
+
+Open menu for  '{{random.address_state}}{{random.number}}' folder in the file tree, mouse over 'Set Permissions' section, disable all three 'Execute' toggles ( http://snag.gy/6Jyg9.jpg )  and click 'Set'
+Are 'Execute' toggles turned to gray?
+
+Open menu for '{{random.address_state}}{{random.number}}' folder in the file tree and click 'New Folder'
+Do you see red warning 'Permission denied!' at the top of file tree?
+
+Open menu for '{{random.address_state}}{{random.number}}' folder in the file tree, mouse over 'Set Permissions' section, disable  'Write' toggle for owner and click 'Set'
+Is 'Write' toggle turned to gray?
+
+Click file 'testfile{{random.number}}.txt' in the file tree and then drag&drop it to the '{{random.address_state}}{{random.number}}' folder
+Do you see red warning 'Permission denied!' at the top of file tree?
+
+Open menu for '{{random.address_state}}{{random.number}}' folder in the file tree, mouse over 'Set Permissions' section, enable 'Write' toggle for owner and click 'Set'
+Is 'Write' toggle turned to green?
+
+Click file 'testfile{{random.number}}.txt' in the file tree and then drag&drop it to the '{{random.address_state}}{{random.number}}' folder
+Is file moved to the '{{random.address_state}}{{random.number}}' folder?
+
+Open menu for '{{random.address_state}}{{random.number}}' folder in the file tree, mouse over 'Set Permissions' section, disable 'Read' and 'Write' toggles for owner and click 'Set'
+Are toggles turned to gray?
+
+Double click the 'testfile{{random.number}}.txt' file in the file tree
+Do you see red warning 'Permission denied!' at the top of file tree?
+
+Click 'STACKS', click 'My Stacks' and click red 'RE-INIT STACK' button
+Do you see 'Reinitialize Stack?' modal with 'PROCEED' and 'CANCEL' buttons?
+
+Click 'PROCEED' button and close the 'Stack catalog'
+Do you see 'Reinitializing stack...' message that automatically disappears? Do you see green 'Build stack' button?

@@ -10,7 +10,7 @@ teamLink          = "#{WelcomeView} ul.bullets li:nth-of-type(4)"
 installKDLink     = "#{WelcomeView} ul.bullets li:nth-of-type(5)"
 headerSelector    = '.HomeAppView--sectionHeader'
 stackEditor       = '.StackEditor-OnboardingModal'
-teamSettings      = '.HomeAppView--section.send-invites'
+sendInvites      = '.HomeAppView--section.send-invites'
 kodingUtilities   = '.HomeAppView--section.kd-cli'
 
 menuSelector      = '.SidebarMenu.kdcontextmenu .kdlistitemview-contextitem.default'

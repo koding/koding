@@ -1,0 +1,111 @@
+#! 0c426d9a-d371-402a-bedb-77b46d7f1b7f
+# title: Collaboration: create and save new file, terminal, kick, end session
+# start_uri: /
+# tags: teams, collaboration
+# browsers: chrome, osx_chrome
+#
+ 
+Enter 'rainqa3' in the 'Username or Email' field, enter 'qatester' in the 'Password' field and click 'Sign In'
+Do you see 'RainforestQATeam1' label at the top of the left module? Do you see 'STACKS' and 'Team Stack' labels in the left part of the page?
+
+Click user icon at the right of 'RainforestQATeam1' label and click 'Team Settings'  link
+Do you see 'Team Settings' modal opened with 'General', 'Members', 'Invitations', 'API Access' and 'Team Logs' sections?
+
+Click 'Invitations' section
+Do you see 'Invite Teammates', 'Pending Invitations', 'Accepted Invitations' links?
+
+Enter '{{random.email}}' email, '{{random.first_name}}{{random.number}}' first name, uncheck 'Admin' checkbox and click 'Invite Members' button
+Do you see 'Invitation is sent to {{random.email}}' message that automatically disappears?
+
+Click 'x' icon at the top right corner of the 'Invitations' pane
+Is pane closed?
+
+Open a new incognito window in the test browser ( http://snag.gy/Zr7K0.jpg ) and go to {{random.inbox}} by pasting the url (using ctrl-v) in the address bar, wait ~1min and refresh the page
+Do you see 'You are invited to join a team on Koding' email in inbox that received several minutes ago (and, probably, several older emails)?
+
+Click 'Open email'
+Do you see 'Hi there, You received this email because rainqa3 would like you to join rqateam1's Team on Koding.com' text in the email?' text in the email?' text in the email?
+
+Click 'Accept Invite' link
+Do you see 'Authentication Required' confirmation?
+
+Enter 'koding' user name and '1q2w3e4r' password and click 'Login'
+Do you see 'Join the RainforestQATeam1 team' text on the page opened and  '{{random.email}}' email in the first row?
+
+Enter '{{random.first_name}}{{random.number}}' username and 'qatester' password and click 'Sign up & Join' button
+Do you see 'RainforestQATeam1' label at the top of the left module? Do you see 'example_1 is not build yet' text and green 'Build stack' button in the white module on the page?
+
+Click 'Build Stack' button
+Do you see 'example_1 is building now.' text? Do you see green progress bar in the center white module and in the left panel below the 'example_1' label?
+
+Wait untill 'example_1 is building now.' modal disappeared from the screen (it may take ~3-5minutes). Refresh the page if modal gets stuck.
+Do you see 'Terminal' and 'Untitled.txt' text on the page?
+
+Click 'START COLLABORATION' button in the bottom right corner
+Do you see 'Starting session' progress bar bellow the button and after that 'START COLLABORATION' button is converted to 'END COLLABORATION'? Do you see a shortened URL in the bottom status bar (like on screenshot http://snag.gy/dp1Cn.jpg )?
+
+Click shortened URL in the bottom status bar
+Do you see 'Copied to clipboard!' popup message?
+
+Remember the list of panes opened (terminal, untitled.txt, etc) and select the previous window in the test browser (minimize the incognito browser and return to the browser where you are logged in as 'rainqa1'). Paste copied URL in the browser address bar using a mouse (this is important, Ctrl+V doesn't work) and press enter
+Do you see 'SHARED VMS' label in the left module on the page? Do you see 'example_1 (@{{random.first_name}}{{random.number}})' item bellow the 'SHARED VMS' label? Do you see white popup with 'Reject' and 'Accept' buttons?
+
+Click 'Accept' button
+Do you see 'Joining to collaboration session' progress bar? Do you see the same panes (terminal, untitled.txt) like on the incognito browser?
+
+Return to the incognito browser window, close the browser notification if displayed
+Do you see an user icon at the left of 'END COLLABORATION' button?
+
+Mouse over user icon at the left of 'END COLLABORATION' button and click 'Make Presenter' in the menu (like on the screenshot http://snag.gy/UWgYw.jpg )
+Is popup removed from the screen?
+
+Return to the browser window where you are logged in as 'rainqa3'
+Do you see green warning 'ACCESS GRANTED: You can make changes now!'?
+
+Close the warning and click 'Untitled.txt' file at the editor area and type 'first row' in the first row, press Enter and type 'second row' in the second row
+Do you see text entered?
+
+Mouse over 'Untitled.txt' and click down arrow icon displayed
+Do you see menu expanded with 'Save', 'Save as' and other options?
+
+Click 'Save as' in the menu
+Do you see a new modal with 'Filename', 'Select a folder' fields and 'Save' and 'Cancel' buttons?
+
+Enter 'newfile{{random.number}}.txt' in the 'Filename' field and click 'Save'
+Is modal closed? Do you see 'newfile{{random.number}}.txt' title of the opened file instead of 'Untitled.txt'?
+
+Set cursor and the end of 'second row' in the editor on the page, press enter and enter 'third row' text
+Do you see new row added? Do you see a dot displayed at the left of 'newfile{{random.number}}.txt' title in the header?
+
+Click '+' icon at the right of terminal and select New Terminal -> New Session (http://snag.gy/UnOoo.jpg)
+Do you see new terminal tab opened?
+
+Type 'sudo' in terminal and press Enter, type 'la' in terminal and press Enter
+Do you see results of the commands in the terminal?
+
+Return to the incognito browser window, close the browser notification if displayed
+Do you see 'newfile{{random.number}}.txt' file opened in the editor on the page? Do you see a dot displayed at the left of 'newfile{{random.number}}.txt' title in the header? Do you see the 'rainqa3' label displayed at the right of 'third row' on the page? Do you see new terminal with commands 'sudo' and 'la' performed?
+
+Check the list of files displayed in the file tree at the center of the page
+Do you see 'newfile{{random.number}}.txt' file in the list?
+
+Mouse over user icon at the left of 'END COLLABORATION' button (like on the screenshot http://snag.gy/UWgYw.jpg ) and click 'Kick' in the menu 
+Is user icon removed from the bottom navigation bar? Is 'rainqa3' label removed from the 'newfile{{random.number}}.txt' file?
+
+Return to the previous browser window
+Do you see 'Your session has been closed' modal displayed?
+
+Click Ok on the modal
+Is modal closed? Are 'example_1 (@{{random.first_name}}{{random.number}})' item bellow the 'SHARED VMS' label removed from the sidebar and all panes from that VM closed?
+
+Return to the incognito browser window, close the browser notification if displayed
+Do you see 'newfile{{random.number}}.txt' file opened in the editor on the page? Do you see terminal with commands 'sudo' and 'la' performed?
+
+Click 'END COLLABORATION' button and click 'Yes' on the 'Are you sure?' dialog
+Is 'END COLLABORATION' button changed to 'START COLLABORATION'? Is 'Camera' icon removed from the bottom status bar?
+
+Click 'STACKS', click 'My Stacks' and click red 'RE-INIT STACK' button
+Do you see 'Reinitialize Stack?' modal with 'PROCEED' and 'CANCEL' buttons?
+
+Click 'PROCEED' button and close the 'Stack catalog'
+Do you see 'Reinitializing stack...' message that automatically disappears? Do you see green 'Build stack' button?

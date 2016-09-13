@@ -1,0 +1,93 @@
+#! 4a98295b-df9d-4350-a4dd-43746856a34e
+# title: IDE: Editor Settings
+# start_uri: /
+# tags: ide
+# browsers: chrome, osx_chrome
+#
+ 
+Enter '{{rainqa1.username}}' in the 'Username or Email' field, enter 'qatester' in the 'Password' field and click 'Sign In'
+Do you see 'example_1 is not build yet' modal with green 'BUILD STACK' button or 'example_1 is turned off' modal with green 'TURN IT ON' button or 'You don't have any VMs' modal with 'SHOW STACKS' button or file tree and some editor/terminal active (like on screenshot http://snag.gy/2oIRb.jpg)?
+
+Click 'STACKS', click 'My Stacks' and click red 'RE-INIT STACK' button
+Do you see 'Reinitialize Stack?' modal with 'PROCEED' and 'CANCEL' buttons?
+
+Click 'PROCEED' button and close the 'Stack catalog'. Close the form with 'no found' message if displayed.
+Do you see 'Reinitializing stack...' message that automatically disappears? Do you see green 'Build stack' button?
+
+Click 'BUILD STACK' button (or  'TURN IT ON' button) and wait until process finished (it may take 1-3 minutes) 
+Do you see file tree and some editor/terminal active (the goal is to see something like this http://snag.gy/2oIRb.jpg)? 
+
+Double click '.profile' file in the file tree
+Do you see new editor tab opened with this file content?
+
+Click settings icon at the top of the file tree
+Do you see 'Editor Settings' and 'Terminal Settings' instead of file tree?
+
+Toggle 'Enable Autosave' option on in Editor Settings. 
+Is 'Enable Autosave' toggle green?
+
+Type 'test testing tester' in any row in the editor
+Do you see a green dot that automatically disappears in the header of editor tab where the file '.profile' is opened?
+
+Mouse over the editor header where the file '.profile' is opened and click 'x' icon
+Is editor tab closed?
+
+Double click '.profile' file in the file tree
+Do you see new editor tab opened with this file content? Do you see the text you entered on previous step?
+
+Disable 'Enable Autocomplete' toggle in the 'Editor Settings'
+Is 'Enable Autocomplete' toggle gray?
+
+Click editor area, create a new row and type 'tested test' (type, not copy/paste)
+Do you see the text entered without any hints at the bottom (hint like this http://snag.gy/HdTHS.jpg shouldn't be displayed)?
+
+Enable 'Enable Autocomplete' toggle in the 'Editor Settings'
+Is 'Enable Autocomplete' toggle green?
+
+Click editor area, create a new row and type 'test' (type, not copy/paste)
+Do you see the text entered with a hint at the bottom of the text containing words with 'test' in it (like on screenshot http://snag.gy/LnDQx.jpg )?
+
+Toggle 'Show invisibles' option on in Editor Settings
+Are invisible symbols like spaces, row wraps, tabs showed in editor tabs?
+
+Toggle 'Trim trailing whitespaces' option on in Editor Settings
+Is 'Trim trailing whitespaces' toggle green?
+
+Create a new row in the editor, create tabulation by pressing tab on keyboard, type several spaces and press Enter
+Are all spaces and tabulations removed from the row you entered?
+
+Set cursor to the end of any not-empty row in the editor, type several spaces and press Enter
+Are all spaces removed from the end of the row?
+
+Toggle 'Trim trailing whitespaces' option off in Editor Settings
+Is 'Trim trailing whitespaces' toggle gray?
+
+Toggle 'Use soft tabs' option off in Editor Settings
+Is 'Use soft tabs' toggle gray?
+
+Toggle 'Enable Autosave' option off in Editor Settings.
+Is 'Enable Autosave' toggle gray?
+
+Create a new row in the editor, create tabulation by pressing tab on keyboard and type 'hard tabs'
+Is tabulation displayed like '->' arrow before the 'hard tabs' text in the editor ( http://snag.gy/HWb5O.jpg )?
+
+Toggle 'Use soft tabs' option on in Editor Settings
+Is 'Use soft tabs' toggle green?
+
+Create a new row in the editor, create tabulation by pressing tab on keyboard and type 'soft tabs'
+Is tabulation displayed like set of dots before the 'soft tabs' text in the editor ( http://snag.gy/luhbr.jpg )?
+
+Change value for 'Tab size' option, create a new row in the editor, create tabulation by pressing tab on keyboard and type 'new row'
+Is tabulation displayed like a set of dots before the 'new row' text in the editor and the number of dots equals the selected value in the settings?
+
+Check the header of editor tab where the '.profile' file is opened
+Do you see a gray dot at the left of '.profile' in the tab header ( http://snag.gy/4ASgZ.jpg )?
+
+Toggle 'Show invisibles' option off in Editor Settings
+Are invisible symbols like spaces, row wraps, tabs hidden in editor tabs?
+
+Click 'STACKS', click 'My Stacks' and click red 'RE-INIT STACK' button
+Do you see 'Reinitialize Stack?' modal with 'PROCEED' and 'CANCEL' buttons?
+
+Click 'PROCEED' button and close the 'Stack catalog'
+Do you see 'Reinitializing stack...' message that automatically disappears? Do you see green 'Build stack' button?
