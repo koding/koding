@@ -1,0 +1,13 @@
+<style>{% include css/home-contentwithvisual.css %}</style>
+
+<div class='Homepage-ContentWithVisual'>
+  <div class='Homepage--container'>
+
+    <img class='Homepage-ContentWithVisual--visual' src="{{ include.image_src }}" srcset="{{ include.image_src }}.{{ include.image_ext }} 1x, {{ include.image_src }}2x.{{ include.image_ext }} 2x" />
+    <div class='Homepage-ContentWithVisual--content'>
+      <img src="{{ include.icon_src }}">
+      <h3>{{ include.title }}</h3>
+      <p>{{ include.description }}</p>
+    </div>
+  </div>
+</div>
