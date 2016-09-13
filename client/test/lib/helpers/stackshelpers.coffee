@@ -92,7 +92,8 @@ module.exports =
         .waitForElementVisible editNamebutton, 20000
         .click editNamebutton
         .clearValue stackTemplateNameArea
-        .pause 1000
+        .pause 3000
+        .setValue stackTemplateNameArea, ''
         .setValue stackTemplateNameArea, 'NewStackName'
         .click saveButtonSelector, ->
           browser.pause 3000, ->
@@ -272,7 +273,6 @@ module.exports =
     wrongCustomVariable    = "foo: '"
     correctCustomVariable  = "foo: 'bar'"
 
-    browser.click closeModal
     @gotoStackTemplate browser, =>
       browser.waitForElementVisible stackTemplateNameArea, 2000
       @switchTabOnStackCatalog browser, 'variables'
@@ -358,7 +358,6 @@ module.exports =
 
 
   makeStackTeamDefault: (browser, done) ->
-    console.log('testtt')
     browser.elements 'css selector', makeTeamDefaultButton, (result) ->
       result.value.map (value) ->
         browser.elementIdText value.ELEMENT, (res) ->
@@ -373,6 +372,9 @@ module.exports =
   reinitializeTeamStack: (browser, done) ->
     browser
       .waitForElementVisible '.StackEditor-ShareModal.kdmodal footer', 20000
+      .waitForElementVisible '.kdcustomcheckbox input[type="checkbox"]'
+      .click '.kdcustomcheckbox input[type="checkbox"]'
+      .pause 3000
       .click shareButton
       .waitForElementVisible '.ContentModal.content-modal main', 20000
       .click shareButton, ->
