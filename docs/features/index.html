@@ -4,8 +4,18 @@ title: Features
 permalink: /features
 ---
 
-{% include header.html %}
+<!-- HEADER -->
+{% include header.html with_signup_form='true' has_sticky_navigation='true' %}
 
-<h1>Features</h1>
+<style>{{ include css/about-hero.css }}</style>
 
+<div class="aboutus-hero">
+  <div class="aboutus-gradient"  style="background: #F7FAFC;">
+    <h1>The Koding Story</h1>
+    <p>Koding is a San Francisco based technology company that is eliminating wasteful tasks from the world of software development and creating a simple way to be more collaborative and productive.</p>
+  </div>
+  <img src="//cdn2.hubspot.net/hub/1593820/hubfs/buildstack_art_success.png?t=1473370419565&amp;width=288&amp;height=257&amp;name=buildstack_art_success.png" width="288" height="257" alt="buildstack_art_success.png" srcset="//cdn2.hubspot.net/hub/1593820/hubfs/buildstack_art_success.png?t=1473370419565&amp;width=144&amp;height=129&amp;name=buildstack_art_success.png 144w, //cdn2.hubspot.net/hub/1593820/hubfs/buildstack_art_success.png?t=1473370419565&amp;width=288&amp;height=257&amp;name=buildstack_art_success.png 288w, //cdn2.hubspot.net/hub/1593820/hubfs/buildstack_art_success.png?t=1473370419565&amp;width=432&amp;height=386&amp;name=buildstack_art_success.png 432w, //cdn2.hubspot.net/hub/1593820/hubfs/buildstack_art_success.png?t=1473370419565&amp;width=576&amp;height=514&amp;name=buildstack_art_success.png 576w, //cdn2.hubspot.net/hub/1593820/hubfs/buildstack_art_success.png?t=1473370419565&amp;width=720&amp;height=643&amp;name=buildstack_art_success.png 720w, //cdn2.hubspot.net/hub/1593820/hubfs/buildstack_art_success.png?t=1473370419565&amp;width=864&amp;height=771&amp;name=buildstack_art_success.png 864w" sizes="(max-width: 288px) 100vw, 288px">
+</div>
+
+<!-- FOOTER -->
 {% include footer.html %}
