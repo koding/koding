@@ -5,7 +5,7 @@ Rainforest-cli is a command line interface to interact with RainforestQA. It is 
 
 ## Rainforest Test Cases
 
-
+All Rainforest test cases are located under ```koding/client/test/rainforest/test``` directory.
 
 ## Setup Environment
 
@@ -20,14 +20,20 @@ You can install rainforest-cli with the gem utility. Open terminal and execute t
 
 Execute to following line in order to run all tests
 
-```rainforest run all --token <YOUR API TOKEN>  --fg```
+```sh
+rainforest run all --token <YOUR API TOKEN>  --fg
+```
 
 You can execute test by name 
-```rainforest run --token <YOUR API TOKEN> --fg ```
+```sh
+rainforest run --token <YOUR API TOKEN> --fg 
+```
 
 
 You can execute test by ID 
-```rainforest run --token <YOUR API TOKEN> --fg ```
+```sh
+rainforest run --token <YOUR API TOKEN> --fg
+```
 
 ## License
 
