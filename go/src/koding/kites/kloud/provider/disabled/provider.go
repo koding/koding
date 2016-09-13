@@ -58,7 +58,7 @@ func (p *Provider) Destroy(context.Context) error {
 }
 
 // Info implements the stack.Infoer interface.
-func (p *Provider) Info(context.Context) (map[string]string, error) {
+func (p *Provider) Info(context.Context) (*stack.InfoResponse, error) {
 	return nil, p.err
 }
 

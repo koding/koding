@@ -7,13 +7,14 @@ import (
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/stack"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/koding/kite"
 	"golang.org/x/net/context"
 )
 
-func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
+func (m *Machine) Info(ctx context.Context) (*stack.InfoResponse, error) {
 	dbState := m.State()
 	resultState := dbState
 	reason := "not known yet"
@@ -21,8 +22,8 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 	// return lazily if it's a progress state, such as "Building, Stopping,
 	// etc.."
 	if dbState.InProgress() {
-		return map[string]string{
-			"State": dbState.String(),
+		return &stack.InfoResponse{
+			State: dbState,
 		}, nil
 	}
 
@@ -74,8 +75,8 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 			reason = "Klient is active and healthy."
 			resultState = machinestate.Running
 
-			return map[string]string{
-				"State": resultState.String(),
+			return &stack.InfoResponse{
+				State: resultState,
 			}, nil
 		}
 
@@ -87,15 +88,15 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 			if dbState == machinestate.Stopped {
 				m.Log.Debug("Info result: Returning db state '%s' because the klient is not available. Username: %s",
 					dbState, m.User.Name)
-				return map[string]string{
-					"State": machinestate.Stopped.String(),
+				return &stack.InfoResponse{
+					State: machinestate.Stopped,
 				}, nil
 			}
 		}
 	}
 
 	m.Log.Debug("Info result: '%s'. Username: %s", resultState, m.User.Name)
-	return map[string]string{
-		"State": resultState.String(),
+	return &stack.InfoResponse{
+		State: resultState,
 	}, nil
 }

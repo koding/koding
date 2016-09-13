@@ -85,7 +85,9 @@ type Stack interface {
 type Machine interface {
 	Start(context.Context) error
 	Stop(context.Context) error
-	Info(context.Context) (map[string]string, error)
+	Info(context.Context) (*InfoResponse, error)
+	State() machinestate.State
+	ProviderName() string
 }
 
 type Builder interface {
@@ -117,7 +119,7 @@ type Restarter interface {
 }
 
 type Infoer interface {
-	Info(ctx context.Context) (map[string]string, error)
+	Info(ctx context.Context) (*InfoResponse, error)
 }
 
 type Snapshotter interface {

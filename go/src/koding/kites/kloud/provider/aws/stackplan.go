@@ -119,8 +119,6 @@ func (s *Stack) InjectAWSData() (stackplan.KiteMap, error) {
 			Hostname: s.Req.Username, // no typo here. hostname = username
 		}
 
-		s.Builder.InterpolateField(instance, resourceName, "user_data")
-
 		if b, ok := instance["debug"].(bool); ok && b {
 			s.Debug = true
 			delete(instance, "debug")
@@ -141,6 +139,8 @@ func (s *Stack) InjectAWSData() (stackplan.KiteMap, error) {
 		}
 
 		instance["user_data"] = string(userdata)
+
+		s.Builder.InterpolateField(instance, resourceName, "user_data")
 
 		// create independent kiteKey for each machine and create a Terraform
 		// lookup map, which is used in conjuctuon with the `count.index`
