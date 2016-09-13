@@ -42,13 +42,13 @@ func (s *Stack) SetAwsRegion(region string) error {
 func (s *Stack) InjectAWSData() (stackplan.KiteMap, error) {
 	t := s.Builder.Template
 
-	var meta *AwsMeta
+	var meta *Cred
 	for _, cred := range s.Builder.Credentials {
 		if cred.Provider != "aws" {
 			continue
 		}
 
-		meta = cred.Meta.(*AwsMeta)
+		meta = cred.Meta.(*Cred)
 
 		if err := meta.BootstrapValid(); err != nil {
 			return nil, fmt.Errorf("invalid bootstrap metadata for %q: %s", cred.Identifier, err)

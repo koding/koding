@@ -49,7 +49,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (stack.Machine, error
 	}
 
 	// TODO(rjeczalik): move decoding provider-specific credential to BaseMachine.
-	var cred VagrantMeta
+	var cred Cred
 	if err := p.FetchCredData(bm, &cred); err != nil {
 		return nil, err
 	}
@@ -66,8 +66,8 @@ func (p *Provider) Machine(ctx context.Context, id string) (stack.Machine, error
 	}, nil
 }
 
-func (*Provider) Meta() interface{} {
-	return &VagrantMeta{}
+func (*Provider) Cred() interface{} {
+	return &Cred{}
 }
 
 func (p *Provider) tunnelURL() (*url.URL, error) {

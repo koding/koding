@@ -18,14 +18,8 @@ import (
 	"golang.org/x/net/context"
 )
 
-func init() {
-	stackplan.MetaFuncs["aws"] = func() interface{} { return &AwsMeta{} }
-}
-
-var _ stack.Validator = (*AwsMeta)(nil)
-
-// AwsMeta represents jCredentialDatas.meta for "aws" provider.
-type AwsMeta struct {
+// Cred represents jCredentialDatas.meta for "aws" provider.
+type Cred struct {
 	Region    string `json:"region" bson:"region" hcl:"region"`
 	AccessKey string `json:"access_key" bson:"access_key" hcl:"access_key"`
 	SecretKey string `json:"secret_key" bson:"secret_key" hcl:"secret_key"`
@@ -42,7 +36,9 @@ type AwsMeta struct {
 	AMI       string `json:"ami,omitempty" bson:"ami,omitempty" hcl:"ami"`
 }
 
-func (meta *AwsMeta) BootstrapValid() error {
+var _ stack.Validator = (*Cred)(nil)
+
+func (meta *Cred) BootstrapValid() error {
 	if meta.ACL == "" {
 		return errors.New("acl is empty or missing")
 	}
@@ -74,26 +70,26 @@ func (meta *AwsMeta) BootstrapValid() error {
 }
 
 // Credentials creates new AWS credentials value from the given meta.
-func (meta *AwsMeta) Credentials() *credentials.Credentials {
+func (meta *Cred) Credentials() *credentials.Credentials {
 	return credentials.NewStaticCredentials(meta.AccessKey, meta.SecretKey, "")
 }
 
 // Options creates new amazon client options.
-func (meta *AwsMeta) Options() *amazon.ClientOptions {
+func (meta *Cred) Options() *amazon.ClientOptions {
 	return &amazon.ClientOptions{
 		Credentials: meta.Credentials(),
 		Region:      meta.Region,
 	}
 }
 
-func (meta *AwsMeta) session() *session.Session {
+func (meta *Cred) session() *session.Session {
 	return amazon.NewSession(meta.Options())
 }
 
 const arnPrefix = "arn:aws:iam::"
 
 // AccountID parses an AWS arn string to get the Account ID.
-func (meta *AwsMeta) AccountID() (string, error) {
+func (meta *Cred) AccountID() (string, error) {
 	user, err := iam.New(meta.session()).GetUser(nil)
 	if err == nil {
 		return parseAccountID(aws.StringValue(user.User.Arn))
@@ -149,7 +145,7 @@ func parseAccountID(arn string) (string, error) {
 	return accountID, nil
 }
 
-func (meta *AwsMeta) ResetBootstrap() {
+func (meta *Cred) ResetBootstrap() {
 	meta.ACL = ""
 	meta.CidrBlock = ""
 	meta.IGW = ""
@@ -162,7 +158,7 @@ func (meta *AwsMeta) ResetBootstrap() {
 }
 
 // Valid implements the kloud.Validator interface.
-func (meta *AwsMeta) Valid() error {
+func (meta *Cred) Valid() error {
 	if meta.Region == "" {
 		return errors.New("aws meta: region is empty")
 	}
@@ -185,7 +181,7 @@ type Stack struct {
 	ids     stackplan.KiteMap
 	klients map[string]*stackplan.DialState
 	ident   string
-	cred    *AwsMeta
+	cred    *Cred
 }
 
 // Ensure Provider implements the kloud.StackProvider interface.
@@ -216,7 +212,7 @@ func (p *Provider) Stack(ctx context.Context) (stack.Stack, error) {
 	return s, nil
 }
 
-// Meta implements the stack.Provider interface.
-func (p *Provider) Meta() interface{} {
-	return &AwsMeta{}
+// Cred implements the stack.Provider interface.
+func (p *Provider) Cred() interface{} {
+	return &Cred{}
 }

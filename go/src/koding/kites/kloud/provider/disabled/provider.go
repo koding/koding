@@ -42,8 +42,8 @@ func (p *Provider) Stack(context.Context) (stack.Stack, error) {
 	return nil, p.err
 }
 
-// Meta implements the stack.Provider interface.
-func (p *Provider) Meta() interface{} {
+// Cred implements the stack.Provider interface.
+func (p *Provider) Cred() interface{} {
 	return nil
 }
 

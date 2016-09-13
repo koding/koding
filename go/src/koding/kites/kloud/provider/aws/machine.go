@@ -29,6 +29,6 @@ func (mt *Meta) Valid() error {
 type Machine struct {
 	*provider.BaseMachine
 
-	Meta *Meta    `bson:"-"`
-	Cred *AwsMeta `bson:"-"`
+	Meta *Meta `bson:"-"`
+	Cred *Cred `bson:"-"`
 }

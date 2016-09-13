@@ -61,17 +61,17 @@ type Provider interface {
 	// for the specific cloud-provider.
 	Machine(ctx context.Context, id string) (Machine, error)
 
-	// Meta returns new value for provider-specific metadata.
-	// The Meta is called when building credentials
+	// Cred returns new value for provider-specific credential.
+	// The Cred is called when building credentials
 	// for apply and bootstrap requests, so each provider
-	// has access to type-friendly metadata values.
+	// has access to type-friendly credential values.
 	//
 	// Examples:
 	//
-	//   - aws.AwsMeta
-	//   - vagrant.VagrantMeta
+	//   - aws.Cred
+	//   - vagrant.Cred
 	//
-	Meta() interface{}
+	Cred() interface{}
 }
 
 // Stack is a provider-specific handler that implements team methods.

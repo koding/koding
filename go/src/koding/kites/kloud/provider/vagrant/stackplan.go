@@ -29,7 +29,7 @@ type VagrantResource struct {
 }
 
 func (s *Stack) updateCredential(cred *stackplan.Credential) {
-	meta := cred.Meta.(*VagrantMeta)
+	meta := cred.Meta.(*Cred)
 	meta.SetDefaults()
 }
 
@@ -70,7 +70,7 @@ func (s *Stack) InjectVagrantData() (string, stackplan.KiteMap, error) {
 	s.updateCredential(s.Credential)
 
 	t := s.Builder.Template
-	meta := s.Credential.Meta.(*VagrantMeta)
+	meta := s.Credential.Meta.(*Cred)
 
 	s.Log.Debug("Injecting vagrant credentials: %# v", meta)
 
