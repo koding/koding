@@ -1,0 +1,124 @@
+#! cba4ab0f-f891-4fbf-a88d-b7623e3816a4
+# title: TEAM CREATION with failures: invite as admin, convert to member, leave team
+# start_uri: /
+# tags: team creation
+# browsers: osx_chrome
+#
+ 
+Enter 'koding' in the 'User Name' and '1q2w3e4r' in the 'Password' fields and click on 'Log in'
+Do you see 'Sign in to your team' form in the center of the page with a green 'Continue' button? Do you see 'Click here to get started.' text below that form?
+
+Click on 'Click here' link
+Do you see 'Create a team' form and a green 'Sign up' button?
+
+Leave 'email address' and 'name your team' fields empty and click on 'Sign Up' button
+Do you see 'Please type a valid email address.' warning?
+Do you see 'Please enter a team name.' warning?"
+
+Enter '{{ random.first_name }}{{ random.email }}' in email address and '{{ random.last_name }}{{ random.number }}' in team name fields and click on 'Sign Up' button
+Do you see 'Your team URL' form with URL field prefilled?
+
+Delete the prefilled URL and click on 'Next' button
+Have you seen 'Domain name should be longer than 2 characters!' warning? Do you see the red border around the text field?
+
+Enter 'sandbox' and click on 'Next' button
+Have you seen 'Invalid domain!' warning? Do you see the red border around the text field?
+
+Enter 'koding' and click on 'Next' button
+Have you seen 'Domain is taken!' warning? Do you see the red border around the text field?
+
+Enter '{{ random.last_name }}{{ random.number }}' as converted to uppercase and click on 'Next' button 
+Do you see 'Create your account' form with email field prefilled?
+
+Leave username and password fields empty and click on 'Done!' button
+Do you see 'For username only lowercase letters and numbers are allowed!' and 'Passwords should be at least 8 characters.' warnings? Do you see the red border around the text fields?
+
+Enter 'aaa' in the username, and '{{ random.password }}' in the password fields and click on 'Done!' button
+Do you see 'Username should be between 4 and 25 characters!' warning? Do you see the red border around the text field for username?
+
+Enter 'koding' in the username, and '{{ random.password }}' in the password fields and click on 'Done!' button
+Have you seen 'Sorry, "koding" is already taken!' warning?
+
+Enter '{{ random.first_name }}{{ random.number }}' as converted to uppercase in the username field and click on 'Done!' button
+Do you see 'Authentication Required' form?
+
+Enter 'koding' in the 'User Name' and '1q2w3e4r' in the 'Password' fields and click on 'Log in'
+Do you see 'Stack Catalog' modal with 'Welcome', 'My Stacks', 'My Stack Templates', 'Team Stack Templates' and 'Koding Utilities' tabs? Do you see 'Create a Stack for Your Team', 'Invite your team' and 'Install KD' sections?
+
+Close that modal by clicking (x) from top right corner and click on the default profile image next to '{{ random.last_name }}{{ random.number }}' label on top left 
+Do you see 'You don't have any notifications' text? Do you see 'Account', 'Team Settings', 'Support' and 'Logout' options?
+
+Click on 'Team Settings'
+Do you see 'Team Settings' modal opened with 'General', 'Members', 'Invitations', 'API Access' and 'Team Logs' sections? Do you see '{{ random.last_name }}{{ random.number }}' in 'Name' and '{{ random.last_name }}{{ random.number }}' in 'URL' fields?
+
+Click on 'Invitations' from left vertical menu
+Do you see 'Invite Teammates', 'Invite with #slack', 'Pending Invitations' and 'Accepted Invitations' sections? Do you see text fields labeled as 'mail@example.com' and 'Optional'?
+
+Enter '{{ random.email }}' in the 'Email' field of the first row and click on 'Invite Members' button
+Do you see 'You're adding an admin' modal? Do you see 'Cancel' and ' That's Fine' buttons?
+
+Click on 'That's Fine' button
+Have you seen 'Invitation is sent to '{{ random.email }}'' message?
+
+Enter '{{ random.email }}' in the 'Email' field of the first row again and uncheck 'Admin' checkbox and click on 'Invite Members' button
+Do you see 'Resend invitation' modal? Do you see 'Cancel' and 'Resend Invitation' buttons?
+
+Click on 'Resend Invitation' button
+Have you seen 'Invitation is resent to '{{ random.email }}'' message?
+
+Open an incognito window (by clicking on the 3lined button from top right corner of the browser and selecting 'New Incognito Window' - screenshot here:http://take.ms/2hxOf) and go to {{random.inbox}} by pasting the url (using ctrl-v) in the address bar, wait ~1min and refresh the page
+Do you see 'You are invited to join a team on Koding' email in inbox that received twice several minutes ago?
+
+Click on 'Open email' for the latest one
+Do you see 'Hi there, You received this email because '{{ random.first_name }}{{ random.number }}' would like you to join '{{ random.last_name }}{{ random.number }}' Team on Koding.com' text in the email?' Do you see 'Accept Invite' button?
+
+Click on 'Accept Invite' button
+Do you see 'Authentication Required' confirmation?
+
+Enter 'koding' in the 'User Name' and '1q2w3e4r' in the 'Password' fields and click on 'Log in'
+Do you see 'Join the {{ random.last_name }}{{ random.number }} team' signup form with email prefilled?
+
+Enter '{{ random.first_name }}{{ random.password }}' in the username and '{{ random.password }}' in the password fields and click on 'Sign up & join' button
+Do you see 'Stack Catalog' modal with 'Welcome', 'My Stacks', 'My Stack Templates', 'Team Stack Templates' and 'Koding Utilities' tabs? Do you see 'Your Team Stack is Pending', 'Create a Personal Stack' and 'Install KD' sections?
+
+Close that modal by clicking (x) from top right corner and click on the default profile image next to '{{ random.last_name }}{{ random.number }}' label on top left 
+Do you see 'Team Settings' among the options?
+
+Return to the first browser, click on the default profile image next to '{{ random.last_name }}{{ random.number }}' label on top left and click on 'Team Settings' then 'Members' sequentially
+Do you see '{{ random.first_name }}{{ random.password }}' user in the list?
+
+Click on 'Admins' tab
+Do you see '{{ random.first_name }}{{ random.number }} user and 'Owner' text next to it? Do you see '{{ random.first_name }}{{ random.password }}' user and 'Admin' text next to it?
+
+Click on 'Admin' text next to {{ random.first_name }}{{ random.password }} user
+Do you see 'Make Owner', 'Make Moderator', 'Make Member' and 'Disable User' buttons?
+
+Click on 'Make Member' button
+Is {{ random.first_name }}{{ random.password }} user removed from the Admins list?
+
+Return to the incognito window again
+Do you see 'Your team role has been changed!' modal? Do you see '@{{ random.first_name }}{{ random.number }} made you a member, please.. ' text? Do you see 'Reload Page' button?
+
+Click on 'Reload Page' button and click on the default profile image next to '{{ random.last_name }}{{ random.number }}' label on top left 
+Is 'Team Settings' removed from the options available? (You should only see 'Account, Support and Logout')
+
+Click on 'Account'
+Do you see 'User profile', '2-Factor Auth', 'Email notifications', 'Active Sessions', 'SSH Keys', 'Shortcuts', 'Leave Team' and 'Your credentials' tabs?
+
+Click on 'Leave team' from the vertical menu
+Do you see 'Leave team' button?
+
+Click on 'Leave Team' button
+Do you see 'Please confirm' modal? Do you see 'Enter '{{ random.first_name }}{{ random.password }}' to confirm' text? Do you see 'Cancel' and 'Leave Team' buttons?
+
+Enter {{ random.first_name }}{{ random.password }} (all in lowercase - see screenshot here: http://take.ms/SSaap) in the text field and click on 'Leave Team'
+Are you logged out automatically? Do you see login page?
+
+Enter {{ random.first_name }}{{ random.password }} in the username and {{ random.password }} in the password fields and click on 'Sign in'
+Have you seen 'You are not allowed to access this team' warning?
+
+Return to the first browser and click on the 'Owner' text next to {{ random.first_name }}{{ random.number }} user
+Do you see 'Make Member' button?
+
+Click on 'Make Member' button
+Have you seen 'Failed to change user role as you're the only admin of this team' warning?

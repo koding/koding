@@ -1,0 +1,133 @@
+#! 2fd16049-50c3-4859-a981-1be15f880ff3
+# title: TEAM CREATION with existing account, stacks
+# start_uri: /
+# tags: team creation, stacks
+# browsers: osx_chrome
+#
+ 
+Enter 'koding' in the 'User Name' and '1q2w3e4r' in the 'Password' fields and click on 'Log in'
+Do you see 'Sign in to your team' form in the center of the page with a green 'Continue' button? Do you see 'Click here to get started.' text below that form?
+
+Click on 'Click here' link
+Do you see 'Create a team' form and a green 'Sign up' button?
+
+Enter 'rainforestqa99@koding.com' in the email and '{{ random.last_name }}{{ random.number }}' in the team name fields and click on 'Sign Up' button
+Do you see 'Your team URL' form with URL field prefilled?
+
+Click on 'Next' button
+Do you see 'Sign in' form with only password input field? Do you see 'Hey rainforestqa99' text?
+
+Enter '{{ random.number }}' in the password fields and click on 'Done!' button
+Have you seen 'Access denied!' warning?
+
+Enter 'rainforestqa99' in the password field and click on 'Done!' button
+Do you see 'Authentication Required' form?
+
+Enter 'koding' in the 'User Name' and '1q2w3e4r' in the 'Password' fields and click on 'Log in'
+Do you see 'Stack Catalog' modal with 'Welcome', 'My Stacks', 'My Stack Templates', 'Team Stack Templates' and 'Koding Utilities' tabs? Do you see 'Create a Stack for Your Team', 'Invite your team' and 'Install KD' sections?
+
+Click on 'Create a Stack for Your Team' section 
+Are you switched to 'Team Stack Templates' tab? Do you see 'Get Started!' button?
+
+Click on 'Get Started!' button
+Do you see 'What provider do you want to use' title? Do you see 'amazon web services' and other 'coming soon labeled' providers? Do you see 'Skip setup guide' link in the bottom?
+
+Click on 'Skip setup guide'
+Do you see 'New Stack' title and 'Default stack template' stack name under that title? Do you see 'Cancel' and 'Save&Test' buttons?
+
+Click on 'Credentials' text having a red (!) next to it
+Do you see 'rainforestqa99's AWS keys' text with 'aws' label under it? Do you see 'Use This & Continue' button next to it?
+
+Click on 'Use This & Continue' button and wait for a second for process to be completed
+Do you see '# Here is your stack preview' text in the first line (line #1)? Do you see 'Fullscreen', 'Preview' and 'Logs' buttons?
+
+Click on 'Preview' button
+Do you see 'Template Preview' modal?
+
+Close the modal by clicking on (X) from right top corner of the modal and click on 'Credentials' tab
+Do you see green 'In Use' label next to it?
+
+Mouse over the 'Use This & Continue' button
+Do you see 'Show' and 'Delete' buttons?
+
+Click on 'Show' button
+Do you see 'rainforestqa99's AWS keys' overlay? Do you see 'access_key', 'secret_key', 'region' and 'identifier'?
+
+Close the overlay by clicking on (X) from right top corner of it and click on 'Readme' tab
+Do you see '##### Readme text for this stack template' text in the first line? Do you see 'Preview' button on the bottom right?
+
+"Delete the text and copy and paste '# WELCOME TO KODING!
+You've said goodbye to your localhost and are ready to develop software in the cloud!' there and click on 'Preview' button"
+Do you see 'Readme Preview'? Do you see the text you pasted?
+
+Close it by clicking on (X) from right top corner of it and click on 'Save & Test' button and wait for a second for process to be completed
+Do you see 'Your stack script has been successfully saved..' overlay? Do you see 'Close' buttton?
+
+Click on 'Close' button and click on 'OK' button on top right of the page
+Do you see 'Team Stack Templates' title? Do you see 'Create New Stack' button on the right? Do you see 'Default stack template' and 'default', 'in use' and 'group' labels next to it?
+
+Click on (X) on top right corner of this modal
+Do you see 'Welcome to Koding!' and 'example is not build yet.' texts in the center and 'Build Stack' button under it?
+
+Click on 'Build Stack' button
+Do you see 'example is building now.' text? Do you see green progress bar in the center and in the left sidebar below the 'example' label?
+
+Click on 'Stacks' title from left sidebar
+Do you see 'Stack Catalog' with 'Welcome' tab is selected? Do you see 'Invite your team' and 'Install KD' sections?
+
+Click on 'My Stack Templates' from the vertical menu
+Do you see 'Default stack template' in the list? Do you see 'Create New Stack' button?
+
+Click on 'Create New Stack' button and click on 'Skip setup guide' link on the bottom
+Do you see 'New Stack' title and 'Default stack template' stack name under that title? Do you see 'Cancel' and 'Save&Test' buttons?
+
+Enter 'My Stack' in the 'Stack Name' text field and change 'example' text in line 11 with 'test' and click on 'Save & Test' button
+Do you see 'Stack template content is saved and can be tested once required credentials are provided.' text in the last line of the logs? (starting with 'An error occurred:')
+
+Click on 'Close' button
+Do you see 'Not Ready' and 'Private' labels next to 'My Stack' text?
+
+Click on the little down arrow next to 'My Stack' and select 'Edit' option
+Do you see 'Edit Stack' title and 'My Stack' stack name under that title? Do you see 'Cancel' and 'Save&Test' buttons?
+
+Click on 'Credentials' text having a red (!) next to it and click on 'Use This & Continue' button and click on 'Save & Test' button
+Do you see 'OK', 'Make Team Default' and 'Save & Test' buttons?
+
+Click on 'OK' button
+Do you see that 'Not Ready' label is removed and only 'Private' label is displayed next to 'My Stack'?
+
+Click on the little down arrow next to 'My Stack' and select 'Generate Stack' option
+Have you seen 'Stack generated successfully' message? Do you see 'In Use' label next to 'My Stack'?
+
+Click on (X) on top right corner of this modal
+Do you see 'cloud-init' file on top and 'Terminal' tab on the bottom pane? Do you see 'Default Stack Template' and 'My Stack' under 'Stacks' title in the left sidebar? Do you see a green square next to 'example' and a gray square next to 'test'?
+
+Click on 'test'
+Do you see 'Readme text for this stack template' text? Do you see 'test is not build yet' text and green 'Build Stack' button under it?
+
+Click on 'Build Stack' button
+Do you see 'test is building now.' text? Do you see green progress bar in the center and in the left sidebar below the 'test' label?
+
+Click on 'Stacks' title from left sidebar and click on 'My Stack Templates'
+Do you see 'Default stack template' and 'My Stack' in the list? Do you see 'Create New Stack' button?
+
+Click on the little down arrow next to 'Default stack template'
+Do you see 'Show', 'Edit', 'Generate Stack' and 'Delete' options?
+
+Click on 'Delete'
+Have you seen 'This template currently in use by the Team' message?
+
+Click on 'My Stacks' from the vertical menu
+Do you see 'Default stack template' and 'My Stack' sections? Do you see 'Delete Stack' additional button under 'My Stack'?
+
+Click on 'Delete Stack' button
+Do you see 'Destroy Stack' modal? Do you see 'Cancel' and 'Proceed' buttons?
+
+Click on 'Proceed' button
+Have you seen 'Stack deleted' message? Are 'My Stack' and 'test' label under it removed from left sidebar?
+
+Click on 'Stacks' title from left sidebar and click on 'My Stack Templates' and click on the little down arrow next to 'My Stack'
+Do you see 'Apply to Team', 'Show', 'Edit', 'Generate Stack' and 'Delete' options?
+
+Click on 'Delete' and 'Yes' buttons sequentially
+Is 'My Stack' removed from the list?

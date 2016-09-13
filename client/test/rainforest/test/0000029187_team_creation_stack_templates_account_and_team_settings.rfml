@@ -1,0 +1,141 @@
+#! 7f312779-11c9-4f0d-a10b-4f8863fbe179
+# title: TEAM CREATION, STACK TEMPLATES, ACCOUNT AND TEAM SETTINGS
+# start_uri: /
+# tags: team creation, stacks
+# browsers: osx_chrome
+#
+ 
+Enter 'koding' in the 'User Name' and '1q2w3e4r' in the 'Password' fields and click on 'Log in'
+Do you see 'Sign in to your team' form in the center of the page with a green 'Continue' button? Do you see 'Click here to get started.' text below that form?
+
+Click on 'Click here' link
+Do you see 'Create a team' form and a green 'Sign up' button?
+
+Enter '{{ random.email }}' in the email and  '{{ random.last_name }}{{ random.number }}' in 'Name your team' fields and click on 'Sign Up' button
+Do you see 'Your team URL' form with URL field pre-filled?
+
+Click on 'Next' button
+Do you see 'Create you account' form with email field pre-filled?
+
+Enter '{{ random.first_name }}{{ random.number }}' in the 'username' and '{{ random.password }}' in the 'set a password' fields and click on 'Done!' button
+Do you see 'Authentication Required' form?
+
+Enter 'koding' in the 'User Name' and '1q2w3e4r' in the 'Password' fields and click on 'Log in'
+Do you see 'Stack Catalog' modal with 'Welcome', 'My Stacks', 'My Stack Templates', 'Team Stack Templates' and 'Koding Utilities' tabs? Do you see 'Create a Stack for Your Team', 'Invite your team' and 'Install KD' sections?
+
+Click on 'Create a Stack for Your Team' section
+Are you switched to 'Team Stack Templates' tab? Do you see 'Get Started!' button?
+
+Click on 'Get Started!' button
+Do you see 'What provider do you want to use' title? Do you see 'amazon web services' and other 'coming soon labeled' providers?
+
+Click on 'amazon web services' and click on 'Next' button
+Do you see 'Stack File Preview' created below? Do you see 'What do you want installed' title?
+
+Click on 'MySQL' under Database, 'Python' under Language, 'Apache' under Web Server and click on 'Next' button
+Do you see 'Where is your code' title? Do you see 'Github'?
+
+Select 'GitHub' and click on 'Next' button
+Do you see 'New Stack' title and 'Default stack template' stack name under that title? Do you see 'Cancel' and 'Save&Test' buttons?
+
+Click on 'Credentials' text having a red (!) next to it
+Do you see 'Add your AWS credentials' text?
+
+Enter '{{ random.last_name }}{{ random.number }} AWS Key' in the 'Title', {{ aws_credentials.access_key }} in the 'Access Key ID', {{ aws_credentials.secret_key }} in the 'Secret Access Key' fields, select 'Asia Pacific (Singapore)' from 'Region' and then click on 'Save' button (BE SURE THAT KEYS ARE PASTED CORRECTLY - if they're not copy the keys wait for a second and then paste them)
+Do you see {{ random.last_name }}{{ random.number }} AWS Key with 'aws' label under it? Do you see 'Use This & Continue' button on the right?
+
+Click on 'Use This & Continue' button
+Do you see '# Here is your stack preview' text in the first line? Do you see 'Fullscreen', 'Preview' and 'Logs' buttons?
+
+Enter '{{ random.last_name }} stack' in 'Stack Name' field and click on 'Save & Test' button and wait for a second for process be completed
+Do you see 'Your stack script has been successfully saved..' overlay?
+
+Click on 'Close' button and click on 'OK' button on top right of the page
+Do you see 'Team Stack Templates' title? Do you see 'Create New Stack' button on the right? Do you see '{{ random.last_name }} stack' and 'default', 'in use' and 'group' labels next to it?
+
+Click on (X) on top right corner of this modal
+Do you see 'example_1 is not build yet.' text in the center and 'Build Stack' button under it?
+
+Click on 'Build Stack' button
+Do you see 'example_1 is building now.' text? Do you see green progress bar in the center and in the left sidebar below the 'example_1' label?
+
+Click on the default profile image next to the {{ random.last_name }}{{ random.number }} label on top left 
+Do you see 'You don't have any notifications' text? Do you see 'Account', 'Team Settings', 'Support' and 'Logout' options?
+
+Click on 'Team Settings'
+Do you see 'Team Settings' modal opened with 'General', 'Members', 'Invitations', 'API Access' and 'Team Logs' sections? Do you see {{ random.last_name }}{{ random.number }} in 'Name' and 'URL' fields?
+
+Enter '{{ random.last_name }}{{ random.number }} Team' in the 'Name' field and click on 'Save Changes' button
+Have you seen 'Group settings has been successfully updated.' message?
+
+Save image from here: {{ random.image }} to your computer, return to your browser and click on 'Upload Logo' button under 'Save Changes' button on General tab
+Do you see the uploaded image? Do you see 'Remove Logo' button?
+
+Click on 'Remove Logo' button
+Do you see default team logo again?
+
+Click on (X) on top right corner of this modal and wait untill 'example_1 is building now.' modal is disappeared from the screen if it is still there
+Do you see 'cloud-init-...' on top and 'Terminal' below?
+
+Click on the tab where it says “Terminal”, type “expr 5 + 5” hit enter
+Do you see '10' as a result?
+
+Click on 'STACKS' title on the top left
+Do you see 'Stack Catalog' with 'Welcome' tab displayed? Do you see 'Invite your team' and 'Install KD' sections?
+
+Click on 'Team Stack Templates'
+Do you see 'Team Stack Templates' title? Do you see 'Create New Stack' button on the right? Do you see '{{ random.last_name }} stack' and 'default', 'in use' and 'group' labels next to it?
+
+Click on the down arrow at the end of the row of '{{ random.last_name }} stack' text
+Do you see 'Show', 'Edit' and 'Generate Stack' options?
+
+Click on 'Edit'
+Do you see 'Editing default stack template?' modal? Do you see 'I know what I'm doing, open editor' and 'Clone and open editor' buttons?
+
+Click on 'I know what I'm doing, open editor' button
+Do you see 'Edit Stack' on top?
+
+Type 'test_machine' instead of 'example_1' in line 11, click end of the line next to the last word on line 19, hit enter and type 'touch /${var.custom_key}', hit enter type 'touch /${var.userInput_name}'
+Do you see (1) as a red warning next to 'Custom Variables' tab?
+
+Click on 'Custom Variables' and type key: 'qa_test' at the end of the file (like in the screenshot: http://take.ms/MhAm4)
+Do you see '#Define custom variables here' in the first line? Have you seen that the warning is disappeared?
+
+Click on 'Save & Test' button and wait for a second for process be completed
+Have you seen 'Team {{ random.last_name }}{{ random.number }} stack has been saved!' message on top center of the page?
+
+Click on 'OK' button on top right of the page and click on (X) on top right corner of this modal
+Do you see a red notification jewel (1) next to '{{ random.last_name }} stack' text on the left sidebar?
+
+Click on that red notification jewel (1) 
+Do you see 'Stack Catalog'? Do you see '.. has updated this stack (see details). text' and 'Update Your Machines' button next to it after selecting 'My Stacks' from vertical menu?
+
+Click on 'Update Your Machines' button 
+Do you see 'Reinitialize Stack?' overlay? Do you see 'Cancel' and 'Proceed' buttons?
+
+Click on 'Proceed' button and wait for a second for process to be completed
+Have you seen 'Stack reinitialized' message? Do you see 'test_machine' is not build yet.' text in the center and 'Build Stack' button under it? Do you see  '{{ random.last_name }} stack' and 'test_machine' on top of left sidebar?
+
+Click on 'Build Stack' button
+Do you see 'Build Requirements' modal?
+
+Enter {{ random.first_name }} in the 'Name' field and click on 'Save' button
+Do you see ' + Create New' text in the center of the modal? Do you see 'Use This' button?
+
+Click on 'Use This' button
+Do you see 'test_machine is building now.' text? Do you see green progress bar in the center and in the left sidebar below the 'test_machine' label?
+
+Click on the default profile image next to the {{ random.last_name }}{{ random.number }} label on top left and click on 'Account'
+Do you see 'User profile', '2-Factor Auth', 'Email notifications', 'Active Sessions', 'SSH Keys', 'Shortcuts', 'Leave Team' and 'Your credentials' tabs?
+
+Click on 'Your credentials'
+Do you see '{{ random.last_name }}{{ random.number }} AWS Key' with 'aws' label below? Do you see 'Custom variables for {{ random.last_name }} stack' with 'custom' label below? Do you see '{{ random.last_name }} stack build requirements' with 'userInput' label below?
+
+Click on Show menu on top right and select 'custom credential'
+Do you see only 'Custom variables for {{ random.last_name }} stack' with 'custom' label below?
+
+Click on (X) on top right corner of this modal and if the process is not completed wait for a few seconds for build process to be completed
+Do you see 'cloud-init-...' on top and 'Terminal' below?
+
+Click on the tab where it says “Terminal”, type 'ls /' and hit enter
+Do you see files 'qa_test' and '{{ random.first_name }} green colored in the list?
