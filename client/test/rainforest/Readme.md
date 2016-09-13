@@ -26,13 +26,13 @@ rainforest run all --token <YOUR API TOKEN>  --fg
 
 You can execute test by name 
 ```sh
-rainforest run --token <YOUR API TOKEN> --fg 
+rainforest run --token <YOUR API TOKEN> <Test_Name> --fg 
 ```
 
 
 You can execute test by ID 
 ```sh
-rainforest run --token <YOUR API TOKEN> --fg
+rainforest run --token <YOUR API TOKEN> <Test_ID> --fg
 ```
 
 ## License
