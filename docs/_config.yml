@@ -1,0 +1,29 @@
+title: Koding
+email: support@koding.com
+description: >
+  Instantly share, scale and manage integrated development
+  environments in a cloud IDE.
+keywords: >
+  integrated development environment, cloud ide, dev environment,
+  cloud development environment, cloud editor, virtual dev environment,
+  web based ide, test environment, docker, aws, vagrant, azure, rackspace
+baseurl: ""
+url: "http://dev.koding.com:4000"
+paginate_path: "/blog/page:num/"
+paginate: 5
+timezone: America/Los_Angeles
+exclude:
+- Gemfile
+- Gemfile.lock
+- README.md
+- Rakefile
+- vendor/bundle
+gems:
+- jekyll-paginate
+sass:
+  style: compressed
+  sass_dir: _css
+markdown: kramdown
+twitter_username: koding
+github_username:  koding
+
