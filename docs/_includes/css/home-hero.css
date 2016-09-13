@@ -1,0 +1,175 @@
+main.Homepage-Hero {
+  height: 565px;
+  width: 100%;
+  background-color: #3c3b58;
+  position: relative;
+  background-image: linear-gradient(-180deg, #3C3C59 0%, #A8CEFF 100%);
+}
+.Homepage-Hero--container {
+  padding-top: 125px;
+  padding-left: 99px;
+  position: relative;
+  z-index: 1;
+}
+.Homepage-Hero--Ground {
+  position: absolute;
+  background: transparent url('http://cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/hero/ground_1600.svg') no-repeat center bottom;
+  width: 100%;
+  height: 334px;
+  bottom: -67px;
+  background-size: 3184px 334px;
+  z-index: 0;
+}
+.Homepage-Hero--UFO {
+  position: absolute;
+  background: transparent url('http://cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/hero/ufo_1600.svg') no-repeat 90% bottom;
+  width: 100%;
+  height: 528px;
+  top: 40px;
+  background-size: 1051px 528px;
+  z-index: 0;
+}
+.Homepage-Hero--intro {
+  width: 484px;
+}
+.Homepage-Hero--intro h1 {
+  font-size: 37.72px;
+  color: #FFFFFF;
+  line-height: 1.24em;
+  font-weight: 300;
+}
+.Homepage-Hero--intro h2 {
+  font-size: 22.11px;
+  color: #18C6DB;
+  margin-top: 26px;
+  line-height: 1.4em;
+  letter-spacing: -.1px;
+  font-weight: 300;
+  text-rendering:geometricPrecision;
+}
+.Homepage-Hero--intro form {
+  margin-top: 44px;
+  display: flex;
+  width: calc(100% - 9px);
+}
+.Homepage-Hero--intro form > div {
+  flex: 1 1 auto;
+}
+.Homepage-Hero--intro form .hs_submit {
+  flex: 0 0 auto;
+}
+.Homepage-Hero--intro form .hs_email.field.hs-form-field input {
+  background-color: white;
+  border: none;
+  padding: 24px 27px 22px;
+  height: 16px;
+  font-size: 16px;
+  color: #3C3B5A;
+  font-weight: 300;
+  width: calc(100% - 54px);
+  border-radius: 5px 0 0 5px;
+}
+.Homepage-Hero--intro form label {
+  display: none;
+}
+
+.Homepage-Hero--intro .hs-button.primary.large {
+  background: #FFC442;
+  border: none;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(0,0,0,.39);
+  padding: 23px 0 22px;
+  cursor: pointer;
+  border-radius: 0 5px 5px 0;
+  margin: 0;
+  text-align: center;
+  width: 192px;
+}
+
+@media (max-width: 1200px) {
+  
+  main.Homepage-Hero {
+    height: 413px;
+  }
+  .Homepage-Hero--container {
+    padding-top: 52px;
+  }
+  .Homepage-Hero--intro {
+    width: 375px;
+  }
+  .Homepage-Hero--intro h1 {
+    font-size: 23px;
+    line-height: 33px;
+  }
+  .Homepage-Hero--intro h2 {
+    font-size: 16px;
+    line-height: 26px;
+    margin-top: 9px;
+  }
+  .Homepage-Hero--Ground {
+    background: transparent url('http://cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/hero/ground_768.svg') no-repeat center bottom;
+    height: 248px;
+    bottom: -50px;
+    background-size: 1457px 248px;
+  }
+  .Homepage-Hero--UFO {
+    background: transparent url('http://cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/hero/ufo_1200.svg') no-repeat 90% bottom;
+    height: 528px;
+    top: 40px;
+    background-size: 1051px 528px;
+  }
+
+}
+
+@media (max-width: 768px) {
+  
+  main.Homepage-Hero {
+    height: calc(100vh - 87px - 57px); /* 87 for header - 57 for cta */
+    max-height: 525px;
+    min-height: 200px;
+    background-image: linear-gradient(-180deg,#3C3C57 11%,#8598BE 100%);
+    position: static;
+  }
+  .Homepage--container.Homepage-Hero--container {
+    padding-top: 52px;
+    padding-left: 0;
+    max-width: 480px;
+    margin: 0 30px;
+    position: static;
+  }
+  .Homepage-Hero--intro {
+    width: 100%;
+  }
+  .Homepage-Hero--intro h1 {
+    font-size: 23px;
+    line-height: 33px;        
+    max-width: 480px;
+  }
+  .Homepage-Hero--intro h2 {
+    font-size: 17px;
+    line-height: 26px;
+  }
+  
+  .Homepage-Hero--intro .hs_cos_wrapper.hs_cos_wrapper_widget {
+    display: none;
+  }
+  .Homepage-Hero--Ground {
+    position: static;
+    background: white;
+    height: 100px;
+    display: none;
+  }
+  .Homepage-Hero--UFO {
+    background: transparent url('http://cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/hero/ground_ufo_375.svg') no-repeat center bottom;
+    height: 637px;
+    background-size: 798px 637px;
+    position: static;
+    margin-top: -289px;
+  }
+  .Homepage-Hero .hs-form button {
+    display: none !important;
+  }
+  
+}
+
