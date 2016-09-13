@@ -66,7 +66,7 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 			continue
 		}
 
-		meta := cred.Meta.(*AwsMeta)
+		meta := cred.Meta.(*Cred)
 		if meta.Region == "" {
 			return nil, fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
 		}

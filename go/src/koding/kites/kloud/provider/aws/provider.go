@@ -41,7 +41,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (stack.Machine, error
 	}
 
 	// TODO(rjeczalik): move decoding provider-specific credential to BaseMachine.
-	var cred AwsMeta
+	var cred Cred
 	if err := p.FetchCredData(bm, &cred); err != nil {
 		return nil, err
 	}

@@ -17,18 +17,18 @@ import (
 	"golang.org/x/net/context"
 )
 
-var _ stack.Validator = (*VagrantMeta)(nil)
-
-// VagrantMeta represents jCredentialDatas.meta for "vagrant" provider.
-type VagrantMeta struct {
+// Cred represents jCredentialDatas.meta for "vagrant" provider.
+type Cred struct {
 	QueryString string `json:"queryString" bson:"queryString" hcl:"queryString"`
 	Memory      int    `json:"memory" bson:"memory" hcl:"memory"`
 	CPU         int    `json:"cpus" bson:"cpus" hcl:"cpus"`
 	Box         string `json:"box" bson:"box" hcl:"box"`
 }
 
+var _ stack.Validator = (*Cred)(nil)
+
 // Valid implements the kloud.Validator interface.
-func (meta *VagrantMeta) Valid() error {
+func (meta *Cred) Valid() error {
 	if meta.QueryString == "" {
 		return errors.New("vagrant meta: query string is empty")
 	}
@@ -39,7 +39,7 @@ func (meta *VagrantMeta) Valid() error {
 // SetDefaults sets default values for vagrant credential metadata.
 //
 // TODO(rjeczalik): Compatibility code, remove when defaults are set elsewhere.
-func (meta *VagrantMeta) SetDefaults() (updated bool) {
+func (meta *Cred) SetDefaults() (updated bool) {
 	if !structs.HasZero(meta) {
 		return false
 	}

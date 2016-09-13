@@ -236,7 +236,7 @@ func New(conf *Config) (*Kloud, error) {
 			return nil, err
 		}
 
-		stackplan.MetaFuncs[name] = p.Meta
+		stackplan.MetaFuncs[name] = p.Cred
 	}
 
 	var gwSrv *keygen.Server

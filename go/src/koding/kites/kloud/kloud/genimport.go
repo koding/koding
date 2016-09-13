@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 )
 
 var output = flag.String("o", "-", "")
@@ -41,7 +42,13 @@ func main() {
 			continue
 		}
 
-		imports = append(imports, "koding/kites/kloud/provider/"+filepath.Base(fi.Name()))
+		name := filepath.Base(fi.Name())
+
+		if strings.HasPrefix(name, "_") {
+			continue
+		}
+
+		imports = append(imports, "koding/kites/kloud/provider/"+name)
 	}
 
 	sort.Strings(imports)
