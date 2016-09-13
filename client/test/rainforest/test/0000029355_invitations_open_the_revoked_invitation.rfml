@@ -1,0 +1,85 @@
+#! 2325b8d6-a57a-438f-9262-7d80c4c64bd9
+# title: Invitations, Open the revoked invitation
+# start_uri: /
+# tags: teams, invitations
+# browsers: chrome, chrome_1440_900, firefox, ie11, osx_chrome, osx_firefox, safari, ubuntu_chrome, ubuntu_firefox
+#
+ 
+Enter 'rainqa1' in the 'Username or Email' field, enter 'qatester' in the 'Password' field and click 'Sign In'
+Do you see 'RainforestQATeam1' label at the top of the left module? Do you see 'STACKS'  and 'Team stack' labels in the left part of the page?
+
+Click user icon at the right of 'RainforestQATeam1' label and click 'Team Settings'  link
+Do you see 'Team Settings' modal opened with 'General', 'Members', 'Invitations', 'API Access' and 'Team Logs' sections?
+
+Click 'Invitations' section
+Do you see 'Invite Teammates', 'Pending Invitations', 'Accepted Invitations' links?
+
+Enter 'rainforest+{{random.first_name}}' email, uncheck 'Admin' checkbox and click 'Invite Members' buton
+Do you see 'That doesn't seems like a valid email address' warning? Does 'Email' field marked with the red border?
+
+Enter '{{random.email}}' email, '{{random.first_name}}{{random.number}}' first name, uncheck 'Admin' checkbox in the first row, enter 'autokoding+corrine259170459@gmail.com' email in the second row and click 'Invite Members' button
+Do you see 'All Invitations are sent' message that automatically disappears?
+
+Enter '{{random.first_name}}1' email in the first row, enter '{{random.first_name}}2' email in the second row, enter '{{random.first_name}}3' email in the third row
+Do you see a 
+new row auto-added to the form?
+
+Click 'Pending Invitations'
+Do you see  '{{random.email}}' email in the list?
+
+Click '>' icon in the row with '{{random.email}}' email 
+Do you see 'Revoke Invitation' and 'Resend Invitation' buttons?
+
+Click 'Resend Invitation' button
+Do you see 'Invitation is resent' message that disappears automatically?
+
+Click 'Revoke Invitation' button
+Is '{{random.email}}' removed from the 'Pending invitations' list?
+
+Enter 'Morris106172457' in the 'Find by email or fist name' field and press enter
+Do you see only row with 'autokoding+morris106172457@gmail.com - Morris106172457' in the search results? Do you see 'clear' link near the text input?
+
+Click 'clear' link
+Does search filter is reset and you see the complete list of emails?
+
+Select 'Email' in the 'Sort by' dropdown
+Do you see list of emails sorted by email?
+
+Select 'First name' in the 'Sort by' dropdown
+Do you see list of emails sorted by first name?
+
+Select 'Last name' in the 'Sort by' dropdown
+Do you see list of emails sorted by last name?
+
+Click 'Accepted Invitations'
+Do you list of emails?
+
+Enter 'Vince484823266' in the 'Find by email or fist name' field and press enter
+Do you see only row with '034f01b5-b034-43ca-a972-c6144622d081@e.rainforestqa.com - Vince484823266' in the search results? Do you see 'clear' link near the text input?
+
+Click 'clear' link
+Does search filter is reset and you see the complete list of emails?
+
+Select 'Email' in the 'Sort by' dropdown
+Do you see list of emails sorted by email?
+
+Select 'First name' in the 'Sort by' dropdown
+Do you see list of emails sorted by first name?
+
+Select 'Last name' in the 'Sort by' dropdown
+Do you see list of emails sorted by last name?
+
+Click 'x' icon at the top right corner of the 'Invitations' pane
+Does pane closed?
+
+Open a new incognito window in the test browser and go to {{random.inbox}} by pasting the url (using ctrl-v) in the address bar, wait ~1min and refresh the page
+Do you see two 'You are invited to join a team on Koding' emails in inbox that received several minutes ago (and, probably, several older emails)?
+
+Click 'Open Email' for the last of 'You are invited to join a team on Koding' emails
+Do you see 'Hi there, You received this email because rainqa1 would like you to join rqateam1's Team on Koding.com' text in the email?
+
+Click 'Accept Invite' link
+Do you see new opened browser tab with 'Authentication Required' confirmation displayed?
+
+Enter 'koding' user name and '1q2w3e4r' password and click 'Login'
+Do you see 'Invitation not found' message that automatically disappears and 'Sign in to RainforestQATeam1' text displayed on the page?

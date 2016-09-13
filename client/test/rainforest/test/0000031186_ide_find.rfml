@@ -1,0 +1,69 @@
+#! c15f5539-62de-4b5c-b6ec-6c6afecf393e
+# title: IDE: Find
+# start_uri: /
+# tags: ide
+# browsers: chrome, osx_chrome
+#
+ 
+Enter '{{rainqa1.username}}' in the 'Username or Email' field, enter 'qatester' in the 'Password' field and click 'Sign In'
+Do you see 'example_1 is not build yet' modal with green 'BUILD STACK' button or 'example_1 is turned off' modal with green 'TURN IT ON' button or 'You don't have any VMs' modal with 'SHOW STACKS' button or file tree and some editor/terminal active (like on screenshot http://snag.gy/2oIRb.jpg)?
+
+Click 'STACKS', click 'My Stacks' and click red 'RE-INIT STACK' button
+Do you see 'Reinitialize Stack?' modal with 'PROCEED' and 'CANCEL' buttons?
+
+Click 'PROCEED' button and close the 'Stack catalog'. Close the form with 'no found' message if displayed.
+Do you see 'Reinitializing stack...' message that automatically disappears? Do you see green 'Build stack' button?
+
+Click 'BUILD STACK' button (or  'TURN IT ON' button) and wait until process finished (it may take 1-3 minutes). 
+Do you see file tree and some editor/terminal active (the goal is to see something like this http://snag.gy/2oIRb.jpg)? 
+
+Double click '.profile' file in the file tree
+Do you see new editor tab opened with this file content?
+
+Mouse over the editor header where the file '.profile' is opened, click down arrow icon and click 'Find' in the menu ( http://snag.gy/qurdn.jpg )
+Do you see Find form with one 'Find' input field at the bottom of the page?
+
+Enter 'exists' in the Find field and press Enter
+Are all matched words highlighted with blue borders in the editor?
+
+Click 'x' icon in the Find form and click any place in the editor where '.profile' file is opened
+Is find form closed? Is highlighting removed in the editor? 
+
+Double click 'exist' word in the editor area
+Are all matched words highlighted with blue borders in the editor?
+
+Mouse over the editor header where the file '.profile' is opened, click down arrow icon and click 'Find and Replace' in the menu
+Do you see a form with two 'Find' and 'Replace' input fields at the bottom of the page?
+
+Enter 'then' in the Find field, '111111' in the Replace field and click 'Replace All'
+Are all matched words highlighted with blue borders in the editor?
+
+Click 'Replace All' button again
+Are all matched words replaced with '111111'?
+
+Mouse over the editor header where the file '.profile' is opened, click down arrow icon and click 'Go to Line' in the menu
+Do you see 'Go to line' modal opened with green 'GO' button?
+
+Enter '7' in the 'Go to line' field and click 'GO' button
+Is cursor moved to the row #7?
+
+Open menu for the '.bash_logout' file in file tree and click 'Duplicate' ( http://snag.gy/d5imL.jpg )
+Do you see new file '_1.bash_logout' displayed in the file tree?
+
+Open menu for the '.bashrc' file in file tree and click 'Duplicate' 
+Do you see new file '_1.bashrc' displayed in the file tree?
+
+Mouse over the editor header where the file '.profile' is opened, click down arrow icon and click 'Find file by name' in the menu
+Do you see search form on the screen with 'Type a file name to search' input field?
+
+Type 'bash' in the 'Type a file name to search' input field
+Are search performed in real time and search results displayed bellow the input field? Are search results contain 2 rows containing:  '_1.bashrc' and '_1.bash_logout'?
+
+Click '_1.bash_logout' in the search result
+Do you see new editor tab opened with  '_1.bash_logout' file content?
+
+Click 'STACKS', click 'My Stacks' and click red 'RE-INIT STACK' button
+Do you see 'Reinitialize Stack?' modal with 'PROCEED' and 'CANCEL' buttons?
+
+Click 'PROCEED' button and close the 'Stack catalog'
+Do you see 'Reinitializing stack...' message that automatically disappears? Do you see green 'Build stack' button?

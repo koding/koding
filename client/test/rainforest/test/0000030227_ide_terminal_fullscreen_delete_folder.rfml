@@ -1,0 +1,105 @@
+#! 386db219-1e38-4ebe-a791-4a373ac2732d
+# title: IDE: terminal, fullscreen, delete folder
+# start_uri: /
+# tags: ide
+# browsers: chrome, chrome_1440_900, firefox, ie11, osx_chrome, osx_firefox, safari, ubuntu_chrome, ubuntu_firefox
+#
+ 
+Enter '{{rainqa1.username}}' in the 'Username or Email' field, enter 'qatester' in the 'Password' field and click 'Sign In'
+Do you see 'example_1 is not build yet' modal with green 'BUILD STACK' button or 'example_1 is turned off' modal with green 'TURN IT ON' button or 'You don't have any VMs' modal with 'SHOW STACKS' button or file tree and some editor/terminal active (like on screenshot http://snag.gy/2oIRb.jpg)?
+
+Click 'STACKS', click 'My Stacks' and click red 'RE-INIT STACK' button
+Do you see 'Reinitialize Stack?' modal with 'PROCEED' and 'CANCEL' buttons?
+
+Click 'PROCEED' button and close the 'Stack catalog'
+Do you see 'Reinitializing stack...' message that automatically disappears? Do you see green 'Build stack' button?
+
+Click 'BUILD STACK' button (or  'TURN IT ON' button) and wait until process finished (it may take 1-3 minutes) or just skip this step
+Do you see file tree and some editor/terminal active (the goal is to see something like this http://snag.gy/2oIRb.jpg )? 
+
+Click down arrow icon at the right of '/home/{{rainqa1.username}}' label at the top of file tree to open filetree menu ( http://snag.gy/Rmoax.jpg ) and click 'New folder' in the menu
+Do you see new folder 'NewFolder' added to the file tree? Is folder name displayed in edit mode?
+
+Enter '{{random.address_state}}{{random.number}}' folder name and press Enter
+Do you see a folder '{{random.address_state}}{{random.number}}' with arrow icon at the left in the file tree?
+
+Click down arrow icon at the right of '{{random.address_state}}{{random.number}}' folder in the file tree, mouse over 'Compress' and click 'as .tag.gz' in the menu
+Do you see a new file '{{random.address_state}}{{random.number}}.tag.gz' in the file tree?
+
+Click down arrow icon at the right of  '{{random.address_state}}{{random.number}}' folder and click 'Terminal from here' in the menu ( http://snag.gy/a8gQD.jpg )
+Do you see a new terminal opened? Do you see ' ~/{{random.address_state}}{{random.number}}' in the terminal?
+
+Click down arrow icon in the terminal header and click 'Rename' in the menu ( http://snag.gy/KlOHf.jpg )
+Do you see an edit mode for terminal tab title is displayed in edit mode?
+
+Enter 'Terminal {{random.number}}' as a title and press Enter
+Is terminal tab renamed to  'Terminal {{random.number}}' ?
+
+Click '+' icon at the right of the terminal and select New Terminal -> New Session (http://snag.gy/UnOoo.jpg)
+Do you see new terminal tab opened?
+
+Type 'sudo' in terminal and press Enter, type 'la' in terminal and press Enter
+Do you see results of the commands in the terminal?
+
+Click down arrow icon in the terminal header and click 'Suspend' in the menu ( http://snag.gy/KlOHf.jpg )
+Is terminal closed?
+
+Click '+' icon at the right of the terminal and mouse over 'New Terminal' section
+Do you see menu with one or more 'Session (...)' items? Do you see at least one 'Session (...)' item that not-grayed (like on screenshot http://snag.gy/UUVSo.jpg )?
+
+Mouse over some not-grayed 'Session (...)' item in the menu and click 'Open' for this item
+Do you see new terminal tab opened (restored)?
+
+Click '+' icon at the right of the terminal and mouse over 'New Terminal' section, mouse over some grayed 'Session (...)' item and click 'Terminate'
+Is one of the active terminals closed?
+
+Click '+' icon at the right of the terminal and mouse over 'New Terminal' section and click 'Terminate all' in the menu
+Are all terminal tabs closed? Click 'No' on the 'Would you like us to remove the pane when there are no tabs left?' modal if it's displayed ( http://snag.gy/WynLF.jpg )
+
+Click '+' icon in the header where terminals were opened and click 'New Drawing Board' in the menu
+Do you see a new tab with drawing board opened?
+
+Try to draw something using a mouse on the drawing board area
+Are you able to draw?
+
+ Open the filetree menu ( http://snag.gy/Rmoax.jpg ) and click 'Toggle invisible files ' in the menu
+Are system files and folders hidden in the file tree?
+
+Open the filetree menu ( http://snag.gy/Rmoax.jpg ) and click 'Toggle invisible files ' in the menu again
+Are system files and folders displayed in the filetree?
+
+Mouse over the file tree header and click collapse icon ( http://snag.gy/VO3k2.jpg )
+Is file tree collapsed?
+
+Click folder icon in the file tree header
+Is file tree displayed again?
+
+Click down arrow icon at the right of '{{random.address_state}}{{random.number}}' folder in the file tree and click 'Duplicate' in the menu ( http://snag.gy/a8gQD.jpg )
+Do you see a new folder '{{random.address_state}}{{random.number}}_1' created?
+
+Click down arrow icon at the right of '{{random.address_state}}{{random.number}}' folder in the file tree and click 'Delete' in the menu
+Do you see 'Are you sure?' text and red 'Delete' button above the folder name?
+
+Click 'Delete' button
+Is folder deleted?
+
+Double click any file in the file tree
+Do you see a new editor tab opened for this file?
+
+Click '+' icon at the right of the file name in the editor header and click 'Enter Fullscreen' ( http://snag.gy/rb5Po.jpg )
+Is editor displayed in fullscreen mode?
+
+Click '+' icon at the right of the file name in the editor header and click 'Exit Fullscreen' 
+Is editor displayed in normal mode?
+
+Click 'Fullscreen' icon in the top right corner of the editor header ( http://snag.gy/YMM7u.jpg )
+Is editor displayed in fullscreen mode?
+
+Click again 'Fullscreen' icon in the top right corner of the editor header ( http://snag.gy/YMM7u.jpg )
+Is editor displayed in normal mode?
+
+Click 'STACKS', click 'My Stacks' and click red 'RE-INIT STACK' button
+Do you see 'Reinitialize Stack?' modal with 'PROCEED' and 'CANCEL' buttons?
+
+Click 'PROCEED' button and close the 'Stack catalog'
+Do you see 'Reinitializing stack...' message that automatically disappears? Do you see green 'Build stack' button?
