@@ -39,6 +39,9 @@ import (
 	"github.com/koding/logging"
 )
 
+//go:generate go run genimport.go -o import.go
+//go:generate go fmt import.go
+
 // Name holds kite name
 var Name = "kloud"
 

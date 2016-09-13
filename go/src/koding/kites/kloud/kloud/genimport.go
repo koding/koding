@@ -1,0 +1,67 @@
+// +build ignore
+
+package main
+
+import (
+	"flag"
+	"html/template"
+	"log"
+	"os"
+	"path/filepath"
+	"sort"
+)
+
+var output = flag.String("o", "-", "")
+
+var t = template.Must(template.New("").Parse(`package kloud
+
+import (
+{{range $_, $import := .}}	_ "{{$import}}"
+{{end}})
+`))
+
+func main() {
+	flag.Parse()
+
+	var imports []string
+
+	d, err := os.Open(filepath.FromSlash("../provider"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer d.Close()
+
+	fis, err := d.Readdir(-1)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, fi := range fis {
+		if !fi.IsDir() {
+			continue
+		}
+
+		imports = append(imports, "koding/kites/kloud/provider/"+filepath.Base(fi.Name()))
+	}
+
+	sort.Strings(imports)
+
+	w := os.Stdout
+
+	if *output != "-" && *output != "" {
+		f, err := os.Create(*output)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		w = f
+	}
+
+	if err := t.Execute(w, imports); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := w.Close(); err != nil {
+		log.Fatal(err)
+	}
+}

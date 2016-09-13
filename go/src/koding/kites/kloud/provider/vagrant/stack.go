@@ -118,10 +118,10 @@ func (s *Stack) checkTunnel(c *kite.Client) error {
 // Ensure Provider implements the kloud.StackProvider interface.
 //
 // StackProvider is an interface for team kloud API.
-var _ stack.StackProvider = (*Provider)(nil)
+var _ stack.Provider = (*Provider)(nil)
 
 // Stack
-func (p *Provider) Stack(ctx context.Context) (stack.Stacker, error) {
+func (p *Provider) Stack(ctx context.Context) (stack.Stack, error) {
 	bs, err := p.BaseStack(ctx)
 	if err != nil {
 		return nil, err
