@@ -6,7 +6,6 @@ Rainforest-cli is a command line interface to interact with RainforestQA. It is 
 ## Rainforest Test Cases
 
 
-
 ## Setup Environment
 
 Follow steps in  https://github.com/koding/koding in order to setup koding environment.
