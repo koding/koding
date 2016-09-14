@@ -15,16 +15,19 @@ module.exports = class StartMachinePageView extends JView
 
   pistachio: ->
 
-    '''
+    machine = @getData()
+    title   = machine.jMachine.label
+
+    """
       <div class="start-machine-flow start-machine-page">
         <header>
           <h1>Boot Virtual Machine</h1>
         </header>
         <section class="main">
           <div class="background"></div>
-          <h2>Let's Boot up your VM</h2>
+          <h2>Let's Boot up #{title}</h2>
           <p>One click and your flawless dev environment<br />will be ready to use</p>
           {{> @startButton}}
         </section>
       </div>
-    '''
+    """
