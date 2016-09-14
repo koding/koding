@@ -56,8 +56,10 @@ module.exports = utils = {
     ipV4Pattern      = '(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.xip\.io$'
     subDomainPattern = '[A-Za-z0-9_]{1}[A-Za-z0-9_-]+'
     kodingDomains    = '(?:dev|sandbox|latest|prod)'
-    baseDomain       = "#{kd.config.domains.base}".replace '.', '\\.'
 
+    # Base Domain may include port information which we don't need ~GG
+    baseDomain       = (kd.config.domains.main.split ':')[0]
+    baseDomain       = "#{baseDomain}".replace /\./g, '\\.'
 
     # e.g. [teamName.]dev|sandbox|latest|prod.koding.com
     teamPattern = if ///#{kodingDomains}\.#{baseDomain}$///.test hostname
@@ -331,6 +333,16 @@ module.exports = utils = {
       success     : callbacks.success
       error       : (xhr) ->
         callbacks.error.call this, xhr.responseText
+
+
+  findTeam: (email, callbacks = {}) ->
+
+    $.ajax
+      url         : '/findteam'
+      data        : { email, _csrf : Cookies.get '_csrf' }
+      type        : 'POST'
+      error       : callbacks.error
+      success     : callbacks.success
 
 
   getGravatarUrl : (size = 80, hash) ->

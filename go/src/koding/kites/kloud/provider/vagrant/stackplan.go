@@ -163,9 +163,17 @@ func (s *Stack) InjectVagrantData() (string, stackplan.KiteMap, error) {
 			box["box"] = "${var.vagrant_box}"
 		}
 
-		ports, ok := box["forwarded_ports"].([]interface{})
-		if !ok {
-			ports = make([]interface{}, 0)
+		var ports []interface{}
+
+		switch p := box["forwarded_ports"].(type) {
+		case []interface{}:
+			ports = p
+		case []map[string]interface{}:
+			ports = make([]interface{}, len(p))
+
+			for i := range p {
+				ports[i] = p[i]
+			}
 		}
 
 		// klient kite port
@@ -284,7 +292,7 @@ func (s *Stack) updateMachines(machines stackplan.Machines, jMachines map[string
 
 		if tf.Provider == "vagrant" {
 			if err := updateVagrant(tf, machine.ObjectId, s.Credential.Identifier); err != nil {
-				return err
+				return stackplan.ResError(err, "jMachine")
 			}
 		}
 	}

@@ -8,10 +8,10 @@ path                  = require 'path'
 Configuration = (options = {}) ->
 
   options.domains =
-    base  : 'koding.com'
-    mail  : 'koding.com'
-    main  : 'dev.koding.com'
-    port  : '8090'
+    base: options.hostname ? 'koding.com'
+    mail: 'koding.com'
+    main: options.host ? 'dev.koding.com'
+    port: '8090'
 
   options.boot2dockerbox or= if os.type() is "Darwin" then "192.168.59.103" else "localhost"
   options.serviceHost = options.boot2dockerbox
@@ -43,15 +43,17 @@ Configuration = (options = {}) ->
   options.scheme = 'http'
   options.suppressLogs = no
   options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
-  options.host or= options.hostname
   options.credentialPath or= "$KONFIG_PROJECTROOT/config/credentials.#{options.environment}.coffee"
   options.clientUploadS3BucketName or= 'kodingdev-client'
 
+  _port = if options.publicPort is '80' then '' else ":#{options.publicPort}"
+  options.host or= "#{options.hostname}#{_port}"
+
   customDomain =
-    public  : "#{options.scheme}://#{options.host}#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
+    public  : "#{options.scheme}://#{options.host}"
     public_ : options.host
-    local   : "http://127.0.0.1#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
-    local_  : "127.0.0.1#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
+    local   : "http://127.0.0.1#{_port}"
+    local_  : "127.0.0.1#{_port}"
     port    : parseInt(options.publicPort, 10)
 
   options.customDomain = customDomain
@@ -67,9 +69,22 @@ Configuration = (options = {}) ->
     moderation : yes
     teams      : no
     botchannel : yes
+    gitlab     : no
 
   KONFIG = require('./generateKonfig')(options, credentials)
+
   KONFIG.workers = require('./workers')(KONFIG, options, credentials)
+
+  options.disabledWorkers = [
+    "algoliaconnector"
+    "paymentwebhook"
+    "gatekeeper"
+    "vmwatcher"
+  ]
+
+  for worker in options.disabledWorkers
+    delete KONFIG.workers[worker]
+
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
   # Disable Sneaker for kloud.
@@ -77,13 +92,6 @@ Configuration = (options = {}) ->
 
   options.requirementCommands = [
     "$KONFIG_PROJECTROOT/scripts/generate-kite-keys.sh"
-  ]
-
-  options.disabledWorkers = [
-    "algoliaconnector"
-    "paymentwebhook"
-  # "gatekeeper"
-    "vmwatcher"
   ]
 
   KONFIG.supervisord =

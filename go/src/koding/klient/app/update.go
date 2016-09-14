@@ -19,9 +19,9 @@ import (
 	"koding/klient/remote/mount"
 
 	"github.com/hashicorp/go-version"
-	"github.com/inconshreveable/go-update"
+	update "github.com/inconshreveable/go-update"
+	"github.com/kardianos/osext"
 	"github.com/koding/kite"
-	"github.com/mitchellh/osext"
 )
 
 type Updater struct {
@@ -119,18 +119,13 @@ func (u *Updater) checkAndMigrate() error {
 func (u *Updater) updateBinary(url string, latest *version.Version) error {
 	u.Log.Info("Current version: %s is old. Going to update to: %s", u.CurrentVersion, latest)
 
-	updater := update.New()
-	err := updater.CanUpdate()
-	if err != nil {
-		return err
-	}
-
 	self, err := osext.Executable()
 	if err != nil {
 		return err
 	}
 
 	u.Log.Info("Going to update binary at: %s", self)
+
 	bin, err := u.fetch(url)
 	if err != nil {
 		return err
@@ -140,12 +135,8 @@ func (u *Updater) updateBinary(url string, latest *version.Version) error {
 	defer u.Wait.Done()
 
 	u.Log.Info("Replacing new binary with the old one.")
-	err, errRecover := updater.FromStream(bytes.NewBuffer(bin))
-	if err != nil {
-		if errRecover != nil {
-			return errRecover
-		}
 
+	if err = update.Apply(bytes.NewBuffer(bin), update.Options{}); err != nil {
 		return err
 	}
 
@@ -174,7 +165,7 @@ func (u *Updater) endpointVersion(env string) string {
 		return u.Endpoint
 	}
 
-	return "https://s3.amazonaws.com/koding-klient/" + env + "/latest-version.txt"
+	return "https://koding-klient.s3.amazonaws.com/" + env + "/latest-version.txt"
 }
 
 func (u *Updater) endpointKlient(env string, latest *version.Version) string {
@@ -190,7 +181,7 @@ func (u *Updater) endpointKlient(env string, latest *version.Version) string {
 		file = fmt.Sprintf("klient-%s.gz", latest)
 	}
 
-	return fmt.Sprintf("https://s3.amazonaws.com/koding-klient/%s/%d/%s", env, latest.Segments()[2], file)
+	return fmt.Sprintf("https://koding-klient.s3.amazonaws.com/%s/%d/%s", env, latest.Segments()[2], file)
 }
 
 func (u *Updater) latestVersion(env string) (int, error) {

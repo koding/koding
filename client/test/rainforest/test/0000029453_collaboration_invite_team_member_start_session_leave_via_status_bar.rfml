@@ -1,0 +1,81 @@
+#! 20155a1b-a8c2-4070-913f-66137c871b65
+# title: Collaboration: invite team member, start session, leave via status bar
+# start_uri: /
+# tags: existing team, teams, invitations, collaboration
+# browsers: chrome, osx_chrome
+#
+ 
+Enter 'rainqa1' in the 'Username or Email' field, enter 'qatester' in the 'Password' field and click 'Sign In'
+Do you see 'RainforestQATeam1' label at the top of the left module? Do you see 'STACKS' and 'Team stack' labels in the left part of the page?
+
+Click user icon at the right of 'RainforestQATeam1' label and click 'Team Settings'  link
+Do you see 'Team Settings' modal opened with 'General', 'Members', 'Invitations', 'API Access' and 'Team Logs' sections?
+
+Click 'Invitations' section
+Do you see 'Invite Teammates', 'Pending Invitations', 'Accepted Invitations' links?
+
+Enter '{{random.email}}' email, '{{random.first_name}}{{random.number}}' first name, uncheck 'Admin' checkbox and click 'Invite Members' button
+Do you see 'Invitation is sent to {{random.email}}' message that automatically disappears?
+
+Click 'x' icon at the top right corner of the 'Invitations' pane
+Does pane closed?
+
+Open a new incognito window in the test browser  ( http://snag.gy/Zr7K0.jpg ) and go to {{random.inbox}} by pasting the url (using ctrl-v) in the address bar, wait ~1min and refresh the page
+Do you see 'You are invited to join a team on Koding' email in inbox that received several minutes ago (and, probably, several older emails)?
+
+Click 'Open email'
+Do you see 'Hi there, You received this email because rainqa1 would like you to join rqateam1's Team on Koding.com' text in the email?'
+
+Click 'Accept Invite' link
+Do you see 'Authentication Required' confirmation?
+
+Enter 'koding' user name and '1q2w3e4r' password and click 'Login'
+Do you see 'Join the RainforestQATeam1 team' text on the page opened and  '{{random.email}}' email in the first row?
+
+Enter '!@#' username 
+Do you see 'For username only lowercase letters and numbers are allowed!' red warning?
+
+Enter 'rainqa1' username and 'qa' password and click 'Sign up & Join' button
+Do you see 'Passwords should be at least 8 characters' red warning?
+
+Enter 'rainqa1' username and 'qatester' password and click 'Sign up & Join' button
+Do you see 'Sorry, "rainqa1" is already taken' message that disappears automatically?
+
+Enter '{{random.first_name}}{{random.number}}' username and 'qatester' password and click 'Sign up & Join' button
+Do you see 'RainforestQATeam1' label at the top of the left module? Do you see 'example_1 is not build yet' text and green 'Build stack' button in the white module on the page?
+
+Click 'Build Stack' button
+Do you see 'example_1 is building now.' text? Do you see green progress bar in the center white module and in the left panel below the 'example_1' label?
+
+Wait until 'example_1 is building now.' modal disappeared from the screen (it may take ~3-5minutes). Refresh the page if modal gets stuck.
+Do you see 'Terminal' and 'Untitled.txt' text on the page?
+
+Click  'START COLLABORATION' button in the bottom right corner
+Do you see 'Starting session' progress bar bellow the button and after that 'START COLLABORATION' button is converted to 'END COLLABORATION'? Do you see a shortened URL in the bottom status bar (like on screenshot http://snag.gy/dp1Cn.jpg )?
+
+Click shortened URL in the bottom status bar
+Do you see 'Copied to clipboard!' popup message?
+
+Remember the list of panes opened (terminal, untitled.txt, etc) and select the previous window in the test browser (minimize the incognito browser and return to the browser where you are logged in as 'rainqa1'). Paste copied URL in the browser address bar using a mouse (this is important, Ctrl+V doesn't work) and press enter
+Do you see 'SHARED VMS' label in the left module on the page? Do you see 'example_1 (@{{random.first_name}}{{random.number}})' item bellow the 'SHARED VMS' label? Do you see white popup with 'Reject' and 'Accept' buttons?
+
+Click 'Accept' button
+Do you see 'Joining to collaboration session' progress bar? Do you see the same panes (terminal, untitled.txt) like on the incognito browser?
+
+Click 'example_1 (@{{random.first_name}}{{random.number}})' item bellow the 'SHARED VMS' label, click '...' icon at the right of 'example_1 (@{{random.first_name}}{{random.number}})'?
+Are you unable to find/see something related to 'VM Settings'?
+
+Click 'Leave Session' button in the bottom status bar and click 'Yes' on the 'Are you sure?' dialog
+Are 'example_1 (@{{random.first_name}}{{random.number}})' item removed from the left module and all panes from that VM closed? 
+
+Minimize current browser window and return to the incognito window
+Do you see the only 'camera' icon at the left of 'END COLLABORATION' button without any other icons/avatars?
+
+Click 'END COLLABORATION' button and click 'Yes' on the 'Are you sure?' dialog
+Is 'END COLLABORATION' button changed to 'START COLLABORATION'? Are 'camera' icon and shortened URL removed from the bottom status bar?
+
+Click 'STACKS', click 'My Stacks' and click red 'RE-INIT STACK' button
+Do you see 'Reinitialize Stack?' modal with 'PROCEED' and 'CANCEL' buttons?
+
+Click 'PROCEED' button and close the 'Stack catalog'
+Do you see 'Reinitializing stack...' message that automatically disappears? Do you see green 'Build stack' button?

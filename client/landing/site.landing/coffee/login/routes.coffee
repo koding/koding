@@ -41,9 +41,6 @@ do ->
     '/Login/:token?' : ->
       groupName = utils.getGroupNameFromLocation()
 
-      if groupName is 'koding'
-        return location.assign 'https://www.koding.com/farewell-solo'
-
       utils.checkIfGroupExists groupName, (err, group) ->
         kd.singletons.router.handleRoute if group then '/' else '/Teams'
 

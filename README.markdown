@@ -21,6 +21,7 @@ rest you can follow these steps:
 ```bash
 git clone https://github.com/koding/docker-compose.git koding-docker-compose
 cd koding-docker-compose
+# Requires docker-compose version >= 1.6
 docker-compose up -d
 ```
 
@@ -62,11 +63,19 @@ docker-compose will attach working tree to `/opt/koding` in backend
 service container.  Changes in edited files will be visible in the
 runtime environment.
 
+`docker-compose up` will build koding working tree every time.  If you
+did not make huge changes and fine with current state then you can
+just run backend service directly with following command.
+
+```bash
+docker-compose run --service-ports backend
+```
+
 You will need to run client builder to see your changes in built
 frontend code. This can be achieved with command below.
 
 ```bash
-docker exec koding_backend_1 make -C /opt/koding/client
+docker-compose exec backend make -C /opt/koding/client
 ```
 
 If you need to execute some commands by yourself in runtime
@@ -74,7 +83,7 @@ environment then you can use following snippet to start a shell in
 backend service container.
 
 ```bash
-docker exec -it koding_backend_1 bash
+docker-compose exec backend bash
 ```
 
 You can follow [coffeescript-styleguide](https://github.com/koding/styleguide-coffeescript)

@@ -1,128 +1,101 @@
-# test
 
-this folder contains browser automated tests that run on [selenium server](http://www.seleniumhq.org).
+## Automated Tests in Koding
+ This document will guide you through setting up and  writing integration test using [Nightwatch.js](http://nightwatchjs.org)  
+ 
+ Nightwatch.js is an easy to use Node.js based End-to-End (E2E) testing framework for browser based websites. It uses the [Selenium WebDriver API](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol) to perform commands and assertions on DOM elements. You can find all commands and selenium protocol with examples in [Nightwatch API](http://nightwatchjs.org/api). You will see that how easy to write a integration test in a _Quick Start_ section with a login example.
 
-# quick start
+## Koding Test Cases
+[Our test document](https://docs.google.com/spreadsheets/d/1QB4uj37kH2ozwWo9KWmdndvW-LVkBhRFbSjkp6EFibE/edit) includes all implemented and unimplemented test cases. When you implement the test cases, we pay you for each test case. Price may vary based on the difficulty level of test. For more information [Upwork](https://www.upwork.com/)
 
-Go to [client](../client) folder and run:
+## Requirements
+  - [selenium server jar file](https://selenium-release.storage.googleapis.com/index.html)
+  - [nightwatch.js](http://nightwatchjs.org)
+  - [firefox version 46.0 or earlier versions](https://www.mozilla.org/en-US/firefox/46.0/releasenotes/) ( we have compatible issue with latest version of firefox) 
+
+## Setup Environment
+Follow steps in  https://github.com/koding/koding in order to setup koding environment.
+
+## Quick Start
+**Writing Sample Test : Team Login Integration Test**
+	
+  Open terminal, pull latest version of Koding and create new branch named TestLogin
+  
+```sh
+git pull --rebase koding master 
+git checkout -b 'TestLogin'
+```
+
+  Create a ```login``` folder then create ```login.coffee``` and ```loginhelpers.coffee``` file under  ```koding/client/test/lib/``` directory.
+  
+```sh
+mkdir client/test/lib/login
+touch client/test/lib/login/login.coffee
+touch client/test/lib/helpers/loginhelpers.coffee
+```
+
+Test functions should be written in ```loginhelpers.coffee```. We can test login to team in just 5 following line. Open url and wait until the login form be visible then enter team name and click login button. It will show notification because of that the team has not been created before.
 
 ```sh
-λ koding/client make test
+module.exports =
+  loginToTeam: (browser) ->
+     browser
+      .url url
+      .waitForElementVisible loginForm, 40000
+      .setValue teamNameSelector, user.teamSlug
+      .click loginButton
+      .assert.containsText notification, "We couldn't find your team"
 ```
+You can copy the completed code from [loginhelpers.coffee](https://gist.github.com/ezgikaysi/981f49469b3425e6d527b6e2dc9883da)
 
-This will configure your `nightwatch` environment, transpile coffee-scripts under `test/lib` directory into `test/build`, start [selenium-server,](./vendor) and run your tests in the correct order that they need to be run.
-
-# configuration
-
-In order to run tests written with [Nightwatch.js](http://nightwatchjs.org) framework, you need to generate a [configuration script.](http://nightwatchjs.org/guide#settings-file)
-
-This file can be automatically generated with:
+We just call ```loginToTeam``` function in ```login.coffee```.
 
 ```sh
-λ client/test make configure
+  module.exports =
+   loginToTeam: (browser) ->
+    loginhelpers.loginToTeam browser
+    browser.end()
 ```
+You can copy the completed code from [login.coffee](https://gist.github.com/ezgikaysi/59d497e077d9f1523a92fc2dd9bc133c)
 
-or you can directly run the configuration tool itself:
+### Running Tests
 
+Execute to following line in ```Koding``` directory
 ```sh
-λ client/test ./bin/cmd.coffee browser
+./run exec client/test/run.sh login login
 ```
 
-Running any of those will write two files in `client` directory:
+![Video Walkthrough](loginToTeam.gif)
 
-### client/.nightwatch.json
 
-This is the configuration file expected by `nightwatch` and it is generated specifically for the platform (os) you are on.
-
-By default configuration tool, uses [a blueprint file](bin/nightwatch-blueprint.json) for the defaults.
-
-But you can overwrite [any key](http://nightwatchjs.org/guide#settings-file) from cli using [dot notation](https://github.com/bcoe/yargs#dot-notation):
-
-```sh
-λ client/test ./bin/cmd.coffee browser --selenium.port 5555
+## Test Architecture
+ All files related with testing is under the ```Koding/client/test``` directory.
+ ```bash
+Coverage.md    build          logs           users.json
+Makefile       globals.coffee loop           vendor
+Readme.md      globals.js     output
+bin            lib            run.sh
 ```
+ Take a look at these 2 folders and 3 files that are important in order to write test cases.
 
-### client/.config.json
+**lib:** All test files and helper files are written under this directory.  
 
-This file is also extended with a `test.url` key that you have specified.
+**bin:** It includes all tests file in javascript format. When we add coffee file, it is automatically converted to javascript format. We do not add or change anything under this folder. 
 
-Following is the help output of the configuration tool:
+**users.json:** It includes default created user information in json format. These informations are used during test. When you want to create new users, you just delete all contents of the file and then run test. When test is started to run, it will be recreated automatically.
 
-```
-usage: coffee bin/cmd.coffee <command> [options]
+**helpers.coffee** It includes common functions such as ```getUrl```, ```createFolder```, ```deleteFolder```, ```createFile``` etc.
 
-Commands:
-  browser    configure browser tests
+**utils.coffee** It includes common functions about users such as ``generateUsers``, ``getUser``, ``getPassword``, ``getUser``
 
-Options:
-  --help, -h        show this message
-  --url             specify a url that koding webserver is running on
-  --nightwatch      specify a nightwatch config blueprint file.
-                    actual config file will be written to client/.nightwatch.json
-  --start-selenium  if enabled starts a selenium server process [default: true]
-```
+## Standardization
+* Tests must be written in coffeescript and in [coffeescript-styleguide](https://github.com/koding/styleguide-coffeescript) that we are relying on.
 
-# running tests
+* All functions must be in related helper file. 
 
-There is a handful of `Makefile` targets defined to make life easier:
+* Css selectors must be defined in top of the file.
 
-Configure and write `client/.nightwatch.json` file:
+* Indentation must be 2 spaces
 
-```sh
-λ client/test make configure
-```
+## License
 
-You can pass additional args that is expected by configuration tool (`bin/cmd.coffee`):
-
-```sh
-λ client/test TEST_EXTRAS=--no-start-selenium make configure
-```
-
-Transpile coffee files under `test/lib` into `test/build`:
-
-```sh
-λ client/test make compile
-```
-
-A complete build with configuration and transpilation:
-
-```sh
-λ client/test make build
-```
-
-Run tests in the correct order that they need to be run:
-
-```sh
-λ client/test make run
-```
-
-Build and run:
-
-```sh
-λ client/test make all
-```
-
-# running tests individually
-
-You can run tests individually using either `test` or `run.sh` scripts, these scripts are same except that `test` retranspiles coffees before running:
-
-Run `activity` suite tests:
-
-```sh
-λ client/test ./test activity
-```
-
-Run `activity/likeunlike` suite
-
-```sh
-λ client/test ./test activity likeunlike
-```
-
-Gravatar:
-
-username: kodingtestuser1 / kodingtestuser@koding.com
-password: passfortestuser
-
-# license
-
-2015 Koding, Inc
+Koding is licensed under [Apache 2.0.](https://github.com/koding/koding/blob/master/LICENSE)

@@ -13,9 +13,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam"
 
 	"koding/kites/kloud/api/amazon"
-	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/provider"
 	"koding/kites/kloud/provider/koding"
+	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stackplan"
 
 	"golang.org/x/net/context"
@@ -25,7 +25,7 @@ func init() {
 	stackplan.MetaFuncs["aws"] = func() interface{} { return &AwsMeta{} }
 }
 
-var _ kloud.Validator = (*AwsMeta)(nil)
+var _ stack.Validator = (*AwsMeta)(nil)
 
 // AwsMeta represents jCredentialDatas.meta for "aws" provider.
 type AwsMeta struct {
@@ -195,11 +195,11 @@ type Stack struct {
 // Ensure Provider implements the kloud.StackProvider interface.
 //
 // StackProvider is an interface for team kloud API.
-var _ kloud.StackProvider = (*Provider)(nil)
+var _ stack.StackProvider = (*Provider)(nil)
 
 // Stack gives a kloud.Stacker value that implements stack
 // methods for the AWS cloud.
-func (p *Provider) Stack(ctx context.Context) (kloud.Stacker, error) {
+func (p *Provider) Stack(ctx context.Context) (stack.Stacker, error) {
 	bs, err := p.BaseStack(ctx)
 	if err != nil {
 		return nil, err

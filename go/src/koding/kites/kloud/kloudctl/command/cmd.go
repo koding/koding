@@ -2,7 +2,7 @@ package command
 
 import (
 	"fmt"
-	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stack"
 	"strings"
 	"sync"
 
@@ -39,7 +39,7 @@ func (c *Cmd) SingleMachine(id string, k *kite.Client) (string, error) {
 		return "", err
 	}
 
-	var result kloud.ControlResult
+	var result stack.ControlResult
 	err = resp.Unmarshal(&result)
 	if err != nil {
 		return "", err

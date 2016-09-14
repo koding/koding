@@ -5,7 +5,7 @@ actions                 = require './actiontypes'
 getters                 = require './getters'
 Promise                 = require 'bluebird'
 Encoder                 = require 'htmlencode'
-remote                  = require('app/remote').getInstance()
+remote                  = require 'app/remote'
 Promise                 = require 'bluebird'
 showError               = require 'app/util/showError'
 toImmutable             = require 'app/util/toImmutable'
@@ -13,9 +13,9 @@ getGroup                = require 'app/util/getGroup'
 whoami                  = require 'app/util/whoami'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 Machine = require 'app/providers/machine'
-stackDefaults = require 'stacks/defaults'
-providersParser = require 'stacks/views/stacks/providersparser'
-requirementsParser = require 'stacks/views/stacks/requirementsparser'
+stackDefaults = require 'app/util/stacks/defaults'
+providersParser = require 'app/util/stacks/providersparser'
+requirementsParser = require 'app/util/stacks/requirementsparser'
 generateTemplateRawContent = require 'app/util/generateTemplateRawContent'
 Tracker = require 'app/util/tracker'
 
@@ -268,7 +268,7 @@ acceptInvitation = (machine) ->
 
     if invitation?.type is 'collaboration' or machine.get('type') is 'collaboration'
       _getInvitationChannelId { uid, invitation }, (channelId) ->
-        require('activity/flux/actions/channel').loadChannel(channelId).then ({ channel }) ->
+        require('app/flux/socialapi/actions/channel').loadChannel(channelId).then ({ channel }) ->
           if channel.isParticipant
             return kallback "/IDE/#{channelId}", ->
               reactor.dispatch actions.INVITATION_ACCEPTED, machine.get '_id'
@@ -797,9 +797,12 @@ unshareMachineWihAllUsers = (machineId) ->
 
 setLabel = (machineUId, label) ->
 
+  {computeController} = kd.singletons
+
   new Promise (resolve, reject) ->
     fetchMachineByUId machineUId, (machine) ->
       machine.setLabel label, (err, newLabel) ->
+        computeController.triggerReviveFor machine._id
         return reject err  if err
         resolve newLabel
 

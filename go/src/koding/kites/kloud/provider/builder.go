@@ -7,8 +7,8 @@ import (
 
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/eventer"
-	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/stackstate"
 	"koding/kites/kloud/terraformer"
@@ -29,7 +29,7 @@ import (
 // is zeroed, which could make the destroy oepration to fail - we
 // first build machines and rest of the destroy is perfomed asynchronously.
 func (bs *BaseStack) Apply(ctx context.Context) (interface{}, error) {
-	var arg kloud.ApplyRequest
+	var arg stack.ApplyRequest
 	if err := bs.Req.Args.One().Unmarshal(&arg); err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (bs *BaseStack) Apply(ctx context.Context) (interface{}, error) {
 		return nil, fmt.Errorf("State is currently %s. Please try again later", state)
 	}
 
-	if rt, ok := kloud.RequestTraceFromContext(ctx); ok {
+	if rt, ok := stack.RequestTraceFromContext(ctx); ok {
 		rt.Hijack()
 	}
 
@@ -62,12 +62,12 @@ func (bs *BaseStack) Apply(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	return kloud.ControlResult{
+	return stack.ControlResult{
 		EventId: bs.Eventer.ID(),
 	}, nil
 }
 
-func (bs *BaseStack) apply(ctx context.Context, req *kloud.ApplyRequest) error {
+func (bs *BaseStack) apply(ctx context.Context, req *stack.ApplyRequest) error {
 	log := bs.Log.New(req.StackID)
 
 	bs.Eventer.Push(&eventer.Event{
@@ -107,7 +107,7 @@ func (bs *BaseStack) apply(ctx context.Context, req *kloud.ApplyRequest) error {
 	return nil
 }
 
-func (bs *BaseStack) destroy(ctx context.Context, req *kloud.ApplyRequest) error {
+func (bs *BaseStack) destroy(ctx context.Context, req *stack.ApplyRequest) error {
 	log := bs.Log.New(req.StackID)
 
 	bs.Eventer.Push(&eventer.Event{
@@ -159,8 +159,8 @@ func (bs *BaseStack) destroy(ctx context.Context, req *kloud.ApplyRequest) error
 	return nil
 }
 
-func (bs *BaseStack) destroyAsync(ctx context.Context, req *kloud.ApplyRequest) error {
-	if rt, ok := kloud.RequestTraceFromContext(ctx); ok {
+func (bs *BaseStack) destroyAsync(ctx context.Context, req *stack.ApplyRequest) error {
+	if rt, ok := stack.RequestTraceFromContext(ctx); ok {
 		defer rt.Send()
 	}
 
@@ -206,8 +206,8 @@ func (bs *BaseStack) destroyAsync(ctx context.Context, req *kloud.ApplyRequest) 
 	return bs.Builder.Database.Destroy()
 }
 
-func (bs *BaseStack) applyAsync(ctx context.Context, req *kloud.ApplyRequest) error {
-	if rt, ok := kloud.RequestTraceFromContext(ctx); ok {
+func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) error {
+	if rt, ok := stack.RequestTraceFromContext(ctx); ok {
 		defer rt.Send()
 	}
 

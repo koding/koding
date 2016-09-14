@@ -8,9 +8,9 @@ path                  = require 'path'
 Configuration = (options = {}) ->
 
   options.domains =
-    base: 'koding.com'
+    base: options.hostname ? 'koding.com'
     mail: 'koding.com'
-    main: 'dev.koding.com'
+    main: options.host ? 'dev.koding.com'
     port: '8090'
 
   options.boot2dockerbox or= if os.type() is "Darwin" then "192.168.59.103" else "localhost"
@@ -78,6 +78,7 @@ Configuration = (options = {}) ->
     moderation : yes
     teams      : no
     botchannel : yes
+    gitlab     : yes
 
   KONFIG = require('./generateKonfig')(options, credentials)
   KONFIG.workers = require('./workers')(KONFIG, options, credentials)

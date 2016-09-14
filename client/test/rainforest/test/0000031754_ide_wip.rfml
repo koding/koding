@@ -1,0 +1,87 @@
+#! 18d6576d-7206-4a43-ab50-c3332fb9503b
+# title: IDE: (WIP)
+# start_uri: /
+# tags: team creation, ide
+# browsers: osx_chrome
+#
+ 
+Enter 'koding' in the 'User Name' and '1q2w3e4r' in the 'Password' fields and click on 'Log in'
+Do you see 'Sign in to your team' form in the center of the page with a green 'Continue' button? Do you see 'Click here to get started.' text below that form?
+
+Click on 'Click here' link
+Do you see 'Create a team' form and a green 'Sign up' button?
+
+Enter 'rainforestqa99@koding.com' in the email and '{{ random.last_name }}{{ random.number }}' in the team name fields and click on 'Sign Up' button
+Do you see 'Your team URL' form with URL field prefilled?
+
+Click on 'Next' button
+Do you see 'Sign in' form with only password input field? Do you see 'Hey rainforestqa99' text?
+
+Enter 'rainforestqa99' in the password field and click on 'Done!' button, then enter 'koding' in the 'User Name' and '1q2w3e4r' in the 'Password' fields and click on 'Log in' (on the Authentication Required form)
+Do you see 'Stack Catalog' modal with 'Welcome', 'My Stacks', 'My Stack Templates', 'Team Stack Templates' and 'Koding Utilities' tabs? Do you see 'Create a Stack for Your Team', 'Invite your team' and 'Install KD' sections?
+
+Click on 'Create a Stack for Your Team' section and then click on 'Get Started!' button
+Do you see 'What provider do you want to use' title? Do you see 'amazon web services' and other 'coming soon labeled' providers? Do you see 'Skip setup guide' link in the bottom?
+
+Click on 'Skip setup guide' and then click on 'Credentials' text having a red (!) next to it
+Do you see 'rainforestqa99's AWS keys' text with 'aws' label under it? Do you see '+ Create New' button above it?
+
+Click on 'Use This & Continue' button and then click on 'Save & Test' button
+Do you see 'Your stack script has been successfully saved..' overlay? Do you see 'Close' button?
+
+Click on 'Close' button and then close this modal by clicking on (x) icon from top right corner
+Do you see 'Readme text for this stack template' and 'example is not build yet.' texts in the center and 'Build Stack' button under it?
+
+Click on 'Build Stack' button
+Do you see 'example is building now.' text? Do you see green progress bar in the center and in the left sidebar below the 'example' label?
+
+Click on the default profile image next to '{{ random.last_name }}{{ random.number }}' label on top left and then click on 'Team Settings'
+Do you see 'Team Settings' modal opened with 'General', 'Members', 'Invitations', 'Integrations', 'API Access' and 'Team Logs' sections? Do you see '{{ random.last_name }}{{ random.number }}' in 'Name' and 'URL' fields?
+
+Click on 'Invitations' from left vertical menu and then enter 'rainforestqa25@koding.com' in the 'Email' field of the first row and uncheck 'Admin' checkbox and click on 'Invite Members' button
+Have you seen 'Invitation is sent to rainforestqa25@koding.com' message?
+
+Open an incognito window (by clicking on the 3lined button from top right corner of the browser and selecting 'New Incognito Window' - screenshot here:http://take.ms/2hxOf) and go to '{{ random.last_name }}{{ random.number }}.sandbox.koding.com'
+Do you see 'Authentication Required' form?
+
+Enter 'koding' in the 'User Name' and '1q2w3e4r' in the 'Password' fields and click on 'Log in'
+Do you see 'Sign in to {{ random.last_name }}{{ random.number }}' login form? Do you see green 'Sign in' button?
+
+Enter 'rainforestqa25' in both username/email and password fields and click on 'Sign in' button
+Do you see '{{ random.last_name }}{{ random.number }}' label at the top left corner? Do you see 'STACKS' label in the left sidebar? Do you see 'example' label under 'Default Stack Template' on top left sidebar?
+
+Return to the first browser, select 'Members' from the left vertical menu and click on the 'Member' text next to 'rainforestqa25'
+Do you see 'Make Owner', 'Make Admin', 'Make Moderator' and 'Disable User' buttons?
+
+Click on 'Disable User' button and then return to the incognito window
+Do you see that user is logged out automatically? Do you see 'Sign in to {{ random.last_name }}{{ random.number }}' login form? Do you see green 'Sign in' button?
+
+Enter 'rainforestqa25' in both username/email and password fields and click on 'Sign in' button
+Have you seen 'You are not allowed to access this team' warning?
+
+Return to the first browser, click on 'Disabled' tab and then click on 'Disabled' text next to 'rainforestqa25'
+Do you see 'Enable User' button?
+
+Click on 'Enable User' button
+Do you see that it's removed from the list? Do you see 'No disabled user found!' text?
+
+Return to the incognito window, enter 'rainforestqa25' in both username and password fields and click on 'Sign in' button
+Are you logged in successfully?
+
+ Return to the first browser and close the modal by clicking (x) icon from top right corner
+Do you see '/home/rainforestqa99' label on top of file list? Do you see 'Terminal' tab and 'rainforestqa99@rainforestqa99:~$' in that tab?
+
+Save image from here: {{ random.image }} to your desktop, return to the first browser and drag and drop image to the Filetree under '/home/rainforestqa99' label (like in the screencast: http://recordit.co/KRArrgJ8Gs)
+Is it added to the end of Filetree?
+
+Click on the little down arrow appearing when you mouse over the image file you just added
+Do you see 'Open file', 'Watch file', 'Delete', 'Rename', 'Duplicate' and other menu options?
+
+Click on 'New file' and hit enter
+Is a file named 'NewFile.txt' added to the filetree?
+
+Open 'NewFile.txt' by double clicking it, click on the little down arrow next to the title of the file opened in the pane
+Do you see 'Save', 'Save As...', 'Save All', and other menu options?
+
+Select 'Save As...' and select '.config' folder on the dialog box opened and then click on 'Save' button
+Do you see 'NewFile.txt' in the '.config' folder when you double click the folder (it may be already visible in the folder without opening it)?

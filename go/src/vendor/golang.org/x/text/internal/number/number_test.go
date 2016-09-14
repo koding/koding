@@ -7,6 +7,7 @@ package number
 import (
 	"testing"
 
+	"golang.org/x/text/internal/testtext"
 	"golang.org/x/text/language"
 )
 
@@ -57,5 +58,33 @@ func TestInfo(t *testing.T) {
 		if got := info.Digit('9'); got != tc.wantNine {
 			t.Errorf("%s:%v:nine: got %q; want %q", tc.lang, tc.sym, got, tc.wantNine)
 		}
+	}
+}
+
+func TestFormats(t *testing.T) {
+	testCases := []struct {
+		lang    string
+		pattern string
+		index   []byte
+	}{
+		{"en", "#,##0.###", tagToDecimal},
+		{"de", "#,##0.###", tagToDecimal},
+		{"de-CH", "#,##0.###", tagToDecimal},
+		{"pa", "#,##,##0.###", tagToDecimal},
+		{"pa-Arab", "#,##0.###", tagToDecimal}, // Does NOT inherit from pa!
+		{"mr", "#,##,##0.###", tagToDecimal},
+		{"mr-IN", "#,##,##0.###", tagToDecimal}, // Inherits from mr.
+		{"nl", "#E0", tagToScientific},
+		{"nl-MX", "#E0", tagToScientific}, // Inherits through Tag.Parent.
+		{"zgh", "#,##0 %", tagToPercent},
+	}
+	for _, tc := range testCases {
+		testtext.Run(t, tc.lang, func(t *testing.T) {
+			got := formatForLang(language.MustParse(tc.lang), tc.index)
+			want, _ := ParsePattern(tc.pattern)
+			if *got != *want {
+				t.Errorf("\ngot  %#v;\nwant %#v", got, want)
+			}
+		})
 	}
 }

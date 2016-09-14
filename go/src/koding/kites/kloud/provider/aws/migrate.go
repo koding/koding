@@ -11,9 +11,9 @@ import (
 	"koding/db/models"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/eventer"
-	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/provider/koding"
+	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/utils/object"
 
@@ -50,7 +50,7 @@ type MigrateProvider struct {
 	Stack  *Stack
 	Koding *koding.Provider
 	Object *object.Builder
-	Locker kloud.Locker
+	Locker stack.Locker
 	Log    logging.Logger
 
 	Status     map[bson.ObjectId]*MigrationMeta
@@ -83,7 +83,7 @@ func diff(lhs map[string]*models.Machine, rhs []string) []string {
 }
 
 // Migrate
-func (mp *MigrateProvider) Migrate(ctx context.Context, req *kloud.MigrateRequest) (interface{}, error) {
+func (mp *MigrateProvider) Migrate(ctx context.Context, req *stack.MigrateRequest) (interface{}, error) {
 	mp.pushEvent(0, "Migration has started")
 
 	resp, err := mp.migrate(ctx, req)
@@ -96,7 +96,7 @@ func (mp *MigrateProvider) Migrate(ctx context.Context, req *kloud.MigrateReques
 	return resp, nil
 }
 
-func (mp *MigrateProvider) migrate(ctx context.Context, req *kloud.MigrateRequest) (interface{}, error) {
+func (mp *MigrateProvider) migrate(ctx context.Context, req *stack.MigrateRequest) (interface{}, error) {
 	b := mp.Stack.Builder
 
 	b.Stack = &stackplan.Stack{
@@ -106,7 +106,7 @@ func (mp *MigrateProvider) migrate(ctx context.Context, req *kloud.MigrateReques
 		},
 	}
 
-	if rt, ok := kloud.RequestTraceFromContext(ctx); ok {
+	if rt, ok := stack.RequestTraceFromContext(ctx); ok {
 		rt.Hijack()
 	}
 
@@ -196,7 +196,7 @@ func (mp *MigrateProvider) migrate(ctx context.Context, req *kloud.MigrateReques
 		// bootstrapped yet.
 		b.Credentials = nil
 
-		req := &kloud.BootstrapRequest{
+		req := &stack.BootstrapRequest{
 			Provider:    "aws",
 			Identifiers: []string{req.Identifier},
 			GroupName:   req.GroupName,
@@ -253,16 +253,16 @@ func (mp *MigrateProvider) migrate(ctx context.Context, req *kloud.MigrateReques
 		}
 	}()
 
-	return kloud.ControlResult{
+	return stack.ControlResult{
 		EventId: mp.Stack.Eventer.ID(),
 	}, nil
 }
 
-func (mp *MigrateProvider) migrateAsync(ctx context.Context, req *kloud.MigrateRequest,
+func (mp *MigrateProvider) migrateAsync(ctx context.Context, req *stack.MigrateRequest,
 	accountID string, user *amazon.Client) error {
 	defer mp.unlock()
 
-	if rt, ok := kloud.RequestTraceFromContext(ctx); ok {
+	if rt, ok := stack.RequestTraceFromContext(ctx); ok {
 		defer rt.Send()
 	}
 
@@ -547,10 +547,10 @@ func (mp *MigrateProvider) pushError(err error) {
 // Migrate
 func (s *Stack) Migrate(ctx context.Context) (interface{}, error) {
 	if s.m == nil {
-		return nil, kloud.NewError(kloud.ErrProviderIsDisabled)
+		return nil, stack.NewError(stack.ErrProviderIsDisabled)
 	}
 
-	var arg kloud.MigrateRequest
+	var arg stack.MigrateRequest
 	if err := s.Req.Args.One().Unmarshal(&arg); err != nil {
 		return nil, err
 	}

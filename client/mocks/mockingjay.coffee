@@ -1,6 +1,6 @@
 kd                        = require 'kd'
 expect                    = require 'expect'
-remote                    = require('app/remote').getInstance()
+remote                    = require 'app/remote'
 FSFile                    = require 'app/util/fs/fsfile'
 Machine                   = require 'app/providers/machine'
 ideRoutes                 = require 'ide/routes.coffee'

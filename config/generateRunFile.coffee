@@ -152,9 +152,6 @@ generateDev = (KONFIG, options) ->
       # Do PG Migration if necessary
       migrate up
 
-      # Create default workspaces
-      node scripts/create-default-workspace
-
       # Sanitize email addresses
       node $KONFIG_PROJECTROOT/scripts/sanitize-email
 
@@ -335,7 +332,7 @@ generateDev = (KONFIG, options) ->
 
       # Include this to dockerfile before we continute with building
       mkdir -p kontrol
-      cp $KONFIG_PROJECTROOT/go/src/github.com/koding/kite/kontrol/*.sql kontrol/
+      cp $KONFIG_PROJECTROOT/go/src/vendor/github.com/koding/kite/kontrol/*.sql kontrol/
       sed -i -e "s/somerandompassword/$KONFIG_KONTROL_POSTGRES_PASSWORD/" kontrol/001-schema.sql
       sed -i -e "s/kontrolapplication/$KONFIG_KONTROL_POSTGRES_USERNAME/" kontrol/001-schema.sql
 
@@ -435,12 +432,6 @@ generateDev = (KONFIG, options) ->
 
     }
 
-    function create_default_workspace () {
-
-      node $KONFIG_PROJECTROOT/scripts/create-default-workspace
-
-    }
-
     function cleanchatnotifications () {
       $GOBIN/notification -c $KONFIG_SOCIALAPI_CONFIGFILEPATH -h
     }
@@ -536,9 +527,6 @@ generateDev = (KONFIG, options) ->
 
     elif [ "$1" == "updateusers" ]; then
       updateusers
-
-    elif [ "$1" == "create_default_workspace" ]; then
-      create_default_workspace
 
     elif [ "$1" == "cleanchatnotifications" ]; then
       cleanchatnotifications

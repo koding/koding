@@ -31,12 +31,12 @@ echo 127.0.0.1 {{.TLSProxyHostname}} >> /etc/hosts
 
 echo I am provisioning...
 date > /etc/vagrant_provisioned_at
-wget -q --retry-connrefused --tries 5 https://s3.amazonaws.com/koding-provision/provisionklient.gz || die "downloading provisionklient failed"
+wget -q --retry-connrefused --tries 5 https://koding-provision.s3.amazonaws.com/provisionklient.gz || die "downloading provisionklient failed"
 gzip -d -f provisionklient.gz || die "unarchiving provisionklient failed"
 chmod +x provisionklient
 ./provisionklient -data '{{.ProvisionData}}'
 
-cat >user-data.sh <<EOF
+cat >user-data.sh <<"EOF"
 {{unbase64 .CustomScript}}
 
 echo _KD_DONE_

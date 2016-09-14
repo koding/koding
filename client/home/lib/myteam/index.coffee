@@ -7,7 +7,7 @@ HomeTeamPermissions  = require './hometeampermissions'
 TeamFlux             = require 'app/flux/teams'
 AppFlux              = require 'app/flux'
 whoami               = require 'app/util/whoami'
-remote               = require('app/remote').getInstance()
+remote               = require 'app/remote'
 camilizeString = require 'app/util/camelizeString'
 toImmutable = require 'app/util/toImmutable'
 canSeeMembers = require 'app/util/canSeeMembers'
@@ -66,6 +66,7 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
       viewTop = @wrapper.getY()
       subViewTop = subView.getY()
       sectionHeader = 88  # height of header of dashboard
+      sectionHeader = sectionHeader + 235 # height of permisson section
 
       scrollMuch = subViewTop - viewTop - sectionHeader
 

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"os/user"
 	"path/filepath"
 	"runtime"
@@ -28,11 +29,12 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	var (
-		forceUpdate   = c.Bool("force")
-		klientVersion = c.Int("klient-version")
-		klientChannel = c.String("klient-channel")
-		kdVersion     = c.Int("kd-version")
-		kdChannel     = c.String("kd-channel")
+		forceUpdate    = c.Bool("force")
+		klientVersion  = c.Int("klient-version")
+		klientChannel  = c.String("klient-channel")
+		kdVersion      = c.Int("kd-version")
+		kdChannel      = c.String("kd-channel")
+		continueUpdate = c.Bool("continue")
 	)
 
 	if kdChannel == "" {
@@ -66,6 +68,63 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		} else {
 			fmt.Println("An update is available.")
 		}
+	}
+
+	if kdVersion == 0 {
+		var err error
+
+		kdVersion, err = latestVersion(config.S3KlientctlLatest)
+		if err != nil {
+			log.Error("Error fetching klientctl update version. err: %s", err)
+			fmt.Println(FailedCheckingUpdateAvailable)
+			return 1
+		}
+	}
+
+	if klientVersion == 0 {
+		var err error
+
+		klientVersion, err = latestVersion(config.S3KlientLatest)
+		if err != nil {
+			log.Error("Error fetching klient update version. err: %s", err)
+			fmt.Println(FailedCheckingUpdateAvailable)
+			return 1
+		}
+	}
+
+	klientPath := filepath.Join(KlientDirectory, "klient")
+	klientctlPath := filepath.Join(KlientctlDirectory, "kd")
+	klientUrl := config.S3Klient(klientVersion, klientChannel)
+	klientctlUrl := config.S3Klientctl(kdVersion, kdChannel)
+
+	// If --continue is not passed, download kd and then call the new kd binary with
+	// `kd update --continue`, so that the new code handles updates to klient.sh,
+	// service, and any migration code needed.
+	if !continueUpdate {
+		// Only show this message once.
+		fmt.Println("Updating...")
+
+		if err := downloadRemoteToLocal(klientctlUrl, klientctlPath); err != nil {
+			log.Error("Error downloading klientctl. err:%s", err)
+			fmt.Println(FailedDownloadUpdate)
+			return 1
+		}
+
+		flags := flagsFromContext(c)
+		// Very important to pass --continue for the subprocess.
+		// --force also helps ensure it updates, since the subprocess is technically
+		// the latest KD version.
+		flags = append([]string{"update", "--continue=true", "--force=true"}, flags...)
+		log.Info("%s", flags)
+		cmd := exec.Command(klientctlPath, flags...)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			log.Error("error during --continue update. err: %s", err)
+			return 1
+		}
+
+		return 0
 	}
 
 	kontrolURL := config.KontrolURL
@@ -111,45 +170,10 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	if kdVersion == 0 {
-		var err error
-
-		kdVersion, err = latestVersion(config.S3KlientctlLatest)
-		if err != nil {
-			log.Error("Error checking if update is available. err: %s", err)
-			fmt.Println(FailedCheckingUpdateAvailable)
-			return 1
-		}
-	}
-
-	if klientVersion == 0 {
-		var err error
-
-		klientVersion, err = latestVersion(config.S3KlientLatest)
-		if err != nil {
-			log.Error("Error checking if update is available. err: %s", err)
-			fmt.Println(FailedCheckingUpdateAvailable)
-			return 1
-		}
-	}
-
-	// download klient and kd to approprite place
-	dlPaths := map[string]string{
-		// /opt/kite/klient/klient
-		filepath.Join(KlientDirectory, "klient"): config.S3Klient(klientVersion, klientChannel),
-
-		// /usr/local/bin/kd
-		filepath.Join(KlientctlDirectory, "kd"): config.S3Klientctl(kdVersion, kdChannel),
-	}
-
-	fmt.Println("Updating...")
-
-	for localPath, remotePath := range dlPaths {
-		if err := downloadRemoteToLocal(remotePath, localPath); err != nil {
-			log.Error("Error updating. err:%s", err)
-			fmt.Println(FailedDownloadUpdate)
-			return 1
-		}
+	if err := downloadRemoteToLocal(klientUrl, klientPath); err != nil {
+		log.Error("Error downloading klient. err:%s", err)
+		fmt.Println(FailedDownloadUpdate)
+		return 1
 	}
 
 	klientScript := filepath.Join(KlientDirectory, "klient.sh")
@@ -284,4 +308,29 @@ func checkUpdate() (bool, error) {
 	checkUpdate.ForceCheck = true
 
 	return checkUpdate.IsUpdateAvailable()
+}
+
+// parse a codegansta/cli context and return a slice of flag=value.
+func flagsFromContext(c *cli.Context) []string {
+	flags := []string{}
+
+	for _, flag := range c.FlagNames() {
+		// Only add the flag and value if the value is not a zero value.
+		if value := c.String(flag); !isStringZeroValue(value) {
+			flags = append(flags, fmt.Sprintf(`--%s="%s"`, flag, value))
+		}
+	}
+
+	return flags
+}
+
+// isStringZeroValue checks if the given string is a zero value in string form,
+// as would be returned by Context.String("flagName").
+func isStringZeroValue(s string) bool {
+	switch s {
+	case "", "0", "false":
+		return true
+	default:
+		return false
+	}
 }

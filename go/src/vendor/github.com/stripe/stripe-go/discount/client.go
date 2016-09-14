@@ -1,38 +1,44 @@
-// package discount provides the discount-related APIs
+// Package discount provides the discount-related APIs
 package discount
 
 import (
 	"fmt"
 
-	. "github.com/stripe/stripe-go"
+	stripe "github.com/stripe/stripe-go"
 )
 
 // Client is used to invoke discount-related APIs.
 type Client struct {
-	B   Backend
+	B   stripe.Backend
 	Key string
 }
 
 // Del removes a discount from a customer.
 // For more details see https://stripe.com/docs/api#delete_discount.
-func Del(customerId string) error {
-	return getC().Del(customerId)
+func Del(customerID string) (*stripe.Discount, error) {
+	return getC().Del(customerID)
 }
 
-func (c Client) Del(customerId string) error {
-	return c.B.Call("DELETE", fmt.Sprintf("/customers/%v/discount", customerId), c.Key, nil, nil)
+func (c Client) Del(customerID string) (*stripe.Discount, error) {
+	discount := &stripe.Discount{}
+	err := c.B.Call("DELETE", fmt.Sprintf("/customers/%v/discount", customerID), c.Key, nil, nil, discount)
+
+	return discount, err
 }
 
-// DelSubscription removes a discount from a customer's subscription.
+// DelSub removes a discount from a customer's subscription.
 // For more details see https://stripe.com/docs/api#delete_subscription_discount.
-func DelSubscription(customerId, subscriptionId string) error {
-	return getC().DelSubscription(customerId, subscriptionId)
+func DelSub(subscriptionID string) (*stripe.Discount, error) {
+	return getC().DelSub(subscriptionID)
 }
 
-func (c Client) DelSubscription(customerId, subscriptionId string) error {
-	return c.B.Call("DELETE", fmt.Sprintf("/customers/%v/subscriptions/%v/discount", customerId, subscriptionId), c.Key, nil, nil)
+func (c Client) DelSub(subscriptionID string) (*stripe.Discount, error) {
+	discount := &stripe.Discount{}
+	err := c.B.Call("DELETE", fmt.Sprintf("/subscriptions/%v/discount", subscriptionID), c.Key, nil, nil, discount)
+
+	return discount, err
 }
 
 func getC() Client {
-	return Client{GetBackend(), Key}
+	return Client{stripe.GetBackend(stripe.APIBackend), stripe.Key}
 }

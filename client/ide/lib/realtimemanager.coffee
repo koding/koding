@@ -1,7 +1,6 @@
 kd               = require 'kd'
 KDObject         = kd.Object
 IDEMetrics       = require './idemetrics'
-GoogleApiClient  = require './googleapiclient'
 generatePassword = require 'app/util/generatePassword'
 
 module.exports = class RealtimeManager extends KDObject
@@ -15,6 +14,7 @@ module.exports = class RealtimeManager extends KDObject
     @collaborativeInstances = []
     @collaborativeEventListeners = {}
 
+    GoogleApiClient  = require './googleapiclient'
     IDEMetrics.collect 'RealTimeManager.google_api_client', 'request'
     GoogleApiClient.on 'ready', =>
       GoogleApiClient.loadDriveApi =>

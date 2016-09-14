@@ -15,6 +15,7 @@ import (
 	"koding/klientctl/klient"
 	"koding/klientctl/logcmd"
 	"koding/klientctl/metrics"
+	"koding/klientctl/open"
 	"koding/klientctl/remount"
 	"koding/klientctl/repair"
 	"koding/klientctl/sync"
@@ -45,6 +46,7 @@ func MountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctl
 		OneWaySync:       c.Bool("oneway-sync"),
 		OneWayInterval:   c.Int("oneway-interval"),
 		Debug:            c.Bool("debug"),
+		Fuse:             c.Bool("fuse"),
 
 		// Used for prefetch
 		SSHDefaultKeyDir:  config.SSHDefaultKeyDir,
@@ -256,6 +258,34 @@ func LogCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcl
 		return ctlcli.NewErrorCommand(
 			os.Stdout, log, err,
 			"Unable to create log command",
+		)
+	}
+
+	return cmd
+}
+
+func OpenCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcli.Command {
+	log = log.New(fmt.Sprintf("command:%s", cmdName))
+
+	// Fill our options from the CLI. Any empty options are okay, as
+	// the command struct is responsible for verifying valid opts.
+	opts := open.Options{
+		Filepaths: c.Args(),
+		Debug:     c.Bool("debug"),
+	}
+
+	init := open.Init{
+		Stdout:        os.Stdout,
+		KlientOptions: klient.NewKlientOptions(),
+		Log:           log,
+		Helper:        ctlcli.CommandHelper(c, cmdName),
+	}
+
+	cmd, err := open.NewCommand(init, opts)
+	if err != nil {
+		return ctlcli.NewErrorCommand(
+			os.Stdout, log, err,
+			"Unable to create open command",
 		)
 	}
 

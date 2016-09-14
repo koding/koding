@@ -32,6 +32,38 @@ $borderColor                = rgba(151, 151, 151, .52)
     abs                       0px 0px
 
 
+.HomeAppView-Stacks--import
+  margin                    36px 48px 25px
+  padding-bottom            25px
+  rel()
+
+  h2
+    color                   #818181
+    font-size               16px
+    font-weight             600
+    line-height             25px
+    margin-bottom           15px
+
+  p
+    color                   $subtleColor
+    font-weight             100
+    font-size               14px
+    line-height             26px
+
+  a
+    color                   #818181
+    font-weight             bold
+    noTextDeco()
+
+  .kdloader
+    width                   22px
+    abs                     55px 15px
+
+  button.HomeAppView-Stacks--actionButton
+    margin                  20px 0 30px
+    fr()
+
+
 .ListView-section.HomeAppViewStackSection
   .ListView-row
     borderizeListItems      25px, 1px solid $borderColor
@@ -81,6 +113,7 @@ $borderColor                = rgba(151, 151, 151, .52)
     z-index                 0
     > .kdtabview
       margin-top            89px
+      height                calc(100% \- 89px)
 
 
   .kdtabpaneview.credentials

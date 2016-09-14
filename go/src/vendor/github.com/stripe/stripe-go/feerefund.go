@@ -21,7 +21,7 @@ type FeeRefundListParams struct {
 // FeeRefund is the resource representing a Stripe fee refund.
 // For more details see https://stripe.com/docs/api#fee_refunds.
 type FeeRefund struct {
-	Id       string            `json:"id"`
+	ID       string            `json:"id"`
 	Amount   uint64            `json:"amount"`
 	Created  int64             `json:"created"`
 	Currency Currency          `json:"currency"`
@@ -30,36 +30,15 @@ type FeeRefund struct {
 	Meta     map[string]string `json:"metadata"`
 }
 
-// FeeRefundist is a list object for fee refunds.
+// FeeRefundList is a list object for fee refunds.
 type FeeRefundList struct {
 	ListMeta
 	Values []*FeeRefund `json:"data"`
 }
 
-// FeeRefundIter is a iterator for list responses.
-type FeeRefundIter struct {
-	Iter *Iter
-}
-
-// Next returns the next value in the list.
-func (i *FeeRefundIter) Next() (*FeeRefund, error) {
-	f, err := i.Iter.Next()
-	if err != nil {
-		return nil, err
-	}
-
-	return f.(*FeeRefund), err
-}
-
-// Stop returns true if there are no more iterations to be performed.
-func (i *FeeRefundIter) Stop() bool {
-	return i.Iter.Stop()
-}
-
-// Meta returns the list metadata.
-func (i *FeeRefundIter) Meta() *ListMeta {
-	return i.Iter.Meta()
-}
+// UnmarshalJSON handles deserialization of a FeeRefund.
+// This custom unmarshaling is needed because the resulting
+// property may be an id or the full struct if it was expanded.
 func (f *FeeRefund) UnmarshalJSON(data []byte) error {
 	type feerefund FeeRefund
 	var ff feerefund
@@ -67,8 +46,8 @@ func (f *FeeRefund) UnmarshalJSON(data []byte) error {
 	if err == nil {
 		*f = FeeRefund(ff)
 	} else {
-		// the id is surrounded by escaped \, so ignore those
-		f.Id = string(data[1 : len(data)-1])
+		// the id is surrounded by "\" characters, so strip them
+		f.ID = string(data[1 : len(data)-1])
 	}
 
 	return nil

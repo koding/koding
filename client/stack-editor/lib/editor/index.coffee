@@ -3,36 +3,39 @@ kd = require 'kd'
 jspath = require 'jspath'
 Encoder = require 'htmlencode'
 
+isMine = require 'app/util/isMine'
+isAdmin = require 'app/util/isAdmin'
 whoami = require 'app/util/whoami'
 curryIn = require 'app/util/curryIn'
 Tracker = require 'app/util/tracker'
 actions = require 'app/flux/environment/actiontypes'
 showError = require 'app/util/showError'
 
-OutputView = require 'stacks/views/stacks/outputview'
-ReadmeView = require 'stacks/views/stacks/readmeview'
-ProvidersView = require 'stacks/views/stacks/providersview'
-VariablesView = require 'stacks/views/stacks/variablesview'
-{ yamlToJson } = require 'stacks/views/stacks/yamlutils'
-CustomLinkView = require 'app/customlinkview'
-providersParser = require 'stacks/views/stacks/providersparser'
-StackTemplateView = require 'stacks/views/stacks/stacktemplateview'
-CredentialListItem = require '../credentials/credentiallistitem'
-requirementsParser = require 'stacks/views/stacks/requirementsparser'
-updateStackTemplate = require 'stacks/views/stacks/updatestacktemplate'
-addUserInputOptions = require 'stacks/views/stacks/adduserinputoptions'
-updateCustomVariable = require 'stacks/views/stacks/updatecustomvariable'
-parseTerraformOutput = require 'stacks/views/stacks/parseterraformoutput'
-CredentialStatusView = require 'stacks/views/stacks/credentialstatusview'
+{ yamlToJson } = require 'app/util/stacks/yamlutils'
+requirementsParser = require 'app/util/stacks/requirementsparser'
+updateStackTemplate = require 'app/util/stacks/updatestacktemplate'
 generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
-StackTemplatePreviewModal = require 'stacks/views/stacks/stacktemplatepreviewmodal'
+parseTerraformOutput = require 'app/util/stacks/parseterraformoutput'
+providersParser = require 'app/util/stacks/providersparser'
+updateCustomVariable = require 'app/util/stacks/updatecustomvariable'
+addUserInputOptions = require 'app/util/stacks/adduserinputoptions'
+
+CustomLinkView = require 'app/customlinkview'
+
+OutputView = require './outputview'
+ReadmeView = require './readmeview'
+ProvidersView = require './providersview'
+VariablesView = require './variablesview'
+StackTemplatePreviewModal = require './stacktemplatepreviewmodal'
+StackTemplateView = require './stacktemplateview'
+CredentialStatusView = require './credentialstatusview'
+CredentialListItem = require '../credentials/credentiallistitem'
+
 EnvironmentFlux = require 'app/flux/environment'
 ContentModal = require 'app/components/contentModal'
 createShareModal = require './createShareModal'
+
 { actions : HomeActions } = require 'home/flux'
-isMine = require 'app/util/isMine'
-CustomLinkView = require 'app/customlinkview'
-isAdmin = require 'app/util/isAdmin'
 
 module.exports = class StackEditorView extends kd.View
 
@@ -172,8 +175,11 @@ module.exports = class StackEditorView extends kd.View
     @createOutputView()
     @createMainButtons()
 
-    @providersView.on 'ItemSelected', (credentialItem) =>
+    # if stackTemplate is initialized make save button disabled
+    @saveButton.disable()  if stackTemplate?.machines.length
 
+    @providersView.on 'ItemSelected', (credentialItem) =>
+      @saveButton.enable() # credential change, enable button
       credential = credentialItem.getData()
 
       @credentialStatusView.setCredential credential
@@ -182,7 +188,7 @@ module.exports = class StackEditorView extends kd.View
       credentialItem.inuseView.show()
 
     @providersView.on 'ItemDeleted', (credential) =>
-
+      @saveButton.enable() # credential change, enable button
       { identifier } = credential.getData()
       if identifier in @credentialStatusView.credentials
         @credentialStatusView.setCredential() # To unset active credential since it's deleted
@@ -234,6 +240,7 @@ module.exports = class StackEditorView extends kd.View
 
       editorView.on 'EditorReady', =>
         ace.on 'FileContentChanged', =>
+          @saveButton.enable()
           @changedContents[key] = ace.isContentChanged()
 
 
@@ -374,10 +381,10 @@ module.exports = class StackEditorView extends kd.View
       @saveButton.hideLoader()
       return
 
-    @saveAndTestStackTemplate()
+    @saveAndTestStackTemplate (err, stackTemplate) => @emit 'Reload', err?
 
 
-  saveAndTestStackTemplate: ->
+  saveAndTestStackTemplate: (callback) ->
 
     # Show default first pane.
     @tabView.showPaneByIndex 0
@@ -391,7 +398,7 @@ module.exports = class StackEditorView extends kd.View
 
       if @outputView.handleError err, 'Stack template save failed:'
         @saveButton.hideLoader()
-        return
+        return callback err
 
       @outputView
         .add 'Template content saved.'
@@ -404,7 +411,7 @@ module.exports = class StackEditorView extends kd.View
 
         if @outputView.handleError err
           @saveButton.hideLoader()
-          return
+          return callback err
 
         @outputView
           .add 'Custom variables are set.'
@@ -424,13 +431,14 @@ module.exports = class StackEditorView extends kd.View
               @credentialWarning.setClass 'in'
               @_credentialsPassed = no
 
-            return @saveButton.hideLoader()
+            @saveButton.hideLoader()
+            return callback err
 
           @outputView
             .add 'Credentials are ready!'
             .add 'Starting to process the template...'
 
-          @processTemplate _stackTemplate
+          @processTemplate _stackTemplate, callback
 
 
   afterProcessTemplate: (method) ->
@@ -460,7 +468,7 @@ module.exports = class StackEditorView extends kd.View
         '''
 
 
-  processTemplate: (stackTemplate) ->
+  processTemplate: (stackTemplate, callback) ->
 
     { groupsController, computeController } = kd.singletons
 
@@ -473,7 +481,7 @@ module.exports = class StackEditorView extends kd.View
 
       if err
         @outputView.add 'Parsing failed, please check your template and try again'
-        return
+        return callback err
 
       { stackTemplates }       = groupsController.getCurrentGroup()
       stackTemplate.isDefault ?= stackTemplate._id in (stackTemplates or [])
@@ -512,9 +520,9 @@ module.exports = class StackEditorView extends kd.View
       else
         # admin is creating a new stack
         if isAdmin()
+          @afterProcessTemplate 'maketeamdefault'
+          @afterProcessTemplate 'initialize'
           if hasGroupTemplates
-            @afterProcessTemplate 'maketeamdefault'
-            @afterProcessTemplate 'initialize'
             computeController.checkGroupStacks()
           else
             @handleSetDefaultTemplate =>
@@ -531,6 +539,8 @@ module.exports = class StackEditorView extends kd.View
         else
           @afterProcessTemplate 'initialize'
           computeController.checkGroupStacks()
+
+      callback null, stackTemplate
 
 
   checkAndBootstrapCredentials: (callback) ->
@@ -680,8 +690,13 @@ module.exports = class StackEditorView extends kd.View
         .add 'Following information will be fetched from variables section:'
         .add requiredData.custom
 
-    # Generate config data from parsed values
-    config = { requiredData, requiredProviders }
+    if stackTemplate?.config?
+      config = stackTemplate.config
+      config.requiredData = requiredData
+      config.requiredProviders = requiredProviders
+    else
+      # Generate config data from parsed values
+      config = { requiredData, requiredProviders }
 
     # Keep clone info if exists
     if clonedFrom = @stackTemplate?.config?.clonedFrom
@@ -857,7 +872,7 @@ module.exports = class StackEditorView extends kd.View
 
       return  if @outputView.handleError err
 
-      @setAsDefaultButton.hide()
+      @setAsDefaultButton.disable()
 
       Tracker.track Tracker.STACKS_MAKE_DEFAULT
 

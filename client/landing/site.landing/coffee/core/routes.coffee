@@ -89,8 +89,10 @@ do ->
 
   handleOauth = ({ params, query }) ->
 
-    return kd.singletons.router.openSection 'Login', null, null, (app) ->
+    return kd.singletons.router.openSection 'Team', null, null, (app) ->
+      app.jumpTo 'login'
       if query.provider
+        new kd.NotificationView { title: 'Login in progress...' }
         kd.singletons.oauthController.authCompleted null, query.provider
 
 
@@ -100,7 +102,7 @@ do ->
     # the routes below are subdomain routes
     # e.g. team.koding.com/Invitation
     '/Invitation/:token'   : handleInvitation
-    '/Account/Oauth'       : handleOauth
+    '/Home/Oauth'          : handleOauth
     # '/Welcome'             : handleTeamOnboardingRoute.bind this, 'welcome'
     '/Join'                : handleTeamOnboardingRoute.bind this, 'join'
     '/Authenticate/:step?' : handleTeamOnboardingRoute.bind this, 'stacks'

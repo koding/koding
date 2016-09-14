@@ -70,19 +70,6 @@ var (
 )
 
 var (
-	testVerbose        bool
-	testInitDebug      bool
-	testUseIoEncDec    bool
-	testStructToArray  bool
-	testCanonical      bool
-	testUseReset       bool
-	testWriteNoSymbols bool
-	testSkipIntf       bool
-	testInternStr      bool
-	testUseMust        bool
-	testCheckCircRef   bool
-	testJsonIndent     int
-
 	skipVerifyVal interface{} = &(struct{}{})
 
 	testMapStrIntfTyp = reflect.TypeOf(map[string]interface{}(nil))
@@ -1103,11 +1090,13 @@ func doTestJsonLargeInteger(t *testing.T, v interface{}, ias uint8) {
 	case 'L':
 		switch v2 := v.(type) {
 		case int:
-			if v2 > 1<<53 || (v2 < 0 && -v2 > 1<<53) {
+			v2n := int64(v2) // done to work with 32-bit OS
+			if v2n > 1<<53 || (v2n < 0 && -v2n > 1<<53) {
 				fnStrChk()
 			}
 		case uint:
-			if v2 > 1<<53 {
+			v2n := uint64(v2) // done to work with 32-bit OS
+			if v2n > 1<<53 {
 				fnStrChk()
 			}
 		}
@@ -1425,12 +1414,12 @@ func TestBincUnderlyingType(t *testing.T) {
 func TestJsonLargeInteger(t *testing.T) {
 	for _, i := range []uint8{'L', 'A', 0} {
 		for _, j := range []interface{}{
-			1 << 60,
-			-(1 << 60),
+			int64(1 << 60),
+			-int64(1 << 60),
 			0,
 			1 << 20,
 			-(1 << 20),
-			uint(1 << 60),
+			uint64(1 << 60),
 			uint(0),
 			uint(1 << 20),
 		} {

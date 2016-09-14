@@ -1,5 +1,6 @@
 _           = require 'underscore'
 jraphical   = require 'jraphical'
+async       = require 'async'
 KodingError = require '../error'
 ApiError    = require './socialapi/error'
 Tracker     = require './tracker'
@@ -168,8 +169,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         fetchMetaInformation :
           (signature Function)
-        fetchAllParticipatedGroups :
-          (signature Object, Function)
+        fetchRelativeGroups:
+          (signature Function)
         setLastLoginTimezoneOffset:
           (signature Object, Function)
         expireSubscription:
@@ -308,7 +309,7 @@ module.exports = class JAccount extends jraphical.Module
 
     roles = [ 'member', 'moderator', 'admin' ]
 
-    @fetchAllParticipatedGroups client, { roles }, (err, groups) ->
+    @fetchAllParticipatedGroups { roles }, (err, groups) ->
       return callback err   if err
       return callback null  if not groups
 
@@ -321,14 +322,12 @@ module.exports = class JAccount extends jraphical.Module
       async.parallel queue, callback
 
 
-  fetchAllParticipatedGroups: secure (client, options, callback) ->
-
-    { delegate } = client.connection
+  fetchAllParticipatedGroups: (options, callback) ->
 
     [ options, callback ] = [ callback, options ]  unless callback
     options  ?= {}
 
-    { roles } = {}
+    { roles } = options
 
     unless Array.isArray roles
       roles = [ 'member', 'moderator', 'admin', 'owner' ]
@@ -336,7 +335,7 @@ module.exports = class JAccount extends jraphical.Module
     selector = {
       sourceName: 'JGroup'
       targetName: 'JAccount'
-      targetId: delegate.getId()
+      targetId: @getId()
       as: { $in: roles }
     }
 
@@ -365,6 +364,56 @@ module.exports = class JAccount extends jraphical.Module
             group
 
           callback null, groups
+
+
+  fetchInvitedGroups: (callback) ->
+
+    queue = [
+      (next) =>
+        @fetchEmail next
+      (email, next) ->
+        JInvitation = require './invitation'
+        JInvitation.some { email, status : 'pending' }, { limit : 10 }, next
+      (invitations, next) ->
+        { uniq, map } = _
+        slugs  = uniq map invitations, (invitation) -> invitation.groupName
+        JGroup = require './group'
+        JGroup.some { slug : { $in : slugs } }, {}, (err, groups) ->
+          return next err  if err
+          for group in groups
+            groupInvitations = invitations.filter (invitation) ->
+              invitation.groupName is group.slug
+            group.invitationCode = groupInvitations.first?.code
+          next null, groups
+    ]
+
+    async.waterfall queue, callback
+
+
+  fetchRelativeGroups$: secure (client, callback) ->
+
+    @fetchRelativeGroups callback
+
+
+  fetchRelativeGroups: (callback) ->
+
+    queue =
+      participated: (next) =>
+        @fetchAllParticipatedGroups {}, (err, groups) =>
+          return next err  if err
+          JUser = require './user'
+          username = @profile.nickname
+          for group in groups
+            group.jwtToken = JUser.createJWT { username, groupName : group.slug }
+          next null, groups
+      invited: (next) =>
+        @fetchInvitedGroups next
+
+    async.parallel queue, (err, results) ->
+      return callback err  if err
+      { participated, invited } = results
+      groups = participated.concat invited
+      callback null, groups
 
 
   createSocialApiId: (callback) ->
@@ -1316,26 +1365,18 @@ module.exports = class JAccount extends jraphical.Module
 
     return errorCallback()  unless sessionToken
 
-    @isEmailVerified (err, isVerified) ->
+    JSession         = require './session'
+    { v4: createId } = require 'node-uuid'
 
-      return callback err  if err
+    JSession.one { clientId: sessionToken }, (err, session) ->
 
-      if not isVerified
-        message = 'Sorry, you need to confirm your email address first.'
-        return callback new KodingError message
+      if err or not session
+        return errorCallback()
 
-      JSession         = require './session'
-      { v4: createId } = require 'node-uuid'
-
-      JSession.one { clientId: sessionToken }, (err, session) ->
-
-        if err or not session
-          return errorCallback()
-
-        [otaToken] = createId().split '-'
-        session.update { $set: { otaToken } }, (err) ->
-          if err then errorCallback()
-          else callback null, otaToken
+      [otaToken] = createId().split '-'
+      session.update { $set: { otaToken } }, (err) ->
+        if err then errorCallback()
+        else callback null, otaToken
 
 
   ###*
@@ -1460,5 +1501,3 @@ module.exports = class JAccount extends jraphical.Module
     options  = { limit, skip, sort }
     JSession = require './session'
     JSession.some selector, options, callback
-
-

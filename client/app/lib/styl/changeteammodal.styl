@@ -1,0 +1,154 @@
+.change-team-modal.kdmodal
+  -webkit-font-smoothing    antialiased
+  -moz-osx-font-smoothing   grayscale
+  rounded                   6px
+
+  .kdmodal-inner
+    margin                  0
+
+    .kdmodal-content
+      margin                0
+      overflow              visible
+      font-family           ProximaNovaFamily
+
+  .close-icon.closeModal
+    r-sprite                app, modal_close_small
+    top                     18px
+    right                   18px
+    z-index                 10
+
+    &:hover
+      r-sprite              app, modal_close_small
+
+  .HomeAppView-Nav--avatar
+    kalc                    right, 50% \- 30px
+    top                     -30px
+    size                    60px, 60px
+
+    img
+      border                2px solid #fff
+
+    .badge
+      right                 -6px
+      bottom                0px
+
+  h1
+    font-size               27px
+    line-height             32px
+    color                   #f2778a
+    padding-top             45px
+    text-align              center
+
+  .kdmodal-content > p
+    font-size               18px
+    letter-spacing          .2px
+    line-height             27px
+    color                   #a59999
+    text-align              center
+
+  .listview-wrapper
+    margin-top              45px
+
+  .kdcustomscrollview
+    width                   420px
+    max-height              332px
+    styleScrollBars         rgba(0, 0, 0, .15)
+    margin-left             38px
+
+  .loaded
+    .kdcustomscrollview.has-vertical
+      height                332px
+
+    .lazy-loader
+      hidden()
+
+  .kdscrollview
+    width                   400px
+    margin-bottom           40px
+
+  div.change-team-item
+    height                  68px
+    border                  1px solid #dcdcdc
+    border-bottom           0
+    padding                 0 20px
+    bg                      color, #fff
+    dFlex()
+    -webkit-align-items     center
+    align-items             center
+    borderBox()
+    -webkit-justify-content space-between
+    justify-content         space-between
+
+    &:first-of-type
+      border-top-left-radius     4px
+      border-top-right-radius    4px
+
+    &:last-of-type
+      border-bottom-left-radius  4px
+      border-bottom-right-radius 4px
+      border-bottom              1px solid #dcdcdc
+
+  .team-logo-wrapper
+    size                    40px, 40px
+    dFlex()
+    -webkit-align-content   center
+    align-content           center
+    -webkit-justify-content center
+    justify-content         center
+    margin-right            10px
+
+    img
+      max-width             100%
+      max-height            100%
+      height                auto
+      flex                  0 0 auto
+      -webkit-align-self    center
+      align-self            center
+      rounded               4px
+
+    .default-team-logo
+      r-sprite              app, team_logo
+      rounded               4px
+
+  .team-title
+    color                   #8d8d8d
+    font-size               18px
+    letter-spacing          .35px
+    line-height             21px
+
+  .team-title-wrapper
+    dFlex()
+    -webkit-align-items     center
+    align-items             center
+
+  .kdmodal-content a.GenericButton
+    font-size               14px
+    color                   #fff
+    text-decoration         none !important
+    padding                 4px 0
+    width                   74px
+    borderBox()
+    text-align              center
+
+    &.join
+      bg                    color, #fff
+      color                 #727272
+      border                1px solid #d0d0d0
+
+  .current-team-label
+    font-size               14px
+    letter-spacing          .05px
+    line-height             17px
+    color                   #989898
+    rel()
+    padding-right           20px
+
+    &:after
+      content               ''
+      width                 12px
+      height                12px
+      rounded               6px
+      bg                    color, #48ba7d
+      abs()
+      right                 0
+      top                   1px

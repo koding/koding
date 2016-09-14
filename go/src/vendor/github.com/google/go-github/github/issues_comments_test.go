@@ -20,6 +20,7 @@ func TestIssuesService_ListComments_allIssues(t *testing.T) {
 
 	mux.HandleFunc("/repos/o/r/issues/comments", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
+		testHeader(t, r, "Accept", mediaTypeReactionsPreview)
 		testFormValues(t, r, values{
 			"sort":      "updated",
 			"direction": "desc",
@@ -40,7 +41,7 @@ func TestIssuesService_ListComments_allIssues(t *testing.T) {
 		t.Errorf("Issues.ListComments returned error: %v", err)
 	}
 
-	want := []IssueComment{{ID: Int(1)}}
+	want := []*IssueComment{{ID: Int(1)}}
 	if !reflect.DeepEqual(comments, want) {
 		t.Errorf("Issues.ListComments returned %+v, want %+v", comments, want)
 	}
@@ -52,6 +53,7 @@ func TestIssuesService_ListComments_specificIssue(t *testing.T) {
 
 	mux.HandleFunc("/repos/o/r/issues/1/comments", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
+		testHeader(t, r, "Accept", mediaTypeReactionsPreview)
 		fmt.Fprint(w, `[{"id":1}]`)
 	})
 
@@ -60,7 +62,7 @@ func TestIssuesService_ListComments_specificIssue(t *testing.T) {
 		t.Errorf("Issues.ListComments returned error: %v", err)
 	}
 
-	want := []IssueComment{{ID: Int(1)}}
+	want := []*IssueComment{{ID: Int(1)}}
 	if !reflect.DeepEqual(comments, want) {
 		t.Errorf("Issues.ListComments returned %+v, want %+v", comments, want)
 	}
@@ -77,6 +79,7 @@ func TestIssuesService_GetComment(t *testing.T) {
 
 	mux.HandleFunc("/repos/o/r/issues/comments/1", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
+		testHeader(t, r, "Accept", mediaTypeReactionsPreview)
 		fmt.Fprint(w, `{"id":1}`)
 	})
 

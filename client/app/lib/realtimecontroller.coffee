@@ -9,6 +9,8 @@ KDTimeAgoView = kd.TimeAgoView
 backoff = require 'backoff'
 PubnubChannel = require './pubnubchannel'
 
+require 'pubnub'
+
 
 module.exports = class RealtimeController extends KDController
 
@@ -27,11 +29,10 @@ module.exports = class RealtimeController extends KDController
 
     super options, data
 
-    @initPubNub()
-
-    @syncTime()
-
-    @initAuthentication()
+    unless globals.config.environment is 'default'
+      @initPubNub()
+      @syncTime()
+      @initAuthentication()
 
 
   fetchServerTime: (callback = noop) ->

@@ -4,7 +4,7 @@ OnBoarding Congrat Modal styles
 */
 }
 .kdmodal.Congratulation-modal
-  left 546px !important
+  left calc(50% \- 135px) !important
   border-radius             6px
   border                    0px
   font-family               proxima-nova, sans-serif
@@ -34,8 +34,8 @@ OnBoarding Congrat Modal styles
 
   .kdmodal-inner .close-icon
     r-sprite              app content_modal_close_icon
-    top                   20px
-    right                 20px
+    margin                20px 20px 0 0
+    background-position   0 !important
 
   button.GenericButton
     margin-bottom           30px
@@ -44,4 +44,3 @@ OnBoarding Congrat Modal styles
     abs()
     top                     -32px
     left                    260px
-    r-sprite                'app' 'alien'

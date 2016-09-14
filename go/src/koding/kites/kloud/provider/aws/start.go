@@ -6,8 +6,8 @@ import (
 
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/amazon"
-	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/stack"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"golang.org/x/net/context"
@@ -18,7 +18,7 @@ import (
 func (m *Machine) Start(ctx context.Context) error {
 	err := m.start(ctx)
 	if err != nil {
-		return kloud.NewEventerError(err)
+		return stack.NewEventerError(err)
 	}
 
 	return nil

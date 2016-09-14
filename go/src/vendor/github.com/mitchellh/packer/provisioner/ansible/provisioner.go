@@ -20,6 +20,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"unicode"
 
 	"golang.org/x/crypto/ssh"
 
@@ -312,7 +313,9 @@ func (p *Provisioner) executeAnsible(ui packer.Ui, comm packer.Communicator, pri
 	cmd.Env = os.Environ()
 	if len(envvars) > 0 {
 		cmd.Env = append(cmd.Env, envvars...)
-	} else if !checkHostKey {
+	}
+
+	if !checkHostKey {
 		cmd.Env = append(cmd.Env, "ANSIBLE_HOST_KEY_CHECKING=False")
 	}
 
@@ -327,12 +330,21 @@ func (p *Provisioner) executeAnsible(ui packer.Ui, comm packer.Communicator, pri
 
 	wg := sync.WaitGroup{}
 	repeat := func(r io.ReadCloser) {
-		scanner := bufio.NewScanner(r)
-		for scanner.Scan() {
-			ui.Message(scanner.Text())
-		}
-		if err := scanner.Err(); err != nil {
-			ui.Error(err.Error())
+		reader := bufio.NewReader(r)
+		for {
+			line, err := reader.ReadString('\n')
+			if line != "" {
+				line = strings.TrimRightFunc(line, unicode.IsSpace)
+				ui.Message(line)
+			}
+			if err != nil {
+				if err == io.EOF {
+					break
+				} else {
+					ui.Error(err.Error())
+					break
+				}
+			}
 		}
 		wg.Done()
 	}

@@ -10,8 +10,9 @@ track = (action) ->
   label    = 'SignupForm'
   utils.analytics.track action, { category, label }
 
-module.exports = class TeamsView extends JView
+module.exports = class TeamsView extends kd.TabPaneView
 
+  JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 

@@ -1,4 +1,4 @@
-.StackEditor-ShareModal.kdmodal
+.StackEditor-ShareModal.ContentModal.content-modal
   -webkit-font-smoothing    antialiased
   -moz-osx-font-smoothing   grayscale
 
@@ -11,6 +11,12 @@
       font-weight           300
       color                 #bababa
 
+  footer
+    text-align              right
+
+  main.main-container
+    margin                  0px
+
   main
     rel()
     padding                 100px 330px 110px 50px
@@ -20,7 +26,7 @@
       abs()
       right                 70px
       top                   110px
-      r-sprite              'stackeditor', 'Share_art'
+      r-sprite              'stack-editor', 'Share_art'
 
     h1
       color                 #424242
@@ -41,9 +47,11 @@
       .kdcustomcheckbox
         fl()
         margin-right        7px
+        margin-top          1px
+        margin-left         -3px
 
   footer
-    height                  70px
+    height                  60px
     text-align              right
     padding-right           20px
 

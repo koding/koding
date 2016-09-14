@@ -4,20 +4,21 @@ import (
 	"fmt"
 	"testing"
 
-	. "github.com/stripe/stripe-go"
+	stripe "github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go/currency"
 	. "github.com/stripe/stripe-go/utils"
 )
 
 func init() {
-	Key = GetTestKey()
+	stripe.Key = GetTestKey()
 }
 
 func TestPlanNew(t *testing.T) {
-	planParams := &PlanParams{
-		Id:            "test_plan",
+	planParams := &stripe.PlanParams{
+		ID:            "test_plan",
 		Name:          "Test Plan",
 		Amount:        99,
-		Currency:      USD,
+		Currency:      currency.USD,
 		Interval:      Month,
 		IntervalCount: 3,
 		TrialPeriod:   30,
@@ -30,8 +31,8 @@ func TestPlanNew(t *testing.T) {
 		t.Error(err)
 	}
 
-	if target.Id != planParams.Id {
-		t.Errorf("Id %q does not match expected id %q\n", target.Id, planParams.Id)
+	if target.ID != planParams.ID {
+		t.Errorf("ID %q does not match expected id %q\n", target.ID, planParams.ID)
 	}
 
 	if target.Name != planParams.Name {
@@ -62,38 +63,38 @@ func TestPlanNew(t *testing.T) {
 		t.Errorf("Statement %q does not match expected statement %q\n", target.Statement, planParams.Statement)
 	}
 
-	Del(planParams.Id)
+	Del(planParams.ID)
 }
 
 func TestPlanGet(t *testing.T) {
-	planParams := &PlanParams{
-		Id:       "test_plan",
+	planParams := &stripe.PlanParams{
+		ID:       "test_plan",
 		Name:     "Test Plan",
 		Amount:   99,
-		Currency: USD,
+		Currency: currency.USD,
 		Interval: Month,
 	}
 
 	New(planParams)
-	target, err := Get(planParams.Id, nil)
+	target, err := Get(planParams.ID, nil)
 
 	if err != nil {
 		t.Error(err)
 	}
 
-	if target.Id != planParams.Id {
-		t.Errorf("Plan id %q does not match expected id %q\n", target.Id, planParams.Id)
+	if target.ID != planParams.ID {
+		t.Errorf("Plan id %q does not match expected id %q\n", target.ID, planParams.ID)
 	}
 
-	Del(planParams.Id)
+	Del(planParams.ID)
 }
 
 func TestPlanUpdate(t *testing.T) {
-	planParams := &PlanParams{
-		Id:            "test_plan",
+	planParams := &stripe.PlanParams{
+		ID:            "test_plan",
 		Name:          "Original Name",
 		Amount:        99,
-		Currency:      USD,
+		Currency:      currency.USD,
 		Interval:      Month,
 		IntervalCount: 3,
 		TrialPeriod:   30,
@@ -102,12 +103,12 @@ func TestPlanUpdate(t *testing.T) {
 
 	New(planParams)
 
-	updatedPlan := &PlanParams{
+	updatedPlan := &stripe.PlanParams{
 		Name:      "Updated Name",
 		Statement: "Updated Plan",
 	}
 
-	target, err := Update(planParams.Id, updatedPlan)
+	target, err := Update(planParams.ID, updatedPlan)
 
 	if err != nil {
 		t.Error(err)
@@ -121,33 +122,51 @@ func TestPlanUpdate(t *testing.T) {
 		t.Errorf("Statement %q does not match expected statement %q\n", target.Statement, updatedPlan.Statement)
 	}
 
-	Del(planParams.Id)
+	Del(planParams.ID)
+}
+
+func TestPlanDel(t *testing.T) {
+	planParams := &stripe.PlanParams{
+		ID:       "test_plan",
+		Name:     "Test Plan",
+		Amount:   99,
+		Currency: currency.USD,
+		Interval: Month,
+	}
+
+	New(planParams)
+
+	planDel, err := Del(planParams.ID)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !planDel.Deleted {
+		t.Errorf("Plan id %q expected to be marked as deleted on the returned resource\n", planDel.ID)
+	}
 }
 
 func TestPlanList(t *testing.T) {
 	const runs = 3
 	for i := 0; i < runs; i++ {
-		planParams := &PlanParams{
-			Id:       fmt.Sprintf("test_%v", i),
+		planParams := &stripe.PlanParams{
+			ID:       fmt.Sprintf("test_%v", i),
 			Name:     fmt.Sprintf("test_%v", i),
 			Amount:   99,
-			Currency: USD,
+			Currency: currency.USD,
 			Interval: Month,
 		}
 
 		New(planParams)
 	}
 
-	params := &PlanListParams{}
+	params := &stripe.PlanListParams{}
 	params.Filters.AddFilter("limit", "", "1")
 
+	plansChecked := 0
 	i := List(params)
-	for !i.Stop() {
-		target, err := i.Next()
-
-		if err != nil {
-			t.Error(err)
-		}
+	for i.Next() && plansChecked < runs {
+		target := i.Plan()
 
 		if i.Meta() == nil {
 			t.Error("No metadata returned")
@@ -156,6 +175,11 @@ func TestPlanList(t *testing.T) {
 		if target.Amount != 99 {
 			t.Errorf("Amount %v does not match expected value\n", target.Amount)
 		}
+
+		plansChecked += 1
+	}
+	if err := i.Err(); err != nil {
+		t.Error(err)
 	}
 
 	for i := 0; i < runs; i++ {

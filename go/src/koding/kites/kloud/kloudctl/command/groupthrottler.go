@@ -10,7 +10,7 @@ import (
 	"os/signal"
 	"time"
 
-	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stack"
 
 	"github.com/hashicorp/go-multierror"
 	"golang.org/x/net/context"
@@ -198,7 +198,7 @@ func (gt *GroupThrottler) processAndWatch(ctx context.Context, item Item) *Statu
 	}
 
 	var last Stage
-	req := kloud.EventArgs{{
+	req := stack.EventArgs{{
 		Type:    gt.Name,
 		EventId: item.ID(),
 	}}
@@ -209,7 +209,7 @@ func (gt *GroupThrottler) processAndWatch(ctx context.Context, item Item) *Statu
 			return newStatus(err)
 		}
 
-		var events []kloud.EventResponse
+		var events []stack.EventResponse
 		if err := resp.Unmarshal(&events); err != nil {
 			return newStatus(err)
 		}

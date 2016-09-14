@@ -5,6 +5,7 @@ import (
 
 	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/charge"
+	"github.com/stripe/stripe-go/currency"
 	"github.com/stripe/stripe-go/customer"
 	"github.com/stripe/stripe-go/invoice"
 	"github.com/stripe/stripe-go/plan"
@@ -15,14 +16,15 @@ func ExampleCharge_new() {
 
 	params := &stripe.ChargeParams{
 		Amount:   1000,
-		Currency: stripe.USD,
-		Card: &stripe.CardParams{
-			Name:   "Go Stripe",
-			Number: "4242424242424242",
-			Month:  "10",
-			Year:   "20",
-		},
+		Currency: currency.USD,
 	}
+	params.SetSource(&stripe.CardParams{
+		Name:   "Go Stripe",
+		Number: "4242424242424242",
+		Month:  "10",
+		Year:   "20",
+	})
+	params.AddMeta("key", "value")
 
 	ch, err := charge.New(params)
 
@@ -30,7 +32,7 @@ func ExampleCharge_new() {
 		log.Fatal(err)
 	}
 
-	log.Printf("%v\n", ch.Id)
+	log.Printf("%v\n", ch.ID)
 }
 
 func ExampleCharge_get() {
@@ -46,7 +48,7 @@ func ExampleCharge_get() {
 		log.Fatal(err)
 	}
 
-	log.Printf("%v\n", ch.Id)
+	log.Printf("%v\n", ch.ID)
 }
 
 func ExampleInvoice_update() {
@@ -68,10 +70,14 @@ func ExampleInvoice_update() {
 func ExampleCustomer_delete() {
 	stripe.Key = "sk_key"
 
-	err := customer.Del("acct_example_id")
+	customerDel, err := customer.Del("cus_example_id")
 
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if !customerDel.Deleted {
+		log.Fatal("Customer doesn't appear deleted while it should be")
 	}
 }
 
@@ -82,13 +88,11 @@ func ExamplePlan_list() {
 	params.Filters.AddFilter("limit", "", "3")
 	params.Single = true
 
-	i := plan.List(params)
-	for !i.Stop() {
-		target, err := i.Next()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		log.Printf("%v ", target.Name)
+	it := plan.List(params)
+	for it.Next() {
+		log.Printf("%v ", it.Plan().Name)
+	}
+	if err := it.Err(); err != nil {
+		log.Fatal(err)
 	}
 }

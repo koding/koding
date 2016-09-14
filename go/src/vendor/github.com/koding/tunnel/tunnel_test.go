@@ -5,9 +5,12 @@ import (
 	"strconv"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/koding/tunnel"
 	"github.com/koding/tunnel/tunneltest"
+
+	"github.com/cenkalti/backoff"
 )
 
 func TestMultipleRequest(t *testing.T) {
@@ -107,7 +110,7 @@ func TestReconnectClient(t *testing.T) {
 func TestNoClient(t *testing.T) {
 	const expectedErr = "no client session established"
 
-	rec := NewStateRecorder()
+	rec := tunneltest.NewStateRecorder()
 
 	tt, err := tunneltest.Serve(singleRecHTTP(handlerEchoHTTP, rec.C()))
 	if err != nil {
@@ -115,13 +118,18 @@ func TestNoClient(t *testing.T) {
 	}
 	defer tt.Close()
 
-	states := []tunnel.ClientState{
+	if err := rec.WaitTransitions(
 		tunnel.ClientStarted,
 		tunnel.ClientConnecting,
 		tunnel.ClientConnected,
+	); err != nil {
+		t.Fatal(err)
 	}
 
-	if err := rec.WaitTransitions(states...); err != nil {
+	if err := tt.ServerStateRecorder.WaitTransition(
+		tunnel.ClientUnknown,
+		tunnel.ClientConnected,
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -130,13 +138,18 @@ func TestNoClient(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	states = []tunnel.ClientState{
+	if err := rec.WaitTransitions(
 		tunnel.ClientConnected,
 		tunnel.ClientDisconnected,
 		tunnel.ClientClosed,
+	); err != nil {
+		t.Fatal(err)
 	}
 
-	if err := rec.WaitTransitions(states...); err != nil {
+	if err := tt.ServerStateRecorder.WaitTransition(
+		tunnel.ClientConnected,
+		tunnel.ClientClosed,
+	); err != nil {
 		t.Fatal(err)
 	}
 
@@ -148,6 +161,43 @@ func TestNoClient(t *testing.T) {
 
 	if res != expectedErr {
 		t.Errorf("got %q, want %q", res, msg)
+	}
+}
+
+func TestNoHost(t *testing.T) {
+	tt, err := tunneltest.Serve(singleHTTP(handlerEchoHTTP))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer tt.Close()
+
+	noBackoff := backoff.NewConstantBackOff(time.Duration(-1))
+
+	unknown, err := tunnel.NewClient(&tunnel.ClientConfig{
+		Identifier: "unknown",
+		ServerAddr: tt.ServerAddr().String(),
+		Backoff:    noBackoff,
+		Debug:      testing.Verbose(),
+	})
+	if err != nil {
+		t.Fatalf("client error: %s", err)
+	}
+	unknown.Start()
+	defer unknown.Close()
+
+	if err := tt.ServerStateRecorder.WaitTransition(
+		tunnel.ClientUnknown,
+		tunnel.ClientClosed,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	unknown.Start()
+	if err := tt.ServerStateRecorder.WaitTransition(
+		tunnel.ClientClosed,
+		tunnel.ClientClosed,
+	); err != nil {
+		t.Fatal(err)
 	}
 }
 

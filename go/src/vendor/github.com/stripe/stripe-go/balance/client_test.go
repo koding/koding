@@ -3,13 +3,14 @@ package balance
 import (
 	"testing"
 
-	. "github.com/stripe/stripe-go"
+	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/charge"
+	"github.com/stripe/stripe-go/currency"
 	. "github.com/stripe/stripe-go/utils"
 )
 
 func init() {
-	Key = GetTestKey()
+	stripe.Key = GetTestKey()
 }
 
 func TestBalanceGet(t *testing.T) {
@@ -17,14 +18,6 @@ func TestBalanceGet(t *testing.T) {
 
 	if err != nil {
 		t.Error(err)
-	}
-
-	if target.Available == nil || len(target.Available) != 1 {
-		t.Errorf("Available array is not set\n")
-	}
-
-	if target.Pending == nil || len(target.Pending) != 1 {
-		t.Errorf("Pending array is not set\n")
 	}
 
 	if len(target.Available[0].Currency) == 0 {
@@ -37,20 +30,20 @@ func TestBalanceGet(t *testing.T) {
 }
 
 func TestBalanceGetTx(t *testing.T) {
-	chargeParams := &ChargeParams{
+	chargeParams := &stripe.ChargeParams{
 		Amount:   1002,
-		Currency: USD,
-		Card: &CardParams{
-			Number: "378282246310005",
-			Month:  "06",
-			Year:   "20",
-		},
-		Desc: "charge transaction",
+		Currency: currency.USD,
+		Desc:     "charge transaction",
 	}
+	chargeParams.SetSource(&stripe.CardParams{
+		Number: "378282246310005",
+		Month:  "06",
+		Year:   "20",
+	})
 
 	res, _ := charge.New(chargeParams)
 
-	target, err := GetTx(res.Tx.Id, nil)
+	target, err := GetTx(res.Tx.ID, nil)
 
 	if err != nil {
 		t.Error(err)
@@ -108,30 +101,27 @@ func TestBalanceGetTx(t *testing.T) {
 		t.Errorf("Type %v does not match expected value\n", target.Type)
 	}
 
-	if target.Src != res.Id {
-		t.Errorf("Source %q does not match expeted value %q\n", target.Src, res.Id)
+	if target.Src != res.ID {
+		t.Errorf("Source %q does not match expeted value %q\n", target.Src, res.ID)
 	}
 }
 
 func TestBalanceList(t *testing.T) {
-	params := &TxListParams{}
+	params := &stripe.TxListParams{}
 	params.Filters.AddFilter("limit", "", "5")
 	params.Single = true
 
 	i := List(params)
-	for !i.Stop() {
-		target, err := i.Next()
-
-		if err != nil {
-			t.Error(err)
-		}
-
-		if target == nil {
+	for i.Next() {
+		if i.Transaction() == nil {
 			t.Error("No nil values expected")
 		}
 
 		if i.Meta() == nil {
 			t.Error("No metadata returned")
 		}
+	}
+	if err := i.Err(); err != nil {
+		t.Error(err)
 	}
 }

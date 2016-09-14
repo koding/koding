@@ -60,16 +60,16 @@ module.exports = (options) ->
     apiSearchOnlyKey: ''
   postgres =
     host: "#{options.serviceHost}"
-    port: "5432"
-    username: "socialapplication"
-    password: "socialapplication"
-    dbname: "social"
+    port: '5432'
+    username: 'socialapplication'
+    password: 'socialapplication'
+    dbname: 'social'
   kontrolPostgres =
     host: "#{options.serviceHost}"
     port: 5432
-    username: "kontrolapplication"
-    password: "somerandompassword"
-    dbname: "social"
+    username: 'kontrolapplication'
+    password: 'kontrolapplication'
+    dbname: 'social'
     connecttimeout: 20
   pubnub =
     publishkey: ""
@@ -101,6 +101,15 @@ module.exports = (options) ->
     clientId: ''
     clientSecret: ''
     redirectUri: 'http://dev.koding.com:8090/-/oauth/github/callback'
+  gitlab =
+    host: ''
+    port: ''
+    applicationId: ''
+    applicationSecret: ''
+    team: 'gitlab'
+    redirectUri: ''
+    systemHookToken: ''
+    hooksEnabled: no
   facebook =
     clientId: ''
     clientSecret: ''
@@ -119,6 +128,7 @@ module.exports = (options) ->
     client_id: ''
     client_secret: ''
     redirect_uri: "http://dev.koding.com:8090/-/oauth/google/callback"
+    apiKey: ''
   twitter =
     key: ''
     secret: ''
@@ -210,6 +220,7 @@ module.exports = (options) ->
     paymentwebhook
     googleapiServiceAccount
     github
+    gitlab
     facebook
     mailgun
     slack
@@ -235,4 +246,5 @@ module.exports = (options) ->
     dummyAdmins
     druid
     clearbit
+    intercomAppId
   }

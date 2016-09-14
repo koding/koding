@@ -28,10 +28,10 @@ import (
 
 	"github.com/cheggaaa/pb"
 	"github.com/fatih/structs"
-	"github.com/fsouza/go-dockerclient/external/golang.org/x/sys/unix"
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
 	"github.com/koding/logging"
+	"golang.org/x/sys/unix"
 )
 
 const (
@@ -57,6 +57,7 @@ type MountOptions struct {
 	Trace            bool
 	OneWaySync       bool
 	OneWayInterval   int
+	Fuse             bool
 
 	// Used for Prefetching via RSync (SSH)
 	SSHDefaultKeyDir  string
@@ -354,6 +355,9 @@ func (c *MountCommand) handleOptions() (int, error) {
 	if c.Options.OneWaySync {
 		var invalidOption bool
 		switch {
+		case c.Options.Fuse:
+			c.printfln(errormessages.InvalidCLIOption, "--fuse", "--oneway-sync")
+			invalidOption = true
 		case c.Options.PrefetchAll:
 			c.printfln(errormessages.InvalidCLIOption, "--prefetch-all", "--oneway-sync")
 			invalidOption = true

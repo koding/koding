@@ -2,20 +2,19 @@ package tunnel
 
 import (
 	"bufio"
-	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
-	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/hashicorp/yamux"
 	"github.com/koding/logging"
+	"github.com/koding/tunnel/proto"
+
+	"github.com/hashicorp/yamux"
 )
 
 //go:generate stringer -type ClientState
@@ -27,6 +26,7 @@ var ErrRedialAborted = errors.New("unable to restore the connection, aborting")
 // ClientState represents client connection state to tunnel server.
 type ClientState uint32
 
+// ClientState enumeration.
 const (
 	ClientUnknown ClientState = iota
 	ClientStarted
@@ -38,17 +38,18 @@ const (
 
 // ClientStateChange represents single client state transition.
 type ClientStateChange struct {
-	Previous ClientState
-	Current  ClientState
-	Error    error
+	Identifier string
+	Previous   ClientState
+	Current    ClientState
+	Error      error
 }
 
 // Strings implements the fmt.Stringer interface.
 func (cs *ClientStateChange) String() string {
 	if cs.Error != nil {
-		return fmt.Sprintf("%s->%s (%s)", cs.Previous, cs.Current, cs.Error)
+		return fmt.Sprintf("[%s] %s->%s (%s)", cs.Identifier, cs.Previous, cs.Current, cs.Error)
 	}
-	return fmt.Sprintf("%s->%s", cs.Previous, cs.Current)
+	return fmt.Sprintf("[%s] %s->%s", cs.Identifier, cs.Previous, cs.Current)
 }
 
 // Backoff defines behavior of staggering reconnection retries.
@@ -74,7 +75,9 @@ type Client struct {
 
 	// yamuxConfig is passed to new yamux.Session's
 	yamuxConfig *yamux.Config
-	log         logging.Logger
+
+	// proxy handles local server communication.
+	proxy ProxyFunc
 
 	// startNotify is a chanel user can get to be notified when client is
 	// connected to the server. The preferred way of doing this however,
@@ -90,10 +93,12 @@ type Client struct {
 	reqWg  sync.WaitGroup
 	ctrlWg sync.WaitGroup
 
+	state ClientState
+
 	// redialBackoff is used to reconnect in exponential backoff intervals
 	redialBackoff Backoff
 
-	state ClientState
+	log logging.Logger
 }
 
 // ClientConfig defines the configuration for the Client
@@ -114,29 +119,6 @@ type ClientConfig struct {
 	// Required if ServerAddress is not set.
 	FetchServerAddr func() (string, error)
 
-	// LocalAddr defines the TCP address of the local server. This is optional
-	// if you want to specify a single TCP address. Otherwise the client will
-	// always proxy to 127.0.0.1:incomingPort, where incomingPort is the
-	// tunnelserver's public exposed Port.
-	LocalAddr string
-
-	// FetchLocalAddr is used for looking up TCP address of the server,
-	// which an incoming connection should be proxied to.
-	//
-	// If port-based routing is used, this field is required for tunneling to
-	// function properly. Otherwise you'll be forwarding traffic to random
-	// ports and this is usually not desired.
-	//
-	// If IP-based routing is used this field may be nil, in that case
-	// "127.0.0.1:port" will be used instead.
-	FetchLocalAddr func(port int) (string, error)
-
-	// Debug enables debug mode, enable only if you want to debug the server.
-	Debug bool
-
-	// Log defines the logger. If nil a default logging.Logger is used.
-	Log logging.Logger
-
 	// Dial provides custom transport layer for client server communication.
 	//
 	// If nil, default implementation is to return net.Dial("tcp", address).
@@ -144,6 +126,10 @@ type ClientConfig struct {
 	// It can be used for connection monitoring, setting different timeouts or
 	// securing the connection.
 	Dial func(network, address string) (net.Conn, error)
+
+	// Proxy defines custom proxing logic. This is optional extension point
+	// where you can provide your local server selection or communication rules.
+	Proxy ProxyFunc
 
 	// StateChanges receives state transition details each time client
 	// connection state changes. The channel is expected to be sufficiently
@@ -166,6 +152,20 @@ type ClientConfig struct {
 	// YamuxConfig defines the config which passed to every new yamux.Session. If nil
 	// yamux.DefaultConfig() is used.
 	YamuxConfig *yamux.Config
+
+	// Log defines the logger. If nil a default logging.Logger is used.
+	Log logging.Logger
+
+	// Debug enables debug mode, enable only if you want to debug the server.
+	Debug bool
+
+	// DEPRECATED:
+
+	// LocalAddr is DEPRECATED please use ProxyHTTP.LocalAddr, see ProxyOverwrite for more details.
+	LocalAddr string
+
+	// FetchLocalAddr is DEPRECATED please use ProxyTCP.FetchLocalAddr, see ProxyOverwrite for more details.
+	FetchLocalAddr func(port int) (string, error)
 }
 
 // verify is used to verify the ClientConfig
@@ -184,6 +184,10 @@ func (c *ClientConfig) verify() error {
 		}
 	}
 
+	if c.Proxy != nil && (c.LocalAddr != "" || c.FetchLocalAddr != nil) {
+		return errors.New("both Proxy and LocalAddr or FetchLocalAddr are set")
+	}
+
 	return nil
 }
 
@@ -192,9 +196,35 @@ func (c *ClientConfig) verify() error {
 // server. If localAddr is empty client will always try to proxy to a local
 // port.
 func NewClient(cfg *ClientConfig) (*Client, error) {
+	if err := cfg.verify(); err != nil {
+		return nil, err
+	}
+
 	yamuxConfig := yamux.DefaultConfig()
 	if cfg.YamuxConfig != nil {
 		yamuxConfig = cfg.YamuxConfig
+	}
+
+	var proxy = DefaultProxy
+	if cfg.Proxy != nil {
+		proxy = cfg.Proxy
+	}
+	// DEPRECATED API SUPPORT
+	if cfg.LocalAddr != "" || cfg.FetchLocalAddr != nil {
+		var f ProxyFuncs
+		if cfg.LocalAddr != "" {
+			f.HTTP = (&HTTPProxy{LocalAddr: cfg.LocalAddr}).Proxy
+			f.WS = (&HTTPProxy{LocalAddr: cfg.LocalAddr}).Proxy
+		}
+		if cfg.FetchLocalAddr != nil {
+			f.TCP = (&TCPProxy{FetchLocalAddr: cfg.FetchLocalAddr}).Proxy
+		}
+		proxy = Proxy(f)
+	}
+
+	var bo Backoff = newForeverBackoff()
+	if cfg.Backoff != nil {
+		bo = cfg.Backoff
 	}
 
 	log := newLogger("tunnel-client", cfg.Debug)
@@ -202,20 +232,13 @@ func NewClient(cfg *ClientConfig) (*Client, error) {
 		log = cfg.Log
 	}
 
-	if err := cfg.verify(); err != nil {
-		return nil, err
-	}
-
 	client := &Client{
 		config:        cfg,
-		log:           log,
 		yamuxConfig:   yamuxConfig,
-		redialBackoff: cfg.Backoff,
+		proxy:         proxy,
 		startNotify:   make(chan bool, 1),
-	}
-
-	if client.redialBackoff == nil {
-		client.redialBackoff = newForeverBackoff()
+		redialBackoff: bo,
+		log:           log,
 	}
 
 	return client, nil
@@ -383,14 +406,16 @@ func (c *Client) changeState(state ClientState, err error) (prev ClientState) {
 
 	if c.config.StateChanges != nil {
 		change := &ClientStateChange{
-			Previous: ClientState(prev),
-			Current:  state,
-			Error:    err,
+			Identifier: c.config.Identifier,
+			Previous:   ClientState(prev),
+			Current:    state,
+			Error:      err,
 		}
 
 		select {
 		case c.config.StateChanges <- change:
 		default:
+			c.log.Warning("Dropping state change due to slow reader: %s", change)
 		}
 	}
 
@@ -411,14 +436,14 @@ func (c *Client) connect(identifier, serverAddr string) error {
 		return err
 	}
 
-	remoteUrl := controlUrl(conn)
-	c.log.Debug("CONNECT to %q", remoteUrl)
-	req, err := http.NewRequest("CONNECT", remoteUrl, nil)
+	remoteURL := controlURL(conn)
+	c.log.Debug("CONNECT to %q", remoteURL)
+	req, err := http.NewRequest("CONNECT", remoteURL, nil)
 	if err != nil {
-		return fmt.Errorf("error creating request to %s: %s", remoteUrl, err)
+		return fmt.Errorf("error creating request to %s: %s", remoteURL, err)
 	}
 
-	req.Header.Set(xKTunnelIdentifier, identifier)
+	req.Header.Set(proto.ClientIdentifierHeader, identifier)
 
 	c.log.Debug("Writing request to TCP: %+v", req)
 
@@ -434,7 +459,7 @@ func (c *Client) connect(identifier, serverAddr string) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 && resp.Status != connected {
+	if resp.StatusCode != http.StatusOK || resp.Status != proto.Connected {
 		out, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return fmt.Errorf("tunnel server error: status=%d, error=%s", resp.StatusCode, err)
@@ -470,21 +495,21 @@ func (c *Client) connect(identifier, serverAddr string) error {
 		return errors.New("timeout opening session")
 	}
 
-	if _, err := stream.Write([]byte(ctHandshakeRequest)); err != nil {
+	if _, err := stream.Write([]byte(proto.HandshakeRequest)); err != nil {
 		return fmt.Errorf("writing handshake request failed: %s", err)
 	}
 
-	buf := make([]byte, len(ctHandshakeResponse))
+	buf := make([]byte, len(proto.HandshakeResponse))
 	if _, err := stream.Read(buf); err != nil {
 		return fmt.Errorf("reading handshake response failed: %s", err)
 	}
 
-	if string(buf) != ctHandshakeResponse {
+	if string(buf) != proto.HandshakeResponse {
 		return fmt.Errorf("invalid handshake response, received: %s", string(buf))
 	}
 
 	ct := newControl(stream)
-	c.log.Debug("client has started successfully.")
+	c.log.Debug("client has started successfully")
 	c.redialBackoff.Reset() // we successfully connected, so we can reset the backoff
 
 	c.startNotifyIfNeeded()
@@ -507,9 +532,8 @@ func (c *Client) listenControl(ct *control) error {
 	c.changeState(ClientConnected, nil)
 
 	for {
-		var msg controlMsg
-		err := ct.dec.Decode(&msg)
-		if err != nil {
+		var msg proto.ControlMessage
+		if err := ct.dec.Decode(&msg); err != nil {
 			c.reqWg.Wait() // wait until all requests are finished
 			c.session.GoAway()
 			c.session.Close()
@@ -519,140 +543,23 @@ func (c *Client) listenControl(ct *control) error {
 		}
 
 		c.log.Debug("Received control msg %+v", msg)
+		c.log.Debug("Opening a new stream from server session")
 
-		switch msg.Action {
-		case requestClientSession:
-			switch msg.Protocol {
-			case tcpTransport:
-				c.log.Debug("Received request to open a TCP session to server")
-
-				go func() {
-					if err := c.proxyTCP(msg.LocalPort); err != nil {
-						c.log.Error("proxying between remote and local failed: %s", err)
-					}
-				}()
-
-			case wsTransport, httpTransport:
-				c.log.Debug("Received request to open a HTTP session to server")
-
-				go func() {
-					if err := c.proxyHTTP(msg.LocalPort); err != nil {
-						c.log.Error("Proxy err between remote and local: '%s'", err)
-					}
-				}()
-			}
-		}
-	}
-}
-
-func (c *Client) proxyTCP(port int) error {
-	c.log.Debug("Opening a new stream from server session")
-
-	remote, err := c.session.Open()
-	if err != nil {
-		return err
-	}
-	defer remote.Close()
-
-	localAddr := fmt.Sprintf("127.0.0.1:%d", port)
-	if c.config.FetchLocalAddr != nil {
-		localAddr, err = c.config.FetchLocalAddr(port)
+		remote, err := c.session.Open()
 		if err != nil {
-			return fmt.Errorf("failed to fetch LocalAddr for port %d: %s", port, err)
-		}
-	}
-
-	c.log.Debug("Dialing local server: %s", localAddr)
-
-	local, err := net.DialTimeout("tcp", localAddr, defaultTimeout)
-	if err != nil {
-		c.log.Error("dialing local server %s failed: %s", localAddr, err)
-		return err
-	}
-
-	c.join(local, remote)
-
-	return nil
-}
-
-func (c *Client) proxyHTTP(port int) error {
-	c.log.Debug("Opening a new stream from server session")
-	remote, err := c.session.Open()
-	if err != nil {
-		return err
-	}
-	defer remote.Close()
-
-	if port == 0 {
-		port = 80
-	}
-	localAddr := "127.0.0.1:" + strconv.Itoa(port)
-	if c.config.LocalAddr != "" {
-		localAddr = c.config.LocalAddr
-	}
-
-	c.log.Debug("Dialing local server: %s", localAddr)
-	local, err := net.DialTimeout("tcp", localAddr, defaultTimeout)
-	if err != nil {
-		c.log.Error("dialing local server %s failed: %s", localAddr, err)
-
-		// send a response instead of canceling it on the server side. at least
-		// the public connection will know what's happening or not
-		body := bytes.NewBufferString("no local server")
-		resp := &http.Response{
-			Status:        http.StatusText(http.StatusServiceUnavailable),
-			StatusCode:    http.StatusServiceUnavailable,
-			Proto:         "HTTP/1.1",
-			ProtoMajor:    1,
-			ProtoMinor:    1,
-			Body:          ioutil.NopCloser(body),
-			ContentLength: int64(body.Len()),
+			return err
 		}
 
-		buf := new(bytes.Buffer)
-		resp.Write(buf)
-		if _, err := io.Copy(remote, buf); err != nil {
-			c.log.Debug("copy in-mem response error: %s", err)
+		isHTTP := msg.Protocol == proto.HTTP
+		if isHTTP {
+			c.reqWg.Add(1)
 		}
-		return nil
-	}
-
-	c.reqWg.Add(1)
-	c.join(local, remote)
-	c.reqWg.Done()
-
-	return nil
-}
-
-func (c *Client) join(local, remote net.Conn) {
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	transfer := func(side string, dst, src net.Conn) {
-		c.log.Debug("proxing %s -> %s", src.RemoteAddr(), dst.RemoteAddr())
-
-		n, err := io.Copy(dst, src)
-		if err != nil {
-			c.log.Error("%s: copy error: %s", side, err)
-		}
-
-		if err := src.Close(); err != nil {
-			c.log.Debug("%s: close error: %s", side, err)
-		}
-
-		// not for yamux streams, but for client to local server connections
-		if d, ok := dst.(*net.TCPConn); ok {
-			if err := d.CloseWrite(); err != nil {
-				c.log.Debug("%s: closeWrite error: %s", side, err)
+		go func() {
+			c.proxy(remote, &msg)
+			if isHTTP {
+				c.reqWg.Done()
 			}
-		}
-
-		wg.Done()
-		c.log.Debug("done proxing %s -> %s: %d bytes", src.RemoteAddr(), dst.RemoteAddr(), n)
+			remote.Close()
+		}()
 	}
-
-	go transfer("remote to local", local, remote)
-	go transfer("local to remote", remote, local)
-
-	wg.Wait()
 }

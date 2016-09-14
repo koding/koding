@@ -20,6 +20,7 @@ func TestIssuesService_List_all(t *testing.T) {
 
 	mux.HandleFunc("/issues", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
+		testHeader(t, r, "Accept", mediaTypeReactionsPreview)
 		testFormValues(t, r, values{
 			"filter":    "all",
 			"state":     "closed",
@@ -39,12 +40,11 @@ func TestIssuesService_List_all(t *testing.T) {
 		ListOptions{Page: 1, PerPage: 2},
 	}
 	issues, _, err := client.Issues.List(true, opt)
-
 	if err != nil {
 		t.Errorf("Issues.List returned error: %v", err)
 	}
 
-	want := []Issue{{Number: Int(1)}}
+	want := []*Issue{{Number: Int(1)}}
 	if !reflect.DeepEqual(issues, want) {
 		t.Errorf("Issues.List returned %+v, want %+v", issues, want)
 	}
@@ -56,6 +56,7 @@ func TestIssuesService_List_owned(t *testing.T) {
 
 	mux.HandleFunc("/user/issues", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
+		testHeader(t, r, "Accept", mediaTypeReactionsPreview)
 		fmt.Fprint(w, `[{"number":1}]`)
 	})
 
@@ -64,7 +65,7 @@ func TestIssuesService_List_owned(t *testing.T) {
 		t.Errorf("Issues.List returned error: %v", err)
 	}
 
-	want := []Issue{{Number: Int(1)}}
+	want := []*Issue{{Number: Int(1)}}
 	if !reflect.DeepEqual(issues, want) {
 		t.Errorf("Issues.List returned %+v, want %+v", issues, want)
 	}
@@ -76,6 +77,7 @@ func TestIssuesService_ListByOrg(t *testing.T) {
 
 	mux.HandleFunc("/orgs/o/issues", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
+		testHeader(t, r, "Accept", mediaTypeReactionsPreview)
 		fmt.Fprint(w, `[{"number":1}]`)
 	})
 
@@ -84,7 +86,7 @@ func TestIssuesService_ListByOrg(t *testing.T) {
 		t.Errorf("Issues.ListByOrg returned error: %v", err)
 	}
 
-	want := []Issue{{Number: Int(1)}}
+	want := []*Issue{{Number: Int(1)}}
 	if !reflect.DeepEqual(issues, want) {
 		t.Errorf("Issues.List returned %+v, want %+v", issues, want)
 	}
@@ -101,6 +103,7 @@ func TestIssuesService_ListByRepo(t *testing.T) {
 
 	mux.HandleFunc("/repos/o/r/issues", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
+		testHeader(t, r, "Accept", mediaTypeReactionsPreview)
 		testFormValues(t, r, values{
 			"milestone": "*",
 			"state":     "closed",
@@ -125,7 +128,7 @@ func TestIssuesService_ListByRepo(t *testing.T) {
 		t.Errorf("Issues.ListByOrg returned error: %v", err)
 	}
 
-	want := []Issue{{Number: Int(1)}}
+	want := []*Issue{{Number: Int(1)}}
 	if !reflect.DeepEqual(issues, want) {
 		t.Errorf("Issues.List returned %+v, want %+v", issues, want)
 	}
@@ -142,6 +145,7 @@ func TestIssuesService_Get(t *testing.T) {
 
 	mux.HandleFunc("/repos/o/r/issues/1", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
+		testHeader(t, r, "Accept", mediaTypeReactionsPreview)
 		fmt.Fprint(w, `{"number":1, "labels": [{"url": "u", "name": "n", "color": "c"}]}`)
 	})
 
@@ -247,7 +251,6 @@ func TestIssuesService_Lock(t *testing.T) {
 
 	mux.HandleFunc("/repos/o/r/issues/1/lock", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "PUT")
-		testHeader(t, r, "Accept", mediaTypeIssueLockingPreview)
 
 		w.WriteHeader(http.StatusNoContent)
 	})
@@ -263,7 +266,6 @@ func TestIssuesService_Unlock(t *testing.T) {
 
 	mux.HandleFunc("/repos/o/r/issues/1/lock", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "DELETE")
-		testHeader(t, r, "Accept", mediaTypeIssueLockingPreview)
 
 		w.WriteHeader(http.StatusNoContent)
 	})

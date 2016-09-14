@@ -1,14 +1,14 @@
 package vagrant
 
 import (
-	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stack"
 
 	"golang.org/x/net/context"
 )
 
 // Bootstrap
 func (s *Stack) Bootstrap(ctx context.Context) (interface{}, error) {
-	var arg kloud.BootstrapRequest
+	var arg stack.BootstrapRequest
 	if err := s.Req.Args.One().Unmarshal(&arg); err != nil {
 		return nil, err
 	}

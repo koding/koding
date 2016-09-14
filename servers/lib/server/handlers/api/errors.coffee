@@ -5,6 +5,11 @@ module.exports = {
     message                     : 'The server encountered an internal error.'
     code                        : 'InternalError'
 
+  notImplementedError           :
+    status                      : 501
+    message                     : 'Request is not implemented yet.'
+    code                        : 'NotImplementedError'
+
   invalidRequestDomain          :
     status                      : 400
     message                     : 'Request domain is not valid'

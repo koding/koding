@@ -1,5 +1,0 @@
-#include <tunables/global>
-
-/usr/bin/lxc-start flags=(attach_disconnected) {
-  #include <abstractions/lxc/start-container>
-}

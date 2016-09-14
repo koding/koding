@@ -291,20 +291,20 @@ func (mg *MailgunImpl) DeleteMember(member, addr string) error {
 
 // CreateMemberList registers multiple Members and non-Member members to a single mailing list
 // in a single round-trip.
-// s indicates the default subscribed status (Subscribed or Unsubscribed).
+// u indicates if the existing members should be updated or duplicates should be updated.
 // Use All to elect not to provide a default.
 // The newMembers list can take one of two JSON-encodable forms: an slice of strings, or
 // a slice of Member structures.
 // If a simple slice of strings is passed, each string refers to the member's e-mail address.
 // Otherwise, each Member needs to have at least the Address field filled out.
 // Other fields are optional, but may be set according to your needs.
-func (mg *MailgunImpl) CreateMemberList(s *bool, addr string, newMembers []interface{}) error {
+func (mg *MailgunImpl) CreateMemberList(u *bool, addr string, newMembers []interface{}) error {
 	r := newHTTPRequest(generateMemberApiUrl(listsEndpoint, addr) + ".json")
 	r.setClient(mg.Client())
 	r.setBasicAuth(basicAuthUser, mg.ApiKey())
 	p := newFormDataPayload()
-	if s != nil {
-		p.addValue("subscribed", yesNo(*s))
+	if u != nil {
+		p.addValue("upsert", yesNo(*u))
 	}
 	bs, err := json.Marshal(newMembers)
 	if err != nil {

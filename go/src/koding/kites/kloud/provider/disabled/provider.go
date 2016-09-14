@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stack"
 
 	"github.com/koding/kite"
 	"golang.org/x/net/context"
@@ -23,14 +23,14 @@ func NewProvider(name string) *Provider {
 	return &Provider{
 		err: &kite.Error{
 			Type:    "kloudError",
-			Message: fmt.Sprintf("Provider %q is disabled (error code: %d)", name, kloud.ErrProviderIsDisabled),
-			CodeVal: strconv.Itoa(kloud.ErrProviderIsDisabled),
+			Message: fmt.Sprintf("Provider %q is disabled (error code: %d)", name, stack.ErrProviderIsDisabled),
+			CodeVal: strconv.Itoa(stack.ErrProviderIsDisabled),
 		},
 	}
 }
 
 // ensure *Provider implements the kloud.Interface interface
-var _ kloud.Interface = (*Provider)(nil)
+var _ stack.Interface = (*Provider)(nil)
 
 // Machine implements the kloud.Provider interface.
 func (p *Provider) Machine(context.Context, string) (interface{}, error) {
