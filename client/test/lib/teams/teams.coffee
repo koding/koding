@@ -1,10 +1,9 @@
-utils        = require '../utils/utils.js'
-helpers      = require '../helpers/helpers.js'
+utils = require '../utils/utils.js'
+helpers = require '../helpers/helpers.js'
 teamsHelpers = require '../helpers/teamshelpers.js'
-user         = utils.getUser()
-createLink   = "#{helpers.getUrl()}/Teams/Create"
-inviteLink   = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
-
+user = utils.getUser()
+createLink = "#{helpers.getUrl()}/Teams/Create"
+inviteLink = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
 
 module.exports =
 
@@ -52,6 +51,13 @@ module.exports =
 
   loginTeam: (browser) ->
     teamsHelpers.loginTeam(browser, user, no)
+
+  seePreviouslyVisitedTeams: (browser) ->
+    url = helpers.getUrl()
+    teamsHelpers.loginTeam(browser, user, no)
+    teamsHelpers.logoutTeamfromUrl browser, (result) ->
+      browser.url url
+      browser.waitForElementVisible '.content-page.Team section a.previous-team', 20000
 
   after: (browser) ->
     browser.end()
