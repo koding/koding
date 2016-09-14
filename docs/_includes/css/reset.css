@@ -103,3 +103,7 @@ a img {
   user-select: none;           /* Non-prefixed version, currently
                                   not supported by any browser */
 }
+.clearfix {
+  float: none;
+  clear: both;
+}
