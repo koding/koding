@@ -48,5 +48,47 @@ permalink: /about
    title="Our Investors" %}
 
 <div class="Homepage--container AboutUs-Team">
+  <style>{% include css/about-heads.css %}</style>
+  <div class="AboutUs-TeamHeader">
+    <h2>About Us</h2>
+    <p>Since 2011, Koding has grown from a creative partnership between two brothers into an international team of engineers, designers and marketers spanning 6 countries and 3 continents.</p>
+  </div>
+  <div>
+  {% for member in site.data.members %}
+    <div class="AboutUs-TeamMember">
+        <img class="profile" src="{{ member.img }}" alt="{{ member.name }}">
+        <h3 class="team-member-name">{{ member.name }}</h3>
+        <p>
+        {{ member.title }}
+        <br />
+        {{ member.role }}
+        </p>
+        <p class="AboutUs-TeamMember--Social">
+            {% if member.twitter %}
+            <a href="http://twitter.com/{{ member.twitter }}"><img src="http://cdn2.hubspot.net/hubfs/1593820/assets/soc-twitter.png" width="24" /></a>
+            {% endif %}
+            {% if member.linkedin %}
+            <a href="http://linkedin.com/in/{{ member.linkedin }}"><img src="http://cdn2.hubspot.net/hubfs/1593820/assets/soc-linkedin.png" width="24" /></a>
+            {% endif %}
+            {% if member.github %}
+            <a href="http://github.com/{{ member.github }}"><img src="http://cdn2.hubspot.net/hubfs/1593820/assets/soc-github.png" width="24" /></a>
+            {% endif %}
+        </p>
+    </div>
+  {% endfor %}
+  <style>{% include css/about-newmember.css %}</style>
+  <div class="clearfix"></div>
+  <div class="AboutUs-NewTeamMember--Box">
+    <div class="AboutUs-TeamMember AboutUs-NewTeamMember">
+      <div class="AboutUs-NewTeamMember--Number">3</div>
+      <img class="profile" src="http://cdn2.hubspot.net/hubfs/1593820/assets/Bitmap.png">
+      <h3 class="team-member-name">You</h3>
+      <p>Awesome Person</p>
+      <a href="http://jobs.lever.co/koding" class="AboutUs-NewTeamMember--Button">SEE OPEN POSITIONS</a>
+    </div>
+  </div>
+  <div class="clearfix"></div>
+  </div>
+</div>
 <!-- FOOTER -->
 {% include footer.html %}

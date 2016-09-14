@@ -1,0 +1,129 @@
+.AboutUs-TeamHeader {
+  text-align: center;
+}
+.AboutUs-TeamHeader h2 {
+  font-size: 42px;
+  color: #358BB0;
+  font-weight: 300;
+  padding-top: 140px;
+  padding-bottom: 40px
+}
+.AboutUs-TeamHeader p {
+  font-weight: 300;
+  font-size: 24px;
+  line-height: 1.4;
+  max-width: 830px;
+  margin-bottom: 80px;
+  margin-left: auto;
+  margin-right: auto;
+  color: #515151;
+  margin-bottom: 100px;
+}
+.AboutUs-TeamMember {
+  text-align: center;
+  width: calc(33% - 50px);
+  float: left;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0);
+  border-radius: 6px;
+  padding-top: 40px;
+  padding-bottom: 20px;
+  margin-left: 25px;
+  margin-right: 25px;
+  transition: .4s box-shadow;
+
+}
+.AboutUs-TeamMember:hover {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+@media (max-width: 767px) {
+  .AboutUs-TeamHeader h2 {
+    font-size: 28px;
+    padding-top: 100px;
+    padding-left: 15px;
+    padding-right: 15px;
+    line-height: 1.3;
+  }
+  .AboutUs-TeamHeader p {
+    font-size: 20px;
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+  .AboutUs-TeamMember {
+    float: none;
+    width: 100%;
+    margin: auto;
+  }
+  .AboutUs-TeamMember:hover {
+    box-shadow: none;
+  }
+}
+.AboutUs-TeamMember img {
+  width: 160px;
+  height: 160px;
+  border-radius: 999em;
+  margin-bottom: 25px;
+}
+.AboutUs-TeamMember h3 {
+  font-size: 24px;
+  font-weight: 400;
+  color: #727272;
+  margin-bottom: 10px
+}
+.AboutUs-TeamMember p {
+  font-size: 16px;
+  color: #989898;
+  line-height: 24px;
+  min-height: 48px;
+  font-weight: 300;
+}
+.AboutUs-TeamMember--Social {
+  opacity: 0;
+  transition: .4s opacity;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 30px;
+  min-height: 56px;
+}
+.AboutUs-TeamMember--Social img {
+  width: 24px;
+  height: auto;
+  margin-left: 10px;
+  margin-right: 10px;
+  border-radius: 0;
+}
+.AboutUs-TeamMember:hover .AboutUs-TeamMember--Social {
+  opacity: 1;
+}
+@media (max-width: 767px) {
+  .AboutUs-TeamMember--Social {
+    opacity: 1;
+  }
+  
+  .AboutUs-TeamMember {
+    overflow: hidden;
+    margin-left: 30px;
+    margin-right: 30px;
+    text-align: left;
+    min-width: 300px;
+    width: auto;
+  }
+  
+  .AboutUs-TeamMember .profile {
+    float: left;
+    width: 80px;
+    height: 80px;
+    margin-right: 20px;
+  }
+  
+  .AboutUs-TeamMember h3 {
+    font-size: 20px;
+  }
+  
+  .AboutUs-TeamMember--Social {
+    justify-content: flex-start;
+    margin-top: 10px;
+    position: relative;
+    left: -10px;
+  }
+}
