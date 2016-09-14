@@ -14,6 +14,9 @@ module.exports =
 
   createTeamWithInvalidTeamUrl: (browser) ->
     teamsHelpers.createTeam(browser, user, '' , 'InvalidTeamUrl')
+  
+  createTeamWithEmptyTeamUrl: (browser) ->
+    teamsHelpers.createTeam(browser, user, '' , 'EmptyTeamUrl')
 
   createTeamWithAlreadyUsedTeamUrl: (browser) ->
     teamsHelpers.createTeam(browser, user, '' , 'AlreadyUsedTeamUrl')

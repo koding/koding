@@ -275,7 +275,21 @@ module.exports =
           browser
             .waitForElementVisible errorMessage, 5000
             .assert.containsText   errorMessage, 'Invalid domain!'
-
+        
+        when 'EmptyTeamUrl'
+          @fillTeamSignUp(browser, user.email, '')
+          browser
+            .waitForElementVisible  userInfoErrorMsg, 20000
+            .assert.containsText    userInfoErrorMsg, 'Please enter a team name.'
+          @fillTeamSignUp(browser, user.email, user.teamSlug)
+          browser
+            .waitForElementVisible  'input[name=slug]', 20000
+            .clearValue             'input[name=slug]'
+            .setValue               'input[name=slug]', ''
+            .click                  'button[testpath=domain-button]'
+            .waitForElementVisible  errorMessage, 20000
+            .assert.containsText   errorMessage, 'Domain name should be longer than 2 characters!'
+          
         when 'AlreadyUsedTeamUrl'
           @fillTeamSignUp(browser, user.email, 'koding')
           @enterTeamURL(browser)
