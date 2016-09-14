@@ -27,4 +27,9 @@ sass:
 markdown: kramdown
 twitter_username: koding
 github_username:  koding
+social:
+  twitter: https://twitter.com/koding
+  github:  https://github.com/koding
+  facebook:  https://facebook.com/koding
+  linkedin:  https://linkedin.com/company/koding
 
