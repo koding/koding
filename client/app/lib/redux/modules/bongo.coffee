@@ -62,6 +62,12 @@ load = (constructorName, _id) ->
   }
 
 
+create = (constructorName, options) ->
+  return {
+    types: [ LOAD.BEGIN, LOAD.SUCCESS, LOAD.FAIL ]
+    bongo: (remote) -> remote.api[constructorName].create options
+  }
+
 byId = (constructorName, id) -> (state) -> state.bongo[constructorName]?[id]
 
 
