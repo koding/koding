@@ -11,6 +11,7 @@ exports.make = make = (reducers = {}) ->
     subscription: require './modules/payment/subscription'
     customer: require './modules/payment/customer'
     form: require('redux-form').reducer
+    stacksAndRevisions: require './modules/sidebar/stacks'
   }
 
   reducers = _.assign {}, customReducers, reducers
