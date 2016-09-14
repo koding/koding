@@ -90,5 +90,48 @@ permalink: /about
   <div class="clearfix"></div>
   </div>
 </div>
+
+<style>{% include css/about-contact.css %}</style>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDUb3-qBWxs-4mHARQ_hQYTauPYUQtoRok&callback=initMap"  async defer></script>
+<script>
+  function initMap() {
+    // Create a map object and specify the DOM element for display.
+    var map = new google.maps.Map(document.getElementById('map'), {
+      center: {lat: 37.780928, lng: -122.393641},
+      scrollwheel: false,
+      zoom: 12,
+      styles: [{"featureType":"water","elementType":"geometry","stylers":[{"color":"#e9e9e9"},{"lightness":17}]},{"featureType":"landscape","elementType":"geometry","stylers":[{"color":"#f5f5f5"},{"lightness":20}]},{"featureType":"road.highway","elementType":"geometry.fill","stylers":[{"color":"#ffffff"},{"lightness":17}]},{"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#ffffff"},{"lightness":29},{"weight":0.2}]},{"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#ffffff"},{"lightness":18}]},{"featureType":"road.local","elementType":"geometry","stylers":[{"color":"#ffffff"},{"lightness":16}]},{"featureType":"poi","elementType":"geometry","stylers":[{"color":"#f5f5f5"},{"lightness":21}]},{"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#dedede"},{"lightness":21}]},{"elementType":"labels.text.stroke","stylers":[{"visibility":"on"},{"color":"#ffffff"},{"lightness":16}]},{"elementType":"labels.text.fill","stylers":[{"saturation":36},{"color":"#333333"},{"lightness":40}]},{"elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"geometry","stylers":[{"color":"#f2f2f2"},{"lightness":19}]},{"featureType":"administrative","elementType":"geometry.fill","stylers":[{"color":"#fefefe"},{"lightness":20}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"color":"#fefefe"},{"lightness":17},{"weight":1.2}]}]
+    });
+
+  }
+</script>
+
+<div class="AboutUs-Contact">
+  <div class="AboutUs-Contact--col" id="map"></div>
+  <div class="AboutUs-Contact--col">
+    <h2>Koding HQ</h2>
+    <p><span>358 Brannan Street, San Francisco, CA 94107</span></p>
+    <div><a href="http://maps.google.com" target="_blank">View on Google Maps</a></div>
+    <div class="AboutUs-Contact--numbers">
+      <div>
+        <h2>Media Inquiries</h2>
+        <p><a href="mailto:press@koding.com" target="_blank">press@koding.com</a></p>
+      </div>
+      <div>
+        <h2>Connect</h2>
+        <p><a href="mailto:business@koding.com" target="_blank">business@koding.com</a><br><a href="mailto:support@koding.com" target="_blank">support@koding.com</a></p>
+      </div>
+    </div>
+    <div class="AboutUs-Contact--numbers">
+      <div class="AboutUs-Contact--social">
+        <a href="{{ site.twitter }}"><img src="http://cdn2.hubspot.net/hubfs/1593820/assets/soc-twitter.png" height="19" /></a>
+        <a href="{{ site.linkedin }}"><img src="http://cdn2.hubspot.net/hubfs/1593820/assets/soc-linkedin.png" height="19" /></a>
+        <a href="{{ site.facebook }}"><img src="http://cdn2.hubspot.net/hubfs/1593820/assets/soc-facebook.png" height="19" /></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <!-- FOOTER -->
 {% include footer.html %}
