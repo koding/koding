@@ -289,7 +289,13 @@ module.exports =
             .click                  'button[testpath=domain-button]'
             .waitForElementVisible  errorMessage, 20000
             .assert.containsText   errorMessage, 'Domain name should be longer than 2 characters!'
-          
+        
+        when 'UpperCaseTeamUrl'
+          @fillTeamSignUp(browser, user.email, 'KodingTest')
+          browser.waitForElementVisible  'input[name=slug]', 20000
+          browser.getValue 'input[name=slug]', (result) ->
+            browser.assert.equal result.value, 'kodingtest'
+
         when 'AlreadyUsedTeamUrl'
           @fillTeamSignUp(browser, user.email, 'koding')
           @enterTeamURL(browser)
