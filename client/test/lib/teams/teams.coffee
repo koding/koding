@@ -23,6 +23,10 @@ module.exports =
     user         = utils.getUser(yes)
     teamsHelpers.createTeam(browser, user, '' , 'InvalidUserName')
 
+  createAccountWithSameDomainAndUserName: (browser) ->
+    user         = utils.getUser(yes)
+    teamsHelpers.createTeam(browser, user, '' , 'SameDomainAndUserName')
+
   createAccountWithShortPassword: (browser) ->
     user = utils.getUser(yes)
     teamsHelpers.createTeam(browser, user, '' , 'ShortPassword')

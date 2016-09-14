@@ -68,6 +68,16 @@ module.exports =
             .click                  doneButton
             .waitForElementVisible  userInfoErrorMsg, 20000
             .assert.containsText    userInfoErrorMsg, 'Username should be between 4 and 25 characters!'
+        
+        when 'SameDomainAndUserName'
+          browser
+            .waitForElementVisible  usernameInput, 20000
+            .clearValue             usernameInput
+            .setValue               usernameInput, user.teamSlug
+            .setValue               passwordInput, user.password
+            .click                  doneButton
+            .waitForElementVisible  errorMessage, 20000
+            .assert.containsText    errorMessage, 'Sorry, your group domain and your username can not be the same!'
 
         when 'AlreadyRegisteredUserName'
           browser
@@ -274,6 +284,12 @@ module.exports =
             .assert.containsText   errorMessage, 'Domain is taken!'
 
         when 'InvalidUserName'
+          @fillTeamSignUp(browser, user.email, user.teamSlug)
+          @enterTeamURL(browser)
+          @checkForgotPassword(browser)
+          @fillUsernamePasswordForm(browser, user, yes, invalidInfo)
+
+        when 'SameDomainAndUserName'
           @fillTeamSignUp(browser, user.email, user.teamSlug)
           @enterTeamURL(browser)
           @checkForgotPassword(browser)
