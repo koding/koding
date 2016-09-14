@@ -23,7 +23,7 @@ envDataProvider      = require 'app/userenvironmentdataprovider'
 Tracker              = require 'app/util/tracker'
 getGroup             = require 'app/util/getGroup'
 isGroupDisabled = require 'app/util/isGroupDisabled'
-
+{ LOAD } = require 'app/redux/modules/bongo'
 { actions : HomeActions } = require 'home/flux'
 
 require './config'
@@ -977,6 +977,7 @@ module.exports = class ComputeController extends KDController
 
         # console.info "Revision info for stack #{stack.title}", status
         @emit 'StackRevisionChecked', stack
+        @emit 'StackRevisionSuccess', stack._id, error, data
 
         if stack.machines.length isnt machineCount
           @emit 'StacksInconsistent', stack
