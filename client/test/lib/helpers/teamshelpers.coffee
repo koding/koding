@@ -457,8 +457,9 @@ module.exports =
       .waitForElementVisible '.kdview.jtreeview.expanded', 20000
       .assert.containsText   'body.ide .kdlistitemview-finderitem > div .title', 'Applications'
     @waitUntilVmRunning browser, =>
-      @waitStartCoding browser, ->
-        done()
+      browser.pause 6000, =>
+        @waitStartCoding browser, ->
+          done()
 
   waitStartCoding: (browser, done) ->
     buttonSelector = '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton'
@@ -494,10 +495,10 @@ module.exports =
     vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
 
     browser
-      .pause 10000
       .getAttribute vmSelector, 'title', (result) =>
         if result.value.substring(16) is 'Running'
           console.log '   VM is running'
+          browser.pause 2000
           done()
         else
           console.log '   VM is still building'
