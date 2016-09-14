@@ -6,6 +6,8 @@ showError = require 'app/util/showError'
 whoami = require 'app/util/whoami'
 getMachineOwner = require 'app/util/getMachineOwner'
 { series, waterfall } = require 'async'
+{ createSelector } = require 'reselect'
+
 
 { makeNamespace, expandActionType,
   normalize, defineSchema } = require 'app/redux/helper'
@@ -17,6 +19,7 @@ EDIT = expandActionType withNamespace 'EDIT'
 INITIALIZE = expandActionType withNamespace 'INITIALIZE'
 { LOAD, REMOVE } = require 'app/redux/modules/bongo'
 
+bongo = require 'app/redux/modules/bongo'
 
 reducer = (state = immutable({}), action) ->
 
@@ -117,147 +120,161 @@ reinitStack = (stack, machines, template) -> (dispatch) ->
 
 # selectors
 
-privateStackTemplates = (stackTemplates) ->
+myStackTemplates = createSelector(
+  bongo.all 'JStackTemplate'
+  (templates) -> _.pickBy templates, (template) -> template.originId is whoami()._id
+)
 
-  return null  unless stackTemplates
+myStacks = createSelector(
+  bongo.all 'JComputeStack'
+  (stacks) -> _.pickBy stacks, (stack) -> stack.originId is whoami()._id
+)
 
-  _.values(stackTemplates).filter (template) ->
-    template.accessLevel is 'private'
+privateStackTemplates = createSelector(
+  myStackTemplates
+  (templates) -> templates and _.values(templates).filter (template) -> template.accessLevel is 'private'
+)
 
+teamStackTemplates = createSelector(
+  myStackTemplates
+  (templates) -> templates and _.values(templates).filter (template) -> template.accessLevel is 'group'
+)
 
-privateStacks = (stacks) ->
+draftStackTemplates = createSelector(
+  myStacks
+  myStackTemplates
+  (stacks, templates) ->
+    return null  unless stacks and templates
 
-  return null  unless stacks
-
-  _.values(stacks).filter (stack) ->
-    not stack.getAt(['config', 'groupStack'])
-
-
-teamStackTemplates = (stackTemplates) ->
-
-  return null  unless stackTemplates
-
-  _.values(stackTemplates).filter (template) ->
-    template.accessLevel is 'group'
-
-
-teamStacks =  (stacks) ->
-
-  return null  unless stacks
-
-  _.values(stacks).filter (stack) ->
-    stack.getAt(['config', 'groupStack'])
-
-
-draftStackTemplates = (stacks, templates) ->
-
-  return null  unless stacks or not templates
-
-  baseStackIds = _.values(stacks).map (s) -> s.baseStackId
-
-  _.values(templates).filter (template) ->
-    not (template._id in baseStackIds)
+    baseStackIds = _.values(stacks).map (s) -> s.baseStackId
+    _.pickBy templates, (template) -> not (template._id in baseStackIds)
+)
 
 
-stacksWithMachines = (stacks, machines) ->
+sidebarStacks = createSelector(
+  myStacks
+  draftStackTemplates
+  (stacks, templates) ->
+    return null  unless stacks and templates
 
-  return null  if not stacks or not machines
+    _.merge stacks, templates
+)
 
-  stacksWithMachines = {}
-  _.values(stacks).forEach (stack) ->
-    stacksWithMachines[stack._id] = []
-    stack.machines.forEach (machineId) ->
-      if machines[machineId]
-        stacksWithMachines[stack._id].push immutable machines[machineId]
+stacksAndMachines = createSelector(
+  sidebarStacks
+  bongo.all 'JMachine'
+  (stacks, machines) ->
+    return null  unless stacks and machines
 
-  return stacksWithMachines
+    return _.mapValues stacks, (stack, key) ->
+      return stack.machines
+        .map (machineId) -> machines[machineId]
+        .filter Boolean
+)
+
+stacksAndTemplates = createSelector(
+  sidebarStacks
+  myStackTemplates
+  (stacks, templates) ->
+    return null unless stacks and templates
+
+    return _.mapValues stacks, (stack, key) ->
+      if stack.baseStackId
+        templates[stack.baseStackId]
+      else stack
+)
+
+stacksAndCredential = createSelector(
+  sidebarStacks
+  bongo.all 'JCredential'
+  (stacks, credentials) ->
+    return _.mapValues stacks, (stack, key) ->
+      provider = stackProvider stack
+      return _.values(credentials)
+        .filter (credential) ->
+          stack.credentials["#{provider}"]?.first is credential.identifier
+)
+
+stackProvider = (stack) ->
+
+  { config: { requiredProviders }, credentials } = stack
+
+  for selectedProvider in requiredProviders
+    break  if selectedProvider in ['aws', 'vagrant']
+
+  selectedProvider ?= (Object.keys credentials ? { aws: yes }).first
+  selectedProvider ?= 'aws'
+
+  return selectedProvider
 
 
-stacksWithTemplates = (stacks, templates) ->
+stacksRevisionStatus = (state) ->
 
-  return null if not stacks or not templates
-
-  stacksWithTemplates = {}
-
-  baseStackIds = _.values(stacks).map (s) -> s.baseStackId
-
-  _.values(stacks).map (stack) ->
-    if templates[stack.baseStackId]
-      stacksWithTemplates[stack._id] = templates[stack.baseStackId]
-
-  #drafts
-  _.values(templates).forEach (template) ->
-    if not (template._id in baseStackIds)
-      stacksWithTemplates[template._id] = template
-
-  return stacksWithTemplates
+  state.stacksAndRevisions
 
 
-stacksWithMenuItems = (stacks, templates, stacksRevisionStatus) ->
+stacksAndMenuItems = createSelector(
+  sidebarStacks
+  stacksRevisionStatus
+  (stacks, status) ->
 
-  return unless stacks
+    return unless stacks and status
 
-  baseStackIds = _.values(stacks).map (s) -> s.baseStackId
-
-  stacksWithMenuItems = {}
-
-  _.values(stacks).forEach (stack) ->
-    menuItems = {}
-    if stack.machines.length
-      revision = stacksRevisionStatus?[stack._id]
-      if revision?.status?.code
-        menuItems['Update'] = { }
-
-      managedVM = stack.title.indexOf('Managed VMs') > -1
-
-      if managedVM
-        menuItems['VMs'] = { }
-      else
-        menuItems['Edit'] = { }  if isAdmin() and not stack.config.oldOwner
-        menuItems['Reinitialize'] = {} unless stack.config.oldOwner
-        ['VMs', 'Destroy VMs'].forEach (name) ->
-          menuItems[name] = { }
-
-    stacksWithMenuItems[stack._id] = menuItems
-
-    _.values(templates).forEach (template) ->
+    return _.mapValues stacks, (stack, key) ->
       menuItems = {}
-      # for drafts
-      if not (template._id in baseStackIds)
-        ['Edit', 'Initialize'].forEach (name) -> menuItems[name] = { }
-        stacksWithMenuItems[template._id] = menuItems
+      if stack.machines.length
+        revision = status?[stack._id]
+        if revision?.status?.code
+          menuItems['Update'] = null
 
-  return stacksWithMenuItems
+        managedVM = stack.title.indexOf('Managed VMs') > -1
 
-sharedVMs = (machines) ->
+        if managedVM
+          menuItems['VMs'] = null
+        else
+          menuItems['Edit'] = null  if isAdmin() and not stack.config.oldOwner
+          menuItems['Reinitialize'] = null  unless stack.config.oldOwner
+          ['VMs', 'Destroy VMs'].forEach (name) ->
+            menuItems[name] = null
+        return menuItems
+      else
+        ['Edit', 'Initialize'].forEach (name) -> menuItems[name] = null
+        return menuItems
+)
 
-  _.values(machines).filter (machine) ->
-    return no  unless machine.users.length > 1
 
-    # dont show sharedVMs to its owner
-    { profile: { nickname } } = whoami()
-    ownerNickname = getMachineOwner machine, yes
-    nickname isnt ownerNickname
+sharedVMs = createSelector(
+  bongo.all 'JMachine'
+  (machines) ->
 
+    _.values(machines).filter (machine) ->
+      return no  unless machine.users.length > 1
 
+      # dont show sharedVMs to its owner
+      { profile: { nickname } } = whoami()
+      ownerNickname = getMachineOwner machine, yes
+      nickname isnt ownerNickname
+)
 
 module.exports = _.assign reducer, {
   namespace: withNamespace()
   reducer
-  initializeStack
-  openOnGitlab
-  handleRoute
-  destroyStack
-  reinitStack
-  reloadIDE
-  privateStackTemplates
-  privateStacks
-  teamStackTemplates
-  teamStacks
-  stacksWithMachines
-  stacksWithMenuItems
-  draftStackTemplates
-  stacksWithTemplates
+  # initializeStack
+  # openOnGitlab
+  # handleRoute
+  # destroyStack
+  # reinitStack
+  # reloadIDE
+  # privateStackTemplates
+  # privateStacks
+  # teamStackTemplates
+  # teamStacks
+  stacksAndMachines
+  stacksAndMenuItems
+  # draftStackTemplates
+  stacksAndTemplates
+  stacksAndCredential
   sharedVMs
+  sidebarStacks
 }
 
