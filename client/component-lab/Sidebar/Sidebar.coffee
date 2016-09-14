@@ -11,14 +11,11 @@ SidebarStackHeaderSection = require 'app/components/sidebarstacksection/sidebars
 module.exports = class Sidebar extends React.Component
 
   @propTypes =
-    stacks: React.PropTypes.object
-    stacksWithMachines: React.PropTypes.object
-    stacksWithTemplates: React.PropTypes.object
-    stacksWithMenuItems: React.PropTypes.object
-    draftStackTemplates: React.PropTypes.array
-    teamStacks: React.PropTypes.any
-    privateStacks: React.PropTypes.any
-    stackTemplates: React.PropTypes.any
+    sidebarStacks: React.PropTypes.any
+    stacksAndCredential: React.PropTypes.any
+    stacksAndMachines: React.PropTypes.any
+    stacksAndMenuItems: React.PropTypes.any
+    stacksAndTemplates: React.PropTypes.any
     sharedVMs: React.PropTypes.array
     reinitStack: React.PropTypes.func
     destroyStack: React.PropTypes.func
@@ -27,14 +24,11 @@ module.exports = class Sidebar extends React.Component
     initializeStack: React.PropTypes.func
 
   @defaultProps =
-    stacks: {}
-    stacksWithMachines: {}
-    stacksWithTemplates: {}
-    stacksWithMenuItems: {}
-    draftStackTemplates: []
-    teamStacks: []
-    privateStacks: []
-    stackTemplates: []
+    sidebarStacks: {}
+    stacksAndCredential: {}
+    stacksAndMachines: {}
+    stacksAndMenuItems: {}
+    stacksAndTemplates: {}
     sharedVMs: []
     reinitStack: kd.noop
     destroyStack: kd.noop
@@ -46,9 +40,10 @@ module.exports = class Sidebar extends React.Component
 
   renderStack: (stack) ->
 
-    machines = @props.stacksWithMachines[stack._id] or []
-    template = @props.stacksWithTemplates[stack._id] or {}
-    menuItems = @props.stacksWithMenuItems[stack._id] or {}
+    machines = @props.stacksAndMachines?[stack._id] or []
+    template = @props.stacksAndTemplates?[stack._id] or {}
+    menuItems = @props.stacksAndMenuItems?[stack._id] or {}
+    credential = @props.stacksAndCredential?[stack._id] or {}
 
     <SidebarStackSection
       key={stack._id}
@@ -56,6 +51,7 @@ module.exports = class Sidebar extends React.Component
       template={template}
       machines={machines}
       menuItems={menuItems}
+      credential={credential}
       reinitStack={@props.reinitStack}
       destroyStack={@props.destroyStack}
       initializeStack={@props.initializeStack}
@@ -63,33 +59,19 @@ module.exports = class Sidebar extends React.Component
       openOnGitlab={@props.openOnGitlab} />
 
 
-  renderPrivateStacks: ->
-
-    @props.privateStacks.map (stack) => @renderStack stack
-
-
-  renderTeamStacks: ->
-
-    @props.teamStacks.map (stack) => @renderStack stack
-
-
   renderStacks : ->
 
-    if Object.keys(@props.stacks).length
+    if Object.keys(@props.sidebarStacks).length
       <SidebarStackHeaderSection>
-        {@renderTeamStacks()}
-        {@renderPrivateStacks()}
+        {@renderSidebarStacks()}
       </SidebarStackHeaderSection>
     else
       <SidebarNoStacks />
 
+  renderSidebarStacks: ->
 
-  renderDrafts: ->
-
-    return  unless @props.draftStackTemplates
-
-    @props.draftStackTemplates.map (draftStackTemplate) =>
-      @renderStack draftStackTemplate
+    _.values(@props.sidebarStacks).map (stack) =>
+      @renderStack stack
 
 
   renderSharedVMs: ->
@@ -99,17 +81,9 @@ module.exports = class Sidebar extends React.Component
     <SidebarManagedVMs  machines={@props.sharedVMs} />
 
 
-  renderStackTemplates: ->
-
-    return unless @props.stackTemplates
-
-    _.values(@props.stackTemplates).map (template) =>
-      @renderStack template
-
   render: ->
 
     <div className='Sidebar-section-wrapper'>
       {@renderStacks()}
-      {@renderDrafts()}
       {@renderSharedVMs()}
     </div>
