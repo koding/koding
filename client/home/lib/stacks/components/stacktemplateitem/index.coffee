@@ -7,6 +7,7 @@ UnreadCount = require 'app/components/sidebarmachineslistitem/unreadcount'
 getBoundingClientReact = require 'app/util/getBoundingClientReact'
 StackUpdatedWidget = require 'app/components/sidebarstacksection/stackupdatedwidget'
 isAdmin = require 'app/util/isAdmin'
+whoami = require 'app/util/whoami'
 
 module.exports = class StackTemplateItem extends React.Component
 
@@ -111,7 +112,7 @@ module.exports = class StackTemplateItem extends React.Component
 
     editorUrl = "/Stack-Editor/#{template.get '_id'}"
     listItemClassName = 'HomeAppViewListItem-label'
-    unless isAdmin() or stack?.get('accessLevel') is 'private'
+    unless isAdmin() or template.get('originId') is whoami()._id
       listItemClassName = 'HomeAppViewListItem-label member'
     <div className='HomeAppViewListItem StackTemplateItem'>
       <a
