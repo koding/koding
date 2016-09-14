@@ -12,14 +12,16 @@ globals = require 'globals'
   openOnGitlab
   reloadIDE } = require 'app/redux/modules/sidebar/stacks'
 
-{ privateStackTemplates
+{ sidebarStacks
+  privateStackTemplates
   teamStackTemplates
   privateStacks
   teamStacks
-  stacksWithMenuItems
-  stacksWithMachines
-  stacksWithTemplates
+  stacksAndMenuItems
+  stacksAndMachines
+  stacksAndTemplates
   draftStackTemplates
+  stacksAndCredential
   sharedVMs } = require 'app/redux/modules/sidebar/stacks'
 
 
@@ -42,15 +44,22 @@ mapDispatchToProps = (dispatch) ->
 mapStateToProps = (state) ->
 
   return {
-    stacks: state.bongo['JComputeStack']
-    privateStacks: privateStacks(state.bongo['JComputeStack']) or {}
-    teamStacks: teamStacks(state.bongo['JComputeStack']) or {}
-    stackTemplates: state.bongo['JStackTemplate'] or {}
-    draftStackTemplates: draftStackTemplates(state.bongo['JComputeStack'], state.bongo['JStackTemplate'])
-    stacksWithMenuItems: stacksWithMenuItems(state.bongo['JComputeStack'], state.bongo['JStackTemplate'], state.stacksWithRevisionStatus)
-    stacksWithTemplates: stacksWithTemplates(state.bongo['JComputeStack'], state.bongo['JStackTemplate'])
-    stacksWithMachines: stacksWithMachines(state.bongo['JComputeStack'], state.bongo['JMachine'])
-    sharedVMs: sharedVMs(state.bongo['JMachine'])
+    sidebarStacks: sidebarStacks(state)
+    stacksAndMachines: stacksAndMachines(state)
+    stacksAndTemplates: stacksAndTemplates(state)
+    stacksAndCredential: stacksAndCredential(state)
+    stacksAndMenuItems: stacksAndMenuItems(state)
+    sharedVMs: sharedVMs(state)
+    # stacks: bongo.all('JComputeStack')(state)
+    # privateStacks: privateStacks(state)
+    # teamStacks: teamStacks(state.bongo['JComputeStack']) or {}
+    # stackTemplates: state.bongo['JStackTemplate'] or {}
+    # draftStackTemplates: draftStackTemplates(state.bongo['JComputeStack'], state.bongo['JStackTemplate'])
+    # stacksAndMenuItems: stacksAndMenuItems(state.bongo['JComputeStack'], state.bongo['JStackTemplate'], state.stacksWithRevisionStatus)
+    # stacksAndTemplates: stacksAndTemplates(state.bongo['JComputeStack'], state.bongo['JStackTemplate'])
+    # stacksAndMachines: stacksAndMachines(state.bongo['JComputeStack'], state.bongo['JMachine'])
+    # sharedVMs: sharedVMs(state.bongo['JMachine'])
+    # stacksAndCredential: stacksAndCredential(state.bongo['JComputeStack'], state.bongo['JStackTemplate'])
   }
 
 
@@ -59,15 +68,20 @@ class SidebarContainer extends React.Component
   componentWillMount: ->
 
     { slug: group } = globals.currentGroup
+    { computeController } = kd.singletons
 
     @props.store.dispatch({
       types: [ LOAD.BEGIN, LOAD.SUCCESS, LOAD.FAIL ]
-      bongo: (remote) -> remote.api.JComputeStack.some({ group })
+      bongo: (remote) -> remote.api.JComputeStack.some({ group }).then (stacks) ->
+        computeController.checkStackRevisions stacks
+        return stacks
     })
 
     @props.store.dispatch({
       types: [ LOAD.BEGIN, LOAD.SUCCESS, LOAD.FAIL ]
-      bongo: (remote) -> remote.api.JStackTemplate.some({ group })
+      bongo: (remote) -> remote.api.JStackTemplate.some({ group }).then (stackTemplates) ->
+        computeController.fetchCredentials stackTemplates
+        return stackTemplates
     })
 
     @props.store.dispatch({
@@ -75,28 +89,10 @@ class SidebarContainer extends React.Component
       bongo: (remote) -> remote.api.JMachine.some({})
     })
 
-  componentDidMount: ->
-
-    kd.singletons.computeController.checkStackRevisions(@props.stacks)
-
 
   render: ->
 
-    <Sidebar
-      stacks={@props.stacks}
-      teamStacks={@props.teamStacks}
-      privateStacks={@props.privateStacks}
-      stacksWithMachines={@props.stacksWithMachines}
-      stacksWithTemplates={@props.stacksWithTemplates}
-      draftStackTemplates={@props.draftStackTemplates}
-      stacksWithMenuItems={@props.stacksWithMenuItems}
-      stackTemplates={@props.stackTemplates}
-      sharedVMs={@props.sharedVMs}
-      reinitStack={@props.reinitStack}
-      destroyStack={@props.destroyStack}
-      handleRoute={@props.handleRoute}
-      openOnGitlab={@props.openOnGitlab}
-      initializeStack={@props.initializeStack} />
+    <Sidebar {...@props} />
 
 
 module.exports = connect(mapStateToProps, mapDispatchToProps)(SidebarContainer)
