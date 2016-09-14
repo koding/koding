@@ -372,9 +372,9 @@ module.exports =
   reinitializeTeamStack: (browser, done) ->
     browser
       .waitForElementVisible '.StackEditor-ShareModal.kdmodal footer', 20000
-      .waitForElementVisible '.kdcustomcheckbox input[type="checkbox"]'
-      .click '.kdcustomcheckbox input[type="checkbox"]'
-      .pause 3000
+      .waitForElementVisible '.StackEditor-ShareModal.ContentModal.content-modal main p .kdcustomcheckbox', 20000
+      .click '.StackEditor-ShareModal.ContentModal.content-modal main p .kdcustomcheckbox'
+      .pause 2000
       .click shareButton
       .waitForElementVisible '.ContentModal.content-modal main', 20000
       .click shareButton, ->
