@@ -35,6 +35,15 @@
 .AboutUs-TeamMember:hover {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
+
+.AboutUs-TeamMember.invisible {
+  visibility: hidden;
+}
+
+.AboutUs-TeamMember.invisible:hover {
+  box-shadow: none;
+}
+
 @media (max-width: 767px) {
   .AboutUs-TeamHeader h2 {
     font-size: 28px;
@@ -99,7 +108,7 @@
   .AboutUs-TeamMember--Social {
     opacity: 1;
   }
-  
+
   .AboutUs-TeamMember {
     overflow: hidden;
     margin-left: 30px;
@@ -108,18 +117,18 @@
     min-width: 300px;
     width: auto;
   }
-  
+
   .AboutUs-TeamMember .profile {
     float: left;
     width: 80px;
     height: 80px;
     margin-right: 20px;
   }
-  
+
   .AboutUs-TeamMember h3 {
     font-size: 20px;
   }
-  
+
   .AboutUs-TeamMember--Social {
     justify-content: flex-start;
     margin-top: 10px;

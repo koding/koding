@@ -98,6 +98,8 @@
   github: leeola
   img: //cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/team/lee_olayvar2x.png
 
+- cssClass: 'invisible'
+
 - name: Mehmet Ali Savas
   title: Engineer
   linkedin: mehmet-ali-savas-511596105
