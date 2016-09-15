@@ -11,7 +11,7 @@ Stack file/template is where you describe your dev environment using **[Terrafo
 
 Terraform is used by 100s of companies worldwide and it is used to create, manage, and manipulate infrastructure resources. Examples of resources include physical machines, VMs, network switches, containers, etc. Almost any infrastructure noun can be represented as a resource in Terraform.
 
-Terraform is agnostic to the underlying platforms by supporting providers. A provider is responsible for understanding API interactions and exposing resources. Providers generally are an IaaS (e.g. AWS, GCP, Microsoft Azure, OpenStack), PaaS (e.g. Heroku), or SaaS services (e.g. Atlas, DNSimple, CloudFlare).
+Terraform is agnostic to the underlying platforms by supporting providers. A provider is responsible for understanding API interactions and exposing resources. Providers generally are an IaaS (e.g. AWS, GCP, Microsoft Azure, OpenStack), PaaS (e.g. Heroku) or SaaS services (e.g. Atlas, DNSimple, CloudFlare).
 
 Koding Stacks are written in YAML format, here is [how to convert Terraform script to YAML](/docs/terraform-to-koding). It is very easy. We are planning to support Terraform files directly in the near future.
 
