@@ -26,21 +26,18 @@ module.exports = class StopMachineProgressPageView extends JView
 
   pistachio: ->
 
-    machine = @getData()
-    title   = machine.jMachine.label
-
-    """
+    '''
       <div class="stop-machine-flow stop-machine-progress-page">
         <header>
           <h1>Turn Off VM</h1>
         </header>
         <section class="main">
           <div class="background"></div>
-          <h2><span>#{title}</span> is Being Turned Off</h2>
+          <h2>{{#(jMachine.label)}} is Being Turned Off</h2>
           <div class="progressbar-wrapper">
             {{> @progressBar}}
             {{> @statusText}}
           </div>
         </section>
       </div>
-    """
+    '''
