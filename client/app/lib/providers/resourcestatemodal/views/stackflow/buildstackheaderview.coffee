@@ -13,11 +13,9 @@ module.exports = class BuildStackHeaderView extends JView
 
   pistachio: ->
 
-    stack = @getData()
-
-    """
+    '''
       <header>
-        <h1>#{stack.title}</h1>
+        {h1{#(title)}}
       </header>
       {{> @progressPane}}
-    """
+    '''
