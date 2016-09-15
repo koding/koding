@@ -179,20 +179,23 @@ func (k *Klient) IpAddress() (string, error) {
 
 func NewWithTimeout(k *kite.Kite, queryString string, t time.Duration) (klient *Klient, err error) {
 	timeout := time.After(t)
-	ticker := time.NewTicker(DefaultInterval)
-	defer ticker.Stop()
 
 	for {
 		select {
-		case <-ticker.C:
+		case <-timeout:
+			if err == nil {
+				err = errors.New("timed out connecting to klient: " + queryString)
+			}
+
+			return klient, err
+		default:
 			k.Log.Debug("trying to connect to klient: %s", queryString)
 
 			if klient, err = ConnectTimeout(k, queryString, DefaultInterval); err == nil {
 				return klient, nil
 			}
 
-		case <-timeout:
-			return klient, err
+			time.Sleep(DefaultInterval)
 		}
 	}
 }
