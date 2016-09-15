@@ -9,8 +9,10 @@ keywords: >
   cloud development environment, cloud editor, virtual dev environment,
   web based ide, test environment, docker, aws, vagrant, azure, rackspace
 baseurl: ""
-# url: "http://dev.koding.com:4000"
-url: "https://sinan.github.io/koding/"
+# baseurl: "/koding"
+url: "http://dev.koding.com:4000"
+# url: "https://sinan.github.io/koding"
+# production_url: "https://sinan.github.io/koding"
 paginate_path: "/blog/page:num/"
 paginate: 5
 timezone: America/Los_Angeles
