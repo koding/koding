@@ -24,7 +24,7 @@
     padding-left: 15px;
     padding-right: 15px;
   }
-  
+
   .Homepage-LogoBar--logos img {
     flex: 1 0 auto;
     margin-bottom: 34px;
@@ -44,7 +44,7 @@
     border-bottom: 1px solid #E8ECEE;
     padding-bottom: 75px;
   }
-  
+
   .Homepage-LogoBar-Gray h3 {
     font-size: 18px;
     padding: 0;
@@ -75,28 +75,28 @@
   }
 </style>
 
-<div class='Homepage-LogoBar {% if include.gray_background %}Homepage-LogoBar-Gray{% endif %}'>
+<div class='Homepage-LogoBar{% if include.cssClass %} {{ include.cssClass }}{% endif %}'>
   <div class='Homepage--container'>
     <h3>{{ include.title }}</h3>
     <div class='Homepage-LogoBar--logos'>
       {% if include.logo1_src %}
       <img src="{{ include.logo1_src }}" alt="{{ include.logo1_alt }}">
-      {% endif %}        
+      {% endif %}
       {% if include.logo2_src %}
       <img src="{{ include.logo2_src }}" alt="{{ include.logo2_alt }}">
-      {% endif %}        
+      {% endif %}
       {% if include.logo3_src %}
       <img src="{{ include.logo3_src }}" alt="{{ include.logo3_alt }}">
-      {% endif %}        
+      {% endif %}
       {% if include.logo4_src %}
       <img src="{{ include.logo4_src }}" alt="{{ include.logo4_alt }}">
-      {% endif %}        
+      {% endif %}
       {% if include.logo5_src %}
       <img src="{{ include.logo5_src }}" alt="{{ include.logo5_alt }}">
-      {% endif %}        
+      {% endif %}
       {% if include.logo6_src %}
       <img src="{{ include.logo6_src }}" alt="{{ include.logo5_alt }}">
-      {% endif %}        
+      {% endif %}
     </div>
   </div>
 </div>
