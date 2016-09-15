@@ -118,11 +118,72 @@ order: 10
    column3="Sometimes you just need to talk things out. Jump into lag-free video and audio sessions the instant you need them, while still working in our cloud IDE." %}
 
 
+<style>{% include css/features-threecols.css %}</style>
+{% include features-threecols.html
+   headline="EVERYTHING YOU NEED TO"
+   title="Code comfortably in the cloud"
+   column_1="
+    <h3>Preserve your workflow</h3>
+    <p><span>Connect your local development tools and workflow to the cloud with a single curl command.</span></p>
+    <h3>Shortcuts for everything</h3>
+    <p><span>Koding’s comprehensive keyboard shortcuts allow you to ditch your mouse completely.</span></p>"
+   column_2="
+    <h3>No hardware restrictions</h3>
+    <p><span>Keep all your projects in the cloud and access them on any device. All you need is a web browser.</span></p>
+    <h3>Built-in preview</h3>
+    <p><span>See your latest changes instantly with Koding’s built-in browser.<br></span></p>"
+   column_3="
+    <h3>A flexible, intuitive IDE</h3>
+    <p><span>Access a powerful browser-based IDE &amp; terminal when you’re away from your regular workspace.</span></p>
+    <h3>Multi-tab terminal.</h3>
+    <p><span>Open as many Terminal tabs as you need. Multi-task like a master.</span></p>"
+   background_color="yes" %}
+
+<style>{% include css/features-cta.css %}</style>
 <div class="FeatureCTA">
   <p>Developers love Koding because they can still use the IDEs and services they love</p>
   <a href="https://koding.com/Teams/Create">GET STARTED</a>
 </div>
 
 {% include features-threecols.html
+   headline="EVERYTHING YOU NEED TO"
+   title="Collaborate with your team"
+   column_1="
+    <h3>Hashtag-based channels</h3>
+    <p>Create team channels for any topic. Pull in activity from your favorite productivity apps.</p>"
+   column_2="
+    <h3>Instant pair programming</h3>
+    <p>Jump into each other’s editors to code together. Collaborate in groups or one-on-one.</p>
+    <h3>Robust, topic-based search</h3>
+    <p>Search your channel history to find virtually any file, link or conversation, no matter how far back.</p>"
+   column_3="
+    <h3>Lag-free video, audio & chat</h3>
+    <p>Resolve complicated issues faster with lag-free, real-time communication whenever you need it.</p>" %}
+
+{% include features-threecols.html
+   headline="EVERYTHING YOU NEED TO"
+   title="Embrace infrastructure as code"
+   column_1="
+    <h3>Simple stack scripts</h3>
+    <p><span>The core of every Koding for Teams project is a simple, shareable stack script that serves as a blueprint for your app’s entire infrastructure.</span></p>
+    <h3>Connect your own machine</h3>
+    <p><span>Connect any Ubuntu Linux machine with a public IP address to your Koding account.</span></p>
+    <h3>Sudo access</h3>
+    <p><span>Unrestricted root access to your box. Delete anything, update anything. You’re in control.</span></p>"
+   column_2="
+    <h3>Stack-level version control</h3>
+    <p><span>Koding stack scripts are versionable, so you can manage low-level components like storage and networking as easily as conventional code.</span></p>
+    <h3>Deploy multiple VMs</h3>
+    <p><span>Run your app on an entire network of machines by simply adding a few lines of code to your stack script.</span></p>
+    <h3>SSH access</h3>
+    <p><span>Keep full SSH access to your box so you can still use your localhost to connect to your Koding VMs.</span></p>"
+   column_3="
+    <h3>Secure user permissions</h3>
+    <p><span>Only administrators get write access to the stack script, keeping project configuration security manageable no matter how many people join your team.</span></p>
+    <h3>Public IPs and custom domains</h3>
+    <p><span>Every Koding VM comes with a publicly accessible IP address that supports custom domains, making it easy to share and distribute your work.</span></p>"
+   background_color="yes" %}
+
+
 <!-- FOOTER -->
 {% include footer.html %}
