@@ -1,0 +1,17 @@
+<aside>
+  <nav>
+    {% for section in site.data.nav-docs %}
+    <ul>
+      <li>
+        <h3><strong>{{ section.title}}</strong></h3>
+        <ul>
+          {% for item in section.items %}
+          {% assign url = "/docs/" | append: item.id %}
+          <li{% if page.url == url %} class="active"{% endif %}><a href="{{ url }}">{{ item.title }}</a></li>
+          {% endfor %}
+        </ul>
+      </li>
+    </ul>
+    {% endfor %}
+  </nav>
+</aside>
