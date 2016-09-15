@@ -146,6 +146,17 @@ module.exports = class JSession extends Model
       callback err
 
 
+  @fetchOAuthInfo = (clientId, callback) ->
+
+    @one { clientId: clientId }, (err, session) ->
+      return callback err   if err
+      return callback null  unless session
+
+      { foreignAuth, foreignAuthType } = session
+      if foreignAuth and foreignAuthType
+        callback null, { foreignAuth, foreignAuthType, session }
+      else
+        callback null # WARNING: don't assume it's an error if there's no foreignAuth
   remove$: secure (client, callback) ->
 
     username = client.connection?.delegate?.profile?.nickname
