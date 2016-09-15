@@ -16,6 +16,20 @@ module.exports = class OAuth extends bongo.Base
         getUrl      : (signature Object, Function)
 
 
+  checkGroupGitLabSettings = (slug, callback) ->
+
+    JGroup = require './group'
+    JGroup.one { slug }, (err, group) ->
+      if not err and group and group.config?.gitlab?.enabled
+        group.fetchDataAt 'gitlab', (err, data) ->
+          return callback err  if err or not data
+          callback null, {
+            url: data.url
+            applicationId: group.config.gitlab.applicationId
+          }
+      else
+        callback null
+
 
   getUrlFor = (options, urlOptions, callback) ->
 
@@ -43,9 +57,15 @@ module.exports = class OAuth extends bongo.Base
         port = if port then ":#{port}" else ''
         host = urlOptions.host ? host
         redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
-        url = "#{protocol}#{host}#{port}/oauth/authorize?client_id=#{applicationId}&redirect_uri=#{redirectUri}&response_type=code"
 
-        callback null, url
+        checkGroupGitLabSettings client.context.group, (err, data) ->
+
+          url = "#{protocol}#{host}#{port}"
+
+          if not err and data
+            { url, applicationId } = data
+
+          callback null, "#{url}/oauth/authorize?client_id=#{applicationId}&response_type=code&redirect_uri=#{redirectUri}"
 
 
       facebook: ->
