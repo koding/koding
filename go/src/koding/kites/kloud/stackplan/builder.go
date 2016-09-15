@@ -567,7 +567,7 @@ func (b *Builder) InterpolateField(resource map[string]interface{}, resourceName
 	//   https://github.com/hashicorp/terraform/issues/4084
 	//
 	if s, ok := resource[field].(string); ok && s != "" {
-		resource[field] = fmt.Sprintf("${base64encode(null_resource.%s.triggers.field)}", resourceName)
+		resource[field] = fmt.Sprintf("${base64encode(null_resource.%s.triggers.%s)}", resourceName, field)
 
 		nullRes, ok := b.Template.Resource["null_resource"].(map[string]interface{})
 		if !ok {
