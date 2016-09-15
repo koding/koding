@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js">
+<!--<![endif]-->
+
+{% include head.html %}
+<link rel="stylesheet" href="/css/doc.css">
+<link rel="stylesheet" href="/css/markdown.css">
+<link rel="stylesheet" href="/css/syntax.css">
+
+<body>
+  <!--[if lt IE 8]>
+  <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+  <![endif]-->
+
+  {% include header.html
+     with_signup_form='true'
+     has_sticky_navigation='true'
+     cssClass='light' %}
+
+  <main class="markdown-body">
+
+    <aside>
+      <nav>
+        {% for section in site.data.nav-docs %}
+        <ul>
+          <li>
+            <h3><strong>{{ section.title}}</strong></h3>
+            <ul>
+              {% for item in section.items %}
+              {% assign url = "/docs/" | append: item.id %}
+              <li{% if page.url == url %} class="active"{% endif %}><a href="{{ url }}">{{ item.title }}</a></li>
+              {% endfor %}
+            </ul>
+          </li>
+        </ul>
+        {% endfor %}
+      </nav>
+    </aside>
+
+    <section>
+
+      {{ content }}
+
+    </section>
+
+  </main>
+
+</body>
+</html>
