@@ -230,6 +230,12 @@ body {
 }
 
 
+.Homepage-Header.light,
+.StickyHeader .Homepage-Header {
+  background-color: #F7F7F7;
+  border-bottom: 1px solid rgba(0,0,0,.05);
+}
+
 .StickyHeader .Homepage-Header {
   position: fixed;
   width: 100%;
@@ -239,47 +245,62 @@ body {
   transition: opacity .377s ease, transform .177s ease;
   opacity: 0;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  background-color: #F7F7F7;
-  border-bottom: 1px solid rgba(0,0,0,.05);
 }
+
+.Homepage-Header.light a:hover,
 .StickyHeader .Homepage-Header a:hover {
   color: white;
   background-color: rgba(0, 0, 0, 0.05);
 }
+.Homepage-Header.light .spacer,
 .StickyHeader .Homepage-Header .spacer {
   border-color: rgba(0,0,0,.05);
 }
-.StickyHeader .Homepage-Header a:active, .StickyHeader .Homepage-Header a.active {
+.Homepage-Header.light a:active,
+.Homepage-Header.light a.active,
+.StickyHeader .Homepage-Header a:active,
+.StickyHeader .Homepage-Header a.active {
   background-color: white;
 }
+.Homepage-Header.light .logo svg * ,
 .StickyHeader .Homepage-Header .logo svg * {
   fill: rgba(53,139,176,1);
 }
+.Homepage-Header.light a,
 .StickyHeader .Homepage-Header a {
   color: rgba(53,139,176,0.8);
 }
+.Homepage-Header.light a:hover,
 .StickyHeader .Homepage-Header a:hover {
   color: rgba(53,139,176,1);
 }
+.Homepage-Header.light .social svg g,
 .StickyHeader .Homepage-Header .social svg g {
   fill: rgba(53,139,176,0.8);
 }
+.Homepage-Header.light .social:hover svg g,
 .StickyHeader .Homepage-Header .social:hover svg g {
   fill: rgba(53,139,176,1);
 }
+.Homepage-Header.light a,
 .StickyHeader .Homepage-Header a {
   border-color: rgba(0,0,0,0.05);
 }
-.StickyHeader .Homepage-Header .signup, .StickyHeader .Homepage-Header .signup:hover {
+.Homepage-Header.light .signup,
+.Homepage-Header.light .signup:hover,
+.StickyHeader .Homepage-Header .signup,
+.StickyHeader .Homepage-Header .signup:hover {
   color: rgba(0,0,0,0.39);
 }
 .StickyHeader.in .Homepage-Header {
   transform: translateY(100px);
   opacity: 1;
 }
+.Homepage-Header.light .burger svg g ,
 .StickyHeader .Homepage-Header .burger svg g {
   fill: rgba(53,139,176,0.8)
 }
+.Homepage-Header.light .burger:hover svg g,
 .StickyHeader .Homepage-Header .burger:hover svg g {
   fill: rgba(53,139,176,1)
 }
@@ -305,9 +326,11 @@ body {
 }
 
 @media (max-width: 767px) {
+  .Homepage-Header.light .signup svg g,
   .StickyHeader .Homepage-Header .signup svg g {
     fill: rgba(53,139,176,0.8);
   }
+  .Homepage-Header.light .signup:hover svg g,
   .StickyHeader .Homepage-Header .signup:hover svg g {
     fill: rgba(53,139,176,1);
   }
