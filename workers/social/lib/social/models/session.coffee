@@ -157,6 +157,13 @@ module.exports = class JSession extends Model
         callback null, { foreignAuth, foreignAuthType, session }
       else
         callback null # WARNING: don't assume it's an error if there's no foreignAuth
+
+
+  @clearOauthInfo = (session, callback) ->
+
+    session.update { $unset: { foreignAuth:1, foreignAuthType:1 } }, callback
+
+
   remove$: secure (client, callback) ->
 
     username = client.connection?.delegate?.profile?.nickname

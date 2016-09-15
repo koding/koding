@@ -909,7 +909,7 @@ module.exports = class JUser extends jraphical.Module
           next()
 
       (next) ->
-        JUser.clearOauthFromSession session, next
+        JSession.clearOauthInfo session, next
 
     ]
 
@@ -1160,7 +1160,7 @@ module.exports = class JUser extends jraphical.Module
 
         if isUserLoggedIn
           if user and user.username isnt client.connection.delegate.profile.nickname
-            @clearOauthFromSession session, ->
+            JSession.clearOauthInfo session, ->
               callback new KodingError '''
                 Account is already linked with another user.
               '''
@@ -2016,7 +2016,7 @@ module.exports = class JUser extends jraphical.Module
           foreignAuth[foreignAuthType] = yes
           Tracker.identify username, { foreignAuth }
 
-        @clearOauthFromSession foreignAuthInfo.session, (err) =>
+        JSession.clearOauthInfo foreignAuthInfo.session, (err) =>
           return callback err  if err
 
           @copyPublicOauthToAccount username, foreignAuthInfo, (err, resp = {}) ->
@@ -2032,11 +2032,6 @@ module.exports = class JUser extends jraphical.Module
     query["foreignAuth.#{foreignAuthType}"] = foreignAuth[foreignAuthType]
 
     @update { username }, { $set: query }, callback
-
-
-  @clearOauthFromSession: (session, callback) ->
-
-    session.update { $unset: { foreignAuth:1, foreignAuthType:1 } }, callback
 
 
   @copyPublicOauthToAccount: (username, { foreignAuth, foreignAuthType }, callback) ->
