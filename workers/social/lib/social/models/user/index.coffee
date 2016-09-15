@@ -168,9 +168,10 @@ module.exports = class JUser extends jraphical.Module
 
       sshKeys       :
         type        : Object
-        default     : []
+        default     : -> []
 
       foreignAuth            :
+        gitlab               : Object
         github               :
           foreignId          : String
           username           : String
@@ -879,9 +880,9 @@ module.exports = class JUser extends jraphical.Module
         userUpdateData = { lastLoginDate : new Date }
 
         if session.foreignAuth
-          { foreignAuth }            = user
-          foreignAuth              or= {}
-          foreignAuth                = extend foreignAuth, session.foreignAuth
+          { foreignAuth } = user
+          foreignAuth   or= {}
+          foreignAuth     = extend foreignAuth, session.foreignAuth
           userUpdateData.foreignAuth = foreignAuth
 
         userUpdateOptions =
