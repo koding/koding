@@ -21,7 +21,7 @@
 
       {% else %}
 
-        <a class="item{% if page.url == p.url %} active{% endif %}" href="{{ p.url }}">{{ p.title }}</a>
+        <a class="item{% if p.url == page.url or p.url contains page.parent %} active{% endif %}" href="{{ p.url }}">{{ p.title }}</a>
 
       {% endif %}
     {% endif %}
