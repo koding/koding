@@ -1573,7 +1573,7 @@ module.exports = class JUser extends jraphical.Module
     queue = [
 
       (next) =>
-        @extractOauthFromSession client.sessionToken, (err, foreignAuthInfo) ->
+        JSession.fetchOAuthInfo client.sessionToken, (err, foreignAuthInfo) ->
           if err
             console.log 'Error while getting oauth data from session', err
             return next()
@@ -2002,7 +2002,7 @@ module.exports = class JUser extends jraphical.Module
 
   @persistOauthInfo: (username, clientId, callback) ->
 
-    @extractOauthFromSession clientId, (err, foreignAuthInfo) =>
+    JSession.fetchOAuthInfo clientId, (err, foreignAuthInfo) =>
       return callback err   if err
       return callback null  unless foreignAuthInfo
       return callback null  unless foreignAuthInfo.session
@@ -2023,19 +2023,6 @@ module.exports = class JUser extends jraphical.Module
             { session: { returnUrl } } = foreignAuthInfo
             resp.returnUrl = returnUrl  if returnUrl
             return callback null, resp
-
-
-  @extractOauthFromSession: (clientId, callback) ->
-
-    JSession.one { clientId: clientId }, (err, session) ->
-      return callback err   if err
-      return callback null  unless session
-
-      { foreignAuth, foreignAuthType } = session
-      if foreignAuth and foreignAuthType
-        callback null, { foreignAuth, foreignAuthType, session }
-      else
-        callback null # WARNING: don't assume it's an error if there's no foreignAuth
 
 
   @saveOauthToUser: ({ foreignAuth, foreignAuthType }, username, callback) ->
