@@ -156,6 +156,10 @@ func (h *Handlers) vagrantutil(path string, debug bool) (*vagrantutil.Vagrant, e
 			v.Log = logging.NewCustom("vagrantutil", true)
 		}
 
+		// Set explicitely to virtualbox to overwrite any default
+		// provider that may be set system-wide.
+		v.ProviderName = "virtualbox"
+
 		h.paths[path] = v
 	}
 
