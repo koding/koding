@@ -26,8 +26,6 @@ sass:
   style: compressed
   sass_dir: _css
 markdown: kramdown
-twitter_username: koding
-github_username:  koding
 social:
   twitter: https://twitter.com/koding
   github:  https://github.com/koding
