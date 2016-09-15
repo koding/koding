@@ -4,7 +4,7 @@ crypto      = require 'crypto'
 oauth       = require 'oauth'
 parser      = require 'url'
 KodingError = require '../error'
-JSession    = require './session'
+
 
 module.exports = class OAuth extends bongo.Base
 
@@ -16,14 +16,17 @@ module.exports = class OAuth extends bongo.Base
         getUrl      : (signature Object, Function)
 
 
-  getUrlFor = (provider, redirectUri, options, callback) ->
 
-    {
+  getUrlFor = (options, urlOptions, callback) ->
+
+    { client, provider, redirectUri } = options
+
+    ({
 
       github: ->
 
         { clientId } = KONFIG.github
-        { scope, returnUrl } = options
+        { scope, returnUrl } = urlOptions
         scope = 'user:email'  unless scope
         redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
         url = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=#{scope}&redirect_uri=#{redirectUri}"
@@ -33,12 +36,12 @@ module.exports = class OAuth extends bongo.Base
 
       gitlab: ->
 
-        { applicationId, host, redirectUri, port } = KONFIG.gitlab
-        { returnUrl } = options
+        { returnUrl } = urlOptions
+        { applicationId, host, port } = KONFIG.gitlab
         host ?= 'gitlab.com'
         protocol = '//'
         port = if port then ":#{port}" else ''
-        host = options.host ? host
+        host = urlOptions.host ? host
         redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
         url = "#{protocol}#{host}#{port}/oauth/authorize?client_id=#{applicationId}&redirect_uri=#{redirectUri}&response_type=code"
 
@@ -56,6 +59,7 @@ module.exports = class OAuth extends bongo.Base
       google: ->
 
         { client_id } = KONFIG.google
+        JSession = require './session'
         JSession.one { clientId: client.sessionToken }, (err, session) ->
           return callback err  if err
           state = session._id
@@ -85,13 +89,12 @@ module.exports = class OAuth extends bongo.Base
 
         callback null, url
 
+    }[provider] ? -> callback new KodingError 'No such provider')()
 
-    }[provider]?()
 
+  @getUrl = secure (client, urlOptions, callback) ->
 
-  @getUrl = secure (client, options, callback) ->
-
-    { provider } = options
+    { provider } = urlOptions
 
     if redirectUri = KONFIG[provider].redirectUri or KONFIG[provider].redirect_uri
       redirectUri  = @prependGroupName redirectUri, client.context.group
@@ -99,7 +102,7 @@ module.exports = class OAuth extends bongo.Base
     if provider is 'twitter'
       @saveTokensAndReturnUrl client, 'twitter', callback
     else
-      getUrlFor provider, redirectUri, options, callback
+      getUrlFor { client, provider, redirectUri }, urlOptions, callback
 
 
   @prependGroupName = (url, groupName) ->
@@ -147,6 +150,7 @@ module.exports = class OAuth extends bongo.Base
 
 
   @saveTokens = (client, provider, credentials, callback) ->
+    JSession = require './session'
     JSession.one { clientId: client.sessionToken }, (err, session) ->
       return callback err  if err
       return callback new KodingError 'Session not found'  unless session
