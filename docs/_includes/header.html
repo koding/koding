@@ -1,11 +1,8 @@
 <style>
   {% include css/header.css %}
   .Homepage-Header {
-    {% if include.background_color %}
-    background-color: {{ include.background_color }};
-    {% else %}
-    background-color: #3C3D58;
-    {% endif %}
+    {% assign c = include.background_color %}
+    background-color: {% if c %}{{ c }}{% else %}#3C3D58{% endif %};
   }
 </style>
 
