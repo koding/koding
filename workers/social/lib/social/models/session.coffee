@@ -142,7 +142,7 @@ module.exports = class JSession extends Model
 
     ipAddress = (ipAddress.split ',')[0]
 
-    JSession.update { clientId: clientId }, { $set: { clientIP: ipAddress } }, (err) ->
+    @update { clientId: clientId }, { $set: { clientIP: ipAddress } }, (err) ->
       callback err
 
 
