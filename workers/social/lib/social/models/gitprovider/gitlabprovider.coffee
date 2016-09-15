@@ -64,16 +64,19 @@ module.exports = GitLabProvider =
 
   getConfig: (client) ->
 
+    { r: { group } } = client
     { team, host, port } = KONFIG.gitlab
+    port = if port then ":#{port}" else ''
+    url  = "#{host}#{port}"
 
-    if client.r.group.slug isnt team
+    if group.config?.gitlab?.enabled
+      url = group.config.gitlab.url
+    else if group.slug isnt team
       return [
         new KodingError 'GitLab integration is not enabled for this team.'
       ]
 
-    port = if port then ":#{port}" else ''
-
-    return [ null, { host: "#{host}#{port}" } ]
+    return [ null, { host: url } ]
 
 
   importStackTemplateData: (importParams, user, callback) ->
