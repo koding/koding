@@ -286,7 +286,10 @@ module.exports = class CredentialsController extends kd.Controller
       requiredFields = requiredData[provider]
       fields = requiredFields.map (field) -> field.name ? field
 
-      helpers._loadCredentials { provider, fields }, stack.credentials, callback
+      helpers._loadCredentials { provider, fields }, stack.credentials, (err, data) ->
+        return callback err  if err
+        data.fields = requiredFields
+        callback null, data
 
 
     getKDCmd: (callback) ->
