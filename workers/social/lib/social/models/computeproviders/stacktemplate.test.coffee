@@ -235,7 +235,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
           ], done
 
 
-    describe 'when team plan limit has been reached', ->
+    describe 'when team limit has been reached', ->
 
       it 'should fail to generate a stack from the template', (done) ->
 
@@ -248,7 +248,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
           async.series [
 
             (next) ->
-              group.update { $set: { 'config.testplan': 'test' } }, (err) ->
+              group.update { $set: { 'config.testlimit': 'test' } }, (err) ->
                 expect(err).to.not.exist
                 next()
 

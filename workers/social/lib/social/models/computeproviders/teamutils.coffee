@@ -1,16 +1,16 @@
 KodingError = require '../../error'
-TEAMPLANS   = require './teamplans'
+TEAMLIMITS  = require './teamlimits'
 
-konstraints = require 'konstraints'
 _           = require 'underscore'
-JGroupPlan  = require '../group/groupplan'
+konstraints = require 'konstraints'
+JGroupLimit  = require '../group/grouplimit'
 
 
 shareCredentials = (options, callback) ->
 
   { account, group } = options
 
-  return callback null  unless group.config?.plan?
+  return callback null  unless group.config?.limit?
 
   JCredential = require './credential'
   JCredential.one { 'meta.trial': yes }, (err, credential) ->
@@ -30,39 +30,39 @@ shareCredentials = (options, callback) ->
     credential.setPermissionFor group, scope, callback
 
 
-# Returns plan data
-# If plan is not found, it fallbacks to default
-# If there are plan overrides, they override plan properties
-fetchPlanData = (planConfig, callback) ->
+# Returns limit data
+# If limit is not found, it fallbacks to default
+# If there are limit overrides, they override limit properties
+fetchLimitData = (limitConfig, callback) ->
 
-  { plan, overrides } = planConfig
+  { limit, overrides } = limitConfig
 
-  if plan in Object.keys TEAMPLANS
-    result = _.extend {}, TEAMPLANS[plan], (overrides ? {})
+  if limit in Object.keys TEAMLIMITS
+    result = _.extend {}, TEAMLIMITS[limit], (overrides ? {})
     return callback null, result
 
-  JGroupPlan.one { name: plan }, (err, planData) ->
+  JGroupLimit.one { name: limit }, (err, limitData) ->
     return callback err  if err
-    return callback null, _.clone TEAMPLANS['default']  unless planData
-    return callback null, planData
+    return callback null, _.clone TEAMLIMITS['default']  unless limitData
+    return callback null, limitData
 
 
-fetchConstraints = (planConfig, callback) ->
-  fetchPlanData planConfig, (err, plan) ->
+fetchConstraints = (limitConfig, callback) ->
+  fetchLimitData limitConfig, (err, limits) ->
     return callback err  if err
-    callback null, generateConstraints plan
+    callback null, generateConstraints limits
 
 
-# Takes plan config as reference and generates valid konstraint
-# rules based on the TEAMPLANS data ~ GG
-generateConstraints = (plan) ->
+# Takes limit config as reference and generates valid konstraint
+# rules based on the TEAMLIMITS data ~ GG
+generateConstraints = (limits) ->
 
   # First rule be an object.
   rules = [ { $typeof : 'object' } ]
 
-  # Get plan data
+  # Get limit data
   { member, validFor, instancePerMember, restrictions
-    allowedInstances, storagePerInstance } = plan
+    allowedInstances, storagePerInstance } = limits
 
   # Add restrictions if exists
   if (Object.keys restrictions).length > 0
@@ -136,5 +136,5 @@ generateConstraints = (plan) ->
 
 
 module.exports = {
-  fetchConstraints, generateConstraints, fetchPlanData, shareCredentials, TEAMPLANS
+  fetchConstraints, generateConstraints, fetchLimitData, shareCredentials, TEAMLIMITS
 }

@@ -147,10 +147,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
           (signature Object, Function)
         ]
-        fetchPlansAndSubscriptions: [
-          (signature Function)
-          (signature Object, Function)
-        ]
         fetchEmailAndStatus:
           (signature Function)
         fetchEmailFrequency:
@@ -1224,8 +1220,6 @@ module.exports = class JAccount extends jraphical.Module
     unless delegate.can 'administer accounts'
       return callback new KodingError 'Access denied!'
 
-    Payment = require './payment'
-
     @fetchUser (err, user) =>
 
       return callback err  if err
@@ -1236,23 +1230,19 @@ module.exports = class JAccount extends jraphical.Module
 
       fakeClient = { connection: { delegate: this } }
 
-      Payment.subscriptions fakeClient, {}, (err, subscription) ->
+      plan = 'free'
 
-        if err? or not subscription?
-        then plan = 'free'
-        else plan = subscription.planTitle
+      JMachine = require './computeproviders/machine'
+      selector = { 'users.id' : user.getId() }
 
-        JMachine = require './computeproviders/machine'
-        selector = { 'users.id' : user.getId() }
+      JMachine.some selector, { limit: 30 }, (err, machines) ->
 
-        JMachine.some selector, { limit: 30 }, (err, machines) ->
+        if err? then machines = err
 
-          if err? then machines = err
-
-          callback null, {
-            profile, registeredAt, lastLoginDate, email, status
-            globalFlags, referrerUsername, referralUsed, plan, machines
-          }
+        callback null, {
+          profile, registeredAt, lastLoginDate, email, status
+          globalFlags, referrerUsername, referralUsed, plan, machines
+        }
 
 
   fetchSubscriptions$: secure ({ connection:{ delegate } }, options, callback) ->
@@ -1276,21 +1266,6 @@ module.exports = class JAccount extends jraphical.Module
 
     @fetchSubscriptions {}, queryOptions, callback
 
-  fetchPlansAndSubscriptions: secure (client, options, callback) ->
-    JPaymentPlan = require './payment/plan'
-
-    [options, callback] = [callback, options] unless callback
-    options ?= {}
-
-    @fetchSubscriptions$ client, options, (err, subscriptions) ->
-      return callback err  if err
-
-      planCodes = (s.planCode for s in subscriptions)
-
-      JPaymentPlan.all { planCode: { $in: planCodes } }, (err, plans) ->
-        return callback err  if err
-
-        callback null, { subscriptions, plans }
 
   fetchEmailAndStatus: secure (client, callback) ->
     @fetchFromUser client, ['email', 'status'], callback

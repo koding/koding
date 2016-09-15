@@ -4,9 +4,6 @@
 ProviderInterface = require './providerinterface'
 KodingError       = require '../../error'
 
-Regions           = require 'koding-regions'
-KONFIG            = require 'koding-config-manager'
-
 
 validate = ({ ipAddress, queryString, storage }) ->
 
@@ -21,43 +18,23 @@ validate = ({ ipAddress, queryString, storage }) ->
 getKiteIdOnly = (queryString) ->
   "///////#{queryString.split('/').reverse()[0]}"
 
-checkPlans = (options, callback) ->
+updateCounter = (options, callback) ->
 
   { client, provider, change } = options
-  { r: { group, user, account } } = client
+  { r: { group, account } } = client
 
-  if group.slug is 'koding'
+  ComputeProvider = require './computeprovider'
 
-    return callback null  if change is 'decrement'
+  options = {
+    instanceCount : 1
+    instanceOnly  : yes
+    details       : { account, provider: 'managed' }
+    change
+    group
+  }
 
-    { fetchUserPlan, fetchUsage } = require './computeutils'
-
-    fetchUserPlan client, (err, userPlan) ->
-      fetchUsage client, { provider }, (err, usage) ->
-        return callback err  if err?
-
-        if usage.total >= userPlan.managed
-          return callback new KodingError """
-            Total limit of #{userPlan.managed}
-            managed vm limit has been reached.
-          """, 'UsageLimitReached'
-
-        callback null
-
-  else
-
-    ComputeProvider = require './computeprovider'
-
-    options = {
-      instanceCount : 1
-      instanceOnly  : yes
-      details       : { account, provider: 'managed' }
-      change        : 'increment'
-      group
-    }
-
-    ComputeProvider.updateGroupResourceUsage options, (err) ->
-      callback err
+  ComputeProvider.updateGroupResourceUsage options, (err) ->
+    callback err
 
 
 module.exports = class Managed extends ProviderInterface
@@ -84,7 +61,7 @@ module.exports = class Managed extends ProviderInterface
     { guessNextLabel } = require './computeutils'
 
     guessNextLabel { user, group, label, provider }, (err, label) ->
-      checkPlans { client, provider, change: 'increment' }, (err) ->
+      updateCounter { client, provider, change: 'increment' }, (err) ->
         return callback err  if err?
 
         meta =
@@ -131,7 +108,7 @@ module.exports = class Managed extends ProviderInterface
         machine.destroy client, (err) ->
           return callback err  if err
 
-          checkPlans {
+          updateCounter {
             client, provider: @providerSlug, change: 'decrement'
           }, (err) -> callback null
 

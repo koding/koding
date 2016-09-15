@@ -71,23 +71,10 @@ module.exports = class AddManagedMachineModal extends ContentModal
 
     computeController.ready =>
 
-      computeController.fetchPlanCombo 'managed', (err, userPlanInfo) =>
-
+      whoami().fetchOtaToken (err, token) =>
         return @handleError err  if err
 
-        # FIXME ~ GG
-        { plan, usage, plans } = userPlanInfo
-        limit = plans[plan].managed
-        used  = usage.total
-
-        # this is hard coded for now
-        # we dont allow to add more than 3 managed VMs
-        return @handleUsageLimit()  if used >= 3
-
-        whoami().fetchOtaToken (err, token) =>
-          return @handleError err  if err
-
-          @updateContentViews token
+        @updateContentViews token
 
 
   updateContentViews: (token) ->
