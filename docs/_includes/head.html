@@ -32,8 +32,12 @@
   <meta name="twitter:url" content="{{site.url}}{{page.url}}">
 
   <!-- CSS & fonts -->
+  {% if include.no_additions %}
+
+  {% else %}
   <style type="text/css">{% include css/reset.css %}</style>
   <link rel="stylesheet" href="css/main.css">
   <script async onload="try{Typekit.load();}catch(e){}" src="//use.typekit.com/dir1osj.js"></script>
+  {% endif %}
 
 </head>
