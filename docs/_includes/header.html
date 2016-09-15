@@ -6,7 +6,7 @@
   }
 </style>
 
-<header class="Homepage-Header">
+<header class="Homepage-Header {{ include.cssClass }}">
   {% assign pages = site.html_pages | sort: 'order' %}
   {% for p in pages %}
     {% if p.order %}
