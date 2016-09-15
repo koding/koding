@@ -61,6 +61,7 @@ module.exports =
       browser.url url
       browser.waitForElementVisible '.content-page.Team section a.previous-team', 20000
 
+
   checkAllLinkInTheFooter: (browser) ->
     url = helpers.getUrl(yes)
     browser.maximizeWindow()
