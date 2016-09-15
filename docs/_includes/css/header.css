@@ -1,5 +1,5 @@
 body {
-  padding-top: 42px;
+  padding-top: 70px;
 }
 
 * {
@@ -121,25 +121,25 @@ body {
 
 
 @media (max-width: 1199px) {
-  
+
   .Homepage-Header a {
     flex-grow: 1;
   }
-  
+
   .Homepage-Header .item, .Homepage-Header .logo {
     padding: 0 20px;
   }
-  
+
   .Homepage-Header .social {
     max-width: 26px;
     min-width: 26px;
   }
-  
+
   .Homepage-Header .spacer {
     max-width: 0;
     display: none;
   }
-  
+
   .Homepage-Header .signup {
     display: none;
   }
@@ -207,16 +207,16 @@ body {
   .Homepage-Header .signup:hover svg g {
     fill: rgba(255,255,255,1);
   }
-  
+
   .burgerToggle .Homepage-Header {
     height: auto;
     flex-wrap: wrap;
   }
-  
+
   .burgerToggle .Homepage-Header .logo {
     height: 46px;
   }
-  
+
   .burgerToggle .Homepage-Header .item {
     order: 10;
     display: flex;
@@ -297,7 +297,7 @@ body {
   .StickyHeader .Homepage-Header .signup {
     display: flex;
   }
-  
+
   .Homepage-Header .item {
     max-width: none;
     flex-basis: 0;
