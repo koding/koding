@@ -11,28 +11,27 @@ REMOVE = expandActionType withNamespace 'REMOVE'
 reducer = (state = immutable({}), action) ->
 
   switch action.type
-    when LOAD.SUCCESS
-      { result } = action
-      result = [result]  unless Array.isArray result
-      result.forEach (res) ->
-        state = state.set res.constructor.name, immutable {}  unless state[res.constructor.name]
-        state = state.update res.constructor.name, (collection) ->
-          collection = collection.set res._id, immutable res
-          return collection
 
-      return state
+    when LOAD.SUCCESS
+      { result: results } = action
+      results = [results]  unless Array.isArray results
+
+      results.forEach (result) ->
+        unless state[result.constructor.name]
+          state = state.set result.constructor.name, immutable {}
+
+        state = state.update result.constructor.name, (collection) ->
+          return collection.set result._id, immutable result
 
     when REMOVE.SUCCESS
-      { result } = action
-      result = [result]  unless Array.isArray result
-      result.forEach (res) ->
-        { _id, constructor: { name: constructorName } } = res
-        state = state.set constructorName, state[constructorName].without(_id)
+      { result: results } = action
+      results = [results]  unless Array.isArray results
 
-      return state
+      results.forEach (result) ->
+        removed = state[result.constructor.name].without(result._id)
+        state = state.set result.constructor.name, removed
 
-    else
-      return state
+  return state
 
 
 loadAll = (constructorName) ->

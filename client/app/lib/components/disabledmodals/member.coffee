@@ -17,6 +17,7 @@ module.exports = class DisabledMemberModal extends ReactView
     status or= getGroupStatus groupsController.getCurrentGroup()
 
     switch status
+
       when 'expired'
         onClick = =>
           @destroy()
@@ -24,11 +25,13 @@ module.exports = class DisabledMemberModal extends ReactView
         <TrialEndedMemberModal
           isOpen={yes}
           onButtonClick={onClick} />
+
       when 'notify-success'
         onClick = -> console.log 'support link clicked'
         <TrialEndedNotifySuccessModal
           isOpen={yes}
           onButtonClick={onClick} />
-      else <span />
 
+      else
+        <span />
 

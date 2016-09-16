@@ -16,6 +16,7 @@ module.exports = class DisabledAdminModal extends ReactView
     status or= getGroupStatus groupsController.getCurrentGroup()
 
     switch status
+
       when 'expired'
         onClick = =>
           @destroy()
@@ -23,6 +24,8 @@ module.exports = class DisabledAdminModal extends ReactView
         <TrialEndedAdminModal
           isOpen={yes}
           onButtonClick={onClick} />
-      else <span />
+
+      else
+        <span />
 
 

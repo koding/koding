@@ -8,9 +8,9 @@ withNamespace = makeNamespace 'koding', 'payment', 'customer'
 
 schema = defineSchema 'customer',
   sources:
-    data: defineSchema ['sources']
+    data: defineSchema 'sources', []
   subscriptions:
-    data: defineSchema ['subscriptions']
+    data: defineSchema 'subscriptions', []
 
 
 LOAD = expandActionType withNamespace 'LOAD'

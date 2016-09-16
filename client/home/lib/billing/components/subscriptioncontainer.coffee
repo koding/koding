@@ -2,6 +2,7 @@ globals = require 'globals'
 { connect } = require 'react-redux'
 { createSelector } = require 'reselect'
 whoami = require 'app/util/whoami'
+pluralize = require 'pluralize'
 
 subscription = require 'app/redux/modules/payment/subscription'
 customer = require 'app/redux/modules/payment/customer'
@@ -12,6 +13,11 @@ SubscriptionSection = require './subscriptionsection'
 
 teamSize = -> globals.currentGroup?.counts?.member ? 1
 
+trialTitles =
+  7: "Koding Basic Trial (1 Week)"
+  30: 'Koding Basic Trial (1 Month)'
+
+
 subscriptionTitle = createSelector(
   subscription.pricePerSeat
   subscription.isTrial
@@ -19,12 +25,8 @@ subscriptionTitle = createSelector(
   teamSize
   (pricePerSeat, isTrial, trialDays, size) ->
     if isTrial
-      if trialDays is 7
-      then "Koding Basic Trial (1 Week)"
-      else "Koding Basic Trial (1 Month)"
-    else
-      noun = if 1 >= size then 'Developer' else 'Developers'
-      "$#{pricePerSeat} per Developer (#{size} #{noun})"
+    then trialTitles[trialDays]
+    else "$#{pricePerSeat} per Developer (#{pluralize 'Developer', size, yes})"
 )
 
 

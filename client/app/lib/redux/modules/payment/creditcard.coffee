@@ -21,13 +21,10 @@ reducer = (state = null, action) ->
       if c.default_source
         return normalized.entities.sources[c.default_source]
 
-      return null
-
     when REMOVE.SUCCESS, customer.REMOVE.SUCCESS
       return null
 
-    else
-      return state
+  return state
 
 
 valueSelector = (state) -> (key, fn = _.identity) -> fn state.creditCard[key]

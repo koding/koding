@@ -23,8 +23,7 @@ module.exports = class HeaderMessage extends React.Component
 
   render: ->
 
-    return <span />  if @state.isClosed
-    return <span />  unless @props.visible
+    return <span />  if @state.isClosed or not @props.visible
 
     icons =
       danger: DangerIcon

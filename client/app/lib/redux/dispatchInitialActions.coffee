@@ -19,13 +19,13 @@ loadAccount = ({ dispatch, getState }) ->
     bongo: (remote) -> Promise.resolve(remote.revive globals.userAccount)
   }
 
-loadGroup = ({ dispatch, getState }) -> ->
+loadGroup = ({ dispatch, getState }) ->
   dispatch {
     types: [BONGO_LOAD.BEGIN, BONGO_LOAD.SUCCESS, BONGO_LOAD.FAIL]
     bongo: (remote) -> Promise.resolve(remote.revive globals.currentGroup)
   }
 
-loadUserDetails = ({ dispatch, getState }) -> ->
+loadUserDetails = ({ dispatch, getState }) ->
   dispatch {
     types: [BONGO_LOAD.BEGIN, BONGO_LOAD.SUCCESS, BONGO_LOAD.FAIL]
     bongo: (remote) -> remote.api.JUser.fetchUser()
@@ -34,7 +34,7 @@ loadUserDetails = ({ dispatch, getState }) -> ->
 # TODO(umut):
 # right now there is no default customer coming from backend.
 # if there is no payment information for that group, just create one
-ensureCustomer = ({ dispatch, getState }) -> ->
+ensureCustomer = ({ dispatch, getState }) ->
 
   { _id } = globals.currentGroup
 
@@ -45,7 +45,7 @@ ensureCustomer = ({ dispatch, getState }) -> ->
   else dispatch(createCustomer())
 
 
-ensureSubscription = ({ dispatch, getState }) -> ->
+ensureSubscription = ({ dispatch, getState }) ->
 
   { _id } = globals.currentGroup
 
@@ -65,13 +65,13 @@ module.exports = dispatchInitialActions = (store) ->
   console.log 'dispatching initial actions', store
 
   promise = loadAccount(store)
-    .then(loadGroup(store))
-    .then(loadUserDetails(store))
+    .then -> loadGroup(store)
+    .then -> loadUserDetails(store)
 
   if isAdmin()
     promise = promise
-      .then(ensureCustomer(store))
-      .then(ensureSubscription(store))
+      .then -> ensureCustomer(store)
+      .then -> ensureSubscription(store)
 
   promise.then(console.log.bind(console, 'finished dispactching initial actions'))
 

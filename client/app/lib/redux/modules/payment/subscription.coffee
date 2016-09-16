@@ -16,6 +16,7 @@ LOAD = expandActionType withNamespace 'LOAD'
 CREATE = expandActionType withNamespace 'CREATE'
 REMOVE = expandActionType withNamespace 'REMOVE'
 
+
 reducer = (state = null, action) ->
 
   switch action.type
@@ -68,9 +69,12 @@ remove = ->
 
 plan = (state) -> state.subscription?.plan
 
+
 isTrialing = (state) -> state.subscription?.status is 'trialing'
 
+
 hasNoCard = (state) -> not state.creditCard
+
 
 isTrial = createSelector(
   isTrialing
@@ -84,11 +88,15 @@ endsAt = (state) ->
   then Number(sub.current_period_end) * 1000
   else Date.now()
 
-pricePerSeat = (state) ->
 
-  if p = plan(state) then p.amount / 100 else 0
+pricePerSeat = (state) ->
+  if p = plan(state)
+  then p.amount / 100
+  else 0
+
 
 trialDays = (state) -> plan(state)?.trial_period_days
+
 
 daysLeft = createSelector(
   endsAt

@@ -11,9 +11,10 @@ withNamespace = makeNamespace 'koding', 'payment', 'invoices'
 LOAD = expandActionType withNamespace 'LOAD'
 
 schema =
-  data: defineSchema ['invoices'],
+  data: defineSchema 'invoices', [
     lines:
-      data: defineSchema ['items']
+      data: defineSchema 'items', []
+  ]
 
 initialState = immutable { invoices: {}, items: {} }
 
@@ -24,8 +25,7 @@ reducer = (state = initialState, action) ->
       normalized = normalize action.result, schema
       return immutable normalized.entities
 
-    else
-      return state
+  return state
 
 
 exports.load = load = ->
