@@ -10,7 +10,7 @@
     title: Create AWS stack
   - id: creating-a-vagrant-stack
     title: Create Vagrant stack
-  - id: connect-your-machine
+  - id: use-your-own-ide
     title: Use your own IDE
   - id: connect-your-own-machine-to-koding
     title: Connect your own machine

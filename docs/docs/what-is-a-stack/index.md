@@ -17,7 +17,7 @@ Koding Stacks are written in YAML format, here is [how to convert Terraform scri
 
 **Koding Stack** is simply your development environment. This includes the VM(s) you need, the installed packages & tools on each VM and the network configuration you wish to setup (_ex: Virtual Private Cloud_).
 
-<span>Your</span> **Stack** <span>can be a</span> [simple single VM ](/docs/creating-an-aws-stack)<span>where all your code is, it can be <span>more than a VM, for example here is a </span>[Stack for an Apache webserver VM & MySQL VM](/docs/two-vm-setup-apachephp-server-db-server). It can be a one or more VMs with ready setup packages and integration with _**third parties**_, here is a [GitHub single VM Stack](/docs/using-github-in-stacks) also check out this [Docker VM Stack](/docs/stack-for-docker)</span>
+Your **Stack** can be a [simple single VM ](/docs/creating-an-aws-stack)where all your code is, it can be more than a VM, for example here is a [Stack for an Apache webserver VM & MySQL VM](/docs/two-vm-setup-apachephp-server-db-server). It can be a one or more VMs with ready setup packages and integration with _**third parties**_, here is a [GitHub single VM Stack](/docs/using-github-in-stacks) also check out this [Docker VM Stack](/docs/stack-for-docker)
 
 > You can create far more complex stacks! those are just examples.
 

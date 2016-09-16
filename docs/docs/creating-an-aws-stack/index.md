@@ -14,12 +14,21 @@ parent: /docs/home
 ## Step by step guide
 
 1. Click **STACKS**
+
 ![step001.png](//cdn2.hubspot.net/hubfs/1593820/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step001.png)
+
 2. Click **New Stack** button
+
 ![step002.png](//cdn2.hubspot.net/hubfs/1593820/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step002.png)
+
 3. The stack builder guide will open, click **Create A New Stack**
+
 ![step003.png](//cdn2.hubspot.net/hubfs/1593820/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step003.png)
-4. Click **amazon web services** and click **Next** ![step004.png](//cdn2.hubspot.net/hubfs/1593820/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step004.png)
+
+4. Click **amazon web services** and click **Next**
+
+![step004.png](//cdn2.hubspot.net/hubfs/1593820/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step004.png)
+
 5. You can now choose your machine type and add any extra configurations or services that you want installed on your machine.
   - Machine Types
     1.  t2.nano
