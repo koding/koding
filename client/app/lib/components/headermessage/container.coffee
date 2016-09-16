@@ -4,6 +4,8 @@ globals = require 'globals'
 { connect } = require 'react-redux'
 isAdmin = require 'app/util/isAdmin'
 getGroupStatus = require 'app/util/getGroupStatus'
+pluralize = require 'pluralize'
+
 
 HeaderMessage = require './headermessage'
 
@@ -24,7 +26,7 @@ makeHeaderMessages = (daysLeft) ->
       type: 'danger'
       title: 'Your trial is about to expire.'
       description: "
-        Your 1 week trial is about to expire. You have only #{daysLeft} days
+        Your 1 week trial is about to expire. You have only #{pluralize 'day', daysLeft, yes}
         left. Enter your credit card to avoid any suspension.
       "
     past_due:
@@ -39,7 +41,7 @@ makeHeaderMessages = (daysLeft) ->
       type: 'danger'
       title: 'Your trial is about to expire.'
       description: "
-        Your 1 week trial is about to expire. You have only #{daysLeft} days
+        Your 1 week trial is about to expire. You have only #{pluralize 'day', daysLeft, yes}
         left. Have an admin enter a credit card to avoid any suspension.
       "
     past_due:
