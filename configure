@@ -159,7 +159,6 @@ git.long (str) ->
     updateVault()
   else if os.type() is "Darwin"
     options.hostname = "dev.koding.com"
-    options.ngrok = yes
     updateVault()
   else
     log "lemme find your IP"

@@ -68,7 +68,7 @@ module.exports = class MachineFlowController extends kd.Controller
     { container } = @getOptions()
     machine = @getData()
 
-    @startMachinePage = new StartMachinePageView()
+    @startMachinePage = new StartMachinePageView {}, machine
     @startMachineProgressPage = new StartMachineProgressPageView {}, machine
     @startMachineSuccessPage = new StartMachineSuccessPageView()
     @startMachineErrorPage = new StartMachineErrorPageView()

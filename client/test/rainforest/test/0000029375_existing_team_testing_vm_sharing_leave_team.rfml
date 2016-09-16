@@ -1,0 +1,132 @@
+#! b762f32b-7ba6-418c-8fa1-596aa84815ed
+# title: EXISTING TEAM TESTING, VM Sharing, Leave Team
+# start_uri: /
+# tags: existing team, shared vms
+# browsers: osx_chrome
+#
+ 
+Enter 'koding' in the 'User Name' and '1q2w3e4r' in the 'Password' fields and click on 'Log in'
+Do you see 'Sign in to your team' form in the center of the page with a green 'Continue' button?
+
+Enter '{{ existing_team.name }}' (in lowercase like in the 'rainforestqateam') in the input field and click on 'Continue' button
+Do you see 'Authentication Required' form?
+
+Enter 'koding' in the 'User Name' and '1q2w3e4r' in the 'Password' fields and click on 'Log in'
+Do you see login form for '{{ existing_team.name }}' with username and password fields and a green 'Sign in' button?
+
+Enter 'rainforestqa22' in the 'Username or Email' and 'rainforestqa22' in the 'Password' fields and click on 'Sign In' button
+Do you see '{{ existing_team.name }}' label at the top left corner? Do you see 'STACKS' label on left sidebar? Do you see 'example' label under 'Default Stack Template' on left sidebar?
+
+Click on the green 'Build Stack' button in the center of the page
+Do you see 'example is building now.' text? Do you see green progress bar in the center and in the left sidebar below the 'example' label?
+
+Click on the default profile image next to '{{ existing_team.name }}' label on top left 
+Do you see 'You don't have any notifications' text? Do you see 'Account', 'Team Settings', 'Support' and 'Logout' options?
+
+Click on 'Team Settings'
+Do you see 'Team Settings' modal opened with 'General', 'Members', 'Invitations', 'API Access' and 'Team Logs' sections? Do you see '{{ existing_team.name }}' in 'Name' and same text in lowercase in 'URL' fields?
+
+Click on 'Invitations' from left vertical menu
+Do you see 'Invite Teammates', 'Invite with #slack', 'Pending Invitations' and 'Accepted Invitations' sections? Do you see text fields labeled as 'mail@example.com' and 'Optional'?
+
+Enter 'rainforestqa25@koding.com' in the 'Email' field of the first row and uncheck 'Admin' checkbox and click on 'Invite Members' button
+Have you seen 'Invitation is sent to rainforestqa25@koding.com' message?
+
+Open an incognito window (by clicking on the 3lined button from top right corner of the browser and selecting 'New Incognito Window' - screenshot here:http://take.ms/2hxOf) and copy and paste '{{ existing_team.url }}' link and hit enter
+Do you see 'Authentication Required' form?
+
+Enter 'koding' in the 'User Name' and '1q2w3e4r' in the 'Password' fields and click on 'Log in'
+Do you see login form for '{{ existing_team.name }}' with username and password fields and a green 'Sign in' button?
+
+Enter 'rainforestqa25' in the username and password fields and click on 'Sign in' button
+Do you see '{{ existing_team.name }}' label at the top left corner? Do you see 'STACKS' label in left sidebar? Do you see 'example' label under 'Default Stack Template' on top left sidebar?
+
+Return to the first browser and click on the button appearing when you mouse over 'example' label on the top left sidebar
+Do you see 'VM Settings' modal? Do you see 'General', 'Specs', 'Disk Usage' and other menu options?
+
+Click on 'VM Sharing' from left vertical menu
+Do you see 'Shared With' label and 'Add Someone' button next to it? Do you see 'This VM has not yet been shared with anyone.' text?
+
+Click on 'Add Someone' button
+Do you see a text field with 'Type a username...' label in it?
+
+Enter 'rainforestqa25' in the text field or select the result of auto-complete directly 
+Do you see 'rainforestqa25' with a default profile image under the text field?
+
+Click on (X) on top right corner of this modal
+Do you see 'home/rainforestqa22' label on top of file list? Do you see 'Terminal' tab on the bottom?
+
+Click on the little down arrow next to 'home/rainforestqa22' label
+Do you see 'Refresh', 'Collapse', 'Change to folder', 'New file' and 'New folder' options?
+
+Click on 'New file'
+Do you see the new item 'NewFile.txt' added to the end of vertical list?
+
+Enter '{{ random.first_name }}' instead of 'NewFile' text and hit enter
+Do you see '{{ random.first_name }}.txt' in the list?
+
+Return to the incognito window 
+Do you see '@rainforestqa22 wants to share their VM with you' text in a pop-up? Do you see 'REJECT' and 'ACCEPT' buttons? Do you see 'example (@rainforestqa22)' label under 'SHARED VMS' title on left sidebar?
+
+Click on 'Accept' button
+Do you see '/home/rainforestqa22' label on top of file list? Do you see 'Terminal' tab and 'rainforestqa22@rainforestqa22:~$' in that tab?
+
+Click under the area of the tab where it says “Terminal”, type “expr 5 + 5” hit enter
+Do you see '10' as a result? Do you see '{{ random.first_name }}.txt' file in the vertical list under '/home/rainforestqa22' label?
+
+Double click on the '{{ random.first_name }}.txt' file
+Do you see it opened as a new tab?
+
+Click under the area of that tab and type '{{ random.full_name }}' in it and click on the little down arrow appearing next to the '{{ random.first_name }}.txt' when you mouse over
+Do you see 'Save', 'Save As...', 'Save All' and other options?
+
+Click on 'Save' and close the file by clicking (X) appearing next to the '{{ random.first_name }}.txt' when you mouse over and open the file again by double clicking it
+Do you see '{{ random.full_name }}' saved in it?
+
+Return to the first browser and look at the list under 'home/rainforestqa22' label
+Do you see '{{ random.first_name }}.txt' in the list?
+
+Click on the button appearing when you mouse over 'example' label on the top left sidebar and click on 'VM Sharing'
+Do you see 'rainforestqa25' with a default profile image under 'Shared With' text and 'Add Someone' button?
+
+Click on the red (x) button appearing next to 'rainforestqa25' when you mouse over 
+Is 'rainforestqa25' removed from the list? Do you see 'This VM has not yet been shared with anyone.' text?
+
+Return to the incognito window  
+Do you see 'Machine access revoked' overlay? Do you see 'OK' button?
+
+Click on 'OK' button
+Are 'example (@rainforestqa22)' label and 'SHARED VMS' title removed from left sidebar? Do you see 'example is not build yet.' text and 'Build Stack' button under it?
+
+Return to the first browser and click on the button appearing when you mouse over 'example' label on the top left sidebar and click on 'VM Sharing'
+Do you see 'Shared With' label and 'Add Someone' button next to it? Do you see 'This VM has not yet been shared with anyone.' text?
+
+Click on 'Add Someone' button and enter 'rainforestqa25' in the text field again
+Do you see 'rainforestqa25' with a default profile image under the text field?
+
+Return to the incognito window and click on 'Accept' button again
+Do you see '/home/rainforestqa22' label on top of file list? Do you see 'Terminal' tab and 'rainforestqa22@rainforestqa22:~$' in that tab?
+
+Click on the button appearing when you mouse over 'example (@rainforestqa22)' label under 'Shared VMs'
+Do you see 'Shared with you by..' text and 'Leave Shared VM' button?
+
+Click on 'Leave Shared VM'
+Are 'example (@rainforestqa22)' label and 'SHARED VMS' title removed from left sidebar? Do you see 'example is not build yet.' text and 'Build Stack' button under it?
+
+Click on the default profile image next to '{{ existing_team.name }}' label on top left and select 'Account'
+Do you see 'Account Settings' title? Do you see 'User Profile', '2-Factor Auth', 'Email Notifications' and other menu options?
+
+Select 'Leave Team' from the vertical menu and then click on red 'Leave Team' button
+Do you see 'Please confirm' text? Do you see an input field and 'Cancel' and 'Leave Team' buttons?
+
+Enter 'rainforestqa25' in the input field and click on 'Leave Team' button
+Are you logged out successfully? Do you see sign in form for '{{ existing_team.name }}'?
+
+Return to the first browser and click on (X) on top right corner of this modal
+Do you see 'home/rainforestqa22' label on top of file list? Do you see 'Terminal' tab on the bottom? Do you see 'Default Stack Template (@Rainforestqa25)' in the left sidebar?
+
+Click on 'STACKS' title on the left sidebar
+Do you see 'Stack Catalog'? Do you see 'Invite your team' and 'Install KD' sections?
+
+Click on 'My Stacks' from the vertical menu, click on 'Re-init Stack' and then 'Proceed' buttons and wait for a second for process to be completed
+Have you seen 'Stack reinitialized' message? Do you see 'example' is not build yet.' text in the center and 'Build Stack' button under it?

@@ -1340,26 +1340,18 @@ module.exports = class JAccount extends jraphical.Module
 
     return errorCallback()  unless sessionToken
 
-    @isEmailVerified (err, isVerified) ->
+    JSession         = require './session'
+    { v4: createId } = require 'node-uuid'
 
-      return callback err  if err
+    JSession.one { clientId: sessionToken }, (err, session) ->
 
-      if not isVerified
-        message = 'Sorry, you need to confirm your email address first.'
-        return callback new KodingError message
+      if err or not session
+        return errorCallback()
 
-      JSession         = require './session'
-      { v4: createId } = require 'node-uuid'
-
-      JSession.one { clientId: sessionToken }, (err, session) ->
-
-        if err or not session
-          return errorCallback()
-
-        [otaToken] = createId().split '-'
-        session.update { $set: { otaToken } }, (err) ->
-          if err then errorCallback()
-          else callback null, otaToken
+      [otaToken] = createId().split '-'
+      session.update { $set: { otaToken } }, (err) ->
+        if err then errorCallback()
+        else callback null, otaToken
 
 
   ###*

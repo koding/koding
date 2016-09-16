@@ -175,8 +175,11 @@ module.exports = class StackEditorView extends kd.View
     @createOutputView()
     @createMainButtons()
 
-    @providersView.on 'ItemSelected', (credentialItem) =>
+    # if stackTemplate is initialized make save button disabled
+    @saveButton.disable()  if stackTemplate?.machines.length
 
+    @providersView.on 'ItemSelected', (credentialItem) =>
+      @saveButton.enable() # credential change, enable button
       credential = credentialItem.getData()
 
       @credentialStatusView.setCredential credential
@@ -185,7 +188,7 @@ module.exports = class StackEditorView extends kd.View
       credentialItem.inuseView.show()
 
     @providersView.on 'ItemDeleted', (credential) =>
-
+      @saveButton.enable() # credential change, enable button
       { identifier } = credential.getData()
       if identifier in @credentialStatusView.credentials
         @credentialStatusView.setCredential() # To unset active credential since it's deleted
@@ -237,6 +240,7 @@ module.exports = class StackEditorView extends kd.View
 
       editorView.on 'EditorReady', =>
         ace.on 'FileContentChanged', =>
+          @saveButton.enable()
           @changedContents[key] = ace.isContentChanged()
 
 
@@ -377,10 +381,10 @@ module.exports = class StackEditorView extends kd.View
       @saveButton.hideLoader()
       return
 
-    @saveAndTestStackTemplate()
+    @saveAndTestStackTemplate (err, stackTemplate) => @emit 'Reload', err?
 
 
-  saveAndTestStackTemplate: ->
+  saveAndTestStackTemplate: (callback) ->
 
     # Show default first pane.
     @tabView.showPaneByIndex 0
@@ -394,7 +398,7 @@ module.exports = class StackEditorView extends kd.View
 
       if @outputView.handleError err, 'Stack template save failed:'
         @saveButton.hideLoader()
-        return
+        return callback err
 
       @outputView
         .add 'Template content saved.'
@@ -407,7 +411,7 @@ module.exports = class StackEditorView extends kd.View
 
         if @outputView.handleError err
           @saveButton.hideLoader()
-          return
+          return callback err
 
         @outputView
           .add 'Custom variables are set.'
@@ -427,13 +431,14 @@ module.exports = class StackEditorView extends kd.View
               @credentialWarning.setClass 'in'
               @_credentialsPassed = no
 
-            return @saveButton.hideLoader()
+            @saveButton.hideLoader()
+            return callback err
 
           @outputView
             .add 'Credentials are ready!'
             .add 'Starting to process the template...'
 
-          @processTemplate _stackTemplate
+          @processTemplate _stackTemplate, callback
 
 
   afterProcessTemplate: (method) ->
@@ -463,7 +468,7 @@ module.exports = class StackEditorView extends kd.View
         '''
 
 
-  processTemplate: (stackTemplate) ->
+  processTemplate: (stackTemplate, callback) ->
 
     { groupsController, computeController } = kd.singletons
 
@@ -476,7 +481,7 @@ module.exports = class StackEditorView extends kd.View
 
       if err
         @outputView.add 'Parsing failed, please check your template and try again'
-        return
+        return callback err
 
       { stackTemplates }       = groupsController.getCurrentGroup()
       stackTemplate.isDefault ?= stackTemplate._id in (stackTemplates or [])
@@ -515,9 +520,9 @@ module.exports = class StackEditorView extends kd.View
       else
         # admin is creating a new stack
         if isAdmin()
+          @afterProcessTemplate 'maketeamdefault'
+          @afterProcessTemplate 'initialize'
           if hasGroupTemplates
-            @afterProcessTemplate 'maketeamdefault'
-            @afterProcessTemplate 'initialize'
             computeController.checkGroupStacks()
           else
             @handleSetDefaultTemplate =>
@@ -534,6 +539,8 @@ module.exports = class StackEditorView extends kd.View
         else
           @afterProcessTemplate 'initialize'
           computeController.checkGroupStacks()
+
+      callback null, stackTemplate
 
 
   checkAndBootstrapCredentials: (callback) ->
@@ -865,7 +872,7 @@ module.exports = class StackEditorView extends kd.View
 
       return  if @outputView.handleError err
 
-      @setAsDefaultButton.hide()
+      @setAsDefaultButton.disable()
 
       Tracker.track Tracker.STACKS_MAKE_DEFAULT
 

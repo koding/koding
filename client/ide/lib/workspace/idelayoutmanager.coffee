@@ -273,7 +273,7 @@ module.exports = class IDELayoutManager extends KDObject
    * @param {Object} snapshot
    * @return {Object} Key value map with pane identifiers.
   ###
-  @getPaneHashMap: (snapshot) ->
+  @getPaneHashMap = (snapshot) ->
 
     panes   = {}
     asArray = IDELayoutManager.convertSnapshotToFlatArray snapshot
@@ -297,7 +297,7 @@ module.exports = class IDELayoutManager extends KDObject
    * @param {Array} panes  Referenced parameter
    * @param {Array} views
   ###
-  @findPanesFromArray: (panes, views) ->
+  @findPanesFromArray = (panes, views) ->
 
     return  unless views?.length
 

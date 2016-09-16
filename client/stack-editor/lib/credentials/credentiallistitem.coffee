@@ -95,7 +95,8 @@ module.exports = class CredentialListItem extends kd.ListItemView
       .then (response) =>
         if status = response?[identifier]
           if message = status.message
-            message = message.split('\n')[..-2].join ''
+            messageLines = message.split('\n')
+            message = messageLines[..-2].join ''  if messageLines.length > 1
           @setVerified status.verified, message
           HomeActions.markAsDone 'enterCredentials'
         else

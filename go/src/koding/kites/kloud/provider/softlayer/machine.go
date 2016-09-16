@@ -7,7 +7,6 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/plans"
 	"strings"
 	"time"
 
@@ -33,12 +32,10 @@ type Machine struct {
 	*models.Machine
 
 	// internal fields, not availabile in MongoDB schema
-	Username string                 `bson:"-"`
-	User     *models.User           `bson:"-"`
-	Payment  *plans.PaymentResponse `bson:"-"`
-	Checker  plans.Checker          `bson:"-"`
-	Session  *session.Session       `bson:"-"`
-	Log      logging.Logger         `bson:"-"`
+	Username string           `bson:"-"`
+	User     *models.User     `bson:"-"`
+	Session  *session.Session `bson:"-"`
+	Log      logging.Logger   `bson:"-"`
 
 	// timeouts
 	KlientTimeout time.Duration `bson:"-"`
