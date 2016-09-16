@@ -24,6 +24,9 @@ module.exports =
       (next) ->
         myaccounthelper.updatePassword browser, (result) ->
           next null, result
+      (next) ->
+        myaccounthelper.updateEmailWithInvalidPassword browser, (result) ->
+          next null, result
 
     ]
 

@@ -44,19 +44,20 @@ module.exports =
       .assert.value            lastnameSelector, newLastName
       .pause  1000, callback
 
-  #UpdateEmail will be reimplemented
-  # updateEmail: (browser, callback) ->
-  #   newEmail           = newName + newLastName + '@koding.com'
-  #   browser
-      # .waitForElementVisible   emailSelector, 20000
-      # .clearValue              emailSelector
-      # .setValue                emailSelector, newName + '\n'
-      # .click                   saveButtonSelector
-      # .waitForElementVisible   '.kdmodal.kddraggable', 20000
-      # .pause 3000
-      # .waitForElementVisible   emailSelector, 20000
-      # .getValue                emailSelector, (result) ->
-      #   assert.equal           result.value, newName
+  
+  updateEmailWithInvalidPassword: (browser, callback) ->
+    newEmail = 'wrongemail@koding.com'
+    browser
+      .waitForElementVisible   emailSelector, 20000
+      .clearValue              emailSelector
+      .setValue                emailSelector, newEmail + '\n'
+      .click                   saveButtonSelector
+      .waitForElementVisible   '.kdmodal-content', 20000
+      .assert.containsText     '.ContentModal.content-modal header > h1', 'Please verify your current password'
+      .setValue                passwordSelector, '123456'
+      .click                   '.kdbutton.GenericButton:nth-of-type(2)'
+      .waitForElementVisible   '.kdnotification-title', 20000
+      .assert.containsText     '.kdnotification-title', 'Current password cannot be confirmed'
 
 
   updatePassword: (browser, callback) ->
