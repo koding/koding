@@ -178,9 +178,7 @@ module.exports = class CredentialForm extends JView
 
   pistachio: ->
 
-    { title } = @getOptions()
-
-    """
+    '''
       {{> @header}}
       <div class='selection-container'>
         {{> @showLink}}
@@ -192,4 +190,4 @@ module.exports = class CredentialForm extends JView
       <div class='form-container'>
         {{> @scroller}}
       </div>
-    """
+    '''

@@ -5,244 +5,120 @@ import (
 	"socialapi/workers/common/mux"
 )
 
+const (
+	EndpointSubscriptionDelete = "/payment/subscription/delete"
+	EndpointSubscriptionGet    = "/payment/subscription/get"
+	EndpointSubscriptionCreate = "/payment/subscription/create"
+	EndpointCustomerCreate     = "/payment/customer/create"
+	EndpointCustomerGet        = "/payment/customer/get"
+	EndpointCustomerUpdate     = "/payment/customer/update"
+	EndpointCustomerDelete     = "/payment/customer/delete"
+	EndpointCreditCardDelete   = "/payment/creditcard/delete"
+	EndpointWebhook            = "/payment/webhook"
+	EndpointInvoiceList        = "/payment/invoice/list"
+	EndpointInfo               = "/payment/info"
+)
+
+// AddHandlers injects handlers for payment system
 func AddHandlers(m *mux.Mux) {
-	//----------------------------------------------------------
-	// Subscribe
-	//----------------------------------------------------------
-
-	// this is same /payments/account/subscribe, here for backwards compatibilty
 	m.AddHandler(
 		handler.Request{
-			Handler:  AccountSubscribe,
-			Name:     "payment-subsrcibe",
-			Type:     handler.PostRequest,
-			Endpoint: "/payments/subscribe",
-		},
-	)
-
-	m.AddHandler(
-		handler.Request{
-			Handler:  AccountSubscribe,
-			Name:     "payment-account-subscribe",
-			Type:     handler.PostRequest,
-			Endpoint: "/payments/account/subscribe",
-		},
-	)
-
-	m.AddHandler(
-		handler.Request{
-			Handler:  GroupSubscribe,
-			Name:     "payment-group-subscribe",
-			Type:     handler.PostRequest,
-			Endpoint: "/payments/group/subscribe",
-		},
-	)
-
-	//----------------------------------------------------------
-	// Subscriptions
-	//----------------------------------------------------------
-
-	// this is same /payments/account/subscriptions, here for backwards
-	// compatibilty
-	m.AddHandler(
-		handler.Request{
-			Handler:  AccountSubscriptionRequest,
-			Name:     "payment-subscriptions",
-			Type:     handler.GetRequest,
-			Endpoint: "/payments/subscriptions",
-		},
-	)
-
-	m.AddHandler(
-		handler.Request{
-			Handler:  AccountSubscriptionRequest,
-			Name:     "payment-account-subscriptions",
-			Type:     handler.GetRequest,
-			Endpoint: "/payments/account/subscriptions",
-		},
-	)
-
-	m.AddHandler(
-		handler.Request{
-			Handler:  GroupSubscriptionRequest,
-			Name:     "payment-group-subscriptions",
-			Type:     handler.GetRequest,
-			Endpoint: "/payments/group/subscriptions",
-		},
-	)
-
-	m.AddHandler(
-		handler.Request{
-			Handler:  AccountCancelSubscriptionRequest,
-			Name:     "payment-account-subscription-cancel",
-			Type:     handler.PutRequest,
-			Endpoint: "/payments/account/subscriptions/cancel",
-		},
-	)
-
-	m.AddHandler(
-		handler.Request{
-			Handler:  GroupCancelSubscriptionRequest,
-			Name:     "payment-group-subscription-cancel",
-			Type:     handler.PutRequest,
-			Endpoint: "/payments/group/subscriptions/cancel",
-		},
-	)
-
-	//----------------------------------------------------------
-	// Customers
-	//----------------------------------------------------------
-
-	m.AddHandler(
-		handler.Request{
-			Handler:  GetCustomersRequest,
-			Name:     "payment-getcustomer",
-			Type:     handler.GetRequest,
-			Endpoint: "/payments/customers",
-		},
-	)
-
-	m.AddHandler(
-		handler.Request{
-			Handler:  DeleteCustomerRequest,
-			Name:     "payment-deletecustomer",
+			Handler:  DeleteSubscription,
+			Name:     "payment-delete-subscription",
 			Type:     handler.DeleteRequest,
-			Endpoint: "/payments/customers/{accountId}",
+			Endpoint: EndpointSubscriptionDelete,
 		},
 	)
 
 	m.AddHandler(
 		handler.Request{
-			Handler:  ExpireCustomerRequest,
-			Name:     "payment-expirecustomer",
+			Handler:  GetSubscription,
+			Name:     "payment-get-subscription",
+			Type:     handler.GetRequest,
+			Endpoint: EndpointSubscriptionGet,
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  CreateSubscription,
+			Name:     "payment-create-subscription",
 			Type:     handler.PostRequest,
-			Endpoint: "/payments/customers/{accountId}/expire",
+			Endpoint: EndpointSubscriptionCreate,
 		},
 	)
 
-	//----------------------------------------------------------
-	// Invoices
-	//----------------------------------------------------------
+	// Customers
 
-	// this is same /payments/account/invoices/{accountId}, here for backwards
-	// compatibilty
 	m.AddHandler(
 		handler.Request{
-			Handler:  AccountInvoiceRequest,
-			Name:     "payment-invoices",
-			Type:     handler.GetRequest,
-			Endpoint: "/payments/invoices/{accountId}",
+			Handler:  DeleteCustomer,
+			Name:     "payment-delete-customer",
+			Type:     handler.DeleteRequest,
+			Endpoint: EndpointCustomerDelete,
 		},
 	)
 
 	m.AddHandler(
 		handler.Request{
-			Handler:  AccountInvoiceRequest,
-			Name:     "payment-account-invoices",
-			Type:     handler.GetRequest,
-			Endpoint: "/payments/account/invoices/{accountId}",
-		},
-	)
-
-	m.AddHandler(
-		handler.Request{
-			Handler:  GroupInvoiceRequest,
-			Name:     "payment-group-invoices",
-			Type:     handler.GetRequest,
-			Endpoint: "/payments/group/invoices/{groupId}",
-		},
-	)
-
-	//----------------------------------------------------------
-	// CreditCard
-	//----------------------------------------------------------
-
-	// this is same /payments/account/creditcard/{accountId}, here for backwards
-	// compatibilty
-	m.AddHandler(
-		handler.Request{
-			Handler:  AccountCreditCardRequest,
-			Name:     "payment-creditcard",
-			Type:     handler.GetRequest,
-			Endpoint: "/payments/creditcard/{accountId}",
-		},
-	)
-
-	m.AddHandler(
-		handler.Request{
-			Handler:  AccountCreditCardRequest,
-			Name:     "payment-account-creditcard",
-			Type:     handler.GetRequest,
-			Endpoint: "/payments/account/creditcard/{accountId}",
-		},
-	)
-
-	m.AddHandler(
-		handler.Request{
-			Handler:  GroupCreditCardRequest,
-			Name:     "payment-group-creditcard",
-			Type:     handler.GetRequest,
-			Endpoint: "/payments/group/creditcard/{groupId}",
-		},
-	)
-
-	// this is same /payments/account/creditcard/update, here for backwards
-	// compatibilty
-	m.AddHandler(
-		handler.Request{
-			Handler:  AccountUpdateCreditCardRequest,
-			Name:     "payment-updatecreditcard",
+			Handler:  UpdateCustomer,
+			Name:     "payment-update-customer",
 			Type:     handler.PostRequest,
-			Endpoint: "/payments/creditcard/update",
+			Endpoint: EndpointCustomerUpdate,
 		},
 	)
 
 	m.AddHandler(
 		handler.Request{
-			Handler:  AccountUpdateCreditCardRequest,
-			Name:     "payment-account-updatecreditcard",
-			Type:     handler.PostRequest,
-			Endpoint: "/payments/account/creditcard/update",
-		},
-	)
-
-	m.AddHandler(
-		handler.Request{
-			Handler:  GroupUpdateCreditCardRequest,
-			Name:     "payment-group-updatecreditcard",
-			Type:     handler.PostRequest,
-			Endpoint: "/payments/group/creditcard/update",
-		},
-	)
-
-	//----------------------------------------------------------
-	// Paypal
-	//----------------------------------------------------------
-
-	m.AddHandler(
-		handler.Request{
-			Handler:  PaypalSuccess,
-			Name:     "payment-paypalsuccess",
-			Type:     handler.PostRequest,
-			Endpoint: "/payments/paypal/return",
-		},
-	)
-
-	m.AddHandler(
-		handler.Request{
-			Handler:  PaypalCancel,
-			Name:     "payment-paypalcancel",
-			Type:     handler.PostRequest,
-			Endpoint: "/payments/paypal/cancel",
-		},
-	)
-
-	m.AddHandler(
-		handler.Request{
-			Handler:  PaypalGetToken,
-			Name:     "payment-paypalgettoken",
+			Handler:  GetCustomer,
+			Name:     "payment-get-customer",
 			Type:     handler.GetRequest,
-			Endpoint: "/payments/paypal/token",
+			Endpoint: EndpointCustomerGet,
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  CreateCustomer,
+			Name:     "payment-create-customer",
+			Type:     handler.PostRequest,
+			Endpoint: EndpointCustomerCreate,
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  DeleteCreditCard,
+			Name:     "payment-delete-creditcard",
+			Type:     handler.DeleteRequest,
+			Endpoint: EndpointCreditCardDelete,
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  Webhook,
+			Name:     "payment-webhoook",
+			Type:     handler.PostRequest,
+			Endpoint: EndpointWebhook,
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  ListInvoice,
+			Name:     "payment-list-invoices",
+			Type:     handler.GetRequest,
+			Endpoint: EndpointInvoiceList,
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  Info,
+			Name:     "payment-info",
+			Type:     handler.GetRequest,
+			Endpoint: EndpointInfo,
 		},
 	)
 }

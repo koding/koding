@@ -2,7 +2,6 @@
 { revive }  = require './computeutils'
 KodingError = require '../../error'
 async       = require 'async'
-KONFIG      = require 'koding-config-manager'
 
 
 module.exports = class JMachine extends Module
@@ -229,21 +228,22 @@ module.exports = class JMachine extends Module
         account.sendNotification 'MachineListUpdated', { machineUId, action, permanent, group }
 
 
-  validateTarget = (target, user, callback) ->
+  validateTarget = (target, user) ->
+
     # At least one target is required
     if not target or target.length is 0
-      return callback new KodingError 'A target required.'
+      return new KodingError 'A target required.'
 
     # Max 9 target can be passed
     if target.length > 9
-      return callback new KodingError \
+      return new KodingError \
         'It is not allowed to change more than 9 state at once.'
 
     # Owners cannot unassign them from a machine
     # Only another owner can unassign any other owner
     if user.username in target
-      return callback \
-        new KodingError 'You are not allowed to change your own state!'
+      return new KodingError \
+        'You are not allowed to change your own state!'
 
 
   checkFields = (data, required) ->
@@ -302,11 +302,7 @@ module.exports = class JMachine extends Module
       state        : 'NotInitialized'
       modifiedAt   : data.createdAt
 
-    if provider is 'koding'
-      { userSitesDomain } = KONFIG
-      data.domain = "#{data.uid}.#{username}.#{userSitesDomain}"
-    else
-      data.domain = "#{data.uid}.#{username}"
+    data.domain = "#{data.uid}.#{username}"
 
     data.provisioners  ?= [ ]
 
@@ -668,42 +664,11 @@ module.exports = class JMachine extends Module
       unless isOwner user, this
         return callback new KodingError 'Access denied'
 
-      { target, permanent, asUser } = options
+      { target } = options
 
-      validateTarget target, user, callback
-
-      # For Koding provider credential field is username
-      # and we don't allow them to be removed from users
-      if @provider is 'koding' and @credential in target
-        return callback \
-          new KodingError 'It is not allowed to change owner state!'
-
-      # If it's a call for unshare then no need to check
-      # any other state for it
-      if asUser is no
-        JMachine::shareWith.call this, options, callback
-
-        return
-
-      isKoding = group.slug is 'koding'
-
-      # Permanent option is only valid for paid accounts
-      # if its passed then we need to check payment
-      #
-      if permanent and @provider in ['managed', 'koding'] and isKoding
-
-        Payment = require '../payment'
-        Payment.subscriptions client, {}, (err, subscription) =>
-
-          if err? or not subscription? or subscription.planTitle is 'free'
-            return callback \
-              new KodingError "You don't have a paid subscription!"
-
-          JMachine::shareWith.call this, options, callback
-
-      else
-
-        JMachine::shareWith.call this, options, callback
+      if err = validateTarget target, user
+      then callback err
+      else JMachine::shareWith.call this, options, callback
 
 
   share: secure (client, users, callback) ->

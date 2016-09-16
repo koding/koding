@@ -137,11 +137,11 @@ module.exports = class JStackTemplate extends Module
 
   validateTemplate = (template, group, callback) ->
 
-    planConfig = helpers.getPlanConfig group
-    return callback null  unless planConfig.plan # No plan, no pain.
+    limitConfig = helpers.getLimitConfig group
+    return callback null  unless limitConfig.limit # No limit, no pain.
 
     ComputeProvider = require './computeprovider'
-    ComputeProvider.validateTemplateContent template, planConfig, callback
+    ComputeProvider.validateTemplateContent template, limitConfig, callback
 
 
   @create = permit 'create stack template',
@@ -150,7 +150,7 @@ module.exports = class JStackTemplate extends Module
 
       shouldReviveClient   : yes
       shouldReviveProvider : no
-      shouldFetchGroupPlan : yes
+      shouldFetchGroupLimit : yes
 
     , (client, data, callback) ->
 
@@ -306,7 +306,7 @@ module.exports = class JStackTemplate extends Module
 
       shouldReviveClient   : yes
       shouldReviveProvider : no
-      shouldFetchGroupPlan : no
+      shouldFetchGroupLimit : no
 
     , (client, accessLevel, callback) ->
 
@@ -333,7 +333,7 @@ module.exports = class JStackTemplate extends Module
 
       shouldReviveClient   : yes
       shouldReviveProvider : no
-      shouldFetchGroupPlan : yes
+      shouldFetchGroupLimit : yes
 
     , (client, callback) ->
 
@@ -376,7 +376,7 @@ module.exports = class JStackTemplate extends Module
 
       shouldReviveClient   : yes
       shouldReviveProvider : no
-      shouldFetchGroupPlan : yes
+      shouldFetchGroupLimit : yes
 
     , (client, data, callback) ->
 

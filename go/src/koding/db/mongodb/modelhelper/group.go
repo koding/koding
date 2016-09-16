@@ -3,6 +3,7 @@ package modelhelper
 import (
 	"errors"
 	"koding/db/models"
+	"time"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -141,4 +142,18 @@ func CreateGroup(m *models.Group) error {
 	}
 
 	return Mongo.Run(GroupsCollectionName, query)
+}
+
+func MakeAdmin(accountId, groupId bson.ObjectId) error {
+	r := &models.Relationship{
+		Id:         bson.NewObjectId(),
+		TargetId:   accountId,
+		TargetName: "JAccount",
+		SourceId:   groupId,
+		SourceName: "JGroup",
+		As:         "admin",
+		TimeStamp:  time.Now().UTC(),
+	}
+
+	return AddRelationship(r)
 }

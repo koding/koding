@@ -27,3 +27,17 @@ func WithRunner(t *testing.T, f func(*runner.Runner)) {
 
 	f(r)
 }
+
+func WithConfiguration(t *testing.T, f func(c *config.Config)) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatal(err.Error())
+	}
+	defer r.Close()
+
+	c := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(c.Mongo)
+	defer modelhelper.Close()
+
+	f(c)
+}
