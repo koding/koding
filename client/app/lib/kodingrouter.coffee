@@ -6,7 +6,7 @@ KodingAppsController = require './kodingappscontroller'
 HomeGetters          = require 'home/flux/getters'
 LocalStorage = require 'app/localstorage'
 isGroupDisabled = require './util/isGroupDisabled'
-isAdmin = require './util/isAdmin'
+getRole = require './util/getRole'
 
 module.exports = class KodingRouter extends kd.Router
 
@@ -108,8 +108,6 @@ module.exports = class KodingRouter extends kd.Router
 
   isRouteAllowed: (route) ->
 
-    role = if isAdmin() then 'admin' else 'member'
-
     allowedRoutes =
       admin: [
         '/Home/team-billing'
@@ -120,12 +118,10 @@ module.exports = class KodingRouter extends kd.Router
         '/Disabled/Member/notify-success'
       ]
 
-    return route in allowedRoutes[role]
+    return route in allowedRoutes[getRole()]
 
 
-  getGroupDisabledRoute: (originalRoute) ->
-
-    if isAdmin() then '/Disabled/Admin' else '/Disabled/Member'
+  getGroupDisabledRoute: -> "/Disabled/#{getRole().capitalize()}"
 
 
   setPageTitle: (title = 'Koding') -> kd.singletons.pageTitle.update title
