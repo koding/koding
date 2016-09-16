@@ -166,7 +166,7 @@ ConditionFileIsExecutable={{.Path|cmdEscape}}
 StartLimitInterval=5
 StartLimitBurst=10
 {{if .LogFile}}
-ExecStart=/bin/sh -c '{{.Path|cmdEscape}}{{range .Arguments}} {{.|cmd}}{{end}} > /var/log/{{.Config.Name}}.log 2>&1'
+ExecStart=/bin/sh -c '{{.Path|cmdEscape}}{{range .Arguments}} {{.|cmd}}{{end}} >> /var/log/{{.Config.Name}}.log 2>&1'
 {{else}}
 ExecStart={{.Path|cmdEscape}}{{range .Arguments}} {{.|cmd}}{{end}}
 {{end}}
