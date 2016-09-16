@@ -113,7 +113,29 @@ module.exports = class PerfectScrollbar extends Component
 
   render: ->
 
-    props = _.assign {}, @props,
+    props = _.omit @props, [
+      'hasMore'
+      'threshold'
+      'onThresholdReached'
+      'onTopThresholdReached'
+      'minScrollbarLength'
+      'useSelectionScroll'
+      'onUpLimitReached'
+      'onDownLimitReached'
+      'wheelSpeed'
+      'wheelPropagation'
+      'swipePropagation'
+      'maxScrollbarLength'
+      'useBothWheelAxes'
+      'useKeyboard'
+      'suppressScrollX'
+      'suppressScrollY'
+      'scrollXMarginOffset'
+      'scrollYMarginOffset'
+      'stopPropagationOnClick'
+    ]
+
+    props = _.assign {}, props,
       style: _.assign { position: 'relative', height: '100%' }, @props.style
 
     <div ref='container' {...props}>

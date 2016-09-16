@@ -1,0 +1,27 @@
+.container
+  display                   flex
+  height                    100px
+  borderBox()
+  align-items               center
+
+  button
+    font-family             SoleilFamily
+    padding                 12px 12px 10px
+
+.left
+.right
+  flex                      0 auto
+
+.middle
+  flex                      1
+
+.left
+.right
+.middle
+  borderBox()
+
+.left img
+  vertical-align            top
+
+.right
+  padding                   20px 30px 20px 20px

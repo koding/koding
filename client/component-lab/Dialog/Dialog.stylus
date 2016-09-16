@@ -1,0 +1,49 @@
+@import '~lab/Colors/Colors.stylus'
+
+.title
+  font-size                 27px
+  margin-bottom             10px
+  font-weight               200
+
+  &.success
+    color                   $primary-2
+  &.danger
+    color                   $primary-1
+
+.subtitle
+  font-size                 18px
+  color                     $additional-5
+  font-weight               400
+  white-space               nowrap
+
+.action
+.message
+  font-size                 16px
+  line-height               19px
+  font-weight               200
+  width                     100%
+  text-align                center
+
+.message
+  color                     $additional-6
+
+.action a
+  color                     $primary-6
+  text-decoration           none
+
+  &:hover
+    text-decoration         underline
+
+.title
+.subtitle
+.action
+  flex                      0
+
+.message
+  flex                      1 auto
+  display                   flex
+  height                    100%
+  width                     100%
+  justify-content           center
+  align-items               center
+  text-align                center

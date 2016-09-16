@@ -48,6 +48,7 @@ bootup = ->
     globals.currentGroup           = remote.revive globals.currentGroup
     globals.userAccount            = remote.revive globals.userAccount
     globals.config.entryPoint.slug = globals.currentGroup.slug
+    kd.singletons.groupsController.currentGroupData.setGroup globals.currentGroup
 
     setupAnalytics()  unless globals.config.environment is 'default'
 
