@@ -1,17 +1,59 @@
-package gateway_test
+package keygentest
 
 import (
 	"fmt"
 	"os"
+	"strings"
+	"testing"
 	"time"
 
-	"koding/kites/gateway"
+	"koding/kites/keygen"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/kitetest"
+	"github.com/koding/logging"
 	"github.com/koding/multiconfig"
 )
+
+// Flags represents command line flags used for configuring gateway-related
+// e2e tests.
+//
+// In order to set or override the value, set the flags after
+// the -- separator, e.g.:
+//
+//   $ go test koding/kites/gateway -- -accesskey abc -secretkey def
+//
+type Flags struct {
+	EnvPrefix string        `default:"gateway"`
+	AccessKey string        `required:"true"`
+	SecretKey string        `required:"true"`
+	Bucket    string        `default:"kodingdev-publiclogs"`
+	Region    string        `default:"us-east-1"`
+	Expire    time.Duration `default:"15m0s"`
+}
+
+// Config creates new gateway.Config value from the given flags.
+func (f *Flags) Config() *keygen.Config {
+	return &keygen.Config{
+		AccessKey:  f.AccessKey,
+		SecretKey:  f.SecretKey,
+		Bucket:     f.Bucket,
+		AuthExpire: f.Expire,
+		Region:     f.Region,
+		Log:        logging.NewCustom("gateway-test", testing.Verbose()),
+	}
+}
+
+// AWSConfig creates new aws.Config value from the given flags.
+func (f *Flags) AWSConfig() *aws.Config {
+	return &aws.Config{
+		Credentials: credentials.NewStaticCredentials(f.AccessKey, f.SecretKey, ""),
+		Region:      &f.Region,
+	}
+}
 
 // DefaultKeyPair is a pem-encoded rsa private/public
 // key pair, used to generate kite.key values.
@@ -28,11 +70,11 @@ type Driver struct {
 // to the returned channel.
 //
 // If cfg.AuthFunc is non-nil, it is called after the value is sent.
-func (d *Driver) AuthFunc(cfg *gateway.Config) <-chan *gateway.AuthRequest {
-	ch := make(chan *gateway.AuthRequest, d.ChanCap)
+func (d *Driver) AuthFunc(cfg *keygen.Config) <-chan *keygen.AuthRequest {
+	ch := make(chan *keygen.AuthRequest, d.ChanCap)
 	fn := cfg.AuthFunc
 
-	cfg.AuthFunc = func(req *gateway.AuthRequest) error {
+	cfg.AuthFunc = func(req *keygen.AuthRequest) error {
 		ch <- req
 
 		if fn != nil {
@@ -49,7 +91,7 @@ func (d *Driver) AuthFunc(cfg *gateway.Config) <-chan *gateway.AuthRequest {
 // to the returned channel.
 //
 // If cfg.BeforeFunc is non-nil, it is called after the value is sent.
-func (d *Driver) BeforeFunc(cfg *gateway.Config) <-chan time.Time {
+func (d *Driver) BeforeFunc(cfg *keygen.Config) <-chan time.Time {
 	ch := make(chan time.Time, d.ChanCap)
 	fn := cfg.BeforeFunc
 
@@ -60,14 +102,14 @@ func (d *Driver) BeforeFunc(cfg *gateway.Config) <-chan time.Time {
 			return fn(t)
 		}
 
-		return gateway.DefaultBefore(t)
+		return keygen.DefaultBefore(t)
 	}
 
 	return ch
 }
 
 // Kite sets cfg.Kite with kite.key generated for the given username.
-func (d *Driver) Kite(cfg *gateway.Config, username string) *gateway.Config {
+func (d *Driver) Kite(cfg *keygen.Config, username string) *keygen.Config {
 	key, err := kitetest.GenerateKiteKey(&kitetest.KiteKey{Username: username}, d.keyPair())
 	if err != nil {
 		panic(err)
@@ -90,10 +132,10 @@ func (d *Driver) Kite(cfg *gateway.Config, username string) *gateway.Config {
 //
 // It returns a function that can be used to explicitely stop
 // the kite server.
-func (d *Driver) Server(cfg *gateway.Config) (cancel func()) {
-	kiteCfg := d.Kite(cfg, "gateway")
+func (d *Driver) Server(cfg *keygen.Config) (cancel func()) {
+	kiteCfg := d.Kite(cfg, "keygen")
 
-	gateway.NewServer(kiteCfg)
+	keygen.NewServer(kiteCfg)
 
 	go kiteCfg.Kite.Run()
 	<-kiteCfg.Kite.ServerReadyNotify()
@@ -114,6 +156,29 @@ func (d *Driver) keyPair() *kitetest.KeyPair {
 // ParseFlags uses multiconfig to fill the given v with matching
 // flag values read from tags, environment and command line.
 func ParseFlags(v interface{}) error {
+	type parentFlags interface {
+		Underlying() *Flags
+	}
+
+	envPrefix := "keygen"
+
+	// Try to read the EnvPrefix from the v, so it is possible
+	// to set different flags for different tests when
+	// run at once e.g. with:
+	//
+	//   go test ./...
+	//
+	switch f := v.(type) {
+	case *Flags:
+		if f.EnvPrefix != "" {
+			envPrefix = f.EnvPrefix
+		}
+	case parentFlags:
+		if f := f.Underlying(); f.EnvPrefix != "" {
+			envPrefix = f.EnvPrefix
+		}
+	}
+
 	args := make([]string, 0) // non-nil to force FlagLoader to not read test flags
 
 	for i, arg := range os.Args {
@@ -127,7 +192,7 @@ func ParseFlags(v interface{}) error {
 	mc.Loader = multiconfig.MultiLoader(
 		&multiconfig.TagLoader{},
 		&multiconfig.EnvironmentLoader{
-			Prefix: "GATEWAY",
+			Prefix: strings.ToUpper(envPrefix),
 		},
 		&multiconfig.FlagLoader{
 			Args: args,

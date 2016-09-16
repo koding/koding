@@ -1,4 +1,4 @@
-package gateway_test
+package keygen_test
 
 import (
 	"fmt"
@@ -6,49 +6,26 @@ import (
 	"testing"
 	"time"
 
-	"koding/kites/gateway"
+	"koding/kites/keygen"
+	"koding/kites/keygen/keygentest"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/koding/logging"
 )
 
-type Flags struct {
-	AccessKey string        `required:"true"`
-	SecretKey string        `required:"true"`
-	Bucket    string        `default:"kodingdev-publiclogs"`
-	Region    string        `default:"us-east-1"`
-	Expire    time.Duration `default:"15m0s"`
-}
+func TestKeygen_UserBucket(t *testing.T) {
+	var f keygentest.Flags
 
-func TestGateway_UserBucket(t *testing.T) {
-	var f Flags
-
-	if err := ParseFlags(&f); err != nil {
+	if err := keygentest.ParseFlags(&f); err != nil {
 		t.Fatal(err)
 	}
 
 	// to cleanup after tests
-	rootS3 := s3.New(session.New(&aws.Config{
-		Credentials: credentials.NewStaticCredentials(f.AccessKey, f.SecretKey, ""),
-		Region:      &f.Region,
-	}))
-
-	drv := &Driver{
-		ChanCap: 1,
-	}
-
-	cfg := &gateway.Config{
-		AccessKey:  f.AccessKey,
-		SecretKey:  f.SecretKey,
-		Bucket:     f.Bucket,
-		AuthExpire: f.Expire,
-		Region:     f.Region,
-		Log:        logging.NewCustom("gateway-test", testing.Verbose()),
-	}
+	rootS3 := s3.New(session.New(f.AWSConfig()))
+	drv := &keygentest.Driver{ChanCap: 1}
+	cfg := f.Config()
 
 	defer drv.Server(cfg)()
 
@@ -71,10 +48,10 @@ func TestGateway_UserBucket(t *testing.T) {
 	}
 
 	for username, files := range populate {
-		ub := gateway.NewUserBucket(drv.Kite(cfg, username))
+		ub := keygen.NewUserBucket(drv.Kite(cfg, username))
 
 		for _, file := range files {
-			if err := ub.Put(file.Key, strings.NewReader(file.Content)); err != nil {
+			if _, err := ub.Put(file.Key, strings.NewReader(file.Content)); err != nil {
 				t.Fatalf("%s: Put(%s)=%s", username, file.Key, err)
 			}
 
@@ -90,7 +67,7 @@ func TestGateway_UserBucket(t *testing.T) {
 
 				// Ensure current user has no permission to upload to other user directories.
 				if username != otherUser {
-					err := ub.UserPut(key, strings.NewReader(file.Content))
+					_, err := ub.UserPut(key, strings.NewReader(file.Content))
 
 					if e := testErrorCode(err, "AccessDenied"); e != nil {
 						t.Errorf("%s -> %s: PutObject: %s", username, otherUser, e)

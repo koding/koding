@@ -7,7 +7,7 @@ import (
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/gateway"
+	"koding/kites/keygen"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
@@ -107,7 +107,7 @@ func (k *Kloud) setTraceID(user, method string, ctx context.Context) context.Con
 }
 
 // ValidateUser is an AuthFunc, that ensures user is active.
-func (k *Kloud) ValidateUser(req *gateway.AuthRequest) error {
+func (k *Kloud) ValidateUser(req *keygen.AuthRequest) error {
 	status, err := modelhelper.UserStatus(req.User)
 	if err != nil {
 		return err

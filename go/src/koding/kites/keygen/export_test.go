@@ -1,12 +1,13 @@
-package gateway
+package keygen
 
 import (
 	"io"
+	"net/url"
 
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-func (ub *UserBucket) UserPut(path string, rs io.ReadSeeker) error {
+func (ub *UserBucket) UserPut(path string, rs io.ReadSeeker) (*url.URL, error) {
 	return ub.userPut(path, rs)
 }
 

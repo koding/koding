@@ -15,8 +15,6 @@ VAGRANTFILE_API_VERSION = "2"
 $script = <<SCRIPT
 #!/bin/bash
 
-set -euo pipefail
-
 export DEBIAN_FRONTEND=noninteractive
 export USER_LOG=/var/log/cloud-init-output.log
 
@@ -24,6 +22,8 @@ die() {
 	echo "error: $1"
 	exit 2
 }
+
+trap "echo _KD_DONE_ | tee -a $USER_LOG" EXIT
 
 {{if .TLSProxyHostname}}
 echo 127.0.0.1 {{.TLSProxyHostname}} >> /etc/hosts
@@ -36,14 +36,16 @@ gzip -d -f provisionklient.gz || die "unarchiving provisionklient failed"
 chmod +x provisionklient
 ./provisionklient -data '{{.ProvisionData}}'
 
-cat >user-data.sh <<"EOF"
+mkdir -p /var/lib/koding
+cat >/var/lib/koding/user-data.sh <<"EOF"
 {{unbase64 .CustomScript}}
-
-echo _KD_DONE_
 EOF
 
-chmod +x user-data.sh
+chmod -R 0755 /var/lib/koding
+
+pushd /var/lib/koding
 ./user-data.sh 2>&1 | tee -a $USER_LOG || die "$(cat $USER_LOG | perl -pe 's/\n/\\\\n/g')"
+popd
 
 SCRIPT
 

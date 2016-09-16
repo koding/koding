@@ -9,15 +9,56 @@ var Builtin *Config
 
 // Config contains default values for services.
 type Config struct {
+	Buckets   Buckets           `json:"buckets"`
 	Endpoints Endpoints         `json:"endpoints"`
 	Routes    map[string]string `json:"routes"`
 }
 
 // Endpoint represents a single worker's endpoint
-// mapped to environments
+// mapped to environments.
 type Endpoint struct {
 	Environment []string `json:"environment"`
 	URL         string   `json:"url"`
+}
+
+// Bucket is a configuration of a single bucket.
+type Bucket struct {
+	Environment []string `json:"environment"`
+	Name        string   `json:"name"`
+	Region      string   `json:"region"`
+}
+
+// Buckets describes all buckets and their configuration.
+type Buckets map[string][]*Bucket
+
+// ByEnv looks up a bucket by the given name and environment.
+func (b Buckets) ByEnv(name, environment string) *Bucket {
+	buckets, ok := b[name]
+	if !ok {
+		return nil
+	}
+
+	var bkt *Bucket
+
+	for _, bucket := range buckets {
+		if len(bucket.Environment) == 0 {
+			bkt = bucket
+			continue
+		}
+
+		for _, env := range bucket.Environment {
+			switch env {
+			case environment:
+				return bucket
+			case "development", "devmanaged":
+				if bkt == nil {
+					bkt = bucket
+				}
+			}
+		}
+	}
+
+	return bkt
 }
 
 // Endpoints describes all workers and
