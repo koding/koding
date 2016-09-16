@@ -48,12 +48,13 @@ module.exports = class ComputeController extends KDController
 
     do @reset
 
+    remote.once 'ready', =>
+      @disabled = getGroup().isDisabled()
+      do @reset  if @disabled
+
     mainController.ready =>
 
       @bindGroupStatusEvents()
-
-      if isGroupDisabled groupsController.getCurrentGroup()
-        return @disabled = yes
 
       @on 'MachineBuilt',             => do @reset
       @on 'MachineDestroyed',         => do @reset
@@ -91,10 +92,10 @@ module.exports = class ComputeController extends KDController
 
     # /cc @cihangir: not sure if this is the right way to bind the event.
     groupsController.on 'payment_status_changed', ({ oldStatus, newStatus }) =>
-      wasDisabled = @disabled
-      @disabled = isGroupDisabled getGroup()
+      before = @disabled
+      @disabled = after = getGroup().isDisabled()
 
-      do @reset  unless @disabled isnt wasDisabled
+      do @reset  if before isnt after
 
   # ComputeController internal helpers
   #
