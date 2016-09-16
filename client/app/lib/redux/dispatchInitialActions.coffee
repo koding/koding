@@ -3,6 +3,7 @@ isAdmin = require 'app/util/isAdmin'
 
 { LOAD: BONGO_LOAD } = bongo = require 'app/redux/modules/bongo'
 customer = require 'app/redux/modules/payment/customer'
+{ Plan } = require 'app/redux/modules/payment/constants'
 
 {
   load: loadCustomer
@@ -54,7 +55,7 @@ ensureSubscription = ({ dispatch, getState }) -> ->
 
   if group.payment?.subscription
   then dispatch(loadSubscription())
-  else dispatch(createSubscription(state.customer.id, 'p_up_to_10'))
+  else dispatch(createSubscription(state.customer.id, Plan.UP_TO_10_USERS))
 
 
 module.exports = dispatchInitialActions = (store) ->
