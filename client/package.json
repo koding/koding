@@ -6,7 +6,7 @@
     "@koding/bongo-client": "koding/bongo-client#v0.2.9",
     "@koding/getscript": "0.1.0",
     "@koding/inherits-underscore": "0.2.0",
-    "@koding/kd-react": "usirin/kd-react.git#0.2.0",
+    "@koding/kd-react": "koding/kd-react.git#0.2.0",
     "accounting": "0.4.1",
     "async": "1.5.0",
     "axios": "0.13.1",
