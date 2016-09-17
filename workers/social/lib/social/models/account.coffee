@@ -1152,27 +1152,28 @@ module.exports = class JAccount extends jraphical.Module
   ## NEWER IMPLEMENATION: Fetch ids from graph db, get items from document db.
 
   unlinkOauth: secure (client, provider, callback) ->
-    { delegate } = client.connection
-    isMine     = @equals delegate
-    if isMine
-      @fetchUser (err, user) =>
+
+    if not client or not @equals client.connection.delegate
+      return callback new KodingError 'Access denied'
+
+    JForeignAuth = require './foreignauth'
+
+    @fetchUser (err, user) =>
+      return callback err  if err
+      return callback new KodingError 'User not found'  unless user
+
+      JForeignAuth.remove {
+        username: user.username
+        group: client.context.group
+        provider
+      }, (err) ->
         return callback err  if err
 
-        query = {}
-        query["foreignAuth.#{provider}"] = ''
-        user.update { $unset: query }, (err) =>
-          return callback err  if err
-          @oauthDeleteCallback provider, user, callback
-    else
-      callback new KodingError 'Access denied'
+        foreignAuth = {}
+        foreignAuth[provider] = no
+        Tracker.identify user.username, { foreignAuth }
 
-  oauthDeleteCallback: (provider, user, callback) ->
-
-    foreignAuth = {}
-    foreignAuth[provider] = no
-    Tracker.identify user.username, { foreignAuth }
-
-    callback()
+        callback null
 
   # we are using this in sorting members list..
   updateMetaModifiedAt: (callback) ->
