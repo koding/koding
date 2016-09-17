@@ -857,8 +857,33 @@ module.exports = class JUser extends jraphical.Module
 
         if session.foreignAuth
 
+          JForeignAuth = require '../foreignauth'
+          JForeignAuth.persistOauthInfo {
+            sessionToken: replacementToken
+            group: session.group
+            username
+          }, (err) ->
+
+            return next err  if err
+
+            # TRACKER ----------------------------------------------- >> --
+            providers = {}
+            Object.keys(foreignAuth).forEach (provider) ->
+              providers[provider] = yes
+
+            Tracker.identify user.username, { foreignAuth: providers }
+            # TRACKER ----------------------------------------------- << --
+
+            next null
+
+        else
+          next()
+
+      (next) ->
+
+        # updating user data after login
         userUpdateOptions =
-          $set        : userUpdateData
+          $set        : { lastLoginDate : new Date }
           $unset      :
             inactive  : 1
 
@@ -1109,12 +1134,16 @@ module.exports = class JUser extends jraphical.Module
           returnUrl
         }
 
-      @fetchUserByProvider provider, session, (err, user) =>
+      { nickname: requester } = client.connection.delegate.profile
+
+      JForeignAuth = require '../foreignauth'
+      JForeignAuth.fetchFromSession session, provider, (err, foreignData) =>
 
         return callback new KodingError err.message  if err
 
         if isUserLoggedIn
-          if user and user.username isnt client.connection.delegate.profile.nickname
+
+          if foreignData and foreignData.username isnt requester
             JSession.clearOauthInfo session, ->
               callback new KodingError '''
                 Account is already linked with another user.
@@ -1122,12 +1151,20 @@ module.exports = class JUser extends jraphical.Module
           else
             @fetchUser client, (err, user) =>
               return callback new KodingError err.message  if err
-              @persistOauthInfo user.username, sessionToken, kallback
+              JForeignAuth.persistOauthInfo {
+                username: user.username
+                group: session.group
+                sessionToken
+              }, kallback
+              # user.username, sessionToken, kallback
+
         else
           if user
             afterLogin user, sessionToken, session, kallback
           else
-            return callback new KodingError 'Koding Solo registrations are closed!'
+            callback new KodingError '''
+              Login with username and password to enable this integration
+            '''
 
 
   @validateAll = (userFormData, callback) ->
@@ -1289,7 +1326,12 @@ module.exports = class JUser extends jraphical.Module
           next()
 
       (next) ->
-        JUser.persistOauthInfo username, client.sessionToken, next
+        JForeignAuth = require '../foreignauth'
+        JForeignAuth.persistOauthInfo {
+          sessionToken: client.sessionToken
+          group: client.context.group
+          username
+        }, next
 
       (next) ->
         return next()  unless username?
@@ -1998,18 +2040,14 @@ module.exports = class JUser extends jraphical.Module
 
   ###*
    * Verify if `response` from client is valid by asking recaptcha servers.
-   * Check is disabled in dev mode or when user is authenticating via `github`.
    *
    * @param {string}   response
-   * @param {string}   foreignAuthType
    * @param {function} callback
   ###
   @verifyRecaptcha = (response, params, callback) ->
 
-    { url, secret }           = KONFIG.recaptcha
-    { foreignAuthType, slug } = params
-
-    return callback null  if foreignAuthType is 'github'
+    { url, secret } = KONFIG.recaptcha
+    { slug }        = params
 
     # TODO: temporarily disable recaptcha for groups
     if slug? and slug isnt 'koding'
