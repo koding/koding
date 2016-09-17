@@ -22,10 +22,13 @@ module.exports =
         myaccounthelper.updateLastName browser, (result) ->
           next null, result
       (next) ->
-        myaccounthelper.updatePassword browser, (result) ->
+        myaccounthelper.updateEmailWithInvalidPassword browser, (result) ->
           next null, result
       (next) ->
-        myaccounthelper.updateEmailWithInvalidPassword browser, (result) ->
+        myaccounthelper.updateEmailWithInvalidPin browser, (result) ->
+          next null, result
+      (next) ->
+        myaccounthelper.updatePassword browser, (result) ->
           next null, result
 
     ]

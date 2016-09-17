@@ -3,16 +3,22 @@ helpers       = require '../helpers/helpers.js'
 teamsHelpers  = require '../helpers/teamshelpers.js'
 myAccountLink = "#{helpers.getUrl(yes)}/Home/my-account"
 
-nameSelector           = 'input[name=firstName]'
-lastnameSelector       = 'input[name=lastName]'
-emailSelector          = 'input[name=email]'
-saveButtonSelector     = 'button[type=submit]'
-passwordSelector       = '.kdview.kdtabpaneview.verifypasswordform div.kdview.formline.password div.input-wrapper input.kdinput.text'
-notificationText       = 'Password successfully changed!'
-notMatchingPasswords   = 'Passwords did not match'
+nameSelector = 'input[name=firstName]'
+lastnameSelector = 'input[name=lastName]'
+emailSelector = 'input[name=email]'
+saveButtonSelector = 'button[type=submit]'
+pinSelector = 'input[name=pin]'
+passwordSelector = '.kdview.kdtabpaneview.verifypasswordform div.kdview.formline.password div.input-wrapper input.kdinput.text'
+notificationText = 'Password successfully changed!'
+notMatchingPasswords = 'Passwords did not match'
 invalidCurrentPassword = 'Old password did not match our records!'
-min8Character          = 'Passwords should be at least 8 characters!'
-paragraph              = helpers.getFakeText()
+min8Character  = 'Passwords should be at least 8 characters!'
+paragraph = helpers.getFakeText()
+notificationSelector = '.kdnotification-title'
+confirmEmailButton = '.kdbutton.GenericButton:nth-of-type(2)'
+modalSelector = '.kdmodal-content'
+updateEmailButton = '.ContentModal.kdmodal.with-form .kdtabpaneview .formline.button-field .kdbutton'
+user =  utils.getUser()
 
 module.exports =
 
@@ -27,6 +33,7 @@ module.exports =
       .click                   saveButtonSelector
       .waitForElementVisible   '.kdnotification.main', 20000
       .refresh()
+      .pause 3000
       .waitForElementVisible   nameSelector, 20000
       .assert.value            nameSelector, newName
       .pause  1000, callback
@@ -40,31 +47,59 @@ module.exports =
       .click                   saveButtonSelector
       .waitForElementVisible   '.kdnotification.main', 20000
       .refresh()
+      .pause 2000
       .waitForElementVisible   lastnameSelector, 20000
       .assert.value            lastnameSelector, newLastName
       .pause  1000, callback
 
-  
+
   updateEmailWithInvalidPassword: (browser, callback) ->
     newEmail = 'wrongemail@koding.com'
     browser
+      .refresh()
+      .pause 2000
       .waitForElementVisible   emailSelector, 20000
       .clearValue              emailSelector
       .setValue                emailSelector, newEmail + '\n'
       .click                   saveButtonSelector
-      .waitForElementVisible   '.kdmodal-content', 20000
+      .waitForElementVisible   modalSelector, 20000
       .assert.containsText     '.ContentModal.content-modal header > h1', 'Please verify your current password'
       .setValue                passwordSelector, '123456'
-      .click                   '.kdbutton.GenericButton:nth-of-type(2)'
-      .waitForElementVisible   '.kdnotification-title', 20000
-      .assert.containsText     '.kdnotification-title', 'Current password cannot be confirmed'
+      .click                   confirmEmailButton
+      .waitForElementVisible   notificationSelector, 20000
+      .assert.containsText     notificationSelector, 'Current password cannot be confirmed'
+      .pause 1000, callback
+
+
+  updateEmailWithInvalidPin: (browser, callback) ->
+    newEmail = 'wrongemail2@koding.com'
+    browser
+      .refresh()
+      .pause 3000
+      .waitForElementVisible   emailSelector, 20000
+      .clearValue              emailSelector
+      .setValue                emailSelector, newEmail + '\n'
+      .click                   saveButtonSelector
+      .pause 2000
+      .waitForElementVisible   modalSelector, 20000
+      .waitForElementVisible   passwordSelector, 30000
+      .setValue                passwordSelector, user.password
+      .click                   confirmEmailButton
+      .waitForElementVisible   modalSelector, 20000
+      .waitForElementVisible   pinSelector, 2000
+      .setValue                pinSelector, '1234'
+      .click                   updateEmailButton
+      .waitForElementVisible   notificationSelector, 20000
+      .assert.containsText     notificationSelector, 'PIN is not confirmed.'
+      .pause  1, callback
 
 
   updatePassword: (browser, callback) ->
-    user            =  utils.getUser()
     currentPassword = user.password
     newPassword     = utils.getPassword()
     browser
+      .refresh()
+      .pause 3000
       .scrollToElement '.HomeAppView--section.password'
 
     helpers.changePasswordHelper browser, newPassword, newPassword + 'test', null, notMatchingPasswords
