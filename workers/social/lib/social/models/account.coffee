@@ -1158,7 +1158,7 @@ module.exports = class JAccount extends jraphical.Module
 
     JForeignAuth = require './foreignauth'
 
-    @fetchUser (err, user) =>
+    @fetchUser (err, user) ->
       return callback err  if err
       return callback new KodingError 'User not found'  unless user
 
