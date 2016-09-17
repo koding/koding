@@ -1149,7 +1149,7 @@ module.exports = class JUser extends jraphical.Module
                 Account is already linked with another user.
               '''
           else
-            @fetchUser client, (err, user) =>
+            @fetchUser client, (err, user) ->
               return callback new KodingError err.message  if err
               JForeignAuth.persistOauthInfo {
                 username: user.username
@@ -1568,7 +1568,7 @@ module.exports = class JUser extends jraphical.Module
 
     queue = [
 
-      (next) =>
+      (next) ->
         JSession.fetchOAuthInfo client.sessionToken, (err, foreignAuthInfo) ->
           if err
             console.log 'Error while getting oauth data from session', err

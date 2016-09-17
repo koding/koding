@@ -53,10 +53,10 @@ module.exports = class JForeignAuth extends jraphical.Module
       return callback null  unless foreignAuthInfo
       return callback null  unless foreignAuthInfo.session
 
-      @create foreignAuthInfo, username, (err) =>
+      @create foreignAuthInfo, username, (err) ->
         return callback err  if err
 
-        JSession.clearOauthInfo foreignAuthInfo.session, (err) =>
+        JSession.clearOauthInfo foreignAuthInfo.session, (err) ->
           return callback err  if err
 
           response = {}
