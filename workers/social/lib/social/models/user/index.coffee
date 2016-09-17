@@ -68,11 +68,6 @@ module.exports = class JUser extends jraphical.Module
       username      : 'unique'
       email         : 'unique'
       sanitizedEmail: ['unique', 'sparse']
-      'foreignAuth.github.foreignId'   : 'ascending'
-      'foreignAuth.facebook.foreignId' : 'ascending'
-      'foreignAuth.google.foreignId'   : 'ascending'
-      'foreignAuth.linkedin.foreignId' : 'ascending'
-      'foreignAuth.twitter.foreignId'  : 'ascending'
 
     sharedEvents    :
       # do not share any events
@@ -170,22 +165,6 @@ module.exports = class JUser extends jraphical.Module
         type        : Object
         default     : -> []
 
-      foreignAuth            :
-        gitlab               : Object
-        github               :
-          foreignId          : String
-          username           : String
-          token              : String
-          firstName          : String
-          lastName           : String
-          email              : String
-          scope              : String
-        facebook             :
-          foreignId          : String
-          username           : String
-          token              : String
-        linkedin             :
-          foreignId          : String
     relationships       :
       ownAccount        :
         targetType      : JAccount
@@ -238,7 +217,6 @@ module.exports = class JUser extends jraphical.Module
         sshKeys             : []
         username            : username
         password            : createId()
-        foreignAuth         : {}
         onlineStatus        : 'offline'
         registeredAt        : new Date 0
         lastLoginDate       : new Date 0
@@ -876,14 +854,8 @@ module.exports = class JUser extends jraphical.Module
           next()
 
       (next) ->
-        # updating user data after login
-        userUpdateData = { lastLoginDate : new Date }
 
         if session.foreignAuth
-          { foreignAuth } = user
-          foreignAuth   or= {}
-          foreignAuth     = extend foreignAuth, session.foreignAuth
-          userUpdateData.foreignAuth = foreignAuth
 
         userUpdateOptions =
           $set        : userUpdateData
@@ -898,14 +870,8 @@ module.exports = class JUser extends jraphical.Module
           # p.s. we could do that in workers
           account.updateCounts()
 
-          if foreignAuth
-            providers = {}
-            Object.keys(foreignAuth).forEach (provider) ->
-              providers[provider] = yes
-
-            Tracker.identify user.username, { foreignAuth: providers }
-
           JLog.log { type: 'login', username , success: yes }
+
           next()
 
       (next) ->
@@ -1039,7 +1005,7 @@ module.exports = class JUser extends jraphical.Module
   @createUser = (userInfo, callback) ->
 
     { username, email, password, passwordStatus,
-      firstName, lastName, foreignAuth, silence, emailFrequency } = userInfo
+      firstName, lastName, silence, emailFrequency } = userInfo
 
     if typeof username isnt 'string'
       return callback new KodingError 'Username must be a string!'
@@ -1089,8 +1055,6 @@ module.exports = class JUser extends jraphical.Module
         emailFrequency   : emailFrequency
       }
 
-      user.foreignAuth = foreignAuth  if foreignAuth
-
       user.save (err) ->
 
         if err
@@ -1118,22 +1082,13 @@ module.exports = class JUser extends jraphical.Module
             else callback null, user, account
 
 
-  @fetchUserByProvider = (provider, session, callback) ->
-
-    { foreignAuth } = session
-    unless foreignAuth?[provider]?.foreignId
-      return callback new KodingError "No foreignAuth:#{provider} info in session"
-
-    query                                      = {}
-    query["foreignAuth.#{provider}.foreignId"] = foreignAuth[provider].foreignId
-
-    JUser.one query, callback
-
-
   @authenticateWithOauth = secure (client, resp, callback) ->
 
+    unless client
+      return callback new KodingError 'Couldn\'t restore your session!'
+
     { isUserLoggedIn, provider } = resp
-    { sessionToken }             = client
+    { sessionToken } = client
 
     JSession.one { clientId: sessionToken }, (err, session) =>
       return callback new KodingError err  if err
@@ -1269,8 +1224,7 @@ module.exports = class JUser extends jraphical.Module
       email
       recaptcha
       disableCaptcha
-      userFormData
-      foreignAuthType } = options
+      userFormData } = options
 
     queue = [
 
@@ -1278,7 +1232,7 @@ module.exports = class JUser extends jraphical.Module
         # verifying recaptcha if enabled
         return next()  if disableCaptcha or not KONFIG.recaptcha.enabled
 
-        JUser.verifyRecaptcha recaptcha, { foreignAuthType, slug }, next
+        JUser.verifyRecaptcha recaptcha, { slug }, next
 
       (next) ->
         JUser.validateAll userFormData, next
@@ -1446,7 +1400,7 @@ module.exports = class JUser extends jraphical.Module
 
   validateConvert = (options, callback) ->
 
-    { client, userFormData, foreignAuthType, skipAllowedDomainCheck } = options
+    { client, userFormData, skipAllowedDomainCheck } = options
     { slug, email, invitationToken, recaptcha, disableCaptcha } = userFormData
 
     invitation = null
@@ -1454,7 +1408,7 @@ module.exports = class JUser extends jraphical.Module
     queue = [
 
       (next) ->
-        params = { slug, email, recaptcha, disableCaptcha, userFormData, foreignAuthType }
+        params = { slug, email, recaptcha, disableCaptcha, userFormData }
         verifyUser params, next
 
       (next) ->
@@ -1568,7 +1522,6 @@ module.exports = class JUser extends jraphical.Module
     error            = null
     newToken         = null
     invitation       = null
-    foreignAuthType  = null
     subscription     = null
 
     queue = [
@@ -1591,7 +1544,7 @@ module.exports = class JUser extends jraphical.Module
           next()
 
       (next) ->
-        options = { client, userFormData, foreignAuthType, skipAllowedDomainCheck }
+        options = { client, userFormData, skipAllowedDomainCheck }
         validateConvert options, (err, data) ->
           return next err  if err
           { invitation } = data
@@ -1993,55 +1946,12 @@ module.exports = class JUser extends jraphical.Module
 
   unlinkOAuths: (callback) ->
 
-    @update { $unset: { foreignAuth:1 , foreignAuthType:1 } }, (err) =>
+    @update { $unset: { foreignAuth:1 } }, (err) =>
       return callback err  if err
 
       @fetchOwnAccount (err, account) ->
         return callback err  if err
         account.unstoreAll callback
-
-
-  @persistOauthInfo: (username, clientId, callback) ->
-
-    JSession.fetchOAuthInfo clientId, (err, foreignAuthInfo) =>
-      return callback err   if err
-      return callback null  unless foreignAuthInfo
-      return callback null  unless foreignAuthInfo.session
-
-      @saveOauthToUser foreignAuthInfo, username, (err) =>
-        return callback err  if err
-
-        do (foreignAuth = {}) ->
-          { foreignAuthType } = foreignAuthInfo
-          foreignAuth[foreignAuthType] = yes
-          Tracker.identify username, { foreignAuth }
-
-        JSession.clearOauthInfo foreignAuthInfo.session, (err) =>
-          return callback err  if err
-
-          @copyPublicOauthToAccount username, foreignAuthInfo, (err, resp = {}) ->
-            return callback err  if err
-            { session: { returnUrl } } = foreignAuthInfo
-            resp.returnUrl = returnUrl  if returnUrl
-            return callback null, resp
-
-
-  @saveOauthToUser: ({ foreignAuth, foreignAuthType }, username, callback) ->
-
-    query = {}
-    query["foreignAuth.#{foreignAuthType}"] = foreignAuth[foreignAuthType]
-
-    @update { username }, { $set: query }, callback
-
-
-  @copyPublicOauthToAccount: (username, { foreignAuth, foreignAuthType }, callback) ->
-
-    JAccount.one { 'profile.nickname' : username }, (err, account) ->
-      return callback err  if err
-
-      name    = "ext|profile|#{foreignAuthType}"
-      content = foreignAuth[foreignAuthType].profile
-      account._store { name, content }, callback
 
 
   @setSSHKeys: secure (client, sshKeys, callback) ->
