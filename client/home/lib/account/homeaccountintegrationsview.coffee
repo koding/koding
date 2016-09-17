@@ -67,9 +67,6 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
     me.unlinkOauth 'gitlab', (err) =>
       return showError err  if err
 
-      me.unstore 'ext|profile|gitlab', (err, storage) ->
-        return kd.warn err  if err
-
       new kd.NotificationView {
         title: 'Your GitLab integration is now disabled.'
       }

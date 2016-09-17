@@ -20,20 +20,25 @@ module.exports = class OAuth extends bongo.Base
 
     JGroup = require './group'
     JGroup.one { slug }, (err, group) ->
+
       if not err and group and group.config?.gitlab?.enabled
+
         group.fetchDataAt 'gitlab', (err, data) ->
           return callback err  if err or not data
+
           callback null, {
             url: data.url
             applicationId: group.config.gitlab.applicationId
           }
+
       else
+
         callback null
 
 
-  getUrlFor = (options, urlOptions, callback) ->
+  getUrlFor = (client, urlOptions, callback) ->
 
-    { client, provider, redirectUri } = options
+    { provider, redirectUri } = urlOptions
 
     ({
 
