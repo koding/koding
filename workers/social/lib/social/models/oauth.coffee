@@ -120,14 +120,12 @@ module.exports = class OAuth extends bongo.Base
   @getUrl = secure (client, urlOptions, callback) ->
 
     { provider } = urlOptions
+    { context: { group } } = client
 
-    if redirectUri = KONFIG[provider].redirectUri or KONFIG[provider].redirect_uri
-      redirectUri  = @prependGroupName redirectUri, client.context.group
+    urlOptions.redirectUri = \
+      "http://#{group}.#{KONFIG.hostname}/-/oauth/#{provider}/callback"
 
-    if provider is 'twitter'
-      @saveTokensAndReturnUrl client, 'twitter', callback
-    else
-      getUrlFor { client, provider, redirectUri }, urlOptions, callback
+    getUrlFor client, urlOptions, callback
 
 
   @prependGroupName = (url, groupName) ->
