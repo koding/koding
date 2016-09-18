@@ -34,7 +34,7 @@ module.exports = class ProviderSelectionView extends JView
       if provider in enabledProviders
         extraClass = ''
         label      = ''
-        
+
         if provider in betaProviders
           beta       = 'beta'
           betaLabel  = 'BETA'
