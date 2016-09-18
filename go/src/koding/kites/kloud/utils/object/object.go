@@ -128,13 +128,13 @@ func (b *Builder) buildMapObject(v interface{}, obj Object, ignored ...string) {
 		vv := m.MapIndex(vkey).Interface()
 
 		if !b.Recursive {
-			b.set(obj, key, vv)
+			b.set(obj, key, vv, ignored...)
 			continue
 		}
 
 		child := flatten(vv)
 		if child == nil {
-			b.set(obj, key, vv)
+			b.set(obj, key, vv, ignored...)
 			continue
 		}
 
@@ -154,13 +154,13 @@ func (b *Builder) buildStruct(v interface{}, obj Object, ignored ...string) {
 		}
 
 		if !b.Recursive {
-			b.set(obj, key, field.Value())
+			b.set(obj, key, field.Value(), ignored...)
 			continue
 		}
 
 		child := flatten(field.Value())
 		if child == nil {
-			b.set(obj, key, field.Value())
+			b.set(obj, key, field.Value(), ignored...)
 			continue
 		}
 
@@ -168,10 +168,17 @@ func (b *Builder) buildStruct(v interface{}, obj Object, ignored ...string) {
 	}
 }
 
-func (b *Builder) set(obj Object, key string, value interface{}) {
+func (b *Builder) set(obj Object, key string, value interface{}, ignored ...string) {
 	if b.Prefix != "" {
 		key = b.Prefix + b.Sep + key
 	}
+
+	for _, prefix := range ignored {
+		if key == prefix {
+			return
+		}
+	}
+
 	// Do not overwrite existing keys.
 	if _, ok := obj[key]; !ok {
 		obj[key] = value
