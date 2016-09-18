@@ -29,6 +29,5 @@ module.exports =
 
     async.series queue
 
-
   after: (browser) ->
     browser.end()
