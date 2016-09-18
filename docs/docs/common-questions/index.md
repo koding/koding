@@ -65,7 +65,7 @@ Please check the Stack setup guide at [Create a stack][135]
 2. Click on **Stacks** from left side panel, click the **Remove From Side Bar** on the stack you want to remove  
 ![remove-from-side-bar.png][4]
 
-> **ALERT:** If you have only one stack you will not be able to delete it. You need to have at least two to be able to delete one of them.
+> **ALERT:** If you have only one stack you will not be able to delete it. You need to have at least two to be able to delete one of them. 
 
 ### <a name="delete-stack-template"></a> How can I delete a stack template file?
 
