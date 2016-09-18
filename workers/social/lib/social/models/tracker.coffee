@@ -113,8 +113,21 @@ module.exports = class Tracker extends bongo.Base
     event.properties.options ?= {}
     event.properties.options = _.assign event.properties.options, goals.getProps event.subject
 
-    require('./socialapi/requests').publishMailEvent event, (err) ->
-      callback err # do not cause trailing parameters
+    sendEvent = (e) ->
+      require('./socialapi/requests').publishMailEvent e, (err) ->
+        callback err # do not cause trailing parameters
+
+    if goals.hasProps event.subject
+      JUser = require './user'
+      JUser.one { username }, (err, user) ->
+
+        transaction_id = user?.customData.tid
+        event.context = { hasoffers: { transaction_id}}  if transaction_id
+
+        sendEvent event
+
+    else
+      sendEvent event
 
 
   @page = (userId, name, category, properties) ->
