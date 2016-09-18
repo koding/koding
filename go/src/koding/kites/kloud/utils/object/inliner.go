@@ -118,14 +118,14 @@ func (in *Inliner) SetBSON(raw bson.Raw) error {
 }
 
 func (in *Inliner) FirstAddr() interface{} {
-	return addr(in.InlineFirst)
+	return ToAddr(in.InlineFirst)
 }
 
 func (in *Inliner) SecondAddr() interface{} {
-	return addr(in.InlineSecond)
+	return ToAddr(in.InlineSecond)
 }
 
-func addr(v interface{}) interface{} {
+func ToAddr(v interface{}) interface{} {
 	switch v := v.(type) {
 	case map[string]interface{}:
 		return &v
