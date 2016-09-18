@@ -5,7 +5,7 @@ import (
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/provider"
-	"koding/kites/kloud/provider/aws"
+	"koding/kites/kloud/provider/oldaws"
 	"time"
 
 	"golang.org/x/net/context"
@@ -20,7 +20,7 @@ func (q *Queue) CheckAWS() {
 		return
 	}
 
-	m := &awsprovider.Machine{
+	m := &oldaws.Machine{
 		BaseMachine: &provider.BaseMachine{
 			Machine: &models.Machine{},
 		},
@@ -50,7 +50,7 @@ func (q *Queue) CheckAWS() {
 	}
 }
 
-func (q *Queue) AttachSession(m *awsprovider.Machine) (*awsprovider.Machine, context.Context, error) {
+func (q *Queue) AttachSession(m *oldaws.Machine) (*oldaws.Machine, context.Context, error) {
 	req := &kite.Request{
 		Method: "internal",
 	}
@@ -65,10 +65,10 @@ func (q *Queue) AttachSession(m *awsprovider.Machine) (*awsprovider.Machine, con
 		return nil, nil, err
 	}
 
-	return builtM.(*awsprovider.Machine), ctx, nil
+	return builtM.(*oldaws.Machine), ctx, nil
 }
 
-func (q *Queue) CheckAWSUsage(m *awsprovider.Machine) error {
+func (q *Queue) CheckAWSUsage(m *oldaws.Machine) error {
 	m, ctx, err := q.AttachSession(m)
 	if err != nil {
 		return err

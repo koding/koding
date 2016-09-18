@@ -25,7 +25,7 @@ import (
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/provider"
-	awsprovider "koding/kites/kloud/provider/aws"
+	awsprovider "koding/kites/kloud/provider/oldaws"
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stackplan"

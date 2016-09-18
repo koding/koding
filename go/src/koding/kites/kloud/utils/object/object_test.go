@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"koding/kites/kloud/provider/aws"
+	"koding/kites/kloud/provider/oldaws"
 	"koding/kites/kloud/utils/object"
 
 	"gopkg.in/mgo.v2/bson"
@@ -167,7 +167,7 @@ func TestBuilderDecodeAwsMeta(t *testing.T) {
 		"vpc":        "vpc-f0e09594",
 		"ami":        "ami-cf35f3a4",
 	}
-	var meta = &awsprovider.Cred{
+	var meta = &oldaws.Cred{
 		CidrBlock: "10.0.0.0/16",
 		IGW:       "igw-aa43bdce",
 		RTB:       "rtb-3e19315a",
@@ -184,7 +184,7 @@ func TestBuilderDecodeAwsMeta(t *testing.T) {
 		Recursive: true,
 	}
 
-	decoded := &awsprovider.Cred{}
+	decoded := &oldaws.Cred{}
 	if err := b.Decode(RootModule, decoded); err != nil {
 		t.Fatal(err)
 	}
