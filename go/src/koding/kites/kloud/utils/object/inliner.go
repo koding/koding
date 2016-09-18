@@ -24,6 +24,13 @@ type Inliner struct {
 	InlineSecond `bson:",inline" yaml:",inline"`
 }
 
+func Inline(v1, v2 interface{}) *Inliner {
+	return &Inliner{
+		InlineFirst:  v1,
+		InlineSecond: v2,
+	}
+}
+
 var (
 	_ json.Marshaler   = (*Inliner)(nil)
 	_ json.Unmarshaler = (*Inliner)(nil)
