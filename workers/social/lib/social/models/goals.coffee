@@ -16,6 +16,9 @@ module.exports =
 
   getProps : (event) ->
 
-    return {}  unless goal_id = @getGoalId event
+    return {}  unless goal_id = @hasProps event
 
     return { goal_id }
+
+  hasProps : (event) -> @getGoalId(event) ? no
+
