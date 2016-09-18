@@ -9,7 +9,7 @@ _ = require 'lodash'
 KONFIG        = require 'koding-config-manager'
 { socialapi } = KONFIG
 exchangeName  = "#{socialapi.eventExchangeName}:0"
-exchangeOpts  = { autoDelete: no, durable:yes, type :'fanout', confirm: true }
+exchangeOpts  = { autoDelete: no, durable: yes, type: 'fanout', confirm: true }
 
 try
   Analytics = require('analytics-node')
