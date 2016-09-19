@@ -195,7 +195,7 @@ func TestInvoiceCreatedHandlerStayInTheSamePlan(t *testing.T) {
 					generateDeletedMemberAndAddToGroup(group.Id, 1)
 
 					// create test plan
-					id := fmt.Sprintf("p_%s", bson.NewObjectId().Hex())
+					id := "p_" + bson.NewObjectId().Hex()
 					pp := &stripe.PlanParams{
 						Amount:        Plans[UpTo10Users].Amount,
 						Interval:      plan.Month,
@@ -278,7 +278,7 @@ func TestInvoiceCreatedHandlerCustomPlan(t *testing.T) {
 				tests.ResultedWithNoErrorCheck(group, err)
 
 				// create custom test plan
-				id := fmt.Sprintf("p_c_%s", bson.NewObjectId().Hex())
+				id := "p_c_" + bson.NewObjectId().Hex()
 				pp := &stripe.PlanParams{
 					Amount:        Plans[UpTo10Users].Amount,
 					Interval:      plan.Month,
@@ -419,7 +419,7 @@ func TestInvoiceCreatedHandlerWithCouponAndAccountBalance(t *testing.T) {
 						generateDeletedMemberAndAddToGroup(group.Id, 1)
 
 						// create test plan
-						id := fmt.Sprintf("p_%s", bson.NewObjectId().Hex())
+						id := "p_" + bson.NewObjectId().Hex()
 						pp := &stripe.PlanParams{
 							Amount:        Plans[UpTo10Users].Amount,
 							Interval:      plan.Month,
@@ -556,7 +556,7 @@ func TestInvoiceCreatedHandlerUpgradePlan(t *testing.T) {
 					generateDeletedMemberAndAddToGroup(group.Id, 1)
 
 					// create test plan
-					id := fmt.Sprintf("p_%s", bson.NewObjectId().Hex())
+					id := "p_" + bson.NewObjectId().Hex()
 					pp := &stripe.PlanParams{
 						Amount:        Plans[UpTo10Users].Amount,
 						Interval:      plan.Month,
@@ -705,7 +705,7 @@ func TestInvoiceCreatedHandlerDowngradePlan(t *testing.T) {
 					generateDeletedMemberAndAddToGroup(group.Id, 1)
 
 					// create test plan
-					id := fmt.Sprintf("p_%s", bson.NewObjectId().Hex())
+					id := "p_" + bson.NewObjectId().Hex()
 					pp := &stripe.PlanParams{
 						Amount:        Plans[UpTo50Users].Amount,
 						Interval:      plan.Month,
