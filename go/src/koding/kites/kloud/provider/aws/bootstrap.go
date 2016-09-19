@@ -56,7 +56,7 @@ func (s *Stack) bootstrap(arg *stack.BootstrapRequest) (interface{}, error) {
 			return nil, fmt.Errorf("Bootstrap is only supported for 'aws' provider. Got: '%s'", cred.Provider)
 		}
 
-		meta := cred.Meta.(*AwsMeta)
+		meta := cred.Meta.(*Cred)
 
 		awsAccountID, err := meta.AccountID()
 		if err != nil {

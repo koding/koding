@@ -7,24 +7,21 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/stack"
 
 	"github.com/koding/kite"
 	"golang.org/x/net/context"
 )
 
-func toObject(s machinestate.State) map[string]string {
-	return map[string]string{
-		"State": s.String(),
-	}
-}
-
-func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
+func (m *Machine) Info(ctx context.Context) (*stack.InfoResponse, error) {
 	dbState := m.State()
 	resultState := dbState
 	reason := "not known yet"
 
 	if dbState.InProgress() {
-		return toObject(dbState), nil
+		return &stack.InfoResponse{
+			State: dbState,
+		}, nil
 	}
 
 	defer func() {
@@ -44,7 +41,9 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 		reason = "Klient is active and healthy."
 		resultState = machinestate.Running
 
-		return toObject(resultState), nil
+		return &stack.InfoResponse{
+			State: resultState,
+		}, nil
 	case err == klient.ErrDialingFailed || err == kite.ErrNoKitesAvailable:
 		m.Log.Debug("Klient is not registered to Kontrol. Err: %s", err)
 
@@ -54,7 +53,9 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 		m.Log.Debug("Info result: Returning db state '%s' because the klient"+
 			" is not available. Username: %s", dbState, m.User.Name)
 
-		return toObject(resultState), nil
+		return &stack.InfoResponse{
+			State: resultState,
+		}, nil
 	}
 
 	reason = "Klient is not reachable"
@@ -75,8 +76,9 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 		resultState = machinestate.Terminated
 	}
 
-	return toObject(resultState), nil
-
+	return &stack.InfoResponse{
+		State: resultState,
+	}, nil
 }
 
 func (m *Machine) fixInconsistentState(actual, db machinestate.State, reason string) {

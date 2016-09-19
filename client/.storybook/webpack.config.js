@@ -3,20 +3,22 @@ var path = require('path')
 // polyfill path.parse for node v0.10
 path.parse = require('path-parse')
 
+var _ = require('lodash')
+var ProgressBarPlugin = require('progress-bar-webpack-plugin')
+var WebpackNotifierPlugin = require('webpack-notifier')
+
 var clientConfig = require('../webpack.config')
-var CLIENT_PATH = path.resolve(__dirname, '..')
+var customConfig = _.pick(clientConfig, [
+  'module',
+  'resolve',
+  'stylus'
+])
 
-var isStyleLoader = function(loaderConfig) {
-  if (!Array.isArray(loaderConfig.loaders)) return false
+customConfig = _.assign({}, customConfig, {
+  plugins: [
+    new ProgressBarPlugin({ format: ' client: [:bar] :percent ', width: 1024 }),
+    new WebpackNotifierPlugin({ title: 'Component lab' })
+  ]
+})
 
-  return loaderConfig.loaders.reduce(function(res, loader) {
-    return res || /css/.test(loader)
-  }, false)
-}
-
-module.exports = {
-  module: {
-    loaders: clientConfig.module.loaders.filter(isStyleLoader)
-  }
-}
-
+module.exports = customConfig

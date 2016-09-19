@@ -1,0 +1,6 @@
+@import '~lab/Colors/Colors.stylus'
+
+.expiration
+  margin-bottom             15px
+  padding-bottom            10px
+  border-bottom             1px solid $additional-3-faded

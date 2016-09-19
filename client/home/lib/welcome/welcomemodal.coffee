@@ -13,6 +13,7 @@ module.exports = class WelcomeModal extends kd.ModalView
     options.cssClass = "HomeWelcomeModal#{if landedOnWelcome then ' hidden' else ''}"
     options.width    = 710
     options.overlay  = yes
+    options.overlayOptions = { cssClass: if landedOnWelcome then 'hidden' else '' }
 
     super options, data
 

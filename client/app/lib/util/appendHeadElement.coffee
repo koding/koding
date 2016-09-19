@@ -1,6 +1,6 @@
-kd = require 'kd'
-
 module.exports = ({ type, url }, callback) ->
+
+  kd = require 'kd'
 
   switch type
     when 'style'

@@ -77,7 +77,6 @@ Configuration = (options = {}) ->
 
   options.disabledWorkers = [
     "algoliaconnector"
-    "paymentwebhook"
     "gatekeeper"
     "vmwatcher"
   ]
