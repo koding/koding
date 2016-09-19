@@ -9,7 +9,7 @@ resetPasswordSelector = '.TeamsModal-button--green'
 
 module.exports =
 
-  # Team Creation
+  # # Team Creation
   createTeamWithInvalidEmail: (browser) ->
     teamsHelpers.createTeam(browser, user, '', 'InvalidEmail')
 
@@ -56,10 +56,10 @@ module.exports =
 
   seePreviouslyVisitedTeams: (browser) ->
     url = helpers.getUrl()
-    teamsHelpers.loginTeam(browser, user, no)
-    teamsHelpers.logoutTeamfromUrl browser, (result) ->
+    teamsHelpers.loginTeam browser, user, no, '', ->
+      teamsHelpers.logoutTeamfromUrl browser, (result) ->
       browser.url url
-      browser.waitForElementVisible '.content-page.Team section a.previous-team', 20000
+      browser.waitForElementVisible '.content-page.Team section a.previous-team', 40000
 
 
   checkAllLinkInTheFooter: (browser) ->
