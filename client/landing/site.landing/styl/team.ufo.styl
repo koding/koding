@@ -40,9 +40,7 @@
     &.TeamsModal--recover
       padding-top           5px
 
-    &.TeamsModal--domain:after
-    &.TeamsModal--findTeam:after
-    &.TeamsModal--recover:after
+    &:after
       content               ''
       r-sprite              teams, alien
       abs()
@@ -101,9 +99,19 @@
       line-height           21px
       margin-bottom         25px
 
+      .icon
+        margin              0 0 0 -30px !important
+
     .secondary-link
       font-size             14px
       line-height           17px
+
+    .gitlab
+      div.or
+        margin              -5px 16px
+
+      .TeamsModal-button
+        margin              25px auto !important
 
     &.TeamsModal--domain
       .login-input-view
