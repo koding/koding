@@ -70,16 +70,18 @@ module.exports =
     url = helpers.getUrl(yes)
     browser.maximizeWindow()
     browser.url url
-    browser
-      .waitForElementVisible linkSelector + ' p:nth-of-type(1)', 20000
-      .click linkSelector + ' p:nth-of-type(1) a'
-      .waitForElementVisible '.TeamsModal.TeamsModal--login', 20000
-      .click linkSelector + ':nth-of-type(2) a'
-      .waitForElementVisible '.content-page.Team .TeamsModal--create', 20000
-      .url url
-      .click linkSelector + ':nth-of-type(3) a'
-      .waitForElementVisible resetPasswordSelector, 20000
-      .assert.containsText resetPasswordSelector, 'RECOVER PASSWORD'
+    browser.element 'css selector', linkSelector + ' p:nth-of-type(1)', (result) ->
+      if result.status is 0
+        browser
+          .waitForElementVisible linkSelector + ' p:nth-of-type(1)', 20000
+          .click linkSelector + ' p:nth-of-type(1) a'
+          .waitForElementVisible '.TeamsModal.TeamsModal--login', 20000
+          .click linkSelector + ':nth-of-type(2) a'
+          .waitForElementVisible '.content-page.Team .TeamsModal--create', 20000
+          .url url
+          .click linkSelector + ':nth-of-type(3) a'
+          .waitForElementVisible resetPasswordSelector, 20000
+          .assert.containsText resetPasswordSelector, 'RECOVER PASSWORD'
 
 
   after: (browser) ->
