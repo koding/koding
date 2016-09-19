@@ -23,4 +23,40 @@ type Group struct {
 	// to this group, participants will be automatically added to regarding
 	// channels
 	DefaultChannels []string `bson:"defaultChannels,omitempty" json:"defaultChannels"`
+	Payment         Payment  `bson:"payment" json:"payment"`
+}
+
+type Payment struct {
+	Subscription Subscription
+	Customer     Customer
+}
+
+type Subscription struct {
+	// Allowed values are "trialing", "active", "past_due", "canceled", "unpaid".
+	Status string `bson:"status" json:"status"`
+	ID     string `bson:"id" json:"id"`
+}
+
+type Customer struct {
+	ID string `bson:"id" json:"id"`
+}
+
+// DeletedMember holds information about deleted members from a group.
+type DeletedMember struct {
+	Id        bson.ObjectId `bson:"_id" json:"-"`
+	AccountID bson.ObjectId `bson:"accountId" json:"accountId"`
+	GroupID   bson.ObjectId `bson:"groupId" json:"groupId"`
+	// these will be read only during query/modify time, otherwise do not access
+	// SubscriptionID string
+	// UpdatedAt time.Time
+}
+
+// IsSubActive checks if subscription is in valid state for operation
+func (g *Group) IsSubActive() bool {
+	switch g.Payment.Subscription.Status {
+	case "active", "trialing":
+		return true
+	default:
+		return false
+	}
 }

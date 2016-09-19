@@ -146,26 +146,5 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
         callback []
 
 
-  showAddView: ->
-
-    return super  unless isKoding()
-
-    @headerAddNewButton.showLoader()
-
-    kd.singletons.computeController.fetchUserPlan (plan) =>
-
-      @headerAddNewButton.hideLoader()
-
-      if plan is 'free'
-
-        new ComputeErrorUsageModal
-          plan    : 'free'
-          message : 'VM share feature is only available for paid accounts.'
-
-        return @emit 'ModalDestroyRequested'
-
-      super
-
-
   # override parent method
   createAddNewViewButtons: ->

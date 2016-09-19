@@ -119,73 +119,8 @@ module.exports = class ComputeHelpers
 
     return  if cc._inprogress
 
-    { provider } = options
-    if provider is 'managed'
-      return callback new AddManagedMachineModal
-
-    cc._inprogress = yes
-
-    provider = 'koding'  unless provider in [ 'koding', 'softlayer' ]
-
-    cc.fetchPlanCombo 'koding', (err, info) ->
-
-      if showError err
-        return cc._inprogress = no
-
-      { plan, plans, usage } = info
-      { snapshotId, region } = options
-
-      limits  = plans[plan]
-      options = { plan, limits, usage, snapshotId, region }
-
-      if limits.total > 1 and provider isnt 'softlayer'
-
-        new ComputePlansModalPaid options
-        cc._inprogress = no
-
-        callback()
-        return
-
-      query        =
-        provider   : { $in: [ 'koding', 'softlayer' ] }
-        credential : nick()
-
-
-      cc.queryMachines query, (err, machines) ->
-
-        kd.warn err  if err?
-
-        machines ?= []
-
-        if err? or machines.length > 0 and provider isnt 'softlayer'
-
-          new ComputePlansModalFree options
-          cc._inprogress = no
-
-          callback()
-
-        else
-
-          stack   = cc.stacks.first._id
-          storage = plans[plan]?.storage or 3
-
-          cc.create {
-            provider : provider
-            stack, storage
-          }, (err, machine) ->
-
-            cc._inprogress = no
-
-            callback yes
-
-            return  if showError err
-            return  unless redirectAfterCreation
-
-            route = if location.pathname is '/IDE'
-            then "/IDE/#{machine.slug}"
-            else '/IDE'
-
-            kd.singletons.router.handleRoute route
+    if options.provider is 'managed'
+      callback new AddManagedMachineModal
 
 
   @reviveProvisioner = (machine, callback) ->

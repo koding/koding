@@ -168,8 +168,8 @@ createGroupKallback = (client, req, res, body) ->
       domains
       # username or email of the user, can be already registered or a new one for creation
       username
-      # title of team's plan
-      plan
+      # title of team's limit
+      limit
     } = body
 
     token = result.newToken or result.replacementToken
@@ -204,8 +204,8 @@ createGroupKallback = (client, req, res, body) ->
       allowedDomains  : convertToArray domains # clear & convert domains into array
       defaultChannels : []
 
-    if plan
-      createOptions.config = { plan }
+    if limit
+      createOptions.config = { limit }
 
     JGroup.create client, createOptions, owner, afterGroupCreate
 

@@ -135,22 +135,6 @@ module.exports = (KONFIG, options, credentials) ->
       healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
-    paymentwebhook      :
-      group             : "socialapi"
-      ports             :
-        incoming        : KONFIG.paymentwebhook.port
-      supervisord       :
-        stopwaitsecs    : 20
-        command         :
-          run           : "#{GOBIN}/paymentwebhook -kite-init=true"
-          watch         : "make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi paymentwebhookdev"
-      healthCheckURL    : "http://localhost:#{KONFIG.paymentwebhook.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.paymentwebhook.port}/version"
-      nginx             :
-        locations       : [
-          { location    : "= /-/payments/stripe/webhook" },
-        ]
-
     vmwatcher           :
       group             : "environment"
       instances         : 1
