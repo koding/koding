@@ -19,32 +19,26 @@ module.exports = class TeamDomainTab extends kd.FormView
       click        : => @input.setFocus()
 
     @inputView.addSubView @input = new kd.InputView
-      placeholder  : 'your-team'
-      attributes   : 10
+      placeholder  : 'Your team name...'
       name         : 'slug'
 
     @input.on 'ValidationFeedbackCleared', =>
       @inputView.unsetClass 'validation-error validation-passed'
 
-    # Listen text change event in real time
-    @input.on [ 'input', 'viewAppended' ], => utils.repositionSuffix @input, @fakeView
-
     @inputView.addSubView @suffix = new kd.View
       tagName      : 'span'
       partial      : ".#{kd.config.domains.main}"
 
-    @inputView.addSubView @fakeView = new kd.CustomHTMLView
-      tagName      : 'div'
-      cssClass     : 'fake-view'
-
     @backLink = new kd.CustomHTMLView
-      tagName      : 'span'
-      cssClass     : 'TeamsModal-button-link back'
-      partial      : '<i></i> <a href=\"/Teams/Create\">Back</a>'
+      tagName    : 'a'
+      cssClass   : 'secondary-link'
+      partial    : 'BACK'
+      attributes : { href : '/Teams/Create' }
+
 
     @button = new kd.ButtonView
       title        : 'NEXT'
-      style        : 'TeamsModal-button TeamsModal-button--green'
+      style        : 'TeamsModal-button'
       attributes   : { testpath  : 'domain-button' }
       type         : 'submit'
 
@@ -54,7 +48,6 @@ module.exports = class TeamDomainTab extends kd.FormView
     # <p class='dim'>Your team url can only contain lowercase letters numbers and dashes.</p>
     """
     {{> @inputView}}
-    <div class='TeamsModal-button-separator'></div>
     {{> @button}}
     {{> @backLink}}
     """
