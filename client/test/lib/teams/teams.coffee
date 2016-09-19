@@ -42,18 +42,27 @@ module.exports =
     teamsHelpers.createTeam(browser, user, inviteLink)
     teamsHelpers.createTeam(browser, user, createLink, 'AlreadyRegisteredUserName')
 
+  
   signInWithNotAllowedEmail: (browser) ->
-    teamsHelpers.loginTeam(browser, user, yes , 'NotAllowedEmail')
+    teamsHelpers.loginTeam browser, user, yes , 'NotAllowedEmail', ->
+      browser.pause 1
 
+  
   signInWithInvalidUsername: (browser) ->
-    teamsHelpers.loginTeam(browser, user, yes, 'InvalidUserName')
+    teamsHelpers.loginTeam browser, user, yes, 'InvalidUserName', ->
+      browser.pause 1
 
+  
   signInWithInvalidPassword: (browser) ->
-    teamsHelpers.loginTeam(browser, user, yes, 'InvalidPassword')
+    teamsHelpers.loginTeam browser, user, yes, 'InvalidPassword', ->
+      browser.pause 1
 
+  
   loginTeam: (browser) ->
-    teamsHelpers.loginTeam(browser, user, no)
+    teamsHelpers.loginTeam browser, user, no, ->
+      browser.pause 1
 
+  
   seePreviouslyVisitedTeams: (browser) ->
     url = helpers.getUrl()
     teamsHelpers.loginTeam browser, user, no, '', ->
