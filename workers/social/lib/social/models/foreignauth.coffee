@@ -46,9 +46,12 @@ module.exports = class JForeignAuth extends jraphical.Module
     @one { provider, foreignId, group }, callback
 
 
-  @persistOauthInfo = (username, clientId, callback) ->
+  @persistOauthInfo = (options, callback) ->
 
-    JSession.fetchOAuthInfo clientId, (err, foreignAuthInfo) =>
+    { sessionToken, group, username } = options
+
+    JSession = require './session'
+    JSession.fetchOAuthInfo sessionToken, (err, foreignAuthInfo) =>
       return callback err   if err
       return callback null  unless foreignAuthInfo
       return callback null  unless foreignAuthInfo.session
