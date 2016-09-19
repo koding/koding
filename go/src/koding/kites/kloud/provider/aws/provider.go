@@ -1,21 +1,52 @@
-package awsprovider
+package oldaws
 
 import (
 	"fmt"
 
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/amazon"
+	"koding/kites/kloud/basestack"
 	"koding/kites/kloud/provider"
+	"koding/kites/kloud/stack"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"golang.org/x/net/context"
 )
 
+func init() {
+	p := &basestack.Provider{
+		Name:          "aws",
+		ResourceName:  "instance",
+		NewMachine:    nil,
+		NewStack:      nil,
+		NewCredential: func() interface{} { return &Credential{} },
+		NewBootstrap:  func() interface{} { return &Bootstrap{} },
+		NewMetadata:   func() interface{} { return &Metadata{} },
+	}
+
+	basestack.Register(p)
+
+	provider.All["aws"] = func(bp *provider.BaseProvider) stack.Provider {
+		return &Provider{
+			BaseProvider: bp,
+		}
+	}
+}
+
+type Credential struct {
+}
+
+type Bootstrap struct {
+}
+
+type Metadata struct {
+}
+
 type Provider struct {
 	*provider.BaseProvider
 }
 
-func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) {
+func (p *Provider) Machine(ctx context.Context, id string) (stack.Machine, error) {
 	bm, err := p.BaseMachine(ctx, id)
 	if err != nil {
 		return nil, err
@@ -32,7 +63,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	}
 
 	// TODO(rjeczalik): move decoding provider-specific credential to BaseMachine.
-	var cred AwsMeta
+	var cred Cred
 	if err := p.FetchCredData(bm, &cred); err != nil {
 		return nil, err
 	}

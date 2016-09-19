@@ -6,14 +6,14 @@ import (
 	"github.com/koding/logging"
 
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/provider/aws"
+	"koding/kites/kloud/provider/oldaws"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
 type Queue struct {
-	AwsProvider *awsprovider.Provider
+	AwsProvider *oldaws.Provider
 	Log         logging.Logger
 }
 
@@ -26,7 +26,7 @@ func (q *Queue) RunCheckers(interval time.Duration) {
 		q.Log.Warning("not running cleaner queue for aws koding provider")
 	}
 
-	for _ = range time.Tick(interval) {
+	for range time.Tick(interval) {
 		// do not block the next tick
 		go q.CheckAWS()
 	}

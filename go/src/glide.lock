@@ -608,7 +608,7 @@ imports:
   subpackages:
   - proto
 - name: github.com/koding/vagrantutil
-  version: 72e6057782dc66468205cb161299ffae2215338e
+  version: 8c62faaf2409b722ec49275cee16ea85ca2fb6d5
 - name: github.com/kolo/xmlrpc
   version: 0826b98aaa29c0766956cb40d45cf7482a597671
 - name: github.com/kr/binarydist
