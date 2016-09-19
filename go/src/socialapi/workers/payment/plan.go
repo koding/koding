@@ -19,6 +19,9 @@ import (
 // over, she’ll never be billed at all.
 
 const (
+	planPrefix       = "p_"
+	customPlanPrefix = "p_c_"
+
 	FreeForever = "p_free_forever"
 	UpTo10Users = "p_up_to_10"
 	UpTo50Users = "p_up_to_50"
@@ -57,7 +60,7 @@ var Plans = map[string]*stripe.PlanParams{
 		TrialPeriod:   7,
 		Name:          "Up to 50 users",
 		Currency:      currency.USD,
-		ID:            "p_up_to_50",
+		ID:            UpTo50Users,
 		Statement:     "UP TO 50 USERS",
 	},
 
@@ -68,7 +71,7 @@ var Plans = map[string]*stripe.PlanParams{
 		TrialPeriod:   7,
 		Name:          "Over 50 users",
 		Currency:      currency.USD,
-		ID:            "p_over_50",
+		ID:            Over50Users,
 		Statement:     "OVER 50 USERS",
 	},
 }

@@ -44,7 +44,7 @@ func (i *Info) SingleMachine(id string, k *kite.Client) (string, error) {
 		return "", err
 	}
 
-	return result.State, nil
+	return result.State.String(), nil
 }
 
 func (i *Info) Action(args []string) error {

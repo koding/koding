@@ -47,6 +47,7 @@ DesktopNotificationsController = require './desktopnotificationscontroller'
 bowser                         = require 'bowser'
 fetchChatlioKey                = require 'app/util/fetchChatlioKey'
 createStore = require './redux/createStore'
+dispatchInitialActions = require './redux/dispatchInitialActions'
 
 module.exports = class MainController extends KDController
 
@@ -87,6 +88,7 @@ module.exports = class MainController extends KDController
     kd.registerSingleton 'mainController',            this
     kd.registerSingleton 'kontrol',                   new KodingKontrol
     kd.registerSingleton 'appManager',   appManager = new ApplicationManager
+    kd.registerSingleton 'store',                     store = createStore()
     kd.registerSingleton 'notificationController',    new NotificationController
     kd.registerSingleton 'desktopNotifications',      new DesktopNotificationsController
     kd.registerSingleton 'linkController',            new LinkController
@@ -112,7 +114,6 @@ module.exports = class MainController extends KDController
     kd.registerSingleton 'onboarding',                new OnboardingController
     kd.registerSingleton 'machineShareManager',       new MachineShareManager
     kd.registerSingleton 'reactor',                   new KodingFluxReactor
-    kd.registerSingleton 'store',                     createStore()
 
     @registerFluxModules()
 
@@ -130,6 +131,7 @@ module.exports = class MainController extends KDController
 
       @emit 'AppIsReady'
 
+      dispatchInitialActions store
       @prepareSupportShortcuts()
 
     @forwardEvents remote, ['disconnected', 'reconnected']

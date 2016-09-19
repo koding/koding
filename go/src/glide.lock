@@ -13,6 +13,8 @@ imports:
   version: a3ebdb999b831ecb6ab8a226e31b07b2b9061c47
   subpackages:
   - cidr
+- name: github.com/vaughan0/go-ini
+  version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1
 - name: github.com/apparentlymart/go-grafana-api
   version: d49f95c81c580a4e7a15244b9b12dce8f60750f4
 - name: github.com/apparentlymart/go-rundeck-api
@@ -582,11 +584,9 @@ imports:
 - name: github.com/koding/metrics
   version: 9a17123e052386b38746eb19fe9ec6f5bb047c90
 - name: github.com/koding/multiconfig
-  version: adb14a9648f101b3a5ac2b370a7d37c4a4a08b39
+  version: 8163d2b108ed2aa94820f6110f2ded169329c8d0
 - name: github.com/koding/passwd
   version: 68f4dfed95ab896a23ea76ed08fbb2b5a874339e
-- name: github.com/koding/paypal
-  version: 0f12d2c2a1863a6afa6b678afc70e364c8603b6b
 - name: github.com/koding/pubnub
   version: a3b695f8d7b6f32014aba0a929b000bd66a33f30
 - name: github.com/koding/rabbitmq
@@ -596,7 +596,7 @@ imports:
 - name: github.com/koding/runner
   version: 4731344e1a09114928a27d9b34e7d546f334d366
 - name: github.com/koding/service
-  version: c42533d8756bcad688f9cebe92b1b462d8842600
+  version: 885a213394b9328c413f373c7f5400b5a2d06174
 - name: github.com/koding/sshkey
   version: 1394f67258c7dca5203b1dc75c50d0b9f5762cd0
 - name: github.com/koding/terraform-provider-github
@@ -608,7 +608,7 @@ imports:
   subpackages:
   - proto
 - name: github.com/koding/vagrantutil
-  version: 72e6057782dc66468205cb161299ffae2215338e
+  version: 8c62faaf2409b722ec49275cee16ea85ca2fb6d5
 - name: github.com/kolo/xmlrpc
   version: 0826b98aaa29c0766956cb40d45cf7482a597671
 - name: github.com/kr/binarydist

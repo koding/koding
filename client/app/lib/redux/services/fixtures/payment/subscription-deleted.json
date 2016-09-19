@@ -1,0 +1,37 @@
+{
+  "id": "sub_955meUnUjOJdD7",
+  "object": "subscription",
+  "application_fee_percent": null,
+  "cancel_at_period_end": false,
+  "canceled_at": null,
+  "created": 1472261189,
+  "current_period_end": 1472865989,
+  "current_period_start": 1472261189,
+  "customer": "cus_94rAA5D5Xax6uc",
+  "discount": null,
+  "ended_at": null,
+  "livemode": false,
+  "metadata": {
+  },
+  "plan": {
+    "id": "p_up_to_10",
+    "object": "plan",
+    "amount": 4997,
+    "created": 1472196644,
+    "currency": "usd",
+    "interval": "month",
+    "interval_count": 1,
+    "livemode": false,
+    "metadata": {
+    },
+    "name": "Up to 10 users",
+    "statement_descriptor": "UP TO 10 USERS",
+    "trial_period_days": 7
+  },
+  "quantity": 1,
+  "start": 1472261189,
+  "status": "canceled",
+  "tax_percent": null,
+  "trial_end": 1472865989,
+  "trial_start": 1472261189
+}

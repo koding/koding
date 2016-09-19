@@ -7,6 +7,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/api/realtimehelper"
 	"socialapi/workers/email/emailsender"
+	"strings"
 	"time"
 
 	"gopkg.in/mgo.v2"
@@ -236,6 +237,11 @@ func invoiceCreatedHandler(raw []byte) error {
 
 	info, err := GetInfoForGroup(group)
 	if err != nil {
+		return err
+	}
+
+	if strings.HasPrefix(info.Subscription.Plan.ID, customPlanPrefix) {
+		_, err = modelhelper.CalculateAndApplyDeletedMembers(group.Id, invoice.Sub)
 		return err
 	}
 

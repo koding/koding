@@ -1,0 +1,24 @@
+{
+  "id": "pii_u5dg20Gra",
+  "card": {
+    "name": null,
+    "address_line1": "12 Main Street",
+    "address_line2": "Apt 42",
+    "address_city": "Palo Alto",
+    "address_state": "CA",
+    "address_zip": "94301",
+    "address_country": "US",
+    "country": "US",
+    "exp_month": 2,
+    "exp_year": 2017,
+    "last4": "4242",
+    "object": "card",
+    "brand": "Visa",
+    "funding": "credit"
+  },
+  "created": 1472620629,
+  "livemode": true,
+  "type": "card",
+  "object": "token",
+  "used": false
+}
