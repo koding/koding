@@ -32,7 +32,7 @@ type Machine struct {
 	*provider.BaseMachine
 
 	Meta    *Meta              `bson:"-"`
-	Cred    *VagrantMeta       `bson:"-"`
+	Cred    *Cred              `bson:"-"`
 	Vagrant *vagrantapi.Klient `bson:"-"`
 }
 

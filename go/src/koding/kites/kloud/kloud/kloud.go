@@ -19,7 +19,6 @@ import (
 	"koding/kites/common"
 	"koding/kites/keygen"
 	"koding/kites/kloud/api/amazon"
-	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsstorage"
@@ -27,11 +26,9 @@ import (
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/provider"
 	awsprovider "koding/kites/kloud/provider/aws"
-	"koding/kites/kloud/provider/disabled"
-	"koding/kites/kloud/provider/softlayer"
-	"koding/kites/kloud/provider/vagrant"
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/stack"
+	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/stackplan/stackcred"
 	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
@@ -41,6 +38,9 @@ import (
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/logging"
 )
+
+//go:generate go run genimport.go -o import.go
+//go:generate go fmt import.go
 
 // Name holds kite name
 var Name = "kloud"
@@ -81,18 +81,6 @@ type Config struct {
 
 	// Defines the base domain for domain creation
 	HostedZone string `required:"true"`
-
-	// Defines the default AMI Tag to use for koding provider
-	AMITag string
-
-	// Defines the default name tag value to lookup a Block Device Template
-	// for softlayer provider
-	SLTemplateTag string
-
-	// Overrides the default post install URL to userdata binary
-	// for Softlayer instances. By default the binary is built from
-	// scripts/softlayer.
-	SLScriptURL string
 
 	// MaxResults limits the max items fetched per page for each
 	// AWS Describe* API calls.
@@ -166,18 +154,6 @@ func New(conf *Config) (*Kloud, error) {
 		k.Config.Environment = conf.Environment
 	}
 
-	if conf.SLTemplateTag != "" {
-		k.Log.Warning("Default Template tag changed from %s to %s",
-			softlayer.DefaultTemplateTag, conf.SLTemplateTag)
-		softlayer.DefaultTemplateTag = conf.SLTemplateTag
-	}
-
-	if conf.SLScriptURL != "" {
-		k.Log.Warning("Default script URL changed from %s to %s",
-			softlayer.PostInstallScriptUri, conf.SLScriptURL)
-		softlayer.PostInstallScriptUri = conf.SLScriptURL
-	}
-
 	// TODO(rjeczalik): refactor modelhelper methods to not use global DB
 	modelhelper.Initialize(conf.MongoURL)
 
@@ -219,18 +195,13 @@ func New(conf *Config) (*Kloud, error) {
 		Debug:          conf.DebugMode,
 		KloudSecretKey: conf.KloudSecretKey,
 		CredStore:      stackcred.NewStore(storeOpts),
+		TunnelURL:      conf.TunnelURL,
 	}
 
+	// TODO(rjeczalik): refactor queue to work for any provider
 	awsProvider := &awsprovider.Provider{
 		BaseProvider: bp.New("aws"),
 	}
-
-	vagrantProvider := &vagrant.Provider{
-		BaseProvider: bp.New("vagrant"),
-		TunnelURL:    conf.TunnelURL,
-	}
-
-	softlayerProvider := newSoftlayerProvider(sess, conf)
 
 	go runQueue(awsProvider, sess, conf)
 
@@ -257,19 +228,15 @@ func New(conf *Config) (*Kloud, error) {
 	kld.Log = sess.Log
 	kld.SecretKey = conf.KloudSecretKey
 
-	err = kld.AddProvider("aws", awsProvider)
-	if err != nil {
-		return nil, err
-	}
+	for name, fn := range provider.All {
+		p := fn(bp.New(name))
 
-	err = kld.AddProvider("vagrant", vagrantProvider)
-	if err != nil {
-		return nil, err
-	}
+		err = kld.AddProvider(name, p)
+		if err != nil {
+			return nil, err
+		}
 
-	err = kld.AddProvider("softlayer", softlayerProvider)
-	if err != nil {
-		return nil, err
+		stackplan.MetaFuncs[name] = p.Cred
 	}
 
 	var gwSrv *keygen.Server
@@ -437,47 +404,6 @@ func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 	}
 
 	return sess, nil
-}
-
-func newSoftlayerProvider(sess *session.Session, conf *Config) stack.Provider {
-	if sess.DNSClient == nil {
-		sess.Log.Warning(`disabling "softlayer" provider due to invalid/missing Route53 credentials`)
-
-		return disabled.NewProvider("softlayer")
-	}
-
-	if conf.SLUsername == "" || conf.SLAPIKey == "" {
-		sess.Log.Warning(`disabling "softlayer" provider due to missing Softlayer credentials`)
-
-		return disabled.NewProvider("softlayer")
-	}
-
-	// TODO(rjeczalik): refactor softlayer provider to use interface instead
-	dns, ok := sess.DNSStorage.(*dnsstorage.MongodbStorage)
-	if !ok {
-		sess.Log.Warning(`disabling "softlayer" provider due to invalid DNS storage: %T`, sess.DNSStorage)
-
-		return disabled.NewProvider("softlayer")
-	}
-
-	// TODO(rjeczalik): refactor softlayer provider to use interface instead
-	dnsClient, ok := sess.DNSClient.(*dnsclient.Route53)
-	if !ok {
-		sess.Log.Warning(`disabling "softlayer" provider due to invalid DNS client: %T`, sess.DNSClient)
-
-		return disabled.NewProvider("softlayer")
-	}
-	sess.SLClient = sl.NewSoftlayer(conf.SLUsername, conf.SLAPIKey)
-
-	return &softlayer.Provider{
-		DB:         sess.DB,
-		Log:        sess.Log.New("softlayer"),
-		DNSClient:  dnsClient,
-		DNSStorage: dns,
-		Kite:       sess.Kite,
-		Userdata:   sess.Userdata,
-		SLClient:   sess.SLClient,
-	}
 }
 
 func runQueue(aws stack.Provider, sess *session.Session, conf *Config) {

@@ -6,16 +6,25 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/provider"
+	"koding/kites/kloud/stack"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"golang.org/x/net/context"
 )
 
+func init() {
+	provider.All["aws"] = func(bp *provider.BaseProvider) stack.Provider {
+		return &Provider{
+			BaseProvider: bp,
+		}
+	}
+}
+
 type Provider struct {
 	*provider.BaseProvider
 }
 
-func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) {
+func (p *Provider) Machine(ctx context.Context, id string) (stack.Machine, error) {
 	bm, err := p.BaseMachine(ctx, id)
 	if err != nil {
 		return nil, err
@@ -32,7 +41,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	}
 
 	// TODO(rjeczalik): move decoding provider-specific credential to BaseMachine.
-	var cred AwsMeta
+	var cred Cred
 	if err := p.FetchCredData(bm, &cred); err != nil {
 		return nil, err
 	}
