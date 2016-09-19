@@ -237,15 +237,9 @@ module.exports = class CredentialsController extends kd.Controller
 
   helpers =
 
-    _loadCredentials: (selector, selectedCredentials, callback) ->
+    _loadCredentials: (selector, callback) ->
 
-      options  = { '_id' : -1 }
-      remote.api.JCredential.some selector, options, (err, items) ->
-        return callback err  if err
-
-        { provider } = selector
-        defaultItem  = selectedCredentials?[provider]?.first
-        callback null, _.extend { items, defaultItem }, selector
+      remote.api.JCredential.some selector, { '_id' : -1 }, callback
 
 
     loadCredentials: (stack, callback) ->
@@ -256,10 +250,12 @@ module.exports = class CredentialsController extends kd.Controller
         break  if provider in ['aws', 'vagrant']
       provider ?= (Object.keys stack.credentials ? { aws : yes }).first
 
-      helpers._loadCredentials { provider }, stack.credentials, (err, result) ->
+      helpers._loadCredentials { provider }, (err, items) ->
         return callback err  if err
 
-        { items, defaultItem } = result
+        defaultItem = stack.credentials?[provider]?.first
+        result = { items, defaultItem, provider }
+
         return callback null, result  unless defaultItem
 
         isAvailable = (
@@ -286,7 +282,9 @@ module.exports = class CredentialsController extends kd.Controller
       requiredFields = requiredData[provider]
       fields = requiredFields.map (field) -> field.name ? field
 
-      helpers._loadCredentials { provider, fields }, stack.credentials, callback
+      helpers._loadCredentials { provider, fields }, (err, items) ->
+        return callback err  if err
+        callback null, { items, provider, fields : requiredFields }
 
 
     getKDCmd: (callback) ->
