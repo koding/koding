@@ -63,7 +63,7 @@ klient_build
 gzip -9 -N -f klient
 mv klient.gz "${PREFIX}.darwin_amd64.gz"
 
-docker run -t -v $PWD:/opt/koding koding/base:klient go/src/koding/klient/build.sh "$CHANNEL" "$VERSION"
+[[ -z "${NO_LINUX:-}" ]] && docker run -t -v $PWD:/opt/koding koding/base:klient go/src/koding/klient/build.sh "$CHANNEL" "$VERSION"
 
 popd
 

@@ -21,16 +21,24 @@ module.exports = class ProviderSelectionView extends JView
       'aws', 'vagrant', 'azure', 'digitalocean', 'googlecloud', 'rackspace'
     ]
     enabledProviders = ['aws', 'vagrant']
+    betaProviders = ['vagrant']
 
     @providers = new kd.CustomHTMLView { cssClass: 'providers box-wrapper clearfix' }
 
     providers.forEach (provider) =>
       extraClass = 'coming-soon'
       label      = 'Coming Soon'
+      beta       = ''
+      betaLabel  = ''
 
       if provider in enabledProviders
         extraClass = ''
         label      = ''
+
+        if provider in betaProviders
+          beta       = 'beta'
+          betaLabel  = 'BETA'
+
 
       @providers.addSubView providerView = new kd.CustomHTMLView
         cssClass : "provider box #{extraClass} #{provider}"
@@ -38,6 +46,7 @@ module.exports = class ProviderSelectionView extends JView
         partial  : """
           <img class="#{provider}" src="/a/images/providers/stacks/#{provider}.png" />
           <div class="label">#{label}</div>
+          <div class="#{beta}">#{betaLabel}</div>
         """
         click: =>
           return if extraClass is 'coming-soon'

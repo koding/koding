@@ -1,0 +1,23 @@
+.main
+  position                  relative
+  padding-right             45px
+
+.icon
+  width                     50px
+
+.close
+  position                  absolute
+  top                       15px
+  right                     15px
+  opacity                   .5
+  cursor                    pointer
+
+  &:hover
+    opacity                 .85
+
+  figure
+    m-sprite                app, content_modal_close_icon
+
+.description
+  margin                    1px 3px
+  borderBox()

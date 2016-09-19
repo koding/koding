@@ -13,6 +13,8 @@ imports:
   version: a3ebdb999b831ecb6ab8a226e31b07b2b9061c47
   subpackages:
   - cidr
+- name: github.com/vaughan0/go-ini
+  version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1
 - name: github.com/apparentlymart/go-grafana-api
   version: d49f95c81c580a4e7a15244b9b12dce8f60750f4
 - name: github.com/apparentlymart/go-rundeck-api
@@ -585,8 +587,6 @@ imports:
   version: adb14a9648f101b3a5ac2b370a7d37c4a4a08b39
 - name: github.com/koding/passwd
   version: 68f4dfed95ab896a23ea76ed08fbb2b5a874339e
-- name: github.com/koding/paypal
-  version: 0f12d2c2a1863a6afa6b678afc70e364c8603b6b
 - name: github.com/koding/pubnub
   version: a3b695f8d7b6f32014aba0a929b000bd66a33f30
 - name: github.com/koding/rabbitmq

@@ -2,7 +2,45 @@
   "routes": {
     "dev.koding.com": "127.0.0.1"
   },
+  "buckets": {
+    "publiclogs": [
+      {
+        "environment": [
+          "production",
+          "managed"
+        ],
+        "name": "koding-publiclogs",
+        "region": "us-east-1"
+      },
+      {
+        "environment": [
+          "development",
+          "devmanaged",
+          "sandbox"
+        ],
+        "name": "kodingdev-publiclogs",
+        "region": "us-east-1"
+      }
+    ]
+  },
   "endpoints": {
+    "kloud": [
+      {
+        "environment": [
+          "production",
+          "managed"
+        ],
+        "url": "https://koding.com/kloud/kite"
+      },
+      {
+        "environment": [
+          "development",
+          "devmanaged",
+          "sandbox"
+        ],
+        "url": "https://sandbox.koding.com/kloud/kite"
+      }
+    ],
     "tunnelserver": [
       {
         "environment": [

@@ -2,41 +2,51 @@ package storage
 
 import "sync"
 
-func NewMemoryStorage() *memoryStorage {
-	return &memoryStorage{
-		storage: make(map[string]string),
+// NewMemoryStorage gives new Memory value that implements
+// the Interface intergace.
+func NewMemoryStorage() *Memory {
+	return &Memory{
+		M: make(map[string]string),
 	}
 }
 
-// memoryStorage satisfies Storage interface
-type memoryStorage struct {
-	storage map[string]string
-	sync.Mutex
+var _ Interface = (*Memory)(nil)
+
+// Memory satisfies Storage interface storing elements in memory.
+//
+// All operations on Memory storage are thread-safe.
+type Memory struct {
+	sync.RWMutex
+
+	M map[string]string
 }
 
-func (m *memoryStorage) Get(key string) (string, error) {
-	m.Lock()
-	defer m.Unlock()
+// Get implements the Interface interface.
+func (m *Memory) Get(key string) (string, error) {
+	m.RLock()
+	v, ok := m.M[key]
+	m.RUnlock()
 
-	value, ok := m.storage[key]
 	if !ok {
 		return "", ErrKeyNotFound
 	}
 
-	return value, nil
+	return v, nil
 }
 
-func (m *memoryStorage) Set(key, value string) error {
+// Set implements the Interface interface.
+func (m *Memory) Set(key, value string) error {
 	m.Lock()
-	m.storage[key] = value
+	m.M[key] = value
 	m.Unlock()
 
 	return nil
 }
 
-func (m *memoryStorage) Delete(key string) error {
+// Delete implements the Interface interface.
+func (m *Memory) Delete(key string) error {
 	m.Lock()
-	delete(m.storage, key)
+	delete(m.M, key)
 	m.Unlock()
 
 	return nil

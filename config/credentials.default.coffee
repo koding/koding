@@ -89,9 +89,6 @@ module.exports = (options) ->
       secret: awsKeys.worker_terraformer.secretAccessKey
       bucket: "kodingdev-terraformer-state-#{options.configName}"
     localStorePath:  "$KONFIG_PROJECTROOT/go/data/terraformer"
-  paymentwebhook =
-    customersKey: 'R1PVxSPvjvDSWdlPRVqRv8IdwXZB'
-    secretKey: "paymentwebhooksecretkey-#{options.configName}"
   googleapiServiceAccount =
     clientId: ''
     clientSecret: ''
@@ -171,14 +168,6 @@ module.exports = (options) ->
   recaptcha =
     secret: ''
     public: ''
-  paypal =
-    username: ''
-    password: ''
-    signature: ''
-    returnUrl: "#{options.customDomain.public}/-/payments/paypal/return"
-    cancelUrl: "#{options.customDomain.public}/-/payments/paypal/cancel"
-    isSandbox: yes
-    formUrl: 'https://www.sandbox.paypal.com/incontext'
   janitor =
     port: '6700'
     secretKey: ''
@@ -217,7 +206,6 @@ module.exports = (options) ->
     kontrolPostgres
     pubnub
     terraformer
-    paymentwebhook
     googleapiServiceAccount
     github
     gitlab
@@ -237,7 +225,6 @@ module.exports = (options) ->
     sneakerS3
     stripe
     recaptcha
-    paypal
     janitor
     segment
     kontrol

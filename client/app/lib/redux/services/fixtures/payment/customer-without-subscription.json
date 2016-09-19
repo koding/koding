@@ -1,0 +1,32 @@
+{
+  "id": "cus_94rAA5D5Xax6uc",
+  "object": "customer",
+  "account_balance": 0,
+  "created": 1472206853,
+  "currency": "usd",
+  "default_source": null,
+  "delinquent": false,
+  "description": "payment team",
+  "discount": null,
+  "email": "umut@koding.com",
+  "livemode": false,
+  "metadata": {
+    "groupName": "payment",
+    "username": "umut"
+  },
+  "shipping": null,
+  "sources": {
+    "object": "list",
+    "data": [],
+    "has_more": false,
+    "total_count": 0,
+    "url": "/v1/customers/cus_94rAA5D5Xax6uc/sources"
+  },
+  "subscriptions": {
+    "object": "list",
+    "data": [],
+    "has_more": false,
+    "total_count": 0,
+    "url": "/v1/customers/cus_94rAA5D5Xax6uc/subscriptions"
+  }
+}

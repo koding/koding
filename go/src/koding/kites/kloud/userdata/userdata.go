@@ -115,7 +115,8 @@ write_files:
 
 {{if .UserData}}
   # Create user script.
-  - path: /root/user-data.sh
+  - path: /var/lib/koding/user-data.sh
+    permissions: '0755'
     encoding: b64
     content: |
       {{.UserData}}
@@ -205,12 +206,10 @@ runcmd:
 
 {{if .UserData}}
   # Run user data script.
-  - [chmod, +x, /root/user-data.sh]
-  - [/root/user-data.sh]
+  - [/var/lib/koding/user-data.sh]
 {{end}}
-  - [echo, _KD_DONE_]
 
-final_message: "All done!"
+final_message: "_KD_DONE_"
 `
 )
 
