@@ -90,7 +90,7 @@ truncate --size 0 $INSTANCE_DATA_FILE
 for INSTANCE in $INSTANCES; do
   (
     check_revision $INSTANCE || fail_instance $INSTANCE
-    repeat 1m 20 check_connectivity $INSTANCE 8090 || fail_instance $INSTANCE
+    repeat 1m 30 check_connectivity $INSTANCE 8090 || fail_instance $INSTANCE
     repeat 1m 10 health_check $INSTANCE || fail_instance $INSTANCE
     echo $INSTANCE >> $INSTANCE_DATA_FILE
   ) &
