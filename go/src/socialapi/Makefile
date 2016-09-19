@@ -56,10 +56,6 @@ develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev \
 minimal: apidev topicfeeddev realtimedev pinnedpostdev
 default: configure
 
-paymentwebhookdev:
-	@echo "$(OK_COLOR)==> Running Payment Webhook Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/payment/paymentwebhook -c $(CONFIG) -kite-init=true $(DBG) $(EXTRAS)
-
 apidev:
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/api -watch socialapi -c $(CONFIG) $(PORT) $(DBG) $(EXTRAS)
@@ -361,28 +357,7 @@ testtrollmode:
 
 testpayment:
 	@echo "$(OK_COLOR)--> payment tests... $(NO_COLOR)"
-	@`which go` test -c workers/payment/*.go
-	@./payment.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./payment.test
-
-	@echo "$(OK_COLOR)--> stripe tests... $(NO_COLOR)"
-	@`which go` test -c workers/payment/stripe/*.go
-	@./stripe.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./stripe.test
-
-	@echo "$(OK_COLOR)--> paypal tests... $(NO_COLOR)"
-	@`which go` test -c workers/payment/paypal/*.go
-	@./paypal.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./paypal.test
-
-
-	@echo "$(OK_COLOR)--> paymentwebhook tests... $(NO_COLOR)"
-	@`which go` test -c workers/payment/paymentwebhook/*.go
-	@./main.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./main.test
-
-	@echo "$(OK_COLOR)--> paymentwebhook#webhookmodels tests... $(NO_COLOR)"
-	@`which go` test workers/payment/paymentwebhook/webhookmodels/*.go
+	./workers/payment/tests.sh
 
 testintegration:
 	@echo "$(OK_COLOR)--> api integration tests... $(NO_COLOR)"

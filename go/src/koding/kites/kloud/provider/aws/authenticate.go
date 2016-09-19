@@ -39,7 +39,7 @@ func (s *Stack) Authenticate(ctx context.Context) (interface{}, error) {
 			continue
 		}
 
-		meta := cred.Meta.(*AwsMeta)
+		meta := cred.Meta.(*Cred)
 
 		if err := meta.Valid(); err != nil {
 			res.Message = fmt.Sprintf("validating %q credential: %s", cred.Identifier, err)

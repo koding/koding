@@ -2,6 +2,8 @@
   "name": "home",
   "main": "./lib/index.coffee",
   "routes": {
+    "/Disabled/:role": "group-disabled",
+    "/Disabled/:role/:status": "group-disabled",
     "/Welcome": "welcome",
     "/Home": "home",
     "/Home/:section": "section",

@@ -162,7 +162,7 @@ git.long (str) ->
     updateVault()
   else
     log "lemme find your IP"
-    request "http://echoip.net", (err, res, body) ->
+    request "https://p.koding.com/-/ip", (err, res, body) ->
       ip = body
       options.hostname = ip
       log "my ip is #{ip}"

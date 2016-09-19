@@ -29,12 +29,6 @@ module.exports = (options, credentials) ->
     aws: "aws"
     premium: "vagrant"
 
-  paymentwebhook =
-    port: "6600"
-    debug: false
-    customersKey: credentials.paymentwebhook.customersKey
-    secretKey: credentials.paymentwebhook.secretKey
-
   broker =
     name: "broker"
     serviceGenericName: "broker"
@@ -138,6 +132,10 @@ module.exports = (options, credentials) ->
     userPublicKey: credentials.kloud.userPublicKey
     userPrivateKey: credentials.kloud.userPrivateKey
 
+    keygenAccessKey: credentials.kloud.keygenAccessKey
+    keygenSecretKey: credentials.kloud.keygenSecretKey
+    keygenBucket: credentials.kloud.keygenBucket
+
     address: "http://localhost:#{kloudPort}/kite"
 
     kontrolUrl: kontrol.url
@@ -145,13 +143,10 @@ module.exports = (options, credentials) ->
     tunnelUrl: "#{options.tunnelUrl}"
     klientUrl: "https://s3.amazonaws.com/koding-klient/development/latest/klient.deb"
 
-    planEndpoint: "#{socialApiProxyUrl}/payments/subscriptions"
     credentialEndPoint: "#{socialApiProxyUrl}/credential"
-    networkUsageEndpoint: "http://localhost:#{vmwatcherPort}"
 
     janitorSecretKey: credentials.janitor.secretKey
     vmWatcherSecretKey: credentials.vmwatcher.secretKey
-    paymentWebHookSecretKey: credentials.paymentwebhook.secretKey
     terraformerSecretKey: credentials.terraformer.secretKey
 
     awsAccessKeyId: credentials.awsKeys.vm_kloud.accessKeyId
@@ -181,7 +176,6 @@ module.exports = (options, credentials) ->
     disabledFeatures       : options.disabledFeatures
 
     stripe                 : credentials.stripe
-    paypal                 : credentials.paypal
     github                 : credentials.github
     gitlab                 : gitlab
     janitor                : credentials.janitor
@@ -202,7 +196,6 @@ module.exports = (options, credentials) ->
     gatekeeper             : gatekeeper
     integration            : integration
     webhookMiddleware      : webhookMiddleware
-    paymentwebhook         : paymentwebhook
     customDomain           : options.customDomain
     email                  : email
 
@@ -267,7 +260,6 @@ module.exports = (options, credentials) ->
     druid                         : credentials.druid
     clearbit                      : credentials.clearbit
 
-    paymentwebhook                : paymentwebhook
     regions                       : regions
     broker                        : broker
     tunnelproxymanager            : tunnelproxymanager

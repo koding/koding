@@ -43,27 +43,14 @@ func TeamRequestFromContext(ctx context.Context) (*TeamRequest, bool) {
 	return req, ok
 }
 
-// Stacker is a provider-specific handler that implements team methods.
-type Stacker interface {
-	Apply(context.Context) (interface{}, error)
-	Authenticate(context.Context) (interface{}, error)
-	Bootstrap(context.Context) (interface{}, error)
-	Plan(context.Context) (interface{}, error)
-}
-
 // Migrater provides an interface to import solo machine (from "koding"
 // provider) to the specific stack provider.
 type Migrater interface {
 	Migrate(context.Context) (interface{}, error)
 }
 
-// StackProvider is responsible for creating stack providers.
-type StackProvider interface {
-	Stack(ctx context.Context) (Stacker, error)
-}
-
 // StackFunc handles execution of a single team method.
-type StackFunc func(Stacker, context.Context) (interface{}, error)
+type StackFunc func(Stack, context.Context) (interface{}, error)
 
 func IsKloudctlAuth(r *kite.Request, key string) bool {
 	return key != "" && r.Auth != nil && r.Auth.Type == "kloudctl" && r.Auth.Key == key
@@ -98,7 +85,7 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 		args.GroupName = "koding"
 	}
 
-	p, ok := k.providers[args.Provider].(StackProvider)
+	p, ok := k.providers[args.Provider].(Provider)
 	if !ok {
 		return nil, NewError(ErrProviderNotFound)
 	}

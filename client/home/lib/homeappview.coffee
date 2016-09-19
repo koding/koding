@@ -3,6 +3,7 @@ kd                = require 'kd'
 globals           = require 'globals'
 HomeAppAvatarView = require './commons/homeappavatarview'
 HomeTabHandle     = require './commons/hometabhandle'
+isGroupDisabled   = require 'app/util/isGroupDisabled'
 
 module.exports = class HomeAppView extends kd.ModalView
 
@@ -72,11 +73,16 @@ module.exports = class HomeAppView extends kd.ModalView
     items   = []
     myRoles = _globals.userRoles
 
+    group = kd.singletons.groupsController.getCurrentGroup()
+
     for item in tabData.items
 
       role = if item.role? then item.role else 'admin'
 
       if checkRoles and role not in myRoles
+        continue
+
+      if isGroupDisabled(group) and not item.showOnDisabled
         continue
 
       items.push item
