@@ -9,39 +9,42 @@ resetPasswordSelector = '.TeamsModal-button--green'
 
 module.exports =
 
-  # # # Team Creation
-  # createTeamWithInvalidEmail: (browser) ->
-  #   teamsHelpers.createTeam(browser, user, '', 'InvalidEmail')
+  # # Team Creation
+  createTeamWithInvalidEmail: (browser) ->
+    teamsHelpers.createTeam(browser, user, '', 'InvalidEmail')
 
-  # createTeamWithInvalidTeamUrl: (browser) ->
-  #   teamsHelpers.createTeam(browser, user, '' , 'InvalidTeamUrl')
+  createTeamWithInvalidTeamUrl: (browser) ->
+    teamsHelpers.createTeam(browser, user, '' , 'InvalidTeamUrl')
 
-  # createTeamWithEmptyTeamUrl: (browser) ->
-  #   teamsHelpers.createTeam(browser, user, '' , 'EmptyTeamUrl')
+  createTeamWithEmptyTeamUrl: (browser) ->
+    teamsHelpers.createTeam(browser, user, '' , 'EmptyTeamUrl')
 
-  # createTeamWithUpperCaseTeamUrl: (browser) ->
-  #   teamsHelpers.createTeam(browser, user, '' , 'UpperCaseTeamUrl')
+  createTeamWithUpperCaseTeamUrl: (browser) ->
+    teamsHelpers.createTeam(browser, user, '' , 'UpperCaseTeamUrl')
 
-  # createTeamWithAlreadyUsedTeamUrl: (browser) ->
-  #   teamsHelpers.createTeam(browser, user, '' , 'AlreadyUsedTeamUrl')
+  createTeamWithAlreadyUsedTeamUrl: (browser) ->
+    teamsHelpers.createTeam(browser, user, '' , 'AlreadyUsedTeamUrl')
 
-  # # Create Account Steps in Team Creation
-  # createAccountWithInvalidUserName: (browser) ->
-  #   user         = utils.getUser(yes)
-  #   teamsHelpers.createTeam(browser, user, '' , 'InvalidUserName')
+  # Create Account Steps in Team Creation
+  createAccountWithInvalidUserName: (browser) ->
+    user         = utils.getUser(yes)
+    teamsHelpers.createTeam(browser, user, '' , 'InvalidUserName')
 
-  # createAccountWithSameDomainAndUserName: (browser) ->
-  #   user         = utils.getUser(yes)
-  #   teamsHelpers.createTeam(browser, user, '' , 'SameDomainAndUserName')
+  createAccountWithSameDomainAndUserName: (browser) ->
+    user         = utils.getUser(yes)
+    teamsHelpers.createTeam(browser, user, '' , 'SameDomainAndUserName')
 
-  # createAccountWithShortPassword: (browser) ->
-  #   user = utils.getUser(yes)
-  #   teamsHelpers.createTeam(browser, user, '' , 'ShortPassword')
+  createAccountWithShortPassword: (browser) ->
+    user = utils.getUser(yes)
+    teamsHelpers.createTeam(browser, user, '' , 'ShortPassword')
 
   createAccountAlreadyRegisteredUserName: (browser) ->
+    url = helpers.getUrl()
     teamsHelpers.createTeam(browser, user, inviteLink)
     teamsHelpers.createTeam(browser, user, createLink, 'AlreadyRegisteredUserName')
-    browser.end()
+    teamsHelpers.logoutTeamfromUrl browser, (result) ->
+      browser.url url
+      browser.waitForElementVisible '.content-page.Team section a.previous-team', 40000
 
   signInWithNotAllowedEmail: (browser) ->
     teamsHelpers.loginTeam browser, user, yes , 'NotAllowedEmail', ->
@@ -61,14 +64,6 @@ module.exports =
   loginTeam: (browser) ->
     teamsHelpers.loginTeam browser, user, no, ->
       browser.end()
-
-
-  seePreviouslyVisitedTeams: (browser) ->
-    url = helpers.getUrl()
-    teamsHelpers.loginTeam browser, user, no, '', ->
-      teamsHelpers.logoutTeamfromUrl browser, (result) ->
-      browser.url url
-      browser.waitForElementVisible '.content-page.Team section a.previous-team', 40000
 
 
   checkAllLinkInTheFooter: (browser) ->
