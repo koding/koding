@@ -11,12 +11,12 @@ module.exports = class LoginInputView extends JView
     inputOptions            or= {}
     inputOptions.cssClass     = kd.utils.curry 'thin medium', inputOptions.cssClass
     inputOptions.decorateValidation = no
-    inputOptions.useOriginalPlaceholder ?= no
+    inputOptions.useCustomPlaceholder ?= no
 
-    { placeholder, validate, useOriginalPlaceholder } = inputOptions
+    { placeholder, validate, useCustomPlaceholder } = inputOptions
 
-    delete inputOptions.placeholder  unless useOriginalPlaceholder
-    delete inputOptions.useOriginalPlaceholder
+    delete inputOptions.placeholder  if useCustomPlaceholder
+    delete inputOptions.useCustomPlaceholder
     delete options.inputOptions
 
     validate.notifications = off  if validate
@@ -28,7 +28,7 @@ module.exports = class LoginInputView extends JView
     @placeholder = new kd.CustomHTMLView
       cssClass   : 'placeholder-helper'
       partial    : placeholder# or inputOptions.name
-    @placeholder.hide()  if useOriginalPlaceholder
+    @placeholder.hide()  unless useCustomPlaceholder
 
     @errors       = {}
     @errorMessage = ''
