@@ -1,0 +1,10 @@
+#! 4e2dbb4b-5dfa-4e70-b265-4cda25afd3a2
+# title: Check Homepage
+# start_uri: /
+# tags: automated
+# site_id: 5822
+# 
+
+Click on the link next to koding logo "Features" Tab.
+Do you see the word "Flawlessly"?
+
