@@ -21,7 +21,7 @@ func (s *Stack) buildResources() error {
 			continue
 		}
 
-		meta := cred.Meta.(*AwsMeta)
+		meta := cred.Meta.(*Cred)
 		if meta.Region == "" {
 			return fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
 		}

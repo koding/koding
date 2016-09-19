@@ -11,6 +11,9 @@ SidebarStackHeaderSection = require 'app/components/sidebarstacksection/sidebars
 SidebarSharedMachinesSection = require 'app/components/sidebarsharedmachinessection'
 SharingMachineInvitationWidget = require 'app/components/sidebarmachineslistitem/sharingmachineinvitationwidget'
 SidebarDifferentStackResources = require 'app/components/sidebarstacksection/sidebardifferentstackresources'
+SidebarGroupDisabled = require './groupdisabled'
+isGroupDisabled = require 'app/util/isGroupDisabled'
+getGroup = require 'app/util/getGroup'
 { findDOMNode } = require 'react-dom'
 SidebarFlux = require 'app/flux/sidebar'
 TeamFlux = require 'app/flux/teams'
@@ -209,7 +212,9 @@ module.exports = class Sidebar extends React.Component
 
   renderStacks: ->
 
-    if @state.stacks.size or @state.drafts.size
+    if isGroupDisabled getGroup()
+      <SidebarGroupDisabled />
+    else if @state.stacks.size or @state.drafts.size
       <SidebarStackHeaderSection>
         {@prepareStacks()}
       </SidebarStackHeaderSection>

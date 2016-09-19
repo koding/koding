@@ -9,21 +9,11 @@ import (
 	"runtime"
 	"time"
 
+	"koding/config"
 	"koding/klient/app"
 	"koding/klient/protocol"
 	"koding/klient/registration"
 )
-
-func defaultKiteHome() string {
-	if u, err := user.Current(); err == nil {
-		return filepath.Join(u.HomeDir, ".kite")
-	}
-	return "."
-}
-
-func defaultNoTunnel() bool {
-	return os.Getenv("KITE_NO_TUNNEL") == "1"
-}
 
 var (
 	flagIP          = flag.String("ip", "", "Change public ip")
@@ -59,11 +49,34 @@ var (
 	flagAutoupdate    = flag.Bool("autoupdate", false, "Force turn automatic updates on")
 
 	// Upload log flags
-	flagLogBucketRegion   = flag.String("log-bucket-region", "us-west-1", "Change bucket region to upload logs")
-	flagLogBucketName     = flag.String("log-bucket-name", "koding-klient-logs", "Change bucket name to upload logs")
-	flagLogUploadLimit    = flag.Int("log-upload-limit", 1024*400, "Change file size of logs")
-	flagLogUploadInterval = flag.Duration("log-upload-interval", time.Hour*3, "Change interval of upload logs")
+	flagLogBucketRegion   = flag.String("log-bucket-region", defaultBucketRegion(), "Change bucket region to upload logs")
+	flagLogBucketName     = flag.String("log-bucket-name", defaultBucketName(), "Change bucket name to upload logs")
+	flagKeygenURL         = flag.String("log-keygen-url", defaultKeygenURL(), "Change keygen endpoint URL for bucket authorization")
+	flagLogUploadInterval = flag.Duration("log-upload-interval", 90*time.Minute, "Change interval of upload logs")
 )
+
+func defaultKiteHome() string {
+	if u, err := user.Current(); err == nil {
+		return filepath.Join(u.HomeDir, ".kite")
+	}
+	return "."
+}
+
+func defaultNoTunnel() bool {
+	return os.Getenv("KITE_NO_TUNNEL") == "1"
+}
+
+func defaultKeygenURL() string {
+	return config.Builtin.Endpoints.URL("kloud", protocol.Environment)
+}
+
+func defaultBucketName() string {
+	return config.Builtin.Buckets.ByEnv("publiclogs", protocol.Environment).Name
+}
+
+func defaultBucketRegion() string {
+	return config.Builtin.Buckets.ByEnv("publiclogs", protocol.Environment).Region
+}
 
 func main() {
 	// Call realMain instead of doing the work here so we can use
@@ -132,7 +145,7 @@ func realMain() int {
 		Autoupdate:        *flagAutoupdate,
 		LogBucketRegion:   *flagLogBucketRegion,
 		LogBucketName:     *flagLogBucketName,
-		LogUploadLimit:    *flagLogUploadLimit,
+		LogKeygenURL:      *flagKeygenURL,
 		LogUploadInterval: *flagLogUploadInterval,
 	}
 

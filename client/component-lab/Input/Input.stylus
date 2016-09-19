@@ -1,0 +1,90 @@
+@import '../Colors/Colors.stylus'
+
+$padding-small = 0 15px
+$padding-medium = 0 20px
+$padding-large = 0 20px
+
+$fs-small = 13px
+$fs-medium = 15px
+$fs-large = 16px
+
+$height-small = 30px
+$height-medium = 40px
+$height-large = 50px
+
+placeholder()
+  &::-webkit-input-placeholder
+    {block}
+  &::-moz-placeholder
+    {block}
+  &:-ms-input-placeholder
+    {block}
+
+$fm = -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif
+$fm-mask = SourceCodePro
+
+.Input
+  font-family               $fm
+  border                    1px solid
+  border-color              $additional-4-faded
+  border-radius             4px
+  font-weight               200
+  outline                   none
+  vertical-align            middle
+  color                     $additional-4
+  borderBox()
+
+  +placeholder()
+    color                   $additional-6-darker
+
+  &:focus
+    +placeholder()
+      color                 $additional-3-faded
+
+  &:focus
+  &:hover
+    border-color            $additional-7
+
+.danger
+  border-color              $primary-1
+
+.masked
+  font-family               $fm-mask
+
+.wrapper
+  font-family               $fm
+  display                   flex
+  position                  relative
+  flex                      1
+  font-size                 $fs-small
+  flex-direction            column
+
+  .title
+    flex                    1
+    display                 block
+    height                  40px
+    line-height             30px
+    padding-top             10px
+    color                   $additional-6-dark
+    borderBox()
+
+.small
+  padding                   $padding-small
+  font-size                 $fs-small
+  height                    $height-small
+  line-height               $height-small
+
+.medium
+  padding                   $padding-medium
+  font-size                 $fs-medium
+  height                    $height-medium
+  line-height               $height-medium
+
+.large
+  padding                   $padding-large
+  font-size                 $fs-large
+  height                    $height-large
+  line-height               $height-large
+
+.auto
+  flex                      1
