@@ -57,8 +57,7 @@ module.exports =
     newEmail = 'wrongemail@koding.com'
     browser
       .refresh()
-      .pause 2000
-      .waitForElementVisible   emailSelector, 20000
+      .waitForElementVisible   emailSelector, 30000
       .clearValue              emailSelector
       .setValue                emailSelector, newEmail + '\n'
       .click                   saveButtonSelector
@@ -75,8 +74,7 @@ module.exports =
     newEmail = 'wrongemail2@koding.com'
     browser
       .refresh()
-      .pause 3000
-      .waitForElementVisible   emailSelector, 20000
+      .waitForElementVisible   emailSelector, 30000
       .clearValue              emailSelector
       .setValue                emailSelector, newEmail + '\n'
       .click                   saveButtonSelector
@@ -99,7 +97,7 @@ module.exports =
     newPassword     = utils.getPassword()
     browser
       .refresh()
-      .pause 3000
+      .waitForElementVisible   emailSelector, 30000
       .scrollToElement '.HomeAppView--section.password'
 
     helpers.changePasswordHelper browser, newPassword, newPassword + 'test', null, notMatchingPasswords
