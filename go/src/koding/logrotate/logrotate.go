@@ -231,6 +231,13 @@ func rotate(content io.ReadSeeker, meta *Metadata) (part *MetadataPart, err erro
 		return nil, err
 	}
 
+	if part.Size == 0 {
+		return nil, &NopError{
+			Key: meta.Key,
+			N:   len(meta.Parts),
+		}
+	}
+
 	part.ChecksumSize = min(part.Size, DefaultChecksumSize)
 
 	if last := meta.LastPart(); last != nil && last.Size <= part.Size {
@@ -252,7 +259,7 @@ func rotate(content io.ReadSeeker, meta *Metadata) (part *MetadataPart, err erro
 		if part.Offset == part.Size {
 			return nil, &NopError{
 				Key: meta.Key,
-				N:   len(meta.Parts) - 1,
+				N:   len(meta.Parts),
 			}
 		}
 	}

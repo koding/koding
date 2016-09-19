@@ -59,20 +59,6 @@ var (
 	// the implementation of New() doesn't have any error to be returned yet it
 	// returns, so it's totally safe to neglect the error
 	cookieJar, _ = cookiejar.New(nil)
-
-	logFiles = []string{
-		"/var/log/klient.log",
-		"/var/log/klient.err",
-		"/var/log/kd.log",
-		"/var/log/upstart/klient.log",
-		"/var/log/upstart/klient.err",
-		"/var/log/upstart/kd.log",
-		"/Library/Logs/klient.log",
-		"/Library/Logs/kd.log",
-		"/var/log/cloud-init-output.log",
-		"/var/log/cloud-init.log",
-		"/var/lib/koding/user-data.sh",
-	}
 )
 
 // Klient is the central app which provides all available methods.
@@ -125,7 +111,8 @@ type Klient struct {
 	updater *Updater
 
 	// uploader streams logs to an S3 bucket
-	uploader *uploader.Uploader
+	uploader       *uploader.Uploader
+	logUploadDelay time.Duration
 
 	// publicIP is a cached public IP address of the klient.
 	publicIP net.IP
@@ -217,11 +204,21 @@ func NewKlient(conf *KlientConfig) *Klient {
 		k.Log.Warning("Couldn't open BoltDB: %s", err)
 	}
 
+	up := uploader.New(&uploader.Options{
+		KeygenURL: conf.LogKeygenURL,
+		Kite:      k,
+		Bucket:    conf.LogBucketName,
+		Region:    conf.LogBucketRegion,
+		DB:        db,
+		Log:       k.Log,
+	})
+
 	vagrantOpts := &vagrant.Options{
-		Home:  conf.VagrantHome,
-		DB:    db, // nil is ok, fallbacks to in-memory storage
-		Log:   k.Log,
-		Debug: conf.Debug,
+		Home:   conf.VagrantHome,
+		DB:     db, // nil is ok, fallbacks to in-memory storage
+		Log:    k.Log,
+		Debug:  conf.Debug,
+		Output: up.Output,
 	}
 
 	tunOpts := &tunnel.Options{
@@ -251,15 +248,6 @@ func NewKlient(conf *KlientConfig) *Klient {
 		// EventSub: mountEvents,
 	}
 
-	uploaderOpts := &uploader.Options{
-		KeygenURL: conf.LogKeygenURL,
-		Kite:      k,
-		Bucket:    conf.LogBucketName,
-		Region:    conf.LogBucketRegion,
-		DB:        db,
-		Log:       k.Log,
-	}
-
 	kl := &Klient{
 		kite:    k,
 		collab:  collaboration.New(db), // nil is ok, fallbacks to in memory storage
@@ -272,7 +260,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 		log:      k.Log,
 		config:   conf,
 		remote:   remote.NewRemote(remoteOpts),
-		uploader: uploader.New(uploaderOpts),
+		uploader: up,
 		updater: &Updater{
 			Endpoint:       conf.UpdateURL,
 			Interval:       conf.UpdateInterval,
@@ -281,6 +269,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 			// MountEvents:    mountEvents,
 			Log: k.Log,
 		},
+		logUploadDelay: 3 * time.Minute,
 	}
 
 	kl.kite.OnRegister(kl.updateKiteKey)
@@ -555,17 +544,22 @@ func (k *Klient) tunnelOptions() (*tunnel.Options, error) {
 // Run registers klient to Kontrol and starts the kite server. It also runs any
 // necessary workers in the background.
 func (k *Klient) Run() {
-	for _, file := range logFiles {
-		_, err := k.uploader.UploadFile(file, k.config.LogUploadInterval)
-		if err != nil && !os.IsNotExist(err) {
-			k.log.Warning("failed to upload %q: %s", file, err)
+	go func() {
+		// Delay uploading log files to give klient a chance to:
+		//
+		//   - write the file first-time
+		//   - log essential statuses from tunnel / kontrol register
+		//
+		// Additionally do not block startup routine with log uploading.
+		time.Sleep(k.logUploadDelay)
+
+		for _, file := range uploader.LogFiles {
+			_, err := k.uploader.UploadFile(file, k.config.LogUploadInterval)
+			if err != nil && !os.IsNotExist(err) {
+				k.log.Warning("failed to upload %q: %s", file, err)
+			}
 		}
-		// TODO
-		//
-		// - make vagrant don't destroy stack on failure
-		// - make klient/vagrant log all outputs from building and upload logs
-		//
-	}
+	}()
 
 	// don't run the tunnel for Koding VM's, no need to check for error as we
 	// are not interested in it

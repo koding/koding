@@ -86,7 +86,7 @@ func TestLogrotate_Rotate(t *testing.T) {
 		t.Fatalf("got %q, want %q", e.Key, meta.Key)
 	}
 
-	if n := len(parts) - 1; e.N != n {
+	if n := len(parts); e.N != n {
 		t.Fatalf("got %d, want %d", e.N, n)
 	}
 

@@ -137,8 +137,6 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 
 	err = c.Vagrant.Up(queryString, resp.FilePath)
 	if err != nil {
-		// ensure the machine is deleted on failure
-		c.Vagrant.Destroy(queryString, resp.FilePath)
 		return fmt.Errorf("vagrant provisioning has failed: " + err.Error())
 	}
 

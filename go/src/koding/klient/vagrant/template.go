@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/base64"
 	"text/template"
+
+	"koding/klient/uploader"
 )
 
 var (
@@ -41,7 +43,14 @@ cat >/var/lib/koding/user-data.sh <<"EOF"
 {{unbase64 .CustomScript}}
 EOF
 
+mkdir -p /var/log/upstart
+touch /var/log/upstart/klient.log
+
 chmod -R 0755 /var/lib/koding
+chmod +r /var/log/upstart /var/log/upstart/klient.log
+
+{{range $_, $f := .LogFiles}}chmod +r {{$f}} 2>/dev/null || true
+{{end}}
 
 pushd /var/lib/koding
 ./user-data.sh 2>&1 | tee -a $USER_LOG || die "$(cat $USER_LOG | perl -pe 's/\n/\\\\n/g')"
@@ -83,6 +92,11 @@ end
 
 func createTemplate(opts *VagrantCreateOptions) (string, error) {
 	buf := new(bytes.Buffer)
+
+	if opts.LogFiles == nil {
+		opts.LogFiles = uploader.LogFiles
+	}
+
 	if err := vagrantTemplate.Execute(buf, opts); err != nil {
 		return "", err
 	}
