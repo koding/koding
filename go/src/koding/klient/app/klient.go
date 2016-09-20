@@ -34,6 +34,7 @@ import (
 	"koding/klient/storage"
 	"koding/klient/terminal"
 	"koding/klient/tunnel"
+	"koding/klient/uploader"
 	"koding/klient/usage"
 	"koding/klient/vagrant"
 
@@ -109,6 +110,10 @@ type Klient struct {
 	// and updates current binary if version is never than config.Version.
 	updater *Updater
 
+	// uploader streams logs to an S3 bucket
+	uploader       *uploader.Uploader
+	logUploadDelay time.Duration
+
 	// publicIP is a cached public IP address of the klient.
 	publicIP net.IP
 }
@@ -144,7 +149,7 @@ type KlientConfig struct {
 
 	LogBucketRegion   string
 	LogBucketName     string
-	LogUploadLimit    int
+	LogKeygenURL      string
 	LogUploadInterval time.Duration
 }
 
@@ -181,6 +186,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 		"storage.Get":          true,
 		"storage.Set":          true,
 		"storage.Delete":       true,
+		"log.upload":           true,
 		// "docker.create":       true,
 		// "docker.connect":      true,
 		// "docker.stop":         true,
@@ -198,11 +204,21 @@ func NewKlient(conf *KlientConfig) *Klient {
 		k.Log.Warning("Couldn't open BoltDB: %s", err)
 	}
 
+	up := uploader.New(&uploader.Options{
+		KeygenURL: conf.LogKeygenURL,
+		Kite:      k,
+		Bucket:    conf.LogBucketName,
+		Region:    conf.LogBucketRegion,
+		DB:        db,
+		Log:       k.Log,
+	})
+
 	vagrantOpts := &vagrant.Options{
-		Home:  conf.VagrantHome,
-		DB:    db, // nil is ok, fallbacks to in-memory storage
-		Log:   k.Log,
-		Debug: conf.Debug,
+		Home:   conf.VagrantHome,
+		DB:     db, // nil is ok, fallbacks to in-memory storage
+		Log:    k.Log,
+		Debug:  conf.Debug,
+		Output: up.Output,
 	}
 
 	tunOpts := &tunnel.Options{
@@ -244,6 +260,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 		log:      k.Log,
 		config:   conf,
 		remote:   remote.NewRemote(remoteOpts),
+		uploader: up,
 		updater: &Updater{
 			Endpoint:       conf.UpdateURL,
 			Interval:       conf.UpdateInterval,
@@ -252,6 +269,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 			// MountEvents:    mountEvents,
 			Log: k.Log,
 		},
+		logUploadDelay: 3 * time.Minute,
 	}
 
 	kl.kite.OnRegister(kl.updateKiteKey)
@@ -361,6 +379,9 @@ func (k *Klient) RegisterMethods() {
 
 	// Tunnel
 	k.kite.HandleFunc("tunnel.info", k.tunnel.Info)
+
+	// Log
+	k.kite.HandleFunc("log.upload", k.uploader.Upload)
 
 	// Docker
 	// k.kite.HandleFunc("docker.create", k.docker.Create)
@@ -523,6 +544,23 @@ func (k *Klient) tunnelOptions() (*tunnel.Options, error) {
 // Run registers klient to Kontrol and starts the kite server. It also runs any
 // necessary workers in the background.
 func (k *Klient) Run() {
+	go func() {
+		// Delay uploading log files to give klient a chance to:
+		//
+		//   - write the file first-time
+		//   - log essential statuses from tunnel / kontrol register
+		//
+		// Additionally do not block startup routine with log uploading.
+		time.Sleep(k.logUploadDelay)
+
+		for _, file := range uploader.LogFiles {
+			_, err := k.uploader.UploadFile(file, k.config.LogUploadInterval)
+			if err != nil && !os.IsNotExist(err) {
+				k.log.Warning("failed to upload %q: %s", file, err)
+			}
+		}
+	}()
+
 	// don't run the tunnel for Koding VM's, no need to check for error as we
 	// are not interested in it
 	isAWS, isKoding, _ := info.CheckKodingAWS()

@@ -173,10 +173,7 @@ type RuntimeOptions struct {
 	Roles       []string      `json:"roles"`
 	Permissions []interface{} `json:"permissions"`
 	SiftScience string        `json:"siftScience"`
-	Paypal      struct {
-		FormUrl string `json:"formUrl"`
-	} `json:"paypal"`
-	Pubnub struct {
+	Pubnub      struct {
 		SubscribeKey string `json:"subscribekey"`
 		Enabled      bool   `json:"enabled"`
 		SSL          bool   `json:"ssl"`

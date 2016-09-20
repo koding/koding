@@ -7,13 +7,21 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/vagrantapi"
 	"koding/kites/kloud/provider"
+	"koding/kites/kloud/stack"
 
 	"golang.org/x/net/context"
 )
 
+func init() {
+	provider.All["vagrant"] = func(bp *provider.BaseProvider) stack.Provider {
+		return &Provider{
+			BaseProvider: bp,
+		}
+	}
+}
+
 // TODO(rjeczalik): kloud refactoring notes:
 //
-//   - create provider.MetaFunc for custom machine metadata handling
 //   - create modelhelpers.DB and move function helpers to methods,
 //     so it's posible to use it with non-global *mongodb.MongoDB
 //     values
@@ -22,11 +30,9 @@ import (
 // Provider implements machine management operations.
 type Provider struct {
 	*provider.BaseProvider
-
-	TunnelURL string
 }
 
-func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) {
+func (p *Provider) Machine(ctx context.Context, id string) (stack.Machine, error) {
 	bm, err := p.BaseMachine(ctx, id)
 	if err != nil {
 		return nil, err
@@ -43,7 +49,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	}
 
 	// TODO(rjeczalik): move decoding provider-specific credential to BaseMachine.
-	var cred VagrantMeta
+	var cred Cred
 	if err := p.FetchCredData(bm, &cred); err != nil {
 		return nil, err
 	}
@@ -58,6 +64,10 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 			Debug: bm.Debug,
 		},
 	}, nil
+}
+
+func (*Provider) Cred() interface{} {
+	return &Cred{}
 }
 
 func (p *Provider) tunnelURL() (*url.URL, error) {

@@ -3,27 +3,27 @@ package stack
 import (
 	"errors"
 	"fmt"
+	"strings"
+
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/machinestate"
-	"strings"
 
 	"github.com/koding/kite"
-	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/context"
 )
 
 // InfoResponse is returned from a info method
 type InfoResponse struct {
 	// State defines the state of the machine
-	State string
+	State machinestate.State `json:"state"`
 
 	// Name defines the name of the machine.
-	Name string
+	Name string `json:"name,omitempty"`
 
 	// InstanceType defines the type of the given machine
-	InstanceType string
+	InstanceType string `json:"instanceType,omitempty"`
 }
 
 func (k *Kloud) Info(r *kite.Request) (interface{}, error) {
@@ -39,7 +39,7 @@ func (k *Kloud) Info(r *kite.Request) (interface{}, error) {
 
 	if stater.State() == machinestate.NotInitialized {
 		return &InfoResponse{
-			State: machinestate.NotInitialized.String(),
+			State: machinestate.NotInitialized,
 			Name:  "not-initialized-instance",
 		}, nil
 	}
@@ -50,18 +50,13 @@ func (k *Kloud) Info(r *kite.Request) (interface{}, error) {
 	}
 
 	ctx := request.NewContext(context.Background(), r)
-	infoData, err := i.Info(ctx)
+	response, err := i.Info(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	var response *InfoResponse
-	if err := mapstructure.Decode(infoData, &response); err != nil {
-		return nil, errors.New("info response error: " + err.Error())
-	}
-
-	if response.State == machinestate.Unknown.String() {
-		response.State = stater.State().String()
+	if response.State == machinestate.Unknown {
+		response.State = stater.State()
 	}
 
 	return response, nil
