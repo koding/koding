@@ -211,6 +211,10 @@ module.exports = (KONFIG, options, credentials) ->
             proxyPass   : "http://socialapi/account/channels$is_args$args"
           }
           {
+            location    : "~ /api/social/payment/(.*)"
+            proxyPass   : "http://socialapi/payment/$1$is_args$args"
+          }
+          {
             location    : "~* ^/api/social/slack/(.*)"
             proxyPass   : "http://socialapi/slack/$1$is_args$args"
             extraParams : [ "proxy_buffering off;" ] # appearently slack sends a big header
