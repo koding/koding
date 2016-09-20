@@ -1,0 +1,17 @@
+#! d6c0bff2-2d2c-49f5-b420-21527fcaa054
+# title: login_to_an_existing_team
+# start_uri: /
+# tags: rfml-test
+#
+
+Enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In'
+Do you see 'Welcome! Enter your team's Koding domain.' form in the center of the page with a 'LOGIN' button? Do you see 'Forgot your team name?' link? Do you see 'Do you want to create a new team?' text below that form?
+
+Enter "{{ existing_team.name }}" (in lowercase like in the 'rainforestqateam') in the input field and click on 'LOGIN' button
+Do you see 'Authentication Required' form?
+
+Enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In'
+Do you see 'Sign in to {{ existing_team.name }}' text? Do you see 'Username or Email' and 'Password' fields and a 'SIGN IN' button?
+
+Enter "rainforestqa22" in the 'Username or Email' and "rainforestqa22" in the 'Password' fields and click on 'SIGN IN' button
+Do you see '{{ existing_team.name }}' label at the top left corner? Do you see 'You are almost there, rainforestqa22!' title? Do you see 'Create a Stack for Your Team', 'Enter your Credentials', 'Build Your Stack', 'Invite Your Team' and 'Install KD' sections? Do you see 'CREATE', 'ENTER', 'BUILD', 'INVITE' and 'INSTALL' buttons next to them?
