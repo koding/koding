@@ -1351,3 +1351,28 @@ module.exports = class ComputeController extends KDController
       kd.warn err  if err
       callback null, @_soloMachines
 
+  fetchCredentials: (stackTemplates) ->
+
+    { store } = kd.singletons
+
+    return unless stackTemplates
+    _.values(stackTemplates).forEach (stackTemplate) =>
+      { config: { requiredProviders }, credentials } = stackTemplate
+      selectedProvider = @getSelectedProvider stackTemplate
+      creds = Object.keys credentials
+
+
+      if creds.length > 0 and credential = credentials["#{selectedProvider}"]?.first
+        @emit 'FetchCredentialSuccess', credential
+
+  getSelectedProvider: (stackTemplate) ->
+
+    { config: { requiredProviders }, credentials } = stackTemplate
+
+    for selectedProvider in requiredProviders
+      break  if selectedProvider in ['aws', 'vagrant']
+
+    selectedProvider ?= (Object.keys credentials ? { aws: yes }).first
+    selectedProvider ?= 'aws'
+
+    return selectedProvider
