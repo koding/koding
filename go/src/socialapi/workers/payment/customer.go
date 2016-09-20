@@ -58,7 +58,9 @@ func DeleteCustomerForGroup(groupName string) error {
 	return modelhelper.UpdateGroupPartial(
 		modelhelper.Selector{"_id": group.Id},
 		modelhelper.Selector{
-			"$unset": modelhelper.Selector{"payment.customer.id": ""},
+			// deleting customer deletes everything belong to that customer in stripe,
+			// so say we all
+			"$unset": modelhelper.Selector{"payment": ""},
 		},
 	)
 }
