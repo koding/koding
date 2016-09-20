@@ -1,6 +1,10 @@
 @import "lib/core.fn"
 @import "nib/gradients"
 
+body.team #kdmaincontainer #main-tab-view
+body.teams #kdmaincontainer #main-tab-view
+    height                  auto
+
 .Team--ufo.Team
   bg                        color, #3c3b58
   bg                        image, linear-gradient(-180deg,#3c3c57 11%,#8598be 100%)
@@ -8,10 +12,15 @@
   font-family               ProximaNovaFamily
   -webkit-font-smoothing    antialiased
   -moz-osx-font-smoothing   grayscale
+  borderBox()
+  padding-bottom            145px
 
-  a
+  a, a:hover
     color                   #56a2d3
     text-decoration         none
+
+  > .kdtabview
+    overflow                visible
 
   .main-header.team
     max-width               100%
@@ -33,12 +42,9 @@
 
   &.content-page .TeamsModal
   &.content-page .kdtabpaneview .TeamsModal
-    margin-top              180px
+    margin                  180px auto 0 auto
     width                   480px
     padding-top             38px
-
-    &.TeamsModal--recover
-      padding-top           5px
 
     &:after
       content               ''
@@ -100,9 +106,14 @@
       margin-bottom         25px
       display               inline-block !important
       float                 none !important
+      text-transform        uppercase
 
       .icon
         margin              0 0 0 -30px !important
+
+    .TeamsModal-button-separator
+      margin                32px auto
+      width                 400px
 
     .secondary-link
       font-size             14px
@@ -110,7 +121,8 @@
 
     .gitlab
       div.or
-        margin              -5px 16px
+        margin              -5px 0px
+        width               400px
 
       .TeamsModal-button
         margin              25px auto !important
@@ -142,10 +154,22 @@
       h5
         font-size           17px
 
+    &.TeamsModal--recover
+      padding-top           5px
+
+    &.TeamsModal--groupCreation
+      min-width             auto
+
+      &.alreadyMember:after
+        hidden()
+
+      h5 i
+        color               #56a2d3
+
+
   .additional-info
-    margin-top              50px
-    margin-bottom           0
-    padding                 0
+    padding                 50px 0 0 0
+    margin                  0 auto
     color                   #fff
     font-size               14px
     line-height             17px
