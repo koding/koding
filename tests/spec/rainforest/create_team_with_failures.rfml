@@ -1,0 +1,48 @@
+#! 986368ca-bef2-4ee3-9b97-717d068f6ee3
+# title: create_team_with_failures
+# start_uri: /
+# tags: rfml-test
+#
+
+Enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In'
+Do you see 'Welcome! Enter your team's Koding domain.' form in the center of the page with a 'LOGIN' button? Do you see 'Forgot your team name?' link? Do you see 'Do you want to create a new team?' text below that form?
+
+Click on the 'create a new team' link below the form
+Do you see 'Let's sign you up!' form with 'Email address' and 'Name your team' text fields and a 'SIGN UP' button?
+
+Enter an invalid team name
+Do you see 'Please type a valid email address.' warning?
+
+Enter an empty team name
+Do you see 'Please type a valid email address.' warning?
+
+Enter "{{ random.email }}" in the 'Email address' and leave 'Name your team' fields empty and click on 'SIGN UP' button
+Do you see  'Please enter a team name.' warning?
+
+Enter "{{ random.email }}" in the 'Email address' and enter "test" in 'Name your team' fields and click on 'SIGN UP' button
+Do you see 'Your team URL' form with URL field prefilled?
+
+Delete the prefilled URL and click on 'Next' button
+Have you seen 'Domain name should be longer than 2 characters!' warning? Do you see the red border around the text field?
+
+Enter 'sandbox' and click on 'Next' button
+Have you seen 'Invalid domain!' warning? Do you see the red border around the text field?
+
+Enter 'koding' and click on 'Next' button
+Have you seen 'Domain is taken!' warning? Do you see the red border around the text field?
+
+Enter '{{ random.last_name }}{{ random.number }}' as converted to uppercase and click on 'Next' button 
+Do you see 'Create your account' form with email field prefilled?
+
+Leave username and password fields empty and click on 'Done!' button
+Do you see 'For username only lowercase letters and numbers are allowed!' and 'Passwords should be at least 8 characters.' warnings? Do you see the red border around the text fields?
+
+Enter 'aaa' in the username, and '{{ random.password }}' in the password fields and click on 'Done!' button
+Do you see 'Username should be between 4 and 25 characters!' warning? Do you see the red border around the text field for username?
+
+Enter 'koding' in the username, and '{{ random.password }}' in the password fields and click on 'Done!' button
+Have you seen 'Sorry, "koding" is already taken!' warning?
+
+Enter '{{ random.first_name }}{{ random.number }}' as converted to uppercase in the username field and click on 'Done!' button
+Do you see 'Authentication Required' form?
+
