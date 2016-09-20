@@ -71,7 +71,4 @@ module.exports = class TeamResetTab extends kd.TabPaneView
       <h4>Set your new password</h4>
       {{> @form}}
     </div>
-    <footer>
-      <a href="https://www.koding.com/legal/teams-user-policy" target="_blank">Acceptable user policy</a><a href="https://www.koding.com/legal/teams-copyright" target="_blank">Copyright/DMCA guidelines</a><a href="https://www.koding.com/legal/teams-terms-of-service" target="_blank">Terms of service</a><a href="https://www.koding.com/legal/teams-privacy" target="_blank">Privacy policy</a>
-    </footer>
     '''
