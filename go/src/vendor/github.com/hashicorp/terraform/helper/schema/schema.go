@@ -52,6 +52,15 @@ type Schema struct {
 	Optional bool
 	Required bool
 
+	// If this is non-nil, the provided function will be used during diff
+	// of this field. If this is nil, a default diff for the type of the
+	// schema will be used.
+	//
+	// This allows comparison based on something other than primitive, list
+	// or map equality - for example SSH public keys may be considered
+	// equivalent regardless of trailing whitespace.
+	DiffSuppressFunc SchemaDiffSuppressFunc
+
 	// If this is non-nil, then this will be a default value that is used
 	// when this item is not set in the configuration/state.
 	//
@@ -145,7 +154,20 @@ type Schema struct {
 	//
 	// ValidateFunc currently only works for primitive types.
 	ValidateFunc SchemaValidateFunc
+
+	// Sensitive ensures that the attribute's value does not get displayed in
+	// logs or regular output. It should be used for passwords or other
+	// secret fields. Futrure versions of Terraform may encrypt these
+	// values.
+	Sensitive bool
 }
+
+// SchemaDiffSuppresFunc is a function which can be used to determine
+// whether a detected diff on a schema element is "valid" or not, and
+// suppress it from the plan if necessary.
+//
+// Return true if the diff should be suppressed, false to retain it.
+type SchemaDiffSuppressFunc func(k, old, new string, d *ResourceData) bool
 
 // SchemaDefaultFunc is a function called to return a default value for
 // a field.
@@ -243,6 +265,20 @@ func (s *Schema) finalizeDiff(
 		return d
 	}
 
+	if s.Type == TypeBool {
+		normalizeBoolString := func(s string) string {
+			switch s {
+			case "0":
+				return "false"
+			case "1":
+				return "true"
+			}
+			return s
+		}
+		d.Old = normalizeBoolString(d.Old)
+		d.New = normalizeBoolString(d.New)
+	}
+
 	if d.NewRemoved {
 		return d
 	}
@@ -263,6 +299,11 @@ func (s *Schema) finalizeDiff(
 	if s.ForceNew {
 		// Force new, set it to true in the diff
 		d.RequiresNew = true
+	}
+
+	if s.Sensitive {
+		// Set the Sensitive flag so output is hidden in the UI
+		d.Sensitive = true
 	}
 
 	return d
@@ -292,6 +333,11 @@ func (m schemaMap) Diff(
 	result := new(terraform.InstanceDiff)
 	result.Attributes = make(map[string]*terraform.ResourceAttrDiff)
 
+	// Make sure to mark if the resource is tainted
+	if s != nil {
+		result.DestroyTainted = s.Tainted
+	}
+
 	d := &ResourceData{
 		schema: m,
 		state:  s,
@@ -313,6 +359,9 @@ func (m schemaMap) Diff(
 		// Create the new diff
 		result2 := new(terraform.InstanceDiff)
 		result2.Attributes = make(map[string]*terraform.ResourceAttrDiff)
+
+		// Preserve the DestroyTainted flag
+		result2.DestroyTainted = result.DestroyTainted
 
 		// Reset the data to not contain state. We have to call init()
 		// again in order to reset the FieldReaders.
@@ -537,7 +586,7 @@ func (m schemaMap) InternalValidate(topSchemaMap schemaMap) error {
 
 			switch t := v.Elem.(type) {
 			case *Resource:
-				if err := t.InternalValidate(topSchemaMap); err != nil {
+				if err := t.InternalValidate(topSchemaMap, true); err != nil {
 					return err
 				}
 			case *Schema:
@@ -570,18 +619,32 @@ func (m schemaMap) diff(
 	diff *terraform.InstanceDiff,
 	d *ResourceData,
 	all bool) error {
+
+	unsupressedDiff := new(terraform.InstanceDiff)
+	unsupressedDiff.Attributes = make(map[string]*terraform.ResourceAttrDiff)
+
 	var err error
 	switch schema.Type {
 	case TypeBool, TypeInt, TypeFloat, TypeString:
-		err = m.diffString(k, schema, diff, d, all)
+		err = m.diffString(k, schema, unsupressedDiff, d, all)
 	case TypeList:
-		err = m.diffList(k, schema, diff, d, all)
+		err = m.diffList(k, schema, unsupressedDiff, d, all)
 	case TypeMap:
-		err = m.diffMap(k, schema, diff, d, all)
+		err = m.diffMap(k, schema, unsupressedDiff, d, all)
 	case TypeSet:
-		err = m.diffSet(k, schema, diff, d, all)
+		err = m.diffSet(k, schema, unsupressedDiff, d, all)
 	default:
 		err = fmt.Errorf("%s: unknown type %#v", k, schema.Type)
+	}
+
+	for attrK, attrV := range unsupressedDiff.Attributes {
+		if schema.DiffSuppressFunc != nil &&
+			attrV != nil &&
+			schema.DiffSuppressFunc(attrK, attrV.Old, attrV.New, d) {
+			continue
+		}
+
+		diff.Attributes[attrK] = attrV
 	}
 
 	return err
@@ -727,8 +790,8 @@ func (m schemaMap) diffMap(
 	stateExists := o != nil
 
 	// Delete any count values, since we don't use those
-	delete(configMap, "#")
-	delete(stateMap, "#")
+	delete(configMap, "%")
+	delete(stateMap, "%")
 
 	// Check if the number of elements has changed.
 	oldLen, newLen := len(stateMap), len(configMap)
@@ -762,7 +825,7 @@ func (m schemaMap) diffMap(
 			oldStr = ""
 		}
 
-		diff.Attributes[k+".#"] = countSchema.finalizeDiff(
+		diff.Attributes[k+".%"] = countSchema.finalizeDiff(
 			&terraform.ResourceAttrDiff{
 				Old: oldStr,
 				New: newStr,
@@ -1106,11 +1169,19 @@ func (m schemaMap) validateMap(
 	// case to []interface{} unless the slice is exactly that type.
 	rawV := reflect.ValueOf(raw)
 	switch rawV.Kind() {
+	case reflect.String:
+		// If raw and reified are equal, this is a string and should
+		// be rejected.
+		reified, reifiedOk := c.Get(k)
+		if reifiedOk && raw == reified && !c.IsComputed(k) {
+			return nil, []error{fmt.Errorf("%s: should be a map", k)}
+		}
+		// Otherwise it's likely raw is an interpolation.
+		return nil, nil
 	case reflect.Map:
 	case reflect.Slice:
 	default:
-		return nil, []error{fmt.Errorf(
-			"%s: should be a map", k)}
+		return nil, []error{fmt.Errorf("%s: should be a map", k)}
 	}
 
 	// If it is not a slice, it is valid

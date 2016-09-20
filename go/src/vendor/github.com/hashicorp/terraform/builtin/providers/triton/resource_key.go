@@ -20,6 +20,9 @@ func resourceKey() *schema.Resource {
 		Exists: resourceKeyExists,
 		Read:   resourceKeyRead,
 		Delete: resourceKeyDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceKeyImporter,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": &schema.Schema{
@@ -59,6 +62,8 @@ func resourceKeyCreate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
+	d.SetId(d.Get("name").(string))
+
 	err = resourceKeyRead(d, meta)
 	if err != nil {
 		return err
@@ -87,12 +92,11 @@ func resourceKeyExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 func resourceKeyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*cloudapi.Client)
 
-	key, err := client.GetKey(d.Get("name").(string))
+	key, err := client.GetKey(d.Id())
 	if err != nil {
 		return err
 	}
 
-	d.SetId(key.Name)
 	d.Set("name", key.Name)
 	d.Set("key", key.Key)
 
@@ -107,4 +111,8 @@ func resourceKeyDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
+}
+
+func resourceKeyImporter(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	return []*schema.ResourceData{d}, nil
 }

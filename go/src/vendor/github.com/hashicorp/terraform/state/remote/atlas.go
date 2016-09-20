@@ -3,6 +3,8 @@ package remote
 import (
 	"bytes"
 	"crypto/md5"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -13,13 +15,16 @@ import (
 	"path"
 	"strings"
 
+	"github.com/hashicorp/go-cleanhttp"
 	"github.com/hashicorp/go-retryablehttp"
+	"github.com/hashicorp/go-rootcerts"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 const (
 	// defaultAtlasServer is used when no address is given
 	defaultAtlasServer = "https://atlas.hashicorp.com/"
+	atlasTokenHeader   = "X-Atlas-Token"
 )
 
 func atlasFactory(conf map[string]string) (Client, error) {
@@ -89,8 +94,13 @@ func (c *AtlasClient) Get() (*Payload, error) {
 		return nil, fmt.Errorf("Failed to make HTTP request: %v", err)
 	}
 
+	req.Header.Set(atlasTokenHeader, c.AccessToken)
+
 	// Request the url
-	client := c.http()
+	client, err := c.http()
+	if err != nil {
+		return nil, err
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
@@ -164,12 +174,16 @@ func (c *AtlasClient) Put(state []byte) error {
 	}
 
 	// Prepare the request
+	req.Header.Set(atlasTokenHeader, c.AccessToken)
 	req.Header.Set("Content-MD5", b64)
 	req.Header.Set("Content-Type", "application/json")
 	req.ContentLength = int64(len(state))
 
 	// Make the request
-	client := c.http()
+	client, err := c.http()
+	if err != nil {
+		return err
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Failed to upload state: %v", err)
@@ -195,9 +209,13 @@ func (c *AtlasClient) Delete() error {
 	if err != nil {
 		return fmt.Errorf("Failed to make HTTP request: %v", err)
 	}
+	req.Header.Set(atlasTokenHeader, c.AccessToken)
 
 	// Make the request
-	client := c.http()
+	client, err := c.http()
+	if err != nil {
+		return err
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Failed to delete state: %v", err)
@@ -237,7 +255,6 @@ func (c *AtlasClient) url() *url.URL {
 	values := url.Values{}
 
 	values.Add("atlas_run_id", c.RunId)
-	values.Add("access_token", c.AccessToken)
 
 	return &url.URL{
 		Scheme:   c.ServerURL.Scheme,
@@ -247,11 +264,40 @@ func (c *AtlasClient) url() *url.URL {
 	}
 }
 
-func (c *AtlasClient) http() *retryablehttp.Client {
+func (c *AtlasClient) http() (*retryablehttp.Client, error) {
 	if c.HTTPClient != nil {
-		return c.HTTPClient
+		return c.HTTPClient, nil
 	}
-	return retryablehttp.NewClient()
+	tlsConfig := &tls.Config{}
+	err := rootcerts.ConfigureTLS(tlsConfig, &rootcerts.Config{
+		CAFile: os.Getenv("ATLAS_CAFILE"),
+		CAPath: os.Getenv("ATLAS_CAPATH"),
+	})
+	if err != nil {
+		return nil, err
+	}
+	rc := retryablehttp.NewClient()
+
+	rc.CheckRetry = func(resp *http.Response, err error) (bool, error) {
+		if err != nil {
+			// don't bother retrying if the certs don't match
+			if err, ok := err.(*url.Error); ok {
+				if _, ok := err.Err.(x509.UnknownAuthorityError); ok {
+					return false, nil
+				}
+			}
+			// continue retrying
+			return true, nil
+		}
+		return retryablehttp.DefaultRetryPolicy(resp, err)
+	}
+
+	t := cleanhttp.DefaultTransport()
+	t.TLSClientConfig = tlsConfig
+	rc.HTTPClient.Transport = t
+
+	c.HTTPClient = rc
+	return rc, nil
 }
 
 // Atlas returns an HTTP 409 - Conflict if the pushed state reports the same
@@ -298,6 +344,7 @@ func (c *AtlasClient) handleConflict(msg string, state []byte) error {
 			var buf bytes.Buffer
 			if err := terraform.WriteState(proposedState, &buf); err != nil {
 				return conflictHandlingError(err)
+
 			}
 			return c.Put(buf.Bytes())
 		} else {

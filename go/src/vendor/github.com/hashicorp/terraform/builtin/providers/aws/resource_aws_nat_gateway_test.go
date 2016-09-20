@@ -16,9 +16,10 @@ func TestAccAWSNatGateway_basic(t *testing.T) {
 	var natGateway ec2.NatGateway
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckNatGatewayDestroy,
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "aws_nat_gateway.gateway",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
 				Config: testAccNatGatewayConfig,
@@ -43,7 +44,12 @@ func testAccCheckNatGatewayDestroy(s *terraform.State) error {
 			NatGatewayIds: []*string{aws.String(rs.Primary.ID)},
 		})
 		if err == nil {
-			if len(resp.NatGateways) > 0 && strings.ToLower(*resp.NatGateways[0].State) != "deleted" {
+			status := map[string]bool{
+				"deleted":  true,
+				"deleting": true,
+				"failed":   true,
+			}
+			if _, ok := status[strings.ToLower(*resp.NatGateways[0].State)]; len(resp.NatGateways) > 0 && !ok {
 				return fmt.Errorf("still exists")
 			}
 

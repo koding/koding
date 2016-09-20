@@ -67,11 +67,13 @@ The following arguments are supported:
 * `load_balancers` (Optional) A list of load balancer names to add to the autoscaling
    group names.
 * `vpc_zone_identifier` (Optional) A list of subnet IDs to launch resources in.
-* `termination_policies` (Optional) A list of policies to decide how the instances in the auto scale group should be terminated.
+* `target_group_arns` (Optional) A list of `aws_target_group` ARNs, for use with
+Application Load Balancing
+* `termination_policies` (Optional) A list of policies to decide how the instances in the auto scale group should be terminated. The allowed values are `OldestInstance`, `NewestInstance`, `OldestLaunchConfiguration`, `ClosestToNextInstanceHour`, `Default`.
 * `tag` (Optional) A list of tag blocks. Tags documented below.
 * `placement_group` (Optional) The name of the placement group into which you'll launch your instances, if any.
 * `metrics_granularity` - (Optional) The granularity to associate with the metrics to collect. The only valid value is `1Minute`. Default is `1Minute`.
-* `enabled_metrics` - (Required) A list of metrics to collect. The allowed values are `GroupMinSize`, `GroupMaxSize`, `GroupDesiredCapacity`, `GroupInServiceInstances`, `GroupPendingInstances`, `GroupStandbyInstances`, `GroupTerminatingInstances`, `GroupTotalInstances`.
+* `enabled_metrics` - (Optional) A list of metrics to collect. The allowed values are `GroupMinSize`, `GroupMaxSize`, `GroupDesiredCapacity`, `GroupInServiceInstances`, `GroupPendingInstances`, `GroupStandbyInstances`, `GroupTerminatingInstances`, `GroupTotalInstances`.
 * `wait_for_capacity_timeout` (Default: "10m") A maximum
   [duration](https://golang.org/pkg/time/#ParseDuration) that Terraform should
   wait for ASG instances to be healthy before timing out.  (See also [Waiting
@@ -86,6 +88,9 @@ The following arguments are supported:
   on both create and update operations. (Takes precedence over
   `min_elb_capacity` behavior.)
   (See also [Waiting for Capacity](#waiting-for-capacity) below.)
+* `protect_from_scale_in` (Optional) Allows setting instance protection. The
+   autoscaling group will not select instances with this setting for terminination
+   during scale in events.
 
 Tags support the following:
 
@@ -99,6 +104,7 @@ Tags support the following:
 The following attributes are exported:
 
 * `id` - The autoscaling group name.
+* `arn` - The ARN for this AutoScaling Group
 * `availability_zones` - The availability zones of the autoscale group.
 * `min_size` - The minimum size of the autoscale group
 * `max_size` - The maximum size of the autoscale group
@@ -111,10 +117,11 @@ The following attributes are exported:
 * `vpc_zone_identifier` (Optional) - The VPC zone identifier
 * `load_balancers` (Optional) The load balancer names associated with the
    autoscaling group.
+* `target_group_arns` (Optional) list of Target Group ARNs that apply to this
+AutoScaling Group
 
 ~> **NOTE:** When using `ELB` as the health_check_type, `health_check_grace_period` is required.
 
-<a id="waiting-for-capacity"></a>
 ## Waiting for Capacity
 
 A newly-created ASG is initially empty and begins to scale to `min_size` (or
@@ -176,3 +183,12 @@ If ASG creation takes more than a few minutes, this could indicate one of a
 number of configuration problems. See the [AWS Docs on Load Balancer
 Troubleshooting](https://docs.aws.amazon.com/ElasticLoadBalancing/latest/DeveloperGuide/elb-troubleshooting.html)
 for more information.
+
+
+## Import
+
+AutoScaling Groups can be imported using the `name`, e.g. 
+
+```
+$ terraform import aws_autoscaling_group.web web-asg
+```

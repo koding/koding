@@ -9,8 +9,8 @@ import (
 	"runtime"
 	"sync"
 
+	"github.com/hashicorp/go-plugin"
 	"github.com/hashicorp/terraform/helper/logging"
-	"github.com/hashicorp/terraform/plugin"
 	"github.com/mattn/go-colorable"
 	"github.com/mitchellh/cli"
 	"github.com/mitchellh/panicwrap"
@@ -18,6 +18,8 @@ import (
 )
 
 func main() {
+	// Override global prefix set by go-dynect during init()
+	log.SetPrefix("")
 	os.Exit(realMain())
 }
 
@@ -83,10 +85,11 @@ func wrappedMain() int {
 	log.Printf(
 		"[INFO] Terraform version: %s %s %s",
 		Version, VersionPrerelease, GitCommit)
+	log.Printf("[INFO] CLI args: %#v", os.Args)
 
 	// Load the configuration
 	config := BuiltinConfig
-	if err := config.Discover(); err != nil {
+	if err := config.Discover(Ui); err != nil {
 		Ui.Error(fmt.Sprintf("Error discovering plugins: %s", err))
 		return 1
 	}
@@ -113,7 +116,7 @@ func wrappedMain() int {
 	cli := &cli.CLI{
 		Args:       args,
 		Commands:   Commands,
-		HelpFunc:   cli.BasicHelpFunc("terraform"),
+		HelpFunc:   helpFunc,
 		HelpWriter: os.Stdout,
 	}
 

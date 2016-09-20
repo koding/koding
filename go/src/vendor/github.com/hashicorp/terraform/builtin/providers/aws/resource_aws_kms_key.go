@@ -19,6 +19,10 @@ func resourceAwsKmsKey() *schema.Resource {
 		Update: resourceAwsKmsKeyUpdate,
 		Delete: resourceAwsKmsKeyDelete,
 
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+
 		Schema: map[string]*schema.Schema{
 			"arn": &schema.Schema{
 				Type:     schema.TypeString,
@@ -48,10 +52,10 @@ func resourceAwsKmsKey() *schema.Resource {
 				},
 			},
 			"policy": &schema.Schema{
-				Type:      schema.TypeString,
-				Optional:  true,
-				Computed:  true,
-				StateFunc: normalizeJson,
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				DiffSuppressFunc: suppressEquivalentAwsPolicyDiffs,
 			},
 			"is_enabled": &schema.Schema{
 				Type:     schema.TypeBool,

@@ -16,14 +16,16 @@ import (
 )
 
 const (
-	// statusResumeIncomplete is the code returned by the Google uploader when the transfer is not yet complete.
+	// statusResumeIncomplete is the code returned by the Google uploader
+	// when the transfer is not yet complete.
 	statusResumeIncomplete = 308
-)
 
-// DefaultBackoffStrategy returns a default strategy to use for retrying failed upload requests.
-func DefaultBackoffStrategy() BackoffStrategy {
-	return &ExponentialBackoff{BasePause: time.Second}
-}
+	// statusTooManyRequests is returned by the storage API if the
+	// per-project limits have been temporarily exceeded. The request
+	// should be retried.
+	// https://cloud.google.com/storage/docs/json_api/v1/status-codes#standardcodes
+	statusTooManyRequests = 429
+)
 
 // ResumableUpload is used by the generated APIs to provide resumable uploads.
 // It is not used by developers directly.
@@ -33,7 +35,7 @@ type ResumableUpload struct {
 	URI       string
 	UserAgent string // User-Agent for header of the request
 	// Media is the object being uploaded.
-	Media *ResumableBuffer
+	Media *MediaBuffer
 	// MediaType defines the media type, e.g. "image/jpeg".
 	MediaType string
 
@@ -78,7 +80,10 @@ func (rx *ResumableUpload) doUploadRequest(ctx context.Context, data io.Reader, 
 	req.Header.Set("Content-Range", contentRange)
 	req.Header.Set("Content-Type", rx.MediaType)
 	req.Header.Set("User-Agent", rx.UserAgent)
-	return ctxhttp.Do(ctx, rx.Client, req)
+	fn := Hook(ctx, req)
+	resp, err := ctxhttp.Do(ctx, rx.Client, req)
+	fn(resp)
+	return resp, err
 
 }
 
@@ -130,8 +135,11 @@ func contextDone(ctx context.Context) bool {
 }
 
 // Upload starts the process of a resumable upload with a cancellable context.
-// It retries indefinitely (using exponential backoff) until cancelled.
+// It retries using the provided back off strategy until cancelled or the
+// strategy indicates to stop retrying.
 // It is called from the auto-generated API code and is not visible to the user.
+// Before sending an HTTP request, Upload calls Hook to obtain a function which
+// it subsequently calls with the HTTP response.
 // rx is private to the auto-generated API code.
 // Exactly one of resp or err will be nil.  If resp is non-nil, the caller must call resp.Body.Close.
 func (rx *ResumableUpload) Upload(ctx context.Context) (resp *http.Response, err error) {
@@ -153,6 +161,33 @@ func (rx *ResumableUpload) Upload(ctx context.Context) (resp *http.Response, err
 		}
 
 		resp, err = rx.transferChunk(ctx)
+
+		var status int
+		if resp != nil {
+			status = resp.StatusCode
+		}
+
+		// Check if we should retry the request.
+		if shouldRetry(status, err) {
+			var retry bool
+			pause, retry = backoff.Pause()
+			if retry {
+				if resp != nil && resp.Body != nil {
+					resp.Body.Close()
+				}
+				continue
+			}
+		}
+
+		// If the chunk was uploaded successfully, but there's still
+		// more to go, upload the next chunk without any delay.
+		if status == statusResumeIncomplete {
+			pause = 0
+			backoff.Reset()
+			resp.Body.Close()
+			continue
+		}
+
 		// It's possible for err and resp to both be non-nil here, but we expose a simpler
 		// contract to our callers: exactly one of resp and err will be non-nil.  This means
 		// that any response body must be closed here before returning a non-nil error.
@@ -162,16 +197,7 @@ func (rx *ResumableUpload) Upload(ctx context.Context) (resp *http.Response, err
 			}
 			return nil, err
 		}
-		if resp.StatusCode == http.StatusCreated || resp.StatusCode == http.StatusOK {
-			return resp, nil
-		}
-		resp.Body.Close()
 
-		if resp.StatusCode == statusResumeIncomplete {
-			pause = 0
-			backoff.Reset()
-		} else {
-			pause = backoff.Pause()
-		}
+		return resp, nil
 	}
 }

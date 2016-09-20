@@ -20,6 +20,9 @@ func resourceAwsCloudWatchEventRule() *schema.Resource {
 		Read:   resourceAwsCloudWatchEventRuleRead,
 		Update: resourceAwsCloudWatchEventRuleUpdate,
 		Delete: resourceAwsCloudWatchEventRuleDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": &schema.Schema{
@@ -36,8 +39,11 @@ func resourceAwsCloudWatchEventRule() *schema.Resource {
 			"event_pattern": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateMaxLength(2048),
-				StateFunc:    normalizeJson,
+				ValidateFunc: validateEventPatternValue(2048),
+				StateFunc: func(v interface{}) string {
+					json, _ := normalizeJsonString(v)
+					return json
+				},
 			},
 			"description": &schema.Schema{
 				Type:         schema.TypeString,
@@ -120,7 +126,8 @@ func resourceAwsCloudWatchEventRuleRead(d *schema.ResourceData, meta interface{}
 	d.Set("arn", out.Arn)
 	d.Set("description", out.Description)
 	if out.EventPattern != nil {
-		d.Set("event_pattern", normalizeJson(*out.EventPattern))
+		pattern, _ := normalizeJsonString(*out.EventPattern)
+		d.Set("event_pattern", pattern)
 	}
 	d.Set("name", out.Name)
 	d.Set("role_arn", out.RoleArn)
@@ -154,10 +161,8 @@ func resourceAwsCloudWatchEventRuleUpdate(d *schema.ResourceData, meta interface
 	log.Printf("[DEBUG] Updating CloudWatch Event Rule: %s", input)
 
 	// IAM Roles take some time to propagate
-	var out *events.PutRuleOutput
 	err := resource.Retry(30*time.Second, func() *resource.RetryError {
-		var err error
-		out, err = conn.PutRule(input)
+		_, err := conn.PutRule(input)
 		pattern := regexp.MustCompile("cannot be assumed by principal '[a-z]+\\.amazonaws\\.com'\\.$")
 		if err != nil {
 			if awsErr, ok := err.(awserr.Error); ok {
@@ -213,7 +218,8 @@ func buildPutRuleInputStruct(d *schema.ResourceData) *events.PutRuleInput {
 		input.Description = aws.String(v.(string))
 	}
 	if v, ok := d.GetOk("event_pattern"); ok {
-		input.EventPattern = aws.String(normalizeJson(v.(string)))
+		pattern, _ := normalizeJsonString(v.(string))
+		input.EventPattern = aws.String(pattern)
 	}
 	if v, ok := d.GetOk("role_arn"); ok {
 		input.RoleArn = aws.String(v.(string))
@@ -245,4 +251,25 @@ func getStringStateFromBoolean(isEnabled bool) string {
 		return "ENABLED"
 	}
 	return "DISABLED"
+}
+
+func validateEventPatternValue(length int) schema.SchemaValidateFunc {
+	return func(v interface{}, k string) (ws []string, errors []error) {
+		json, err := normalizeJsonString(v)
+		if err != nil {
+			errors = append(errors, fmt.Errorf("%q contains an invalid JSON: %s", k, err))
+
+			// Invalid JSON? Return immediately,
+			// there is no need to collect other
+			// errors.
+			return
+		}
+
+		// Check whether the normalized JSON is within the given length.
+		if len(json) > length {
+			errors = append(errors, fmt.Errorf(
+				"%q cannot be longer than %d characters: %q", k, length, json))
+		}
+		return
+	}
 }

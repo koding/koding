@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/hashicorp/hil"
 	"github.com/hashicorp/hil/ast"
 	"github.com/hashicorp/terraform/config"
 	"github.com/hashicorp/terraform/helper/hashcode"
@@ -123,12 +124,17 @@ func TestValueType_Zero(t *testing.T) {
 	}
 }
 
+func interfaceToVariableSwallowError(input interface{}) ast.Variable {
+	variable, _ := hil.InterfaceToVariable(input)
+	return variable
+}
+
 func TestSchemaMap_Diff(t *testing.T) {
 	cases := map[string]struct {
 		Schema          map[string]*Schema
 		State           *terraform.InstanceState
 		Config          map[string]interface{}
-		ConfigVariables map[string]string
+		ConfigVariables map[string]ast.Variable
 		Diff            *terraform.InstanceDiff
 		Err             bool
 	}{
@@ -396,8 +402,8 @@ func TestSchemaMap_Diff(t *testing.T) {
 				"availability_zone": "${var.foo}",
 			},
 
-			ConfigVariables: map[string]string{
-				"var.foo": "bar",
+			ConfigVariables: map[string]ast.Variable{
+				"var.foo": interfaceToVariableSwallowError("bar"),
 			},
 
 			Diff: &terraform.InstanceDiff{
@@ -426,8 +432,8 @@ func TestSchemaMap_Diff(t *testing.T) {
 				"availability_zone": "${var.foo}",
 			},
 
-			ConfigVariables: map[string]string{
-				"var.foo": config.UnknownVariableValue,
+			ConfigVariables: map[string]ast.Variable{
+				"var.foo": interfaceToVariableSwallowError(config.UnknownVariableValue),
 			},
 
 			Diff: &terraform.InstanceDiff{
@@ -491,7 +497,7 @@ func TestSchemaMap_Diff(t *testing.T) {
 				Attributes: map[string]*terraform.ResourceAttrDiff{
 					"port": &terraform.ResourceAttrDiff{
 						Old:         "",
-						New:         "0",
+						New:         "false",
 						RequiresNew: true,
 					},
 				},
@@ -576,8 +582,8 @@ func TestSchemaMap_Diff(t *testing.T) {
 				"ports": []interface{}{1, "${var.foo}"},
 			},
 
-			ConfigVariables: map[string]string{
-				"var.foo": config.NewStringList([]string{"2", "5"}).String(),
+			ConfigVariables: map[string]ast.Variable{
+				"var.foo": interfaceToVariableSwallowError([]interface{}{"2", "5"}),
 			},
 
 			Diff: &terraform.InstanceDiff{
@@ -619,9 +625,9 @@ func TestSchemaMap_Diff(t *testing.T) {
 				"ports": []interface{}{1, "${var.foo}"},
 			},
 
-			ConfigVariables: map[string]string{
-				"var.foo": config.NewStringList([]string{
-					config.UnknownVariableValue, "5"}).String(),
+			ConfigVariables: map[string]ast.Variable{
+				"var.foo": interfaceToVariableSwallowError([]interface{}{
+					config.UnknownVariableValue, "5"}),
 			},
 
 			Diff: &terraform.InstanceDiff{
@@ -886,8 +892,8 @@ func TestSchemaMap_Diff(t *testing.T) {
 				"ports": []interface{}{"${var.foo}", 1},
 			},
 
-			ConfigVariables: map[string]string{
-				"var.foo": config.NewStringList([]string{"2", "5"}).String(),
+			ConfigVariables: map[string]ast.Variable{
+				"var.foo": interfaceToVariableSwallowError([]interface{}{"2", "5"}),
 			},
 
 			Diff: &terraform.InstanceDiff{
@@ -932,9 +938,9 @@ func TestSchemaMap_Diff(t *testing.T) {
 				"ports": []interface{}{1, "${var.foo}"},
 			},
 
-			ConfigVariables: map[string]string{
-				"var.foo": config.NewStringList([]string{
-					config.UnknownVariableValue, "5"}).String(),
+			ConfigVariables: map[string]ast.Variable{
+				"var.foo": interfaceToVariableSwallowError([]interface{}{
+					config.UnknownVariableValue, "5"}),
 			},
 
 			Diff: &terraform.InstanceDiff{
@@ -1291,7 +1297,7 @@ func TestSchemaMap_Diff(t *testing.T) {
 
 			Diff: &terraform.InstanceDiff{
 				Attributes: map[string]*terraform.ResourceAttrDiff{
-					"config_vars.#": &terraform.ResourceAttrDiff{
+					"config_vars.%": &terraform.ResourceAttrDiff{
 						Old: "0",
 						New: "1",
 					},
@@ -1467,7 +1473,7 @@ func TestSchemaMap_Diff(t *testing.T) {
 						Old: "1",
 						New: "0",
 					},
-					"config_vars.0.#": &terraform.ResourceAttrDiff{
+					"config_vars.0.%": &terraform.ResourceAttrDiff{
 						Old: "2",
 						New: "0",
 					},
@@ -1603,8 +1609,8 @@ func TestSchemaMap_Diff(t *testing.T) {
 				"instances": []interface{}{"${var.foo}"},
 			},
 
-			ConfigVariables: map[string]string{
-				"var.foo": config.UnknownVariableValue,
+			ConfigVariables: map[string]ast.Variable{
+				"var.foo": interfaceToVariableSwallowError(config.UnknownVariableValue),
 			},
 
 			Diff: &terraform.InstanceDiff{
@@ -1654,8 +1660,8 @@ func TestSchemaMap_Diff(t *testing.T) {
 				},
 			},
 
-			ConfigVariables: map[string]string{
-				"var.foo": config.UnknownVariableValue,
+			ConfigVariables: map[string]ast.Variable{
+				"var.foo": interfaceToVariableSwallowError(config.UnknownVariableValue),
 			},
 
 			Diff: &terraform.InstanceDiff{
@@ -1720,8 +1726,8 @@ func TestSchemaMap_Diff(t *testing.T) {
 				},
 			},
 
-			ConfigVariables: map[string]string{
-				"var.foo": config.UnknownVariableValue,
+			ConfigVariables: map[string]ast.Variable{
+				"var.foo": interfaceToVariableSwallowError(config.UnknownVariableValue),
 			},
 
 			Diff: &terraform.InstanceDiff{
@@ -1757,7 +1763,7 @@ func TestSchemaMap_Diff(t *testing.T) {
 
 			Diff: &terraform.InstanceDiff{
 				Attributes: map[string]*terraform.ResourceAttrDiff{
-					"vars.#": &terraform.ResourceAttrDiff{
+					"vars.%": &terraform.ResourceAttrDiff{
 						Old:         "",
 						NewComputed: true,
 					},
@@ -1777,7 +1783,7 @@ func TestSchemaMap_Diff(t *testing.T) {
 
 			State: &terraform.InstanceState{
 				Attributes: map[string]string{
-					"vars.#": "0",
+					"vars.%": "0",
 				},
 			},
 
@@ -1787,13 +1793,13 @@ func TestSchemaMap_Diff(t *testing.T) {
 				},
 			},
 
-			ConfigVariables: map[string]string{
-				"var.foo": config.UnknownVariableValue,
+			ConfigVariables: map[string]ast.Variable{
+				"var.foo": interfaceToVariableSwallowError(config.UnknownVariableValue),
 			},
 
 			Diff: &terraform.InstanceDiff{
 				Attributes: map[string]*terraform.ResourceAttrDiff{
-					"vars.#": &terraform.ResourceAttrDiff{
+					"vars.%": &terraform.ResourceAttrDiff{
 						Old:         "",
 						NewComputed: true,
 					},
@@ -2040,7 +2046,7 @@ func TestSchemaMap_Diff(t *testing.T) {
 
 			Diff: &terraform.InstanceDiff{
 				Attributes: map[string]*terraform.ResourceAttrDiff{
-					"vars.#": &terraform.ResourceAttrDiff{
+					"vars.%": &terraform.ResourceAttrDiff{
 						Old: "0",
 						New: "1",
 					},
@@ -2134,8 +2140,8 @@ func TestSchemaMap_Diff(t *testing.T) {
 				"ports": []interface{}{1, "${var.foo}32"},
 			},
 
-			ConfigVariables: map[string]string{
-				"var.foo": config.UnknownVariableValue,
+			ConfigVariables: map[string]ast.Variable{
+				"var.foo": interfaceToVariableSwallowError(config.UnknownVariableValue),
 			},
 
 			Diff: &terraform.InstanceDiff{
@@ -2163,7 +2169,7 @@ func TestSchemaMap_Diff(t *testing.T) {
 
 			State: &terraform.InstanceState{
 				Attributes: map[string]string{
-					"tags.#": "0",
+					"tags.%": "0",
 				},
 			},
 
@@ -2344,6 +2350,76 @@ func TestSchemaMap_Diff(t *testing.T) {
 
 			Err: false,
 		},
+
+		"Bools can be set with 0/1 in config, still get true/false": {
+			Schema: map[string]*Schema{
+				"one": &Schema{
+					Type:     TypeBool,
+					Optional: true,
+				},
+				"two": &Schema{
+					Type:     TypeBool,
+					Optional: true,
+				},
+				"three": &Schema{
+					Type:     TypeBool,
+					Optional: true,
+				},
+			},
+
+			State: &terraform.InstanceState{
+				Attributes: map[string]string{
+					"one":   "false",
+					"two":   "true",
+					"three": "true",
+				},
+			},
+
+			Config: map[string]interface{}{
+				"one": "1",
+				"two": "0",
+			},
+
+			Diff: &terraform.InstanceDiff{
+				Attributes: map[string]*terraform.ResourceAttrDiff{
+					"one": &terraform.ResourceAttrDiff{
+						Old: "false",
+						New: "true",
+					},
+					"two": &terraform.ResourceAttrDiff{
+						Old: "true",
+						New: "false",
+					},
+					"three": &terraform.ResourceAttrDiff{
+						Old:        "true",
+						New:        "false",
+						NewRemoved: true,
+					},
+				},
+			},
+
+			Err: false,
+		},
+
+		"tainted in state w/ no attr changes is still a replacement": {
+			Schema: map[string]*Schema{},
+
+			State: &terraform.InstanceState{
+				Attributes: map[string]string{
+					"id": "someid",
+				},
+				Tainted: true,
+			},
+
+			Config: map[string]interface{}{},
+
+			Diff: &terraform.InstanceDiff{
+				Attributes:     map[string]*terraform.ResourceAttrDiff{},
+				DestroyTainted: true,
+			},
+
+			Err: false,
+		},
 	}
 
 	for tn, tc := range cases {
@@ -2353,12 +2429,7 @@ func TestSchemaMap_Diff(t *testing.T) {
 		}
 
 		if len(tc.ConfigVariables) > 0 {
-			vars := make(map[string]ast.Variable)
-			for k, v := range tc.ConfigVariables {
-				vars[k] = ast.Variable{Value: v, Type: ast.TypeString}
-			}
-
-			if err := c.Interpolate(vars); err != nil {
+			if err := c.Interpolate(tc.ConfigVariables); err != nil {
 				t.Fatalf("#%q err: %s", tn, err)
 			}
 		}
@@ -2370,7 +2441,7 @@ func TestSchemaMap_Diff(t *testing.T) {
 		}
 
 		if !reflect.DeepEqual(tc.Diff, d) {
-			t.Fatalf("#%q:\n\nexpected: %#v\n\ngot:\n\n%#v", tn, tc.Diff, d)
+			t.Fatalf("#%q:\n\nexpected:\n%#v\n\ngot:\n%#v", tn, tc.Diff, d)
 		}
 	}
 }
@@ -2866,6 +2937,92 @@ func TestSchemaMap_InternalValidate(t *testing.T) {
 		}
 	}
 
+}
+
+func TestSchemaMap_DiffSuppress(t *testing.T) {
+	cases := map[string]struct {
+		Schema          map[string]*Schema
+		State           *terraform.InstanceState
+		Config          map[string]interface{}
+		ConfigVariables map[string]ast.Variable
+		ExpectedDiff    *terraform.InstanceDiff
+		Err             bool
+	}{
+		"#0 - Suppress otherwise valid diff by returning true": {
+			Schema: map[string]*Schema{
+				"availability_zone": {
+					Type:     TypeString,
+					Optional: true,
+					DiffSuppressFunc: func(k, old, new string, d *ResourceData) bool {
+						// Always suppress any diff
+						return true
+					},
+				},
+			},
+
+			State: nil,
+
+			Config: map[string]interface{}{
+				"availability_zone": "foo",
+			},
+
+			ExpectedDiff: nil,
+
+			Err: false,
+		},
+		"#1 - Don't suppress diff by returning false": {
+			Schema: map[string]*Schema{
+				"availability_zone": {
+					Type:     TypeString,
+					Optional: true,
+					DiffSuppressFunc: func(k, old, new string, d *ResourceData) bool {
+						// Always suppress any diff
+						return false
+					},
+				},
+			},
+
+			State: nil,
+
+			Config: map[string]interface{}{
+				"availability_zone": "foo",
+			},
+
+			ExpectedDiff: &terraform.InstanceDiff{
+				Attributes: map[string]*terraform.ResourceAttrDiff{
+					"availability_zone": {
+						Old: "",
+						New: "foo",
+					},
+				},
+			},
+
+			Err: false,
+		},
+	}
+
+	for tn, tc := range cases {
+		c, err := config.NewRawConfig(tc.Config)
+		if err != nil {
+			t.Fatalf("#%q err: %s", tn, err)
+		}
+
+		if len(tc.ConfigVariables) > 0 {
+			if err := c.Interpolate(tc.ConfigVariables); err != nil {
+				t.Fatalf("#%q err: %s", tn, err)
+			}
+		}
+
+		d, err := schemaMap(tc.Schema).Diff(
+			tc.State, terraform.NewResourceConfig(c))
+		if err != nil != tc.Err {
+			t.Fatalf("#%q err: %s", tn, err)
+		}
+
+		if !reflect.DeepEqual(tc.ExpectedDiff, d) {
+			t.Fatalf("#%q:\n\nexpected:\n%#v\n\ngot:\n%#v", tn, tc.ExpectedDiff, d)
+		}
+	}
 }
 
 func TestSchemaMap_Validate(t *testing.T) {

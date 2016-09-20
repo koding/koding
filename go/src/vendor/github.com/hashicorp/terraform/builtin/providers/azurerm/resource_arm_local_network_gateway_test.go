@@ -17,7 +17,7 @@ func TestAccAzureRMLocalNetworkGateway_basic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testAccAzureRMLocalNetworkGatewayConfig_basic,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLocalNetworkGatewayExists(name),
@@ -56,7 +56,6 @@ func testCheckAzureRMLocalNetworkGatewayExists(name string) resource.TestCheckFu
 			if resp.StatusCode == http.StatusNotFound {
 				return fmt.Errorf("Local network gateway '%s' (resource group '%s') does not exist on Azure.", localNetName, resGrp)
 			}
-
 			return fmt.Errorf("Error reading the state of local network gateway '%s'.", localNetName)
 		}
 

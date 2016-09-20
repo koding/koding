@@ -46,7 +46,7 @@ func TestParse(t *testing.T) {
 		{
 			"foo ${var.bar}",
 			false,
-			&ast.Concat{
+			&ast.Output{
 				Posx: ast.Pos{Column: 1, Line: 1},
 				Exprs: []ast.Node{
 					&ast.LiteralNode{
@@ -65,7 +65,7 @@ func TestParse(t *testing.T) {
 		{
 			"foo ${var.bar} baz",
 			false,
-			&ast.Concat{
+			&ast.Output{
 				Posx: ast.Pos{Column: 1, Line: 1},
 				Exprs: []ast.Node{
 					&ast.LiteralNode{
@@ -89,7 +89,7 @@ func TestParse(t *testing.T) {
 		{
 			"foo ${\"bar\"}",
 			false,
-			&ast.Concat{
+			&ast.Output{
 				Posx: ast.Pos{Column: 1, Line: 1},
 				Exprs: []ast.Node{
 					&ast.LiteralNode{
@@ -115,7 +115,7 @@ func TestParse(t *testing.T) {
 		{
 			"foo ${42}",
 			false,
-			&ast.Concat{
+			&ast.Output{
 				Posx: ast.Pos{Column: 1, Line: 1},
 				Exprs: []ast.Node{
 					&ast.LiteralNode{
@@ -135,7 +135,7 @@ func TestParse(t *testing.T) {
 		{
 			"foo ${3.14159}",
 			false,
-			&ast.Concat{
+			&ast.Output{
 				Posx: ast.Pos{Column: 1, Line: 1},
 				Exprs: []ast.Node{
 					&ast.LiteralNode{
@@ -155,7 +155,7 @@ func TestParse(t *testing.T) {
 		{
 			"foo ${42+1}",
 			false,
-			&ast.Concat{
+			&ast.Output{
 				Posx: ast.Pos{Column: 1, Line: 1},
 				Exprs: []ast.Node{
 					&ast.LiteralNode{
@@ -186,7 +186,7 @@ func TestParse(t *testing.T) {
 		{
 			"foo ${var.bar*1} baz",
 			false,
-			&ast.Concat{
+			&ast.Output{
 				Posx: ast.Pos{Column: 1, Line: 1},
 				Exprs: []ast.Node{
 					&ast.LiteralNode{
@@ -221,7 +221,7 @@ func TestParse(t *testing.T) {
 		{
 			"${foo()}",
 			false,
-			&ast.Concat{
+			&ast.Output{
 				Posx: ast.Pos{Column: 3, Line: 1},
 				Exprs: []ast.Node{
 					&ast.Call{
@@ -236,7 +236,7 @@ func TestParse(t *testing.T) {
 		{
 			"${foo(bar)}",
 			false,
-			&ast.Concat{
+			&ast.Output{
 				Posx: ast.Pos{Column: 3, Line: 1},
 				Exprs: []ast.Node{
 					&ast.Call{
@@ -256,7 +256,7 @@ func TestParse(t *testing.T) {
 		{
 			"${foo(bar, baz)}",
 			false,
-			&ast.Concat{
+			&ast.Output{
 				Posx: ast.Pos{Column: 3, Line: 1},
 				Exprs: []ast.Node{
 					&ast.Call{
@@ -280,7 +280,7 @@ func TestParse(t *testing.T) {
 		{
 			"${foo(bar(baz))}",
 			false,
-			&ast.Concat{
+			&ast.Output{
 				Posx: ast.Pos{Column: 3, Line: 1},
 				Exprs: []ast.Node{
 					&ast.Call{
@@ -306,7 +306,7 @@ func TestParse(t *testing.T) {
 		{
 			`foo ${"bar ${baz}"}`,
 			false,
-			&ast.Concat{
+			&ast.Output{
 				Posx: ast.Pos{Column: 1, Line: 1},
 				Exprs: []ast.Node{
 					&ast.LiteralNode{
@@ -314,7 +314,7 @@ func TestParse(t *testing.T) {
 						Typex: ast.TypeString,
 						Posx:  ast.Pos{Column: 1, Line: 1},
 					},
-					&ast.Concat{
+					&ast.Output{
 						Posx: ast.Pos{Column: 7, Line: 1},
 						Exprs: []ast.Node{
 							&ast.LiteralNode{
@@ -335,7 +335,7 @@ func TestParse(t *testing.T) {
 		{
 			"${foo[1]}",
 			false,
-			&ast.Concat{
+			&ast.Output{
 				Posx: ast.Pos{Column: 3, Line: 1},
 				Exprs: []ast.Node{
 					&ast.Index{
@@ -357,7 +357,7 @@ func TestParse(t *testing.T) {
 		{
 			"${foo[1]} - ${bar[0]}",
 			false,
-			&ast.Concat{
+			&ast.Output{
 				Posx: ast.Pos{Column: 3, Line: 1},
 				Exprs: []ast.Node{
 					&ast.Index{
@@ -413,6 +413,12 @@ func TestParse(t *testing.T) {
 
 		{
 			"${var",
+			true,
+			nil,
+		},
+
+		{
+			"${file(/tmp/somefile)}",
 			true,
 			nil,
 		},

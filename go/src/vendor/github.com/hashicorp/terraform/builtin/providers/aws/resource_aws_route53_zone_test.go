@@ -2,9 +2,11 @@ package aws
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
@@ -69,9 +71,10 @@ func TestAccAWSRoute53Zone_basic(t *testing.T) {
 	var td route53.ResourceTagSet
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRoute53ZoneDestroy,
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "aws_route53_zone.main",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckRoute53ZoneDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
 				Config: testAccRoute53ZoneConfig,
@@ -85,14 +88,48 @@ func TestAccAWSRoute53Zone_basic(t *testing.T) {
 	})
 }
 
+func TestAccAWSRoute53Zone_forceDestroy(t *testing.T) {
+	var zone route53.GetHostedZoneOutput
+
+	// record the initialized providers so that we can use them to
+	// check for the instances in each region
+	var providers []*schema.Provider
+	providerFactories := map[string]terraform.ResourceProviderFactory{
+		"aws": func() (terraform.ResourceProvider, error) {
+			p := Provider()
+			providers = append(providers, p.(*schema.Provider))
+			return p, nil
+		},
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		IDRefreshName:     "aws_route53_zone.destroyable",
+		ProviderFactories: providerFactories,
+		CheckDestroy:      testAccCheckRoute53ZoneDestroyWithProviders(&providers),
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccRoute53ZoneConfig_forceDestroy,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckRoute53ZoneExistsWithProviders("aws_route53_zone.destroyable", &zone, &providers),
+					// Add >100 records to verify pagination works ok
+					testAccCreateRandomRoute53RecordsInZoneIdWithProviders(&providers, &zone, 100),
+					testAccCreateRandomRoute53RecordsInZoneIdWithProviders(&providers, &zone, 5),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAWSRoute53Zone_updateComment(t *testing.T) {
 	var zone route53.GetHostedZoneOutput
 	var td route53.ResourceTagSet
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRoute53ZoneDestroy,
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "aws_route53_zone.main",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckRoute53ZoneDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
 				Config: testAccRoute53ZoneConfig,
@@ -122,9 +159,10 @@ func TestAccAWSRoute53Zone_private_basic(t *testing.T) {
 	var zone route53.GetHostedZoneOutput
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckRoute53ZoneDestroy,
+		PreCheck:      func() { testAccPreCheck(t) },
+		IDRefreshName: "aws_route53_zone.main",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckRoute53ZoneDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
 				Config: testAccRoute53PrivateZoneConfig,
@@ -153,6 +191,7 @@ func TestAccAWSRoute53Zone_private_region(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
+		IDRefreshName:     "aws_route53_zone.main",
 		ProviderFactories: providerFactories,
 		CheckDestroy:      testAccCheckRoute53ZoneDestroyWithProviders(&providers),
 		Steps: []resource.TestStep{
@@ -198,6 +237,59 @@ func testAccCheckRoute53ZoneDestroyWithProvider(s *terraform.State, provider *sc
 		}
 	}
 	return nil
+}
+
+func testAccCreateRandomRoute53RecordsInZoneIdWithProviders(providers *[]*schema.Provider,
+	zone *route53.GetHostedZoneOutput, recordsCount int) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		for _, provider := range *providers {
+			if provider.Meta() == nil {
+				continue
+			}
+			if err := testAccCreateRandomRoute53RecordsInZoneId(provider, zone, recordsCount); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+}
+
+func testAccCreateRandomRoute53RecordsInZoneId(provider *schema.Provider, zone *route53.GetHostedZoneOutput, recordsCount int) error {
+	conn := provider.Meta().(*AWSClient).r53conn
+
+	var changes []*route53.Change
+	if recordsCount > 100 {
+		return fmt.Errorf("Route53 API only allows 100 record sets in a single batch")
+	}
+	for i := 0; i < recordsCount; i++ {
+		changes = append(changes, &route53.Change{
+			Action: aws.String("UPSERT"),
+			ResourceRecordSet: &route53.ResourceRecordSet{
+				Name: aws.String(fmt.Sprintf("%d-tf-acc-random.%s", acctest.RandInt(), *zone.HostedZone.Name)),
+				Type: aws.String("CNAME"),
+				ResourceRecords: []*route53.ResourceRecord{
+					&route53.ResourceRecord{Value: aws.String(fmt.Sprintf("random.%s", *zone.HostedZone.Name))},
+				},
+				TTL: aws.Int64(int64(30)),
+			},
+		})
+	}
+
+	req := &route53.ChangeResourceRecordSetsInput{
+		HostedZoneId: zone.HostedZone.Id,
+		ChangeBatch: &route53.ChangeBatch{
+			Comment: aws.String("Generated by Terraform"),
+			Changes: changes,
+		},
+	}
+	log.Printf("[DEBUG] Change set: %s\n", *req)
+	resp, err := changeRoute53RecordSet(conn, req)
+	if err != nil {
+		return err
+	}
+	changeInfo := resp.(*route53.ChangeResourceRecordSetsOutput).ChangeInfo
+	err = waitForRoute53RecordSetToSync(conn, cleanChangeID(*changeInfo.Id))
+	return err
 }
 
 func testAccCheckRoute53ZoneExists(n string, zone *route53.GetHostedZoneOutput) resource.TestCheckFunc {
@@ -310,7 +402,7 @@ func testAccLoadTagsR53(zone *route53.GetHostedZoneOutput, td *route53.ResourceT
 
 const testAccRoute53ZoneConfig = `
 resource "aws_route53_zone" "main" {
-	name = "hashicorp.com"
+	name = "hashicorp.com."
 	comment = "Custom comment"
 
 	tags {
@@ -320,9 +412,16 @@ resource "aws_route53_zone" "main" {
 }
 `
 
+const testAccRoute53ZoneConfig_forceDestroy = `
+resource "aws_route53_zone" "destroyable" {
+	name = "terraform.io"
+	force_destroy = true
+}
+`
+
 const testAccRoute53ZoneConfigUpdateComment = `
 resource "aws_route53_zone" "main" {
-	name = "hashicorp.com"
+	name = "hashicorp.com."
 	comment = "Change Custom Comment"
 
 	tags {
@@ -341,7 +440,7 @@ resource "aws_vpc" "main" {
 }
 
 resource "aws_route53_zone" "main" {
-	name = "hashicorp.com"
+	name = "hashicorp.com."
 	vpc_id = "${aws_vpc.main.id}"
 }
 `
@@ -367,7 +466,7 @@ resource "aws_vpc" "main" {
 
 resource "aws_route53_zone" "main" {
 	provider = "aws.west"
-	name = "hashicorp.com"
+	name = "hashicorp.com."
 	vpc_id = "${aws_vpc.main.id}"
 	vpc_region = "us-east-1"
 }

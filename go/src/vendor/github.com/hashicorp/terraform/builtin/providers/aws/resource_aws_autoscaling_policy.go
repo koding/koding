@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -61,7 +62,7 @@ func resourceAwsAutoscalingPolicy() *schema.Resource {
 			"min_adjustment_step": &schema.Schema{
 				Type:          schema.TypeInt,
 				Optional:      true,
-				Deprecated:    "Use min_adjustment_magnitude instead.",
+				Deprecated:    "Use min_adjustment_magnitude instead, otherwise you may see a perpetual diff on this resource.",
 				ConflictsWith: []string{"min_adjustment_magnitude"},
 			},
 			"scaling_adjustment": &schema.Schema{
@@ -126,7 +127,7 @@ func resourceAwsAutoscalingPolicyRead(d *schema.ResourceData, meta interface{}) 
 		return nil
 	}
 
-	log.Printf("[DEBUG] Read Scaling Policy: ASG: %s, SP: %s, Obj: %#v", d.Get("autoscaling_group_name"), d.Get("name"), p)
+	log.Printf("[DEBUG] Read Scaling Policy: ASG: %s, SP: %s, Obj: %s", d.Get("autoscaling_group_name"), d.Get("name"), p)
 
 	d.Set("adjustment_type", p.AdjustmentType)
 	d.Set("autoscaling_group_name", p.AutoScalingGroupName)
@@ -134,8 +135,12 @@ func resourceAwsAutoscalingPolicyRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("estimated_instance_warmup", p.EstimatedInstanceWarmup)
 	d.Set("metric_aggregation_type", p.MetricAggregationType)
 	d.Set("policy_type", p.PolicyType)
-	d.Set("min_adjustment_magnitude", p.MinAdjustmentMagnitude)
-	d.Set("min_adjustment_step", p.MinAdjustmentStep)
+	if p.MinAdjustmentMagnitude != nil {
+		d.Set("min_adjustment_magnitude", p.MinAdjustmentMagnitude)
+		d.Set("min_adjustment_step", 0)
+	} else {
+		d.Set("min_adjustment_step", p.MinAdjustmentStep)
+	}
 	d.Set("arn", p.PolicyARN)
 	d.Set("name", p.PolicyName)
 	d.Set("scaling_adjustment", p.ScalingAdjustment)
@@ -175,6 +180,7 @@ func resourceAwsAutoscalingPolicyDelete(d *schema.ResourceData, meta interface{}
 		AutoScalingGroupName: aws.String(d.Get("autoscaling_group_name").(string)),
 		PolicyName:           aws.String(d.Get("name").(string)),
 	}
+	log.Printf("[DEBUG] Deleting Autoscaling Policy opts: %s", params)
 	if _, err := autoscalingconn.DeletePolicy(&params); err != nil {
 		return fmt.Errorf("Autoscaling Scaling Policy: %s ", err)
 	}
@@ -225,10 +231,10 @@ func getAwsAutoscalingPutScalingPolicyInput(d *schema.ResourceData) (autoscaling
 	}
 
 	if v, ok := d.GetOk("min_adjustment_magnitude"); ok {
+		// params.MinAdjustmentMagnitude = aws.Int64(int64(d.Get("min_adjustment_magnitude").(int)))
 		params.MinAdjustmentMagnitude = aws.Int64(int64(v.(int)))
-	}
-
-	if v, ok := d.GetOk("min_adjustment_step"); ok {
+	} else if v, ok := d.GetOk("min_adjustment_step"); ok {
+		// params.MinAdjustmentStep = aws.Int64(int64(d.Get("min_adjustment_step").(int)))
 		params.MinAdjustmentStep = aws.Int64(int64(v.(int)))
 	}
 
@@ -266,6 +272,13 @@ func getAwsAutoscalingPolicy(d *schema.ResourceData, meta interface{}) (*autosca
 	log.Printf("[DEBUG] AutoScaling Scaling Policy Describe Params: %#v", params)
 	resp, err := autoscalingconn.DescribePolicies(&params)
 	if err != nil {
+		//A ValidationError here can mean that either the Policy is missing OR the Autoscaling Group is missing
+		if ec2err, ok := err.(awserr.Error); ok && ec2err.Code() == "ValidationError" {
+			log.Printf("[WARNING] %s not found, removing from state", d.Id())
+			d.SetId("")
+
+			return nil, nil
+		}
 		return nil, fmt.Errorf("Error retrieving scaling policies: %s", err)
 	}
 

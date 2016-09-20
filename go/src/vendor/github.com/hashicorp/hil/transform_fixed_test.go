@@ -23,13 +23,13 @@ func TestFixedValueTransform(t *testing.T) {
 		},
 
 		{
-			&ast.Concat{
+			&ast.Output{
 				Exprs: []ast.Node{
 					&ast.VariableAccess{Name: "bar"},
 					&ast.LiteralNode{Value: 42},
 				},
 			},
-			&ast.Concat{
+			&ast.Output{
 				Exprs: []ast.Node{
 					&ast.LiteralNode{Value: "foo"},
 					&ast.LiteralNode{Value: 42},

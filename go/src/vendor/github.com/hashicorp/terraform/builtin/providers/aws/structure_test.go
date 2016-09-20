@@ -6,10 +6,12 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/apigateway"
 	"github.com/aws/aws-sdk-go/service/autoscaling"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/elasticache"
 	"github.com/aws/aws-sdk-go/service/elb"
+	"github.com/aws/aws-sdk-go/service/kinesis"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/redshift"
 	"github.com/aws/aws-sdk-go/service/route53"
@@ -475,7 +477,7 @@ func TestExpandParameters(t *testing.T) {
 	}
 }
 
-func TestexpandRedshiftParameters(t *testing.T) {
+func TestExpandRedshiftParameters(t *testing.T) {
 	expanded := []interface{}{
 		map[string]interface{}{
 			"name":  "character_set_client",
@@ -500,7 +502,7 @@ func TestexpandRedshiftParameters(t *testing.T) {
 	}
 }
 
-func TestexpandElasticacheParameters(t *testing.T) {
+func TestExpandElasticacheParameters(t *testing.T) {
 	expanded := []interface{}{
 		map[string]interface{}{
 			"name":         "activerehashing",
@@ -582,7 +584,7 @@ func TestFlattenParameters(t *testing.T) {
 	}
 }
 
-func TestflattenRedshiftParameters(t *testing.T) {
+func TestFlattenRedshiftParameters(t *testing.T) {
 	cases := []struct {
 		Input  []*redshift.Parameter
 		Output []map[string]interface{}
@@ -611,7 +613,7 @@ func TestflattenRedshiftParameters(t *testing.T) {
 	}
 }
 
-func TestflattenElasticacheParameters(t *testing.T) {
+func TestFlattenElasticacheParameters(t *testing.T) {
 	cases := []struct {
 		Input  []*elasticache.Parameter
 		Output []map[string]interface{}
@@ -755,7 +757,24 @@ func TestFlattenAttachment(t *testing.T) {
 	}
 }
 
-func TestflattenStepAdjustments(t *testing.T) {
+func TestFlattenAttachmentWhenNoInstanceId(t *testing.T) {
+	expanded := &ec2.NetworkInterfaceAttachment{
+		DeviceIndex:  aws.Int64(int64(1)),
+		AttachmentId: aws.String("at-002"),
+	}
+
+	result := flattenAttachment(expanded)
+
+	if result == nil {
+		t.Fatal("expected result to have value, but got nil")
+	}
+
+	if result["instance"] != nil {
+		t.Fatalf("expected instance to be nil, but got %s", result["instance"])
+	}
+}
+
+func TestFlattenStepAdjustments(t *testing.T) {
 	expanded := []*autoscaling.StepAdjustment{
 		&autoscaling.StepAdjustment{
 			MetricIntervalLowerBound: aws.Float64(1.0),
@@ -821,6 +840,27 @@ func TestFlattenAsgEnabledMetrics(t *testing.T) {
 	}
 }
 
+func TestFlattenKinesisShardLevelMetrics(t *testing.T) {
+	expanded := []*kinesis.EnhancedMetrics{
+		&kinesis.EnhancedMetrics{
+			ShardLevelMetrics: []*string{
+				aws.String("IncomingBytes"),
+				aws.String("IncomingRecords"),
+			},
+		},
+	}
+	result := flattenKinesisShardLevelMetrics(expanded)
+	if len(result) != 2 {
+		t.Fatalf("expected result had %d elements, but got %d", 2, len(result))
+	}
+	if result[0] != "IncomingBytes" {
+		t.Fatalf("expected element 0 to be IncomingBytes, but was %s", result[0])
+	}
+	if result[1] != "IncomingRecords" {
+		t.Fatalf("expected element 0 to be IncomingRecords, but was %s", result[1])
+	}
+}
+
 func TestFlattenSecurityGroups(t *testing.T) {
 	cases := []struct {
 		ownerId  *string
@@ -859,7 +899,7 @@ func TestFlattenSecurityGroups(t *testing.T) {
 		},
 
 		// include the owner id, but from a different account. This is reflects
-		// EC2 Classic when refering to groups by name
+		// EC2 Classic when referring to groups by name
 		{
 			ownerId: aws.String("user1234"),
 			pairs: []*ec2.UserIdGroupPair{
@@ -878,7 +918,7 @@ func TestFlattenSecurityGroups(t *testing.T) {
 		},
 
 		// include the owner id, but from a different account. This reflects in
-		// EC2 VPC when refering to groups by id
+		// EC2 VPC when referring to groups by id
 		{
 			ownerId: aws.String("user1234"),
 			pairs: []*ec2.UserIdGroupPair{
@@ -900,5 +940,231 @@ func TestFlattenSecurityGroups(t *testing.T) {
 		if !reflect.DeepEqual(out, c.expected) {
 			t.Fatalf("Error matching output and expected: %#v vs %#v", out, c.expected)
 		}
+	}
+}
+
+func TestFlattenApiGatewayThrottleSettings(t *testing.T) {
+	expectedBurstLimit := int64(140)
+	expectedRateLimit := 120.0
+
+	ts := &apigateway.ThrottleSettings{
+		BurstLimit: aws.Int64(expectedBurstLimit),
+		RateLimit:  aws.Float64(expectedRateLimit),
+	}
+	result := flattenApiGatewayThrottleSettings(ts)
+
+	if len(result) != 1 {
+		t.Fatalf("Expected map to have exactly 1 element, got %d", len(result))
+	}
+
+	burstLimit, ok := result[0]["burst_limit"]
+	if !ok {
+		t.Fatal("Expected 'burst_limit' key in the map")
+	}
+	burstLimitInt, ok := burstLimit.(int64)
+	if !ok {
+		t.Fatal("Expected 'burst_limit' to be int")
+	}
+	if burstLimitInt != expectedBurstLimit {
+		t.Fatalf("Expected 'burst_limit' to equal %d, got %d", expectedBurstLimit, burstLimitInt)
+	}
+
+	rateLimit, ok := result[0]["rate_limit"]
+	if !ok {
+		t.Fatal("Expected 'rate_limit' key in the map")
+	}
+	rateLimitFloat, ok := rateLimit.(float64)
+	if !ok {
+		t.Fatal("Expected 'rate_limit' to be float64")
+	}
+	if rateLimitFloat != expectedRateLimit {
+		t.Fatalf("Expected 'rate_limit' to equal %f, got %f", expectedRateLimit, rateLimitFloat)
+	}
+}
+
+func TestFlattenApiGatewayStageKeys(t *testing.T) {
+	cases := []struct {
+		Input  []*string
+		Output []map[string]interface{}
+	}{
+		{
+			Input: []*string{
+				aws.String("a1b2c3d4e5/dev"),
+				aws.String("e5d4c3b2a1/test"),
+			},
+			Output: []map[string]interface{}{
+				map[string]interface{}{
+					"stage_name":  "dev",
+					"rest_api_id": "a1b2c3d4e5",
+				},
+				map[string]interface{}{
+					"stage_name":  "test",
+					"rest_api_id": "e5d4c3b2a1",
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		output := flattenApiGatewayStageKeys(tc.Input)
+		if !reflect.DeepEqual(output, tc.Output) {
+			t.Fatalf("Got:\n\n%#v\n\nExpected:\n\n%#v", output, tc.Output)
+		}
+	}
+}
+
+func TestExpandPolicyAttributes(t *testing.T) {
+	expanded := []interface{}{
+		map[string]interface{}{
+			"name":  "Protocol-TLSv1",
+			"value": "false",
+		},
+		map[string]interface{}{
+			"name":  "Protocol-TLSv1.1",
+			"value": "false",
+		},
+		map[string]interface{}{
+			"name":  "Protocol-TLSv1.2",
+			"value": "true",
+		},
+	}
+	attributes, err := expandPolicyAttributes(expanded)
+	if err != nil {
+		t.Fatalf("bad: %#v", err)
+	}
+
+	if len(attributes) != 3 {
+		t.Fatalf("expected number of attributes to be 3, but got %d", len(attributes))
+	}
+
+	expected := &elb.PolicyAttribute{
+		AttributeName:  aws.String("Protocol-TLSv1.2"),
+		AttributeValue: aws.String("true"),
+	}
+
+	if !reflect.DeepEqual(attributes[2], expected) {
+		t.Fatalf(
+			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
+			attributes[2],
+			expected)
+	}
+}
+
+func TestExpandPolicyAttributes_invalid(t *testing.T) {
+	expanded := []interface{}{
+		map[string]interface{}{
+			"name":  "Protocol-TLSv1.2",
+			"value": "true",
+		},
+	}
+	attributes, err := expandPolicyAttributes(expanded)
+	if err != nil {
+		t.Fatalf("bad: %#v", err)
+	}
+
+	expected := &elb.PolicyAttribute{
+		AttributeName:  aws.String("Protocol-TLSv1.2"),
+		AttributeValue: aws.String("false"),
+	}
+
+	if reflect.DeepEqual(attributes[0], expected) {
+		t.Fatalf(
+			"Got:\n\n%#v\n\nExpected:\n\n%#v\n",
+			attributes[0],
+			expected)
+	}
+}
+
+func TestExpandPolicyAttributes_empty(t *testing.T) {
+	var expanded []interface{}
+
+	attributes, err := expandPolicyAttributes(expanded)
+	if err != nil {
+		t.Fatalf("bad: %#v", err)
+	}
+
+	if len(attributes) != 0 {
+		t.Fatalf("expected number of attributes to be 0, but got %d", len(attributes))
+	}
+}
+
+func TestFlattenPolicyAttributes(t *testing.T) {
+	cases := []struct {
+		Input  []*elb.PolicyAttributeDescription
+		Output []interface{}
+	}{
+		{
+			Input: []*elb.PolicyAttributeDescription{
+				&elb.PolicyAttributeDescription{
+					AttributeName:  aws.String("Protocol-TLSv1.2"),
+					AttributeValue: aws.String("true"),
+				},
+			},
+			Output: []interface{}{
+				map[string]string{
+					"name":  "Protocol-TLSv1.2",
+					"value": "true",
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		output := flattenPolicyAttributes(tc.Input)
+		if !reflect.DeepEqual(output, tc.Output) {
+			t.Fatalf("Got:\n\n%#v\n\nExpected:\n\n%#v", output, tc.Output)
+		}
+	}
+}
+
+func TestNormalizeJsonString(t *testing.T) {
+	var err error
+	var actual string
+
+	// Well formatted and valid.
+	validJson := `{
+   "abc": {
+      "def": 123,
+      "xyz": [
+         {
+            "a": "ホリネズミ"
+         },
+         {
+            "b": "1\\n2"
+         }
+      ]
+   }
+}`
+	expected := `{"abc":{"def":123,"xyz":[{"a":"ホリネズミ"},{"b":"1\\n2"}]}}`
+
+	actual, err = normalizeJsonString(validJson)
+	if err != nil {
+		t.Fatalf("Expected not to throw an error while parsing JSON, but got: %s", err)
+	}
+
+	if actual != expected {
+		t.Fatalf("Got:\n\n%s\n\nExpected:\n\n%s\n", actual, expected)
+	}
+
+	// Well formatted but not valid,
+	// missing closing squre bracket.
+	invalidJson := `{
+   "abc": {
+      "def": 123,
+      "xyz": [
+         {
+            "a": "1"
+         }
+      }
+   }
+}`
+	actual, err = normalizeJsonString(invalidJson)
+	if err == nil {
+		t.Fatalf("Expected to throw an error while parsing JSON, but got: %s", err)
+	}
+
+	// We expect the invalid JSON to be shown back to us again.
+	if actual != invalidJson {
+		t.Fatalf("Got:\n\n%s\n\nExpected:\n\n%s\n", expected, invalidJson)
 	}
 }

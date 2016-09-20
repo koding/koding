@@ -1,5 +1,5 @@
 //
-// Copyright 2014, Sander van Harmelen
+// Copyright 2016, Sander van Harmelen
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -808,43 +808,49 @@ func (s *NetworkOfferingService) NewListNetworkOfferingsParams() *ListNetworkOff
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *NetworkOfferingService) GetNetworkOfferingID(name string) (string, error) {
+func (s *NetworkOfferingService) GetNetworkOfferingID(name string, opts ...OptionFunc) (string, int, error) {
 	p := &ListNetworkOfferingsParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["name"] = name
 
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return "", -1, err
+		}
+	}
+
 	l, err := s.ListNetworkOfferings(p)
 	if err != nil {
-		return "", err
+		return "", -1, err
 	}
 
 	if l.Count == 0 {
-		return "", fmt.Errorf("No match found for %s: %+v", name, l)
+		return "", l.Count, fmt.Errorf("No match found for %s: %+v", name, l)
 	}
 
 	if l.Count == 1 {
-		return l.NetworkOfferings[0].Id, nil
+		return l.NetworkOfferings[0].Id, l.Count, nil
 	}
 
 	if l.Count > 1 {
 		for _, v := range l.NetworkOfferings {
 			if v.Name == name {
-				return v.Id, nil
+				return v.Id, l.Count, nil
 			}
 		}
 	}
-	return "", fmt.Errorf("Could not find an exact match for %s: %+v", name, l)
+	return "", l.Count, fmt.Errorf("Could not find an exact match for %s: %+v", name, l)
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *NetworkOfferingService) GetNetworkOfferingByName(name string) (*NetworkOffering, int, error) {
-	id, err := s.GetNetworkOfferingID(name)
+func (s *NetworkOfferingService) GetNetworkOfferingByName(name string, opts ...OptionFunc) (*NetworkOffering, int, error) {
+	id, count, err := s.GetNetworkOfferingID(name, opts...)
 	if err != nil {
-		return nil, -1, err
+		return nil, count, err
 	}
 
-	r, count, err := s.GetNetworkOfferingByID(id)
+	r, count, err := s.GetNetworkOfferingByID(id, opts...)
 	if err != nil {
 		return nil, count, err
 	}
@@ -852,11 +858,17 @@ func (s *NetworkOfferingService) GetNetworkOfferingByName(name string) (*Network
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *NetworkOfferingService) GetNetworkOfferingByID(id string) (*NetworkOffering, int, error) {
+func (s *NetworkOfferingService) GetNetworkOfferingByID(id string, opts ...OptionFunc) (*NetworkOffering, int, error) {
 	p := &ListNetworkOfferingsParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["id"] = id
+
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return nil, -1, err
+		}
+	}
 
 	l, err := s.ListNetworkOfferings(p)
 	if err != nil {

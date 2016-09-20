@@ -1,5 +1,5 @@
 //
-// Copyright 2014, Sander van Harmelen
+// Copyright 2016, Sander van Harmelen
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -125,7 +125,7 @@ func (p *ListCapacityParams) SetType(v int) {
 	if p.p == nil {
 		p.p = make(map[string]interface{})
 	}
-	p.p["systemCapacityType"] = v
+	p.p["type"] = v
 	return
 }
 

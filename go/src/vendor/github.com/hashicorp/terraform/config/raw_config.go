@@ -48,6 +48,18 @@ func NewRawConfig(raw map[string]interface{}) (*RawConfig, error) {
 	return result, nil
 }
 
+// RawMap returns a copy of the RawConfig.Raw map.
+func (r *RawConfig) RawMap() map[string]interface{} {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+
+	m := make(map[string]interface{})
+	for k, v := range r.Raw {
+		m[k] = v
+	}
+	return m
+}
+
 // Copy returns a copy of this RawConfig, uninterpolated.
 func (r *RawConfig) Copy() *RawConfig {
 	r.lock.Lock()
@@ -93,6 +105,8 @@ func (r *RawConfig) Value() interface{} {
 // structure will always successfully decode into its ultimate
 // structure using something like mapstructure.
 func (r *RawConfig) Config() map[string]interface{} {
+	r.lock.Lock()
+	defer r.lock.Unlock()
 	return r.config
 }
 
@@ -108,7 +122,7 @@ func (r *RawConfig) Interpolate(vs map[string]ast.Variable) error {
 	defer r.lock.Unlock()
 
 	config := langEvalConfig(vs)
-	return r.interpolate(func(root ast.Node) (string, error) {
+	return r.interpolate(func(root ast.Node) (interface{}, error) {
 		// We detect the variables again and check if the value of any
 		// of the variables is the computed value. If it is, then we
 		// treat this entire value as computed.
@@ -132,12 +146,12 @@ func (r *RawConfig) Interpolate(vs map[string]ast.Variable) error {
 
 		// None of the variables we need are computed, meaning we should
 		// be able to properly evaluate.
-		out, _, err := hil.Eval(root, config)
+		result, err := hil.Eval(root, config)
 		if err != nil {
 			return "", err
 		}
 
-		return out.(string), nil
+		return result.Value, nil
 	})
 }
 
@@ -190,11 +204,14 @@ func (r *RawConfig) Merge(other *RawConfig) *RawConfig {
 }
 
 func (r *RawConfig) init() error {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+
 	r.config = r.Raw
 	r.Interpolations = nil
 	r.Variables = nil
 
-	fn := func(node ast.Node) (string, error) {
+	fn := func(node ast.Node) (interface{}, error) {
 		r.Interpolations = append(r.Interpolations, node)
 		vars, err := DetectVariables(node)
 		if err != nil {
@@ -259,6 +276,8 @@ func (r *RawConfig) merge(r2 *RawConfig) *RawConfig {
 // UnknownKeys returns the keys of the configuration that are unknown
 // because they had interpolated variables that must be computed.
 func (r *RawConfig) UnknownKeys() []string {
+	r.lock.Lock()
+	defer r.lock.Unlock()
 	return r.unknownKeys
 }
 

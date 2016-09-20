@@ -37,6 +37,10 @@ resource "datadog_monitor" "foo" {
   silenced {
     "*" = 0
   }
+  tags {
+    "foo" = "bar"
+    "bar" = "baz"
+  }
 }
 ```
 
@@ -61,7 +65,7 @@ The following arguments are supported:
     * `warning`
     * `critical`
 * `notify_no_data` (Optional) A boolean indicating whether this monitor will notify when data stops reporting. Defaults
-    to false.
+    to true.
 * `no_data_timeframe` (Optional) The number of minutes before a monitor will notify when data stops reporting. Must be at
     least 2x the monitor timeframe for metric alerts or 2 minutes for service checks. Default: 2x timeframe for
     metric alerts, 2 minutes for service checks.
@@ -74,6 +78,11 @@ The following arguments are supported:
 * `include_tags` (Optional) A boolean indicating whether notifications from this monitor will automatically insert its
     triggering tags into the title. Defaults to true.
 * `silenced` (Optional) Each scope will be muted until the given POSIX timestamp or forever if the value is 0.
+* `require_full_window` (Optional) A boolean indicating whether this monitor needs a full window of data before it's evaluated.
+    We highly recommend you set this to False for sparse metrics, otherwise some evaluations will be skipped.
+    Default: True for "on average", "at all times" and "in total" aggregation. False otherwise.
+* `locked` (Optional) A boolean indicating whether changes to to this monitor should be restricted to the creator or admins. Defaults to False.
+* `tags` (Optional) A list of tags to associate with your monitor. This can help you categorize and filter monitors in the manage monitors page of the UI. Note: it's not currently possible to filter by these tags when querying via the API
     
     To mute the alert completely:
     
@@ -92,3 +101,11 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - ID of the Datadog monitor
+
+## Import
+
+Monitors can be imported using their numeric ID, e.g.
+
+```
+$ terraform import datadog_monitor.bytes_received_localhost 2081
+```

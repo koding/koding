@@ -1,5 +1,5 @@
 //
-// Copyright 2014, Sander van Harmelen
+// Copyright 2016, Sander van Harmelen
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -45,6 +45,9 @@ func (p *CreateAffinityGroupParams) toURLValues() url.Values {
 	if v, found := p.p["name"]; found {
 		u.Set("name", v.(string))
 	}
+	if v, found := p.p["projectid"]; found {
+		u.Set("projectid", v.(string))
+	}
 	if v, found := p.p["type"]; found {
 		u.Set("type", v.(string))
 	}
@@ -83,11 +86,19 @@ func (p *CreateAffinityGroupParams) SetName(v string) {
 	return
 }
 
+func (p *CreateAffinityGroupParams) SetProjectid(v string) {
+	if p.p == nil {
+		p.p = make(map[string]interface{})
+	}
+	p.p["projectid"] = v
+	return
+}
+
 func (p *CreateAffinityGroupParams) SetType(v string) {
 	if p.p == nil {
 		p.p = make(map[string]interface{})
 	}
-	p.p["affinityGroupType"] = v
+	p.p["type"] = v
 	return
 }
 
@@ -97,7 +108,7 @@ func (s *AffinityGroupService) NewCreateAffinityGroupParams(name string, affinit
 	p := &CreateAffinityGroupParams{}
 	p.p = make(map[string]interface{})
 	p.p["name"] = name
-	p.p["affinityGroupType"] = affinityGroupType
+	p.p["type"] = affinityGroupType
 	return p
 }
 
@@ -143,6 +154,8 @@ type CreateAffinityGroupResponse struct {
 	Domainid          string   `json:"domainid,omitempty"`
 	Id                string   `json:"id,omitempty"`
 	Name              string   `json:"name,omitempty"`
+	Project           string   `json:"project,omitempty"`
+	Projectid         string   `json:"projectid,omitempty"`
 	Type              string   `json:"type,omitempty"`
 	VirtualmachineIds []string `json:"virtualmachineIds,omitempty"`
 }
@@ -167,6 +180,9 @@ func (p *DeleteAffinityGroupParams) toURLValues() url.Values {
 	}
 	if v, found := p.p["name"]; found {
 		u.Set("name", v.(string))
+	}
+	if v, found := p.p["projectid"]; found {
+		u.Set("projectid", v.(string))
 	}
 	return u
 }
@@ -200,6 +216,14 @@ func (p *DeleteAffinityGroupParams) SetName(v string) {
 		p.p = make(map[string]interface{})
 	}
 	p.p["name"] = v
+	return
+}
+
+func (p *DeleteAffinityGroupParams) SetProjectid(v string) {
+	if p.p == nil {
+		p.p = make(map[string]interface{})
+	}
+	p.p["projectid"] = v
 	return
 }
 
@@ -286,6 +310,9 @@ func (p *ListAffinityGroupsParams) toURLValues() url.Values {
 		vv := strconv.Itoa(v.(int))
 		u.Set("pagesize", vv)
 	}
+	if v, found := p.p["projectid"]; found {
+		u.Set("projectid", v.(string))
+	}
 	if v, found := p.p["type"]; found {
 		u.Set("type", v.(string))
 	}
@@ -367,11 +394,19 @@ func (p *ListAffinityGroupsParams) SetPagesize(v int) {
 	return
 }
 
+func (p *ListAffinityGroupsParams) SetProjectid(v string) {
+	if p.p == nil {
+		p.p = make(map[string]interface{})
+	}
+	p.p["projectid"] = v
+	return
+}
+
 func (p *ListAffinityGroupsParams) SetType(v string) {
 	if p.p == nil {
 		p.p = make(map[string]interface{})
 	}
-	p.p["affinityGroupType"] = v
+	p.p["type"] = v
 	return
 }
 
@@ -392,43 +427,53 @@ func (s *AffinityGroupService) NewListAffinityGroupsParams() *ListAffinityGroups
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *AffinityGroupService) GetAffinityGroupID(name string) (string, error) {
+func (s *AffinityGroupService) GetAffinityGroupID(name string, opts ...OptionFunc) (string, int, error) {
 	p := &ListAffinityGroupsParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["name"] = name
 
-	l, err := s.ListAffinityGroups(p)
-	if err != nil {
-		return "", err
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return "", -1, err
+		}
 	}
 
+	l, err := s.ListAffinityGroups(p)
+	if err != nil {
+		return "", -1, err
+	}
+
+	// This is needed because of a bug with the listAffinityGroup call. It reports the
+	// number of VirtualMachines in the groups as being the number of groups found.
+	l.Count = len(l.AffinityGroups)
+
 	if l.Count == 0 {
-		return "", fmt.Errorf("No match found for %s: %+v", name, l)
+		return "", l.Count, fmt.Errorf("No match found for %s: %+v", name, l)
 	}
 
 	if l.Count == 1 {
-		return l.AffinityGroups[0].Id, nil
+		return l.AffinityGroups[0].Id, l.Count, nil
 	}
 
 	if l.Count > 1 {
 		for _, v := range l.AffinityGroups {
 			if v.Name == name {
-				return v.Id, nil
+				return v.Id, l.Count, nil
 			}
 		}
 	}
-	return "", fmt.Errorf("Could not find an exact match for %s: %+v", name, l)
+	return "", l.Count, fmt.Errorf("Could not find an exact match for %s: %+v", name, l)
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *AffinityGroupService) GetAffinityGroupByName(name string) (*AffinityGroup, int, error) {
-	id, err := s.GetAffinityGroupID(name)
+func (s *AffinityGroupService) GetAffinityGroupByName(name string, opts ...OptionFunc) (*AffinityGroup, int, error) {
+	id, count, err := s.GetAffinityGroupID(name, opts...)
 	if err != nil {
-		return nil, -1, err
+		return nil, count, err
 	}
 
-	r, count, err := s.GetAffinityGroupByID(id)
+	r, count, err := s.GetAffinityGroupByID(id, opts...)
 	if err != nil {
 		return nil, count, err
 	}
@@ -436,11 +481,17 @@ func (s *AffinityGroupService) GetAffinityGroupByName(name string) (*AffinityGro
 }
 
 // This is a courtesy helper function, which in some cases may not work as expected!
-func (s *AffinityGroupService) GetAffinityGroupByID(id string) (*AffinityGroup, int, error) {
+func (s *AffinityGroupService) GetAffinityGroupByID(id string, opts ...OptionFunc) (*AffinityGroup, int, error) {
 	p := &ListAffinityGroupsParams{}
 	p.p = make(map[string]interface{})
 
 	p.p["id"] = id
+
+	for _, fn := range opts {
+		if err := fn(s.cs, p); err != nil {
+			return nil, -1, err
+		}
+	}
 
 	l, err := s.ListAffinityGroups(p)
 	if err != nil {
@@ -451,6 +502,10 @@ func (s *AffinityGroupService) GetAffinityGroupByID(id string) (*AffinityGroup, 
 		}
 		return nil, -1, err
 	}
+
+	// This is needed because of a bug with the listAffinityGroup call. It reports the
+	// number of VirtualMachines in the groups as being the number of groups found.
+	l.Count = len(l.AffinityGroups)
 
 	if l.Count == 0 {
 		return nil, l.Count, fmt.Errorf("No match found for %s: %+v", id, l)
@@ -488,6 +543,8 @@ type AffinityGroup struct {
 	Domainid          string   `json:"domainid,omitempty"`
 	Id                string   `json:"id,omitempty"`
 	Name              string   `json:"name,omitempty"`
+	Project           string   `json:"project,omitempty"`
+	Projectid         string   `json:"projectid,omitempty"`
 	Type              string   `json:"type,omitempty"`
 	VirtualmachineIds []string `json:"virtualmachineIds,omitempty"`
 }
@@ -592,6 +649,8 @@ type UpdateVMAffinityGroupResponse struct {
 		Domainid          string   `json:"domainid,omitempty"`
 		Id                string   `json:"id,omitempty"`
 		Name              string   `json:"name,omitempty"`
+		Project           string   `json:"project,omitempty"`
+		Projectid         string   `json:"projectid,omitempty"`
 		Type              string   `json:"type,omitempty"`
 		VirtualmachineIds []string `json:"virtualmachineIds,omitempty"`
 	} `json:"affinitygroup,omitempty"`
@@ -728,6 +787,8 @@ type UpdateVMAffinityGroupResponse struct {
 			Resourcetype string `json:"resourcetype,omitempty"`
 			Value        string `json:"value,omitempty"`
 		} `json:"tags,omitempty"`
+		Virtualmachinecount int      `json:"virtualmachinecount,omitempty"`
+		Virtualmachineids   []string `json:"virtualmachineids,omitempty"`
 	} `json:"securitygroup,omitempty"`
 	Serviceofferingid   string `json:"serviceofferingid,omitempty"`
 	Serviceofferingname string `json:"serviceofferingname,omitempty"`
@@ -748,6 +809,8 @@ type UpdateVMAffinityGroupResponse struct {
 	Templatedisplaytext string `json:"templatedisplaytext,omitempty"`
 	Templateid          string `json:"templateid,omitempty"`
 	Templatename        string `json:"templatename,omitempty"`
+	Userid              string `json:"userid,omitempty"`
+	Username            string `json:"username,omitempty"`
 	Vgpu                string `json:"vgpu,omitempty"`
 	Zoneid              string `json:"zoneid,omitempty"`
 	Zonename            string `json:"zonename,omitempty"`

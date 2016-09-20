@@ -32,7 +32,7 @@ resource "google_compute_instance_template" "foobar" {
 
   // Create a new boot disk from an image
   disk {
-    source_image = "debian-7-wheezy-v20160301"
+    source_image = "debian-cloud/debian-8"
     auto_delete = true
     boot = true
   }
@@ -58,6 +58,51 @@ resource "google_compute_instance_template" "foobar" {
 }
 ```
 
+## Using with Instance Group Manager
+
+Instance Templates cannot be updated after creation with the Google
+Cloud Platform API. In order to update an Instance Template, Terraform will
+destroy the existing resource and create a replacement. In order to effectively
+use an Instance Template resource with an [Instance Group Manager resource][1],
+it's recommended to specify `create_before_destroy` in a [lifecycle][2] block.
+Either omit the Instance Template `name` attribute, or specify a partial name
+with `name_prefix`.  Example:
+
+```
+resource "google_compute_instance_template" "instance_template" {
+    name_prefix = "instance-template-"
+    machine_type = "n1-standard-1"
+    region = "us-central1"
+
+    // boot disk
+    disk {
+      ...
+    }
+
+    // networking
+    network_interface {
+      ...
+    }
+
+    lifecycle {
+        create_before_destroy = true
+    }
+}
+
+resource "google_compute_instance_group_manager" "instance_group_manager" {
+    name = "instance-group-manager"
+    instance_template = "${google_compute_instance_template.instance_template.self_link}"
+    base_instance_name = "instance-group-manager"
+    zone = "us-central1-f"
+    target_size = "1"
+}
+```
+
+With this setup Terraform generates a unique name for your Instance
+Template and can then update the Instance Group manager without conflict before
+destroying the previous Instance Template.
+
+
 ## Argument Reference
 
 Note that changing any field for this resource forces a new resource to be created.
@@ -70,9 +115,12 @@ The following arguments are supported:
 
 * `machine_type` - (Required) The machine type to create.
 
-* `name` - (Required) A unique name for the resource, required by GCE.
-
 - - -
+* `name` - (Optional) The name of the instance template. If you leave
+  this blank, Terraform will auto-generate a unique name.
+
+* `name_prefix` - (Optional) Creates a unique name beginning with the specified
+  prefix. Conflicts with `name`.
 
 * `can_ip_forward` - (Optional) Whether to allow sending and receiving of
     packets with non-matching source or destination IPs. This defaults to false.
@@ -102,7 +150,7 @@ The following arguments are supported:
 * `scheduling` - (Optional) The scheduling strategy to use. More details about
     this configuration option are detailed below.
 
-* `service_account` - (Optional) Service account to attach to the instance.
+* `service_account` - (Optional) Service account to attach to the instance. Structure is documented below.
 
 * `tags` - (Optional) Tags to attach to the instance.
 
@@ -121,7 +169,7 @@ The `disk` block supports:
     to the name of the instance.
 
 * `source_image` - (Required if source not set) The name of the image to base
-    this disk off of.
+    this disk off of. Accepts same arguments as a [google_compute_instance image](https://www.terraform.io/docs/providers/google/r/compute_instance.html#image).
 
 * `interface` - (Optional) Specifies the disk interface to use for attaching
     this disk.
@@ -144,7 +192,7 @@ The `disk` block supports:
 
 The `network_interface` block supports:
 
-* `network` - (Optional) The name of the network to attach this interface to.
+* `network` - (Optional) The name or self_link of the network to attach this interface to.
     Use `network` attribute for Legacy or Auto subnetted networks and
     `subnetwork` for custom subnetted networks.
 
@@ -166,6 +214,9 @@ The `access_config` block supports:
 
 The `service_account` block supports:
 
+* `email` - (Optional) The service account e-mail address. If not given, the
+    default Google Compute Engine service account is used.
+
 * `scopes` - (Required) A list of service scopes. Both OAuth2 URLs and gcloud
     short names are supported.
 
@@ -178,7 +229,8 @@ The `scheduling` block supports:
 * `on_host_maintenance` - (Optional) Defines the maintenance behavior for this
     instance.
 
-* `preemptible` - (Optional) Allows instance to be preempted. Read more on this
+* `preemptible` - (Optional) Allows instance to be preempted. This defaults to
+    false. Read more on this
     [here](https://cloud.google.com/compute/docs/instances/preemptible).
 
 ## Attributes Reference
@@ -191,3 +243,6 @@ exported:
 * `self_link` - The URI of the created resource.
 
 * `tags_fingerprint` - The unique fingerprint of the tags.
+
+[1]: /docs/providers/google/r/compute_instance_group_manager.html
+[2]: /docs/configuration/resources.html#lifecycle

@@ -6,6 +6,8 @@
 package hil
 
 import (
+    "fmt"
+
     "github.com/hashicorp/hil/ast"
 )
 
@@ -44,17 +46,17 @@ top:
 	{
         parserResult = $1
 
-        // We want to make sure that the top value is always a Concat
-        // so that the return value is always a string type from an
+        // We want to make sure that the top value is always an Output
+        // so that the return value is always a string, list of map from an
         // interpolation.
         //
         // The logic for checking for a LiteralNode is a little annoying
         // because functionally the AST is the same, but we do that because
         // it makes for an easy literal check later (to check if a string
         // has any interpolations).
-        if _, ok := $1.(*ast.Concat); !ok {
+        if _, ok := $1.(*ast.Output); !ok {
             if n, ok := $1.(*ast.LiteralNode); !ok || n.Typex != ast.TypeString {
-                parserResult = &ast.Concat{
+                parserResult = &ast.Output{
                     Exprs: []ast.Node{$1},
                     Posx:  $1.Pos(),
                 }
@@ -70,13 +72,13 @@ literalModeTop:
 |   literalModeTop literalModeValue
     {
         var result []ast.Node
-        if c, ok := $1.(*ast.Concat); ok {
+        if c, ok := $1.(*ast.Output); ok {
             result = append(c.Exprs, $2)
         } else {
             result = []ast.Node{$1, $2}
         }
 
-        $$ = &ast.Concat{
+        $$ = &ast.Output{
             Exprs: result,
             Posx:  result[0].Pos(),
         }
@@ -130,7 +132,9 @@ expr:
         // support *, /, etc., only -. We should fix this later with a pure
         // Go scanner/parser.
         if $1.Value.(ast.ArithmeticOp) != ast.ArithmeticOpSub {
-            panic("Unary - is only allowed")
+            if parserErr == nil {
+                parserErr = fmt.Errorf("Invalid unary operation: %v", $1.Value)
+            }
         }
 
         $$ = &ast.Arithmetic{

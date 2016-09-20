@@ -20,6 +20,7 @@ type hclConfigurable struct {
 func (t *hclConfigurable) Config() (*Config, error) {
 	validKeys := map[string]struct{}{
 		"atlas":    struct{}{},
+		"data":     struct{}{},
 		"module":   struct{}{},
 		"output":   struct{}{},
 		"provider": struct{}{},
@@ -28,6 +29,7 @@ func (t *hclConfigurable) Config() (*Config, error) {
 	}
 
 	type hclVariable struct {
+		Name         string `hcl:",key"`
 		Default      interface{}
 		Description  string
 		DeclaredType string   `hcl:"type"`
@@ -35,7 +37,7 @@ func (t *hclConfigurable) Config() (*Config, error) {
 	}
 
 	var rawConfig struct {
-		Variable map[string]*hclVariable
+		Variable []*hclVariable
 	}
 
 	// Top-level item should be the object list
@@ -55,7 +57,7 @@ func (t *hclConfigurable) Config() (*Config, error) {
 	config := new(Config)
 	if len(rawConfig.Variable) > 0 {
 		config.Variables = make([]*Variable, 0, len(rawConfig.Variable))
-		for k, v := range rawConfig.Variable {
+		for _, v := range rawConfig.Variable {
 			// Defaults turn into a slice of map[string]interface{} and
 			// we need to make sure to convert that down into the
 			// proper type for Config.
@@ -71,7 +73,7 @@ func (t *hclConfigurable) Config() (*Config, error) {
 			}
 
 			newVar := &Variable{
-				Name:         k,
+				Name:         v.Name,
 				DeclaredType: v.DeclaredType,
 				Default:      v.Default,
 				Description:  v.Description,
@@ -113,12 +115,27 @@ func (t *hclConfigurable) Config() (*Config, error) {
 	}
 
 	// Build the resources
-	if resources := list.Filter("resource"); len(resources.Items) > 0 {
+	{
 		var err error
-		config.Resources, err = loadResourcesHcl(resources)
+		managedResourceConfigs := list.Filter("resource")
+		dataResourceConfigs := list.Filter("data")
+
+		config.Resources = make(
+			[]*Resource, 0,
+			len(managedResourceConfigs.Items)+len(dataResourceConfigs.Items),
+		)
+
+		managedResources, err := loadManagedResourcesHcl(managedResourceConfigs)
 		if err != nil {
 			return nil, err
 		}
+		dataResources, err := loadDataResourcesHcl(dataResourceConfigs)
+		if err != nil {
+			return nil, err
+		}
+
+		config.Resources = append(config.Resources, dataResources...)
+		config.Resources = append(config.Resources, managedResources...)
 	}
 
 	// Build the outputs
@@ -395,12 +412,131 @@ func loadProvidersHcl(list *ast.ObjectList) ([]*ProviderConfig, error) {
 }
 
 // Given a handle to a HCL object, this recurses into the structure
-// and pulls out a list of resources.
+// and pulls out a list of data sources.
+//
+// The resulting data sources may not be unique, but each one
+// represents exactly one data definition in the HCL configuration.
+// We leave it up to another pass to merge them together.
+func loadDataResourcesHcl(list *ast.ObjectList) ([]*Resource, error) {
+	list = list.Children()
+	if len(list.Items) == 0 {
+		return nil, nil
+	}
+
+	// Where all the results will go
+	var result []*Resource
+
+	// Now go over all the types and their children in order to get
+	// all of the actual resources.
+	for _, item := range list.Items {
+		if len(item.Keys) != 2 {
+			return nil, fmt.Errorf(
+				"position %s: 'data' must be followed by exactly two strings: a type and a name",
+				item.Pos())
+		}
+
+		t := item.Keys[0].Token.Value().(string)
+		k := item.Keys[1].Token.Value().(string)
+
+		var listVal *ast.ObjectList
+		if ot, ok := item.Val.(*ast.ObjectType); ok {
+			listVal = ot.List
+		} else {
+			return nil, fmt.Errorf("data sources %s[%s]: should be an object", t, k)
+		}
+
+		var config map[string]interface{}
+		if err := hcl.DecodeObject(&config, item.Val); err != nil {
+			return nil, fmt.Errorf(
+				"Error reading config for %s[%s]: %s",
+				t,
+				k,
+				err)
+		}
+
+		// Remove the fields we handle specially
+		delete(config, "depends_on")
+		delete(config, "provider")
+		delete(config, "count")
+
+		rawConfig, err := NewRawConfig(config)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"Error reading config for %s[%s]: %s",
+				t,
+				k,
+				err)
+		}
+
+		// If we have a count, then figure it out
+		var count string = "1"
+		if o := listVal.Filter("count"); len(o.Items) > 0 {
+			err = hcl.DecodeObject(&count, o.Items[0].Val)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"Error parsing count for %s[%s]: %s",
+					t,
+					k,
+					err)
+			}
+		}
+		countConfig, err := NewRawConfig(map[string]interface{}{
+			"count": count,
+		})
+		if err != nil {
+			return nil, err
+		}
+		countConfig.Key = "count"
+
+		// If we have depends fields, then add those in
+		var dependsOn []string
+		if o := listVal.Filter("depends_on"); len(o.Items) > 0 {
+			err := hcl.DecodeObject(&dependsOn, o.Items[0].Val)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"Error reading depends_on for %s[%s]: %s",
+					t,
+					k,
+					err)
+			}
+		}
+
+		// If we have a provider, then parse it out
+		var provider string
+		if o := listVal.Filter("provider"); len(o.Items) > 0 {
+			err := hcl.DecodeObject(&provider, o.Items[0].Val)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"Error reading provider for %s[%s]: %s",
+					t,
+					k,
+					err)
+			}
+		}
+
+		result = append(result, &Resource{
+			Mode:         DataResourceMode,
+			Name:         k,
+			Type:         t,
+			RawCount:     countConfig,
+			RawConfig:    rawConfig,
+			Provider:     provider,
+			Provisioners: []*Provisioner{},
+			DependsOn:    dependsOn,
+			Lifecycle:    ResourceLifecycle{},
+		})
+	}
+
+	return result, nil
+}
+
+// Given a handle to a HCL object, this recurses into the structure
+// and pulls out a list of managed resources.
 //
 // The resulting resources may not be unique, but each resource
-// represents exactly one resource definition in the HCL configuration.
+// represents exactly one "resource" block in the HCL configuration.
 // We leave it up to another pass to merge them together.
-func loadResourcesHcl(list *ast.ObjectList) ([]*Resource, error) {
+func loadManagedResourcesHcl(list *ast.ObjectList) ([]*Resource, error) {
 	list = list.Children()
 	if len(list.Items) == 0 {
 		return nil, nil
@@ -419,6 +555,37 @@ func loadResourcesHcl(list *ast.ObjectList) ([]*Resource, error) {
 				"position %s: provisioners in a resource should be wrapped in a list\n\n"+
 					"Example: \"provisioner\": [ { \"local-exec\": ... } ]",
 				item.Pos())
+		}
+
+		// HCL special case: if we're parsing JSON then directly nested
+		// items will show up as additional "keys". We need to unwrap them
+		// since we expect only two keys. Example:
+		//
+		// { "foo": { "bar": { "baz": {} } } }
+		//
+		// Will show up with Keys being: []string{"foo", "bar", "baz"}
+		// when we really just want the first two. To fix this we unwrap
+		// them into the right value.
+		if len(item.Keys) > 2 && item.Keys[0].Token.JSON {
+			for len(item.Keys) > 2 {
+				// Pop off the last key
+				n := len(item.Keys)
+				key := item.Keys[n-1]
+				item.Keys[n-1] = nil
+				item.Keys = item.Keys[:n-1]
+
+				// Wrap our value in a list
+				item.Val = &ast.ObjectType{
+					List: &ast.ObjectList{
+						Items: []*ast.ObjectItem{
+							&ast.ObjectItem{
+								Keys: []*ast.ObjectKey{key},
+								Val:  item.Val,
+							},
+						},
+					},
+				}
+			}
 		}
 
 		if len(item.Keys) != 2 {
@@ -566,6 +733,7 @@ func loadResourcesHcl(list *ast.ObjectList) ([]*Resource, error) {
 		}
 
 		result = append(result, &Resource{
+			Mode:         ManagedResourceMode,
 			Name:         k,
 			Type:         t,
 			RawCount:     countConfig,

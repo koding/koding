@@ -27,7 +27,9 @@ resource "aws_iam_role" "role" {
     "Statement": [
         {
             "Action": "sts:AssumeRole",
-            "Principal": {"AWS": "*"},
+            "Principal": {
+               "Service": "ec2.amazonaws.com"
+            },
             "Effect": "Allow",
             "Sid": ""
         }
@@ -41,7 +43,8 @@ EOF
 
 The following arguments are supported:
 
-* `name` - (Required) The profile's name.
+* `name` - (Optional, Forces new resource) The profile's name.
+* `name_prefix` - (Optional, Forces new resource) Creates a unique name beginning with the specified prefix. Conflicts with `name`.
 * `path` - (Optional, default "/") Path in which to create the profile.
 * `roles` - (Required) A list of role names to include in the profile.
 

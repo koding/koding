@@ -1,14 +1,33 @@
 package config
 
 import (
+	"flag"
+	"io/ioutil"
+	"log"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/hashicorp/terraform/helper/logging"
 )
 
 // This is the directory where our test fixtures are.
 const fixtureDir = "./test-fixtures"
+
+func TestMain(m *testing.M) {
+	flag.Parse()
+	if testing.Verbose() {
+		// if we're verbose, use the logging requested by TF_LOG
+		logging.SetOutput()
+	} else {
+		// otherwise silence all logs
+		log.SetOutput(ioutil.Discard)
+	}
+
+	os.Exit(m.Run())
+}
 
 func TestConfigCopy(t *testing.T) {
 	c := testConfig(t, "copy-basic")
@@ -86,6 +105,31 @@ func TestConfigCount_var(t *testing.T) {
 	}
 }
 
+func TestConfig_emptyCollections(t *testing.T) {
+	c := testConfig(t, "empty-collections")
+	if len(c.Variables) != 3 {
+		t.Fatalf("bad: expected 3 variables, got %d", len(c.Variables))
+	}
+	for _, variable := range c.Variables {
+		switch variable.Name {
+		case "empty_string":
+			if variable.Default != "" {
+				t.Fatalf("bad: wrong default %q for variable empty_string", variable.Default)
+			}
+		case "empty_map":
+			if !reflect.DeepEqual(variable.Default, map[string]interface{}{}) {
+				t.Fatalf("bad: wrong default %#v for variable empty_map", variable.Default)
+			}
+		case "empty_list":
+			if !reflect.DeepEqual(variable.Default, []interface{}{}) {
+				t.Fatalf("bad: wrong default %#v for variable empty_list", variable.Default)
+			}
+		default:
+			t.Fatalf("Unexpected variable: %s", variable.Name)
+		}
+	}
+}
+
 func TestConfigValidate(t *testing.T) {
 	c := testConfig(t, "validate-good")
 	if err := c.Validate(); err != nil {
@@ -151,6 +195,13 @@ func TestConfigValidate_countResourceVar(t *testing.T) {
 	}
 }
 
+func TestConfigValidate_countResourceVarMulti(t *testing.T) {
+	c := testConfig(t, "validate-count-resource-var-multi")
+	if err := c.Validate(); err == nil {
+		t.Fatal("should not be valid")
+	}
+}
+
 func TestConfigValidate_countUserVar(t *testing.T) {
 	c := testConfig(t, "validate-count-user-var")
 	if err := c.Validate(); err != nil {
@@ -172,6 +223,13 @@ func TestConfigValidate_countVarInvalid(t *testing.T) {
 	}
 }
 
+func TestConfigValidate_countVarUnknown(t *testing.T) {
+	c := testConfig(t, "validate-count-var-unknown")
+	if err := c.Validate(); err == nil {
+		t.Fatal("should not be valid")
+	}
+}
+
 func TestConfigValidate_dependsOnVar(t *testing.T) {
 	c := testConfig(t, "validate-depends-on-var")
 	if err := c.Validate(); err == nil {
@@ -188,6 +246,20 @@ func TestConfigValidate_dupModule(t *testing.T) {
 
 func TestConfigValidate_dupResource(t *testing.T) {
 	c := testConfig(t, "validate-dup-resource")
+	if err := c.Validate(); err == nil {
+		t.Fatal("should not be valid")
+	}
+}
+
+func TestConfigValidate_ignoreChanges(t *testing.T) {
+	c := testConfig(t, "validate-ignore-changes")
+	if err := c.Validate(); err != nil {
+		t.Fatalf("err: %s", err)
+	}
+}
+
+func TestConfigValidate_ignoreChangesBad(t *testing.T) {
+	c := testConfig(t, "validate-ignore-changes-bad")
 	if err := c.Validate(); err == nil {
 		t.Fatal("should not be valid")
 	}
@@ -216,8 +288,15 @@ func TestConfigValidate_moduleVarInt(t *testing.T) {
 
 func TestConfigValidate_moduleVarMap(t *testing.T) {
 	c := testConfig(t, "validate-module-var-map")
-	if err := c.Validate(); err == nil {
-		t.Fatal("should be invalid")
+	if err := c.Validate(); err != nil {
+		t.Fatalf("should be valid: %s", err)
+	}
+}
+
+func TestConfigValidate_moduleVarList(t *testing.T) {
+	c := testConfig(t, "validate-module-var-list")
+	if err := c.Validate(); err != nil {
+		t.Fatalf("should be valid: %s", err)
 	}
 }
 
@@ -237,6 +316,13 @@ func TestConfigValidate_nil(t *testing.T) {
 
 func TestConfigValidate_outputBadField(t *testing.T) {
 	c := testConfig(t, "validate-output-bad-field")
+	if err := c.Validate(); err == nil {
+		t.Fatal("should not be valid")
+	}
+}
+
+func TestConfigValidate_outputDuplicate(t *testing.T) {
+	c := testConfig(t, "validate-output-dup")
 	if err := c.Validate(); err == nil {
 		t.Fatal("should not be valid")
 	}
@@ -368,15 +454,22 @@ func TestConfigValidate_varDefault(t *testing.T) {
 	}
 }
 
-func TestConfigValidate_varDefaultBadType(t *testing.T) {
-	c := testConfig(t, "validate-var-default-bad-type")
-	if err := c.Validate(); err == nil {
-		t.Fatal("should not be valid")
+func TestConfigValidate_varDefaultListType(t *testing.T) {
+	c := testConfig(t, "validate-var-default-list-type")
+	if err := c.Validate(); err != nil {
+		t.Fatalf("should be valid: %s", err)
 	}
 }
 
 func TestConfigValidate_varDefaultInterpolate(t *testing.T) {
 	c := testConfig(t, "validate-var-default-interpolate")
+	if err := c.Validate(); err == nil {
+		t.Fatal("should not be valid")
+	}
+}
+
+func TestConfigValidate_varDup(t *testing.T) {
+	c := testConfig(t, "validate-var-dup")
 	if err := c.Validate(); err == nil {
 		t.Fatal("should not be valid")
 	}
@@ -458,43 +551,6 @@ func TestProviderConfigName(t *testing.T) {
 	}
 }
 
-func TestVariableDefaultsMap(t *testing.T) {
-	cases := []struct {
-		Default interface{}
-		Output  map[string]string
-	}{
-		{
-			nil,
-			nil,
-		},
-
-		{
-			"foo",
-			map[string]string{"var.foo": "foo"},
-		},
-
-		{
-			map[interface{}]interface{}{
-				"foo": "bar",
-				"bar": "baz",
-			},
-			map[string]string{
-				"var.foo":     "foo",
-				"var.foo.foo": "bar",
-				"var.foo.bar": "baz",
-			},
-		},
-	}
-
-	for i, tc := range cases {
-		v := &Variable{Name: "foo", Default: tc.Default}
-		actual := v.DefaultsMap()
-		if !reflect.DeepEqual(actual, tc.Output) {
-			t.Fatalf("%d: bad: %#v", i, actual)
-		}
-	}
-}
-
 func testConfig(t *testing.T, name string) *Config {
 	c, err := LoadFile(filepath.Join(fixtureDir, name, "main.tf"))
 	if err != nil {
@@ -502,4 +558,21 @@ func testConfig(t *testing.T, name string) *Config {
 	}
 
 	return c
+}
+
+func TestConfigDataCount(t *testing.T) {
+	c := testConfig(t, "data-count")
+	actual, err := c.Resources[0].Count()
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	if actual != 5 {
+		t.Fatalf("bad: %#v", actual)
+	}
+
+	// we need to make sure "count" has been removed from the RawConfig, since
+	// it's not a real key and won't validate.
+	if _, ok := c.Resources[0].RawConfig.Raw["count"]; ok {
+		t.Fatal("count key still exists in RawConfig")
+	}
 }

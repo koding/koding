@@ -3,12 +3,12 @@ package terraform
 import (
 	"fmt"
 	"log"
-	"os"
 	"sort"
 	"strings"
 	"sync"
 
 	"github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/terraform/config"
 	"github.com/hashicorp/terraform/config/module"
 )
@@ -35,16 +35,17 @@ const (
 // ContextOpts are the user-configurable options to create a context with
 // NewContext.
 type ContextOpts struct {
-	Destroy      bool
-	Diff         *Diff
-	Hooks        []Hook
-	Module       *module.Tree
-	Parallelism  int
-	State        *State
-	Providers    map[string]ResourceProviderFactory
-	Provisioners map[string]ResourceProvisionerFactory
-	Targets      []string
-	Variables    map[string]string
+	Destroy            bool
+	Diff               *Diff
+	Hooks              []Hook
+	Module             *module.Tree
+	Parallelism        int
+	State              *State
+	StateFutureAllowed bool
+	Providers          map[string]ResourceProviderFactory
+	Provisioners       map[string]ResourceProvisionerFactory
+	Targets            []string
+	Variables          map[string]interface{}
 
 	UIInput UIInput
 }
@@ -52,6 +53,8 @@ type ContextOpts struct {
 // Context represents all the context that Terraform needs in order to
 // perform operations on infrastructure. This structure is built using
 // NewContext. See the documentation for that.
+//
+// Extra functions on Context can be found in context_*.go files.
 type Context struct {
 	destroy      bool
 	diff         *Diff
@@ -65,7 +68,7 @@ type Context struct {
 	stateLock    sync.RWMutex
 	targets      []string
 	uiInput      UIInput
-	variables    map[string]string
+	variables    map[string]interface{}
 
 	l                   sync.Mutex // Lock acquired during any task
 	parallelSem         Semaphore
@@ -78,7 +81,7 @@ type Context struct {
 // Once a Context is creator, the pointer values within ContextOpts
 // should not be mutated in any way, since the pointers are copied, not
 // the values themselves.
-func NewContext(opts *ContextOpts) *Context {
+func NewContext(opts *ContextOpts) (*Context, error) {
 	// Copy all the hooks and add our stop hook. We don't append directly
 	// to the Config so that we're not modifying that in-place.
 	sh := new(stopHook)
@@ -92,6 +95,22 @@ func NewContext(opts *ContextOpts) *Context {
 		state.init()
 	}
 
+	// If our state is from the future, then error. Callers can avoid
+	// this error by explicitly setting `StateFutureAllowed`.
+	if !opts.StateFutureAllowed && state.FromFutureTerraform() {
+		return nil, fmt.Errorf(
+			"Terraform doesn't allow running any operations against a state\n"+
+				"that was written by a future Terraform version. The state is\n"+
+				"reporting it is written by Terraform '%s'.\n\n"+
+				"Please run at least that version of Terraform to continue.",
+			state.TFVersion)
+	}
+
+	// Explicitly reset our state version to our current version so that
+	// any operations we do will write out that our latest version
+	// has run.
+	state.TFVersion = Version
+
 	// Determine parallelism, default to 10. We do this both to limit
 	// CPU pressure but also to have an extra guard against rate throttling
 	// from providers.
@@ -100,24 +119,20 @@ func NewContext(opts *ContextOpts) *Context {
 		par = 10
 	}
 
-	// Setup the variables. We first take the variables given to us.
-	// We then merge in the variables set in the environment.
-	variables := make(map[string]string)
-	for _, v := range os.Environ() {
-		if !strings.HasPrefix(v, VarEnvPrefix) {
-			continue
+	// Set up the variables in the following sequence:
+	//    0 - Take default values from the configuration
+	//    1 - Take values from TF_VAR_x environment variables
+	//    2 - Take values specified in -var flags, overriding values
+	//        set by environment variables if necessary. This includes
+	//        values taken from -var-file in addition.
+	variables := make(map[string]interface{})
+
+	if opts.Module != nil {
+		var err error
+		variables, err = Variables(opts.Module, opts.Variables)
+		if err != nil {
+			return nil, err
 		}
-
-		// Strip off the prefix and get the value after the first "="
-		idx := strings.Index(v, "=")
-		k := v[len(VarEnvPrefix):idx]
-		v = v[idx+1:]
-
-		// Override the command-line set variable
-		variables[k] = v
-	}
-	for k, v := range opts.Variables {
-		variables[k] = v
 	}
 
 	return &Context{
@@ -135,7 +150,7 @@ func NewContext(opts *ContextOpts) *Context {
 		parallelSem:         NewSemaphore(par),
 		providerInputConfig: make(map[string]map[string]interface{}),
 		sh:                  sh,
-	}
+	}, nil
 }
 
 type ContextGraphOpts struct {
@@ -202,14 +217,18 @@ func (c *Context) Input(mode InputMode) error {
 				}
 			}
 
+			var valueType config.VariableType
+
 			v := m[n]
-			switch v.Type() {
+			switch valueType = v.Type(); valueType {
 			case config.VariableTypeUnknown:
 				continue
 			case config.VariableTypeMap:
-				continue
+				// OK
+			case config.VariableTypeList:
+				// OK
 			case config.VariableTypeString:
-				// Good!
+				// OK
 			default:
 				panic(fmt.Sprintf("Unknown variable type: %#v", v.Type()))
 			}
@@ -223,8 +242,15 @@ func (c *Context) Input(mode InputMode) error {
 				}
 			}
 
+			// this should only happen during tests
+			if c.uiInput == nil {
+				log.Println("[WARN] Content.uiInput is nil")
+				continue
+			}
+
 			// Ask the user for a value for this variable
 			var value string
+			retry := 0
 			for {
 				var err error
 				value, err = c.uiInput.Input(&InputOpts{
@@ -238,21 +264,30 @@ func (c *Context) Input(mode InputMode) error {
 				}
 
 				if value == "" && v.Required() {
-					// Redo if it is required.
+					// Redo if it is required, but abort if we keep getting
+					// blank entries
+					if retry > 2 {
+						return fmt.Errorf("missing required value for %q", n)
+					}
+					retry++
 					continue
-				}
-
-				if value == "" {
-					// No value, just exit the loop. With no value, we just
-					// use whatever is currently set in variables.
-					break
 				}
 
 				break
 			}
 
-			if value != "" {
-				c.variables[n] = value
+			// no value provided, so don't set the variable at all
+			if value == "" {
+				continue
+			}
+
+			decoded, err := parseVariableAsHCL(n, value, valueType)
+			if err != nil {
+				return err
+			}
+
+			if decoded != nil {
+				c.variables[n] = decoded
 			}
 		}
 	}
@@ -292,10 +327,15 @@ func (c *Context) Apply() (*State, error) {
 	}
 
 	// Do the walk
+	var walker *ContextGraphWalker
 	if c.destroy {
-		_, err = c.walk(graph, walkDestroy)
+		walker, err = c.walk(graph, walkDestroy)
 	} else {
-		_, err = c.walk(graph, walkApply)
+		walker, err = c.walk(graph, walkApply)
+	}
+
+	if len(walker.ValidationErrors) > 0 {
+		err = multierror.Append(err, walker.ValidationErrors...)
 	}
 
 	// Clean out any unused things
@@ -356,7 +396,8 @@ func (c *Context) Plan() (*Plan, error) {
 	}
 
 	// Do the walk
-	if _, err := c.walk(graph, operation); err != nil {
+	walker, err := c.walk(graph, operation)
+	if err != nil {
 		return nil, err
 	}
 	p.Diff = c.diff
@@ -366,8 +407,11 @@ func (c *Context) Plan() (*Plan, error) {
 	if _, err := c.Graph(&ContextGraphOpts{Validate: true}); err != nil {
 		return nil, err
 	}
-
-	return p, nil
+	var errs error
+	if len(walker.ValidationErrors) > 0 {
+		errs = multierror.Append(errs, walker.ValidationErrors...)
+	}
+	return p, errs
 }
 
 // Refresh goes through all the resources in the state and refreshes them
@@ -476,12 +520,12 @@ func (c *Context) Module() *module.Tree {
 // Variables will return the mapping of variables that were defined
 // for this Context. If Input was called, this mapping may be different
 // than what was given.
-func (c *Context) Variables() map[string]string {
+func (c *Context) Variables() map[string]interface{} {
 	return c.variables
 }
 
 // SetVariable sets a variable after a context has already been built.
-func (c *Context) SetVariable(k, v string) {
+func (c *Context) SetVariable(k string, v interface{}) {
 	c.variables[k] = v
 }
 
@@ -517,4 +561,57 @@ func (c *Context) walk(
 	log.Printf("[DEBUG] Starting graph walk: %s", operation.String())
 	walker := &ContextGraphWalker{Context: c, Operation: operation}
 	return walker, graph.Walk(walker)
+}
+
+// parseVariableAsHCL parses the value of a single variable as would have been specified
+// on the command line via -var or in an environment variable named TF_VAR_x, where x is
+// the name of the variable. In order to get around the restriction of HCL requiring a
+// top level object, we prepend a sentinel key, decode the user-specified value as its
+// value and pull the value back out of the resulting map.
+func parseVariableAsHCL(name string, input string, targetType config.VariableType) (interface{}, error) {
+	// expecting a string so don't decode anything, just strip quotes
+	if targetType == config.VariableTypeString {
+		return strings.Trim(input, `"`), nil
+	}
+
+	// return empty types
+	if strings.TrimSpace(input) == "" {
+		switch targetType {
+		case config.VariableTypeList:
+			return []interface{}{}, nil
+		case config.VariableTypeMap:
+			return make(map[string]interface{}), nil
+		}
+	}
+
+	const sentinelValue = "SENTINEL_TERRAFORM_VAR_OVERRIDE_KEY"
+	inputWithSentinal := fmt.Sprintf("%s = %s", sentinelValue, input)
+
+	var decoded map[string]interface{}
+	err := hcl.Decode(&decoded, inputWithSentinal)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot parse value for variable %s (%q) as valid HCL: %s", name, input, err)
+	}
+
+	if len(decoded) != 1 {
+		return nil, fmt.Errorf("Cannot parse value for variable %s (%q) as valid HCL. Only one value may be specified.", name, input)
+	}
+
+	parsedValue, ok := decoded[sentinelValue]
+	if !ok {
+		return nil, fmt.Errorf("Cannot parse value for variable %s (%q) as valid HCL. One value must be specified.", name, input)
+	}
+
+	switch targetType {
+	case config.VariableTypeList:
+		return parsedValue, nil
+	case config.VariableTypeMap:
+		if list, ok := parsedValue.([]map[string]interface{}); ok {
+			return list[0], nil
+		}
+
+		return nil, fmt.Errorf("Cannot parse value for variable %s (%q) as valid HCL. One value must be specified.", name, input)
+	default:
+		panic(fmt.Errorf("unknown type %s", targetType.Printable()))
+	}
 }
