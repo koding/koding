@@ -1,9 +1,11 @@
+kd = require 'kd'
 React                    = require 'kd-react'
 ReactDOM                 = require 'react-dom'
 actions                  = require 'app/flux/environment/actions'
 SidebarWidget            = require './sidebarwidget'
 InvitationWidgetUserPart = require './invitationwidgetuserpart'
 Tracker                  = require 'app/util/tracker'
+{ byId, REMOVE, LOAD }  = require 'app/redux/modules/bongo'
 
 module.exports = class SharingMachineInvitationWidget extends React.Component
 
@@ -15,6 +17,11 @@ module.exports = class SharingMachineInvitationWidget extends React.Component
 
     actions.setActiveInvitationMachineId { machine: null }
     actions.rejectInvitation @props.machine
+    machine = byId('JMachine', @props.machine.get('_id'))(kd.singletons.store.getState())
+    kd.singletons.store.dispatch {
+      type: REMOVE.SUCCESS
+      result: machine
+    }
     Tracker.track Tracker.VM_REJECTED_SHARED
 
 
@@ -22,6 +29,14 @@ module.exports = class SharingMachineInvitationWidget extends React.Component
 
     actions.setActiveInvitationMachineId { machine: null }
     actions.acceptInvitation @props.machine
+
+    machine = byId('JMachine', @props.machine.get('_id'))(kd.singletons.store.getState())
+
+    kd.singletons.store.dispatch {
+      type: LOAD.SUCCESS
+      result: machine
+    }
+
     Tracker.track Tracker.VM_ACCEPTED_SHARED
 
 
