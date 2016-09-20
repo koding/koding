@@ -9,7 +9,6 @@ LOAD = expandActionType withNamespace 'LOAD'
 REMOVE = expandActionType withNamespace 'REMOVE'
 
 reducer = (state = immutable({}), action) ->
-
   switch action.type
 
     when LOAD.SUCCESS
@@ -62,6 +61,12 @@ load = (constructorName, _id) ->
   }
 
 
+create = (constructorName, options) ->
+  return {
+    types: [ LOAD.BEGIN, LOAD.SUCCESS, LOAD.FAIL ]
+    bongo: (remote) -> remote.api[constructorName].create options
+  }
+
 byId = (constructorName, id) -> (state) -> state.bongo[constructorName]?[id]
 
 
@@ -71,6 +76,6 @@ all = (constructorName) -> (state) -> state.bongo[constructorName]
 module.exports = _.assign reducer, {
   namespace: withNamespace()
   reducer
-  load, loadAll, update, remove, byId, all
+  load, loadAll, update, remove, create, byId, all
   LOAD, REMOVE
 }
