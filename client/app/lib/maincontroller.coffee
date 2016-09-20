@@ -16,6 +16,7 @@ ActivityController             = require './activitycontroller'
 AppStorageController           = require './appstoragecontroller'
 ApplicationManager             = require './applicationmanager'
 ComputeController              = require './providers/computecontroller'
+ComputeControllerListener      = require './providers/computecontrollerlistener'
 ContentDisplayController       = require './contentdisplay/contentdisplaycontroller'
 GroupsController               = require './maincontroller/groupscontroller'
 HelpController                 = require './maincontroller/helpcontroller'
@@ -85,6 +86,7 @@ module.exports = class MainController extends KDController
 
   createSingletons: ->
 
+
     kd.registerSingleton 'mainController',            this
     kd.registerSingleton 'kontrol',                   new KodingKontrol
     kd.registerSingleton 'appManager',   appManager = new ApplicationManager
@@ -99,7 +101,9 @@ module.exports = class MainController extends KDController
     kd.registerSingleton 'groupsController',          new GroupsController
     kd.registerSingleton 'activityController',        new ActivityController
     kd.registerSingleton 'paymentController',         new PaymentController
-    kd.registerSingleton 'computeController',         new ComputeController
+    computeController = new ComputeController
+    kd.registerSingleton 'computeController',         computeController
+    new ComputeControllerListener {}, computeController
     kd.registerSingleton 'locationController',        new LocationController
     kd.registerSingleton 'helpController',            new HelpController
     kd.registerSingleton 'appStorageController',      new AppStorageController
