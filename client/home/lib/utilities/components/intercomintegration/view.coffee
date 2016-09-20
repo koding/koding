@@ -24,7 +24,7 @@ module.exports = class IntercomIntegrationView extends React.Component
         <input
           type="text"
           className="kdinput text"
-          value={@props.defaultValue}
+          value={@props.defaultValue or ''}
           onChange={@props.onValueChange}
         />
         <a
