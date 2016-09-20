@@ -45,4 +45,3 @@ Have you seen 'Sorry, "koding" is already taken!' warning?
 
 Enter '{{ random.first_name }}{{ random.number }}' as converted to uppercase in the username field and click on 'Done!' button
 Do you see 'Authentication Required' form?
-
