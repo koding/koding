@@ -87,12 +87,6 @@ func CreateSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 		params.TrialEnd = thirtDaysLater
 	}
 
-	// // TODO(cihangir): remove this when client side fixes the request
-	// if params.TrialEnd == 0 {
-	// 	// set 7 days
-	// 	params.TrialEnd = time.Now().UTC().Add(7 * 24 * time.Hour).Unix()
-	// }
-
 	// only send our whitelisted params
 	req := &stripe.SubParams{
 		Customer: group.Payment.Customer.ID,
