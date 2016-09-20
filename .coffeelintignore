@@ -50,6 +50,7 @@ client/home/lib/myteam/hometeamteammates.coffee
 client/home/lib/paymenthistory/
 client/home/lib/stacks/
 client/home/lib/utilities/
+client/home/lib/integrations/
 client/home/lib/virtualmachines/components/
 client/home/lib/virtualmachines/test/
 client/home/lib/virtualmachines/homevirtualmachinesconnectedmachines.coffee
