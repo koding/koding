@@ -67,7 +67,7 @@ module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
     {{> @username}}
     {{> @password}}
     {{> @tfcode}}
-    <div class='TeamsModal-button-separator'></div>
     {{> @buttonLink}}
+    <div class='TeamsModal-button-separator'></div>
     {{> @button}}
     """

@@ -54,7 +54,7 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
     {{> @username}}
     {{> @password}}
     {{> @tfcode}}
+    {{> @buttonLink}}
     <div class='TeamsModal-button-separator'></div>
     {{> @button}}
-    {{> @buttonLink}}
     """
