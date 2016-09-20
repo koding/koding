@@ -2,6 +2,7 @@ package payment
 
 import (
 	"koding/db/mongodb/modelhelper"
+	"time"
 
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/sub"
@@ -72,7 +73,37 @@ func CreateSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 		return nil, err
 	}
 
-	sub, err := sub.New(params)
+	if group.Payment.Subscription.ID != "" {
+		return nil, ErrGroupAlreadyHasSub
+	}
+
+	if group.Payment.Customer.ID == "" {
+		return nil, ErrCustomerNotExists
+	}
+
+	thirtDaysLater := time.Now().UTC().Add(30 * 24 * time.Hour).Unix()
+	// this might be changed in the future
+	if params.TrialEnd > thirtDaysLater {
+		params.TrialEnd = thirtDaysLater
+	}
+
+	// // TODO(cihangir): remove this when client side fixes the request
+	// if params.TrialEnd == 0 {
+	// 	// set 7 days
+	// 	params.TrialEnd = time.Now().UTC().Add(7 * 24 * time.Hour).Unix()
+	// }
+
+	// only send our whitelisted params
+	req := &stripe.SubParams{
+		Customer: group.Payment.Customer.ID,
+		Plan:     params.Plan,
+		Coupon:   params.Coupon,
+		Token:    params.Token,
+		TrialEnd: params.TrialEnd,
+		Card:     params.Card,
+	}
+
+	sub, err := sub.New(req)
 	if err != nil {
 		return nil, err
 	}
