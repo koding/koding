@@ -847,19 +847,6 @@ runTests = -> describe 'workers.social.user.index', ->
         done()
 
 
-    it 'should bypass recaptcha verification if foreignAuthType is github', (done) ->
-
-      params =
-        slug            : 'koding'
-        foreignAuthType : 'github'
-
-      captchaCode = 'someInvalidCaptchaCode'
-
-      JUser.verifyRecaptcha captchaCode, params, (err) ->
-        expect(err).to.not.exist
-        done()
-
-
   describe '#authenticateClient()', ->
 
     describe 'when there is no session for the given clientId', ->
