@@ -1,6 +1,5 @@
 require '../../app/test'
 require '../../ide/test'
 require '../../app/lib/providers/test'
-require '../../home/lib/virtualmachines/test/'
-require '../../home/lib/myteam/test/'
-require '../../home/lib/utilities/test/'
+require '../../home/test'
+
