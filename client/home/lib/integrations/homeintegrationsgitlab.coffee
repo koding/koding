@@ -2,10 +2,11 @@ kd = require 'kd'
 React = require 'kd-react'
 ReactView = require 'app/react/reactview'
 
-CustomerFeedBack = require './components/customerfeedback/'
+GitLab = require './components/gitlab/'
 
 module.exports = class HomeUtilitiesCustomerFeedback extends ReactView
 
   renderReact: ->
-    <CustomerFeedBack.Container />
-    
+    <GitLab.Container />
+
+
