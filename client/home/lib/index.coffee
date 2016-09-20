@@ -7,6 +7,7 @@ HomeMyTeam          = require './myteam'
 HomeTeamBilling     = require './billing'
 HomePaymentHistory  = require './paymenthistory'
 HomeStacks          = require './stacks'
+HomeIntegrations    = require './integrations'
 
 do require './routehandler'
 
@@ -19,11 +20,11 @@ module.exports = class HomeAppController extends AppController
   TABS = [
     { title : 'Stacks', viewClass : HomeStacks, role: 'member' }
     { title : 'My Team', viewClass : HomeMyTeam, role: 'member' }
-    # Do not show billing temporarily until new pricing is in place. ~can
     { title : 'Team Billing', viewClass : HomeTeamBilling, showOnDisabled: yes }
     # { title : 'Payment History', viewClass : HomePaymentHistory }
     { title : 'Koding Utilities', viewClass : HomeUtilities, role: 'member' }
     { title : 'My Account', viewClass : HomeAccount, role: 'member' }
+    { title : 'Integrations', viewClass : HomeIntegrations }
   ]
 
 
