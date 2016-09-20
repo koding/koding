@@ -1,0 +1,20 @@
+#! 1ae7b10f-f120-47de-bc67-eae94efbd491
+# title: create_team_with_existing_account
+# start_uri: /
+# tags: rfml-test
+#
+
+Enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In'
+Do you see 'Welcome! Enter your team's Koding domain.' form in the center of the page with a 'LOGIN' button? Do you see 'Forgot your team name?' link? Do you see 'Do you want to create a new team?' text below that form?
+
+Click on the 'create a new team' link below the form
+Do you see 'Let's sign you up!' form with 'Email address' and 'Name your team' text fields and a 'SIGN UP' button?
+
+Enter "rainforestqa99@koding.com" in the 'Email address' and "{{ random.last_name }}{{ random.number }}" in the 'Name your team' fields and click on 'SIGN UP' button
+Do you see 'Your team URL' form with URL field prefilled?
+
+Click on 'NEXT' button
+Do you see 'Hey rainforestqa99,' text? Do you see 'password' input field? Do you see 'Done!' button?
+
+Enter "rainforestqa99" in the password field and click on 'Done!' button, then enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In' (on the 'Authentication Required' form)
+Do you see 'You are almost there, rainforestqa99!' title? Do you see 'Create a Stack for Your Team', 'Enter your Credentials', 'Build Your Stack', 'Invite Your Team' and 'Install KD' sections? Do you see 'CREATE', 'ENTER', 'BUILD', 'INVITE' and 'INSTALL' buttons next to them?
