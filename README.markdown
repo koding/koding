@@ -95,10 +95,10 @@ If you wish to work on Koding itself, you need to install following software pac
 
 ### Software Prerequisites
 
-- [Golang](http://www.golang.org/) v1.7
+- [Go](http://www.golang.org/) v1.7
 - [Node.js](https://nodejs.org/en/) v0.10
-- [Coffeescript](http://coffeescript.org/)
-- [Supervisord](http://supervisord.org/)
+- [CoffeeScript](http://coffeescript.org/) v1.8.0
+- [Supervisor](http://supervisord.org/)
 
 ### Start developing
 
@@ -109,14 +109,14 @@ follow steps for running the instance:
 git clone https://github.com/koding/koding.git /your/koding/path
 cd /your/koding/path
 node -v # make sure your node version is not greater than `0.10.x`
-coffee -v # make sure this doesn't return an error
+npm -v # make sure your npm version is greater than 2.15.1
+coffee -v # make sure your coffeeScript version is greater than 1.8
 npm install
 ```
 
 You should have packages ready for running build specific scripts.
 
 ```bash
-cd /your/koding/path
 ./configure # create necessary config files
 ./run install # start to install dependencies
 ./run buildservices # build the services
@@ -134,8 +134,8 @@ npm install # install client dependencies
 make # this will run a client watcher for you
 ```
 
-Right now you should have 2 different watchers for (1) your backend files, (2)for your
-frontend client files.
+Right now you should have 2 different watchers for (1) your backend files, 
+(2)for your frontend client files.
 Now you can navigate to [](http://localhost:8090) to see your local Koding
 instance. Enjoy!
 
