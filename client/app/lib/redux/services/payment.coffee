@@ -37,7 +37,7 @@ exports.fetchSubscription = fetchSubscription = pickData ->
 
 exports.createSubscription = createSubscription = pickData (params = {}) ->
   if not params.trialEnd
-    params.trialEnd = (new Date()).getTime() + (30 * 24 * 60 * 60 * 1000)
+    params.trialEnd = Math.round ((new Date()).getTime() + (30 * 24 * 60 * 60 * 1000)) / 1000
   client.post Endpoints.SubscriptionCreate, params
 
 exports.deleteSubscription = deleteSubscription = pickData (params = {}) ->
