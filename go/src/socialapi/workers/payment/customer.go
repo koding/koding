@@ -335,9 +335,22 @@ func deleteCustomer(customerID string) error {
 	return err
 }
 
-func populateCustomerParams(username, groupName string, req *stripe.CustomerParams) (*stripe.CustomerParams, error) {
-	if req == nil {
-		req = &stripe.CustomerParams{}
+func populateCustomerParams(username, groupName string, initial *stripe.CustomerParams) (*stripe.CustomerParams, error) {
+	if initial == nil {
+		initial = &stripe.CustomerParams{}
+	}
+
+	// whitelisted parameters
+	req := &stripe.CustomerParams{
+		Token:  initial.Token,
+		Coupon: initial.Coupon,
+		Source: initial.Source,
+		Desc:   initial.Desc,
+		Email:  initial.Email,
+		Params: initial.Params,
+		// plan can not be updated by hand, do not add it to whilelist. It should
+		// only be updated automatically on invoice applications
+		// Plan: initial.Plan,
 	}
 
 	user, err := modelhelper.GetUser(username)
