@@ -15,6 +15,16 @@ module.exports = class ChangeTeamController extends KodingListController
       whoami().fetchRelativeGroups (err, groups) ->
         return  if showError err
         groups = groups.filter (group) -> group.slug isnt 'koding'
+
+        { groupsController } = kd.singletons
+        currentGroup = groupsController.getCurrentGroup()
+        groups = groups.sort (group1, group2) ->
+          return -1  if group1.slug is currentGroup.slug
+          return 1  if group2.slug is currentGroup.slug
+          return -1  if group1.slug < group2.slug
+          return 1  if group1.slug > group2.slug
+          return 0
+
         callback null, groups
     options.noItemFoundWidget = new kd.CustomHTMLView
       tagName  : 'p'
