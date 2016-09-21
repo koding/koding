@@ -5,7 +5,7 @@ import "time"
 // Ping holds the ping data
 type Ping struct {
 	// GroupName holds group name
-	GroupName string `json:"channelID"`
+	GroupName string `json:"groupName"`
 
 	// AccountID holds the host's id the only one that can send this request
 	AccountID int64 `json:"accountID,string"`
