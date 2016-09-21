@@ -119,7 +119,7 @@
     "coffee-reactify": "3.0.0",
     "coffee-script": "1.8.0",
     "copy-webpack-plugin": "3.0.1",
-    "css-loader": "0.23.1",
+    "css-loader": "usirin/css-loader#0.25.0-node-010",
     "expect": "1.13.3",
     "express": "4.12.3",
     "file-loader": "0.9.0",
