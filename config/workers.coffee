@@ -324,6 +324,13 @@ module.exports = (KONFIG, options, credentials) ->
           run           : "#{GOBIN}/topicmoderation"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/topicmoderation -watch socialapi/workers/topicmoderation"
 
+    presence            :
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/presence"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/presence -watch socialapi/workers/presence"
+
     collaboration       :
       group             : "socialapi"
       supervisord       :
