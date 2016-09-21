@@ -1,6 +1,6 @@
 jraphical = require 'jraphical'
 KodingError = require '../error'
-
+{ parseClient } = require './utils'
 
 module.exports = class JForeignAuth extends jraphical.Module
 
@@ -82,3 +82,22 @@ module.exports = class JForeignAuth extends jraphical.Module
     foreignAuth.save (err) ->
       callback err, foreignAuth
 
+
+  @fetchData = (client, callback) ->
+
+    { err, group, username } = parseClient client
+    return callback err  if err
+
+    fieldsToCollect = { provider: 1, foreignData: 1 }
+    foreignData = {}
+
+    @someData { username, group }, fieldsToCollect, (err, cursor) ->
+      return callback err  if err
+      return callback null, foreignData  unless cursor
+
+      cursor.nextObject (err, data) ->
+        return callback err  if err
+
+        if data
+        then foreignData[data.provider] = data.foreignData
+        else callback null, foreignData

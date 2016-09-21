@@ -1273,7 +1273,8 @@ module.exports = class JAccount extends jraphical.Module
     @fetchFromUser client, 'emailFrequency', callback
 
   fetchOAuthInfo: secure (client, callback) ->
-    @fetchFromUser client, 'foreignAuth', callback
+    JForeignAuth = require './foreignauth'
+    JForeignAuth.fetchData client, callback
 
   fetchFromUser: secure (client, key, callback) ->
     { delegate } = client.connection
