@@ -1,6 +1,6 @@
 kd           = require 'kd'
 doXhrRequest = require './doXhrRequest'
 
-kd.utils.repeat 20000, ->
-  doXhrRequest { endPoint : '/api/presence/ping' }, (err) ->
+kd.utils.repeat 30000, ->
+  doXhrRequest { endPoint: '/api/social/presence/ping', type: 'GET' }, (err) ->
     console.log err  if err
