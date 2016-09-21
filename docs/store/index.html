@@ -1,0 +1,48 @@
+---
+layout: default
+title: Store
+permalink: /store
+order: 40
+---
+
+<!-- HEADER -->
+{% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#7F7E9E' %}
+
+<style>{% include css/store.css %}</style>
+
+<div class="hero">
+  <div class="heading">Stack and Stencil Hub</div>
+  <div class="subheading">Start building your stacks easily with these hundereds of examples</div>
+  <div class="search-container">
+    <div class="dropdown">In Stencils<span class="dropdown-icon"></span></div>
+    <div class="search-bar">Search a keyword or name...<span class="search-icon"></span></div>
+  </div>
+</div>
+<div class="container featured-stacks">
+  <div class="text-heading">
+    <div class="heading">
+      Featured Stacks
+    </div>
+    <div class="sub-heading">
+      Nulla vitae elit libero, a pharetra augue. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Integer posuere erat a ante venenatis dapibus posuere.
+    </div>
+  </div>
+  {% include store-set.html %}
+  <button>See All Stacks</button>
+</div>
+<div class="container featured-stencils">
+  <div class="text-heading">
+    <div class="heading">
+      Featured Stencils
+    </div>
+    <div class="sub-heading">
+      Nulla vitae elit libero, a pharetra augue. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Integer posuere erat a ante venenatis dapibus posuere.
+    </div>
+  </div>
+  {% include store-set.html %}
+  <button>See All Stencils</button>
+</div>
+
+
+<!-- FOOTER -->
+{% include footer.html %}

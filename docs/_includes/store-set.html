@@ -1,0 +1,15 @@
+<ul class="box-set">
+  {% for module in site.data.store-set %}
+  <li class="box">
+    <div class="title">{{ module.title }}<span class="verified"></span></div>
+    <div class="by-author">{{ module.author }}</div>
+    <hr />
+    <div class="description">{{ module.description }}</div>
+    <div class="vendor-icon {{ module.vendor }}">
+    </div>
+    <div class="download-count">
+      <div class="count">{{ module.count }}</div><div class="download-icon"></div>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
