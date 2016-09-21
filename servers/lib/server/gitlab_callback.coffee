@@ -1,5 +1,7 @@
-request    = require 'request'
-{ gitlab } = require 'koding-config-manager'
+request = require 'request'
+koding  = require './bongo'
+
+{ gitlab, hostname } = require 'koding-config-manager'
 { redirectOauth, saveOauthToSession } = require './helpers'
 
 provider = 'gitlab'
@@ -7,8 +9,39 @@ headers  =
   'Accept'     : 'application/json'
   'User-Agent' : 'Koding'
 
-getUrlFor = (path) ->
-  "http://#{gitlab.host ? 'gitlab.com'}:#{gitlab.port ? 80}#{path}"
+
+fetchGroupSettings = (clientId, callback) ->
+
+  { JSession, JGroup } = koding.models
+
+  JSession.one { clientId }, (err, session) ->
+    return callback err  if err
+    return callback { message: 'Session invalid' }  unless session
+
+    { groupName: slug } = session
+
+    JGroup.one { slug }, (err, group) ->
+      return callback err  if err
+      return callback { message: 'Group invalid' }  unless group
+
+      if not group.config?.gitlab? or not group.config.gitlab.enabled
+        return callback { message: 'Integration not enabled yet.' }
+
+      group.fetchDataAt 'gitlab', (err, data) ->
+        return callback err  if err
+        return callback { message: 'Integration settings invalid' }  unless data
+
+        callback null, {
+          url: group.config.gitlab.url
+          applicationId: group.config.gitlab.applicationId
+          applicationSecret: data.applicationSecret
+          redirectUri: "http://#{slug}.#{hostname}/-/oauth/#{provider}/callback"
+        }
+
+
+getPathFor = (url, path) ->
+  url ?= "http://#{gitlab.host ? 'gitlab.com'}:#{gitlab.port ? 80}"
+  "#{url}#{path}"
 
 fail = (req, res) ->
   redirectOauth 'could not get access token', req, res, { provider }
