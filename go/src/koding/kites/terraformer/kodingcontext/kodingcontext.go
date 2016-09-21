@@ -38,7 +38,7 @@ type KodingContext struct {
 
 	Buffer       *bytes.Buffer
 	ui           *cli.PrefixedUi
-	Variables    map[string]string
+	Variables    map[string]interface{}
 	ShutdownChan <-chan struct{}
 	ContentID    string
 

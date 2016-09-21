@@ -57,7 +57,7 @@ type Terraformer struct {
 // TerraformRequest is a helper struct for terraformer kite requests
 type TerraformRequest struct {
 	Content   string
-	Variables map[string]string
+	Variables map[string]interface{}
 	ContentID string
 	TraceID   string
 }

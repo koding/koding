@@ -10,7 +10,7 @@ import (
 	"koding/kites/terraformer/kodingcontext/pkg"
 	"koding/kites/terraformer/storage"
 
-	"github.com/hashicorp/terraform/plugin"
+	plugin "github.com/hashicorp/go-plugin"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/logging"
 )
