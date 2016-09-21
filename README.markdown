@@ -89,6 +89,56 @@ docker-compose exec backend bash
 You can follow [coffeescript-styleguide](https://github.com/koding/styleguide-coffeescript)
 that we are relying on.
 
+## Run Koding on Local Machine
+
+If you wish to work on Koding itself, you need to install following software packages:
+
+### Software Prerequisites
+
+- [Go](http://www.golang.org/) v1.7
+- [Node.js](https://nodejs.org/en/) v0.10
+- [CoffeeScript](http://coffeescript.org/) v1.8.0
+- [Supervisor](http://supervisord.org/)
+
+### Start developing
+
+If you have the above software packages installed on your computer, you can
+follow steps for running the instance:
+
+```bash
+git clone https://github.com/koding/koding.git /your/koding/path
+cd /your/koding/path
+node -v # make sure your node version is not greater than `0.10.x`
+npm -v # make sure your npm version is 2.15.x
+coffee -v # make sure your coffeeScript version must be 1.8
+npm install
+```
+
+You should have packages ready for running build specific scripts.
+
+```bash
+./configure # create necessary config files
+./run install # start to install dependencies
+./run buildservices # build the services
+./run # run all services
+```
+
+As a result of this, you will have a file watcher watching your backend files
+(both node, and golang) and restart services when it's necessary. Now open up
+another terminal and run the following commands:
+
+```bash
+cd /your/koding/path
+cd client # move into frontend client folder
+npm install # install client dependencies
+make # this will run a client watcher for you
+```
+
+Right now you should have 2 different watchers for (1) your backend files, 
+(2)for your frontend client files.
+Now you can navigate to [](http://localhost:8090) to see your local Koding
+instance. Enjoy!
+
 ## License
 
 Koding is licensed under [Apache 2.0](https://github.com/koding/koding/blob/master/LICENSE).
