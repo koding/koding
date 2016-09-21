@@ -74,12 +74,7 @@ export COMMANDS=(
 )
 
 export TERRAFORM_COMMANDS=(
-	vendor/github.com/hashicorp/terraform/builtin/bins/provider-aws
-	vendor/github.com/hashicorp/terraform/builtin/bins/provider-terraform
-	vendor/github.com/hashicorp/terraform/builtin/bins/provider-null
-	vendor/github.com/hashicorp/terraform/builtin/bins/provisioner-file
-	vendor/github.com/hashicorp/terraform/builtin/bins/provisioner-local-exec
-	vendor/github.com/hashicorp/terraform/builtin/bins/provisioner-remote-exec
+	vendor/github.com/hashicorp/terraform/builtin/bins/...
 	koding/kites/cmd/provider-vagrant
 	vendor/github.com/koding/terraform-provider-github/cmd/provider-github
 )
@@ -102,7 +97,7 @@ koding-go-install ${COMMANDS[@]} ${TERRAFORM_COMMANDS[@]}
 mkdir -p $GOPATH/build/broker
 cp -f $GOBIN/broker $GOPATH/build/broker/broker
 
-for cmd in "${TERRAFORM_COMMANDS[@]}"; do
+for cmd in $GOBIN/provider-* $GOBIN/provisioner-*; do
 	NAME=$(echo $cmd | rev | cut -d/ -f1 | rev)
 
 	ln -sf $GOBIN/$NAME $GOBIN/terraform-$NAME
