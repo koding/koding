@@ -1,6 +1,6 @@
 kd     = require 'kd'
 React  = require 'kd-react'
-Portal = require('react-portal').default
+Portal = require 'react-portal'
 
 require './styl/modal.styl'
 

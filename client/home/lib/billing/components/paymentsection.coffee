@@ -75,9 +75,6 @@ module.exports = class PaymentSection extends React.Component
                 onClick={secondaryButtonProps.onClick}
                 type='secondary'>{secondaryButtonProps.title}</Button>}
           </Col>
-          <Col>
-            <Button size='small' type='link-primary-6'>PAYMENT HISTORY</Button>
-          </Col>
         </Row>
       </Footer>
     </DashboardSection>
