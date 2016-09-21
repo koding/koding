@@ -860,7 +860,7 @@ module.exports = class JUser extends jraphical.Module
           JForeignAuth = require '../foreignauth'
           JForeignAuth.persistOauthInfo {
             sessionToken: replacementToken
-            group: session.group
+            group: session.groupName
             username
           }, (err) ->
 
@@ -1153,7 +1153,7 @@ module.exports = class JUser extends jraphical.Module
               return callback new KodingError err.message  if err
               JForeignAuth.persistOauthInfo {
                 username: user.username
-                group: session.group
+                group: session.groupName
                 sessionToken
               }, kallback
               # user.username, sessionToken, kallback
@@ -1567,23 +1567,6 @@ module.exports = class JUser extends jraphical.Module
     subscription     = null
 
     queue = [
-
-      (next) ->
-        JSession.fetchOAuthInfo client.sessionToken, (err, foreignAuthInfo) ->
-          if err
-            console.log 'Error while getting oauth data from session', err
-            return next()
-
-          return next()  unless foreignAuthInfo
-
-          # Password is not required for GitHub users since they are authorized via GitHub.
-          # To prevent having the same password for all GitHub users since it may be
-          # a security hole, let's auto generate it if it's not provided in request
-          unless password
-            password        = userFormData.password        = createId()
-            passwordConfirm = userFormData.passwordConfirm = password
-
-          next()
 
       (next) ->
         options = { client, userFormData, skipAllowedDomainCheck }
