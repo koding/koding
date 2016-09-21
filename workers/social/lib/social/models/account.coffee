@@ -153,8 +153,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
         fetchOAuthInfo:
           (signature Function)
-        isAuthorized:
-          (signature String, Function)
         fetchFromUser: [
           (signature String, Function)
           (signature [String], Function)
@@ -1295,17 +1293,6 @@ module.exports = class JAccount extends jraphical.Module
         callback null, results
       else
         callback null, user.getAt key
-
-  isAuthorized: secure (client, name, callback) ->
-    @fetchOAuthInfo client, (err, response) ->
-
-      return callback err  if err
-
-      return callback null, no  unless response?[name]
-
-      return callback null, yes  if name isnt 'github'
-
-      return callback null, response[name].scope is 'repo'
 
 
   setLastLoginTimezoneOffset: secure (client, options, callback) ->
