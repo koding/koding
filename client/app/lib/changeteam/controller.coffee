@@ -1,4 +1,5 @@
 kd = require 'kd'
+_ = require 'lodash'
 async = require 'async'
 whoami = require 'app/util/whoami'
 KodingListController = require 'app/kodinglist/kodinglistcontroller'
@@ -14,16 +15,16 @@ module.exports = class ChangeTeamController extends KodingListController
     options.fetcherMethod  = (query, options, callback) ->
       whoami().fetchRelativeGroups (err, groups) ->
         return  if showError err
-        groups = groups.filter (group) -> group.slug isnt 'koding'
 
         { groupsController } = kd.singletons
-        currentGroup = groupsController.getCurrentGroup()
-        groups = groups.sort (group1, group2) ->
-          return -1  if group1.slug is currentGroup.slug
-          return 1  if group2.slug is currentGroup.slug
-          return -1  if group1.slug < group2.slug
-          return 1  if group1.slug > group2.slug
-          return 0
+        currentGroup = _.find groups, (group) ->
+          group.slug is groupsController.getCurrentGroup().slug
+
+        rejectedSlugs = [ 'koding', currentGroup.slug ]
+        groups = _.reject groups, (group) -> group.slug in rejectedSlugs
+        groups = _.sortBy groups, 'slug'
+
+        groups.unshift currentGroup
 
         callback null, groups
     options.noItemFoundWidget = new kd.CustomHTMLView
