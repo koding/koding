@@ -29,6 +29,7 @@ import (
 	"socialapi/workers/payment"
 	paymentapi "socialapi/workers/payment/api"
 	permissionapi "socialapi/workers/permission/api"
+	presenceapi "socialapi/workers/presence/api"
 	realtimeapi "socialapi/workers/realtime/api"
 	sitemapapi "socialapi/workers/sitemap/api"
 	slackapi "socialapi/workers/slack/api"
@@ -85,6 +86,7 @@ func main() {
 	reply.AddHandlers(m)
 	notificationsetting.AddHandlers(m)
 	realtimeapi.AddHandlers(m)
+	presenceapi.AddHandlers(m)
 	slackapi.AddHandlers(m, c)
 	credential.AddHandlers(m, r.Log, c)
 	emailapi.AddHandlers(m)
