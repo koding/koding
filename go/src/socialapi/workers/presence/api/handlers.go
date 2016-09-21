@@ -5,23 +5,39 @@ import (
 	"net/http"
 	"net/url"
 	apimodels "socialapi/models"
+	"socialapi/workers/common/handler"
+	"socialapi/workers/common/mux"
 	"socialapi/workers/common/response"
-	"socialapi/workers/presence/models"
+	"socialapi/workers/helper"
+	"socialapi/workers/presence"
 	"time"
 
 	"github.com/koding/bongo"
 )
 
+// AddHandlers added the internal handlers to the given Muxer
+func AddHandlers(m *mux.Mux) {
+	httpRateLimiter := helper.NewDefaultRateLimiter()
+
+	m.AddHandler(
+		handler.Request{
+			Handler:   Ping,
+			Name:      "presence-ping",
+			Type:      handler.GetRequest,
+			Endpoint:  "/presence/ping",
+			Ratelimit: httpRateLimiter,
+		},
+	)
+}
+
 // Ping handles the pings coming from client side
-//
-// TOOD add throttling here
 func Ping(u *url.URL, h http.Header, _ interface{}, context *apimodels.Context) (int, http.Header, interface{}, error) {
 	// only logged in users can send a ping
 	if !context.IsLoggedIn() {
 		return response.NewBadRequest(errors.New("not logged in"))
 	}
 
-	req := &models.Ping{
+	req := &presence.Ping{
 		GroupName: context.GroupName,
 		AccountID: context.Client.Account.Id, // if client is logged in, those values are all set
 		CreatedAt: time.Now().UTC(),
