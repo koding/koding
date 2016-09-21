@@ -48,6 +48,5 @@ func Ping(u *url.URL, h http.Header, _ interface{}, context *apimodels.Context) 
 		return response.NewBadRequest(err)
 	}
 
-	// send back the updated ping as response
-	return response.NewOK(req)
+	return response.NewDefaultOK()
 }
