@@ -109,8 +109,8 @@ follow steps for running the instance:
 git clone https://github.com/koding/koding.git /your/koding/path
 cd /your/koding/path
 node -v # make sure your node version is not greater than `0.10.x`
-npm -v # make sure your npm version is greater than 2.15.1
-coffee -v # make sure your coffeeScript version is greater than 1.8
+npm -v # make sure your npm version is greater than 2.15.x
+coffee -v # make sure your coffeeScript version must be 1.8
 npm install
 ```
 
