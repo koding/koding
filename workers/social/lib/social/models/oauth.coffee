@@ -23,17 +23,12 @@ module.exports = class OAuth extends bongo.Base
 
       if not err and group and group.config?.gitlab?.enabled
 
-        group.fetchDataAt 'gitlab', (err, data) ->
-          return callback err  if err or not data
+        settings = {
+          url: group.config.gitlab.url
+          applicationId: group.config.gitlab.applicationId
+        }
 
-          callback null, {
-            url: data.url
-            applicationId: group.config.gitlab.applicationId
-          }
-
-      else
-
-        callback null
+      callback null, settings
 
 
   getUrlFor = (client, urlOptions, callback) ->
