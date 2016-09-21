@@ -17,6 +17,8 @@ imports:
   version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1
 - name: github.com/apparentlymart/go-grafana-api
   version: d49f95c81c580a4e7a15244b9b12dce8f60750f4
+- name: github.com/hashicorp/go-plugin
+  version: cccb4a1328abbb89898f3ecf4311a05bddc4de6d
 - name: github.com/apparentlymart/go-rundeck-api
   version: 9bba1387e4a9102978478a16f76a742d9916005a
   subpackages:

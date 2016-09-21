@@ -61,6 +61,7 @@ import:
 - package: github.com/gorilla/schema
 - package: github.com/hashicorp/go-multierror
 - package: github.com/hashicorp/go-version
+- package: github.com/hashicorp/go-plugin
 - package: github.com/hashicorp/hcl
   version: d8c773c4cba11b11539e3d45f93daeaa5dcf1fa1
   subpackages:
