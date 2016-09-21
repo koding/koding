@@ -5,7 +5,7 @@ isAdmin = require 'app/util/isAdmin'
 
 module.exports = -> lazyrouter.bind 'stackeditor', (type, info, state, path, ctx) ->
 
-  unless canCreateStacks()
+  unless canCreateStacks() or type is 'edit-stack'
     new kd.NotificationView { title: 'You are not allowed to create/edit stacks!' }
     return kd.singletons.router.back()
 
