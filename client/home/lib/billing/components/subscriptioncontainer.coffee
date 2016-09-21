@@ -1,3 +1,4 @@
+kd = require 'kd'
 globals = require 'globals'
 { connect } = require 'react-redux'
 { createSelector } = require 'reselect'
@@ -69,5 +70,12 @@ mapStateToProps = (state) ->
   }
 
 
-module.exports = connect(mapStateToProps)(SubscriptionSection)
+mapDispatchToProps = (dispatch) ->
+  return {
+    onClickPricingDetails: -> window.open 'https://www.koding.com/pricing', '_blank'
+    onClickViewMembers: -> kd.singletons.router.handleRoute '/Home/my-team/teammates'
+  }
+
+
+module.exports = connect(mapStateToProps, mapDispatchToProps)(SubscriptionSection)
 

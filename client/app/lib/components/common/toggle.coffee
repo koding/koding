@@ -24,6 +24,7 @@ module.exports = class Toggle extends React.Component
 
     props = _.omit @props, ['callback']
 
+    props.checked or= no
     <div className={className}>
       <ReactToggle {...props} onChange={@bound 'onChange'} />
     </div>

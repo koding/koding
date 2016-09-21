@@ -44,7 +44,7 @@ module.exports = class SidebarSection extends React.Component
     then 'unread'
     else ''
 
-    linkProps = { titleLink: @props.titleLink }
+    linkProps = { }
     if @props.onTitleClick
       linkProps.onClick = @props.onTitleClick
 

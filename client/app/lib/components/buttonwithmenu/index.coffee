@@ -1,7 +1,7 @@
 kd       = require 'kd'
 React    = require 'kd-react'
 ReactDOM = require 'react-dom'
-Portal   = require('react-portal').default
+Portal   = require 'react-portal'
 $        = require 'jquery'
 
 require './styl/buttonwithmenu.styl'

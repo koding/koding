@@ -23,8 +23,11 @@ var (
 	ErrCustomerNotSubscribedToAnyPlans = errors.New("user is not subscribed to any plans")
 	// ErrCustomerNotExists error for not created users
 	ErrCustomerNotExists = errors.New("user is not created for subscription")
+	// ErrGroupAlreadyHasSub error when a group tries to create a sub and they try to create another
+	ErrGroupAlreadyHasSub = errors.New("group already has a subscription")
 )
 
+// Usage holds current usage information, which will be calculated on the fly
 type Usage struct {
 	User            *UserInfo
 	ExpectedPlan    *stripe.Plan
@@ -33,6 +36,7 @@ type Usage struct {
 	Subscription    *stripe.Sub
 }
 
+// UserInfo holds current info about team's user info
 type UserInfo struct {
 	Total   int
 	Active  int
@@ -58,7 +62,9 @@ func DeleteCustomerForGroup(groupName string) error {
 	return modelhelper.UpdateGroupPartial(
 		modelhelper.Selector{"_id": group.Id},
 		modelhelper.Selector{
-			"$unset": modelhelper.Selector{"payment.customer.id": ""},
+			// deleting customer deletes everything belong to that customer in stripe,
+			// so say we all
+			"$unset": modelhelper.Selector{"payment": ""},
 		},
 	)
 }
@@ -333,9 +339,22 @@ func deleteCustomer(customerID string) error {
 	return err
 }
 
-func populateCustomerParams(username, groupName string, req *stripe.CustomerParams) (*stripe.CustomerParams, error) {
-	if req == nil {
-		req = &stripe.CustomerParams{}
+func populateCustomerParams(username, groupName string, initial *stripe.CustomerParams) (*stripe.CustomerParams, error) {
+	if initial == nil {
+		initial = &stripe.CustomerParams{}
+	}
+
+	// whitelisted parameters
+	req := &stripe.CustomerParams{
+		Token:  initial.Token,
+		Coupon: initial.Coupon,
+		Source: initial.Source,
+		Desc:   initial.Desc,
+		Email:  initial.Email,
+		Params: initial.Params,
+		// plan can not be updated by hand, do not add it to whilelist. It should
+		// only be updated automatically on invoice applications
+		// Plan: initial.Plan,
 	}
 
 	user, err := modelhelper.GetUser(username)
