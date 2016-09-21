@@ -42,9 +42,8 @@ mapDispatchToProps = (dispatch) ->
     handleRoute: (route) ->
       handleRoute route
 
-    makeTeamDefault: (template, credential) ->
-      makeTeamDefault template, credential, ->
-        console.log 'haydadadas'
+    # makeTeamDefault: (template, credential) ->
+    #   makeTeamDefault template, credential, ->
   }
 
 mapStateToProps = (state) ->
@@ -92,7 +91,6 @@ class SidebarContainer extends React.Component
 
   render: ->
 
-    # console.log 'props', @props
 
     <Sidebar {...@props} />
 

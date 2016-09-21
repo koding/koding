@@ -25,6 +25,9 @@ getGroup             = require 'app/util/getGroup'
 createShareModal     = require 'stack-editor/editor/createShareModal'
 isGroupDisabled      = require 'app/util/isGroupDisabled'
 
+{ LOAD } = require 'app/redux/modules/bongo'
+{ setAccess } = require 'app/redux/modules/sidebar/stacks'
+{ modify, sendNotification } = require 'app/redux/modules/group/defaultteamtemplate'
 { actions : HomeActions } = require 'home/flux'
 
 require './config'
@@ -962,14 +965,14 @@ module.exports = class ComputeController extends KDController
     KiteCache.unset machine.queryString
     delete kontrol.kites?.klient?[machine.uid]
 
-
-  checkStackRevisions: ->
+  checkStackRevisions: (stacks = null) ->
 
     return  if isKoding()
 
     # TMS-1919: This is already written for multiple stacks, code change
     # might be required if existing flow changes ~ GG
 
+    @stacks = stacks  if stacks
     @stacks.forEach (stack) =>
 
       stack.checkRevision (error, data) =>
@@ -980,6 +983,7 @@ module.exports = class ComputeController extends KDController
 
         # console.info "Revision info for stack #{stack.title}", status
         @emit 'StackRevisionChecked', stack
+        @emit 'StackRevisionSuccess', stack._id, error, data
 
         if stack.machines.length isnt machineCount
           @emit 'StacksInconsistent', stack

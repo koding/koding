@@ -44,7 +44,7 @@ module.exports = class Sidebar extends React.Component
     template = @props.stacksAndTemplates?[stack._id] or {}
     menuItems = @props.stacksAndMenuItems?[stack._id] or {}
     credential = @props.stacksAndCredential?[stack._id] or {}
-    console.log 'credential ', credential
+
     <SidebarStackSection
       key={stack._id}
       stack={stack}

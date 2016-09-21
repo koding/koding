@@ -57,12 +57,12 @@ initializeStack = (template) -> (dispatch) ->
         }
 
     (machine, next) ->
-      console.log '???? ', machine, ' should be null amk', machine.label
+
       new kd.NotificationView { title: 'Stack generated successfully' }
       reloadIDE machine.label
       next()
   ])
-  console.log 'something'
+
 
 
 openOnGitlab = (stack) ->
@@ -88,10 +88,10 @@ setAccess = (template) ->
         reject()
   }
 
-makeTeamDefault = (template, credential) ->
+# makeTeamDefault = (template, credential) ->
 
-  kd.singletons.computeController.makeTeamDefault2 template, credential, ->
-    console.log '??? make team default'
+#   kd.singletons.computeController.makeTeamDefault2 template, credential, ->
+
 
 
 destroyStack = (stack, machines, type = 'deleteStack') ->
@@ -123,7 +123,7 @@ destroyStack = (stack, machines, type = 'deleteStack') ->
 
 
 reloadIDE = (machineSlug) ->
-  console.log 'machine Slug ', machineSlug
+
   { computeController } = kd.singletons
   computeController.reloadIDE machineSlug
 
