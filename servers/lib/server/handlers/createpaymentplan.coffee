@@ -3,6 +3,8 @@
 
 { Plan } = require '../../../../client/app/lib/redux/modules/payment/constants'
 
+{ environment } = require 'koding-config-manager'
+
 getDefaultTrialEnd = ->
 
   now = (new Date()).getTime()
@@ -12,6 +14,9 @@ getDefaultTrialEnd = ->
 
 
 module.exports = createPaymentPlan = (params = {}, callback) ->
+
+  # don't try to create plan for default environment
+  return callback null  if environment is 'default'
 
   params.trialEnd ?= getDefaultTrialEnd()
 
