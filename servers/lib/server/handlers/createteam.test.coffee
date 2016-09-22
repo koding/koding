@@ -14,6 +14,7 @@ KONFIG                              = require 'koding-config-manager'
 { testCsrfToken }                   = require '../../../testhelper/handler'
 { generateRegisterRequestParams }   = require '../../../testhelper/handler/registerhelper'
 { generateCreateTeamRequestParams } = require '../../../testhelper/handler/teamhelper'
+{ Status }                          = require '../../../../client/app/lib/redux/modules/payment/constants'
 
 
 JUser               = require '../../../models/user'
@@ -84,6 +85,10 @@ runTests = -> describe 'server.handlers.createteam', ->
         JGroup.one { slug }, (err, group) ->
           expect(err).to.not.exist
           expect(group.title).to.be.equal companyName
+
+          expect(group.payment).to.exist
+          expect(group.payment.subscription).to.exist
+          expect(group.payment.subscription.status).to.be.equal Status.TRIALING
 
           allowedDomains.forEach (domain) ->
             expect(group.allowedDomains).to.include domain
