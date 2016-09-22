@@ -4,13 +4,9 @@
 # tags: automated
 #
 
-<<<<<<< 72fb5d4ce0394642ac4281bdffdc3d0aded0cc2a:tests/spec/rainforest/ide_filetree_create_filefolder_editsave_file.rfml
-- 4691279c-8028-4275-b174-ac9192669997
-
-=======
 - d6c0bff2-2d2c-49f5-b420-21527fcaa054
->>>>>>> Test/Rainforest add ide tests:tests/spec/rainforest/ide_create_edit_save_file.rfml
 # redirect: false
+
 Close that modal by clicking (x) from top right corner 
 Do you see file tree and some editor/terminal active (the goal is to see something like this http://snag.gy/2oIRb.jpg)? 
 
