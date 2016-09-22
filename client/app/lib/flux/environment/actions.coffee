@@ -18,7 +18,7 @@ providersParser = require 'app/util/stacks/providersparser'
 requirementsParser = require 'app/util/stacks/requirementsparser'
 generateTemplateRawContent = require 'app/util/generateTemplateRawContent'
 Tracker = require 'app/util/tracker'
-
+{ create } = require 'app/redux/modules/bongo'
 _eventsCache = { machine: {}, stack: no }
 
 _bindMachineEvents = (environmentData) ->
@@ -535,23 +535,30 @@ createStackTemplate = (options) ->
   { title, template, credentials, rawContent
     templateDetails, config, description } = options
 
+  { dispatch } = kd.singletons.store
+
   return new Promise (resolve, reject) ->
 
-    reactor.dispatch actions.CREATE_STACK_TEMPLATE_BEGIN
+  #   reactor.dispatch actions.CREATE_STACK_TEMPLATE_BEGIN
 
-    remote.api.JStackTemplate.create {
-      title, template, credentials, rawContent
-      templateDetails, config, description
-    }, (err, stackTemplate) ->
-      if err
-        reactor.dispatch actions.CREATE_STACK_TEMPLATE_FAIL, { err }
-        reject err
-        return
+  #   remote.api.JStackTemplate.create {
+  #     title, template, credentials, rawContent
+  #     templateDetails, config, description
+  #   }, (err, stackTemplate) ->
+  #     if err
+  #       reactor.dispatch actions.CREATE_STACK_TEMPLATE_FAIL, { err }
+  #       reject err
+  #       return
 
+  #     reactor.dispatch actions.CREATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
+  #     _bindTemplateEvents stackTemplate
+  #     resolve { stackTemplate }
+    dispatch(create 'JStackTemplate', options).then (result) ->
+      stackTemplate = result[0]
       reactor.dispatch actions.CREATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
       _bindTemplateEvents stackTemplate
       resolve { stackTemplate }
-
+    # }
 
 createStackTemplateWithDefaults = (overrides = {}) ->
 
