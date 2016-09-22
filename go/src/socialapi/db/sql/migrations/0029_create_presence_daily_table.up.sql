@@ -50,8 +50,3 @@ DO $$
     RAISE NOTICE 'presence_daily_crea_at_acc_id_group_name_is_proc_idx already exists';
   END;
 $$;
-
-
---
--- ALSO ADDED BOT channel type and channel message type
---
