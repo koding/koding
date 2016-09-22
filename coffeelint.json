@@ -34,7 +34,7 @@
     "level": "ignore"
   },
   "eol_last": {
-    "level": "error"
+    "level": "ignore"
   },
   "indentation": {
     "value": 2,
@@ -55,7 +55,7 @@
   },
   "newlines_after_classes": {
     "value": 2,
-    "level": "error"
+    "level": "ignore"
   },
   "no_backticks": {
     "level": "ignore"
