@@ -57,9 +57,6 @@ build:
         name: create data files
         code: touch INSTANCE_DATA
     - script:
-        name: run coffeelint
-        code: scripts/wercker/run-command scripts/lint-coffeescript.sh
-    - script:
         name: launch test hosts
         code: scripts/wercker/run-command scripts/wercker/launch-test-hosts
     - script:
