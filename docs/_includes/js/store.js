@@ -1,66 +1,81 @@
-document.querySelector('.dropdown').onclick = function() {
+(function() {
+  var searchBar      = document.querySelector('.search-bar'),
+      searchBarInput = document.querySelector('.search-bar input'),
+      searchResults  = document.querySelector('.search-results-rows'),
 
-  if (this.classList.contains('is-shown')) {
-    this.classList.remove('is-shown');
-  } else {
-    this.classList.add('is-shown');
+      dropdown        = document.querySelector('.dropdown'),
+      dropdownLabel   = document.querySelector('.dropdown-selection label')
+      dropdownOptions = document.querySelectorAll('.dropdown .dropdown-options a'),
+
+      removeIcon = document.querySelector('.remove-icon');
+
+  dropdown.addEventListener('click', function() {
+
+    if (this.classList.contains('is-shown')) {
+      this.classList.remove('is-shown');
+    } else {
+      this.classList.add('is-shown');
+    }
+  });
+
+  [].forEach.call( dropdownOptions, function(el) {
+    el.addEventListener('click', function() {
+      dropdownLabel.innerHTML = this.innerHTML;
+      searchBarInput.focus();
+    }, false)
+  });
+
+  searchBarInput.addEventListener('keyup', function(e) {
+    submitInput(this);
+  });
+
+  removeIcon.addEventListener('click', function(e) {
+    searchBarInput.value = "";
+    searchBarInput.focus();
+    searchBar.classList.remove('is-shown');
+    searchResults.innerHTML = "";
+
+    return false;
+  });
+
+  var searchResultTemplate = function(obj) {
+    return '<a class="search-result-row">' +
+      '<p class="title">' + obj.formattedTitle + (obj.verified ? '<span class="icon verified"></span>' : '') + '</p>' +
+      '<p class="description">by '+ obj.author +'</p>' +
+      '</a>';
   }
-};
 
-[].forEach.call( document.querySelectorAll('.dropdown .dropdown-options a'), function(el) {
-  el.addEventListener('click', function() {
-    document.querySelector('.dropdown-selection label').innerHTML = this.innerHTML;
-    document.querySelector('.search-bar input').focus();
-  }, false)
-});
+  var wrapMatchedText = function(title, matchedText, openTag, closeTag) {
+    var indexOf = title.toLowerCase().indexOf(matchedText),
+        len     = matchedText.length;
 
-document.querySelector('.search-bar input').onkeyup = function(e) {
-  submitInput(this);
-}
+    var start  = title.substr(0, indexOf),
+        middle = openTag + title.substr(indexOf, len) + closeTag,
+        end    = title.substr(indexOf + len);
 
-document.querySelector('.search-icon').onclick = function(e) {
-  var el = document.querySelector('.search-bar input');
-  submitInput(el);
-}
-
-document.querySelector('.remove-icon').onclick = function(e) {
-  document.querySelector('.search-bar input').value = "";
-  document.querySelector('.search-bar input').focus();
-  document.querySelector('.search-bar').classList.remove('is-shown');
-  document.querySelector('.search-results-rows').innerHTML = "";
-}
-
-var searchResultTemplate = function(obj) {
-  return '<a class="search-result-row">' +
-          '<p class="title">' + obj.formattedTitle + (obj.verified ? '<span class="icon verified"></span>' : '') + '</p>' +
-          '<p class="description">by '+ obj.author +'</p>' +
-        '</a>';
-}
-
-var submitInput = function(e) {
-  if (e.value != "") {
-    var filteredStacks = stacks.filter(function(obj) {
-      return obj.title.toLowerCase().indexOf(e.value) != -1;
-    }).slice(0, 5);
-    
-    var html = filteredStacks.map(function(obj) {
-      var indexOf = obj.title.toLowerCase().indexOf(e.value);
-      var len = e.value.length;
-
-      var start = obj.title.substr(0, indexOf);
-      var middle = '<span class="matched-phrase">' + obj.title.substr(indexOf, len) + '</span>';
-      var end = obj.title.substr(indexOf + len);
-      obj.formattedTitle = start + middle + end;
-
-      return searchResultTemplate(obj);
-    }).join('');
-
-    document.querySelector('.search-bar').classList.add('is-shown');
-    document.querySelector('.search-results-rows').innerHTML = html;
-  } else {
-    document.querySelector('.search-bar').classList.remove('is-shown');
-    document.querySelector('.search-results-rows').innerHTML = "";
+    return start + middle + end;
   }
-}
 
-var stacks = {{site.data.store-stacks | jsonify }}
+  var submitInput = function(e) {
+    var html = "";
+
+    if (e.value != "") {
+      var filteredStacks = stacks.filter(function(obj) {
+        return obj.title.toLowerCase().indexOf(e.value) != -1;
+      }).slice(0, 5);
+      
+      html = filteredStacks.map(function(obj) {
+        obj.formattedTitle = wrapMatchedText(obj.title, e.value, '<span class="matched-phrase">', '</span>');
+        return searchResultTemplate(obj);
+      }).join('');
+
+      searchBar.classList.add('is-shown');
+    } else {
+      searchBar.classList.remove('is-shown');
+    }
+
+    searchResults.innerHTML = html;
+  }
+
+  var stacks = {{site.data.store-stacks | jsonify }}
+})();

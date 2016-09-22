@@ -8,16 +8,14 @@ order: 40
 <!-- HEADER -->
 {% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#7F7E9E' %}
 
-<style>{% include css/store.css %}</style>
+<link rel="stylesheet" href="{{ site.url }}/css/store.css">
 
 <div class="hero">
   <h1 class="heading">Stack and Stencil Hub</h1>
   <h2 class="subheading">Start building your stacks easily with these hundereds of examples</h2>
   <div class="search-container">
     <div class="dropdown">
-      <a href="#" class="dropdown-selection">
-        <label>In Stencils</label><span class="dropdown-icon"></span>
-      </a>
+      <a href="#" class="dropdown-selection"><label>In Stencils</label></a>
       <div class="dropdown-options">
         <a href="#">In Stacks</a>
         <a href="#">In Stencils</a>
@@ -25,24 +23,20 @@ order: 40
     </div>
     <div class="search-bar">
       <div class="search-bar-field">
-        <input placeholder="Search a keyword or name..." /><a href="#" class="search-icon"></a>
-        <a href="javascript:;" class="remove-icon"></a>
+        <input placeholder="Search a keyword or name..." />
+        <a href="#" class="remove-icon"></a>
       </div>
       <div class="search-results">
         <div class="search-results-rows">
         </div>
-        <a href="#" class="see-all-results-row">
-          See all results...
-        </a>
+        <a href="#" class="see-all-results-row">See all results...</a>
       </div>
     </div>
   </div>
 </div>
 <div class="container featured-stacks">
   <div class="text-heading">
-    <h3 class="heading">
-      Featured Stacks
-    </h3>
+    <h3 class="heading">Featured Stacks</h3>
     <p class="sub-heading">
       Nulla vitae elit libero, a pharetra augue. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Integer posuere erat a ante venenatis dapibus posuere.
     </p>
@@ -52,9 +46,7 @@ order: 40
 </div>
 <div class="container featured-stencils">
   <div class="text-heading">
-    <h3 class="heading">
-      Featured Stencils
-    </h3>
+    <h3 class="heading">Featured Stencils</h3>
     <p class="sub-heading">
       Nulla vitae elit libero, a pharetra augue. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Integer posuere erat a ante venenatis dapibus posuere.
     </p>
