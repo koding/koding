@@ -85,6 +85,8 @@ const (
 	optionLogStderrDefault     = false
 	optionLogStdout            = "LogStdout"
 	optionLogStdoutDefault     = false
+	optionLogFile              = "LogFile"
+	optionLogFileDefault       = false
 	optionEnvironment          = "Environment"
 	optionRequiredStart        = "RequiredStart"
 	optionAfter                = "After"

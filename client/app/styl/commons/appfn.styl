@@ -196,6 +196,25 @@ img-height(img)
   realPath = pathjoin(rootPath, img)
   return image-size(realPath)[1]
 
+m-sprite(folder, name)
+  imageName1x = pathjoin(folder, '/lib/sprites/1x/' + name + '.png')
+  imageName2x = pathjoin(folder, '/lib/sprites/2x/' + name + '.png')
+
+  _width1x = img-width(imageName1x)
+  _height1x = img-height(imageName1x)
+
+  requireName1x = s(folder + '/sprites/1x/' + name + '.png')
+  requireName2x = s(folder + '/sprites/2x/' + name + '.png')
+
+  width                     _width1x
+  height                    _height1x
+  bg                        image, url(requireName1x)
+  bg                        size, _width1x _height1x
+
+  @media retinaQuery
+    bg                      image, url(requireName2x)
+    bg                      size, _width1x _height1x
+
 r-sprite(folder, name)
   imageName1x = pathjoin(folder, '/lib/sprites/1x/' + name + '.png')
   imageName2x = pathjoin(folder, '/lib/sprites/2x/' + name + '.png')

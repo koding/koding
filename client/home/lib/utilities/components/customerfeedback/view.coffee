@@ -1,5 +1,5 @@
 kd               = require 'kd'
-React            = require 'kd-react'
+React            = require 'app/react'
 
 
 module.exports = class CustomerFeedBackView extends React.Component
@@ -29,7 +29,8 @@ module.exports = class CustomerFeedBackView extends React.Component
 
 InputArea = ({ value, callback }) ->
 
-   <input type="text"
+  value or= ''
+  <input type="text"
     className="kdinput text "
     value={value}
     onChange={callback}/>

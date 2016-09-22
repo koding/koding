@@ -1,4 +1,4 @@
-React  = require 'kd-react'
+React  = require 'app/react'
 Toggle = require 'app/components/common/toggle'
 
 module.exports = class HomeTeamPermissionsView extends React.Component
@@ -29,4 +29,8 @@ module.exports = class HomeTeamPermissionsView extends React.Component
 
 ToggleButton = ({ checked, callback }) ->
 
+  checked ?= no
+
   <Toggle checked={checked} className='OnOffButton' callback={callback} />
+
+

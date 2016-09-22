@@ -1,0 +1,9 @@
+{
+  "error": {
+    "type": "card_error",
+    "code": "invalid_number",
+    "message": "The card number is not a valid credit card number.",
+    "param": "number"
+  }
+}
+

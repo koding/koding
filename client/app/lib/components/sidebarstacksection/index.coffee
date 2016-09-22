@@ -1,5 +1,5 @@
 kd                        = require 'kd'
-React                     = require 'kd-react'
+React                     = require 'app/react'
 immutable                 = require 'immutable'
 SidebarSection            = require 'app/components/sidebarsection'
 KDReactorMixin            = require 'app/flux/base/reactormixin'
@@ -87,7 +87,7 @@ module.exports = class SidebarStackSection extends React.Component
 
 
     switch title
-      when 'Edit' then router.handleRoute "/Stack-Editor/#{templateId}"
+      when 'Edit', 'View Stack' then router.handleRoute "/Stack-Editor/#{templateId}"
       when 'Reinitialize', 'Update'
         reinitStackFromWidget(stack).then ->
           # invalidate editor cache
@@ -127,6 +127,8 @@ module.exports = class SidebarStackSection extends React.Component
     else
       if isAdmin() or @props.stack.get('accessLevel') is 'private'
         menuItems['Edit'] = { callback }
+      else
+        menuItems['View Stack'] = { callback }
       ['Reinitialize', 'VMs', 'Destroy VMs'].forEach (name) ->
         menuItems[name] = { callback }
       if isAdmin() and not isStackTemplateSharedWithTeam @props.stack.get 'baseStackId'

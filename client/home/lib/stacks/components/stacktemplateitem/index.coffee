@@ -1,7 +1,7 @@
 kd = require 'kd'
 _ = require 'lodash'
 $ = require 'jquery'
-React = require 'kd-react'
+React = require 'app/react'
 TimeAgo = require 'app/components/common/timeago'
 UnreadCount = require 'app/components/sidebarmachineslistitem/unreadcount'
 getBoundingClientReact = require 'app/util/getBoundingClientReact'
@@ -111,14 +111,12 @@ module.exports = class StackTemplateItem extends React.Component
 
 
     editorUrl = "/Stack-Editor/#{template.get '_id'}"
-    listItemClassName = 'HomeAppViewListItem-label'
-    unless isAdmin() or template.get('originId') is whoami()._id
-      listItemClassName = 'HomeAppViewListItem-label member'
+
     <div className='HomeAppViewListItem StackTemplateItem'>
       <a
         ref='stackTemplateItem'
         href={editorUrl}
-        className={listItemClassName}
+        className='HomeAppViewListItem-label'
         onClick={onOpen}>
         { makeTitle { template, stack } }
       </a>

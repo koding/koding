@@ -340,7 +340,7 @@ func TestInfoPlan(t *testing.T) {
 							err = json.Unmarshal(res, v)
 							So(err, ShouldBeNil)
 
-							So(v.Plan.ID, ShouldEqual, planID)
+							So(v.ExpectedPlan.ID, ShouldEqual, planID)
 						})
 					})
 				})

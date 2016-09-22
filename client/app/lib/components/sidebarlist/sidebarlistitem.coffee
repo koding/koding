@@ -1,5 +1,5 @@
 kd         = require 'kd'
-React      = require 'kd-react'
+React      = require 'app/react'
 classnames = require 'classnames'
 Link       = require 'app/components/common/link'
 

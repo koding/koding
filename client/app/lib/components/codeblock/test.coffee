@@ -1,4 +1,4 @@
-React = require 'kd-react'
+React = require 'app/react'
 expect = require 'expect'
 globals = require 'globals'
 CodeBlock = require './index'

@@ -136,6 +136,14 @@ pushLoader [
 
 # Style loaders configuration
 pushLoader [
+  test: /\.stylus$/
+  include: CLIENT_PATH
+  loaders: [
+    'style'
+    'css?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]'
+    'stylus'
+  ]
+,
   test: /\.styl$/
   include: CLIENT_PATH
   loaders: [
@@ -146,10 +154,15 @@ pushLoader [
 ,
   test: /\.css$/
   include: CLIENT_PATH
+  exclude: /flexboxgrid/,
   loaders: [
     'style'
     'css'
   ]
+,
+  test: /\.css$/,
+  loader: 'style!css?modules',
+  include: /flexboxgrid/,
 ]
 
 # File & Url loaders
@@ -189,11 +202,15 @@ webpackConfig.plugins = [
 # development environment specific plugins.
 if __DEV__
   webpackConfig.plugins.push(
-    new WebpackNotifierPlugin { title: 'Koding Frontend' }
+    new WebpackNotifierPlugin { title: 'Koding Frontend', alwaysNotify: yes }
   )
 # prod environment specific plugins.
 else if __PROD__
   webpackConfig.plugins.push(
+    new webpack.DefinePlugin
+      'process.env':
+        'NODE_ENV': JSON.stringify('production')
+
     new webpack.optimize.OccurrenceOrderPlugin()
     new webpack.optimize.DedupePlugin()
     new webpack.optimize.UglifyJsPlugin

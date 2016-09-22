@@ -1,5 +1,5 @@
 kd = require 'kd'
-React = require 'kd-react'
+React = require 'app/react'
 KDReactorMixin = require 'app/flux/base/reactormixin'
 PaymentFlux = require 'app/flux/payment'
 PlansList = require './view'

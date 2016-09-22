@@ -142,19 +142,19 @@ func (h *Handlers) vboxForwardedPorts(name string) (ports []*ForwardedPort, err 
 		v := strings.Split(line, ",")
 
 		if len(v) != 6 || v[3] == "" || v[5] == "" {
-			h.log.Debug("forwarding rule is ill-formatted: %s", line)
+			h.log().Debug("forwarding rule is ill-formatted: %s", line)
 			continue
 		}
 
 		hostPort, err := strconv.Atoi(v[3])
 		if err != nil {
-			h.log.Debug("forwarding rule: parsing host port error: %s", err)
+			h.log().Debug("forwarding rule: parsing host port error: %s", err)
 			continue
 		}
 
 		guestPort, err := strconv.Atoi(v[5])
 		if err != nil {
-			h.log.Debug("forwarding rule: parsing guest port error: %s", err)
+			h.log().Debug("forwarding rule: parsing guest port error: %s", err)
 			continue
 		}
 

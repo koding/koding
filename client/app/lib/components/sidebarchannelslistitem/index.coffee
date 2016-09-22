@@ -1,4 +1,4 @@
-React           = require 'kd-react'
+React           = require 'app/react'
 immutable       = require 'immutable'
 SidebarListItem = require 'app/components/sidebarlist/sidebarlistitem'
 

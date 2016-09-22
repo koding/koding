@@ -9,6 +9,7 @@ KONFIG                                  = require 'koding-config-manager'
 { hostname, environment }               = KONFIG
 { getClientId, handleClientIdNotFound } = require './../helpers'
 { validateTeamDomain }                  = require '../../../../workers/social/lib/social/models/user/validators'
+createPaymentPlan                       = require './createpaymentplan'
 
 module.exports = (req, res, next) ->
 
@@ -214,7 +215,7 @@ createGroupKallback = (client, req, res, body) ->
 afterGroupCreateKallback = (res, params) ->
 
   { JUser, JTeamInvitation, Tracker } = koding.models
-  { body : { slug, invitees }, client,  username } = params
+  { body : { slug, invitees, coupon }, client,  username } = params
 
   return (err, group) ->
     if err or not group
@@ -224,8 +225,16 @@ afterGroupCreateKallback = (res, params) ->
     queue = [
 
       # add other parallel operations here
-      (fin) -> createInvitations client, invitees, (err) ->
+      (fin) ->
+        createInvitations client, invitees, (err) ->
           console.error 'Err while creating invitations', err  if err
+          fin()
+
+      (fin) ->
+        params = { sessionToken: client.sessionToken }
+        params.coupon = coupon  if coupon
+        createPaymentPlan params, (err) ->
+          console.error 'Err while creating payment plan', err  if err
           fin()
 
     ]

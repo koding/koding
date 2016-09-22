@@ -1,0 +1,45 @@
+@import '~lab/Colors/Colors.stylus'
+
+.main
+  background-color          $additional-2
+  color                     $additional-3-faded
+  border-radius             8px
+
+.header
+  height                    60px
+
+.footer
+  text-transform            uppercase
+  span
+    font-size               13px
+
+
+.brand-american-express
+  m-sprite                  app, amex
+.brand-diners-club
+  m-sprite                  app, dinersclub
+.brand-discover
+  m-sprite                  app, discover
+.brand-jcb
+  m-sprite                  app, jcb
+.brand-maestro
+  m-sprite                  app, maestro
+.brand-master-card
+  m-sprite                  app, mastercard
+.brand-visa
+  m-sprite                  app, visa
+
+.chip
+  m-sprite                  app, Chip
+  float                     right
+
+.number
+  display                   flex
+  height                    30px
+  justify-content           space-between
+
+.name
+  ellipsis()
+
+
+

@@ -1,5 +1,5 @@
 kd                  = require 'kd'
-React               = require 'kd-react'
+React               = require 'app/react'
 SidebarWidget       = require './sidebarwidget'
 EnvironmentFlux     = require 'app/flux/environment'
 KDReactorMixin      = require 'app/flux/base/reactormixin'

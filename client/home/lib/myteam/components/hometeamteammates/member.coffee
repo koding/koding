@@ -1,5 +1,5 @@
 kd    = require 'kd'
-React = require 'kd-react'
+React = require 'app/react'
 ProfilePicture = require 'app/components/profile/profilepicture'
 capitalizeFirstLetter = require 'app/util/capitalizefirstletter'
 ButtonWithMenu = require 'app/components/buttonwithmenu'

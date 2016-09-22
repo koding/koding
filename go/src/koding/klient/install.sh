@@ -432,6 +432,7 @@ EOF
 	fi
 
 	sudo chmod 755 /etc/kite
+	sudo chmod 755 /etc/init.d/klient 2>&/dev/null || true
 	sudo chmod 644 /etc/kite/kite.key
 
 	cat << EOF
