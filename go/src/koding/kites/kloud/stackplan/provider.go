@@ -38,6 +38,19 @@ func Register(p *Provider) {
 	providers[p.Name] = p
 }
 
+func All() []*Provider {
+	providersMu.RLock()
+	defer providersMu.RUnlock()
+
+	all := make([]*Provider, 0, len(providers))
+
+	for _, p := range providers {
+		all = append(all, p)
+	}
+
+	return all
+}
+
 type Provider struct {
 	// Name is a name of the provider.
 	//

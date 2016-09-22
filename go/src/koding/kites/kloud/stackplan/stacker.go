@@ -63,7 +63,7 @@ func (b *Stacker) New(p *Provider) *Stacker {
 	return &bCopy
 }
 
-func (b *Stacker) Machine(ctx context.Context, id string) (Machine, error) {
+func (b *Stacker) Machine(ctx context.Context, id string) (interface{}, error) {
 	bm, err := b.BaseMachine(ctx, id)
 	if err != nil {
 		return nil, err
@@ -159,7 +159,7 @@ func (b *Stacker) BaseMachine(ctx context.Context, id string) (*BaseMachine, err
 	return bm, nil
 }
 
-func (b *Stacker) Stack(ctx context.Context) (Stack, error) {
+func (b *Stacker) Stack(ctx context.Context) (interface{}, error) {
 	bs, err := b.BaseStack(ctx)
 	if err != nil {
 		return nil, err

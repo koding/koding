@@ -95,9 +95,9 @@ type CustomMeta map[string]string
 // GenericMeta represents generic meta for jCredentialDatas like userInput.
 type GenericMeta map[string]interface{}
 
-// MetaFuncs is a global lookup map used to initialize meta values for
+// BuiltinSchemas is a global lookup map used to initialize meta values for
 // jCredentialDatas document, per provider.
-var GlobalSchemas = map[string]*ProviderSchema{
+var BuiltinSchemas = map[string]*ProviderSchema{
 	"koding": {
 		NewCredential: func() interface{} { return &KodingMeta{} },
 		NewBootstrap:  func() interface{} { return nil },
@@ -115,13 +115,19 @@ var GlobalSchemas = map[string]*ProviderSchema{
 // metaFunc returns a meta object builder by looking up registered providers.
 //
 // If no builder was found it returns a builder GenericMeta.
-func schema(provider string) *ProviderSchema {
-	schema, ok := GlobalSchemas[provider]
-	if ok {
+func schema(providerName string) *ProviderSchema {
+	providersMu.RLock()
+	p, ok := providers[providerName]
+	providersMu.RUnlock()
+
+	if ok && p.Schema != nil {
+		return p.Schema
+	}
+	if schema, ok := BuiltinSchemas[providerName]; ok {
 		return schema
 	}
 
-	return GlobalSchemas["generic"]
+	return BuiltinSchemas["generic"]
 }
 
 // BuilderOptions alternates the default behavior of the builder.

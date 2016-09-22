@@ -24,7 +24,6 @@ import (
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/pkg/dnsclient"
-	"koding/kites/kloud/provider"
 	awsprovider "koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/stack"
@@ -187,7 +186,7 @@ func New(conf *Config) (*Kloud, error) {
 		Client:  httputil.DefaultRestClient(conf.DebugMode),
 	}
 
-	bp := &provider.BaseProvider{
+	stacker := &stackplan.Stacker{
 		DB:             sess.DB,
 		Log:            sess.Log,
 		Kite:           sess.Kite,
@@ -228,15 +227,10 @@ func New(conf *Config) (*Kloud, error) {
 	kld.Log = sess.Log
 	kld.SecretKey = conf.KloudSecretKey
 
-	for name, fn := range provider.All {
-		p := fn(bp.New(name))
-
-		err = kld.AddProvider(name, p)
-		if err != nil {
+	for _, p := range stackplan.All() {
+		if err = kld.AddProvider(p.Name, stacker.New(p)); err != nil {
 			return nil, err
 		}
-
-		stackplan.MetaFuncs[name] = p.Cred
 	}
 
 	var gwSrv *keygen.Server

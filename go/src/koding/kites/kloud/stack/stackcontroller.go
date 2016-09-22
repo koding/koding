@@ -112,9 +112,14 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 	}
 
 	// Create stack handler.
-	s, err := p.Stack(ctx)
+	v, err := p.Stack(ctx)
 	if err != nil {
 		return nil, errors.New("error creating stack: " + err.Error())
+	}
+
+	s, ok := v.(Stacker)
+	if !ok {
+		return nil, NewError(ErrStackNotImplemented)
 	}
 
 	ctx = k.traceRequest(ctx, args.metricTags())

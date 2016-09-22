@@ -1,17 +1,15 @@
 package queue
 
 import (
+	"time"
+
 	"koding/db/models"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/klient"
-	"koding/kites/kloud/provider"
-	"koding/kites/kloud/provider/aws"
-	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/kontrol"
+	"golang.org/x/net/context"
 	"gopkg.in/mgo.v2"
 )
 

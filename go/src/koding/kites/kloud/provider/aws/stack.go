@@ -127,7 +127,7 @@ func (s *Stack) BuildResources(c *stack.Credential) error {
 		}
 
 		labels := []string{resourceName}
-		if len(count) > 1 {
+		if count > 1 {
 			for i := 0; i < count; i++ {
 				labels = append(labels, fmt.Sprintf("%s.%d", resourceName, i))
 			}
@@ -157,18 +157,18 @@ func (s *Stack) BuildResources(c *stack.Credential) error {
 
 		userdata, err := s.Session.Userdata.Create(userCfg)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		instance["user_data"] = string(userdata)
 
 		// create independent kiteKey for each machine and create a Terraform
 		// lookup map, which is used in conjuctuon with the `count.index`
-		countKeys := make(map[string]string, len(count))
+		countKeys := make(map[string]string, count)
 		for i, label := range labels {
 			kiteKey, err := s.BuildKiteKey(label, s.Req.Username)
 			if err != nil {
-				return nil, err
+				return err
 			}
 
 			countKeys[strconv.Itoa(i)] = kiteKey

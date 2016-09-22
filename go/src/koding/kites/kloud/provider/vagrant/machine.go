@@ -6,7 +6,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/vagrantapi"
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/provider"
 )
 
 type Meta struct {

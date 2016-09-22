@@ -22,13 +22,13 @@ type Provider interface {
 	// implementations are used to augment the user
 	// stacks (Terraform templates) with default
 	// resources created during bootstrap.
-	Stack(context.Context) (Stacker, error)
+	Stack(context.Context) (interface{}, error)
 
 	// Machine returns a value that implements the Machine interface.
 	//
 	// The Machine interface is used to control a single vm
 	// for the specific cloud-provider.
-	Machine(ctx context.Context, id string) (Machiner, error)
+	Machine(ctx context.Context, id string) (interface{}, error)
 }
 
 // Stacker is a copy of stackplan.Stack interface, duplicated here
