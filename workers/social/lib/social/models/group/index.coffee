@@ -1323,14 +1323,6 @@ module.exports = class JGroup extends Module
       queue = roles.map (role) => (fin) =>
         Joinable::leave.call this, client, { as:role }, fin
 
-      # add deleted member into JDeletedMember collection for billing purposes
-      queue.push (fin) =>
-        JDeletedMember = require '../deletedmember'
-        dm = new JDeletedMember
-          accountId : client.connection.delegate.getId()
-          groupId   : @getId()
-        dm.save fin
-
       async.parallel queue, kallback
 
   kickMember: permit
@@ -1380,14 +1372,6 @@ module.exports = class JGroup extends Module
               return fin err  if err
               @updateCounts()
               fin()
-
-          # add deleted member into JDeletedMember collection for billing purposes
-          queue.push (fin) =>
-            JDeletedMember = require '../deletedmember'
-            dm = new JDeletedMember
-              accountId : accountId
-              groupId   : @getId()
-            dm.save fin
 
           # add current user into blocked accounts
           queue.push (fin) =>

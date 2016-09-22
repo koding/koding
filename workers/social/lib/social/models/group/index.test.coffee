@@ -130,15 +130,6 @@ runTests = -> describe 'workers.social.group.index', ->
                 next()
 
             (next) ->
-              # make sure we store kicked members in the deleted collection
-              JDeletedMember = require '../deletedmember'
-              query = { groupId: group.getId(), accountId: account.getId() }
-              JDeletedMember.one query, (err, deletedMember) ->
-                expect(err).to.not.exist
-                expect(deletedMember).to.exist
-                next()
-
-            (next) ->
               # we should be able to unblock the member
               options =
                 id: account.getId()
@@ -203,15 +194,6 @@ runTests = -> describe 'workers.social.group.index', ->
               JSession.one params, (err, data) ->
                 expect(err).to.not.exist
                 expect(data).to.not.exist
-                next()
-
-            (next) ->
-              # make sure we store left members in the deleted collection
-              JDeletedMember = require '../deletedmember'
-              query = { groupId: group.getId(), accountId: account.getId() }
-              JDeletedMember.one query, (err, deletedMember) ->
-                expect(err).to.not.exist
-                expect(deletedMember).to.exist
                 next()
           ]
 
