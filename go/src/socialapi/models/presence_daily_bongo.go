@@ -44,11 +44,11 @@ func (a *PresenceDaily) Some(data interface{}, q *bongo.Query) error {
 }
 
 type countRes struct {
-	Count int64
+	Count int
 }
 
 // CountDistinctByGroupName counts distinct account ids
-func (a *PresenceDaily) CountDistinctByGroupName(groupName string) (int64, error) {
+func (a *PresenceDaily) CountDistinctByGroupName(groupName string) (int, error) {
 	res := &countRes{}
 	return res.Count, bongo.B.DB.
 		Table(a.BongoName()).
