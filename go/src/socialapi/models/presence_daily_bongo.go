@@ -60,8 +60,7 @@ func (a *PresenceDaily) CountDistinctByGroupName(groupName string) (int, error) 
 
 // ProcessByGroupName deletes items by their group's name from db
 func (a *PresenceDaily) ProcessByGroupName(groupName string) error {
-	return bongo.B.DB.
-		Table(a.BongoName()).
-		Where("group_name = ? and is_processed = false", groupName).
-		Update(map[string]interface{}{"is_processed": true}).Error
+	// i have tried to use it ORM way but gorm has bugs that does not update multiple values at once
+	sql := "UPDATE " + a.BongoName() + " SET is_processed=true WHERE group_name = ? and is_processed = false"
+	return bongo.B.DB.Exec(sql, groupName).Error
 }
