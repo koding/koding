@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/models"
 	"socialapi/workers/api/realtimehelper"
 	"socialapi/workers/email/emailsender"
 	"strings"
@@ -241,8 +242,7 @@ func invoiceCreatedHandler(raw []byte) error {
 	}
 
 	if strings.HasPrefix(info.Subscription.Plan.ID, customPlanPrefix) {
-		_, err = modelhelper.CalculateAndApplyDeletedMembers(group.Id, invoice.Sub)
-		return err
+		return (&models.PresenceDaily{}).ProcessByGroupName(group.Slug)
 	}
 
 	// if the amount that stripe will withdraw and what we want is same, so we
@@ -250,8 +250,7 @@ func invoiceCreatedHandler(raw []byte) error {
 	// prorations on the invoice before any discount is applied
 	if invoice.Subtotal == int64(info.Due) {
 		// clean up waiting deleted users
-		_, err = modelhelper.CalculateAndApplyDeletedMembers(group.Id, invoice.Sub)
-		return err
+		return (&models.PresenceDaily{}).ProcessByGroupName(group.Slug)
 	}
 
 	// if this in the tests, just skip cancellation of the invoice, because
@@ -282,8 +281,7 @@ func invoiceCreatedHandler(raw []byte) error {
 		return err
 	}
 
-	_, err = modelhelper.CalculateAndApplyDeletedMembers(group.Id, sub.ID)
-	if err != nil {
+	if err := (&models.PresenceDaily{}).ProcessByGroupName(group.Slug); err != nil {
 		return err
 	}
 
