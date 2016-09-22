@@ -138,7 +138,7 @@ unlockProcess = (client) ->
   #   console.log "[UNLOCKER] User #{nickname} was not locked, nothing to do."
 
 
-revive = do -> (
+revive = do -> (opts = {}, fn) ->
   {
     shouldReviveClient
     shouldPassCredential
@@ -148,7 +148,7 @@ revive = do -> (
     shouldLockProcess
     shouldHaveOauth
     hasOptions
-  }, fn) ->
+  } = opts
 
   (client, options, _callback) ->
 
