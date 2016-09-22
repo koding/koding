@@ -7,3 +7,12 @@ var HCLBuilder = &Builder{
 	Sep:       "_",
 	Recursive: true,
 }
+
+// MetaBuilder provides custom encoding/decoding for
+// jMachine.meta document.
+var MetaBuilder = &Builder{
+	Tag:       "bson",
+	Sep:       ".",
+	Prefix:    "meta",
+	Recursive: true,
+}

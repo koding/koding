@@ -36,7 +36,7 @@ type ControlResult struct {
 	EventId string `json:"eventId"`
 }
 
-type machineFunc func(context.Context, interface{}) error
+type machineFunc func(context.Context, Machiner) error
 
 // statePair defines a methods start and final states
 type statePair struct {
@@ -148,13 +148,8 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 		return nil, err
 	}
 
-	stater, ok := machine.(Stater)
-	if !ok {
-		return nil, NewError(ErrStaterNotImplemented)
-	}
-
-	if stater.ProviderName() != args.Provider {
-		k.Log.Debug("want provider %q, got %q", stater.ProviderName(), args.Provider)
+	if machine.ProviderName() != args.Provider {
+		k.Log.Debug("want provider %q, got %q", machine.ProviderName(), args.Provider)
 
 		return nil, NewError(ErrProviderIsWrong)
 	}
@@ -162,9 +157,9 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 	// Check if the given method is in valid methods of that current state. For
 	// example if the method is "build", and the state is "stopped" than this
 	// will return an error.
-	if !methodIn(r.Method, stater.State().ValidMethods()...) {
+	if !methodIn(r.Method, machine.State().ValidMethods()...) {
 		return nil, fmt.Errorf("%s not allowed for current state '%s'. Allowed methods are: %v",
-			r.Method, strings.ToLower(stater.State().String()), stater.State().ValidMethods())
+			r.Method, strings.ToLower(machine.State().String()), machine.State().ValidMethods())
 	}
 
 	pair, ok := states[r.Method]
@@ -212,7 +207,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 				finalEvent.Error = eventerErr.Error()
 			}
 
-			finalEvent.Status = stater.State() // fallback to to old state
+			finalEvent.Status = machine.State() // fallback to to old state
 		} else {
 			k.Log.Info("[%s] ======> %s finished (time: %s, requester: %s, provider: %s) <======",
 				args.MachineId, strings.ToUpper(r.Method), time.Since(start), r.Username, args.Provider)
@@ -228,7 +223,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 	}, nil
 }
 
-func (k *Kloud) GetMachine(r *kite.Request) (resp interface{}, reqErr error) {
+func (k *Kloud) GetMachine(r *kite.Request) (machine Machiner, reqErr error) {
 	// calls with zero arguments causes args to be nil. Check it that we
 	// don't get a beloved panic
 	if r.Args == nil {

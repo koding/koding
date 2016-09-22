@@ -1,23 +1,30 @@
-package provider
+package stackplan
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
+
+	"gopkg.in/mgo.v2/bson"
+
+	multierror "github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform/terraform"
+	uuid "github.com/satori/go.uuid"
 
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/stack"
-	"koding/kites/kloud/stackplan"
 	"koding/kites/kloud/stackstate"
 	"koding/kites/kloud/terraformer"
+	"koding/kites/kloud/utils/object"
 	tf "koding/kites/terraformer"
 
 	"golang.org/x/net/context"
 )
 
-// Apply builds and expands compute stack template for the given ID and
+// HandleApply builds and expands compute stack template for the given ID and
 // sends an apply request to terraformer.
 //
 // When destroy=false, building and expanding the stack prior to
@@ -28,7 +35,7 @@ import (
 // as soon as Apply method returns, allowed user list for each machine
 // is zeroed, which could make the destroy oepration to fail - we
 // first build machines and rest of the destroy is perfomed asynchronously.
-func (bs *BaseStack) Apply(ctx context.Context) (interface{}, error) {
+func (bs *BaseStack) HandleApply(ctx context.Context) (interface{}, error) {
 	var arg stack.ApplyRequest
 	if err := bs.Req.Args.One().Unmarshal(&arg); err != nil {
 		return nil, err
@@ -40,7 +47,7 @@ func (bs *BaseStack) Apply(ctx context.Context) (interface{}, error) {
 
 	err := bs.Builder.BuildStack(arg.StackID, arg.Credentials)
 
-	if err != nil && !(arg.Destroy && stackplan.IsNotFound(err, "jStackTemplate")) {
+	if err != nil && !(arg.Destroy && IsNotFound(err, "jStackTemplate")) {
 		return nil, err
 	}
 
@@ -170,7 +177,7 @@ func (bs *BaseStack) destroyAsync(ctx context.Context, req *stack.ApplyRequest) 
 		Status:     machinestate.Terminating,
 	})
 
-	credIDs := stackplan.FlattenValues(bs.Builder.Stack.Credentials)
+	credIDs := FlattenValues(bs.Builder.Stack.Credentials)
 
 	bs.Log.Debug("Fetching '%d' credentials from user '%s'", len(credIDs), bs.Req.Username)
 
@@ -227,11 +234,16 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 		Status:     machinestate.Building,
 	})
 
-	credIDs := stackplan.FlattenValues(bs.Builder.Stack.Credentials)
+	credIDs := FlattenValues(bs.Builder.Stack.Credentials)
 
 	bs.Log.Debug("Fetching '%d' credentials from user '%s'", len(credIDs), bs.Req.Username)
 
 	if err := bs.Builder.BuildCredentials(bs.Req.Method, bs.Req.Username, req.GroupName, credIDs); err != nil {
+		return err
+	}
+
+	cred, err := bs.Builder.CredentialByProvider(bs.Provider.Name)
+	if err != nil {
 		return err
 	}
 
@@ -256,7 +268,7 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 
 	bs.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
 
-	if err := bs.BuildResources(); err != nil {
+	if err := bs.Stack.BuildResources(cred); err != nil {
 		return err
 	}
 
@@ -317,7 +329,7 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 		Status:     machinestate.Building,
 	})
 
-	if err := bs.WaitResources(ctx); err != nil {
+	if bs.Klients, err = bs.Planner.DialKlients(ctx, bs.KlientIDs); err != nil {
 		return err
 	}
 
@@ -334,4 +346,71 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 	}
 
 	return err
+}
+
+func (bs *BaseStack) UpdateResources(state *terraform.State) error {
+	machines, err := bs.Planner.MachinesFromState(state, bs.Klients)
+	if err != nil {
+		return err
+	}
+
+	now := time.Now().UTC()
+
+	for label, m := range bs.Builder.Machines {
+		machine, ok := machines[label]
+		if !ok {
+			err = multierror.Append(err, fmt.Errorf("machine %q does not exist in terraform state file", label))
+			continue
+		}
+
+		if machine.Provider != bs.Planner.Provider {
+			continue
+		}
+
+		state, ok := bs.Klients[label]
+		if !ok {
+			err = multierror.Append(err, fmt.Errorf("machine %q does not exist in dial state", label))
+			continue
+		}
+
+		err := modelhelper.UpdateMachine(m.ObjectId, bson.M{"$set": bs.buildUpdateObj(machine, state, now)})
+		if err != nil {
+			err = multierror.Append(err, fmt.Errorf("machine %q failed to update: %s", label, err))
+			continue
+		}
+	}
+
+	return err
+}
+
+func (bs *BaseStack) buildUpdateObj(m *stack.Machine, s *DialState, now time.Time) bson.M {
+	ipAddress := s.KiteURL
+	if u, err := url.Parse(ipAddress); err == nil {
+		ipAddress = u.Host
+	}
+
+	obj := object.MetaBuilder.Build(bs.Stack.BuildMetadata(m))
+
+	obj["credential"] = bs.Identifier
+	obj["provider"] = bs.Planner.Provider
+	obj["queryString"] = m.QueryString
+	obj["ipAddress"] = ipAddress
+	obj["status.modifiedAt"] = now
+	obj["status.state"] = m.State.String()
+	obj["status.reason"] = m.StateReason
+
+	return bson.M(obj)
+}
+
+func (bs *BaseStack) BuildKiteKey(label, username string) (string, error) {
+	kiteID := uuid.NewV4().String()
+
+	kiteKey, err := bs.Session.Userdata.Keycreator.Create(username, kiteID)
+	if err != nil {
+		return "", err
+	}
+
+	bs.KlientIDs[label] = kiteID
+
+	return kiteKey, nil
 }

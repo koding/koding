@@ -1,4 +1,4 @@
-package provider
+package stackplan
 
 import (
 	"time"
@@ -10,8 +10,8 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func (bp *BaseProvider) Lock(id string) error {
-	err := bp.DB.Run("jMachines", func(c *mgo.Collection) error {
+func (s *Stacker) Lock(id string) error {
+	err := s.DB.Run("jMachines", func(c *mgo.Collection) error {
 		// we use findAndModify() to get a unique lock from the DB. That means only
 		// one instance should be responsible for this action. We will update the
 		// assignee if none else is doing stuff with it.
@@ -46,15 +46,16 @@ func (bp *BaseProvider) Lock(id string) error {
 
 	// some other error, this shouldn't be happed
 	if err != nil {
-		bp.Log.Error("Storage get error: %s", err)
+		s.Log.Error("Storage get error: %s", err)
+
 		return stack.NewError(stack.ErrBadState)
 	}
 
 	return nil
 }
 
-func (bp *BaseProvider) Unlock(id string) {
-	bp.DB.Run("jMachines", func(c *mgo.Collection) error {
+func (s *Stacker) Unlock(id string) {
+	s.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
 			bson.ObjectIdHex(id),
 			bson.M{"$set": bson.M{"assignee.inProgress": false}},

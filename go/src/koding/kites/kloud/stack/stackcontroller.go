@@ -43,14 +43,8 @@ func TeamRequestFromContext(ctx context.Context) (*TeamRequest, bool) {
 	return req, ok
 }
 
-// Migrater provides an interface to import solo machine (from "koding"
-// provider) to the specific stack provider.
-type Migrater interface {
-	Migrate(context.Context) (interface{}, error)
-}
-
 // StackFunc handles execution of a single team method.
-type StackFunc func(Stack, context.Context) (interface{}, error)
+type StackFunc func(Stacker, context.Context) (interface{}, error)
 
 func IsKloudctlAuth(r *kite.Request, key string) bool {
 	return key != "" && r.Auth != nil && r.Auth.Type == "kloudctl" && r.Auth.Key == key

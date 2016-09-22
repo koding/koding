@@ -9,6 +9,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stackplan/stackcred"
 	"koding/kites/kloud/utils/object"
 
@@ -94,26 +95,33 @@ type CustomMeta map[string]string
 // GenericMeta represents generic meta for jCredentialDatas like userInput.
 type GenericMeta map[string]interface{}
 
-func genericMetaFunc() interface{} {
-	return &GenericMeta{}
-}
-
 // MetaFuncs is a global lookup map used to initialize meta values for
 // jCredentialDatas document, per provider.
-var MetaFuncs = map[string]func() interface{}{
-	"koding": func() interface{} { return &KodingMeta{} },
-	"custom": func() interface{} { return &CustomMeta{} },
+var GlobalSchemas = map[string]*ProviderSchema{
+	"koding": {
+		NewCredential: func() interface{} { return &KodingMeta{} },
+		NewBootstrap:  func() interface{} { return nil },
+	},
+	"custom": {
+		NewCredential: func() interface{} { return &CustomMeta{} },
+		NewBootstrap:  func() interface{} { return nil },
+	},
+	"generic": {
+		NewCredential: func() interface{} { return &GenericMeta{} },
+		NewBootstrap:  func() interface{} { return nil },
+	},
 }
 
 // metaFunc returns a meta object builder by looking up registered providers.
 //
 // If no builder was found it returns a builder GenericMeta.
-func metaFunc(provider string) func() interface{} {
-	fn, ok := MetaFuncs[provider]
+func schema(provider string) *ProviderSchema {
+	schema, ok := GlobalSchemas[provider]
 	if ok {
-		return fn
+		return schema
 	}
-	return genericMetaFunc
+
+	return GlobalSchemas["generic"]
 }
 
 // BuilderOptions alternates the default behavior of the builder.
@@ -143,12 +151,13 @@ type Builder struct {
 	Object    *object.Builder
 	CredStore stackcred.Store
 	Log       logging.Logger
+	Schema    map[string]*ProviderSchema
 
 	// Fields being built:
-	Stack       *Stack
+	Stack       *stack.Stack
 	Machines    map[string]*models.Machine // maps label to jMachine
-	Koding      *Credential
-	Credentials []*Credential
+	Koding      *stack.Credential
+	Credentials []*stack.Credential
 	Template    *Template
 }
 
@@ -181,7 +190,7 @@ func (b *Builder) BuildStack(stackID string, credentials map[string][]string) er
 		return ResError(err, "jComputeStack")
 	}
 
-	b.Stack = &Stack{
+	b.Stack = &stack.Stack{
 		ID:          computeStack.Id,
 		Stack:       computeStack,
 		Machines:    make([]string, len(computeStack.Machines)),
@@ -455,23 +464,10 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 		validKeys[cred.Identifier] = cred.Provider
 	}
 
-	// 4- fetch credentialdata with identifier
-	data := make(map[string]interface{}, len(validKeys))
-	for ident, provider := range validKeys {
-		data[ident] = metaFunc(provider)()
-	}
-
-	b.Log.Debug("Building credential data: %+v", data)
-
-	if err := b.CredStore.Fetch(username, data); err != nil {
-		// TODO(rjeczalik): add *NotFoundError support to CredStore
-		return ResError(err, "jCredentialData")
-	}
-
 	// 5- return list of keys.
-	b.Koding = &Credential{
+	b.Koding = &stack.Credential{
 		Provider: "koding",
-		Meta: &KodingMeta{
+		Credential: &KodingMeta{
 			Email:     user.Email,
 			Username:  user.Name,
 			Nickname:  account.Profile.Nickname,
@@ -483,27 +479,31 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 		},
 	}
 
+	creds := make([]*stack.Credential, 0, len(validKeys))
+
 	for ident, provider := range validKeys {
-		cred := &Credential{
+		creds = append(creds, &stack.Credential{
 			Title:      credentialTitles[ident],
 			Provider:   provider,
 			Identifier: ident,
-			Meta:       data[ident], // TODO(rjeczalik): rename the field to Data
-		}
-
-		b.Log.Debug("%s(%s): Credential metadata: %+v", cred.Provider, cred.Identifier, cred.Meta)
-
-		b.Credentials = append(b.Credentials, cred)
+		})
 	}
 
-	b.Log.Debug("Built credentials: %+v", b.Credentials)
+	if err := b.FetchCredentials(username, creds...); err != nil {
+		// TODO(rjeczalik): add *NotFoundError support to CredStore
+		return ResError(err, "jCredentialData")
+	}
+
+	b.Credentials = append(b.Credentials, creds...)
+
+	b.Log.Debug("Built credentials: %# v", b.Credentials)
 
 	return nil
 }
 
 // CredentialByProvider returns first encountered credential for the given provider.
-func (b *Builder) CredentialByProvider(provider string) (*Credential, error) {
-	var cred *Credential
+func (b *Builder) CredentialByProvider(provider string) (*stack.Credential, error) {
+	var cred *stack.Credential
 
 	for _, c := range b.Credentials {
 		if c.Provider == provider {
@@ -529,14 +529,8 @@ func (b *Builder) BuildTemplate(content, contentID string) error {
 		return err
 	}
 
-	if err := template.InjectVariables(b.Koding.Provider, b.Koding.Meta); err != nil {
-		return errors.New("error injecting koding variables: " + err.Error())
-	}
-
-	for _, cred := range b.Credentials {
-		if err := template.InjectVariables(cred.Provider, cred.Meta); err != nil {
-			return fmt.Errorf("error injecting variables for %q: %s", cred.Provider, err)
-		}
+	if err := template.InjectCredentials(append(b.Credentials, b.Koding)...); err != nil {
+		return fmt.Errorf("error injecting variables: %s", err)
 	}
 
 	b.Template = template
@@ -599,6 +593,16 @@ func (b *Builder) InterpolateField(resource map[string]interface{}, resourceName
 	}
 }
 
+// FetchCredentials fetches credential and bootstrap data from credential store.
+func (b *Builder) FetchCredentials(username string, creds ...*stack.Credential) error {
+	return b.CredStore.Fetch(username, makeCreds(true, creds...))
+}
+
+// PutCredentials updates credential and bootstrap data in credential store.
+func (b *Builder) PutCredentials(username string, creds ...*stack.Credential) error {
+	return b.CredStore.Put(username, makeCreds(false, creds...))
+}
+
 // UpdateStack updates jComputeStack document using b.Stack field.
 func (b *Builder) UpdateStack() error {
 	return modelhelper.UpdateStack(b.Stack.ID, bson.M{
@@ -606,4 +610,29 @@ func (b *Builder) UpdateStack() error {
 			"credentials": b.Stack.Credentials,
 		},
 	})
+}
+
+func makeCreds(init bool, c ...*stack.Credential) map[string]interface{} {
+	creds := make(map[string]interface{}, len(c))
+
+	if init {
+		for _, c := range c {
+			if c.Credential == nil {
+				c.Credential = schema(c.Provider).NewCredential()
+			}
+			if c.Bootstrap == nil {
+				c.Bootstrap = schema(c.Provider).NewBootstrap()
+			}
+		}
+	}
+
+	for _, c := range c {
+		if c.Bootstrap == nil {
+			creds[c.Identifier] = c.Credential
+		} else {
+			creds[c.Identifier] = object.Inline(c.Credential, c.Bootstrap)
+		}
+	}
+
+	return creds
 }

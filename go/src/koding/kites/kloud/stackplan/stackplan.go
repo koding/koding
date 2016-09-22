@@ -4,22 +4,20 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"sort"
 	"strings"
 	"sync"
 	"time"
 
-	"koding/db/models"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/stack"
 	"koding/kites/kloud/utils"
 
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"golang.org/x/net/context"
-	"gopkg.in/mgo.v2/bson"
 )
 
 var defaultLog = logging.NewCustom("stackplan", false)
@@ -31,42 +29,6 @@ var credPermissions = map[string][]string{
 	"apply":        []string{"user", "owner"},
 	"authenticate": []string{"user", "owner"},
 	"migrate":      []string{"owner"},
-}
-
-// Machine represents a jComputeStack.machine value.
-type Machine struct {
-	// Fields set by kloud.plan:
-	Provider   string            `json:"provider"`
-	Label      string            `json:"label"`
-	Attributes map[string]string `json:"attributes"`
-
-	// Fields set by kloud.apply:
-	QueryString string             `json:"queryString,omitempty"`
-	RegisterURL string             `json:"registerURL,omitempty"`
-	State       machinestate.State `json:"state,omitempty"`
-	StateReason string             `json:"stateReason,omitempty"`
-}
-
-// Machines represents group of machines mapped by a label.
-type Machines map[string]*Machine
-
-// Slice gives list of machines sorted by a label.
-func (m Machines) Slice() []*Machine {
-	labels := make([]string, 0, len(m))
-
-	for label := range m {
-		labels = append(labels, label)
-	}
-
-	sort.Strings(labels)
-
-	machines := make([]*Machine, 0, len(m))
-
-	for _, label := range labels {
-		machines = append(machines, m[label])
-	}
-
-	return machines
 }
 
 // DialState describes state of a single dial.
@@ -107,36 +69,6 @@ func (de *DialError) Err() error {
 	return nil
 }
 
-// KiteMap maps resource names to kite IDs they own.
-type KiteMap map[string]string
-
-// Stack is struct that contains all necessary information Apply needs to
-// perform successfully.
-type Stack struct {
-	ID bson.ObjectId // jComputeStack._id
-
-	// Machines is a list of jMachine identifiers.
-	Machines []string
-
-	// Credentials maps jCredential provider to identifiers.
-	Credentials map[string][]string
-
-	// Template is a raw Terraform template.
-	Template string
-
-	// Stack is a jComputeStack value.
-	Stack *models.ComputeStack
-}
-
-// Credential represents jCredential{Datas} value. Meta is of a provider-specific
-// type, defined by a ctor func in MetaFuncs map.
-type Credential struct {
-	Title      string
-	Provider   string
-	Identifier string
-	Meta       interface{}
-}
-
 // DefaultKlientTimeout specifies the maximum time we're going to try to
 // connect to klient before timing out.
 var DefaultKlientTimeout = 5 * time.Minute
@@ -166,12 +98,12 @@ type Planner struct {
 //
 // It ignores any other resources than those specified by p.ResourceType
 // and p.Provider.
-func (p *Planner) MachinesFromState(state *terraform.State, klients map[string]*DialState) (map[string]*Machine, error) {
+func (p *Planner) MachinesFromState(state *terraform.State, klients map[string]*DialState) (map[string]*stack.Machine, error) {
 	if len(state.Modules) == 0 {
 		return nil, errors.New("state modules is empty")
 	}
 
-	machines := make(map[string]*Machine)
+	machines := make(map[string]*stack.Machine)
 
 	for _, m := range state.Modules {
 		for resource, r := range m.Resources {
@@ -198,7 +130,7 @@ func (p *Planner) MachinesFromState(state *terraform.State, klients map[string]*
 				return nil, fmt.Errorf("no klient state found for %q %s", label, p.ResourceType)
 			}
 
-			machine := &Machine{
+			machine := &stack.Machine{
 				Provider:    p.Provider,
 				Label:       label,
 				Attributes:  attrs,
@@ -224,7 +156,7 @@ func (p *Planner) MachinesFromState(state *terraform.State, klients map[string]*
 //
 // It ignores any other resources than those specified by p.ResourceType
 // and p.Provider.
-func (p *Planner) MachinesFromPlan(plan *terraform.Plan) (Machines, error) {
+func (p *Planner) MachinesFromPlan(plan *terraform.Plan) (stack.Machines, error) {
 	if plan.Diff == nil {
 		return nil, errors.New("plan diff is empty")
 	}
@@ -233,7 +165,7 @@ func (p *Planner) MachinesFromPlan(plan *terraform.Plan) (Machines, error) {
 		return nil, errors.New("plan diff module is empty")
 	}
 
-	machines := make(Machines)
+	machines := make(stack.Machines)
 
 	for _, d := range plan.Diff.Modules {
 		if d.Resources == nil {
@@ -259,7 +191,7 @@ func (p *Planner) MachinesFromPlan(plan *terraform.Plan) (Machines, error) {
 				attrs[name] = a.New
 			}
 
-			machines[label] = &Machine{
+			machines[label] = &stack.Machine{
 				Provider:   provider,
 				Label:      label,
 				Attributes: attrs,
@@ -325,7 +257,7 @@ func (p *Planner) checkSingleKlient(k *kite.Kite, label, kiteID string) *DialSta
 // parameter.
 //
 // It returns RegisterURLs mapped to each kite's query string.
-func (p *Planner) DialKlients(ctx context.Context, kiteIDs KiteMap) (map[string]*DialState, error) {
+func (p *Planner) DialKlients(ctx context.Context, kiteIDs stack.KiteMap) (map[string]*DialState, error) {
 	sess, err := p.session(ctx)
 	if err != nil {
 		return nil, err

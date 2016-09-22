@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"koding/kites/kloud/stack"
 	"koding/kites/kloud/utils/object"
 	"strings"
 
@@ -227,8 +228,22 @@ func (t *Template) FillVariables(prefix string) error {
 	return t.InjectVariables("", vars)
 }
 
-// InjectVariables
 func (t *Template) InjectVariables(prefix string, meta interface{}) error {
+	t.inject(prefix, meta)
+
+	return t.hclUpdate()
+}
+
+func (t *Template) InjectCredentials(creds ...*stack.Credential) error {
+	for _, cred := range creds {
+		t.inject(cred.Provider, cred.Credential)
+		t.inject(cred.Provider, cred.Bootstrap)
+	}
+
+	return t.hclUpdate()
+}
+
+func (t *Template) inject(prefix string, meta interface{}) {
 	for k, v := range t.b.New(prefix).Build(meta) {
 		// Ignore custom variables prefixed with __ from injecting.
 		// The ignored variables may contain interpolations which are
@@ -244,6 +259,4 @@ func (t *Template) InjectVariables(prefix string, meta interface{}) error {
 			"default": v,
 		}
 	}
-
-	return t.hclUpdate()
 }

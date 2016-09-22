@@ -2,15 +2,90 @@ package stack
 
 import (
 	"errors"
+	"sort"
 	"time"
 
-	"golang.org/x/net/context"
+	"gopkg.in/mgo.v2/bson"
 
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/machinestate"
 
 	"github.com/koding/cache"
 	"github.com/koding/kite"
 )
+
+// KiteMap maps resource names to kite IDs they own.
+type KiteMap map[string]string
+
+// Stack is struct that contains all necessary information Apply needs to
+// perform successfully.
+type Stack struct {
+	ID bson.ObjectId // jComputeStack._id
+
+	// Machines is a list of jMachine identifiers.
+	Machines []string
+
+	// Credentials maps jCredential provider to identifiers.
+	Credentials map[string][]string
+
+	// Template is a raw Terraform template.
+	Template string
+
+	// Stack is a jComputeStack value.
+	Stack *models.ComputeStack
+}
+
+// Credential represents jCredential{Datas} value. Meta is of a provider-specific
+// type, defined by a ctor func in MetaFuncs map.
+type Credential struct {
+	Title      string
+	Provider   string
+	Identifier string
+	Credential interface{}
+	Bootstrap  interface{}
+}
+
+// Machine represents a jComputeStack.machine value.
+type Machine struct {
+	// Fields set by kloud.plan:
+	Provider   string            `json:"provider"`
+	Label      string            `json:"label"`
+	Attributes map[string]string `json:"attributes"`
+
+	// Fields set by kloud.apply:
+	QueryString string             `json:"queryString,omitempty"`
+	RegisterURL string             `json:"registerURL,omitempty"`
+	State       machinestate.State `json:"state,omitempty"`
+	StateReason string             `json:"stateReason,omitempty"`
+}
+
+// Machines represents group of machines mapped by a label.
+type Machines map[string]*Machine
+
+// Slice gives list of machines sorted by a label.
+func (m Machines) Slice() []*Machine {
+	labels := make([]string, 0, len(m))
+
+	for label := range m {
+		labels = append(labels, label)
+	}
+
+	sort.Strings(labels)
+
+	machines := make([]*Machine, 0, len(m))
+
+	for _, label := range labels {
+		machines = append(machines, m[label])
+	}
+
+	return machines
+}
+
+type Template struct {
+	Key     string // unique terraformer key for a given template; optional
+	Content []byte // terraformer template content; required
+}
 
 // Validator validates and returns non-nil error when it's ill-formed.
 //
@@ -19,53 +94,16 @@ type Validator interface {
 	Valid() error
 }
 
-/// MIGRATE
+// InfoResponse is returned from a info method
+type InfoResponse struct {
+	// State defines the state of the machine
+	State machinestate.State `json:"state"`
 
-// MigrateRequest represents an argument of the migrate kite method.
-type MigrateRequest struct {
-	Provider   string   `json:"provider"`
-	Machines   []string `json:"machines"`
-	Identifier string   `json:"identifier"`
-	GroupName  string   `json:"groupName"`
-	StackName  string   `json:"stackName"`
-}
+	// Name defines the name of the machine.
+	Name string `json:"name,omitempty"`
 
-// Validate implements the kloud.Validator interface.
-func (req *MigrateRequest) Valid() error {
-	if len(req.Machines) == 0 {
-		return errors.New("machine list is empty")
-	}
-
-	if req.Identifier == "" {
-		return errors.New("identifier is empty")
-	}
-
-	if req.GroupName == "" {
-		return errors.New("groupName is empty")
-	}
-
-	if req.StackName == "" {
-		req.StackName = "Migrated Stack Template"
-	}
-
-	return nil
-}
-
-// Migrater provides migrate as kite method.
-//
-// If the requested provider does not implement the Migrater interface,
-// the method return with a ErrProviderNotImplemented error.
-func (k *Kloud) Migrate(r *kite.Request) (interface{}, error) {
-	fn := func(s Stack, ctx context.Context) (interface{}, error) {
-		m, ok := s.(Migrater)
-		if !ok {
-			return nil, NewError(ErrProviderNotImplemented)
-		}
-
-		return m.Migrate(ctx)
-	}
-
-	return k.stackMethod(r, fn)
+	// InstanceType defines the type of the given machine
+	InstanceType string `json:"instanceType,omitempty"`
 }
 
 /// APPLY
@@ -98,7 +136,7 @@ func (req *ApplyRequest) Valid() error {
 
 // Apply provides apply as a kite method.
 func (k *Kloud) Apply(r *kite.Request) (interface{}, error) {
-	return k.stackMethod(r, Stack.Apply)
+	return k.stackMethod(r, Stacker.HandleApply)
 }
 
 /// AUTHENTICATE
@@ -133,7 +171,7 @@ func (req *AuthenticateRequest) Valid() error {
 
 // Authenticate provides authenticate as a kite method.
 func (k *Kloud) Authenticate(r *kite.Request) (interface{}, error) {
-	return k.stackMethod(r, Stack.Authenticate)
+	return k.stackMethod(r, Stacker.HandleAuthenticate)
 }
 
 /// BOOTSTRAP
@@ -165,7 +203,7 @@ func (req *BootstrapRequest) Valid() error {
 
 // Bootstrap provides bootstrap as a kite method.
 func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
-	return k.stackMethod(r, Stack.Bootstrap)
+	return k.stackMethod(r, Stacker.HandleBootstrap)
 }
 
 /// PLAN
@@ -195,7 +233,7 @@ func (req *PlanRequest) Valid() error {
 
 // Plan provides plan as a kite method.
 func (k *Kloud) Plan(r *kite.Request) (interface{}, error) {
-	return k.stackMethod(r, Stack.Plan)
+	return k.stackMethod(r, Stacker.HandlePlan)
 }
 
 /// STATUS

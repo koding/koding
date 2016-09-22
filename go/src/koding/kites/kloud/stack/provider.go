@@ -6,40 +6,9 @@ import (
 	"golang.org/x/net/context"
 )
 
-// Interface provides all kloud methods that a provider can support.
-type Interface interface {
-	Provider
-	Builder
-	Destroyer
-	Infoer
-	Stopper
-	Starter
-	Reiniter
-	Resizer
-	Restarter
-}
+// TODO(rjeczalik): merge kloud, stack and stackplan packages into one,
+// to avoid current issues with cyclic imports and leaky abstractions.
 
-// InfoArtifact should be returned from a Info method.
-type InfoArtifact struct {
-	// State defines the state of the machine
-	State machinestate.State
-
-	// Name defines the name of the machine.
-	Name string
-
-	// InstanceType defines the type of the given machine
-	InstanceType string
-}
-
-// Provider is used to manage architecture for the specific
-// cloud provider and to control particular virtual machines
-// within it.
-//
-// Kloud comes with the following built-in providers:
-//
-//   - aws
-//   - vagrant
-//
 type Provider interface {
 	// Stack returns a provider that implements team methods.
 	//
@@ -53,86 +22,34 @@ type Provider interface {
 	// implementations are used to augment the user
 	// stacks (Terraform templates) with default
 	// resources created during bootstrap.
-	Stack(context.Context) (Stack, error)
+	Stack(context.Context) (Stacker, error)
 
 	// Machine returns a value that implements the Machine interface.
 	//
 	// The Machine interface is used to control a single vm
 	// for the specific cloud-provider.
-	Machine(ctx context.Context, id string) (Machine, error)
-
-	// Cred returns new value for provider-specific credential.
-	// The Cred is called when building credentials
-	// for apply and bootstrap requests, so each provider
-	// has access to type-friendly credential values.
-	//
-	// Examples:
-	//
-	//   - aws.Cred
-	//   - vagrant.Cred
-	//
-	Cred() interface{}
+	Machine(ctx context.Context, id string) (Machiner, error)
 }
 
-// Stack is a provider-specific handler that implements team methods.
-type Stack interface {
-	Apply(context.Context) (interface{}, error)
-	Authenticate(context.Context) (interface{}, error)
-	Bootstrap(context.Context) (interface{}, error)
-	Plan(context.Context) (interface{}, error)
+// Stacker is a copy of stackplan.Stack interface, duplicated here
+// to avoid cyclic imports.
+type Stacker interface {
+	VerifyCredential(credential interface{}) error
+	BootstrapTemplates(credential interface{}) ([]*Template, error)
+	BuildResources() error
+	BuildMetadata(*Machine) interface{}
+	HandleApply(context.Context) (interface{}, error)
+	HandleAuthenticate(context.Context) (interface{}, error)
+	HandleBootstrap(context.Context) (interface{}, error)
+	HandlePlan(context.Context) (interface{}, error)
 }
 
-type Machine interface {
+// Machiner is a copy of stackplan.Machine interface, duplicated here
+// to avoid cyclic imports.
+type Machiner interface {
 	Start(context.Context) error
 	Stop(context.Context) error
 	Info(context.Context) (*InfoResponse, error)
-	State() machinestate.State
-	ProviderName() string
-}
-
-type Builder interface {
-	Build(ctx context.Context) error
-}
-
-type Destroyer interface {
-	Destroy(ctx context.Context) error
-}
-
-type Stopper interface {
-	Stop(ctx context.Context) error
-}
-
-type Starter interface {
-	Start(ctx context.Context) error
-}
-
-type Reiniter interface {
-	Reinit(ctx context.Context) error
-}
-
-type Resizer interface {
-	Resize(ctx context.Context) error
-}
-
-type Restarter interface {
-	Restart(ctx context.Context) error
-}
-
-type Infoer interface {
-	Info(ctx context.Context) (*InfoResponse, error)
-}
-
-type Snapshotter interface {
-	CreateSnapshot(ctx context.Context) error
-	DeleteSnapshot(ctx context.Context) error
-}
-
-type PublicIpAddressFetcher interface {
-	PublicIpAddress() string
-}
-
-// Stater returns the state of a machine and the provider name
-type Stater interface {
 	State() machinestate.State
 	ProviderName() string
 }
