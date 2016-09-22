@@ -1,0 +1,49 @@
+#! 3f91dd92-2a3c-4d2b-9afb-e9a8566c178d
+# title: ide_filetree_create_folder
+# start_uri: /
+# tags: automated
+#
+
+- d6c0bff2-2d2c-49f5-b420-21527fcaa054
+# redirect: false
+Close that modal by clicking (x) from top right corner 
+Do you see file tree and some editor/terminal active (the goal is to see something like this http://snag.gy/2oIRb.jpg)? 
+
+Click down arrow icon at the right of '/home/{{rainforestqa22.username}}' label at the top of file tree
+Do you see menu expanded like on screenshot http://snag.gy/Rmoax.jpg (it's Filetree menu)?
+
+Click 'Collapse' in the menu
+Is file tree collapsed? You should see an empty file tree.
+
+Open filetree menu again and click 'Expand'
+Is file tree expanded? You should see all files and folders.
+
+Open filetree menu again, mouse over 'Change top folder' and click '/home'
+Is top folder in the file tree changed to '/home' ? Do you see 'ubuntu' and '{{rainforestqa22.username}}' folders in the file tree?
+
+Open menu for the  '{{rainforestqa22.username}}' folder and click 'Make this the top folder' ( http://snag.gy/vhS2b.jpg )
+Is top folder in the file tree changed to '/home/{{rainforestqa22.username}}'?
+
+Open filetree menu ( http://snag.gy/Rmoax.jpg ) and click 'New folder' in the menu
+Do you see new folder 'NewFolder' added to the file tree? Is folder name displayed in edit mode?
+
+Enter '{{random.address_state}}{{random.number}}' folder name and press Enter
+Do you see folder '{{random.address_state}}{{random.number}}' with arrow icon at the left in the file tree?
+
+Open filetree menu and click 'New file'
+Do you see new file 'NewFile.txt' added to the file tree? Is file name displayed in edit mode?
+
+Enter '{{random.address_city}}{{random.number}}.txt' file name and press Enter
+Do you see file '{{random.address_city}}{{random.number}}.txt' with green icon in the file tree?
+
+Click  file '{{random.address_city}}{{random.number}}.txt' in the file tree and then drag&drop it to the '{{random.address_state}}{{random.number}}' folder
+Is file moved to the '{{random.address_state}}{{random.number}}' folder?
+
+Open menu for the '{{random.address_city}}{{random.number}}.txt' file in file tree and click 'Watch file' ( http://snag.gy/R0uxS.jpg )
+Do you see new editor tab with file content opened and green message 'This is a file watcher, which allows you to ...' displayed?
+
+Try to enter some text in the editor
+Are you unable to enter any text?
+
+Mouse over the editor header where the file '{{random.address_city}}{{random.number}}.txt' is opened and click 'x' icon
+Is editor tab closed?

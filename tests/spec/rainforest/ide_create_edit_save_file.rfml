@@ -1,29 +1,18 @@
-#! 379508ba-6167-4e21-81b7-5162dbdc0c88
-# title: ide_filetree_create_filefolder_editsave_file
+#! cb054b5e-447f-43ee-bf5a-451b06b1ed53
+# title: ide_create_edit_save_file
 # start_uri: /
 # tags: automated
 #
 
+<<<<<<< 72fb5d4ce0394642ac4281bdffdc3d0aded0cc2a:tests/spec/rainforest/ide_filetree_create_filefolder_editsave_file.rfml
 - 4691279c-8028-4275-b174-ac9192669997
 
+=======
+- d6c0bff2-2d2c-49f5-b420-21527fcaa054
+>>>>>>> Test/Rainforest add ide tests:tests/spec/rainforest/ide_create_edit_save_file.rfml
 # redirect: false
 Close that modal by clicking (x) from top right corner 
 Do you see file tree and some editor/terminal active (the goal is to see something like this http://snag.gy/2oIRb.jpg)? 
-
-Click down arrow icon at the right of '/home/{{rainqa1.username}}' label at the top of file tree
-Do you see menu expanded like on screenshot http://snag.gy/Rmoax.jpg (it's Filetree menu)?
-
-Click 'Collapse' in the menu
-Is file tree collapsed? You should see an empty file tree.
-
-Open filetree menu again and click 'Expand'
-Is file tree expanded? You should see all files and folders.
-
-Open filetree menu again, mouse over 'Change top folder' and click '/home'
-Is top folder in the file tree changed to '/home' ? Do you see 'ubuntu' and '{{rainqa1.username}}' folders in the file tree?
-
-Open menu for the  '{{rainqa1.username}}' folder and click 'Make this the top folder' ( http://snag.gy/vhS2b.jpg )
-Is top folder in the file tree changed to '/home/{{rainqa1.username}}'?
 
 Open filetree menu and click 'New file'
 Do you see new file 'NewFile.txt' added to the file tree? Is file name displayed in edit mode?
@@ -42,24 +31,6 @@ Do you see Menu with 'Save', 'Save as' and other items (like on screenshot http:
 
 Click 'Save' in the menu
 Did dot disappear in the editor header?
-
-Mouse over the editor header where the file '{{random.address_city}}{{random.number}}.txt' is opened and click 'x' icon
-Is editor tab closed?
-
-Open filetree menu ( http://snag.gy/Rmoax.jpg ) and click 'New folder' in the menu
-Do you see new folder 'NewFolder' added to the file tree? Is folder name displayed in edit mode?
-
-Enter '{{random.address_state}}{{random.number}}' folder name and press Enter
-Do you see folder '{{random.address_state}}{{random.number}}' with arrow icon at the left in the file tree?
-
-Click  file '{{random.address_city}}{{random.number}}.txt' in the file tree and then drag&drop it to the '{{random.address_state}}{{random.number}}' folder
-Is file moved to the '{{random.address_state}}{{random.number}}' folder?
-
-Open menu for the '{{random.address_city}}{{random.number}}.txt' file in file tree and click 'Watch file' ( http://snag.gy/R0uxS.jpg )
-Do you see new editor tab with file content opened and green message 'This is a file watcher, which allows you to ...' displayed?
-
-Try to enter some text in the editor
-Are you unable to enter any text?
 
 Mouse over the editor header where the file '{{random.address_city}}{{random.number}}.txt' is opened and click 'x' icon
 Is editor tab closed?
@@ -102,9 +73,3 @@ Do you see 'Are you sure?' text and red 'Delete' button above the file name?
 
 Click 'Delete' button
 Is file deleted?
-
-Click 'STACKS', click 'My Stacks' and click red 'RE-INIT STACK' button
-Do you see 'Reinitialize Stack?' modal with 'PROCEED' and 'CANCEL' buttons?
-
-Click 'PROCEED' button and close the 'Stack catalog'
-Do you see 'Reinitializing stack...' message that automatically disappears? Do you see green 'Build stack' button?
