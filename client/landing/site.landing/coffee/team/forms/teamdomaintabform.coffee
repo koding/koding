@@ -45,8 +45,8 @@ module.exports = class TeamDomainTab extends kd.FormView
   pistachio: ->
 
     # <p class='dim'>Your team url can only contain lowercase letters numbers and dashes.</p>
-    """
+    '''
     {{> @inputView}}
     {{> @button}}
     {{> @backLink}}
-    """
+    '''

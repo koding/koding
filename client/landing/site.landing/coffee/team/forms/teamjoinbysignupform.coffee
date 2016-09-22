@@ -103,11 +103,11 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
 
   pistachio: ->
 
-    """
+    '''
     {{> @email}}
     {{> @username}}
     {{> @password}}
     {{> @passwordStrength}}
     {{> @button}}
     {{> @buttonLink}}
-    """
+    '''
