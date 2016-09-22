@@ -1,6 +1,6 @@
 kd            = require 'kd'
 immutable     = require 'immutable'
-React         = require 'kd-react'
+React         = require 'app/react'
 actions       = require 'app/flux/environment/actions'
 SidebarWidget = require 'app/components/sidebarmachineslistitem/sidebarwidget'
 

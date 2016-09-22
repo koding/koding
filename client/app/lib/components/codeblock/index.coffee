@@ -1,5 +1,5 @@
 kd = require 'kd'
-React = require 'kd-react'
+React = require 'app/react'
 globals = require 'globals'
 Tracker = require 'app/util/tracker'
 copyToClipboard = require 'app/util/copyToClipboard'

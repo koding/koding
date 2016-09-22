@@ -1,5 +1,5 @@
 kd          = require 'kd'
-React       = require 'kd-react'
+React       = require 'app/react'
 htmlencode = require 'htmlencode'
 getFullnameFromAccount = require 'app/util/getFullnameFromAccount'
 

@@ -1,4 +1,4 @@
-React                     = require 'kd-react'
+React                     = require 'app/react'
 actions                   = require 'app/flux/environment/actions'
 SidebarWidget             = require './sidebarwidget'
 InvitationWidgetUserPart  = require './invitationwidgetuserpart'

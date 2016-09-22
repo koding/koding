@@ -1,5 +1,5 @@
 kd = require 'kd'
-React = require 'kd-react'
+React = require 'app/react'
 { Component, PropTypes } = React
 
 minimumNumberFn = -> 1

@@ -1,4 +1,4 @@
-React                 = require 'kd-react'
+React                 = require 'app/react'
 Avatar                = require 'app/components/profile/avatar'
 ProfileText           = require 'app/components/profile/profiletext'
 ProfileLinkContainer  = require 'app/components/profile/profilelinkcontainer'

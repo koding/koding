@@ -1,5 +1,5 @@
 kd          = require 'kd'
-React       = require 'kd-react'
+React       = require 'app/react'
 ReactToggle = require 'react-toggle'
 
 require './styl/toggle.styl'

@@ -1,5 +1,5 @@
 kd = require 'kd'
-React = require 'kd-react'
+React = require 'app/react'
 KodingSwitch = require 'app/commonviews/kodingswitch'
 Toggle = require 'app/components/common/toggle'
 CodeBlock = require 'app/components/codeblock'

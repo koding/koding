@@ -1,4 +1,4 @@
-React = require 'kd-react'
+React = require 'app/react'
 List = require 'app/components/list'
 moment = require 'moment'
 

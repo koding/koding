@@ -1,4 +1,4 @@
-React  = require 'kd-react'
+React  = require 'app/react'
 Toggle = require 'app/components/common/toggle'
 
 module.exports = class HomeTeamPermissionsView extends React.Component

@@ -1,5 +1,5 @@
 kd = require 'kd'
-React = require 'kd-react'
+React = require 'app/react'
 ReactView = require 'app/react/reactview'
 ApiAcess = require './components/apiaccess'
 
