@@ -16,11 +16,7 @@ module.exports = class TeamUsernameTabForm extends TeamJoinBySignupForm
 
     super options, data
 
-    @backLink = new kd.CustomHTMLView
-      tagName    : 'a'
-      cssClass   : 'secondary-link'
-      partial    : 'BACK'
-      attributes : { href : '/Team/Domain' }
+    @backLink = @getButtonLink 'BACK', '/Team/Domain'
 
 
   pistachio: ->

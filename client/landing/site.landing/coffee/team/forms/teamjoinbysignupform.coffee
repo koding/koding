@@ -83,14 +83,10 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
             ps.setClass strength[report.score]
 
     @button     = @getButton @getOption 'buttonTitle'
-    @buttonLink = new kd.CustomHTMLView
-      tagName   : 'a'
-      cssClass  : 'secondary-link'
-      partial   : 'Already have an account?'
-      click     : (event) =>
-        kd.utils.stopDOMEvent event
-        return  unless event.target.tagName is 'A'
-        @emit 'FormNeedsToBeChanged', yes, yes
+    @buttonLink = @getButtonLink 'Already have an account?', '#', (event) =>
+      kd.utils.stopDOMEvent event
+      return  unless event.target.tagName is 'A'
+      @emit 'FormNeedsToBeChanged', yes, yes
 
     @on 'FormValidationFailed', @button.bound 'hideLoader'
     @on 'FormSubmitFailed',     @button.bound 'hideLoader'

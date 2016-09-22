@@ -34,7 +34,7 @@ module.exports = class TeamResetTab extends kd.TabPaneView
       callback : @bound 'doReset'
 
     @form.button.unsetClass 'solid medium green'
-    @form.button.setClass 'TeamsModal-button TeamsModal-button--green'
+    @form.button.setClass 'TeamsModal-button'
 
 
   doReset: (formData) ->

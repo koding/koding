@@ -1,8 +1,9 @@
 @import 'lib/core.fonts'
 @import 'lib/core.fn'
+@import "nib/gradients"
 
 modalBackground             = #FAFAFA
-greenLink                   = #48BA7D
+blueLink                    = #56a2d3
 dimmedGray                  = #848484
 
 @css {
@@ -12,46 +13,67 @@ team.styl
 */
 }
 
+body.team #kdmaincontainer #main-tab-view
+body.teams #kdmaincontainer #main-tab-view
+  height                    auto
+
+// HEADER
 .main-header.team
-  padding                   0 22px
-  max-width                 1200px
-  top                       32px
+  max-width                 100%
+  border-bottom             1px solid rgba(0,0,0,0.15)
+  abs()
+  top                       0
+  height                    69px
+  padding                   0 40px
   z-index                   1
-  fix()
+
+  .koding-header-logo
+    left                    auto
+    top                     18px
+
+  .hiring-badge
+    top                     21px
+
+  nav.full-menu
+    margin-top              21px
+
 
 .content-area-pane.team
 .content-area-pane.teams
-  font-family               adelleSans
-  bg                        color #111
+  font-family               ProximaNovaFamily
+  -webkit-font-smoothing    antialiased
+  -moz-osx-font-smoothing   grayscale
 
-  &:before
-    background              -webkit-linear-gradient(274deg,#261a4b 0,#402f7c 48%,#4781c0 100%)
-    background              linear-gradient(176deg,#261a4b 0,#402f7c 48%,#4781c0 100%)
-    background              -webkit-radial-gradient(56% 135%,140% 196%,#50b5e7 0,#402f7c 48%,#000 100%)
-    background              radial-gradient(56% 135%,140% 196%,#50b5e7 0,#402f7c 48%,#000 100%)
-
-    content                 ''
-    fix                     0px 0 0 0px
-    size                    100% 100%
-    z-index                 0
-
+// GENERAL STYLES
 .content-page.Team
   overflow                  auto
   z-index                   2
   color                     white
   height                    100%
-  min-height                670px
+  bg                        color, #3c3b58
+  bg                        image, linear-gradient(-180deg,#3c3c57 11%,#8598be 100%)
+  min-height                820px
+  borderBox()
+  padding-bottom            150px
 
+  > .kdtabview
+    overflow                visible
 
-  section
+  a, a:hover
+    color                   blueLink
+    noTextDeco()
+
+  .additional-info
     width                   60%
     max-width               600px
-    color                   rgba(255, 255, 255, .8)
-    margin                  0 auto 100px
-    padding                 20px 0
+    padding                 50px 0 0 0
+    margin                  0 auto
+    color                   #fff
     font-size               14px
-    line-height             20px
+    line-height             17px
     text-align              center
+    rel()
+    z-index                 10
     borderBox()
 
     &.previous-teams
@@ -68,34 +90,19 @@ team.styl
       border                1px solid #e8e2de
       display               block
       &:hover
-        color               #48BA7D
+        color               blueLink
         bg                  color white
 
     p
+      margin-top            5px
       margin-bottom         10px
 
-    a
-      color                 greenLink
-      noTextDeco()
-    i
-      font-weight           bold
-      color                 white
-
-  footer
-    bottom                  22px
-    left                    9px
-    z-index                 2
-    position                absolute
-    a
-      color                 rgba(255, 255, 255, .5)
-      margin-left           13px
-      font-size             12px
-
+// TEAMS MODAL STYLES
 .TeamsModal
-  width                     60%
   padding                   24px
-  max-width                 530px
-  margin                    150px auto 0
+  padding-top               38px
+  width                     480px
+  margin                    180px auto 0
   bg                        color modalBackground
   top                       0px
   color                     #434343
@@ -106,86 +113,73 @@ team.styl
   borderBox()
   rel()
 
+  &:after
+    content                 ''
+    r-sprite                teams, alien
+    abs()
+    top                     -32px
+    kalc                    left, 50% \- 40px
+
   .login-input-view
     bg                      color white
-    font-family             openSansFamily
-    width                   85%
+    width                   400px !important
+    margin                  0 auto
+    margin-bottom           19px !important
+    borderBox()
 
-  .login-input-view
     input.kdinput
-      rounded               3px
-      border                3px solid #DAD8D6
-      font-size             20px
-      padding               12px 14px 14px
-      font-weight           400
+      border                1px solid #d9d9d9
+      font-size             18px
+      letter-spacing        .35px
       line-height           25px
-
-      &.validation-error
-        border              3px solid #ff6b5d
-
-    &::-webkit-input-placeholder
+      height                51px
+      color                 #4a4a4a !important
+      text-align            left
+      padding               10px 14px 14px
+      margin                0
+      borderBox()
+      rounded               3px
       font-weight           400
-      padding-top           3px
 
+    &.validation-error input.kdinput
+    input.kdinput.validation-error
+      border                1px solid #ff6b5d
 
   > form
-    margin                  30px auto 0
+    margin                  40px auto 0
 
   .TeamsModal-button-link
-    fl()
     color                   #ADADAD
-    font-size               16px
-    font-weight             300
-    line-height             1
-    margin-top              36px
-    letter-spacing          .01em
-    a
-      color                 #00b153
-      text-decoration       none
-      &:hover
-        text-decoration     underline
+    font-size               14px
+    line-height             17px
+
     img
       rounded               2px
       vertical-align        bottom
       size                  24px 24px
 
-    &.back
-      i
-        display             inline-block
-        rel()
-        top                 -2px
-        r-sprite            'teams', 'back_arrow'
-
-
   .TeamsModal-button-separator
     bg                      color, #E8E2DE
-    margin-top              32px
-    size                    100% 1px
-
-  .TeamsModal-button
-    margin-top              21px
-    border                  1px solid transparent
-
-    &:focus
-      border-color          #7dbef1
+    margin                  32px auto
+    size                    400px 1px
 
   p.intro
     font-size               20px
     margin                  -10px auto 0
 
   > h4
-    color                   #48BA7D
-    font-family             openSansFamily
-    font-size               24px
-    line-height             50px
-    font-weight             600
+    font-size               27px
+    line-height             32px
+    color                   #f2778a
+    font-weight             normal
 
   > h5
-    font-family             openSansFamily
-    font-size               16px
-    line-height             25px
+    font-size               18px
+    letter-spacing          .21px
+    line-height             27px
+    color                   #a59999
     margin                  0 auto
-    color                   #909090
+
     &.full
       width                 100%
     b
@@ -200,127 +194,83 @@ team.styl
     &.full
       width                 auto
 
-    a
-      color                 greenLink
-      noTextDeco()
-
-
-
   .dim
     color                   #9E9E9E
 
-  &.TeamsModal--create::after
-  &.TeamsModal--domain::after
-  &.TeamsModal--groupCreation::after
-    content                 ''
-    size                    58px 96px
-    left                    -48px
-    top                     116px
-    r-sprite                'teams', 'startaccount_alien_left'
-    abs()
+  // PASSWORD STRENGTH STYLES
+  .PasswordStrength
+    height                    5px
+    line-height               5px
+    vertical-align            top
+    opacity                   .5
+    rel()
 
-  &.TeamsModal--login
-  &.TeamsModal--create
-  &.TeamsModal--groupCreation
-    width                   490px
+    &:after
+      abs                     -8px 0 0 0px
+      content                 ''
+      font-size               10px
 
-    > figure
-      bg                    color #ddd
-      bg                    size cover
-      bg                    position, 50% 50%
-      border                3px solid modalBackground
-      margin                -57px auto 20px
-      rounded               6px
-      size                  64px 64px
+    &.bad
+    &.weak
+    &.moderate
+    &.good
+    &.excellent
+      opacity                 1
 
-    .login-form
-      margin-top            20px !important
+    &.bad
+      &:after
+        color                 #FF6B5D
+        content               'very weak'
+      span
+        width                 20%
+        bg                    color #FF6B5D
 
-      .login-input-view
-        width               100%
-        margin-bottom       19px !important
+    &.weak
+      &:after
+        color                 #FF6B5D
+        content               'weak'
+      span
+        width                 40%
+        bg                    color #FF6B5D
 
-        .placeholder-helper
-          color             #ccc
-          font-size         20px
-          top               19px
+    &.moderate
+      &:after
+        color                 #FBB62B
+        content               'good'
+      span
+        width                 60%
+        bg                    color #FBB62B
 
-          &.out
-            color           #999
-            font-size       12px
-            top             -15px
+    &.good
+      &:after
+        color                 #00B057
+        content               'very good'
+      span
+        width                 80%
+        bg                    color #00B057
 
-  &.TeamsModal--banned
-    > h5
-      margin                10px auto 50px
-      width                 auto
-      a
-        font-style          italic
-        color               greenLink
-        noTextDeco()
+    &.excellent
+      &:after
+        color                 #00B057
+        content               'excellent'
+      span
+        width                 100%
+        bg                    color #00B057
 
-    > p
-      color                 dimmedGray
-      font-style            italic
+    span
+      abs                     0px 0 0 0px
+      bg                      color #EAEAEA
+      display                 inline-block
+      rounded                 4px
+      size                    0% 100%
+      vendor                  transition, all .177s ease
 
-  &.TeamsModal--select
-
-    .submit
-      text-align            center
-    .TeamsModal-button
-      display               inline-block !important
-      float                 none !important
-
-.TeamsModal-button
-  border                    none
-  font-family               openSansFamily
-  font-size                 16px
-  font-weight               600
-  letter-spacing            .04em
-  line-height               50px
-  padding                   0 30px
-  rounded                   3px
-  size                      auto 50px
-  text-transform            uppercase
-
-  &.compact
-    height                  24px
-    font-size               10px
-    line-height             16px
-    padding                 4px 7px 0
-
-  &.koding
-    .icon
-      r-sprite              app 'iconkoding'
-
-  &.gitlab
-    .icon
-      r-sprite              app 'icongitlab'
-
-  .icon
-    display                 inline-block !important
-    float                   none !important
-    margin                  14px 0 0 -30px !important
-    abs() !important
-
-.TeamsModal-button--green
-  color                     white
-  bg                        color #48BA7D
-
-.TeamsModal-button--gray
-  color                     white
-  bg                        color #BDC3C7
-
-.TeamsModal-button--full
-  width                     100% !important
-
-.TeamsModal
+  // GITLAB STYLES
   .gitlab
-
     > button.TeamsModal-button
-      margin-bottom         0 !important
+      margin                25px auto !important
       background            #fff
-      border                1px solid #A8CEFF
+      border                1px solid #d9d9d9
       color                 #999
 
     div.or
@@ -328,6 +278,8 @@ team.styl
       z-index               1
       font-size             14px
       color                 #BBB
+      margin                0 auto
+      width                 400px
 
       &:before
         border-top          1px solid #ddd
@@ -345,86 +297,158 @@ team.styl
         padding             0 15px
         text-transform      uppercase
 
+  // TEAMS MODAL BUTTONS
+  .TeamsModal-button
+    margin                    0 auto
+    padding                   10px 0 12px 0
+    bg                        color, #f2778a
+    color                     #fff
+    rounded                   4px
+    size                      400px 50px
+    font-size                 18px
+    line-height               21px
+    margin-bottom             25px
+    display                   inline-block !important
+    float                     none !important
+    text-transform            uppercase
+    border                    none
+    font-weight               600
+    letter-spacing            .04em
 
-.TeamsModal-linkButton
-  color                     #929292
-  font-size                 14px
+    &:focus
+      border-color            #7dbef1
 
-.PasswordStrength
-  height                    5px
-  line-height               5px
-  vertical-align            top
-  opacity                   .5
-  rel()
+    &.compact
+      height                  24px
+      font-size               10px
+      line-height             16px
+      padding                 4px 7px 0
 
-  &:after
-    abs                     -8px 0 0 0px
-    content                 ''
-    font-size               10px
+    &.koding
+      .icon
+        r-sprite              app 'iconkoding'
 
-  &.bad
-  &.weak
-  &.moderate
-  &.good
-  &.excellent
-    opacity                 1
+    &.gitlab
+      .icon
+        r-sprite              app 'icongitlab'
 
-  &.bad
-    &:after
-      color                 #FF6B5D
-      content               'very weak'
-    span
-      width                 20%
-      bg                    color #FF6B5D
+    .icon
+      display                 inline-block !important
+      float                   none !important
+      margin                  0 0 0 -30px !important
+      abs() !important
 
-  &.weak
-    &:after
-      color                 #FF6B5D
-      content               'weak'
-    span
-      width                 40%
-      bg                    color #FF6B5D
+  .TeamsModal-button--green
+    color                     white
+    bg                        color #48BA7D
 
-  &.moderate
-    &:after
-      color                 #FBB62B
-      content               'good'
-    span
-      width                 60%
-      bg                    color #FBB62B
+  .TeamsModal-button--gray
+    color                     white
+    bg                        color #BDC3C7
 
-  &.good
-    &:after
-      color                 #00B057
-      content               'very good'
-    span
-      width                 80%
-      bg                    color #00B057
+  .TeamsModal-button--full
+    width                     100% !important
 
-  &.excellent
-    &:after
-      color                 #00B057
-      content               'excellent'
-    span
-      width                 100%
-      bg                    color #00B057
+  .TeamsModal-linkButton
+    color                     #929292
+    font-size                 14px
 
-  span
-    abs                     0px 0 0 0px
-    bg                      color #EAEAEA
-    display                 inline-block
-    rounded                 4px
-    size                    0% 100%
-    vendor                  transition, all .177s ease
+  // TEAMS MODAL CUSTOMIZATIONS
+  &.TeamsModal--login
+  &.TeamsModal--create
+  &.TeamsModal--groupCreation
 
+    > figure
+      bg                    color #ddd
+      bg                    size cover
+      bg                    position, 50% 50%
+      border                3px solid modalBackground
+      margin                -57px auto 20px
+      rounded               6px
+      size                  64px 64px
+
+  &.TeamsModal--banned
+    > h5
+      margin                10px auto 50px
+      width                 auto
+      a
+        font-style          italic
+
+    > p
+      color                 dimmedGray
+      font-style            italic
+
+  &.TeamsModal--findTeam
+    h5
+      font-size             17px
+
+  &.TeamsModal--recover
+    padding-top             5px
+
+// MISC
 .recoverConfirmation
   text-align                center
 
+// UFO BACKGROUND
+.ufo-bg
+  abs()
+  bg                      color, transparent
+  bg                      image, url('/a/images/landing/ufo_1600.svg')
+  bg                      repeat, no-repeat
+  bg                      position, right bottom
+  bg                      size, 1051px 528px
+  width                   100%
+  height                  528px
+  bottom                  0
+  z-index                 1
 
-// @media only screen and (min-width : 992px) and (max-width : 1199px)
+.ground-bg
+  abs()
+  bg                      color, transparent
+  bg                      image, url('/a/images/landing/ground_1600.svg')
+  bg                      repeat, no-repeat
+  bg                      position, center bottom
+  bg                      size, 3184px 334px
+  width                   100%
+  height                  334px
+  bottom                  0
+  z-index                 1
+
+.footer-bg
+  width                   100%
+  height                  67px
+  bg                      color, #fff
+  abs()
+  bottom                  0
+  z-index                 0
 
 
-// @media only screen and (min-width : 768px) and (max-width : 991px)
+@media screen and (max-width : 1600px)
+
+  .Team--ufo.Team
+    .ufo-bg
+      bg                      image, url('/a/images/landing/ufo_1200.svg')
+      bg                      size, 1051px 528px
+      height                  528px
+
+    .ground-bg
+      bg                      image, url('/a/images/landing/ground_1200.svg')
+      bg                      size, 1614px 260px
+      height                  260px
+
+
+@media screen and (max-width : 1200px)
+
+  .Team--ufo.Team
+    .ufo-bg
+      bg                      image, url('/a/images/landing/ufo_1200.svg')
+      bg                      size, 1051px 528px
+      height                  528px
+
+    .ground-bg
+      bg                      image, url('/a/images/landing/ground_768.svg')
+      bg                      size, 1457px 248px
+      height                  248px
 
 
 @media screen and (max-width : 767px)
@@ -434,8 +458,6 @@ team.styl
   .TeamsModal.TeamsModal--login
   .TeamsModal.TeamsModal--create
   .TeamsModal.TeamsModal--groupCreation
-    width                   90%
-    min-width               0 !important
     margin-top              160px
 
   .TeamsModal
@@ -446,15 +468,31 @@ team.styl
       .login-input-view .placeholder-helper
         font-size           16px
 
-    &.TeamsModal--create::after
-    &.TeamsModal--domain::after
-    &.TeamsModal--groupCreation::after
-      left                  50% !important
-      margin-left           -76px
-      top                   -59px
-      bg                    repeat, no-repeat
-      r-sprite              'teams', 'signin_alien_mobile'
-      abs()
+  .expand-menu
+    .Team--ufo
+      .main-header.team
+        height              100%
 
-    &.with-avatar.TeamsModal--groupCreation::after
-      margin-left           66px
+        nav.full-menu
+          a.mobile-trigger
+            top             26px
+
+  .Team--ufo.Team
+    .main-header.team
+      nav.full-menu
+        margin-top          0
+
+        a.mobile-trigger
+          top               26px
+
+    .TeamsModal--domain:after
+      margin-left           0
+      kalc                  left, 50% \- 40px, !important
+
+    .ufo-bg
+      hidden()
+
+    .ground-bg
+      bg                      image, url('/a/images/landing/ground_ufo_375.svg')
+      bg                      size, 798px 637px
+      height                  637px

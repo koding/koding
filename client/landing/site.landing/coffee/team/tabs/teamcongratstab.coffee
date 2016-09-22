@@ -22,7 +22,7 @@ module.exports = class TeamCongratzTab extends kd.TabPaneView
 
     @button = new kd.ButtonView
       title      : "Sign in to #{slug}.#{kd.config.domains.main}"
-      style      : 'TeamsModal-button TeamsModal-button--green'
+      style      : 'TeamsModal-button'
       callback   : ->
         utils.clearTeamData()
         { protocol, host } = location

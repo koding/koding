@@ -16,7 +16,7 @@ module.exports = class TeamsView extends kd.TabPaneView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry 'Team Team--ufo', options.cssClass
+    options.cssClass = kd.utils.curry 'Team', options.cssClass
 
     super options, data
 

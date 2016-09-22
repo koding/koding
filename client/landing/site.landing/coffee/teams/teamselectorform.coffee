@@ -33,7 +33,7 @@ module.exports = class TeamsSelectorForm extends kd.FormView
     @button = new kd.ButtonView
       title       : 'Login'
       icon        : yes
-      style       : 'TeamsModal-button TeamsModal-button--green'
+      style       : 'TeamsModal-button'
       attributes  : { testpath : 'goto-team-button' }
       type        : 'submit'
 

@@ -27,7 +27,7 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
     @password   = @getPassword()
     @tfcode     = @getTFCode()
     @button     = @getButton 'Done!'
-    @buttonLink = @getButtonLink @createButtonLinkPartial(), (event) =>
+    @buttonLink = @getButtonLink @createButtonLinkPartial(), null, (event) =>
       kd.utils.stopDOMEvent event
       return  unless event.target.tagName is 'A'
 

@@ -2,7 +2,6 @@
 @import "lib/core.fn"
 
 modalBackground             = #FAFAFA
-greenLink                   = #48BA7D
 
 @css {
 /*
@@ -15,16 +14,13 @@ team.group.creation.styl
 
   // GENERIC SIGNUPFORM CUSTOMIZATIONS
 
-  .TeamsModal
-    .login-input-view.validation-error
-      .kdinput
-        border              3px solid #e79a8f
-
   .kdtabpaneview .TeamsModal.TeamsModal--groupCreation
-    min-width               550px
+
+    &.alreadyMember:after
+      hidden()
 
     > h5 i
-      color               #00B057
+      color                 #56a2d3
 
     > figure
       bg                    color #ddd
@@ -41,13 +37,6 @@ team.group.creation.styl
       rel()
       &.tr
         bg                  color transparent
-
-      input.kdinput
-        text-align          center
-        bg                  color transparent
-        borderBox()
-        &:focus
-          shadow            0 0 5px rgba(0,0,0,.1)
 
       > span
         abs                 3px 0 0 3px
@@ -68,45 +57,7 @@ team.group.creation.styl
     .TeamsModal-linkButton.skip
       abs                   0 150px 40px 0
 
-    .TeamsModal-button-link.back a
-      color                 #999
 
-    form
-      margin-top            20px
-
-  // LOGIN/CREATE TAB STYLE CUSTOMIZATIONS
-  .TeamsModal--groupCreation.create
-
-    .TeamsModal-button-link
-      float                 none
-      margin-top            0
-
-    .TeamsModal-button-link.back
-      margin-top            36px
-      fl()
-
-
-  .TeamsModal--create
-  .TeamsModal--groupCreation
-  .kdtabpaneview.login .TeamsModal
-  .kdtabpaneview.recover .TeamsModal
-  .kdtabpaneview.reset .TeamsModal
-  .kdtabpaneview.findteam .TeamsModal
-    margin-bottom           0
-
-    > form
-      margin-top            10px
-
-    .login-input-view
-      margin                0 0 19px
-
-      input.kdinput
-        text-align          center
-
-    .TeamsModal-button
-      margin                19px auto
-      float                 none
-      width                 auto
 
   // DOMAIN TAB STYLE CUSTOMIZATIONS
 
@@ -117,40 +68,35 @@ team.group.creation.styl
     .login-input-view
       overflow              hidden
       width                 100%
-      border                3px solid #DAD8D6
+      border                1px solid #d9d9d9
+      rounded               3px
+      dFlex()
 
       &.validation-error
         border-color        #f13a18
 
       input.kdinput
+        font-size           18px
+        text-align          left
+        padding             10px 14px 14px
+        height              49px
+        vendor              flex-grow, 1
         border              none
-        text-align          right
         width               auto
         max-width           calc(100% \- 120px)
-        padding             12px 0
         box-shadow          none !important
         outline             none
-        font-size           20px
 
       span
-        rel()
         color               #999
-        font-size           20px !important // If you want to change this property, you must update font-size of "fake-view"
         font-weight         400
-        line-height         52px
-        padding-left        0
-        left                initial
-        top                 0
-
-      .fake-view
-        font-family         adelleSans
-        font-size           21px // Set +1 value to leave a bit margin
-        font-weight         400
-        max-width           none
-        abs()
-
-    .TeamsModal-button
-      fr()
+        font-size           18px
+        line-height         25px
+        padding             10px 14px 14px
+        margin              0
+        border-left         1px solid #d9d9d9
+        bg                  color, #fafafa
+        borderBox()
 
   // ALLOWED DOMAIN TAB STYLE CUSTOMIZATIONS
 
@@ -221,7 +167,7 @@ team.group.creation.styl
 
     .PasswordStrength
       top                   -30px
-      left                  5px
+      left                  22px
       rounded               3px
       width                 calc(100% - 10px)
       z-index               4
@@ -229,16 +175,6 @@ team.group.creation.styl
     p.dim
       margin                25px auto
 
-    .TeamsModal-button
-      text-transform        none
-
-    .TeamsModal-button-link.back
-      a
-        color               #999
-      // &:before
-      //   content             ''
-      //   bg                  color red
-      //   size                20px 40px
 
   // STACKS TAB STYLE CUSTOMIZATIONS
 

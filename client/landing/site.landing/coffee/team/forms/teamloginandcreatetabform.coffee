@@ -14,11 +14,7 @@ module.exports = class TeamLoginAndCreateTabForm extends TeamJoinByLoginForm
 
     super options, data
 
-    @backLink = new kd.CustomHTMLView
-      tagName    : 'a'
-      cssClass   : 'secondary-link'
-      partial    : 'BACK'
-      attributes : { href : '/Team/Domain' }
+    @backLink = @getButtonLink 'BACK', '/Team/Domain'
 
 
   createButtonLinkPartial: ->

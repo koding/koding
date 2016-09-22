@@ -11,11 +11,7 @@ module.exports = class TeamCreateWithMemberAccountForm extends TeamJoinWithInvit
 
     @username.input.setValue utils.getTeamData().profile?.nickname
 
-    @backLink = new kd.CustomHTMLView
-      tagName    : 'a'
-      cssClass   : 'secondary-link'
-      partial    : 'BACK'
-      attributes : { href : '/Team/Domain' }
+    @backLink = @getButtonLink 'BACK', '/Team/Domain'
 
 
   createButtonLinkPartial: -> "Not you? Create with a <a href='#'>fresh account!</a>"

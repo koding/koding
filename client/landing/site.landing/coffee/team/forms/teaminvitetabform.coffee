@@ -40,7 +40,7 @@ module.exports = class TeamInviteTabForm extends kd.FormView
 
     @button = new kd.ButtonView
       title      : 'NEXT'
-      style      : 'TeamsModal-button TeamsModal-button--green'
+      style      : 'TeamsModal-button'
       attributes : { testpath : 'invite-button' }
       type       : 'submit'
 

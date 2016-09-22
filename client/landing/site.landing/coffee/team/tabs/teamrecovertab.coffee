@@ -34,7 +34,7 @@ module.exports = class TeamRecoverTab extends kd.TabPaneView
       callback : @bound 'doRecover'
 
     @form.button.unsetClass 'solid medium green'
-    @form.button.setClass 'TeamsModal-button TeamsModal-button--green'
+    @form.button.setClass 'TeamsModal-button'
 
 
   setFocus: -> @form.usernameOrEmail.input.setFocus()

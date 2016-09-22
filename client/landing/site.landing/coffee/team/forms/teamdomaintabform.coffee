@@ -31,10 +31,9 @@ module.exports = class TeamDomainTab extends kd.FormView
 
     @backLink = new kd.CustomHTMLView
       tagName    : 'a'
-      cssClass   : 'secondary-link'
+      cssClass   : 'TeamsModal-button-link'
       partial    : 'BACK'
       attributes : { href : '/Teams/Create' }
-
 
     @button = new kd.ButtonView
       title        : 'NEXT'

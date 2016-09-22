@@ -30,7 +30,7 @@ module.exports = class TeamWelcomeTab extends kd.TabPaneView
 
     @correct = new kd.ButtonView
       title      : 'Yes, that\'s the right address'
-      style      : 'TeamsModal-button TeamsModal-button--green correct'
+      style      : 'TeamsModal-button correct'
       callback   : @bound 'next'
 
     @membersDesc = new kd.CustomHTMLView
