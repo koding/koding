@@ -70,10 +70,6 @@
   "no_empty_param_list": {
     "level": "error"
   },
-  "no_implicit_braces": {
-    "level": "error",
-    "strict": false
-  },
   "no_implicit_parens": {
     "strict": true,
     "level": "ignore"
