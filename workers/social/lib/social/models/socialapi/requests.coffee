@@ -416,6 +416,14 @@ deleteNotificationSetting = (data, callback) ->
   url = "#{socialProxyUrl}/notificationsetting/#{data.id}"
   deleteReq url, data, callback
 
+createCustomer = (data, callback) ->
+  url = "#{socialProxyUrl}/payment/customer/create"
+  post url, data, callback
+
+createSubscription = (data, callback) ->
+  url = "#{socialProxyUrl}/payment/subscription/create"
+  post url, data, callback
+
 expireSubscription = (accountId, callback) ->
   url = "#{socialProxyUrl}/payments/customers/#{accountId}/expire"
   post url, {}, callback
@@ -600,6 +608,8 @@ module.exports = {
   getNotificationSetting
   updateNotificationSetting
   deleteNotificationSetting
+  createCustomer
+  createSubscription
   expireSubscription
   dispatchEvent
   storeCredential

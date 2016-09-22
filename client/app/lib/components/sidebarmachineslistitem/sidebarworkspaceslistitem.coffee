@@ -1,6 +1,6 @@
 Link                    = require 'app/components/common/link'
 nick                    = require 'app/util/nick'
-React                   = require 'kd-react'
+React                   = require 'app/react'
 actions                 = require 'app/flux/environment/actions'
 getMachineLink          = require 'app/util/getMachineLink'
 KDReactorMixin          = require 'app/flux/base/reactormixin'

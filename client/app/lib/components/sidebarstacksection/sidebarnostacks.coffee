@@ -1,4 +1,4 @@
-React = require 'kd-react'
+React = require 'app/react'
 Link  = require 'app/components/common/link'
 canCreateStacks = require 'app/util/canCreateStacks'
 isAdmin = require 'app/util/isAdmin'

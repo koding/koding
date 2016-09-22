@@ -1,5 +1,5 @@
 kd     = require 'kd'
-React  = require 'kd-react'
+React  = require 'app/react'
 Modal  = require 'app/components/modal'
 
 module.exports = class ActivityModal extends React.Component

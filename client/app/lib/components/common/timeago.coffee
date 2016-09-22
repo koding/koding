@@ -1,5 +1,5 @@
 kd      = require 'kd'
-React   = require 'kd-react'
+React   = require 'app/react'
 timeago = require 'timeago'
 
 module.exports = class TimeAgo extends React.Component

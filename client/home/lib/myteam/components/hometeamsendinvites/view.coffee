@@ -1,5 +1,5 @@
 kd = require 'kd'
-React = require 'kd-react'
+React = require 'app/react'
 List = require 'app/components/list'
 CheckBox = require 'app/components/common/checkbox'
 

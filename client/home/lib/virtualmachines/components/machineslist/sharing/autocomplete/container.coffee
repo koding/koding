@@ -1,5 +1,5 @@
 kd                  = require 'kd'
-React               = require 'kd-react'
+React               = require 'app/react'
 KDReactorMixin      = require 'app/flux/base/reactormixin'
 VirtualMachinesSearchFlux = require 'home/virtualmachines/flux/search'
 View                = require './view'
