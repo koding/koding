@@ -1,7 +1,7 @@
 #! 389d1e79-20da-4519-8f85-cb7b73e8ddd4
 # title: create_team_with_a_new_user
 # start_uri: /
-# tags: rfml-test
+# tags: automated
 #
 
 Enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In'

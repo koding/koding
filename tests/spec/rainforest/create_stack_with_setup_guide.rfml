@@ -1,0 +1,53 @@
+#! cf7a5a0d-e849-42a7-82fd-db8ecda325ce
+# title: create_stack_with_setup_guide
+# start_uri: /
+# tags: automated
+#
+
+- 1ae7b10f-f120-47de-bc67-eae94efbd491
+
+# redirect: false
+Click on 'Create a Stack for Your Team' section
+Do you see a pop-up with 'Create a Stack Template' title? Do you see 'Create a New Stack' and 'CANCEL' buttons?
+
+Click on 'CREATE A NEW STACK' button
+Do you see 'Select a Provider' title? Do you see 'amazon web services', 'VAGRANT' and other 'Coming Soon' labeled providers? Do you see 'BACK' and 'NEXT' buttons below?
+
+Click on 'amazon web services' and click on 'NEXT' button
+Do you see 'What do you want installed?' title? Do you see 'Database', 'Language' and 'Web Server' texts? Do you see 'BACK', 'SKIP GUIDE' and 'NEXT' buttons on the bottom?
+
+Click on 'MySQL' under Database, 'Python' under Language, 'Apache' under Web Server and then click on 'NEXT' button
+Do you see 'Where is your code?' title? Do you see 'GitHub', 'Bitbucket' and 'Gitlab'?
+
+Select 'GitHub' and click on 'NEXT' button
+Do you see 'Rainforestqa99's Stack' title? Do you see 'Stack Template', 'Custom Variables', 'Readme' tabs? Do you see 'Credentials' text having a red (!) next to it? Do you see 'PREVIEW', 'LOGS', 'DELETE STACK TEMPLATE' buttons on the bottom and 'SAVE' button on top right?
+
+Click on 'Credentials' text having a red (!) next to it
+Do you see 'rainforestqa99's AWS keys'? Do you see 'USE THIS & CONTINUE' button next to it? Do you see 'CREATE NEW' button on the bottom?
+
+Click on 'USE THIS & CONTINUE' button (next to 'rainforestqa99's AWS keys') and wait for a second for process to be completed
+Have you seen 'Verifying Credentials...' message displayed? Are you switched to 'Stack Template' tab?
+
+Click on the 'SAVE' button on top right and wait for a few seconds for that process to be completed
+Do you see 'Share Your Stack' title on a pop-up displayed? Do you see that 'Share the credentials I used for this stack with my team.' checkbox is already checked? Do you see 'CANCEL' and 'SHARE WITH THE TEAM' buttons?
+
+Click on the 'SHARE WITH THE TEAM' button
+Do you see 'Sharing Credentials' title on the new pop-up displayed? Do you see 'NO' and 'YES' buttons?
+
+Click on the 'YES' button and wait for a while for process to be completed
+Do you see 'Rainforestqa99's Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'Read Me' text and a 'NEXT' and 'VIEW STACK TEMPLATE' buttons on the bottom? Do you see 'STACKS', 'Rainforestqa99's Stack' and 'example_1' labels on left sidebar?
+
+Click on the 'NEXT' button
+Do you see 'Select Credentials' text? Do you see 'rainforestqa99's AWS keys' label in a text box? Do you see a 'BUILD STACK' button on the bottom?
+
+Click on the 'BUILD STACK' button
+Do you see 'Fetching and validating credentials...' text in a progress bar?
+
+Wait for a few minutes for process to be completed
+Do you see 'Success' text? Do you see 'Your stack has been built' text below it? Do you see 'SEE THE LOGS' and 'START CODING' buttons on the bottom?
+
+Click on 'START CODING' button
+Do you see 'Rainforestqa99'S Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'example_1' label? Do you see '/home/rainforestqa99' label on top of a file list? Do you see 'cloud-init-o...' file on top and 'Terminal' tab on the bottom pane? 
+
+Click on the tab where it says 'Terminal', type 'expr 5 + 5' hit enter
+Do you see '10' as a result?
