@@ -5,8 +5,8 @@
 #
 
 - d6c0bff2-2d2c-49f5-b420-21527fcaa054
-# redirect: false
 
+# redirect: false
 Close that modal by clicking (x) from top right corner 
 Do you see file tree and some editor/terminal active (the goal is to see something like this http://snag.gy/2oIRb.jpg)? 
 
