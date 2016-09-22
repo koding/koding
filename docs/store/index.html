@@ -11,38 +11,62 @@ order: 40
 <style>{% include css/store.css %}</style>
 
 <div class="hero">
-  <div class="heading">Stack and Stencil Hub</div>
-  <div class="subheading">Start building your stacks easily with these hundereds of examples</div>
+  <h1 class="heading">Stack and Stencil Hub</h1>
+  <h2 class="subheading">Start building your stacks easily with these hundereds of examples</h2>
   <div class="search-container">
-    <div class="dropdown">In Stencils<span class="dropdown-icon"></span></div>
-    <div class="search-bar">Search a keyword or name...<span class="search-icon"></span></div>
+    <div class="dropdown">
+      <a href="#" class="dropdown-selection">
+        <label>In Stencils</label><span class="dropdown-icon"></span>
+      </a>
+      <div class="dropdown-options">
+        <a href="#">In Stacks</a>
+        <a href="#">In Stencils</a>
+      </div>
+    </div>
+    <div class="search-bar">
+      <div class="search-bar-field">
+        <input placeholder="Search a keyword or name..." /><a href="#" class="search-icon"></a>
+        <a href="javascript:;" class="remove-icon"></a>
+      </div>
+      <div class="search-results">
+        <div class="search-results-rows">
+        </div>
+        <a href="#" class="see-all-results-row">
+          See all results...
+        </a>
+      </div>
+    </div>
   </div>
 </div>
 <div class="container featured-stacks">
   <div class="text-heading">
-    <div class="heading">
+    <h3 class="heading">
       Featured Stacks
-    </div>
-    <div class="sub-heading">
+    </h3>
+    <p class="sub-heading">
       Nulla vitae elit libero, a pharetra augue. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Integer posuere erat a ante venenatis dapibus posuere.
-    </div>
+    </p>
   </div>
-  {% include store-set.html %}
+  {% include store-set.html data=site.data.store-stacks limit=4 %}
   <button>See All Stacks</button>
 </div>
 <div class="container featured-stencils">
   <div class="text-heading">
-    <div class="heading">
+    <h3 class="heading">
       Featured Stencils
-    </div>
-    <div class="sub-heading">
+    </h3>
+    <p class="sub-heading">
       Nulla vitae elit libero, a pharetra augue. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Integer posuere erat a ante venenatis dapibus posuere.
-    </div>
+    </p>
   </div>
-  {% include store-set.html %}
+  {% include store-set.html data=site.data.store-stencils limit=4 %}
   <button>See All Stencils</button>
 </div>
 
+<script>
+  {% include js/store.js %}
+</script>
 
 <!-- FOOTER -->
+
 {% include footer.html %}

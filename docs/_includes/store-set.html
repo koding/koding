@@ -1,10 +1,10 @@
 <ul class="box-set">
-  {% for module in site.data.store-set %}
+  {% for module in include.data limit:include.limit %}
   <li class="box">
-    <div class="title">{{ module.title }}<span class="verified"></span></div>
-    <div class="by-author">{{ module.author }}</div>
+    <p class="title">{{ module.title }}{% if module.verified %}<span class="icon verified"></span>{% endif %}</p>
+    <p class="by-author">by {{ module.author }}</p>
     <hr />
-    <div class="description">{{ module.description }}</div>
+    <p class="description">{{ module.description }}</p>
     <div class="vendor-icon {{ module.vendor }}">
     </div>
     <div class="download-count">
