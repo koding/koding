@@ -1,4 +1,4 @@
-package awsprovider
+package aws
 
 import (
 	"errors"
