@@ -1,8 +1,6 @@
 @import "lib/core.fonts"
 @import "lib/core.fn"
 
-modalBackground             = #FAFAFA
-
 @css {
 /*
 Team Group Creation stylesheet
@@ -22,41 +20,10 @@ team.group.creation.styl
     > h5 i
       color                 #56a2d3
 
-    > figure
-      bg                    color #ddd
-      bg                    size cover
-      bg                    position, 50% 50%
-      border                3px solid modalBackground
-      margin                -57px auto 20px
-      overflow              hidden
-      rounded               6px
-      size                  64px 64px
-
     .login-input-view
-      margin                0 auto 26px
       rel()
       &.tr
         bg                  color transparent
-
-      > span
-        abs                 3px 0 0 3px
-        color               #666
-        font-size           15px
-        font-weight         600
-        font-family         openSansFamily
-        line-height         54px
-        padding-left        25px
-        size                127px 54px
-        text-align          left
-        z-index             4
-        borderBox()
-
-    .TeamsModal-button
-      float                 right
-
-    .TeamsModal-linkButton.skip
-      abs                   0 150px 40px 0
-
 
 
   // DOMAIN TAB STYLE CUSTOMIZATIONS
@@ -160,10 +127,6 @@ team.group.creation.styl
       width                 335px
       &.full
         width               100%
-
-
-    .login-input-view
-      margin-bottom         11px
 
     .PasswordStrength
       top                   -30px
