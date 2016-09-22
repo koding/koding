@@ -1,7 +1,6 @@
 package payment
 
 import (
-	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 
 	stripe "github.com/stripe/stripe-go"
@@ -123,6 +122,5 @@ func Initialize(conf *config.Config) error {
 		stripe.LogLevel = 3
 	}
 	go CreateDefaultPlans()
-	go modelhelper.EnsureDeletedMemberIndex()
 	return nil
 }
