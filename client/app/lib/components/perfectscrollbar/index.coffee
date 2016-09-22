@@ -1,6 +1,6 @@
 _ = require 'lodash'
 kd = require 'kd'
-React = require 'kd-react'
+React = require 'app/react'
 ReactDOM = require 'react-dom'
 Ps = require 'perfect-scrollbar'
 

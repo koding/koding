@@ -1,5 +1,5 @@
 kd                        = require 'kd'
-React                     = require 'kd-react'
+React                     = require 'app/react'
 immutable                 = require 'immutable'
 SidebarSection            = require 'app/components/sidebarsection'
 KDReactorMixin            = require 'app/flux/base/reactormixin'

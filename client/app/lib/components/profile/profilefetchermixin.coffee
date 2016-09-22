@@ -1,4 +1,4 @@
-React = require 'kd-react'
+React = require 'app/react'
 helper = require './helper'
 fetchAccount = require 'app/util/fetchAccount'
 

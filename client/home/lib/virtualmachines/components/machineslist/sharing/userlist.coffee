@@ -1,6 +1,6 @@
 kd          = require 'kd'
 immutable   = require 'immutable'
-React       = require 'kd-react'
+React       = require 'app/react'
 List        = require 'app/components/list'
 Avatar      = require 'app/components/profile/avatar'
 ProfileText = require 'app/components/profile/profiletext'

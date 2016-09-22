@@ -1,5 +1,5 @@
 kd                      = require 'kd'
-React                   = require 'kd-react'
+React                   = require 'app/react'
 SidebarSection          = require 'app/components/sidebarsection'
 SidebarMachinesListItem = require 'app/components/sidebarmachineslistitem'
 

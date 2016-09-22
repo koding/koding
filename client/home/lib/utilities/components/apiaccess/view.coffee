@@ -1,5 +1,5 @@
 kd = require 'kd'
-React = require 'kd-react'
+React = require 'app/react'
 ApiToken = require './apitoken'
 List = require 'app/components/list'
 Toggle = require 'app/components/common/toggle'

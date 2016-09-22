@@ -1,5 +1,5 @@
 kd = require 'kd'
-React = require 'kd-react'
+React = require 'app/react'
 ReactDOM = require 'react-dom'
 MaskedInput = require 'react-input-mask'
 SelectBox = require 'app/components/selectbox'

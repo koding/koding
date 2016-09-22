@@ -1,5 +1,5 @@
 kd        = require 'kd'
-React     = require 'kd-react'
+React     = require 'app/react'
 Portal    = require 'react-portal'
 ReactDOM  = require 'react-dom'
 

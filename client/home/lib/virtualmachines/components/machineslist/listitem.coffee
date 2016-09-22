@@ -1,5 +1,5 @@
 kd = require 'kd'
-React = require 'kd-react'
+React = require 'app/react'
 MachineDetails = require './machinedetails'
 Machine = require 'app/providers/machine'
 immutable = require 'immutable'

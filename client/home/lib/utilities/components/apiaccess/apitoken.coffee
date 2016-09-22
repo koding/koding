@@ -1,5 +1,5 @@
 kd    = require 'kd'
-React = require 'kd-react'
+React = require 'app/react'
 timeago = require 'timeago'
 ContentModal = require 'app/components/contentModal'
 TeamFlux = require 'app/flux/teams'

@@ -1,6 +1,6 @@
 kd                             = require 'kd'
 Link                           = require 'app/components/common/link'
-React                          = require 'kd-react'
+React                          = require 'app/react'
 ReactDOM                       = require 'react-dom'
 remote                         = require 'app/remote'
 actions                        = require 'app/flux/environment/actions'

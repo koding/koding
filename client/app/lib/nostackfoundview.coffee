@@ -1,5 +1,5 @@
 kd = require 'kd'
-React = require 'kd-react'
+React = require 'app/react'
 globals = require 'globals'
 ReactView = require 'app/react/reactview'
 canCreateStacks = require 'app/util/canCreateStacks'

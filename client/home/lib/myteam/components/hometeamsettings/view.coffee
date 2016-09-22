@@ -1,5 +1,5 @@
 kd              = require 'kd'
-React           = require 'kd-react'
+React           = require 'app/react'
 List            = require 'app/components/list'
 Encoder         = require 'htmlencode'
 DEFAULT_SPINNER_PATH = '/a/images/logos/loader.svg'
