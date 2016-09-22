@@ -1,7 +1,7 @@
-#! d6c0bff2-2d2c-49f5-b420-21527fcaa054
+#! bde548c0-0ae2-41cf-b29c-bfeff7658c68
 # title: login_to_an_existing_team
 # start_uri: /
-# tags: rfml-test
+# tags: automated
 #
 
 Enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In'

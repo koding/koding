@@ -1,0 +1,38 @@
+#! d6c0bff2-2d2c-49f5-b420-21527fcaa054
+# title: login_to_an_existing_team_stack_related
+# start_uri: /
+# tags: automated
+#
+
+Enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In'
+Do you see 'Welcome! Enter your team's Koding domain.' form in the center of the page with a 'LOGIN' button? Do you see 'Forgot your team name?' link? Do you see 'Do you want to create a new team?' text below that form?
+
+Enter "{{ existing_team.name }}" (in lowercase like in the 'rainforestqateam') in the input field and click on 'LOGIN' button
+Do you see 'Authentication Required' form?
+
+Enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In'
+Do you see 'Sign in to {{ existing_team.name }}' text? Do you see 'Username or Email' and 'Password' fields and a 'SIGN IN' button?
+
+Enter "rainforestqa22" in the 'Username or Email' and "rainforestqa22" in the 'Password' fields and click on 'SIGN IN' button
+Do you see '{{ existing_team.name }}' label at the top left corner? Do you see 'You are almost there, rainforestqa22!' title? Do you see 'Create a Stack for Your Team', 'Enter your Credentials', 'Build Your Stack', 'Invite Your Team' and 'Install KD' sections? Do you see 'CREATE', 'ENTER', 'BUILD', 'INVITE' and 'INSTALL' buttons next to them?
+
+Close that modal by clicking (x) from top right corner and click on 'Team Stack' from left sidebar
+Do you see 'Edit', 'Reinitialize', 'VMs' and 'Destroy VMs' options?
+
+Select 'Reinitialize'
+Do you see 'YOUR DATA WILL BE LOST!' text on a pop-up appeared? Do you see 'CANCEL' and 'PROCEED' buttons?
+
+Click on 'PROCEED' button
+Have you seen 'Reinitalizing stack...' and 'Stack reinitialized' messages displayed respectively? Do you see 'Team Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'Read Me' text and a 'NEXT' and 'VIEW STACK TEMPLATE' buttons on the bottom? Do you see 'STACKS', 'Rainforestqa99's Stack' and 'example-instance' labels on left sidebar?
+
+Click on the 'NEXT' button
+Do you see 'Select Credentials' text? Do you see '{{ existing_team.name }} AWS Keys' label in a text box? Do you see a 'BUILD STACK' button and 'BACK TO INSTRUCTIONS' text on the bottom?
+
+Click on the 'BUILD STACK' button
+Do you see 'Fetching and validating credentials...' text in a progress bar?
+
+Wait for a few minutes for process to be completed
+Do you see 'Success' text? Do you see 'Your stack has been built' text below it? Do you see 'SEE THE LOGS' and 'START CODING' buttons on the bottom?
+
+Click on 'START CODING' button
+Do you see 'Team Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'example-instance' label? Do you see '/home/rainforestqa22' label on top of a file list? Do you see 'cloud-init-o...' file on top and 'Terminal' tab on the bottom pane? 
