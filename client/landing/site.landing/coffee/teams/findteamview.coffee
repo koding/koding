@@ -5,6 +5,8 @@ JView          = require './../core/jview'
 MainHeaderView = require './../core/mainheaderview'
 FindTeamForm   = require './findteamform'
 
+EMPTY_TEAM_LIST_ERROR = 'Empty team list'
+
 track = (action) ->
 
   category = 'Teams'
@@ -55,7 +57,7 @@ module.exports = class FindTeamView extends kd.TabPaneView
     utils.findTeam email,
       error       : (xhr) =>
         { responseText } = xhr
-        new kd.NotificationView { title : responseText }
+        new kd.NotificationView { title : @formatServerError responseText }
         @form.button.hideLoader()
       success     : =>
         @form.button.hideLoader()
@@ -68,6 +70,12 @@ module.exports = class FindTeamView extends kd.TabPaneView
           duration : 4500
 
         kd.singletons.router.handleRoute '/'
+
+
+  formatServerError: (err) ->
+
+    return 'You don\'t participate in any team'  if err is EMPTY_TEAM_LIST_ERROR
+    return err
 
 
   pistachio: ->

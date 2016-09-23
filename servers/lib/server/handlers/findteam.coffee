@@ -7,6 +7,7 @@ emailsanitize = require '../../../../workers/social/lib/social/models/user/email
 module.exports = (req, res) ->
 
   UNKNOWN_USER_ERROR = 'User not found'
+  EMPTY_TEAM_LIST_ERROR = 'Empty team list'
 
   { email } = req.body
   { JUser } = koding.models
@@ -32,6 +33,8 @@ module.exports = (req, res) ->
 
     (account, groups, next) ->
       groups = groups.filter (group) -> group.slug isnt 'koding'
+
+      return next EMPTY_TEAM_LIST_ERROR  unless groups.length
 
       { profile : { nickname } } = account
 
