@@ -1,8 +1,8 @@
 request = require 'request'
-koding  = require './bongo'
+koding = require './bongo'
+KONFIG = require 'koding-config-manager'
 
-{ gitlab, hostname } = require 'koding-config-manager'
-{ redirectOauth, saveOauthToSession } = require './helpers'
+{ isAddressValid, redirectOauth, saveOauthToSession } = require './helpers'
 
 provider = 'gitlab'
 headers  =
@@ -13,6 +13,7 @@ headers  =
 fetchGroupSettings = (clientId, callback) ->
 
   { JSession, JGroup } = koding.models
+  { hostname } = KONFIG
 
   JSession.one { clientId }, (err, session) ->
     return callback err  if err
@@ -40,6 +41,7 @@ fetchGroupSettings = (clientId, callback) ->
 
 
 getPathFor = (url, path) ->
+  { gitlab } = KONFIG
   url ?= "http://#{gitlab.host ? 'gitlab.com'}:#{gitlab.port ? 80}"
   "#{url}#{path}"
 
@@ -98,6 +100,7 @@ module.exports = (req, res) ->
     console.error '[GITLAB][1/4] Failed to get code from query:', req.query
     return fail req, res
 
+  { gitlab } = KONFIG
   { clientId } = req.cookies
 
   fetchGroupSettings clientId, (err, settings) ->
@@ -108,15 +111,27 @@ module.exports = (req, res) ->
 
     { url, applicationId, applicationSecret, redirectUri } = settings
 
-    options           =
-      url             : getPathFor url, '/oauth/token'
-      method          : 'POST'
-      headers         : headers
-      json            :
-        redirect_uri  : redirectUri
-        grant_type    : 'authorization_code'
-        client_id     : applicationId
-        client_secret : applicationSecret
-        code          : code
+    isAddressValid url, (err) ->
 
-    request options, authorizeUser url, req, res
+      if err
+
+        if err.type is 'NOT_REACHABLE'
+          console.error '[GITLAB][2/4] Provided url is not reachable:', url
+          return fail req, res
+
+        else if err.type is 'PRIVATE_IP' and not gitlab.allowPrivateOAuthEndpoints
+          console.error '[GITLAB][2/4] Provided url is not allowed:', url
+          return fail req, res
+
+      options           =
+        url             : getPathFor url, '/oauth/token'
+        method          : 'POST'
+        headers         : headers
+        json            :
+          redirect_uri  : redirectUri
+          grant_type    : 'authorization_code'
+          client_id     : applicationId
+          client_secret : applicationSecret
+          code          : code
+
+      request options, authorizeUser url, req, res
