@@ -8,20 +8,13 @@ FLOW_ROUTES  =
   'username'      : '/Team/Username'
   'join'          : '/Team/Join'
   'register'      : '/Team/Register'
-  # 'welcome'       : '/Team/Welcome'
-  # 'email-domains' : '/Team/Email-domains'
-  # 'invite'        : '/Team/Invite'
-  # 'stacks'        : '/Team/Stacks'
-  # 'congrats'      : '/Team/Congrats'
 
-# 'email-domains' and 'invite' left out intentionally
+
 CREATION_FLOW = [ 'signup', 'domain', 'username' ]
-# JOIN_FLOW     = [ 'welcome', 'join' ]
 
 
 getFlow = (step) ->
 
-  # return JOIN_FLOW     if JOIN_FLOW.indexOf(step) > -1
   return CREATION_FLOW if CREATION_FLOW.indexOf(step) > -1
   return no
 

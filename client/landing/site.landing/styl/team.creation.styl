@@ -65,58 +65,6 @@ team.group.creation.styl
         bg                  color, #fafafa
         borderBox()
 
-  // ALLOWED DOMAIN TAB STYLE CUSTOMIZATIONS
-
-  .kdtabpaneview.email-domains .TeamsModal
-
-    > h5
-      width                 100%
-
-    .login-input-view
-
-      &:first-child
-        text-align          left
-
-      input.kdinput.checkbox
-        margin-right        12px
-
-      input.kdinput
-        padding-left        61px
-        text-align          left
-
-      span
-        abs                 1px 0 0 1px
-        size                42px 42px
-        border-right        1px solid #DBDBDB
-        text-align          center
-
-  // INVITE TAB STYLE CUSTOMIZATIONS
-
-  .kdtabpaneview.invite .TeamsModal
-
-    .login-input-view
-        margin-bottom       5px
-
-    p.dim
-      abs                   0 0 26px 44px
-      width                 calc(100% - 250px)
-      text-align            left
-
-
-    .TeamsModal-button.add
-      float                 none
-      margin                15px 0 0
-      display               block
-      width                 auto
-
-  // JOIN TAB STYLE CUSTOMIZATIONS
-
-  .kdtabpaneview.join
-
-    .TeamsModal
-
-      &.alreadyMember
-        margin-bottom       0px
 
   // USERNAME TAB STYLE CUSTOMIZATIONS
 
@@ -137,41 +85,3 @@ team.group.creation.styl
 
     p.dim
       margin                25px auto
-
-
-  // STACKS TAB STYLE CUSTOMIZATIONS
-
-  .kdtabpaneview.stacks .TeamsModal
-
-    > h5
-      width                 100%
-      margin-bottom         40px
-
-    figure
-      bg                    image, url('/a/site.landing/images/teams/stacks.jpg')
-      size                  462px 246px
-      bg                    size cover
-      display               block
-      border                6px solid #efefef
-      rounded               3px
-      borderBox()
-
-  // CONGRATS TAB STYLE CUSTOMIZATIONS
-
-  .kdtabpaneview.congrats .TeamsModal
-
-    > h4
-      margin                20px 0
-
-    > h5
-      width                 100%
-      margin-bottom         20px
-
-    figure.congrats
-      r-sprite              teams congrats
-      margin                0 auto
-
-    button.TeamsModal-button.TeamsModal-button--green
-      width                 100%
-      float                 none
-      text-transform        none
