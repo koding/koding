@@ -3,6 +3,7 @@ React = require 'react'
 Button = require 'lab/Button'
 Modal = require './Modal'
 Label = require 'lab/Text/Label'
+{ Row, Col } = require 'react-flexbox-grid'
 
 class ModalContainer extends React.Component
   constructor: (props) ->
@@ -33,22 +34,18 @@ storiesOf 'Modal', module
     <ModalContainer>
       <Modal width="medium" height="short" showAlien={yes}>
         <Modal.Content>
-          <div><Label size="large" type="success">Good News!</Label></div>
-          <div>
-            <Label size="medium" type="info">
-              <strong>You have received $500 in free credit.</strong>
-            </Label>
-          </div>
+          <div><Label size="large" type="danger">Are you sure?</Label></div>
           <div>
             <p>
               <Label size="small" type="info">
-                Your free credit can be applied to payments for your entire team
-                after you have verified your email address and entered your
-                credit card.
+              You are about to remove your credit card. Do you want to continue?
               </Label>
             </p>
           </div>
-          <Button type="primary-1" auto={on} onClick={action 'OK, GOT IT'}>OK, GOT IT</Button>
+          <Row>
+            <Col xs><Button type="secondary" auto={on} onClick={action 'OK, GOT IT'}>CANCEL</Button></Col>
+            <Col xs><Button type="primary-1" auto={on} onClick={action 'OK, GOT IT'}>REMOVE</Button></Col>
+          </Row>
         </Modal.Content>
       </Modal>
     </ModalContainer>

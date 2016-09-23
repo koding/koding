@@ -26,7 +26,7 @@ createSizeClass(size)
 
 createPrimaryClass(type, textColor = white)
   .{type}
-    border                  none
+    border                  1px solid lookup('$'+type)
     background-color        lookup('$'+type)
     color                   textColor
 
@@ -65,6 +65,9 @@ createPrimaryClass('primary-6')
   &:hover
     background-color        $additional-5-light
     color                   white
+
+  &:focus
+    outline                 none
 
   &:active
     background-color        $additional-5-dark
@@ -134,6 +137,6 @@ createLinkClass('primary-4')
 createLinkClass('primary-5')
 createLinkClass('primary-6')
 createLinkClass('primary-1', 'primary')
-createLinkClass('additional-3-faded', 'secondary')
+createLinkClass('additional-6', 'secondary')
 
 
