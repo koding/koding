@@ -868,7 +868,7 @@ module.exports = class JUser extends jraphical.Module
 
             # TRACKER ----------------------------------------------- >> --
             providers = {}
-            Object.keys(foreignAuth).forEach (provider) ->
+            Object.keys(session.foreignAuth).forEach (provider) ->
               providers[provider] = yes
 
             Tracker.identify user.username, { foreignAuth: providers }
@@ -1142,6 +1142,8 @@ module.exports = class JUser extends jraphical.Module
       JForeignAuth.fetchFromSession options, (err, data) =>
 
         return callback new KodingError err.message  if err
+
+        { user, foreignData } = data ? {}
 
         if isUserLoggedIn
 
