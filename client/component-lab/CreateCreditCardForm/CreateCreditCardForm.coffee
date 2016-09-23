@@ -34,15 +34,19 @@ module.exports = CreateCreditCardForm = (props) ->
         <Row bottom='xs' between='xs'>
           <Col xs={4} className={styles.tight}>
             <Input.Field
+              mask={[/\d/, /\d/]}
+              guide={off}
               name='exp_month'
               title='Expiration'
-              placeholder='Month' />
+              placeholder='MM' />
           </Col>
           <Col xs={4} className={styles.tight}>
             <Input.Field
+              mask={[/\d/, /\d/, /\d/, /\d/]}
+              guide={off}
               disabled={loading}
               name='exp_year'
-              placeholder='Year' />
+              placeholder='YYYY' />
           </Col>
           <Col xs={4} className={styles.tight}>
             <CreditCardInput.Field
