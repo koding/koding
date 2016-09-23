@@ -57,17 +57,13 @@ module.exports = class FindTeamView extends kd.TabPaneView
     utils.findTeam email,
       error       : (xhr) =>
         { responseText } = xhr
-        new kd.NotificationView { title : @formatServerError responseText }
+        @showNotification @formatServerError responseText
         @form.button.hideLoader()
       success     : =>
         @form.button.hideLoader()
         @form.reset()
 
-        new kd.NotificationView
-          cssClass : 'recoverConfirmation'
-          title    : 'Check your email'
-          content  : 'We\'ve sent you a list of your teams.'
-          duration : 4500
+        @showNotification 'Check your email', 'We\'ve sent you a list of your teams.'
 
         kd.singletons.router.handleRoute '/'
 
@@ -76,6 +72,15 @@ module.exports = class FindTeamView extends kd.TabPaneView
 
     return 'You don\'t participate in any team'  if err is EMPTY_TEAM_LIST_ERROR
     return err
+
+
+  showNotification: (title, content) ->
+
+    new kd.NotificationView
+      cssClass : 'recoverConfirmation'
+      title    : title
+      content  : content
+      duration : 4500
 
 
   pistachio: ->
