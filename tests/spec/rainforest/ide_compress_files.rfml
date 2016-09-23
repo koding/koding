@@ -1,0 +1,41 @@
+#! acdea8d7-8ef5-434a-850b-fc0cda42a2c0
+# title: ide_compress_files
+# start_uri: /
+# tags: automated
+#
+
+- d6c0bff2-2d2c-49f5-b420-21527fcaa054
+
+# redirect: false
+Close that modal by clicking (x) from top right corner 
+Do you see file tree and some editor/terminal active (the goal is to see something like this http://snag.gy/2oIRb.jpg)? 
+
+Open filetree menu ( http://snag.gy/Rmoax.jpg ) and click 'New folder' in the menu
+Do you see new folder 'NewFolder' added to the file tree? Is folder name displayed in edit mode?
+
+Enter '{{random.address_state}}{{random.number}}' folder name and press Enter
+Do you see folder '{{random.address_state}}{{random.number}}' with arrow icon at the left in the file tree?
+
+Open filetree menu and click 'New file'
+Do you see new file 'NewFile.txt' added to the file tree? Is file name displayed in edit mode?
+
+Enter '{{random.address_city}}{{random.number}}.txt' file name and press Enter
+Do you see file '{{random.address_city}}{{random.number}}.txt' with green icon in the file tree?
+
+Click down arrow icon at the right of '{{random.address_city}}{{random.number}}.txt' file in the file tree, mouse over 'Compress' and click 'as .zip' in the menu
+Do you see 'zip command not found' modal window ( http://snag.gy/HnDfH.jpg )?
+
+Click 'Install package' button
+Do you see a terminal window with commands performing?
+
+Wait when the process is finished, click down arrow icon at the right of '{{random.address_city}}{{random.number}}.txt' file in the file tree, mouse over 'Compress' and click 'as .zip' in the menu
+Do you see a new file '{{random.address_city}}{{random.number}}.txt.zip' in the file tree?
+
+Click down arrow icon at the right of '{{random.address_state}}{{random.number}}' folder in the file tree, mouse over 'Compress' and click 'as .zip' in the menu
+Do you see a new file '{{random.address_state}}{{random.number}}.zip' in the file tree?
+
+Click down arrow icon at the right of '{{random.address_city}}{{random.number}}.txt' file in the file tree, mouse over 'Compress' and click 'as .tar.gz' in the menu
+Do you see a new file '{{random.address_city}}{{random.number}}.txt.tar.gz' in the file tree?
+
+Click down arrow icon at the right of '{{random.address_state}}{{random.number}}' folder in the file tree, mouse over 'Compress' and click 'as .tar.gz' in the menu
+Do you see a new file '{{random.address_state}}{{random.number}}.tar.gz' in the file tree?
