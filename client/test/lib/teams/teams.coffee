@@ -5,7 +5,7 @@ user = utils.getUser()
 createLink = "#{helpers.getUrl()}/Teams/Create"
 inviteLink = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
 linkSelector = '.content-page.Team section p'
-resetPasswordSelector = '.TeamsModal-button--green'
+resetPasswordSelector = '.TeamsModal-button'
 
 module.exports =
 
