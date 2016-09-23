@@ -1,5 +1,5 @@
 #! cb054b5e-447f-43ee-bf5a-451b06b1ed53
-# title: ide_create_edit_save_file
+# title: ide_edit_save_file
 # start_uri: /
 # tags: automated
 #
@@ -31,41 +31,28 @@ Did dot disappear in the editor header?
 Mouse over the editor header where the file '{{random.address_city}}{{random.number}}.txt' is opened and click 'x' icon
 Is editor tab closed?
 
-Open menu for the '{{random.address_city}}{{random.number}}.txt' file in file tree and click 'Duplicate'
-Do you see new file '{{random.address_city}}{{random.number}}_1.txt' displayed in the file tree?
-
-Open menu for the '{{random.address_city}}{{random.number}}_1.txt' file in file tree and click 'Rename'
-Is file name displayed in edit mode in the file tree?
-
-Enter '{{random.address_city}}{{random.number}}_renamed.txt' file name and press Enter
-Is file name changed to '{{random.address_city}}{{random.number}}_renamed.txt' and file is displayed in the file tree?
-
-Double click on the '{{random.address_city}}{{random.number}}_renamed.txt' file
+Double click on the '{{random.address_city}}{{random.number}}.txt' file
 Do you see a new editor tab opened for this file? Do you see the same file content you entered before for the original file ('Lorem ipsum...')?
 
 Click second row in the editor, type some random text, press Enter and type some random text againg
 Is entered text displayed correctly in the editor?
 
-Mouse over the editor header where the file '{{random.address_city}}{{random.number}}_renamed.txt' is opened and click 'x' icon
+Mouse over the editor header where the file '{{random.address_city}}{{random.number}}.txt' is opened and click 'x' icon
 Do you see 'Do you want to save your changes?' modal displayed? Do you see 'Cancel', 'Don't save' and 'Save and close' buttons on the modal?
 
 Click 'Cancel' button on the modal
-Is overlay closed? Is editor tab with '{{random.address_city}}{{random.number}}_renamed.txt' file still displayed?
+Is overlay closed? Is editor tab with '{{random.address_city}}{{random.number}}.txt' file still displayed?
 
-Mouse over the editor header where the file '{{random.address_city}}{{random.number}}_renamed.txt' is opened and click 'x' icon and click 'Save and close' button on the modal
-Is overlay closed? Is editor tab with '{{random.address_city}}{{random.number}}_renamed.txt' file also closed?
+Mouse over the editor header where the file '{{random.address_city}}{{random.number}}.txt' is opened and click 'x' icon and click 'Save and close' button on the modal
+Is overlay closed? Is editor tab with '{{random.address_city}}{{random.number}}.txt' file also closed?
 
-Double click on the '{{random.address_city}}{{random.number}}_renamed.txt' file in the filetree
+Double click on the '{{random.address_city}}{{random.number}}.txt' file in the filetree
 Do you see a new editor tab opened for this file? Do you see the same file content you entered before closing?
 
-Make some changes in the editor, mouse over the editor header where the file '{{random.address_city}}{{random.number}}_renamed.txt' is opened and click 'x' icon and click 'Don't save' button on the modal
-Is overlay closed? Is editor tab with '{{random.address_city}}{{random.number}}_renamed.txt' file also closed?
+Make some changes in the editor, mouse over the editor header where the file '{{random.address_city}}{{random.number}}.txt' is opened and click 'x' icon and click 'Don't save' button on the modal
+Is overlay closed? Is editor tab with '{{random.address_city}}{{random.number}}.txt' file also closed?
 
-Double click on the '{{random.address_city}}{{random.number}}_renamed.txt' file in the filetree
+Double click on the '{{random.address_city}}{{random.number}}.txt' file in the filetree
 Do you see a new editor tab opened for this file without the changes from previous step? 
 
-Click down arrow icon at the right of  '{{random.address_city}}{{random.number}}.txt' file in the file tree and click 'Delete' in the menu
-Do you see 'Are you sure?' text and red 'Delete' button above the file name?
 
-Click 'Delete' button
-Is file deleted?
