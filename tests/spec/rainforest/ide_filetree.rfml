@@ -1,5 +1,5 @@
 #! 3f91dd92-2a3c-4d2b-9afb-e9a8566c178d
-# title: ide_filetree_create_folder
+# title: ide_filetree
 # start_uri: /
 # tags: automated
 #
@@ -40,11 +40,16 @@ Do you see file '{{random.address_city}}{{random.number}}.txt' with green icon i
 Click  file '{{random.address_city}}{{random.number}}.txt' in the file tree and then drag&drop it to the '{{random.address_state}}{{random.number}}' folder
 Is file moved to the '{{random.address_state}}{{random.number}}' folder?
 
-Open menu for the '{{random.address_city}}{{random.number}}.txt' file in file tree and click 'Watch file' ( http://snag.gy/R0uxS.jpg )
-Do you see new editor tab with file content opened and green message 'This is a file watcher, which allows you to ...' displayed?
+Open the filetree menu ( http://snag.gy/Rmoax.jpg ) and click 'Toggle invisible files ' in the menu
+Are system files and folders hidden in the file tree?
 
-Try to enter some text in the editor
-Are you unable to enter any text?
+Open the filetree menu ( http://snag.gy/Rmoax.jpg ) and click 'Toggle invisible files ' in the menu again
+Are system files and folders displayed in the filetree?
 
-Mouse over the editor header where the file '{{random.address_city}}{{random.number}}.txt' is opened and click 'x' icon
-Is editor tab closed?
+Mouse over the file tree header and click collapse icon ( http://snag.gy/VO3k2.jpg )
+Is file tree collapsed?
+
+Click folder icon in the file tree header
+Is file tree displayed again?
+
+
