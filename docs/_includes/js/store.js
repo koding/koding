@@ -1,13 +1,19 @@
 (function() {
-  var searchBar      = document.querySelector('.search-bar'),
-      searchBarInput = document.querySelector('.search-bar input'),
-      searchResults  = document.querySelector('.search-results-rows'),
+  var searchBar      = document.querySelector('.SearchBar'),
+      searchBarInput = document.querySelector('.SearchBar input'),
+      searchResults  = document.querySelector('.SearchBar-resultsData'),
 
-      dropdown        = document.querySelector('.dropdown'),
-      dropdownLabel   = document.querySelector('.dropdown-selection label')
-      dropdownOptions = document.querySelectorAll('.dropdown .dropdown-options a'),
+      dropdown        = document.querySelector('.Dropdown'),
+      dropdownLabel   = document.querySelector('.Dropdown-selection')
+      dropdownOptions = document.querySelectorAll('.Dropdown .Dropdown-options a'),
 
       removeIcon = document.querySelector('.remove-icon');
+
+  document.addEventListener('click', function(e) {
+    if (e.target.id != "dropdown-selection" && dropdown.classList.contains('is-shown')) {
+      dropdown.classList.remove('is-shown');
+    }
+  });
 
   dropdown.addEventListener('click', function() {
 
@@ -16,11 +22,22 @@
     } else {
       this.classList.add('is-shown');
     }
+
+    return false;
   });
 
   [].forEach.call( dropdownOptions, function(el) {
     el.addEventListener('click', function() {
       dropdownLabel.innerHTML = this.innerHTML;
+
+      if (this.classList.contains('stacks')) {
+        dropdownLabel.classList.remove('stencils');
+        dropdownLabel.classList.add('stacks');
+      } else {
+        dropdownLabel.classList.remove('stacks');
+        dropdownLabel.classList.add('stencils');
+      }
+
       searchBarInput.focus();
     }, false)
   });
@@ -39,8 +56,8 @@
   });
 
   var searchResultTemplate = function(obj) {
-    return '<a class="search-result-row">' +
-      '<p class="title">' + obj.formattedTitle + (obj.verified ? '<span class="icon verified"></span>' : '') + '</p>' +
+    return '<a class="SearchBar-resultsData-row">' +
+      '<p class="title">' + obj.formattedTitle + (obj.verified ? '<span class="u-icon u-verified"></span>' : '') + '</p>' +
       '<p class="description">by '+ obj.author +'</p>' +
       '</a>';
   }
@@ -57,14 +74,17 @@
   }
 
   var submitInput = function(e) {
-    var html = "";
+    var html = "", items, filteredItems = [];
 
     if (e.value != "") {
-      var filteredStacks = stacks.filter(function(obj) {
+
+      items = dropdownLabel.classList.contains('stacks') ? stacks : stencils;
+
+      filteredItems = items.filter(function(obj) {
         return obj.title.toLowerCase().indexOf(e.value) != -1;
       }).slice(0, 5);
       
-      html = filteredStacks.map(function(obj) {
+      html = filteredItems.map(function(obj) {
         obj.formattedTitle = wrapMatchedText(obj.title, e.value, '<span class="matched-phrase">', '</span>');
         return searchResultTemplate(obj);
       }).join('');
@@ -77,5 +97,6 @@
     searchResults.innerHTML = html;
   }
 
-  var stacks = {{site.data.store-stacks | jsonify }}
+  var stacks = {{site.data.store-stacks | jsonify }},
+      stencils = {{site.data.store-stencils | jsonify }};
 })();
