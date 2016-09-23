@@ -6,6 +6,7 @@ React = require 'react'
 Button = require 'lab/Button'
 CreateCreditCardForm = require './creditcardcontainer'
 SubscriptionSuccessModal = require 'lab/SubscriptionSuccessModal'
+CardRemoveConfirmModal = require 'lab/CardRemoveConfirmModal'
 
 Icon = require 'lab/Icon'
 
@@ -13,7 +14,7 @@ module.exports = class PaymentSection extends React.Component
 
   constructor: (props) ->
     super props
-    @state = { hasSuccessModal: no }
+    @state = { hasSuccessModal: no, hasRemoveModal: no }
 
 
   onSubmit: -> @_form.getWrappedInstance().submit()
@@ -23,7 +24,20 @@ module.exports = class PaymentSection extends React.Component
       @setState { hasSuccessModal: yes }
 
 
-  onModalClose: -> @setState { hasSuccessModal: no }
+  onSuccessModalClose: -> @setState { hasSuccessModal: no }
+
+
+  onRemoveBegin: ->
+    @setState { hasRemoveModal: yes }
+
+
+  onRemoveCancel: ->
+    @setState { hasRemoveModal: no }
+
+
+  onRemoveSuccess: ->
+    @setState { hasRemoveModal: no }
+    @props.onRemoveCard()
 
 
   onInviteMembers: ->
@@ -36,7 +50,7 @@ module.exports = class PaymentSection extends React.Component
     { message, onMessageClose, isDirty, onResetForm
       hasCard, submitting, loading, operation, onRemoveCard } = @props
 
-    { hasSuccessModal } = @state
+    { hasSuccessModal, hasRemoveModal } = @state
 
     buttonTitle = switch
       when submitting and operation is 'create' then 'SAVING...'
@@ -45,8 +59,8 @@ module.exports = class PaymentSection extends React.Component
       when operation is 'update' then 'UPDATE'
 
     secondaryButtonProps = switch
-      when isDirty then { onClick: onResetForm, title: 'RESET FORM' }
-      when hasCard then { onClick: onRemoveCard, title: 'REMOVE CARD' }
+      when isDirty then { title: 'RESET FORM', onClick: onResetForm }
+      when hasCard then { title: 'REMOVE CARD', onClick: => @onRemoveBegin() }
       else null
 
     <DashboardSection title='Payment Information'>
@@ -56,8 +70,13 @@ module.exports = class PaymentSection extends React.Component
 
       <SubscriptionSuccessModal
         isOpen={hasSuccessModal}
-        onCancel={=> @onModalClose()}
+        onCancel={=> @onSuccessModalClose()}
         onInviteMembersClick={=> @onInviteMembers()} />
+
+      <CardRemoveConfirmModal
+        isOpen={hasRemoveModal}
+        onCancel={=> @onRemoveCancel()}
+        onRemove={=> @onRemoveSuccess()} />
 
       <CreateCreditCardForm loading={loading} ref={(f) => @_form = f} />
 
@@ -102,7 +121,7 @@ ErrorIcon = ->
 
 SuccessIcon = ->
 
-  one = require 'app/sprites/1x/cc-error.png'
-  two = require 'app/sprites/2x/cc-error.png'
+  one = require 'app/sprites/1x/success.png'
+  two = require 'app/sprites/2x/success.png'
 
   <Icon 1x={one} 2x={two} />
