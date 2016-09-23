@@ -1,5 +1,5 @@
 kd = require 'kd'
-React = require 'kd-react'
+React = require 'app/react'
 View = require './view'
 
 module.exports = class GitLabContainer extends React.Component
