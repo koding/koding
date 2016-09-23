@@ -75,7 +75,7 @@ Subscription.propsTypes =
 
 
 Subscription.defaultProps =
-  title: 'Koding Basic Trial (1 Week)'
+  title: 'Koding Basic Trial (1 Month)'
   teamSize: 1
   freeCredit: 0
   isSurveyTaken: yes

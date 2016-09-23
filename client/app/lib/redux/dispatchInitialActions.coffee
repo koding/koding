@@ -36,9 +36,7 @@ loadUserDetails = ({ dispatch, getState }) ->
 # if there is no payment information for that group, just create one
 ensureCustomer = ({ dispatch, getState }) ->
 
-  { _id } = globals.currentGroup
-
-  group = bongo.byId('JGroup', _id)(getState())
+  { currentGroup: group } = globals
 
   if group.payment
   then dispatch(loadCustomer())
@@ -47,11 +45,9 @@ ensureCustomer = ({ dispatch, getState }) ->
 
 ensureSubscription = ({ dispatch, getState }) ->
 
-  { _id } = globals.currentGroup
+  { currentGroup: group } = globals
 
   state = getState()
-
-  group = bongo.byId('JGroup', _id)(state)
 
   if group.payment?.subscription
   then dispatch(loadSubscription())
@@ -73,6 +69,6 @@ module.exports = dispatchInitialActions = (store) ->
       .then -> ensureCustomer(store)
       .then -> ensureSubscription(store)
 
-  promise.then(console.log.bind(console, 'finished dispactching initial actions'))
+  promise.then(console.log.bind(console, 'finished dispatching initial actions'))
 
 

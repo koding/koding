@@ -214,6 +214,8 @@ else if __PROD__
     new webpack.optimize.OccurrenceOrderPlugin()
     new webpack.optimize.DedupePlugin()
     new webpack.optimize.UglifyJsPlugin
+      mangle:
+        keep_fnames: yes
       compress:
         unused: yes
         dead_code: yes
