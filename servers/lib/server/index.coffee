@@ -82,9 +82,7 @@ app.post '/-/analytics/page'                     , require './handlers/analytics
 
 app.get  '/-/my/permissionsAndRoles'             , require './handlers/myPermissionsAndRoles'
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
-app.get  '/-/auth/check/:key'                    , require './handlers/authkeycheck'
 app.post '/-/support/new', bodyParser.json()     , require './handlers/supportnew'
-app.get  '/-/auth/register/:hostname/:key'       , require './handlers/authregister'
 # should deprecate those /Validates, they don't look like api endpoints
 app.post '/:name?/Validate/Username/:username?'  , require './handlers/validateusername'
 app.post '/:name?/Validate/Email/:email?'        , require './handlers/validateemail'
