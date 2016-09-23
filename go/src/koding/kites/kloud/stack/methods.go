@@ -24,7 +24,7 @@ func (k *Kloud) Info(r *kite.Request) (interface{}, error) {
 	}
 
 	ctx := request.NewContext(context.Background(), r)
-	response, err := machine.Info(ctx)
+	response, err := machine.HandleInfo(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func (k *Kloud) Info(r *kite.Request) (interface{}, error) {
 
 func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
 	startFunc := func(ctx context.Context, machine Machiner) error {
-		err := machine.Start(ctx)
+		err := machine.HandleStart(ctx)
 		if err != nil {
 			// special case `NetworkOut` error since client relies on this
 			// to show a modal
@@ -61,7 +61,7 @@ func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
 
 func (k *Kloud) Stop(r *kite.Request) (resp interface{}, reqErr error) {
 	stopFunc := func(ctx context.Context, machine Machiner) error {
-		return machine.Stop(ctx)
+		return machine.HandleStop(ctx)
 	}
 
 	return k.coreMethods(r, stopFunc)

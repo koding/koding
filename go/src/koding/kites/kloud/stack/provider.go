@@ -34,10 +34,12 @@ type Provider interface {
 // Stacker is a copy of stackplan.Stack interface, duplicated here
 // to avoid cyclic imports.
 type Stacker interface {
-	VerifyCredential(credential interface{}) error
-	BootstrapTemplates(credential interface{}) ([]*Template, error)
-	BuildResources() error
-	BuildMetadata(*Machine) interface{}
+	// Implemented by user provider.
+	Verify(*Credential) error
+	Bootstrap(*Credential) ([]*Template, error)
+	Inject(*Credential) error
+
+	// Implemented by *provider.BaseStack.
 	HandleApply(context.Context) (interface{}, error)
 	HandleAuthenticate(context.Context) (interface{}, error)
 	HandleBootstrap(context.Context) (interface{}, error)
@@ -47,9 +49,16 @@ type Stacker interface {
 // Machiner is a copy of stackplan.Machine interface, duplicated here
 // to avoid cyclic imports.
 type Machiner interface {
-	Start(context.Context) error
-	Stop(context.Context) error
-	Info(context.Context) (*InfoResponse, error)
+	// Implemented by user machine.
+	Start(context.Context) (metadata interface{}, err error)
+	Stop(context.Context) (metadata interface{}, err error)
+	Info(context.Context) (state machinestate.State, metadata interface{}, err error)
+
+	// Implemented by *provider.BaseMachine.
 	State() machinestate.State
 	ProviderName() string
+
+	HandleStart(context.Context) error
+	HandleStop(context.Context) error
+	HandleInfo(context.Context) (*InfoResponse, error)
 }

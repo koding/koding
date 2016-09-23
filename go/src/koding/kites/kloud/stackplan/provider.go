@@ -116,17 +116,13 @@ type ProviderSchema struct {
 
 type Stack interface {
 	Verify(*stack.Credential) error
-
 	Bootstrap(*stack.Credential) ([]*stack.Template, error)
-
-	Inject(*Template, *stack.Credential) error
+	Inject(*stack.Credential) error
 }
 
 type Machine interface {
 	Start(context.Context) (metadata interface{}, err error)
-
 	Stop(context.Context) (metadata interface{}, err error)
-
 	Info(context.Context) (state machinestate.State, metadata interface{}, err error)
 }
 

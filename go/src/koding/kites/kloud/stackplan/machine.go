@@ -6,14 +6,14 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (bm *BaseMachine) Start(context.Context) error {
+func (bm *BaseMachine) HandleStart(context.Context) error {
 	return nil
 }
 
-func (bm *BaseMachine) Stop(context.Context) error {
+func (bm *BaseMachine) HandleStop(context.Context) error {
 	return nil
 }
 
-func (bm *BaseMachine) Info() (*stack.InfoResponse, error) {
+func (bm *BaseMachine) HandleInfo() (*stack.InfoResponse, error) {
 	return nil, nil
 }
