@@ -116,7 +116,7 @@ type ProviderSchema struct {
 
 type Stack interface {
 	Verify(*stack.Credential) error
-	Bootstrap(*stack.Credential) ([]*stack.Template, error)
+	BootstrapTemplates(*stack.Credential) ([]*stack.Template, error)
 	Inject(*stack.Credential) error
 }
 
@@ -140,7 +140,6 @@ type BaseStack struct {
 
 	Keys      *publickeys.Keys
 	Eventer   eventer.Eventer
-	Stack     Stack
 	Planner   *Planner
 	KlientIDs stack.KiteMap
 	Klients   map[string]*DialState
@@ -148,6 +147,8 @@ type BaseStack struct {
 	Debug      bool
 	TraceID    string
 	Identifier string
+
+	stack Stack
 }
 
 type BaseMachine struct {
@@ -164,6 +165,8 @@ type BaseMachine struct {
 	Debug         bool
 	User          *models.User
 	Req           *kite.Request
+
+	machine Machine
 }
 
 func (p *Provider) resourceName() string {

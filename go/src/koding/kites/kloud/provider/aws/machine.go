@@ -4,7 +4,10 @@ import (
 	"errors"
 
 	"koding/kites/kloud/api/amazon"
+	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/stackplan"
+
+	"golang.org/x/net/context"
 )
 
 type Meta struct {
@@ -33,6 +36,15 @@ type Machine struct {
 }
 
 var _ stackplan.Machine = (*Machine)(nil)
+
+func (m *Machine) Start(context.Context) (interface{}, error) {
+}
+
+func (m *Machine) Stop(context.Context) (interface{}, error) {
+}
+
+func (m *Machine) Info(context.Context) (machinestate.State, interface{}, error) {
+}
 
 func (m *Machine) Cred() *Cred {
 	return m.BaseMachine.Credential.(*Cred)

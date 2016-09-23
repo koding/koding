@@ -34,7 +34,7 @@ func (bs *BaseStack) HandleAuthenticate(ctx context.Context) (interface{}, error
 			continue // ignore not ours credentials
 		}
 
-		if err := bs.Stack.Verify(cred); err != nil {
+		if err := bs.stack.Verify(cred); err != nil {
 			res.Message = err.Error()
 			continue
 		}

@@ -49,7 +49,7 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 	}
 
 	if cred, err := bs.Builder.CredentialByProvider(bs.Provider.Name); err == nil {
-		if err := bs.Stack.Inject(cred); err != nil {
+		if err := bs.stack.Inject(cred); err != nil {
 			return nil, err
 		}
 	} else {

@@ -10,7 +10,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-// Bootstrap
 func (bs *BaseStack) HandleBootstrap(context.Context) (interface{}, error) {
 	var arg stack.BootstrapRequest
 	if err := bs.Req.Args.One().Unmarshal(&arg); err != nil {
@@ -51,7 +50,7 @@ func (bs *BaseStack) bootstrap(arg *stack.BootstrapRequest) (interface{}, error)
 			continue
 		}
 
-		templates, err := bs.Stack.Bootstrap(cred)
+		templates, err := bs.stack.BootstrapTemplates(cred)
 		if err != nil {
 			return nil, err
 		}

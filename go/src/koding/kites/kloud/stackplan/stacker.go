@@ -12,7 +12,6 @@ import (
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/eventer"
-	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stackplan/stackcred"
@@ -85,7 +84,14 @@ func (s *Stacker) Machine(ctx context.Context, id string) (interface{}, error) {
 
 	s.Log.Debug("credential: %# v, bootstrap: %# v", bm.Credential, bm.Bootstrap)
 
-	return s.Provider.NewMachine(bm)
+	m, err := s.Provider.NewMachine(bm)
+	if err != nil {
+		return nil, err
+	}
+
+	bm.machine = m
+
+	return m, nil
 }
 
 func (b *Stacker) BaseMachine(ctx context.Context, id string) (*BaseMachine, error) {
@@ -170,9 +176,7 @@ func (b *Stacker) Stack(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	if bs.Stack == nil {
-		bs.Stack = s
-	}
+	bs.stack = s
 
 	return s, nil
 }
@@ -281,20 +285,24 @@ func (bm *BaseMachine) State() machinestate.State {
 	return machinestate.States[bm.Status.State]
 }
 
-func (bm *BaseMachine) WaitKlientReady() error {
+func (bm *BaseMachine) WaitKlientReady(timeout time.Duration) (*DialState, error) {
 	bm.Log.Debug("testing for %s (%s) klient kite connection", bm.QueryString, bm.IpAddress)
 
-	c, err := klient.NewWithTimeout(bm.Kite, bm.QueryString, bm.klientTimeout())
-	if err != nil {
-		return fmt.Errorf("connection test for %s (%s) klient error: %s", bm.QueryString, bm.IpAddress, err)
-	}
-	defer c.Close()
-
-	if err := c.Ping(); err != nil {
-		return fmt.Errorf("pinging %s (%s) klient error: %s", bm.QueryString, bm.IpAddress, err)
+	if timeout <= 0 {
+		timeout = bm.klientTimeout()
 	}
 
-	return nil
+	state := (&Planner{
+		KlientTimeout: timeout,
+	}).checkSingleKlient(bm.Kite, bm.Label, bm.QueryString)
+
+	if state.Err != nil {
+		return nil, &DialError{
+			States: []*DialState{state},
+		}
+	}
+
+	return state, nil
 }
 
 func (bm *BaseMachine) PushEvent(msg string, percentage int, state machinestate.State) {
@@ -303,6 +311,16 @@ func (bm *BaseMachine) PushEvent(msg string, percentage int, state machinestate.
 			Message:    msg,
 			Percentage: percentage,
 			Status:     state,
+		})
+	}
+}
+
+func (bm *BaseMachine) PushError(err error, state machinestate.State) {
+	if bm.Eventer != nil {
+		bm.Eventer.Push(&eventer.Event{
+			Percentage: 100,
+			Status:     state,
+			Error:      err.Error(),
 		})
 	}
 }

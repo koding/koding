@@ -268,7 +268,7 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 
 	bs.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
 
-	if err := bs.Stack.Inject(cred); err != nil {
+	if err := bs.stack.Inject(cred); err != nil {
 		return err
 	}
 

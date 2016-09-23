@@ -600,12 +600,24 @@ func (b *Builder) InterpolateField(resource map[string]interface{}, resourceName
 }
 
 // FetchCredentials fetches credential and bootstrap data from credential store.
+//
+// If no credentials are provided, the method is a nop.
 func (b *Builder) FetchCredentials(username string, creds ...*stack.Credential) error {
+	if len(creds) == 0 {
+		return nil
+	}
+
 	return b.CredStore.Fetch(username, makeCreds(true, creds...))
 }
 
 // PutCredentials updates credential and bootstrap data in credential store.
+//
+// If no credentials are provided, the method is a nop.
 func (b *Builder) PutCredentials(username string, creds ...*stack.Credential) error {
+	if len(creds) == 0 {
+		return nil
+	}
+
 	return b.CredStore.Put(username, makeCreds(false, creds...))
 }
 

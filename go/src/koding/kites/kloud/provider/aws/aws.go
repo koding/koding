@@ -3,10 +3,12 @@ package aws
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stackplan"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -22,9 +24,9 @@ var p = &stackplan.Provider{
 	NewMachine:   newMachine,
 	NewStack:     newStack,
 	Schema: &stackplan.ProviderSchema{
-		NewCredential: func() interface{} { return &Cred{} },
-		NewBootstrap:  func() interface{} { return &Bootstrap{} },
-		NewMetadata:   func() interface{} { return &Meta{} },
+		NewCredential: newCredential,
+		NewBootstrap:  newBootstrap,
+		NewMetadata:   newMetadata,
 	},
 }
 
@@ -54,6 +56,33 @@ func newMachine(bm *stackplan.BaseMachine) (stackplan.Machine, error) {
 
 func newStack(bs *stackplan.BaseStack) (stackplan.Stack, error) {
 	return &Stack{BaseStack: bs}, nil
+}
+
+func newCredential() interface{} {
+	return &Cred{}
+}
+
+func newBootstrap() interface{} {
+	return &Bootstrap{}
+}
+
+func newMetadata(m *stack.Machine) interface{} {
+	if m == nil {
+		return &Meta{}
+	}
+
+	meta := &Meta{
+		Region:           s.Credential().Region,
+		InstanceID:       m.Attributes["id"],
+		AvailabilityZone: m.Attributes["availability_zone"],
+		PlacementGroup:   m.Attributes["placement_group"],
+	}
+
+	if n, err := strconv.Atoi(m.Attributes["root_block_device.0.volume_size"]); err == nil {
+		meta.StorageSize = n
+	}
+
+	return meta
 }
 
 // Cred represents jCredentialDatas.meta for "aws" provider.

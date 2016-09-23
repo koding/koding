@@ -196,21 +196,6 @@ func (s *Stack) BuildResources(c *stack.Credential) error {
 	return t.ShadowVariables("FORBIDDEN", "aws_access_key", "aws_secret_key")
 }
 
-func (s *Stack) BuildMetadata(m *stack.Machine) interface{} {
-	meta := &Meta{
-		Region:           s.Credential().Region,
-		InstanceID:       m.Attributes["id"],
-		AvailabilityZone: m.Attributes["availability_zone"],
-		PlacementGroup:   m.Attributes["placement_group"],
-	}
-
-	if n, err := strconv.Atoi(m.Attributes["root_block_device.0.volume_size"]); err == nil {
-		meta.StorageSize = n
-	}
-
-	return meta
-}
-
 func (s *Stack) SetAwsRegion(region string) error {
 	t := s.Builder.Template
 
