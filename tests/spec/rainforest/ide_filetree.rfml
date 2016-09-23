@@ -52,4 +52,9 @@ Is file tree collapsed?
 Click folder icon in the file tree header
 Is file tree displayed again?
 
+Double click '.profile' file in the file tree
+Do you see new editor tab opened with this file content?
+
+Drag&drop the '.profile' to other pane
+Is file moved to the other pane?
 

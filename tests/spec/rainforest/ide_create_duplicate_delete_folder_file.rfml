@@ -46,6 +46,9 @@ Is file name changed to '{{random.address_city}}{{random.number}}_renamed.txt' a
 Double click any file in the file tree
 Do you see a new editor tab opened for this file?
 
+Click '+' icon in the header where new files were opened and click 'New File'
+Do you see a new editor tab opened and file name is 'untitled.txt'?
+
 Click down arrow icon at the right of  '{{random.address_city}}{{random.number}}.txt' file in the file tree and click 'Delete' in the menu
 Do you see 'Are you sure?' text and red 'Delete' button above the file name?
 
