@@ -1,7 +1,7 @@
 @import '../Colors/Colors.stylus'
 
 $padding-small = 0 15px
-$padding-medium = 0 20px
+$padding-medium = 0 15px
 $padding-large = 0 20px
 
 $fs-small = 13px

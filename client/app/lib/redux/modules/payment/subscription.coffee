@@ -95,7 +95,16 @@ pricePerSeat = (state) ->
   else 0
 
 
-trialDays = (state) -> plan(state)?.trial_period_days
+trialDays = (state) ->
+
+  return 0  unless state.subscription
+
+  { trial_end, trial_start } = state.subscription
+
+  seconds = trial_end - trial_start
+  dayInSeconds = 60 * 60 * 24
+
+  return seconds / dayInSeconds
 
 
 daysLeft = createSelector(
