@@ -28,7 +28,12 @@ module.exports = class OAuth extends bongo.Base
           applicationId: group.config.gitlab.applicationId
         }
 
-      callback null, settings
+        callback null, settings
+
+      else
+
+        callback new KodingError 'Integration is not enabled'
+
 
 
   getUrlFor = (client, urlOptions, callback) ->
