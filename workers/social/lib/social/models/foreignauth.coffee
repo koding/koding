@@ -44,7 +44,16 @@ module.exports = class JForeignAuth extends jraphical.Module
     { foreignId } = foreignAuth[provider]
     { groupName: group } = session
 
-    @one { provider, foreignId, group }, callback
+    @one { provider, foreignId, group }, (err, foreignData) ->
+      return callback err   if err
+      return callback null  unless foreignData
+
+      JUser = require './user'
+      JUser.one { username: foreignData.username }, (err, user) ->
+        return callback err  if err
+        return callback new KodingError 'User not found'  unless user
+
+        callback err, { user, foreignData }
 
 
   @persistOauthInfo = (options, callback) ->
