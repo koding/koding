@@ -109,9 +109,11 @@ module.exports = class JForeignAuth extends jraphical.Module
       return callback err  if err
       return callback null, foreignData  unless cursor
 
-      cursor.nextObject (err, data) ->
+      do iterate = -> cursor.nextObject (err, data) ->
         return callback err  if err
 
         if data
-        then foreignData[data.provider] = data.foreignData
-        else callback null, foreignData
+          foreignData[data.provider] = data.foreignData
+          iterate()
+        else
+          callback null, foreignData
