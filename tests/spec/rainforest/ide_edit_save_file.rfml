@@ -28,6 +28,18 @@ Do you see Menu with 'Save', 'Save as' and other items (like on screenshot http:
 Click 'Save' in the menu
 Did dot disappear in the editor header?
 
+Make some changes in the editor, Mouse over the editor header where the file '{{random.address_city}}{{random.number}}.txt' is opened, click down arrow icon and Click 'Save as' in the menu
+Do you see the form with 'Filename', 'Select a folder' field?
+
+Enter '{{random.address_city}}{{random.number}}_new.txt' file name, select '.config' in 'Select a folder' field and click 'SAVE'
+Do you see a new editor tab opened for '{{random.address_city}}{{random.number}}_new.txt' file?
+
+Click '.config' in file tree list on the left
+Do you see the '{{random.address_city}}{{random.number}}_new.txt' file under '.config' folder?
+
+Mouse over the editor header where the file '{{random.address_city}}{{random.number}}_new.txt' is opened and click 'x' icon
+Is editor tab closed?
+
 Mouse over the editor header where the file '{{random.address_city}}{{random.number}}.txt' is opened and click 'x' icon
 Is editor tab closed?
 
@@ -55,4 +67,6 @@ Is overlay closed? Is editor tab with '{{random.address_city}}{{random.number}}.
 Double click on the '{{random.address_city}}{{random.number}}.txt' file in the filetree
 Do you see a new editor tab opened for this file without the changes from previous step? 
 
+Make some changes in the editor and click 'Ctrl+Option+W ( Ctrl+Alt+W)' shortcut
+Do you see 'Do you want to save your changes?' modal displayed? Do you see 'Cancel', 'Don't save' and 'Save and close' buttons on the modal?
 
