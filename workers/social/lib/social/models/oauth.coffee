@@ -59,11 +59,10 @@ module.exports = class OAuth extends bongo.Base
         redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
 
         checkGroupGitLabSettings client.context.group, (err, data) ->
+          return callback err  if err
 
           url = "#{protocol}#{host}#{port}"
-
-          if not err and data
-            { url, applicationId } = data
+          { url, applicationId } = data  if data
 
           callback null, "#{url}/oauth/authorize?client_id=#{applicationId}&response_type=code&redirect_uri=#{redirectUri}"
 

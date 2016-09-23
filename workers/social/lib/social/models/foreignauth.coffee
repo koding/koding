@@ -32,8 +32,9 @@ module.exports = class JForeignAuth extends jraphical.Module
       foreignData : Object
 
 
-  @fetchFromSession = (session, provider, callback) ->
+  @fetchFromSession = (options, callback) ->
 
+    { session, provider } = options
     { foreignAuth } = session
 
     unless foreignAuth?[provider]?.foreignId

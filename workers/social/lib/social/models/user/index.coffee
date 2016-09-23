@@ -1136,8 +1136,10 @@ module.exports = class JUser extends jraphical.Module
 
       { nickname: requester } = client.connection.delegate.profile
 
+      options = { session, provider }
+
       JForeignAuth = require '../foreignauth'
-      JForeignAuth.fetchFromSession session, provider, (err, foreignData) =>
+      JForeignAuth.fetchFromSession options, (err, data) =>
 
         return callback new KodingError err.message  if err
 
@@ -1156,7 +1158,6 @@ module.exports = class JUser extends jraphical.Module
                 group: session.groupName
                 sessionToken
               }, kallback
-              # user.username, sessionToken, kallback
 
         else
           if user
