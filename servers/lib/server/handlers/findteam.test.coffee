@@ -1,12 +1,19 @@
 { async
   expect
   request
+  checkBongoConnectivity
   generateRandomEmail
   generateRandomString
-  generateRandomUsername }        = require '../../../testhelper'
-{ testCsrfToken }                 = require '../../../testhelper/handler'
-FindTeamHelper                    = require '../../../testhelper/handler/findteamhelper'
-{ generateRegisterRequestParams } = require '../../../testhelper/handler/registerhelper'
+  generateRandomUsername }          = require '../../../testhelper'
+{ testCsrfToken }                   = require '../../../testhelper/handler'
+FindTeamHelper                      = require '../../../testhelper/handler/findteamhelper'
+{ generateRegisterRequestParams }   = require '../../../testhelper/handler/registerhelper'
+{ generateCreateTeamRequestParams } = require '../../../testhelper/handler/teamhelper'
+
+
+beforeTests = -> before (done) ->
+
+  checkBongoConnectivity done
 
 
 runTests = -> describe 'server.handlers.findteam', ->
@@ -51,7 +58,7 @@ runTests = -> describe 'server.handlers.findteam', ->
       done()
 
 
-  it 'should send HTTP 200 if email is valid', (done) ->
+  it 'should send HTTP 403 if email is valid but team list is empty', (done) ->
 
     email = generateRandomEmail()
 
@@ -75,10 +82,9 @@ runTests = -> describe 'server.handlers.findteam', ->
 
         request.post requestParams, (err, res, body) ->
           expect(err).to.not.exist
-          expect(res.statusCode).to.be.equal 200
-          expect(body).to.be.equal ''
+          expect(res.statusCode).to.be.equal 403
+          expect(body).to.be.equal 'Empty team list'
           next()
-
     ]
 
     async.series queue, done
@@ -97,4 +103,44 @@ runTests = -> describe 'server.handlers.findteam', ->
       done()
 
 
+  it 'should send HTTP 200 if user is related to any team', (done) ->
+
+    slug  = generateRandomString()
+    email = generateRandomEmail()
+
+    registerRequestParams = generateRegisterRequestParams
+      body : { email }
+
+    queue = [
+
+      (next) ->
+        request.post registerRequestParams, (err, res, body) ->
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          next()
+
+      (next) ->
+        options = { body : { slug, invitees : email, companyName : slug } }
+        generateCreateTeamRequestParams options, (createTeamRequestParams) ->
+
+          request.post createTeamRequestParams, (err, res, body) ->
+            expect(err).to.not.exist
+            expect(res.statusCode).to.be.equal 200
+            next()
+
+      (next) ->
+        requestParams = FindTeamHelper.generateRequestParams
+          body    : { email }
+
+        request.post requestParams, (err, res, body) ->
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          expect(body).to.be.equal ''
+          next()
+    ]
+
+    async.series queue, done
+
+
+beforeTests()
 runTests()
