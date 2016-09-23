@@ -284,7 +284,6 @@ module.exports = (options, credentials) ->
     boxproxy                      : { port: parseInt(options.publicPort, 10) }
     sourcemaps                    : { port: 3526 }
     rerouting                     : { port: 9500 }
-    gowebserver                   : { port: 6500 }
     gatheringestor                : { port: 6800 }
     sessionCookie                 : { maxAge: 1000 * 60 * 60 * 24 * 14, secure: options.secureCookie }
     troubleshoot                  : { recipientEmail: "can@koding.com" }

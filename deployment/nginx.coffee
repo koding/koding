@@ -165,7 +165,7 @@ createRootLocation = (KONFIG) ->
 
   proxy = KONFIG.hubspotPageURL
   if KONFIG.environment in ["dev", "default", "sandbox"]
-    proxy = "http://gowebserver"
+    proxy = "http://webserver"
 
   return """
       location ~*(^(\/(Pricing|About|Legal|Features|Blog|Docs))) {
