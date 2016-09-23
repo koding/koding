@@ -6,22 +6,6 @@ module.exports = (KONFIG, options, credentials) ->
   GOPATH = "%(ENV_KONFIG_PROJECTROOT)s/go"
 
   workers =
-    gowebserver         :
-      group             : "webserver"
-      ports             :
-        incoming       : "#{KONFIG.gowebserver.port}"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/go-webserver"
-          watch         : "#{GOBIN}/watcher -run koding/go-webserver"
-      nginx             :
-        locations       : [
-          location      : "~^/IDE/.*"
-      ]
-
-      healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.gowebserver.port}/version"
-
     kontrol             :
       group             : "environment"
       ports             :
