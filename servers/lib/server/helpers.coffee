@@ -412,6 +412,30 @@ analyzedInvitationResults = (params) ->
   return { result, data }
 
 
+isAddressValid = (addr, callback) ->
+
+  ip  = require 'ip'
+  dns = require 'dns'
+  url = require 'url-parse'
+
+  addr = url addr, true
+
+  dns.resolve addr.hostname, 'A', (err, ips) ->
+    if err
+      return callback {
+        message: 'Address couldn\'t resolved'
+        type: 'NOT_REACHABLE'
+      }
+
+    for _ip in ips when ip.isPrivate _ip
+      return callback {
+        message: 'Private IPs not allowed'
+        type: 'PRIVATE_IP'
+      }
+
+    callback null
+
+
 module.exports = {
   error_
   error_404
@@ -430,6 +454,7 @@ module.exports = {
   handleClientIdNotFound
   getClientId
   isInAppRoute
+  isAddressValid
   isMainDomain
   setSessionCookie
   checkAuthorizationBearerHeader
