@@ -80,7 +80,12 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 
 func (s *Stack) BuildResources(c *stack.Credential) error {
 	t := s.Builder.Template
+	cred := c.Credential.(*Cred)
 	bootstrap := c.Bootstrap.(*Bootstrap)
+
+	if err := s.SetAwsRegion(cred.Region); err != nil {
+		return err
+	}
 
 	var resource struct {
 		AwsInstance map[string]map[string]interface{} `hcl:"aws_instance"`

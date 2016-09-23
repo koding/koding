@@ -49,9 +49,9 @@ type Credential struct {
 // Machine represents a jComputeStack.machine value.
 type Machine struct {
 	// Fields set by kloud.plan:
-	Provider   string            `json:"provider"`
-	Label      string            `json:"label"`
-	Attributes map[string]string `json:"attributes"`
+	Provider   string                 `json:"provider"`
+	Label      string                 `json:"label"`
+	Attributes map[string]interface{} `json:"attributes"`
 
 	// Fields set by kloud.apply:
 	QueryString string             `json:"queryString,omitempty"`

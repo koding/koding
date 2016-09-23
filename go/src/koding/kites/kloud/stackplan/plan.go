@@ -41,12 +41,6 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 
 	bs.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", bs.Builder.Koding, bs.Builder.Template)
 
-	tfKite, err := terraformer.Connect(bs.Session.Terraformer)
-	if err != nil {
-		return nil, err
-	}
-	defer tfKite.Close()
-
 	contentID := bs.Req.Username + "-" + arg.StackTemplateID
 	bs.Log.Debug("Parsing template (%s):\n%s", contentID, stackTemplate.Template.Content)
 
@@ -54,40 +48,13 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	/*
-
-		TODO(rjeczalik): inject credentials?
-
-		var region string
-		for _, cred := range bs.Builder.Credentials {
-			// rest is aws related
-			if cred.Provider != "aws" {
-				continue
-			}
-
-			meta := cred.Meta.(*Cred)
-			if meta.Region == "" {
-				return nil, fmt.Errorf("region for identifer '%s' is not set", cred.Identifier)
-			}
-
-			if err := bs.SetAwsRegion(meta.Region); err != nil {
-				return nil, err
-			}
-
-			region = meta.Region
-
-			break
-		}
-
-		bs.Log.Debug("Plan: stack template before injecting Koding data")
-		bs.Log.Debug("%v", bs.Builder.Template)
-
-		bs.Log.Debug("Injecting AWS data")
-
-		if _, err := bs.InjectAWSData(); err != nil {
+	if cred, err := bs.Builder.CredentialByProvider(bs.Provider.Name); err == nil {
+		if err := bs.Stack.Inject(bs.Builder.Template, cred); err != nil {
 			return nil, err
 		}
-	*/
+	} else {
+		bs.Log.Debug("no credentials found for %q: %s", bs.Provider.Name, err)
+	}
 
 	// Plan request is made right away the template is saved, it may
 	// not have all the credentials provided yet. We set them all to
@@ -104,6 +71,12 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	tfKite, err := terraformer.Connect(bs.Session.Terraformer)
+	if err != nil {
+		return nil, err
+	}
+	defer tfKite.Close()
 
 	stackTemplate.Template.Content = out
 

@@ -55,16 +55,16 @@ type Stacker struct {
 	CredStore stackcred.Store
 }
 
-func (b *Stacker) New(p *Provider) *Stacker {
-	bCopy := *b
-	bCopy.Provider = p
-	bCopy.Log = bCopy.Log.New(p.Name)
+func (s *Stacker) New(p *Provider) *Stacker {
+	sCopy := *s
+	sCopy.Provider = p
+	sCopy.Log = sCopy.Log.New(p.Name)
 
-	return &bCopy
+	return &sCopy
 }
 
-func (b *Stacker) Machine(ctx context.Context, id string) (interface{}, error) {
-	bm, err := b.BaseMachine(ctx, id)
+func (s *Stacker) Machine(ctx context.Context, id string) (interface{}, error) {
+	bm, err := s.BaseMachine(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -79,13 +79,13 @@ func (b *Stacker) Machine(ctx context.Context, id string) (interface{}, error) {
 		}
 	}
 
-	if err := b.FetchCredData(bm); err != nil {
+	if err := s.FetchCredData(bm); err != nil {
 		return nil, err
 	}
 
-	b.Log.Debug("credential: %# v, bootstrap: %# v", bm.Credential, bm.Bootstrap)
+	s.Log.Debug("credential: %# v, bootstrap: %# v", bm.Credential, bm.Bootstrap)
 
-	return b.Provider.NewMachine(bm)
+	return s.Provider.NewMachine(bm)
 }
 
 func (b *Stacker) BaseMachine(ctx context.Context, id string) (*BaseMachine, error) {
@@ -116,7 +116,7 @@ func (b *Stacker) BaseMachine(ctx context.Context, id string) (*BaseMachine, err
 		},
 		Credential: b.Provider.newCredential(),
 		Bootstrap:  b.Provider.newBootstrap(),
-		Metadata:   b.Provider.newMetadata(),
+		Metadata:   b.Provider.newMetadata(nil),
 		Req:        req,
 		Provider:   b.Provider.Name,
 		Debug:      b.Debug,
@@ -231,10 +231,10 @@ func (s *Stacker) BaseStack(ctx context.Context) (*BaseStack, error) {
 func (s *Stacker) FetchCredData(bm *BaseMachine) error {
 	credentials := make(map[string]interface{})
 
-	if bm.Bootstrap == nil {
-		credentials[bm.Machine.Credential] = bm.Credential
-	} else {
+	if bm.Bootstrap != nil {
 		credentials[bm.Machine.Credential] = object.Inline(bm.Credential, bm.Bootstrap)
+	} else {
+		credentials[bm.Machine.Credential] = object.ToAddr(bm.Credential)
 	}
 
 	return s.CredStore.Fetch(bm.Username(), credentials)

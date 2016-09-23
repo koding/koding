@@ -268,7 +268,7 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 
 	bs.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
 
-	if err := bs.Stack.BuildResources(cred); err != nil {
+	if err := bs.Stack.Inject(bs.Builder.Template, cred); err != nil {
 		return err
 	}
 
@@ -389,7 +389,7 @@ func (bs *BaseStack) buildUpdateObj(m *stack.Machine, s *DialState, now time.Tim
 		ipAddress = u.Host
 	}
 
-	obj := object.MetaBuilder.Build(bs.Stack.BuildMetadata(m))
+	obj := object.MetaBuilder.Build(bs.Provider.newMetadata(m))
 
 	obj["credential"] = bs.Identifier
 	obj["provider"] = bs.Planner.Provider

@@ -120,7 +120,7 @@ func (p *Planner) MachinesFromState(state *terraform.State, klients map[string]*
 				continue
 			}
 
-			attrs := make(map[string]string, len(r.Primary.Attributes))
+			attrs := make(map[string]interface{}, len(r.Primary.Attributes))
 			for key, val := range r.Primary.Attributes {
 				attrs[key] = val
 			}
@@ -186,7 +186,7 @@ func (p *Planner) MachinesFromPlan(plan *terraform.Plan) (stack.Machines, error)
 				continue
 			}
 
-			attrs := make(map[string]string, len(r.Attributes))
+			attrs := make(map[string]interface{}, len(r.Attributes))
 			for name, a := range r.Attributes {
 				attrs[name] = a.New
 			}
