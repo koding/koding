@@ -1,5 +1,5 @@
 #! acdea8d7-8ef5-434a-850b-fc0cda42a2c0
-# title: ide_compress_files
+# title: ide_compress_and_search_files.rfml
 # start_uri: /
 # tags: automated
 #
@@ -39,3 +39,16 @@ Do you see a new file '{{random.address_city}}{{random.number}}.txt.tar.gz' in t
 
 Click down arrow icon at the right of '{{random.address_state}}{{random.number}}' folder in the file tree, mouse over 'Compress' and click 'as .tar.gz' in the menu
 Do you see a new file '{{random.address_state}}{{random.number}}.tar.gz' in the file tree?
+
+Double click '.profile' file in the file tree
+Do you see new editor tab opened with this file content?
+
+Click down arrow icon at the right of '.profile' file and click 'Search in All Files'
+Do you see the search form with 'Find', 'Where', 'Case Sensitive', 'Whole Word', 'Use Regexp' field?
+
+Type 'if' in 'Find' field, check all three fields and click 'SEARCH'
+Is search result opened in new tab and is search term highlighted?
+
+Double click one of the highlighted search term
+Is file opened in the new IDE tab?
+
