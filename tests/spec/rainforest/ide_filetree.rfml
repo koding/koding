@@ -4,13 +4,10 @@
 # tags: automated
 #
 
-- d6c0bff2-2d2c-49f5-b420-21527fcaa054
+- 5e284d48-6055-49c0-91ea-c73681036aca
 
 # redirect: false
-Close that modal by clicking (x) from top right corner 
-Do you see file tree and some editor/terminal active (the goal is to see something like this http://snag.gy/2oIRb.jpg)? 
-
-Click down arrow icon at the right of '/home/rainforestqa22.username' label at the top of file tree
+Click down arrow icon at the right of '/home/Rainforestqa99' label at the top of file tree
 Do you see menu expanded like on screenshot http://snag.gy/Rmoax.jpg (it's Filetree menu)?
 
 Click 'Collapse' in the menu
@@ -20,10 +17,10 @@ Open filetree menu again and click 'Expand'
 Is file tree expanded? You should see all files and folders.
 
 Open filetree menu again, mouse over 'Change top folder' and click '/home'
-Is top folder in the file tree changed to '/home' ? Do you see 'ubuntu' and 'rainforestqa22.username' folders in the file tree?
+Is top folder in the file tree changed to '/home' ? Do you see 'ubuntu' and 'Rainforestqa99' folders in the file tree?
 
-Open menu for the  'rainforestqa22.username' folder and click 'Make this the top folder' ( http://snag.gy/vhS2b.jpg )
-Is top folder in the file tree changed to '/home/rainforestqa22.username'?
+Open menu for the  'Rainforestqa99' folder and click 'Make this the top folder' ( http://snag.gy/vhS2b.jpg )
+Is top folder in the file tree changed to '/home/Rainforestqa99'?
 
 Open filetree menu ( http://snag.gy/Rmoax.jpg ) and click 'New folder' in the menu
 Do you see new folder 'NewFolder' added to the file tree? Is folder name displayed in edit mode?

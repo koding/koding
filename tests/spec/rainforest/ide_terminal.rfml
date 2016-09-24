@@ -4,13 +4,10 @@
 # tags: automated
 #
 
-- d6c0bff2-2d2c-49f5-b420-21527fcaa054
+- 5e284d48-6055-49c0-91ea-c73681036aca
 
 # redirect: false
-Close that modal by clicking (x) from top right corner 
-Do you see file tree and some editor/terminal active (the goal is to see something like this http://snag.gy/2oIRb.jpg)? 
-
-Click down arrow icon at the right of '/home/rainforestqa22.username' label at the top of file tree to open filetree menu ( http://snag.gy/Rmoax.jpg ) and click 'New folder' in the menu
+Click down arrow icon at the right of '/home/Rainforestqa99' label at the top of file tree to open filetree menu ( http://snag.gy/Rmoax.jpg ) and click 'New folder' in the menu
 Do you see new folder 'NewFolder' added to the file tree? Is folder name displayed in edit mode?
 
 Enter '{{random.address_state}}{{random.number}}' folder name and press Enter
