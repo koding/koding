@@ -210,6 +210,9 @@ $borderColor                = #CACACA
           color             #9f9f9f
           opacity           0.5
 
+    .edit-name
+      width 100%
+
 
   .GenericToggler-top
     padding                 25px 0
@@ -225,10 +228,20 @@ $borderColor                = #CACACA
     .pull-left
       flex                  1 0 auto
 
+    &.edit-name
+      padding               20px 0
+
+    &.build-logs
+      padding-bottom        0px
 
 .MachineDetails-SpecsList
-  margin                    45px 0 0
-  padding-bottom            25px
+
+  border-top                1px solid #cacaca
+  margin                    35px 0 0
+  padding                   30px 0
+
+  &.notReady
+    border-top              none
 
   .SingleSpecItem
     bg                      color #E8F5F9
