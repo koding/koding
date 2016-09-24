@@ -50,25 +50,11 @@ $borderColor                = #CACACA
         margin-right        0
 
     .MachinesListItem-machineLabel
-      margin-right          18px
-      .kdinput.text
-        flex                0 1 auto
-        padding-top         7px
-        padding-bottom      7px
-        margin              -16px 0 0 18px
-        width               150px
-        padding-left        10px
-        ellipsis()
-        pointer()
-        border              1px solid transparent
-        border-radius       3px
-        box-shadow          none
-        cursor              text
-        pointer-events      none
-
-        &:focus
-          pointer-events    auto
-          border            1px solid #e3e3e3
+      flex                0 1 auto
+      width               150px
+      padding-left        22px
+      ellipsis()
+      pointer()
 
     .SidebarListItem-progressbar
       abs                   76px 0 0 0px
@@ -148,11 +134,10 @@ $borderColor                = #CACACA
 
 
 .MachinesListItem-machineLabel
-  .kdinput.text
-    color                     $titleColor
-    font-size                 16px
-    font-weight               600
-    letter-spacing            .2px
+  color                     $titleColor
+  font-size                 16px
+  font-weight               600
+  letter-spacing            .2px
 
   &:before
     content                 ''
