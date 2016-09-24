@@ -420,6 +420,12 @@ isAddressValid = (addr, callback) ->
 
   addr = url addr, true
 
+  if (ip.isV4Format _ip = addr.hostname) and ip.isPrivate _ip
+    return callback {
+      message: 'Private IPs not allowed'
+      type: 'PRIVATE_IP'
+    }
+
   dns.resolve addr.hostname, 'A', (err, ips) ->
     if err
       return callback {

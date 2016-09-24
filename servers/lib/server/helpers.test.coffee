@@ -62,7 +62,7 @@ describe 'helpers::isAddressValid', ->
       done()
 
   it 'should allow public IPs', (done) ->
-    isAddressValid '52.52.10.10:3000', (err) ->
+    isAddressValid '8.8.8.8:3000', (err) ->
       expect(err).to.not.exist
       done()
 
