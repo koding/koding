@@ -8,6 +8,8 @@ Machine             = require 'app/providers/machine'
 SharingAutocomplete = require './sharing/autocomplete'
 SharingUserList     = require './sharing/userlist'
 ContentModal        = require 'app/components/contentModal'
+EnvironmentFlux     = require 'app/flux/environment'
+
 
 module.exports = class MachineDetails extends React.Component
 
@@ -43,7 +45,8 @@ module.exports = class MachineDetails extends React.Component
   constructor: (props) ->
 
     super props
-    @state = {}
+    @state =
+      machineLabel: @props.machine.get 'label'
 
 
   onSharingToggle: (checked) ->
@@ -89,12 +92,17 @@ module.exports = class MachineDetails extends React.Component
 
     return  unless @props.shouldRenderSpecs
 
+    { Starting, Stopping } = Machine.State
     specs = generateSpecs @props.machine
+
+    className = 'MachineDetails-SpecsList'
+    if @status() in [ Starting, Stopping ]
+      className = 'MachineDetails-SpecsList notReady'
 
     children = specs.map (spec) ->
       <div key={spec} className="SingleSpecItem">{spec}</div>
 
-    <div className='MachineDetails-SpecsList'>{children}</div>
+    <div className={className}>{children}</div>
 
 
   renderDisconnectToggler: ->
@@ -165,6 +173,7 @@ module.exports = class MachineDetails extends React.Component
       <SharingUserList users={machine.get 'sharedUsers'} onUserRemove={@props.onUnsharedWithUser} />
     </div>
 
+
   renderBuildLog: ->
 
     { machine } = @props
@@ -175,9 +184,7 @@ module.exports = class MachineDetails extends React.Component
     isMachineRunning = state is 'Running'
 
     description = 'Logs that were created while we built your VM.'
-
     description = 'Turn on your VM to see the build logs.' unless isMachineRunning
-
 
     <GenericToggler
       title='Build Logs'
@@ -189,13 +196,72 @@ module.exports = class MachineDetails extends React.Component
       machineState={isMachineRunning} />
 
 
+  renderEditName: ->
+
+    return  unless @props.shouldRenderEditName
+
+    <div className='GenericToggler'>
+      <div className='GenericToggler-top edit-name'>
+        <div className='pull-left'>
+          <div className='GenericToggler-title'>
+            Edit VM Name
+          </div>
+          <div className='GenericToggler-description'>
+            You can change your VM name here
+          </div>
+        </div>
+        <div className='pull-right'>
+          <input
+            ref='inputbox'
+            value={@state.machineLabel}
+            className="kdinput text edit-name"
+            onChange={@bound 'inputOnChange'}
+            onBlur={@bound 'inputOnBlur'}
+            onKeyDown={@bound 'inputOnKeyDown'} />
+        </div>
+      </div>
+    </div>
+
+
+  inputOnBlur: (event) ->
+
+    @setMachineLabel()
+
+
+  inputOnKeyDown: (event) ->
+
+    if event.keyCode is 13
+      @refs.inputbox.blur()
+
+
+  inputOnChange: (event) ->
+
+    { value: machineLabel } = event.target
+    @setState { machineLabel: machineLabel }
+
+
+  setMachineLabel: ->
+
+    unless @state.machineLabel
+      @setState { machineLabel: @props.machine.get 'label'}
+      return
+
+    machineUId = @props.machine.get 'uid'
+    EnvironmentFlux.actions.setLabel machineUId, @state.machineLabel
+      .then (label) =>
+        kd.singletons.router.handleRoute "/Home/Stacks/virtual-machines/#{@state.machineLabel}"
+      .catch (err) =>
+        @setState { machineLabel: @props.machine.get 'label' }
+        new kd.NotificationView { title: 'Something went wrong', duration: 2000 }
+
+
   onClickBuildLog: (e) ->
 
     machineUId = @props.machine.get 'uid'
     kd.singletons.router.handleRoute "/IDE/#{@props.machine.get 'label'}"
 
     { computeController } = kd.singletons
-    machine    = computeController.findMachineFromMachineUId machineUId
+    machine = computeController.findMachineFromMachineUId machineUId
     computeController.showBuildLogs machine, 0
 
 
@@ -203,6 +269,7 @@ module.exports = class MachineDetails extends React.Component
 
     <div className='MachineDetails'>
       {@renderSpecs()}
+      {@renderEditName()}
       {@renderPowerToggler()}
       {@renderAlwaysOnToggler()}
       {@renderDisconnectToggler()}
