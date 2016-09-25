@@ -206,10 +206,12 @@ func New(conf *Config) (*Kloud, error) {
 	stats := common.MustInitMetrics(Name)
 
 	kloud := &Kloud{
+		Kite:  k,
 		Stack: stack.New(),
 		Queue: &queue.Queue{
-			Log:      sess.Log.New("queue"),
 			Interval: 5 * time.Second,
+			Log:      sess.Log.New("queue"),
+			Kite:     k,
 			MongoDB:  sess.DB,
 		},
 	}
