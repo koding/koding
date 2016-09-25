@@ -16,14 +16,16 @@ func (bs *BaseStack) HandleBootstrap(context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	return bs.bootstrap(&arg)
-}
-
-func (bs *BaseStack) bootstrap(arg *stack.BootstrapRequest) (interface{}, error) {
 	if err := arg.Valid(); err != nil {
 		return nil, err
 	}
 
+	bs.Arg = &arg
+
+	return bs.bootstrap(&arg)
+}
+
+func (bs *BaseStack) bootstrap(arg *stack.BootstrapRequest) (interface{}, error) {
 	if arg.Destroy {
 		bs.Log.Debug("Bootstrap destroy is called")
 	} else {

@@ -21,6 +21,8 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
+	bs.Arg = &arg
+
 	bs.Log.Debug("Fetching template for id %s", arg.StackTemplateID)
 	stackTemplate, err := modelhelper.GetStackTemplate(arg.StackTemplateID)
 	if err != nil {
@@ -54,16 +56,16 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 		}
 	} else {
 		bs.Log.Debug("no credentials found for %q: %s", bs.Provider.Name, err)
+
+		if err := bs.Builder.Template.FillVariables(bs.Provider.Name + "_"); err != nil {
+			return nil, err
+		}
 	}
 
 	// Plan request is made right away the template is saved, it may
 	// not have all the credentials provided yet. We set them all to
 	// to dummy values to make the template pass terraform parsing.
 	if err := bs.Builder.Template.FillVariables("userInput_"); err != nil {
-		return nil, err
-	}
-
-	if err := bs.Builder.Template.FillVariables(bs.Provider.Name + "_"); err != nil {
 		return nil, err
 	}
 

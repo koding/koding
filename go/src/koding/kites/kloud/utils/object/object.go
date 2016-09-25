@@ -101,6 +101,10 @@ func decode(tag string, in, out interface{}) error {
 }
 
 func (b *Builder) build(v interface{}, obj Object, ignored ...string) {
+	if v == nil {
+		return
+	}
+
 	for _, prefix := range ignored {
 		if b.Prefix == prefix {
 			return

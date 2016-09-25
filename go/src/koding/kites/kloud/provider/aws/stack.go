@@ -3,8 +3,8 @@ package aws
 import (
 	"bytes"
 	"fmt"
-	"html/template"
 	"strconv"
+	"text/template"
 	"time"
 
 	"koding/kites/kloud/api/amazon"
@@ -51,9 +51,9 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 
 	cfg := &bootstrapConfig{
 		AvailabilityZone: "${lookup(var.aws_availability_zones, var.aws_region)}",
-		KeyPairName:      fmt.Sprintf("koding-deployment-%s-%s-%d", s.Req.Username, s.Builder.Stack.Stack.Group, time.Now().UTC().UnixNano()),
+		KeyPairName:      fmt.Sprintf("koding-deployment-%s-%s-%d", s.Req.Username, s.BootstrapArg().GroupName, time.Now().UTC().UnixNano()),
 		PublicKey:        s.Keys.PublicKey,
-		EnvironmentName:  fmt.Sprintf("Koding-%s-Bootstrap", s.Builder.Stack.Stack.Group),
+		EnvironmentName:  fmt.Sprintf("Koding-%s-Bootstrap", s.BootstrapArg().GroupName),
 	}
 
 	if client, err := amazon.NewClient(opts); err == nil && len(client.Zones) != 0 {
@@ -68,7 +68,7 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 	}
 
 	if accountID, err := cred.AccountID(); err == nil {
-		t.Key = accountID + "-" + s.Builder.Stack.Stack.Group + "-" + c.Identifier
+		t.Key = accountID + "-" + s.BootstrapArg().GroupName + "-" + c.Identifier
 	} else {
 		s.Log.Warning("unable to read account ID for %q: %s", c.Identifier, err)
 	}
@@ -241,6 +241,10 @@ func (s *Stack) Credential() *Cred {
 
 func (s *Stack) Bootstrap() *Bootstrap {
 	return s.BaseStack.Bootstrap.(*Bootstrap)
+}
+
+func (s *Stack) BootstrapArg() *stack.BootstrapRequest {
+	return s.BaseStack.Arg.(*stack.BootstrapRequest)
 }
 
 func mustAsset(s string) string {

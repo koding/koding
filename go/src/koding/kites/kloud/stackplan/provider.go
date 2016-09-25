@@ -135,6 +135,7 @@ type BaseStack struct {
 	Session  *session.Session
 	Provider *Provider
 
+	Arg        interface{}
 	Credential interface{}
 	Bootstrap  interface{}
 

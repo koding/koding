@@ -244,6 +244,8 @@ func New(conf *Config) (*Kloud, error) {
 		}
 
 		kloud.Queue.Register(s)
+
+		sess.Log.Debug("registering %q provider", p.Name)
 	}
 
 	go kloud.Queue.Run()

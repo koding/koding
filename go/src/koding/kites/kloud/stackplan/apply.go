@@ -45,6 +45,8 @@ func (bs *BaseStack) HandleApply(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
+	bs.Arg = &arg
+
 	err := bs.Builder.BuildStack(arg.StackID, arg.Credentials)
 
 	if err != nil && !(arg.Destroy && IsNotFound(err, "jStackTemplate")) {

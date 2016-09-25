@@ -4,12 +4,12 @@ package main
 
 import (
 	"flag"
-	"html/template"
 	"log"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+	"text/template"
 )
 
 var output = flag.String("o", "-", "")
@@ -48,7 +48,7 @@ func main() {
 			continue
 		}
 
-		if _, err := os.Stat(filepath.Join(fi.Name(), ".ignore")); os.IsNotExist(err) {
+		if _, err := os.Stat(filepath.Join(fi.Name(), ".ignore")); err == nil {
 			continue
 		}
 

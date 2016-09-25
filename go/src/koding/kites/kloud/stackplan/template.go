@@ -244,16 +244,18 @@ func (t *Template) InjectCredentials(creds ...*stack.Credential) error {
 }
 
 func (t *Template) inject(prefix string, meta interface{}) {
+	t.log.Debug("injecting: %# v", meta)
+
 	for k, v := range t.b.New(prefix).Build(meta) {
 		// Ignore custom variables prefixed with __ from injecting.
 		// The ignored variables may contain interpolations which are
 		// not meant to be sent to Terraform.
 		if strings.HasPrefix(k, "custom___") {
-			t.log.Debug("Not injecting variable: %s=%s", k, v)
+			t.log.Debug("not injecting variable: %s=%s", k, v)
 			continue
 		}
 
-		t.log.Debug("Injecting variable: %s=%v", k, v)
+		t.log.Debug("injecting variable: %s=%v", k, v)
 
 		t.Variable[k] = map[string]interface{}{
 			"default": v,

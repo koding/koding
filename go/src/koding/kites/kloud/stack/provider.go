@@ -35,9 +35,9 @@ type Provider interface {
 // to avoid cyclic imports.
 type Stacker interface {
 	// Implemented by user provider.
-	Verify(*Credential) error
-	Bootstrap(*Credential) ([]*Template, error)
-	Inject(*Credential) error
+	VerifyCredential(*Credential) error
+	BootstrapTemplates(*Credential) ([]*Template, error)
+	ApplyTemplate(*Credential) (*Template, error)
 
 	// Implemented by *provider.BaseStack.
 	HandleApply(context.Context) (interface{}, error)
