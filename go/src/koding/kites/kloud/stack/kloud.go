@@ -75,11 +75,13 @@ type Kloud struct {
 
 // New creates a new Kloud instance without initializing the default providers.
 func New() *Kloud {
+	log := logging.NewLogger(NAME)
+
 	kld := &Kloud{
 		idlock:      idlock.New(),
-		Log:         logging.NewLogger(NAME),
+		Log:         log,
 		Eventers:    make(map[string]eventer.Eventer),
-		providers:   make(map[string]interface{}, 0),
+		providers:   make(map[string]interface{}),
 		statusCache: cache.NewMemoryWithTTL(time.Second * 10),
 	}
 
@@ -90,7 +92,7 @@ func New() *Kloud {
 
 // AddProvider adds the given Provider with the providerName. It returns an
 // error if the provider already exists.
-func (k *Kloud) AddProvider(providerName string, provider interface{}) error {
+func (k *Kloud) AddProvider(providerName string, provider Provider) error {
 	_, ok := k.providers[providerName]
 	if ok {
 		NewError(ErrProviderAvailable)

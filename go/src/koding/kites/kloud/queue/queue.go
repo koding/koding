@@ -1,34 +1,52 @@
 package queue
 
 import (
+	"context"
+	"fmt"
 	"time"
 
-	"github.com/koding/logging"
-
+	"koding/db/models"
+	"koding/db/mongodb"
+	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/contexthelper/request"
+	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/provider/aws"
+	"koding/kites/kloud/stackplan"
+	"koding/kites/kloud/utils/object"
 
+	"github.com/koding/kite"
+	"github.com/koding/kite/kontrol"
+	"github.com/koding/logging"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
+var (
+	defaultInterval = 15 * time.Second
+	planTimeout     = 50 * time.Minute
+)
+
 type Queue struct {
-	AwsProvider *awsprovider.Provider
-	Log         logging.Logger
+	Log      logging.Logger
+	Interval time.Duration
+	MongoDB  *mongodb.MongoDB
+	Kite     *kite.Kite
+
+	stackers map[string]*stackplan.Stacker
 }
 
 // RunChecker runs the checker for Koding and AWS providers every given
 // interval time. It fetches a single document.
-func (q *Queue) RunCheckers(interval time.Duration) {
-	q.Log.Debug("queue started with interval %s", interval)
+func (q *Queue) Run() {
+	q.Log.Debug("queue started with interval %s", q.interval())
 
-	if q.AwsProvider == nil {
-		q.Log.Warning("not running cleaner queue for aws koding provider")
-	}
+	t := time.NewTicker(q.interval())
+	defer t.Stop()
 
-	for range time.Tick(interval) {
-		// do not block the next tick
-		go q.CheckAWS()
+	for range t.C {
+		for _, s := range q.stackers {
+			go q.Check(s)
+		}
 	}
 }
 
@@ -74,5 +92,125 @@ func (q *Queue) FetchProvider(provider string, machine interface{}) error {
 		return nil
 	}
 
-	return q.AwsProvider.DB.Run("jMachines", query)
+	return q.MongoDB.Run("jMachines", query)
+}
+
+func (q *Queue) Register(s *stackplan.Stacker) {
+	if q.stackers == nil {
+		q.stackers = make(map[string]*stackplan.Stacker)
+	}
+
+	if _, ok := q.stackers[s.Provider.Name]; ok {
+		panic("queue: duplicate stacker: " + s.Provider.Name)
+	}
+
+	q.stackers[s.Provider.Name] = s
+}
+
+func (q *Queue) interval() time.Duration {
+	if q.Interval != 0 {
+		return q.Interval
+	}
+
+	return defaultInterval
+}
+
+func (q *Queue) Check(s *stackplan.Stacker) error {
+	var m models.Machine
+
+	err := q.FetchProvider(s.Provider.Name, &m)
+	if err != nil {
+		// do not show an error if the query didn't find anything, that
+		// means there is no such a document, which we don't care
+		if err == mgo.ErrNotFound {
+			return nil
+		}
+
+		return fmt.Errorf("check %q provider error: %s", s.Provider.Name, err)
+	}
+
+	req := &kite.Request{
+		Method: "internal",
+	}
+
+	if u := m.Owner(); u != nil {
+		req.Username = u.Username
+	}
+
+	ctx := request.NewContext(context.Background(), req)
+
+	bm, err := s.BuildBaseMachine(ctx, &m)
+	if err != nil {
+		return err
+	}
+
+	machine, err := s.BuildMachine(ctx, bm)
+	if err != nil {
+		return err
+	}
+
+	switch err := q.CheckUsage(s.Provider.Name, machine, bm, ctx); err {
+	case nil:
+		return nil
+	case kite.ErrNoKitesAvailable, kontrol.ErrQueryFieldsEmpty, klient.ErrDialingFailed:
+		return nil
+	default:
+		return fmt.Errorf("[%s] check usage of AWS klient kite [%s] err: %s", m.ObjectId.Hex(), m.IpAddress, err)
+	}
+}
+
+func (q *Queue) CheckUsage(provider string, m stackplan.Machine, bm *stackplan.BaseMachine, ctx context.Context) error {
+	q.Log.Debug("Checking %q machine\n%+v\n", provider, bm.Machine)
+
+	c, err := klient.Connect(q.Kite, bm.QueryString)
+	if err != nil {
+		q.Log.Debug("Error connecting to klient, stopping if needed. Error: %s", err)
+		return err
+	}
+
+	// replace with the real and authenticated username
+	if bm.User == nil {
+		bm.User = &models.User{}
+	}
+
+	bm.User.Name = c.Username
+
+	// get the usage directly from the klient, which is the most predictable source
+	usg, err := c.Usage()
+	c.Close() // close the underlying connection once we get the usage
+	if err != nil {
+		return fmt.Errorf("failure getting %q klient usage: %s", bm.QueryString, err)
+	}
+
+	q.Log.Debug("machine [%s] (aws) is inactive for %s (plan limit: %s)",
+		bm.IpAddress, usg.InactiveDuration, planTimeout)
+
+	// It still have plenty of time to work, do not stop it
+	if usg.InactiveDuration <= planTimeout {
+		return nil
+	}
+
+	q.Log.Info("machine [%s] has reached current plan limit of %s. Shutting down...",
+		bm.IpAddress, usg.InactiveDuration)
+
+	// Hasta la vista, baby!
+	q.Log.Info("[%s] ======> STOP started (closing inactive machine)<======", bm.ObjectId.Hex())
+
+	meta, err := m.Stop(ctx)
+	if err != nil {
+		// returning is ok, because Kloud will mark it anyways as stopped if
+		// Klient is not rechable anymore with the `info` method
+		q.Log.Info("[%s] ======> STOP aborted (closing inactive machine: %s)<======", bm.ObjectId.Hex(), err)
+
+		return err
+	}
+
+	q.Log.Info("[%s] ======> STOP finished (closing inactive machine)<======", bm.ObjectId.Hex())
+
+	obj := object.MetaBuilder.Build(meta)
+	obj["status.modifiedAt"] = time.Now().UTC()
+	obj["status.state"] = machinestate.Stopped.String()
+	obj["status.reason"] = "Machine is stopped due to inactivity"
+
+	return modelhelper.UpdateMachine(bm.ObjectId, bson.M{"$set": obj})
 }

@@ -6,7 +6,6 @@ import (
 
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/api/vagrantapi"
-	"koding/kites/kloud/provider"
 	"koding/kites/kloud/stack"
 
 	"golang.org/x/net/context"

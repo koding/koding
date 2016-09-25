@@ -24,7 +24,6 @@ import (
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/pkg/dnsclient"
-	awsprovider "koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stackplan"
@@ -49,6 +48,13 @@ type Kloud struct {
 	Kite   *kite.Kite
 	Stack  *stack.Kloud
 	Keygen *keygen.Server
+
+	// Queue is responsible for executing checks and actions on user
+	// machines. Given the interval they are queued and processed,
+	// thus the naming. For example queue is responsible for
+	// shutting down a non-always-on vm when it idles for more
+	// than 1h.
+	Queue *queue.Queue
 }
 
 // Config defines the configuration that Kloud needs to operate.
@@ -197,43 +203,49 @@ func New(conf *Config) (*Kloud, error) {
 		TunnelURL:      conf.TunnelURL,
 	}
 
-	// TODO(rjeczalik): refactor queue to work for any provider
-	awsProvider := &awsprovider.Provider{
-		BaseProvider: bp.New("aws"),
-	}
-
-	go runQueue(awsProvider, sess, conf)
-
 	stats := common.MustInitMetrics(Name)
 
-	kld := stack.New()
-	kld.ContextCreator = func(ctx context.Context) context.Context {
+	kloud := &Kloud{
+		Stack: stack.New(),
+		Queue: &queue.Queue{
+			Log:      sess.Log.New("queue"),
+			Interval: 5 * time.Second,
+			MongoDB:  sess.DB,
+		},
+	}
+
+	kloud.Stack.ContextCreator = func(ctx context.Context) context.Context {
 		return session.NewContext(ctx, sess)
 	}
-	kld.Metrics = stats
 
+	kloud.Stack.Metrics = stats
 	userPrivateKey, userPublicKey := userMachinesKeys(conf.UserPublicKey, conf.UserPrivateKey)
 
 	// RSA key pair that we add to the newly created machine for
 	// provisioning.
-	kld.PublicKeys = &publickeys.Keys{
+	kloud.Stack.PublicKeys = &publickeys.Keys{
 		KeyName:    publickeys.DeployKeyName,
 		PrivateKey: userPrivateKey,
 		PublicKey:  userPublicKey,
 	}
-	kld.DomainStorage = sess.DNSStorage
-	kld.Domainer = sess.DNSClient
-	kld.Locker = bp
-	kld.Log = sess.Log
-	kld.SecretKey = conf.KloudSecretKey
+	kloud.Stack.DomainStorage = sess.DNSStorage
+	kloud.Stack.Domainer = sess.DNSClient
+	kloud.Stack.Locker = stacker
+	kloud.Stack.Log = sess.Log
+	kloud.Stack.SecretKey = conf.KloudSecretKey
 
 	for _, p := range stackplan.All() {
-		if err = kld.AddProvider(p.Name, stacker.New(p)); err != nil {
+		s := stacker.New(p)
+
+		if err = kloud.Stack.AddProvider(p.Name, s); err != nil {
 			return nil, err
 		}
+
+		kloud.Queue.Register(s)
 	}
 
-	var gwSrv *keygen.Server
+	go kloud.Queue.Run()
+
 	if conf.KeygenAccessKey != "" && conf.KeygenSecretKey != "" {
 		cfg := &keygen.Config{
 			AccessKey:  conf.KeygenAccessKey,
@@ -241,47 +253,31 @@ func New(conf *Config) (*Kloud, error) {
 			Region:     conf.KeygenRegion,
 			Bucket:     conf.KeygenBucket,
 			AuthExpire: conf.KeygenTokenTTL,
-			AuthFunc:   kld.ValidateUser,
+			AuthFunc:   kloud.Stack.ValidateUser,
 			Kite:       k,
 		}
 
-		gwSrv = keygen.NewServer(cfg)
+		kloud.Keygen = keygen.NewServer(cfg)
 	} else {
 		k.Log.Warning(`disabling "keygen" methods due to missing S3/STS credentials`)
 	}
 
 	// Teams/stack handling methods
-	k.HandleFunc("plan", kld.Plan)
-	k.HandleFunc("apply", kld.Apply)
-	k.HandleFunc("migrate", kld.Migrate)
-	k.HandleFunc("describeStack", kld.Status)
-	k.HandleFunc("authenticate", kld.Authenticate)
-	k.HandleFunc("bootstrap", kld.Bootstrap)
+	k.HandleFunc("plan", kloud.Stack.Plan)
+	k.HandleFunc("apply", kloud.Stack.Apply)
+	k.HandleFunc("describeStack", kloud.Stack.Status)
+	k.HandleFunc("authenticate", kloud.Stack.Authenticate)
+	k.HandleFunc("bootstrap", kloud.Stack.Bootstrap)
 
 	// Single machine handling
-	k.HandleFunc("build", kld.Build)
-	k.HandleFunc("destroy", kld.Destroy)
-	k.HandleFunc("stop", kld.Stop)
-	k.HandleFunc("start", kld.Start)
-	k.HandleFunc("reinit", kld.Reinit)
-	k.HandleFunc("restart", kld.Restart)
-	k.HandleFunc("info", kld.Info)
-	k.HandleFunc("event", kld.Event)
-	k.HandleFunc("resize", kld.Resize)
-
-	// Snapshot functionality
-	k.HandleFunc("createSnapshot", kld.CreateSnapshot)
-	k.HandleFunc("deleteSnapshot", kld.DeleteSnapshot)
-
-	// Domain records handling methods
-	k.HandleFunc("domain.set", kld.DomainSet)
-	k.HandleFunc("domain.unset", kld.DomainUnset)
-	k.HandleFunc("domain.add", kld.DomainAdd)
-	k.HandleFunc("domain.remove", kld.DomainRemove)
+	k.HandleFunc("stop", kloud.Stack.Stop)
+	k.HandleFunc("start", kloud.Stack.Start)
+	k.HandleFunc("info", kloud.Stack.Info)
+	k.HandleFunc("event", kloud.Stack.Event)
 
 	// Klient proxy methods
-	k.HandleFunc("admin.add", kld.AdminAdd)
-	k.HandleFunc("admin.remove", kld.AdminRemove)
+	k.HandleFunc("admin.add", kloud.Stack.AdminAdd)
+	k.HandleFunc("admin.remove", kloud.Stack.AdminRemove)
 
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())
@@ -322,11 +318,7 @@ func New(conf *Config) (*Kloud, error) {
 		return nil, err
 	}
 
-	return &Kloud{
-		Kite:   k,
-		Stack:  kld,
-		Keygen: gwSrv,
-	}, nil
+	return kloud, nil
 }
 
 func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
@@ -398,24 +390,6 @@ func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 	}
 
 	return sess, nil
-}
-
-func runQueue(aws stack.Provider, sess *session.Session, conf *Config) {
-	q := &queue.Queue{
-		Log: sess.Log.New("queue"),
-	}
-
-	if p, ok := aws.(*awsprovider.Provider); ok {
-		q.AwsProvider = p
-	}
-
-	// TODO(rjeczalik): move to config
-	interv := 5 * time.Second
-	if conf.ProdMode {
-		interv = time.Second / 2
-	}
-
-	go q.RunCheckers(interv)
 }
 
 func userMachinesKeys(publicPath, privatePath string) (string, string) {

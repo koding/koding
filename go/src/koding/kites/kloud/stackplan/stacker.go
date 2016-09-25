@@ -49,6 +49,7 @@ type Stacker struct {
 	Kite           *kite.Kite
 	KloudSecretKey string
 	Debug          bool
+	TunnelURL      string
 
 	Userdata  *userdata.Userdata
 	CredStore stackcred.Store
@@ -68,6 +69,10 @@ func (s *Stacker) Machine(ctx context.Context, id string) (interface{}, error) {
 		return nil, err
 	}
 
+	return s.BuildMachine(ctx, bm)
+}
+
+func (s *Stacker) BuildMachine(ctx context.Context, bm *BaseMachine) (Machine, error) {
 	if err := modelhelper.BsonDecode(bm.Meta, object.ToAddr(bm.Metadata)); err != nil {
 		return nil, err
 	}
@@ -94,7 +99,7 @@ func (s *Stacker) Machine(ctx context.Context, id string) (interface{}, error) {
 	return m, nil
 }
 
-func (b *Stacker) BaseMachine(ctx context.Context, id string) (*BaseMachine, error) {
+func (s *Stacker) BaseMachine(ctx context.Context, id string) (*BaseMachine, error) {
 	if !bson.IsObjectIdHex(id) {
 		return nil, fmt.Errorf("invalid machine id: %q", id)
 	}
@@ -107,6 +112,10 @@ func (b *Stacker) BaseMachine(ctx context.Context, id string) (*BaseMachine, err
 		return nil, fmt.Errorf("unable to get machine: %s", err)
 	}
 
+	return s.BuildBaseMachine(ctx, m)
+}
+
+func (s *Stacker) BuildBaseMachine(ctx context.Context, m *models.Machine) (*BaseMachine, error) {
 	req, ok := request.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("request context is not available")
@@ -115,17 +124,17 @@ func (b *Stacker) BaseMachine(ctx context.Context, id string) (*BaseMachine, err
 	bm := &BaseMachine{
 		Machine: m,
 		Session: &session.Session{
-			DB:       b.DB,
-			Kite:     b.Kite,
-			Userdata: b.Userdata,
-			Log:      b.Log.New(m.ObjectId.Hex()),
+			DB:       s.DB,
+			Kite:     s.Kite,
+			Userdata: s.Userdata,
+			Log:      s.Log.New(m.ObjectId.Hex()),
 		},
-		Credential: b.Provider.newCredential(),
-		Bootstrap:  b.Provider.newBootstrap(),
-		Metadata:   b.Provider.newMetadata(nil),
+		Credential: s.Provider.newCredential(),
+		Bootstrap:  s.Provider.newBootstrap(),
+		Metadata:   s.Provider.newMetadata(nil),
 		Req:        req,
-		Provider:   b.Provider.Name,
-		Debug:      b.Debug,
+		Provider:   s.Provider.Name,
+		Debug:      s.Debug,
 	}
 
 	// NOTE(rjeczalik): "internal" method is used by (*Queue).CheckAWS
@@ -139,18 +148,19 @@ func (b *Stacker) BaseMachine(ctx context.Context, id string) (*BaseMachine, err
 		// get the user from the permitted list. If the list contains more than one
 		// allowed person, fetch the one that is the same as requesterName, if
 		// not pick up the first one.
+		var err error
 		bm.User, err = modelhelper.GetPermittedUser(req.Username, bm.Users)
 		if err != nil {
 			return nil, err
 		}
 
-		if err := b.ValidateUser(bm.User, bm.Users, req); err != nil {
+		if err := s.ValidateUser(bm.User, bm.Users, req); err != nil {
 			return nil, err
 		}
 	}
 
 	if traceID, ok := stack.TraceFromContext(ctx); ok {
-		bm.Log = logging.NewCustom("kloud-"+b.Provider.Name, true).New(m.ObjectId.Hex()).New(traceID)
+		bm.Log = logging.NewCustom("kloud-"+s.Provider.Name, true).New(m.ObjectId.Hex()).New(traceID)
 		bm.Debug = true
 		bm.TraceID = traceID
 	}
@@ -160,7 +170,7 @@ func (b *Stacker) BaseMachine(ctx context.Context, id string) (*BaseMachine, err
 		bm.Eventer = ev
 	}
 
-	b.Log.Debug("BaseMachine: %+v", bm)
+	s.Log.Debug("BaseMachine: %+v", bm)
 
 	return bm, nil
 }

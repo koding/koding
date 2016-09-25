@@ -48,6 +48,10 @@ func main() {
 			continue
 		}
 
+		if _, err := os.Stat(filepath.Join(fi.Name(), ".ignore")); os.IsNotExist(err) {
+			continue
+		}
+
 		imports = append(imports, "koding/kites/kloud/provider/"+name)
 	}
 
