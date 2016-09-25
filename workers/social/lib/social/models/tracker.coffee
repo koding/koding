@@ -1,6 +1,7 @@
 bongo        = require 'bongo'
 KodingError  = require '../error'
 KodingLogger = require './kodinglogger'
+goals        = require './goals'
 
 { secure, signature } = bongo
 
@@ -30,27 +31,7 @@ module.exports = class Tracker extends bongo.Base
 
   EVENT_TYPE = 'api.mail_send'
 
-  @types =
-    START_REGISTER            : 'started to register'
-    FINISH_REGISTER           : 'finished register'
-    LOGGED_IN                 : 'logged in'
-    CONFIRM_USING_TOKEN       : 'confirmed & logged in using token'
-    REQUEST_NEW_PASSWORD      : 'requested a new password'
-    CHANGED_PASSWORD          : 'changed their password'
-    REQUEST_EMAIL_CHANGE      : 'requested pin to change email'
-    CHANGED_EMAIL             : 'changed their email'
-    INVITED_TEAM              : 'was invited to a team'
-    INVITED_CREATE_TEAM       : 'was invited to create a team'
-    SENT_FEEDBACK             : 'sent feedback'
-    TEAMS_JOINED_TEAM         : 'joined team'
-    USER_ENABLED_2FA          : 'enabled 2-factor auth'
-    USER_DISABLED_2FA         : 'disabled 2-factor auth'
-    STACKS_START_BUILD        : 'started stack build'
-    STACKS_BUILD_SUCCESSFULLY : 'stack build successfully'
-    STACKS_BUILD_FAILED       : 'stack build failed'
-    STACKS_REINIT             : 'reinitialized stack'
-    STACKS_DELETE             : 'deleted stack'
-    REQUESTED_TEAM_LIST       : 'requested team list'
+  @types = require './trackingtypes'
 
   @properties = {}
 
@@ -69,21 +50,31 @@ module.exports = class Tracker extends bongo.Base
 
     return callback null  unless KONFIG.sendEventsToSegment
 
+
     # use `forcedRecipientEmail` for both username and email
     if forcedRecipientEmail
       username     = forcedRecipientUsername
       traits.email = forcedRecipientEmail
 
     traits = @addDefaults traits
-    analytics?.identify { userId: username, traits }
 
-    return  callback null  unless analytics
+    # JUser is required here to avoid circularity
+    JUser = require './user'
+    JUser.one { username }, (err, user) ->
 
-    # force flush so identify call doesn't sit in queue, while events
-    # from Go/other systems are being sent
-    analytics.flush (err, batch) ->
-      console.error "flushing identify failed: #{err} @sent-hil"  if err
-      callback err
+      console.log username, user.customData  if user
+
+      traits.transaction_id = tid  if tid = user?.customData.tid
+
+      analytics?.identify { userId: username, traits }
+
+      return  callback null  unless analytics
+
+      # force flush so identify call doesn't sit in queue, while events
+      # from Go/other systems are being sent
+      analytics.flush (err, batch) ->
+        console.error "flushing identify failed: #{err} @sent-hil"  if err
+        callback err
 
 
   @track$ = secure (client, subject, options = {}, callback) ->
@@ -109,7 +100,6 @@ module.exports = class Tracker extends bongo.Base
   @track = (username, event, options = {}, callback = -> ) ->
 
     return callback null  unless KONFIG.sendEventsToSegment
-
     _.extend options, @properties[event.subject]
 
     # use `forcedRecipientEmail` for both username and email
@@ -117,11 +107,27 @@ module.exports = class Tracker extends bongo.Base
       username = forcedRecipientUsername
       event.to = forcedRecipientEmail
 
-    event.from       or= defaultFromMail
-    event.properties   = @addDefaults { options, username }
+    event.from or= defaultFromMail
+    event.properties = @addDefaults { options, username }
 
-    require('./socialapi/requests').publishMailEvent event, (err) ->
-      callback err # do not cause trailing parameters
+    event.properties.options ?= {}
+    event.properties.options = _.assign event.properties.options, goals.getProps event.subject
+
+    sendEvent = (e) ->
+      require('./socialapi/requests').publishMailEvent e, (err) ->
+        callback err # do not cause trailing parameters
+
+    if goals.hasProps event.subject
+      JUser = require './user'
+      JUser.one { username }, (err, user) ->
+
+        transaction_id = user?.customData.tid
+        event.context = { hasoffers: { transaction_id}}  if transaction_id
+
+        sendEvent event
+
+    else
+      sendEvent event
 
 
   @page = (userId, name, category, properties) ->

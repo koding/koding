@@ -17,6 +17,7 @@ webPort               = argv.p ? webserver.port
 { error_500 }         = require './helpers'
 { generateHumanstxt } = require './humanstxt'
 csrf                  = require './csrf'
+tid                   = require './tid'
 setCrsfToken          = require './setcsrftoken'
 { NodejsProfiler }    = require 'koding-datadog'
 
@@ -94,8 +95,8 @@ app.post '/-/validate/username'                  , require './handlers/validateu
 app.post '/-/validate/email'                     , require './handlers/validateemail'
 app.post '/-/validate'                           , require './handlers/validate'
 app.get  '/Verify/:token'                        , require './handlers/verifytoken'
-app.post '/:name?/Register'                      , csrf,   require './handlers/register'
-app.post '/:name?/Login'                         , csrf,   require './handlers/login'
+app.post '/:name?/Register'                      , csrf, tid,   require './handlers/register'
+app.post '/:name?/Login'                         , csrf, tid,   require './handlers/login'
 app.post '/Impersonate/:nickname'                , csrf,   require './handlers/impersonate'
 app.post '/:name?/Recover'                       , csrf,   require './handlers/recover'
 app.post '/findteam'                             , csrf,   require './handlers/findteam'

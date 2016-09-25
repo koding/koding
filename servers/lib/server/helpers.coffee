@@ -164,6 +164,11 @@ serveHome = (req, res, next) ->
 
       serveKodingHome = ->
         fn.kodingHome options, (err, subPage) ->
+          if tid = req.query.tid
+            duration = 30 * 24 * 60 * 60 * 1000 # 30 days
+            expires  = new Date Date.now() + duration
+            domain   = ".#{getMainDomain req}"
+            res.cookie 'tid', tid, { domain, expires }
           return next()  if err
           return serve subPage, res
 
@@ -182,9 +187,7 @@ serveHome = (req, res, next) ->
 
       # but if we are in dev or sandbox env, serve content as we used to
       if KONFIG.environment in ['dev', 'default', 'sandbox']
-        return serveKodingHome()  if isLoggedIn
-
-        return res.redirect 307, '/Teams'
+        return serveKodingHome()
 
       # all other requests coming to slash, goes back to KONFIG.hubspotPageURL
       return res.redirect 307, KONFIG.hubspotPageURL
@@ -297,13 +300,21 @@ isInAppRoute = (name) ->
   return true   if firstLetter.toUpperCase() is firstLetter
   return false
 
-isMainDomain = (req) ->
+
+getMainDomain = (req) ->
 
   { headers } = req
 
   return no  unless headers
 
   { host } = headers
+
+  return headers.host
+
+
+isMainDomain = (req) ->
+
+  host = getMainDomain req
 
   mainDomains = [
     KONFIG.domains.base
@@ -479,6 +490,7 @@ module.exports = {
   getClientId
   isInAppRoute
   isMainDomain
+  getMainDomain
   setSessionCookie
   checkAuthorizationBearerHeader
   isTeamPage

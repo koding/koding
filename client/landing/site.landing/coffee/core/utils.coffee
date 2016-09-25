@@ -37,7 +37,7 @@ module.exports = utils = {
     return referrer  if match and referrer = match[1]
 
 
-  getMainDomain: ->
+  getMainDomain: (withPort = yes) ->
 
     { hostname, port } = location
     kodingDomains      = ['dev', 'sandbox', 'latest', 'koding']
@@ -47,7 +47,7 @@ module.exports = utils = {
     then hostname
     else hostname.split('.').slice(1).join('.')
 
-    return "#{domain}#{if port then ':'+port else ''}"
+    return "#{domain}#{if port and withPort then ':'+port else ''}"
 
 
   getGroupNameFromLocation: (hostname) ->

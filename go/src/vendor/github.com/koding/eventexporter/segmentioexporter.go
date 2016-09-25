@@ -51,6 +51,7 @@ func buildTrack(event *Event) (*analytics.Track, error) {
 		Event:      event.Name,
 		UserId:     event.User.Username,
 		Properties: event.Properties,
+		Context:    event.Context,
 	}, nil
 }
 

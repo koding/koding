@@ -168,7 +168,7 @@ module.exports = class JUser extends jraphical.Module
 
       sshKeys       :
         type        : Object
-        default     : []
+        default     : -> []
 
       foreignAuth            :
         github               :
@@ -185,6 +185,9 @@ module.exports = class JUser extends jraphical.Module
           token              : String
         linkedin             :
           foreignId          : String
+      customData :
+        type     : Object
+        default  : -> {}
     relationships       :
       ownAccount        :
         targetType      : JAccount
@@ -468,7 +471,7 @@ module.exports = class JUser extends jraphical.Module
   @login = (clientId, credentials, callback) ->
 
     { username: loginId, password, groupIsBeingCreated
-      groupName, tfcode, invitationToken } = credentials
+      groupName, tfcode, invitationToken, tid } = credentials
 
     user        = null
     session     = null
@@ -539,6 +542,11 @@ module.exports = class JUser extends jraphical.Module
         # we are sure that user can access to the group, set group name into
         # cookie while logging in
         session.update { $set : { groupName } }, next
+
+      (next) ->
+        return next()  unless tid
+
+        user.update { $set : { "customData.tid" : tid } }, next
 
     ]
 
@@ -1481,21 +1489,22 @@ module.exports = class JUser extends jraphical.Module
   processConvert = (options, callback) ->
 
     { ip, country, region, client, invitation
-      userFormData, skipAllowedDomainCheck } = options
+      userFormData, skipAllowedDomainCheck, tid } = options
     { sessionToken : clientId } = client
     { referrer, email, username, password,
     emailFrequency, firstName, lastName } = userFormData
 
-    user     = null
-    error    = null
-    account  = null
-    newToken = null
+    user       = null
+    error      = null
+    account    = null
+    newToken   = null
+    customData = { tid }  if tid
 
     queue = [
 
       (next) ->
         userInfo = {
-          email, username, password, lastName, firstName, emailFrequency
+          email, username, password, lastName, firstName, emailFrequency, customData
         }
         createUser { userInfo }, (err, data) ->
           return next err  if err
@@ -1540,7 +1549,7 @@ module.exports = class JUser extends jraphical.Module
     [options, callback] = [{}, options]  unless callback
 
     { slug, email, agree, username, lastName, referrer,
-      password, firstName, recaptcha, emailFrequency,
+      password, firstName, recaptcha, emailFrequency, tid,
       invitationToken, passwordConfirm, disableCaptcha } = userFormData
 
     { skipAllowedDomainCheck } = options
@@ -1599,7 +1608,7 @@ module.exports = class JUser extends jraphical.Module
       (next) ->
         params = {
           ip, country, region, client, invitation
-          userFormData, skipAllowedDomainCheck
+          userFormData, skipAllowedDomainCheck, tid
         }
         processConvert params, (err, data) ->
           return next err  if err
@@ -1619,7 +1628,7 @@ module.exports = class JUser extends jraphical.Module
           currentPeriodStart : date
           currentPeriodEnd   : date
 
-        args = { user, account, subscription, pin, oldUsername }
+        args = { user, account, subscription, pin, oldUsername, tid }
         identifyUserOnRegister disableCaptcha, args
 
         JUser.emit 'UserRegistered', { user, account }
@@ -1653,7 +1662,7 @@ module.exports = class JUser extends jraphical.Module
 
     return  if disableCaptcha
 
-    { user, account, subscription, pin, oldUsername } = args
+    { user, account, subscription, pin, oldUsername, tid } = args
     { status, lastLoginDate, username, email } = user
     { createdAt, profile } = account.meta
     { firstName, lastName } = account.profile
@@ -1681,6 +1690,7 @@ module.exports = class JUser extends jraphical.Module
 
       pin
       jwtToken
+      transaction_id : tid
     }
 
     Tracker.identify username, traits
