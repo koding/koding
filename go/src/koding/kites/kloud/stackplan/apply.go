@@ -256,10 +256,10 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 	}
 	defer tfKite.Close()
 
-	contentID := req.GroupName + "-" + req.StackID
-	bs.Log.Debug("Building template: %s", contentID)
+	defaultContentID := req.GroupName + "-" + req.StackID
+	bs.Log.Debug("Building template: %s", defaultContentID)
 
-	if err := bs.Builder.BuildTemplate(bs.Builder.Stack.Template, contentID); err != nil {
+	if err := bs.Builder.BuildTemplate(bs.Builder.Stack.Template, defaultContentID); err != nil {
 		return err
 	}
 
@@ -268,21 +268,23 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 
 	bs.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
 
-	if err := bs.stack.Inject(cred); err != nil {
-		return err
-	}
-
-	out, err := bs.Builder.Template.JsonOutput()
+	t, err := bs.stack.ApplyTemplate(cred)
 	if err != nil {
 		return err
 	}
 
-	bs.Builder.Stack.Template = out
+	if t.Key == "" {
+		t.Key = defaultContentID
+	}
+
+	bs.Builder.Stack.Template = t.Content
 
 	done := make(chan struct{})
 
 	// because apply can last long, we are going to increment the eventer's
 	// percentage as long as we build automatically.
+	//
+	// TODO(rjeczalik):
 	go func() {
 		start := 45
 		ticker := time.NewTicker(time.Second * 5)
@@ -308,7 +310,7 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 
 	tfReq := &tf.TerraformRequest{
 		Content:   bs.Builder.Stack.Template,
-		ContentID: contentID,
+		ContentID: t.Key,
 		TraceID:   bs.TraceID,
 	}
 

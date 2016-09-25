@@ -38,12 +38,15 @@ type Machine struct {
 var _ stackplan.Machine = (*Machine)(nil)
 
 func (m *Machine) Start(context.Context) (interface{}, error) {
+	return nil, nil
 }
 
 func (m *Machine) Stop(context.Context) (interface{}, error) {
+	return nil, nil
 }
 
 func (m *Machine) Info(context.Context) (machinestate.State, interface{}, error) {
+	return 0, nil, nil
 }
 
 func (m *Machine) Cred() *Cred {

@@ -72,7 +72,7 @@ func newMetadata(m *stack.Machine) interface{} {
 	}
 
 	meta := &Meta{
-		Region:           s.Credential().Region,
+		// Region:           m.Credential().Region,
 		InstanceID:       m.Attributes["id"],
 		AvailabilityZone: m.Attributes["availability_zone"],
 		PlacementGroup:   m.Attributes["placement_group"],

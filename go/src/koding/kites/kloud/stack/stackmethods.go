@@ -84,7 +84,7 @@ func (m Machines) Slice() []*Machine {
 
 type Template struct {
 	Key     string // unique terraformer key for a given template; optional
-	Content []byte // terraformer template content; required
+	Content string // terraformer template content; required; TODO(rjeczalik): []byte
 }
 
 // Validator validates and returns non-nil error when it's ill-formed.

@@ -78,13 +78,13 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 	return []*stack.Template{t}, nil
 }
 
-func (s *Stack) BuildResources(c *stack.Credential) error {
+func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	t := s.Builder.Template
 	cred := c.Credential.(*Cred)
 	bootstrap := c.Bootstrap.(*Bootstrap)
 
 	if err := s.SetAwsRegion(cred.Region); err != nil {
-		return err
+		return nil, err
 	}
 
 	var resource struct {
@@ -92,14 +92,12 @@ func (s *Stack) BuildResources(c *stack.Credential) error {
 	}
 
 	if err := t.DecodeResource(&resource); err != nil {
-		return err
+		return nil, err
 	}
 
 	if len(resource.AwsInstance) == 0 {
-		return fmt.Errorf("instances are empty: %v", resource.AwsInstance)
+		return nil, fmt.Errorf("instances are empty: %v", resource.AwsInstance)
 	}
-
-	kiteIDs := make(stack.KiteMap, len(resource.AwsInstance))
 
 	for resourceName, instance := range resource.AwsInstance {
 		// Do not overwrite SSH key pair with the bootstrap one
@@ -162,7 +160,7 @@ func (s *Stack) BuildResources(c *stack.Credential) error {
 
 		userdata, err := s.Session.Userdata.Create(userCfg)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		instance["user_data"] = string(userdata)
@@ -173,7 +171,7 @@ func (s *Stack) BuildResources(c *stack.Credential) error {
 		for i, label := range labels {
 			kiteKey, err := s.BuildKiteKey(label, s.Req.Username)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			countKeys[strconv.Itoa(i)] = kiteKey
@@ -189,11 +187,23 @@ func (s *Stack) BuildResources(c *stack.Credential) error {
 	t.Resource["aws_instance"] = resource.AwsInstance
 
 	if err := t.Flush(); err != nil {
-		return err
+		return nil, err
 	}
 
 	// TODO(rjeczalik): move to stackplan
-	return t.ShadowVariables("FORBIDDEN", "aws_access_key", "aws_secret_key")
+	err := t.ShadowVariables("FORBIDDEN", "aws_access_key", "aws_secret_key")
+	if err != nil {
+		return nil, err
+	}
+
+	content, err := t.JsonOutput()
+	if err != nil {
+		return nil, err
+	}
+
+	return &stack.Template{
+		Content: content,
+	}, nil
 }
 
 func (s *Stack) SetAwsRegion(region string) error {
@@ -249,6 +259,6 @@ func newBootstrapTemplate(cfg *bootstrapConfig) (*stack.Template, error) {
 	}
 
 	return &stack.Template{
-		Content: buf.Bytes(),
+		Content: buf.String(),
 	}, nil
 }

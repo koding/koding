@@ -7,7 +7,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-// Authenticate
 func (bs *BaseStack) HandleAuthenticate(ctx context.Context) (interface{}, error) {
 	var arg stack.AuthenticateRequest
 	if err := bs.Req.Args.One().Unmarshal(&arg); err != nil {
@@ -34,7 +33,7 @@ func (bs *BaseStack) HandleAuthenticate(ctx context.Context) (interface{}, error
 			continue // ignore not ours credentials
 		}
 
-		if err := bs.stack.Verify(cred); err != nil {
+		if err := bs.stack.VerifyCredential(cred); err != nil {
 			res.Message = err.Error()
 			continue
 		}

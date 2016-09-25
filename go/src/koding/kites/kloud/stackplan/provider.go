@@ -115,9 +115,9 @@ type ProviderSchema struct {
 }
 
 type Stack interface {
-	Verify(*stack.Credential) error
+	VerifyCredential(*stack.Credential) error
 	BootstrapTemplates(*stack.Credential) ([]*stack.Template, error)
-	Inject(*stack.Credential) error
+	ApplyTemplate(*stack.Credential) (*stack.Template, error)
 }
 
 type Machine interface {
