@@ -236,6 +236,8 @@ module.exports = class JGroup extends Module
           (signature String, String, Function)
         setLimit:
           (signature Object, Function)
+        setOauth:
+          (signature Object, Function)
         fetchApiTokens: [
           (signature Function)
           (signature Object, Function)
@@ -1143,6 +1145,53 @@ module.exports = class JGroup extends Module
         @update { $unset: dataToUpdate }, callback
       else
         @update { $set: dataToUpdate }, callback
+
+
+  setOauth   : permit
+    advanced : [
+      { permission: 'edit own groups', validateWith : Validators.group.admin }
+      { permission: 'edit groups',     superadmin   : yes }
+    ]
+    success: (client, options, callback) ->
+
+      { enabled, provider, url, applicationId, applicationSecret } = options
+
+      # TODO: change this with supported providers ~ GG
+      unless provider in ['gitlab']
+        return callback new KodingError 'Provider not supported at this time.'
+
+      dataToUpdate = {}
+      dataToUpdate["config.#{provider}"] = {}
+
+      # TODO: add remove existing sessions feature here ~ GG
+      if not enabled
+        @update { $unset: dataToUpdate }, callback
+        return
+
+      ip    = require 'ip'
+      parse = require 'url-parse'
+
+      addr  = parse url, true
+
+      if (ip.isV4Format _ip = addr.hostname) and ip.isPrivate _ip
+        return callback new KodingError 'Invalid URL provided'
+
+      dataToUpdate["config.#{provider}"] = {
+        enabled: yes
+        applicationId
+        url
+      }
+
+      @update { $set: dataToUpdate }, (err) =>
+        return callback err  if err
+
+        # TODO: move this to JCredentials
+        @fetchData (err, data) ->
+          return callback err  if err
+
+          dataToSet = {}
+          dataToSet["data.#{provider}"] = { applicationSecret }
+          data.update { $set: dataToSet }, callback
 
 
   modifyMembershipPolicy: permit
