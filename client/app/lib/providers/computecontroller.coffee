@@ -25,6 +25,10 @@ getGroup             = require 'app/util/getGroup'
 createShareModal     = require 'stack-editor/editor/createShareModal'
 isGroupDisabled      = require 'app/util/isGroupDisabled'
 
+ComputeControllerListener = require './computecontrollerlistener'
+{ LOAD } = require 'app/redux/modules/bongo'
+{ setAccess } = require 'app/redux/modules/sidebar/stacks'
+{ modify, sendNotification } = require 'app/redux/modules/group/defaultteamtemplate'
 { actions : HomeActions } = require 'home/flux'
 
 require './config'
@@ -43,6 +47,7 @@ module.exports = class ComputeController extends KDController
     super
 
     { mainController, groupsController, router } = kd.singletons
+    new ComputeControllerListener {}, this
 
     @ui = ComputeController_UI
 
@@ -962,14 +967,14 @@ module.exports = class ComputeController extends KDController
     KiteCache.unset machine.queryString
     delete kontrol.kites?.klient?[machine.uid]
 
-
-  checkStackRevisions: ->
+  checkStackRevisions: (stacks = null) ->
 
     return  if isKoding()
 
     # TMS-1919: This is already written for multiple stacks, code change
     # might be required if existing flow changes ~ GG
 
+    @stacks = stacks  if stacks
     @stacks.forEach (stack) =>
 
       stack.checkRevision (error, data) =>
@@ -980,6 +985,7 @@ module.exports = class ComputeController extends KDController
 
         # console.info "Revision info for stack #{stack.title}", status
         @emit 'StackRevisionChecked', stack
+        @emit 'StackRevisionSuccess', stack._id, error, data
 
         if stack.machines.length isnt machineCount
           @emit 'StacksInconsistent', stack
@@ -1372,7 +1378,24 @@ module.exports = class ComputeController extends KDController
     for selectedProvider in requiredProviders
       break  if selectedProvider in ['aws', 'vagrant']
 
-    selectedProvider ?= (Object.keys credentials ? { aws: yes }).first
-    selectedProvider ?= 'aws'
+    [ key ] = Object.keys credentials
 
-    return selectedProvider
+    return key ? 'aws'
+
+
+  checkStackRevisions2: (stacks = null) ->
+
+    console.log 'checkStackRevisions ', stacks
+    stacks.forEach (stack) =>
+
+      stack.checkRevision (error, data) =>
+
+        data ?= {}
+        { status, machineCount } = data
+        stack._revisionStatus = { error, status }
+
+        # console.info "Revision info for stack #{stack.title}", status
+        @emit 'StackRevisionSuccess', stack._id, error, data
+
+        if stack.machines.length isnt machineCount
+          @emit 'StacksInconsistent', stack

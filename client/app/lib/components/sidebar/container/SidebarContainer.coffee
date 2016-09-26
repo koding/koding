@@ -42,9 +42,8 @@ mapDispatchToProps = (dispatch) ->
     handleRoute: (route) ->
       handleRoute route
 
-    makeTeamDefault: (template, credential) ->
-      makeTeamDefault template, credential, ->
-        console.log 'haydadadas'
+    # makeTeamDefault: (template, credential) ->
+    #   makeTeamDefault template, credential, ->
   }
 
 mapStateToProps = (state) ->
@@ -70,30 +69,30 @@ class SidebarContainer extends React.Component
     @props.store.dispatch({
       types: [ LOAD.BEGIN, LOAD.SUCCESS, LOAD.FAIL ]
       bongo: (remote) -> remote.api.JComputeStack.some({ group })
-    })
+    }).then =>
 
-    @props.store.dispatch({
-      types: [ LOAD.BEGIN, LOAD.SUCCESS, LOAD.FAIL ]
-      bongo: (remote) -> remote.api.JStackTemplate.some({ group }).then (stackTemplates) ->
-        computeController.fetchCredentials stackTemplates
-        return stackTemplates
-    })
+      @props.store.dispatch({
+        types: [ LOAD.BEGIN, LOAD.SUCCESS, LOAD.FAIL ]
+        bongo: (remote) -> remote.api.JStackTemplate.some({ group }).then (stackTemplates) ->
+          computeController.fetchCredentials stackTemplates
+          return stackTemplates
+      }).then =>
 
-    @props.store.dispatch({
-      types: [ LOAD.BEGIN, LOAD.SUCCESS, LOAD.FAIL ]
-      bongo: (remote) -> remote.api.JMachine.some({})
-    })
-    # get current team
-    @props.store.dispatch {
-      types: [LOAD.BEGIN, LOAD.SUCCESS, LOAD.FAIL]
-      bongo: (remote) -> Promise.resolve(remote.revive globals.currentGroup)
-    }
+        @props.store.dispatch({
+          types: [ LOAD.BEGIN, LOAD.SUCCESS, LOAD.FAIL ]
+          bongo: (remote) -> remote.api.JMachine.some({})
+        }).then =>
+
+          # get current team
+          @props.store.dispatch {
+            types: [LOAD.BEGIN, LOAD.SUCCESS, LOAD.FAIL]
+            bongo: (remote) -> Promise.resolve(remote.revive globals.currentGroup)
+          }
 
 
   render: ->
 
-    # console.log 'props', @props
-
+    console.log '@props', @props
     <Sidebar {...@props} />
 
 

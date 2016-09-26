@@ -32,6 +32,8 @@ module.exports = class SidebarStackSection extends React.Component
 
   showMenuItems: (event) ->
 
+    console.log 'event ', event
+
     kd.utils.stopDOMEvent event
 
     { stack } = @props
@@ -42,11 +44,13 @@ module.exports = class SidebarStackSection extends React.Component
       else @onMenuDraftItemClick item, event
 
     menuOptions = { cssClass: 'SidebarMenu', x: 36, y: 102 + 31 }
+    console.log 'menu items ', @props.menuItems
     Object.keys(@props.menuItems).map (item) =>
-
+      console.log 'item ->', item
       @props.menuItems[item] = { callback }
 
     MENU = new kd.ContextMenu menuOptions, @props.menuItems
+    console.log 'MENU ', MENU
 
 
   onMenuDraftItemClick: (item, event) ->

@@ -70,7 +70,7 @@ create = (constructorName, options) ->
 byId = (constructorName, id) -> (state) -> state.bongo[constructorName]?[id]
 
 
-all = (constructorName) -> (state) -> state.bongo[constructorName]
+all = (constructorName) -> (state) -> state?.bongo[constructorName]
 
 
 module.exports = _.assign reducer, {

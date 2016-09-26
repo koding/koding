@@ -9,12 +9,14 @@ module.exports = class ComputeControllerListener extends kd.Object
     { slug: group } = globals.currentGroup
 
     data.on 'StackRevisionSuccess', (_id, error, data) ->
+
       kd.singletons.store.dispatch {
         type: 'STACK_REVISION_SUCCESS'
         result: { _id, data, error }
       }
 
     data.on 'FetchCredentialSuccess', (credential) ->
+      console.log 'fetch credential success'
       kd.singletons.store.dispatch {
         types: [LOAD.BEGIN, LOAD.SUCCESS, LOAD.FAIL]
         bongo: (remote) -> remote.api.JCredential.one credential
