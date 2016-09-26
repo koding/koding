@@ -18,12 +18,10 @@ import (
 	"koding/httputil"
 	"koding/kites/common"
 	"koding/kites/keygen"
-	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/keycreator"
-	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stackplan"
@@ -125,11 +123,10 @@ type Config struct {
 	Public      bool   // Try to register with a public ip
 	RegisterURL string // Explicitly register with this given url
 
+	// TODO(rjeczalik): rework klient.deb lookups in (kloud/userdata).NewBucket
+	// and get rid of aws dependency.
 	AWSAccessKeyId     string
 	AWSSecretAccessKey string
-
-	SLUsername string
-	SLAPIKey   string
 
 	JanitorSecretKey     string
 	VmwatcherSecretKey   string
@@ -360,38 +357,6 @@ func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 	}
 
 	sess.DNSStorage = dnsstorage.NewMongodbStorage(sess.DB)
-
-	if conf.AWSAccessKeyId != "" && conf.AWSSecretAccessKey != "" {
-
-		dnsOpts := &dnsclient.Options{
-			Creds:      c,
-			HostedZone: conf.HostedZone,
-			Log:        logging.NewCustom("kloud-dns", conf.DebugMode),
-			Debug:      conf.DebugMode,
-		}
-
-		dns, err := dnsclient.NewRoute53Client(dnsOpts)
-		if err != nil {
-			return nil, err
-		}
-
-		sess.DNSClient = dns
-
-		opts := &amazon.ClientOptions{
-			Credentials: c,
-			Regions:     amazon.ProductionRegions,
-			Log:         logging.NewCustom("kloud-koding", conf.DebugMode),
-			MaxResults:  int64(conf.MaxResults),
-			Debug:       conf.DebugMode,
-		}
-
-		ec2clients, err := amazon.NewClients(opts)
-		if err != nil {
-			return nil, err
-		}
-
-		sess.AWSClients = ec2clients
-	}
 
 	return sess, nil
 }

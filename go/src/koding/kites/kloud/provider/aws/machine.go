@@ -40,16 +40,16 @@ type Machine struct {
 var _ stackplan.Machine = (*Machine)(nil)
 
 func (m *Machine) Start(ctx context.Context) (interface{}, error) {
-	_, err := m.Session.AWSClient.Start(ctx)
+	_, err := m.AWSClient.Start(ctx)
 	return nil, err
 }
 
 func (m *Machine) Stop(ctx context.Context) (interface{}, error) {
-	return nil, m.Session.AWSClient.Stop(ctx)
+	return nil, m.AWSClient.Stop(ctx)
 }
 
 func (m *Machine) Info(context.Context) (machinestate.State, interface{}, error) {
-	instance, err := m.Session.AWSClient.Instance()
+	instance, err := m.AWSClient.Instance()
 	if amazon.IsNotFound(err) {
 		return machinestate.NotInitialized, nil, nil
 	}
