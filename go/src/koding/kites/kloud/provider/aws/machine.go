@@ -3,6 +3,8 @@ package aws
 import (
 	"errors"
 
+	"github.com/aws/aws-sdk-go/aws"
+
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/stackplan"
@@ -37,16 +39,32 @@ type Machine struct {
 
 var _ stackplan.Machine = (*Machine)(nil)
 
-func (m *Machine) Start(context.Context) (interface{}, error) {
-	return nil, nil
+func (m *Machine) Start(ctx context.Context) (interface{}, error) {
+	_, err := m.Session.AWSClient.Start(ctx)
+	return nil, err
 }
 
-func (m *Machine) Stop(context.Context) (interface{}, error) {
-	return nil, nil
+func (m *Machine) Stop(ctx context.Context) (interface{}, error) {
+	return nil, m.Session.AWSClient.Stop(ctx)
 }
 
 func (m *Machine) Info(context.Context) (machinestate.State, interface{}, error) {
-	return 0, nil, nil
+	instance, err := m.Session.AWSClient.Instance()
+	if amazon.IsNotFound(err) {
+		return machinestate.NotInitialized, nil, nil
+	}
+
+	if err != nil {
+		return 0, nil, err
+	}
+
+	state := amazon.StatusToState(aws.StringValue(instance.State.Name))
+
+	if state == machinestate.Terminating {
+		state = machinestate.Terminated
+	}
+
+	return state, nil, nil
 }
 
 func (m *Machine) Cred() *Cred {
