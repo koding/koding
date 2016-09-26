@@ -123,6 +123,7 @@ func schema(providerName string) *ProviderSchema {
 	if ok && p.Schema != nil {
 		return p.Schema
 	}
+
 	if schema, ok := BuiltinSchemas[providerName]; ok {
 		return schema
 	}
@@ -636,10 +637,10 @@ func makeCreds(init bool, c ...*stack.Credential) map[string]interface{} {
 	if init {
 		for _, c := range c {
 			if c.Credential == nil {
-				c.Credential = schema(c.Provider).NewCredential()
+				c.Credential = schema(c.Provider).newCredential()
 			}
 			if c.Bootstrap == nil {
-				c.Bootstrap = schema(c.Provider).NewBootstrap()
+				c.Bootstrap = schema(c.Provider).newBootstrap()
 			}
 		}
 	}

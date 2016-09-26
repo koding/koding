@@ -179,8 +179,12 @@ func (p *Provider) resourceName() string {
 }
 
 func (p *Provider) newCredential() interface{} {
-	if p.Schema != nil && p.Schema.NewCredential != nil {
-		return p.Schema.NewCredential()
+	return p.Schema.newCredential()
+}
+
+func (ps *ProviderSchema) newCredential() interface{} {
+	if ps != nil && ps.NewCredential != nil {
+		return ps.NewCredential()
 	}
 
 	if DefaultSchema != nil && DefaultSchema.NewCredential != nil {
@@ -191,8 +195,12 @@ func (p *Provider) newCredential() interface{} {
 }
 
 func (p *Provider) newBootstrap() interface{} {
-	if p.Schema != nil && p.Schema.NewBootstrap != nil {
-		return p.Schema.NewBootstrap()
+	return p.Schema.newBootstrap()
+}
+
+func (ps *ProviderSchema) newBootstrap() interface{} {
+	if ps != nil && ps.NewBootstrap != nil {
+		return ps.NewBootstrap()
 	}
 
 	if DefaultSchema != nil && DefaultSchema.NewBootstrap != nil {
@@ -203,8 +211,12 @@ func (p *Provider) newBootstrap() interface{} {
 }
 
 func (p *Provider) newMetadata(m *stack.Machine) interface{} {
-	if p.Schema != nil && p.Schema.NewMetadata != nil {
-		return p.Schema.NewMetadata(m)
+	return p.Schema.newMetadata(m)
+}
+
+func (ps *ProviderSchema) newMetadata(m *stack.Machine) interface{} {
+	if ps != nil && ps.NewMetadata != nil {
+		return ps.NewMetadata(m)
 	}
 
 	if DefaultSchema != nil && DefaultSchema.NewMetadata != nil {
