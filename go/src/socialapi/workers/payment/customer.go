@@ -7,9 +7,9 @@ import (
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"koding/helpers"
+	socialapimodels "socialapi/models"
+	"time"
 
-	"gopkg.in/fatih/set.v0"
 	"gopkg.in/mgo.v2/bson"
 
 	"github.com/stripe/stripe-go"
@@ -35,6 +35,7 @@ type Usage struct {
 	Due             uint64
 	NextBillingDate time.Time
 	Subscription    *stripe.Sub
+	Customer        *stripe.Customer
 }
 
 // UserInfo holds current info about team's user info
@@ -150,14 +151,7 @@ func fetchParallelizableeUsageItems(group *models.Group) (*Usage, error) {
 	// Active users count.
 	var activeCount int
 	g.Go(func() (err error) {
-		activeCount, err = calculateActiveUserCount(group.Id)
-		return err
-	})
-
-	// Deleted members count.
-	var deletedCount int
-	g.Go(func() (err error) {
-		deletedCount, err = modelhelper.GetDeletedMemberCountByGroupId(group.Id)
+		activeCount, err = (&socialapimodels.PresenceDaily{}).CountDistinctByGroupName(group.Slug)
 		return err
 	})
 
@@ -165,24 +159,15 @@ func fetchParallelizableeUsageItems(group *models.Group) (*Usage, error) {
 		return nil, err
 	}
 
-	totalCount := activeCount + deletedCount
-
-	// if the team is in trialing period, and when we want to charge them, do
-	// not include the deleted members
-	if subscription.Status == "trialing" {
-		totalCount = activeCount
-	}
-
 	usage := &Usage{
 		User: &UserInfo{
-			Total:   totalCount,
-			Active:  activeCount,
-			Deleted: deletedCount,
+			Total: activeCount,
 		},
 		ExpectedPlan:    nil,
 		Due:             0,
 		NextBillingDate: time.Unix(subscription.PeriodEnd, 0),
 		Subscription:    subscription,
+		Customer:        cus,
 	}
 
 	return usage, nil
@@ -218,64 +203,6 @@ func createFilter(groupID bson.ObjectId) modelhelper.Selector {
 		"sourceName": "JGroup",
 		"sourceId":   groupID,
 	}
-}
-
-// calculateActiveUserCount calculates the active user count from the
-// relationship collection. I tried using map-reduce first but that was so
-// magical from  engineering perspective and we dont have any other usage of it
-// in our system. Then i implemented it using "aggregate" framework, that worked
-// pretty well indeed but it is fetching all the records from database at once,
-// so decided to use our battle tested iter support, it handles iterations, bulk
-// operations, timeouts. We are actively using it for iterating over millions of
-// records without hardening on the database.
-//
-//
-// Sample aggregate function
-//
-// db.relationships.aggregate([
-//     { "$match": { as: { $in : [ "owner", "admin", "member" ] }, targetName:"JAccount", sourceName:"JGroup", sourceId: ObjectId("") }},
-//     // Count all occurrences
-//     { "$group": {
-//         "_id": {
-//             "targetId": "$targetId"
-//         },
-//         "count": { "$sum": 1 }
-//     }},
-//     // Sum all occurrences and count distinct
-//     { "$group": {
-//         "_id": {
-//             "targetId": "$_id.targetId"
-//         },
-//         "totalCount": { "$sum": "$count" },
-//         "distinctCount": { "$sum": 1 }
-//     }}
-// ])
-//
-func calculateActiveUserCount(groupID bson.ObjectId) (int, error) {
-	accounts := set.New()
-
-	iterOptions := helpers.NewIterOptions()
-	iterOptions.F = func(rel interface{}) error {
-		result, ok := rel.(*models.Relationship)
-		if !ok {
-			return errors.New("not a relationship")
-		}
-		accounts.Add(result.TargetId)
-		return nil
-	}
-	iterOptions.CollectionName = modelhelper.RelationshipColl
-	iterOptions.Filter = createFilter(groupID)
-	iterOptions.Result = &models.Relationship{}
-	iterOptions.Limit = 0
-	iterOptions.Skip = 0
-	// iterOptions.Log = log
-
-	err := helpers.Iter(modelhelper.Mongo, iterOptions)
-	if err != nil {
-		return 0, err
-	}
-
-	return accounts.Size(), nil
 }
 
 // CreateCustomerForGroup registers a customer for a group
