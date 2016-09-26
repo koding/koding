@@ -97,7 +97,7 @@ type GenericMeta map[string]interface{}
 
 // BuiltinSchemas is a global lookup map used to initialize meta values for
 // jCredentialDatas document, per provider.
-var BuiltinSchemas = map[string]*ProviderSchema{
+var BuiltinSchemas = map[string]*Schema{
 	"koding": {
 		NewCredential: func() interface{} { return &KodingMeta{} },
 		NewBootstrap:  func() interface{} { return nil },
@@ -115,7 +115,7 @@ var BuiltinSchemas = map[string]*ProviderSchema{
 // metaFunc returns a meta object builder by looking up registered providers.
 //
 // If no builder was found it returns a builder GenericMeta.
-func schema(providerName string) *ProviderSchema {
+func schema(providerName string) *Schema {
 	providersMu.RLock()
 	p, ok := providers[providerName]
 	providersMu.RUnlock()
@@ -158,7 +158,7 @@ type Builder struct {
 	Object    *object.Builder
 	CredStore credential.Store
 	Log       logging.Logger
-	Schema    map[string]*ProviderSchema
+	Schema    map[string]*Schema
 
 	// Fields being built:
 	Stack       *stack.Stack

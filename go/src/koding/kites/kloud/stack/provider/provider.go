@@ -75,11 +75,11 @@ type Provider struct {
 	// Schema
 	//
 	// If nil, DefaultSchema will be used instead.
-	Schema *ProviderSchema
+	Schema *Schema
 }
 
 // DefaultSchema TODO!
-var DefaultSchema = &ProviderSchema{
+var DefaultSchema = &Schema{
 	NewCredential: func() interface{} { return make(map[string]interface{}) },
 	NewBootstrap:  nil,
 	NewMetadata: func(m *stack.Machine) interface{} {
@@ -91,7 +91,7 @@ var DefaultSchema = &ProviderSchema{
 	},
 }
 
-type ProviderSchema struct {
+type Schema struct {
 	// NewCredential
 	//
 	// If either NewCredential field or the returned credential
@@ -182,7 +182,7 @@ func (p *Provider) newCredential() interface{} {
 	return p.Schema.newCredential()
 }
 
-func (ps *ProviderSchema) newCredential() interface{} {
+func (ps *Schema) newCredential() interface{} {
 	if ps != nil && ps.NewCredential != nil {
 		return ps.NewCredential()
 	}
@@ -198,7 +198,7 @@ func (p *Provider) newBootstrap() interface{} {
 	return p.Schema.newBootstrap()
 }
 
-func (ps *ProviderSchema) newBootstrap() interface{} {
+func (ps *Schema) newBootstrap() interface{} {
 	if ps != nil && ps.NewBootstrap != nil {
 		return ps.NewBootstrap()
 	}
@@ -214,7 +214,7 @@ func (p *Provider) newMetadata(m *stack.Machine) interface{} {
 	return p.Schema.newMetadata(m)
 }
 
-func (ps *ProviderSchema) newMetadata(m *stack.Machine) interface{} {
+func (ps *Schema) newMetadata(m *stack.Machine) interface{} {
 	if ps != nil && ps.NewMetadata != nil {
 		return ps.NewMetadata(m)
 	}
