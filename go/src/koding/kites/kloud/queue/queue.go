@@ -44,8 +44,16 @@ func (q *Queue) Run() {
 	defer t.Stop()
 
 	for range t.C {
+		q.Log.Debug("queue interval hit")
+
 		for _, s := range q.stackers {
-			go q.Check(s)
+			q.Log.Debug("queue running checker for %q provider", s.Provider.Name)
+
+			go func() {
+				if err := q.Check(s); err != nil {
+					q.Log.Debug("failed to check %q provider: %s", s.Provider.Name, err)
+				}
+			}()
 		}
 	}
 }
@@ -83,13 +91,8 @@ func (q *Queue) FetchProvider(provider string, machine interface{}) error {
 		// We sort according to the latest assignment date, which let's us pick
 		// always the oldest one instead of random/first. Returning an error
 		// means there is no document that matches our criteria.
-		// err := c.Find(egligibleMachines).Sort("assignee.assignedAt").One(&machine)
-		_, err := c.Find(egligibleMachines).Sort("assignee.assignedAt").Apply(update, machine)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		_, err := c.Find(egligibleMachines).Sort("assignee.assignedAt").Limit(1).Apply(update, machine)
+		return err
 	}
 
 	return q.MongoDB.Run("jMachines", query)
@@ -120,6 +123,8 @@ func (q *Queue) Check(s *stackplan.Stacker) error {
 
 	err := q.FetchProvider(s.Provider.Name, &m)
 	if err != nil {
+		q.Log.Debug("no running machines for %q provider found", s.Provider.Name)
+
 		// do not show an error if the query didn't find anything, that
 		// means there is no such a document, which we don't care
 		if err == mgo.ErrNotFound {

@@ -371,6 +371,13 @@ func (bs *BaseStack) UpdateResources(state *terraform.State) error {
 			continue
 		}
 
+		if cred, err := bs.Builder.CredentialByProvider(machine.Provider); err == nil {
+			machine.Credential = cred
+		} else {
+			err = multierror.Append(err, fmt.Errorf("machine %q: no credential found for %q provider", label, machine.Provider))
+			machine.Credential = &stack.Credential{}
+		}
+
 		state, ok := bs.Klients[label]
 		if !ok {
 			err = multierror.Append(err, fmt.Errorf("machine %q does not exist in dial state", label))

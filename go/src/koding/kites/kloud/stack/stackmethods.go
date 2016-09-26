@@ -52,6 +52,7 @@ type Machine struct {
 	Provider   string            `json:"provider"`
 	Label      string            `json:"label"`
 	Attributes map[string]string `json:"attributes"`
+	Credential *Credential       `json:"-"`
 
 	// Fields set by kloud.apply:
 	QueryString string             `json:"queryString,omitempty"`

@@ -72,7 +72,6 @@ func newMetadata(m *stack.Machine) interface{} {
 	}
 
 	meta := &Meta{
-		// Region:           m.Credential().Region,
 		InstanceID:       m.Attributes["id"],
 		AvailabilityZone: m.Attributes["availability_zone"],
 		PlacementGroup:   m.Attributes["placement_group"],
@@ -80,6 +79,10 @@ func newMetadata(m *stack.Machine) interface{} {
 
 	if n, err := strconv.Atoi(m.Attributes["root_block_device.0.volume_size"]); err == nil {
 		meta.StorageSize = n
+	}
+
+	if cred, ok := m.Credential.Credential.(*Cred); ok {
+		meta.Region = cred.Region
 	}
 
 	return meta
