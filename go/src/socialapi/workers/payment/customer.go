@@ -3,11 +3,11 @@ package payment
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/helpers"
-	"sync"
-	"time"
 
 	"gopkg.in/fatih/set.v0"
 	"gopkg.in/mgo.v2/bson"
@@ -16,6 +16,7 @@ import (
 	"github.com/stripe/stripe-go/customer"
 	stripeplan "github.com/stripe/stripe-go/plan"
 	"github.com/stripe/stripe-go/sub"
+	"golang.org/x/sync/errgroup"
 )
 
 var (
@@ -122,30 +123,11 @@ func GetInfoForGroup(group *models.Group) (*Usage, error) {
 }
 
 func fetchParallelizableeUsageItems(group *models.Group) (*Usage, error) {
-	var infoErr error
-	var errMu sync.Mutex
-	var wg sync.WaitGroup
+	var g errgroup.Group
 
-	withCheck := func(f func() error) {
-		errMu.Lock()
-		if infoErr != nil {
-			errMu.Unlock()
-			return
-		}
-		errMu.Unlock()
-
-		err := f()
-		if err != nil {
-			errMu.Lock()
-			infoErr = err
-			errMu.Unlock()
-		}
-		wg.Done()
-	}
-
+	// Stripe customer.
 	var cus *stripe.Customer
-	wg.Add(1)
-	go withCheck(func() (err error) {
+	g.Go(func() (err error) {
 		if group.Payment.Customer.ID == "" {
 			return ErrCustomerNotExists
 		}
@@ -154,9 +136,9 @@ func fetchParallelizableeUsageItems(group *models.Group) (*Usage, error) {
 		return err
 	})
 
+	// Stripe subscription.
 	var subscription *stripe.Sub
-	wg.Add(1)
-	go withCheck(func() (err error) {
+	g.Go(func() (err error) {
 		if group.Payment.Subscription.ID == "" {
 			return ErrCustomerNotSubscribedToAnyPlans
 		}
@@ -165,24 +147,22 @@ func fetchParallelizableeUsageItems(group *models.Group) (*Usage, error) {
 		return err
 	})
 
+	// Active users count.
 	var activeCount int
-	wg.Add(1)
-	go withCheck(func() (err error) {
+	g.Go(func() (err error) {
 		activeCount, err = calculateActiveUserCount(group.Id)
 		return err
 	})
 
+	// Deleted members count.
 	var deletedCount int
-	wg.Add(1)
-	go withCheck(func() (err error) {
+	g.Go(func() (err error) {
 		deletedCount, err = modelhelper.GetDeletedMemberCountByGroupId(group.Id)
 		return err
 	})
 
-	wg.Wait()
-
-	if infoErr != nil {
-		return nil, infoErr
+	if err := g.Wait(); err != nil {
+		return nil, err
 	}
 
 	totalCount := activeCount + deletedCount
