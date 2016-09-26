@@ -145,9 +145,8 @@ type BaseStack struct {
 	KlientIDs stack.KiteMap
 	Klients   map[string]*DialState
 
-	Debug      bool
-	TraceID    string
-	Identifier string
+	Debug   bool
+	TraceID string
 
 	stack Stack
 }

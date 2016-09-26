@@ -402,13 +402,15 @@ func (bs *BaseStack) buildUpdateObj(m *stack.Machine, s *DialState, now time.Tim
 
 	obj := object.MetaBuilder.Build(bs.Provider.newMetadata(m))
 
-	obj["credential"] = bs.Identifier
-	obj["provider"] = bs.Planner.Provider
+	obj["credential"] = m.Credential.Identifier
+	obj["provider"] = bs.Provider.Name
 	obj["queryString"] = m.QueryString
 	obj["ipAddress"] = ipAddress
 	obj["status.modifiedAt"] = now
 	obj["status.state"] = m.State.String()
 	obj["status.reason"] = m.StateReason
+
+	bs.Log.Debug("update object for %q: %+v", m.Label, obj)
 
 	return bson.M(obj)
 }

@@ -164,5 +164,7 @@ func (bm *BaseMachine) updateMachine(state *DialState, meta interface{}, dbState
 	obj["status.state"] = dbState.String()
 	obj["status.reason"] = "Machine is " + dbState.String()
 
+	bm.Log.Debug("update object for %q: %+v", bm.Label, obj)
+
 	return modelhelper.UpdateMachine(bm.ObjectId, bson.M{"$set": obj})
 }
