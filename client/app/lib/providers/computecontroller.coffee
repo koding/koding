@@ -1360,7 +1360,7 @@ module.exports = class ComputeController extends KDController
     template.clone (err, stackTemplate) ->
       if err
         return new kd.NotificationView
-          title: "Error Occured while Cloning Template"
+          title: 'Error Occured while Cloning Template'
 
       Tracker.track Tracker.STACKS_CLONED_TEMPLATE
       reactor.dispatch actionTypes.UPDATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
