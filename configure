@@ -26,9 +26,7 @@ defaults options,
   projectRoot: __dirname
   config: defaultEnv
   region: defaultEnv
-  build: 1
   environment: defaultEnv
-  onlyconfigure: no
   deploy: no
   ebEnvName: defaultEnv
   envFileName: '.env'
@@ -43,7 +41,6 @@ rest = ->
   options.publicHostname = argv.publichostname or "http://#{options.hostname}:#{options.publicPort or '8090'}"
   # if git commit id consists only numbers, js converts it to number
   options.version        = "#{options.version or version or "1.0"}"
-  options.tag            = options.tag     or version or "1.0"
 
   log "Configuring with options:"
   log "-------------------------"
