@@ -10,7 +10,6 @@ import (
 
 	"github.com/koding/logging"
 
-	"koding/kites/kloud/provider"
 	"koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/stackplan"
 )
@@ -384,7 +383,7 @@ func TestTerraformTemplate_SetAWSRegion(t *testing.T) {
 	}
 
 	// TODO(rjeczalik): move the test to provider/aws
-	s := &awsprovider.Stack{BaseStack: &provider.BaseStack{Builder: &stackplan.Builder{Template: template}}}
+	s := &aws.Stack{BaseStack: &stackplan.BaseStack{Builder: &stackplan.Builder{Template: template}}}
 	if err := s.SetAwsRegion("us-east-1"); err != nil {
 		t.Fatal(err)
 	}
