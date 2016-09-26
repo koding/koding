@@ -209,7 +209,7 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 func (s *Stack) SetAwsRegion(region string) error {
 	t := s.Builder.Template
 
-	var provider struct {
+	var p struct {
 		Aws struct {
 			Region    string `hcl:"region"`
 			AccessKey string `hcl:"access_key"`
@@ -217,19 +217,19 @@ func (s *Stack) SetAwsRegion(region string) error {
 		}
 	}
 
-	if err := t.DecodeProvider(&provider); err != nil {
+	if err := t.DecodeProvider(&p); err != nil {
 		return err
 	}
 
-	if provider.Aws.Region == "" {
+	if p.Aws.Region == "" {
 		t.Provider["aws"] = map[string]interface{}{
 			"region":     region,
-			"access_key": provider.Aws.AccessKey,
-			"secret_key": provider.Aws.SecretKey,
+			"access_key": p.Aws.AccessKey,
+			"secret_key": p.Aws.SecretKey,
 		}
-	} else if !stackplan.IsVariable(provider.Aws.Region) && provider.Aws.Region != region {
+	} else if !stackplan.IsVariable(p.Aws.Region) && p.Aws.Region != region {
 		return fmt.Errorf("region is already set as '%s'. Can't override it with: %s",
-			provider.Aws.Region, region)
+			p.Aws.Region, region)
 	}
 
 	return t.Flush()

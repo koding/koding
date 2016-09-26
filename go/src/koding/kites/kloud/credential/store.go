@@ -1,4 +1,4 @@
-package stackcred
+package credential
 
 import (
 	"fmt"

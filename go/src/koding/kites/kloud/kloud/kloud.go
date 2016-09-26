@@ -20,12 +20,12 @@ import (
 	"koding/kites/keygen"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/credential"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stackplan"
-	"koding/kites/kloud/stackplan/stackcred"
 	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
 
@@ -182,7 +182,7 @@ func New(conf *Config) (*Kloud, error) {
 		sess.Log.Warning(`disabling "Sneaker" for storing stack credential data`)
 	}
 
-	storeOpts := &stackcred.StoreOptions{
+	storeOpts := &credential.StoreOptions{
 		MongoDB: sess.DB,
 		Log:     sess.Log.New("stackcred"),
 		CredURL: credURL,
@@ -196,7 +196,7 @@ func New(conf *Config) (*Kloud, error) {
 		Userdata:       sess.Userdata,
 		Debug:          conf.DebugMode,
 		KloudSecretKey: conf.KloudSecretKey,
-		CredStore:      stackcred.NewStore(storeOpts),
+		CredStore:      credential.NewStore(storeOpts),
 		TunnelURL:      conf.TunnelURL,
 	}
 

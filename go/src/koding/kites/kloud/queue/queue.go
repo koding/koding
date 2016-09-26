@@ -164,8 +164,8 @@ func (q *Queue) Check(s *stackplan.Stacker) error {
 	}
 }
 
-func (q *Queue) CheckUsage(provider string, m stackplan.Machine, bm *stackplan.BaseMachine, ctx context.Context) error {
-	q.Log.Debug("Checking %q machine\n%+v\n", provider, bm.Machine)
+func (q *Queue) CheckUsage(providerName string, m stackplan.Machine, bm *stackplan.BaseMachine, ctx context.Context) error {
+	q.Log.Debug("Checking %q machine\n%+v\n", providerName, bm.Machine)
 
 	c, err := klient.Connect(q.Kite, bm.QueryString)
 	if err != nil {

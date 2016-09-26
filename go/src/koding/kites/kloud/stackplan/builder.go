@@ -9,8 +9,8 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/credential"
 	"koding/kites/kloud/stack"
-	"koding/kites/kloud/stackplan/stackcred"
 	"koding/kites/kloud/utils/object"
 
 	"github.com/koding/logging"
@@ -135,7 +135,7 @@ func schema(providerName string) *ProviderSchema {
 type BuilderOptions struct {
 	Log       logging.Logger
 	Database  Database
-	CredStore stackcred.Store
+	CredStore credential.Store
 }
 
 func (opts *BuilderOptions) defaults() *BuilderOptions {
@@ -156,7 +156,7 @@ func (opts *BuilderOptions) defaults() *BuilderOptions {
 type Builder struct {
 	Database  *DatabaseBuilder
 	Object    *object.Builder
-	CredStore stackcred.Store
+	CredStore credential.Store
 	Log       logging.Logger
 	Schema    map[string]*ProviderSchema
 

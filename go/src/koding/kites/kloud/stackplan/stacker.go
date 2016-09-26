@@ -11,10 +11,10 @@ import (
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/credential"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/stack"
-	"koding/kites/kloud/stackplan/stackcred"
 	"koding/kites/kloud/userdata"
 	"koding/kites/kloud/utils/object"
 
@@ -52,7 +52,7 @@ type Stacker struct {
 	TunnelURL      string
 
 	Userdata  *userdata.Userdata
-	CredStore stackcred.Store
+	CredStore credential.Store
 }
 
 func (s *Stacker) New(p *Provider) *Stacker {

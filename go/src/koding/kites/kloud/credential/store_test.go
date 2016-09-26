@@ -1,10 +1,10 @@
-package stackcred_test
+package credential_test
 
 import (
 	"reflect"
 	"testing"
 
-	"koding/kites/kloud/stackplan/stackcred"
+	"koding/kites/kloud/credential"
 )
 
 func TestFallbackFetcher(t *testing.T) {
@@ -18,7 +18,7 @@ func TestFallbackFetcher(t *testing.T) {
 		"cred4": "data4",
 	}
 
-	s := stackcred.NewFallbackFetcher(s1, s2)
+	s := credential.NewFallbackFetcher(s1, s2)
 
 	got := map[string]interface{}{
 		"cred1": nil,
@@ -46,7 +46,7 @@ func TestFallbackFetcher(t *testing.T) {
 		"credX": nil,
 	}
 
-	err, ok := s.Fetch("", notfound).(*stackcred.NotFoundError)
+	err, ok := s.Fetch("", notfound).(*credential.NotFoundError)
 	if !ok {
 		t.Fatalf("expected err to be NotFoundError, was %T", err)
 	}
@@ -65,7 +65,7 @@ func TestTeeFetcher(t *testing.T) {
 
 	p := Creds{}
 
-	s := stackcred.TeeFetcher{f, p}
+	s := credential.TeeFetcher{f, p}
 
 	got := map[string]interface{}{
 		"cred1": nil,
@@ -89,7 +89,7 @@ func TestTeeFetcher(t *testing.T) {
 func TestMultiPutter(t *testing.T) {
 	s1, s2 := Creds{}, Creds{}
 
-	s := stackcred.NewMultiPutter(s1, s2)
+	s := credential.NewMultiPutter(s1, s2)
 
 	want := map[string]interface{}{
 		"cred1": "data1",
@@ -122,7 +122,7 @@ func TestMigratingStore(t *testing.T) {
 		"cred4": "data4",
 	}
 
-	s := stackcred.MigratingStore(src, dst)
+	s := credential.MigratingStore(src, dst)
 
 	got := map[string]interface{}{
 		"cred1": nil,
@@ -147,7 +147,7 @@ func TestMigratingStore(t *testing.T) {
 		"cred4": "data4",
 	}
 
-	err, ok := s.Fetch("", got).(*stackcred.NotFoundError)
+	err, ok := s.Fetch("", got).(*credential.NotFoundError)
 	if !ok {
 		t.Fatalf("expected err to be NotFoundError, was %T", err)
 	}
@@ -167,7 +167,7 @@ func TestMigratingStore(t *testing.T) {
 
 type Creds map[string]interface{}
 
-var _ stackcred.Store = Creds(nil)
+var _ credential.Store = Creds(nil)
 
 func (c Creds) Fetch(_ string, creds map[string]interface{}) error {
 	var missing []string
@@ -183,7 +183,7 @@ func (c Creds) Fetch(_ string, creds map[string]interface{}) error {
 	}
 
 	if len(missing) != 0 {
-		return &stackcred.NotFoundError{
+		return &credential.NotFoundError{
 			Identifiers: missing,
 		}
 	}
