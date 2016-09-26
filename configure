@@ -14,8 +14,6 @@ log "# ./configure assumes development environment - comes bundled with options 
 log "# override them as you see fit with command line arguments like --config --branch etc."
 log ""
 
-version = undefined
-
 # clone all the arguments to options
 options = extend {}, argv
 
@@ -31,8 +29,6 @@ options.sendEventsToSegment = if argv['disable-segment'] then off else on
 
 rest = ->
   options.publicHostname = argv.publichostname or "http://#{options.hostname}:#{options.publicPort or '8090'}"
-  # if git commit id consists only numbers, js converts it to number
-  options.version        = "#{options.version or version or "1.0"}"
 
   log "Configuring with options:"
   log "-------------------------"
@@ -139,10 +135,10 @@ updateVault = ->
     rest()
 
 try
-  version = require('git-rev-sync').short()
+  options.version = require('git-rev-sync').short()
 catch
   try
-    version = fs.readFileSync(path.join(__dirname, './VERSION'), 'utf-8').trim()
+    options.version = fs.readFileSync(path.join(__dirname, './VERSION'), 'utf-8').trim()
 
 if argv.hostname
   options.hostname = argv.hostname

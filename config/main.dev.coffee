@@ -23,7 +23,6 @@ Configuration = (options = {}) ->
   options.configName or= 'dev'
   options.environment or= 'dev'
   options.projectRoot or= path.join __dirname, '/..'
-  options.version or= '2.0' # TBD
   options.tunnelHostedZoneName = 'dev-t.koding.com'
   options.tunnelHostedZoneCallerRef = 'devtunnelproxy_hosted_zone_v0'
   options.tunnelserverHostedZone or= 'dev.koding.me'
