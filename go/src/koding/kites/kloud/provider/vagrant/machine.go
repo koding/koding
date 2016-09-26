@@ -5,14 +5,14 @@ import (
 	"koding/kites/kloud/api/vagrantapi"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/stackplan"
+	"koding/kites/kloud/stack/provider"
 
 	"github.com/koding/kite"
 	"golang.org/x/net/context"
 )
 
 type Machine struct {
-	*stackplan.BaseMachine
+	*provider.BaseMachine
 	api *vagrantapi.Klient `bson:"-"`
 }
 

@@ -1,4 +1,4 @@
-package stackplan
+package provider
 
 import (
 	"time"

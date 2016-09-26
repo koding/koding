@@ -11,7 +11,7 @@ import (
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/stackplan"
+	"koding/kites/kloud/stack/provider"
 	"koding/kites/kloud/utils/object"
 
 	"github.com/koding/kite"
@@ -32,7 +32,7 @@ type Queue struct {
 	MongoDB  *mongodb.MongoDB
 	Kite     *kite.Kite
 
-	stackers map[string]*stackplan.Stacker
+	stackers map[string]*provider.Stacker
 }
 
 // RunChecker runs the checker for Koding and AWS providers every given
@@ -49,7 +49,7 @@ func (q *Queue) Run() {
 		for _, s := range q.stackers {
 			q.Log.Debug("queue running checker for %q provider", s.Provider.Name)
 
-			go func(s *stackplan.Stacker) {
+			go func(s *provider.Stacker) {
 				if err := q.Check(s); err != nil {
 					q.Log.Debug("failed to check %q provider: %s", s.Provider.Name, err)
 				}
@@ -98,9 +98,9 @@ func (q *Queue) FetchProvider(provider string, machine interface{}) error {
 	return q.MongoDB.Run("jMachines", query)
 }
 
-func (q *Queue) Register(s *stackplan.Stacker) {
+func (q *Queue) Register(s *provider.Stacker) {
 	if q.stackers == nil {
-		q.stackers = make(map[string]*stackplan.Stacker)
+		q.stackers = make(map[string]*provider.Stacker)
 	}
 
 	if _, ok := q.stackers[s.Provider.Name]; ok {
@@ -118,7 +118,7 @@ func (q *Queue) interval() time.Duration {
 	return defaultInterval
 }
 
-func (q *Queue) Check(s *stackplan.Stacker) error {
+func (q *Queue) Check(s *provider.Stacker) error {
 	var m models.Machine
 
 	err := q.FetchProvider(s.Provider.Name, &m)
@@ -164,7 +164,7 @@ func (q *Queue) Check(s *stackplan.Stacker) error {
 	}
 }
 
-func (q *Queue) CheckUsage(providerName string, m stackplan.Machine, bm *stackplan.BaseMachine, ctx context.Context) error {
+func (q *Queue) CheckUsage(providerName string, m provider.Machine, bm *provider.BaseMachine, ctx context.Context) error {
 	q.Log.Debug("Checking %q machine\n%+v\n", providerName, bm.Machine)
 
 	c, err := klient.Connect(q.Kite, bm.QueryString)

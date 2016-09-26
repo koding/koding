@@ -3,11 +3,11 @@ package aws
 import (
 	"text/template"
 
-	"koding/kites/kloud/stackplan"
+	"koding/kites/kloud/stack/provider"
 )
 
 // Provider exports the p for tests purposes.
-func Provider() *stackplan.Provider {
+func Provider() *provider.Provider {
 	return p
 }
 

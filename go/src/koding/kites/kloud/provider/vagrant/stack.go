@@ -14,7 +14,7 @@ import (
 	"koding/kites/kloud/api/vagrantapi"
 	puser "koding/kites/kloud/scripts/provisionklient/userdata"
 	"koding/kites/kloud/stack"
-	"koding/kites/kloud/stackplan"
+	"koding/kites/kloud/stack/provider"
 	"koding/kites/kloud/utils"
 	"koding/klient/tunnel"
 
@@ -35,7 +35,7 @@ type Tunnel struct {
 
 // Stack provides an implementation for the kloud.Stacker interface.
 type Stack struct {
-	*stackplan.BaseStack
+	*provider.BaseStack
 
 	// TunnelURL for klient connection inside vagrant boxes.
 	TunnelURL *url.URL
@@ -237,7 +237,7 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	}, nil
 }
 
-func (s *Stack) machinesFromTemplate(t *stackplan.Template) (stack.Machines, error) {
+func (s *Stack) machinesFromTemplate(t *provider.Template) (stack.Machines, error) {
 	var res VagrantResource
 	if err := t.DecodeResource(&res); err != nil {
 		return nil, err
@@ -252,13 +252,13 @@ func (s *Stack) machinesFromTemplate(t *stackplan.Template) (stack.Machines, err
 			Attributes: make(map[string]string),
 		}
 
-		if cpus, ok := box["cpus"].(string); ok && !stackplan.IsVariable(cpus) {
+		if cpus, ok := box["cpus"].(string); ok && !provider.IsVariable(cpus) {
 			m.Attributes["cpus"] = cpus
 		}
-		if mem, ok := box["memory"].(string); ok && !stackplan.IsVariable(mem) {
+		if mem, ok := box["memory"].(string); ok && !provider.IsVariable(mem) {
 			m.Attributes["memory"] = mem
 		}
-		if typ, ok := box["box"].(string); ok && !stackplan.IsVariable(typ) {
+		if typ, ok := box["box"].(string); ok && !provider.IsVariable(typ) {
 			m.Attributes["box"] = typ
 		}
 

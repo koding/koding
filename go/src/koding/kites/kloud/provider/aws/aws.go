@@ -8,7 +8,7 @@ import (
 
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/stack"
-	"koding/kites/kloud/stackplan"
+	"koding/kites/kloud/stack/provider"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -18,12 +18,12 @@ import (
 
 const arnPrefix = "arn:aws:iam::"
 
-var p = &stackplan.Provider{
+var p = &provider.Provider{
 	Name:         "aws",
 	ResourceName: "instance",
 	Machine:      newMachine,
 	Stack:        newStack,
-	Schema: &stackplan.ProviderSchema{
+	Schema: &provider.ProviderSchema{
 		NewCredential: newCredential,
 		NewBootstrap:  newBootstrap,
 		NewMetadata:   newMetadata,
@@ -31,10 +31,10 @@ var p = &stackplan.Provider{
 }
 
 func init() {
-	stackplan.Register(p)
+	provider.Register(p)
 }
 
-func newMachine(bm *stackplan.BaseMachine) (stackplan.Machine, error) {
+func newMachine(bm *provider.BaseMachine) (provider.Machine, error) {
 	m := &Machine{BaseMachine: bm}
 	cred := m.Cred()
 
@@ -54,7 +54,7 @@ func newMachine(bm *stackplan.BaseMachine) (stackplan.Machine, error) {
 	return m, nil
 }
 
-func newStack(bs *stackplan.BaseStack) (stackplan.Stack, error) {
+func newStack(bs *provider.BaseStack) (provider.Stack, error) {
 	return &Stack{BaseStack: bs}, nil
 }
 

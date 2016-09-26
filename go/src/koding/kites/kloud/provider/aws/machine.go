@@ -7,7 +7,7 @@ import (
 
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/stackplan"
+	"koding/kites/kloud/stack/provider"
 
 	"golang.org/x/net/context"
 )
@@ -32,12 +32,12 @@ func (mt *Meta) Valid() error {
 // Machine represents a single MongodDB document from the jMachines
 // collection.
 type Machine struct {
-	*stackplan.BaseMachine
+	*provider.BaseMachine
 
 	AWSClient *amazon.Amazon
 }
 
-var _ stackplan.Machine = (*Machine)(nil)
+var _ provider.Machine = (*Machine)(nil)
 
 func (m *Machine) Start(ctx context.Context) (interface{}, error) {
 	_, err := m.AWSClient.Start(ctx)

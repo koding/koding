@@ -9,7 +9,7 @@ import (
 
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/stack"
-	"koding/kites/kloud/stackplan"
+	"koding/kites/kloud/stack/provider"
 	"koding/kites/kloud/userdata"
 )
 
@@ -27,10 +27,10 @@ type bootstrapConfig struct {
 
 // Stack implements the stackplan.Stack interface.
 type Stack struct {
-	*stackplan.BaseStack
+	*provider.BaseStack
 }
 
-var _ stackplan.Stack = (*Stack)(nil)
+var _ provider.Stack = (*Stack)(nil)
 
 func (s *Stack) VerifyCredential(c *stack.Credential) error {
 	cred := c.Credential.(*Cred)
@@ -227,7 +227,7 @@ func (s *Stack) SetAwsRegion(region string) error {
 			"access_key": p.Aws.AccessKey,
 			"secret_key": p.Aws.SecretKey,
 		}
-	} else if !stackplan.IsVariable(p.Aws.Region) && p.Aws.Region != region {
+	} else if !provider.IsVariable(p.Aws.Region) && p.Aws.Region != region {
 		return fmt.Errorf("region is already set as '%s'. Can't override it with: %s",
 			p.Aws.Region, region)
 	}

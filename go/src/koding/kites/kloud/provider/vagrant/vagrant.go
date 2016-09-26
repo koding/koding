@@ -4,18 +4,18 @@ import (
 	"errors"
 	"koding/kites/kloud/api/vagrantapi"
 	"koding/kites/kloud/stack"
-	"koding/kites/kloud/stackplan"
+	"koding/kites/kloud/stack/provider"
 	"koding/kites/kloud/utils"
 	"net/url"
 	"strconv"
 )
 
-var p = &stackplan.Provider{
+var p = &provider.Provider{
 	Name:         "vagrant",
 	ResourceName: "instance",
 	Machine:      newMachine,
 	Stack:        newStack,
-	Schema: &stackplan.ProviderSchema{
+	Schema: &provider.ProviderSchema{
 		NewCredential: newCredential,
 		NewBootstrap:  nil,
 		NewMetadata:   newMetadata,
@@ -23,7 +23,7 @@ var p = &stackplan.Provider{
 }
 
 func init() {
-	stackplan.Register(p)
+	provider.Register(p)
 }
 
 // Cred represents jCredentialDatas.meta for "vagrant" provider.
@@ -89,7 +89,7 @@ func newMetadata(m *stack.Machine) interface{} {
 	return meta
 }
 
-func newMachine(bm *stackplan.BaseMachine) (stackplan.Machine, error) {
+func newMachine(bm *provider.BaseMachine) (provider.Machine, error) {
 	return &Machine{
 		BaseMachine: bm,
 		api: &vagrantapi.Klient{
@@ -100,7 +100,7 @@ func newMachine(bm *stackplan.BaseMachine) (stackplan.Machine, error) {
 	}, nil
 }
 
-func newStack(bs *stackplan.BaseStack) (stackplan.Stack, error) {
+func newStack(bs *provider.BaseStack) (provider.Stack, error) {
 	if bs.TunnelURL == "" {
 		return nil, errors.New("no tunnel URL provided")
 	}

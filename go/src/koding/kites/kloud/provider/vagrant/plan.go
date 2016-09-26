@@ -4,7 +4,7 @@ import (
 	"errors"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/stack"
-	"koding/kites/kloud/stackplan"
+	"koding/kites/kloud/stack/provider"
 
 	"golang.org/x/net/context"
 )
@@ -28,7 +28,7 @@ func (s *Stack) HandlePlan(ctx context.Context) (interface{}, error) {
 	s.Log.Debug("Fetching template for id %s", arg.StackTemplateID)
 	stackTemplate, err := modelhelper.GetStackTemplate(arg.StackTemplateID)
 	if err != nil {
-		return nil, stackplan.ResError(err, "jStackTemplate")
+		return nil, provider.ResError(err, "jStackTemplate")
 	}
 
 	if stackTemplate.Template.Content == "" {
@@ -37,7 +37,7 @@ func (s *Stack) HandlePlan(ctx context.Context) (interface{}, error) {
 
 	s.Log.Debug("Fetching credentials for id %v", stackTemplate.Credentials)
 
-	credIDs := stackplan.FlattenValues(stackTemplate.Credentials)
+	credIDs := provider.FlattenValues(stackTemplate.Credentials)
 
 	if err := s.Builder.BuildCredentials(s.Req.Method, s.Req.Username, arg.GroupName, credIDs); err != nil {
 		return nil, err

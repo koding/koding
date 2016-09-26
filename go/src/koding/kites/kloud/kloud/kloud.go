@@ -25,7 +25,7 @@ import (
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/stack"
-	"koding/kites/kloud/stackplan"
+	"koding/kites/kloud/stack/provider"
 	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
 
@@ -189,7 +189,7 @@ func New(conf *Config) (*Kloud, error) {
 		Client:  httputil.DefaultRestClient(conf.DebugMode),
 	}
 
-	stacker := &stackplan.Stacker{
+	stacker := &provider.Stacker{
 		DB:             sess.DB,
 		Log:            sess.Log,
 		Kite:           sess.Kite,
@@ -233,7 +233,7 @@ func New(conf *Config) (*Kloud, error) {
 	kloud.Stack.Log = sess.Log
 	kloud.Stack.SecretKey = conf.KloudSecretKey
 
-	for _, p := range stackplan.All() {
+	for _, p := range provider.All() {
 		s := stacker.New(p)
 
 		if err = kloud.Stack.AddProvider(p.Name, s); err != nil {
