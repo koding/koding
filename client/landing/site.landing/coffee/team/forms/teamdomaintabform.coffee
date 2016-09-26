@@ -19,7 +19,7 @@ module.exports = class TeamDomainTab extends kd.FormView
       click        : => @input.setFocus()
 
     @inputView.addSubView @input = new kd.InputView
-      placeholder  : 'Your team name...'
+      placeholder  : 'your-team-name'
       name         : 'slug'
 
     @input.on 'ValidationFeedbackCleared', =>
