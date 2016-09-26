@@ -70,7 +70,7 @@ module.exports = class FindTeamView extends kd.TabPaneView
 
   formatServerError: (err) ->
 
-    return 'You don\'t participate in any team'  if err is EMPTY_TEAM_LIST_ERROR
+    return 'We couldn\'t find any teams that you have joined or was invited!'  if err is EMPTY_TEAM_LIST_ERROR
     return err
 
 
