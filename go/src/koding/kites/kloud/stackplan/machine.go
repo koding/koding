@@ -108,9 +108,13 @@ func (bm *BaseMachine) HandleInfo(ctx context.Context) (*stack.InfoResponse, err
 	}
 
 	defer func() {
+		if currentState == origState {
+			currentState = 0
+		}
+
 		if meta != nil || state != nil {
 			bm.updateMachine(state, meta, currentState)
-		} else if currentState != origState {
+		} else if currentState != 0 {
 			modelhelper.ChangeMachineState(bm.ObjectId, "Machine is marked as "+currentState.String(), currentState)
 		}
 	}()
@@ -151,8 +155,7 @@ func (bm *BaseMachine) updateMachine(state *DialState, meta interface{}, dbState
 	obj := object.MetaBuilder.Build(meta)
 
 	if state != nil {
-		obj["ipAddress"] = state.KiteURL
-		if u, err := url.Parse(state.KiteURL); err == nil {
+		if u, err := url.Parse(state.KiteURL); err == nil && u.Host != "" && bm.IpAddress != u.Host {
 			// TODO(rjeczalik): when path routing is added (#9021) either we
 			// change the ipAddress field to more generic endpoint field,
 			// or we use here state.KiteURL directly.
@@ -160,9 +163,15 @@ func (bm *BaseMachine) updateMachine(state *DialState, meta interface{}, dbState
 		}
 	}
 
-	obj["status.modifiedAt"] = time.Now().UTC()
-	obj["status.state"] = dbState.String()
-	obj["status.reason"] = "Machine is " + dbState.String()
+	if dbState != 0 {
+		obj["status.modifiedAt"] = time.Now().UTC()
+		obj["status.state"] = dbState.String()
+		obj["status.reason"] = "Machine is " + dbState.String()
+	}
+
+	if len(obj) == 0 {
+		return nil
+	}
 
 	bm.Log.Debug("update object for %q: %+v (%# v)", bm.Label, obj, state)
 
