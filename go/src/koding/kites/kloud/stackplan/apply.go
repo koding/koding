@@ -396,7 +396,7 @@ func (bs *BaseStack) UpdateResources(state *terraform.State) error {
 
 func (bs *BaseStack) buildUpdateObj(m *stack.Machine, s *DialState, now time.Time) bson.M {
 	ipAddress := s.KiteURL
-	if u, err := url.Parse(ipAddress); err == nil {
+	if u, err := url.Parse(ipAddress); err == nil && u.Host != "" {
 		ipAddress = u.Host
 	}
 
@@ -410,7 +410,7 @@ func (bs *BaseStack) buildUpdateObj(m *stack.Machine, s *DialState, now time.Tim
 	obj["status.state"] = m.State.String()
 	obj["status.reason"] = m.StateReason
 
-	bs.Log.Debug("update object for %q: %+v", m.Label, obj)
+	bs.Log.Debug("update object for %q: %+v (%# v)", m.Label, obj, s)
 
 	return bson.M(obj)
 }
