@@ -19,7 +19,7 @@ parseTerraformOutput = require 'app/util/stacks/parseterraformoutput'
 providersParser = require 'app/util/stacks/providersparser'
 updateCustomVariable = require 'app/util/stacks/updatecustomvariable'
 addUserInputOptions = require 'app/util/stacks/adduserinputoptions'
-
+checkClonedStackTemplateExist = require 'app/util/checkclonedstacktemplateexist'
 CustomLinkView = require 'app/customlinkview'
 
 OutputView = require './outputview'
@@ -288,6 +288,17 @@ module.exports = class StackEditorView extends kd.View
       cssClass: 'edit-name'
       title: 'Edit Name'
       click : @inputTitle.bound 'setFocus'
+
+    if checkClonedStackTemplateExist stackTemplate
+      @header.addSubView @clonedFrom = new kd.CustomHTMLView
+        cssClass: 'cloned-from-text'
+        partial: 'Cloned Of'
+      @clonedFrom.addSubView new kd.CustomHTMLView
+        cssClass: 'cloned-from'
+        partial: "  #{stackTemplate.title}"
+        click: -> kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate.config.clonedFrom}"
+
+
 
     kd.singletons.reactor.observe valueGetter, (value) =>
 
