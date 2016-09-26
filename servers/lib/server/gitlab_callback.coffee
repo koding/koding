@@ -2,7 +2,8 @@ request = require 'request'
 koding = require './bongo'
 KONFIG = require 'koding-config-manager'
 
-{ isAddressValid, redirectOauth, saveOauthToSession } = require './helpers'
+{ redirectOauth, saveOauthToSession } = require './helpers'
+{ isAddressValid } = require '../../models/utils'
 
 provider = 'gitlab'
 headers  =
