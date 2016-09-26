@@ -50,7 +50,7 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
 
     ['button', 'gitlabButton'].forEach (button) =>
       @form[button].unsetClass 'solid medium green'
-      @form[button].setClass 'TeamsModal-button TeamsModal-button--green TeamsModal-button--full'
+      @form[button].setClass 'TeamsModal-button'
 
     if location.search isnt '' and location.search.search('username=') > 0
       username = location.search.split('username=').last.replace(/\&.+/, '') # trim the rest params if any
@@ -90,12 +90,9 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
       <h4><span>Sign in to</span> #{title}</h4>
       {{> @form}}
     </div>
-    <section>
+    <section class="additional-info">
       {{> @inviteDesc}}
       <p>Trying to create a team? <a href="/Teams/Create" target="_self">Sign up on the home page</a> to get started.</p>
       <p>Forgot your password? <a href='/Team/Recover'>Click here</a> to reset.</p>
     </section>
-    <footer>
-      <a href="https://www.koding.com/legal/teams-user-policy" target="_blank">Acceptable user policy</a><a href="https://www.koding.com/legal/teams-copyright" target="_blank">Copyright/DMCA guidelines</a><a href="https://www.koding.com/legal/teams-terms-of-service" target="_blank">Terms of service</a><a href="https://www.koding.com/legal/teams-privacy" target="_blank">Privacy policy</a>
-    </footer>
     """

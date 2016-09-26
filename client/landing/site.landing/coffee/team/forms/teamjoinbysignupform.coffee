@@ -83,7 +83,7 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
             ps.setClass strength[report.score]
 
     @button     = @getButton @getOption 'buttonTitle'
-    @buttonLink = @getButtonLink "<a href='#'>Already have an account?</a>", (event) =>
+    @buttonLink = @getButtonLink 'Already have an account?', '#', (event) =>
       kd.utils.stopDOMEvent event
       return  unless event.target.tagName is 'A'
       @emit 'FormNeedsToBeChanged', yes, yes
@@ -103,12 +103,11 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
 
   pistachio: ->
 
-    """
+    '''
     {{> @email}}
     {{> @username}}
     {{> @password}}
     {{> @passwordStrength}}
-    <div class='TeamsModal-button-separator'></div>
     {{> @button}}
     {{> @buttonLink}}
-    """
+    '''

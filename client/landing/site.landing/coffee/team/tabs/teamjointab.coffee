@@ -185,8 +185,9 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
     return  if @forgotPassword
 
     @addSubView @forgotPassword = new kd.CustomHTMLView
-      tagName: 'section'
-      partial: '<p>Forgot your password? <a href="/Team/Recover?mode=join">Click here</a> to reset.</p>'
+      tagName  : 'section'
+      cssClass : 'additional-info'
+      partial  : '<p>Forgot your password? <a href="/Team/Recover?mode=join">Click here</a> to reset.</p>'
 
 
   submit: (formData) ->

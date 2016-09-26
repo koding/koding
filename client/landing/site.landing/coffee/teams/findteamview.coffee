@@ -18,7 +18,7 @@ module.exports = class FindTeamView extends kd.TabPaneView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry 'Team Team--ufo', options.cssClass
+    options.cssClass = kd.utils.curry 'Team', options.cssClass
 
     super options, data
 
@@ -34,7 +34,7 @@ module.exports = class FindTeamView extends kd.TabPaneView
 
     @back        = new kd.CustomHTMLView
       tagName    : 'a'
-      cssClass   : 'secondary-link'
+      cssClass   : 'TeamsModal-button-link'
       partial    : 'BACK'
       attributes : { href : '/Teams' }
 
