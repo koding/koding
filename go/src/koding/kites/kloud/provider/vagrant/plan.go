@@ -9,8 +9,13 @@ import (
 	"golang.org/x/net/context"
 )
 
-// Plan
-func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
+// HandlePlan overwrites *provider.BaseStack default HandlePlan implementation,
+// to omit querying Terraformer with plan request, since currently
+// vagrant plugin does not implement this method.
+//
+// TODO(rjeczalik): implement plan for vagrant Terraform provider and
+// remove this method.
+func (s *Stack) HandlePlan(ctx context.Context) (interface{}, error) {
 	var arg stack.PlanRequest
 	if err := s.Req.Args.One().Unmarshal(&arg); err != nil {
 		return nil, err
@@ -56,7 +61,12 @@ func (s *Stack) Plan(ctx context.Context) (interface{}, error) {
 
 	s.Log.Debug("Injecting Vagrant data")
 
-	if _, _, err := s.InjectVagrantData(); err != nil {
+	cred, err := s.Builder.CredentialByProvider("vagrant")
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := s.ApplyTemplate(cred); err != nil {
 		return nil, err
 	}
 

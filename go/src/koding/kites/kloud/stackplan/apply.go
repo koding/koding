@@ -395,20 +395,22 @@ func (bs *BaseStack) UpdateResources(state *terraform.State) error {
 }
 
 func (bs *BaseStack) buildUpdateObj(m *stack.Machine, s *DialState, now time.Time) bson.M {
-	ipAddress := s.KiteURL
-	if u, err := url.Parse(ipAddress); err == nil && u.Host != "" {
-		ipAddress = u.Host
-	}
-
 	obj := object.MetaBuilder.Build(bs.Provider.newMetadata(m))
 
 	obj["credential"] = m.Credential.Identifier
 	obj["provider"] = bs.Provider.Name
 	obj["queryString"] = m.QueryString
-	obj["ipAddress"] = ipAddress
 	obj["status.modifiedAt"] = now
 	obj["status.state"] = m.State.String()
 	obj["status.reason"] = m.StateReason
+
+	if s.KiteURL != "" {
+		obj["registerUrl"] = s.KiteURL
+
+		if u, err := url.Parse(s.KiteURL); err == nil && u.Host != "" {
+			obj["ipAddress"] = u.Host
+		}
+	}
 
 	bs.Log.Debug("update object for %q: %+v (%# v)", m.Label, obj, s)
 

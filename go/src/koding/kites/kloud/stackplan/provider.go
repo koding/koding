@@ -62,15 +62,15 @@ type Provider struct {
 	// If empty, "instance" will be used instead.
 	ResourceName string
 
-	// NewMachine
+	// Machine
 	//
 	// Required.
-	NewMachine func(*BaseMachine) (Machine, error)
+	Machine func(*BaseMachine) (Machine, error)
 
-	// NewStack
+	// Stack
 	//
 	// Required.
-	NewStack func(*BaseStack) (Stack, error)
+	Stack func(*BaseStack) (Stack, error)
 
 	// Schema
 	//
@@ -144,6 +144,7 @@ type BaseStack struct {
 	Planner   *Planner
 	KlientIDs stack.KiteMap
 	Klients   map[string]*DialState
+	TunnelURL string
 
 	Debug   bool
 	TraceID string

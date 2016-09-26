@@ -89,7 +89,7 @@ func (s *Stacker) BuildMachine(ctx context.Context, bm *BaseMachine) (Machine, e
 
 	s.Log.Debug("credential: %# v, bootstrap: %# v", bm.Credential, bm.Bootstrap)
 
-	m, err := s.Provider.NewMachine(bm)
+	m, err := s.Provider.Machine(bm)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +181,7 @@ func (b *Stacker) Stack(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	s, err := b.Provider.NewStack(bs)
+	s, err := b.Provider.Stack(bs)
 	if err != nil {
 		return nil, err
 	}
@@ -201,6 +201,7 @@ func (s *Stacker) BaseStack(ctx context.Context) (*BaseStack, error) {
 		Provider:  s.Provider,
 		KlientIDs: make(stack.KiteMap),
 		Klients:   make(map[string]*DialState),
+		TunnelURL: s.TunnelURL,
 	}
 
 	var ok bool

@@ -21,8 +21,8 @@ const arnPrefix = "arn:aws:iam::"
 var p = &stackplan.Provider{
 	Name:         "aws",
 	ResourceName: "instance",
-	NewMachine:   newMachine,
-	NewStack:     newStack,
+	Machine:      newMachine,
+	Stack:        newStack,
 	Schema: &stackplan.ProviderSchema{
 		NewCredential: newCredential,
 		NewBootstrap:  newBootstrap,

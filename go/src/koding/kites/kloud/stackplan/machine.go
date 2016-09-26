@@ -154,7 +154,11 @@ func (bm *BaseMachine) HandleInfo(ctx context.Context) (*stack.InfoResponse, err
 func (bm *BaseMachine) updateMachine(state *DialState, meta interface{}, dbState machinestate.State) error {
 	obj := object.MetaBuilder.Build(meta)
 
-	if state != nil {
+	if state != nil && state.KiteURL != "" {
+		if bm.RegisterURL != state.KiteURL {
+			obj["registerUrl"] = state.KiteURL
+		}
+
 		if u, err := url.Parse(state.KiteURL); err == nil && u.Host != "" && bm.IpAddress != u.Host {
 			// TODO(rjeczalik): when path routing is added (#9021) either we
 			// change the ipAddress field to more generic endpoint field,
