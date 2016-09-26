@@ -7,6 +7,7 @@ EnvironmentFlux           = require 'app/flux/environment'
 StackUpdatedWidget        = require './stackupdatedwidget'
 getBoundingClientReact    = require 'app/util/getBoundingClientReact'
 SidebarMachinesListItem   = require 'app/components/sidebarmachineslistitem'
+canCreateStacks = require 'app/util/canCreateStacks'
 isAdmin = require 'app/util/isAdmin'
 remote = require 'app/remote'
 isStackTemplateSharedWithTeam = require 'app/util/isstacktemplatesharedwithteam'
@@ -92,6 +93,10 @@ module.exports = class SidebarStackSection extends React.Component
         reinitStackFromWidget(stack).then ->
           # invalidate editor cache
           appManager.tell 'Stackeditor', 'reloadEditor', templateId
+      when 'Clone'
+        remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
+          new kd.NotificationView { title: 'Cloning Stack Template' }
+          computeController.cloneStackTemplate template, no
       when 'Destroy VMs' then deleteStack { stack }
       when 'VMs' then router.handleRoute "/Home/Stacks/virtual-machines"
       when 'Open on GitLab'
@@ -127,6 +132,7 @@ module.exports = class SidebarStackSection extends React.Component
     else
       if isAdmin() or @props.stack.get('accessLevel') is 'private'
         menuItems['Edit'] = { callback }
+        menuItems['Clone'] = { callback }  if canCreateStacks()
       else
         menuItems['View Stack'] = { callback }
       ['Reinitialize', 'VMs', 'Destroy VMs'].forEach (name) ->

@@ -20,6 +20,7 @@ TeamFlux = require 'app/flux/teams'
 DEFAULT_LOGOPATH = '/a/images/logos/sidebar_footer_logo.svg'
 MENU = null
 isAdmin = require 'app/util/isAdmin'
+canCreateStacks = require 'app/util/canCreateStacks'
 
 require './styl/sidebar.styl'
 require './styl/sidebarmenu.styl'
@@ -96,6 +97,9 @@ module.exports = class Sidebar extends React.Component
       when 'Initialize'
         EnvironmentFlux.actions.generateStack(id).then ({ template }) ->
           appManager.tell 'Stackeditor', 'reloadEditor', template._id
+      when 'Clone'
+        new kd.NotificationView { title: 'Cloning Stack Template' }
+        computeController.cloneStackTemplate draft.toJS(), yes
       when 'Open on GitLab'
         remoteUrl = draft.getIn ['config', 'remoteDetails', 'originalUrl']
         linkController.openOrFocus remoteUrl
@@ -121,7 +125,7 @@ module.exports = class Sidebar extends React.Component
       menuItems['Open on GitLab'] = { callback }
 
     ['Edit', 'Initialize'].forEach (name) => menuItems[name] = { callback }
-
+    menuItems['Clone'] = { callback }  if canCreateStacks() or isAdmin()
     menuItems['Make Team Default'] = { callback } if isAdmin() and draft.get('machines').length
 
     { top } = findDOMNode(@refs["draft-#{id}"]).getBoundingClientRect()
