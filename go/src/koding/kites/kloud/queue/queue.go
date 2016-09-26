@@ -49,11 +49,11 @@ func (q *Queue) Run() {
 		for _, s := range q.stackers {
 			q.Log.Debug("queue running checker for %q provider", s.Provider.Name)
 
-			go func() {
+			go func(s *stackplan.Stacker) {
 				if err := q.Check(s); err != nil {
 					q.Log.Debug("failed to check %q provider: %s", s.Provider.Name, err)
 				}
-			}()
+			}(s)
 		}
 	}
 }
