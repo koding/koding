@@ -6,6 +6,9 @@ MainHeaderView = require './../core/mainheaderview'
 FindTeamForm   = require './findteamform'
 
 EMPTY_TEAM_LIST_ERROR = 'Empty team list'
+SOLO_USER_ERROR = 'Solo user detected'
+
+FAREWELL_SOLO_URL = 'https://www.koding.com/farewell-solo'
 
 track = (action) ->
 
@@ -57,7 +60,7 @@ module.exports = class FindTeamView extends kd.TabPaneView
     utils.findTeam email,
       error       : (xhr) =>
         { responseText } = xhr
-        @showNotification @formatServerError responseText
+        @handleServerError responseText
         @form.button.hideLoader()
       success     : =>
         @form.button.hideLoader()
@@ -68,10 +71,12 @@ module.exports = class FindTeamView extends kd.TabPaneView
         kd.singletons.router.handleRoute '/'
 
 
-  formatServerError: (err) ->
+  handleServerError: (err) ->
 
-    return 'We couldn\'t find any teams that you have joined or was invited!'  if err is EMPTY_TEAM_LIST_ERROR
-    return err
+    return location.assign FAREWELL_SOLO_URL  if err is SOLO_USER_ERROR
+
+    err = 'We couldn\'t find any teams that you have joined or was invited!'  if err is EMPTY_TEAM_LIST_ERROR
+    @showNotification err
 
 
   showNotification: (title, content) ->

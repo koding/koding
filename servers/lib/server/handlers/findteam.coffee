@@ -8,6 +8,9 @@ module.exports = (req, res) ->
 
   UNKNOWN_USER_ERROR = 'User not found'
   EMPTY_TEAM_LIST_ERROR = 'Empty team list'
+  SOLO_USER_ERROR = 'Solo user detected'
+
+  FAREWELL_SOLO_DATE = new Date 2016, 6, 19
 
   { email } = req.body
   { JUser } = koding.models
@@ -25,16 +28,21 @@ module.exports = (req, res) ->
     (user, next) ->
       user.fetchOwnAccount (err, account) ->
         return next err  if err
-        next null, account
+        next null, user, account
 
-    (account, next) ->
+    (user, account, next) ->
       account.fetchRelativeGroups (err, groups) ->
-        next err, account, groups
+        next err, user, account, groups
 
-    (account, groups, next) ->
+    (user, account, groups, next) ->
       groups = groups.filter (group) -> group.slug isnt 'koding'
 
-      return next EMPTY_TEAM_LIST_ERROR  unless groups.length
+      if not groups.length
+        return next(
+          if user.lastLoginDate < FAREWELL_SOLO_DATE
+          then SOLO_USER_ERROR
+          else EMPTY_TEAM_LIST_ERROR
+        )
 
       { profile : { nickname } } = account
 
