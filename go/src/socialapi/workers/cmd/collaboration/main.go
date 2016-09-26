@@ -1,8 +1,6 @@
 package main
 
 import (
-	"errors"
-	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"log"
 	"socialapi/config"
@@ -20,18 +18,16 @@ var (
 func main() {
 	r := runner.New(Name)
 	if err := r.Init(); err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
 	if r.Kite == nil {
-		fmt.Println(errors.New("couldnt init kite"))
-		return
+		r.Log.Fatal("couldnt init kite")
 	}
 
 	// remove QOS, we want to consume all the messages from RMQ
 	if err := r.Bongo.Broker.Sub.(*broker.Consumer).Consumer.QOS(0); err != nil {
-		log.Fatalf("couldnt remove the QOS %# v", err)
+		r.Log.Fatal("couldnt remove the QOS %# v", err)
 	}
 
 	redisConn := runner.MustInitRedisConn(r.Conf)

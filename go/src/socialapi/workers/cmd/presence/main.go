@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"socialapi/config"
 	"socialapi/workers/presence"
 
@@ -15,8 +15,7 @@ var (
 func main() {
 	r := runner.New(name)
 	if err := r.Init(); err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err.Error())
 	}
 
 	appConfig := config.MustRead(r.Conf.Path)

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/topicfeed"
@@ -16,8 +16,7 @@ var (
 func main() {
 	r := runner.New(Name)
 	if err := r.Init(); err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
 	appConfig := config.MustRead(r.Conf.Path)

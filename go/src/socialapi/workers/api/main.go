@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"log"
 	"socialapi/config"
 	algoliaapi "socialapi/workers/algoliaconnector/api"
 	"socialapi/workers/api/handlers"
@@ -45,10 +45,8 @@ var (
 func main() {
 	r := runner.New(Name)
 	if err := r.Init(); err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
-	defer r.Close()
 
 	// appConfig
 	c := config.MustRead(r.Conf.Path)
