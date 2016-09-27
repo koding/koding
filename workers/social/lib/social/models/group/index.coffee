@@ -224,6 +224,8 @@ module.exports = class JGroup extends Module
           (signature Function)
         addSubscription:
           (signature String, Function)
+        fetchDataAt:
+          (signature String, Function)
         fetchSubscription:
           (signature Function)
         fetchPermissionSetOrDefault:
@@ -577,6 +579,14 @@ module.exports = class JGroup extends Module
       path = "data.#{path}"  if path.indexOf 'data.' isnt 0
       callback null, data.getAt path
 
+
+  fetchDataAt$: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
+    success: (client, path, callback) ->
+      @fetchDataAt path, callback
 
 
   sendNotification: (event, contents, callback) ->
