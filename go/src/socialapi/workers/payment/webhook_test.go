@@ -607,7 +607,7 @@ func TestInvoiceCreatedHandlerUpgradePlan(t *testing.T) {
 
 						// check we are sending events on subscription change.
 						So(len(capturedMails), ShouldEqual, 1)
-						So(capturedMails[0].Subject, ShouldEqual, EventNameJoinedNewPricingTier)
+						So(capturedMails[0].Subject, ShouldEqual, eventNameJoinedNewPricingTier)
 						So(len(capturedMails[0].Properties.Options), ShouldBeGreaterThan, 1)
 						oldPlanID := capturedMails[0].Properties.Options["oldPlanID"]
 						newPlanID := capturedMails[0].Properties.Options["newPlanID"]

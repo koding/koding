@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	EventNameJoinedNewPricingTier = "joined new pricing tier"
+	eventNameJoinedNewPricingTier = "joined new pricing tier"
 )
 
 var mailSender = emailsender.Send
@@ -96,8 +96,8 @@ func getAmountOpts(charge *stripe.Charge) map[string]interface{} {
 }
 
 var oneDayTrialDur int64 = 24 * 60 * 60
-var sevenDayTrialDur int64 = 7 * oneDayTrialDur
-var thirtyDayTrialDur int64 = 30 * oneDayTrialDur
+var sevenDayTrialDur = 7 * oneDayTrialDur
+var thirtyDayTrialDur = 30 * oneDayTrialDur
 
 func customerSubscriptionCreatedHandler(raw []byte) error {
 	var req *stripe.Sub
@@ -289,7 +289,7 @@ func invoiceCreatedHandler(raw []byte) error {
 		"oldPlanID": prevSub.Plan.ID,
 		"newPlanID": sub.Plan.ID,
 	}
-	return sendEventForCustomer(cus.ID, EventNameJoinedNewPricingTier, opts)
+	return sendEventForCustomer(cus.ID, eventNameJoinedNewPricingTier, opts)
 }
 
 func invoicePaymentHandler(raw []byte) error {
