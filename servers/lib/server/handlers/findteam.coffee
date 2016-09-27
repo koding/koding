@@ -50,10 +50,10 @@ module.exports = (req, res) ->
         to      : email
         subject : Tracker.types.REQUESTED_TEAM_LIST
       }, {
-        teams            : groups.map (group) -> helper.createTeamItem group
-        hasMultipleTeams : groups.length > 1
-        findTeamUrl      : "#{protocol}//#{hostname}/Teams/FindTeam"
-        createTeamUrl    : "#{protocol}//#{hostname}/Teams/Create"
+        teams         : groups.map (group) -> helper.createTeamItem group
+        hasOneTeam    : groups.length is 1
+        findTeamUrl   : "#{protocol}//#{hostname}/Teams/FindTeam"
+        createTeamUrl : "#{protocol}//#{hostname}/Teams/Create"
       }, next
   ]
 
