@@ -16,23 +16,31 @@ module.exports = class OAuth extends bongo.Base
         getUrl      : (signature Object, Function)
 
 
-  checkGroupGitLabSettings = (slug, callback) ->
+  checkGroupGitLabSettings = (client, callback) ->
 
-    JGroup = require './group'
-    JGroup.one { slug }, (err, group) ->
+    { sessionToken: clientId, context: { group: slug } } = client
 
-      if not err and group and group.config?.gitlab?.enabled
+    JSession = require './session'
+    JSession.one { clientId }, (err, session) ->
+      return callback err  if err
+      return callback new KodingError 'Session invalid'  unless session
 
-        settings = {
-          url: group.config.gitlab.url
-          applicationId: group.config.gitlab.applicationId
-        }
+      JGroup = require './group'
+      JGroup.one { slug }, (err, group) ->
 
-        callback null, settings
+        if not err and group and group.config?.gitlab?.enabled
 
-      else
+          settings = {
+            url: group.config.gitlab.url
+            applicationId: group.config.gitlab.applicationId
+            state: session._id
+          }
 
-        callback new KodingError 'Integration is not enabled'
+          callback null, settings
+
+        else
+
+          callback new KodingError 'Integration is not enabled'
 
 
 
@@ -63,13 +71,15 @@ module.exports = class OAuth extends bongo.Base
         host = urlOptions.host ? host
         redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
 
-        checkGroupGitLabSettings client.context.group, (err, data) ->
+        checkGroupGitLabSettings client, (err, data) ->
           return callback err  if err
 
           url = "#{protocol}#{host}#{port}"
-          { url, applicationId } = data  if data
+          { url, applicationId, state } = data  if data
 
-          callback null, "#{url}/oauth/authorize?client_id=#{applicationId}&response_type=code&redirect_uri=#{redirectUri}"
+          state = "&state=#{state}"
+
+          callback null, "#{url}/oauth/authorize?client_id=#{applicationId}&response_type=code#{state}&redirect_uri=#{redirectUri}"
 
 
       facebook: ->

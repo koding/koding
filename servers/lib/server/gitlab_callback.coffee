@@ -11,7 +11,7 @@ headers  =
   'User-Agent' : 'Koding'
 
 
-fetchGroupSettings = (clientId, callback) ->
+fetchGroupSettings = (clientId, state, callback) ->
 
   { JSession, JGroup } = koding.models
   { hostname } = KONFIG
@@ -19,6 +19,9 @@ fetchGroupSettings = (clientId, callback) ->
   JSession.one { clientId }, (err, session) ->
     return callback err  if err
     return callback { message: 'Session invalid' }  unless session
+
+    unless session._id.equals state
+      return callback { message: 'Invalid oauth flow' }
 
     { groupName: slug } = session
 
@@ -37,6 +40,7 @@ fetchGroupSettings = (clientId, callback) ->
           url: group.config.gitlab.url
           applicationId: group.config.gitlab.applicationId
           applicationSecret: data.applicationSecret
+          # TODO: fix protocol here ~ GG
           redirectUri: "http://#{slug}.#{hostname}/-/oauth/#{provider}/callback"
         }
 
@@ -103,8 +107,9 @@ module.exports = (req, res) ->
 
   { gitlab } = KONFIG
   { clientId } = req.cookies
+  { state }    = req.query
 
-  fetchGroupSettings clientId, (err, settings) ->
+  fetchGroupSettings clientId, state, (err, settings) ->
 
     if err or not settings
       console.error '[GITLAB][2/4] Failed to fetch group settings:', err
