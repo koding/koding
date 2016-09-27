@@ -2,6 +2,9 @@
 .HomeAppView--section.intercom-integration
 .HomeAppView--section.gitlab
 
+  .HomeAppView--sectionWrapper
+    position                relative
+
   .separator
     border-bottom           1px solid #DDDDDD
     margin                  24px 0
@@ -23,4 +26,13 @@
     width                   100%
     margin-bottom           20px
 
+    &.hasError
+      border                1px solid red
+
+  .ErrorMessage
+    color                   red
+    margin-bottom           10px
+
+  .react-toggle:before
+    top                     0
 
