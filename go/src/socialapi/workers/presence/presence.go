@@ -4,9 +4,13 @@ package presence
 
 import (
 	"fmt"
+	mongomodels "koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"socialapi/models"
 	"time"
+
+	mgo "gopkg.in/mgo.v2"
 
 	"github.com/koding/bongo"
 	"github.com/koding/cache"
@@ -21,6 +25,11 @@ const (
 
 var (
 	pingCache = cache.NewMemoryWithTTL(time.Hour)
+
+	// this may lead to max 5 mins of invalid tracking data if a group changes
+	// their sub status during that period
+	groupCache = cache.NewMemoryWithTTL(time.Minute * 5)
+
 	// send pings every 30 secs
 	pingDuration = time.Second * 30
 )
@@ -65,6 +74,17 @@ func (c *Controller) Ping(ping *Ping) error {
 		return nil
 	}
 
+	status, err := getGroupPaymentStatusFromCache(ping.GroupName)
+	if err == mgo.ErrNotFound {
+		return nil // if group is not found in db, no need to process further
+	}
+
+	if err != nil {
+		return err
+	}
+
+	ping.paymentStatus = status
+
 	today := getTodayBeginningDate()
 	// we add date here to invalidate cache item(s) after date changes
 	key := getKey(ping, today)
@@ -82,7 +102,13 @@ func (c *Controller) Ping(ping *Ping) error {
 }
 
 func getKey(ping *Ping, today time.Time) string {
-	return fmt.Sprintf("%s_%d_%d", ping.GroupName, ping.AccountID, today.Day())
+	return fmt.Sprintf(
+		"%s_%d_%s_%d",
+		ping.GroupName,
+		ping.AccountID,
+		ping.paymentStatus,
+		today.Day(),
+	)
 }
 
 // verifyRecord checks if the daily occurence is in the db, if not found creates
@@ -111,9 +137,20 @@ func getTodayBeginningDate() time.Time {
 func getPresenceInfoFromDB(ping *Ping) (*models.PresenceDaily, error) {
 	q := &bongo.Query{
 		Selector: map[string]interface{}{
-			"group_name":   ping.GroupName,
-			"account_id":   ping.AccountID,
-			"is_processed": false,
+			"group_name": ping.GroupName,
+			"account_id": ping.AccountID,
+			// if payment status is active, we should get the last unprocessed, but if
+			// it is not active, we are persisting pings as processed, so fetch latest
+			// processed in that case
+			//
+			// One big question is why we store non active sub-ed team's ping requests
+			// as processed? We wont be charging trailing teams before second month's
+			// payment is due, so we start collecting presence info( with processed
+			// false )  after the first month, and first month is completely free.
+			// Second issue is, when a sub is in non-active state, we should still
+			// collect presence info but we wont be charging users during that period,
+			// because we dont allow them to utilize koding
+			"is_processed": ping.paymentStatus != mongomodels.PaymentStatusActive,
 		},
 		Sort: map[string]string{
 			"created_at": "DESC",
@@ -129,9 +166,40 @@ func getPresenceInfoFromDB(ping *Ping) (*models.PresenceDaily, error) {
 
 func insertPresenceInfoToDB(ping *Ping) error {
 	p := &models.PresenceDaily{
-		GroupName: ping.GroupName,
-		AccountId: ping.AccountID,
-		CreatedAt: ping.CreatedAt,
+		GroupName:   ping.GroupName,
+		AccountId:   ping.AccountID,
+		CreatedAt:   ping.CreatedAt,
+		IsProcessed: ping.paymentStatus != mongomodels.PaymentStatusActive,
 	}
 	return p.Create()
+}
+
+func getGroupPaymentStatusFromCache(groupName string) (string, error) {
+	data, err := groupCache.Get(groupName)
+	if err != nil && err != cache.ErrNotFound {
+		return "", err
+	}
+
+	if err == nil {
+		status, ok := data.(string)
+		if ok {
+			return status, nil
+		}
+	}
+
+	group, err := modelhelper.GetGroup(groupName)
+	if err != nil {
+		return "", err
+	}
+
+	status := group.Payment.Subscription.Status
+	// set defaul payment status
+	if status != mongomodels.PaymentStatusActive {
+		status = "invalid"
+	}
+
+	if err := groupCache.Set(groupName, status); err != nil {
+		return "", err
+	}
+	return status, nil
 }
