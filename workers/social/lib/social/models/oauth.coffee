@@ -1,6 +1,7 @@
 bongo       = require 'bongo'
 { secure, signature } = bongo
 crypto      = require 'crypto'
+request     = require 'request'
 KodingError = require '../error'
 
 { isAddressValid } = require './utils'
@@ -96,6 +97,34 @@ module.exports = class OAuth extends bongo.Base
           if err
             err.error = { fields: ['url'] }
             return callback err
+
+          options           =
+            url             : "#{url}/oauth/token"
+            timeout         : 7000
+            method          : 'POST'
+            headers         :
+              'Accept'      : 'application/json'
+              'User-Agent'  : 'Koding'
+            json            :
+              grant_type    : 'client_credentials'
+              client_id     : applicationId
+              client_secret : applicationSecret
+
+          request options, (error, response, body) ->
+
+            if error
+              callback new KodingError \
+                'Host not reachable', 'NotReachable', { fields: ['url'] }
+            else if not body.access_token
+              callback new KodingError \
+                'Verification failed', 'VerificationFailed', { fields: [
+                    'applicationSecret',
+                    'applicationId'
+                  ]
+                }
+            else
+              callback null
+
 
     # -- GITHUB PROVIDER --------------------------------------------------8<--
 
