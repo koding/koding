@@ -26,7 +26,6 @@ createShareModal     = require 'stack-editor/editor/createShareModal'
 isGroupDisabled      = require 'app/util/isGroupDisabled'
 
 { actions : HomeActions } = require 'home/flux'
-actionTypes = require 'app/flux/environment/actiontypes'
 require './config'
 
 module.exports = class ComputeController extends KDController
@@ -1350,18 +1349,3 @@ module.exports = class ComputeController extends KDController
       @_soloMachines = res?.machines ? []
       kd.warn err  if err
       callback null, @_soloMachines
-
-
-  cloneStackTemplate: (template, revive) ->
-
-    { reactor } = kd.singletons
-    template = remote.revive template  if revive
-
-    template.clone (err, stackTemplate) ->
-      if err
-        return new kd.NotificationView
-          title: 'Error Occured while Cloning Template'
-
-      Tracker.track Tracker.STACKS_CLONED_TEMPLATE
-      reactor.dispatch actionTypes.UPDATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
-      kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"

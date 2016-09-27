@@ -98,8 +98,7 @@ module.exports = class Sidebar extends React.Component
         EnvironmentFlux.actions.generateStack(id).then ({ template }) ->
           appManager.tell 'Stackeditor', 'reloadEditor', template._id
       when 'Clone'
-        new kd.NotificationView { title: 'Cloning Stack Template' }
-        computeController.cloneStackTemplate draft.toJS(), yes
+        EnvironmentFlux.actions.cloneStackTemplate draft.toJS(), yes
       when 'Open on GitLab'
         remoteUrl = draft.getIn ['config', 'remoteDetails', 'originalUrl']
         linkController.openOrFocus remoteUrl
