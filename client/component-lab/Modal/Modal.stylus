@@ -95,6 +95,7 @@ $modal-z-index              = 20000
 
   p
     margin                  30px 0
+    line-height             22px
 
 .footerContainer
   button
