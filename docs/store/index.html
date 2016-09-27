@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Store
-permalink: /store
+permalink: /store/home
 order: 40
 ---
 
@@ -10,49 +10,34 @@ order: 40
 
 <link rel="stylesheet" href="{{ site.url }}/css/store.css">
 
-<div class="hero">
-  <h1 class="heading">Stack and Stencil Hub</h1>
-  <h2 class="subheading">Start building your stacks easily with these hundereds of examples</h2>
-  <div class="search-container">
-    <div class="Dropdown">
-      <a href="#" class="Dropdown-selection stacks" id="dropdown-selection">In Stacks</a>
-      <div class="Dropdown-options">
-        <a href="#" class="stacks">In Stacks</a>
-        <a href="#" class="stencils">In Stencils</a>
-      </div>
+<div class="Hero">
+  <h1 class="Hero-heading">Stack and Stencil Hub</h1>
+  <h2 class="Hero-subheading">Start building your stacks easily with these hundereds of examples</h2>
+  {% include store-search.html %}
+</div>
+<div class="featured-stacks">
+  <div class="container">
+    <div class="text-heading">
+      <h3 class="heading">Featured Stacks</h3>
+      <p class="sub-heading">
+        Nulla vitae elit libero, a pharetra augue. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Integer posuere erat a ante venenatis dapibus posuere.
+      </p>
     </div>
-    <div class="SearchBar">
-      <div class="SearchBar-field">
-        <input placeholder="Search a keyword or name..." />
-        <a href="#" class="remove-icon"></a>
-      </div>
-      <div class="SearchBar-results">
-        <div class="SearchBar-resultsData">
-        </div>
-        <a href="#" class="SearchBar-resultsAll">See all results...</a>
-      </div>
-    </div>
+    {% include store-set.html data=site.data.store-stacks limit=4 %}
+    <button class="Button Button--seeAll">See All Stacks</button>
   </div>
 </div>
-<div class="container featured-stacks">
-  <div class="text-heading">
-    <h3 class="heading">Featured Stacks</h3>
-    <p class="sub-heading">
-      Nulla vitae elit libero, a pharetra augue. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Integer posuere erat a ante venenatis dapibus posuere.
-    </p>
+<div class="featured-stencils">
+  <div class="container">
+    <div class="text-heading">
+      <h3 class="heading">Featured Stencils</h3>
+      <p class="sub-heading">
+        Nulla vitae elit libero, a pharetra augue. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Integer posuere erat a ante venenatis dapibus posuere.
+      </p>
+    </div>
+    {% include store-set.html data=site.data.store-stencils limit=4 %}
+    <button class="Button Button--seeAll">See All Stencils</button>
   </div>
-  {% include store-set.html data=site.data.store-stacks limit=4 %}
-  <button>See All Stacks</button>
-</div>
-<div class="container featured-stencils">
-  <div class="text-heading">
-    <h3 class="heading">Featured Stencils</h3>
-    <p class="sub-heading">
-      Nulla vitae elit libero, a pharetra augue. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Integer posuere erat a ante venenatis dapibus posuere.
-    </p>
-  </div>
-  {% include store-set.html data=site.data.store-stencils limit=4 %}
-  <button>See All Stencils</button>
 </div>
 
 <script>

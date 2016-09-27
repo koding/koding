@@ -5,6 +5,7 @@
 
 $white: #FFFFFF;
 $alabaster: #F7F7F7;
+$porcelain: #F5F6F7;
 $gallery: #EBEBEB;
 $gallery2: #EFEFEF;
 $mercury: #E1E1E1;
@@ -17,6 +18,7 @@ $froly: #F2778A;
 
 $cornflower-blue: #67A2EE;
 $anakiwa: #A8CEFF;
+$waterloo: #7F7E9E;
 
 :root {
   --icon-verified: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAARCAYAAADUryzEAAAAAXNSR0IArs4c6QAAAgJJREFUOBGNU81LVFEUP+c8H1qIDOguCSJaFC1ahAgucnKceIFRELYL2mirWkS5CIc7A0J/QODHTtoEBoKLmXHeyAgVidaiTR9uWkT0QWA1GCNP3+ncixffy3nW2Zx7zvn9fvec+4GQYCMvp92PG5/uAdFaaUBVEmCA0YK3ojqgHi4A8CYzdonvAcRtZCgJ8rhgn5cGCyNRTlygMp5jgHwUEFsjMCFe6E4dWZ45OxromhHwqrlrwDDFzKkYISFAxB+A1FfKqDdkMMzn/5es8QaLoR4J8HJNpbaCsMbAZ3SiqSG8l+YXAcJbti6tP2l3nRvU2A6XDiQDvqMWp7+czd9GwFkrIGd1tR6EDwiZv9uk8Qg/ifCmgH8hwltyKV1Mqy+er3qlfiWKlfprklbmo0mHnevFTGEagQZcbNsjc7gonXZEsQTuM/T83As5FK1uTO+qiQuZ+191wuzchKxriPSwRa5vQwfWmOFkAI3apepEOuDgGCSQ5QEEMv4qtQ+eHpJ5fSugvRHhxtNEsmCEc6eYLTyiORzekYfxKiqwK3Li75ljGKTPOjYPiRznsUiWZf56DNQ8+CAbTlJr65Ium6dscV5l/Jzc77KN93mZ+9Bhp3u+T32ztZiATl70c3cZoQ1C3mHEvPzE3/KHxmTdKWezXs4W5iz5n96rqlNDvjp6EPAPSdrCecZwZocAAAAASUVORK5CYII=');
@@ -31,38 +33,46 @@ $anakiwa: #A8CEFF;
 input, textarea, keygen, select, button {
   font-family: "Proxima Nova",Helvetica,Arial,sans-serif;
 }
-button {
-  background-color: $froly;
-  color: $white;
+.Button {
   border: 0;
   border-radius: 4px;
-  margin: 60px auto 0;
-  padding: 13px 0 10px;
-  font-size: 17px;
-  width: 220px;
   display: block;
   cursor: pointer;
+
+  &.Button--seeAll{
+    margin: 39px auto 0;
+    padding: 13px 0 10px;
+    font-size: 17px;
+    width: 220px;
+    background-color: $froly;
+    color: $white;
+  }
+
 }
 
-.hero {
+.Hero {
   background-image: url({{ path }}/store-hero.png);
   background-size: 1600px 374px;
   background-position: center;
   padding-top: 86px;
   padding-bottom: 76px;
-  .heading {
+  .Hero-heading {
     font-size: 70px;
     font-weight: bold;
     color: $white;
     text-align: center;
     margin-bottom: 8px;
   }
-  .subheading {
+  .Hero-subheading {
     font-size: 32px;
     font-weight: 300;
     color: $white;
     text-align: center;
     margin-bottom: 41px;
+  }
+
+  .search-container {
+    margin: 0 auto;
   }
 }
 .Dropdown {
@@ -71,6 +81,7 @@ button {
   letter-spacing: 0.32px;
   float: left;
   position: relative;
+  width: 150px;
 
   &.is-shown {
     .Dropdown-selection {
@@ -88,7 +99,8 @@ button {
     position: relative;
     color: $dusty-gray;
     text-decoration: none;
-    width: 118px;
+    width: inherit;
+    box-sizing: border-box;
     padding: 22px 16px 20px 25px;
     display: inline-block;
     z-index: 1;
@@ -113,13 +125,13 @@ button {
     border-bottom-left-radius: 4px;
     border-bottom-right-radius: 4px;
     display: none;
+    width: inherit;
 
     label {
       cursor: pointer;
     }
     a {
       display: block;
-      width: 140px;
       padding: 18px 0 16px 20px;
       text-decoration: none;
       font-size: 15px;
@@ -144,7 +156,7 @@ button {
   border-bottom-right-radius: inherit;
   letter-spacing: 0.35px;
   float: left;
-  width: 415px;
+  width: 450px;
   position: relative;
 
   &.is-shown {
@@ -194,7 +206,7 @@ button {
   }
   .remove-icon {
     top: 14px;
-    right: 14px;
+    right: 10px;
     width: 32px;
     height: 32px;
     display: inline-block;
@@ -205,7 +217,7 @@ button {
     display: none;
   }
   .SearchBar-results {
-    width: 415px;
+    width: inherit;
     position: absolute;
     top: 60px;
     left: 0;
@@ -255,7 +267,6 @@ button {
   font-size: 18px;
   color: $dusty-gray;
   width: 600px;
-  margin: 0 auto;
   border-radius: 4px;
   display: flex;
 }
@@ -290,9 +301,25 @@ button {
   background: rgba(151, 172, 199, 0.1);
 }
 .box-set {
-  display: flex;
   margin: 0 auto;
-  max-width: 1200px;
+  max-width: 1214px;
+}
+
+.container {
+  margin: 0 auto;
+  max-width: 1214px;
+}
+
+@media (max-width: 1214px) {
+  .box-set {
+    max-width: 610px;
+  }
+}
+
+@media (max-width: 610px) {
+  .box-set {
+    max-width: 300px;
+  }
 }
 .Listing {
   cursor: pointer;
@@ -301,8 +328,8 @@ button {
   border-radius: 4px;
   width: 276px;
   height: 334px;
-  float: left;
-  margin: 0 12px;
+  display: inline-block;
+  margin: 0 12px 21px;
   padding: 26px 30px;
   box-sizing: border-box;
   border: 1px solid transparent;
@@ -310,9 +337,9 @@ button {
   &:hover {
     box-shadow: 0 0 25px rgba(0,0,0,0.1);
     border: 1px solid $anakiwa;
-    width: 278px;
+    min-width: 278px;
     height: 336px;
-    margin: -1px 11px;
+    margin: -1px 11px 20px;
     padding: 27px 31px;
     .Listing-title {
       color: $cornflower-blue;
@@ -409,4 +436,170 @@ only screen and (min-device-pixel-ratio: 2) {
       background-image: url({{ path }}/store-hero@2x.png);
   }
 
+}
+
+.StoreResults-filterContainer {
+  background-color: $white;
+  height: 109px;
+  width: 100%;
+  border-bottom: 1px solid $gallery;
+
+  .container {
+    padding: 0 13px;
+    height: 100%;
+    box-sizing: border-box;
+  }
+
+  .StoreResults-resultsLabel {
+    color: $dusty-gray;
+    font-size: 24px;
+    font-weight: 300;
+    margin-top:46px;
+    float: left;
+
+    span {
+      font-weight: 700;
+      color: $emperor;
+    }
+  }
+
+  .StoreResults-resultsFilters{
+    float: right;
+    margin-top: 32px;
+
+    > * {
+      display: inline-block;
+      vertical-align: top
+    }
+
+    .search-container {
+      border: 1px solid $alto;
+      width: 448px;
+
+      .Dropdown {
+        width: 139px;
+
+        .Dropdown-selection {
+          padding: 12px 14px 10px 14px;
+          font-size: 16px;
+
+          &::after {
+            top: 15px;
+          }
+        }
+
+        .Dropdown-options {
+          top: 38px;
+        }
+      }
+
+      .SearchBar {
+        width: 309px;
+
+        .SearchBar-field {
+          &::after {
+            top: 3px;
+            right: 4px;
+          }
+
+          input {
+            padding-top: 12px;
+            padding-bottom: 10px;
+            font-size: 16px;
+          }
+        }
+
+        .SearchBar-results {
+          top: 38px;
+        }
+
+        .remove-icon {
+          top: 3px;
+          right: 4px;
+        }
+      }
+    }
+
+    .Button {
+      border: 1px solid #DCDCDC;
+      background-color: #fff;
+      color: #727272;
+      font-size: 16px;
+      font-weight: 600;
+      padding: 12px 10px 10px;
+      width: 102px;
+      margin-left: 19px;
+      text-align: center;
+      text-decoration: none;
+      box-sizing: border-box;
+    }
+  }
+
+}
+
+.StoreResults-container {
+  background-color: $porcelain;
+  padding-top: 59px;
+  padding-bottom: 202px;
+
+}
+
+.pagination-container {
+  text-align: center;
+}
+
+.Pagination {
+  border: 1px solid $alto;
+  border-radius: 4px;
+  background-color: $white;
+  margin-top: 39px;
+  height: 38px;
+  display: inline-block;
+
+  a {
+    display: inline-block;
+    text-decoration: none;
+    color: $dusty-gray;
+    border-right: 1px solid $alto;
+    font-weight: 300;
+    padding: 12px 0 10px;
+    width: 38px;
+
+    &.is-selected {
+      color: $froly;
+      font-weight: 400;
+    }
+  }
+}
+
+@media (max-width: 1214px) {
+  .StoreResults-container .box-set {
+    max-width: 910px;
+  }
+}
+
+@media (max-width: 915px) {
+  .StoreResults-container .box-set {
+    max-width: 610px;
+  }
+}
+
+@media (max-width: 610px) {
+  .StoreResults-container .box-set {
+    max-width: 300px;
+  }
+}
+
+.StacksHero {
+  background-color: $waterloo;
+  width: 100%;
+  height: 249px;
+
+  h1 {
+    font-size: 48px;
+    color: #fff;
+    font-weight: 300;
+    padding-top: 65px;
+    padding-bottom: 18px;
+  }
 }
