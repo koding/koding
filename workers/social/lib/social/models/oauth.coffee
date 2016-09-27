@@ -1,9 +1,9 @@
 bongo       = require 'bongo'
 { secure, signature } = bongo
 crypto      = require 'crypto'
-oauth       = require 'oauth'
-parser      = require 'url'
 KodingError = require '../error'
+
+{ isAddressValid } = require './utils'
 
 
 module.exports = class OAuth extends bongo.Base
@@ -17,6 +17,8 @@ module.exports = class OAuth extends bongo.Base
 
   ERRORS =
     NOTSUPPORTED : new KodingError 'OAuth provider is not supported'
+    VALIDATION   : new KodingError 'OAuth validation failed'
+
   # -- OAUTH PROVIDERS ----------------------------------------------------8<--
 
   @PROVIDERS =
@@ -76,6 +78,24 @@ module.exports = class OAuth extends bongo.Base
 
           callback null, url
 
+      validateOAuth: (options, callback) ->
+
+        { url, applicationId, applicationSecret } = options
+
+        MissingFieldError = 'Missing field for validating oauth'
+
+        if not url then return callback new KodingError \
+          MissingFieldError, 'MissingField', { fields: ['url'] }
+        if not applicationId then return callback new KodingError \
+          MissingFieldError, 'MissingField', { fields: ['applicationId'] }
+        if not applicationSecret then return callback new KodingError \
+          MissingFieldError, 'MissingField', { fields: ['applicationSecret'] }
+
+        isAddressValid url, (err) ->
+
+          if err
+            err.error = { fields: ['url'] }
+            return callback err
 
     # -- GITHUB PROVIDER --------------------------------------------------8<--
 
@@ -95,6 +115,9 @@ module.exports = class OAuth extends bongo.Base
 
         callback null, url
 
+      validateOAuth: (options, callback) ->
+        callback ERROR.VALIDATION
+
 
     # -- FACEBOOK PROVIDER ------------------------------------------------8<--
 
@@ -111,6 +134,9 @@ module.exports = class OAuth extends bongo.Base
         url += "redirect_uri=#{redirectUri}&scope=email"
 
         callback null, url
+
+      validateOAuth: (options, callback) ->
+        callback ERROR.VALIDATION
 
 
     # -- GOOGLE PROVIDER --------------------------------------------------8<--
@@ -140,6 +166,9 @@ module.exports = class OAuth extends bongo.Base
 
           callback null, url
 
+      validateOAuth: (options, callback) ->
+        callback ERROR.VALIDATION
+
 
     # -- LINKEDIN PROVIDER ------------------------------------------------8<--
 
@@ -163,6 +192,10 @@ module.exports = class OAuth extends bongo.Base
 
         callback null, url
 
+      validateOAuth: (options, callback) ->
+        callback ERROR.VALIDATION
+
+
   # -- END OF PROVIDERS ---------------------------------------------------8<--
 
 
@@ -170,7 +203,7 @@ module.exports = class OAuth extends bongo.Base
 
     { provider } = urlOptions
 
-    if _provider = @PROVIDER[provider] and _provider.enabled
+    if (_provider = @PROVIDERS[provider]) and _provider.enabled
       { context: { group } } = client
       urlOptions.redirectUri = \
         "http://#{group}.#{KONFIG.hostname}/-/oauth/#{provider}/callback"
@@ -178,3 +211,10 @@ module.exports = class OAuth extends bongo.Base
     else
       callback ERROR.NOTSUPPORTED
 
+
+  @validateOAuth = (provider, options, callback) ->
+
+    if (_provider = @PROVIDERS[provider]) and _provider.enabled
+      _provider.validateOAuth options, callback
+    else
+      callback ERROR.NOTSUPPORTED
