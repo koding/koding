@@ -38,6 +38,8 @@ input, textarea, keygen, select, button {
   border-radius: 4px;
   display: block;
   cursor: pointer;
+  text-decoration: none;
+  text-align: center;
 
   &.Button--seeAll{
     margin: 39px auto 0;
@@ -529,8 +531,6 @@ only screen and (min-device-pixel-ratio: 2) {
       padding: 12px 10px 10px;
       width: 102px;
       margin-left: 19px;
-      text-align: center;
-      text-decoration: none;
       box-sizing: border-box;
     }
   }
