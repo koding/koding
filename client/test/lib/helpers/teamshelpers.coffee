@@ -32,7 +32,7 @@ emailSelector            = "#{modalSelector} input[name=email]"
 companyNameSelector      = "#{modalSelector} input[name=companyName]"
 signUpButton             = "#{modalSelector} button[type=submit]"
 teamsModalSelector       = '.TeamsModal--groupCreation'
-doneButton               = "#{teamsModalSelector} button.TeamsModal-button--green"
+doneButton               = "#{teamsModalSelector} button.TeamsModal-button"
 usernameInput            = "#{teamsModalSelector} input[name=username]"
 passwordInput            = "#{teamsModalSelector} input[name=password]"
 errorMessage             = '.kdnotification.main'
@@ -68,7 +68,7 @@ module.exports =
             .click                  doneButton
             .waitForElementVisible  userInfoErrorMsg, 20000
             .assert.containsText    userInfoErrorMsg, 'Username should be between 4 and 25 characters!'
-        
+
         when 'SameDomainAndUserName'
           browser
             .waitForElementVisible  usernameInput, 20000
@@ -275,7 +275,7 @@ module.exports =
           browser
             .waitForElementVisible errorMessage, 5000
             .assert.containsText   errorMessage, 'Invalid domain!'
-        
+
         when 'EmptyTeamUrl'
           @fillTeamSignUp(browser, user.email, '')
           browser
@@ -289,7 +289,7 @@ module.exports =
             .click                  'button[testpath=domain-button]'
             .waitForElementVisible  errorMessage, 20000
             .assert.containsText   errorMessage, 'Domain name should be longer than 2 characters!'
-        
+
         when 'UpperCaseTeamUrl'
           @fillTeamSignUp(browser, user.email, 'KodingTest')
           browser.waitForElementVisible  'input[name=slug]', 20000
@@ -681,7 +681,7 @@ module.exports =
     browser.url logoutUrl, ->
       callback()
 
-  
+
   closeModal: (browser, done) ->
     browser.element 'css selector', closeModal, (result) =>
       if result.status is 0
@@ -874,7 +874,7 @@ module.exports =
   clearInviteInputByIndex: (browser, index) ->
     invitationsModalSelector = '.HomeAppView--section.send-invites'
     emailInputSelector = "#{invitationsModalSelector} .ListView-row:nth-of-type(#{index}) .kdinput.text.user-email"
- 
+
     browser
       .click invitationsModalSelector
       .waitForElementVisible emailInputSelector, 20000
@@ -882,7 +882,7 @@ module.exports =
       .setValue emailInputSelector, ''
       .click invitationsModalSelector
 
-  
+
   inviteUsers: (browser, invitations, callback) ->
 
     fn = ( invitations, done ) ->

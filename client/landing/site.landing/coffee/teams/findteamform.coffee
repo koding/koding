@@ -18,7 +18,6 @@ module.exports = class FindTeamForm extends LoginViewInlineForm
       inputOptions             :
         name                   : 'email'
         placeholder            : 'Email address...'
-        useOriginalPlaceholder : yes
         testPath               : 'find-team-input'
         defaultValue           : email
         validate               :

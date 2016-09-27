@@ -921,6 +921,10 @@ imports:
   - internal/timeseries
   - trace
   - websocket
+- name: golang.org/x/sync
+  version: 316e794f7b5e3df4e95175a45a5fb8b12f85cb4f
+  subpackages:
+  - errgroup
 - name: golang.org/x/oauth2
   version: 8a57ed94ffd43444c0879fe75701732a38afc985
   subpackages:

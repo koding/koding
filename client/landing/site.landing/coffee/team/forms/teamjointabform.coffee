@@ -17,17 +17,17 @@ module.exports = class TeamJoinTabForm extends kd.FormView
 
     new kd.ButtonView
       title   : title
-      style   : 'TeamsModal-button TeamsModal-button--green'
+      style   : 'TeamsModal-button'
       type    : 'submit'
       loader  : yes
 
 
-  getButtonLink: (partial, callback) ->
+  getButtonLink: (partial, href, callback) ->
 
     new kd.CustomHTMLView
       tagName  : 'span'
       cssClass : 'TeamsModal-button-link'
-      partial  : partial
+      partial  : if href then "<a href='#{href}'>#{partial}</a>" else partial
       click    : callback
 
 

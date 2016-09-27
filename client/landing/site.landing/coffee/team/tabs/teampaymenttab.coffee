@@ -76,7 +76,7 @@ module.exports = class TeamPaymentTab extends kd.TabPaneView
 
     @button = new kd.ButtonView
       title: 'NEXT'
-      style: 'TeamsModal-button TeamsModal-button--green'
+      style: 'TeamsModal-button'
       attributes: { testpath: 'payment-button' }
       loader: off
       callback: @bound 'submit'
