@@ -698,25 +698,6 @@ module.exports = class JAccount extends jraphical.Module
       else
         @setEmailPreferences user, prefs, callback
 
-  # Update broken counts for user
-  updateCounts: ->
-    JUser = require './user'
-    # ReferredUsers count
-    JAccount.count
-      referrerUsername : @profile.nickname
-    , (err, count) =>
-      return if err
-      count ?= 0
-      @update ({ $set: { 'counts.referredUsers': count } }), ->
-
-    # Last Login date
-    @update ({ $set: { 'counts.lastLoginDate': new Date } }), ->
-
-    # Twitter follower count
-    JUser.one { username: @profile.nickname }, (err, user) =>
-      return if err or not user
-      if followerCount = user.foreignAuth?.twitter?.profile?.followers_count
-        @update { $set: { 'counts.twitterFollowers': followerCount } }, ->
 
   isEmailVerified: (callback) ->
     @fetchUser (err, user) ->

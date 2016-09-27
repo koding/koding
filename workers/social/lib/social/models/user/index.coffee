@@ -890,11 +890,6 @@ module.exports = class JUser extends jraphical.Module
         user.update userUpdateOptions, (err) ->
           return next err  if err
 
-          # This should be called after login and this
-          # is not correct place to do it, FIXME GG
-          # p.s. we could do that in workers
-          account.updateCounts()
-
           JLog.log { type: 'login', username , success: yes }
 
           next()
