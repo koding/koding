@@ -28,23 +28,29 @@ module.exports = (req, res) ->
     (user, next) ->
       user.fetchOwnAccount (err, account) ->
         return next err  if err
-        next null, user, account
+        next null, account, { lastLoginDate : user.lastLoginDate }
 
-    (user, account, next) ->
+    (account, userInfo, next) ->
       account.fetchRelativeGroups (err, groups) ->
-        next err, user, account, groups
+        userInfo.nickname = account.profile.nickname
+        next err, account, groups, userInfo
 
-    (user, account, groups, next) ->
+    (account, groups, userInfo, next) ->
+      roles = [ 'blockedAccount' ]
+      account.fetchAllParticipatedGroups { roles }, (err, blockedGroups) ->
+        userInfo.hasBlockedGroups = blockedGroups.length > 0
+        next err, groups, userInfo
+
+    (groups, userInfo, next) ->
       groups = groups.filter (group) -> group.slug isnt 'koding'
 
+      { nickname, lastLoginDate, hasBlockedGroups } = userInfo
       if not groups.length
         return next(
-          if user.lastLoginDate < FAREWELL_SOLO_DATE
+          if lastLoginDate < FAREWELL_SOLO_DATE and not hasBlockedGroups
           then SOLO_USER_ERROR
           else EMPTY_TEAM_LIST_ERROR
         )
-
-      { profile : { nickname } } = account
 
       Tracker.identifyAndTrack nickname, {
         to      : email
