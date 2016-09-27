@@ -15,7 +15,9 @@ module.exports = class OAuth extends bongo.Base
       static        :
         getUrl      : (signature Object, Function)
 
-  NOTSUPPORTEDERR = new KodingError 'OAuth provider is not supported'
+  ERRORS =
+    NOTSUPPORTED : new KodingError 'OAuth provider is not supported'
+  # -- OAUTH PROVIDERS ----------------------------------------------------8<--
 
   @PROVIDERS =
 
@@ -161,6 +163,8 @@ module.exports = class OAuth extends bongo.Base
 
         callback null, url
 
+  # -- END OF PROVIDERS ---------------------------------------------------8<--
+
 
   @getUrl = secure (client, urlOptions, callback) ->
 
@@ -172,4 +176,5 @@ module.exports = class OAuth extends bongo.Base
         "http://#{group}.#{KONFIG.hostname}/-/oauth/#{provider}/callback"
       _provider.getUrl client, urlOptions, callback
     else
-      callback NOTSUPPORTEDERR
+      callback ERROR.NOTSUPPORTED
+
