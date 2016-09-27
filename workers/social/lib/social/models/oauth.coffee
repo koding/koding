@@ -15,55 +15,44 @@ module.exports = class OAuth extends bongo.Base
       static        :
         getUrl      : (signature Object, Function)
 
+  NOTSUPPORTEDERR = new KodingError 'OAuth provider is not supported'
 
-  checkGroupGitLabSettings = (client, callback) ->
+  @PROVIDERS =
 
-    { sessionToken: clientId, context: { group: slug } } = client
+    # -- GITLAB PROVIDER --------------------------------------------------8<--
 
-    JSession = require './session'
-    JSession.one { clientId }, (err, session) ->
-      return callback err  if err
-      return callback new KodingError 'Session invalid'  unless session
+    gitlab    :
+      title   : 'GitLab OAuth Provider'
+      enabled : true
+      getUrl  : (client, urlOptions, callback) ->
 
-      JGroup = require './group'
-      JGroup.one { slug }, (err, group) ->
+        checkGroupGitLabSettings = (client, callback) ->
 
-        if not err and group and group.config?.gitlab?.enabled
+          { sessionToken: clientId, context: { group: slug } } = client
 
-          settings = {
-            url: group.config.gitlab.url
-            applicationId: group.config.gitlab.applicationId
-            state: session._id
-          }
+          JSession = require './session'
+          JSession.one { clientId }, (err, session) ->
+            return callback err  if err
+            return callback new KodingError 'Session invalid'  unless session
 
-          callback null, settings
+            JGroup = require './group'
+            JGroup.one { slug }, (err, group) ->
 
-        else
+              if not err and group and group.config?.gitlab?.enabled
 
-          callback new KodingError 'Integration is not enabled'
+                settings = {
+                  url: group.config.gitlab.url
+                  applicationId: group.config.gitlab.applicationId
+                  state: session._id
+                }
 
+                callback null, settings
 
+              else
 
-  getUrlFor = (client, urlOptions, callback) ->
+                callback new KodingError 'Integration is not enabled'
 
-    { provider, redirectUri } = urlOptions
-
-    ({
-
-      github: ->
-
-        { clientId } = KONFIG.github
-        { scope, returnUrl } = urlOptions
-        scope = 'user:email'  unless scope
-        redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
-        url = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=#{scope}&redirect_uri=#{redirectUri}"
-
-        callback null, url
-
-
-      gitlab: ->
-
-        { returnUrl } = urlOptions
+        { returnUrl, redirectUri } = urlOptions
         { applicationId, host, port } = KONFIG.gitlab
         host ?= 'gitlab.com'
         protocol = '//'
@@ -78,24 +67,64 @@ module.exports = class OAuth extends bongo.Base
           { url, applicationId, state } = data  if data
 
           state = "&state=#{state}"
+          url   = "#{url}/oauth/authorize?"
+          url  += "client_id=#{applicationId}&"
+          url  += "response_type=code#{state}&"
+          url  += "redirect_uri=#{redirectUri}"
 
-          callback null, "#{url}/oauth/authorize?client_id=#{applicationId}&response_type=code#{state}&redirect_uri=#{redirectUri}"
+          callback null, url
 
 
-      facebook: ->
+    # -- GITHUB PROVIDER --------------------------------------------------8<--
 
-        { clientId } = KONFIG.facebook
-        url = "https://facebook.com/dialog/oauth?client_id=#{clientId}&redirect_uri=#{redirectUri}&scope=email"
+    github    :
+      title   : 'Github OAuth Provider'
+      enabled : false
+      getUrl  : (client, urlOptions, callback) ->
+
+        { clientId } = KONFIG.github
+        { scope, returnUrl } = urlOptions
+        scope = 'user:email'  unless scope
+        redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
+
+        url  = "https://github.com/login/oauth/authorize?"
+        url += "client_id=#{clientId}&"
+        url += "scope=#{scope}&redirect_uri=#{redirectUri}"
 
         callback null, url
 
 
-      google: ->
+    # -- FACEBOOK PROVIDER ------------------------------------------------8<--
+
+    facebook  :
+      title   : 'Facebook OAuth Provider'
+      enabled : false
+      getUrl  : (client, urlOptions, callback) ->
+
+        { clientId } = KONFIG.facebook
+        { redirectUri } = urlOptions
+
+        url  = "https://facebook.com/dialog/oauth?"
+        url += "client_id=#{clientId}&"
+        url += "redirect_uri=#{redirectUri}&scope=email"
+
+        callback null, url
+
+
+    # -- GOOGLE PROVIDER --------------------------------------------------8<--
+
+    google    :
+      title   : 'Google OAuth Provider'
+      enabled : false
+      getUrl  : (client, urlOptions, callback) ->
 
         { client_id } = KONFIG.google
+        { redirectUri } = urlOptions
+
         JSession = require './session'
         JSession.one { clientId: client.sessionToken }, (err, session) ->
           return callback err  if err
+
           state = session._id
           url  = 'https://accounts.google.com/o/oauth2/auth?'
           url += 'scope=https://www.google.com/m8/feeds '
@@ -110,10 +139,19 @@ module.exports = class OAuth extends bongo.Base
           callback null, url
 
 
-      linkedin: ->
+    # -- LINKEDIN PROVIDER ------------------------------------------------8<--
+
+    linkedin  :
+      title   : 'LinkedIn OAuth Provider'
+      enabled : false
+      getUrl  : (client, urlOptions, callback) ->
 
         { client_id } = KONFIG.linkedin
-        state = crypto.createHash('md5').update((new Date).toString()).digest('hex')
+        { redirectUri } = urlOptions
+
+        state = crypto.createHash('md5')
+          .update((new Date).toString())
+          .digest('hex')
 
         url  = 'https://www.linkedin.com/uas/oauth2/authorization?'
         url += 'response_type=code&'
@@ -123,18 +161,18 @@ module.exports = class OAuth extends bongo.Base
 
         callback null, url
 
-    }[provider] ? -> callback new KodingError 'No such provider')()
-
 
   @getUrl = secure (client, urlOptions, callback) ->
 
     { provider } = urlOptions
-    { context: { group } } = client
 
-    urlOptions.redirectUri = \
-      "http://#{group}.#{KONFIG.hostname}/-/oauth/#{provider}/callback"
-
-    getUrlFor client, urlOptions, callback
+    if _provider = @PROVIDER[provider] and _provider.enabled
+      { context: { group } } = client
+      urlOptions.redirectUri = \
+        "http://#{group}.#{KONFIG.hostname}/-/oauth/#{provider}/callback"
+      _provider.getUrl client, urlOptions, callback
+    else
+      callback NOTSUPPORTEDERR
 
 
   @prependGroupName = (url, groupName) ->
