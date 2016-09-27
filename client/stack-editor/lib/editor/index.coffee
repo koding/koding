@@ -68,7 +68,7 @@ module.exports = class StackEditorView extends kd.View
         @deleteStack.hide()
         @saveButton.setClass 'isntMine'
         @inputTitle.setClass 'template-title isntMine'
-        @editName.hide()
+        @subHeaderWrapper.hide()
 
 
 
@@ -283,16 +283,26 @@ module.exports = class StackEditorView extends kd.View
         changeTemplateTitle stackTemplate?._id, e.target.value
 
     @header.addSubView @inputTitle = new kd.InputView options
+    @inputTitle.resize()
 
-    @header.addSubView @editName = new CustomLinkView
+    @header.addSubView @subHeaderWrapper = new kd.CustomHTMLView
+      cssClass: 'StackEditorView--header-subHeader'
+
+    @subHeaderWrapper.addSubView @editName = new CustomLinkView
       cssClass: 'edit-name'
       title: 'Edit Name'
       click : @inputTitle.bound 'setFocus'
 
+    @subHeaderWrapper.addSubView @saveName = new CustomLinkView
+      cssClass: 'edit-name hidden'
+      title: 'Save Name'
+      click : @inputTitle.bound 'setBlur'
+
     if checkClonedStackTemplateExist stackTemplate
-      @header.addSubView @clonedFrom = new kd.CustomHTMLView
+      @subHeaderWrapper.addSubView @clonedFrom = new kd.CustomHTMLView
         cssClass: 'cloned-from-text'
-        partial: 'Cloned Of'
+        partial: 'Clone Of'
+
       @clonedFrom.addSubView new kd.CustomHTMLView
         cssClass: 'cloned-from'
         partial: "  #{stackTemplate.title}"
@@ -312,7 +322,10 @@ module.exports = class StackEditorView extends kd.View
       @inputTitle.prepareClone()
       @inputTitle.resize()
 
-    @inputTitle.on 'blur', @editName.bound 'show'
+    @inputTitle.on 'blur', =>
+      @subHeaderWrapper.bound 'show'
+      @saveName.hide()
+      @editName.show()
 
     @inputTitle.on 'keydown', (event) =>
       return  unless event.keyCode is 13
@@ -321,6 +334,7 @@ module.exports = class StackEditorView extends kd.View
     @inputTitle.on 'focus', =>
       @inputTitle.resize()
       @editName.hide()
+      @saveName.show()
 
 
   createOutputView: ->
