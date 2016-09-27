@@ -435,7 +435,7 @@ only screen and (-webkit-min-device-pixel-ratio: 2),
 only screen and (min-device-pixel-ratio: 2) {
 
   .hero {
-      background-image: url({{ path }}/store-hero@2x.png);
+    background-image: url({{ path }}/store-hero@2x.png);
   }
 
 }

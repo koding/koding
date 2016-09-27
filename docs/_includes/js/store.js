@@ -9,51 +9,52 @@
 
       removeIcon = document.querySelector('.remove-icon');
 
-  document.addEventListener('click', function(e) {
-    if (e.target.id != "dropdown-selection" && dropdown.classList.contains('is-shown')) {
-      dropdown.classList.remove('is-shown');
-    }
-  });
+  var initialize = function() {
 
-  dropdown.addEventListener('click', function() {
+    document.addEventListener('click', function(e) {
+      if (e.target.id != "dropdown-selection" && dropdown.classList.contains('is-shown')) {
+        dropdown.classList.remove('is-shown');
+      }
+    }, true);
 
-    if (this.classList.contains('is-shown')) {
-      this.classList.remove('is-shown');
-    } else {
-      this.classList.add('is-shown');
-    }
+    dropdown.addEventListener('click', function() {
 
-    return false;
-  });
-
-  [].forEach.call( dropdownOptions, function(el) {
-    el.addEventListener('click', function() {
-      dropdownLabel.innerHTML = this.innerHTML;
-
-      if (this.classList.contains('stacks')) {
-        dropdownLabel.classList.remove('stencils');
-        dropdownLabel.classList.add('stacks');
+      if (this.classList.contains('is-shown')) {
+        this.classList.remove('is-shown');
       } else {
-        dropdownLabel.classList.remove('stacks');
-        dropdownLabel.classList.add('stencils');
+        this.classList.add('is-shown');
       }
 
+      return false;
+    });
+
+    [].forEach.call( dropdownOptions, function(el) {
+      el.addEventListener('click', function() {
+        dropdownLabel.innerHTML = this.innerHTML;
+
+        if (this.classList.contains('stacks')) {
+          dropdownLabel.classList.remove('stencils');
+          dropdownLabel.classList.add('stacks');
+        } else {
+          dropdownLabel.classList.remove('stacks');
+          dropdownLabel.classList.add('stencils');
+        }
+
+        searchBarInput.focus();
+      }, false)
+    });
+
+    searchBarInput.addEventListener('keyup', submitInput.bind(searchBarInput));
+
+    removeIcon.addEventListener('click', function(e) {
+      searchBarInput.value = "";
       searchBarInput.focus();
-    }, false)
-  });
+      searchBar.classList.remove('is-shown');
+      searchResults.innerHTML = "";
 
-  searchBarInput.addEventListener('keyup', function(e) {
-    submitInput(this);
-  });
-
-  removeIcon.addEventListener('click', function(e) {
-    searchBarInput.value = "";
-    searchBarInput.focus();
-    searchBar.classList.remove('is-shown');
-    searchResults.innerHTML = "";
-
-    return false;
-  });
+      return false;
+    });
+  }
 
   var searchResultTemplate = function(obj) {
     return '<a class="SearchBar-resultsData-row">' +
@@ -74,18 +75,22 @@
   }
 
   var submitInput = function(e) {
-    var html = "", items, filteredItems = [];
+    var items, 
+        filteredItems = [],
+        e = e.target,
+        html = "",
+        value = e.value.trim();
 
-    if (e.value != "") {
+    if (value != "") {
 
       items = dropdownLabel.classList.contains('stacks') ? stacks : stencils;
 
       filteredItems = items.filter(function(obj) {
-        return obj.title.toLowerCase().indexOf(e.value) != -1;
+        return obj.title.toLowerCase().indexOf(value) != -1;
       }).slice(0, 5);
       
       html = filteredItems.map(function(obj) {
-        obj.formattedTitle = wrapMatchedText(obj.title, e.value, '<span class="matched-phrase">', '</span>');
+        obj.formattedTitle = wrapMatchedText(obj.title, value, '<span class="matched-phrase">', '</span>');
         return searchResultTemplate(obj);
       }).join('');
 
@@ -99,4 +104,6 @@
 
   var stacks = {{site.data.store-stacks | jsonify }},
       stencils = {{site.data.store-stencils | jsonify }};
+
+  initialize();
 })();
