@@ -1,6 +1,6 @@
 remote = require 'app/remote'
 
-module.exports = CheckClonedStackTemplateExist = (stackTemplate) ->
+module.exports = isClonedTemplate = (stackTemplate) ->
   return no  unless stackTemplate
 
   originalStackTemplateId = stackTemplate.config?.clonedFrom
