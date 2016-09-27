@@ -174,10 +174,7 @@ func fetchParallelizableeUsageItems(group *models.Group) (*Usage, error) {
 func getPlan(subscription *stripe.Sub, totalCount int) (*stripe.Plan, error) {
 	plan := subscription.Plan
 
-	if plan.Amount == 0 { // we are on trial period
-		return plan, nil
-	}
-
+	expectedPlanID := GetPlanID(totalCount)
 	// in the cases where the active subscription and the have-to-be
 	// subscription is different, fetch the real plan from system. This can only
 	// happen if the team got more members than the previous subscription's user
@@ -187,11 +184,11 @@ func getPlan(subscription *stripe.Sub, totalCount int) (*stripe.Plan, error) {
 	// subscription change happens, so we only change the subscription on the
 	// billing date with cancelling the previous subscription & invoice and
 	// creating a new subscription with new requirement
-	if plan.ID == GetPlanID(totalCount) {
+	if plan.ID == expectedPlanID {
 		return plan, nil
 	}
 
-	return stripeplan.Get(GetPlanID(totalCount), nil)
+	return stripeplan.Get(expectedPlanID, nil)
 }
 
 func createFilter(groupID bson.ObjectId) modelhelper.Selector {
