@@ -69,8 +69,9 @@ module.exports = class GitLabContainer extends React.Component
 
   onRemoveCancel: ->
 
-    state = @makeInitialState()
-    state.enabled = getGroup().config.gitlab.enabled
+    state = _.assign {}, @state,
+      enabled: getGroup().config.gitlab.enabled
+      isConfirmModalOpen: no
 
     @setState state
 
