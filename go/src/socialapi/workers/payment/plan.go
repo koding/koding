@@ -21,7 +21,7 @@ const (
 	planPrefix       = "p_"
 	customPlanPrefix = "p_c_"
 
-	FreeForever = "p_free_forever"
+	Free        = "p_free"
 	UpTo10Users = "p_up_to_10"
 	UpTo50Users = "p_up_to_50"
 	Over50Users = "p_over_50"
@@ -30,14 +30,14 @@ const (
 // Plans holds koding provided plans on stripe
 var Plans = map[string]*stripe.PlanParams{
 	// Forever free koding
-	FreeForever: &stripe.PlanParams{
+	Free: &stripe.PlanParams{
 		Amount:        0,
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
 		TrialPeriod:   0,
-		Name:          "Free Forever",
+		Name:          "Free",
 		Currency:      currency.USD,
-		ID:            FreeForever,
+		ID:            Free,
 		Statement:     "FREE",
 	},
 
@@ -77,42 +77,47 @@ var Plans = map[string]*stripe.PlanParams{
 
 // GetPlanID returns id of the plan according to the give user count
 func GetPlanID(userCount int) string {
-	if userCount < 10 {
+	switch {
+	case userCount == 0:
+		return Plans[Free].ID
+	case userCount < 10:
 		return Plans[UpTo10Users].ID
-	}
-
-	if userCount < 50 {
+	case userCount < 50:
 		return Plans[UpTo50Users].ID
+	default:
+		return Plans[Over50Users].ID
 	}
-
-	return Plans[Over50Users].ID
 }
 
 // CreateDefaultPlans creates predefined default plans. This is meant to be run
 // when the worker starts to be sure the plans are there.
 func CreateDefaultPlans() error {
-	for _, planParams := range Plans {
-		p, err := stripeplan.Get(planParams.ID, nil)
-		if err == nil && p != nil && p.ID == planParams.ID {
-			continue
-		}
-
-		stripeErr, ok := err.(*stripe.Error)
-		if !ok {
-			return err
-		}
-
-		if stripeErr.Type != stripe.ErrorTypeInvalidRequest {
-			return err
-		}
-
-		_, err = stripeplan.New(planParams)
-		if err != nil {
+	for key := range Plans {
+		if err := EnsurePlan(Plans[key]); err != nil {
 			return err
 		}
 	}
-
 	return nil
+}
+
+// EnsurePlan makes sure plan is in stripe
+func EnsurePlan(planParams *stripe.PlanParams) error {
+	p, err := stripeplan.Get(planParams.ID, nil)
+	if err == nil && p != nil && p.ID == planParams.ID {
+		return nil
+	}
+
+	stripeErr, ok := err.(*stripe.Error)
+	if !ok {
+		return err
+	}
+
+	if stripeErr.Type != stripe.ErrorTypeInvalidRequest {
+		return err
+	}
+
+	_, err = stripeplan.New(planParams)
+	return err
 }
 
 // Initialize inits the payment worker for further operations
