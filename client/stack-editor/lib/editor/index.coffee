@@ -19,7 +19,7 @@ parseTerraformOutput = require 'app/util/stacks/parseterraformoutput'
 providersParser = require 'app/util/stacks/providersparser'
 updateCustomVariable = require 'app/util/stacks/updatecustomvariable'
 addUserInputOptions = require 'app/util/stacks/adduserinputoptions'
-checkClonedStackTemplateExist = require 'app/util/checkclonedstacktemplateexist'
+isClonedTemplate = require 'app/util/isclonedtemplate'
 CustomLinkView = require 'app/customlinkview'
 
 OutputView = require './outputview'
@@ -68,7 +68,7 @@ module.exports = class StackEditorView extends kd.View
         @deleteStack.hide()
         @saveButton.setClass 'isntMine'
         @inputTitle.setClass 'template-title isntMine'
-        @subHeaderWrapper.hide()
+        @titleActionsWrapper.hide()
 
 
 
@@ -285,21 +285,21 @@ module.exports = class StackEditorView extends kd.View
     @header.addSubView @inputTitle = new kd.InputView options
     @inputTitle.resize()
 
-    @header.addSubView @subHeaderWrapper = new kd.CustomHTMLView
+    @header.addSubView @titleActionsWrapper = new kd.CustomHTMLView
       cssClass: 'StackEditorView--header-subHeader'
 
-    @subHeaderWrapper.addSubView @editName = new CustomLinkView
+    @titleActionsWrapper.addSubView @editName = new CustomLinkView
       cssClass: 'edit-name'
       title: 'Edit Name'
       click : @inputTitle.bound 'setFocus'
 
-    @subHeaderWrapper.addSubView @saveName = new CustomLinkView
+    @titleActionsWrapper.addSubView @saveName = new CustomLinkView
       cssClass: 'edit-name hidden'
       title: 'Save Name'
       click : @inputTitle.bound 'setBlur'
 
-    if checkClonedStackTemplateExist stackTemplate
-      @subHeaderWrapper.addSubView @clonedFrom = new kd.CustomHTMLView
+    if isClonedTemplate stackTemplate
+      @titleActionsWrapper.addSubView @clonedFrom = new kd.CustomHTMLView
         cssClass: 'cloned-from-text'
         partial: 'Clone Of'
 
@@ -323,7 +323,7 @@ module.exports = class StackEditorView extends kd.View
       @inputTitle.resize()
 
     @inputTitle.on 'blur', =>
-      @subHeaderWrapper.bound 'show'
+      @titleActionsWrapper.bound 'show'
       @saveName.hide()
       @editName.show()
 
