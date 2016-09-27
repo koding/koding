@@ -15,6 +15,7 @@ localStorage           = require './localstorage'
 isStarted = false
 
 require './styl/require-styles'
+require './util/ping'
 
 run = (defaults) ->
 

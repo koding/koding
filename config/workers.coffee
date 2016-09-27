@@ -199,6 +199,10 @@ module.exports = (KONFIG, options, credentials) ->
             proxyPass   : "http://socialapi/payment/$1$is_args$args"
           }
           {
+            location    : "~ /api/social/presence/(.*)"
+            proxyPass   : "http://socialapi/presence/$1$is_args$args"
+          }
+          {
             location    : "~* ^/api/social/slack/(.*)"
             proxyPass   : "http://socialapi/slack/$1$is_args$args"
             extraParams : [ "proxy_buffering off;" ] # appearently slack sends a big header
@@ -319,6 +323,13 @@ module.exports = (KONFIG, options, credentials) ->
         command         :
           run           : "#{GOBIN}/topicmoderation"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/topicmoderation -watch socialapi/workers/topicmoderation"
+
+    presence            :
+      group             : "socialapi"
+      supervisord       :
+        command         :
+          run           : "#{GOBIN}/presence"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/presence -watch socialapi/workers/presence"
 
     collaboration       :
       group             : "socialapi"

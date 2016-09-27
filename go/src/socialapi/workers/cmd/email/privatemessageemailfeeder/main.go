@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"log"
 	"socialapi/config"
 	"socialapi/models"
 	feeder "socialapi/workers/email/privatemessageemail/privatemessageemailfeeder"
@@ -15,8 +15,7 @@ var Name = "PrivateMessageEmailFeeder"
 func main() {
 	r := runner.New(Name)
 	if err := r.Init(); err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
 	// mongo connection is used for getting account emails and email settings

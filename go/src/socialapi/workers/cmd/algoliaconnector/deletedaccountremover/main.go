@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"socialapi/config"
 	"socialapi/workers/algoliaconnector/algoliaconnector"
 
@@ -14,10 +14,8 @@ var Name = "AlgoliaGuestAccountRemover"
 func main() {
 	r := runner.New(Name)
 	if err := r.Init(); err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
-	defer r.Close()
 
 	appConfig := config.MustRead(r.Conf.Path)
 

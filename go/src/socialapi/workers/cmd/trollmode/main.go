@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"socialapi/models"
 	"socialapi/workers/trollmode"
 
@@ -15,8 +15,7 @@ var (
 func main() {
 	r := runner.New(Name)
 	if err := r.Init(); err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
 	r.SetContext(trollmode.NewController(r.Log))
