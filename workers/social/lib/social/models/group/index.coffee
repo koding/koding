@@ -236,7 +236,7 @@ module.exports = class JGroup extends Module
           (signature String, String, Function)
         setLimit:
           (signature Object, Function)
-        setOauth:
+        setOAuth:
           (signature Object, Function)
         fetchApiTokens: [
           (signature Function)
@@ -1147,7 +1147,7 @@ module.exports = class JGroup extends Module
         @update { $set: dataToUpdate }, callback
 
 
-  setOauth   : permit
+  setOAuth   : permit
     advanced : [
       { permission: 'edit own groups', validateWith : Validators.group.admin }
       { permission: 'edit groups',     superadmin   : yes }
@@ -1156,42 +1156,45 @@ module.exports = class JGroup extends Module
 
       { enabled, provider, url, applicationId, applicationSecret } = options
 
-      # TODO: change this with supported providers ~ GG
-      unless provider in ['gitlab']
+      OAuth = require '../oauth'
+
+      if not (_provider = OAuth.PROVIDERS[provider]) or not _provider.enabled
         return callback new KodingError 'Provider not supported at this time.'
 
       dataToUpdate = {}
       dataToUpdate["config.#{provider}"] = {}
 
+      notifyOptions =
+        group   : client?.context?.group
+        target  : 'group'
+
       # TODO: add remove existing sessions feature here ~ GG
       if not enabled
-        @update { $unset: dataToUpdate }, callback
+
+        @updateAndNotify notifyOptions, { $unset: dataToUpdate }, callback
         return
 
-      ip    = require 'ip'
-      parse = require 'url-parse'
+      validateOptions = { url, applicationId, applicationSecret }
 
-      addr  = parse url, true
+      OAuth.validateOAuth provider, validateOptions, (err) =>
 
-      if (ip.isV4Format _ip = addr.hostname) and ip.isPrivate _ip
-        return callback new KodingError 'Invalid URL provided'
-
-      dataToUpdate["config.#{provider}"] = {
-        enabled: yes
-        applicationId
-        url
-      }
-
-      @update { $set: dataToUpdate }, (err) =>
         return callback err  if err
 
-        # TODO: move this to JCredentials
-        @fetchData (err, data) ->
+        dataToUpdate["config.#{provider}"] = {
+          enabled: yes
+          applicationId
+          url
+        }
+
+        @updateAndNotify notifyOptions, { $set: dataToUpdate }, (err) =>
           return callback err  if err
 
-          dataToSet = {}
-          dataToSet["data.#{provider}"] = { applicationSecret }
-          data.update { $set: dataToSet }, callback
+          @fetchData (err, data) ->
+            return callback err  if err
+
+            dataToSet = {}
+            dataToSet["data.#{provider}"] = { applicationSecret }
+            data.update { $set: dataToSet }, callback
 
 
   modifyMembershipPolicy: permit

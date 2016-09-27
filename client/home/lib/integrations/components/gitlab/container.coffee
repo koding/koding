@@ -8,7 +8,7 @@ getGroup = require 'app/util/getGroup'
 saveGitlabConfig = (options = {}, callback) ->
   options = _.assign {}, options, { provider: 'gitlab' }
 
-  getGroup().setOauth options, callback
+  getGroup().setOAuth options, callback
 
 
 module.exports = class GitLabContainer extends React.Component

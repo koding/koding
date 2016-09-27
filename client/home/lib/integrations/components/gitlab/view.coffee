@@ -54,7 +54,7 @@ GitLabForm = ({ err, url, enabled, applicationId, applicationSecret, onInputChan
   return <span />  unless enabled
 
   if err
-  then err = _.assign {}, err, { fields: ['url'] }
+  then err = _.assign {}, err, err.error
   else err = { fields: [] }
 
   <fieldset>
