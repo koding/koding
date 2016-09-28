@@ -179,10 +179,13 @@ isLoggedIn = (req, res, callback) ->
 
 saveOauthToSession = (oauthInfo, clientId, provider, callback) ->
   { JSession } = koding.models
+
   query = { 'foreignAuthType': provider }
+
   if oauthInfo.returnUrl
     query.returnUrl = oauthInfo.returnUrl
     delete oauthInfo.returnUrl
+
   query["foreignAuth.#{provider}"] = oauthInfo
 
   JSession.update { clientId }, { $set:query }, callback

@@ -823,10 +823,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
     it 'should pass error if captcha code is empty', (done) ->
 
-      params =
-        slug            : 'koding'
-        foreignAuthType : ''
-
+      params = { slug: 'koding' }
       captchaCode = ''
 
       JUser.verifyRecaptcha captchaCode, params, (err) ->
@@ -836,10 +833,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
     it 'should pass error if captcha code is invalid', (done) ->
 
-      params =
-        slug            : 'koding'
-        foreignAuthType : ''
-
+      params = { slug: 'koding' }
       captchaCode = 'someInvalidCaptchaCode'
 
       JUser.verifyRecaptcha captchaCode, params, (err) ->
