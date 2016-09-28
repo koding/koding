@@ -10,6 +10,12 @@ module.exports = class JForeignAuth extends jraphical.Module
 
   @set
     indexes       :
+      # WARNING! ~ GG
+      # to make this working properly we need a compound index here and since
+      # bongo is not supporting them we need to manually define following:
+      #
+      #   - { username: 1, group: 1, provider: 1, foreignId: 1 } (unique)
+      #
       provider    : 'sparse'
       foreignId   : 'sparse'
       group       : 'sparse'
@@ -83,17 +89,23 @@ module.exports = class JForeignAuth extends jraphical.Module
 
   @create = ({ foreignData, group, username }, callback) ->
 
-    { foreignAuthType } = foreignData
-    foreignData = foreignData.foreignAuth[foreignAuthType]
-    foreignAuth = new JForeignAuth {
-      provider  : foreignAuthType
-      foreignId : foreignData.foreignId
-      foreignData
-      username
-      group
+    { foreignAuthType: provider } = foreignData
+    foreignData   = foreignData.foreignAuth[provider]
+    { foreignId } = foreignData
+
+    query     = { group, username, provider }
+    options   = { new: yes, upsert: yes }
+    operation = {
+      $set: {
+        foreignData
+        foreignId
+        username
+        provider
+        group
+      }
     }
 
-    foreignAuth.save (err) ->
+    @findAndModify query, null, operation, options, (err, foreignAuth) ->
       callback err, foreignAuth
 
 
