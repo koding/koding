@@ -79,14 +79,21 @@ module.exports = GitLabProvider =
     return [ null, { host: url } ]
 
 
-  importStackTemplateData: (importParams, user, callback) ->
+  importStackTemplateData: (client, options, callback) ->
 
-    { url, repo, privateToken } = importParams
-    return  unless urlData = @parseImportData url, repo
+    { url, repo, privateToken } = options
+    { user, oauth, group } = client.r
 
-    if privateToken or privateToken = user.getAt 'foreignAuth.gitlab.privateToken'
+    unless group.config?.gitlab?.enabled
+      return no
+
+    gitlabHost = group.config.gitlab.url
+    unless urlData = @parseImportData { url, repo, gitlabHost }
+      return no
+
+    if privateToken or privateToken = oauth.privateToken
       @importStackTemplateWithPrivateToken privateToken, urlData, callback
-    else if oauth = user.getAt 'foreignAuth.gitlab'
+    else if oauth.token
       @importStackTemplateWithOauth oauth, urlData, user, callback
     else
       @importStackTemplateWithRawUrl urlData, callback
@@ -94,13 +101,15 @@ module.exports = GitLabProvider =
     return yes
 
 
-  parseRepo: (url) ->
+  parseRepo: (url, gitlabHost) ->
 
     { gitlab } = KONFIG
     [user, repo, branch] = url.split '/'
 
     port    = if port = gitlab.port then ":#{port}" else ''
-    baseUrl = "http://#{gitlab.host}#{port}" # FIXME update protocol here ~GG
+    # FIXME update protocol here ~GG
+    baseUrl = gitlabHost ? "http://#{gitlab.host}#{port}"
+
     branch ?= 'master'
     url     = "#{baseUrl}/#{user}/#{repo}"
 
@@ -110,16 +119,19 @@ module.exports = GitLabProvider =
     return { originalUrl : url, baseUrl, user, repo, branch }
 
 
-  parseImportData: (url, repo) ->
+  parseImportData: (options = {}) ->
+
+    { url, repo, gitlabHost } = options
 
     # if user/repo/branch provided as url we will use
     if repo
-      return @parseRepo repo
+      return @parseRepo repo, gitlabHost
 
     { GITLAB_HOST } = Constants
     { protocol, host, pathname } = URL.parse url
 
     return  if host not in [
+      gitlabHost,
       GITLAB_HOST,
       KONFIG.gitlab.host, "#{KONFIG.gitlab.host}:#{KONFIG.gitlab.port}"
     ]
