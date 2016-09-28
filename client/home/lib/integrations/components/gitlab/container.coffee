@@ -35,14 +35,20 @@ module.exports = class GitLabContainer extends React.Component
 
   componentDidMount: ->
 
-    return  unless getGroup().config?.gitlab?
+    group = getGroup()
 
-    { gitlab } = getGroup().config
+    return  unless group.config?.gitlab?
 
-    @setState
-      enabled: gitlab.enabled
-      url: gitlab.url
-      applicationId: gitlab.applicationId
+
+    group.fetchDataAt 'gitlab.applicationSecret', (err, applicationSecret) =>
+
+      { gitlab } = group.config
+
+      @setState
+        enabled: gitlab.enabled
+        url: gitlab.url
+        applicationId: gitlab.applicationId
+        applicationSecret: applicationSecret
 
 
   onInputChange: (field) -> (event) =>
@@ -103,8 +109,7 @@ module.exports = class GitLabContainer extends React.Component
 
         newState = {}
         newState.err = err  if err
-        newState = _.pick options, 'url', 'applicationId'
-        newState.applicationSecret = ''
+        newState = _.pick options, 'url', 'applicationId', 'applicationSecret'
         newState.err = err
         newState.isSaving = no
 
