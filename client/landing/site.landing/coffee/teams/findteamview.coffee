@@ -5,6 +5,11 @@ JView          = require './../core/jview'
 MainHeaderView = require './../core/mainheaderview'
 FindTeamForm   = require './findteamform'
 
+EMPTY_TEAM_LIST_ERROR = 'Empty team list'
+SOLO_USER_ERROR = 'Solo user detected'
+
+FAREWELL_SOLO_URL = 'https://www.koding.com/farewell-solo'
+
 track = (action) ->
 
   category = 'Teams'
@@ -55,19 +60,32 @@ module.exports = class FindTeamView extends kd.TabPaneView
     utils.findTeam email,
       error       : (xhr) =>
         { responseText } = xhr
-        new kd.NotificationView { title : responseText }
+        @handleServerError responseText
         @form.button.hideLoader()
       success     : =>
         @form.button.hideLoader()
         @form.reset()
 
-        new kd.NotificationView
-          cssClass : 'recoverConfirmation'
-          title    : 'Check your email'
-          content  : 'We\'ve sent you a list of your teams.'
-          duration : 4500
+        @showNotification 'Check your email', 'We\'ve sent you a list of your teams.'
 
         kd.singletons.router.handleRoute '/'
+
+
+  handleServerError: (err) ->
+
+    return location.assign FAREWELL_SOLO_URL  if err is SOLO_USER_ERROR
+
+    err = 'We couldn\'t find any teams that you have joined or was invited!'  if err is EMPTY_TEAM_LIST_ERROR
+    @showNotification err
+
+
+  showNotification: (title, content) ->
+
+    new kd.NotificationView
+      cssClass : 'recoverConfirmation'
+      title    : title
+      content  : content
+      duration : 4500
 
 
   pistachio: ->

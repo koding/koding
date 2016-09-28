@@ -1,218 +1,268 @@
-package awsprovider
+package aws
 
 import (
-	"errors"
+	"bytes"
 	"fmt"
-	"strings"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/iam"
+	"strconv"
+	"text/template"
+	"time"
 
 	"koding/kites/kloud/api/amazon"
-	"koding/kites/kloud/provider"
 	"koding/kites/kloud/stack"
-	"koding/kites/kloud/stackplan"
-
-	"golang.org/x/net/context"
+	"koding/kites/kloud/stack/provider"
+	"koding/kites/kloud/userdata"
 )
 
-// Cred represents jCredentialDatas.meta for "aws" provider.
-type Cred struct {
-	Region    string `json:"region" bson:"region" hcl:"region"`
-	AccessKey string `json:"access_key" bson:"access_key" hcl:"access_key"`
-	SecretKey string `json:"secret_key" bson:"secret_key" hcl:"secret_key"`
+//go:generate $GOPATH/bin/go-bindata -mode 420 -modtime 1470666525 -pkg aws -o bootstrap.json.tmpl.go bootstrap.json.tmpl
+//go:generate go fmt bootstrap.json.tmpl.go
 
-	// Bootstrap metadata.
-	ACL       string `json:"acl,omitempty" bson:"acl,omitempty" hcl:"acl"`
-	CidrBlock string `json:"cidr_block,omitempty" bson:"cidr_block,omitempty" hcl:"cidr_block"`
-	IGW       string `json:"igw,omitempty" bson:"igw,omitempty" hcl:"igw"`
-	KeyPair   string `json:"key_pair,omitempty" bson:"key_pair,omitempty" hcl:"key_pair"`
-	RTB       string `json:"rtb,omitempty" bson:"rtb,omitempty" hcl:"rtb"`
-	SG        string `json:"sg,omitempty" bson:"sg,omitempty" hcl:"sg"`
-	Subnet    string `json:"subnet,omitempty" bson:"subnet,omitempty" hcl:"subnet"`
-	VPC       string `json:"vpc,omitempty" bson:"vpc,omitempty" hcl:"vpc"`
-	AMI       string `json:"ami,omitempty" bson:"ami,omitempty" hcl:"ami"`
+var bootstrap = template.Must(template.New("").Parse(mustAsset("bootstrap.json.tmpl")))
+
+type bootstrapConfig struct {
+	AvailabilityZone string
+	KeyPairName      string
+	PublicKey        string
+	EnvironmentName  string
 }
 
-var _ stack.Validator = (*Cred)(nil)
-
-func (meta *Cred) BootstrapValid() error {
-	if meta.ACL == "" {
-		return errors.New("acl is empty or missing")
-	}
-	if meta.CidrBlock == "" {
-		return errors.New("CIDR block is empty or missing")
-	}
-	if meta.IGW == "" {
-		return errors.New("IGW is empty or missing")
-	}
-	if meta.KeyPair == "" {
-		return errors.New("key pair is empty or missing")
-	}
-	if meta.RTB == "" {
-		return errors.New("RTB is empty or missing")
-	}
-	if meta.SG == "" {
-		return errors.New("SG is empty or missing")
-	}
-	if meta.Subnet == "" {
-		return errors.New("subnet is empty or missing")
-	}
-	if meta.VPC == "" {
-		return errors.New("VPC is empty or missing")
-	}
-	if meta.AMI == "" {
-		return errors.New("AMI is empty or missing")
-	}
-	return nil
-}
-
-// Credentials creates new AWS credentials value from the given meta.
-func (meta *Cred) Credentials() *credentials.Credentials {
-	return credentials.NewStaticCredentials(meta.AccessKey, meta.SecretKey, "")
-}
-
-// Options creates new amazon client options.
-func (meta *Cred) Options() *amazon.ClientOptions {
-	return &amazon.ClientOptions{
-		Credentials: meta.Credentials(),
-		Region:      meta.Region,
-	}
-}
-
-func (meta *Cred) session() *session.Session {
-	return amazon.NewSession(meta.Options())
-}
-
-const arnPrefix = "arn:aws:iam::"
-
-// AccountID parses an AWS arn string to get the Account ID.
-func (meta *Cred) AccountID() (string, error) {
-	user, err := iam.New(meta.session()).GetUser(nil)
-	if err == nil {
-		return parseAccountID(aws.StringValue(user.User.Arn))
-	}
-
-	for msg := err.Error(); msg != ""; {
-		i := strings.Index(msg, arnPrefix)
-
-		if i == -1 {
-			break
-		}
-
-		msg = msg[i:]
-
-		accountID, e := parseAccountID(msg)
-		if e != nil {
-			continue
-		}
-
-		return accountID, nil
-	}
-
-	return "", err
-}
-
-// The function assumes arn string comes from an IAM resource, as
-// it treats region empty.
-//
-// For details see:
-//
-//   http://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns
-//
-// Example arn string: "arn:aws:iam::213456789:user/username"
-// Returns: 213456789
-func parseAccountID(arn string) (string, error) {
-	if !strings.HasPrefix(arn, arnPrefix) {
-		return "", fmt.Errorf("invalid ARN: %q", arn)
-	}
-
-	accountID := arn[len(arnPrefix):]
-	i := strings.IndexRune(accountID, ':')
-
-	if i == -1 {
-		return "", fmt.Errorf("invalid ARN: %q", arn)
-	}
-
-	accountID = accountID[:i]
-
-	if accountID == "" {
-		return "", fmt.Errorf("invalid ARN: %q", arn)
-	}
-
-	return accountID, nil
-}
-
-func (meta *Cred) ResetBootstrap() {
-	meta.ACL = ""
-	meta.CidrBlock = ""
-	meta.IGW = ""
-	meta.KeyPair = ""
-	meta.RTB = ""
-	meta.SG = ""
-	meta.Subnet = ""
-	meta.VPC = ""
-	meta.AMI = ""
-}
-
-// Valid implements the kloud.Validator interface.
-func (meta *Cred) Valid() error {
-	if meta.Region == "" {
-		return errors.New("aws meta: region is empty")
-	}
-	if meta.AccessKey == "" {
-		return errors.New("aws meta: access key is empty")
-	}
-	if meta.SecretKey == "" {
-		return errors.New("aws meta: secret key is empty")
-	}
-	return nil
-}
-
-// Stack implements the kloud.StackProvider interface.
+// Stack implements the stackplan.Stack interface.
 type Stack struct {
 	*provider.BaseStack
-
-	p *stackplan.Planner
-
-	// The following fields are set by buildResources method:
-	ids     stackplan.KiteMap
-	klients map[string]*stackplan.DialState
-	ident   string
-	cred    *Cred
 }
 
-// Ensure Provider implements the kloud.StackProvider interface.
-//
-// StackProvider is an interface for team kloud API.
-var _ stack.Provider = (*Provider)(nil)
+var _ provider.Stack = (*Stack)(nil)
 
-// Stack gives a kloud.Stacker value that implements stack
-// methods for the AWS cloud.
-func (p *Provider) Stack(ctx context.Context) (stack.Stack, error) {
-	bs, err := p.BaseStack(ctx)
+func (s *Stack) VerifyCredential(c *stack.Credential) error {
+	cred := c.Credential.(*Cred)
+
+	if err := cred.Valid(); err != nil {
+		return err
+	}
+
+	_, err := amazon.NewClient(cred.Options())
+	return err
+}
+
+func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, error) {
+	cred := c.Credential.(*Cred)
+
+	opts := cred.Options()
+	opts.Log = s.Log.New("amazon")
+
+	cfg := &bootstrapConfig{
+		AvailabilityZone: "${lookup(var.aws_availability_zones, var.aws_region)}",
+		KeyPairName:      fmt.Sprintf("koding-deployment-%s-%s-%d", s.Req.Username, s.BootstrapArg().GroupName, time.Now().UTC().UnixNano()),
+		PublicKey:        s.Keys.PublicKey,
+		EnvironmentName:  fmt.Sprintf("Koding-%s-Bootstrap", s.BootstrapArg().GroupName),
+	}
+
+	if client, err := amazon.NewClient(opts); err == nil && len(client.Zones) != 0 {
+		cfg.AvailabilityZone = client.Zones[0]
+	} else {
+		s.Log.Warning("unable to guess availability zones for %q: %s", c.Identifier, err)
+	}
+
+	t, err := newBootstrapTemplate(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	s := &Stack{
-		BaseStack: bs,
-		p: &stackplan.Planner{
-			Provider:     "aws",
-			ResourceType: "instance",
-		},
+	if accountID, err := cred.AccountID(); err == nil {
+		t.Key = accountID + "-" + s.BootstrapArg().GroupName + "-" + c.Identifier
+	} else {
+		s.Log.Warning("unable to read account ID for %q: %s", c.Identifier, err)
 	}
 
-	bs.BuildResources = s.buildResources
-	bs.WaitResources = s.waitResources
-	bs.UpdateResources = s.updateResources
+	s.Log.Debug("bootstrap template key: %q", t.Key)
 
-	return s, nil
+	return []*stack.Template{t}, nil
 }
 
-// Cred implements the stack.Provider interface.
-func (p *Provider) Cred() interface{} {
-	return &Cred{}
+func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
+	t := s.Builder.Template
+	cred := c.Credential.(*Cred)
+	bootstrap := c.Bootstrap.(*Bootstrap)
+
+	if err := s.SetAwsRegion(cred.Region); err != nil {
+		return nil, err
+	}
+
+	var resource struct {
+		AwsInstance map[string]map[string]interface{} `hcl:"aws_instance"`
+	}
+
+	if err := t.DecodeResource(&resource); err != nil {
+		return nil, err
+	}
+
+	if len(resource.AwsInstance) == 0 {
+		return nil, fmt.Errorf("instances are empty: %v", resource.AwsInstance)
+	}
+
+	for resourceName, instance := range resource.AwsInstance {
+		// Do not overwrite SSH key pair with the bootstrap one
+		// when user sets it explicitly in a template.
+		if s, ok := instance["key_name"]; !ok || s == "" {
+			instance["key_name"] = bootstrap.KeyPair
+		}
+
+		// if nothing is provided or the ami is empty use default Ubuntu AMI's
+		if a, ok := instance["ami"]; !ok {
+			instance["ami"] = bootstrap.AMI
+		} else {
+			if ami, ok := a.(string); ok && ami == "" {
+				instance["ami"] = bootstrap.AMI
+			}
+		}
+
+		// only ovveride if the user doesn't provider it's own subnet_id
+		if instance["subnet_id"] == nil {
+			instance["subnet_id"] = bootstrap.Subnet
+			instance["security_groups"] = []string{bootstrap.SG}
+		}
+
+		// means there will be several instances, we need to create a userdata
+		// with count interpolation, because each machine must have an unique
+		// kite id.
+		count := 1
+		if n, ok := instance["count"].(int); ok && n > 1 {
+			count = n
+		}
+
+		labels := []string{resourceName}
+		if count > 1 {
+			for i := 0; i < count; i++ {
+				labels = append(labels, fmt.Sprintf("%s.%d", resourceName, i))
+			}
+		}
+
+		// TODO(rjeczalik): move to stackplan
+		if b, ok := instance["debug"].(bool); ok && b {
+			s.Debug = true
+			delete(instance, "debug")
+		}
+
+		kiteKeyName := fmt.Sprintf("kitekeys_%s", resourceName)
+
+		s.Builder.InterpolateField(instance, resourceName, "user_data")
+
+		// this part will be the same for all machines
+		userCfg := &userdata.CloudInitConfig{
+			Username: s.Req.Username,
+			Groups:   []string{"sudo"},
+			Hostname: s.Req.Username, // no typo here. hostname = username
+			KiteKey:  fmt.Sprintf("${lookup(var.%s, count.index)}", kiteKeyName),
+		}
+
+		if s, ok := instance["user_data"].(string); ok {
+			userCfg.UserData = s
+		}
+
+		userdata, err := s.Session.Userdata.Create(userCfg)
+		if err != nil {
+			return nil, err
+		}
+
+		instance["user_data"] = string(userdata)
+
+		// create independent kiteKey for each machine and create a Terraform
+		// lookup map, which is used in conjuctuon with the `count.index`
+		countKeys := make(map[string]string, count)
+		for i, label := range labels {
+			kiteKey, err := s.BuildKiteKey(label, s.Req.Username)
+			if err != nil {
+				return nil, err
+			}
+
+			countKeys[strconv.Itoa(i)] = kiteKey
+		}
+
+		t.Variable[kiteKeyName] = map[string]interface{}{
+			"default": countKeys,
+		}
+
+		resource.AwsInstance[resourceName] = instance
+	}
+
+	t.Resource["aws_instance"] = resource.AwsInstance
+
+	if err := t.Flush(); err != nil {
+		return nil, err
+	}
+
+	// TODO(rjeczalik): move to stackplan
+	err := t.ShadowVariables("FORBIDDEN", "aws_access_key", "aws_secret_key")
+	if err != nil {
+		return nil, err
+	}
+
+	content, err := t.JsonOutput()
+	if err != nil {
+		return nil, err
+	}
+
+	return &stack.Template{
+		Content: content,
+	}, nil
+}
+
+func (s *Stack) SetAwsRegion(region string) error {
+	t := s.Builder.Template
+
+	var p struct {
+		Aws struct {
+			Region    string `hcl:"region"`
+			AccessKey string `hcl:"access_key"`
+			SecretKey string `hcl:"secret_key"`
+		}
+	}
+
+	if err := t.DecodeProvider(&p); err != nil {
+		return err
+	}
+
+	if p.Aws.Region == "" {
+		t.Provider["aws"] = map[string]interface{}{
+			"region":     region,
+			"access_key": p.Aws.AccessKey,
+			"secret_key": p.Aws.SecretKey,
+		}
+	} else if !provider.IsVariable(p.Aws.Region) && p.Aws.Region != region {
+		return fmt.Errorf("region is already set as '%s'. Can't override it with: %s",
+			p.Aws.Region, region)
+	}
+
+	return t.Flush()
+}
+
+func (s *Stack) Credential() *Cred {
+	return s.BaseStack.Credential.(*Cred)
+}
+
+func (s *Stack) Bootstrap() *Bootstrap {
+	return s.BaseStack.Bootstrap.(*Bootstrap)
+}
+
+func (s *Stack) BootstrapArg() *stack.BootstrapRequest {
+	return s.BaseStack.Arg.(*stack.BootstrapRequest)
+}
+
+func mustAsset(s string) string {
+	p, err := Asset(s)
+	if err != nil {
+		panic(err)
+	}
+	return string(p)
+}
+
+func newBootstrapTemplate(cfg *bootstrapConfig) (*stack.Template, error) {
+	var buf bytes.Buffer
+
+	if err := bootstrap.Execute(&buf, cfg); err != nil {
+		return nil, err
+	}
+
+	return &stack.Template{
+		Content: buf.String(),
+	}, nil
 }

@@ -7,6 +7,7 @@ import (
 	"socialapi/models"
 	"socialapi/rest"
 	"socialapi/workers/common/tests"
+	"socialapi/workers/payment"
 
 	. "github.com/smartystreets/goconvey/convey"
 	stripe "github.com/stripe/stripe-go"
@@ -45,24 +46,10 @@ func withStubData(endpoint string, f func(username string, groupName string, ses
 }
 
 func withTestPlan(f func(planID string)) {
-	pp := &stripe.PlanParams{
-		Amount:        0,
-		Interval:      plan.Month,
-		IntervalCount: 1,
-		TrialPeriod:   0,
-		Name:          "Free Forever",
-		Currency:      currency.USD,
-		ID:            fmt.Sprintf("p_%s", bson.NewObjectId().Hex()),
-		Statement:     "FREE",
-	}
-
-	_, err := plan.New(pp)
+	err := payment.EnsurePlan(payment.Plans[payment.Free])
 	So(err, ShouldBeNil)
 
-	f(pp.ID)
-
-	_, err = plan.Del(pp.ID)
-	So(err, ShouldBeNil)
+	f(payment.Plans[payment.Free].ID)
 }
 
 func withTrialTestPlan(f func(planID string)) {

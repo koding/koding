@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"log"
 	"socialapi/config"
 	algoliaapi "socialapi/workers/algoliaconnector/api"
 	"socialapi/workers/api/handlers"
@@ -29,6 +29,7 @@ import (
 	"socialapi/workers/payment"
 	paymentapi "socialapi/workers/payment/api"
 	permissionapi "socialapi/workers/permission/api"
+	presenceapi "socialapi/workers/presence/api"
 	realtimeapi "socialapi/workers/realtime/api"
 	sitemapapi "socialapi/workers/sitemap/api"
 	slackapi "socialapi/workers/slack/api"
@@ -44,10 +45,8 @@ var (
 func main() {
 	r := runner.New(Name)
 	if err := r.Init(); err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
-	defer r.Close()
 
 	// appConfig
 	c := config.MustRead(r.Conf.Path)
@@ -85,6 +84,7 @@ func main() {
 	reply.AddHandlers(m)
 	notificationsetting.AddHandlers(m)
 	realtimeapi.AddHandlers(m)
+	presenceapi.AddHandlers(m)
 	slackapi.AddHandlers(m, c)
 	credential.AddHandlers(m, r.Log, c)
 	emailapi.AddHandlers(m)
