@@ -816,7 +816,7 @@ cloneStackTemplate = (template, revive) ->
     template.clone (err, stackTemplate) ->
       if err
         return new kd.NotificationView
-          title: 'Error Occured while Cloning Template'
+          title: 'Error occured while cloning template'
 
       Tracker.track Tracker.STACKS_CLONED_TEMPLATE
       reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }

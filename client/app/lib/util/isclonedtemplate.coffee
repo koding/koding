@@ -1,11 +1,10 @@
 remote = require 'app/remote'
 
-module.exports = isClonedTemplate = (stackTemplate) ->
-  return no  unless stackTemplate
+module.exports = isClonedTemplate = (stackTemplate, callback) ->
+    return  unless stackTemplate
 
-  originalStackTemplateId = stackTemplate.config?.clonedFrom
-
-  return no  unless originalStackTemplateId
-  remote.api.JStackTemplate.one { _id: originalStackTemplateId }, (err, template) ->
-    return yes  if template
-    return no
+    originalStackTemplateId = stackTemplate.config?.clonedFrom
+    return  unless originalStackTemplateId
+    remote.api.JStackTemplate.one { _id: originalStackTemplateId }, (err, template) ->
+      return callback()  if template
+      return

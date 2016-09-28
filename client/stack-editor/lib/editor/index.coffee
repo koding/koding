@@ -298,7 +298,7 @@ module.exports = class StackEditorView extends kd.View
       title: 'Save Name'
       click : @inputTitle.bound 'setBlur'
 
-    if isClonedTemplate stackTemplate
+    isClonedTemplate stackTemplate, =>
       @titleActionsWrapper.addSubView @clonedFrom = new kd.CustomHTMLView
         cssClass: 'cloned-from-text'
         partial: 'Clone Of'

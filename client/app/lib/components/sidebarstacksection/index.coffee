@@ -95,6 +95,8 @@ module.exports = class SidebarStackSection extends React.Component
           appManager.tell 'Stackeditor', 'reloadEditor', templateId
       when 'Clone'
         remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
+          if err
+            return new kd.NotificationView { title: 'Error occured while cloning template' }
           EnvironmentFlux.actions.cloneStackTemplate template, no
       when 'Destroy VMs' then deleteStack { stack }
       when 'VMs' then router.handleRoute "/Home/Stacks/virtual-machines"
