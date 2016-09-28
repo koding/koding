@@ -4,10 +4,7 @@
 # tags: embedded
 #
 
-Enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In'
-Do you see 'Welcome! Enter your team's Koding domain.' form in the center of the page with a 'LOGIN' button? Do you see 'Forgot your team name?' link? Do you see 'Do you want to create a new team?' text below that form?
-
-Click on the 'create a new team' link below the form
+Click on the 'create a new team' link below the form where it says 'Welcome! Enter your team's Koding domain.'
 Do you see 'Let's sign you up!' form with 'Email address' and 'Name your team' text fields and a 'SIGN UP' button?
 
 Enter "{{ random.email }}" in the 'Email address' and "{{ random.last_name }}{{ random.number }}" in 'Name your team' fields and click on 'SIGN UP' button
@@ -16,8 +13,8 @@ Do you see 'Your team URL' form with URL field pre-filled?
 Click on 'NEXT' button
 Do you see 'Create your account' form with email field pre-filled? Do you see 'pick a username' and 'set a password' text fields?
 
-Enter "{{ random.first_name }}{{ random.number }}" in the 'pick a username' and "{{ random.password }}" in the 'set a password' field and click on 'Done!' button
-Do you see 'Authentication Required' form?
+Enter "{{ random.first_name }}{{ random.number }}" in the 'pick a username' and "{{ random.password }}" in the 'set a password' field and click on 'DONE!' button
+Do you see 'Authentication Required' form? (If not it's OK, then are you signed up successfully?)
 
-Enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In'
+If you see 'Authentication Required' form, enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In', if not do nothing and check the items below
 Do you see 'You are almost there, {{ random.first_name }}{{ random.number }}!' title? Do you see 'Create a Stack for Your Team', 'Enter your Credentials', 'Build Your Stack', 'Invite Your Team' and 'Install KD' sections? Do you see 'CREATE', 'ENTER', 'BUILD', 'INVITE' and 'INSTALL' buttons next to them?
