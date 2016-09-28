@@ -1,0 +1,75 @@
+#! 6c3961dc-43c9-4a42-92bb-cad78eb71f17
+# title: tryToCreateStackWithoutPermission_viewStackbyMember_deleteStackTemplateWhenInUsebyOthers
+# start_uri: /
+# tags: automated
+#
+
+- 1ae7b10f-f120-47de-bc67-eae94efbd491
+
+# redirect: false
+Click on 'Create a Stack for Your Team' section and then click on 'CREATE A NEW STACK' button 
+Do you see 'Select a Provider' title? Do you see 'amazon web services', 'VAGRANT' and other 'Coming Soon' labeled providers? Do you see 'BACK' and 'NEXT' buttons below?
+
+Click on 'amazon web services' and click on 'SKIP GUIDE'
+Has that pop-up disappeared? Do you see 'Rainforestqa99's Stack' title? Do you see 'Stack Template', 'Custom Variables', 'Readme' tabs? Do you see 'Credentials' text having a red (!) next to it? Do you see '# Here is your stack preview' in the first line of main content? Do you see 'PREVIEW', 'LOGS', 'DELETE STACK TEMPLATE' buttons on the bottom and 'SAVE' button on top right?
+
+Click on 'Credentials' and then click on 'USE THIS & CONTINUE' button next to 'rainforestqa99's AWS keys' and wait for a second for process to be completed
+Have you seen 'Verifying Credentials...' message displayed? Are you switched to 'Stack Template' tab?
+
+Click on the 'SAVE' button on top right and wait for a few seconds for that process to be completed
+Do you see 'Share Your Stack' title on a pop-up displayed? Do you see that 'Share the credentials I used for this stack with my team.' checkbox is already checked? Do you see 'CANCEL' and 'SHARE WITH THE TEAM' buttons?
+
+Click on 'SHARE WITH THE TEAM' button and 'YES' buttons respectively wait for a while for process to be completed
+Do you see 'Rainforestqa99's Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'Read Me' text and a 'NEXT' and 'VIEW STACK TEMPLATE' buttons on the bottom? Do you see 'STACKS', 'Rainforestqa99's Stack' and 'example-instance' labels on left sidebar?
+
+Click on the number notification from top left sidebar (number notification like in this image: http://take.ms/q2ZKn) and select 'Invite Teammates'
+Do you see that you're directed to 'Send Invites' section of 'My Team' tab of a 'Dashboard'?
+
+Enter "rainforestqa22@koding.com" in 'Email' field that's highlighted, uncheck the 'Admin' checkbox at the end of the row and then click on 'SEND INVITES' below (like in screencast here: http://recordit.co/2zVr5nwBzH)
+Have you seen 'Invitation is sent to rainforestqa22@koding.com' message displayed?
+
+Open a new incognito window by clicking on the 3 dots on the top corner of the browser and selecting 'New Incognito Window' and then go to '{{ random.last_name }}{{ random.number }}.sandbox.koding.com' by pasting the url (using ctrl-v) in the address bar, enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In' (on the 'Authentication Required' form)
+Do you see 'Sign in to {{ random.last_name }}{{ random.number }}' text, 'Username or Email' and 'Password' fields and a 'SIGN IN' button?
+
+Enter "rainforestqa22" both in the 'Username or Email' and 'Password' fields and click on 'SIGN IN' button
+Are you successfully logged in? Do you see '{{ random.last_name }}{{ random.number }}' label at the top left corner? Do you see 'Rainforestqa99's Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'Read Me' text and a 'NEXT' and 'VIEW STACK TEMPLATE' buttons on the bottom? Do you see 'STACKS', 'Rainforestqa99's Stack' and 'example-instance' labels on left sidebar?
+
+Move your mouse over 'STACKS' title on left sidebar and click on (+) button appeared next to it
+Have you seen 'You are not allowed to create/edit stacks!' warning displayed?
+
+Click on 'Rainforestqa99's Stack' on left sidebar
+Do you see 'View Stack', 'Reinitialize', 'VMs' and 'Destroy VMs' options?
+
+Click on 'View Stack'
+Are you switched to a stack editor? (you should see '.../Stack-Editor/...' on the address bar above) Do you see 'Rainforestqa99's Stack' title? Do you see 'You must be an admin to edit this stack.' text under 'Stack Template', 'Custom Variables' and other tabs?
+
+Click on 'STACKS' title from left sidebar and click on 'Rainforestqa99's Stack' under 'Team Stacks' section
+Do you see the same stack editor and 'You must be an admin to edit this stack.' text again?
+
+Return to the first browser, click on 'Stacks' from the vertical menu under 'Dashboard' title and then click on 'NEW STACK', 'CREATE A NEW STACK', 'amazon web services' respectively and then click on 'NEXT' until the pop-up is closed (proceed by clicking 'NEXT' for the last 3 screens)  
+Do you see 'Rainforestqa99's Stack' title and 'Edit Name' link below it? Do you see 'Stack Template', 'Custom Variables', 'Readme' tabs? Do you see 'Credentials' text having a red (!) next to it? Do you see that a 2nd 'Rainforestqa99's Stack' is added to left sidebar?
+
+Click on 'Edit Name', delete the text there and enter "Team Stack" and then click on 'Credentials' tab and click on 'USE THIS & CONTINUE' button next to 'rainforestqa99's AWS keys' and wait for a second for process to be completed
+Have you seen 'Verifying Credentials...' message displayed? Are you switched to 'Stack Template' tab? Do you see that 'Team Stack' is added to left sidebar?
+
+Click on the 'SAVE' button on top right and wait for a few seconds for that process to be completed
+Do you see 'MAKE TEAM DEFAULT', 'INITIALIZE' and 'SAVE' buttons?
+
+Click on 'MAKE TEAM DEFAULT', 'SHARE WITH THE TEAM' and 'YES' buttons respectively and wait for a few seconds for process to be completed
+Do you see that 'MAKE TEAM DEFAULT' button is disabled? Do you see 'Reinitialize Default Stack' button on top of left sidebar?
+
+Click on 'Reinitialize Default Stack' and 'PROCEED' buttons respectively
+Have you seen 'Reinitializing stack...' and 'Stack reinitalized' messages displayed respectively? Do you see 'Team Stack' title on the modal in center of the page? Do you see 'STACKS', 'Team Stack' and 'example_1' labels on left sidebar?
+
+Click on 'STACKS' from left sidebar
+Do you see 'Team Stack' under 'Team Stacks' section? Do you see 'Rainforestqa99's Stack' under 'Drafts' section?
+
+Click on 'Rainforestqa99's Stack' and then click on 'DELETE STACK TEMPLATE' link on the bottom
+Do you see 'Are you sure?' title on a pop-up displayed? Do you see 'There is a stack generated from this template by another team member.' text below the title? Do you see 'CANCEL' and 'YES' buttons?
+
+Click on 'YES' button and then click on 'STACK' from left sidebar again
+Is 'Rainforestqa99's Stack' removed from 'Drafts' section? Do you see that 'Drafts' section is empty?
+
+Switch to the incognito window and click on 'Reinitialize Default Stack' and 'Proceed' buttons respectively
+Have you seen 'Reinitializing stack...' and 'Stack reinitalized' messages displayed respectively? Do you see 'Team Stack' title on the modal in center of the page? Do you see 'STACKS', 'Team Stack' and 'example_1' labels on left sidebar?
+
