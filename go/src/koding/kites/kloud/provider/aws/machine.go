@@ -7,6 +7,7 @@ import (
 
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
 
 	"golang.org/x/net/context"
@@ -37,7 +38,10 @@ type Machine struct {
 	AWSClient *amazon.Amazon
 }
 
-var _ provider.Machine = (*Machine)(nil)
+var (
+	_ provider.Machine = (*Machine)(nil) // public API
+	_ stack.Machiner   = (*Machine)(nil) // internal API
+)
 
 func (m *Machine) Start(ctx context.Context) (interface{}, error) {
 	_, err := m.AWSClient.Start(ctx)
