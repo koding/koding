@@ -1167,6 +1167,10 @@ module.exports = class JGroup extends Module
       { enabled, provider, url, applicationId, applicationSecret } = options
 
       OAuth = require '../oauth'
+      group = client?.context?.group
+
+      if not group or group is 'koding'
+        return callback new KodingError 'Session data invalid'
 
       if not (_provider = OAuth.PROVIDERS[provider]) or not _provider.enabled
         return callback new KodingError 'Provider not supported at this time.'
@@ -1174,15 +1178,15 @@ module.exports = class JGroup extends Module
       dataToUpdate = {}
       dataToUpdate["config.#{provider}"] = {}
 
-      notifyOptions =
-        group   : client?.context?.group
-        target  : 'group'
+      notifyOptions = { target: group, group }
 
-      # TODO: add remove existing sessions feature here ~ GG
       if not enabled
 
         @updateAndNotify notifyOptions, { $unset: dataToUpdate }, (err) =>
           return callback err  if err
+
+          JForeignAuth = require '../foreignauth'
+          JForeignAuth.remove { group, provider }
 
           @fetchData (err, data) ->
             return callback err  if err
