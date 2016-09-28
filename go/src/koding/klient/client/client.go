@@ -41,15 +41,6 @@ type PublishRequest struct {
 	EventName string `json:"eventName"`
 }
 
-func NewPubSub(log kite.Logger) *PubSub {
-	return &PubSub{
-		Subscriptions: make(map[string]map[int]dnode.Function),
-		Log:           log,
-		// start sub count not at zero. So that a zero value unsub can't unsub anything.
-		subCount: 1,
-	}
-}
-
 type PubSub struct {
 	// Subscriptions are stored as:
 	//
@@ -65,6 +56,15 @@ type PubSub struct {
 	// Used to serve as a unique index, for Subscription deletions
 	subCount int
 	subMu    sync.Mutex
+}
+
+func NewPubSub(log kite.Logger) *PubSub {
+	return &PubSub{
+		Subscriptions: make(map[string]map[int]dnode.Function),
+		Log:           log,
+		// start sub count not at zero. So that a zero value unsub can't unsub anything.
+		subCount: 1,
+	}
 }
 
 // Publish method takes arbitrary event data, and passes it to
@@ -101,8 +101,7 @@ func (c *PubSub) Publish(r *kite.Request) (interface{}, error) {
 
 	err := r.Args.One().Unmarshal(&params)
 	if err != nil || params.EventName == "" {
-		c.Log.Info(fmt.Sprintf(
-			"client.Publish: Unknown param format '%s'\n", r.Args.One()))
+		c.Log.Info("client.Publish: Unknown param format '%s'\n", resp)
 		return nil, errors.New("client.Publish: eventName is required")
 	}
 
@@ -120,16 +119,11 @@ func (c *PubSub) Publish(r *kite.Request) (interface{}, error) {
 	// all of the subs manually. If it doesn't, something wrong occured
 	// during the removal attempt.
 	if len(subs) == 0 {
-		c.Log.Info(fmt.Sprintf(
-			"client.Publish: The event '%s' was found empty, when it should "+
-				"have  been removed\n", params.EventName))
-		return nil, errors.New(fmt.Sprintf(
-			"client.Publish: No client.Subscribers found for '%s'",
-			params.EventName))
+		c.Log.Info("client.Publish: The event '%s' was found empty, when it should have  been removed\n", params.EventName)
+		return nil, fmt.Errorf("client.Publish: No client.Subscribers found for '%s'", params.EventName)
 	}
 
-	c.Log.Info(fmt.Sprintf(
-		"client.Publish: Publishing data for event '%s'\n", params.EventName))
+	c.Log.Info("client.Publish: Publishing data for event '%s'\n", params.EventName)
 	for _, sub := range subs {
 		sub.Call(resp)
 	}
@@ -155,8 +149,7 @@ func (c *PubSub) Subscribe(r *kite.Request) (interface{}, error) {
 
 	var params SubscribeRequest
 	if r.Args.One().Unmarshal(&params) != nil || params.EventName == "" {
-		c.Log.Info(fmt.Sprintf(
-			"client.Subscribe: Unknown param format '%s'\n", r.Args.One()))
+		c.Log.Info("client.Subscribe: Unknown param format '%s'\n", r.Args.One())
 		return nil, errors.New(
 			"client.Subscribe: Expected param format " +
 				"{ eventName: [string], onPublish: [function] }")
@@ -189,10 +182,9 @@ func (c *PubSub) Subscribe(r *kite.Request) (interface{}, error) {
 		}
 	})
 
-	res := SubscribeResponse{
+	return SubscribeResponse{
 		ID: subIndex,
-	}
-	return res, nil
+	}, nil
 }
 
 // Unubscribe method removes the given subscription.
@@ -213,8 +205,7 @@ func (c *PubSub) Unsubscribe(r *kite.Request) (interface{}, error) {
 
 	var params UnsubscribeRequest
 	if r.Args.One().Unmarshal(&params) != nil || params.EventName == "" {
-		c.Log.Info(fmt.Sprintf(
-			"client.Unsubscribe: Unknown param format '%s'\n", r.Args.One()))
+		c.Log.Info("client.Unsubscribe: Unknown param format '%s'\n", r.Args.One())
 		return nil, errors.New(
 			"client.Unsubscribe: Expected param format " +
 				"{ eventName: [string], ID: [function] }")
