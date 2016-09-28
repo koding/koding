@@ -54,6 +54,8 @@ const (
 	ErrStaterNotImplemented   = 409
 	ErrProviderIsWrong        = 410
 	ErrProviderIsDisabled     = 411
+	ErrMachineNotImplemented  = 412
+	ErrStackNotImplemented    = 413
 
 	ErrUserNotConfirmed = 500
 )
@@ -87,6 +89,8 @@ var kloudErrors = map[int]string{
 	ErrProviderNotImplemented: "Provider doesn't implement the given interface",
 	ErrBuilderNotImplemented:  "Provider doesn't implement the builder interface",
 	ErrStaterNotImplemented:   "Provider doesn't implement the stater interface",
+	ErrMachineNotImplemented:  "Provider doesn't implement the machine interface",
+	ErrStackNotImplemented:    "Provider doesn't implement the stack interface",
 	ErrProviderIsMissing:      "Provider argument is missing.",
 	ErrProviderIsWrong:        "Provider doesn't match the internal name",
 	ErrProviderIsDisabled:     "Provider is disabled",

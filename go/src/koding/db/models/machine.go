@@ -42,6 +42,7 @@ type Machine struct {
 	Uid           string               `bson:"uid" json:"uid"`
 	QueryString   string               `bson:"queryString,omitempty" json:"queryString"`
 	IpAddress     string               `bson:"ipAddress" json:"ipAddress"`
+	RegisterURL   string               `bson:"registerUrl" json:"registerUrl"`
 	Domain        string               `bson:"domain" json:"domain"`
 	Provider      string               `bson:"provider" json:"provider"`
 	Label         string               `bson:"label" json:"label"`

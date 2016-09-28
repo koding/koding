@@ -2,8 +2,6 @@ package session
 
 import (
 	"koding/db/mongodb"
-	"koding/kites/kloud/api/amazon"
-	"koding/kites/kloud/api/sl"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/pkg/dnsclient"
@@ -28,19 +26,12 @@ type Session struct {
 	Userdata   *userdata.Userdata
 	Log        logging.Logger
 
-	// AWS
-	AWSClient  *amazon.Amazon
-	AWSClients *amazon.Clients
-
 	// Terraformer
 	//
 	// TODO(rjeczalik): Connect to terraformer once and use
 	// single connection instead of connecting for each
 	// request.
 	Terraformer *terraformer.Options
-
-	// Softlayer
-	SLClient *sl.Softlayer
 }
 
 func FromContext(ctx context.Context) (*Session, bool) {
