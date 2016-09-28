@@ -52,11 +52,11 @@ module.exports = GitLabProvider =
     { user, oauth, group } = client.r
 
     unless group.config?.gitlab?.enabled
-      return no
+      return callback new KodingError 'GitLab integration is not enabled for this team.'
 
     gitlabHost = group.config.gitlab.url
     unless urlData = @parseImportData { url, repo, gitlabHost }
-      return no
+      return callback new KodingError 'Repository information is invalid'
 
     if privateToken or oauthToken = oauth.token
       @importStackTemplateWithToken {
@@ -64,8 +64,6 @@ module.exports = GitLabProvider =
       }, urlData, callback
     else
       @importStackTemplateWithRawUrl urlData, callback
-
-    return yes
 
 
   parseRepo: (url, gitlabHost) ->

@@ -57,7 +57,8 @@ module.exports = class GitProvider extends Base
       shouldReviveProvider : no
     }, (client, provider, callback) ->
 
-      return  unless _provider = getProvider { provider }, callback
+      unless _provider = getProvider { provider }, callback
+        return callback new KodingError 'Provider not found'
 
       [ err, config ] = _provider.getConfig client
       callback err, config
@@ -70,10 +71,10 @@ module.exports = class GitProvider extends Base
       shouldReviveOAuth    : yes
     }, (client, options, callback) ->
 
-      return  unless provider = getProvider options, callback
+      unless provider = getProvider options, callback
+        return callback new KodingError 'Provider not found'
 
-      unless provider.importStackTemplateData client, options, callback
-        callback new KodingError 'Invalid url or repository'
+      provider.importStackTemplateData client, options, callback
 
 
   @createImportedStackTemplate = permit 'import stack template',
