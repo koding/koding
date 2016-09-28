@@ -101,7 +101,7 @@ func (c *PubSub) Publish(r *kite.Request) (interface{}, error) {
 
 	err := r.Args.One().Unmarshal(&params)
 	if err != nil || params.EventName == "" {
-		c.Log.Info("client.Publish: Unknown param format '%s'\n", resp)
+		c.Log.Info("client.Publish: Unknown param format %q\n", resp)
 		return nil, errors.New("client.Publish: eventName is required")
 	}
 
@@ -111,7 +111,7 @@ func (c *PubSub) Publish(r *kite.Request) (interface{}, error) {
 	subs, ok := c.Subscriptions[params.EventName]
 	if !ok {
 		return nil, util.KiteErrorf(kiteerrortypes.NoSubscribers,
-			"client.Publish: No client.Subscribers found for '%s'",
+			"client.Publish: No client.Subscribers found for %q",
 			params.EventName)
 	}
 
@@ -119,11 +119,11 @@ func (c *PubSub) Publish(r *kite.Request) (interface{}, error) {
 	// all of the subs manually. If it doesn't, something wrong occured
 	// during the removal attempt.
 	if len(subs) == 0 {
-		c.Log.Info("client.Publish: The event '%s' was found empty, when it should have  been removed\n", params.EventName)
-		return nil, fmt.Errorf("client.Publish: No client.Subscribers found for '%s'", params.EventName)
+		c.Log.Info("client.Publish: The event %q was found empty, when it should have  been removed\n", params.EventName)
+		return nil, fmt.Errorf("client.Publish: No client.Subscribers found for %q", params.EventName)
 	}
 
-	c.Log.Info("client.Publish: Publishing data for event '%s'\n", params.EventName)
+	c.Log.Info("client.Publish: Publishing data for event %q\n", params.EventName)
 	for _, sub := range subs {
 		sub.Call(resp)
 	}
@@ -149,7 +149,7 @@ func (c *PubSub) Subscribe(r *kite.Request) (interface{}, error) {
 
 	var params SubscribeRequest
 	if r.Args.One().Unmarshal(&params) != nil || params.EventName == "" {
-		c.Log.Info("client.Subscribe: Unknown param format '%s'\n", r.Args.One())
+		c.Log.Info("client.Subscribe: Unknown param format %q\n", r.Args.One())
 		return nil, errors.New(
 			"client.Subscribe: Expected param format " +
 				"{ eventName: [string], onPublish: [function] }")
@@ -205,7 +205,7 @@ func (c *PubSub) Unsubscribe(r *kite.Request) (interface{}, error) {
 
 	var params UnsubscribeRequest
 	if r.Args.One().Unmarshal(&params) != nil || params.EventName == "" {
-		c.Log.Info("client.Unsubscribe: Unknown param format '%s'\n", r.Args.One())
+		c.Log.Info("client.Unsubscribe: Unknown param format %q\n", r.Args.One())
 		return nil, errors.New(
 			"client.Unsubscribe: Expected param format " +
 				"{ eventName: [string], ID: [function] }")

@@ -145,11 +145,7 @@ func TestSubscribe(t *testing.T) {
 	}
 	wait(t, doneC, time.Second)
 
-	subs, ok := getCopy(ps, "test")
-	if !ok {
-		t.Fatal("client.Subscribe should create a map for new event types")
-	}
-
+	subs, _ := getCopy(ps, "test")
 	if len(subs) != 1 {
 		t.Fatal("client.Subscribe should store a single onPublish callback")
 	}
@@ -213,11 +209,7 @@ func TestSubscribe(t *testing.T) {
 	}
 	wait(t, doneC, time.Second)
 
-	subs, ok = getCopy(ps, "test")
-	if !ok {
-		t.Fatal("client.Subscribe should create a map for new event types")
-	}
-
+	subs, _ = getCopy(ps, "test")
 	if len(subs) != 3 {
 		t.Fatal("client.Subscribe should allow multiple clients to Sub")
 	}
@@ -258,7 +250,7 @@ func TestSubscribe(t *testing.T) {
 	c2.Close()
 	wait(t, disconnectedC, 2*time.Second)
 
-	_, ok = getCopy(ps, "test")
+	_, ok := getCopy(ps, "test")
 	if ok {
 		t.Error("client.Subscribe",
 			"should remove the event map when all clients disconnect")
