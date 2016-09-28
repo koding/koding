@@ -7,35 +7,22 @@
 </style>
 
 <header class="Homepage-Header {{ include.cssClass }}">
-  {% assign pages = site.html_pages | sort: 'order' %}
-  {% for p in pages %}
-    {% if p.order %}
-      {% if p.order == 0 %}
-
-        <a href="{{ site.url }}" class="logo">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 24">
-            <path d="M26.2 11.5l3.4 7.1H27l-2.3-5.1-1.5 1.7.1 3.4H21v-12l2.3-.2-.1 5.3 4.3-5.2 1.7 1.4m5.1 4.3c-1.2 0-1.9 1.2-1.9 2.1 0 1.1.8 2.1 1.9 2.1 1.2 0 1.9-1.1 1.9-2.1 0-1.1-.8-2.1-1.9-2.1m4.1 2.1c0 2.5-1.6 4.4-4.2 4.4-2.5 0-4.2-1.9-4.2-4.4 0-2.5 1.6-4.4 4.2-4.4s4.2 1.9 4.2 4.4m14.4-6.4c0 .7-.6 1.3-1.3 1.3s-1.3-.6-1.3-1.3c0-.7.6-1.3 1.3-1.3s1.3.6 1.3 1.3zm-2.4 10.7v-8.2l2.3-.2v8.4h-2.3zM44 16.4c-1 0-1.9-1-1.9-2.1 0-1 .7-2.1 1.9-2.1 1.4 0 1.9 1.2 1.9 2.1 0 1-.7 2.1-1.9 2.1zm1.9-9.7v3.7c-.6-.3-1.2-.5-1.9-.5-2.4 0-4.1 2-4.1 4.3s1.7 4.4 4.1 4.4c.7 0 1.4-.2 1.9-.5v.4h2.3v-12l-2.3.2zm13.2 3.2c-.7 0-1.6.2-2 .7v-.8l-2.3.2v8.5H57v-4.8c0-.8.5-1.6 1.5-1.6 1.2 0 1.5.7 1.5 1.5v5h2.3V13c.1-1.6-1.2-3.1-3.2-3.1M72 14.4c0-.7-.2-1.4-.4-2h.5v-2.3L68 10h-.1c-2.5 0-4.2 2-4.2 4.4s1.7 4.3 4.2 4.3c.5 0 1.5-.2 1.5-.2.4.2.5.6.5 1.2 0 1-.8 2-1.9 2-1 0-1.7-.7-1.9-1.7l-2.2.2c.1.9.6 1.8 1.2 2.5.8.8 1.8 1.3 2.9 1.3s2.1-.4 3-1.3c.1-.1 1.1-1.1 1.1-3 0-1-.4-1.9-1-2.6.6-.8.9-1.7.9-2.7zm-4.2 2.1c-1.1 0-1.9-1-1.9-2.1 0-1 .7-2.1 1.9-2.1s1.9 1.1 1.9 2.1c0 .9-.7 2.1-1.9 2.1zM10.1 7.7l-2.3.2 2.1 4.4-2 4.3 2.2.2 2.1-4.6m-6.7 1.6c-.6 0-1.1.5-1.1 1.1S5 16 5.5 16s1.1-.5 1.1-1.1-.5-1.1-1.1-1.1m0-3.6c-.6 0-1.1.5-1.1 1.1 0 .6.5 1.1 1.1 1.1s1.1-.5 1.1-1.1c0-.6-.5-1.1-1.1-1.1"/>
-            <path d="M12.6 0H4C1.8 0 .1 1.8.1 4v16c0 2.2 1.7 4 3.9 4h8.6c2.1 0 3.9-1.8 3.9-3.9V4c0-2.2-1.8-4-3.9-4zm1.6 19.8c0 1.1-.8 1.9-1.9 1.9H4.2c-1 0-1.9-.9-1.9-1.9V4.2c0-1.1.8-1.9 1.9-1.9h8.2c1 0 1.9.9 1.9 1.9v15.6z"/>
-          </svg>
-        </a>
-
-      {% else %}
-
-        <a class="item{% if p.url == page.url or p.url contains page.parent %} active{% endif %}" href="{{ site.url }}{{ p.url }}">{{ p.title }}</a>
-
-      {% endif %}
-    {% endif %}
-  {% endfor %}
+  <a href="{{ site.url }}" class="logo">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 24">
+      <path d="M26.2 11.5l3.4 7.1H27l-2.3-5.1-1.5 1.7.1 3.4H21v-12l2.3-.2-.1 5.3 4.3-5.2 1.7 1.4m5.1 4.3c-1.2 0-1.9 1.2-1.9 2.1 0 1.1.8 2.1 1.9 2.1 1.2 0 1.9-1.1 1.9-2.1 0-1.1-.8-2.1-1.9-2.1m4.1 2.1c0 2.5-1.6 4.4-4.2 4.4-2.5 0-4.2-1.9-4.2-4.4 0-2.5 1.6-4.4 4.2-4.4s4.2 1.9 4.2 4.4m14.4-6.4c0 .7-.6 1.3-1.3 1.3s-1.3-.6-1.3-1.3c0-.7.6-1.3 1.3-1.3s1.3.6 1.3 1.3zm-2.4 10.7v-8.2l2.3-.2v8.4h-2.3zM44 16.4c-1 0-1.9-1-1.9-2.1 0-1 .7-2.1 1.9-2.1 1.4 0 1.9 1.2 1.9 2.1 0 1-.7 2.1-1.9 2.1zm1.9-9.7v3.7c-.6-.3-1.2-.5-1.9-.5-2.4 0-4.1 2-4.1 4.3s1.7 4.4 4.1 4.4c.7 0 1.4-.2 1.9-.5v.4h2.3v-12l-2.3.2zm13.2 3.2c-.7 0-1.6.2-2 .7v-.8l-2.3.2v8.5H57v-4.8c0-.8.5-1.6 1.5-1.6 1.2 0 1.5.7 1.5 1.5v5h2.3V13c.1-1.6-1.2-3.1-3.2-3.1M72 14.4c0-.7-.2-1.4-.4-2h.5v-2.3L68 10h-.1c-2.5 0-4.2 2-4.2 4.4s1.7 4.3 4.2 4.3c.5 0 1.5-.2 1.5-.2.4.2.5.6.5 1.2 0 1-.8 2-1.9 2-1 0-1.7-.7-1.9-1.7l-2.2.2c.1.9.6 1.8 1.2 2.5.8.8 1.8 1.3 2.9 1.3s2.1-.4 3-1.3c.1-.1 1.1-1.1 1.1-3 0-1-.4-1.9-1-2.6.6-.8.9-1.7.9-2.7zm-4.2 2.1c-1.1 0-1.9-1-1.9-2.1 0-1 .7-2.1 1.9-2.1s1.9 1.1 1.9 2.1c0 .9-.7 2.1-1.9 2.1zM10.1 7.7l-2.3.2 2.1 4.4-2 4.3 2.2.2 2.1-4.6m-6.7 1.6c-.6 0-1.1.5-1.1 1.1S5 16 5.5 16s1.1-.5 1.1-1.1-.5-1.1-1.1-1.1m0-3.6c-.6 0-1.1.5-1.1 1.1 0 .6.5 1.1 1.1 1.1s1.1-.5 1.1-1.1c0-.6-.5-1.1-1.1-1.1"/>
+      <path d="M12.6 0H4C1.8 0 .1 1.8.1 4v16c0 2.2 1.7 4 3.9 4h8.6c2.1 0 3.9-1.8 3.9-3.9V4c0-2.2-1.8-4-3.9-4zm1.6 19.8c0 1.1-.8 1.9-1.9 1.9H4.2c-1 0-1.9-.9-1.9-1.9V4.2c0-1.1.8-1.9 1.9-1.9h8.2c1 0 1.9.9 1.9 1.9v15.6z"/>
+    </svg>
+  </a>
+  <a class="item{% if '/features' == page.url or '/features' contains page.parent %} active{% endif %}" href="{{ site.url }}/features">FEATURES</a>
+  <a class="item{% if '/pricing' == page.url or '/pricing' contains page.parent %} active{% endif %}" href="{{ site.url }}/pricing">PRICING</a>
+  <a class="item{% if '/about' == page.url or '/about' contains page.parent %} active{% endif %}" href="{{ site.url }}/about">ABOUT</a>
+  <a class="item{% if '/docs/home' == page.url or '/docs/home' contains page.parent %} active{% endif %}" href="{{ site.url }}/docs/home">DOCS</a>
+  <a class="item{% if '/login' == page.url or '/login' contains page.parent %} active{% endif %}" href="{{ site.url }}/login">LOGIN</a>
   <span class="spacer"></span>
-  <a class='social' href='http://facebook.com/koding' target='_blank' title='Koding on Facebook'>
-    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="22" viewBox="0 0 12 22"><g fill="none"><path d="M7.2 21.6L7.2 11.9 10.4 11.9 10.9 8.2 7.2 8.2 7.2 5.8C7.2 4.7 7.5 3.9 9 3.9L11 3.9 11 0.5C10.7 0.5 9.5 0.4 8.1 0.4 5.2 0.4 3.3 2.1 3.3 5.4L3.3 8.2 0 8.2 0 11.9 3.3 11.9 3.3 21.6 7.2 21.6Z"/></g></svg>
-  </a>
-  <a class='social' href='http://twitter.com/koding' target='_blank' title='Koding on Twitter'>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="19" viewBox="0 0 24 19"><g fill="none"><path d="M20.6 3C21.6 2.4 22.4 1.5 22.7 0.4 21.8 0.9 20.8 1.3 19.7 1.5 18.8 0.6 17.6 0 16.2 0 13.5 0 11.4 2.1 11.4 4.8 11.4 5.2 11.4 5.5 11.5 5.9 7.5 5.7 4 3.8 1.6 0.9 1.2 1.6 1 2.4 1 3.3 1 5 1.8 6.4 3.1 7.3 2.3 7.3 1.6 7 0.9 6.7L0.9 6.7C0.9 9.1 2.6 11 4.8 11.4 4.4 11.6 4 11.6 3.5 11.6 3.2 11.6 2.9 11.6 2.6 11.5 3.2 13.4 5 14.8 7.1 14.9 5.5 16.1 3.4 16.9 1.1 16.9 0.8 16.9 0.4 16.9 0 16.8 2.1 18.2 4.6 19 7.4 19 16.2 19 21 11.7 21 5.4 21 5.1 21 4.9 21 4.7 21.9 4.1 22.7 3.2 23.4 2.2 22.5 2.6 21.6 2.9 20.6 3Z"/></g></svg>
-  </a>
-  <a class='social' href='http://linkedin.com/company/koding' target='_blank' title='Koding on LinkedIn'>
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g transform="translate(-1538.000000, -25.000000)"><g transform="translate(0.000000, -1.000000)"><g transform="translate(37.000000, 0.000000)"><g transform="translate(1501.000000, 26.000000)"><path d="M17 17L14.1 17 14.1 12.4C14.1 11.3 14.1 9.9 12.5 9.9 11 9.9 10.8 11.1 10.8 12.3L10.8 17 7.8 17 7.8 7.5 10.6 7.5 10.6 8.8 10.7 8.8C11.1 8.1 12 7.3 13.5 7.3 16.5 7.3 17 9.2 17 11.8L17 17ZM4.4 6.2C3.5 6.2 2.7 5.4 2.7 4.5 2.7 3.5 3.5 2.8 4.4 2.8 5.4 2.8 6.2 3.5 6.2 4.5 6.2 5.4 5.4 6.2 4.4 6.2L4.4 6.2ZM3 17L5.9 17 5.9 7.5 3 7.5 3 17ZM18.5 0L1.5 0C0.7 0 0 0.6 0 1.4L0 18.6C0 19.4 0.7 20 1.5 20L18.5 20C19.3 20 20 19.4 20 18.6L20 1.4C20 0.6 19.3 0 18.5 0L18.5 0Z"/></g></g></g></g></g></svg>
-  </a>
+  <a class='social' href='http://facebook.com/koding' target='_blank' title='Koding on Facebook'><svg xmlns="http://www.w3.org/2000/svg" width="12" height="22" viewBox="0 0 12 22"><g fill="none"><path d="M7.2 21.6L7.2 11.9 10.4 11.9 10.9 8.2 7.2 8.2 7.2 5.8C7.2 4.7 7.5 3.9 9 3.9L11 3.9 11 0.5C10.7 0.5 9.5 0.4 8.1 0.4 5.2 0.4 3.3 2.1 3.3 5.4L3.3 8.2 0 8.2 0 11.9 3.3 11.9 3.3 21.6 7.2 21.6Z"/></g></svg></a>
+  <a class='social' href='http://twitter.com/koding' target='_blank' title='Koding on Twitter'><svg xmlns="http://www.w3.org/2000/svg" width="24" height="19" viewBox="0 0 24 19"><g fill="none"><path d="M20.6 3C21.6 2.4 22.4 1.5 22.7 0.4 21.8 0.9 20.8 1.3 19.7 1.5 18.8 0.6 17.6 0 16.2 0 13.5 0 11.4 2.1 11.4 4.8 11.4 5.2 11.4 5.5 11.5 5.9 7.5 5.7 4 3.8 1.6 0.9 1.2 1.6 1 2.4 1 3.3 1 5 1.8 6.4 3.1 7.3 2.3 7.3 1.6 7 0.9 6.7L0.9 6.7C0.9 9.1 2.6 11 4.8 11.4 4.4 11.6 4 11.6 3.5 11.6 3.2 11.6 2.9 11.6 2.6 11.5 3.2 13.4 5 14.8 7.1 14.9 5.5 16.1 3.4 16.9 1.1 16.9 0.8 16.9 0.4 16.9 0 16.8 2.1 18.2 4.6 19 7.4 19 16.2 19 21 11.7 21 5.4 21 5.1 21 4.9 21 4.7 21.9 4.1 22.7 3.2 23.4 2.2 22.5 2.6 21.6 2.9 20.6 3Z"/></g></svg></a>
+  <a class='social' href='http://linkedin.com/company/koding' target='_blank' title='Koding on LinkedIn'><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g transform="translate(-1538.000000, -25.000000)"><g transform="translate(0.000000, -1.000000)"><g transform="translate(37.000000, 0.000000)"><g transform="translate(1501.000000, 26.000000)"><path d="M17 17L14.1 17 14.1 12.4C14.1 11.3 14.1 9.9 12.5 9.9 11 9.9 10.8 11.1 10.8 12.3L10.8 17 7.8 17 7.8 7.5 10.6 7.5 10.6 8.8 10.7 8.8C11.1 8.1 12 7.3 13.5 7.3 16.5 7.3 17 9.2 17 11.8L17 17ZM4.4 6.2C3.5 6.2 2.7 5.4 2.7 4.5 2.7 3.5 3.5 2.8 4.4 2.8 5.4 2.8 6.2 3.5 6.2 4.5 6.2 5.4 5.4 6.2 4.4 6.2L4.4 6.2ZM3 17L5.9 17 5.9 7.5 3 7.5 3 17ZM18.5 0L1.5 0C0.7 0 0 0.6 0 1.4L0 18.6C0 19.4 0.7 20 1.5 20L18.5 20C19.3 20 20 19.4 20 18.6L20 1.4C20 0.6 19.3 0 18.5 0L18.5 0Z"/></g></g></g></g></g></svg></a>
+
   {% if include.with_signup_form == 'true' %}
   <a class="signup" href="/signup">
     <svg width="15px" height="15px" viewBox="0 0 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -50,6 +37,7 @@
     <span>Sign&nbsp;Up</span>
   </a>
   {% endif %}
+
   <a class="burger">
     <svg width="19px" height="14px" viewBox="0 0 19 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
       <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
@@ -61,6 +49,7 @@
       </g>
     </svg>
   </a>
+
   {% if include.has_hiring_badge %}
   <style>
     .Header-HiringBadge {
@@ -114,6 +103,7 @@
   </style>
   <div class='Header-HiringBadge'><a href='https://jobs.lever.co/koding' target='_blank'>We're hiring</a></div>
   {% endif %}
+
 </header>
 {% if include.has_sticky_navigation == 'true' %}
 <script>{% include js/header.js %}</script>
