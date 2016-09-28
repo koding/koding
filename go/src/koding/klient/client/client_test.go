@@ -48,13 +48,13 @@ func wait(t *testing.T, doneC <-chan struct{}, timeout time.Duration) {
 
 // getCopy gets subscriptions from PubSub structure. In order to avoid data
 // races, it returns a copy of stored map.
-func getCopy(ps *PubSub, name string) (map[int]dnode.Function, bool) {
+func getCopy(ps *PubSub, name string) map[int]dnode.Function {
 	ps.subMu.Lock()
 	defer ps.subMu.Unlock()
 	subs, ok := ps.Subscriptions[name]
 
 	if !ok {
-		return nil, false
+		return nil
 	}
 
 	subsCopy := make(map[int]dnode.Function)
@@ -62,7 +62,7 @@ func getCopy(ps *PubSub, name string) (map[int]dnode.Function, bool) {
 		subsCopy[key] = val
 	}
 
-	return subsCopy, ok
+	return subsCopy
 }
 
 func TestSubscribe(t *testing.T) {
@@ -145,7 +145,7 @@ func TestSubscribe(t *testing.T) {
 	}
 	wait(t, doneC, time.Second)
 
-	subs, _ := getCopy(ps, "test")
+	subs := getCopy(ps, "test")
 	if len(subs) != 1 {
 		t.Fatal("client.Subscribe should store a single onPublish callback")
 	}
@@ -180,7 +180,7 @@ func TestSubscribe(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	subs, _ = getCopy(ps, "test")
+	subs = getCopy(ps, "test")
 	if len(subs) != 2 {
 		t.Fatal("client.Subscribe should store multiple onPublish callbacks")
 	}
@@ -209,7 +209,7 @@ func TestSubscribe(t *testing.T) {
 	}
 	wait(t, doneC, time.Second)
 
-	subs, _ = getCopy(ps, "test")
+	subs = getCopy(ps, "test")
 	if len(subs) != 3 {
 		t.Fatal("client.Subscribe should allow multiple clients to Sub")
 	}
@@ -240,7 +240,7 @@ func TestSubscribe(t *testing.T) {
 	c1.Close()
 	wait(t, disconnectedC, 2*time.Second)
 
-	subs, _ = getCopy(ps, "test")
+	subs = getCopy(ps, "test")
 	if len(subs) != 1 {
 		t.Error("client.Subscribe",
 			"should remove all of a clients callbacks on Disconnect")
@@ -250,8 +250,8 @@ func TestSubscribe(t *testing.T) {
 	c2.Close()
 	wait(t, disconnectedC, 2*time.Second)
 
-	_, ok := getCopy(ps, "test")
-	if ok {
+	subs = getCopy(ps, "test")
+	if subs != nil {
 		t.Error("client.Subscribe",
 			"should remove the event map when all clients disconnect")
 	}
@@ -478,7 +478,7 @@ func TestUnsubscribe(t *testing.T) {
 	}
 	wait(t, doneUnsubC, time.Second)
 
-	subs, _ := getCopy(ps, "test")
+	subs := getCopy(ps, "test")
 	if expected := 3; len(subs) != expected {
 		t.Fatalf(
 			"client.Unsubscribe should remove callbacks. Wanted:%d, Got:%d",
@@ -580,7 +580,7 @@ func TestUnsubscribe(t *testing.T) {
 	}
 	wait(t, doneUnsubC, time.Second)
 
-	if _, ok := getCopy(ps, "test"); ok {
+	if subs := getCopy(ps, "test"); subs != nil {
 		t.Errorf(
 			"client.Unsubscribe should remove the sub map if no subs are left, it did not.",
 		)
