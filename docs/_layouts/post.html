@@ -7,13 +7,31 @@
 <!--<![endif]-->
 
 {% include head.html %}
-  
-  <body>
-    <!--[if lt IE 8]>
-    <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
-    <![endif]-->
-        
-    {{ content }}
-    
-  </body>
+<link rel="stylesheet" href="{{ site.url }}/css/markdown.css">
+<link rel="stylesheet" href="{{ site.url }}/css/syntax.css">
+
+<body>
+  <!--[if lt IE 8]>
+  <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+  <![endif]-->
+
+  {% include header.html
+     with_signup_form='true'
+     has_sticky_navigation='true'
+     cssClass='light' %}
+
+  <main class="markdown-body">
+
+    <section>
+
+      {{ content }}
+
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  {% include footer.html %}
+
+</body>
 </html>
