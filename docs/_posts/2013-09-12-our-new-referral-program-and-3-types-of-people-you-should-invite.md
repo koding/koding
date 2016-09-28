@@ -1,7 +1,9 @@
 ---
 layout: post
 title: Our New Referral Program and 3 Types of People You Should Invite
-author: nitin@koding.com (Nitin Gupta)
+author:
+  name: Nitin Gupta
+  email: nitin@koding.com
 excerpt_separator: "<!--more-->"
 ---
 

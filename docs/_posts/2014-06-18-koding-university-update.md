@@ -1,7 +1,9 @@
 ---
 layout: post
 title: Koding University Update
-author: stefan@koding.com (Stefan Cosma)
+author:
+  name: Stefan Cosma
+  email: stefan@koding.com
 excerpt_separator: "<!--more-->"
 ---
 

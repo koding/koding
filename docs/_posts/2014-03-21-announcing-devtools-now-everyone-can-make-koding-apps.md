@@ -1,7 +1,9 @@
 ---
 layout: post
 title: Announcing DevTools, Now Everyone Can Make Koding Apps!
-author: stefan@koding.com (Stefan Cosma)
+author:
+  name: Stefan Cosma
+  email: stefan@koding.com
 excerpt_separator: "<!--more-->"
 ---
 

@@ -1,7 +1,9 @@
 ---
 layout: post
 title: Travel the world, and talk about Koding!
-author: devrim@koding.com (Devrim Yasar)
+author:
+  name: Devrim Yasar
+  email: devrim@koding.com
 excerpt_separator: "<!--more-->"
 ---
 

@@ -1,7 +1,9 @@
 ---
 layout: post
 title: Koding now accepts PayPal
-author: nitin@koding.com (Nitin Gupta)
+author:
+  name: Nitin Gupta
+  email: nitin@koding.com
 excerpt_separator: "<!--more-->"
 ---
 

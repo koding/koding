@@ -1,7 +1,9 @@
 ---
 layout: post
 title: KODING IS NOW PUBLIC!
-author: devrim@koding.com (Devrim Yasar)
+author:
+  name: Devrim Yasar
+  email: devrim@koding.com
 excerpt_separator: "<!--more-->"
 ---
 

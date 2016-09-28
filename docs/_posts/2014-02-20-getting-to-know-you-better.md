@@ -1,7 +1,9 @@
 ---
 layout: post
 title: Getting to know you better
-author: nitin@koding.com (Nitin Gupta)
+author:
+  name: Nitin Gupta
+  email: nitin@koding.com
 excerpt_separator: "<!--more-->"
 ---
 
