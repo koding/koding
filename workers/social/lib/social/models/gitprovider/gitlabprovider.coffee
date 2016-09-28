@@ -27,39 +27,6 @@ injectQueryStrings = (templateData) ->
   return templateData
 
 
-getPrivateToken = (options, callback) ->
-
-  { urlData: { baseUrl }, token, juser } = options
-
-  params    =
-    url     : "#{baseUrl}/api/v3/user"
-    headers : { Authorization : "Bearer #{token}" }
-
-  request.get params, (err, res, body) ->
-    return callback err  if err
-
-    try
-      data  = JSON.parse body
-      token = data.private_token
-    catch e
-      return callback new KodingError 'Auth failed'
-
-    unless token
-      console.log '[GITLAB] TOKEN NOT FOUND ON DATA:', data
-      return callback new KodingError 'Auth failed'
-
-    juser.update {
-      $set: {
-        'foreignAuth.gitlab.privateToken': token
-      }
-    }, (err) ->
-
-      console.warn 'Error while updating private token:', err  if err
-
-      # Swallow update error here thus we don't need it ~GG
-      callback null, token
-
-
 module.exports = GitLabProvider =
 
   getConfig: (client) ->
@@ -91,10 +58,10 @@ module.exports = GitLabProvider =
     unless urlData = @parseImportData { url, repo, gitlabHost }
       return no
 
-    if privateToken or privateToken = oauth.privateToken
-      @importStackTemplateWithPrivateToken privateToken, urlData, callback
-    else if oauth.token
-      @importStackTemplateWithOauth oauth, urlData, user, callback
+    if privateToken or oauthToken = oauth.token
+      @importStackTemplateWithToken {
+        privateToken, oauthToken
+      }, urlData, callback
     else
       @importStackTemplateWithRawUrl urlData, callback
 
@@ -145,34 +112,32 @@ module.exports = GitLabProvider =
     return { originalUrl : url, baseUrl, user, repo, branch }
 
 
-  importStackTemplateWithOauth: (oauth, urlData, juser, callback) ->
+  importStackTemplateWithToken: (tokens, urlData, callback) ->
 
-    { baseUrl, user, repo, branch } = urlData
-    { token } = oauth
-
-    getPrivateToken { urlData, token, juser }, (err, privateToken) =>
-
-      return callback err  if err
-
-      @importStackTemplateWithPrivateToken privateToken, urlData, callback
-
-
-  importStackTemplateWithPrivateToken: (privateToken, urlData, callback) ->
-
+    { privateToken, oauthToken }    = tokens
     { baseUrl, user, repo, branch } = urlData
     { TEMPLATE_PATH, README_PATH }  = Constants
 
-    gitlab  = GitlabAPI {
-      url   : baseUrl
-      token : privateToken
-    }
+    apiOptions = { url: baseUrl }
+
+    if oauthToken
+      apiOptions.oauth_token = oauthToken
+    else if privateToken
+      apiOptions.private_token = privateToken
+    else
+      return callback new KodingError 'Token not provided'
+
+    gitlab = GitlabAPI apiOptions
 
     queue = [
 
       (next) ->
 
         gitlab.projects.all (projects) ->
-          project = projects.filter((item) -> item.path_with_namespace is "#{user}/#{repo}")[0]
+
+          project = projects.filter((item) ->
+            item.path_with_namespace is "#{user}/#{repo}")[0]
+
           if project
           then next null, project.id
           else next new KodingError 'No repository found'
@@ -180,7 +145,11 @@ module.exports = GitLabProvider =
       (projectId, next) ->
 
         gitlab.projects.repository.listBranches projectId, (branches) ->
-          if branches.filter((_branch) -> _branch.name is branch).length is 0
+
+          branches = branches.filter (_branch) ->
+            _branch.name is branch
+
+          if not branches
           then next new KodingError 'No such branch exists'
           else next null, projectId
 
