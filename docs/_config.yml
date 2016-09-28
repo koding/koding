@@ -27,18 +27,12 @@ gems:
 sass:
   style: compressed
   sass_dir: _css
-markdown: kramdown
-highlighter: rouge
-kramdown:
-  input: GFM
-  syntax_highlighter: rouge
-  syntax_highlighter_opts:
-    css_class: 'highlight'
-    span:
-      line_numbers: false
-    block:
-      line_numbers: true
-      start_line: 1
+markdown: redcarpet
+redcarpet:
+  extensions:
+  - fenced_code_blocks
+  - footnotes
+highlighter: pygments
 social:
   twitter: https://twitter.com/koding
   github:  https://github.com/koding
