@@ -19,7 +19,6 @@ import (
 	"koding/klient/tunnel"
 
 	"github.com/koding/kite"
-	"github.com/satori/go.uuid"
 )
 
 // VagrantResource represents vagrant_instance Terraform resource.
@@ -98,9 +97,7 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	// Otherwise we fail early to show problem with the template.
 	var queryString string
 	for resourceName, box := range res.Build {
-		kiteID := uuid.NewV4().String()
-
-		kiteKey, err := s.Session.Userdata.Keycreator.Create(s.Req.Username, kiteID)
+		kiteKey, err := s.BuildKiteKey(resourceName, s.Req.Username)
 		if err != nil {
 			return nil, err
 		}
