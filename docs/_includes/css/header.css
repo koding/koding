@@ -2,11 +2,6 @@ body {
   padding-top: 70px;
 }
 
-* {
-  text-rendering: geometricPrecision;
-  -webkit-font-smoothing: antialiased;
-}
-
 @media (max-width: 991px) {
   body {
     padding-top: 4px;
@@ -22,6 +17,8 @@ body {
   right: 0;
   border-bottom: 1px solid rgba(0,0,0,.15);
   display: flex;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
 }
 
 .Homepage-Header * {
