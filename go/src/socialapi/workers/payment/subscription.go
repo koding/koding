@@ -8,6 +8,31 @@ import (
 	"github.com/stripe/stripe-go/sub"
 )
 
+// CancelSubscriptionForGroup cancels the subscription for a team. In order to
+// achive that, first deletes the current subscription then subscribes to new
+// plan with new quantity, ( reasoning behind that is subscribing to a new plan
+// charges immediately ) Then deletes the current subscription again. All these
+// reqiured because we charge our users at the end of the month based  on the
+// usage. So while cancelling group subscription, charge for the due usage
+// amount immediately then cancel subscription
+func CancelSubscriptionForGroup(groupName string) (interface{}, error) {
+	group, err := modelhelper.GetGroup(groupName)
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := GetInfoForGroup(group)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := handleSubChange(info); err != nil {
+		return nil, err
+	}
+
+	return DeleteSubscriptionForGroup(groupName)
+}
+
 // DeleteSubscriptionForGroup deletes the subscription of a group
 func DeleteSubscriptionForGroup(groupName string) (*stripe.Sub, error) {
 	group, err := modelhelper.GetGroup(groupName)
