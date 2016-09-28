@@ -1,0 +1,20 @@
+.wrapper a,
+.wrapper a:visited,
+.wrapper a:active,
+.wrapper a:hover {
+  color: #18C6DB;
+  text-decoration: none;
+  border-bottom: 2px solid #18C6DB;
+}
+
+.wrapper {
+  background-color: #3c3b58;
+  background-image: linear-gradient(-180deg, #3C3C59 0%, #A8CEFF 100%);
+  color: white;
+  font-size: 36px;
+  line-height: 48px;
+  text-align: center;
+  padding: 25vh 10%;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
