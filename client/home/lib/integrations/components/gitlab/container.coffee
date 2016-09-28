@@ -3,6 +3,7 @@ kd = require 'kd'
 React = require 'app/react'
 View = require './view'
 getGroup = require 'app/util/getGroup'
+getOAuthEndPoint = require 'app/util/getOAuthEndPoint'
 
 
 saveGitlabConfig = (options = {}, callback) ->
@@ -125,6 +126,7 @@ module.exports = class GitLabContainer extends React.Component
       enabled={enabled}
       url={url}
       err={err}
+      callbackUrl={getOAuthEndPoint 'gitlab'}
       applicationId={applicationId}
       applicationSecret={applicationSecret}
       isConfirmModalOpen={isConfirmModalOpen}

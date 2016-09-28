@@ -11,7 +11,7 @@ module.exports = class GitLabView extends React.Component
 
     { enabled, url, applicationId, applicationSecret, isSaving, err
       onInputChange, onSave, onToggleChange, isConfirmModalOpen
-      onRemoveCancel, onRemoveSuccess, isRemoving } = @props
+      onRemoveCancel, onRemoveSuccess, isRemoving, callbackUrl } = @props
 
     <div className='HomeAppView--sectionWrapper'>
 
@@ -30,16 +30,14 @@ module.exports = class GitLabView extends React.Component
         callback={onToggleChange} />
 
       <strong>GitLab Integration</strong>
-      <div>GitLab & Koding together for awesomeness.</div>
-      <div>Lorem ipsum GitLab URL will be here</div>
-
+      <div>Koding & GitLab for continous development</div>
       <span className="separator" />
-
 
       <GitLabForm
         url={url}
         err={err}
         enabled={enabled}
+        callbackUrl={callbackUrl}
         applicationId={applicationId}
         applicationSecret={applicationSecret}
         onInputChange={onInputChange} />
@@ -49,7 +47,7 @@ module.exports = class GitLabView extends React.Component
     </div>
 
 
-GitLabForm = ({ err, url, enabled, applicationId, applicationSecret, onInputChange }) ->
+GitLabForm = ({ err, url, enabled, applicationId, applicationSecret, onInputChange, callbackUrl }) ->
 
   return <span />  unless enabled
 
@@ -57,15 +55,27 @@ GitLabForm = ({ err, url, enabled, applicationId, applicationSecret, onInputChan
   then err = _.assign {}, err, err.error
   else err = { fields: [] }
 
-  <fieldset>
-    {<ErrorMessage message={err.message} />  if err.fields.length}
-    <label>GitLab URL</label>
-    <InputArea error={'url' in err?.fields} value={url} callback={onInputChange 'url'} />
-    <label>Application ID</label>
-    <InputArea error={'applicationId' in err?.fields} value={applicationId} callback={onInputChange 'applicationId'} />
-    <label>Application Secret</label>
-    <InputArea error={'applicationSecret' in err?.fields} value={applicationSecret} callback={onInputChange 'applicationSecret'} />
-  </fieldset>
+  <div>
+    <cite className='warning'>
+      Create a new application on your GitLab instance by using this address as endpoint:
+      <code className='HomeAppView--code'>{callbackUrl}</code>
+      and provide generated <code className='HomeAppView--code'>applicationId</code> and
+      <code className='HomeAppView--code'>applicationSecret</code> here with the public
+      <code className='HomeAppView--code'>url</code> of your GitLab instance.
+    </cite>
+
+    <span className="separator" />
+
+    <fieldset>
+      {<ErrorMessage message={err.message} />  if err.fields.length}
+      <label>GitLab URL</label>
+      <InputArea error={'url' in err?.fields} value={url} callback={onInputChange 'url'} />
+      <label>Application ID</label>
+      <InputArea error={'applicationId' in err?.fields} value={applicationId} callback={onInputChange 'applicationId'} />
+      <label>Application Secret</label>
+      <InputArea error={'applicationSecret' in err?.fields} value={applicationSecret} callback={onInputChange 'applicationSecret'} />
+    </fieldset>
+  </div>
 
 
 ErrorMessage = ({ message }) ->
