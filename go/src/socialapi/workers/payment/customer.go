@@ -38,9 +38,7 @@ type Usage struct {
 
 // UserInfo holds current info about team's user info
 type UserInfo struct {
-	Total   int
-	Active  int
-	Deleted int
+	Total int
 }
 
 // DeleteCustomerForGroup deletes the customer for a given group. If customer is
