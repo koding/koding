@@ -1,12 +1,45 @@
 #! d1498a2b-2de9-4fa7-a0c8-eb6952b8ec95
 # title: collaboration_create_open_save_files_terminals
 # start_uri: /
-# tags: rfml-test
+# tags: aiutomated
 #
 
-This is a step action.
-This is a step question?
+- 661370e4-14d7-448d-a664-54d2a1bbdf98
 
-This is another step action.
-This is another step question?
+# redirect: false
 
+Switch the other browser window where you are logged in as 'rainforestqa99' and mouse over user icon at the left of 'END COLLABORATION' button then click on 'Make Presenter'
+Is popup removed from the screen?
+
+Return to the incognito browser window
+Do you see green warning 'ACCESS GRANTED: You can make changes now!'?
+
+Close the warning and click 'Untitled.txt' file at the editor area and type '{{random.address_city}}' in the first row
+Do you see text entered?
+
+Mouse over 'Untitled.txt', click down arrow icon displayed ans click Save in menu (like on screenshot http://snag.gy/zNMRr.jpg )
+Do you see a new modal with 'Filename', 'Select a folder' fields and 'Save' and 'Cancel' buttons?
+
+Enter 'file1.txt' in the 'Filename' field and click 'Save'
+Is modal closed? Do you see the 'file1.txt' title of the opened file instead of 'Untitled.txt'? Do you see the file 'file1.txt' in the file tree?
+
+Click  down arrow icon at the right of /home/{{random.first_name}}{{random.number}} label in the center part of the page and click 'New file' in the menu (like on screenshot http://snag.gy/nJ2Dd.jpg )
+Do you see new file 'NewFile.txt' added to the file tree? Is file name displayed in edit mode?
+
+Enter 'file2.txt' file name and press Enter
+Do you see file 'file2.txt' with green icon in the file tree?
+
+Double click on the 'file2.txt' file
+Do you see a new editor tab opened for this file?
+
+Click + icon at the right of 'file2.txt' in the editor area and click 'New Session' in the 'New Terminal' section of the menu (like on screenshot http://snag.gy/jJiod.jpg )
+Do you see a new terminal tab opened and displayed near the 'file2.txt'?
+
+Remember the list of editors and terminals opened and return to the other browser window where you are logged in as 'rainforestqa99', close the browser notification if displayed
+Do you see 'file1.txt' and 'file2.txt' files opened in the editor on the page? Do you see a new terminal tab opened? Do you see 'file1.txt' and 'file2.txt' files displayed in the file tree?
+
+Click refresh icon in the browser
+Do you see the same list of editors and terminals after refreshing?
+
+Minimize the window of the browser and return to the incognito browser window
+Do you see the same list of editors and terminals?
