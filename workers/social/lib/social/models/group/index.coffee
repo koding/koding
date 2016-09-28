@@ -1181,7 +1181,16 @@ module.exports = class JGroup extends Module
       # TODO: add remove existing sessions feature here ~ GG
       if not enabled
 
-        @updateAndNotify notifyOptions, { $unset: dataToUpdate }, callback
+        @updateAndNotify notifyOptions, { $unset: dataToUpdate }, (err) =>
+          return callback err  if err
+
+          @fetchData (err, data) ->
+            return callback err  if err
+
+            dataToUnset = {}
+            dataToUnset["data.#{provider}.applicationSecret"] = null
+            data.update { $unset: dataToUnset }, callback
+
         return
 
       validateOptions = { url, applicationId, applicationSecret }
