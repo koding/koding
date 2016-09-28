@@ -1,0 +1,45 @@
+#! 376852f2-de90-4149-b518-6010dbf536ab
+# title: collaboration_readonly_leave
+# start_uri: /
+# tags: automated
+#
+
+- 661370e4-14d7-448d-a664-54d2a1bbdf98
+
+# redirect: false
+
+Try to click 'Untitled.txt' file at the editor area and enter any text in the editor area
+Are you unable to select (click) this file and make any changes with it? Do you see the orange warning 'WARNING: You don't have permission to make changes. Ask for permission.'?
+
+Click Terminal tab and try to enter any command in the terminal
+Are you unable to enter commands in the terminal?
+
+Try click '+' icon at the right of terminal and select New Terminal -> New Session ( http://snag.gy/UnOoo.jpg )
+Are you unable to click this button or button is unavailable?
+
+Mouse over 'example-instance' item bellow the 'SHARED VMS' label and click '...' icon displayed (like on screenshot http://snag.gy/RhBjF.jpg)
+Do you see popup with red 'LEAVE SESSION' button?
+
+Click  'LEAVE SESSION' button
+Do you see 'Are you sure?' modal? Do you see 'YES', 'CANCEL' button?
+
+Click on 'YES'
+Are 'example-instance' item removed from the left module and all panes from that VM closed?
+
+Switch the other browser window where you are logged in as 'rainforestqa99'
+Do you see the only 'camera' icon at the left of 'END COLLABORATION' button without any other icons/avatars?
+
+Click shortened URL in the bottom status bar
+Do you see 'Copied to clipboard!' popup message?
+
+Switch the incognito window and paste copied URL in the browser address bar and press enter
+Do you see 'SHARED VMS' label in the left module on the page? Do you see 'example-instance' item bellow the 'SHARED VMS' label? Do you see white popup with 'Reject' and 'Accept' buttons?
+
+Click 'Accept' button
+Do you see 'Joining to collaboration session' progress bar? Do you see the same panes (terminal, untitled.txt) like on the browser where you are logged in as 'rainforestqa99'
+
+Click on 'LEAVE SESSION' button
+Do you see 'Are you sure?' dialog?
+
+Click on 'YES'
+Are 'example-instance' item removed from the left module and all panes from that VM closed?
