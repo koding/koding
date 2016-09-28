@@ -67,13 +67,12 @@ module.exports = class GitProvider extends Base
     success: revive {
       shouldReviveClient   : yes
       shouldReviveProvider : no
-    }, (client, importParams, callback) ->
+      shouldReviveOAuth    : yes
+    }, (client, options, callback) ->
 
-      return  unless provider = getProvider importParams, callback
+      return  unless provider = getProvider options, callback
 
-      { user } = client.r
-
-      unless provider.importStackTemplateData importParams, user, callback
+      unless provider.importStackTemplateData client, options, callback
         callback new KodingError 'Invalid url or repository'
 
 

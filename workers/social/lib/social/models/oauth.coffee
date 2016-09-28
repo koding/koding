@@ -120,8 +120,7 @@ module.exports = class OAuth extends bongo.Base
                 'Verification failed', 'VerificationFailed', { fields: [
                     'applicationSecret',
                     'applicationId'
-                  ]
-                }
+                ] }
             else
               callback null
 
@@ -138,7 +137,7 @@ module.exports = class OAuth extends bongo.Base
         scope = 'user:email'  unless scope
         redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
 
-        url  = "https://github.com/login/oauth/authorize?"
+        url  = 'https://github.com/login/oauth/authorize?'
         url += "client_id=#{clientId}&"
         url += "scope=#{scope}&redirect_uri=#{redirectUri}"
 
@@ -158,7 +157,7 @@ module.exports = class OAuth extends bongo.Base
         { clientId } = KONFIG.facebook
         { redirectUri } = urlOptions
 
-        url  = "https://facebook.com/dialog/oauth?"
+        url  = 'https://facebook.com/dialog/oauth?'
         url += "client_id=#{clientId}&"
         url += "redirect_uri=#{redirectUri}&scope=email"
 
