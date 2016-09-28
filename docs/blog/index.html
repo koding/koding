@@ -2,13 +2,31 @@
 layout: default
 title: Blog
 permalink: /blog
-order: 50
 ---
 
+<!-- HEADER -->
+{% include header.html with_signup_form='true' has_sticky_navigation='true' %}
+
 <h1>BLOG</h1>
-{% assign pages = site.html_pages | sort: 'order' %}
-{% for p in pages %}
-  {{ p.order }}|{{ p.title }}|{{ p.url }}
-  <br>
-  <br>
-{% endfor %}
+<section class="content wrap blogContent">
+  {% include nav-blog.html %}
+  <div class="inner-content">
+    {% for p in paginator.posts %}
+      <div class="post-list-item">
+        {% include blog-post.html page=p content=p.content %}
+      </div>
+    {% endfor %}
+
+    <div class="pagination">
+      {% if paginator.previous_page %}
+        <a href="{{ paginator.previous_page_path }}" class="previous">&laquo; Previous Page</a>
+      {% endif %}
+      {% if paginator.next_page %}
+        <a href="{{ paginator.next_page_path }}" class="next">Next Page &raquo;</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+{% include footer.html %}
