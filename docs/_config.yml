@@ -13,8 +13,8 @@ baseurl: ""
 # url: "http://dev.koding.com:4000"
 url: "https://sinan.github.io/koding"
 # production_url: "https://sinan.github.io/koding"
-paginate_path: "/blog/page:num/"
-paginate: 5
+paginate_path: "/blog/page/:num"
+paginate: 10
 timezone: America/Los_Angeles
 exclude:
 - Gemfile
