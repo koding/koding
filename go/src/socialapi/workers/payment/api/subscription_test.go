@@ -128,7 +128,7 @@ func TestSubscribingToPaidPlanWithWithDifferentTrialPeriodThanDefault(t *testing
 		withTestServer(t, func(endpoint string) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
 				createURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCreate)
-				deleteURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionDelete)
+				deleteURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCancel)
 				group, err := modelhelper.GetGroup(groupName)
 				tests.ResultedWithNoErrorCheck(group, err)
 
