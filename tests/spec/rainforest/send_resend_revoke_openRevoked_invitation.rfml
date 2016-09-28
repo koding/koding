@@ -37,10 +37,7 @@ Do you see two 'You are invited to join a team on Koding' emails in inbox that r
 Click on 'Open Email' for the last one of 'You are invited to join a team on Koding' emails
 Do you see 'Hi there, You received this email because rainforestqa99 would like you to join '{{ existing_team.name }}'' Team on Koding.com' text in the email? Do you see 'ACCEPT INVITE' button?
 
-Click on 'ACCEPT INVITE' button
-Do you see new opened browser tab with 'Authentication Required' confirmation displayed?
-
-Enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In'
+Click on 'ACCEPT INVITE' button, then if you see 'Authentication Required' form opened in the new tab, enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In' (if not do nothing and check the items below) 
 Have you seen 'invitation not found' message displayed? Do you see 'Sign in to {{ random.last_name }}{{ random.number }} text and 'SIGN IN' button?
 
 Enter "rainforestqa22" both in the 'Username or Email' and 'Password' fields and click on 'SIGN IN' button
