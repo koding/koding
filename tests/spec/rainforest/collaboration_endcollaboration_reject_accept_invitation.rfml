@@ -1,0 +1,53 @@
+#! ad4bd321-2d54-40a5-b8c6-f0abada10506
+# title: collaboration_endcollaboration_reject_accept_invitation
+# start_uri: /
+# tags: automated
+#
+
+- 661370e4-14d7-448d-a664-54d2a1bbdf98
+
+# redirect: false
+
+Mouse over user icon at the left of 'END COLLABORATION' button
+Do you see a popup menu with participant's name?
+
+Click on 'End ' button
+Do you see 'Are you sure?' dialog?
+
+Click 'END COLLABORATION' button and click 'Yes' on the 'Are you sure?' dialog
+Is 'END COLLABORATION' button changed to 'START COLLABORATION'? Is 'Camera' icon removed from the bottom status bar?
+
+Return to the incognito browser window
+Do you see 'Session ended' dialog? Do you see 'LEAVE' button?
+
+Click on 'LEAVE' button
+Are 'example-instance' item removed from the left module and all panes from that VM closed?
+
+Return the browser where you are logged in as 'rainforestqa99' and click  'START COLLABORATION' button in the bottom right corner
+Do you see 'Starting session' progress bar bellow the button and after that 'START COLLABORATION' button is converted to 'END COLLABORATION'? Do you see a shortened URL in the bottom status bar (like on screenshot http://snag.gy/dp1Cn.jpg )?
+
+Click shortened URL in the bottom status bar
+Do you see 'Copied to clipboard!' popup message?
+
+Return to the incognito browser window and paste copied URL in the browser address bar and press enter
+Do you see 'SHARED VMS' label in the left module on the page? Do you see 'example-instance' item bellow the 'SHARED VMS' label? Do you see white popup with 'Reject' and 'Accept' buttons?
+
+Click 'Reject' button
+Are 'example-instance' item removed from the left module and all panes from that VM closed?
+
+Switch the other browser window where you are logged in as 'rainforestqa99'
+Do you see the only 'camera' icon at the left of 'END COLLABORATION' button without any other icons/avatars?
+
+Click 'END COLLABORATION' button and click 'Yes' on the 'Are you sure?' dialog
+Is 'END COLLABORATION' button changed to 'START COLLABORATION'? Is 'Camera' icon removed from the bottom status bar?
+
+Click  'START COLLABORATION' button in the bottom right corner and click shortened URL in the bottom status bar
+Do you see 'Copied to clipboard!' popup message?
+
+Return to the incognito browser window and paste copied URL in the browser address bar and press enter
+Do you see 'SHARED VMS' label in the left module on the page? Do you see 'example-instance' item bellow the 'SHARED VMS' label? Do you see white popup with 'Reject' and 'Accept' buttons?
+
+Click 'Accept' button
+Do you see 'Joining to collaboration session' progress bar? Do you see the same panes (terminal, untitled.txt) like on the browser where you are logged in as 'rainforestqa99'
+
+
