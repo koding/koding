@@ -34,6 +34,9 @@ type ClientOptions struct {
 
 	// Debug enables debug transport.
 	Debug bool
+
+	// NoZones do not try to guess availability zones.
+	NoZones bool
 }
 
 // Clients provides wrappers for a EC2 client per region.

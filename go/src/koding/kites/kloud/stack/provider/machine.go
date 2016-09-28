@@ -18,16 +18,22 @@ func (bm *BaseMachine) HandleStart(ctx context.Context) error {
 	origState := bm.State()
 	currentState := origState
 
+	bm.PushEvent("Checking machine state", 10, machinestate.Starting)
+
 	realState, meta, err := bm.machine.Info(ctx)
 	if err != nil {
 		return err
 	}
 
 	defer func() {
+		bm.Log.Debug("exit: origState=%s, currentState=%s, err=%v", origState, currentState, err)
+
 		if err != nil && origState != currentState {
 			modelhelper.ChangeMachineState(bm.ObjectId, "Machine is marked as "+origState.String(), origState)
 		}
 	}()
+
+	bm.Log.Debug("origState=%s, currentState=%s, realState=%s", origState, currentState, realState)
 
 	if !realState.In(machinestate.Running, machinestate.Starting) {
 		currentState = machinestate.Starting
@@ -49,10 +55,16 @@ func (bm *BaseMachine) HandleStart(ctx context.Context) error {
 
 	dialState, err := bm.WaitKlientReady(0)
 	if err != nil {
+		bm.Log.Debug("waiting for klient failed with error: %s", err)
+
+		currentState = machinestate.Stopped
+
 		return stack.NewEventerError(err)
 	}
 
-	if err := bm.updateMachine(dialState, meta, machinestate.Running); err != nil {
+	currentState = machinestate.Running
+
+	if err := bm.updateMachine(dialState, meta, currentState); err != nil {
 		return fmt.Errorf("failed to update machine: ", err)
 	}
 
@@ -63,18 +75,24 @@ func (bm *BaseMachine) HandleStop(ctx context.Context) error {
 	origState := bm.State()
 	currentState := origState
 
+	bm.PushEvent("Checking machine state", 10, machinestate.Stopping)
+
 	realState, meta, err := bm.machine.Info(ctx)
 	if err != nil {
 		return err
 	}
 
 	defer func() {
+		bm.Log.Debug("stop exit: origState=%s, currentState=%s, err=%v", origState, currentState, err)
+
 		if err != nil && origState != currentState {
 			modelhelper.ChangeMachineState(bm.ObjectId, "Machine is marked as "+origState.String(), origState)
 		}
 	}()
 
-	if !realState.In(machinestate.Running, machinestate.Starting) {
+	bm.Log.Debug("stop origState=%s, currentState=%s, realState=%s", origState, currentState, realState)
+
+	if !realState.In(machinestate.Stopping, machinestate.Stopped) {
 		currentState = machinestate.Stopping
 
 		bm.PushEvent("Stopping machine", 25, currentState)
@@ -88,9 +106,11 @@ func (bm *BaseMachine) HandleStop(ctx context.Context) error {
 		if err != nil {
 			return stack.NewEventerError(err)
 		}
+
+		currentState = machinestate.Stopped
 	}
 
-	if err := bm.updateMachine(nil, meta, machinestate.Stopped); err != nil {
+	if err := bm.updateMachine(nil, meta, currentState); err != nil {
 		return fmt.Errorf("failed to update machine: ", err)
 	}
 
@@ -119,6 +139,7 @@ func (bm *BaseMachine) HandleInfo(ctx context.Context) (*stack.InfoResponse, err
 		}
 	}()
 
+	bm.Log.Debug("origState=%s, currentState=%s", origState, currentState)
 	if currentState.InProgress() {
 		return &stack.InfoResponse{
 			State: currentState,

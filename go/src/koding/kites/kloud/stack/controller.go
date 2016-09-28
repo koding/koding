@@ -272,6 +272,10 @@ func (k *Kloud) GetMachine(r *kite.Request) (machine Machiner, reqErr error) {
 		}()
 	}
 
+	if args.Provider == "" {
+		return nil, NewError(ErrProviderIsMissing)
+	}
+
 	provider, ok := k.providers[args.Provider]
 	if !ok {
 		return nil, NewError(ErrProviderAvailable)

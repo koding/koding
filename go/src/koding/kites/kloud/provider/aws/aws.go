@@ -40,6 +40,7 @@ func newMachine(bm *provider.BaseMachine) (provider.Machine, error) {
 
 	opts := cred.Options()
 	opts.Log = m.Log.New("awsapi")
+	opts.NoZones = true
 
 	c, err := amazon.NewWithOptions(m.Meta, opts)
 	if err != nil {
