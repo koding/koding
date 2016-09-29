@@ -1,7 +1,7 @@
 {% assign p = include.page %}
 
 <div class="BlogPost-Meta">
-  <figure alt="{{ p.author.email }}"><img src="{{ site.url }}/assets/img/default-user.svg" alt="{{ p.author.name }}"></figure>
+  <figure alt="{{ p.author.email }}"><img src="//koding-cdn.s3.amazonaws.com/blog-default-user-avatar.svg" alt="{{ p.author.name }}"></figure>
   <div>
     <h4>{{ p.author.name }}</h4>
     <time datetime="{{ p.date }}">{{ p.date | date: "%B %e, %Y" }}</time>
