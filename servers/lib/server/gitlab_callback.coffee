@@ -15,7 +15,7 @@ headers  =
 fetchGroupSettings = (clientId, state, callback) ->
 
   { JSession, JGroup } = koding.models
-  { hostname } = KONFIG
+  { hostname, protocol } = KONFIG
 
   JSession.one { clientId }, (err, session) ->
     return callback err  if err
@@ -30,7 +30,7 @@ fetchGroupSettings = (clientId, state, callback) ->
       return callback err  if err
       return callback { message: 'Group invalid' }  unless group
 
-      if not group.config?.gitlab? or not group.config.gitlab.enabled
+      if not group.config?.gitlab?.enabled
         return callback { message: 'Integration not enabled yet.' }
 
       group.fetchDataAt 'gitlab', (err, data) ->
@@ -41,14 +41,14 @@ fetchGroupSettings = (clientId, state, callback) ->
           url: group.config.gitlab.url
           applicationId: group.config.gitlab.applicationId
           applicationSecret: data.applicationSecret
-          # TODO: fix protocol here ~ GG
-          redirectUri: "http://#{slug}.#{hostname}/-/oauth/#{provider}/callback"
+          redirectUri: "#{protocol}://#{slug}.#{hostname}/-/oauth/#{provider}/callback"
         }
 
 
 getPathFor = (url, path) ->
   { gitlab } = KONFIG
-  url ?= "http://#{gitlab.host ? 'gitlab.com'}:#{gitlab.port ? 80}"
+  port = if gitlab.port then ":#{gitlab.port}" else ''
+  url ?= "#{gitlab.host}#{port}"
   URL.resolve url, path
 
 fail = (req, res) ->

@@ -1,10 +1,8 @@
-jraphical = require 'jraphical'
 KodingError = require '../error'
 { parseClient } = require './utils'
+{ Model, secure, ObjectId, signature } = require 'bongo'
 
-module.exports = class JForeignAuth extends jraphical.Module
-
-  { secure, ObjectId, signature } = require 'bongo'
+module.exports = class JForeignAuth extends Model
 
   @share()
 
@@ -19,9 +17,6 @@ module.exports = class JForeignAuth extends jraphical.Module
       provider    : 'sparse'
       foreignId   : 'sparse'
       group       : 'sparse'
-    sharedEvents  :
-      static      : []
-      instance    : []
     schema        :
       username    :
         type      : String
@@ -59,7 +54,7 @@ module.exports = class JForeignAuth extends jraphical.Module
         return callback err  if err
         return callback new KodingError 'User not found'  unless user
 
-        callback err, { user, foreignData }
+        callback null, { user, foreignData }
 
 
   @persistOauthInfo = (options, callback) ->

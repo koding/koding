@@ -73,7 +73,7 @@ module.exports = GitLabProvider =
 
     port    = if port = gitlab.port then ":#{port}" else ''
     # FIXME update protocol here ~GG
-    baseUrl = gitlabHost ? "http://#{gitlab.host}#{port}"
+    baseUrl = gitlabHost ? "#{gitlab.host}#{port}"
 
     branch ?= 'master'
     url     = "#{baseUrl}/#{user}/#{repo}"

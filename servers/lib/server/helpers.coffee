@@ -219,10 +219,10 @@ redirectOauth = (err, req, res, options) ->
     { JUser } = koding.models
     return JUser.authenticateWithOauth client, { provider, isUserLoggedIn }, (err, response) ->
 
-      if err
-      then res.status(400).send err
+      return res.status(400).send err  if err
+
       # user is logged in and session data exists
-      else res.redirect returnUrl
+      res.redirect returnUrl
 
 
 getAlias = do ->

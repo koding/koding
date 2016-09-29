@@ -160,7 +160,6 @@ module.exports = class JSession extends Model
 
 
   @clearOauthInfo = (session, callback) ->
-
     session.update { $unset: { foreignAuth:1, foreignAuthType:1 } }, callback
 
 

@@ -59,7 +59,6 @@ module.exports = class OAuth extends bongo.Base
 
         { returnUrl, redirectUri } = urlOptions
         { applicationId, host, port } = KONFIG.gitlab
-        host ?= 'gitlab.com'
         protocol = '//'
         port = if port then ":#{port}" else ''
         host = urlOptions.host ? host
