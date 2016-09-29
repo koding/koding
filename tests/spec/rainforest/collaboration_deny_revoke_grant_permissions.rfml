@@ -7,7 +7,6 @@
 - 661370e4-14d7-448d-a664-54d2a1bbdf98
 
 # redirect: false
-
 Try to click 'Untitled.txt' file at the editor area and enter any text in the editor area
 Are you unable to select (click) this file and make any changes with it? Do you see the orange warning 'WARNING: You don't have permission to make changes. Ask for permission.'?
 
