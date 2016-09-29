@@ -1,0 +1,105 @@
+---
+layout: default
+title: Store
+permalink: /store/stack
+---
+
+<!-- HEADER -->
+{% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#7F7E9E' %}
+
+<link rel="stylesheet" href="{{ site.url }}/css/markdown.css">
+<link rel="stylesheet" href="{{ site.url }}/css/syntax.css">
+<link rel="stylesheet" href="{{ site.url }}/css/store.css">
+
+<div class="ItemDetails">
+  <div class="container">
+    <div class="ItemDetails-header">
+      <h1>Node JS + Express<span class="u-icon u-verified"></span></h1>
+      <p class="ItemDetails-header-author"><img src="" />by Koding</p>
+      <p class="ItemDetails-header-downloadedTimes">Downloaded 4356 times.</p>
+      <a href="#" class="Button Button--back">Back</a>
+    </div>
+    <p class="ItemDetails-description">
+      Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+    </p>
+    <ul>
+      <li class="selected">Stack Template</li>
+      <li>Custom Variables</li>
+      <li>Readme</li>
+    </ul>
+  </div>
+</div>
+<div class="ItemBody">
+  <div class="container"><div class="ItemBody-addl">
+      <div class="ItemBody-addl-propertiesList">
+        <div>
+          <div class="icon windows"></div>
+          <div class="label">OS: <span>Windows</span></div>
+        </div>
+        <div>
+          <div class="icon aws"></div>
+          <div class="label">Provider: <span>Amazon WS</span></div>
+        </div>
+        <div>
+          <div class="icon server"></div>
+          <div class="label">Total VMs: <span>4</span></div>
+        </div>
+        <div>
+          <div class="icon server"></div>
+          <div class="label">Other: <span>Name Goes Here</span></div>
+        </div>
+        <div>
+          <div class="icon server"></div>
+          <div class="label">Another Number: <span>4567</span></div>
+        </div>
+      </div>
+      <a href="#" class="Button Button--actionable">Clone to My Team</a>
+      <div class="ItemBody-addl-cloneCount">Cloned 625 times</div>
+    </div>
+    <div class="ItemBody-content markdown-body">
+      {% highlight ruby linenos %}
+        # Here is your stack preview
+        # You can make advanced changes like modifying your VM,
+        # installing packages, and running shell commands.
+
+        provider:
+          aws:
+            access_key: '${var.aws_access_key}'
+            secret_key: '${var.aws_secret_key}'
+        resource:
+          aws_instance:
+            example_1:
+              Instance_type: t2.nano
+              ami: ''
+              tags:
+                Name: 'fahrettin-holla'
+              user_data: |-
+                apt-get update -y
+
+
+        # Here is your stack preview
+        # You can make advanced changes like modifying your VM,
+        # installing packages, and running shell commands.
+
+        provider:
+          aws:
+            access_key: '${var.aws_access_key}'
+            secret_key: '${var.aws_secret_key}'
+        resource:
+          aws_instance:
+            example_1:
+              Instance_type: t2.nano
+              ami: ''
+              tags:
+                Name: 'fahrettin-holla'
+              user_data: |-
+                apt-get update -y
+                
+      {% endhighlight %}
+    </div><div class="clearfix"></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+
+{% include footer.html %}

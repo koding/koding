@@ -12,37 +12,39 @@
   var initialize = function() {
 
     document.addEventListener('click', function(e) {
-      if (e.target.id != "dropdown-selection" && dropdown.classList.contains('is-shown')) {
+      if (e.target.id != "dropdown-selection" && dropdown && dropdown.classList.contains('is-shown')) {
         dropdown.classList.remove('is-shown');
       }
     }, true);
 
-    dropdown.addEventListener('click', function() {
+    if (dropdown) {
+      dropdown.addEventListener('click', function() {
 
-      if (this.classList.contains('is-shown')) {
-        this.classList.remove('is-shown');
-      } else {
-        this.classList.add('is-shown');
-      }
-
-      return false;
-    });
-
-    [].forEach.call( dropdownOptions, function(el) {
-      el.addEventListener('click', function() {
-        dropdownLabel.innerHTML = this.innerHTML;
-
-        if (this.classList.contains('stacks')) {
-          dropdownLabel.classList.remove('stencils');
-          dropdownLabel.classList.add('stacks');
+        if (this.classList.contains('is-shown')) {
+          this.classList.remove('is-shown');
         } else {
-          dropdownLabel.classList.remove('stacks');
-          dropdownLabel.classList.add('stencils');
+          this.classList.add('is-shown');
         }
 
-        searchBarInput.focus();
-      }, false)
-    });
+        return false;
+      });
+
+      [].forEach.call( dropdownOptions, function(el) {
+        el.addEventListener('click', function() {
+          dropdownLabel.innerHTML = this.innerHTML;
+
+          if (this.classList.contains('stacks')) {
+            dropdownLabel.classList.remove('stencils');
+            dropdownLabel.classList.add('stacks');
+          } else {
+            dropdownLabel.classList.remove('stacks');
+            dropdownLabel.classList.add('stencils');
+          }
+
+          searchBarInput.focus();
+        }, false)
+      });
+    }
 
     searchBarInput.addEventListener('keyup', submitInput.bind(searchBarInput));
 
@@ -83,7 +85,12 @@
 
     if (value != "") {
 
-      items = dropdownLabel.classList.contains('stacks') ? stacks : stencils;
+      // Dropdown does not appear on Stacks-only page
+      if (dropdown) {
+        items = dropdownLabel.classList.contains('stacks') ? stacks : stencils;
+      } else {
+        items = stacks;
+      }
 
       filteredItems = items.filter(function(obj) {
         return obj.title.toLowerCase().indexOf(value) != -1;

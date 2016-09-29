@@ -13,7 +13,7 @@ order: 40
 <div class="Hero">
   <h1 class="Hero-heading">Stack and Stencil Hub</h1>
   <h2 class="Hero-subheading">Start building your stacks easily with these hundereds of examples</h2>
-  {% include store-search.html %}
+  {% include store-search.html has_dropdown='true' has_searchbar='true' %}
 </div>
 <div class="featured-stacks">
   <div class="container">
@@ -24,7 +24,7 @@ order: 40
       </p>
     </div>
     {% include store-set.html data=site.data.store-stacks limit=4 %}
-    <a href="{{ site.url }}/store/stacks" class="Button Button--seeAll">See All Stacks</a>
+    <a href="{{ site.url }}/store/stacks" class="Button Button--actionable">See All Stacks</a>
   </div>
 </div>
 <div class="featured-stencils">
@@ -36,7 +36,7 @@ order: 40
       </p>
     </div>
     {% include store-set.html data=site.data.store-stencils limit=4 %}
-    <a href="#" class="Button Button--seeAll">See All Stencils</a>
+    <a href="#" class="Button Button--actionable">See All Stencils</a>
   </div>
 </div>
 
