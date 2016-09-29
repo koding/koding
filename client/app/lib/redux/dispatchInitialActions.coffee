@@ -5,13 +5,8 @@ isAdmin = require 'app/util/isAdmin'
 customer = require 'app/redux/modules/payment/customer'
 { Plan } = require 'app/redux/modules/payment/constants'
 
-{
-  load: loadCustomer
-  create: createCustomer } = require 'app/redux/modules/payment/customer'
-
-{
-  load: loadSubscription
-  create: createSubscription } = require 'app/redux/modules/payment/subscription'
+{ load: loadPaymentInfo } = require 'app/redux/modules/payment/info'
+{ load: loadSubscription } = require 'app/redux/modules/payment/subscription'
 
 loadAccount = ({ dispatch, getState }) ->
   dispatch {
@@ -31,27 +26,11 @@ loadUserDetails = ({ dispatch, getState }) ->
     bongo: (remote) -> remote.api.JUser.fetchUser()
   }
 
-# TODO(umut):
-# right now there is no default customer coming from backend.
-# if there is no payment information for that group, just create one
-ensureCustomer = ({ dispatch, getState }) ->
+ensurePaymentDetails = ({ dispatch, getState }) ->
 
-  { currentGroup: group } = globals
-
-  if group.payment
-  then dispatch(loadCustomer())
-  else dispatch(createCustomer())
-
-
-ensureSubscription = ({ dispatch, getState }) ->
-
-  { currentGroup: group } = globals
-
-  state = getState()
-
-  if group.payment?.subscription
-  then dispatch(loadSubscription())
-  else dispatch(createSubscription(state.customer.id, Plan.UP_TO_10_USERS))
+  if isAdmin()
+  then dispatch(loadPaymentInfo())
+  else dispatch(loadSubscription())
 
 
 module.exports = dispatchInitialActions = (store) ->
@@ -63,11 +42,7 @@ module.exports = dispatchInitialActions = (store) ->
   promise = loadAccount(store)
     .then -> loadGroup(store)
     .then -> loadUserDetails(store)
-
-  if isAdmin()
-    promise = promise
-      .then -> ensureCustomer(store)
-      .then -> ensureSubscription(store)
+    .then -> ensurePaymentDetails(store)
 
   promise.then(console.log.bind(console, 'finished dispatching initial actions'))
 
