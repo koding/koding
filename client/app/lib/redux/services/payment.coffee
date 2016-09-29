@@ -49,3 +49,6 @@ exports.deleteCreditCard = deleteCreditCard = pickData ->
 exports.fetchInvoices = fetchInvoices = pickData ->
   client.get Endpoints.InvoiceList
 
+exports.fetchInfo = fetchInfo = pickData ->
+  client.get Endpoints.Info
+

@@ -1,17 +1,13 @@
 _ = require 'lodash'
 immutable = require 'app/util/immutable'
 
-{ makeNamespace, expandActionType,
-  normalize, defineSchema } = require 'app/redux/helper'
+{ makeNamespace, expandActionType, normalize } = require 'app/redux/helper'
+
+{ customer: schema, info: infoSchema } = require './schemas'
+
+info = require './info'
 
 withNamespace = makeNamespace 'koding', 'payment', 'customer'
-
-schema = defineSchema 'customer',
-  sources:
-    data: defineSchema 'sources', []
-  subscriptions:
-    data: defineSchema 'subscriptions', []
-
 
 LOAD = expandActionType withNamespace 'LOAD'
 CREATE = expandActionType withNamespace 'CREATE'
@@ -22,6 +18,9 @@ REMOVE = expandActionType withNamespace 'REMOVE'
 reducer = (state = null, action = {}) ->
 
   switch action.type
+    when info.LOAD.SUCCESS
+      normalized = normalize action.result, infoSchema
+      return immutable normalized.first 'customer'
     when LOAD.SUCCESS, CREATE.SUCCESS, UPDATE.SUCCESS
       normalized = normalize action.result, schema
       return immutable normalized.first 'customer'
