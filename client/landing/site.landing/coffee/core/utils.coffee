@@ -2,7 +2,7 @@ $       = require 'jquery'
 kd      = require 'kd'
 kookies = require 'kookies'
 
-RECATCHA_JS = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoaded&render=explicit'
+RECAPTCHA_JS = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoaded&render=explicit'
 
 createFormData = (teamData) ->
 
@@ -427,7 +427,7 @@ module.exports = utils = {
     recaptchaScript = new kd.CustomHTMLView
       tagName    : 'script'
       attributes :
-        src      : RECATCHA_JS
+        src      : RECAPTCHA_JS
         async    : yes
         defer    : yes
 
