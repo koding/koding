@@ -4,12 +4,12 @@ package main
 
 import (
 	"flag"
-	"html/template"
 	"log"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+	"text/template"
 )
 
 var output = flag.String("o", "-", "")
@@ -45,6 +45,10 @@ func main() {
 		name := filepath.Base(fi.Name())
 
 		if strings.HasPrefix(name, "_") {
+			continue
+		}
+
+		if _, err := os.Stat(filepath.Join(fi.Name(), ".ignore")); err == nil {
 			continue
 		}
 

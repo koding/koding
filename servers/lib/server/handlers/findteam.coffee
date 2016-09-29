@@ -7,6 +7,10 @@ emailsanitize = require '../../../../workers/social/lib/social/models/user/email
 module.exports = (req, res) ->
 
   UNKNOWN_USER_ERROR = 'User not found'
+  EMPTY_TEAM_LIST_ERROR = 'Empty team list'
+  SOLO_USER_ERROR = 'Solo user detected'
+
+  FAREWELL_SOLO_DATE = new Date 2016, 6, 19
 
   { email } = req.body
   { JUser } = koding.models
@@ -24,22 +28,36 @@ module.exports = (req, res) ->
     (user, next) ->
       user.fetchOwnAccount (err, account) ->
         return next err  if err
-        next null, account
+        next null, account, { lastLoginDate : user.lastLoginDate }
 
-    (account, next) ->
+    (account, userInfo, next) ->
       account.fetchRelativeGroups (err, groups) ->
-        next err, account, groups
+        userInfo.nickname = account.profile.nickname
+        next err, account, groups, userInfo
 
-    (account, groups, next) ->
+    (account, groups, userInfo, next) ->
+      roles = [ 'blockedAccount' ]
+      account.fetchAllParticipatedGroups { roles }, (err, blockedGroups) ->
+        userInfo.hasBlockedGroups = blockedGroups.length > 0
+        next err, groups, userInfo
+
+    (groups, userInfo, next) ->
       groups = groups.filter (group) -> group.slug isnt 'koding'
 
-      { profile : { nickname } } = account
+      { nickname, lastLoginDate, hasBlockedGroups } = userInfo
+      if not groups.length
+        return next(
+          if lastLoginDate < FAREWELL_SOLO_DATE and not hasBlockedGroups
+          then SOLO_USER_ERROR
+          else EMPTY_TEAM_LIST_ERROR
+        )
 
       Tracker.identifyAndTrack nickname, {
         to      : email
         subject : Tracker.types.REQUESTED_TEAM_LIST
       }, {
         teams         : groups.map (group) -> helper.createTeamItem group
+        hasOneTeam    : groups.length is 1
         findTeamUrl   : "#{protocol}//#{hostname}/Teams/FindTeam"
         createTeamUrl : "#{protocol}//#{hostname}/Teams/Create"
       }, next

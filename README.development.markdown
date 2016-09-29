@@ -14,6 +14,7 @@
       * [Making changes in submodules](#making-changes-in-submodules)
       * [Making changes in a node module](#making-changes-in-a-node-module)
         * [Versioning of node modules](#versioning-of-node-modules)
+      * [Implementing a Kloud provider plugin](#implementing-a-kloud-provider-plugin)
     * [Submitting a pull request &amp; review](#submitting-a-pull-request--review)
       * [Submitting a pull request to a submodule](#submitting-a-pull-request-to-a-submodule)
     * [Deployment](#deployment)
@@ -250,6 +251,14 @@ Process to do this is explained in following steps:
   module is not broken
 
 - Publish new version to module to npm registry
+
+### Implementing a Kloud provider plugin
+
+The Kloud provider design, instructions on how to implement
+custom provider plugin and working example live in an external
+repository.
+
+  https://github.com/koding/kloud-provider-example
 
 ## Submitting a pull request & review
 

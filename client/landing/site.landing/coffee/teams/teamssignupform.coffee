@@ -29,7 +29,7 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
     @companyName = new LoginInputView
       inputOptions    :
         name          : 'companyName'
-        placeholder   : 'Name your team <span>(i.e. your company name)</span>'
+        placeholder   : 'Name your team (i.e. your company name)'
         defaultValue  : companyName  if companyName
         attributes    : { testpath : 'company-name' }
         validate      :
@@ -45,7 +45,7 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
     @button = new kd.ButtonView
       title       : 'Sign up'
       icon        : yes
-      style       : 'TeamsModal-button TeamsModal-button--green'
+      style       : 'TeamsModal-button'
       attributes  : { testpath : 'signup-company-button' }
       type        : 'submit'
 

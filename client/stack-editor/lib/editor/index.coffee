@@ -19,7 +19,7 @@ parseTerraformOutput = require 'app/util/stacks/parseterraformoutput'
 providersParser = require 'app/util/stacks/providersparser'
 updateCustomVariable = require 'app/util/stacks/updatecustomvariable'
 addUserInputOptions = require 'app/util/stacks/adduserinputoptions'
-
+isClonedTemplate = require 'app/util/isclonedtemplate'
 CustomLinkView = require 'app/customlinkview'
 
 OutputView = require './outputview'
@@ -68,7 +68,7 @@ module.exports = class StackEditorView extends kd.View
         @deleteStack.hide()
         @saveButton.setClass 'isntMine'
         @inputTitle.setClass 'template-title isntMine'
-        @editName.hide()
+        @titleActionsWrapper.hide()
 
 
 
@@ -283,11 +283,33 @@ module.exports = class StackEditorView extends kd.View
         changeTemplateTitle stackTemplate?._id, e.target.value
 
     @header.addSubView @inputTitle = new kd.InputView options
+    @inputTitle.resize()
 
-    @header.addSubView @editName = new CustomLinkView
+    @header.addSubView @titleActionsWrapper = new kd.CustomHTMLView
+      cssClass: 'StackEditorView--header-subHeader'
+
+    @titleActionsWrapper.addSubView @editName = new CustomLinkView
       cssClass: 'edit-name'
       title: 'Edit Name'
       click : @inputTitle.bound 'setFocus'
+
+    @titleActionsWrapper.addSubView @saveName = new CustomLinkView
+      cssClass: 'edit-name hidden'
+      title: 'Save Name'
+      click : @inputTitle.bound 'setBlur'
+
+    isClonedTemplate stackTemplate, (isCloned) =>
+      if isCloned
+        @titleActionsWrapper.addSubView @clonedFrom = new kd.CustomHTMLView
+          cssClass: 'cloned-from-text'
+          partial: 'Clone Of'
+
+        @clonedFrom.addSubView new kd.CustomHTMLView
+          cssClass: 'cloned-from'
+          partial: "  #{stackTemplate.title}"
+          click: -> kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate.config.clonedFrom}"
+
+
 
     kd.singletons.reactor.observe valueGetter, (value) =>
 
@@ -301,7 +323,10 @@ module.exports = class StackEditorView extends kd.View
       @inputTitle.prepareClone()
       @inputTitle.resize()
 
-    @inputTitle.on 'blur', @editName.bound 'show'
+    @inputTitle.on 'blur', =>
+      @titleActionsWrapper.bound 'show'
+      @saveName.hide()
+      @editName.show()
 
     @inputTitle.on 'keydown', (event) =>
       return  unless event.keyCode is 13
@@ -310,6 +335,7 @@ module.exports = class StackEditorView extends kd.View
     @inputTitle.on 'focus', =>
       @inputTitle.resize()
       @editName.hide()
+      @saveName.show()
 
 
   createOutputView: ->

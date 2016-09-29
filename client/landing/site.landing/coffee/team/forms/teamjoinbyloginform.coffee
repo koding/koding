@@ -36,7 +36,7 @@ module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
     @password   = @getPassword()
     @tfcode     = @getTFCode()
     @button     = @getButton @getOption 'buttonTitle'
-    @buttonLink = @getButtonLink @createButtonLinkPartial(), callback
+    @buttonLink = @getButtonLink @createButtonLinkPartial(), null, callback
 
     @on [ 'FormSubmitFailed', 'FormValidationFailed' ], @button.bound 'hideLoader'
 
@@ -67,7 +67,7 @@ module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
     {{> @username}}
     {{> @password}}
     {{> @tfcode}}
-    <div class='TeamsModal-button-separator'></div>
     {{> @buttonLink}}
+    <div class='TeamsModal-button-separator'></div>
     {{> @button}}
     """

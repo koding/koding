@@ -52,6 +52,7 @@ export COMMANDS=(
 	socialapi/workers/cmd/algoliaconnector
 	socialapi/workers/cmd/algoliaconnector/deletedaccountremover
 	socialapi/workers/cmd/topicmoderation
+	socialapi/workers/cmd/presence
 	socialapi/workers/cmd/collaboration
 	socialapi/workers/cmd/email/activityemail
 	socialapi/workers/cmd/email/dailyemail

@@ -27,7 +27,7 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
     @password   = @getPassword()
     @tfcode     = @getTFCode()
     @button     = @getButton 'Done!'
-    @buttonLink = @getButtonLink @createButtonLinkPartial(), (event) =>
+    @buttonLink = @getButtonLink @createButtonLinkPartial(), null, (event) =>
       kd.utils.stopDOMEvent event
       return  unless event.target.tagName is 'A'
 
@@ -54,7 +54,7 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
     {{> @username}}
     {{> @password}}
     {{> @tfcode}}
+    {{> @buttonLink}}
     <div class='TeamsModal-button-separator'></div>
     {{> @button}}
-    {{> @buttonLink}}
     """

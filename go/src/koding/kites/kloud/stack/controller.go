@@ -36,7 +36,7 @@ type ControlResult struct {
 	EventId string `json:"eventId"`
 }
 
-type machineFunc func(context.Context, interface{}) error
+type machineFunc func(context.Context, Machiner) error
 
 // statePair defines a methods start and final states
 type statePair struct {
@@ -148,13 +148,13 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 		return nil, err
 	}
 
-	stater, ok := machine.(Stater)
+	m, ok := machine.(Machiner)
 	if !ok {
-		return nil, NewError(ErrStaterNotImplemented)
+		return nil, NewError(ErrMachineNotImplemented)
 	}
 
-	if stater.ProviderName() != args.Provider {
-		k.Log.Debug("want provider %q, got %q", stater.ProviderName(), args.Provider)
+	if m.ProviderName() != args.Provider {
+		k.Log.Debug("want provider %q, got %q", m.ProviderName(), args.Provider)
 
 		return nil, NewError(ErrProviderIsWrong)
 	}
@@ -162,9 +162,9 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 	// Check if the given method is in valid methods of that current state. For
 	// example if the method is "build", and the state is "stopped" than this
 	// will return an error.
-	if !methodIn(r.Method, stater.State().ValidMethods()...) {
+	if !methodIn(r.Method, m.State().ValidMethods()...) {
 		return nil, fmt.Errorf("%s not allowed for current state '%s'. Allowed methods are: %v",
-			r.Method, strings.ToLower(stater.State().String()), stater.State().ValidMethods())
+			r.Method, strings.ToLower(m.State().String()), m.State().ValidMethods())
 	}
 
 	pair, ok := states[r.Method]
@@ -197,7 +197,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 		k.Log.Info("[%s] ======> %s started (requester: %s, provider: %s)<======",
 			args.MachineId, strings.ToUpper(r.Method), r.Username, args.Provider)
 		start := time.Now()
-		err := fn(ctx, machine)
+		err := fn(ctx, m)
 		if err != nil {
 			// don't pass the error directly to the eventer, mask it to avoid
 			// error leaking to the client. We just log it here.
@@ -212,7 +212,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 				finalEvent.Error = eventerErr.Error()
 			}
 
-			finalEvent.Status = stater.State() // fallback to to old state
+			finalEvent.Status = m.State() // fallback to to old state
 		} else {
 			k.Log.Info("[%s] ======> %s finished (time: %s, requester: %s, provider: %s) <======",
 				args.MachineId, strings.ToUpper(r.Method), time.Since(start), r.Username, args.Provider)
@@ -228,7 +228,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 	}, nil
 }
 
-func (k *Kloud) GetMachine(r *kite.Request) (resp interface{}, reqErr error) {
+func (k *Kloud) GetMachine(r *kite.Request) (machine Machiner, reqErr error) {
 	// calls with zero arguments causes args to be nil. Check it that we
 	// don't get a beloved panic
 	if r.Args == nil {
@@ -288,7 +288,17 @@ func (k *Kloud) GetMachine(r *kite.Request) (resp interface{}, reqErr error) {
 		ctx = k.setTraceID(r.Username, r.Method, ctx)
 	}
 
-	return p.Machine(ctx, args.MachineId)
+	v, err := p.Machine(ctx, args.MachineId)
+	if err != nil {
+		return nil, err
+	}
+
+	m, ok := v.(Machiner)
+	if !ok {
+		return nil, NewError(ErrMachineNotImplemented)
+	}
+
+	return m, nil
 }
 
 // methodIn checks if the method exist in the given methods

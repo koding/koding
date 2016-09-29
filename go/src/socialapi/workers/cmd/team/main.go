@@ -2,8 +2,8 @@
 package main
 
 import (
-	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"log"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/team"
@@ -19,9 +19,9 @@ var (
 func main() {
 	r := runner.New(Name)
 	if err := r.Init(); err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
+
 	// init mongo connection
 	appConfig := config.MustRead(r.Conf.Path)
 	modelhelper.Initialize(appConfig.Mongo)

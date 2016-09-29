@@ -167,7 +167,7 @@ func TestBuilderDecodeAwsMeta(t *testing.T) {
 		"vpc":        "vpc-f0e09594",
 		"ami":        "ami-cf35f3a4",
 	}
-	var meta = &awsprovider.Cred{
+	var meta = &aws.Bootstrap{
 		CidrBlock: "10.0.0.0/16",
 		IGW:       "igw-aa43bdce",
 		RTB:       "rtb-3e19315a",
@@ -184,7 +184,7 @@ func TestBuilderDecodeAwsMeta(t *testing.T) {
 		Recursive: true,
 	}
 
-	decoded := &awsprovider.Cred{}
+	decoded := &aws.Bootstrap{}
 	if err := b.Decode(RootModule, decoded); err != nil {
 		t.Fatal(err)
 	}

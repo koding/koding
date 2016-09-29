@@ -1,7 +1,6 @@
 kd = require 'kd'
 JView              = require './../../core/jview'
 MainHeaderView     = require './../../core/mainheaderview'
-# TeamAuthenticateTabForm = require './../forms/teaminvitetabform'
 
 module.exports = class TeamAuthenticateTab extends kd.TabPaneView
 
