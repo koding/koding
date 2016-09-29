@@ -11,7 +11,7 @@ Enter "rainforestqa22" in the 'Username or Email' and "rainforestqa22" in the 'P
 Do you see '{{ existing_team.name }}' label at the top left corner? Do you see 'You are almost there, rainforestqa22!' title? Do you see 'Create a Stack for Your Team', 'Enter your Credentials', 'Build Your Stack', 'Invite Your Team' and 'Install KD' sections? Do you see 'CREATE', 'ENTER', 'BUILD', 'INVITE' and 'INSTALL' buttons next to them?
 
 Close that modal by clicking (x) from top right corner and click on 'Team Stack' from left sidebar
-Do you see 'Edit', 'Reinitialize', 'VMs' and 'Destroy VMs' options?
+Do you see 'Edit', 'Clone', 'Reinitialize', 'VMs' and 'Destroy VMs' options?
 
 Select 'Reinitialize'
 Do you see 'YOUR DATA WILL BE LOST!' text on a pop-up appeared? Do you see 'CANCEL' and 'PROCEED' buttons?
