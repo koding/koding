@@ -56,7 +56,7 @@ Click on 'Edit Name', delete the text there and enter "Team Stack" and then go t
 Have 'RE-INITIALIZE' and 'MAKE TEAM DEFAULT' buttons appeared next to 'SAVE' button? Do you see 'STACK UPDATED' pop-up appeared next to (1) notification on left sidebar? Do you see 'Team Stack' text on sidebar?
 
 Click on 'UPDATE MY MACHINES' and then 'PROCEED' buttons respectively and wait for a few seconds for process to be completed
-Do you see 'Team Stack' title on the modal in center of the page? Do you see 'STACKS', 'Team Stack' and 'test-machine' labels on left sidebar?
+Do you see 'Team Stack' title on the modal in the center of the page? Do you see 'STACKS', 'Team Stack' and 'test-machine' labels on left sidebar?
 
 Click on 'Team Stack' from left sidebar and select 'Destroy VMs' and then click on 'PROCEED' button on the 'Destroy Stack' titled pop-up and wait for a few seconds for process to be completed
 Is 'test-machine' label under 'Team Stack' removed from left sidebar? Do you see 'Create a stack for your team' text and 'CREATE A TEAM STACK' button in the center of the page?

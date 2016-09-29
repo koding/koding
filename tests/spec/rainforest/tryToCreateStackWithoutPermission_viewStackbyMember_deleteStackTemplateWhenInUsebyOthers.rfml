@@ -59,7 +59,7 @@ Click on 'MAKE TEAM DEFAULT', 'SHARE WITH THE TEAM' and 'YES' buttons respective
 Do you see that 'MAKE TEAM DEFAULT' button is disabled? Do you see 'Reinitialize Default Stack' button on top of left sidebar?
 
 Click on 'Reinitialize Default Stack' and 'PROCEED' buttons respectively
-Have you seen 'Reinitializing stack...' and 'Stack reinitalized' messages displayed respectively? Do you see 'Team Stack' title on the modal in center of the page? Do you see 'STACKS', 'Team Stack' and 'example_1' labels on left sidebar?
+Have you seen 'Reinitializing stack...' and 'Stack reinitalized' messages displayed respectively? Do you see 'Team Stack' title on the modal in the center of the page? Do you see 'STACKS', 'Team Stack' and 'example_1' labels on left sidebar?
 
 Click on 'STACKS' from left sidebar
 Do you see 'Team Stack' under 'Team Stacks' section? Do you see 'Rainforestqa99's Stack' under 'Drafts' section?
@@ -71,5 +71,5 @@ Click on 'YES' button and then click on 'STACK' from left sidebar again
 Is 'Rainforestqa99's Stack' removed from 'Drafts' section? Do you see that 'Drafts' section is empty?
 
 Switch to the incognito window and click on 'Reinitialize Default Stack' and 'Proceed' buttons respectively
-Have you seen 'Reinitializing stack...' and 'Stack reinitalized' messages displayed respectively? Do you see 'Team Stack' title on the modal in center of the page? Do you see 'STACKS', 'Team Stack' and 'example_1' labels on left sidebar?
+Have you seen 'Reinitializing stack...' and 'Stack reinitalized' messages displayed respectively? Do you see 'Team Stack' title on the modal in the center of the page? Do you see 'STACKS', 'Team Stack' and 'example_1' labels on left sidebar?
 
