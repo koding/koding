@@ -46,7 +46,6 @@ input, textarea, keygen, select, button {
   &.Button--actionable{
     padding: 13px 0 10px;
     font-size: 17px;
-    width: 220px;
     background-color: $froly;
     color: $white;
   }
@@ -326,6 +325,7 @@ input, textarea, keygen, select, button {
 
     .Button.Button--actionable {
       margin: 39px auto 0;
+      width: 220px;
     }
   }
 }
@@ -596,7 +596,7 @@ only screen and (min-device-pixel-ratio: 2) {
   h1 {
     text-align: center;
     font-size: 48px;
-    color: #fff;
+    color: $white;
     font-weight: 300;
     padding-top: 65px;
     padding-bottom: 18px;
@@ -620,7 +620,7 @@ only screen and (min-device-pixel-ratio: 2) {
 
 .ItemDetails {
   padding-top: 35px;
-  border-bottom: 1px solid #EBEBEB;
+  border-bottom: 1px solid $gallery;
 
   .ItemDetails-header {
     min-height: 34px;
@@ -628,22 +628,22 @@ only screen and (min-device-pixel-ratio: 2) {
 
     h1 {
       font-size: 32px;
-      color: #515151;
+      color: $emperor;
       font-weight: 600;
       float: left;
       padding-right: 30px;
-      border-right: 1px solid #ebebeb;
+      border-right: 1px solid $gallery;
     }
 
     p {
-      color: #989898;
+      color: $dusty-gray;
       font-size: 14px;
       float: left;
 
       &.ItemDetails-header-author {
         padding-left: 30px;
         padding-right: 38px;
-        border-right: 1px solid #ebebeb;
+        border-right: 1px solid $gallery;
         padding-top: 7px;
       }
 
@@ -682,29 +682,30 @@ only screen and (min-device-pixel-ratio: 2) {
   .ItemDetails-description {
     font-size: 14px;
     line-height: 17px;
-    color: #989898;
+    color: $dusty-gray;
     margin-bottom: 40px;
+    width: 876px;
   }
 
   ul {
     width: 100%;
-    border-top: 1px solid #EBEBEB;
+    border-top: 1px solid $gallery;
     height: 59px;
 
     li {
       padding: 21px 0 20px;
-      float: left;
-      color: #989898;
+      color: $dusty-gray;
       font-weight: 600;
       width: 179px;
       text-align: center;
       font-size: 16px;
       border-bottom: 2px solid transparent;
       cursor: pointer;
+      display: inline-block;
 
       &.selected {
-        color: #67A2EE;
-        border-color: #67A2EE;
+        color: $cornflower-blue;
+        border-color: $cornflower-blue;
       }
     }
   }
@@ -712,7 +713,7 @@ only screen and (min-device-pixel-ratio: 2) {
 }
 
 .ItemBody-addl, .ItemBody-content {
-  background-color: #FFFFFF;
+  background-color: $white;
   margin-bottom: 42px;
   box-shadow: 0px 1px 0px 0px rgba(0,0,0,0.10);
   border-radius: 4px;
@@ -721,7 +722,7 @@ only screen and (min-device-pixel-ratio: 2) {
 }
 
 .ItemBody {
-  background-color: #F5F6F7;
+  background-color: $porcelain;
   padding-top: 19px;
 
   .ItemBody-content {
@@ -742,7 +743,7 @@ only screen and (min-device-pixel-ratio: 2) {
       }
 
       .highlight pre {
-        background-color: #ffffff;
+        background-color: $white;
       }
     }
   }
@@ -750,7 +751,7 @@ only screen and (min-device-pixel-ratio: 2) {
   .ItemBody-addl {
     width: 276px;
     margin-left: 24px;
-    color: #989898;
+    color: $dusty-gray;
     font-size: 14px;
     padding: 30px;
     box-sizing: border-box;
@@ -824,10 +825,39 @@ only screen and (min-device-pixel-ratio: 2) {
   .StoreResults-container .box-set {
     max-width: 910px;
   }
+
+  .ItemDetails .container, .ItemBody .container {
+    max-width: 961px;
+  }
+
+  .ItemDetails .ItemDetails-description {
+    width: 629px;
+  }
+
+  .ItemBody {
+    .ItemBody-content {
+      width: 629px;
+    }
+
+    .ItemBody-addl {
+      width: 297px;
+    }
+  }
 }
+
 @media (max-width: 991px) {
   .StacksHero {
     margin-top: 43px;
+  }
+
+  .ItemDetails {
+    margin-top: 43px;
+  }
+
+  .ItemBody {
+    .ItemBody-addl, .ItemBody-content {
+      width: 100%;
+    }
   }
 }
 

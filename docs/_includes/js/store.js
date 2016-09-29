@@ -76,12 +76,12 @@
     return start + middle + end;
   }
 
-  var submitInput = function(e) {
+  var submitInput = function() {
+
     var items, 
         filteredItems = [],
-        e = e.target,
         html = "",
-        value = e.value.trim();
+        value = this.value.trim();
 
     if (value != "") {
 
