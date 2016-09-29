@@ -14,7 +14,7 @@ baseurl: ""
 url: "https://sinan.github.io/koding"
 # production_url: "https://sinan.github.io/koding"
 paginate_path: "/blog/page/:num"
-paginate: 10
+paginate: 5
 timezone: America/Los_Angeles
 exclude:
 - Gemfile
