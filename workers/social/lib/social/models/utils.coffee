@@ -1,4 +1,5 @@
 KodingError = require '../error'
+URL = require 'url'
 
 SESSION_DATA_CORRUPTED = new KodingError 'Session data corrupted.'
 
@@ -16,6 +17,15 @@ module.exports =
       return { err: SESSION_DATA_CORRUPTED }
 
     return { group, username }
+
+
+  cleanUrl: (url) ->
+
+    url = URL.parse url
+    url.query  = ''
+    url.search = ''
+
+    URL.format url
 
 
   isAddressValid: (addr, callback) ->

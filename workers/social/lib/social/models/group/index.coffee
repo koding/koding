@@ -1199,9 +1199,11 @@ module.exports = class JGroup extends Module
 
       validateOptions = { url, applicationId, applicationSecret }
 
-      OAuth.validateOAuth provider, validateOptions, (err) =>
+      OAuth.validateOAuth provider, validateOptions, (err, data) =>
 
         return callback err  if err
+
+        url = data.url  if data.url
 
         dataToUpdate["config.#{provider}"] = {
           enabled: yes
@@ -1217,7 +1219,10 @@ module.exports = class JGroup extends Module
 
             dataToSet = {}
             dataToSet["data.#{provider}"] = { applicationSecret }
-            data.update { $set: dataToSet }, callback
+            data.update { $set: dataToSet }, (err) ->
+              return callback err  if err
+
+              callback null, { url }
 
 
   modifyMembershipPolicy: permit

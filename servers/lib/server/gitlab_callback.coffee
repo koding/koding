@@ -3,7 +3,8 @@ koding = require './bongo'
 KONFIG = require 'koding-config-manager'
 
 { redirectOauth, saveOauthToSession } = require './helpers'
-{ isAddressValid } = require '../../models/utils'
+{ isAddressValid, cleanUrl } = require '../../models/utils'
+URL = require 'url'
 
 provider = 'gitlab'
 headers  =
@@ -48,7 +49,7 @@ fetchGroupSettings = (clientId, state, callback) ->
 getPathFor = (url, path) ->
   { gitlab } = KONFIG
   url ?= "http://#{gitlab.host ? 'gitlab.com'}:#{gitlab.port ? 80}"
-  "#{url}#{path}"
+  URL.resolve url, path
 
 fail = (req, res) ->
   redirectOauth 'could not grant access', req, res, { provider }
@@ -116,6 +117,8 @@ module.exports = (req, res) ->
       return fail req, res
 
     { url, applicationId, applicationSecret, redirectUri } = settings
+
+    url = cleanUrl url
 
     isAddressValid url, (err) ->
 

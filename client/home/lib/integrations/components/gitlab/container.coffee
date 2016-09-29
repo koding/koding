@@ -110,7 +110,12 @@ module.exports = class GitLabContainer extends React.Component
 
         newState = {}
         newState.err = err  if err
-        newState = _.pick options, 'url', 'applicationId', 'applicationSecret'
+        newState = _.pick options, 'applicationId', 'applicationSecret'
+
+        # JGroup.setOAuth will return updated url (aka cleaned url)
+        # on successful save request, we need to update it on UI as well
+        newState.url = config?.url ? options.url
+
         newState.err = err
         newState.isSaving = no
 

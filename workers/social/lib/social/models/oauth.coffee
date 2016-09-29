@@ -4,7 +4,7 @@ crypto      = require 'crypto'
 request     = require 'request'
 KodingError = require '../error'
 
-{ isAddressValid } = require './utils'
+{ isAddressValid, cleanUrl } = require './utils'
 
 
 module.exports = class OAuth extends bongo.Base
@@ -92,6 +92,8 @@ module.exports = class OAuth extends bongo.Base
         if not applicationSecret then return callback new KodingError \
           MissingFieldError, 'MissingField', { fields: ['applicationSecret'] }
 
+        url = cleanUrl url
+
         isAddressValid url, (err) ->
 
           if err
@@ -122,7 +124,7 @@ module.exports = class OAuth extends bongo.Base
                     'applicationId'
                 ] }
             else
-              callback null
+              callback null, { url }
 
 
     # -- GITHUB PROVIDER --------------------------------------------------8<--
