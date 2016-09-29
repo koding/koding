@@ -1,0 +1,57 @@
+#! 346f3aea-31bd-4dbf-bbc0-74e6931ffe0a
+# title: collaboration_watchfile_openvideo_kick_invite_user
+# start_uri: /
+# tags: automated
+#
+
+- 661370e4-14d7-448d-a664-54d2a1bbdf98
+
+# redirect: false
+
+Try to click settings icon at the top of the filetree
+Are you unable to click settings icon? Do you see the orange warning 'WARNING: You don't have permission to make changes. Ask for permission.'?
+
+Return to the other browser window where you are logged in as 'rainforestqa99', click 'Untitled.txt' file at the editor area and type '{{random.address_city}}' in the first row, Mouse over 'Untitled.txt', click down arrow icon displayed and click Save in menu (like on screenshot http://snag.gy/zNMRr.jpg )
+Do you see a new modal with 'Filename', 'Select a folder' fields and 'Save' and 'Cancel' buttons?
+
+Enter 'file1.txt' in the 'Filename' field and click 'Save'
+Is modal closed? Do you see the 'file1.txt' title of the opened file instead of 'Untitled.txt'? Do you see the file 'file1.txt' in the file tree?
+
+Return to the incognito browser window
+Do you see the 'file1.txt' file in the file tree?
+
+Click on 'camera' icon at the left of 'END COLLABORATION'
+Is new tab opened included 'https://appear.in ...' url? Do you see yourself in the video?
+
+Return to the other browser window where you are logged in as 'rainforestqa99' and Click on 'camera' icon at the left of 'END COLLABORATION'
+Is new tab opened included 'https://appear.in ...' url? Do you see both users on the screen? Do you see 'LEAVE' button top of the video?
+
+Return to the incognito browser window
+Do you see both users on the screen? Do you see 'LEAVE' button top of the video?
+
+Click on 'LEAVE' button
+Do you see 'Thank you for using appear.in' text?
+
+Close the tab
+Do you see opened id? Do you see 'LEAVE SESSION' on status bar?
+
+Return to the other browser window where you are logged in as 'rainforestqa99' and Click on 'LEAVE' button
+Do you see 'Thank you for using appear.in' text?
+
+Close the tab
+Do you see opened id? Do you see 'END COLLABORATION' on status bar?
+
+Mouse over user icon at the left of 'END COLLABORATION' button (like on the screenshot http://snag.gy/UWgYw.jpg ),click 'Kick' in the menu and click on 'END COLLABORATION'
+Is user icon removed from the bottom navigation bar?
+
+Return to the incognito browser window
+Is 'Session End' dialog not displayed? Is 'LEAVE SESSION' not visible?
+
+Return to the other browser window, click  'START COLLABORATION' button in the bottom right corner and click shortened URL in the bottom status bar
+Do you see 'Copied to clipboard!' popup message?
+
+Return to the incognito browser window and paste copied URL in the browser address bar and press enter
+Do you see 'SHARED VMS' label in the left module on the page? Do you see 'example-instance' item bellow the 'SHARED VMS' label? Do you see white popup with 'Reject' and 'Accept' buttons?
+
+Click 'Accept' button
+Do you see 'Joining to collaboration session' progress bar? Do you see the same panes (terminal, untitled.txt) like on the browser where you are logged in as 'rainforestqa99'
