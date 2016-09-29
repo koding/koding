@@ -1,24 +1,17 @@
 {% assign p = include.page %}
 
-<h1>
-{% if include.isPermalink %}
-  {{ p.title }}
-{% else %}
-  <a href="{{ p.url }}">{{ p.title }}</a>
-{% endif %}
-</h1>
-
-<p class="meta">
-  {{ p.date | date: "%B %e, %Y" }}
-  by {{ p.author.name }} | {{ p.author.email }}
-</p>
-
-<hr>
-
-<div class="post">
-  {{ p.excerpt }}
+<div class="BlogPost-Meta">
+  <figure alt="{{ p.author.email }}"><img src="{{ site.url }}/assets/img/default-user.svg" alt="{{ p.author.name }}"></figure>
+  <div>
+    <h4>{{ p.author.name }}</h4>
+    <time datetime="{{ p.date }}">{{ p.date | date: "%B %e, %Y" }}</time>
+  </div>
 </div>
 
-{% if include.isPermalink %}
-  <div class="fb-like" data-send="true" data-width="650" data-show-faces="false"></div>
-{% endif %}
+
+<a class="BlogPost-Excerpt" href="{{ p.url }}">
+  {% if p.image %}<figure style="background-image: url('{{ p.image }}');" alt="{{ p.title }} featured image"></figure>{% endif %}
+  <h2 class="BlogPost-Title">{{ p.title }}</h2>
+  <p>{{ p.excerpt | strip_html }}</p>
+  <cite>Read more...</cite>
+</a>

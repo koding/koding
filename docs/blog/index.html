@@ -20,8 +20,14 @@ title: Blog
       {% if paginator.next_page %}
         <a href="{{ paginator.next_page_path }}" class="next">Next Page &raquo;</a>
       {% endif %}
+<section class="BlogHome-Listing">
+  <main>
+    {% for post in paginator.posts %}
+    <div class="BlogHome-Listing--item">
+      {% include blog-post.html page=post content=post.content %}
     </div>
-  </div>
+    {% endfor %}
+  </main>
 </section>
 
 <!-- FOOTER -->
