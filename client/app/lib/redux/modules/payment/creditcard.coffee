@@ -4,18 +4,28 @@ immutable = require 'app/util/immutable'
 { makeNamespace, expandActionType,
   normalize, defineSchema } = require 'app/redux/helper'
 
+{ info: infoSchema, customer: customerSchema } = require './schemas'
+
 withNamespace = makeNamespace 'koding', 'payment', 'creditcard'
 
 REMOVE = expandActionType withNamespace 'REMOVE'
 
 customer = require './customer'
+info = require './info'
 
 reducer = (state = null, action) ->
 
   switch action.type
 
     when customer.LOAD.SUCCESS, customer.CREATE.SUCCESS, customer.UPDATE.SUCCESS
-      normalized = normalize action.result, customer.schema
+      normalized = normalize action.result, customerSchema
+      c = normalized.first 'customer'
+
+      if c.default_source
+        return normalized.entities.sources[c.default_source]
+
+    when info.LOAD.SUCCESS
+      normalized = normalize action.result, infoSchema
       c = normalized.first 'customer'
 
       if c.default_source

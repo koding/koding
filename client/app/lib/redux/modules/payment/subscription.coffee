@@ -3,14 +3,16 @@ immutable = require 'app/util/immutable'
 { createSelector } = require 'reselect'
 dateDiffInDays = require 'app/util/dateDiffInDays'
 
-customer = require './customer'
+{ makeNamespace, expandActionType, normalize } = require 'app/redux/helper'
 
-{ makeNamespace, expandActionType,
-  normalize, defineSchema } = require 'app/redux/helper'
-
-schema = defineSchema 'subscription'
+{
+  subscription: schema, info: infoSchema, customer: customerSchema
+} = require './schemas'
 
 withNamespace = makeNamespace 'koding', 'payment', 'subscription'
+
+customer = require './customer'
+info = require './info'
 
 LOAD = expandActionType withNamespace 'LOAD'
 CREATE = expandActionType withNamespace 'CREATE'
@@ -26,12 +28,19 @@ reducer = (state = null, action) ->
       return immutable normalized.first 'subscription'
 
     when customer.LOAD.SUCCESS, customer.CREATE.SUCCESS, customer.UPDATE.SUCCESS
-      normalized = normalize action.result, customer.schema
+      normalized = normalize action.result, customerSchema
 
       if subscription = normalized.first 'subscriptions'
         return immutable subscription
 
       return null
+
+    when info.LOAD.SUCCESS
+      normalized = normalize action.result, infoSchema
+      subscription = _.assign {}, normalized.first('subscription'),
+        plan: normalized.first 'expectedPlan'
+
+      return immutable subscription
 
     when customer.REMOVE.SUCCESS, REMOVE.SUCCESS
       return null

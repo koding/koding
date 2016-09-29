@@ -10,6 +10,7 @@ exports.make = make = (reducers = {}) ->
     invoices: require './modules/payment/invoices'
     subscription: require './modules/payment/subscription'
     customer: require './modules/payment/customer'
+    paymentInfo: require './modules/payment/info'
     form: require('redux-form').reducer
   }
 
