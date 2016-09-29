@@ -13,13 +13,6 @@ title: Blog
   </div>
 </div>
 
-    <div class="pagination">
-      {% if paginator.previous_page %}
-        <a href="{{ paginator.previous_page_path }}" class="previous">&laquo; Previous Page</a>
-      {% endif %}
-      {% if paginator.next_page %}
-        <a href="{{ paginator.next_page_path }}" class="next">Next Page &raquo;</a>
-      {% endif %}
 <section class="BlogHome-Listing">
   <main>
     {% for post in paginator.posts %}
@@ -28,6 +21,10 @@ title: Blog
     </div>
     {% endfor %}
   </main>
+
+  {% if paginator.total_pages > 1 %}
+    {% include blog-pagination.html %}
+  {% endif %}
 </section>
 
 <!-- FOOTER -->
