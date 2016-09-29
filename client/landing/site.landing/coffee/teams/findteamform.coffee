@@ -2,15 +2,9 @@ kd                  = require 'kd'
 utils               = require './../core/utils'
 LoginViewInlineForm = require './../login/loginviewinlineform'
 LoginInputView      = require './../login/logininputview'
+FindTeamHelper      = require './findteamhelper'
 
 module.exports = class FindTeamForm extends LoginViewInlineForm
-
-  RECATCHA_JS = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaloadCallback&render=explicit'
-
-  window.onRecaptchaloadCallback = (event) ->
-
-    grecaptcha?.render 'recaptcha', sitekey : kd.config.recaptcha.key
-
 
   constructor: (options = {}, data) ->
 
@@ -41,26 +35,14 @@ module.exports = class FindTeamForm extends LoginViewInlineForm
       loader      : yes
 
     @recaptcha = new kd.CustomHTMLView
-      domId : 'recaptcha'
+      domId    : 'findTeamRecaptcha'
       cssClass : 'login-input-view'
-
-    @on 'viewAppended', =>
-
-      @recaptchaScript?.destroy()
-      @recaptchaScript = new kd.CustomHTMLView
-        tagName    : 'script'
-        attributes :
-          src      : RECATCHA_JS
-          async    : yes
-          defer    : yes
-
-      @recaptchaScript.appendToDomBody()
+    @recaptcha.hide()
 
     callback = @getCallback()
     @setCallback (formData) =>
 
-      recaptchaResponse = grecaptcha?.getResponse()
-      if recaptchaResponse is ''
+      if @recaptchaId? and not recaptchaResponse = grecaptcha?.getResponse @recaptchaId
         @button.hideLoader()
         return new kd.NotificationView
           cssClass : 'recoverConfirmation'
@@ -68,6 +50,18 @@ module.exports = class FindTeamForm extends LoginViewInlineForm
 
       formData.recaptcha = recaptchaResponse
       callback formData
+
+
+  reloadRecaptcha: ->
+
+    return  unless FindTeamHelper.isRecaptchaRequired()
+
+    @recaptcha.show()
+    if @recaptchaId?
+      grecaptcha?.reset @recaptchaId
+    else
+      utils.loadRecaptchaScript =>
+        @recaptchaId = grecaptcha?.render 'findTeamRecaptcha', { sitekey : kd.config.recaptcha.key }
 
 
   reset: ->
