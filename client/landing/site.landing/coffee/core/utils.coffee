@@ -2,6 +2,8 @@ $       = require 'jquery'
 kd      = require 'kd'
 kookies = require 'kookies'
 
+RECATCHA_JS = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoaded&render=explicit'
+
 createFormData = (teamData) ->
 
   teamData ?= utils.getTeamData()
@@ -17,6 +19,12 @@ createFormData = (teamData) ->
         formData[field] = value
 
   return formData
+
+recaptchaLoadCallbacks = []
+window.onRecaptchaLoaded = ->
+
+  callback() for callback in recaptchaLoadCallbacks
+  recaptchaLoadCallbacks = []
 
 
 module.exports = utils = {
@@ -335,16 +343,6 @@ module.exports = utils = {
         callbacks.error.call this, xhr.responseText
 
 
-  findTeam: (email, recaptcha, callbacks = {}) ->
-
-    $.ajax
-      url         : '/findteam'
-      data        : { email, recaptcha, _csrf : Cookies.get '_csrf' }
-      type        : 'POST'
-      error       : callbacks.error
-      success     : callbacks.success
-
-
   getGravatarUrl : (size = 80, hash) ->
 
     fallback = "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
@@ -375,11 +373,6 @@ module.exports = utils = {
 
 
   getAllowedDomainsPartial: (domains) -> ('<i>@' + d + '</i>, ' for d in domains).join('').replace(/,\s$/, '')
-
-
-  # Prevents recaptcha from showing up in signup form
-  # (but not backend); Used for testing.
-  disableRecaptcha: -> kd.config.recaptcha.enabled = no
 
 
   # Used to store last used OAuth, ie 'github', 'facebook' etc. between refreshes.
@@ -425,4 +418,18 @@ module.exports = utils = {
 
     input.setWidth width
 
+
+  loadRecaptchaScript: (callback) ->
+
+    return callback()  if grecaptcha?
+
+    recaptchaLoadCallbacks.push callback
+    recaptchaScript = new kd.CustomHTMLView
+      tagName    : 'script'
+      attributes :
+        src      : RECATCHA_JS
+        async    : yes
+        defer    : yes
+
+    recaptchaScript.appendToDomBody()
 }
