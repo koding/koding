@@ -254,7 +254,7 @@ func invoiceCreatedHandler(raw []byte) error {
 	}
 
 	// if this in the tests, just skip cancellation of the invoice, because
-	// there is no way to create and invoice and have it open for a while.
+	// there is no way to create an invoice and have it open for a while.
 	if invoice.ID != "in_00000000000000" {
 		// first close the invoice
 		_, err = stripeinvoice.Update(invoice.ID, &stripe.InvoiceParams{Closed: true})
@@ -263,25 +263,30 @@ func invoiceCreatedHandler(raw []byte) error {
 		}
 	}
 
+	return handleSubChange(info)
+}
+
+func handleSubChange(info *Usage) error {
+	groupName := info.Customer.Meta["groupName"]
+
 	planID := GetPlanID(info.User.Total)
 
-	prevSub, err := DeleteSubscriptionForGroup(cus.Meta["groupName"])
+	prevSub, err := DeleteSubscriptionForGroup(groupName)
 	if err != nil {
 		return err
 	}
 
 	params := &stripe.SubParams{
-		Customer: group.Payment.Customer.ID,
+		Customer: info.Customer.ID,
 		Plan:     planID,
 		Quantity: uint64(info.User.Total),
 	}
-
-	sub, err := CreateSubscriptionForGroup(cus.Meta["groupName"], params)
+	sub, err := CreateSubscriptionForGroup(groupName, params)
 	if err != nil {
 		return err
 	}
 
-	if err := (&models.PresenceDaily{}).ProcessByGroupName(group.Slug); err != nil {
+	if err := (&models.PresenceDaily{}).ProcessByGroupName(groupName); err != nil {
 		return err
 	}
 
@@ -289,7 +294,7 @@ func invoiceCreatedHandler(raw []byte) error {
 		"oldPlanID": prevSub.Plan.ID,
 		"newPlanID": sub.Plan.ID,
 	}
-	return sendEventForCustomer(cus.ID, eventNameJoinedNewPricingTier, opts)
+	return sendEventForCustomer(info.Customer.ID, eventNameJoinedNewPricingTier, opts)
 }
 
 func invoicePaymentHandler(raw []byte) error {

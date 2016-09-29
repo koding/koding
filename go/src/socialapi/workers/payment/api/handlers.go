@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	EndpointSubscriptionDelete = "/payment/subscription/delete"
+	EndpointSubscriptionCancel = "/payment/subscription/delete"
 	EndpointSubscriptionGet    = "/payment/subscription/get"
 	EndpointSubscriptionCreate = "/payment/subscription/create"
 	EndpointCustomerCreate     = "/payment/customer/create"
@@ -23,10 +23,10 @@ const (
 func AddHandlers(m *mux.Mux) {
 	m.AddHandler(
 		handler.Request{
-			Handler:  DeleteSubscription,
+			Handler:  CancelSubscription,
 			Name:     "payment-delete-subscription",
 			Type:     handler.DeleteRequest,
-			Endpoint: EndpointSubscriptionDelete,
+			Endpoint: EndpointSubscriptionCancel,
 		},
 	)
 
