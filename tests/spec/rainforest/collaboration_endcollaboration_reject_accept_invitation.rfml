@@ -50,4 +50,20 @@ Do you see 'SHARED VMS' label in the left module on the page? Do you see 'exampl
 Click 'Accept' button
 Do you see 'Joining to collaboration session' progress bar? Do you see the same panes (terminal, untitled.txt) like on the browser where you are logged in as 'rainforestqa99'
 
+Click on team name on the top left sidebar
+Do you see with opening menu with 'Logout' item?
 
+Click on 'Logout'
+Did you logout?
+
+Enter "rainforestqa22" both in the 'Username or Email' and 'Password' fields and click on 'SIGN IN' button (You have to login again less than 1 minute)
+Are you successfully logged in? Is collaboration session still continue? Do you still see 'LEAVE SESSION?'
+
+Return to the other browser window where you are logged in as 'rainforestqa99', click on team name on the top left sidebar
+Do you see with opening menu with 'Logout' item?
+
+Click on 'Logout'
+Did you logout?
+
+Enter "rainforestqa99" both in the 'Username or Email' and 'Password' fields and click on 'SIGN IN' button (You have to login again less than 1 minute)
+Are you successfully logged in? Is collaboration session still continue? Do you still see 'LEAVE SESSION?'
