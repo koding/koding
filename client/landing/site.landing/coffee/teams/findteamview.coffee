@@ -56,13 +56,13 @@ module.exports = class FindTeamView extends kd.TabPaneView
 
     track 'submitted find teams form'
 
-    { email } = formData
-    utils.findTeam email,
-      error       : (xhr) =>
+    { email, recaptcha } = formData
+    utils.findTeam email, recaptcha,
+      error   : (xhr) =>
         { responseText } = xhr
         @handleServerError responseText
         @form.button.hideLoader()
-      success     : =>
+      success : =>
         @form.button.hideLoader()
         @form.reset()
 

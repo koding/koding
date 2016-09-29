@@ -5,6 +5,13 @@ LoginInputView      = require './../login/logininputview'
 
 module.exports = class FindTeamForm extends LoginViewInlineForm
 
+  RECATCHA_JS = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaloadCallback&render=explicit'
+
+  window.onRecaptchaloadCallback = (event) ->
+
+    grecaptcha?.render 'recaptcha', sitekey : kd.config.recaptcha.key
+
+
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'login-form', options.cssClass
@@ -33,6 +40,35 @@ module.exports = class FindTeamForm extends LoginViewInlineForm
       type        : 'submit'
       loader      : yes
 
+    @recaptcha = new kd.CustomHTMLView
+      domId : 'recaptcha'
+      cssClass : 'login-input-view'
+
+    @on 'viewAppended', =>
+
+      @recaptchaScript?.destroy()
+      @recaptchaScript = new kd.CustomHTMLView
+        tagName    : 'script'
+        attributes :
+          src      : RECATCHA_JS
+          async    : yes
+          defer    : yes
+
+      @recaptchaScript.appendToDomBody()
+
+    callback = @getCallback()
+    @setCallback (formData) =>
+
+      recaptchaResponse = grecaptcha?.getResponse()
+      if recaptchaResponse is ''
+        @button.hideLoader()
+        return new kd.NotificationView
+          cssClass : 'recoverConfirmation'
+          title    : 'Please tell us that you\'re not a robot!'
+
+      formData.recaptcha = recaptchaResponse
+      callback formData
+
 
   reset: ->
 
@@ -47,5 +83,6 @@ module.exports = class FindTeamForm extends LoginViewInlineForm
 
     '''
     {{> @usernameOrEmail}}
+    {{> @recaptcha}}
     {{> @button}}
     '''

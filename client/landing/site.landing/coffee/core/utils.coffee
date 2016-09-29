@@ -335,11 +335,11 @@ module.exports = utils = {
         callbacks.error.call this, xhr.responseText
 
 
-  findTeam: (email, callbacks = {}) ->
+  findTeam: (email, recaptcha, callbacks = {}) ->
 
     $.ajax
       url         : '/findteam'
-      data        : { email, _csrf : Cookies.get '_csrf' }
+      data        : { email, recaptcha, _csrf : Cookies.get '_csrf' }
       type        : 'POST'
       error       : callbacks.error
       success     : callbacks.success
