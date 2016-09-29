@@ -8,10 +8,10 @@ author:
 excerpt_separator: "<!--more -->"
 ---
 
-# You can now run Kong with a click - not by reading Instructions!
-
 Koding is proud to announce our first commercial integration of our Software Evaluation Service with Mashape’s Kong product. Koding’s “Try on Koding” button is now available on Kong’s installation page here. The button allows anyone who wishes to try out Kong to skip complex installation and configuration instructions, and directly launch a running virtual machine with Kong already installed right in their browser. This process saves developers hours of time and increases sales conversions for Mashape.
+
 <!--more -->
+
 Koding’s platform allows developer teams to build, share, and collaborate in cloud developer environments. This means no more management of dozens to thousands of development environments on individual machines. Everyone works in the same stack, which can be easily updated on the fly. Koding’s approach saves teams a remarkable amount of money and time managing their systems.
 
 Our Software Evaluation Service is an extension of these developer environments. Stack Templates can be shared publicly through the “Try on Koding” button. Any linux software provider can create a stack template where their software is preinstalled, including any dependencies and configuration. When a potential buyer clicks on the button, this stack template is launched and within minutes, they have an environment with the software they want to evaluate running without any effort on their part. They can then interact with it via the terminal, HTTP/S, or any other port or socket as if the software were installed locally on their own machine.
