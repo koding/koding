@@ -34,9 +34,9 @@ import (
 type ServerOptions struct {
 	// Server config.
 	BaseVirtualHost string `json:"baseVirtualHost"`
-	HostedZone      string `json:"hostedZone" required:"true"`
-	AccessKey       string `json:"accessKey" required:"true"`
-	SecretKey       string `json:"secretKey" required:"true"`
+	HostedZone      string `json:"hostedZone"`
+	AccessKey       string `json:"accessKey"`
+	SecretKey       string `json:"secretKey"`
 
 	// Server kite config.
 	Port        int            `json:"port" required:"true"`
@@ -99,6 +99,10 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 		optsCopy.BaseVirtualHost = optsCopy.HostedZone
 	}
 
+	if optsCopy.BaseVirtualHost == "" {
+		return nil, errors.New("either BaseVirtualHost or HostedZone parameter is required to be non-empty")
+	}
+
 	optsCopy.BaseVirtualHost = customPort(optsCopy.BaseVirtualHost, opts.Port, 80, 443)
 	optsCopy.ServerAddr = customPort(optsCopy.ServerAddr, opts.Port)
 
@@ -119,18 +123,32 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 		return nil, err
 	}
 
-	dnsOpts := &dnsclient.Options{
-		Creds:      credentials.NewStaticCredentials(optsCopy.AccessKey, optsCopy.SecretKey, ""),
-		HostedZone: optsCopy.HostedZone,
-		Log:        optsCopy.Log,
-		Debug:      optsCopy.Debug,
-	}
-	dns, err := dnsclient.NewRoute53Client(dnsOpts)
-	if err != nil {
-		return nil, err
+	if optsCopy.NoCNAME && (optsCopy.AccessKey == "" || optsCopy.SecretKey == "") {
+		return nil, errors.New("no valid Route53 configuration found")
 	}
 
-	if !optsCopy.NoCNAME {
+	var dns *dnsclient.Route53
+	if optsCopy.AccessKey != "" && optsCopy.SecretKey != "" {
+		dnsOpts := &dnsclient.Options{
+			Creds:      credentials.NewStaticCredentials(optsCopy.AccessKey, optsCopy.SecretKey, ""),
+			HostedZone: optsCopy.HostedZone,
+			Log:        optsCopy.Log,
+			Debug:      optsCopy.Debug,
+		}
+		dns, err = dnsclient.NewRoute53Client(dnsOpts)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Inserts DNS records for the tunnelserver. Host-routing requires an A record pointing
+	// to the tunnelserver and a wildcard CNAME record pointing to that A record.
+	// In other words if tunnel.example.com resolves to the tunnelserver, then
+	// *.tunnel.example.com must also resolve to the very same tunnelserver instance.
+	//
+	// If there are not route53 credentials passed, we assume the DNS records are
+	// taken care externally.
+	if !optsCopy.NoCNAME && dns != nil {
 		id, err := instanceID()
 		if err != nil {
 			if optsCopy.Test {
@@ -140,12 +158,12 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 				}
 
 				id = "koding-" + username
-			} else {
-				return nil, err
 			}
 		}
 
-		optsCopy.BaseVirtualHost = strings.TrimPrefix(id, "i-") + "." + optsCopy.BaseVirtualHost
+		if id != "" {
+			optsCopy.BaseVirtualHost = strings.TrimPrefix(id, "i-") + "." + optsCopy.BaseVirtualHost
+		}
 
 		ip := host(optsCopy.ServerAddr)
 		base := host(optsCopy.BaseVirtualHost)

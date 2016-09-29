@@ -16,13 +16,6 @@ $borderColor                = #E3E3E3
   justify-content           space-around
   margin-bottom             33px
 
-  .edit-name
-    color #67A2EE
-    text-decoration none
-    font-size 13px
-    font-weight 300
-    abs 81px 0 0 42px
-
   .buttons
     flex                    1 0 auto
 
@@ -64,4 +57,35 @@ $borderColor                = #E3E3E3
       outline               inherit
       bg                    color #FFFFFF
       border                1px solid $borderColor
+
+.StackEditorView--header-subHeader
+    abs 83px 0 0 41px
+    display flex
+    font-size               13px
+    font-weight             300
+    .edit-name
+      color                 #67A2EE
+      text-decoration       none
+      margin-right          10px
+
+    .cloned-from-text
+      color                 #A59999
+      max-width             300px
+      ellipsis()
+
+      &:before
+        content               ''
+        rel()
+        borderBox()
+        dIBlock()
+        border              3px solid #A59999
+        rounded             100%
+        top                 -1px
+        margin-right        5px
+
+    .cloned-from
+      color #67A2EE
+      cursor pointer
+      display initial
+      font-size 13px
 

@@ -26,7 +26,6 @@ createShareModal     = require 'stack-editor/editor/createShareModal'
 isGroupDisabled      = require 'app/util/isGroupDisabled'
 
 { actions : HomeActions } = require 'home/flux'
-
 require './config'
 
 module.exports = class ComputeController extends KDController
@@ -1350,4 +1349,3 @@ module.exports = class ComputeController extends KDController
       @_soloMachines = res?.machines ? []
       kd.warn err  if err
       callback null, @_soloMachines
-
