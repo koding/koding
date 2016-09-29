@@ -8,13 +8,13 @@ author:
 excerpt_separator: "<!--more-->"
 ---
 
-_If you'd like to login to your old account, click:_ [https://koding.com/Login](https://koding.com/Login)
-
 We are stoked to announce that today Koding for teams will just be Koding. We couldn't be more excited about the new platform; it has the best of Koding that you already know, and  includes amazing new team-centric improvements that you've been asking for.
 
 <!--more-->
 
 Beginning today, Koding will be one product; that is **Koding For Teams, which we will call “Koding.”**It is now a development environment as a service that helps you and your team hit the ground coding without the hassle of setting up your dev. environments.
+
+> If you'd like to login to your old account, click: [https://koding.com/Login](https://koding.com/Login)
 
 You ask, but why? Let’s get to it.
 
