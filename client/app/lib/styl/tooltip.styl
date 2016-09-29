@@ -1,0 +1,119 @@
+$lightBg = white
+$lightColor = #727272
+
+div.kdtooltip.is-light
+  width                       250px
+  box-shadow                  0px 2px 10px 0px rgba(0,0,0,0.05)
+  font-size                   14px
+  letter-spacing              0.13px
+  line-height                 20px
+
+  div.wrapper
+    bg                        color, white
+    shadow                    0 10px 20px 5px rgba(0,0,0,0.15)
+    padding                   20px 20px 20px 20px
+
+  .copied-link strong
+    font-weight               600
+    color                     $lightColor
+
+  h2
+    color                     $lightColor
+    font-weight               600
+    letter-spacing            0.11px
+
+  h3
+    color                     #48BA7D
+    font-weight               600
+
+  p
+    color                     $lightColor
+    margin-top                10px
+
+  &.placement-top
+    &:after
+      border-top-color        $lightBg
+
+  &.placement-bottom
+    &:after
+      border-bottom-color     #fff
+      top                     -9px
+
+    &.direction-right
+      &:after
+        left                  5px
+    &.direction-left
+      &:after
+        right                 5px
+    &.direction-center
+      &:after
+        margin-left           -9px
+        left                  50%
+
+  &.placement-left
+    &:after
+      border-left-color      #fff
+      right                  -9px
+
+    &.direction-top
+      &:after
+        bottom                5px
+    &.direction-bottom
+      &:after
+        top                   5px
+    &.direction-center
+      &:after
+        top                   50%
+        margin-top            -5px
+
+  &.placement-right
+    &:after
+      border-right-color      #fff
+
+
+  &.just-text
+
+    div.wrapper
+      shadow                  0 3px 7px rgba(255, 255, 255, 0.25)
+      bg                      color, white
+      color                   #727272
+
+      font-size               12px
+      font-weight             300
+
+    &.placement-right
+      &:after
+        border-right-color    rgba(0,0,0,0.65)
+
+      &.direction-center
+        &:after
+          top                 50%
+          margin-top          -5px
+    &.placement-left
+      &:after
+        border-left-color     rgba(0,0,0,0.65)
+
+      &.direction-center
+        &:after
+          top                 50%
+          margin-top          -5px
+    &.placement-bottom
+      &:after
+        border-bottom-color   rgba(0,0,0,0.65)
+
+      &.direction-left
+        margin-left           10px
+      &.direction-center
+        &:after
+          margin-left         -5px
+          left                50%
+    &.placement-top
+      &:after
+        border-top-color      rgba(0,0,0,0.65)
+
+      &.direction-left
+        margin-left           10px
+      &.direction-center
+        &:after
+          margin-left         -5px
+          left                50%
