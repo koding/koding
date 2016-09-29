@@ -44,7 +44,20 @@ module.exports = class IDEStatusBar extends kd.View
       cssClass: 'collaboration-link-container'
 
     superKey  = if globals.os is 'mac' then '⌘' else 'CTRL'
-    shareCopy = 'This is your collaboration link. You can share this link to invite someone to your session. Click here to copy!'
+
+    shareCopy = new kd.CustomHTMLView
+      partial: ''' <h3>Collaboration session is started. Share link to invite.</h3>
+      <p>This is your collaboration link. You can share this link anytime to invite someone to your
+      session. Click link to copy!</p>
+      '''
+
+    copyLink = new kd.CustomHTMLView
+      cssClass: 'copied-link'
+      partial: '''
+        <strong>Collaboration link is copied to clipboard.</strong>
+        Now, you can share it to invite someone to your session.
+      '''
+
 
     @collaborationLinkContainer.addSubView @collaborationLink = new kd.CustomHTMLView
       cssClass   : 'collaboration-link'
@@ -52,7 +65,8 @@ module.exports = class IDEStatusBar extends kd.View
       bind       : 'mouseenter mouseleave'
       mouseleave : -> @tooltip.hide()
       mouseenter : ->
-        @tooltip.setTitle shareCopy
+        @tooltip.update shareCopy
+        @tooltip.setView shareCopy
         @tooltip.show()
         @tooltip.once 'ReceivedClickElsewhere', @tooltip.bound 'hide'
 
@@ -64,16 +78,17 @@ module.exports = class IDEStatusBar extends kd.View
           copied = document.execCommand 'copy'
           couldntCopy = "couldn't copy"
           throw couldntCopy  unless copied
-          tooltipPartial = 'Copied to clipboard!'
         catch
           tooltipPartial = "Hit #{superKey} + C to copy!"
 
-        @tooltip.setTitle tooltipPartial
+        @tooltip.update copyLink
+        @tooltip.setView copyLink
         @tooltip.show()
         @tooltip.once 'ReceivedClickElsewhere', @tooltip.bound 'hide'
 
     @collaborationLink.setTooltip
-      title     : shareCopy
+      view      : shareCopy
+      cssClass  : 'is-light'
       placement : 'above'
       sticky    : yes
 
