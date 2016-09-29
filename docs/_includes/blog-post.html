@@ -9,7 +9,7 @@
 </div>
 
 
-<a class="BlogPost-Excerpt" href="{{ p.url }}">
+<a class="BlogPost-Excerpt" href="{{site.url}}{{ p.url }}">
   {% if p.image %}<figure style="background-image: url('{{ p.image }}');" alt="{{ p.title }} featured image"></figure>{% endif %}
   <h2 class="BlogPost-Title">{{ p.title }}</h2>
   <p>{{ p.excerpt | strip_html }}</p>
