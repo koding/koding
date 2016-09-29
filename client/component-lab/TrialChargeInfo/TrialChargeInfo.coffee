@@ -1,6 +1,7 @@
 kd = require 'kd'
 { PropTypes } = React = require 'react'
 generateClassName = require 'classnames'
+pluralize = require 'pluralize'
 { Grid, Row, Col } = require 'react-flexbox-grid'
 dateDiffInDays = require 'app/util/dateDiffInDays'
 
@@ -14,7 +15,7 @@ ExpirationMessage = ({ daysLeft }) ->
 
   daysLeft ?= 100
 
-  title = if daysLeft > 0
+  title = if daysLeft >= 0
   then "Your trial period is about to expire"
   else "Your trial period has expired"
 
@@ -35,9 +36,8 @@ ExpirationMessage = ({ daysLeft }) ->
   </Row>
 
 
-TrialChargeInfo = ({ teamSize, pricePerSeat, endsAt }) ->
+TrialChargeInfo = ({ teamSize, pricePerSeat, daysLeft }) ->
 
-  daysLeft = Math.max 0, dateDiffInDays(new Date(Number endsAt), new Date)
   isDanger = daysLeft < 4
 
   <Box border={1} type={if isDanger then 'danger' else 'secondary'}>
@@ -49,7 +49,7 @@ TrialChargeInfo = ({ teamSize, pricePerSeat, endsAt }) ->
       }
       <Col xs={4}>
         <Label size="small">
-          Team Size: <strong>{teamSize} Developers</strong>
+          Team Size: <strong>{pluralize 'Developer', teamSize, yes}</strong>
         </Label>
       </Col>
       <Col xs={8} className={textStyles.right}>
@@ -64,7 +64,6 @@ TrialChargeInfo = ({ teamSize, pricePerSeat, endsAt }) ->
 TrialChargeInfo.propTypes =
   teamSize: PropTypes.number
   pricePerSeat: PropTypes.number
-  endsAt: PropTypes.number.isRequired
 
 TrialChargeInfo.defaultProps =
   teamSize: 1

@@ -14,13 +14,13 @@ subscription = require 'app/redux/modules/payment/subscription'
 
 HeaderMessage = require './headermessage'
 
-makeHeaderMessages = (daysLeft) ->
+makeHeaderMessages = (trialDays, daysLeft) ->
   admin:
     expiring:
       type: 'danger'
       title: 'Your trial is about to expire.'
       description: "
-        Your 1 week trial is about to expire. You have only #{pluralize 'day', daysLeft, yes}
+        Your 1 #{if trialDays is 7 then 'week' else 'month'} trial is about to expire. You have only #{pluralize 'day', daysLeft, yes}
         left. Enter your credit card to avoid any suspension.
       "
     past_due:
@@ -35,7 +35,7 @@ makeHeaderMessages = (daysLeft) ->
       type: 'danger'
       title: 'Your trial is about to expire.'
       description: "
-        Your 1 week trial is about to expire. You have only #{pluralize 'day', daysLeft, yes}
+        Your 1 #{if trialDays is 7 then 'week' else 'month'} trial is about to expire. You have only #{pluralize 'day', daysLeft, yes}
         left. Have an admin enter a credit card to avoid any suspension.
       "
     past_due:
@@ -62,7 +62,8 @@ headerMessage = (state) ->
 
   status   = groupStatus state
   daysLeft = subscription.daysLeft state
-  messages = makeHeaderMessages daysLeft
+  trialDays = subscription.trialDays state
+  messages = makeHeaderMessages trialDays, daysLeft
 
   return messages[getRole()][status]
 
