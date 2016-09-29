@@ -38,11 +38,9 @@ func newMachine(bm *provider.BaseMachine) (provider.Machine, error) {
 	m := &Machine{BaseMachine: bm}
 	cred := m.Cred()
 
-	opts := &amazon.ClientOptions{
-		Credentials: credentials.NewStaticCredentials(cred.AccessKey, cred.SecretKey, ""),
-		Region:      cred.Region,
-		Log:         m.Log.New("awsapi"),
-	}
+	opts := cred.Options()
+	opts.Log = m.Log.New("awsapi")
+	opts.NoZones = true
 
 	c, err := amazon.NewWithOptions(m.Meta, opts)
 	if err != nil {

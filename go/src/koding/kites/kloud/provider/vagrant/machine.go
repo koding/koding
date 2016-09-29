@@ -2,9 +2,11 @@ package vagrant
 
 import (
 	"fmt"
+
 	"koding/kites/kloud/api/vagrantapi"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
 
 	"github.com/koding/kite"
@@ -15,6 +17,11 @@ type Machine struct {
 	*provider.BaseMachine
 	api *vagrantapi.Klient `bson:"-"`
 }
+
+var (
+	_ provider.Machine = (*Machine)(nil)
+	_ stack.Machiner   = (*Machine)(nil)
+)
 
 func (m *Machine) Start(context.Context) (interface{}, error) {
 	return nil, m.wrap(m.api.Up(m.Cred().QueryString, m.Meta().FilePath))
