@@ -18,6 +18,11 @@ import (
 	"github.com/streadway/amqp"
 )
 
+func init() {
+	pingCache.StartGC(time.Minute)
+	groupCache.StartGC(time.Minute)
+}
+
 const (
 	// EventName holds presence event name
 	EventName = "presence_ping"
