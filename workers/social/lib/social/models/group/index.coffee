@@ -1157,6 +1157,29 @@ module.exports = class JGroup extends Module
         @update { $set: dataToUpdate }, callback
 
 
+  disableOAuth: (provider, callback) ->
+
+    dataToUpdate = {}
+    dataToUpdate["config.#{provider}"] = null
+
+    group = @getAt 'slug'
+    notifyOptions = { target: 'group', group }
+
+    @updateAndNotify notifyOptions, { $unset: dataToUpdate }, (err) =>
+      return callback err  if err
+
+      JForeignAuth = require '../foreignauth'
+      JForeignAuth.remove { group, provider }
+
+      @fetchData (err, data) ->
+        return callback err  if err
+
+        dataToUnset = {}
+        dataToUnset["data.#{provider}.applicationSecret"] = null
+        data.update { $unset: dataToUnset }, callback
+
+
+
   setOAuth   : permit
     advanced : [
       { permission: 'edit own groups', validateWith : Validators.group.admin }
@@ -1180,21 +1203,9 @@ module.exports = class JGroup extends Module
 
       notifyOptions = { target: group, group }
 
-      disableOAuth = =>
-        @updateAndNotify notifyOptions, { $unset: dataToUpdate }, (err) =>
-          return callback err  if err
-
-          JForeignAuth = require '../foreignauth'
-          JForeignAuth.remove { group, provider }
-
-          @fetchData (err, data) ->
-            return callback err  if err
-
-            dataToUnset = {}
-            dataToUnset["data.#{provider}.applicationSecret"] = null
-            data.update { $unset: dataToUnset }, callback
-
-      return disableOAuth()  if not enabled
+      if not enabled
+        @disableOAuth provider, callback
+        return
 
       validateOptions = { url, applicationId, applicationSecret }
 
