@@ -4,17 +4,14 @@ title: Blog
 ---
 
 <!-- HEADER -->
-{% include header.html with_signup_form='true' has_sticky_navigation='true' %}
+{% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='rgba(49,66,93,0.6)' %}
 
-<h1>BLOG</h1>
-<section class="content wrap blogContent">
-  {% include nav-blog.html %}
-  <div class="inner-content">
-    {% for p in paginator.posts %}
-      <div class="post-list-item">
-        {% include blog-post.html page=p content=p.content %}
-      </div>
-    {% endfor %}
+<style>{% include css/blog-home.css %}</style>
+<div class="BlogHome-Header">
+  <div class="BlogHome-Header--wrapper">
+    <h1>Koding Blog</h1>
+  </div>
+</div>
 
     <div class="pagination">
       {% if paginator.previous_page %}
