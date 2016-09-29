@@ -18,7 +18,7 @@
   "dependencies": {
     "amqp": "0.2.4",
     "analytics-node": "1.2.2",
-    "appmetrics": "1.0.8",
+    "appmetrics": "1.0.13",
     "async": "1.5.2",
     "aws-sdk": "2.1.4",
     "bluebird": "1.0.8",

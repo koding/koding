@@ -227,6 +227,12 @@ testwebhook:
 	@./tests.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm ./tests.test
 
+testpresence:
+	@echo "$(OK_COLOR)--> presence tests... $(NO_COLOR)"
+	@`which go` test -race -c workers/presence/*.go
+	@./presence.test $(DBG) $(EXTRAS) -c $(CONFIG)
+	@rm ./presence.test
+
 testeventsender:
 	@echo "$(OK_COLOR)--> eventsender tests... $(NO_COLOR)"
 	@`which go` test -c workers/integration/eventsender/*.go
@@ -379,7 +385,7 @@ testrealtime:
 
 testapi: testcollaboration testmailsender testmail testmodels testemailworker \
 	testmoderation testtopicfeeed testnotification testtrollmode \
-	testteam testintegration testrealtime testwebhook
+	testteam testintegration testrealtime testwebhook testpresence
 
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 

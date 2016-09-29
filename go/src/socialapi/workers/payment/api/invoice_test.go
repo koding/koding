@@ -19,7 +19,7 @@ func TestInvoiceList(t *testing.T) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
 				withTestPlan(func(planID string) {
 					createURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCreate)
-					deleteURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionDelete)
+					deleteURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCancel)
 
 					group, err := modelhelper.GetGroup(groupName)
 					tests.ResultedWithNoErrorCheck(group, err)

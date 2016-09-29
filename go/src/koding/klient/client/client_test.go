@@ -19,12 +19,63 @@ func (f mockCaller) Call(v ...interface{}) error {
 	return f(v)
 }
 
+// handlerWrapper is a kite Handler middle-ware that allows to check when
+// handling function finished its execution.
+func handlerWrapper(h kite.HandlerFunc) (<-chan struct{}, kite.HandlerFunc) {
+	doneC := make(chan struct{}, 1)
+	return doneC, kite.HandlerFunc(func(req *kite.Request) (interface{}, error) {
+		result, err := h(req)
+		select {
+		case doneC <- struct{}{}:
+		case <-time.After(5 * time.Second):
+			panic("invalid number of handler callas")
+		}
+
+		return result, err
+	})
+}
+
+// wait is a helper function that waits for an event from done channel or
+// timeouts after specified timeout. This function must be called from main
+// go-routine only.
+func wait(t *testing.T, doneC <-chan struct{}, timeout time.Duration) {
+	select {
+	case <-doneC:
+	case <-time.After(timeout):
+		panic("test timed out")
+	}
+}
+
+// getCopy gets subscriptions from PubSub structure. In order to avoid data
+// races, it returns a copy of stored map.
+func getCopy(ps *PubSub, name string) map[int]dnode.Function {
+	ps.subMu.Lock()
+	defer ps.subMu.Unlock()
+	subs, ok := ps.Subscriptions[name]
+
+	if !ok {
+		return nil
+	}
+
+	subsCopy := make(map[int]dnode.Function)
+	for key, val := range subs {
+		subsCopy[key] = val
+	}
+
+	return subsCopy
+}
+
 func TestSubscribe(t *testing.T) {
 	ps := NewPubSub(logging.NewLogger("testing"))
+
 	s := kite.New("s", "0.0.0")
 	s.Config.DisableAuthentication = true
-	s.HandleFunc("client.Subscribe", ps.Subscribe)
+
+	doneC, subscribe := handlerWrapper(ps.Subscribe)
+	s.HandleFunc("client.Subscribe", subscribe)
+
 	ts := httptest.NewServer(s)
+	defer ts.Close()
 
 	c1 := kite.New("c1", "0.0.0").NewClient(fmt.Sprintf("%s/kite", ts.URL))
 	c2 := kite.New("c2", "0.0.0").NewClient(fmt.Sprintf("%s/kite", ts.URL))
@@ -43,6 +94,7 @@ func TestSubscribe(t *testing.T) {
 	if err == nil {
 		t.Error("client.Subscribe should require args")
 	}
+	wait(t, doneC, time.Second)
 
 	// Should require eventName
 	_, err = c1.Tell("client.Subscribe", struct {
@@ -55,6 +107,7 @@ func TestSubscribe(t *testing.T) {
 	if err == nil {
 		t.Error("client.Subscribe should require EventName")
 	}
+	wait(t, doneC, time.Second)
 
 	// Should require onPublish
 	_, err = c1.Tell("client.Subscribe", struct {
@@ -67,6 +120,7 @@ func TestSubscribe(t *testing.T) {
 	if err == nil {
 		t.Error("client.Subscribe should require OnPublish")
 	}
+	wait(t, doneC, time.Second)
 
 	// Should require valid onPublish func
 	_, err = c1.Tell("client.Subscribe", struct {
@@ -79,6 +133,7 @@ func TestSubscribe(t *testing.T) {
 	if err == nil {
 		t.Error("client.Subscribe should require a valid OnPublish func")
 	}
+	wait(t, doneC, time.Second)
 
 	// Should subscribe to any given event name
 	pRes, err := c1.Tell("client.Subscribe", SubscribeRequest{
@@ -88,13 +143,10 @@ func TestSubscribe(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	wait(t, doneC, time.Second)
 
-	_, ok := ps.Subscriptions["test"]
-	if !ok {
-		t.Fatal("client.Subscribe should create a map for new event types")
-	}
-
-	if len(ps.Subscriptions["test"]) != 1 {
+	subs := getCopy(ps, "test")
+	if len(subs) != 1 {
 		t.Fatal("client.Subscribe should store a single onPublish callback")
 	}
 
@@ -112,27 +164,29 @@ func TestSubscribe(t *testing.T) {
 	}
 
 	// Should store the proper callback
-	success := make(chan bool)
+	successC := make(chan struct{}, 1)
 	pRes, err = c1.Tell("client.Subscribe", SubscribeRequest{
 		EventName: "test",
-		OnPublish: dnode.Callback(func(f *dnode.Partial) { success <- true }),
+		OnPublish: dnode.Callback(func(f *dnode.Partial) {
+			select {
+			case successC <- struct{}{}:
+			case <-time.After(time.Second): // Don't leak go-routines.
+			}
+		}),
 	})
+	wait(t, doneC, time.Second)
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if len(ps.Subscriptions["test"]) != 2 {
+	subs = getCopy(ps, "test")
+	if len(subs) != 2 {
 		t.Fatal("client.Subscribe should store multiple onPublish callbacks")
 	}
 
-	ps.Subscriptions["test"][2].Call()
-	select {
-	case <-success:
-	case <-time.After(1 * time.Second):
-		t.Error("client.Subscribe should store a call-able callback.",
-			"Attempt timed out.")
-	}
+	subs[2].Call()
+	wait(t, successC, time.Second)
 
 	if err = pRes.Unmarshal(&res); err != nil {
 		t.Errorf("client.Subscribe should return a valid response struct. err:%s", err)
@@ -148,18 +202,15 @@ func TestSubscribe(t *testing.T) {
 	// Should allow multiple clients to subscribe
 	pRes, err = c2.Tell("client.Subscribe", SubscribeRequest{
 		EventName: "test",
-		OnPublish: dnode.Callback(func(f *dnode.Partial) {}),
+		OnPublish: dnode.Callback(func(_ *dnode.Partial) {}),
 	})
 	if err != nil {
 		t.Error(err)
 	}
+	wait(t, doneC, time.Second)
 
-	_, ok = ps.Subscriptions["test"]
-	if !ok {
-		t.Fatal("client.Subscribe should create a map for new event types")
-	}
-
-	if len(ps.Subscriptions["test"]) != 3 {
+	subs = getCopy(ps, "test")
+	if len(subs) != 3 {
 		t.Fatal("client.Subscribe should allow multiple clients to Sub")
 	}
 
@@ -174,29 +225,33 @@ func TestSubscribe(t *testing.T) {
 		)
 	}
 
+	// disconnectFunc will be added to kite's OnDisconnect callback slice.
+	// Since kite callbacks are synchronous, we will provide synchronization
+	// with Subscriptions map.
+	disconnectedC := make(chan struct{})
+	s.OnDisconnect(func(_ *kite.Client) {
+		select {
+		case disconnectedC <- struct{}{}:
+		case <-time.After(time.Second):
+		}
+	})
+
 	// Should remove onPublish func after the client disconnects
 	c1.Close()
+	wait(t, disconnectedC, 2*time.Second)
 
-	// Using a timer here, because c.OnDisconnect is called before the
-	// sub is actually removed. I do not know how to ensure the
-	// removeSubscription() func as called, this without the Sleep.
-	//
-	// TODO(rjeczalik): we could use testHooks* like in
-	// golang.org/x/net/context/ctxhttp package and wait on
-	// testHookSubRemove call.
-	time.Sleep(2 * time.Second)
-
-	if len(ps.Subscriptions["test"]) != 1 {
+	subs = getCopy(ps, "test")
+	if len(subs) != 1 {
 		t.Error("client.Subscribe",
 			"should remove all of a clients callbacks on Disconnect")
 	}
 
 	// Should remove the map, when all clients disconnect
 	c2.Close()
-	time.Sleep(1 * time.Millisecond)
+	wait(t, disconnectedC, 2*time.Second)
 
-	_, ok = ps.Subscriptions["test"]
-	if ok {
+	subs = getCopy(ps, "test")
+	if subs != nil {
 		t.Error("client.Subscribe",
 			"should remove the event map when all clients disconnect")
 	}
@@ -206,9 +261,12 @@ func TestPublish(t *testing.T) {
 	ps := NewPubSub(logging.NewLogger("testing"))
 	s := kite.New("s", "0.0.0")
 	s.Config.DisableAuthentication = true
-	s.HandleFunc("client.Publish", ps.Publish)
-	s.HandleFunc("client.Subscribe", ps.Subscribe)
+
+	doneC, publish := handlerWrapper(ps.Publish)
+	s.HandleFunc("client.Publish", publish)
+
 	ts := httptest.NewServer(s)
+	defer ts.Close()
 
 	k := kite.New("c", "0.0.0")
 	c := k.NewClient(fmt.Sprintf("%s/kite", ts.URL))
@@ -223,6 +281,7 @@ func TestPublish(t *testing.T) {
 	if err == nil {
 		t.Error("client.Publish should require args")
 	}
+	wait(t, doneC, time.Second)
 
 	// Should require eventName
 	_, err = c.Tell("client.Publish", struct {
@@ -235,6 +294,7 @@ func TestPublish(t *testing.T) {
 	if err == nil {
 		t.Error("client.Publish should require EventName")
 	}
+	wait(t, doneC, time.Second)
 
 	// Should require subscriptions for the given event
 	_, err = c.Tell("client.Publish", PublishRequest{
@@ -243,6 +303,7 @@ func TestPublish(t *testing.T) {
 	if err == nil {
 		t.Error("client.Publish should return an error, without any subs")
 	}
+	wait(t, doneC, time.Second)
 
 	// Should call onPublish callbacks
 	callbackCount := 0
@@ -263,6 +324,7 @@ func TestPublish(t *testing.T) {
 	if err != nil {
 		t.Fatal("client.Publish should call onPublish callbacks without error.", err)
 	}
+	wait(t, doneC, time.Second)
 
 	if callbackCount != 3 {
 		t.Fatal("client.Publish should call onPublish callbacks")
@@ -270,9 +332,14 @@ func TestPublish(t *testing.T) {
 
 	// Should publish arbitrary data
 	var b []byte
+	updatedC := make(chan struct{}, 1)
 	ps.Subscriptions["other"] = map[int]dnode.Function{
 		0: dnode.Function{mockCaller(func(v ...interface{}) error {
 			b = v[0].([]interface{})[0].(*dnode.Partial).Raw
+			select {
+			case updatedC <- struct{}{}:
+			case <-time.After(time.Second):
+			}
 			return nil
 		})},
 	}
@@ -289,6 +356,10 @@ func TestPublish(t *testing.T) {
 	if err != nil {
 		t.Fatal("client.Publish should publish data without error", err)
 	}
+	wait(t, doneC, time.Second)
+
+	// callback is called by another go-routine. we need to synchronize it.
+	wait(t, updatedC, time.Second)
 
 	// This might be a faulty check, because the order of the data may
 	// change. If it does, we'll just unmarshall and compare.
@@ -302,10 +373,18 @@ func TestUnsubscribe(t *testing.T) {
 	ps := NewPubSub(logging.NewLogger("testing"))
 	s := kite.New("s", "0.0.0")
 	s.Config.DisableAuthentication = true
-	s.HandleFunc("client.Publish", ps.Publish)
-	s.HandleFunc("client.Subscribe", ps.Subscribe)
-	s.HandleFunc("client.Unsubscribe", ps.Unsubscribe)
+
+	donePubC, publish := handlerWrapper(ps.Publish)
+	s.HandleFunc("client.Publish", publish)
+
+	doneSubC, subscribe := handlerWrapper(ps.Subscribe)
+	s.HandleFunc("client.Subscribe", subscribe)
+
+	doneUnsubC, unsubscribe := handlerWrapper(ps.Unsubscribe)
+	s.HandleFunc("client.Unsubscribe", unsubscribe)
+
 	ts := httptest.NewServer(s)
+	defer ts.Close()
 
 	c1 := kite.New("c1", "0.0.0").NewClient(fmt.Sprintf("%s/kite", ts.URL))
 	c2 := kite.New("c2", "0.0.0").NewClient(fmt.Sprintf("%s/kite", ts.URL))
@@ -320,6 +399,7 @@ func TestUnsubscribe(t *testing.T) {
 	}
 
 	// Track the calls to our subs.
+	callsMu := sync.Mutex{} // protects calls map.
 	calls := map[string]bool{}
 	var wg sync.WaitGroup
 	wg.Add(3)
@@ -328,49 +408,65 @@ func TestUnsubscribe(t *testing.T) {
 	_, err = c1.Tell("client.Subscribe", SubscribeRequest{
 		EventName: "test",
 		OnPublish: dnode.Callback(func(f *dnode.Partial) {
+			defer wg.Done()
+
+			callsMu.Lock()
+			defer callsMu.Unlock()
 			calls["c1:1"] = true
-			wg.Done()
 		}),
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
+	wait(t, doneSubC, time.Second)
 
 	// Setup our event, sub index 2
 	_, err = c2.Tell("client.Subscribe", SubscribeRequest{
 		EventName: "test",
 		OnPublish: dnode.Callback(func(f *dnode.Partial) {
+			defer wg.Done()
+
+			callsMu.Lock()
+			defer callsMu.Unlock()
 			calls["c2:2"] = true
-			wg.Done()
 		}),
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
+	wait(t, doneSubC, time.Second)
 
 	// Setup our event, sub index 3
 	_, err = c2.Tell("client.Subscribe", SubscribeRequest{
 		EventName: "test",
 		OnPublish: dnode.Callback(func(f *dnode.Partial) {
+			defer wg.Done()
+
+			callsMu.Lock()
+			defer callsMu.Unlock()
 			calls["c2:3"] = true
-			wg.Done()
 		}),
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
+	wait(t, doneSubC, time.Second)
 
 	// Setup our event, sub index 4
 	_, err = c1.Tell("client.Subscribe", SubscribeRequest{
 		EventName: "test",
 		OnPublish: dnode.Callback(func(f *dnode.Partial) {
+			defer wg.Done()
+
+			callsMu.Lock()
+			defer callsMu.Unlock()
 			calls["c1:4"] = true
-			wg.Done()
 		}),
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
+	wait(t, doneSubC, time.Second)
 
 	// Should remove subs from client
 	_, err = c2.Tell("client.Unsubscribe", UnsubscribeRequest{
@@ -380,11 +476,13 @@ func TestUnsubscribe(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	wait(t, doneUnsubC, time.Second)
 
-	if expected := 3; len(ps.Subscriptions["test"]) != expected {
-		t.Errorf(
+	subs := getCopy(ps, "test")
+	if expected := 3; len(subs) != expected {
+		t.Fatalf(
 			"client.Unsubscribe should remove callbacks. Wanted:%d, Got:%d",
-			expected, len(ps.Subscriptions["test"]),
+			expected, len(subs),
 		)
 	}
 
@@ -394,6 +492,7 @@ func TestUnsubscribe(t *testing.T) {
 	_, err = c1.Tell("client.Publish", PublishRequest{
 		EventName: "test",
 	})
+	wait(t, donePubC, time.Second)
 
 	// Block, waiting for the goroutines to call the callbacks.
 	wg.Wait()
@@ -417,11 +516,13 @@ func TestUnsubscribe(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	wait(t, doneUnsubC, time.Second)
 
 	// Should publish to the expected methods.
 	_, err = c1.Tell("client.Publish", PublishRequest{
 		EventName: "test",
 	})
+	wait(t, donePubC, time.Second)
 
 	// Block, waiting for the goroutines to call the callbacks.
 	wg.Wait()
@@ -445,6 +546,7 @@ func TestUnsubscribe(t *testing.T) {
 			ErrSubNotFound, err,
 		)
 	}
+	wait(t, doneUnsubC, time.Second)
 
 	// Should return ErrSubNotFound if the event does not exist.
 	_, err = c2.Tell("client.Unsubscribe", UnsubscribeRequest{
@@ -457,6 +559,7 @@ func TestUnsubscribe(t *testing.T) {
 			ErrSubNotFound, err,
 		)
 	}
+	wait(t, doneUnsubC, time.Second)
 
 	// Should remove the event map if no subs are left.
 	_, err = c2.Tell("client.Unsubscribe", UnsubscribeRequest{
@@ -466,6 +569,8 @@ func TestUnsubscribe(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	wait(t, doneUnsubC, time.Second)
+
 	_, err = c2.Tell("client.Unsubscribe", UnsubscribeRequest{
 		EventName: "test",
 		ID:        3,
@@ -473,8 +578,9 @@ func TestUnsubscribe(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	wait(t, doneUnsubC, time.Second)
 
-	if _, ok := ps.Subscriptions["test"]; ok {
+	if subs := getCopy(ps, "test"); subs != nil {
 		t.Errorf(
 			"client.Unsubscribe should remove the sub map if no subs are left, it did not.",
 		)

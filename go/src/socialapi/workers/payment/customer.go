@@ -28,19 +28,17 @@ var (
 
 // Usage holds current usage information, which will be calculated on the fly
 type Usage struct {
-	User            *UserInfo
-	ExpectedPlan    *stripe.Plan
-	Due             uint64
-	NextBillingDate time.Time
-	Subscription    *stripe.Sub
-	Customer        *stripe.Customer
+	User            *UserInfo        `json:"user"`
+	ExpectedPlan    *stripe.Plan     `json:"expectedPlan"`
+	Due             uint64           `json:"due"`
+	NextBillingDate time.Time        `json:"nextBillingDate"`
+	Subscription    *stripe.Sub      `json:"subscription"`
+	Customer        *stripe.Customer `json:"customer"`
 }
 
 // UserInfo holds current info about team's user info
 type UserInfo struct {
-	Total   int
-	Active  int
-	Deleted int
+	Total int `json:"total"`
 }
 
 // DeleteCustomerForGroup deletes the customer for a given group. If customer is
