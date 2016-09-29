@@ -38,3 +38,4 @@ require './terminal/terminal.styl'
 require './terminal/webterm.styl'
 
 require './changeteammodal.styl'
+require './tooltip.styl'
