@@ -41,6 +41,23 @@
         "url": "https://sandbox.koding.com/kloud/kite"
       }
     ],
+	"kontrol": [
+      {
+        "environment": [
+          "production",
+          "managed"
+        ],
+        "url": "https://koding.com/kontrol/kite"
+      },
+      {
+        "environment": [
+          "development",
+          "devmanaged",
+          "sandbox"
+        ],
+        "url": "https://sandbox.koding.com/kontrol/kite"
+      }
+    ],
     "tunnelserver": [
       {
         "environment": [

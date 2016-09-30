@@ -44,6 +44,7 @@ type ServerOptions struct {
 	Environment string         `json:"environment" required:"true"`
 	Config      *config.Config `json:"kiteConfig"`
 	RegisterURL *url.URL       `json:"registerURL"`
+	KontrolURL  *url.URL       `json:"kontrolURL"`
 
 	TCPRangeFrom int    `json:"tcpRangeFrom,omitempty"`
 	TCPRangeTo   int    `json:"tcpRangeTo,omitempty"`
