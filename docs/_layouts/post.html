@@ -9,6 +9,9 @@
 {% include head.html %}
 <link rel="stylesheet" href="{{ site.url }}/css/markdown.css">
 <link rel="stylesheet" href="{{ site.url }}/css/syntax.css">
+<style>{% include css/blog-post.css %}</style>
+<style>{% include css/blog-listitem.css %}</style>
+<style>{% include css/blog-author.css %}</style>
 
 <body>
   <!--[if lt IE 8]>
@@ -20,18 +23,40 @@
      has_sticky_navigation='true'
      cssClass='light' %}
 
-  <main class="markdown-body">
+  <!-- POST -->
+  <section class="BlogPost">
 
-    <section>
+    <main class="markdown-body">
 
+      <!-- POST TITLE -->
+      <h1>{{ page.title }}</h1>
+
+      {% if page.image %}
+      <!-- POST IMAGE -->
+      <figure><img src="{{ page.image }}"></figure>
+      {% endif %}
+
+      <!-- POST CONTENT -->
       {{ content }}
 
-    </section>
+    </main>
 
-  </main>
+    <!-- POST AUTHOR -->
+    {% include blog-author.html author = page.author date = page.date %}
+
+    <!-- SHARE -->
+    {% include blog-share.html post = page %}
+
+  </section>
+
+  <!-- RECENT POSTS -->
+  {% include blog-recent.html %}
 
   <!-- FOOTER -->
   {% include footer.html %}
+  <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
+  <script>{% include js/md5.min.js %}</script>
+  <script>{% include js/blog-home.js %}</script>
 
 </body>
 </html>
