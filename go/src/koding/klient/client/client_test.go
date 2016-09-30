@@ -38,12 +38,14 @@ func handlerWrapper(h kite.HandlerFunc) (<-chan struct{}, kite.HandlerFunc) {
 // wait is a helper function that waits for an event from done channel or
 // timeouts after specified timeout. This function must be called from main
 // go-routine only.
-func wait(t *testing.T, doneC <-chan struct{}, timeout time.Duration) {
+func wait(doneC <-chan struct{}, timeout time.Duration) error {
 	select {
 	case <-doneC:
 	case <-time.After(timeout):
-		panic("test timed out")
+		return fmt.Errorf("timed out after %v", timeout)
 	}
+
+	return nil
 }
 
 // getCopy gets subscriptions from PubSub structure. In order to avoid data
@@ -94,7 +96,9 @@ func TestSubscribe(t *testing.T) {
 	if err == nil {
 		t.Error("client.Subscribe should require args")
 	}
-	wait(t, doneC, time.Second)
+	if err = wait(doneC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	// Should require eventName
 	_, err = c1.Tell("client.Subscribe", struct {
@@ -107,7 +111,9 @@ func TestSubscribe(t *testing.T) {
 	if err == nil {
 		t.Error("client.Subscribe should require EventName")
 	}
-	wait(t, doneC, time.Second)
+	if err = wait(doneC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	// Should require onPublish
 	_, err = c1.Tell("client.Subscribe", struct {
@@ -120,7 +126,9 @@ func TestSubscribe(t *testing.T) {
 	if err == nil {
 		t.Error("client.Subscribe should require OnPublish")
 	}
-	wait(t, doneC, time.Second)
+	if err = wait(doneC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	// Should require valid onPublish func
 	_, err = c1.Tell("client.Subscribe", struct {
@@ -133,7 +141,9 @@ func TestSubscribe(t *testing.T) {
 	if err == nil {
 		t.Error("client.Subscribe should require a valid OnPublish func")
 	}
-	wait(t, doneC, time.Second)
+	if err = wait(doneC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	// Should subscribe to any given event name
 	pRes, err := c1.Tell("client.Subscribe", SubscribeRequest{
@@ -143,7 +153,9 @@ func TestSubscribe(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	wait(t, doneC, time.Second)
+	if err = wait(doneC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	subs := getCopy(ps, "test")
 	if len(subs) != 1 {
@@ -174,7 +186,9 @@ func TestSubscribe(t *testing.T) {
 			}
 		}),
 	})
-	wait(t, doneC, time.Second)
+	if err = wait(doneC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	if err != nil {
 		t.Fatal(err)
@@ -186,7 +200,9 @@ func TestSubscribe(t *testing.T) {
 	}
 
 	subs[2].Call()
-	wait(t, successC, time.Second)
+	if err = wait(successC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	if err = pRes.Unmarshal(&res); err != nil {
 		t.Errorf("client.Subscribe should return a valid response struct. err:%s", err)
@@ -207,7 +223,9 @@ func TestSubscribe(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	wait(t, doneC, time.Second)
+	if err = wait(doneC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	subs = getCopy(ps, "test")
 	if len(subs) != 3 {
@@ -238,7 +256,9 @@ func TestSubscribe(t *testing.T) {
 
 	// Should remove onPublish func after the client disconnects
 	c1.Close()
-	wait(t, disconnectedC, 2*time.Second)
+	if err = wait(disconnectedC, 2*time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	subs = getCopy(ps, "test")
 	if len(subs) != 1 {
@@ -248,7 +268,9 @@ func TestSubscribe(t *testing.T) {
 
 	// Should remove the map, when all clients disconnect
 	c2.Close()
-	wait(t, disconnectedC, 2*time.Second)
+	if err = wait(disconnectedC, 2*time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	subs = getCopy(ps, "test")
 	if subs != nil {
@@ -281,7 +303,9 @@ func TestPublish(t *testing.T) {
 	if err == nil {
 		t.Error("client.Publish should require args")
 	}
-	wait(t, doneC, time.Second)
+	if err = wait(doneC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	// Should require eventName
 	_, err = c.Tell("client.Publish", struct {
@@ -294,7 +318,9 @@ func TestPublish(t *testing.T) {
 	if err == nil {
 		t.Error("client.Publish should require EventName")
 	}
-	wait(t, doneC, time.Second)
+	if err = wait(doneC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	// Should require subscriptions for the given event
 	_, err = c.Tell("client.Publish", PublishRequest{
@@ -303,7 +329,9 @@ func TestPublish(t *testing.T) {
 	if err == nil {
 		t.Error("client.Publish should return an error, without any subs")
 	}
-	wait(t, doneC, time.Second)
+	if err = wait(doneC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	// Should call onPublish callbacks
 	callbackCount := 0
@@ -324,7 +352,9 @@ func TestPublish(t *testing.T) {
 	if err != nil {
 		t.Fatal("client.Publish should call onPublish callbacks without error.", err)
 	}
-	wait(t, doneC, time.Second)
+	if err = wait(doneC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	if callbackCount != 3 {
 		t.Fatal("client.Publish should call onPublish callbacks")
@@ -356,10 +386,14 @@ func TestPublish(t *testing.T) {
 	if err != nil {
 		t.Fatal("client.Publish should publish data without error", err)
 	}
-	wait(t, doneC, time.Second)
+	if err = wait(doneC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	// callback is called by another go-routine. we need to synchronize it.
-	wait(t, updatedC, time.Second)
+	if err = wait(updatedC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	// This might be a faulty check, because the order of the data may
 	// change. If it does, we'll just unmarshall and compare.
@@ -418,7 +452,9 @@ func TestUnsubscribe(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	wait(t, doneSubC, time.Second)
+	if err = wait(doneSubC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	// Setup our event, sub index 2
 	_, err = c2.Tell("client.Subscribe", SubscribeRequest{
@@ -434,7 +470,9 @@ func TestUnsubscribe(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	wait(t, doneSubC, time.Second)
+	if err = wait(doneSubC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	// Setup our event, sub index 3
 	_, err = c2.Tell("client.Subscribe", SubscribeRequest{
@@ -450,7 +488,9 @@ func TestUnsubscribe(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	wait(t, doneSubC, time.Second)
+	if err = wait(doneSubC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	// Setup our event, sub index 4
 	_, err = c1.Tell("client.Subscribe", SubscribeRequest{
@@ -466,7 +506,9 @@ func TestUnsubscribe(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	wait(t, doneSubC, time.Second)
+	if err = wait(doneSubC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	// Should remove subs from client
 	_, err = c2.Tell("client.Unsubscribe", UnsubscribeRequest{
@@ -476,7 +518,9 @@ func TestUnsubscribe(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	wait(t, doneUnsubC, time.Second)
+	if err = wait(doneUnsubC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	subs := getCopy(ps, "test")
 	if expected := 3; len(subs) != expected {
@@ -492,7 +536,9 @@ func TestUnsubscribe(t *testing.T) {
 	_, err = c1.Tell("client.Publish", PublishRequest{
 		EventName: "test",
 	})
-	wait(t, donePubC, time.Second)
+	if err = wait(donePubC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	// Block, waiting for the goroutines to call the callbacks.
 	wg.Wait()
@@ -516,13 +562,17 @@ func TestUnsubscribe(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	wait(t, doneUnsubC, time.Second)
+	if err = wait(doneUnsubC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	// Should publish to the expected methods.
 	_, err = c1.Tell("client.Publish", PublishRequest{
 		EventName: "test",
 	})
-	wait(t, donePubC, time.Second)
+	if err = wait(donePubC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	// Block, waiting for the goroutines to call the callbacks.
 	wg.Wait()
@@ -546,7 +596,9 @@ func TestUnsubscribe(t *testing.T) {
 			ErrSubNotFound, err,
 		)
 	}
-	wait(t, doneUnsubC, time.Second)
+	if err = wait(doneUnsubC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	// Should return ErrSubNotFound if the event does not exist.
 	_, err = c2.Tell("client.Unsubscribe", UnsubscribeRequest{
@@ -559,7 +611,9 @@ func TestUnsubscribe(t *testing.T) {
 			ErrSubNotFound, err,
 		)
 	}
-	wait(t, doneUnsubC, time.Second)
+	if err = wait(doneUnsubC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	// Should remove the event map if no subs are left.
 	_, err = c2.Tell("client.Unsubscribe", UnsubscribeRequest{
@@ -569,7 +623,9 @@ func TestUnsubscribe(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	wait(t, doneUnsubC, time.Second)
+	if err = wait(doneUnsubC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	_, err = c2.Tell("client.Unsubscribe", UnsubscribeRequest{
 		EventName: "test",
@@ -578,7 +634,9 @@ func TestUnsubscribe(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	wait(t, doneUnsubC, time.Second)
+	if err = wait(doneUnsubC, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
 
 	if subs := getCopy(ps, "test"); subs != nil {
 		t.Errorf(
