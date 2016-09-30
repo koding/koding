@@ -105,6 +105,15 @@
   {% endif %}
 
 </header>
-{% if include.has_sticky_navigation == 'true' %}
+{% if include.has_sticky_navigation %}
 <script>{% include js/header.js %}</script>
 {% endif %}
+<script>
+  document.querySelector('.burger').onclick = function () {
+    if (document.body.classList.contains('burgerToggle')) {
+      document.body.classList.remove('burgerToggle');
+    } else {
+      document.body.classList.add('burgerToggle');
+    }
+  }
+</script>

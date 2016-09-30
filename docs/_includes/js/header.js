@@ -28,11 +28,3 @@ document.addEventListener('scroll', function(event){
   }
 
 });
-
-document.querySelector('.burger').onclick = function () {
-  if (document.body.classList.contains('burgerToggle')) {
-    document.body.classList.remove('burgerToggle');
-  } else {
-    document.body.classList.add('burgerToggle');
-  }
-}
