@@ -48,7 +48,7 @@
     title: Provider block
   - id: aws_instance
     title: aws_instance
-  - id: awc_vpc
+  - id: aws_vpc
     title: aws_vpc
   - id: aws_subnet
     title: aws_subnet
