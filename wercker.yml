@@ -84,10 +84,8 @@ build:
         name: build go binaries
         code: go/build.sh
     - script:
-        name: ensure koding/config is not stale
-        code: |
-          go generate koding/config
-          git diff --name-only --exit-code go/src/koding/config/config.json.go
+        name: ensure JSON and generated files in go/src/koding are not stale
+        code: scripts/check-generated-files.sh
     - script:
         name: test klient
         code: scripts/wercker/run-command scripts/test-klient.sh
