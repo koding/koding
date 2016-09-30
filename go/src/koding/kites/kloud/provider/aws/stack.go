@@ -30,7 +30,10 @@ type Stack struct {
 	*provider.BaseStack
 }
 
-var _ provider.Stack = (*Stack)(nil)
+var (
+	_ provider.Stack = (*Stack)(nil) // public API
+	_ stack.Stacker  = (*Stack)(nil) // internal API
+)
 
 func (s *Stack) VerifyCredential(c *stack.Credential) error {
 	cred := c.Credential.(*Cred)

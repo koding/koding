@@ -39,12 +39,15 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 		Log:        opts.Log,
 		MaxResults: opts.MaxResults,
 	}
-	zones, err := c.SubnetAvailabilityZones()
-	if err != nil {
-		return nil, awsError(err)
-	}
 
-	c.Zones = zones
+	if !opts.NoZones {
+		zones, err := c.SubnetAvailabilityZones()
+		if err != nil {
+			return nil, awsError(err)
+		}
+
+		c.Zones = zones
+	}
 
 	return c, nil
 }

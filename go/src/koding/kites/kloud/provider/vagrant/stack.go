@@ -18,8 +18,6 @@ import (
 	"koding/kites/kloud/utils"
 	"koding/klient/tunnel"
 
-	"github.com/satori/go.uuid"
-
 	"github.com/koding/kite"
 )
 
@@ -42,6 +40,11 @@ type Stack struct {
 
 	api *vagrantapi.Klient
 }
+
+var (
+	_ provider.Stack = (*Stack)(nil)
+	_ stack.Stacker  = (*Stack)(nil)
+)
 
 func (s *Stack) VerifyCredential(c *stack.Credential) error {
 	version, err := s.api.Version(c.Credential.(*Cred).QueryString)
@@ -94,9 +97,7 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	// Otherwise we fail early to show problem with the template.
 	var queryString string
 	for resourceName, box := range res.Build {
-		kiteID := uuid.NewV4().String()
-
-		kiteKey, err := s.Session.Userdata.Keycreator.Create(s.Req.Username, kiteID)
+		kiteKey, err := s.BuildKiteKey(resourceName, s.Req.Username)
 		if err != nil {
 			return nil, err
 		}
@@ -197,7 +198,7 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 			KontrolURL:      kontrolURL,
 		}
 
-		// pass the values as a JSON encoded as bae64. Our script will decode
+		// pass the values as a JSON encoded as base64. Our script will decode
 		// and unmarshall and use it inside the Vagrant box
 		val, err := json.Marshal(&data)
 		if err != nil {
