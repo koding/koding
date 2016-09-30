@@ -53,10 +53,7 @@ module.exports = class IDEStatusBar extends kd.View
 
     copyLink = new kd.CustomHTMLView
       cssClass: 'copied-link'
-      partial: '''
-        <strong>Collaboration link is copied to clipboard.</strong>
-        Now, you can share it to invite someone to your session.
-      '''
+      partial: '<strong>Collaboration link is copied to clipboard.</strong>'
 
 
     @collaborationLinkContainer.addSubView @collaborationLink = new kd.CustomHTMLView
