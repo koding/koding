@@ -62,9 +62,9 @@ Click on 'INITIALIZE' button and wait for a few seconds for process to be comple
 Do you see 'Team Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'Read Me' and 'WELCOME TO KODING' texts? Do you see 'NEXT' and 'VIEW STACK TEMPLATE' buttons on the bottom? Do you see 'STACKS', 'Team Stack' and 'example-instance' labels on left sidebar?
 
 Click on the 'NEXT' button
-Do you see 'Select Credentials and Other Requirements' text? Do you see 'rainforestqa99's AWS keys' label in the text box on the left-side? Do you see 'New Requirements:' title, 'Title' and 'Name' text fields on the right-side? Do you see a 'BUILD STACK' button on the bottom?
+Do you see 'Select Credentials and Other Requirements' text? Do you see 'rainforestqa99's AWS keys' label in the text box on the left-side? Do you see 'Requirements:' title, 'Requirement Selection' text and a text box on the right-side? Do you see '+ Create New' link below?
 
-Enter "{{ random.first_name }}_build" in 'Title', "{{ random.first_name }}" in 'Name' fields and click on 'BUILD STACK' button
+Click on '+ Create New', enter "{{ random.first_name }}_build" in 'Title', "{{ random.first_name }}" in 'Name' fields and click on 'BUILD STACK' button
 Do you see 'Fetching and validating credentials...' text in a progress bar? Do you see a green progress bar also below 'example-instance' label on left sidebar?
 
 Wait for a few minutes for process to be completed
