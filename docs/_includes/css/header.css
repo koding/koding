@@ -1,11 +1,5 @@
 body {
-  padding-top: 70px;
-}
-
-@media (max-width: 991px) {
-  body {
-    padding-top: 4px;
-  }
+  padding-top: 69px;
 }
 
 .Homepage-Header {
@@ -15,10 +9,10 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  border-bottom: 1px solid rgba(0,0,0,.15);
+  /*border-bottom: 1px solid rgba(0,0,0,.15);*/
   display: flex;
-  text-rendering: geometricPrecision;
-  -webkit-font-smoothing: antialiased;
+  /*text-rendering: geometricPrecision;*/
+  /*-webkit-font-smoothing: antialiased;*/
 }
 
 .Homepage-Header * {
@@ -38,14 +32,16 @@ body {
   justify-content: center;
   display: flex;
   align-items: center;
-  padding-left: 40px;
-  padding-right: 40px;
+  padding-left: 30px;
+  padding-right: 30px;
   color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
   font-size: 13px;
   text-transform: uppercase;
-  border-color: rgba(0,0,0,0.15);
-  border-style: solid;
+  border-radius: 10px;
+  margin: 10px;
+  /*border-color: rgba(0,0,0,0.15);*/
+  /*border-style: solid;*/
 }
 
 .Homepage-Header .item {
@@ -53,13 +49,14 @@ body {
   max-width: 70px;
 }
 
-.Homepage-Header .item, .Homepage-Header .logo, .Homepage-Header .spacer {
-  border-left-width: 1px;
-}
-
 .Homepage-Header a:hover {
   color: white;
   background-color: rgba(255, 255, 255, 0.05);
+}
+
+.Homepage-Header a:first-child:hover {
+  color: white;
+  background-color: inherit;
 }
 
 .Homepage-Header a:active, .Homepage-Header a.active {
@@ -68,9 +65,9 @@ body {
 
 .Homepage-Header .spacer {
   flex-grow: 1;
-  border-left-width: 1px;
-  border-style: solid;
-  border-color: rgba(0,0,0,0.15);
+  /*border-left-width: 1px;*/
+  /*border-style: solid;*/
+  /*border-color: rgba(0,0,0,0.15);*/
 }
 
 .Homepage-Header .burger {
@@ -140,19 +137,28 @@ body {
   .Homepage-Header .signup {
     display: none;
   }
+
 }
 
 @media (max-width: 991px) {
+
+  body {
+    padding-top: 46px;
+  }
+
   .Homepage-Header {
     height: 46px;
   }
+
   .Homepage-Header .logo svg {
     width: 72px;
     min-width: 72px;
   }
+
   .Homepage-Header .social {
     padding: 0 20px;
   }
+
 }
 
 @media (max-width: 767px) {
@@ -168,8 +174,9 @@ body {
   }
   .Homepage-Header .burger {
     display: flex;
-    padding: 0 25px;
+    padding: 0 10px;
     cursor: pointer;
+    margin: 10px 10px 10px 0;
   }
   .Homepage-Header .burger svg g {
     fill: rgba(255,255,255,0.8);
@@ -187,9 +194,11 @@ body {
     background-color: transparent;
     border-left-width: 1px;
     border-right-width: 1px;
-    padding: 0 25px;
+    padding: 0 10px;
+    margin: 10px 0;
   }
-  .Homepage-Header .signup:hover {
+  .Homepage-Header .signup:hover,
+  .Homepage-Header .burger:hover {
     background-color: transparent;
   }
   .Homepage-Header .signup svg {
@@ -211,7 +220,7 @@ body {
   }
 
   .burgerToggle .Homepage-Header .logo {
-    height: 46px;
+    height: 26px;
   }
 
   .burgerToggle .Homepage-Header .item {
@@ -223,6 +232,8 @@ body {
     padding: 0;
     border-top-width: 1px;
     flex: 1 0 100%;
+    margin: 0;
+    border-radius: 0;
   }
 }
 
