@@ -25,4 +25,6 @@ $on-laptop:        800px;
 
 body {
   font-family: $base-font-family;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
