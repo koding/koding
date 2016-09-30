@@ -1,0 +1,7 @@
+.BlogPost {
+  max-width: 634px;
+  width: 100%;
+  padding: 48px 30px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
