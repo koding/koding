@@ -7,6 +7,9 @@ title: Blog
 {% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='rgba(49,66,93,0.6)' %}
 
 <style>{% include css/blog-home.css %}</style>
+<style>{% include css/blog-listitem.css %}</style>
+<style>{% include css/blog-author.css %}</style>
+
 <div class="BlogHome-Header">
   <div class="BlogHome-Header--wrapper">
     <h1>Koding Blog</h1>
@@ -16,9 +19,7 @@ title: Blog
 <section class="BlogHome-Listing">
   <main>
     {% for post in paginator.posts %}
-    <div class="BlogHome-Listing--item">
-      {% include blog-post.html page=post content=post.content %}
-    </div>
+    {% include blog-post.html page=post content=post.content %}
     {% endfor %}
   </main>
 
