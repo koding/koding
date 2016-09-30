@@ -1,100 +1,100 @@
 {
-    "variables": {
-        "aws_access_key": "{{env `AWS_ACCESS_KEY`}}",
-        "aws_secret_key": "{{env `AWS_SECRET_KEY`}}",
-        "softlayer_username": "{{env `SOFTLAYER_USER_NAME`}}",
-        "softlayer_api_key": "{{env `SOFTLAYER_API_KEY`}}",
-        "softlayer_private_key": "{{env `SOFTLAYER_PRIVATE_KEY`}}",
-        "softlayer_ssh_key_id": "{{env `SOFTLAYER_SSH_KEY_ID`}}",
-        "template_dir": "website/",
-        "bash_dir": "bash/",
-        "screen_dir": "screen/",
-        "kodingart_dir": "kodingart/"
+  "variables": {
+    "aws_access_key": "{{env `AWS_ACCESS_KEY`}}",
+    "aws_secret_key": "{{env `AWS_SECRET_KEY`}}",
+    "softlayer_username": "{{env `SOFTLAYER_USER_NAME`}}",
+    "softlayer_api_key": "{{env `SOFTLAYER_API_KEY`}}",
+    "softlayer_private_key": "{{env `SOFTLAYER_PRIVATE_KEY`}}",
+    "softlayer_ssh_key_id": "{{env `SOFTLAYER_SSH_KEY_ID`}}",
+    "template_dir": "website/",
+    "bash_dir": "bash/",
+    "screen_dir": "screen/",
+    "kodingart_dir": "kodingart/"
+  },
+  "builders": [
+    {
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "ami_name": "koding-base-latest-{{timestamp}}",
+      "ami_description": "Koding Base Image",
+      "instance_type": "m3.medium",
+      "region": "us-east-1",
+      "source_ami": "ami-680fd500",
+      "subnet_id": "subnet-98d30fef",
+      "vpc_id": "vpc-bf65dada",
+      "ssh_username": "ubuntu",
+      "type": "amazon-ebs",
+      "ami_regions": [
+        "eu-west-1",
+        "us-west-2",
+        "ap-southeast-1"
+      ],
+      "tags": {
+        "Name": "koding-test"
+      }
     },
-    "builders": [
-        {
-            "access_key": "{{user `aws_access_key`}}",
-            "secret_key": "{{user `aws_secret_key`}}",
-            "ami_name": "koding-base-latest-{{timestamp}}",
-            "ami_description":"Koding Base Image",
-            "instance_type": "m3.medium",
-            "region": "us-east-1",
-            "source_ami": "ami-680fd500",
-            "subnet_id": "subnet-98d30fef",
-            "vpc_id": "vpc-bf65dada",
-            "ssh_username": "ubuntu",
-            "type": "amazon-ebs",
-            "ami_regions": [
-                "eu-west-1",
-                "us-west-2",
-                "ap-southeast-1"
-            ],
-            "tags": {
-                "Name": "koding-test"
-            }
-        },
-        {
-            "type": "softlayer",
-            "username": "{{user `softlayer_username`}}",
-            "api_key": "{{user `softlayer_api_key`}}",
-            "datacenter_name": "sjc01",
-            "base_os_code": "UBUNTU_14_64",
-            "image_name": "koding-base-latest-{{timestamp}}",
-            "image_description": "{}",
-            "image_type": "standard",
-            "instance_name": "koding-base-latest-{{timestamp}}",
-            "instance_domain": "koding.com",
-            "instance_cpu": 1,
-            "instance_memory": 1024,
-            "instance_network_speed": 10,
-            "instance_disk_capacity": 25,
-            "ssh_private_key_file": "{{user `softlayer_private_key`}}",
-            "ssh_key_id": "{{user `softlayer_ssh_key_id`}}",
-            "ssh_port": 22,
-            "ssh_timeout": "15m",
-            "instance_state_timeout": "25m"
-        }
-    ],
-    "provisioners": [
-        {
-            "type": "shell",
-            "script": "script.sh",
-            "pause_before": "30s"
-        },
-        {
-            "type": "file",
-            "source": "{{user `template_dir`}}",
-            "destination": "/tmp/userdata/Web"
-        },
-        {
-            "type": "file",
-            "source": "{{user `bash_dir`}}",
-            "destination": "/tmp/userdata/bash"
-        },
-        {
-            "type": "file",
-            "source": "{{user `screen_dir`}}",
-            "destination": "/tmp/userdata/screen"
-        },
-        {
-            "type": "file",
-            "source": "{{user `kodingart_dir`}}",
-            "destination": "/tmp/userdata/kodingart"
-        },
-        {
-            "type": "file",
-            "source": "README.md",
-            "destination": "/tmp/userdata/README.md"
-        },
-        {
-            "type": "shell",
-            "inline": [
-                "sudo cp -r /tmp/userdata/Web/* /opt/koding/userdata/Web/",
-                "sudo cp /tmp/userdata/README.md /opt/koding/userdata/README.md",
-                "sudo cp /tmp/userdata/screen/screenrc /opt/koding/etc/screenrc",
-                "sudo cp /tmp/userdata/bash/bashrc /etc/skel/.bashrc",
-                "sudo cp /tmp/userdata/kodingart/kodingart /etc/koding/.kodingart.txt"
-            ]
-        }
-    ]
+    {
+      "type": "softlayer",
+      "username": "{{user `softlayer_username`}}",
+      "api_key": "{{user `softlayer_api_key`}}",
+      "datacenter_name": "sjc01",
+      "base_os_code": "UBUNTU_14_64",
+      "image_name": "koding-base-latest-{{timestamp}}",
+      "image_description": "{}",
+      "image_type": "standard",
+      "instance_name": "koding-base-latest-{{timestamp}}",
+      "instance_domain": "koding.com",
+      "instance_cpu": 1,
+      "instance_memory": 1024,
+      "instance_network_speed": 10,
+      "instance_disk_capacity": 25,
+      "ssh_private_key_file": "{{user `softlayer_private_key`}}",
+      "ssh_key_id": "{{user `softlayer_ssh_key_id`}}",
+      "ssh_port": 22,
+      "ssh_timeout": "15m",
+      "instance_state_timeout": "25m"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "script.sh",
+      "pause_before": "30s"
+    },
+    {
+      "type": "file",
+      "source": "{{user `template_dir`}}",
+      "destination": "/tmp/userdata/Web"
+    },
+    {
+      "type": "file",
+      "source": "{{user `bash_dir`}}",
+      "destination": "/tmp/userdata/bash"
+    },
+    {
+      "type": "file",
+      "source": "{{user `screen_dir`}}",
+      "destination": "/tmp/userdata/screen"
+    },
+    {
+      "type": "file",
+      "source": "{{user `kodingart_dir`}}",
+      "destination": "/tmp/userdata/kodingart"
+    },
+    {
+      "type": "file",
+      "source": "README.md",
+      "destination": "/tmp/userdata/README.md"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sudo cp -r /tmp/userdata/Web/* /opt/koding/userdata/Web/",
+        "sudo cp /tmp/userdata/README.md /opt/koding/userdata/README.md",
+        "sudo cp /tmp/userdata/screen/screenrc /opt/koding/etc/screenrc",
+        "sudo cp /tmp/userdata/bash/bashrc /etc/skel/.bashrc",
+        "sudo cp /tmp/userdata/kodingart/kodingart /etc/koding/.kodingart.txt"
+      ]
+    }
+  ]
 }

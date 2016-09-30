@@ -1,36 +1,40 @@
 {
-	"environment": "dev",
-	"user": {
-		"_id": "56acbacbb073902c25253d20"
-	},
-	"machine": {
-		"label": "kloudctl",
-		"slug": "kloudctl",
-		"status": {
-			"state": "NotInitialized",
-			"modifiedAt": "0001-01-01T00:00:00Z"
-		},
-		"createdAt": "0001-01-01T00:00:00Z",
-		"provisioners": [],
-		"provider": "softlayer",
-		"meta": {
-			"storage_size": 25,
-			"alwaysOn": false,
-			"datacenter": "tok02"
-		},
-		"generatedFrom": {
-			"templateId": "",
-			"revision": ""
-		},
-		"users": [{
-			"username": "kloudctl",
-			"sudo": true,
-			"owner": true
-		}],
-		"groups": [{
-			"id": ""
-		}],
-		"uid": "",
-		"domain": ""
-	}
+  "environment": "dev",
+  "user": {
+    "_id": "56acbacbb073902c25253d20"
+  },
+  "machine": {
+    "label": "kloudctl",
+    "slug": "kloudctl",
+    "status": {
+      "state": "NotInitialized",
+      "modifiedAt": "0001-01-01T00:00:00Z"
+    },
+    "createdAt": "0001-01-01T00:00:00Z",
+    "provisioners": [],
+    "provider": "softlayer",
+    "meta": {
+      "storage_size": 25,
+      "alwaysOn": false,
+      "datacenter": "tok02"
+    },
+    "generatedFrom": {
+      "templateId": "",
+      "revision": ""
+    },
+    "users": [
+      {
+        "username": "kloudctl",
+        "sudo": true,
+        "owner": true
+      }
+    ],
+    "groups": [
+      {
+        "id": ""
+      }
+    ],
+    "uid": "",
+    "domain": ""
+  }
 }
