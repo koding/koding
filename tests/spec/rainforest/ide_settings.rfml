@@ -56,7 +56,7 @@ Toggle 'Highlight active line' option on/off in Editor Settings
 Is the line where the cursor highlighted/not in editor tabs?
 
 Toggle 'Show invisibles' on/off in Editor Settings
-Are invisible symbols like spaces, row wraps, tabs showed/hidden
+Are invisible symbols like spaces, row wraps, tabs showed/hidden?
 
 Toggle 'Use scroll past end' option on/off in Editor Settings and try to scroll any file in the editor
 Is scrolling past the last row allowed / not-allowed?
@@ -114,7 +114,3 @@ Is color theme for editor changed?
 
 Change value for 'Tab size' option, create a new row in the editor, create tabulation by pressing tab on keyboard and type 'new row'
 Is tabulation displayed the number of spaces equals the selected value in the settings?
-
-
-
-
