@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"koding/artifact"
+	konfig "koding/config"
 	"koding/httputil"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/utils"
@@ -43,8 +44,8 @@ type ServerOptions struct {
 	Region      string         `json:"region" required:"true"`
 	Environment string         `json:"environment" required:"true"`
 	Config      *config.Config `json:"kiteConfig"`
-	RegisterURL *url.URL       `json:"registerURL"`
-	KontrolURL  *url.URL       `json:"kontrolURL"`
+	RegisterURL string         `json:"registerURL"`
+	KontrolURL  string         `json:"kontrolURL"`
 
 	TCPRangeFrom int    `json:"tcpRangeFrom,omitempty"`
 	TCPRangeTo   int    `json:"tcpRangeTo,omitempty"`
@@ -55,6 +56,22 @@ type ServerOptions struct {
 
 	Log     logging.Logger     `json:"-"`
 	Metrics *metrics.DogStatsD `json:"-"`
+}
+
+func (opts *ServerOptions) registerURL() string {
+	if opts.RegisterURL != "" {
+		return opts.RegisterURL
+	}
+
+	return konfig.Builtin.Endpoints.URL("tunnelserver", opts.Environment)
+}
+
+func (opts *ServerOptions) kontrolURL() string {
+	if opts.KontrolURL != "" {
+		return opts.KontrolURL
+	}
+
+	return konfig.Builtin.Endpoints.URL("kontrol", opts.Environment)
 }
 
 // Server represents tunneling server that handles managing authorization
@@ -813,6 +830,8 @@ func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 		s.opts.Config = cfg
 	}
 
+	s.opts.Config.KontrolURL = s.opts.kontrolURL()
+
 	if s.opts.Port != 0 {
 		s.opts.Config.Port = s.opts.Port
 	}
@@ -848,8 +867,13 @@ func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 	// Route all the rest requests (match all paths that does not begin with /-/).
 	k.HandleHTTP(`/{rest:.?$|[^\/].+|\/[^-].+|\/-[^\/].*}`, s.serverHandler())
 
-	if s.opts.RegisterURL == nil {
-		s.opts.RegisterURL = k.RegisterURL(false)
+	u, err := url.Parse(s.opts.registerURL())
+	if err != nil {
+		return nil, fmt.Errorf("error parsing registerURL: %s", err)
+	}
+
+	if err := k.RegisterForever(u); err != nil {
+		return nil, fmt.Errorf("error registering to Kontrol: %s", err)
 	}
 
 	return k, nil
