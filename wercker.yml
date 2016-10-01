@@ -131,6 +131,9 @@ build:
         name: test koding mongo models
         code: scripts/wercker/run-command ./run gomodeltests
     - script:
+        name: test kontrol
+        code: scripts/wercker/run-command ./run kontroltests
+    - script:
         name: test vmwatcher
         code: scripts/wercker/run-command ./run vmwatchertests
     - script:
