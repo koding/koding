@@ -112,10 +112,11 @@ func Exists(k *kite.Kite, queryString string) error {
 	k.Log.Debug("Checking whether %s exists in Kontrol", queryString)
 
 	// an error indicates a non existing klient or another error.
-	_, err = k.GetKites(query.Query())
+	kites, err := k.GetKites(query.Query())
 	if err != nil {
 		return err
 	}
+	kite.Close(kites)
 
 	return nil
 }
@@ -142,6 +143,7 @@ func ConnectTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 	if err != nil {
 		return nil, err
 	}
+	defer kite.Close(kites[1:])
 
 	remoteKite := kites[0]
 	remoteKite.ReadBufferSize = 512
