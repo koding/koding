@@ -35,4 +35,4 @@ Click on the 'NEXT' button and then click on the 'BUILD STACK' button and wait f
 Do you see 'Success' text? Do you see 'Your stack has been built' text below it? Do you see 'SEE THE LOGS' and 'START CODING' buttons on the bottom?
 
 Click on 'START CODING' button
-Do you see 'Rainforestqa99'S Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'example_1' label? Do you see '/home/rainforestqa99' label on top of a file list? Do you see 'cloud-init-o...' file on top and 'Terminal' tab on the bottom pane? 
+Do you see 'Rainforestqa99'S Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'example-instance' label? Do you see '/home/rainforestqa99' label on top of a file list? Do you see 'cloud-init-o...' file on top and 'Terminal' tab on the bottom pane? 
