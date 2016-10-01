@@ -5,6 +5,8 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 
+	"gopkg.in/mgo.v2/bson"
+
 	"github.com/koding/kite"
 	"github.com/koding/kite/protocol"
 )
@@ -60,16 +62,11 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 
 		// Create our slice of unique group ids that we will use to query all the
 		// groups that we need.
-		uniqueGroups := []string{}
+		uniqueGroups := []bson.ObjectId{}
 
 		// Because we are using the Kite's queryString as a means to identify the machine,
 		// we are sorting the machines by queryString so that we can easily look them up.
-		machinesByQuery := map[string]*models.Machine{}
-		for _, m := range machines {
-			if m.QueryString != "" {
-				machinesByQuery[m.QueryString] = m
-			}
-		}
+		machinesByQuery := getMachinesByQueryID(machines)
 
 		// Create our KodingKitesResult which will be returned after being populated.
 		result := &GetKodingKitesResult{
@@ -112,7 +109,7 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 					// If the id is *not* in the kites map yet, it is unique.
 					// Store the group id in the unique slice, so we can query for the groups.
 					if !ok {
-						uniqueGroups = append(uniqueGroups, id)
+						uniqueGroups = append(uniqueGroups, g.Id)
 					}
 
 					// kites could be a nil map, but that's okay as append will resolve
@@ -127,7 +124,7 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 
 		// Now that we have all of our group ids that we want to query, get our Groups
 		// from that.
-		groups, err := modelhelper.GetGroupFieldsByIds(uniqueGroups, []string{"title"})
+		groups, err := modelhelper.GetGroupsByIds(uniqueGroups...)
 		if err != nil {
 			return nil, err
 		}
@@ -155,6 +152,58 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 			}
 		}
 
-		return result, nil
+		return filterResult(result, groups, kitesByGroupID), nil
 	}
+}
+
+func getMachinesByQueryID(machines []*models.Machine) map[string]*models.Machine {
+	// Because we are using the Kite's queryString as a means to identify the machine,
+	// we are sorting the machines by queryString so that we can easily look them up.
+	machinesByQuery := map[string]*models.Machine{}
+	for _, m := range machines {
+		if m.QueryString != "" {
+			machinesByQuery[m.QueryString] = m
+		}
+	}
+
+	return machinesByQuery
+}
+
+func filterResult(res *GetKodingKitesResult, groups []*models.Group, kitesByGroupID map[string][]*KodingKiteWithToken) *GetKodingKitesResult {
+	// first find to be removed kites
+	toBeRemovedKiteIDs := make(map[string]struct{})
+	for _, group := range groups {
+		if group.IsSubActive() {
+			continue
+		}
+
+		kites, ok := kitesByGroupID[group.Id.Hex()]
+		if !ok { // why we dont have any kite is another question
+			continue
+		}
+
+		for _, kite := range res.Kites {
+			for _, groupKite := range kites {
+				if groupKite.Kite.ID == kite.Kite.ID {
+					toBeRemovedKiteIDs[kite.Kite.ID] = struct{}{}
+				}
+			}
+		}
+	}
+
+	var resKites []*KodingKiteWithToken
+	for _, kite := range res.Kites {
+		found := false
+		for toBeRemovedKiteID := range toBeRemovedKiteIDs {
+			if toBeRemovedKiteID == kite.Kite.ID {
+				found = true
+				break
+			}
+		}
+		if !found {
+			resKites = append(resKites, kite)
+		}
+	}
+	res.Kites = resKites
+	return res
 }
