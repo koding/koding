@@ -1,0 +1,78 @@
+{
+  "provider": {
+    "google": {
+      "credentials": "${var.google_credentials}",
+      "project": "${var.google_project}",
+      "region": "${var.google_region}"
+    }
+  },
+  "output": {
+    "cluster_address": {
+      "value": "${google_compute_address.cluster.address}"
+    },
+    "cluster_self_link": {
+      "value": "${google_compute_address.cluster.self_link}"
+    }
+  },
+  "resource": {
+    "google_compute_address": {
+      "cluster": {
+        "name": "gce-${var.environment_name}-cluster-address"
+      }
+    },
+    "google_compute_target_pool": {
+      "cluster": {
+        "name": "gce-${var.environment_name}-target-pool",
+        "instances": [
+          "${google_compute_instance.cluster.*.self_link}"
+        ]
+      }
+    },
+    "google_compute_forwarding_rule": {
+      "http": {
+        "name": "gce-${var.environment_name}-cluster-http-forwarding-rule",
+        "target": "${google_compute_target_pool.cluster.self_link}",
+        "ip_address": "${google_compute_address.cluster.address}",
+        "port_range": "80"
+      },
+      "https": {
+        "name": "gce-${var.environment_name}-cluster-https-forwarding-rule",
+        "target": "${google_compute_target_pool.cluster.self_link}",
+        "ip_address": "${google_compute_address.cluster.address}",
+        "port_range": "443"
+      },
+      "kloud": {
+        "name": "gce-${var.environment_name}-cluster-kloud-forwarding-rule",
+        "target": "${google_compute_target_pool.cluster.self_link}",
+        "ip_address": "${google_compute_address.cluster.address}",
+        "port_range": "8080"
+      }
+    },
+    "google_compute_firewall": {
+      "name": "gce-${var.environment_name}-cluster-firewall",
+      "network": "default",
+      "allow": {
+        "protocol": "tcp",
+        "ports": [
+          "80",
+          "443",
+          "8080"
+        ]
+      },
+      "source_ranges": [
+        "0.0.0.0/0"
+      ],
+      "target_tags": [
+        "cluster-node"
+      ]
+    }
+  },
+  "variable": {
+    "environment_name": {
+      "default": "{{.EnvironmentName}}"
+    },
+    "public_key": {
+      "default": "{{.PublicKey}}"
+    }
+  }
+}
