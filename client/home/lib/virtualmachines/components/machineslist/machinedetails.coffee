@@ -313,8 +313,15 @@ generateSpecs = (machine) ->
     't2.nano'   : '512MB RAM'
     't2.micro'  : '1GB RAM'
     't2.medium' : '4GB RAM'
+    'm4.large'  : '8GB RAM'
+    'm4.xlarge' : '16GB RAM'
+    'm4.2xlarge': '32GB RAM'
   }[type] ? '1GB RAM'
-  specs.push cpu = '1x CPU'
+  specs.push cpu = {
+    'm4.large'   : '2x CPU'
+    'm4.xlarge'  : '4x CPU'
+    'm4.2xlarge' : '8X CPU'
+  }[type] ? '1x CPU'
   specs.push disk = if size? then "#{size}GB HDD" else 'N/A'
 
   return specs
