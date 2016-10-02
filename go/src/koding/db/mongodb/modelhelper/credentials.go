@@ -25,6 +25,20 @@ func GetCredentialsFromIdentifiers(identifier ...string) ([]*models.Credential, 
 	return credentials, nil
 }
 
+func GetCredential(identifier string) (*models.Credential, error) {
+	var credential models.Credential
+
+	err := Mongo.Run(CredentialsColl, func(c *mgo.Collection) error {
+		return c.Find(bson.M{"identifier": identifier}).One(&credential)
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("credentials lookup error: %v", err)
+	}
+
+	return &credential, nil
+}
+
 func GetCredentialDatasFromIdentifiers(identifier ...string) ([]*models.CredentialData, error) {
 	var credentialData []*models.CredentialData
 

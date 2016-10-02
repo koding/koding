@@ -182,7 +182,7 @@ func New(conf *Config) (*Kloud, error) {
 		sess.Log.Warning(`disabling "Sneaker" for storing stack credential data`)
 	}
 
-	storeOpts := &credential.StoreOptions{
+	storeOpts := &credential.Options{
 		MongoDB: sess.DB,
 		Log:     sess.Log.New("stackcred"),
 		CredURL: credURL,

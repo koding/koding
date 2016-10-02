@@ -96,6 +96,12 @@ func (k *Kloud) CredentialDescribe(r *kite.Request) (interface{}, error) {
 }
 
 func (k *Kloud) CredentialList(r *kite.Request) (interface{}, error) {
+	var req CredentialListRequest
+
+	if err := r.Args.One().Unmarshal(&req); err != nil {
+		return nil, err
+	}
+
 	return nil, nil
 }
 

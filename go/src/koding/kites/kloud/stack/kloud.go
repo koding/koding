@@ -9,6 +9,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/keygen"
 	"koding/kites/kloud/contexthelper/publickeys"
+	"koding/kites/kloud/credential"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/pkg/dnsclient"
@@ -74,6 +75,8 @@ type Kloud struct {
 	// package to kloud one in order to solve this and improve the
 	// import structure.
 	DescribeFunc func(providers ...string) map[string]*Description
+
+	CredClient *credential.Client
 
 	Metrics *metrics.DogStatsD
 

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 	uuid "github.com/satori/go.uuid"
 
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
@@ -49,7 +50,7 @@ func (bs *BaseStack) HandleApply(ctx context.Context) (interface{}, error) {
 
 	err := bs.Builder.BuildStack(arg.StackID, arg.Credentials)
 
-	if err != nil && !(arg.Destroy && IsNotFound(err, "jStackTemplate")) {
+	if err != nil && !(arg.Destroy && models.IsNotFound(err, "jStackTemplate")) {
 		return nil, err
 	}
 

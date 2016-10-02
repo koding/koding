@@ -3,6 +3,7 @@ package provider
 import (
 	"errors"
 
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/terraformer"
@@ -26,7 +27,7 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 	bs.Log.Debug("Fetching template for id %s", arg.StackTemplateID)
 	stackTemplate, err := modelhelper.GetStackTemplate(arg.StackTemplateID)
 	if err != nil {
-		return nil, ResError(err, "jStackTemplate")
+		return nil, models.ResError(err, "jStackTemplate")
 	}
 
 	if stackTemplate.Template.Content == "" {
