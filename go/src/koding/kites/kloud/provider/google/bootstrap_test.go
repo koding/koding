@@ -8,7 +8,7 @@ import (
 	"koding/kites/kloud/provider/google"
 )
 
-func TestAWSBootstrap(t *testing.T) {
+func TestGoogleBootstrap(t *testing.T) {
 	var buf bytes.Buffer
 
 	if err := google.BootstrapTemplate().Execute(&buf, make(map[string]interface{})); err != nil {

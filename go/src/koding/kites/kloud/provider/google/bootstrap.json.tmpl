@@ -7,10 +7,10 @@
     }
   },
   "output": {
-    "cluster_address": {
+    "address": {
       "value": "${google_compute_address.cluster.address}"
     },
-    "cluster_self_link": {
+    "self_link": {
       "value": "${google_compute_address.cluster.self_link}"
     }
   },
@@ -45,7 +45,7 @@
         "name": "gce-${var.environment_name}-cluster-kloud-forwarding-rule",
         "target": "${google_compute_target_pool.cluster.self_link}",
         "ip_address": "${google_compute_address.cluster.address}",
-        "port_range": "8080"
+        "port_range": "56789"
       }
     },
     "google_compute_firewall": {
@@ -56,7 +56,7 @@
         "ports": [
           "80",
           "443",
-          "8080"
+          "56789"
         ]
       },
       "source_ranges": [
