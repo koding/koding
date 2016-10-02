@@ -269,6 +269,14 @@ func New(conf *Config) (*Kloud, error) {
 	k.HandleFunc("describeStack", kloud.Stack.Status)
 	k.HandleFunc("authenticate", kloud.Stack.Authenticate)
 	k.HandleFunc("bootstrap", kloud.Stack.Bootstrap)
+	k.HandleFunc("import", kloud.Stack.Import)
+
+	k.HandleFunc("credential.describe", kloud.Stack.CredentialDescribe)
+	k.HandleFunc("credential.list", kloud.Stack.CredentialList)
+	k.HandleFunc("credential.add", kloud.Stack.CredentialAdd)
+	k.HandleFunc("credential.remove", kloud.Stack.CredentialRemove)
+
+	k.HandleFunc("machine.list", kloud.Stack.MachineList)
 
 	// Single machine handling
 	k.HandleFunc("stop", kloud.Stack.Stop)
