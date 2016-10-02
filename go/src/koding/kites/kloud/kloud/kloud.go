@@ -213,6 +213,8 @@ func New(conf *Config) (*Kloud, error) {
 		},
 	}
 
+	kloud.Stack.DescribeFunc = provider.Desc
+
 	kloud.Stack.ContextCreator = func(ctx context.Context) context.Context {
 		return session.NewContext(ctx, sess)
 	}

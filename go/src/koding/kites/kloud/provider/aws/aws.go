@@ -88,9 +88,9 @@ func newMetadata(m *stack.Machine) interface{} {
 
 // Cred represents jCredentialDatas.meta for "aws" provider.
 type Cred struct {
-	Region    string `json:"region" bson:"region" hcl:"region"`
-	AccessKey string `json:"access_key" bson:"access_key" hcl:"access_key"`
-	SecretKey string `json:"secret_key" bson:"secret_key" hcl:"secret_key"`
+	AccessKey string `json:"access_key" bson:"access_key" hcl:"access_key" kloud:"Access Key ID,secret"`
+	SecretKey string `json:"secret_key" bson:"secret_key" hcl:"secret_key" kloud:"Secret Access Key,secret"`
+	Region    string `json:"region" bson:"region" hcl:"region" kloud:"Region"`
 }
 
 var _ stack.Validator = (*Cred)(nil)

@@ -2,6 +2,7 @@ package stack
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/koding/kite"
 )
@@ -12,7 +13,7 @@ type CredentialDescribeRequest struct {
 }
 
 type CredentialDescribeResponse struct {
-	Descriptions map[string]*Description `json:"descriptions"`
+	Description map[string]*Description `json:"description"`
 }
 
 type Description struct {
@@ -21,17 +22,26 @@ type Description struct {
 	Bootstrap  []Value `json:"bootstrap,omitempty"`
 }
 
-type EnumValue struct {
+type Enumer interface {
+	Enum() []*Enum
+}
+
+type EnumTitler interface {
+	Title() string
+}
+
+type Enum struct {
 	Title string      `json:"title"`
 	Value interface{} `json:"value"`
 }
 
 type Value struct {
-	Type     string      `json:"type"`
-	Label    string      `json:"label"`
-	Secret   bool        `json:"secret"`
-	ReadOnly bool        `json:"readOnly"`
-	Values   []EnumValue `json:"values"`
+	Name     string `json:"name"`
+	Type     string `json:"type"`
+	Label    string `json:"label"`
+	Secret   bool   `json:"secret"`
+	ReadOnly bool   `json:"readOnly"`
+	Values   []Enum `json:"values"`
 }
 
 type CredentialListRequest struct {
@@ -64,12 +74,25 @@ type CredentialRemoveRequest struct {
 	Identifier string `json:"identifier"`
 }
 
-func Describe(v interface{}) (*Description, error) {
-	return nil, nil
-}
-
 func (k *Kloud) CredentialDescribe(r *kite.Request) (interface{}, error) {
-	return nil, nil
+	var req CredentialDescribeRequest
+
+	if err := r.Args.One().Unmarshal(&req); err != nil {
+		return nil, err
+	}
+
+	// TODO: add support for reading the provider names by parsing
+	// the req.Template.
+
+	desc := k.DescribeFunc(req.Provider)
+
+	if len(desc) == 0 {
+		return nil, errors.New("no provider found")
+	}
+
+	return &CredentialDescribeResponse{
+		Description: desc,
+	}, nil
 }
 
 func (k *Kloud) CredentialList(r *kite.Request) (interface{}, error) {

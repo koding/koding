@@ -67,6 +67,14 @@ type Kloud struct {
 	// publicKey's on the fly and generates the privateKey themself.
 	PublicKeys *publickeys.Keys
 
+	// DescribeFunc is used to obtain provider types description.
+	//
+	// TODO(rjeczalik): It wraps provider.Desc function to avoid circular
+	// dependency. The Kloud kite handlers should be moved from this
+	// package to kloud one in order to solve this and improve the
+	// import structure.
+	DescribeFunc func(providers ...string) map[string]*Description
+
 	Metrics *metrics.DogStatsD
 
 	// Enable debug mode
