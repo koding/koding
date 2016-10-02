@@ -26,17 +26,7 @@ module.exports = (options) ->
     worker_tunnelproxymanager_route53: kodingdev_master_2016_05
     #Encryption and Storage on S3
     worker_sneakerS3 : kodingdev_master_2016_05
-    vm_vmwatcher:     # vm_vmwatcher_dev
-      accessKeyId: ""
-      secretAccessKey: ""
-    vm_kloud:         # vm_kloud_dev
-      accessKeyId: ""
-      secretAccessKey: ""
 
-  slKeys =
-    vm_kloud:
-      username: ""
-      apiKey: ""
   mongo = "#{options.serviceHost}:27017/koding"
   redis =
     host: "#{options.serviceHost}"
@@ -198,7 +188,6 @@ module.exports = (options) ->
   return {
     kiteHome
     awsKeys
-    slKeys
     mongo
     redis
     monitoringRedis
