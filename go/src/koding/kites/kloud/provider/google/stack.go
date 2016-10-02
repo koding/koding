@@ -13,6 +13,7 @@ import (
 var bootstrap = template.Must(template.New("").Parse(mustAsset("bootstrap.json.tmpl")))
 
 type bootstrapConfig struct {
+	KeyPairName     string
 	PublicKey       string
 	EnvironmentName string
 }
