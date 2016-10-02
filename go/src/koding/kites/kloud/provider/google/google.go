@@ -3,6 +3,7 @@ package google
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
@@ -16,26 +17,12 @@ var p = &provider.Provider{
 	Schema: &provider.Schema{
 		NewCredential: newCredential,
 		NewBootstrap:  newBootstrap,
-		NewMetadata:   nil,
+		NewMetadata:   newMetadata,
 	},
 }
 
 func init() {
 	provider.Register(p)
-}
-
-// todo
-func newMachine(bm *provider.BaseMachine) (provider.Machine, error) {
-	m := &Machine{BaseMachine: bm}
-	return m, nil
-}
-
-func newCredential() interface{} {
-	return &Cred{}
-}
-
-func newBootstrap() interface{} {
-	return &Bootstrap{}
 }
 
 // Region represents google's geographical region code.
@@ -81,13 +68,16 @@ type Cred struct {
 
 var _ stack.Validator = (*Cred)(nil)
 
-// Valid implements the kloud.Validator interface.
+func newCredential() interface{} {
+	return &Cred{}
+}
+
 func (c *Cred) Valid() error {
 	if c.Credentials == "" {
-		return errors.New("google: JSON credentials content is empty")
+		return errors.New(`cred value for "credentials" is empty`)
 	}
 	if c.Project == "" {
-		return errors.New("google: project name is empty")
+		return errors.New(`cred value for "project" is empty`)
 	}
 
 	return c.Region.Valid()
@@ -100,6 +90,10 @@ type Bootstrap struct {
 
 var _ stack.Validator = (*Bootstrap)(nil)
 
+func newBootstrap() interface{} {
+	return &Bootstrap{}
+}
+
 func (b *Bootstrap) Valid() error {
 	if b.Address == "" {
 		return errors.New(`bootstrap value for "address" is empty`)
@@ -107,5 +101,62 @@ func (b *Bootstrap) Valid() error {
 	if b.SelfLink == "" {
 		return errors.New(`bootstrap value for "self_block" is empty`)
 	}
+	return nil
+}
+
+type Meta struct {
+	Name        string `json:"name" bson:"name" hcl:"name"`
+	Region      Region `json:"region" bson:"region" hcl:"region"`
+	Zone        string `json:"zone" bson:"zone" hcl:"zone"`
+	Image       string `json:"image" bson:"image" hcl:"image"`
+	StorageSize int    `json:"storage_size" bson:"storage_size" hcl:"storage_size"`
+	MachineType string `json:"machine_type" bson:"machine_type" hcl:"machine_type"`
+}
+
+var _ stack.Validator = (*Meta)(nil)
+
+func newMetadata(m *stack.Machine) interface{} {
+	if m == nil {
+		return &Meta{}
+	}
+
+	meta := &Meta{
+		Name:        m.Attributes["name"],
+		Zone:        m.Attributes["zone"],
+		Image:       m.Attributes["disk.0.image"],
+		MachineType: m.Attributes["machine_type"],
+	}
+
+	if n, err := strconv.Atoi(m.Attributes["disk.0.size"]); err == nil {
+		meta.StorageSize = n
+	}
+
+	if cred, ok := m.Credential.Credential.(*Cred); ok {
+		meta.Region = cred.Region
+	}
+
+	return meta
+}
+
+func (m *Meta) Valid() error {
+	if m.Name == "" {
+		return errors.New(`metadata value for "name" is empty`)
+	}
+	if err := m.Region.Valid(); err != nil {
+		return fmt.Errorf(`metadata region is unknown: %v`, err)
+	}
+	if m.Zone == "" {
+		return errors.New(`metadata value for "zone" is empty`)
+	}
+	if m.Image == "" {
+		return errors.New(`metadata value for "image" is empty`)
+	}
+	if m.StorageSize == 0 {
+		return errors.New(`metadata value for "storage_size" is 0`)
+	}
+	if m.MachineType == "" {
+		return errors.New(`metadata value for "machie_type" is empty`)
+	}
+
 	return nil
 }

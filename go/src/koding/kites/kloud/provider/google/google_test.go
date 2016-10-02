@@ -59,7 +59,7 @@ func TestValidators(t *testing.T) {
 		{
 			// 5 //
 			Validator: &Bootstrap{
-				Address:  "127.0.0.1",
+				Address:  `127.0.0.1`,
 				SelfLink: `http://google.koding.com/instance`,
 			},
 			IsValid: true,
@@ -67,7 +67,7 @@ func TestValidators(t *testing.T) {
 		{
 			// 6 //
 			Validator: &Bootstrap{
-				Address:  "",
+				Address:  ``,
 				SelfLink: `http://google.koding.com/instance`,
 			},
 			IsValid: false,
@@ -75,8 +75,92 @@ func TestValidators(t *testing.T) {
 		{
 			// 7 //
 			Validator: &Bootstrap{
-				Address:  "127.0.0.1",
+				Address:  `127.0.0.1`,
 				SelfLink: ``,
+			},
+			IsValid: false,
+		},
+		{
+			// 8 //
+			Validator: &Meta{
+				Name:        `gce-development-instance`,
+				Region:      `us-central1`,
+				Zone:        `us-central1-a`,
+				Image:       `ubuntu-1404-trusty-v20160919`,
+				StorageSize: 10,
+				MachineType: `f1-micro`,
+			},
+			IsValid: true,
+		},
+		{
+			// 9 //
+			Validator: &Meta{
+				Name:        ``,
+				Region:      `us-central1`,
+				Zone:        `us-central1-a`,
+				Image:       `ubuntu-1404-trusty-v20160919`,
+				StorageSize: 10,
+				MachineType: `f1-micro`,
+			},
+			IsValid: false,
+		},
+		{
+			// 10 //
+			Validator: &Meta{
+				Name:        `gce-development-instance`,
+				Region:      ``,
+				Zone:        `us-central1-a`,
+				Image:       `ubuntu-1404-trusty-v20160919`,
+				StorageSize: 10,
+				MachineType: `f1-micro`,
+			},
+			IsValid: false,
+		},
+		{
+			// 11 //
+			Validator: &Meta{
+				Name:        `gce-development-instance`,
+				Region:      `us-central1`,
+				Zone:        ``,
+				Image:       `ubuntu-1404-trusty-v20160919`,
+				StorageSize: 10,
+				MachineType: `f1-micro`,
+			},
+			IsValid: false,
+		},
+		{
+			// 12 //
+			Validator: &Meta{
+				Name:        `gce-development-instance`,
+				Region:      `us-central1`,
+				Zone:        `us-central1-a`,
+				Image:       ``,
+				StorageSize: 10,
+				MachineType: `f1-micro`,
+			},
+			IsValid: false,
+		},
+		{
+			// 13 //
+			Validator: &Meta{
+				Name:        `gce-development-instance`,
+				Region:      `us-central1`,
+				Zone:        `us-central1-a`,
+				Image:       `ubuntu-1404-trusty-v20160919`,
+				StorageSize: 0,
+				MachineType: `f1-micro`,
+			},
+			IsValid: false,
+		},
+		{
+			// 14 //
+			Validator: &Meta{
+				Name:        `gce-development-instance`,
+				Region:      `us-central1`,
+				Zone:        `us-central1-a`,
+				Image:       `ubuntu-1404-trusty-v20160919`,
+				StorageSize: 10,
+				MachineType: ``,
 			},
 			IsValid: false,
 		},
