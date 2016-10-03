@@ -45,6 +45,7 @@ module.exports = class MachinesListItem extends React.Component
 
     return {
       selectedMachine: VirtualMachinesSelectedMachineFlux.getters.selectedMachine
+      expandedMachineLabel: EnvironmentFlux.getters.expandedMachineLabelStore
     }
 
 
@@ -137,7 +138,7 @@ module.exports = class MachinesListItem extends React.Component
         <div
           className="MachinesListItem-machineLabel #{@props.machine.getIn ['status', 'state']}"
           onClick={@bound 'toggle'}>
-          {@props.machine.get 'label'}
+          {@state.expandedMachineLabel or @props.machine.get 'label'}
           {@renderProgressbar()}
         </div>
         {@renderIpAddress()}
