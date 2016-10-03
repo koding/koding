@@ -1,7 +1,4 @@
 {
-  "routes": {
-    "dev.koding.com": "127.0.0.1"
-  },
   "buckets": {
     "publiclogs": [
       {
@@ -24,6 +21,40 @@
     ]
   },
   "endpoints": {
+    "ip": [
+      {
+        "environment": [
+          "production",
+          "managed"
+        ],
+        "url": "https://p.koding.com/-/ip"
+      },
+      {
+        "environment": [
+          "development",
+          "devmanaged",
+          "sandbox"
+        ],
+        "url": "https://dev-p2.koding.com/-/ip"
+      }
+    ],
+    "ipcheck": [
+      {
+        "environment": [
+          "production",
+          "managed"
+        ],
+        "url": "https://p.koding.com/-/ipcheck"
+      },
+      {
+        "environment": [
+          "development",
+          "devmanaged",
+          "sandbox"
+        ],
+        "url": "https://dev-p2.koding.com/-/ipcheck"
+      }
+    ],
     "kloud": [
       {
         "environment": [
@@ -74,40 +105,9 @@
         ],
         "url": "http://dev-t.koding.com/kite"
       }
-    ],
-    "ip": [
-      {
-        "environment": [
-          "production",
-          "managed"
-        ],
-        "url": "https://p.koding.com/-/ip"
-      },
-      {
-        "environment": [
-          "development",
-          "devmanaged",
-          "sandbox"
-        ],
-        "url": "https://dev-p2.koding.com/-/ip"
-      }
-    ],
-    "ipcheck": [
-      {
-        "environment": [
-          "production",
-          "managed"
-        ],
-        "url": "https://p.koding.com/-/ipcheck"
-      },
-      {
-        "environment": [
-          "development",
-          "devmanaged",
-          "sandbox"
-        ],
-        "url": "https://dev-p2.koding.com/-/ipcheck"
-      }
     ]
+  },
+  "routes": {
+    "dev.koding.com": "127.0.0.1"
   }
 }

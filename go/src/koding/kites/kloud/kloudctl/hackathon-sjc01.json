@@ -1,26 +1,26 @@
 {
   "environment": "production",
   "machine": {
-    "label": "softlayer-vm-0",
-    "slug": "softlayer-vm-0",
-    "status": {
-      "state": "NotInitialized",
-      "modifiedAt": "0001-01-01T00:00:00Z"
+    "asignee": {
+      "assignedAt": "0001-01-01T00:00:00Z",
+      "inProgress": false
     },
     "createdAt": "0001-01-01T00:00:00Z",
-    "provisioners": [],
-    "provider": "softlayer",
+    "domain": "",
+    "label": "softlayer-vm-0",
     "meta": {
-      "type": "softlayer",
-      "storage_size": 25,
       "alwaysOn": false,
-      "datacenter": "sjc01"
+      "datacenter": "sjc01",
+      "storage_size": 25,
+      "type": "softlayer"
     },
-    "asignee": {
-      "inProgress": false,
-      "assignedAt": "0001-01-01T00:00:00Z"
+    "provider": "softlayer",
+    "provisioners": [],
+    "slug": "softlayer-vm-0",
+    "status": {
+      "modifiedAt": "0001-01-01T00:00:00Z",
+      "state": "NotInitialized"
     },
-    "uid": "",
-    "domain": ""
+    "uid": ""
   }
 }
