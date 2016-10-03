@@ -7,6 +7,10 @@ import (
 
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
+
+	"golang.org/x/net/context"
+	"golang.org/x/oauth2/google"
+	compute "google.golang.org/api/compute/v1"
 )
 
 var p = &provider.Provider{
@@ -83,10 +87,16 @@ func (c *Cred) Valid() error {
 	return c.Region.Valid()
 }
 
-type Bootstrap struct {
-	Address  string `json:"address" bson:"address" hcl:"address"`
-	SelfLink string `json:"self_link" bson:"self_link" hcl:"self_link"`
+func (c *Cred) ComputeService() (*compute.Service, error) {
+	cfg, err := google.JWTConfigFromJSON([]byte(c.Credentials), compute.ComputeScope)
+	if err != nil {
+		return nil, err
+	}
+
+	return compute.New(cfg.Client(context.Background()))
 }
+
+type Bootstrap struct{}
 
 var _ stack.Validator = (*Bootstrap)(nil)
 
@@ -94,15 +104,7 @@ func newBootstrap() interface{} {
 	return &Bootstrap{}
 }
 
-func (b *Bootstrap) Valid() error {
-	if b.Address == "" {
-		return errors.New(`bootstrap value for "address" is empty`)
-	}
-	if b.SelfLink == "" {
-		return errors.New(`bootstrap value for "self_block" is empty`)
-	}
-	return nil
-}
+func (b *Bootstrap) Valid() error { return nil }
 
 type Meta struct {
 	Name        string `json:"name" bson:"name" hcl:"name"`

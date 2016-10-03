@@ -58,30 +58,6 @@ func TestValidators(t *testing.T) {
 		},
 		{
 			// 5 //
-			Validator: &Bootstrap{
-				Address:  `127.0.0.1`,
-				SelfLink: `http://google.koding.com/instance`,
-			},
-			IsValid: true,
-		},
-		{
-			// 6 //
-			Validator: &Bootstrap{
-				Address:  ``,
-				SelfLink: `http://google.koding.com/instance`,
-			},
-			IsValid: false,
-		},
-		{
-			// 7 //
-			Validator: &Bootstrap{
-				Address:  `127.0.0.1`,
-				SelfLink: ``,
-			},
-			IsValid: false,
-		},
-		{
-			// 8 //
 			Validator: &Meta{
 				Name:        `gce-development-instance`,
 				Region:      `us-central1`,
@@ -93,7 +69,7 @@ func TestValidators(t *testing.T) {
 			IsValid: true,
 		},
 		{
-			// 9 //
+			// 6 //
 			Validator: &Meta{
 				Name:        ``,
 				Region:      `us-central1`,
@@ -105,7 +81,7 @@ func TestValidators(t *testing.T) {
 			IsValid: false,
 		},
 		{
-			// 10 //
+			// 7 //
 			Validator: &Meta{
 				Name:        `gce-development-instance`,
 				Region:      ``,
@@ -117,7 +93,7 @@ func TestValidators(t *testing.T) {
 			IsValid: false,
 		},
 		{
-			// 11 //
+			// 8 //
 			Validator: &Meta{
 				Name:        `gce-development-instance`,
 				Region:      `us-central1`,
@@ -129,7 +105,7 @@ func TestValidators(t *testing.T) {
 			IsValid: false,
 		},
 		{
-			// 12 //
+			// 9 //
 			Validator: &Meta{
 				Name:        `gce-development-instance`,
 				Region:      `us-central1`,
@@ -141,7 +117,7 @@ func TestValidators(t *testing.T) {
 			IsValid: false,
 		},
 		{
-			// 13 //
+			// 10 //
 			Validator: &Meta{
 				Name:        `gce-development-instance`,
 				Region:      `us-central1`,
@@ -153,7 +129,7 @@ func TestValidators(t *testing.T) {
 			IsValid: false,
 		},
 		{
-			// 14 //
+			// 11 //
 			Validator: &Meta{
 				Name:        `gce-development-instance`,
 				Region:      `us-central1`,

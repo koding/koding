@@ -7,69 +7,43 @@
     }
   },
   "output": {
-    "address": {
-      "value": "${google_compute_address.cluster.address}"
-    },
-    "self_link": {
-      "value": "${google_compute_address.cluster.self_link}"
-    }
   },
   "resource": {
-    "google_compute_address": {
-      "cluster": {
-        "name": "gce-${var.environment_name}-cluster-address"
-      }
-    },
-    "google_compute_target_pool": {
-      "cluster": {
-        "name": "gce-${var.environment_name}-target-pool",
-        "instances": [
-          "${google_compute_instance.cluster.*.self_link}"
-        ]
-      }
-    },
-    "google_compute_forwarding_rule": {
-      "http": {
-        "name": "gce-${var.environment_name}-cluster-http-forwarding-rule",
-        "target": "${google_compute_target_pool.cluster.self_link}",
-        "ip_address": "${google_compute_address.cluster.address}",
-        "port_range": "80"
-      },
-      "https": {
-        "name": "gce-${var.environment_name}-cluster-https-forwarding-rule",
-        "target": "${google_compute_target_pool.cluster.self_link}",
-        "ip_address": "${google_compute_address.cluster.address}",
-        "port_range": "443"
-      },
-      "kloud": {
-        "name": "gce-${var.environment_name}-cluster-kloud-forwarding-rule",
-        "target": "${google_compute_target_pool.cluster.self_link}",
-        "ip_address": "${google_compute_address.cluster.address}",
-        "port_range": "56789"
-      }
-    },
     "google_compute_firewall": {
-      "name": "gce-${var.environment_name}-cluster-firewall",
-      "network": "default",
-      "allow": {
-        "protocol": "tcp",
-        "ports": [
-          "80",
-          "443",
-          "56789"
+      "koding": {
+        "name": "gce-koding-kloud-firewall",
+        "network": "default",
+        "allow": {
+          "protocol": "tcp",
+          "ports": [
+            "56789"
+          ]
+        },
+        "source_ranges": [
+          "0.0.0.0/0"
         ]
-      },
-      "source_ranges": [
-        "0.0.0.0/0"
-      ],
-      "target_tags": [
-        "cluster-node"
-      ]
+      }
+    },
+    "google_compute_project_metadata": {
+      "default": {
+        "metadata": {
+          "sshKeys": "${var.user_name}:${var.public_key}"
+        }
+      }
     }
   },
   "variable": {
-    "environment_name": {
-      "default": "{{.EnvironmentName}}"
+    "zones": {
+      "default": {
+        "asia-east1": "asia-east1-a",
+        "europe-west1": "europe-west1-b",
+        "us-central1": "us-central1-a",
+        "us-east1": "us-east1-b",
+        "us-west1": "us-west1-a"
+      }
+    },
+    "user_name": {
+      "default": "{{.Username}}"
     },
     "public_key": {
       "default": "{{.PublicKey}}"

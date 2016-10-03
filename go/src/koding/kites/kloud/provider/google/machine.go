@@ -11,7 +11,6 @@ import (
 	"koding/kites/kloud/waitstate"
 
 	"golang.org/x/net/context"
-	"golang.org/x/oauth2/google"
 	compute "google.golang.org/api/compute/v1"
 	"google.golang.org/api/googleapi"
 )
@@ -33,12 +32,7 @@ func newMachine(bm *provider.BaseMachine) (provider.Machine, error) {
 	m := &Machine{BaseMachine: bm}
 	cred := m.Cred()
 
-	cfg, err := google.JWTConfigFromJSON([]byte(cred.Credentials), compute.ComputeScope)
-	if err != nil {
-		return nil, err
-	}
-
-	computeService, err := compute.New(cfg.Client(context.Background()))
+	computeService, err := cred.ComputeService()
 	if err != nil {
 		return nil, err
 	}
