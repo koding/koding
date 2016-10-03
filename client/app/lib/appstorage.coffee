@@ -21,7 +21,7 @@ class AppStorage extends kd.Object
     super
 
 
-  fetchStorage: (callback, force = no) ->
+  fetchStorage: do (queue = []) -> (callback, force = no) ->
 
     [ appId, version ] = [ @_applicationID, @_applicationVersion ]
 
@@ -29,16 +29,20 @@ class AppStorage extends kd.Object
 
       { mainController } = kd.singletons
 
+      return  if (queue.push callback) > 1
+
       mainController.ready =>
+
         whoami().fetchAppStorage { appId, version }, (error, storage) =>
 
           if not error and storage
             @reset()
             @_storage = storage
-            callback? @_storage
+
             @_setReady()
-          else
-            callback? null
+
+          cb? storage  for cb in queue
+          queue = []
 
     else
 
