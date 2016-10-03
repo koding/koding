@@ -1,6 +1,7 @@
 package credential
 
 import (
+	"errors"
 	"fmt"
 
 	"koding/db/models"
@@ -123,7 +124,6 @@ func (p *MongoPerm) PermUser() string    { return p.User.Name }
 func (p *MongoPerm) PermTeam() string    { return p.Team.Slug }
 func (p *MongoPerm) PermRoles() []string { return p.Roles }
 
-// TODO(rjeczalik): Add cache support.
 type mongoDatabase struct {
 	*Options
 }
@@ -136,12 +136,16 @@ func (db *mongoDatabase) Validate(f *Filter, c *Cred) (Perm, error) {
 		return nil, err
 	}
 
+	if f.Team == "" {
+		return nil, errors.New("validate: invalid empty team name")
+	}
+
 	perm := &MongoPerm{
 		Roles: f.Roles,
 	}
 
 	if len(perm.Roles) == 0 {
-		perm.Roles = []string{"user"}
+		perm.Roles = DefaultRoles
 	}
 
 	switch cached := c.Perm.(type) {
@@ -230,9 +234,7 @@ func (db *mongoDatabase) Validate(f *Filter, c *Cred) (Perm, error) {
 		belongs := modelhelper.Selector{
 			"targetId": perm.Acc.Id,
 			"sourceId": perm.Team.Id,
-			"as": bson.M{
-				"$in": []string{"member"},
-			},
+			"as":       "member",
 		}
 
 		if count, err := modelhelper.RelationshipCount(belongs); err != nil || count == 0 {
@@ -242,6 +244,8 @@ func (db *mongoDatabase) Validate(f *Filter, c *Cred) (Perm, error) {
 
 			return nil, models.ResError(err, "jRelationship")
 		}
+
+		perm.Member = true
 	}
 
 	belongs := modelhelper.Selector{
@@ -268,7 +272,152 @@ func (db *mongoDatabase) Validate(f *Filter, c *Cred) (Perm, error) {
 }
 
 func (db *mongoDatabase) Creds(f *Filter) ([]*Cred, error) {
-	return nil, nil
+	if err := f.Valid(); err != nil {
+		return nil, err
+	}
+
+	acc, err := modelhelper.GetAccount(f.User)
+	if err != nil {
+		return nil, models.ResError(err, "jAccount")
+	}
+
+	user, err := modelhelper.GetUser(f.User)
+	if err != nil {
+		return nil, models.ResError(err, "jUser")
+	}
+
+	var teams []*models.Group
+
+	if f.Team != "" {
+		team, err := modelhelper.GetGroup(f.Team)
+		if err != nil {
+			return nil, models.ResError(err, "jGroup")
+		}
+
+		belongs := modelhelper.Selector{
+			"targetId": acc.Id,
+			"sourceId": team.Id,
+			"as":       "member",
+		}
+
+		if count, err := modelhelper.RelationshipCount(belongs); err != nil || count == 0 {
+			if err == nil {
+				err = fmt.Errorf("user %q does not belong to %q group", f.User, f.Team)
+			}
+
+			return nil, models.ResError(err, "jRelationship")
+		}
+
+		teams = append(teams, team)
+	} else {
+		belongs := modelhelper.Selector{
+			"targetId":   acc.Id,
+			"sourceName": "JGroup",
+			"as":         "member",
+		}
+
+		rels, err := modelhelper.GetAllRelationships(belongs)
+		if err != nil {
+			return nil, models.ResError(err, "jRelationship")
+		}
+
+		for _, rel := range rels {
+			team, err := modelhelper.GetGroupById(rel.SourceId.Hex())
+			if err != nil {
+				return nil, models.ResError(err, "jGroup")
+			}
+
+			teams = append(teams, team)
+		}
+	}
+
+	var creds []*Cred
+
+	// Fetch credentials that user owns.
+	ownerOnly := modelhelper.Selector{
+		"targetName": "JCredential",
+		"sourceId":   acc.Id,
+		"as":         "owner",
+	}
+
+	if err := db.fetchCreds(f, acc, user, nil, ownerOnly, &creds); err != nil {
+		return nil, err
+	}
+
+	if len(teams) != 0 {
+		teamIDs := make([]bson.ObjectId, len(teams))
+
+		for i, team := range teams {
+			teamIDs[i] = team.Id
+		}
+
+		// Fetch credentials that user has access to.
+		userOnly := modelhelper.Selector{
+			"targetName": "JCredential",
+			"sourceId": bson.M{
+				"$in": teamIDs,
+			},
+			"as": "user",
+		}
+
+		if err := db.fetchCreds(f, acc, user, teams, userOnly, &creds); err != nil {
+			return nil, err
+		}
+	}
+
+	return creds, nil
+}
+
+func (db *mongoDatabase) fetchCreds(f *Filter, acc *models.Account, user *models.User,
+	teams []*models.Group, belongs modelhelper.Selector, creds *[]*Cred) error {
+
+	rels, err := modelhelper.GetAllRelationships(belongs)
+	if err != nil && err != mgo.ErrNotFound {
+		return models.ResError(err, "jRelationship")
+	}
+
+	lookupTeams := make(map[bson.ObjectId]*models.Group, len(teams))
+
+	for _, team := range teams {
+		lookupTeams[team.Id] = team
+	}
+
+	for _, rel := range rels {
+		cred, err := modelhelper.GetCredentialByID(rel.TargetId)
+		if err == mgo.ErrNotFound {
+			// dangling jRelationship, ignore
+			continue
+		}
+		if err != nil {
+			return models.ResError(err, "jCredential")
+		}
+
+		if f.Provider != "" && cred.Provider != f.Provider {
+			// provider does not match, filter out
+			continue
+		}
+
+		c := &Cred{
+			Ident:    cred.Identifier,
+			Provider: cred.Provider,
+			Title:    cred.Title,
+			Perm: &MongoPerm{
+				Acc:   acc,
+				User:  user,
+				Cred:  cred,
+				Roles: UserRole,
+			},
+		}
+
+		if team, ok := lookupTeams[rel.SourceId]; ok {
+			c.Team = team.Slug
+			c.Perm.(*MongoPerm).Team = team
+		}
+
+		*creds = append(*creds, c)
+	}
+
+	return nil
 }
 
 func (db *mongoDatabase) SetCred(c *Cred) error {

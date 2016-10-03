@@ -39,6 +39,14 @@ func GetCredential(identifier string) (*models.Credential, error) {
 	return &credential, nil
 }
 
+func GetCredentialByID(id bson.ObjectId) (*models.Credential, error) {
+	var credential models.Credential
+
+	return &credential, Mongo.Run(CredentialsColl, func(c *mgo.Collection) error {
+		return c.FindId(id).One(&credential)
+	})
+}
+
 func GetCredentialDatasFromIdentifiers(identifier ...string) ([]*models.CredentialData, error) {
 	var credentialData []*models.CredentialData
 
