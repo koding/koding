@@ -4,6 +4,14 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+const (
+	// PaymentStatusActive holds active payment status
+	PaymentStatusActive = "active"
+
+	// PaymentStatusTrailing holds trailing payment status
+	PaymentStatusTrailing = "trialing"
+)
+
 type Group struct {
 	Id                             bson.ObjectId            `bson:"_id" json:"-"`
 	Body                           string                   `bson:"body" json:"body"`
@@ -26,35 +34,28 @@ type Group struct {
 	Payment         Payment  `bson:"payment" json:"payment"`
 }
 
+// Payment is general container for payment info
 type Payment struct {
 	Subscription Subscription
 	Customer     Customer
 }
 
+// Subscription holds customer-plan subscription related info
 type Subscription struct {
 	// Allowed values are "trialing", "active", "past_due", "canceled", "unpaid".
 	Status string `bson:"status" json:"status"`
 	ID     string `bson:"id" json:"id"`
 }
 
+// Customer is the group's customer info from payment provider
 type Customer struct {
 	ID string `bson:"id" json:"id"`
-}
-
-// DeletedMember holds information about deleted members from a group.
-type DeletedMember struct {
-	Id        bson.ObjectId `bson:"_id" json:"-"`
-	AccountID bson.ObjectId `bson:"accountId" json:"accountId"`
-	GroupID   bson.ObjectId `bson:"groupId" json:"groupId"`
-	// these will be read only during query/modify time, otherwise do not access
-	// SubscriptionID string
-	// UpdatedAt time.Time
 }
 
 // IsSubActive checks if subscription is in valid state for operation
 func (g *Group) IsSubActive() bool {
 	switch g.Payment.Subscription.Status {
-	case "active", "trialing":
+	case PaymentStatusActive, PaymentStatusTrailing:
 		return true
 	default:
 		return false

@@ -29,7 +29,7 @@ import (
 // which is a leftover from the old API - it was errornously desgined to
 // store global-scoped values.
 
-// Stacker is responsible for augementing Provider values so they implement
+// Stacker is responsible for augmenting Provider values so they implement
 // Stack and Machine interfaces.
 //
 // In longer term kloud controllers should be refactored and this functionality

@@ -12,6 +12,9 @@ type Ping struct {
 
 	// CreatedAt holds the ping time
 	CreatedAt time.Time `json:"createdAt"`
+
+	// paymentStatus is populated on handler
+	paymentStatus string
 }
 
 // NewPing creates an empty ping

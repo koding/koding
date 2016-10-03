@@ -10,14 +10,14 @@ import (
 	"github.com/stripe/stripe-go"
 )
 
-// DeleteSubscription deletes the subscription of group
-func DeleteSubscription(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
+// CancelSubscription cancels the subscription of group
+func CancelSubscription(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	if err := checkContext(context); err != nil {
 		return response.NewBadRequest(err)
 	}
 
 	return response.HandleResultAndError(
-		payment.DeleteSubscriptionForGroup(context.GroupName),
+		payment.CancelSubscriptionForGroup(context.GroupName),
 	)
 }
 
