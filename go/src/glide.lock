@@ -289,10 +289,6 @@ imports:
   version: b9698164669e386680621e2006cab02271257611
   subpackages:
   - github
-- name: github.com/google/go-querystring
-  version: 9235644dd9e52eeae6fa48efd539fdc351a0af53
-  subpackages:
-  - query
 - name: github.com/gopherjs/gopherjs
   version: 72e303cb5f235b23471872477b57e573dc1c71d0
   subpackages:
@@ -1017,6 +1013,12 @@ imports:
   version: "287"
   subpackages:
   - bson
+- name: github.com/digitalocean/godo
+  version: 2ff8a02a86cd6918b384a5000ceebe886844fbce
+- name: github.com/google/go-querystring/query
+  version: 9235644dd9e52eeae6fa48efd539fdc351a0af53
+- name: github.com/tent/http-link-go
+  version: ac974c61c2f990f4115b119354b5e0b47550e888
 testImports:
 - name: github.com/vaughan0/go-ini
   version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1
