@@ -113,7 +113,8 @@ type MongoPerm struct {
 	Team *models.Group
 	Cred *models.Credential
 
-	Roles []string
+	Roles  []string
+	Member bool
 }
 
 var _ Perm = (*MongoPerm)(nil)
@@ -135,40 +136,135 @@ func (db *mongoDatabase) Validate(f *Filter, c *Cred) (Perm, error) {
 		return nil, err
 	}
 
-	var perm MongoPerm
-
-	perm.Acc, err = modelhelper.GetAccount(f.User)
-	if err != nil {
-		return nil, models.ResError(err, "jAccount")
+	perm := &MongoPerm{
+		Roles: f.Roles,
 	}
 
-	perm.Team, err = modelhelper.GetGroup(f.Team)
-	if err != nil {
-		return nil, models.ResError(err, "jGroup")
+	if len(perm.Roles) == 0 {
+		perm.Roles = []string{"user"}
 	}
 
-	perm.User, err = modelhelper.GetUser(f.User)
-	if err != nil {
-		return nil, models.ResError(err, "jUser")
+	switch cached := c.Perm.(type) {
+	case nil:
+	case *Filter:
+		// ignore
+	case *MongoPerm:
+		if cached.PermUser() != f.User {
+			c.Perm = nil
+			break
+		}
+
+		// If cached user matches the requested one,
+		// we don't need to query MongoDB again,
+		// we just reuse the existing model.
+		perm.Acc = cached.Acc
+		perm.User = cached.User
+
+		if cached.PermTeam() != f.Team {
+			c.Perm = nil
+			break
+		}
+
+		// If cached team matches the requested one,
+		// we don't need to query MongoDB again,
+		// we just reuse the existing model.
+		//
+		// Since both user and team are already
+		// fetched from MongoDB, it means they
+		// were validated for a member relationship,
+		// we don't need to test it again as well.
+		perm.Team = cached.Team
+		perm.Member = true
+
+		if !match(cached.PermRoles(), perm.Roles) {
+			c.Perm = nil
+			break
+		}
+
+		return c.Perm, nil
+	default:
+		if cached.PermUser() != f.User {
+			break
+		}
+
+		if cached.PermTeam() != f.Team {
+			break
+		}
+
+		if !match(cached.PermRoles(), perm.Roles) {
+			break
+		}
+
+		return c.Perm, nil
+	}
+
+	if perm.Acc == nil {
+		perm.Acc, err = modelhelper.GetAccount(f.User)
+		if err != nil {
+			return nil, models.ResError(err, "jAccount")
+		}
+	}
+
+	if perm.User == nil {
+		perm.User, err = modelhelper.GetUser(f.User)
+		if err != nil {
+			return nil, models.ResError(err, "jUser")
+		}
+	}
+
+	if perm.Team == nil {
+		perm.Team, err = modelhelper.GetGroup(f.Team)
+		if err != nil {
+			return nil, models.ResError(err, "jGroup")
+		}
+	}
+
+	if perm.Cred == nil {
+		perm.Cred, err = modelhelper.GetCredential(c.Ident)
+		if err != nil {
+			return nil, models.ResError(err, "jCredential")
+		}
+	}
+
+	if !perm.Member {
+		belongs := modelhelper.Selector{
+			"targetId": perm.Acc.Id,
+			"sourceId": perm.Team.Id,
+			"as": bson.M{
+				"$in": []string{"member"},
+			},
+		}
+
+		if count, err := modelhelper.RelationshipCount(belongs); err != nil || count == 0 {
+			if err == nil {
+				err = fmt.Errorf("user %q does not belong to %q group", f.User, f.Team)
+			}
+
+			return nil, models.ResError(err, "jRelationship")
+		}
 	}
 
 	belongs := modelhelper.Selector{
-		"targetId": perm.Acc.Id,
-		"sourceId": perm.Team.Id,
-		"as": bson.M{
-			"$in": []string{"member"},
+		"targetId": perm.Cred.Id,
+		"sourceId": bson.M{
+			"$in": []bson.ObjectId{perm.Acc.Id, perm.Team.Id},
 		},
+		"as": bson.M{"$in": perm.Roles},
 	}
 
 	if count, err := modelhelper.RelationshipCount(belongs); err != nil || count == 0 {
 		if err == nil {
-			err = fmt.Errorf("user %q does not belong to %q group", f.User, f.Team)
+			err = fmt.Errorf("user %q has no access to %q credential", f.User, c.Ident)
 		}
 
-		return nil, models.ResError(err, "jRelationships")
+		return nil, models.ResError(err, "jRelationship")
 	}
 
-	return nil, nil
+	if c.Perm == nil {
+		c.Perm = perm
+	}
+
+	return perm, nil
 }
 
 func (db *mongoDatabase) Creds(f *Filter) ([]*Cred, error) {
@@ -177,4 +273,26 @@ func (db *mongoDatabase) Creds(f *Filter) ([]*Cred, error) {
 
 func (db *mongoDatabase) SetCred(c *Cred) error {
 	return nil
+}
+
+func match(existing, expected []string) bool {
+	rolesMatch := true
+
+	for _, want := range expected {
+		var found bool
+
+		for _, got := range existing {
+			if want == got {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			rolesMatch = false
+			break
+		}
+	}
+
+	return rolesMatch
 }
