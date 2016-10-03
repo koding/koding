@@ -28,3 +28,13 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+.clearfix {
+  float: none;
+  clear: both;
+}
+
+.hidden {
+  display: none;
+  visibility: hidden;
+}
