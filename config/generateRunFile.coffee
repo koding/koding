@@ -568,6 +568,9 @@ generateDev = (KONFIG, options) ->
     elif [ "$1" == "gomodeltests" ]; then
       go test koding/db/mongodb/modelhelper -test.v=true
 
+    elif [ "$1" == "kontroltests" ]; then
+      go test koding/kites/kontrol/kontrol -v
+
     elif [ "$1" == "socialworkertests" ]; then
       $KONFIG_PROJECTROOT/scripts/node-testing/mocha-runner "$KONFIG_PROJECTROOT/workers/social"
 
