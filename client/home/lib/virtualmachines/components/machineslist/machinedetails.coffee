@@ -9,6 +9,7 @@ SharingAutocomplete = require './sharing/autocomplete'
 SharingUserList     = require './sharing/userlist'
 ContentModal        = require 'app/components/contentModal'
 EnvironmentFlux     = require 'app/flux/environment'
+KDReactorMixin  = require 'app/flux/base/reactormixin'
 
 
 module.exports = class MachineDetails extends React.Component
@@ -45,8 +46,18 @@ module.exports = class MachineDetails extends React.Component
   constructor: (props) ->
 
     super props
+
     @state =
       machineLabel: @props.machine.get 'label'
+      editNameClassName: 'GenericToggler-button'
+      inputClasssName: 'kdinput text edit-name hidden'
+    @input = null
+
+
+  getDataBindings: ->
+    return {
+      expandedMachineLabel: EnvironmentFlux.getters.expandedMachineLabelStore
+    }
 
 
   onSharingToggle: (checked) ->
@@ -202,19 +213,13 @@ module.exports = class MachineDetails extends React.Component
 
     <div className='GenericToggler'>
       <div className='GenericToggler-top edit-name'>
-        <div className='pull-left'>
-          <div className='GenericToggler-title'>
-            Edit VM Name
-          </div>
-          <div className='GenericToggler-description'>
-            You can change your VM name here
-          </div>
-        </div>
+        <EditVMNameDescription />
         <div className='pull-right'>
+          <EditNameButton cssClass={@state.editNameClassName} callback={@bound 'showInputBox'} />
           <input
-            ref='inputbox'
+            ref={ (inpt) => @input = inpt}
             value={@state.machineLabel}
-            className="kdinput text edit-name"
+            className={@state.inputClasssName}
             onChange={@bound 'inputOnChange'}
             onBlur={@bound 'inputOnBlur'}
             onKeyDown={@bound 'inputOnKeyDown'} />
@@ -223,21 +228,32 @@ module.exports = class MachineDetails extends React.Component
     </div>
 
 
+  showInputBox: ->
+
+    @setState
+      editNameClassName: 'GenericToggler-button hidden'
+      inputClasssName: 'kdinput text edit-name'
+
+
   inputOnBlur: (event) ->
 
     @setMachineLabel()
+    @setState
+      editNameClassName: 'GenericToggler-button'
+      inputClasssName: 'kdinput text edit-name hidden'
 
 
   inputOnKeyDown: (event) ->
 
     if event.keyCode is 13
-      @refs.inputbox.blur()
+      @input.blur()
 
 
   inputOnChange: (event) ->
 
     { value: machineLabel } = event.target
     @setState { machineLabel: machineLabel }
+    EnvironmentFlux.actions.loadExpandedMachineLabel machineLabel
 
 
   setMachineLabel: ->
@@ -298,3 +314,27 @@ generateSpecs = (machine) ->
 
   return specs
 
+
+EditVMNameDescription = ->
+  <div className='pull-left'>
+    <div className='GenericToggler-title'>
+      Edit VM Name
+    </div>
+    <div className='GenericToggler-description'>
+      You can change your VM name here
+    </div>
+  </div>
+
+
+EditNameButton = ({ cssClass, callback }) ->
+
+  <div className={cssClass}>
+    <a
+      className='custom-link-view HomeAppView--button primary fr'
+      href='#' onClick={callback}>
+      <span className='title'>Edit Name</span>
+    </a>
+  </div>
+
+
+MachineDetails.include [KDReactorMixin]
