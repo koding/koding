@@ -258,7 +258,7 @@ module.exports = class JUser extends jraphical.Module
         logError 'error finding session', { err, clientId }
         callback new KodingError err
 
-      else unless session?
+      else if not session
 
         # We couldn't find the session with given token
         # so we are creating a new one now.
@@ -267,6 +267,7 @@ module.exports = class JUser extends jraphical.Module
           if err?
             logError 'failed to create session', { err }
             callback err
+
           else
 
             # Voila session created and sent back, scenario #1
@@ -668,11 +669,15 @@ module.exports = class JUser extends jraphical.Module
     # use fake guest user
 
     if /^guest-/.test username
+
       JUser.fetchGuestUser (err, response) ->
-        return logout 'error fetching guest account'  if err
+
+        if err
+          return logout 'error fetching guest account', clientId, callback
 
         { account } = response
-        return logout 'guest account not found'  if not response?.account
+        if not response?.account
+          return logout 'guest account not found', clientId, callback
 
         account.profile.nickname = username
 
@@ -697,6 +702,7 @@ module.exports = class JUser extends jraphical.Module
         user.fetchAccount context, (err, account) ->
 
           if err?
+
             logout 'error fetching account', clientId, callback
 
           else
