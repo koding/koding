@@ -53,9 +53,6 @@ import:
   version: ^1.0.0
   subpackages:
   - redis
-- package: github.com/google/go-querystring
-  subpackages:
-  - query
 - package: github.com/gorilla/mux
   version: ^1.1.0
 - package: github.com/gorilla/schema
@@ -272,6 +269,9 @@ import:
 - package: github.com/ugorji/go
   subpackages:
   - codec
+- package: github.com/digitalocean/godo
+- package: github.com/google/go-querystring/query
+- package: github.com/tent/http-link-go
 ignore:
 - koding/tools/logger
 - koding/kite
