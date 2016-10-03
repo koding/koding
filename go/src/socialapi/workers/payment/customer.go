@@ -34,11 +34,19 @@ type Usage struct {
 	NextBillingDate time.Time        `json:"nextBillingDate"`
 	Subscription    *stripe.Sub      `json:"subscription"`
 	Customer        *stripe.Customer `json:"customer"`
+	Trial           *TrialInfo       `json:"trialInfo"`
 }
 
 // UserInfo holds current info about team's user info
 type UserInfo struct {
 	Total int `json:"total"`
+}
+
+// TrialInfo holds trial's info about team
+type TrialInfo struct {
+	User         *UserInfo    `json:"user"`
+	Due          uint64       `json:"due"`
+	ExpectedPlan *stripe.Plan `json:"expectedPlan"`
 }
 
 // DeleteCustomerForGroup deletes the customer for a given group. If customer is
@@ -102,24 +110,43 @@ func GetCustomerForGroup(groupName string) (*stripe.Customer, error) {
 
 // GetInfoForGroup get the current usage info of a group
 func GetInfoForGroup(group *models.Group) (*Usage, error) {
-	usage, err := fetchParallelizableeUsageItems(group)
+	usage, err := fetchParallelizableUsageItems(group)
 	if err != nil {
 		return nil, err
 	}
 
-	plan, err := getPlan(usage.Subscription, usage.User.Total)
-	if err != nil {
+	var g errgroup.Group
+	g.Go(func() error {
+		expectedPlan, err := getPlan(usage.Subscription, usage.User.Total)
+		if err != nil {
+			return err
+		}
+		usage.ExpectedPlan = expectedPlan
+		usage.Due = uint64(usage.User.Total) * expectedPlan.Amount
+		return nil
+	})
+
+	g.Go(func() error {
+		if usage.Trial.User.Total == 0 {
+			return nil
+		}
+		trialPlan, err := getPlan(usage.Subscription, usage.Trial.User.Total)
+		if err != nil {
+			return err
+		}
+		usage.Trial.ExpectedPlan = trialPlan
+		usage.Trial.Due = uint64(usage.Trial.User.Total) * trialPlan.Amount
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
 		return nil, err
 	}
-
-	usage.ExpectedPlan = plan
-	usage.Due = uint64(usage.User.Total) * plan.Amount
 
 	return usage, nil
-
 }
 
-func fetchParallelizableeUsageItems(group *models.Group) (*Usage, error) {
+func fetchParallelizableUsageItems(group *models.Group) (*Usage, error) {
 	var g errgroup.Group
 
 	// Stripe customer.
@@ -151,6 +178,17 @@ func fetchParallelizableeUsageItems(group *models.Group) (*Usage, error) {
 		return err
 	})
 
+	// Trialing user count is set if only sub is trialing.
+	var trialCount int
+	g.Go(func() (err error) {
+		if group.Payment.Subscription.Status != "trialing" {
+			return nil
+		}
+
+		trialCount, err = (&socialapimodels.PresenceDaily{}).CountDistinctProcessedByGroupName(group.Slug)
+		return err
+	})
+
 	if err := g.Wait(); err != nil {
 		return nil, err
 	}
@@ -164,6 +202,11 @@ func fetchParallelizableeUsageItems(group *models.Group) (*Usage, error) {
 		NextBillingDate: time.Unix(subscription.PeriodEnd, 0),
 		Subscription:    subscription,
 		Customer:        cus,
+		Trial: &TrialInfo{
+			User: &UserInfo{
+				Total: trialCount,
+			},
+		},
 	}
 
 	return usage, nil
