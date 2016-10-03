@@ -27,6 +27,7 @@ ActiveStackStore                  = ['ActiveStackStore']
 TeamStackTemplatesStore           = ['TeamStackTemplatesStore']
 PrivateStackTemplatesStore        = ['PrivateStackTemplatesStore']
 SelectedTemplateIdStore           = ['SelectedTemplateIdStore']
+expandedMachineLabelStore         = ['ExpandedMachineLabelStore']
 
 
 workspacesWithChannels = [
@@ -252,4 +253,5 @@ module.exports = {
   draftStackTemplates
   disabledUsersStacks
   disabledUsersStackTemplates
+  expandedMachineLabelStore
 }
