@@ -8,7 +8,7 @@ TeamFlux             = require 'app/flux/teams'
 AppFlux              = require 'app/flux'
 whoami               = require 'app/util/whoami'
 remote               = require 'app/remote'
-camilizeString = require 'app/util/camelizeString'
+camelizeString = require 'app/util/camelizeString'
 toImmutable = require 'app/util/toImmutable'
 canSeeMembers = require 'app/util/canSeeMembers'
 isAdmin = require 'app/util/isAdmin'
@@ -52,7 +52,7 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
     TeamFlux.actions.focusSendInvites yes  if action is 'send-invites'
 
     @scroll = yes
-    @scrollToSection = camilizeString action
+    @scrollToSection = camelizeString action
 
     @scrollToSectionArea()
 

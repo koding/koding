@@ -165,8 +165,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
         fetchRelativeGroups:
           (signature Function)
-        setLastLoginTimezoneOffset:
-          (signature Object, Function)
         expireSubscription:
           (signature Function)
         fetchOtaToken:
@@ -1277,14 +1275,6 @@ module.exports = class JAccount extends jraphical.Module
         callback null, user.getAt key
 
 
-  setLastLoginTimezoneOffset: secure (client, options, callback) ->
-    { lastLoginTimezoneOffset } = options
-
-    return callback new KodingError 'timezone offset is not set'  unless lastLoginTimezoneOffset?
-
-    @update { $set: { lastLoginTimezoneOffset } }, (err) ->
-      return callback new KodingError 'Could not update last login timezone offset' if err
-      callback null
 
   expireSubscription: secure ({ connection }, callback) ->
     if KONFIG.environment is 'production'
