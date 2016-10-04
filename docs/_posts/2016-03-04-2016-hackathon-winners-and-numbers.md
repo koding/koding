@@ -47,6 +47,6 @@ And because they did an amazing job, we're giving two additional prizes to the f
 
 ### HACKATHON BY THE NUMBERS
 
-This year's event beat the [last years numbers]({{ site.url }}blog/2014/12/31/koding-hackathon-by-the-numbers.html) by a very healthy margin. We couldn't be more happpy and thankful to our community of users for such outstanding participation.
+This year's event beat the [last years numbers]({{ site.url }}/2014/12/31/koding-hackathon-by-the-numbers.html) by a very healthy margin. We couldn't be more happpy and thankful to our community of users for such outstanding participation.
 
 ![2016-hackathon-infographic.png](http://cdn2.hubspot.net/hubfs/1593820/Hackathon/2016-hackathon-infographic.png "2016-hackathon-infographic.png")
