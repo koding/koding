@@ -1,3 +1,4 @@
+_ = require 'lodash'
 makeHttpClient = require 'app/util/makeHttpClient'
 { pickData } = makeHttpClient.helpers
 
@@ -50,8 +51,12 @@ exports.deleteCreditCard = deleteCreditCard = pickData ->
 exports.fetchInvoices = fetchInvoices = pickData ->
   client.get Endpoints.InvoiceList
 
-exports.fetchInfo = fetchInfo = pickData ->
-  client.get Endpoints.Info
+exports.fetchInfo = fetchInfo = ->
+  client.get(Endpoints.Info).then ({ data: info }) ->
+    # if status is trialing, use `trialInfo`
+    if info.subscription.status is 'trialing'
+      info = _.assign(_.omit(info, 'trialInfo'), info.trialInfo)
+    return info
 
 
 getTimestamp = (date) ->
