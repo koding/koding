@@ -98,7 +98,7 @@ type Validator interface {
 // InfoResponse is returned from a info method
 type InfoResponse struct {
 	// State defines the state of the machine
-	State machinestate.State `json:"state"`
+	State machinestate.State `json:"State"`
 
 	// Name defines the name of the machine.
 	Name string `json:"name,omitempty"`

@@ -42,7 +42,7 @@ var Plans = map[string]*stripe.PlanParams{
 	},
 
 	UpTo10Users: &stripe.PlanParams{
-		Amount:        4997,
+		Amount:        4990,
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
 		TrialPeriod:   7,
@@ -53,7 +53,7 @@ var Plans = map[string]*stripe.PlanParams{
 	},
 
 	UpTo50Users: &stripe.PlanParams{
-		Amount:        3997,
+		Amount:        3990,
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
 		TrialPeriod:   7,
@@ -64,7 +64,7 @@ var Plans = map[string]*stripe.PlanParams{
 	},
 
 	Over50Users: &stripe.PlanParams{
-		Amount:        3497,
+		Amount:        3490,
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
 		TrialPeriod:   7,
