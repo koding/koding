@@ -14,7 +14,7 @@
   var initialize = function() {
 
     document.addEventListener('click', function(e) {
-      if (e.target.id != "dropdown-selection" && dropdown && dropdown.classList.contains('is-shown')) {
+      if (!e.target.closest('.Dropdown') && dropdown && dropdown.classList.contains('is-shown')) {
         dropdown.classList.remove('is-shown');
       }
     }, true);

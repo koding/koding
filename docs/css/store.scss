@@ -539,6 +539,7 @@ hr {
           input {
             padding-top: 12px;
             padding-bottom: 10px;
+            padding-left: 14px;
             font-size: 16px;
           }
         }
@@ -831,10 +832,15 @@ hr {
 
     .container {
       max-width: 910px;
-      padding-bottom: 20px;
+      padding-bottom: 37px;
 
       > div {
         float: none;
+        text-align: center;
+      }
+
+      .StoreResults-resultsFilters .search-container {
+        text-align: left;
       }
     }
   }
@@ -865,7 +871,9 @@ hr {
 @media (max-width: 991px) {
 
   .StoreResults-filterContainer {
-    margin-top: 43px;
+    .StoreResults-resultsLabel {
+      padding-top: 41px;
+    }
   }
 
   .StacksHero {
@@ -970,6 +978,14 @@ hr {
 
   .StoreResults-filterContainer .container {
     max-width: 758px;
+
+    .StoreResults-resultsFilters .search-container {
+      width: 604px;
+
+      .SearchBar {
+        width: 465px;
+      }
+    }
   }
 
   .StacksHero {
@@ -1009,10 +1025,45 @@ hr {
 
 @media (max-width: 758px) {
 
-  .StoreResults-filterContainer .StoreResults-resultsFilters .Button.Button--back {
-    display: block;
-    margin-left: 0;
-    margin-top: 20px;
+  .StoreResults-filterContainer .container {
+    padding-bottom: 20px;
+
+    .StoreResults-resultsFilters {
+      width: 352px;
+      margin-left: auto;
+      margin-right: auto;
+
+      .search-container {
+        width: 100%;
+
+        .Dropdown {
+          width: 100%;
+          z-index: 2;
+
+          .Dropdown-selection {
+            border-right: 0;
+
+            &:after {
+              right: 17px;
+            }
+          }
+        }
+
+        .SearchBar {
+          width: 100%;
+          border-top: 1px solid $alto;
+          border-top-right-radius: 0;
+          z-index: 1;
+        }
+      }
+
+      .Button.Button--back {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 20px;
+      }
+    }
   }
 
   .StacksHero h1 {
