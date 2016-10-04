@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-	"github.com/stripe/stripe-go"
+	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/coupon"
 	"github.com/stripe/stripe-go/currency"
 	"github.com/stripe/stripe-go/plan"
@@ -29,7 +29,7 @@ func withStubData(f func(username string, groupName string, sessionID string)) {
 	ses, err := models.FetchOrCreateSession(acc.Nick, groupName)
 	tests.ResultedWithNoErrorCheck(ses, err)
 
-	cus, err := CreateCustomerForGroup(acc.Nick, groupName, &stripe.CustomerParams{})
+	cus, err := EnsureCustomerForGroup(acc.Nick, groupName, &stripe.CustomerParams{})
 	tests.ResultedWithNoErrorCheck(cus, err)
 
 	f(acc.Nick, groupName, ses.ClientId)
