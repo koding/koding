@@ -1,4 +1,3 @@
-_ = require 'lodash'
 immutable = require 'app/util/immutable'
 dateDiffInDays = require 'app/util/dateDiffInDays'
 { createSelector } = require 'reselect'
@@ -47,7 +46,7 @@ endsAt = createSelector(
 )
 
 
-module.exports = _.assign reducer, {
+module.exports = {
   namespace: withNamespace()
   schema
   reducer

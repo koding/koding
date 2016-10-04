@@ -1,8 +1,5 @@
 immutable = require 'app/util/immutable'
 
-_ = require 'lodash'
-immutable = require 'app/util/immutable'
-
 { makeNamespace, expandActionType,
   normalize, defineSchema } = require 'app/redux/helper'
 
@@ -35,7 +32,7 @@ exports.load = load = ->
   }
 
 
-module.exports = _.assign reducer, {
+module.exports = {
   namespace: withNamespace()
   reducer
   load

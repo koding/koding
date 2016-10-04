@@ -67,7 +67,7 @@ remove = ->
   }
 
 
-module.exports = _.assign reducer, {
+module.exports = {
   namespace: withNamespace()
   reducer
 

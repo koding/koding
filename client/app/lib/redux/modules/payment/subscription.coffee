@@ -76,6 +76,11 @@ remove = ->
 # Selectors
 ##
 
+makePlanAmount = (userCount) ->
+  switch
+    when userCount < 10 then ''
+
+
 plan = (state) -> state.subscription?.plan
 
 
@@ -122,7 +127,7 @@ daysLeft = createSelector(
 )
 
 
-module.exports = _.assign reducer, {
+module.exports = {
   namespace: withNamespace()
   schema
   reducer

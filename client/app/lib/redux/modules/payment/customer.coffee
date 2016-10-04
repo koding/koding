@@ -1,4 +1,3 @@
-_ = require 'lodash'
 immutable = require 'app/util/immutable'
 
 { makeNamespace, expandActionType, normalize } = require 'app/redux/helper'
@@ -63,7 +62,7 @@ coupon = (state) -> state.customer?.discount?.coupon
 email = (state) -> state.customer?.email
 
 
-module.exports = _.assign reducer, {
+module.exports = {
   namespace: withNamespace()
   schema
   reducer
