@@ -77,6 +77,7 @@ module.exports = class VirtualMachinesListView extends React.Component
           shouldRenderPower={yes}
           shouldRenderAlwaysOn={yes}
           shouldRenderSharing={yes}
+          shouldRenderEditName={yes}
           onChangeAlwaysOn={@lazyBound 'onChangeAlwaysOn', machine}
           onChangePowerStatus={@lazyBound 'onChangePowerStatus', machine}
           onSharedWithUser={@lazyBound 'onSharedWithUser', machine}

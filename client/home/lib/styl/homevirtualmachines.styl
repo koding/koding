@@ -44,31 +44,17 @@ $borderColor                = #CACACA
     > div
       flex                  0 0 auto
       margin                0 30px 0 0
-      padding               6px 0 0
+      padding               4px 0 0
 
       &:last-of-type
         margin-right        0
 
     .MachinesListItem-machineLabel
-      margin-right          18px
-      .kdinput.text
-        flex                0 1 auto
-        padding-top         7px
-        padding-bottom      7px
-        margin              -16px 0 0 18px
-        width               150px
-        padding-left        10px
-        ellipsis()
-        pointer()
-        border              1px solid transparent
-        border-radius       3px
-        box-shadow          none
-        cursor              text
-        pointer-events      none
-
-        &:focus
-          pointer-events    auto
-          border            1px solid #e3e3e3
+      flex                0 1 auto
+      width               150px
+      padding-left        22px
+      ellipsis()
+      pointer()
 
     .SidebarListItem-progressbar
       abs                   76px 0 0 0px
@@ -101,12 +87,13 @@ $borderColor                = #CACACA
       flex                  1 0 auto
       text-transform        uppercase
       margin                0 20px 0 0
-      margin-top            2px
+      margin-top            1px
       .HomeAppView--button
         ellipsis()
         width               160px
         margin-left         0
         color               #9f9f9f
+        font-size           15px
 
 
 .HomeAppViewVMSection
@@ -148,11 +135,10 @@ $borderColor                = #CACACA
 
 
 .MachinesListItem-machineLabel
-  .kdinput.text
-    color                     $titleColor
-    font-size                 16px
-    font-weight               600
-    letter-spacing            .2px
+  color                     $titleColor
+  font-size                 16px
+  font-weight               600
+  letter-spacing            .2px
 
   &:before
     content                 ''
@@ -217,13 +203,16 @@ $borderColor                = #CACACA
       font-weight           600
 
     .GenericToggler-button
-      margin-top            19px
+      margin-top            5px
 
       &.disabled
         pointer-events      none
         .HomeAppView--button
           color             #9f9f9f
           opacity           0.5
+
+    .edit-name
+      width 100%
 
 
   .GenericToggler-top
@@ -236,14 +225,27 @@ $borderColor                = #CACACA
 
     .pull-right
       flex                  0 0 auto
+      margin-top            6px
+      &.with-input
+        margin              -6px 0px
 
     .pull-left
       flex                  1 0 auto
 
+    &.edit-name
+      padding               25px 0
+
+    &.build-logs
+      padding-bottom        0px
 
 .MachineDetails-SpecsList
-  margin                    45px 0 0
-  padding-bottom            25px
+
+  border-top                1px solid #cacaca
+  margin                    35px 0 0
+  padding                   30px 0
+
+  &.notReady
+    border-top              none
 
   .SingleSpecItem
     bg                      color #E8F5F9
