@@ -16,7 +16,7 @@ Do you see '{{ random.first_name }}.txt' in the list?
 Switch to the incognito window, click on 'ACCEPT' button on the pop-up appeared
 Do you see '/home/rainforestqa99' label on top of a file list next to left sidebar? Do you see '{{ random.first_name }}.txt' in the file list under '/home/rainforestqa99' label? Do you see 'Terminal' tab on the bottom? Do you see 'rainforestqa99@rainforestqa99:~$' in that 'Terminal' tab?
 
-Click on the area under 'Untitled.txt' on top, double click on the '{{ random.first_name }}.txt' file 
+Click on the area under 'Untitled.txt' on top, then double click on the '{{ random.first_name }}.txt' file 
 Do you see that it's empty?
 
 Type "{{ random.full_name }}" in it, click on the little down arrow next to '{{ random.first_name }}.txt' label above and then select 'Save'
