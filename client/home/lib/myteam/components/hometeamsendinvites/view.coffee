@@ -22,11 +22,7 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
     inviteInput = @props.inputValues.toList().get(rowIndex)
     checked = inviteInput.get('canEdit')
 
-    { focusFirstEmail } = @props
-
     userEmailClassName = 'kdinput text user-email'
-    userEmailClassName = 'kdinput text user-email focus-first-email'  if focusFirstEmail
-
 
     <div className='kdview invite-inputs'>
       <input type='text' className={userEmailClassName} placeholder='mail@example.com' value={inviteInput.get 'email'} onChange={@props.onInputChange.bind(this, rowIndex, 'email')} />

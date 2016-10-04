@@ -49,7 +49,6 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
 
   handleAction: (action) ->
 
-    TeamFlux.actions.focusSendInvites yes  if action is 'send-invites'
 
     @scroll = yes
     @scrollToSection = camelizeString action
