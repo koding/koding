@@ -1028,10 +1028,17 @@ hr {
   .StoreResults-filterContainer .container {
     padding-bottom: 20px;
 
+    .StoreResults-resultsLabel {
+      padding-top: 31px;
+      font-size: 20px;
+      line-height: 24px;
+    }
+
     .StoreResults-resultsFilters {
       width: 352px;
       margin-left: auto;
       margin-right: auto;
+      margin-top: 23px;
 
       .search-container {
         width: 100%;
