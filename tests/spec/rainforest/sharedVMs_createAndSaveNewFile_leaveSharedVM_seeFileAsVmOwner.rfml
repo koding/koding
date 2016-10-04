@@ -16,7 +16,7 @@ Is 'Untitled.txt' added to that pane?
 Type "{{ random.full_name }}" in it, click on the little down arrow next to 'Untitled.txt' and select 'Save'
 Do you see 'Filename:' title and a text field with 'Untitled.txt' in it? Do you see 'Select a folder:' title? Do you see 'CANCEL' and 'SAVE' buttons?
 
-Type '{{ random.first_name }}' instead of 'Untitled' and click on 'SAVE' button
+Type "{{ random.first_name }}" instead of 'Untitled' and click on 'SAVE' button
 Is '{{ random.first_name }}.txt' added to the pane instead of 'Untitled.txt'? Is it also added to the end of file list under '/home/rainforestqa99'?
 
 Move your mouse over 'test(@rainforestqa99)' label on left sidebar under 'SHARED VMS' and click on the button appeared next to it
