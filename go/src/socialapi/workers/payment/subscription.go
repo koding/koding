@@ -91,15 +91,15 @@ func GetSubscriptionForGroup(groupName string) (*stripe.Sub, error) {
 	return sub.Get(group.Payment.Subscription.ID, nil)
 }
 
-// CreateSubscriptionForGroup creates a subscription for a group
-func CreateSubscriptionForGroup(groupName string, params *stripe.SubParams) (*stripe.Sub, error) {
+// EnsureSubscriptionForGroup ensures subscription for a group
+func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*stripe.Sub, error) {
 	group, err := modelhelper.GetGroup(groupName)
 	if err != nil {
 		return nil, err
 	}
 
 	if group.Payment.Subscription.ID != "" {
-		return nil, ErrGroupAlreadyHasSub
+		return sub.Get(group.Payment.Subscription.ID, nil)
 	}
 
 	if group.Payment.Customer.ID == "" {
@@ -107,6 +107,15 @@ func CreateSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 	}
 
 	thirtDaysLater := time.Now().UTC().Add(30 * 24 * time.Hour).Unix()
+
+	if params == nil {
+		params = &stripe.SubParams{
+			Customer: group.Payment.Customer.ID,
+			Plan:     Plans[UpTo10Users].ID,
+			TrialEnd: thirtDaysLater,
+		}
+	}
+
 	// this might be changed in the future
 	if params.TrialEnd > thirtDaysLater {
 		params.TrialEnd = thirtDaysLater

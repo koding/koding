@@ -281,7 +281,7 @@ func handleSubChange(info *Usage) error {
 		Plan:     planID,
 		Quantity: uint64(info.User.Total),
 	}
-	sub, err := CreateSubscriptionForGroup(groupName, params)
+	sub, err := EnsureSubscriptionForGroup(groupName, params)
 	if err != nil {
 		return err
 	}
