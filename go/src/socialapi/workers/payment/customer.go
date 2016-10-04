@@ -54,7 +54,7 @@ type TrialInfo struct {
 func EnsureCustomerForGroup(username string, groupName string, req *stripe.CustomerParams) (*stripe.Customer, error) {
 	group, err := modelhelper.GetGroup(groupName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// if we already have the customer, return it.
@@ -62,7 +62,7 @@ func EnsureCustomerForGroup(username string, groupName string, req *stripe.Custo
 		return customer.Get(group.Payment.Customer.ID, nil)
 	}
 
-	req, err := populateCustomerParams(username, group.Slug, req)
+	req, err = populateCustomerParams(username, group.Slug, req)
 	if err != nil {
 		return nil, err
 	}
@@ -115,6 +115,11 @@ func DeleteCustomerForGroup(groupName string) error {
 // UpdateCustomerForGroup updates customer data of a group`
 func UpdateCustomerForGroup(username, groupName string, params *stripe.CustomerParams) (*stripe.Customer, error) {
 	if _, err := EnsureCustomerForGroup(username, groupName, params); err != nil {
+		return nil, err
+	}
+
+	group, err := modelhelper.GetGroup(groupName)
+	if err != nil {
 		return nil, err
 	}
 
@@ -207,7 +212,7 @@ func fetchParallelizableUsageItems(group *models.Group, username string) (*Usage
 	// Stripe customer.
 	var cus *stripe.Customer
 	g.Go(func() (err error) {
-		cus, err = EnsureCustomerForGroup(username, group, nil)
+		cus, err = EnsureCustomerForGroup(username, group.Slug, nil)
 		return err
 	})
 

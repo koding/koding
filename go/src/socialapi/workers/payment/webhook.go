@@ -11,11 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"gopkg.in/mgo.v2"
-
-	"github.com/stripe/stripe-go"
+	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/customer"
 	stripeinvoice "github.com/stripe/stripe-go/invoice"
+	mgo "gopkg.in/mgo.v2"
 )
 
 const (
@@ -263,10 +262,10 @@ func invoiceCreatedHandler(raw []byte) error {
 		}
 	}
 
-	return handleSubChange(info)
+	return switchToNewSub(info)
 }
 
-func handleSubChange(info *Usage) error {
+func switchToNewSub(info *Usage) error {
 	groupName := info.Customer.Meta["groupName"]
 
 	planID := GetPlanID(info.User.Total)

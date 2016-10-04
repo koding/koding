@@ -4,7 +4,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"time"
 
-	"github.com/stripe/stripe-go"
+	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/sub"
 )
 
@@ -26,7 +26,7 @@ func CancelSubscriptionForGroup(groupName string) (interface{}, error) {
 		return nil, err
 	}
 
-	if err := handleSubChange(info); err != nil {
+	if err := switchToNewSub(info); err != nil {
 		return nil, err
 	}
 
