@@ -210,11 +210,14 @@ module.exports = class MachineDetails extends React.Component
   renderEditName: ->
 
     return  unless @props.shouldRenderEditName
+    pullRight = 'pull-right'
+    unless @state.inputClasssName.indexOf('hidden') > 0
+      pullRight = 'pull-right with-input'
 
     <div className='GenericToggler'>
       <div className='GenericToggler-top edit-name'>
         <EditVMNameDescription />
-        <div className='pull-right'>
+        <div className={pullRight}>
           <EditNameButton cssClass={@state.editNameClassName} callback={@bound 'showInputBox'} />
           <input
             ref={ (inpt) => @input = inpt}
@@ -233,6 +236,7 @@ module.exports = class MachineDetails extends React.Component
     @setState
       editNameClassName: 'GenericToggler-button hidden'
       inputClasssName: 'kdinput text edit-name'
+    kd.utils.defer => @input?.focus()
 
 
   inputOnBlur: (event) ->

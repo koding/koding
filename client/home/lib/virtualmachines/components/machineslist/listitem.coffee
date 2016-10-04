@@ -132,13 +132,14 @@ module.exports = class MachinesListItem extends React.Component
     expanded = if @props.machine.get('label') is @state.selectedMachine
     then ' expanded'
     else ''
+    machineName = @state.expandedMachineLabel if expanded
 
     <div className="MachinesListItem#{expanded}">
       <header className='MachinesListItem-header'>
         <div
           className="MachinesListItem-machineLabel #{@props.machine.getIn ['status', 'state']}"
           onClick={@bound 'toggle'}>
-          {@state.expandedMachineLabel or @props.machine.get 'label'}
+          {machineName or @props.machine.get 'label'}
           {@renderProgressbar()}
         </div>
         {@renderIpAddress()}
