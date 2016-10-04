@@ -12,9 +12,7 @@ We are stoked to announce that today Koding for teams will just be Koding. We c
 
 <!--more-->
 
-Beginning today, Koding will be one product; that is **Koding For Teams, which we will call “Koding.”**It is now a development environment as a service that helps you and your team hit the ground coding without the hassle of setting up your dev. environments.
-
-> If you'd like to login to your old account, click: [https://koding.com/Login](https://koding.com/Login)
+Beginning today, Koding will be one product; that is **Koding For Teams, which we will call “Koding”**. It is now a development environment as a service that helps you and your team hit the ground coding without the hassle of setting up your dev. environments.
 
 You ask, but why? Let’s get to it.
 
@@ -34,7 +32,7 @@ In 2015 we released KD, a way to [connect your own VMs to Koding](http://www.kod
 
 ## Remove Confusion, and have a clear message
 
-### 1- Koding is <span style="text-decoration: line-through;">an Online IDE</span> Dev. Environment Automation platform.
+### 1- Koding is ~~an Online IDE~~ Dev. Environment Automation platform.
 
 We never wanted to be called an Online IDE. We have always wanted developers to use their own IDEs, and now, they can do just that. We never thought a single IDE would unite all developers anyway, and being browser-only can be a huge pain point. A web IDE is great for collaboration but as a developer, you want Sublime, Eclipse, IntelliJ etc. Their feature-set cannot be rewritten into one tool.
 
@@ -44,7 +42,7 @@ We saw in our usage data that, outside of collaboration, developers return to th
 
 _What I like most about this graph is that 10% of our collaboration sessions were with more than 50 people._
 
-### 2- Koding <span style="text-decoration: line-through;">teaches</span> allows you to code.
+### 2- Koding ~~teaches~~ allows you to code.
 
 Koding is not a teaching platform like Coursera or Udacity. By providing easy access to VMs, and by promising things like: “Development on Koding is easy” and “You don’t need to install anything” we inadvertently opened the floodgates for people who had never seen a terminal in their lives. When that happened, we tried to help them as much as we could, but this was a major distraction to us. They confused Koding for a code teaching platform, but it was only meant to be easy access to a well configured computer. We created Koding Package Manager [(KPM) and countless docs to make it easier for them - how to install wordpress, drupal, angular, or react - but in reality, Koding is meant for developers and not meant for absolute beginners.](https://www.koding.com/docs/getting-started-kpm)
 
@@ -66,6 +64,6 @@ _Receiving hundreds of these everyday is not the funnest part of our lives._
 
 It’s exactly like we say: “Flawlessly configured dev environments in one click.” You write the stack script, and your entire dev environment is configured for your team and everyone that joins your team. Share your cloud credentials with the team, or use your own localhost. We enjoy using it and hope you will too. We are no longer offering single developer accounts, registration for our solo product has closed. If you have an account and you’re actively using it, meaning you log in at least once per week, you can keep your VM and work on it as usual. If you paid for an account, you will experience no changes. Koding is free for teams up to 4 people, so go sign up and have fun. We mean it, seeing all those servers auto-provision in real time is a lot of fun!
 
-: > Code on!
+:> Code on!
 
 Devrim & Team Koding
