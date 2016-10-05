@@ -35,7 +35,7 @@ type KodingKiteWithToken struct {
 
 // HandleGetKodingKites implements GetKites with additional Koding specific response
 // data.
-func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
+func HandleGetKodingKites(handleGetKites kite.HandlerFunc, environment string) kite.HandlerFunc {
 	return func(req *kite.Request) (interface{}, error) {
 		// getKitesResponse is an interface, not the actual GetKitesResult value.
 		getKitesResponse, err := handleGetKites(req)
@@ -150,6 +150,11 @@ func HandleGetKodingKites(handleGetKites kite.HandlerFunc) kite.HandlerFunc {
 			for _, kite := range kites {
 				kite.Teams = append(kite.Teams, group.Title)
 			}
+		}
+
+		// if env is default, do not filter the unpaid team's content
+		if environment == "default" {
+			return result, nil
 		}
 
 		return filterResult(result, groups, kitesByGroupID), nil
