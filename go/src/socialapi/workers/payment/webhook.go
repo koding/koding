@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/workers/api/realtimehelper"
@@ -136,15 +137,68 @@ func customerSubscriptionDeletedHandler(raw []byte) error {
 		return err
 	}
 
+	// on sub deletion, remove info from db.
+	if err := unsetSubInfo(req); err != nil {
+		return err
+	}
+
 	eventName := fmt.Sprintf("unsubscribed from %s plan", req.Plan.ID)
 
 	return sendEventForCustomer(req.Customer.ID, eventName, nil)
+}
+
+func getGroupInfoFromSub(req *stripe.Sub) (*mongomodels.Group, error) {
+	cus, err := customer.Get(req.Customer.ID, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return modelhelper.GetGroup(cus.Meta["groupName"])
+}
+
+func unsetSubInfo(req *stripe.Sub) error {
+	group, err := getGroupInfoFromSub(req)
+	if err == mgo.ErrNotFound {
+		return nil
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if group.Payment.Subscription.ID == req.ID && group.Payment.Subscription.Status == string(req.Status) {
+		return nil
+	}
+
+	return unsetSubData(group.Id)
+}
+
+func setSubInfo(req *stripe.Sub) error {
+	group, err := getGroupInfoFromSub(req)
+	if err == mgo.ErrNotFound {
+		return nil
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if group.Payment.Subscription.ID == req.ID && group.Payment.Subscription.Status == string(req.Status) {
+		return nil
+	}
+
+	return setSubData(group.Id, req)
 }
 
 func customerSubscriptionUpdatedHandler(raw []byte) error {
 	var req *stripe.Sub
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
+		return err
+	}
+
+	// on sub update, update info from db.
+	if err := setSubInfo(req); err != nil {
 		return err
 	}
 
