@@ -2,6 +2,7 @@
 { connect } = require 'react-redux'
 { createSelector } = require 'reselect'
 
+getGroup = require 'app/util/getGroup'
 getGroupStatus = require 'app/util/getGroupStatus'
 
 { CREATE_TOKEN } = stripe = require 'app/redux/modules/stripe'
@@ -35,7 +36,7 @@ formMessages[Status.PAST_DUE] = formMessages[Status.CANCELED] =
 
 formMessage = createSelector(
   stripe.lastAction
-  (lastAction) -> formMessages[lastAction or getGroupStatus()]
+  (lastAction) -> formMessages[lastAction or getGroupStatus(getGroup())]
 )
 
 submitting = (formName) -> (state) -> state.form[formName]?.submitting
