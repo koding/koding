@@ -13,8 +13,8 @@
 
   var initialize = function() {
 
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('.Dropdown') && dropdown && dropdown.classList.contains('is-shown')) {
+    document.addEventListener('click', function(evt) {
+      if (!evt.target.closest('.Dropdown') && dropdown && dropdown.classList.contains('is-shown')) {
         dropdown.classList.remove('is-shown');
       }
     }, true);
