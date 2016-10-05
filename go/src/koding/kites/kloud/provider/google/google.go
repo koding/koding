@@ -17,7 +17,7 @@ var p = &provider.Provider{
 	Name:         "google",
 	ResourceName: "compute_instance",
 	Machine:      newMachine,
-	Stack:        nil,
+	Stack:        newStack,
 	Schema: &provider.Schema{
 		NewCredential: newCredential,
 		NewBootstrap:  newBootstrap,

@@ -40,6 +40,10 @@ var (
 	_ stack.Stacker  = (*Stack)(nil) // internal API
 )
 
+func newStack(bs *provider.BaseStack) (provider.Stack, error) {
+	return &Stack{BaseStack: bs}, nil
+}
+
 func (s *Stack) VerifyCredential(c *stack.Credential) error {
 	cred := c.Credential.(*Cred)
 
@@ -139,6 +143,7 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 
 		labels := []string{resourceName}
 		if count > 1 {
+			labels = labels[:0]
 			for i := 0; i < count; i++ {
 				labels = append(labels, fmt.Sprintf("%s.%d", resourceName, i))
 			}
