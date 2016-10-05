@@ -1,11 +1,11 @@
 React = require 'react'
 { storiesOf, action } = require '@kadira/storybook'
 
-GroupSuspendedMemberModal = require './GroupSuspendedMemberModal'
+SuspendedMemberModal = require './SuspendedMemberModal'
 
-storiesOf 'GroupSuspendedMemberModal', module
+storiesOf 'SuspendedMemberModal', module
   .add 'default', ->
-    <GroupSuspendedMemberModal
+    <SuspendedMemberModal
       isOpen={yes}
       onButtonClick={action 'button clicked'} />
 
