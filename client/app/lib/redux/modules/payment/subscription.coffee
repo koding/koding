@@ -1,34 +1,34 @@
 _ = require 'lodash'
-immutable = require 'app/util/immutable'
 { createSelector } = require 'reselect'
+
+immutable = require 'app/util/immutable'
 dateDiffInDays = require 'app/util/dateDiffInDays'
 
-{ makeNamespace, expandActionType, normalize } = require 'app/redux/helper'
-
-{
-  subscription: schema, info: infoSchema, customer: customerSchema
-} = require './schemas'
-
-withNamespace = makeNamespace 'koding', 'payment', 'subscription'
+reduxHelper = require 'app/redux/helper'
+schemas = require './schemas'
 
 customer = require './customer'
 info = require './info'
 
-LOAD = expandActionType withNamespace 'LOAD'
-CREATE = expandActionType withNamespace 'CREATE'
-REMOVE = expandActionType withNamespace 'REMOVE'
+withNamespace = reduxHelper.makeNamespace 'koding', 'payment', 'subscription'
+
+LOAD = reduxHelper.expandActionType withNamespace 'LOAD'
+CREATE = reduxHelper.expandActionType withNamespace 'CREATE'
+REMOVE = reduxHelper.expandActionType withNamespace 'REMOVE'
 
 
 reducer = (state = null, action) ->
 
+  { normalize } = reduxHelper
+
   switch action.type
 
     when LOAD.SUCCESS, CREATE.SUCCESS
-      normalized = normalize action.result, schema
+      normalized = normalize action.result, schemas.subscription
       return immutable normalized.first 'subscription'
 
     when customer.LOAD.SUCCESS, customer.CREATE.SUCCESS, customer.UPDATE.SUCCESS
-      normalized = normalize action.result, customerSchema
+      normalized = normalize action.result, schemas.customer
 
       if subscription = normalized.first 'subscriptions'
         return immutable subscription
@@ -36,7 +36,7 @@ reducer = (state = null, action) ->
       return null
 
     when info.LOAD.SUCCESS
-      normalized = normalize action.result, infoSchema
+      normalized = normalize action.result, schemas.info
       subscription = _.assign {}, normalized.first('subscription'),
         plan: normalized.first 'expectedPlan'
 
@@ -129,7 +129,6 @@ daysLeft = createSelector(
 
 module.exports = {
   namespace: withNamespace()
-  schema
   reducer
   load, create, remove
   LOAD, CREATE, REMOVE

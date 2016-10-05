@@ -1,27 +1,29 @@
 immutable = require 'app/util/immutable'
 
-{ makeNamespace, expandActionType, normalize } = require 'app/redux/helper'
+reduxHelper = require 'app/redux/helper'
 
-{ customer: schema, info: infoSchema } = require './schemas'
+schemas = require './schemas'
 
 info = require './info'
 
-withNamespace = makeNamespace 'koding', 'payment', 'customer'
+withNamespace = reduxHelper.makeNamespace 'koding', 'payment', 'customer'
 
-LOAD = expandActionType withNamespace 'LOAD'
-CREATE = expandActionType withNamespace 'CREATE'
-UPDATE = expandActionType withNamespace 'UPDATE'
-REMOVE = expandActionType withNamespace 'REMOVE'
+LOAD = reduxHelper.expandActionType withNamespace 'LOAD'
+CREATE = reduxHelper.expandActionType withNamespace 'CREATE'
+UPDATE = reduxHelper.expandActionType withNamespace 'UPDATE'
+REMOVE = reduxHelper.expandActionType withNamespace 'REMOVE'
 
 
 reducer = (state = null, action = {}) ->
 
+  { normalize } = reduxHelper
+
   switch action.type
     when info.LOAD.SUCCESS
-      normalized = normalize action.result, infoSchema
+      normalized = normalize action.result, schemas.info
       return immutable normalized.first 'customer'
     when LOAD.SUCCESS, CREATE.SUCCESS, UPDATE.SUCCESS
-      normalized = normalize action.result, schema
+      normalized = normalize action.result, schemas.customer
       return immutable normalized.first 'customer'
     when REMOVE.SUCCESS
       return null
@@ -64,7 +66,6 @@ email = (state) -> state.customer?.email
 
 module.exports = {
   namespace: withNamespace()
-  schema
   reducer
 
   coupon, email

@@ -2,20 +2,20 @@ immutable = require 'app/util/immutable'
 dateDiffInDays = require 'app/util/dateDiffInDays'
 { createSelector } = require 'reselect'
 
-{ makeNamespace, expandActionType,
-  normalize, defineSchema } = require 'app/redux/helper'
+reduxHelper = require 'app/redux/helper'
+schemas = require './schemas'
 
-{ info: schema } = require './schemas'
+withNamespace = reduxHelper.makeNamespace 'koding', 'payment', 'info'
 
-withNamespace = makeNamespace 'koding', 'payment', 'info'
-
-LOAD = expandActionType withNamespace 'LOAD'
+LOAD = reduxHelper.expandActionType withNamespace 'LOAD'
 
 reducer = (state = null, action = {}) ->
 
+  { normalize } = reduxHelper
+
   switch action.type
     when LOAD.SUCCESS
-      normalized = normalize action.result, schema
+      normalized = normalize action.result, schemas.info
       return immutable normalized.first 'info'
 
     else
@@ -48,7 +48,6 @@ endsAt = createSelector(
 
 module.exports = {
   namespace: withNamespace()
-  schema
   reducer
 
   due, nextBillingDate, daysLeft, userCount, endsAt
