@@ -15,10 +15,16 @@ info = defineSchema 'info',
   subscription: subscription
   expectedPlan: defineSchema 'expectedPlan'
 
+invoices = defineSchema 'invoices', [
+  lines:
+    data: defineSchema 'items', []
+]
+
 
 module.exports = {
   plan
   subscription
   customer
   info
+  invoices
 }

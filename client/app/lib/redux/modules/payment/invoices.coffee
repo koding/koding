@@ -7,12 +7,6 @@ withNamespace = makeNamespace 'koding', 'payment', 'invoices'
 
 LOAD = expandActionType withNamespace 'LOAD'
 
-schema =
-  data: defineSchema 'invoices', [
-    lines:
-      data: defineSchema 'items', []
-  ]
-
 initialState = immutable { invoices: {}, items: {} }
 
 reducer = (state = initialState, action) ->
