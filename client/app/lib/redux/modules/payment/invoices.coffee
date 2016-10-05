@@ -1,28 +1,21 @@
 immutable = require 'app/util/immutable'
 
-_ = require 'lodash'
-immutable = require 'app/util/immutable'
+reduxHelper = require 'app/redux/helper'
 
-{ makeNamespace, expandActionType,
-  normalize, defineSchema } = require 'app/redux/helper'
+schemas = require './schemas'
+withNamespace = reduxHelper.makeNamespace 'koding', 'payment', 'invoices'
 
-withNamespace = makeNamespace 'koding', 'payment', 'invoices'
-
-LOAD = expandActionType withNamespace 'LOAD'
-
-schema =
-  data: defineSchema 'invoices', [
-    lines:
-      data: defineSchema 'items', []
-  ]
+LOAD = reduxHelper.expandActionType withNamespace 'LOAD'
 
 initialState = immutable { invoices: {}, items: {} }
 
 reducer = (state = initialState, action) ->
 
+  { normalize } = reduxHelper
+
   switch action.type
     when LOAD.SUCCESS
-      normalized = normalize action.result, schema
+      normalized = normalize action.result, schemas.invoices
       return immutable normalized.entities
 
   return state
@@ -35,9 +28,10 @@ exports.load = load = ->
   }
 
 
-module.exports = _.assign reducer, {
+module.exports = {
   namespace: withNamespace()
   reducer
+
   load
   LOAD
 }

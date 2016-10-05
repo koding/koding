@@ -2,7 +2,7 @@ React = require 'react'
 
 Dialog = require 'lab/Dialog'
 
-module.exports = GroupSuspendedMemberModal = ({ isOpen, onButtonClick }) ->
+module.exports = SuspendedMemberModal = ({ isOpen, onButtonClick }) ->
 
   message = "
     We were unable to charge your credit card on file. Please notify your
