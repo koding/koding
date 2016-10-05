@@ -41,7 +41,7 @@ fetchGroupSettings = (clientId, state, callback) ->
           url: group.config.gitlab.url
           applicationId: group.config.gitlab.applicationId
           applicationSecret: data.applicationSecret
-          redirectUri: "#{protocol}://#{slug}.#{hostname}/-/oauth/#{provider}/callback"
+          redirectUri: "#{protocol}//#{slug}.#{hostname}/-/oauth/#{provider}/callback"
         }
 
 
@@ -88,7 +88,7 @@ fetchUserInfo = (req, res, access_token) -> (error, response, body) ->
 authorizeUser = (url, req, res) -> (error, response, body) ->
 
   if error or not access_token = body.access_token
-    console.error '[GITLAB][3/4] Failed to get access_token:', error
+    console.error '[GITLAB][3/4] Failed to get access_token:', error ? body
     return fail req, res
 
   options   =
