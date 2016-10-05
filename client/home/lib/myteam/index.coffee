@@ -37,8 +37,16 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
     kd.singletons.groupsController.ready @bound 'putViews'
 
 
+  handleAnchor: (anchor) ->
 
+    kd.utils.defer ->
+      selector = switch anchor
+        when '#send-invites'
+          '.user-email'
+        when ''
+          '.js-teamName'
 
+      document.querySelector(selector).focus?()  if selector
 
 
   putViews: ->
