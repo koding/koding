@@ -34,18 +34,19 @@ module.exports = (options) ->
     { appManager, router, groupsController } = kd.singletons
 
     frontApp = appManager.getFrontApp()
-    unless frontApp
-      appManager.once 'AppIsBeingShown', ->
-        router.handleRoute path
-      router.handleRoute '/IDE'
-    else
-      groupsController.ready ->
-        modal = new WelcomeModal()
-        return  unless frontApp instanceof IDEAppController
 
+    showWelcome = ->
+      modal = new WelcomeModal()
+
+      if frontApp instanceof IDEAppController
+        frontApp.hideMachineStateModal yes
         modal.once 'KDObjectWillBeDestroyed', ->
           frontApp.showMachineStateModal()
-        frontApp.hideMachineStateModal yes
+
+    groupsController.ready ->
+      if appManager.getFrontApp()
+      then showWelcome()
+      else appManager.open 'IDE', -> showWelcome()
 
 
   lazyrouter.bind name, (type, info, state, path, ctx) ->
