@@ -77,6 +77,6 @@ func Info(u *url.URL, h http.Header, _ interface{}, context *models.Context) (in
 	}
 
 	return response.HandleResultAndError(
-		payment.GetInfoForGroup(group),
+		payment.EnsureInfoForGroup(group, context.Client.Account.Nick),
 	)
 }

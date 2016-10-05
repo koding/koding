@@ -12,7 +12,6 @@ import (
 	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/customer"
 	stripeplan "github.com/stripe/stripe-go/plan"
-	"github.com/stripe/stripe-go/sub"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -170,6 +169,12 @@ func GetCustomerForGroup(groupName string) (*stripe.Customer, error) {
 // GetInfoForGroup get the current usage info of a group
 func GetInfoForGroup(group *models.Group) (*Usage, error) {
 	username := ""
+	return EnsureInfoForGroup(group, username)
+}
+
+// EnsureInfoForGroup ensures data validity of the group, if customer does not
+// exist, creates if, if sub does not exist, creates it
+func EnsureInfoForGroup(group *models.Group, username string) (*Usage, error) {
 	usage, err := fetchParallelizableUsageItems(group, username)
 	if err != nil {
 		return nil, err
@@ -209,21 +214,16 @@ func GetInfoForGroup(group *models.Group) (*Usage, error) {
 func fetchParallelizableUsageItems(group *models.Group, username string) (*Usage, error) {
 	var g errgroup.Group
 
-	// Stripe customer.
 	var cus *stripe.Customer
+	var subscription *stripe.Sub
+
 	g.Go(func() (err error) {
 		cus, err = EnsureCustomerForGroup(username, group.Slug, nil)
-		return err
-	})
-
-	// Stripe subscription.
-	var subscription *stripe.Sub
-	g.Go(func() (err error) {
-		if group.Payment.Subscription.ID == "" {
-			return ErrCustomerNotSubscribedToAnyPlans
+		if err != nil {
+			return err
 		}
 
-		subscription, err = sub.Get(group.Payment.Subscription.ID, nil)
+		subscription, err = EnsureSubscriptionForGroup(group.Slug, nil)
 		return err
 	})
 
