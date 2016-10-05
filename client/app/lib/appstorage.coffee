@@ -29,7 +29,9 @@ class AppStorage extends kd.Object
 
       { mainController } = kd.singletons
 
-      return  if (queue.push callback) > 1
+      queue.push callback
+
+      return  if queue.length > 1
 
       mainController.ready =>
 
