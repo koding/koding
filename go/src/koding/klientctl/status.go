@@ -55,7 +55,7 @@ func NewDefaultHealthChecker(l kodinglogging.Logger) *HealthChecker {
 		LocalKlientAddress:   config.KlientAddress,
 		KontrolAddress:       config.KontrolURL,
 		InternetCheckAddress: config.S3KlientctlLatest,
-		TunnelKiteAddress:    config.TunnelKiteAddress,
+		TunnelKiteAddress:    config.TunnelKiteURL,
 	}
 }
 

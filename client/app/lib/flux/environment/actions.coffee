@@ -822,6 +822,12 @@ cloneStackTemplate = (template, revive) ->
       reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
       kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"
 
+loadExpandedMachineLabel = (label) ->
+
+  { reactor } = kd.singletons
+  reactor.dispatch actions.LOAD_EXPANDED_MACHINE_LABEL_SUCCESS, { label }
+
+
 
 module.exports = {
   loadMachines
@@ -870,4 +876,5 @@ module.exports = {
   setLabel
   fetchAndUpdateStackTemplate
   cloneStackTemplate
+  loadExpandedMachineLabel
 }

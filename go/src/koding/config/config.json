@@ -1,7 +1,4 @@
 {
-  "routes": {
-    "dev.koding.com": "127.0.0.1"
-  },
   "buckets": {
     "publiclogs": [
       {
@@ -24,40 +21,6 @@
     ]
   },
   "endpoints": {
-    "kloud": [
-      {
-        "environment": [
-          "production",
-          "managed"
-        ],
-        "url": "https://koding.com/kloud/kite"
-      },
-      {
-        "environment": [
-          "development",
-          "devmanaged",
-          "sandbox"
-        ],
-        "url": "https://sandbox.koding.com/kloud/kite"
-      }
-    ],
-    "tunnelserver": [
-      {
-        "environment": [
-          "production",
-          "managed"
-        ],
-        "url": "http://t.koding.com/kite"
-      },
-      {
-        "environment": [
-          "development",
-          "devmanaged",
-          "sandbox"
-        ],
-        "url": "http://dev-t.koding.com/kite"
-      }
-    ],
     "ip": [
       {
         "environment": [
@@ -91,6 +54,60 @@
         ],
         "url": "https://dev-p2.koding.com/-/ipcheck"
       }
+    ],
+    "kloud": [
+      {
+        "environment": [
+          "production",
+          "managed"
+        ],
+        "url": "https://koding.com/kloud/kite"
+      },
+      {
+        "environment": [
+          "development",
+          "devmanaged",
+          "sandbox"
+        ],
+        "url": "https://sandbox.koding.com/kloud/kite"
+      }
+    ],
+    "kontrol": [
+      {
+        "environment": [
+          "production",
+          "managed"
+        ],
+        "url": "https://koding.com/kontrol/kite"
+      },
+      {
+        "environment": [
+          "development",
+          "devmanaged",
+          "sandbox"
+        ],
+        "url": "https://sandbox.koding.com/kontrol/kite"
+      }
+    ],
+    "tunnelserver": [
+      {
+        "environment": [
+          "production",
+          "managed"
+        ],
+        "url": "http://t.koding.com/kite"
+      },
+      {
+        "environment": [
+          "development",
+          "devmanaged",
+          "sandbox"
+        ],
+        "url": "http://dev-t.koding.com/kite"
+      }
     ]
+  },
+  "routes": {
+    "dev.koding.com": "127.0.0.1"
   }
 }
