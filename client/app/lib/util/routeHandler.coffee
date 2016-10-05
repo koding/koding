@@ -10,15 +10,14 @@ module.exports = (options) ->
 
   handleSection = (path, callback) ->
 
-    { appManager, router, groupsController } = kd.singletons
+    { appManager, groupsController } = kd.singletons
 
-    unless appManager.getFrontApp()
-      appManager.once 'AppIsBeingShown', ->
-        router.handleRoute path
-      router.handleRoute '/IDE'
-    else
-      groupsController.ready ->
+    groupsController.ready ->
+      if appManager.getFrontApp()
         appManager.open title, callback
+      else
+        appManager.open 'IDE', ->
+          appManager.open title, callback
 
 
   handle = (options, path) ->
@@ -54,21 +53,16 @@ module.exports = (options) ->
     modalContainer = new ModalContainer
 
     switch type
-
       when 'group-disabled'
-
         { role, status } = info.params
-
         { appManager } = kd.singletons
-
-        return handleDisabled role, status  if frontApp = appManager.getFrontApp()
+        if frontApp = appManager.getFrontApp()
+          return handleDisabled role, status
 
         appManager.once 'AppIsBeingShown', -> handleDisabled role, status
-
         appManager.open 'IDE', { forceNew: yes }, (app) ->
           app.amIHost = yes
           appManager.tell 'IDE', 'showNoMachineState'
-
       when 'welcome'
         showWelcomeModal path
       when 'home'
