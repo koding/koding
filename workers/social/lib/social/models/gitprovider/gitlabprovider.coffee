@@ -3,6 +3,7 @@ helpers     = require './utils/helpers'
 async       = require 'async'
 request     = require 'request'
 URL         = require 'url'
+urljoin     = require 'url-join'
 _           = require 'lodash'
 GitlabAPI   = require 'gitlab'
 KodingError = require '../../error'
@@ -76,10 +77,10 @@ module.exports = GitLabProvider =
     baseUrl = gitlabHost ? "#{gitlab.host}#{port}"
 
     branch ?= 'master'
-    url     = "#{baseUrl}/#{user}/#{repo}"
+    url     = urljoin baseUrl, user, repo
 
     if branch isnt 'master'
-      url = "#{url}/tree/#{branch}"
+      url = urljoin url, 'tree', branch
 
     return { originalUrl : url, baseUrl, user, repo, branch }
 

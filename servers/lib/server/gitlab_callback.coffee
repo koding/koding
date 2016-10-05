@@ -4,7 +4,7 @@ KONFIG = require 'koding-config-manager'
 
 { redirectOauth, saveOauthToSession } = require './helpers'
 { isAddressValid, cleanUrl } = require '../../models/utils'
-URL = require 'url'
+urljoin = require 'url-join'
 
 provider = 'gitlab'
 headers  =
@@ -49,7 +49,7 @@ getPathFor = (url, path) ->
   { gitlab } = KONFIG
   port = if gitlab.port then ":#{gitlab.port}" else ''
   url ?= "#{gitlab.host}#{port}"
-  URL.resolve url, path
+  urljoin url, path
 
 fail = (req, res) ->
   redirectOauth 'could not grant access', req, res, { provider }
