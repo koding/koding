@@ -8,6 +8,8 @@ TeamFlux             = require 'app/flux/teams'
 AppFlux              = require 'app/flux'
 whoami               = require 'app/util/whoami'
 remote               = require 'app/remote'
+headerize = require '../commons/headerize'
+sectionize = require '../commons/sectionize'
 camelizeString = require 'app/util/camelizeString'
 toImmutable = require 'app/util/toImmutable'
 canSeeMembers = require 'app/util/canSeeMembers'
@@ -20,17 +22,8 @@ SECTIONS =
   'Team Settings'      : HomeTeamSettings
   Permissions          : HomeTeamPermissions
 
-header = (title) ->
-  new kd.CustomHTMLView
-    tagName  : 'header'
-    cssClass : 'HomeAppView--sectionHeader'
-    partial  : title
-
 section = (name, options, data) ->
-  new (SECTIONS[name] or kd.View) options or {
-    tagName  : 'section'
-    cssClass : "HomeAppView--section #{kd.utils.slugify name}"
-  }, data
+  sectionize name, SECTIONS[name], options, data
 
 
 module.exports = class HomeMyTeam extends kd.CustomScrollView
@@ -43,38 +36,9 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
 
     kd.singletons.groupsController.ready @bound 'putViews'
 
-    @scroll = no
-    @scrollToSection = null
 
 
-  handleAction: (action) ->
 
-
-    @scroll = yes
-    @scrollToSection = camelizeString action
-
-    @scrollToSectionArea()
-
-
-  scrollToSectionArea: ->
-
-    return  unless @scrollToSection
-
-    if @scroll and subView = @[@scrollToSection]
-
-      viewTop = @wrapper.getY()
-      subViewTop = subView.getY()
-      sectionHeader = 88  # height of header of dashboard
-      sectionHeader = sectionHeader + 235 # height of permisson section
-
-      scrollMuch = subViewTop - viewTop - sectionHeader
-
-      subViewHeight = subView.getHeight()
-
-      if subViewHeight > scrollMuch
-        scrollMuch = subViewHeight - scrollMuch
-
-      @wrapper?.scrollTo { top: scrollMuch }
 
 
   putViews: ->
@@ -119,23 +83,22 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
         account = accounts[0]
         reactor.dispatch 'DELETE_TEAM_MEMBER', account._id
 
-    @wrapper.addSubView header  'Team Settings'
+    @wrapper.addSubView headerize 'Team Settings'
     @wrapper.addSubView @teamSettings = section 'Team Settings'
 
     if isAdmin()
-      @wrapper.addSubView header  'Permissions'
+      @wrapper.addSubView headerize 'Permissions'
       @wrapper.addSubView @permissions = section 'Permissions'
 
     if isAdmin() or canSeeMembers()
 
-      @wrapper.addSubView header  'Send Invites'
+      @wrapper.addSubView headerize 'Send Invites'
       @wrapper.addSubView @sendInvites = section 'Send Invites'
 
-      @wrapper.addSubView header  'Invite Using Slack'
+      @wrapper.addSubView headerize 'Invite Using Slack'
       @wrapper.addSubView @connectSlack = section 'Invite Using Slack'
       @connectSlack.on 'InvitationsAreSent', -> TeamFlux.actions.loadPendingInvitations()
 
-      @wrapper.addSubView header  'Teammates'
+      @wrapper.addSubView headerize 'Teammates'
       @wrapper.addSubView @teammates = section 'Teammates'
 
-    @scrollToSectionArea()
