@@ -7,6 +7,7 @@ customer = require 'app/redux/modules/payment/customer'
 
 { load: loadPaymentInfo } = require 'app/redux/modules/payment/info'
 { load: loadSubscription } = require 'app/redux/modules/payment/subscription'
+{ load: loadInvoices } = require 'app/redux/modules/payment/invoices'
 
 loadAccount = ({ dispatch, getState }) ->
   dispatch {
@@ -29,7 +30,7 @@ loadUserDetails = ({ dispatch, getState }) ->
 ensurePaymentDetails = ({ dispatch, getState }) ->
 
   if isAdmin()
-  then dispatch(loadPaymentInfo())
+  then dispatch(loadPaymentInfo()).then -> dispatch(loadInvoices())
   else dispatch(loadSubscription())
 
 
