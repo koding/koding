@@ -37,7 +37,7 @@ module.exports = class SubscriptionHeader extends Component
 
   renderSubtitle: ->
 
-    { loading, isTrial, endsAt } = @props
+    { loading, isTrial, endsAt, daysLeft } = @props
 
     isDanger = no
     subtitle = switch
@@ -45,7 +45,6 @@ module.exports = class SubscriptionHeader extends Component
         "Loading subscription info..."
 
       when isTrial
-        daysLeft = Math.max 0, dateDiffInDays(new Date(Number endsAt), new Date)
         isDanger = daysLeft < 4
         "You have #{daysLeft} days left in your trial."
 

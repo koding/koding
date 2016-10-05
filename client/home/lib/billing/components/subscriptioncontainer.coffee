@@ -7,12 +7,11 @@ pluralize = require 'pluralize'
 
 subscription = require 'app/redux/modules/payment/subscription'
 customer = require 'app/redux/modules/payment/customer'
+info = require 'app/redux/modules/payment/info'
 bongo = require 'app/redux/modules/bongo'
 
 SubscriptionSection = require './subscriptionsection'
 
-
-teamSize = -> globals.currentGroup?.counts?.member ? 1
 
 trialTitles =
   7: "Koding Basic Trial (1 Week)"
@@ -23,11 +22,11 @@ subscriptionTitle = createSelector(
   subscription.pricePerSeat
   subscription.isTrial
   subscription.trialDays
-  teamSize
-  (pricePerSeat, isTrial, trialDays, size) ->
+  info.userCount
+  (pricePerSeat, isTrial, trialDays, userCount) ->
     if isTrial
     then trialTitles[trialDays]
-    else "$#{pricePerSeat} per Developer (#{pluralize 'Developer', size, yes})"
+    else "$#{pricePerSeat} per Developer (#{pluralize 'Developer', userCount, yes})"
 )
 
 
@@ -60,8 +59,9 @@ mapStateToProps = (state) ->
   return {
     title: subscriptionTitle(state)
     pricePerSeat: subscription.pricePerSeat(state)
-    teamSize: teamSize()
-    endsAt: subscription.endsAt(state)
+    teamSize: info.userCount(state)
+    endsAt: info.endsAt(state)
+    daysLeft: info.daysLeft(state)
     isTrial: subscription.isTrial(state)
     freeCredit: freeCredit(state)
     # TODO(umut): activate this when we have coupon support.

@@ -1,21 +1,32 @@
 _ = require 'lodash'
 immutable = require 'app/util/immutable'
 
-{ makeNamespace, expandActionType,
-  normalize, defineSchema } = require 'app/redux/helper'
+reduxHelper = require 'app/redux/helper'
 
-withNamespace = makeNamespace 'koding', 'payment', 'creditcard'
-
-REMOVE = expandActionType withNamespace 'REMOVE'
+schemas = require './schemas'
 
 customer = require './customer'
+info = require './info'
+
+withNamespace = reduxHelper.makeNamespace 'koding', 'payment', 'creditcard'
+
+REMOVE = reduxHelper.expandActionType withNamespace 'REMOVE'
 
 reducer = (state = null, action) ->
+
+  { normalize } = reduxHelper
 
   switch action.type
 
     when customer.LOAD.SUCCESS, customer.CREATE.SUCCESS, customer.UPDATE.SUCCESS
-      normalized = normalize action.result, customer.schema
+      normalized = normalize action.result, schemas.customer
+      c = normalized.first 'customer'
+
+      if c.default_source
+        return normalized.entities.sources[c.default_source]
+
+    when info.LOAD.SUCCESS
+      normalized = normalize action.result, schemas.info
       c = normalized.first 'customer'
 
       if c.default_source
@@ -57,7 +68,7 @@ remove = ->
   }
 
 
-module.exports = _.assign reducer, {
+module.exports = {
   namespace: withNamespace()
   reducer
 

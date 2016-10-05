@@ -116,6 +116,8 @@ module.exports = class KodingRouter extends kd.Router
       member: [
         '/Disabled/Member'
         '/Disabled/Member/notify-success'
+        '/Disabled/Member/upgrade-notify-success'
+        '/Disabled/Member/suspended-notify-success'
       ]
 
     return route in allowedRoutes[getRole()]

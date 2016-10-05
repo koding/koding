@@ -4,12 +4,13 @@ _ = require 'lodash'
 exports.make = make = (reducers = {}) ->
 
   customReducers = {
-    stripe: require './modules/stripe'
-    bongo: require './modules/bongo'
-    creditCard: require './modules/payment/creditcard'
-    invoices: require './modules/payment/invoices'
-    subscription: require './modules/payment/subscription'
-    customer: require './modules/payment/customer'
+    stripe: require('./modules/stripe').reducer
+    bongo: require('./modules/bongo').reducer
+    creditCard: require('./modules/payment/creditcard').reducer
+    invoices: require('./modules/payment/invoices').reducer
+    subscription: require('./modules/payment/subscription').reducer
+    customer: require('./modules/payment/customer').reducer
+    paymentInfo: require('./modules/payment/info').reducer
     form: require('redux-form').reducer
   }
 

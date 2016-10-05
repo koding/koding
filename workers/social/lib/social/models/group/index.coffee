@@ -272,7 +272,9 @@ module.exports = class JGroup extends Module
         ]]
       # parent        : ObjectRef
       counts        :
-        members     : Number
+        members     :
+          type      : Number
+          default   : -> 1
       customize     :
         coverPhoto  : String
         logo        : String
