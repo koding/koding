@@ -40,7 +40,7 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           order: 3
           skippable: no
         inviteTeam :
-          path: '/Home/My-Team/send-invites'
+          path: '/Home/my-team#send-invites'
           title: 'Invite Your Team'
           actionTitle: 'Invite'
           videoLink: ''
@@ -92,7 +92,7 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
         #   order: 0
         #   skippable: no
         installKd :
-          path: '/Home/Koding-Utilities/kd-cli'
+          path: '/Home/koding-utilities#kd-cli'
           title: 'Install KD'
           actionTitle: 'Install'
           videoLink: ''

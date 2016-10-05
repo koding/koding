@@ -40,7 +40,9 @@ module.exports = class HomeAppController extends AppController
 
   openSection: (args...) -> @mainView.ready => @openSection_ args...
 
-  openSection_: (section, query, action, identifier) ->
+  openSection_: (options) ->
+
+    { section, query, action, identifier, anchor } = options
 
     if section is 'Oauth' and query.provider?
       @handleOauthRedirect query
@@ -66,10 +68,13 @@ module.exports = class HomeAppController extends AppController
     else if action
       targetPaneView.handleAction? action, query
     else
+      targetPaneView.handleSection?()
       @doOnboarding targetPane
 
-    unless identifier and action
-      return targetPaneView.handleSection?()  unless action
+    kd.utils.defer ->
+      if anchor and window.location.hash isnt anchor
+        window.location.replace anchor
+      targetPaneView.handleAnchor? anchor
 
 
   handleOauthRedirect: (options) ->

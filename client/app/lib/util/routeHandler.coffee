@@ -22,11 +22,11 @@ module.exports = (options) ->
 
   handle = (options, path) ->
 
-    { query, params } = options
+    { query, params, anchor } = options
     { section, action, identifier } = params
 
     handleSection path, (app) ->
-      app.openSection section, query, action, identifier
+      app.openSection { section, query, action, identifier, anchor }
 
 
   showWelcomeModal = (path) ->
