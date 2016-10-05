@@ -37,6 +37,18 @@ queryForKd = ->
     markAsDone 'installKd'
 
 
+checkIntegrationSteps = ->
+  return  unless hasIntegration 'gitlab'
+  whoami().fetchOAuthInfo (err, oauth) ->
+    markAsDone 'gitlabIntegration'  if oauth?.gitlab?
+
+
+checkCredentialSteps = ->
+  remote.api.JCredential.some {}, { limit: 1 }, (err, res) ->
+    return  if err
+    markAsDone 'enterCredentials'  if res?.length
+
+
 checkFinishedSteps = ->
 
   { appStorageController, groupsController
@@ -62,14 +74,9 @@ checkFinishedSteps = ->
   unobserve = reactor.observe EnvironmentGetters.stacks, (_stacks) ->
     checkStacksForBuild _stacks, unobserve
 
-  remote.api.JCredential.some {}, { limit: 1 }, (err, res) ->
-    return  if err
-    markAsDone 'enterCredentials'  if res?.length
+  checkCredentialSteps()
 
-  if hasIntegration 'gitlab'
-    whoami().fetchOAuthInfo (err, oauth) ->
-      markAsDone 'gitlabIntegration'  if oauth?.gitlab?
-
+  checkIntegrationSteps()
 
   if reactor.evaluate(HomeGetters.welcomeSteps).getIn [ 'common', 'installKd', 'isDone' ]
     if reactor.evaluate HomeGetters.areStepsFinished
