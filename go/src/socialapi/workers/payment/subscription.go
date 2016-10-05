@@ -111,19 +111,19 @@ func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 		return nil, ErrCustomerNotExists
 	}
 
-	thirtDaysLater := time.Now().UTC().Add(30 * 24 * time.Hour).Unix()
+	thirtyDaysLater := time.Now().UTC().Add(30 * 24 * time.Hour).Unix()
 
 	if params == nil {
 		params = &stripe.SubParams{
 			Customer: group.Payment.Customer.ID,
 			Plan:     Plans[UpTo10Users].ID,
-			TrialEnd: thirtDaysLater,
+			TrialEnd: thirtyDaysLater,
 		}
 	}
 
 	// this might be changed in the future
-	if params.TrialEnd > thirtDaysLater {
-		params.TrialEnd = thirtDaysLater
+	if params.TrialEnd > thirtyDaysLater {
+		params.TrialEnd = thirtyDaysLater
 	}
 
 	// only send our whitelisted params
