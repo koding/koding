@@ -7,6 +7,7 @@ permalink: /store/results
 <!-- HEADER -->
 {% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#7F7E9E' %}
 
+<link rel="stylesheet" href="{{ site.url }}/css/dropdown.css">
 <link rel="stylesheet" href="{{ site.url }}/css/store.css">
 
 <div class="StoreResults-filterContainer">
@@ -34,6 +35,7 @@ permalink: /store/results
 </div>
 
 <script>
+  {% include js/dropdown.js %}
   {% include js/store.js %}
 </script>
 

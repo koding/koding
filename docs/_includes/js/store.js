@@ -13,27 +13,9 @@
 
   var initialize = function() {
 
-    document.addEventListener('click', function(evt) {
-      if (!evt.target.closest('.Dropdown') && dropdown && dropdown.classList.contains('is-shown')) {
-        dropdown.classList.remove('is-shown');
-      }
-    }, true);
-
     if (dropdown) {
-      dropdown.addEventListener('click', function() {
-
-        if (this.classList.contains('is-shown')) {
-          this.classList.remove('is-shown');
-        } else {
-          this.classList.add('is-shown');
-        }
-
-        return false;
-      });
-
       [].forEach.call( dropdownOptions, function(el) {
         el.addEventListener('click', function() {
-          dropdownLabel.innerHTML = this.innerHTML;
 
           if (this.classList.contains('stacks')) {
             dropdownLabel.classList.remove('stencils');

@@ -9,6 +9,7 @@ var ready = function($) {
   var $hide = $("#Pricing-PriceSegments--close");
   var $show = $("#Pricing-PriceSegments--showMore");
   var $main = $("#Pricing-PriceSegments--devTeams");
+  var dropdownOptions = $('.Dropdown .Dropdown-options a');
 
   $hide.click(function(event){
     event.stopPropagation();
@@ -41,10 +42,11 @@ var ready = function($) {
     return false;
   });
 
-  $(".user-count-select").change(function(event){
-    var val = $(this).val()
-    var $price = $(this).next().find('.first-line')
-    $price.html(userCounts[val])
+  dropdownOptions.click(function() {
+    var $self = $(this);
+    var val    = $self.attr('attr-value');
+    var $price = $self.closest('.Pricing-PriceSegments--priceSection').find('.first-line');
+    $price.html(userCounts[val]);
   });
 
 }

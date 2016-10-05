@@ -8,11 +8,12 @@ order: 40
 <!-- HEADER -->
 {% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='transparent' %}
 
+<link rel="stylesheet" href="{{ site.url }}/css/dropdown.css">
 <link rel="stylesheet" href="{{ site.url }}/css/store.css">
 
 <div class="Hero">
   <h1 class="Hero-heading">Stack and Stencil Hub</h1>
-  <h2 class="Hero-subheading">Start building your stacks easily with these hundereds of examples</h2>
+  <h2 class="Hero-subheading">Start building your stacks easily with these hundreds of examples</h2>
   {% include store-search.html has_dropdown='true' has_searchbar='true' %}
 </div>
 <div class="featured-stacks">
@@ -41,6 +42,7 @@ order: 40
 </div>
 
 <script>
+  {% include js/dropdown.js %}
   {% include js/store.js %}
 </script>
 

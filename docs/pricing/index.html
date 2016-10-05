@@ -8,6 +8,7 @@ order: 11
 <!-- HEADER -->
 {% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#7F7E9E' %}
 
+<link rel="stylesheet" href="{{ site.url }}/css/dropdown.css">
 <style>{% include css/pricing.css %}</style>
 
 <svg style="display: none;">
@@ -57,12 +58,15 @@ order: 11
     </div>
     <aside class="Pricing-PriceSegments--priceSection">
       <form>
-        <select class="user-count-select" name="UserCount-devTeams" id="UserCount-devTeams">
-          <option value="1-10">1-10 Monthly Active Developers</option>
-          <option value="11-50">11-50 Monthly Active Developers</option>
-          <option value="51-100" selected="selected">51-100 Monthly Active Developers</option>
-          <option value="100+" disabled="disabled">for 100+ Please contact us...</option>
-        </select>
+        <div class="Dropdown">
+          <a href="#" class="Dropdown-selection">51-100 Monthly Active Developers</a>
+          <div class="Dropdown-options">
+            <a href="#" attr-value="1-10">1-10 Monthly Active Developers</a>
+            <a href="#" attr-value="11-50">11-50 Monthly Active Developers</a>
+            <a href="#" attr-value="51-100">51-100 Monthly Active Developers</a>
+            <a href="#" class="disabled">for 100+ Please contact us...</a>
+          </div>
+        </div>
         <div class="Pricing-PriceSegment--price single">
           <span class="first-line">$34<cite>.97</cite></span>
           <span class="second-line">/month per active user</span>
@@ -110,12 +114,15 @@ order: 11
     </div>
     <aside class="Pricing-PriceSegments--priceSection">
       <form>
-        <select class="user-count-select" name="UserCount-evaluation" id="UserCount-evaluation">
-          <option value="1-10">1-10 Monthly Evaluations</option>
-          <option value="11-50">11-50 Monthly Evaluations</option>
-          <option value="51-100" selected="selected">51-100 Monthly Evaluations</option>
-          <option value="100+" disabled="disabled">for 100+ Please contact us...</option>
-        </select>
+        <div class="Dropdown">
+          <a href="#" class="Dropdown-selection">51-100 Monthly Evaluations</a>
+          <div class="Dropdown-options">
+            <a href="#" attr-value="1-10">1-10 Monthly Evaluations</a>
+            <a href="#" attr-value="11-50">11-50 Monthly Evaluations</a>
+            <a href="#" attr-value="51-100">51-100 Monthly Evaluations</a>
+            <a href="#" class="disabled">for 100+ Please contact us...</a>
+          </div>
+        </div>
         <div class="Pricing-PriceSegment--price">
           <span class="first-line">$34<cite>.97</cite></span>
           <span class="second-line">per evaluation <figure>i</figure><cite class="tooltip-more">A user can evaluate your software as many times as they want within a month, and you will only be charged once.</cite></span>
@@ -160,12 +167,15 @@ order: 11
     </div>
     <aside class="Pricing-PriceSegments--priceSection">
       <form>
-        <select class="user-count-select" name="UserCount-training" id="UserCount-training">
-          <option value="1-10">1-10 Monthly Active Trainees</option>
-          <option value="11-50">11-50 Monthly Active Trainees</option>
-          <option value="51-100" selected="selected">51-100 Monthly Active Trainees</option>
-          <option value="100+" disabled="disabled">for 100+ Please contact us...</option>
-        </select>
+        <div class="Dropdown">
+          <a href="#" class="Dropdown-selection">51-100 Monthly Evaluations</a>
+          <div class="Dropdown-options">
+            <a href="#" attr-value="1-10">1-10 Monthly Active Trainees</a>
+            <a href="#" attr-value="11-50">11-50 Monthly Active Trainees</a>
+            <a href="#" attr-value="51-100">51-100 Monthly Active Trainees</a>
+            <a href="#" class="disabled">for 100+ Please contact us...</a>
+          </div>
+        </div>
         <div class="Pricing-PriceSegment--price">
           <span class="first-line">$34<cite>.97</cite></span>
           <span class="second-line">/month per active trainee</span>
@@ -296,7 +306,10 @@ order: 11
   <a href="/Teams/Create" class="GenericButton bottom">GET STARTED FOR FREE</a>
 </section>
 
-<script>{% include js/pricing.js %}</script>
+<script>
+  {% include js/dropdown.js %}
+  {% include js/pricing.js %}
+</script>
 
 <!-- FOOTER -->
 {% include footer.html %}

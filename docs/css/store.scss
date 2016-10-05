@@ -4,7 +4,6 @@
 {% assign path = site.url | append: '/assets/img' %}
 
 $white: #FFFFFF;
-$alabaster: #F7F7F7;
 $porcelain: #F5F6F7;
 $gallery: #EBEBEB;
 $gallery2: #EFEFEF;
@@ -130,79 +129,15 @@ input, textarea, keygen, select, button {
 
   .search-container {
     margin: 0 auto;
-  }
-}
-.Dropdown {
-  border-top-left-radius: inherit;
-  border-bottom-left-radius: inherit;
-  letter-spacing: 0.32px;
-  float: left;
-  position: relative;
-  width: 150px;
 
-  &.is-shown {
-    .Dropdown-selection {
-      border-bottom-left-radius: 0;
-    }
-    .Dropdown-options {
-      display: block;
-    }
-  }
-  .Dropdown-selection {
-    border-right: 1px solid $alto;
-    border-top-left-radius: inherit;
-    border-bottom-left-radius: inherit;
-    background-color: $alabaster;
-    position: relative;
-    color: $dusty-gray;
-    text-decoration: none;
-    width: inherit;
-    box-sizing: border-box;
-    padding: 22px 16px 20px 25px;
-    display: inline-block;
-    z-index: 1;
+    .Dropdown {
+      border-top-left-radius: inherit;
+      border-bottom-left-radius: inherit;
+      float: left;
+      width: 150px;
 
-    &:after {
-      content: "";
-      width: 14px;
-      height: 7px;
-      vertical-align: 2px;
-      display: inline-block;
-      position: absolute;
-      top: 26px;
-      right: 19px;
-      background: var(--icon-dropdown);
-    }
-  }
-  .Dropdown-options {
-    position: absolute;
-    top: 60px;
-    left: 0px;
-    box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
-    display: none;
-    width: inherit;
-
-    label {
-      cursor: pointer;
-    }
-    a {
-      display: block;
-      padding: 18px 0 16px 20px;
-      text-decoration: none;
-      font-size: 15px;
-      background-color: $white;
-      border-top: 1px solid $gallery;
-      color: $emperor;
-
-      &:last-child {
-        border-bottom-left-radius: inherit;
-        border-bottom-right-radius: inherit;
-      }
-      &:hover {
-        background-color: $cornflower-blue;
-        color: $white;
+      .Dropdown-selection {
+        border-right: 1px solid $alto;
       }
     }
   }
@@ -512,10 +447,12 @@ hr {
 
       .Dropdown {
         width: 139px;
+        float: left;
 
         .Dropdown-selection {
           padding: 12px 14px 10px 14px;
           font-size: 16px;
+          border-right: 1px solid $alto;
 
           &::after {
             top: 15px;

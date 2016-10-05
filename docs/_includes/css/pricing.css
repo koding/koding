@@ -734,6 +734,27 @@ a:hover {
   padding-bottom: 30px;
 }
 
+.Pricing-PriceSegments--priceSection .Dropdown {
+  width: 100%;
+  text-align: left;
+  z-index: 1;
+}
+
+.Pricing-PriceSegments--priceSection .Dropdown .Dropdown-selection {
+  padding: 18px 39px 19px;
+  color: #727272;
+  font-weight: 600;
+  font-size: 18px;
+  background-color: rgb(248, 251, 255);
+  border-bottom: 1px solid #EBEBEB;
+}
+
+.Pricing-PriceSegments--priceSection .Dropdown .Dropdown-options {
+  border: 1px solid #A8CEFF;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
 .Pricing-PriceSegments--priceSection form {
   position: relative;
 }
@@ -756,14 +777,14 @@ a:hover {
   z-index: 1;
 }
 
-.Pricing-PriceSegments--priceSection form:before {
+.Pricing-PriceSegments--priceSection .Dropdown:before {
   content: '';
   position: absolute;
   border: 7px solid transparent;
   border-top-color: #989898;
   top: 27px;
   right: 40px;
-  z-index: 0;
+  z-index: 2;
 }
 
 .Pricing-PriceSegment--price {
