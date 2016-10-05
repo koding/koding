@@ -2,6 +2,7 @@ kd = require 'kd'
 HomeWelcome = require './'
 LocalStorage = require 'app/localstorage'
 globals = require 'globals'
+_ = require 'lodash'
 
 module.exports = class WelcomeModal extends kd.ModalView
 
@@ -82,10 +83,14 @@ module.exports = class WelcomeModal extends kd.ModalView
 
     { router } = kd.singletons
     { visitedRoutes: tempVisitedRoutes } = router
-    # To remove infinite loop between these 2 routes
-    # which are `/Welcome` and `/Home` and We are going to
-    # redirect to `Any route` after destroying Welcome Modal
-    # `Any route` -> `/Welcome` -> `/Home` -> `/Welcome`
+    # In case of visitedRoutes comes like this
+    # `Any route` -> `/Welcome` -> `/Home` -> `/Welcome` ->
+    # `/Home` -> `/Welcome` -> `/Home` -> `/Welcome`
+    # to findout correct back route and prevent infinite loop
+    # between `/Welcome` and `/Home` routes, we need to remove
+    # those unnecessary paths to access `/Any Route`
+    # FIXME: ~HK
+    tempVisitedRoutes =  _.flatten _.uniqWith _.chunk(tempVisitedRoutes, 2), _.isEqual
     [..., beforeLast, last] = tempVisitedRoutes
 
     tempVisitedRoutes.pop()  if last is '/Welcome' and beforeLast.indexOf('/Home') > -1
