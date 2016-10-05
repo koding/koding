@@ -80,7 +80,18 @@ module.exports = class WelcomeModal extends kd.ModalView
 
     @setClass 'out'
 
-    kd.singletons.router.handleRoute '/IDE'  if selfInitiated
+    { router } = kd.singletons
+    { visitedRoutes: tempVisitedRoutes } = router
+    # To remove infinite loop between these 2 routes
+    # which are `/Welcome` and `/Home` and We are going to
+    # redirect to `Any route` after destroying Welcome Modal
+    # `Any route` -> `/Welcome` -> `/Home` -> `/Welcome`
+    [..., beforeLast, last] = tempVisitedRoutes
+
+    tempVisitedRoutes.pop()  if last is '/Welcome' and beforeLast.indexOf('/Home') > -1
+
+    welcomeIndex = tempVisitedRoutes.lastIndexOf('/Welcome')
+    router.handleRoute tempVisitedRoutes[welcomeIndex - 1]  if selfInitiated
 
     # fat arrow is not unnecessary - sy
     kd.utils.wait 400, => super
