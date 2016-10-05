@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/workers/api/realtimehelper"
@@ -11,11 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"gopkg.in/mgo.v2"
-
-	"github.com/stripe/stripe-go"
+	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/customer"
 	stripeinvoice "github.com/stripe/stripe-go/invoice"
+	mgo "gopkg.in/mgo.v2"
 )
 
 const (
@@ -137,15 +137,68 @@ func customerSubscriptionDeletedHandler(raw []byte) error {
 		return err
 	}
 
+	// on sub deletion, remove info from db.
+	if err := unsetSubInfo(req); err != nil {
+		return err
+	}
+
 	eventName := fmt.Sprintf("unsubscribed from %s plan", req.Plan.ID)
 
 	return sendEventForCustomer(req.Customer.ID, eventName, nil)
+}
+
+func getGroupInfoFromSub(req *stripe.Sub) (*mongomodels.Group, error) {
+	cus, err := customer.Get(req.Customer.ID, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return modelhelper.GetGroup(cus.Meta["groupName"])
+}
+
+func unsetSubInfo(req *stripe.Sub) error {
+	group, err := getGroupInfoFromSub(req)
+	if err == mgo.ErrNotFound {
+		return nil
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if group.Payment.Subscription.ID == req.ID && group.Payment.Subscription.Status == string(req.Status) {
+		return nil
+	}
+
+	return unsetSubData(group.Id)
+}
+
+func setSubInfo(req *stripe.Sub) error {
+	group, err := getGroupInfoFromSub(req)
+	if err == mgo.ErrNotFound {
+		return nil
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if group.Payment.Subscription.ID == req.ID && group.Payment.Subscription.Status == string(req.Status) {
+		return nil
+	}
+
+	return setSubData(group.Id, req)
 }
 
 func customerSubscriptionUpdatedHandler(raw []byte) error {
 	var req *stripe.Sub
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
+		return err
+	}
+
+	// on sub update, update info from db.
+	if err := setSubInfo(req); err != nil {
 		return err
 	}
 
@@ -263,10 +316,10 @@ func invoiceCreatedHandler(raw []byte) error {
 		}
 	}
 
-	return handleSubChange(info)
+	return switchToNewSub(info)
 }
 
-func handleSubChange(info *Usage) error {
+func switchToNewSub(info *Usage) error {
 	groupName := info.Customer.Meta["groupName"]
 
 	planID := GetPlanID(info.User.Total)
@@ -281,7 +334,7 @@ func handleSubChange(info *Usage) error {
 		Plan:     planID,
 		Quantity: uint64(info.User.Total),
 	}
-	sub, err := CreateSubscriptionForGroup(groupName, params)
+	sub, err := EnsureSubscriptionForGroup(groupName, params)
 	if err != nil {
 		return err
 	}

@@ -7,7 +7,7 @@ import (
 	"socialapi/workers/common/response"
 	"socialapi/workers/payment"
 
-	"github.com/stripe/stripe-go"
+	stripe "github.com/stripe/stripe-go"
 )
 
 // CancelSubscription cancels the subscription of group
@@ -38,11 +38,7 @@ func CreateSubscription(u *url.URL, h http.Header, params *stripe.SubParams, con
 		return response.NewBadRequest(err)
 	}
 
-	// TODO
-	// Add idempotency here
-	//
-
 	return response.HandleResultAndError(
-		payment.CreateSubscriptionForGroup(context.GroupName, params),
+		payment.EnsureSubscriptionForGroup(context.GroupName, params),
 	)
 }

@@ -8,7 +8,7 @@ import (
 	"socialapi/workers/common/response"
 	"socialapi/workers/payment"
 
-	"github.com/stripe/stripe-go"
+	stripe "github.com/stripe/stripe-go"
 )
 
 // DeleteCustomer deletes customer for a group
@@ -57,7 +57,7 @@ func CreateCustomer(u *url.URL, h http.Header, req *stripe.CustomerParams, conte
 	}
 
 	return response.HandleResultAndError(
-		payment.CreateCustomerForGroup(
+		payment.EnsureCustomerForGroup(
 			context.Client.Account.Nick,
 			context.GroupName,
 			req,
@@ -77,6 +77,6 @@ func Info(u *url.URL, h http.Header, _ interface{}, context *models.Context) (in
 	}
 
 	return response.HandleResultAndError(
-		payment.GetInfoForGroup(group),
+		payment.EnsureInfoForGroup(group, context.Client.Account.Nick),
 	)
 }

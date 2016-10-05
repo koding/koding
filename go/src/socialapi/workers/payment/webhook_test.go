@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-	"github.com/stripe/stripe-go"
+	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/coupon"
 	"github.com/stripe/stripe-go/currency"
 	"github.com/stripe/stripe-go/plan"
@@ -29,7 +29,7 @@ func withStubData(f func(username string, groupName string, sessionID string)) {
 	ses, err := models.FetchOrCreateSession(acc.Nick, groupName)
 	tests.ResultedWithNoErrorCheck(ses, err)
 
-	cus, err := CreateCustomerForGroup(acc.Nick, groupName, &stripe.CustomerParams{})
+	cus, err := EnsureCustomerForGroup(acc.Nick, groupName, &stripe.CustomerParams{})
 	tests.ResultedWithNoErrorCheck(cus, err)
 
 	f(acc.Nick, groupName, ses.ClientId)
@@ -215,7 +215,7 @@ func TestInvoiceCreatedHandlerStayInTheSamePlan(t *testing.T) {
 						Quantity: totalMembers,
 					}
 
-					sub, err := CreateSubscriptionForGroup(group.Slug, params)
+					sub, err := EnsureSubscriptionForGroup(group.Slug, params)
 					tests.ResultedWithNoErrorCheck(sub, err)
 
 					// check if group has correct sub id
@@ -300,7 +300,7 @@ func TestInvoiceCreatedHandlerCustomPlan(t *testing.T) {
 					Quantity: totalMembers,
 				}
 
-				sub, err := CreateSubscriptionForGroup(group.Slug, params)
+				sub, err := EnsureSubscriptionForGroup(group.Slug, params)
 				tests.ResultedWithNoErrorCheck(sub, err)
 
 				// check if group has correct sub id
@@ -440,7 +440,7 @@ func TestInvoiceCreatedHandlerWithCouponAndAccountBalance(t *testing.T) {
 							Quantity: totalMembers,
 						}
 
-						sub, err := CreateSubscriptionForGroup(group.Slug, params)
+						sub, err := EnsureSubscriptionForGroup(group.Slug, params)
 						tests.ResultedWithNoErrorCheck(sub, err)
 
 						// check if group has correct sub id
@@ -576,7 +576,7 @@ func TestInvoiceCreatedHandlerUpgradePlan(t *testing.T) {
 						Quantity: totalMembers,
 					}
 
-					sub, err := CreateSubscriptionForGroup(group.Slug, params)
+					sub, err := EnsureSubscriptionForGroup(group.Slug, params)
 					tests.ResultedWithNoErrorCheck(sub, err)
 
 					// check if group has correct sub id
@@ -725,7 +725,7 @@ func TestInvoiceCreatedHandlerDowngradePlan(t *testing.T) {
 						Quantity: extraneousCount,
 					}
 
-					sub, err := CreateSubscriptionForGroup(group.Slug, params)
+					sub, err := EnsureSubscriptionForGroup(group.Slug, params)
 					tests.ResultedWithNoErrorCheck(sub, err)
 
 					// check if group has correct sub id
@@ -969,7 +969,7 @@ func TestInvoiceCreatedHandlerWithZeroUser(t *testing.T) {
 							Quantity: totalMembers,
 						}
 
-						sub, err := CreateSubscriptionForGroup(group.Slug, params)
+						sub, err := EnsureSubscriptionForGroup(group.Slug, params)
 						tests.ResultedWithNoErrorCheck(sub, err)
 
 						// check if group has correct sub id
