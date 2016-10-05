@@ -35,13 +35,32 @@ Home Section styles
 
 
 .HomeAppView--sectionHeader
-  border-bottom             none
+
   margin                    0 48px 30px
-  font-size                 14px
-  line-height               19px
-  color                     #747474
+  border-bottom             none
+
+  a
+    font-size               14px
+    line-height             19px
+    color                   #747474
+    noTextDeco()
+
   &:first-child
     margin-top              36px
+
+  .anchor
+    display                 inline-block
+    margin-left             -22px
+    margin-top              2px
+    visibility              hidden
+    abs()
+
+    &:hover
+      visibility            visible
+
+  &:hover
+    .anchor
+      visibility            visible
 
 
 .HomeAppView--ActionBar
