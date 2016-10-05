@@ -5,6 +5,7 @@ StartMachineSuccessPageView = require '../views/machineflow/startmachinesuccessp
 StartMachineErrorPageView = require '../views/machineflow/startmachineerrorpageview'
 StopMachineProgressPageView = require '../views/machineflow/stopmachineprogresspageview'
 StopMachineErrorPageView = require '../views/machineflow/stopmachineerrorpageview'
+MachineErrorPageView = require '../views/machineflow/machineerrorpageview'
 sendDataDogEvent = require 'app/util/sendDataDogEvent'
 trackInitialTurnOn = require 'app/util/trackInitialTurnOn'
 constants = require '../constants'
@@ -33,8 +34,7 @@ module.exports = class MachineFlowController extends kd.Controller
       .then (response) =>
         @onDataLoaded()
         @updateStatus
-          status     : response.State
-          percentage : response.percentage
+          status     : response.state
           eventId    : machineId
       .catch (err) =>
         @onDataLoaded()
@@ -74,6 +74,7 @@ module.exports = class MachineFlowController extends kd.Controller
     @startMachineErrorPage = new StartMachineErrorPageView()
     @stopMachineProgressPage = new StopMachineProgressPageView {}, machine
     @stopMachineErrorPage = new StopMachineErrorPageView()
+    @machineErrorPage = new MachineErrorPageView()
 
     @startMachinePage.on 'StartMachine', @bound 'startMachine'
     @startMachineErrorPage.on 'StartMachine', @bound 'startMachine'
@@ -82,13 +83,14 @@ module.exports = class MachineFlowController extends kd.Controller
 
     container.appendPages(
       @startMachinePage, @startMachineProgressPage, @startMachineSuccessPage,
-      @startMachineErrorPage, @stopMachineProgressPage, @stopMachineErrorPage
+      @startMachineErrorPage, @stopMachineProgressPage, @stopMachineErrorPage,
+      @machineErrorPage
     )
 
 
   updateStatus: (event, task) ->
 
-    { status, percentage, message, error } = event
+    { status, percentage, message, error } = @customizeStatusEvent event
 
     machine = @getData()
 
@@ -128,17 +130,26 @@ module.exports = class MachineFlowController extends kd.Controller
         return yes
 
 
-  showError: (error) ->
+  customizeStatusEvent: (event) ->
 
-    return  if @state is @prevState
+    { status, error } = event
+
+    if status is 'NotInitialized'
+      event.error ?= '''
+        Your VM doesn\'t respond. Please try again reloading the page or rebuild your stack.
+      '''
+
+    return event
+
+
+  showError: (error) ->
 
     sendDataDogEvent 'MachineStateFailed'
 
     page = switch
       when @state is 'Stopped' and @prevState is 'Starting' then @startMachineErrorPage
       when @state is 'Running' and @prevState is 'Stopping' then @stopMachineErrorPage
-
-    return @show()  unless page
+      else @machineErrorPage
 
     { container } = @getOptions()
     container.showPage page
