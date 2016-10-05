@@ -76,9 +76,9 @@ module.exports = class MachinesListItem extends React.Component
   toggle: (event) ->
 
     if @state.selectedMachine is @props.machine.get 'label'
-      return kd.singletons.router.handleRoute "/Home/Stacks/virtual-machines"
+      return kd.singletons.router.handleRoute "/Home/stacks/virtual-machines"
 
-    kd.singletons.router.handleRoute "/Home/Stacks/virtual-machines/#{@props.machine.get 'label'}"
+    kd.singletons.router.handleRoute "/Home/stacks/virtual-machines/#{@props.machine.get 'label'}"
 
 
   renderIpAddress: ->

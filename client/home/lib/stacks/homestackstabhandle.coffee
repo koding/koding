@@ -6,7 +6,7 @@ module.exports = class HomeStacksTabHandle extends kd.TabHandleView
 
     options.tagName         = 'a'
     options.attributes    or= {}
-    options.attributes.href = "/Home/Stacks/#{kd.utils.slugify options.pane.name}"
+    options.attributes.href = "/Home/stacks/#{kd.utils.slugify options.pane.name}"
 
     super options, data
 

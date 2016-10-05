@@ -12,7 +12,7 @@ module.exports = class SidebarStackHeaderSection extends React.Component
   render: ->
 
     <div className='SidebarTeamSection'>
-      <Link className='SidebarSection-headerTitle' href='/Home/Stacks'>
+      <Link className='SidebarSection-headerTitle' href='/Home/stacks'>
         STACKS
         <span className='SidebarSection-secondaryLink' onClick={@bound 'onNewClick'}></span>
       </Link>

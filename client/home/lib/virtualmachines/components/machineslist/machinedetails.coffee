@@ -269,7 +269,7 @@ module.exports = class MachineDetails extends React.Component
     machineUId = @props.machine.get 'uid'
     EnvironmentFlux.actions.setLabel machineUId, @state.machineLabel
       .then (label) =>
-        kd.singletons.router.handleRoute "/Home/Stacks/virtual-machines/#{@state.machineLabel}"
+        kd.singletons.router.handleRoute "/Home/stacks/virtual-machines/#{@state.machineLabel}"
       .catch (err) =>
         @setState { machineLabel: @props.machine.get 'label' }
         new kd.NotificationView { title: 'Something went wrong', duration: 2000 }
