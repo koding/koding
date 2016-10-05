@@ -7,6 +7,9 @@ getGroupStatus = require 'app/util/getGroupStatus'
 TrialEndedMemberModal = require 'lab/TrialEndedMemberModal'
 TrialEndedNotifySuccessModal = require 'lab/TrialEndedNotifySuccessModal'
 
+UpgradeNeededMemberModal = require 'lab/UpgradeNeededMemberModal'
+UpgradeNeededNotifySuccessModal = require 'lab/UpgradeNeededNotifySuccessModal'
+
 SuspendedMemberModal = require 'lab/SuspendedMemberModal'
 SuspendedNotifySuccessModal = require 'lab/SuspendedNotifySuccessModal'
 
@@ -38,6 +41,14 @@ module.exports = class DisabledMemberModal extends ReactView
           isOpen={yes}
           onButtonClick={onClick} />
 
+      when Status.NEEDS_UPGRADE
+        onClick = =>
+          @destroy()
+          router.handleRoute '/Disabled/Member/upgrade-notify-success'
+        <UpgradeNeededMemberModal
+          isOpen={yes}
+          onButtonClick={onClick} />
+
       when 'suspended-notify-success'
         onClick = -> console.log 'support link clicked'
         <SuspendedNotifySuccessModal
@@ -47,6 +58,12 @@ module.exports = class DisabledMemberModal extends ReactView
       when 'notify-success'
         onClick = -> console.log 'support link clicked'
         <TrialEndedNotifySuccessModal
+          isOpen={yes}
+          onButtonClick={onClick} />
+
+      when 'upgrade-notify-success'
+        onClick = -> console.log 'support link clicked'
+        <UpgradeNeededNotifySuccessModal
           isOpen={yes}
           onButtonClick={onClick} />
 
