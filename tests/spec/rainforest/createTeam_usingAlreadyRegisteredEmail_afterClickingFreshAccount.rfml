@@ -4,9 +4,6 @@
 # tags: automated
 #
 
-Team creation using already registered email after clicking 'fresh account' and 'already have an account' links sequentially
-
-
 Click on the 'create a new team' link below the form where it says 'Welcome! Enter your team's Koding domain.'
 Do you see 'Let's sign you up!' form with 'Email address' and 'Name your team_' text fields and a 'SIGN UP' button?
 
