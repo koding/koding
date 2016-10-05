@@ -1,0 +1,29 @@
+#! a19dd81d-0ac0-471c-81a9-dc26c202cd67
+# title: tryOnKoding_loginWithExistingUser_registerNewUser
+# start_uri: /
+# tags: automated
+#
+
+- 1ae7b10f-f120-47de-bc67-eae94efbd491
+
+# redirect: false
+Click on 'Install KD' section and scroll down to 'Koding Button' section on the pop-up appeared
+Do you see 'Enable “Try On Koding” Button' text? Do you see a toggle button that's in 'OFF' state next to that text?
+
+Click on the toggle button
+Is it turned into green? Is 'OFF' updated as 'ON'? Do you see a text field appeared starting with '<a href="https://_' text? Do you see '_Try on Koding' button appeared below that text field?
+
+Open a new incognito window by clicking on the 3 dots on the top corner of the browser and selecting 'New Incognito Window' and then go to '{{ random.last_name }}{{ random.number }}.sandbox.koding.com' by pasting the url (using ctrl-v) in the address bar,then if you see 'Authentication Required' form enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In' (if not do nothing and check the items below) 
+Do you see 'Sign in to {{ random.last_name }}{{ random.number }}' text, 'Username or Email' and 'Password' fields and a 'SIGN IN' button? Do you see 'If you don't have a Koding account sign up here so you can join {{ random.last_name }}{{ random.number }}!' text below that form?
+
+Enter "rainforestqa22" both in the 'Username or Email' and 'Password' fields and click on 'SIGN IN' button
+Are you successfully logged in? Do you see '{{ random.last_name }}{{ random.number }}' label at the top left corner? Do you see 'You are almost there, rainforestqa22!' title on a pop-up displayed in the center of the page?
+
+Close that modal by clicking (x) from top right corner, click on '{{ random.last_name }}{{ random.number }}' from top left corner and select 'Logout'
+Are you successfully logged out? Do you see 'Sign in to {{ random.last_name }}{{ random.number }}' text? Do you see 'If you don't have a Koding account sign up here so you can join {{ random.last_name }}{{ random.number }}!' text below that form?
+
+Click on 'sign up here' link?
+Do you see 'Join the {{ random.last_name }}{{ random.number }} team' title on a form? Do you see 'This is a public team, you can use any email address to join!' text below the title? Do you see 'your email address', 'pick a username' and 'set a password' text fields? Do you see 'SIGN UP & JOIN' button?
+
+Enter "{{ random.email }}" in the 'your email address', "{{ random.first_name }}{{ random.number }}" in the 'pick a username' and "{{ random.password }}" in the 'set a password' field and click on 'SIGN UP & JOIN' button
+Do you see 'You are almost there, {{ random.first_name }}{{ random.number }}!' title on a pop-up displayed in the center of the page? Do you see '{{ random.last_name }}{{ random.number }}' label on top left corner?
