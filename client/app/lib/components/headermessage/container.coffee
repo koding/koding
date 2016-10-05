@@ -7,6 +7,7 @@ globals = require 'globals'
 getRole = require 'app/util/getRole'
 getGroup = require 'app/util/getGroup'
 getGroupStatus = require 'app/util/getGroupStatus'
+isGroupDisabled = require 'app/util/isGroupDisabled'
 
 subscription = require 'app/redux/modules/payment/subscription'
 
@@ -15,35 +16,44 @@ subscription = require 'app/redux/modules/payment/subscription'
 HeaderMessage = require './headermessage'
 
 makeHeaderMessages = (trialDays, daysLeft) ->
-  admin:
-    expiring:
-      type: 'danger'
-      title: 'Your trial is about to expire.'
-      description: "
-        Your 1 #{if trialDays is 7 then 'week' else 'month'} trial is about to expire. You have only #{pluralize 'day', daysLeft, yes}
-        left. Enter your credit card to avoid any suspension.
-      "
-    past_due:
-      type: 'danger'
-      title: 'We couldn’t charge your credit card.'
-      description: '
-        We will try again on X date and your account will be suspended on X
-        date.
-      '
-  member:
-    expiring:
-      type: 'danger'
-      title: 'Your trial is about to expire.'
-      description: "
-        Your 1 #{if trialDays is 7 then 'week' else 'month'} trial is about to expire. You have only #{pluralize 'day', daysLeft, yes}
-        left. Have an admin enter a credit card to avoid any suspension.
-      "
-    past_due:
-      type: 'danger'
-      title: 'We couldn’t charge your credit card.'
-      description: '
-        Have an admin to enter a credit card to avoid any suspension.
-      '
+
+  admin = {}
+  admin[Status.EXPIRING] =
+    type: 'danger'
+    title: 'Your trial is about to expire.'
+    description: "
+      Your 1 #{if trialDays is 7 then 'week' else 'month'} trial is about to
+      expire. You have only #{pluralize 'day', daysLeft, yes} left. Enter your
+      credit card to avoid any suspension.
+    "
+
+  admin[Status.PAST_DUE] = admin[Status.CANCELED] =
+    type: 'danger'
+    title: 'We couldn’t charge your credit card.'
+    description: '
+      Your account is suspended because we were unable to charge your card on
+      file. Please enter a new card to continue using Koding.
+    '
+
+  member = {}
+  member[Status.EXPIRING] =
+    type: 'danger'
+    title: 'Your trial is about to expire.'
+    description: "
+      Your 1 #{if trialDays is 7 then 'week' else 'month'} trial is about to
+      expire. You have only #{pluralize 'day', daysLeft, yes} left. Have an
+      admin enter a credit card to avoid any suspension.
+    "
+
+  member[Status.PAST_DUE] =
+    type: 'danger'
+    title: 'We couldn’t charge your credit card.'
+    description: '
+      Have an admin to enter a credit card to avoid any suspension.
+    '
+
+  return { admin, member }
+
 
 groupStatus = (state) ->
 
@@ -51,11 +61,9 @@ groupStatus = (state) ->
 
   daysLeft = subscription.daysLeft state
 
-  switch status
-    when Status.TRIALING
-      if daysLeft < 4 then Status.EXPIRING else Status.TRIALING
-    else
-      status
+  if Status.TRIALING and daysLeft < 4
+  then Status.EXPIRING
+  else status
 
 
 headerMessage = (state) ->
@@ -68,20 +76,27 @@ headerMessage = (state) ->
   return messages[getRole()][status]
 
 
-buttonTitles =
-  admin:
-    expiring: 'Enter a Credit Card'
+makeButtonTitles = (creditCard) ->
 
-    past_due: 'Enter Another Credit Card'
+  admin = {}
 
-  member:
-    expiring: 'Notify My Admin'
-    past_due: 'Notify My Admin'
+  prefix = if creditCard then 'Another ' else 'a '
+
+  admin[Status.EXPIRING] = 'Enter a Credit Card'
+  admin[Status.PAST_DUE] = "Enter #{prefix}Credit Card"
+  admin[Status.CANCELED] = "Enter #{prefix}Credit Card"
+
+  member = {}
+  member[Status.EXPIRING] = 'Notify My Admin'
+  member[Status.PAST_DUE] = 'Notify My Admin'
+
+  return { admin, member }
 
 
 buttonTitle = (state) ->
 
   status = groupStatus(state)
+  buttonTitles = makeButtonTitles state.creditCard
 
   return buttonTitles[getRole()][status]
 
@@ -110,7 +125,7 @@ makeOnButtonClick = (state, dispatch) ->
 mapStateToProps = (state) ->
 
   return { visible: off }  unless status = groupStatus state
-  return { visible: off }  unless status in [Status.EXPIRING, Status.PAST_DUE]
+  return { visible: off }  unless isGroupDisabled getGroup()
   return { visible: off }  unless state.subscription
 
   messageProps = headerMessage(state)
