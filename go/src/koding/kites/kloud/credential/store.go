@@ -13,6 +13,8 @@ import (
 	"github.com/koding/logging"
 )
 
+var defaultLog = logging.NewCustom("credential", false)
+
 type validator interface {
 	Valid() error
 }
@@ -91,6 +93,13 @@ func (opts *Options) new(logName string) *Options {
 	optsCopy.Log = opts.Log.New(logName)
 
 	return &optsCopy
+}
+
+func (opts *Options) log() logging.Logger {
+	if opts.Log != nil {
+		return opts.Log
+	}
+	return defaultLog
 }
 
 // NewStore gives new credential store for the given options.
