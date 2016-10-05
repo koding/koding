@@ -3,6 +3,8 @@ globals = require 'globals'
 actionTypes = require './actiontypes'
 HomeGetters = require './getters'
 remote = require 'app/remote'
+whoami = require 'app/util/whoami'
+hasIntegration = require 'app/util/hasIntegration'
 
 { queryKites } = require 'app/providers/managed/helpers'
 { getters: EnvironmentGetters } = require 'app/flux/environment'
@@ -51,7 +53,6 @@ checkFinishedSteps = ->
     if Object.keys(welcomeSteps).length > Object.keys(finishedSteps).length
       mainController.emit 'AllWelcomeStepsNotDoneYet'
 
-
   if groupsController.getCurrentGroup().counts?.members > 1
     markAsDone 'inviteTeam'
 
@@ -64,6 +65,11 @@ checkFinishedSteps = ->
   remote.api.JCredential.some {}, { limit: 1 }, (err, res) ->
     return  if err
     markAsDone 'enterCredentials'  if res?.length
+
+  if hasIntegration 'gitlab'
+    whoami().fetchOAuthInfo (err, oauth) ->
+      markAsDone 'gitlabIntegration'  if oauth?.gitlab?
+
 
   if reactor.evaluate(HomeGetters.welcomeSteps).getIn [ 'common', 'installKd', 'isDone' ]
     if reactor.evaluate HomeGetters.areStepsFinished

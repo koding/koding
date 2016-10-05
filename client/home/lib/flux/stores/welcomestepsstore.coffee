@@ -100,6 +100,15 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           isDone: no
           order: 20
           skippable: yes
+        gitlabIntegration :
+          path: '/Home/my-account#integrations'
+          title: 'Connect GitLab'
+          actionTitle: 'Setup'
+          videoLink: ''
+          description: 'Start working with existing projects with your GitLab integration'
+          isDone: no
+          order: 21
+          skippable: yes
 
 
   initialize: ->
