@@ -6,6 +6,7 @@ import (
 
 	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/sub"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // CancelSubscriptionForGroup cancels the subscription for a team. In order to
@@ -53,19 +54,23 @@ func DeleteSubscriptionForGroup(groupName string) (*stripe.Sub, error) {
 		return nil, err
 	}
 
-	if err := modelhelper.UpdateGroupPartial(
-		modelhelper.Selector{"_id": group.Id},
-		modelhelper.Selector{
-			"$unset": modelhelper.Selector{
-				"payment.subscription.id":     sub.ID,
-				"payment.subscription.status": sub.Status,
-			},
-		},
-	); err != nil {
+	if err := unsetSubData(group.Id); err != nil {
 		return nil, err
 	}
 
 	return sub, nil
+}
+
+func unsetSubData(groupID bson.ObjectId) error {
+	return modelhelper.UpdateGroupPartial(
+		modelhelper.Selector{"_id": groupID},
+		modelhelper.Selector{
+			"$unset": modelhelper.Selector{
+				"payment.subscription.id":     "",
+				"payment.subscription.status": "",
+			},
+		},
+	)
 }
 
 func deleteSubscription(subscriptionID, customerID string) (*stripe.Sub, error) {
@@ -136,17 +141,21 @@ func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 		return nil, err
 	}
 
-	if err := modelhelper.UpdateGroupPartial(
-		modelhelper.Selector{"_id": group.Id},
+	if err := setSubData(group.Id, sub); err != nil {
+		return nil, err
+	}
+
+	return sub, nil
+}
+
+func setSubData(groupID bson.ObjectId, sub *stripe.Sub) error {
+	return modelhelper.UpdateGroupPartial(
+		modelhelper.Selector{"_id": groupID},
 		modelhelper.Selector{
 			"$set": modelhelper.Selector{
 				"payment.subscription.id":     sub.ID,
 				"payment.subscription.status": sub.Status,
 			},
 		},
-	); err != nil {
-		return nil, err
-	}
-
-	return sub, nil
+	)
 }
