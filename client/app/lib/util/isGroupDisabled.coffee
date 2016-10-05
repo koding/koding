@@ -2,14 +2,16 @@ getGroupStatus = require './getGroupStatus'
 
 { Status } = require 'app/redux/modules/payment/constants'
 
-expiredStatuses = [
-  Status.EXPIRED
-  Status.PAST_DUE
-  Status.CANCELED
+allowedStatuses = [
+  Status.TRIALING
+  Status.EXPIRING
+  Status.ACTIVE
 ]
 
 module.exports = isGroupDisabled = (group) ->
 
   status = getGroupStatus group
 
-  status and status in expiredStatuses
+  isAllowed = status and status in allowedStatuses
+
+  return not isAllowed
