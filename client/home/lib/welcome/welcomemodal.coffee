@@ -2,7 +2,6 @@ kd = require 'kd'
 HomeWelcome = require './'
 LocalStorage = require 'app/localstorage'
 globals = require 'globals'
-_ = require 'lodash'
 
 module.exports = class WelcomeModal extends kd.ModalView
 
@@ -82,22 +81,12 @@ module.exports = class WelcomeModal extends kd.ModalView
     @setClass 'out'
 
     { router } = kd.singletons
-    { visitedRoutes: tempVisitedRoutes } = router
-    # In case of visitedRoutes comes like this
-    # `Any route` -> `/Welcome` -> `/Home` -> `/Welcome` ->
-    # `/Home` -> `/Welcome` -> `/Home` -> `/Welcome`
-    # to findout correct back route and prevent infinite loop
-    # between `/Welcome` and `/Home` routes, we need to remove
-    # those unnecessary paths to access `/Any Route`
-    # FIXME: ~HK
-    tempVisitedRoutes =  _.flatten _.uniqWith _.chunk(tempVisitedRoutes, 2), _.isEqual
-    [..., beforeLast, last] = tempVisitedRoutes
-
-    tempVisitedRoutes.pop()  if last is '/Welcome' and beforeLast.indexOf('/Home') > -1
-
-    welcomeIndex = tempVisitedRoutes.lastIndexOf('/Welcome')
-    router.handleRoute tempVisitedRoutes[welcomeIndex - 1]  if selfInitiated
+    previousRoutes = router.visitedRoutes.filter (route) => not @checkRoute route
+    route = previousRoutes.last
+    router.handleRoute route  if selfInitiated
 
     # fat arrow is not unnecessary - sy
     kd.utils.wait 400, => super
 
+  checkRoute: (route) ->
+    /^\/(?:Home).*/.test(route) or /^\/(?:Welcome).*/.test route
