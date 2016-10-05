@@ -2,6 +2,8 @@ _ = require 'lodash'
 makeHttpClient = require 'app/util/makeHttpClient'
 { pickData } = makeHttpClient.helpers
 
+{ Status } = require 'app/redux/modules/payment/constants'
+
 exports.client = client = makeHttpClient { baseURL: '/api/social/payment' }
 
 exports.Endpoints = Endpoints =
@@ -54,12 +56,14 @@ exports.fetchInvoices = fetchInvoices = pickData ->
 exports.fetchInfo = fetchInfo = ->
   client.get(Endpoints.Info).then ({ data: info }) ->
     # if status is trialing, use `trialInfo`
-    if info.subscription.status is 'trialing'
+    if info.subscription.status is Status.TRIALING
       info = _.assign(_.omit(info, 'trialInfo'), info.trialInfo)
     return info
 
 
 getTimestamp = (date) ->
 
-  Math.round (date.getTime() + (30 * 24 * 60 * 60 * 1000)) / 1000
+  thirtyDaysInMs = (30 * 24 * 60 * 60 * 1000)
+
+  Math.round (date.getTime() + thirtyDaysInMs) / 1000
 
