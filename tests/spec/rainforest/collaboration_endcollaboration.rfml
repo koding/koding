@@ -1,0 +1,23 @@
+#! ad4bd321-2d54-40a5-b8c6-f0abada10506
+# title: collaboration_endcollaboration
+# start_uri: /
+# tags: automated
+#
+
+- 661370e4-14d7-448d-a664-54d2a1bbdf98
+
+# redirect: false
+Mouse over user icon at the left of 'END COLLABORATION' button
+Do you see a popup menu with participant's name?
+
+Click on 'End ' button
+Do you see 'Are you sure?' dialog?
+
+Click 'END COLLABORATION' button and click 'Yes' on the 'Are you sure?' dialog
+Is 'END COLLABORATION' button changed to 'START COLLABORATION'? Is 'Camera' icon removed from the bottom status bar?
+
+Return to the incognito browser window
+Do you see 'Session ended' dialog? Do you see 'LEAVE' button?
+
+Click on 'LEAVE' button
+Are 'example-instance' item removed from the left module and all panes from that VM closed?
