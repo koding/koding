@@ -1,6 +1,10 @@
 package credential
 
-import "errors"
+import (
+	"errors"
+
+	"gopkg.in/mgo.v2/bson"
+)
 
 type Cred struct {
 	Ident    string      `json:"ident"`
@@ -112,10 +116,16 @@ func (c *Client) Creds(f *Filter) ([]*Cred, error) {
 
 func (c *Client) SetCred(username string, cred *Cred) error {
 	credCopy := *cred
+
 	if credCopy.Perm == nil {
 		credCopy.Perm = &Filter{
 			User: username,
+			Team: cred.Team,
 		}
+	}
+
+	if credCopy.Ident == "" {
+		credCopy.Ident = bson.NewObjectId().Hex()
 	}
 
 	if err := c.db.SetCred(&credCopy); err != nil {

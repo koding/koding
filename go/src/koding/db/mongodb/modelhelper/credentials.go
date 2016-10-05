@@ -83,6 +83,12 @@ func UpdateCredential(identifier string, data bson.M) error {
 	})
 }
 
+func CreateCredential(cred *models.Credential) error {
+	return Mongo.Run(CredentialsColl, func(c *mgo.Collection) error {
+		return c.Insert(cred)
+	})
+}
+
 func SetCredentialVerified(identifier string, verified bool) error {
 	return UpdateCredential(identifier, bson.M{
 		"$set": bson.M{"verified": verified},

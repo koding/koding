@@ -3,6 +3,7 @@ package credential
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
@@ -235,15 +236,6 @@ func (db *mongoDatabase) Validate(f *Filter, c *Cred) (Perm, error) {
 		}
 	}
 
-	if perm.Cred == nil {
-		log.Debug("fetching %q credential", c.Ident)
-
-		perm.Cred, err = modelhelper.GetCredential(c.Ident)
-		if err != nil {
-			return nil, models.ResError(err, "jCredential")
-		}
-	}
-
 	if !perm.Member {
 		belongs := modelhelper.Selector{
 			"targetId": perm.Acc.Id,
@@ -262,6 +254,15 @@ func (db *mongoDatabase) Validate(f *Filter, c *Cred) (Perm, error) {
 		}
 
 		perm.Member = true
+	}
+
+	if perm.Cred == nil {
+		log.Debug("fetching %q credential", c.Ident)
+
+		perm.Cred, err = modelhelper.GetCredential(c.Ident)
+		if err != nil {
+			return perm, models.ResError(err, "jCredential")
+		}
 	}
 
 	belongs := modelhelper.Selector{
@@ -443,6 +444,70 @@ func (db *mongoDatabase) fetchCreds(f *Filter, acc *models.Account, user *models
 }
 
 func (db *mongoDatabase) SetCred(c *Cred) error {
+	f, ok := c.Perm.(*Filter)
+	if !ok {
+		return errors.New("invalid credential permission")
+	}
+
+	perm, err := db.Validate(f, c)
+	if err == nil {
+		c.Perm = perm
+		return nil
+	}
+
+	if !models.IsNotFound(err, "jCredential") {
+		return err
+	}
+
+	mPerm, ok := perm.(*MongoPerm)
+	if !ok {
+		return fmt.Errorf("unable to create credential: %s", err)
+	}
+
+	if mPerm.Acc == nil {
+		return fmt.Errorf("unable to create credential: missing %q account", f.User)
+	}
+
+	if mPerm.Team == nil {
+		return fmt.Errorf("unable to create credential: missing %q team", f.Team)
+	}
+
+	now := time.Now().UTC()
+
+	mPerm.Cred = &models.Credential{
+		Id:          bson.NewObjectId(),
+		Provider:    c.Provider,
+		Identifier:  c.Ident,
+		Title:       c.Title,
+		OriginId:    mPerm.Acc.Id,
+		Verified:    false,
+		AccessLevel: "private",
+		Meta: &models.CredentialMeta{
+			CreatedAt:  now,
+			ModifiedAt: now,
+		},
+	}
+
+	if err := modelhelper.CreateCredential(mPerm.Cred); err != nil {
+		return err
+	}
+
+	rel := &models.Relationship{
+		Id:         bson.NewObjectId(),
+		TargetId:   mPerm.Cred.Id,
+		TargetName: "JCredential",
+		SourceId:   mPerm.Acc.Id,
+		SourceName: "JAccount",
+		As:         "owner",
+		TimeStamp:  now,
+	}
+
+	if err := modelhelper.AddRelationship(rel); err != nil {
+		return err
+	}
+
+	c.Perm = mPerm
+
 	return nil
 }
 
