@@ -32,13 +32,17 @@ module.exports = class StackTemplateItem extends React.Component
 
   componentDidMount: ->
 
-    $('.kdscrollview').on 'scroll', _.debounce @bound('scrollOnPage'), 500, { leading: yes, trailing: no }
+    $('.kdscrollview').on 'scroll', @bound 'scrollOnPage'
     @setCoordinates()
 
 
-  scrollOnPage: ->
+  componentWillUnmount: ->
+    $('.kdscrollview').off 'scroll', @bound 'scrollOnPage'
 
-    @setState { showWidget: no }
+
+  scrollOnPage: -> _.debounce =>
+    @setState({ showWidget: no })
+  , 500, { leading: yes, trailing: no }
 
 
   setCoordinates: ->
