@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"os/user"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -94,6 +95,12 @@ var (
 	//
 	// TODO(rjeczalik): move to koding/config
 	S3KlientctlLatest = "https://koding-kd.s3.amazonaws.com/" + Environment + "/latest-version.txt"
+
+	// CurrentUser represents current user that owns the KD process.
+	//
+	// If KD was started with sudo, the CurrentUser represents
+	// the user that invoked sudo.
+	CurrentUser = currentUser()
 )
 
 func init() {
@@ -152,4 +159,22 @@ func S3Klientctl(version int, env string) string {
 	return fmt.Sprintf("%s/kd-0.1.%d.%s_%s.gz", dirURL(S3KlientctlLatest, env),
 		version, runtime.GOOS, runtime.GOARCH,
 	)
+}
+
+func currentUser() *user.User {
+	u, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+
+	if u.Uid != "0" {
+		return u
+	}
+
+	u2, err := user.Lookup(os.Getenv("SUDO_USER"))
+	if err != nil {
+		return u
+	}
+
+	return u2
 }

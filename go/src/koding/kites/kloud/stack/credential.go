@@ -188,6 +188,18 @@ func (k *Kloud) CredentialAdd(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	if v, ok := cred.(Validator); ok {
+		if err := v.Valid(); err != nil {
+			return nil, err
+		}
+	}
+
+	if v, ok := boot.(Validator); ok {
+		if err := v.Valid(); err != nil {
+			return nil, err
+		}
+	}
+
 	if err := k.CredClient.SetCred(r.Username, c); err != nil {
 		return nil, err
 	}

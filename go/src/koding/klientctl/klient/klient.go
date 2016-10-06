@@ -10,7 +10,6 @@ import (
 	"koding/klient/remote/req"
 	"koding/klientctl/config"
 	"koding/klientctl/list"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -74,7 +73,7 @@ type KlientOptions struct {
 func NewKlientOptions() KlientOptions {
 	return KlientOptions{
 		Address:     config.KlientAddress,
-		KiteKeyPath: filepath.Join(config.KiteHome, "kite.key"),
+		KiteKeyPath: config.KiteKeyPath,
 		Name:        config.Name,
 		Version:     config.KiteVersion,
 		Environment: config.Environment,

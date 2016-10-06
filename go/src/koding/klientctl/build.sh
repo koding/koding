@@ -66,10 +66,12 @@ pushd $REPO_PATH
 
 kd_build
 
-gzip -9 -N -f kd
-mv kd.gz "${PREFIX}.darwin_amd64.gz"
+if [[ -z "$KD_DEBUG" ]]; then
+	gzip -9 -N -f kd
+	mv kd.gz "${PREFIX}.darwin_amd64.gz"
 
-docker run -t -v $PWD:/opt/koding -e KD_SEGMENTIO_KEY="$KD_SEGMENTIO_KEY" koding/base:klient go/src/koding/klientctl/build.sh "$CHANNEL" "$VERSION"
+	docker run -t -v $PWD:/opt/koding -e KD_SEGMENTIO_KEY="$KD_SEGMENTIO_KEY" koding/base:klient go/src/koding/klientctl/build.sh "$CHANNEL" "$VERSION"
+fi
 
 popd
 

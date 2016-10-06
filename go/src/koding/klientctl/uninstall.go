@@ -3,10 +3,11 @@ package main
 import (
 	"errors"
 	"fmt"
-	"koding/klientctl/config"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"koding/klientctl/config"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"

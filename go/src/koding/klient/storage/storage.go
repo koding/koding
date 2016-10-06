@@ -15,6 +15,7 @@ type Interface interface {
 	Get(key string) (string, error)
 	Set(key, value string) error
 	Delete(key string) error
+	Close() error
 }
 
 // ValueInterfaces is an interface for encoding storage.

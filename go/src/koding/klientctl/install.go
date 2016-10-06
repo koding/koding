@@ -400,26 +400,8 @@ func (k klientSh) Create(file string) error {
 	return ioutil.WriteFile(file, []byte(p), 0755)
 }
 
-// sudoUserFromEnviron extracts the SUDO_USER environment variable value from
-// the given slice, if any.
-func sudoUserFromEnviron(envs []string) string {
-	for _, s := range envs {
-		env := strings.Split(s, "=")
-
-		if len(env) != 2 {
-			continue
-		}
-
-		if env[0] == "SUDO_USER" {
-			return env[1]
-		}
-	}
-
-	return ""
-}
-
 func username() string {
-	if s := sudoUserFromEnviron(os.Environ()); s != "" {
+	if s := os.Getenv("SUDO_USER"); s != "" {
 		return s
 	}
 

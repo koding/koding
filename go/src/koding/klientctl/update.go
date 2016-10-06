@@ -140,7 +140,7 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	klientSh := klientSh{
-		User:          sudoUserFromEnviron(os.Environ()),
+		User:          username(),
 		KiteHome:      config.KiteHome,
 		KlientBinPath: filepath.Join(KlientDirectory, "klient"),
 		KontrolURL:    kontrolURL,
