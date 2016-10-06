@@ -142,8 +142,25 @@ module.exports = class JSession extends Model
 
     ipAddress = (ipAddress.split ',')[0]
 
-    JSession.update { clientId: clientId }, { $set: { clientIP: ipAddress } }, (err) ->
+    @update { clientId: clientId }, { $set: { clientIP: ipAddress } }, (err) ->
       callback err
+
+
+  @fetchOAuthInfo = (clientId, callback) ->
+
+    @one { clientId: clientId }, (err, session) ->
+      return callback err   if err
+      return callback null  unless session
+
+      { foreignAuth, foreignAuthType } = session
+      if foreignAuth and foreignAuthType
+        callback null, { foreignAuth, foreignAuthType, session }
+      else
+        callback null # WARNING: don't assume it's an error if there's no foreignAuth
+
+
+  @clearOauthInfo = (session, callback) ->
+    session.update { $unset: { foreignAuth:1, foreignAuthType:1 } }, callback
 
 
   remove$: secure (client, callback) ->

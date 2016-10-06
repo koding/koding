@@ -40,7 +40,7 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           order: 3
           skippable: no
         inviteTeam :
-          path: '/Home/My-Team/send-invites'
+          path: '/Home/my-team#send-invites'
           title: 'Invite Your Team'
           actionTitle: 'Invite'
           videoLink: ''
@@ -92,13 +92,22 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
         #   order: 0
         #   skippable: no
         installKd :
-          path: '/Home/Koding-Utilities/kd-cli'
+          path: '/Home/koding-utilities#kd-cli'
           title: 'Install KD'
           actionTitle: 'Install'
           videoLink: ''
           description: '<code>kd</code> is a CLI tool that allows you to use your local IDEs.'
           isDone: no
           order: 20
+          skippable: yes
+        gitlabIntegration :
+          path: '/Home/my-account#integrations'
+          title: 'Connect GitLab'
+          actionTitle: 'Setup'
+          videoLink: ''
+          description: 'Start working with existing projects with your GitLab integration'
+          isDone: no
+          order: 21
           skippable: yes
 
 

@@ -101,7 +101,7 @@ koding = new Bongo {
 
         callback {
           sessionToken, context, clientIP, username
-          connection:{ delegate : account }
+          connection: { delegate: account }
         }
 
       else
@@ -109,9 +109,6 @@ koding = new Bongo {
         console.error 'constructor is JAccount', JAccount is account?.constructor
         callback null
 }
-
-koding.on 'authenticateUser', (client, callback) ->
-  callback client?.connection?.delegate
 
 koding.on 'errFirstDetected', (err) -> console.error err
 

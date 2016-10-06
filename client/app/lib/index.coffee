@@ -96,34 +96,16 @@ bootup = ->
 
   status.on 'connected', ->
     ConnectionChecker.globalNotification.hide()
-    startAuthenticationInterval()
     kd.log 'kd remote connected'
 
   status.on 'reconnected', (options = {}) ->
     ConnectionChecker.globalNotification.hide()
-    startAuthenticationInterval()
     kd.log 'kd remote re-connected'
 
   status.on 'disconnected', (options = {}) ->
-    stopAuthenticationInterval()
     kd.log 'kd remote disconnected'
 
   remote.connect()
-
-  ###
-  # USER AUTHENTICATION
-  ###
-  authenticationInterval = null
-
-  startAuthenticationInterval = ->
-    return  if authenticationInterval
-
-    authenticationInterval = kd.utils.repeat 20000, ->
-      remote.authenticateUser()
-
-  stopAuthenticationInterval = ->
-    kd.utils.killRepeat authenticationInterval
-    authenticationInterval = null
 
   return true
 

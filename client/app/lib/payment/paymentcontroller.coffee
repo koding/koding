@@ -52,12 +52,7 @@ module.exports = class PaymentController extends kd.Controller
 
   subscriptions: (callback) ->
 
-    # return plan as 'koding' on default environment
-    if globals.config.environment is 'default'
-      # checkout servers/models/computeproviders/plans.coffee
-      return callback null, { planTitle: 'koding' }
-
-    @api().subscriptions {}, callback
+    callback null, { planTitle: 'koding' }
 
 
   invoices: (callback) -> @api().invoices {}, callback

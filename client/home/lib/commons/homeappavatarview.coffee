@@ -17,7 +17,7 @@ module.exports = class HomeAppAvatarArea extends kd.CustomHTMLView
 
     options.tagName    = 'a'
     options.cssClass   = 'HomeAppView-Nav--AvatarArea'
-    options.attributes = { href: '/Home/My-Account' }
+    options.attributes = { href: '/Home/my-account' }
     data             or= whoami()
 
     super options, data

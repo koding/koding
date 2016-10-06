@@ -46,7 +46,7 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
           @form.tfcode.show()
           @form.tfcode.setFocus()
 
-    if group.slug is gitlab?.team
+    if group.config?.gitlab?.enabled
       @form.gitlabLogin.show()
 
     ['button', 'gitlabButton'].forEach (button) =>

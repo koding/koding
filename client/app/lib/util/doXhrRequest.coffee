@@ -1,4 +1,5 @@
-module.exports = (options = {}, callback) ->
+module.exports = doXhrRequest = (options = {}, callback) ->
+
   { type, endPoint, data, async, timeout } = options
   type = 'POST'  unless type
 

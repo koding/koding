@@ -1,6 +1,5 @@
 kd = require 'kd'
 JView = require 'app/jview'
-showStackEditor = require 'app/util/showStackEditor'
 
 module.exports = class HomeStacksCreate extends kd.CustomHTMLView
 

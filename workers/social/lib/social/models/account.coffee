@@ -153,8 +153,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
         fetchOAuthInfo:
           (signature Function)
-        isAuthorized:
-          (signature String, Function)
         fetchFromUser: [
           (signature String, Function)
           (signature [String], Function)
@@ -167,8 +165,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
         fetchRelativeGroups:
           (signature Function)
-        setLastLoginTimezoneOffset:
-          (signature Object, Function)
         expireSubscription:
           (signature Function)
         fetchOtaToken:
@@ -700,25 +696,6 @@ module.exports = class JAccount extends jraphical.Module
       else
         @setEmailPreferences user, prefs, callback
 
-  # Update broken counts for user
-  updateCounts: ->
-    JUser = require './user'
-    # ReferredUsers count
-    JAccount.count
-      referrerUsername : @profile.nickname
-    , (err, count) =>
-      return if err
-      count ?= 0
-      @update ({ $set: { 'counts.referredUsers': count } }), ->
-
-    # Last Login date
-    @update ({ $set: { 'counts.lastLoginDate': new Date } }), ->
-
-    # Twitter follower count
-    JUser.one { username: @profile.nickname }, (err, user) =>
-      return if err or not user
-      if followerCount = user.foreignAuth?.twitter?.profile?.followers_count
-        @update { $set: { 'counts.twitterFollowers': followerCount } }, ->
 
   isEmailVerified: (callback) ->
     @fetchUser (err, user) ->
@@ -1152,27 +1129,28 @@ module.exports = class JAccount extends jraphical.Module
   ## NEWER IMPLEMENATION: Fetch ids from graph db, get items from document db.
 
   unlinkOauth: secure (client, provider, callback) ->
-    { delegate } = client.connection
-    isMine     = @equals delegate
-    if isMine
-      @fetchUser (err, user) =>
+
+    if not client or not @equals client.connection.delegate
+      return callback new KodingError 'Access denied'
+
+    JForeignAuth = require './foreignauth'
+
+    @fetchUser (err, user) ->
+      return callback err  if err
+      return callback new KodingError 'User not found'  unless user
+
+      JForeignAuth.remove {
+        username: user.username
+        group: client.context.group
+        provider
+      }, (err) ->
         return callback err  if err
 
-        query = {}
-        query["foreignAuth.#{provider}"] = ''
-        user.update { $unset: query }, (err) =>
-          return callback err  if err
-          @oauthDeleteCallback provider, user, callback
-    else
-      callback new KodingError 'Access denied'
+        foreignAuth = {}
+        foreignAuth[provider] = no
+        Tracker.identify user.username, { foreignAuth }
 
-  oauthDeleteCallback: (provider, user, callback) ->
-
-    foreignAuth = {}
-    foreignAuth[provider] = no
-    Tracker.identify user.username, { foreignAuth }
-
-    callback()
+        callback null
 
   # we are using this in sorting members list..
   updateMetaModifiedAt: (callback) ->
@@ -1274,7 +1252,8 @@ module.exports = class JAccount extends jraphical.Module
     @fetchFromUser client, 'emailFrequency', callback
 
   fetchOAuthInfo: secure (client, callback) ->
-    @fetchFromUser client, 'foreignAuth', callback
+    JForeignAuth = require './foreignauth'
+    JForeignAuth.fetchData client, callback
 
   fetchFromUser: secure (client, key, callback) ->
     { delegate } = client.connection
@@ -1295,26 +1274,7 @@ module.exports = class JAccount extends jraphical.Module
       else
         callback null, user.getAt key
 
-  isAuthorized: secure (client, name, callback) ->
-    @fetchOAuthInfo client, (err, response) ->
 
-      return callback err  if err
-
-      return callback null, no  unless response?[name]
-
-      return callback null, yes  if name isnt 'github'
-
-      return callback null, response[name].scope is 'repo'
-
-
-  setLastLoginTimezoneOffset: secure (client, options, callback) ->
-    { lastLoginTimezoneOffset } = options
-
-    return callback new KodingError 'timezone offset is not set'  unless lastLoginTimezoneOffset?
-
-    @update { $set: { lastLoginTimezoneOffset } }, (err) ->
-      return callback new KodingError 'Could not update last login timezone offset' if err
-      callback null
 
   expireSubscription: secure ({ connection }, callback) ->
     if KONFIG.environment is 'production'

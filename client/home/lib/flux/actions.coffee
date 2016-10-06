@@ -3,6 +3,8 @@ globals = require 'globals'
 actionTypes = require './actiontypes'
 HomeGetters = require './getters'
 remote = require 'app/remote'
+whoami = require 'app/util/whoami'
+hasIntegration = require 'app/util/hasIntegration'
 
 { queryKites } = require 'app/providers/managed/helpers'
 { getters: EnvironmentGetters } = require 'app/flux/environment'
@@ -35,6 +37,18 @@ queryForKd = ->
     markAsDone 'installKd'
 
 
+checkIntegrationSteps = ->
+  return  unless hasIntegration 'gitlab'
+  whoami().fetchOAuthInfo (err, oauth) ->
+    markAsDone 'gitlabIntegration'  if oauth?.gitlab?
+
+
+checkCredentialSteps = ->
+  remote.api.JCredential.some {}, { limit: 1 }, (err, res) ->
+    return  if err
+    markAsDone 'enterCredentials'  if res?.length
+
+
 checkFinishedSteps = ->
 
   { appStorageController, groupsController
@@ -51,7 +65,6 @@ checkFinishedSteps = ->
     if Object.keys(welcomeSteps).length > Object.keys(finishedSteps).length
       mainController.emit 'AllWelcomeStepsNotDoneYet'
 
-
   if groupsController.getCurrentGroup().counts?.members > 1
     markAsDone 'inviteTeam'
 
@@ -61,9 +74,9 @@ checkFinishedSteps = ->
   unobserve = reactor.observe EnvironmentGetters.stacks, (_stacks) ->
     checkStacksForBuild _stacks, unobserve
 
-  remote.api.JCredential.some {}, { limit: 1 }, (err, res) ->
-    return  if err
-    markAsDone 'enterCredentials'  if res?.length
+  checkCredentialSteps()
+
+  checkIntegrationSteps()
 
   if reactor.evaluate(HomeGetters.welcomeSteps).getIn [ 'common', 'installKd', 'isDone' ]
     if reactor.evaluate HomeGetters.areStepsFinished

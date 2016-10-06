@@ -61,6 +61,7 @@ createInstance = ->
             callback err, models, name
 
     mq: do ->
+
       { authExchange } = globals.config
 
       options = {
