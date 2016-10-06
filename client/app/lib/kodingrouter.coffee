@@ -36,7 +36,7 @@ module.exports = class KodingRouter extends kd.Router
         entryPoint      : globals.config.entryPoint
 
 
-  handleRoute: (route, options = {}) ->
+  handleRoute: (route = '', options = {}) ->
 
     @breadcrumb.push route
 

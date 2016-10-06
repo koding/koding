@@ -65,7 +65,7 @@ func New(c *Config) *kontrol.Kontrol {
 
 	kon.Kite.HandleFunc("getKodingKites",
 		metricKiteHandler(
-			met, "HandleGetKodingKites", HandleGetKodingKites(kon.HandleGetKites),
+			met, "HandleGetKodingKites", HandleGetKodingKites(kon.HandleGetKites, kiteConf.Environment),
 		),
 	)
 
