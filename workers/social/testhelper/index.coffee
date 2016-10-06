@@ -169,7 +169,6 @@ generateUserInfo = (opts = {}) ->
     password        : 'testpass'
     lastName        : 'user'
     firstName       : 'kodingtest'
-    foreignAuth     : null
     emailFrequency  : null
     passwordStatus  : 'valid'
 

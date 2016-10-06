@@ -3,10 +3,10 @@ checkFlag = require 'app/util/checkFlag'
 
 additionalChecks =
   'gitlab' : ->
-    # for now this feature is only enabled for the team defined in config
-    globals.config.entryPoint.slug is globals.config.gitlab.team
+    return yes  if globals.currentGroup?.config?.gitlab?.enabled
+    return globals.config.entryPoint.slug is globals.config.gitlab.team
 
-module.exports = (feature) ->
+module.exports = isFeatureEnabled = (feature) ->
 
   isDisabled = globals.config.disabledFeatures[feature]
   additionalChecksPassed = additionalChecks[feature]?() ? true

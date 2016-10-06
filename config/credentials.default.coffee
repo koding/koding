@@ -107,6 +107,7 @@ module.exports = (options) ->
     redirectUri: ''
     systemHookToken: ''
     hooksEnabled: no
+    allowPrivateOAuthEndpoints: no
   facebook =
     clientId: ''
     clientSecret: ''

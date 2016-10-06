@@ -1,6 +1,9 @@
 { expect } = require '../../testhelper'
 { isTeamPage } = require './helpers'
+
+
 describe 'helpers::isTeamPage', ->
+
   generateReq = (name) ->
     req = {}
     req.headers = {}

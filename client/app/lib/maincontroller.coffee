@@ -178,12 +178,6 @@ module.exports = class MainController extends KDController
     unless firstLoad
       (kd.getSingleton 'kontrol').reauthenticate()
 
-    tzOffset = (new Date()).getTimezoneOffset()
-
-    account.setLastLoginTimezoneOffset { lastLoginTimezoneOffset: tzOffset }, (err) ->
-
-      kd.warn err  if err
-
     @ready @emit.bind this, 'AccountChanged', account, firstLoad
 
     @emit 'ready'

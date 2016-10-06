@@ -15,8 +15,6 @@ teamInvitations = ['TeamInvitationStore']
 disabledUsers = ['TeamDisabledMembersStore']
 allUsersLoaded = ['TeamAllUsersLoadedStore']
 
-focusFirstEmail = ['TeamSendInvitesFocusStore']
-
 apiTokens = ['TeamAPITokensStore']
 apiAccessState = ['TeamAPIAccessStateStore']
 
@@ -186,7 +184,6 @@ module.exports = {
   filteredMembersWithRoleAndDisabledUsers
   adminsList
   allUsersLoaded
-  focusFirstEmail
   alreadyMemberInvitations
   apiTokens
   apiAccessState

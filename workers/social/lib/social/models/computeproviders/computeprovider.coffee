@@ -94,7 +94,7 @@ module.exports = class ComputeProvider extends Base
 
     shouldReviveClient       : yes
     shouldReviveProvisioners : yes
-    shouldFetchGroupLimit     : yes
+    shouldFetchGroupLimit    : yes
 
   , (client, options, callback) ->
 

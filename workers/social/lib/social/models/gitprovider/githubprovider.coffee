@@ -11,19 +11,18 @@ module.exports = GitHubProvider =
 
   getConfig: -> [ null, { host: Constants.GITHUB_HOST } ]
 
-  importStackTemplateData: (importParams, user, callback) ->
+  importStackTemplateData: (client, options, callback) ->
 
-    { url } = importParams
-    return  unless urlData = @parseImportData url
+    { url } = options
+    unless urlData = @parseImportData url
+      return callback new KodingError 'Repository information is invalid'
 
-    oauth = user.getAt 'foreignAuth.github'
+    { user, oauth } = client.r
 
     if oauth
       @importStackTemplateWithOauth oauth, urlData, callback
     else
       @importStackTemplateWithRawUrl urlData, callback
-
-    return yes
 
 
   parseImportData: (url) ->
@@ -43,7 +42,8 @@ module.exports = GitHubProvider =
   importStackTemplateWithOauth: (oauth, urlData, callback) ->
 
     { githubapi } = KONFIG
-    return callback new KodingError 'Github api config is missing'  unless githubapi
+    unless githubapi
+      return callback new KodingError 'Github api config is missing'
 
     { debug, timeout, userAgent } = githubapi
     { user, repo, branch } = urlData

@@ -108,12 +108,11 @@ reviveClient = (client, callback, options) ->
 
 reviveOauth = (client, oauthProvider, callback) ->
 
-  { user }    = client.r
-  foreignAuth = user.getAt "foreignAuth.#{oauthProvider}"
-
-  if not foreignAuth
-  then callback new KodingError "Authentication not found for #{oauthProvider}"
-  else callback null, foreignAuth
+  JForeignAuth = require '../foreignauth'
+  JForeignAuth.fetchData client, (err, foreignAuth) ->
+    if err or not foreignAuth or not authData = foreignAuth[oauthProvider]
+    then callback new KodingError "Authentication not found for #{oauthProvider}"
+    else callback null, authData
 
 
 locks = []
@@ -146,7 +145,7 @@ revive = do -> (
     shouldReviveProvisioners
     shouldFetchGroupLimit
     shouldLockProcess
-    shouldHaveOauth
+    shouldReviveOAuth
     hasOptions
   }, fn) ->
 
@@ -194,9 +193,12 @@ revive = do -> (
 
       # OAUTH Check
 
-      if shouldHaveOauth?
+      if shouldReviveOAuth
 
-        reviveOauth client, shouldHaveOauth, (err, oauth) =>
+        unless options.provider
+          return callback new KodingError 'No such provider.', 'ProviderNotFound'
+
+        reviveOauth client, options.provider, (err, oauth) =>
           return callback err     if err
           client.r.oauth = oauth  if oauth?
 

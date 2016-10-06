@@ -41,6 +41,7 @@ kontrol-data-*
 /go/pkg
 /go/data
 /go/binexport
+/go/src/github.com
 /go/src/socialapi/db/sql/kontrol
 /go/src/socialapi/config/*.toml
 
