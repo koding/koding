@@ -47,12 +47,12 @@ TrialChargeInfo = ({ teamSize, pricePerSeat, daysLeft }) ->
           <ExpirationMessage daysLeft={daysLeft} />
         </Col>
       }
-      <Col xs={4}>
+      <Col xs={5}>
         <Label size="small">
           Team Size: <strong>{pluralize 'Developer', teamSize, yes}</strong>
         </Label>
       </Col>
-      <Col xs={8} className={textStyles.right}>
+      <Col xs={7} className={textStyles.right}>
         <Label size="small">
           Your monthly charge will be: <strong>${pricePerSeat}</strong> per user
         </Label>

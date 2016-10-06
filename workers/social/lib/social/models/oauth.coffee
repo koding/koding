@@ -235,7 +235,7 @@ module.exports = class OAuth extends bongo.Base
     if (_provider = @PROVIDERS[provider]) and _provider.enabled
       { context: { group } } = client
       urlOptions.redirectUri = \
-        "http://#{group}.#{KONFIG.hostname}/-/oauth/#{provider}/callback"
+        "#{KONFIG.protocol}//#{group}.#{KONFIG.hostname}/-/oauth/#{provider}/callback"
       _provider.getUrl client, urlOptions, callback
     else
       callback ERROR.NOTSUPPORTED
