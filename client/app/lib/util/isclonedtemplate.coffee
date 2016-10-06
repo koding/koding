@@ -6,4 +6,4 @@ module.exports = isClonedTemplate = (stackTemplate, callback) ->
   originalStackTemplateId = stackTemplate.config?.clonedFrom
   return callback no unless originalStackTemplateId
   remote.api.JStackTemplate.one { _id: originalStackTemplateId }, (err, template) ->
-    return callback template?
+    return callback template
