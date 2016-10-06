@@ -3,6 +3,7 @@ package stack
 import (
 	"encoding/json"
 	"errors"
+	"koding/kites/kloud/credential"
 
 	"github.com/koding/kite"
 )
@@ -46,11 +47,13 @@ type Value struct {
 
 type CredentialListRequest struct {
 	Provider string `json:"provider,omitempty"`
+	Team     string `json:"team,omitempty"`
 	Template []byte `json:"template,omitempty"`
 }
 
 type CredentialItem struct {
 	Title      string `json:"title"`
+	Team       string `json:"team,omitempty"`
 	Identifier string `json:"identifier"`
 }
 
@@ -102,13 +105,36 @@ func (k *Kloud) CredentialList(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	return nil, nil
+	f := &credential.Filter{
+		User:     r.Username,
+		Team:     req.Team,
+		Provider: req.Provider,
+	}
+
+	creds, err := k.CredClient.Creds(f)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &CredentialListResponse{
+		Credentials: make(map[string][]CredentialItem),
+	}
+
+	for _, cred := range creds {
+		c := resp.Credentials[cred.Provider]
+
+		c = append(c, CredentialItem{
+			Title:      cred.Title,
+			Team:       cred.Team,
+			Identifier: cred.Ident,
+		})
+
+		resp.Credentials[cred.Provider] = c
+	}
+
+	return resp, nil
 }
 
 func (k *Kloud) CredentialAdd(r *kite.Request) (interface{}, error) {
-	return nil, nil
-}
-
-func (k *Kloud) CredentialRemove(r *kite.Request) (interface{}, error) {
 	return nil, nil
 }

@@ -214,6 +214,7 @@ func New(conf *Config) (*Kloud, error) {
 	}
 
 	kloud.Stack.DescribeFunc = provider.Desc
+	kloud.Stack.CredClient = credential.NewClient(storeOpts)
 
 	kloud.Stack.ContextCreator = func(ctx context.Context) context.Context {
 		return session.NewContext(ctx, sess)
@@ -276,7 +277,6 @@ func New(conf *Config) (*Kloud, error) {
 	k.HandleFunc("credential.describe", kloud.Stack.CredentialDescribe)
 	k.HandleFunc("credential.list", kloud.Stack.CredentialList)
 	k.HandleFunc("credential.add", kloud.Stack.CredentialAdd)
-	k.HandleFunc("credential.remove", kloud.Stack.CredentialRemove)
 
 	k.HandleFunc("machine.list", kloud.Stack.MachineList)
 
