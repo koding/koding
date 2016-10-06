@@ -7,11 +7,14 @@
     }
   },
   "output": {
+    "koding_firewall": {
+      "value": "${google_compute_firewall.koding.self_link}"
+    }
   },
   "resource": {
     "google_compute_firewall": {
       "koding": {
-        "name": "gce-koding-kloud-firewall",
+        "name": "gce-koding-firewall",
         "network": "default",
         "allow": {
           "protocol": "tcp",

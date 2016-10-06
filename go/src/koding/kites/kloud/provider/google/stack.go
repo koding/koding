@@ -2,9 +2,9 @@ package google
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"text/template"
 
 	"koding/kites/kloud/stack"
@@ -133,6 +133,15 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 			}
 		}
 
+		// Instance name is always required.
+		instanceName, ok := instance["name"]
+		if !ok {
+			return nil, fmt.Errorf("%q instance name is required", resourceName)
+		}
+		if instr, ok := instanceName.(string); !ok || instr == "" {
+			return nil, fmt.Errorf("%q instance name is invalid: %v", resourceName, instanceName)
+		}
+
 		// means there will be several instances, we need to create a userdata
 		// with count interpolation, because each machine must have an unique
 		// kite id.
@@ -147,13 +156,23 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 			for i := 0; i < count; i++ {
 				labels = append(labels, fmt.Sprintf("%s.%d", resourceName, i))
 			}
+
+			// instance names must be unique, if user set count property, she
+			// need to use interpolation in name attribute. If she doesn't, we
+			// will attach index number at the end of name string.
+			if instr := instanceName.(string); !strings.Contains(instr, "${count.index}") {
+				instance["name"] = instr + "-${count.index}"
+			}
 		}
 
 		kiteKeyName := fmt.Sprintf("kitekeys_%s", resourceName)
 
 		// Cloud-Init can be injected only via "user-data" field defined in
 		// root "metadata" object.
-		metadata := interfaceToMap(instance["metadata"])
+		metadata, ok := instance["metadata"].(map[string]interface{})
+		if !ok {
+			metadata = make(map[string]interface{})
+		}
 		s.Builder.InterpolateField(metadata, resourceName, "user-data")
 
 		// this part will be the same for all machines
@@ -226,19 +245,6 @@ func mustAsset(s string) string {
 		panic(err)
 	}
 	return string(p)
-}
-
-func interfaceToMap(i interface{}) map[string]interface{} {
-	output := make(map[string]interface{})
-	raw, err := json.Marshal(i)
-	if err != nil {
-		return output
-	}
-	if err := json.Unmarshal(raw, &output); err != nil {
-		return make(map[string]interface{})
-	}
-
-	return output
 }
 
 func newBootstrapTemplate(cfg *bootstrapConfig) (*stack.Template, error) {

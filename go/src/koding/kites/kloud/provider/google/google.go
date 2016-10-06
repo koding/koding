@@ -96,7 +96,9 @@ func (c *Cred) ComputeService() (*compute.Service, error) {
 	return compute.New(cfg.Client(context.Background()))
 }
 
-type Bootstrap struct{}
+type Bootstrap struct {
+	KodingFirewall string `json:"koding_firewall" bson:"koding_firewall" hcl:"koding_firewall"`
+}
 
 var _ stack.Validator = (*Bootstrap)(nil)
 
@@ -104,7 +106,12 @@ func newBootstrap() interface{} {
 	return &Bootstrap{}
 }
 
-func (b *Bootstrap) Valid() error { return nil }
+func (b *Bootstrap) Valid() error {
+	if b.KodingFirewall == "" {
+		return errors.New(`bootstrap value for "koding_firewall" is empty`)
+	}
+	return nil
+}
 
 type Meta struct {
 	Name        string `json:"name" bson:"name" hcl:"name"`
