@@ -823,10 +823,7 @@ runTests = -> describe 'workers.social.user.index', ->
 
     it 'should pass error if captcha code is empty', (done) ->
 
-      params =
-        slug            : 'koding'
-        foreignAuthType : ''
-
+      params = { slug: 'koding' }
       captchaCode = ''
 
       JUser.verifyRecaptcha captchaCode, params, (err) ->
@@ -836,27 +833,11 @@ runTests = -> describe 'workers.social.user.index', ->
 
     it 'should pass error if captcha code is invalid', (done) ->
 
-      params =
-        slug            : 'koding'
-        foreignAuthType : ''
-
+      params = { slug: 'koding' }
       captchaCode = 'someInvalidCaptchaCode'
 
       JUser.verifyRecaptcha captchaCode, params, (err) ->
         expect(err?.message).to.be.equal 'Captcha not valid. Please try again.'
-        done()
-
-
-    it 'should bypass recaptcha verification if foreignAuthType is github', (done) ->
-
-      params =
-        slug            : 'koding'
-        foreignAuthType : 'github'
-
-      captchaCode = 'someInvalidCaptchaCode'
-
-      JUser.verifyRecaptcha captchaCode, params, (err) ->
-        expect(err).to.not.exist
         done()
 
 

@@ -49,7 +49,7 @@ module.exports = class TeamName extends kd.CustomHTMLView
       cssClass : 'HomeAppView-Nav--avatar-wrapper'
       click    : ->
         ACCOUNT_MENU.destroy()
-        kd.singletons.router.handleRoute '/Home/My-Account'
+        kd.singletons.router.handleRoute '/Home/my-account'
 
     { profile } = account
 
@@ -107,7 +107,7 @@ module.exports = class TeamName extends kd.CustomHTMLView
 
   handleDashboard: ->
 
-    kd.singletons.router.handleRoute '/Home/Stacks'
+    kd.singletons.router.handleRoute '/Home/stacks'
 
 
   handleLogout: ->

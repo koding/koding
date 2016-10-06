@@ -10,24 +10,23 @@ module.exports = (options) ->
 
   handleSection = (path, callback) ->
 
-    { appManager, router, groupsController } = kd.singletons
+    { appManager, groupsController } = kd.singletons
 
-    unless appManager.getFrontApp()
-      appManager.once 'AppIsBeingShown', ->
-        router.handleRoute path
-      router.handleRoute '/IDE'
-    else
-      groupsController.ready ->
+    groupsController.ready ->
+      if appManager.getFrontApp()
         appManager.open title, callback
+      else
+        appManager.open 'IDE', ->
+          appManager.open title, callback
 
 
   handle = (options, path) ->
 
-    { query, params } = options
+    { query, params, anchor } = options
     { section, action, identifier } = params
 
     handleSection path, (app) ->
-      app.openSection section, query, action, identifier
+      app.openSection { section, query, action, identifier, anchor }
 
 
   showWelcomeModal = (path) ->
@@ -35,18 +34,19 @@ module.exports = (options) ->
     { appManager, router, groupsController } = kd.singletons
 
     frontApp = appManager.getFrontApp()
-    unless frontApp
-      appManager.once 'AppIsBeingShown', ->
-        router.handleRoute path
-      router.handleRoute '/IDE'
-    else
-      groupsController.ready ->
-        modal = new WelcomeModal()
-        return  unless frontApp instanceof IDEAppController
 
+    showWelcome = ->
+      modal = new WelcomeModal()
+
+      if frontApp instanceof IDEAppController
+        frontApp.hideMachineStateModal yes
         modal.once 'KDObjectWillBeDestroyed', ->
           frontApp.showMachineStateModal()
-        frontApp.hideMachineStateModal yes
+
+    groupsController.ready ->
+      if appManager.getFrontApp()
+      then showWelcome()
+      else appManager.open 'IDE', -> showWelcome()
 
 
   lazyrouter.bind name, (type, info, state, path, ctx) ->
@@ -54,21 +54,16 @@ module.exports = (options) ->
     modalContainer = new ModalContainer
 
     switch type
-
       when 'group-disabled'
-
         { role, status } = info.params
-
         { appManager } = kd.singletons
-
-        return handleDisabled role, status  if frontApp = appManager.getFrontApp()
+        if frontApp = appManager.getFrontApp()
+          return handleDisabled role, status
 
         appManager.once 'AppIsBeingShown', -> handleDisabled role, status
-
         appManager.open 'IDE', { forceNew: yes }, (app) ->
           app.amIHost = yes
           appManager.tell 'IDE', 'showNoMachineState'
-
       when 'welcome'
         showWelcomeModal path
       when 'home'

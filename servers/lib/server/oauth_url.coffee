@@ -5,8 +5,8 @@ koding  = require './bongo'
 }       = require './helpers'
 
 module.exports = (req, res) ->
-  context   = { group: 'koding' }
-  clientId  = getClientId req, res
+
+  clientId = getClientId req, res
 
   return handleClientIdNotFound res, req  unless clientId
 
@@ -15,7 +15,8 @@ module.exports = (req, res) ->
   unless provider
     return res.status(400).send { 'message' : 'provider is required' }
 
-  koding.fetchClient clientId, context, (client) ->
+  koding.fetchClient clientId, (client) ->
+
     if client.message
       return res.status(500).send client.message
 

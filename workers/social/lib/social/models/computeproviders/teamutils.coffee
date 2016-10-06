@@ -2,8 +2,7 @@ KodingError = require '../../error'
 TEAMLIMITS  = require './teamlimits'
 
 _           = require 'underscore'
-konstraints = require 'konstraints'
-JGroupLimit  = require '../group/grouplimit'
+JGroupLimit = require '../group/grouplimit'
 
 
 shareCredentials = (options, callback) ->

@@ -1,7 +1,7 @@
 teamsHelpers            = require '../helpers/teamshelpers.js'
 helpers                 = require '../helpers/helpers.js'
 utils                   = require '../utils/utils.js'
-virtualMachinesUrl      = "#{helpers.getUrl(yes)}/Home/Stacks/virtual-machines"
+virtualMachinesUrl      = "#{helpers.getUrl(yes)}/Home/stacks/virtual-machines"
 virtualMachineSelector  = '.HomeAppView--section.virtual-machines'
 runningVMSelector       = '.MachinesListItem-detailToggle'
 machineDetailSelector   = '.MachinesListItem-machineDetails'

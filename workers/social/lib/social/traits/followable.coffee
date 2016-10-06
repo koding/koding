@@ -319,14 +319,11 @@ module.exports = class Followable
           callback null, no
 
   updateFollowingCount: (followee, action) ->
-    if @constructor.name is 'JAccount'
-      @updateCounts()
-    else
-      Relationship.count { targetId:@_id }, { as:'follower' }, (error, count) =>
-        Model::update.call this, { $set: { 'counts.following': count } }, (err) ->
-          throw err if err
-        @emit 'FollowCountChanged',
-          followerCount   : @getAt('counts.followers')
-          followingCount  : @getAt('counts.following')
-          followee        : followee
-          action          : action
+    Relationship.count { targetId:@_id }, { as:'follower' }, (error, count) =>
+      Model::update.call this, { $set: { 'counts.following': count } }, (err) ->
+        throw err if err
+      @emit 'FollowCountChanged',
+        followerCount   : @getAt('counts.followers')
+        followingCount  : @getAt('counts.following')
+        followee        : followee
+        action          : action

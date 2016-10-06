@@ -39,18 +39,6 @@ authTemplate = (msg) ->
 authenticationFailed = (res, err) ->
   res.status(403).send "forbidden! (reason: #{err?.message or "no session!"})"
 
-findUsernameFromKey = (req, res, callback) ->
-  fetchJAccountByKiteUserNameAndKey req, (err, account) ->
-    if err
-      console.error 'we have a problem houston', err
-      callback err, null
-    else if not account
-      console.error 'couldnt find the account'
-      res.status(401).end()
-      callback false, null
-    else
-      callback false, account.profile.nickname
-
 
 fetchSession = (req, res, callback) ->
 
@@ -76,34 +64,6 @@ findUsernameFromSession = (req, res, callback) ->
 
   fetchSession req, res, (err, session) ->
     callback err, session?.username
-
-
-fetchJAccountByKiteUserNameAndKey = (req, callback) ->
-  if req.fields
-    { username, key } = req.fields
-  else
-    { username, key } = req.body
-
-  { JKodingKey, JAccount } = koding.models
-  { ObjectId }             = require 'bongo'
-
-  JKodingKey.fetchByUserKey
-    username: username
-    key     : key
-  , (err, kodingKey) ->
-    console.error err, kodingKey.owner
-    #if err or not kodingKey
-    #  return callback(err, kodingKey)
-
-    JAccount.one
-      _id: ObjectId(kodingKey.owner)
-    , (err, account) ->
-      if not account or err
-        callback("couldnt find account #{kodingKey.owner}", null)
-        return
-
-      req.account = account
-      callback(err, account)
 
 serve = (content, res) ->
   res.header 'Content-type', 'text/html'
@@ -219,10 +179,13 @@ isLoggedIn = (req, res, callback) ->
 
 saveOauthToSession = (oauthInfo, clientId, provider, callback) ->
   { JSession } = koding.models
+
   query = { 'foreignAuthType': provider }
+
   if oauthInfo.returnUrl
     query.returnUrl = oauthInfo.returnUrl
     delete oauthInfo.returnUrl
+
   query["foreignAuth.#{provider}"] = oauthInfo
 
   JSession.update { clientId }, { $set:query }, callback
@@ -259,14 +222,8 @@ redirectOauth = (err, req, res, options) ->
       return res.status(400).send err  if err
 
       # user is logged in and session data exists
-      return res.redirect returnUrl  unless response.userInfo
+      res.redirect returnUrl
 
-      # if user is not logged in persist oauth information
-      JUser.persistOauthInfo username, sessionToken, (err) ->
-
-        return res.status(400).send err  if err
-
-        return res.redirect returnUrl
 
 getAlias = do ->
   caseSensitiveAliases = ['auth']
@@ -465,9 +422,7 @@ module.exports = {
   authTemplate
   authenticationFailed
   fetchSession
-  findUsernameFromKey
   findUsernameFromSession
-  fetchJAccountByKiteUserNameAndKey
   serve
   serveHome
   isLoggedIn

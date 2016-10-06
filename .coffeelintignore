@@ -37,6 +37,7 @@ builder/lib/index.coffee
 feeder/lib/feedcontroller.coffee
 stacks/lib/views/stacks/definestackview.coffee
 test/lib/helpers/teamshelpers.coffee
+client/home/lib/integrations
 client/home/lib/billing/components
 client/home/lib/billing/hometeambillingcreditcard.coffee
 client/home/lib/billing/hometeambillingpaymentinformation.coffee

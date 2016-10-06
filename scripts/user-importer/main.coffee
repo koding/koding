@@ -101,7 +101,6 @@ createUsers = (users)->
     #   firstName      : "Gokmen"
     #   lastName       : "Goksel"
     #   group          : "koding"
-    #   foreignAuth    : null
     #   silence        : no
     # }]
 
@@ -134,7 +133,6 @@ try
 
         item = {
           passwordStatus : "valid"
-          foreignAuth    : null
           silence        : no
         }
 

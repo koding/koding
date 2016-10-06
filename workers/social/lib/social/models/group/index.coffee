@@ -224,6 +224,8 @@ module.exports = class JGroup extends Module
           (signature Function)
         addSubscription:
           (signature String, Function)
+        fetchDataAt:
+          (signature String, Function)
         fetchSubscription:
           (signature Function)
         fetchPermissionSetOrDefault:
@@ -235,6 +237,8 @@ module.exports = class JGroup extends Module
         sendNotification:
           (signature String, String, Function)
         setLimit:
+          (signature Object, Function)
+        setOAuth:
           (signature Object, Function)
         fetchApiTokens: [
           (signature Function)
@@ -572,9 +576,17 @@ module.exports = class JGroup extends Module
 
       return callback err  if err
 
-      path = "data.#{path}"  if path.indexOf 'data' isnt 0
+      path = "data.#{path}"  if path.indexOf 'data.' isnt 0
       callback null, data.getAt path
 
+
+  fetchDataAt$: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
+    success: (client, path, callback) ->
+      @fetchDataAt path, callback
 
 
   sendNotification: (event, contents, callback) ->
@@ -1143,6 +1155,83 @@ module.exports = class JGroup extends Module
         @update { $unset: dataToUpdate }, callback
       else
         @update { $set: dataToUpdate }, callback
+
+
+  disableOAuth: (provider, callback) ->
+
+    dataToUpdate = {}
+    dataToUpdate["config.#{provider}"] = null
+
+    group = @getAt 'slug'
+    notifyOptions = { target: 'group', group }
+
+    @updateAndNotify notifyOptions, { $unset: dataToUpdate }, (err) =>
+      return callback err  if err
+
+      JForeignAuth = require '../foreignauth'
+      JForeignAuth.remove { group, provider }
+
+      @fetchData (err, data) ->
+        return callback err  if err
+
+        dataToUnset = {}
+        dataToUnset["data.#{provider}.applicationSecret"] = null
+        data.update { $unset: dataToUnset }, callback
+
+
+
+  setOAuth   : permit
+    advanced : [
+      { permission: 'edit own groups', validateWith : Validators.group.admin }
+      { permission: 'edit groups',     superadmin   : yes }
+    ]
+    success: (client, options, callback) ->
+
+      { enabled, provider, url, applicationId, applicationSecret } = options
+
+      OAuth = require '../oauth'
+      group = client?.context?.group
+
+      if not group or group is 'koding'
+        return callback new KodingError 'Session data invalid'
+
+      if not (_provider = OAuth.PROVIDERS[provider]) or not _provider.enabled
+        return callback new KodingError 'Provider not supported at this time.'
+
+      dataToUpdate = {}
+      dataToUpdate["config.#{provider}"] = {}
+
+      notifyOptions = { target: group, group }
+
+      if not enabled
+        @disableOAuth provider, callback
+        return
+
+      validateOptions = { url, applicationId, applicationSecret }
+
+      OAuth.validateOAuth provider, validateOptions, (err, data) =>
+        return callback err  if err
+
+        url = data.url  if data.url
+
+        dataToUpdate["config.#{provider}"] = {
+          enabled: yes
+          applicationId
+          url
+        }
+
+        @updateAndNotify notifyOptions, { $set: dataToUpdate }, (err) =>
+          return callback err  if err
+
+          @fetchData (err, data) ->
+            return callback err  if err
+
+            dataToSet = {}
+            dataToSet["data.#{provider}"] = { applicationSecret }
+            data.update { $set: dataToSet }, (err) ->
+              return callback err  if err
+
+              callback null, { url }
 
 
   modifyMembershipPolicy: permit
