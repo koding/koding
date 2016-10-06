@@ -10,19 +10,23 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (bs *BaseStack) HandleBootstrap(context.Context) (interface{}, error) {
-	var arg stack.BootstrapRequest
-	if err := bs.Req.Args.One().Unmarshal(&arg); err != nil {
-		return nil, err
+func (bs *BaseStack) HandleBootstrap(ctx context.Context) (interface{}, error) {
+	arg, ok := ctx.Value(stack.BootstrapRequestKey).(*stack.BootstrapRequest)
+	if !ok {
+		arg = &stack.BootstrapRequest{}
+
+		if err := bs.Req.Args.One().Unmarshal(arg); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := arg.Valid(); err != nil {
 		return nil, err
 	}
 
-	bs.Arg = &arg
+	bs.Arg = arg
 
-	return bs.bootstrap(&arg)
+	return bs.bootstrap(arg)
 }
 
 func (bs *BaseStack) bootstrap(arg *stack.BootstrapRequest) (interface{}, error) {

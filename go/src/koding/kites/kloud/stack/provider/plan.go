@@ -13,9 +13,13 @@ import (
 )
 
 func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
-	var arg stack.PlanRequest
-	if err := bs.Req.Args.One().Unmarshal(&arg); err != nil {
-		return nil, err
+	arg, ok := ctx.Value(stack.PlanRequestKey).(*stack.PlanRequest)
+	if !ok {
+		arg := &stack.PlanRequest{}
+
+		if err := bs.Req.Args.One().Unmarshal(&arg); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := arg.Valid(); err != nil {

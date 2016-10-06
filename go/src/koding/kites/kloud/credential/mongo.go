@@ -512,6 +512,48 @@ func (db *mongoDatabase) SetCred(c *Cred) error {
 	return nil
 }
 
+func (db *mongoDatabase) Lock(cred *Cred) error {
+	err := db.MongoDB.Run(modelhelper.CredentialsColl, func(c *mgo.Collection) error {
+		change := mgo.Change{
+			Update: bson.M{
+				"$set": bson.M{
+					"assignee.inProgress": true,
+					"assignee.assignedAt": time.Now().UTC(),
+				},
+			},
+			ReturnNew: true,
+		}
+
+		_, err := c.Find(
+			bson.M{
+				"identifier":          cred.Ident,
+				"assignee.inProgress": bson.M{"$ne": true},
+			},
+		).Apply(change, &models.Credential{})
+
+		return err
+	})
+
+	if err == mgo.ErrNotFound {
+		return fmt.Errorf("credential %q is already locked", cred.Ident)
+	}
+
+	if err != nil {
+		return fmt.Errorf("error locking %q credential: %s", cred.Ident, err)
+	}
+
+	return nil
+}
+
+func (db *mongoDatabase) Unlock(cred *Cred) error {
+	return db.MongoDB.Run(modelhelper.CredentialsColl, func(c *mgo.Collection) error {
+		return c.Update(
+			bson.M{"identifier": cred.Ident},
+			bson.M{"$set": bson.M{"assignee.inProgress": false}},
+		)
+	})
+}
+
 func match(existing, expected []string) bool {
 	rolesMatch := true
 

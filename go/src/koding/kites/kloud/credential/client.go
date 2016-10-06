@@ -94,6 +94,12 @@ type Database interface {
 	//
 	// Otherwise the given credential is expected to be already validated.
 	SetCred(credential *Cred) error
+
+	// Lock locks the given credential.
+	Lock(*Cred) error
+
+	// Unlock unlocks the given credential.
+	Unlock(*Cred) error
 }
 
 type Client struct {
@@ -149,4 +155,12 @@ func (c *Client) SetCred(username string, cred *Cred) error {
 	}
 
 	return c.store.Put(username, data)
+}
+
+func (c *Client) Lock(cred *Cred) error {
+	return c.db.Lock(cred)
+}
+
+func (c *Client) Unlock(cred *Cred) error {
+	return c.db.Unlock(cred)
 }

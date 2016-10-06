@@ -15,6 +15,15 @@ import (
 	"github.com/koding/kite"
 )
 
+type contextKey byte
+
+var (
+	AuthenticateRequestKey = contextKey(1)
+	ApplyRequestKey        = contextKey(2)
+	BootstrapRequestKey    = contextKey(3)
+	PlanRequestKey         = contextKey(4)
+)
+
 // KiteMap maps resource names to kite IDs they own.
 type KiteMap map[string]string
 

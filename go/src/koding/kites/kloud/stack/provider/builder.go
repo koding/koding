@@ -346,30 +346,48 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 		return models.ResError(err, "jAccount")
 	}
 
-	// fetch jGroup from group slug name
-	group, err := modelhelper.GetGroup(groupname)
-	if err != nil {
-		return models.ResError(err, "jGroup")
-	}
-
 	// fetch jUser from username
 	user, err := modelhelper.GetUser(username)
 	if err != nil {
 		return models.ResError(err, "jUser")
 	}
 
-	// validate if username belongs to groupnam
-	selector := modelhelper.Selector{
-		"targetId": account.Id,
-		"sourceId": group.Id,
-		"as": bson.M{
-			"$in": []string{"member"},
-		},
+	kodingMeta := &KodingMeta{
+		Email:     user.Email,
+		Username:  user.Name,
+		Nickname:  account.Profile.Nickname,
+		Firstname: account.Profile.FirstName,
+		Lastname:  account.Profile.LastName,
+		Hash:      account.Profile.Hash,
 	}
 
-	count, err := modelhelper.RelationshipCount(selector)
-	if err != nil || count == 0 {
-		return fmt.Errorf("username '%s' does not belong to group '%s'", username, groupname)
+	groupIDs := []bson.ObjectId{account.Id}
+
+	if groupname != "" {
+		// fetch jGroup from group slug name
+		group, err := modelhelper.GetGroup(groupname)
+		if err != nil {
+			return models.ResError(err, "jGroup")
+		}
+
+		// validate if username belongs to groupnam
+		selector := modelhelper.Selector{
+			"targetId": account.Id,
+			"sourceId": group.Id,
+			"as": bson.M{
+				"$in": []string{"member"},
+			},
+		}
+
+		count, err := modelhelper.RelationshipCount(selector)
+		if err != nil || count == 0 {
+			return fmt.Errorf("username '%s' does not belong to group '%s'", username, groupname)
+		}
+
+		kodingMeta.Title = group.Title
+		kodingMeta.Slug = group.Slug
+
+		groupIDs = append(groupIDs, group.Id)
 	}
 
 	// 2- fetch credential from identifiers via args
@@ -396,7 +414,7 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 		selector := modelhelper.Selector{
 			"targetId": cred.Id,
 			"sourceId": bson.M{
-				"$in": []bson.ObjectId{account.Id, group.Id},
+				"$in": groupIDs,
 			},
 			"as": bson.M{"$in": permittedTargets},
 		}
@@ -414,17 +432,8 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 
 	// 5- return list of keys.
 	b.Koding = &stack.Credential{
-		Provider: "koding",
-		Credential: &KodingMeta{
-			Email:     user.Email,
-			Username:  user.Name,
-			Nickname:  account.Profile.Nickname,
-			Firstname: account.Profile.FirstName,
-			Lastname:  account.Profile.LastName,
-			Hash:      account.Profile.Hash,
-			Title:     group.Title,
-			Slug:      group.Slug,
-		},
+		Provider:   "koding",
+		Credential: kodingMeta,
 	}
 
 	creds := make([]*stack.Credential, 0, len(validKeys))
