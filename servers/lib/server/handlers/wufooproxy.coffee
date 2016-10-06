@@ -2,7 +2,6 @@ koding  = require './../bongo'
 request = require 'request'
 KONFIG  = require 'koding-config-manager'
 
-API_KEY = '5SDG-SAZO-UNLK-3F9K'
 
 getUri = (identifier, format = 'json') ->
 
