@@ -55,10 +55,7 @@ var BuiltinSchemas = map[string]*Schema{
 //
 // If no builder was found it returns a builder GenericMeta.
 func schema(providerName string) *Schema {
-	providersMu.RLock()
 	p, ok := providers[providerName]
-	providersMu.RUnlock()
-
 	if ok && p.Schema != nil {
 		return p.Schema
 	}
@@ -585,14 +582,21 @@ func makeCreds(init bool, c ...*stack.Credential) map[string]interface{} {
 	creds := make(map[string]interface{}, len(c))
 
 	if init {
-		for _, c := range c {
-			if c.Credential == nil {
-				c.Credential = schema(c.Provider).newCredential()
+		// Using func-scope to defer unlocking in case user-provided
+		// function panics.
+		func() {
+			providersMu.Lock()
+			defer providersMu.Unlock()
+
+			for _, c := range c {
+				if c.Credential == nil {
+					c.Credential = schema(c.Provider).newCredential()
+				}
+				if c.Bootstrap == nil {
+					c.Bootstrap = schema(c.Provider).newBootstrap()
+				}
 			}
-			if c.Bootstrap == nil {
-				c.Bootstrap = schema(c.Provider).newBootstrap()
-			}
-		}
+		}()
 	}
 
 	for _, c := range c {

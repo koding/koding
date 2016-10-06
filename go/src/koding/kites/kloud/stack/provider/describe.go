@@ -10,6 +10,10 @@ import (
 var describeTags = []string{"bson", "hcl", "json"}
 
 func Describe(v interface{}) ([]stack.Value, error) {
+	if v == nil {
+		return nil, nil
+	}
+
 	typ := reflect.TypeOf(v)
 
 	if typ.Kind() == reflect.Ptr {

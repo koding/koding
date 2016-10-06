@@ -61,6 +61,10 @@ func Desc(providers ...string) map[string]*stack.Description {
 	providersMu.RLock()
 	defer providersMu.RUnlock()
 
+	return desc(providers...)
+}
+
+func desc(providers ...string) map[string]*stack.Description {
 	nonempty := make([]string, 0, len(providers))
 
 	for _, p := range providers {
