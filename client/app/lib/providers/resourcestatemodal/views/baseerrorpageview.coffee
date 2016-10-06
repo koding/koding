@@ -1,4 +1,5 @@
 kd = require 'kd'
+_  = require 'lodash'
 JView = require 'app/jview'
 copyToClipboard = require 'app/util/copyToClipboard'
 getCopyToClipboardShortcut = require 'app/util/getCopyToClipboardShortcut'
@@ -33,8 +34,8 @@ module.exports = class BaseErrorPageView extends JView
       """
 
     errorPartial = if isSingleError
-    then errs.first
-    else (errs.map (err) -> "<li>#{err}</li>").join ''
+    then _.escape errs.first
+    else (errs.map (err) -> "<li>#{_.escape err}</li>").join ''
     @errorContent.addSubView new kd.CustomHTMLView
       tagName  : if isSingleError then 'p' else 'ul'
       partial  : errorPartial
