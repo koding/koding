@@ -15,7 +15,6 @@ ResendEmailConfirmationLinkInlineForm = require './resendmailconfirmationform'
 
 module.exports = class LoginView extends JView
 
-  RECAPTCHA_JS         = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaloadCallback&render=explicit'
   ENTER                = 13
   USERNAME_VALID       = no
   pendingSignupRequest = no
@@ -355,21 +354,11 @@ module.exports = class LoginView extends JView
 
       @signupModal = null
 
-    window.onRecaptchaloadCallback = (event) ->
-      grecaptcha?.render 'recaptcha', { sitekey : kd.config.recaptcha.key }
-
     @signupModal.once 'viewAppended', =>
 
       if @recaptchaEnabled()
-        @recaptcha?.destroy()
-        @recaptcha = new kd.CustomHTMLView
-          tagName    : 'script'
-          attributes :
-            src      : RECAPTCHA_JS
-            async    : yes
-            defer    : yes
-
-        @recaptcha.appendToDomBody()
+        utils.loadRecaptchaScript ->
+          grecaptcha?.render 'recaptcha', { sitekey : kd.config.recaptcha.key }
 
       @signupModal.addSubView new kd.CustomHTMLView
         partial : """<div class='hint accept-tos'>By creating an account, you accept Koding's <a href="/Legal/Terms" target="_blank"> Terms of Service</a> and <a href="/Legal/Privacy" target="_blank">Privacy Policy.</a></div>"""

@@ -30,8 +30,19 @@ loadUserDetails = ({ dispatch, getState }) ->
 ensurePaymentDetails = ({ dispatch, getState }) ->
 
   if isAdmin()
-  then dispatch(loadPaymentInfo()).then -> dispatch(loadInvoices())
-  else dispatch(loadSubscription())
+    dispatch(loadPaymentInfo())
+      .then ->
+        # this case is for the groups that are registered before we activated
+        # new payment system for teams. Once we send an info call, our backend
+        # will ensure that the team made the call has a `payment` property. But
+        # it will not be realtime, reloading it to get the group with `payment`
+        # property from the payload. ~Umut
+        unless globals.currentGroup.payment
+          console.info 'Got an old team, we need to reload'
+          return location.reload()
+      .then -> dispatch(loadInvoices())
+  else
+    dispatch(loadSubscription())
 
 
 module.exports = dispatchInitialActions = (store) ->

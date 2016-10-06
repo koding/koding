@@ -12,12 +12,16 @@ module.exports = (req, res) ->
 
   FAREWELL_SOLO_DATE = new Date 2016, 6, 19
 
-  { email } = req.body
+  { email, recaptcha } = req.body
   { JUser } = koding.models
 
   return res.status(400).send 'Invalid email!'  unless email
 
   queue = [
+    (next) ->
+      return next()  unless recaptcha
+      JUser.verifyRecaptcha recaptcha, {}, next
+
     (next) ->
       sanitizedEmail = emailsanitize email, { excludeDots: yes, excludePlus: yes }
       JUser.one { sanitizedEmail }, (err, user) ->

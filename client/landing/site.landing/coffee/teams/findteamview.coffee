@@ -4,6 +4,7 @@ utils          = require './../core/utils'
 JView          = require './../core/jview'
 MainHeaderView = require './../core/mainheaderview'
 FindTeamForm   = require './findteamform'
+FindTeamHelper = require './findteamhelper'
 
 EMPTY_TEAM_LIST_ERROR = 'Empty team list'
 SOLO_USER_ERROR = 'Solo user detected'
@@ -48,6 +49,8 @@ module.exports = class FindTeamView extends kd.TabPaneView
       partial    : 'create a new team'
       attributes : { href : '/Teams/Create' }
 
+    @on 'PaneDidShow', => @form.reloadRecaptcha()
+
 
   setFocus: -> @form.setFocus()
 
@@ -56,13 +59,12 @@ module.exports = class FindTeamView extends kd.TabPaneView
 
     track 'submitted find teams form'
 
-    { email } = formData
-    utils.findTeam email,
-      error       : (xhr) =>
+    FindTeamHelper.submitRequest formData,
+      error   : (xhr) =>
         { responseText } = xhr
         @handleServerError responseText
         @form.button.hideLoader()
-      success     : =>
+      success : =>
         @form.button.hideLoader()
         @form.reset()
 
