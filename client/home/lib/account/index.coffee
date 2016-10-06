@@ -34,3 +34,15 @@ module.exports = class HomeAccount extends kd.CustomScrollView
     @wrapper.addSubView headerize 'Sessions'
     @wrapper.addSubView sectionize 'Sessions', HomeAccountSessionsView
 
+
+  handleAnchor: (anchor) ->
+
+    kd.utils.defer ->
+      selector = switch anchor
+        when '#password'
+          '[name=password]'
+        when ''
+          '[name=firstName]'
+
+      if selector
+        document.querySelector(selector).focus?()

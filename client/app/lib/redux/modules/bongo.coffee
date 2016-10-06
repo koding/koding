@@ -68,7 +68,7 @@ byId = (constructorName, id) -> (state) -> state.bongo[constructorName]?[id]
 all = (constructorName) -> (state) -> state.bongo[constructorName]
 
 
-module.exports = _.assign reducer, {
+module.exports = {
   namespace: withNamespace()
   reducer
   load, loadAll, update, remove, byId, all

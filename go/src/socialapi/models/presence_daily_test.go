@@ -72,6 +72,14 @@ func TestPresenceDailyOperations(t *testing.T) {
 					So(c3, ShouldEqual, 0)
 					// groupName2's count should stay same
 					So(c4, ShouldEqual, c2)
+
+					Convey("CountDistinctProcessedByGroupName should work properly", func() {
+						c5, err := (&PresenceDaily{}).CountDistinctProcessedByGroupName(groupName1)
+						So(err, ShouldBeNil)
+						So(c5, ShouldNotBeNil)
+						// we created 2 accounts in groupName1
+						So(c5, ShouldEqual, 2)
+					})
 				})
 			})
 		})

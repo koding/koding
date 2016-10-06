@@ -49,11 +49,21 @@ type countRes struct {
 
 // CountDistinctByGroupName counts distinct account ids
 func (a *PresenceDaily) CountDistinctByGroupName(groupName string) (int, error) {
+	return a.countDistinctByGroupNameAndStatus(groupName, false)
+}
+
+// CountDistinctProcessedByGroupName counts processed distinct account ids
+func (a *PresenceDaily) CountDistinctProcessedByGroupName(groupName string) (int, error) {
+	return a.countDistinctByGroupNameAndStatus(groupName, true)
+}
+
+// countDistinctByGroupName counts distinct account ids
+func (a *PresenceDaily) countDistinctByGroupNameAndStatus(groupName string, status bool) (int, error) {
 	res := &countRes{}
 	return res.Count, bongo.B.DB.
 		Table(a.BongoName()).
 		Model(&PresenceDaily{}).
-		Where("group_name = ? and is_processed = false", groupName).
+		Where("group_name = ? and is_processed = ?", groupName, status).
 		Select("count(distinct account_id)").
 		Scan(res).Error
 }

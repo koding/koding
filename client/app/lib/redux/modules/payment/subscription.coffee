@@ -1,37 +1,46 @@
 _ = require 'lodash'
-immutable = require 'app/util/immutable'
 { createSelector } = require 'reselect'
+
+immutable = require 'app/util/immutable'
 dateDiffInDays = require 'app/util/dateDiffInDays'
 
+reduxHelper = require 'app/redux/helper'
+schemas = require './schemas'
+
 customer = require './customer'
+info = require './info'
 
-{ makeNamespace, expandActionType,
-  normalize, defineSchema } = require 'app/redux/helper'
+withNamespace = reduxHelper.makeNamespace 'koding', 'payment', 'subscription'
 
-schema = defineSchema 'subscription'
-
-withNamespace = makeNamespace 'koding', 'payment', 'subscription'
-
-LOAD = expandActionType withNamespace 'LOAD'
-CREATE = expandActionType withNamespace 'CREATE'
-REMOVE = expandActionType withNamespace 'REMOVE'
+LOAD = reduxHelper.expandActionType withNamespace 'LOAD'
+CREATE = reduxHelper.expandActionType withNamespace 'CREATE'
+REMOVE = reduxHelper.expandActionType withNamespace 'REMOVE'
 
 
 reducer = (state = null, action) ->
 
+  { normalize } = reduxHelper
+
   switch action.type
 
     when LOAD.SUCCESS, CREATE.SUCCESS
-      normalized = normalize action.result, schema
+      normalized = normalize action.result, schemas.subscription
       return immutable normalized.first 'subscription'
 
     when customer.LOAD.SUCCESS, customer.CREATE.SUCCESS, customer.UPDATE.SUCCESS
-      normalized = normalize action.result, customer.schema
+      normalized = normalize action.result, schemas.customer
 
       if subscription = normalized.first 'subscriptions'
         return immutable subscription
 
       return null
+
+    when info.LOAD.SUCCESS
+      normalized = normalize action.result, schemas.info
+      subscription = _.assign {}, normalized.first('subscription'),
+        plan: normalized.first 'expectedPlan'
+
+      return immutable subscription
 
     when customer.REMOVE.SUCCESS, REMOVE.SUCCESS
       return null
@@ -66,6 +75,11 @@ remove = ->
 ##
 # Selectors
 ##
+
+makePlanAmount = (userCount) ->
+  switch
+    when userCount < 10 then ''
+
 
 plan = (state) -> state.subscription?.plan
 
@@ -113,9 +127,8 @@ daysLeft = createSelector(
 )
 
 
-module.exports = _.assign reducer, {
+module.exports = {
   namespace: withNamespace()
-  schema
   reducer
   load, create, remove
   LOAD, CREATE, REMOVE

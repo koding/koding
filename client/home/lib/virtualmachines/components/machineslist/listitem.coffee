@@ -17,6 +17,7 @@ module.exports = class MachinesListItem extends React.Component
     shouldRenderDisconnect : React.PropTypes.bool
     shouldRenderAlwaysOn   : React.PropTypes.bool
     shouldRenderSharing    : React.PropTypes.bool
+    shouldRenderEditName   : React.PropTypes.bool
     onChangeAlwaysOn       : React.PropTypes.func
     onChangePowerStatus    : React.PropTypes.func
     onChangeSharingStatus  : React.PropTypes.func
@@ -31,6 +32,7 @@ module.exports = class MachinesListItem extends React.Component
     shouldRenderDisconnect : no
     shouldRenderAlwaysOn   : no
     shouldRenderSharing    : no
+    shouldRenderEditName   : no
     onChangeAlwaysOn       : kd.noop
     onChangePowerStatus    : kd.noop
     onChangeSharingStatus  : kd.noop
@@ -43,16 +45,8 @@ module.exports = class MachinesListItem extends React.Component
 
     return {
       selectedMachine: VirtualMachinesSelectedMachineFlux.getters.selectedMachine
+      expandedMachineLabel: EnvironmentFlux.getters.expandedMachineLabelStore
     }
-
-
-  constructor: (props) ->
-
-    super props
-
-    @state =
-      machineLabel: @props.machine.get 'label'
-      showEditName: yes
 
 
   renderMachineDetails: ->
@@ -68,6 +62,7 @@ module.exports = class MachinesListItem extends React.Component
         shouldRenderDisconnect={@props.shouldRenderDisconnect}
         shouldRenderAlwaysOn={@props.shouldRenderAlwaysOn}
         shouldRenderSharing={@props.shouldRenderSharing}
+        shouldRenderEditName={@props.shouldRenderEditName}
         onChangeAlwaysOn={@props.onChangeAlwaysOn}
         onChangePowerStatus={@props.onChangePowerStatus}
         onChangeSharingStatus={@props.onChangeSharingStatus}
@@ -78,30 +73,12 @@ module.exports = class MachinesListItem extends React.Component
     </main>
 
 
-  renderEditname: ->
-
-    return null  unless @state.showEditName
-    return null  unless @props.shouldRenderDetails
-    return null  unless @props.machine.get('label') is @state.selectedMachine
-
-    <div className='MachineListItem--Edit-name' onClick={@bound 'onClickEditname'}>Edit Name </div>
-
-
-  onClickEditname: ->
-
-    @setState { showEditName: no }
-    @refs.inputbox.focus()
-
-    kd.utils.defer =>
-      @refs.inputbox.selectionStart = @refs.inputbox.selectionEnd = 100000
-
-
   toggle: (event) ->
 
     if @state.selectedMachine is @props.machine.get 'label'
-      return kd.singletons.router.handleRoute "/Home/Stacks/virtual-machines"
+      return kd.singletons.router.handleRoute "/Home/stacks/virtual-machines"
 
-    kd.singletons.router.handleRoute "/Home/Stacks/virtual-machines/#{@props.machine.get 'label'}"
+    kd.singletons.router.handleRoute "/Home/stacks/virtual-machines/#{@props.machine.get 'label'}"
 
 
   renderIpAddress: ->
@@ -142,26 +119,6 @@ module.exports = class MachinesListItem extends React.Component
     </div>
 
 
-  setMachineLabel: ->
-
-    unless @state.machineLabel
-      @setState { machineLabel: @props.machine.get 'label'}
-      return
-
-    machineUId = @props.machine.get 'uid'
-    EnvironmentFlux.actions.setLabel machineUId, @state.machineLabel
-      .then (label) =>
-        kd.singletons.router.handleRoute "/Home/Stacks/virtual-machines/#{@state.machineLabel}"
-      .catch (err) =>
-        @setState { machineLabel: @props.machine.get 'label' }
-        new kd.NotificationView { title: 'Something went wrong', duration: 2000 }
-
-
-  inputOnChange: (event) ->
-
-    { value: machineLabel } = event.target
-    @setState { machineLabel: machineLabel }
-
 
   renderStackTitle: ->
 
@@ -169,39 +126,26 @@ module.exports = class MachinesListItem extends React.Component
       <a href="#" className="HomeAppView--button primary">{@props.stack.get 'title'}</a>
     </div>
 
-  inputOnBlur: (event) ->
-
-    @setState { showEditName: yes }
-    @setMachineLabel()
-
-  inputOnKeyDown: (event) ->
-
-    if event.keyCode is 13
-      @refs.inputbox.blur()
 
   render: ->
 
     expanded = if @props.machine.get('label') is @state.selectedMachine
     then ' expanded'
     else ''
+    machineName = @state.expandedMachineLabel if expanded
 
     <div className="MachinesListItem#{expanded}">
       <header className='MachinesListItem-header'>
-        <div className="MachinesListItem-machineLabel #{@props.machine.getIn ['status', 'state']}">
-          <input
-            ref='inputbox'
-            value={@state.machineLabel}
-            className="kdinput text"
-            onChange={@bound 'inputOnChange'}
-            onBlur={@bound 'inputOnBlur'}
-            onKeyDown={@bound 'inputOnKeyDown'} />
+        <div
+          className="MachinesListItem-machineLabel #{@props.machine.getIn ['status', 'state']}"
+          onClick={@bound 'toggle'}>
+          {machineName or @props.machine.get 'label'}
           {@renderProgressbar()}
         </div>
         {@renderIpAddress()}
         {@renderStackTitle()}
         {@renderDetailToggle()}
       </header>
-      {@renderEditname()}
       {@renderMachineDetails()}
     </div>
 

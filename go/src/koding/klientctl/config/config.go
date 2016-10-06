@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+
+	"koding/config"
 )
 
 const (
@@ -78,19 +80,19 @@ var (
 
 	// KontrolURL is the url to connect to authenticate local klient and get
 	// list of machines.
-	//
-	// KontrolURL is overwritten during deploy via linker flag.
-	KontrolURL = "https://koding.com/kontrol/kite"
+	KontrolURL = config.Builtin.Endpoints.URL("kontrol", Environment)
 
-	// TunnelKiteAddress is the address that koding's tunnel service is run on.
-	//
-	// This is overwritten during deploy via linker flag.
-	TunnelKiteAddress = "http://t.koding.com/kite"
+	// TunnelKiteURL is the address that koding's tunnel service is run on.
+	TunnelKiteURL = config.Builtin.Endpoints.URL("tunnelserver", Environment)
 
 	// S3KlientLatest is URL to the latest version of the klient.
+	//
+	// TODO(rjeczalik): move to koding/config
 	S3KlientLatest = "https://koding-klient.s3.amazonaws.com/" + kd2klient(Environment) + "/latest-version.txt"
 
 	// S3KlientctlLatest is URL to the latest version of the klientctl.
+	//
+	// TODO(rjeczalik): move to koding/config
 	S3KlientctlLatest = "https://koding-kd.s3.amazonaws.com/" + Environment + "/latest-version.txt"
 )
 
@@ -102,7 +104,7 @@ func init() {
 		fmt.Println("KiteVersion", KiteVersion)
 		fmt.Println("KiteKeyPath", KiteKeyPath)
 		fmt.Println("KontrolURL", KontrolURL)
-		fmt.Println("TunnelKiteAddress", TunnelKiteAddress)
+		fmt.Println("TunnelKiteURL", TunnelKiteURL)
 		fmt.Println("S3KlientLatest", S3KlientLatest)
 		fmt.Println("S3KlientctlLatest", S3KlientctlLatest)
 	}

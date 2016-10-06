@@ -1,0 +1,5 @@
+require 'home/utilities/test'
+require 'home/virtualmachines/test'
+require 'home/myteam/test'
+require 'home/utilities/test'
+require 'home/integrations/test'

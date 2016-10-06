@@ -11,7 +11,6 @@ module.exports =
     require './stores/teamsearchinputvaluestore'
     require './stores/teamdisabledmembersstore'
     require './stores/teamallmembersloadedstore'
-    require './stores/teamsendinvitesfocusstore'
     require './stores/teamapitokensstore'
     require './stores/teamapiaccessstatestore'
     require './stores/teamotatokenstore'

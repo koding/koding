@@ -13,7 +13,8 @@ module.exports = class KodingRouter extends kd.Router
   constructor: (@defaultRoute) ->
 
     @breadcrumb = []
-    @defaultRoute or= global.location.pathname + global.location.search
+    { pathname, search, hash } = global.location
+    @defaultRoute or= "#{pathname}#{search}#{hash}"
     @openRoutes     = {}
     @openRoutesById = {}
 
@@ -51,6 +52,7 @@ module.exports = class KodingRouter extends kd.Router
       name = _slug
 
     appManager = kd.getSingleton 'appManager'
+
     if appManager.shouldLoadApp name
       return KodingAppsController.loadInternalApp name, (err, res) =>
         return kd.warn err  if err
@@ -62,6 +64,7 @@ module.exports = class KodingRouter extends kd.Router
       return @handleRoute @getGroupDisabledRoute route
 
     return @handleRoute @getDefaultRoute()  if /<|>/.test route
+
     super route, options
 
 
@@ -116,6 +119,8 @@ module.exports = class KodingRouter extends kd.Router
       member: [
         '/Disabled/Member'
         '/Disabled/Member/notify-success'
+        '/Disabled/Member/upgrade-notify-success'
+        '/Disabled/Member/suspended-notify-success'
       ]
 
     return route in allowedRoutes[getRole()]

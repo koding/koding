@@ -2,8 +2,13 @@
 { connect } = require 'react-redux'
 { createSelector } = require 'reselect'
 
+getGroup = require 'app/util/getGroup'
+getGroupStatus = require 'app/util/getGroupStatus'
+
 { CREATE_TOKEN } = stripe = require 'app/redux/modules/stripe'
 creditCard = require 'app/redux/modules/payment/creditcard'
+
+{ Status } = require 'app/redux/modules/payment/constants'
 
 PaymentSection = require './paymentsection'
 
@@ -21,9 +26,17 @@ formMessages[CREATE_TOKEN.FAIL] =
     below and try again.
   '
 
+formMessages[Status.PAST_DUE] = formMessages[Status.CANCELED] =
+  type: 'danger'
+  title: 'Credit Card Error'
+  description: '
+    Your account is suspended because we were unable to charge your card on
+    file. Please enter a new card to continue using Koding.
+  '
+
 formMessage = createSelector(
   stripe.lastAction
-  (lastAction) -> lastAction and formMessages[lastAction]
+  (lastAction) -> formMessages[lastAction or getGroupStatus(getGroup())]
 )
 
 submitting = (formName) -> (state) -> state.form[formName]?.submitting

@@ -20,7 +20,7 @@ $modal-z-index              = 20000
   display                   flex
   flex-direction            column
   background-color          $additional-6-faded-light
-  border-radius             4px
+  border-radius             6px
   position                  relative
 
 .alien
@@ -60,7 +60,7 @@ $modal-z-index              = 20000
   text-align                center
   border-bottom             1px solid #ebebeb
   justify-content           center
-  border-radius             4px 4px 0 0
+  border-radius             6px 6px 0 0
 
   > span
     font-size               18px
@@ -68,7 +68,7 @@ $modal-z-index              = 20000
 
 .footer
   border-top                1px solid #ebebeb
-  border-radius             0 0 4px 4px
+  border-radius             0 0 6px 6px
 
 .header
 .footer
@@ -95,6 +95,7 @@ $modal-z-index              = 20000
 
   p
     margin                  30px 0
+    line-height             22px
 
 .footerContainer
   button

@@ -9,10 +9,9 @@ import (
 	"koding/db/mongodb/modelhelper"
 	socialapimodels "socialapi/models"
 
-	"github.com/stripe/stripe-go"
+	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/customer"
 	stripeplan "github.com/stripe/stripe-go/plan"
-	"github.com/stripe/stripe-go/sub"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -34,11 +33,56 @@ type Usage struct {
 	NextBillingDate time.Time        `json:"nextBillingDate"`
 	Subscription    *stripe.Sub      `json:"subscription"`
 	Customer        *stripe.Customer `json:"customer"`
+	Trial           *TrialInfo       `json:"trialInfo"`
 }
 
 // UserInfo holds current info about team's user info
 type UserInfo struct {
 	Total int `json:"total"`
+}
+
+// TrialInfo holds trial's info about team
+type TrialInfo struct {
+	User         *UserInfo    `json:"user"`
+	Due          uint64       `json:"due"`
+	ExpectedPlan *stripe.Plan `json:"expectedPlan"`
+}
+
+// EnsureCustomerForGroup registers a customer for a group if it does not exist,
+// returns the existing one if created previously
+func EnsureCustomerForGroup(username string, groupName string, req *stripe.CustomerParams) (*stripe.Customer, error) {
+	group, err := modelhelper.GetGroup(groupName)
+	if err != nil {
+		return nil, err
+	}
+
+	// if we already have the customer, return it.
+	if group.Payment.Customer.ID != "" {
+		return customer.Get(group.Payment.Customer.ID, nil)
+	}
+
+	req, err = populateCustomerParams(username, group.Slug, req)
+	if err != nil {
+		return nil, err
+	}
+
+	cus, err := customer.New(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := modelhelper.UpdateGroupPartial(
+		modelhelper.Selector{"_id": group.Id},
+		modelhelper.Selector{
+			"$set": modelhelper.Selector{
+				"payment.customer.id": cus.ID,
+			},
+		},
+	); err != nil {
+		return nil, err
+	}
+
+	return cus, nil
 }
 
 // DeleteCustomerForGroup deletes the customer for a given group. If customer is
@@ -50,7 +94,7 @@ func DeleteCustomerForGroup(groupName string) error {
 	}
 
 	if group.Payment.Customer.ID == "" {
-		return ErrCustomerNotExists
+		return nil
 	}
 
 	if err := deleteCustomer(group.Payment.Customer.ID); err != nil {
@@ -69,6 +113,10 @@ func DeleteCustomerForGroup(groupName string) error {
 
 // UpdateCustomerForGroup updates customer data of a group`
 func UpdateCustomerForGroup(username, groupName string, params *stripe.CustomerParams) (*stripe.Customer, error) {
+	if _, err := EnsureCustomerForGroup(username, groupName, params); err != nil {
+		return nil, err
+	}
+
 	group, err := modelhelper.GetGroup(groupName)
 	if err != nil {
 		return nil, err
@@ -83,7 +131,25 @@ func UpdateCustomerForGroup(username, groupName string, params *stripe.CustomerP
 		return nil, err
 	}
 
-	return customer.Update(group.Payment.Customer.ID, params)
+	cus, err := customer.Update(group.Payment.Customer.ID, params)
+	if err != nil {
+		return nil, err
+	}
+
+	// create subscription for the user if they dont have any sub info, this can
+	// happen if the customer did not pay the previous invoice - stripe deletes
+	// the sub automatically.
+	subParams := &stripe.SubParams{
+		Customer: group.Payment.Customer.ID,
+		Plan:     Plans[Free].ID,
+	}
+
+	if _, err := EnsureSubscriptionForGroup(groupName, subParams); err != nil {
+		return nil, err
+	}
+
+	return cus, nil
+
 }
 
 // GetCustomerForGroup get the registered customer info of a group if exists
@@ -102,45 +168,62 @@ func GetCustomerForGroup(groupName string) (*stripe.Customer, error) {
 
 // GetInfoForGroup get the current usage info of a group
 func GetInfoForGroup(group *models.Group) (*Usage, error) {
-	usage, err := fetchParallelizableeUsageItems(group)
-	if err != nil {
-		return nil, err
-	}
-
-	plan, err := getPlan(usage.Subscription, usage.User.Total)
-	if err != nil {
-		return nil, err
-	}
-
-	usage.ExpectedPlan = plan
-	usage.Due = uint64(usage.User.Total) * plan.Amount
-
-	return usage, nil
-
+	username := ""
+	return EnsureInfoForGroup(group, username)
 }
 
-func fetchParallelizableeUsageItems(group *models.Group) (*Usage, error) {
+// EnsureInfoForGroup ensures data validity of the group, if customer does not
+// exist, creates if, if sub does not exist, creates it
+func EnsureInfoForGroup(group *models.Group, username string) (*Usage, error) {
+	usage, err := fetchParallelizableUsageItems(group, username)
+	if err != nil {
+		return nil, err
+	}
+
 	var g errgroup.Group
-
-	// Stripe customer.
-	var cus *stripe.Customer
-	g.Go(func() (err error) {
-		if group.Payment.Customer.ID == "" {
-			return ErrCustomerNotExists
+	g.Go(func() error {
+		expectedPlan, err := getPlan(usage.Subscription, usage.User.Total)
+		if err != nil {
+			return err
 		}
-
-		cus, err = customer.Get(group.Payment.Customer.ID, nil)
-		return err
+		usage.ExpectedPlan = expectedPlan
+		usage.Due = uint64(usage.User.Total) * expectedPlan.Amount
+		return nil
 	})
 
-	// Stripe subscription.
+	g.Go(func() error {
+		if usage.Trial.User.Total == 0 {
+			return nil
+		}
+		trialPlan, err := getPlan(usage.Subscription, usage.Trial.User.Total)
+		if err != nil {
+			return err
+		}
+		usage.Trial.ExpectedPlan = trialPlan
+		usage.Trial.Due = uint64(usage.Trial.User.Total) * trialPlan.Amount
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	return usage, nil
+}
+
+func fetchParallelizableUsageItems(group *models.Group, username string) (*Usage, error) {
+	var g errgroup.Group
+
+	var cus *stripe.Customer
 	var subscription *stripe.Sub
+
 	g.Go(func() (err error) {
-		if group.Payment.Subscription.ID == "" {
-			return ErrCustomerNotSubscribedToAnyPlans
+		cus, err = EnsureCustomerForGroup(username, group.Slug, nil)
+		if err != nil {
+			return err
 		}
 
-		subscription, err = sub.Get(group.Payment.Subscription.ID, nil)
+		subscription, err = EnsureSubscriptionForGroup(group.Slug, nil)
 		return err
 	})
 
@@ -148,6 +231,17 @@ func fetchParallelizableeUsageItems(group *models.Group) (*Usage, error) {
 	var activeCount int
 	g.Go(func() (err error) {
 		activeCount, err = (&socialapimodels.PresenceDaily{}).CountDistinctByGroupName(group.Slug)
+		return err
+	})
+
+	// Trialing user count is set if only sub is trialing.
+	var trialCount int
+	g.Go(func() (err error) {
+		if group.Payment.Subscription.Status != "trialing" {
+			return nil
+		}
+
+		trialCount, err = (&socialapimodels.PresenceDaily{}).CountDistinctProcessedByGroupName(group.Slug)
 		return err
 	})
 
@@ -164,6 +258,11 @@ func fetchParallelizableeUsageItems(group *models.Group) (*Usage, error) {
 		NextBillingDate: time.Unix(subscription.PeriodEnd, 0),
 		Subscription:    subscription,
 		Customer:        cus,
+		Trial: &TrialInfo{
+			User: &UserInfo{
+				Total: trialCount,
+			},
+		},
 	}
 
 	return usage, nil
@@ -198,37 +297,6 @@ func createFilter(groupID bson.ObjectId) modelhelper.Selector {
 	}
 }
 
-// CreateCustomerForGroup registers a customer for a group
-func CreateCustomerForGroup(username, groupName string, req *stripe.CustomerParams) (*stripe.Customer, error) {
-	req, err := populateCustomerParams(username, groupName, req)
-	if err != nil {
-		return nil, err
-	}
-
-	cus, err := customer.New(req)
-	if err != nil {
-		return nil, err
-	}
-
-	group, err := modelhelper.GetGroup(groupName)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := modelhelper.UpdateGroupPartial(
-		modelhelper.Selector{"_id": group.Id},
-		modelhelper.Selector{
-			"$set": modelhelper.Selector{
-				"payment.customer.id": cus.ID,
-			},
-		},
-	); err != nil {
-		return nil, err
-	}
-
-	return cus, nil
-}
-
 // deleteCustomer tries to make customer deletion idempotent
 func deleteCustomer(customerID string) error {
 	cus, err := customer.Del(customerID)
@@ -240,6 +308,14 @@ func deleteCustomer(customerID string) error {
 }
 
 func populateCustomerParams(username, groupName string, initial *stripe.CustomerParams) (*stripe.CustomerParams, error) {
+	if username == "" {
+		return nil, socialapimodels.ErrNickIsNotSet
+	}
+
+	if groupName == "" {
+		return nil, socialapimodels.ErrGroupNameIsNotSet
+	}
+
 	if initial == nil {
 		initial = &stripe.CustomerParams{}
 	}

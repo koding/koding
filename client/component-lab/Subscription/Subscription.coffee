@@ -15,7 +15,7 @@ module.exports = class Subscription extends Component
 
   renderHeader: ->
 
-    { loading, teamSize, pricePerSeat
+    { loading, teamSize, pricePerSeat, daysLeft
       isTrial, freeCredit, endsAt, title } = @props
 
     nextAmount = Number(teamSize) * Number(pricePerSeat)
@@ -27,6 +27,7 @@ module.exports = class Subscription extends Component
       teamSize={teamSize}
       freeCredit={freeCredit}
       nextBillingAmount={nextAmount}
+      daysLeft={daysLeft}
       endsAt={endsAt} />
 
 
@@ -34,11 +35,14 @@ module.exports = class Subscription extends Component
 
     return  unless @props.isTrial
 
+    { daysLeft, endsAt, teamSize, pricePerSeat, onClickInfo } = @props
+
     <TrialChargeInfo
-      endsAt={@props.endsAt}
-      teamSize={@props.teamSize}
-      pricePerSeat={@props.pricePerSeat}
-      onClick={@props.onClickInfo} />
+      daysLeft={daysLeft}
+      endsAt={endsAt}
+      teamSize={teamSize}
+      pricePerSeat={pricePerSeat}
+      onClick={onClickInfo} />
 
 
   renderExtras: ->

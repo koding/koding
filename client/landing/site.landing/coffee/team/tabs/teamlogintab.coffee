@@ -29,6 +29,7 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
 
     @logo = utils.getGroupLogo()
 
+
     # keep the prop name @form it is used in AppView to focus to the form if there is any - SY
     @form = new LoginInlineForm
       cssClass : 'login-form clearfix'
@@ -45,7 +46,7 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
           @form.tfcode.show()
           @form.tfcode.setFocus()
 
-    if group.slug is gitlab?.team
+    if group.config?.gitlab?.enabled
       @form.gitlabLogin.show()
 
     ['button', 'gitlabButton'].forEach (button) =>
@@ -81,11 +82,12 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
 
     # this is to make sure that already created teams with problematic names
     # are not causing any problems as well. ~Umut
-    title = Encoder.htmlEncode Encoder.htmlDecode kd.config.group.title
+    title   = Encoder.htmlEncode Encoder.htmlDecode kd.config.group.title
+    hasLogo = not @logo.hasClass 'hidden'
 
     """
     {{> @header }}
-    <div class="TeamsModal TeamsModal--login">
+    <div class="TeamsModal TeamsModal--login #{if hasLogo then 'with-avatar' else ''}">
       {{> @logo}}
       <h4><span>Sign in to</span> #{title}</h4>
       {{> @form}}

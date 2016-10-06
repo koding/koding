@@ -19,6 +19,7 @@ import (
 	"sync"
 	"time"
 
+	konfig "koding/config"
 	"koding/klient/client"
 	"koding/klient/collaboration"
 	"koding/klient/command"
@@ -687,7 +688,7 @@ func newKite(kconf *KlientConfig) *kite.Kite {
 	//
 	// If the url was not overwritten, we default to production kontrol.
 	if k.Config.KontrolURL == "http://127.0.0.1:3000/kite" {
-		k.Config.KontrolURL = "https://koding.com/kontrol/kite" // TODO(rjeczalik): move to koding/config
+		k.Config.KontrolURL = konfig.Builtin.Endpoints.URL("kontrol", kconf.Environment)
 	}
 
 	return k

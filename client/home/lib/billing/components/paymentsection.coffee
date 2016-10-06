@@ -42,7 +42,7 @@ module.exports = class PaymentSection extends React.Component
 
   onInviteMembers: ->
     @setState { hasSuccessModal: no }, ->
-      kd.singletons.router.handleRoute '/Home/My-Team/send-invites'
+      kd.singletons.router.handleRoute '/Home/my-team#send-invites'
 
 
   render: ->

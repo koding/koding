@@ -8,6 +8,9 @@ Machine             = require 'app/providers/machine'
 SharingAutocomplete = require './sharing/autocomplete'
 SharingUserList     = require './sharing/userlist'
 ContentModal        = require 'app/components/contentModal'
+EnvironmentFlux     = require 'app/flux/environment'
+KDReactorMixin  = require 'app/flux/base/reactormixin'
+
 
 module.exports = class MachineDetails extends React.Component
 
@@ -43,7 +46,18 @@ module.exports = class MachineDetails extends React.Component
   constructor: (props) ->
 
     super props
-    @state = {}
+
+    @state =
+      machineLabel: @props.machine.get 'label'
+      editNameClassName: 'GenericToggler-button'
+      inputClasssName: 'kdinput text edit-name hidden'
+    @input = null
+
+
+  getDataBindings: ->
+    return {
+      expandedMachineLabel: EnvironmentFlux.getters.expandedMachineLabelStore
+    }
 
 
   onSharingToggle: (checked) ->
@@ -89,12 +103,17 @@ module.exports = class MachineDetails extends React.Component
 
     return  unless @props.shouldRenderSpecs
 
+    { Starting, Stopping } = Machine.State
     specs = generateSpecs @props.machine
+
+    className = 'MachineDetails-SpecsList'
+    if @status() in [ Starting, Stopping ]
+      className = 'MachineDetails-SpecsList notReady'
 
     children = specs.map (spec) ->
       <div key={spec} className="SingleSpecItem">{spec}</div>
 
-    <div className='MachineDetails-SpecsList'>{children}</div>
+    <div className={className}>{children}</div>
 
 
   renderDisconnectToggler: ->
@@ -165,6 +184,7 @@ module.exports = class MachineDetails extends React.Component
       <SharingUserList users={machine.get 'sharedUsers'} onUserRemove={@props.onUnsharedWithUser} />
     </div>
 
+
   renderBuildLog: ->
 
     { machine } = @props
@@ -175,9 +195,7 @@ module.exports = class MachineDetails extends React.Component
     isMachineRunning = state is 'Running'
 
     description = 'Logs that were created while we built your VM.'
-
     description = 'Turn on your VM to see the build logs.' unless isMachineRunning
-
 
     <GenericToggler
       title='Build Logs'
@@ -189,13 +207,81 @@ module.exports = class MachineDetails extends React.Component
       machineState={isMachineRunning} />
 
 
+  renderEditName: ->
+
+    return  unless @props.shouldRenderEditName
+    pullRight = 'pull-right'
+    unless @state.inputClasssName.indexOf('hidden') > 0
+      pullRight = 'pull-right with-input'
+
+    <div className='GenericToggler'>
+      <div className='GenericToggler-top edit-name'>
+        <EditVMNameDescription />
+        <div className={pullRight}>
+          <EditNameButton cssClass={@state.editNameClassName} callback={@bound 'showInputBox'} />
+          <input
+            ref={ (inpt) => @input = inpt}
+            value={@state.machineLabel}
+            className={@state.inputClasssName}
+            onChange={@bound 'inputOnChange'}
+            onBlur={@bound 'inputOnBlur'}
+            onKeyDown={@bound 'inputOnKeyDown'} />
+        </div>
+      </div>
+    </div>
+
+
+  showInputBox: ->
+
+    @setState
+      editNameClassName: 'GenericToggler-button hidden'
+      inputClasssName: 'kdinput text edit-name'
+    kd.utils.defer => @input?.focus()
+
+
+  inputOnBlur: (event) ->
+
+    @setMachineLabel()
+    @setState
+      editNameClassName: 'GenericToggler-button'
+      inputClasssName: 'kdinput text edit-name hidden'
+
+
+  inputOnKeyDown: (event) ->
+
+    if event.keyCode is 13
+      @input.blur()
+
+
+  inputOnChange: (event) ->
+
+    { value: machineLabel } = event.target
+    @setState { machineLabel: machineLabel }
+    EnvironmentFlux.actions.loadExpandedMachineLabel machineLabel
+
+
+  setMachineLabel: ->
+
+    unless @state.machineLabel
+      @setState { machineLabel: @props.machine.get 'label'}
+      return
+
+    machineUId = @props.machine.get 'uid'
+    EnvironmentFlux.actions.setLabel machineUId, @state.machineLabel
+      .then (label) =>
+        kd.singletons.router.handleRoute "/Home/stacks/virtual-machines/#{@state.machineLabel}"
+      .catch (err) =>
+        @setState { machineLabel: @props.machine.get 'label' }
+        new kd.NotificationView { title: 'Something went wrong', duration: 2000 }
+
+
   onClickBuildLog: (e) ->
 
     machineUId = @props.machine.get 'uid'
     kd.singletons.router.handleRoute "/IDE/#{@props.machine.get 'label'}"
 
     { computeController } = kd.singletons
-    machine    = computeController.findMachineFromMachineUId machineUId
+    machine = computeController.findMachineFromMachineUId machineUId
     computeController.showBuildLogs machine, 0
 
 
@@ -203,6 +289,7 @@ module.exports = class MachineDetails extends React.Component
 
     <div className='MachineDetails'>
       {@renderSpecs()}
+      {@renderEditName()}
       {@renderPowerToggler()}
       {@renderAlwaysOnToggler()}
       {@renderDisconnectToggler()}
@@ -231,3 +318,27 @@ generateSpecs = (machine) ->
 
   return specs
 
+
+EditVMNameDescription = ->
+  <div className='pull-left'>
+    <div className='GenericToggler-title'>
+      Edit VM Name
+    </div>
+    <div className='GenericToggler-description'>
+      You can change your VM name here
+    </div>
+  </div>
+
+
+EditNameButton = ({ cssClass, callback }) ->
+
+  <div className={cssClass}>
+    <a
+      className='custom-link-view HomeAppView--button primary fr'
+      href='#' onClick={callback}>
+      <span className='title'>Edit Name</span>
+    </a>
+  </div>
+
+
+MachineDetails.include [KDReactorMixin]

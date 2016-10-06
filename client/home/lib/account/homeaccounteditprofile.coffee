@@ -233,15 +233,10 @@ module.exports = class HomeAccountEditProfile extends KDCustomHTMLView
     @userProfileForm.inputs.firstName.setDefaultValue Encoder.htmlDecode firstName
     @userProfileForm.inputs.lastName.setDefaultValue Encoder.htmlDecode lastName
 
-    { focus } = kd.utils.parseQuery()
-    @userProfileForm.inputs[focus]?.setFocus()  if focus
-
     notify = (message) ->
       new kd.NotificationView
         title    : message
         duration : 3500
-
-    @userProfileForm.inputs.firstName.setFocus()
 
 
   getAvatarOptions: ->

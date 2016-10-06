@@ -1,5 +1,8 @@
+_ = require 'lodash'
 makeHttpClient = require 'app/util/makeHttpClient'
 { pickData } = makeHttpClient.helpers
+
+{ Status } = require 'app/redux/modules/payment/constants'
 
 exports.client = client = makeHttpClient { baseURL: '/api/social/payment' }
 
@@ -36,8 +39,9 @@ exports.fetchSubscription = fetchSubscription = pickData ->
   client.get Endpoints.SubscriptionGet
 
 exports.createSubscription = createSubscription = pickData (params = {}) ->
-  if not params.trialEnd
-    params.trialEnd = Math.round ((new Date()).getTime() + (30 * 24 * 60 * 60 * 1000)) / 1000
+
+  params.trialEnd ?= getTimestamp(new Date)
+
   client.post Endpoints.SubscriptionCreate, params
 
 exports.deleteSubscription = deleteSubscription = pickData (params = {}) ->
@@ -48,4 +52,18 @@ exports.deleteCreditCard = deleteCreditCard = pickData ->
 
 exports.fetchInvoices = fetchInvoices = pickData ->
   client.get Endpoints.InvoiceList
+
+exports.fetchInfo = fetchInfo = ->
+  client.get(Endpoints.Info).then ({ data: info }) ->
+    # if status is trialing, use `trialInfo`
+    if info.subscription.status is Status.TRIALING
+      info = _.assign(_.omit(info, 'trialInfo'), info.trialInfo)
+    return info
+
+
+getTimestamp = (date) ->
+
+  thirtyDaysInMs = (30 * 24 * 60 * 60 * 1000)
+
+  Math.round (date.getTime() + thirtyDaysInMs) / 1000
 

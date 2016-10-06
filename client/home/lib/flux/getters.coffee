@@ -4,6 +4,7 @@ EnvironmentFlux = require 'app/flux/environment'
 canCreateStacks = require 'app/util/canCreateStacks'
 isAdmin = require 'app/util/isAdmin'
 teamHasStack = require 'app/util/teamHasStack'
+hasIntegration = require 'app/util/hasIntegration'
 
 welcomeStepsByRole = [
   EnvironmentFlux.getters.stacks
@@ -34,6 +35,9 @@ welcomeSteps = [
     unless canCreateStacks()
       steps = steps.delete 'stackCreation'
       steps = steps.delete 'installKd'
+
+    unless hasIntegration 'gitlab'
+      steps = steps.delete 'gitlabIntegration'
 
     return steps.sortBy (a) -> a.get('order')
 ]

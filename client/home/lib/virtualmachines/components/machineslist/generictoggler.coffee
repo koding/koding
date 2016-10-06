@@ -33,7 +33,7 @@ module.exports = class GenericToggler extends React.Component
     if button
       buttonClassName = 'GenericToggler-button'
       toggleClassName = 'GenericToggler-toggle hidden'
-      topClassName = 'GenericToggler-top button'
+      topClassName = 'GenericToggler-top build-logs'
 
     unless machineState
       buttonClassName = "#{buttonClassName} disabled"

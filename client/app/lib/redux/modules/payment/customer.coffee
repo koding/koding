@@ -1,29 +1,29 @@
-_ = require 'lodash'
 immutable = require 'app/util/immutable'
 
-{ makeNamespace, expandActionType,
-  normalize, defineSchema } = require 'app/redux/helper'
+reduxHelper = require 'app/redux/helper'
 
-withNamespace = makeNamespace 'koding', 'payment', 'customer'
+schemas = require './schemas'
 
-schema = defineSchema 'customer',
-  sources:
-    data: defineSchema 'sources', []
-  subscriptions:
-    data: defineSchema 'subscriptions', []
+info = require './info'
 
+withNamespace = reduxHelper.makeNamespace 'koding', 'payment', 'customer'
 
-LOAD = expandActionType withNamespace 'LOAD'
-CREATE = expandActionType withNamespace 'CREATE'
-UPDATE = expandActionType withNamespace 'UPDATE'
-REMOVE = expandActionType withNamespace 'REMOVE'
+LOAD = reduxHelper.expandActionType withNamespace 'LOAD'
+CREATE = reduxHelper.expandActionType withNamespace 'CREATE'
+UPDATE = reduxHelper.expandActionType withNamespace 'UPDATE'
+REMOVE = reduxHelper.expandActionType withNamespace 'REMOVE'
 
 
 reducer = (state = null, action = {}) ->
 
+  { normalize } = reduxHelper
+
   switch action.type
+    when info.LOAD.SUCCESS
+      normalized = normalize action.result, schemas.info
+      return immutable normalized.first 'customer'
     when LOAD.SUCCESS, CREATE.SUCCESS, UPDATE.SUCCESS
-      normalized = normalize action.result, schema
+      normalized = normalize action.result, schemas.customer
       return immutable normalized.first 'customer'
     when REMOVE.SUCCESS
       return null
@@ -64,9 +64,8 @@ coupon = (state) -> state.customer?.discount?.coupon
 email = (state) -> state.customer?.email
 
 
-module.exports = _.assign reducer, {
+module.exports = {
   namespace: withNamespace()
-  schema
   reducer
 
   coupon, email
