@@ -139,10 +139,6 @@ func (db *mongoDatabase) Validate(f *Filter, c *Cred) (Perm, error) {
 		return nil, err
 	}
 
-	if f.Team == "" {
-		return nil, errors.New("validate: invalid empty team name")
-	}
-
 	perm := &MongoPerm{
 		Roles: f.Roles,
 	}
@@ -227,33 +223,38 @@ func (db *mongoDatabase) Validate(f *Filter, c *Cred) (Perm, error) {
 		}
 	}
 
-	if perm.Team == nil {
-		log.Debug("fetching %q team", f.Team)
+	groupIDs := []bson.ObjectId{perm.Acc.Id}
 
-		perm.Team, err = modelhelper.GetGroup(f.Team)
-		if err != nil {
-			return nil, models.ResError(err, "jGroup")
-		}
-	}
+	if f.Team != "" {
+		if perm.Team == nil {
+			log.Debug("fetching %q team", f.Team)
 
-	if !perm.Member {
-		belongs := modelhelper.Selector{
-			"targetId": perm.Acc.Id,
-			"sourceId": perm.Team.Id,
-			"as":       "member",
+			perm.Team, err = modelhelper.GetGroup(f.Team)
+			if err != nil {
+				return nil, models.ResError(err, "jGroup")
+			}
 		}
 
-		log.Debug("testing relationship for %+v", belongs)
-
-		if count, err := modelhelper.RelationshipCount(belongs); err != nil || count == 0 {
-			if err == nil {
-				err = fmt.Errorf("user %q does not belong to %q group", f.User, f.Team)
+		if !perm.Member {
+			belongs := modelhelper.Selector{
+				"targetId": perm.Acc.Id,
+				"sourceId": perm.Team.Id,
+				"as":       "member",
 			}
 
-			return nil, models.ResError(err, "jRelationship")
-		}
+			log.Debug("testing relationship for %+v", belongs)
 
-		perm.Member = true
+			if count, err := modelhelper.RelationshipCount(belongs); err != nil || count == 0 {
+				if err == nil {
+					err = fmt.Errorf("user %q does not belong to %q group", f.User, f.Team)
+				}
+
+				return nil, models.ResError(err, "jRelationship")
+			}
+
+			perm.Member = true
+			groupIDs = append(groupIDs, perm.Team.Id)
+		}
 	}
 
 	if perm.Cred == nil {
@@ -268,7 +269,7 @@ func (db *mongoDatabase) Validate(f *Filter, c *Cred) (Perm, error) {
 	belongs := modelhelper.Selector{
 		"targetId": perm.Cred.Id,
 		"sourceId": bson.M{
-			"$in": []bson.ObjectId{perm.Acc.Id, perm.Team.Id},
+			"$in": groupIDs,
 		},
 		"as": bson.M{"$in": perm.Roles},
 	}
@@ -468,11 +469,11 @@ func (db *mongoDatabase) SetCred(c *Cred) error {
 		return fmt.Errorf("unable to create credential: missing %q account", f.User)
 	}
 
-	if mPerm.Team == nil {
-		return fmt.Errorf("unable to create credential: missing %q team", f.Team)
-	}
-
 	now := time.Now().UTC()
+
+	if c.Title == "" {
+		c.Title = mPerm.User.Name + " " + now.String()
+	}
 
 	mPerm.Cred = &models.Credential{
 		Id:          bson.NewObjectId(),

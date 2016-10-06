@@ -3,7 +3,9 @@ package stack
 import (
 	"encoding/json"
 	"errors"
+
 	"koding/kites/kloud/credential"
+	"koding/kites/kloud/utils/object"
 
 	"github.com/koding/kite"
 )
@@ -63,6 +65,7 @@ type CredentialListResponse struct {
 
 type CredentialAddRequest struct {
 	Provider string          `json:"provider"`
+	Team     string          `json:"team,omitempty"`
 	Title    string          `json:"title,omitempty"`
 	Data     json.RawMessage `json:"data"`
 }
@@ -136,5 +139,50 @@ func (k *Kloud) CredentialList(r *kite.Request) (interface{}, error) {
 }
 
 func (k *Kloud) CredentialAdd(r *kite.Request) (interface{}, error) {
-	return nil, nil
+	var req CredentialAddRequest
+
+	if err := r.Args.One().Unmarshal(&req); err != nil {
+		return nil, err
+	}
+
+	if req.Provider == "" {
+		return nil, NewError(ErrProviderIsMissing)
+	}
+
+	p, ok := k.providers[req.Provider]
+	if !ok {
+		return nil, NewError(ErrProviderNotFound)
+	}
+
+	c := &credential.Cred{
+		Provider: req.Provider,
+		Title:    req.Title,
+		Team:     req.Team,
+	}
+
+	if len(req.Data) != 0 {
+		var data interface{}
+
+		cred := p.NewCredential()
+		boot := p.NewBootstrap()
+
+		if boot != nil {
+			data = object.Inline(cred, boot)
+		} else {
+			data = cred
+		}
+
+		if err := json.Unmarshal(req.Data, data); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := k.CredClient.SetCred(r.Username, c); err != nil {
+		return nil, err
+	}
+
+	return &CredentialAddResponse{
+		Title:      c.Title,
+		Identifier: c.Ident,
+	}, nil
 }

@@ -136,6 +136,10 @@ func (c *Client) SetCred(username string, cred *Cred) error {
 		cred.Ident = credCopy.Ident
 	}
 
+	if cred.Title == "" {
+		cred.Title = credCopy.Title
+	}
+
 	if credCopy.Data == nil {
 		credCopy.Data = make(map[string]interface{})
 	}

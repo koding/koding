@@ -32,7 +32,7 @@ type Kloud struct {
 
 	// rename to providers once finished
 	// Providers that can satisfy procotol.Builder, protocol.Controller, etc..
-	providers map[string]interface{}
+	providers map[string]Provider
 
 	// statusCache is used to cache stack statuses for describeStack calls.
 	statusCache *cache.MemoryTTL
@@ -76,6 +76,7 @@ type Kloud struct {
 	// import structure.
 	DescribeFunc func(providers ...string) map[string]*Description
 
+	// CredClient handles credential.* methods.
 	CredClient *credential.Client
 
 	Metrics *metrics.DogStatsD
@@ -92,7 +93,7 @@ func New() *Kloud {
 		idlock:      idlock.New(),
 		Log:         log,
 		Eventers:    make(map[string]eventer.Eventer),
-		providers:   make(map[string]interface{}),
+		providers:   make(map[string]Provider),
 		statusCache: cache.NewMemoryWithTTL(time.Second * 10),
 	}
 
