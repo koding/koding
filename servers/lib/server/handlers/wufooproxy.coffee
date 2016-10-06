@@ -1,31 +1,32 @@
-koding  = require './../bongo'
-request = require 'request'
-KONFIG  = require 'koding-config-manager'
+request   = require 'request'
+{ wufoo } = require 'koding-config-manager'
 
-
-getUri = (identifier, format = 'json') ->
-
-  return if identifier
-  then "https://koding.wufoo.com/api/v3/forms/#{identifier}.#{format}"
-  else "https://koding.wufoo.com/api/v3/forms.#{format}"
-
+API_KEY = wufoo
 
 module.exports = (req, res, next) ->
 
-  { identifier, format } = req.params
+  { identifier } = req.params
 
-  uri = getUri identifier, format
-
-  console.log uri
+  formURI = "https://koding.wufoo.com/api/v3/forms/#{identifier}/entries.json"
 
   request
-    uri    : uri
-    method : 'GET'
-    auth   :
-      'username'        : API_KEY
-      'password'        : 'thisdoesntmatter'
-      'sendImmediately' : false
+    uri               : formURI
+    method            : 'POST'
+    auth              :
+      username        : API_KEY
+      password        : 'thisdoesntmatter'
+      sendImmediately : false
+    form              : req.body
   , (err, response, body) ->
 
     return res.status(500).send 'an error occured'  if err or not body
-    return res.status(200).send body
+
+    try
+      body = JSON.parse body
+    catch e
+      return res.status(500).send 'an error occured'
+
+    { Success, ErrorText, FieldErrors, RedirectUrl } = body
+
+    return res.status(400).send { ErrorText, FieldErrors }  unless Success
+    return res.status(200).send { Success, RedirectUrl }
