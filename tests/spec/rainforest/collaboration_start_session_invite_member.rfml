@@ -13,14 +13,14 @@ Do you see that 'Email' fields?
 Enter "rainforestqa22@koding.com" in the 'Email' field of the second row and click on 'SEND INVITES' button
 Have you seen 'Invitation is sent to rainforestqa22@koding.com' message displayed?
 
-Open a new incognito window by clicking on the 3 dots on the top corner of the browser and selecting 'New Incognito Window' and then go to '{{ random.last_name }}{{ random.number }}.sandbox.koding.com' by pasting the url (using ctrl-v) in the address bar,then if you see 'Authentication Required' form enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In' (if not do nothing and check the items below) 
+Open a new incognito window by clicking on the 3 dots on the top corner of the browser and selecting 'New Incognito Window' and then go to '{{ random.last_name }}{{ random.number }}.{{site.host}}' by pasting the url (using ctrl-v) in the address bar,then if you see 'Authentication Required' form enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In' (if not do nothing and check the items below) 
 Do you see 'Sign in to {{ random.last_name }}{{ random.number }}' text, 'Username or Email' and 'Password' fields and a 'SIGN IN' button?
 
 Enter "rainforestqa22" both in the 'Username or Email' and 'Password' fields and click on 'SIGN IN' button
 Are you successfully logged in? Do you see '{{ random.last_name }}{{ random.number }}' Stack label?
 
 Click on the 'NEXT' button
-Do you see 'Select Credentials' text? Do you see '{{ existing_team.name }} AWS Keys' label in a text box? Do you see a 'BUILD STACK' button and 'BACK TO INSTRUCTIONS' text on the bottom?
+Do you see 'Select Credentials' text? Do you see AWS Keys label in a text box? Do you see a 'BUILD STACK' button and 'BACK TO INSTRUCTIONS' text on the bottom?
 
 Click on the 'BUILD STACK' button
 Do you see 'Fetching and validating credentials...' text in a progress bar?
