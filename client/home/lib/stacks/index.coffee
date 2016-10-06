@@ -1,7 +1,7 @@
 kd = require 'kd'
 sectionize = require '../commons/sectionize'
 headerize = require '../commons/headerize'
-isFeatureEnabled = require 'app/util/isFeatureEnabled'
+hasIntegration = require 'app/util/hasIntegration'
 
 HomeStacksCreate = require './homestackscreate'
 HomeStacksTeamStacks = require './homestacksteamstacks'
@@ -47,7 +47,7 @@ module.exports = class HomeStacks extends kd.CustomScrollView
     @tabView.addPane @vms         = new kd.TabPaneView { name: 'Virtual Machines' }
     @tabView.addPane @credentials = new kd.TabPaneView { name: 'Credentials' }
 
-    if isFeatureEnabled 'gitlab'
+    if hasIntegration 'gitlab'
       @tabView.addPane @importView  = new kd.TabPaneView {
         view: new HomeStacksImport { delegate: this.wrapper }
         name: 'Import'
