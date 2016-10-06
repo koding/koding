@@ -424,6 +424,8 @@ module.exports = utils = {
     return callback()  if grecaptcha?
 
     recaptchaLoadCallbacks.push callback
+    return  if recaptchaLoadCallbacks.length > 1
+
     recaptchaScript = new kd.CustomHTMLView
       tagName    : 'script'
       attributes :
