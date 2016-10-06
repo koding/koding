@@ -80,13 +80,12 @@ module.exports = class WelcomeModal extends kd.ModalView
 
     @setClass 'out'
 
-    { router } = kd.singletons
-    previousRoutes = router.visitedRoutes.filter (route) => not @checkRoute route
-    route = previousRoutes.last
+    { router, computeController } = kd.singletons
+
+    previousRoutes = router.visitedRoutes.filter (route) ->
+      not (/^\/(?:Home).*/.test(route) or /^\/(?:Welcome).*/.test(route))
+    route = previousRoutes.last ? '/IDE'
     router.handleRoute route  if selfInitiated
 
     # fat arrow is not unnecessary - sy
     kd.utils.wait 400, => super
-
-  checkRoute: (route) ->
-    /^\/(?:Home).*/.test(route) or /^\/(?:Welcome).*/.test route
