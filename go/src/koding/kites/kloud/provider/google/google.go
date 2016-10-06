@@ -66,7 +66,7 @@ func (r Region) Valid() error {
 // Cred represents jCredentialDatas.meta for "google" provider.
 type Cred struct {
 	Credentials string `json:"credentials" bson:"credentials" hcl:"credentials" kloud:",secret"`
-	Project     string `json:"project" bson:"project" hcl:"project" kloud:",secret"`
+	Project     string `json:"project" bson:"project" hcl:"project"`
 	Region      Region `json:"region" bson:"region" hcl:"region"`
 }
 
