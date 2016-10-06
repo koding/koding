@@ -298,16 +298,18 @@ module.exports = class StackEditorView extends kd.View
       title: 'Save Name'
       click : @inputTitle.bound 'setBlur'
 
-    isClonedTemplate stackTemplate, (isCloned) =>
-      if isCloned
+    isClonedTemplate stackTemplate, (originalTemplate) =>
+      if originalTemplate
         @titleActionsWrapper.addSubView @clonedFrom = new kd.CustomHTMLView
           cssClass: 'cloned-from-text'
           partial: 'Clone Of'
 
         @clonedFrom.addSubView new kd.CustomHTMLView
           cssClass: 'cloned-from'
-          partial: "  #{stackTemplate.title}"
-          click: -> kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate.config.clonedFrom}"
+          partial: "  #{originalTemplate.title}"
+          click: -> kd.singletons.router.handleRoute "/Stack-Editor/#{originalTemplate._id}"
+
+        @saveName.show()
 
 
 
