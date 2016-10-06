@@ -60,8 +60,15 @@ module.exports = class KodingRouter extends kd.Router
 
     group = kd.singletons.groupsController.getCurrentGroup()
 
+    # make sure that the team is routed to the disabled route when
+    # it's disabled.
     if isGroupDisabled(group) and not @isRouteAllowed route
       return @handleRoute @getGroupDisabledRoute route
+
+    # make sure that disabled route is not being shown to not disabled
+    # teams.
+    if not isGroupDisabled(group) and @isDisabledRoute route
+      return location.replace @getDefaultRoute()
 
     return @handleRoute @getDefaultRoute()  if /<|>/.test route
 
@@ -127,6 +134,9 @@ module.exports = class KodingRouter extends kd.Router
 
 
   getGroupDisabledRoute: -> "/Disabled/#{getRole().capitalize()}"
+
+
+  isDisabledRoute: (route) -> new RegExp(@getGroupDisabledRoute()).test route
 
 
   setPageTitle: (title = 'Koding') -> kd.singletons.pageTitle.update title
