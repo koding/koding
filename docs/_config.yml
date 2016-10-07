@@ -10,9 +10,10 @@ keywords: >
   web based ide, test environment, docker, aws, vagrant, azure, rackspace
 baseurl: ""
 # baseurl: "/koding"
-# url: "http://dev.koding.com:4000"
-url: "https://sinan.github.io/koding"
+url: "http://dev.koding.com:4000"
+# url: "https://sinan.github.io/koding"
 # production_url: "https://sinan.github.io/koding"
+permalink: /blog/:year/:month/:title/
 paginate_path: "/blog/page/:num"
 paginate: 5
 timezone: America/Los_Angeles
