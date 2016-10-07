@@ -1,5 +1,6 @@
 process.title = 'koding-webserver'
 { argv }      = require 'optimist'
+cors          = require 'cors'
 
 Object.defineProperty global, \
   'KONFIG', { value : require 'koding-config-manager' }
@@ -82,8 +83,8 @@ app.post '/-/analytics/page'                     , require './handlers/analytics
 
 app.get  '/-/my/permissionsAndRoles'             , require './handlers/myPermissionsAndRoles'
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
-app.post '/-/wufoo/submit/:identifier?'          , require './handlers/wufooproxy'
 app.post '/-/support/new', bodyParser.json()     , require './handlers/supportnew'
+app.post '/-/wufoo/submit/:identifier?'          , cors(), require './handlers/wufooproxy'
 # should deprecate those /Validates, they don't look like api endpoints
 app.post '/:name?/Validate/Username/:username?'  , require './handlers/validateusername'
 app.post '/:name?/Validate/Email/:email?'        , require './handlers/validateemail'
