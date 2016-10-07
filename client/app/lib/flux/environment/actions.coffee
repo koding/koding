@@ -563,9 +563,7 @@ createStackTemplateWithDefaults = (overrides = {}) ->
     { template, rawContent } = stackDefaults
 
   requiredProviders = providersParser template
-
-  if overrides.selectedProvider is 'vagrant'
-    requiredProviders.push 'vagrant'
+  requiredProviders.push overrides.selectedProvider
 
   requiredData = requirementsParser template
 

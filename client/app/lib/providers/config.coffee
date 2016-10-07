@@ -80,27 +80,34 @@ module.exports = globals.config.providers =
 
   google                   :
     name                   : 'Google Compute Engine'
-    link                   : 'https://cloud.google.com/products/compute-engine/'
-    title                  : 'Google Cloud'
-    color                  : '#357e99'
+    link                   : 'https://cloud.google.com/compute/'
+    title                  : 'GCE' # or Google Cloud or Google Compute Engine or ...
+    color                  : '#357e99' # dunno
     description            : 'Google compute engine'
     instanceTypes          : require './instance-types/gce'
+    advancedFields         : []
     credentialFields       :
-      projectId            :
-        label              : 'Project Id'
-        placeholder        : 'project id in gce'
-      clientSecretsContent :
-        label              : 'Secrets'
-        placeholder        : 'content of the client_secrets.xxxxx.json'
+      project              :
+        label              : 'Project ID'
+        placeholder        : 'ID of Project'
+        attributes         :
+          autocomplete     : if isProd then 'off' else 'on'
+      credentials          :
+        label              : 'Service account JSON key'
+        placeholder        : 'Provide content of key in JSON format'
         type               : 'textarea'
-      privateKeyContent    :
-        label              : 'Private Key'
-        placeholder        : 'content of the xxxxx-privatekey.pem'
-        type               : 'textarea'
-      # zone                 :
-      #   label              : "Zone"
-      #   placeholder        : "google zone"
-      #   defaultValue       : "us-central1-a"
+      region               :
+        label              : 'Region'
+        type               : 'selection'
+        placeholder        : '' # dunno
+        defaultValue       : 'us-central1'
+        values             : [
+          { title: 'Western US (us-west1)',         value: 'us-west1' }
+          { title: 'Central US (us-central1)',      value: 'us-central1' }
+          { title: 'Eastern US (us-east1)',         value: 'us-east1' }
+          { title: 'Western Europe (europe-west1)', value: 'europe-west1' }
+          { title: 'Eastern Asia (asia-east1)',     value: 'asia-east1' }
+        ]
 
   azure                    :
     name                   : 'Azure'
