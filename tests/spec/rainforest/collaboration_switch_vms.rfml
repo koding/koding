@@ -19,7 +19,7 @@ Enter "rainforestqa22" both in the 'Username or Email' and 'Password' fields and
 Are you successfully logged in? Do you see '{{ random.last_name }}{{ random.number }}' Stack label?
 
 Click on the 'NEXT' button
-Do you see 'Select Credentials' text? Do you see '{{ existing_team.name }} AWS Keys' label in a text box? Do you see a 'BUILD STACK' button and 'BACK TO INSTRUCTIONS' text on the bottom?
+Do you see 'Select Credentials' text? Do you see AWS Keys' label in a text box? Do you see a 'BUILD STACK' button and 'BACK TO INSTRUCTIONS' text on the bottom?
 
 Click on the 'BUILD STACK' button
 Do you see 'Fetching and validating credentials...' text in a progress bar?
