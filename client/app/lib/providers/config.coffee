@@ -277,8 +277,10 @@ module.exports = globals.config.providers =
     title                  : 'Softlayer'
     color                  : '#B52025'
     supported              : yes
-    enabled                : no
-    description            : 'Softlayer resources'
+    enabled                : 'beta'
+    defaultTemplate        : require './templates/softlayer'
+    instanceTypes          : require './instance-types/softlayer'
+    description            : 'Softlayer Virtual Guest'
     credentialFields       :
       username             :
         label              : 'Username'
