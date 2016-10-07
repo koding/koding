@@ -58,12 +58,6 @@ Is 'Try on Koding' button removed? Is code block removed? Do you see only 'VIEW 
 Click on 'VIEW GUIDE' button
 Is new tab opened? Do you see 'Try on Koding Button', 'What is Koding and why use Try on Koding button?' in new tab?
 
-Close the tab, go to 'Chatlio' section, enter a 'Chatlio data-widget-id' and save it
-Did you see the 'Chatlio id successfully saved!' notification?
-
-Click on 'VIEW GUIDE' button
-Is new tab opened? Do you see 'Chatlio Integration', 'Coming soon:' in new tab?
-
 Close the tab, go to 'API Access' section, enable 'Enable API Access'
 Do you see 'No tokens have been created yet. When you create, they will be listed here.'? Do you see 'VIEW GUIDE', 'ADD NEW API TOKEN'?
 
