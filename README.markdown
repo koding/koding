@@ -50,16 +50,22 @@ You are now ready to run Koding.
 git clone https://github.com/koding/koding.git
 cd koding
 docker-compose up
+
 # open a NEW TERMINAL TAB and run the client watcher
 docker-compose exec backend make -C /opt/koding/client
+
+# if you need to change anything under client/landing
+# open a new terminal tab and execute:
+docker-compose exec backend make -C /opt/koding/client/landing dev
+
 ```
+If you don't have a powerful computer, this may take a while at first, slow computers may take up to 15 minutes before they build the entire system. Please be patient. Once it is up and running, everything will be smooth and very fast.
 
 Now you can navigate to http://localhost:8090 to see your local Koding
-instance. Enjoy!
+instance. Enjoy! (If you don't see it, keep waiting, it will show up)
 
-docker-compose will attach your `./` directory to koding container. 
-When you edit on your host computer, they will be visible in the
-runtime environment. Watchers will automatically restart backend workers, or re-compile frontend code. You don't need to do anything for it.
+When you edit files on your host computer, they will be visible in the
+runtime environment. Watchers will automatically restart backend workers, re-compile frontend code. You don't need to do anything for it.
 
 ### Tips
 
