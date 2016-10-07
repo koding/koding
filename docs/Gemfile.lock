@@ -148,6 +148,7 @@ PLATFORMS
 
 DEPENDENCIES
   github-pages
+  jekyll-coffeescript
   jekyll-livereload
   jekyll-paginate
   pygments.rb
