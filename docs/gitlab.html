@@ -93,10 +93,10 @@ permalink: /gitlab
       <h2 class="LustBig">Koding+GitLab coming soon</h2>
       <h3 class="EavesDesc">Sign-up to receive updates about the one-click dev environment solution. We will send you an email when it is launched.</h3>
 
-      <ul class="hidden">
+      <ul class="hidden gitlab-stay-updated-success">
         <li><p>Thanks for subscribing!</p></li>
       </ul>
-      <form id="subscribe-to-newsletter">
+      <form id="gitlab-stay-updated">
         <input type="text" name="Field1" placeholder="Enter your email">
         <input type="hidden" name="Field3">
         <button type="submit">STAY UPDATED</button>
@@ -124,4 +124,14 @@ permalink: /gitlab
 
 <section class='MainSection MainSection-FullScreenVideo' id="MainVideo-FullScreen"></section>
 
+<script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
 <script src="{{ site.url }}/js/koding-gitlab.js"></script>
+<script type="text/javascript" src="{{ site.url }}/js/form-submission.js" /></script>
+<script type="text/javascript">
+  KODING_UTILS.bindFormSubmission({
+    referrerSelector: '#gitlab-stay-updated input[name=Field3]',
+    formSelector: '#gitlab-stay-updated',
+    resultSelector: 'ul.gitlab-stay-updated-success',
+    formHash: 'rqdtxw21drksfl'
+  });
+</script>
