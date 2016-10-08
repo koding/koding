@@ -1,7 +1,7 @@
 ---
 ---
 
-{% assign path = site.url | append: '/assets/img' %}
+{% assign path = site.url | append: '/assets/img/landing/store' %}
 
 $white: #FFFFFF;
 $porcelain: #F5F6F7;
@@ -656,7 +656,7 @@ hr {
       }
     }
   }
- 
+
 }
 
 .ItemBody-addl, .ItemBody-content {
@@ -824,7 +824,7 @@ hr {
     .container {
       margin: 0 19px;
     }
-    
+
     .ItemDetails-header {
       margin-top: -1px;
 
@@ -866,7 +866,7 @@ hr {
     .container {
       margin: 0 19px;
     }
-    
+
     .ItemBody-addl, .ItemBody-content {
       width: 100%;
       max-height: none;
