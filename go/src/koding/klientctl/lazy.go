@@ -12,17 +12,17 @@ import (
 )
 
 var (
-	cache *config.Cache
+	cache *cfg.Cache
 	k     *kite.Kite
 	kloud *kite.Client
 )
 
-func Cache() *config.Cache {
+func Cache() *cfg.Cache {
 	if cache != nil {
 		return cache
 	}
 
-	cache = config.NewCache(nil)
+	cache = cfg.NewCache(nil)
 
 	return cache
 }
@@ -32,7 +32,7 @@ func Kite() *kite.Kite {
 		return k
 	}
 
-	cfg, err := konfig.NewFromKiteKey(config.KiteKeyPath)
+	cfg, err := konfig.NewFromKiteKey(config.Konfig.KiteKeyFile)
 	if err != nil {
 		cfg, err = konfig.Get()
 		if err != nil {
@@ -42,7 +42,7 @@ func Kite() *kite.Kite {
 
 	k = kite.New(config.Name, config.KiteVersion)
 	k.Config = cfg
-	k.Config.KontrolURL = config.KontrolURL
+	k.Config.KontrolURL = config.Konfig.KontrolURL
 	k.Config.Environment = config.Environment
 	k.Log = log
 

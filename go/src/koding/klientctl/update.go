@@ -14,6 +14,7 @@ import (
 	"runtime"
 	"strconv"
 
+	konfig "koding/config"
 	"koding/klient/uploader"
 	"koding/klientctl/config"
 
@@ -75,7 +76,7 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 	if kdVersion == 0 {
 		var err error
 
-		kdVersion, err = latestVersion(config.S3KlientctlLatest)
+		kdVersion, err = latestVersion(config.Konfig.KDLatestURL)
 		if err != nil {
 			log.Error("Error fetching klientctl update version. err: %s", err)
 			fmt.Println(FailedCheckingUpdateAvailable)
@@ -86,7 +87,7 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 	if klientVersion == 0 {
 		var err error
 
-		klientVersion, err = latestVersion(config.S3KlientLatest)
+		klientVersion, err = latestVersion(config.Konfig.KlientLatestURL)
 		if err != nil {
 			log.Error("Error fetching klient update version. err: %s", err)
 			fmt.Println(FailedCheckingUpdateAvailable)
@@ -129,8 +130,8 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 0
 	}
 
-	kontrolURL := config.KontrolURL
-	if c, err := kiteconfig.NewFromKiteKey(config.KiteKeyPath); err == nil && c.KontrolURL != "" {
+	kontrolURL := config.Konfig.KontrolURL
+	if c, err := kiteconfig.NewFromKiteKey(config.Konfig.KiteKeyFile); err == nil && c.KontrolURL != "" {
 		// BUG(rjeczalik): sandbox returns a kite.key on -register method that has
 		// KontrolURL set to default value. We workaround it here by ignoring the
 		// value.
@@ -140,8 +141,8 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	klientSh := klientSh{
-		User:          username(),
-		KiteHome:      config.KiteHome,
+		User:          konfig.CurrentUser.Username,
+		KiteHome:      config.Konfig.KiteHome(),
 		KlientBinPath: filepath.Join(KlientDirectory, "klient"),
 		KontrolURL:    kontrolURL,
 	}

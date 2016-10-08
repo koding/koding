@@ -13,7 +13,7 @@ import (
 
 // VersionCommand displays version information like Environment or Kite Query ID.
 func VersionCommand(c *cli.Context, log logging.Logger, _ string) int {
-	latest, err := latestVersion(config.S3KlientctlLatest)
+	latest, err := latestVersion(config.Konfig.KDLatestURL)
 
 	fmt.Printf("Installed Version: %s\n", getReadableVersion(config.Version))
 
@@ -23,7 +23,7 @@ func VersionCommand(c *cli.Context, log logging.Logger, _ string) int {
 
 	fmt.Println("Environment:", config.Environment)
 
-	if c, err := kiteconfig.NewFromKiteKey(config.KiteKeyPath); err == nil && c.Id != "" {
+	if c, err := kiteconfig.NewFromKiteKey(config.Konfig.KiteKeyFile); err == nil && c.Id != "" {
 		fmt.Println("Kite Query ID:", c.Id)
 	}
 
