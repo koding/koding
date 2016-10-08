@@ -1,10 +1,14 @@
+---
+---
+
 window.KODING_UTILS ?= {}
 
-KODING_UTILS.submitForm = (options) ->
+KODING_UTILS.bindFormSubmission = (options) ->
 
   options.formSelector ?= null
   options.resultSelector ?= null
   options.referrerSelector ?= null
+  options.hideFormOnSuccess ?= yes
   options.formHash ?= null
 
   if options.referrer
@@ -24,9 +28,14 @@ KODING_UTILS.submitForm = (options) ->
       url  : FORM_URL
       data : data
       success: options.success or () ->
-        $form.addClass 'hidden'
-        $(options.referrerSelector).removeClass 'hidden'
+
+        if options.hideFormOnSuccess
+          $form.addClass 'hidden'
+        if options.resultSelector
+          $(options.resultSelector).removeClass 'hidden'
+
       error: options.error or ({responseText}) ->
+
         try
           responseText = JSON.parse responseText
         catch e
