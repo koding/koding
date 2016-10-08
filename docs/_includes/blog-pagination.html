@@ -8,6 +8,8 @@
   {% for page in (1..paginator.total_pages) %}
     {% if page == paginator.page %}
       <em>{{ page }}</em>
+    {% elsif page == 1 %}
+      <a href="{{ site.url }}/blog">{{ page }}</a>
     {% else %}
       <a href="{{ site.url }}{{ site.paginate_path | replace: ':num', page }}">{{ page }}</a>
     {% endif %}
