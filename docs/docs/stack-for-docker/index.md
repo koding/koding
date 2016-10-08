@@ -15,7 +15,7 @@ If your team is working with Docker, it is easy to write a stack that will insta
 provider:
   aws:
     access_key: '${var.aws_access_key}'
-    secret_key: '${var.aws_secret_key}'  
+    secret_key: '${var.aws_secret_key}'
 resource:
   aws_instance:
     kuala-server:
@@ -60,5 +60,5 @@ docker run docker/whalesay cowsay boo
 
 Reference: [Getting started with Docker][2]
 
-[1]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/docker/boo.png?t=1473370419565&width=894&height=586&name=boo.png "boo.png"
+[1]: {{ site.url }}/assets/img/guides/docker/boo.png
 [2]: https://docs.docker.com/linux/step_one/

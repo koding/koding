@@ -25,8 +25,8 @@ The **Try on Koding** switch will allow you to embed the Try on Koding button on
 4. Copy the code, and embed it into your website
   _![TryOnKodingCode.png][5]_
 
-[1]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/try-on-koding/TryOnKoding.png?t=1473370419565&width=180&height=54&name=TryOnKoding.png
+[1]: {{ site.url }}/assets/img/guides/try-on-koding/TryOnKoding.png
 [2]: https://koding.com/Teams/Create
 [3]: /docs/two-vm-setup-apachephp-server-db-server
-[4]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/try-on-koding/EnableTryOnKoding.png?t=1473370419565&width=799&name=EnableTryOnKoding.png "EnableTryOnKoding.png"
-[5]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/try-on-koding/TryOnKodingCode.png?t=1473370419565&width=799&name=TryOnKodingCode.png
+[4]: {{ site.url }}/assets/img/guides/try-on-koding/EnableTryOnKoding.png
+[5]: {{ site.url }}/assets/img/guides/try-on-koding/TryOnKodingCode.png

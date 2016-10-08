@@ -47,7 +47,7 @@ Please check the Stack setup guide at [Create a stack][135]
 
 > Error applying plan: 1 error(s) occurred: *aws_subnet.main_koding_subnet: Error creating subnet: InvalidParameterValue: Value (us-east-1b) for parameter availabilityZone is invalid. Subnets can currently only be created in the following availability zones: us-east-1d, us-east-1a, us-east-1c, us-east-1e.
 
-* This is related to your AWS account, you may try to change the **Region** in your credentials tab within the stack setup phase:  
+* This is related to your AWS account, you may try to change the **Region** in your credentials tab within the stack setup phase:
  ![region-1.png][1]
 
 ### <a name="user-content-InstanceLimitExceeded"></a> Me or one of my teammates is receiving an error `InstanceLimitExceeded` when building a stack:
@@ -57,23 +57,23 @@ Please check the Stack setup guide at [Create a stack][135]
 
 ### <a name="delete-stack"></a> How can I delete a Stack?
 
-1. To delete the stack and the entire VMs created in this Stack, click on the Stack name from the left side panel and click **Destroy VMs.**  
+1. To delete the stack and the entire VMs created in this Stack, click on the Stack name from the left side panel and click **Destroy VMs.**
 
 > All your data on these VMs will be completely lost.
 
 ![destroy-vms.png][3]
-2. Click on **Stacks** from left side panel, click the **Remove From Side Bar** on the stack you want to remove  
+2. Click on **Stacks** from left side panel, click the **Remove From Side Bar** on the stack you want to remove
 ![remove-from-side-bar.png][4]
 
 > **ALERT:** If you have only one stack you will not be able to delete it. You need to have at least two to be able to delete one of them.
 
 ### <a name="delete-stack-template"></a> How can I delete a stack template file?
 
-* Click on **STACK** from the left side bar to open the stack catalog, click **Stacks**, open the stack you want to delete (click on its name) and click **Delete Stack Template**.   
+* Click on **STACK** from the left side bar to open the stack catalog, click **Stacks**, open the stack you want to delete (click on its name) and click **Delete Stack Template**.
 ![delete-stack.png][5]
 
-[1]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/FAQ/region-1.png?t=1473370419565&width=854&height=474&name=region-1.png
+[1]: {{ site.url }}/assets/img/guides/FAQ/region-1.png
 [2]: http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/terminating-instances.html#terminating-instances-console
-[3]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/FAQ/destroy-vms.png?t=1473370419565&width=277&height=317&name=destroy-vms.png
-[4]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/FAQ/remove-from-side-bar.png?t=1473370419565&width=854&height=333&name=remove-from-side-bar.png
-[5]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/FAQ/delete-stack.png?t=1473370419565&width=854&height=539&name=delete-stack.png
+[3]: {{ site.url }}/assets/img/guides/FAQ/destroy-vms.png
+[4]: {{ site.url }}/assets/img/guides/FAQ/remove-from-side-bar.png
+[5]: {{ site.url }}/assets/img/guides/FAQ/delete-stack.png

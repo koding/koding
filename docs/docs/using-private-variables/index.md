@@ -69,5 +69,5 @@ Other developers would be able to build stack and view stack, but will not be ab
 
 ![Stack_viewer.png][2]
 
-[1]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/private-vars/priv_vars.png?t=1473370419565&width=894&height=215&name=priv_vars.png "priv_vars.png"
-[2]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/private-vars/Stack_viewer.png?t=1473370419565&width=894&height=560&name=Stack_viewer.png "Stack_viewer.png"
+[1]: {{ site.url }}/assets/img/guides/private-vars/priv_vars.png
+[2]: {{ site.url }}/assets/img/guides/private-vars/Stack_viewer.png

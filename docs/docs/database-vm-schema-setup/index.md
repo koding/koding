@@ -89,11 +89,11 @@ user_data: |-
 
 #### Let's build our Stack &amp; test!
 
-1. Click **SAVE**, you should see the message that your stack was built successfully if all is well.  
-![stack-build-success.png][2]  
+1. Click **SAVE**, you should see the message that your stack was built successfully if all is well.
+![stack-build-success.png][2]
 
-2. Click **Make Team Default**, this will populate your stack to the team and send them updates that a new stack is in place.   
-![share-creds-854.png][3]  
+2. Click **Make Team Default**, this will populate your stack to the team and send them updates that a new stack is in place.
+![share-creds-854.png][3]
 Choose whether you wish to enable the checkbox _share your credentials with the team_, then click **Share with the team**
 
 > Sharing your credentials with your team is very helpful if you don't want your team (_developers/students_) to go through creating an AWS account each, or if you want to have full control over the machines created in AWS.
@@ -102,19 +102,19 @@ Choose whether you wish to enable the checkbox _share your credentials with the 
 
 3. Click **Initialize**
 
-> **If you are updating an _already_ created stack, please note:**   
+> **If you are updating an _already_ created stack, please note:**
 Any data that was on your earlier Stack VM's will be removed when you choose to _build/re-initialize_ the new stack this also applies to your teammates when they click build/re-initialize new stack. When a user chooses to Build the new Stack all their VM's will be re-initialized as complete new VM's with the new configuration from your stack template. A warning will pop up to alert the user about this before continuing to build the new stack. Please make sure to backup your data before building your new stack in that case!
 
 4. The Build Your Stack modal will open, click **Next**
-![build-stack-step1.png][4]  
+![build-stack-step1.png][4]
 
 > Noticed the **Read Me First** content? This is the readme that is defined by default when creating a stack, you can edit its content from the **Readme tab** during Stack creation.
 
-5. Choose the credentials you want to use with your stack and click **Build Stack**  
+5. Choose the credentials you want to use with your stack and click **Build Stack**
 
-![build-stcak-step2.png][5]  
+![build-stcak-step2.png][5]
 
-6. Stack building will start..  
+6. Stack building will start..
 
 ![build-stack-inprogress.png][6]
 
@@ -142,7 +142,7 @@ user_data: |-
 ```
   1. Let's first see if the file **dbconstruct.sql** was created and that it contains our DB schema commands as we defined it in our `variable` block.
 
-  ![11-check-files-zoom-1.png][10]  
+  ![11-check-files-zoom-1.png][10]
     _Yes! all is well, the file exists in our Files viewer section in Koding, or by typing in the `ls` command._
 
   2. Opening the file shows that our variable content was dumped in the file as we expected
@@ -173,18 +173,18 @@ Congratulations! you are now ready to create customized Stack files to install p
 
 Happy Koding!
 
-[1]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/2-db-schema/rename-stack-894.png?t=1473370419565&amp;width=894&amp;height=227&amp;name=rename-stack-894.png
-[2]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/2-db-schema/stack-build-success.png?t=1473370419565&amp;width=854&amp;height=560&amp;name=stack-build-success.png
-[3]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/2-db-schema/share-creds-854.png?t=1473370419565&amp;width=854&amp;height=560&amp;name=share-creds-854.png
-[4]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/2-db-schema/build-stack-step1.png?t=1473370419565&amp;width=854&amp;height=560&amp;name=build-stack-step1.png
-[5]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/2-db-schema/build-stcak-step2.png?t=1473370419565&amp;width=854&amp;height=560&amp;name=build-stcak-step2.png
-[6]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/2-db-schema/build-stack-inprogress.png?t=1473370419565&amp;width=854&amp;height=560&amp;name=build-stack-inprogress.png
-[7]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/2-db-schema/build-success.png?t=1473370419565&amp;width=854&amp;height=560&amp;name=build-success.png
-[8]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/2-db-schema/09-stack-running-commands-zoom.png?t=1473370419565&amp;width=800&amp;height=500&amp;name=09-stack-running-commands-zoom.png "09-stack-running-commands-zoom.png"
-[9]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/2-db-schema/10-commands-finished-zoom.png?t=1473370419565&amp;width=800&amp;height=500&amp;name=10-commands-finished-zoom.png "10-commands-finished-zoom.png"
-[10]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/2-db-schema/11-check-files-zoom-1.png?t=1473370419565&amp;width=800&amp;height=350&amp;name=11-check-files-zoom-1.png "11-check-files-zoom-1.png"
-[11]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/2-db-schema/12-review-files-zoom2-1.png?t=1473370419565&amp;width=810&amp;height=160&amp;name=12-review-files-zoom2-1.png "12-review-files-zoom2-1.png"
-[12]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/2-db-schema/13-mysql-zoom.png?t=1473370419565&amp;width=814&amp;height=546&amp;name=13-mysql-zoom.png "13-mysql-zoom.png"
-[13]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/2-db-schema/14-database-zoom.png?t=1473370419565&amp;width=814&amp;height=546&amp;name=14-database-zoom.png "14-database-zoom.png"
-[14]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/2-db-schema/15-tables-zoom-1.png?t=1473370419565&amp;width=814&amp;height=546&amp;name=15-tables-zoom-1.png "15-tables-zoom-1.png"
-[15]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/2-db-schema/16-tables-ready-zoom.png?t=1473370419565&amp;width=814&amp;height=546&amp;name=16-tables-ready-zoom.png "16-tables-ready-zoom.png"
+[1]: {{ site.url }}/assets/img/guides/stack-aws/2-db-schema/rename-stack-894.png
+[2]: {{ site.url }}/assets/img/guides/stack-aws/2-db-schema/stack-build-success.png
+[3]: {{ site.url }}/assets/img/guides/stack-aws/2-db-schema/share-creds-854.png
+[4]: {{ site.url }}/assets/img/guides/stack-aws/2-db-schema/build-stack-step1.png
+[5]: {{ site.url }}/assets/img/guides/stack-aws/2-db-schema/build-stcak-step2.png
+[6]: {{ site.url }}/assets/img/guides/stack-aws/2-db-schema/build-stack-inprogress.png
+[7]: {{ site.url }}/assets/img/guides/stack-aws/2-db-schema/build-success.png
+[8]: {{ site.url }}/assets/img/guides/stack-aws/2-db-schema/09-stack-running-commands-zoom.png
+[9]: {{ site.url }}/assets/img/guides/stack-aws/2-db-schema/10-commands-finished-zoom.png
+[10]: {{ site.url }}/assets/img/guides/stack-aws/2-db-schema/11-check-files-zoom-1.png
+[11]: {{ site.url }}/assets/img/guides/stack-aws/2-db-schema/12-review-files-zoom2-1.png
+[12]: {{ site.url }}/assets/img/guides/stack-aws/2-db-schema/13-mysql-zoom.png
+[13]: {{ site.url }}/assets/img/guides/stack-aws/2-db-schema/14-database-zoom.png
+[14]: {{ site.url }}/assets/img/guides/stack-aws/2-db-schema/15-tables-zoom-1.png
+[15]: {{ site.url }}/assets/img/guides/stack-aws/2-db-schema/16-tables-ready-zoom.png

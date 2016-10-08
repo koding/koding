@@ -9,7 +9,7 @@ parent: /docs/home
 
 You can ask the user to add inputs through the GUI before a stack is built and use their values in your stack.
 
-By simply referring to a variable, Koding will automatically understand that you need a user input and will prompt your developers for input. Your variable needs to be preceded by **`${var.userInput_`**  
+By simply referring to a variable, Koding will automatically understand that you need a user input and will prompt your developers for input. Your variable needs to be preceded by **`${var.userInput_`**
 
 example: ${var.userInput_**variable**}
 
@@ -49,6 +49,6 @@ In our example when the stack is built, we are only displaying the values the us
 
 Congratulations, you can now make use of user inputs in your Stack template.
 
-[1]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/user-input/User-input-modal-1.png?t=1473370419565&width=894&height=586&name=User-input-modal-1.png "User-input-modal-1.png"
-[2]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/user-input/user-input-gif.gif?t=1473370419565&width=800&height=587&name=user-input-gif.gif "user-input-gif.gif"
+[1]: {{ site.url }}/assets/img/guides/user-input/User-input-modal-1.png
+[2]: {{ site.url }}/assets/img/guides/user-input/user-input-gif.gif
 [3]: /docs/using-github-in-stacks

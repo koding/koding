@@ -40,6 +40,6 @@ We can also test our AMI. In our case we used a bitnami-wordpress Ubuntu AMI, we
 ![wordpress-running.png][4]
 
 [1]: http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html
-[2]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/4-ami/amis-choose.png?t=1473370419565&width=800&height=571&name=amis-choose.png "amis-choose.png"
-[3]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/4-ami/stack-ready.png?t=1473370419565&width=800&height=524&name=stack-ready.png "stack-ready.png"
-[4]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/4-ami/wordpress-running.png?t=1473370419565&width=800&name=wordpress-running.png "wordpress-running.png"
+[2]: {{ site.url }}/assets/img/guides/stack-aws/4-ami/amis-choose.png
+[3]: {{ site.url }}/assets/img/guides/stack-aws/4-ami/stack-ready.png
+[4]: {{ site.url }}/assets/img/guides/stack-aws/4-ami/wordpress-running.png

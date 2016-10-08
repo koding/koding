@@ -11,7 +11,7 @@ parent: /docs/home
 
 In this guide we will learn more about creating a custom AWS network for our VMs. The main objective of this guide is to show how you can customize your stack template further to define your own network structure and add instances to your network. We will create a high availability service by creating a two tier structure having a single web server and two database instances. Each server will be in different physical location.
 
-![two-tier-vpc.png][1]  
+![two-tier-vpc.png][1]
 Table of contents
 
 * Before we start..
@@ -206,7 +206,7 @@ Along the next sections, we will write our stack template section by section sho
 6. Click **Next** in the "Where is your code" screen
 7. Set your AWS credentials in the **Credentials** tab
 8. **Note 1** for detailed steps on how to create a stack you can refer to [Create New Stack][5] guide
-9. **Note 2** We have created our AWS keys in region **EU Ireland (eu-west-1)**, which means our Availability Zones will be relevant to this region. _Learn more about [AWS availability zones  
+9. **Note 2** We have created our AWS keys in region **EU Ireland (eu-west-1)**, which means our Availability Zones will be relevant to this region. _Learn more about [AWS availability zones
 ][3]_
 
 ![regions_01-1.jpg][6]
@@ -638,22 +638,22 @@ Congratulations, you have now learned how to build an AWS non-default VPC for yo
 * If you are trying an `apt-get install` or `apt-get update` and it fails, make sure this VM/subnet has access to the internet through an internet gateway!
 * Review the stack built on AWS if you need to troubleshoot from the "Back-end"
 
-[1]: https://www.koding.com/hs-fs/hubfs/koding-for-teams-guide/stack-aws/3-aws-vpc/two-tier-vpc.png?t=1473370419565&amp;width=603&amp;name=two-tier-vpc.png "two-tier-vpc.png"
+[1]: {{ site.url }}/assets/img/guides/stack-aws/3-aws-vpc/two-tier-vpc.png
 [2]: https://aws.amazon.com/documentation/vpc/
 [3]: http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html
-[4]: https://www.koding.com/hubfs/koding-for-teams-guide/stack-aws/3-aws-vpc/network-full.png?t=1473370419565
+[4]: {{ site.url }}/assets/img/guides/stack-aws/3-aws-vpc/network-full.png
 [5]: /docs/creating-an-aws-stack
-[6]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/3-aws-vpc/regions_01-1.jpg?t=1473370419565&amp;width=265&amp;name=regions_01-1.jpg "regions_01-1.jpg"
-[7]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/3-aws-vpc/the-stack-name.png?t=1473370419565&amp;width=894&amp;name=the-stack-name.png "the-stack-name.png"
+[6]: {{ site.url }}/assets/img/guides/stack-aws/3-aws-vpc/regions_01-1.jpg
+[7]: {{ site.url }}/assets/img/guides/stack-aws/3-aws-vpc/the-stack-name.png
 [8]: http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/dedicated-instance.html
-[9]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/3-aws-vpc/network-vpc-begin.png?t=1473370419565&amp;width=1000&amp;name=network-vpc-begin.png "network-vpc-begin.png"
-[10]: https://www.koding.com/hubfs/koding-for-teams-guide/stack-aws/3-aws-vpc/network-subnets.png?t=1473370419565
-[11]: https://www.koding.com/hubfs/koding-for-teams-guide/stack-aws/3-aws-vpc/network-ig.png?t=1473370419565
-[12]: https://www.koding.com/hubfs/koding-for-teams-guide/stack-aws/3-aws-vpc/network-route-table.png?t=1473370419565
-[13]: https://www.koding.com/hubfs/koding-for-teams-guide/stack-aws/3-aws-vpc/network-assoc.png?t=1473370419565
-[14]: https://www.koding.com/hubfs/koding-for-teams-guide/stack-aws/3-aws-vpc/network-instances.png?t=1473370419565
-[15]: https://www.koding.com/hubfs/koding-for-teams-guide/stack-aws/3-aws-vpc/network-steps-animation.gif?t=1473370419565
-[16]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/3-aws-vpc/VPC-success2.png?t=1473370419565&amp;width=894&amp;name=VPC-success2.png "VPC-success2.png"
-[17]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/3-aws-vpc/all-building.png?t=1473370419565&amp;width=894&amp;name=all-building.png "all-building.png"
-[18]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/3-aws-vpc/all-built.png?t=1473370419565&amp;width=894&amp;name=all-built.png "all-built.png"
+[9]: {{ site.url }}/assets/img/guides/stack-aws/3-aws-vpc/network-vpc-begin.png
+[10]: {{ site.url }}/assets/img/guides/stack-aws/3-aws-vpc/network-subnets.png
+[11]: {{ site.url }}/assets/img/guides/stack-aws/3-aws-vpc/network-ig.png
+[12]: {{ site.url }}/assets/img/guides/stack-aws/3-aws-vpc/network-route-table.png
+[13]: {{ site.url }}/assets/img/guides/stack-aws/3-aws-vpc/network-assoc.png
+[14]: {{ site.url }}/assets/img/guides/stack-aws/3-aws-vpc/network-instances.png
+[15]: {{ site.url }}/assets/img/guides/stack-aws/3-aws-vpc/network-steps-animation.gif
+[16]: {{ site.url }}/assets/img/guides/stack-aws/3-aws-vpc/VPC-success2.png
+[17]: {{ site.url }}/assets/img/guides/stack-aws/3-aws-vpc/all-building.png
+[18]: {{ site.url }}/assets/img/guides/stack-aws/3-aws-vpc/all-built.png
 [19]: /docs/database-vm-schema-setup#modify-user-data

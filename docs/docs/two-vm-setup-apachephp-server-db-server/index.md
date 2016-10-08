@@ -188,7 +188,7 @@ _**Note:** You can check other arguments that you can use from the menu **Stack 
 
 Happy Koding!
 
-[1]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/1-two-vms/two-vm-setup.png?t=1473370419565&amp;width=1392&amp;name=two-vm-setup.png "stack-view.png"
-[2]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/1-two-vms/server01.png?t=1473370419565&amp;width=563&amp;height=367&amp;name=server01.png "server01.png"
-[3]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/1-two-vms/server02.png?t=1473370419565&amp;width=561&amp;height=366&amp;name=server02.png "server02.png"
-[4]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/1-two-vms/two-vm-running.png?t=1473370419565&amp;width=890&amp;name=two-vm-running.png "ready.png"
+[1]: {{ site.url }}/assets/img/guides/stack-aws/1-two-vms/two-vm-setup.png
+[2]: {{ site.url }}/assets/img/guides/stack-aws/1-two-vms/server01.png
+[3]: {{ site.url }}/assets/img/guides/stack-aws/1-two-vms/server02.png
+[4]: {{ site.url }}/assets/img/guides/stack-aws/1-two-vms/two-vm-running.png

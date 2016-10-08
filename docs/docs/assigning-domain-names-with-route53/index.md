@@ -81,7 +81,7 @@ aws_route53_record:
     name    : "${var.koding_user_username}.koding.team"
     type    : "A"
     ttl     : "60"
-    records : ["${aws_eip.mars-webserver-eip.public_ip}"]  
+    records : ["${aws_eip.mars-webserver-eip.public_ip}"]
 ```
 
 **Notes**:
@@ -103,4 +103,4 @@ Once you set all your records you should be able to access your VM web service f
 [4]: http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/creating-migrating.html
 [5]: http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/MigratingDNS.html#Step_CreateHostedZone
 [6]: http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/ListInfoOnHostedZone.html
-[7]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/Route53/nginx_route53.png?t=1473370419565&width=894&height=478&name=nginx_route53.png "nginx_route53.png"
+[7]: {{ site.url }}/assets/img/guides/Route53/nginx_route53.png

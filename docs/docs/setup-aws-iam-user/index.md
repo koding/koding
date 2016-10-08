@@ -34,16 +34,16 @@ Now you can use the new user Access and Secret Keys with your Koding account in 
       ![user01-3.png][6]
 
     2. Click **Show User Security Credentials**
-      ![user02-1.png][7]  
+      ![user02-1.png][7]
 
-    3. Save the user's keys (you can also **download** them) and click **close**  
+    3. Save the user's keys (you can also **download** them) and click **close**
       ![user03.png][8]
 
     4. User **koding-user** created successfully
       ![user04-1.png][9]
 
 3. Create a **new group** and follow the online wizard
-    1. Choose a group name, we choose the name "Developers"  
+    1. Choose a group name, we choose the name "Developers"
       ![group01.png][10]
 
     2. Choose the access policies
@@ -52,15 +52,15 @@ Now you can use the new user Access and Secret Keys with your Koding account in 
 
         ![group02.png][11]
 
-    3. Review and click **create**  
+    3. Review and click **create**
       ![group03.png][12]
 
 4. Add the user to the group
-    1. Go to the **Users** tab, select and check the user you created and click **User Actions** -> **Add Users to Group  
+    1. Go to the **Users** tab, select and check the user you created and click **User Actions** -> **Add Users to Group
 ![user-add01.png][13]**
-    2. Select the **koding-user** we just created  
+    2. Select the **koding-user** we just created
 ![user-add02.png][14]
-    3. User was added to group successfully  
+    3. User was added to group successfully
 ![user-add03.png][15]
 
 Congratulations! You have now created a user on AWS with the required access permissions to build stacks without sacrificing your root user account.
@@ -71,18 +71,18 @@ Congratulations! You have now created a user on AWS with the required access per
 > * AmazonRoute53DomainsFullAccess
 
 [1]: http://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html#create-iam-users
-[2]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/5-iam/IAM_policies.png?t=1473370419565&width=894&height=420&name=IAM_policies.png
+[2]: {{ site.url }}/assets/img/guides/stack-aws/5-iam/IAM_policies.png
 [3]: http://docs.aws.amazon.com/IAM/latest/UserGuide/id_users.html
 [4]: http://docs.aws.amazon.com/IAM/latest/UserGuide/id_groups.html
 [5]: https://console.aws.amazon.com/iam/home
-[6]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/5-iam/images2/user01-3.png?t=1473370419565&width=800&name=user01-3.png "user01-3.png"
-[7]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/5-iam/images2/user02-1.png?t=1473370419565&width=800&name=user02-1.png "user02-1.png"
-[8]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/5-iam/images2/user03.png?t=1473370419565&width=800&name=user03.png "user03.png"
-[9]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/5-iam/images2/user04-1.png?t=1473370419565&width=800&name=user04-1.png "user04-1.png"
-[10]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/5-iam/images2/group01.png?t=1473370419565&width=800&name=group01.png "group01.png"
-[11]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/5-iam/images2/group02.png?t=1473370419565&width=800&name=group02.png "group02.png"
-[12]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/5-iam/images2/group03.png?t=1473370419565&width=800&name=group03.png "group03.png"
-[13]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/5-iam/images2/user-add01.png?t=1473370419565&width=800&name=user-add01.png "user-add01.png"
-[14]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/5-iam/images2/user-add02.png?t=1473370419565&width=800&name=user-add02.png "user-add02.png"
-[15]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/5-iam/images2/user-add03.png?t=1473370419565&width=800&name=user-add03.png "user-add03.png"
+[6]: {{ site.url }}/assets/img/guides/stack-aws/5-iam/images2/user01-3.png
+[7]: {{ site.url }}/assets/img/guides/stack-aws/5-iam/images2/user02-1.png
+[8]: {{ site.url }}/assets/img/guides/stack-aws/5-iam/images2/user03.png
+[9]: {{ site.url }}/assets/img/guides/stack-aws/5-iam/images2/user04-1.png
+[10]: {{ site.url }}/assets/img/guides/stack-aws/5-iam/images2/group01.png
+[11]: {{ site.url }}/assets/img/guides/stack-aws/5-iam/images2/group02.png
+[12]: {{ site.url }}/assets/img/guides/stack-aws/5-iam/images2/group03.png
+[13]: {{ site.url }}/assets/img/guides/stack-aws/5-iam/images2/user-add01.png
+[14]: {{ site.url }}/assets/img/guides/stack-aws/5-iam/images2/user-add02.png
+[15]: {{ site.url }}/assets/img/guides/stack-aws/5-iam/images2/user-add03.png
 [16]: /docs/assigning-domain-names-with-route53

@@ -15,19 +15,19 @@ parent: /docs/home
 
 1. Click **STACKS**
 
-![step001.png](//cdn2.hubspot.net/hubfs/1593820/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step001.png)
+![step001.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step001.png)
 
 2. Click **New Stack** button
 
-![step002.png](//cdn2.hubspot.net/hubfs/1593820/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step002.png)
+![step002.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step002.png)
 
 3. The stack builder guide will open, click **Create A New Stack**
 
-![step003.png](//cdn2.hubspot.net/hubfs/1593820/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step003.png)
+![step003.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step003.png)
 
 4. Click **amazon web services** and click **Next**
 
-![step004.png](//cdn2.hubspot.net/hubfs/1593820/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step004.png)
+![step004.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step004.png)
 
 5. You can now choose your machine type and add any extra configurations or services that you want installed on your machine.
   - Machine Types
@@ -35,9 +35,9 @@ parent: /docs/home
     2.  t2.micro
     3.  t2.small
     4.  t2.medium
-    ![step005.png](http://cdn2.hubspot.net/hubfs/1593820/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step005.png)
+    ![step005.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step005.png)
 6.  Pull your project codebase, you can pull your code to your machine directly from one of the below providers. If you do not have your code hosted on any of them or you do not wish to pull your code now, click **Next**.
-![step006.png](http://cdn2.hubspot.net/hubfs/1593820/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step006.png "step5.png")
+![step006.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step006.png "step5.png")
 7.  You can give your stack a name by clicking on the **Stack Name**. In this modal you will find _four tabs_:
 
     1.  **Stack template**: configuration file for your VMs
@@ -45,11 +45,11 @@ parent: /docs/home
     3.  **Readme** This text will be shown in a message box when your team uses this stack
     4.  **Credentials** add your AWS credentials here
 8.  Review the **Stack Template** (see point 6.1) file to add/modify/remove any of your VM configurations
-![step008.png](http://cdn2.hubspot.net/hubfs/1593820/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step008.png)
+![step008.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step008.png)
     **Note:** You will notice that the _Stack File_ will include the required commands to install your selected services/packages under the `user_data` section. You may further include any commands you want to run when the machine starts in the stack file under the same section.
-9.  Edit your **Readme** (see point 6.3) file to greet your team and provide them with information about this particular stack ![step009.png](http://cdn2.hubspot.net/hubfs/1593820/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step009.png "step_readme.png")
+9.  Edit your **Readme** (see point 6.3) file to greet your team and provide them with information about this particular stack ![step009.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step009.png "step_readme.png")
 10.  Go to the **Credentials** tab and click **Create New**
-![step010.png](http://cdn2.hubspot.net/hubfs/1593820/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step010.png "step7.png")
+![step010.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step010.png "step7.png")
 11.  For this step you will need to have your Amazon AWS **Access Key ID** & **Secret Access Key**. You can generate and acquire yours from your AWS account.
 
 > **Tip**
@@ -63,13 +63,13 @@ parent: /docs/home
 - Add your AWS keys - **Access Key ID** & **Secret Access Key**.
 - Choose a **Region** - (data center location) where you want your VMs to be created.
 When you are done please click **Save**.
-![step011.png](http://cdn2.hubspot.net/hubfs/1593820/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step011.png)
+![step011.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step011.png)
 
-12. Click **USE THIS & CONTINUE** to use your AWS keys, you should see your key highlighted with "**IN USE**" if all went well. You can also **show** and **delete** your AWS keys when you hover your mouse over your AWS key.  ![step012_2.png](http://cdn2.hubspot.net/hubfs/1593820/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step012_2.png "step8.png")
-13. You will be directed to the Stack Template section. Click **SAVE** to save your stack and test your stack configuration file ![step013.png](http://cdn2.hubspot.net/hubfs/1593820/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step013.png "step9_success.png")
-14. Click on **Build Stack** and your new Stack will start building.. ![step014.png](http://cdn2.hubspot.net/hubfs/1593820/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step014.png "step12_buildstackready.png")
-  Stack building.. ![step014_2.png](http://cdn2.hubspot.net/hubfs/1593820/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step014_2.png)
-15. Congratulations, your Stack was successfully built and you can now use your new VM ![step015.png](http://cdn2.hubspot.net/hubfs/1593820/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step015.png)
+12. Click **USE THIS & CONTINUE** to use your AWS keys, you should see your key highlighted with "**IN USE**" if all went well. You can also **show** and **delete** your AWS keys when you hover your mouse over your AWS key.  ![step012_2.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step012_2.png "step8.png")
+13. You will be directed to the Stack Template section. Click **SAVE** to save your stack and test your stack configuration file ![step013.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step013.png "step9_success.png")
+14. Click on **Build Stack** and your new Stack will start building.. ![step014.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step014.png "step12_buildstackready.png")
+  Stack building.. ![step014_2.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step014_2.png)
+15. Congratulations, your Stack was successfully built and you can now use your new VM ![step015.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step015.png)
 
 ## Advanced notes for creating an AWS Stack
 

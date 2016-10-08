@@ -18,10 +18,10 @@ resource:
       repos         : [my-web-app, my-other-app]
       teams         : [Developers]
       title         : key used in koding-vms
-      SSHKey        : "ssh-rsa AAAVSVSDFSdfsdfsdfsdfs..."  
+      SSHKey        : "ssh-rsa AAAVSVSDFSdfsdfsdfsdfs..."
 ```
 
-Above script will:  
+Above script will:
 
 1. Add Alison to **my-company** organization
 2. Fork **my-web-app** and **my-other-app** repo to Alison's account
@@ -107,7 +107,7 @@ resource:
 6. Clone the repo to user's VM
 
 
-This guide is intended for the team admin, the one creating the stack for the team. Developers will be able to  
+This guide is intended for the team admin, the one creating the stack for the team. Developers will be able to
 build their VMs and start developing, editing & committing directly.
 
 ![koding_github.png][1]
@@ -135,7 +135,7 @@ Using bash commands under the `user_date` section, you can also define variables
 userInput:
   PrivateKey: textarea
   PublicKey: textarea
-```    
+```
 
   - In the `provider section`, after the aws keys section, we declare the github user keys. And define their values as user input values. The syntax var.userInput_VARIABLE_NAME can be used in your stack file to define a user input. In this section the stack template will store the admin/main account key "organizationKey" and the developer/user account "user-key"
 
@@ -153,7 +153,7 @@ provider:
 ```
 
   - In the `resources`section,  the stack template will add the user using the user and repo information.
-    - `username `developer GitHub username _defined as user input_  
+    - `username `developer GitHub username _defined as user input_
     - `organization` GitHub Organization
     - `repos` GitHub repository name
     - `teams` GitHub team the user will be created
@@ -172,7 +172,7 @@ resource:
       teams         : [Devs]
       title         : key used in koding-vms
       SSHKey        : ${var.userInput_PublicKey}
-```  
+```
 
 * In the `user_data` section we start by using variables to store some of the data the user entered to clone the repo later
 
@@ -181,13 +181,13 @@ user_data: |-
     export GITHUB_USERNAME=${var.userInput_github_username}
     export GITHUB_PROJECT=bricks4
     export USER_NAME=${var.koding_user_username}
-    export USER_HOME=/home/$USER_NAME  
+    export USER_HOME=/home/$USER_NAME
 ```
 
 * Create .ssh directory:
 
 ```yaml
-  mkdir -p $USER_HOME/.ssh  
+  mkdir -p $USER_HOME/.ssh
 ```
 
 * Store developer's public and private keys:
@@ -246,7 +246,7 @@ Invite your developers to your Koding for teams group and ask them to login and 
 
 ![Success01.png][4]
 
-[1]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/github/koding_github.png?t=1473370419565&width=371&name=koding_github.png "koding_github.png"
-[2]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/github/github_readme.png?t=1473370419565&width=894&height=586&name=github_readme.png "github_readme.png"
-[3]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/github/github-stack-user-input.png?t=1473370419565&width=457&height=374&name=github-stack-user-input.png "github-stack-user-input.png"
-[4]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/github/Success01.png?t=1473370419565&width=890&name=Success01.png "Success01.png"
+[1]: {{ site.url }}/assets/img/guides/github/koding_github.png
+[2]: {{ site.url }}/assets/img/guides/github/github_readme.png
+[3]: {{ site.url }}/assets/img/guides/github/github-stack-user-input.png
+[4]: {{ site.url }}/assets/img/guides/github/Success01.png

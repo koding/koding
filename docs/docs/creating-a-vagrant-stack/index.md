@@ -97,12 +97,12 @@ This is an example stack script with more&nbsp;configuration options that you ca
 
 [1]: http://www.virtualbox.org
 [2]: https://www.vagrantup.com/about.html
-[3]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/vagrant/install-kd.png?t=1473370419565&amp;width=791&amp;height=360&amp;name=install-kd.png
-[4]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/vagrant/kite-query-id.png?t=1473370419565&amp;width=698&amp;height=425&amp;name=kite-query-id.png
-[5]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step001.png?t=1473370419565&amp;width=854&amp;name=step001.png
-[6]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step002.png?t=1473370419565&amp;width=854&amp;height=310&amp;name=step002.png
-[7]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/stack-aws/0-create-aws-stack/step003.png?t=1473370419565&amp;width=854&amp;height=560&amp;name=step003.png
-[8]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/vagrant/provider-vagrant.png?t=1473370419565&amp;width=854&amp;height=560&amp;name=provider-vagrant.png
-[9]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/vagrant/rename-stack.png?t=1473370419565&amp;width=854&amp;height=560&amp;name=rename-stack.png
-[10]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/vagrant/credentials.png?t=1473370419565&amp;width=854&amp;height=553&amp;name=credentials.png
-[11]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/vagrant/vagrant-stack-started.png?t=1473370419565&amp;width=854&amp;name=vagrant-stack-started.png "vagrant-stack-started.png"
+[3]: {{ site.url }}/assets/img/guides/vagrant/install-kd.png
+[4]: {{ site.url }}/assets/img/guides/vagrant/kite-query-id.png
+[5]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step001.png
+[6]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step002.png
+[7]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step003.png
+[8]: {{ site.url }}/assets/img/guides/vagrant/provider-vagrant.png
+[9]: {{ site.url }}/assets/img/guides/vagrant/rename-stack.png
+[10]: {{ site.url }}/assets/img/guides/vagrant/credentials.png
+[11]: {{ site.url }}/assets/img/guides/vagrant/vagrant-stack-started.png

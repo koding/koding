@@ -32,18 +32,18 @@ The steps are outlined below but in a nutshell, what happens is that you downloa
 
 Connecting your machine to Koding is easy, just follow these steps but first make sure that the requirements stated above are met:
 
-1. Click on **STACKS**  
+1. Click on **STACKS**
 ![step1stacks.png][2]
-2.Go to **Virtual Machines**, and click **Add Your Own Machine**  
+2.Go to **Virtual Machines**, and click **Add Your Own Machine**
 ![access-add-machine2.png][3]
 3. In the dialogue box that appears, **copy** the install script and run it on your machine and leave this modal open (_check below tip_)
 ![add-your-own-machine-modal.png][4]
 
 > Leave the dialogue box open while you run the install script on your machine. **This is a** **requirement** since we are **_listening_**&nbsp;for a connection from your machine. Also, make sure you have root access to run the install script otherwise it will fail.
 
-4. The install script will download the necessary software, configure it and install it on your machine  
+4. The install script will download the necessary software, configure it and install it on your machine
 ![kd-success.png][5]
-5. Once the install script is done running on your machine, within a few seconds your machine should show up in the sidebar  
+5. Once the install script is done running on your machine, within a few seconds your machine should show up in the sidebar
 ![congrats.png][6]
 
 ### Are there any limits to how many machines I can connect?
@@ -61,8 +61,8 @@ If you wish to completely uninstall the Koding Connector Service from your machi
     sudo dpkg -P klient
 
 [1]: /docs/how-can-i-do-real-time-collaboration-on-koding
-[2]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/add-digitalocean/step1stacks.png?t=1473370419565&amp;width=894&amp;name=step1stacks.png "step1stacks.png"
-[3]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/add-digitalocean/access-add-machine2.png?t=1473370419565&amp;width=894&amp;name=access-add-machine2.png "access-add-machine2.png"
-[4]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/add-digitalocean/add-your-own-machine-modal.png?t=1473370419565&amp;width=894&amp;name=add-your-own-machine-modal.png "add-your-own-machine-modal.png"
-[5]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/add-digitalocean/kd-success.png?t=1473370419565&amp;width=767&amp;height=632&amp;name=kd-success.png
-[6]: https://www.koding.com/hs-fs/hubfs/Koding-Guide_Teams/add-digitalocean/congrats.png?t=1473370419565&amp;width=894&amp;height=586&amp;name=congrats.png
+[2]: {{ site.url }}/assets/img/guides/add-digitalocean/step1stacks.png
+[3]: {{ site.url }}/assets/img/guides/add-digitalocean/access-add-machine2.png
+[4]: {{ site.url }}/assets/img/guides/add-digitalocean/add-your-own-machine-modal.png
+[5]: {{ site.url }}/assets/img/guides/add-digitalocean/kd-success.png
+[6]: {{ site.url }}/assets/img/guides/add-digitalocean/congrats.png
