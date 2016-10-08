@@ -1,8 +1,8 @@
 FROM koding/base
 MAINTAINER Sonmez Kartal <sonmez@koding.com>
 
-ADD . /opt/koding
-WORKDIR /opt/koding
+RUN git clone https://github.com/koding/koding.git /opt/koding
+RUN cd /opt/koding
 
 RUN npm install --unsafe-perm && \
     ./configure && \
