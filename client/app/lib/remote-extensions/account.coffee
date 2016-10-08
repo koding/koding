@@ -1,23 +1,32 @@
-kd             = require 'kd'
-remote         = require('../remote')
+kd      = require 'kd'
+remote  = require('../remote')
+globals = require 'globals'
 
 
 module.exports = class JAccount extends remote.api.JAccount
 
-  STORAGE_QUEUE = []
-  STORAGE = null
+  constructor: ->
+
+    super
+
+    @_storageQueue = []
+
+    @_combinedStorage = if cs = globals.combinedStorage
+    then remote.revive cs
+    else null
+
 
   fetchCombinedStorage: (options, callback) ->
 
-    if STORAGE
-      callback null, STORAGE
+    if @_combinedStorage
+      callback null, @_combinedStorage
       return
 
-    STORAGE_QUEUE.push callback
+    @_storageQueue.push callback
 
-    return  if STORAGE_QUEUE.length > 1
+    return  if @_storageQueue.length > 1
 
-    @fetchAppStorage options, (err, storage) ->
-      STORAGE = storage  if not err and storage
-      cb? err, storage  for cb in STORAGE_QUEUE
-      STORAGE_QUEUE = []
+    @fetchAppStorage options, (err, storage) =>
+      @_combinedStorage = storage  if not err and storage
+      cb? err, storage  for cb in @_storageQueue
+      @_storageQueue = []
