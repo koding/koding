@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Making a Good Thing Even Better... Hackathon prize now more than $25,000!
-image: //cdn2.hubspot.net/hub/1593820/file-3490825032-jpg/blog-files/homer-simpson-excited-1024x819-300x239.jpg
+image: {{ site.url }}/assets/img/blog/homer-simpson-excited-1024x819-300x239.jpg
 author:
   name: Nitin Gupta
   email: nitin@koding.com
@@ -30,7 +30,7 @@ That brings the total prizes to over $25,000! On Nov 21st, along with announcing
 
 We could not be more excited about this. Thank you to all of our partners and to all who have applied. This is gearing up to be an amazing event!
 
-[1]: https://www.koding.com/hs-fs/hub/1593820/file-3490825032-jpg/blog-files/homer-simpson-excited-1024x819-300x239.jpg?t=1475265944157&width=300&height=239&name=homer-simpson-excited-1024x819-300x239.jpg
+[1]: {{ site.url }}/assets/img/blog/homer-simpson-excited-1024x819-300x239.jpg
 [2]: http://blog.koding.com/2014/10/hackathon/ "Let's hack together, no matter where we are!"
 [3]: http://odesk.com
 [4]: http://elance.com

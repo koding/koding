@@ -1,7 +1,7 @@
 ---
 layout: post
 title: The New Koding. Private Beta Has Begun!
-image: https://www.koding.com/hs-fs/hub/1593820/file-3490823847-jpg/blog-files/beta2.jpg?t=1475265944157
+image: {{ site.url }}/assets/img/blog/beta2.jpg
 author:
   name: Stefan Cosma
 excerpt_separator: "<!--more-->"
@@ -10,7 +10,7 @@ excerpt_separator: "<!--more-->"
 We are so excited. For over a year, we've been working on a completely new Koding, totally built from scratch. Finally, we are getting close to our first big milestone... We've started a limited private beta for some of our most active users with a wider beta to soon follow.
 <!--more-->
 
-In the beginning, Koding was what you could call a passion project... built because we saw that getting started with development is too hard. Developers have to do way too much work and spend way too much money and time to run their first line of code. Even after that, it's just too hard to work with others. We had the vision of a future for developers where getting started was easy, and you could work, collaborate and run your apps without jumping through hoops and spending your hard earned money. We realized nothing like this existed, so we decided to create it ourselves.  
+In the beginning, Koding was what you could call a passion project... built because we saw that getting started with development is too hard. Developers have to do way too much work and spend way too much money and time to run their first line of code. Even after that, it's just too hard to work with others. We had the vision of a future for developers where getting started was easy, and you could work, collaborate and run your apps without jumping through hoops and spending your hard earned money. We realized nothing like this existed, so we decided to create it ourselves.
 
 ### What took so long?
 
@@ -56,9 +56,9 @@ After the private beta, depending on our progress, we'll start to let everyone i
 
 Probably the most important thing to mention is that we would never have been able to quit our day jobs and come together full-time to create the new Koding without the support of our users... (now up to over 35,000!) and we can't thank you enough! We're so excited to show you what we've been working on. Stay tuned!
 
-[1]: https://www.koding.com/hs-fs/hub/1593820/file-3490823847-jpg/blog-files/beta2.jpg?t=1475265944157
-[2]: https://www.koding.com/hs-fs/hub/1593820/file-3490823857-jpg/blog-files/server.jpg?t=1475265944157
-[3]: https://www.koding.com/hs-fs/hub/1593820/file-3490823867-jpg/blog-files/editing.jpg?t=1475265944157
-[4]: https://www.koding.com/hs-fs/hub/1593820/file-3490823877-jpg/blog-files/terminal.jpg?t=1475265944157
-[5]: https://www.koding.com/hs-fs/hub/1593820/file-3490823887-jpg/blog-files/git.jpg?t=1475265944157
-[6]: https://www.koding.com/hs-fs/hub/1593820/file-3490823897-jpg/blog-files/sharing.jpg?t=1475265944157
+[1]: {{ site.url }}/assets/img/blog/beta2.jpg
+[2]: {{ site.url }}/assets/img/blog/server.jpg
+[3]: {{ site.url }}/assets/img/blog/editing.jpg
+[4]: {{ site.url }}/assets/img/blog/terminal.jpg
+[5]: {{ site.url }}/assets/img/blog/git.jpg
+[6]: {{ site.url }}/assets/img/blog/sharing.jpg

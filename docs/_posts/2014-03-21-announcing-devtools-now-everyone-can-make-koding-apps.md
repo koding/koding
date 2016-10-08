@@ -28,5 +28,5 @@ We'd love to feature the most awesome apps out there, so if you made an app and 
 
 See you on Koding!
 
-[1]: https://www.koding.com/hs-fs/hub/1593820/file-3490824637-png/blog-files/bjoe5t4cmaedqbk.png?t=1475265944157&width=1023&height=657&name=bjoe5t4cmaedqbk.png
+[1]: {{ site.url }}/assets/img/blog/bjoe5t4cmaedqbk.png
 [2]: mailto:hello@koding.com?subject=I made an awesome app

@@ -19,13 +19,13 @@ Our current analysis has revealed that the problem arose when a backlog of email
 
 **Graph B**
 
-![Attempted Emails][2]  
+![Attempted Emails][2]
 
 **What's the impact?**
 There is no security issue in regards to your account and your data is safe. We apologize for the inconvenience that this caused. Our engineering team is continuously monitoring the situation, however, if indeed you have an issue and you can't log into your account, please email us at [support@koding.com][3] and we'll have a look into it right away.
 
 Have a wonderful and productive day and see you on Koding!
 
-[1]: https://www.koding.com/hs-fs/hub/1593820/file-3490824757-png/blog-files/qytufceyne6o5cl4iyscczq8dt2u0eqcah4tmqvi3pe.png?t=1475265944157&width=1024&height=383&name=qytufceyne6o5cl4iyscczq8dt2u0eqcah4tmqvi3pe.png
-[2]: https://www.koding.com/hs-fs/hub/1593820/file-3490824767-png/blog-files/kfosrqiem10jl3an1ztmdpsjqqexjtfbera1cehgwmy-1024x382.png?t=1475265944157&width=1024&height=382&name=kfosrqiem10jl3an1ztmdpsjqqexjtfbera1cehgwmy-1024x382.png
+[1]: {{ site.url }}/assets/img/blog/qytufceyne6o5cl4iyscczq8dt2u0eqcah4tmqvi3pe.png
+[2]: {{ site.url }}/assets/img/blog/kfosrqiem10jl3an1ztmdpsjqqexjtfbera1cehgwmy-1024x382.png
 [3]: mailto:support@koding.com

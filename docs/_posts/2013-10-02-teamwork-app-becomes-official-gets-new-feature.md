@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Teamwork App becomes official and gets a new feature!
-image: //cdn2.hubspot.net/hub/1593820/file-3490824347-png/blog-files/teamwork-app_screenshot_2-e1380671838451.png
+image: {{ site.url }}/assets/img/blog/teamwork-app_screenshot_2-e1380671838451.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com
@@ -35,5 +35,5 @@ Good job, Teamwork app, you're all grown up and welcome to the family!
 
 [1]: https://koding.com/
 [2]: https://koding.com/Develop/Teamwork
-[3]: https://www.koding.com/hs-fs/hub/1593820/file-3490824347-png/blog-files/teamwork-app_screenshot_2-e1380671838451.png?t=1475265944157&width=600&height=462&name=teamwork-app_screenshot_2-e1380671838451.png
-[4]: https://www.koding.com/hs-fs/hub/1593820/file-3490824357-png/blog-files/teamwork-app_screenshot_1-e1380671812824.png?t=1475265944157&width=600&height=460&name=teamwork-app_screenshot_1-e1380671812824.png
+[3]: {{ site.url }}/assets/img/blog/teamwork-app_screenshot_2-e1380671838451.png
+[4]: {{ site.url }}/assets/img/blog/teamwork-app_screenshot_1-e1380671812824.png

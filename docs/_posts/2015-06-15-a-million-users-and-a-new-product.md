@@ -1,7 +1,7 @@
 ---
 layout: post
 title: A Million Users and a New Product
-image: //cdn2.hubspot.net/hub/1593820/file-3490825597-jpg/blog-files/million.jpg
+image: {{ site.url }}/assets/img/blog/million.jpg
 author:
   name: Nitin Gupta
   email: nitin@koding.com
@@ -36,7 +36,7 @@ Alongside the announcement of our million user mark, we are also (super-duper) t
 6. audit your infrastructure
 7. version control your infrastructure and take action on the outliers
 8. introduce open development principals within your team and organization
-9. super-charge the aging developer localhost based workspace with new capabilities which in turn boosts your overall team productivity  
+9. super-charge the aging developer localhost based workspace with new capabilities which in turn boosts your overall team productivity
 ...and much more!
 
 [Sign up today][3] for early access to our Teams product.
@@ -52,6 +52,6 @@ _Koding for Teams_ will appeal to any group developing software or teaching soft
 5. Organizations that provide and manage outsourced software development
 6. Freelancers/telecommuters/remote workers
 
-[1]: https://www.koding.com/hs-fs/hub/1593820/file-3490825597-jpg/blog-files/million.jpg?t=1475265944157&width=363&height=363&name=million.jpg
+[1]: {{ site.url }}/assets/img/blog/million.jpg
 [2]: {{ site.url }}/2015/05/collaboration-on-steroids/
 [3]: https://koding.com/Teams

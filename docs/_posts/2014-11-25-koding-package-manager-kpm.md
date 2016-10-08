@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Introducing the Koding Package Manager (kpm)
-image: //cdn2.hubspot.net/hub/1593820/file-3490825182-png/blog-files/screenshot-from-2014-11-25-222438.png
+image: {{ site.url }}/assets/img/blog/screenshot-from-2014-11-25-222438.png
 author:
   name: Stefan Cosma
   email: stefan@koding.com
@@ -22,7 +22,7 @@ usage:
   kpm install <name>
   kpm list
   kpm -h | --help
-  kpm --version  
+  kpm --version
 ```
 
 To get started with the Koding Package Manager just head over to [this guide][3] and follow the steps required to install and configure KPM and then just install your favorite framework or program from the list of available installers.
@@ -30,6 +30,6 @@ To get started with the Koding Package Manager just head over to [this guide][3]
 KPM is fully extensible so if you want to contribute, you can [fork the project on Github][4] and add your own installers for the Koding community!
 
 [1]: http://blog.koding.com/2014/10/new-release/ "Announcing the best Koding we have ever released!"
-[2]: https://www.koding.com/hs-fs/hub/1593820/file-3490825182-png/blog-files/screenshot-from-2014-11-25-222438.png?t=1475265944157&width=706&height=348&name=screenshot-from-2014-11-25-222438.png
+[2]: {{ site.url }}/assets/img/blog/screenshot-from-2014-11-25-222438.png
 [3]: http://learn.koding.com/guides/getting-started-kpm/ "Koding Package Manager Guide"
 [4]: https://github.com/koding/kpm-scripts "KPM on Github"

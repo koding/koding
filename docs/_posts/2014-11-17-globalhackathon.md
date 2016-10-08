@@ -1,7 +1,7 @@
 ---
 layout: post
 title: When We Said "Global Hackathon" We Meant It!
-image: https://www.koding.com/hs-fs/hub/1593820/file-3490825112-png/blog-files/2giz9-2014-11-17-wt5re.png?t=1475265944157&width=859&height=567&name=2giz9-2014-11-17-wt5re.png
+image: {{ site.url }}/assets/img/blog/2giz9-2014-11-17-wt5re.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com
@@ -28,4 +28,4 @@ If you have not yet applied for the hackathon, there is still time so [APPLY TOD
 [2]: http://blog.koding.com/2014/11/hackathon-update/ "Making a Good Thing Even Better… Hackathon prize now more than $25,000!"
 [3]: http://twitter.com/intent/user?screen_name=koding "Koding Twitter follow"
 [4]: https://koding.com/Hackathon "Koding Hackathon!"
-[5]: https://www.koding.com/hs-fs/hub/1593820/file-3490825112-png/blog-files/2giz9-2014-11-17-wt5re.png?t=1475265944157&width=859&height=567&name=2giz9-2014-11-17-wt5re.png
+[5]: {{ site.url }}/assets/img/blog/2giz9-2014-11-17-wt5re.png

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: You ask, we do! We're extending &#35Crazy250TBWeek with another week and +250TB - Enjoy :)
-image: https://www.koding.com/hs-fs/hub/1593820/file-3490824487-png/blog-files/screen-shot-2014-02-23-at-20.41.58.png?t=1475265944157&width=1275&height=473&name=screen-shot-2014-02-23-at-20.41.58.png
+image: {{ site.url }}/assets/img/blog/screen-shot-2014-02-23-at-20.41.58.png
 author:
   name: Stefan Cosma
   email: stefan@koding.com
@@ -11,7 +11,7 @@ excerpt_separator: "<!--more-->"
 We are receiving so many emails from you wanting to gather more GBs so you can have better VMs. You asked us that we shouldn't end the campaign, because your friends didn't finish signing up yet.
 <!--more-->
 
-Find it hard to believe? Mutual feeling. Try to see the bottom of this feed if you can:  
+Find it hard to believe? Mutual feeling. Try to see the bottom of this feed if you can:
 [https://twitter.com/search?q=#Crazy250TBWeek][2]
 
 This has been a wonderful week. Thank you so much, we have seen 100 users signing up per minute, we had grown so much that we just want to extend our thanks back to you.
@@ -29,4 +29,4 @@ Let the giveaway continue!
 [1]: https://koding.com/R/stefanbc
 [2]: https://twitter.com/search?q=%23Crazy250TBWeek&src=hash&f=realtime
 [3]: http://blog.koding.com/2014/02/one-more-round-of-awesome-the-crazy250tbweek-is-here/ "One more round of awesome! The #Crazy250TBWeek is here!"
-[4]: https://www.koding.com/hs-fs/hub/1593820/file-3490824487-png/blog-files/screen-shot-2014-02-23-at-20.41.58.png?t=1475265944157&width=1275&height=473&name=screen-shot-2014-02-23-at-20.41.58.png
+[4]: {{ site.url }}/assets/img/blog/screen-shot-2014-02-23-at-20.41.58.png

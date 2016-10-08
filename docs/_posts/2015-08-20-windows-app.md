@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Cortana, Open Koding...
-image: https://www.koding.com/hs-fs/hub/1593820/file-3490825757-png/blog-files/win-app-2.png?t=1475265944157&width=751&height=487&name=win-app-2.png
+image: {{ site.url }}/assets/img/blog/win-app-2.png
 author:
   name: Cole Fox
   email: cole@koding.com

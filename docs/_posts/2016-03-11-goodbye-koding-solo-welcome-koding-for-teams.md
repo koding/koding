@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Goodbye Koding Solo, Welcome Koding for Teams!
-image: //cdn2.hubspot.net/hubfs/1593820/Blog/koding-for-teams.png
+image: {{ site.url }}/assets/img/blog/koding-for-teams.png
 author:
   name: Devrim Yasar
   email: devrim@koding.com
@@ -22,7 +22,7 @@ You ask, but why? Let’s get to it.
 
 Since the first day we started Koding, we envisioned a platform where learners, students, tinkerers, and hobbyists could team up with senior developers to form communities of productivity. Last year, Koding hosted more than 200,000 collaboration sessions, and the number of participants totalled around half a million. When we looked at the data, we learned that more than 90% of those collaborators knew each other in advance. We see users sign up, directly join a collaboration session, and have subsequent sessions with the same group of people all the time. This meant to us that we needed to support this type of use-case in a big way. In fact when we asked our users, this is what we found:
 
-![What started Koding for Teams](http://cdn2.hubspot.net/hubfs/1593820/Blog/Screen_Shot_2016-03-01_at_8.12.01_AM.png "What started Koding for Teams")
+![What started Koding for Teams](http:{{ site.url }}/assets/img/blog/Screen_Shot_2016-03-01_at_8.12.01_AM.png "What started Koding for Teams")
 
 And so we built our Teams product.
 
@@ -38,7 +38,7 @@ We never wanted to be called an Online IDE. We have always wanted developers to 
 
 We saw in our usage data that, outside of collaboration, developers return to their desktop IDEs, and we needed to support that use-case. With KD (our binary) you can mount every server that you access on Koding; for the first time you can have them locally available. (btw It’s amazing - it’s not ssh or ftp, [read more here) Create VMs in the cloud, or on your localhost using Vagrant & Virtualbox, and use Koding with your local IDEs.](http://www.koding.com/docs/connect-your-machine)
 
-![Koding uses data from user requests to make its new product.](http://cdn2.hubspot.net/hubfs/1593820/Blog/Screen_Shot_2016-03-01_at_8.12.27_AM.png "Koding uses data from user requests to make its new product.")
+![Koding uses data from user requests to make its new product.](http:{{ site.url }}/assets/img/blog/Screen_Shot_2016-03-01_at_8.12.27_AM.png "Koding uses data from user requests to make its new product.")
 
 _What I like most about this graph is that 10% of our collaboration sessions were with more than 50 people._
 
@@ -54,13 +54,13 @@ When we started, most people used Skype or Hangouts and we didn’t have many in
 
 Oh boy, this was the worst part. Behind the scenes a large percentage of Koding’s  engineering resources was spent detecting fraudulent activity, like bitcoin mining, minecraft servers, DDOS attacks on other people’s servers, password sniffing, and sometimes downright illegal activities (phishing and credit card fraud). These people were using stolen identities to automate registrations for free VMs. Like that’s not enough, we had two people on the team constantly monitoring the activity feed to make sure everything was ok. This is why we do not provide free VMs anymore. Just bring your cloud credentials, ([AWS offers 12 months free!](https://aws.amazon.com/free/))
 
-![Koding used to receive hundreds of AWS reports](http://cdn2.hubspot.net/hubfs/1593820/Blog/Screen_Shot_2016-03-01_at_8.12.51_AM.png "Koding used to receive hundreds of AWS reports")
+![Koding used to receive hundreds of AWS reports](http:{{ site.url }}/assets/img/blog/Screen_Shot_2016-03-01_at_8.12.51_AM.png "Koding used to receive hundreds of AWS reports")
 
 _Receiving hundreds of these everyday is not the funnest part of our lives._
 
 ### Introducing new Koding, it’s amazing and free for teams up to 4 people!
 
-![Koding For Teams](http://cdn2.hubspot.net/hubfs/1593820/Blog/koding-for-teams.png "Koding For Teams")
+![Koding For Teams](http:{{ site.url }}/assets/img/blog/koding-for-teams.png "Koding For Teams")
 
 It’s exactly like we say: “Flawlessly configured dev environments in one click.” You write the stack script, and your entire dev environment is configured for your team and everyone that joins your team. Share your cloud credentials with the team, or use your own localhost. We enjoy using it and hope you will too. We are no longer offering single developer accounts, registration for our solo product has closed. If you have an account and you’re actively using it, meaning you log in at least once per week, you can keep your VM and work on it as usual. If you paid for an account, you will experience no changes. Koding is free for teams up to 4 people, so go sign up and have fun. We mean it, seeing all those servers auto-provision in real time is a lot of fun!
 

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Collaboration on Koding just leveled up; Introducing Video!
-image: //cdn2.hubspot.net/hub/1593820/file-3490825557-jpg/blog-files/video-collab.jpg
+image: {{ site.url }}/assets/img/blog/video-collab.jpg
 author:
   name: Nitin Gupta
   email: nitin@koding.com
@@ -27,7 +27,7 @@ We've built this next generation collaboration on top of WebRTC standards which 
 
 (Note: The feature is still in beta, expect minor bugs and as always, your [feedback is welcome][6].)
 
-[1]: https://www.koding.com/hs-fs/hub/1593820/file-3490825557-jpg/blog-files/video-collab.jpg?t=1475265944157&width=334&height=325&name=video-collab.jpg
+[1]: {{ site.url }}/assets/img/blog/video-collab.jpg
 [2]: http://learn.koding.com/guides/ide-introduction/
 [3]: http://learn.koding.com/guides/terminal-introduction/
 [4]: http://learn.koding.com/guides/collaboration/#video-collaboration

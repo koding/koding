@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Sorry for the ad
-image: #//cdn2.hubspot.net/hub/1593820/file-3490824677-png/blog-files/newad.png
+image: #{{ site.url }}/assets/img/blog/newad.png
 author:
   name: Devrim Yasar
   email: devrim@koding.com
@@ -15,11 +15,11 @@ We recently ran an ad that many were offended by. Our sincere apologies: we will
 
 We will use other ones and make sure we're always male/female/straight/lgbt friendly. Since we love all, we'd never, ever make any distinction in any way.
 
-Devrim  
+Devrim
 On behalf of Koding
 
 Just to prove our intention, another one from the same series:
 
 ![newad][1]
 
-[1]: https://www.koding.com/hs-fs/hub/1593820/file-3490824677-png/blog-files/newad.png?t=1475265944157&width=601&height=228&name=newad.png
+[1]: {{ site.url }}/assets/img/blog/newad.png

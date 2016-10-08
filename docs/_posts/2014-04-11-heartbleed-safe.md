@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Koding response to Heartbleed - You're safe.
-image: //cdn2.hubspot.net/hub/1593820/file-3490824717-png/blog-files/heartbleed-safe-site-seal-2-262x300.png
+image: {{ site.url }}/assets/img/blog/heartbleed-safe-site-seal-2-262x300.png
 author:
   name: Stefan Cosma
   email: stefan@koding.com
@@ -21,7 +21,7 @@ At Koding **we take security and transparency seriously**, which is why we want 
 
 See you on [Koding][7]! :)
 
-[1]: https://www.koding.com/hs-fs/hub/1593820/file-3490824717-png/blog-files/heartbleed-safe-site-seal-2-262x300.png?t=1475265944157&width=262&height=300&name=heartbleed-safe-site-seal-2-262x300.png
+[1]: {{ site.url }}/assets/img/blog/heartbleed-safe-site-seal-2-262x300.png
 [2]: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-0160
 [3]: http://golang.org/
 [4]: http://golang.org/pkg/crypto/tls/

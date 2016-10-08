@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Two-Factor Authentication For All Koding Users Available Now!
-image: //cdn2.hubspot.net/hub/1593820/file-3490825637-jpg/blog-files/2fa-matrix.jpg
+image: {{ site.url }}/assets/img/blog/2fa-matrix.jpg
 author:
   name: Nitin Gupta
   email: nitin@koding.com
@@ -33,7 +33,7 @@ Nope, 2FA is free and available to all Koding users. To enable it for your accou
 
 [1]: http://www.imdb.com/character/ch0000768/quotes
 [2]: http://blog.koding.com/2015/06/a-million-users-and-a-new-product/
-[3]: https://www.koding.com/hs-fs/hub/1593820/file-3490825637-jpg/blog-files/2fa-matrix.jpg?t=1475265944157&width=385&height=325&name=2fa-matrix.jpg
+[3]: {{ site.url }}/assets/img/blog/2fa-matrix.jpg
 [4]: https://twofactorauth.org/
 [5]: http://learn.koding.com/guides/2-factor-auth/
 [6]: https://en.wikipedia.org/wiki/Keychain#Access_control_key_fobs

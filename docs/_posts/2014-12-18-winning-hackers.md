@@ -1,7 +1,7 @@
 ---
 layout: post
 title: And The Koding &#35Hackathon Winners Are...
-image: //cdn2.hubspot.net/hub/1593820/file-3490825342-png/blog-files/hakatwinnersblogpost2x_720.png
+image: {{ site.url }}/assets/img/blog/hakatwinnersblogpost2x_720.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com
@@ -15,7 +15,7 @@ Drum roll please!! The moment that you all have been waiting for… here are the
 First Place: Team [WunderBruders][3]
 
 * Theme: Introducing software development to a beginner (games!)
-* Cash Prize: $8,000 + $2,500 (Elance-ODesk) + $1,000 (Count.ly) = **$11,500**.  
+* Cash Prize: $8,000 + $2,500 (Elance-ODesk) + $1,000 (Count.ly) = **$11,500**.
 Non-cash prizes: $5000 in credits from Digital Ocean, One year of service from Tutum, $5,500 service credit from Firebase (recently acquired by Google).
 * [Team page][4]
 
@@ -105,7 +105,7 @@ A HUGE congratulations to all the winners and also to all who participated. You'
 THANKS!
 
 [1]: http://blog.koding.com/2014/11/globalhackathon/ "When We Said "
-[2]: https://www.koding.com/hs-fs/hub/1593820/file-3490825342-png/blog-files/hakatwinnersblogpost2x_720.png?t=1475265944157&width=302&height=302&name=hakatwinnersblogpost2x_720.png
+[2]: {{ site.url }}/assets/img/blog/hakatwinnersblogpost2x_720.png
 [3]: http://edgarjcfn.koding.io/Lucy
 [4]: http://github.com/edgarjcfn/koding-spy
 [5]: http://kuzmaka.koding.io

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Kite A Go Library for Writing Distributed Microservices
-image: //cdn2.hubspot.net/hub/1593820/file-3490825422-png/blog-files/kites.png
+image: {{ site.url }}/assets/img/blog/kites.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com
@@ -12,7 +12,7 @@ Writing web services with [Go][2] is super easy. The simple but powerful `net/ht
 
 This is obvious, however it's getting difficult once you go beyond simple requirements. In real world scenarios you are going to have hundreds of applications running. You want to talk with them securely (and also authenticated). In order to talk with them securely, the first thing you need is to connect to a certain application. Now unless you have very few applications, there is no way you can remember the IP or hostname of that particular application (remember you have to many applications). Just storing all host IP's persistently is not enough, because the host IP can change (just think of EC2 instances that come and go). What you need is something you can go and ask, and get the IP for the given application, just like a DNS server.
 
-So building a distributed system with many applications is becoming hard. The [Kite][3] library development started within  
+So building a distributed system with many applications is becoming hard. The [Kite][3] library development started within
 [Koding][4], but it was quickly open sourced. The main goal is to create easy, simple, and convenient to use distributed microservice applications. The Kite library itself has many detailed parts, so in this blog post I'll try to give an overview of what a Kite is capable of.
 
 # Introducing Kite
@@ -86,8 +86,8 @@ Let us create a second kite to talk with the first kite:
     }
 ```
 
-This time we connect to a new kite directly because we know the URL already. As a RPC system you need have a concept of URL paths. Kite uses simple method names, so it can be called by others. Each method is associated with a certain  
-handle (just like a http.Handler) The kite library has some default methods, one of them is the `kite.ping` method which returns a `pong` string as a response (it doesn't require any authentication information). The response can be anything, in any Go type that can be serialized to and from JSON, It's up to the sender. Kite has some predefined helper methods to convert the response to the given type. In this example the second kite just connects to our first kite and  
+This time we connect to a new kite directly because we know the URL already. As a RPC system you need have a concept of URL paths. Kite uses simple method names, so it can be called by others. Each method is associated with a certain
+handle (just like a http.Handler) The kite library has some default methods, one of them is the `kite.ping` method which returns a `pong` string as a response (it doesn't require any authentication information). The response can be anything, in any Go type that can be serialized to and from JSON, It's up to the sender. Kite has some predefined helper methods to convert the response to the given type. In this example the second kite just connects to our first kite and
 calls the first kite's `kite.ping` method. We didn't send any arguments with this method (will be explained below). So if you run, you'll see:
 
 ```shell
@@ -97,7 +97,7 @@ calls the first kite's `kite.ping` method. We didn't send any arguments with thi
 
 # Adding methods to Kite
 
-Let us add our first custom method. This simple method is going to accept a number and return a squared result. The name of the method will be `square`.  
+Let us add our first custom method. This simple method is going to accept a number and return a squared result. The name of the method will be `square`.
 To assign a function to a method just be sure it's satisfies the `kite.Handler` interface [http://godoc.org/github.com/koding/kite#Handler](http://godoc.org/github.com/koding/kite#Handler):
 
 ```go
@@ -150,8 +150,8 @@ It's that easy.
 
 Service discovery is baked into the Kite library. As said earlier, it's a very fundamental concept and is also heavily reflected via the Kite API. That means the Kite library forces the users to make use of service discovery. To be discovered by others they need to know your real identity. Basically you need to be authenticated. Authentication can be done in several ways and is defined by how Kontrol enforces it. It can disable it completely, might ask the user password (via the kite cli), could fetch a token and validate what the user provided and so on…
 
-`kitectl` is a handy CLI program which can be used to manage kites easily via command line. We can use it (via `kitectl register` command) to authenticate our machine to Kontrol, so every kite running on our host will be authenticated by default. This command creates a `kite.key` file under the home directory, which is signed by kontrol itself. The content is not encrypted, however because it's signed we can use it to securely talk to Kontrol. So therefore every request we'll make to kontrol will be trusted by Kontrol.  
-Our username will be stored in Kontrol, so every other person in the world can trust us (of course assuming they also using the same Kontrol server).  
+`kitectl` is a handy CLI program which can be used to manage kites easily via command line. We can use it (via `kitectl register` command) to authenticate our machine to Kontrol, so every kite running on our host will be authenticated by default. This command creates a `kite.key` file under the home directory, which is signed by kontrol itself. The content is not encrypted, however because it's signed we can use it to securely talk to Kontrol. So therefore every request we'll make to kontrol will be trusted by Kontrol.
+Our username will be stored in Kontrol, so every other person in the world can trust us (of course assuming they also using the same Kontrol server).
 Trusting Kontrol means we can trust everyone. So this is important, because they might be several other Kontrol servers on the planet, there could be one your Intranet or something that is public.
 
 We are going to use the same previous example, but this time we are going to register the first kite to Kontrol and fetch the IP of it from the second kite:
@@ -224,7 +224,7 @@ I hope you get the idea and intention of this library and its capabilities and l
 
 Please let us know what you think of it.
 
-[1]: https://www.koding.com/hs-fs/hub/1593820/file-3490825422-png/blog-files/kites.png?t=1475265944157&width=331&height=245&name=kites.png
+[1]: {{ site.url }}/assets/img/blog/kites.png
 [2]: https://golang.org/ "Go Lang"
 [3]: https://github.com/koding/kite
 [4]: https://koding.com/

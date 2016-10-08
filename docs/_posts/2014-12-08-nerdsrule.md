@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Over 500 Projects Completed In Less Than 48 Hours!
-image: //cdn2.hubspot.net/hub/1593820/file-3490825302-png/blog-files/file-2.png
+image: {{ site.url }}/assets/img/blog/file-2.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com
@@ -57,7 +57,7 @@ The Washington Redskins' last moment of sleep before we get back to the [@koding
 <blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">We may have gotten two hours of sleep last night <a href="https://twitter.com/hashtag/Hackathon?src=hash">#Hackathon</a> <a href="https://twitter.com/koding">@koding</a> <a href="http://t.co/ZZnvMOx7OP">pic.twitter.com/ZZnvMOx7OP</a></p>&mdash; Rachel Stein (@SteinRach) <a href="https://twitter.com/SteinRach/status/541637412749725696">December 7, 2014</a></blockquote>
 <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
 
-[1]: https://www.koding.com/hs-fs/hub/1593820/file-3490825302-png/blog-files/file-2.png?t=1475265944157&width=1117&height=628&name=file-2.png
+[1]: {{ site.url }}/assets/img/blog/file-2.png
 [2]: https://twitter.com/koding/timelines/541426303719587840 "tweet collection"
 [3]: https://twitter.com/hashtag/hackathon?src=hash
 [4]: https://twitter.com/koding

@@ -32,6 +32,6 @@ See you on Koding!
 
 ### [And click here for a whopping 4GB VM – Enjoy! :)][3]
 
-[1]: https://www.koding.com/hs-fs/hub/1593820/file-3490824487-png/blog-files/screen-shot-2014-02-23-at-20.41.58.png?t=1475265944157&width=1275&height=473&name=screen-shot-2014-02-23-at-20.41.58.png
-[2]: https://www.koding.com/hs-fs/hub/1593820/file-3490824497-png/blog-files/screen-shot-2014-02-23-at-20.43.07.png?t=1475265944157&width=1385&height=440&name=screen-shot-2014-02-23-at-20.43.07.png
+[1]: {{ site.url }}/assets/img/blog/screen-shot-2014-02-23-at-20.41.58.png
+[2]: {{ site.url }}/assets/img/blog/screen-shot-2014-02-23-at-20.43.07.png
 [3]: https://koding.com/R/devrim?c=Crazy250TBWeek&s=blog

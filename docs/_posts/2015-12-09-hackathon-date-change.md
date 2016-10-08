@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Hackathon Date Moved Due to Global Awesomeness
-image: //cdn2.hubspot.net/hub/1593820/file-3912000200-png/blog-files/registrants-by-ip-1024x460.png
+image: {{ site.url }}/assets/img/blog/registrants-by-ip-1024x460.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com
@@ -28,14 +28,14 @@ On top of the $100,000 Grand Prize, we've now partnered with [Uber][3] to introd
 
 ## **Oh...and one more thing.**
 
-We're gearing up for another BIG partner announcement next week. We can't tell you the details just yet, but this news will be the biggest partnership news the developer community has heard in a long time. Watch this space!  
+We're gearing up for another BIG partner announcement next week. We can't tell you the details just yet, but this news will be the biggest partnership news the developer community has heard in a long time. Watch this space!
 
 
 <video id="gif-mp4" data-width="236" data-height="181" poster="https://media.giphy.com/media/XB6pGqvOfJqY8/200_s.gif" src="https://media.giphy.com/media/XB6pGqvOfJqY8/giphy.mp4" loop="loop" autoplay="autoplay"></video>
 
 
-[1]: https://www.koding.com/hs-fs/hub/1593820/file-3912000200-png/blog-files/registrants-by-ip-1024x460.png?t=1475265944157&width=1024&height=460&name=registrants-by-ip-1024x460.png
-[2]: https://www.koding.com/hs-fs/hub/1593820/file-3912000210-png/blog-files/uber_logo_developers_rgb_black_2x.png?t=1475265944157&width=344&height=84&name=uber_logo_developers_rgb_black_2x.png
+[1]: {{ site.url }}/assets/img/blog/registrants-by-ip-1024x460.png
+[2]: {{ site.url }}/assets/img/blog/uber_logo_developers_rgb_black_2x.png
 [3]: http://uber.com/
 [4]: http://koding.com/Hackathon?utm_campaign=hackathon&utm_medium=link%20to%20apply&utm_source=blog%20post
 [5]: http://bit.ly/1NvD59x

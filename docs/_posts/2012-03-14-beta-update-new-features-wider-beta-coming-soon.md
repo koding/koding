@@ -57,7 +57,7 @@ That's all for now. Going forward you can expect to hear from us a bit more freq
 
 [1]: http://kodingen.com
 [2]: http://koding.com
-[3]: https://www.koding.com/hs-fs/hub/1593820/file-3490823937-jpg/blog-files/codeshareblog.jpg?t=1475265944157 "New Code Shares"
-[4]: https://www.koding.com/hs-fs/hub/1593820/file-3490823947-jpg/blog-files/topicsblog.jpg?t=1475265944157 "inbox2blog"
-[5]: https://www.koding.com/hs-fs/hub/1593820/file-3490823957-jpg/blog-files/inbox2blog.jpg?t=1475265944157 "inbox2blog"
-[6]: https://www.koding.com/hs-fs/hub/1593820/file-3490823967-jpg/blog-files/dbsblog.jpg?t=1475265944157 "MongoDB and MySQL Databases"
+[3]: {{ site.url }}/assets/img/blog/codeshareblog.jpg
+[4]: {{ site.url }}/assets/img/blog/topicsblog.jpg
+[5]: {{ site.url }}/assets/img/blog/inbox2blog.jpg
+[6]: {{ site.url }}/assets/img/blog/dbsblog.jpg

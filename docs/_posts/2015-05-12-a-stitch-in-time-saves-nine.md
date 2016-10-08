@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Introducing VM Snapshots!
-image: //cdn2.hubspot.net/hub/1593820/file-3490825517-png/blog-files/snapshots.png
+image: {{ site.url }}/assets/img/blog/snapshots.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com
@@ -27,5 +27,5 @@ A detailed guide on how to use snapshots is available [here][2].
 Enjoy!
 
 
-[1]: https://www.koding.com/hs-fs/hub/1593820/file-3490825517-png/blog-files/snapshots.png?t=1475265944157&width=254&height=254&name=snapshots.png
+[1]: {{ site.url }}/assets/img/blog/snapshots.png
 [2]: http://learn.koding.com/guides/vm-snapshot/

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Our Hackathon Just Got Dave McClure'd
-image: //cdn2.hubspot.net/hub/1593820/file-3912000085-jpg/blog-files/mcclure-bill-1024x432.jpg
+image: {{ site.url }}/assets/img/blog/mcclure-bill-1024x432.jpg
 author:
   name: Nitin Gupta
   email: nitin@koding.com
@@ -18,15 +18,15 @@ Founders around the world, you're cordially invited to join us February 20-21, i
 * A one-year subscription to Koding for Teams
 * **A meeting with !@#$% Dave McClure**
 
-***Yes, THE Dave McClure, Founding Partner of [500 Startups][4], is joining forces with the Global Virtual Hackathon. Dave uses his ability to function without sleep to uncover geeks around the world, so he's looking forward to accessing the world's brightest minds without getting on an airplane.**  
+***Yes, THE Dave McClure, Founding Partner of [500 Startups][4], is joining forces with the Global Virtual Hackathon. Dave uses his ability to function without sleep to uncover geeks around the world, so he's looking forward to accessing the world's brightest minds without getting on an airplane.**
 
 ![bling bling baby][5]
 
 Is it possible for a Hackathon to have too much bling? We don't think so! If you haven't registered yet, [dooooo it][3]!
 
-[1]: https://www.koding.com/hs-fs/hub/1593820/file-3912000085-jpg/blog-files/mcclure-bill-1024x432.jpg?t=1475265944157&width=1024&height=432&name=mcclure-bill-1024x432.jpg
+[1]: {{ site.url }}/assets/img/blog/mcclure-bill-1024x432.jpg
 [2]: https://twitter.com/davemcclure
 [3]: http://bit.ly/1SfFO6G
 [4]: http://500.co/
-[5]: https://www.koding.com/hs-fs/hub/1593820/file-3911999955-gif/blog-files/giphy.gif?t=1475265944157&width=300&height=300&name=giphy.gif
+[5]: {{ site.url }}/assets/img/blog/giphy.gif
 [6]: https://no-cache.hubspot.com/cta/default/1593820/42c7951a-61c2-4e8f-9d80-a06650eb90f2.png

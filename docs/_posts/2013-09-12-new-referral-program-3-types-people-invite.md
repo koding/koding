@@ -53,5 +53,5 @@ Although there are obviously many others who should join the party, we just thou
 
 
 [1]: https://koding.com/
-[2]: https://www.koding.com/hs-fs/hub/1593820/file-3490824297-png/blog-files/blog_referral_desc-300x120.png?t=1475265944157&width=300&height=120&name=blog_referral_desc-300x120.png
-[3]: https://www.koding.com/hs-fs/hub/1593820/file-3490824307-png/blog-files/blog_referral_username_selected_blue-300x128.png?t=1475265944157&width=300&height=128&name=blog_referral_username_selected_blue-300x128.png
+[2]: {{ site.url }}/assets/img/blog/blog_referral_desc-300x120.png
+[3]: {{ site.url }}/assets/img/blog/blog_referral_username_selected_blue-300x128.png

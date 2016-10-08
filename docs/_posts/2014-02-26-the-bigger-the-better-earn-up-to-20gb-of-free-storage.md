@@ -1,7 +1,7 @@
 ---
 layout: post
 title: The bigger the better - Now you can earn up to 20Gb of free storage! &#35Crazy250TBWeek
-image: https://www.koding.com/hs-fs/hub/1593820/file-3490824497-png/blog-files/screen-shot-2014-02-23-at-20.43.07.png?t=1475265944157&width=1385&height=440&name=screen-shot-2014-02-23-at-20.43.07.png
+image: {{ site.url }}/assets/img/blog/screen-shot-2014-02-23-at-20.43.07.png
 author:
   name: Stefan Cosma
   email: stefan@koding.com
@@ -26,5 +26,5 @@ Now, go! Invite your friends, your relatives, your highschool computer science t
 See you on Koding. :)
 
 [1]: http://blog.koding.com/2014/02/one-more-round-of-awesome-the-crazy250tbweek-is-here/ "One more round of awesome! The #Crazy250TBWeek is here!"
-[2]: https://www.koding.com/hs-fs/hub/1593820/file-3490824497-png/blog-files/screen-shot-2014-02-23-at-20.43.07.png?t=1475265944157&width=1385&height=440&name=screen-shot-2014-02-23-at-20.43.07.png
-[3]: https://www.koding.com/hs-fs/hub/1593820/file-3490824557-png/blog-files/ktf2std.png?t=1475265944157&width=294&height=143&name=ktf2std.png
+[2]: {{ site.url }}/assets/img/blog/screen-shot-2014-02-23-at-20.43.07.png
+[3]: {{ site.url }}/assets/img/blog/ktf2std.png

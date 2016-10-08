@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Google Joins As A Sponsor, We Are Humbled.
-image: //cdn2.hubspot.net/hub/1593820/file-3490825262-gif/blog-files/perksofbeingawallflower.gif
+image: {{ site.url }}/assets/img/blog/perksofbeingawallflower.gif
 author:
   name: Nitin Gupta
   email: nitin@koding.com
@@ -28,4 +28,4 @@ We are so looking forward to the next 48 hours!
 [2]: https://www.google.com/search?q=5+%2B+(-+sqrt(1-+x%5E2-+(y-+abs(x))%5E2))cos(30((1-x%5E2-(y-abs(x))%5E2)))%2C+x+is+from+-1+to+1%2C+y+is+from+-1+to+1.5%2C+z+is+from+1+to+5&oq=5+%2B+(-+sqrt(1-+x%5E2-+(y-+abs(x))%5E2))cos(30((1-x%5E2-(y-abs(x))%5E2)))%2C+x+is+from+-1+to+1%2C+y+is+from+-1+to+1.5%2C+z+is+from+1+to+5&aqs=chrome..69i57.488j0j7&sourceid=chrome&es_sm=91&ie=UTF-8 "hearts"
 [3]: http://blog.koding.com/2014/11/globalhackathon/ "When We Said "
 [4]: https://twitter.com/search?f=realtime&q=koding%20hackathon "Tweet stream"
-[5]: https://www.koding.com/hs-fs/hub/1593820/file-3490825262-gif/blog-files/perksofbeingawallflower.gif?t=1475265944157&width=360&height=235&name=perksofbeingawallflower.gif
+[5]: {{ site.url }}/assets/img/blog/perksofbeingawallflower.gif

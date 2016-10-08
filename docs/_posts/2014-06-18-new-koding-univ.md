@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Koding University Update
-image: https://www.koding.com/hs-fs/hub/1593820/file-3490824867-png/blog-files/mjnc6fc-300x274.png?t=1475265944157&width=376&height=343&name=mjnc6fc-300x274.png
+image: {{ site.url }}/assets/img/blog/mjnc6fc-300x274.png
 author:
   name: Stefan Cosma
   email: stefan@koding.com
@@ -22,7 +22,7 @@ So if you're good at something, no matter what the topic is, you can now write a
 
 Looking forward to seeing your contributions!
 
-[1]: https://www.koding.com/hs-fs/hub/1593820/file-3490824867-png/blog-files/mjnc6fc-300x274.png?t=1475265944157&width=376&height=343&name=mjnc6fc-300x274.png
+[1]: {{ site.url }}/assets/img/blog/mjnc6fc-300x274.png
 [2]: http://learn.koding.com "Koding University"
 [3]: http://learn.koding.com/guides "Koding University: Guides"
 [4]: http://github.com/koding/kdlearn "Koding University Repo"

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Your Chromebook has a new BFF
-#image: //cdn2.hubspot.net/hub/1593820/file-3490824807-png/blog-files/downloadnow.png
+#image: {{ site.url }}/assets/img/blog/downloadnow.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com
@@ -30,6 +30,6 @@ Google has allowed a few app developers to get the capability of upgrading an ex
 
 [1]: http://chromebooks.com "Chromebooks"
 [2]: https://chrome.google.com/webstore/detail/koding/fgbjpbdfegnodokpoejnbhnblcojccal "Koding Chrome App"
-[3]: https://www.koding.com/hs-fs/hub/1593820/file-3490824807-png/blog-files/downloadnow.png?t=1475265944157&width=174&height=52&name=downloadnow.png
-[4]: https://www.koding.com/hs-fs/hub/1593820/file-3490824817-png/blog-files/screenshot-2014-06-06-at-4.15.55-pm-1024x575.png?t=1475265944157&width=800&height=450&name=screenshot-2014-06-06-at-4.15.55-pm-1024x575.png
-[5]: https://www.koding.com/hs-fs/hub/1593820/file-3490824827-png/blog-files/screenshot-2014-06-06-at-4.26.32-pm-1024x575.png?t=1475265944157&width=800&height=450&name=screenshot-2014-06-06-at-4.26.32-pm-1024x575.png
+[3]: {{ site.url }}/assets/img/blog/downloadnow.png
+[4]: {{ site.url }}/assets/img/blog/screenshot-2014-06-06-at-4.15.55-pm-1024x575.png
+[5]: {{ site.url }}/assets/img/blog/screenshot-2014-06-06-at-4.26.32-pm-1024x575.png

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Let's hack together, no matter where we are!
-image: https://www.koding.com/hs-fs/hub/1593820/file-3490824992-jpg/blog-files/blog-post.jpg?t=1475265944157&width=1486&height=710&name=blog-post.jpg
+image: {{ site.url }}/assets/img/blog/blog-post.jpg
 author:
   name: Nitin Gupta
   email: nitin@koding.com
@@ -17,5 +17,5 @@ We have an awesome line up of judges and great prizes. This is going to be fun..
 
 **Registration opens Monday, Oct 27th, 2014 at 10:00AM PDT. [Watch this space][2]!**
 
-[1]: https://www.koding.com/hs-fs/hub/1593820/file-3490824992-jpg/blog-files/blog-post.jpg?t=1475265944157&width=1486&height=710&name=blog-post.jpg
+[1]: {{ site.url }}/assets/img/blog/blog-post.jpg
 [2]: https://koding.com/Hackathon "Hackathon"

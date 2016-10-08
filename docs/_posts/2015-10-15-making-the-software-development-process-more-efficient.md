@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Making The Software Development Process More Efficient
-image: //cdn2.hubspot.net/hub/1593820/file-3490825827-png/blog-files/data.png
+image: {{ site.url }}/assets/img/blog/data.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com
@@ -54,6 +54,6 @@ By greatly reducing the on-boarding bottleneck, team members are able to reach p
 
 With the announcement of the upcoming [Koding for Teams][8] product, we are took all of the best features that individual users have grown to love and created the ultimate home base for any development team. Built with businesses in mind, Koding for Teams aims to redefine the outdated processes that hold back teams of every size on a daily basis.
 
-[6]: https://www.koding.com/hs-fs/hub/1593820/file-3490825827-png/blog-files/data.png?t=1475265944157&width=733&height=384&name=data.png
+[6]: {{ site.url }}/assets/img/blog/data.png
 [7]: http://www.zdnet.com/article/whats-next-in-aas-workspace-as-a-service/
 [8]: https://koding.com/Teams
