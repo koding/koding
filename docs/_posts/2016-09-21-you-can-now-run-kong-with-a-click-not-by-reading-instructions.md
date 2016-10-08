@@ -1,7 +1,7 @@
 ---
 layout: post
 title: You can now run Kong with a click - not by reading Instructions!
-image: {{ site.url }}/assets/img/blog/156c8b1e6189a02e7d91.png
+image: /assets/img/blog/156c8b1e6189a02e7d91.png
 author:
   name: George Sibble
   email: george@koding.com

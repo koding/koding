@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Cortana, Open Koding...
-image: {{ site.url }}/assets/img/blog/win-app-2.png
+image: /assets/img/blog/win-app-2.png
 author:
   name: Cole Fox
   email: cole@koding.com

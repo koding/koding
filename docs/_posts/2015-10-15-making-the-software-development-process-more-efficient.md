@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Making The Software Development Process More Efficient
-image: {{ site.url }}/assets/img/blog/data.png
+image: /assets/img/blog/data.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com

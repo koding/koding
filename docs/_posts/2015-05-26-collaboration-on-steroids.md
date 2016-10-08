@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Collaboration on Koding just leveled up; Introducing Video!
-image: {{ site.url }}/assets/img/blog/video-collab.jpg
+image: /assets/img/blog/video-collab.jpg
 author:
   name: Nitin Gupta
   email: nitin@koding.com

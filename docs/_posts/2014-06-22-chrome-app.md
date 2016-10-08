@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Your Chromebook has a new BFF
-#image: {{ site.url }}/assets/img/blog/downloadnow.png
+#image: /assets/img/blog/downloadnow.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com

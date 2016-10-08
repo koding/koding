@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Let's hack together, no matter where we are!
-image: {{ site.url }}/assets/img/blog/blog-post.jpg
+image: /assets/img/blog/blog-post.jpg
 author:
   name: Nitin Gupta
   email: nitin@koding.com

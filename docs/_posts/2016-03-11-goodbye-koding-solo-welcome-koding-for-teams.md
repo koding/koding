@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Goodbye Koding Solo, Welcome Koding for Teams!
-image: {{ site.url }}/assets/img/blog/koding-for-teams.png
+image: /assets/img/blog/koding-for-teams.png
 author:
   name: Devrim Yasar
   email: devrim@koding.com

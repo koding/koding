@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Real Terminal, All Chrome — No Nonsense
-image: {{ site.url }}/assets/img/blog/ss-terminal.png
+image: /assets/img/blog/ss-terminal.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com

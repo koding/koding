@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Hackathon Date Moved Due to Global Awesomeness
-image: {{ site.url }}/assets/img/blog/registrants-by-ip-1024x460.png
+image: /assets/img/blog/registrants-by-ip-1024x460.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com

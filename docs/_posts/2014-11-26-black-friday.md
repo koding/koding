@@ -1,7 +1,7 @@
 ---
 layout: post
 title: This Black Friday, Get the Gift of Kode
-image: {{ site.url }}/assets/img/blog/fbnormblackfriday2-1.jpg
+image: /assets/img/blog/fbnormblackfriday2-1.jpg
 author:
   name: Nitin Gupta
   email: nitin@koding.com

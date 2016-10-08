@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Koding University Update
-image: {{ site.url }}/assets/img/blog/mjnc6fc-300x274.png
+image: /assets/img/blog/mjnc6fc-300x274.png
 author:
   name: Stefan Cosma
   email: stefan@koding.com

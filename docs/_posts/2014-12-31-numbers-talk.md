@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Koding Hackathon By The Numbers
-image: {{ site.url }}/assets/img/blog/hackathoninfogrphc.png
+image: /assets/img/blog/hackathoninfogrphc.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: The New Koding. Private Beta Has Begun!
-image: {{ site.url }}/assets/img/blog/beta2.jpg
+image: /assets/img/blog/beta2.jpg
 author:
   name: Stefan Cosma
 excerpt_separator: "<!--more-->"

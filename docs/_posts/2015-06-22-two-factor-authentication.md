@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Two-Factor Authentication For All Koding Users Available Now!
-image: {{ site.url }}/assets/img/blog/2fa-matrix.jpg
+image: /assets/img/blog/2fa-matrix.jpg
 author:
   name: Nitin Gupta
   email: nitin@koding.com

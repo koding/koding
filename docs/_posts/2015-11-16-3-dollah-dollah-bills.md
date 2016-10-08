@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 3 Reasons Why Your Startup Should Join Our Hackathon
-image: {{ site.url }}/assets/img/blog/giphy.gif
+image: /assets/img/blog/giphy.gif
 author:
   name: Devrim Yasar
   email: devrim@koding.com

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Teamwork App becomes official and gets a new feature!
-image: {{ site.url }}/assets/img/blog/teamwork-app_screenshot_2-e1380671838451.png
+image: /assets/img/blog/teamwork-app_screenshot_2-e1380671838451.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com

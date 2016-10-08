@@ -1,7 +1,7 @@
 ---
 layout: post
 title: The bigger the better - Now you can earn up to 20Gb of free storage! &#35Crazy250TBWeek
-image: {{ site.url }}/assets/img/blog/screen-shot-2014-02-23-at-20.43.07.png
+image: /assets/img/blog/screen-shot-2014-02-23-at-20.43.07.png
 author:
   name: Stefan Cosma
   email: stefan@koding.com

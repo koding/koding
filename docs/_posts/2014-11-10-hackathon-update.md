@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Making a Good Thing Even Better... Hackathon prize now more than $25,000!
-image: {{ site.url }}/assets/img/blog/homer-simpson-excited-1024x819-300x239.jpg
+image: /assets/img/blog/homer-simpson-excited-1024x819-300x239.jpg
 author:
   name: Nitin Gupta
   email: nitin@koding.com

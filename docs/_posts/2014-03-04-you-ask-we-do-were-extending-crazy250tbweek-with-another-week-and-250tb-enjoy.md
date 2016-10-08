@@ -1,7 +1,7 @@
 ---
 layout: post
 title: You ask, we do! We're extending &#35Crazy250TBWeek with another week and +250TB - Enjoy :)
-image: {{ site.url }}/assets/img/blog/screen-shot-2014-02-23-at-20.41.58.png
+image: /assets/img/blog/screen-shot-2014-02-23-at-20.41.58.png
 author:
   name: Stefan Cosma
   email: stefan@koding.com

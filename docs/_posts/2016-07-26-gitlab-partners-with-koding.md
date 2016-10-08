@@ -1,7 +1,7 @@
 ---
 layout: post
 title: GitLab Partners with Koding
-image: {{ site.url }}/assets/img/blog/integration_blog-02.png
+image: /assets/img/blog/integration_blog-02.png
 author:
   name: George Sibble
   email: george@koding.com

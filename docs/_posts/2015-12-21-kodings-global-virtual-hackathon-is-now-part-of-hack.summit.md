@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Koding’s Global Virtual Hackathon is now part of hack.summit
-image: {{ site.url }}/assets/img/blog/Koding_hacksummit.jpg
+image: /assets/img/blog/Koding_hacksummit.jpg
 author:
   name: Devrim Yasar
   email: devrim@koding.com

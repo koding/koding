@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Kite A Go Library for Writing Distributed Microservices
-image: {{ site.url }}/assets/img/blog/kites.png
+image: /assets/img/blog/kites.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com

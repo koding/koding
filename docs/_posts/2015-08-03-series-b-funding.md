@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Koding raises $10 Million in Series B financing led by Khosla Ventures
-image: {{ site.url }}/assets/img/blog/fundin21x.png
+image: /assets/img/blog/fundin21x.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com

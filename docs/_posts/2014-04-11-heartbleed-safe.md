@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Koding response to Heartbleed - You're safe.
-image: {{ site.url }}/assets/img/blog/heartbleed-safe-site-seal-2-262x300.png
+image: /assets/img/blog/heartbleed-safe-site-seal-2-262x300.png
 author:
   name: Stefan Cosma
   email: stefan@koding.com

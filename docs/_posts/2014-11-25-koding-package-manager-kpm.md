@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Introducing the Koding Package Manager (kpm)
-image: {{ site.url }}/assets/img/blog/screenshot-from-2014-11-25-222438.png
+image: /assets/img/blog/screenshot-from-2014-11-25-222438.png
 author:
   name: Stefan Cosma
   email: stefan@koding.com

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Introducing VM Snapshots!
-image: {{ site.url }}/assets/img/blog/snapshots.png
+image: /assets/img/blog/snapshots.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com

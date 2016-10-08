@@ -1,7 +1,7 @@
 ---
 layout: post
 title: When We Said "Global Hackathon" We Meant It!
-image: {{ site.url }}/assets/img/blog/2giz9-2014-11-17-wt5re.png
+image: /assets/img/blog/2giz9-2014-11-17-wt5re.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com

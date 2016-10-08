@@ -1,7 +1,7 @@
 ---
 layout: post
 title: And The Koding &#35Hackathon Winners Are...
-image: {{ site.url }}/assets/img/blog/hakatwinnersblogpost2x_720.png
+image: /assets/img/blog/hakatwinnersblogpost2x_720.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Our Hackathon Just Got Dave McClure'd
-image: {{ site.url }}/assets/img/blog/mcclure-bill-1024x432.jpg
+image: /assets/img/blog/mcclure-bill-1024x432.jpg
 author:
   name: Nitin Gupta
   email: nitin@koding.com

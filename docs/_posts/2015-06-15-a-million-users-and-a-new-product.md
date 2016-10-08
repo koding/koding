@@ -1,7 +1,7 @@
 ---
 layout: post
 title: A Million Users and a New Product
-image: {{ site.url }}/assets/img/blog/million.jpg
+image: /assets/img/blog/million.jpg
 author:
   name: Nitin Gupta
   email: nitin@koding.com

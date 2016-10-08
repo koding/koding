@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Google Joins As A Sponsor, We Are Humbled.
-image: {{ site.url }}/assets/img/blog/perksofbeingawallflower.gif
+image: /assets/img/blog/perksofbeingawallflower.gif
 author:
   name: Nitin Gupta
   email: nitin@koding.com
