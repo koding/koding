@@ -233,7 +233,7 @@ module.exports = class StackEditorView extends kd.View
       { editorView } = view
       { ace }        = editorView.aceView
 
-      editorView.on 'EditorReady', =>
+      editorView.ready =>
         ace.on 'FileContentChanged', =>
           @changedContents[key] = ace.isContentChanged()
 
