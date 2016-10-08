@@ -1,14 +1,14 @@
-$                     = require 'jquery'
 kd                    = require 'kd'
-hljs                  = require 'highlight.js'
 JView                 = require 'app/jview'
-CodeSetupView         = require './codesetupview'
+Tracker               = require 'app/util/tracker'
+CustomLinkView        = require 'app/customlinkview'
 { jsonToYaml }        = require 'app/util/stacks/yamlutils'
+
+CodeSetupView         = require './codesetupview'
 GetStartedView        = require './getstartedview'
 ConfigurationView     = require './configurationview'
 ProviderSelectionView = require './providerselectionview'
-Tracker               = require 'app/util/tracker'
-CustomLinkView        = require 'app/customlinkview'
+
 CLONE_REPO_TEMPLATES  =
   github              : 'git clone git@github.com:your-organization/reponame.git'
   bitbucket           : 'git clone git@bitbucket.org/your-organization/reponame.git'
@@ -37,12 +37,13 @@ module.exports = class OnboardingView extends JView
 
   createViews: ->
 
-    @getStartedView        = new GetStartedView
-    @codeSetupView         = new CodeSetupView          { cssClass: 'hidden' }
-    @configurationView     = new ConfigurationView      { cssClass: 'hidden' }
-    @providerSelectionView = new ProviderSelectionView  { cssClass: 'hidden' }
+    @pages = [
+      @getStartedView        = new GetStartedView
+      @providerSelectionView = new ProviderSelectionView { cssClass: 'hidden' }
+      @configurationView     = new ConfigurationView     { cssClass: 'hidden' }
+      @codeSetupView         = new CodeSetupView         { cssClass: 'hidden' }
+    ]
 
-    @pages       = [ @getStartedView, @providerSelectionView, @configurationView, @codeSetupView ]
     @currentPage = @getStartedView
 
     @setClass 'get-started'
@@ -50,27 +51,29 @@ module.exports = class OnboardingView extends JView
 
   bindPageEvents: ->
 
-    @pages.forEach (page) => page.on 'UpdateStackTemplate', => @updateStackTemplate()
+    @on 'SwitchPage', @bound 'handlePageNavigation'
 
-    @on 'PageNavigationRequested', @bound 'handlePageNavigationRequested'
+    @pages.forEach (page) =>
+      page.on 'StackDataChanged', @bound 'handleStackDataChange'
 
     @getStartedView.on 'NextPageRequested', =>
       @unsetClass 'get-started'
-      @emit 'PageNavigationRequested', 'next'
+      @emit 'SwitchPage', 'next'
 
-    @getStartedView.emit 'NextPageRequested'  if @getOption 'skipOnboarding'
+    @providerSelectionView.on 'SelectedProviderChanged', \
+      @bound 'handleProviderChanged'
 
-    @providerSelectionView.on 'UpdateStackTemplate', @bound 'handleUpdateStackTemplate'
-
-    @configurationView.tabView.on 'PaneAdded', => @codeSetupView.addPane()
+    @configurationView.tabView.on 'PaneAdded', =>
+      @codeSetupView.addPane()
 
     @configurationView.tabView.on 'PaneRemoved', =>
       @codeSetupView.tabView.removePane @codeSetupView.tabView.panes.last
 
-    @configurationView.on 'InstanceTypeChanged', @bound 'handleInstanceTypeChanged'
+    @configurationView.on 'InstanceTypeChanged', \
+      @bound 'handleInstanceTypeChanged'
 
 
-  handlePageNavigationRequested: (direction) ->
+  handlePageNavigation: (direction) ->
 
     pageIndex  = @pages.indexOf @currentPage
     nextIndex  = if direction is 'next' then ++pageIndex else --pageIndex
@@ -90,7 +93,7 @@ module.exports = class OnboardingView extends JView
       @onboardingCompleted()
 
 
-  handleUpdateStackTemplate: (isSelected) ->
+  handleProviderChanged: (isSelected) ->
 
     if isSelected
       @nextButton.enable()
@@ -117,13 +120,13 @@ module.exports = class OnboardingView extends JView
     @backButton = new kd.ButtonView
       cssClass  : 'outline back'
       title     : 'Back'
-      callback  : => @emit 'PageNavigationRequested', 'prev'
+      callback  : => @emit 'SwitchPage', 'prev'
 
     @nextButton = new kd.ButtonView
       cssClass  : 'outline next'
       title     : 'Next'
       disabled  : yes
-      callback  : => @emit 'PageNavigationRequested', 'next'
+      callback  : => @emit 'SwitchPage', 'next'
 
     @skipLink   = new CustomLinkView
       cssClass  : 'HomeAppView--button hidden'
@@ -139,7 +142,7 @@ module.exports = class OnboardingView extends JView
         @emit 'StackOnboardingCompleted', options
 
 
-  updateStackTemplate: ->
+  handleStackDataChange: ->
 
     selectedProvider  = @providerSelectionView.selected?.getOption 'provider'
 

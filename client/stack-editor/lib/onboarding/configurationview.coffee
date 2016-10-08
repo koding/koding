@@ -59,15 +59,15 @@ module.exports = class ConfigurationView extends JView
         { title: 't2.medium', value: 't2.medium' }
       ]
       callback: =>
-        @emit 'UpdateStackTemplate', yes
+        @emit 'StackDataChanged', yes
         @emit 'InstanceTypeChanged', select.getValue()
 
-    @tabView.on 'PaneRemoved', => @emit 'UpdateStackTemplate'
+    @tabView.on 'PaneRemoved', => @emit 'StackDataChanged'
 
-    configView.on 'UpdateStackTemplate', => @emit 'UpdateStackTemplate'
+    configView.on 'StackDataChanged', => @emit 'StackDataChanged'
     configView.on 'HiliteTemplate', (type, selector) => @emit 'HiliteTemplate', type, selector
 
-    @emit 'UpdateStackTemplate', yes
+    @emit 'StackDataChanged', yes
     @emit 'HiliteTemplate', 'block', 'example_2'  if closable
 
 
