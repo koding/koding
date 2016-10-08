@@ -17,28 +17,29 @@ module.exports = class ProviderSelectionView extends JView
 
   createProviders: ->
 
-    providers        = [
-      'aws', 'vagrant', 'google', 'azure', 'digitalocean', 'rackspace'
-    ]
-    enabledProviders = ['aws', 'vagrant', 'google']
-    betaProviders = ['vagrant', 'google']
+    { providers } = globals.config
+
+    supportedProviders = (Object.keys providers).filter (p) ->
+      return p  if providers[p].supported
 
     @providers = new kd.CustomHTMLView { cssClass: 'providers box-wrapper clearfix' }
 
-    providers.forEach (provider) =>
+    supportedProviders.forEach (provider) =>
+
       extraClass = 'coming-soon'
       label      = 'Coming Soon'
       beta       = ''
       betaLabel  = ''
 
-      if provider in enabledProviders
+      _provider = providers[provider]
+
+      if _provider.enabled
         extraClass = ''
         label      = ''
 
-        if provider in betaProviders
+        if _provider.enabled is 'beta'
           beta       = 'beta'
           betaLabel  = 'BETA'
-
 
       @providers.addSubView providerView = new kd.CustomHTMLView
         cssClass : "provider box #{extraClass} #{provider}"
@@ -56,7 +57,7 @@ module.exports = class ProviderSelectionView extends JView
           providerView.setClass 'selected'
           @selected?.unsetClass 'selected'
           @selected = if @selected is providerView then null else providerView
-          @emit 'UpdateStackTemplate', @selected
+          @emit 'SelectedProviderChanged', @selected
           @emit 'HiliteTemplate', 'all'
 
 

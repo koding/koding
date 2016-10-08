@@ -49,8 +49,8 @@ module.exports = class ComputeControllerUI
                          stored, please take a copy of following private key.
                          \n
                          **You won't be able to access this private key later**
-                        "
-      content         : applyMarkdown "```\n#{privateKey}\n```"
+                         ```\n#{privateKey}\n```
+      "
       cssClass        : 'has-markdown content-modal'
       width           : 530
       overlay         : yes
@@ -431,7 +431,7 @@ module.exports = class ComputeControllerUI
             callback { confirmed: no }
         ok           :
           title      : button ? 'Yes, remove'
-          style      : "solid medium"
+          style      : 'solid medium'
           callback   : ->
             modal.destroy()
             callback { confirmed: yes }

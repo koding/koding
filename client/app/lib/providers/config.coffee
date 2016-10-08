@@ -26,6 +26,8 @@ module.exports = globals.config.providers =
     name                   : 'Amazon Web Services'
     link                   : 'https://aws.amazon.com'
     title                  : 'AWS'
+    supported              : yes
+    enabled                : yes
     color                  : '#F9A900'
     description            : 'Amazon Web Services'
     instanceTypes          : require './instance-types/aws'
@@ -62,6 +64,19 @@ module.exports = globals.config.providers =
           { title: 'South America (Sao Paulo) (sa-east-1)',     value: 'sa-east-1' }
         ]
 
+  vagrant                  :
+    name                   : 'Vagrant'
+    link                   : 'http://www.vagrantup.com'
+    title                  : 'Vagrant on Local'
+    color                  : '#B52025'
+    supported              : yes
+    enabled                : 'beta'
+    description            : 'Local provisioning with Vagrant'
+    credentialFields       :
+      queryString          :
+        label              : 'Kite ID'
+        placeholder        : 'ID for my local machine kite'
+
   koding                   :
     name                   : 'Koding'
     link                   : 'https://koding.com'
@@ -83,6 +98,8 @@ module.exports = globals.config.providers =
     link                   : 'https://cloud.google.com/compute/'
     title                  : 'GCE' # or Google Cloud or Google Compute Engine or ...
     color                  : '#357e99' # dunno
+    supported              : yes
+    enabled                : 'beta'
     description            : 'Google compute engine'
     instanceTypes          : require './instance-types/gce'
     advancedFields         : []
@@ -114,6 +131,8 @@ module.exports = globals.config.providers =
     link                   : 'https://azure.microsoft.com/'
     title                  : 'Azure'
     color                  : '#ec06be'
+    supported              : yes
+    enabled                : no
     description            : 'Azure'
     instanceTypes          : require './instance-types/azure'
     credentialFields       :
@@ -130,6 +149,8 @@ module.exports = globals.config.providers =
     link                   : 'https://digitalocean.com'
     title                  : 'Digitalocean'
     color                  : '#7abad7'
+    supported              : yes
+    enabled                : no
     description            : 'Digitalocean droplets'
     instanceTypes          : require './instance-types/do'
     credentialFields       :
@@ -145,6 +166,8 @@ module.exports = globals.config.providers =
     link                   : 'http://www.rackspace.com'
     title                  : 'Rackspace'
     color                  : '#d8deea'
+    supported              : yes
+    enabled                : no
     description            : 'Rackspace machines'
     credentialFields       :
       username             :
@@ -159,6 +182,8 @@ module.exports = globals.config.providers =
     link                   : 'http://www.softlayer.com'
     title                  : 'Softlayer'
     color                  : '#B52025'
+    supported              : no
+    enabled                : no
     description            : 'Softlayer resources'
     credentialFields       :
       username             :
@@ -179,13 +204,3 @@ module.exports = globals.config.providers =
                             unwanted results while building your stacks.
                             '''
     credentialFields       : {}
-  vagrant                  :
-    name                   : 'Vagrant'
-    link                   : 'http://www.vagrantup.com'
-    title                  : 'Vagrant on Local'
-    color                  : '#B52025'
-    description            : 'Local provisioning with Vagrant'
-    credentialFields       :
-      queryString          :
-        label              : 'Kite ID'
-        placeholder        : 'ID for my local machine kite'
