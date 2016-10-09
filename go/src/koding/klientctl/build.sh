@@ -66,7 +66,7 @@ pushd $REPO_PATH
 
 kd_build
 
-if [[ -z "$KD_DEBUG" ]]; then
+if [[ -z "${KD_DEBUG:-}" ]]; then
 	gzip -9 -N -f kd
 	mv kd.gz "${PREFIX}.darwin_amd64.gz"
 
