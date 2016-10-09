@@ -190,7 +190,7 @@ footer.Homepage-Footer form .btn {
     .Homepage-Footer .Footer--col.large {
         padding: 20px;
         background-color: transparent;
-        max-width: auto;
+        max-width: 100%;
     }
     .Homepage-Footer .Footer--col.large h3 {
         padding: 0;
