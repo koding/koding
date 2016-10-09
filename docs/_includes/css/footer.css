@@ -80,13 +80,20 @@ footer.Homepage-Footer form .btn {
 .Homepage-Footer .Footer--col.large form {
     display: flex;
 }
-.Homepage-Footer .Footer--col.large form > div {
+.Homepage-Footer .Footer--col.large form > input {
     flex: 1 0 auto;
+    background: white;
+    border-radius: 3px;
+    border: 1px solid #D9D9D9;
+    padding: 14px 16px;
+    font-size: 13px;
+    font-weight: 300;
+    margin: 0 12px 0 0;
+    line-height: 17px;
+    box-sizing: border-box;
 }
-.Homepage-Footer .Footer--col.large form > div:last-of-type {
+.Homepage-Footer .Footer--col.large form > button {
     flex: 0 0 auto;
-}
-.Homepage-Footer .Footer--col.large .hs-button.primary.large {
     -webkit-appearance: none;
     background: #F2778A;
     border: 1px solid #F2778A;
@@ -102,41 +109,28 @@ footer.Homepage-Footer form .btn {
     font-family: inherit;
     line-height: 45px;
 }
-.Homepage-Footer .Footer--col.large form .hs_email.field.hs-form-field label {
-    display: none;
-}
-.Homepage-Footer .Footer--col.large form .hs_email.field.hs-form-field input {
-    background: white;
-    border-radius: 3px;
-    border: 1px solid #D9D9D9;
-    padding: 14px 16px;
-    font-size: 13px;
-    font-weight: 300;
-    width: calc(100% - 41px);
-    margin: 0;
-    line-height: 17px;
-}
-.Homepage-Footer .Footer--col.large form .hs_email.field.hs-form-field input::-moz-placeholder {
+.Homepage-Footer .Footer--col.large form input::-moz-placeholder {
     color: #999999;
 }
-.Homepage-Footer .Footer--col.large form .hs_email.field.hs-form-field input::-webkit-input-placeholder {
+.Homepage-Footer .Footer--col.large form input::-webkit-input-placeholder {
     color: #999999;
 }
 
 @media (max-width: 1199px) {
+    .Homepage-Footer .Footer--col.large {
+        max-width: 250px;
+    }
     .Homepage-Footer .Footer--col.large form {
         display: block;
     }
-    .Homepage-Footer .Footer--col.large form>div:first-child {
+
+    .Homepage-Footer .Footer--col.large form > input {
+        width: calc(100% - 35px);
         width: 100%;
         margin-bottom: 12px;
     }
 
-    .Homepage-Footer .Footer--col.large form .hs_email.field.hs-form-field input {
-        width: calc(100% - 35px);
-    }
-
-    .Homepage-Footer .Footer--col.large form .actions input {
+    .Homepage-Footer .Footer--col.large form button {
         width: 100%;
     }
 
@@ -196,6 +190,7 @@ footer.Homepage-Footer form .btn {
     .Homepage-Footer .Footer--col.large {
         padding: 20px;
         background-color: transparent;
+        max-width: auto;
     }
     .Homepage-Footer .Footer--col.large h3 {
         padding: 0;
