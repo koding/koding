@@ -398,6 +398,29 @@ func main() {
 	if experimental {
 		app.Commands = append(app.Commands,
 			cli.Command{
+				Name:  "config",
+				Usage: "Manage tool configuration.",
+				Subcommands: []cli.Command{{
+					Name:   "show",
+					Usage:  "Show configuration.",
+					Action: ctlcli.ExitErrAction(ConfigShow, log, "show"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "defaults",
+							Usage: "Show also default configuration",
+						},
+					},
+				}, {
+					Name:   "set",
+					Usage:  "Set a value for the given key, overwriting default one.",
+					Action: ctlcli.ExitErrAction(ConfigSet, log, "set"),
+				}, {
+					Name:   "unset",
+					Usage:  "Unset the given key, restoring the defaut value.",
+					Action: ctlcli.ExitErrAction(ConfigUnset, log, "set"),
+				}},
+			},
+			cli.Command{
 				Name:      "credential",
 				ShortName: "c",
 				Usage:     "Manage stack credentials.",

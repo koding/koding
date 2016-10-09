@@ -31,19 +31,19 @@ var KonfigCache = &CacheOptions{
 
 type Konfig struct {
 	// Kite configuration.
-	KiteKeyFile string `json:"kiteKeyFile"`
+	KiteKeyFile string `json:"kiteKeyFile,omitempty"`
 
 	// Koding endpoints konfiguration.
-	KontrolURL string `json:"kontrolURL"`
-	KlientURL  string `json:"klientURL"`
-	KloudURL   string `json:"kloudURL"`
-	TunnelURL  string `json:"tunnelURL"`
+	KontrolURL string `json:"kontrolURL,omitempty"`
+	KlientURL  string `json:"klientURL,omitempty"`
+	KloudURL   string `json:"kloudURL,omitempty"`
+	TunnelURL  string `json:"tunnelURL,omitempty"`
 
 	// Klient / KD auto-update endpoints.
-	KlientLatestURL string `json:"klientLatestURL"`
-	KDLatestURL     string `json:"kdLatestURL"`
+	KlientLatestURL string `json:"klientLatestURL,omitempty"`
+	KDLatestURL     string `json:"kdLatestURL,omitempty"`
 
-	Debug bool `json:"debug"`
+	Debug bool `json:"debug,omitempty"`
 }
 
 func (k *Konfig) KiteHome() string {
@@ -99,7 +99,7 @@ func ReadKonfig(e *Environments) *Konfig {
 	c := NewCache(KonfigCache)
 	defer c.Close()
 
-	if err := c.GetValue("config", &override); err == nil {
+	if err := c.GetValue("konfig", &override); err == nil {
 		object.Merge(builtin, &override)
 	}
 
