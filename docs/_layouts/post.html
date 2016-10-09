@@ -47,6 +47,17 @@
     <!-- SHARE -->
     {% include blog-share.html post = page %}
 
+    <!-- PREV/NEXT -->
+    <div class="BlogPost-PrevNext">
+      {% if page.next.url %}
+        <a class="next" href="{{site.url}}/{{page.next.url}}" alt="{{page.next.title | escape}}">&laquo; Next post</a>
+      {% endif %}
+      {% if page.previous.url %}
+        <a class="prev" href="{{site.url}}/{{page.previous.url}}" alt="{{page.previous.title | escape}}">Previous post &raquo;</a>
+      {% endif %}
+    </div>
+
+
   </section>
 
   <!-- RECENT POSTS -->
