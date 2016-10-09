@@ -39,7 +39,7 @@ import (
 func (bs *BaseStack) HandleApply(ctx context.Context) (interface{}, error) {
 	arg, ok := ctx.Value(stack.ApplyRequestKey).(*stack.ApplyRequest)
 	if !ok {
-		arg := &stack.ApplyRequest{}
+		arg = &stack.ApplyRequest{}
 
 		if err := bs.Req.Args.One().Unmarshal(&arg); err != nil {
 			return nil, err
