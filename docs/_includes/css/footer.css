@@ -56,7 +56,7 @@ footer.Homepage-Footer form .btn {
 }
 .Homepage-Footer--logo {
     display: block;
-    background: transparent url('http://www.koding.com/hubfs/Home_Images/logo-header_website.svg') no-repeat 0 0;
+    background: transparent url('{{ site.url }}/assets/img/landing/misc/logo-header_website.svg') no-repeat 0 0;
     margin: 30px auto;
     height: 26px;
     max-width: 1176px;
@@ -185,12 +185,12 @@ footer.Homepage-Footer form .btn {
         top: 19px;
         width: 14px;
         height: 8px;
-        background-image: url('http://cdn2.hubspot.net/hubfs/1593820/arrow-down.png');
+        background-image: url('{{ site.url }}/assets/img/landing/misc/arrow-down.png');
         background-size: 14px 8px;
         content: "";
     }
     .Homepage-Footer .Footer--col.active h3::after {
-        background-image: url('http://cdn2.hubspot.net/hubfs/1593820/arrow-up.png');
+        background-image: url('{{ site.url }}/assets/img/landing/misc/arrow-up.png');
     }
 
     .Homepage-Footer .Footer--col.large {

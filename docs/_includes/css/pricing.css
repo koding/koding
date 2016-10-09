@@ -1164,13 +1164,13 @@ a:hover {
   margin-top: 47px;
 }
 .Pricing-SupportPlans--quotes blockquote:first-child figure {
-  background: transparent url('//cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/company_logos/logo_mashape.png') no-repeat 0 0;
+  background: transparent url('{{ site.url }}/assets/img/landing/company-logos/logo_mashape.png') no-repeat 0 0;
   background-size: 170px 37px;
   width: 170px;
   height: 37px;
 }
 .Pricing-SupportPlans--quotes blockquote:last-child figure {
-  background: transparent url('//cdn2.hubspot.net/hubfs/1593820/koding-gitlab/img/gitlab_color.svg') no-repeat 0 0;
+  background: transparent url('{{ site.url }}/assets/img/landing/gitlab/gitlab_color.svg') no-repeat 0 0;
   background-size: 125px 48px;
   width: 125px;
   height: 48px;
@@ -1180,7 +1180,7 @@ a:hover {
 (-webkit-min-device-pixel-ratio: 2),
 (min-resolution: 192dpi) {
   .Pricing-SupportPlans--quotes blockquote:first-child figure {
-    background: transparent url('//cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/company_logos/logo_mashape2x.png') no-repeat 0 0;
+    background: transparent url('{{ site.url }}/assets/img/landing/company-logos/logo_mashape2x.png') no-repeat 0 0;
     background-size: 170px 37px;
   }
 }

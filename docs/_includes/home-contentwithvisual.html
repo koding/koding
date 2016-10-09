@@ -1,9 +1,12 @@
 <style>{% include css/home-contentwithvisual.css %}</style>
 
+{% assign src = include.image_src %}
+{% assign ext = include.image_ext %}
+
 <div class='Homepage-ContentWithVisual'>
   <div class='Homepage--container'>
 
-    <img class='Homepage-ContentWithVisual--visual' src="{{ include.image_src }}" srcset="{{ include.image_src }}.{{ include.image_ext }} 1x, {{ include.image_src }}2x.{{ include.image_ext }} 2x" />
+    <img class='Homepage-ContentWithVisual--visual' src="{{ site.url }}{{ src }}" srcset="{{ site.url }}{{ src }}.{{ ext }} 1x, {{ site.url }}{{ src }}2x.{{ ext }} 2x" />
     <div class='Homepage-ContentWithVisual--content'>
       <img src="{{ include.icon_src }}">
       <h3>{{ include.title }}</h3>

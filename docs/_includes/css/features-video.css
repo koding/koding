@@ -42,7 +42,7 @@
   margin-left: auto;
   margin-right: auto;
   margin-top: 35px;
-  background-image: url('http://cdn2.hubspot.net/hubfs/1593820/stroke.png');
+  background-image: url('{{ site.url }}/assets/img/landing/misc/stroke.png');
   background-repeat: repeat-x;
   overflow: hidden;
   background-size: auto 2px;

@@ -15,7 +15,7 @@ order: 30
     <h1>The Koding Story</h1>
     <p>Koding is a San Francisco based technology company that is eliminating wasteful tasks from the world of software development and creating a simple way to be more collaborative and productive.</p>
   </div>
-  <img src="//cdn2.hubspot.net/hub/1593820/hubfs/buildstack_art_success.png?t=1473370419565&amp;width=288&amp;height=257&amp;name=buildstack_art_success.png" width="288" height="257" alt="buildstack_art_success.png" srcset="//cdn2.hubspot.net/hub/1593820/hubfs/buildstack_art_success.png?t=1473370419565&amp;width=144&amp;height=129&amp;name=buildstack_art_success.png 144w, //cdn2.hubspot.net/hub/1593820/hubfs/buildstack_art_success.png?t=1473370419565&amp;width=288&amp;height=257&amp;name=buildstack_art_success.png 288w, //cdn2.hubspot.net/hub/1593820/hubfs/buildstack_art_success.png?t=1473370419565&amp;width=432&amp;height=386&amp;name=buildstack_art_success.png 432w, //cdn2.hubspot.net/hub/1593820/hubfs/buildstack_art_success.png?t=1473370419565&amp;width=576&amp;height=514&amp;name=buildstack_art_success.png 576w, //cdn2.hubspot.net/hub/1593820/hubfs/buildstack_art_success.png?t=1473370419565&amp;width=720&amp;height=643&amp;name=buildstack_art_success.png 720w, //cdn2.hubspot.net/hub/1593820/hubfs/buildstack_art_success.png?t=1473370419565&amp;width=864&amp;height=771&amp;name=buildstack_art_success.png 864w" sizes="(max-width: 288px) 100vw, 288px">
+  <img src="{{ site.url }}/assets/img/landing/misc/buildstack_art_success.png?t=1473370419565&amp;width=288&amp;height=257&amp;name=buildstack_art_success.png" width="288" height="257" alt="buildstack_art_success.png" srcset="{{ site.url }}/assets/img/landing/misc/buildstack_art_success.png?t=1473370419565&amp;width=144&amp;height=129&amp;name=buildstack_art_success.png 144w, {{ site.url }}/assets/img/landing/misc/buildstack_art_success.png?t=1473370419565&amp;width=288&amp;height=257&amp;name=buildstack_art_success.png 288w, {{ site.url }}/assets/img/landing/misc/buildstack_art_success.png?t=1473370419565&amp;width=432&amp;height=386&amp;name=buildstack_art_success.png 432w, {{ site.url }}/assets/img/landing/misc/buildstack_art_success.png?t=1473370419565&amp;width=576&amp;height=514&amp;name=buildstack_art_success.png 576w, {{ site.url }}/assets/img/landing/misc/buildstack_art_success.png?t=1473370419565&amp;width=720&amp;height=643&amp;name=buildstack_art_success.png 720w, {{ site.url }}/assets/img/landing/misc/buildstack_art_success.png?t=1473370419565&amp;width=864&amp;height=771&amp;name=buildstack_art_success.png 864w" sizes="(max-width: 288px) 100vw, 288px">
 </div>
 
 <style>{% include css/about-threecols.css %}</style>
@@ -23,28 +23,28 @@ order: 30
 <h2 class="aboutus-title">A Better Developer Experience</h2>
 <div class="Homepage--container aboutus-3cols">
   <div class="aboutus-col">
-    <img src="//cdn2.hubspot.net/hub/1593820/hubfs/icon_18mill.svg" width="100" height="100">
+    <img src="{{ site.url }}/assets/img/landing/misc/icon_18mill.svg" width="100" height="100">
     <h3>18 Million VMs Spun Up</h3>
     <p>Developers can instantly spin up development environments and collaborate in real time with teammates on their codebase.</p>
   </div>
   <div class="aboutus-col">
-    <img src="//cdn2.hubspot.net/hub/1593820/hubfs/icon_1milluser.svg" width="100" height="100">
+    <img src="{{ site.url }}/assets/img/landing/misc/icon_1milluser.svg" width="100" height="100">
     <h3>1,000,000+ Users</h3>
     <p>Over one million developers use Koding to simply their development process and work seamelssly in the cloud.</p>
   </div>
   <div class="aboutus-col">
-    <img src="//cdn2.hubspot.net/hub/1593820/hubfs/icon_hourssaved.svg" width="100" height="100">
+    <img src="{{ site.url }}/assets/img/landing/misc/icon_hourssaved.svg" width="100" height="100">
     <h3>Millions of hours saved</h3>
     <p>Koding’s instant dev environments allow teams to save precious hours on setup and spend more time coding.</p>
   </div>
 </div>
 
 {% include home-logobar.html
-   logo1_src="//cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/investors/rtp_logo2X.png"
-   logo2_src="//cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/investors/greycroft_logo2X.png"
-   logo3_src="//cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/investors/matrix_partners_logo2X.png"
-   logo4_src="//cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/investors/khosla_ventures_logo2X.png"
-   logo5_src="//cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/investors/500_startups_logo2X.png"
+   logo1_src="/assets/img/landing/investor-logos/rtp.png"
+   logo2_src="/assets/img/landing/investor-logos/greycroft.png"
+   logo3_src="/assets/img/landing/investor-logos/matrix_partners.png"
+   logo4_src="/assets/img/landing/investor-logos/khosla_ventures.png"
+   logo5_src="/assets/img/landing/investor-logos/500_startups.png"
    cssClass="Homepage-LogoBar-Gray"
    title="Our Investors" %}
 
@@ -57,7 +57,7 @@ order: 30
   <div>
   {% for member in site.data.members %}
     <div class="AboutUs-TeamMember {{ member.cssClass }}">
-        <img class="profile" src="{{ member.img }}" alt="{{ member.name }}">
+        <img class="profile" src="{{ site.url }}/{{ member.img }}" alt="{{ member.name }}">
         <h3 class="team-member-name">{{ member.name }}</h3>
         <p>
         {{ member.title }}
@@ -66,13 +66,13 @@ order: 30
         </p>
         <p class="AboutUs-TeamMember--Social">
             {% if member.twitter %}
-            <a href="http://twitter.com/{{ member.twitter }}"><img src="http://cdn2.hubspot.net/hubfs/1593820/assets/soc-twitter.png" width="24" /></a>
+            <a href="http://twitter.com/{{ member.twitter }}"><img src="{{ site.url }}/assets/img/landing/misc/soc-twitter.png" width="24" /></a>
             {% endif %}
             {% if member.linkedin %}
-            <a href="http://linkedin.com/in/{{ member.linkedin }}"><img src="http://cdn2.hubspot.net/hubfs/1593820/assets/soc-linkedin.png" width="24" /></a>
+            <a href="http://linkedin.com/in/{{ member.linkedin }}"><img src="{{ site.url }}/assets/img/landing/misc/soc-linkedin.png" width="24" /></a>
             {% endif %}
             {% if member.github %}
-            <a href="http://github.com/{{ member.github }}"><img src="http://cdn2.hubspot.net/hubfs/1593820/assets/soc-github.png" width="24" /></a>
+            <a href="http://github.com/{{ member.github }}"><img src="{{ site.url }}/assets/img/landing/misc/soc-github.png" width="24" /></a>
             {% endif %}
         </p>
     </div>
@@ -82,7 +82,7 @@ order: 30
   <div class="AboutUs-NewTeamMember--Box">
     <div class="AboutUs-TeamMember AboutUs-NewTeamMember">
       <div class="AboutUs-NewTeamMember--Number">3</div>
-      <img class="profile" src="http://cdn2.hubspot.net/hubfs/1593820/assets/Bitmap.png">
+      <img class="profile" src="{{ site.url }}/assets/img/landing/misc/Bitmap.png">
       <h3 class="team-member-name">You</h3>
       <p>Awesome Person</p>
       <a href="http://jobs.lever.co/koding" class="AboutUs-NewTeamMember--Button">SEE OPEN POSITIONS</a>
@@ -125,8 +125,8 @@ order: 30
     </div>
     <div class="AboutUs-Contact--numbers">
       <div class="AboutUs-Contact--social">
-        <a href="{{ site.social.twitter }}"><img src="http://cdn2.hubspot.net/hubfs/1593820/assets/soc-twitter.png" height="19" /></a>
-        <a href="{{ site.social.linkedin }}"><img src="http://cdn2.hubspot.net/hubfs/1593820/assets/soc-linkedin.png" height="19" /></a>
+        <a href="{{ site.social.twitter }}"><img src="{{ site.url }}/assets/img/landing/misc/soc-twitter.png" height="19" /></a>
+        <a href="{{ site.social.linkedin }}"><img src="{{ site.url }}/assets/img/landing/misc/soc-linkedin.png" height="19" /></a>
         <a href="{{ site.social.facebook }}"><img src="{{ site.url }}/assets/img/landing/misc/facebook_icon.png" srcset="{{ site.url }}/assets/img/landing/misc/facebook_icon@2x.png 2x" height="19" /></a>
       </div>
     </div>

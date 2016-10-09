@@ -8,6 +8,7 @@ order: 10
 <!-- HEADER -->
 {% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#F2778A' %}
 
+{% assign path = site.url | append: '/assets/img/landing/misc' %}
 
 <style>{% include css/about-hero.css %}</style>
 <div class="aboutus-hero features-hero">
@@ -15,7 +16,7 @@ order: 10
     <h1>Flawlessly configure dev environments in one click</h1>
     <p>No matter how complex your project is, Koding for teams makes it easy to share your entire development stack with anyone, anywhere.</p>
   </div>
-  <img src="//cdn2.hubspot.net/hub/1593820/hubfs/as.png?t=1473370419565&amp;width=1465&amp;height=483&amp;name=as.png" width="1465" height="483" alt="as.png" srcset="//cdn2.hubspot.net/hub/1593820/hubfs/as.png?t=1473370419565&amp;width=733&amp;height=242&amp;name=as.png 733w, //cdn2.hubspot.net/hub/1593820/hubfs/as.png?t=1473370419565&amp;width=1465&amp;height=483&amp;name=as.png 1465w, //cdn2.hubspot.net/hub/1593820/hubfs/as.png?t=1473370419565&amp;width=2198&amp;height=725&amp;name=as.png 2198w, //cdn2.hubspot.net/hub/1593820/hubfs/as.png?t=1473370419565&amp;width=2930&amp;height=966&amp;name=as.png 2930w, //cdn2.hubspot.net/hub/1593820/hubfs/as.png?t=1473370419565&amp;width=3663&amp;height=1208&amp;name=as.png 3663w, //cdn2.hubspot.net/hub/1593820/hubfs/as.png?t=1473370419565&amp;width=4395&amp;height=1449&amp;name=as.png 4395w" sizes="(max-width: 1465px) 100vw, 1465px">
+  <img src="{{ path }}/as.png?t=1473370419565&amp;width=1465&amp;height=483&amp;name=as.png" width="1465" height="483" alt="as.png" srcset="{{ path }}/as.png?t=1473370419565&amp;width=733&amp;height=242&amp;name=as.png 733w, {{ path }}/as.png?t=1473370419565&amp;width=1465&amp;height=483&amp;name=as.png 1465w, {{ path }}/as.png?t=1473370419565&amp;width=2198&amp;height=725&amp;name=as.png 2198w, {{ path }}/as.png?t=1473370419565&amp;width=2930&amp;height=966&amp;name=as.png 2930w, {{ path }}/as.png?t=1473370419565&amp;width=3663&amp;height=1208&amp;name=as.png 3663w, {{ path }}/as.png?t=1473370419565&amp;width=4395&amp;height=1449&amp;name=as.png 4395w" sizes="(max-width: 1465px) 100vw, 1465px">
 </div>
 
 
@@ -23,7 +24,7 @@ order: 10
 <div class="Homepage--container FeaturesVideo">
   <h2 class="feature-title">A flawless replica of your dev project</h2>
   <p class="feature-lead">A flawless replica of your dev project</p>
-  <a href="#"><img src="//cdn2.hubspot.net/hubfs/1593820/video.png" width="1100" srcset="//cdn2.hubspot.net/hubfs/1593820/video.png, //cdn2.hubspot.net/hubfs/1593820/video_mobile.png 767w" alt="features video"></a>
+  <a href="#"><img src="{{ path }}/video.png" width="1100" srcset="{{ path }}/video.png, {{ path }}/video_mobile.png 767w" alt="features video"></a>
   <ul>
     <li>Cloud VM<br />Create</li>
     <li>Packages<br />Installed</li>
@@ -40,7 +41,7 @@ order: 10
 
     <div class="FeatureServices-cols">
       <div class="FeatureServices-cols--imageWrapper">
-        <img src="//cdn2.hubspot.net/hubfs/1593820/code.png" srcset="//cdn2.hubspot.net/hubfs/1593820/code2x.png 2x, //cdn2.hubspot.net/hubfs/1593820/services-1.png 767w"/>
+        <img src="{{ path }}/code.png" srcset="{{ path }}/code2x.png 2x, {{ path }}/services-1.png 767w"/>
       </div>
       <div>
         <h3>Integrate any service with a few lines of code.</h3>
@@ -48,7 +49,7 @@ order: 10
       </div>
     </div>
   </div>
-  <div class="FeatureServices-logos" style="background-image:url('//cdn2.hubspot.net/hubfs/1593820/services.png')"></div>
+  <div class="FeatureServices-logos" style="background-image:url('{{ path }}/services.png')"></div>
 </div>
 
 
@@ -62,33 +63,33 @@ order: 10
    column3="We don’t slice up hosting resources like LXC or Docker, so your environment will never be compromised." %}
 
 {% include home-logobar.html
-   logo1_src="//cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/company_logos/logo_aws.svg"
-   logo2_src="//cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/company_logos/logo_openstack.svg"
-   logo3_src="//cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/company_logos/logo_docker.svg"
-   logo4_src="//cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/company_logos/logo_digitalocean.svg"
-   logo5_src="//cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/company_logos/logo_github.svg"
-   logo6_src="//cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/company_logos/logo_gitlab.svg"
+   logo1_src="/assets/img/landing/company-logos/logo_aws.svg"
+   logo2_src="/assets/img/landing/company-logos/logo_openstack.svg"
+   logo3_src="/assets/img/landing/company-logos/logo_docker.svg"
+   logo4_src="/assets/img/landing/company-logos/logo_digitalocean.svg"
+   logo5_src="/assets/img/landing/company-logos/logo_github.svg"
+   logo6_src="/assets/img/landing/company-logos/logo_gitlab.svg"
    title="Seamless support for <strong>your favorite cloud providers</strong>"
    cssClass="features" %}
 
 {% include features-content.html
    title="Keep the terminal, IDE and shortcuts you love"
    paragraph="Koding for Teams uses a blazing-fast FUSE-based file system to simulate a local environment on whatever machine you’re using. So your development workflow stays local and familiar while you code entirely in the cloud."
-   image_below="//cdn2.hubspot.net/hubfs/1593820/terminal.png"
-   image_below_mobile="//cdn2.hubspot.net/hubfs/1593820/terminal-mobile.png"
+   image_below="/assets/img/landing/misc/terminal.png"
+   image_below_mobile="/assets/img/landing/misc/terminal-mobile.png"
    image_below_width="1840"
    image_below_height="822"
-   image1="//cdn2.hubspot.net/hubfs/1593820/img-local2x.png"
+   image1="/assets/img/landing/misc/img-local2x.png"
    image1_width="88"
    image1_height="88"
    title1="Looks and feels local. Takes up zero space."
    column1="Got a monster, terabyte-sized app? Access it on a personal laptop as easily as you would on cloud provisioned hardware."
-   image2="//cdn2.hubspot.net/hubfs/1593820/img-thumbdown2x.png"
+   image2="/assets/img/landing/misc/img-thumbdown2x.png"
    image2_width="88"
    image2_height="88"
    title2="Seamlessly develop in the cloud"
    column2="Stop stressing out over chronic connection timeouts and baffling host errors. Koding for Teams’ seamless cloud setup means you’ll never upload via FTP or scp again."
-   image3="//cdn2.hubspot.net/hubfs/1593820/img-console2x.png"
+   image3="/assets/img/landing/misc/img-console2x.png"
    image3_width="88"
    image3_height="88"
    title3="Coding in the browser is 100% optional."
@@ -98,20 +99,20 @@ order: 10
 {% include features-content.html
    title="Eliminate meetings: Achieve true flow."
    paragraph="Koding for Teams’ powerful collaboration tools allow developers to work together without having to resort to time-consuming meetings and conference calls."
-   image_above="http://cdn2.hubspot.net/hubfs/1593820/img-above.png"
+   image_above="http:/assets/img/landing/misc/img-above.png"
    image_above_width="700"
    image_above_height="686"
-   image1="http://cdn2.hubspot.net/hubfs/1593820/icon-click.png"
+   image1="http:/assets/img/landing/misc/icon-click.png"
    image1_width="100"
    image1_height="100"
    title1="Drag, drop and share your whole environment"
    column1="Stuck? Drag your entire workspace into a chat window and let someone else take a stab at it. Pair-program instantly (no screensharing or conference apps needed)."
-   image2="http://cdn2.hubspot.net/hubfs/1593820/icon-chat-1.png"
+   image2="http:/assets/img/landing/misc/icon-chat-1.png"
    image2_width="100"
    image2_height="100"
    title2="Stay connected via social channels"
    column2="Share ideas and solve problems via hashtag-based channels, private messaging, and real-time chat. Integrate updates from GitHub, Pivotal Tracker and more."
-   image3="http://cdn2.hubspot.net/hubfs/1593820/icon-video.png"
+   image3="http:/assets/img/landing/misc/icon-video.png"
    image3_width="100"
    image3_height="100"
    title3="Fire up video and audio while you code"

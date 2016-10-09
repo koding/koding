@@ -3,6 +3,9 @@ layout: empty
 title: Koding + GitLab
 permalink: /gitlab
 ---
+
+{% assign videoPath = site.url | append: '/assets/video/' %}
+
 <script src="https://use.typekit.net/iey3fid.js"></script>
 <script>try{Typekit.load({ async: true });}catch(e){}</script>
 <style type="text/css">{% include css/reset.css %}</style>
@@ -10,7 +13,7 @@ permalink: /gitlab
 
 <section class='MainSection MainSection-Hero'>
   <header>
-    <div><a class="KodingLogo" href="https://www.koding.com">Koding.com</a></div>
+    <div><a class="KodingLogo" href="{{ site.url }}">Koding.com</a></div>
     <div><a class="GitlabLogo" href="https://www.gitlab.com">GitLab.com</a></div>
   </header>
   <div class='MainSection-Wrapper'>
@@ -58,15 +61,15 @@ permalink: /gitlab
   <!-- <figure class='FloatingBox koding'>In order to contribute code you must first build your development environment</figure> -->
   <!-- <figure class='FloatingBox gitlab'>The blocks represent chunks of code in your GitLab repository</figure> -->
   <video id="blocksVideoWithKoding" preload="auto">
-          <source type='video/mp4;codecs="avc1.42E01E"' src="//cdn2.hubspot.net/hubfs/1593820/koding-gitlab/media/buildwithKoding.m4v"></source>
-    <source type='video/webm;codecs="vp8"' src="//cdn2.hubspot.net/hubfs/1593820/koding-gitlab/media/buildwithKoding.webm"></source>
-    <source type='video/ogg;codecs="theora"' src="//cdn2.hubspot.net/hubfs/1593820/koding-gitlab/media/buildwithKoding.ogv"></source>
+    <source type='video/mp4;codecs="avc1.42E01E"' src="{{ videoPath }}buildwithKoding.m4v"></source>
+    <source type='video/webm;codecs="vp8"' src="{{ videoPath }}buildwithKoding.webm"></source>
+    <source type='video/ogg;codecs="theora"' src="{{ videoPath }}buildwithKoding.ogv"></source>
     I'm sorry; your browser doesn't support HTML5 video in WebM with VP8 or MP4 with H.264.
   </video>
   <video id="blocksVideoWithoutKoding" preload="auto">
-    <source type='video/mp4;codecs="avc1.42E01E"' src="//cdn2.hubspot.net/hubfs/1593820/koding-gitlab/media/buildingbyhand.m4v"></source>
-    <source type='video/webm;codecs="vp8"' src="//cdn2.hubspot.net/hubfs/1593820/koding-gitlab/media/buildingbyhand.webm"></source>
-    <source type='video/ogg;codecs="theora"' src="//cdn2.hubspot.net/hubfs/1593820/koding-gitlab/media/buildingbyhand.ogv"></source>
+    <source type='video/mp4;codecs="avc1.42E01E"' src="{{ videoPath }}buildingbyhand.m4v"></source>
+    <source type='video/webm;codecs="vp8"' src="{{ videoPath }}buildingbyhand.webm"></source>
+    <source type='video/ogg;codecs="theora"' src="{{ videoPath }}buildingbyhand.ogv"></source>
     I'm sorry; your browser doesn't support HTML5 video in WebM with VP8 or MP4 with H.264.
   </video>
 </section>
@@ -104,10 +107,10 @@ permalink: /gitlab
 
     </div>
     <div class="MainSection-Try--appChrome">
-      <video id="tryVideo"  preload="auto" loop poster="//cdn2.hubspot.net/hubfs/1593820/koding-gitlab/img/productshot.jpg" controls>
-        <source type='video/mp4;codecs="avc1.42E01E, mp4a.40.2"' src="//cdn2.hubspot.net/hubfs/1593820/koding-gitlab/media/GitLab-Koding.m4v"></source>
-        <source type='video/webm;codecs="vp8, vorbis"' src="//cdn2.hubspot.net/hubfs/1593820/koding-gitlab/media/GitLab-Koding.webm"></source>
-        <source type='video/ogg;codecs="theora, vorbis"' src="//cdn2.hubspot.net/hubfs/1593820/koding-gitlab/media/GitLab-Koding.ogv"></source>
+      <video id="tryVideo"  preload="auto" loop poster="{{ site.url }}/assets/img/landing/gitlab/productshot.jpg" controls>
+        <source type='video/mp4;codecs="avc1.42E01E, mp4a.40.2"' src="{{ videoPath }}GitLab-Koding.m4v"></source>
+        <source type='video/webm;codecs="vp8, vorbis"' src="{{ videoPath }}GitLab-Koding.webm"></source>
+        <source type='video/ogg;codecs="theora, vorbis"' src="{{ videoPath }}GitLab-Koding.ogv"></source>
         I'm sorry; your browser doesn't support HTML5 video in WebM with VP8 or MP4 with H.264.
       </video>
     </div>

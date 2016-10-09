@@ -80,22 +80,22 @@
     <h3>{{ include.title }}</h3>
     <div class='Homepage-LogoBar--logos'>
       {% if include.logo1_src %}
-      <img src="{{ include.logo1_src }}" alt="{{ include.logo1_alt }}">
+      <img src="{{ site.url }}{{ include.logo1_src }}" alt="{{ include.logo1_alt }}">
       {% endif %}
       {% if include.logo2_src %}
-      <img src="{{ include.logo2_src }}" alt="{{ include.logo2_alt }}">
+      <img src="{{ site.url }}{{ include.logo2_src }}" alt="{{ include.logo2_alt }}">
       {% endif %}
       {% if include.logo3_src %}
-      <img src="{{ include.logo3_src }}" alt="{{ include.logo3_alt }}">
+      <img src="{{ site.url }}{{ include.logo3_src }}" alt="{{ include.logo3_alt }}">
       {% endif %}
       {% if include.logo4_src %}
-      <img src="{{ include.logo4_src }}" alt="{{ include.logo4_alt }}">
+      <img src="{{ site.url }}{{ include.logo4_src }}" alt="{{ include.logo4_alt }}">
       {% endif %}
       {% if include.logo5_src %}
-      <img src="{{ include.logo5_src }}" alt="{{ include.logo5_alt }}">
+      <img src="{{ site.url }}{{ include.logo5_src }}" alt="{{ include.logo5_alt }}">
       {% endif %}
       {% if include.logo6_src %}
-      <img src="{{ include.logo6_src }}" alt="{{ include.logo5_alt }}">
+      <img src="{{ site.url }}{{ include.logo6_src }}" alt="{{ include.logo5_alt }}">
       {% endif %}
     </div>
   </div>

@@ -1,3 +1,5 @@
+{% assign path = site.url | append: '/assets/img/landing/ufo-hero' %}
+
 main.Homepage-Hero {
   height: 565px;
   width: 100%;
@@ -13,7 +15,7 @@ main.Homepage-Hero {
 }
 .Homepage-Hero--Ground {
   position: absolute;
-  background: transparent url('http://cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/hero/ground_1600.svg') no-repeat center bottom;
+  background: transparent url('{{ path }}/ground_1600.svg') no-repeat center bottom;
   width: 100%;
   height: 334px;
   bottom: -67px;
@@ -22,7 +24,7 @@ main.Homepage-Hero {
 }
 .Homepage-Hero--UFO {
   position: absolute;
-  background: transparent url('http://cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/hero/ufo_1600.svg') no-repeat 90% bottom;
+  background: transparent url('{{ path }}/ufo_1600.svg') no-repeat 90% bottom;
   width: 100%;
   height: 528px;
   top: 40px;
@@ -88,7 +90,7 @@ main.Homepage-Hero {
 }
 
 @media (max-width: 1200px) {
-  
+
   main.Homepage-Hero {
     height: 413px;
   }
@@ -108,13 +110,13 @@ main.Homepage-Hero {
     margin-top: 9px;
   }
   .Homepage-Hero--Ground {
-    background: transparent url('http://cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/hero/ground_768.svg') no-repeat center bottom;
+    background: transparent url('{{ path }}/ground_768.svg') no-repeat center bottom;
     height: 248px;
     bottom: -50px;
     background-size: 1457px 248px;
   }
   .Homepage-Hero--UFO {
-    background: transparent url('http://cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/hero/ufo_1200.svg') no-repeat 90% bottom;
+    background: transparent url('{{ path }}/ufo_1200.svg') no-repeat 90% bottom;
     height: 528px;
     top: 40px;
     background-size: 1051px 528px;
@@ -123,7 +125,7 @@ main.Homepage-Hero {
 }
 
 @media (max-width: 768px) {
-  
+
   main.Homepage-Hero {
     height: calc(100vh - 87px - 57px); /* 87 for header - 57 for cta */
     max-height: 525px;
@@ -143,14 +145,14 @@ main.Homepage-Hero {
   }
   .Homepage-Hero--intro h1 {
     font-size: 23px;
-    line-height: 33px;        
+    line-height: 33px;
     max-width: 480px;
   }
   .Homepage-Hero--intro h2 {
     font-size: 17px;
     line-height: 26px;
   }
-  
+
   .Homepage-Hero--intro .hs_cos_wrapper.hs_cos_wrapper_widget {
     display: none;
   }
@@ -161,7 +163,7 @@ main.Homepage-Hero {
     display: none;
   }
   .Homepage-Hero--UFO {
-    background: transparent url('http://cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/hero/ground_ufo_375.svg') no-repeat center bottom;
+    background: transparent url('{{ path }}/ground_ufo_375.svg') no-repeat center bottom;
     height: 637px;
     background-size: 798px 637px;
     position: static;
@@ -170,6 +172,6 @@ main.Homepage-Hero {
   .Homepage-Hero .hs-form button {
     display: none !important;
   }
-  
+
 }
 
