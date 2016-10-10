@@ -15,7 +15,7 @@ function build() {
   make -C client dist
 }
 
-function start() {
+function run_backend() {
   configure
   ./run exec scripts/check-service-connectivity.sh || exit 255
   ./run migrate up
@@ -29,12 +29,12 @@ function tail_logs() {
 }
 
 if [[ -z "$*" || "${1:0:1}" = '-' ]]; then
-  start $*
+  run_backend $*
   tail_logs
 elif [ "$1" = "build" ]; then
   shift
   build $*
-  start $*
+  run_backend $*
   tail_logs
 else
   exec "$@"
