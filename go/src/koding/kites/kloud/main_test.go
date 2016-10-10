@@ -96,7 +96,6 @@ import (
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/pkg/dnsclient"
-	"koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/provider/softlayer"
 	"koding/kites/kloud/sshutil"
 	"koding/kites/kloud/stackplan"

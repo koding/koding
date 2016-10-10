@@ -3,9 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/siesta/neo4j"
-	"github.com/streadway/amqp"
-	"gopkg.in/mgo.v2"
 	"io/ioutil"
 	oldNeo "koding/databases/neo4j"
 	"koding/db/mongodb"
@@ -16,6 +13,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/siesta/neo4j"
+	"github.com/streadway/amqp"
+	"gopkg.in/mgo.v2"
 )
 
 var log = logger.New("sync")

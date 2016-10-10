@@ -3,8 +3,9 @@ package storage
 import (
 	"errors"
 	"fmt"
-	"github.com/koding/redis"
 	"time"
+
+	"github.com/koding/redis"
 
 	redigo "github.com/garyburd/redigo/redis"
 )
