@@ -472,6 +472,16 @@ func main() {
 						},
 					},
 				}, {
+					Name:   "use",
+					Usage:  "Set default stack credentials per provider.",
+					Action: ctlcli.ExitErrAction(CredentialUse, log, "use"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+					},
+				}, {
 					Name:   "create",
 					Usage:  "Create new stack credential.",
 					Action: ctlcli.ExitErrAction(CredentialCreate, log, "create"),
@@ -492,6 +502,10 @@ func main() {
 						cli.StringFlag{
 							Name:  "team, t",
 							Usage: "Specify team which the credential belongs to.",
+						},
+						cli.StringFlag{
+							Name:  "title",
+							Usage: "Title to use instead of a generated one.",
 						},
 						cli.BoolFlag{
 							Name:   "debug",
