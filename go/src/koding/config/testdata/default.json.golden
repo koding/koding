@@ -1,0 +1,90 @@
+{
+  "buckets": {
+    "publiclogs": [
+      {
+        "environment": [
+          "default"
+        ],
+        "name": "undefined",
+        "region": "default"
+      }
+    ]
+  },
+  "endpoints": {
+    "ip": [
+      {
+        "environment": [
+          "production",
+          "managed"
+        ],
+        "url": "https://p.koding.com/-/ip"
+      },
+      {
+        "environment": [
+          "default"
+        ],
+        "url": "https://dev-p2.koding.com/-/ip"
+      },
+      {
+        "environment": [
+          "dev",
+          "development",
+          "devmanaged",
+          "sandbox"
+        ],
+        "url": "https://dev-p2.koding.com/-/ip"
+      }
+    ],
+    "ipcheck": [
+      {
+        "environment": [
+          "production",
+          "managed"
+        ],
+        "url": "https://p.koding.com/-/ipcheck"
+      },
+      {
+        "environment": [
+          "default"
+        ],
+        "url": "https://dev-p2.koding.com/-/ipcheck"
+      },
+      {
+        "environment": [
+          "dev",
+          "development",
+          "devmanaged",
+          "sandbox"
+        ],
+        "url": "https://dev-p2.koding.com/-/ipcheck"
+      }
+    ],
+    "kloud": [
+      {
+        "environment": [
+          "default"
+        ],
+        "url": "http://94.254.191.51:8090/kloud/kite"
+      }
+    ],
+    "kontrol": [
+      {
+        "environment": [
+          "default"
+        ],
+        "url": "http://94.254.191.51:8090/kontrol/kite"
+      }
+    ],
+    "tunnelserver": [
+      {
+        "environment": [
+          "default"
+        ],
+        "url": "http:/dev-t.koding.com/kite"
+      }
+    ]
+  },
+  "routes": {
+    "dev.koding.com": "127.0.0.1"
+  }
+}
