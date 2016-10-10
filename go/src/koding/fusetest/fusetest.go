@@ -20,18 +20,18 @@ var (
 	// test is run one after another, so a depth test of 2 will run 0, and 1, and 2.
 	ReconnectDepths = map[uint]internet.ReconnectOpts{
 		// No reconnect testing. (default)
-		0: internet.ReconnectOpts{},
+		0: {},
 
 		// Disabled currently.
 		// A momentary disconnect, nothing should really lose connection and/or fail.
-		1: internet.ReconnectOpts{
+		1: {
 			PauseAfterDisconnect: 30 * time.Second,
 			PauseAfterConnect:    10 * time.Second,
 		},
 
 		// A full disconnect, long enough for kite to fully lose connection. Longer time
 		// to reconnect as well (due to backoffs/etc).
-		2: internet.ReconnectOpts{
+		2: {
 			PauseAfterDisconnect: 8 * time.Minute,
 			PauseAfterConnect:    2 * time.Minute,
 		},

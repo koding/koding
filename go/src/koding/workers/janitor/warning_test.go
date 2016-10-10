@@ -19,7 +19,7 @@ func TestReleaseUser(t *testing.T) {
 
 		warning := &Warning{
 			ID:     "warning",
-			Select: []bson.M{bson.M{"username": user.Name}},
+			Select: []bson.M{{"username": user.Name}},
 		}
 
 		_, err = warning.FindAndLockUser()
@@ -53,7 +53,7 @@ func TestLockAndReleaseUser(t *testing.T) {
 
 		warning := &Warning{
 			ID:     "warning",
-			Select: []bson.M{bson.M{"username": user.Name}},
+			Select: []bson.M{{"username": user.Name}},
 		}
 
 		Convey("Then it shouldn't user if it was processed today", func() {

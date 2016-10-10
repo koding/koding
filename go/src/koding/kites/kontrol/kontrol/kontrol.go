@@ -112,7 +112,7 @@ func New(c *Config) *kontrol.Kontrol {
 		kon.SetKeyPairStorage(s)
 		// kon.MachineKeyPicker = newMachineKeyPicker(p)
 	default:
-		panic(fmt.Sprintf("storage is not found: '%'", c.Storage))
+		panic(fmt.Sprintf("storage is not found: %q", c.Storage))
 	}
 
 	kon.AddKeyPair("", string(publicKey), string(privateKey))

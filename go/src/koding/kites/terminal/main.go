@@ -28,7 +28,7 @@ func main() {
 
 	flag.Parse()
 	if *flagProfile == "" || *flagRegion == "" {
-		log.Fatal("Please specify profile via -c and region via -r. Aborting.")
+		log.Fatalf("Please specify profile via -c and region via -r. Aborting.")
 	}
 
 	var logLevel logger.Level

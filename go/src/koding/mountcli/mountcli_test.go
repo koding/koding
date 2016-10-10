@@ -28,12 +28,12 @@ func generateBinRunner(s string) func(string, string) (string, error) {
 
 func TestMount(t *testing.T) {
 	clis := map[string]*Mountcli{
-		"Darwin": &Mountcli{
+		"Darwin": {
 			binRunner: generateBinRunner(inputDarwin),
 			matcher:   regexp.MustCompile("^(.*?) on (.*?) \\(osxfusefs,"),
 			filterTag: "osxfusefs",
 		},
-		"Linux": &Mountcli{
+		"Linux": {
 			binRunner: generateBinRunner(inputLinux),
 			matcher:   regexp.MustCompile("^(.*?) on (.*?) type fuse"),
 			filterTag: "fuse",

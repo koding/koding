@@ -211,7 +211,7 @@ func (p *PubNub) grantAccess(s *pubnub.AuthSettings) error {
 
 	var err error
 	tryCount := 0
-	for _ = range ticker.C {
+	for range ticker.C {
 		if err = p.grant.Grant(s); err != nil {
 			tryCount++
 			p.log.Error("Could not grant access: %s  will retry... (%d time(s))", err, tryCount)
@@ -233,7 +233,7 @@ func (p *PubNub) publish(c ChannelManager, message interface{}) error {
 
 	var err error
 	tryCount := 0
-	for _ = range ticker.C {
+	for range ticker.C {
 		if err = p.pub.Push(c.PrepareName(), message); err != nil {
 			tryCount++
 			p.log.Error("Could not publish message: %s  will retry... (%d time(s))", err, tryCount)

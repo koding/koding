@@ -1,17 +1,17 @@
 package models
 
 var GroupChannelPermissions = map[string]Permission{
-	REQUEST_NAME_MESSAGE_UPDATE: Permission{
+	REQUEST_NAME_MESSAGE_UPDATE: {
 		Name:           REQUEST_NAME_MESSAGE_UPDATE,
 		StatusConstant: Permission_STATUS_ALLOWED,
 	},
 
-	REQUEST_NAME_MESSAGE_DELETE: Permission{
+	REQUEST_NAME_MESSAGE_DELETE: {
 		Name:           REQUEST_NAME_MESSAGE_DELETE,
 		StatusConstant: Permission_STATUS_ALLOWED,
 	},
 
-	REQUEST_NAME_MESSAGE_GET: Permission{
+	REQUEST_NAME_MESSAGE_GET: {
 		Name:           REQUEST_NAME_MESSAGE_GET,
 		StatusConstant: Permission_STATUS_ALLOWED,
 	},

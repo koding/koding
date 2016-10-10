@@ -14,8 +14,9 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/koding/kite"
 	"koding/klient/terminal/pty"
+
+	"github.com/koding/kite"
 )
 
 type Terminal struct {

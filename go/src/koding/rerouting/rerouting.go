@@ -38,7 +38,7 @@ func main() {
 	var err error
 	producer, err = createProducer()
 	if err != nil {
-		log.Fatal("create producer: %v", err)
+		log.Fatal("create producer ", err)
 	}
 
 	defaultPublishingExchange = "broker"
@@ -78,20 +78,20 @@ func startRouting() {
 
 	err = c.Channel.ExchangeDeclare("routing-control", "fanout", false, true, false, false, nil)
 	if err != nil {
-		log.Fatal("exchange.declare: %s", err)
+		log.Fatal("exchange.declare: ", err)
 	}
 
 	if _, err := c.Channel.QueueDeclare("", false, true, false, false, nil); err != nil {
-		log.Fatal("queue.declare: %s", err)
+		log.Fatal("queue.declare: ", err)
 	}
 
 	if err := c.Channel.QueueBind("", "", "routing-control", false, nil); err != nil {
-		log.Fatal("queue.bind: %s", err)
+		log.Fatal("queue.bind: ", err)
 	}
 
 	authStream, err := c.Channel.Consume("", "", true, false, false, false, nil)
 	if err != nil {
-		log.Fatal("basic.consume: %s", err)
+		log.Fatal("basic.consume: ", err)
 	}
 
 	log.Info("routing started...")

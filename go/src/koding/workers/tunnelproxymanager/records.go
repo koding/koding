@@ -202,7 +202,7 @@ func (r *RecordManager) UpsertRecordSet(instances []*string) error {
 			// contains one Change element for each resource record set that you
 			// want to create or delete.
 			Changes: []*route53.Change{
-				&route53.Change{
+				{
 					Action: aws.String("UPSERT"),
 					ResourceRecordSet: &route53.ResourceRecordSet{
 						// The domain name of the current resource record set.

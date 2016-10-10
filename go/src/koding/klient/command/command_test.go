@@ -1,11 +1,12 @@
 package command
 
 import (
-	"github.com/koding/kite"
-	. "github.com/smartystreets/goconvey/convey"
 	"koding/klient/kiteerrortypes"
 	"os/exec"
 	"testing"
+
+	"github.com/koding/kite"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestNewOutput(t *testing.T) {

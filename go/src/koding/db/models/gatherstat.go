@@ -15,7 +15,7 @@ type GatherError struct {
 	Env        string        `bson:"env" json:"env"`
 	Username   string        `bson:"username" json:"username"`
 	InstanceId string        `bson:"instanceId" json:"instanceId"`
-	Error      string        `bson:"error" json:error`
+	Error      string        `bson:"error" json:"error"`
 }
 
 type GatherSingleStat struct {

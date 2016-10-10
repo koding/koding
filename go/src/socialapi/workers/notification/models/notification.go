@@ -121,9 +121,9 @@ func (n *Notification) fetchByAccountId(q *request.Query) ([]Notification, error
 	var notifications []Notification
 	err := bongo.B.DB.Table(n.BongoName()).
 		Where(
-		"NOT (activated_at IS NULL OR activated_at <= '0001-01-02')"+
-			"AND account_id = ?"+
-			"AND context_channel_id = ?", q.AccountId, q.GroupChannelId).
+			"NOT (activated_at IS NULL OR activated_at <= '0001-01-02')"+
+				"AND account_id = ?"+
+				"AND context_channel_id = ?", q.AccountId, q.GroupChannelId).
 		Order("activated_at desc").
 		Limit(q.Limit).
 		Find(&notifications).Error

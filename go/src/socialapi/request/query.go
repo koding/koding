@@ -37,7 +37,7 @@ type Query struct {
 	Slug                 string    `url:"slug"`
 	SortOrder            string    `url:"sortOrder"`
 	ShowExempt           bool      `url:"showExempt"`
-	ShowModerationNeeded bool      `url:showModerationNeeded`
+	ShowModerationNeeded bool      `url:"showModerationNeeded"`
 	ReplyLimit           int       `url:"replyLimit"`
 	ReplySkip            int       `url:"replySkip"`
 	AddIsInteracted      bool      `url:"addIsInteracted"`

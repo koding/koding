@@ -78,7 +78,7 @@ func main() {
 
 	mountName := flag.Arg(0)
 	if mountName == "" {
-		log.Fatal("Pass machine name as arguments to run tests.")
+		log.Fatalf("Pass machine name as arguments to run tests.")
 	}
 
 	opts := fusetest.FusetestOpts{

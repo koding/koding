@@ -137,8 +137,6 @@ func (c *context) Shutdown() error {
 			return nil
 		}
 	}
-
-	return nil
 }
 
 func (c *context) createShutdownChan(contentID string) (<-chan struct{}, error) {

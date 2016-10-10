@@ -103,7 +103,7 @@ func (t *TagInstances) Process() {
 func (t *TagInstances) Run() {
 	count := 0
 	for _, instances := range t.untagged {
-		for _, _ = range instances {
+		for range instances {
 			count++
 		}
 	}
