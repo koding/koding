@@ -31,10 +31,13 @@ function tail_logs() {
 }
 
 if [[ -z "$*" || "${1:0:1}" = '-' ]]; then
-  start && tail_logs
+  start
+  tail_logs
 elif [ "$1" = "build" ]; then
   shift
-  build && start && tail_logs
+  build
+  start
+  tail_logs
 else
   exec "$@"
 fi
