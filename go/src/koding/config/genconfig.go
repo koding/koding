@@ -13,21 +13,32 @@ import (
 	config "."
 )
 
+type group int
+
 // envGroups describes relations between environments. Since some of them can
 // share identical configuration values.
-type envGroups [][]string
+type envGroups map[bool][][]string
 
-var defaultGroups envGroups = [][]string{
-	{"default"}, // local builds.
-	{"dev", "development", "devmanaged", "sandbox"}, // development builds.
-	{"production", "managed"},                       // production builds.
+var defaultGroups envGroups = map[bool][][]string{
+	true: {
+		{"default"}, // local builds.
+		{"dev", "development", "sandbox", "devmanaged"}, // development builds.
+		{"production", "managed"},                       // production builds.
+	},
+	false: {
+		{"default"},                       // local builds.
+		{"dev", "development", "sandbox"}, // development builds.
+		{"devmanaged"},                    // development managed builds.
+		{"production"},                    // production builds.
+		{"managed"},                       // production managed.
+	},
 }
 
 // Get gets the environment group. If defaultGroups variable doesn't have
 // specified environment, returned slice will contain one element equal to
 // provided function argument.
-func (e envGroups) Get(environment string) []string {
-	for _, dg := range defaultGroups {
+func (e envGroups) Get(withManaged bool, environment string) []string {
+	for _, dg := range defaultGroups[withManaged] {
 		for i := range dg {
 			if dg[i] == environment {
 				return dg
@@ -41,10 +52,10 @@ func (e envGroups) Get(environment string) []string {
 // bucketEnv produces configuration constructor function that can create
 // configuration with single bucket. Bucket data is taken from system
 // environment.
-func bucketEnv(name, bucketEnv, regionEnv string) func(string) *config.Config {
+func bucketEnv(withManaged bool, name, bucketEnv, regionEnv string) func(string) *config.Config {
 	return func(environment string) *config.Config {
 		bucket := &config.Bucket{
-			Environment: defaultGroups.Get(environment),
+			Environment: defaultGroups.Get(withManaged, environment),
 			Name:        os.Getenv(bucketEnv),
 			Region:      os.Getenv(regionEnv),
 		}
@@ -66,10 +77,10 @@ func bucketEnv(name, bucketEnv, regionEnv string) func(string) *config.Config {
 // endpointEnv produces configuration constructor function that can create
 // configuration with single endpoint. Endpoint data is taken from system
 // environment.
-func endpointEnv(name, urlEnv, urlPath string) func(string) *config.Config {
+func endpointEnv(withManaged bool, name, urlEnv, urlPath string) func(string) *config.Config {
 	return func(environment string) *config.Config {
 		endpoint := &config.Endpoint{
-			Environment: defaultGroups.Get(environment),
+			Environment: defaultGroups.Get(withManaged, environment),
 			URL:         os.Getenv(urlEnv),
 		}
 
@@ -94,10 +105,10 @@ func endpointEnv(name, urlEnv, urlPath string) func(string) *config.Config {
 // endpointDefault produces configuration constructor function that can create
 // configuration with single endpoint. Endpoint data is taken from function
 // arguments.
-func endpointDefault(name, environment, url string) func(string) *config.Config {
+func endpointDefault(withManaged bool, name, environment, url string) func(string) *config.Config {
 	return func(_ string) *config.Config {
 		endpoint := &config.Endpoint{
-			Environment: defaultGroups.Get(environment),
+			Environment: defaultGroups.Get(withManaged, environment),
 			URL:         url,
 		}
 
@@ -126,17 +137,28 @@ func routeDefault(name, addr string) func(string) *config.Config {
 // TODO(ppknap): All *Default constructors should be moved to environment and
 // handled by ./configure script.
 var constructors = []func(string) *config.Config{
-	endpointDefault("ip", "production", "https://p.koding.com/-/ip"),
-	endpointDefault("ip", "default", "https://dev-p2.koding.com/-/ip"),
-	endpointDefault("ip", "development", "https://dev-p2.koding.com/-/ip"),
-	endpointDefault("ipcheck", "production", "https://p.koding.com/-/ipcheck"),
-	endpointDefault("ipcheck", "default", "https://dev-p2.koding.com/-/ipcheck"),
-	endpointDefault("ipcheck", "development", "https://dev-p2.koding.com/-/ipcheck"),
+	endpointDefault(true, "ip", "production", "https://p.koding.com/-/ip"),
+	endpointDefault(true, "ip", "default", "https://dev-p2.koding.com/-/ip"),
+	endpointDefault(true, "ip", "development", "https://dev-p2.koding.com/-/ip"),
+	endpointDefault(true, "ipcheck", "production", "https://p.koding.com/-/ipcheck"),
+	endpointDefault(true, "ipcheck", "default", "https://dev-p2.koding.com/-/ipcheck"),
+	endpointDefault(true, "ipcheck", "development", "https://dev-p2.koding.com/-/ipcheck"),
+	endpointDefault(true, "kd-latest", "production", "https://koding-kd.s3.amazonaws.com/production/latest-version.txt"),
+	endpointDefault(true, "kd-latest", "default", "https://koding-kd.s3.amazonaws.com/development/latest-version.txt"),
+	endpointDefault(true, "kd-latest", "development", "https://koding-kd.s3.amazonaws.com/development/latest-version.txt"),
+	endpointDefault(false, "klient-latest", "default", "https://koding-klient.s3.amazonaws.com/development/latest-version.txt"),
+	endpointDefault(false, "klient-latest", "production", "https://koding-klient.s3.amazonaws.com/production/latest-version.txt"),
+	endpointDefault(false, "klient-latest", "managed", "https://koding-klient.s3.amazonaws.com/managed/latest-version.txt"),
+	endpointDefault(false, "klient-latest", "development", "https://koding-klient.s3.amazonaws.com/development/latest-version.txt"),
+	endpointDefault(false, "klient-latest", "devmanaged", "https://koding-klient.s3.amazonaws.com/devmanaged/latest-version.txt"),
+
 	routeDefault("dev.koding.com", "127.0.0.1"),
-	bucketEnv("publiclogs", "KONFIG_KLOUD_KEYGENBUCKET", "KONFIG_KLOUD_REGION"),
-	endpointEnv("kloud", "KONFIG_KLOUD_REGISTERURL", ""),
-	endpointEnv("kontrol", "KONFIG_KLOUD_KONTROLURL", ""),
-	endpointEnv("tunnelserver", "KONFIG_KLOUD_TUNNELURL", "/kite"),
+
+	bucketEnv(true, "publiclogs", "KONFIG_KLOUD_KEYGENBUCKET", "KONFIG_KLOUD_REGION"),
+
+	endpointEnv(true, "kloud", "KONFIG_KLOUD_REGISTERURL", ""),
+	endpointEnv(true, "kontrol", "KONFIG_KLOUD_KONTROLURL", ""),
+	endpointEnv(true, "tunnelserver", "KONFIG_KLOUD_TUNNELURL", "/kite"),
 }
 
 var output = flag.String("o", "-", "")

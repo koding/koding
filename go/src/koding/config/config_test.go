@@ -104,6 +104,10 @@ func readEnv(path string) (env []string, err error) {
 		return nil, err
 	}
 
+	if env == nil {
+		env = []string{"GO_CONFIG_TEST_NO_ENV=1"}
+	}
+
 	return env, nil
 }
 

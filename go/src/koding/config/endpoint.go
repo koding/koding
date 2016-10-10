@@ -64,10 +64,26 @@ func (e Endpoints) merge(in Endpoints) {
 			endpoints = append(endpoints, inendpoint)
 		}
 
+		// Merge environments which have the same endpoints.
+		for i := 0; i < len(endpoints); i++ {
+			if endpoints[i] == nil {
+				continue
+			}
+			for j := i + 1; j < len(endpoints); j++ {
+				if endpoints[j] == nil {
+					continue
+				}
+				if endpoints[i].URL == endpoints[j].URL {
+					endpoints[i].Environment = append(endpoints[i].Environment, endpoints[j].Environment...)
+					endpoints[j] = nil
+				}
+			}
+		}
+
 		// Remove endpoints with empty environments.
 		var outendpoints []*Endpoint
 		for _, endpoint := range endpoints {
-			if len(endpoint.Environment) != 0 {
+			if endpoint != nil && len(endpoint.Environment) != 0 {
 				outendpoints = append(outendpoints, endpoint)
 			}
 		}

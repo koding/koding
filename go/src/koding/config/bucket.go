@@ -59,10 +59,26 @@ func (b Buckets) merge(in Buckets) {
 			buckets = append(buckets, inbucket)
 		}
 
-		// Remove buckets with empty environments.
+		// Merge environments which have the same buckets.
+		for i := 0; i < len(buckets); i++ {
+			if buckets[i] == nil {
+				continue
+			}
+			for j := i + 1; j < len(buckets); j++ {
+				if buckets[j] == nil {
+					continue
+				}
+				if buckets[i].Name == buckets[j].Name && buckets[i].Region == buckets[j].Region {
+					buckets[i].Environment = append(buckets[i].Environment, buckets[j].Environment...)
+					buckets[j] = nil
+				}
+			}
+		}
+
+		// Remove nil buckets or these with empty environments.
 		var outbuckets []*Bucket
 		for _, bucket := range buckets {
-			if len(bucket.Environment) != 0 {
+			if bucket != nil && len(bucket.Environment) != 0 {
 				outbuckets = append(outbuckets, bucket)
 			}
 		}

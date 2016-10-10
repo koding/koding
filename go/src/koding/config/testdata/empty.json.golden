@@ -3,13 +3,10 @@
     "publiclogs": [
       {
         "environment": [
-          "dev",
-          "development",
-          "devmanaged",
-          "sandbox"
+          "default"
         ],
-        "name": "kodingdev-publiclogs",
-        "region": "us-east-1"
+        "name": "",
+        "region": ""
       }
     ]
   },
@@ -24,16 +21,11 @@
       },
       {
         "environment": [
-          "default"
-        ],
-        "url": "https://dev-p2.koding.com/-/ip"
-      },
-      {
-        "environment": [
+          "default",
           "dev",
           "development",
-          "devmanaged",
-          "sandbox"
+          "sandbox",
+          "devmanaged"
         ],
         "url": "https://dev-p2.koding.com/-/ip"
       }
@@ -48,51 +40,61 @@
       },
       {
         "environment": [
-          "default"
+          "default",
+          "dev",
+          "development",
+          "sandbox",
+          "devmanaged"
         ],
         "url": "https://dev-p2.koding.com/-/ipcheck"
+      }
+    ],
+    "kd-latest": [
+      {
+        "environment": [
+          "production",
+          "managed"
+        ],
+        "url": "https://koding-kd.s3.amazonaws.com/production/latest-version.txt"
       },
       {
         "environment": [
+          "default",
           "dev",
           "development",
-          "devmanaged",
-          "sandbox"
+          "sandbox",
+          "devmanaged"
         ],
-        "url": "https://dev-p2.koding.com/-/ipcheck"
+        "url": "https://koding-kd.s3.amazonaws.com/development/latest-version.txt"
       }
     ],
-    "kloud": [
+    "klient-latest": [
       {
         "environment": [
+          "default",
           "dev",
           "development",
-          "devmanaged",
           "sandbox"
         ],
-        "url": "https://sandbox.koding.com/kloud/kite"
-      }
-    ],
-    "kontrol": [
+        "url": "https://koding-klient.s3.amazonaws.com/development/latest-version.txt"
+      },
       {
         "environment": [
-          "dev",
-          "development",
-          "devmanaged",
-          "sandbox"
+          "production"
         ],
-        "url": "https://sandbox.koding.com/kontrol/kite"
-      }
-    ],
-    "tunnelserver": [
+        "url": "https://koding-klient.s3.amazonaws.com/production/latest-version.txt"
+      },
       {
         "environment": [
-          "dev",
-          "development",
-          "devmanaged",
-          "sandbox"
+          "managed"
         ],
-        "url": "http:/dev-t.koding.com/kite"
+        "url": "https://koding-klient.s3.amazonaws.com/managed/latest-version.txt"
+      },
+      {
+        "environment": [
+          "devmanaged"
+        ],
+        "url": "https://koding-klient.s3.amazonaws.com/devmanaged/latest-version.txt"
       }
     ]
   },
