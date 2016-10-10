@@ -39,7 +39,7 @@ func main() {
 
 	err := mongodb.Run("relationships", createQuery(amqpChannel))
 	if err != nil {
-		log.Fatal("Connecting to Mongo: %v", err)
+		log.Fatalf("Connecting to Mongo: %v", err)
 	}
 }
 

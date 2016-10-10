@@ -102,7 +102,7 @@ func realMain() error {
 		return fmt.Errorf("error creating %q user: %s", val.Username, err)
 	}
 
-	log.Println(">> Installing klient from URL: %s", val.LatestKlientURL)
+	log.Printf(">> Installing klient from URL: %s\n", val.LatestKlientURL)
 	if err := installKlient(val); err != nil {
 		return fmt.Errorf("error installing klient: %s", err)
 	}

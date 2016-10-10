@@ -368,8 +368,6 @@ func (c *sockJSClient) SendAndExpect(sent []byte, expected []byte) error {
 			return nil
 		}
 	}
-
-	return nil
 }
 
 func RandomStringLength(length int) string {

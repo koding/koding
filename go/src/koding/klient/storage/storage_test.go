@@ -58,7 +58,7 @@ func init() {
 	remote = remoteKite.NewClient("http://127.0.0.1:3637/kite")
 	err = remote.Dial()
 	if err != nil {
-		log.Fatal("err")
+		log.Fatalf("err")
 	}
 }
 

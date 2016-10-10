@@ -54,7 +54,7 @@ func main() {
 
 	err := helpers.Iter(helper.Mongo, iterOptions)
 	if err != nil {
-		log.Fatal("Error while iter: %v", err)
+		log.Fatal("Error while iter: ", err)
 	}
 	log.Info("Guest cleaner worker finished")
 }

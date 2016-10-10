@@ -45,7 +45,7 @@ func main() {
 	if *flagRegisterURL != "" {
 		u, err := url.Parse(*flagRegisterURL)
 		if err != nil {
-			k.Log.Fatal("Couldn't parse register url: %s", err)
+			k.log.Fatalf("Couldn't parse register url: %s", err)
 		}
 
 		registerURL = u

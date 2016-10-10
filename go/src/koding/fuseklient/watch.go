@@ -165,8 +165,6 @@ func WatchForRemoteChanges(dir *Dir, watcher Watcher) error {
 			return err
 		}
 	}
-
-	return nil
 }
 
 func (f *FindWatcher) tickerFn(resChan chan string, errChan chan error) {

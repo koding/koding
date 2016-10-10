@@ -341,7 +341,7 @@ func (c *Container) Resize(sizeInMB int) error {
 
 	out, err := r.Resize(sizeInMB)
 	if err != nil {
-		return fmt.Errorf("resize disk failed.", err, out)
+		return fmt.Errorf("resize disk failed. %s, %+v", err, out)
 	}
 
 	out, err = exec.Command("/sbin/resize2fs", r.DevicePath).CombinedOutput()

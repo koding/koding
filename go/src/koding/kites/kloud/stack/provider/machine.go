@@ -65,7 +65,7 @@ func (bm *BaseMachine) HandleStart(ctx context.Context) error {
 	currentState = machinestate.Running
 
 	if err := bm.updateMachine(dialState, meta, currentState); err != nil {
-		return fmt.Errorf("failed to update machine: ", err)
+		return fmt.Errorf("failed to update machine: %s", err)
 	}
 
 	return nil
@@ -111,7 +111,7 @@ func (bm *BaseMachine) HandleStop(ctx context.Context) error {
 	}
 
 	if err := bm.updateMachine(nil, meta, currentState); err != nil {
-		return fmt.Errorf("failed to update machine: ", err)
+		return fmt.Errorf("failed to update machine: %s", err)
 	}
 
 	return nil

@@ -476,7 +476,7 @@ func validateVM(vm *models.VM) error {
 
 func validateUser(user *models.User) error {
 	if user.Uid < container.UserUIDOffset {
-		return fmt.Errorf("User %s with too low uid: %s\n", user.Name, user.Uid)
+		return fmt.Errorf("User %q with too low uid: %d\n", user.Name, user.Uid)
 	}
 
 	return nil
