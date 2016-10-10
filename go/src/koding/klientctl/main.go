@@ -430,6 +430,18 @@ func main() {
 					Action: ctlcli.ExitErrAction(CredentialImport, log, "import"),
 					Flags: []cli.Flag{
 						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+						cli.StringFlag{
+							Name:  "provider",
+							Usage: "Specify credential provider.",
+						},
+						cli.StringFlag{
+							Name:  "team",
+							Usage: "Specify team which the credential belongs to.",
+						},
+						cli.BoolFlag{
 							Name:   "debug",
 							Usage:  "Turn on debug logging.",
 							Hidden: true,
@@ -448,6 +460,10 @@ func main() {
 						cli.StringFlag{
 							Name:  "provider",
 							Usage: "Specify credential provider.",
+						},
+						cli.StringFlag{
+							Name:  "team",
+							Usage: "Specify team which the credential belongs to.",
 						},
 						cli.BoolFlag{
 							Name:   "debug",

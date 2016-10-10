@@ -63,7 +63,7 @@ type CredentialItem struct {
 }
 
 type CredentialListResponse struct {
-	Credentials map[string][]CredentialItem
+	Credentials map[string][]CredentialItem `json:"credentials"`
 }
 
 type CredentialAddRequest struct {
