@@ -4,6 +4,10 @@ module.exports.create = (KONFIG, options = {}) ->
   env = ''
 
   add = (name, value) ->
+    # Escape $ sign when it precedes lower-case character which means that this
+    # is not a bash variable but nginx one.
+    value = (value.replace /(\$)[a-z0-9]/g, (match) -> "\\#{match}") if typeof value is 'string'
+
     env += "export #{name}=${#{name}:-#{value}}\n"
 
   traverse.paths(KONFIG).forEach (path) ->
