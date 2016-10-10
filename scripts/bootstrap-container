@@ -22,20 +22,15 @@ function run_backend() {
   nginx -c $(pwd)/nginx.conf
   ./run exec supervisord -c supervisord.conf
   sleep 2
-}
-
-function tail_logs() {
   tail --follow --lines +0 --quiet .logs/*.log
 }
 
 if [[ -z "$*" || "${1:0:1}" = '-' ]]; then
   run_backend $*
-  tail_logs
 elif [ "$1" = "build" ]; then
   shift
   build $*
   run_backend $*
-  tail_logs
 else
   exec "$@"
 fi
