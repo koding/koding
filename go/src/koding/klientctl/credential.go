@@ -204,7 +204,6 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 	cred := stack.CredentialItem{
 		Identifier: resp.Identifier,
 		Title:      resp.Title,
-		Team:       req.Team,
 	}
 
 	fmt.Printf("Created %q credential with %s identifier.\n", cred.Title, cred.Identifier)

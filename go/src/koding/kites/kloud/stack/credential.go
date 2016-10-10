@@ -173,18 +173,16 @@ func (k *Kloud) CredentialAdd(r *kite.Request) (interface{}, error) {
 		Team:     req.Team,
 	}
 
-	var data interface{}
-
 	cred := p.NewCredential()
 	boot := p.NewBootstrap()
 
 	if boot != nil {
-		data = object.Inline(cred, boot)
+		c.Data = object.Inline(cred, boot)
 	} else {
-		data = cred
+		c.Data = cred
 	}
 
-	if err := json.Unmarshal(req.Data, data); err != nil {
+	if err := json.Unmarshal(req.Data, c.Data); err != nil {
 		return nil, err
 	}
 
