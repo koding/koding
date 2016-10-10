@@ -15,6 +15,7 @@ func Describe(v interface{}) ([]stack.Value, error) {
 	}
 
 	typ := reflect.TypeOf(v)
+	val := reflect.ValueOf(v)
 
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
@@ -42,11 +43,21 @@ func Describe(v interface{}) ([]stack.Value, error) {
 			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
 			reflect.Float32, reflect.Float64:
 			v.Type = "integer"
+		case reflect.Slice:
+			if fTyp.Elem().Kind() == reflect.Int8 {
+				v.Type = "file"
+			}
 		case reflect.String:
 			v.Type = "string"
 		case reflect.Map:
 			v.Type = "object" // TODO(rjeczalik): this may be not needed
 		default:
+			if enumer, ok := val.Field(i).Interface().(stack.Enumer); ok {
+				v.Type = "enum"
+				v.Values = enumer.Enum()
+				break
+			}
+
 			return nil, fmt.Errorf("unsupported type of %q field: %s", f.Name, f.Type)
 		}
 

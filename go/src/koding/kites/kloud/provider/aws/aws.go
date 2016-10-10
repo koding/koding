@@ -80,7 +80,7 @@ func newMetadata(m *stack.Machine) interface{} {
 	}
 
 	if cred, ok := m.Credential.Credential.(*Cred); ok {
-		meta.Region = cred.Region
+		meta.Region = string(cred.Region)
 	}
 
 	return meta
@@ -90,7 +90,7 @@ func newMetadata(m *stack.Machine) interface{} {
 type Cred struct {
 	AccessKey string `json:"access_key" bson:"access_key" hcl:"access_key" kloud:"Access Key ID,secret"`
 	SecretKey string `json:"secret_key" bson:"secret_key" hcl:"secret_key" kloud:"Secret Access Key,secret"`
-	Region    string `json:"region" bson:"region" hcl:"region" kloud:"Region"`
+	Region    Region `json:"region" bson:"region" hcl:"region" kloud:"Region"`
 }
 
 var _ stack.Validator = (*Cred)(nil)
@@ -149,7 +149,7 @@ func (c *Cred) Credentials() *credentials.Credentials {
 func (c *Cred) Options() *amazon.ClientOptions {
 	return &amazon.ClientOptions{
 		Credentials: c.Credentials(),
-		Region:      c.Region,
+		Region:      string(c.Region),
 	}
 }
 
@@ -196,6 +196,26 @@ func (meta *Cred) Valid() error {
 		return errors.New("aws meta: secret key is empty")
 	}
 	return nil
+}
+
+var regions = []stack.Enum{
+	{Title: "US East (N. Virginia) (us-east-1)", Value: "us-east-1"},
+	{Title: "US West (Oregon) (us-west-2)", Value: "us-west-2"},
+	{Title: "US West (N. California) (us-west-1)", Value: "us-west-1"},
+	{Title: "EU (Ireland) (eu-west-1)", Value: "eu-west-1"},
+	{Title: "EU (Frankfurt) (eu-central-1)", Value: "eu-central-1"},
+	{Title: "Asia Pacific (Singapore) (ap-southeast-1)", Value: "ap-southeast-1"},
+	{Title: "Asia Pacific (Sydney) (ap-southeast-2)", Value: "ap-southeast-2"},
+	{Title: "Asia Pacific (Tokyo) (ap-northeast-1)", Value: "ap-northeast-1"},
+	{Title: "South America (Sao Paulo) (sa-east-1)", Value: "sa-east-1"},
+}
+
+type Region string
+
+var _ stack.Enumer = Region("")
+
+func (Region) Enum() []stack.Enum {
+	return regions
 }
 
 // The function assumes arn string comes from an IAM resource, as

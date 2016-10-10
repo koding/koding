@@ -27,15 +27,11 @@ type Description struct {
 }
 
 type Enumer interface {
-	Enum() []*Enum
-}
-
-type EnumTitler interface {
-	Title() string
+	Enum() []Enum
 }
 
 type Enum struct {
-	Title string      `json:"title"`
+	Title string      `json:"title,omitempty"`
 	Value interface{} `json:"value"`
 }
 
