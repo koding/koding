@@ -53,6 +53,8 @@ func (e envGroups) Get(withManaged bool, environment string) []string {
 // configuration with single bucket. Bucket data is taken from system
 // environment.
 func bucketEnv(withManaged bool, name, bucketEnv, regionEnv string) func(string) *config.Config {
+	// All provided environment keys are required to exist.
+	mustEnvVar(bucketEnv, regionEnv)
 	return func(environment string) *config.Config {
 		bucket := &config.Bucket{
 			Environment: defaultGroups.Get(withManaged, environment),
@@ -78,6 +80,8 @@ func bucketEnv(withManaged bool, name, bucketEnv, regionEnv string) func(string)
 // configuration with single endpoint. Endpoint data is taken from system
 // environment.
 func endpointEnv(withManaged bool, name, urlEnv, urlPath string) func(string) *config.Config {
+	// All provided environment keys are required to exist.
+	mustEnvVar(urlEnv)
 	return func(environment string) *config.Config {
 		endpoint := &config.Endpoint{
 			Environment: defaultGroups.Get(withManaged, environment),
@@ -128,6 +132,14 @@ func routeDefault(name, addr string) func(string) *config.Config {
 			Routes: map[string]string{
 				name: addr,
 			},
+		}
+	}
+}
+
+func mustEnvVar(keys ...string) {
+	for _, key := range keys {
+		if _, ok := os.LookupEnv(key); !ok {
+			panic("missing environment key for " + key)
 		}
 	}
 }
