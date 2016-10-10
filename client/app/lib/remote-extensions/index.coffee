@@ -15,6 +15,7 @@ module.exports = RemoteExtensions =
 
     remote.api.JComputeStack = require './computestack'
     remote.api.JMachine      = require './machine'
+    remote.api.JAccount      = require './account'
     remote.api.JGroup        = require './group'
 
 

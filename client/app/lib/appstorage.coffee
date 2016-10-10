@@ -1,9 +1,8 @@
-kd         = require 'kd'
-whoami     = require './util/whoami'
+kd     = require 'kd'
+whoami = require './util/whoami'
 
-module.exports =
 
-class AppStorage extends kd.Object
+module.exports = class AppStorage extends kd.Object
 
   @DEFAULT_VERSION: '1.0'
 
@@ -38,7 +37,7 @@ class AppStorage extends kd.Object
 
       mainController.ready =>
 
-        whoami().fetchAppStorage { appId, version }, (error, storage) =>
+        whoami().fetchCombinedStorage { appId, version }, (error, storage) =>
 
           if not error and storage
             @reset()
@@ -59,10 +58,6 @@ class AppStorage extends kd.Object
   _setReady: ->
 
     @isReady = yes
-
-    @emit 'storageFetched' # this shouldn't be here, not sure what else is using this.
-                           # most probably obsolete. -og
-
     @emit 'ready'
 
 
