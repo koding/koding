@@ -1,15 +1,5 @@
 {
-  "buckets": {
-    "publiclogs": [
-      {
-        "environment": [
-          "default"
-        ],
-        "name": "undefined",
-        "region": "default"
-      }
-    ]
-  },
+  "buckets": {},
   "endpoints": {
     "ip": [
       {

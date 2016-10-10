@@ -53,13 +53,16 @@ func (e envGroups) Get(withManaged bool, environment string) []string {
 // configuration with single bucket. Bucket data is taken from system
 // environment.
 func bucketEnv(withManaged bool, name, bucketEnv, regionEnv string) func(string) *config.Config {
-	// All provided environment keys are required to exist.
-	mustEnvVar(bucketEnv, regionEnv)
 	return func(environment string) *config.Config {
 		bucket := &config.Bucket{
 			Environment: defaultGroups.Get(withManaged, environment),
 			Name:        os.Getenv(bucketEnv),
 			Region:      os.Getenv(regionEnv),
+		}
+
+		// If bucket is undefined we skips it.
+		if bucket.Name == "" {
+			return nil
 		}
 
 		// Some configurations returns `aws` when they want to use `us-east-1`
