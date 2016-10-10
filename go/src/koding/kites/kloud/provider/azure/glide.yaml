@@ -1,0 +1,3 @@
+package: github.com/koding/kloud-provider-azure
+import:
+- package: github.com/Azure/azure-sdk-for-go
