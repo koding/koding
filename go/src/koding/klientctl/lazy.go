@@ -12,6 +12,7 @@ import (
 	"github.com/koding/kite"
 	konfig "github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
+	"github.com/koding/logging"
 )
 
 var (
@@ -59,6 +60,7 @@ func Kite() *kite.Kite {
 	k.Log = log
 
 	if debug {
+		log.SetLevel(logging.DEBUG)
 		k.SetLogLevel(kite.DEBUG)
 	}
 

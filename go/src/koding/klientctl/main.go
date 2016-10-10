@@ -434,11 +434,11 @@ func main() {
 							Usage: "Output in JSON format.",
 						},
 						cli.StringFlag{
-							Name:  "provider",
+							Name:  "provider, p",
 							Usage: "Specify credential provider.",
 						},
 						cli.StringFlag{
-							Name:  "team",
+							Name:  "team, t",
 							Usage: "Specify team which the credential belongs to.",
 						},
 						cli.BoolFlag{
@@ -458,11 +458,11 @@ func main() {
 							Usage: "Output in JSON format.",
 						},
 						cli.StringFlag{
-							Name:  "provider",
+							Name:  "provider, p",
 							Usage: "Specify credential provider.",
 						},
 						cli.StringFlag{
-							Name:  "team",
+							Name:  "team, t",
 							Usage: "Specify team which the credential belongs to.",
 						},
 						cli.BoolFlag{
@@ -488,6 +488,10 @@ func main() {
 							Name:  "file, f",
 							Value: "-",
 							Usage: "Read credential from a file.",
+						},
+						cli.StringFlag{
+							Name:  "team, t",
+							Usage: "Specify team which the credential belongs to.",
 						},
 						cli.BoolFlag{
 							Name:   "debug",

@@ -3,12 +3,15 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"sort"
 	"time"
 
 	"koding/kites/kloud/stack"
+	"koding/klient/storage"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
@@ -25,8 +28,11 @@ import (
 //
 
 func CredentialImport(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	debug = c.Bool("debug")
+
 	kloud, err := Kloud()
 	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
 		return 1, err
 	}
 
@@ -37,6 +43,7 @@ func CredentialImport(c *cli.Context, log logging.Logger, _ string) (int, error)
 
 	r, err := kloud.TellWithTimeout("credential.list", 10*time.Second, req)
 	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
 		return 1, err
 	}
 
@@ -86,17 +93,19 @@ func CredentialImport(c *cli.Context, log logging.Logger, _ string) (int, error)
 }
 
 func CredentialList(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	debug = c.Bool("debug")
+
 	provider := c.String("provider")
 	team := c.String("team")
 
 	var resp stack.CredentialListResponse
 
-	if err := Cache().GetValue("credentials", &resp); err != nil {
+	if err := Cache().GetValue("credentials", &resp); err != nil && err != storage.ErrKeyNotFound {
 		return 1, err
 	}
 
 	if len(resp.Credentials) == 0 {
-		fmt.Fprintln(os.Stderr, `You don't have any imported credentials. Please run "kd credential import".`)
+		fmt.Fprintln(os.Stderr, `You did not import any credentials yet. Please run "kd credential import".`)
 		return 1, nil
 	}
 
@@ -144,5 +153,77 @@ func CredentialList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 }
 
 func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	debug = c.Bool("debug")
+
+	var p []byte
+	var err error
+
+	switch file := c.String("file"); file {
+	case "":
+		// TODO(rjeczalik): remove once interactive mode is implemented
+		fmt.Fprintln(os.Stderr, "No credential file was provided.")
+		return 1, errors.New("no credential file was provided")
+	case "-":
+		p, err = ioutil.ReadAll(os.Stdin)
+	default:
+		p, err = ioutil.ReadFile(file)
+	}
+
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error reading credential file: ", err)
+		return 1, err
+	}
+
+	kloud, err := Kloud()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
+		return 1, err
+	}
+
+	req := &stack.CredentialAddRequest{
+		Provider: c.String("provider"),
+		Team:     c.String("team"),
+		Title:    c.String("title"),
+		Data:     json.RawMessage(p),
+	}
+
+	fmt.Println("Creating credential... ")
+
+	r, err := kloud.TellWithTimeout("credential.add", 10*time.Second, req)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
+		return 1, err
+	}
+
+	var resp stack.CredentialAddResponse
+
+	if err := r.Unmarshal(&resp); err != nil {
+		return 1, err
+	}
+
+	cred := stack.CredentialItem{
+		Identifier: resp.Identifier,
+		Title:      resp.Title,
+		Team:       req.Team,
+	}
+
+	fmt.Printf("Created %q credential with %s identifier.\n", cred.Title, cred.Identifier)
+
+	var creds stack.CredentialListResponse
+
+	if err := Cache().GetValue("credentials", &creds); err != nil && err != storage.ErrKeyNotFound {
+		return 1, err
+	}
+
+	if creds.Credentials == nil {
+		creds.Credentials = make(map[string][]stack.CredentialItem)
+	}
+
+	creds.Credentials[req.Provider] = append(creds.Credentials[req.Provider], cred)
+
+	if err := Cache().SetValue("credentials", &creds); err != nil {
+		return 1, err
+	}
+
 	return 0, nil
 }
