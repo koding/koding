@@ -590,7 +590,7 @@ func (c *MountCommand) cacheWithProgress(cacheReq req.Cache) (err error) {
 		}
 
 		// TODO: Why is this an array from Klient? How can this be written cleaner?
-		ps := []Progress{Progress{}}
+		ps := []Progress{{}}
 		par.MustUnmarshal(&ps)
 		p := ps[0]
 

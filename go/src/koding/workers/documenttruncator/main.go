@@ -107,8 +107,8 @@ func truncateItems(collectionName string) func(doc interface{}) error {
 // deletes all related relationships
 func deleteRel(id bson.ObjectId) {
 	selector := helper.Selector{"$or": []helper.Selector{
-		helper.Selector{"sourceId": id},
-		helper.Selector{"targetId": id},
+		{"sourceId": id},
+		{"targetId": id},
 	}}
 
 	rels, err := helper.GetAllRelationships(selector)

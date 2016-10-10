@@ -80,8 +80,8 @@ func deleteGuestAccounts(account interface{}) error {
 	clearAllNames(acc)
 
 	selector := helper.Selector{"$or": []helper.Selector{
-		helper.Selector{"sourceId": acc.Id},
-		helper.Selector{"targetId": acc.Id},
+		{"sourceId": acc.Id},
+		{"targetId": acc.Id},
 	}}
 
 	// Get all relationships for current acc

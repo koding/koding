@@ -59,7 +59,7 @@ func TestPingPong(t *testing.T) {
 
 	type testCase struct{ send, expect string }
 	cases := []testCase{
-		testCase{`{"action": "ping"}`, `{"routingKey":"broker.pong","payload":null}`},
+		{`{"action": "ping"}`, `{"routingKey":"broker.pong","payload":null}`},
 	}
 
 	for _, tc := range cases {

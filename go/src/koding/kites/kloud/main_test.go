@@ -412,7 +412,7 @@ func TestTerraformStack(t *testing.T) {
 	}
 
 	eArgs := kloud.EventArgs([]kloud.EventArg{
-		kloud.EventArg{
+		{
 			EventId: userData.StackId,
 			Type:    "apply",
 		},
@@ -449,7 +449,7 @@ func TestTerraformStack(t *testing.T) {
 	}
 
 	eArgs = kloud.EventArgs([]kloud.EventArg{
-		kloud.EventArg{
+		{
 			EventId: userData.StackId,
 			Type:    "apply",
 		},
@@ -801,7 +801,7 @@ resource "aws_instance" "example" {
 	}
 
 	eArgs := kloud.EventArgs([]kloud.EventArg{
-		kloud.EventArg{
+		{
 			EventId: buildArgs.MachineId,
 			Type:    "build",
 		},
@@ -828,7 +828,7 @@ func (c *Client) Destroy(id string, remote *kite.Client) error {
 		return err
 	}
 	eArgs := kloud.EventArgs([]kloud.EventArg{
-		kloud.EventArg{
+		{
 			EventId: destroyArgs.MachineId,
 			Type:    "destroy",
 		},
@@ -855,7 +855,7 @@ func (c *Client) Start(id string, remote *kite.Client) error {
 	}
 
 	eArgs := kloud.EventArgs([]kloud.EventArg{
-		kloud.EventArg{
+		{
 			EventId: startArgs.MachineId,
 			Type:    "start",
 		},
@@ -882,7 +882,7 @@ func (c *Client) Stop(id string, remote *kite.Client) error {
 	}
 
 	eArgs := kloud.EventArgs([]kloud.EventArg{
-		kloud.EventArg{
+		{
 			EventId: stopArgs.MachineId,
 			Type:    "stop",
 		},
@@ -909,7 +909,7 @@ func (c *Client) Reinit(id string, remote *kite.Client) error {
 	}
 
 	eArgs := kloud.EventArgs([]kloud.EventArg{
-		kloud.EventArg{
+		{
 			EventId: reinitArgs.MachineId,
 			Type:    "reinit",
 		},
@@ -936,7 +936,7 @@ func (c *Client) Restart(id string, remote *kite.Client) error {
 	}
 
 	eArgs := kloud.EventArgs([]kloud.EventArg{
-		kloud.EventArg{
+		{
 			EventId: restartArgs.MachineId,
 			Type:    "restart",
 		},
@@ -963,7 +963,7 @@ func (c *Client) Resize(id string, remote *kite.Client) error {
 	}
 
 	eArgs := kloud.EventArgs([]kloud.EventArg{
-		kloud.EventArg{
+		{
 			EventId: resizeArgs.MachineId,
 			Type:    "resize",
 		},
@@ -990,7 +990,7 @@ func (c *Client) CreateSnapshot(id string, remote *kite.Client) error {
 	}
 
 	eArgs := kloud.EventArgs([]kloud.EventArg{
-		kloud.EventArg{
+		{
 			EventId: createSnapshotArgs.MachineId,
 			Type:    "createSnapshot",
 		},
@@ -1018,7 +1018,7 @@ func (c *Client) DeleteSnapshot(id, snapshotId string, remote *kite.Client) erro
 	}
 
 	eArgs := kloud.EventArgs([]kloud.EventArg{
-		kloud.EventArg{
+		{
 			EventId: deleteSnapshotArgs.MachineId,
 			Type:    "deleteSnapshot",
 		},
