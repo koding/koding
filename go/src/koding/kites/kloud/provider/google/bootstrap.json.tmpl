@@ -1,0 +1,55 @@
+{
+  "provider": {
+    "google": {
+      "credentials": "${var.google_credentials}",
+      "project": "${var.google_project}",
+      "region": "${var.google_region}"
+    }
+  },
+  "output": {
+    "koding_firewall": {
+      "value": "${google_compute_firewall.koding.self_link}"
+    }
+  },
+  "resource": {
+    "google_compute_firewall": {
+      "koding": {
+        "name": "gce-koding-firewall",
+        "network": "default",
+        "allow": {
+          "protocol": "tcp",
+          "ports": [
+            "56789"
+          ]
+        },
+        "source_ranges": [
+          "0.0.0.0/0"
+        ]
+      }
+    },
+    "google_compute_project_metadata": {
+      "default": {
+        "metadata": {
+          "sshKeys": "${var.user_name}:${var.public_key}"
+        }
+      }
+    }
+  },
+  "variable": {
+    "zones": {
+      "default": {
+        "asia-east1": "asia-east1-a",
+        "europe-west1": "europe-west1-b",
+        "us-central1": "us-central1-a",
+        "us-east1": "us-east1-b",
+        "us-west1": "us-west1-a"
+      }
+    },
+    "user_name": {
+      "default": "{{.Username}}"
+    },
+    "public_key": {
+      "default": "{{.PublicKey}}"
+    }
+  }
+}

@@ -61,9 +61,9 @@ module.exports = class SubscriptionHeader extends Component
 
   renderNextBillingAmount: ->
 
-    return  if @props.isTrial
-
     { nextBillingAmount } = @props
+
+    nextBillingAmount = if @props.isTrial then 0 else nextBillingAmount
 
     <Col xs={4} className={textStyles.right}>
       <Label size="small" type="info">
