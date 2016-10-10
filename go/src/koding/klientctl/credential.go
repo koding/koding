@@ -2,7 +2,9 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"os"
 	"sort"
 	"time"
 
@@ -11,6 +13,16 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
 )
+
+// TODO(rjeczalik):
+//
+//   - improve "credential add" to ask user interactively about
+//     the credentials (build the question dynamically basing
+//     on kloud's credential.describe)
+//   - improve --json handling in "credential list"
+//   - add "credential use" for setting default credentials
+//     for "kd stack create" command
+//
 
 func CredentialImport(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	kloud, err := Kloud()
@@ -34,7 +46,7 @@ func CredentialImport(c *cli.Context, log logging.Logger, _ string) (int, error)
 		return 1, err
 	}
 
-	if err := Cache().SetValue("credential", &resp); err != nil {
+	if err := Cache().SetValue("credentials", &resp); err != nil {
 		return 1, err
 	}
 
@@ -74,6 +86,60 @@ func CredentialImport(c *cli.Context, log logging.Logger, _ string) (int, error)
 }
 
 func CredentialList(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	provider := c.String("provider")
+	team := c.String("team")
+
+	var resp stack.CredentialListResponse
+
+	if err := Cache().GetValue("credentials", &resp); err != nil {
+		return 1, err
+	}
+
+	if len(resp.Credentials) == 0 {
+		fmt.Fprintln(os.Stderr, `You don't have any imported credentials. Please run "kd credential import".`)
+		return 1, nil
+	}
+
+	if provider != "" {
+		for key := range resp.Credentials {
+			if key != provider {
+				delete(resp.Credentials, key)
+			}
+		}
+	}
+
+	if team != "" {
+		for key, creds := range resp.Credentials {
+			var filtered []stack.CredentialItem
+
+			for _, cred := range creds {
+				if cred.Team != "" && cred.Team != team {
+					continue
+				}
+
+				filtered = append(filtered, cred)
+			}
+
+			if len(filtered) != 0 {
+				resp.Credentials[key] = filtered
+			} else {
+				delete(resp.Credentials, key)
+			}
+		}
+	}
+
+	if len(resp.Credentials) == 0 {
+		fmt.Fprintln(os.Stderr, "You have no matching credentials attached to your Koding account.")
+		return 0, nil
+	}
+
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "\t")
+
+	if err := enc.Encode(resp.Credentials); err != nil {
+		return 1, err
+	}
+
 	return 0, nil
 }
 
