@@ -24,6 +24,18 @@ function run_backend() {
   tail --follow --lines +0 --quiet .logs/*.log
 }
 
+function run() {
+  case "$1" in
+    backend)
+      run_backend
+      ;;
+    *)
+      echo 'error: unknown service'
+      exit 1
+      ;;
+  esac
+}
+
 if [[ -z "$*" ]]; then
   run_backend
 elif [[ "${1:0:1}" = '-' ]]; then
@@ -37,6 +49,9 @@ elif [ "$1" = "build" ]; then
   configure $*
   build
   run_backend
+elif [ "$1" = "run" ]; then
+  shift
+  run $*
 else
   exec "$@"
 fi
