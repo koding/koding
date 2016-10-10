@@ -10,13 +10,11 @@ function configure() {
 }
 
 function build() {
-  configure
   go/build.sh
   make -C client dist
 }
 
 function run_backend() {
-  configure
   ./run exec scripts/check-service-connectivity.sh || exit 255
   ./run migrate up
   nginx -c $(pwd)/nginx.conf
@@ -26,11 +24,13 @@ function run_backend() {
 }
 
 if [[ -z "$*" || "${1:0:1}" = '-' ]]; then
-  run_backend $*
+  configure $*
+  run_backend
 elif [ "$1" = "build" ]; then
   shift
-  build $*
-  run_backend $*
+  configure $*
+  build
+  run_backend
 else
   exec "$@"
 fi
