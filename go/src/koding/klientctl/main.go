@@ -522,6 +522,35 @@ func main() {
 					},
 				}},
 			},
+			cli.Command{
+				Name:  "stack",
+				Usage: "Manage stacks.",
+				Subcommands: []cli.Command{{
+					Name:   "create",
+					Usage:  "Create new stack from a template",
+					Action: ctlcli.ExitErrAction(StackCreate, log, "create"),
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "file, f",
+							Value: "-",
+							Usage: "Read credential from a file.",
+						},
+						cli.StringFlag{
+							Name:  "team, t",
+							Usage: "Specify team which the credential belongs to.",
+						},
+						cli.StringFlag{
+							Name:  "title",
+							Usage: "Title to use instead of a generated one.",
+						},
+						cli.BoolFlag{
+							Name:   "debug",
+							Usage:  "Turn on debug logging.",
+							Hidden: true,
+						},
+					},
+				}},
+			},
 		)
 	}
 

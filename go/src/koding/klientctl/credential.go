@@ -25,6 +25,10 @@ import (
 //   - improve --json handling in "credential list"
 //
 
+type DefaultCredentials struct {
+	Global map[string]string
+}
+
 func CredentialImport(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	debug = c.Bool("debug")
 
@@ -252,20 +256,18 @@ func CredentialUse(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, nil
 	}
 
-	var defaults map[string]string
+	defaults := &DefaultCredentials{
+		Global: make(map[string]string),
+	}
 
-	if err := Cache().GetValue("defaultCredentials", &defaults); err != nil && err != storage.ErrKeyNotFound {
+	if err := Cache().GetValue("defaultCredentials", defaults); err != nil && err != storage.ErrKeyNotFound {
 		return 1, err
 	}
 
-	if defaults == nil {
-		defaults = make(map[string]string)
-	}
-
 	if len(c.Args()) == 0 || c.Args().Get(0) == "" {
-		m := make(map[string]stack.CredentialItem, len(defaults))
+		m := make(map[string]stack.CredentialItem, len(defaults.Global))
 
-		for p, ident := range defaults {
+		for p, ident := range defaults.Global {
 			for _, cred := range creds.Credentials[p] {
 				if cred.Identifier == ident {
 					m[p] = cred
@@ -307,7 +309,7 @@ lookup:
 		return 1, nil
 	}
 
-	defaults[provider] = ident
+	defaults.Global[provider] = ident
 
 	if err := Cache().SetValue("defaultCredentials", defaults); err != nil {
 		return 1, err
