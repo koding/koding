@@ -6,3 +6,5 @@ rm ./default-db-dump.tar.bz2
 tar jcvf default-db-dump.tar.bz2 dump
 rm -rf dump
 echo "All done."
+
+echo "do not forget to ./run updatepermissions too."
