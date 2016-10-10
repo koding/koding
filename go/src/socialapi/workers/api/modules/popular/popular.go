@@ -37,10 +37,10 @@ func getIds(key string, query *request.Query, c *models.Context) ([]int64, error
 	popularIds := make([]int64, 0)
 	listIds, err := c.MustGetRedisConn().
 		SortedSetReverseRange(
-		key,
-		query.Skip,
-		query.Skip+query.Limit-1,
-	)
+			key,
+			query.Skip,
+			query.Skip+query.Limit-1,
+		)
 
 	if err != nil {
 		return popularIds, err

@@ -356,22 +356,22 @@ func prepareWorkspace(creator, participant1, participant2, participant3 *sociala
 		ObjectId: bson.NewObjectId(),
 		Uid:      bson.NewObjectId().Hex(),
 		Users: []mongomodels.MachineUser{
-			mongomodels.MachineUser{ // real owner
+			{ // real owner
 				Id:    ownerUser.ObjectId,
 				Sudo:  true,
 				Owner: true,
 			},
-			mongomodels.MachineUser{ // secondary owner
+			{ // secondary owner
 				Id:    participant1User.ObjectId,
 				Sudo:  false,
 				Owner: true,
 			},
-			mongomodels.MachineUser{ // random
+			{ // random
 				Id:    participant2User.ObjectId,
 				Sudo:  false,
 				Owner: true,
 			},
-			mongomodels.MachineUser{ // random
+			{ // random
 				Id:        participant3User.ObjectId,
 				Sudo:      false,
 				Owner:     true,
@@ -484,18 +484,18 @@ func prepareSingleWorkspace(creator, participant1, participant2 *socialapimodels
 		ObjectId: bson.NewObjectId(),
 		Uid:      bson.NewObjectId().Hex(),
 		Users: []mongomodels.MachineUser{
-			mongomodels.MachineUser{ // real owner
+			{ // real owner
 				Id:    ownerUser.ObjectId,
 				Sudo:  true,
 				Owner: true,
 			},
-			mongomodels.MachineUser{ // secondary owner
+			{ // secondary owner
 				Id:        participant1User.ObjectId,
 				Sudo:      false,
 				Owner:     true,
 				Permanent: false,
 			},
-			mongomodels.MachineUser{ // random
+			{ // random
 				Id:        participant2User.ObjectId,
 				Sudo:      false,
 				Owner:     true,

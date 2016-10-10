@@ -1,8 +1,8 @@
 package pinnedpost
 
 import (
-	"testing"
 	. "github.com/smartystreets/goconvey/convey"
+	"testing"
 )
 
 func TestInteractionEventAsPinning(t *testing.T) {

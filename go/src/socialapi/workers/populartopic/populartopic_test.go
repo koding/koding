@@ -1,8 +1,8 @@
 package populartopic
 
 import (
-	"testing"
 	. "github.com/smartystreets/goconvey/convey"
+	"testing"
 )
 
 func TestMarkedAsTroll(t *testing.T) {
