@@ -6,15 +6,15 @@ pushd $(dirname $0)/..
 
 CONFIGURE_ARGS="$@"
 
+function configure() {
+  ./configure $CONFIGURE_ARGS
+}
+
 function build() {
   npm install --unsafe-perm
   configure
   go/build.sh
   make -C client dist
-}
-
-function configure() {
-  ./configure $CONFIGURE_ARGS
 }
 
 function start() {
