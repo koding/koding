@@ -1,46 +1,87 @@
 package azure
 
 import (
-	"errors"
 	"fmt"
+
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/provider"
+	"koding/kites/kloud/stack"
+	"koding/kites/kloud/stack/provider"
 
 	"github.com/Azure/azure-sdk-for-go/management"
 	vm "github.com/Azure/azure-sdk-for-go/management/virtualmachine"
+	"golang.org/x/net/context"
 )
-
-type Meta struct {
-	AlwaysOn        bool   `bson:"alwaysOn"`
-	InstanceID      string `json:"instanceId" bson:"instanceId"`
-	HostedServiceID string `json:"hostedServiceId" bson:"hostedServiceId"`
-	InstanceType    string `json:"instance_type" bson:"instance_type"`
-	Location        string `json:"location" bson:"location"`
-	StorageSize     int    `json:"storage_size" bson:"storage_size"`
-}
-
-func (mt *Meta) Valid() error {
-	if mt.InstanceID == "" {
-		return errors.New("invalid empty instance ID")
-	}
-
-	if mt.HostedServiceID == "" {
-		return errors.New("invalid hosted service ID")
-	}
-
-	return nil
-}
 
 // Machine represents a single MongodDB document from the jMachines
 // collection.
 type Machine struct {
 	*provider.BaseMachine
 
-	Meta *Meta `bson:"-"`
-	Cred *Cred `bson:"-"`
-
 	AzureClient   management.Client        `bson:"-"`
 	AzureVMClient *vm.VirtualMachineClient `bson:"-"`
+}
+
+var (
+	_ provider.Machine = (*Machine)(nil) // public API
+	_ stack.Machiner   = (*Machine)(nil) // internal API
+)
+
+func (m *Machine) Cred() *Cred {
+	return m.BaseMachine.Credential.(*Cred)
+}
+
+func (m *Machine) Bootstrap() *Bootstrap {
+	return m.BaseMachine.Bootstrap.(*Bootstrap)
+}
+
+func (m *Machine) Meta() *Meta {
+	return m.BaseMachine.Metadata.(*Meta)
+}
+
+func (m *Machine) Start(ctx context.Context) (interface{}, error) {
+	id, err := m.AzureVMClient.StartRole(m.Meta().HostedServiceID, m.Meta().InstanceID, m.Meta().InstanceID)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, m.AzureClient.WaitForOperation(id, nil)
+}
+
+func (m *Machine) Stop(ctx context.Context) (interface{}, error) {
+	id, err := m.AzureVMClient.ShutdownRole(m.Meta().HostedServiceID, m.Meta().InstanceID, m.Meta().InstanceID, vm.PostShutdownActionStoppedDeallocated)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, m.AzureClient.WaitForOperation(id, nil)
+}
+
+func (m *Machine) Info(context.Context) (machinestate.State, interface{}, error) {
+	resp, err := m.AzureVMClient.GetDeployment(m.Meta().HostedServiceID, m.Meta().InstanceID)
+	if isNotFound(err) {
+		return machinestate.NotInitialized, nil, nil
+	}
+	if err != nil {
+		return machinestate.Unknown, nil, err
+	}
+
+	switch resp.Status {
+	case vm.DeploymentStatusRunning:
+		return machinestate.Running, nil, nil
+	case vm.DeploymentStatusRunningTransitioning,
+		vm.DeploymentStatusDeploying,
+		vm.DeploymentStatusStarting:
+		return machinestate.Starting, nil, nil
+	case vm.DeploymentStatusSuspended:
+		return machinestate.Stopped, nil, nil
+	case vm.DeploymentStatusSuspending,
+		vm.DeploymentStatusSuspendedTransitioning:
+		return machinestate.Stopping, nil, nil
+	case vm.DeploymentStatusDeleting:
+		return machinestate.Terminated, nil, nil
+	default:
+		return machinestate.Unknown, nil, fmt.Errorf("unable to determine vm status: %q", resp.Status)
+	}
 }
 
 // isNotFound tests whether err is a resource not found Azure's error.
@@ -56,32 +97,4 @@ func isNotFound(err error) bool {
 	}
 
 	return e != nil && e.Code == "ResourceNotFound"
-}
-
-func (m *Machine) Status() (machinestate.State, error) {
-	resp, err := m.AzureVMClient.GetDeployment(m.Meta.HostedServiceID, m.Meta.InstanceID)
-	if isNotFound(err) {
-		return machinestate.NotInitialized, nil
-	}
-	if err != nil {
-		return machinestate.Unknown, err
-	}
-
-	switch resp.Status {
-	case vm.DeploymentStatusRunning:
-		return machinestate.Running, nil
-	case vm.DeploymentStatusRunningTransitioning,
-		vm.DeploymentStatusDeploying,
-		vm.DeploymentStatusStarting:
-		return machinestate.Starting, nil
-	case vm.DeploymentStatusSuspended:
-		return machinestate.Stopped, nil
-	case vm.DeploymentStatusSuspending,
-		vm.DeploymentStatusSuspendedTransitioning:
-		return machinestate.Stopping, nil
-	case vm.DeploymentStatusDeleting:
-		return machinestate.Terminated, nil
-	default:
-		return machinestate.Unknown, fmt.Errorf("unable to determine vm status: %q", resp.Status)
-	}
 }

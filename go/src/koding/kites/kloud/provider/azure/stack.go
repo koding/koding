@@ -1,208 +1,322 @@
 package azure
 
 import (
-	"encoding/xml"
+	"bytes"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
+	"text/template"
 
-	"koding/kites/kloud/provider"
+	"github.com/Azure/azure-sdk-for-go/management"
+
 	"koding/kites/kloud/stack"
-	"koding/kites/kloud/stackplan"
-
-	"golang.org/x/net/context"
+	"koding/kites/kloud/stack/provider"
+	"koding/kites/kloud/userdata"
 )
 
-type PublishData struct {
-	Subscriptions []Subscription `xml:"PublishProfile>Subscription"`
+//go:generate $GOPATH/bin/go-bindata -mode 420 -modtime 1470666525 -pkg azure -o bootstrap.json.tmpl.go bootstrap.json.tmpl
+//go:generate gofmt -w -s bootstrap.json.tmpl.go
+
+var tmpl = template.Must(template.New("").Parse(mustAsset("bootstrap.json.tmpl")))
+
+type BootstrapConfig struct {
+	TeamSlug           string
+	HostedServiceName  string
+	StorageServiceName string
+	SecurityGroupName  string
+	VirtualNetworkName string
+	Rule               bool
 }
 
-type Subscription struct {
-	ID string `xml:"Id,attr"`
+type Endpoint struct {
+	Name        string `hcl:"name"`
+	Protocol    string `hcl:"protocol"`
+	PublicPort  int    `hcl:"public_port"`
+	PrivatePort int    `hcl:"private_port"`
 }
 
-// Cred represents jCredentialDatas.meta for "azure" provider.
-type Cred struct {
-	// Credentials.
-	PublishSettings  []byte `json:"publish_settings" bson:"publish_settings" hcl:"publish_settings"` // required
-	SubscriptionID   string `json:"subscription_id,omitempty" bson:"subscription_id,omitempty" hcl:"subscription_id"`
-	Location         string `json:"location,omitempty" bson:"location,omitempty" hcl:"location"`                                     // by default "East US 2"
-	AddressSpace     string `json:"address_space,omitempty" bson:"address_space,omitempty" hcl:"address_space"`                      // by default "10.0.0.0/16"
-	Storage          string `json:"storage,omitempty" bson:"storage,omitempty" hcl:"storage"`                                        // by default "Standard_LRS"
-	StorageServiceID string `json:"storage_service_name,omitempty" bson:"storage_service_name,omitempty" hcl:"storage_service_name"` // unique Azure-wide
-
-	// Bootstrap metadata.
-	HostedServiceID  string `json:"hosted_service_name,omitempty" bson:"hosted_service_name,omitempty" hcl:"hosted_service_name"` // unique Azure-wide
-	SecurityGroupID  string `json:"security_group,omitempty" bson:"security_group,omitempty" hcl:"security_group"`
-	VirtualNetworkID string `json:"virtual_network,omitempty" bson:"virtual_network,omitempty" hcl:"virtual_network"`
-	SubnetName       string `json:"subnet,omitempty" bson:"subnet,omitempty" hcl:"subnet"`
+var vmKlient = &Endpoint{
+	Name:        "klient",
+	Protocol:    "tcp",
+	PublicPort:  56789,
+	PrivatePort: 56789,
 }
 
-var _ stack.Validator = (*Cred)(nil)
-
-func (meta *Cred) PublishData() (*PublishData, error) {
-	var pb PublishData
-
-	if err := xml.Unmarshal(meta.PublishSettings, &pb); err != nil {
-		return nil, err
-	}
-
-	if len(pb.Subscriptions) == 0 {
-		return nil, errors.New("no subscriptions found in the publish settings file")
-	}
-
-	return &pb, nil
-}
-
-// Valid implements the kloud.Validator interface.
-func (meta *Cred) Valid() error {
-	if len(meta.PublishSettings) == 0 {
-		return errors.New("publish settings are emtpty or missing")
-	}
-
-	pb, err := meta.PublishData()
-	if err != nil {
-		return err
-	}
-
-	// If SubscriptionID was not explicitely provided and the publish
-	// settings file contains only one subscription, we default to it.
-	if meta.SubscriptionID == "" {
-		if n := len(pb.Subscriptions); n != 1 {
-			return fmt.Errorf("publish settings contain %d subscriptions, please specify which one to use", n)
-		}
-
-		return nil
-	}
-
-	var found bool
-	for _, sub := range pb.Subscriptions {
-		if sub.ID == meta.SubscriptionID {
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		return errors.New("specified subscription ID does not exist")
-	}
-
-	if meta.Location == "" {
-		meta.Location = "East US 2"
-	}
-
-	if meta.AddressSpace == "" {
-		meta.AddressSpace = "10.0.0.0/16"
-	}
-
-	if meta.Storage == "" {
-		meta.Storage = "Standard_LRS"
-	}
-
-	return nil
-}
-
-func (meta *Cred) BootstrapValid() error {
-	if meta.HostedServiceID == "" {
-		return errors.New("hosted service ID is empty or missing")
-	}
-	if meta.StorageServiceID == "" {
-		return errors.New("storage service ID is empty or missing")
-	}
-	if meta.SecurityGroupID == "" {
-		return errors.New("security group ID is empty or missing")
-	}
-	if meta.VirtualNetworkID == "" {
-		return errors.New("virtual network ID is empty or missing")
-	}
-	if meta.SubnetName == "" {
-		return errors.New("subnet name is empty or missing")
-	}
-	return nil
-}
-
-func (meta *Cred) ResetBootstrap() {
-	meta.HostedServiceID = ""
-	meta.StorageServiceID = ""
-	meta.SecurityGroupID = ""
-	meta.VirtualNetworkID = ""
-	meta.SubnetName = ""
+var vmSSH = &Endpoint{
+	Name:        "ssh",
+	Protocol:    "tcp",
+	PublicPort:  22,
+	PrivatePort: 22,
 }
 
 // Stack implements the kloud.StackProvider interface.
 type Stack struct {
 	*provider.BaseStack
-
-	p *stackplan.Planner
-	c *stackplan.Credential
-
-	// The following fields are set by buildResources method:
-	ids     stackplan.KiteMap
-	klients map[string]*stackplan.DialState
 }
 
-// Ensure Provider implements the kloud.StackProvider interface.
-//
-// StackProvider is an interface for team kloud API.
-var _ stack.Provider = (*Provider)(nil)
+var (
+	_ provider.Stack = (*Stack)(nil) // public API
+	_ stack.Stacker  = (*Stack)(nil) // internal API
+)
 
-// Stack gives a kloud.Stacker value that implements stack
-// methods for the AWS cloud.
-func (p *Provider) Stack(ctx context.Context) (stack.Stack, error) {
-	bs, err := p.BaseStack(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	s := &Stack{
-		BaseStack: bs,
-		p: &stackplan.Planner{
-			Provider:     "azure",
-			ResourceType: "instance",
-		},
-	}
-
-	bs.BuildResources = s.buildResources
-	bs.WaitResources = s.waitResources
-	bs.UpdateResources = s.updateResources
-
-	return s, nil
+func (s *Stack) Cred() *Cred {
+	return s.BaseStack.Credential.(*Cred)
 }
 
-func (s *Stack) BuildCredentials(group string, creds []string) error {
-	if err := s.Builder.BuildCredentials(s.Req.Method, s.Req.Username, group, creds); err != nil {
+func (s *Stack) Bootstrap() *Bootstrap {
+	return s.BaseStack.Bootstrap.(*Bootstrap)
+}
+
+func (s *Stack) BootstrapArg() *stack.BootstrapRequest {
+	return s.BaseStack.Arg.(*stack.BootstrapRequest)
+}
+
+func (s *Stack) VerifyCredential(c *stack.Credential) error {
+	cred := c.Credential.(*Cred)
+
+	if err := cred.Valid(); err != nil {
 		return err
 	}
 
-	for _, cred := range s.Builder.Credentials {
-		if cred.Provider == s.p.Provider {
-			s.c = cred
+	client, err := management.ClientFromPublishSettingsData(cred.PublishSettings, cred.SubscriptionID)
+	if err != nil {
+		return err
+	}
 
-			meta := s.Cred()
-
-			if meta == nil {
-				continue
-			}
-
-			if err := meta.Valid(); err != nil {
-				return err
-			}
-
-			break
-		}
+	err = client.WaitForOperation("invalid", nil)
+	if err != nil && !strings.Contains(err.Error(), "The operation request ID was not found") {
+		return err
 	}
 
 	return nil
 }
 
-func (s *Stack) Cred() *Cred {
-	if s.c == nil {
-		return nil
+func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, error) {
+	boot := c.Bootstrap.(*Bootstrap)
+
+	cfg := &BootstrapConfig{
+		TeamSlug:           s.BootstrapArg().GroupName,
+		HostedServiceName:  "koding-hs-" + c.Identifier,
+		StorageServiceName: strings.ToLower("kodings" + c.Identifier),
+		SecurityGroupName:  "koding-sg-" + c.Identifier,
+		VirtualNetworkName: "koding-vn-" + c.Identifier,
+		Rule:               false,
 	}
 
-	c, ok := s.c.Meta.(*Cred)
-	if !ok {
-		return nil
+	// If boostrap has already storage service configured, do not create it.
+	if boot.StorageServiceID != "" {
+		cfg.StorageServiceName = ""
 	}
 
-	return c
+	bootstrapTmpl, err := newBootstrapTmpl(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	// Azure requires two-step bootstrapping, as creating security
+	// group rule is not possible within the same template
+	// the group is being created.
+	cfg.Rule = true
+
+	ruleTmpl, err := newBootstrapTmpl(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	return []*stack.Template{
+		{Content: string(bootstrapTmpl)},
+		{Content: string(ruleTmpl)},
+	}, nil
+}
+
+func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
+	t := s.Builder.Template
+
+	cred := c.Credential.(*Cred)
+	boot := c.Bootstrap.(*Bootstrap)
+
+	var res struct {
+		AzureInstance map[string]map[string]interface{} `hcl:"azure_instance"`
+	}
+
+	if err := t.DecodeResource(&res); err != nil {
+		return nil, err
+	}
+
+	if len(res.AzureInstance) == 0 {
+		return nil, errors.New("no Azure instance found")
+	}
+
+	for name, vm := range res.AzureInstance {
+		// Set defaults from bootstrapped metadata.
+
+		if s, ok := vm["hosted_service_name"]; !ok || s == "" {
+			vm["hosted_service_name"] = boot.HostedServiceID
+		}
+
+		if s, ok := vm["storage_service_name"]; !ok || s == "" {
+			vm["storage_service_name"] = boot.StorageServiceID
+		}
+
+		if s, ok := vm["security_group"]; !ok || s == "" {
+			vm["security_group"] = boot.SecurityGroupID
+		}
+
+		if s, ok := vm["virtual_network"]; !ok || s == "" {
+			vm["virtual_network"] = boot.VirtualNetworkID
+		}
+
+		if s, ok := vm["subnet"]; !ok || s == "" {
+			vm["subnet"] = boot.SubnetName
+		}
+
+		if s, ok := vm["location"]; !ok || s == "" {
+			vm["location"] = cred.Location
+		}
+
+		if u, ok := vm["username"]; !ok || u == "" {
+			vm["username"] = s.Req.Username
+		}
+
+		endpoints, ok := vm["endpoint"].([]interface{})
+		if !ok {
+			endpoints = make([]interface{}, 0, 2)
+		}
+
+		// Ensure klient port is exposed.
+		if i := endpointsIndex(endpoints, vmKlient.Name); i != -1 {
+			endpoints[i] = vmKlient
+		} else {
+			endpoints = append(endpoints, vmKlient)
+		}
+
+		// Look for SSH endpoint and add a default one
+		// if it was not specified.
+		if i := endpointsIndex(endpoints, vmSSH.Name); i == -1 {
+			endpoints = append(endpoints, vmSSH)
+		}
+
+		vm["endpoint"] = endpoints
+
+		// means there will be several instances, we need to create a userdata
+		// with count interpolation, because each machine must have an unique
+		// kite id.
+		count := 1
+		if n, ok := vm["count"].(int); ok && n > 1 {
+			count = n
+		}
+
+		var labels []string
+		if count > 1 {
+			for i := 0; i < count; i++ {
+				labels = append(labels, fmt.Sprintf("%s.%d", name, i))
+			}
+		} else {
+			labels = append(labels, name)
+		}
+
+		kiteKeyName := fmt.Sprintf("kitekeys_%s", name)
+
+		// this part will be the same for all machines
+		userCfg := &userdata.CloudInitConfig{
+			Username: s.Req.Username,
+			Groups:   []string{"sudo"},
+			Hostname: s.Req.Username,
+			KiteKey:  fmt.Sprintf("${lookup(var.%s, count.index)}", kiteKeyName),
+		}
+
+		s.Builder.InterpolateField(vm, name, "custom_data")
+
+		if b, ok := vm["debug"].(bool); ok && b {
+			s.Debug = true
+			delete(vm, "debug")
+		}
+
+		if s, ok := vm["custom_data"].(string); ok {
+			userCfg.UserData = s
+		}
+
+		userdata, err := s.Session.Userdata.Create(userCfg)
+		if err != nil {
+			return nil, err
+		}
+
+		vm["user_data"] = string(userdata)
+
+		// create independent kiteKey for each machine and create a Terraform
+		// lookup map, which is used in conjuctuon with the `count.index`
+		countKeys := make(map[string]string, count)
+		for i, label := range labels {
+			kiteKey, err := s.BuildKiteKey(label, s.Req.Username)
+			if err != nil {
+				return nil, err
+			}
+
+			countKeys[strconv.Itoa(i)] = kiteKey
+		}
+
+		t.Variable[kiteKeyName] = map[string]interface{}{
+			"default": countKeys,
+		}
+
+		res.AzureInstance[name] = vm
+	}
+
+	t.Resource["azure_instance"] = res.AzureInstance
+
+	if err := t.Flush(); err != nil {
+		return nil, err
+	}
+
+	if err := t.ShadowVariables("FORBIDDEN", "azure_publish_settings", "azure_settings_file"); err != nil {
+		return nil, err
+	}
+
+	content, err := t.JsonOutput()
+	if err != nil {
+		return nil, err
+	}
+
+	return &stack.Template{
+		Content: content,
+	}, nil
+}
+
+func newBootstrapTmpl(cfg *BootstrapConfig) ([]byte, error) {
+	var buf bytes.Buffer
+
+	if err := tmpl.Execute(&buf, cfg); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func mustAsset(s string) string {
+	p, err := Asset(s)
+	if err != nil {
+		panic(err)
+	}
+	return string(p)
+}
+
+func endpointsIndex(endpoints []interface{}, name string) int {
+	for i, v := range endpoints {
+		endpoint, ok := v.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		s, ok := endpoint["name"].(string)
+		if !ok {
+			continue
+		}
+
+		if strings.EqualFold(s, name) {
+			return i
+		}
+	}
+
+	return -1
 }
