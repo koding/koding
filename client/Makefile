@@ -15,11 +15,9 @@ build-dev:
 watch-dev:
 	npm run watch:dev
 
-watch: bongo_schema node_modules watch-dev
+development: bongo_schema node_modules watch-dev
 
 dist: bongo_schema node_modules landing build-prod
-
-development: watch
 
 bongo_schema:
 	$(RUN) exec $(SCRIPTS)/generate-bongo-schema > $(MKFILE_DIR).schema.json
