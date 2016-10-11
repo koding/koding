@@ -19,7 +19,6 @@ HomeAccountCredentialsView = require '../account/credentials/homeaccountcredenti
 EnvironmentFlux = require 'app/flux/environment'
 
 AddManagedMachineModal = require 'app/providers/managed/addmanagedmachinemodal'
-VirtualMachinesSelectedMachineFlux = require 'home/virtualmachines/flux/selectedmachine'
 
 canCreateStacks = require 'app/util/canCreateStacks'
 isAdmin = require 'app/util/isAdmin'
@@ -142,7 +141,7 @@ module.exports = class HomeStacks extends kd.CustomScrollView
       disabledUsersSection.hide()
 
 
-    cleanObserver = reactor.observe getters.disabledUsersStackTemplates, (templates) ->
+    cleanObserver = reactor.observe getters.disabledUsersStacks, (templates) ->
       if templates.size
       then showDisabledUsers()
       else hideDisabledUsers()
