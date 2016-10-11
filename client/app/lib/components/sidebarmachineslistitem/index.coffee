@@ -191,7 +191,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
     kd.utils.stopDOMEvent event
 
     if @machine('type') is 'own' or @machine 'hasOldOwner'
-      kd.singletons.router.handleRoute "/Home/stacks/virtual-machines/#{@machine 'label'}"
+      kd.singletons.router.handleRoute "/Home/stacks/virtual-machines/#{@machine('_id')}"
     else
       sidebarListItem = ReactDOM.findDOMNode @refs.sidebarMachinesListItem
       clientRect      = sidebarListItem.getBoundingClientRect()

@@ -79,7 +79,7 @@ module.exports = class HomeStacks extends kd.CustomScrollView
         when 'stacks'
           onboarding.run 'StacksViewed', yes
         when 'virtual-machines'
-          VirtualMachinesSelectedMachineFlux.actions.setSelectedMachine null
+          EnvironmentFlux.actions.setSelectedMachineId null
           onboarding.run 'VMsViewed', yes
         when 'credentials'
           onboarding.run 'CredentialsViewed', yes
@@ -93,6 +93,7 @@ module.exports = class HomeStacks extends kd.CustomScrollView
   handleIdentifier: (identifier, action) ->
 
     { onboarding } = kd.singletons
+    { setSelectedMachineId, loadMachineSharedUsers } = EnvironmentFlux.actions
 
     for pane in @tabView.panes when kd.utils.slugify(pane.name) is action
       pane_ = @tabView.showPane pane
@@ -100,11 +101,11 @@ module.exports = class HomeStacks extends kd.CustomScrollView
         {reactor} = kd.singletons
         machine = reactor.evaluate ['MachinesStore']
           .toList()
-          .filter (machine) -> machine.get('label') is identifier
+          .filter (machine) -> machine.get('_id') is identifier
           .get(0)
 
-        VirtualMachinesSelectedMachineFlux.actions.setSelectedMachine identifier
-        EnvironmentFlux.actions.loadMachineSharedUsers machine.get '_id'  if machine
+        setSelectedMachineId identifier
+        loadMachineSharedUsers machine.get '_id'  if machine
         onboarding.run 'VMsViewed', yes
       break
 

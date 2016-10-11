@@ -269,7 +269,7 @@ module.exports = class MachineDetails extends React.Component
     machineUId = @props.machine.get 'uid'
     EnvironmentFlux.actions.setLabel machineUId, @state.machineLabel
       .then (label) =>
-        kd.singletons.router.handleRoute "/Home/stacks/virtual-machines/#{@state.machineLabel}"
+        kd.singletons.router.handleRoute "/Home/stacks/virtual-machines/#{@props.machine.get '_id'}"
       .catch (err) =>
         @setState { machineLabel: @props.machine.get 'label' }
         EnvironmentFlux.actions.loadExpandedMachineLabel @props.machine.get 'label'
