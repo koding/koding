@@ -36,7 +36,7 @@ module.exports = class SidebarStackSection extends React.Component
 
 
   getDataBindings: ->
-
+    activeMachine: EnvironmentFlux.getters.activeMachine
     selectedTemplateId: EnvironmentFlux.getters.selectedTemplateId
 
 
@@ -188,10 +188,11 @@ module.exports = class SidebarStackSection extends React.Component
   render: ->
 
     return null  unless @props.stack.get('machines').length
-
     className  = 'SidebarStackSection'
-    className += ' active'  if @state.selectedTemplateId is @props.stack.get 'baseStackId'
-
+    for machine in @props.stack.get 'machines'
+      if machine.get('_id') is @state.activeMachine
+        className += ' active'
+        break
 
     <SidebarSection
       ref='sidebarSection'
