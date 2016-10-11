@@ -1,0 +1,30 @@
+---
+---
+
+main {
+  display: flex;
+  max-width: 1600px;
+  > aside {
+    flex: 0 0 auto;
+    width: 300px;
+    li.active {
+      a {
+        font-weight: bold;
+      }
+    }
+  }
+  > section {
+    flex: 1 0 auto;
+    width: calc(100% - 300px);
+    padding-right: 32px;
+    box-sizing: border-box;
+  }
+  td.gutter {
+    padding: 0 !important;
+    color: #93a1a1;
+  }
+  td.code {
+    padding: 0 !important;
+    width: 100%;
+  }
+}

@@ -1,0 +1,204 @@
+footer.Homepage-Footer {
+  background-color: #394457;
+  color: white;
+  padding: 40px 40px;
+}
+footer.Homepage-Footer .container {
+    display: flex;
+    height: 100%;
+    max-width: 1176px;
+    margin: 0 auto;
+}
+footer.Homepage-Footer h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 23px;
+}
+footer.Homepage-Footer ul {
+    list-style: none;
+    padding: 0;
+    margin: 0
+}
+footer.Homepage-Footer ul li {
+  margin-bottom: 15px
+}
+footer.Homepage-Footer ul li a {
+    text-decoration: none;
+    font-size: 14px;
+    color: #75B9D6;
+}
+footer.Homepage-Footer ul li a:hover {
+    color: white;
+}
+footer.Homepage-Footer form {
+  display: -ms-flexbox;
+  display: flex
+}
+
+footer.Homepage-Footer form .form-control {
+  font-size: 14px;
+  background-color: #394456;
+  border: 1px solid #fff;
+  border-radius: 0;
+  color: #fff;
+  width: 70%;
+  margin-right: 5px;
+  -ms-flex-positive: 1;
+  flex-grow: 1
+}
+
+footer.Homepage-Footer form .btn {
+  border-radius: 0;
+  font-weight: 600;
+  line-height: 25px;
+  width: 100%;
+  height: 26px;
+}
+.Homepage-Footer--logo {
+    display: block;
+    background: transparent url('{{ site.url }}/assets/img/landing/misc/logo-header_website.svg') no-repeat 0 0;
+    margin: 30px auto;
+    height: 26px;
+    max-width: 1176px;
+}
+.Footer--view-desktop {
+    display: none;
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    text-align: center;
+    font-size: 14px;
+    color: #75B9D6;
+}
+.Homepage-Footer .Footer--col {
+    flex-grow: 1;
+}
+.Homepage-Footer .Footer--col.large {
+    flex-grow: 2;
+}
+
+.Homepage-Footer .Footer--col.large form {
+    display: flex;
+}
+.Homepage-Footer .Footer--col.large form > input {
+    flex: 1 0 auto;
+    background: white;
+    border-radius: 3px;
+    border: 1px solid #D9D9D9;
+    padding: 14px 16px;
+    font-size: 13px;
+    font-weight: 300;
+    margin: 0 12px 0 0;
+    line-height: 17px;
+    box-sizing: border-box;
+}
+.Homepage-Footer .Footer--col.large form > button {
+    flex: 0 0 auto;
+    -webkit-appearance: none;
+    background: #F2778A;
+    border: 1px solid #F2778A;
+    padding: 0 25px;
+    cursor: pointer;
+    font-size: 16px;
+    color: #FFFFFF;
+    text-transform: uppercase;
+    letter-spacing: 0.01px;
+    border-radius: 3px;
+    margin: 0;
+    font-weight: 300;
+    font-family: inherit;
+    line-height: 45px;
+}
+.Homepage-Footer .Footer--col.large form input::-moz-placeholder {
+    color: #999999;
+}
+.Homepage-Footer .Footer--col.large form input::-webkit-input-placeholder {
+    color: #999999;
+}
+
+@media (max-width: 1199px) {
+    .Homepage-Footer .Footer--col.large {
+        max-width: 250px;
+    }
+    .Homepage-Footer .Footer--col.large form {
+        display: block;
+    }
+
+    .Homepage-Footer .Footer--col.large form > input {
+        width: calc(100% - 35px);
+        width: 100%;
+        margin-bottom: 12px;
+    }
+
+    .Homepage-Footer .Footer--col.large form button {
+        width: 100%;
+    }
+
+}
+
+@media (max-width: 767px) {
+    footer.Homepage-Footer {
+        padding: 0;
+        padding-top: 20px;
+    }
+    footer.Homepage-Footer .container {
+        flex-direction: column;
+
+    }
+    .Homepage-Footer--logo {
+        margin: 0;
+        margin-left: 20px;
+        margin-bottom: 20px;
+    }
+    .Homepage-Footer .Footer--col {
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    .Homepage-Footer .Footer--col.active {
+        background-color: #2A3241;
+    }
+
+    .Homepage-Footer .Footer--col h3 {
+        cursor: pointer;
+        position: relative;
+        padding: 16px 20px;
+        margin: 0;
+    }
+
+    .Homepage-Footer .Footer--col ul {
+        display: none;
+    }
+
+    .Homepage-Footer .Footer--col.active ul {
+        display: block;
+        padding: 10px 20px;
+    }
+
+    .Homepage-Footer .Footer--col h3::after {
+        position: absolute;
+        right: 20px;
+        top: 19px;
+        width: 14px;
+        height: 8px;
+        background-image: url('{{ site.url }}/assets/img/landing/misc/arrow-down.png');
+        background-size: 14px 8px;
+        content: "";
+    }
+    .Homepage-Footer .Footer--col.active h3::after {
+        background-image: url('{{ site.url }}/assets/img/landing/misc/arrow-up.png');
+    }
+
+    .Homepage-Footer .Footer--col.large {
+        padding: 20px;
+        background-color: transparent;
+        max-width: 100%;
+    }
+    .Homepage-Footer .Footer--col.large h3 {
+        padding: 0;
+        margin-bottom: 20px;
+        margin-top: 40px;
+    }
+
+    .Homepage-Footer .Footer--col.large h3::after, .Homepage-Footer .Footer--col.large.active h3::after {
+        background: none;
+    }
+}

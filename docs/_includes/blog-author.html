@@ -1,0 +1,10 @@
+{% assign author = include.author %}
+{% assign date = include.date %}
+
+<div class="BlogPost-Meta">
+  <figure alt="{{ author.email }}"><img src="//koding-cdn.s3.amazonaws.com/blog-default-user-avatar.svg" alt="{{ author.name }}"></figure>
+  <div>
+    <h4>{{ author.name }}</h4>
+    <time datetime="{{ date }}">{{ date | date: "%B %e, %Y" }}</time>
+  </div>
+</div>

@@ -1,0 +1,66 @@
+- title: Videos
+  items:
+  - id: product-walkthrough
+    title: Product walkthrough
+- title: Getting started
+  items:
+  - id: what-is-a-stack
+    title: What is a Stack
+  - id: creating-an-aws-stack
+    title: Create AWS stack
+  - id: creating-a-vagrant-stack
+    title: Create Vagrant stack
+  - id: use-your-own-ide
+    title: Use your own IDE
+  - id: connect-your-own-machine-to-koding
+    title: Connect your own machine
+  - id: two-vm-setup-apachephp-server-db-server
+    title: Simple two VM setup
+  - id: database-vm-schema-setup
+    title: Advanced stack editing
+  - id: create-elastic-ip-for-your-instance
+    title: Assign Elastic IP
+  - id: create-an-aws-vpc
+    title: AWS non-default VPC
+  - id: setup-aws-iam-user
+    title: Setup AWS IAM user
+  - id: assigning-domain-names-with-route53
+    title: Assign domain names with Route53
+  - id: using-private-variables
+    title: Using Private Variables
+  - id: user-input
+    title: User Input
+  - id: using-amis
+    title: Using AMIs
+  - id: using-github-in-stacks
+    title: Using Github
+  - id: stack-for-docker
+    title: Using Docker
+  - id: slackapp
+    title: Inviting with Slack
+  - id: koding-button
+    title: Try on Koding button
+  - id: common-questions
+    title: Common Questions
+- title: Stack reference
+  items:
+  - id: the-provider-block
+    title: Provider block
+  - id: aws_instance
+    title: aws_instance
+  - id: aws_vpc
+    title: aws_vpc
+  - id: aws_subnet
+    title: aws_subnet
+  - id: aws_internet_gateway
+    title: aws_internet_gateway
+  - id: aws_route_table
+    title: aws_route_table
+  - id: aws_security_group
+    title: aws_security_group
+  - id: aws_eip
+    title: aws_eip
+  - id: aws_route53_record
+    title: aws_route53_record
+  - id: terraform-to-koding
+    title: TERRAFORM to KODING

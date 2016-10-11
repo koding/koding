@@ -1,0 +1,55 @@
+---
+layout: default
+title: Home
+permalink: /
+order: 0
+---
+
+<!-- HEADER -->
+{% include header.html with_signup_form='true' has_sticky_navigation='true' %}
+
+<!-- CONTENT SECTION -->
+{% include home-hero.html %}
+
+{% include home-threethings.html %}
+
+{% include home-contentwithvisual.html
+   image_src="/assets/img/landing/misc/koding_terraform"
+   icon_src="/assets/img/landing/misc/icon_stacks.svg"
+   image_ext="png"
+   title="Create stack templates that let you boot, build, test and share virtual machines in the cloud"
+   description="Developers get everything they need to spin up full-stack, project-specific environments in seconds. Share them, update them, and manage infrastructure from a simple interface." %}
+
+{% include home-logobar.html
+   logo1_src="/assets/img/landing/company-logos/logo_aws.svg"
+   logo2_src="/assets/img/landing/company-logos/logo_openstack.svg"
+   logo3_src="/assets/img/landing/company-logos/logo_docker.svg"
+   logo4_src="/assets/img/landing/company-logos/logo_digitalocean.svg"
+   logo5_src="/assets/img/landing/company-logos/logo_github.svg"
+   logo6_src="/assets/img/landing/company-logos/logo_gitlab.svg"
+   title="Use these services and more in your Koding Stack Templates" %}
+
+{% include home-contentwithvisual.html
+   image_src="/assets/img/landing/misc/koding_code"
+   icon_src="/assets/img/landing/misc/icon_spheres.svg"
+   image_ext="png"
+   title="Code collaboratively & integrate slack for team communication"
+   description="Koding‘s powerful collaboration tools allow developers to share their VM and code together in Koding’s browser-based IDE without having to resort to time-consuming meetings & conference calls." %}
+
+{% include home-logobar.html
+   logo1_src="/assets/img/landing/company-logos/logo_uber.svg"
+   logo2_src="/assets/img/landing/company-logos/logo_ibm.svg"
+   logo3_src="/assets/img/landing/company-logos/logo_hp.svg"
+   logo4_src="/assets/img/landing/company-logos/logo_mit.svg"
+   logo5_src="/assets/img/landing/company-logos/logo_berkeley.svg"
+   title="Over one million developers use Koding at a variety of different companies including:" %}
+
+{% include home-contentwithvisual.html
+   image_src="/assets/img/landing/misc/koding_kd"
+   icon_src="/assets/img/landing/misc/icon_code.svg"
+   image_ext="png"
+   title="The convenience of coding locally with the advantages of hosting in the cloud"
+   description="Koding for Teams uses a blazing-fast FUSE-based file system to sync your cloud environment file system on your local machine.<br><br>Your development workflow stays local and familiar while you develop entirely in the cloud" %}
+
+<!-- FOOTER -->
+{% include footer.html %}

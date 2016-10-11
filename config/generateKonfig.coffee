@@ -259,6 +259,7 @@ module.exports = (options, credentials) ->
     dummyAdmins                   : credentials.dummyAdmins
     druid                         : credentials.druid
     clearbit                      : credentials.clearbit
+    wufoo                         : credentials.wufoo
 
     regions                       : regions
     broker                        : broker

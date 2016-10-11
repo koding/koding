@@ -1,0 +1,11 @@
+<style>{% include css/blog-recent.css %}</style>
+<section class="BlogRecent">
+  <div class="BlogRecent--wrapper">
+    <h2>Recent posts</h2>
+    <main class="BlogRecent-Posts">
+    {% for post in site.posts limit:4 %}
+      {% include blog-post.html page = post %}
+    {% endfor %}
+    </main>
+  </div>
+</section>

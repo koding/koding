@@ -1,0 +1,68 @@
+.BlogHome-Header {
+  height: 400px;
+  background-color: rgba(49,66,93,0.6);
+}
+.BlogHome-Header--wrapper {
+  max-width: 1176px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
+}
+.BlogHome-Header--wrapper h1 {
+  font-size: 52px;
+  text-align: center;
+  color: white;
+}
+
+.BlogHome-Listing {
+  max-width: 634px;
+  width: 100%;
+  padding: 48px 30px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.BlogHome-Pagination {
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: row;
+  margin: 48px 0 0;
+}
+
+.BlogHome-Pagination span,
+.BlogHome-Pagination em,
+.BlogHome-Pagination a {
+  flex: 0 0 auto;
+  color: #989898;
+  text-decoration: none;
+  border: 1px solid #EBEBEB;
+  border-radius: 3px;
+  text-align: center;
+  display: block;
+  width: 22px;
+  line-height: 1;
+  font-size: 14px;
+  margin-right: 3px;
+  padding: 5px 0 3px;
+  font-weight: 300;
+}
+
+
+.BlogHome-Pagination span:first-child,
+.BlogHome-Pagination em:first-child,
+.BlogHome-Pagination a:first-child,
+.BlogHome-Pagination span:last-child,
+.BlogHome-Pagination em:last-child,
+.BlogHome-Pagination a:last-child {
+  border-color: transparent;
+  width: auto;
+  padding: 5px 3px 3px 3px;
+}
+
+.BlogHome-Pagination a {
+  color: #F2778A;
+  border-color: rgba(242, 119, 138, 0.4);
+}

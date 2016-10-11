@@ -1,0 +1,171 @@
+---
+layout: default
+title: Store
+permalink: /store/stack
+---
+
+<!-- HEADER -->
+{% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#7F7E9E' %}
+
+<link rel="stylesheet" href="{{ site.url }}/css/markdown.css">
+<link rel="stylesheet" href="{{ site.url }}/css/syntax.css">
+<link rel="stylesheet" href="{{ site.url }}/css/store.css">
+
+<div class="ItemDetails">
+  <div class="container">
+    <div class="ItemDetails-header">
+      <h1>Node JS + Express<span class="u-icon u-verified"></span></h1>
+      <p class="ItemDetails-header-author"><img src="" />by Koding</p>
+      <p class="ItemDetails-header-downloadedTimes">Downloaded 4356 times.</p>
+      <a href="#" class="Button Button--back">Back</a>
+    </div>
+    <p class="ItemDetails-description">
+      Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+    </p>
+    <ul>
+      <li id="template" class="isSelected"><div>Stack Template</div>
+      </li><li id="variables"><div>Custom Variables</div>
+      </li><li id="readme"><div>Readme</div></li>
+    </ul>
+  </div>
+</div>
+<div class="ItemBody">
+  <div class="container"><div class="ItemBody-addl">
+      <div class="ItemBody-addl-propertiesList">
+        <div>
+          <div class="u-icon u-windows"></div>
+          <div class="label">OS: <span>Windows</span></div>
+        </div>
+        <div>
+          <div class="u-icon u-aws"></div>
+          <div class="label">Provider: <span>Amazon WS</span></div>
+        </div>
+        <div>
+          <div class="u-icon u-server"></div>
+          <div class="label">Total VMs: <span>4</span></div>
+        </div>
+        <div>
+          <div class="u-icon u-server"></div>
+          <div class="label">Other: <span>Name Goes Here</span></div>
+        </div>
+        <div>
+          <div class="u-icon u-server"></div>
+          <div class="label">Another Number: <span>4567</span></div>
+        </div>
+      </div><div class="ItemBody-addl-cloneBox">
+        <a href="#" class="Button Button--actionable showModal">Clone to My Team</a>
+        <div class="ItemBody-addl-cloneCount">Cloned 625 times</div>
+      </div>
+    </div>
+    <div class="ItemBody-content markdown-body">
+      <div class="ItemBody-content-template isShown">
+        {% highlight ruby linenos %}
+          # Here is your stack preview
+          # You can make advanced changes like modifying your VM,
+          # installing packages, and running shell commands.
+
+          provider:
+            aws:
+              access_key: '${var.aws_access_key}'
+              secret_key: '${var.aws_secret_key}'
+          resource:
+            aws_instance:
+              example_1:
+                Instance_type: t2.nano
+                ami: ''
+                tags:
+                  Name: 'fahrettin-holla'
+                user_data: |-
+                  apt-get update -y
+
+
+          # Here is your stack preview
+          # You can make advanced changes like modifying your VM,
+          # installing packages, and running shell commands.
+
+          provider:
+            aws:
+              access_key: '${var.aws_access_key}'
+              secret_key: '${var.aws_secret_key}'
+          resource:
+            aws_instance:
+              example_1:
+                Instance_type: t2.nano
+                ami: ''
+                tags:
+                  Name: 'fahrettin-holla'
+                user_data: |-
+                  apt-get update -y
+        {% endhighlight %}
+      </div>
+      <div class="ItemBody-content-variables">
+        {% highlight ruby linenos %}
+          variables
+        {% endhighlight %}
+      </div>
+      <div class="ItemBody-content-readme">
+        {% highlight ruby linenos %}
+          resume
+        {% endhighlight %}
+      </div>
+    </div><div class="ItemBody-addl ItemBody-addl--isSecond">
+      <div class="ItemBody-addl-propertiesList">
+        <div>
+          <div class="u-icon u-windows"></div>
+          <div class="label">OS: <span>Windows</span></div>
+        </div>
+        <div>
+          <div class="u-icon u-aws"></div>
+          <div class="label">Provider: <span>Amazon WS</span></div>
+        </div>
+        <div>
+          <div class="icon server"></div>
+          <div class="label">Total VMs: <span>4</span></div>
+        </div>
+        <div>
+          <div class="icon server"></div>
+          <div class="label">Other: <span>Name Goes Here</span></div>
+        </div>
+        <div>
+          <div class="icon server"></div>
+          <div class="label">Another Number: <span>4567</span></div>
+        </div>
+      </div><div class="ItemBody-addl-cloneBox">
+        <a href="#" class="Button Button--actionable showModal">Clone to My Team</a>
+        <div class="ItemBody-addl-cloneCount">Cloned 625 times</div>
+      </div>
+    </div><div class="clearfix"></div>
+  </div>
+</div>
+<div class="Overlay"></div>
+<div class="Modal">
+  <a href="#" class="u-icon u-modalClose"></a>
+  <h1>Select a Team to Clone to</h1>
+  <h2>Which team you want it to be cloned to?</h2>
+  <div class="Modal-teamList">
+    <div class="Modal-teamListing">
+      <img src="" /><p>
+      Koding</p><a href="#" class="Button Button--actionable">Select</a>
+    </div>
+    <div class="Modal-teamListing">
+      <img src="" /><p>
+      Koding</p><a href="#" class="Button Button--actionable">Select</a>
+    </div>
+    <div class="Modal-teamListing">
+      <img src="" /><p>
+      Koding</p><a href="#" class="Button Button--actionable">Select</a>
+    </div>
+    <div class="Modal-teamListing">
+      <img src="" /><p>
+      Koding</p><a href="#" class="Button Button--actionable">Select</a>
+    </div>
+  </div>
+  <a href="#">Are you a member of another team?</a>
+</div>
+<script>
+  {% include js/store.js %}
+</script>
+
+<!-- FOOTER -->
+
+{% include footer.html %}
