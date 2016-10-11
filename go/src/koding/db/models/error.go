@@ -12,10 +12,6 @@ import (
 // this kind of errors means the resource was deleted outside
 // (shared ownership) and this error is returned to the caller,
 // so it recover if possible.
-//
-// TODO(rjeczalik): the db/mongo helpers should be decorating errors
-// instead, so database handling layer is transparent and no
-// library specific errors (e.g. mgo.ErrNotFound, pq.Error) are leaked.
 type NotFoundError struct {
 	Resource string // type / name of resource missing
 	Err      error  // underlying error, if any

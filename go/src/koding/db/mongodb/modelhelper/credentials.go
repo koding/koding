@@ -1,8 +1,6 @@
 package modelhelper
 
 import (
-	"fmt"
-
 	"koding/db/models"
 
 	"gopkg.in/mgo.v2"
@@ -19,7 +17,7 @@ func GetCredentialsFromIdentifiers(identifier ...string) ([]*models.Credential, 
 	if err := Mongo.Run(CredentialsColl, func(c *mgo.Collection) error {
 		return c.Find(bson.M{"identifier": bson.M{"$in": identifier}}).All(&credentials)
 	}); err != nil {
-		return nil, fmt.Errorf("credentials lookup error: %v", err)
+		return nil, err
 	}
 
 	return credentials, nil
@@ -33,7 +31,7 @@ func GetCredential(identifier string) (*models.Credential, error) {
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("credentials lookup error: %v", err)
+		return nil, err
 	}
 
 	return &credential, nil
@@ -53,7 +51,7 @@ func GetCredentialDatasFromIdentifiers(identifier ...string) ([]*models.Credenti
 	if err := Mongo.Run(CredentialDatasColl, func(c *mgo.Collection) error {
 		return c.Find(bson.M{"identifier": bson.M{"$in": identifier}}).All(&credentialData)
 	}); err != nil {
-		return nil, fmt.Errorf("credential data lookup error: %v", err)
+		return nil, err
 	}
 
 	return credentialData, nil
