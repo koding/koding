@@ -311,6 +311,14 @@ generateDev = (KONFIG, options) ->
       set +o errexit
     }
 
+    function runMongoDocker() {
+        docker run -d -p 27017:27017 --name=mongo koding/mongo:2016-10-11
+    }
+
+    function runPostgresqlDocker() {
+        docker run -d -p 5432:5432 --name=postgres koding/postgres
+    }
+
     function build_services () {
 
       if [[ `uname` == 'Darwin' ]]; then
@@ -323,10 +331,6 @@ generateDev = (KONFIG, options) ->
       echo "Removing services: $SERVICES"
       docker rm   $SERVICES
 
-      # Build Mongo service
-      pushd $KONFIG_PROJECTROOT/install/docker-mongo
-      docker build -t koding/mongo .
-
       # Build postgres
       pushd $KONFIG_PROJECTROOT/go/src/socialapi/db/sql
 
@@ -337,15 +341,11 @@ generateDev = (KONFIG, options) ->
       sed -i -e "s/kontrolapplication/$KONFIG_KONTROL_POSTGRES_USERNAME/" kontrol/001-schema.sql
 
       docker build -t koding/postgres .
-
-      docker run -d -p 27017:27017                                        --name=mongo    koding/mongo:20161011
+      runMongoDocker
       docker run -d -p 5672:5672 -p 15672:15672                           --name=rabbitmq rabbitmq:3-management
-
       docker run -d -p 6379:6379                                          --name=redis    redis
-      docker run -d -p 5432:5432                                          --name=postgres koding/postgres
-
+      runPostgresqlDocker
       docker run -d -p 18081-18110:8081-8110 -p 18200:8200 -p 19095:9095  --name=imply    imply/imply:1.2.1
-      restoredefaultmongodump
 
       echo "#---> CLEARING ALGOLIA INDEXES: @chris <---#"
       pushd $KONFIG_PROJECTROOT
@@ -379,44 +379,27 @@ generateDev = (KONFIG, options) ->
 
 
     function importusers () {
-
       node $KONFIG_PROJECTROOT/scripts/user-importer -c dev
       migrateusers
 
     }
 
     function migrateusers () {
-
-      echo '#---> UPDATING MONGO DB TO WORK WITH SOCIALAPI @cihangir <---#'
-      mongo $KONFIG_MONGO --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
-
       go run $KONFIG_PROJECTROOT/go/src/socialapi/workers/cmd/migrator/main.go -c $KONFIG_SOCIALAPI_CONFIGFILEPATH
+    }
 
-      # Required step for guestuser
-      mongo $KONFIG_MONGO --eval='db.jAccounts.update({"profile.nickname":"guestuser"},{$set:{type:"unregistered", socialApiId:0}});'
-
+    function removeDockerByName () {
+      docker ps -a -f name=$1 --format "{{.ID}}" | xargs docker rm -f && echo deleted $1 image
     }
 
     function restoredefaultmongodump () {
+      removeDockerByName mongo
+      runMongoDocker
+    }
 
-      echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
-
-      mongo $KONFIG_MONGO --eval "db.dropDatabase()"
-
-      pushd $KONFIG_PROJECTROOT/install/docker-mongo
-      if [[ -f $KONFIG_PROJECTROOT/install/docker-mongo/custom-db-dump.tar.bz2 ]]; then
-        tar jxvf $KONFIG_PROJECTROOT/install/docker-mongo/custom-db-dump.tar.bz2
-      else
-        tar jxvf $KONFIG_PROJECTROOT/install/docker-mongo/default-db-dump.tar.bz2
-      fi
-
-      read HOST _ DB <<<"$(echo $KONFIG_MONGO | awk -F '[:/]' '{ print $1, $2, $3}')"
-      mongorestore --host $HOST --db $DB dump/koding
-
-      rm -rf ./dump
-
-      updatePermissions
-
+    function restoredefaultpostgresdump () {
+      removeDockerByName postgres
+      runPostgresqlDocker
     }
 
     function updatePermissions () {
@@ -486,8 +469,8 @@ generateDev = (KONFIG, options) ->
 
       if [ "$2" == "--yes" ]; then
 
-        env PGPASSWORD=social_superuser psql -tA -h $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_DBNAME -U social_superuser -c "DELETE FROM \"api\".\"channel_participant\"; DELETE FROM \"api\".\"channel\";DELETE FROM \"api\".\"account\";"
         restoredefaultmongodump
+        restoredefaultpostgresdump
         migrateusers
 
         exit 0
@@ -501,10 +484,9 @@ generateDev = (KONFIG, options) ->
           exit 1
       fi
 
-      env PGPASSWORD=social_superuser psql -tA -h $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_DBNAME -U social_superuser -c "DELETE FROM \"api\".\"channel_participant\"; DELETE FROM \"api\".\"channel\";DELETE FROM \"api\".\"account\";"
       restoredefaultmongodump
+      restoredefaultpostgresdump
       migrateusers
-
     elif [ "$1" == "buildservices" ]; then
       check_service_dependencies
 
