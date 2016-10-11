@@ -68,6 +68,12 @@ func (f *Filter) Valid() error {
 	return nil
 }
 
+func (f *Filter) Matches(perm Perm) bool {
+	return perm.User() == f.Username &&
+		perm.Team() == f.Teamname &&
+		contains(perm.Roles(), f.RoleNames)
+}
+
 // Perm represents an access permission for a validated
 // credential - it describes who, within what team and
 // with which roles can use the credential, to which
@@ -185,4 +191,26 @@ func (c *Client) SetCred(username string, cred *Cred) error {
 	}
 
 	return c.store.Put(username, data)
+}
+
+func contains(existing, expected []string) bool {
+	rolesMatch := true
+
+	for _, want := range expected {
+		var found bool
+
+		for _, got := range existing {
+			if want == got {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			rolesMatch = false
+			break
+		}
+	}
+
+	return rolesMatch
 }
