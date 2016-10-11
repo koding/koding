@@ -54,7 +54,7 @@ func Describe(v interface{}) ([]stack.Value, error) {
 		default:
 			if enumer, ok := val.Field(i).Interface().(stack.Enumer); ok {
 				v.Type = "enum"
-				v.Values = enumer.Enum()
+				v.Values = enumer.Enums()
 				break
 			}
 

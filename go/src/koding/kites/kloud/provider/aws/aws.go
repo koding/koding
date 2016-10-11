@@ -214,7 +214,7 @@ type Region string
 
 var _ stack.Enumer = Region("")
 
-func (Region) Enum() []stack.Enum {
+func (Region) Enums() []stack.Enum {
 	return regions
 }
 

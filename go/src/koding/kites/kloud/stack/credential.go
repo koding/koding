@@ -11,30 +11,44 @@ import (
 	"github.com/koding/kite"
 )
 
+// CredentialDescribeRequest represents a request
+// value for "credential.describe" kloud method.
 type CredentialDescribeRequest struct {
 	Provider string `json:"provider,omitempty"`
 	Template []byte `json:"template,omitempty"`
 }
 
+// CredentialDescribeResponse represents a response
+// value from "credential.describe" kloud method.
 type CredentialDescribeResponse struct {
 	Description map[string]*Description `json:"description"`
 }
 
+// Description describes Credential and Bootstrap
+// types used by a given provider.
 type Description struct {
 	Provider   string  `json:"provider,omitempty"`
 	Credential []Value `json:"credential"`
 	Bootstrap  []Value `json:"bootstrap,omitempty"`
 }
 
+// Enumer represents a value, that can have
+// a limited set of values.
+//
+// It is used to create drop-down lists
+// or suggest possible value to the user.
 type Enumer interface {
-	Enum() []Enum
+	Enums() []Enum
 }
 
+// Enum is a description of a single enum value.
 type Enum struct {
 	Title string      `json:"title,omitempty"`
 	Value interface{} `json:"value"`
 }
 
+// Value represents a description of a single
+// field within Bootstrap or Credential struct.
 type Value struct {
 	Name     string `json:"name"`
 	Type     string `json:"type"`
@@ -44,6 +58,8 @@ type Value struct {
 	Values   []Enum `json:"values"`
 }
 
+// CredentialListRequest represents a request
+// value for "credential.list" kloud method.
 type CredentialListRequest struct {
 	Provider string `json:"provider,omitempty"`
 	Team     string `json:"team,omitempty"`
@@ -52,16 +68,22 @@ type CredentialListRequest struct {
 	Impersonate string `json:"impersonate"`
 }
 
+// CredentialItem represents a single credential
+// metadata.
 type CredentialItem struct {
 	Title      string `json:"title"`
 	Team       string `json:"team,omitempty"`
 	Identifier string `json:"identifier"`
 }
 
+// CredentialListResponse represents a response
+// value for "credential.list" kloud method.
 type CredentialListResponse struct {
 	Credentials map[string][]CredentialItem `json:"credentials"`
 }
 
+// CredentialAddRequest represents a request
+// value for "credential.add" kloud method.
 type CredentialAddRequest struct {
 	Provider string          `json:"provider"`
 	Team     string          `json:"team,omitempty"`
@@ -71,11 +93,14 @@ type CredentialAddRequest struct {
 	Impersonate string `json:"impersonate"`
 }
 
+// CredentialAddResponse represents a response
+// value for "credential.add" kloud method.
 type CredentialAddResponse struct {
 	Title      string `json:"title"`
 	Identifier string `json:"identifier"`
 }
 
+// CredentialDescribe is a kite.Handler for "credential.describe" kite method.
 func (k *Kloud) CredentialDescribe(r *kite.Request) (interface{}, error) {
 	var req CredentialDescribeRequest
 
@@ -97,6 +122,7 @@ func (k *Kloud) CredentialDescribe(r *kite.Request) (interface{}, error) {
 	}, nil
 }
 
+// CredentialList is a kite.Handler for "credential.list" kite method.
 func (k *Kloud) CredentialList(r *kite.Request) (interface{}, error) {
 	var req CredentialListRequest
 
@@ -139,6 +165,7 @@ func (k *Kloud) CredentialList(r *kite.Request) (interface{}, error) {
 	return resp, nil
 }
 
+// CredentialAdd is a kite.Handler for "credential.add" kite method.
 func (k *Kloud) CredentialAdd(r *kite.Request) (interface{}, error) {
 	var req CredentialAddRequest
 
