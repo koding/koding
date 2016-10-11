@@ -6,16 +6,16 @@ StackTemplateItem = require '../stacktemplateitem'
 
 module.exports = class DisabledUsersStacksListView extends React.Component
 
-  onAddToSidebar: (template) -> @props.onAddToSidebar template.get '_id'
+  onAddToSidebar: (stack) -> @props.onAddToSidebar stack.get '_id'
 
 
-  onRemoveFromSidebar: (template) -> @props.onRemoveFromSidebar template.get '_id'
+  onRemoveFromSidebar: (stack) -> @props.onRemoveFromSidebar stack.get '_id'
 
 
   numberOfSections: -> 1
 
 
-  numberOfRowsInSection: -> @props.templates?.size or 0
+  numberOfRowsInSection: -> @props.stacks?.size or 0
 
 
   renderSectionHeaderAtIndex: -> null
@@ -24,16 +24,14 @@ module.exports = class DisabledUsersStacksListView extends React.Component
   renderRowAtIndex: (sectionIndex, rowIndex) ->
 
     stack = @props.stacks.toList().get(rowIndex)
-    template = @props.templates.get stack.get 'baseStackId'
 
     onAddToSidebar = @lazyBound 'onAddToSidebar', stack
     onRemoveFromSidebar = @lazyBound 'onRemoveFromSidebar', stack
 
-    isVisible = !!@props.sidebarStacks.get(stack.get '_id')
+    isVisible =  @props.sidebarStacks.get(stack.get '_id')
 
     <StackTemplateItem
       isVisibleOnSidebar={isVisible}
-      template={template}
       stack={stack}
       onOpen={@props.onOpenItem}
       onAddToSidebar={onAddToSidebar}

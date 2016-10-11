@@ -246,10 +246,11 @@ func (p *Planner) checkSingleKlient(k *kite.Kite, label, kiteID string) *DialSta
 	}
 
 	return &DialState{
-		Label:  label,
-		KiteID: kiteID,
-		State:  "provider",
-		Err:    err,
+		Label:   label,
+		KiteID:  kiteID,
+		KiteURL: c.Client.URL,
+		State:   "provider",
+		Err:     err,
 	}
 }
 

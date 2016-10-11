@@ -3,6 +3,7 @@ package object_test
 import (
 	"encoding/json"
 	"reflect"
+	"strings"
 	"testing"
 
 	"koding/kites/kloud/provider/aws"
@@ -32,6 +33,7 @@ func TestBuilder(t *testing.T) {
 		Sep:       "+",
 		Prefix:    "prefix",
 		Recursive: true,
+		FieldFunc: strings.ToLower,
 	}
 
 	cases := []struct {

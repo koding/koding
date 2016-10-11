@@ -21,6 +21,7 @@ module.exports = (options = {}, callback) ->
   userId              = null
   roles               = null
   permissions         = null
+  combinedStorage     = null
 
   { bongoModels, client, session } = options
 
@@ -39,6 +40,7 @@ module.exports = (options = {}, callback) ->
     encodedSocialApiData = JSON.stringify socialapidata, replacer
     currentGroup         = JSON.stringify currentGroup, replacer
     userAccount          = JSON.stringify delegate, replacer
+    combinedStorage      = JSON.stringify combinedStorage, replacer
     userMachines         = JSON.stringify userMachines, replacer
     userWorkspaces       = JSON.stringify userWorkspaces, replacer
     userEnvironmentData  = JSON.stringify userEnvironmentData, replacer
@@ -61,6 +63,7 @@ module.exports = (options = {}, callback) ->
         userAccount: #{userAccount},
         userMachines: #{userMachines},
         userWorkspaces: #{userWorkspaces},
+        combinedStorage: #{combinedStorage},
         userRoles: #{userRoles},
         userPermissions: #{userPermissions},
         currentGroup: #{currentGroup},
@@ -104,11 +107,11 @@ module.exports = (options = {}, callback) ->
   queue = [
 
     (fin) ->
-       socialApiCacheFn = require '../cache/socialapi'
-       socialApiCacheFn options, (err, data) ->
-         console.error 'could not get prefetched data', err  if err
-         socialapidata = data
-         fin()
+      socialApiCacheFn = require '../cache/socialapi'
+      socialApiCacheFn options, (err, data) ->
+        console.error 'could not get prefetched data', err  if err
+        socialapidata = data
+        fin()
 
     (fin) ->
       groupName = session?.groupName or 'koding'
@@ -126,7 +129,6 @@ module.exports = (options = {}, callback) ->
         fin()
 
     (fin) ->
-
       { delegate : account } = client.connection
       account.fetchMyPermissionsAndRoles client, (err, res) ->
 
@@ -134,6 +136,15 @@ module.exports = (options = {}, callback) ->
 
         roles       = res.roles
         permissions = res.permissions
+
+        fin()
+
+    (fin) ->
+      { delegate : account } = client.connection
+      query = { accountId : account._id }
+      bongoModels.JCombinedAppStorage.one query, (err, storage) ->
+        console.log err  if err
+        combinedStorage = storage ? {}
 
         fin()
 

@@ -55,7 +55,7 @@ module.exports = class StackTemplateItem extends React.Component
 
   renderButton: ->
 
-    { template, onAddToSidebar, onRemoveFromSidebar, isVisibleOnSidebar } = @props
+    { onAddToSidebar, onRemoveFromSidebar, isVisibleOnSidebar } = @props
 
     if isVisibleOnSidebar
       <a href="#" className="HomeAppView--button primary" onClick={onRemoveFromSidebar}>REMOVE FROM SIDEBAR</a>
@@ -106,13 +106,30 @@ module.exports = class StackTemplateItem extends React.Component
       onClose={@bound 'onWidgetClose'}
     />
 
+  renderDisabledStack: (stack, onOpen) ->
+
+    <div className='HomeAppViewListItem StackTemplateItem'>
+      <a
+        ref='stackTemplateItem'
+        className='HomeAppViewListItem-label disabled'
+        onClick={onOpen}>
+        { makeTitle { stack } }
+      </a>
+      <div className='HomeAppViewListItem-description disabled'>
+        Last updated <TimeAgo from={stack.getIn ['meta', 'modifiedAt']} />
+      </div>
+      <div className='HomeAppViewListItem-SecondaryContainer'>
+        {@renderButton()}
+      </div>
+    </div>
+
 
   render: ->
 
     { template, stack, onOpen } = @props
 
+    return @renderDisabledStack(stack, onOpen)  if stack?.get 'disabled'
     return null  unless template
-
 
     editorUrl = "/Stack-Editor/#{template.get '_id'}"
 
@@ -137,9 +154,10 @@ module.exports = class StackTemplateItem extends React.Component
 
 makeTitle = ({ template, stack }) ->
 
-  title = _.unescape template.get 'title'
+  title = _.unescape template?.get 'title'
 
   return title  unless stack
-  return title  unless oldOwner = stack.getIn(['config', 'oldOwner'])
+  if stack.getIn(['config', 'oldOwner'])
+    title = stack.get 'title'
 
-  return "#{title} (@#{oldOwner})"
+  return "#{title}"
