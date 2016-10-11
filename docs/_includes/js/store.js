@@ -9,7 +9,9 @@
 
       removeIcon = document.querySelector('.remove-icon'),
 
-      itemDetailsTabs = document.querySelectorAll('.ItemDetails ul li');
+      itemDetailsTabs = document.querySelectorAll('.ItemDetails ul li'),
+
+      showModal = document.querySelectorAll('.showModal');
 
   var initialize = function() {
 
@@ -36,7 +38,7 @@
       removeIcon.addEventListener('click', function(e) {
         searchBarInput.value = "";
         searchBarInput.focus();
-        searchBar.classList.remove('is-shown');
+        searchBar.classList.remove('isShown');
         searchResults.innerHTML = "";
 
         return false;
@@ -48,6 +50,22 @@
         el.addEventListener('click', selectTab);
       });
     }
+
+    [].forEach.call(showModal, function(el) {
+      el.addEventListener('click', function(e) {
+        var overlay = document.querySelector('.Overlay');
+        overlay.classList.add('isShown');
+
+        var modal = document.querySelector('.Modal');
+        modal.classList.add('isShown');
+
+        var close = document.querySelector('.u-modalClose');
+        close.addEventListener('click', function(e) {
+          overlay.classList.remove('isShown');
+          modal.classList.remove('isShown');
+        })
+      });
+    })
   }
 
   var searchResultTemplate = function(obj) {
