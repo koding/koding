@@ -53,17 +53,21 @@
 
     [].forEach.call(showModal, function(el) {
       el.addEventListener('click', function(e) {
-        var overlay = document.querySelector('.Overlay');
-        overlay.classList.add('isShown');
+        var close, overlay, modal;
 
-        var modal = document.querySelector('.Modal');
+        overlay = document.querySelector('.Overlay');
+        modal   = document.querySelector('.Modal');
+        close   = document.querySelector('.u-modalClose');
+
+        overlay.classList.add('isShown');
         modal.classList.add('isShown');
 
-        var close = document.querySelector('.u-modalClose');
-        close.addEventListener('click', function(e) {
-          overlay.classList.remove('isShown');
-          modal.classList.remove('isShown');
-        })
+        [].forEach.call([close, overlay], function(el) {
+          el.addEventListener('click', function(e) {
+            overlay.classList.remove('isShown');
+            modal.classList.remove('isShown');
+          })
+        });
       });
     })
   }
