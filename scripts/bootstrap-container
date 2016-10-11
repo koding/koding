@@ -57,6 +57,7 @@ elif [ "$1" = "build" ]; then
   run_backend
 elif [ "$1" = "run" ]; then
   shift
+  is_ready
   run $*
 elif [ "$1" = "is_ready" ]; then
   shift
