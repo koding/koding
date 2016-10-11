@@ -50,6 +50,10 @@ func ResError(err error, resource string) error {
 // *NotFoundError type.
 func IsNotFound(err error, resources ...string) bool {
 	if e, ok := err.(*NotFoundError); ok {
+		if len(resources) == 0 {
+			return true
+		}
+
 		for _, res := range resources {
 			if e.Resource == res {
 				return true
