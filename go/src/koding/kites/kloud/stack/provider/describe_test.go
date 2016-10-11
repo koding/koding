@@ -9,6 +9,26 @@ import (
 	"koding/kites/kloud/stack/provider"
 )
 
+type Foo struct {
+	File []byte `kloud:",secret"`
+	N    int    `kloud:",readOnly"`
+	S    string
+	M    map[string]interface{} `kloud:"someMap"`
+	E    FooEnum                `json:"enums" kloud:"someEnums"`
+}
+
+type FooEnum string
+
+var FooEnums = []stack.Enum{
+	{Title: "A foo value", Value: "foo"},
+	{Title: "A bar value", Value: "bar"},
+	{Title: "A baz value", Value: "baz"},
+}
+
+func (FooEnum) Enums() []stack.Enum {
+	return FooEnums
+}
+
 func TestDescribe(t *testing.T) {
 	cases := map[string]struct {
 		value interface{}
@@ -28,9 +48,36 @@ func TestDescribe(t *testing.T) {
 				Secret: true,
 			}, {
 				Name:   "region",
-				Type:   "string",
+				Type:   "enum",
 				Label:  "Region",
-				Secret: false,
+				Values: aws.Regions,
+			}},
+		},
+		"arbitrary Foo": {
+			&Foo{},
+			[]stack.Value{{
+				Name:   "File",
+				Type:   "file",
+				Label:  "File",
+				Secret: true,
+			}, {
+				Name:     "N",
+				Type:     "integer",
+				Label:    "N",
+				ReadOnly: true,
+			}, {
+				Name:  "S",
+				Type:  "string",
+				Label: "S",
+			}, {
+				Name:  "M",
+				Type:  "object",
+				Label: "someMap",
+			}, {
+				Name:   "enums",
+				Type:   "enum",
+				Label:  "someEnums",
+				Values: FooEnums,
 			}},
 		},
 	}

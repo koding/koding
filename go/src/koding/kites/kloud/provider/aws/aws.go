@@ -198,7 +198,7 @@ func (meta *Cred) Valid() error {
 	return nil
 }
 
-var regions = []stack.Enum{
+var Regions = []stack.Enum{
 	{Title: "US East (N. Virginia) (us-east-1)", Value: "us-east-1"},
 	{Title: "US West (Oregon) (us-west-2)", Value: "us-west-2"},
 	{Title: "US West (N. California) (us-west-1)", Value: "us-west-1"},
@@ -215,7 +215,7 @@ type Region string
 var _ stack.Enumer = Region("")
 
 func (Region) Enums() []stack.Enum {
-	return regions
+	return Regions
 }
 
 // The function assumes arn string comes from an IAM resource, as
