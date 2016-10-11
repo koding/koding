@@ -17,7 +17,7 @@ module.exports = class JCombinedAppStorage extends JStorage
     sharedMethods   :
       static        : {}
       instance      :
-        upsert:
+        upsert      :
           (signature String, Object, Function)
     schema          :
       accountId     : ObjectId

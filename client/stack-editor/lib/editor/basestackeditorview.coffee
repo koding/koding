@@ -59,7 +59,7 @@ module.exports = class BaseStackEditorView extends IDEEditorPane
       kd.utils.defer =>
         @getEditorSession().setScrollTop 0
 
-      @emit 'EditorReady'
+      @emit 'ready'
 
     ace.off 'ace.requests.save'
 

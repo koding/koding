@@ -40,7 +40,7 @@ module.exports = class VariablesView extends StackBaseEditorTabView
 
     @setState 'INITIAL'
 
-    kd.utils.defer =>
+    @editorView.ready =>
       @checkVariableChanges()
       @followVariableChanges()
 

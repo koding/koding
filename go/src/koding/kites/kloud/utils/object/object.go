@@ -44,21 +44,22 @@ type Builder struct {
 
 	// Recursive tells when struct fields should be processed as well.
 	Recursive bool
+
+	// FieldFunc is used to format struct's field name.
+	//
+	// By default struct's field name is used as-is.
+	FieldFunc func(string) string
 }
 
 // New creates new child builder for the given prefix.
 func (b *Builder) New(prefix string) *Builder {
-	newB := &Builder{
-		Tag:       b.Tag,
-		Sep:       b.Sep,
-		Recursive: b.Recursive,
-	}
+	newB := *b
 	if b.Prefix != "" {
 		newB.Prefix = b.Prefix + newB.Sep + prefix
 	} else {
 		newB.Prefix = prefix
 	}
-	return newB
+	return &newB
 }
 
 // Build creates flat object representation of the given value v ignoring
@@ -200,10 +201,17 @@ func (b *Builder) keyFromField(f *structs.Field) string {
 	case "-":
 		return ""
 	case "":
-		return strings.ToLower(f.Name())
+		return b.fieldFunc(f.Name())
 	}
 
 	return tag
+}
+
+func (b *Builder) fieldFunc(s string) string {
+	if b.FieldFunc != nil {
+		return b.FieldFunc(s)
+	}
+	return s
 }
 
 func isMapObject(v interface{}) bool {

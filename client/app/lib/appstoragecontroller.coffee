@@ -14,7 +14,8 @@ class AppStorageController extends kd.Controller
 
   storage: (name, version) ->
 
-    if 'object' is typeof name then opts = name
+    if 'object' is typeof name
+      opts = name
     else
       opts =
         name    : name
