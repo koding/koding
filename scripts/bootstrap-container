@@ -5,7 +5,7 @@ set -o errexit
 pushd $(dirname $0)/..
 
 function configure() {
-  npm install --unsafe-perm
+  [ ! -d node_modules ] && npm install --unsafe-perm
   ./configure $*
 }
 
