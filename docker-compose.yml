@@ -12,7 +12,8 @@ services:
 
   backend:
     image: koding/base
-    entrypoint: /opt/koding/scripts/bootstrap-container
+    working_dir: /opt/koding
+    entrypoint: scripts/bootstrap-container
     command: build
     env_file: .env-docker-compose
     volumes:
