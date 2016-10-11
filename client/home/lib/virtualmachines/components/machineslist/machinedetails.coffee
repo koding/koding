@@ -272,6 +272,7 @@ module.exports = class MachineDetails extends React.Component
         kd.singletons.router.handleRoute "/Home/stacks/virtual-machines/#{@state.machineLabel}"
       .catch (err) =>
         @setState { machineLabel: @props.machine.get 'label' }
+        EnvironmentFlux.actions.loadExpandedMachineLabel @props.machine.get 'label'
         new kd.NotificationView { title: 'Something went wrong', duration: 2000 }
 
 
