@@ -130,6 +130,11 @@ module.exports = class SidebarStackSection extends React.Component
 
     if managedVM
       menuItems['VMs'] = { callback }
+    else if @props.stack.get 'disabled'
+      # because of disabled stack's baseTemplate came undefined
+      # no need to show Edit, Clone, Reinitialize options
+      ['VMs', 'Destroy VMs'].forEach (name) ->
+        menuItems[name] = { callback }
     else
       if isAdmin() or @props.stack.get('accessLevel') is 'private'
         menuItems['Edit'] = { callback }
