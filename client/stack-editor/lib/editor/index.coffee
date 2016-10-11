@@ -902,58 +902,8 @@ module.exports = class StackEditorView extends kd.View
 
   deleteStack: ->
 
-    { groupsController, computeController, router, reactor }  = kd.singletons
-    currentGroup  = groupsController.getCurrentGroup()
-    template      = @getData().stackTemplate
-
-    if template._id in (currentGroup.stackTemplates ? [])
-      return showError 'This template currently in use by the Team.'
-
-    if computeController.findStackFromTemplateId template._id
-      return showError 'You currently have a stack generated from this template.'
-
-    title       = 'Are you sure?'
-    description = '<h2>Do you want to delete this stack template?</h2>'
-    callback    = ({ status, modal }) ->
-      return  unless status
-
-      EnvironmentFlux.actions.removeStackTemplate template
-        .then ->
-          router.handleRoute '/IDE'
-          modal.destroy()
-        .catch (err) ->
-          new kd.NotificationView { title: 'Something went wrong!' }
-          modal.destroy()
-
-
-    template.hasStacks (err, result) ->
-      return showError err  if err
-
-      if result
-        description = '''<p>
-          There is a stack generated from this template by another team member. Deleting it can break their stack.
-          Do you still want to delete this stack template?</p>
-        '''
-
-      modal = new ContentModal
-        width : 400
-        overlay : yes
-        cssClass : 'delete-stack-template content-modal'
-        title   : title
-        content : description
-        buttons :
-          cancel      :
-            title     : 'Cancel'
-            cssClass  : 'kdbutton solid medium'
-            callback  : ->
-              modal.destroy()
-              callback { status : no }
-          ok          :
-            title     : 'Yes'
-            cssClass  : 'kdbutton solid medium'
-            callback  : -> callback { status : yes, modal }
-
-      modal.setAttribute 'testpath', 'RemoveStackModal'
+    { computeController }  = kd.singletons
+    computeController.deleteStackTemplate @getData().stackTemplate
 
 
   shareCredentials: (callback) ->
