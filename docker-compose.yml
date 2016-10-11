@@ -26,6 +26,15 @@ services:
       - rabbitmq
       - redis
 
+  client:
+    image: koding/base
+    working_dir: /opt/koding
+    entrypoint: scripts/bootstrap-container is_ready
+    command: make -C client development
+    env_file: .env-docker-compose
+    volumes:
+      - .:/opt/koding
+
   mongo:
     image: koding/mongo
 
