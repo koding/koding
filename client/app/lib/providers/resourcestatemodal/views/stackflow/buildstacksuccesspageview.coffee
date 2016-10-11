@@ -7,10 +7,22 @@ module.exports = class BuildStackSuccessPageView extends JView
 
     super options, data
 
+    { router } = kd.singletons
+
     @logsButton = new kd.ButtonView
-      title    : 'See the Logs'
+      title    : 'View Logs'
       cssClass : 'GenericButton secondary'
       callback : @lazyBound 'emit', 'LogsRequested'
+
+    @installButton = new kd.ButtonView
+      title    : 'Install'
+      cssClass : 'GenericButton secondary'
+      callback : -> router.handleRoute '/Home/koding-utilities#kd-cli'
+
+    @inviteButton = new kd.ButtonView
+      title    : 'Invite'
+      cssClass : 'GenericButton secondary'
+      callback : ->
 
     @closeButton = new kd.ButtonView
       title    : 'Start Coding'
@@ -24,11 +36,33 @@ module.exports = class BuildStackSuccessPageView extends JView
       <div class="build-stack-success-page">
         <section class="main">
           <div class="background"></div>
-          <h1>Success</h1>
-          <h2>Your stack has been built</h2>
+          <h2>Success! Your stack has been built.</h2>
+          <div>
+            <div class="next-action">
+              {{> @logsButton}}
+              <div class="next-action-title">View The Logs</div>
+              <div class="next-action-description">
+                See the logs we captured during the build process.
+              </div>
+            </div>
+            <div class="next-action">
+              {{> @installButton}}
+              <div class="next-action-title">Connect Your Local Machine</div>
+              <div class="next-action-description">
+                Use KD to use your local IDEs to interact with the file system
+                on your new VM.
+              </div>
+            </div>
+            <div class="next-action">
+              {{> @inviteButton}}
+              <div class="next-action-title">Invite to Collaborate</div>
+              <div class="next-action-description">
+                Invite your team members to collaborate in the online IDE.
+              </div>
+            </div>
+          </div>
         </section>
         <footer>
-          {{> @logsButton}}
           {{> @closeButton}}
         </footer>
       </div>
