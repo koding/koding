@@ -55,7 +55,7 @@ type Value struct {
 	Label    string `json:"label"`
 	Secret   bool   `json:"secret"`
 	ReadOnly bool   `json:"readOnly"`
-	Values   []Enum `json:"values"`
+	Values   []Enum `json:"values,omitempty"`
 }
 
 // CredentialListRequest represents a request
