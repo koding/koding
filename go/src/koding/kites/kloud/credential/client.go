@@ -69,7 +69,8 @@ func (f *Filter) Valid() error {
 }
 
 func (f *Filter) Matches(perm Perm) bool {
-	return perm.User() == f.Username &&
+	_, isFilter := perm.(*Filter)
+	return !isFilter && perm.User() == f.Username &&
 		perm.Team() == f.Teamname &&
 		contains(perm.Roles(), f.RoleNames)
 }
@@ -157,47 +158,32 @@ func (c *Client) Creds(filter *Filter) ([]*Cred, error) {
 // If cred.Ident is non-empty, the credential is expected to already
 // exist and belong to the given user with an owner role.
 func (c *Client) SetCred(username string, cred *Cred) error {
-	credCopy := *cred
+	if cred.Ident == "" {
+		cred.Ident = bson.NewObjectId().Hex()
+	}
 
-	if credCopy.Perm == nil {
-		credCopy.Perm = &Filter{
+	if cred.Perm == nil {
+		cred.Perm = &Filter{
+			Ident:    cred.Ident,
 			Username: username,
 			Teamname: cred.Team,
 		}
 	}
 
-	if credCopy.Ident == "" {
-		credCopy.Ident = bson.NewObjectId().Hex()
-	}
-
-	if err := c.db.SetCred(&credCopy); err != nil {
+	if err := c.db.SetCred(cred); err != nil {
 		return err
 	}
 
-	if cred.Ident == "" {
-		cred.Ident = credCopy.Ident
+	if cred.Data == nil {
+		cred.Data = make(map[string]interface{})
 	}
 
-	if cred.Title == "" {
-		cred.Title = credCopy.Title
-	}
-
-	if credCopy.Data == nil {
-		credCopy.Data = make(map[string]interface{})
-	}
-
-	data := map[string]interface{}{
-		credCopy.Ident: credCopy.Data,
-	}
-
-	return c.store.Put(username, data)
+	return c.store.Put(username, map[string]interface{}{cred.Ident: cred.Data})
 }
 
 func contains(existing, expected []string) bool {
-	rolesMatch := true
-
 	for _, want := range expected {
-		var found bool
+		found := false
 
 		for _, got := range existing {
 			if want == got {
@@ -207,10 +193,9 @@ func contains(existing, expected []string) bool {
 		}
 
 		if !found {
-			rolesMatch = false
-			break
+			return false
 		}
 	}
 
-	return rolesMatch
+	return true
 }

@@ -145,8 +145,12 @@ func (db *mongoDatabase) Validate(f *Filter, c *Cred) (Perm, error) {
 
 	perm := extractMongoPerm(f, c)
 
+	log.Debug("extracted perm: %#v", perm)
+
 	if err := db.fetchModels(f, perm); err != nil {
-		return nil, err
+		// Return partially constructed perm to allow SetCreds
+		// do alidate-or-create operation.
+		return perm, err
 	}
 
 	belongs := modelhelper.Selector{
@@ -349,14 +353,30 @@ func (db *mongoDatabase) fetchCreds(f *Filter, acc *models.Account, user *models
 		return models.ResError(err, "jRelationship")
 	}
 
+	ids := make([]bson.ObjectId, len(rels))
+
+	for i := range rels {
+		ids[i] = rels[i].TargetId
+	}
+
+	c, err := modelhelper.GetCredentialByIDs(ids...)
+	if err == mgo.ErrNotFound {
+		return nil // nothing to fetch, ignore dangling jRelationship
+	}
+	if err != nil {
+		return err
+	}
+
+	credentials := make(map[bson.ObjectId]*models.Credential, len(c))
+
+	for i := range c {
+		credentials[c[i].Id] = c[i]
+	}
+
 	for _, rel := range rels {
-		cred, err := modelhelper.GetCredentialByID(rel.TargetId)
-		if err == mgo.ErrNotFound {
-			// dangling jRelationship, ignore
-			continue
-		}
-		if err != nil {
-			return models.ResError(err, "jCredential")
+		cred, ok := credentials[rel.TargetId]
+		if !ok {
+			continue // ignore dangling jRelationship
 		}
 
 		if f.Provider != "" && cred.Provider != f.Provider {
@@ -433,6 +453,8 @@ func (db *mongoDatabase) SetCred(c *Cred) error {
 			ModifiedAt: now,
 		},
 	}
+
+	db.Log.Debug("creating credential: %#v", mPerm.CredModel)
 
 	if err := modelhelper.CreateCredential(mPerm.CredModel); err != nil {
 		return err
