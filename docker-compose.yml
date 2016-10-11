@@ -6,8 +6,6 @@ services:
     entrypoint: /opt/koding/scripts/bootstrap-container
     command: build
     env_file: .env-docker-compose
-    environment:
-      DEFAULTENV: $DEFAULTENV
     volumes:
       - .:/opt/koding
     ports:
