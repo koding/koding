@@ -230,7 +230,7 @@ func (db *mongoDatabase) fetchModels(f *Filter, perm *MongoPerm) (err error) {
 		}
 	}
 
-	if perm.CredModel == nil {
+	if perm.CredModel == nil && f.Ident != "" {
 		log.Debug("fetching %q credential", f.Ident)
 
 		perm.CredModel, err = modelhelper.GetCredential(f.Ident)
@@ -242,6 +242,44 @@ func (db *mongoDatabase) fetchModels(f *Filter, perm *MongoPerm) (err error) {
 	return nil
 }
 
+func (db *mongoDatabase) fetchTeams(perm *MongoPerm) (map[bson.ObjectId]*models.Group, error) {
+	if perm.TeamModel != nil {
+		return map[bson.ObjectId]*models.Group{
+			perm.TeamModel.Id: perm.TeamModel,
+		}, nil
+	}
+
+	belongs := modelhelper.Selector{
+		"targetId":   perm.AccModel.Id,
+		"sourceName": "JGroup",
+		"as":         "member",
+	}
+
+	rels, err := modelhelper.GetAllRelationships(belongs)
+	if err != nil {
+		return nil, models.ResError(err, "jRelationship")
+	}
+
+	ids := make([]bson.ObjectId, len(rels))
+
+	for i := range rels {
+		ids[i] = rels[i].SourceId
+	}
+
+	groups, err := modelhelper.GetGroupsByIds(ids...)
+	if err != nil {
+		return nil, models.ResError(err, "jGroup")
+	}
+
+	teams := make(map[bson.ObjectId]*models.Group, len(groups))
+
+	for i := range groups {
+		teams[groups[i].Id] = groups[i]
+	}
+
+	return teams, nil
+}
+
 func (db *mongoDatabase) Creds(f *Filter) ([]*Cred, error) {
 	log := db.log().New("Creds")
 
@@ -249,59 +287,15 @@ func (db *mongoDatabase) Creds(f *Filter) ([]*Cred, error) {
 		return nil, err
 	}
 
-	acc, err := modelhelper.GetAccount(f.Username)
-	if err != nil {
-		return nil, models.ResError(err, "jAccount")
+	var perm MongoPerm
+
+	if err := db.fetchModels(f, &perm); err != nil {
+		return nil, err
 	}
 
-	user, err := modelhelper.GetUser(f.Username)
+	teams, err := db.fetchTeams(&perm)
 	if err != nil {
-		return nil, models.ResError(err, "jUser")
-	}
-
-	teams := make(map[bson.ObjectId]*models.Group)
-
-	if f.Teamname != "" {
-		team, err := modelhelper.GetGroup(f.Teamname)
-		if err != nil {
-			return nil, models.ResError(err, "jGroup")
-		}
-
-		belongs := modelhelper.Selector{
-			"targetId": acc.Id,
-			"sourceId": team.Id,
-			"as":       "member",
-		}
-
-		if count, err := modelhelper.RelationshipCount(belongs); err != nil || count == 0 {
-			if err == nil {
-				err = fmt.Errorf("user %q does not belong to %q group", f.Username, f.Teamname)
-			}
-
-			return nil, models.ResError(err, "jRelationship")
-		}
-
-		teams[team.Id] = team
-	} else {
-		belongs := modelhelper.Selector{
-			"targetId":   acc.Id,
-			"sourceName": "JGroup",
-			"as":         "member",
-		}
-
-		rels, err := modelhelper.GetAllRelationships(belongs)
-		if err != nil {
-			return nil, models.ResError(err, "jRelationship")
-		}
-
-		for _, rel := range rels {
-			team, err := modelhelper.GetGroupById(rel.SourceId.Hex())
-			if err != nil {
-				return nil, models.ResError(err, "jGroup")
-			}
-
-			teams[team.Id] = team
-		}
+		return nil, err
 	}
 
 	var creds []*Cred
@@ -309,11 +303,11 @@ func (db *mongoDatabase) Creds(f *Filter) ([]*Cred, error) {
 	// Fetch credentials that user owns.
 	ownerOnly := modelhelper.Selector{
 		"targetName": "JCredential",
-		"sourceId":   acc.Id,
+		"sourceId":   perm.AccModel.Id,
 		"as":         "owner",
 	}
 
-	if err := db.fetchCreds(f, acc, user, nil, ownerOnly, &creds); err != nil {
+	if err := db.fetchCreds(f, perm.AccModel, perm.UserModel, nil, ownerOnly, &creds); err != nil {
 		return nil, err
 	}
 
@@ -335,7 +329,7 @@ func (db *mongoDatabase) Creds(f *Filter) ([]*Cred, error) {
 			"as": "user",
 		}
 
-		if err := db.fetchCreds(f, acc, user, teams, userOnly, &creds); err != nil {
+		if err := db.fetchCreds(f, perm.AccModel, perm.UserModel, teams, userOnly, &creds); err != nil {
 			return nil, err
 		}
 
