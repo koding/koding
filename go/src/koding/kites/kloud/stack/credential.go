@@ -219,12 +219,6 @@ func (k *Kloud) CredentialAdd(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	if err := k.CredClient.Lock(c); err != nil {
-		return nil, err
-	}
-
-	defer k.CredClient.Unlock(c)
-
 	teamReq := &TeamRequest{
 		Provider:   req.Provider,
 		GroupName:  req.Team,
