@@ -3,7 +3,6 @@ React = require 'app/react'
 MachineDetails = require './machinedetails'
 Machine = require 'app/providers/machine'
 immutable = require 'immutable'
-VirtualMachinesSelectedMachineFlux = require 'home/virtualmachines/flux/selectedmachine'
 KDReactorMixin = require 'app/flux/base/reactormixin'
 EnvironmentFlux = require 'app/flux/environment'
 module.exports = class MachinesListItem extends React.Component
@@ -44,7 +43,7 @@ module.exports = class MachinesListItem extends React.Component
   getDataBindings: ->
 
     return {
-      selectedMachine: VirtualMachinesSelectedMachineFlux.getters.selectedMachine
+      activeMachine: EnvironmentFlux.getters.activeMachine
       expandedMachineLabel: EnvironmentFlux.getters.expandedMachineLabelStore
     }
 
@@ -52,8 +51,7 @@ module.exports = class MachinesListItem extends React.Component
   renderMachineDetails: ->
 
     return null  unless @props.shouldRenderDetails
-    return null  unless @props.machine.get('label') is @state.selectedMachine
-
+    return null  unless @props.machine.get('_id') is @state.activeMachine
     <main className="MachinesListItem-machineDetails">
       <MachineDetails
         machine={@props.machine}
@@ -75,10 +73,10 @@ module.exports = class MachinesListItem extends React.Component
 
   toggle: (event) ->
 
-    if @state.selectedMachine is @props.machine.get 'label'
+    if @state.activeMachine is @props.machine.get '_id'
       return kd.singletons.router.handleRoute "/Home/stacks/virtual-machines"
 
-    kd.singletons.router.handleRoute "/Home/stacks/virtual-machines/#{@props.machine.get 'label'}"
+    kd.singletons.router.handleRoute "/Home/stacks/virtual-machines/#{@props.machine.get '_id'}"
 
 
   renderIpAddress: ->
@@ -94,7 +92,7 @@ module.exports = class MachinesListItem extends React.Component
 
     return null  unless @props.shouldRenderDetails
 
-    expanded = if @props.machine.get('label') is @state.selectedMachine
+    expanded = if @props.machine.get('_id') is @state.activeMachine
     then ' expanded'
     else ''
 
@@ -129,7 +127,7 @@ module.exports = class MachinesListItem extends React.Component
 
   render: ->
 
-    expanded = if @props.machine.get('label') is @state.selectedMachine
+    expanded = if @props.machine.get('_id') is @state.activeMachine
     then ' expanded'
     else ''
     machineName = @state.expandedMachineLabel if expanded

@@ -11,7 +11,6 @@ module.exports = class DisabledUserStacksListContainer extends React.Component
   getDataBindings: ->
     return {
       stacks: EnvironmentFlux.getters.disabledUsersStacks
-      templates: EnvironmentFlux.getters.disabledUsersStackTemplates
       sidebarStacks: SidebarFlux.getters.sidebarStacks
     }
 
@@ -26,7 +25,6 @@ module.exports = class DisabledUserStacksListContainer extends React.Component
 
     <View
       stacks={@state.stacks}
-      templates={@state.templates}
       sidebarStacks={@state.sidebarStacks}
       onOpenItem={@props.onOpenItem}
       onAddToSidebar={@bound 'onAddToSidebar'}
