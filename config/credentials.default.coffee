@@ -193,6 +193,7 @@ module.exports = (options) ->
     port : 8090
   clearbit = '9d961e7ac862a6bc430f783da5cf9422'
   intercomAppId = ''
+  wufoo = ''
 
   return {
     kiteHome
@@ -235,4 +236,5 @@ module.exports = (options) ->
     druid
     clearbit
     intercomAppId
+    wufoo
   }

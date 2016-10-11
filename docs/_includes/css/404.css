@@ -1,0 +1,103 @@
+{% assign path = site.url | append: '/assets/img/landing/404/' %}
+
+.a404-Hero {
+  background-color: #3c3b58;
+  background-image: linear-gradient(-180deg, #3C3C59 0%, #A8CEFF 100%);
+  padding: 127px 10%;
+  min-height: 590px;
+  box-sizing: border-box;
+}
+
+.a404-Hero h1 {
+  text-align: center;
+  font-weight: 300;
+  font-size: 45.72px;
+  color: #FFFFFF;
+  margin-bottom: 34px;
+}
+
+.a404-Hero h1.mini {
+  display: none;
+}
+
+.a404-Hero ul {
+  width: 500px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin: 0 auto;
+}
+
+.a404-Hero ul li {
+  flex: 1 0 auto;
+  border-right: 1px solid #75B9D6;
+  text-align: center;
+}
+.a404-Hero ul li:last-child {
+  border-right: none;
+}
+
+.a404-Hero ul a {
+  font-size: 17px;
+  letter-spacing: 0.08px;
+}
+
+.a404-Hero a,
+.a404-Hero a:visited,
+.a404-Hero a:active,
+.a404-Hero a:hover {
+  text-decoration: none;
+  color: #75B9D6;
+}
+.a404-Hero a:hover {
+  text-decoration: underline;
+}
+
+.a404-Ground {
+  background: transparent url('{{ path }}/img_404.png') no-repeat center bottom;
+  background-size: 1034px 297px;
+  width: 100%;
+  height: 297px;
+  margin: -207px 0 190px;
+}
+
+@media
+(-webkit-min-device-pixel-ratio: 2),
+(min-resolution: 192dpi) {
+  .a404-Ground {
+    background: transparent url('{{ path }}/img_404@2x.png') no-repeat center bottom;
+    background-size: 1034px 297px;
+  }
+}
+
+@media (max-width: 767px) {
+ .a404-Hero h1 {
+    text-align: left;
+    font-size: 24px;
+    line-height: 33px;
+    display: none;
+  }
+
+ .a404-Hero h1.mini {
+  display: block;
+ }
+
+  .a404-Hero ul {
+    width: 100%;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .a404-Hero ul li {
+    flex: none;
+    border-right: none;
+    text-align: left;
+    margin-bottom: 13px;
+  }
+
+ .a404-Ground {
+    background-size: 690px 198px;
+    height: 198px;
+    margin: -138px 0 60px;
+  }
+}

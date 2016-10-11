@@ -1,0 +1,138 @@
+---
+layout: default
+title: About
+permalink: /about
+order: 30
+---
+
+<!-- HEADER -->
+{% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#358BB0' %}
+
+<style>{% include css/about-hero.css %}</style>
+
+<div class="aboutus-hero">
+  <div class="aboutus-gradient"  style="background: #F7FAFC;">
+    <h1>The Koding Story</h1>
+    <p>Koding is a San Francisco based technology company that is eliminating wasteful tasks from the world of software development and creating a simple way to be more collaborative and productive.</p>
+  </div>
+  <img src="{{ site.url }}/assets/img/landing/misc/buildstack_art_success.png?t=1473370419565&amp;width=288&amp;height=257&amp;name=buildstack_art_success.png" width="288" height="257" alt="buildstack_art_success.png" srcset="{{ site.url }}/assets/img/landing/misc/buildstack_art_success.png?t=1473370419565&amp;width=144&amp;height=129&amp;name=buildstack_art_success.png 144w, {{ site.url }}/assets/img/landing/misc/buildstack_art_success.png?t=1473370419565&amp;width=288&amp;height=257&amp;name=buildstack_art_success.png 288w, {{ site.url }}/assets/img/landing/misc/buildstack_art_success.png?t=1473370419565&amp;width=432&amp;height=386&amp;name=buildstack_art_success.png 432w, {{ site.url }}/assets/img/landing/misc/buildstack_art_success.png?t=1473370419565&amp;width=576&amp;height=514&amp;name=buildstack_art_success.png 576w, {{ site.url }}/assets/img/landing/misc/buildstack_art_success.png?t=1473370419565&amp;width=720&amp;height=643&amp;name=buildstack_art_success.png 720w, {{ site.url }}/assets/img/landing/misc/buildstack_art_success.png?t=1473370419565&amp;width=864&amp;height=771&amp;name=buildstack_art_success.png 864w" sizes="(max-width: 288px) 100vw, 288px">
+</div>
+
+<style>{% include css/about-threecols.css %}</style>
+
+<h2 class="aboutus-title">A Better Developer Experience</h2>
+<div class="Homepage--container aboutus-3cols">
+  <div class="aboutus-col">
+    <img src="{{ site.url }}/assets/img/landing/misc/icon_18mill.svg" width="100" height="100">
+    <h3>18 Million VMs Spun Up</h3>
+    <p>Developers can instantly spin up development environments and collaborate in real time with teammates on their codebase.</p>
+  </div>
+  <div class="aboutus-col">
+    <img src="{{ site.url }}/assets/img/landing/misc/icon_1milluser.svg" width="100" height="100">
+    <h3>1,000,000+ Users</h3>
+    <p>Over one million developers use Koding to simply their development process and work seamelssly in the cloud.</p>
+  </div>
+  <div class="aboutus-col">
+    <img src="{{ site.url }}/assets/img/landing/misc/icon_hourssaved.svg" width="100" height="100">
+    <h3>Millions of hours saved</h3>
+    <p>Koding’s instant dev environments allow teams to save precious hours on setup and spend more time coding.</p>
+  </div>
+</div>
+
+{% include home-logobar.html
+   logo1_src="/assets/img/landing/investor-logos/rtp.png"
+   logo2_src="/assets/img/landing/investor-logos/greycroft.png"
+   logo3_src="/assets/img/landing/investor-logos/matrix_partners.png"
+   logo4_src="/assets/img/landing/investor-logos/khosla_ventures.png"
+   logo5_src="/assets/img/landing/investor-logos/500_startups.png"
+   cssClass="Homepage-LogoBar-Gray"
+   title="Our Investors" %}
+
+<div class="Homepage--container AboutUs-Team">
+  <style>{% include css/about-heads.css %}</style>
+  <div class="AboutUs-TeamHeader">
+    <h2>About Us</h2>
+    <p>Since 2011, Koding has grown from a creative partnership between two brothers into an international team of engineers, designers and marketers spanning 6 countries and 3 continents.</p>
+  </div>
+  <div>
+  {% for member in site.data.members %}
+    <div class="AboutUs-TeamMember {{ member.cssClass }}">
+        <img class="profile" src="{{ site.url }}/{{ member.img }}" alt="{{ member.name }}">
+        <h3 class="team-member-name">{{ member.name }}</h3>
+        <p>
+        {{ member.title }}
+        <br />
+        {{ member.role }}
+        </p>
+        <p class="AboutUs-TeamMember--Social">
+            {% if member.twitter %}
+            <a href="http://twitter.com/{{ member.twitter }}"><img src="{{ site.url }}/assets/img/landing/misc/soc-twitter.png" width="24" /></a>
+            {% endif %}
+            {% if member.linkedin %}
+            <a href="http://linkedin.com/in/{{ member.linkedin }}"><img src="{{ site.url }}/assets/img/landing/misc/soc-linkedin.png" width="24" /></a>
+            {% endif %}
+            {% if member.github %}
+            <a href="http://github.com/{{ member.github }}"><img src="{{ site.url }}/assets/img/landing/misc/soc-github.png" width="24" /></a>
+            {% endif %}
+        </p>
+    </div>
+  {% endfor %}
+  <style>{% include css/about-newmember.css %}</style>
+  <div class="clearfix"></div>
+  <div class="AboutUs-NewTeamMember--Box">
+    <div class="AboutUs-TeamMember AboutUs-NewTeamMember">
+      <div class="AboutUs-NewTeamMember--Number">3</div>
+      <img class="profile" src="{{ site.url }}/assets/img/landing/misc/Bitmap.png">
+      <h3 class="team-member-name">You</h3>
+      <p>Awesome Person</p>
+      <a href="http://jobs.lever.co/koding" class="AboutUs-NewTeamMember--Button">SEE OPEN POSITIONS</a>
+    </div>
+  </div>
+  <div class="clearfix"></div>
+  </div>
+</div>
+
+<style>{% include css/about-contact.css %}</style>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDUb3-qBWxs-4mHARQ_hQYTauPYUQtoRok&callback=initMap"  async defer></script>
+<script>
+  function initMap() {
+    // Create a map object and specify the DOM element for display.
+    var map = new google.maps.Map(document.getElementById('map'), {
+      center: {lat: 37.780928, lng: -122.393641},
+      scrollwheel: false,
+      zoom: 12,
+      styles: [{"featureType":"water","elementType":"geometry","stylers":[{"color":"#e9e9e9"},{"lightness":17}]},{"featureType":"landscape","elementType":"geometry","stylers":[{"color":"#f5f5f5"},{"lightness":20}]},{"featureType":"road.highway","elementType":"geometry.fill","stylers":[{"color":"#ffffff"},{"lightness":17}]},{"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#ffffff"},{"lightness":29},{"weight":0.2}]},{"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#ffffff"},{"lightness":18}]},{"featureType":"road.local","elementType":"geometry","stylers":[{"color":"#ffffff"},{"lightness":16}]},{"featureType":"poi","elementType":"geometry","stylers":[{"color":"#f5f5f5"},{"lightness":21}]},{"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#dedede"},{"lightness":21}]},{"elementType":"labels.text.stroke","stylers":[{"visibility":"on"},{"color":"#ffffff"},{"lightness":16}]},{"elementType":"labels.text.fill","stylers":[{"saturation":36},{"color":"#333333"},{"lightness":40}]},{"elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"geometry","stylers":[{"color":"#f2f2f2"},{"lightness":19}]},{"featureType":"administrative","elementType":"geometry.fill","stylers":[{"color":"#fefefe"},{"lightness":20}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"color":"#fefefe"},{"lightness":17},{"weight":1.2}]}]
+    });
+
+  }
+</script>
+
+<div class="AboutUs-Contact">
+  <div class="AboutUs-Contact--col" id="map"></div>
+  <div class="AboutUs-Contact--col">
+    <h2>Koding HQ</h2>
+    <p><span>358 Brannan Street, San Francisco, CA 94107</span></p>
+    <div><a href="http://maps.google.com" target="_blank">View on Google Maps</a></div>
+    <div class="AboutUs-Contact--numbers">
+      <div>
+        <h2>Media Inquiries</h2>
+        <p><a href="mailto:press@koding.com" target="_blank">press@koding.com</a></p>
+      </div>
+      <div>
+        <h2>Connect</h2>
+        <p><a href="mailto:business@koding.com" target="_blank">business@koding.com</a><br><a href="mailto:support@koding.com" target="_blank">support@koding.com</a></p>
+      </div>
+    </div>
+    <div class="AboutUs-Contact--numbers">
+      <div class="AboutUs-Contact--social">
+        <a href="{{ site.social.twitter }}"><img src="{{ site.url }}/assets/img/landing/misc/soc-twitter.png" height="19" /></a>
+        <a href="{{ site.social.linkedin }}"><img src="{{ site.url }}/assets/img/landing/misc/soc-linkedin.png" height="19" /></a>
+        <a href="{{ site.social.facebook }}"><img src="{{ site.url }}/assets/img/landing/misc/facebook_icon.png" srcset="{{ site.url }}/assets/img/landing/misc/facebook_icon@2x.png 2x" height="19" /></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- FOOTER -->
+{% include footer.html %}

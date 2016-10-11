@@ -1,0 +1,31 @@
+.FeatureCTA {
+  background-color: #515151;
+  padding: 70px 15px;
+  text-align: center;
+}
+.FeatureCTA p {
+  color: white;
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 32px;
+  font-weight: 600;
+  max-width: 700px;
+  line-height: 1.2;
+}
+.FeatureCTA a {
+  color: white;
+  text-decoration: none;
+  text-transform: uppercase;
+  background-color: #F2778A;
+  padding: 13px 70px;
+  font-size: 16px;
+  display: inline-block;
+  border-radius: 3px;
+  letter-spacing: 1px;
+  margin-top: 25px;
+}
+@media (max-width: 767px) {
+  .FeatureCTA p {
+    font-size: 24px;
+  }
+}

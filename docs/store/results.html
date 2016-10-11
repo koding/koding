@@ -1,0 +1,44 @@
+---
+layout: default
+title: Store
+permalink: /store/results
+---
+
+<!-- HEADER -->
+{% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#7F7E9E' %}
+
+<link rel="stylesheet" href="{{ site.url }}/css/dropdown.css">
+<link rel="stylesheet" href="{{ site.url }}/css/store.css">
+
+<div class="StoreResults-filterContainer">
+  <div class="container">
+    <div class="StoreResults-resultsLabel">43 stack results for <span>"Koding Awesome"</span></div>
+    <div class="StoreResults-resultsFilters">
+      {% include store-search.html has_dropdown='true' has_searchbar='true' %}<a href="{{ site.url }}/store/home" class="Button Button--back">Back</a>
+    </div>
+  </div>
+</div>
+
+<div class="StoreResults-container">
+  {% include store-set.html data=site.data.store-stacks limit=16 %}
+
+  <div class="pagination-container">
+    <div class="Pagination">
+      <a href="#" class="is-selected">
+        1</a><a href="#">
+        2</a><a href="#">
+        3</a><a href="#">
+        4</a><a href="#">
+        ...</a><a href="#">12</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  {% include js/dropdown.js %}
+  {% include js/store.js %}
+</script>
+
+<!-- FOOTER -->
+
+{% include footer.html %}

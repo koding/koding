@@ -1,0 +1,67 @@
+.AboutUs-Contact {
+  display: flex;
+  background-color: #F7F7F7;
+  color: #727272;
+  font-weight: 300;
+}
+.AboutUs-Contact h2 {
+  color: #515151;
+  font-size: 22px;
+  font-weight: 400;
+  margin-bottom: 10px;
+  margin-top: 15px;
+}
+.AboutUs-Contact p {
+  margin-bottom: 10px;
+}
+.AboutUs-Contact .AboutUs-Contact--col {
+  width: 50%;
+  padding-left: 60px;
+  padding-top: 50px;
+  padding-bottom: 50px;
+  border-left: 1px solid #EDEDED;
+}
+.AboutUs-Contact .AboutUs-Contact--col:first-child {
+  padding: 0;
+}
+.AboutUs-Contact a {
+  color: #358BB0;
+  text-decoration: none;
+}
+.AboutUs-Contact--numbers {
+  display: flex;
+  margin-top: 40px;
+}
+.AboutUs-Contact--numbers div:first-child {
+  margin-right: 100px;
+}
+@media (max-width: 991px) {
+   .AboutUs-Contact--numbers div:first-child {
+    margin-right: 40px;
+  }
+  .AboutUs-Contact .AboutUs-Contact--col {
+    padding-left: 40px;
+  }
+  .AboutUs-Contact--numbers {
+    flex-direction: column;
+  }
+}
+.AboutUs-Contact--social a {
+  margin-right: 20px;
+}
+@media (max-width: 767px) {
+  .AboutUs-Contact {
+    flex-direction: column;
+  }
+  .AboutUs-Contact .AboutUs-Contact--col {
+    padding-left: 20px;
+  }
+  .AboutUs-Contact .AboutUs-Contact--col:first-child {
+    height: 300px;
+    border-bottom: 1px solid #EDEDED;
+  }
+  .AboutUs-Contact .AboutUs-Contact--col {
+    width: auto;
+  }
+  
+}

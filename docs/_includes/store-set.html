@@ -1,0 +1,13 @@
+<ul class="box-set">
+  {% for module in include.data limit:include.limit %}
+  <li class="Listing">
+    <p class="Listing-title">{{ module.title }}{% if module.verified %}<span class="u-icon u-verified"></span>{% endif %}</p>
+    <p class="Listing-author">by {{ module.author }}</p>
+    <hr />
+    <p class="Listing-description">{{ module.description }}</p>
+    <div class="Listing-vendorIcon u-icon u-{{ module.vendor }}">
+    </div>
+    <div class="Listing-downloadCount">{{ module.count }}</div>
+  </li>
+  {% endfor %}
+</ul>

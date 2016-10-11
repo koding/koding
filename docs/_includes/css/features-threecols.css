@@ -1,0 +1,67 @@
+.Feature3ColsContainer {
+  padding-top: 100px;
+  padding-bottom: 100px;
+}
+
+.Feature3ColsContainer .feature-title {
+  margin-bottom: 0;
+}
+
+.Feature3ColsContainer h3 {
+  text-transform: uppercase;
+  color: #727272;
+  font-size: 18px;
+  font-weight: normal;
+  margin-bottom: 0;
+  text-align: center;
+  letter-spacing: 6px;
+}
+.Feature3Cols {
+  display: flex;
+}
+
+.Feature3ColsColor {
+  background-color: #FFFBFC;
+  border-top: 1px solid #F4F1F2;
+  border-bottom: 1px solid #F4F1F2;
+}
+
+.Feature3Cols >div {
+  width: 33%;
+  padding-left: 20px;
+  padding-right: 20px;
+  color: #989898;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.Feature3Cols h3 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-align: inherit;
+  text-transform: none;
+  margin-bottom: 20px;
+  margin-top: 80px;
+  color: #727272;
+}
+
+ @media (max-width: 767px) {
+  .Feature3Cols {
+    flex-direction: column;
+  }
+  .Feature3Cols >div {
+    width: auto;
+    text-align: center;
+  }
+  .Feature3ColsContainer h3 {
+    font-size: 14px;
+    letter-spacing: 4px;
+  }
+
+  .Feature3Cols h3 {
+    margin-top: 40px;
+    font-size: 20px;
+    letter-spacing: 0;
+  }
+}

@@ -1,0 +1,33 @@
+title: Koding
+email: support@koding.com
+repository: koding/koding
+description: >
+  Instantly share, scale and manage integrated development
+  environments in a cloud IDE.
+keywords: >
+  integrated development environment, cloud ide, dev environment,
+  cloud development environment, cloud editor, virtual dev environment,
+  web based ide, test environment, docker, aws, vagrant, azure, rackspace
+baseurl: ""
+url: "https://koding.github.io/koding"
+permalink: /blog/:year/:month/:title/
+paginate_path: "/blog/page/:num"
+paginate: 5
+timezone: America/Los_Angeles
+exclude:
+- Gemfile
+- Gemfile.lock
+- README.md
+- Rakefile
+- vendor/bundle
+gems:
+- jekyll-paginate
+sass:
+  style: compressed
+  sass_dir: _css
+social:
+  twitter: https://twitter.com/koding
+  github:  https://github.com/koding
+  facebook:  https://facebook.com/koding
+  linkedin:  https://linkedin.com/company/koding
+
