@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	konfig "koding/config"
+	konfig "koding/kites/config"
 	"koding/kites/kloud/utils/object"
 	"koding/klient/storage"
 	"koding/klientctl/config"

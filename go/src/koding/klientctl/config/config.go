@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strconv"
 
-	konfig "koding/config"
+	konfig "koding/kites/config"
 )
 
 const (

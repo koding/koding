@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"time"
 
-	cfg "koding/config"
+	cfg "koding/kites/config"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 

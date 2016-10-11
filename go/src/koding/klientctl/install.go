@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	konfig "koding/config"
+	konfig "koding/kites/config"
 	"koding/klient/uploader"
 	"koding/klientctl/config"
 	"koding/klientctl/metrics"

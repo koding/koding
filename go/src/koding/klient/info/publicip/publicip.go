@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"koding/config"
 	"koding/httputil"
+	"koding/kites/config"
 	"koding/klient/protocol"
 )
 

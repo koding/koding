@@ -14,7 +14,7 @@ import (
 	"runtime"
 	"strconv"
 
-	konfig "koding/config"
+	konfig "koding/kites/config"
 	"koding/klient/uploader"
 	"koding/klientctl/config"
 
