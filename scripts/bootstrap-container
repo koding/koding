@@ -23,7 +23,9 @@ function run_backend() {
   tail --follow --lines +0 --quiet .logs/*.log
 }
 
-if [[ -z "$*" || "${1:0:1}" = '-' ]]; then
+if [[ -z "$*" ]]; then
+  run_backend
+elif [[ "${1:0:1}" = '-' ]]; then
   configure $*
   run_backend
 elif [ "$1" = "build" ]; then
