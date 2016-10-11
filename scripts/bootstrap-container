@@ -24,6 +24,12 @@ function run_backend() {
   tail --follow --lines +0 --quiet .logs/*.log
 }
 
+function is_ready() {
+  until [ -x ./run ] && ./run is_ready; do
+    sleep 10
+  done
+}
+
 function run() {
   case "$1" in
     backend)
@@ -52,6 +58,10 @@ elif [ "$1" = "build" ]; then
 elif [ "$1" = "run" ]; then
   shift
   run $*
+elif [ "$1" = "is_ready" ]; then
+  shift
+  is_ready
+  exec "$@"
 else
   exec "$@"
 fi
