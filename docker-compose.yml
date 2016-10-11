@@ -35,6 +35,15 @@ services:
     volumes:
       - .:/opt/koding
 
+  client-landing:
+    image: koding/base
+    working_dir: /opt/koding
+    entrypoint: scripts/bootstrap-container is_ready
+    command: make -C client/landing dev
+    env_file: .env-docker-compose
+    volumes:
+      - .:/opt/koding
+
   mongo:
     image: koding/mongo
 
