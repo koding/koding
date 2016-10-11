@@ -110,20 +110,20 @@ func (db *mongoStore) Put(_ string, creds map[string]interface{}) error {
 }
 
 type MongoPerm struct {
-	Acc  *models.Account
-	User *models.User
-	Team *models.Group
-	Cred *models.Credential
+	AccModel  *models.Account
+	UserModel *models.User
+	TeamModel *models.Group
+	CredModel *models.Credential
 
-	Roles  []string
-	Member bool
+	RoleNames []string
+	Member    bool
 }
 
 var _ Perm = (*MongoPerm)(nil)
 
-func (p *MongoPerm) PermUser() string    { return p.User.Name }
-func (p *MongoPerm) PermTeam() string    { return p.Team.Slug }
-func (p *MongoPerm) PermRoles() []string { return p.Roles }
+func (p *MongoPerm) User() string    { return p.UserModel.Name }
+func (p *MongoPerm) Team() string    { return p.TeamModel.Slug }
+func (p *MongoPerm) Roles() []string { return p.RoleNames }
 
 type mongoDatabase struct {
 	*Options
@@ -140,39 +140,39 @@ func (db *mongoDatabase) Validate(f *Filter, c *Cred) (Perm, error) {
 	}
 
 	perm := &MongoPerm{
-		Roles: f.Roles,
+		RoleNames: f.RoleNames,
 	}
 
-	if len(perm.Roles) == 0 {
+	if len(perm.RoleNames) == 0 {
 		log.Debug("using DefaultRoles for filter=%+v, cred=%+v", f, c)
 
-		perm.Roles = DefaultRoles
+		perm.RoleNames = DefaultRoles
 	}
 
-	log.Debug("testing whether c.Perm=%#v matches c=%#v", c.Perm, c)
+	log.Debug("testing whether c.Perm=%#v containses c=%#v", c.Perm, c)
 
 	switch cached := c.Perm.(type) {
 	case nil:
 	case *Filter:
 		// ignore
 	case *MongoPerm:
-		if cached.PermUser() != f.User {
+		if cached.User() != f.Username {
 			c.Perm = nil
 			break
 		}
 
-		// If cached user matches the requested one,
+		// If cached user containses the requested one,
 		// we don't need to query MongoDB again,
 		// we just reuse the existing model.
-		perm.Acc = cached.Acc
-		perm.User = cached.User
+		perm.AccModel = cached.AccModel
+		perm.UserModel = cached.UserModel
 
-		if cached.PermTeam() != f.Team {
+		if cached.Team() != f.Teamname {
 			c.Perm = nil
 			break
 		}
 
-		// If cached team matches the requested one,
+		// If cached team containses the requested one,
 		// we don't need to query MongoDB again,
 		// we just reuse the existing model.
 		//
@@ -180,56 +180,56 @@ func (db *mongoDatabase) Validate(f *Filter, c *Cred) (Perm, error) {
 		// fetched from MongoDB, it means they
 		// were validated for a member relationship,
 		// we don't need to test it again as well.
-		perm.Team = cached.Team
+		perm.TeamModel = cached.TeamModel
 		perm.Member = true
 
-		if !match(cached.PermRoles(), perm.Roles) {
+		if !contains(cached.Roles(), perm.Roles()) {
 			c.Perm = nil
 			break
 		}
 
 		return c.Perm, nil
 	default:
-		if cached.PermUser() != f.User {
+		if cached.User() != f.Username {
 			break
 		}
 
-		if cached.PermTeam() != f.Team {
+		if cached.Team() != f.Teamname {
 			break
 		}
 
-		if !match(cached.PermRoles(), perm.Roles) {
+		if !contains(cached.Roles(), perm.Roles()) {
 			break
 		}
 
 		return c.Perm, nil
 	}
 
-	if perm.Acc == nil {
-		log.Debug("fetching %q account", f.User)
+	if perm.AccModel == nil {
+		log.Debug("fetching %q account", f.Username)
 
-		perm.Acc, err = modelhelper.GetAccount(f.User)
+		perm.AccModel, err = modelhelper.GetAccount(f.Username)
 		if err != nil {
 			return nil, models.ResError(err, "jAccount")
 		}
 	}
 
-	if perm.User == nil {
-		log.Debug("fetching %q user", f.User)
+	if perm.UserModel == nil {
+		log.Debug("fetching %q user", f.Username)
 
-		perm.User, err = modelhelper.GetUser(f.User)
+		perm.UserModel, err = modelhelper.GetUser(f.Username)
 		if err != nil {
 			return nil, models.ResError(err, "jUser")
 		}
 	}
 
-	groupIDs := []bson.ObjectId{perm.Acc.Id}
+	groupIDs := []bson.ObjectId{perm.AccModel.Id}
 
-	if f.Team != "" {
-		if perm.Team == nil {
-			log.Debug("fetching %q team", f.Team)
+	if f.Teamname != "" {
+		if perm.TeamModel == nil {
+			log.Debug("fetching %q team", f.Teamname)
 
-			perm.Team, err = modelhelper.GetGroup(f.Team)
+			perm.TeamModel, err = modelhelper.GetGroup(f.Teamname)
 			if err != nil {
 				return nil, models.ResError(err, "jGroup")
 			}
@@ -237,8 +237,8 @@ func (db *mongoDatabase) Validate(f *Filter, c *Cred) (Perm, error) {
 
 		if !perm.Member {
 			belongs := modelhelper.Selector{
-				"targetId": perm.Acc.Id,
-				"sourceId": perm.Team.Id,
+				"targetId": perm.AccModel.Id,
+				"sourceId": perm.TeamModel.Id,
 				"as":       "member",
 			}
 
@@ -246,28 +246,28 @@ func (db *mongoDatabase) Validate(f *Filter, c *Cred) (Perm, error) {
 
 			if count, err := modelhelper.RelationshipCount(belongs); err != nil || count == 0 {
 				if err == nil {
-					err = fmt.Errorf("user %q does not belong to %q group", f.User, f.Team)
+					err = fmt.Errorf("user %q does not belong to %q group", f.Username, f.Teamname)
 				}
 
 				return nil, models.ResError(err, "jRelationship")
 			}
 
 			perm.Member = true
-			groupIDs = append(groupIDs, perm.Team.Id)
+			groupIDs = append(groupIDs, perm.TeamModel.Id)
 		}
 	}
 
-	if perm.Cred == nil {
+	if perm.CredModel == nil {
 		log.Debug("fetching %q credential", c.Ident)
 
-		perm.Cred, err = modelhelper.GetCredential(c.Ident)
+		perm.CredModel, err = modelhelper.GetCredential(c.Ident)
 		if err != nil {
 			return perm, models.ResError(err, "jCredential")
 		}
 	}
 
 	belongs := modelhelper.Selector{
-		"targetId": perm.Cred.Id,
+		"targetId": perm.CredModel.Id,
 		"sourceId": bson.M{
 			"$in": groupIDs,
 		},
@@ -278,7 +278,7 @@ func (db *mongoDatabase) Validate(f *Filter, c *Cred) (Perm, error) {
 
 	if count, err := modelhelper.RelationshipCount(belongs); err != nil || count == 0 {
 		if err == nil {
-			err = fmt.Errorf("user %q has no access to %q credential", f.User, c.Ident)
+			err = fmt.Errorf("user %q has no access to %q credential", f.Username, c.Ident)
 		}
 
 		return nil, models.ResError(err, "jRelationship")
@@ -298,20 +298,20 @@ func (db *mongoDatabase) Creds(f *Filter) ([]*Cred, error) {
 		return nil, err
 	}
 
-	acc, err := modelhelper.GetAccount(f.User)
+	acc, err := modelhelper.GetAccount(f.Username)
 	if err != nil {
 		return nil, models.ResError(err, "jAccount")
 	}
 
-	user, err := modelhelper.GetUser(f.User)
+	user, err := modelhelper.GetUser(f.Username)
 	if err != nil {
 		return nil, models.ResError(err, "jUser")
 	}
 
 	teams := make(map[bson.ObjectId]*models.Group)
 
-	if f.Team != "" {
-		team, err := modelhelper.GetGroup(f.Team)
+	if f.Teamname != "" {
+		team, err := modelhelper.GetGroup(f.Teamname)
 		if err != nil {
 			return nil, models.ResError(err, "jGroup")
 		}
@@ -324,7 +324,7 @@ func (db *mongoDatabase) Creds(f *Filter) ([]*Cred, error) {
 
 		if count, err := modelhelper.RelationshipCount(belongs); err != nil || count == 0 {
 			if err == nil {
-				err = fmt.Errorf("user %q does not belong to %q group", f.User, f.Team)
+				err = fmt.Errorf("user %q does not belong to %q group", f.Username, f.Teamname)
 			}
 
 			return nil, models.ResError(err, "jRelationship")
@@ -415,7 +415,7 @@ func (db *mongoDatabase) fetchCreds(f *Filter, acc *models.Account, user *models
 		}
 
 		if f.Provider != "" && cred.Provider != f.Provider {
-			// provider does not match, filter out
+			// provider does not contains, filter out
 			continue
 		}
 
@@ -424,10 +424,10 @@ func (db *mongoDatabase) fetchCreds(f *Filter, acc *models.Account, user *models
 			Provider: cred.Provider,
 			Title:    cred.Title,
 			Perm: &MongoPerm{
-				Acc:   acc,
-				User:  user,
-				Cred:  cred,
-				Roles: UserRole,
+				AccModel:  acc,
+				UserModel: user,
+				CredModel: cred,
+				RoleNames: UserRole,
 			},
 		}
 
@@ -435,7 +435,7 @@ func (db *mongoDatabase) fetchCreds(f *Filter, acc *models.Account, user *models
 
 		if team, ok := teams[rel.SourceId]; ok {
 			c.Team = team.Slug
-			c.Perm.(*MongoPerm).Team = team
+			c.Perm.(*MongoPerm).TeamModel = team
 		}
 
 		*creds = append(*creds, c)
@@ -465,22 +465,22 @@ func (db *mongoDatabase) SetCred(c *Cred) error {
 		return fmt.Errorf("unable to create credential: %s", err)
 	}
 
-	if mPerm.Acc == nil {
-		return fmt.Errorf("unable to create credential: missing %q account", f.User)
+	if mPerm.AccModel == nil {
+		return fmt.Errorf("unable to create credential: missing %q account", f.Username)
 	}
 
 	now := time.Now().UTC()
 
 	if c.Title == "" {
-		c.Title = mPerm.User.Name + " " + now.String()
+		c.Title = mPerm.UserModel.Name + " " + now.String()
 	}
 
-	mPerm.Cred = &models.Credential{
+	mPerm.CredModel = &models.Credential{
 		Id:          bson.NewObjectId(),
 		Provider:    c.Provider,
 		Identifier:  c.Ident,
 		Title:       c.Title,
-		OriginId:    mPerm.Acc.Id,
+		OriginId:    mPerm.AccModel.Id,
 		Verified:    false,
 		AccessLevel: "private",
 		Meta: &models.CredentialMeta{
@@ -489,15 +489,15 @@ func (db *mongoDatabase) SetCred(c *Cred) error {
 		},
 	}
 
-	if err := modelhelper.CreateCredential(mPerm.Cred); err != nil {
+	if err := modelhelper.CreateCredential(mPerm.CredModel); err != nil {
 		return err
 	}
 
 	rel := &models.Relationship{
 		Id:         bson.NewObjectId(),
-		TargetId:   mPerm.Cred.Id,
+		TargetId:   mPerm.CredModel.Id,
 		TargetName: "JCredential",
-		SourceId:   mPerm.Acc.Id,
+		SourceId:   mPerm.AccModel.Id,
 		SourceName: "JAccount",
 		As:         "owner",
 		TimeStamp:  now,
@@ -554,7 +554,7 @@ func (db *mongoDatabase) Unlock(cred *Cred) error {
 	})
 }
 
-func match(existing, expected []string) bool {
+func contains(existing, expected []string) bool {
 	rolesMatch := true
 
 	for _, want := range expected {

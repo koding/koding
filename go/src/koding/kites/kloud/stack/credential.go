@@ -114,8 +114,8 @@ func (k *Kloud) CredentialList(r *kite.Request) (interface{}, error) {
 	}
 
 	f := &credential.Filter{
-		User:     r.Username,
-		Team:     req.Team,
+		Username: r.Username,
+		Teamname: req.Team,
 		Provider: req.Provider,
 	}
 
