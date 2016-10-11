@@ -15,6 +15,7 @@ function build() {
 }
 
 function run_backend() {
+  go/build.sh
   ./run exec scripts/check-service-connectivity.sh || exit 255
   ./run migrate up
   nginx -c $(pwd)/nginx.conf
