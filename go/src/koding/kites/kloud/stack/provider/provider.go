@@ -73,12 +73,7 @@ func desc(providers ...string) map[string]*stack.Description {
 		}
 	}
 
-	n := len(nonempty)
-	if n == 0 {
-		n = len(providerDescs)
-	}
-
-	desc := make(map[string]*stack.Description, n)
+	desc := make(map[string]*stack.Description)
 
 	if len(nonempty) == 0 {
 		for k, v := range providerDescs {
