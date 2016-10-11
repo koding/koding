@@ -28,8 +28,8 @@ sidebarStacks = [
 
       .map (stack) ->
         template = templates.get(stack.get 'baseStackId')
-
-        templateTitle = template?.get('title') or ''
+        unless stack.get 'disabled'
+          templateTitle = template?.get('title') or ''
         stack = stack.set 'title', _.unescape templateTitle  if templateTitle
         stack = stack.set 'baseTemplate', template  if template
 
