@@ -333,6 +333,18 @@ func (db *mongoDatabase) Creds(f *Filter) ([]*Cred, error) {
 			"as": "user",
 		}
 
+		if len(creds) != 0 {
+			ids := make([]bson.ObjectId, 0, len(creds))
+
+			for i := range creds {
+				if mPerm, ok := creds[i].Perm.(*MongoPerm); ok && mPerm.CredModel != nil {
+					ids = append(ids, mPerm.CredModel.Id)
+				}
+			}
+
+			userOnly["targetId"] = bson.M{"$nin": ids}
+		}
+
 		if err := db.fetchCreds(f, perm.AccModel, perm.UserModel, teams, userOnly, &creds); err != nil {
 			return nil, err
 		}
