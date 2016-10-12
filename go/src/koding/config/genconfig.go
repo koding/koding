@@ -170,7 +170,14 @@ func mapElem(typeName string, data interface{}) string {
 const functionFmt = `
 // %[1]s returns %[2]s stored in %[3]s variable.
 func (c *Config) %[1]s(env string) (%[4]s, error) {
-	return DefaultConfig.%[5]s("%[2]ss.%[3]s", c.GetEnvironment(env))
+	return c.%[5]s("%[2]ss.%[3]s", c.GetEnvironment(env))
+}
+
+// %[1]s returns %[2]s stored in %[3]s variable.
+//
+// %[1]s is a wrapper around DefaultConfig.%[1]s.
+func %[1]s(env string) (%[4]s, error) {
+	return DefaultConfig.%[1]s(env)
 }`
 
 func function(typename, retType, getFuncName string) string {
@@ -191,6 +198,13 @@ func (c *Config) Must%[1]s(environment string) %[4]s {
 	}
 
 	return val
+}
+
+// Must%[1]s returns %[2]s stored in %[3]s variable.
+//
+// Must%[1]s is a wrapper around DefaultConfig.Must%[1]s.
+func Must%[1]s(env string) %[4]s {
+	return DefaultConfig.Must%[1]s(env)
 }`
 
 func mustFunction(typename, retType string) string {
