@@ -12,11 +12,11 @@ toImmutable = require 'app/util/toImmutable'
 getGroup = require 'app/util/getGroup'
 whoami = require 'app/util/whoami'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
+globals = require 'globals'
 Machine = require 'app/providers/machine'
-stackDefaults = require 'app/util/stacks/defaults'
 providersParser = require 'app/util/stacks/providersparser'
 requirementsParser = require 'app/util/stacks/requirementsparser'
-generateTemplateRawContent = require 'app/util/generateTemplateRawContent'
+generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 Tracker = require 'app/util/tracker'
 $ = require 'jquery'
 
@@ -554,25 +554,38 @@ createStackTemplate = (options) ->
       resolve { stackTemplate }
 
 
-createStackTemplateWithDefaults = (overrides = {}) ->
+createStackTemplateWithDefaults = (selectedProvider) ->
 
-  if overrides.template
-    template = overrides.template
-    rawContent = generateTemplateRawContent template
-  else
-    { template, rawContent } = stackDefaults
+  Providers = globals.config.providers
+  provider  = Providers[selectedProvider]
+
+  unless provider?.defaultTemplate
+    throw 'Provider doesn\'t have stack template!'
+
+  { json: template, yaml: rawContent } = provider.defaultTemplate
 
   requiredProviders = providersParser template
-  requiredProviders.push overrides.selectedProvider
+  requiredProviders.push selectedProvider
+  requiredData      = requirementsParser template
 
-  requiredData = requirementsParser template
+  stackData = {
+    template
+    rawContent
+    title: generateStackTemplateTitle selectedProvider
+    description: '''
+      ###### Stack Template Readme
 
-  options = _.assign {}, stackDefaults,
-    template: template
-    rawContent: rawContent
+      You can write a readme for this stack template here.
+      It will be displayed whenever a user attempts to build this stack.
+      You can use markdown within the readme content.
+
+    '''
     config: { requiredData, requiredProviders }
+    credentials: {}
+    templateDetails: null
+  }
 
-  return createStackTemplate options
+  return createStackTemplate stackData
 
 
 updateStackTemplate = (stackTemplate, options) ->
