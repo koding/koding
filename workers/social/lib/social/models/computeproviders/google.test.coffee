@@ -75,18 +75,6 @@ runTests = -> describe 'workers.social.models.computeproviders.google', ->
           done()
 
 
-  describe '#fetchAvailable()', ->
-
-    it 'should fetch google pricing', (done) ->
-
-      client = null
-
-      Google.fetchAvailable client, {}, (err, data) ->
-        expect(err).to.not.exist
-        expect(data).to.be.an 'array'
-        done()
-
-
 afterTests = -> after removeGeneratedCredentials
 
 beforeTests()
