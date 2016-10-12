@@ -405,7 +405,7 @@ generateDev = (KONFIG, options) ->
     }
 
     function removeDockerByName () {
-      docker ps -a -f name=$1 --format "{{.ID}}" | xargs docker rm -f && echo deleted $1 image
+      docker ps ps -all --quiet --filter name=$1 | xargs docker rm -f && echo deleted $1 image
     }
 
     function restoredefaultmongodump () {
