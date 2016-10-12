@@ -21,7 +21,7 @@ const Name = "tunnelproxymanager"
 func main() {
 	c, err := configure()
 	if err != nil {
-		log.Fatal("Reading config failed: ", err.Error())
+		log.Fatalf("Reading config failed: ", err.Error())
 	}
 
 	conf := &asgd.Config{
@@ -35,7 +35,7 @@ func main() {
 
 	session, err := asgd.Configure(conf)
 	if err != nil {
-		log.Fatal("Reading config failed: ", err.Error())
+		log.Fatalf("Reading config failed: ", err.Error())
 	}
 
 	log := logging.NewCustom(Name, conf.Debug)

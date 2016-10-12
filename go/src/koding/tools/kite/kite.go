@@ -52,7 +52,7 @@ type Control struct {
 
 func New(name string, c *config.Config, onePerHost bool) *Kite {
 	if c == nil {
-		log.Fatal("Conf is not initialized. Aborting ", name)
+		log.Fatalf("Conf is not initialized. Aborting ", name)
 	}
 	conf = c
 
