@@ -252,7 +252,7 @@ generateDev = (KONFIG, options) ->
 
       if [[ `uname` == 'Darwin' ]]; then
         if [ -z "$DOCKER_HOST" ]; then
-          echo "You need to export DOCKER_HOST, run 'boot2docker up' and follow the instructions."
+          echo "You need to export DOCKER_HOST, run 'boot2docker up' and follow the instructions. (or run 'eval $(docker-machine env default)')"
           exit 1
         fi
       fi
