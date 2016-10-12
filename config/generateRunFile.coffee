@@ -68,6 +68,7 @@ generateDev = (KONFIG, options) ->
 
     function ctrl_c () {
       supervisorctl shutdown
+      exit 1;
     }
 
     function nginxstop () {
