@@ -25,7 +25,6 @@ generateDev = (KONFIG, options) ->
       pushd $KONFIG_PROJECTROOT/go/src/socialapi
       make configure
       # make install
-      cleanchatnotifications
 
       echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY (@farslan) <---#'
       KITE_KEY=$KONFIG_KITEHOME/kite.key
@@ -430,10 +429,6 @@ generateDev = (KONFIG, options) ->
 
     }
 
-    function cleanchatnotifications () {
-      $GOBIN/notification -c $KONFIG_SOCIALAPI_CONFIGFILEPATH -h
-    }
-
     if [ "$#" == "0" ]; then
       checkrunfile
       run $1
@@ -524,9 +519,6 @@ generateDev = (KONFIG, options) ->
 
     elif [ "$1" == "updateusers" ]; then
       updateusers
-
-    elif [ "$1" == "cleanchatnotifications" ]; then
-      cleanchatnotifications
 
     elif [ "$1" == "worker" ]; then
 
