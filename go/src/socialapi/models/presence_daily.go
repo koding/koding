@@ -17,5 +17,5 @@ type PresenceDaily struct {
 	CreatedAt time.Time `json:"createdAt"            sql:"NOT NULL"`
 
 	// IsProcessed did we processed the record?
-	IsProcessed bool `json:"IsDeleted"`
+	IsProcessed bool `json:"isProcessed"`
 }

@@ -91,7 +91,7 @@ func testFixture(t *testing.T) (*models.User, *models.Group, *models.Machine, *m
 		Uid:      bson.NewObjectId().Hex(),
 		Provider: "koding",
 		Users: []models.MachineUser{
-			models.MachineUser{
+			{
 				Id:    user.ObjectId,
 				Owner: true,
 			},

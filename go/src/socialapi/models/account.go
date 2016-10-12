@@ -295,10 +295,10 @@ func (a *Account) FetchFollowerChannelIds(q *request.Query) ([]int64, error) {
 	res := bongo.B.DB.
 		Table(cp.BongoName()).
 		Where(
-		"creator_id IN (?) and type_constant = ?",
-		followerIds,
-		Channel_TYPE_FOLLOWINGFEED,
-	).Find(&channelIds)
+			"creator_id IN (?) and type_constant = ?",
+			followerIds,
+			Channel_TYPE_FOLLOWINGFEED,
+		).Find(&channelIds)
 
 	if err := bongo.CheckErr(res); err != nil {
 		return nil, err

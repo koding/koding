@@ -345,7 +345,7 @@ func (c *Client) Resubscribe(sessionId string) (bool, error) {
 func (c *Client) Unsubscribe(routingKeyPrefixes ...string) {
 	c.RemoveFromRoute(routingKeyPrefixes...)
 	if err := c.Subscriptions.Unsubscribe(routingKeyPrefixes...); err != nil {
-		fmt.Errorf("%v", err)
+		fmt.Println(err)
 	}
 }
 

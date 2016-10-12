@@ -30,7 +30,7 @@ func initialize() {
 	flag.Parse()
 	log.SetLevel(logger.INFO)
 	if *flagProfile == "" {
-		log.Fatal("Please specify profile via -c. Aborting.")
+		log.Fatalf("Please specify profile via -c. Aborting.")
 	}
 
 	conf = config.MustConfig(*flagProfile)
@@ -58,7 +58,7 @@ func main() {
 
 	err := helpers.Iter(helper.Mongo, iterOptions)
 	if err != nil {
-		log.Fatal("Error while iter: %v", err)
+		log.Fatalf("Error while iter: %v", err)
 	}
 	log.Info("Obsolete Deleter worker finished")
 

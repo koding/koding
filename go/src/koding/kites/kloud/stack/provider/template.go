@@ -22,9 +22,9 @@ type Template struct {
 	Variable map[string]interface{} `json:"variable,omitempty"`
 	Output   map[string]interface{} `json:"output,omitempty"`
 
-	node *ast.ObjectList `json:"-"`
-	b    *object.Builder `json:"-"`
-	log  logging.Logger  `json:"-"`
+	node *ast.ObjectList
+	b    *object.Builder
+	log  logging.Logger
 }
 
 // newTerraformTemplate parses the content and returns a terraformTemplate

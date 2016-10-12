@@ -44,7 +44,7 @@ func AddHandlers(m *mux.Mux) {
 			Endpoint: "/moderation/channel/blacklist",
 		},
 	)
-	
+
 	m.AddHandler(
 		handler.Request{
 			Handler:  GetRoot,

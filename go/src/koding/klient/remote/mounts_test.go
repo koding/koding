@@ -42,8 +42,8 @@ func TestRestoreMounts(t *testing.T) {
 
 		Convey("With some machines associated to the mounts", func() {
 			r.mounts = []*mount.Mount{
-				&mount.Mount{IP: "foo"},
-				&mount.Mount{IP: "bar"},
+				{IP: "foo"},
+				{IP: "bar"},
 			}
 			r.maxRestoreAttempts = 3
 			kg.AddByUrl("http://foo/kite")
@@ -77,7 +77,7 @@ func TestRestoreMounts(t *testing.T) {
 		})
 
 		Convey("With a mount that succeeds", func() {
-			r.mounts = []*mount.Mount{&mount.Mount{IP: "foo"}}
+			r.mounts = []*mount.Mount{{IP: "foo"}}
 			r.maxRestoreAttempts = 5
 			r.mockedRestoreMount = func(m *mount.Mount) error {
 				callCounts[m.IP]++
@@ -98,8 +98,8 @@ func TestRestoreMounts(t *testing.T) {
 		Convey("With a mount that succeeds and another that fails", func() {
 			fakeErr := errors.New("Fake error")
 			r.mounts = []*mount.Mount{
-				&mount.Mount{IP: "foo"},
-				&mount.Mount{IP: "bar"},
+				{IP: "foo"},
+				{IP: "bar"},
 			}
 
 			r.maxRestoreAttempts = 4
@@ -143,9 +143,9 @@ func TestRestoreMounts(t *testing.T) {
 
 		Convey("With a mount that eventually succeeds", func() {
 			r.mounts = []*mount.Mount{
-				&mount.Mount{IP: "foo"},
-				&mount.Mount{IP: "bar"},
-				&mount.Mount{IP: "baz"},
+				{IP: "foo"},
+				{IP: "bar"},
+				{IP: "baz"},
 			}
 			r.maxRestoreAttempts = 20 // more than we should need, given working code.
 			r.mockedRestoreMount = func(m *mount.Mount) error {

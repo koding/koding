@@ -3,16 +3,16 @@ package sl
 import "time"
 
 type ACL struct {
-	ID        int             `json:"id,omitempty`
-	Direction string          `json:"direction,omitempty`
-	MCIID     int             `json:"firewallContextInterfaceId,omitempty`
+	ID        int             `json:"id,omitempty"`
+	Direction string          `json:"direction,omitempty"`
+	MCIID     int             `json:"firewallContextInterfaceId,omitempty"`
 	Rules     []*FirewallRule `json:"rules,omitempty"`
 }
 
 // MCI is a type for SoftLayer_Network_Firewall_Module_Context_Interface
 type MCI struct {
-	ID   int    `json:"id,omitempty`
-	Name string `json:"name,omitempty`
+	ID   int    `json:"id,omitempty"`
+	Name string `json:"name,omitempty"`
 	ACL  []*ACL `json:"firewallContextAccessControlLists,omitempty"`
 }
 

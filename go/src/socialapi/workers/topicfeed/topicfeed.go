@@ -160,7 +160,7 @@ func filterTopics(topics map[string]struct{}) map[string]struct{} {
 
 	filteredTopics := make(map[string]struct{})
 
-	for topic, _ := range topics {
+	for topic := range topics {
 		blacklisted := false
 		// check if the topic is in blacklisted topics
 		for _, blacklistedTopic := range blacklistedTopics {
@@ -349,9 +349,9 @@ func (f *Controller) fetchTopicChannel(groupName, channelName string) (*models.C
 		Where("group_name = ?", groupName).
 		Where("name = ?", channelName).
 		Where("type_constant IN (?)", []string{
-		models.Channel_TYPE_TOPIC,
-		models.Channel_TYPE_LINKED_TOPIC,
-	}).
+			models.Channel_TYPE_TOPIC,
+			models.Channel_TYPE_LINKED_TOPIC,
+		}).
 		Order("id asc").
 		Find(&topics).Error
 

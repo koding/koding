@@ -65,7 +65,7 @@ func TestExtractedTopicCanBeWrittenToDatabase(t *testing.T) {
 					allHashTags[hashtag] = struct{}{}
 				}
 			}
-			for hashtag, _ := range allHashTags {
+			for hashtag := range allHashTags {
 				c := models.NewChannel()
 				c.CreatorId = a.Id
 				c.GroupName = groupName

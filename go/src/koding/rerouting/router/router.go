@@ -176,7 +176,7 @@ func (r *Router) addBinding(exchange string) error {
 		nil,      // args
 	)
 	if err != nil {
-		log.Fatal("exchange.declare: %s", err)
+		log.Fatal("exchange.declare: ", err)
 		return err
 	}
 
@@ -188,7 +188,7 @@ func (r *Router) addBinding(exchange string) error {
 		false, // no-wait
 		nil,   // args
 	); err != nil {
-		log.Fatal("queue.declare: %s", err)
+		log.Fatal("queue.declare: ", err)
 		return err
 	}
 
@@ -199,7 +199,7 @@ func (r *Router) addBinding(exchange string) error {
 		false,    // no-wait
 		nil,      // args
 	); err != nil {
-		log.Fatal("queue.bind: %s", err)
+		log.Fatal("queue.bind: ", err)
 		return err
 	}
 
@@ -213,7 +213,7 @@ func (r *Router) addBinding(exchange string) error {
 		nil,   // args
 	)
 	if err != nil {
-		log.Fatal("basic.consume: %s", err)
+		log.Fatal("basic.consume: ", err)
 		return err
 	}
 

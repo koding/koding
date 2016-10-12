@@ -141,7 +141,7 @@ func WritePasswd(users map[int]*SysUser, fileName string) error {
 	defer f.Close()
 
 	uids := make([]int, 0, len(users))
-	for uid, _ := range users {
+	for uid := range users {
 		uids = append(uids, uid)
 	}
 	sort.Ints(uids)
@@ -193,7 +193,7 @@ func WriteGroup(groups map[int]*SysGroup, fileName string) error {
 	defer f.Close()
 
 	gids := make([]int, 0, len(groups))
-	for gid, _ := range groups {
+	for gid := range groups {
 		gids = append(gids, gid)
 	}
 	sort.Ints(gids)

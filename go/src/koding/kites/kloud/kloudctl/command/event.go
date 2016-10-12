@@ -54,7 +54,7 @@ func (e *Event) Action(args []string) error {
 // watch watches the events of the specified event type.
 func watch(k *kite.Client, eventType string, eventId string, interval time.Duration) error {
 	eventArgs := stack.EventArgs([]stack.EventArg{
-		stack.EventArg{
+		{
 			Type:    eventType,
 			EventId: eventId,
 		},

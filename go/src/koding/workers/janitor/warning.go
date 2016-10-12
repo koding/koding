@@ -223,8 +223,8 @@ func (w *Warning) buildSelectQuery() bson.M {
 
 	selector = append(selector, bson.M{"inactive.assigned": bson.M{"$ne": true}})
 	selector = append(selector, bson.M{"$or": []bson.M{
-		bson.M{"inactive.modifiedAt": bson.M{"$exists": false}},
-		bson.M{"inactive.modifiedAt": bson.M{"$lte": now.BeginningOfDay().UTC()}},
+		{"inactive.modifiedAt": bson.M{"$exists": false}},
+		{"inactive.modifiedAt": bson.M{"$lte": now.BeginningOfDay().UTC()}},
 	}})
 
 	// mongo indexes requrie query order to be in same order of index

@@ -29,7 +29,7 @@ func queueUsernamesForMetricGet() error {
 
 func queueOverlimitUsers() error {
 	for _, metric := range metricsToSave {
-		for limitName, _ := range limitsToAction {
+		for limitName := range limitsToAction {
 			machines, err := metric.GetMachinesOverLimit(limitName)
 			if err != nil {
 				Log.Error(err.Error())

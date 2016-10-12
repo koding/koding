@@ -164,8 +164,6 @@ func realMain() error {
 			cl.RunEIP()
 		}
 	}
-
-	select {}
 }
 
 func (c *Cleaner) Run() {

@@ -143,8 +143,8 @@ func TempList(u *url.URL, h http.Header, _ interface{}, context *models.Context)
 	cmcs, err := models.
 		NewChannelMessageList().
 		PopulateChannelMessages(
-		messages, query,
-	)
+			messages, query,
+		)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}

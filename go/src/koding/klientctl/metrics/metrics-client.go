@@ -134,7 +134,7 @@ func (m *MetricClient) StartMountStatusTicker(mount string) (err error) {
 		return err
 	}
 
-	for _ = range ticker.C {
+	for range ticker.C {
 		ms := NewDefaultMountStatus(path)
 
 		// alterate between reading & writing; this is req. since kernel

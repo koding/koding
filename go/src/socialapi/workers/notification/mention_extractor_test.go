@@ -66,7 +66,7 @@ func TestUnifyAliases(t *testing.T) {
 		}
 
 		if !exists {
-			t.Fatalf("%s. expected: %+v, got: %+v", test.definition, responses)
+			t.Fatalf("expected to exist but doesnt got: %+v for: %+v", responses, test.definition)
 		}
 
 		if len(test.expected) != len(responses) {
