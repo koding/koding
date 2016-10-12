@@ -1,5 +1,9 @@
 nick = require './nick'
 
-module.exports = ->
+module.exports = generateStackTemplateTitle = (provider) ->
 
-  "#{nick().capitalize()}'s Stack"
+  provider = if provider
+  then " #{provider} "
+  else ''
+
+  "#{nick().capitalize()}'s#{provider}Stack"

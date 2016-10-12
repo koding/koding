@@ -62,7 +62,7 @@ module.exports = class StackEditorView extends kd.View
     if stackTemplate?.title
       stackTemplate.title = Encoder.htmlDecode stackTemplate.title
 
-    generatedStackTemplateTitle = generateStackTemplateTitle()
+    generatedStackTemplateTitle = generateStackTemplateTitle selectedProvider
 
     title   = stackTemplate?.title or generatedStackTemplateTitle
     content = stackTemplate?.template?.content
