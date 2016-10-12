@@ -72,6 +72,7 @@ module.exports = globals.config.providers =
     color                  : '#B52025'
     supported              : yes
     enabled                : 'beta'
+    defaultTemplate        : require './templates/vagrant'
     description            : 'Local provisioning with Vagrant'
     credentialFields       :
       queryString          :
