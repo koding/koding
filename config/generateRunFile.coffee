@@ -285,11 +285,9 @@ generateDev = (KONFIG, options) ->
       command -v go            >/dev/null 2>&1 || { echo >&2 "I require go but it's not installed.  Aborting."; exit 1; }
       command -v docker        >/dev/null 2>&1 || { echo >&2 "I require docker but it's not installed.  Aborting."; exit 1; }
       command -v nginx         >/dev/null 2>&1 || { echo >&2 "I require nginx but it's not installed. (brew install nginx maybe?)  Aborting."; exit 1; }
-      command -v mongorestore  >/dev/null 2>&1 || { echo >&2 "I require mongorestore but it's not installed.  Aborting."; exit 1; }
       command -v node          >/dev/null 2>&1 || { echo >&2 "I require node but it's not installed.  Aborting."; exit 1; }
       command -v npm           >/dev/null 2>&1 || { echo >&2 "I require npm but it's not installed.  Aborting."; exit 1; }
       command -v gulp          >/dev/null 2>&1 || { echo >&2 "I require gulp but it's not installed. (npm i gulp -g)  Aborting."; exit 1; }
-      # command -v stylus      >/dev/null 2>&1 || { echo >&2 "I require stylus  but it's not installed. (npm i stylus -g)  Aborting."; exit 1; }
       command -v coffee        >/dev/null 2>&1 || { echo >&2 "I require coffee-script but it's not installed. (npm i coffee-script -g)  Aborting."; exit 1; }
       check_psql
 
@@ -414,18 +412,15 @@ generateDev = (KONFIG, options) ->
     function restoredefaultpostgresdump () {
       removeDockerByName postgres
       runPostgresqlDocker
+      migrate up
+
+      migrateusers
     }
 
     function updatePermissions () {
 
       echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @gokmen) <---#'
       node $KONFIG_PROJECTROOT/scripts/permission-updater -c dev --reset
-
-    }
-
-    function updateusers () {
-
-      node $KONFIG_PROJECTROOT/scripts/user-updater
 
     }
 
@@ -481,7 +476,6 @@ generateDev = (KONFIG, options) ->
 
         restoredefaultmongodump
         restoredefaultpostgresdump
-        migrateusers
 
         exit 0
 
@@ -496,7 +490,6 @@ generateDev = (KONFIG, options) ->
 
       restoredefaultmongodump
       restoredefaultpostgresdump
-      migrateusers
     elif [ "$1" == "buildservices" ]; then
       check_service_dependencies
 
@@ -516,9 +509,6 @@ generateDev = (KONFIG, options) ->
 
     elif [ "$1" == "importusers" ]; then
       importusers
-
-    elif [ "$1" == "updateusers" ]; then
-      updateusers
 
     elif [ "$1" == "worker" ]; then
 
