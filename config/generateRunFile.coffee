@@ -322,20 +322,25 @@ generateDev = (KONFIG, options) ->
         done
     }
 
-    function runMongoDocker() {
+    function runMongoDocker () {
         docker run -d -p 27017:27017 --name=mongo koding/mongo:2016-10-11
     }
 
-    function runPostgresqlDocker() {
+    function runPostgresqlDocker () {
         docker run -d -p 5432:5432 --name=postgres koding/postgres
         waitPostgresReady
     }
 
+    function run_docker_wrapper () {
+      if [[ `uname` == 'Darwin' ]]; then
+        command -v boot2docker >/dev/null 2>&1 && boot2docker up
+        command -v docker-machine >/dev/null 2>&1 && docker-machine start default || echo 1
+      fi
+    }
+
     function build_services () {
 
-      if [[ `uname` == 'Darwin' ]]; then
-        boot2docker up
-      fi
+      run_docker_wrapper
 
       echo "Stopping services: $SERVICES"
       docker stop $SERVICES
@@ -370,9 +375,8 @@ generateDev = (KONFIG, options) ->
 
     function services () {
 
-      if [[ `uname` == 'Darwin' ]]; then
-        boot2docker up
-      fi
+      run_docker_wrapper
+
       EXISTS=$(docker inspect --format="{{ .State.Running }}" $SERVICES 2> /dev/null)
       if [ $? -eq 1 ]; then
         echo ""
