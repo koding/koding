@@ -501,9 +501,9 @@ setMachineAlwaysOn = (machineId, state) ->
 
   reactor.dispatch actions.SET_MACHINE_ALWAYS_ON_BEGIN, { id : machineId, state }
 
-  computeController.fetchUserPlan (plan) =>
+  computeController.fetchUserPlan (plan) ->
 
-    computeController.setAlwaysOn machine, state, (err) =>
+    computeController.setAlwaysOn machine, state, (err) ->
 
       unless err
         return reactor.dispatch actions.SET_MACHINE_ALWAYS_ON_SUCCESS, { id : machineId }
@@ -752,7 +752,7 @@ shareMachineWithUser = (machineId, nickname) ->
   machine = computeController.findMachineFromMachineId machineId
   return  unless machine
 
-  remote.api.SharedMachine.add machine.uid, [nickname], (err) =>
+  remote.api.SharedMachine.add machine.uid, [nickname], (err) ->
 
     return showError err  if err
 
@@ -770,7 +770,7 @@ unshareMachineWithUser = (machineId, nickname) ->
   machine = computeController.findMachineFromMachineId machineId
   return  unless machine
 
-  remote.api.SharedMachine.kick machine.uid, [nickname], (err) =>
+  remote.api.SharedMachine.kick machine.uid, [nickname], (err) ->
 
     return showError err  if err
 
@@ -796,7 +796,7 @@ unshareMachineWihAllUsers = (machineId) ->
 
 setLabel = (machineUId, label) ->
 
-  {computeController} = kd.singletons
+  { computeController } = kd.singletons
 
   new Promise (resolve, reject) ->
     fetchMachineByUId machineUId, (machine) ->
@@ -807,19 +807,19 @@ setLabel = (machineUId, label) ->
 
 cloneStackTemplate = (template, revive) ->
 
-    new kd.NotificationView { title: 'Cloning Stack Template' }
+  new kd.NotificationView { title:'Cloning Stack Template' }
 
-    { reactor } = kd.singletons
-    template = remote.revive template  if revive
+  { reactor } = kd.singletons
+  template = remote.revive template  if revive
 
-    template.clone (err, stackTemplate) ->
-      if err
-        return new kd.NotificationView
-          title: 'Error occured while cloning template'
+  template.clone (err, stackTemplate) ->
+    if err
+      return new kd.NotificationView
+        title: 'Error occured while cloning template'
 
-      Tracker.track Tracker.STACKS_CLONED_TEMPLATE
-      reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
-      kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"
+    Tracker.track Tracker.STACKS_CLONED_TEMPLATE
+    reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
+    kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"
 
 loadExpandedMachineLabel = (label) ->
 

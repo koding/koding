@@ -102,7 +102,7 @@ module.exports = class StackEditorView extends kd.View
       cssClass : 'HomeAppView--button secondary fr'
       attributes :
         style  : 'color: #67a2ee;'
-      title    : 'CLICK HERE TO READ STACK SCRIPT DOCS'
+      title    : 'STACK SCRIPT DOCS'
       href     : 'http://www.koding.com/docs'
 
     @tabView.unsetClass 'kdscrollview'
