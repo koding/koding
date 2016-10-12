@@ -1,0 +1,23 @@
+{
+  "goGenerate": {
+    "environment": "production",
+    "buckets": {
+      "publicLogs": {
+        "name": "koding-publiclogs",
+        "region": "us-east-1"
+      }
+    },
+    "endpoints": {
+      "ip": "https://p.koding.com/-/ip",
+      "ipCheck": "https://p.koding.com/-/ipcheck",
+      "kdLatest": "https://koding-kd.s3.amazonaws.com/production/latest-version.txt",
+      "klientLatest": "https://koding-klient.s3.amazonaws.com/{{.Environment}}/latest-version.txt",
+      "kloud": "https://koding.com/kloud/kite",
+      "kontrol": "https://koding.com/kontrol/kite",
+      "tunnelServer": "http://t.koding.com/kite"
+    },
+    "routes": {
+      "dev.koding.com": "127.0.0.1"
+    }
+  }
+}

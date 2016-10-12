@@ -1,9 +1,7 @@
 package config
 
 import (
-	"bufio"
 	"context"
-	"encoding/json"
 	"flag"
 	"io/ioutil"
 	"os"
@@ -27,19 +25,14 @@ func TestConfig(t *testing.T) {
 
 	for _, testFile := range testFiles {
 		t.Run(testFile, func(t *testing.T) {
-			env, err := readEnv(testFile)
-			if err != nil {
-				t.Fatalf("want err == nil; got %v", err)
-			}
-
 			ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-			generatedRaw, err := generateConfig(ctx, env)
+			generatedRaw, err := generateConfig(ctx, testFile)
 			if err != nil {
 				t.Fatalf("want err == nil; got %v", err)
 			}
 
 			// update golden file if necessary
-			golden := strings.TrimSuffix(testFile, ".env") + ".json.golden"
+			golden := strings.TrimSuffix(testFile, ".json") + ".go.golden"
 			if *update {
 				err := ioutil.WriteFile(golden, generatedRaw, 0644)
 				if err != nil {
@@ -53,16 +46,7 @@ func TestConfig(t *testing.T) {
 				t.Fatalf("want err == nil; got %v", err)
 			}
 
-			// Unmarshal in order to avoid map ordering issues.
-			var generatedCfg, goldenCfg Config
-			if err := json.Unmarshal(generatedRaw, &generatedCfg); err != nil {
-				t.Fatalf("want err == nil; got %v", err)
-			}
-			if err := json.Unmarshal(goldenRaw, &goldenCfg); err != nil {
-				t.Fatalf("want err == nil; got %v", err)
-			}
-
-			if !reflect.DeepEqual(generatedCfg, goldenCfg) {
+			if !reflect.DeepEqual(generatedRaw, goldenRaw) {
 				t.Fatalf("want: \n\t%s\ngot:\n\t%s\n", string(goldenRaw), string(generatedRaw))
 			}
 		})
@@ -75,7 +59,7 @@ func readTestFiles(path string) (testFiles []string, err error) {
 			return err
 		}
 
-		if filepath.Ext(path) == ".env" {
+		if filepath.Ext(path) == ".json" {
 			testFiles = append(testFiles, path)
 		}
 
@@ -89,30 +73,6 @@ func readTestFiles(path string) (testFiles []string, err error) {
 	return testFiles, nil
 }
 
-func readEnv(path string) (env []string, err error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		env = append(env, strings.TrimSpace(scanner.Text()))
-	}
-	if err := scanner.Err(); err != nil {
-		return nil, err
-	}
-
-	if env == nil {
-		env = []string{"GO_CONFIG_TEST_NO_ENV=1"}
-	}
-
-	return env, nil
-}
-
-func generateConfig(ctx context.Context, env []string) ([]byte, error) {
-	cmd := exec.CommandContext(ctx, "go", "run", "genconfig.go")
-	cmd.Env = env
-	return cmd.Output()
+func generateConfig(ctx context.Context, input string) ([]byte, error) {
+	return exec.CommandContext(ctx, "go", "run", "genconfig.go", "-i", input).Output()
 }
