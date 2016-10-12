@@ -95,7 +95,7 @@ withConvertedUser = (opts, callback) ->
     JUser.convert client, userFormData, (err, data) ->
       if err
         console.trace()
-        console.log "Err: JUser.convert", err
+        console.log 'Err: JUser.convert', err
 
       expect(err).to.not.exist
 
