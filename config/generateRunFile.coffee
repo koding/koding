@@ -203,7 +203,7 @@ generateDev = (KONFIG, options) ->
     }
 
     function migrate () {
-      migrations
+      apply_custom_pg_migrations
 
       params=(create up down version reset redo to goto)
       param=$1
@@ -573,8 +573,8 @@ generateDev = (KONFIG, options) ->
     elif [ "$1" == "sanitize-email" ]; then
       node $KONFIG_PROJECTROOT/scripts/sanitize-email
 
-    elif [ "$1" == "migrations" ]; then
-      migrations
+    elif [ "$1" == "apply_custom_pg_migrations" ]; then
+      apply_custom_pg_migrations
 
     elif [ "$1" == "is_pgready" ]; then
       waitPostgresReady
