@@ -105,8 +105,8 @@ generateDev = (KONFIG, options) ->
       fi
     }
 
-    function migrations () {
-      # a temporary migration line (do we still need this?)
+    function apply_custom_pg_migrations () {
+      # we can remove these after https://github.com/mattes/migrate/issues/13
       export PGPASSWORD=$KONFIG_POSTGRES_PASSWORD
       PSQL_COMMAND="psql -tA -h $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_DBNAME -U $KONFIG_POSTGRES_USERNAME"
       $PSQL_COMMAND -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'collaboration';"
