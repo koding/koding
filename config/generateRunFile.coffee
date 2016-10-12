@@ -293,7 +293,7 @@ generateDev = (KONFIG, options) ->
 
       if [[ `uname` == 'Darwin' ]]; then
         brew info graphicsmagick >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
-        command -v boot2docker   >/dev/null 2>&1 || { echo >&2 "I require boot2docker but it's not installed.  Aborting."; exit 1; }
+        command -v boot2docker >/dev/null 2>&1 || command -v docker-machine >/dev/null 2>&1 || { echo >&2 "I require boot2docker but it's not installed.  Aborting."; exit 1; }
       elif [[ `uname` == 'Linux' ]]; then
         command -v gm >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
       fi
