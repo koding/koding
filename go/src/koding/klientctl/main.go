@@ -54,6 +54,13 @@ var (
 	experimental = os.Getenv("KD_EXPERIMENTAL") == "1"
 )
 
+func max(i, j int) int {
+	if i > j {
+		return i
+	}
+	return j
+}
+
 func main() {
 	// For forward-compatibility with go1.5+, where GOMAXPROCS is
 	// always set to a number of available cores.

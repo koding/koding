@@ -70,19 +70,34 @@ func CredentialImport(c *cli.Context, log logging.Logger, _ string) (int, error)
 	case 0:
 		fmt.Fprintf(&buf, "You have no credentials attached to your Koding account.")
 	case 1:
-		fmt.Fprintf(&buf, "Imported %d %s credential.", len(creds[keys[0]]), keys[0])
+		if n := len(creds[keys[0]]); n > 1 {
+			fmt.Fprintf(&buf, "Imported %d %s credentials.", n, keys[0])
+		} else {
+			fmt.Fprintf(&buf, "Imported %d %s credential.", n, keys[0])
+		}
 	case 2:
-		fmt.Fprintf(&buf, "Imported %d %s and %d %s credentials.", len(creds[keys[0]]), keys[0], len(creds[keys[1]]), keys[1])
+		if n, m := len(creds[keys[0]]), len(creds[keys[1]]); n > 1 || m > 1 {
+			fmt.Fprintf(&buf, "Imported %d %s and %d %s credentials.", n, keys[0], m, keys[1])
+		} else {
+			fmt.Fprintf(&buf, "Imported %d %s and %d %s credential.", n, keys[0], m, keys[1])
+		}
 	default:
-		fmt.Fprintf(&buf, "Imported %d %s", len(creds[keys[0]]), keys[0])
+		n := len(creds[keys[0]])
+		fmt.Fprintf(&buf, "Imported %d %s", n, keys[0])
 
 		for _, key := range keys[1 : len(keys)-1] {
 			fmt.Fprintf(&buf, ", %d %s", len(creds[key]), key)
+			n = max(n, len(creds[key]))
 		}
 
 		last := keys[len(keys)-1]
+		n = max(n, len(creds[last]))
 
-		fmt.Fprintf(&buf, "and %d %s credentials.", len(creds[last]), last)
+		if n > 1 {
+			fmt.Fprintf(&buf, "and %d %s credentials.", len(creds[last]), last)
+		} else {
+			fmt.Fprintf(&buf, "and %d %s credential.", len(creds[last]), last)
+		}
 	}
 
 	fmt.Println(buf.String())
