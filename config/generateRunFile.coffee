@@ -312,12 +312,26 @@ generateDev = (KONFIG, options) ->
       set +o errexit
     }
 
+    function waitPostgresReady() {
+        retries=60
+        while ! pg_isready -h $KONFIG_POSTGRES_HOST -U $KONFIG_POSTGRES_USERNAME; do
+          sleep 1
+          let retries--
+          if [ $retries == 0 ]; then
+            echo "time out while waiting for pg_isready"
+            exit 1
+          fi
+          echo "."
+        done
+    }
+
     function runMongoDocker() {
         docker run -d -p 27017:27017 --name=mongo koding/mongo:2016-10-11
     }
 
     function runPostgresqlDocker() {
         docker run -d -p 5432:5432 --name=postgres koding/postgres
+        waitPostgresReady
     }
 
     function build_services () {
@@ -569,6 +583,9 @@ generateDev = (KONFIG, options) ->
 
     elif [ "$1" == "migrations" ]; then
       migrations
+
+    elif [ "$1" == "is_pgready" ]; then
+      waitPostgresReady
 
     else
       echo "Unknown command: $1"
