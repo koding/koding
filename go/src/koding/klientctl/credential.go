@@ -25,12 +25,106 @@ import (
 //   - improve --json handling in "credential list"
 //
 
-type DefaultCredentials struct {
-	Global map[string]string
+type Credentials struct {
+	Defaults   map[string]string
+	ByProvider map[string][]*stack.CredentialItem
+	ByIdent    map[string]*stack.CredentialItem
+}
+
+func (c *Credentials) Len() int {
+	return len(c.ByIdent)
+}
+
+func (c *Credentials) Providers() []string {
+	providers := make([]string, 0, len(c.ByProvider))
+
+	for provider := range c.ByProvider {
+		providers = append(providers, provider)
+	}
+
+	sort.Strings(providers)
+
+	return providers
+}
+
+func (c *Credentials) String() string {
+	var buf bytes.Buffer
+
+	switch providers := c.Providers(); len(providers) {
+	case 1:
+		if n := len(c.ByProvider[providers[0]]); n > 1 {
+			fmt.Fprintf(&buf, "%d %s credentials", n, providers[0])
+		} else {
+			fmt.Fprintf(&buf, "%d %s credential", n, providers[0])
+		}
+	case 2:
+		if n, m := len(c.ByProvider[providers[0]]), len(c.ByProvider[providers[1]]); n > 1 || m > 1 {
+			fmt.Fprintf(&buf, "%d %s and %d %s credentials", n, providers[0], m, providers[1])
+		} else {
+			fmt.Fprintf(&buf, "%d %s and %d %s credential", n, providers[0], m, providers[1])
+		}
+	default:
+		n := len(c.ByProvider[providers[0]])
+		fmt.Fprintf(&buf, "%d %s", n, providers[0])
+
+		for _, provider := range providers[1 : len(providers)-1] {
+			m := len(c.ByProvider[provider])
+			n = max(n, m)
+
+			fmt.Fprintf(&buf, ", %d %s", m, provider)
+		}
+
+		last := providers[len(providers)-1]
+		m := len(c.ByProvider[last])
+
+		if max(n, m) > 1 {
+			fmt.Fprintf(&buf, "and %d %s credentials.", m, last)
+		} else {
+			fmt.Fprintf(&buf, "and %d %s credential.", m, last)
+		}
+	}
+
+	return buf.String()
+}
+
+func (c *Credentials) Import(resp *stack.CredentialListResponse) {
+	c.ByProvider = make(map[string][]*stack.CredentialItem)
+	c.ByIdent = make(map[string]*stack.CredentialItem)
+
+	for provider, creds := range resp.Credentials {
+		for i := range creds {
+			c.ByProvider[provider] = append(c.ByProvider[provider], &creds[i])
+			c.ByIdent[creds[i].Identifier] = &creds[i]
+		}
+	}
+
+	for provider, ident := range c.Defaults {
+		if _, ok := c.ByIdent[ident]; !ok {
+			delete(c.Defaults, provider)
+		}
+	}
+}
+
+func (c *Credentials) Default() map[string]*stack.CredentialItem {
+	m := make(map[string]*stack.CredentialItem)
+
+	for _, ident := range c.Defaults {
+		if cred, ok := c.ByIdent[ident]; ok {
+			m[cred.Provider] = cred
+		}
+	}
+
+	return m
 }
 
 func CredentialImport(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	debug = c.Bool("debug")
+
+	var credentials Credentials
+
+	if err := Cache().GetValue("credentials", &credentials); err != nil && err != storage.ErrKeyNotFound {
+		return 1, err
+	}
 
 	kloud, err := Kloud()
 	if err != nil {
@@ -55,56 +149,18 @@ func CredentialImport(c *cli.Context, log logging.Logger, _ string) (int, error)
 		return 1, err
 	}
 
-	if err := Cache().SetValue("credentials", &resp); err != nil {
+	credentials.Import(&resp)
+
+	if err := Cache().SetValue("credentials", &credentials); err != nil {
 		return 1, err
 	}
 
-	creds := resp.Credentials
-	keys := make([]string, 0, len(creds))
-
-	for key := range creds {
-		keys = append(keys, key)
+	if credentials.Len() == 0 {
+		fmt.Fprintln(os.Stderr, "You have no credentials attached to your Koding account.")
+		return 1, nil
 	}
 
-	sort.Strings(keys)
-
-	var buf bytes.Buffer
-
-	switch len(keys) {
-	case 0:
-		fmt.Fprintf(&buf, "You have no credentials attached to your Koding account.")
-	case 1:
-		if n := len(creds[keys[0]]); n > 1 {
-			fmt.Fprintf(&buf, "Imported %d %s credentials.", n, keys[0])
-		} else {
-			fmt.Fprintf(&buf, "Imported %d %s credential.", n, keys[0])
-		}
-	case 2:
-		if n, m := len(creds[keys[0]]), len(creds[keys[1]]); n > 1 || m > 1 {
-			fmt.Fprintf(&buf, "Imported %d %s and %d %s credentials.", n, keys[0], m, keys[1])
-		} else {
-			fmt.Fprintf(&buf, "Imported %d %s and %d %s credential.", n, keys[0], m, keys[1])
-		}
-	default:
-		n := len(creds[keys[0]])
-		fmt.Fprintf(&buf, "Imported %d %s", n, keys[0])
-
-		for _, key := range keys[1 : len(keys)-1] {
-			fmt.Fprintf(&buf, ", %d %s", len(creds[key]), key)
-			n = max(n, len(creds[key]))
-		}
-
-		last := keys[len(keys)-1]
-		n = max(n, len(creds[last]))
-
-		if n > 1 {
-			fmt.Fprintf(&buf, "and %d %s credentials.", len(creds[last]), last)
-		} else {
-			fmt.Fprintf(&buf, "and %d %s credential.", len(creds[last]), last)
-		}
-	}
-
-	fmt.Println(buf.String())
+	fmt.Printf("Imported %s.\n", &credentials)
 
 	return 0, nil
 }
@@ -115,28 +171,28 @@ func CredentialList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	provider := c.String("provider")
 	team := c.String("team")
 
-	var resp stack.CredentialListResponse
+	var credentials Credentials
 
-	if err := Cache().GetValue("credentials", &resp); err != nil && err != storage.ErrKeyNotFound {
+	if err := Cache().GetValue("credentials", &credentials); err != nil && err != storage.ErrKeyNotFound {
 		return 1, err
 	}
 
-	if len(resp.Credentials) == 0 {
+	if credentials.Len() == 0 {
 		fmt.Fprintln(os.Stderr, `You did not import any credentials yet. Please run "kd credential import".`)
 		return 1, nil
 	}
 
 	if provider != "" {
-		for key := range resp.Credentials {
-			if key != provider {
-				delete(resp.Credentials, key)
+		for p := range credentials.ByProvider {
+			if p != provider {
+				delete(credentials.ByProvider, provider)
 			}
 		}
 	}
 
 	if team != "" {
-		for key, creds := range resp.Credentials {
-			var filtered []stack.CredentialItem
+		for provider, creds := range credentials.ByProvider {
+			var filtered []*stack.CredentialItem
 
 			for _, cred := range creds {
 				if cred.Team != "" && cred.Team != team {
@@ -147,14 +203,14 @@ func CredentialList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 			}
 
 			if len(filtered) != 0 {
-				resp.Credentials[key] = filtered
+				credentials.ByProvider[provider] = filtered
 			} else {
-				delete(resp.Credentials, key)
+				delete(credentials.ByProvider, provider)
 			}
 		}
 	}
 
-	if len(resp.Credentials) == 0 {
+	if credentials.Len() == 0 {
 		fmt.Fprintln(os.Stderr, "You have no matching credentials attached to your Koding account.")
 		return 0, nil
 	}
@@ -162,7 +218,7 @@ func CredentialList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "\t")
 
-	if err := enc.Encode(resp.Credentials); err != nil {
+	if err := enc.Encode(credentials.ByProvider); err != nil {
 		return 1, err
 	}
 
@@ -245,36 +301,21 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 }
 
 func CredentialUse(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	var creds stack.CredentialListResponse
+	var credentials Credentials
 
-	if err := Cache().GetValue("credentials", &creds); err != nil && err != storage.ErrKeyNotFound {
+	if err := Cache().GetValue("credentials", &credentials); err != nil && err != storage.ErrKeyNotFound {
 		return 1, err
 	}
 
-	if len(creds.Credentials) == 0 {
+	if credentials.Len() == 0 {
 		fmt.Fprintln(os.Stderr, `You did not import any credentials yet. Please run "kd credential import".`)
 		return 1, nil
 	}
 
-	defaults := &DefaultCredentials{
-		Global: make(map[string]string),
-	}
+	ident := c.Args().Get(0)
 
-	if err := Cache().GetValue("defaultCredentials", defaults); err != nil && err != storage.ErrKeyNotFound {
-		return 1, err
-	}
-
-	if len(c.Args()) == 0 || c.Args().Get(0) == "" {
-		m := make(map[string]stack.CredentialItem, len(defaults.Global))
-
-		for p, ident := range defaults.Global {
-			for _, cred := range creds.Credentials[p] {
-				if cred.Identifier == ident {
-					m[p] = cred
-					break
-				}
-			}
-		}
+	if ident == "" {
+		m := credentials.Default()
 
 		if len(m) == 0 {
 			fmt.Fprintln(os.Stderr, "You have no default credential set.")
@@ -291,31 +332,23 @@ func CredentialUse(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 0, nil
 	}
 
-	ident := c.Args().Get(0)
-	provider := ""
-
-lookup:
-	for p, creds := range creds.Credentials {
-		for _, cred := range creds {
-			if cred.Identifier == ident {
-				provider = p
-				break lookup
-			}
-		}
-	}
-
-	if provider == "" {
+	cred, ok := credentials.ByIdent[ident]
+	if !ok {
 		fmt.Fprintf(os.Stderr, `Credential identifier not found. Please try "kd credential import".`)
 		return 1, nil
 	}
 
-	defaults.Global[provider] = ident
+	if credentials.Defaults == nil {
+		credentials.Defaults = make(map[string]string)
+	}
 
-	if err := Cache().SetValue("defaultCredentials", defaults); err != nil {
+	credentials.Defaults[cred.Provider] = cred.Identifier
+
+	if err := Cache().SetValue("credentials", &credentials); err != nil {
 		return 1, err
 	}
 
-	fmt.Printf("Set %s as a default credential for %q stacks.\n", ident, provider)
+	fmt.Printf("Set %s as a default credential for %q stacks.\n", cred.Identifier, cred.Provider)
 
 	return 0, nil
 }

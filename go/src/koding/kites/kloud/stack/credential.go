@@ -73,6 +73,7 @@ type CredentialListRequest struct {
 type CredentialItem struct {
 	Title      string `json:"title"`
 	Team       string `json:"team,omitempty"`
+	Provider   string `json:"provider"`
 	Identifier string `json:"identifier"`
 }
 
@@ -156,6 +157,7 @@ func (k *Kloud) CredentialList(r *kite.Request) (interface{}, error) {
 		c = append(c, CredentialItem{
 			Title:      cred.Title,
 			Team:       cred.Team,
+			Provider:   cred.Provider,
 			Identifier: cred.Ident,
 		})
 
