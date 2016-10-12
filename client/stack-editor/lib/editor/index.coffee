@@ -414,7 +414,10 @@ module.exports = class StackEditorView extends kd.View
       @saveButton.hideLoader()
       return
 
-    @saveAndTestStackTemplate (err, stackTemplate) => @emit 'Reload', err?
+    @emit 'StackSaveInAction'
+    @saveAndTestStackTemplate (err, stackTemplate) =>
+      @emit 'StackSaveCompleted'
+      @emit 'Reload', err?
 
 
   saveAndTestStackTemplate: (callback) ->

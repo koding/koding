@@ -158,34 +158,37 @@ module.exports = class StackEditorAppController extends AppController
     view    = new StackEditorView options, data
     view.on 'Cancel', -> kd.singletons.router.back()
 
-    # TODO: Will activate this with following PRs.
-    # Not removing to leave it as ref. ~Umut
-    # confirmation = null
+    confirmation = null
 
-    # stackTemplate.on? 'update', =>
+    stackTemplate.on? 'update', =>
 
-    #   return  if confirmation
+      return  if confirmation
+      return  if view._stackSaveInAction
 
-    #   view.addSubView confirmation = new kd.ModalView
-    #     title: 'Stack Template is Updated'
-    #     buttons:
-    #       ok:
-    #         title: 'OK'
-    #         style: 'solid green medium'
-    #         callback: =>
-    #           view.destroy()
-    #           delete @editors[stackTemplate._id]
-    #           @openEditor stackTemplate._id
-    #       cancel:
-    #         title: 'Cancel'
-    #         style: 'solid light-gray medium'
-    #         callback: ->
-    #           confirmation.destroy()
-    #           confirmation = null
-    #     content: '''
-    #       <div class='modalformline'
-    #         <p>This stack template is updated by another admin. Do you want to reload?
-    #       </div>
-    #       '''
+      view.addSubView confirmation = new kd.ModalView
+        title: 'Stack Template is Updated'
+        buttons:
+          ok:
+            title: 'OK'
+            style: 'solid green medium'
+            callback: =>
+              view.destroy()
+              delete @editors[stackTemplate._id]
+              @openEditor stackTemplate._id
+          cancel:
+            title: 'Cancel'
+            style: 'solid light-gray medium'
+            callback: ->
+              confirmation.destroy()
+              confirmation = null
+        content: '''
+          <div class='modalformline'
+            <p>This stack template is updated by another admin. Do you want to reload?
+          </div>
+          '''
+
+
+    view.on 'StackSaveInAction',  -> @_stackSaveInAction = yes
+    view.on 'StackSaveCompleted', -> @_stackSaveInAction = no
 
     return view
