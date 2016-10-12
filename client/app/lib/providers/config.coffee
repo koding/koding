@@ -31,6 +31,7 @@ module.exports = globals.config.providers =
     color                  : '#F9A900'
     description            : 'Amazon Web Services'
     instanceTypes          : require './instance-types/aws'
+    defaultTemplate        : require './templates/aws'
     advancedFields         : [
                               'subnet', 'sg', 'vpc',
                               'ami', 'acl', 'cidr_block',
