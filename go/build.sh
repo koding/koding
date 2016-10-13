@@ -91,6 +91,9 @@ done
 
 go generate koding/kites/kloud/kloud
 
+# generate static go configuration.
+KODING_JSON_CONFIG_FILE="$KODING_REPO/.env.json" go generate koding/config
+
 koding-go-install ${COMMANDS[@]} ${TERRAFORM_COMMANDS[@]}
 
 mkdir -p $GOPATH/build/broker
