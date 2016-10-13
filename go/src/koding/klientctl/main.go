@@ -503,7 +503,6 @@ func main() {
 						},
 						cli.StringFlag{
 							Name:  "file, f",
-							Value: "-",
 							Usage: "Read credential from a file.",
 						},
 						cli.StringFlag{

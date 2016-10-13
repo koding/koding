@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"koding/kites/kloud/credential"
 	"koding/kites/kloud/utils/object"
@@ -175,10 +176,6 @@ func (k *Kloud) CredentialAdd(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	if req.Provider == "" {
-		return nil, NewError(ErrProviderIsMissing)
-	}
-
 	if len(req.Data) == 0 {
 		return nil, NewError(ErrCredentialIsMissing)
 	}
@@ -187,44 +184,26 @@ func (k *Kloud) CredentialAdd(r *kite.Request) (interface{}, error) {
 		r.Username = req.Impersonate
 	}
 
-	p, ok := k.providers[req.Provider]
-	if !ok {
-		return nil, NewError(ErrProviderNotFound)
-	}
-
-	c := &credential.Cred{
-		Provider: req.Provider,
-		Title:    req.Title,
-		Team:     req.Team,
-	}
-
-	cred := p.NewCredential()
-	boot := p.NewBootstrap()
-
-	if boot != nil {
-		c.Data = object.Inline(cred, boot)
-	} else {
-		c.Data = cred
-	}
-
-	if err := json.Unmarshal(req.Data, c.Data); err != nil {
+	c, p, data, err := k.buildCredential(&req)
+	if err != nil {
 		return nil, err
 	}
 
-	if v, ok := cred.(Validator); ok {
-		if err := v.Valid(); err != nil {
-			return nil, err
-		}
+	cred := &credential.Cred{
+		Provider: req.Provider,
+		Title:    req.Title,
+		Team:     req.Team,
+		Data:     data,
 	}
 
-	if err := k.CredClient.SetCred(r.Username, c); err != nil {
+	if err := k.CredClient.SetCred(r.Username, cred); err != nil {
 		return nil, err
 	}
 
 	teamReq := &TeamRequest{
 		Provider:   req.Provider,
 		GroupName:  req.Team,
-		Identifier: c.Ident,
+		Identifier: cred.Ident,
 	}
 
 	kiteReq := &kite.Request{
@@ -239,21 +218,15 @@ func (k *Kloud) CredentialAdd(r *kite.Request) (interface{}, error) {
 
 	bootReq := &BootstrapRequest{
 		Provider:    req.Provider,
-		Identifiers: []string{c.Ident},
+		Identifiers: []string{cred.Ident},
 		GroupName:   req.Team,
 	}
 
 	ctx = context.WithValue(ctx, BootstrapRequestKey, bootReq)
 
-	credential := &Credential{
-		Provider:   c.Provider,
-		Title:      c.Title,
-		Identifier: c.Ident,
-		Credential: cred,
-		Bootstrap:  boot,
-	}
+	c.Identifier = cred.Ident
 
-	if err := s.VerifyCredential(credential); err != nil {
+	if err := s.VerifyCredential(c); err != nil {
 		return nil, err
 	}
 
@@ -262,7 +235,74 @@ func (k *Kloud) CredentialAdd(r *kite.Request) (interface{}, error) {
 	}
 
 	return &CredentialAddResponse{
-		Title:      c.Title,
-		Identifier: c.Ident,
+		Title:      cred.Title,
+		Identifier: cred.Ident,
 	}, nil
+}
+
+func (k *Kloud) buildCredential(req *CredentialAddRequest) (*Credential, Provider, interface{}, error) {
+	if len(req.Data) == 0 {
+		return nil, nil, nil, errors.New("stack: invalid empty credential data")
+	}
+
+	// Try to guess provider name basing on the payload. This allows for "smart"
+	// client behavior without actually implementing any provider-specific
+	// logic in on the client side.
+	if req.Provider == "" {
+		var matching []string
+
+		for name, p := range k.providers {
+			cred := p.NewBootstrap()
+
+			if err := json.Unmarshal(req.Data, cred); err != nil {
+				continue
+			}
+
+			if v, ok := cred.(Validator); ok {
+				if err := v.Valid(); err != nil {
+					matching = append(matching, name)
+				}
+			}
+		}
+
+		switch len(matching) {
+		case 0:
+			return nil, nil, nil, errors.New("stack: explicit provider name is required for this credential")
+		case 1: // ok
+		default:
+			return nil, nil, nil, fmt.Errorf("stack: explicit provider name is required for this credential; matches %v", matching)
+		}
+
+		req.Provider = matching[0]
+	}
+
+	p, ok := k.providers[req.Provider]
+	if !ok {
+		return nil, nil, nil, NewError(ErrProviderNotFound)
+	}
+
+	c := &Credential{
+		Provider:   req.Provider,
+		Title:      req.Title,
+		Credential: p.NewCredential(),
+		Bootstrap:  p.NewBootstrap(),
+	}
+
+	payload := c.Credential
+
+	if c.Bootstrap != nil {
+		payload = object.Inline(c.Credential, c.Bootstrap)
+	}
+
+	if err := json.Unmarshal(req.Data, payload); err != nil {
+		return nil, nil, nil, err
+	}
+
+	if v, ok := c.Credential.(Validator); ok {
+		if err := v.Valid(); err != nil {
+			return nil, nil, nil, err
+		}
+	}
+
+	return c, p, payload, nil
 }
