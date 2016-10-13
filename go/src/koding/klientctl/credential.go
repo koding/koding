@@ -87,7 +87,7 @@ func (c *Credentials) String() string {
 	return buf.String()
 }
 
-func (c *Credentials) Import(resp *stack.CredentialListResponse) {
+func (c *Credentials) Reset(resp *stack.CredentialListResponse) {
 	c.ByProvider = make(map[string][]*stack.CredentialItem)
 	c.ByIdent = make(map[string]*stack.CredentialItem)
 
@@ -103,6 +103,23 @@ func (c *Credentials) Import(resp *stack.CredentialListResponse) {
 			delete(c.Defaults, provider)
 		}
 	}
+}
+
+func (c *Credentials) Add(cred *stack.CredentialItem) {
+	if _, ok := c.ByIdent[cred.Identifier]; ok {
+		return
+	}
+
+	if c.ByIdent == nil {
+		c.ByIdent = make(map[string]*stack.CredentialItem)
+	}
+
+	if c.ByProvider == nil {
+		c.ByProvider = make(map[string][]*stack.CredentialItem)
+	}
+
+	c.ByProvider[cred.Provider] = append(c.ByProvider[cred.Provider], cred)
+	c.ByIdent[cred.Identifier] = cred
 }
 
 func (c *Credentials) Default() map[string]*stack.CredentialItem {
@@ -149,7 +166,7 @@ func CredentialImport(c *cli.Context, log logging.Logger, _ string) (int, error)
 		return 1, err
 	}
 
-	credentials.Import(&resp)
+	credentials.Reset(&resp)
 
 	if err := Cache().SetValue("credentials", &credentials); err != nil {
 		return 1, err
@@ -274,26 +291,23 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 		return 1, err
 	}
 
-	cred := stack.CredentialItem{
+	cred := &stack.CredentialItem{
+		Provider:   resp.Provider,
 		Identifier: resp.Identifier,
 		Title:      resp.Title,
 	}
 
-	fmt.Printf("Created %q credential with %s identifier.\n", cred.Title, cred.Identifier)
+	fmt.Printf("Created %q credential with %s identifier.\n", cred.Provider, cred.Identifier)
 
-	var creds stack.CredentialListResponse
+	var credentials Credentials
 
-	if err := Cache().GetValue("credentials", &creds); err != nil && err != storage.ErrKeyNotFound {
+	if err := Cache().GetValue("credentials", &credentials); err != nil && err != storage.ErrKeyNotFound {
 		return 1, err
 	}
 
-	if creds.Credentials == nil {
-		creds.Credentials = make(map[string][]stack.CredentialItem)
-	}
+	credentials.Add(cred)
 
-	creds.Credentials[req.Provider] = append(creds.Credentials[req.Provider], cred)
-
-	if err := Cache().SetValue("credentials", &creds); err != nil {
+	if err := Cache().SetValue("credentials", &credentials); err != nil {
 		return 1, err
 	}
 

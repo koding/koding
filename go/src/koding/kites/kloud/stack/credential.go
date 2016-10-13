@@ -98,6 +98,7 @@ type CredentialAddRequest struct {
 // CredentialAddResponse represents a response
 // value for "credential.add" kloud method.
 type CredentialAddResponse struct {
+	Provider   string `json:"provider"`
 	Title      string `json:"title"`
 	Identifier string `json:"identifier"`
 }
@@ -224,6 +225,7 @@ func (k *Kloud) CredentialAdd(r *kite.Request) (interface{}, error) {
 
 	ctx = context.WithValue(ctx, BootstrapRequestKey, bootReq)
 
+	c.Title = cred.Title
 	c.Identifier = cred.Ident
 
 	if err := s.VerifyCredential(c); err != nil {
@@ -235,6 +237,7 @@ func (k *Kloud) CredentialAdd(r *kite.Request) (interface{}, error) {
 	}
 
 	return &CredentialAddResponse{
+		Provider:   req.Provider,
 		Title:      cred.Title,
 		Identifier: cred.Ident,
 	}, nil
