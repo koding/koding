@@ -8,7 +8,7 @@ git = require 'git-rev'
 request = require 'request'
 { extend, defaults, clone } = require 'underscore'
 
-defaultEnv = argv.config or process.env.DEFAULTENV or 'default'
+defaultEnv = argv.config or process.env.DEFAULTENV or 'dev'
 
 log "-------------------------"
 log ""
@@ -105,6 +105,7 @@ rest = ->
     log "6) you can then type './run' to run Koding and see it on #{options.hostname}"
 
     (require "./deployment/socialapiconfig.coffee").create KONFIG
+    (require "./deployment/mongomigrationconfig.coffee").create KONFIG
 
   # write revision to client/.config.json
   writeVersion = (obj) ->
