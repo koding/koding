@@ -370,7 +370,7 @@ generateDev = (KONFIG, options) ->
     }
 
     function runMongoDocker () {
-        docker run -d -p 27017:27017 --name=mongo koding/mongo:2016-10-11
+        docker run -d -p 27017:27017 --name=mongo koding/mongo-auto:latest
         waitMongoReady
     }
 
