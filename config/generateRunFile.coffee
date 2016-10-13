@@ -459,6 +459,7 @@ generateDev = (KONFIG, options) ->
     function restoredefaultmongodump () {
       removeDockerByName mongo
       runMongoDocker
+      mongomigrate up
     }
 
     function restoredefaultpostgresdump () {
