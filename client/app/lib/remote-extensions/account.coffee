@@ -30,3 +30,6 @@ module.exports = class JAccount extends remote.api.JAccount
       @_combinedStorage = storage  if not err and storage
       cb? err, storage  for cb in @_storageQueue
       @_storageQueue = []
+
+
+  resetStorageCache: -> @_combinedStorage = null
