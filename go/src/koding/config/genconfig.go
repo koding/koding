@@ -54,7 +54,8 @@ func main() {
 	}
 
 	if fname == "" {
-		log.Fatal("input JSON file was not provided")
+		log.Println("JSON input file was not provided. Skipping...")
+		return
 	}
 
 	data, err := ioutil.ReadFile(fname)

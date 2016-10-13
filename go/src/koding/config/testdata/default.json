@@ -1,6 +1,5 @@
 {
   "goGenerate": {
-    "environment": "default",
     "buckets": {
       "publicLogs": {
         "name": "kodingdev-publiclogs",
@@ -16,6 +15,7 @@
       "kontrol": "https://sandbox.koding.com/kontrol/kite",
       "tunnelServer": "http://dev-t.koding.com/kite"
     },
+    "environment": "default",
     "routes": {
       "dev.koding.com": "127.0.0.1"
     }
