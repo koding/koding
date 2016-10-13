@@ -1,6 +1,7 @@
 _ = require 'lodash'
 kd = require 'kd'
 jspath = require 'jspath'
+globals = require 'globals'
 Encoder = require 'htmlencode'
 
 isMine = require 'app/util/isMine'
@@ -601,12 +602,16 @@ module.exports = class StackEditorView extends kd.View
       .add 'Verifying credentials...'
       .add 'Bootstrap check initiated for credentials...'
 
-    if not credential or credential.provider not in ['aws', 'vagrant']
+    if not credential?.provider?
       return failed '
         Required credentials are not provided yet, we are unable to test the
         stack template. Stack template content is saved and can be tested once
         required credentials are provided.
       '
+
+    _provider = globals.config.providers[credential.provider]
+    if not _provider.enabled
+      return failed 'Selected provider currently not supported.'
 
     credential.isBootstrapped (err, state) =>
 
