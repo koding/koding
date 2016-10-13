@@ -1,4 +1,14 @@
-module.exports = (options, credentials) ->
+# goGenerate module generates a JSON object which will be parsed by `go generate`
+# tool in order to create static configuration for Go programs. One can put Go's
+# template actions into provided strings. Values available:
+#
+#  {{.Group}} - will be replaced by either `production` or `development` string
+#               depending on build environment and provided environment.
+#
+#  {{.Environment}} - will be replaced by `production`, `managed`, `development`
+#                     or `devmanaged` string depending on provided environment.
+#
+module.exports = (options) ->
   environment    : options.environment
   buckets        :
     publicLogs   :

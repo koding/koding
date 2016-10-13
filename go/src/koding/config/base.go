@@ -22,8 +22,8 @@ var defaultAliases = aliases{
 
 type aliases map[string][]string
 
-// Get removes aliased environments like sandbox which is development build. If
-// provided environment is not found, this function will return defaultEnv.
+// Get removes aliased environments like sandbox which is in fact a development
+// build. If provided environment is not found, this function returns defaultEnv.
 func (a aliases) Get(env, defaultEnv string) string {
 	for e := range a {
 		if e == env {
@@ -82,7 +82,8 @@ func (g groups) Get(env string) string {
 	}
 
 	// This function always receives environments defined in defaultAliases
-	// map. It means that if we reach this panic, we made programming error.
+	// map. It means that if we reach this panic, we have made a programming
+	// error.
 	panic("unknown environment: " + env)
 }
 
@@ -135,7 +136,7 @@ func (c *Config) Clone() (*Config, error) {
 // Eg. If `managed` environment is passed, this function will recognize that
 // managed environment is for production builds. It will check if configuration
 // was build for production environments and return valid environment name. In
-// provided example it will be `production` string.
+// example above it will be `production` string.
 func (c *Config) GetEnvironment(env string) string {
 	env = defaultAliases.Get(env, c.Environment)
 
@@ -154,9 +155,11 @@ func (c *Config) log() logging.Logger {
 	return c.Log
 }
 
-// GetBucket returns compiled template to bucket object with provided
-// environment. Type name defines compiled configuration variable key.
-// Key prefix is either `buckets.` for Buckets or `endpoints.` for endpoints.
+// GetBucket returns a bucket object generated from compiled template.
+//
+// `typeName` defines compiled configuration variable key.
+//
+// Key prefix is either `buckets.` for Buckets.
 func (c *Config) GetBucket(typeName, env string) (*Bucket, error) {
 	tmpl, ok := c.tmpls[typeName]
 	if !ok {
@@ -190,9 +193,11 @@ func (c *Config) SetBucket(typeName string, b *Bucket) error {
 	return nil
 }
 
-// GetEndpoint returns compiled template to string object with provided
-// environment. Type name defines compiled configuration variable key.
-// Key prefix is either `buckets.` for Buckets or `endpoints.` for endpoints.
+// GetEndpoint returns a URL string generated from compiled template.
+//
+// `typeName` defines compiled configuration variable key.
+//
+// Key prefix is `endpoints.` for endpoints.
 func (c *Config) GetEndpoint(typeName, env string) (string, error) {
 	tmpl, ok := c.tmpls[typeName]
 	if !ok {

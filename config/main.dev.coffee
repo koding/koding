@@ -87,7 +87,7 @@ Configuration = (options = {}) ->
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
     # Generate static variables for Go.
-  KONFIG.goGenerate = require('./goGenerate')(options, credentials)
+  KONFIG.goGenerate = require('./goGenerate')(options)
 
   options.requirementCommands = [
     "$KONFIG_PROJECTROOT/scripts/generate-kite-keys.sh"
