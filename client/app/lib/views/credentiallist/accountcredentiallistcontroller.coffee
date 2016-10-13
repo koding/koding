@@ -301,6 +301,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
       then @addItem(credential).verifyCredential()
       else
         @addItem credential
+        @loadItems()
 
       computeController.emit 'CredentialAdded', credential
 
