@@ -192,6 +192,7 @@ generateDev = (KONFIG, options) ->
       echo "  run printconfig           : to print koding config environment variables (output in json via --json flag)"
       echo "  run worker [worker]       : to run a single worker"
       echo "  run migrate [command]     : to apply/revert database changes (command: [create|up|down|version|reset|redo|to|goto])"
+      echo "  run mongomigrate [command]: to apply/revert mongo database changes (command: [create|up|down])"
       echo "  run importusers           : to import koding user data"
       echo "  run nodeservertests       : to run tests for node.js web server"
       echo "  run socialworkertests     : to run tests for social worker"
@@ -243,7 +244,40 @@ generateDev = (KONFIG, options) ->
       if [ "$param" == "create" ]; then
         echo "Please edit created script files and add them to your repository."
       fi
+    }
 
+    function mongomigrate () {
+      params=(create up down)
+      param=$1
+      echo $1
+      case "${params[@]}" in  *"$param"*)
+        ;;
+      *)
+        echo "Error: Command not found: $param"
+        echo "Usage: run migrate COMMAND [arg]"
+        echo ""
+        echo "Commands:  "
+        echo "  create [filename] : create new migration file under ./workers/migrations (ids will increase by 5)"
+        echo "  up                : apply all available migrations"
+        echo "  down [id]         : roll back to id (if not given roll back all migrations)"
+
+        echo ""
+        exit 1
+      ;;
+      esac
+
+      if [ "$param" == "create" ] && [ -z "$2" ]; then
+        echo "Please choose a migration file name. (ex. add_super_user)"
+        echo "Usage: ./run mongomigrate create [filename]"
+        echo ""
+        exit 1
+      fi
+
+      node $KONFIG_PROJECTROOT/node_modules/mongodb-migrate -runmm --config ../deployment/generated_files/mongomigration.json --dbPropName conn -c $KONFIG_PROJECTROOT/workers $1 $2
+
+      if [ "$param" == "create" ]; then
+        echo "Please edit created script files and add them to your repository."
+      fi
     }
 
     function check (){
@@ -572,6 +606,9 @@ generateDev = (KONFIG, options) ->
 
     elif [ "$1" == "is_pgready" ]; then
       waitPostgresReady
+
+    elif [ "$1" == "mongomigrate" ]; then
+      mongomigrate $2 $3
 
     else
       echo "Unknown command: $1"
