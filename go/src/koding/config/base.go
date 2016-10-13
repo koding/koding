@@ -70,8 +70,25 @@ func (g groups) SameGroup(enva, envb string) bool {
 	return idxa == idxb
 }
 
+// Get gets group name. This function converts managed environments to its
+// compile time counterparts.
+func (g groups) Get(env string) string {
+	for i := range g {
+		for j := range g[i] {
+			if g[i][j] == env {
+				return g[i][0]
+			}
+		}
+	}
+
+	// This function always receives environments defined in defaultAliases
+	// map. It means that if we reach this panic, we made programming error.
+	panic("unknown environment: " + env)
+}
+
 type params struct {
 	Environment string `json:"environment"`
+	Group       string `json:"group"`
 }
 
 // Bucket represents a S3 storage bucket. It stores bucket name and the physical
@@ -148,7 +165,7 @@ func (c *Config) GetBucket(typeName, env string) (*Bucket, error) {
 	}
 
 	buf := &bytes.Buffer{}
-	if err := tmpl.Execute(buf, params{Environment: env}); err != nil {
+	if err := tmpl.Execute(buf, params{Environment: env, Group: defaultGroups.Get(env)}); err != nil {
 		return nil, err
 	}
 
@@ -184,7 +201,7 @@ func (c *Config) GetEndpoint(typeName, env string) (string, error) {
 	}
 
 	buf := &bytes.Buffer{}
-	if err := tmpl.Execute(buf, params{Environment: env}); err != nil {
+	if err := tmpl.Execute(buf, params{Environment: env, Group: defaultGroups.Get(env)}); err != nil {
 		return "", err
 	}
 

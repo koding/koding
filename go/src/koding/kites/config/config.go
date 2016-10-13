@@ -17,13 +17,13 @@ var DefaultConfig = &Config{
 
 	tmpls: map[string]*template.Template{
 		`buckets.publicLogs`:     template.Must(template.New(`buckets.publicLogs`).Parse(`{"name":"kodingdev-publiclogs","region":"us-east-1"}`)),
-		`endpoints.ip`:           template.Must(template.New(`endpoints.ip`).Parse(`"https://dev-p2.koding.com/-/ip"`)),
-		`endpoints.ipCheck`:      template.Must(template.New(`endpoints.ipCheck`).Parse(`"https://dev-p2.koding.com/-/ipcheck"`)),
-		`endpoints.kdLatest`:     template.Must(template.New(`endpoints.kdLatest`).Parse(`"https://koding-kd.s3.amazonaws.com/development/latest-version.txt"`)),
+		`endpoints.ip`:           template.Must(template.New(`endpoints.ip`).Parse(`"https://p.koding.com/-/ip"`)),
+		`endpoints.ipCheck`:      template.Must(template.New(`endpoints.ipCheck`).Parse(`"https://p.koding.com/-/ipcheck"`)),
+		`endpoints.kdLatest`:     template.Must(template.New(`endpoints.kdLatest`).Parse(`"https://koding-kd.s3.amazonaws.com/production/latest-version.txt"`)),
 		`endpoints.klientLatest`: template.Must(template.New(`endpoints.klientLatest`).Parse(`"https://koding-klient.s3.amazonaws.com/{{.Environment}}/latest-version.txt"`)),
-		`endpoints.kloud`:        template.Must(template.New(`endpoints.kloud`).Parse(`"https://sandbox.koding.com/kloud/kite"`)),
-		`endpoints.kontrol`:      template.Must(template.New(`endpoints.kontrol`).Parse(`"https://sandbox.koding.com/kontrol/kite"`)),
-		`endpoints.tunnelServer`: template.Must(template.New(`endpoints.tunnelServer`).Parse(`"http://dev-t.koding.com/kite"`)),
+		`endpoints.kloud`:        template.Must(template.New(`endpoints.kloud`).Parse(`"https://koding.com/kloud/kite"`)),
+		`endpoints.kontrol`:      template.Must(template.New(`endpoints.kontrol`).Parse(`"https://koding.com/kontrol/kite"`)),
+		`endpoints.tunnelServer`: template.Must(template.New(`endpoints.tunnelServer`).Parse(`"http://t.koding.com/kite"`)),
 	},
 }
 

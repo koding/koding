@@ -45,6 +45,8 @@ Configuration = (options = {}) ->
   options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
   options.credentialPath or= "$KONFIG_PROJECTROOT/config/credentials.#{options.environment}.coffee"
   options.clientUploadS3BucketName or= 'kodingdev-client'
+  options.publicLogsS3BucketName or= 'kodingdev-publiclogs'
+  options.proxySubdomain or= 'dev-p2'
 
   _port = if options.publicPort is '80' then '' else ":#{options.publicPort}"
   options.host or= "#{options.hostname}#{_port}"
@@ -85,6 +87,9 @@ Configuration = (options = {}) ->
     delete KONFIG.workers[worker]
 
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
+
+  # Generate static variables for Go.
+  KONFIG.goGenerate = require('./goGenerate')(options, credentials)
 
   # Disable Sneaker for kloud.
   KONFIG.kloud.credentialEndPoint = ''

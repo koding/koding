@@ -45,6 +45,8 @@ Configuration = (options = {}) ->
   options.vaultPath or= path.join __dirname, "../vault/" # use same directory with our application
   options.credentialPath or= path.join options.vaultPath, "./config/credentials.#{options.environment}.coffee"
   options.clientUploadS3BucketName = 'kodingdev-client'
+  options.publicLogsS3BucketName or= 'kodingdev-publiclogs'
+  options.proxySubdomain or= 'dev-p2'
 
 
   try fs.lstatSync options.credentialPath
@@ -122,6 +124,9 @@ Configuration = (options = {}) ->
 
 
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
+
+    # Generate static variables for Go.
+  KONFIG.goGenerate = require('./goGenerate')(options, credentials)
 
   KONFIG.supervisord =
     logdir  : '/var/log/koding'

@@ -63,7 +63,7 @@ func TestGetEnvironment(t *testing.T) {
 func TestGetBucket(t *testing.T) {
 	var testTmpls = map[string]*template.Template{
 		`buckets.A`:    template.Must(template.New(`buckets.A`).Parse(`{"name":"bucket","region":"reg"}`)),
-		`buckets.Tmpl`: template.Must(template.New(`buckets.Tmpl`).Parse(`{"name":"test-{{.Environment}}","region":"reg"}`)),
+		`buckets.Tmpl`: template.Must(template.New(`buckets.Tmpl`).Parse(`{"name":"test-{{.Environment}}","region":"reg-{{.Group}}"}`)),
 		`invalid.Tmpl`: template.Must(template.New(`invalid.Tmpl`).Parse(`{"name":"{{.Missing}}","region":"reg"}`)),
 		`invalid.Json`: template.Must(template.New(`invalid.Json`).Parse(`{"name":bucket,"region":"reg"}`)),
 	}
@@ -91,7 +91,7 @@ func TestGetBucket(t *testing.T) {
 			Valid:    true,
 			Expected: &Bucket{
 				Name:   "test-production",
-				Region: "reg",
+				Region: "reg-production",
 			},
 		},
 		{
@@ -101,7 +101,7 @@ func TestGetBucket(t *testing.T) {
 			Valid:    true,
 			Expected: &Bucket{
 				Name:   "test-managed",
-				Region: "reg",
+				Region: "reg-production",
 			},
 		},
 		{
@@ -111,7 +111,7 @@ func TestGetBucket(t *testing.T) {
 			Valid:    true,
 			Expected: &Bucket{
 				Name:   "test-development",
-				Region: "reg",
+				Region: "reg-development",
 			},
 		},
 		{
@@ -121,7 +121,7 @@ func TestGetBucket(t *testing.T) {
 			Valid:    true,
 			Expected: &Bucket{
 				Name:   "test-devmanaged",
-				Region: "reg",
+				Region: "reg-development",
 			},
 		},
 		{
@@ -159,7 +159,7 @@ func TestGetBucket(t *testing.T) {
 func TestGetEndpoint(t *testing.T) {
 	var testTmpls = map[string]*template.Template{
 		`endpoints.A`:    template.Must(template.New(`endpoints.A`).Parse(`"endpoint"`)),
-		`endpoints.Tmpl`: template.Must(template.New(`endpoints.Tmpl`).Parse(`"test-{{.Environment}}"`)),
+		`endpoints.Tmpl`: template.Must(template.New(`endpoints.Tmpl`).Parse(`"test-{{.Environment}}-{{.Group}}"`)),
 		`invalid.Tmpl`:   template.Must(template.New(`invalid.Tmpl`).Parse(`{"name":"{{.Missing}}","region":"reg"}`)),
 		`invalid.Json`:   template.Must(template.New(`invalid.Json`).Parse(`{"name":bucket,"region":"reg"}`)),
 	}
@@ -182,28 +182,28 @@ func TestGetEndpoint(t *testing.T) {
 			TypeName: "endpoints.Tmpl",
 			ProvEnv:  "production",
 			Valid:    true,
-			Expected: "test-production",
+			Expected: "test-production-production",
 		},
 		{
 			// 2 //
 			TypeName: "endpoints.Tmpl",
 			ProvEnv:  "managed",
 			Valid:    true,
-			Expected: "test-managed",
+			Expected: "test-managed-production",
 		},
 		{
 			// 3 //
 			TypeName: "endpoints.Tmpl",
 			ProvEnv:  "development",
 			Valid:    true,
-			Expected: "test-development",
+			Expected: "test-development-development",
 		},
 		{
 			// 4 //
 			TypeName: "endpoints.Tmpl",
 			ProvEnv:  "devmanaged",
 			Valid:    true,
-			Expected: "test-devmanaged",
+			Expected: "test-devmanaged-development",
 		},
 		{
 			// 5 //

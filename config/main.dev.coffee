@@ -46,6 +46,8 @@ Configuration = (options = {}) ->
   options.vaultPath or= path.join __dirname, "../vault/" # use same directory with our application
   options.credentialPath or= path.join options.vaultPath, "./config/credentials.#{options.config}.coffee"
   options.clientUploadS3BucketName = 'kodingdev-client'
+  options.publicLogsS3BucketName or= 'kodingdev-publiclogs'
+  options.proxySubdomain or= 'dev-p2'
 
   try fs.lstatSync options.credentialPath
   catch
@@ -83,6 +85,9 @@ Configuration = (options = {}) ->
   KONFIG = require('./generateKonfig')(options, credentials)
   KONFIG.workers = require('./workers')(KONFIG, options, credentials)
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
+
+    # Generate static variables for Go.
+  KONFIG.goGenerate = require('./goGenerate')(options, credentials)
 
   options.requirementCommands = [
     "$KONFIG_PROJECTROOT/scripts/generate-kite-keys.sh"
