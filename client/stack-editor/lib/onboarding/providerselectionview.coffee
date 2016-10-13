@@ -1,5 +1,5 @@
-kd      = require 'kd'
-JView   = require 'app/jview'
+kd = require 'kd'
+JView = require 'app/jview'
 globals = require 'globals'
 Tracker = require 'app/util/tracker'
 checkFlag = require 'app/util/checkFlag'
@@ -15,6 +15,7 @@ module.exports = class ProviderSelectionView extends JView
 
     @createProviders()
 
+
   createProviders: ->
 
     { providers } = globals.config
@@ -22,43 +23,32 @@ module.exports = class ProviderSelectionView extends JView
     supportedProviders = (Object.keys providers).filter (p) ->
       return p  if providers[p].supported
 
-    @providers = new kd.CustomHTMLView { cssClass: 'providers box-wrapper clearfix' }
+    @providers = new kd.CustomHTMLView
+      cssClass: 'providers box-wrapper clearfix'
 
     supportedProviders.forEach (provider) =>
 
+      _provider  = providers[provider]
       extraClass = 'coming-soon'
-      label      = 'Coming Soon'
-      beta       = ''
-      betaLabel  = ''
-
-      _provider = providers[provider]
 
       if _provider.enabled
-        extraClass = ''
-        label      = ''
-
-        if _provider.enabled is 'beta'
-          beta       = 'beta'
-          betaLabel  = 'BETA'
+        extraClass = if _provider.enabled is 'beta'
+        then 'beta'
+        else ''
 
       @providers.addSubView providerView = new kd.CustomHTMLView
-        cssClass : "provider box #{extraClass} #{provider}"
+        cssClass : "provider box #{provider} #{extraClass}"
         provider : provider
-        partial  : """
-          <img class="#{provider}" src="/a/images/providers/stacks/#{provider}.png" />
-          <div class="label">#{label}</div>
-          <div class="#{beta}">#{betaLabel}</div>
-        """
-        click: =>
-          return if extraClass is 'coming-soon'
+        click    : =>
+          return  if extraClass is 'coming-soon'
 
           Tracker.track Tracker["STACKS_WIZARD_SELECTED_#{provider.toUpperCase()}"]
 
           providerView.setClass 'selected'
           @selected?.unsetClass 'selected'
+
           @selected = if @selected is providerView then null else providerView
           @emit 'SelectedProviderChanged', @selected
-          @emit 'HiliteTemplate', 'all'
 
 
   pistachio: ->

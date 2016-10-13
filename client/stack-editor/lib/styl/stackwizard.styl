@@ -183,28 +183,20 @@ $accentColor                = #F2778A
 
   .box
     size                    256px, 112px
+    width                   256px !important
+    height                  112px !important
     rounded                 4px
     border                  1px solid #E7E7E7
     background              #fff
+    background-position     center
+    background-repeat       no-repeat
     borderBox()
-    fl()
     pointer()
-
-    img
-      margin-top            23px
+    fl()
 
     &:nth-child(2n -1)
       margin-right          11px
 
-    .label
-      font-size             16px
-      text-align            center
-      font-weight           300
-      margin-top            13px
-
-  .services
-    .box
-      size                  227px, 95px
     &.aws
       r-sprite              'stack-editor' 'aws'
     &.digitalocean
@@ -220,30 +212,24 @@ $accentColor                = #F2778A
     &.softlayer
       r-sprite              'stack-editor' 'softlayer'
 
+  .beta:before
+  .coming-soon:before
+    content                 'BETA'
+    font-size               10px
+    background              #A8CEFD
+    color                   white
+    line-height             18px
+    height                  19px
+    padding                 0 10px
+    abs                     10px, 0px
 
   .coming-soon
     cursor                  not-allowed
-    background              transparent
+    opacity                 .4
 
-    img
-      opacity               .4
-
-    .label
-      color                 #ddd
-      font-weight           300
-      font-size             12px
-
-  .beta
-    color                   white
-    background              #A8CEFD
-    height                  18px
-    width                   42px
-    position                absolute
-    font-size               10px
-    line-height             1.8
-    left                    213px
-    top                     10px
-    letter-spacing          0.7px
+  .coming-soon:before
+    content                 'Coming soon'
+    background              #a9a6a6
 
   .box.selected
     shadow                  0 0 0 3px $accentColor
