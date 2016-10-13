@@ -1,6 +1,7 @@
 package credential
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -22,21 +23,19 @@ type mongoStore struct {
 var _ Store = (*mongoStore)(nil)
 
 func (db *mongoStore) Fetch(_ string, creds map[string]interface{}) error {
-	idents := make([]string, 0, len(creds))
-	for ident := range creds {
-		idents = append(idents, ident)
-	}
+	idents := toIdents(creds)
 
 	datas, err := modelhelper.GetCredentialDatasFromIdentifiers(idents...)
 	if err == mgo.ErrNotFound {
 		return &NotFoundError{
-			Identifiers: toIdents(creds),
+			Identifiers: idents,
+			Err:         err,
 		}
 	}
 
 	if err != nil {
 		return &NotFoundError{
-			Identifiers: toIdents(creds),
+			Identifiers: idents,
 			Err:         err,
 		}
 	}
@@ -50,18 +49,37 @@ func (db *mongoStore) Fetch(_ string, creds map[string]interface{}) error {
 	for ident, v := range creds {
 		data, ok := m[ident]
 		if !ok {
+			db.Log.Debug("%s: not found in results", ident)
+
 			missing = append(missing, ident)
 			continue
 		}
 
 		if v != nil {
-			if e := db.objectBuilder().Decode(data.Meta, v); e != nil {
+			// The mapstructure package does not allow custom decoding
+			// and when v is *object.Inliner it will fail with:
+			//
+			//   &mapstructure.Error{Errors:[]string{"InlineFirst: unsupported type: interface", "InlineSecond: unsupported type: interface"}}
+			//
+			p, e := json.Marshal(data.Meta)
+			if e != nil {
+				db.Log.Debug("%s: marshal failed with: %s (%#v)", ident, data.Meta, e)
+
+				missing = append(missing, ident)
+				continue
+			}
+
+			if e := json.Unmarshal(p, v); e != nil {
+				db.Log.Debug("%s: decode failed with: %s (%s)", ident, p, e)
+
 				missing = append(missing, ident)
 				continue
 			}
 
 			if validator, ok := v.(validator); ok {
 				if err := validator.Valid(); err != nil {
+					db.Log.Warning("%s: validation failed: %s", ident, err)
+
 					missing = append(missing, ident)
 					continue
 				}
