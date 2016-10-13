@@ -8,7 +8,7 @@ git = require 'git-rev'
 request = require 'request'
 { extend, defaults, clone } = require 'underscore'
 
-defaultEnv = argv.config or process.env.DEFAULTENV or 'dev'
+defaultEnv = argv.config or process.env.DEFAULTENV or 'default'
 
 log "-------------------------"
 log ""
