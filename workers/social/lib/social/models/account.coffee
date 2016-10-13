@@ -413,7 +413,7 @@ module.exports = class JAccount extends jraphical.Module
     if @type is 'unregistered'
       return callback null, -1
 
-    return callback null, @socialApiId  if @socialApiId
+    return callback null, @socialApiId  if @socialApiId? and @socialApiId > 0
     { createAccount } = require './socialapi/requests'
     createAccount { id: @getId(), nickname: @profile.nickname }, (err, account) =>
       return callback new ApiError err  if err
