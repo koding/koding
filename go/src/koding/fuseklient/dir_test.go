@@ -51,7 +51,7 @@ func TestDir(t *testing.T) {
 
 		Convey("It should return error if offset is greater than length of contents", func() {
 			d := newDir()
-			d.Entries = []*fuseutil.Dirent{&fuseutil.Dirent{}}
+			d.Entries = []*fuseutil.Dirent{{}}
 
 			_, err := d.ReadEntries(2)
 			So(err, ShouldEqual, fuse.EIO)
@@ -345,7 +345,7 @@ func TestDir(t *testing.T) {
 			c := newDir()
 			f := NewFile(NewEntry(c, "file"))
 			c.EntriesList = map[string]Node{"file": f}
-			c.Entries = []*fuseutil.Dirent{&fuseutil.Dirent{}}
+			c.Entries = []*fuseutil.Dirent{{}}
 
 			// create directory to hold to be moved directory
 			d := newDir()
@@ -717,7 +717,7 @@ func newFakeTransport() *fakeTransport {
 			},
 			"fs.readDirectory": transport.ReadDirRes{
 				Files: []*transport.GetInfoRes{
-					&transport.GetInfoRes{
+					{
 						Exists:   true,
 						FullPath: "/remote/folder",
 						IsDir:    true,
@@ -725,7 +725,7 @@ func newFakeTransport() *fakeTransport {
 						Name:     "folder",
 						Size:     1,
 					},
-					&transport.GetInfoRes{
+					{
 						Exists:   true,
 						FullPath: "/remote/file",
 						IsDir:    false,

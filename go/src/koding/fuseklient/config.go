@@ -9,20 +9,20 @@ type Config struct {
 	MountName string `default:"fuseklient"`
 
 	// Trace determines if trace logs are turned on.
-	Trace bool `default:false`
+	Trace bool `default:"false"`
 
 	// NoIgnore determines whether to ignore default or user specified folders.
 	// Use this to turn off default ignoring of folders.
-	NoIgnore bool `default:false`
+	NoIgnore bool `default:"false"`
 
 	// NoPrefetchMeta determines if we should fetch metadata on mount time. This
 	// makes mounts slightly slower, however it speeds up regular read directory
 	// a LOT. It fetches metadata recursively directories, but not contents of
 	// the files.
-	NoPrefetchMeta bool `default:false`
+	NoPrefetchMeta bool `default:"false"`
 
 	// NoWatch determines if we should watch for remote file changes and send
 	// them to local. Without this any changes that happen on remote won't be
 	// visible after mount.
-	NoWatch bool `default:false`
+	NoWatch bool `default:"false"`
 }

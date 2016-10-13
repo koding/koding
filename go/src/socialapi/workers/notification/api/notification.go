@@ -10,7 +10,6 @@ import (
 	apimodels "socialapi/models"
 	"socialapi/workers/common/response"
 	"socialapi/workers/notification/models"
-
 	// "github.com/koding/bongo"
 )
 

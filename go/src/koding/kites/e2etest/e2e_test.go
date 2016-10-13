@@ -63,8 +63,8 @@ type Config struct {
 	// Cleanup resources after tests.
 	CleanRoute53 []string
 
-	pemPrivate string `json:"-"`
-	pemPublic  string `json:"-"`
+	pemPrivate string
+	pemPublic  string
 }
 
 func (cfg *Config) String() string {

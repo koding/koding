@@ -67,7 +67,7 @@ func TestMain(m *testing.M) {
 	remote = remoteKite.NewClient(kiteURL.String())
 	err := remote.Dial()
 	if err != nil {
-		log.Fatal("err")
+		log.Fatalf("err")
 	}
 	defer remoteKite.Close()
 
@@ -76,7 +76,7 @@ func TestMain(m *testing.M) {
 	remote2 = remoteKite2.NewClient(kiteURL.String())
 	err = remote2.Dial()
 	if err != nil {
-		log.Fatal("err")
+		log.Fatalf("err")
 	}
 	defer remoteKite2.Close()
 
