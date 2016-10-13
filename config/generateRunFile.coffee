@@ -356,8 +356,22 @@ generateDev = (KONFIG, options) ->
         done
     }
 
+    function waitMongoReady() {
+        retries=60
+        while ! mongo $KONFIG_MONGO --eval "db.stats()" > /dev/null 2>&1; do
+          sleep 1
+          let retries--
+          if [ $retries == 0 ]; then
+            echo "time out while waiting for mongo is ready"
+            exit 1
+          fi
+          echo "mongo is not reachable, trying again "
+        done
+    }
+
     function runMongoDocker () {
         docker run -d -p 27017:27017 --name=mongo koding/mongo:2016-10-11
+        waitMongoReady
     }
 
     function runPostgresqlDocker () {
@@ -606,6 +620,9 @@ generateDev = (KONFIG, options) ->
 
     elif [ "$1" == "is_pgready" ]; then
       waitPostgresReady
+
+    elif [ "$1" == "is_mongoready" ]; then
+      waitMongoReady
 
     elif [ "$1" == "mongomigrate" ]; then
       mongomigrate $2 $3
