@@ -530,17 +530,25 @@ func main() {
 					Action: ctlcli.ExitErrAction(StackCreate, log, "create"),
 					Flags: []cli.Flag{
 						cli.StringFlag{
+							Name:  "provider, p",
+							Usage: "Specify credential provider.",
+						},
+						cli.StringFlag{
 							Name:  "file, f",
-							Value: "-",
-							Usage: "Read credential from a file.",
+							Value: "",
+							Usage: "Read stack template from a file.",
 						},
 						cli.StringFlag{
 							Name:  "team, t",
-							Usage: "Specify team which the credential belongs to.",
+							Usage: "Specify team where the stack should be created.",
 						},
 						cli.StringFlag{
 							Name:  "title",
 							Usage: "Title to use instead of a generated one.",
+						},
+						cli.StringFlag{
+							Name:  "credential, c",
+							Usage: "Stack credential to use instead of default one.",
 						},
 						cli.BoolFlag{
 							Name:   "debug",
