@@ -208,3 +208,10 @@ func (c *Config) SetEndpoint(typeName, e string) error {
 func (c *Config) Route(host string) string {
 	return c.Host2ip[host]
 }
+
+// Route maps host names to IP addresses.
+//
+// Route is a wrapper around DefaultConfig.Route.
+func Route(host string) string {
+	return DefaultConfig.Route(host)
+}

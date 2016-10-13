@@ -30,7 +30,7 @@ var (
 // TunnelKiteURLFromEnv gives tunnel server kite URL base on the given
 // environment.
 func TunnelKiteURLFromEnv(env string) string {
-	return cfg.Builtin.Endpoints.URL("tunnelserver", env)
+	return cfg.MustTunnelServerURL(env)
 }
 
 // ClientOptions are used to alternate behavior of
