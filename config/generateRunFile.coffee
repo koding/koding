@@ -55,6 +55,10 @@ generateDev = (KONFIG, options) ->
       exit 1
     fi
 
+    function is_ready () {
+      exit 0
+    }
+
     mkdir $KONFIG_PROJECTROOT/.logs &>/dev/null
 
     SERVICES="mongo redis postgres rabbitmq imply"
@@ -439,6 +443,9 @@ generateDev = (KONFIG, options) ->
     if [ "$#" == "0" ]; then
       checkrunfile
       run $1
+
+    elif [ "$1" == "is_ready" ]; then
+      is_ready
 
     elif [ "$1" == "docker-compose" ]; then
       shift

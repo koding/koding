@@ -50,14 +50,6 @@ You are now ready to run Koding.
 git clone https://github.com/koding/koding.git
 cd koding
 docker-compose up
-
-# open a NEW TERMINAL TAB and run the client watcher
-docker-compose exec backend make -C /opt/koding/client
-
-# if you need to change anything under client/landing
-# open a new terminal tab and execute:
-docker-compose exec backend make -C /opt/koding/client/landing dev
-
 ```
 If you don't have a powerful computer, this may take a while at first, slow computers may take up to 15 minutes before they build the entire system. Please be patient. Once it is up and running, everything will be smooth and very fast.
 
@@ -68,12 +60,6 @@ When you edit files on your host computer, they will be visible in the
 runtime environment. Watchers will automatically restart backend workers, re-compile frontend code. You don't need to do anything for it.
 
 ### Tips
-
-`docker-compose up` will build koding working tree every time. This may be time consuming to do each time, if you just want to run backend services without client-rebuild then you can use the following command.
-
-```bash
-docker-compose run --service-ports backend
-```
 
 If you need to execute some commands in runtime
 environment, here is how you can start a shell in
