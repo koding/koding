@@ -59,7 +59,7 @@ func TestPingPong(t *testing.T) {
 
 	type testCase struct{ send, expect string }
 	cases := []testCase{
-		testCase{`{"action": "ping"}`, `{"routingKey":"broker.pong","payload":null}`},
+		{`{"action": "ping"}`, `{"routingKey":"broker.pong","payload":null}`},
 	}
 
 	for _, tc := range cases {
@@ -368,8 +368,6 @@ func (c *sockJSClient) SendAndExpect(sent []byte, expected []byte) error {
 			return nil
 		}
 	}
-
-	return nil
 }
 
 func RandomStringLength(length int) string {

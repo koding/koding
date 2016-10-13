@@ -272,7 +272,7 @@ func (c *Controller) goWithRetry(f func() error, errChan chan error, wg *sync.Wa
 		defer ticker.Stop()
 
 		var err error
-		for _ = range ticker.C {
+		for range ticker.C {
 			if err = f(); err != nil {
 				c.log.Error("err while operating: %s  will retry...", err.Error())
 				continue

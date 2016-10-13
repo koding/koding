@@ -24,11 +24,11 @@ var defaultLog = logging.NewCustom("stackplan", false)
 
 // credPermissions defines the permission grid for the given method
 var credPermissions = map[string][]string{
-	"bootstrap":    []string{"owner"},
-	"plan":         []string{"user", "owner"},
-	"apply":        []string{"user", "owner"},
-	"authenticate": []string{"user", "owner"},
-	"migrate":      []string{"owner"},
+	"bootstrap":    {"owner"},
+	"plan":         {"user", "owner"},
+	"apply":        {"user", "owner"},
+	"authenticate": {"user", "owner"},
+	"migrate":      {"owner"},
 }
 
 // DialState describes state of a single dial.

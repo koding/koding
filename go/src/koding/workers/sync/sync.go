@@ -3,19 +3,20 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/siesta/neo4j"
-	"github.com/streadway/amqp"
 	"io/ioutil"
 	oldNeo "koding/databases/neo4j"
 	"koding/db/mongodb"
 	"koding/tools/amqputil"
 	"koding/tools/config"
 	"koding/tools/logger"
-	"gopkg.in/mgo.v2"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/siesta/neo4j"
+	"github.com/streadway/amqp"
+	"gopkg.in/mgo.v2"
 )
 
 var log = logger.New("sync")
@@ -38,7 +39,7 @@ func main() {
 
 	err := mongodb.Run("relationships", createQuery(amqpChannel))
 	if err != nil {
-		log.Fatal("Connecting to Mongo: %v", err)
+		log.Fatalf("Connecting to Mongo: %v", err)
 	}
 }
 

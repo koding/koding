@@ -167,7 +167,7 @@ func (cc *ChannelMessageContainer) AddReplies(query *request.Query) *ChannelMess
 
 func (c *ChannelMessageContainer) UpdateReplies(q *request.Query) *ChannelMessageContainer {
 	if len(c.Replies) > 0 {
-		for i, _ := range c.Replies {
+		for i := range c.Replies {
 			if err := c.Replies[i].Fetch(c.Replies[i].GetId(), q); err != nil {
 				c.Replies[i].Err = err
 			}
@@ -259,7 +259,7 @@ func NewChannelMessageContainers() *ChannelMessageContainers {
 }
 
 func (ccs *ChannelMessageContainers) PopulateWith(cms []ChannelMessage, query *request.Query) *ChannelMessageContainers {
-	for i, _ := range cms {
+	for i := range cms {
 		cmc := NewChannelMessageContainer()
 		cmc.PopulateWith(&cms[i])
 		cmc.SetGenerics(query)

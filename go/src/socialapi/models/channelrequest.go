@@ -443,7 +443,7 @@ func formatParticipantIds(participantIds []int64) string {
 	pids := make([]string, len(participantIds)-1)
 
 	// exclude first participant since it is the private channel owner
-	for i, participantId := range participantIds[1:len(participantIds)] {
+	for i, participantId := range participantIds[1:] {
 		accountId := strconv.FormatInt(participantId, 10)
 		pids[i] = accountId
 	}

@@ -336,11 +336,11 @@ func TestPublish(t *testing.T) {
 	// Should call onPublish callbacks
 	callbackCount := 0
 	ps.Subscriptions["test"] = map[int]dnode.Function{
-		0: dnode.Function{mockCaller(func(v ...interface{}) error {
+		0: {mockCaller(func(v ...interface{}) error {
 			callbackCount += 1
 			return nil
 		})},
-		1: dnode.Function{mockCaller(func(v ...interface{}) error {
+		1: {mockCaller(func(v ...interface{}) error {
 			callbackCount += 2
 			return nil
 		})},
@@ -364,7 +364,7 @@ func TestPublish(t *testing.T) {
 	var b []byte
 	updatedC := make(chan struct{}, 1)
 	ps.Subscriptions["other"] = map[int]dnode.Function{
-		0: dnode.Function{mockCaller(func(v ...interface{}) error {
+		0: {mockCaller(func(v ...interface{}) error {
 			b = v[0].([]interface{})[0].(*dnode.Partial).Raw
 			select {
 			case updatedC <- struct{}{}:

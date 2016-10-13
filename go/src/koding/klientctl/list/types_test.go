@@ -17,7 +17,7 @@ func newKiteInfo(vmName string, status machine.MachineStatus) KiteInfo {
 	}}
 
 	if status == machine.MachineConnected || status == machine.MachineDisconnected {
-		info.Mounts = []restypes.ListMountInfo{restypes.ListMountInfo{}}
+		info.Mounts = []restypes.ListMountInfo{{}}
 	}
 
 	return info

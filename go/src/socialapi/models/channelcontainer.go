@@ -285,7 +285,7 @@ func (c *ChannelContainers) PopulateWith(channelList []Channel, accountId int64)
 
 	var onChannel = make(chan *PopularChannelContainerResp, channelListLen)
 
-	for i, _ := range channelList {
+	for i := range channelList {
 		wg.Add(1)
 
 		go func(i int) {
@@ -318,7 +318,7 @@ func (c *ChannelContainers) PopulateWith(channelList []Channel, accountId int64)
 }
 
 func (c *ChannelContainers) Fetch(channelList []Channel, query *request.Query) error {
-	for i, _ := range channelList {
+	for i := range channelList {
 		cc := NewChannelContainer()
 		if err := cc.Fetch(channelList[i].GetId(), query); err != nil {
 			cc.Err = err

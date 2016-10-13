@@ -64,7 +64,7 @@ func TestFilterResult(t *testing.T) {
 			},
 			groups: []*models.Group{activeGroup1, activeGroup2},
 			kitesByGroupID: map[string][]*KodingKiteWithToken{
-				activeGroup1.Id.Hex(): []*KodingKiteWithToken{kite1, kite2},
+				activeGroup1.Id.Hex(): {kite1, kite2},
 			},
 			response: &GetKodingKitesResult{
 				Kites: []*KodingKiteWithToken{kite1, kite2},
@@ -77,8 +77,8 @@ func TestFilterResult(t *testing.T) {
 			},
 			groups: []*models.Group{activeGroup1, pastDueGroup},
 			kitesByGroupID: map[string][]*KodingKiteWithToken{
-				activeGroup1.Id.Hex(): []*KodingKiteWithToken{kite1},
-				pastDueGroup.Id.Hex(): []*KodingKiteWithToken{kite2},
+				activeGroup1.Id.Hex(): {kite1},
+				pastDueGroup.Id.Hex(): {kite2},
 			},
 			response: &GetKodingKitesResult{
 				Kites: []*KodingKiteWithToken{kite1},
@@ -91,7 +91,7 @@ func TestFilterResult(t *testing.T) {
 			},
 			groups: []*models.Group{pastDueGroup},
 			kitesByGroupID: map[string][]*KodingKiteWithToken{
-				pastDueGroup.Id.Hex(): []*KodingKiteWithToken{kite2},
+				pastDueGroup.Id.Hex(): {kite2},
 			},
 			response: &GetKodingKitesResult{
 				Kites: []*KodingKiteWithToken{kite1},
@@ -104,8 +104,8 @@ func TestFilterResult(t *testing.T) {
 			},
 			groups: []*models.Group{activeGroup1},
 			kitesByGroupID: map[string][]*KodingKiteWithToken{
-				activeGroup1.Id.Hex(): []*KodingKiteWithToken{kite1},
-				pastDueGroup.Id.Hex(): []*KodingKiteWithToken{kite2},
+				activeGroup1.Id.Hex(): {kite1},
+				pastDueGroup.Id.Hex(): {kite2},
 			},
 			response: &GetKodingKitesResult{
 				Kites: []*KodingKiteWithToken{kite1, kite2},
@@ -118,8 +118,8 @@ func TestFilterResult(t *testing.T) {
 			},
 			groups: []*models.Group{},
 			kitesByGroupID: map[string][]*KodingKiteWithToken{
-				activeGroup1.Id.Hex(): []*KodingKiteWithToken{kite1},
-				pastDueGroup.Id.Hex(): []*KodingKiteWithToken{kite2},
+				activeGroup1.Id.Hex(): {kite1},
+				pastDueGroup.Id.Hex(): {kite2},
 			},
 			response: &GetKodingKitesResult{
 				Kites: []*KodingKiteWithToken{kite1, kite2},
@@ -132,8 +132,8 @@ func TestFilterResult(t *testing.T) {
 			},
 			groups: []*models.Group{activeGroup1, activeGroup2, pastDueGroup},
 			kitesByGroupID: map[string][]*KodingKiteWithToken{
-				activeGroup1.Id.Hex(): []*KodingKiteWithToken{kite1},
-				activeGroup2.Id.Hex(): []*KodingKiteWithToken{kite2},
+				activeGroup1.Id.Hex(): {kite1},
+				activeGroup2.Id.Hex(): {kite2},
 			},
 			response: &GetKodingKitesResult{
 				Kites: []*KodingKiteWithToken{kite1, kite2},

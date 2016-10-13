@@ -27,7 +27,7 @@ type ChannelLink struct {
 	// and marks channel_link as true
 	// if isFinished is false, it means
 	// linking the channels process is not done yet.
-	IsFinished bool `json:"isFinished"		  sql:"NOT NULL"`
+	IsFinished bool `json:"isFinished"       sql:"NOT NULL"`
 
 	// options for operations
 

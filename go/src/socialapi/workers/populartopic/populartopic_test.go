@@ -2,6 +2,7 @@ package populartopic
 
 import (
 	"testing"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
