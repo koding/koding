@@ -5,5 +5,5 @@ KnownApiErrors =
 
 module.exports = class ApiError extends Error
   constructor:({ description, error }) ->
-    name = KnownApiErrors[error]
+    name = KnownApiErrors[error] ? 'BadRequest'
     return new KodingError description, name
