@@ -42,8 +42,12 @@ module.exports = class StackEditorAppController extends AppController
         mainController.tellChatlioWidget 'show', { expanded: no }
 
     setSelectedMachineId null
+
     if stackTemplateId
       setSelectedTemplateId stackTemplateId
+      if @editors[stackTemplateId]
+        return  @showView { _id: stackTemplateId }
+
       computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) =>
         return showError err  if err
         @showView stackTemplate
@@ -55,13 +59,12 @@ module.exports = class StackEditorAppController extends AppController
           @selectedEditor = null
           @removeEditor stackTemplate._id
           kd.singletons.router.handleRoute '/IDE'
+
     else
       @showView()
 
 
   openStackWizard: ->
-
-    @openEditor()
 
     modal = new kd.ModalView
       cssClass : 'StackEditor-OnboardingModal'
@@ -88,12 +91,8 @@ module.exports = class StackEditorAppController extends AppController
 
     modal.addSubView view
 
-    modal.on 'KDObjectWillBeDestroyed', createOnce
-
-    view.on 'StackCreationCancelled', ->
-      modal.off 'KDObjectWillBeDestroyed'
-      modal.destroy()
-      createOnce()
+    modal.on 'KDObjectWillBeDestroyed', ->
+      kd.singletons.router.back()
 
 
   showView: (stackTemplate) ->
