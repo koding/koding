@@ -49,7 +49,10 @@ module.exports = class StackEditorAppController extends AppController
         return  @showView { _id: stackTemplateId }
 
       computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) =>
-        return showError err  if err
+        if err
+          kd.singletons.router.handleRoute '/IDE'
+          return showError err
+
         @showView stackTemplate
 
         # If selected template is deleted, then redirect them to ide.
