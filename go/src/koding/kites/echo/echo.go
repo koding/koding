@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/koding/kite"
 	"koding/kodingkite"
 	"koding/tools/config"
+
+	"github.com/koding/kite"
 )
 
 func main() {

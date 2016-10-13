@@ -32,7 +32,7 @@ var (
 func initialize() {
 	flag.Parse()
 	if *flagProfile == "" {
-		log.Fatal("Please specify profile via -c. Aborting.")
+		log.Fatalf("Please specify profile via -c. Aborting.")
 	}
 
 	conf = config.MustConfig(*flagProfile)
@@ -63,7 +63,7 @@ func main() {
 		iterOptions.F = truncateItems(coll)
 		err := helpers.Iter(helper.Mongo, iterOptions)
 		if err != nil {
-			log.Fatal("Error while iter: %v", err)
+			log.Fatalf("Error while iter: %v", err)
 		}
 	}
 	log.Info("Truncator worker finished")
@@ -107,8 +107,8 @@ func truncateItems(collectionName string) func(doc interface{}) error {
 // deletes all related relationships
 func deleteRel(id bson.ObjectId) {
 	selector := helper.Selector{"$or": []helper.Selector{
-		helper.Selector{"sourceId": id},
-		helper.Selector{"targetId": id},
+		{"sourceId": id},
+		{"targetId": id},
 	}}
 
 	rels, err := helper.GetAllRelationships(selector)

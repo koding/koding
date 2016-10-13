@@ -20,25 +20,25 @@ func createMachine(t *testing.T) *models.Machine {
 		Slug:        "",
 		Users: []models.MachineUser{
 			// real owner
-			models.MachineUser{
+			{
 				Id:    bson.NewObjectId(),
 				Sudo:  true,
 				Owner: true,
 			},
 			// secondary owner
-			models.MachineUser{
+			{
 				Id:    bson.NewObjectId(),
 				Sudo:  false,
 				Owner: true,
 			},
 			// has sudo but not owner
-			models.MachineUser{
+			{
 				Id:    bson.NewObjectId(),
 				Sudo:  true,
 				Owner: false,
 			},
 			// random user
-			models.MachineUser{
+			{
 				Id:    bson.NewObjectId(),
 				Sudo:  false,
 				Owner: false,
@@ -103,7 +103,7 @@ func TestGetMachinesByUsernameAndProvider(t *testing.T) {
 		Uid:      bson.NewObjectId().Hex(),
 		Provider: "koding",
 		Users: []models.MachineUser{
-			models.MachineUser{Id: user.ObjectId, Owner: true},
+			{Id: user.ObjectId, Owner: true},
 		},
 	}
 
@@ -119,7 +119,7 @@ func TestGetMachinesByUsernameAndProvider(t *testing.T) {
 		Uid:      bson.NewObjectId().Hex(),
 		Provider: "amazon",
 		Users: []models.MachineUser{
-			models.MachineUser{Id: user.ObjectId, Owner: true},
+			{Id: user.ObjectId, Owner: true},
 		},
 	}
 

@@ -74,11 +74,11 @@ func TestMailerNotification(t *testing.T) {
 func TestCodeblocks(t *testing.T) {
 	Convey("It should output following codeblocks properly", t, func() {
 		results := [][]string{
-			[]string{"", ""},
-			[]string{"empty", "empty"},
-			[]string{"```inside``` outside", "<pre>inside</pre> outside"},
-			[]string{"```inside``` outside ```another```", "<pre>inside</pre> outside <pre>another</pre>"},
-			[]string{"```inside\n``` outside", "<pre>inside\n</pre> outside"},
+			{"", ""},
+			{"empty", "empty"},
+			{"```inside``` outside", "<pre>inside</pre> outside"},
+			{"```inside``` outside ```another```", "<pre>inside</pre> outside <pre>another</pre>"},
+			{"```inside\n``` outside", "<pre>inside\n</pre> outside"},
 		}
 
 		for _, result := range results {

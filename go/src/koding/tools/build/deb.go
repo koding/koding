@@ -204,7 +204,7 @@ func (d *Deb) createDebianFile(name string) error {
 
 	return template.
 		Must(template.New("controlFile").
-		Parse(d.DebianTemplates[name])).
+			Parse(d.DebianTemplates[name])).
 		Execute(file, d)
 }
 

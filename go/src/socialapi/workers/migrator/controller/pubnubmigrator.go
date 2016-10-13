@@ -20,13 +20,13 @@ func (mwc *Controller) GrantChannelAccess() {
 		Table(c.BongoName()).
 		Select("api.channel.token").
 		Where(
-		`api.channel.type_constant IN (?)`,
-		[]string{
-			models.Channel_TYPE_GROUP,
-			models.Channel_TYPE_TOPIC,
-			models.Channel_TYPE_ANNOUNCEMENT,
-		},
-	)
+			`api.channel.type_constant IN (?)`,
+			[]string{
+				models.Channel_TYPE_GROUP,
+				models.Channel_TYPE_TOPIC,
+				models.Channel_TYPE_ANNOUNCEMENT,
+			},
+		)
 
 	rows, err := query.Rows()
 	defer rows.Close()

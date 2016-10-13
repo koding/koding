@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/hashicorp/go-multierror"
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/koding/ec2dynamicdata"
 )
 
@@ -28,7 +28,7 @@ type Services map[string]*Service
 func (s Services) String() string {
 	p, err := json.Marshal(s)
 	if err != nil {
-		return fmt.Sprintf("%+v", s)
+		return fmt.Sprintf("%+q", s)
 	}
 
 	return string(p)

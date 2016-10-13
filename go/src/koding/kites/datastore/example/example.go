@@ -66,7 +66,7 @@ func main() {
 			return
 		}
 
-		fmt.Printf("input: %d  rpc result: %d\n", k, result)
+		fmt.Printf("input: %s  rpc result: %t\n", k, result)
 	}
 
 	get := func(k string) (error, string) {
@@ -83,7 +83,7 @@ func main() {
 			return err, ""
 		}
 
-		fmt.Printf("input: %d  rpc result: %d\n", k, result)
+		fmt.Printf("input: %s  rpc result: %t\n", k, result)
 		return err, result
 	}
 

@@ -56,7 +56,7 @@ func TestMain(m *testing.M) {
 	remote = remoteKite.NewClient("http://127.0.0.1:3640/kite")
 	err = remote.Dial()
 	if err != nil {
-		log.Fatal("err")
+		log.Fatalf("err")
 	}
 
 	// run our tests...

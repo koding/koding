@@ -106,7 +106,7 @@ func (c *Container) MountRBD() error {
 	if out == nil {
 		out, err := r.Create(c.DiskSizeInMB)
 		if err != nil {
-			return fmt.Errorf("mountrbd create failed.", err, string(out))
+			return fmt.Errorf("mountrbd create failed. %q, %q", err, string(out))
 		}
 
 		makeFileSystem = true
@@ -114,7 +114,7 @@ func (c *Container) MountRBD() error {
 
 	out, err = r.Map()
 	if err != nil {
-		return fmt.Errorf("mountrbd map failed.", err, string(out))
+		return fmt.Errorf("mountrbd map failed. %q, %q", err, string(out))
 	}
 
 	timeout := time.Now().Add(30 * time.Second)
@@ -139,7 +139,7 @@ func (c *Container) MountRBD() error {
 
 	if makeFileSystem {
 		if out, err := exec.Command("/sbin/mkfs.ext4", r.DevicePath).CombinedOutput(); err != nil {
-			return fmt.Errorf("mkfs.ext4 failed.", err, string(out))
+			return fmt.Errorf("mkfs.ext4 failed. %q, %q", err, string(out))
 		}
 	}
 

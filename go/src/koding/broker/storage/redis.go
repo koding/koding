@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
 	"github.com/koding/redis"
 
 	redigo "github.com/garyburd/redigo/redis"

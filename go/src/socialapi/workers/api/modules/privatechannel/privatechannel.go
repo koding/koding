@@ -128,13 +128,13 @@ func getUserChannelsQuery(q *request.Query) *gorm.DB {
 		Select("api.channel_participant.channel_id").
 		Joins("left join api.channel_participant on api.channel_participant.channel_id = api.channel.id").
 		Where("api.channel_participant.account_id = ? and "+
-		"api.channel.group_name = ? and "+
-		"api.channel.type_constant = ? and "+
-		"api.channel_participant.status_constant = ?",
-		q.AccountId,
-		q.GroupName,
-		q.Type,
-		models.ChannelParticipant_STATUS_ACTIVE)
+			"api.channel.group_name = ? and "+
+			"api.channel.type_constant = ? and "+
+			"api.channel_participant.status_constant = ?",
+			q.AccountId,
+			q.GroupName,
+			q.Type,
+			models.ChannelParticipant_STATUS_ACTIVE)
 }
 
 func getPrivateChannels(q *request.Query) ([]models.Channel, error) {

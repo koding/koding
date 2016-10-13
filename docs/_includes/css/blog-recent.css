@@ -1,0 +1,51 @@
+.BlogRecent--wrapper {
+  border-top: 1px solid #eee;
+  max-width: 1176px;
+  margin: 0 auto;
+  padding: 0 30px;
+}
+
+.BlogRecent--wrapper > h2 {
+  margin: 48px 0 0;
+  font-size: 24px;
+  font-weight: 500;
+  color: #727272;
+}
+
+.BlogRecent-Posts {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.BlogRecent .BlogHome-Listing--item {
+  flex: 0 0 auto;
+  width: 23%;
+}
+
+.BlogRecent .BlogPost-Excerpt .BlogPost-Meta h4 {
+  font-size: 14px;
+  margin: 9px 0 4px;
+}
+
+.BlogRecent .BlogPost-Excerpt .BlogPost-Meta time {
+  font-size: 12px;
+}
+
+.BlogRecent .BlogPost-Excerpt > figure {
+  height: 128px;
+}
+
+.BlogRecent .BlogRecent--wrapper .BlogPost-Title {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0 0 12px;
+}
+
+.BlogRecent .BlogPost-Excerpt > p {
+  font-size: 13px;
+  max-height: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

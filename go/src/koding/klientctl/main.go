@@ -105,7 +105,7 @@ func main() {
 	app.EnableBashCompletion = true
 
 	app.Commands = []cli.Command{
-		cli.Command{
+		{
 			Name:      "list",
 			ShortName: "ls",
 			Usage:     "List running machines for user.",
@@ -121,7 +121,7 @@ func main() {
 				},
 			},
 			Subcommands: []cli.Command{
-				cli.Command{
+				{
 					Name:   "mounts",
 					Usage:  "List the mounted machines.",
 					Action: ctlcli.ExitAction(CheckUpdateFirst(MountsCommand, log, "mounts")),
@@ -134,14 +134,14 @@ func main() {
 				},
 			},
 		},
-		cli.Command{
+		{
 			Name:        "version",
 			Usage:       "Display version information.",
 			HideHelp:    true,
 			Description: cmdDescriptions["version"],
 			Action:      ctlcli.ExitAction(VersionCommand, log, "version"),
 		},
-		cli.Command{
+		{
 			Name:        "mount",
 			ShortName:   "m",
 			Usage:       "Mount a remote folder to a local folder.",
@@ -198,21 +198,21 @@ func main() {
 				MountCommandFactory, log, "mount",
 			),
 		},
-		cli.Command{
+		{
 			Name:        "unmount",
 			ShortName:   "u",
 			Usage:       "Unmount previously mounted machine.",
 			Description: cmdDescriptions["unmount"],
 			Action:      ctlcli.FactoryAction(UnmountCommandFactory, log, "unmount"),
 		},
-		cli.Command{
+		{
 			Name:        "remount",
 			ShortName:   "r",
 			Usage:       "Remount previously mounted machine using same settings.",
 			Description: cmdDescriptions["remount"],
 			Action:      ctlcli.ExitAction(RemountCommandFactory, log, "remount"),
 		},
-		cli.Command{
+		{
 			Name:        "ssh",
 			ShortName:   "s",
 			Usage:       "SSH into the machine.",
@@ -228,25 +228,25 @@ func main() {
 			},
 			Action: ctlcli.ExitAction(CheckUpdateFirst(SSHCommandFactory, log, "ssh")),
 		},
-		cli.Command{
+		{
 			Name:            "run",
 			Usage:           "Run command on remote or local machine.",
 			Description:     cmdDescriptions["run"],
 			Action:          ctlcli.ExitAction(RunCommandFactory, log, "run"),
 			SkipFlagParsing: true,
 		},
-		cli.Command{
+		{
 			Name:   "repair",
 			Usage:  "Repair the given mount",
 			Action: ctlcli.FactoryAction(RepairCommandFactory, log, "repair"),
 		},
-		cli.Command{
+		{
 			Name:        "status",
 			Usage:       fmt.Sprintf("Check status of the %s.", config.KlientName),
 			Description: cmdDescriptions["status"],
 			Action:      ctlcli.ExitAction(StatusCommand, log, "status"),
 		},
-		cli.Command{
+		{
 			Name:        "update",
 			Usage:       fmt.Sprintf("Update %s to latest version.", config.KlientName),
 			Description: cmdDescriptions["update"],
@@ -280,31 +280,31 @@ func main() {
 				},
 			},
 		},
-		cli.Command{
+		{
 			Name:        "restart",
 			Usage:       fmt.Sprintf("Restart the %s.", config.KlientName),
 			Description: cmdDescriptions["restart"],
 			Action:      ctlcli.ExitAction(RestartCommand, log, "restart"),
 		},
-		cli.Command{
+		{
 			Name:        "start",
 			Usage:       fmt.Sprintf("Start the %s.", config.KlientName),
 			Description: cmdDescriptions["start"],
 			Action:      ctlcli.ExitAction(StartCommand, log, "start"),
 		},
-		cli.Command{
+		{
 			Name:        "stop",
 			Usage:       fmt.Sprintf("Stop the %s.", config.KlientName),
 			Description: cmdDescriptions["stop"],
 			Action:      ctlcli.ExitAction(StopCommand, log, "stop"),
 		},
-		cli.Command{
+		{
 			Name:        "uninstall",
 			Usage:       fmt.Sprintf("Uninstall the %s.", config.KlientName),
 			Description: cmdDescriptions["uninstall"],
 			Action:      ExitWithMessage(UninstallCommand, log, "uninstall"),
 		},
-		cli.Command{
+		{
 			Name:        "install",
 			Usage:       fmt.Sprintf("Install the %s.", config.KlientName),
 			Description: cmdDescriptions["install"],
@@ -316,13 +316,13 @@ func main() {
 			},
 			Action: ctlcli.ExitErrAction(InstallCommandFactory, log, "install"),
 		},
-		cli.Command{
+		{
 			Name:     "metrics",
 			Usage:    fmt.Sprintf("Internal use only."),
 			HideHelp: true,
 			Action:   ctlcli.ExitAction(MetricsCommandFactory, log, "metrics"),
 		},
-		cli.Command{
+		{
 			Name: "autocompletion",
 			Usage: fmt.Sprintf(
 				"Enable autocompletion support for bash and fish shells",
@@ -349,7 +349,7 @@ func main() {
 				AutocompleteCommandFactory, log, "autocompletion",
 			),
 		},
-		cli.Command{
+		{
 			Name: "cp",
 			Usage: fmt.Sprintf(
 				"Copy a file from one one machine to another",
@@ -367,7 +367,7 @@ func main() {
 				CpCommandFactory, log, "cp",
 			),
 		},
-		cli.Command{
+		{
 			Name: "log",
 			Flags: []cli.Flag{
 				cli.BoolFlag{Name: "debug"},
@@ -379,7 +379,7 @@ func main() {
 			},
 			Action: ctlcli.FactoryAction(LogCommandFactory, log, "log"),
 		},
-		cli.Command{
+		{
 			Name: "open",
 			Usage: fmt.Sprintf(
 				"Open the given file(s) on the Koding UI",

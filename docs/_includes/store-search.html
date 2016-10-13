@@ -1,0 +1,24 @@
+<div class="search-container">
+  {% if include.has_dropdown %}
+    <div class="Dropdown">
+      <a href="#" class="Dropdown-selection stacks" id="dropdown-selection">In Stacks</a>
+      <div class="Dropdown-options">
+        <a href="#" class="stacks">In Stacks</a>
+        <a href="#" class="stencils">In Stencils</a>
+      </div>
+    </div>
+  {% endif %}
+  {% if include.has_searchbar %}
+  <div class="SearchBar">
+    <div class="SearchBar-field">
+      <input placeholder="Search a keyword or name..." />
+      <a href="#" class="remove-icon u-remove u-icon"></a>
+    </div>
+    <div class="SearchBar-results">
+      <div class="SearchBar-resultsData">
+      </div>
+      <a href="#" class="SearchBar-resultsAll">See all results...</a>
+    </div>
+  </div>
+  {% endif %}
+</div>

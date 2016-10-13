@@ -8,6 +8,8 @@ import (
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
 
+	mgo "gopkg.in/mgo.v2"
+
 	"github.com/RangelReale/osin"
 )
 

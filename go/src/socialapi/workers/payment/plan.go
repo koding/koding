@@ -30,7 +30,7 @@ const (
 // Plans holds koding provided plans on stripe
 var Plans = map[string]*stripe.PlanParams{
 	// Forever free koding
-	Free: &stripe.PlanParams{
+	Free: {
 		Amount:        0,
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
@@ -41,7 +41,7 @@ var Plans = map[string]*stripe.PlanParams{
 		Statement:     "FREE",
 	},
 
-	UpTo10Users: &stripe.PlanParams{
+	UpTo10Users: {
 		Amount:        4997,
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
@@ -52,7 +52,7 @@ var Plans = map[string]*stripe.PlanParams{
 		Statement:     "UP TO 10 USERS",
 	},
 
-	UpTo50Users: &stripe.PlanParams{
+	UpTo50Users: {
 		Amount:        3982,
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
@@ -63,7 +63,7 @@ var Plans = map[string]*stripe.PlanParams{
 		Statement:     "UP TO 50 USERS",
 	},
 
-	Over50Users: &stripe.PlanParams{
+	Over50Users: {
 		Amount:        3493,
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,

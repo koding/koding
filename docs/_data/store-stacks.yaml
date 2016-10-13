@@ -1,0 +1,192 @@
+- title: Ruby on Rails
+  author: Koding
+  description: ROR has been the centerpiece of online application development for close to a decade.  Get started coding in ROR today with this stack which includes the latest versions of Ruby, Rails, and MySQL all preconfigured.
+  vendor: windows
+  count: 4356
+  verified: true
+- title: Gitlab CE
+  author: Koding
+  description: Gitlab is an open source code repository with CI/CD and other tools built in.  Clone and launch Gitlab’s community edition in a preconfigured environment to easily contribute to this hot open source project.
+  vendor: aws
+  count: 400
+  verified: true
+- title: MongoDB RS
+  author: Koding
+  description: Used by thousands of companies, MongoDB is one of the most stable and established NoSQL databases in the world.  Clone and launch this three server MongoDB replica set to start learning how to use this incredible database today.
+  vendor: aws
+  count: 2333
+  verified: true
+- title: Django
+  author: Koding
+  description: As ROR is to Ruby, Django is to Python.  This web framework is used across tens of thousands of websites and is the backbone of many mobile apps, including Instagram.  Clone this stack template to learn Django today.
+  vendor: aws
+  count: 500
+  verified: true
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: windows
+  count: 4356
+  verified: true
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 400
+  verified: true
+- title: Box Hover
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 4356
+  verified: true
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 4356
+  verified: true
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: windows
+  count: 4356
+  verified: true
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 400
+  verified: true
+- title: Box Hover
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 4356
+  verified: false
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 4356
+  verified: true
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: windows
+  count: 4356
+  verified: true
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 400
+  verified: true
+- title: Box Hover
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 4356
+  verified: true
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 4356
+  verified: true
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: windows
+  count: 4356
+  verified: true
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 400
+  verified: true
+- title: Box Hover
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 4356
+  verified: false
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 4356
+  verified: true
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: windows
+  count: 4356
+  verified: true
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 400
+  verified: true
+- title: Box Hover
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 4356
+  verified: true
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 4356
+  verified: true
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: windows
+  count: 4356
+  verified: true
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 400
+  verified: true
+- title: Box Hover
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 4356
+  verified: false
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 4356
+  verified: true
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: windows
+  count: 4356
+  verified: true
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 400
+  verified: true
+- title: Box Hover
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 4356
+  verified: true
+- title: Django
+  author: Koding
+  description: Vestibulum id ligula porta felis euismod semper. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Maecenas sed diam…
+  vendor: aws
+  count: 4356
+  verified: true

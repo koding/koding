@@ -344,9 +344,9 @@ func (c *Channel) FetchParticipantIds(q *request.Query) ([]int64, error) {
 		Table(cp.BongoName()).
 		Where("channel_id = ?", c.Id).
 		Where("status_constant in (?)",
-		[]string{ChannelParticipant_STATUS_ACTIVE,
-			ChannelParticipant_STATUS_REQUEST_PENDING,
-		})
+			[]string{ChannelParticipant_STATUS_ACTIVE,
+				ChannelParticipant_STATUS_REQUEST_PENDING,
+			})
 
 	if !q.ShowExempt {
 		bq = bq.Where("meta_bits <> ?", Troll)
@@ -690,19 +690,19 @@ func (c *Channel) ByParticipants(participants []int64, q *request.Query) ([]Chan
 		Model(cp).
 		Table(cp.BongoName()).
 		Joins(
-		`left join api.channel on
+			`left join api.channel on
 		 api.channel_participant.channel_id = api.channel.id`).
 		Where(
-		`api.channel_participant.account_id IN ( ? ) and
+			`api.channel_participant.account_id IN ( ? ) and
 		 api.channel_participant.status_constant = ? and
 		 api.channel.group_name = ? and
 		 api.channel.deleted_at < '0001-01-02 00:00:00+00' and
 		 api.channel.type_constant = ?`,
-		participants,
-		ChannelParticipant_STATUS_ACTIVE,
-		q.GroupName,
-		q.Type,
-	).
+			participants,
+			ChannelParticipant_STATUS_ACTIVE,
+			q.GroupName,
+			q.Type,
+		).
 		Group("channel_participant.channel_id, channel.created_at").
 		Having("COUNT (channel_participant.channel_id) = ?", len(participants)).
 		Order("channel.created_at").
@@ -1097,7 +1097,7 @@ func (c *Channel) deleteChannelMessages(messageMap map[int64]struct{}) error {
 	var errs *multierror.Error
 	messageIds := make([]int64, 0)
 
-	for messageId, _ := range messageMap {
+	for messageId := range messageMap {
 		messageIds = append(messageIds, messageId)
 	}
 

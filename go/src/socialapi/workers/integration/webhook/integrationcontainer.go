@@ -52,7 +52,7 @@ func (ics *IntegrationContainers) Populate(groupName string) error {
 
 	// fetch related integrations
 	integrationIds := make([]int64, 0)
-	for k, _ := range containers {
+	for k := range containers {
 		integrationIds = append(integrationIds, k)
 	}
 
