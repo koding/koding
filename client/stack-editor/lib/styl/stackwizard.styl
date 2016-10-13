@@ -64,13 +64,6 @@ $accentColor                = #F2778A
     bg                      color #fff
     rel()
 
-    .HomeAppView--button
-      color                 #ababab !important
-      abs                   25px 156px
-
-    .StackEditor-OnboardingModal--cancel
-      hidden()
-
 
   .get-started footer
     button.next
@@ -100,10 +93,11 @@ $accentColor                = #F2778A
 
   button.next
     colorizeOutlineButton   $accentColor
-    abs                     15px 26px
+    abs                     17px 17px
 
   .StackEditor-OnboardingModal--cancel
-    abs                     15px 26px
+    left                    17px
+    abs                     17px
 
   .kdtabhandlecontainer
     background              none
@@ -183,21 +177,9 @@ $accentColor                = #F2778A
       span
         color               #A8A1A1
 
-  .skip-setup
-    color                   #A8A1A1
-    font-size               16px
-    line-height             22px
-    margin-top              16px
-    text-align              center
-    font-weight             300
-    pointer()
-
   .box-wrapper
     width                   525px
     margin                  57px auto
-
-    &.services
-      margin                28px 0 0 39px !important
 
   .box
     size                    256px, 112px
@@ -261,216 +243,3 @@ $accentColor                = #F2778A
       &:first-child
       &:nth-child(2)
         margin-top            0
-
-      &.koding
-        img
-          margin-top        21px
-
-        .label
-          margin-top        9px
-
-      &.engineyard
-        img
-          margin-top        16px
-
-        .label
-          margin-top        4px
-
-      &.vagrant
-        img
-          margin-top        38px
-
-      &.azure
-        img
-          margin-top        25px
-
-        .label
-          margin-top        10px
-
-      &.digitalocean
-        img
-          margin-top        29px
-
-        .label
-          margin-top        13px
-
-      &.google
-        img
-          margin-top        45px
-
-      &.rackspace
-        img
-          margin-top        27px
-
-    .provider.coming-soon
-
-      &.vagrant
-        img
-          margin-top        28px
-        .label
-          margin-top        3px
-
-
-  .code-setup
-
-    height                  auto
-
-    .kdtabhandle .title
-      position              relative
-      top                   15px
-      left                  22px
-
-    .description
-      width                 350px
-
-    .box-wrapper
-      rel()
-      top                   1px
-      left                  -10px
-      height                240px
-
-    .github
-      img
-        margin-top          31px
-
-    .bitbucket
-      img
-        margin-top          27px
-
-    .gitlab
-      top                   11px
-      rel()
-
-      img
-        margin-top          9px
-
-    .yourgitserver
-      top                   11px
-      rel()
-
-      img
-        margin-top          3px
-
-      .label
-        margin              15px 0 0 -3px
-        font-weight         300
-        font-size           12px
-
-    + .footer
-      margin                40px 0 0 18px
-
-  .configuration
-    height                  auto
-    > main
-      padding               57px 0
-
-    .kdtabview
-      border                1px solid #D8D8D8
-      size                  525px, 260px
-      margin                0 auto
-      rounded               0 6px 6px 6px
-      bg                    color, #fff
-      borderBox()
-      rel()
-
-    .kdtabhandlecontainer .kdtabhandle
-      height                62px
-      box-shadow            none !important
-      width                 153px
-      max-width             153px !important
-      bg                    color, #fff !important
-      border                1px solid #D8D8D8
-      margin-right          3px
-      rounded               6px 6px 0 0
-
-      b
-        size                auto, 22px
-        line-height         22px
-        font-size           16px
-        color               #2B2A49
-        top                 12px
-        left                45px
-        abs()
-
-      .title
-        margin              0
-        left                0
-        font-size           12px
-        font-weight         200
-        color               #606060
-        line-height         34px
-
-      .kdselectbox
-        border              none
-        top                 15px
-        rel()
-
-        .arrows
-          height            6px
-          vendor            transform, rotate(180deg)
-          margin-top        4px
-
-      &.active
-        bg                  color, #fff !important
-        border-bottom       1px solid #fff
-
-      &.plus
-        border-left         1px solid #D8D8D8
-        width               153px
-
-        span
-          display           inline-block !important
-          margin            23px 10px 0 0 !important
-          opacity           .3
-
-        &:after
-          content           'Add another'
-          font-size         16px
-          line-height       18px
-          font-weight       300
-          color             #BBBBC4
-          top               -6px
-          left              -3px
-          rel()
-
-    .kdtabhandlecontainer
-      box-shadow            none
-      width                 525px
-      margin                0 auto
-      top                   1px
-      rel()
-
-  .server-configuration
-
-    section
-      fl()
-      width                 150px
-      margin-top            38px
-
-      &:first-child
-        margin-left         59px
-
-      p
-        color               #434343
-        font-size           16px
-        line-height         22px
-        margin-bottom       16px
-        font-weight         bold
-
-    .row
-      overflow              hidden
-      margin-bottom         10px
-
-      .kdcustomcheckbox
-        fl()
-
-      .label
-        fl()
-        margin-left         8px
-        font-size           16px
-        line-height         22px
-        color               #434343
-        font-weight         100
-        top                 -1px
-        pointer()
-        rel()
