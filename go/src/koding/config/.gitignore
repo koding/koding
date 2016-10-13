@@ -1,2 +1,0 @@
-# ignore config.go file which is auto-generated and different for each environment.
-config.go
