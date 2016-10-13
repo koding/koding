@@ -38,7 +38,7 @@ Click on 'INITIALIZE' button and wait for a few seconds for process to be comple
 Do you see 'Personal Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'Read Me' text and a 'NEXT' and 'VIEW STACK TEMPLATE' buttons on the bottom? Do you see 'STACKS', 'Personal Stack' and 'example_1' labels on left sidebar?
 
 Click on the 'NEXT' button and then click on the 'BUILD STACK' button and while waiting for the process to be completed click on the 'STACKS' from left sidebar
-Do you see 'Rainforestqa99's Stack' under 'Team Stacks' and 'Private Stack' under 'Private Stacks' section? Do you see 'REMOVE FROM SIDEBAR' links next to them?
+Do you see 'Rainforestqa99's Stack' under 'Team Stacks' and 'Personal Stack' under 'Private Stacks' section? Do you see 'REMOVE FROM SIDEBAR' links next to them?
 
 Click on 'REMOVE FROM SIDEBAR' link next to 'Personal Stack'
 Is the link updated as 'ADD TO SIDEBAR'? Do you see that 'Personal Stack' is removed from left sidebar when you close the pop-up by clicking (x) from top right corner?

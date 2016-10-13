@@ -47,7 +47,7 @@ Click on 'Disabled' label and select 'Remove Permanently'
 Is 'rainforestqa22' removed from the list?
 
 Switch to the incognito window
-Do you see that you're logged out automatically? Do you see 'Sign in to {{ random.last_name }}{{ random.number }}' text, 'Username or Email' and 'Password' fields and a 'SIGN IN' button?
+Do you see that you're logged out automatically? Do you see 'Sign in to {{ random.last_name }}{{ random.number }}' text, 'Username or Email' and 'Password' fields and a 'SIGN IN' button? (If not, do you see 'Your access is revoked!' text?)
 
 Enter "rainforestqa22" both in the 'Username or Email' and 'Password' fields and click on 'SIGN IN' button
 Have you seen 'You are not allowed to access this team' warning displayed?
