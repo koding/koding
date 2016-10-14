@@ -253,7 +253,6 @@ generateDev = (KONFIG, options) ->
     function mongomigrate () {
       params=(create up down)
       param=$1
-      echo $1
       case "${params[@]}" in  *"$param"*)
         ;;
       *)
