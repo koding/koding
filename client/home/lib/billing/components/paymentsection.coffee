@@ -60,7 +60,7 @@ module.exports = class PaymentSection extends React.Component
 
     secondaryButtonProps = switch
       when isDirty then { title: 'RESET FORM', onClick: onResetForm }
-      when hasCard then { title: 'REMOVE CARD', onClick: => @onRemoveBegin() }
+      # when hasCard then { title: 'REMOVE CARD', onClick: => @onRemoveBegin() }
       else null
 
     <DashboardSection title='Payment Information'>
