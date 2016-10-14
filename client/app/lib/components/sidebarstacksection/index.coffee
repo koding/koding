@@ -10,7 +10,7 @@ SidebarMachinesListItem   = require 'app/components/sidebarmachineslistitem'
 canCreateStacks = require 'app/util/canCreateStacks'
 isAdmin = require 'app/util/isAdmin'
 remote = require 'app/remote'
-isStackTemplateSharedWithTeam = require 'app/util/isstacktemplatesharedwithteam'
+isDefaultTeamStack = require 'app/util/isdefaultteamstack'
 { findDOMNode } = require 'react-dom'
 
 require './styl/sidebarstacksection.styl'
@@ -143,7 +143,7 @@ module.exports = class SidebarStackSection extends React.Component
         menuItems['View Stack'] = { callback }
       ['Reinitialize', 'VMs', 'Destroy VMs'].forEach (name) ->
         menuItems[name] = { callback }
-      if isAdmin() and not isStackTemplateSharedWithTeam @props.stack.get 'baseStackId'
+      if isAdmin() and not isDefaultTeamStack @props.stack.get 'baseStackId'
         menuItems['Make Team Default'] = { callback }
 
     { top } = findDOMNode(this).getBoundingClientRect()

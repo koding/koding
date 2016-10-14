@@ -23,7 +23,7 @@ module.exports = class PlansListContainer extends React.Component
   onMembersClick: (event) ->
 
     kd.utils.stopDOMEvent event
-    kd.singletons.router.handleRoute '/Home/my-team/teammates'
+    kd.singletons.router.handleRoute '/Home/my-team#teammates'
 
 
   onDetailsClick: (event) ->
