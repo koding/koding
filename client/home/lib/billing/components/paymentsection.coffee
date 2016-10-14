@@ -54,9 +54,9 @@ module.exports = class PaymentSection extends React.Component
 
     buttonTitle = switch
       when submitting and operation is 'create' then 'SAVING...'
-      when submitting and operation is 'update' then 'UPDATING...'
+      when submitting and operation is 'change' then 'CHANGING...'
       when operation is 'create' then 'SAVE'
-      when operation is 'update' then 'UPDATE'
+      when operation is 'change' then 'CHANGE'
 
     secondaryButtonProps = switch
       when isDirty then { title: 'RESET FORM', onClick: onResetForm }
