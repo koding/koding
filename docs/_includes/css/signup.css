@@ -139,7 +139,7 @@
 .SignupFieldset > div select,
 .SignupFieldset.double > div select {
     height: 42px;
-    background: white url('http://cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/select_triangle.svg') center right no-repeat;
+    background: white url('{{ site.url }}/assets/img/landing/misc/select_triangle.svg') center right no-repeat;
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
