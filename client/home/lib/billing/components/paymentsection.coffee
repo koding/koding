@@ -14,14 +14,17 @@ module.exports = class PaymentSection extends React.Component
 
   constructor: (props) ->
     super props
-    @state = { hasSuccessModal: no, hasRemoveModal: no }
+
+    @state =
+      hasSuccessModal: props.hasSuccessModal
+      hasRemoveModal: no
 
 
   onSubmit: -> @_form.getWrappedInstance().submit()
 
+
   componentWillReceiveProps: (nextProps) ->
-    if nextProps.hasCard and not @props.hasCard
-      @setState { hasSuccessModal: yes }
+    @setState { hasSuccessModal: nextProps.hasSuccessModal }
 
 
   onSuccessModalClose: -> @setState { hasSuccessModal: no }
@@ -59,7 +62,7 @@ module.exports = class PaymentSection extends React.Component
       when operation is 'change' then 'CHANGE'
 
     secondaryButtonProps = switch
-      when isDirty then { title: 'RESET FORM', onClick: onResetForm }
+      when isDirty then { title: 'CANCEL', onClick: onResetForm }
       # when hasCard then { title: 'REMOVE CARD', onClick: => @onRemoveBegin() }
       else null
 

@@ -53,6 +53,7 @@ mapStateToProps = (state) ->
     isDirty: isDirty('create-credit-card')(state)
     message: formMessage state
     operation: if state.creditCard then 'change' else 'create'
+    hasSuccessModal: hasSuccessModal(state)
   }
 
 mapDispatchToProps = (dispatch) ->
