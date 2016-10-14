@@ -223,7 +223,7 @@ func newDoBaseMachine(dropletID int) *provider.BaseMachine {
 				"droplet_id": strconv.Itoa(dropletID),
 			},
 		}),
-		Provider: "do",
+		Provider: "digitalocean",
 	}
 }
 

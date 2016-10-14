@@ -126,7 +126,7 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 		return nil, err
 	}
 
-	if err := template.ShadowVariables("FORBIDDEN", "do_token"); err != nil {
+	if err := template.ShadowVariables("FORBIDDEN", "digitalocean_token"); err != nil {
 		return nil, err
 	}
 
