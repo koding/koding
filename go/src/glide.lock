@@ -1021,6 +1021,8 @@ imports:
   version: ac974c61c2f990f4115b119354b5e0b47550e888
 - name: github.com/Azure/azure-sdk-for-go
   version: 91f3d4a4d024e3c0d4d9412916d05cf84504a616
+- name: github.com/Banno/terraform-provider-marathon
+  version: 693aa37ced14fe2323e619f8ab29532772a79452
 testImports:
 - name: github.com/vaughan0/go-ini
   version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1

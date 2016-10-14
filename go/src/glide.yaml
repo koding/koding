@@ -273,6 +273,7 @@ import:
 - package: github.com/google/go-querystring/query
 - package: github.com/tent/http-link-go
 - package: github.com/Azure/azure-sdk-for-go
+- package: github.com/Banno/terraform-provider-marathon
 ignore:
 - koding/tools/logger
 - koding/kite

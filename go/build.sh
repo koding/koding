@@ -73,9 +73,11 @@ export COMMANDS=(
 )
 
 export TERRAFORM_COMMANDS=(
+	vendor/github.com/hashicorp/terraform
 	vendor/github.com/hashicorp/terraform/builtin/bins/...
 	koding/kites/cmd/provider-vagrant
 	vendor/github.com/koding/terraform-provider-github/cmd/provider-github
+	vendor/github.com/Banno/terraform-provider-marathon
 )
 
 # source configuration for kloud providers
