@@ -71,7 +71,6 @@
     "mime": "1.2.x",
     "minimist": "0.0.8",
     "mkdirp": "0.3.2",
-    "mongodb": "1.4.14",
     "mongodb-migrate": "2.0.1",
     "nib": "1.1.0",
     "node-dogstatsd": "0.0.6",
@@ -115,6 +114,7 @@
     "coffeelint": "1.11.1",
     "crypto": "0.0.3",
     "mocha": "2.2.4",
+    "mongodb": "1.4.14",
     "which": "1.0.5"
   },
   "optionalDependencies": {},
