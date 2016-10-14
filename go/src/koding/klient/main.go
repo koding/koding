@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"time"
 
-	"koding/config"
+	"koding/kites/config"
 	"koding/klient/app"
 	"koding/klient/protocol"
 	"koding/klient/registration"

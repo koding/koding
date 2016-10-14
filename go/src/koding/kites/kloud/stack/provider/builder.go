@@ -3,7 +3,6 @@ package provider
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
@@ -18,63 +17,6 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
-
-// NotFoundError is returned when requested operation on a resource
-// cannot be completed due to resource being missing. Most likely
-// this kind of errors means the resource was deleted outside
-// (shared ownership) and this error is returned to the caller,
-// so it recover if possible.
-//
-// TODO(rjeczalik): the db/mongo helpers should be decorating errors
-// instead, so database handling layer is transparent and no
-// library specific errors (e.g. mgo.ErrNotFound, pq.Error) are leaked.
-type NotFoundError struct {
-	Resource string // type / name of resource missing
-	Err      error  // underlying error, if any
-}
-
-// Error implements the builtin error interface.
-func (e *NotFoundError) Error() string {
-	return fmt.Sprintf("the %q resource was not found: %s", e.Resource, e.Err)
-}
-
-// Underlying gives the error value responsible for failure.
-func (e *NotFoundError) Underlying() error {
-	return e.Err
-}
-
-// ResError is a helper function that decorates the given err with more
-// meaningful error value, giving the caller context to recover.
-func ResError(err error, resource string) error {
-	if err == nil {
-		return nil
-	}
-	if err == mgo.ErrNotFound || strings.Contains(err.Error(), "not found") {
-		return &NotFoundError{
-			Resource: resource,
-			Err:      err,
-		}
-	}
-
-	return err
-}
-
-// IsNotFound gives true when err is of *NotFoundError type and its Resource
-// field is equal to one of the given resources.
-//
-// If no resources are given, the function tests only if err is of
-// *NotFoundError type.
-func IsNotFound(err error, resources ...string) bool {
-	if e, ok := err.(*NotFoundError); ok {
-		for _, res := range resources {
-			if e.Resource == res {
-				return true
-			}
-		}
-	}
-
-	return false
-}
 
 // KodingMeta represents "koding_"-prefixed variables injected into Terraform
 // template.
@@ -100,15 +42,12 @@ type GenericMeta map[string]interface{}
 var BuiltinSchemas = map[string]*Schema{
 	"koding": {
 		NewCredential: func() interface{} { return &KodingMeta{} },
-		NewBootstrap:  func() interface{} { return nil },
 	},
 	"custom": {
 		NewCredential: func() interface{} { return &CustomMeta{} },
-		NewBootstrap:  func() interface{} { return nil },
 	},
 	"generic": {
 		NewCredential: func() interface{} { return &GenericMeta{} },
-		NewBootstrap:  func() interface{} { return nil },
 	},
 }
 
@@ -116,10 +55,7 @@ var BuiltinSchemas = map[string]*Schema{
 //
 // If no builder was found it returns a builder GenericMeta.
 func schema(providerName string) *Schema {
-	providersMu.RLock()
 	p, ok := providers[providerName]
-	providersMu.RUnlock()
-
 	if ok && p.Schema != nil {
 		return p.Schema
 	}
@@ -194,7 +130,7 @@ func (b *Builder) BuildStack(stackID string, credentials map[string][]string) er
 
 	computeStack, err := modelhelper.GetComputeStack(stackID)
 	if err != nil {
-		return ResError(err, "jComputeStack")
+		return models.ResError(err, "jComputeStack")
 	}
 
 	b.Stack = &stack.Stack{
@@ -222,7 +158,7 @@ func (b *Builder) BuildStack(stackID string, credentials map[string][]string) er
 
 		b.Stack.Template = stackTemplate.Template.Content
 	} else {
-		overallErr = ResError(err, "jStackTemplate")
+		overallErr = models.ResError(err, "jStackTemplate")
 	}
 
 	// copy user based credentials
@@ -334,7 +270,7 @@ func (b *Builder) BuildMachines(ctx context.Context) error {
 
 	users, err := modelhelper.GetUsersById(allowedIds...)
 	if err != nil {
-		return ResError(err, "jUser")
+		return models.ResError(err, "jUser")
 	}
 
 	// find whether requested user is among allowed ones
@@ -398,43 +334,63 @@ func (b *Builder) MachineUIDs() map[string]string {
 // BuildCredentials fetches credential details for current b.Stack from MongoDB.
 //
 // When nil error is returned, the b.Koding and  b.Credentials fields are non-nil.
+//
+// TODO(rjeczalik): Replace with *credential.Client
 func (b *Builder) BuildCredentials(method, username, groupname string, identifiers []string) error {
 	// fetch jaccount from username
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
-		return ResError(err, "jAccount")
-	}
-
-	// fetch jGroup from group slug name
-	group, err := modelhelper.GetGroup(groupname)
-	if err != nil {
-		return ResError(err, "jGroup")
+		return models.ResError(err, "jAccount")
 	}
 
 	// fetch jUser from username
 	user, err := modelhelper.GetUser(username)
 	if err != nil {
-		return ResError(err, "jUser")
+		return models.ResError(err, "jUser")
 	}
 
-	// validate if username belongs to groupnam
-	selector := modelhelper.Selector{
-		"targetId": account.Id,
-		"sourceId": group.Id,
-		"as": bson.M{
-			"$in": []string{"member"},
-		},
+	kodingMeta := &KodingMeta{
+		Email:     user.Email,
+		Username:  user.Name,
+		Nickname:  account.Profile.Nickname,
+		Firstname: account.Profile.FirstName,
+		Lastname:  account.Profile.LastName,
+		Hash:      account.Profile.Hash,
 	}
 
-	count, err := modelhelper.RelationshipCount(selector)
-	if err != nil || count == 0 {
-		return fmt.Errorf("username '%s' does not belong to group '%s'", username, groupname)
+	groupIDs := []bson.ObjectId{account.Id}
+
+	if groupname != "" {
+		// fetch jGroup from group slug name
+		group, err := modelhelper.GetGroup(groupname)
+		if err != nil {
+			return models.ResError(err, "jGroup")
+		}
+
+		// validate if username belongs to groupnam
+		selector := modelhelper.Selector{
+			"targetId": account.Id,
+			"sourceId": group.Id,
+			"as": bson.M{
+				"$in": []string{"member"},
+			},
+		}
+
+		count, err := modelhelper.RelationshipCount(selector)
+		if err != nil || count == 0 {
+			return fmt.Errorf("username '%s' does not belong to group '%s'", username, groupname)
+		}
+
+		kodingMeta.Title = group.Title
+		kodingMeta.Slug = group.Slug
+
+		groupIDs = append(groupIDs, group.Id)
 	}
 
 	// 2- fetch credential from identifiers via args
 	credentials, err := modelhelper.GetCredentialsFromIdentifiers(identifiers...)
 	if err != nil {
-		return ResError(err, "jCredential")
+		return models.ResError(err, "jCredential")
 	}
 
 	credentialTitles := make(map[string]string, len(credentials))
@@ -455,14 +411,14 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 		selector := modelhelper.Selector{
 			"targetId": cred.Id,
 			"sourceId": bson.M{
-				"$in": []bson.ObjectId{account.Id, group.Id},
+				"$in": groupIDs,
 			},
 			"as": bson.M{"$in": permittedTargets},
 		}
 
 		count, err := modelhelper.RelationshipCount(selector)
 		if err != nil {
-			return ResError(err, "jRelationship")
+			return models.ResError(err, "jRelationship")
 		}
 		if count == 0 {
 			return fmt.Errorf("credential with identifier '%s' is not validated: %v", cred.Identifier, err)
@@ -473,17 +429,8 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 
 	// 5- return list of keys.
 	b.Koding = &stack.Credential{
-		Provider: "koding",
-		Credential: &KodingMeta{
-			Email:     user.Email,
-			Username:  user.Name,
-			Nickname:  account.Profile.Nickname,
-			Firstname: account.Profile.FirstName,
-			Lastname:  account.Profile.LastName,
-			Hash:      account.Profile.Hash,
-			Title:     group.Title,
-			Slug:      group.Slug,
-		},
+		Provider:   "koding",
+		Credential: kodingMeta,
 	}
 
 	creds := make([]*stack.Credential, 0, len(validKeys))
@@ -498,7 +445,7 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 
 	if err := b.FetchCredentials(username, creds...); err != nil {
 		// TODO(rjeczalik): add *NotFoundError support to CredStore
-		return ResError(err, "jCredentialData")
+		return models.ResError(err, "jCredentialData")
 	}
 
 	b.Credentials = append(b.Credentials, creds...)
@@ -635,14 +582,21 @@ func makeCreds(init bool, c ...*stack.Credential) map[string]interface{} {
 	creds := make(map[string]interface{}, len(c))
 
 	if init {
-		for _, c := range c {
-			if c.Credential == nil {
-				c.Credential = schema(c.Provider).newCredential()
+		// Using func-scope to defer unlocking in case user-provided
+		// function panics.
+		func() {
+			providersMu.Lock()
+			defer providersMu.Unlock()
+
+			for _, c := range c {
+				if c.Credential == nil {
+					c.Credential = schema(c.Provider).newCredential()
+				}
+				if c.Bootstrap == nil {
+					c.Bootstrap = schema(c.Provider).newBootstrap()
+				}
 			}
-			if c.Bootstrap == nil {
-				c.Bootstrap = schema(c.Provider).newBootstrap()
-			}
-		}
+		}()
 	}
 
 	for _, c := range c {

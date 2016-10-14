@@ -1,7 +1,9 @@
 package object
 
 import (
+	"encoding"
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -68,6 +70,66 @@ func (b *Builder) Build(v interface{}, ignored ...string) Object {
 	obj := make(Object)
 	b.build(v, obj, ignored...)
 	return obj
+}
+
+// TODO(rjeczalik): add support for patching - accept path instead of key,
+// so it's possible to partially update nested structs / maps.
+func (b *Builder) Set(v interface{}, key string, value interface{}) error {
+	type setter interface {
+		Set(string) error
+	}
+
+	for _, field := range structs.New(toStruct(v)).Fields() {
+		if !field.IsExported() {
+			continue
+		}
+
+		name := field.Name()
+		if b.Tag != "" {
+			name = field.Tag(b.Tag)
+			if i := strings.IndexRune(name, ','); i != -1 {
+				name = name[:i]
+			}
+		}
+
+		if name != key {
+			continue
+		}
+
+		if value == nil {
+			field.Set(reflect.Zero(reflect.TypeOf(field.Value())).Interface())
+			return nil
+		}
+
+		var s string
+
+		switch v := value.(type) {
+		case string:
+			s = v
+		case fmt.Stringer:
+			s = v.String()
+		default:
+			field.Set(value)
+			return nil
+		}
+
+		switch f := field.Value().(type) {
+		case encoding.TextUnmarshaler:
+			if err := f.UnmarshalText([]byte(s)); err != nil {
+				return err
+			}
+		case setter:
+			if err := f.Set(s); err != nil {
+				return err
+			}
+		default:
+			field.Set(value)
+		}
+
+		break
+	}
+
+	return nil
 }
 
 // Decode marshals map-like obj value into v.

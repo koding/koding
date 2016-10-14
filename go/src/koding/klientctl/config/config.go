@@ -4,13 +4,11 @@ package config
 import (
 	"fmt"
 	"net/url"
-	"os"
 	"path"
-	"path/filepath"
 	"runtime"
 	"strconv"
 
-	"koding/config"
+	konfig "koding/kites/config"
 )
 
 const (
@@ -20,14 +18,6 @@ const (
 
 	// KlientName is the user facing name for klient.
 	KlientName = "KD Daemon"
-
-	// KlientAddress is url of locally running klient to connect to send
-	// user commands.
-	KlientAddress = "http://127.0.0.1:56789/kite"
-
-	// KiteHome is full path to the kite key that we will use to authenticate
-	// to the given klient.
-	KiteHome = "/etc/kite"
 
 	// SSHDefaultKeyDir is the default directory that stores users ssh key pairs.
 	SSHDefaultKeyDir = ".ssh"
@@ -65,50 +55,21 @@ var (
 	// to register with Kontrol and to install klient.
 	//
 	// Environment is overwritten during deploy via linker flag.
-	Environment = "production"
+	Environment = "development"
 
 	// KiteVersion is the version identifier used to connect to Kontrol.
-	KiteVersion = fmt.Sprintf("0.0.%s", Version)
-
-	// KiteKeyPath is the full path to kite.key.
-	KiteKeyPath = filepath.Join(KiteHome, "kite.key")
+	KiteVersion = "0.0." + Version
 
 	// Used to send basic error metrics.
 	//
 	// Injected on build.
 	SegmentKey = ""
-
-	// KontrolURL is the url to connect to authenticate local klient and get
-	// list of machines.
-	KontrolURL = config.Builtin.Endpoints.URL("kontrol", Environment)
-
-	// TunnelKiteURL is the address that koding's tunnel service is run on.
-	TunnelKiteURL = config.Builtin.Endpoints.URL("tunnelserver", Environment)
-
-	// S3KlientLatest is URL to the latest version of the klient.
-	//
-	// TODO(rjeczalik): move to koding/config
-	S3KlientLatest = "https://koding-klient.s3.amazonaws.com/" + kd2klient(Environment) + "/latest-version.txt"
-
-	// S3KlientctlLatest is URL to the latest version of the klientctl.
-	//
-	// TODO(rjeczalik): move to koding/config
-	S3KlientctlLatest = "https://koding-kd.s3.amazonaws.com/" + Environment + "/latest-version.txt"
 )
 
-func init() {
-	if os.Getenv("KD_DEBUG") == "1" {
-		// For debugging kd build.
-		fmt.Println("Version", Version)
-		fmt.Println("Environment", Environment)
-		fmt.Println("KiteVersion", KiteVersion)
-		fmt.Println("KiteKeyPath", KiteKeyPath)
-		fmt.Println("KontrolURL", KontrolURL)
-		fmt.Println("TunnelKiteURL", TunnelKiteURL)
-		fmt.Println("S3KlientLatest", S3KlientLatest)
-		fmt.Println("S3KlientctlLatest", S3KlientctlLatest)
-	}
-}
+var Konfig = konfig.ReadKonfig(&konfig.Environments{
+	Env:       Environment,
+	KlientEnv: kd2klient(Environment),
+})
 
 func dirURL(s, env string) string {
 	u, err := url.Parse(s)
@@ -135,7 +96,7 @@ func VersionNum() int {
 }
 
 func S3Klient(version int, env string) string {
-	s3dir := dirURL(S3KlientLatest, kd2klient(env))
+	s3dir := dirURL(Konfig.KlientLatestURL, kd2klient(env))
 
 	// TODO(rjeczalik): klient uses a URL without $GOOS_$GOARCH suffix for
 	// auto-updates. Remove the special case when a redirect is deployed
@@ -149,7 +110,7 @@ func S3Klient(version int, env string) string {
 }
 
 func S3Klientctl(version int, env string) string {
-	return fmt.Sprintf("%s/kd-0.1.%d.%s_%s.gz", dirURL(S3KlientctlLatest, env),
+	return fmt.Sprintf("%s/kd-0.1.%d.%s_%s.gz", dirURL(Konfig.KDLatestURL, env),
 		version, runtime.GOOS, runtime.GOARCH,
 	)
 }

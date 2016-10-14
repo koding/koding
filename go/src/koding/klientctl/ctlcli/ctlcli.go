@@ -9,10 +9,25 @@ import (
 	"io"
 	"os"
 
-	"github.com/koding/logging"
-
 	"github.com/codegangsta/cli"
+	"github.com/koding/logging"
 )
+
+var closers []io.Closer
+
+// CloseOnExit is a hack to close program-lifetime-bound resources,
+// like log file or BoltDB database.
+func CloseOnExit(c io.Closer) {
+	closers = append(closers, c)
+}
+
+// Close is a hack to close program-lifetime-bound resources,
+// like log file or BoltDB database.
+func Close() {
+	for _, c := range closers {
+		c.Close()
+	}
+}
 
 // Command is the basic interface for all klientctl commands.
 type Command interface {
@@ -69,7 +84,9 @@ func CommandHelper(ctx *cli.Context, cmd string) Helper {
 // ExitAction implements a cli.Command's Action field for an ExitingCommand type.
 func ExitAction(f ExitingCommand, log logging.Logger, cmdName string) func(*cli.Context) {
 	return func(c *cli.Context) {
-		os.Exit(f(c, log, cmdName))
+		exit := f(c, log, cmdName)
+		Close()
+		os.Exit(exit)
 	}
 }
 
@@ -78,6 +95,7 @@ func ExitErrAction(f ExitingErrCommand, log logging.Logger, cmdName string) func
 	return func(c *cli.Context) {
 		exit, err := f(c, log, cmdName)
 		log.Error("ExitErrAction encountered error. err:%s", err)
+		Close()
 		os.Exit(exit)
 	}
 }
@@ -97,6 +115,7 @@ func FactoryAction(factory CommandFactory, log logging.Logger, cmdName string) f
 			)
 		}
 
+		Close()
 		os.Exit(exit)
 	}
 }

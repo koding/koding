@@ -10,6 +10,8 @@ import (
 
 	"koding/kites/kloud/utils"
 	"koding/kites/tunnelproxy"
+
+	"github.com/koding/kite"
 )
 
 func TestE2E_TunnelproxyHTTP(t *testing.T) {
@@ -34,10 +36,12 @@ func testTunnelserverHTTP(t *testing.T, serverURL *url.URL) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	clientCfg, _ := Test.GenKiteConfig()
+	k := kite.New("tunnelclient", "0.0.1")
+	k.Config = clientCfg
 	clientOpts := &tunnelproxy.ClientOptions{
 		LastVirtualHost: serverURL.Host,
 		LocalAddr:       host(localServer.URL),
-		Config:          clientCfg,
+		Kite:            k,
 		OnRegister: func(req *tunnelproxy.RegisterResult) {
 			virtualHost = req.VirtualHost
 			wg.Done()
@@ -153,9 +157,11 @@ func testTunnelserverTCP(t *testing.T, serverURL *url.URL) {
 	defer echo1.Close()
 
 	clientCfg, _ := Test.GenKiteConfig()
+	k := kite.New("tunnelclient", "0.0.1")
+	k.Config = clientCfg
 	clientOpts := &tunnelproxy.ClientOptions{
 		LastVirtualHost:    serverURL.Host,
-		Config:             clientCfg,
+		Kite:               k,
 		OnRegisterServices: rec.Record,
 		OnRegister: func(req *tunnelproxy.RegisterResult) {
 			virtualHost = req.VirtualHost
@@ -269,7 +275,7 @@ func testWithTunnelserver(t *testing.T, test func(*testing.T, *url.URL)) {
 		SecretKey:       Test.SecretKey,
 		Config:          serverCfg,
 		ServerAddr:      serverURL.Host,
-		RegisterURL:     serverURL,
+		RegisterURL:     serverURL.String(),
 		TCPRangeFrom:    10000,
 		TCPRangeTo:      50000,
 		Log:             Test.Log.New("tunnelserver"),

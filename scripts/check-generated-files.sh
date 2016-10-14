@@ -11,7 +11,7 @@ find go/src/koding -type f -name '*.json' -exec  ex -sc '%!jq -M -S .' -cx {} \;
 #
 # NOTE(rjeczalik): For go-bindata it is good to pass fixed -mode and -modtime
 # flag values, so the files are no regenerated each time.
-# See koding/config/config.go for an example.
+# See koding/kites/config/config.go for an example.
 go generate koding/...
 
 

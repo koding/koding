@@ -17,8 +17,9 @@ import (
 )
 
 var (
-	providersMu sync.RWMutex
-	providers   = make(map[string]*Provider)
+	providersMu   sync.RWMutex
+	providers     = make(map[string]*Provider)
+	providerDescs = make(map[string]*stack.Description)
 )
 
 func Register(p *Provider) {
@@ -36,6 +37,11 @@ func Register(p *Provider) {
 	}
 
 	providers[p.Name] = p
+	providerDescs[p.Name] = &stack.Description{
+		Provider:   p.Name,
+		Credential: mustDescribe(schema(p.Name).newCredential()),
+		Bootstrap:  mustDescribe(schema(p.Name).newBootstrap()),
+	}
 }
 
 func All() []*Provider {
@@ -49,6 +55,39 @@ func All() []*Provider {
 	}
 
 	return all
+}
+
+func Desc(providers ...string) map[string]*stack.Description {
+	providersMu.RLock()
+	defer providersMu.RUnlock()
+
+	return desc(providers...)
+}
+
+func desc(providers ...string) map[string]*stack.Description {
+	nonempty := make([]string, 0, len(providers))
+
+	for _, p := range providers {
+		if p != "" {
+			nonempty = append(nonempty, p)
+		}
+	}
+
+	desc := make(map[string]*stack.Description)
+
+	if len(nonempty) == 0 {
+		for k, v := range providerDescs {
+			desc[k] = v
+		}
+	} else {
+		for _, k := range nonempty {
+			if v, ok := providerDescs[k]; ok {
+				desc[k] = v
+			}
+		}
+	}
+
+	return desc
 }
 
 type Provider struct {

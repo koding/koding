@@ -2,6 +2,7 @@ package vagrant
 
 import (
 	"errors"
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
@@ -28,7 +29,7 @@ func (s *Stack) HandlePlan(ctx context.Context) (interface{}, error) {
 	s.Log.Debug("Fetching template for id %s", arg.StackTemplateID)
 	stackTemplate, err := modelhelper.GetStackTemplate(arg.StackTemplateID)
 	if err != nil {
-		return nil, provider.ResError(err, "jStackTemplate")
+		return nil, models.ResError(err, "jStackTemplate")
 	}
 
 	if stackTemplate.Template.Content == "" {
