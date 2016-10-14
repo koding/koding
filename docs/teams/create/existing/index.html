@@ -13,7 +13,7 @@ title: Home
 
     <h1>Let’s Create Your Team</h1>
 
-    <form id="SignupForm" novalidate>
+    <form id="SignupForm" novalidate data-persist="garlic"  data-domain="true">
 
       <div class="SignupFieldset">
         <h3>Get developers up &amp; running in seconds</h3>
@@ -68,7 +68,7 @@ title: Home
       <div class="SignupFieldset">
         <div class="how_do_you_onboard_new_engineers">
           <legend></legend>
-          <textarea name="how_do_you_onboard_new_engineers" placeholder="Your team URL..."></textarea>
+          <textarea name="how_do_you_onboard_new_engineers" placeholder="How do you onboard new engineers?"></textarea>
         </div>
       </div>
 
@@ -104,6 +104,7 @@ title: Home
   <figure class="Micropage--Ground"></figure>
 </main>
 
-<script>{% include js/autosize.min.js %}</script>
 <script>{% include js/jquery.pwstrength.min.js %}</script>
+<script>{% include js/autosize.min.js %}</script>
+<script>{% include js/garlic.min.js %}</script>
 <script>{% include js/loginCreate.js %}</script>
