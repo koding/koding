@@ -143,18 +143,30 @@ $subtleColor                = #A59999
 .HomeAppViewListItem-label
   width                     50%
   &.disabled
-    opacity 0.5
-    pointer-events none
+    opacity                 0.5
+    pointer-events          none
 
-.HomeAppViewListItem-label
-  font-weight               600
-  font-size                 16px
-  color                     #769ECC
-  line-height               25px
-  pointer()
-  text-decoration           none
-  fontPrecisionForSoleil()
-
+.HomeAppViewListItem-label--wrapper
+  width                     400px
+  .HomeAppViewListItem-label
+    font-weight             600
+    font-size               16px
+    line-height             25px
+    color                   #769ECC
+    text-decoration         none
+    margin-right            20px
+    pointer()
+    fontPrecisionForSoleil()
+  .tag
+    rel()
+    display                 inline-block
+    top                     -1px
+    padding                 2px 10px
+    color                   #fff
+    bg                      color #2dbea1
+    font-size               12px
+    line-height             13px
+    font-weight             300
 
 .HomeAppViewListItem-description
   font-style                italic

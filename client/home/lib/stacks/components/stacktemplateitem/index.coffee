@@ -8,6 +8,7 @@ getBoundingClientReact = require 'app/util/getBoundingClientReact'
 StackUpdatedWidget = require 'app/components/sidebarstacksection/stackupdatedwidget'
 isAdmin = require 'app/util/isAdmin'
 whoami = require 'app/util/whoami'
+isStackTemplateSharedWithTeam = require 'app/util/isstacktemplatesharedwithteam'
 
 module.exports = class StackTemplateItem extends React.Component
 
@@ -123,6 +124,13 @@ module.exports = class StackTemplateItem extends React.Component
       </div>
     </div>
 
+  renderDefaultTag: ->
+    { template } = @props
+    if isStackTemplateSharedWithTeam template.get '_id'
+      <div className='tag'>DEFAULT</div>
+    else
+      null
+
 
   render: ->
 
@@ -134,13 +142,16 @@ module.exports = class StackTemplateItem extends React.Component
     editorUrl = "/Stack-Editor/#{template.get '_id'}"
 
     <div className='HomeAppViewListItem StackTemplateItem'>
-      <a
-        ref='stackTemplateItem'
-        href={editorUrl}
-        className='HomeAppViewListItem-label'
-        onClick={onOpen}>
-        { makeTitle { template, stack } }
-      </a>
+      <div className='HomeAppViewListItem-label--wrapper'>
+        <a
+          ref='stackTemplateItem'
+          href={editorUrl}
+          className='HomeAppViewListItem-label'
+          onClick={onOpen}>
+          { makeTitle { template, stack } }
+        </a>
+        {@renderDefaultTag()}
+      </div>
       {@renderUnreadCount()}
       {@renderStackUpdatedWidget()}
       <div className='HomeAppViewListItem-description'>
