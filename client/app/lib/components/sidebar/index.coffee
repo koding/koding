@@ -104,7 +104,7 @@ module.exports = class Sidebar extends React.Component
         linkController.openOrFocus remoteUrl
       when 'Make Team Default'
         computeController.makeTeamDefault draft.toJS(), yes
-      when 'Delete Stack Template'
+      when 'Delete'
         computeController.deleteStackTemplate draft.toJS(), yes
 
 
@@ -128,7 +128,7 @@ module.exports = class Sidebar extends React.Component
     ['Edit', 'Initialize'].forEach (name) => menuItems[name] = { callback }
     menuItems['Clone'] = { callback }  if canCreateStacks() or isAdmin()
     menuItems['Make Team Default'] = { callback } if isAdmin() and draft.get('machines').size
-    menuItems['Delete Stack Template'] = { callback }
+    menuItems['Delete'] = { callback }
     { top } = findDOMNode(@refs["draft-#{id}"]).getBoundingClientRect()
 
     menuOptions = { cssClass: 'SidebarMenu', x: 36, y: top + 31 }
