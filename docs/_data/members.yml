@@ -70,17 +70,6 @@
   github: szkl
   img: /assets/img/landing/team/sonmez_kartal2x.png
 
-- name: Tugce Evirgen
-  title: Engineering PM
-  twitter: tugceevirgen
-  linkedin: tugceevirgen
-  img: /assets/img/landing/team/tugce_evirgen2x.png
-
-- name: Asaf Rozengarten
-  title: Marketing Ops
-  linkedin: asaf-rozengarten-8a916561
-  img: /assets/img/landing/team/asaf_rozengarten2x.png
-
 - name: Hakan Karadis
   title: Engineer
   twitter: hkaradi1
@@ -102,13 +91,6 @@
   github: ezgikaysi
   img: /assets/img/landing/team/ezgi_kaysi_kesler2x.png
 
-- name: Lee Olayvar
-  title: Engineer
-  twitter: leeolayvar
-  github: leeola
-  img: /assets/img/landing/team/lee_olayvar2x.png
-
-- cssClass: 'invisible'
 # - cssClass: 'invisible' # this is a spacer if needed
 
 - name: Mehmet Ali Savas
