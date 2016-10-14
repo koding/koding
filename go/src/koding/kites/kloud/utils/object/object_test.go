@@ -157,6 +157,49 @@ func TestBuilderDecode(t *testing.T) {
 	}
 }
 
+func TestBuilderSet(t *testing.T) {
+	cases := []struct {
+		v     interface{}
+		key   string
+		value interface{}
+		want  interface{}
+	}{{
+		&Foo{},
+		"foo",
+		"Foo",
+		&Foo{Dupa: "Foo"},
+	}, {
+		&Bar{Bar: "old"},
+		"barbar",
+		"Bar",
+		&Bar{Bar: "Bar"},
+	}, {
+		&Bar{Bar: "Bar"},
+		"barbar",
+		nil,
+		&Bar{},
+	}}
+
+	b := &object.Builder{
+		Tag:       "object",
+		Sep:       ".", // TODO(rjeczalik): patching support
+		Recursive: true,
+	}
+
+	for i, cas := range cases {
+		err := b.Set(cas.v, cas.key, cas.value)
+		if err != nil {
+			t.Errorf("%d: Set()=%s", i, err)
+			continue
+		}
+
+		if !reflect.DeepEqual(cas.v, cas.want) {
+			t.Errorf("%d: got %+v, want %+v", i, cas.v, cas.want)
+			continue
+		}
+	}
+}
+
 func TestBuilderDecodeAwsMeta(t *testing.T) {
 	var RootModule = map[string]string{
 		"cidr_block": "10.0.0.0/16",

@@ -63,6 +63,14 @@ func (s *Stacker) New(p *Provider) *Stacker {
 	return &sCopy
 }
 
+func (s *Stacker) NewCredential() interface{} {
+	return s.Provider.newCredential()
+}
+
+func (s *Stacker) NewBootstrap() interface{} {
+	return s.Provider.newBootstrap()
+}
+
 func (s *Stacker) Machine(ctx context.Context, id string) (interface{}, error) {
 	bm, err := s.BaseMachine(ctx, id)
 	if err != nil {

@@ -182,7 +182,7 @@ func (cfg *Config) setDefaults() {
 		cfg.pemPublic = testkeys.Public
 	}
 
-	if cfg.Kontrol == (config.Config{}) {
+	if cfg.Kontrol.KontrolURL == "" {
 		cfg.Kontrol = config.Config{
 			Port:        4000,
 			Username:    "koding",

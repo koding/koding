@@ -84,42 +84,9 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 		return nil, NewError(ErrProviderNotFound)
 	}
 
-	// Build context value.
-	ctx := request.NewContext(context.Background(), r)
-	ctx = context.WithValue(ctx, TeamRequestKey, &args)
-	if k.PublicKeys != nil {
-		ctx = publickeys.NewContext(ctx, k.PublicKeys)
-	}
-
-	if k.ContextCreator != nil {
-		ctx = k.ContextCreator(ctx)
-	}
-
-	if args.StackID != "" {
-		evID := r.Method + "-" + args.StackID
-		ctx = eventer.NewContext(ctx, k.NewEventer(evID))
-
-		k.Log.Debug("Eventer created %q", evID)
-	} else if args.Identifier != "" {
-		evID := r.Method + "-" + args.GroupName + "-" + args.Identifier
-		ctx = eventer.NewContext(ctx, k.NewEventer(evID))
-
-		k.Log.Debug("Eventer created %q", evID)
-	}
-
-	if args.Debug {
-		ctx = k.setTraceID(r.Username, r.Method, ctx)
-	}
-
-	// Create stack handler.
-	v, err := p.Stack(ctx)
+	s, ctx, err := k.NewStack(p, r, &args)
 	if err != nil {
-		return nil, errors.New("error creating stack: " + err.Error())
-	}
-
-	s, ok := v.(Stacker)
-	if !ok {
-		return nil, NewError(ErrStackNotImplemented)
+		return nil, err
 	}
 
 	ctx = k.traceRequest(ctx, args.metricTags())
@@ -150,4 +117,46 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 	k.send(ctx)
 
 	return resp, err
+}
+
+func (k *Kloud) NewStack(p Provider, r *kite.Request, req *TeamRequest) (Stacker, context.Context, error) {
+	// Build context value.
+	ctx := request.NewContext(context.Background(), r)
+	ctx = context.WithValue(ctx, TeamRequestKey, req)
+	if k.PublicKeys != nil {
+		ctx = publickeys.NewContext(ctx, k.PublicKeys)
+	}
+
+	if k.ContextCreator != nil {
+		ctx = k.ContextCreator(ctx)
+	}
+
+	if req.StackID != "" {
+		evID := r.Method + "-" + req.StackID
+		ctx = eventer.NewContext(ctx, k.NewEventer(evID))
+
+		k.Log.Debug("Eventer created %q", evID)
+	} else if req.Identifier != "" {
+		evID := r.Method + "-" + req.GroupName + "-" + req.Identifier
+		ctx = eventer.NewContext(ctx, k.NewEventer(evID))
+
+		k.Log.Debug("Eventer created %q", evID)
+	}
+
+	if req.Debug {
+		ctx = k.setTraceID(r.Username, r.Method, ctx)
+	}
+
+	// Create stack handler.
+	v, err := p.Stack(ctx)
+	if err != nil {
+		return nil, nil, errors.New("error creating stack: " + err.Error())
+	}
+
+	s, ok := v.(Stacker)
+	if !ok {
+		return nil, nil, NewError(ErrStackNotImplemented)
+	}
+
+	return s, ctx, nil
 }

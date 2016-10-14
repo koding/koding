@@ -9,6 +9,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/keygen"
 	"koding/kites/kloud/contexthelper/publickeys"
+	"koding/kites/kloud/credential"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/pkg/dnsclient"
@@ -31,7 +32,7 @@ type Kloud struct {
 
 	// rename to providers once finished
 	// Providers that can satisfy procotol.Builder, protocol.Controller, etc..
-	providers map[string]interface{}
+	providers map[string]Provider
 
 	// statusCache is used to cache stack statuses for describeStack calls.
 	statusCache *cache.MemoryTTL
@@ -67,6 +68,17 @@ type Kloud struct {
 	// publicKey's on the fly and generates the privateKey themself.
 	PublicKeys *publickeys.Keys
 
+	// DescribeFunc is used to obtain provider types description.
+	//
+	// TODO(rjeczalik): It wraps provider.Desc function to avoid circular
+	// dependency. The Kloud kite handlers should be moved from this
+	// package to kloud one in order to solve this and improve the
+	// import structure.
+	DescribeFunc func(providers ...string) map[string]*Description
+
+	// CredClient handles credential.* methods.
+	CredClient *credential.Client
+
 	Metrics *metrics.DogStatsD
 
 	// Enable debug mode
@@ -81,7 +93,7 @@ func New() *Kloud {
 		idlock:      idlock.New(),
 		Log:         log,
 		Eventers:    make(map[string]eventer.Eventer),
-		providers:   make(map[string]interface{}),
+		providers:   make(map[string]Provider),
 		statusCache: cache.NewMemoryWithTTL(time.Second * 10),
 	}
 

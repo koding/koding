@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 	uuid "github.com/satori/go.uuid"
 
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
@@ -36,20 +37,22 @@ import (
 // is zeroed, which could make the destroy oepration to fail - we
 // first build machines and rest of the destroy is perfomed asynchronously.
 func (bs *BaseStack) HandleApply(ctx context.Context) (interface{}, error) {
-	var arg stack.ApplyRequest
-	if err := bs.Req.Args.One().Unmarshal(&arg); err != nil {
-		return nil, err
+	arg, ok := ctx.Value(stack.ApplyRequestKey).(*stack.ApplyRequest)
+	if !ok {
+		arg = &stack.ApplyRequest{}
+
+		if err := bs.Req.Args.One().Unmarshal(&arg); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := arg.Valid(); err != nil {
 		return nil, err
 	}
 
-	bs.Arg = &arg
-
 	err := bs.Builder.BuildStack(arg.StackID, arg.Credentials)
 
-	if err != nil && !(arg.Destroy && IsNotFound(err, "jStackTemplate")) {
+	if err != nil && !(arg.Destroy && models.IsNotFound(err, "jStackTemplate")) {
 		return nil, err
 	}
 
@@ -61,10 +64,12 @@ func (bs *BaseStack) HandleApply(ctx context.Context) (interface{}, error) {
 		rt.Hijack()
 	}
 
+	bs.Arg = &arg
+
 	if arg.Destroy {
-		err = bs.destroy(ctx, &arg)
+		err = bs.destroy(ctx, arg)
 	} else {
-		err = bs.apply(ctx, &arg)
+		err = bs.apply(ctx, arg)
 	}
 
 	if err != nil {

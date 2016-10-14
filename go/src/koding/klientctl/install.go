@@ -9,11 +9,11 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"strconv"
 	"strings"
 
+	konfig "koding/kites/config"
 	"koding/klient/uploader"
 	"koding/klientctl/config"
 	"koding/klientctl/metrics"
@@ -29,8 +29,8 @@ type ServiceOptions struct {
 }
 
 var defaultServiceOpts = &ServiceOptions{
-	Username:   username(),
-	KontrolURL: config.KontrolURL,
+	Username:   konfig.CurrentUser.Username,
+	KontrolURL: config.Konfig.KontrolURL,
 }
 
 var klientShTmpl = template.Must(template.New("").Parse(`#!/bin/bash
@@ -112,7 +112,7 @@ func newService(opts *ServiceOptions) (service.Service, error) {
 				"USERNAME":         opts.Username,
 				"KITE_USERNAME":    "",
 				"KITE_KONTROL_URL": opts.KontrolURL,
-				"KITE_HOME":        config.KiteHome,
+				"KITE_HOME":        config.Konfig.KiteHome(),
 			},
 		},
 	}
@@ -193,7 +193,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 	kontrolURL := strings.TrimSpace(c.String("kontrol"))
 	if kontrolURL == "" {
 		// Default to the config's url
-		kontrolURL = config.KontrolURL
+		kontrolURL = config.Konfig.KontrolURL
 	}
 
 	// Create the installation dir, if needed.
@@ -211,8 +211,8 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 	// TODO: Accept `kd install --user foo` flag to replace the
 	// environ checking.
 	klientSh := klientSh{
-		User:          username(),
-		KiteHome:      config.KiteHome,
+		User:          konfig.CurrentUser.Username,
+		KiteHome:      config.Konfig.KiteHome(),
 		KlientBinPath: klientBinPath,
 		KontrolURL:    kontrolURL,
 	}
@@ -225,7 +225,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 
 	fmt.Println("Downloading...")
 
-	version, err := latestVersion(config.S3KlientLatest)
+	version, err := latestVersion(config.Konfig.KlientLatestURL)
 	if err != nil {
 		fmt.Printf(FailedDownloadingKlient)
 		return 1, fmt.Errorf("error getting latest klient version: %s", err)
@@ -244,7 +244,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 	cmd := exec.Command(klientBinPath, "-register",
 		"-token", authToken,
 		"--kontrol-url", kontrolURL,
-		"--kite-home", config.KiteHome,
+		"--kite-home", config.Konfig.KiteHome(),
 	)
 
 	var errBuf bytes.Buffer
@@ -264,24 +264,24 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 		return 1, err
 	}
 
-	fmt.Printf("Created %s\n", filepath.Join(config.KiteHome, "kite.key"))
+	fmt.Println("Created ", config.Konfig.KiteKeyFile)
 
 	// Klient is setting the wrong file permissions when installed by ctl,
 	// so since this is just ctl problem, we'll just fix the permission
 	// here for now.
-	if err := os.Chmod(config.KiteHome, 0755); err != nil {
+	if err := os.Chmod(config.Konfig.KiteHome(), 0755); err != nil {
 		err = fmt.Errorf(
 			"error chmodding KiteHome %q: %s",
-			config.KiteHome, err,
+			config.Konfig.KiteHome(), err,
 		)
 		fmt.Println(FailedInstallingKlient)
 		return 1, err
 	}
 
-	if err := os.Chmod(filepath.Join(config.KiteHome, "kite.key"), 0644); err != nil {
+	if err := os.Chmod(config.Konfig.KiteKeyFile, 0644); err != nil {
 		err = fmt.Errorf(
 			"error chmodding kite.key %q: %s",
-			filepath.Join(config.KiteHome, "kite.key"), err,
+			config.Konfig.KiteKeyFile, err,
 		)
 		fmt.Println(FailedInstallingKlient)
 		return 1, err
@@ -322,7 +322,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 	}
 
 	fmt.Println("Verifying installation...")
-	err = WaitUntilStarted(config.KlientAddress, CommandAttempts, CommandWaitTime)
+	err = WaitUntilStarted(config.Konfig.KlientURL, CommandAttempts, CommandWaitTime)
 
 	// After X times, if err != nil we failed to connect to klient.
 	// Inform the user.
@@ -398,34 +398,4 @@ func (k klientSh) Create(file string) error {
 
 	// perm -rwr-xr-x, same as klient
 	return ioutil.WriteFile(file, []byte(p), 0755)
-}
-
-// sudoUserFromEnviron extracts the SUDO_USER environment variable value from
-// the given slice, if any.
-func sudoUserFromEnviron(envs []string) string {
-	for _, s := range envs {
-		env := strings.Split(s, "=")
-
-		if len(env) != 2 {
-			continue
-		}
-
-		if env[0] == "SUDO_USER" {
-			return env[1]
-		}
-	}
-
-	return ""
-}
-
-func username() string {
-	if s := sudoUserFromEnviron(os.Environ()); s != "" {
-		return s
-	}
-
-	if u, err := user.Current(); err == nil {
-		return u.Username
-	}
-
-	return ""
 }

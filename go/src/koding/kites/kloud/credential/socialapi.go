@@ -7,20 +7,19 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/stack"
 	"net/http"
 	"path"
 
-	"github.com/hashicorp/go-multierror"
+	"koding/db/mongodb/modelhelper"
 
+	"github.com/hashicorp/go-multierror"
 	"gopkg.in/mgo.v2"
 )
 
 // socialStore implements fetching/updating credential data values
 // from socialapi/credential endpoint.
 type socialStore struct {
-	*StoreOptions
+	*Options
 }
 
 var _ Store = (*socialStore)(nil)
@@ -137,7 +136,7 @@ func (s *socialStore) do(req *socialRequest) error {
 
 	var body io.Reader
 	if req.body != nil {
-		if validator, ok := req.body.(stack.Validator); ok {
+		if validator, ok := req.body.(validator); ok {
 			if err := validator.Valid(); err != nil {
 				return fmt.Errorf("%q: failed valitating data: %s", req.ident, err)
 			}
@@ -180,7 +179,7 @@ func (s *socialStore) do(req *socialRequest) error {
 			return fmt.Errorf("%q: failed decoding data: %s", req.ident, err)
 		}
 
-		if validator, ok := req.resp.(stack.Validator); ok {
+		if validator, ok := req.resp.(validator); ok {
 			if err := validator.Valid(); err != nil {
 				return fmt.Errorf("%q: failed valitating data: %s", req.ident, err)
 			}

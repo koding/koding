@@ -182,7 +182,7 @@ func New(conf *Config) (*Kloud, error) {
 		sess.Log.Warning(`disabling "Sneaker" for storing stack credential data`)
 	}
 
-	storeOpts := &credential.StoreOptions{
+	storeOpts := &credential.Options{
 		MongoDB: sess.DB,
 		Log:     sess.Log.New("stackcred"),
 		CredURL: credURL,
@@ -212,6 +212,9 @@ func New(conf *Config) (*Kloud, error) {
 			MongoDB:  sess.DB,
 		},
 	}
+
+	kloud.Stack.DescribeFunc = provider.Desc
+	kloud.Stack.CredClient = credential.NewClient(storeOpts)
 
 	kloud.Stack.ContextCreator = func(ctx context.Context) context.Context {
 		return session.NewContext(ctx, sess)
@@ -269,6 +272,13 @@ func New(conf *Config) (*Kloud, error) {
 	k.HandleFunc("describeStack", kloud.Stack.Status)
 	k.HandleFunc("authenticate", kloud.Stack.Authenticate)
 	k.HandleFunc("bootstrap", kloud.Stack.Bootstrap)
+	k.HandleFunc("import", kloud.Stack.Import)
+
+	k.HandleFunc("credential.describe", kloud.Stack.CredentialDescribe)
+	k.HandleFunc("credential.list", kloud.Stack.CredentialList)
+	k.HandleFunc("credential.add", kloud.Stack.CredentialAdd)
+
+	k.HandleFunc("machine.list", kloud.Stack.MachineList)
 
 	// Single machine handling
 	k.HandleFunc("stop", kloud.Stack.Stop)

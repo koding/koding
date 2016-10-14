@@ -3,10 +3,11 @@ package main
 import (
 	"errors"
 	"fmt"
-	"koding/klientctl/config"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"koding/klientctl/config"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
@@ -160,7 +161,7 @@ func UninstallCommand(c *cli.Context, log logging.Logger, _ string) (string, int
 		ServiceUninstaller: s,
 		KlientName:         config.KlientName,
 		KlientctlName:      config.Name,
-		KiteKeyDirectory:   config.KiteHome,
+		KiteKeyDirectory:   config.Konfig.KiteHome(),
 		// TODO: Store the kite.key path somewhere
 		KiteKeyFilename: "kite.key",
 		KlientctlPath:   filepath.Join(KlientctlDirectory, KlientctlBinName),

@@ -8,9 +8,13 @@ import (
 )
 
 func (bs *BaseStack) HandleAuthenticate(ctx context.Context) (interface{}, error) {
-	var arg stack.AuthenticateRequest
-	if err := bs.Req.Args.One().Unmarshal(&arg); err != nil {
-		return nil, err
+	arg, ok := ctx.Value(stack.AuthenticateRequestKey).(*stack.AuthenticateRequest)
+	if !ok {
+		arg = &stack.AuthenticateRequest{}
+
+		if err := bs.Req.Args.One().Unmarshal(&arg); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := arg.Valid(); err != nil {

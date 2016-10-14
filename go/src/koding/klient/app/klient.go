@@ -19,7 +19,7 @@ import (
 	"sync"
 	"time"
 
-	konfig "koding/config"
+	konfig "koding/kites/config"
 	"koding/klient/client"
 	"koding/klient/collaboration"
 	"koding/klient/command"
@@ -795,7 +795,7 @@ func userIn(user string, users ...string) bool {
 	return false
 }
 
-// TODO(rjeczalik): move to koding/config
+// TODO(rjeczalik): move to koding/kites/config
 var (
 	prodEnvs = map[string]struct{}{
 		"managed":    {},

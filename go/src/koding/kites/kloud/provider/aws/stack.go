@@ -86,7 +86,7 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	cred := c.Credential.(*Cred)
 	bootstrap := c.Bootstrap.(*Bootstrap)
 
-	if err := s.SetAwsRegion(cred.Region); err != nil {
+	if err := s.SetAwsRegion(string(cred.Region)); err != nil {
 		return nil, err
 	}
 
