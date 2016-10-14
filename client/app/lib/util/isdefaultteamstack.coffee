@@ -1,6 +1,6 @@
 kd = require 'kd'
 
-module.exports = isStackTemplateSharedWithTeam = (baseStackId) ->
+module.exports = isDefaultTeamStack = (baseStackId) ->
 
   { groupsController } = kd.singletons
   stackTemplates = groupsController.getCurrentGroup().stackTemplates ? []

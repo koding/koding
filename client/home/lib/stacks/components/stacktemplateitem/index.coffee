@@ -8,7 +8,7 @@ getBoundingClientReact = require 'app/util/getBoundingClientReact'
 StackUpdatedWidget = require 'app/components/sidebarstacksection/stackupdatedwidget'
 isAdmin = require 'app/util/isAdmin'
 whoami = require 'app/util/whoami'
-isStackTemplateSharedWithTeam = require 'app/util/isstacktemplatesharedwithteam'
+isDefaultTeamStack = require 'app/util/isdefaultteamstack'
 
 module.exports = class StackTemplateItem extends React.Component
 
@@ -126,7 +126,7 @@ module.exports = class StackTemplateItem extends React.Component
 
   renderDefaultTag: ->
     { template } = @props
-    if isStackTemplateSharedWithTeam template.get '_id'
+    if isDefaultTeamStack template.get '_id'
       <div className='tag'>DEFAULT</div>
     else
       null
