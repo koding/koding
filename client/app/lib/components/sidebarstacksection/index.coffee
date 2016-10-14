@@ -107,10 +107,6 @@ module.exports = class SidebarStackSection extends React.Component
         remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
           computeController.makeTeamDefault template, no  unless err
 
-      when 'Share With Team'
-        remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
-          computeController.shareStackWithTeam template
-
   onTitleClick: (event) ->
 
     kd.utils.stopDOMEvent event

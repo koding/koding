@@ -1245,20 +1245,6 @@ module.exports = class ComputeController extends KDController
     else showError 'Failed to share credential'
 
 
-  shareStackWithTeam: (template) ->
-    { computeController } = kd.singletons
-    { credentials, config: { requiredProviders } } = template
-
-    template.setAccess 'group', (err) =>
-
-      createShareModal (needShare, modal) =>
-        if needShare
-        then @shareCredentials credentials, requiredProviders, -> modal.destroy()
-        else modal.destroy()
-
-
-
-
   ###*
    * Reinit's given stack or groups default stack
    * If stack given, it asks for re-init and first deletes and then calls
