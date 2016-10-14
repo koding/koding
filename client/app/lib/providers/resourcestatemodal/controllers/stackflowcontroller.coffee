@@ -68,10 +68,10 @@ module.exports = class StackFlowController extends kd.Controller
     @instructions.on 'NextPageRequested', => @credentials.show()
     @credentials.on 'InstructionsRequested', => @instructions.show()
     @credentials.on 'StartBuild', @bound 'startBuild'
-    @buildStack.on 'CredentialsRequested', => @credentials.show()
-
+    @buildStack.on 'CredentialsRequested', (stack) =>
+      @credentials.setData stack
+      @credentials.show()
     @buildStack.on 'RebuildRequested', (stack) =>
-      stack.status.state = 'NotInitialized'
       @credentials.setData stack
       @credentials.submit()
 
