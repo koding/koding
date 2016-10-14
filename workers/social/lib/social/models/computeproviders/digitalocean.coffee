@@ -2,8 +2,15 @@ ProviderInterface = require './providerinterface'
 
 module.exports = class DigitalOcean extends ProviderInterface
 
+  @providerSlug  = 'digitalocean'
+
+  @bootstrapKeys = ['key_id', 'key_name']
+
+  @sensitiveKeys = ['access_token']
+
   @ping = (client, options, callback) ->
     callback null, "DigitalOcean is better #{ client.r.account.profile.nickname }!"
+
 
   @create = (client, options, callback) ->
 
