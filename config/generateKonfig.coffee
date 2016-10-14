@@ -149,13 +149,8 @@ module.exports = (options, credentials) ->
     vmWatcherSecretKey: credentials.vmwatcher.secretKey
     terraformerSecretKey: credentials.terraformer.secretKey
 
-    awsAccessKeyId: credentials.awsKeys.vm_kloud.accessKeyId
-    awsSecretAccessKey: credentials.awsKeys.vm_kloud.secretAccessKey
-
   vmwatcher =
     port: vmwatcherPort
-    awsKey: credentials.awsKeys.vm_vmwatcher.accessKeyId
-    awsSecret: credentials.awsKeys.vm_vmwatcher.secretAccessKey
     kloudSecretKey: kloud.kloudSecretKey
     kloudAddr: kloud.address
     connectToKlient: options.vmwatcherConnectToKlient
