@@ -1,7 +1,7 @@
 ---
 layout: post
 title: KODING IS NOW PUBLIC!
-image: http://farm3.static.flickr.com/2241/2460885459_b1afdbd666_b.jpg
+image: /assets/img/blog/2460885459_b1afdbd666_b.jpg
 author:
   name: Devrim Yasar
   email: devrim@koding.com

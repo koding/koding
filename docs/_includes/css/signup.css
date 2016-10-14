@@ -1,0 +1,225 @@
+.Micropage--container form:before {
+    content: '';
+    position: absolute;
+    background: transparent url('{{ site.url }}/assets/img/landing/misc/alien_holding_from_top.svg') 0 0 no-repeat;
+    width: 81px;
+    height: 41px;
+    top: -31px;
+    left: calc(50% - 40.5px);
+}
+.Micropage--container h1 {
+    font-size: 27px;
+    color: #F2778A;
+    letter-spacing: 0px;
+    line-height: 32px;
+    text-align: center;
+}
+.Micropage--container h3 {
+    font-size: 18px;
+    color: #727272;
+    letter-spacing: 0.2px;
+    line-height: 27px;
+    text-align: center;
+    font-weight: 500;
+}
+.Micropage--container h4 {
+    margin-bottom: 15px;
+    text-align: center;
+}
+.Micropage--container h4 a {
+    font-size: 14px;
+    color: #67A2EE;
+    letter-spacing: 0.15px;
+    line-height: 27px;
+    text-decoration: none;
+    font-weight: 500;
+}
+.Micropage--container h3.optional {
+    margin: 13px 0 21px;
+}
+.Micropage--container h3 strong {
+    color: #F2778A;
+}
+.Micropage--container h3 em {
+    font-style: normal;
+    font-weight: 300;
+}
+.SignupFieldset {
+    margin-bottom: 10px;
+}
+.SignupFieldset > div label span {
+    display: none;
+}
+.SignupFieldset > div label span.hs-form-required {
+    position: absolute;
+    right: 0px;
+    color: red;
+    top: 10px;
+    font-size: 20px;
+}
+.SignupFieldset.double {
+    display: flex;
+    justify-content: space-between;
+}
+
+.SignupFieldset.double > div {
+    flex: 0 0 auto;
+    width: calc(50% - 4px);
+}
+
+.SignupFieldset > div legend {
+    opacity: 0;
+    position: absolute;
+    right: -258px;
+    width: 268px;
+    min-height: 100px;
+    background: white;
+    padding: 21px 30px 21px;
+    box-sizing: border-box;
+    border-left: 10px solid #A8CEFF;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 300;
+    color: #979797;
+    letter-spacing: 0px;
+    line-height: 18px;
+    transition: opacity .2s ease;
+}
+.SignupFieldset .password legend:before {
+    content: attr(data-strength);
+}
+.SignupFieldset.double > div:first-child legend {
+    right: initial;
+    left: -258px;
+    border-left: none;
+    border-right: 10px solid #A8CEFF;
+}
+.SignupFieldset > div legend:before {
+    content: 'Tip:';
+    font-size: 18px;
+    font-weight: 600;
+    color: #56A2D3;
+    letter-spacing: 0.17px;
+    line-height: 16px;
+    margin-bottom: 14px;
+    display: block;
+}
+.SignupFieldset > div legend:after {
+    content: '';
+    border: 8px solid transparent;
+    border-right-color: #A8CEFF;
+    display: block;
+    position: absolute;
+    left: -26px;
+    top: 15px;
+}
+.SignupFieldset.double > div:first-child legend:after {
+    border-right-color: transparent;
+    border-left-color: #A8CEFF;
+    left: initial;
+    right: -26px;
+}
+
+.SignupFieldset > div input,
+.SignupFieldset > div textarea,
+.SignupFieldset > div select {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #D9D9D9;
+    border-radius: 3px;
+    padding: 11px 20px 10px;
+    letter-spacing: .3px;
+    line-height: 19px;
+    font-weight: 300;
+    text-rendering: geometricPrecision;
+    opacity: .99;
+    margin: 0;
+    font-size: 15.7px;
+}
+.SignupFieldset > div select,
+.SignupFieldset.double > div select {
+    height: 42px;
+    background: white url('http://cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/select_triangle.svg') center right no-repeat;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-position: right 10px center;
+    padding: 11px 30px 10px 20px;
+}
+.SignupFieldset > div:last-of-type .input,
+.SignupFieldset.double > div:last-of-type .input {
+    margin-right: 0;
+}
+.SignupFieldset.double > div input::-moz-placeholder {
+   color: #8D8D8D;
+}
+.SignupFieldset.double > div input::-webkit-input-placeholder {
+   color: #8D8D8D;
+}
+.SignupFieldset > div input.error {
+    border-color: #F2778A !important;
+}
+.Micropage--container form div > button {
+    width: 100%;
+    padding: 14px 0 13px;
+    text-align: center;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background: #F2778A;
+    border: 1px solid #F2778A;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 18px;
+    color: #FFFFFF;
+    letter-spacing: 0px;
+    margin-top: 20px;
+}
+
+.SignupFieldset > div textarea {
+    height: 42px;
+}
+
+.Micropage--container form .errors {
+    background: rgba(242, 119, 138, .05);
+    border-radius: 3px;
+    font-size: 14px;
+    color: #F2778A;
+    letter-spacing: 0px;
+    line-height: 18px;
+    padding: 8px 18px;
+    box-sizing: border-box;
+}
+.SignupFieldset.double > div:first-of-type .errors,
+.SignupFieldset.double .desc + > div .errors {
+    margin-right: 8px;
+}
+.SignupFieldset > div .errors a {
+    color: #56A2D3;
+}
+.SignupFieldset .team_url {
+    position: relative;
+}
+.SignupFieldset .team_url input {
+    padding: 11px 146px 10px 20px;
+}
+.SignupFieldset .team_url legend {
+    right: -308px;
+}
+.SignupFieldset .team_url:after {
+    content: '.koding.com';
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    box-sizing: border-box;
+    border-radius: 0 3px 3px 0;
+    border-left: 1px solid #D9D9D9;
+    background: #F7F7F7;
+    padding: 11px 20px 10px;
+    font-size: 15.7px;
+    letter-spacing: .3px;
+    line-height: 19px;
+    font-weight: 300;
+    text-rendering: geometricPrecision;
+    opacity: .99;
+}
