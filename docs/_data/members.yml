@@ -27,6 +27,11 @@
   github: sibblegp
   img: /assets/img/landing/team/george_sibble2x.png
 
+- name: James Ash
+  title: VP Sales & BD
+  linkedin: jameswash
+  img: /assets/img/landing/team/james_ash2x.png
+
 - name: Gokmen Goksel
   title: Engineering Lead
   twitter: gokmen
@@ -46,6 +51,11 @@
   twitter: ftasdelen
   linkedin: ftasdelen
   img: /assets/img/landing/team/fahrettin_tasdelen2x.png
+
+- name: Arsal Asal
+  title: Creative Producer
+  linkedin: arsal-asal-1a963210b
+  img: /assets/img/landing/team/arsal_asal2x.png
 
 - name: Rafal Jeczalik
   title: Engineer
@@ -99,10 +109,35 @@
   img: /assets/img/landing/team/lee_olayvar2x.png
 
 - cssClass: 'invisible'
+# - cssClass: 'invisible' # this is a spacer if needed
 
 - name: Mehmet Ali Savas
   title: Engineer
   linkedin: mehmet-ali-savas-511596105
   github: mehmetalisavas
   img: /assets/img/landing/team/mehmet_ali_savas2x.png
+
+- name: Can Sirin
+  title: Engineer
+  github: cansirin
+  img: /assets/img/landing/team/can_sirin2x.png
+
+- name: Paweł Knap
+  title: Engineer
+  github: ppknap
+  img: /assets/img/landing/team/pawel_knap2x.png
+
+- name: Khaled Wagdy
+  title: Support Engineer
+  github: kwagdy
+  img: /assets/img/landing/team/khaled_wagdy2x.png
+
+- name: Hector Caceres
+  title: Support Engineer
+  img: /assets/img/landing/team/hector_caceres2x.png
+
+- name: Andrew J Casal
+  title: Frontend Developer
+  github: andrewjcasal
+  img: /assets/img/landing/team/andrew_casal2x.png
 
