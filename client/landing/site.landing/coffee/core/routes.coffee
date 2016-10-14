@@ -33,6 +33,14 @@ do ->
 
   handleInvitation = ({ params : { token }, query }) ->
 
+    { router } = kd.singletons
+
+    # remove stored team data so previous invitation token won't be used
+    # if user joins a public team which doesn't require token
+    if not token
+      utils.clearTeamData()
+      return router.handleRoute '/Join'
+
     utils.routeIfInvitationTokenIsValid token,
       success   : ({ email }) ->
         utils.storeNewTeamData 'invitation', { token, email }
@@ -41,7 +49,7 @@ do ->
         go = ->
           utils.storeNewTeamData 'signup', formData
           utils.storeNewTeamData 'welcome', yes
-          kd.singletons.router.handleRoute '/Join'
+          router.handleRoute '/Join'
 
         formData          = {}
         formData.join     = yes
@@ -57,7 +65,7 @@ do ->
             go()
       error     : ({ responseText }) ->
         new kd.NotificationView { title : responseText }
-        kd.singletons.router.handleRoute '/'
+        router.handleRoute '/'
 
 
   handleTeamOnboardingRoute = (section, { params, query }) ->
@@ -101,7 +109,7 @@ do ->
     ''                     : handleRoot
     # the routes below are subdomain routes
     # e.g. team.koding.com/Invitation
-    '/Invitation/:token'   : handleInvitation
+    '/Invitation/:token?'  : handleInvitation
     '/Home/Oauth'          : handleOauth
     # '/Welcome'             : handleTeamOnboardingRoute.bind this, 'welcome'
     '/Join'                : handleTeamOnboardingRoute.bind this, 'join'
