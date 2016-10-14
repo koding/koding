@@ -105,6 +105,7 @@ rest = ->
     log "6) you can then type './run' to run Koding and see it on #{options.hostname}"
 
     (require "./deployment/socialapiconfig.coffee").create KONFIG
+    (require "./deployment/mongomigrationconfig.coffee").create KONFIG
 
   # write revision to client/.config.json
   writeVersion = (obj) ->

@@ -196,6 +196,7 @@ generateDev = (KONFIG, options) ->
       echo "  run printconfig           : to print koding config environment variables (output in json via --json flag)"
       echo "  run worker [worker]       : to run a single worker"
       echo "  run migrate [command]     : to apply/revert database changes (command: [create|up|down|version|reset|redo|to|goto])"
+      echo "  run mongomigrate [command]: to apply/revert mongo database changes (command: [create|up|down])"
       echo "  run importusers           : to import koding user data"
       echo "  run nodeservertests       : to run tests for node.js web server"
       echo "  run socialworkertests     : to run tests for social worker"
@@ -247,7 +248,40 @@ generateDev = (KONFIG, options) ->
       if [ "$param" == "create" ]; then
         echo "Please edit created script files and add them to your repository."
       fi
+    }
 
+    function mongomigrate () {
+      params=(create up down)
+      param=$1
+      echo $1
+      case "${params[@]}" in  *"$param"*)
+        ;;
+      *)
+        echo "Error: Command not found: $param"
+        echo "Usage: run migrate COMMAND [arg]"
+        echo ""
+        echo "Commands:  "
+        echo "  create [filename] : create new migration file under ./workers/migrations (ids will increase by 5)"
+        echo "  up                : apply all available migrations"
+        echo "  down [id]         : roll back to id (if not given roll back all migrations)"
+
+        echo ""
+        exit 1
+      ;;
+      esac
+
+      if [ "$param" == "create" ] && [ -z "$2" ]; then
+        echo "Please choose a migration file name. (ex. add_super_user)"
+        echo "Usage: ./run mongomigrate create [filename]"
+        echo ""
+        exit 1
+      fi
+
+      node $KONFIG_PROJECTROOT/node_modules/mongodb-migrate -runmm --config ../deployment/generated_files/mongomigration.json --dbPropName conn -c $KONFIG_PROJECTROOT/workers $1 $2
+
+      if [ "$param" == "create" ]; then
+        echo "Please edit created script files and add them to your repository."
+      fi
     }
 
     function check (){
@@ -326,8 +360,22 @@ generateDev = (KONFIG, options) ->
         done
     }
 
+    function waitMongoReady() {
+        retries=60
+        while ! mongo $KONFIG_MONGO --eval "db.stats()" > /dev/null 2>&1; do
+          sleep 1
+          let retries--
+          if [ $retries == 0 ]; then
+            echo "time out while waiting for mongo is ready"
+            exit 1
+          fi
+          echo "mongo is not reachable, trying again "
+        done
+    }
+
     function runMongoDocker () {
-        docker run -d -p 27017:27017 --name=mongo koding/mongo:2016-10-11
+        docker run -d -p 27017:27017 --name=mongo koding/mongo-auto:latest
+        waitMongoReady
     }
 
     function runPostgresqlDocker () {
@@ -409,12 +457,13 @@ generateDev = (KONFIG, options) ->
     }
 
     function removeDockerByName () {
-      docker ps ps -all --quiet --filter name=$1 | xargs docker rm -f && echo deleted $1 image
+      docker ps -all --quiet --filter name=$1 | xargs docker rm -f && echo deleted $1 image
     }
 
     function restoredefaultmongodump () {
       removeDockerByName mongo
       runMongoDocker
+      mongomigrate up
     }
 
     function restoredefaultpostgresdump () {
@@ -579,6 +628,12 @@ generateDev = (KONFIG, options) ->
 
     elif [ "$1" == "is_pgready" ]; then
       waitPostgresReady
+
+    elif [ "$1" == "is_mongoready" ]; then
+      waitMongoReady
+
+    elif [ "$1" == "mongomigrate" ]; then
+      mongomigrate $2 $3
 
     else
       echo "Unknown command: $1"
