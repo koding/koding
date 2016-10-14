@@ -1,3 +1,5 @@
+{% assign ufoPath = site.url | append: '/assets/img/landing/ufo-hero' %}
+
 main.Micropage {
     height: calc(100vh - 134px);
     width: 100%;
@@ -11,7 +13,7 @@ main.Micropage {
     position: relative;
     z-index: 1;
     background: #F7F7F7;
-    border-radius: 6px;    
+    border-radius: 6px;
     padding: 50px;
     max-width: 400px;
     margin: 0 auto;
@@ -19,7 +21,7 @@ main.Micropage {
 .Micropage--Ground {
     position: absolute;
     background-color: transparent;
-    background-image: url('http://cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/hero/ground_1600.svg');
+    background-image: url('{{ ufoPath }}/ground_1600.svg');
     background-repeat: no-repeat;
     background-position: center bottom;
     width: 100%;
@@ -31,7 +33,7 @@ main.Micropage {
 .Micropage--UFO {
     position: absolute;
     background-color: transparent;
-    background-image: url('http://cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/hero/ufo_1600.svg');
+    background-image: url('{{ ufoPath }}/ufo_1600.svg');
     background-repeat: no-repeat;
     background-position: right bottom;
     width: 100%;
@@ -42,47 +44,47 @@ main.Micropage {
 }
 
 @media (max-width: 1600px) {
-    
+
     main.Micropage {
         height: calc(100vh - 143px);
     }
     .Micropage--container {
     }
     .Micropage--Ground {
-        background-image: url('http://cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/hero/ground_1200.svg');
+        background-image: url('{{ ufoPath }}/ground_1200.svg');
         height: 260px;
         bottom: -76px;
         background-size: 1614px 260px;
     }
     .Micropage--UFO {
-        background-image: url('http://cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/hero/ufo_1200.svg');
+        background-image: url('{{ ufoPath }}/ufo_1200.svg');
         height: 528px;
         background-size: 1051px 528px;
     }
-    
+
 }
 @media (max-width: 1200px) {
-    
+
     main.Micropage {
       height: calc(100vh - 94px);
     }
     .Micropage--container {
     }
     .Micropage--Ground {
-        background-image: url('http://cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/hero/ground_768.svg');
+        background-image: url('{{ ufoPath }}/ground_768.svg');
         height: 248px;
         bottom: -50px;
         background-size: 1457px 248px;
     }
     .Micropage--UFO {
-        background-image: url('http://cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/hero/ufo_1200.svg');
+        background-image: url('{{ ufoPath }}/ufo_1200.svg');
         height: 528px;
         background-size: 1051px 528px;
     }
 
 }
 @media (max-width: 768px) {
-    
+
     main.Micropage {
         height: calc(100vh - 137px);
     }
@@ -91,7 +93,7 @@ main.Micropage {
         margin: 0 30px;
     }
     .Micropage--Ground {
-        background-image: url('http://cdn2.hubspot.net/hubfs/1593820/homepage_ufo/img/hero/ground_ufo_375.svg');
+        background-image: url('{{ ufoPath }}/ground_ufo_375.svg');
         height: 637px;
         background-size: 798px 637px;
         bottom: -50px;
@@ -99,5 +101,5 @@ main.Micropage {
     .Micropage--UFO {
         display: none;
     }
-    
+
 }

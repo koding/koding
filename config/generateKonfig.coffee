@@ -159,7 +159,7 @@ module.exports = (options, credentials) ->
     redis: credentials.redis.url
     secretKey: credentials.vmwatcher.secretKey
 
-  hubspotPageURL      = "http://www.koding.com"
+  marketingPagesURL = "http://www.koding.com"
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
@@ -260,7 +260,7 @@ module.exports = (options, credentials) ->
     broker                        : broker
     tunnelproxymanager            : tunnelproxymanager
     tunnelserver                  : tunnelserver
-    hubspotPageURL                : hubspotPageURL
+    marketingPagesURL             : marketingPagesURL
     socialapi                     : socialapi
     githubapi                     : githubapi
     email                         : email

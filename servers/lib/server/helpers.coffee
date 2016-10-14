@@ -146,8 +146,8 @@ serveHome = (req, res, next) ->
 
         return res.redirect 307, '/Teams'
 
-      # all other requests coming to slash, goes back to KONFIG.hubspotPageURL
-      return res.redirect 307, KONFIG.hubspotPageURL
+      # all other requests coming to slash, goes back to KONFIG.marketingPagesURL
+      return res.redirect 307, KONFIG.marketingPagesURL
 
 
 
