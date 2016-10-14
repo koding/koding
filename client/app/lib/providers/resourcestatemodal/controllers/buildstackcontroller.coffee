@@ -25,9 +25,16 @@ module.exports = class BuildStackController extends kd.Controller
     @logsPage = new BuildStackLogsPageView { tailOffset : constants.BUILD_LOG_TAIL_OFFSET }, { stack }
     @timeoutPage = new BuildStackTimeoutPageView {}, { stack }
 
+    { router, appManager } = kd.singletons
     @buildStackPage.on 'BuildDone', @bound 'completePostBuildProcess'
     @forwardEvent @buildStackPage, 'ClosingRequested'
     @forwardEvent @successPage, 'ClosingRequested'
+    @successPage.on 'InstallRequested', =>
+      router.handleRoute '/Home/koding-utilities#kd-cli'
+      @emit 'ClosingRequested'
+    @successPage.on 'CollaborationInvite', =>
+      appManager.tell 'IDE', 'startCollaborationSession'
+      @emit 'ClosingRequested'
     @forwardErrorPageEvent 'CredentialsRequested'
     @forwardErrorPageEvent 'RebuildRequested'
     @successPage.on 'LogsRequested', @bound 'showLogs'

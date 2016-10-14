@@ -27,14 +27,15 @@ module.exports = class IDEStatusBar extends kd.View
     @participantAvatars = {}
     @avatarTimers       = {}
 
-    @on 'ShowAvatars',          @bound 'showAvatars'
-    @on 'ParticipantLeft',      @bound 'dimParticipantAvatar'
-    @on 'ParticipantJoined',    @bound 'addParticipantAvatar'
-    @on 'CollaborationLoading', @bound 'handleCollaborationLoading'
-    @on 'CollaborationEnded',   @bound 'handleCollaborationEnded'
-    @on 'CollaborationStarted', @bound 'handleCollaborationStarted'
-    @on 'ParticipantWatched',   @bound 'decorateWatchedAvatars'
-    @on 'ParticipantUnwatched', @bound 'decorateUnwatchedAvatars'
+    @on 'ShowAvatars',            @bound 'showAvatars'
+    @on 'ParticipantLeft',        @bound 'dimParticipantAvatar'
+    @on 'ParticipantJoined',      @bound 'addParticipantAvatar'
+    @on 'CollaborationPreparing', @bound 'handleCollaborationPreparing'
+    @on 'CollaborationLoading',   @bound 'handleCollaborationLoading'
+    @on 'CollaborationEnded',     @bound 'handleCollaborationEnded'
+    @on 'CollaborationStarted',   @bound 'handleCollaborationStarted'
+    @on 'ParticipantWatched',     @bound 'decorateWatchedAvatars'
+    @on 'ParticipantUnwatched',   @bound 'decorateUnwatchedAvatars'
 
     { mainController, router, appManager } = kd.singletons
 
@@ -147,13 +148,6 @@ module.exports = class IDEStatusBar extends kd.View
 
   startSession: ->
 
-    @share.setOption 'startProgress', yes
-    @share.updateProgress 0 # Make sure initial value is 0
-
-    PROGRESS_DELAYS.forEach (item) =>
-      kd.utils.killWait item.timer  if item.timer # Kill already defined waits
-      item.timer = kd.utils.wait item.delay, => @share.updateProgress item.progress
-
     kd.singletons.appManager.tell 'IDE', 'startCollaborationSession', (err) =>
       @resetProgress()  if err
 
@@ -255,6 +249,16 @@ module.exports = class IDEStatusBar extends kd.View
     return unless avatarView = @participantAvatars[from]
 
     avatarView.showRequestPermissionView()
+
+
+  handleCollaborationPreparing: ->
+
+    @share.startProgress()
+    @share.updateProgress 0 # Make sure initial value is 0
+
+    PROGRESS_DELAYS.forEach (item) =>
+      kd.utils.killWait item.timer  if item.timer # Kill already defined waits
+      item.timer = kd.utils.wait item.delay, => @share.updateProgress item.progress
 
 
   handleCollaborationLoading: ->

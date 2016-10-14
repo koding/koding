@@ -7,8 +7,6 @@ module.exports = class BuildStackSuccessPageView extends JView
 
     super options, data
 
-    { router } = kd.singletons
-
     @logsButton = new kd.ButtonView
       title    : 'View Logs'
       cssClass : 'GenericButton secondary'
@@ -17,12 +15,12 @@ module.exports = class BuildStackSuccessPageView extends JView
     @installButton = new kd.ButtonView
       title    : 'Install'
       cssClass : 'GenericButton secondary'
-      callback : -> router.handleRoute '/Home/koding-utilities#kd-cli'
+      callback : @lazyBound 'emit', 'InstallRequested'
 
     @inviteButton = new kd.ButtonView
       title    : 'Invite'
       cssClass : 'GenericButton secondary'
-      callback : ->
+      callback : @lazyBound 'emit', 'CollaborationInvite'
 
     @closeButton = new kd.ButtonView
       title    : 'Start Coding'
