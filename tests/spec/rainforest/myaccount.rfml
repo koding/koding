@@ -22,7 +22,7 @@ Do you see 'Your account information is updated' message?
 Enter new {{ random.first_name }}@koding.com in the 'Email address' then click on 'Save Changes'
 Do you see 'Please verify your current password'  modal?
 
-Enter invalid password in current password field then click on 'Confirm'
+Enter '11001100' password in current password field then click on 'Confirm'
 Do you see 'Current password cannot be confirmed' message?
 
 Enter new {{ random.first_name }}@koding.com in the 'Email address' then click on 'Save Changes'
@@ -31,7 +31,7 @@ Do you see 'Please verify your current password' modal?
 Enter current password "{{ random.number }}" in current password field then click on 'Confirm'
 Do you see 'Please provide the code that we've emailed' modal?
 
-Enter invalid pin in pin code field then click on 'UPDATE E-MAIL'
+Enter '0000' in pin code field then click on 'UPDATE E-MAIL'
 Do you see 'PIN is not confirmed' message?
 
 Save image from here: {{ random.image }} to your desktop, click on 'CHANGE AVATAR' and choose the picture
