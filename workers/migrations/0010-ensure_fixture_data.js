@@ -1,7 +1,7 @@
 var mongodb = require('mongodb');
 var async = require('async');
-var ObjectId = mongodb.ObjectID
-var ISODate = Date
+var ObjectId = mongodb.ObjectID;
+var ISODate = Date;
 
 data = {
   "relationships": [
