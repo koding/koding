@@ -325,7 +325,7 @@
 
         function getUsernameError() {
             return $(
-                '<ul class="errors" style="display:block;"><li><label>Username is taken.</label></li><li><label><a href="http://www.koding.com/teams/create/existing">Creating a team with your existing account?</a></label></li></ul>'
+                '<ul class="errors" style="display:block;"><li><label>Username is taken.</label></li><li><label><a href="{{ site.url }}/teams/create/existing">Creating a team with your existing account?</a></label></li></ul>'
             )
         }
 
