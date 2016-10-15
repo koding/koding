@@ -6,7 +6,7 @@ module.exports =
 {
   "provider": {
     "digitalocean": {
-      "token": "${var.digitalocean_access_token}"
+      "access_token": "${var.digitalocean_access_token}"
     }
   },
   "resource": {
@@ -31,7 +31,7 @@ module.exports =
 
 provider:
   digitalocean:
-    token: '${var.digitalocean_access_token}'
+    access_token: '${var.digitalocean_access_token}'
 
 resource:
   digitalocean_droplet:
