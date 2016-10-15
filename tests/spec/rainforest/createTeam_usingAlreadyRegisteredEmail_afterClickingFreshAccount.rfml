@@ -7,17 +7,17 @@
 Click on the 'create a new team' link below the form where it says 'Welcome! Enter your team's Koding domain.'
 Do you see 'Let's sign you up!' form with 'Email address' and 'Name your team_' text fields and a 'SIGN UP' button?
 
-Enter "rainforestqa99@koding.com" in the 'Email address' and "{{ random.last_name }}{{ random.number }}" in the 'Name your team' fields and click on 'SIGN UP' button
+Enter "rainforestqa22@koding.com" in the 'Email address' and "{{ random.last_name }}{{ random.number }}" in the 'Name your team' fields and click on 'SIGN UP' button
 Do you see 'Your team URL' form with URL field prefilled?
 
 Click on 'NEXT' button
-Do you see 'Hey rainforestqa99,' text? Do you see 'password' input field? Do you see 'Not you? Create with a fresh account!' text? Do you see 'DONE!' button?
+Do you see 'Hey rainforestqa22,' text? Do you see 'password' input field? Do you see 'Not you? Create with a fresh account!' text? Do you see 'DONE!' button?
 
 Click on 'fresh account!' link
-Do you see 'Create your account' title? Do you see the first text box is prefilled with 'rainforestqa99@koding.com'? Do you see 'pick a username' and 'set a password' fields? Do you see 'Already have an account?' link below the text fields?
+Do you see 'Create your account' title? Do you see the first text box is prefilled with 'rainforestqa22@koding.com'? Do you see 'pick a username' and 'set a password' fields? Do you see 'Already have an account?' link below the text fields?
 
 Click on 'Already have an account?' link
-Do you see 'Sign in' title? Do you see 'your username' and 'password' text fields? Do you see 'Are you_rainforestqa99?' text below the text fields?
+Do you see 'Sign in' title? Do you see 'your username' and 'password' text fields? Do you see 'Are you_rainforestqa22?' text below the text fields?
 
 Enter "{{ random.first_name }}{{ random.number }}" in the 'your username' and "{{ random.password }}" in the 'password' field and click on 'DONE!' button
 Have you seen '_Unknown user name_' warning message displayed?
@@ -25,8 +25,8 @@ Have you seen '_Unknown user name_' warning message displayed?
 Enter "{{ random.email }}" in the 'your username' and "{{ random.password }}" in the 'password' field and click on 'DONE!' button
 Have you seen 'Unrecognized email' warning message displayed?
 
-Enter "rainforestqa99@koding.com" in the 'your username' and "{{ random.password }}" in the 'password' field and click on 'DONE!' button
+Enter "rainforestqa22@koding.com" in the 'your username' and "{{ random.password }}" in the 'password' field and click on 'DONE!' button
 Have you seen 'Access denied!' warning message displayed?
 
-Enter "rainforestqa99" in the 'password' field and click on 'DONE!' button, then if you see 'Authentication Required' form enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In' (if not do nothing and check the items below)
-Do you see 'You are almost there, rainforestqa99!' title? Do you see 'Create a Stack for Your Team', 'Enter your Credentials', 'Build Your Stack', 'Invite Your Team' and 'Install KD' sections? Do you see 'CREATE', 'ENTER', 'BUILD', 'INVITE' and 'INSTALL' buttons next to them?
+Enter "rainforestqa22" in the 'password' field and click on 'DONE!' button, then if you see 'Authentication Required' form enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In' (if not do nothing and check the items below)
+Do you see 'You are almost there, rainforestqa22!' title? Do you see 'Create a Stack for Your Team', 'Enter your Credentials', 'Build Your Stack', 'Invite Your Team' and 'Install KD' sections? Do you see 'CREATE', 'ENTER', 'BUILD', 'INVITE' and 'INSTALL' buttons next to them?
