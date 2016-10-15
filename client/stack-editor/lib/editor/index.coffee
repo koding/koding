@@ -659,7 +659,7 @@ module.exports = class StackEditorView extends kd.View
 
     req                   = { stackTemplateId: stackTemplate._id }
     selectedProvider      = @getOption 'selectedProvider'
-    req.provider          = selectedProvider  if selectedProvider is 'vagrant'
+    req.provider          = selectedProvider
 
     computeController.getKloud()
       .checkTemplate req
@@ -667,12 +667,12 @@ module.exports = class StackEditorView extends kd.View
 
         console.log '[KLOUD:checkTemplate]', err, response
 
-        if err or not response
+        if err or not response.machines?.length
           @outputView
             .add 'Something went wrong with the template:'
             .add err?.message or 'No response from Kloud'
 
-          callback err
+          callback err ? { message: 'No respoonse from Kloud' }
 
         else
 
