@@ -33,13 +33,9 @@ make -C client dist
 TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090" \
   make -C client/test build
 
-./run services
+./run buildservices
 
 sleep 60 # let dockers boot up
-
-./run migrate up
-./run resetdb --yes
-./run importusers
 
 ./run exec supervisord -c $REPOSITORY_PATH/supervisord.conf
 
