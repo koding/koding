@@ -7,8 +7,10 @@ globals = require 'globals'
 
 module.exports = class KodingKiteKloudKite extends require('../kodingkite')
 
-  SUPPORTED_PROVIDERS = ['koding', 'aws', 'softlayer', 'vagrant']
-  STACK_PROVIDERS     = ['aws', 'vagrant']
+  SUPPORTED_PROVIDERS = do ->
+    { providers } = globals.config
+    (Object.keys providers).filter (provider) ->
+      providers[provider].supported
 
   debugEnabled = ->
     kd.singletons.computeController._kloudDebug
@@ -19,7 +21,7 @@ module.exports = class KodingKiteKloudKite extends require('../kodingkite')
   getStackProvider = (stackId) ->
     return  unless stack = kd.singletons.computeController.stacksById[stackId]
     for provider in stack.config.requiredProviders
-      return provider  if provider in STACK_PROVIDERS
+      return provider  if provider in SUPPORTED_PROVIDERS
 
   isManaged = (machineId) ->
     (getMachineProvider machineId) is 'managed'
