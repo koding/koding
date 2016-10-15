@@ -255,7 +255,7 @@ func (k *Kloud) buildCredential(req *CredentialAddRequest) (*Credential, Provide
 		var matching []string
 
 		for name, p := range k.providers {
-			cred := p.NewBootstrap()
+			cred := p.NewCredential()
 
 			if err := json.Unmarshal(req.Data, cred); err != nil {
 				continue
@@ -263,8 +263,10 @@ func (k *Kloud) buildCredential(req *CredentialAddRequest) (*Credential, Provide
 
 			if v, ok := cred.(Validator); ok {
 				if err := v.Valid(); err != nil {
-					matching = append(matching, name)
+					continue
 				}
+
+				matching = append(matching, name)
 			}
 		}
 
