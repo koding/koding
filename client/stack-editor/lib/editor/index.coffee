@@ -626,12 +626,13 @@ module.exports = class StackEditorView extends kd.View
 
         @outputView.add 'Bootstrap required, initiating to bootstrap...'
 
+        provider              = credential.provider
         identifiers           = [credential.identifier]
         { computeController } = kd.singletons
 
         computeController.getKloud()
 
-          .bootstrap { identifiers }
+          .bootstrap { identifiers, provider }
 
           .then (response) =>
 
