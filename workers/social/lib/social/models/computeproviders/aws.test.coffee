@@ -56,15 +56,6 @@ runTests = -> describe 'workers.social.models.computeproviders.aws', ->
 
   describe '#create()', ->
 
-    it 'should fail when storage is not a number', (done) ->
-
-      client = null
-
-      Aws.create client, { storage : 'notaNumber' }, (err, data) ->
-        expect(err?.message).to.be.equal 'Requested storage size is not valid.'
-        done()
-
-
     describe 'when data is not provided', ->
 
       it 'should create default meta data', (done) ->
@@ -78,7 +69,6 @@ runTests = -> describe 'workers.social.models.computeproviders.aws', ->
           expect(data.meta.region)          .to.be.equal 'us-east-1'
           expect(data.meta.instance_type)   .to.be.equal 't2.nano'
           expect(data.credential)           .to.be.equal options.credential
-          expect(data.meta.source_ami)      .to.not.exist
           done()
 
 
@@ -89,19 +79,19 @@ runTests = -> describe 'workers.social.models.computeproviders.aws', ->
         client = null
 
         options =
-          ami           : 'someAmi'
+          image         : 'someAmi'
           region        : 'someRegion'
-          storage       : 2
+          storage_size  : 2
           credential    : 'someCredential'
-          instanceType  : 'someInstanceType'
+          instance_type : 'someInstanceType'
 
         Aws.create client, options, (err, data) ->
           expect(err).to.not.exist
           expect(data.meta.type)            .to.be.equal Aws.providerSlug
           expect(data.meta.region)          .to.be.equal options.region
-          expect(data.meta.instance_type)   .to.be.equal options.instanceType
+          expect(data.meta.instance_type)   .to.be.equal options.instance_type
           expect(data.credential)           .to.be.equal options.credential
-          expect(data.meta.source_ami)      .to.be.equal options.ami
+          expect(data.meta.image)           .to.be.equal options.image
           done()
 
 

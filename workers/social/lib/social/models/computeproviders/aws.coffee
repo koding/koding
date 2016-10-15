@@ -17,22 +17,15 @@ module.exports = class Aws extends ProviderInterface
 
   @create = (client, options, callback) ->
 
-    { credential, instanceType, region, ami, storage, label } = options
-
-    storage ?= 8
-    if isNaN storage
-      return callback new KodingError \
-      'Requested storage size is not valid.', 'WrongParameter'
+    { credential, instance_type, region, image, storage_size, label } = options
 
     meta =
       type          : @providerSlug
-      region        : region ? 'us-east-1'
-      instance_type : instanceType ? 't2.nano'
-      storage_size  : storage
       assignedLabel : label
-
-    if ami?
-      meta.source_ami = ami
+      region        : region ? 'us-east-1'
+      instance_type : instance_type ? 't2.nano'
+      storage_size  : storage_size
+      image         : image
 
     callback null, { meta, credential }
 
