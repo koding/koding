@@ -13,7 +13,7 @@ Do you see 'Your team URL' form with URL field prefilled?
 Click on 'NEXT' button
 Do you see 'Hey rainforestqa99,' text? Do you see 'password' input field? Do you see 'Done!' button?
 
-Enter "rainforestqa99" in the password field and click on 'DONE!' button, then if you see 'Authentication Required' form enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In' (if not do nothing and check the items below)
+Enter "rainforestqa99" in the password field and click on 'DONE!' button,(if you see 'Your login access is blocked for 1 minute' message, try again after waiting 1 minute) then if you see 'Authentication Required' form enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In' (if not do nothing and check the items below)
 Do you see 'You are almost there, rainforestqa99!' title? Do you see 'Create a Stack for Your Team', 'Enter your Credentials', 'Build Your Stack', 'Invite Your Team' and 'Install KD' sections? Do you see 'CREATE', 'ENTER', 'BUILD', 'INVITE' and 'INSTALL' buttons next to them?
 
 Click on 'Create a Stack for Your Team' section and then click on 'CREATE A NEW STACK' button 
