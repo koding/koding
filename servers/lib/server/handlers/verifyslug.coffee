@@ -7,6 +7,9 @@ module.exports = (req, res) ->
   { JName } = koding.models
   { name }  = req.body
 
+  unless KONFIG.environment is 'production'
+    res.header 'Access-Control-Allow-Origin', 'http://dev.koding.com:4000'
+
   return res.status(400).send 'No domain param is given!'  unless name
   return res.status(400).send 'Invalid domain!'  unless validateTeamDomain name
 

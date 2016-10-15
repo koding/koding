@@ -123,7 +123,8 @@ module.exports = (req, res, next) ->
   ]
 
   unless KONFIG.environment is 'production'
-    res.header 'Access-Control-Allow-Origin', 'http://www.koding.com'
+    res.header 'Access-Control-Allow-Origin', 'http://dev.koding.com:4000'
+
 
   async.series queue, (err) ->
 
