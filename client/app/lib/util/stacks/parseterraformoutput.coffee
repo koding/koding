@@ -1,3 +1,5 @@
+globals = require 'globals'
+
 module.exports = parseTerraformOutput = (response) ->
 
   # An example of a valid stack template
@@ -23,23 +25,18 @@ module.exports = parseTerraformOutput = (response) ->
 
   for machine, index in machines
 
-    { label, provider, region, hostQueryString } = machine
+    { label, provider } = machine
 
-    if provider is 'vagrant'
-      out.machines.push {
-        label, provider
-        hostQueryString
-        provisioners : []
-      }
-    else
-      { instance_type, ami } = machine.attributes
+    machineBaseData = { label, provider }
 
-      out.machines.push {
-        label, provider, region
-        source_ami   : ami
-        instanceType : instance_type
-        provisioners : [] # TODO what are we going to do with provisioners? ~ GG
-      }
+    provider = globals.config.providers[provider]
+
+    if attrMap = provider.attributeMapping
+      (Object.keys attrMap).forEach (attribute) ->
+        if attr = machine.attributes[attrMap[attribute]]
+          machineBaseData[attribute] = attr
+
+    out.machines.push machineBaseData
 
   console.info '[parseTerraformOutput]', out.machines
 
