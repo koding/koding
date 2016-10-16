@@ -19,7 +19,7 @@ import (
 
 const (
 	defaultMachineType  = "n1-standard-1"   // 1vCPU, 3.75GB memory.
-	defualtMachineImage = "ubuntu-1404-lts" // From image family, size: 10GB.
+	defaultMachineImage = "ubuntu-1404-lts" // From image family, size: 10GB.
 )
 
 var bootstrap = template.Must(template.New("").Parse(mustAsset("bootstrap.json.tmpl")))
@@ -115,21 +115,16 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 
 		// Set default image for disk if user didn't define it herself.
 		if _, ok := instance["disk"]; !ok {
-			instance["disk"] = struct {
-				Image string `json:"image" bson:"image" hcl:"image"`
-			}{
-				Image: defualtMachineImage,
+			instance["disk"] = map[string]interface{}{
+				"image": defaultMachineImage,
 			}
 		}
 
 		// Set default network interface if user didn't define it herself.
 		if _, ok := instance["network_interface"]; !ok {
-			instance["network_interface"] = struct {
-				Network      string   `json:"network" bson:"network" hcl:"network"`
-				AccessConfig struct{} `json:"access_config" bson:"access_config" hcl:"access_config"`
-			}{
-				Network:      "default",
-				AccessConfig: struct{}{},
+			instance["network_interface"] = map[string]interface{}{
+				"network":       "default",
+				"access_config": map[string]interface{}{},
 			}
 		}
 
