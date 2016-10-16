@@ -94,7 +94,12 @@ module.exports = class StackEditorView extends kd.View
 
     @tabView.addSubView @warningView = new kd.CustomHTMLView
       cssClass: 'warning-view hidden'
-      partial: 'You must be an admin to edit this stack.'
+      partial: 'You must be an admin to edit this stack. or  '
+
+    @warningView.addSubView @cloneOption = new CustomLinkView
+      cssClass: 'clone-button'
+      title : 'Clone'
+      click : @bound 'cloneStackTemplate'
 
     @addSubView @secondaryActions = new kd.CustomHTMLView
       cssClass             : 'StackEditor-SecondaryActions'
@@ -246,6 +251,12 @@ module.exports = class StackEditorView extends kd.View
       isChanged = yes  if value
 
     return isChanged
+
+
+  cloneStackTemplate: ->
+
+     { stackTemplate } = @getData()
+     EnvironmentFlux.actions.cloneStackTemplate stackTemplate, no
 
 
   createStackNameInput: (generatedStackTemplateTitle) ->
