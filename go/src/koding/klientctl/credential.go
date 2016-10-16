@@ -277,7 +277,7 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 		Data:     json.RawMessage(p),
 	}
 
-	fmt.Println("Creating credential... ")
+	fmt.Println("Creating a credential... ")
 
 	r, err := kloud.TellWithTimeout("credential.add", 10*time.Second, req)
 	if err != nil {

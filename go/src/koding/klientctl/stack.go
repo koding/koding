@@ -114,13 +114,14 @@ func StackCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	}
 
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error reading stack template file: ", err)
+		fmt.Fprintln(os.Stderr, "Error reading stack template file:", err)
 		return 1, err
 	}
 
 	var stacks Stacks
 
 	if err := Cache().GetValue("stacks", &stacks); err != nil && err != storage.ErrKeyNotFound {
+		fmt.Fprintln(os.Stderr, "Error reading stacks:", err)
 		return 1, err
 	}
 
@@ -130,7 +131,7 @@ func StackCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, err
 	}
 
-	fmt.Println("Creating stack...")
+	fmt.Println("Creating a stack...")
 
 	r, err := kloud.TellWithTimeout("import", 30*time.Second, req)
 	if err != nil {
@@ -141,6 +142,7 @@ func StackCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	var resp stack.ImportResponse
 
 	if err := r.Unmarshal(&resp); err != nil {
+		fmt.Fprintln(os.Stderr, "Error reading import response:", err)
 		return 1, err
 	}
 
@@ -151,6 +153,7 @@ func StackCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	}
 
 	if err := Cache().SetValue("stacks", stacks); err != nil {
+		fmt.Fprintln(os.Stderr, "Error saving stacks:", err)
 		return 1, err
 	}
 
