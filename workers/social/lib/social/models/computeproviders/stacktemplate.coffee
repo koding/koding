@@ -325,7 +325,7 @@ module.exports = class JStackTemplate extends Module
   generateStack: permit
 
     advanced: [
-      { permission: 'update own stack template', validateWith: Validators.own }
+      { permission: 'update own stack template' }
       { permission: 'update stack template' }
     ]
 
@@ -449,7 +449,7 @@ module.exports = class JStackTemplate extends Module
   clone: permit
 
     advanced: [
-      { permission: 'update own stack template', validateWith: Validators.own }
+      { permission: 'update own stack template' }
       { permission: 'update stack template' }
     ]
 
