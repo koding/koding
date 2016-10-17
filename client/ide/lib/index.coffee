@@ -253,7 +253,6 @@ class IDEAppController extends AppController
 
   isTabViewFocused: (tabView) ->
 
-    return no  if @isChatInputFocused()
     return @activeTabView is tabView
 
 
@@ -2046,11 +2045,6 @@ class IDEAppController extends AppController
     [ target ] = @ideViews.filter (ideView) -> ideView.hash is hash
 
     return target?.tabView
-
-
-  isChatInputFocused: ->
-
-    return kd.dom.hasClass document.activeElement, 'collab-chat-input'
 
 
   resetDragState: ->
