@@ -19,17 +19,16 @@ import (
 	"sync"
 	"time"
 
-	konfig "koding/kites/config"
 	"koding/klient/client"
 	"koding/klient/collaboration"
 	"koding/klient/command"
+	konfig "koding/klient/config"
 	"koding/klient/control"
 	"koding/klient/fs"
 	"koding/klient/info"
 	"koding/klient/info/publicip"
 	"koding/klient/logfetcher"
 	kos "koding/klient/os"
-	"koding/klient/protocol"
 	"koding/klient/remote"
 	"koding/klient/sshkeys"
 	"koding/klient/storage"
@@ -565,7 +564,7 @@ func (k *Klient) Run() {
 	// don't run the tunnel for Koding VM's, no need to check for error as we
 	// are not interested in it
 	isAWS, isKoding, _ := info.CheckKodingAWS()
-	isManaged := protocol.Environment == "managed" || protocol.Environment == "devmanaged"
+	isManaged := konfig.Environment == "managed" || konfig.Environment == "devmanaged"
 
 	if isManaged && isKoding {
 		k.log.Error("Managed Klient is attempting to run on a Koding provided VM")
@@ -688,7 +687,7 @@ func newKite(kconf *KlientConfig) *kite.Kite {
 	//
 	// If the url was not overwritten, we default to production kontrol.
 	if k.Config.KontrolURL == "http://127.0.0.1:3000/kite" {
-		k.Config.KontrolURL = konfig.Builtin.Endpoints.URL("kontrol", kconf.Environment)
+		k.Config.KontrolURL = konfig.Konfig.KontrolURL
 	}
 
 	return k

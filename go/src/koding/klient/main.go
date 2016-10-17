@@ -9,9 +9,8 @@ import (
 	"runtime"
 	"time"
 
-	"koding/kites/config"
 	"koding/klient/app"
-	"koding/klient/protocol"
+	konfig "koding/klient/config"
 	"koding/klient/registration"
 )
 
@@ -67,15 +66,15 @@ func defaultNoTunnel() bool {
 }
 
 func defaultKeygenURL() string {
-	return config.Builtin.Endpoints.URL("kloud", protocol.Environment)
+	return konfig.Konfig.KloudURL
 }
 
 func defaultBucketName() string {
-	return config.Builtin.Buckets.ByEnv("publiclogs", protocol.Environment).Name
+	return konfig.Konfig.PublicBucketName
 }
 
 func defaultBucketRegion() string {
-	return config.Builtin.Buckets.ByEnv("publiclogs", protocol.Environment).Region
+	return konfig.Konfig.PublicBucketRegion
 }
 
 func main() {
@@ -93,7 +92,7 @@ func realMain() int {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	if *flagVersion {
-		fmt.Println(protocol.Version)
+		fmt.Println(konfig.Version)
 		return 0
 	}
 
@@ -124,10 +123,10 @@ func realMain() int {
 	}
 
 	conf := &app.KlientConfig{
-		Name:              protocol.Name,
-		Environment:       protocol.Environment,
-		Region:            protocol.Region,
-		Version:           protocol.Version,
+		Name:              konfig.Name,
+		Environment:       konfig.Environment,
+		Region:            konfig.Region,
+		Version:           konfig.Version,
 		DBPath:            dbPath,
 		IP:                *flagIP,
 		Port:              *flagPort,

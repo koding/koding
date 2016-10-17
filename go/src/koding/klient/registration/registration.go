@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"koding/klient/protocol"
+	konfig "koding/klient/config"
 	"koding/klient/tunnel/tlsproxy"
 
 	"github.com/koding/kite"
@@ -37,9 +37,9 @@ func Register(kontrolURL, kiteHome, username, token string, debug bool) error {
 		}
 	}
 
-	k := kite.New("klient", protocol.Version)
-	k.Config.Environment = protocol.Environment
-	k.Config.Region = protocol.Region
+	k := kite.New("klient", konfig.Version)
+	k.Config.Environment = konfig.Environment
+	k.Config.Region = konfig.Region
 	k.Config.Username = username
 
 	if debug {

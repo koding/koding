@@ -9,18 +9,6 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-// TODO:
-//
-// x object.Merge
-// x load config in KD
-// - load config in Klient
-// - add kd config: show, set, rm
-// - finish cred import / add
-// - add kloud.import
-// - add kd stack build
-// - ???
-// - profit
-
 var KonfigCache = &CacheOptions{
 	File: filepath.Join(KodingHome(), "konfig.bolt"),
 	BoltDB: &bolt.Options{
@@ -38,10 +26,16 @@ type Konfig struct {
 	KlientURL  string `json:"klientURL,omitempty"`
 	KloudURL   string `json:"kloudURL,omitempty"`
 	TunnelURL  string `json:"tunnelURL,omitempty"`
+	IPURL      string `json:"ipURL,omitempty"`
+	IPCheckURL string `json:"ipCheckURL,omiturl"`
 
 	// Klient / KD auto-update endpoints.
 	KlientLatestURL string `json:"klientLatestURL,omitempty"`
 	KDLatestURL     string `json:"kdLatestURL,omitempty"`
+
+	// Public S3 bucket for writing logs.
+	PublicBucketName   string `json:"publicBucketName,omitempty"`
+	PublicBucketRegion string `json:"publicBucketRegion,omitempty"`
 
 	Debug bool `json:"debug,omitempty"`
 }
@@ -81,14 +75,18 @@ func (e *Environments) kdEnv() string {
 
 func NewKonfig(e *Environments) *Konfig {
 	return &Konfig{
-		KiteKeyFile:     "/etc/kite/kite.key",
-		KlientURL:       "http://127.0.0.1:56789/kite",
-		KontrolURL:      Builtin.Endpoints.URL("kontrol", e.Env),
-		KloudURL:        Builtin.Endpoints.URL("kloud", e.Env),
-		TunnelURL:       Builtin.Endpoints.URL("tunnelserver", e.Env),
-		KlientLatestURL: Builtin.Endpoints.URL("klient-latest", e.klientEnv()),
-		KDLatestURL:     Builtin.Endpoints.URL("kd-latest", e.kdEnv()),
-		Debug:           false,
+		KiteKeyFile:        "/etc/kite/kite.key",
+		KlientURL:          "http://127.0.0.1:56789/kite",
+		KontrolURL:         Builtin.Endpoints.URL("kontrol", e.Env),
+		KloudURL:           Builtin.Endpoints.URL("kloud", e.Env),
+		TunnelURL:          Builtin.Endpoints.URL("tunnelserver", e.Env),
+		IPURL:              Builtin.Endpoints.URL("ip", e.Env),
+		IPCheckURL:         Builtin.Endpoints.URL("ipcheck", e.Env),
+		KlientLatestURL:    Builtin.Endpoints.URL("klient-latest", e.klientEnv()),
+		KDLatestURL:        Builtin.Endpoints.URL("kd-latest", e.kdEnv()),
+		PublicBucketName:   Builtin.Buckets.ByEnv("publiclogs", e.klientEnv()).Name,
+		PublicBucketRegion: Builtin.Buckets.ByEnv("publiclogs", e.klientEnv()).Region,
+		Debug:              false,
 	}
 }
 
