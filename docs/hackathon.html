@@ -1,0 +1,411 @@
+---
+title: hack.summit() virtual hackathon
+permalink: /hackathon
+excerpt: The hack.summit() virtual hackathon invites developers around the world to hack together. The grand prize is $100,000!
+---
+{% assign path = site.url | append: '/assets/img/hackathon' %}
+
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>{{ page.title }}</title>
+  <meta name="keywords" content="hackathon, integrated development environment, cloud ide, dev environment, cloud development environment, cloud editor, virtual dev environment, web based ide, test environment, docker, aws, vagrant, azure, rackspace">
+  <meta name="description" content="{% if page.excerpt %}{{page.excerpt}}{% else %}{{site.tagline}}{% endif %}">
+  <link rel="icon" type="image/png" href="{{ site.url }}/assets/img/favicon.png">
+
+  <!-- og meta tags -->
+  <meta property="og:title"            content="Join hack.summit's virtual hackathon! Your chance to win $100,000!"/>
+  <meta property="og:type"             content="website"/>
+  <meta property="og:url"              content="https://hacksummit.org/hackathon"/>
+  <meta property="og:image"            content="{{ path }}/og-img-2.png" />
+  <meta property="og:image:secure_url" content="{{ path }}/og-img-2.png"/>
+  <meta property="og:description"      content="The hack.summit virtual hackathon invites developers around the world to hack together! The grand prize is $100,000!"/>
+  <meta property="og:image:type"       content="image/png">
+  <meta property="og:image:width" content="505" />
+  <meta property="og:image:height" content="252" />
+
+
+  <!-- twitter cards -->
+  <meta name="twitter:site"            content="@hack_summit"/>
+  <meta name="twitter:url"             content="https://hacksummit.org/hackathon"/>
+  <meta name="twitter:title"           content="The hack.summit virtual hackathon invites developers around the world to hack together! The grand prize is $100,000"/>
+  <meta name="twitter:creator"         content="@hack_summit"/>
+  <meta name="twitter:author"          content="@hack_summit"/>
+  <meta name="twitter:card"            content="summary_large_image"/>
+  <meta name="twitter:image"           content="{{ path }}/og-img-2.png"/>
+  <meta name="twitter:description"     content="hack.summit invites developers, coders, & startups around the world to hack together! The grand prize is $100,000"/>
+  <meta name="twitter:domain"          content="hacksummit.org">
+
+  <!-- Schema.org for Google+ -->
+  <meta itemprop="name"                content="Join hack.summit's virtual hackathon! Your chance to win $100,000!">
+  <meta itemprop="description"         content="The hack.summit virtual hackathon invites developers around the world to hack together! The grand prize is $100,000">
+  <meta itemprop="url"                 content="https://hacksummit.org/hackathon">
+  <meta itemprop="image"               content="{{ path }}/og-img-2.png">
+
+  <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:400,300,600,700' rel='stylesheet' type='text/css'>
+  <style>
+    a,abbr,acronym,address,applet,article,aside,audio,b,big,blockquote,body,canvas,caption,center,cite,code,dd,del,details,dfn,div,dl,dt,em,embed,fieldset,figcaption,figure,footer,form,h1,h2,h3,h4,h5,h6,header,hgroup,html,i,iframe,img,ins,kbd,label,legend,li,mark,menu,nav,object,ol,output,p,pre,q,ruby,s,samp,section,small,span,strike,strong,sub,summary,sup,table,tbody,td,tfoot,th,thead,time,tr,tt,u,ul,var,video{margin:0;padding:0;border:0;font:inherit;vertical-align:baseline}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:after,blockquote:before,q:after,q:before{content:'';content:none}table{border-collapse:collapse;border-spacing:0}
+    .regular,body *,html *{font-weight:400}.apply-button,.no-underline{text-decoration:none}body *,html *{font-family:'Source Sans Pro',sans-serif}.container{width:100%;width:75%;margin:0 auto}.line{width:100%;height:2px;background-color:#EFF1F4;margin:0 auto 100px;float:left}.bold{font-weight:700}#logo-wrapper>a,.light{font-weight:300}.black{font-weight:900}.semibold{font-weight:600}.trans{opacity:.5}.sub-title{color:#687586;font-size:20px;border-bottom:2px solid #EFF1F4;padding-bottom:15px!important}.apply-button{margin:0 auto;display:flex;align-items:center;justify-content:center;border:1px solid #248DE4;border-radius:2px;background-color:#62C1E5;color:#FFF;font-size:20px;padding:15px 0;cursor:pointer;-webkit-transition:all .2s ease-in-out;-moz-transition:all .2s ease-in-out;-o-transition:all .2s ease-in-out;transition:all .2s ease-in-out;-webkit-appearance:none}#header h4 a,#logo-wrapper>a{color:#fff;text-decoration:none}.apply-button:hover{background-color:#49A7E5!important}.apply-button i{height:29px;display:inline-block}.bg-grad,.clouds{height:100%;width:100%}#main-wrapper{width:100%}#top-side{width:100%;min-height:100vh;position:relative;top:0;right:0;bottom:0;left:0}#top-side>div{z-index:3;position:relative}.bg-grad{position:absolute!important;top:0;right:0;bottom:0;left:0;z-index:0!important;background:url({{ path }}/bg-landing2.jpg) center bottom no-repeat;-moz-background-size:cover;-o-background-size:cover;-webkit-background-size:cover;background-size:cover}.bg-grad .bg-layer,.clouds{position:absolute;top:0;left:0}.bg-grad .bg-layer{right:0;bottom:0;z-index:2!important;-moz-transition:opacity .5s ease;-o-transition:opacity .5s ease;-webkit-transition:opacity .5s ease;transition:opacity .5s ease;-moz-transform:translate3d(0,0,0);-ms-transform:translate3d(0,0,0);-webkit-transform:translate3d(0,0,0);transform:translate3d(0,0,0);background:url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4gPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiBncmFkaWVudFVuaXRzPSJvYmplY3RCb3VuZGluZ0JveCIgeDE9Ii0wLjA5MTUwNiIgeTE9IjAuMTU4NDk0IiB4Mj0iMS4wOTE1MDYiIHkyPSIwLjg0MTUwNiI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzc0MzIyNyIgc3RvcC1vcGFjaXR5PSIwLjYzIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMmMyYjgwIiBzdG9wLW9wYWNpdHk9IjAuNzIiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyYWQpIiAvPjwvc3ZnPiA=);background:-moz-linear-gradient(330deg,rgba(116,50,39,.63),rgba(44,43,128,.72));background:-webkit-linear-gradient(330deg,rgba(116,50,39,.63),rgba(44,43,128,.72));background:linear-gradient(120deg,rgba(116,50,39,.63),rgba(44,43,128,.72))}.clouds{z-index:1!important;overflow:hidden}#content-side .borders .item,#koding-check img,.cloud{position:relative}.cloud{width:100%;height:900px;top:0;right:0;bottom:0;left:0;z-index:5;background:url({{ path }}/animated_clouds.png) left bottom no-repeat;-moz-background-size:cover;-o-background-size:cover;-webkit-background-size:cover;background-size:cover;-moz-transform:translate3d(0,0,0);-ms-transform:translate3d(0,0,0);-webkit-transform:translate3d(0,0,0);transform:translate3d(0,0,0)}@media (max-width:550px){.cloud{display:none}}.x1{-moz-animation:moveclouds 40s linear infinite;-webkit-animation:moveclouds 40s linear infinite;animation:moveclouds 40s linear infinite;width:2036px;height:1608px}@-webkit-keyframes moveclouds{0%{margin-left:100%}100%{margin-left:-1400px}}@-moz-keyframes moveclouds{0%{margin-left:100%}100%{margin-left:-1400px}}@-o-keyframes moveclouds{0%{margin-left:100%}100%{margin-left:-1400px}}#logo-wrapper{padding:50px 80px}#logo-wrapper>a{display:inline-block;font-size:12px;border-bottom:1px solid rgba(255,255,255,.3);padding-bottom:2px}#logo-wrapper>a img{display:inline-block;height:16px;vertical-align:bottom;margin-left:5px}#logo-wrapper .koding img{width:98px}#logo-wrapper .ibm{float:right}#logo-wrapper .ibm img{width:52px}#header{text-align:center;margin-top:50px}#header h1{font-size:49px;color:#FFF;margin:15px 0;line-height:60px}#header h1 img{height:40px;vertical-align:top;margin-top:11px;display:inline-block}#header h3{font-size:26px;color:#DDDFE5}#header h4{font-size:20px;color:#DDDFE5;line-height:28px}#apply-mobile{display:none}#header #apply{padding:100px 0 120px}#header #apply a{display:inline-block;width:325px;color:#FFF;font-size:20px;padding:15px 20px}#header #apply a span{position:relative;top:-6px}#header #fold{width:90%;margin:0 auto;text-align:center}#koding-check{width:100%;margin-top:-180px}#koding-check img{width:80%;max-width:1100px;top:160px;transition:all .3s ease;border:2px solid #B4B4B4}#content-side{max-width:1000px;margin:100px auto 0;padding:0 20px}#content-side .step{float:left;width:100%;margin-bottom:100px}#content-side .step h5{text-align:center;color:#687586;font-size:32px;margin-bottom:35px}#content-side .step p{text-align:center;color:#464646;font-size:22px;line-height:30px}#content-side .step p a{color:inherit}#content-side .step .list{display:flex;flex-direction:row;align-items:center;flex-wrap:wrap;margin-top:80px}#content-side .step .list>div{flex-grow:1;text-align:center}#content-side .step .list>div span{display:block}#content-side .prizes .prize.first img{max-width:361px}#content-side .prizes .prize.second img{max-width:323px}#content-side .prizes .prize.third img{max-width:255px}#content-side .stars .star .star-img{height:205px;margin-bottom:65px}#content-side .stars .star .star-img img{border:1px solid #979797;border-radius:50%}#content-side .stars .star .name{color:#62C0E4;font-size:32px}#content-side .stars .star .title{color:#373B41;font-size:28px;margin-top:10px}#content-side .borders .item span.regular{position:absolute;width:100%;color:#62C0E4;font-size:28px}#content-side .borders .item span.light{color:#464646;font-size:22px}#content-side .borders .item::after{content:' ';background-color:#F1F1F1;height:96px;width:2px;position:absolute;top:50%;margin-top:-48px;right:0}#content-side .borders .item:last-child::after{display:none}#content-side .borders .item .icon{height:135px;margin:65px 0 50px;display:flex;justify-content:center;align-items:center}#content-side .rules{list-style:none;margin-top:80px}#content-side .rules li{color:#687586;font-size:22px;margin-bottom:30px;line-height:28px}#content-side .rules li span{width:24px;height:24px;margin-right:25px;background-image:url({{ path }}/check-ico.png);background-repeat:no-repeat;display:inline-block;position:relative;top:4px}#content-side .rules li em{color:#687586;text-decoration:underline}#content-side .rules li a{color:inherit}#content-side .info{margin-top:70px;text-align:center}#content-side .info .apply-button{width:275px;font-size:22px;padding:22px 20px;margin-bottom:35px}#content-side .info span{color:#90939A;font-size:16px;display:block;margin-bottom:10px}#content-side .info span.light a{display:inline-block;color:#90939A}#content-side .sponsors{margin-bottom:250px}#content-side .sponsors>p{margin-bottom:90px}#content-side .sponsors .item{display:flex;align-items:center;justify-content:center}#content-side .sponsors .presenting-sponsors{margin-bottom:50px}#content-side .sponsors .presenting-sponsors .item{height:320px}#content-side .sponsors .presenting-sponsors .item:first-child{border-right:2px solid #F1F1F1}#content-side .sponsors .brand-sponsors{list-style:none;float:left;width:100%;margin-top:35px}#content-side .sponsors .brand-sponsors li{float:left;width:25%;height:146px;text-align:center;display:flex;justify-content:center;align-items:center;position:relative}#content-side .sponsors .brand-sponsors li::before{content:' ';background-color:#F1F1F1;width:2px;height:96px;position:absolute;right:0;top:50%;margin-top:-48px}#content-side .sponsors .brand-sponsors li::after{content:' ';background-color:#F1F1F1;height:2px;width:86%;position:absolute;bottom:0;left:50%;margin-left:-43%}#content-side .sponsors .brand-sponsors li:nth-child(4n)::before{display:none}; #content-side .sponsors .brand-sponsors li.datadog img{width:61px}.regulations #content-side,.thank-you #content-side{margin-top:100px}.thank-you #header h4{font-size:26px;line-height:30px;padding-bottom:30px}.thank-you .social-media{width:250px;margin:60px auto}.thank-you #koding-check{margin-top:-100px}.thank-you #koding-check img{top:160px}.thank-you .step{margin-top:60px}.thank-you .step .list{margin-top:65px!important}.thank-you #footer{position:fixed;bottom:0;top:inherit}#footer,.regulations.thank-you #footer{position:relative}.regulations #header{padding-bottom:60px!important}#content-side p.note{width:100%;float:left}#content-side p.note,#content-side p.note a{color:#B5BEC9;font-size:18px;margin-bottom:70px;text-align:center}#footer{width:100%;padding:100px 0;background-image:url({{ path }}/bg.png);background-repeat:repeat-x;display:flex;align-items:center;justify-content:center;flex-direction:column;top:20px}#footer p{color:#B5BEC9;font-size:16px}#footer a{color:#62C1E5;text-decoration:none}#footer a.like-koding{display:block;width:40px;height:35px;background-image:url({{ path }}/like.png);background-repeat:no-repeat;margin-top:15px}#overlay,.hbspt-form{display:none;position:absolute}#overlay{z-index:9;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,.65)}.hbspt-form{width:500px;margin:0 0 0 -275px;top:150px;background:#fff;left:50%;padding:50px;z-index:10}.hbspt-form .hs-richtext p span{text-align:center;color:#687586;font-size:25px;margin-bottom:35px;line-height:30px}.hbspt-form .hs-form fieldset{margin:20px 0!important}.hbspt-form .hs-form-field label{display:inline-block;margin-bottom:5px}.hbspt-form .actions .hs-button{color:#FFF!important;background-color:#62C1E5!important;border:none!important;font-family:'Source Sans Pro',sans-serif!important;font-size:25px;width:94%;height:45px;margin-top:20px;cursor:pointer;outline:0;-webkit-transition:all .2s ease-in-out;-moz-transition:all .2s ease-in-out;-o-transition:all .2s ease-in-out;transition:all .2s ease-in-out;-webkit-appearance:none}.hbspt-form .hs-form fieldset:first-child{margin-top:0!important}.hbspt-form .hs-field-desc{margin-bottom:5px;line-height:20px}.hbspt-form .hs-error-msgs{font-size:12px;margin-top:5px}.hbspt-form .actions .hs-button:hover{background-color:#49A7E5!important}.hbspt-form .hs-field-desc,.hbspt-form .hs-form-field input,.hbspt-form .hs-form-field label,.hbspt-form .hs-form-field label *,.hbspt-form .hs-form-field select{font-family:'Source Sans Pro',sans-serif!important;font-weight:600;color:#464646}.hbspt-form .hs-form-field input{font-size:14px}#formClose,#formClose2,#formCloseA,.widget-type-rich_text h3,.widget-type-rich_text p{font-family:'Source Sans Pro',sans-serif!important;font-weight:400;color:#687586!important}
+    @media only screen and (-moz-min-device-pixel-ratio:1.5),only screen and (-o-min-device-pixel-ratio:3/2),only screen and (-webkit-min-device-pixel-ratio:1.5),only screen and (min-devicepixel-ratio:1.5),only screen and (min-resolution:1.5dppx){#content-side .step .rules li span{background-image:url({{ path }}/check-ico2x.png);background-size:24px}#footer a.like-koding{background-image:url({{ path }}/like2x.png);background-size:40px}.apply-button i{background-image:url({{ path }}/tick2x.png);background-size:29px}}@media only screen and (min-device-width :320px) and (max-device-width :480px){.line{width:100%;margin-bottom:25px}.sub-title{width:90%;margin:0 auto}#logo-wrapper{padding:170px 0 50px}#header h1{font-size:36px;line-height:45px}#header h3,#header h4{font-size:18px}#header h4{line-height:22px}#header #apply{display:none}#apply-mobile{padding:33px 0;display:block;-webkit-box-shadow:0 3px 4px 0 rgba(0,0,0,.75);-moz-box-shadow:0 3px 4px 0 rgba(0,0,0,.75);box-shadow:0 3px 4px 0 rgba(0,0,0,.75);position:fixed;z-index:1;background-color:#373B41;width:100%}#content-side .borders .item::after,#content-side .info,#content-side p.note{display:none}#apply-mobile a{width:70%}#apply-mobile a span{font-size:16px}#koding-check{margin-top:-40px!important}#koding-check img{top:90px!important;width:90%}#content-side{margin-top:70px!important;float:left;padding:0;max-width:100%}#content-side .step{margin-bottom:50px;margin-top:50px}#content-side .step .list{margin-top:50px}#content-side .step h5{font-size:24px;line-height:28px}#content-side .rules,#content-side .step h5,#content-side .step p{padding:0 18px}#content-side .step .list>div{width:100%;margin-bottom:65px}#content-side .step .social-media.list>div{width:auto;margin-bottom:0}#content-side .stars .star .star-img{margin-bottom:35px}#content-side .borders .item .icon{margin:0 0 50px}#content-side .prizes .prize.first,#content-side .sponsors .presenting-sponsors,#content-side .step .list>div:last-child,#content-side .step.prizes-step{margin-bottom:0}#content-side .borders .item span.regular{top:160px}#content-side .borders .item span.light{position:relative;top:15px}#content-side .rules{margin-top:50px}#content-side .rules li{line-height:24px;font-size:18px}#content-side .rules li span{margin-right:10px}#content-side .sponsors .presenting-sponsors .item:first-child{border:none;margin-bottom:0}#content-side .sponsors .brand-sponsors li{width:50%}#content-side .sponsors .brand-sponsors li img{width:75%}#content-side .step.prizes-step{max-width:100%;overflow:hidden}#content-side .prizes{display:block!important;position:relative}#content-side .prizes .prize{flex-grow:0;position:relative}#content-side .prizes .prize img{max-width:324px!important}#content-side .prizes .prize.second{width:60%}#content-side .prizes .prize.second img{width:100%!important}#content-side .prizes .prize.third{width:45%;position:absolute;right:0;top:285px}#content-side .prizes .prize.third img{width:100%!important}#content-side .step.stars-step{margin-top:0}#footer{padding:50px 0;position:relative;top:20px}#footer p{font-size:18px}.thank-you #logo-wrapper{padding-top:70px}.regulations #header{padding-bottom:30px!important}.regulations #header h4.regular,.thank-you #header h4.regular{margin-top:30px}}@media only screen and (min-width :480px) and (max-width :1020px){.thank-you #content-side,.thank-you #footer{position:relative}#content-side .sponsors .brand-sponsors li{width:33%}#content-side .sponsors .brand-sponsors li:nth-child(4n)::before{display:block}#content-side .sponsors .brand-sponsors li:nth-child(3n)::before{display:none}}@media only screen and (min-width :480px) and (max-width :800px){#content-side .sponsors .brand-sponsors li{width:50%}#content-side .sponsors .brand-sponsors li:nth-child(3n)::before{display:block}#content-side .sponsors .brand-sponsors li:nth-child(2n)::before{display:none}#content-side .sponsors .presenting-sponsors .item{width:100%}#content-side .sponsors .presenting-sponsors .item:first-child{border:none}}@media only screen and (min-width :480px) and (max-width :700px){#content-side .step .list>div{width:50%;margin-bottom:60px}.thank-you #content-side .step .list>div{width:auto;margin-bottom:0}#content-side .step .list>div:last-child{margin-bottom:0}}@media only screen and (min-device-width :320px) and (max-device-width :480px){div.hbspt-form{width:89%;padding:15px;left:50%;margin-left:-49%;border:1px solid #CCC}div.hbspt-form .hs-richtext p span{font-size:20px;line-height:24px}div.hbspt-form .actions .hs-button{width:100%}div.hbspt-form .hs-form-field input{border-color:14px;border-width:1px;font-weight:400}}@media only screen and (max-height :970px){.thank-you #footer{position:relative}}
+  </style>
+</head>
+<body>
+ <div id="main-wrapper">
+    <div id="top-side">
+      <div id="apply-mobile">
+
+            <span style="color:#ffffff;"><b class="bold"><center>Hackathon registration is now closed</center></b></span>
+
+      </div>
+
+      <div id="logo-wrapper" class="container">
+        <a href="https://hacksummit.org/">Back to <img src="{{ path }}/logo.svg"/></a>
+      </div>
+
+      <div id="header">
+
+        <div id="fold">
+          <h3 class="regular">The largest hackathon in history</h3>
+          <h1 class="light"><img src="{{ path }}/logo.svg"/> Virtual Hackathon</h1>
+          <h4 class="light trans">Presented by <a href='http://pluralsight.com'>Pluralsight</a> and powered by <a href="https://koding.com" target="_blank">Koding</a> & <a href="https://ibm.com/bluemix/?utm_source=koding_hackathon" target="_blank">IBM</a> with over 50,000 registered attendees</h4>
+          <h4 class="semibold">February 20th and 21st, 2016</h4>
+        </div>
+
+  <div id="apply">
+                <span style="color: #fff; font-size: 24px;"><b class="bold">Hackathon registration is now closed.</b></span>
+        </div>
+
+
+
+      </div>
+      <div class="bg-grad">
+          <div class="clouds">
+            <div class="cloud x1"></div>
+          </div>
+          <div class="bg-layer"></div>
+      </div>
+
+
+    </div>
+
+    <div id="content-side">
+
+        <!-- Step -->
+        <div class="step prizes-step">
+            <h5 class="semibold">Hack for the Greater Good</h5>
+            <p class="light">
+                Take a stand for coding non-profits. Your programming contributions will help fundraise for important causes.
+                <br/>
+                <br/>
+                The top three teams (or individuals) will win a cash prize, also a one-year subscription to Koding for Teams, and a meeting with the Founder Institute.
+            </p>
+
+            <div class="prizes list">
+                <div class="prize first">
+                    <img src="{{ path }}/first-prize.png" />
+                </div>
+                <div class="prize second">
+                    <img src="{{ path }}/second-prize.png" />
+                </div>
+                <div class="prize third">
+                    <img src="{{ path }}/third-prize.png" />
+                </div>
+            </div>
+        </div>
+        <!-- / Step -->
+
+        <!-- Step -->
+        <!--
+        <div class="step stars-step">
+
+          <h5 class="semibold">Learn from the masters of our craft</h5>
+          <div class="stars list">
+              <div class="star">
+                  <div class="star-img">
+                      <img src="{{ path }}/speakers/john-skeet.png" />
+                  </div>
+                  <span class="name bold">JON SKEET</span>
+                  <span class="title">#1 answerer on StackOverflow</span>
+              </div>
+              <div class="star">
+                  <div class="star-img">
+                      <img src="{{ path }}/speakers/kent-beck.png" />
+                  </div>
+                  <span class="name bold">KENT BECK</span>
+                  <span class="title">Created Extreme Programming, created TDD, co-created Agile, authored 9 books</span>
+              </div>
+              <div class="star">
+                  <div class="star-img">
+                      <img src="{{ path }}/speakers/dhh.png" />
+                  </div>
+                  <span class="name bold">DAVID HEINEMEIER HANSSON</span>
+                  <span class="title regular">Creator, Ruby on Rails</span>
+              </div>
+              <div class="star">
+                  <div class="star-img">
+                      <img src="{{ path }}/speakers/thomas-kurian.jpeg" />
+                  </div>
+                  <span class="name bold">THOMAS KURIAN</span>
+                  <span class="title regular">EVP at Oracle. Oversees 3000+ of Oracle software products</span>
+              </div>
+          </div>
+        </div> -->
+        <!-- Step -->
+
+        <!-- Step -->
+        <div class="step stars-step">
+          <h5 class="semibold">A Chance To Speak With These Sillicon Valley Investors</h5>
+          <p class="light">Winners will also have the chance to meet with our panel of Silicon Valley All-Stars.</p>
+          <div class="stars list">
+              <div class="star">
+                  <div class="star-img">
+                      <img src="{{ path }}/adeo-ressi.png" />
+                  </div>
+                  <span class="name bold">Adeo Ressi</span>
+                  <span class="title">Founder Institute</span>
+              </div>
+              <div class="star">
+                  <div class="star-img">
+                      <img src="{{ path }}/jonathan-greechan.png" />
+                  </div>
+                  <span class="name bold">Jonathan Greechan</span>
+                  <span class="title">Founder Institute</span>
+              </div>
+              <div class="star">
+                  <div class="star-img">
+                      <img src="{{ path }}/dave-mcclure.png" />
+                  </div>
+                  <span class="name bold">Dave McClure</span>
+                  <span class="title regular">500 Startups</span>
+              </div>
+          </div>
+        </div>
+        <!-- Step -->
+
+        <div class="line"></div>
+
+        <!-- Step -->
+        <div class="step">
+          <h5 class="semibold">Experience A Hackathon Without Borders</h5>
+          <p class="light">Participate from anywhere in the world! Last year 60,000 coders participated from over 900 cities. This hackathon is completely virtual. Subsidized and powered by <a href='https://koding.com'>Koding.com</a> and <a href='http://www.ibm.com/cloud-computing/bluemix/?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon'>IBM</a> and <a href='http://pluralsight.com'>Pluralsight</a>, in proud support of coding non-profits.</p>
+          <div class="borders list">
+              <div class="item">
+                  <span class="regular">WHEN</span>
+                  <div class="icon"><img src="{{ path }}/cal-icn.png" width="122" /></div>
+                  <span class="light">February 20 - 21, 2016</span>
+              </div>
+              <div class="item">
+                  <span class="regular">WHERE</span>
+                  <div class="icon"><img src="{{ path }}/where.png" width="122" /></div>
+                  <span class="light">On The Internet</span>
+              </div>
+              <div class="item">
+                  <span class="regular">WHO</span>
+                  <div class="icon"><img src="{{ path }}/who.png" width="153" /></div>
+                  <span class="light">You & your team</span>
+              </div>
+          </div>
+        </div>
+        <!-- / Step -->
+
+        <!-- Step -->
+        <div class="step">
+          <h5 class="semibold"><a name="themes">Choose From 3 Themes</a></h5>
+          <p class="light">Use any publicly available API and your imagination to create something amazing.</p>
+          <div class="borders list">
+              <div class="item">
+                  <span class="regular">DATA VIZ.</span>
+                  <div class="icon"><img src="{{ path }}/dataViz.png" width="157" /></div>
+                  <span class="light">Financial, Healthcare, etc.</span>
+              </div>
+              <div class="item">
+                  <span class="regular">PRODUCTIVITY</span>
+                  <div class="icon"><img src="{{ path }}/productivity.png" width="99" /></div>
+                  <span class="light">Enterprise, Personal, etc.</span>
+              </div>
+              <div class="item">
+                  <span class="regular">GAMING</span>
+                  <div class="icon"><img src="{{ path }}/gaming.png" width="79" /></div>
+                  <span class="light">Puzzle, Educational, etc.</span>
+              </div>
+          </div>
+        </div>
+        <!-- / Step -->
+
+        <!-- Step -->
+        <div class="step">
+          <h5 class="semibold">Rules & Regulations</h5>
+          <ul class="rules">
+               <li class="light">
+                  <span></span> All code must be written during the event. You cannot use existing code that you have written and finish it during the event. The first and the last line should be
+                  created during the event.
+              </li>
+              <li class="light">
+                  <span></span> You can apply as an individual or a team.
+              </li>
+              <li class="light">
+                  <span></span> Only 1 person per team/project needs to apply.
+              </li>
+              <li class="light">
+                  <span></span> Your project must conform to the event themes and should be a web app. Mobile apps are not allowed.
+              </li>
+              <li class="light">
+                  <span></span> A detailed listing of all the rules and regulations is available <a href="{{ site.url }}/assets/docs/hackathon-rules.pdf" target=_blank>here</a>.
+              </li>
+          </ul>
+
+          <div class="info">
+                  <span style="font-size: 24px; margin-bottom: 20px;"><b class="bold">Hackathon registration is now closed.</b></span>
+
+              <span class="bold">Have questions?</span>
+              <span class="light">Email us at <a class="light" href="mailto:hackathon@hacksummit.org" title="hackathon@hacksummit.org">hackathon@hacksummit.org</a></span>
+          </div>
+
+        </div>
+        <!-- / Step -->
+
+        <div class="line"></div>
+
+        <!-- Step -->
+        <div class="step sponsors">
+          <h5 class="semibold">Our Sponsors & Media Partners</h5>
+          <p class="light">We're proud to partner with these amazing companies.</p>
+
+          <div class="sub-title">Presenting Sponsors</div>
+          <div class="list presenting-sponsors">
+              <div class="item">
+                  <A href="http://www.ibm.com/cloud-computing/bluemix/?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon" target=_blank><img src="{{ path }}/ibm-bluemix.png" width="283"></a>
+              </div>
+              <div class="item">
+                  <a href="http://www.softlayer.com/?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon" target=_blank><img src="{{ path }}/softlayer.png" width="283"></a>
+              </div>
+          </div>
+
+          <div class="sub-title">Brand & Partnering Sponsors</div>
+          <ul class="brand-sponsors">
+              <li>
+                  <a href="https://pluralsight.com?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon" target=_blank><img src="{{ path }}/ps_logo_f-03-dark.png" width="177" /></a>
+              </li>
+              <li>
+                  <a href="https://www.packet.net/promo/koding/?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon" target=_blank><img src="{{ path }}/packet.png" width="177" /></a>
+              </li>
+              <li>
+                  <a href="http://tokbox.com/?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon" target=_blank><img src="{{ path }}/tokbox.png" width="204" /></a>
+              </li>
+              <li>
+                  <a href="https://redislabs.com/redis-cloud?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon" target=_blank><img src="{{ path }}/redislabs.png" width="174" /></a>
+              </li>
+              <li>
+                  <a href="http://www.trygigster.com/?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon" target=_blank><img src="{{ path }}/gigster.png" width="186" /></a>
+              </li>
+              <li>
+                  <a href="http://developer.uber.com/?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon" target=_blank><img src="{{ path }}/Uber_Logo_White_Background.png" width="280" /></a>
+              </li>
+              <li class="datadog">
+                  <a href="http://datadoghq.com/?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon" target=_blank><img src="{{ path }}/datadog.png" width="61" /></a>
+              </li>
+              <li>
+                  <a href="http://fwd.us/?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon" target=_blank><img src="{{ path }}/fwd.png" width="188" /></a>
+              </li>
+              <li>
+                  <a href="http://www.codementor.io/?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon" target=_blank><img src="{{ path }}/codementor.png" width="193" /></a>
+              </li>
+              <li>
+                  <a href="http://www.go.co/?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon" target=_blank><img src="{{ path }}/go.co.png" width="80" /></a>
+              </li>
+              <li>
+                  <a href="http://www.hired.com/?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon" target=_blank><img src="{{ path }}/hired-logo.png" width="200" /></a>
+              </li>
+              <li>
+                  <a href="http://www.upwork.com/?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon" target=_blank><img src="{{ path }}/upwork-logo-200x200.png" width="200" /></a>
+              </li>
+          </ul>
+          <p>&nbsp;</p>
+          <div class="sub-title">Media Sponsors</div>
+           <ul class="brand-sponsors">
+              <li>
+                  <a href="http://hackingedu.co/?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon" target=_blank><img src="{{ path }}/hackingEDU.png" width="204" /></a>
+              </li>
+              <li>
+                  <a href="http://girlswhocode.com/?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon" target=_blank><img src="{{ path }}/girlswhocodelogo.png" width="204" /></a>
+
+              </li>
+              <li>
+                  <a href="http://www.codemag.com/Magazine?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon" target=_blank><img src="{{ path }}/CODEMagazine.png" width="193" /></a>
+              </li>
+              <li>
+                  <a href="http://acceleprise.vc/?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon" target=_blank><img src="{{ path }}/acceleprise.png" width=200/></a>
+              </li>
+              <li>
+                  <a href="http://www.galvanize.com/?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon" target=_blank><img src="{{ path }}/galvanize_logo_360.png" width="188"/></a>
+              </li>
+              <li>
+                  <a href="https://import.io/?utm_source=koding_hackathon&utm_medium=koding_hackathon_website&utm_campaign=koding_hackathon" target=_blank><img src="{{ path }}/IMPORT-IO-LOGO-gradient_300px.png" width="204" /></a>
+              </li>
+          </ul>
+
+        </div>
+        <!-- / Step -->
+
+
+
+      <p class="note light">Interested in becoming a sponsor or media partner? <a href="mailto:hackathon@hacksummit.org" title="" class="light">Get in touch!</a></p>
+    </div>
+
+    <div id="footer">
+        <p>
+          <a href="https://hacksummit.org" target="_blank">hack.summit() 2016</a>
+          <span class="div">&nbsp;&nbsp;/&nbsp;&nbsp;</span>
+          <a href="mailto:hackathon@hacksummit.org">Contact us</a>
+          <span class="div">&nbsp;&nbsp;/&nbsp;&nbsp;</span>
+          <a href="mailto:hackathon@hacksummit.org">Partnerships</a>
+          <span class="div">&nbsp;&nbsp;/&nbsp;&nbsp;</span>
+          <a href="{{ site.url }}/assets/docs/hackathon-rules.pdf" target="_blank">FAQ</a>
+          <span class="div">&nbsp;&nbsp;/&nbsp;&nbsp;</span>
+          Powered by&nbsp;<a href="https://koding.com" target="_blank">Koding.com</a> & presented by&nbsp;<a href="https://pluralsight.com" target="_blank">Pluralsight.com</a>
+          <span class="div">&nbsp;&nbsp;/&nbsp;&nbsp;</span>
+          Follow us: &nbsp;
+          <a href="https://twitter.com/hack_summit" rel="nofollow" target="_blank" class="img"><img src="{{ path }}/icon_tw2.png" alt="" weight="15" height="15"></a>
+          <a href="https://www.facebook.com/hack.summit" rel="nofollow" target="_blank" class="img"><img src="{{ path }}/icon_fb2.png" alt="" weight="15" height="15"></a>
+          </div>
+        </p>
+    </div>
+
+  </div>
+  <div id='overlay'></div>
+  <!--
+  <script charset="utf-8" type="text/javascript" src="//js.hsforms.net/forms/v2.js"></script>
+  <script type="text/javascript">
+
+    var formId = '2183ffd3-a309-450e-9e5d-3aa5dee89e69';
+
+    hbspt.forms.create({
+      portalId: '1593820',
+      formId: formId,
+      css: ''
+    });
+
+    document.addEventListener( 'click', function(event){
+      var overlay, form;
+      overlay = document.getElementById('overlay');
+      form    = document.getElementById('hsForm_' + formId);
+
+      if (event.target.classList.contains('apply-button')
+          || event.target.parentElement.classList.contains('apply-button')
+          || event.target.parentElement.parentElement.classList.contains('apply-button')){
+        overlay.style.display = 'block';
+        overlay.style.height = document.body.clientHeight + 'px';
+        form.parentElement.style.display = 'block';
+      }
+
+      if (event.target.id == 'overlay'){
+        overlay.style.display = 'none';
+        form.parentElement.style.display = 'none';
+      }
+
+    });
+  </script>
+  -->
+</body>
+</html>

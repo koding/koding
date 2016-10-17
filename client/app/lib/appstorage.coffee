@@ -93,7 +93,7 @@ module.exports = class AppStorage extends kd.Object
 
     @fetchStorage (storage) ->
       query = { $set : pack }
-      storage?.upsert appId, { query, notify }, ->
+      storage?.upsert? appId, { query, notify }, ->
         callback?()
 
 
@@ -116,6 +116,7 @@ module.exports = class AppStorage extends kd.Object
 
   reset: ->
 
+    whoami().resetStorageCache?()
     @_storage     = null
     @_storageData = {}
 

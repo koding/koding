@@ -68,7 +68,7 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
 
     partial =
     if /\*/.test kd.config.group.allowedDomains
-      "If you don't have a Koding account <a href='/Team/Join'>sign up here</a> so you can join #{kd.config.groupName}!"
+      "If you don't have a Koding account <a href='/Invitation'>sign up here</a> so you can join #{kd.config.groupName}!"
     else if domains.length > 1
       domainsPartial = utils.getAllowedDomainsPartial domains
       "If you have an email address from one of these domains #{domainsPartial}, you can <a href='/Team/Join'>join here</a>."
