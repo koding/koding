@@ -296,13 +296,6 @@ module.exports = (KONFIG, options, credentials) ->
           run           : "#{GOBIN}/topicfeed"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/topicfeed -watch socialapi/workers/topicfeed"
 
-    trollmode           :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/trollmode"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/trollmode -watch socialapi/workers/trollmode"
-
     privatemessageemailfeeder:
       group             : "socialapi"
       supervisord       :
