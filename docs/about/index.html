@@ -2,7 +2,6 @@
 layout: default
 title: About
 permalink: /about
-order: 30
 ---
 
 <!-- HEADER -->
@@ -57,7 +56,7 @@ order: 30
   <div>
   {% for member in site.data.members %}
     <div class="AboutUs-TeamMember {{ member.cssClass }}">
-        <img class="profile" src="{{ site.url }}/{{ member.img }}" alt="{{ member.name }}">
+        <img class="profile" src="{{ site.url }}/{% if member.img %}{{ member.img }}{% else %}assets/img/landing/team/{{ member.name | downcase | replace: ' ', '_'}}.png{% endif %}" alt="{{ member.name }}">
         <h3 class="team-member-name">{{ member.name }}</h3>
         <p>
         {{ member.title }}

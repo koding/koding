@@ -56,6 +56,7 @@ const (
 	ErrProviderIsDisabled     = 411
 	ErrMachineNotImplemented  = 412
 	ErrStackNotImplemented    = 413
+	ErrCredentialIsMissing    = 414
 
 	ErrUserNotConfirmed = 500
 )
@@ -94,6 +95,7 @@ var kloudErrors = map[int]string{
 	ErrProviderIsMissing:      "Provider argument is missing.",
 	ErrProviderIsWrong:        "Provider doesn't match the internal name",
 	ErrProviderIsDisabled:     "Provider is disabled",
+	ErrCredentialIsMissing:    "Credential is missing",
 
 	// User errors
 	ErrUserNotConfirmed: "User account is not confirmed",

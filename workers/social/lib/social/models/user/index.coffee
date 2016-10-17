@@ -937,6 +937,8 @@ module.exports = class JUser extends jraphical.Module
     JRegistrationPreferences.one {}, (err, prefs) ->
 
       return callback err  if err
+      return callback null, { isEligible : yes } if not prefs
+
       unless prefs.isRegistrationEnabled
         return callback new Error 'Registration is currently disabled!'
 

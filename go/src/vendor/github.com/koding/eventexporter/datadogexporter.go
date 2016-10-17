@@ -14,8 +14,8 @@ func NewDatadogExporter(d *kodingmetrics.DogStatsD) *DatadogExporter {
 
 func (d *DatadogExporter) Send(m *Event) error {
 	eventName, tags := eventSeperator(m)
-
-	return d.datadog.Count(eventName, 1, tags, 1)
+	_ = d.datadog.Count(eventName, 1, tags, 1)
+	return nil
 }
 
 func (d *DatadogExporter) Close() error {

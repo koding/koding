@@ -29,6 +29,12 @@ type Provider interface {
 	// The Machine interface is used to control a single vm
 	// for the specific cloud-provider.
 	Machine(ctx context.Context, id string) (interface{}, error)
+
+	// NewCredential returns new credential value, created by provider schema.
+	NewCredential() interface{}
+
+	// NewBootstrap returns new bootstrap value, created by provider schema.
+	NewBootstrap() interface{}
 }
 
 // Stacker is a copy of stackplan.Stack interface, duplicated here

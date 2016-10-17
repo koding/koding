@@ -51,3 +51,8 @@ func (m *Memory) Delete(key string) error {
 
 	return nil
 }
+
+// Close implements the Interface interface.
+func (*Memory) Close() error {
+	return nil
+}

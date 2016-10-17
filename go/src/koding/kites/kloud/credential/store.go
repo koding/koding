@@ -13,6 +13,12 @@ import (
 	"github.com/koding/logging"
 )
 
+var defaultLog = logging.NewCustom("credential", false)
+
+type validator interface {
+	Valid() error
+}
+
 // NotFoundError represents an error fetching credentials.
 //
 // Identfiers of credentials that are missing in the underlying
@@ -44,7 +50,7 @@ type Fetcher interface {
 	// for MongoDB credentials store) to the given value. The behaviour
 	// for the decoding can be altered by providing custom ObjectBuilder
 	// via StoreOptions param. By default object.HCLBuilder decoding
-	// is used. If the data value implements kloud.Validator interface,
+	// is used. If the data value implements stack.Validator interface,
 	// it will be used to ensure decoding was successful.
 	//
 	// If the data value is nil, the fetcher will use store-specific
@@ -64,9 +70,9 @@ type Store interface {
 	Putter
 }
 
-// StoreOptions are used to alter default behavior of credential store
+// Options are used to alter default behavior of credential store
 // implementations.
-type StoreOptions struct {
+type Options struct {
 	MongoDB       *mongodb.MongoDB
 	Log           logging.Logger
 	CredURL       *url.URL
@@ -74,7 +80,7 @@ type StoreOptions struct {
 	Client        *http.Client
 }
 
-func (opts *StoreOptions) objectBuilder() *object.Builder {
+func (opts *Options) objectBuilder() *object.Builder {
 	if opts.ObjectBuilder != nil {
 		return opts.ObjectBuilder
 	}
@@ -82,25 +88,32 @@ func (opts *StoreOptions) objectBuilder() *object.Builder {
 	return object.HCLBuilder
 }
 
-func (opts *StoreOptions) new(logName string) *StoreOptions {
+func (opts *Options) new(logName string) *Options {
 	optsCopy := *opts
 	optsCopy.Log = opts.Log.New(logName)
 
 	return &optsCopy
 }
 
+func (opts *Options) log() logging.Logger {
+	if opts.Log != nil {
+		return opts.Log
+	}
+	return defaultLog
+}
+
 // NewStore gives new credential store for the given options.
 //
 // The returned Store keeps all credentials encrypted in Sneaker.
-func NewStore(opts *StoreOptions) Store {
+func NewStore(opts *Options) Store {
 	if opts.CredURL == nil {
 		return &mongoStore{
-			StoreOptions: opts.new("mongo"),
+			Options: opts.new("mongo"),
 		}
 	}
 
 	return &socialStore{
-		StoreOptions: opts.new("social"),
+		Options: opts.new("social"),
 	}
 }
 

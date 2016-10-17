@@ -12,24 +12,20 @@ import (
 const GroupsCollectionName = "jGroups"
 
 func GetGroupById(id string) (*models.Group, error) {
-	group := new(models.Group)
+	var group models.Group
 
-	query := func(c *mgo.Collection) error {
+	return &group, Mongo.Run(GroupsCollectionName, func(c *mgo.Collection) error {
 		return c.Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&group)
-	}
-
-	return group, Mongo.Run(GroupsCollectionName, query)
+	})
 }
 
 // GetGroupsByIds returns groups by their given IDs
 func GetGroupsByIds(ids ...bson.ObjectId) ([]*models.Group, error) {
-	groups := make([]*models.Group, 0)
+	var groups []*models.Group
 
-	query := func(c *mgo.Collection) error {
+	return groups, Mongo.Run(GroupsCollectionName, func(c *mgo.Collection) error {
 		return c.Find(bson.M{"_id": bson.M{"$in": ids}}).All(&groups)
-	}
-
-	return groups, Mongo.Run(GroupsCollectionName, query)
+	})
 }
 
 // GetGroupFieldsByIds retrieves a slice of groups matching the given ids and

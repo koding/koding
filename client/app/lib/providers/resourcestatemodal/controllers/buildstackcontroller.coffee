@@ -27,16 +27,23 @@ module.exports = class BuildStackController extends kd.Controller
 
     @buildStackPage.on 'BuildDone', @bound 'completePostBuildProcess'
     @forwardEvent @buildStackPage, 'ClosingRequested'
-    @forwardEvent @errorPage, 'CredentialsRequested'
-    @errorPage.on 'RebuildRequested', =>
-      @buildStackPage.reset()
-      @emit 'RebuildRequested', stack
     @forwardEvent @successPage, 'ClosingRequested'
+    @forwardErrorPageEvent 'CredentialsRequested'
+    @forwardErrorPageEvent 'RebuildRequested'
     @successPage.on 'LogsRequested', @bound 'showLogs'
     @forwardEvent @logsPage, 'ClosingRequested'
     @forwardEvent @timeoutPage, 'ClosingRequested'
 
     container.appendPages @buildStackPage, @errorPage, @successPage, @logsPage, @timeoutPage
+
+
+  forwardErrorPageEvent: (eventName) ->
+
+    @errorPage.on eventName, =>
+      { stack } = @getData()
+      stack.status.state = 'NotInitialized'
+      @buildStackPage.reset()
+      @emit eventName, stack
 
 
   getLogFile: ->

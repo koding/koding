@@ -13,11 +13,14 @@
       <path d="M12.6 0H4C1.8 0 .1 1.8.1 4v16c0 2.2 1.7 4 3.9 4h8.6c2.1 0 3.9-1.8 3.9-3.9V4c0-2.2-1.8-4-3.9-4zm1.6 19.8c0 1.1-.8 1.9-1.9 1.9H4.2c-1 0-1.9-.9-1.9-1.9V4.2c0-1.1.8-1.9 1.9-1.9h8.2c1 0 1.9.9 1.9 1.9v15.6z"/>
     </svg>
   </a>
+  {% if include.exclude_main_nav %}
+  {% else %}
   <a class="item{% if '/features' == page.url or '/features' contains page.parent %} active{% endif %}" href="{{ site.url }}/features">FEATURES</a>
   <a class="item{% if '/pricing' == page.url or '/pricing' contains page.parent %} active{% endif %}" href="{{ site.url }}/pricing">PRICING</a>
   <a class="item{% if '/about' == page.url or '/about' contains page.parent %} active{% endif %}" href="{{ site.url }}/about">ABOUT</a>
-  <a class="item{% if '/docs/home' == page.url or '/docs/home' contains page.parent %} active{% endif %}" href="{{ site.url }}/docs/home">DOCS</a>
-  <a class="item{% if '/login' == page.url or '/login' contains page.parent %} active{% endif %}" href="{{ site.url }}/login">LOGIN</a>
+  <a class="item{% if '/docs/home' == page.url or '/docs' contains page.parent %} active{% endif %}" href="{{ site.url }}/docs/home">DOCS</a>
+  <!-- <a class="item{% if '/store/home' == page.url or '/store' contains page.parent %} active{% endif %}" href="{{ site.url }}/store/home">HUB</a> -->
+  {% endif %}
   <span class="spacer"></span>
 
   {% if include.with_socials %}
@@ -27,7 +30,8 @@
   {% endif %}
 
   {% if include.with_signup_form %}
-  <a class="signup" href="/signup">
+  <a class="item{% if '/login' == page.url or '/login' contains page.parent %} active{% endif %}" href="{{ site.url }}/teams/select">LOGIN</a>
+  <a class="signup" href="/teams/create">
     <svg width="15px" height="15px" viewBox="0 0 15 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
       <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <g id="iPhone-6" transform="translate(-293.000000, -15.000000)" >
@@ -41,6 +45,8 @@
   </a>
   {% endif %}
 
+  {% if include.exclude_main_nav %}
+  {% else %}
   <a class="burger">
     <svg width="19px" height="14px" viewBox="0 0 19 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
       <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
@@ -52,6 +58,16 @@
       </g>
     </svg>
   </a>
+  <script>
+    document.querySelector('.burger').onclick = function () {
+      if (document.body.classList.contains('burgerToggle')) {
+        document.body.classList.remove('burgerToggle');
+      } else {
+        document.body.classList.add('burgerToggle');
+      }
+    }
+  </script>
+  {% endif %}
 
   {% if include.has_hiring_badge %}
   <style>
@@ -111,12 +127,3 @@
 {% if include.has_sticky_navigation %}
 <script>{% include js/header.js %}</script>
 {% endif %}
-<script>
-  document.querySelector('.burger').onclick = function () {
-    if (document.body.classList.contains('burgerToggle')) {
-      document.body.classList.remove('burgerToggle');
-    } else {
-      document.body.classList.add('burgerToggle');
-    }
-  }
-</script>

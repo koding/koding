@@ -67,7 +67,7 @@ type CheckUpdate struct {
 func NewCheckUpdate() *CheckUpdate {
 	return &CheckUpdate{
 		LocalVersion:       config.VersionNum(),
-		Location:           config.S3KlientctlLatest,
+		Location:           config.Konfig.KlientLatestURL,
 		RandomSeededNumber: rand.Intn(3),
 		ForceCheck:         false,
 	}

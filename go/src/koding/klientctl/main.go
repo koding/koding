@@ -49,6 +49,11 @@ var sudoRequiredFor = []string{
 // cli rewrite.
 var log logging.Logger
 
+var (
+	debug        = os.Getenv("KD_DEBUG") == "1"
+	experimental = os.Getenv("KD_EXPERIMENTAL") == "1"
+)
+
 func main() {
 	// For forward-compatibility with go1.5+, where GOMAXPROCS is
 	// always set to a number of available cores.
@@ -65,11 +70,8 @@ func main() {
 		// nil before every usage.
 		logWriter = ioutil.Discard
 	} else {
-		// TODO: Does defer get triggered on os.Exit? I think main() needs to be moved
-		// to an alternate func that we can actuall use defer. Eg, main() calls Main(),
-		// or something.
-		defer f.Close()
 		logWriter = f
+		ctlcli.CloseOnExit(f)
 	}
 
 	// Setting the handler to debug, because various methods allow a
@@ -90,8 +92,11 @@ func main() {
 		// In the event of an error, simply print the error to the user
 		// and exit.
 		fmt.Println("Error: this command requires sudo.")
+		ctlcli.Close()
 		os.Exit(10)
 	}
+
+	defer ctlcli.Close()
 
 	// TODO(leeola): deprecate this default, instead passing it as a dependency
 	// to the users of it.
@@ -273,10 +278,9 @@ func main() {
 					Usage: "Updates kd & klient to latest available version.",
 				},
 				cli.BoolFlag{
-					Name: "continue",
-					// TODO(leeola): Update to the latest cli package, and use the Hidden flag
-					// for this bool flag.
-					Usage: "Internal use only.",
+					Name:   "continue",
+					Usage:  "Internal use only.",
+					Hidden: true,
 				},
 			},
 		},
@@ -323,10 +327,8 @@ func main() {
 			Action:   ctlcli.ExitAction(MetricsCommandFactory, log, "metrics"),
 		},
 		{
-			Name: "autocompletion",
-			Usage: fmt.Sprintf(
-				"Enable autocompletion support for bash and fish shells",
-			),
+			Name:        "autocompletion",
+			Usage:       "Enable autocompletion support for bash and fish shells",
 			Description: cmdDescriptions["autocompletion"],
 			Flags: []cli.Flag{
 				cli.StringFlag{
@@ -368,9 +370,10 @@ func main() {
 			),
 		},
 		{
-			Name: "log",
+			Name:  "log",
+			Usage: "Display logs.",
 			Flags: []cli.Flag{
-				cli.BoolFlag{Name: "debug"},
+				cli.BoolFlag{Name: "debug", Hidden: true},
 				cli.BoolFlag{Name: "no-kd-log"},
 				cli.BoolFlag{Name: "no-klient-log"},
 				cli.StringFlag{Name: "kd-log-file"},
@@ -392,6 +395,115 @@ func main() {
 		},
 	}
 
+	if experimental {
+		app.Commands = append(app.Commands,
+			cli.Command{
+				Name:  "config",
+				Usage: "Manage tool configuration.",
+				Subcommands: []cli.Command{{
+					Name:   "show",
+					Usage:  "Show configuration.",
+					Action: ctlcli.ExitErrAction(ConfigShow, log, "show"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "defaults",
+							Usage: "Show also default configuration",
+						},
+					},
+				}, {
+					Name:   "set",
+					Usage:  "Set a value for the given key, overwriting default one.",
+					Action: ctlcli.ExitErrAction(ConfigSet, log, "set"),
+				}, {
+					Name:   "unset",
+					Usage:  "Unset the given key, restoring the defaut value.",
+					Action: ctlcli.ExitErrAction(ConfigUnset, log, "set"),
+				}},
+			},
+			cli.Command{
+				Name:      "credential",
+				ShortName: "c",
+				Usage:     "Manage stack credentials.",
+				Subcommands: []cli.Command{{
+					Name:   "import",
+					Usage:  "Import stack credentials from Koding account.",
+					Action: ctlcli.ExitErrAction(CredentialImport, log, "import"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+						cli.StringFlag{
+							Name:  "provider, p",
+							Usage: "Specify credential provider.",
+						},
+						cli.StringFlag{
+							Name:  "team, t",
+							Usage: "Specify team which the credential belongs to.",
+						},
+						cli.BoolFlag{
+							Name:   "debug",
+							Usage:  "Turn on debug logging.",
+							Hidden: true,
+						},
+					},
+				}, {
+					Name:      "list",
+					ShortName: "ls",
+					Usage:     "List imported stack credentials.",
+					Action:    ctlcli.ExitErrAction(CredentialList, log, "list"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+						cli.StringFlag{
+							Name:  "provider, p",
+							Usage: "Specify credential provider.",
+						},
+						cli.StringFlag{
+							Name:  "team, t",
+							Usage: "Specify team which the credential belongs to.",
+						},
+						cli.BoolFlag{
+							Name:   "debug",
+							Usage:  "Turn on debug logging.",
+							Hidden: true,
+						},
+					},
+				}, {
+					Name:   "create",
+					Usage:  "Create new stack credential.",
+					Action: ctlcli.ExitErrAction(CredentialCreate, log, "create"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+						cli.StringFlag{
+							Name:  "provider, p",
+							Usage: "Specify credential provider.",
+						},
+						cli.StringFlag{
+							Name:  "file, f",
+							Value: "-",
+							Usage: "Read credential from a file.",
+						},
+						cli.StringFlag{
+							Name:  "team, t",
+							Usage: "Specify team which the credential belongs to.",
+						},
+						cli.BoolFlag{
+							Name:   "debug",
+							Usage:  "Turn on debug logging.",
+							Hidden: true,
+						},
+					},
+				}},
+			},
+		)
+	}
+
 	app.Run(os.Args)
 }
 
@@ -403,6 +515,7 @@ func ExitWithMessage(f ExitingWithMessageCommand, log logging.Logger, cmd string
 		if s != "" {
 			fmt.Println(s)
 		}
+		ctlcli.Close()
 		os.Exit(e)
 	}
 }

@@ -2,29 +2,47 @@ package main
 
 import (
 	"fmt"
-	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/stack"
 	"log"
 	"net/http"
 	"os"
 
+	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/stack"
+
 	"github.com/koding/multiconfig"
 )
 
-func main() {
-	var cfg kloud.Config
+var config = multiconfig.New()
 
-	// Load the config, it's reads environment variables or from flags
-	mc := multiconfig.New()
-	mc.Loader = multiconfig.MultiLoader(
+func init() {
+	config.Loader = multiconfig.MultiLoader(
 		&multiconfig.TagLoader{},
 		&multiconfig.EnvironmentLoader{},
 		&multiconfig.EnvironmentLoader{Prefix: "KONFIG_KLOUD"},
 		&multiconfig.FlagLoader{},
 	)
 
-	mc.MustLoad(&cfg)
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+}
 
+func main() {
+	var schemaCfg SchemaConfig
+
+	if err := config.Load(&schemaCfg); err == nil && schemaCfg.GenSchema != "" {
+		if err := genSchema(schemaCfg.GenSchema); err != nil {
+			log.Fatal(err)
+		}
+
+		return
+	}
+
+	var cfg kloud.Config
+
+	if err := config.Load(&cfg); err != nil {
+		log.Fatal(err)
+	}
+
+	// Load the config, it's reads environment variables or from flags
 	if cfg.Version {
 		fmt.Println(stack.VERSION)
 		os.Exit(0)

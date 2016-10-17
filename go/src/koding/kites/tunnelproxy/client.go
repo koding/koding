@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	cfg "koding/config"
 	"koding/httputil"
+	cfg "koding/kites/config"
 	"koding/klient/protocol"
 
 	"github.com/cenkalti/backoff"
