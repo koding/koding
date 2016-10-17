@@ -31,13 +31,6 @@ $regularColor               = #989898
         &.secondary
           left              30px
           right             auto
-          padding           0 15px
-          color             #5e5e5e
-          bg                color, #fff
-          border            1px solid #e4e4e4
-
-        .button-title
-          font-size         14px
 
       a.back-link
         position            relative
@@ -63,6 +56,15 @@ $regularColor               = #989898
         color               $regularColor
         margin-top          0
         margin-bottom       20px
+
+    .GenericButton.secondary
+      padding             0 15px
+      color               #5e5e5e
+      bg                  color, #fff
+      border              1px solid #e4e4e4
+
+      .button-title
+        font-size         14px
 
 
   .start-machine-flow,
@@ -625,40 +627,46 @@ $regularColor               = #989898
   .build-stack-success-page
 
     section.main
-      padding-left          385px
-      padding-top           120px
-
-      h1
-        color               #48ba7d
-        font-size           40px
-        letter-spacing      .4px
-        line-height         43px
 
       h2
-        font-size           20px
-        font-weight         300
-        letter-spacing      .21px
-        line-height         16px
-        color               $regularColor
-        text-align          left
-        padding-top         5px
-        padding-bottom      45px
+        padding-top         40px
+        padding-bottom      50px
+        font-size           28px
+        line-height         28px
+        color               #48ba7d
 
       .background
         abs()
-        top                 93px
-        left                125px
-        r-sprite            'app', 'buildstack__art_success'
+        top                 110px
+        left                50px
+        r-sprite            'app', 'buildstack__art_success_big'
 
+      .next-action
+        clear               both
+        letter-spacing      .16px
+        line-height         16px
+        padding-left        385px
+        padding-top         30px
 
-  .build-stack-logs-page
+        &:first-child
+          padding-top       0px
 
-    section.main
-      padding-top           29px
+      .next-action-title
+        font-size           14px
+        color               #5e5e5e
 
-    .logs-pane
-      width                 720px
-      height                356px
+      .next-action-description
+        font-size           14px
+        color               #a59999
+        padding-top         6px
+        width               234px
+
+      .GenericButton.secondary
+        fr()
+        color               #57a2d2
+        size                110px, 36px
+        padding             0
+        margin-right        30px
 
 
   .build-stack-timeout-page

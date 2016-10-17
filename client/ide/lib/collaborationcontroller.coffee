@@ -811,6 +811,7 @@ module.exports = CollaborationController =
 
   onCollaborationPreparing: ->
 
+    @statusBar.emit 'CollaborationPreparing'
     @prepareSocialChannel
       success : => @stateMachine.transition 'Prepared'
       error   : => @stateMachine.transition 'ErrorPreparing'

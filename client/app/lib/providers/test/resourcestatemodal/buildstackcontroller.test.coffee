@@ -8,7 +8,6 @@ PageContainer = require 'app/providers/resourcestatemodal/views/pagecontainer'
 BuildStackPageView = require 'app/providers/resourcestatemodal/views/stackflow/buildstackpageview'
 BuildStackErrorPageView = require 'app/providers/resourcestatemodal/views/stackflow/buildstackerrorpageview'
 BuildStackSuccessPageView = require 'app/providers/resourcestatemodal/views/stackflow/buildstacksuccesspageview'
-BuildStackLogsPageView = require 'app/providers/resourcestatemodal/views/stackflow/buildstacklogspageview'
 BuildStackTimeoutPageView = require 'app/providers/resourcestatemodal/views/stackflow/buildstacktimeoutpageview'
 
 describe 'BuildStackController', ->
@@ -164,22 +163,6 @@ describe 'BuildStackController', ->
         activePane = container.getActivePane()
         expect(activePane).toExist()
         expect(activePane.mainView instanceof BuildStackErrorPageView).toBeTruthy()
-
-        done()
-
-
-  describe '::showLogs', ->
-
-    it 'should show logs page if success page asks for that', (done) ->
-
-      controller = new BuildStackController { container }, { machine, stack, stackTemplate }
-
-      kd.utils.defer ->
-        controller.successPage.emit 'LogsRequested'
-
-        activePane = container.getActivePane()
-        expect(activePane).toExist()
-        expect(activePane.mainView instanceof BuildStackLogsPageView).toBeTruthy()
 
         done()
 
