@@ -26,7 +26,7 @@ Click on the 'BUILD STACK' button
 Do you see 'Fetching and validating credentials...' text in a progress bar?
 
 Wait for a few minutes for process to be completed
-Do you see 'Success' text? Do you see 'Your stack has been built' text below it? Do you see 'SEE THE LOGS' and 'START CODING' buttons on the bottom?
+Do you see 'Success' text? Do you see 'Your stack has been built.' text below it? Do you see 'View The Logs', 'Install Your KD' and 'Invite to Collaborate' sections? Do you see 'START CODING' button on the bottom?
 
 Click on 'START CODING' button
 Do you see 'Team Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'example-instance' label? Do you see '/home/rainforestqa22' label on top of a file list? Do you see 'cloud-init-o...' file on top and 'Terminal' tab on the bottom pane? 

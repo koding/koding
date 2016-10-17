@@ -26,7 +26,7 @@ Click on the 'NEXT' and 'BUILD STACK' buttons respectively
 Do you see 'Fetching and validating credentials...' text in a progress bar? Do you see a green progress bar also below 'example-instance' label on left sidebar?
 
 Wait for a few minutes for process to be completed
-Do you see 'Success' and 'Your stack has been built' texts below it? Do you see 'SEE THE LOGS' and 'START CODING' buttons on the bottom?
+Do you see 'Success' text? Do you see 'Your stack has been built.' text below it? Do you see 'View The Logs', 'Install Your KD' and 'Invite to Collaborate' sections? Do you see 'START CODING' button on the bottom?
 
 Click on 'STACKS' title from left sidebar
 Do you see 'Rainforestqa99's Stack' under 'Private Stacks' section? Do you see that the other sections are empty?
