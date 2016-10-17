@@ -563,7 +563,7 @@ class IDEAppController extends AppController
           @fakeTabView      = @activeTabView
           fakeTerminalView  = new kd.CustomHTMLView { partial: splashes.getTerminal nickname }
           @fakeTerminalPane = @fakeTabView.parent.createPane_ fakeTerminalView, { name: 'Terminal' }
-          @fakeFinderView   = new kd.CustomHTMLView { partial: splashes.getFileTree nickname }, machineLabel
+          @fakeFinderView   = new kd.CustomHTMLView { partial: splashes.getFileTree nickname, machineLabel }
 
           @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
           @fakeEditor.once 'EditorIsReady', => kd.utils.wait 1500, => @fakeEditor.setFocus no
