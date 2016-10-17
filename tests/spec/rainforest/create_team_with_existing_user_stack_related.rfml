@@ -13,7 +13,7 @@ Do you see 'Your team URL' form with URL field prefilled?
 Click on 'NEXT' button
 Do you see 'Hey rainforestqa99,' text? Do you see 'password' input field? Do you see 'Done!' button?
 
-Enter "rainforestqa99" in the password field and click on 'DONE!' button,(if you see 'Your login access is blocked for 1 minute' message, try again after waiting 1 minute) then if you see 'Authentication Required' form enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In' (if not do nothing and check the items below)
+Enter "rainforestqa99" in the password field and click on 'DONE!' button,(if you see 'Your login access is blocked for 1 minute' message, check that you entered "rainforestqa99" and try again after waiting 1 minute)  then if you see 'Authentication Required' form enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In' (if not do nothing and check the items below)
 Do you see 'You are almost there, rainforestqa99!' title? Do you see 'Create a Stack for Your Team', 'Enter your Credentials', 'Build Your Stack', 'Invite Your Team' and 'Install KD' sections? Do you see 'CREATE', 'ENTER', 'BUILD', 'INVITE' and 'INSTALL' buttons next to them?
 
 Click on 'Create a Stack for Your Team' section and then click on 'CREATE A NEW STACK' button 
@@ -32,7 +32,7 @@ Click on the 'SHARE WITH THE TEAM' button and then click on the 'YES' button and
 Do you see 'Rainforestqa99's Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'Read Me' text and a 'NEXT' and 'VIEW STACK TEMPLATE' buttons on the bottom? Do you see 'STACKS', 'Rainforestqa99's Stack' and 'example-instance' labels on left sidebar?
 
 Click on the 'NEXT' button and then click on the 'BUILD STACK' button and wait for a few minutes for process to be completed
-Do you see 'Success' text? Do you see 'Your stack has been built' text below it? Do you see 'SEE THE LOGS' and 'START CODING' buttons on the bottom?
+Do you see 'Success' text? Do you see 'Your stack has been built.' text below it? Do you see 'View The Logs', 'Install Your KD' and 'Invite to Collaborate' sections? Do you see 'START CODING' button on the bottom?
 
 Click on 'START CODING' button
 Do you see 'Rainforestqa99'S Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'example-instance' label? Do you see '/home/rainforestqa99' label on top of a file list? Do you see 'cloud-init-o...' file on top and 'Terminal' tab on the bottom pane? 
