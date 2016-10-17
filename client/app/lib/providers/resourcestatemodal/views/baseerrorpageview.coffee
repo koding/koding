@@ -33,13 +33,19 @@ module.exports = class BaseErrorPageView extends JView
         <cite>#{getCopyToClipboardShortcut()}</cite>
       """
 
+    _copied = no
     errorPartial = if isSingleError
     then _.escape errs.first
     else (errs.map (err) -> "<li>#{_.escape err}</li>").join ''
     @errorContent.addSubView new kd.CustomHTMLView
-      tagName  : if isSingleError then 'p' else 'ul'
+      tagName  : if isSingleError then 'pre' else 'ul'
       partial  : errorPartial
-      click    : -> copyToClipboard @getElement()
+      click    : ->
+        copyToClipboard @getElement()  unless _copied
+        _copied = yes
+
+    kd.utils.defer =>
+      @errorContainer.wrapper.scrollToBottom()
 
 
   onPageDidShow: ->
@@ -48,3 +54,6 @@ module.exports = class BaseErrorPageView extends JView
     # otherwise, custom scroll doesn't work properly
     container = @getDomElement().find '.main'
     container.css 'height', container.height()
+
+
+  pistachio: -> 'Extend this page to show error modal here'
