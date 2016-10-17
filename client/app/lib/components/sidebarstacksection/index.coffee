@@ -106,11 +106,7 @@ module.exports = class SidebarStackSection extends React.Component
       when 'Make Team Default'
         remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
           computeController.makeTeamDefault template, no  unless err
-      when 'Share With Team'
-        remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
-          template.setAccess 'group', (err) ->
-            return callback err  if err
-            return new kd.NotificationView { title: 'Sharing with Team' }
+
 
   onTitleClick: (event) ->
 
@@ -149,8 +145,6 @@ module.exports = class SidebarStackSection extends React.Component
         menuItems[name] = { callback }
       if isAdmin() and not isDefaultTeamStack @props.stack.get 'baseStackId'
         menuItems['Make Team Default'] = { callback }
-        if @props.stack.get('accessLevel') is 'private'
-          menuItems['Share With Team'] = { callback }
 
     { top } = findDOMNode(this).getBoundingClientRect()
 
