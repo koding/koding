@@ -29,6 +29,7 @@
     },
     "google_compute_project_metadata": {
       "default": {
+        "project": "${var.google_project}",
         "metadata": {
           "sshKeys": "${var.user_name}:${var.public_key}"
         }
