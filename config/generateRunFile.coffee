@@ -597,8 +597,8 @@ generateDev = (KONFIG, options) ->
     elif [ "$1" == "vmwatchertests" ]; then
       go test koding/vmwatcher -test.v=true
 
-    elif [ "$1" == "goconfigtests" ]; then
-      go test -v --race koding/config
+    elif [ "$1" == "gokodingconfigtests" ]; then
+      go test -v --race koding/kites/config
 
     elif [ "$1" == "janitortests" ]; then
       pushd $KONFIG_PROJECTROOT/go/src/koding/workers/janitor

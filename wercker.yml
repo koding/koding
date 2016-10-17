@@ -84,8 +84,8 @@ build:
         name: build go binaries
         code: go/build.sh
     - script:
-        name: test go config
-        code: scripts/wercker/run-command ./run goconfigtests
+        name: test go koding config
+        code: scripts/wercker/run-command ./run gokodingconfigtests
     - script:
         name: ensure JSON and generated files in go/src/koding are not stale
         code: scripts/check-generated-files.sh
