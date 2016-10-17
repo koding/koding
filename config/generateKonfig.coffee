@@ -206,23 +206,23 @@ module.exports = (options, credentials) ->
     debug                  : no
 
   # configuration for Go's back-end part of Koding. Configuration structure is
-  # defined in ./go/src/koding/config/config.go
+  # defined in ./go/src/koding/kites/config/config.go
   goKoding =
-    environment      : options.environment
-    buckets          :
-      publicLogs     :
-        name         : options.publicLogsS3BucketName
-        region       : 'us-east-1'
-    endpoints        :
-      ip             : "https://#{options.proxySubdomain}.koding.com/-/ip"
-      ipCheck        : "https://#{options.proxySubdomain}.koding.com/-/ipcheck"
-      kdLatest       : "https://koding-kd.s3.amazonaws.com/#{options.environment}/latest-version.txt"
-      klientLatest   : "https://koding-klient.s3.amazonaws.com/#{options.environment}/latest-version.txt"
-      kloud          : "#{options.publicHostname}/kloud/kite",
-      kontrol        : "#{options.publicHostname}/kontrol/kite",
-      tunnelServer   : "#{options.tunnelUrl}/kite"
-    routes           :
-      dev.koding.com : '127.0.0.1'
+    environment        : options.environment
+    buckets            :
+      publicLogs       :
+        name           : options.publicLogsS3BucketName
+        region         : 'us-east-1'
+    endpoints          :
+      ip               : "https://#{options.proxySubdomain}.koding.com/-/ip"
+      ipCheck          : "https://#{options.proxySubdomain}.koding.com/-/ipcheck"
+      kdLatest         : "https://koding-kd.s3.amazonaws.com/#{options.environment}/latest-version.txt"
+      klientLatest     : "https://koding-klient.s3.amazonaws.com/#{options.environment}/latest-version.txt"
+      kloud            : "#{options.publicHostname}/kloud/kite",
+      kontrol          : "#{options.publicHostname}/kontrol/kite",
+      tunnelServer     : "#{options.tunnelUrl}/kite"
+    routes             :
+      'dev.koding.com' : '127.0.0.1'
 
   KONFIG =
     configName                    : options.configName

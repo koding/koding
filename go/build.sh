@@ -89,10 +89,8 @@ for provider in $KODING_REPO/go/src/koding/kites/kloud/provider/*; do
 	fi
 done
 
+go generate koding/kites/config
 go generate koding/kites/kloud/kloud
-
-# generate static go configuration.
-KODING_JSON_CONFIG_FILE="$KODING_REPO/.env.json" go generate koding/config > /dev/null
 
 koding-go-install ${COMMANDS[@]} ${TERRAFORM_COMMANDS[@]}
 

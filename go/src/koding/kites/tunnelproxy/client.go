@@ -27,10 +27,10 @@ var (
 	defaultTimeout          = 30 * time.Second
 )
 
-// TunnelKiteURLFromEnv gives tunnel server kite URL base on the given
+// BuiltinTunnelKiteURL gives tunnel server kite URL base on the given
 // environment.
-func TunnelKiteURLFromEnv(env string) string {
-	return cfg.MustTunnelServerURL(env)
+func BuiltinTunnelKiteURL() string {
+	return string(cfg.Builtin.Endpoints.Tunnel)
 }
 
 // ClientOptions are used to alternate behavior of
@@ -45,7 +45,7 @@ type ClientOptions struct {
 
 	// TunnelKiteURL is a global tunnel server kite URL.
 	//
-	// If empty, TunnelKiteURLFromEnv is used instead.
+	// If empty, BuiltinTunnelKiteURL is used instead.
 	TunnelKiteURL string
 
 	// LastVirtualHost is saved virtual host from previous connection.
@@ -97,7 +97,8 @@ func (opts *ClientOptions) tunnelKiteURL() string {
 	if opts.TunnelKiteURL != "" {
 		return opts.TunnelKiteURL
 	}
-	return TunnelKiteURLFromEnv(konfig.Environment)
+
+	return BuiltinTunnelKiteURL()
 }
 
 func (opts *ClientOptions) maxRegisterRetry() int {

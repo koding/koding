@@ -435,7 +435,7 @@ func (t *Tunnel) LocalKontrolURL() *url.URL {
 
 	ip := net.ParseIP(host)
 	if ip == nil {
-		ip = net.ParseIP(kconf.Route(host))
+		ip = net.ParseIP(kconf.Builtin.Routes[host])
 	}
 
 	if ip == nil {
