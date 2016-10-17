@@ -561,7 +561,6 @@ generateDev = (KONFIG, options) ->
       fi
 
       build_services
-      migrate up
 
     elif [ "$1" == "help" ]; then
       printHelp
