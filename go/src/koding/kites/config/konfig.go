@@ -7,6 +7,9 @@ import (
 	"koding/kites/kloud/utils/object"
 
 	"github.com/boltdb/bolt"
+	jwt "github.com/dgrijalva/jwt-go"
+	konfig "github.com/koding/kite/config"
+	"github.com/koding/kite/kitekey"
 )
 
 var KonfigCache = &CacheOptions{
@@ -20,6 +23,7 @@ var KonfigCache = &CacheOptions{
 type Konfig struct {
 	// Kite configuration.
 	KiteKeyFile string `json:"kiteKeyFile,omitempty"`
+	KiteKey     string `json:"kiteKey,omitempty'`
 
 	// Koding endpoints konfiguration.
 	KontrolURL string `json:"kontrolURL,omitempty"`
@@ -42,6 +46,37 @@ type Konfig struct {
 
 func (k *Konfig) KiteHome() string {
 	return filepath.Dir(k.KiteKeyFile)
+}
+
+func (k *Konfig) KiteConfig() *konfig.Config {
+	cfg := k.buildKiteConfig()
+	cfg.KontrolURL = k.KontrolURL
+	return cfg
+}
+
+func (k *Konfig) buildKiteConfig() *konfig.Config {
+	if k.KiteKey != "" {
+		tok, err := jwt.ParseWithClaims(k.KiteKey, &kitekey.KiteClaims{}, kitekey.GetKontrolKey)
+		if err == nil {
+			cfg := &konfig.Config{}
+
+			if err = cfg.ReadToken(tok); err == nil {
+				return cfg
+			}
+		}
+	}
+
+	if k.KiteKeyFile != "" {
+		if cfg, err := konfig.NewFromKiteKey(k.KiteKeyFile); err == nil {
+			return cfg
+		}
+	}
+
+	if cfg, err := konfig.Get(); err == nil {
+		return cfg
+	}
+
+	return konfig.New()
 }
 
 // Enviroment is a hacky workaround for kd <-> klient environments.

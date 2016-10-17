@@ -87,6 +87,10 @@ func main() {
 	log.SetHandler(handler)
 	log.Info("kd binary called with: %s", os.Args)
 
+	if debug {
+		log.SetLevel(logging.DEBUG)
+	}
+
 	// Check if the command the user is giving requires sudo.
 	if err := AdminRequired(os.Args, sudoRequiredFor, util.NewPermissions()); err != nil {
 		// In the event of an error, simply print the error to the user
