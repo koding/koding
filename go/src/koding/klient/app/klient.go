@@ -2,6 +2,8 @@ package app
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -19,6 +21,7 @@ import (
 	"sync"
 	"time"
 
+	kfg "koding/kites/config"
 	"koding/klient/client"
 	"koding/klient/collaboration"
 	"koding/klient/command"
@@ -151,10 +154,37 @@ type KlientConfig struct {
 	LogBucketName     string
 	LogKeygenURL      string
 	LogUploadInterval time.Duration
+
+	Metadata     string
+	MetadataFile string
+}
+
+func (conf *KlientConfig) logKeygenURL() string {
+	if conf.LogKeygenURL != "" {
+		return conf.LogKeygenURL
+	}
+
+	return konfig.Konfig.KloudURL
+}
+
+func (conf *KlientConfig) logBucketName() string {
+	if conf.LogBucketName != "" {
+		return conf.LogBucketName
+	}
+
+	return konfig.Konfig.PublicBucketName
+}
+
+func (conf *KlientConfig) logBucketRegion() string {
+	if conf.LogBucketRegion != "" {
+		return conf.LogBucketRegion
+	}
+
+	return konfig.Konfig.PublicBucketRegion
 }
 
 // NewKlient returns a new Klient instance
-func NewKlient(conf *KlientConfig) *Klient {
+func NewKlient(conf *KlientConfig) (*Klient, error) {
 	// this is our main reference to count and measure metrics for the klient
 	// we count only those methods, please add/remove methods here that will
 	// reset the timer of a klient.
@@ -195,6 +225,42 @@ func NewKlient(conf *KlientConfig) *Klient {
 		// "docker.list":         true,
 	})
 
+	if conf.Metadata != "" && conf.MetadataFile != "" {
+		return nil, errors.New("the -metadata and -metadata-file flags are exclusive")
+	}
+
+	if conf.Metadata != "" {
+		p, err := base64.StdEncoding.DecodeString(conf.Metadata)
+		if err != nil {
+			return nil, errors.New("failed to decode Koding metadata: " + err.Error())
+		}
+
+		conf.Metadata = string(p)
+	}
+
+	if conf.MetadataFile != "" {
+		p, err := ioutil.ReadFile(conf.MetadataFile)
+		if err != nil {
+			return nil, errors.New("failed to read Koding metadata file: " + err.Error())
+		}
+
+		conf.Metadata = string(p)
+	}
+
+	if conf.Metadata != "" {
+		var m kfg.Metadata
+
+		if err := json.Unmarshal([]byte(conf.Metadata), &m); err != nil {
+			return nil, errors.New("failed to decode Koding metadata: " + err.Error())
+		}
+
+		if err := kfg.DumpToBolt("", m); err != nil {
+			return nil, errors.New("failed to write Koding metadata: " + err.Error())
+		}
+
+		konfig.Konfig = konfig.ReadKonfig() // re-read konfig after dumping metadata
+	}
+
 	k := newKite(conf)
 	term := terminal.New(k.Log, conf.ScreenrcPath)
 	term.InputHook = usg.Reset
@@ -205,10 +271,10 @@ func NewKlient(conf *KlientConfig) *Klient {
 	}
 
 	up := uploader.New(&uploader.Options{
-		KeygenURL: conf.LogKeygenURL,
+		KeygenURL: conf.logKeygenURL(),
 		Kite:      k,
-		Bucket:    conf.LogBucketName,
-		Region:    conf.LogBucketRegion,
+		Bucket:    conf.logBucketName(),
+		Region:    conf.logBucketRegion(),
 		DB:        db,
 		Log:       k.Log,
 	})
@@ -277,7 +343,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 	// This is important, don't forget it
 	kl.RegisterMethods()
 
-	return kl
+	return kl, nil
 }
 
 // An implementation of the kite xhr dialer that uses a set http timeout,

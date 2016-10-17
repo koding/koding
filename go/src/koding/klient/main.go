@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -14,6 +15,7 @@ import (
 	"koding/klient/registration"
 )
 
+// TODO(rjeczalik): replace with multiconfig
 var (
 	flagIP          = flag.String("ip", "", "Change public ip")
 	flagPort        = flag.Int("port", 56789, "Change running port")
@@ -48,10 +50,14 @@ var (
 	flagAutoupdate    = flag.Bool("autoupdate", false, "Force turn automatic updates on")
 
 	// Upload log flags
-	flagLogBucketRegion   = flag.String("log-bucket-region", defaultBucketRegion(), "Change bucket region to upload logs")
-	flagLogBucketName     = flag.String("log-bucket-name", defaultBucketName(), "Change bucket name to upload logs")
-	flagKeygenURL         = flag.String("log-keygen-url", defaultKeygenURL(), "Change keygen endpoint URL for bucket authorization")
+	flagLogBucketRegion   = flag.String("log-bucket-region", "", "Change bucket region to upload logs")
+	flagLogBucketName     = flag.String("log-bucket-name", "", "Change bucket name to upload logs")
+	flagKeygenURL         = flag.String("log-keygen-url", "", "Change keygen endpoint URL for bucket authorization")
 	flagLogUploadInterval = flag.Duration("log-upload-interval", 90*time.Minute, "Change interval of upload logs")
+
+	// Metadata flags.
+	flagMetadata     = flag.String("metadata", "", "Base64-encoded Koding metadata")
+	flagMetadataFile = flag.String("metadata-file", "", "Koding metadata file")
 )
 
 func defaultKiteHome() string {
@@ -63,18 +69,6 @@ func defaultKiteHome() string {
 
 func defaultNoTunnel() bool {
 	return os.Getenv("KITE_NO_TUNNEL") == "1"
-}
-
-func defaultKeygenURL() string {
-	return konfig.Konfig.KloudURL
-}
-
-func defaultBucketName() string {
-	return konfig.Konfig.PublicBucketName
-}
-
-func defaultBucketRegion() string {
-	return konfig.Konfig.PublicBucketRegion
 }
 
 func main() {
@@ -146,9 +140,15 @@ func realMain() int {
 		LogBucketName:     *flagLogBucketName,
 		LogKeygenURL:      *flagKeygenURL,
 		LogUploadInterval: *flagLogUploadInterval,
+		Metadata:          *flagMetadata,
+		MetadataFile:      *flagMetadataFile,
 	}
 
-	a := app.NewKlient(conf)
+	a, err := app.NewKlient(conf)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	defer a.Close()
 
 	// Run Forrest, Run!

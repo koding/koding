@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 set -euo pipefail
 
@@ -25,7 +25,7 @@ fi
 PREFIX="klient-0.1.${VERSION}"
 
 klient_build() {
-	go install -v -ldflags "-X koding/klient/protocol.Version=0.1.${VERSION} -X koding/klient/protocol.Environment=${CHANNEL}" koding/klient
+	go install -v -ldflags "-X koding/klient/config.Version=0.1.${VERSION} -X koding/klient/config.Environment=${CHANNEL}" koding/klient
 }
 
 echo "# builing klient: version ${VERSION}, channel ${CHANNEL}, os $(uname)"
@@ -48,6 +48,7 @@ if [[ "$(uname)" == "Linux" ]]; then
 	gzip -9 -N -f klient
 	mv klient.gz "${PREFIX}.gz"
 
+	echo "# running: go run ${REPO_PATH}/go/src/koding/klient/build/build.go -e ${CHANNEL} -b ${VERSION}"
 	go run "${REPO_PATH}/go/src/koding/klient/build/build.go" -e "$CHANNEL" -b "$VERSION"
 	dpkg -f "$PREFIX_DEB"
 

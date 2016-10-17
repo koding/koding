@@ -126,11 +126,15 @@ func NewKonfig(e *Environments) *Konfig {
 }
 
 func ReadKonfig(e *Environments) *Konfig {
-	var override Konfig
-	var builtin = NewKonfig(e)
-
 	c := NewCache(KonfigCache)
 	defer c.Close()
+
+	return ReadKonfigFromCache(e, c)
+}
+
+func ReadKonfigFromCache(e *Environments, c *Cache) *Konfig {
+	var override Konfig
+	var builtin = NewKonfig(e)
 
 	if err := c.GetValue("konfig", &override); err == nil {
 		object.Merge(builtin, &override)

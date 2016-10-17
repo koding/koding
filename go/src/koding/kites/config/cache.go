@@ -34,19 +34,36 @@ type Cache struct {
 // If it was not possible to create or open BoltDB database,
 // an in-memory cache is created.
 func NewCache(options *CacheOptions) *Cache {
+	db, _ := newBoltDB(options)
+
 	return &Cache{
-		EncodingStorage: storage.NewEncodingStorage(newBoltDB(options), options.Bucket),
+		EncodingStorage: storage.NewEncodingStorage(db, options.Bucket),
 	}
 }
 
-func newBoltDB(o *CacheOptions) *bolt.DB {
-	os.MkdirAll(filepath.Dir(o.File), 0755)
-
-	if db, err := bolt.Open(o.File, 0644, o.BoltDB); err == nil {
-		return db
+// NewCache returns new cache value backed by BoltDB.
+func NewBoltCache(options *CacheOptions) (*Cache, error) {
+	db, err := newBoltDB(options)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	bolt, err := storage.NewBoltStorageBucket(db, options.Bucket)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Cache{
+		EncodingStorage: &storage.EncodingStorage{
+			Interface: bolt,
+		},
+	}, nil
+}
+
+func newBoltDB(o *CacheOptions) (*bolt.DB, error) {
+	os.MkdirAll(filepath.Dir(o.File), 0755)
+
+	return bolt.Open(o.File, 0644, o.BoltDB)
 }
 
 func KodingHome() string {

@@ -16,6 +16,12 @@ const (
 	Region = "public-region"
 )
 
-var Konfig = konfig.ReadKonfig(&konfig.Environments{
-	Env: Environment,
-})
+// Konfig represents a klient configuration.
+var Konfig = ReadKonfig()
+
+// ReadKonfig reads klient configuration.
+func ReadKonfig() *konfig.Konfig {
+	return konfig.ReadKonfig(&konfig.Environments{
+		Env: Environment,
+	})
+}
