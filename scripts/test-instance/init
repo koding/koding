@@ -33,7 +33,7 @@ make -C client dist
 TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090" \
   make -C client/test build
 
-./run buildservices
+./run buildservices force
 
 sleep 60 # let dockers boot up
 
