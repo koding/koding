@@ -125,9 +125,6 @@ Configuration = (options = {}) ->
 
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
-    # Generate static variables for Go.
-  KONFIG.goGenerate = require('./goGenerate')(options)
-
   KONFIG.supervisord =
     logdir  : '/var/log/koding'
     rundir  : '/var/run'

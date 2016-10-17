@@ -88,9 +88,6 @@ Configuration = (options = {}) ->
 
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
-  # Generate static variables for Go.
-  KONFIG.goGenerate = require('./goGenerate')(options)
-
   # Disable Sneaker for kloud.
   KONFIG.kloud.credentialEndPoint = ''
 
