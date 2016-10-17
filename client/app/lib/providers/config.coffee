@@ -25,7 +25,7 @@ module.exports = globals.config.providers =
   aws                      :
     name                   : 'Amazon Web Services'
     link                   : 'https://aws.amazon.com'
-    title                  : 'AWS'
+    title                  : 'AWS Credential'
     supported              : yes
     enabled                : yes
     color                  : '#F9A900'
@@ -72,7 +72,7 @@ module.exports = globals.config.providers =
   vagrant                  :
     name                   : 'Vagrant'
     link                   : 'http://www.vagrantup.com'
-    title                  : 'Vagrant on Local'
+    title                  : 'KD Host Query ID'
     color                  : '#B52025'
     supported              : yes
     enabled                : 'beta'
@@ -102,7 +102,7 @@ module.exports = globals.config.providers =
   google                   :
     name                   : 'Google Compute Engine'
     link                   : 'https://cloud.google.com/compute/'
-    title                  : 'GCE' # or Google Cloud or Google Compute Engine or ...
+    title                  : 'Google Cloud Credential'
     color                  : '#357e99' # dunno
     supported              : yes
     enabled                : 'beta'
@@ -136,7 +136,7 @@ module.exports = globals.config.providers =
   digitalocean             :
     name                   : 'Digital Ocean'
     link                   : 'https://digitalocean.com'
-    title                  : 'Digitalocean'
+    title                  : 'Digital Ocean Credential'
     color                  : '#7abad7'
     supported              : yes
     slug                   : 'do'
@@ -156,7 +156,7 @@ module.exports = globals.config.providers =
   azure                    :
     name                   : 'Azure'
     link                   : 'https://azure.microsoft.com/'
-    title                  : 'Azure'
+    title                  : 'Azure Credential'
     color                  : '#ec06be'
     supported              : yes
     enabled                : no
