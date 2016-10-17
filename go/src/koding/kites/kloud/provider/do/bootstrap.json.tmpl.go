@@ -83,7 +83,7 @@ func bootstrapJsonTmpl() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "bootstrap.json.tmpl", size: 694, mode: os.FileMode(420), modTime: time.Unix(1476478846, 0)}
+	info := bindataFileInfo{name: "bootstrap.json.tmpl", size: 694, mode: os.FileMode(420), modTime: time.Unix(1470666525, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
