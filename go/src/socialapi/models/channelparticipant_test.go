@@ -463,19 +463,6 @@ func TestChannelParticipantisExempt(t *testing.T) {
 				So(ex, ShouldEqual, false)
 			})
 
-			Convey("it should return true if participant is troll", func() {
-				// create account
-				acc := CreateAccountWithTest()
-				So(acc.MarkAsTroll(), ShouldBeNil)
-
-				cp := NewChannelParticipant()
-				cp.AccountId = acc.Id
-
-				ex, err := cp.isExempt()
-				So(err, ShouldBeNil)
-				So(ex, ShouldEqual, true)
-			})
-
 			Convey("it should return true if participant is not troll", func() {
 				// create account
 				acc := CreateAccountWithTest()
