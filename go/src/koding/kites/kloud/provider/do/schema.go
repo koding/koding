@@ -38,14 +38,14 @@ type Bootstrap struct {
 	// More info about SSH Key data on DigitalOcean can be found here:
 	// https://developers.digitalocean.com/documentation/v2/#ssh-keys
 	// KeyName represents the SSH Key name
-	KeyName string `json:"key_name" bson:"key_name" size:"key_name"`
+	KeyName string `json:"key_name" bson:"key_name" hcl:"key_name"`
 
 	// KeyID is a uniqe identification number for
-	KeyID string `json:"key_id" bson:"key_id" size:"key_id"`
+	KeyID string `json:"key_id" bson:"key_id" hcl:"key_id"`
 
 	// KeyFingerprint contains the fingerprint value that is generated from the
 	// public key
-	KeyFingerprint string `json:"key_fingerprint" bson:"key_fingerprint" size:"key_fingerprint"`
+	KeyFingerprint string `json:"key_fingerprint" bson:"key_fingerprint" hcl:"key_fingerprint"`
 }
 
 // Region represents a DigitalOcean region

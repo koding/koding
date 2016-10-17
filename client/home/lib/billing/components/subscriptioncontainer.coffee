@@ -73,7 +73,7 @@ mapStateToProps = (state) ->
 mapDispatchToProps = (dispatch) ->
   return {
     onClickPricingDetails: -> window.open 'https://www.koding.com/pricing', '_blank'
-    onClickViewMembers: -> kd.singletons.router.handleRoute '/Home/my-team/teammates'
+    onClickViewMembers: -> kd.singletons.router.handleRoute '/Home/my-team#teammates'
   }
 
 
