@@ -360,7 +360,7 @@ generateDev = (KONFIG, options) ->
     }
 
     function waitMongoReady() {
-        retries=60
+        retries=200
         while ! mongo $KONFIG_MONGO --eval "db.stats()" > /dev/null 2>&1; do
           sleep 1
           let retries--
