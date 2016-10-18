@@ -12,7 +12,7 @@ module.exports =
   },
   "resource": {
     "aws_instance": {
-      "example-instance": {
+      "aws-instance": {
         "tags": {
           "Name": "${var.koding_user_username}-${var.koding_group_slug}"
         },
@@ -38,7 +38,7 @@ provider:
 resource:
   aws_instance:
     # this is the name of your VM
-    example-instance:
+    aws-instance:
       # select your instance_type here: eg. c3.xlarge
       instance_type: t2.nano
       # select your ami (optional) eg. ami-xxxxx (it should be based on ubuntu 14.04)

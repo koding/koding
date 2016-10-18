@@ -6,7 +6,7 @@ module.exports =
 {
   "resource": {
     "vagrant_instance": {
-      "localvm": {
+      "vagrant-instance": {
         "cpus": 2,
         "memory": 2048,
         "box": "ubuntu/trusty64",
@@ -26,7 +26,7 @@ module.exports =
 resource:
   vagrant_instance:
     # this is the name of your VM
-    localvm:
+    vagrant-instance:
       # define your vm specs here, 2 cpus, 2GB of memory etc.
       cpus: 2
       memory: 2048

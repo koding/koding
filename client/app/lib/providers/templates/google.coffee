@@ -13,8 +13,8 @@ module.exports =
   },
   "resource": {
     "google_compute_instance": {
-      "example-instance": {
-        "name": "example-instance",
+      "google-instance": {
+        "name": "google-instance",
         "machine_type": "f1-micro",
         "disk": {
           "image": "ubuntu-1404-lts"
@@ -44,9 +44,9 @@ provider:
 resource:
   google_compute_instance:
     # this is the name of your VM
-    example-instance:
+    google-instance:
       # and this is its identifier (required)
-      name: example-instance
+      name: google-instance
       # select your instance_type here: eg. n1-standard-1
       machine_type: f1-micro
       # base image for your instance

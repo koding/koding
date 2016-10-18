@@ -11,8 +11,8 @@ module.exports =
   },
   "resource": {
     "digitalocean_droplet": {
-      "example-instance": {
-        "name": "example-instance",
+      "do-instance": {
+        "name": "do-instance",
         "size": "512mb",
         "region": "nyc2",
         "image": "ubuntu-14-04-x64",
@@ -36,9 +36,9 @@ provider:
 resource:
   digitalocean_droplet:
     # this is the name of your VM
-    example-instance:
+    do-instance:
       # and this is its identifier (required)
-      name: example-instance
+      name: do-instance
       # select your instance_type here: eg. 512mb
       size: 512mb
       # select your instance zone which must be in provided region: eg. nyc2
