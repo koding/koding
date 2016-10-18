@@ -160,7 +160,6 @@ type (
 	}
 
 	DisabledFeatures struct {
-		Moderation bool
 		BotChannel bool
 	}
 
