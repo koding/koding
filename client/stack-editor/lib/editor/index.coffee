@@ -55,22 +55,6 @@ module.exports = class StackEditorView extends kd.View
 
     super options, data
 
-    @isMine = yes
-    kd.singletons.groupsController.ready =>
-
-      { groupsController } = kd.singletons
-
-      @isMine = isAdmin() or isMine(stackTemplate)
-
-      if not @isMine and stackTemplate
-        @tabView.setClass 'StackEditorTabs isntMine'
-        @warningView.show()
-        @deleteStack.hide()
-        @saveButton.setClass 'isntMine'
-        @inputTitle.setClass 'template-title isntMine'
-        @titleActionsWrapper.hide()
-
-
 
     @setClass 'edit-mode'  if inEditMode = @getOption 'inEditMode'
 
