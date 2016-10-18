@@ -48,12 +48,11 @@ module.exports = class BaseErrorPageView extends JView
       @errorContainer.wrapper.scrollToBottom()
 
 
-  onPageDidShow: ->
-
+  onPageDidShow: -> kd.utils.defer ->
     # it needs to update container height if it can't be set fixed in css.
     # otherwise, custom scroll doesn't work properly
     container = @getDomElement().find '.main'
-    container.css 'height', container.height()
+    container.css 'height', container.height() or 400
 
 
   pistachio: -> 'Extend this page to show error modal here'
