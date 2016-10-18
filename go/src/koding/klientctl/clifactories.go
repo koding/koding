@@ -45,7 +45,7 @@ func MountCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctl
 		Trace:            c.Bool("trace"),
 		OneWaySync:       c.Bool("oneway-sync"),
 		OneWayInterval:   c.Int("oneway-interval"),
-		Debug:            c.Bool("debug"),
+		Debug:            c.Bool("debug") || config.Konfig.IsDebug(),
 		Fuse:             c.Bool("fuse"),
 
 		// Used for prefetch
@@ -169,7 +169,7 @@ func SyncCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlc
 	// Fill our repair options from the CLI. Any empty options are okay, as
 	// the command struct is responsible for verifying valid opts.
 	opts := sync.Options{
-		Debug:         c.Bool("debug"),
+		Debug:         c.Bool("debug") || config.Konfig.IsDebug(),
 		MountName:     c.Args().First(),
 		SyncDirection: c.Args().Get(1), // Get the 2nd arg
 
@@ -204,7 +204,7 @@ func CpCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcli
 	// Fill our repair options from the CLI. Any empty options are okay, as
 	// the command struct is responsible for verifying valid opts.
 	opts := cp.Options{
-		Debug:       c.Bool("debug"),
+		Debug:       c.Bool("debug") || config.Konfig.IsDebug(),
 		Source:      c.Args().First(),
 		Destination: c.Args().Get(1), // Get the 2nd arg
 
@@ -239,7 +239,7 @@ func LogCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcl
 	// Fill our repair options from the CLI. Any empty options are okay, as
 	// the command struct is responsible for verifying valid opts.
 	opts := logcmd.Options{
-		Debug:             c.Bool("debug"),
+		Debug:             c.Bool("debug") || config.Konfig.IsDebug(),
 		KdLog:             !c.Bool("no-kd-log"),
 		KlientLog:         !c.Bool("no-klient-log"),
 		KdLogLocation:     c.String("kd-log-file"),
@@ -271,7 +271,7 @@ func OpenCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlc
 	// the command struct is responsible for verifying valid opts.
 	opts := open.Options{
 		Filepaths: c.Args(),
-		Debug:     c.Bool("debug"),
+		Debug:     c.Bool("debug") || config.Konfig.IsDebug(),
 	}
 
 	init := open.Init{

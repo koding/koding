@@ -23,7 +23,7 @@ var KonfigCache = &CacheOptions{
 type Konfig struct {
 	// Kite configuration.
 	KiteKeyFile string `json:"kiteKeyFile,omitempty"`
-	KiteKey     string `json:"kiteKey,omitempty'`
+	KiteKey     string `json:"kiteKey,omitempty"`
 
 	// Koding endpoints konfiguration.
 	KontrolURL string `json:"kontrolURL,omitempty"`
@@ -31,7 +31,7 @@ type Konfig struct {
 	KloudURL   string `json:"kloudURL,omitempty"`
 	TunnelURL  string `json:"tunnelURL,omitempty"`
 	IPURL      string `json:"ipURL,omitempty"`
-	IPCheckURL string `json:"ipCheckURL,omiturl"`
+	IPCheckURL string `json:"ipCheckURL,omitempty"`
 
 	// Klient / KD auto-update endpoints.
 	KlientLatestURL string `json:"klientLatestURL,omitempty"`
@@ -41,7 +41,7 @@ type Konfig struct {
 	PublicBucketName   string `json:"publicBucketName,omitempty"`
 	PublicBucketRegion string `json:"publicBucketRegion,omitempty"`
 
-	Debug bool `json:"debug,omitempty"`
+	Debug int `json:"debug,omitempty"`
 }
 
 func (k *Konfig) KiteHome() string {
@@ -52,6 +52,10 @@ func (k *Konfig) KiteConfig() *konfig.Config {
 	cfg := k.buildKiteConfig()
 	cfg.KontrolURL = k.KontrolURL
 	return cfg
+}
+
+func (k *Konfig) IsDebug() bool {
+	return k.Debug > 0
 }
 
 func (k *Konfig) buildKiteConfig() *konfig.Config {
@@ -121,7 +125,7 @@ func NewKonfig(e *Environments) *Konfig {
 		KDLatestURL:        Builtin.Endpoints.URL("kd-latest", e.kdEnv()),
 		PublicBucketName:   Builtin.Buckets.ByEnv("publiclogs", e.klientEnv()).Name,
 		PublicBucketRegion: Builtin.Buckets.ByEnv("publiclogs", e.klientEnv()).Region,
-		Debug:              false,
+		Debug:              -1,
 	}
 }
 

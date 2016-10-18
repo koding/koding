@@ -90,8 +90,10 @@ func realMain() int {
 		return 0
 	}
 
+	debug := *flagDebug || konfig.Konfig.IsDebug()
+
 	if *flagRegister {
-		if err := registration.Register(*flagKontrolURL, *flagKiteHome, *flagUsername, *flagToken, *flagDebug); err != nil {
+		if err := registration.Register(*flagKontrolURL, *flagKiteHome, *flagUsername, *flagToken, debug); err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			return 1
 		}
@@ -126,7 +128,7 @@ func realMain() int {
 		Port:              *flagPort,
 		RegisterURL:       *flagRegisterURL,
 		KontrolURL:        *flagKontrolURL,
-		Debug:             *flagDebug,
+		Debug:             debug,
 		UpdateInterval:    *flagUpdateInterval,
 		UpdateURL:         *flagUpdateURL,
 		ScreenrcPath:      *flagScreenrc,
