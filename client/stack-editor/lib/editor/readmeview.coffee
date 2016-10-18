@@ -11,7 +11,7 @@ module.exports = class ReadmeView extends kd.View
     super options, data
 
     { stackTemplate } = @getData()
-    { isMine: @isMine } = options
+    { @canRead } = options
 
     content = if stackTemplate?.description \
       then Encoder.htmlDecode stackTemplate?.description
@@ -28,15 +28,15 @@ module.exports = class ReadmeView extends kd.View
     super
 
     @editorView.ready =>
-      @setReadOnly()  unless @isMine
+      @setReadOnly()  unless @canRead
       @listenEditorEvents()
 
 
   listenEditorEvents: ->
-    @on 'FocusToEditor', => @editorView.setFocus yes
+    @on 'FocusToEditor', @editorView.lazyBound 'setFocus', yes
 
 
   setReadOnly: ->
 
-    @setClass 'isntMine'
+    @setClass 'readonly'
     @editorView.aceView.ace.editor.setReadOnly yes

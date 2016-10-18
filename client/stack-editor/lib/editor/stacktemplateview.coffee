@@ -14,7 +14,7 @@ module.exports = class StackTemplateView extends kd.View
     super options, data ? {}
 
     { credential, stackTemplate, template, showHelpContent } = @getData()
-    { isMine: @isMine } = options
+    { @canRead } = options
 
     contentType = 'json'
 
@@ -62,14 +62,14 @@ module.exports = class StackTemplateView extends kd.View
     super
 
     @editorView.ready =>
-      @setReadOnly()  unless @isMine
+      @setReadOnly()  unless @canRead
       @listenEditorEvents()
 
 
   listenEditorEvents: ->
-    @on 'FocusToEditor', => @editorView.setFocus yes
+    @on 'FocusToEditor', @editorView.lazyBound 'setFocus', yes
 
 
   setReadOnly: ->
-    @setClass 'isntMine'
+    @setClass 'readonly'
     @editorView.aceView.ace.editor.setReadOnly yes
