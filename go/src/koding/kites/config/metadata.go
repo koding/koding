@@ -2,7 +2,6 @@ package config
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -16,7 +15,7 @@ import (
 //
 // For instance DumpToBolt function is used to dump metadata
 // to a BoltDB files. For more details see DumpToBolt documentation.
-type Metadata map[string]json.RawMessage
+type Metadata map[string]interface{}
 
 // MetadataError is an error writing single metadata key.
 type MetadataError struct {
@@ -65,8 +64,8 @@ func (de *DumpError) Error() string {
 // following metadata:
 //
 //   m := config.Metadata{
-//       "konfig": {
-//           "kiteKeyFile": "/home/user/.kite/development.kite",
+//       "konfig": &config.Konfig{
+//           KiteKeyFile": "/home/user/.kite/development.kite",
 //       },
 //   }
 //
@@ -109,7 +108,7 @@ func DumpToBolt(home string, m Metadata) error {
 			continue
 		}
 
-		err = db.Set(keyValue, string(value))
+		err = db.SetValue(keyValue, value)
 
 		if e := db.Close(); e != nil && err == nil {
 			err = e

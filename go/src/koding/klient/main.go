@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"time"
 
+	"koding/kites/config"
 	"koding/klient/app"
 	konfig "koding/klient/config"
 	"koding/klient/registration"
@@ -94,19 +95,33 @@ func realMain() int {
 
 	if *flagRegister {
 		if err := registration.Register(*flagKontrolURL, *flagKiteHome, *flagUsername, *flagToken, debug); err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
+			fmt.Fprintln(os.Stderr, err)
 			return 1
 		}
+
+		// Create new konfig.bolt with variables used during registration.
+		kfg := &config.Konfig{
+			KontrolURL:         *flagKontrolURL,
+			TunnelURL:          *flagTunnelName,
+			KloudURL:           *flagKeygenURL,
+			PublicBucketName:   *flagLogBucketName,
+			PublicBucketRegion: *flagLogBucketRegion,
+		}
+
+		if *flagKiteHome != "" {
+			kfg.KiteKeyFile = filepath.Join(*flagKiteHome, "kite.key")
+		}
+
+		if err := config.DumpToBolt("", config.Metadata{"konfig": kfg}); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			return 1
+		}
+
 		return 0
 	}
 
-	dbPath := ""
-	vagrantHome := ""
-	u, err := user.Current()
-	if err == nil {
-		dbPath = filepath.Join(u.HomeDir, filepath.FromSlash(".config/koding/klient.bolt"))
-		vagrantHome = filepath.Join(u.HomeDir, ".vagrant.d")
-	}
+	dbPath := filepath.Join(config.CurrentUser.HomeDir, filepath.FromSlash(".config/koding/klient.bolt"))
+	vagrantHome := filepath.Join(config.CurrentUser.HomeDir, ".vagrant.d")
 
 	if *flagDBPath != "" {
 		dbPath = *flagDBPath
