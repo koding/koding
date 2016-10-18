@@ -2,12 +2,12 @@ kd                      = require 'kd'
 KDButtonView            = kd.ButtonView
 Encoder                 = require 'htmlencode'
 curryIn                 = require 'app/util/curryIn'
-StackBaseEditorTabView  = require './stackbaseeditortabview'
 StackTemplateEditorView = require './stacktemplateeditorview'
+isMine  = require 'app/util/isMine'
+isAdmin = require 'app/util/isAdmin'
 
 
-module.exports = class StackTemplateView extends StackBaseEditorTabView
-
+module.exports = class StackTemplateView extends kd.View
 
   constructor: (options = {}, data) ->
 
@@ -56,3 +56,22 @@ module.exports = class StackTemplateView extends StackBaseEditorTabView
         kd.utils.wait 250, => @editorView.resize()
 
     @editorView.on 'click', => @emit 'HideOutputView'
+
+
+  viewAppended: ->
+
+    super
+    { stackTemplate } = @getData()
+    isMine = isAdmin() or isMine(stackTemplate)
+    @editorView.ready =>
+      @setReadOnly()  unless isMine
+      @listenEditorEvents()
+
+
+  listenEditorEvents: ->
+    @on 'FocusToEditor', => @editorView.setFocus yes
+
+
+  setReadOnly: ->
+    @setClass 'isntMine'
+    @editorView.aceView.ace.editor.setReadOnly yes
