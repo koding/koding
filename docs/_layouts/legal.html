@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js">
+<!--<![endif]-->
+
+{% include head.html %}
+
+  <body>
+    <link rel="stylesheet" href="{{ site.url }}/css/markdown.css">
+    <style>{% include css/legal.css %}</style>
+    <!--[if lt IE 8]>
+    <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->
+
+    <!-- HEADER -->
+    {% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='transparent' %}
+
+    <div class="LegalHero">
+      <h1 class="LegalHero-heading">{{ page.heading }}</h1>
+      <h2 class="LegalHero-subheading">{{ page.subheading }}</h2>
+      <ul class="LegalHero-Context">
+        <li><a href="#">For Teams</a></li>
+        <li><a href="#">For Individuals</a></li>
+      </ul>
+    </div>
+
+    <nav>
+      <ul>
+        <li><a href="#">User Policy</a></li>
+        <li><a href="#">Privacy</a></li>
+        <li><a href="#">Terms of Service</a></li>
+        <li><a href="#">Copyright</a></li>
+      </ul>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="markdown-body">
+      {{ content }}
+    </main>
+
+    <!-- FOOTER -->
+    {% include footer.html %}
+
+  </body>
+</html>
