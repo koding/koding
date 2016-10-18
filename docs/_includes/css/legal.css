@@ -1,0 +1,7 @@
+.LegalHero {
+  background-image: -webkit-linear-gradient(left, rgba(43,139,227,0.8) 0%, rgba(102,63,181,0.8) 100%);
+  background-image: -o-linear-gradient(left, rgba(43,139,227,0.8) 0%, rgba(102,63,181,0.8) 100%);
+  background-image: linear-gradient(to right, rgba(43,139,227,0.8) 0%, rgba(102,63,181,0.8) 100%);
+  margin-top: -70px;
+  height: 525px;
+}
