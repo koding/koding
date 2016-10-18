@@ -86,7 +86,7 @@ func newMetadata(m *stack.Machine) interface{} {
 		Region: Region(m.Attributes["region"]),
 	}
 
-	if id, err := strconv.Atoi(m.Attributes["droplet_id"]); err == nil {
+	if id, err := strconv.Atoi(m.Attributes["id"]); err == nil {
 		meta.DropletID = id
 	}
 	return meta
