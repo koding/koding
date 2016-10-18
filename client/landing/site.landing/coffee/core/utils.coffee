@@ -60,31 +60,40 @@ module.exports = utils = {
 
   getGroupNameFromLocation: (hostname) ->
 
-    { hostname }     = location  unless hostname
-    ipV4Pattern      = '(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.xip\.io$'
-    subDomainPattern = '[A-Za-z0-9_]{1}[A-Za-z0-9_-]+'
-    kodingDomains    = '(?:dev|sandbox|latest|prod)'
+    { hostname } = location  unless hostname
+    basePattern  = (kd.config.domains.main.split ':')[0].replace /\./g, '\\.'
 
-    # Base Domain may include port information which we don't need ~GG
-    baseDomain       = (kd.config.domains.main.split ':')[0]
-    baseDomain       = "#{baseDomain}".replace /\./g, '\\.'
+    predefinedPatterns = [
+      # <team-domain>.<(dev|sandbox|latest|prod)>.koding.com
+      "(dev|sandbox|latest|prod)\.#{basePattern}"
 
-    # e.g. [teamName.]dev|sandbox|latest|prod.koding.com
-    teamPattern = if ///#{kodingDomains}\.#{baseDomain}$///.test hostname
-    then ///(?:^(#{subDomainPattern})\.)?#{kodingDomains}\.#{baseDomain}$///
-    # e.g. [teamName.]koding.com
-    else if ///#{baseDomain}$///.test hostname
-    then ///(?:^(#{subDomainPattern})\.)?#{baseDomain}$///
-    # e.g. [teamName.]<teamMember>.koding.team
-    else if /koding\.team$/.test hostname
-    then ///(?:^(#{subDomainPattern})\.)?(?:#{subDomainPattern}\.)koding\.team$///
-    # e.g. [teamName.]<vm-ip>.xip.io
-    else ///(?:^(#{subDomainPattern})\.)?#{ipV4Pattern}///
+      # <team-domain>.koding.com
+      # <team-domain>.<username>.koding.team
+      "#{basePattern}"
 
-    matches  = hostname.match teamPattern
-    teamName = matches?[1] or 'koding'
+      # <team-domain>.<IPv4>.xip.io
+      # IPV4: A.B.C.D
+      {
+        predict: 'xip\.io'
+        labelFn: (hostname) ->
+          labels = hostname.split('.')
+          labels.splice -6, 6 # 'A.B.C.D.xip.io'.length
+          return labels.pop()
+      }
+    ]
 
-    return teamName
+    for pattern in predefinedPatterns
+
+      if typeof pattern is 'string'
+        predict = pattern
+        labelFn = do (predict) -> (hostname) ->
+          hostname.replace(new RegExp("\.?#{predict}$"), '').split('.').pop()
+
+      else if typeof pattern is 'object'
+        { predict, labelFn } = pattern
+
+      if hostname.match new RegExp "#{predict}$"
+        return labelFn(hostname) or 'koding'
 
 
   checkIfGroupExists: (groupName, callback) ->
