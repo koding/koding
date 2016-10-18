@@ -81,15 +81,21 @@ func DumpToBolt(home string, m Metadata) error {
 	}
 
 	for key, value := range m {
-		s := strings.SplitN(key, ".", 3)
-		file, bucket, keyValue := s[0], s[1], s[2]
+		var file, bucket, keyValue string
 
-		if bucket == "" {
-			bucket = file
-		}
-
-		if keyValue == "" {
-			keyValue = file
+		switch s := strings.SplitN(key, ".", 3); len(s) {
+		case 1:
+			file = s[0]
+			bucket = s[0]
+			keyValue = s[0]
+		case 2:
+			file = s[0]
+			bucket = s[1]
+			keyValue = s[1]
+		case 3:
+			file = s[0]
+			bucket = s[1]
+			keyValue = s[2]
 		}
 
 		db, err := NewBoltCache(&CacheOptions{
