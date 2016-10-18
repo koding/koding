@@ -34,7 +34,7 @@ CredentialListItem = require '../credentials/credentiallistitem'
 EnvironmentFlux = require 'app/flux/environment'
 ContentModal = require 'app/components/contentModal'
 createShareModal = require './createShareModal'
-
+isDefaultTeamStack = require 'app/util/isdefaultteamstack'
 { actions : HomeActions } = require 'home/flux'
 
 module.exports = class StackEditorView extends kd.View
@@ -353,6 +353,7 @@ module.exports = class StackEditorView extends kd.View
   createMainButtons: ->
 
     { appManager } = kd.singletons
+    { stackTemplate } = @getData()
 
     @header.addSubView @buttons = new kd.CustomHTMLView { cssClass: 'buttons' }
 
@@ -378,6 +379,8 @@ module.exports = class StackEditorView extends kd.View
       loader         : yes
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
+        if isDefaultTeamStack stackTemplate._id
+          return EnvironmentFlux.actions.reinitStackFromWidget()
         @handleGenerateStack()
 
 
