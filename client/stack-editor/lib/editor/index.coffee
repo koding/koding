@@ -55,6 +55,7 @@ module.exports = class StackEditorView extends kd.View
 
     super options, data
 
+    @isMine = isAdmin() or isMine(stackTemplate)
 
     @setClass 'edit-mode'  if inEditMode = @getOption 'inEditMode'
 
@@ -68,12 +69,10 @@ module.exports = class StackEditorView extends kd.View
 
     @createStackNameInput title
 
-    stackEditorTabsCssClass = unless @isMine then 'StackEditorTabs isntMine' else 'StackEditorTabs'
-
     @addSubView @tabView = new kd.TabView
       hideHandleCloseIcons : yes
       maxHandleWidth       : 300
-      cssClass             : stackEditorTabsCssClass
+      cssClass             : 'StackEditorTabs'
 
 
     @tabView.addSubView @warningView = new kd.CustomHTMLView
@@ -107,6 +106,7 @@ module.exports = class StackEditorView extends kd.View
 
     @editorViews.stackTemplate = @stackTemplateView = new StackTemplateView {
       delegate: this
+      @isMine
     }, data
 
     @tabView.addPane stackTemplatePane = new kd.TabPaneView
@@ -115,12 +115,15 @@ module.exports = class StackEditorView extends kd.View
 
     @editorViews.variables = @variablesView = new VariablesView {
       delegate: this
+      @isMine
     }, data
     @tabView.addPane variablesPane = new kd.TabPaneView
       name : 'Custom Variables'
       view : @variablesView
 
-    @editorViews.readme = @readmeView = new ReadmeView {}, data
+    @editorViews.readme = @readmeView = new ReadmeView {
+      @isMine
+    }, data
     @tabView.addPane readmePane = new kd.TabPaneView
       name : 'Readme'
       view : @readmeView
@@ -208,6 +211,14 @@ module.exports = class StackEditorView extends kd.View
       pane.mainView?.editorView?.resize()
 
     @listenContentChanges()
+
+    if not @isMine and stackTemplate
+      @tabView.setClass 'StackEditorTabs isntMine'
+      @warningView.show()
+      @deleteStack.hide()
+      @saveButton.setClass 'isntMine'
+      @inputTitle.setClass 'template-title isntMine'
+      @titleActionsWrapper.hide()
 
 
   listenContentChanges: ->
