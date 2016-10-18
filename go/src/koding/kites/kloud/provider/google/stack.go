@@ -84,6 +84,14 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 		return nil, fmt.Errorf("there are no Google compute instances defined")
 	}
 
+	// Family2Image is used as a workaround for old terraform we use. It
+	// translates image family name into the latest image name.
+	//
+	// TODO(ppknap): remove when we terraform is upgraded.
+	f2i := Family2Image{
+		GetFromFamily: s.getFromFamily(c),
+	}
+
 	for resourceName, instance := range resource.GCInstance {
 		// Set default machine type if user didn't define it herself.
 		if mt, ok := instance["machine_type"]; !ok {
@@ -110,6 +118,7 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 				"image": defaultMachineImage,
 			}
 		}
+		instance["disk"] = f2i.Replace(instance["disks"])
 
 		// Set default network interface if user didn't define it herself.
 		if _, ok := instance["network_interface"]; !ok {
@@ -244,6 +253,34 @@ func addPublicKey(metadata map[string]interface{}, user, publicKey string) map[s
 
 	metadata[key] = sshKeyNew
 	return metadata
+}
+
+// getFromFamily calls GCE API and retrieves the latest image that is a part of
+// provided family. If an error occurs, this function is no-op.
+func (s *Stack) getFromFamily(c *stack.Credential) func(string, string) string {
+	cred := c.Credential.(*Cred)
+
+	computeService, err := cred.ComputeService()
+	if err != nil {
+		s.Log.Warning("cannot create compute service: %s", err)
+		return nil
+	}
+	imageService := compute.NewImagesService(computeService)
+
+	return func(project, family string) string {
+		image, err := imageService.GetFromFamily(project, family).Do()
+		if err != nil {
+			s.Log.Warning("cannot create image service: %s", err)
+			return ""
+		}
+
+		if image == nil || image.Name == "" {
+			s.Log.Warning("no image for family: %s (project: %s)", family, project)
+			return ""
+		}
+
+		return image.Name
+	}
 }
 
 func mustAsset(s string) string {
