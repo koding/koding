@@ -4,8 +4,7 @@ remote                     = require 'app/remote'
 requirementsParser         = require 'app/util/stacks/requirementsparser'
 { yamlToJson, jsonToYaml } = require 'app/util/stacks/yamlutils'
 VariablesEditorView        = require './variableseditorview'
-isMine  = require 'app/util/isMine'
-isAdmin = require 'app/util/isAdmin'
+
 
 module.exports = class VariablesView extends kd.View
 
@@ -24,6 +23,7 @@ module.exports = class VariablesView extends kd.View
     super options, data
 
     { stackTemplate } = @getData()
+    { isMine: @isMine } = options
 
     @editorView = @addSubView new VariablesEditorView options
 
@@ -40,20 +40,18 @@ module.exports = class VariablesView extends kd.View
 
     @setState 'INITIAL'
 
-    { stackTemplate } = @getData()
-    isMine = isAdmin() or isMine(stackTemplate)
-
     @editorView.ready =>
       @checkVariableChanges()
       @followVariableChanges()
 
       @checkStackTemplateChanges()
       @followStackTemplateChanges()
-      @setReadOnly()  unless isMine
+      @setReadOnly()  unless @isMine
       @listenEditorEvents()
 
 
   listenEditorEvents: ->
+
     @on 'FocusToEditor', => @editorView.setFocus yes
 
 

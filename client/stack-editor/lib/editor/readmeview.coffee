@@ -2,8 +2,6 @@ kd = require 'kd'
 Encoder = require 'htmlencode'
 MarkdownEditorView = require './markdowneditorview'
 defaults = require 'app/util/stacks/defaults'
-isMine  = require 'app/util/isMine'
-isAdmin = require 'app/util/isAdmin'
 
 
 module.exports = class ReadmeView extends kd.View
@@ -13,6 +11,7 @@ module.exports = class ReadmeView extends kd.View
     super options, data
 
     { stackTemplate } = @getData()
+    { isMine: @isMine } = options
 
     content = if stackTemplate?.description \
       then Encoder.htmlDecode stackTemplate?.description
@@ -27,10 +26,9 @@ module.exports = class ReadmeView extends kd.View
   viewAppended: ->
 
     super
-    { stackTemplate } = @getData()
-    isMine = isAdmin() or isMine(stackTemplate)
+
     @editorView.ready =>
-      @setReadOnly()  unless isMine
+      @setReadOnly()  unless @isMine
       @listenEditorEvents()
 
 

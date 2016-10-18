@@ -3,8 +3,6 @@ KDButtonView            = kd.ButtonView
 Encoder                 = require 'htmlencode'
 curryIn                 = require 'app/util/curryIn'
 StackTemplateEditorView = require './stacktemplateeditorview'
-isMine  = require 'app/util/isMine'
-isAdmin = require 'app/util/isAdmin'
 
 
 module.exports = class StackTemplateView extends kd.View
@@ -16,6 +14,7 @@ module.exports = class StackTemplateView extends kd.View
     super options, data ? {}
 
     { credential, stackTemplate, template, showHelpContent } = @getData()
+    { isMine: @isMine } = options
 
     contentType = 'json'
 
@@ -61,10 +60,9 @@ module.exports = class StackTemplateView extends kd.View
   viewAppended: ->
 
     super
-    { stackTemplate } = @getData()
-    isMine = isAdmin() or isMine(stackTemplate)
+
     @editorView.ready =>
-      @setReadOnly()  unless isMine
+      @setReadOnly()  unless @isMine
       @listenEditorEvents()
 
 
