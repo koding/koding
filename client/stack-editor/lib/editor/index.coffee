@@ -417,7 +417,18 @@ module.exports = class StackEditorView extends kd.View
 
     @emit 'StackSaveInAction'
     @saveAndTestStackTemplate (err, stackTemplate) =>
-      @emit 'StackSaveCompleted'
+      # Here we need to wait at least 2 seconds to re-listen
+      # changes on stack template. This will allow us to listen
+      # new changes made by other admins. This is not a perfect
+      # solution for something like this.
+      #
+      # We can remove this wait from here if we could able to
+      # send author information with the change, so then we
+      # will have enough data to understand who made the change
+      #
+      # If you are willing to implement such feature please
+      # take a look at notifiable trait in social backend ~ GG
+      kd.utils.wait 2000, @lazyBound 'emit', 'StackSaveCompleted'
       @emit 'Reload', err?
 
 
