@@ -23,7 +23,7 @@ module.exports = class VariablesView extends kd.View
     super options, data
 
     { stackTemplate } = @getData()
-    { @canRead } = options
+    { @canUpdate } = @getOptions()
 
     @editorView = @addSubView new VariablesEditorView options
 
@@ -46,7 +46,7 @@ module.exports = class VariablesView extends kd.View
 
       @checkStackTemplateChanges()
       @followStackTemplateChanges()
-      @setReadOnly()  unless @canRead
+      @setReadOnly()  unless @canUpdate
       @listenEditorEvents()
 
 

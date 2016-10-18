@@ -55,7 +55,7 @@ module.exports = class StackEditorView extends kd.View
 
     super options, data
 
-    @canRead = isAdmin() or isMine stackTemplate
+    @canUpdate = isAdmin() or isMine stackTemplate
 
     @setClass 'edit-mode'  if inEditMode = @getOption 'inEditMode'
 
@@ -106,7 +106,7 @@ module.exports = class StackEditorView extends kd.View
 
     @editorViews.stackTemplate = @stackTemplateView = new StackTemplateView {
       delegate: this
-      @canRead
+      @canUpdate
     }, data
 
     @tabView.addPane stackTemplatePane = new kd.TabPaneView
@@ -115,14 +115,14 @@ module.exports = class StackEditorView extends kd.View
 
     @editorViews.variables = @variablesView = new VariablesView {
       delegate: this
-      @canRead
+      @canUpdate
     }, data
     @tabView.addPane variablesPane = new kd.TabPaneView
       name : 'Custom Variables'
       view : @variablesView
 
     @editorViews.readme = @readmeView = new ReadmeView {
-      @canRead
+      @canUpdate
     }, data
     @tabView.addPane readmePane = new kd.TabPaneView
       name : 'Readme'
@@ -160,7 +160,7 @@ module.exports = class StackEditorView extends kd.View
     @tabView.on 'PaneDidShow', (pane) =>
       if pane.name is 'Credentials'
         @warningView.hide()
-      unless @canRead
+      unless @canUpdate
         if pane.name isnt 'Credentials'
           @warningView.show()
 
@@ -212,7 +212,7 @@ module.exports = class StackEditorView extends kd.View
 
     @listenContentChanges()
 
-    if not @canRead and stackTemplate
+    if not @canUpdate and stackTemplate
       @tabView.setClass 'StackEditorTabs readonly'
       @warningView.show()
       @deleteStack.hide()
@@ -255,7 +255,7 @@ module.exports = class StackEditorView extends kd.View
 
     { stackTemplate } = @getData()
     headerCssClass = 'StackEditorView--header'
-    unless @canRead
+    unless @canUpdate
       headerCssClass = 'StackEditorView--header readonly'
     @addSubView @header = new kd.CustomHTMLView
       tagName: 'header'

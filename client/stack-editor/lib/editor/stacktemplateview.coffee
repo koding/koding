@@ -14,7 +14,7 @@ module.exports = class StackTemplateView extends kd.View
     super options, data ? {}
 
     { credential, stackTemplate, template, showHelpContent } = @getData()
-    { @canRead } = options
+    { @canUpdate } = @getOptions()
 
     contentType = 'json'
 
@@ -62,7 +62,7 @@ module.exports = class StackTemplateView extends kd.View
     super
 
     @editorView.ready =>
-      @setReadOnly()  unless @canRead
+      @setReadOnly()  unless @canUpdate
       @listenEditorEvents()
 
 
