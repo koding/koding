@@ -31,7 +31,11 @@ module.exports = class BuildStackController extends kd.Controller
       router.handleRoute '/Home/koding-utilities#kd-cli'
       @emit 'ClosingRequested'
     @successPage.on 'CollaborationInvite', =>
-      appManager.tell 'IDE', 'startCollaborationSession'
+      tooltipContent = '''
+        <h3>Collaboration is starting...</h3>
+        <p>You can invite your teammates when collaboration is started.</p>
+      '''
+      appManager.tell 'IDE', 'startCollaborationSession', { tooltipContent }
       @emit 'ClosingRequested'
     @forwardErrorPageEvent 'CredentialsRequested'
     @forwardErrorPageEvent 'RebuildRequested'
