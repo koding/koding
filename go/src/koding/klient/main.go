@@ -112,7 +112,7 @@ func realMain() int {
 			kfg.KiteKeyFile = filepath.Join(*flagKiteHome, "kite.key")
 		}
 
-		if err := config.DumpToBolt("", config.Metadata{"konfig": kfg}); err != nil {
+		if err := config.DumpToBolt("", config.Metadata{"konfig": kfg}, nil); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return 1
 		}

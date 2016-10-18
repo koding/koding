@@ -3,7 +3,10 @@ package config
 import (
 	"bytes"
 	"fmt"
+	"os"
+	"os/user"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -73,11 +76,17 @@ func (de *DumpError) Error() string {
 // bucket.
 //
 // If home is empty, KodingHome() will be used instead.
-func DumpToBolt(home string, m Metadata) error {
+//
+// If owner is nil, CurrentUser will be used instead.
+func DumpToBolt(home string, m Metadata, owner *user.User) error {
 	var de DumpError
 
 	if home == "" {
 		home = KodingHome()
+	}
+
+	if owner == nil {
+		owner = CurrentUser
 	}
 
 	for key, value := range m {
@@ -98,13 +107,15 @@ func DumpToBolt(home string, m Metadata) error {
 			keyValue = s[2]
 		}
 
-		db, err := NewBoltCache(&CacheOptions{
+		opts := &CacheOptions{
 			File: filepath.Join(home, file+".bolt"),
 			BoltDB: &bolt.Options{
 				Timeout: 5 * time.Second,
 			},
 			Bucket: []byte(bucket),
-		})
+		}
+
+		db, err := NewBoltCache(opts)
 
 		if err != nil {
 			de.Errs = append(de.Errs, &MetadataError{
@@ -114,11 +125,7 @@ func DumpToBolt(home string, m Metadata) error {
 			continue
 		}
 
-		err = db.SetValue(keyValue, value)
-
-		if e := db.Close(); e != nil && err == nil {
-			err = e
-		}
+		err = nonil(db.SetValue(keyValue, value), db.Close(), chown(opts.File, owner))
 
 		if err != nil {
 			de.Errs = append(de.Errs, &MetadataError{
@@ -134,4 +141,31 @@ func DumpToBolt(home string, m Metadata) error {
 	}
 
 	return &de
+}
+
+func chown(file string, u *user.User) error {
+	if u == nil {
+		return nil
+	}
+
+	uid, err := strconv.Atoi(u.Uid)
+	if err != nil {
+		return err
+	}
+
+	gid, err := strconv.Atoi(u.Gid)
+	if err != nil {
+		return err
+	}
+
+	return os.Chown(file, uid, gid)
+}
+
+func nonil(err ...error) error {
+	for _, e := range err {
+		if e != nil {
+			return e
+		}
+	}
+	return nil
 }

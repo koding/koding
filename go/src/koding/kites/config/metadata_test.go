@@ -87,7 +87,7 @@ func TestDumpToBolt(t *testing.T) {
 
 	for name, cas := range cases {
 		t.Run(name, func(t *testing.T) {
-			err := config.DumpToBolt(dir, cas.want)
+			err := config.DumpToBolt(dir, cas.want, nil)
 
 			if err != nil {
 				t.Fatalf("DumpToBolt()=%s", err)

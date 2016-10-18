@@ -254,7 +254,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 			return nil, errors.New("failed to decode Koding metadata: " + err.Error())
 		}
 
-		if err := kfg.DumpToBolt("", m); err != nil {
+		if err := kfg.DumpToBolt("", m, nil); err != nil {
 			return nil, errors.New("failed to write Koding metadata: " + err.Error())
 		}
 

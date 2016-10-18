@@ -1,6 +1,7 @@
 package config
 
 import (
+	"log"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -34,7 +35,10 @@ type Cache struct {
 // If it was not possible to create or open BoltDB database,
 // an in-memory cache is created.
 func NewCache(options *CacheOptions) *Cache {
-	db, _ := newBoltDB(options)
+	db, err := newBoltDB(options)
+	if err != nil {
+		log.Println(err)
+	}
 
 	return &Cache{
 		EncodingStorage: storage.NewEncodingStorage(db, options.Bucket),
