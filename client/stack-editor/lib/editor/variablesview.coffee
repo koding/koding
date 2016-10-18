@@ -3,11 +3,11 @@ _                          = require 'lodash'
 remote                     = require 'app/remote'
 requirementsParser         = require 'app/util/stacks/requirementsparser'
 { yamlToJson, jsonToYaml } = require 'app/util/stacks/yamlutils'
-
-StackBaseEditorTabView     = require './stackbaseeditortabview'
 VariablesEditorView        = require './variableseditorview'
+isMine  = require 'app/util/isMine'
+isAdmin = require 'app/util/isAdmin'
 
-module.exports = class VariablesView extends StackBaseEditorTabView
+module.exports = class VariablesView extends kd.View
 
   STATES    =
     INITIAL : 'You can define your custom variables,
@@ -40,12 +40,27 @@ module.exports = class VariablesView extends StackBaseEditorTabView
 
     @setState 'INITIAL'
 
+    { stackTemplate } = @getData()
+    isMine = isAdmin() or isMine(stackTemplate)
+
     @editorView.ready =>
       @checkVariableChanges()
       @followVariableChanges()
 
       @checkStackTemplateChanges()
       @followStackTemplateChanges()
+      @setReadOnly()  unless isMine
+      @listenEditorEvents()
+
+
+  listenEditorEvents: ->
+    @on 'FocusToEditor', => @editorView.setFocus yes
+
+
+  setReadOnly: ->
+
+    @setClass 'isntMine'
+    @editorView.aceView.ace.editor.setReadOnly yes
 
 
   handleDataChange: ->
