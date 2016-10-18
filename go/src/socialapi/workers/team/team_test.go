@@ -7,15 +7,12 @@ import (
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
-	"socialapi/workers/moderation/topic"
 	"strconv"
 
 	"gopkg.in/mgo.v2/bson"
 
 	"testing"
-	"time"
 
-	"github.com/koding/bongo"
 	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -187,36 +184,6 @@ func TestTeam(t *testing.T) {
 			err := handler.HandleParticipant(cp)
 			So(err, ShouldBeNil)
 		})
-
-		Convey("should success if default channels is liked to another", func() {
-			// create topic moderation controller
-			linker := topic.NewController(r.Log, appConfig)
-			cl := &models.ChannelLink{
-				RootId: defaultChannel1.Id,
-				LeafId: defaultChannel2.Id,
-			}
-
-			So(cl.Create(), ShouldBeNil)
-
-			So(linker.Create(cl), ShouldBeNil)
-
-			cp := &models.ChannelParticipant{
-				AccountId:      acc1.Id,
-				ChannelId:      groupChannel.Id,
-				StatusConstant: models.ChannelParticipant_STATUS_ACTIVE,
-			}
-
-			err = handler.HandleParticipant(cp)
-			So(err, ShouldBeNil)
-
-			isParticipant, err := defaultChannel1.IsParticipant(acc1.Id)
-			So(err, ShouldBeNil)
-			So(isParticipant, ShouldBeTrue)
-
-			isParticipant, err = defaultChannel2.IsParticipant(acc1.Id)
-			So(err, ShouldBeNil)
-			So(isParticipant, ShouldBeFalse)
-		})
 	})
 }
 
@@ -261,12 +228,6 @@ func TestDeleteGroupChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(cm.MessageId, ShouldEqual, message1.Id)
 
-			cl := models.NewChannelLink()
-			cl.RootId = channel2.Id
-			cl.LeafId = leafChannel.Id
-			err = cl.Create()
-			So(err, ShouldBeNil)
-
 			Convey("it should fetch replies and interactions", func() {
 				cml1, err := channel1.FetchMessageList(message1.Id)
 				So(err, ShouldBeNil)
@@ -284,43 +245,6 @@ func TestDeleteGroupChannel(t *testing.T) {
 				err = icm.ById(msg1.Id)
 				So(err, ShouldBeNil)
 
-			})
-
-			Convey("it should fetch channel links", func() {
-				fetched, err := leafChannel.FetchRoot()
-				So(err, ShouldBeNil)
-				So(fetched, ShouldNotBeNil)
-				So(fetched.Id, ShouldEqual, channel2.Id)
-			})
-			Convey("after deleting group channel", func() {
-				err = groupChannel.Delete()
-				So(err, ShouldBeNil)
-				err = handler.HandleChannel(groupChannel)
-				So(err, ShouldBeNil)
-				Convey("it should not fetch replies and interactions", func() {
-					time.Sleep(1 * time.Second)
-					_, err := channel1.FetchMessageList(message1.Id)
-					So(err, ShouldNotBeNil)
-					So(err, ShouldEqual, bongo.RecordNotFound)
-
-					query := request.NewQuery()
-					query.AccountId = account.Id
-					query.Type = models.Interaction_TYPE_LIKE
-					messages, err := models.NewInteraction().ListLikedMessages(query, channel1.Id)
-					So(err, ShouldBeNil)
-					So(messages, ShouldBeNil)
-
-					icm := models.NewChannelMessage()
-					err = icm.ById(message1.Id)
-					So(err, ShouldNotBeNil)
-					So(err, ShouldEqual, bongo.RecordNotFound)
-				})
-				Convey("it should not fetch channel links", func() {
-					fetched, err := leafChannel.FetchRoot()
-					So(err, ShouldNotBeNil)
-					So(err, ShouldEqual, bongo.RecordNotFound)
-					So(fetched, ShouldBeNil)
-				})
 			})
 		})
 	})
