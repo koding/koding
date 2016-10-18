@@ -407,6 +407,7 @@ generateDev = (KONFIG, options) ->
       sed -i -e "s/PASSWORD 'kontrolapplication'/PASSWORD '$KONFIG_KONTROL_POSTGRES_PASSWORD'/" kontrol/001-schema.sql
       sed -i -e "s/GRANT kontrol TO kontrolapplication/GRANT kontrol TO $KONFIG_KONTROL_POSTGRES_USERNAME/" kontrol/001-schema.sql
       docker build -t koding/postgres .
+      git checkout kontrol/001-schema.sql
       runMongoDocker
       docker run -d -p 5672:5672 -p 15672:15672                           --name=rabbitmq rabbitmq:3-management
       docker run -d -p 6379:6379                                          --name=redis    redis
