@@ -77,12 +77,17 @@ module.exports = class StackEditorView extends kd.View
 
     @tabView.addSubView @warningView = new kd.CustomHTMLView
       cssClass: 'warning-view hidden'
-      partial: 'You must be an admin to edit this stack. or  '
+      partial: 'You must be an admin to edit this stack.'
 
-    @warningView.addSubView @cloneOption = new CustomLinkView
-      cssClass: 'clone-button'
-      title : 'Clone'
-      click : @bound 'cloneStackTemplate'
+    @warningView.addSubView @cloneOption = new kd.CustomHTMLView
+      tagName: 'span'
+      partial: " However, you can
+        <span class='clone-button'>clone this template </span>
+          and create a private stack."
+      click: (event) =>
+        if event.target?.className is 'clone-button'
+          @cloneStackTemplate()
+
 
     @addSubView @secondaryActions = new kd.CustomHTMLView
       cssClass             : 'StackEditor-SecondaryActions'

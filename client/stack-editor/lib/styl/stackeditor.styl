@@ -102,27 +102,27 @@ $borderColor                = #E3E3E3
 
 .StackEditorTabs
   kalc                      height, (100% \- 133px)
-      .clone-button
-        text-decoration     none
-        color               #769ecc
 
   > .kdtabpaneview
     height                  calc(100% \- 73px)
 
 .StackEditorTabs.readonly
   .warning-view
-    height                30px
-    color                 #575757
-    padding-top           12px
-    padding-left          30px
-    bg                    color #FEF2F4
-    border                1px solid #DDD
-    border-width          0 1px
-    left                  0
-    right                 0
-    z-index               1
+    height                  30px
+    color                   #575757
+    padding-top             12px
+    padding-left            30px
+    bg                      color #FEF2F4
+    border                  1px solid #DDD
+    border-width            0 1px
+    left                    0
+    right                   0
+    z-index                 1
     abs()
-
+    span.clone-button
+      text-decoration       none
+      color                 #769ecc !important
+      pointer               cursor
 
 .StackEditor-SecondaryActions
   margin-top                30px
