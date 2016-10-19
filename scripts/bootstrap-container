@@ -16,7 +16,7 @@ function build() {
 
 function run_backend() {
   go/build.sh
-  ./run exec scripts/check-service-connectivity.sh || exit 255
+  ./run is_ready || exit 255
   ./run migrations up
   ./run exec supervisord -c supervisord.conf
   sleep 2
