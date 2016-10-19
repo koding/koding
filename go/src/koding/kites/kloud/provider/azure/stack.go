@@ -161,115 +161,19 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	}
 
 	for name, vm := range res.AzureInstance {
-		// Set defaults from bootstrapped metadata.
+		s.injectBoostrap(vm, cred, boot)
 
-		if s, ok := vm["hosted_service_name"]; !ok || s == "" {
-			vm["hosted_service_name"] = boot.HostedServiceID
-		}
-
-		if s, ok := vm["storage_service_name"]; !ok || s == "" {
-			vm["storage_service_name"] = boot.StorageServiceID
-		}
-
-		if s, ok := vm["security_group"]; !ok || s == "" {
-			vm["security_group"] = boot.SecurityGroupID
-		}
-
-		if s, ok := vm["virtual_network"]; !ok || s == "" {
-			vm["virtual_network"] = boot.VirtualNetworkID
-		}
-
-		if s, ok := vm["subnet"]; !ok || s == "" {
-			vm["subnet"] = boot.SubnetName
-		}
-
-		if s, ok := vm["location"]; !ok || s == "" {
-			vm["location"] = cred.Location
-		}
-
-		if u, ok := vm["username"]; !ok || u == "" {
-			vm["username"] = s.Req.Username
-		}
-
-		endpoints, ok := vm["endpoint"].([]interface{})
-		if !ok {
-			endpoints = make([]interface{}, 0, 2)
-		}
-
-		// Ensure klient port is exposed.
-		if i := endpointsIndex(endpoints, vmKlient.Name); i != -1 {
-			endpoints[i] = vmKlient
-		} else {
-			endpoints = append(endpoints, vmKlient)
-		}
-
-		// Look for SSH endpoint and add a default one
-		// if it was not specified.
-		if i := endpointsIndex(endpoints, vmSSH.Name); i == -1 {
-			endpoints = append(endpoints, vmSSH)
-		}
-
-		vm["endpoint"] = endpoints
-
-		// means there will be several instances, we need to create a userdata
-		// with count interpolation, because each machine must have an unique
-		// kite id.
-		count := 1
-		if n, ok := vm["count"].(int); ok && n > 1 {
-			count = n
-		}
-
-		var labels []string
-		if count > 1 {
-			for i := 0; i < count; i++ {
-				labels = append(labels, fmt.Sprintf("%s.%d", name, i))
-			}
-		} else {
-			labels = append(labels, name)
-		}
+		s.injectEndpointRules(vm)
 
 		kiteKeyName := fmt.Sprintf("kitekeys_%s", name)
 
-		// this part will be the same for all machines
-		userCfg := &userdata.CloudInitConfig{
-			Username: s.Req.Username,
-			Groups:   []string{"sudo"},
-			Hostname: s.Req.Username,
-			KiteKey:  fmt.Sprintf("${lookup(var.%s, count.index)}", kiteKeyName),
-		}
-
-		s.Builder.InterpolateField(vm, name, "custom_data")
-
-		if b, ok := vm["debug"].(bool); ok && b {
-			s.Debug = true
-			delete(vm, "debug")
-		}
-
-		if s, ok := vm["custom_data"].(string); ok {
-			userCfg.UserData = s
-		}
-
-		userdata, err := s.Session.Userdata.Create(userCfg)
+		kites, err := s.injectCloudInit(vm, name, kiteKeyName)
 		if err != nil {
 			return nil, err
 		}
 
-		vm["user_data"] = string(userdata)
-
-		// create independent kiteKey for each machine and create a Terraform
-		// lookup map, which is used in conjuctuon with the `count.index`
-		countKeys := make(map[string]string, count)
-		for i, label := range labels {
-			kiteKey, err := s.BuildKiteKey(label, s.Req.Username)
-			if err != nil {
-				return nil, err
-			}
-
-			countKeys[strconv.Itoa(i)] = kiteKey
-		}
-
 		t.Variable[kiteKeyName] = map[string]interface{}{
-			"default": countKeys,
+			"default": kites,
 		}
 
 		res.AzureInstance[name] = vm
@@ -293,6 +197,119 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	return &stack.Template{
 		Content: content,
 	}, nil
+}
+
+func (s *Stack) injectBoostrap(vm map[string]interface{}, cred *Cred, boot *Bootstrap) {
+	// Set defaults from bootstrapped metadata.
+
+	if s, ok := vm["hosted_service_name"]; !ok || s == "" {
+		vm["hosted_service_name"] = boot.HostedServiceID
+	}
+
+	if s, ok := vm["storage_service_name"]; !ok || s == "" {
+		vm["storage_service_name"] = boot.StorageServiceID
+	}
+
+	if s, ok := vm["security_group"]; !ok || s == "" {
+		vm["security_group"] = boot.SecurityGroupID
+	}
+
+	if s, ok := vm["virtual_network"]; !ok || s == "" {
+		vm["virtual_network"] = boot.VirtualNetworkID
+	}
+
+	if s, ok := vm["subnet"]; !ok || s == "" {
+		vm["subnet"] = boot.SubnetName
+	}
+
+	if s, ok := vm["location"]; !ok || s == "" {
+		vm["location"] = cred.Location
+	}
+
+	if u, ok := vm["username"]; !ok || u == "" {
+		vm["username"] = s.Req.Username
+	}
+}
+
+func (s *Stack) injectEndpointRules(vm map[string]interface{}) {
+	endpoints, ok := vm["endpoint"].([]interface{})
+	if !ok {
+		endpoints = make([]interface{}, 0, 2)
+	}
+
+	// Ensure klient port is exposed.
+	if i := endpointsIndex(endpoints, vmKlient.Name); i != -1 {
+		endpoints[i] = vmKlient
+	} else {
+		endpoints = append(endpoints, vmKlient)
+	}
+
+	// Look for SSH endpoint and add a default one
+	// if it was not specified.
+	if i := endpointsIndex(endpoints, vmSSH.Name); i == -1 {
+		endpoints = append(endpoints, vmSSH)
+	}
+
+	vm["endpoint"] = endpoints
+}
+
+func (s *Stack) injectCloudInit(vm map[string]interface{}, name, kiteKeyName string) (map[string]string, error) {
+	// means there will be several instances, we need to create a userdata
+	// with count interpolation, because each machine must have an unique
+	// kite id.
+	count := 1
+	if n, ok := vm["count"].(int); ok && n > 1 {
+		count = n
+	}
+
+	var labels []string
+	if count > 1 {
+		for i := 0; i < count; i++ {
+			labels = append(labels, fmt.Sprintf("%s.%d", name, i))
+		}
+	} else {
+		labels = append(labels, name)
+	}
+
+	// this part will be the same for all machines
+	userCfg := &userdata.CloudInitConfig{
+		Username: s.Req.Username,
+		Groups:   []string{"sudo"},
+		Hostname: s.Req.Username,
+		KiteKey:  fmt.Sprintf("${lookup(var.%s, count.index)}", kiteKeyName),
+	}
+
+	s.Builder.InterpolateField(vm, name, "custom_data")
+
+	if b, ok := vm["debug"].(bool); ok && b {
+		s.Debug = true
+		delete(vm, "debug")
+	}
+
+	if s, ok := vm["custom_data"].(string); ok {
+		userCfg.UserData = s
+	}
+
+	userdata, err := s.Session.Userdata.Create(userCfg)
+	if err != nil {
+		return nil, err
+	}
+
+	vm["user_data"] = string(userdata)
+
+	// create independent kiteKey for each machine and create a Terraform
+	// lookup map, which is used in conjuctuon with the `count.index`
+	countKeys := make(map[string]string, count)
+	for i, label := range labels {
+		kiteKey, err := s.BuildKiteKey(label, s.Req.Username)
+		if err != nil {
+			return nil, err
+		}
+
+		countKeys[strconv.Itoa(i)] = kiteKey
+	}
+
+	return countKeys, nil
 }
 
 func newBootstrapTmpl(cfg *BootstrapConfig) ([]byte, error) {
