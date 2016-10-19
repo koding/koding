@@ -131,19 +131,13 @@ func (meta *Cred) Valid() error {
 		return nil
 	}
 
-	var found bool
 	for _, sub := range pb.Subscriptions {
 		if sub.ID == meta.SubscriptionID {
-			found = true
-			break
+			return nil
 		}
 	}
 
-	if !found {
-		return errors.New("specified subscription ID does not exist")
-	}
-
-	return nil
+	return errors.New("specified subscription ID does not exist")
 }
 
 type Bootstrap struct {
