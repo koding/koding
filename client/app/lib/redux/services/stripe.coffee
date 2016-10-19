@@ -78,6 +78,7 @@ validateOptions = (options) ->
 makeValidators = (isAmex) ->
 
   fieldValidator = (field, rest...) -> (value) ->
+    value = value.toString()
     cardValidator[field](value, rest...).isValid
 
   return {
