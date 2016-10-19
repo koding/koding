@@ -11,6 +11,7 @@ canCreateStacks = require 'app/util/canCreateStacks'
 isAdmin = require 'app/util/isAdmin'
 remote = require 'app/remote'
 isDefaultTeamStack = require 'app/util/isdefaultteamstack'
+whoami = require 'app/util/whoami'
 { findDOMNode } = require 'react-dom'
 
 require './styl/sidebarstacksection.styl'
@@ -38,6 +39,7 @@ module.exports = class SidebarStackSection extends React.Component
   getDataBindings: ->
 
     selectedTemplateId: EnvironmentFlux.getters.selectedTemplateId
+    groupStackTemplates: EnvironmentFlux.getters.teamStackTemplatesStore
 
 
   componentWillReceiveProps: (nextProps) ->
@@ -105,7 +107,12 @@ module.exports = class SidebarStackSection extends React.Component
         linkController.openOrFocus remoteUrl
       when 'Make Team Default'
         remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
-          computeController.makeTeamDefault template, no  unless err
+      when 'Share With Team'
+        remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
+          computeController.shareWithTeam template, no  unless err
+      when 'Make Private'
+        remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
+          computeController.makePrivate template  unless err
 
 
   onTitleClick: (event) ->
@@ -128,6 +135,9 @@ module.exports = class SidebarStackSection extends React.Component
 
     managedVM = @props.stack.get('title').indexOf('Managed VMs') > -1
 
+    baseStackId = @props.stack.get 'baseStackId'
+    originId = @props.stack.get 'originId'
+
     if managedVM
       menuItems['VMs'] = { callback }
     else if @props.stack.get 'disabled'
@@ -143,8 +153,15 @@ module.exports = class SidebarStackSection extends React.Component
         menuItems['View Stack'] = { callback }
       ['Reinitialize', 'VMs', 'Destroy VMs'].forEach (name) ->
         menuItems[name] = { callback }
-      if isAdmin() and not isDefaultTeamStack @props.stack.get 'baseStackId'
+
+      if isAdmin() and not isDefaultTeamStack baseStackId
         menuItems['Make Team Default'] = { callback }
+        if baseStackId in Object.keys(@state.groupStackTemplates.toJS())
+          menuItems['Make Private'] = { callback }
+        else
+          menuItems['Share With Team'] = { callback }
+
+
 
     { top } = findDOMNode(this).getBoundingClientRect()
 
@@ -210,6 +227,10 @@ module.exports = class SidebarStackSection extends React.Component
       {@renderMachines()}
       {@renderStackUpdatedWidget()}
     </SidebarSection>
+
+isStackMine = (stackOriginId, myId) ->
+  console.log 'isStackMine', stackOriginId is myId
+  stackOriginId is myId
 
 
 React.Component.include.call SidebarStackSection, [KDReactorMixin]
