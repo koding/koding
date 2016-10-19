@@ -26,8 +26,6 @@ SLACK_ENABLED  = False
 WHITE_LIST     = [
     "kloud",
     "vmwatcher",
-    "trollmode",
-    "topicfeed",
     "go-webserver",
     "koding-appsproxy",
     "koding-webserver",
