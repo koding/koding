@@ -18,7 +18,7 @@ import (
 //go:generate $GOPATH/bin/go-bindata -mode 420 -modtime 1470666525 -pkg azure -o bootstrap.json.tmpl.go bootstrap.json.tmpl
 //go:generate go fmt bootstrap.json.tmpl.go
 
-var tmpl = template.Must(template.New("").Parse(mustAsset("bootstrap.json.tmpl")))
+var tmpl = template.Must(template.New("").Parse(string(MustAsset("bootstrap.json.tmpl"))))
 
 // BootstrapConfig represents configuration for bootstrap template.
 type BootstrapConfig struct {
@@ -320,14 +320,6 @@ func newBootstrapTmpl(cfg *BootstrapConfig) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
-}
-
-func mustAsset(s string) string {
-	p, err := Asset(s)
-	if err != nil {
-		panic(err)
-	}
-	return string(p)
 }
 
 func endpointsIndex(endpoints []interface{}, name string) int {
