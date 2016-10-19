@@ -31,9 +31,9 @@ function check_postgres() {
 function check_rabbitmq() {
   local USER=$KONFIG_MQ_LOGIN:$KONFIG_MQ_PASSWORD
   local HOST=$KONFIG_MQ_HOST:$KONFIG_MQ_APIPORT
-  local RESPONSE=$(curl --silent --user $USER http://$HOST/api/healthchecks/node)
+  local RESPONSE_CODE=$(curl --silent --output /dev/null --write-out '%{http_code}' --user $USER http://$HOST/api/overview)
 
-  if [[ $? != 0 || $RESPONSE != '{"status":"ok"}' ]]; then
+  if [[ $? != 0 || $RESPONSE_CODE != 200 ]]; then
     echo "error: rabbitmq service check failed on $KONFIG_MQ_HOST:$KONFIG_MQ_APIPORT"
     return 1
   fi
