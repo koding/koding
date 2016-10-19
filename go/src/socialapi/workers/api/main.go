@@ -33,7 +33,6 @@ import (
 	realtimeapi "socialapi/workers/realtime/api"
 	sitemapapi "socialapi/workers/sitemap/api"
 	slackapi "socialapi/workers/slack/api"
-	trollmodeapi "socialapi/workers/trollmode/api"
 
 	"github.com/koding/runner"
 )
@@ -66,7 +65,6 @@ func main() {
 	collaboration.AddHandlers(m)
 	paymentapi.AddHandlers(m)
 	notificationapi.AddHandlers(m)
-	trollmodeapi.AddHandlers(m)
 	sitemapapi.AddHandlers(m)
 	mailapi.AddHandlers(m)
 	algoliaapi.AddHandlers(m, r.Log)

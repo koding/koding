@@ -161,20 +161,6 @@ func TestInteractionisExempt(t *testing.T) {
 				So(ie, ShouldEqual, false)
 			})
 
-			Convey("it should return true if account is troll", func() {
-				// create troll account
-				accTroll := CreateAccountWithTest()
-				err := accTroll.MarkAsTroll()
-				So(err, ShouldBeNil)
-
-				i := NewInteraction()
-				i.AccountId = accTroll.Id
-
-				ie, err := i.isExempt()
-				So(err, ShouldBeNil)
-				So(ie, ShouldEqual, true)
-			})
-
 			Convey("it should return false if account is not troll", func() {
 				// create account
 				acc := CreateAccountWithTest()
@@ -185,28 +171,6 @@ func TestInteractionisExempt(t *testing.T) {
 				ie, err := i.isExempt()
 				So(err, ShouldBeNil)
 				So(ie, ShouldEqual, false)
-			})
-		})
-	})
-}
-
-func TestInteractionMarkIfExempt(t *testing.T) {
-	tests.WithRunner(t, func(r *runner.Runner) {
-		Convey("While marking if interaction isexempt ", t, func() {
-			Convey("it should return nil if exempt", func() {
-				accTroll := CreateAccountWithTest()
-				err := accTroll.MarkAsTroll()
-				So(err, ShouldBeNil)
-
-				msg := CreateMessageWithTest()
-				So(msg.Create(), ShouldBeNil)
-
-				i := NewInteraction()
-				i.AccountId = accTroll.Id
-				i.MessageId = msg.Id
-
-				errs := i.MarkIfExempt()
-				So(errs, ShouldBeNil)
 			})
 		})
 	})
