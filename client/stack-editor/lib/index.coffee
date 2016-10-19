@@ -67,12 +67,15 @@ module.exports = class StackEditorAppController extends AppController
       @showView()
 
 
-  openStackWizard: ->
+  openStackWizard: (handleRoute = yes) ->
 
     modal = new kd.ModalView
-      cssClass : 'StackEditor-OnboardingModal'
-      width : 820
-      overlay : yes
+      cssClass       : 'StackEditor-OnboardingModal'
+      width          : 820
+      overlay        : yes
+      overlayOptions :
+        cssClass     : 'second-overlay'
+
 
     view = new OnboardingView
 
@@ -94,8 +97,9 @@ module.exports = class StackEditorAppController extends AppController
 
     modal.addSubView view
 
-    modal.on 'KDObjectWillBeDestroyed', ->
-      kd.singletons.router.back()
+    if handleRoute
+      modal.on 'KDObjectWillBeDestroyed', ->
+        kd.singletons.router.back()
 
 
   showView: (stackTemplate) ->
