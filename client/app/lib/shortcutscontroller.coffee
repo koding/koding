@@ -188,8 +188,7 @@ class ShortcutsController extends events.EventEmitter
           @shortcuts.update collection.name, model.name, {
             binding: klass._replacePlatformBinding model, binding
             options: { enabled: enabled }
-          },
-            klass._isCustomShortcut raw
+          }, klass._isCustomShortcut raw
 
           @emit 'change', collection, model
 
@@ -250,8 +249,7 @@ class ShortcutsController extends events.EventEmitter
             @shortcuts.update collection.name, model.name, {
               binding: klass._replacePlatformBinding model, override.binding
               options: { enabled: override.enabled }
-            },
-              klass._isCustomShortcut model
+            }, klass._isCustomShortcut model
 
         return
 
@@ -483,9 +481,11 @@ class ShortcutsController extends events.EventEmitter
   #
   @_replacePlatformBinding: (model, platformBinding) ->
 
+    return null  if not model or not platformBinding
+
     binding      = _.clone model.binding, yes
     idx          = klass._bindingPlatformIndex()
-    arr          = platformBinding?.filter _.isString
+    arr          = platformBinding?.filter? _.isString
     binding[idx] = if (_.isArray arr) and arr.length then arr else null
 
     return binding
