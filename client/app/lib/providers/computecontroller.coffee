@@ -1203,6 +1203,53 @@ module.exports = class ComputeController extends KDController
       kd.singletons.router.handleRoute route
 
 
+  shareWithTeam: (stackTemplate) ->
+
+    { credentials, config: { requiredProviders } } = stackTemplate
+    stackTemplate.setAccess 'group', (err) =>
+      if err
+        return kd.NotificationView
+          title: 'Error occured while sharing stack with team'
+
+      createShareModal (needShare, modal) =>
+
+        if needShare
+        then @shareCredentials credentials, requiredProviders, -> modal.destroy()
+        else modal.destroy()
+
+        new kd.NotificationView { title: 'Your stack successfully shared with team.' }
+
+
+  makePrivate: (stackTemplate) ->
+
+    { credentials, config: { requiredProviders } } = stackTemplate
+    { reactor } = kd.singletons
+    modal = new ContentModal
+      title   : 'Are you sure?'
+      content : "<p class='text-center'>
+        Your teammate will have no longer to access this stack template anymore.
+        If they haven't clone yet.</p>"
+      cssClass : 'content-modal'
+      buttons :
+        No         :
+          title    : 'Cancel'
+          cssClass : 'solid cancel medium'
+          callback : -> modal.destroy()
+        Yes        :
+          title    : 'Yes'
+          cssClass : 'solid medium'
+          loader   : yes
+          callback : ->
+            stackTemplate.setAccess 'private', (err) ->
+              if err
+                return new kd.NotificationView
+                  title: 'Error occured while unsharing stack with team'
+              reactor.dispatch 'REMOVE_TEAM_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
+              modal.destroy()
+              new kd.NotificationView
+                title: 'Your stack is private now.'
+
+
   makeTeamDefault: (stackTemplate, revive) ->
 
     if revive
