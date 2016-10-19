@@ -34,7 +34,7 @@ CredentialListItem = require '../credentials/credentiallistitem'
 EnvironmentFlux = require 'app/flux/environment'
 ContentModal = require 'app/components/contentModal'
 createShareModal = require './createShareModal'
-
+isDefaultTeamStack = require 'app/util/isdefaultteamstack'
 { actions : HomeActions } = require 'home/flux'
 
 module.exports = class StackEditorView extends kd.View
@@ -55,22 +55,7 @@ module.exports = class StackEditorView extends kd.View
 
     super options, data
 
-    @isMine = yes
-    kd.singletons.groupsController.ready =>
-
-      { groupsController } = kd.singletons
-
-      @isMine = isAdmin() or isMine(stackTemplate)
-
-      if not @isMine and stackTemplate
-        @tabView.setClass 'StackEditorTabs isntMine'
-        @warningView.show()
-        @deleteStack.hide()
-        @saveButton.setClass 'isntMine'
-        @inputTitle.setClass 'template-title isntMine'
-        @titleActionsWrapper.hide()
-
-
+    @canUpdate = isAdmin() or isMine stackTemplate
 
     @setClass 'edit-mode'  if inEditMode = @getOption 'inEditMode'
 
@@ -84,12 +69,10 @@ module.exports = class StackEditorView extends kd.View
 
     @createStackNameInput title
 
-    stackEditorTabsCssClass = unless @isMine then 'StackEditorTabs isntMine' else 'StackEditorTabs'
-
     @addSubView @tabView = new kd.TabView
       hideHandleCloseIcons : yes
       maxHandleWidth       : 300
-      cssClass             : stackEditorTabsCssClass
+      cssClass             : 'StackEditorTabs'
 
 
     @tabView.addSubView @warningView = new kd.CustomHTMLView
@@ -123,6 +106,7 @@ module.exports = class StackEditorView extends kd.View
 
     @editorViews.stackTemplate = @stackTemplateView = new StackTemplateView {
       delegate: this
+      @canUpdate
     }, data
 
     @tabView.addPane stackTemplatePane = new kd.TabPaneView
@@ -131,12 +115,15 @@ module.exports = class StackEditorView extends kd.View
 
     @editorViews.variables = @variablesView = new VariablesView {
       delegate: this
+      @canUpdate
     }, data
     @tabView.addPane variablesPane = new kd.TabPaneView
       name : 'Custom Variables'
       view : @variablesView
 
-    @editorViews.readme = @readmeView = new ReadmeView {}, data
+    @editorViews.readme = @readmeView = new ReadmeView {
+      @canUpdate
+    }, data
     @tabView.addPane readmePane = new kd.TabPaneView
       name : 'Readme'
       view : @readmeView
@@ -173,7 +160,7 @@ module.exports = class StackEditorView extends kd.View
     @tabView.on 'PaneDidShow', (pane) =>
       if pane.name is 'Credentials'
         @warningView.hide()
-      unless @isMine
+      unless @canUpdate
         if pane.name isnt 'Credentials'
           @warningView.show()
 
@@ -225,6 +212,11 @@ module.exports = class StackEditorView extends kd.View
 
     @listenContentChanges()
 
+    if not @canUpdate and stackTemplate
+      @tabView.setClass 'StackEditorTabs readonly'
+      @warningView.show()
+      @deleteStack.hide()
+
 
   listenContentChanges: ->
 
@@ -262,10 +254,12 @@ module.exports = class StackEditorView extends kd.View
   createStackNameInput: (generatedStackTemplateTitle) ->
 
     { stackTemplate } = @getData()
-
+    headerCssClass = 'StackEditorView--header'
+    unless @canUpdate
+      headerCssClass = 'StackEditorView--header readonly'
     @addSubView @header = new kd.CustomHTMLView
       tagName: 'header'
-      cssClass: 'StackEditorView--header'
+      cssClass: headerCssClass
 
     valueGetter = [
       EnvironmentFlux.getters.teamStackTemplates
@@ -359,6 +353,7 @@ module.exports = class StackEditorView extends kd.View
   createMainButtons: ->
 
     { appManager } = kd.singletons
+    { stackTemplate } = @getData()
 
     @header.addSubView @buttons = new kd.CustomHTMLView { cssClass: 'buttons' }
 
@@ -384,6 +379,8 @@ module.exports = class StackEditorView extends kd.View
       loader         : yes
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
+        if isDefaultTeamStack stackTemplate._id
+          return EnvironmentFlux.actions.reinitStackFromWidget()
         @handleGenerateStack()
 
 
