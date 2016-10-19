@@ -4,6 +4,7 @@ generateClassName = require 'classnames'
 pluralize = require 'pluralize'
 { Grid, Row, Col } = require 'react-flexbox-grid'
 dateDiffInDays = require 'app/util/dateDiffInDays'
+toFloat = require 'app/util/toFloat'
 
 classes = require './TrialChargeInfo.stylus'
 textStyles = require 'lab/Text/Text.stylus'
@@ -54,7 +55,8 @@ TrialChargeInfo = ({ teamSize, pricePerSeat, daysLeft }) ->
       </Col>
       <Col xs={7} className={textStyles.right}>
         <Label size="small">
-          Monthly charge after trial: <strong>${pricePerSeat}</strong> per user
+          Monthly charge after trial:
+          <strong>${toFloat pricePerSeat, 2}</strong> per user
         </Label>
       </Col>
     </Row>
@@ -67,7 +69,7 @@ TrialChargeInfo.propTypes =
 
 TrialChargeInfo.defaultProps =
   teamSize: 1
-  pricePerSeat: 49.97
+  pricePerSeat: 49.977777777777776
 
 module.exports = TrialChargeInfo
 
