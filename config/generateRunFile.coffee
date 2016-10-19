@@ -55,7 +55,10 @@ generateDev = (KONFIG, options) ->
     fi
 
     function is_ready () {
-      exit 0
+      check_connectivity mongo
+      check_connectivity postgres
+      check_connectivity redis
+      check_connectivity rabbitmq
     }
 
     mkdir $KONFIG_PROJECTROOT/.logs &>/dev/null
@@ -140,9 +143,6 @@ generateDev = (KONFIG, options) ->
 
       # Do PG Migration if necessary
       migrations up
-
-      # Sanitize email addresses
-      node $KONFIG_PROJECTROOT/scripts/sanitize-email
 
       supervisord && sleep 1
 
@@ -305,9 +305,13 @@ generateDev = (KONFIG, options) ->
 
     function check_service_dependencies () {
       echo "checking required services: nginx, docker, mongo, graphicsmagick..."
+      command -v curl          >/dev/null 2>&1 || { echo >&2 "I require curl but it's not installed.  Aborting."; exit 1; }
       command -v go            >/dev/null 2>&1 || { echo >&2 "I require go but it's not installed.  Aborting."; exit 1; }
       command -v docker        >/dev/null 2>&1 || { echo >&2 "I require docker but it's not installed.  Aborting."; exit 1; }
       command -v nginx         >/dev/null 2>&1 || { echo >&2 "I require nginx but it's not installed. (brew install nginx maybe?)  Aborting."; exit 1; }
+      command -v mongo         >/dev/null 2>&1 || { echo >&2 "I require mongo but it's not installed. (brew install mongo maybe?)  Aborting."; exit 1; }
+      command -v pg_isready    >/dev/null 2>&1 || { echo >&2 "I require pg_isready but it's not installed. (brew install postgresql maybe?)  Aborting."; exit 1; }
+      command -v redis-cli     >/dev/null 2>&1 || { echo >&2 "I require redis-cli but it's not installed. (brew install redis maybe?)  Aborting."; exit 1; }
       command -v node          >/dev/null 2>&1 || { echo >&2 "I require node but it's not installed.  Aborting."; exit 1; }
       command -v npm           >/dev/null 2>&1 || { echo >&2 "I require npm but it's not installed.  Aborting."; exit 1; }
       command -v gulp          >/dev/null 2>&1 || { echo >&2 "I require gulp but it's not installed. (npm i gulp -g)  Aborting."; exit 1; }
@@ -332,48 +336,95 @@ generateDev = (KONFIG, options) ->
       set +o errexit
     }
 
-    function waitPostgresReady() {
-        retries=60
-        while ! pg_isready -h $KONFIG_POSTGRES_HOST -U $KONFIG_POSTGRES_USERNAME; do
-          sleep 1
-          let retries--
-          if [ $retries == 0 ]; then
-            echo "time out while waiting for pg_isready"
-            exit 1
-          fi
-          echo "."
-        done
+    function check_connectivity_mongo() {
+      local MONGO_OK=$(mongo $KONFIG_MONGO \
+                       --quiet \
+                       --eval "db.serverStatus().ok == true")
+
+      if [[ $? != 0 || "$MONGO_OK" != true ]]; then
+        echo "error: mongodb service check failed on $KONFIG_MONGO"
+        return 1
+      fi
+
+      return 0
     }
 
-    function waitMongoReady() {
-        retries=200
-        while ! mongo $KONFIG_MONGO --eval "db.stats()" > /dev/null 2>&1; do
-          sleep 1
-          let retries--
-          if [ $retries == 0 ]; then
-            echo "time out while waiting for mongo is ready"
-            exit 1
-          fi
-          echo "mongo is not reachable, trying again "
-        done
+    function check_connectivity_rabbitmq() {
+      local USER=$KONFIG_MQ_LOGIN:$KONFIG_MQ_PASSWORD
+      local HOST=$KONFIG_MQ_HOST:$KONFIG_MQ_APIPORT
+      local RESPONSE_CODE=$(curl --silent --output /dev/null --write-out '%{http_code}' --user $USER http://$HOST/api/overview)
+
+      if [[ $? != 0 || $RESPONSE_CODE != 200 ]]; then
+        echo "error: rabbitmq service check failed on $KONFIG_MQ_HOST:$KONFIG_MQ_APIPORT"
+        return 1
+      fi
+
+      return 0
+    }
+
+
+    function check_connectivity_postgres() {
+      pg_isready --host $KONFIG_POSTGRES_HOST \
+                 --port $KONFIG_POSTGRES_PORT \
+                 --username $KONFIG_POSTGRES_USERNAME \
+                 --dbname $KONFIG_POSTGRES_DBNAME \
+                 --quiet
+
+      if [ $? != 0 ]; then
+        echo "error: postgres service check failed on $KONFIG_POSTGRES_HOST:$KONFIG_POSTGRES_PORT"
+        return 1
+      fi
+
+      return 0
+    }
+
+
+    function check_connectivity_redis() {
+      local REDIS_PONG=$(redis-cli -h $KONFIG_REDIS_HOST \
+                -p $KONFIG_REDIS_PORT \
+                ping)
+
+      if [[ $? != 0 || "$REDIS_PONG" != PONG ]]; then
+        echo "error: redis service check failed on $KONFIG_REDIS_HOST:$KONFIG_REDIS_PORT"
+        return 1
+      fi
+
+      return 0
+    }
+
+    function check_connectivity() {
+      retries=120
+      until eval "check_connectivity_$@"; do
+        sleep 1
+        let retries--
+        if [ $retries == 0 ]; then
+          echo "time out while waiting for $@ is ready"
+          exit 1
+        fi
+        echo "$@ is not reachable yet, trying again..."
+      done
+      echo "$@ is up and running..."
+
     }
 
     function runMongoDocker () {
         docker run -d -p 27017:27017 --name=mongo mongo:2.4
-        waitMongoReady
+        check_connectivity mongo
     }
 
     function runPostgresqlDocker () {
         docker run -d -p 5432:5432 --name=postgres koding/postgres
-        waitPostgresReady
+        check_connectivity postgres
     }
 
     function runRabbitMQDocker () {
         docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq rabbitmq:3-management
+        check_connectivity rabbitmq
     }
 
     function runRedisDocker () {
         docker run -d -p 6379:6379 --name=redis redis
+        check_connectivity redis
     }
 
     function runImplyDocker () {
@@ -436,11 +487,6 @@ generateDev = (KONFIG, options) ->
       nginxrun
     }
 
-
-    function migrateusers () {
-      go run $KONFIG_PROJECTROOT/go/src/socialapi/workers/cmd/migrator/main.go -c $KONFIG_SOCIALAPI_CONFIGFILEPATH
-    }
-
     function removeDockerByName () {
       docker stop $1
       docker ps -all --quiet --filter name=$1 | xargs docker rm -f && echo deleted $1 image
@@ -449,15 +495,18 @@ generateDev = (KONFIG, options) ->
     function restoredefaultmongodump () {
       removeDockerByName mongo
       runMongoDocker
+
       mongomigrate up
     }
 
     function restoredefaultpostgresdump () {
       removeDockerByName postgres
       runPostgresqlDocker
+
       migrate up
 
-      migrateusers
+      # sync users between postgres and mongo
+      go run $KONFIG_PROJECTROOT/go/src/socialapi/workers/cmd/migrator/main.go -c $KONFIG_SOCIALAPI_CONFIGFILEPATH
     }
 
     function restoreredis () {
