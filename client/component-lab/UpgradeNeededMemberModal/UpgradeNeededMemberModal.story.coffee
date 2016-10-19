@@ -7,7 +7,8 @@ storiesOf 'UpgradeNeededMemberModal', module
   .add 'default', ->
     <UpgradeNeededMemberModal
       isOpen={yes}
-      onButtonClick={action 'button clicked'} />
+      onButtonClick={action 'button clicked'}
+      onSecondaryButtonClick={action 'secondary clicked'} />
 
 
 

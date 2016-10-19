@@ -16,7 +16,11 @@ module.exports = Dialog = (props) ->
     message
     buttonType
     buttonTitle
-    onButtonClick } = props
+    onButtonClick
+    secondaryButtonType
+    secondaryButtonTitle
+    onSecondaryButtonClick
+  } = props
 
   modalProps =
     isOpen: isOpen
@@ -27,20 +31,21 @@ module.exports = Dialog = (props) ->
 
   titleClassName = "#{styles.title} #{styles[type]}"
 
-  action = if buttonType is 'link'
-    <a href="#" onClick={onButtonClick}>{buttonTitle}</a>
-  else
-    <Button type={buttonType} auto={on} onClick={onButtonClick}>
-      {buttonTitle}
-    </Button>
-
-
   <Modal {...modalProps}>
     <Modal.Content>
       <div className={titleClassName}>{title}</div>
       <div className={styles.subtitle}>{subtitle}</div>
       <div className={styles.message}>{message}</div>
-      <div className={styles.action}>{action}</div>
+      {buttonTitle and
+        <Action
+          type={buttonType}
+          title={buttonTitle}
+          onClick={onButtonClick} /> }
+      {secondaryButtonTitle and
+        <Action
+          type={secondaryButtonType}
+          title={secondaryButtonTitle}
+          onClick={onSecondaryButtonClick} /> }
     </Modal.Content>
   </Modal>
 
@@ -53,4 +58,14 @@ Dialog.defaultProps =
   buttonTitle: 'Button Title'
   onButtonClick: ->
 
+Action = ({ type, onClick, title }) ->
+
+  action = if type is 'link'
+    <a href="#" onClick={onClick}>{title}</a>
+  else
+    <Button type={type} auto={on} onClick={onClick}>
+      {title}
+    </Button>
+
+  <div className={styles.action}>{action}</div>
 
