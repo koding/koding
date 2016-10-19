@@ -11,6 +11,13 @@ func TestBootstrapJSONTmpl(t *testing.T) {
 	cases := []*azure.BootstrapConfig{
 		{Rule: false},
 		{Rule: true},
+		{TeamSlug: "a"},
+		{HostedServiceName: "b"},
+		{StorageServiceName: "c"},
+		{StorageType: "d"},
+		{VirtualNetworkName: "e"},
+		{},
+		{TeamSlug: "a", HostedServiceName: "b", StorageServiceName: "c"},
 	}
 
 	for i, cas := range cases {

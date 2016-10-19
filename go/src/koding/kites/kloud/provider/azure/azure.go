@@ -87,6 +87,7 @@ type Cred struct {
 	PublishSettings []byte `json:"publish_settings" bson:"publish_settings" hcl:"publish_settings"`                  // required
 	SubscriptionID  string `json:"subscription_id,omitempty" bson:"subscription_id,omitempty" hcl:"subscription_id"` // required if PublishSettings contains multiple subscriptions
 	Location        string `json:"location,omitempty" bson:"location,omitempty" hcl:"location"`                      // by default "East US 2"
+	Storage         string `json:"storage,omitempty" bson:"storage,omitempty" hcl:"storage"`                         // by default "Standard_LRS"
 }
 
 var _ stack.Validator = (*Cred)(nil)
@@ -112,6 +113,11 @@ func (meta *Cred) Valid() error {
 	if meta.Location == "" {
 		meta.Location = "East US 2"
 	}
+
+	if meta.Storage == "" {
+		meta.Storage = "Standard_LRS"
+	}
+
 	if len(meta.PublishSettings) == 0 {
 		return errors.New("publish settings are emtpty or missing")
 	}
@@ -143,7 +149,6 @@ func (meta *Cred) Valid() error {
 // Bootstrap represents bootstrapping metadata for a single Azure stack.
 type Bootstrap struct {
 	AddressSpace     string `json:"address_space,omitempty" bson:"address_space,omitempty" hcl:"address_space"`                      // by default "10.0.0.0/16"
-	Storage          string `json:"storage,omitempty" bson:"storage,omitempty" hcl:"storage"`                                        // by default "Standard_LRS"
 	StorageServiceID string `json:"storage_service_name,omitempty" bson:"storage_service_name,omitempty" hcl:"storage_service_name"` // unique Azure-wide
 
 	// Bootstrap metadata.
@@ -159,9 +164,6 @@ var _ stack.Validator = (*Bootstrap)(nil)
 func (b *Bootstrap) Valid() error {
 	if b.AddressSpace == "" {
 		b.AddressSpace = "10.0.0.0/16"
-	}
-	if b.Storage == "" {
-		b.Storage = "Standard_LRS"
 	}
 	if b.HostedServiceID == "" {
 		return errors.New("hosted service ID is empty or missing")

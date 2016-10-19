@@ -23,6 +23,7 @@ var tmpl = template.Must(template.New("").Parse(mustAsset("bootstrap.json.tmpl")
 type BootstrapConfig struct {
 	TeamSlug           string
 	HostedServiceName  string
+	StorageType        string
 	StorageServiceName string
 	SecurityGroupName  string
 	VirtualNetworkName string
@@ -93,11 +94,13 @@ func (s *Stack) VerifyCredential(c *stack.Credential) error {
 }
 
 func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, error) {
+	cred := c.Credential.(*Cred)
 	boot := c.Bootstrap.(*Bootstrap)
 
 	cfg := &BootstrapConfig{
 		TeamSlug:           s.BootstrapArg().GroupName,
 		HostedServiceName:  "koding-hs-" + c.Identifier,
+		StorageType:        cred.Storage,
 		StorageServiceName: strings.ToLower("kodings" + c.Identifier),
 		SecurityGroupName:  "koding-sg-" + c.Identifier,
 		VirtualNetworkName: "koding-vn-" + c.Identifier,
