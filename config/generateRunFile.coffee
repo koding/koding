@@ -127,14 +127,6 @@ generateDev = (KONFIG, options) ->
 
     function run () {
 
-      # Check if PG DB schema update required
-      go run $KONFIG_PROJECTROOT/go/src/socialapi/tests/pg-update.go $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_PORT
-      RESULT=$?
-
-      if [ $RESULT -ne 0 ]; then
-        exit 1
-      fi
-
       # Update node modules
       if ! scripts/check-node_modules.sh; then
         npm install --silent
@@ -143,15 +135,8 @@ generateDev = (KONFIG, options) ->
       # Check everything else
       check
 
-      # Remove old watcher files (do we still need this?)
-      rm -rf $KONFIG_PROJECTROOT/go/bin/goldorf-main-*
-      rm -rf $KONFIG_PROJECTROOT/go/bin/watcher-*
-
       # Run Go builder
       $KONFIG_PROJECTROOT/go/build.sh
-
-      # Run Social Api builder
-      make -C $KONFIG_PROJECTROOT/go/src/socialapi configure
 
       # Do PG Migration if necessary
       migrate up
