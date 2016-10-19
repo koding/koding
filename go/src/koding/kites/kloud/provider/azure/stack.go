@@ -20,6 +20,7 @@ import (
 
 var tmpl = template.Must(template.New("").Parse(mustAsset("bootstrap.json.tmpl")))
 
+// BootstrapConfig represents configuration for bootstrap template.
 type BootstrapConfig struct {
 	TeamSlug           string
 	HostedServiceName  string
@@ -30,6 +31,7 @@ type BootstrapConfig struct {
 	Rule               bool
 }
 
+// Endpoint represents a single Azure's endpoint rule.
 type Endpoint struct {
 	Name        string `hcl:"name"`
 	Protocol    string `hcl:"protocol"`
@@ -61,18 +63,22 @@ var (
 	_ stack.Stacker  = (*Stack)(nil) // internal API
 )
 
+// Cred gives Azure's credential.
 func (s *Stack) Cred() *Cred {
 	return s.BaseStack.Credential.(*Cred)
 }
 
+// Bootstrap gives Azure's bootstrap metadata.
 func (s *Stack) Bootstrap() *Bootstrap {
 	return s.BaseStack.Bootstrap.(*Bootstrap)
 }
 
+// BootstrapArg gives bootstrap request for the given request.
 func (s *Stack) BootstrapArg() *stack.BootstrapRequest {
 	return s.BaseStack.Arg.(*stack.BootstrapRequest)
 }
 
+// VerifyCredential verifies the given Azure credential.
 func (s *Stack) VerifyCredential(c *stack.Credential) error {
 	cred := c.Credential.(*Cred)
 
@@ -93,6 +99,8 @@ func (s *Stack) VerifyCredential(c *stack.Credential) error {
 	return nil
 }
 
+// BootstrapTemplates returns bootstrap templates that are used
+// to bootstrap an Azure stack.
 func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, error) {
 	cred := c.Credential.(*Cred)
 	boot := c.Bootstrap.(*Bootstrap)
@@ -133,6 +141,7 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 	}, nil
 }
 
+// ApplyTemplate injects bootstrap resources into an Azure's stack.
 func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	t := s.Builder.Template
 
