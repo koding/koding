@@ -23,6 +23,10 @@ module.exports = class DisabledMemberModal extends ReactView
 
     status or= getGroupStatus groupsController.getCurrentGroup()
 
+    onLogoutClick = =>
+      @destroy()
+      router.handleRoute '/Logout'
+
     switch status
 
       when Status.EXPIRED
@@ -31,7 +35,8 @@ module.exports = class DisabledMemberModal extends ReactView
           router.handleRoute '/Disabled/Member/notify-success'
         <TrialEndedMemberModal
           isOpen={yes}
-          onButtonClick={onClick} />
+          onButtonClick={onClick}
+          onSecondaryButtonClick={onLogoutClick} />
 
       when Status.PAST_DUE, Status.CANCELED
         onClick = =>
@@ -39,7 +44,8 @@ module.exports = class DisabledMemberModal extends ReactView
           router.handleRoute '/Disabled/Member/suspended-notify-success'
         <SuspendedMemberModal
           isOpen={yes}
-          onButtonClick={onClick} />
+          onButtonClick={onClick}
+          onSecondaryButtonClick={onLogoutClick} />
 
       when Status.NEEDS_UPGRADE
         onClick = =>
@@ -47,7 +53,8 @@ module.exports = class DisabledMemberModal extends ReactView
           router.handleRoute '/Disabled/Member/upgrade-notify-success'
         <UpgradeNeededMemberModal
           isOpen={yes}
-          onButtonClick={onClick} />
+          onButtonClick={onClick}
+          onSecondaryButtonClick={onLogoutClick} />
 
       when 'suspended-notify-success'
         onClick = -> console.log 'support link clicked'

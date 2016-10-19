@@ -2,7 +2,9 @@ React = require 'react'
 
 Dialog = require 'lab/Dialog'
 
-module.exports = SuspendedMemberModal = ({ isOpen, onButtonClick }) ->
+module.exports = SuspendedMemberModal = (props) ->
+
+  { isOpen, onButtonClick, onSecondaryButtonClick } = props
 
   message = "
     We were unable to charge your credit card on file. Please notify your
@@ -18,6 +20,9 @@ module.exports = SuspendedMemberModal = ({ isOpen, onButtonClick }) ->
     message={message}
     buttonTitle='NOTIFY MY ADMINS'
     onButtonClick={onButtonClick}
+    secondaryButtonType='link'
+    secondaryButtonTitle='Logout'
+    onSecondaryButtonClick={onSecondaryButtonClick}
   />
 
 
