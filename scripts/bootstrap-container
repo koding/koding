@@ -18,7 +18,6 @@ function run_backend() {
   go/build.sh
   ./run exec scripts/check-service-connectivity.sh || exit 255
   ./run migrations up
-  nginx -c $(pwd)/nginx.conf
   ./run exec supervisord -c supervisord.conf
   sleep 2
   tail --follow --lines +0 --quiet .logs/*.log
