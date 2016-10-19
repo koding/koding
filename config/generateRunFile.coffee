@@ -139,7 +139,7 @@ generateDev = (KONFIG, options) ->
       $KONFIG_PROJECTROOT/go/build.sh
 
       # Do PG Migration if necessary
-      migrate up
+      migrations up
 
       # Sanitize email addresses
       node $KONFIG_PROJECTROOT/scripts/sanitize-email
@@ -263,6 +263,12 @@ generateDev = (KONFIG, options) ->
       fi
     }
 
+
+    function migrations () {
+      mongomigrate $1 $2
+      migrate $1 $2
+    }
+
     function check (){
 
       check_service_dependencies
@@ -362,6 +368,18 @@ generateDev = (KONFIG, options) ->
         waitPostgresReady
     }
 
+    function runRabbitMQDocker () {
+        docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq rabbitmq:3-management
+    }
+
+    function runRedisDocker () {
+        docker run -d -p 6379:6379 --name=redis redis
+    }
+
+    function runImplyDocker () {
+        docker run -d -p 18081-18110:8081-8110 -p 18200:8200 -p 19095:9095 --name=imply imply/imply:1.2.1
+    }
+
     function run_docker_wrapper () {
       if [[ `uname` == 'Darwin' ]]; then
         command -v boot2docker >/dev/null 2>&1 && boot2docker up
@@ -370,14 +388,7 @@ generateDev = (KONFIG, options) ->
     }
 
     function build_services () {
-
       run_docker_wrapper
-
-      echo "Stopping services: $SERVICES"
-      docker stop $SERVICES
-
-      echo "Removing services: $SERVICES"
-      docker rm   $SERVICES
 
       # Build postgres
       pushd $KONFIG_PROJECTROOT/go/src/socialapi/db/sql
@@ -389,11 +400,12 @@ generateDev = (KONFIG, options) ->
       git checkout kontrol/001-schema.sql
       popd
 
-      runMongoDocker
-      docker run -d -p 5672:5672 -p 15672:15672                           --name=rabbitmq rabbitmq:3-management
-      docker run -d -p 6379:6379                                          --name=redis    redis
-      runPostgresqlDocker
-      docker run -d -p 18081-18110:8081-8110 -p 18200:8200 -p 19095:9095  --name=imply    imply/imply:1.2.1
+      restoredefaultmongodump
+      restoreredis
+      restorerabbitmq
+      restoredefaultpostgresdump
+      restoreimply
+
 
       echo "#---> CLEARING ALGOLIA INDEXES: @chris <---#"
       pushd $KONFIG_PROJECTROOT
@@ -401,7 +413,7 @@ generateDev = (KONFIG, options) ->
       ./scripts/clear-algolia-index.sh -i "topics$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
       ./scripts/clear-algolia-index.sh -i "messages$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
 
-      migrate up
+      nginxrun
     }
 
     function services () {
@@ -430,6 +442,7 @@ generateDev = (KONFIG, options) ->
     }
 
     function removeDockerByName () {
+      docker stop $1
       docker ps -all --quiet --filter name=$1 | xargs docker rm -f && echo deleted $1 image
     }
 
@@ -447,11 +460,19 @@ generateDev = (KONFIG, options) ->
       migrateusers
     }
 
-    function updatePermissions () {
+    function restoreredis () {
+      removeDockerByName redis
+      runRedisDocker
+    }
 
-      echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @gokmen) <---#'
-      node $KONFIG_PROJECTROOT/scripts/permission-updater -c dev --reset
+    function restorerabbitmq () {
+      removeDockerByName rabbitmq
+      runRabbitMQDocker
+    }
 
+    function restoreimply () {
+      removeDockerByName imply
+      runImplyDocker
     }
 
     if [ "$#" == "0" ]; then
@@ -545,9 +566,15 @@ generateDev = (KONFIG, options) ->
     elif [ "$1" == "nodetestfiles" ]; then
       $KONFIG_PROJECTROOT/scripts/node-testing/mocha-runner $2
 
+    elif [ "$1" == "migrate" ]; then
+      check_psql
+      migrate $2 $3
 
     elif [ "$1" == "mongomigrate" ]; then
       mongomigrate $2 $3
+
+    elif [ "$1" == "migrations" ]; then
+      migrations $2 $3
 
     else
       echo "Unknown command: $1"
