@@ -6,7 +6,6 @@ import (
 	"math"
 	"socialapi/config"
 	"socialapi/models"
-	"socialapi/request"
 	"strconv"
 
 	"gopkg.in/mgo.v2/bson"
@@ -185,68 +184,4 @@ func TestTeam(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 	})
-}
-
-func TestDeleteGroupChannel(t *testing.T) {
-	r := runner.New("test")
-	if err := r.Init(); err != nil {
-		t.Fatalf("couldnt start bongo %s", err.Error())
-	}
-	defer r.Close()
-
-	appConfig := config.MustRead(r.Conf.Path)
-
-	// init mongo connection
-	modelhelper.Initialize(appConfig.Mongo)
-	defer modelhelper.Close()
-
-	handler := NewController(r.Log, appConfig)
-
-	Convey("when deleting a group channel", t, func() {
-		account, groupChannel, groupName := models.CreateRandomGroupDataWithChecks()
-
-		Convey("it should create channel, message and dependencies", func() {
-			channel1 := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_TOPIC, groupName)
-			channel2 := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_TOPIC, groupName)
-			leafChannel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_TOPIC, groupName)
-
-			message1 := models.CreateMessage(channel1.Id, account.Id, models.ChannelMessage_TYPE_POST)
-			message2 := models.CreateMessage(channel2.Id, account.Id, models.ChannelMessage_TYPE_POST)
-
-			int1, err := models.AddInteractionWithTest(models.Interaction_TYPE_LIKE, message1.Id, account.Id)
-			So(int1, ShouldNotBeNil)
-			So(err, ShouldBeNil)
-
-			int2, err := models.AddInteractionWithTest(models.Interaction_TYPE_LIKE, message2.Id, account.Id)
-			So(int2, ShouldNotBeNil)
-			So(err, ShouldBeNil)
-
-			msg1 := models.CreateMessageWithTest()
-			So(msg1.Create(), ShouldBeNil)
-
-			cm, err := message1.AddReply(msg1)
-			So(err, ShouldBeNil)
-			So(cm.MessageId, ShouldEqual, message1.Id)
-
-			Convey("it should fetch replies and interactions", func() {
-				cml1, err := channel1.FetchMessageList(message1.Id)
-				So(err, ShouldBeNil)
-				So(cml1, ShouldNotBeNil)
-				So(cml1.MessageId, ShouldEqual, message1.Id)
-
-				query := request.NewQuery()
-				query.AccountId = account.Id
-				query.Type = models.Interaction_TYPE_LIKE
-				messages, err := models.NewInteraction().ListLikedMessages(query, channel1.Id)
-				So(err, ShouldBeNil)
-				So(messages, ShouldNotBeNil)
-
-				icm := models.NewChannelMessage()
-				err = icm.ById(msg1.Id)
-				So(err, ShouldBeNil)
-
-			})
-		})
-	})
-
 }
