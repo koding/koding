@@ -175,18 +175,13 @@ generateDev = (KONFIG, options) ->
       echo "  run logs                  : to see all workers logs"
       echo "  run log [worker]          : to see of specified worker logs only"
       echo "  run buildservices         : to initialize and start services"
-      echo "  run resetdb               : to reset databases"
       echo "  run services              : to stop and restart services"
-      echo "  run worker                : to list workers"
       echo "  run printconfig           : to print koding config environment variables (output in json via --json flag)"
-      echo "  run worker [worker]       : to run a single worker"
       echo "  run migrate [command]     : to apply/revert database changes (command: [create|up|down|version|reset|redo|to|goto])"
       echo "  run mongomigrate [command]: to apply/revert mongo database changes (command: [create|up|down])"
-      echo "  run importusers           : to import koding user data"
       echo "  run nodeservertests       : to run tests for node.js web server"
       echo "  run socialworkertests     : to run tests for social worker"
       echo "  run nodetestfiles         : to run a single test or all test files in a directory"
-      echo "  run sanitize-email        : to sanitize email"
       echo "  run help                  : to show this list"
       echo ""
 
@@ -430,12 +425,6 @@ generateDev = (KONFIG, options) ->
     }
 
 
-    function importusers () {
-      node $KONFIG_PROJECTROOT/scripts/user-importer -c dev
-      migrateusers
-
-    }
-
     function migrateusers () {
       go run $KONFIG_PROJECTROOT/go/src/socialapi/workers/cmd/migrator/main.go -c $KONFIG_SOCIALAPI_CONFIGFILEPATH
     }
@@ -511,29 +500,6 @@ generateDev = (KONFIG, options) ->
       check_service_dependencies
       services
 
-    elif [ "$1" == "updatepermissions" ]; then
-      updatePermissions
-
-    elif [ "$1" == "resetdb" ]; then
-
-      if [ "$2" == "--yes" ]; then
-
-        restoredefaultmongodump
-        restoredefaultpostgresdump
-
-        exit 0
-
-      fi
-
-      read -p "This will reset current databases, all data will be lost! (y/N)" -n 1 -r
-      echo ""
-      if [[ ! $REPLY =~ ^[Yy]$ ]]
-      then
-          exit 1
-      fi
-
-      restoredefaultmongodump
-      restoredefaultpostgresdump
     elif [ "$1" == "buildservices" ]; then
       check_service_dependencies
 
@@ -549,33 +515,6 @@ generateDev = (KONFIG, options) ->
 
     elif [ "$1" == "help" ]; then
       printHelp
-
-    elif [ "$1" == "importusers" ]; then
-      importusers
-
-    elif [ "$1" == "worker" ]; then
-
-      if [ "$2" == "" ]; then
-        echo Available workers:
-        echo "-------------------"
-        supervisorctl status | awk '${print $1} | sort'
-      else
-        trap - INT
-        trap
-        exec supervisorctl start $2
-      fi
-
-    elif [ "$1" == "migrate" ]; then
-      check_psql
-
-      if [ -z "$2" ]; then
-        echo "Please choose a migrate command [create|up|down|version|reset|redo|to|goto]"
-        echo ""
-      else
-        pushd $GOPATH/src/socialapi
-        make install-migrate
-        migrate $2 $3
-      fi
 
     elif [ "$1" == "vmwatchertests" ]; then
       go test koding/vmwatcher -test.v=true
@@ -606,17 +545,6 @@ generateDev = (KONFIG, options) ->
     elif [ "$1" == "nodetestfiles" ]; then
       $KONFIG_PROJECTROOT/scripts/node-testing/mocha-runner $2
 
-    elif [ "$1" == "sanitize-email" ]; then
-      node $KONFIG_PROJECTROOT/scripts/sanitize-email
-
-    elif [ "$1" == "apply_custom_pg_migrations" ]; then
-      apply_custom_pg_migrations
-
-    elif [ "$1" == "is_pgready" ]; then
-      waitPostgresReady
-
-    elif [ "$1" == "is_mongoready" ]; then
-      waitMongoReady
 
     elif [ "$1" == "mongomigrate" ]; then
       mongomigrate $2 $3
