@@ -114,11 +114,13 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 
 		// Set default image for disk if user didn't define it herself.
 		if _, ok := instance["disk"]; !ok {
-			instance["disk"] = map[string]interface{}{
-				"image": defaultMachineImage,
+			instance["disk"] = []map[string]interface{}{
+				{
+					"image": defaultMachineImage,
+				},
 			}
 		}
-		instance["disk"] = f2i.Replace(instance["disks"])
+		instance["disk"] = f2i.Replace(instance["disk"])
 
 		// Set default network interface if user didn't define it herself.
 		if _, ok := instance["network_interface"]; !ok {

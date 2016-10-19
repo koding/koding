@@ -1,9 +1,6 @@
 package google
 
-import (
-	"log"
-	"strings"
-)
+import "strings"
 
 // Family2Image is used to map image families into their latest images.
 type Family2Image struct {
@@ -24,17 +21,26 @@ func (f *Family2Image) Replace(disks interface{}) interface{} {
 		f.cache = make(map[string]string)
 	}
 
-	log.Println("=====================================")
-	log.Printf("%#v\n\n", disks)
+	items, ok := disks.([]map[string]interface{})
+	if !ok {
+		return disks
+	}
 
-	log.Println("=====================================")
-	m, ok := disks.(map[string]interface{})
-	log.Printf("%#v\n==== %t\n", m, ok)
+	for i := range items {
+		if items[i] == nil {
+			continue
+		}
 
-	a, ok := disks.([]interface{})
-	log.Printf("%#v\n==== %t\n", a, ok)
+		// User doesn't have to provide image name.
+		image, ok := items[i]["image"]
+		if !ok {
+			continue
+		}
 
-	return disks
+		items[i]["image"] = f.getImage(image)
+	}
+
+	return items
 }
 
 func (f *Family2Image) getImage(name interface{}) interface{} {
@@ -78,8 +84,8 @@ var family2project = map[string]string{
 }
 
 // familyProject checks if provided string is an image family name. If yes, this
-// functions looks up for the respective image project. It return zero value and
-// false if provide string is not image family identifier.
+// functions looks up for the respective image project. It returns zero value
+// and `false` status if provided string is not image family identifier.
 func familyProject(family string) (string, bool) {
 	// Check for images with version. That has form name-additional-vYYYYMMDD
 	toks := strings.Split(family, "-")
