@@ -77,10 +77,35 @@ p {
   margin: 0 auto;
 }
 .Hero {
-  background-color: #ccc;
-  padding-top: 127px;
   padding-bottom: 286px;
   text-align: center;
+  position: relative;
+  margin-top: -69px;
+  padding-top: 196px;
+
+  &:before {
+    opacity: 0.6;
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      url({{path}}/hero-backgroundL.png),
+      url({{path}}/hero-backgroundR.png);
+    background-repeat: no-repeat, no-repeat;
+    background-position: bottom left, bottom right;
+    background-size: 70%, 70%;
+  }
+
+  &.Training-hero {
+    background-image: linear-gradient(#515151,#5A606F);
+  }
+
+  &.Trial-hero {
+    background-image: linear-gradient(#358BB0,#9ECDDF);
+  }
 
   h1 {
     color: $white;
