@@ -55,7 +55,7 @@ function check_redis() {
 }
 
 function check() {
-  local INTERVAL=10 COUNTER=0 TRY_COUNT=6
+  local INTERVAL=10 COUNTER=0 TRY_COUNT=30
 
   until eval "check_$@"; do
     COUNTER=$((COUNTER + 1))
