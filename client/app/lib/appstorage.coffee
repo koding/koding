@@ -116,7 +116,7 @@ module.exports = class AppStorage extends kd.Object
 
   reset: ->
 
-    whoami().resetStorageCache?()
+    whoami()?.resetStorageCache?()
     @_storage     = null
     @_storageData = {}
 
