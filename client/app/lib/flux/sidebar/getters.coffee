@@ -46,7 +46,7 @@ sidebarDrafts = [
         # check for id is for backwards compatibility. ~Umut
         return draftFilter in ['visible', id]
 
-      return draft.get('accessLevel') is 'private'
+      return yes
 ]
 
 
