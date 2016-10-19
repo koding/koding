@@ -35,7 +35,6 @@ PACKAGES = \
 	socialapi/workers/notification \
 	socialapi/workers/pinnedpost \
 	socialapi/workers/popularpost \
-	socialapi/workers/trollmode \
 	socialapi/workers/populartopic \
 	socialapi/workers/realtime \
 	socialapi/workers/topicfeed \
@@ -50,7 +49,7 @@ PACKAGES = \
 all: testapi
 
 develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev \
-	notificationdev trollmodeldev pinnedpostdev algoliaconnectordev \
+	notificationdev pinnedpostdev algoliaconnectordev \
 	emaildev sitemapdev collaborationdev mailsenderdev topicmoderationdev \
 	teamdev eventsenderdev integrationdev
 minimal: apidev topicfeeddev realtimedev pinnedpostdev
@@ -107,10 +106,6 @@ privatemessageemailsenderdev:
 popularpostdev:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/popularpost -watch socialapi/workers/popularpost -c $(CONFIG) $(DBG) $(EXTRAS)
-
-trollmodeldev:
-	@echo "$(OK_COLOR)==> Running Troll Mode Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/trollmode -watch socialapi/workers/trollmode -c $(CONFIG) $(DBG) $(EXTRAS)
 
 dispatcherdev:
 	@echo "$(OK_COLOR)==> Running Dispatcher Worker $(NO_COLOR)"
@@ -353,14 +348,6 @@ testnotificationunit:
 	@./notification.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm ./notification.test
 
-
-testtrollmode:
-	@echo "$(OK_COLOR)--> troll mode tests... $(NO_COLOR)"
-	@`which go` test workers/trollmode/tests/*.go
-	@`which go` test -c workers/trollmode/*.go
-	@./trollmode.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm  ./trollmode.test
-
 testpayment:
 	@echo "$(OK_COLOR)--> payment tests... $(NO_COLOR)"
 	./workers/payment/tests.sh
@@ -384,7 +371,7 @@ testrealtime:
 
 
 testapi: testcollaboration testmailsender testmail testmodels testemailworker \
-	testmoderation testtopicfeeed testnotification testtrollmode \
+	testmoderation testtopicfeeed testnotification \
 	testteam testintegration testrealtime testwebhook testpresence
 
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"

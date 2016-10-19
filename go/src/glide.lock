@@ -484,7 +484,7 @@ imports:
   - models
   - pkg/escape
 - name: github.com/jacobsa/fuse
-  version: 0b9db0a706bc0248f8a37cba1dd5372b4c9a8b72
+  version: 3b8b4e55df5483817cd361a28d0a830d5acd962b
   subpackages:
   - fuseops
   - fuseutil
@@ -1019,6 +1019,8 @@ imports:
   version: 9235644dd9e52eeae6fa48efd539fdc351a0af53
 - name: github.com/tent/http-link-go
   version: ac974c61c2f990f4115b119354b5e0b47550e888
+- name: github.com/Azure/azure-sdk-for-go
+  version: 91f3d4a4d024e3c0d4d9412916d05cf84504a616
 testImports:
 - name: github.com/vaughan0/go-ini
   version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1

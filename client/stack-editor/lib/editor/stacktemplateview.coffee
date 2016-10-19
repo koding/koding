@@ -2,12 +2,10 @@ kd                      = require 'kd'
 KDButtonView            = kd.ButtonView
 Encoder                 = require 'htmlencode'
 curryIn                 = require 'app/util/curryIn'
-StackBaseEditorTabView  = require './stackbaseeditortabview'
 StackTemplateEditorView = require './stacktemplateeditorview'
 
 
-module.exports = class StackTemplateView extends StackBaseEditorTabView
-
+module.exports = class StackTemplateView extends kd.View
 
   constructor: (options = {}, data) ->
 
@@ -16,6 +14,7 @@ module.exports = class StackTemplateView extends StackBaseEditorTabView
     super options, data ? {}
 
     { credential, stackTemplate, template, showHelpContent } = @getData()
+    { @canUpdate } = @getOptions()
 
     contentType = 'json'
 
@@ -56,3 +55,21 @@ module.exports = class StackTemplateView extends StackBaseEditorTabView
         kd.utils.wait 250, => @editorView.resize()
 
     @editorView.on 'click', => @emit 'HideOutputView'
+
+
+  viewAppended: ->
+
+    super
+
+    @editorView.ready =>
+      @setReadOnly()  unless @canUpdate
+      @listenEditorEvents()
+
+
+  listenEditorEvents: ->
+    @on 'FocusToEditor', @editorView.lazyBound 'setFocus', yes
+
+
+  setReadOnly: ->
+    @setClass 'readonly'
+    @editorView.aceView.ace.editor.setReadOnly yes

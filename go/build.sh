@@ -39,7 +39,6 @@ export COMMANDS=(
 	socialapi/workers/cmd/notification
 	socialapi/workers/cmd/pinnedpost
 	socialapi/workers/cmd/popularpost
-	socialapi/workers/cmd/trollmode
 	socialapi/workers/cmd/populartopic
 	socialapi/workers/cmd/realtime
 	socialapi/workers/cmd/realtime/gatekeeper
