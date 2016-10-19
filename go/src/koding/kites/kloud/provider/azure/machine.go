@@ -15,10 +15,10 @@ import (
 // Machine represents a single MongodDB document from the jMachines
 // collection.
 type Machine struct {
-	*provider.BaseMachine
+	*provider.BaseMachine // base implementation of a machine
 
-	AzureClient   management.Client        `bson:"-"`
-	AzureVMClient *vm.VirtualMachineClient `bson:"-"`
+	AzureClient   management.Client        `bson:"-"` // Azure API client
+	AzureVMClient *vm.VirtualMachineClient `bson:"-"` // Azure API client
 }
 
 var (
@@ -26,18 +26,22 @@ var (
 	_ stack.Machiner   = (*Machine)(nil) // internal API
 )
 
+// Cred gives the Azure credentials.
 func (m *Machine) Cred() *Cred {
 	return m.BaseMachine.Credential.(*Cred)
 }
 
+// Bootstrap gives bootstrapping information.
 func (m *Machine) Bootstrap() *Bootstrap {
 	return m.BaseMachine.Bootstrap.(*Bootstrap)
 }
 
+// Meta gives the machine's metadata.
 func (m *Machine) Meta() *Meta {
 	return m.BaseMachine.Metadata.(*Meta)
 }
 
+// Start starts a machine.
 func (m *Machine) Start(ctx context.Context) (interface{}, error) {
 	id, err := m.AzureVMClient.StartRole(m.Meta().HostedServiceID, m.Meta().InstanceID, m.Meta().InstanceID)
 	if err != nil {
@@ -47,6 +51,7 @@ func (m *Machine) Start(ctx context.Context) (interface{}, error) {
 	return nil, m.AzureClient.WaitForOperation(id, nil)
 }
 
+// Stop stops a machine.
 func (m *Machine) Stop(ctx context.Context) (interface{}, error) {
 	id, err := m.AzureVMClient.ShutdownRole(m.Meta().HostedServiceID, m.Meta().InstanceID, m.Meta().InstanceID, vm.PostShutdownActionStoppedDeallocated)
 	if err != nil {
@@ -56,6 +61,7 @@ func (m *Machine) Stop(ctx context.Context) (interface{}, error) {
 	return nil, m.AzureClient.WaitForOperation(id, nil)
 }
 
+// Info gives machine's state.
 func (m *Machine) Info(context.Context) (machinestate.State, interface{}, error) {
 	resp, err := m.AzureVMClient.GetDeployment(m.Meta().HostedServiceID, m.Meta().InstanceID)
 	if isNotFound(err) {

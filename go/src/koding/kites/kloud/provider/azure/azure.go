@@ -84,13 +84,15 @@ type Subscription struct {
 // Cred represents jCredentialDatas.meta for "azure" provider.
 type Cred struct {
 	// Credentials.
-	PublishSettings []byte `json:"publish_settings" bson:"publish_settings" hcl:"publish_settings"` // required
-	SubscriptionID  string `json:"subscription_id,omitempty" bson:"subscription_id,omitempty" hcl:"subscription_id"`
-	Location        string `json:"location,omitempty" bson:"location,omitempty" hcl:"location"` // by default "East US 2"
+	PublishSettings []byte `json:"publish_settings" bson:"publish_settings" hcl:"publish_settings"`                  // required
+	SubscriptionID  string `json:"subscription_id,omitempty" bson:"subscription_id,omitempty" hcl:"subscription_id"` // required if PublishSettings contains multiple subscriptions
+	Location        string `json:"location,omitempty" bson:"location,omitempty" hcl:"location"`                      // by default "East US 2"
 }
 
 var _ stack.Validator = (*Cred)(nil)
 
+// PublishData parses PublishSettings field and gives metadata that
+// describes subscriptions.
 func (meta *Cred) PublishData() (*PublishData, error) {
 	var pb PublishData
 
@@ -105,7 +107,7 @@ func (meta *Cred) PublishData() (*PublishData, error) {
 	return &pb, nil
 }
 
-// Valid implements the kloud.Validator interface.
+// Valid implements the stack.Validator interface.
 func (meta *Cred) Valid() error {
 	if meta.Location == "" {
 		meta.Location = "East US 2"
@@ -138,6 +140,7 @@ func (meta *Cred) Valid() error {
 	return errors.New("specified subscription ID does not exist")
 }
 
+// Bootstrap represents bootstrapping metadata for a single Azure stack.
 type Bootstrap struct {
 	AddressSpace     string `json:"address_space,omitempty" bson:"address_space,omitempty" hcl:"address_space"`                      // by default "10.0.0.0/16"
 	Storage          string `json:"storage,omitempty" bson:"storage,omitempty" hcl:"storage"`                                        // by default "Standard_LRS"
@@ -145,13 +148,14 @@ type Bootstrap struct {
 
 	// Bootstrap metadata.
 	HostedServiceID  string `json:"hosted_service_name,omitempty" bson:"hosted_service_name,omitempty" hcl:"hosted_service_name"` // unique Azure-wide
-	SecurityGroupID  string `json:"security_group,omitempty" bson:"security_group,omitempty" hcl:"security_group"`
-	VirtualNetworkID string `json:"virtual_network,omitempty" bson:"virtual_network,omitempty" hcl:"virtual_network"`
-	SubnetName       string `json:"subnet,omitempty" bson:"subnet,omitempty" hcl:"subnet"`
+	SecurityGroupID  string `json:"security_group,omitempty" bson:"security_group,omitempty" hcl:"security_group"`                // security group for the stack
+	VirtualNetworkID string `json:"virtual_network,omitempty" bson:"virtual_network,omitempty" hcl:"virtual_network"`             // vlan for all the instances within stack
+	SubnetName       string `json:"subnet,omitempty" bson:"subnet,omitempty" hcl:"subnet"`                                        // name of default subnet that belongs to vlan
 }
 
 var _ stack.Validator = (*Bootstrap)(nil)
 
+// Valid implements the stack.Validator interface.
 func (b *Bootstrap) Valid() error {
 	if b.AddressSpace == "" {
 		b.AddressSpace = "10.0.0.0/16"
@@ -177,15 +181,17 @@ func (b *Bootstrap) Valid() error {
 	return nil
 }
 
+// Meta represents a metadata for a single Azure machine.
 type Meta struct {
-	AlwaysOn        bool   `bson:"alwaysOn"`
-	InstanceID      string `json:"instanceId" bson:"instanceId"`
-	HostedServiceID string `json:"hostedServiceId" bson:"hostedServiceId"`
-	InstanceType    string `json:"instance_type" bson:"instance_type"`
-	Location        string `json:"location" bson:"location"`
-	StorageSize     int    `json:"storage_size" bson:"storage_size"`
+	AlwaysOn        bool   `json:"alwaysOn" bson:"alwaysOn"`               // whether machine should not be stopped after 1h
+	InstanceID      string `json:"instanceId" bson:"instanceId"`           // Azure's instance ID
+	HostedServiceID string `json:"hostedServiceId" bson:"hostedServiceId"` // Azure's service ID
+	InstanceType    string `json:"instance_type" bson:"instance_type"`     // type of the instance
+	Location        string `json:"location" bson:"location"`               // datacenter of the instance
+	StorageSize     int    `json:"storage_size" bson:"storage_size"`       // storage size of the instance
 }
 
+// Valid implements the stack.Validator interface.
 func (mt *Meta) Valid() error {
 	if mt.InstanceID == "" {
 		return errors.New("invalid empty instance ID")
