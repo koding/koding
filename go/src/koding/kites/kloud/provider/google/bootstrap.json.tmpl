@@ -26,14 +26,6 @@
           "0.0.0.0/0"
         ]
       }
-    },
-    "google_compute_project_metadata": {
-      "default": {
-        "project": "${var.google_project}",
-        "metadata": {
-          "sshKeys": "${var.user_name}:${var.public_key}"
-        }
-      }
     }
   },
   "variable": {
@@ -45,12 +37,6 @@
         "us-east1": "us-east1-b",
         "us-west1": "us-west1-a"
       }
-    },
-    "user_name": {
-      "default": "{{.Username}}"
-    },
-    "public_key": {
-      "default": "{{.PublicKey}}"
     }
   }
 }
