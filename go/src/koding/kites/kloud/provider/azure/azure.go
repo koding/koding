@@ -12,20 +12,18 @@ import (
 	vm "github.com/Azure/azure-sdk-for-go/management/virtualmachine"
 )
 
-var p = &provider.Provider{
-	Name:         "azure",
-	ResourceName: "instance",
-	Machine:      newMachine,
-	Stack:        newStack,
-	Schema: &provider.Schema{
-		NewCredential: newCredential,
-		NewBootstrap:  newBootstrap,
-		NewMetadata:   newMetadata,
-	},
-}
-
 func init() {
-	provider.Register(p)
+	provider.Register(&provider.Provider{
+		Name:         "azure",
+		ResourceName: "instance",
+		Machine:      newMachine,
+		Stack:        newStack,
+		Schema: &provider.Schema{
+			NewCredential: newCredential,
+			NewBootstrap:  newBootstrap,
+			NewMetadata:   newMetadata,
+		},
+	})
 }
 
 func newMachine(bm *provider.BaseMachine) (provider.Machine, error) {
