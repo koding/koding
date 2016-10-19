@@ -37,6 +37,8 @@ module.exports = class Ace extends KDView
 
   toBindKey = (binding) ->
 
+    return {}  unless binding
+
     bindKey = {}
     bindKey[globals.keymapType] = binding
       .split '+'
