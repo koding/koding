@@ -93,7 +93,8 @@ module.exports = class Sidebar extends React.Component
 
     draft = @state.drafts.get id
     switch title
-      when 'Edit' then router.handleRoute "/Stack-Editor/#{id}"
+      when 'Edit','ViewStack'
+        router.handleRoute "/Stack-Editor/#{id}"
       when 'Initialize'
         EnvironmentFlux.actions.generateStack(id).then ({ template }) ->
           appManager.tell 'Stackeditor', 'reloadEditor', template._id
@@ -125,7 +126,11 @@ module.exports = class Sidebar extends React.Component
     if draft.getIn ['config', 'remoteDetails', 'originalUrl']
       menuItems['Open on GitLab'] = { callback }
 
-    ['Edit', 'Initialize'].forEach (name) => menuItems[name] = { callback }
+    if draft.get('accessLevel') is 'private' or isAdmin()
+      menuItems['Edit'] = { callback }
+    else
+      menuItems['ViewStack'] = { callback }
+    menuItems['Initialize'] = { callback }
     menuItems['Clone'] = { callback }  if canCreateStacks() or isAdmin()
     menuItems['Make Team Default'] = { callback } if isAdmin() and draft.get('machines').size
     menuItems['Delete'] = { callback }
