@@ -65,32 +65,6 @@ func TestChannelHistory(t *testing.T) {
 								So(err, ShouldBeNil)
 								So(history, ShouldNotBeNil)
 								So(len(history.MessageList), ShouldEqual, 10)
-
-								SkipConvey("After linking to another channel", func() {
-									c2, err := rest.CreateChannelByGroupNameAndType(
-										account.Id,
-										channel.GroupName,
-										models.Channel_TYPE_TOPIC,
-										ses.ClientId,
-									)
-									So(err, ShouldBeNil)
-									So(c2, ShouldNotBeNil)
-
-									cl, err := rest.CreateLink(channel.Id, c2.Id, ses.ClientId)
-									So(err, ShouldBeNil)
-									So(cl, ShouldNotBeNil)
-
-									_, err = rest.GetHistory(
-										c2.Id,
-										&request.Query{
-											AccountId: account.Id,
-										},
-										ses.ClientId,
-									)
-
-									So(err, ShouldNotBeNil)
-									So(err.Error(), ShouldContainSubstring, "not found")
-								})
 							})
 
 							Convey("We should be not able to fetch the history if the clientId is not set", func() {
