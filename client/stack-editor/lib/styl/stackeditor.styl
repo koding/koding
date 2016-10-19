@@ -29,9 +29,12 @@ $borderColor                = #E3E3E3
     border-top              none
     borderBox()
 
-    > div
+    > div.kdview
       padding               30px
       borderBox()
+      &.readonly
+        opacity             0.5 !important
+        padding-top         57px !important
 
   .kdtabhandlecontainer
     bg                      color #FFFFFF
@@ -99,22 +102,27 @@ $borderColor                = #E3E3E3
 
 .StackEditorTabs
   kalc                      height, (100% \- 133px)
-  &.isntMine
-    .warning-view
-      height                30px
-      color                 #575757
-      padding-top           12px
-      padding-left          30px
-      bg                    color #FEF2F4
-      border                1px solid #DDD
-      border-width          0 1px
-      left                  0
-      right                 0
-      z-index               1
-      abs()
+      .clone-button
+        text-decoration     none
+        color               #769ecc
 
   > .kdtabpaneview
     height                  calc(100% \- 73px)
+
+.StackEditorTabs.readonly
+  .warning-view
+    height                30px
+    color                 #575757
+    padding-top           12px
+    padding-left          30px
+    bg                    color #FEF2F4
+    border                1px solid #DDD
+    border-width          0 1px
+    left                  0
+    right                 0
+    z-index               1
+    abs()
+
 
 .StackEditor-SecondaryActions
   margin-top                30px
@@ -364,9 +372,6 @@ $borderColor                = #E3E3E3
   .readme
   .custom-variables
     > .kdview
-      &.isntMine
-        padding-top         57px
-        opacity             .5
       padding-right         0
 
   .message-view
@@ -411,9 +416,6 @@ $borderColor                = #E3E3E3
     .fullscreen-button
       right                 175px
       hidden()
-    &.isntMine
-      padding-top           57px
-      opacity               .5
 
   .kdview.output
     vendor                  transition, height .2s ease

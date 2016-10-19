@@ -2,7 +2,9 @@ React = require 'react'
 
 Dialog = require 'lab/Dialog'
 
-module.exports = TrialEndedMemberModal = ({ isOpen, onButtonClick }) ->
+module.exports = TrialEndedMemberModal = (props) ->
+
+  { isOpen, onButtonClick, onSecondaryButtonClick } = props
 
   message = "
     We hope you have enjoyed using Koding. Please ask one of your team
@@ -18,6 +20,9 @@ module.exports = TrialEndedMemberModal = ({ isOpen, onButtonClick }) ->
     message={message}
     buttonTitle='NOTIFY MY ADMINS'
     onButtonClick={onButtonClick}
+    secondaryButtonType='link'
+    secondaryButtonTitle='Logout'
+    onSecondaryButtonClick={onSecondaryButtonClick}
   />
 
 

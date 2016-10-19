@@ -45,13 +45,6 @@ makeHeaderMessages = (trialDays, daysLeft) ->
       admin enter a credit card to avoid any suspension.
     "
 
-  member[Status.PAST_DUE] =
-    type: 'danger'
-    title: 'We couldn’t charge your credit card.'
-    description: '
-      Have an admin to enter a credit card to avoid any suspension.
-    '
-
   return { admin, member }
 
 

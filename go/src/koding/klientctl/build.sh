@@ -34,7 +34,7 @@ if [[ -z "$VERSION" ]]; then
 fi
 
 kd_build() {
-	go build -v -ldflags "-X koding/klientctl/config.Version=$VERSION -X koding/klientctl/config.SegmentKey=$KD_SEGMENTIO_KEY -X koding/klientctl/config.Environment=$CHANNEL" koding/klientctl
+	go install -v -ldflags "-X koding/klientctl/config.Version=$VERSION -X koding/klientctl/config.SegmentKey=$KD_SEGMENTIO_KEY -X koding/klientctl/config.Environment=$CHANNEL" koding/klientctl
 	mv "${REPO_PATH}/klientctl" "${REPO_PATH}/kd"
 }
 

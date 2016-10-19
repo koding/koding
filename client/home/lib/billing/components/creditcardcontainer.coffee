@@ -72,7 +72,7 @@ mapStateToProps = (state) ->
   props =
     isDirty: isDirty(FORM_NAME)(state)
     formValues:
-      number: realNumber and formValue state, 'number'
+      number: number
       name: formValue state, 'name'
       exp_year: formValue state, 'exp_year'
       exp_month: formValue state, 'exp_month'

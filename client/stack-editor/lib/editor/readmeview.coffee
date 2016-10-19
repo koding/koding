@@ -1,18 +1,17 @@
 kd = require 'kd'
 Encoder = require 'htmlencode'
 MarkdownEditorView = require './markdowneditorview'
-StackBaseEditorTabView = require './stackbaseeditortabview'
 defaults = require 'app/util/stacks/defaults'
 
 
-module.exports = class ReadmeView extends StackBaseEditorTabView
-
+module.exports = class ReadmeView extends kd.View
 
   constructor: (options = {}, data) ->
 
     super options, data
 
     { stackTemplate } = @getData()
+    { @canUpdate } = @getOptions
 
     content = if stackTemplate?.description \
       then Encoder.htmlDecode stackTemplate?.description
@@ -22,3 +21,22 @@ module.exports = class ReadmeView extends StackBaseEditorTabView
       content     : content
       delegate    : this
       contentType : 'md'
+
+
+  viewAppended: ->
+
+    super
+
+    @editorView.ready =>
+      @setReadOnly()  unless @canUpdate
+      @listenEditorEvents()
+
+
+  listenEditorEvents: ->
+    @on 'FocusToEditor', @editorView.lazyBound 'setFocus', yes
+
+
+  setReadOnly: ->
+
+    @setClass 'readonly'
+    @editorView.aceView.ace.editor.setReadOnly yes

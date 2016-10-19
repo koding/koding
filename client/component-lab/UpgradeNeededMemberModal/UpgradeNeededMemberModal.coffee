@@ -2,7 +2,9 @@ React = require 'react'
 
 Dialog = require 'lab/Dialog'
 
-module.exports = UpgradeNeededMemberModal = ({ isOpen, onButtonClick }) ->
+module.exports = UpgradeNeededMemberModal = (props) ->
+
+  { isOpen, onButtonClick, onSecondaryButtonClick } = props
 
   message = "
     Thank you for being a loyal Koding user. We recently activated a new
@@ -19,7 +21,9 @@ module.exports = UpgradeNeededMemberModal = ({ isOpen, onButtonClick }) ->
     message={message}
     buttonTitle='NOTIFY MY ADMINS'
     onButtonClick={onButtonClick}
+    secondaryButtonType='link'
+    secondaryButtonTitle='Logout'
+    onSecondaryButtonClick={onSecondaryButtonClick}
   />
-
 
 

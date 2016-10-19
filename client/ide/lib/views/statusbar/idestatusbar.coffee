@@ -109,7 +109,6 @@ module.exports = class IDEStatusBar extends kd.View
         cssClass      : 'start-session transparent'
         callback      : @bound 'handleShareButtonClick'
 
-
     if isKoding() and isSoloProductLite()
       isPlanFree (err, isFree) =>
         return  if err
@@ -148,11 +147,13 @@ module.exports = class IDEStatusBar extends kd.View
 
   startSession: ->
 
-    kd.singletons.appManager.tell 'IDE', 'startCollaborationSession', (err) =>
-      @resetProgress()  if err
+    kd.singletons.appManager.tell 'IDE', 'startCollaborationSession'
 
 
-  resetProgress: -> @share.resetProgress()
+  resetProgress: ->
+
+    @share.resetProgress()
+    @share.unsetTooltip()
 
 
   showInformation: ->
@@ -251,7 +252,7 @@ module.exports = class IDEStatusBar extends kd.View
     avatarView.showRequestPermissionView()
 
 
-  handleCollaborationPreparing: ->
+  handleCollaborationPreparing: (tooltipContent) ->
 
     @share.startProgress()
     @share.updateProgress 0 # Make sure initial value is 0
@@ -259,6 +260,16 @@ module.exports = class IDEStatusBar extends kd.View
     PROGRESS_DELAYS.forEach (item) =>
       kd.utils.killWait item.timer  if item.timer # Kill already defined waits
       item.timer = kd.utils.wait item.delay, => @share.updateProgress item.progress
+
+    return  unless tooltipContent
+
+    @share.setTooltip
+      view      : new kd.CustomHTMLView
+        partial : tooltipContent
+      cssClass  : 'is-light collaboration-start-tooltip'
+      placement : 'above'
+      sticky    : yes
+    @share.getTooltip().show()
 
 
   handleCollaborationLoading: ->

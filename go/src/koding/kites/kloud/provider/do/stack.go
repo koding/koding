@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"strconv"
+	"time"
 
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
@@ -88,7 +89,7 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 
 // keyName returns the keyName used for the bootstrap data
 func (s *Stack) keyName() string {
-	return fmt.Sprintf("koding-deployment-%s-%s", s.Req.Username, s.BootstrapArg().GroupName)
+	return fmt.Sprintf("koding-deployment-%s-%s-%d", s.Req.Username, s.BootstrapArg().GroupName, time.Now().UTC().UnixNano())
 }
 
 // ApplyTemplate enhances and updates the DigitalOcean terraform template. It

@@ -2,6 +2,9 @@ koding  = require './../bongo'
 
 module.exports = (req, res) ->
 
+  unless KONFIG.environment is 'production'
+    res.header 'Access-Control-Allow-Origin', 'http://dev.koding.com:4000'
+
   { JUser }     = koding.models
   { username }  = req.body
 

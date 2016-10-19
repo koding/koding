@@ -24,11 +24,7 @@ const (
 
 var bootstrap = template.Must(template.New("").Parse(mustAsset("bootstrap.json.tmpl")))
 
-type bootstrapConfig struct {
-	Username    string
-	KeyPairName string
-	PublicKey   string
-}
+type bootstrapConfig struct{}
 
 // Stack implements the stack.Stack interface.
 type Stack struct {
@@ -63,12 +59,7 @@ func (s *Stack) VerifyCredential(c *stack.Credential) error {
 }
 
 func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, error) {
-	cfg := &bootstrapConfig{
-		Username:  s.Req.Username,
-		PublicKey: s.Keys.PublicKey,
-	}
-
-	t, err := newBootstrapTemplate(cfg)
+	t, err := newBootstrapTemplate(&bootstrapConfig{})
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +179,7 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 		}
 
 		metadata["user-data"] = string(userdata)
-		instance["metadata"] = metadata
+		instance["metadata"] = addPublicKey(metadata, s.Req.Username, s.Keys.PublicKey)
 
 		// create independent kiteKey for each machine and create a Terraform
 		// lookup map, which is used in conjuctuon with the `count.index`
@@ -232,6 +223,27 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 
 func (s *Stack) BootstrapArg() *stack.BootstrapRequest {
 	return s.BaseStack.Arg.(*stack.BootstrapRequest)
+}
+
+// addPublicKey injects to user-publicKey ssh pair into instance metadata.
+func addPublicKey(metadata map[string]interface{}, user, publicKey string) map[string]interface{} {
+	key := "ssh-keys"
+	// Fall back to depricated sshKeys instance level value. It may be used by
+	// the user who creates instances that don't support newer ssh-keys format.
+	if _, ok := metadata["sshKeys"]; ok {
+		// User specified both fields. In that case we will use newer format.
+		if _, ok := metadata[key]; !ok {
+			key = "sshKeys"
+		}
+	}
+
+	sshKeyNew := user + ":" + publicKey
+	if sshKeyCpy, ok := metadata[key].(string); ok && sshKeyCpy != "" {
+		sshKeyNew = sshKeyNew + `\n` + sshKeyCpy
+	}
+
+	metadata[key] = sshKeyNew
+	return metadata
 }
 
 func mustAsset(s string) string {
