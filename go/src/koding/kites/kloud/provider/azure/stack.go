@@ -33,10 +33,10 @@ type BootstrapConfig struct {
 
 // Endpoint represents a single Azure's endpoint rule.
 type Endpoint struct {
-	Name        string `hcl:"name"`
-	Protocol    string `hcl:"protocol"`
-	PublicPort  int    `hcl:"public_port"`
-	PrivatePort int    `hcl:"private_port"`
+	Name        string `json:"name" hcl:"name"`
+	Protocol    string `json:"protocol" hcl:"protocol"`
+	PublicPort  int    `json:"public_port" hcl:"public_port"`
+	PrivatePort int    `json:"private_port" hcl:"private_port"`
 }
 
 var vmKlient = &Endpoint{
@@ -295,7 +295,7 @@ func (s *Stack) injectCloudInit(vm map[string]interface{}, name, kiteKeyName str
 		return nil, err
 	}
 
-	vm["user_data"] = string(userdata)
+	vm["custom_data"] = string(userdata)
 
 	// create independent kiteKey for each machine and create a Terraform
 	// lookup map, which is used in conjuctuon with the `count.index`
