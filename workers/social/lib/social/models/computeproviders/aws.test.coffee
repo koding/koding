@@ -3,13 +3,7 @@
   withConvertedUser
   checkBongoConnectivity } = require '../../../../testhelper'
 
-{ withConvertedUserAnd } = require \
-  '../../../../testhelper/models/computeproviders/computeproviderhelper'
-
-Aws      = require './aws'
-JGroup   = require '../group'
-JMachine = require '../computeproviders/machine'
-
+Aws = require './aws'
 
 # this function will be called once before running any test
 beforeTests = -> before (done) ->
@@ -93,65 +87,6 @@ runTests = -> describe 'workers.social.models.computeproviders.aws', ->
           expect(data.credential)           .to.be.equal options.credential
           expect(data.meta.image)           .to.be.equal options.image
           done()
-
-
-  describe '#update()', ->
-
-    it 'should fail to update machine when options is empty', (done) ->
-
-      withConvertedUser ({ client, account, user }) ->
-        client.r      = { account, user }
-        expectedError = 'A valid machineId and an update option required.'
-
-        options = {}
-        Aws.update client, options, (err) ->
-          expect(err?.message).to.be.equal expectedError
-          done()
-
-
-    it 'should be able to update machine when valid data provided', (done) ->
-
-      withConvertedUserAnd ['ComputeProvider'], (data) ->
-        { client, account, user, machine } = data
-        group = null
-
-        queue = [
-
-          (next) ->
-            JGroup.one { slug : client.context.group }, (err, group_) ->
-              expect(err).to.not.exist
-              group = group_
-              next()
-
-          (next) ->
-            client.r = { account, user, group }
-            options = { machineId : machine._id.toString(), alwaysOn : false }
-            Aws.update client, options, (err) ->
-              expect(err?.message).to.not.exist
-              next()
-
-          (next) ->
-            JMachine.one { _id : machine._id }, (err, machine_) ->
-              expect(err).to.not.exist
-              expect(machine_.meta.alwaysOn).to.be.falsy
-              next()
-
-          (next) ->
-            client.r = { account, user, group }
-            options = { machineId : machine._id.toString(), alwaysOn : true }
-            Aws.update client, options, (err) ->
-              expect(err?.message).to.not.exist
-              next()
-
-          (next) ->
-            JMachine.one { _id : machine._id }, (err, machine_) ->
-              expect(err).to.not.exist
-              expect(machine_.meta.alwaysOn).to.be.truthy
-              next()
-
-        ]
-
-        async.series queue, done
 
 
 beforeTests()
