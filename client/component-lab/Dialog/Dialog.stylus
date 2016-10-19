@@ -24,10 +24,23 @@
   width                     100%
   text-align                center
 
+.action
+  padding-bottom            5px
+
+  a
+    display                 block
+    padding-top             10px
+    padding-bottom          10px
+
+  &:last-child
+  &:last-child a
+    padding-bottom          0
+
 .message
   color                     $additional-6
 
 .action a
+.message a
   color                     $primary-6
   text-decoration           none
 
