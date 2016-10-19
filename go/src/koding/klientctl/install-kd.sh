@@ -2,7 +2,7 @@
 
 readonly releaseChannel="%RELEASE_CHANNEL%"
 
-readonly OSXFUSE_URL="https://s3.amazonaws.com/koding-dl/osxfuse-2.8.0.dmg"
+readonly OSXFUSE_URL="https://s3.amazonaws.com/koding-dl/osxfuse-3.5.2.dmg"
 readonly VIRTUALBOX_URL_LINUX="http://download.virtualbox.org/virtualbox/5.0.20/VirtualBox-5.0.20-106931-Linux_amd64.run"
 readonly VIRTUALBOX_URL_DARWIN="http://download.virtualbox.org/virtualbox/5.0.20/VirtualBox-5.0.20-106931-OSX.dmg"
 readonly VAGRANT_URL_LINUX="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb"
@@ -53,7 +53,7 @@ die() {
 }
 
 install_fuse_darwin() {
-  local fuseDir="/Library/Filesystems/osxfusefs.fs"
+  local fuseDir="/Library/Filesystems/osxfuse.fs"
   local fuseDmg=/tmp/osxfuse.dmg
 
   if [[ $PLATFORM == "linux" ]]; then
@@ -83,10 +83,10 @@ install_fuse_darwin() {
   sudo hdiutil attach $fuseDmg
 
   # run the osxfuse installer
-  sudo installer -pkg "/Volumes/FUSE for OS X/Install OSXFUSE 2.8.pkg" -target "/"
+  sudo installer -pkg "/Volumes/FUSE for macOS/Extras/FUSE for macOS 3.5.2.pkg" -target "/"
 
   # unmount dmg after it's finished
-  diskutil unmount force "/Volumes/FUSE for OS X"
+  diskutil unmount force "/Volumes/FUSE for macOS"
 
   rm -f "$fuseDmg"
 
