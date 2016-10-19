@@ -72,7 +72,7 @@ class AccountEditShortcutsRow extends kd.View
 
     description = new kd.View
       cssClass : COL_CLASS_NAME
-      partial  : _.trunc descriptionText, {
+      partial  : _.truncate descriptionText, {
         separator: DESCRIPTION_TRUNC_SEP,
         length: DESCRIPTION_TRUNC_LEN
       }

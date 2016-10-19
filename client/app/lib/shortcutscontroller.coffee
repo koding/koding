@@ -427,7 +427,7 @@ class ShortcutsController extends events.EventEmitter
     _
       .chain @getCollisions name
       .flatten()
-      .pluck 'name'
+      .map 'name'
       .value()
 
 
