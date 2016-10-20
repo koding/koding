@@ -61,10 +61,12 @@ pushd $REPO_PATH
 
 klient_build
 
-gzip -9 -N -f klient
-mv klient.gz "${PREFIX}.darwin_amd64.gz"
+if [[ -z "${KD_DEBUG:-}" ]]; then
+	gzip -9 -N -f klient
+	mv klient.gz "${PREFIX}.darwin_amd64.gz"
 
-[[ -z "${NO_LINUX:-}" ]] && docker run -t -v $PWD:/opt/koding koding/base:klient go/src/koding/klient/build.sh "$CHANNEL" "$VERSION"
+	docker run -t -v $PWD:/opt/koding koding/base:klient go/src/koding/klient/build.sh "$CHANNEL" "$VERSION"
+fi
 
 popd
 
