@@ -1,29 +1,9 @@
 ---
 ---
 
+@import "colors";
+
 {% assign path = site.url | append: '/assets/img/landing/store' %}
-
-$white: #FFFFFF;
-$alabaster: #F7F7F7;
-$porcelain: #F5F6F7;
-$gallery: #EBEBEB;
-$gallery2: #EFEFEF;
-$mercury: #E1E1E1;
-$alto: #DCDCDC;
-$alto2: #D2D2D2;
-$emperor: #515151;
-$dove-gray: #727272;
-$dusty-gray: #989898;
-$dusty-gray2: #A59999;
-$gray: #8D8D8D;
-
-$froly: #F2778A;
-
-$cornflower-blue: #67A2EE;
-$anakiwa: #A8CEFF;
-$shakespeare: #56A2D3;
-
-$waterloo: #7F7E9E;
 
 .u-icon {
   &.u-aws, &.u-windows, &.u-server {

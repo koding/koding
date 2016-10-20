@@ -1,26 +1,9 @@
 ---
 ---
 
+@import "colors";
+
 {% assign path = site.url | append: '/assets/img/landing/verticals' %}
-
-$white: #FFFFFF;
-$dusty-gray: #949494;
-$dusty-gray2: #989898;
-$dove-gray: #727272;
-$alto: #D8D8D8;
-$emperor: #515151;
-$shuttle-gray: #5A606F;
-
-$shakespeare: #56A2D3;
-$onahau: #D0EFFF;
-$froly: #F47689;
-$froly2: #F2778A;
-$ocean-green: #48BA7D;
-$boston-blue: #308AB2;
-$boston-blue2: #358BB0;
-$morning-glory: #9ECDDF;
-$blumine: #216081;
-$half-baked: #8ABFD6;
 
 .u-icon {
   &.u-kodingWith {
@@ -51,7 +34,7 @@ h3 {
 
 p {
   line-height: 37px;
-  color: $dusty-gray;
+  color: $dusty-gray3;
   font-size: 18px;
   padding-top: 33px;
 }
@@ -119,7 +102,7 @@ p {
   }
 
   a.Button {
-    background-color: $froly;
+    background-color: $froly2;
     color: $white;
     text-decoration: none;
     margin-top: 34px;
@@ -237,7 +220,7 @@ p {
       }
 
       .timeline {
-        color: $dusty-gray2;
+        color: $dusty-gray4;
         padding-top: 25px;
         padding-bottom: 38px;
 
@@ -256,14 +239,14 @@ p {
         }
 
         .timelineElement {
-          border-left: 1px solid $alto;
+          border-left: 1px solid $alto3;
           float: right;
           min-height: 88px;
           position: relative;
 
           &:before {
             content: "";
-            border: 1px solid $alto;
+            border: 1px solid $alto3;
             height: 7px;
             width: 7px;
             border-radius: 4px;
@@ -307,7 +290,7 @@ p {
       }
 
       .timeLength {
-        background-color: $froly2;
+        background-color: $froly;
       }
 
       .timeline {
@@ -316,12 +299,12 @@ p {
         .timelineElement.last {
 
           &:before {
-            border: 1px solid $froly2;
-            background-color: $froly2;
+            border: 1px solid $froly;
+            background-color: $froly;
           }
 
           .timeLabel {
-            color: $froly2;
+            color: $froly;
           }
         }
       }
@@ -407,7 +390,7 @@ p {
   a {
     display: inline-block;
     text-decoration: none;
-    background-color: $froly;
+    background-color: $froly2;
     color: $white;
     width: 228px;
     padding: 24px 0 20px;
