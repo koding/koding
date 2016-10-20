@@ -31,27 +31,6 @@ $blumine: #216081;
   }
 }
 
-@media only screen and (min--moz-device-pixel-ratio: 2),
-only screen and (-o-min-device-pixel-ratio: 2/1),
-only screen and (-webkit-min-device-pixel-ratio: 2),
-only screen and (min-device-pixel-ratio: 2) {
-
-  .u-icon {
-    &.u-kodingWith {
-      background-image: var(--icon-kodingWith-2);
-    }
-
-    &.u-kodingWithout {
-      background-image: var(--icon-kodingWithout-2);
-    }
-
-    &.u-playVideo {
-      background-image: var(--icon-playVideo-2);
-      background-size: 25%;
-    }
-  }
-}
-
 :root {
   --icon-kodingWith: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAsCAYAAAAehFoBAAAAAXNSR0IArs4c6QAAAx5JREFUWAnVmUFv2jAYhmNALBoFDVatUsuoqqqtaC89jesuk+ju/Q077S/0n+wXVNp1lTjv0NNOLWLVpAk4NGq7Cli1ianL3jcLVlIgaUIMySd9xHHsz08c2zFvhDaDmaYpUL0M34IX4XmHI6kNHH6L9AW8K4QwcQxlbDCwAXQTlXbhO/ClgAF+onwLfg7wbwHraoGAAfoSDbyBV4I2NKV8G/kNgHemXB/LfhQwQEuoSdDqWIRoMpoIQ/AffuF8ge3Hf4hAul+wGa//Rv1jv2HiCQzYGoLU4Z7lZgR1VudkPAH0qTPTmZ4KAtgDFCTwIuwU0J8mNZyalGn37KJgiVSzGcbwxoBRkEsWh8GirW6zuDhcwCjA1YATbOpQcdVWe0KGQ5tJtuQCRi6XLtWrgWz8EQmykEmaBMad8KWgap2VDYZIVG02q6oExpnrTkIEVllFslnAuANOtKhetyrAKzajNurhPRWtRByTmy0tBXLOxu2Ig6sIt0NW9jD3s0G3iCqA/GKSsUzgLb+SMbq+le6/XXt31mu/uvrVy+qZ7PBZNvcnRoAPUfqZZr9Ta/Y6rxvaF+uins7eLesFY/Vp6XI9t2LsFivGfmnjSk9l/z6svYDzvDhoHLUwmD0nXUqIe/T89YpeNMpLy8ZmYfVyv7hhrOde3M0Z+kbUG0cDzTRDTTo9/QRPIz/PpzEUH79//mBqZmT7h3Q6c18tlK+3C2t9Bb0/FBgO7xH4uYLgKkLecFmjdpAUGyQSmIpMUuyWPUz5KCl2QeAunPJR3I2MXbwTLGGOWlfcrUVW9jDt/P8h1r8WowUMcqqI7Rjjtm1G+Y+DrI0YA0u20ZDQcAeUPJsxhG7abBaaBLZBeSdUEeNiZJG9SygXMO6E+uwxPLSkz6ARGRkov7o0YxcwG0IBTsATphdslF3J4rIxYF5FQeqzUzVaVwQ1J5RbJ7bvKfph60nJlUqmZ7kImcML2iMIQFMVSsYnAwd0cj7KjKB5RG9T4aQwF5UO10as6D97IajL7GFCPY7/toP+geWu6yv8bNIqgHxPm2kyAZz15/rp9h9tJuyq7CLFJgAAAABJRU5ErkJggg==');
   --icon-kodingWith-2: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAAXNSR0IArs4c6QAABu5JREFUeAHtnU1v1EYYx9eb7SYhCU2y20RB5I20qlqaBqQKiaKKBi5BHCIO3Ln1I3Cin6X3HBAHVFQKCKkRErQSL6raikNWCaqydJNUSkNe2sT9/zezjr3e9fpl1uu155GejO0dP575+cl4xh4/1lIREV3X0yhKDpo3pYNY7oJmoZ0iRZLag+6KdAfpOrQEXaukmqYdYLnlorWyBIA6hONPCp1ASpgyhNAL0CUqYL9F2hIJHTCg0itnoJ9DB0Kq9QaO8xL6ArDp7aFJKIDFv/80avUFdDS02tU+0Ao2/wx9FUYz0lTAAJtBRc5AL0DD8lYcypXQqxehzwH6P1d7+MjUNMCAS7CXoX0+yhXmLps42ANAft6Mg0oHDLDDKOhV6FgzCtxEm8uwfRegizKPIQ0wwHagYJeg56HscrWjsGv3BPoQoPdlVEAKYMBl+3odekJGoSJg40+UYQGQ2U4HksCAAfcTlGAeKqsPG6hCEndmX/oOIP8WxGYgwIB7EQefDVKANtj3ESA/9ltOX4ABlm3sHPSc3wO32X5PUd57AO15+O0ZMOCyb3sNerrNIAUt7q8wcBuQPfWZPV3thecmES5PDh3qmmDAdVfiCTAssllImueaQbLuZOBaXAPGmeMFLSltrhPAc4KFUx7jN1eAYZBdsbj3FgwoLhZmBZOGWRsChiEOItjPVWIlMC/YWLdWrTkChgEOfzlCi9sgogqDr1UyuS4Y1TXgCBh7XYLGZfhbF0KAH8iGjOpKXcA4M7wrxhs3SpwJnBesauaqCxi5r0Kdfq9pMIEbyYisakpNgDgjvFnebvdza1YwpI1jgpntcDbAyMihMJ9EKPFG4LJgZ9nLBhi/0nuj/pjHUomIrJAZ2VnEAhhngOt8QKnEH4ELgqGxtwUwtvLROgcWSvwRIDsyNKQaMOctKAlGwMLQAAzX5oybVk8KCVa1aOw9KliWS2MAxtpMNMoXi1IYLM2AOVdMiRwCBssyYLg0h8Xq4iYHLq0MCKbGUHhCnm1lSRAoM600EZMKi3QCZaZpuDIhl2lLP0SyDU6QLeFy2r66oS7fGcg01zF+48vpd3v/fpXvPr79ntahyz9Ooi0uZRZeL36tp376Jq2lD/qzPaWh7veLJ3vyq1O9J4pnc6eK4z1D/yQaUbDK5zIpLfVxCn57oB+k13c3h6i///1m+sfU4Xzkro7su3zX8dWR7oHieN9w8dP+0dWZwanSsXRWyvTOYOWP/N75DNh+6FTMnf29Y2+2Sqeoz0qvy1mVtzsRs/w2qF25f+ulrlvvAFmyeFg58vYcvP0D5e2p1NuMrmu4USzn2mb19j/Kp6ba2z9C2z6TnLY9q83dv1UCX3bVQhV4+xba9uJI95G3nx2c+qsrnfU8RTTUgns72LZ25Ydvd/WUzldVWy6Gt3f1r57szRVj4O372s1fvuNLH3zQGVnpzXRuTfWNFD/rnyieHhhdTxu3UCJb5ErB9jUM525irbuyRaVSCWxzqMy31pU0h8AuATM0gJLmENgjYL6upKQ5BHYIONTX+5tTj8haxQX5MFJIZEvY5gUrEfBam1ciysVfUx7c3NNjeLC60MkHTaZrafF6aEG+/cRbLJAtmwjK0mGi/kokUGZaAVyQaFiZOiRwBBiuzDAqG4qMNAIbYFqO1VbxYFpmXDElcggYLM2AX8ixrayAgMHSAAyX5pB5ReEJTGBFsCwbMgALs4yIpyQYAQvDasCvYFtd7PwDJjsyNMQCGK7NB44MN6jEH4FFwdDY2wJYbOWUnk0jh1pwS4DMDqdDmfawAcYZYNCfB6Y8atEdAca/tAVMsgGmLWTkmVh2Z1flIivBzAajJmCR6y7SOE0CsVVe0gYyIquaUhcwzgiHz5wzocSZwBPBqmauuoBF7odIGShTSW0CZENGdcURMM4M5wAvQNUNeTtCMmGEVsd50o6AaRMG2Hm+w2UlFgKMzNpwUNYQME3CEEO8PrKYT/YKI7KSSUNxBZhWYPAxkmcNLcY/w1PBwlVNXQMW1r5HyiikSRXW/Z6XynsCjDPHPt9taBIhs84Mb0sGrkVzndOUUbwdOodNSQkWGl6AZhPnFEBfxPqseVsMl8MPMW6GCMiMzDoPjdvruOzntjZIfgU0IDPWxHVoXOJcRuczDybIfM+DzYX6UEkFClJfFznT/rZFePMwNjKW45jtx2hvWEbxovupnWp2AH0G2xiiES86Rlr4JKJ9PhZlRgnIbDYIWn3uzAxG9jJAc0DDiHjqg32y4VbbA2wGwJuBMvQVex9hCO96cTpTPD85WY8gYPOCOAGdFKmsvjT7sAUoZzgWMLzl05mWiPRehN9aiGYkh/3z0EpKbyd0vkvdKVIk7fPZ3/8B/9XjePWcn2MAAAAASUVORK5CYII=');
@@ -84,7 +63,7 @@ p {
   padding-top: 196px;
 
   &:before {
-    opacity: 0.6;
+    opacity: 0.5;
     content: "";
     position: absolute;
     top: 0;
@@ -96,15 +75,29 @@ p {
       url({{path}}/hero-backgroundR.png);
     background-repeat: no-repeat, no-repeat;
     background-position: bottom left, bottom right;
-    background-size: 70%, 70%;
+    background-size: 45%, 50%;
   }
 
   &.Training-hero {
     background-image: linear-gradient(#515151,#5A606F);
+
+    h2 {
+      color: #8ABFD6;
+    }
+
+    .imgContainer {
+      background-image: url({{path}}/training_success.png);
+      height: 488px;
+      width: 675px;
+    }
   }
 
   &.Trial-hero {
     background-image: linear-gradient(#358BB0,#9ECDDF);
+
+    .imgContainer {
+      background-image: url({{path}}/trial-hero.png);
+    }
   }
 
   h1 {
@@ -138,9 +131,9 @@ p {
     margin: 88px auto -485px;
     position: relative;
     cursor:pointer;
-    background: url({{path}}/trial-hero.png);
     width: 604px;
     height: 398px;
+    background-repeat: no-repeat;
   }
 
   .u-playVideo {
@@ -362,8 +355,21 @@ p {
 .Section-3 {
   padding-top: 240px;
 
-  img {
-    float: left
+  .imgContainer {
+    float: left;
+    background-repeat: no-repeat;
+  }
+
+  &.Trial-section3 .imgContainer {
+    background-image: url({{ path }}/software-trials.png);
+    height: 395px;
+    width: 605px;
+  }
+
+  &.Training-section3 .imgContainer {
+    background-image: url({{ path }}/training_invites.png);
+    height: 429px;
+    width: 588px;
   }
 
   .Caption {
@@ -475,8 +481,17 @@ p {
   .Section-3 {
     padding-top: 20px;
 
-    img {
+    &.Trial-section3 .imgContainer, &.Training-section3 .imgContainer {
       width: 533px;
+      background-size: 533px;
+    }
+
+    &.Trial-section3 .imgContainer {
+      height: 343px;
+    }
+
+    &.Training-section3 .imgContainer {
+      height: 390px;
     }
 
     .Caption {
@@ -515,6 +530,12 @@ p {
 
     a.Button {
       margin-top: 50px;
+    }
+
+    &.Training-hero .imgContainer {
+      width: 419px;
+      height: 303px;
+      background-size: 419px 303px;
     }
 
     .imgContainer {
@@ -570,8 +591,17 @@ p {
   .Section-3 {
     padding-top: 45px;
 
-    img {
+    &.Trial-section3 .imgContainer, &.Training-section3 .imgContainer {
       width: 402px;
+      background-size: 402px;
+    }
+
+    &.Trial-section3 .imgContainer {
+      height: 260px;
+    }
+
+    &.Training-section3 .imgContainer {
+      height: 300px;
     }
 
     .Caption {
@@ -623,6 +653,10 @@ p {
   .Hero {
     padding-top: 82px;
 
+    &:before {
+      opacity: 0;
+    }
+
     h1 {
       line-height: 37px;
       width: 300px;
@@ -638,6 +672,14 @@ p {
 
     a.Button {
       margin-top: 41px;
+    }
+
+    &.Training-hero {
+      .imgContainer {
+        height: 241px;
+        width: 332px;
+        background-size: 332px 241px;
+      }
     }
 
     .imgContainer {
@@ -695,9 +737,19 @@ p {
   .Section-3 {
     padding-top: 64px;
 
-    img {
+    &.Trial-section3 .imgContainer, &.Training-section3 .imgContainer {
       width: 337px;
+      background-size: 337px;
       float: none;
+      margin-left: -6px;
+    }
+
+    &.Trial-section3 .imgContainer {
+      height: 218px;
+    }
+
+    &.Training-section3 .imgContainer {
+      height: 248px;
     }
   }
 
@@ -713,4 +765,60 @@ p {
       width: 290px;
     }
   }
+}
+
+
+@media only screen and (min--moz-device-pixel-ratio: 2),
+only screen and (-o-min-device-pixel-ratio: 2/1),
+only screen and (-webkit-min-device-pixel-ratio: 2),
+only screen and (min-device-pixel-ratio: 2) {
+
+  .u-icon {
+    &.u-kodingWith {
+      background-image: var(--icon-kodingWith-2);
+    }
+
+    &.u-kodingWithout {
+      background-image: var(--icon-kodingWithout-2);
+    }
+
+    &.u-playVideo {
+      background-image: var(--icon-playVideo-2);
+      background-size: 25%;
+    }
+  }
+
+  .Hero {
+    &:before {
+      background-image:
+        url({{path}}/hero-backgroundL@2x.png),
+        url({{path}}/hero-backgroundR@2x.png)
+    }
+
+    &.Training-hero .imgContainer {
+      background-image: url({{path}}/training_success@2x.png);
+    }
+
+    &.Trial-hero .imgContainer {
+      background-image: url({{path}}/trial-hero@2x.png);
+    }
+  }
+
+  .Section-3 {
+    &.Trial-section3 .imgContainer {
+      background-image: url({{path}}/software-trials@2x.png);
+    }
+
+    &.Training-section3 .imgContainer {
+      background-image: url({{path}}/training_invites@2x.png);
+    }
+  }
+  //training-hero
+
+  //training-middle
+
+  //trial-hero
+
+  //trial-middle
+
 }
