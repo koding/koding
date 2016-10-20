@@ -1,6 +1,7 @@
 (function() {
 
-	var showModal = document.querySelectorAll('.showModal');
+	var showModal = document.querySelectorAll('.showModal'),
+      youtube   = document.getElementsByTagName("iframe")[0];
 
 	var initialize = function() {
     [].forEach.call(showModal, function(el) {
@@ -13,13 +14,18 @@
 
         overlay.classList.add('isShown');
         modal.classList.add('isShown');
-        toggleVideo('show');
+
+        if (youtube) {
+          toggleVideo(youtube, 'show');
+        }
 
         [].forEach.call([close, overlay], function(el) {
           el.addEventListener('click', function(e) {
             overlay.classList.remove('isShown');
             modal.classList.remove('isShown');
-            toggleVideo('hide');
+            if (youtube) {
+              toggleVideo(youtube, 'hide');
+            }
           })
         });
       });
@@ -27,8 +33,8 @@
 	}
   initialize();
 
-  var toggleVideo = function(state) {
-    var iframe = document.getElementsByTagName("iframe")[0].contentWindow;
+  var toggleVideo = function(youtube, state) {
+    var iframe = youtube.contentWindow;
     var func = state == 'hide' ? 'pauseVideo' : 'playVideo';
     iframe.postMessage('{"event":"command","func":"' + func + '","args":""}', '*');
   }
