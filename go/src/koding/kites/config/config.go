@@ -22,13 +22,14 @@ func init() {
 	}
 
 	d := &multiconfig.DefaultLoader{
-		Loader: multiconfig.MultiLoader(loaders...),
+		Loader:    multiconfig.MultiLoader(loaders...),
+		Validator: &multiconfig.RequiredValidator{},
 	}
 
 	Builtin = &Config{}
-	if err := d.Load(Builtin); err != nil {
-		panic(err)
-	}
+
+	d.MustLoad(Builtin)
+	d.MustValidate(Builtin)
 
 	// set global compile time environment.
 	environment = Builtin.Environment
@@ -51,13 +52,13 @@ type Config struct {
 		PublicLogs Bucket `json:"publicLogs" required:"true"`
 	} `json:"buckets" required:"true"`
 	Endpoints struct {
-		IP           Endpoint `json:"ip" required:"true"`
-		IPCheck      Endpoint `json:"ipCheck" required:"true"`
-		KDLatest     Endpoint `json:"kdLatest" required:"true"`
-		KlientLatest Endpoint `json:"klientLatest" required:"true"`
-		Kloud        Endpoint `json:"kloud" required:"true"`
-		Kontrol      Endpoint `json:"kontrol" required:"true"`
-		TunnelServer Endpoint `json:"tunnelServer" required:"true"`
+		IP           string `json:"ip" required:"true"`
+		IPCheck      string `json:"ipCheck" required:"true"`
+		KDLatest     string `json:"kdLatest" required:"true"`
+		KlientLatest string `json:"klientLatest" required:"true"`
+		Kloud        string `json:"kloud" required:"true"`
+		Kontrol      string `json:"kontrol" required:"true"`
+		TunnelServer string `json:"tunnelServer" required:"true"`
 	}
 	Routes map[string]string `json:"routes"`
 }
@@ -69,28 +70,12 @@ type Bucket struct {
 	Region string `json:"region" required:"true"`
 }
 
-// Get should be used in case when caller environment may be different than
-// build in one. This function should be removed when service environments are
-// unified/cleaned.
-func (b *Bucket) Get(env string) *Bucket {
+// ReplaceEnv should be used in case when caller environment is different than
+// the build in one. This function should be removed when service environments
+// are unified/cleaned.
+func ReplaceEnv(variable, env string) string {
 	// This is a workaround when caller's env doesn't match build in one.
-	env = RmAlias(env)
-	return &Bucket{
-		Name:   strings.Replace(b.Name, environment, env, -1),
-		Region: b.Region,
-	}
-}
-
-// Endpoint represents a URL to requested resource.
-type Endpoint string
-
-// Get should be used in case when caller environment may be different than
-// build in one. This function should be removed when service environments are
-// unified/cleaned.
-func (e Endpoint) Get(env string) Endpoint {
-	// This is a workaround when caller's env doesn't match build in one.
-	env = RmAlias(env)
-	return Endpoint(strings.Replace(string(e), environment, env, -1))
+	return strings.Replace(variable, environment, RmAlias(env), -1)
 }
 
 var defaultAliases = aliases{

@@ -63,7 +63,7 @@ func (opts *ServerOptions) registerURL() string {
 		return opts.RegisterURL
 	}
 
-	return string(konfig.Builtin.Endpoints.TunnelServer)
+	return konfig.Builtin.Endpoints.TunnelServer
 }
 
 func (opts *ServerOptions) kontrolURL() string {
@@ -71,7 +71,7 @@ func (opts *ServerOptions) kontrolURL() string {
 		return opts.KontrolURL
 	}
 
-	return string(konfig.Builtin.Endpoints.Kontrol)
+	return konfig.Builtin.Endpoints.Kontrol
 }
 
 // Server represents tunneling server that handles managing authorization
