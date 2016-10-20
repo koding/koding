@@ -28,18 +28,23 @@ module.exports = class ProviderSelectionView extends JView
 
     supportedProviders.forEach (provider) =>
 
-      _provider  = providers[provider]
-      extraClass = 'coming-soon'
+      _provider = providers[provider]
 
-      if _provider.enabled
-        extraClass = if _provider.enabled is 'beta'
-        then 'beta'
-        else ''
+      if not _provider.enabled
+        extraClass = 'coming-soon'
+        stateLabel = 'Coming soon'
+      else if _provider.enabled is 'beta'
+        extraClass = 'beta'
+        stateLabel = 'BETA'
+      else
+        extraClass = ''
+        stateLabel = ''
 
       @providers.addSubView providerView = new kd.CustomHTMLView
-        cssClass : "provider box #{provider} #{extraClass}"
-        provider : provider
-        click    : =>
+        cssClass   : "provider box #{provider} #{extraClass}"
+        provider   : provider
+        attributes : { 'data-before-content': stateLabel }
+        click      : =>
           return  if extraClass is 'coming-soon'
 
           Tracker.track Tracker["STACKS_WIZARD_SELECTED_#{provider.toUpperCase()}"]
