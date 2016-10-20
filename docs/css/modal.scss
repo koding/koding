@@ -1,6 +1,9 @@
 ---
 ---
 
+$alabaster: #F7F7F7;
+$shakespeare: #56A2D3;
+
 .u-icon {
   &.u-modalClose {
     background-image: var(--icon-modalClose);
@@ -30,7 +33,7 @@
 }
 
 .Modal {
-  background-color: #F7F7F7;
+  background-color: $alabaster;
   height: 480px;
   width: 533px;
   margin: 5vh auto 0;
@@ -53,7 +56,7 @@
 
   a {
     text-decoration: none;
-    color: #56A2D3;
+    color: $shakespeare;
   }
 }
 
