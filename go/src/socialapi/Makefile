@@ -50,7 +50,7 @@ all: testapi
 
 develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev \
 	notificationdev pinnedpostdev algoliaconnectordev \
-	emaildev sitemapdev collaborationdev mailsenderdev topicmoderationdev \
+ 	sitemapdev collaborationdev mailsenderdev topicmoderationdev \
 	teamdev eventsenderdev integrationdev
 minimal: apidev topicfeeddev realtimedev pinnedpostdev
 default: configure
@@ -82,26 +82,6 @@ algoliaconnectordev:
 notificationdev:
 	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/notification -watch socialapi/workers/notification -c $(CONFIG) $(DBG) $(EXTRAS)
-
-emaildev: activityemaildev dailyemaildev privatemessageemaildev
-
-activityemaildev:
-	@echo "$(OK_COLOR)==> Running Email Notifier Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/activityemail -watch socialapi/workers/email/activityemail -c $(CONFIG) $(DBG) $(EXTRAS)
-
-dailyemaildev:
-	@echo "$(OK_COLOR)==> Running Daily Email Notifier Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/dailyemail -watch socialapi/workers/email/dailyemail -c $(CONFIG) $(DBG) $(EXTRAS)
-
-privatemessageemaildev: privatemessageemailfeederdev privatemessageemailsenderdev
-
-privatemessageemailfeederdev:
-	@echo "$(OK_COLOR)==> Running Private Message Email Feeder Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/privatemessageemailfeeder -watch socialapi/workers/email/privatemessageemail/privatemessageemailfeeder -c $(CONFIG) $(DBG) $(EXTRAS)
-
-privatemessageemailsenderdev:
-	@echo "$(OK_COLOR)==> Running Private Message Email Sender Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/privatemessageemailsender -watch socialapi/workers/email/privatemessageemail/privatemessageemailsender -c $(CONFIG) $(DBG) $(EXTRAS)
 
 popularpostdev:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
@@ -304,32 +284,7 @@ testmailsender:
 	@./emailsender.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm  ./emailsender.test
 
-testmail:
-	@echo "$(OK_COLOR)--> mail tests... $(NO_COLOR)"
-	@`which go` test -c workers/email/mailparse/models/*.go
-	@./models.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./models.test
-
-	@echo "$(OK_COLOR)--> mail integration tests... $(NO_COLOR)"
-	@`which go` test -c workers/email/mailparse/tests/*.go
-	@./tests.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./tests.test
-
 testemailworker:
-	# @echo "$(OK_COLOR)--> activity email tests.. $(NO_COLOR)"
-	# @`which go` test -c workers/email/activityemail/*.go
-	# @./activityemail.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	# @rm ./activityemail.test
-
-	@echo "$(OK_COLOR)--> notification email tests... $(NO_COLOR)"
-	@`which go` test -c workers/email/privatemessageemail/privatemessageemailfeeder/*.go
-	@./feeder.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./feeder.test
-
-	@`which go` test -c workers/email/privatemessageemail/privatemessageemailsender/*.go
-	@./sender.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./sender.test
-
 	@`which go` test -c workers/email/emailmodels/*.go
 	@./emailmodels.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm ./emailmodels.test

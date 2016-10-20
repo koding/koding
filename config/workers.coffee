@@ -219,13 +219,6 @@ module.exports = (KONFIG, options, credentials) ->
 
         ]
 
-    dailyemailnotifier  :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/dailyemail"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/dailyemail -watch socialapi/workers/email/dailyemail"
-
     algoliaconnector    :
       group             : "socialapi"
       supervisord       :
@@ -282,33 +275,12 @@ module.exports = (KONFIG, options, credentials) ->
           run           : "#{GOBIN}/sitemapgenerator"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/sitemapgenerator -watch socialapi/workers/sitemapgenerator"
 
-    activityemail       :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/activityemail"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/activityemail -watch socialapi/workers/email/activityemail"
-
     topicfeed           :
       group             : "socialapi"
       supervisord       :
         command         :
           run           : "#{GOBIN}/topicfeed"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/topicfeed -watch socialapi/workers/topicfeed"
-
-    privatemessageemailfeeder:
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/privatemessageemailfeeder"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/privatemessageemailfeeder -watch socialapi/workers/email/privatemessageemailfeeder"
-
-    privatemessageemailsender:
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/privatemessageemailsender"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/privatemessageemailsender -watch socialapi/workers/email/privatemessageemailsender"
 
     topicmoderation     :
       group             : "socialapi"
