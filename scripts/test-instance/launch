@@ -135,5 +135,5 @@ exit = ->
 printInstanceInfo = ->
 
   RunningInstances.forEach (Instance) ->
-    {InstanceId, PublicIpAddress} = Instance
-    console.log InstanceId, PublicIpAddress
+    {InstanceId, PublicIpAddress, PublicDnsName} = Instance
+    console.log InstanceId, PublicIpAddress, PublicDnsName
