@@ -2,7 +2,7 @@ kd = require 'kd'
 { PropTypes, Component } = React = require 'react'
 { Grid, Row, Col } = require 'react-flexbox-grid'
 moment = require 'moment'
-
+formatNumber = require 'app/util/formatNumber'
 dateDiffInDays = require 'app/util/dateDiffInDays'
 
 Box = require 'lab/Box'
@@ -31,7 +31,7 @@ module.exports = class SubscriptionHeader extends Component
 
     <Col xs={4} className={textStyles.right}>
       <Label size="small" type="info">Free Credit: </Label>
-      <Label size="small" type="success">${freeCredit}</Label>
+      <Label size="small" type="success">${formatNumber freeCredit, 2}</Label>
     </Col>
 
 
@@ -67,7 +67,7 @@ module.exports = class SubscriptionHeader extends Component
 
     <Col xs={4} className={textStyles.right}>
       <Label size="small" type="info">
-        Next Bill Amount: <strong>${nextBillingAmount or 0}</strong>
+        Next Bill Amount: <strong>${formatNumber(nextBillingAmount, 2) or 0}</strong>
       </Label>
     </Col>
 
