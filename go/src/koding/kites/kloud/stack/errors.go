@@ -7,6 +7,19 @@ import (
 	"github.com/koding/kite"
 )
 
+// Error is used to differentiate expected stack errors
+// from the unexpected ones. If kloud kite method handler
+// return non-nil error of *stack.Error type, the error
+// is going to be logged.
+type Error struct {
+	Err error
+}
+
+// Error implements the builtin error interface.
+func (e *Error) Error() string {
+	return e.Err.Error()
+}
+
 type EventerError struct {
 	Msg string
 }

@@ -49,13 +49,21 @@ func (s *Stack) VerifyCredential(c *stack.Credential) error {
 
 	computeService, err := cred.ComputeService()
 	if err != nil {
-		return err
+		return &stack.Error{
+			Err: err,
+		}
 	}
 
 	// Try to get project info. If there is no error, project name and JSON key
 	// are valid.
 	_, err = compute.NewProjectsService(computeService).Get(cred.Project).Do()
-	return err
+	if err != nil {
+		return &stack.Error{
+			Err: err,
+		}
+	}
+
+	return nil
 }
 
 func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, error) {
