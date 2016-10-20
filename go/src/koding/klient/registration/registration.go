@@ -46,6 +46,14 @@ func Register(kontrolURL, kiteHome, username, token string, debug bool) error {
 		k.SetLogLevel(kite.DEBUG)
 	}
 
+	if kiteHome == "" {
+		kiteHome = konfig.Konfig.KiteHome()
+	}
+
+	if kontrolURL == "" {
+		kontrolURL = konfig.Konfig.KontrolURL
+	}
+
 	// Production Koding servers are only working over HTTP
 	k.Config.Transport = config.XHRPolling
 
@@ -63,7 +71,7 @@ func Register(kontrolURL, kiteHome, username, token string, debug bool) error {
 	}
 
 	kontrol := k.NewClient(kontrolURL)
-	if err := kontrol.Dial(); err != nil {
+	if err := kontrol.DialTimeout(30 * time.Second); err != nil {
 		return err
 	}
 	defer kontrol.Close()
