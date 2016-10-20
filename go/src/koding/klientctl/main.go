@@ -59,7 +59,7 @@ func main() {
 	// always set to a number of available cores.
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	debug = debug || config.Konfig.IsDebug()
+	debug = debug || config.Konfig.Debug
 
 	// The writer used for the logging output. Either a file, or /dev/null
 	var logWriter io.Writer

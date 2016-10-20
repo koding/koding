@@ -91,7 +91,7 @@ func realMain() int {
 		return 0
 	}
 
-	debug := *flagDebug || konfig.Konfig.IsDebug()
+	debug := *flagDebug || konfig.Konfig.Debug
 
 	if *flagRegister {
 		if err := registration.Register(*flagKontrolURL, *flagKiteHome, *flagUsername, *flagToken, debug); err != nil {

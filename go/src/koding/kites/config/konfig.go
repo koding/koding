@@ -41,7 +41,7 @@ type Konfig struct {
 	PublicBucketName   string `json:"publicBucketName,omitempty"`
 	PublicBucketRegion string `json:"publicBucketRegion,omitempty"`
 
-	Debug int `json:"debug,omitempty"`
+	Debug bool `json:"debug,omitempty"`
 }
 
 func (k *Konfig) KiteHome() string {
@@ -52,10 +52,6 @@ func (k *Konfig) KiteConfig() *konfig.Config {
 	cfg := k.buildKiteConfig()
 	cfg.KontrolURL = k.KontrolURL
 	return cfg
-}
-
-func (k *Konfig) IsDebug() bool {
-	return k.Debug > 0
 }
 
 func (k *Konfig) buildKiteConfig() *konfig.Config {
@@ -125,7 +121,7 @@ func NewKonfig(e *Environments) *Konfig {
 		KDLatestURL:        Builtin.Endpoints.URL("kd-latest", e.kdEnv()),
 		PublicBucketName:   Builtin.Buckets.ByEnv("publiclogs", e.klientEnv()).Name,
 		PublicBucketRegion: Builtin.Buckets.ByEnv("publiclogs", e.klientEnv()).Region,
-		Debug:              -1,
+		Debug:              false,
 	}
 }
 
