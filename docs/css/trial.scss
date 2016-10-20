@@ -8,6 +8,8 @@ $dusty-gray: #949494;
 $dusty-gray2: #989898;
 $dove-gray: #727272;
 $alto: #D8D8D8;
+$emperor: #515151;
+$shuttle-gray: #5A606F;
 
 $shakespeare: #56A2D3;
 $onahau: #D0EFFF;
@@ -15,7 +17,10 @@ $froly: #F47689;
 $froly2: #F2778A;
 $ocean-green: #48BA7D;
 $boston-blue: #308AB2;
+$boston-blue2: #358BB0;
+$morning-glory: #9ECDDF;
 $blumine: #216081;
+$half-baked: #8ABFD6;
 
 .u-icon {
   &.u-kodingWith {
@@ -79,10 +84,10 @@ p {
   }
 
   &.Training-hero {
-    background-image: linear-gradient(#515151,#5A606F);
+    background-image: linear-gradient($emperor,$shuttle-gray);
 
     h2 {
-      color: #8ABFD6;
+      color: $half-baked;
     }
 
     .imgContainer {
@@ -93,7 +98,7 @@ p {
   }
 
   &.Trial-hero {
-    background-image: linear-gradient(#358BB0,#9ECDDF);
+    background-image: linear-gradient($boston-blue2,$morning-glory);
 
     .imgContainer {
       background-image: url({{path}}/trial-hero.png);
@@ -443,7 +448,7 @@ p {
     }
 
     h2 {
-      color: #216081;
+      color: $blumine;
       padding-top: 16px;
       font-size: 25px;
     }
@@ -813,12 +818,5 @@ only screen and (min-device-pixel-ratio: 2) {
       background-image: url({{path}}/training_invites@2x.png);
     }
   }
-  //training-hero
-
-  //training-middle
-
-  //trial-hero
-
-  //trial-middle
 
 }
