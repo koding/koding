@@ -19,7 +19,14 @@ import (
 )
 
 // Slice is a workaround for hcl.DecodeObject,
-// which always appends
+// which always appends to existing slices,
+// thus making the output of DecodeObject
+// non-idempotent, as it always doubles
+// any slices values.
+//
+// Wrapping a slice value with ToSlice
+// prevents from doubling the items
+// on hcl.DecodeObject.
 type Slice map[string]interface{}
 
 var (
