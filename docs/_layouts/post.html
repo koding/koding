@@ -5,13 +5,14 @@
 <!--[if gt IE 8]><!-->
 <html class="no-js">
 <!--<![endif]-->
-
-{% include head.html %}
-<link rel="stylesheet" href="{{ site.url }}/css/markdown.css">
-<link rel="stylesheet" href="{{ site.url }}/css/syntax.css">
-<style>{% include css/blog-post.css %}</style>
-<style>{% include css/blog-listitem.css %}</style>
-<style>{% include css/blog-author.css %}</style>
+<head>
+  {% include head.html %}
+  <link rel="stylesheet" href="{{ site.url }}/css/markdown.css">
+  <link rel="stylesheet" href="{{ site.url }}/css/syntax.css">
+  <style>{% include css/blog-post.css %}</style>
+  <style>{% include css/blog-listitem.css %}</style>
+  <style>{% include css/blog-author.css %}</style>
+</head>
 
 <body>
   <!--[if lt IE 8]>
