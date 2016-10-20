@@ -8,11 +8,11 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/Azure/azure-sdk-for-go/management"
-
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
 	"koding/kites/kloud/userdata"
+
+	"github.com/Azure/azure-sdk-for-go/management"
 )
 
 //go:generate $GOPATH/bin/go-bindata -mode 420 -modtime 1470666525 -pkg azure -o bootstrap.json.tmpl.go bootstrap.json.tmpl
@@ -234,7 +234,11 @@ func (s *Stack) injectBoostrap(vm map[string]interface{}, cred *Cred, boot *Boot
 func (s *Stack) injectEndpointRules(vm map[string]interface{}) {
 	endpoints, ok := vm["endpoint"].([]interface{})
 	if !ok {
-		endpoints = make([]interface{}, 0, 2)
+		if e, ok := vm["endpoint"].([]map[string]interface{}); ok {
+			for _, e := range e {
+				endpoints = append(endpoints, e)
+			}
+		}
 	}
 
 	// Ensure klient port is exposed.
@@ -250,7 +254,7 @@ func (s *Stack) injectEndpointRules(vm map[string]interface{}) {
 		endpoints = append(endpoints, vmSSH)
 	}
 
-	vm["endpoint"] = endpoints
+	vm["endpoint"] = provider.ToSlice(endpoints)
 }
 
 func (s *Stack) injectCloudInit(vm map[string]interface{}, name, kiteKeyName string) (map[string]string, error) {

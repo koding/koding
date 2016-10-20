@@ -331,7 +331,17 @@ func equal(got, want string) error {
 	stripNondeterministicResources(v2)
 
 	if !reflect.DeepEqual(v1, v2) {
-		return fmt.Errorf("got %#v != want %#v", v1, v2)
+		p1, err := json.MarshalIndent(v1, "", "\t")
+		if err != nil {
+			panic(err)
+		}
+
+		p2, err := json.MarshalIndent(v2, "", "\t")
+		if err != nil {
+			panic(err)
+		}
+
+		return fmt.Errorf("got:\n%s\nwant:\n%s\n", p1, p2)
 	}
 
 	return nil
