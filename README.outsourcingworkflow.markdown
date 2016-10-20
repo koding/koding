@@ -10,7 +10,7 @@
     - Developer fixes comments and issue gets merged
 - Developer gets paid.
 
-![](https://ibin.co/2z6SPoS1vSXN.png)
+![](https://ibin.co/2zANiJc8OmVB.png)
 
 
 ## Issue Deadline and Pull Request Guidelines
