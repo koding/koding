@@ -159,7 +159,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
 
       { target } = event
 
-      if target?.classList?.contains 'permission'
+      if target?.classList.contains 'permission'
         return computeController.fixMachinePermissions @machine
 
       @getStackTemplate (err, template) ->
@@ -167,7 +167,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
         stackInfoProcess = no
         return  unless template
 
-        if target?.classList?.contains 'readme'
+        if target?.classList.contains 'readme'
           new StackTemplateReadmeModal {}, template
         else if target?.classList?.contains 'template'
           new StackTemplateContentModal {}, template

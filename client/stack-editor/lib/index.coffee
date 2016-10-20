@@ -189,7 +189,7 @@ module.exports = class StackEditorAppController extends AppController
               confirmation = null
         content: '''
           <div class='modalformline'
-            <p>This stack template is updated by another admin. Do you want to reload?
+            <p>This stack template is updated by another admin. Do you want to reload?</p>
           </div>
           '''
 
