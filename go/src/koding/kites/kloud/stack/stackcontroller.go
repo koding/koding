@@ -100,13 +100,13 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 
 	// Do not log error in production as most of them are expected:
 	//
-	//  - authenticate errors due to invalid credentials
 	//  - plan errors due to invalud user input
-	//
-	// TODO(rjeczalik): Refactor errors so the user-originated have different
-	// type and log unexpected errors with k.Log.Error().
 	if err != nil {
-		k.Log.Debug("method %q for user %q failed: %s", r.Method, r.Username, err)
+		if _, ok := err.(*Error); ok {
+			k.Log.Warning("%s (method=%s, user=%s, group=%s)", err, r.Method, r.Username, args.GroupName)
+		} else {
+			k.Log.Debug("method %q for user %q failed: %s", r.Method, r.Username, err)
+		}
 
 		// ensure UI receives proper error origin - kloudError
 		if _, ok := err.(*kite.Error); !ok {
