@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"koding/klient/protocol"
+	konfig "koding/klient/config"
 	"koding/klient/tunnel/tlsproxy/pem"
 	"koding/logrotate"
 
@@ -375,7 +375,7 @@ func (h *Handlers) version(r *kite.Request, v *vagrantutil.Vagrant) (interface{}
 
 	switch req.Name {
 	case "klient":
-		resp.Klient = protocol.Version
+		resp.Klient = konfig.Version
 	case "vagrant":
 		ver, err := v.Version()
 		if err != nil {

@@ -10,9 +10,7 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
-	konfig "github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
-	"github.com/koding/logging"
 )
 
 var (
@@ -45,24 +43,10 @@ func Kite() *kite.Kite {
 		return k
 	}
 
-	cfg, err := konfig.NewFromKiteKey(config.Konfig.KiteKeyFile)
-	if err != nil {
-		cfg, err = konfig.Get()
-		if err != nil {
-			cfg = konfig.New()
-		}
-	}
-
 	k = kite.New(config.Name, config.KiteVersion)
-	k.Config = cfg
-	k.Config.KontrolURL = config.Konfig.KontrolURL
+	k.Config = config.Konfig.KiteConfig()
 	k.Config.Environment = config.Environment
 	k.Log = log
-
-	if debug {
-		log.SetLevel(logging.DEBUG)
-		k.SetLogLevel(kite.DEBUG)
-	}
 
 	return k
 }

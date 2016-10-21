@@ -9,7 +9,7 @@ import (
 
 	"koding/httputil"
 	cfg "koding/kites/config"
-	"koding/klient/protocol"
+	konfig "koding/klient/config"
 
 	"github.com/cenkalti/backoff"
 	"github.com/koding/kite"
@@ -97,7 +97,7 @@ func (opts *ClientOptions) tunnelKiteURL() string {
 	if opts.TunnelKiteURL != "" {
 		return opts.TunnelKiteURL
 	}
-	return TunnelKiteURLFromEnv(protocol.Environment)
+	return TunnelKiteURLFromEnv(konfig.Environment)
 }
 
 func (opts *ClientOptions) maxRegisterRetry() int {

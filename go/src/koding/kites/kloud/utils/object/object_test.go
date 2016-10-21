@@ -178,6 +178,16 @@ func TestBuilderSet(t *testing.T) {
 		"barbar",
 		nil,
 		&Bar{},
+	}, {
+		&Baz{Baz: 10},
+		"Baz",
+		12,
+		&Baz{Baz: 12},
+	}, {
+		&Baz{Baz: 10},
+		"Baz",
+		"13",
+		&Baz{Baz: 13},
 	}}
 
 	b := &object.Builder{
