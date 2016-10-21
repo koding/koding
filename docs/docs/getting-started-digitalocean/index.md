@@ -1,3 +1,10 @@
+---
+layout: doc
+title: getting-started-digitalocean
+permalink: /docs/getting-started-digitalocean
+parent: /docs/home
+--
+
 # Getting Started with DigitalOcean
 
 DigitalOcean is a very simple provider to get set up. This guide will take you through the whole process.
