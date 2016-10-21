@@ -1,6 +1,12 @@
+---
+layout: doc
+title: getting-started-google-compute-engine
+permalink: /docs/getting-started-google-compute-engine
+parent: /docs/home
+---
+
 # Getting Started with Google Compute Engine
 
-Getting started with GCE requires a few 
 
 1. **[Sign Up](#sign-up)**
 2. **[Start a Project](#start-project)**
@@ -57,6 +63,8 @@ This will save your Key as a file to your computer.
 ***
 
 ## Create your Stack <a name="create-stack"></a>
+
+***[What is a Stack?](/docs/what-is-a-stack)***
 
 To create your Stack:
 

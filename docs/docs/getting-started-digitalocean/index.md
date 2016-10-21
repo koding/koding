@@ -37,6 +37,8 @@ To generate your token:
 
 ## Create your Stack <a name="create-stack"></a>
 
+***[What is a Stack?](/docs/what-is-a-stack)***
+
 To create your Stack:
 
 1. [Login to Koding](https://koding.com/Teams/Select)
