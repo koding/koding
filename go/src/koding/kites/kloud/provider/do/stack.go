@@ -41,10 +41,7 @@ func newStack(stack *provider.BaseStack) (provider.Stack, error) {
 // VerifyCredential verifies whether the users DO credentials (access token) is
 // valid or not
 func (s *Stack) VerifyCredential(c *stack.Credential) error {
-	cred, ok := c.Credential.(*Credential)
-	if !ok {
-		return fmt.Errorf("credential is not of type do.Credential: %T", c.Credential)
-	}
+	cred := c.Credential.(*Credential)
 
 	if err := cred.Valid(); err != nil {
 		return err
@@ -60,7 +57,13 @@ func (s *Stack) VerifyCredential(c *stack.Credential) error {
 	// let's retrieve our Account information. If it's successful, we're good
 	// to go
 	_, _, err := client.Account.Get()
-	return err
+	if err != nil {
+		return &stack.Error{
+			Err: err,
+		}
+	}
+
+	return nil
 }
 
 // BootstrapTemplates returns terraform templates that needs to be executed

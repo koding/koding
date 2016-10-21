@@ -43,7 +43,13 @@ func (s *Stack) VerifyCredential(c *stack.Credential) error {
 	}
 
 	_, err := amazon.NewClient(cred.Options())
-	return err
+	if err != nil {
+		return &stack.Error{
+			Err: err,
+		}
+	}
+
+	return nil
 }
 
 func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, error) {
