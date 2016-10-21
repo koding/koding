@@ -34,8 +34,8 @@ func GetSubscription(u *url.URL, h http.Header, _ interface{}, context *models.C
 
 // CreateSubscription creates the subscription of group
 func CreateSubscription(u *url.URL, h http.Header, params *stripe.SubParams, context *models.Context) (int, http.Header, interface{}, error) {
-	if err := checkContext(context); err != nil {
-		return response.NewBadRequest(err)
+	if !context.IsLoggedIn() {
+		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
 	return response.HandleResultAndError(
