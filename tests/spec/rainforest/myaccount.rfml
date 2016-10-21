@@ -34,7 +34,7 @@ Do you see 'Please provide the code that we've emailed' modal?
 Enter '0000' in pin code field then click on 'UPDATE E-MAIL'
 Do you see 'PIN is not confirmed' message?
 
-Save image from here: {{ random.image }} to your desktop, click on 'CHANGE AVATAR' and choose the picture
+Save image from here: {{ random.image }} to your desktop, click on 'CHANGE AVATAR' and choose the picture by double clicking it
 Do you see the uploaded avatar?
 
 Scroll down then enter new password in 'New Password' field, enter different password in 'Repeat New Password' field and enter current password {{ random.number }} in 'Your Current Password' field then click 'UPDATE PASSWORD'
@@ -49,10 +49,10 @@ Do you see 'Old password did not match our records!' message?
 Enter '12345678' in 'New Password' field, enter '12345678' in 'Repeat New Password' field and enter {{ random.number }} in 'Your Current Password' field then click 'UPDATE PASSWORD'
 Do you see 'Password successfully changed!' message?
 
-Scroll down 
+Scroll down to the bottom of the page
 Do you see 'Sessions' list?
 
-Click on 'TERMINATE' in one of non active sessions
+Click on 'TERMINATE' in one of non-active sessions
 Do you see 'Do you really want to remove this session?' modal?
 
 Click on 'YES'
@@ -62,4 +62,4 @@ Click on 'TERMINATE' in active sessions
 Do you see 'Do you really want to remove this session?' modal?
 
 Click on 'YES'
-Is it logged out?
+Are you logged out?
