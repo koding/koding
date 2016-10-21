@@ -26,7 +26,7 @@ Click on 'Credentials' text having a red (!) next to it
 Do you see 'rainforestqa99's AWS keys'? Do you see 'USE THIS & CONTINUE' button next to it? Do you see 'CREATE NEW' button on the bottom?
 
 Click on 'USE THIS & CONTINUE' button (next to 'rainforestqa99's AWS keys') and wait for a second for process to be completed
-Have you seen 'Verifying Credentials...' message displayed? Are you switched to 'Stack Template' tab?
+Have you seen 'Verifying Credentials...' message displayed? Are you switched to 'Stack Template' tab? (If you're not switched and you got 'Failed to verify: operation timed out' error, click on the same button again)
 
 Click on the 'SAVE' button on top right and wait for a few seconds for that process to be completed
 Do you see 'Share Your Stack' title on a pop-up displayed? Do you see that 'Share the credentials I used for this stack with my team.' checkbox is already checked? Do you see 'CANCEL' and 'SHARE WITH THE TEAM' buttons?

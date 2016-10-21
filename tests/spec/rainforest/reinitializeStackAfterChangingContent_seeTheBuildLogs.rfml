@@ -14,7 +14,7 @@ Click on 'amazon web services' and click on 'SKIP GUIDE'
 Has that pop-up disappeared? Do you see 'Rainforestqa99's Stack' title? Do you see 'Stack Template', 'Custom Variables', 'Readme' tabs? Do you see 'Credentials' text having a red (!) next to it? Do you see '# Here is your stack preview' in the first line of main content? Do you see 'PREVIEW', 'LOGS', 'DELETE STACK TEMPLATE' buttons on the bottom and 'SAVE' button on top right?
 
 Click on 'Credentials' and then click on 'USE THIS & CONTINUE' button next to 'rainforestqa99's AWS keys' and wait for a second for process to be completed
-Have you seen 'Verifying Credentials...' message displayed? Are you switched to 'Stack Template' tab?
+Have you seen 'Verifying Credentials...' message displayed? Are you switched to 'Stack Template' tab? (If you're not switched and you got 'Failed to verify: operation timed out' error, click on the same button again)
 
 Click on the 'SAVE' button on top right and wait for a few seconds for that process to be completed
 Do you see 'Share Your Stack' title on a pop-up displayed? Do you see that 'Share the credentials I used for this stack with my team.' checkbox is already checked? Do you see 'CANCEL' and 'SHARE WITH THE TEAM' buttons?
@@ -56,7 +56,7 @@ Wait for a few minutes for process to be completed
 Do you see 'Success' text? Do you see 'Your stack has been built.' text below it? Do you see 'View The Logs', 'Install Your KD' and 'Invite to Collaborate' sections? Do you see 'START CODING' button on the bottom?
 
 Click on 'View the Logs' button
-Do you see white text on the black background? (something like in this image: http://take.ms/Od6XR)
+Is that success modal closed? Do you see something like in this image: http://take.ms/S2PPR?
 
 Click on 'START CODING' button
 Do you see 'Rainforestqa99'S Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'example-instance' label? Do you see '/home/rainforestqa99' label on top of a file list? Do you see 'cloud-init-o...' file on top and 'Terminal' tab on the bottom pane? Do you see that '{{ random.first_name }}.txt' is not listed in the file list anymore?

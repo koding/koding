@@ -23,10 +23,10 @@ Move your mouse over 'USE THIS & CONTINUE' button
 Have 'PREVIEW' and 'DELETE' texts appeared?
 
 Click on 'PREVIEW'
-Do you see 'rainforestqa99's AWS keys Preview' title on a pop-up displayed? Do you see 'access key', 'acl', 'ami' sections and others like these? 
+Do you see 'rainforestqa99's AWS keys Preview' title on a pop-up displayed? Do you see 'access key', 'region', 'secret_key' and 'identifier' sections? 
 
 Close that modal by clicking (x) from top right corner and click on 'USE THIS & CONTINUE' button (next to 'rainforestqa99's AWS keys') and wait for a second for process to be completed
-Have you seen 'Verifying Credentials...' message displayed? Are you switched to 'Stack Template' tab?
+Have you seen 'Verifying Credentials...' message displayed? Are you switched to 'Stack Template' tab? (If you're not switched and you got 'Failed to verify: operation timed out' error, click on the same button again)
 
 Click on 'Edit Name' link 
 Is 'Rainforestqa99's Stack' converted to a textbox?
