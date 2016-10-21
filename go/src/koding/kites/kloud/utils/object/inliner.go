@@ -2,6 +2,7 @@ package object
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -53,6 +54,10 @@ func (in *Inliner) UnmarshalJSON(p []byte) error {
 	}
 
 	return json.Unmarshal(p, in.SecondAddr())
+}
+
+func (in *Inliner) String() string {
+	return fmt.Sprintf("{first: %#v, second: %#v}", in.InlineFirst, in.InlineSecond)
 }
 
 func (in *Inliner) Inline() (Object, error) {

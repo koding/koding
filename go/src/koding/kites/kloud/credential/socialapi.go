@@ -71,7 +71,7 @@ func (s *socialStore) Fetch(username string, creds map[string]interface{}) error
 			creds[ident] = req.resp
 		}
 
-		s.Log.Debug("fetched credential data for %q: %+v", ident, creds[ident])
+		s.Log.Debug("fetched credential data for %q: %v", ident, creds[ident])
 	}
 
 	if len(missing) != 0 {
