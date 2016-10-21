@@ -9,7 +9,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-var removeNL = strings.NewReplacer("\n", " ", "\t", "")
+var removeNewLines = strings.NewReplacer("\n", " ", "\t", "")
 
 func (bs *BaseStack) HandleAuthenticate(ctx context.Context) (interface{}, error) {
 	arg, ok := ctx.Value(stack.AuthenticateRequestKey).(*stack.AuthenticateRequest)
@@ -49,7 +49,7 @@ func (bs *BaseStack) HandleAuthenticate(ctx context.Context) (interface{}, error
 			res.Message = err.Error()
 
 			if _, ok := err.(*stack.Error); ok {
-				bs.Log.Warning("authenticate: %s (team=%s, user=%s, provider=%s)", removeNL.Replace(err.Error()), arg.GroupName, bs.Req.Username, cred.Provider)
+				bs.Log.Warning("authenticate: %s (team=%s, user=%s, provider=%s)", removeNewLines.Replace(err.Error()), arg.GroupName, bs.Req.Username, cred.Provider)
 			}
 
 			continue
