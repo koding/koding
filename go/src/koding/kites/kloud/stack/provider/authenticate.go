@@ -35,6 +35,8 @@ func (bs *BaseStack) HandleAuthenticate(ctx context.Context) (interface{}, error
 		res := &stack.AuthenticateResult{}
 		resp[cred.Identifier] = res
 
+		bs.Log.Debug("Checking credentials for %q (%s): %# v", cred.Provider, bs.Planner.Provider, cred.Credential)
+
 		if cred.Provider != bs.Planner.Provider {
 			continue // ignore not ours credentials
 		}
