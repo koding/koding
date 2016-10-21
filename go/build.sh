@@ -43,7 +43,6 @@ export COMMANDS=(
 	socialapi/workers/cmd/realtime
 	socialapi/workers/cmd/realtime/gatekeeper
 	socialapi/workers/cmd/realtime/dispatcher
-	socialapi/workers/cmd/topicfeed
 	socialapi/workers/cmd/migrator
 	socialapi/workers/cmd/sitemap/sitemapfeeder
 	socialapi/workers/cmd/sitemap/sitemapgenerator

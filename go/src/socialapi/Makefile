@@ -37,7 +37,6 @@ PACKAGES = \
 	socialapi/workers/popularpost \
 	socialapi/workers/populartopic \
 	socialapi/workers/realtime \
-	socialapi/workers/topicfeed \
 	socialapi/workers/migrator \
 	socialapi/workers/sitemap/sitemapfeeder \
 	socialapi/workers/sitemap/sitemapgenerator \
@@ -48,20 +47,16 @@ PACKAGES = \
 
 all: testapi
 
-develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev \
+develop: apidev realtimedev populartopicdev popularpostdev \
 	notificationdev pinnedpostdev algoliaconnectordev \
 	emaildev sitemapdev collaborationdev mailsenderdev topicmoderationdev \
 	teamdev eventsenderdev integrationdev
-minimal: apidev topicfeeddev realtimedev pinnedpostdev
+minimal: apidev realtimedev pinnedpostdev
 default: configure
 
 apidev:
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/api -watch socialapi -c $(CONFIG) $(PORT) $(DBG) $(EXTRAS)
-
-topicfeeddev:
-	@echo "$(OK_COLOR)==> Running Topic Feed Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/topicfeed -watch socialapi/workers/topicfeed -c $(CONFIG) $(DBG) $(EXTRAS)
 
 realtimedev:
 	@echo "$(OK_COLOR)==> Running Realtime Worker $(NO_COLOR)"
@@ -274,13 +269,6 @@ testalgolia:
 	@./algoliaconnector.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm ./algoliaconnector.test
 
-
-testtopicfeeed:
-	@echo "$(OK_COLOR)--> topic feed tests... $(NO_COLOR)"
-	@`which go` test -c workers/topicfeed/*.go
-	@./topicfeed.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./topicfeed.test
-
 # testcollaboration runs the unit and integration tests of collaboration worker
 testcollaboration:
 	@echo "$(OK_COLOR)--> collaboration tests... $(NO_COLOR)"
@@ -371,7 +359,7 @@ testrealtime:
 
 
 testapi: testcollaboration testmailsender testmail testmodels testemailworker \
-	testmoderation testtopicfeeed testnotification \
+	testmoderation testnotification \
 	testteam testintegration testrealtime testwebhook testpresence
 
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
@@ -414,7 +402,6 @@ vet:
 pkgs = \
 	realtime \
 	rerun \
-	topicfeed \
 	notification
 
 dep:
