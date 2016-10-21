@@ -7,6 +7,7 @@ parent: /docs/home
 
 # Getting Started with Google Compute Engine
 
+Getting started with GCE is a fairly simple process:
 
 1. **[Sign Up](#sign-up)**
 2. **[Start a Project](#start-project)**
