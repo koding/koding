@@ -450,7 +450,9 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 
 	b.Credentials = append(b.Credentials, creds...)
 
-	b.Log.Debug("Built credentials: %# v", b.Credentials)
+	for i, cred := range b.Credentials {
+		b.Log.Debug("Built credential #%d: %# v (%+v, %+v)", i, cred, cred.Credential, cred.Bootstrap)
+	}
 
 	return nil
 }
