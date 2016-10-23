@@ -1,5 +1,6 @@
 _                   = require 'lodash'
 kd                  = require 'kd'
+globals             = require 'globals'
 React               = require 'app/react'
 classnames          = require 'classnames'
 GenericToggler      = require './generictoggler'
@@ -302,29 +303,18 @@ module.exports = class MachineDetails extends React.Component
 generateSpecs = (machine) ->
 
   jMachine = machine.toJS()
+  providerName = jMachine.meta?.type
 
-  specs = []
+  { instanceTypes } = globals.config.providers[providerName]
 
+  instanceType = jMachine.meta?.instance_type ? configs[providerName]['base-vm']
   size = jMachine.meta?.storage_size
 
-  specs.push provider = jMachine.provider
-  specs.push type = jMachine.meta?.instance_type ? 't2.micro'
-  specs.push ram  = {
-    't2.nano'   : '512MB RAM'
-    't2.micro'  : '1GB RAM'
-    't2.medium' : '4GB RAM'
-    'm4.large'  : '8GB RAM'
-    'm4.xlarge' : '16GB RAM'
-    'm4.2xlarge': '32GB RAM'
-  }[type] ? '1GB RAM'
-  specs.push cpu = {
-    'm4.large'   : '2x CPU'
-    'm4.xlarge'  : '4x CPU'
-    'm4.2xlarge' : '8X CPU'
-  }[type] ? '1x CPU'
-  specs.push disk = if size? then "#{size}GB HDD" else 'N/A'
+  { ram, cpu } = instanceTypes[instanceType]
 
-  return specs
+  disk = if size? then "#{size}GB HDD" else 'N/A'
+
+  return [providerName, instanceType, ram, cpu, disk]
 
 
 EditVMNameDescription = ->
