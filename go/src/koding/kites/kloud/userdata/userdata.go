@@ -114,6 +114,8 @@ runcmd:
   # - [sh, -c, 'echo "127.0.0.1 {{.Hostname}}" >> /etc/hosts']
 
   # Install & Configure klient
+  - [touch, /var/log/upstart/klient.log, /var/log/cloud-init-output.log, /var/log/cloud-init.log, /var/lib/koding/user-data.sh]
+  - [chmod, +r, /var/log/upstart/klient.log, /var/log/cloud-init-output.log, /var/log/cloud-init.log, /var/lib/koding/user-data.sh]
   - [wget, "{{.LatestKlientURL}}", --retry-connrefused, --tries, 5, -O, /tmp/latest-klient.deb]
   - [dpkg, -i, /tmp/latest-klient.deb]
   - [chown, -R, '{{.Username}}:{{.Username}}', /opt/kite/klient]
