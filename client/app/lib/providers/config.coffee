@@ -28,6 +28,7 @@ module.exports = globals.config.providers =
     title                  : 'AWS'
     color                  : '#F9A900'
     description            : 'Amazon Web Services'
+    instanceTypes          : require './instance-types/aws'
     advancedFields         : [
                               'subnet', 'sg', 'vpc',
                               'ami', 'acl', 'cidr_block',
@@ -83,6 +84,7 @@ module.exports = globals.config.providers =
     title                  : 'Google Cloud'
     color                  : '#357e99'
     description            : 'Google compute engine'
+    instanceTypes          : require './instance-types/gce'
     credentialFields       :
       projectId            :
         label              : 'Project Id'
@@ -106,6 +108,7 @@ module.exports = globals.config.providers =
     title                  : 'Azure'
     color                  : '#ec06be'
     description            : 'Azure'
+    instanceTypes          : require './instance-types/azure'
     credentialFields       :
       accountId            :
         label              : 'Account Id'
@@ -121,6 +124,7 @@ module.exports = globals.config.providers =
     title                  : 'Digitalocean'
     color                  : '#7abad7'
     description            : 'Digitalocean droplets'
+    instanceTypes          : require './instance-types/do'
     credentialFields       :
       clientId             :
         label              : 'Client Id'
