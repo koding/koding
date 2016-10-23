@@ -62,6 +62,9 @@ var (
 	// the implementation of New() doesn't have any error to be returned yet it
 	// returns, so it's totally safe to neglect the error
 	cookieJar, _ = cookiejar.New(nil)
+
+	// ErrExit is returned by NewKlient when no klient should be started.
+	ErrExit = errors.New("exit")
 )
 
 // Klient is the central app which provides all available methods.
@@ -147,6 +150,7 @@ type KlientConfig struct {
 
 	NoTunnel bool
 	NoProxy  bool
+	NoExit   bool
 
 	Autoupdate bool
 
@@ -259,6 +263,10 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		}
 
 		konfig.Konfig = konfig.ReadKonfig() // re-read konfig after dumping metadata
+
+		if !conf.NoExit {
+			return nil, ErrExit
+		}
 	}
 
 	// TODO(rjeczalik): Once klient installation method is reworked,
@@ -274,6 +282,12 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 
 	k := newKite(conf)
 	k.Config.VerifyAudienceFunc = verifyAudience
+
+	if k.Config.KontrolURL == "" || k.Config.KontrolURL == "http://127.0.0.1:3000/kite" ||
+		konfig.Konfig.KontrolURL != konfig.Builtin.KontrolURL {
+		k.Config.KontrolURL = konfig.Konfig.KontrolURL
+	}
+
 	term := terminal.New(k.Log, conf.ScreenrcPath)
 	term.InputHook = usg.Reset
 

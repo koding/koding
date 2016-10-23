@@ -356,6 +356,7 @@ func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 				KontrolPublicKey:  kontrolPublicKey,
 			},
 			KlientURL: conf.KlientURL,
+			TunnelURL: conf.TunnelURL,
 			Bucket:    userdata.NewBucket("koding-klient", klientFolder, c),
 		},
 		Terraformer: &terraformer.Options{

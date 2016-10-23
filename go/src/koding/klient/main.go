@@ -59,6 +59,7 @@ var (
 	// Metadata flags.
 	flagMetadata     = flag.String("metadata", "", "Base64-encoded Koding metadata")
 	flagMetadataFile = flag.String("metadata-file", "", "Koding metadata file")
+	flagNoExit       = flag.Bool("no-exit", false, "Keeps klient running after dumping metadata")
 )
 
 func defaultKiteHome() string {
@@ -159,9 +160,13 @@ func realMain() int {
 		LogUploadInterval: *flagLogUploadInterval,
 		Metadata:          *flagMetadata,
 		MetadataFile:      *flagMetadataFile,
+		NoExit:            *flagNoExit,
 	}
 
 	a, err := app.NewKlient(conf)
+	if err == app.ErrExit {
+		return 0
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
