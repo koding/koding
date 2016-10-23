@@ -261,6 +261,17 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		konfig.Konfig = konfig.ReadKonfig() // re-read konfig after dumping metadata
 	}
 
+	// TODO(rjeczalik): Once klient installation method is reworked,
+	// ensure flags are stored alongside konfig and do not
+	// overwrite konfig here.
+	if conf.KontrolURL != "" {
+		konfig.Konfig.KontrolURL = conf.KontrolURL
+	}
+
+	if conf.TunnelKiteURL != "" {
+		konfig.Konfig.TunnelURL = conf.TunnelKiteURL
+	}
+
 	k := newKite(conf)
 	k.Config.VerifyAudienceFunc = verifyAudience
 	term := terminal.New(k.Log, conf.ScreenrcPath)
