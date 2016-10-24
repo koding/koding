@@ -179,6 +179,7 @@ generateDev = (KONFIG, options) ->
       echo "  run printconfig           : to print koding config environment variables (output in json via --json flag)"
       echo "  run migrate [command]     : to apply/revert database changes (command: [create|up|down|version|reset|redo|to|goto])"
       echo "  run mongomigrate [command]: to apply/revert mongo database changes (command: [create|up|down])"
+      echo "  run migrations [command]  : to apply/revert mongo and postgres database changes (command: [create|up|down])"
       echo "  run nodeservertests       : to run tests for node.js web server"
       echo "  run socialworkertests     : to run tests for social worker"
       echo "  run nodetestfiles         : to run a single test or all test files in a directory"
@@ -584,24 +585,9 @@ generateDev = (KONFIG, options) ->
     elif [ "$1" == "help" ]; then
       printHelp
 
-    elif [ "$1" == "vmwatchertests" ]; then
-      go test koding/vmwatcher -test.v=true
-
-    elif [ "$1" == "gokodingconfigtests" ]; then
-      go test -v --race koding/kites/config
-
     elif [ "$1" == "janitortests" ]; then
       pushd $KONFIG_PROJECTROOT/go/src/koding/workers/janitor
       ./test.sh
-
-    elif [ "$1" == "gatheringestortests" ]; then
-      go test koding/workers/gatheringestor -test.v=true
-
-    elif [ "$1" == "gomodeltests" ]; then
-      go test koding/db/mongodb/modelhelper -test.v=true
-
-    elif [ "$1" == "kontroltests" ]; then
-      go test koding/kites/kontrol/kontrol -v
 
     elif [ "$1" == "socialworkertests" ]; then
       $KONFIG_PROJECTROOT/scripts/node-testing/mocha-runner "$KONFIG_PROJECTROOT/workers/social"
