@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/fatih/structs"
@@ -86,7 +87,10 @@ func (b *Builder) Set(v interface{}, key string, value interface{}) error {
 
 		name := field.Name()
 		if b.Tag != "" {
-			name = field.Tag(b.Tag)
+			if s := field.Tag(b.Tag); s != "" {
+				name = s
+			}
+
 			if i := strings.IndexRune(name, ','); i != -1 {
 				name = name[:i]
 			}
@@ -97,8 +101,7 @@ func (b *Builder) Set(v interface{}, key string, value interface{}) error {
 		}
 
 		if value == nil {
-			field.Set(reflect.Zero(reflect.TypeOf(field.Value())).Interface())
-			return nil
+			return field.Set(reflect.Zero(reflect.TypeOf(field.Value())).Interface())
 		}
 
 		var s string
@@ -109,8 +112,7 @@ func (b *Builder) Set(v interface{}, key string, value interface{}) error {
 		case fmt.Stringer:
 			s = v.String()
 		default:
-			field.Set(value)
-			return nil
+			s = fmt.Sprintf("%v", v)
 		}
 
 		switch f := field.Value().(type) {
@@ -122,8 +124,28 @@ func (b *Builder) Set(v interface{}, key string, value interface{}) error {
 			if err := f.Set(s); err != nil {
 				return err
 			}
+		case int:
+			n, err := strconv.Atoi(s)
+			if err != nil {
+				return err
+			}
+
+			if err := field.Set(n); err != nil {
+				return err
+			}
+		case bool:
+			b, err := strconv.ParseBool(s)
+			if err != nil {
+				return err
+			}
+
+			if err := field.Set(b); err != nil {
+				return err
+			}
 		default:
-			field.Set(value)
+			if err := field.Set(value); err != nil {
+				return err
+			}
 		}
 
 		break

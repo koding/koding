@@ -28,8 +28,6 @@ import (
 //
 
 func CredentialImport(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	debug = c.Bool("debug")
-
 	kloud, err := Kloud()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
@@ -93,8 +91,6 @@ func CredentialImport(c *cli.Context, log logging.Logger, _ string) (int, error)
 }
 
 func CredentialList(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	debug = c.Bool("debug")
-
 	provider := c.String("provider")
 	team := c.String("team")
 
@@ -153,8 +149,6 @@ func CredentialList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 }
 
 func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	debug = c.Bool("debug")
-
 	var p []byte
 	var err error
 

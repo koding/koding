@@ -9,8 +9,7 @@ import (
 	"time"
 
 	"koding/httputil"
-	"koding/kites/config"
-	"koding/klient/protocol"
+	konfig "koding/klient/config"
 )
 
 // StatusError describes a HTTP reponse error.
@@ -64,7 +63,7 @@ func (d *director) EndpointPublicIP() string {
 		return "http://echoip.net"
 	}
 
-	return config.Builtin.Endpoints.URL("ip", protocol.Environment)
+	return konfig.Konfig.IPURL
 }
 
 func (d *director) EndpointIsReachable(port string) string {
@@ -72,7 +71,7 @@ func (d *director) EndpointIsReachable(port string) string {
 		return "http://rjk.io/test/" + port
 	}
 
-	return config.Builtin.Endpoints.URL("ipcheck", protocol.Environment) + "/" + port
+	return konfig.Konfig.IPCheckURL + "/" + port
 }
 
 func (d *director) ShouldRetry(err error) bool {

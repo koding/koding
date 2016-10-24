@@ -60,9 +60,9 @@ func buildKlient() error {
 		symbolvalue = "0.1." + strconv.Itoa(*flagBuildNumber)
 	}
 
-	ldflags := fmt.Sprintf("-X koding/klient/protocol.Version=%s", symbolvalue)
+	ldflags := fmt.Sprintf("-X koding/klient/config.Version=%s", symbolvalue)
 	if *flagEnvironment != "" {
-		ldflags += fmt.Sprintf(" -X koding/klient/protocol.Environment=%s", *flagEnvironment)
+		ldflags += fmt.Sprintf(" -X koding/klient/config.Environment=%s", *flagEnvironment)
 	}
 
 	kclient := pkg{

@@ -289,13 +289,6 @@ module.exports = (KONFIG, options, credentials) ->
           run           : "#{GOBIN}/activityemail"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/activityemail -watch socialapi/workers/email/activityemail"
 
-    topicfeed           :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/topicfeed"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/topicfeed -watch socialapi/workers/topicfeed"
-
     privatemessageemailfeeder:
       group             : "socialapi"
       supervisord       :
