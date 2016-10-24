@@ -18,15 +18,15 @@ generateDev = (KONFIG, options) ->
       echo '#---> BUILDING CLIENT <---#'
       make -C $KONFIG_PROJECTROOT/client unit-tests
 
-      echo '#---> BUILDING GO WORKERS (@farslan) <---#'
+      echo '#---> BUILDING GO WORKERS <---#'
       $KONFIG_PROJECTROOT/go/build.sh
 
-      echo '#---> BUILDING SOCIALAPI (@cihangir) <---#'
+      echo '#---> BUILDING SOCIALAPI <---#'
       pushd $KONFIG_PROJECTROOT/go/src/socialapi
       make configure
       # make install
 
-      echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY (@farslan) <---#'
+      echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY <---#'
       KITE_KEY=$KONFIG_KITEHOME/kite.key
       mkdir $HOME/.kite &>/dev/null
       echo copying $KITE_KEY to $HOME/.kite/kite.key
@@ -456,7 +456,7 @@ generateDev = (KONFIG, options) ->
       restoreimply
 
 
-      echo "#---> CLEARING ALGOLIA INDEXES: @chris <---#"
+      echo "#---> CLEARING ALGOLIA INDEXES: <---#"
       pushd $KONFIG_PROJECTROOT
       ./scripts/clear-algolia-index.sh -i "accounts$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
       ./scripts/clear-algolia-index.sh -i "topics$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
