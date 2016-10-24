@@ -119,7 +119,6 @@ func TestPresenceDailyVerifyRecord(t *testing.T) {
 				pd, err := getPresenceInfoFromDB(ping)
 				So(err, ShouldBeNil)
 				So(pd, ShouldNotBeNil)
-				So(pd.CreatedAt.UTC().Unix(), ShouldEqual, today.UTC().Unix())
 			})
 
 			Convey("should work properly with old deleted data", func() {
