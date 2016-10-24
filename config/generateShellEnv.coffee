@@ -9,7 +9,7 @@ module.exports.create = (KONFIG, options = {}) ->
   traverse.paths(KONFIG).forEach (path) ->
     node = traverse.get KONFIG, path
     return  if typeof node is 'object'
-    add "KONFIG_#{path.join('_')}".toUpperCase(), node
+    add "KONFIG_#{path.join('_').replace(/\./g, "_")}".toUpperCase(), node
 
   add 'ENV_JSON_FILE', "$KONFIG_PROJECTROOT/#{options.envFileName}.json"
   add 'KONFIG_JSON', '$(cat $ENV_JSON_FILE)'

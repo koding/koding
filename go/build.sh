@@ -14,6 +14,15 @@ koding-go-install() {
 	go install -v -tags "${KODING_TAGS}" -ldflags "${KODING_LDFLAGS}" $*
 }
 
+export VENDOR_COMMANDS=(
+	vendor/github.com/koding/kite/kitectl
+	vendor/github.com/canthefason/go-watcher
+	vendor/github.com/mattes/migrate
+	vendor/github.com/alecthomas/gocyclo
+	vendor/github.com/remyoudompheng/go-misc/deadcode
+	vendor/github.com/jteeuwen/go-bindata/go-bindata
+)
+
 export COMMANDS=(
 	koding/broker
 	koding/rerouting
@@ -63,13 +72,6 @@ export COMMANDS=(
 	socialapi/workers/algoliaconnector/contentmigrator
 	socialapi/workers/cmd/integration/eventsender
 	socialapi/workers/cmd/integration/webhookmiddleware
-
-	vendor/github.com/koding/kite/kitectl
-	vendor/github.com/canthefason/go-watcher
-	vendor/github.com/mattes/migrate
-	vendor/github.com/alecthomas/gocyclo
-	vendor/github.com/remyoudompheng/go-misc/deadcode
-	vendor/github.com/jteeuwen/go-bindata/go-bindata
 )
 
 export TERRAFORM_COMMANDS=(
@@ -89,6 +91,9 @@ for provider in $KODING_REPO/go/src/koding/kites/kloud/provider/*; do
 	fi
 done
 
+koding-go-install ${VENDOR_COMMANDS[@]}
+
+go generate koding/kites/config
 go generate koding/kites/kloud/kloud
 
 koding-go-install ${COMMANDS[@]} ${TERRAFORM_COMMANDS[@]}
