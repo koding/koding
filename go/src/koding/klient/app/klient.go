@@ -314,10 +314,11 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 	}
 
 	tunOpts := &tunnel.Options{
-		DB:      db,
-		Log:     k.Log,
-		Kite:    k,
-		NoProxy: conf.NoProxy,
+		DB:            db,
+		Log:           k.Log,
+		Kite:          k,
+		NoProxy:       conf.NoProxy,
+		TunnelKiteURL: konfig.Konfig.TunnelURL,
 	}
 
 	t, err := tunnel.New(tunOpts)
