@@ -3,7 +3,7 @@ KDObject         = kd.Object
 IDEMetrics       = require './idemetrics'
 generatePassword = require 'app/util/generatePassword'
 
-module.exports = class RealtimeManager extends KDObject
+module.exports = class GoogleDriveRealtimeManager extends KDObject
 
   constructor: (options = {}, data) ->
 
@@ -15,10 +15,10 @@ module.exports = class RealtimeManager extends KDObject
     @collaborativeEventListeners = {}
 
     GoogleApiClient  = require './googleapiclient'
-    IDEMetrics.collect 'RealTimeManager.google_api_client', 'request'
+    IDEMetrics.collect 'GoogleDriveRealTimeManager.google_api_client', 'request'
     GoogleApiClient.on 'ready', =>
       GoogleApiClient.loadDriveApi =>
-        IDEMetrics.collect 'RealTimeManager.google_api_client', 'ready'
+        IDEMetrics.collect 'GoogleDriveRealTimeManager.google_api_client', 'ready'
         @emit 'ready'
 
 
@@ -30,7 +30,7 @@ module.exports = class RealtimeManager extends KDObject
   getRealtimeDoc: ->
 
     unless @realtimeDoc
-      throw new Error 'RealtimeDoc is not set yet for RealtimeManager'
+      throw new Error 'RealtimeDoc is not set yet for GoogleDriveRealtimeManager'
 
     return @realtimeDoc
 
