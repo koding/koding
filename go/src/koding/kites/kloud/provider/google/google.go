@@ -97,7 +97,7 @@ func (c *Cred) ComputeService() (*compute.Service, error) {
 }
 
 type Bootstrap struct {
-	KodingFirewall string `json:"koding_firewall" bson:"koding_firewall" hcl:"koding_firewall"`
+	KodingNetworkID string `json:"koding_network_id" bson:"koding_network_id" hcl:"koding_network_id"`
 }
 
 var _ stack.Validator = (*Bootstrap)(nil)
@@ -107,8 +107,8 @@ func newBootstrap() interface{} {
 }
 
 func (b *Bootstrap) Valid() error {
-	if b.KodingFirewall == "" {
-		return errors.New(`bootstrap value for "koding_firewall" is empty`)
+	if b.KodingNetworkID == "" {
+		return errors.New(`bootstrap value for "koding_network_id" is empty`)
 	}
 	return nil
 }
