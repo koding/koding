@@ -26,6 +26,10 @@ func init() {
 }
 
 func main() {
+	var cfg kloud.Config
+
+	kloudErr := config.Load(&cfg)
+
 	var schemaCfg SchemaConfig
 
 	if err := config.Load(&schemaCfg); err == nil && schemaCfg.GenSchema != "" {
@@ -36,10 +40,8 @@ func main() {
 		return
 	}
 
-	var cfg kloud.Config
-
-	if err := config.Load(&cfg); err != nil {
-		log.Fatal(err)
+	if kloudErr != nil {
+		log.Fatal(kloudErr)
 	}
 
 	// Load the config, it's reads environment variables or from flags
