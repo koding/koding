@@ -9,6 +9,7 @@ TeamMembersIdStore = ['TeamMembersIdStore']
 UsersStore = ['UsersStore']
 TeamMembersRoleStore = ['TeamMembersRoleStore']
 searchInputValue = ['TeamSearchInputValueStore']
+roleFilterKey = ['TeamRoleFilterKeyStore']
 invitationInputValues = ['TeamInvitationInputValuesStore']
 loggedInUserEmail = ['LoggedInUserEmailStore']
 teamInvitations = ['TeamInvitationStore']
@@ -86,9 +87,26 @@ filteredMembersWithRole = [
     members.filter (member) -> isValidMemberValue member, value
 ]
 
+isIncludeMember = (member, value) ->
+  if value is 'invited'
+    member.get('status') is 'pending'
+  else if member.get('status') is 'pending'
+    member.get('role') is value
+  else
+    member.getIn(['profile', 'role']) is value
+
+
+filteredMembersByKey = [
+  filteredMembersWithRole
+  roleFilterKey
+  (members, value) ->
+    return members  if value is 'all' or value is ''
+    members.filter (member) -> isIncludeMember member, value
+]
+
 
 filteredMembersWithRoleAndDisabledUsers = [
-  filteredMembersWithRole
+  filteredMembersByKey
   disabledUsers
   (users, disabledUsers) ->
     users.withMutations (users) ->
@@ -174,7 +192,9 @@ module.exports = {
   TeamMembersIdStore
   invitationInputValues
   searchInputValue
+  roleFilterKey
   filteredMembersWithRole
+  filteredMembersByKey
   adminInvitations
   allInvitations
   newInvitations

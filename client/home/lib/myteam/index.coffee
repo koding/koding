@@ -14,6 +14,8 @@ camelizeString = require 'app/util/camelizeString'
 toImmutable = require 'app/util/toImmutable'
 canSeeMembers = require 'app/util/canSeeMembers'
 isAdmin = require 'app/util/isAdmin'
+HomeTeamTeamMatesTitle = require './hometeamteammatestitle'
+customview = require '../commons/customview'
 
 SECTIONS =
   'Invite Using Slack' : HomeTeamConnectSlack
@@ -107,6 +109,6 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
       @wrapper.addSubView @connectSlack = section 'Invite Using Slack'
       @connectSlack.on 'InvitationsAreSent', -> TeamFlux.actions.loadPendingInvitations()
 
-      @wrapper.addSubView headerize 'Teammates'
+      @wrapper.addSubView @teammatesTitle = customview 'TeammatesTitle', HomeTeamTeamMatesTitle
       @wrapper.addSubView @teammates = section 'Teammates'
 

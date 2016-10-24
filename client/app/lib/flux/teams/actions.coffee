@@ -168,6 +168,13 @@ setSearchInputValue = (newValue) ->
   reactor.dispatch actions.SET_SEARCH_INPUT_VALUE, { newValue }
 
 
+setRoleFilterKey = (newValue) ->
+
+  { reactor } = kd.singletons
+
+  reactor.dispatch actions.SET_ROLE_FILTER_KEY, { newValue }
+
+
 handleRoleChange = (account, newRole) ->
 
   { groupsController, reactor } = kd.singletons
@@ -371,6 +378,7 @@ module.exports = {
   sendInvitations
   resendInvitations
   setSearchInputValue
+  setRoleFilterKey
   handleRoleChange
   handlePendingInvitationUpdate
   handleKickMember
