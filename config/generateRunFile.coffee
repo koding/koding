@@ -395,7 +395,7 @@ generateDev = (KONFIG, options) ->
     }
 
     function check_connectivity() {
-      retries=120
+      retries=600
       until eval "check_connectivity_$@"; do
         sleep 1
         let retries--
