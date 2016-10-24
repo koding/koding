@@ -1,11 +1,15 @@
 package provider
 
 import (
+	"strings"
+
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/stack"
 
 	"golang.org/x/net/context"
 )
+
+var removeNewLines = strings.NewReplacer("\n", " ", "\t", "")
 
 func (bs *BaseStack) HandleAuthenticate(ctx context.Context) (interface{}, error) {
 	arg, ok := ctx.Value(stack.AuthenticateRequestKey).(*stack.AuthenticateRequest)
@@ -35,12 +39,19 @@ func (bs *BaseStack) HandleAuthenticate(ctx context.Context) (interface{}, error
 		res := &stack.AuthenticateResult{}
 		resp[cred.Identifier] = res
 
+		bs.Log.Debug("Checking credentials for %q (%s): %# v", cred.Provider, bs.Planner.Provider, cred.Credential)
+
 		if cred.Provider != bs.Planner.Provider {
 			continue // ignore not ours credentials
 		}
 
 		if err := bs.stack.VerifyCredential(cred); err != nil {
 			res.Message = err.Error()
+
+			if _, ok := err.(*stack.Error); ok {
+				bs.Log.Warning("authenticate: %s (team=%s, user=%s, provider=%s)", removeNewLines.Replace(err.Error()), arg.GroupName, bs.Req.Username, cred.Provider)
+			}
+
 			continue
 		}
 

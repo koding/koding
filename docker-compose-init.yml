@@ -1,0 +1,11 @@
+version: '2'
+
+services:
+  init:
+    image: koding/base
+    working_dir: /opt/koding
+    entrypoint: scripts/bootstrap-container
+    command: configure
+    env_file: .env-docker-compose
+    volumes:
+      - .:/opt/koding
