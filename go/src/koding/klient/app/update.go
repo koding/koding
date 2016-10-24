@@ -15,7 +15,7 @@ import (
 	"syscall"
 	"time"
 
-	"koding/klient/protocol"
+	konfig "koding/klient/config"
 	"koding/klient/remote/mount"
 
 	"github.com/hashicorp/go-version"
@@ -61,7 +61,7 @@ func (u *Updater) checkAndUpdate() error {
 		return err
 	}
 
-	l, err := u.latestVersion(protocol.Environment)
+	l, err := u.latestVersion(konfig.Environment)
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func (u *Updater) checkAndUpdate() error {
 		return nil
 	}
 
-	return u.update(latest, protocol.Environment)
+	return u.update(latest, konfig.Environment)
 }
 
 func (u *Updater) update(latest *version.Version, env string) error {
@@ -99,7 +99,7 @@ func (u *Updater) checkAndMigrate() error {
 		return err
 	}
 
-	if protocol.Environment != "development" || u.KontrolURL != "https://koding.com/kontrol/kite" {
+	if konfig.Environment != "development" || u.KontrolURL != "https://koding.com/kontrol/kite" {
 		return nil
 	}
 
@@ -232,7 +232,7 @@ func (u *Updater) fetch(url string) ([]byte, error) {
 // Run runs the updater in the background for the interval of updater interval.
 func (u *Updater) Run() {
 	u.Log.Info("Starting Updater with following options:\n\tinterval of: %s\n\tendpoint: %s",
-		u.Interval, u.endpointVersion(protocol.Environment))
+		u.Interval, u.endpointVersion(konfig.Environment))
 
 	mounts := make(map[string]struct{})
 	enabled := true

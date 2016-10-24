@@ -59,6 +59,8 @@ func main() {
 	// always set to a number of available cores.
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
+	debug = debug || config.Konfig.Debug
+
 	// The writer used for the logging output. Either a file, or /dev/null
 	var logWriter io.Writer
 
@@ -86,6 +88,10 @@ func main() {
 	log = logging.NewLogger("kd")
 	log.SetHandler(handler)
 	log.Info("kd binary called with: %s", os.Args)
+
+	if debug {
+		log.SetLevel(logging.DEBUG)
+	}
 
 	// Check if the command the user is giving requires sudo.
 	if err := AdminRequired(os.Args, sudoRequiredFor, util.NewPermissions()); err != nil {
@@ -192,10 +198,6 @@ func main() {
 				cli.BoolFlag{
 					Name:  "trace, t",
 					Usage: "Turn on trace logs.",
-				},
-				cli.BoolFlag{
-					Name:  "debug, d",
-					Usage: "Turn on debug logs.",
 				},
 			},
 			Action: ctlcli.FactoryAction(MountCommandFactory, log, "mount"),
@@ -441,11 +443,6 @@ func main() {
 							Name:  "team, t",
 							Usage: "Specify team which the credential belongs to.",
 						},
-						cli.BoolFlag{
-							Name:   "debug",
-							Usage:  "Turn on debug logging.",
-							Hidden: true,
-						},
 					},
 				}, {
 					Name:      "list",
@@ -464,11 +461,6 @@ func main() {
 						cli.StringFlag{
 							Name:  "team, t",
 							Usage: "Specify team which the credential belongs to.",
-						},
-						cli.BoolFlag{
-							Name:   "debug",
-							Usage:  "Turn on debug logging.",
-							Hidden: true,
 						},
 					},
 				}, {
@@ -492,11 +484,6 @@ func main() {
 						cli.StringFlag{
 							Name:  "team, t",
 							Usage: "Specify team which the credential belongs to.",
-						},
-						cli.BoolFlag{
-							Name:   "debug",
-							Usage:  "Turn on debug logging.",
-							Hidden: true,
 						},
 					},
 				}},

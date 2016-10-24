@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -11,10 +12,11 @@ import (
 
 	"koding/kites/config"
 	"koding/klient/app"
-	"koding/klient/protocol"
+	konfig "koding/klient/config"
 	"koding/klient/registration"
 )
 
+// TODO(rjeczalik): replace with multiconfig
 var (
 	flagIP          = flag.String("ip", "", "Change public ip")
 	flagPort        = flag.Int("port", 56789, "Change running port")
@@ -49,10 +51,14 @@ var (
 	flagAutoupdate    = flag.Bool("autoupdate", false, "Force turn automatic updates on")
 
 	// Upload log flags
-	flagLogBucketRegion   = flag.String("log-bucket-region", defaultBucketRegion(), "Change bucket region to upload logs")
-	flagLogBucketName     = flag.String("log-bucket-name", defaultBucketName(), "Change bucket name to upload logs")
-	flagKeygenURL         = flag.String("log-keygen-url", defaultKeygenURL(), "Change keygen endpoint URL for bucket authorization")
+	flagLogBucketRegion   = flag.String("log-bucket-region", "", "Change bucket region to upload logs")
+	flagLogBucketName     = flag.String("log-bucket-name", "", "Change bucket name to upload logs")
+	flagKeygenURL         = flag.String("log-keygen-url", "", "Change keygen endpoint URL for bucket authorization")
 	flagLogUploadInterval = flag.Duration("log-upload-interval", 90*time.Minute, "Change interval of upload logs")
+
+	// Metadata flags.
+	flagMetadata     = flag.String("metadata", "", "Base64-encoded Koding metadata")
+	flagMetadataFile = flag.String("metadata-file", "", "Koding metadata file")
 )
 
 func defaultKiteHome() string {
@@ -64,18 +70,6 @@ func defaultKiteHome() string {
 
 func defaultNoTunnel() bool {
 	return os.Getenv("KITE_NO_TUNNEL") == "1"
-}
-
-func defaultKeygenURL() string {
-	return config.Builtin.Endpoints.URL("kloud", protocol.Environment)
-}
-
-func defaultBucketName() string {
-	return config.Builtin.Buckets.ByEnv("publiclogs", protocol.Environment).Name
-}
-
-func defaultBucketRegion() string {
-	return config.Builtin.Buckets.ByEnv("publiclogs", protocol.Environment).Region
 }
 
 func main() {
@@ -93,25 +87,41 @@ func realMain() int {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	if *flagVersion {
-		fmt.Println(protocol.Version)
+		fmt.Println(konfig.Version)
 		return 0
 	}
+
+	debug := *flagDebug || konfig.Konfig.Debug
 
 	if *flagRegister {
-		if err := registration.Register(*flagKontrolURL, *flagKiteHome, *flagUsername, *flagToken, *flagDebug); err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
+		if err := registration.Register(*flagKontrolURL, *flagKiteHome, *flagUsername, *flagToken, debug); err != nil {
+			fmt.Fprintln(os.Stderr, err)
 			return 1
 		}
+
+		// Create new konfig.bolt with variables used during registration.
+		kfg := &config.Konfig{
+			KontrolURL:         *flagKontrolURL,
+			TunnelURL:          *flagTunnelName,
+			KloudURL:           *flagKeygenURL,
+			PublicBucketName:   *flagLogBucketName,
+			PublicBucketRegion: *flagLogBucketRegion,
+		}
+
+		if *flagKiteHome != "" {
+			kfg.KiteKeyFile = filepath.Join(*flagKiteHome, "kite.key")
+		}
+
+		if err := config.DumpToBolt("", config.Metadata{"konfig": kfg}, nil); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			return 1
+		}
+
 		return 0
 	}
 
-	dbPath := ""
-	vagrantHome := ""
-	u, err := user.Current()
-	if err == nil {
-		dbPath = filepath.Join(u.HomeDir, filepath.FromSlash(".config/koding/klient.bolt"))
-		vagrantHome = filepath.Join(u.HomeDir, ".vagrant.d")
-	}
+	dbPath := filepath.Join(config.CurrentUser.HomeDir, filepath.FromSlash(".config/koding/klient.bolt"))
+	vagrantHome := filepath.Join(config.CurrentUser.HomeDir, ".vagrant.d")
 
 	if *flagDBPath != "" {
 		dbPath = *flagDBPath
@@ -124,16 +134,16 @@ func realMain() int {
 	}
 
 	conf := &app.KlientConfig{
-		Name:              protocol.Name,
-		Environment:       protocol.Environment,
-		Region:            protocol.Region,
-		Version:           protocol.Version,
+		Name:              konfig.Name,
+		Environment:       konfig.Environment,
+		Region:            konfig.Region,
+		Version:           konfig.Version,
 		DBPath:            dbPath,
 		IP:                *flagIP,
 		Port:              *flagPort,
 		RegisterURL:       *flagRegisterURL,
 		KontrolURL:        *flagKontrolURL,
-		Debug:             *flagDebug,
+		Debug:             debug,
 		UpdateInterval:    *flagUpdateInterval,
 		UpdateURL:         *flagUpdateURL,
 		ScreenrcPath:      *flagScreenrc,
@@ -147,9 +157,15 @@ func realMain() int {
 		LogBucketName:     *flagLogBucketName,
 		LogKeygenURL:      *flagKeygenURL,
 		LogUploadInterval: *flagLogUploadInterval,
+		Metadata:          *flagMetadata,
+		MetadataFile:      *flagMetadataFile,
 	}
 
-	a := app.NewKlient(conf)
+	a, err := app.NewKlient(conf)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	defer a.Close()
 
 	// Run Forrest, Run!

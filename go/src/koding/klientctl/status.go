@@ -251,11 +251,6 @@ func (c *HealthChecker) RemoteRequirements() error {
 		return ErrKodingService{ServiceName: "kontrol", Message: err.Error()}
 	}
 
-	// Check if tunnel http is accessible.
-	if err := c.checkKiteHttp(c.TunnelKiteAddress); err != nil {
-		return ErrKodingService{ServiceName: "tunnel", Message: err.Error()}
-	}
-
 	return nil
 }
 

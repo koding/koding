@@ -139,7 +139,6 @@ remove_service() {
 }
 
 download_klient() {
-	KONTROLURL=${KONTROLURL:-https://koding.com/kontrol/kite}
 	CHANNEL=${CHANNEL:-managed}
 	VERSION=$(curl -sSL https://koding-klient.s3.amazonaws.com/${CHANNEL}/latest-version.txt)
 
@@ -195,10 +194,9 @@ EOF
 	return 0
 }
 
-# do_install_klient <KONTROLURL> <KITE_USERNAME>
+# do_install_klient <KITE_USERNAME>
 do_install_klient() {
-	local kontrolurl=${1:-https://koding.com/kontrol/kite}
-	local username=${2:-}
+	local username=${1:-}
 
 	if does_service_exist; then
 		if ! remove_service; then
@@ -233,7 +231,6 @@ done
 # start klient
 
 export HOME=\$(eval cd ~\${USERNAME}; pwd)
-export KITE_KONTROL_URL=\${KITE_KONTROL_URL:-https://koding.com/kontrol/kite}
 export PATH=\$PATH:/usr/local/bin
 
 ulimit -n 5000
@@ -270,8 +267,6 @@ Copyright (C) 2012-2016 Koding Inc., all rights reserved.
 			<string>$(whoami)</string>
 			<key>KITE_USERNAME</key>
 			<string>${username}</string>
-			<key>KITE_KONTROL_URL</key>
-			<string>${kontrolurl}</string>
 			<key>KITE_HOME</key>
 			<string>/etc/kite</string>
 	</dict>
@@ -293,10 +288,10 @@ EOF
 
 	if [[ ${is_macosx} -eq 1 ]]; then
 		sudo sed -i "" -e "s|\%USERNAME\%|$(whoami)|g" "${init_file}"
-		sudo sed -i "" -e "s|\%START_COMMAND\%|/opt/kite/klient/klient -kontrol-url ${kontrolurl}|g" "${init_file}"
+		sudo sed -i "" -e "s|\%START_COMMAND\%|/opt/kite/klient/klient|g" "${init_file}"
 	else
 		sudo sed -i -e "s|\%USERNAME\%|$(whoami)|g" "${init_file}"
-		sudo sed -i -e "s|\%START_COMMAND\%|/opt/kite/klient/klient -kontrol-url ${kontrolurl}|g" "${init_file}"
+		sudo sed -i -e "s|\%START_COMMAND\%|/opt/kite/klient/klient|g" "${init_file}"
 	fi
 
 	if ! install_service; then
@@ -407,9 +402,9 @@ Authenticating you to the Koding Service
 EOF
 
 	export KITE_USERNAME=${2:-}
-	export KONTROLURL=${KONTROLURL:-https://koding.com/kontrol/kite}
+	export KONTROLURL=${KONTROLURL:-}
 
-	if ! do_install_klient "$KONTROLURL" "$KITE_USERNAME"; then
+	if ! do_install_klient "$KITE_USERNAME"; then
 		exit 2
 	fi
 
@@ -417,7 +412,7 @@ EOF
 	stop_klient
 
 	# It's ok $1 to be empty, in that case it'll try to register via password input
-	if ! sudo -E /opt/kite/klient/klient -register -kite-home "/etc/kite" --kontrol-url "$KONTROLURL" -token "${1:-}" -username "$KITE_USERNAME" < /dev/tty; then
+	if ! sudo -E /opt/kite/klient/klient -register --kontrol-url "$KONTROLURL" -token "${1:-}" -username "$KITE_USERNAME" < /dev/tty; then
 		cat << EOF
 $err: Service failed to register with Koding. If this continues to happen,
 please contact support@koding.com
