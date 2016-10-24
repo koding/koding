@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/user"
 	"path/filepath"
 	"runtime"
 	"time"
@@ -27,7 +26,7 @@ var (
 	flagDBPath      = flag.String("dbpath", "", "Bolt DB database path. Must be absolute)")
 
 	// Registration flags
-	flagKiteHome   = flag.String("kite-home", defaultKiteHome(), "Change kite home path")
+	flagKiteHome   = flag.String("kite-home", "", "Change kite home path")
 	flagUsername   = flag.String("username", "", "Username to be registered to Kontrol")
 	flagToken      = flag.String("token", "", "Token to be passed to Kontrol to register")
 	flagRegister   = flag.Bool("register", false, "Register to Kontrol with your Koding Password")
@@ -61,13 +60,6 @@ var (
 	flagMetadataFile = flag.String("metadata-file", "", "Koding metadata file")
 	flagNoExit       = flag.Bool("no-exit", false, "Keeps klient running after dumping metadata")
 )
-
-func defaultKiteHome() string {
-	if u, err := user.Current(); err == nil {
-		return filepath.Join(u.HomeDir, ".kite")
-	}
-	return "."
-}
 
 func defaultNoTunnel() bool {
 	return os.Getenv("KITE_NO_TUNNEL") == "1"
