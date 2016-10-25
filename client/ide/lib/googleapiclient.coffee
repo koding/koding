@@ -3,6 +3,7 @@ KDObject = kd.Object
 KodingAppsController = require 'app/kodingappscontroller'
 IDEMetrics = require './idemetrics'
 $ = require 'jquery'
+
 GOOGLE_OATH_SCOPES = 'email, https://www.googleapis.com/auth/drive.metadata.readonly'
 firebase = new Firebase("https://KodingApp.firebaseio.com");
 
