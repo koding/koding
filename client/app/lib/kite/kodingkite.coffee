@@ -3,6 +3,8 @@ kitejs     = require 'kite.js'
 Promise    = require 'bluebird'
 KiteCache  = require './kitecache'
 KiteLogger = require '../kitelogger'
+KiteCommandBuffer = require './kitecommandbuffer'
+uuid = require 'node-uuid'
 
 
 module.exports = class KodingKite extends kd.Object
@@ -28,6 +30,8 @@ module.exports = class KodingKite extends kd.Object
     super options
 
     { name } = options
+
+    @commandBuffer = new KiteCommandBuffer kite: this
 
     @on 'open', =>
       @isDisconnected = no # This one is for the manual disconnect request ~ GG
@@ -89,15 +93,21 @@ module.exports = class KodingKite extends kd.Object
 
             KiteLogger.started name, rpcMethod
 
+            # label the calls, doesn't mean anything, just to track
+            # tell states (tell.success, tell.fail)
+            id = uuid.v4()
+            @emit 'tell', id, rpcMethod, args
+
             resolve (@transport?.tell args...
 
-              .then (res) ->
+              .then (res) =>
 
                 KiteLogger.success name, rpcMethod
+                @emit 'tell.success', id, rpcMethod, res
                 return res
 
               .catch (err) =>
-
+                @emit 'tell.fail', id, rpcMethod, err
                 if _errPromise = @handleKiteError err, args
                   return _errPromise
 
@@ -199,3 +209,4 @@ module.exports = class KodingKite extends kd.Object
 
         resolve @waitingCalls[cid]
         delete  @waitingCalls[cid]
+
