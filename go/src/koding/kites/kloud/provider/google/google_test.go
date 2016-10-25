@@ -140,6 +140,13 @@ func TestValidators(t *testing.T) {
 			},
 			IsValid: false,
 		},
+		{
+			// 12 //
+			Validator: &Bootstrap{
+				KodingNetworkID: ``,
+			},
+			IsValid: false,
+		},
 	}
 
 	for i, test := range tests {

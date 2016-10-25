@@ -7,24 +7,85 @@
     }
   },
   "output": {
-    "koding_firewall": {
-      "value": "${google_compute_firewall.koding.self_link}"
+    "koding_network_id": {
+      "value": "${google_compute_network.koding.id}"
     }
   },
   "resource": {
-    "google_compute_firewall": {
+    "google_compute_network": {
       "koding": {
-        "name": "gce-koding-firewall",
-        "network": "default",
+        "name": "{{.NetworkName}}",
+        "auto_create_subnetworks" : true
+      }
+    },
+    "google_compute_firewall": {
+      "koding-allow-http": {
+        "name": "{{.FirewallNameHTTP}}",
+        "network": "${google_compute_network.koding.name}",
+        "source_ranges": ["0.0.0.0/0"],
+
         "allow": {
           "protocol": "tcp",
-          "ports": [
-            "56789"
-          ]
-        },
-        "source_ranges": [
-          "0.0.0.0/0"
+          "ports": ["80"]
+        }
+      },
+      "koding-allow-icmp": {
+        "name": "{{.FirewallNameICMP}}",
+        "network": "${google_compute_network.koding.name}",
+        "source_ranges": ["0.0.0.0/0"],
+
+        "allow": {
+          "protocol": "icmp"
+        }
+      },
+      "koding-allow-internal": {
+        "name": "{{.FirewallNameInternal}}",
+        "network": "${google_compute_network.koding.name}",
+        "source_ranges": ["${var.koding_network_ipv4_range}"],
+
+        "allow": [
+          {
+            "protocol": "tcp",
+            "ports": ["0-65535"]
+          },
+          {
+            "protocol": "udp",
+            "ports": ["0-65535"]
+          },
+          {
+            "protocol": "icmp"
+          }
         ]
+      },
+      "koding-allow-rdp": {
+        "name": "{{.FirewallNameRDP}}",
+        "network": "${google_compute_network.koding.name}",
+        "source_ranges": ["0.0.0.0/0"],
+
+        "allow": {
+          "protocol": "tcp",
+          "ports": ["3389"]
+        }
+      },
+      "koding-allow-ssh": {
+        "name": "{{.FirewallNameSSH}}",
+        "network": "${google_compute_network.koding.name}",
+        "source_ranges": ["0.0.0.0/0"],
+
+        "allow": {
+          "protocol": "tcp",
+          "ports": ["22"]
+        }
+      },
+      "koding-allow-klient": {
+        "name": "{{.FirewallNameKlient}}",
+        "network": "${google_compute_network.koding.name}",
+        "source_ranges": ["0.0.0.0/0"],
+
+        "allow": {
+          "protocol": "tcp",
+          "ports": ["56789"]
+        }
       }
     }
   },
@@ -37,6 +98,9 @@
         "us-east1": "us-east1-b",
         "us-west1": "us-west1-a"
       }
+    },
+    "koding_network_ipv4_range": {
+      "default": "10.128.0.0/9"
     }
   }
 }

@@ -24,7 +24,15 @@ const (
 
 var bootstrap = template.Must(template.New("").Parse(mustAsset("bootstrap.json.tmpl")))
 
-type bootstrapConfig struct{}
+type bootstrapConfig struct {
+	NetworkName          string
+	FirewallNameHTTP     string
+	FirewallNameICMP     string
+	FirewallNameInternal string
+	FirewallNameRDP      string
+	FirewallNameSSH      string
+	FirewallNameKlient   string
+}
 
 // Stack implements the stack.Stack interface.
 type Stack struct {
@@ -67,7 +75,17 @@ func (s *Stack) VerifyCredential(c *stack.Credential) error {
 }
 
 func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, error) {
-	t, err := newBootstrapTemplate(&bootstrapConfig{})
+	cfg := &bootstrapConfig{
+		NetworkName:          "koding-vn-" + c.Identifier,
+		FirewallNameHTTP:     "koding-allow-http-" + c.Identifier,
+		FirewallNameICMP:     "koding-allow-icmp-" + c.Identifier,
+		FirewallNameInternal: "koding-allow-internal-" + c.Identifier,
+		FirewallNameRDP:      "koding-allow-rdp-" + c.Identifier,
+		FirewallNameSSH:      "koding-allow-ssh-" + c.Identifier,
+		FirewallNameKlient:   "koding-allow-klient-" + c.Identifier,
+	}
+
+	t, err := newBootstrapTemplate(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -79,6 +97,8 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 
 func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	t := s.Builder.Template
+
+	boot := c.Bootstrap.(*Bootstrap)
 
 	var resource struct {
 		GCInstance map[string]map[string]interface{} `hcl:"google_compute_instance"`
@@ -122,7 +142,7 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 		// Set default network interface if user didn't define it herself.
 		if _, ok := instance["network_interface"]; !ok {
 			instance["network_interface"] = map[string]interface{}{
-				"network":       "default",
+				"network":       boot.KodingNetworkID,
 				"access_config": map[string]interface{}{},
 			}
 		}
