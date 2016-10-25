@@ -4,7 +4,7 @@ module.exports = class Google extends ProviderInterface
 
   @providerSlug  = 'google'
 
-  @bootstrapKeys = []
+  @bootstrapKeys = ['koding_network_id']
 
   @sensitiveKeys = ['credentials']
 
@@ -15,20 +15,14 @@ module.exports = class Google extends ProviderInterface
 
   @create = (client, options, callback) ->
 
-    { credential, name } = options
+    { credential, instance_type, region, image, storage_size, label } = options
 
-    @fetchCredentialData client, credential, (err, credential) ->
+    meta =
+      type          : @providerSlug
+      assignedLabel : label
+      region        : region ? 'us-central1-a'
+      instance_type : instance_type ? 'f1-micro'
+      storage_size  : storage_size ? 8
+      image         : image
 
-      return callback err  if err?
-
-      meta = {
-        'type': 'googlecompute',
-        'bucket_name': 'my-project-packer-images',
-        'client_secrets_file': credential.clientSecretsContent,
-        'private_key_file': credential.privateKeyContent,
-        'project_id': credential.projectId,
-        'source_image': 'debian-7-wheezy-v20131014',
-        'zone': 'us-central1-a'
-      }
-
-      callback null, { meta }
+    callback null, { meta }
