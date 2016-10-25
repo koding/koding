@@ -21,6 +21,7 @@ COMMON_STYLES_PATH = path.join CLIENT_PATH, 'app/styl/**/*.styl'
 PUBNUB_PATH        = path.join THIRD_PARTY_PATH, 'pubnub.min.js'
 IMAGES_PATH        = path.join WEBSITE_PATH, 'a', 'images'
 COMPONENT_LAB_PATH = path.join CLIENT_PATH, 'component-lab'
+MOCKS_PATH         = path.join CLIENT_PATH, 'mocks'
 
 # we are gonna set NODE_ENV to either `production` or `development` to figure
 # out the compile target.
@@ -73,6 +74,7 @@ webpackConfig.resolve =
     assets: ASSETS_PATH
     images: IMAGES_PATH
     lab: COMPONENT_LAB_PATH
+    mocks: MOCKS_PATH
 
 # Loader config
 
