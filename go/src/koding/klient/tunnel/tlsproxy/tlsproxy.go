@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"sync/atomic"
@@ -33,22 +32,12 @@ func Init() error {
 		return errors.New("not implemented")
 	}
 
-	fr, err := os.Open("/etc/hosts")
+	f, err := os.OpenFile("/etc/hosts", os.O_RDWR|os.O_APPEND, 0644)
 	if err != nil {
 		return err
 	}
 
-	// Atomic write - write to in-mem buffer, flush buffer to a temporary
-	// file, rename temporary <-> target file.
-	fw, err := ioutil.TempFile(filepath.Split("/etc/hosts"))
-	if err != nil {
-		return nonil(err, fr.Close())
-	}
-
-	var buf bytes.Buffer
-	var found bool
-
-	scanner := bufio.NewScanner(io.TeeReader(fr, &buf))
+	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		fields := strings.Fields(scanner.Text())
 
@@ -57,34 +46,17 @@ func Init() error {
 		}
 
 		if fields[0] == "127.0.0.1" && fields[1] == pem.Hostname {
-			found = true
-			break
+			f.Close()
+			return nil
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		return nonil(err, fr.Close(), fw.Close(), os.Remove(fw.Name()))
+		return err
 	}
 
-	if found {
-		return nil
-	}
-
-	fmt.Fprintln(&buf, "127.0.0.1", pem.Hostname)
-
-	if _, err := io.Copy(fw, &buf); err != nil {
-		return nonil(err, fr.Close(), fw.Close(), os.Remove(fw.Name()))
-	}
-
-	if err := nonil(fw.Sync(), fw.Close(), os.Chmod(fw.Name(), 0644)); err != nil {
-		return nonil(err, fr.Close(), os.Remove(fw.Name()))
-	}
-
-	if err := nonil(os.Remove(fr.Name()), os.Rename(fw.Name(), fr.Name())); err != nil {
-		return nonil(err, os.Remove(fw.Name()))
-	}
-
-	return nil
+	_, err = fmt.Fprintln(f, "127.0.0.1", pem.Hostname)
+	return nonil(err, f.Close())
 }
 
 type Proxy struct {
