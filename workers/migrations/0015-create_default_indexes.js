@@ -1,7 +1,7 @@
 var mongodb = require('mongodb');
 var async = require('async');
 
-data = {
+indexes = {
   "relationships": [{
     "name": "_id_",
     "key": {
@@ -93,11 +93,58 @@ data = {
     },
     "ns": "koding.jRegistrationPreferences"
   }],
+  "jRewards": [{
+    "name": "reward",
+    "key": {
+      "providedBy": 1,
+      "originId": 1,
+      "sourceCampaign": 1
+    },
+    "ns": "koding.jRewards",
+    "unique": true,
+    "sparse": true
+  }],
+  "jSessions": [{
+    "name": "guestSessionBegan",
+    "key": {
+      "guestSessionBegan": 1
+    },
+    "ns": "koding.jSessions",
+    "expireAfterSeconds": 3600
+  }, {
+    "name": "sessionBegan",
+    "key": {
+      "sessionBegan": 1
+    },
+    "ns": "koding.jSessions",
+    "expireAfterSeconds": 1209600
+  }],
   "jPermissionSets": [{
     "name": "_id_",
     "key": {
       "_id": 1
     },
+    "ns": "koding.jPermissionSets"
+  }, {
+    "name": "permissions.roles_1",
+    "key": {
+      "permissions.roles": 1
+    },
+    "sparse": true,
+    "ns": "koding.jPermissionSets"
+  }, {
+    "name": "permissions.module_1",
+    "key": {
+      "permissions.module": 1
+    },
+    "sparse": true,
+    "ns": "koding.jPermissionSets"
+  }, {
+    "name": "permissions.title_1",
+    "key": {
+      "permissions.title": 1
+    },
+    "sparse": true,
     "ns": "koding.jPermissionSets"
   }],
   "jNames": [{
@@ -168,6 +215,13 @@ data = {
       "isExempt": 1
     },
     "ns": "koding.jAccounts"
+  }, {
+    "name": "profile.nickname_1",
+    "key": {
+      "profile.nickname": 1
+    },
+    "ns": "koding.jAccounts",
+    "unique": true
   }],
   "jCounters": [{
     "v": 1,
@@ -190,19 +244,11 @@ data = {
 }
 
 exports.up = function(db, next){
-  async.eachOfSeries(data, function (items, collName, cb) {
-      coll = db.collection(collName);
+  async.eachOfSeries(indexes, function (items, collName, cb) {
       async.eachOfLimit(items, 4, function (item, i, callback) {
           var keys = item.key;
           var options = item;
-          delete options.key;
-          delete options.ns;
-          coll.ensureIndex(keys, options, function(err){
-            if(err && err.code == 11000){
-              return callback(null);
-            }
-            return callback(null);
-          });
+          db.ensureIndex(collName, keys, options, next);
       }, cb);
   }, next);
 };
