@@ -110,6 +110,10 @@ module.exports = globals.config.providers =
     description            : 'Google compute engine'
     instanceTypes          : require './instance-types/gce'
     advancedFields         : []
+    attributeMapping       :
+      image                : 'disk.0.image' # getting the first disk image ~ GG
+      instance_type        : 'machine_type'
+      region               : 'zone'
     credentialFields       :
       project              :
         label              : 'Project ID'
