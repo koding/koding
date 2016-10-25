@@ -24,6 +24,14 @@ module.exports = class AccountCredentialList extends KodingListView
   showCredential: (options = {}) ->
 
     { credential, cred } = options
+    
+    content = "<p><pre><code>#{cred}</code></pre></p>"
+    
+    scrollView = new kd.CustomScrollView { cssClass : 'readme-scroll' }
+    
+    scrollView.wrapper.addSubView markdown_content = new kd.CustomHTMLView
+      cssClass : 'markdown-content'
+      partial : content
 
     new ContentModal
       width : 600
@@ -31,7 +39,7 @@ module.exports = class AccountCredentialList extends KodingListView
       title : "<h1 class=#{credential.provider}><span>#{credential.title} Preview</span></h1>"
       cssClass : 'has-markdown content-modal'
       overlayOptions : { cssClass : 'second-overlay' }
-      content : "<p><pre><code>#{cred}</code></pre></p>"
+      content : scrollView
 
 
 
