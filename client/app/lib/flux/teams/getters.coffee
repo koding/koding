@@ -87,7 +87,8 @@ filteredMembersWithRole = [
     members.filter (member) -> isValidMemberValue member, value
 ]
 
-isIncludeMember = (member, value) ->
+
+isMemberIncluded = (member, value) ->
   if value is 'invited'
     member.get('status') is 'pending'
   else if member.get('status') is 'pending'
@@ -101,7 +102,7 @@ filteredMembersByKey = [
   roleFilterKey
   (members, value) ->
     return members  if value is 'all' or value is ''
-    members.filter (member) -> isIncludeMember member, value
+    members.filter (member) -> isMemberIncluded member, value
 ]
 
 
