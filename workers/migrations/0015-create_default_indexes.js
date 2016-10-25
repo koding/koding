@@ -248,7 +248,7 @@ exports.up = function(db, next){
       async.eachOfLimit(items, 4, function (item, i, callback) {
           var keys = item.key;
           var options = item;
-          db.ensureIndex(collName, keys, options, next);
+          db.ensureIndex(collName, keys, options, callback);
       }, cb);
   }, next);
 };
