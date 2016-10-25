@@ -169,27 +169,24 @@ data = {
     },
     "ns": "koding.jAccounts"
   }],
-  "jCounters":[
-  {
-    "v" : 1,
-    "name" : "_id_",
-    "key" : {
-      "_id" : 1
+  "jCounters": [{
+    "v": 1,
+    "name": "_id_",
+    "key": {
+      "_id": 1
     },
-    "ns" : "koding.jCounters"
-  },
-  {
-    "v" : 1,
-    "name" : "namespace-type",
-    "key" : {
-      "namespace" : 1,
-      "type" : 1
+    "ns": "koding.jCounters"
+  }, {
+    "v": 1,
+    "name": "namespace-type",
+    "key": {
+      "namespace": 1,
+      "type": 1
     },
-    "unique" : true,
-    "ns" : "koding.jCounters",
-    "sparse" : true
-  }
-]
+    "unique": true,
+    "ns": "koding.jCounters",
+    "sparse": true
+  }]
 }
 
 exports.up = function(db, next){
