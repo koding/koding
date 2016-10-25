@@ -229,12 +229,6 @@ testeventsender:
 	@./eventsender.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm  ./eventsender.test
 
-testpermission:
-	@echo "$(OK_COLOR)--> permission tests... $(NO_COLOR)"
-	@`which go` test -c workers/permission/tests/*.go
-	@./permission.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm  ./permission.test
-
 testteam: testteamunit testteamintegration
 
 testteamunit:
@@ -369,12 +363,6 @@ testapi: testcollaboration testmailsender testmail testmodels testemailworker \
 	@echo "$(OK_COLOR)--> all api tests... $(NO_COLOR)"
 
 	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
-
-
-	@echo "$(OK_COLOR)--> permission tests... $(NO_COLOR)"
-	@`which go` test -c workers/permission/tests/*.go
-	@./permission.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm  ./permission.test
 
 	@echo "$(OK_COLOR)--> handler tests... $(NO_COLOR)"
 	@`which go` test -c workers/common/handler/*.go

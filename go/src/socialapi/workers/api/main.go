@@ -28,7 +28,6 @@ import (
 	notificationapi "socialapi/workers/notification/api"
 	"socialapi/workers/payment"
 	paymentapi "socialapi/workers/payment/api"
-	permissionapi "socialapi/workers/permission/api"
 	presenceapi "socialapi/workers/presence/api"
 	realtimeapi "socialapi/workers/realtime/api"
 	sitemapapi "socialapi/workers/sitemap/api"
@@ -60,7 +59,6 @@ func main() {
 	m.SetRedis(redisConn)
 
 	handlers.AddHandlers(m)
-	permissionapi.AddHandlers(m)
 	topicmoderationapi.AddHandlers(m)
 	collaboration.AddHandlers(m)
 	paymentapi.AddHandlers(m)

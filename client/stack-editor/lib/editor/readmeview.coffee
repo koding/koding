@@ -11,7 +11,7 @@ module.exports = class ReadmeView extends kd.View
     super options, data
 
     { stackTemplate } = @getData()
-    { @canUpdate } = @getOptions
+    { @canUpdate } = @getOptions()
 
     content = if stackTemplate?.description \
       then Encoder.htmlDecode stackTemplate?.description

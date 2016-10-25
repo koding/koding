@@ -151,8 +151,8 @@ module.exports = class StackTemplateItem extends React.Component
           { makeTitle { template, stack } }
         </a>
         {@renderDefaultTag()}
+        {@renderUnreadCount()}
       </div>
-      {@renderUnreadCount()}
       {@renderStackUpdatedWidget()}
       <div className='HomeAppViewListItem-description'>
         Last updated <TimeAgo from={template.getIn ['meta', 'modifiedAt']} />
