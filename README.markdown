@@ -49,8 +49,10 @@ You are now ready to run Koding.
 ```bash
 git clone https://github.com/koding/koding.git
 cd koding
+docker-compose -f docker-compose-init.yml run init
 docker-compose up
 ```
+
 If you don't have a powerful computer, this may take a while at first, slow computers may take up to 15 minutes before they build the entire system. Please be patient. Once it is up and running, everything will be smooth and very fast.
 
 Now you can navigate to http://localhost:8090 to see your local Koding
