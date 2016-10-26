@@ -11,6 +11,10 @@ module.exports = class KiteCommandBuffer extends kd.Object
 
   constructor: (options = {}) ->
 
+    # activating this will start logging to console.
+    # use `commandBuffer.setOption('debug', yes)` to activate it on runtime.
+    options.debug ?= no
+
     super options
 
     { kite } = options
@@ -19,6 +23,9 @@ module.exports = class KiteCommandBuffer extends kd.Object
     @storage = kd.utils.dict()
 
     @bindKiteEvents()
+
+
+  debug: (args...) -> @getOption('debug') and debug args...
 
 
   bindKiteEvents: ->
@@ -36,16 +43,20 @@ module.exports = class KiteCommandBuffer extends kd.Object
 
   onTellSuccess: (id, method, result) ->
 
-    debug 'log', "~~~~~ SUCCESS (#{@kite.options.name}) ~~~~~"
+    @debug 'log', "~~~~~ SUCCESS (#{@kite.options.name}) ~~~~~"
+
     @storage[id] = _.assign {}, @storage[id], { result }
     @emit 'change'
-    debug 'log', @storage[id]
+
+    @debug 'log', @storage[id]
 
 
   onTellFail: (id, method, error) ->
 
-    debug 'error', '~~~~~ ERROR ~~~~~'
+    @debug 'error', '~~~~~ ERROR ~~~~~'
+
     @storage[id] = _.assign {}, @storage[id], { error }
     @emit 'change'
-    debug 'error', error
+
+    @debug 'error', error
 
