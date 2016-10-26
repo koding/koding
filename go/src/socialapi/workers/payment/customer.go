@@ -61,6 +61,11 @@ func EnsureCustomerForGroup(username string, groupName string, req *stripe.Custo
 		return customer.Get(group.Payment.Customer.ID, nil)
 	}
 
+	isAdmin, err := modelhelper.IsAdmin(username, groupName)
+	if err != nil {
+		return nil, err
+	}
+
 	req, err = populateCustomerParams(username, group.Slug, req)
 	if err != nil {
 		return nil, err
@@ -75,7 +80,8 @@ func EnsureCustomerForGroup(username string, groupName string, req *stripe.Custo
 		modelhelper.Selector{"_id": group.Id},
 		modelhelper.Selector{
 			"$set": modelhelper.Selector{
-				"payment.customer.id": cus.ID,
+				"payment.customer.id":       cus.ID,
+				"payment.customer.isMember": !isAdmin,
 			},
 		},
 	); err != nil {
