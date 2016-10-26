@@ -645,15 +645,6 @@ class IDEAppController extends AppController
       unless machineItem instanceof Machine
         machineItem = new Machine { machine: machineItem }
 
-      # Don't run these lines on `Teams` scope.
-      # Because `Teams` uses new Sidebar with React + Flux
-      if not isTeamReactSide() and not machineItem.isMine() and not machineItem.isApproved()
-        { activitySidebar } = kd.singletons.mainView
-        box = activitySidebar.getMachineBoxByMachineUId machineItem.uid
-        box.machineItem.showSharePopup { sticky: yes, workspaceId: @workspaceData.getId() }
-
-        withFakeViews = yes
-
       @setMountedMachine machineItem
       @prepareIDE withFakeViews
 
