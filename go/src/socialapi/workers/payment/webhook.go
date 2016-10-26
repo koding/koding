@@ -366,7 +366,7 @@ func handleInvoiceStateChange(invoice *stripe.Invoice) error {
 		return err
 	}
 
-	if cus.Subs.Count != 1 {
+	if cus.Subs.Count > 1 {
 		// TODO CRITICAL
 		return errors.New("customer should only have one subscription")
 	}
