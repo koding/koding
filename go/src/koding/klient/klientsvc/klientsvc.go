@@ -97,6 +97,8 @@ func (s *Service) Uninstall() error {
 		return err
 	}
 
+	_ = svc.Stop()
+
 	return svc.Uninstall()
 }
 
