@@ -121,22 +121,11 @@ func (ub *UserBucket) userPut(path string, rs io.ReadSeeker) (*url.URL, error) {
 		return nil, err
 	}
 
-	u := &url.URL{
+	return &url.URL{
 		Scheme: "https",
 		Path:   "/" + path,
-	}
-
-	// S3 bucket endpoints, for more details see:
-	//
-	//   http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingBucket.html
-	//
-	if ub.cfg.Region == "us-east-1" {
-		u.Host = ub.cfg.Bucket + ".s3.amazonaws.com"
-	} else {
-		u.Host = ub.cfg.Bucket + ".s3-" + ub.cfg.Region + ".amazonaws.com"
-	}
-
-	return u, nil
+		Host:   ub.cfg.Bucket + ".s3.amazonaws.com",
+	}, nil
 }
 
 // mustJSON returns a JSON representation of v as a string,
