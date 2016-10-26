@@ -23,10 +23,6 @@
   linkedin: georgesibble
   github: sibblegp
 
-- name: James Ash
-  title: VP Sales & BD
-  linkedin: jameswash
-
 - name: Gokmen Goksel
   title: Engineering Lead
   twitter: gokmen
@@ -74,13 +70,6 @@
   title: Product Design Lead
   twitter: ftasdelen
   linkedin: ftasdelen
-
-- name: Ezgi Kaysı Kesler
-  title: Engineer
-  role: QA
-  twitter: ezgikaysi
-  linkedin: ezgikaysikesler
-  github: ezgikaysi
 
 # - cssClass: 'invisible' # this is a spacer if needed
 - name: Hector Caceres
