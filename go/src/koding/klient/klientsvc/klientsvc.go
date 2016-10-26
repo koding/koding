@@ -90,6 +90,16 @@ func (s *Service) Stop() error {
 	return svc.Stop()
 }
 
+// Uninstall uninstalls the service.
+func (s *Service) Uninstall() error {
+	svc, err := service.New(nopService{}, s.config())
+	if err != nil {
+		return err
+	}
+
+	return svc.Uninstall()
+}
+
 func (s *Service) config() *service.Config {
 	return &service.Config{
 		Name:        "klient",
@@ -122,6 +132,11 @@ func Start() error {
 // Stop stops the DefaultService.
 func Stop() error {
 	return DefaultService.Stop()
+}
+
+// Uninstall uninstalls the DefaultService.
+func Uninstall() error {
+	return DefaultService.Uninstall()
 }
 
 type nopService struct{}

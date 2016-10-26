@@ -180,6 +180,8 @@ func realMain() int {
 		err = klientsvc.Start()
 	case "stop":
 		err = klientsvc.Stop()
+	case "uninstall":
+		err = klientsvc.Uninstall()
 	default:
 		log.Fatalf("unrecognized command: %s", flag.Arg(0))
 	}
