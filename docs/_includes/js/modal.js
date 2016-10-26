@@ -1,9 +1,9 @@
 (function() {
 
-	var showModal = document.querySelectorAll('.showModal'),
+  var showModal = document.querySelectorAll('.showModal'),
       youtube   = document.getElementsByTagName("iframe")[0];
 
-	var initialize = function() {
+  var initialize = function() {
     [].forEach.call(showModal, function(el) {
       el.addEventListener('click', function(e) {
         var close, overlay, modal;
@@ -30,12 +30,14 @@
         });
       });
     })
-	}
-  initialize();
+  }
 
   var toggleVideo = function(youtube, state) {
     var iframe = youtube.contentWindow;
     var func = state == 'hide' ? 'pauseVideo' : 'playVideo';
     iframe.postMessage('{"event":"command","func":"' + func + '","args":""}', '*');
   }
+
+  initialize();
+
 })();
