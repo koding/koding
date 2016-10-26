@@ -19,6 +19,7 @@ module.exports = class MachinesStore extends KodingFluxStore
     @on actions.SET_MACHINE_ALWAYS_ON_FAIL, @setAlwaysOnFail
     @on actions.LOAD_MACHINE_SHARED_USERS, @loadSharedUsers
     @on actions.SHARED_VM_INVITATION_REJECTED, @removeSharedUser
+    @on actions.ADD_TEST_MACHINE, @set
 
 
 
@@ -85,3 +86,6 @@ module.exports = class MachinesStore extends KodingFluxStore
   loadSharedUsers: (machines, { id, users }) ->
 
     machines.setIn [id, 'sharedUsers'], toImmutable users
+
+  set: (machines, machine) -> machines.set machine._id, toImmutable machine
+
