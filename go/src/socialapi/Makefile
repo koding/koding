@@ -34,8 +34,6 @@ PACKAGES = \
 	socialapi/workers/dailyemailnotifier \
 	socialapi/workers/notification \
 	socialapi/workers/pinnedpost \
-	socialapi/workers/popularpost \
-	socialapi/workers/populartopic \
 	socialapi/workers/realtime \
 	socialapi/workers/migrator \
 	socialapi/workers/sitemap/sitemapfeeder \
@@ -47,7 +45,7 @@ PACKAGES = \
 
 all: testapi
 
-develop: apidev realtimedev populartopicdev popularpostdev \
+develop: apidev realtimedev \
 	notificationdev pinnedpostdev algoliaconnectordev \
 	emaildev sitemapdev collaborationdev mailsenderdev topicmoderationdev \
 	teamdev eventsenderdev integrationdev
@@ -61,10 +59,6 @@ apidev:
 realtimedev:
 	@echo "$(OK_COLOR)==> Running Realtime Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/realtime -watch socialapi/workers/realtime/realtime -c $(CONFIG) $(DBG) $(EXTRAS)
-
-populartopicdev:
-	@echo "$(OK_COLOR)==> Running Popular Topics Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/populartopic -watch socialapi/workers/populartopic -c $(CONFIG) $(DBG) $(EXTRAS)
 
 pinnedpostdev:
 	@echo "$(OK_COLOR)==> Running PinnedPost Worker $(NO_COLOR)"
@@ -98,10 +92,6 @@ privatemessageemailsenderdev:
 	@echo "$(OK_COLOR)==> Running Private Message Email Sender Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/privatemessageemailsender -watch socialapi/workers/email/privatemessageemail/privatemessageemailsender -c $(CONFIG) $(DBG) $(EXTRAS)
 
-popularpostdev:
-	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/popularpost -watch socialapi/workers/popularpost -c $(CONFIG) $(DBG) $(EXTRAS)
-
 dispatcherdev:
 	@echo "$(OK_COLOR)==> Running Dispatcher Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/realtime/dispatcher -watch socialapi/workers/realtime/dispatcher -c $(CONFIG) $(DBG) $(EXTRAS)
@@ -117,7 +107,6 @@ collaborationdev:
 mailsenderdev:
 	@echo "$(OK_COLOR)==> Running Mailsender Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/emailsender -watch socialapi/workers/email/emailsender -c $(CONFIG) $(DBG) $(EXTRAS)
-
 
 topicmoderationdev:
 	@echo "$(OK_COLOR)==> Running Topic Moderation Worker $(NO_COLOR)"

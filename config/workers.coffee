@@ -240,20 +240,6 @@ module.exports = (KONFIG, options, credentials) ->
           run           : "#{GOBIN}/notification"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/notification -watch socialapi/workers/notification"
 
-    popularpost         :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/popularpost"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/popularpost -watch socialapi/workers/popularpost"
-
-    populartopic        :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/populartopic"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/populartopic -watch socialapi/workers/populartopic"
-
     pinnedpost          :
       group             : "socialapi"
       supervisord       :
