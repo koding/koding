@@ -45,7 +45,6 @@ userData =
     - echo 127.0.0.1 `hostname` >> /etc/hosts
     - echo 127.0.0.1 freegeoip.net >> /etc/hosts
     - ip -s -s neigh flush all
-    - apt-get install redis-tools
     - cd /opt/koding
     - #{git_fetch}
     - #{git_checkout}
