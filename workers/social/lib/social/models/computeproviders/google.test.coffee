@@ -35,7 +35,7 @@ runTests = -> describe 'workers.social.models.computeproviders.google', ->
 
       it 'should create default meta data', (done) ->
 
-        withConvertedUser ({client}) ->
+        withConvertedUser ({ client }) ->
 
           options =
             type          : 'google'
