@@ -1,8 +1,12 @@
 package main
 
 import (
+	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -154,26 +158,39 @@ func realMain() int {
 		MetadataFile:      *flagMetadataFile,
 	}
 
+	if err := handleMetadata(conf); err != nil {
+		log.Fatalf("error writing Koding metadata: %s", err)
+	}
+
+	if len(flag.Args()) != 0 {
+		if err := handleInternalCommand(flag.Arg(0)); err != nil {
+			log.Fatal(err)
+		}
+
+		return 0
+	}
+
 	a, err := app.NewKlient(conf)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if len(flag.Args()) == 0 {
-		defer a.Close()
-		a.Run()
-		return 0
-	}
+	defer a.Close()
+	a.Run()
 
+	return 0
+}
+
+func handleInternalCommand(cmd string) (err error) {
 	// The following commands are intended for internal use
 	// only. They are used by kloud to install klient
 	// where no kd is available.
 	//
 	// TODO(rjeczalik): we should bundle klient with kd
 	// and have only 1 klient/kd distribution.
-	switch flag.Arg(0) {
+	switch cmd {
 	case "config":
-		err = a.PrintConfig()
+		err = printConfig()
 	case "install":
 		err = klientsvc.Install()
 	case "start":
@@ -190,12 +207,62 @@ func realMain() int {
 
 		err = klientsvc.Start()
 	default:
-		log.Fatalf("unrecognized command: %s", flag.Arg(0))
+		return fmt.Errorf("unrecognized command: %s", cmd)
 	}
 
 	if err != nil {
-		log.Fatalf("internal command failed: %s", err)
+		return fmt.Errorf("internal command failed: %s", err)
 	}
 
-	return 0
+	return nil
+}
+
+func handleMetadata(conf *app.KlientConfig) error {
+	if conf.Metadata != "" && conf.MetadataFile != "" {
+		return errors.New("the -metadata and -metadata-file flags are exclusive")
+	}
+
+	if conf.Metadata != "" {
+		p, err := base64.StdEncoding.DecodeString(conf.Metadata)
+		if err != nil {
+			return errors.New("failed to decode Koding metadata: " + err.Error())
+		}
+
+		conf.Metadata = string(p)
+	}
+
+	if conf.MetadataFile != "" {
+		p, err := ioutil.ReadFile(conf.MetadataFile)
+		if err != nil {
+			return errors.New("failed to read Koding metadata file: " + err.Error())
+		}
+
+		conf.Metadata = string(p)
+	}
+
+	if conf.Metadata != "" {
+		var m config.Metadata
+
+		if err := json.Unmarshal([]byte(conf.Metadata), &m); err != nil {
+			return errors.New("failed to decode Koding metadata: " + err.Error())
+		}
+
+		if err := config.DumpToBolt("", m, nil); err != nil {
+			return errors.New("failed to write Koding metadata: " + err.Error())
+		}
+
+		konfig.Konfig = konfig.ReadKonfig() // re-read konfig after dumping metadata
+	}
+
+	return nil
+}
+
+func printConfig() error {
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "\t")
+
+	return enc.Encode(map[string]interface{}{
+		"builtinKonfig": konfig.Builtin,
+		"konfig":        konfig.Konfig,
+	})
 }

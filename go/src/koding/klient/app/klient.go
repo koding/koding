@@ -2,8 +2,6 @@ package app
 
 import (
 	"bytes"
-	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -21,7 +19,6 @@ import (
 	"sync"
 	"time"
 
-	kfg "koding/kites/config"
 	"koding/klient/client"
 	"koding/klient/collaboration"
 	"koding/klient/command"
@@ -225,42 +222,6 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		// "docker.remove":       true,
 		// "docker.list":         true,
 	})
-
-	if conf.Metadata != "" && conf.MetadataFile != "" {
-		return nil, errors.New("the -metadata and -metadata-file flags are exclusive")
-	}
-
-	if conf.Metadata != "" {
-		p, err := base64.StdEncoding.DecodeString(conf.Metadata)
-		if err != nil {
-			return nil, errors.New("failed to decode Koding metadata: " + err.Error())
-		}
-
-		conf.Metadata = string(p)
-	}
-
-	if conf.MetadataFile != "" {
-		p, err := ioutil.ReadFile(conf.MetadataFile)
-		if err != nil {
-			return nil, errors.New("failed to read Koding metadata file: " + err.Error())
-		}
-
-		conf.Metadata = string(p)
-	}
-
-	if conf.Metadata != "" {
-		var m kfg.Metadata
-
-		if err := json.Unmarshal([]byte(conf.Metadata), &m); err != nil {
-			return nil, errors.New("failed to decode Koding metadata: " + err.Error())
-		}
-
-		if err := kfg.DumpToBolt("", m, nil); err != nil {
-			return nil, errors.New("failed to write Koding metadata: " + err.Error())
-		}
-
-		konfig.Konfig = konfig.ReadKonfig() // re-read konfig after dumping metadata
-	}
 
 	// TODO(rjeczalik): Once klient installation method is reworked,
 	// ensure flags are stored alongside konfig and do not
@@ -741,17 +702,6 @@ func (k *Klient) register(registerURL *url.URL) error {
 func (k *Klient) Close() {
 	k.collab.Close()
 	k.kite.Close()
-}
-
-func (k *Klient) PrintConfig() error {
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetIndent("", "\t")
-
-	return enc.Encode(map[string]interface{}{
-		"klientConfig":  k.config,
-		"builtinKonfig": konfig.Builtin,
-		"konfig":        konfig.Konfig,
-	})
 }
 
 func newKite(kconf *KlientConfig) *kite.Kite {
