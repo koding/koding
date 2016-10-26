@@ -41,14 +41,16 @@ func (s *Service) Install() error {
 
 	cfg := s.config()
 
-	fw, err := os.OpenFile(cfg.Executable, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0755)
-	if err != nil {
-		return err
-	}
+	if absPath := filepath.Abs(s.KlientBin); err != nil || absPath != cfg.Executable {
+		fw, err := os.OpenFile(cfg.Executable, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0755)
+		if err != nil {
+			return err
+		}
 
-	_, err = io.Copy(fw, fr)
-	if err := nonil(err, fw.Close()); err != nil {
-		return err
+		_, err = io.Copy(fw, fr)
+		if err := nonil(err, fw.Close()); err != nil {
+			return err
+		}
 	}
 
 	svc, err := service.New(nopService{}, cfg)
