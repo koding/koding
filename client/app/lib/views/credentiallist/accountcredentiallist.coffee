@@ -27,9 +27,10 @@ module.exports = class AccountCredentialList extends KodingListView
     
     content = "<p><pre><code>#{cred}</code></pre></p>"
     
-    scrollView = new kd.CustomScrollView { cssClass : 'readme-scroll' }
+    scrollView = new kd.CustomScrollView { cssClass : 'credential-scroll' }
     
-    scrollView.wrapper.addSubView markdown_content = new kd.CustomHTMLView
+    scrollView.wrapper.addSubView new kd.CustomHTMLView
+      tagName : 'p'
       cssClass : 'markdown-content'
       partial : content
 
