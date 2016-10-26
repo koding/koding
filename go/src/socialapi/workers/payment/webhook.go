@@ -371,7 +371,12 @@ func handleInvoiceStateChange(invoice *stripe.Invoice) error {
 		return errors.New("customer should only have one subscription")
 	}
 
-	status := cus.Subs.Values[0].Status
+	// on payment failure, sub is deleted eventually
+	status := SubStatusCanceled
+
+	if cus.Subs.Count != 0 {
+		status = cus.Subs.Values[0].Status
+	}
 
 	group, err := modelhelper.GetGroup(cus.Meta["groupName"])
 	// we might get events from other environments where we might not have the
