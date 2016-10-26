@@ -393,6 +393,16 @@ func handleInvoiceStateChange(invoice *stripe.Invoice) error {
 		return nil
 	}
 
+	// if sub is in cancelled state within 2 months send an event
+	if status == SubStatusCanceled {
+		// if group has been created in last 2 months (1 month trial + 1 month free)
+		totalTrialTime := time.Now().UTC().Add(-time.Hour * 24 * 60)
+		if group.Id.Time().After(totalTrialTime) {
+			eventName := "trial ended without payment"
+			sendEventForCustomer(invoice.Customer.ID, eventName, nil)
+		}
+	}
+
 	// send instance notification to group
 	go realtimehelper.NotifyGroup(
 		group.Slug,
