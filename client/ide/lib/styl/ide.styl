@@ -83,24 +83,23 @@ body.ide
           vendor            transform, translateX(-50%) translateY(-50%)
 
       .kdtabhandle
-        .kdview
-          vertical-align    top
-        .tab-icon
+        &:before
+          content           ''
           position          absolute
-          top               0
-          left              0
+          top               12px
+          left              15px
           r-sprite          'ide', 'ws_tab_file'
           display           block
           opacity           0.5
-        &.terminal
-          .tab-icon
-            r-sprite        'ide', 'ws_tab_terminal'
-        &.active
-          .tab-icon
-            opacity         1
-        .tab-handle-text
-          width             80%
-          padding-left      20px
+        
+        &.terminal:before
+          r-sprite          'ide', 'ws_tab_terminal'
+          
+        &.plus:before
+          content           none
+        
+        &.active:before
+          opacity           1
 
         .tab-handle-input
           border-radius     1px

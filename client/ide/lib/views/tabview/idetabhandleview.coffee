@@ -34,12 +34,6 @@ module.exports = class IDETabHandleView extends KDTabHandleView
 
     { view, title, pane } = @getOptions()
 
-    @tabIcon = new KDView
-      tagName  : 'span'
-      cssClass : 'tab-icon'
-      
-    view.addSubView @tabIcon
-
     @titleText  = new KDView
       tagName  : 'b'
       cssClass : 'tab-handle-text'
