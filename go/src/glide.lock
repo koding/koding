@@ -592,7 +592,7 @@ imports:
 - name: github.com/koding/runner
   version: 4731344e1a09114928a27d9b34e7d546f334d366
 - name: github.com/koding/service
-  version: 885a213394b9328c413f373c7f5400b5a2d06174
+  version: 700ef8751f1408ee03a0bf07bbee9969f934672f
 - name: github.com/koding/sshkey
   version: 1394f67258c7dca5203b1dc75c50d0b9f5762cd0
 - name: github.com/koding/terraform-provider-github

@@ -5,73 +5,44 @@
 package service_test
 
 import (
-	"log"
-	"os"
 	"testing"
+	"time"
 
 	"github.com/kardianos/service"
 )
 
-const runAsServiceArg = "RunThisAsService"
-
-var sc = &service.Config{
-	Name:      "go_service_test",
-	Arguments: []string{runAsServiceArg},
-}
-
-func TestMain(m *testing.M) {
-	if len(os.Args) > 1 && os.Args[1] == runAsServiceArg {
-		runService()
-		return
-	}
-	os.Exit(m.Run())
-}
-
-func TestInstallRunRestartStopRemove(t *testing.T) {
+func TestRunInterrupt(t *testing.T) {
 	p := &program{}
+	sc := &service.Config{
+		Name: "go_service_test",
+	}
 	s, err := service.New(p, sc)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("New err: %s", err)
 	}
-	_ = s.Uninstall()
 
-	err = s.Install()
-	if err != nil {
-		t.Fatal("install", err)
-	}
-	defer s.Uninstall()
+	go func() {
+		<-time.After(1 * time.Second)
+		interruptProcess(t)
+	}()
 
-	err = s.Start()
-	if err != nil {
-		t.Fatal("start", err)
-	}
-	err = s.Restart()
-	if err != nil {
-		t.Fatal("restart", err)
-	}
-	err = s.Stop()
-	if err != nil {
-		t.Fatal("stop", err)
-	}
-	err = s.Uninstall()
-	if err != nil {
-		t.Fatal("uninstall", err)
+	go func() {
+		for i := 0; i < 25 && p.numStopped == 0; i++ {
+			<-time.After(200 * time.Millisecond)
+		}
+		if p.numStopped == 0 {
+			t.Fatal("Run() hasn't been stopped")
+		}
+	}()
+
+	if err = s.Run(); err != nil {
+		t.Fatalf("Run() err: %s", err)
 	}
 }
 
-func runService() {
-	p := &program{}
-	s, err := service.New(p, sc)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = s.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
+type program struct {
+	numStopped int
 }
-
-type program struct{}
 
 func (p *program) Start(s service.Service) error {
 	go p.run()
@@ -81,5 +52,6 @@ func (p *program) run() {
 	// Do work here
 }
 func (p *program) Stop(s service.Service) error {
+	p.numStopped++
 	return nil
 }
