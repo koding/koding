@@ -24,7 +24,15 @@ const (
 
 var bootstrap = template.Must(template.New("").Parse(mustAsset("bootstrap.json.tmpl")))
 
-type bootstrapConfig struct{}
+type bootstrapConfig struct {
+	NetworkName          string
+	FirewallNameHTTP     string
+	FirewallNameICMP     string
+	FirewallNameInternal string
+	FirewallNameRDP      string
+	FirewallNameSSH      string
+	FirewallNameKlient   string
+}
 
 // Stack implements the stack.Stack interface.
 type Stack struct {
@@ -67,7 +75,17 @@ func (s *Stack) VerifyCredential(c *stack.Credential) error {
 }
 
 func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, error) {
-	t, err := newBootstrapTemplate(&bootstrapConfig{})
+	cfg := &bootstrapConfig{
+		NetworkName:          "koding-vn-" + c.Identifier,
+		FirewallNameHTTP:     "koding-allow-http-" + c.Identifier,
+		FirewallNameICMP:     "koding-allow-icmp-" + c.Identifier,
+		FirewallNameInternal: "koding-allow-internal-" + c.Identifier,
+		FirewallNameRDP:      "koding-allow-rdp-" + c.Identifier,
+		FirewallNameSSH:      "koding-allow-ssh-" + c.Identifier,
+		FirewallNameKlient:   "koding-allow-klient-" + c.Identifier,
+	}
+
+	t, err := newBootstrapTemplate(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -80,6 +98,8 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	t := s.Builder.Template
 
+	boot := c.Bootstrap.(*Bootstrap)
+
 	var resource struct {
 		GCInstance map[string]map[string]interface{} `hcl:"google_compute_instance"`
 	}
@@ -90,6 +110,14 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 
 	if len(resource.GCInstance) == 0 {
 		return nil, fmt.Errorf("there are no Google compute instances defined")
+	}
+
+	// Family2Image is used as a workaround for old terraform we use. It
+	// translates image family name into the latest image name.
+	//
+	// TODO(ppknap): remove when we terraform is upgraded.
+	f2i := Family2Image{
+		GetFromFamily: s.getFromFamily(c),
 	}
 
 	for resourceName, instance := range resource.GCInstance {
@@ -114,15 +142,18 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 
 		// Set default image for disk if user didn't define it herself.
 		if _, ok := instance["disk"]; !ok {
-			instance["disk"] = map[string]interface{}{
-				"image": defaultMachineImage,
+			instance["disk"] = []map[string]interface{}{
+				{
+					"image": defaultMachineImage,
+				},
 			}
 		}
+		instance["disk"] = f2i.Replace(instance["disk"])
 
 		// Set default network interface if user didn't define it herself.
 		if _, ok := instance["network_interface"]; !ok {
 			instance["network_interface"] = map[string]interface{}{
-				"network":       "default",
+				"network":       boot.KodingNetworkID,
 				"access_config": map[string]interface{}{},
 			}
 		}
@@ -252,6 +283,34 @@ func addPublicKey(metadata map[string]interface{}, user, publicKey string) map[s
 
 	metadata[key] = sshKeyNew
 	return metadata
+}
+
+// getFromFamily calls GCE API and retrieves the latest image that is a part of
+// provided family. If an error occurs, this function is no-op.
+func (s *Stack) getFromFamily(c *stack.Credential) func(string, string) string {
+	cred := c.Credential.(*Cred)
+
+	computeService, err := cred.ComputeService()
+	if err != nil {
+		s.Log.Warning("cannot create compute service: %s", err)
+		return nil
+	}
+	imageService := compute.NewImagesService(computeService)
+
+	return func(project, family string) string {
+		image, err := imageService.GetFromFamily(project, family).Do()
+		if err != nil {
+			s.Log.Warning("cannot create image service: %s", err)
+			return ""
+		}
+
+		if image == nil || image.Name == "" {
+			s.Log.Warning("no image for family: %s (project: %s)", family, project)
+			return ""
+		}
+
+		return image.Name
+	}
 }
 
 func mustAsset(s string) string {

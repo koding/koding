@@ -831,6 +831,7 @@ func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 	}
 
 	s.opts.Config.KontrolURL = s.opts.kontrolURL()
+	s.opts.Config.Transport = config.XHRPolling
 
 	if s.opts.Port != 0 {
 		s.opts.Config.Port = s.opts.Port
