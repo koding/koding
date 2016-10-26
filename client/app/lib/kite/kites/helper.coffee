@@ -160,6 +160,22 @@ generateFileSystem = (username) ->
   return new MemoryFileSystem config
 
 
+generateNewPath = (path) ->
+
+  [folders..., file] = path.split '/'
+  [name, ext] = file.split '.'
+  [name, seq] = name.split '_'
+
+  seq ?= 0
+
+  name = [name, ++seq].join '_'
+  file = [name, ext].join '.'
+  path = [folders..., file].join '/'
+
+  return path
+
+
 module.exports = {
   generateFileSystem
+  generateNewPath
 }
