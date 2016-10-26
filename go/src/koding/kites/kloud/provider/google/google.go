@@ -160,9 +160,6 @@ func (m *Meta) Valid() error {
 	if m.Image == "" {
 		return errors.New(`metadata value for "image" is empty`)
 	}
-	if m.StorageSize == 0 {
-		return errors.New(`metadata value for "storage_size" is 0`)
-	}
 	if m.MachineType == "" {
 		return errors.New(`metadata value for "machie_type" is empty`)
 	}
