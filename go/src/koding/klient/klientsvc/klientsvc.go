@@ -41,7 +41,11 @@ func (s *Service) Install() error {
 
 	cfg := s.config()
 
-	if absPath := filepath.Abs(s.KlientBin); err != nil || absPath != cfg.Executable {
+	if absPath, err := filepath.Abs(s.KlientBin); err != nil || absPath != cfg.Executable {
+		if err := os.MkdirAll(filepath.Dir(cfg.Executable), 0755); err != nil {
+			return err
+		}
+
 		fw, err := os.OpenFile(cfg.Executable, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0755)
 		if err != nil {
 			return err
