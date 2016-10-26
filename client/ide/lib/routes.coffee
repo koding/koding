@@ -54,7 +54,7 @@ loadIDENotFound = ->
     appManager.tell 'IDE', 'showNoMachineState'
 
 
-loadIDE = (data) ->
+loadIDE = (data, done = kd.noop) ->
 
   { selectWorkspaceOnSidebar, findInstance } = module.exports
 
@@ -85,7 +85,7 @@ loadIDE = (data) ->
         # If you want it, ping Turunc or Acet.
         app.amIHost           = yes
 
-      app.mountMachineByMachineUId machineUId
+      app.mountMachineByMachineUId machineUId, done
 
   return callback()  unless ideApps?.instances
 
@@ -130,7 +130,8 @@ loadTestIDE = ->
   machine = remote.revive machine
   workspace = remote.revive workspaces[0]
 
-  return loadIDE { machine, workspace, username: nick }
+  return loadIDE { machine, workspace, username: nick }, ->
+    require('ide/test/browser').prepare(machine, workspace)
 
 
 routeToFallback = ->
@@ -265,7 +266,7 @@ routeHandler = (type, info, state, path, ctx) ->
       { params } = info
 
       if params.workspaceSlug is 'test-workspace'
-        kd.utils.defer -> loadTestIDE()
+        kd.utils.defer -> require('app/util/createTestMachine')().then loadTestIDE
 
       dataProvider.fetchMachine params.machineLabel, (machine) ->
 
