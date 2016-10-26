@@ -182,6 +182,13 @@ func realMain() int {
 		err = klientsvc.Stop()
 	case "uninstall":
 		err = klientsvc.Uninstall()
+	case "run":
+		err = klientsvc.Install()
+		if err != nil {
+			break
+		}
+
+		err = klientsvc.Start()
 	default:
 		log.Fatalf("unrecognized command: %s", flag.Arg(0))
 	}
