@@ -20,6 +20,7 @@ exclude:
 - README.md
 - Rakefile
 - vendor/bundle
+- docs/github.com.terraform
 gems:
 - jekyll-paginate
 sass:
