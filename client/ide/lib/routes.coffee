@@ -127,7 +127,6 @@ routeToTestWorkspace = ->
 loadTestIDE = ->
 
   { workspaces } = machine = require('mocks/mockmanagedmachine')()
-  console.log {workspaces, machine}
   machine = remote.revive machine
   workspace = remote.revive workspaces[0]
 

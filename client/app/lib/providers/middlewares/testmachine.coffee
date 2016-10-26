@@ -34,7 +34,7 @@ module.exports = TestMachineMiddleware =
   EnvironmentDataProvider:
     setDefaults_: (data) ->
       if @_testMachine and not (@_testMachine in data.own)
-      then assign {}, data, own: data.own.concat [@_testMachine]
+      then assign {}, data, { own: data.own.concat [@_testMachine] }
       else data
 
 

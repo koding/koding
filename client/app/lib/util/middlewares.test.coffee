@@ -26,7 +26,7 @@ describe 'middleware utils', ->
       class Foo
         @getMiddlewares = -> [Bar, Baz]
         create: (options, callback) ->
-          callback null, assign {}, options, {finished: this}
+          callback null, assign {}, options, { finished: this }
 
       instance = new Foo
 
@@ -46,7 +46,7 @@ describe 'middleware utils', ->
       instance =
         getMiddlewares: -> [Bar, Baz]
         create: (options, callback) ->
-          callback null, assign {}, options, {finished: this}
+          callback null, assign {}, options, { finished: this }
 
       runMiddlewares instance, 'create', { foo: instance }, (err, result) ->
         expect(result.foo).toBe instance, 'foo should be original instance'
@@ -65,7 +65,7 @@ describe 'middleware utils', ->
     it 'works', ->
       class Foo
         @getMiddlewares = -> [SyncBar, SyncBaz]
-        create: (options) -> assign {}, options, {finished: this}
+        create: (options) -> assign {}, options, { finished: this }
 
       instance = new Foo
 
@@ -85,7 +85,7 @@ describe 'middleware utils', ->
 
       instance =
         getMiddlewares: -> [SyncBar, SyncBaz]
-        create: (options) -> assign {}, options, {finished: this}
+        create: (options) -> assign {}, options, { finished: this }
 
       result = runMiddlewares.sync instance, 'create', { foo: instance }
 

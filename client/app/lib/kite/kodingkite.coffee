@@ -31,7 +31,7 @@ module.exports = class KodingKite extends kd.Object
 
     { name } = options
 
-    @commandBuffer = new KiteCommandBuffer kite: this
+    @commandBuffer = new KiteCommandBuffer { kite: this }
 
     @on 'open', =>
       @isDisconnected = no # This one is for the manual disconnect request ~ GG

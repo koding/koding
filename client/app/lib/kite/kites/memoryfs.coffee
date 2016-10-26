@@ -137,7 +137,7 @@ wrapDir = (path, fullPath = '') -> Promise.resolve
   exists: true,
   size: 4096,
   mode: 2147484141,
-  time: "2016-10-08T03:00:28.996121999Z",
+  time: '2016-10-08T03:00:28.996121999Z',
   isBroken: false,
   readable: true,
   writable: false
@@ -150,7 +150,7 @@ wrapFile = (path, fullPath, length) -> Promise.resolve
   exists: true,
   size: length,
   mode: 777,
-  time: "2016-10-08T03:00:28.996121999Z",
+  time: '2016-10-08T03:00:28.996121999Z',
   isBroken: false,
   readable: true,
   writable: true

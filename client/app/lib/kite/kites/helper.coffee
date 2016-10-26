@@ -1,6 +1,6 @@
 MemoryFileSystem = require 'memory-fs'
 
-PROFILE = """
+PROFILE = '''
   # ~/.profile: executed by the command interpreter for login shells.
   # This file is not read by bash(1), if ~/.bash_profile or ~/.bash_login
   # exists.
@@ -23,9 +23,9 @@ PROFILE = """
   if [ -d "$HOME/bin" ] ; then
       PATH="$HOME/bin:$PATH"
   fi
-"""
+'''
 
-BASH_LOGOUT = """
+BASH_LOGOUT = '''
   # ~/.bash_logout: executed by bash(1) when login shell exits.
 
   # when leaving the console clear the screen to increase privacy
@@ -33,9 +33,9 @@ BASH_LOGOUT = """
   if [ "$SHLVL" = 1 ]; then
       [ -x /usr/bin/clear_console ] && /usr/bin/clear_console -q
   fi
-"""
+'''
 
-BASH_RC = """
+BASH_RC = '''
   # ~/.bashrc: executed by bash(1) for non-login shells.
   # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
   # for examples
@@ -137,7 +137,7 @@ BASH_RC = """
     fi
   fi
 
-"""
+'''
 
 generateFileSystem = (username) ->
 
