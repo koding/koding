@@ -49,9 +49,7 @@ func (k *Konfig) KiteHome() string {
 }
 
 func (k *Konfig) KiteConfig() *konfig.Config {
-	cfg := k.buildKiteConfig()
-	cfg.KontrolURL = k.KontrolURL
-	return cfg
+	return k.buildKiteConfig()
 }
 
 func (k *Konfig) buildKiteConfig() *konfig.Config {

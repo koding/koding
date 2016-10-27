@@ -427,14 +427,30 @@ func sendEventForCustomer(customerID string, eventName string, options map[strin
 		options[key] = val
 	}
 
-	mail := &emailsender.Mail{
-		To:      cus.Email,
-		Subject: eventName,
-		Properties: &emailsender.Properties{
-			Username: cus.Meta["username"],
-			Options:  options,
-		},
+	admins, err := modelhelper.FetchAdminAccounts(cus.Meta["groupName"])
+	if err != nil {
+		return err
 	}
 
-	return mailSender(mail)
+	for _, admin := range admins {
+		user, err := modelhelper.GetUser(admin.Profile.Nickname)
+		if err != nil {
+			return err
+		}
+
+		mail := &emailsender.Mail{
+			To:      user.Email,
+			Subject: eventName,
+			Properties: &emailsender.Properties{
+				Username: user.Name,
+				Options:  options,
+			},
+		}
+
+		if err := mailSender(mail); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

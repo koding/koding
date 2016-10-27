@@ -47,8 +47,6 @@ export COMMANDS=(
 	socialapi/workers/api
 	socialapi/workers/cmd/notification
 	socialapi/workers/cmd/pinnedpost
-	socialapi/workers/cmd/popularpost
-	socialapi/workers/cmd/populartopic
 	socialapi/workers/cmd/realtime
 	socialapi/workers/cmd/realtime/gatekeeper
 	socialapi/workers/cmd/realtime/dispatcher
@@ -75,9 +73,11 @@ export COMMANDS=(
 )
 
 export TERRAFORM_COMMANDS=(
+	vendor/github.com/hashicorp/terraform
 	vendor/github.com/hashicorp/terraform/builtin/bins/...
 	koding/kites/cmd/provider-vagrant
 	vendor/github.com/koding/terraform-provider-github/cmd/provider-github
+	vendor/github.com/Banno/terraform-provider-marathon
 )
 
 # source configuration for kloud providers

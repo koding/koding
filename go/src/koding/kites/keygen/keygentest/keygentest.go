@@ -27,7 +27,7 @@ import (
 //   $ go test koding/kites/gateway -- -accesskey abc -secretkey def
 //
 type Flags struct {
-	EnvPrefix string        `default:"gateway"`
+	EnvPrefix string        `default:"keygen"`
 	AccessKey string        `required:"true"`
 	SecretKey string        `required:"true"`
 	Bucket    string        `default:"kodingdev-publiclogs"`

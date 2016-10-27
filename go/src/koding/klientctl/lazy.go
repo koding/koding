@@ -45,6 +45,7 @@ func Kite() *kite.Kite {
 
 	k = kite.New(config.Name, config.KiteVersion)
 	k.Config = config.Konfig.KiteConfig()
+	k.Config.KontrolURL = config.Konfig.KontrolURL
 	k.Config.Environment = config.Environment
 	k.Log = log
 

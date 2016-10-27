@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/utils/object"
-	"strings"
 
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
@@ -16,6 +18,86 @@ import (
 	"github.com/koding/logging"
 )
 
+// Slice is a workaround for hcl.DecodeObject,
+// which always appends to existing slices,
+// thus making the output of DecodeObject
+// non-idempotent, as it always doubles
+// any slices values.
+//
+// Wrapping a slice value with ToSlice
+// prevents from doubling the items
+// on hcl.DecodeObject.
+type Slice map[string]interface{}
+
+var (
+	_ json.Marshaler   = new(Slice)
+	_ json.Unmarshaler = new(Slice)
+)
+
+func (s *Slice) init(v []interface{}) {
+	*s = make(Slice, len(v))
+
+	for i := range v {
+		(*s)[strconv.Itoa(i)] = v[i]
+	}
+}
+
+func (s Slice) slice() []interface{} {
+	max := 0
+	slice := make([]interface{}, len(s))
+
+	for k, v := range s {
+		i, err := strconv.Atoi(k)
+		if err != nil {
+			// HCL's decoder errornously merges object's keys
+			// into the slice. In order to make it working,
+			// we just ignore them.
+			continue
+		}
+
+		slice[i] = v
+
+		if i > max {
+			max = i
+		}
+	}
+
+	return slice[:max+1]
+}
+
+// MarshalJSON implements the json.Marshaler interface.
+func (s Slice) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.slice())
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
+func (s *Slice) UnmarshalJSON(p []byte) error {
+	var slice []interface{}
+
+	if err := json.Unmarshal(p, &slice); err != nil {
+		return err
+	}
+
+	s.init(slice)
+
+	return nil
+}
+
+// ToSlice creates a Slice value out of slice argument.
+func ToSlice(slice []interface{}) Slice {
+	var s Slice
+
+	s.init(slice)
+
+	return s
+}
+
+// FromSlice gives generic slice representation of s.
+func FromSlice(s Slice) []interface{} {
+	return s.slice()
+}
+
+// Template represents a HCL template.
 type Template struct {
 	Resource map[string]interface{} `json:"resource,omitempty"`
 	Provider map[string]interface{} `json:"provider,omitempty"`
@@ -214,7 +296,7 @@ func (t *Template) ShadowVariables(holder string, vars ...string) error {
 		t.node.Items[i] = item
 	}
 
-	return hcl.DecodeObject(&t.Resource, t.node.Filter("resource"))
+	return t.decode("resource", &t.Resource)
 }
 
 // fillVariables finds variables declared with the given prefix and fills the

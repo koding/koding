@@ -50,6 +50,9 @@ type Subscription struct {
 // Customer is the group's customer info from payment provider
 type Customer struct {
 	ID string `bson:"id" json:"id"`
+	// IsMember indicates that created customer on stripe is not an admin in the
+	// group.
+	IsMember string `bson:"isMember" json:"isMember"`
 }
 
 // IsSubActive checks if subscription is in valid state for operation

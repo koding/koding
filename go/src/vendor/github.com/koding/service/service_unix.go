@@ -7,6 +7,8 @@
 package service
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"log/syslog"
 	"os/exec"
@@ -52,9 +54,18 @@ func (s sysLogger) Infof(format string, a ...interface{}) error {
 	return s.send(s.Writer.Info(fmt.Sprintf(format, a...)))
 }
 
+var opNotPermitted = []byte("Operation not permitted")
+
 func run(command string, arguments ...string) error {
 	cmd := exec.Command(command, arguments...)
 	out, err := cmd.CombinedOutput()
+
+	// The following is a workaround for launchctl, which
+	// gives success exit code when it fails with
+	// insufficient permission error.
+	if err == nil && bytes.Contains(out, opNotPermitted) {
+		err = errors.New("exit status 1")
+	}
 	if err != nil {
 		return fmt.Errorf(`"%s %s" failed: %s, %s`, command, strings.Join(arguments, " "), err, out)
 	}

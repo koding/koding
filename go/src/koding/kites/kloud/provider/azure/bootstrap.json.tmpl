@@ -1,0 +1,77 @@
+{
+	"provider": {
+		"azure": {
+			"publish_settings": "${var.azure_publish_settings}",
+			"subscription_id": "${var.azure_subscription_id}"
+		}
+	},
+	"resource": {
+		"azure_hosted_service": {
+			"koding": {
+				"name": "{{.HostedServiceName}}",
+				"location": "${var.azure_location}",
+				"ephemeral_contents": false,
+				"description": "Hosted service created by Koding",
+				"label": "{{.TeamSlug}}.koding.com"
+			}
+		},{{if .StorageServiceName}}
+		"azure_storage_service": {
+			"koding": {
+				"name": "{{.StorageServiceName}}",
+				"location": "${var.azure_location}",
+				"description": "Storage service created by Koding",
+				"account_type": "{{.StorageType}}"
+			}
+		},{{end}}
+		"azure_security_group": {
+			"koding": {
+				"name": "{{.SecurityGroupName}}",
+				"location": "${var.azure_location}"
+			}
+		},
+		"azure_virtual_network": {
+			"koding": {
+				"name": "{{.VirtualNetworkName}}",
+				"address_space": ["${var.azure_address_space}"],
+				"location": "${var.azure_location}",
+				"subnet": {
+					"name": "sub-koding-team",
+					"address_prefix": "${var.azure_address_space}",
+					"security_group": "${azure_security_group.koding.name}"
+				}
+			}
+		}{{if .Rule}},
+		"azure_security_group_rule": {
+			"koding": {
+				"name": "sgr-koding-team",
+				"security_group_names": ["{{.SecurityGroupName}}"],
+				"type": "Inbound",
+				"action": "Allow",
+				"priority": 200,
+				"source_address_prefix": "0.0.0.0/0",
+				"source_port_range": "*",
+				"destination_address_prefix": "0.0.0.0/0",
+				"destination_port_range": "*",
+				"protocol": "TCP"
+			}
+		}{{end}}
+	},
+	"output": {
+		"azure_hosted_service": {
+			"value": "${azure_hosted_service.koding.id}"
+		},
+		"azure_storage_service": {
+			"value": "${azure_storage_service.koding.id}"
+		},{{if .StorageServiceName}}
+		"azure_security_group": {
+			"value": "${azure_security_group.koding.id}"
+		},{{end}}
+		"azure_virtual_network": {
+			"value": "${azure_virtual_network.koding.id}"
+		},
+		"azure_subnet": {
+			"value": "${azure_virtual_network.koding.subnet.name}"
+		}
+	}
+}
+

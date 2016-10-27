@@ -171,7 +171,7 @@ ExecStart=/bin/sh -c '{{.Path|cmdEscape}}{{range .Arguments}} {{.|cmd}}{{end}} >
 ExecStart={{.Path|cmdEscape}}{{range .Arguments}} {{.|cmd}}{{end}}
 {{end}}
 {{if .ChRoot}}RootDirectory={{.ChRoot|cmd}}{{end}}
-{{if .WorkingDirectory}}WorkingDirectory={{.WorkingDirectory|cmd}}{{end}}
+{{if .WorkingDirectory}}WorkingDirectory={{.WorkingDirectory|cmdEscape}}{{end}}
 {{if .UserName}}User={{.UserName}}{{end}}
 {{if .ReloadSignal}}ExecReload=/bin/kill -{{.ReloadSignal}} "$MAINPID"{{end}}
 {{if .PIDFile}}PIDFile={{.PIDFile|cmd}}{{end}}

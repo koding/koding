@@ -55,7 +55,7 @@ func (f *FlagLoader) Load(s interface{}) error {
 	strct := structs.New(s)
 	structName := strct.Name()
 
-	flagSet := flag.NewFlagSet(structName, flag.ExitOnError)
+	flagSet := flag.NewFlagSet(structName, flag.ContinueOnError)
 	f.flagSet = flagSet
 
 	for _, field := range strct.Fields() {
