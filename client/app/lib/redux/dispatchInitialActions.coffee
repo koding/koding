@@ -2,12 +2,16 @@ globals = require 'globals'
 isAdmin = require 'app/util/isAdmin'
 
 { LOAD: BONGO_LOAD } = bongo = require 'app/redux/modules/bongo'
-customer = require 'app/redux/modules/payment/customer'
 { Plan } = require 'app/redux/modules/payment/constants'
 
+{ create: createCustomer } = require 'app/redux/modules/payment/customer'
 { load: loadPaymentInfo } = require 'app/redux/modules/payment/info'
-{ load: loadSubscription } = require 'app/redux/modules/payment/subscription'
 { load: loadInvoices } = require 'app/redux/modules/payment/invoices'
+
+{
+  load: loadSubscription
+  create: createSubscription
+} = require 'app/redux/modules/payment/subscription'
 
 loadAccount = ({ dispatch, getState }) ->
   dispatch {
@@ -29,20 +33,36 @@ loadUserDetails = ({ dispatch, getState }) ->
 
 ensurePaymentDetails = ({ dispatch, getState }) ->
 
+  # this case is for the groups that are registered before we activated new
+  # payment system for teams. Once we send an info call, our backend will
+  # ensure that the team made the call has a `payment` property. But it will
+  # not be realtime, reloading it to get the group with `payment` property from
+  # the payload. ~Umut
+  handleNoPaymentAdmin = ->
+    console.info 'Got an old team, we need to reload'
+    return location.reload()
+
+  # This is for members of the existing groups prior to pricing release.
+  # We will create customer & subscription and then `NEEDS_UPGRADE` modal will
+  # be shown to the user. All actions going from there will reload the page,
+  # and the group will be activated. ~Umut
+  handleNoPaymentMember = ->
+    dispatch(createCustomer()).then ->
+      dispatch(createSubscription(
+        getState().customer.id, Plan.UP_TO_10_USERS
+      ))
+
   if isAdmin()
     dispatch(loadPaymentInfo())
       .then ->
-        # this case is for the groups that are registered before we activated
-        # new payment system for teams. Once we send an info call, our backend
-        # will ensure that the team made the call has a `payment` property. But
-        # it will not be realtime, reloading it to get the group with `payment`
-        # property from the payload. ~Umut
         unless globals.currentGroup.payment
-          console.info 'Got an old team, we need to reload'
-          return location.reload()
+          return handleNoPaymentAdmin()
       .then -> dispatch(loadInvoices())
   else
-    dispatch(loadSubscription())
+    if globals.currentGroup.payment
+    then dispatch(loadSubscription())
+    else handleNoPaymentMember()
+
 
 
 module.exports = dispatchInitialActions = (store) ->
