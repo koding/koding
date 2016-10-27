@@ -3,8 +3,9 @@ KDObject         = kd.Object
 IDEMetrics       = require './idemetrics'
 generatePassword = require 'app/util/generatePassword'
 GOOGLE_OATH_SCOPES = 'email, https://www.googleapis.com/auth/drive.metadata.readonly'
+RealtimeManagerFactory = require './realtimemanagerfactory'
 
-module.exports = class FirebaseRealtimeManager extends KDObject
+module.exports = class FirebaseRealtimeManager extends RealtimeManagerFactory
 
   constructor: (@KodingApp) ->
     super options, data
