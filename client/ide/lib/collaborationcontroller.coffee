@@ -8,7 +8,7 @@ getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
 showError                     = require 'app/util/showError'
 isTeamReactSide               = require 'app/util/isTeamReactSide'
 whoami                        = require 'app/util/whoami'
-GoogleDriveRealtimeManager    = require './googledriverealtimemanager'
+RealtimeManagerFactory        = require './realtimemanagerfactory'
 FirebaseRealtimeManager       = require './firebaserealtimemanager'
 IDEMetrics                    = require './idemetrics'
 doXhrRequest                  = require 'app/util/doXhrRequest'
@@ -497,7 +497,7 @@ module.exports = CollaborationController =
 
     title = @getRealtimeFileName id
 
-    @rtm or= new RealtimeManager
+    @rtm or= realtimemanagerfactory.get('GOOGLE_DRIVE')
     @rtm.ready => realtimeHelpers.isSessionActive @rtm, title, callback
 
 
