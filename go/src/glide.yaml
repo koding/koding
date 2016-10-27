@@ -275,6 +275,7 @@ import:
 - package: github.com/Azure/azure-sdk-for-go
 - package: github.com/Banno/terraform-provider-marathon
 - package: github.com/gambol99/go-marathon
+- package: github.com/donovanhide/eventsource
 ignore:
 - koding/tools/logger
 - koding/kite
