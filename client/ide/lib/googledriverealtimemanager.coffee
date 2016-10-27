@@ -2,8 +2,9 @@ kd               = require 'kd'
 KDObject         = kd.Object
 IDEMetrics       = require './idemetrics'
 generatePassword = require 'app/util/generatePassword'
+RealtimeManagerFactory = require './realtimemanagerfactory'
 
-module.exports = class GoogleDriveRealtimeManager extends KDObject
+module.exports = class GoogleDriveRealtimeManager extends RealtimeManagerFactory
 
   constructor: (options = {}, data) ->
 
