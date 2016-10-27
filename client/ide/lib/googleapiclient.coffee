@@ -5,7 +5,7 @@ IDEMetrics = require './idemetrics'
 $ = require 'jquery'
 
 GOOGLE_OATH_SCOPES = 'email, https://www.googleapis.com/auth/drive.metadata.readonly'
-firebase = new Firebase("https://KodingApp.firebaseio.com");
+
 
 module.exports = class GoogleApiClient extends KDObject
 
@@ -62,32 +62,6 @@ module.exports = class GoogleApiClient extends KDObject
     $.ajax { url, dataType, success, error }
 
   
-  @handleFirebaseApiLoaded ->
-    
-    firebase.authWithOAuthPopup("google", @handleFirebaseAuthData);
-    
-
-  @handleDriveLoad() ->
-    
-    firebase.onAuth(@FirebaseAuth(authData))
-      
-    
-  @FirebaseAuth = (authData) ->
-    
-    return handleFirebaseAuthData(null, authData) if authData && authData.google;
-    firebase.authWithOAuthPopup("google", handleFirebaseAuthData, {scope: GOOGLE_OATH_SCOPES});
-
-
-  @handleFirebaseAuthData = (error, authData) ->
-      
-    do error handling if error
-    
-    gapi.auth.setToken({
-        access_token: authData.google.accessToken
-    });
-    gapi.client.drive.files.list().execute(handleFileList);
-    
-    
   @metric = (name, state, count = 1, callback = noop) ->
 
     name = if name
