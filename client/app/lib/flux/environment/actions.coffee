@@ -1,16 +1,16 @@
 _ = require 'lodash'
-kd                      = require 'kd'
-async                   = require 'async'
-actions                 = require './actiontypes'
-getters                 = require './getters'
-Promise                 = require 'bluebird'
-Encoder                 = require 'htmlencode'
-remote                  = require 'app/remote'
-Promise                 = require 'bluebird'
-showError               = require 'app/util/showError'
-toImmutable             = require 'app/util/toImmutable'
-getGroup                = require 'app/util/getGroup'
-whoami                  = require 'app/util/whoami'
+kd = require 'kd'
+async = require 'async'
+actions = require './actiontypes'
+getters = require './getters'
+Promise = require 'bluebird'
+Encoder = require 'htmlencode'
+remote = require 'app/remote'
+Promise = require 'bluebird'
+showError = require 'app/util/showError'
+toImmutable = require 'app/util/toImmutable'
+getGroup = require 'app/util/getGroup'
+whoami = require 'app/util/whoami'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 Machine = require 'app/providers/machine'
 stackDefaults = require 'app/util/stacks/defaults'
@@ -18,6 +18,7 @@ providersParser = require 'app/util/stacks/providersparser'
 requirementsParser = require 'app/util/stacks/requirementsparser'
 generateTemplateRawContent = require 'app/util/generateTemplateRawContent'
 Tracker = require 'app/util/tracker'
+$ = require 'jquery'
 
 _eventsCache = { machine: {}, stack: no }
 
@@ -828,6 +829,23 @@ loadExpandedMachineLabel = (label) ->
   reactor.dispatch actions.LOAD_EXPANDED_MACHINE_LABEL_SUCCESS, { label }
 
 
+searchStackScript = (text) ->
+
+  { reactor } = kd.singletons
+  new Promise (resolve, reject) ->
+    opt =
+      type: 'GET'
+      url: "https://runkit.io/hakankaradis/terraform-yaml/branches/master?query=#{text}"
+      contentType: 'application/json'
+      success: (data) ->
+        reactor.dispatch actions.LOAD_STACK_SCRIPTS_SUCCESS, { data }
+        resolve()
+      error: (jqXHR, textStatus, errorThrown) ->
+        reactor.dispatch actions.LOAD_STACK_SCRIPTS_FAIL, {}
+        reject()
+
+    $.ajax opt
+
 
 module.exports = {
   loadMachines
@@ -877,4 +895,5 @@ module.exports = {
   fetchAndUpdateStackTemplate
   cloneStackTemplate
   loadExpandedMachineLabel
+  searchStackScript
 }
