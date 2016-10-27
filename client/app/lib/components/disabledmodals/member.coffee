@@ -7,7 +7,7 @@ getGroupStatus = require 'app/util/getGroupStatus'
 TrialEndedMemberModal = require 'lab/TrialEndedMemberModal'
 TrialEndedNotifySuccessModal = require 'lab/TrialEndedNotifySuccessModal'
 
-UpgradeNeededMemberModal = require 'lab/UpgradeNeededMemberModal'
+PricingChangeModal = require 'lab/PricingChangeModal'
 UpgradeNeededNotifySuccessModal = require 'lab/UpgradeNeededNotifySuccessModal'
 
 SuspendedMemberModal = require 'lab/SuspendedMemberModal'
@@ -51,7 +51,7 @@ module.exports = class DisabledMemberModal extends ReactView
         onClick = =>
           @destroy()
           router.handleRoute '/Disabled/Member/upgrade-notify-success'
-        <UpgradeNeededMemberModal
+        <PricingChangeModal
           isOpen={yes}
           onButtonClick={onClick}
           onSecondaryButtonClick={onLogoutClick} />
