@@ -30,6 +30,11 @@
 
       {{ content }}
 
+      {% if page.url contains '/docs/terraform/' %}
+      <hr>
+      {% assign size = page.url | remove: '/docs/terraform/' | size | minus: 1 %}
+      <p class="citation"><cite>See the source of this document at <a href="http://terraform.io/docs/{{ page.url | remove: '/docs/terraform/' | slice: 0, size }}" target="_blank">Terraform.io</a></cite></p>
+      {% endif %}
     </section>
 
   </main>
