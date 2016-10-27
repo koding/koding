@@ -17,23 +17,53 @@ module.exports = class RealtimeManagerFactory
   getRealtimeDoc: ->
 
     callback { message: 'getRealtimeDoc: Not implemented' }
-    
+  
+  ###*
+   * Create file.
+   *
+   * @param {{title: string, preventEvent: boolean}} options
+   * @param {function} callback
+  ###
   createFile: (options, callback) ->
 
     callback { message: 'createFile: Not implemented' }
   
+  ###*
+   * Remove file.
+   *
+   * @param {{title: string, preventEvent: boolean}} options
+   * @param {function} callback
+  ###
   remove: (options, callback) ->
 
     callback { message: 'remove: Not implemented' }
-      
+  
+  ###*
+   * Get file.
+   *
+   * @param {{id: string, preventEvent: boolean}} options
+   * @param {function} callback
+  ###
   getFile: (options, callback) ->
 
     callback { message: 'getFile: Not implemented' }
-      
+  
+  ###*
+   * get file(s) with given title.
+   *
+   * @param {{title: string, preventEvent: boolean}} options
+   * @param {function} callback
+  ###
   fetchFileByTitle: (options, callback) ->
 
     callback { message: 'fetchFileByTitle: Not implemented' }
-      
+  
+  ###*
+   * Loads and binds events of the file with given `fileId`.
+   *
+   * @param {{id: string, preventEvent: boolean}} options
+   * @param {function} callback
+  ###
   loadFile: (options, callback) ->
 
     callback { message: 'loadFile: Not implemented' }
@@ -41,10 +71,6 @@ module.exports = class RealtimeManagerFactory
   getFromModel: (key) ->
 
     callback { message: 'getFromModel: Not implemented' }
-
-  retrieveAllFiles: ->
-    
-    callback { message: 'retrieveAllFiles: Not implemented' }
 
   create: (type, key, initialValue) ->
 
@@ -62,7 +88,6 @@ module.exports = class RealtimeManagerFactory
   textDeleted: (string, e) ->
 
     callback { message: 'textDeleted: Not implemented' }
-
 
   bindStringListeners: (string) ->
 
