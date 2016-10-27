@@ -24,6 +24,7 @@ module.exports =
     require './stores/privatestacktemplatesstore'
     require './stores/selectedtemplateidstore'
     require './stores/expandedmachinelabelstore'
+    require './stores/stackscriptsstore'
   ]
 
   register: (reactor) -> reactor.registerStores @stores
