@@ -46,6 +46,7 @@
   {% include footer.html %}
 
   {% if page.url contains '/docs/terraform/' %}
+  <script src="{{ site.url }}/js/hcl-to-json.js"></script>
   <script src="{{ site.url }}/js/docs-tf-link-converter.js"></script>
   {% endif %}
 
