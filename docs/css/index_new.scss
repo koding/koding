@@ -4,28 +4,49 @@
 {% assign path = site.url | append: '/assets/img/landing/store' %}
 
 .container {
-  width: 1050px;
+  width: 1182px;
   text-align: center;
   margin: 0 auto;
 }
 
-.openSource {
-  margin-top: 110px;
-  background-color: #276184;
-  display: inline-block;
-  padding: 13px;
-  color: #fff;
-  font-weight: 700;
-  font-size: 18px;
+.header {
+  .openSource {
+    margin-top: 119px;
+    background-color: #276184;
+    display: inline-block;
+    padding: 15px 15px 14px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 20px;
+  }
+
+  h1 {
+    font-size: 84px;
+    font-weight: 700;
+    margin-top: 29px;
+    line-height: 81px;
+  }
+
+  a {
+    background-color: #F2778A;
+    color: #fff;
+    display: inline-block;
+    text-decoration: none;
+    border-radius: 3px;
+    padding: 17px 40px 18px;
+    font-size: 31px;
+    margin-top: 39px;
+    margin-bottom: 148px;
+  }
 }
 
 .headline {
   border: 1px solid #ccc;
   border-radius: 25px;
-  padding: 16px 30px 17px;
+  padding: 18px 30px 19px;
   display: inline-block;
   margin-bottom: 120px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   letter-spacing: 0.01em;
   color: #949494;
@@ -41,7 +62,8 @@
   }
 
   .captionContainer {
-    float: right;
+    float: left;
+    margin-left: 96px;
   }
 }
 
@@ -58,33 +80,63 @@
 .imgContainer {
   background-color: blue;
   height: 320px;
-  width: 470px;
+  width: 550px;
 }
 
 .captionContainer {
-  width: 470px;
+  width: 534px;
   text-align: left;
-  padding-top: 9px;
+  padding-top: 23px;
 
   h2 {
-    font-size: 34px;
+    font-size: 39px;
     font-weight: 700;
     color: #0C5A99;
-    line-height: 40px;
+    line-height: 43px;
   }
 
   p {
-    padding-top: 21px;
-    line-height: 34px;
-    font-size: 21px;
+    padding-top: 25px;
+    line-height: 37px;
+    font-size: 24px;
     color: #666666;
+    font-weight: 300;
   }
 
   a {
     color: #358BB0;
     text-decoration: none;
-    font-size: 15px;
-    margin-top: 40px;
+    font-size: 17px;
+    margin-top: 43px;
     display: block;
+    font-weight: 300;
+  }
+}
+
+ul {
+  width: 1182px;
+
+  li {
+    width: 304px;
+    box-sizing: border-box;
+    padding: 24px 30px;
+    display: inline-block;
+    text-align: center;
+    vertical-align: top;
+
+    div {
+      color: #358BB0;
+      font-size: 21px;
+      font-weight: 700;
+      margin-bottom: 19px;
+    }
+
+    p {
+      line-height: 20px;
+    }
+
+    a {
+
+    }
   }
 }
