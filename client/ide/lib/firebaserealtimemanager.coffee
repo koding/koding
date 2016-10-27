@@ -14,13 +14,7 @@ module.exports = class FirebaseRealtimeManager extends KDObject
     @collaborativeInstances = []
     @collaborativeEventListeners = {}
     
-    GooogleApiClient  = require './googleapiclient'
-    IDEMetrics.collect 'FirebaseRealtimeManager.google_api_client', 'request'
-    GoogleApiClient.on 'ready', =>
-      GoogleApiClient.loadDriveApi =>
-        IDEMetrics.collect 'FirebaseRealtimeManager.google_api_client', 'ready'
-        @emit 'ready'
-   
+    
   setRealtimeDoc: (realtimeDoc) ->
 
     @realtimeDoc = realtimeDoc
@@ -127,13 +121,13 @@ module.exports = class FirebaseRealtimeManager extends KDObject
     { preventEvent } = options
 
     onLoadedCallback = (doc) =>
-      doc.addEventListener gapi.drive.realtime.EventType.COLLABORATOR_JOINED, (c) =>
+      doc.addEventListener firebase.realtime.EventType.COLLABORATOR_JOINED, (c) =>
         @emit 'CollaboratorJoined', doc, c  unless @isDisposed
 
-      doc.addEventListener gapi.drive.realtime.EventType.COLLABORATOR_LEFT, (c) =>
+      doc.addEventListener firebase.realtime.EventType.COLLABORATOR_LEFT, (c) =>
         @emit 'CollaboratorLeft', doc, c  unless @isDisposed
 
-      doc.addEventListener gapi.drive.realtime.EventType.DOCUMENT_SAVE_STATE_CHANGED, (c) =>
+      doc.addEventListener firebase.realtime.EventType.DOCUMENT_SAVE_STATE_CHANGED, (c) =>
         @emit 'DocumentSaveStateChanged', doc, c  unless @isDisposed
 
       callback null, doc
@@ -143,7 +137,7 @@ module.exports = class FirebaseRealtimeManager extends KDObject
       @emit 'FileInitialized', model
 
     errorCallback = (error) =>
-      { ErrorType } = gapi.drive.realtime
+      { ErrorType } = firebase.realtime
       eventName = \
       switch error.type
         when ErrorType.NOT_FOUND              then 'ErrorRealtimeFileMissing'
@@ -155,7 +149,7 @@ module.exports = class FirebaseRealtimeManager extends KDObject
 
       @emit eventName, error
 
-    gapi.drive.realtime.load fileId, onLoadedCallback, initializerFn, errorCallback
+    firebase.realtime.load fileId, onLoadedCallback, initializerFn, errorCallback
 
 
   getFromModel: (key) ->
@@ -179,13 +173,13 @@ module.exports = class FirebaseRealtimeManager extends KDObject
         request.execute(@(resp) ->
             handleFileResults(resp.items)
             nextPageToken = resp.nextPageToken
-            request = gapi.client.drive.files.list({
+            request = firebase.database({
               'maxResults': 50,
               'pageToken': nextPageToken
             });
             retrievePageOfFiles(request) if nextPageToken
         )
-    initialRequest = gapi.client.drive.files.list({maxResults: 50})
+    initialRequest = firebase.files.list({maxResults: 50})
     retrievePageOfFiles(initialRequest, [])
 
 
@@ -252,14 +246,14 @@ module.exports = class FirebaseRealtimeManager extends KDObject
 
   bindStringListeners: (string) ->
 
-    string.addEventListener gapi.drive.realtime.EventType.TEXT_INSERTED, @binder string, 'inserted', @textInserted
-    string.addEventListener gapi.drive.realtime.EventType.TEXT_DELETED, @binder string, 'deleted', @textDeleted
+    string.addEventListener firebase.realtime.EventType.TEXT_INSERTED, @binder string, 'inserted', @textInserted
+    string.addEventListener firebase.realtime.EventType.TEXT_DELETED, @binder string, 'deleted', @textDeleted
 
 
   unbindStringListeners: (string) ->
 
-    string.removeEventListener gapi.drive.realtime.EventType.TEXT_INSERTED, @binder string, 'inserted', @textInserted
-    string.removeEventListener gapi.drive.realtime.EventType.TEXT_DELETED, @binder string, 'deleted', @textDeleted
+    string.removeEventListener firebase.realtime.EventType.TEXT_INSERTED, @binder string, 'inserted', @textInserted
+    string.removeEventListener firebase.realtime.EventType.TEXT_DELETED, @binder string, 'deleted', @textDeleted
 
 
   mapValueChanged: (map, v) ->
@@ -270,12 +264,12 @@ module.exports = class FirebaseRealtimeManager extends KDObject
 
   bindMapListeners: (map) ->
 
-    map.addEventListener gapi.drive.realtime.EventType.VALUE_CHANGED, @binder map, 'changed', @mapValueChanged
+    map.addEventListener firebase.realtime.EventType.VALUE_CHANGED, @binder map, 'changed', @mapValueChanged
 
 
   unbindMapListeners: (map) ->
 
-    map.removeEventListener gapi.drive.realtime.EventType.VALUE_CHANGED, @binder map, 'changed', @mapValueChanged
+    map.removeEventListener firebase.realtime.EventType.VALUE_CHANGED, @binder map, 'changed', @mapValueChanged
 
 
   listValueAdded: (list, v) ->
@@ -301,16 +295,16 @@ module.exports = class FirebaseRealtimeManager extends KDObject
 
   bindListListeners: (list) ->
 
-    list.addEventListener gapi.drive.realtime.EventType.VALUES_ADDED, @binder list, 'added', @listValueAdded
-    list.addEventListener gapi.drive.realtime.EventType.VALUES_REMOVED, @binder list, 'removed', @listValueRemoved
-    list.addEventListener gapi.drive.realtime.EventType.VALUES_SET, @binder list, 'set', @listValueSet
+    list.addEventListener firebase.realtime.EventType.VALUES_ADDED, @binder list, 'added', @listValueAdded
+    list.addEventListener firebase.realtime.EventType.VALUES_REMOVED, @binder list, 'removed', @listValueRemoved
+    list.addEventListener firebase.realtime.EventType.VALUES_SET, @binder list, 'set', @listValueSet
 
 
   unbindListListeners: (list) ->
 
-    list.removeEventListener gapi.drive.realtime.EventType.VALUES_ADDED, @binder list, 'added', @listValueAdded
-    list.removeEventListener gapi.drive.realtime.EventType.VALUES_REMOVED, @binder list, 'removed', @listValueRemoved
-    list.removeEventListener gapi.drive.realtime.EventType.VALUES_SET, @binder list, 'set', @listValueSet
+    list.removeEventListener firebase.realtime.EventType.VALUES_ADDED, @binder list, 'added', @listValueAdded
+    list.removeEventListener firebase.realtime.EventType.VALUES_REMOVED, @binder list, 'removed', @listValueRemoved
+    list.removeEventListener firebase.realtime.EventType.VALUES_SET, @binder list, 'set', @listValueSet
 
 
   binder: (collaborativeObj, type, callback) ->
