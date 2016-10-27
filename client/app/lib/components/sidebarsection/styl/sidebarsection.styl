@@ -38,13 +38,8 @@
 
 .SidebarSection-secondaryLink
   abs                       50% 0px 0 0
-  hidden()
   margin-top                -8px // icon height is 16px
   r-sprite                  app , 'plus_16'
-
-.SidebarSection:hover
-  .SidebarSection-secondaryLink
-    visible()
 
 .SidebarSection-header
   &.unread
@@ -52,7 +47,7 @@
       max-width             197px
 
     .SidebarSection-secondaryLink
-      hidden()
+      visible()
 
 .SidebarSection.active
   .SidebarSection-headerTitle a

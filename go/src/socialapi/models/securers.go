@@ -4,32 +4,6 @@ func ChannelSecurer(permissionName string, c *Channel, context *Context) error {
 
 	// TODO run this function
 	return nil
-
-	// var accountId int64
-	// // if user is logged in, get their account id
-	// if context.IsLoggedIn() {
-	// 	accountId = context.Client.Account.Id
-	// }
-
-	// // to do add caching
-	// cp := NewChannelParticipant()
-	// cp.ChannelId = c.Id
-	// cp.AccountId = accountId
-	// role, err := cp.FetchRole()
-	// if err != nil {
-	// 	return err
-	// }
-
-	// p := NewPermission()
-	// p.ChannelId = c.Id
-	// p.RoleConstant = role
-
-	// // check if the user is allowed to take action
-	// if err := p.EnsureAllowance(); err != nil {
-	// 	return err
-	// }
-
-	// return nil
 }
 
 func ChannelReadSecurer(permissionName string, context *Context) error {

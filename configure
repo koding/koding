@@ -106,6 +106,7 @@ rest = ->
 
     (require "./deployment/socialapiconfig.coffee").create KONFIG
     (require "./deployment/mongomigrationconfig.coffee").create KONFIG
+    (require "./deployment/gokodingconfig.coffee").create KONFIG
 
   # write revision to client/.config.json
   writeVersion = (obj) ->

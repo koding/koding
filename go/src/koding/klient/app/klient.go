@@ -62,6 +62,9 @@ var (
 	// the implementation of New() doesn't have any error to be returned yet it
 	// returns, so it's totally safe to neglect the error
 	cookieJar, _ = cookiejar.New(nil)
+
+	// ErrExit is returned by NewKlient when no klient should be started.
+	ErrExit = errors.New("exit")
 )
 
 // Klient is the central app which provides all available methods.
@@ -147,6 +150,7 @@ type KlientConfig struct {
 
 	NoTunnel bool
 	NoProxy  bool
+	NoExit   bool
 
 	Autoupdate bool
 
@@ -259,9 +263,31 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		}
 
 		konfig.Konfig = konfig.ReadKonfig() // re-read konfig after dumping metadata
+
+		if !conf.NoExit {
+			return nil, ErrExit
+		}
+	}
+
+	// TODO(rjeczalik): Once klient installation method is reworked,
+	// ensure flags are stored alongside konfig and do not
+	// overwrite konfig here.
+	if conf.KontrolURL != "" {
+		konfig.Konfig.KontrolURL = conf.KontrolURL
+	}
+
+	if conf.TunnelKiteURL != "" {
+		konfig.Konfig.TunnelURL = conf.TunnelKiteURL
 	}
 
 	k := newKite(conf)
+	k.Config.VerifyAudienceFunc = verifyAudience
+
+	if k.Config.KontrolURL == "" || k.Config.KontrolURL == "http://127.0.0.1:3000/kite" ||
+		konfig.Konfig.KontrolURL != konfig.Builtin.KontrolURL {
+		k.Config.KontrolURL = konfig.Konfig.KontrolURL
+	}
+
 	term := terminal.New(k.Log, conf.ScreenrcPath)
 	term.InputHook = usg.Reset
 
@@ -288,10 +314,11 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 	}
 
 	tunOpts := &tunnel.Options{
-		DB:      db,
-		Log:     k.Log,
-		Kite:    k,
-		NoProxy: conf.NoProxy,
+		DB:            db,
+		Log:           k.Log,
+		Kite:          k,
+		NoProxy:       conf.NoProxy,
+		TunnelKiteURL: konfig.Konfig.TunnelURL,
 	}
 
 	t, err := tunnel.New(tunOpts)
@@ -846,4 +873,82 @@ func userIn(user string, users ...string) bool {
 		}
 	}
 	return false
+}
+
+// TODO(rjeczalik): Remove managed/devmanaged channels
+// and remove custom verifyAudience function.
+var (
+	prodEnvs = map[string]struct{}{
+		"managed":    {},
+		"production": {},
+	}
+	devEnvs = map[string]struct{}{
+		"devmanaged":  {},
+		"development": {},
+	}
+	kiteNames = map[string]struct{}{
+		"kd":     {},
+		"klient": {},
+	}
+)
+
+func match(allowed map[string]struct{}, values ...string) bool {
+	for _, v := range values {
+		if _, ok := allowed[v]; !ok {
+			return false
+		}
+	}
+
+	return true
+}
+
+func verifyAudience(kite *kiteproto.Kite, audience string) error {
+	switch audience {
+	case "/":
+		// The root audience is like superuser - it has access to everything.
+		return nil
+	case "":
+		return errors.New("invalid empty audience")
+	}
+
+	aud, err := kiteproto.KiteFromString(audience)
+	if err != nil {
+		return fmt.Errorf("invalid audience: %s (%s)", err, audience)
+	}
+
+	if kite.Username != aud.Username {
+		return fmt.Errorf("audience: username %q not allowed (%s)", aud.Username, audience)
+	}
+
+	// Verify environment - managed environment means production klient
+	// running on a user's laptop; devmanaged is for development/sandobx
+	// environments.
+	//
+	// TODO(rjeczalik): klient should always have development/production
+	// values for the environment fields - the managed flag should be
+	// set elsewhere; it'd also make the deployment process easier
+	// (2 delivery channels instead of 4).
+	switch {
+	case aud.Environment == "":
+		// ok - empty matches all
+	case kite.Environment == aud.Environment:
+		// ok - environment matches
+	case match(prodEnvs, kite.Environment, aud.Environment):
+		// ok - either remote or local is managed kite from development channel
+	case match(devEnvs, kite.Environment, aud.Environment):
+		// ok - either remote or local is managed kite from development channel
+	default:
+		return fmt.Errorf("audience: environment %q not allowed (%s)", aud.Environment, audience)
+	}
+
+	switch {
+	case aud.Name == "":
+		// ok - empty matches all
+	case kite.Name == aud.Name:
+	case match(kiteNames, kite.Name, aud.Name):
+	default:
+		return fmt.Errorf("audience: kite %q not allowed (%s)", aud.Name, audience)
+	}
+
+	return nil
 }

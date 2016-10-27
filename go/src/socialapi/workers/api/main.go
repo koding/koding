@@ -15,7 +15,6 @@ import (
 	"socialapi/workers/api/modules/notificationsetting"
 	"socialapi/workers/api/modules/participant"
 	"socialapi/workers/api/modules/pinnedactivity"
-	"socialapi/workers/api/modules/popular"
 	"socialapi/workers/api/modules/privatechannel"
 	"socialapi/workers/api/modules/reply"
 	collaboration "socialapi/workers/collaboration/api"
@@ -28,7 +27,6 @@ import (
 	notificationapi "socialapi/workers/notification/api"
 	"socialapi/workers/payment"
 	paymentapi "socialapi/workers/payment/api"
-	permissionapi "socialapi/workers/permission/api"
 	presenceapi "socialapi/workers/presence/api"
 	realtimeapi "socialapi/workers/realtime/api"
 	sitemapapi "socialapi/workers/sitemap/api"
@@ -60,7 +58,6 @@ func main() {
 	m.SetRedis(redisConn)
 
 	handlers.AddHandlers(m)
-	permissionapi.AddHandlers(m)
 	topicmoderationapi.AddHandlers(m)
 	collaboration.AddHandlers(m)
 	paymentapi.AddHandlers(m)
@@ -77,7 +74,6 @@ func main() {
 	messagelist.AddHandlers(m)
 	participant.AddHandlers(m)
 	pinnedactivity.AddHandlers(m)
-	popular.AddHandlers(m)
 	privatechannel.AddHandlers(m)
 	reply.AddHandlers(m)
 	notificationsetting.AddHandlers(m)

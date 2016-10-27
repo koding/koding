@@ -160,6 +160,8 @@ start on (local-filesystems
           and runlevel [2345])
 stop on runlevel [!2345]
 
+{{if .UserName}}setuid {{.UserName}}{{end}}
+
 {{range $key, $value := .Environment}}
 env {{$key}}={{$value}}
 {{end}}

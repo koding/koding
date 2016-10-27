@@ -23,6 +23,9 @@ type Userdata struct {
 	// KlientURL url of klient deb. When non-empty it's used instead of
 	// looking for a latest deb with Bucket.
 	KlientURL string
+
+	// TunnelURL is an tunnelserver endpoint.
+	TunnelURL string
 }
 
 // CloudInitConfig is used as source for the cloudInit template.
@@ -46,6 +49,8 @@ type CloudInitConfig struct {
 	KiteKey string
 
 	LatestKlientURL string // URL of the latest version of the Klient package
+	KontrolURL      string // kontrol kite URL
+	TunnelURL       string // tunnelserver kite URL
 
 	// DisableEC2Metadata adds a nul route to AWS's metadata service so it
 	// can't be accessed from the instance
@@ -101,6 +106,17 @@ write_files:
     content: |
       {{.KiteKey}}
 
+  # Create Koding metadata file.
+  - path: /var/lib/koding/metadata.json
+    permissions: '0644'
+    content: |-
+      {
+          "konfig": {
+              "kontrolURL": "{{.KontrolURL}}",
+              "tunnelURL": "{{.TunnelURL}}"
+          }
+      }
+
 {{if .UserData}}
   # Create user script.
   - path: /var/lib/koding/user-data.sh
@@ -114,9 +130,12 @@ runcmd:
   # - [sh, -c, 'echo "127.0.0.1 {{.Hostname}}" >> /etc/hosts']
 
   # Install & Configure klient
+  - [touch, /var/log/upstart/klient.log, /var/log/cloud-init-output.log, /var/log/cloud-init.log, /var/lib/koding/user-data.sh]
+  - [chmod, +r, /var/log/upstart/klient.log, /var/log/cloud-init-output.log, /var/log/cloud-init.log, /var/lib/koding/user-data.sh]
   - [wget, "{{.LatestKlientURL}}", --retry-connrefused, --tries, 5, -O, /tmp/latest-klient.deb]
   - [dpkg, -i, /tmp/latest-klient.deb]
   - [chown, -R, '{{.Username}}:{{.Username}}', /opt/kite/klient]
+  - [sudo, -E, -u, "{{.Username}}", /opt/kite/klient/klient, -metadata-file, /var/lib/koding/metadata.json]
   - [service, klient, stop]
   - [sed, -i, 's/\.\/klient/sudo -E -u {{.Username}} \.\/klient/g', /etc/init/klient.conf]
   - [service, klient, start]
@@ -175,6 +194,14 @@ func (u *Userdata) Create(c *CloudInitConfig) ([]byte, error) {
 	}
 
 	c.UserSSHKeys = validatedKeys
+
+	if c.KontrolURL == "" {
+		c.KontrolURL = u.Keycreator.KontrolURL
+	}
+
+	if c.TunnelURL == "" {
+		c.TunnelURL = u.TunnelURL
+	}
 
 	var udata bytes.Buffer
 	err = cloudInitTemplate.Funcs(funcMap).Execute(&udata, c)

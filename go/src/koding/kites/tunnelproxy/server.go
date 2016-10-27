@@ -63,7 +63,7 @@ func (opts *ServerOptions) registerURL() string {
 		return opts.RegisterURL
 	}
 
-	return konfig.Builtin.Endpoints.URL("tunnelserver", opts.Environment)
+	return konfig.Builtin.Endpoints.TunnelServer
 }
 
 func (opts *ServerOptions) kontrolURL() string {
@@ -71,7 +71,7 @@ func (opts *ServerOptions) kontrolURL() string {
 		return opts.KontrolURL
 	}
 
-	return konfig.Builtin.Endpoints.URL("kontrol", opts.Environment)
+	return konfig.Builtin.Endpoints.Kontrol
 }
 
 // Server represents tunneling server that handles managing authorization
@@ -831,6 +831,7 @@ func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 	}
 
 	s.opts.Config.KontrolURL = s.opts.kontrolURL()
+	s.opts.Config.Transport = config.XHRPolling
 
 	if s.opts.Port != 0 {
 		s.opts.Config.Port = s.opts.Port
