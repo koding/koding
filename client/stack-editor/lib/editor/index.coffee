@@ -95,7 +95,7 @@ module.exports = class StackEditorView extends kd.View
 
     @secondaryActions.addSubView @deleteStack = new CustomLinkView
       cssClass : 'HomeAppView--button danger'
-      title    : 'DELETE STACK TEMPLATE'
+      title    : 'DELETE THIS STACK TEMPLATE'
       click    : @bound 'deleteStack'
 
     @secondaryActions.addSubView new CustomLinkView
@@ -132,6 +132,8 @@ module.exports = class StackEditorView extends kd.View
     @tabView.addPane readmePane = new kd.TabPaneView
       name : 'Readme'
       view : @readmeView
+
+
 
     { @credentials } = @stackTemplateView.credentialStatus or {}
 
