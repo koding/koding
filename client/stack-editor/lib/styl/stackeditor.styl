@@ -104,7 +104,74 @@ $borderColor                = #E3E3E3
   kalc                      height, (100% \- 133px)
 
   > .kdtabpaneview
-    height                  calc(100% \- 73px)
+    height                  calc(100% \- 30px)
+
+.StackEditorTabs
+  > .kdtabpaneview
+    &.stack-template
+      .searchStackInput
+        margin              -10px 0 16px 0px
+        width               850px
+        left                18px
+        bg                  color, #FFF
+        font-size           14px
+        font-weight         400
+
+      .close-icon
+      .loading-icon
+        z-index             1
+        top                 36px
+        right               68px
+
+      .loading-icon
+        width               40px
+        height              40px
+        background          url(default.gif) 0 0
+        position            absolute
+        top                 22px
+
+      .close-icon
+        r-sprite            app content_modal_close_icon
+        &:hover
+          background-position initial
+
+      .stack-script-search-scroll
+        width               848px
+        height              auto
+        min-height          80px
+        max-height          510px
+        border              1px solid #DDD
+        border-radius       4px
+        position            absolute !important
+        top                 64px
+        left                48px
+        bg                  color #FFF
+        z-index             100
+        overflow            hidden
+
+        .item-wrapper
+          cursor            pointer
+          width             793px
+          font-size         14px
+          padding           10px 20px
+          font-weight       400
+          line-height       15px
+          color             #5e5e5e
+          border-bottom     1px solid #ddd
+          .item
+            max-width       580px
+          .title
+            margin-bottom   4px
+          .description
+            color           #989898
+            line-height     14px
+            font-weight     200
+            font-size       13px
+            max-width       580px
+            ellipsis()
+
+      .editor-pane.editor-view
+        height              calc(100% \- 44px)
 
 .StackEditorTabs.readonly
   .warning-view
@@ -125,7 +192,7 @@ $borderColor                = #E3E3E3
       pointer               cursor
 
 .StackEditor-SecondaryActions
-  margin-top                30px
+  margin-top                60px
 
 //
 // MOVED STACK EDITOR STYLES
