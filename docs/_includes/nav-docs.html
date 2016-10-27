@@ -9,10 +9,10 @@
     {% for section in site.data.nav-docs %}
     <ul>
       <li>
-        <h3><strong>{{ section.title}}</strong></h3>
+        <a href='#'>{{ section.title}}</a>
         <ul>
           {% for item in section.items %}
-          {% assign url = "/docs/" | prepend: site.url | append: item.id %}
+          {% assign url = "/docs/" | append: item.id %}
           <li{% if page.url == url %} class="active"{% endif %}><a href="{{ url }}">{{ item.title }}</a></li>
           {% endfor %}
         </ul>
