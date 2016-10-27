@@ -1,8 +1,9 @@
-kd                      = require 'kd'
-KDButtonView            = kd.ButtonView
-Encoder                 = require 'htmlencode'
-curryIn                 = require 'app/util/curryIn'
+kd = require 'kd'
+KDButtonView = kd.ButtonView
+Encoder = require 'htmlencode'
+curryIn = require 'app/util/curryIn'
 StackTemplateEditorView = require './stacktemplateeditorview'
+StackScriptSearchView = require './stackscriptsearchview'
 
 
 module.exports = class StackTemplateView extends kd.View
@@ -28,6 +29,9 @@ module.exports = class StackTemplateView extends kd.View
       content = null
 
     delegate = @getDelegate()
+    @searhText = null
+    if @canUpdate
+      @addSubView new StackScriptSearchView
 
     @addSubView @editorView = new StackTemplateEditorView {
       delegate: this, content, contentType, showHelpContent
@@ -73,3 +77,4 @@ module.exports = class StackTemplateView extends kd.View
   setReadOnly: ->
     @setClass 'readonly'
     @editorView.aceView.ace.editor.setReadOnly yes
+
