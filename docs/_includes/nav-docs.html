@@ -1,3 +1,9 @@
+<script type="text/javascript">
+  window.TERRAFORM_DOCS = [{% for p in site.pages %}{% if p.url contains "docs/terraform/" %}{ url: "{{ p.url }}", title: "{{ p.page_title }}", sidebar_current: "{{ p.sidebar_current }}"},{% endif %}{% endfor %}''];
+  TERRAFORM_DOCS.pop();
+  window.PAGE_URL = "{{ page.url }}";
+</script>
+<script type="text/javascript" src="{{ site.url }}/js/lodash.set.js"></script>
 <aside>
   <nav>
     {% for section in site.data.nav-docs %}
@@ -13,5 +19,8 @@
       </li>
     </ul>
     {% endfor %}
+    <ul id="terraform-docs"></ul>
   </nav>
 </aside>
+
+<script type="text/javascript" src="{{ site.url }}/js/nav-terraform.js"></script>
