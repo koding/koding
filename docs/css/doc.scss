@@ -9,7 +9,7 @@ main {
 
   > aside {
     flex: 0 0 auto;
-    width: 300px;
+    width: 360px;
     padding: 32px 0;
 
     > ul > li > a {
@@ -22,11 +22,17 @@ main {
       font-size: 14px;
       line-height: 20px;
 
+      a {
+        text-decoration: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
       a,
       a:visited,
       a:hover {
         color: #4078c0;
-        text-decoration: none;
       }
     }
 
@@ -43,11 +49,16 @@ main {
       }
     }
 
+    li.separator > ul {
+      padding: 12px 0;
+    }
+
   }
 
   > section {
     flex: 1 0 auto;
-    width: calc(100% - 300px);
+    width: calc(100% - 360px);
+    min-width: 600px;
     padding: 32px 32px 32px 0;
     box-sizing: border-box;
     p.citation {
