@@ -15,24 +15,26 @@ do ->
     then raw.split(': ').pop()
     else raw
 
-  createUl = (doc, parent) ->
+  createSubNavItems = (doc, parent, prop) ->
 
-    ul = $ "<ul/>"
-    if index = doc?.index
+    if index = doc.index
       isActive = pageUrl is index.url
-      title = "<li class='title#{ if isActive then ' active' else ''}'><a href='{{ site.url }}#{index.url}'>#{getTitle index.title}</a></li>"
-      parent.append title
+      parent.append "<li class='title#{ if isActive then ' active' else ''}'><a href='{{ site.url }}#{index.url}'>#{getTitle index.title}</a></li>"
+    else if prop is 'd'
+      parent.append "<li class='title separator'><a href='#'>Data Sources</a></li>"
+    else if prop is 'r'
+      parent.append "<li class='title separator'><a href='#'>Resources</a></li>"
 
-    unless doc.title
-      for own prop of doc
-        createUl doc[prop], ul
-      parent.find('li').last().append ul
-    else
+    if doc.title
       unless /index\.html\/?/.test doc.url
         isActive = pageUrl is doc.url
-
         parent.append "<li #{ if isActive then 'class=\'active\'' else ''}><a href='{{ site.url }}#{doc.url}'>#{getTitle doc.title}</a></li>"
 
+    else
+
+      ul = $ '<ul/>'
+      createSubNavItems value, ul, key  for own key, value of doc
+      parent.find('li').last().append ul
 
     return ul
 
@@ -50,12 +52,17 @@ do ->
 
   window.TERRAFORM_DOCS_MAP = docsMap
 
-  createUl docsMap, MAIN_UL
+  createSubNavItems docsMap, MAIN_UL
 
-  # expandParents active  if (active = $('li.active')).length
-  $('aside li ul').hide()
+  if pageUrl is '/docs/home'
+    $('aside li ul ul').hide()
+  else
+    $('aside li ul').hide()
+
   $('li.active > ul').show()
+  $('li.active > ul > li.separator > ul').show()
   $('li.active').parents('ul').show()
+
 
   $('li a[href="#"]').on 'click', (event) ->
     event.preventDefault()
