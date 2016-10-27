@@ -8,7 +8,6 @@ TrialEndedMemberModal = require 'lab/TrialEndedMemberModal'
 TrialEndedNotifySuccessModal = require 'lab/TrialEndedNotifySuccessModal'
 
 PricingChangeModal = require 'lab/PricingChangeModal'
-UpgradeNeededNotifySuccessModal = require 'lab/UpgradeNeededNotifySuccessModal'
 
 SuspendedMemberModal = require 'lab/SuspendedMemberModal'
 SuspendedNotifySuccessModal = require 'lab/SuspendedNotifySuccessModal'
@@ -48,9 +47,7 @@ module.exports = class DisabledMemberModal extends ReactView
           onSecondaryButtonClick={onLogoutClick} />
 
       when Status.NEEDS_UPGRADE
-        onClick = =>
-          @destroy()
-          router.handleRoute '/Disabled/Member/upgrade-notify-success'
+        onClick = -> location.reload()
         <PricingChangeModal
           isOpen={yes}
           onButtonClick={onClick}
@@ -65,12 +62,6 @@ module.exports = class DisabledMemberModal extends ReactView
       when 'notify-success'
         onClick = -> console.log 'support link clicked'
         <TrialEndedNotifySuccessModal
-          isOpen={yes}
-          onButtonClick={onClick} />
-
-      when 'upgrade-notify-success'
-        onClick = -> console.log 'support link clicked'
-        <UpgradeNeededNotifySuccessModal
           isOpen={yes}
           onButtonClick={onClick} />
 
