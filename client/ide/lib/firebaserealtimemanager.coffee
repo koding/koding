@@ -152,6 +152,21 @@ module.exports = class FirebaseRealtimeManager extends KDObject
     firebase.realtime.load fileId, onLoadedCallback, initializerFn, errorCallback
 
 
+  retrieveAllFiles: ->
+    retrievePageOfFiles = @(request) ->
+        request.execute(@(resp) ->
+            handleFileResults(resp.items)
+            nextPageToken = resp.nextPageToken
+            request = firebase.files.list({
+              'maxResults': 50,
+              'pageToken': nextPageToken
+            });
+            retrievePageOfFiles(request) if nextPageToken
+        )
+    initialRequest = firebase.files.list({maxResults: 50})
+    retrievePageOfFiles(initialRequest, [])
+    
+    
   getFromModel: (key) ->
 
     return null  if @isDisposed
