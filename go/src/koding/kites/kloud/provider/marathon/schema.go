@@ -1,8 +1,15 @@
 package marathon
 
 import (
+	"errors"
+	"net/http"
+	"net/url"
+	"time"
+
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
+
+	marathon "github.com/gambol99/go-marathon"
 )
 
 var schema = &provider.Schema{
@@ -29,18 +36,61 @@ var (
 // Credential represents credential information
 // that are required to deploy a Marathon app.
 type Credential struct {
+	URL                string `json:"url" bson:"url" hcl:"url"`
+	BasicAuthUser      string `json:"basic_auth_user" bson:"basic_auth_user" hcl:"basic_auth_user"`
+	BasicAuthPassowrd  string `json:"basic_auth_password" bson:"basic_auth_password" hcl:"basic_auth_password"`
+	RequestTimeout     int    `json:"request_timeout" bson:"request_timeout" hcl:"request_timeout"`
+	DeploymentTimepout int    `json:"deployment_timeout" bson:"deployment_timeout" hcl:"deployment_timeout"`
 }
 
 // Valid implements the stack.Validator interface.
 func (c *Credential) Valid() error {
+	if c.URL == "" {
+		return errors.New("invalid empty URL")
+	}
+
+	if _, err := url.Parse(c.URL); err != nil {
+		return errors.New("invalid URL: " + err.Error())
+	}
+
 	return nil
+}
+
+// Config gives new configuration for Marathon client.
+func (c *Credential) Config() *marathon.Config {
+	cfg := marathon.NewDefaultConfig()
+
+	cfg.URL = c.URL
+	cfg.HTTPBasicAuthUser = c.BasicAuthUser
+	cfg.HTTPBasicPassword = c.BasicAuthPassowrd
+	cfg.HTTPClient = &http.Client{
+		Timeout: c.requestTimeout() * time.Second,
+	}
+
+	return &cfg
+}
+
+func (c *Credential) requestTimeout() time.Duration {
+	if c.RequestTimeout != 0 {
+		return time.Duration(c.RequestTimeout)
+	}
+
+	return 600
 }
 
 // Metadata represents a single app metadata.
 type Metadata struct {
+	GroupName string  `json:"groupName" bson:"groupName" hcl:"groupName"`
+	GroupSize int     `json:"groupSize" bson:"groupSize" hcl:"groupSize"`
+	CPU       float64 `json:"cpu" bson:"cpu" hcl:"cpu"`
+	Mem       float64 `json:"mem" bson:"mem" hcl:"mem"`
 }
 
 // Valid implements the stack.Validator interface.
 func (m *Metadata) Valid() error {
+	if m.GroupName == "" {
+		return errors.New("invalid empty app / group name")
+	}
+
 	return nil
 }
