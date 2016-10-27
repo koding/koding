@@ -29,7 +29,7 @@ module.exports = class FirebaseRealtimeManager extends KDObject
 
 
   ###*
-   * Create file to google drive.
+   * Create file.
    *
    * @param {{title: string, preventEvent: boolean}} options
    * @param {function} callback
@@ -42,7 +42,7 @@ module.exports = class FirebaseRealtimeManager extends KDObject
 
     options      =
       resource   :
-        mimeType : 'application/vnd.google-apps.drive-sdk'
+        contentType : ''
         title    : title
     
     firebase.put(options).execute (file) =>
@@ -52,7 +52,7 @@ module.exports = class FirebaseRealtimeManager extends KDObject
 
 
   ###*
-   * Remove file from google drive.
+   * Remove file.
    *
    * @param {{title: string, preventEvent: boolean}} options
    * @param {function} callback
@@ -74,7 +74,7 @@ module.exports = class FirebaseRealtimeManager extends KDObject
 
 
   ###*
-   * Fetch file from google drive.
+   * Get file.
    *
    * @param {{id: string, preventEvent: boolean}} options
    * @param {function} callback
@@ -91,7 +91,7 @@ module.exports = class FirebaseRealtimeManager extends KDObject
 
 
   ###*
-   * Query google drive to get file(s) with given title.
+   * get file(s) with given title.
    *
    * @param {{title: string, preventEvent: boolean}} options
    * @param {function} callback
@@ -121,13 +121,13 @@ module.exports = class FirebaseRealtimeManager extends KDObject
     { preventEvent } = options
 
     onLoadedCallback = (doc) =>
-      doc.addEventListener firebase.realtime.EventType.COLLABORATOR_JOINED, (c) =>
+      doc.addEventListener firebase.database.Event.COLLABORATOR_JOINED, (c) =>
         @emit 'CollaboratorJoined', doc, c  unless @isDisposed
 
-      doc.addEventListener firebase.realtime.EventType.COLLABORATOR_LEFT, (c) =>
+      doc.addEventListener firebase.database.Event.COLLABORATOR_LEFT, (c) =>
         @emit 'CollaboratorLeft', doc, c  unless @isDisposed
 
-      doc.addEventListener firebase.realtime.EventType.DOCUMENT_SAVE_STATE_CHANGED, (c) =>
+      doc.addEventListener firebase.database.Event.DOCUMENT_SAVE_STATE_CHANGED, (c) =>
         @emit 'DocumentSaveStateChanged', doc, c  unless @isDisposed
 
       callback null, doc
@@ -246,14 +246,14 @@ module.exports = class FirebaseRealtimeManager extends KDObject
 
   bindStringListeners: (string) ->
 
-    string.addEventListener firebase.realtime.EventType.TEXT_INSERTED, @binder string, 'inserted', @textInserted
-    string.addEventListener firebase.realtime.EventType.TEXT_DELETED, @binder string, 'deleted', @textDeleted
+    string.addEventListener firebase.database.Event.TEXT_INSERTED, @binder string, 'inserted', @textInserted
+    string.addEventListener firebase.database.Event.TEXT_DELETED, @binder string, 'deleted', @textDeleted
 
 
   unbindStringListeners: (string) ->
 
-    string.removeEventListener firebase.realtime.EventType.TEXT_INSERTED, @binder string, 'inserted', @textInserted
-    string.removeEventListener firebase.realtime.EventType.TEXT_DELETED, @binder string, 'deleted', @textDeleted
+    string.removeEventListener firebase.database.Event.TEXT_INSERTED, @binder string, 'inserted', @textInserted
+    string.removeEventListener firebase.database.Event.TEXT_DELETED, @binder string, 'deleted', @textDeleted
 
 
   mapValueChanged: (map, v) ->
@@ -264,12 +264,12 @@ module.exports = class FirebaseRealtimeManager extends KDObject
 
   bindMapListeners: (map) ->
 
-    map.addEventListener firebase.realtime.EventType.VALUE_CHANGED, @binder map, 'changed', @mapValueChanged
+    map.addEventListener firebase.database.Event.VALUE_CHANGED, @binder map, 'changed', @mapValueChanged
 
 
   unbindMapListeners: (map) ->
 
-    map.removeEventListener firebase.realtime.EventType.VALUE_CHANGED, @binder map, 'changed', @mapValueChanged
+    map.removeEventListener firebase.database.Event.VALUE_CHANGED, @binder map, 'changed', @mapValueChanged
 
 
   listValueAdded: (list, v) ->
@@ -295,16 +295,16 @@ module.exports = class FirebaseRealtimeManager extends KDObject
 
   bindListListeners: (list) ->
 
-    list.addEventListener firebase.realtime.EventType.VALUES_ADDED, @binder list, 'added', @listValueAdded
-    list.addEventListener firebase.realtime.EventType.VALUES_REMOVED, @binder list, 'removed', @listValueRemoved
-    list.addEventListener firebase.realtime.EventType.VALUES_SET, @binder list, 'set', @listValueSet
+    list.addEventListener firebase.database.Event.VALUES_ADDED, @binder list, 'added', @listValueAdded
+    list.addEventListener firebase.database.Event.VALUES_REMOVED, @binder list, 'removed', @listValueRemoved
+    list.addEventListener firebase.database.Event.VALUES_SET, @binder list, 'set', @listValueSet
 
 
   unbindListListeners: (list) ->
 
-    list.removeEventListener firebase.realtime.EventType.VALUES_ADDED, @binder list, 'added', @listValueAdded
-    list.removeEventListener firebase.realtime.EventType.VALUES_REMOVED, @binder list, 'removed', @listValueRemoved
-    list.removeEventListener firebase.realtime.EventType.VALUES_SET, @binder list, 'set', @listValueSet
+    list.removeEventListener firebase.database.Event.VALUES_ADDED, @binder list, 'added', @listValueAdded
+    list.removeEventListener firebase.database.Event.VALUES_REMOVED, @binder list, 'removed', @listValueRemoved
+    list.removeEventListener firebase.database.Event.VALUES_SET, @binder list, 'set', @listValueSet
 
 
   binder: (collaborativeObj, type, callback) ->
