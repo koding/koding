@@ -21,6 +21,15 @@ exclude:
 - Rakefile
 - vendor/bundle
 - docs/github.com.terraform
+- docs/terraform/commands
+- docs/terraform/configuration/atlas.html.md
+- docs/terraform/configuration/modules.html.md
+- docs/terraform/import
+- docs/terraform/internals
+- docs/terraform/state
+- docs/terraform/modules
+- docs/terraform/plugins
+
 gems:
 - jekyll-paginate
 sass:
