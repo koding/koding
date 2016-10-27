@@ -274,6 +274,7 @@ import:
 - package: github.com/tent/http-link-go
 - package: github.com/Azure/azure-sdk-for-go
 - package: github.com/Banno/terraform-provider-marathon
+- package: github.com/gambol99/go-marathon
 ignore:
 - koding/tools/logger
 - koding/kite
