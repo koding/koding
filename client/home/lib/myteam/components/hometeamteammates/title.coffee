@@ -44,7 +44,7 @@ module.exports = class HomeTeamTeamMatesTitle extends React.Component
 
   render: ->
 
-    <div className="teammate-header">
+    <div className="sectionHeader">
       <TeammateTitle onClick={@bound 'onClickTitle'} />
       <FilterWithDropDownMenu
         items={@getMenuItems()}
@@ -55,7 +55,7 @@ module.exports = class HomeTeamTeamMatesTitle extends React.Component
     </div>
 
 TeammateTitle = ({ onClick }) ->
-  <div className="title" onClick={onClick}>
+  <div className="HomeTeamTeammatesTitle" onClick={onClick}>
     <a href="#teammates">
       <svg className="anchor" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16">
         <path fill="#9f9f9f" d="M12 4h-2.156c0.75 0.5 1.453 1.391 1.672 2h0.469c1.016 0 2 1 2 2s-1.016 2-2 2h-3c-0.984 0-2-1-2-2 0-0.359 0.109-0.703 0.281-1h-2.141c-0.078 0.328-0.125 0.656-0.125 1 0 2 1.984 4 3.984 4s1.016 0 3.016 0 4-2 4-4-2-4-4-4zM4.484 10h-0.469c-1.016 0-2-1-2-2s1.016-2 2-2h3c0.984 0 2 1 2 2 0 0.359-0.109 0.703-0.281 1h2.141c0.078-0.328 0.125-0.656 0.125-1 0-2-1.984-4-3.984-4s-1.016 0-3.016 0-4 2-4 4 2 4 4 4h2.156c-0.75-0.5-1.453-1.391-1.672-2z" />
@@ -66,7 +66,7 @@ TeammateTitle = ({ onClick }) ->
 
 FilterWithDropDownMenu = ({ onClick, items, isMenuOpen, filterValue }) ->
   
-  <div className='dropdown' onClick={onClick}>
+  <div className='HomeTeamTeammatesDropdown' onClick={onClick}>
     <FilterValue filterValue={filterValue} />
     <ButtonWithMenu menuClassName='menu-class' items={items} isMenuOpen={isMenuOpen} />
   </div>
