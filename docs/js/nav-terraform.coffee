@@ -68,9 +68,3 @@ do ->
     event.preventDefault()
     $(this).parent().find('> ul').show()
 
-  $(document).ready ->
-    $('section.markdown-body a').each (index, el) ->
-      { value } = el.attributes.href
-
-      if /^\/docs\//.test value
-        el.setAttribute 'href', value.replace '/docs/', '/docs/terraform/'
