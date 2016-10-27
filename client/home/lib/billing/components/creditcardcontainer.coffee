@@ -27,42 +27,9 @@ cardBrand = createSelector(
     return slugify brand
 )
 
-getUserForAccount = (account, users) ->
-  return null  if not (account and users)
-
-  { nickname } = account.profile
-  [ userId ] = Object.keys(users).filter (id) ->
-    users[id].username is nickname
-
-  return if userId then users[userId] else null
-
-
-accountUser = createSelector(
-  bongo.all('JUser')
-  bongo.byId('JAccount', whoami()._id)
-  (allUsers, account) -> getUserForAccount account, allUsers
-)
-
-userEmail = createSelector(
-  accountUser
-  (user) -> user?.email
-)
-
-nicename = ->
-  if acc = whoami()
-  then [acc.profile.firstName, acc.profile.lastName].join ' '
-  else ''
-
 initialValues = (state) ->
-  return  unless user = accountUser(state)
   return  unless state.customer
-
-  ccValues = creditCard.values(state)
-
-  email = customer.email(state) or user.email
-  name = ccValues?.name or nicename()
-
-  return _.assign {}, ccValues, { name, email }
+  return creditCard.values(state)
 
 
 mapStateToProps = (state) ->
@@ -73,10 +40,8 @@ mapStateToProps = (state) ->
     isDirty: isDirty(FORM_NAME)(state)
     formValues:
       number: number
-      name: formValue state, 'name'
       exp_year: formValue state, 'exp_year'
       exp_month: formValue state, 'exp_month'
-      email: formValue state, 'email'
       brand: cardBrand state
       realNumber: realNumber(state)
 
