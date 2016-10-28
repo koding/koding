@@ -350,7 +350,7 @@ imports:
   subpackages:
   - simplelru
 - name: github.com/hashicorp/hcl
-  version: d8c773c4cba11b11539e3d45f93daeaa5dcf1fa1
+  version: 8fa153c5b4e9d1ccecda7075821ffc7c1f6d912b
   subpackages:
   - hcl/ast
   - hcl/fmtcmd
