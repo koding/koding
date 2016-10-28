@@ -195,7 +195,7 @@ func (r *marathonClient) WaitOnGroup(name string, timeout time.Duration) error {
 					return nil
 				}
 			}
-			time.Sleep(time.Duration(1) * time.Second)
+			time.Sleep(r.config.PollingWaitTime)
 		}
 		return nil
 	})

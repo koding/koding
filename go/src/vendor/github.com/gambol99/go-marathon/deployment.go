@@ -151,6 +151,6 @@ func (r *marathonClient) WaitOnDeployment(id string, timeout time.Duration) erro
 		if !found {
 			return nil
 		}
-		time.Sleep(time.Duration(2) * time.Second)
+		time.Sleep(r.config.PollingWaitTime)
 	}
 }

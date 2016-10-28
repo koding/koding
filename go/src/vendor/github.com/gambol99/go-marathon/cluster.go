@@ -106,7 +106,7 @@ func newCluster(client *http.Client, marathonURL string) (Cluster, error) {
 
 	/* step: create a link list of the hosts */
 	var previous *marathonNode
-	for index, host := range strings.SplitN(marathon.Host, ",", -1) {
+	for index, host := range strings.SplitN(marathon.Host+marathon.Path, ",", -1) {
 		if len(host) == 0 {
 			return nil, ErrInvalidEndpoint
 		}

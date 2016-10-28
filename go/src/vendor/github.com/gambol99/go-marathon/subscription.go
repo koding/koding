@@ -23,6 +23,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/donovanhide/eventsource"
@@ -45,20 +46,23 @@ func (r *marathonClient) Subscriptions() (*Subscriptions, error) {
 
 // AddEventsListener adds your self as a listener to events from Marathon
 //		channel:	a EventsChannel used to receive event on
-func (r *marathonClient) AddEventsListener(channel EventsChannel, filter int) error {
+func (r *marathonClient) AddEventsListener(filter int) (EventsChannel, error) {
 	r.Lock()
 	defer r.Unlock()
 
 	// step: someone has asked to start listening to event, we need to register for events
 	// if we haven't done so already
 	if err := r.registerSubscription(); err != nil {
-		return err
+		return nil, err
 	}
 
-	if _, found := r.listeners[channel]; !found {
-		r.listeners[channel] = filter
+	channel := make(EventsChannel)
+	r.listeners[channel] = EventsChannelContext{
+		filter:     filter,
+		done:       make(chan struct{}, 1),
+		completion: &sync.WaitGroup{},
 	}
-	return nil
+	return channel, nil
 }
 
 // RemoveEventsListener removes the channel from the events listeners
@@ -67,13 +71,20 @@ func (r *marathonClient) RemoveEventsListener(channel EventsChannel) {
 	r.Lock()
 	defer r.Unlock()
 
-	if _, found := r.listeners[channel]; found {
+	if context, found := r.listeners[channel]; found {
+		close(context.done)
 		delete(r.listeners, channel)
 		// step: if there is no one else listening, let's remove ourselves
 		// from the events callback
 		if r.config.EventsTransport == EventsTransportCallback && len(r.listeners) == 0 {
 			r.Unsubscribe(r.SubscriptionURL())
 		}
+
+		// step: wait for pending goroutines to finish and close channel
+		go func(completion *sync.WaitGroup) {
+			completion.Wait()
+			close(channel)
+		}(context.completion)
 	}
 }
 
@@ -143,8 +154,7 @@ func (r *marathonClient) registerCallbackSubscription() error {
 	}
 	if !found {
 		// step: we need to register ourselves
-		uri := fmt.Sprintf("%s?callbackUrl=%s", marathonAPISubscription, callback)
-		if err := r.apiPost(uri, "", nil); err != nil {
+		if err := r.Subscribe(callback); err != nil {
 			return err
 		}
 	}
@@ -193,11 +203,19 @@ func (r *marathonClient) registerSSESubscription() error {
 	return nil
 }
 
-// Unsubscribe removes ourselves from Marathon's callback facility
-//	url		: the url you wish to unsubscribe
-func (r *marathonClient) Unsubscribe(callbackURL string) error {
+// Subscribe adds a URL to Marathon's callback facility
+//	callback	: the URL you wish to subscribe
+func (r *marathonClient) Subscribe(callback string) error {
+	uri := fmt.Sprintf("%s?callbackUrl=%s", marathonAPISubscription, callback)
+	return r.apiPost(uri, "", nil)
+
+}
+
+// Unsubscribe removes a URL from Marathon's callback facility
+//	callback	: the URL you wish to unsubscribe
+func (r *marathonClient) Unsubscribe(callback string) error {
 	// step: remove from the list of subscriptions
-	return r.apiDelete(fmt.Sprintf("%s?callbackUrl=%s", marathonAPISubscription, callbackURL), nil, nil)
+	return r.apiDelete(fmt.Sprintf("%s?callbackUrl=%s", marathonAPISubscription, callback), nil, nil)
 }
 
 // HasSubscription checks to see a subscription already exists with Marathon
@@ -242,12 +260,18 @@ func (r *marathonClient) handleEvent(content string) error {
 	defer r.RUnlock()
 
 	// step: check if anyone is listen for this event
-	for channel, filter := range r.listeners {
+	for channel, context := range r.listeners {
 		// step: check if this listener wants this event type
-		if event.ID&filter != 0 {
-			go func(ch EventsChannel, e *Event) {
-				ch <- e
-			}(channel, event)
+		if event.ID&context.filter != 0 {
+			context.completion.Add(1)
+			go func(ch EventsChannel, context EventsChannelContext, e *Event) {
+				defer context.completion.Done()
+				select {
+				case ch <- e:
+				case <-context.done:
+					// Terminates goroutine.
+				}
+			}(channel, context, event)
 		}
 	}
 

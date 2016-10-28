@@ -34,6 +34,25 @@ type Applications struct {
 	Apps []Application `json:"apps"`
 }
 
+// IPAddressPerTask is used by IP-per-task functionality https://mesosphere.github.io/marathon/docs/ip-per-task.html
+type IPAddressPerTask struct {
+	Groups    *[]string          `json:"groups,omitempty"`
+	Labels    *map[string]string `json:"labels,omitempty"`
+	Discovery Discovery          `json:"discovery,omitempty"`
+}
+
+// Discovery provides info about ports expose by IP-per-task functionality
+type Discovery struct {
+	Ports *[]Port `json:"ports,omitempty"`
+}
+
+// Port provides info about ports used by IP-per-task
+type Port struct {
+	Number   int    `json:"number,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Protocol string `json:"protocol,omitempty"`
+}
+
 // Application is the definition for an application in marathon
 type Application struct {
 	ID                    string              `json:"id,omitempty"`
@@ -50,6 +69,7 @@ type Application struct {
 	Mem                   *float64            `json:"mem,omitempty"`
 	Tasks                 []*Task             `json:"tasks,omitempty"`
 	Ports                 []int               `json:"ports"`
+	PortDefinitions       *[]PortDefinition   `json:"portDefinitions,omitempty"`
 	RequirePorts          *bool               `json:"requirePorts,omitempty"`
 	BackoffSeconds        *float64            `json:"backoffSeconds,omitempty"`
 	BackoffFactor         *float64            `json:"backoffFactor,omitempty"`
@@ -69,6 +89,7 @@ type Application struct {
 	AcceptedResourceRoles []string            `json:"acceptedResourceRoles,omitempty"`
 	LastTaskFailure       *LastTaskFailure    `json:"lastTaskFailure,omitempty"`
 	Fetch                 *[]Fetch            `json:"fetch,omitempty"`
+	IPAddressPerTask      *IPAddressPerTask   `json:"ipAddress,omitempty"`
 }
 
 // ApplicationVersions is a collection of application versions for a specific app in marathon
@@ -106,6 +127,17 @@ type GetAppOpts struct {
 //		force:		overrides a currently running deployment.
 type DeleteAppOpts struct {
 	Force bool `url:"force,omitempty"`
+}
+
+// SetIPAddressPerTask defines that the application will have a IP address defines by a external agent.
+// This configuration is not allowed to be used with Port or PortDefinitions. Thus, the implementation
+// clears both.
+func (r *Application) SetIPAddressPerTask(ipAddressPerTask IPAddressPerTask) *Application {
+	r.Ports = make([]int, 0)
+	r.EmptyPortDefinitions()
+	r.IPAddressPerTask = &ipAddressPerTask
+
+	return r
 }
 
 // NewDockerApplication creates a default docker application
@@ -174,6 +206,29 @@ func (r *Application) DependsOn(names ...string) *Application {
 //		memory:	the amount of MB to assign
 func (r *Application) Memory(memory float64) *Application {
 	r.Mem = &memory
+
+	return r
+}
+
+// AddPortDefinition adds a port definition. Port definitions are used to define ports that
+// should be considered part of a resource. They are necessary when you are using HOST
+// networking and no port mappings are specified.
+func (r *Application) AddPortDefinition(portDefinition PortDefinition) *Application {
+	if r.PortDefinitions == nil {
+		r.EmptyPortDefinitions()
+	}
+
+	portDefinitions := *r.PortDefinitions
+	portDefinitions = append(portDefinitions, portDefinition)
+	r.PortDefinitions = &portDefinitions
+	return r
+}
+
+// EmptyPortDefinitions explicitly empties port definitions -- use this if you need to empty
+// port definitions of an application that already has port definitions set (setting port definitions to nil will
+// keep the current value)
+func (r *Application) EmptyPortDefinitions() *Application {
+	r.PortDefinitions = &[]PortDefinition{}
 
 	return r
 }
@@ -434,8 +489,13 @@ func (r *Application) String() string {
 
 // Applications retrieves an array of all the applications which are running in marathon
 func (r *marathonClient) Applications(v url.Values) (*Applications, error) {
+	query := v.Encode()
+	if query != "" {
+		query = "?" + query
+	}
+
 	applications := new(Applications)
-	err := r.apiGet(marathonAPIApps+"?"+v.Encode(), nil, applications)
+	err := r.apiGet(marathonAPIApps+query, nil, applications)
 	if err != nil {
 		return nil, err
 	}
@@ -531,10 +591,10 @@ func (r *marathonClient) ApplicationBy(name string, opts *GetAppOpts) (*Applicat
 // 		name: 		the id used to identify the application
 // 		version:  the version of the configuration you would like to receive
 func (r *marathonClient) ApplicationByVersion(name, version string) (*Application, error) {
-	var app *Application
+	app := new(Application)
 
 	uri := fmt.Sprintf("%s/versions/%s", buildURI(name), version)
-	if err := r.apiGet(uri, nil, &app); err != nil {
+	if err := r.apiGet(uri, nil, app); err != nil {
 		return nil, err
 	}
 
@@ -595,7 +655,7 @@ func (r *marathonClient) ApplicationDeployments(name string) ([]*DeploymentID, e
 // 		application:		the structure holding the application configuration
 func (r *marathonClient) CreateApplication(application *Application) (*Application, error) {
 	result := new(Application)
-	if err := r.apiPost(marathonAPIApps, &application, result); err != nil {
+	if err := r.apiPost(marathonAPIApps, application, result); err != nil {
 		return nil, err
 	}
 
@@ -610,12 +670,13 @@ func (r *marathonClient) WaitOnApplication(name string, timeout time.Duration) e
 		return nil
 	}
 
-	ticker := time.NewTicker(time.Millisecond * 500)
+	timeoutTimer := time.After(timeout)
+	ticker := time.NewTicker(r.config.PollingWaitTime)
 	defer ticker.Stop()
 
 	for {
 		select {
-		case <-time.After(timeout):
+		case <-timeoutTimer:
 			return ErrTimeoutError
 		case <-ticker.C:
 			if r.appExistAndRunning(name) {
@@ -654,11 +715,9 @@ func (r *marathonClient) DeleteApplication(name string, force bool) (*Deployment
 // 		name: 		the id used to identify the application
 func (r *marathonClient) RestartApplication(name string, force bool) (*DeploymentID, error) {
 	deployment := new(DeploymentID)
-	var options struct {
-		Force bool `json:"force"`
-	}
-	options.Force = force
-	if err := r.apiPost(fmt.Sprintf("%s/restart", buildURI(name)), &options, deployment); err != nil {
+	var options struct{}
+	uri := buildURIWithForceParam(fmt.Sprintf("%s/restart", name), force)
+	if err := r.apiPost(uri, &options, deployment); err != nil {
 		return nil, err
 	}
 
@@ -675,7 +734,7 @@ func (r *marathonClient) ScaleApplicationInstances(name string, instances int, f
 	changes.Instances = &instances
 	uri := buildURIWithForceParam(name, force)
 	deployID := new(DeploymentID)
-	if err := r.apiPut(uri, &changes, deployID); err != nil {
+	if err := r.apiPut(uri, changes, deployID); err != nil {
 		return nil, err
 	}
 
@@ -687,7 +746,7 @@ func (r *marathonClient) ScaleApplicationInstances(name string, instances int, f
 func (r *marathonClient) UpdateApplication(application *Application, force bool) (*DeploymentID, error) {
 	result := new(DeploymentID)
 	uri := buildURIWithForceParam(application.ID, force)
-	if err := r.apiPut(uri, &application, result); err != nil {
+	if err := r.apiPut(uri, application, result); err != nil {
 		return nil, err
 	}
 	return result, nil
@@ -703,4 +762,70 @@ func buildURIWithForceParam(path string, force bool) string {
 
 func buildURI(path string) string {
 	return fmt.Sprintf("%s/%s", marathonAPIApps, trimRootPath(path))
+}
+
+// EmptyLabels explicitly empties labels -- use this if you need to empty
+// labels of an application that already has IP per task with labels defined
+func (i *IPAddressPerTask) EmptyLabels() *IPAddressPerTask {
+	i.Labels = &map[string]string{}
+	return i
+}
+
+// AddLabel adds a label to an IPAddressPerTask
+//    name: The label name
+//   value: The label value
+func (i *IPAddressPerTask) AddLabel(name, value string) *IPAddressPerTask {
+	if i.Labels == nil {
+		i.EmptyLabels()
+	}
+	(*i.Labels)[name] = value
+	return i
+}
+
+// EmptyGroups explicitly empties groups -- use this if you need to empty
+// groups of an application that already has IP per task with groups defined
+func (i *IPAddressPerTask) EmptyGroups() *IPAddressPerTask {
+	i.Groups = &[]string{}
+	return i
+}
+
+// AddGroup adds a group to an IPAddressPerTask
+//  group: The group name
+func (i *IPAddressPerTask) AddGroup(group string) *IPAddressPerTask {
+	if i.Groups == nil {
+		i.EmptyGroups()
+	}
+
+	groups := *i.Groups
+	groups = append(groups, group)
+	i.Groups = &groups
+
+	return i
+}
+
+// SetDiscovery define the discovery to an IPAddressPerTask
+//  discovery: The discovery struct
+func (i *IPAddressPerTask) SetDiscovery(discovery Discovery) *IPAddressPerTask {
+	i.Discovery = discovery
+	return i
+}
+
+// EmptyPorts explicitly empties discovey port -- use this if you need to empty
+// discovey port of an application that already has IP per task with discovey ports
+// defined
+func (d *Discovery) EmptyPorts() *Discovery {
+	d.Ports = &[]Port{}
+	return d
+}
+
+// AddPort adds a port to the discovery info of a IP per task applicable
+//   port: The discovery port
+func (d *Discovery) AddPort(port Port) *Discovery {
+	if d.Ports == nil {
+		d.EmptyPorts()
+	}
+	ports := *d.Ports
+	ports = append(ports, port)
+	d.Ports = &ports
+	return d
 }

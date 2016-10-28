@@ -30,10 +30,12 @@ type Container struct {
 
 // PortMapping is the portmapping structure between container and mesos
 type PortMapping struct {
-	ContainerPort int    `json:"containerPort,omitempty"`
-	HostPort      int    `json:"hostPort"`
-	ServicePort   int    `json:"servicePort,omitempty"`
-	Protocol      string `json:"protocol,omitempty"`
+	ContainerPort int                `json:"containerPort,omitempty"`
+	HostPort      int                `json:"hostPort"`
+	Labels        *map[string]string `json:"labels,omitempty"`
+	Name          string             `json:"name,omitempty"`
+	ServicePort   int                `json:"servicePort,omitempty"`
+	Protocol      string             `json:"protocol,omitempty"`
 }
 
 // Parameters is the parameters to pass to the docker client when creating the container
@@ -44,9 +46,17 @@ type Parameters struct {
 
 // Volume is the docker volume details associated to the container
 type Volume struct {
-	ContainerPath string `json:"containerPath,omitempty"`
-	HostPath      string `json:"hostPath,omitempty"`
-	Mode          string `json:"mode,omitempty"`
+	ContainerPath string          `json:"containerPath,omitempty"`
+	HostPath      string          `json:"hostPath,omitempty"`
+	External      *ExternalVolume `json:"external,omitempty"`
+	Mode          string          `json:"mode,omitempty"`
+}
+
+// An external volume definition
+type ExternalVolume struct {
+	Name     string             `json:"name,omitempty"`
+	Provider string             `json:"provider,omitempty"`
+	Options  *map[string]string `json:"options,omitempty"`
 }
 
 // Docker is the docker definition from a marathon application
@@ -86,6 +96,43 @@ func (container *Container) Volume(hostPath, containerPath, mode string) *Contai
 func (container *Container) EmptyVolumes() *Container {
 	container.Volumes = &[]Volume{}
 	return container
+}
+
+// Define external elements for a volume
+//      name: the name of the volume
+//      provider: the provider of the volume (e.g. dvdi)
+func (v *Volume) SetExternalVolume(name, provider string) *ExternalVolume {
+	ev := &ExternalVolume{
+		Name:     name,
+		Provider: provider,
+	}
+	v.External = ev
+	return ev
+}
+
+// Empty the external volume definition
+func (v *Volume) EmptyExternalVolume() *Volume {
+	v.External = &ExternalVolume{}
+	return v
+}
+
+// AddOption adds an option to an ExternalVolume
+//		name:  the name of the option
+//		value: value for the option
+func (ev *ExternalVolume) AddOption(name, value string) *ExternalVolume {
+	if ev.Options == nil {
+		ev.EmptyOptions()
+	}
+	(*ev.Options)[name] = value
+
+	return ev
+}
+
+// EmptyOptions explicitly empties the options
+func (ev *ExternalVolume) EmptyOptions() *ExternalVolume {
+	ev.Options = &map[string]string{}
+
+	return ev
 }
 
 // NewDockerContainer creates a default docker container for you
@@ -128,11 +175,21 @@ func (docker *Docker) Bridged() *Docker {
 	return docker
 }
 
+// Host sets the networking mode to host
+func (docker *Docker) Host() *Docker {
+	docker.Network = "HOST"
+	return docker
+}
+
 // Expose sets the container to expose the following TCP ports
 //		ports:			the TCP ports the container is exposing
 func (docker *Docker) Expose(ports ...int) *Docker {
 	for _, port := range ports {
-		docker.ExposePort(port, 0, 0, "tcp")
+		docker.ExposePort(PortMapping{
+			ContainerPort: port,
+			HostPort:      0,
+			ServicePort:   0,
+			Protocol:      "tcp"})
 	}
 	return docker
 }
@@ -141,27 +198,23 @@ func (docker *Docker) Expose(ports ...int) *Docker {
 //		ports:			the UDP ports the container is exposing
 func (docker *Docker) ExposeUDP(ports ...int) *Docker {
 	for _, port := range ports {
-		docker.ExposePort(port, 0, 0, "udp")
+		docker.ExposePort(PortMapping{
+			ContainerPort: port,
+			HostPort:      0,
+			ServicePort:   0,
+			Protocol:      "udp"})
 	}
 	return docker
 }
 
 // ExposePort exposes an port in the container
-//		containerPort:			the container port which is being exposed
-//		hostPort:						the host port we should expose it on
-//		servicePort:				check the marathon documentation
-//		protocol:						the protocol to use TCP, UDP
-func (docker *Docker) ExposePort(containerPort, hostPort, servicePort int, protocol string) *Docker {
+func (docker *Docker) ExposePort(portMapping PortMapping) *Docker {
 	if docker.PortMappings == nil {
 		docker.EmptyPortMappings()
 	}
 
 	portMappings := *docker.PortMappings
-	portMappings = append(portMappings, PortMapping{
-		ContainerPort: containerPort,
-		HostPort:      hostPort,
-		ServicePort:   servicePort,
-		Protocol:      protocol})
+	portMappings = append(portMappings, portMapping)
 	docker.PortMappings = &portMappings
 
 	return docker
@@ -173,6 +226,27 @@ func (docker *Docker) ExposePort(containerPort, hostPort, servicePort int, proto
 func (docker *Docker) EmptyPortMappings() *Docker {
 	docker.PortMappings = &[]PortMapping{}
 	return docker
+}
+
+// AddLabel adds a label to a PortMapping
+//		name:	the name of the label
+//		value: value for this label
+func (p *PortMapping) AddLabel(name, value string) *PortMapping {
+	if p.Labels == nil {
+		p.EmptyLabels()
+	}
+	(*p.Labels)[name] = value
+
+	return p
+}
+
+// EmptyLabels explicitly empties the labels -- use this if you need to empty
+// the labels of a port mapping that already has labels set (setting labels to
+// nil will keep the current value)
+func (p *PortMapping) EmptyLabels() *PortMapping {
+	p.Labels = &map[string]string{}
+
+	return p
 }
 
 // AddParameter adds a parameter to the docker execution line when creating the container

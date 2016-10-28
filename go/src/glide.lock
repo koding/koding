@@ -1023,6 +1023,10 @@ imports:
   version: 91f3d4a4d024e3c0d4d9412916d05cf84504a616
 - name: github.com/Banno/terraform-provider-marathon
   version: 693aa37ced14fe2323e619f8ab29532772a79452
+- name: github.com/gambol99/go-marathon
+  version: 6e3f9771c1f9f19b8034e8de6a7ca537c02be7de
+- name: github.com/donovanhide/eventsource
+  version: fd1de70867126402be23c306e1ce32828455d85b
 testImports:
 - name: github.com/vaughan0/go-ini
   version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1

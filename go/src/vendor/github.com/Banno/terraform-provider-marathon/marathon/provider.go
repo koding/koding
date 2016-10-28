@@ -71,6 +71,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	if d.Get("log_output").(bool) {
 		marathonConfig.LogOutput = logWriter{}
 	}
+	marathonConfig.EventsTransport = marathon.EventsTransportSSE
 
 	config := config{
 		config: marathonConfig,

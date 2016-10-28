@@ -101,8 +101,7 @@ func newService(opts *ServiceOptions) (service.Service, error) {
 			"RequiredStart": "$network",
 			"LogFile":       true,
 			"Environment": map[string]string{
-				"USERNAME":      opts.Username,
-				"KITE_USERNAME": "",
+				"USERNAME": opts.Username,
 			},
 		},
 	}

@@ -134,6 +134,7 @@ type EventStatusUpdate struct {
 	SlaveID     string       `json:"slaveId,omitempty"`
 	TaskID      string       `json:"taskId"`
 	TaskStatus  string       `json:"taskStatus"`
+	Message     string       `json:"message,omitempty"`
 	AppID       string       `json:"appId"`
 	Host        string       `json:"host"`
 	Ports       []int        `json:"ports,omitempty"`
