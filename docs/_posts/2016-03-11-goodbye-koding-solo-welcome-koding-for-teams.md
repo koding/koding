@@ -5,6 +5,7 @@ image: /assets/img/blog/koding-for-teams.png
 author:
   name: Devrim Yasar
   email: devrim@koding.com
+redirect_from: "/blog/goodbye-koding-solo-welcome-koding-for-teams"
 excerpt_separator: "<!--more-->"
 ---
 
