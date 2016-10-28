@@ -3,7 +3,11 @@ FirebaseRealtimeManager       = require './firebaserealtimemanager'
 
 module.exports = class RealtimeManagerFactory
 
-  get: (type) ->
+  typeMap =
+  FIREBASE: require './firebaserealtimemanager'
+  GOOGLE_DRIVE: require './googledriverealtimemanager'
+  
+  get: (type) -> new typeMap[type]
       if type is 'FIREBASE'
         realtime = new FirebaseRealtimeManager
       else if type is 'GOOGLE_DRIVE'
