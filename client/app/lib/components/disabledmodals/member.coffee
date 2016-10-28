@@ -7,8 +7,6 @@ getGroupStatus = require 'app/util/getGroupStatus'
 TrialEndedMemberModal = require 'lab/TrialEndedMemberModal'
 TrialEndedNotifySuccessModal = require 'lab/TrialEndedNotifySuccessModal'
 
-PricingChangeModal = require 'lab/PricingChangeModal'
-
 SuspendedMemberModal = require 'lab/SuspendedMemberModal'
 SuspendedNotifySuccessModal = require 'lab/SuspendedNotifySuccessModal'
 
@@ -42,13 +40,6 @@ module.exports = class DisabledMemberModal extends ReactView
           @destroy()
           router.handleRoute '/Disabled/Member/suspended-notify-success'
         <SuspendedMemberModal
-          isOpen={yes}
-          onButtonClick={onClick}
-          onSecondaryButtonClick={onLogoutClick} />
-
-      when Status.NEEDS_UPGRADE
-        onClick = -> location.reload()
-        <PricingChangeModal
           isOpen={yes}
           onButtonClick={onClick}
           onSecondaryButtonClick={onLogoutClick} />
