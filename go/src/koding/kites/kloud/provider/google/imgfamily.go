@@ -81,6 +81,7 @@ var family2project = map[string]string{
 	"debian":  "debian-cloud",
 	"coreos":  "coreos-cloud",
 	"centos":  "centos-cloud",
+	"sles":    "suse-cloud",
 }
 
 // familyProject checks if provided string is an image family name. If yes, this

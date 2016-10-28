@@ -26,7 +26,7 @@ The **Try on Koding** switch will allow you to embed the Try on Koding button on
   _![TryOnKodingCode.png][5]_
 
 [1]: {{ site.url }}/assets/img/guides/try-on-koding/TryOnKoding.png
-[2]: https://koding.com/Teams/Create
+[2]: https://www.koding.com/teams/create
 [3]: /docs/two-vm-setup-apachephp-server-db-server
 [4]: {{ site.url }}/assets/img/guides/try-on-koding/EnableTryOnKoding.png
 [5]: {{ site.url }}/assets/img/guides/try-on-koding/TryOnKodingCode.png

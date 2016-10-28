@@ -126,7 +126,7 @@ func TestValidators(t *testing.T) {
 				StorageSize: 0,
 				MachineType: `f1-micro`,
 			},
-			IsValid: false,
+			IsValid: true,
 		},
 		{
 			// 11 //
