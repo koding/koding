@@ -19,9 +19,6 @@ type (
 		// Email holds the required configuration data for email related workers
 		Email Email
 
-		// Sitemap holds configuration for Sitemap workers
-		Sitemap Sitemap
-
 		// Algolia holds configuration parameters for Aloglia search engine
 		Algolia Algolia
 
@@ -83,12 +80,6 @@ type (
 		Username                string `env:"key=KONFIG_SOCIALAPI_EMAIL_USERNAME                 required"`
 		Password                string `env:"key=KONFIG_SOCIALAPI_EMAIL_PASSWORD                 required"`
 		TemplateRoot            string `env:"key=KONFIG_SOCIALAPI_EMAIL_TEMPLATEROOT 	        default=workers/sitemap/files/"`
-	}
-
-	// Sitemap holds Sitemap Workers' config
-	Sitemap struct {
-		RedisDB        int    `env:"key=KONFIG_SOCIALAPI_SITEMAP_REDISDB"`
-		UpdateInterval string `env:"key=KONFIG_SOCIALAPI_SITEMAP_UPDATEINTERVAL"`
 	}
 
 	// Algolia holds Algolia service credentials
