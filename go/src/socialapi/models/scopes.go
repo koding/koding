@@ -22,20 +22,6 @@ func RemoveTrollContent(i bongo.Modellable, disabled bool) bongo.Scope {
 	}
 }
 
-func RemoveModerationNeededContent(i bongo.Modellable, disabled bool) bongo.Scope {
-	return func(d *gorm.DB) *gorm.DB {
-		if disabled {
-			return d
-		}
-
-		if bongo.B.DB.NewScope(i).HasColumn("MetaBits") {
-			d = d.Where("meta_bits <> ?", NeedsModeration)
-		}
-
-		return d
-	}
-}
-
 func Paginated(limit, skip int) bongo.Scope {
 	return func(d *gorm.DB) *gorm.DB {
 		// add skip

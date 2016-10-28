@@ -72,11 +72,6 @@ func (c *Controller) HandleChannel(channel *models.Channel) error {
 			errs = multierror.Append(errs, err)
 		}
 
-		err = ch.RemoveChannelLinks()
-		if err != nil && (err != models.ErrChannelNotFound || err != bongo.RecordNotFound) {
-			errs = multierror.Append(errs, err)
-		}
-
 		if err := ch.DeleteChannelParticipants(); err != nil {
 			return err
 		}
@@ -258,20 +253,6 @@ func (c *Controller) handleDefaultChannel(channelId int64, cp *models.ChannelPar
 	}
 
 	switch err {
-	case models.ErrChannelIsLinked:
-		// if channel is linked to another, add it to root channel
-		root, err := defChan.FetchRoot()
-		if err != nil && err != bongo.RecordNotFound {
-			return err
-		}
-
-		if err == bongo.RecordNotFound {
-			c.log.Error("Root Channel of %d not found", cp.ChannelId)
-			return nil
-		}
-
-		// self handling with root channel
-		return c.handleDefaultChannel(root.Id, cp)
 	case models.ErrParticipantBlocked:
 		// nothing to do here, user should be unblocked first
 		return nil

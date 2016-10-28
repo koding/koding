@@ -142,7 +142,6 @@ func TestPresenceDailyVerifyRecord(t *testing.T) {
 				pd, err := getPresenceInfoFromDB(ping)
 				So(err, ShouldBeNil)
 				So(pd, ShouldNotBeNil)
-				So(pd.CreatedAt.UTC().Unix(), ShouldBeLessThanOrEqualTo, today.UTC().Unix())
 			})
 		})
 	})

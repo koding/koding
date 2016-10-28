@@ -187,10 +187,6 @@ module.exports = (KONFIG, options, credentials) ->
             proxyPass   : "http://socialapi/sshkey$1$is_args$args"
           }
           {
-            location    : "~ /api/social/moderation/(.*)"
-            proxyPass   : "http://socialapi/moderation/$1$is_args$args"
-          }
-          {
             location    : "~ /api/social/account/channels"
             proxyPass   : "http://socialapi/account/channels$is_args$args"
           }
@@ -288,13 +284,6 @@ module.exports = (KONFIG, options, credentials) ->
         command         :
           run           : "#{GOBIN}/privatemessageemailsender"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/privatemessageemailsender -watch socialapi/workers/email/privatemessageemailsender"
-
-    topicmoderation     :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/topicmoderation"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/topicmoderation -watch socialapi/workers/topicmoderation"
 
     presence            :
       group             : "socialapi"

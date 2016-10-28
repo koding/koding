@@ -47,9 +47,6 @@ func main() {
 	r.Register(models.ChannelMessageList{}).OnDelete().Handle((*algoliaconnector.Controller).MessageListDeleted)
 	r.Register(models.ChannelMessage{}).OnUpdate().Handle((*algoliaconnector.Controller).MessageUpdated)
 
-	// moderation related
-	r.Register(models.ChannelLink{}).OnCreate().Handle((*algoliaconnector.Controller).ChannelLinkCreated)
-
 	// participant related events
 	r.Register(models.ChannelParticipant{}).OnCreate().Handle((*algoliaconnector.Controller).ParticipantCreated)
 	r.Register(models.ChannelParticipant{}).OnUpdate().Handle((*algoliaconnector.Controller).ParticipantUpdated)
