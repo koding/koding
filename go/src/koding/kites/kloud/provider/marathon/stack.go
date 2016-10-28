@@ -10,6 +10,7 @@ import (
 	"path"
 
 	marathon "github.com/gambol99/go-marathon"
+	"github.com/kr/pretty"
 )
 
 var klientPort = map[string]interface{}{
@@ -113,9 +114,13 @@ func (s *Stack) ApplyTemplate(_ *stack.Credential) (*stack.Template, error) {
 
 	t.Resource["marathon_app"] = resource.MarathonApp
 
+	pretty.Println("BEFORE", resource.MarathonApp)
+
 	if err := t.Flush(); err != nil {
 		return nil, errors.New("marathom: error flushing template: " + err.Error())
 	}
+
+	pretty.Println("AFTER", resource.MarathonApp)
 
 	err := t.ShadowVariables("FORBIDDEN", "marathon_basic_auth_user", "marathon_basic_auth_password")
 	if err != nil {
@@ -298,7 +303,7 @@ func (s *Stack) injectHealthChecks(app map[string]interface{}) {
 		ports[i] = 0
 	}
 
-	app["ports"] = appendSlice(app["ports"], ports...)
+	app["ports"] = appendPrimitiveSlice(app["ports"], ports...)
 }
 
 func (s *Stack) injectMetadata(app map[string]interface{}, labels []string) error {
@@ -407,10 +412,10 @@ func forEachContainer(app map[string]interface{}, fn func(map[string]interface{}
 	return nil
 }
 
-func appendSlice(slice interface{}, elems ...interface{}) interface{} {
-	if slice == nil {
-		return elems
-	}
-
+func appendSlice(slice interface{}, elems ...interface{}) provider.Slice {
 	return provider.ToSlice(append(getSlice(slice), elems...))
+}
+
+func appendPrimitiveSlice(slice interface{}, elems ...interface{}) provider.PrimitiveSlice {
+	return provider.ToPrimitiveSlice(append(getSlice(slice), elems...))
 }
