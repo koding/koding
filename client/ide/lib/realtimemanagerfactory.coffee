@@ -7,13 +7,10 @@ module.exports = class RealtimeManagerFactory
   FIREBASE: require './firebaserealtimemanager'
   GOOGLE_DRIVE: require './googledriverealtimemanager'
   
-  get: (type) -> new typeMap[type]
-      if type is 'FIREBASE'
-        realtime = new FirebaseRealtimeManager
-      else if type is 'GOOGLE_DRIVE'
-        realtime = new GoogleDriveRealtimeManager
-      return realtime
-  
+  get: (type) -> 
+    
+    new typeMap[type]
+      
   setRealtimeDoc: (realtimeDoc) ->
 
     callback { message: 'setRealtimeDoc: Not implemented' }
