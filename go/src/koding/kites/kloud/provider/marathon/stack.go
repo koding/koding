@@ -298,7 +298,7 @@ func (s *Stack) injectHealthChecks(app map[string]interface{}) {
 		ports[i] = 0
 	}
 
-	// app["ports"] = appendSlice(app["ports"], ports...)
+	app["ports"] = appendSlice(app["ports"], ports...)
 }
 
 func (s *Stack) injectMetadata(app map[string]interface{}, labels []string) error {
@@ -314,17 +314,18 @@ func (s *Stack) injectMetadata(app map[string]interface{}, labels []string) erro
 			return err
 		}
 
-		metadata := map[string]interface{}{
-			"konfig": map[string]interface{}{
-				"debug":      s.Debug,
-				"kiteKey":    kiteKey,
-				"kontrolURL": stack.Konfig.KontrolURL,
-				"kloudURL":   stack.Konfig.KloudURL,
-				"tunnelURL":  stack.Konfig.TunnelURL,
-			},
+		konfig := map[string]interface{}{
+			"kiteKey":    kiteKey,
+			"kontrolURL": stack.Konfig.KontrolURL,
+			"kloudURL":   stack.Konfig.KloudURL,
+			"tunnelURL":  stack.Konfig.TunnelURL,
 		}
 
-		p, err := json.Marshal(metadata)
+		if s.Debug {
+			konfig["debug"] = true
+		}
+
+		p, err := json.Marshal(map[string]interface{}{"konfig": konfig})
 		if err != nil {
 			return err
 		}
@@ -406,6 +407,10 @@ func forEachContainer(app map[string]interface{}, fn func(map[string]interface{}
 	return nil
 }
 
-func appendSlice(slice interface{}, elems ...interface{}) provider.Slice {
+func appendSlice(slice interface{}, elems ...interface{}) interface{} {
+	if slice == nil {
+		return elems
+	}
+
 	return provider.ToSlice(append(getSlice(slice), elems...))
 }
