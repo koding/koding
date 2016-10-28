@@ -3,7 +3,7 @@ KDObject         = kd.Object
 IDEMetrics       = require './idemetrics'
 generatePassword = require 'app/util/generatePassword'
 GOOGLE_OATH_SCOPES = 'email, https://www.googleapis.com/auth/drive.metadata.readonly'
-RealtimeManagerFactory        = require './realtimemanagerfactory'
+RealtimeManagerFactory = require './realtimemanagerfactory'
 firebase = require("firebase");
 
 module.exports = class FirebaseRealtimeManager extends RealtimeManagerFactory
