@@ -4,14 +4,14 @@ IDEMetrics       = require './idemetrics'
 generatePassword = require 'app/util/generatePassword'
 GOOGLE_OATH_SCOPES = 'email, https://www.googleapis.com/auth/drive.metadata.readonly'
 RealtimeManagerFactory = require './realtimemanagerfactory'
-var firebase = require("firebase");
+firebase = require("firebase");
 
 module.exports = class FirebaseRealtimeManager extends RealtimeManagerFactory
 
   constructor: (@KodingApp) ->
     super options, data
 
-#     var config = {
+#     config = {
 #       apiKey: "",
 #       authDomain: "<P_ID>.firebaseapp.com",
 #       databaseURL: "https://<db_name>.firebaseio.com",
