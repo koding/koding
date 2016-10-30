@@ -829,22 +829,20 @@ loadExpandedMachineLabel = (label) ->
   reactor.dispatch actions.LOAD_EXPANDED_MACHINE_LABEL_SUCCESS, { label }
 
 
-searchStackScript = (text) ->
+searchStackScript = (query, markdown = no) ->
 
-  { reactor } = kd.singletons
+  url = if markdown then "/-/stack/getContent/#{query}"
+  else "/-/stack/search/#{query}"
+
   new Promise (resolve, reject) ->
-    opt =
+    options =
       type: 'GET'
-      url: "https://runkit.io/hakankaradis/terraform-yaml/branches/master?query=#{text}"
       contentType: 'application/json'
-      success: (data) ->
-        reactor.dispatch actions.LOAD_STACK_SCRIPTS_SUCCESS, { data }
-        resolve()
-      error: (jqXHR, textStatus, errorThrown) ->
-        reactor.dispatch actions.LOAD_STACK_SCRIPTS_FAIL, {}
-        reject()
+      url: url
+      success: (data) -> resolve JSON.parse data
+      error: (jqXHR, textStatus, errorThrown) -> reject()
 
-    $.ajax opt
+    $.ajax options
 
 
 module.exports = {
