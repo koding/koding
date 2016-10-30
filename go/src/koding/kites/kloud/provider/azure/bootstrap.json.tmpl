@@ -59,13 +59,13 @@
 	"output": {
 		"hosted_service_name": {
 			"value": "${azure_hosted_service.koding.id}"
-		},
+		},{{if .StorageServiceName}}
 		"storage_service_name": {
 			"value": "${azure_storage_service.koding.id}"
-		},{{if .StorageServiceName}}
+		},{{end}}
 		"security_group": {
 			"value": "${azure_security_group.koding.id}"
-		},{{end}}
+		},
 		"virtual_network": {
 			"value": "${azure_virtual_network.koding.id}"
 		},
