@@ -1,7 +1,9 @@
 package stack
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"sort"
 	"time"
 
@@ -92,9 +94,26 @@ func (m Machines) Slice() []*Machine {
 	return machines
 }
 
+// Template describes json-encoded Terraform template.
 type Template struct {
 	Key     string // unique terraformer key for a given template; optional
 	Content string // terraformer template content; required; TODO(rjeczalik): []byte
+}
+
+// String implements the fmt.Stringer interface.
+func (t *Template) String() string {
+	var v interface{}
+
+	if err := json.Unmarshal([]byte(t.Content), &v); err != nil {
+		return fmt.Sprintf("%%!(ERROR %s)", err)
+	}
+
+	p, err := json.MarshalIndent(v, "", "\t")
+	if err != nil {
+		return fmt.Sprintf("%%!(ERROR %s)", err)
+	}
+
+	return string(p)
 }
 
 // Validator validates and returns non-nil error when it's ill-formed.
