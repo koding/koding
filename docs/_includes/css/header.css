@@ -9,10 +9,13 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  /*border-bottom: 1px solid rgba(0,0,0,.15);*/
+}
+
+.Homepage-HeaderWrapper {
   display: flex;
-  /*text-rendering: geometricPrecision;*/
-  /*-webkit-font-smoothing: antialiased;*/
+  max-width: 1399px;
+  margin: 0 auto;
+  height: 100%;
 }
 
 .Homepage-Header * {
@@ -22,6 +25,7 @@ body {
 .Homepage-Header .logo svg {
   width: 99px;
   min-width: 99px;
+  margin-top: -8px;
 }
 .Homepage-Header .logo svg * {
   fill: white
