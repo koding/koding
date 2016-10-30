@@ -161,9 +161,8 @@ var _ stack.Validator = (*Bootstrap)(nil)
 
 // Valid implements the stack.Validator interface.
 func (b *Bootstrap) Valid() error {
-	if b.AddressSpace == "" {
-		b.AddressSpace = "10.0.0.0/16"
-	}
+	b.AddressSpace = b.addressSpace()
+
 	if b.HostedServiceID == "" {
 		return errors.New("hosted service ID is empty or missing")
 	}
@@ -180,6 +179,14 @@ func (b *Bootstrap) Valid() error {
 		return errors.New("subnet name is empty or missing")
 	}
 	return nil
+}
+
+func (b *Bootstrap) addressSpace() string {
+	if b.AddressSpace != "" {
+		return b.AddressSpace
+	}
+
+	return "10.0.0.0/16"
 }
 
 // Meta represents a metadata for a single Azure machine.

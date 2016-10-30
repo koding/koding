@@ -32,11 +32,11 @@
 		"azure_virtual_network": {
 			"koding": {
 				"name": "{{.VirtualNetworkName}}",
-				"address_space": ["${var.azure_address_space}"],
+				"address_space": ["{{.AddressSpace}}"],
 				"location": "${var.azure_location}",
 				"subnet": {
 					"name": "sub-koding-team",
-					"address_prefix": "${var.azure_address_space}",
+					"address_prefix": "{{.AddressSpace}}",
 					"security_group": "${azure_security_group.koding.name}"
 				}
 			}
@@ -57,19 +57,19 @@
 		}{{end}}
 	},
 	"output": {
-		"azure_hosted_service": {
+		"hosted_service_name": {
 			"value": "${azure_hosted_service.koding.id}"
 		},
-		"azure_storage_service": {
+		"storage_service_name": {
 			"value": "${azure_storage_service.koding.id}"
 		},{{if .StorageServiceName}}
-		"azure_security_group": {
+		"security_group": {
 			"value": "${azure_security_group.koding.id}"
 		},{{end}}
-		"azure_virtual_network": {
+		"virtual_network": {
 			"value": "${azure_virtual_network.koding.id}"
 		},
-		"azure_subnet": {
+		"subnet": {
 			"value": "${azure_virtual_network.koding.subnet.name}"
 		}
 	}

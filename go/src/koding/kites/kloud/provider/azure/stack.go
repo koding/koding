@@ -25,6 +25,7 @@ type BootstrapConfig struct {
 	TeamSlug           string
 	HostedServiceName  string
 	StorageType        string
+	AddressSpace       string
 	StorageServiceName string
 	SecurityGroupName  string
 	VirtualNetworkName string
@@ -117,6 +118,7 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 		TeamSlug:           s.BootstrapArg().GroupName,
 		HostedServiceName:  "koding-hs-" + c.Identifier,
 		StorageType:        cred.Storage,
+		AddressSpace:       boot.addressSpace(),
 		StorageServiceName: trim(strings.ToLower("kodings"+c.Identifier), 24),
 		SecurityGroupName:  "koding-sg-" + c.Identifier,
 		VirtualNetworkName: "koding-vn-" + c.Identifier,
