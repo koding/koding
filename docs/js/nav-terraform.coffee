@@ -55,7 +55,7 @@ do ->
   createSubNavItems docsMap, MAIN_UL
 
   if pageUrl is '/docs/home'
-    $('aside li ul ul').hide()
+    $('aside li ul ul ul').hide()
   else
     $('aside li ul').hide()
 
