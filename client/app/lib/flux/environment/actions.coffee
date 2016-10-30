@@ -829,22 +829,6 @@ loadExpandedMachineLabel = (label) ->
   reactor.dispatch actions.LOAD_EXPANDED_MACHINE_LABEL_SUCCESS, { label }
 
 
-searchStackScript = (query, markdown = no) ->
-
-  url = if markdown then "/-/stack/getContent/#{query}"
-  else "/-/stack/search/#{query}"
-
-  new Promise (resolve, reject) ->
-    options =
-      type: 'GET'
-      contentType: 'application/json'
-      url: url
-      success: (data) -> resolve JSON.parse data
-      error: (jqXHR, textStatus, errorThrown) -> reject()
-
-    $.ajax options
-
-
 module.exports = {
   loadMachines
   loadStacks
@@ -893,5 +877,4 @@ module.exports = {
   fetchAndUpdateStackTemplate
   cloneStackTemplate
   loadExpandedMachineLabel
-  searchStackScript
 }

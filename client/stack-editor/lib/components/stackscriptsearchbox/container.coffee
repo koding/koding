@@ -4,6 +4,10 @@ EnvironmentFlux = require 'app/flux/environment'
 View = require './view'
 applyMarkdown = require 'app/util/applyMarkdown'
 ContentModal = require 'app/components/contentModal'
+makeHttpClient = require 'app/util/makeHttpClient'
+
+
+exports.client = client = makeHttpClient { baseURL: '/-/terraform/' }
 
 module.exports = class StackScriptSearchBoxContainer extends React.Component
 
@@ -27,10 +31,16 @@ module.exports = class StackScriptSearchBoxContainer extends React.Component
     @getStackScript @state.searchQuery
 
 
-  getStackScript: (value) ->
+  getStackScript: (query) ->
 
-    return  unless value
-    @doRequest value
+    return  unless query
+    client.get("document-search/#{query}")
+    .then ({ data }) =>
+      @setState { loading: no, scripts: data }
+    .catch =>
+      @setState { loading: no }
+      kd.NotificationView { title: 'Error occured while fetching stack script' }
+
 
   onFocus: (event) ->
 
@@ -40,7 +50,11 @@ module.exports = class StackScriptSearchBoxContainer extends React.Component
   onClick: (script, event) ->
 
     { title } = script
-    @doRequest title, yes
+    client.get("document-content/#{title}")
+    .then ({ data }) =>
+      @showPreview data, title
+    .catch ->
+      kd.NotificationView { title: 'Error occured while fetching stack script' }
 
   showPreview: (markdown, query) ->
 
@@ -56,18 +70,6 @@ module.exports = class StackScriptSearchBoxContainer extends React.Component
       cssClass : 'has-markdown content-modal stack-script'
       title : "Stack Script: #{query} Preview"
       content : scrollView
-
-
-  doRequest: (query, type = no) ->
-
-    return  unless query
-    EnvironmentFlux.actions.searchStackScript(query, type)
-    .then (data) =>
-      if type then @showPreview data, query
-      else @setState { loading: no, scripts: data }
-    .catch =>
-      @setState { loading: no }  unless type
-      kd.NotificationView { title: 'Error occured while fetching stack script' }
 
 
   onIconClick: (event) ->
@@ -89,4 +91,3 @@ module.exports = class StackScriptSearchBoxContainer extends React.Component
       loading={@state.loading}
       close={@state.close}
     />
-
