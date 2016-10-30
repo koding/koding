@@ -1,7 +1,6 @@
 kd = require 'kd'
 React = require 'app/react'
 EnvironmentFlux = require 'app/flux/environment'
-KDReactorMixin = require 'app/flux/base/reactormixin'
 View = require './view'
 applyMarkdown = require 'app/util/applyMarkdown'
 ContentModal = require 'app/components/contentModal'
@@ -17,43 +16,58 @@ module.exports = class StackScriptSearchBoxContainer extends React.Component
       loading: no
       scripts: []
 
+    @getStackScript = kd.utils.debounce 500, @getStackScript
+
+
   onChange: (event) ->
 
     event.persist()
     @setState { searchQuery: event.target.value }
-    kd.utils.wait 500, =>
-      return  unless event.target.value
-      @setState { loading: yes }
-      EnvironmentFlux.actions.searchStackScript event.target.value
-      .then (scripts) => @setState { loading: no, scripts: scripts }
-      .catch () =>
-        @setState { loading: no }
-        kd.NotificationView { title: 'Error occured while fetching stack script. Try again' }
+    @setState { loading: yes }
+    @getStackScript @state.searchQuery
 
+
+  getStackScript: (value) ->
+
+    return  unless value
+    @doRequest value
 
   onFocus: (event) ->
+
     @setState { close: no }  if @state.scripts.length
 
 
   onClick: (script, event) ->
+
     { title } = script
-    EnvironmentFlux.actions.searchStackScript(title, yes)
-    .then (markdown) =>
-      scrollView = new kd.CustomScrollView { cssClass : 'stack-example-scroll' }
-      markdown = applyMarkdown markdown, { sanitize : no, breaks: yes }
-      scrollView.wrapper.addSubView markdown_content = new kd.CustomHTMLView
-        tagName : 'p'
-        cssClass : 'markdown-content stack-script'
-        partial : markdown
+    @doRequest title, yes
 
-      new ContentModal
-        width : 1024
-        cssClass : 'has-markdown content-modal stack-script'
-        title : "Stack Script: #{title} Preview"
-        content : scrollView
+  showPreview: (markdown, query) ->
 
-    .catch () ->
-      kd.NotificationView { title: 'Error occured while fetching stack script. Try again' }
+    scrollView = new kd.CustomScrollView { cssClass : 'stack-example-scroll' }
+    markdown = applyMarkdown markdown, { sanitize : no, breaks: yes }
+    scrollView.wrapper.addSubView markdown_content = new kd.CustomHTMLView
+      tagName : 'p'
+      cssClass : 'markdown-content stack-script'
+      partial : markdown
+
+    new ContentModal
+      width : 1024
+      cssClass : 'has-markdown content-modal stack-script'
+      title : "Stack Script: #{query} Preview"
+      content : scrollView
+
+
+  doRequest: (query, type = no) ->
+
+    return  unless query
+    EnvironmentFlux.actions.searchStackScript(query, type)
+    .then (data) =>
+      if type then @showPreview data, query
+      else @setState { loading: no, scripts: data }
+    .catch =>
+      @setState { loading: no }  unless type
+      kd.NotificationView { title: 'Error occured while fetching stack script' }
 
 
   onIconClick: (event) ->
@@ -76,4 +90,3 @@ module.exports = class StackScriptSearchBoxContainer extends React.Component
       close={@state.close}
     />
 
-# StackScriptSearchBoxContainer.include [KDReactorMixin]
