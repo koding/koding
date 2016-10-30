@@ -123,8 +123,8 @@ app.get  '/-/image/cache'                        , require './image_cache'
 # app.get  '/-/oauth/github/callback'              , require './github_callback'
 app.get  '/-/oauth/gitlab/callback'              , require './gitlab_callback'
 
-app.get '/-/stack/search/:query'                 , cors(), require './handlers/stackscripttitle'
-app.get '/-/stack/getContent/:query'             , cors(), require './handlers/stackscriptmarkdown'
+app.get '/-/terraform/document-search/:query'    , cors(), require './handlers/stackscripttitle'
+app.get '/-/terraform/document-content/:query'   , cors(), require './handlers/stackscriptmarkdown'
 
 # app.get  '/-/oauth/facebook/callback'            , require './facebook_callback'
 # app.get  '/-/oauth/google/callback'              , require './google_callback'
