@@ -35,7 +35,7 @@
 				"address_space": ["{{.AddressSpace}}"],
 				"location": "${var.azure_location}",
 				"subnet": {
-					"name": "sub-koding-team",
+					"name": "{{.SubnetName}}",
 					"address_prefix": "{{.AddressSpace}}",
 					"security_group": "${azure_security_group.koding.name}"
 				}
@@ -70,7 +70,7 @@
 			"value": "${azure_virtual_network.koding.id}"
 		},
 		"subnet": {
-			"value": "${azure_virtual_network.koding.subnet.name}"
+			"value": "{{.SubnetName}}"
 		}
 	}
 }

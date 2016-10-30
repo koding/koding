@@ -27,6 +27,7 @@ type BootstrapConfig struct {
 	StorageType        string
 	AddressSpace       string
 	StorageServiceName string
+	SubnetName         string
 	SecurityGroupName  string
 	VirtualNetworkName string
 	Rule               bool
@@ -122,6 +123,7 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 		StorageServiceName: trim(strings.ToLower("kodings"+c.Identifier), 24),
 		SecurityGroupName:  "koding-sg-" + c.Identifier,
 		VirtualNetworkName: "koding-vn-" + c.Identifier,
+		SubnetName:         "koding-su-" + c.Identifier,
 		Rule:               false,
 	}
 
