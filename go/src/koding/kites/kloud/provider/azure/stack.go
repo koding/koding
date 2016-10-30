@@ -99,6 +99,14 @@ func (s *Stack) VerifyCredential(c *stack.Credential) error {
 	return nil
 }
 
+func trim(s string, n int) string {
+	if len(s) > n {
+		return s[:n]
+	}
+
+	return s
+}
+
 // BootstrapTemplates returns bootstrap templates that are used
 // to bootstrap an Azure stack.
 func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, error) {
@@ -109,7 +117,7 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 		TeamSlug:           s.BootstrapArg().GroupName,
 		HostedServiceName:  "koding-hs-" + c.Identifier,
 		StorageType:        cred.Storage,
-		StorageServiceName: strings.ToLower("kodings" + c.Identifier),
+		StorageServiceName: trim(strings.ToLower("kodings"+c.Identifier), 24),
 		SecurityGroupName:  "koding-sg-" + c.Identifier,
 		VirtualNetworkName: "koding-vn-" + c.Identifier,
 		Rule:               false,
