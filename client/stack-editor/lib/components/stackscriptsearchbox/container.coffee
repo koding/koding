@@ -15,13 +15,7 @@ module.exports = class StackScriptSearchBoxContainer extends React.Component
       searchQuery: ''
       close: no
       loading: no
-
-
-  getDataBindings: ->
-    return {
-      scripts: EnvironmentFlux.getters.stackScripts
-    }
-
+      scripts: []
 
   onChange: (event) ->
 
@@ -31,8 +25,10 @@ module.exports = class StackScriptSearchBoxContainer extends React.Component
       return  unless event.target.value
       @setState { loading: yes }
       EnvironmentFlux.actions.searchStackScript event.target.value
-      .then () => @setState { loading: no }
-      .catch () => @setState { loading: no }
+      .then (scripts) => @setState { loading: no, scripts: scripts }
+      .catch () =>
+        @setState { loading: no }
+        kd.NotificationView { title: 'Error occured while fetching stack script. Try again' }
 
 
   onFocus: (event) ->
@@ -40,22 +36,24 @@ module.exports = class StackScriptSearchBoxContainer extends React.Component
 
 
   onClick: (script, event) ->
+    { title } = script
+    EnvironmentFlux.actions.searchStackScript(title, yes)
+    .then (markdown) =>
+      scrollView = new kd.CustomScrollView { cssClass : 'stack-example-scroll' }
+      markdown = applyMarkdown markdown, { sanitize : no, breaks: yes }
+      scrollView.wrapper.addSubView markdown_content = new kd.CustomHTMLView
+        tagName : 'p'
+        cssClass : 'markdown-content stack-script'
+        partial : markdown
 
-    { markdown, title } = script
-    scrollView = new kd.CustomScrollView { cssClass : 'stack-example-scroll' }
+      new ContentModal
+        width : 1024
+        cssClass : 'has-markdown content-modal stack-script'
+        title : "Stack Script: #{title} Preview"
+        content : scrollView
 
-    markdown = applyMarkdown markdown, { sanitize : no }
-
-    scrollView.wrapper.addSubView markdown_content = new kd.CustomHTMLView
-      tagName : 'p'
-      cssClass : 'markdown-content stack-script'
-      partial : markdown
-
-    new ContentModal
-      width : 1024
-      cssClass : 'has-markdown content-modal stack-script'
-      title : "Stack Script: #{title} Preview"
-      content : scrollView
+    .catch () ->
+      kd.NotificationView { title: 'Error occured while fetching stack script. Try again' }
 
 
   onIconClick: (event) ->
@@ -78,4 +76,4 @@ module.exports = class StackScriptSearchBoxContainer extends React.Component
       close={@state.close}
     />
 
-StackScriptSearchBoxContainer.include [KDReactorMixin]
+# StackScriptSearchBoxContainer.include [KDReactorMixin]
