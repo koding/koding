@@ -163,18 +163,70 @@ module.exports = globals.config.providers =
     title                  : 'Azure Credential'
     color                  : '#ec06be'
     supported              : yes
-    enabled                : no
+    enabled                : 'beta'
     defaultTemplate        : require './templates/azure'
     description            : 'Azure'
     instanceTypes          : require './instance-types/azure'
     credentialFields       :
-      accountId            :
-        label              : 'Account Id'
-        placeholder        : 'account id in azure'
-      secret               :
-        label              : 'Secret'
-        placeholder        : 'azure secret'
-        type               : 'password'
+      publish_settings     :
+        label              : 'Publish Settings'
+        placeholder        : 'publish settings for azure'
+        type               : 'textarea'
+      subscription_id      :
+        label              : 'Subscription ID'
+        placeholder        : 'subscription id of azure account'
+      location             :
+        label              : 'Location'
+        type               : 'selection'
+        placeholder        : 'location / region'
+        defaultValue       : 'East US 2'
+        values             : [
+          { title: 'West US 2 (west-us-2)',             value: 'West US 2' }
+          { title: 'West Central US (west-central-us)', value: 'West Central US' }
+          { title: 'Quebec City (canada-east)',         value: 'Canada East' }
+          { title: 'Sao Paulo State (brazil-south)',    value: 'Brazil South' }
+          { title: 'Tokyo, Saitama (japan-east)',       value: 'Japan East' }
+          { title: 'Virginia (east-us)',                value: 'East US' }
+          { title: 'Virginia (east-us-2)',              value: 'East US 2' }
+          { title: 'Iowa (central-us)',                 value: 'Central US' }
+          { title: 'Illinois (north-central-us)',       value: 'North Central US' }
+          { title: 'Texas (south-central-us)',          value: 'South Central US' }
+          { title: 'California (west-us)',              value: 'West US' }
+          { title: 'Virginia (us-gov-virginia)',        value: 'US Gov Virginia' }
+          { title: 'Iowa (us-gov-iowa)',                value: 'US Gov Iowa' }
+          { title: 'Toronto (canada-central)',          value: 'Canada Central' }
+          { title: 'Arizona (us-gov-arizona)',          value: 'US Gov Arizona' }
+          { title: 'Texas (us-gov-texas)',              value: 'US Gov Texas' }
+          { title: 'Ireland (north-europe)',            value: 'North Europe' }
+          { title: 'Netherlands (west-europe)',         value: 'West Europe' }
+          { title: 'Frankfurt (germany-central)',       value: 'Germany Central' }
+          { title: 'Magdeburg (germany-northeast)',     value: 'Germany Northeast' }
+          { title: 'Cardiff (uk-west)',                 value: 'UK West' }
+          { title: 'London (uk-south-)',                value: 'UK South ' }
+          { title: 'Singapore (southeast-asia)',        value: 'Southeast Asia' }
+          { title: 'Kong (east-asia-hong)',             value: 'East Asia Hong' }
+          { title: 'New South, Wales (australia-east)', value: 'Australia East' }
+          { title: 'Victoria (australia-southeast)',    value: 'Australia Southeast' }
+          { title: 'Pune (central-india)',              value: 'Central India' }
+          { title: 'Mumbai (west-india)',               value: 'West India' }
+          { title: 'Chennai (south-india)',             value: 'South India' }
+          { title: 'Osaka (japan-west)',                value: 'Japan West' }
+          { title: 'Shanghai (china-east)',             value: 'China East' }
+          { title: 'Beijing (china-north)',             value: 'China North' }
+          { title: 'Seoul (korea-central)',             value: 'Korea Central' }
+        ]
+      storage              :
+        label              : 'Storage Replication'
+        type               : 'selection'
+        placeholder        : 'storage replication type'
+        defaultValue       : 'Standard_LRS'
+        values             : [
+          { title: 'Locally redundant storage (LRS)',            value: 'Standard_LRS' }
+          { title: 'Zone-redundant storage (ZRS)',               value: 'Standard_ZRS' }
+          { title: 'Geo-redundant storage (GRS)',                value: 'Standard_GRS' }
+          { title: 'Read-access geo-redundant storage (RA-GRS)', value: 'Standard_RAGRS' }
+          { title: 'Premium Locally redundant storage (P_LRS)',  value: 'Premium_LRS' }
+        ]
 
   rackspace                :
     name                   : 'Rackspace'
