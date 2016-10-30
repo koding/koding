@@ -30,7 +30,7 @@ func newMachine(bm *provider.BaseMachine) (provider.Machine, error) {
 	m := &Machine{BaseMachine: bm}
 	cred := m.Cred()
 
-	c, err := management.ClientFromPublishSettingsDataWithConfig(cred.PublishSettings, cred.SubscriptionID, management.DefaultConfig())
+	c, err := management.ClientFromPublishSettingsDataWithConfig([]byte(cred.PublishSettings), cred.SubscriptionID, management.DefaultConfig())
 	if err != nil {
 		return nil, err
 	}
@@ -83,8 +83,7 @@ type Subscription struct {
 
 // Cred represents jCredentialDatas.meta for "azure" provider.
 type Cred struct {
-	// Credentials.
-	PublishSettings []byte `json:"publish_settings" bson:"publish_settings" hcl:"publish_settings"`                  // required
+	PublishSettings string `json:"publish_settings" bson:"publish_settings" hcl:"publish_settings"`                  // required
 	SubscriptionID  string `json:"subscription_id,omitempty" bson:"subscription_id,omitempty" hcl:"subscription_id"` // required if PublishSettings contains multiple subscriptions
 	Location        string `json:"location,omitempty" bson:"location,omitempty" hcl:"location"`                      // by default "East US 2"
 	Storage         string `json:"storage,omitempty" bson:"storage,omitempty" hcl:"storage"`                         // by default "Standard_LRS"
@@ -97,7 +96,7 @@ var _ stack.Validator = (*Cred)(nil)
 func (meta *Cred) PublishData() (*PublishData, error) {
 	var pb PublishData
 
-	if err := xml.Unmarshal(meta.PublishSettings, &pb); err != nil {
+	if err := xml.Unmarshal([]byte(meta.PublishSettings), &pb); err != nil {
 		return nil, err
 	}
 

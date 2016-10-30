@@ -86,7 +86,7 @@ func (s *Stack) VerifyCredential(c *stack.Credential) error {
 		return err
 	}
 
-	client, err := management.ClientFromPublishSettingsData(cred.PublishSettings, cred.SubscriptionID)
+	client, err := management.ClientFromPublishSettingsData([]byte(cred.PublishSettings), cred.SubscriptionID)
 	if err != nil {
 		return err
 	}
