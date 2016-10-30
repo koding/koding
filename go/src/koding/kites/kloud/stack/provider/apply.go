@@ -284,14 +284,15 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 		t.Key = defaultContentID
 	}
 
+	bs.Log.Debug("Stack template after injecting Koding data:")
+	bs.Log.Debug("%s", t)
+
 	bs.Builder.Stack.Template = t.Content
 
 	done := make(chan struct{})
 
 	// because apply can last long, we are going to increment the eventer's
 	// percentage as long as we build automatically.
-	//
-	// TODO(rjeczalik):
 	go func() {
 		start := 45
 		ticker := time.NewTicker(time.Second * 5)
