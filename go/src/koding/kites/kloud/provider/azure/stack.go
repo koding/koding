@@ -173,6 +173,10 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	}
 
 	for name, vm := range res.AzureInstance {
+		if n, ok := vm["name"].(string); !ok || n == "" {
+			vm["name"] = name + "-" + s.id()
+		}
+
 		s.injectBoostrap(vm, cred, boot)
 
 		s.injectEndpointRules(vm)
@@ -326,6 +330,17 @@ func (s *Stack) injectCloudInit(vm map[string]interface{}, name, kiteKeyName str
 	}
 
 	return countKeys, nil
+}
+
+func (s *Stack) id() string {
+	switch arg := s.Arg.(type) {
+	case *stack.ApplyRequest:
+		return arg.StackID
+	case *stack.PlanRequest:
+		return arg.StackTemplateID
+	default:
+		return ""
+	}
 }
 
 func newBootstrapTmpl(cfg *BootstrapConfig) ([]byte, error) {
