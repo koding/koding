@@ -134,13 +134,6 @@ func (m *Machine) Stop(ctx context.Context) (interface{}, error) {
 			return machinestate.Unknown, err
 		}
 
-		// WaitState expects machinestate.Stopped. However, the machine can also
-		// be reported as terminated. So, if we want WaitState work, we need to
-		// replace terminated state with stopped one.
-		if state == machinestate.Terminated {
-			state = machinestate.Stopped
-		}
-
 		return state, err
 	}
 
@@ -181,7 +174,7 @@ var status2stateMap = map[string]machinestate.State{
 	"STOPPED":      machinestate.Stopped,
 	"SUSPENDED":    machinestate.Stopped,
 	"SUSPENDING":   machinestate.Stopped,
-	"TERMINATED":   machinestate.Terminated,
+	"TERMINATED":   machinestate.Stopped,
 }
 
 func status2state(status string) (machinestate.State, error) {
