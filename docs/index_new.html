@@ -12,9 +12,10 @@ permalink: /new
 
 <div class="HomeHeaderContainer" id="particles">
   <div class="header">
-    <div class="openSource">Open source tools for developers</div>
-    <h1>Automate your team's development environments</h1>
-    <a href="#">Get started</a>
+    <div class="openSource fade">Open source tools for developers</div>
+    <h1 class="fade">Automate your team's development environments</h1>
+    <a class="fade" href="{{ site.url }}/teams/create">Get started</a>
+    <figure id="alien"></figure>
   </div>
 </div>
 
@@ -55,6 +56,27 @@ permalink: /new
 {% include footer.html %}
 
 <script>
+(function(){
+  var alien = $('#alien'),
+      faderinos = $('.HomeHeaderContainer .header .fade');
+
+  var fade = function(){
+    var scrollTop = $(window).scrollTop();
+    if (1 - scrollTop / 500 < 0) return;
+
+    var ratio = 1 - scrollTop / 500,
+        alienX = -Math.max( Math.min((ratio * 1000), 1000), 0);
+
+    faderinos.css('opacity', ratio);
+    alien.css({
+      'transform': 'translateX(' + alienX + '%)  rotateZ(-2deg)',
+      'opacity': 1 - ratio
+    });
+  }
+
+  $(window).scroll(fade);
+})();
+
 particlesJS("particles", {
   "particles": {
     "number": {
