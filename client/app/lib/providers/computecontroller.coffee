@@ -61,6 +61,7 @@ module.exports = class ComputeController extends KDController
 
       groupsController.on 'StackTemplateChanged', @bound 'checkGroupStacks'
       groupsController.on 'StackAdminMessageCreated', @bound 'handleStackAdminMessageCreated'
+      groupsController.on 'ShareStackTemplate', @bound 'handleSharedStackTemplate'
 
       @fetchStacks =>
 
@@ -392,31 +393,31 @@ module.exports = class ComputeController extends KDController
       @reset yes, -> callback null, machine
 
 
+  handleStackCreate: (err, newStack) ->
+
+    return kd.warn err  if err
+    return kd.warn 'Stack data not found'  unless newStack
+
+    { results : { machines } } = newStack
+    [ machine ] = machines
+    @reset yes, =>
+      @reloadIDE machine.obj.slug
+      @checkGroupStacks()
+
+
   createDefaultStack: (force, template) ->
 
     return  unless isLoggedIn()
 
     { mainController, groupsController } = kd.singletons
 
-    handleStackCreate = (err, newStack) =>
-      return kd.warn err  if err
-      return kd.warn 'Stack data not found'  unless newStack
-
-      { results : { machines } } = newStack
-      [ machine ] = machines
-
-      @reset yes, =>
-        @reloadIDE machine.obj.slug
-        @checkGroupStacks()
-
     mainController.ready =>
 
       if template
-        template.generateStack handleStackCreate
+        template.generateStack @bound 'handleStackCreate'
       else if force or groupsController.currentGroupHasStack()
-        for stack in @stacks
-          return  if stack.config?.groupStack
-        remote.api.ComputeProvider.createGroupStack handleStackCreate
+        return  if groupsController.getCurrentGroup().sharedStackTemplates?.length
+        remote.api.ComputeProvider.createGroupStack {}, @bound 'handleStackCreate'
       else
         @emit 'StacksNotConfigured'
 
@@ -984,7 +985,17 @@ module.exports = class ComputeController extends KDController
           @emit 'StacksInconsistent', stack
 
 
-  checkGroupStacks: ->
+  handleSharedStackTemplate: (params) ->
+
+    { contents: stackTemplate } = params
+    { mainController } = kd.singletons
+
+    mainController.ready =>
+      { _id, originId } = stackTemplate
+
+      remote.api.ComputeProvider.createGroupStack { _id, originId }, @bound 'handleStackCreate'
+
+
 
     @checkStackRevisions()
 

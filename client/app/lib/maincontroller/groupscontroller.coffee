@@ -4,7 +4,7 @@ whoami            = require '../util/whoami'
 kookies           = require 'kookies'
 getGroup          = require '../util/getGroup'
 showError         = require '../util/showError'
-
+Tracker           = require 'app/util/tracker'
 remote            = require('../remote')
 globals           = require 'globals'
 GroupData         = require './groupdata'
@@ -104,6 +104,7 @@ module.exports = class GroupsController extends kd.Controller
           'GroupJoined'
           'GroupLeft'
           'StackAdminMessageCreated'
+          'ShareStackTemplate'
         ]
 
         callback null
