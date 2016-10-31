@@ -234,8 +234,10 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
         toggleFeature:
           (signature Object, Function)
-        sendNotification:
+        sendNotification: [
           (signature String, String, Function)
+          (signature String, Object, Function)
+        ]
         setLimit:
           (signature Object, Function)
         setOAuth:
