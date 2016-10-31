@@ -19,8 +19,8 @@
             }
           ]
         },
-		"instances": 3,
         "cpus": 2,
+        "instances": 3,
         "mem": 128
       }
     }
