@@ -1233,8 +1233,7 @@ module.exports = class ComputeController extends KDController
 
   makePrivate: (stackTemplate) ->
 
-    { credentials, config: { requiredProviders } } = stackTemplate
-    { reactor } = kd.singletons
+    { reactor, groupsController } = kd.singletons
     modal = new ContentModal
       title   : 'Are you sure?'
       content : "<p class='text-center'>
@@ -1251,32 +1250,24 @@ module.exports = class ComputeController extends KDController
           cssClass : 'solid medium'
           loader   : yes
           callback : ->
-            stackTemplate.setAccess 'private', (err) ->
-              if err
-                return new kd.NotificationView
-                  title: 'Error occured while unsharing stack with team'
-              reactor.dispatch 'REMOVE_TEAM_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
+            groupsController.setPrivate stackTemplate, (err) ->
               modal.destroy()
-              new kd.NotificationView
-                title: 'Your stack is private now.'
+              title = 'Error occured while unsharing your stack'  if err
+              title = 'Your stack is private now.'
+              new kd.NotificationView { title }
 
 
   makeTeamDefault: (stackTemplate, revive) ->
 
     if revive
       stackTemplate = remote.revive stackTemplate
-    { credentials, config: { requiredProviders } } = stackTemplate
 
+    { credentials, config: { requiredProviders } } = stackTemplate
     { groupsController, reactor } = kd.singletons
 
     createShareModal (needShare, modal) =>
 
-      groupsController.setDefaultTemplate stackTemplate, (err) =>
-
-        reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
-        reactor.dispatch 'REMOVE_PRIVATE_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
-
-        Tracker.track Tracker.STACKS_MAKE_DEFAULT
+      groupsController.setDefaultTemplate stackTemplate, 'default', (err) =>
 
         if needShare
         then @shareCredentials credentials, requiredProviders, -> modal.destroy()
@@ -1373,6 +1364,8 @@ module.exports = class ComputeController extends KDController
 
           if template and not groupStack
           then @createDefaultStack no, template
+          else if template and groupStack
+          then @handleSharedStackTemplate { contents: template }
           else @createDefaultStack()
 
         , followEvents = no
