@@ -12,6 +12,7 @@ import (
 	"koding/kites/config"
 	"koding/klient/app"
 	konfig "koding/klient/config"
+	"koding/klient/klientsvc"
 	"koding/klient/registration"
 )
 
@@ -58,7 +59,6 @@ var (
 	// Metadata flags.
 	flagMetadata     = flag.String("metadata", "", "Base64-encoded Koding metadata")
 	flagMetadataFile = flag.String("metadata-file", "", "Koding metadata file")
-	flagNoExit       = flag.Bool("no-exit", false, "Keeps klient running after dumping metadata")
 )
 
 func defaultNoTunnel() bool {
@@ -152,21 +152,41 @@ func realMain() int {
 		LogUploadInterval: *flagLogUploadInterval,
 		Metadata:          *flagMetadata,
 		MetadataFile:      *flagMetadataFile,
-		NoExit:            *flagNoExit,
 	}
 
 	a, err := app.NewKlient(conf)
-	if err == app.ErrExit {
-		return 0
-	}
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer a.Close()
+	if len(flag.Args()) == 0 {
+		defer a.Close()
+		a.Run()
+		return 0
+	}
 
-	// Run Forrest, Run!
-	a.Run()
+	// The following commands are intended for internal use
+	// only. They are used by kloud to install klient
+	// where no kd is available.
+	//
+	// TODO(rjeczalik): we should bundle klient with kd
+	// and have only 1 klient/kd distribution.
+	switch flag.Arg(0) {
+	case "config":
+		err = a.PrintConfig()
+	case "install":
+		err = klientsvc.Install()
+	case "start":
+		err = klientsvc.Start()
+	case "stop":
+		err = klientsvc.Stop()
+	default:
+		log.Fatalf("unrecognized command: %s", flag.Arg(0))
+	}
+
+	if err != nil {
+		log.Fatalf("internal command failed: %s", err)
+	}
 
 	return 0
 }

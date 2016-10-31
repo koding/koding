@@ -58,6 +58,11 @@ mapStateToProps = (state) ->
 
 mapDispatchToProps = (dispatch) ->
   return {
+    onSuccessModalClose: ->
+      dispatch(stripe.resetLastAction())
+    onInviteMembers: ->
+      dispatch(stripe.resetLastAction())
+      kd.singletons.router.handleRoute '/Home/my-team#send-invites'
     onMessageClose: ->
       dispatch(stripe.resetLastAction())
     onResetForm: ->

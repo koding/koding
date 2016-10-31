@@ -353,26 +353,3 @@ func AddInteractionWithTest(iType string, messageId int64, accountId int64) (*In
 
 	return cm, nil
 }
-
-func CreateChannelLinkWithTest(acc1, acc2 int64) *ChannelLink {
-	// root
-	root := NewChannel()
-	root.TypeConstant = Channel_TYPE_TOPIC
-	root.CreatorId = acc1
-	So(root.Create(), ShouldBeNil)
-
-	// leaf
-	leaf := NewChannel()
-	leaf.TypeConstant = Channel_TYPE_TOPIC
-	leaf.GroupName = root.GroupName // group names should be same
-	leaf.CreatorId = acc2
-	So(leaf.Create(), ShouldBeNil)
-
-	cl := &ChannelLink{
-		RootId: root.Id,
-		LeafId: leaf.Id,
-	}
-
-	So(cl.Create(), ShouldBeNil)
-	return cl
-}

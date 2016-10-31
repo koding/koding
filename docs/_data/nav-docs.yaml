@@ -40,27 +40,7 @@
     title: Inviting with Slack
   - id: koding-button
     title: Try on Koding button
-  - id: common-questions
-    title: Common Questions
-- title: Stack reference
-  items:
-  - id: the-provider-block
-    title: Provider block
-  - id: aws_instance
-    title: aws_instance
-  - id: aws_vpc
-    title: aws_vpc
-  - id: aws_subnet
-    title: aws_subnet
-  - id: aws_internet_gateway
-    title: aws_internet_gateway
-  - id: aws_route_table
-    title: aws_route_table
-  - id: aws_security_group
-    title: aws_security_group
-  - id: aws_eip
-    title: aws_eip
-  - id: aws_route53_record
-    title: aws_route53_record
   - id: terraform-to-koding
     title: TERRAFORM to KODING
+  - id: common-questions
+    title: Common Questions

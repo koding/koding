@@ -16,7 +16,6 @@ module.exports = class PaymentSection extends React.Component
     super props
 
     @state =
-      hasSuccessModal: props.hasSuccessModal
       hasRemoveModal: no
 
 
@@ -27,7 +26,8 @@ module.exports = class PaymentSection extends React.Component
     @setState { hasSuccessModal: nextProps.hasSuccessModal }
 
 
-  onSuccessModalClose: -> @setState { hasSuccessModal: no }
+  onSuccessModalClose: ->
+    @props.onSuccessModalClose()
 
 
   onRemoveBegin: ->
@@ -44,8 +44,7 @@ module.exports = class PaymentSection extends React.Component
 
 
   onInviteMembers: ->
-    @setState { hasSuccessModal: no }, ->
-      kd.singletons.router.handleRoute '/Home/my-team#send-invites'
+    @props.onInviteMembers()
 
 
   render: ->

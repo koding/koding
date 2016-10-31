@@ -1,5 +1,4 @@
 appendHeadElement = require 'app/util/appendHeadElement'
-{ isEmail } = require 'validator'
 cardValidator = require 'card-validator'
 stripeFixtures = require 'app/redux/services/fixtures/stripe'
 
@@ -46,7 +45,6 @@ validateErrorResponses =
   cvc: stripeFixtures.createTokenError.cvc
   exp_year: stripeFixtures.createTokenError.year
   exp_month: stripeFixtures.createTokenError.month
-  email: stripeFixtures.createTokenError.email
 
 
 pickBy = (obj, fn) ->
@@ -86,7 +84,6 @@ makeValidators = (isAmex) ->
     cvc: fieldValidator 'cvv', if isAmex then 4 else 3
     exp_month: fieldValidator 'expirationMonth'
     exp_year: fieldValidator 'expirationYear'
-    email: isEmail
   }
 
 

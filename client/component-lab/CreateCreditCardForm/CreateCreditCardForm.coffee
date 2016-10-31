@@ -58,30 +58,12 @@ module.exports = CreateCreditCardForm = (props) ->
               title='CVC' />
           </Col>
         </Row>
-        <Row>
-          <Col xs={12}>
-            <Input.Field
-              disabled={loading}
-              name='name'
-              placeholder='Enter your name and surname…'
-              title='Full Name' />
-          </Col>
-        </Row>
       </Col>
       <Col xs className={styles.mainCol}>
         <Row bottom='xs'>
           <Col xs={12}>
             <CreditCard {...values} brand={brand} />
           </Col>
-        </Row>
-        <Row bottom='xs'>
-          <Col xs={12}>
-            <Input.Field
-              disabled={loading}
-              name='email'
-              placeholder='Enter billing email…'
-              title='Billing Email Adress' />
-            </Col>
         </Row>
       </Col>
     </Row>

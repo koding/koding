@@ -98,6 +98,7 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	t := s.Builder.Template
 
+	cred := c.Credential.(*Cred)
 	boot := c.Bootstrap.(*Bootstrap)
 
 	var resource struct {
@@ -112,12 +113,24 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 		return nil, fmt.Errorf("there are no Google compute instances defined")
 	}
 
+	computeService, err := cred.ComputeService()
+	if err != nil {
+		s.Log.Warning("cannot create compute service: %s", err)
+	}
+
 	// Family2Image is used as a workaround for old terraform we use. It
 	// translates image family name into the latest image name.
 	//
 	// TODO(ppknap): remove when we terraform is upgraded.
 	f2i := Family2Image{
-		GetFromFamily: s.getFromFamily(c),
+		GetFromFamily: s.getFromFamily(computeService),
+	}
+
+	// Image2Size is used to obtain image size from GCP API. This allows to set
+	// up disk size when it's not provided. We need this in order to have proper
+	// metadata in our database.
+	i2s := Image2Size{
+		GetDiskSize: s.getDiskSize(cred.Project, computeService),
 	}
 
 	for resourceName, instance := range resource.GCInstance {
@@ -148,7 +161,7 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 				},
 			}
 		}
-		instance["disk"] = f2i.Replace(instance["disk"])
+		instance["disk"] = i2s.Replace(f2i.Replace(instance["disk"]))
 
 		// Set default network interface if user didn't define it herself.
 		if _, ok := instance["network_interface"]; !ok {
@@ -245,7 +258,7 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 		return nil, err
 	}
 
-	err := t.ShadowVariables("FORBIDDEN", "google_credentials")
+	err = t.ShadowVariables("FORBIDDEN", "google_credentials")
 	if err != nil {
 		return nil, err
 	}
@@ -287,18 +300,14 @@ func addPublicKey(metadata map[string]interface{}, user, publicKey string) map[s
 
 // getFromFamily calls GCE API and retrieves the latest image that is a part of
 // provided family. If an error occurs, this function is no-op.
-func (s *Stack) getFromFamily(c *stack.Credential) func(string, string) string {
-	cred := c.Credential.(*Cred)
-
-	computeService, err := cred.ComputeService()
-	if err != nil {
-		s.Log.Warning("cannot create compute service: %s", err)
+func (s *Stack) getFromFamily(computeService *compute.Service) func(string, string) string {
+	if computeService == nil {
 		return nil
 	}
-	imageService := compute.NewImagesService(computeService)
 
+	imagesService := compute.NewImagesService(computeService)
 	return func(project, family string) string {
-		image, err := imageService.GetFromFamily(project, family).Do()
+		image, err := imagesService.GetFromFamily(project, family).Do()
 		if err != nil {
 			s.Log.Warning("cannot create image service: %s", err)
 			return ""
@@ -310,6 +319,43 @@ func (s *Stack) getFromFamily(c *stack.Credential) func(string, string) string {
 		}
 
 		return image.Name
+	}
+}
+
+// getFromFamily calls GCE API and retrieves the size of provided image.
+func (s *Stack) getDiskSize(currentProject string, computeService *compute.Service) func(string, string) int {
+	if computeService == nil {
+		return nil
+	}
+
+	imagesService := compute.NewImagesService(computeService)
+	return func(project, image string) int {
+		if project == "" {
+			project = currentProject
+		}
+
+		computeImg, err := imagesService.Get(project, image).Do()
+		if err != nil {
+			s.Log.Warning("cannot find image %q: %v (project: %q)", image, err, project)
+			if project == currentProject {
+				return 0
+			}
+
+			project = currentProject
+
+			// Fall-back to current project.
+			if computeImg, err = imagesService.Get(project, image).Do(); err != nil {
+				s.Log.Warning("cannot find image %q in stack's project: %v", image, err)
+				return 0
+			}
+		}
+
+		if computeImg == nil || computeImg.DiskSizeGb == 0 {
+			s.Log.Warning("no size metadata for image: %q (project: %q)", image, project)
+			return 0
+		}
+
+		return int(computeImg.DiskSizeGb)
 	}
 }
 

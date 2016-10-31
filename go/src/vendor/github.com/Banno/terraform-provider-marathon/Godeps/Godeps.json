@@ -1,7 +1,7 @@
 {
 	"ImportPath": "github.com/Banno/terraform-provider-marathon",
 	"GoVersion": "go1.6",
-	"GodepVersion": "v62",
+	"GodepVersion": "v74",
 	"Packages": [
 		"./..."
 	],
@@ -130,8 +130,8 @@
 		},
 		{
 			"ImportPath": "github.com/gambol99/go-marathon",
-			"Comment": "v0.0.1-74-ga2b7150",
-			"Rev": "a2b7150eac3175ec91a792acef9dcabd1a9e6e28"
+			"Comment": "v0.3.0-10-ga9a7bc1",
+			"Rev": "a9a7bc12777b95cff48f675bc7173c6e6c530082"
 		},
 		{
 			"ImportPath": "github.com/go-ini/ini",
