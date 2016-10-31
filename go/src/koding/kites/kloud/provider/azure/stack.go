@@ -102,7 +102,7 @@ func (s *Stack) VerifyCredential(c *stack.Credential) error {
 	return nil
 }
 
-func trim(s string, n int) string {
+func substringN(s string, n int) string {
 	if len(s) > n {
 		return s[:n]
 	}
@@ -121,7 +121,7 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 		HostedServiceName:  "koding-hs-" + c.Identifier,
 		StorageType:        cred.Storage,
 		AddressSpace:       boot.addressSpace(),
-		StorageServiceName: trim(strings.ToLower("kodings"+c.Identifier), 24),
+		StorageServiceName: substringN(strings.ToLower("kodings"+c.Identifier), 24),
 		SecurityGroupName:  "koding-sg-" + c.Identifier,
 		VirtualNetworkName: "koding-vn-" + c.Identifier,
 		SubnetName:         "koding-su-" + c.Identifier,
