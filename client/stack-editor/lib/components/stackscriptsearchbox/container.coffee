@@ -50,11 +50,12 @@ module.exports = class StackScriptSearchBoxContainer extends React.Component
   onClick: (script, event) ->
 
     { title } = script
+    @setState { close: yes, searchQuery: title }
     client.get("document-content/#{title}")
-    .then ({ data }) =>
-      @showPreview data, title
-    .catch ->
+    .then ({ data }) => @showPreview data, title
+    .catch =>
       kd.NotificationView { title: 'Error occured while fetching stack script' }
+
 
   showPreview: (markdown, query) ->
 
