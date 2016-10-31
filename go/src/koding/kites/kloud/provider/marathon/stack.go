@@ -96,19 +96,6 @@ func (s *Stack) ApplyTemplate(_ *stack.Credential) (*stack.Template, error) {
 		if err := s.injectMetadata(app, labels); err != nil {
 			return nil, err
 		}
-
-		containers := getSlice(app["container"])
-
-		for _, v := range containers {
-			containerGroup, ok := v.(map[string]interface{})
-			if !ok {
-				continue
-			}
-
-			containerGroup["docker"] = provider.ToSlice(getSlice(containerGroup["docker"]))
-		}
-
-		app["container"] = provider.ToSlice(containers)
 	}
 
 	t.Resource["marathon_app"] = resource.MarathonApp
@@ -262,7 +249,7 @@ func (s *Stack) injectFetchEntrypoints(app map[string]interface{}, metadataCount
 		})
 	}
 
-	app["fetch"] = provider.ToSlice(fetch)
+	app["fetch"] = fetch
 }
 
 func (s *Stack) injectHealthChecks(app map[string]interface{}) {
@@ -298,7 +285,7 @@ func (s *Stack) injectHealthChecks(app map[string]interface{}) {
 		ports[i] = 0
 	}
 
-	app["ports"] = appendPrimitiveSlice(app["ports"], ports...)
+	app["ports"] = appendSlice(app["ports"], ports...)
 }
 
 func (s *Stack) injectMetadata(app map[string]interface{}, labels []string) error {
@@ -407,10 +394,6 @@ func forEachContainer(app map[string]interface{}, fn func(map[string]interface{}
 	return nil
 }
 
-func appendSlice(slice interface{}, elems ...interface{}) provider.Slice {
-	return provider.ToSlice(append(getSlice(slice), elems...))
-}
-
-func appendPrimitiveSlice(slice interface{}, elems ...interface{}) provider.PrimitiveSlice {
-	return provider.ToPrimitiveSlice(append(getSlice(slice), elems...))
+func appendSlice(slice interface{}, elems ...interface{}) []interface{} {
+	return append(getSlice(slice), elems...)
 }

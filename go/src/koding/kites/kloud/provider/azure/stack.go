@@ -289,7 +289,7 @@ func (s *Stack) injectEndpointRules(vm map[string]interface{}) {
 		endpoints = append(endpoints, vmSSH)
 	}
 
-	vm["endpoint"] = provider.ToSlice(endpoints)
+	vm["endpoint"] = endpoints
 }
 
 func (s *Stack) injectCloudInit(vm map[string]interface{}, name, kiteKeyName string) (map[string]string, error) {

@@ -93,7 +93,8 @@ var appliedBasicStack = `{
             }
           ]
         },
-        "mem": 256
+        "mem": 256,
+        "ports": [0]
       }
     }
   }
