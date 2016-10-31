@@ -107,9 +107,10 @@ module.exports = class SidebarStackSection extends React.Component
         linkController.openOrFocus remoteUrl
       when 'Make Team Default'
         remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
+          computeController.makeTeamDefault template, no  unless err
       when 'Share With Team'
         remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
-          computeController.shareWithTeam template, no  unless err
+          computeController.shareWithTeam template  unless err
       when 'Make Private'
         remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
           computeController.makePrivate template  unless err

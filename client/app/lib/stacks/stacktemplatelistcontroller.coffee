@@ -146,7 +146,7 @@ module.exports = class StackTemplateListController extends KodingListController
 
     { groupsController, appManager } = kd.singletons
 
-    groupsController.setDefaultTemplate stackTemplate, (err) =>
+    groupsController.setDefaultTemplate stackTemplate, 'default', (err) =>
       if err
         @emit 'FailedToSetTemplate', err
         appManager.tell 'Stacks', 'reloadStackTemplatesList'

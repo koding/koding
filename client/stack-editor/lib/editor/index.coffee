@@ -916,20 +916,13 @@ module.exports = class StackEditorView extends kd.View
     # available stacktemplates, we can also provide set one of the template
     # as default ~ GG
 
-    groupsController.setDefaultTemplate stackTemplate, (err) =>
-
-      reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
-      reactor.dispatch 'REMOVE_PRIVATE_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
+    groupsController.setDefaultTemplate stackTemplate, 'default', (err) =>
 
       @setAsDefaultButton.hideLoader()
 
       return  if @outputView.handleError err
 
       @setAsDefaultButton.disable()
-
-      Tracker.track Tracker.STACKS_MAKE_DEFAULT
-
-      stackTemplate.isDefault = yes
 
       @emit 'Reload'
       callback stackTemplate
