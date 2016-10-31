@@ -55,7 +55,7 @@ module.exports = class GroupsController extends kd.Controller
     return stackTemplates?.length > 0
 
 
-  currentGroupIsNew: -> not @getCurrentGroup().stackTemplates
+  currentGroupIsNew: -> not @getCurrentGroup().sharedStackTemplates
 
 
   filterXssAndForwardEvents: (target, events) ->
@@ -185,10 +185,10 @@ module.exports = class GroupsController extends kd.Controller
    *  @param  {JStackTemplate}  stackTemplate
    *  @param  {Func}            callback  [ err ]
   ###
-  setDefaultTemplate: (stackTemplate, callback = kd.noop) ->
+  setDefaultTemplate: (stackTemplate, type = 'default', callback = kd.noop) ->
 
-    { computeController }   = kd.singletons
-    { slug } = currentGroup = @getCurrentGroup()
+    { computeController, reactor }   = kd.singletons
+    { slug, stackTemplates, sharedStackTemplates } = currentGroup = @getCurrentGroup()
 
     if slug is 'koding'
       return callback 'Setting stack template for koding is disabled'
@@ -200,8 +200,19 @@ module.exports = class GroupsController extends kd.Controller
       # Modify group data to use this stackTemplate as default
       # TMS-1919: Needs to be changed to update stackTemplates list
       # instead of setting it as is for the given stacktemplate ~ GG
+      id = stackTemplate._id
+      if stackTemplates
+        unless id in stackTemplates
+          stackTemplates.push id
+      else
+        stackTemplates = [stackTemplate._id]
+      data = { stackTemplates }
 
-      currentGroup.modify { stackTemplates: [ stackTemplate._id ] }, (err) ->
+      if type is 'default'
+        sharedStackTemplates = [stackTemplate._id]
+        data = { stackTemplates, sharedStackTemplates }
+
+      currentGroup.modify data, (err) ->
         return callback err  if err
 
         new kd.NotificationView
@@ -213,12 +224,25 @@ module.exports = class GroupsController extends kd.Controller
         # since we will allow users to select one stacktemplate from
         # available stacktemplates list of group ~ GG
 
+        reactor.dispatch 'LOAD_TEAM_SUCCESS', { team: currentGroup }
+
         computeController.createDefaultStack yes
+
+        Tracker.track Tracker.STACKS_MAKE_DEFAULT  if type is 'default'
+
+        reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
+        reactor.dispatch 'REMOVE_PRIVATE_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
 
         if stackTemplate._updated
           id = currentGroup.socialApiDefaultChannelId
 
         # Warn other group members about stack template update
-        currentGroup.sendNotification 'StackTemplateChanged', stackTemplate._id
+
+        if type is 'share'
+          currentGroup.sendNotification 'ShareStackTemplate', stackTemplate
+        else
+          currentGroup.sendNotification 'StackTemplateChanged', stackTemplate
 
         callback null
+
+

@@ -996,8 +996,11 @@ module.exports = class ComputeController extends KDController
       remote.api.ComputeProvider.createGroupStack { _id, originId }, @bound 'handleStackCreate'
 
 
+  checkGroupStacks: (params = {}) ->
 
     @checkStackRevisions()
+
+    { contents: stackTemplate } = params
 
     { groupsController } = kd.singletons
     { slug } = currentGroup = groupsController.getCurrentGroup()
@@ -1009,12 +1012,13 @@ module.exports = class ComputeController extends KDController
       currentGroup.stackTemplates = _currentGroup.stackTemplates
       @emit 'GroupStackTemplatesUpdated'
 
+
       # TMS-1919: This can stay as is, but this time it will create the first
       # avaiable stacktemplate for who has no stacks yet. ~ GG
 
-      groupStacks = @stacks.filter (stack) -> stack.config?.groupStack
+      @createDefaultStack yes, stackTemplate  if stackTemplate
 
-      @createDefaultStack yes  if groupStacks.length is 0
+      @createDefaultStack yes  unless _currentGroup.sharedStackTemplates?.length
 
       @checkGroupStackRevisions()
 
@@ -1026,7 +1030,7 @@ module.exports = class ComputeController extends KDController
 
     { groupsController } = kd.singletons
     currentGroup         = groupsController.getCurrentGroup()
-    { stackTemplates }   = currentGroup
+    { stackTemplates, sharedStackTemplates }   = currentGroup
 
     return  if not stackTemplates?.length
 
@@ -1040,7 +1044,7 @@ module.exports = class ComputeController extends KDController
         existents++
         break # only count one matched stack ~ GG
 
-    if existents isnt stackTemplates.length
+    if existents isnt stackTemplates.length and not sharedStackTemplates
     then @emit 'GroupStacksInconsistent'
     else @emit 'GroupStacksConsistent'
 
@@ -1214,21 +1218,17 @@ module.exports = class ComputeController extends KDController
       kd.singletons.router.handleRoute route
 
 
-  shareWithTeam: (stackTemplate) ->
+  shareWithTeam: (stackTemplate, callback) ->
 
+    { reactor, groupsController } = kd.singletons
     { credentials, config: { requiredProviders } } = stackTemplate
-    stackTemplate.setAccess 'group', (err) =>
-      if err
-        return kd.NotificationView
-          title: 'Error occured while sharing stack with team'
 
-      createShareModal (needShare, modal) =>
+    createShareModal (needShare, modal) =>
 
+      groupsController.setDefaultTemplate stackTemplate, 'share', (err) =>
         if needShare
         then @shareCredentials credentials, requiredProviders, -> modal.destroy()
         else modal.destroy()
-
-        new kd.NotificationView { title: 'Your stack successfully shared with team.' }
 
 
   makePrivate: (stackTemplate) ->
