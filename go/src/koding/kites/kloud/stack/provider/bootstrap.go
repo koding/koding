@@ -84,9 +84,7 @@ func (bs *BaseStack) bootstrap(arg *stack.BootstrapRequest) (interface{}, error)
 					updatedCreds = append(updatedCreds, cred)
 				}
 			} else {
-				bs.Log.Info("Creating bootstrap resources belonging to identifier '%s'", cred.Identifier)
-				bs.Log.Debug("Bootstrap template:")
-				bs.Log.Debug("%s", tmpl)
+				bs.Log.Debug("Bootstrap template for %s: %s", cred.Identifier, tmpl)
 
 				// TODO(rjeczalik): use []byte for templates to avoid allocations
 				if err := bs.Builder.BuildTemplate(string(tmpl.Content), tmpl.Key); err != nil {
