@@ -450,7 +450,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
       withConvertedUserAnd ['Group', 'StackTemplate'], options, (data) ->
         { group, client } = data
 
-        ComputeProvider.createGroupStack data.client, (err, groupStack) ->
+        ComputeProvider.createGroupStack data.client, {}, (err, groupStack) ->
           expect(err?.message).to.not.exist
           expect(groupStack).to.exist
           expect(groupStack).to.be.an 'object'
@@ -556,7 +556,7 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
       withConvertedUserAnd ['Group', 'StackTemplate'], options, (data) ->
         { group, client } = data
 
-        ComputeProvider.createGroupStack data.client, (err, groupStack) ->
+        ComputeProvider.createGroupStack data.client, {}, (err, groupStack) ->
           expect(err?.message).to.not.exist
           expect(groupStack).to.exist
           expect(groupStack).to.be.an 'object'

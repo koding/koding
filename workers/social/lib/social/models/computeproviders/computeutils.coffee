@@ -254,7 +254,7 @@ checkTemplateUsage = (template, account, callback) ->
     else callback null
 
 
-fetchGroupStackTemplate = (client, callback) ->
+fetchGroupStackTemplate = (client, options, callback) ->
 
   reviveClient client, (err, res) ->
 
@@ -273,12 +273,15 @@ fetchGroupStackTemplate = (client, callback) ->
       else
         return callback new KodingError 'Template not set', 'NotFound'
 
+    { _id } = options
     # TODO Make this works with multiple stacks ~ gg
-    stackTemplateId = group.stackTemplates[0]
+
+    _id = if _id then _id else group.sharedStackTemplates?[0] or group.stackTemplates[0]
 
     # TODO make all these in seperate functions
     JStackTemplate = require './stacktemplate'
-    JStackTemplate.one { _id: stackTemplateId }, (err, template) ->
+
+    JStackTemplate.one { _id: _id }, (err, template) ->
 
       if err
         console.warn "Failed to fetch stack template for #{group.slug} group"

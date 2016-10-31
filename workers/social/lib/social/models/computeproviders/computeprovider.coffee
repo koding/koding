@@ -63,7 +63,7 @@ module.exports = class ComputeProvider extends Base
         fetchProviders    :
           (signature Function)
         createGroupStack  :
-          (signature Function)
+          (signature Object, Function)
         updateTeamCounters:
           (signature String, Function)
         fetchSoloMachines :
@@ -400,9 +400,8 @@ module.exports = class ComputeProvider extends Base
 
   @createGroupStack$ = permit 'create machines',
 
-    success: (client, callback) ->
-
-      ComputeProvider.createGroupStack client, callback
+    success: (client, options, callback) ->
+      ComputeProvider.createGroupStack client, options, callback
 
 
   @updateGroupStackUsage = (group, change, callback) ->
@@ -660,7 +659,7 @@ module.exports = class ComputeProvider extends Base
     async.series [
 
       (next) ->
-        fetchGroupStackTemplate client, (err, _res) ->
+        fetchGroupStackTemplate client, options, (err, _res) ->
           unless err
             { template, account, group } = res = _res
           next err
