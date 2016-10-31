@@ -27,6 +27,7 @@ type Group struct {
 	Counts                         map[string]interface{}   `bson:"counts" json:"counts"`
 	Migration                      string                   `bson:"migration,omitempty" json:"migration"`
 	StackTemplate                  []string                 `bson:"stackTemplates,omitempty" json:"stackTemplates"`
+	SharedStackTemplates           []string                 `bson:"sharedStackTemplates,omitempty" json:"sharedStackTemplates"`
 	// DefaultChannels holds the default channels for a group, when a user joins
 	// to this group, participants will be automatically added to regarding
 	// channels
