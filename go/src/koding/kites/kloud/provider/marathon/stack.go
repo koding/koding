@@ -10,7 +10,6 @@ import (
 	"path"
 
 	marathon "github.com/gambol99/go-marathon"
-	"github.com/kr/pretty"
 )
 
 var klientPort = map[string]interface{}{
@@ -114,17 +113,13 @@ func (s *Stack) ApplyTemplate(_ *stack.Credential) (*stack.Template, error) {
 
 	t.Resource["marathon_app"] = resource.MarathonApp
 
-	pretty.Println("BEFORE", resource.MarathonApp)
-
-	if err := t.Flush(); err != nil {
-		return nil, errors.New("marathom: error flushing template: " + err.Error())
-	}
-
-	pretty.Println("AFTER", resource.MarathonApp)
-
 	err := t.ShadowVariables("FORBIDDEN", "marathon_basic_auth_user", "marathon_basic_auth_password")
 	if err != nil {
 		return nil, errors.New("marathon: error shadowing: " + err.Error())
+	}
+
+	if err := t.Flush(); err != nil {
+		return nil, errors.New("marathom: error flushing template: " + err.Error())
 	}
 
 	content, err := t.JsonOutput()

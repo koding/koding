@@ -216,11 +216,11 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 
 	t.Resource["azure_instance"] = res.AzureInstance
 
-	if err := t.Flush(); err != nil {
+	if err := t.ShadowVariables("FORBIDDEN", "azure_publish_settings", "azure_settings_file"); err != nil {
 		return nil, err
 	}
 
-	if err := t.ShadowVariables("FORBIDDEN", "azure_publish_settings", "azure_settings_file"); err != nil {
+	if err := t.Flush(); err != nil {
 		return nil, err
 	}
 

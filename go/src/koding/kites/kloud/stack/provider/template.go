@@ -3,7 +3,6 @@ package provider
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strings"
 
 	"koding/kites/kloud/stack"
@@ -189,34 +188,32 @@ func (t *Template) DetectUserVariables(prefix string) (map[string]string, error)
 // ShadowVariables shadows the given variables with the given holder. Variables
 // need to be in interpolation form, i.e: ${var.foo}
 func (t *Template) ShadowVariables(holder string, vars ...string) error {
-	for i, item := range t.node.Items {
-		key := item.Keys[0].Token.Text
-		switch key {
-		case "resource", `"resource"`:
-			// check for both, quoted and unquoted
-		default:
-			// We are going to shadow any variable inside the resource,
-			// anything else doesn't matter.
-			continue
+	replace := func(s string) string {
+		variables := ReadVariables(s)
+		if len(variables) == 0 {
+			return ""
 		}
 
-		item.Val = ast.Walk(item.Val, func(n ast.Node) (ast.Node, bool) {
-			switch t := n.(type) {
-			case *ast.LiteralType:
-				for _, v := range vars {
-					iVar := fmt.Sprintf(`${var.%s}`, v)
-					t.Token.Text = strings.Replace(t.Token.Text, iVar, holder, -1)
+		var matching []Variable
+
+	lookup:
+		for _, variable := range variables {
+			for _, name := range vars {
+				if variable.Name == name {
+					matching = append(matching, variable)
+					continue lookup
 				}
-
-				n = t
 			}
-			return n, true
-		})
+		}
 
-		t.node.Items[i] = item
+		if len(matching) == 0 {
+			return ""
+		}
+
+		return ReplaceVariables(s, matching, holder)
 	}
 
-	return t.decode("resource", &t.Resource)
+	return object.ReplaceFunc(t.Resource, replace)
 }
 
 // fillVariables finds variables declared with the given prefix and fills the
