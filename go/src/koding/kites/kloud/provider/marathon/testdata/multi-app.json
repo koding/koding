@@ -12,7 +12,7 @@
             }
           ]
         },
-		"instances": 3,
+        "instances": 3,
         "cpus": 1.2,
         "mem": 256
       }

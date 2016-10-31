@@ -37,12 +37,20 @@ func TestApplyTemplate(t *testing.T) {
 		want  string
 	}{
 		"single app stack": {
-			"testdata/single-app.golden",
-			"testdata/single-app-applied.golden",
+			"testdata/single-app.json",
+			"testdata/single-app.json.golden",
 		},
 		"multi app stack": {
-			"testdata/multi-app.golden",
-			"testdata/multi-app-applied.golden",
+			"testdata/multi-app.json",
+			"testdata/multi-app.json.golden",
+		},
+		"multi container stack": {
+			"testdata/multi-container.json",
+			"testdata/multi-container.json.golden",
+		},
+		"multi app multi container stack": {
+			"testdata/multi-app-multi-container.json",
+			"testdata/multi-app-multi-container.json.golden",
 		},
 	}
 
