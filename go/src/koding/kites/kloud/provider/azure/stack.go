@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+	"time"
 
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
@@ -339,7 +340,7 @@ func (s *Stack) id() string {
 	case *stack.PlanRequest:
 		return arg.StackTemplateID
 	default:
-		return ""
+		return strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 	}
 }
 
