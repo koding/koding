@@ -51,9 +51,6 @@ export COMMANDS=(
 	socialapi/workers/cmd/realtime/gatekeeper
 	socialapi/workers/cmd/realtime/dispatcher
 	socialapi/workers/cmd/migrator
-	socialapi/workers/cmd/sitemap/sitemapfeeder
-	socialapi/workers/cmd/sitemap/sitemapgenerator
-	socialapi/workers/cmd/sitemap/sitemapinitializer
 	socialapi/workers/cmd/algoliaconnector
 	socialapi/workers/cmd/algoliaconnector/deletedaccountremover
 	socialapi/workers/cmd/presence
