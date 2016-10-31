@@ -1,0 +1,20 @@
+{
+  "resource": {
+    "marathon_app": {
+      "app": {
+        "app_id": "/app",
+        "cmd": "python3 -m http.server 8080",
+        "container": {
+          "docker": [
+            {
+              "image": "python:3",
+              "network": "BRIDGE"
+            }
+          ]
+        },
+        "cpus": 1.2,
+        "mem": 256
+      }
+    }
+  }
+}

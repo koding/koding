@@ -3,6 +3,7 @@ package marathon_test
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"reflect"
 	"strings"
 	"testing"
@@ -24,82 +25,6 @@ func init() {
 	stack.Konfig = &config.Konfig{}
 }
 
-var basicStack = `{
-  "resource": {
-    "marathon_app": {
-      "app": {
-        "app_id": "/app",
-        "cmd": "python3 -m http.server 8080",
-        "container": {
-          "docker": [
-            {
-              "image": "python:3",
-              "network": "BRIDGE"
-            }
-          ]
-        },
-        "cpus": 1.2,
-        "mem": 256
-      }
-    }
-  }
-}`
-
-var appliedBasicStack = `{
-  "resource": {
-    "marathon_app": {
-      "app": {
-        "app_id": "/app",
-        "cmd": "/mnt/mesos/sandbox/entrypoint.${count.index + 1}.sh python3 -m http.server 8080",
-        "container": [
-          {
-            "docker": [
-              {
-                "image": "python:3",
-                "network": "BRIDGE",
-                "port_mappings": {
-                  "port_mapping": [
-                    {
-                      "container_port": 56789,
-                      "host_port": 0,
-                      "protocol": "tcp"
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        ],
-        "count": 1,
-        "cpus": 1.2,
-        "env": {
-          "KODING_KLIENT_URL": "",
-          "KODING_METADATA_1": "..."
-        },
-        "fetch": [
-          {
-            "executable": true,
-            "uri": "/entrypoint.1.sh"
-          }
-        ],
-        "health_checks": {
-          "health_check": [
-            {
-              "command": {
-                "value": "curl -f -X GET http://$$HOST:$${PORT_56789}/kite"
-              },
-              "max_consecutive_failures": 3,
-              "protocol": "COMMAND"
-            }
-          ]
-        },
-        "mem": 256,
-        "ports": [0]
-      }
-    }
-  }
-}`
-
 func TestApplyTemplate(t *testing.T) {
 	log := logging.NewCustom("test", true)
 
@@ -111,15 +36,29 @@ func TestApplyTemplate(t *testing.T) {
 		stack string
 		want  string
 	}{
-		"basic stack": {
-			basicStack,
-			appliedBasicStack,
+		"single app stack": {
+			"testdata/single-app.golden",
+			"testdata/single-app-applied.golden",
+		},
+		"multi app stack": {
+			"testdata/multi-app.golden",
+			"testdata/multi-app-applied.golden",
 		},
 	}
 
 	for name, cas := range cases {
 		t.Run(name, func(t *testing.T) {
-			template, err := provider.ParseTemplate(cas.stack, log)
+			pStack, err := ioutil.ReadFile(cas.stack)
+			if err != nil {
+				t.Fatalf("ReadFile()=%s", err)
+			}
+
+			pWant, err := ioutil.ReadFile(cas.want)
+			if err != nil {
+				t.Fatalf("ReadFile()=%s", err)
+			}
+
+			template, err := provider.ParseTemplate(string(pStack), log)
 			if err != nil {
 				t.Fatalf("ParseTemplate()=%s", err)
 			}
@@ -144,6 +83,8 @@ func TestApplyTemplate(t *testing.T) {
 					},
 					KlientIDs: make(stack.KiteMap),
 				},
+				EntrypointBaseURL: "$ENTRYPOINT_URL",
+				KlientURL:         "$KLIENT_URL",
 			}
 
 			stack, err := s.ApplyTemplate(cred)
@@ -151,7 +92,7 @@ func TestApplyTemplate(t *testing.T) {
 				t.Fatalf("ApplyTemplate()=%s", err)
 			}
 
-			if err := equal(stack.Content, cas.want); err != nil {
+			if err := equal(stack.Content, string(pWant)); err != nil {
 				t.Fatal(err)
 			}
 		})

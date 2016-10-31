@@ -261,10 +261,10 @@ func (s *Stack) injectHealthChecks(app map[string]interface{}) {
 
 	healthCheckGroup["health_check"] = appendSlice(healthCheckGroup["health_check"], healthCheck)
 
-	portCount := 0
+	containerCount := 0
 
 	injectPortMapping := func(c map[string]interface{}) error {
-		portCount++
+		containerCount++
 
 		portMappingGroup, ok := c["port_mappings"].(map[string]interface{})
 		if !ok {
@@ -279,13 +279,20 @@ func (s *Stack) injectHealthChecks(app map[string]interface{}) {
 
 	forEachContainer(app, injectPortMapping)
 
-	ports := make([]interface{}, portCount)
-
-	for i := range ports {
-		ports[i] = 0
+	count, ok := app["count"].(int)
+	if !ok {
+		count = 1
 	}
 
-	app["ports"] = appendSlice(app["ports"], ports...)
+	count = count * containerCount
+
+	ports := getSlice(app["ports"])
+
+	for ; count > 0; count-- {
+		ports = append(ports, 0)
+	}
+
+	app["ports"] = ports
 }
 
 func (s *Stack) injectMetadata(app map[string]interface{}, labels []string) error {
