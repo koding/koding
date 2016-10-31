@@ -1,10 +1,12 @@
 package marathon
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"reflect"
 	"strconv"
+	"time"
 
 	"github.com/gambol99/go-marathon"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -237,6 +239,34 @@ func resourceMarathonApp() *schema.Resource {
 				Optional: true,
 				ForceNew: false,
 			},
+			"fetch": &schema.Schema{
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: false,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"uri": &schema.Schema{
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"cache": &schema.Schema{
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"executable": &schema.Schema{
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"extract": &schema.Schema{
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
 			"health_checks": &schema.Schema{
 				Type:     schema.TypeList,
 				Optional: true,
@@ -375,7 +405,59 @@ func resourceMarathonApp() *schema.Resource {
 	}
 }
 
+type deploymentEvent struct {
+	id    string
+	state string
+}
+
+func readDeploymentEvents(meta interface{}, c chan deploymentEvent) error {
+	config := meta.(config)
+	client := config.Client
+
+	EventIDs := marathon.EventIDDeploymentSuccess | marathon.EventIDDeploymentFailed
+
+	events, err := client.AddEventsListener(EventIDs)
+	if err != nil {
+		log.Fatalf("Failed to register for events, %s", err)
+	}
+	defer client.RemoveEventsListener(events)
+
+	for {
+		select {
+		case event := <-events:
+			switch mEvent := event.Event.(type) {
+			case *marathon.EventDeploymentSuccess:
+				c <- deploymentEvent{mEvent.ID, event.Name}
+				return nil
+			case *marathon.EventDeploymentFailed:
+				c <- deploymentEvent{mEvent.ID, event.Name}
+				return errors.New("Received deployment_failed event from marathon")
+			}
+		}
+	}
+}
+
+func waitOnSuccessfulDeployment(c chan deploymentEvent, id string, timeout time.Duration) error {
+	select {
+	case dEvent := <-c:
+		if dEvent.id == id {
+			switch dEvent.state {
+			case "deployment_success":
+				return nil
+			case "deployment_failed":
+				return errors.New("Received deployment_failed event from marathon")
+			}
+		}
+	case <-time.After(timeout):
+		return errors.New("Deployment timeout reached. Did not receive any deployment events")
+	}
+	return nil
+}
+
 func resourceMarathonAppCreate(d *schema.ResourceData, meta interface{}) error {
+	c := make(chan deploymentEvent, 1)
+	go readDeploymentEvents(meta, c)
+
 	config := meta.(config)
 	client := config.Client
 
@@ -391,7 +473,7 @@ func resourceMarathonAppCreate(d *schema.ResourceData, meta interface{}) error {
 	setSchemaFieldsForApp(application, d)
 
 	for _, deploymentID := range application.DeploymentIDs() {
-		err = client.WaitOnDeployment(deploymentID.DeploymentID, config.DefaultDeploymentTimeout)
+		err = waitOnSuccessfulDeployment(c, deploymentID.DeploymentID, config.DefaultDeploymentTimeout)
 		if err != nil {
 			log.Println("[ERROR] waiting for application for deployment", deploymentID, err)
 			return err
@@ -535,6 +617,26 @@ func setSchemaFieldsForApp(app *marathon.Application, d *schema.ResourceData) {
 	d.Set("env", &app.Env)
 	d.SetPartial("env")
 
+	d.Set("fetch", &app.Fetch)
+	d.SetPartial("fetch")
+
+	if app.Fetch != nil && len(*app.Fetch) > 0 {
+		fetches := make([]map[string]interface{}, len(*app.Fetch))
+		for i, fetch := range *app.Fetch {
+			fetches[i] = map[string]interface{}{
+				"uri":        fetch.URI,
+				"cache":      fetch.Cache,
+				"executable": fetch.Executable,
+				"extract":    fetch.Extract,
+			}
+		}
+		d.Set("fetch", &[]interface{}{fetches})
+	} else {
+		d.Set("fetch", nil)
+	}
+
+	d.SetPartial("fetch")
+
 	if app.HealthChecks != nil && len(*app.HealthChecks) > 0 {
 		healthChecks := make([]map[string]interface{}, len(*app.HealthChecks))
 		for idx, healthCheck := range *app.HealthChecks {
@@ -619,6 +721,9 @@ func givenFreePortsDoesNotEqualAllocated(d *schema.ResourceData, app *marathon.A
 }
 
 func resourceMarathonAppUpdate(d *schema.ResourceData, meta interface{}) error {
+	c := make(chan deploymentEvent, 1)
+	go readDeploymentEvents(meta, c)
+
 	config := meta.(config)
 	client := config.Client
 
@@ -629,7 +734,7 @@ func resourceMarathonAppUpdate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	err = client.WaitOnDeployment(deploymentID.DeploymentID, config.DefaultDeploymentTimeout)
+	err = waitOnSuccessfulDeployment(c, deploymentID.DeploymentID, config.DefaultDeploymentTimeout)
 	return err
 }
 
@@ -831,6 +936,31 @@ func mutateResourceToApplication(d *schema.ResourceData) *marathon.Application {
 	} else {
 		env := make(map[string]string, 0)
 		application.Env = &env
+	}
+
+	if v, ok := d.GetOk("fetch.#"); ok {
+		fetch := make([]marathon.Fetch, v.(int))
+
+		for i := range fetch {
+			fetchMap := d.Get(fmt.Sprintf("fetch.%d", i)).(map[string]interface{})
+
+			if val, ok := fetchMap["uri"].(string); ok {
+				fetch[i].URI = val
+			}
+			if val, ok := fetchMap["cache"].(bool); ok {
+				fetch[i].Cache = val
+			}
+			if val, ok := fetchMap["executable"].(bool); ok {
+				fetch[i].Executable = val
+			}
+			if val, ok := fetchMap["extract"].(bool); ok {
+				fetch[i].Extract = val
+			}
+		}
+
+		application.Fetch = &fetch
+	} else {
+		application.Fetch = nil
 	}
 
 	if v, ok := d.GetOk("health_checks.0.health_check.#"); ok {

@@ -9,7 +9,7 @@ keywords: >
   cloud development environment, cloud editor, virtual dev environment,
   web based ide, test environment, docker, aws, vagrant, azure, rackspace
 baseurl: ""
-url: "https://wwww.koding.com"
+url: "https://www.koding.com"
 permalink: /blog/:year/:month/:title/
 paginate_path: "/blog/page/:num"
 paginate: 5
@@ -20,6 +20,16 @@ exclude:
 - README.md
 - Rakefile
 - vendor/bundle
+- docs/github.com.terraform
+- docs/terraform/commands
+- docs/terraform/configuration/atlas.html.md
+- docs/terraform/configuration/modules.html.md
+- docs/terraform/import
+- docs/terraform/internals
+- docs/terraform/state
+- docs/terraform/modules
+- docs/terraform/plugins
+
 gems:
 - jekyll-paginate
 sass:

@@ -32,13 +32,12 @@ var ELBS = map[string]string{
 	"latest":     "awseb-e-3-AWSEBLoa-1S2VPBAQXDRW9",
 	"sandbox":    "awseb-e-p-AWSEBLoa-1POHSLP6A7STY",
 	"monitoring": "awseb-e-j-AWSEBLoa-AQBHUYZM5ZX6",
-
 	// proxy
 	"proxy-eu-west-1":      "awseb-e-s-AWSEBLoa-1LOTB5BKTJJBW",
 	"proxy-us-east-1":      "awseb-e-a-AWSEBLoa-RTLJ62SKJY5G",
 	"proxy-us-west-2":      "awseb-e-7-AWSEBLoa-1V808KG9PDQH5",
 	"proxy-ap-southeast-1": "awseb-e-u-AWSEBLoa-15H1DQTBBUMG",
-	"proxy-dev-us-e-1":     "awseb-e-e-AWSEBLoa-A6GVWAANHT2N",
+	"proxy-dev-us-e-1-v2":  "awseb-e-g-AWSEBLoa-16NJI1FAJCMRG",
 }
 
 var Tags = map[string]string{
@@ -60,7 +59,7 @@ var ELB2Region = map[string]string{
 	"awseb-e-x-AWSEBLoa-2AG3XORA8JXC":  "us-east-1",
 	"awseb-e-3-AWSEBLoa-1S2VPBAQXDRW9": "us-east-1",
 	"awseb-e-p-AWSEBLoa-1POHSLP6A7STY": "us-east-1",
-	"awseb-e-e-AWSEBLoa-A6GVWAANHT2N":  "us-east-1",
+	"awseb-e-g-AWSEBLoa-16NJI1FAJCMRG": "us-east-1",
 }
 
 func getEC2(elbName string) *ec2.EC2 {
@@ -146,7 +145,7 @@ var paramToKey = map[string]string{
 	"proxy-us-east-1":      "/private_keys/koding-eb-deployment-us-east-1-2015-06.pem",
 	"proxy-us-west-2":      "/private_keys/koding-eb-deployment-us-west-2-2015-06.pem",
 	"proxy-ap-southeast-1": "/private_keys/koding-eb-deployment-ap-southeast-1-2015-06.pem",
-	"proxy-dev-us-e-1":     "/private_keys/koding-eb-deployment-us-east-1-2015-06.pem",
+	"proxy-dev-us-e-1-v2":  "/private_keys/koding-eb-deployment-dev-2016-10.pem",
 }
 
 func createI2csshString(param string, instances []string) string {

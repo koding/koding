@@ -62,9 +62,6 @@ var (
 	// the implementation of New() doesn't have any error to be returned yet it
 	// returns, so it's totally safe to neglect the error
 	cookieJar, _ = cookiejar.New(nil)
-
-	// ErrExit is returned by NewKlient when no klient should be started.
-	ErrExit = errors.New("exit")
 )
 
 // Klient is the central app which provides all available methods.
@@ -263,10 +260,6 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		}
 
 		konfig.Konfig = konfig.ReadKonfig() // re-read konfig after dumping metadata
-
-		if !conf.NoExit {
-			return nil, ErrExit
-		}
 	}
 
 	// TODO(rjeczalik): Once klient installation method is reworked,
@@ -748,6 +741,17 @@ func (k *Klient) register(registerURL *url.URL) error {
 func (k *Klient) Close() {
 	k.collab.Close()
 	k.kite.Close()
+}
+
+func (k *Klient) PrintConfig() error {
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "\t")
+
+	return enc.Encode(map[string]interface{}{
+		"klientConfig":  k.config,
+		"builtinKonfig": konfig.Builtin,
+		"konfig":        konfig.Konfig,
+	})
 }
 
 func newKite(kconf *KlientConfig) *kite.Kite {

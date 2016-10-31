@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js">
+<!--<![endif]-->
+
+<head>
+  {% include head.html %}
+</head>
+
+<body>
+  <link rel="stylesheet" href="{{ site.url }}/css/markdown.css">
+  <style>{% include css/legal.css %}</style>
+  <!--[if lt IE 8]>
+  <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+  <![endif]-->
+
+  <!-- HEADER -->
+  {% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='transparent' %}
+
+  <div class="LegalHero">
+    <h1 class="LegalHero-heading">{{ page.heading }}</h1>
+    <h2 class="LegalHero-subheading">{{ page.subheading }}</h2>
+    <ul class="LegalHero-Context">
+      <li><a href="{{ site.url }}/legal/teams-user-policy" {% if page.context == 'teams' %}class="active"{% endif %}>For Teams</a></li>
+      <li><a href="{{ site.url }}/legal/user-policy" {% if page.context != 'teams' %}class="active"{% endif %}>For Individuals</a></li>
+    </ul>
+  </div>
+
+  <nav class="Legal-SubNav">
+    <ul>
+      <li><a href="{{ site.url }}/legal/{% if page.context == 'teams' %}teams-/{% endif %}user-policy" {% if page.url contains 'policy' %}class="active"{% endif %}>User Policy</a></li>
+      <li><a href="{{ site.url }}/legal/{% if page.context == 'teams' %}teams-/{% endif %}privacy" {% if page.url contains 'privacy' %}class="active"{% endif %}>Privacy</a></li>
+      <li><a href="{{ site.url }}/legal/{% if page.context == 'teams' %}teams-/{% endif %}terms" {% if page.url contains 'terms' %}class="active"{% endif %}>Terms of Service</a></li>
+      <li><a href="{{ site.url }}/legal/{% if page.context == 'teams' %}teams-/{% endif %}copyright" {% if page.url contains 'copyright' %}class="active"{% endif %}>Copyright</a></li>
+    </ul>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="LegalBody markdown-body">
+    {{ content }}
+  </main>
+
+  <!-- FOOTER -->
+  {% include footer.html %}
+
+</body>
+</html>

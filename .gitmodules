@@ -1,3 +1,6 @@
 [submodule "go/data/geoipdb"]
 	path = go/data/geoipdb
 	url = https://github.com/koding/geolite2-city.git
+[submodule "docs/docs/github.com.terraform"]
+	path = docs/docs/github.com.terraform
+	url = https://github.com/hashicorp/terraform.git

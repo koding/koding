@@ -130,6 +130,10 @@ func (m *Machine) Stop(ctx context.Context) (interface{}, error) {
 		}
 
 		state, _, err := m.Info(nil)
+		if err != nil {
+			return machinestate.Unknown, err
+		}
+
 		return state, err
 	}
 
@@ -170,7 +174,7 @@ var status2stateMap = map[string]machinestate.State{
 	"STOPPED":      machinestate.Stopped,
 	"SUSPENDED":    machinestate.Stopped,
 	"SUSPENDING":   machinestate.Stopped,
-	"TERMINATED":   machinestate.Terminated,
+	"TERMINATED":   machinestate.Stopped,
 }
 
 func status2state(status string) (machinestate.State, error) {

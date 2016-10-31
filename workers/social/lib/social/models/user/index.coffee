@@ -939,7 +939,7 @@ module.exports = class JUser extends jraphical.Module
       return callback err  if err
       return callback null, { isEligible : yes } if not prefs
 
-      unless prefs.isRegistrationEnabled
+      if prefs.isRegistrationEnabled? and not prefs.isRegistrationEnabled
         return callback new Error 'Registration is currently disabled!'
 
       # return without checking domain if skipAllowedDomainCheck is true

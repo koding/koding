@@ -7,14 +7,6 @@ const (
 )
 
 const (
-	ModerationChannelCreateLink = "moderation-channel-create-link"
-	ModerationChannelGetLink    = "moderation-channel-get-link"
-	ModerationChannelDeleteLink = "moderation-channel-delete-link"
-	ModerationChannelBlacklist  = "moderation-channel-blacklist"
-	ModerationChannelGetRoot    = "moderation-channel-get-root"
-)
-
-const (
 	DispatcherEvent = "dispatcher-event"
 )
 

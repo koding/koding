@@ -1,10 +1,9 @@
-<head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- Plain Description -->
-  <title>{{ site.title }}</title>
+  <title>{{ page.title || site.title }}</title>
   <meta name="keywords" content="integrated development environment, cloud ide, dev environment, cloud development environment, cloud editor, virtual dev environment, web based ide, test environment, docker, aws, vagrant, azure, rackspace">
   <meta name="description" content="{% if page.excerpt %}{{page.excerpt}}{% else %}{{site.tagline}}{% endif %}">
   <link rel="icon" type="image/png" href="{{ site.url }}/assets/img/favicon.png">
@@ -39,5 +38,3 @@
   <script async onload="try{Typekit.load();}catch(e){}" src="//use.typekit.com/dir1osj.js"></script>
   <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
   {% endif %}
-
-</head>
