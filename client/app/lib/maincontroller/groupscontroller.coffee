@@ -246,3 +246,33 @@ module.exports = class GroupsController extends kd.Controller
         callback null
 
 
+  setPrivate: (stackTemplate, callback = kd.noop) ->
+
+    { computeController, reactor }   = kd.singletons
+    { slug, stackTemplates } = currentGroup = @getCurrentGroup()
+
+    if slug is 'koding'
+      return callback 'Setting stack template for koding is disabled'
+
+    stackTemplate.setAccess 'private', (err) ->
+
+      return callback err  if err
+      reactor.dispatch 'REMOVE_TEAM_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
+      reactor.dispatch 'CREATE_STACK_TEMPLATE_SUCCESS', { stackTemplate }
+
+    if stackTemplates
+      index = stackTemplates.indexOf(stackTemplate._id)
+
+      if index > -1
+        stackTemplates.splice(index, 1)
+
+    currentGroup.modify { stackTemplates }, (err) ->
+
+      callback err  if err
+
+      reactor.dispatch 'LOAD_TEAM_SUCCESS', { team: currentGroup }
+
+
+
+
+
