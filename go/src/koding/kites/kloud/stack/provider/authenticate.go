@@ -49,7 +49,9 @@ func (bs *BaseStack) HandleAuthenticate(ctx context.Context) (interface{}, error
 			res.Message = err.Error()
 
 			if _, ok := err.(*stack.Error); ok {
-				bs.Log.Warning("authenticate: %s (team=%s, user=%s, provider=%s)", removeNewLines.Replace(err.Error()), arg.GroupName, bs.Req.Username, cred.Provider)
+				bs.Log.Warning("authenticate: %s (team=%s, user=%s, identifier=%s, provider=%s)",
+					removeNewLines.Replace(err.Error()), arg.GroupName, bs.Req.Username, cred.Identifier,
+					cred.Provider)
 			}
 
 			continue
