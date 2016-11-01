@@ -7,7 +7,7 @@ expect = require 'expect'
 run = ->
 
   tests = [
-    require './example.coffee'
+    require './example'
   ]
 
   try
