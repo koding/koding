@@ -531,7 +531,7 @@ module.exports = class StackEditorView extends kd.View
         @outputView.add 'Parsing failed, please check your template and try again'
         return callback err
 
-      { stackTemplates }       = groupsController.getCurrentGroup()
+      { stackTemplates, sharedStackTemplates } = currentGroup = groupsController.getCurrentGroup()
       stackTemplate.isDefault ?= stackTemplate._id in (stackTemplates or [])
       hasGroupTemplates        = stackTemplates?.length
 
@@ -546,7 +546,7 @@ module.exports = class StackEditorView extends kd.View
       if hasStack
         if isAdmin()
           # admin is editing a team stack
-          if stackTemplate.isDefault
+          if stackTemplate._id is sharedStackTemplates[0]
             @_handleSetDefaultTemplate =>
               @outputView.add '''
                 Your stack script has been successfully saved and all your new team
@@ -558,7 +558,8 @@ module.exports = class StackEditorView extends kd.View
               '''
           # admin is editing a private stack
           else
-            @afterProcessTemplate 'maketeamdefault'
+            if hasStack then currentGroup.sendNotification 'StackTemplateChanged', stackTemplate
+            else @afterProcessTemplate 'maketeamdefault'
 
         # since this is an existing stack, show renit buttons and update
         # sidebar no matter what.
