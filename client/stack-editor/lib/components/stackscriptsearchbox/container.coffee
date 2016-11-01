@@ -33,7 +33,12 @@ module.exports = class StackScriptSearchBoxContainer extends React.Component
 
   getStackScript: (query) ->
 
+    resultbox = @refs.view.refs.resultbox
+    if resultbox
+      resultbox.refs.scrollContainer.refs.container.scrollTop = 0
+
     return  unless query
+
     client.get("document-search/#{query}")
     .then ({ data }) =>
       @setState { loading: no, scripts: data }
@@ -83,6 +88,7 @@ module.exports = class StackScriptSearchBoxContainer extends React.Component
   render: ->
 
     <View
+      ref='view'
       onChange={@bound 'onChange'}
       onFocus={@bound 'onFocus'}
       onClick={@bound 'onClick'}

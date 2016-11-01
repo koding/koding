@@ -17,7 +17,7 @@ module.exports = class StackScriptSeachBoxView extends React.Component
     return  unless @props.scripts.length
     return  if @props.close
 
-    <ScrollableContent className='stack-script-search-scroll'>
+    <ScrollableContent className='stack-script-search-scroll' ref='resultbox'>
       {@renderResultList()}
     </ScrollableContent>
 
