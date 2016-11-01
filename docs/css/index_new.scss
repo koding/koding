@@ -111,7 +111,7 @@ body {
 }
 
 .HomeContainer {
-  width: 1199px;
+  width: 1225px;
   text-align: center;
   margin: 0 auto;
   font-family: 'fira-sans';
@@ -127,6 +127,7 @@ body {
     background-repeat: no-repeat;
     height: 353px;
     width: 550px;
+    margin-left: 13px;
   }
 
   &#flowContainer1 .imgContainer {
@@ -141,7 +142,7 @@ body {
   &#flowContainer4 .imgContainer {
     background-image: url({{path}}/interim/index4.jpg);
     width: 575px;
-    margin-right: -13px;
+    padding-right: 0;
   }
   &#flowContainer5 .imgContainer {
     background-image: url({{path}}/interim/index5.jpg);
@@ -184,6 +185,7 @@ body {
     font-size: 76px;
     font-weight: 600;
     line-height: 81px;
+    padding: 0 56px;
   }
 
   .getStarted {
@@ -375,21 +377,25 @@ body {
   .imageLeft {
     .imgContainer {
       float: left;
+      padding-left: 13px;
     }
 
     .captionContainer {
       float: right;
-      margin-right: 21px;
+      margin-right: 8px;
+      padding-right: 13px;
     }
   }
 
   .imageRight {
     .imgContainer {
       float: right;
+      padding-right: 13px;
     }
 
     .captionContainer {
       float: left;
+      padding-left: 13px;
     }
   }
 }
