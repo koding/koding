@@ -130,8 +130,9 @@ loadTestIDE = ->
   machine = remote.revive machine
   workspace = remote.revive workspaces[0]
 
-  return loadIDE { machine, workspace, username: nick }, ->
-    require('ide/test/browser').prepare(machine, workspace)
+  require('app/util/createTestMachine')().then ->
+    loadIDE { machine, workspace, username: nick }, ->
+      require('ide/test/browser').prepare(machine, workspace)
 
 
 routeToFallback = ->
@@ -266,7 +267,7 @@ routeHandler = (type, info, state, path, ctx) ->
       { params } = info
 
       if params.workspaceSlug is 'test-workspace'
-        kd.utils.defer -> require('app/util/createTestMachine')().then loadTestIDE
+        return loadTestIDE()
 
       dataProvider.fetchMachine params.machineLabel, (machine) ->
 
