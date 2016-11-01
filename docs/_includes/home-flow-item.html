@@ -1,0 +1,13 @@
+{% for item in include.data %}
+  <div class="headline">{{ item.headline }}</div>
+  <div class="flowContainer{% if item.imagepos == 'left' %} imageLeft{% else %} imageRight{% endif %}">
+    <div class="imgContainer">
+    </div>
+    <div class="captionContainer">
+      <h2>{{ item.title }}</h2>
+      <p>{{ item.description }}</p>
+      <a href="{{ item.link }}">{{ item.linktext }}</a>
+    </div>
+    <div class="clearfix"></div>
+  </div>
+{% endfor %}

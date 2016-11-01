@@ -36,9 +36,6 @@ PACKAGES = \
 	socialapi/workers/pinnedpost \
 	socialapi/workers/realtime \
 	socialapi/workers/migrator \
-	socialapi/workers/sitemap/sitemapfeeder \
-	socialapi/workers/sitemap/sitemapgenerator \
-	socialapi/workers/sitemap/sitemapinitializer \
 	socialapi/workers/integration \
 	socialapi/workers/algoliaconnector
 
@@ -47,7 +44,7 @@ all: testapi
 
 develop: apidev realtimedev \
 	notificationdev pinnedpostdev algoliaconnectordev \
-	emaildev sitemapdev collaborationdev mailsenderdev \
+	emaildev collaborationdev mailsenderdev \
 	teamdev eventsenderdev integrationdev
 minimal: apidev realtimedev pinnedpostdev
 default: configure
@@ -118,19 +115,6 @@ onfiguremigration:
 migrate:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/migrator -watch socialapi/workers/migrator/controller -c $(CONFIG) $(DBG) $(EXTRAS)
-sitemapdev: sitemapfeederdev sitemapgeneratordev
-
-sitemapfeederdev:
-	@echo "$(OK_COLOR)==> Running Sitemap Feeder Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/sitemap/sitemapfeeder -watch socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) $(DBG) $(EXTRAS)
-
-sitemapgeneratordev:
-	@echo "$(OK_COLOR)==> Running Sitemap Generator Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/sitemap/sitemapgenerator -watch socialapi/workers/sitemap/sitemapgenerator -c $(CONFIG) $(DBG) $(EXTRAS)
-
-sitemapinitdev:
-	@echo "$(OK_COLOR)==> Running Sitemap Initializer Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/sitemap/sitemapinitializer -watch socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) $(DBG) $(EXTRAS)
 
 teamdev:
 	@echo "$(OK_COLOR)==> Running Team Worker $(NO_COLOR)"
@@ -339,14 +323,6 @@ testapi: testcollaboration testmailsender testmail testmodels testemailworker \
 	@`which go` test -c workers/common/handler/*.go
 	@./handler.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm ./handler.test
-
-	@echo "$(OK_COLOR)--> sitemap generator tests... $(NO_COLOR)"
-	@`which go` test -c workers/sitemap/sitemapgenerator/*.go
-	@./generator.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./generator.test
-
-	@echo "$(OK_COLOR)--> sitemap model tests... $(NO_COLOR)"
-	@`which go` test workers/sitemap/models/*.go
 
 doc:
 	@for package in $(PACKAGES); \
