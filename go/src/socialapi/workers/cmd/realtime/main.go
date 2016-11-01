@@ -37,7 +37,6 @@ func main() {
 	r.Register(models.MessageReply{}).OnCreate().Handle((*realtime.Controller).MessageReplySaved)
 	r.Register(models.MessageReply{}).OnDelete().Handle((*realtime.Controller).MessageReplyDeleted)
 	r.Register(models.ChannelMessageList{}).OnCreate().Handle((*realtime.Controller).MessageListSaved)
-	r.Register(models.ChannelMessageList{}).On("pinned_channel_list_updated").Handle((*realtime.Controller).PinnedChannelListUpdated)
 	r.Register(models.ChannelMessageList{}).OnUpdate().Handle((*realtime.Controller).ChannelMessageListUpdated)
 	r.Register(models.ChannelMessageList{}).OnDelete().Handle((*realtime.Controller).MessageListDeleted)
 	r.Register(models.ParticipantEvent{}).On(models.ChannelParticipant_Removed_From_Channel_Event).Handle((*realtime.Controller).ChannelParticipantRemoved)
