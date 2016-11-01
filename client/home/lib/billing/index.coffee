@@ -1,25 +1,11 @@
-kd                                = require 'kd'
-HomeTeamBillingPaymentInformation = require './hometeambillingpaymentinformation'
-HomeTeamBillingCreditCard         = require './hometeambillingcreditcard'
-HomeTeamBillingPlansList = require './hometeambillingplanslist'
-AppFlux = require 'app/flux'
-PaymentFlux = require 'app/flux/payment'
+React = require 'react'
+kd = require 'kd'
+ReactView = require 'app/react/reactview'
+{ Provider } = require 'react-redux'
 
-SECTIONS =
-  'Koding Subscription': HomeTeamBillingPlansList
-  'Payment Information': HomeTeamBillingPaymentInformation
-  'Credit Card': HomeTeamBillingCreditCard
+BillingPane = require './components/pane'
 
-
-header = (title) ->
-  new kd.CustomHTMLView
-    tagName  : 'header'
-    cssClass : 'HomeAppView--sectionHeader'
-    partial  : title
-
-
-section = (name) -> new SECTIONS[name]
-
+require './billing.styl'
 
 module.exports = class HomeTeamBilling extends kd.CustomScrollView
 
@@ -29,26 +15,22 @@ module.exports = class HomeTeamBilling extends kd.CustomScrollView
 
     super options, data
 
-    { mainController, reactor } = kd.singletons
+    @wrapper.addSubView new BillingReactView
 
-    mainController.ready =>
 
-      AppFlux.actions.user.loadLoggedInUserEmail()
+class BillingReactView extends ReactView
 
-      { actions } = PaymentFlux(reactor)
+  constructor: (options = {}, data) ->
 
-      actions.loadStripeClient().then =>
-        actions.loadGroupCreditCard().catch kd.warn
+    options.cssClass = 'HomeAppView--pane'
 
-        @wrapper.addSubView header 'Koding Subscription'
-        @wrapper.addSubView section 'Koding Subscription'
+    super options, data
 
-        formView = new kd.FormView
-          cssClass: kd.utils.curry 'HomeAppView--billing-form', options.cssClass
 
-        formView.addSubView header 'Payment Information'
-        formView.addSubView section 'Credit Card'
-        formView.addSubView section 'Payment Information'
+  renderReact: ->
 
-        @wrapper.addSubView formView
+    <Provider store={kd.singletons.store}>
+      <BillingPane />
+    </Provider>
+
 

@@ -29,6 +29,7 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
 
     @logo = utils.getGroupLogo()
 
+
     # keep the prop name @form it is used in AppView to focus to the form if there is any - SY
     @form = new LoginInlineForm
       cssClass : 'login-form clearfix'
@@ -45,12 +46,12 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
           @form.tfcode.show()
           @form.tfcode.setFocus()
 
-    if group.slug is gitlab?.team
+    if group.config?.gitlab?.enabled
       @form.gitlabLogin.show()
 
     ['button', 'gitlabButton'].forEach (button) =>
       @form[button].unsetClass 'solid medium green'
-      @form[button].setClass 'TeamsModal-button TeamsModal-button--green TeamsModal-button--full'
+      @form[button].setClass 'TeamsModal-button'
 
     if location.search isnt '' and location.search.search('username=') > 0
       username = location.search.split('username=').last.replace(/\&.+/, '') # trim the rest params if any
@@ -67,7 +68,7 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
 
     partial =
     if /\*/.test kd.config.group.allowedDomains
-      "If you don't have a Koding account <a href='/Team/Join'>sign up here</a> so you can join #{kd.config.groupName}!"
+      "If you don't have a Koding account <a href='/Invitation'>sign up here</a> so you can join #{kd.config.groupName}!"
     else if domains.length > 1
       domainsPartial = utils.getAllowedDomainsPartial domains
       "If you have an email address from one of these domains #{domainsPartial}, you can <a href='/Team/Join'>join here</a>."
@@ -81,21 +82,19 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
 
     # this is to make sure that already created teams with problematic names
     # are not causing any problems as well. ~Umut
-    title = Encoder.htmlEncode Encoder.htmlDecode kd.config.group.title
+    title   = Encoder.htmlEncode Encoder.htmlDecode kd.config.group.title
+    hasLogo = not @logo.hasClass 'hidden'
 
     """
     {{> @header }}
-    <div class="TeamsModal TeamsModal--login">
+    <div class="TeamsModal TeamsModal--login #{if hasLogo then 'with-avatar' else ''}">
       {{> @logo}}
       <h4><span>Sign in to</span> #{title}</h4>
       {{> @form}}
     </div>
-    <section>
+    <section class="additional-info">
       {{> @inviteDesc}}
       <p>Trying to create a team? <a href="/Teams/Create" target="_self">Sign up on the home page</a> to get started.</p>
       <p>Forgot your password? <a href='/Team/Recover'>Click here</a> to reset.</p>
     </section>
-    <footer>
-      <a href="https://www.koding.com/legal/teams-user-policy" target="_blank">Acceptable user policy</a><a href="https://www.koding.com/legal/teams-copyright" target="_blank">Copyright/DMCA guidelines</a><a href="https://www.koding.com/legal/teams-terms-of-service" target="_blank">Terms of service</a><a href="https://www.koding.com/legal/teams-privacy" target="_blank">Privacy policy</a>
-    </footer>
     """

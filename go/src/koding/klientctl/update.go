@@ -5,9 +5,7 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
-	"koding/klientctl/config"
 	"net/http"
-	"net/url"
 	"os"
 	"os/exec"
 	"os/user"
@@ -15,8 +13,11 @@ import (
 	"runtime"
 	"strconv"
 
+	konfig "koding/kites/config"
+	"koding/klient/uploader"
+	"koding/klientctl/config"
+
 	"github.com/codegangsta/cli"
-	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/logging"
 	"github.com/koding/service"
 )
@@ -73,7 +74,7 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 	if kdVersion == 0 {
 		var err error
 
-		kdVersion, err = latestVersion(config.S3KlientctlLatest)
+		kdVersion, err = latestVersion(config.Konfig.KDLatestURL)
 		if err != nil {
 			log.Error("Error fetching klientctl update version. err: %s", err)
 			fmt.Println(FailedCheckingUpdateAvailable)
@@ -84,7 +85,7 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 	if klientVersion == 0 {
 		var err error
 
-		klientVersion, err = latestVersion(config.S3KlientLatest)
+		klientVersion, err = latestVersion(config.Konfig.KlientLatestURL)
 		if err != nil {
 			log.Error("Error fetching klient update version. err: %s", err)
 			fmt.Println(FailedCheckingUpdateAvailable)
@@ -127,21 +128,9 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 0
 	}
 
-	kontrolURL := config.KontrolURL
-	if c, err := kiteconfig.NewFromKiteKey(config.KiteKeyPath); err == nil && c.KontrolURL != "" {
-		// BUG(rjeczalik): sandbox returns a kite.key on -register method that has
-		// KontrolURL set to default value. We workaround it here by ignoring the
-		// value.
-		if u, err := url.Parse(c.KontrolURL); err == nil && u.Host != "127.0.0.1:3000" {
-			kontrolURL = c.KontrolURL
-		}
-	}
-
 	klientSh := klientSh{
-		User:          sudoUserFromEnviron(os.Environ()),
-		KiteHome:      config.KiteHome,
+		User:          konfig.CurrentUser.Username,
 		KlientBinPath: filepath.Join(KlientDirectory, "klient"),
-		KontrolURL:    kontrolURL,
 	}
 
 	// ensure the klient home dir is writeable by user
@@ -150,8 +139,7 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	opts := &ServiceOptions{
-		Username:   klientSh.User,
-		KontrolURL: klientSh.KontrolURL,
+		Username: klientSh.User,
 	}
 
 	s, err := newService(opts)
@@ -217,6 +205,8 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		fmt.Println(FailedStartKlient)
 		return 1
 	}
+
+	uploader.FixPerms()
 
 	fmt.Printf("Successfully updated to latest version of %s.\n", config.Name)
 	return 0

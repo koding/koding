@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js">
+<!--<![endif]-->
+<head>
+  {% include head.html %}
+  <link rel="stylesheet" href="{{ site.url }}/css/doc.css">
+  <link rel="stylesheet" href="{{ site.url }}/css/markdown.css">
+  <link rel="stylesheet" href="{{ site.url }}/css/syntax.css">
+</head>
+
+<body>
+  <!--[if lt IE 8]>
+  <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+  <![endif]-->
+
+  {% include header.html
+     with_signup_form='true'
+     has_sticky_navigation='true'
+     cssClass='light' %}
+
+  <main>
+
+    {% include nav-docs.html %}
+
+    <section class="markdown-body">
+      {% if page.url contains '/docs/terraform/' %}
+      <blockquote>Most code samples are written in HCL, consider converting them to YAML while adding them to your stack script.</blockquote>
+      {% endif %}
+
+      {{ content }}
+
+      {% if page.url contains '/docs/terraform/' %}
+      <hr>
+      {% assign size = page.url | remove: '/docs/terraform/' | size | minus: 1 %}
+      <p class="citation"><cite>See the source of this document at <a href="http://terraform.io/docs/{{ page.url | remove: '/docs/terraform/' | slice: 0, size }}" target="_blank">Terraform.io</a></cite></p>
+      {% endif %}
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  {% include footer.html %}
+
+  {% if page.url contains '/docs/terraform/' %}
+  <script src="{{ site.url }}/js/hcl-to-json.js"></script>
+  <script src="{{ site.url }}/js/docs-tf-link-converter.js"></script>
+  {% endif %}
+
+</body>
+</html>

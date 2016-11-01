@@ -1,7 +1,7 @@
 kd                  = require 'kd'
 Link                = require 'app/components/common/link'
 EnvironmentFlux     = require 'app/flux/environment'
-React               = require 'kd-react'
+React               = require 'app/react'
 classnames          = require 'classnames'
 
 

@@ -16,59 +16,59 @@ func resourceVagrantBuild() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			// Required configuration files
-			"queryString": &schema.Schema{
+			"queryString": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Kite Query string for finding which klient to send the commands",
 			},
-			"filePath": &schema.Schema{
+			"filePath": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Full path of the file for Vagrantfile",
 			},
-			"provisionData": &schema.Schema{
+			"provisionData": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "JSON data encoded as base64 needed for provisioning the Vagrant box",
 			},
 
 			// Optional configuration fields
-			"box": &schema.Schema{
+			"box": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Box type of underlying Vagrant machine. By default ubuntu/trusty64",
 			},
-			"hostname": &schema.Schema{
+			"hostname": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Hostname of the Vagrant machine. Defaults to klient's username",
 			},
-			"username": &schema.Schema{
+			"username": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Username of the Vagrant machine.",
 			},
-			"memory": &schema.Schema{
+			"memory": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: "Memory(MB) of the underlying Vagrant box. Defaults to 1024",
 			},
-			"cpus": &schema.Schema{
+			"cpus": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: "Number of CPU's to be used for the underlying Vagrant box. Defaults to 1",
 			},
-			"user_data": &schema.Schema{
+			"user_data": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Custom script to be executed inside the Vagrant box after the main provisioning is finished.",
 			},
-			"debug": &schema.Schema{
+			"debug": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Enables debug logging of the vagrant commands.",
 			},
-			"forwarded_ports": &schema.Schema{
+			"forwarded_ports": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -86,19 +86,19 @@ func resourceVagrantBuild() *schema.Resource {
 					},
 				},
 			},
-			"registerURL": &schema.Schema{
+			"registerURL": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Register URL of the klient inside the Vagrant box",
 			},
-			"kontrolURL": &schema.Schema{
+			"kontrolURL": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Kontrol URL of the klient inside the Vagrant box",
 			},
 
 			// Computes fields
-			"klientHostURL": &schema.Schema{
+			"klientHostURL": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "URL of the Klient inside the host machine where the Vagrant box residues",
@@ -137,8 +137,6 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 
 	err = c.Vagrant.Up(queryString, resp.FilePath)
 	if err != nil {
-		// ensure the machine is deleted on failure
-		c.Vagrant.Destroy(queryString, resp.FilePath)
 		return fmt.Errorf("vagrant provisioning has failed: " + err.Error())
 	}
 

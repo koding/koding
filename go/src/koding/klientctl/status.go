@@ -52,10 +52,10 @@ func NewDefaultHealthChecker(l kodinglogging.Logger) *HealthChecker {
 	return &HealthChecker{
 		Log:                  l.New("HealthChecker"),
 		HTTPClient:           defaultClient,
-		LocalKlientAddress:   config.KlientAddress,
-		KontrolAddress:       config.KontrolURL,
-		InternetCheckAddress: config.S3KlientctlLatest,
-		TunnelKiteAddress:    config.TunnelKiteAddress,
+		LocalKlientAddress:   config.Konfig.KlientURL,
+		KontrolAddress:       config.Konfig.KontrolURL,
+		InternetCheckAddress: config.Konfig.KlientLatestURL,
+		TunnelKiteAddress:    config.Konfig.TunnelURL,
 	}
 }
 
@@ -249,11 +249,6 @@ func (c *HealthChecker) RemoteRequirements() error {
 	// if Koding is running or not.
 	if err := c.checkKiteHttp(c.KontrolAddress); err != nil {
 		return ErrKodingService{ServiceName: "kontrol", Message: err.Error()}
-	}
-
-	// Check if tunnel http is accessible.
-	if err := c.checkKiteHttp(c.TunnelKiteAddress); err != nil {
-		return ErrKodingService{ServiceName: "tunnel", Message: err.Error()}
 	}
 
 	return nil

@@ -13,8 +13,8 @@ var VMDeletionWarning1 = &Warning{
 	Description: "Find users inactive for > 20 days, send email",
 
 	Select: []bson.M{
-		bson.M{"lastLoginDate": dayRangeQuery(20, DefaultRangeForQuery)},
-		bson.M{"inactive.warning": bson.M{"$exists": false}},
+		{"lastLoginDate": dayRangeQuery(20, DefaultRangeForQuery)},
+		{"inactive.warning": bson.M{"$exists": false}},
 	},
 
 	ExemptCheckers: []*ExemptChecker{
@@ -36,8 +36,8 @@ var VMDeletionWarning2 = &Warning{
 	IntervalSinceLastWarning: time.Hour * 24 * 4, // 4 days since last warning
 
 	Select: []bson.M{
-		bson.M{"lastLoginDate": dayRangeQuery(24, DefaultRangeForQuery)},
-		bson.M{"inactive.warning": VMDeletionWarning1.ID},
+		{"lastLoginDate": dayRangeQuery(24, DefaultRangeForQuery)},
+		{"inactive.warning": VMDeletionWarning1.ID},
 	},
 
 	ExemptCheckers: []*ExemptChecker{
@@ -59,8 +59,8 @@ var DeleteInactiveUserVM = &Warning{
 	IntervalSinceLastWarning: time.Hour * 24 * 4, // 4 days since last warning
 
 	Select: []bson.M{
-		bson.M{"lastLoginDate": dayRangeQuery(29, DefaultRangeForQuery)},
-		bson.M{"inactive.warning": VMDeletionWarning2.ID},
+		{"lastLoginDate": dayRangeQuery(29, DefaultRangeForQuery)},
+		{"inactive.warning": VMDeletionWarning2.ID},
 	},
 
 	ExemptCheckers: []*ExemptChecker{
@@ -88,8 +88,8 @@ func newDeleteInactiveUsersWarning(conf *config.Config) *Warning {
 		Description: "Find users inactive for > 45 days, deleted ALL of them!",
 
 		Select: []bson.M{
-			bson.M{"lastLoginDate": bson.M{"$lt": t}},
-			bson.M{"status": bson.M{"$nin": []string{"deleted"}}},
+			{"lastLoginDate": bson.M{"$lt": t}},
+			{"status": bson.M{"$nin": []string{"deleted"}}},
 		},
 
 		ExemptCheckers: []*ExemptChecker{
@@ -108,9 +108,9 @@ var DeleteBlockedUserVM = &Warning{
 	Description: "Find blocked users inactive > 14 days, delete ALL their vms",
 
 	Select: []bson.M{
-		bson.M{"lastLoginDate": dayRangeQuery(14, DefaultRangeForQuery)},
-		bson.M{"inactive.warning": bson.M{"$exists": false}},
-		bson.M{"status": "blocked"},
+		{"lastLoginDate": dayRangeQuery(14, DefaultRangeForQuery)},
+		{"inactive.warning": bson.M{"$exists": false}},
+		{"status": "blocked"},
 	},
 
 	ExemptCheckers: []*ExemptChecker{IsUserVMsEmpty},

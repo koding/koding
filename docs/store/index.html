@@ -1,0 +1,50 @@
+---
+layout: default
+title: Store
+permalink: /store/home
+---
+
+<!-- HEADER -->
+{% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='transparent' %}
+
+<link rel="stylesheet" href="{{ site.url }}/css/dropdown.css">
+<link rel="stylesheet" href="{{ site.url }}/css/store.css">
+
+<div class="Hero">
+  <h1 class="Hero-heading">Stack and Stencil Hub</h1>
+  <h2 class="Hero-subheading">Start building your stacks easily with these hundreds of examples</h2>
+  {% include store-search.html has_dropdown='true' has_searchbar='true' %}
+</div>
+<div class="featured-stacks">
+  <div class="container">
+    <div class="text-heading">
+      <h3 class="heading">Featured Stacks</h3>
+      <p class="sub-heading">
+        Pick from stacks selected and verified by the Koding team.  These stacks have been vigorously reviewed to be of the highest quality and are frequently downloaded by our users.
+      </p>
+    </div>
+    {% include store-set.html data=site.data.store-stacks limit=4 %}
+    <a href="{{ site.url }}/store/stacks" class="Button Button--actionable">See All Stacks</a>
+  </div>
+</div>
+<div class="featured-stencils">
+  <div class="container">
+    <div class="text-heading">
+      <h3 class="heading">Featured Stencils</h3>
+      <p class="sub-heading">
+        Nulla vitae elit libero, a pharetra augue. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Integer posuere erat a ante venenatis dapibus posuere.
+      </p>
+    </div>
+    {% include store-set.html data=site.data.store-stencils limit=4 %}
+    <a href="#" class="Button Button--actionable">See All Stencils</a>
+  </div>
+</div>
+
+<script>
+  {% include js/dropdown.js %}
+  {% include js/store.js %}
+</script>
+
+<!-- FOOTER -->
+
+{% include footer.html %}

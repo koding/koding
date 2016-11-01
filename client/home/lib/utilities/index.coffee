@@ -6,8 +6,6 @@ HomeUtilitiesKD                  = require './homeutilitieskd'
 HomeUtilitiesApiAccess           = require './homeutilitiesapiaccess'
 HomeUtilitiesTryOnKoding         = require './homeutilitiestryonkoding'
 HomeUtilitiesDesktopApp          = require './homeutilitiesdesktopapp'
-HomeUtilitiesCustomerFeedback    = require './homeutilitiescustomerfeedback'
-HomeUtilitiesIntercomIntegration = require './homeutilitiesintercomintegration'
 TeamFlux                         = require 'app/flux/teams'
 
 
@@ -42,9 +40,6 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
         @wrapper.addSubView sectionize 'Koding Button', HomeUtilitiesTryOnKoding
 
     if canEdit
-        @wrapper.addSubView headerize  'Integrations'
-        @wrapper.addSubView sectionize 'Intercom Integration', HomeUtilitiesIntercomIntegration
-        @wrapper.addSubView sectionize 'Customer Feedback', HomeUtilitiesCustomerFeedback
         @wrapper.addSubView headerize 'API Access'
         @wrapper.addSubView sectionize 'Api Access', HomeUtilitiesApiAccess
 

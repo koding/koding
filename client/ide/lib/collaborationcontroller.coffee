@@ -811,6 +811,9 @@ module.exports = CollaborationController =
 
   onCollaborationPreparing: ->
 
+    { tooltipContent } = @collaborationStartOptions ? {}
+    @statusBar.emit 'CollaborationPreparing', tooltipContent
+
     @prepareSocialChannel
       success : => @stateMachine.transition 'Prepared'
       error   : => @stateMachine.transition 'ErrorPreparing'
@@ -818,14 +821,16 @@ module.exports = CollaborationController =
 
   onCollaborationPrepared: ->
 
-    @startCollaborationSession()
+    @startCollaborationSession @collaborationStartOptions
 
 
-  startCollaborationSession: ->
+  startCollaborationSession: (options = {}) ->
 
     # Show this message while "@stateMachine" is preparing when a session is over just now.
     # It will be ready in a few seconds.
     return showError 'Please wait a few seconds.'  unless @stateMachine
+
+    @collaborationStartOptions = options
 
     switch @stateMachine.state
       when 'Prepared'   then @stateMachine.transition 'Creating'

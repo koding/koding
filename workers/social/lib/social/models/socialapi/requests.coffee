@@ -366,20 +366,6 @@ checkChannelParticipation = (data, callback) ->
   url = "#{socialProxyUrl}/channel/checkparticipation"
   get url, data, callback
 
-markAsTroll = (data, callback) ->
-  unless data.accountId
-    return callback new KodingError 'Request is not valid'
-
-  url = "#{socialProxyUrl}/trollmode/#{data.accountId}"
-  post url, data, callback
-
-unmarkAsTroll = (data, callback) ->
-  unless data.accountId
-    return callback new KodingError 'Request is not valid'
-
-  url = "#{socialProxyUrl}/trollmode/#{data.accountId}"
-  deleteReq url, data, callback
-
 getSiteMap = (data, callback) ->
   url = data.name
   getXml url, {}, callback
@@ -415,6 +401,14 @@ updateNotificationSetting = (data, callback) ->
 deleteNotificationSetting = (data, callback) ->
   url = "#{socialProxyUrl}/notificationsetting/#{data.id}"
   deleteReq url, data, callback
+
+createCustomer = (data, callback) ->
+  url = "#{socialProxyUrl}/payment/customer/create"
+  post url, data, callback
+
+createSubscription = (data, callback) ->
+  url = "#{socialProxyUrl}/payment/subscription/create"
+  post url, data, callback
 
 expireSubscription = (accountId, callback) ->
   url = "#{socialProxyUrl}/payments/customers/#{accountId}/expire"
@@ -540,8 +534,6 @@ setHeaderIfRequired = (reqOptions, data) ->
   return { reqOptions, data }
 
 module.exports = {
-  unmarkAsTroll
-  markAsTroll
   messageBySlug
   checkChannelParticipation
   messageById
@@ -600,6 +592,8 @@ module.exports = {
   getNotificationSetting
   updateNotificationSetting
   deleteNotificationSetting
+  createCustomer
+  createSubscription
   expireSubscription
   dispatchEvent
   storeCredential

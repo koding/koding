@@ -26,6 +26,8 @@ func (a *Amazon) Start(ctx context.Context) (*ec2.Instance, error) {
 		})
 	}
 
+	a.Log.Debug("amazon start eventer: %t", withPush)
+
 	_, err := a.Client.StartInstance(a.Id())
 	if err != nil {
 		return nil, err
@@ -68,15 +70,16 @@ func (a *Amazon) Stop(ctx context.Context) error {
 		return ErrInstanceEmptyID
 	}
 
-	// if we have eventer, use it
 	ev, withPush := eventer.FromContext(ctx)
 	if withPush {
 		ev.Push(&eventer.Event{
 			Message:    "Stopping machine",
 			Status:     machinestate.Stopping,
-			Percentage: 10,
+			Percentage: 25,
 		})
 	}
+
+	a.Log.Debug("amazon stop eventer: %t", withPush)
 
 	var (
 		// needs to be declared so we can call it recursively
@@ -127,7 +130,7 @@ func (a *Amazon) Stop(ctx context.Context) error {
 	ws := waitstate.WaitState{
 		StateFunc:    stateFunc,
 		DesiredState: machinestate.Stopped,
-		Start:        25,
+		Start:        45,
 		Finish:       60,
 	}
 	return ws.Wait()

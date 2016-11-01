@@ -1,0 +1,3 @@
+# ignore auto-generated config.json* files.
+config.json
+config.json.go

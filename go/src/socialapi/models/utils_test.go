@@ -38,7 +38,7 @@ func TestUnifyStringSlice(t *testing.T) {
 		}
 
 		if !exists {
-			t.Fatalf("expected: %+v, got: %+v", responses)
+			t.Fatalf("expected to exist but doesnt. got %+v", responses)
 		}
 
 		if len(test.expected) != len(responses) {

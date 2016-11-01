@@ -3,8 +3,6 @@ KONFIG   = require 'koding-config-manager'
 
 module.exports = (account, req, res) ->
 
-  Payment = require '../../../workers/social/lib/social/models/payment'
-
   { apiKey, baseUrl } = KONFIG.helpscout  if KONFIG.helpscout
 
   if not apiKey or not baseUrl
@@ -27,52 +25,48 @@ module.exports = (account, req, res) ->
         error       : 'bad_request'
 
     client = { connection: { delegate: account } }
-    Payment.subscriptions client, {}, (err, subscription) ->
+    plan = 'free'
 
-      if err? or not subscription?
-      then plan = 'free'
-      else plan = subscription.planTitle
-
-      message = """
-        Username   : #{user.username}
-        User Agent : #{req.headers['user-agent']}
-        User Plan  : #{plan}
-        ----------------------------------------
+    message = """
+      Username   : #{user.username}
+      User Agent : #{req.headers['user-agent']}
+      User Plan  : #{plan}
+      ----------------------------------------
 
 
-      """ + message
+    """ + message
 
-      request
-        url           : "#{baseUrl}/conversations.json"
-        method        : 'POST'
-        auth          :
-          user        : key
-          pass        : 'x'
-        json          :
-          type        : 'email'
-          customer    :
-            email     : user.email
-            type      : 'customer'
-          subject     : subject
-          mailbox     :
-            id        : 19295
-            name      : 'Support'
+    request
+      url           : "#{baseUrl}/conversations.json"
+      method        : 'POST'
+      auth          :
+        user        : key
+        pass        : 'x'
+      json          :
+        type        : 'email'
+        customer    :
+          email     : user.email
+          type      : 'customer'
+        subject     : subject
+        mailbox     :
+          id        : 19295
+          name      : 'Support'
+        ,
+        tags	      : ["Plan->#{plan}"]
+        ,
+        threads     : [
+          type      : 'customer'
+          createdBy :
+            email   : user.email
+            type    : 'customer'
           ,
-          tags	      : ["Plan->#{plan}"]
-          ,
-          threads     : [
-            type      : 'customer'
-            createdBy :
-              email   : user.email
-              type    : 'customer'
-            ,
-            body      : message
-          ]
+          body      : message
+        ]
 
-      , (error, response, body) ->
+    , (error, response, body) ->
 
-        if error or body
-          console.error error, body
-          res.status(400).send { ok: 0 }
-        else
-          res.status(200).send { ok: 1 }
+      if error or body
+        console.error error, body
+        res.status(400).send { ok: 0 }
+      else
+        res.status(200).send { ok: 1 }

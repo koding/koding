@@ -40,28 +40,17 @@ reviveProvisioners = (client, provisioners, callback, revive = no) ->
       callback null, [ provision.slug ]
 
 
-reviveGroupPlan = (group, callback) ->
+reviveGroupLimits = (group, callback) ->
 
   # Support for test plan data to cover test cases that we need
   # to be able to run tests for different plans but we don't
   # need to update plan data on payment endpoint ~ GG
-  if testPlan = group?.getAt 'config.testplan'
+  if testLimit = group?.getAt 'config.testlimit'
+    group._activeLimit = testLimit
+  else
+    group._activeLimit = 'unlimited'
 
-    group._activePlan = testPlan
-    callback null, group
-
-    return
-
-  Payment = require '../payment'
-  Payment.fetchGroupPlan group, (err, plan) ->
-
-    return callback err  if err
-    return callback new KodingError 'Plan not found'  unless plan
-
-    if plan.planTitle is 'team_base'
-      group._activePlan = 'unlimited'
-
-    callback null, group
+  callback null, group
 
 
 reviveCredential = (client, credential, callback) ->
@@ -80,7 +69,7 @@ reviveCredential = (client, credential, callback) ->
 
 reviveClient = (client, callback, options) ->
 
-  { shouldReviveClient, shouldFetchGroupPlan } = options ? {}
+  { shouldReviveClient, shouldFetchGroupLimit } = options ? {}
   shouldReviveClient ?= yes
 
   return callback null  unless shouldReviveClient
@@ -105,9 +94,9 @@ reviveClient = (client, callback, options) ->
 
       res.user = user
 
-      if shouldFetchGroupPlan
+      if shouldFetchGroupLimit
 
-        reviveGroupPlan res.group, (err, group) ->
+        reviveGroupLimits res.group, (err, group) ->
           return callback err  if err
           res.group = group
           callback null, res
@@ -119,12 +108,11 @@ reviveClient = (client, callback, options) ->
 
 reviveOauth = (client, oauthProvider, callback) ->
 
-  { user }    = client.r
-  foreignAuth = user.getAt "foreignAuth.#{oauthProvider}"
-
-  if not foreignAuth
-  then callback new KodingError "Authentication not found for #{oauthProvider}"
-  else callback null, foreignAuth
+  JForeignAuth = require '../foreignauth'
+  JForeignAuth.fetchData client, (err, foreignAuth) ->
+    if err or not foreignAuth or not authData = foreignAuth[oauthProvider]
+    then callback new KodingError "Authentication not found for #{oauthProvider}"
+    else callback null, authData
 
 
 locks = []
@@ -155,9 +143,9 @@ revive = do -> (
     shouldPassCredential
     shouldReviveProvider
     shouldReviveProvisioners
-    shouldFetchGroupPlan
+    shouldFetchGroupLimit
     shouldLockProcess
-    shouldHaveOauth
+    shouldReviveOAuth
     hasOptions
   }, fn) ->
 
@@ -205,9 +193,12 @@ revive = do -> (
 
       # OAUTH Check
 
-      if shouldHaveOauth?
+      if shouldReviveOAuth
 
-        reviveOauth client, shouldHaveOauth, (err, oauth) =>
+        unless options.provider
+          return callback new KodingError 'No such provider.', 'ProviderNotFound'
+
+        reviveOauth client, options.provider, (err, oauth) =>
           return callback err     if err
           client.r.oauth = oauth  if oauth?
 
@@ -246,7 +237,7 @@ revive = do -> (
 
         , shouldReviveProvisioners
 
-    , { shouldReviveClient, shouldFetchGroupPlan }
+    , { shouldReviveClient, shouldFetchGroupLimit }
 
 
 checkTemplateUsage = (template, account, callback) ->
@@ -305,7 +296,7 @@ fetchGroupStackTemplate = (client, callback) ->
         res.template = template
         callback null, res
 
-  , { shouldFetchGroupPlan: yes }
+  , { shouldFetchGroupLimit: yes }
 
 
 guessNextLabel = (options, callback) ->
@@ -351,30 +342,25 @@ guessNextLabel = (options, callback) ->
 fetchUserPlan = (client, callback) ->
 
   { clone } = require 'underscore'
-  Payment   = require '../payment'
-  Payment.subscriptions client, {}, (err, subscription) ->
+  plan = 'free'
 
-    if err? or not subscription?
-    then plan = 'free'
-    else plan = subscription.planTitle
+  # we need to clone the plan data since we are using global data here,
+  # when we modify it at line 84 everything will be broken after the
+  # first operation until this social restarts ~ GG
+  planData  = clone PLANS[plan]
 
-    # we need to clone the plan data since we are using global data here,
-    # when we modify it at line 84 everything will be broken after the
-    # first operation until this social restarts ~ GG
-    planData  = clone PLANS[plan]
+  JReward   = require '../rewards'
+  JReward.fetchEarnedAmount
+    unit     : 'MB'
+    type     : 'disk'
+    originId : client.r.account.getId()
 
-    JReward   = require '../rewards'
-    JReward.fetchEarnedAmount
-      unit     : 'MB'
-      type     : 'disk'
-      originId : client.r.account.getId()
+  , (err, amount) ->
 
-    , (err, amount) ->
+    amount = 0  if err
+    planData.storage += Math.floor amount / 1000
 
-      amount = 0  if err
-      planData.storage += Math.floor amount / 1000
-
-      callback err, planData
+    callback err, planData
 
 
 checkUsage = (usage, plan, storage) ->
@@ -427,6 +413,6 @@ fetchUsage = (client, options, callback) ->
 module.exports = {
   fetchUserPlan, fetchGroupStackTemplate, fetchUsage
   PLANS, PROVIDERS, guessNextLabel, checkUsage
-  revive, reviveClient, reviveCredential, reviveGroupPlan
+  revive, reviveClient, reviveCredential, reviveGroupLimits
   checkTemplateUsage
 }

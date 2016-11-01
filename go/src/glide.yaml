@@ -53,9 +53,6 @@ import:
   version: ^1.0.0
   subpackages:
   - redis
-- package: github.com/google/go-querystring
-  subpackages:
-  - query
 - package: github.com/gorilla/mux
   version: ^1.1.0
 - package: github.com/gorilla/schema
@@ -112,7 +109,6 @@ import:
 - package: github.com/koding/metrics
 - package: github.com/koding/multiconfig
 - package: github.com/koding/passwd
-- package: github.com/koding/paypal
 - package: github.com/koding/pubnub
 - package: github.com/koding/rabbitmq
 - package: github.com/koding/redis
@@ -243,6 +239,7 @@ import:
 - package: github.com/segmentio/backo-go
 - package: github.com/xtgo/uuid
 - package: golang.org/x/sys/unix
+- package: github.com/vaughan0/go-ini
 - package: github.com/jtolds/gls
 - package: github.com/oschwald/maxminddb-golang
 - package: github.com/smartystreets/assertions
@@ -261,13 +258,24 @@ import:
 - package: github.com/Sirupsen/logrus
 - package: github.com/opencontainers/runc
 - package: github.com/kardianos/osext
+- package: golang.org/x/sync
+  subpackages:
+  - errgroup
 - package: github.com/martint17r/osin-mongo-storage
   subpackages:
   - mgostore
 - package: github.com/lann/ps
+- package: cloud.google.com/go/compute/metadata
 - package: github.com/ugorji/go
   subpackages:
   - codec
+- package: github.com/digitalocean/godo
+- package: github.com/google/go-querystring/query
+- package: github.com/tent/http-link-go
+- package: github.com/Azure/azure-sdk-for-go
+- package: github.com/Banno/terraform-provider-marathon
+- package: github.com/gambol99/go-marathon
+- package: github.com/donovanhide/eventsource
 ignore:
 - koding/tools/logger
 - koding/kite

@@ -83,12 +83,14 @@ func (s *systemd) Install() error {
 		ReloadSignal string
 		PIDFile      string
 		After        string
+		LogFile      bool
 	}{
 		s.Config,
 		path,
 		s.Option.string(optionReloadSignal, ""),
 		s.Option.string(optionPIDFile, ""),
 		s.Option.string(optionAfter, ""),
+		s.Option.bool(optionLogFile, optionLogFileDefault),
 	}
 
 	err = s.template().Execute(f, to)
@@ -163,9 +165,13 @@ ConditionFileIsExecutable={{.Path|cmdEscape}}
 [Service]
 StartLimitInterval=5
 StartLimitBurst=10
+{{if .LogFile}}
+ExecStart=/bin/sh -c '{{.Path|cmdEscape}}{{range .Arguments}} {{.|cmd}}{{end}} >> /var/log/{{.Config.Name}}.log 2>&1'
+{{else}}
 ExecStart={{.Path|cmdEscape}}{{range .Arguments}} {{.|cmd}}{{end}}
+{{end}}
 {{if .ChRoot}}RootDirectory={{.ChRoot|cmd}}{{end}}
-{{if .WorkingDirectory}}WorkingDirectory={{.WorkingDirectory|cmd}}{{end}}
+{{if .WorkingDirectory}}WorkingDirectory={{.WorkingDirectory|cmdEscape}}{{end}}
 {{if .UserName}}User={{.UserName}}{{end}}
 {{if .ReloadSignal}}ExecReload=/bin/kill -{{.ReloadSignal}} "$MAINPID"{{end}}
 {{if .PIDFile}}PIDFile={{.PIDFile|cmd}}{{end}}

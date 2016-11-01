@@ -1,0 +1,109 @@
+.Homepage-ContentWithVisual {
+  background: #FAF8FA;
+  border: 1px solid rgba(0,0,0,.05);
+  border-width: 1px 0;
+  padding: 75px 0 72px;
+}
+
+.Homepage-ContentWithVisual .Homepage--container {
+  display: flex;
+  justify-content: space-around;
+}
+
+.Homepage-ContentWithVisual--visual {
+  flex: 0 0 auto;
+  width: 595px;
+  height: 431px;
+}
+
+.Homepage-ContentWithVisual--content {
+  flex: 0 0 auto;
+  width: 280px;
+}
+.Homepage-ContentWithVisual--content > img {
+  width: 118px;
+  height: 144px;
+  display: block;
+  margin: 0 auto;
+  margin-bottom: 29px;
+}
+.Homepage-ContentWithVisual--content > h3 {
+  font-size: 19px;
+  color: #358BB0;
+  letter-spacing: 0.12px;
+  line-height: 26px;
+  margin-bottom: 29px;
+}
+.Homepage-ContentWithVisual--content > p {
+  font-size: 15px;
+  color: #999999;
+  letter-spacing: 0.09px;
+  line-height: 26px;
+  margin-bottom: 29px;
+  font-weight: 300;
+}
+
+@media (max-width: 1600px) {
+}
+
+@media (max-width: 1200px) {
+
+  .Homepage-ContentWithVisual .Homepage--container {
+    max-width: 768px;
+  }    
+  .Homepage-ContentWithVisual--visual {
+    width: 461px;
+    height: 334px;
+    margin-left: 0;
+  }
+  .Homepage-ContentWithVisual--content {
+    flex: 0 0 auto;
+    width: 233px;
+    margin-right: 0;
+  }
+  .Homepage-ContentWithVisual--content > img {
+    width: 76px;
+    height: 96px;
+    margin-bottom: 15px;
+    margin-top: -5px;
+  }
+  .Homepage-ContentWithVisual--content > h3 {
+    font-size: 17px;
+    letter-spacing: 0.11px;
+    margin-bottom: 14px;
+  }
+  .Homepage-ContentWithVisual--content > p {
+    font-size: 14px;
+    color: #999999;
+    letter-spacing: 0.09px;
+    line-height: 22px;
+    margin-bottom: 0;
+  }
+
+}
+
+@media (max-width: 768px) {
+
+  .Homepage-ContentWithVisual {
+    padding: 60px 0 43px;
+  }
+  .Homepage-ContentWithVisual .Homepage--container {
+    max-width: 475px;
+    padding: 0 33px;
+  }    
+  .Homepage-ContentWithVisual--visual {
+    display: none;
+  }
+  .Homepage-ContentWithVisual--content {
+    flex: 0 0 auto;
+    width: 310px;
+    margin-right: 0;
+    text-align: center;
+  }
+  .Homepage-ContentWithVisual--content > img {
+    width: 118px;
+    height: 144px;
+    margin-bottom: 40px;
+  }
+   
+}

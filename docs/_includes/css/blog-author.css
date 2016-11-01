@@ -1,0 +1,35 @@
+.BlogPost-Meta {
+  width: 100%;
+  display: flex;
+  margin: 48px 0 24px;
+}
+
+.BlogPost-Meta > figure {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+
+.BlogPost-Meta > figure img {
+  border-radius: 50%;
+  width: 100%;
+  height: 100%;
+}
+
+.BlogPost-Meta > div {
+  flex: 1 0 auto;
+  padding-left: 12px;
+}
+
+.BlogPost-Meta h4 {
+  font-weight: 600;
+  margin: 7px 0 4px;
+  color: #495870;
+}
+
+.BlogPost-Meta time {
+  font-weight: 300;
+  color: #989898;
+  font-size: 14px;
+}

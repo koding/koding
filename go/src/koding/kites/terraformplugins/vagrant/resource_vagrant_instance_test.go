@@ -44,7 +44,7 @@ func TestVagrantProviderConfig(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		Providers: testVagrantResourceProviders,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: testVagrantBuildConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(

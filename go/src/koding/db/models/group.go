@@ -4,6 +4,14 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+const (
+	// PaymentStatusActive holds active payment status
+	PaymentStatusActive = "active"
+
+	// PaymentStatusTrailing holds trailing payment status
+	PaymentStatusTrailing = "trialing"
+)
+
 type Group struct {
 	Id                             bson.ObjectId            `bson:"_id" json:"-"`
 	Body                           string                   `bson:"body" json:"body"`
@@ -23,4 +31,36 @@ type Group struct {
 	// to this group, participants will be automatically added to regarding
 	// channels
 	DefaultChannels []string `bson:"defaultChannels,omitempty" json:"defaultChannels"`
+	Payment         Payment  `bson:"payment" json:"payment"`
+}
+
+// Payment is general container for payment info
+type Payment struct {
+	Subscription Subscription
+	Customer     Customer
+}
+
+// Subscription holds customer-plan subscription related info
+type Subscription struct {
+	// Allowed values are "trialing", "active", "past_due", "canceled", "unpaid".
+	Status string `bson:"status" json:"status"`
+	ID     string `bson:"id" json:"id"`
+}
+
+// Customer is the group's customer info from payment provider
+type Customer struct {
+	ID string `bson:"id" json:"id"`
+	// IsMember indicates that created customer on stripe is not an admin in the
+	// group.
+	IsMember string `bson:"isMember" json:"isMember"`
+}
+
+// IsSubActive checks if subscription is in valid state for operation
+func (g *Group) IsSubActive() bool {
+	switch g.Payment.Subscription.Status {
+	case PaymentStatusActive, PaymentStatusTrailing:
+		return true
+	default:
+		return false
+	}
 }

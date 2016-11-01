@@ -23,6 +23,7 @@ var (
 	ErrBoxInvalidVersion = errors.New("invalid box version")
 	ErrBoxNotAvailable   = errors.New("box is not available")
 	ErrBoxDownload       = errors.New("unable to download the box")
+	ErrVirtualBox        = errors.New("VirtualBox is missing or not operational")
 )
 
 var defaultWaiter Waiter
@@ -66,10 +67,11 @@ func Wait(out <-chan *CommandOutput, err error) error {
 }
 
 var errMapping = map[string]error{
-	"The box you're attempting to add already exists.":     ErrBoxAlreadyExists,
-	"Gem::Requirement::BadRequirementError":                ErrBoxInvalidVersion,
-	"could not be accessed in the remote catalog.":         ErrBoxNotAvailable,
-	"An error occurred while downloading the remote file.": ErrBoxDownload,
+	"The box you're attempting to add already exists.":               ErrBoxAlreadyExists,
+	"Gem::Requirement::BadRequirementError":                          ErrBoxInvalidVersion,
+	"could not be accessed in the remote catalog.":                   ErrBoxNotAvailable,
+	"An error occurred while downloading the remote file.":           ErrBoxDownload,
+	"VirtualBox is complaining that the kernel module is not loaded": ErrVirtualBox,
 }
 
 func nonil(err ...error) error {

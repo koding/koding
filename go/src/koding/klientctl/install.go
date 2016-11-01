@@ -9,11 +9,12 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"strconv"
 	"strings"
 
+	konfig "koding/kites/config"
+	"koding/klient/uploader"
 	"koding/klientctl/config"
 	"koding/klientctl/metrics"
 
@@ -23,13 +24,11 @@ import (
 )
 
 type ServiceOptions struct {
-	Username   string
-	KontrolURL string
+	Username string
 }
 
 var defaultServiceOpts = &ServiceOptions{
-	Username:   username(),
-	KontrolURL: config.KontrolURL,
+	Username: konfig.CurrentUser.Username,
 }
 
 var klientShTmpl = template.Must(template.New("").Parse(`#!/bin/bash
@@ -71,12 +70,6 @@ find /etc/kite -type f -exec chmod -R 666 {} \;
 # start klient
 
 export USERNAME=${USERNAME:-{{.User}}}
-export KITE_HOME=${KITE_HOME:-{{.KiteHome}}}
-{{if .KontrolURL}}
-export KITE_KONTROL_URL=${KITE_KONTROL_URL:-{{.KontrolURL}}}
-{{else}}
-export KITE_KONTROL_URL=${KITE_KONTROL_URL:-https://koding.com/kontrol/kite}
-{{end}}
 {{if .KlientBinPath}}
 export KLIENT_BIN=${KLIENT_BIN:-{{.KlientBinPath}}}
 {{else}}
@@ -85,7 +78,7 @@ export KLIENT_BIN=${KLIENT_BIN:-/opt/kite/klient/klient}
 export HOME=$(eval cd ~${USERNAME}; pwd)
 export PATH=$PATH:/usr/local/bin
 
-sudo -E -u "${USERNAME}" ${KLIENT_BIN} -kontrol-url "${KITE_KONTROL_URL}"
+sudo -E -u "${USERNAME}" ${KLIENT_BIN}
 `))
 
 // newService provides a preconfigured (based on klientctl's config)
@@ -106,11 +99,9 @@ func newService(opts *ServiceOptions) (service.Service, error) {
 			"LogStdout":     true,
 			"After":         "network.target",
 			"RequiredStart": "$network",
+			"LogFile":       true,
 			"Environment": map[string]string{
-				"USERNAME":         opts.Username,
-				"KITE_USERNAME":    "",
-				"KITE_KONTROL_URL": opts.KontrolURL,
-				"KITE_HOME":        config.KiteHome,
+				"USERNAME": opts.Username,
 			},
 		},
 	}
@@ -186,14 +177,6 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 		return 1, errors.New("incorrect cli usage: missing token")
 	}
 
-	// Get the supplied kontrolURL, defaulting to the prod kontrol if
-	// empty.
-	kontrolURL := strings.TrimSpace(c.String("kontrol"))
-	if kontrolURL == "" {
-		// Default to the config's url
-		kontrolURL = config.KontrolURL
-	}
-
 	// Create the installation dir, if needed.
 	if err := os.MkdirAll(KlientDirectory, 0755); err != nil {
 		log.Error(
@@ -209,10 +192,8 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 	// TODO: Accept `kd install --user foo` flag to replace the
 	// environ checking.
 	klientSh := klientSh{
-		User:          username(),
-		KiteHome:      config.KiteHome,
+		User:          konfig.CurrentUser.Username,
 		KlientBinPath: klientBinPath,
-		KontrolURL:    kontrolURL,
 	}
 
 	if err := klientSh.Create(filepath.Join(KlientDirectory, "klient.sh")); err != nil {
@@ -223,7 +204,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 
 	fmt.Println("Downloading...")
 
-	version, err := latestVersion(config.S3KlientLatest)
+	version, err := latestVersion(config.Konfig.KlientLatestURL)
 	if err != nil {
 		fmt.Printf(FailedDownloadingKlient)
 		return 1, fmt.Errorf("error getting latest klient version: %s", err)
@@ -241,8 +222,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 
 	cmd := exec.Command(klientBinPath, "-register",
 		"-token", authToken,
-		"--kontrol-url", kontrolURL,
-		"--kite-home", config.KiteHome,
+		"--kontrol-url", strings.TrimSpace(c.String("kontrol")),
 	)
 
 	var errBuf bytes.Buffer
@@ -262,32 +242,31 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 		return 1, err
 	}
 
-	fmt.Printf("Created %s\n", filepath.Join(config.KiteHome, "kite.key"))
+	fmt.Println("Created ", config.Konfig.KiteKeyFile)
 
 	// Klient is setting the wrong file permissions when installed by ctl,
 	// so since this is just ctl problem, we'll just fix the permission
 	// here for now.
-	if err := os.Chmod(config.KiteHome, 0755); err != nil {
+	if err := os.Chmod(config.Konfig.KiteHome(), 0755); err != nil {
 		err = fmt.Errorf(
 			"error chmodding KiteHome %q: %s",
-			config.KiteHome, err,
+			config.Konfig.KiteHome(), err,
 		)
 		fmt.Println(FailedInstallingKlient)
 		return 1, err
 	}
 
-	if err := os.Chmod(filepath.Join(config.KiteHome, "kite.key"), 0644); err != nil {
+	if err := os.Chmod(config.Konfig.KiteKeyFile, 0644); err != nil {
 		err = fmt.Errorf(
 			"error chmodding kite.key %q: %s",
-			filepath.Join(config.KiteHome, "kite.key"), err,
+			config.Konfig.KiteKeyFile, err,
 		)
 		fmt.Println(FailedInstallingKlient)
 		return 1, err
 	}
 
 	opts := &ServiceOptions{
-		Username:   klientSh.User,
-		KontrolURL: klientSh.KontrolURL,
+		Username: klientSh.User,
 	}
 
 	// Create our interface to the OS specific service
@@ -320,7 +299,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 	}
 
 	fmt.Println("Verifying installation...")
-	err = WaitUntilStarted(config.KlientAddress, CommandAttempts, CommandWaitTime)
+	err = WaitUntilStarted(config.Konfig.KlientURL, CommandAttempts, CommandWaitTime)
 
 	// After X times, if err != nil we failed to connect to klient.
 	// Inform the user.
@@ -328,6 +307,8 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 		fmt.Println(FailedInstallingKlient)
 		return 1, fmt.Errorf("error verifying the installation of klient: %s", err)
 	}
+
+	uploader.FixPerms()
 
 	// track metrics
 	metrics.TrackInstall(config.VersionNum())
@@ -360,18 +341,8 @@ type klientSh struct {
 	// The username that the sudo command will run under.
 	User string
 
-	// The kite home that klient will run with. Used as part of the KITE_HOME
-	// environment variable for klient.
-	//
-	// An env var is needed because Kite looks for this environment variable directly,
-	// and cannot be specified by supplying an arg to klient.
-	KiteHome string
-
 	// The klient bin location, which will be the actual bin run from the klient.sh file
 	KlientBinPath string
-
-	// The kontrol url, for klient to connect to.
-	KontrolURL string
 }
 
 // Format returns the klient.sh struct formatted for the actual file.
@@ -394,34 +365,4 @@ func (k klientSh) Create(file string) error {
 
 	// perm -rwr-xr-x, same as klient
 	return ioutil.WriteFile(file, []byte(p), 0755)
-}
-
-// sudoUserFromEnviron extracts the SUDO_USER environment variable value from
-// the given slice, if any.
-func sudoUserFromEnviron(envs []string) string {
-	for _, s := range envs {
-		env := strings.Split(s, "=")
-
-		if len(env) != 2 {
-			continue
-		}
-
-		if env[0] == "SUDO_USER" {
-			return env[1]
-		}
-	}
-
-	return ""
-}
-
-func username() string {
-	if s := sudoUserFromEnviron(os.Environ()); s != "" {
-		return s
-	}
-
-	if u, err := user.Current(); err == nil {
-		return u.Username
-	}
-
-	return ""
 }

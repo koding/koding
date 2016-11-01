@@ -70,7 +70,7 @@ func (t *StatFSTest) Syscall_ZeroValues() {
 	ExpectEq(0, stat.Bavail)
 	ExpectEq(0, stat.Files)
 	ExpectEq(0, stat.Ffree)
-	ExpectEq("osxfusefs", convertName(stat.Fstypename[:]))
+	ExpectEq("osxfuse", convertName(stat.Fstypename[:]))
 	ExpectEq(t.canonicalDir, convertName(stat.Mntonname[:]))
 	ExpectEq(fsName, convertName(stat.Mntfromname[:]))
 }
@@ -105,7 +105,7 @@ func (t *StatFSTest) Syscall_NonZeroValues() {
 	ExpectEq(canned.BlocksAvailable, stat.Bavail)
 	ExpectEq(canned.Inodes, stat.Files)
 	ExpectEq(canned.InodesFree, stat.Ffree)
-	ExpectEq("osxfusefs", convertName(stat.Fstypename[:]))
+	ExpectEq("osxfuse", convertName(stat.Fstypename[:]))
 	ExpectEq(t.canonicalDir, convertName(stat.Mntonname[:]))
 	ExpectEq(fsName, convertName(stat.Mntfromname[:]))
 }
@@ -120,8 +120,8 @@ func (t *StatFSTest) BlockSizes() {
 		expectedBsize uint32
 	}{
 		0:  {0, 4096},
-		1:  {1, 512},
-		2:  {3, 512},
+		1:  {1, 128},
+		2:  {3, 128},
 		3:  {511, 512},
 		4:  {512, 512},
 		5:  {513, 1024},
@@ -129,16 +129,22 @@ func (t *StatFSTest) BlockSizes() {
 		7:  {1024, 1024},
 		8:  {4095, 4096},
 		9:  {1 << 16, 1 << 16},
-		10: {1<<17 - 1, 1 << 17},
-		11: {1 << 17, 1 << 17},
-		12: {1<<17 + 1, 1 << 17},
-		13: {1 << 18, 1 << 17},
-		14: {1 << 20, 1 << 17},
-		15: {math.MaxInt32 - 1, 1 << 17},
-		16: {math.MaxInt32, 1 << 17},
-		17: {math.MaxInt32 + 1, 512},
-		18: {math.MaxInt32 + 1<<15, 1 << 15},
-		19: {math.MaxUint32, 1 << 17},
+		10: {1 << 17, 1 << 17},
+		11: {1 << 18, 1 << 18},
+		12: {1 << 19, 1 << 19},
+
+		13: {1<<20 - 1, 1 << 20},
+		14: {1 << 20, 1 << 20},
+		15: {1<<20 + 1, 1 << 20},
+
+		16: {1 << 21, 1 << 20},
+		17: {1 << 22, 1 << 20},
+
+		18: {math.MaxInt32 - 1, 1 << 20},
+		19: {math.MaxInt32, 1 << 20},
+		20: {math.MaxInt32 + 1, 128},
+		21: {math.MaxInt32 + 1<<15, 1 << 15},
+		22: {math.MaxUint32, 1 << 20},
 	}
 
 	for i, tc := range testCases {
@@ -170,23 +176,29 @@ func (t *StatFSTest) IoSizes() {
 		fsIoSize       uint32
 		expectedIosize uint32
 	}{
-		0:  {0, 65536},
-		1:  {1, 4096},
-		2:  {3, 4096},
-		3:  {4095, 4096},
-		4:  {4096, 4096},
-		5:  {4097, 8192},
-		6:  {8191, 8192},
-		7:  {8192, 8192},
-		8:  {8193, 16384},
-		9:  {1<<20 - 1, 1 << 20},
+		0: {0, 65536},
+		1: {1, 4096},
+		2: {3, 4096},
+		3: {4095, 4096},
+		4: {4096, 4096},
+		5: {4097, 8192},
+		6: {8191, 8192},
+		7: {8192, 8192},
+		8: {8193, 16384},
+
+		9:  {1 << 18, 1 << 18},
 		10: {1 << 20, 1 << 20},
-		11: {1<<20 + 1, 1 << 20},
-		12: {math.MaxInt32 - 1, 1 << 20},
-		13: {math.MaxInt32, 1 << 20},
-		14: {math.MaxInt32 + 1, 4096},
-		15: {math.MaxInt32 + 1<<15, 1 << 15},
-		16: {math.MaxUint32, 1 << 20},
+		11: {1 << 23, 1 << 23},
+
+		12: {1<<25 - 1, 1 << 25},
+		13: {1 << 25, 1 << 25},
+		14: {1<<25 + 1, 1 << 25},
+
+		15: {math.MaxInt32 - 1, 1 << 25},
+		16: {math.MaxInt32, 1 << 25},
+		17: {math.MaxInt32 + 1, 4096},
+		18: {math.MaxInt32 + 1<<15, 1 << 15},
+		19: {math.MaxUint32, 1 << 25},
 	}
 
 	for i, tc := range testCases {

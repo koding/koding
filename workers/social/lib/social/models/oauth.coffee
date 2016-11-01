@@ -1,10 +1,11 @@
 bongo       = require 'bongo'
 { secure, signature } = bongo
 crypto      = require 'crypto'
-oauth       = require 'oauth'
-parser      = require 'url'
+request     = require 'request'
 KodingError = require '../error'
-JSession    = require './session'
+
+{ isAddressValid, cleanUrl } = require './utils'
+
 
 module.exports = class OAuth extends bongo.Base
 
@@ -15,49 +16,172 @@ module.exports = class OAuth extends bongo.Base
       static        :
         getUrl      : (signature Object, Function)
 
+  ERRORS =
+    NOTSUPPORTED : new KodingError 'OAuth provider is not supported'
+    VALIDATION   : new KodingError 'OAuth validation failed'
 
-  getUrlFor = (provider, redirectUri, options, callback) ->
+  # -- OAUTH PROVIDERS ----------------------------------------------------8<--
 
-    {
+  @PROVIDERS =
 
-      github: ->
+    # -- GITLAB PROVIDER --------------------------------------------------8<--
+
+    gitlab    :
+      title   : 'GitLab OAuth Provider'
+      enabled : true
+      getUrl  : (client, urlOptions, callback) ->
+
+        checkGroupGitLabSettings = (client, callback) ->
+
+          { sessionToken: clientId, context: { group: slug } } = client
+
+          JSession = require './session'
+          JSession.one { clientId }, (err, session) ->
+            return callback err  if err
+            return callback new KodingError 'Session invalid'  unless session
+
+            JGroup = require './group'
+            JGroup.one { slug }, (err, group) ->
+
+              if not err and group and group.config?.gitlab?.enabled
+
+                settings = {
+                  url: group.config.gitlab.url
+                  applicationId: group.config.gitlab.applicationId
+                  state: session._id
+                }
+
+                callback null, settings
+
+              else
+
+                callback new KodingError 'Integration is not enabled'
+
+        { returnUrl, redirectUri } = urlOptions
+        { applicationId, host, port } = KONFIG.gitlab
+        protocol = '//'
+        port = if port then ":#{port}" else ''
+        host = urlOptions.host ? host
+        redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
+
+        checkGroupGitLabSettings client, (err, data) ->
+          return callback err  if err
+
+          url = "#{protocol}#{host}#{port}"
+          { url, applicationId, state } = data  if data
+
+          state = "&state=#{state}"
+          url   = "#{url}/oauth/authorize?"
+          url  += "client_id=#{applicationId}&"
+          url  += "response_type=code#{state}&"
+          url  += "redirect_uri=#{redirectUri}"
+
+          callback null, url
+
+      validateOAuth: (options, callback) ->
+
+        { url, applicationId, applicationSecret } = options
+
+        MissingFieldError = 'Missing field for validating oauth'
+
+        if not url then return callback new KodingError \
+          MissingFieldError, 'MissingField', { fields: ['url'] }
+        if not applicationId then return callback new KodingError \
+          MissingFieldError, 'MissingField', { fields: ['applicationId'] }
+        if not applicationSecret then return callback new KodingError \
+          MissingFieldError, 'MissingField', { fields: ['applicationSecret'] }
+
+        url = cleanUrl url
+
+        isAddressValid url, (err) ->
+
+          if err
+            err.error = { fields: ['url'] }
+            return callback err
+
+          options           =
+            url             : "#{url}/oauth/token"
+            timeout         : 7000
+            method          : 'POST'
+            headers         :
+              'Accept'      : 'application/json'
+              'User-Agent'  : 'Koding'
+            json            :
+              grant_type    : 'client_credentials'
+              client_id     : applicationId
+              client_secret : applicationSecret
+
+          request options, (error, response, body) ->
+
+            if error
+              callback new KodingError \
+                'Host not reachable', 'NotReachable', { fields: ['url'] }
+            else if not body.access_token
+              callback new KodingError \
+                'Verification failed', 'VerificationFailed', { fields: [
+                    'applicationSecret',
+                    'applicationId'
+                ] }
+            else
+              callback null, { url }
+
+
+    # -- GITHUB PROVIDER --------------------------------------------------8<--
+
+    github    :
+      title   : 'Github OAuth Provider'
+      enabled : false
+      getUrl  : (client, urlOptions, callback) ->
 
         { clientId } = KONFIG.github
-        { scope, returnUrl } = options
+        { scope, returnUrl } = urlOptions
         scope = 'user:email'  unless scope
         redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
-        url = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=#{scope}&redirect_uri=#{redirectUri}"
+
+        url  = 'https://github.com/login/oauth/authorize?'
+        url += "client_id=#{clientId}&"
+        url += "scope=#{scope}&redirect_uri=#{redirectUri}"
 
         callback null, url
 
-
-      gitlab: ->
-
-        { applicationId, host, redirectUri, port } = KONFIG.gitlab
-        { returnUrl } = options
-        host ?= 'gitlab.com'
-        protocol = 'http://'
-        port = if port then ":#{port}" else ''
-        host = options.host ? host
-        redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
-        url = "#{protocol}#{host}#{port}/oauth/authorize?client_id=#{applicationId}&redirect_uri=#{redirectUri}&response_type=code"
-
-        callback null, url
+      validateOAuth: (options, callback) ->
+        callback ERROR.VALIDATION
 
 
-      facebook: ->
+    # -- FACEBOOK PROVIDER ------------------------------------------------8<--
+
+    facebook  :
+      title   : 'Facebook OAuth Provider'
+      enabled : false
+      getUrl  : (client, urlOptions, callback) ->
 
         { clientId } = KONFIG.facebook
-        url = "https://facebook.com/dialog/oauth?client_id=#{clientId}&redirect_uri=#{redirectUri}&scope=email"
+        { redirectUri } = urlOptions
+
+        url  = 'https://facebook.com/dialog/oauth?'
+        url += "client_id=#{clientId}&"
+        url += "redirect_uri=#{redirectUri}&scope=email"
 
         callback null, url
 
+      validateOAuth: (options, callback) ->
+        callback ERROR.VALIDATION
 
-      google: ->
+
+    # -- GOOGLE PROVIDER --------------------------------------------------8<--
+
+    google    :
+      title   : 'Google OAuth Provider'
+      enabled : false
+      getUrl  : (client, urlOptions, callback) ->
 
         { client_id } = KONFIG.google
+        { redirectUri } = urlOptions
+
+        JSession = require './session'
         JSession.one { clientId: client.sessionToken }, (err, session) ->
           return callback err  if err
+
           state = session._id
           url  = 'https://accounts.google.com/o/oauth2/auth?'
           url += 'scope=https://www.google.com/m8/feeds '
@@ -71,11 +195,23 @@ module.exports = class OAuth extends bongo.Base
 
           callback null, url
 
+      validateOAuth: (options, callback) ->
+        callback ERROR.VALIDATION
 
-      linkedin: ->
+
+    # -- LINKEDIN PROVIDER ------------------------------------------------8<--
+
+    linkedin  :
+      title   : 'LinkedIn OAuth Provider'
+      enabled : false
+      getUrl  : (client, urlOptions, callback) ->
 
         { client_id } = KONFIG.linkedin
-        state = crypto.createHash('md5').update((new Date).toString()).digest('hex')
+        { redirectUri } = urlOptions
+
+        state = crypto.createHash('md5')
+          .update((new Date).toString())
+          .digest('hex')
 
         url  = 'https://www.linkedin.com/uas/oauth2/authorization?'
         url += 'response_type=code&'
@@ -85,72 +221,29 @@ module.exports = class OAuth extends bongo.Base
 
         callback null, url
 
+      validateOAuth: (options, callback) ->
+        callback ERROR.VALIDATION
 
-    }[provider]?()
+
+  # -- END OF PROVIDERS ---------------------------------------------------8<--
 
 
-  @getUrl = secure (client, options, callback) ->
+  @getUrl = secure (client, urlOptions, callback) ->
 
-    { provider } = options
+    { provider } = urlOptions
 
-    if redirectUri = KONFIG[provider].redirectUri or KONFIG[provider].redirect_uri
-      redirectUri  = @prependGroupName redirectUri, client.context.group
-
-    if provider is 'twitter'
-      @saveTokensAndReturnUrl client, 'twitter', callback
+    if (_provider = @PROVIDERS[provider]) and _provider.enabled
+      { context: { group } } = client
+      urlOptions.redirectUri = \
+        "#{KONFIG.protocol}//#{group}.#{KONFIG.hostname}/-/oauth/#{provider}/callback"
+      _provider.getUrl client, urlOptions, callback
     else
-      getUrlFor provider, redirectUri, options, callback
+      callback ERROR.NOTSUPPORTED
 
 
-  @prependGroupName = (url, groupName) ->
-    return url  if groupName is 'koding'
+  @validateOAuth = (provider, options, callback) ->
 
-    url = parser.parse url
-
-    return "#{url.protocol}//#{groupName}.#{url.host}#{url.path}"
-
-
-  @saveTokensAndReturnUrl = (client, provider, callback) ->
-    @getTokens provider, (err, data) =>
-      return callback err  if err
-      { requestToken, requestTokenSecret, url } = data
-
-      credentials = { requestToken, requestTokenSecret }
-      @saveTokens client, provider, credentials, (err) ->
-        callback err, url
-
-
-  @getTokens = (provider, callback) ->
-    {
-      key
-      secret
-      request_url
-      access_url
-      version
-      redirect_uri
-      signature
-      secret_url
-    }      = KONFIG[provider]
-
-    client = new oauth.OAuth request_url, access_url, key, secret, version,
-      redirect_uri, signature
-
-    client.getOAuthRequestToken (err, token, tokenSecret, results) ->
-      return callback err  if err
-
-      tokenizedUrl = secret_url + token
-      callback null, {
-        requestToken       : token
-        requestTokenSecret : tokenSecret
-        url                : tokenizedUrl
-      }
-
-
-  @saveTokens = (client, provider, credentials, callback) ->
-    JSession.one { clientId: client.sessionToken }, (err, session) ->
-      return callback err  if err
-      return callback new KodingError 'Session not found'  unless session
-
-      query = {}
-      query["foreignAuth.#{provider}"] = credentials
-      session.update { $set: query }, callback
+    if (_provider = @PROVIDERS[provider]) and _provider.enabled
+      _provider.validateOAuth options, callback
+    else
+      callback ERROR.NOTSUPPORTED

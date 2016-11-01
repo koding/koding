@@ -55,10 +55,9 @@ const (
 func NewChannelParticipant() *ChannelParticipant {
 	return &ChannelParticipant{
 		StatusConstant: ChannelParticipant_STATUS_ACTIVE,
-		// RoleConstant:   Permission_ROLE_MEMBER,
-		LastSeenAt: time.Now().UTC(),
-		CreatedAt:  time.Now().UTC(),
-		UpdatedAt:  time.Now().UTC(),
+		LastSeenAt:     time.Now().UTC(),
+		CreatedAt:      time.Now().UTC(),
+		UpdatedAt:      time.Now().UTC(),
 	}
 }
 
@@ -618,35 +617,6 @@ func (c *ChannelParticipant) RawUpdateLastSeenAt(t time.Time) error {
 
 	return nil
 }
-
-// // FetchRole fetches the role from db, has sane defaults too
-// func (c *ChannelParticipant) FetchRole() (string, error) {
-// 	// mark guests as guest
-// 	if c.AccountId == 0 {
-// 		return Permission_ROLE_GUEST, nil
-// 	}
-
-// 	if c.ChannelId == 0 {
-// 		return Permission_ROLE_GUEST, nil
-// 	}
-
-// 	// fetch participant
-// 	err := c.FetchParticipant()
-// 	if err != nil && err != bongo.RecordNotFound {
-// 		return "", err
-// 	}
-
-// 	// if not a member, mark as guest
-// 	if err == bongo.RecordNotFound {
-// 		return Permission_ROLE_GUEST, nil
-// 	}
-
-// 	if c.RoleConstant == "" {
-// 		return Permission_ROLE_GUEST, nil
-// 	}
-
-// 	return c.RoleConstant, nil
-// }
 
 func (c *ChannelParticipant) Glance() error {
 	c.LastSeenAt = time.Now().UTC()

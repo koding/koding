@@ -45,6 +45,8 @@ Configuration = (options = {}) ->
   options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
   options.credentialPath or= "$KONFIG_PROJECTROOT/config/credentials.#{options.environment}.coffee"
   options.clientUploadS3BucketName or= 'kodingdev-client'
+  options.publicLogsS3BucketName or= 'kodingdev-publiclogs'
+  options.proxySubdomain or= 'dev-p2'
 
   _port = if options.publicPort is '80' then '' else ":#{options.publicPort}"
   options.host or= "#{options.hostname}#{_port}"
@@ -77,7 +79,6 @@ Configuration = (options = {}) ->
 
   options.disabledWorkers = [
     "algoliaconnector"
-    "paymentwebhook"
     "gatekeeper"
     "vmwatcher"
   ]

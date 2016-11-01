@@ -187,7 +187,7 @@ func resourceArmStorageBlobDelete(d *schema.ResourceData, meta interface{}) erro
 	storageContainerName := d.Get("storage_container_name").(string)
 
 	log.Printf("[INFO] Deleting storage blob %q", name)
-	if _, err = blobClient.DeleteBlobIfExists(storageContainerName, name); err != nil {
+	if _, err = blobClient.DeleteBlobIfExists(storageContainerName, name, nil); err != nil {
 		return fmt.Errorf("Error deleting storage blob %q: %s", name, err)
 	}
 

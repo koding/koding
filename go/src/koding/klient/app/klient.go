@@ -2,6 +2,8 @@ package app
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -19,21 +21,23 @@ import (
 	"sync"
 	"time"
 
+	kfg "koding/kites/config"
 	"koding/klient/client"
 	"koding/klient/collaboration"
 	"koding/klient/command"
+	konfig "koding/klient/config"
 	"koding/klient/control"
 	"koding/klient/fs"
 	"koding/klient/info"
 	"koding/klient/info/publicip"
 	"koding/klient/logfetcher"
 	kos "koding/klient/os"
-	"koding/klient/protocol"
 	"koding/klient/remote"
 	"koding/klient/sshkeys"
 	"koding/klient/storage"
 	"koding/klient/terminal"
 	"koding/klient/tunnel"
+	"koding/klient/uploader"
 	"koding/klient/usage"
 	"koding/klient/vagrant"
 
@@ -109,6 +113,10 @@ type Klient struct {
 	// and updates current binary if version is never than config.Version.
 	updater *Updater
 
+	// uploader streams logs to an S3 bucket
+	uploader       *uploader.Uploader
+	logUploadDelay time.Duration
+
 	// publicIP is a cached public IP address of the klient.
 	publicIP net.IP
 }
@@ -139,17 +147,45 @@ type KlientConfig struct {
 
 	NoTunnel bool
 	NoProxy  bool
+	NoExit   bool
 
 	Autoupdate bool
 
 	LogBucketRegion   string
 	LogBucketName     string
-	LogUploadLimit    int
+	LogKeygenURL      string
 	LogUploadInterval time.Duration
+
+	Metadata     string
+	MetadataFile string
+}
+
+func (conf *KlientConfig) logKeygenURL() string {
+	if conf.LogKeygenURL != "" {
+		return conf.LogKeygenURL
+	}
+
+	return konfig.Konfig.KloudURL
+}
+
+func (conf *KlientConfig) logBucketName() string {
+	if conf.LogBucketName != "" {
+		return conf.LogBucketName
+	}
+
+	return konfig.Konfig.PublicBucketName
+}
+
+func (conf *KlientConfig) logBucketRegion() string {
+	if conf.LogBucketRegion != "" {
+		return conf.LogBucketRegion
+	}
+
+	return konfig.Konfig.PublicBucketRegion
 }
 
 // NewKlient returns a new Klient instance
-func NewKlient(conf *KlientConfig) *Klient {
+func NewKlient(conf *KlientConfig) (*Klient, error) {
 	// this is our main reference to count and measure metrics for the klient
 	// we count only those methods, please add/remove methods here that will
 	// reset the timer of a klient.
@@ -181,6 +217,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 		"storage.Get":          true,
 		"storage.Set":          true,
 		"storage.Delete":       true,
+		"log.upload":           true,
 		// "docker.create":       true,
 		// "docker.connect":      true,
 		// "docker.stop":         true,
@@ -189,7 +226,61 @@ func NewKlient(conf *KlientConfig) *Klient {
 		// "docker.list":         true,
 	})
 
+	if conf.Metadata != "" && conf.MetadataFile != "" {
+		return nil, errors.New("the -metadata and -metadata-file flags are exclusive")
+	}
+
+	if conf.Metadata != "" {
+		p, err := base64.StdEncoding.DecodeString(conf.Metadata)
+		if err != nil {
+			return nil, errors.New("failed to decode Koding metadata: " + err.Error())
+		}
+
+		conf.Metadata = string(p)
+	}
+
+	if conf.MetadataFile != "" {
+		p, err := ioutil.ReadFile(conf.MetadataFile)
+		if err != nil {
+			return nil, errors.New("failed to read Koding metadata file: " + err.Error())
+		}
+
+		conf.Metadata = string(p)
+	}
+
+	if conf.Metadata != "" {
+		var m kfg.Metadata
+
+		if err := json.Unmarshal([]byte(conf.Metadata), &m); err != nil {
+			return nil, errors.New("failed to decode Koding metadata: " + err.Error())
+		}
+
+		if err := kfg.DumpToBolt("", m, nil); err != nil {
+			return nil, errors.New("failed to write Koding metadata: " + err.Error())
+		}
+
+		konfig.Konfig = konfig.ReadKonfig() // re-read konfig after dumping metadata
+	}
+
+	// TODO(rjeczalik): Once klient installation method is reworked,
+	// ensure flags are stored alongside konfig and do not
+	// overwrite konfig here.
+	if conf.KontrolURL != "" {
+		konfig.Konfig.KontrolURL = conf.KontrolURL
+	}
+
+	if conf.TunnelKiteURL != "" {
+		konfig.Konfig.TunnelURL = conf.TunnelKiteURL
+	}
+
 	k := newKite(conf)
+	k.Config.VerifyAudienceFunc = verifyAudience
+
+	if k.Config.KontrolURL == "" || k.Config.KontrolURL == "http://127.0.0.1:3000/kite" ||
+		konfig.Konfig.KontrolURL != konfig.Builtin.KontrolURL {
+		k.Config.KontrolURL = konfig.Konfig.KontrolURL
+	}
+
 	term := terminal.New(k.Log, conf.ScreenrcPath)
 	term.InputHook = usg.Reset
 
@@ -198,18 +289,29 @@ func NewKlient(conf *KlientConfig) *Klient {
 		k.Log.Warning("Couldn't open BoltDB: %s", err)
 	}
 
+	up := uploader.New(&uploader.Options{
+		KeygenURL: conf.logKeygenURL(),
+		Kite:      k,
+		Bucket:    conf.logBucketName(),
+		Region:    conf.logBucketRegion(),
+		DB:        db,
+		Log:       k.Log,
+	})
+
 	vagrantOpts := &vagrant.Options{
-		Home:  conf.VagrantHome,
-		DB:    db, // nil is ok, fallbacks to in-memory storage
-		Log:   k.Log,
-		Debug: conf.Debug,
+		Home:   conf.VagrantHome,
+		DB:     db, // nil is ok, fallbacks to in-memory storage
+		Log:    k.Log,
+		Debug:  conf.Debug,
+		Output: up.Output,
 	}
 
 	tunOpts := &tunnel.Options{
-		DB:      db,
-		Log:     k.Log,
-		Kite:    k,
-		NoProxy: conf.NoProxy,
+		DB:            db,
+		Log:           k.Log,
+		Kite:          k,
+		NoProxy:       conf.NoProxy,
+		TunnelKiteURL: konfig.Konfig.TunnelURL,
 	}
 
 	t, err := tunnel.New(tunOpts)
@@ -244,6 +346,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 		log:      k.Log,
 		config:   conf,
 		remote:   remote.NewRemote(remoteOpts),
+		uploader: up,
 		updater: &Updater{
 			Endpoint:       conf.UpdateURL,
 			Interval:       conf.UpdateInterval,
@@ -252,6 +355,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 			// MountEvents:    mountEvents,
 			Log: k.Log,
 		},
+		logUploadDelay: 3 * time.Minute,
 	}
 
 	kl.kite.OnRegister(kl.updateKiteKey)
@@ -259,7 +363,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 	// This is important, don't forget it
 	kl.RegisterMethods()
 
-	return kl
+	return kl, nil
 }
 
 // An implementation of the kite xhr dialer that uses a set http timeout,
@@ -361,6 +465,9 @@ func (k *Klient) RegisterMethods() {
 
 	// Tunnel
 	k.kite.HandleFunc("tunnel.info", k.tunnel.Info)
+
+	// Log
+	k.kite.HandleFunc("log.upload", k.uploader.Upload)
 
 	// Docker
 	// k.kite.HandleFunc("docker.create", k.docker.Create)
@@ -523,10 +630,27 @@ func (k *Klient) tunnelOptions() (*tunnel.Options, error) {
 // Run registers klient to Kontrol and starts the kite server. It also runs any
 // necessary workers in the background.
 func (k *Klient) Run() {
+	go func() {
+		// Delay uploading log files to give klient a chance to:
+		//
+		//   - write the file first-time
+		//   - log essential statuses from tunnel / kontrol register
+		//
+		// Additionally do not block startup routine with log uploading.
+		time.Sleep(k.logUploadDelay)
+
+		for _, file := range uploader.LogFiles {
+			_, err := k.uploader.UploadFile(file, k.config.LogUploadInterval)
+			if err != nil && !os.IsNotExist(err) {
+				k.log.Warning("failed to upload %q: %s", file, err)
+			}
+		}
+	}()
+
 	// don't run the tunnel for Koding VM's, no need to check for error as we
 	// are not interested in it
 	isAWS, isKoding, _ := info.CheckKodingAWS()
-	isManaged := protocol.Environment == "managed" || protocol.Environment == "devmanaged"
+	isManaged := konfig.Environment == "managed" || konfig.Environment == "devmanaged"
 
 	if isManaged && isKoding {
 		k.log.Error("Managed Klient is attempting to run on a Koding provided VM")
@@ -619,6 +743,17 @@ func (k *Klient) Close() {
 	k.kite.Close()
 }
 
+func (k *Klient) PrintConfig() error {
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "\t")
+
+	return enc.Encode(map[string]interface{}{
+		"klientConfig":  k.config,
+		"builtinKonfig": konfig.Builtin,
+		"konfig":        konfig.Konfig,
+	})
+}
+
 func newKite(kconf *KlientConfig) *kite.Kite {
 	k := kite.New(kconf.Name, kconf.Version)
 
@@ -626,13 +761,11 @@ func newKite(kconf *KlientConfig) *kite.Kite {
 		k.SetLogLevel(kite.DEBUG)
 	}
 
-	conf := config.MustGet()
-	k.Config = conf
+	k.Config = konfig.Konfig.KiteConfig()
 	k.Config.Port = kconf.Port
 	k.Config.Environment = kconf.Environment
 	k.Config.Region = kconf.Region
-	k.Config.VerifyAudienceFunc = verifyAudience
-	k.Id = conf.Id // always boot up with the same id in the kite.key
+	k.Id = k.Config.Id // always boot up with the same id in the kite.key
 	// Set klient to use XHR Polling, since Prod Koding only supports XHR
 	k.Config.Transport = config.XHRPolling
 	k.ClientFunc = klientXHRClientFunc
@@ -640,16 +773,6 @@ func newKite(kconf *KlientConfig) *kite.Kite {
 	// replace kontrolURL if's being overidden
 	if kconf.KontrolURL != "" {
 		k.Config.KontrolURL = kconf.KontrolURL
-	}
-
-	// The kite.key generated by kites/kontrol always embeds default
-	// kontrolUrl claim, assuming it's the responsibility of the
-	// klient to overwrite it during installation to a
-	// proper value.
-	//
-	// If the url was not overwritten, we default to production kontrol.
-	if k.Config.KontrolURL == "http://127.0.0.1:3000/kite" {
-		k.Config.KontrolURL = "https://koding.com/kontrol/kite" // TODO(rjeczalik): move to koding/config
 	}
 
 	return k
@@ -756,7 +879,8 @@ func userIn(user string, users ...string) bool {
 	return false
 }
 
-// TODO(rjeczalik): move to koding/config
+// TODO(rjeczalik): Remove managed/devmanaged channels
+// and remove custom verifyAudience function.
 var (
 	prodEnvs = map[string]struct{}{
 		"managed":    {},

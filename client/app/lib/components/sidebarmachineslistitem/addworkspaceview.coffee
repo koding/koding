@@ -1,5 +1,5 @@
 kd                = require 'kd'
-React             = require 'kd-react'
+React             = require 'app/react'
 ReactDOM          = require 'react-dom'
 KeyboardKeys      = require 'app/constants/keyboardKeys'
 IDEHelpers        = require 'ide/idehelpers'

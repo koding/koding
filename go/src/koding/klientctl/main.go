@@ -49,10 +49,17 @@ var sudoRequiredFor = []string{
 // cli rewrite.
 var log logging.Logger
 
+var (
+	debug        = os.Getenv("KD_DEBUG") == "1"
+	experimental = os.Getenv("KD_EXPERIMENTAL") == "1"
+)
+
 func main() {
 	// For forward-compatibility with go1.5+, where GOMAXPROCS is
 	// always set to a number of available cores.
 	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	debug = debug || config.Konfig.Debug
 
 	// The writer used for the logging output. Either a file, or /dev/null
 	var logWriter io.Writer
@@ -65,11 +72,8 @@ func main() {
 		// nil before every usage.
 		logWriter = ioutil.Discard
 	} else {
-		// TODO: Does defer get triggered on os.Exit? I think main() needs to be moved
-		// to an alternate func that we can actuall use defer. Eg, main() calls Main(),
-		// or something.
-		defer f.Close()
 		logWriter = f
+		ctlcli.CloseOnExit(f)
 	}
 
 	// Setting the handler to debug, because various methods allow a
@@ -85,13 +89,20 @@ func main() {
 	log.SetHandler(handler)
 	log.Info("kd binary called with: %s", os.Args)
 
+	if debug {
+		log.SetLevel(logging.DEBUG)
+	}
+
 	// Check if the command the user is giving requires sudo.
 	if err := AdminRequired(os.Args, sudoRequiredFor, util.NewPermissions()); err != nil {
 		// In the event of an error, simply print the error to the user
 		// and exit.
 		fmt.Println("Error: this command requires sudo.")
+		ctlcli.Close()
 		os.Exit(10)
 	}
+
+	defer ctlcli.Close()
 
 	// TODO(leeola): deprecate this default, instead passing it as a dependency
 	// to the users of it.
@@ -105,7 +116,7 @@ func main() {
 	app.EnableBashCompletion = true
 
 	app.Commands = []cli.Command{
-		cli.Command{
+		{
 			Name:      "list",
 			ShortName: "ls",
 			Usage:     "List running machines for user.",
@@ -121,7 +132,7 @@ func main() {
 				},
 			},
 			Subcommands: []cli.Command{
-				cli.Command{
+				{
 					Name:   "mounts",
 					Usage:  "List the mounted machines.",
 					Action: ctlcli.ExitAction(CheckUpdateFirst(MountsCommand, log, "mounts")),
@@ -134,14 +145,14 @@ func main() {
 				},
 			},
 		},
-		cli.Command{
+		{
 			Name:        "version",
 			Usage:       "Display version information.",
 			HideHelp:    true,
 			Description: cmdDescriptions["version"],
 			Action:      ctlcli.ExitAction(VersionCommand, log, "version"),
 		},
-		cli.Command{
+		{
 			Name:        "mount",
 			ShortName:   "m",
 			Usage:       "Mount a remote folder to a local folder.",
@@ -188,31 +199,27 @@ func main() {
 					Name:  "trace, t",
 					Usage: "Turn on trace logs.",
 				},
-				cli.BoolFlag{
-					Name:  "debug, d",
-					Usage: "Turn on debug logs.",
-				},
 			},
 			Action: ctlcli.FactoryAction(MountCommandFactory, log, "mount"),
 			BashComplete: ctlcli.FactoryCompletion(
 				MountCommandFactory, log, "mount",
 			),
 		},
-		cli.Command{
+		{
 			Name:        "unmount",
 			ShortName:   "u",
 			Usage:       "Unmount previously mounted machine.",
 			Description: cmdDescriptions["unmount"],
 			Action:      ctlcli.FactoryAction(UnmountCommandFactory, log, "unmount"),
 		},
-		cli.Command{
+		{
 			Name:        "remount",
 			ShortName:   "r",
 			Usage:       "Remount previously mounted machine using same settings.",
 			Description: cmdDescriptions["remount"],
 			Action:      ctlcli.ExitAction(RemountCommandFactory, log, "remount"),
 		},
-		cli.Command{
+		{
 			Name:        "ssh",
 			ShortName:   "s",
 			Usage:       "SSH into the machine.",
@@ -228,25 +235,25 @@ func main() {
 			},
 			Action: ctlcli.ExitAction(CheckUpdateFirst(SSHCommandFactory, log, "ssh")),
 		},
-		cli.Command{
+		{
 			Name:            "run",
 			Usage:           "Run command on remote or local machine.",
 			Description:     cmdDescriptions["run"],
 			Action:          ctlcli.ExitAction(RunCommandFactory, log, "run"),
 			SkipFlagParsing: true,
 		},
-		cli.Command{
+		{
 			Name:   "repair",
 			Usage:  "Repair the given mount",
 			Action: ctlcli.FactoryAction(RepairCommandFactory, log, "repair"),
 		},
-		cli.Command{
+		{
 			Name:        "status",
 			Usage:       fmt.Sprintf("Check status of the %s.", config.KlientName),
 			Description: cmdDescriptions["status"],
 			Action:      ctlcli.ExitAction(StatusCommand, log, "status"),
 		},
-		cli.Command{
+		{
 			Name:        "update",
 			Usage:       fmt.Sprintf("Update %s to latest version.", config.KlientName),
 			Description: cmdDescriptions["update"],
@@ -273,38 +280,37 @@ func main() {
 					Usage: "Updates kd & klient to latest available version.",
 				},
 				cli.BoolFlag{
-					Name: "continue",
-					// TODO(leeola): Update to the latest cli package, and use the Hidden flag
-					// for this bool flag.
-					Usage: "Internal use only.",
+					Name:   "continue",
+					Usage:  "Internal use only.",
+					Hidden: true,
 				},
 			},
 		},
-		cli.Command{
+		{
 			Name:        "restart",
 			Usage:       fmt.Sprintf("Restart the %s.", config.KlientName),
 			Description: cmdDescriptions["restart"],
 			Action:      ctlcli.ExitAction(RestartCommand, log, "restart"),
 		},
-		cli.Command{
+		{
 			Name:        "start",
 			Usage:       fmt.Sprintf("Start the %s.", config.KlientName),
 			Description: cmdDescriptions["start"],
 			Action:      ctlcli.ExitAction(StartCommand, log, "start"),
 		},
-		cli.Command{
+		{
 			Name:        "stop",
 			Usage:       fmt.Sprintf("Stop the %s.", config.KlientName),
 			Description: cmdDescriptions["stop"],
 			Action:      ctlcli.ExitAction(StopCommand, log, "stop"),
 		},
-		cli.Command{
+		{
 			Name:        "uninstall",
 			Usage:       fmt.Sprintf("Uninstall the %s.", config.KlientName),
 			Description: cmdDescriptions["uninstall"],
 			Action:      ExitWithMessage(UninstallCommand, log, "uninstall"),
 		},
-		cli.Command{
+		{
 			Name:        "install",
 			Usage:       fmt.Sprintf("Install the %s.", config.KlientName),
 			Description: cmdDescriptions["install"],
@@ -316,17 +322,15 @@ func main() {
 			},
 			Action: ctlcli.ExitErrAction(InstallCommandFactory, log, "install"),
 		},
-		cli.Command{
+		{
 			Name:     "metrics",
 			Usage:    fmt.Sprintf("Internal use only."),
 			HideHelp: true,
 			Action:   ctlcli.ExitAction(MetricsCommandFactory, log, "metrics"),
 		},
-		cli.Command{
-			Name: "autocompletion",
-			Usage: fmt.Sprintf(
-				"Enable autocompletion support for bash and fish shells",
-			),
+		{
+			Name:        "autocompletion",
+			Usage:       "Enable autocompletion support for bash and fish shells",
 			Description: cmdDescriptions["autocompletion"],
 			Flags: []cli.Flag{
 				cli.StringFlag{
@@ -349,7 +353,7 @@ func main() {
 				AutocompleteCommandFactory, log, "autocompletion",
 			),
 		},
-		cli.Command{
+		{
 			Name: "cp",
 			Usage: fmt.Sprintf(
 				"Copy a file from one one machine to another",
@@ -367,10 +371,11 @@ func main() {
 				CpCommandFactory, log, "cp",
 			),
 		},
-		cli.Command{
-			Name: "log",
+		{
+			Name:  "log",
+			Usage: "Display logs.",
 			Flags: []cli.Flag{
-				cli.BoolFlag{Name: "debug"},
+				cli.BoolFlag{Name: "debug", Hidden: true},
 				cli.BoolFlag{Name: "no-kd-log"},
 				cli.BoolFlag{Name: "no-klient-log"},
 				cli.StringFlag{Name: "kd-log-file"},
@@ -379,7 +384,7 @@ func main() {
 			},
 			Action: ctlcli.FactoryAction(LogCommandFactory, log, "log"),
 		},
-		cli.Command{
+		{
 			Name: "open",
 			Usage: fmt.Sprintf(
 				"Open the given file(s) on the Koding UI",
@@ -390,6 +395,100 @@ func main() {
 			},
 			Action: ctlcli.FactoryAction(OpenCommandFactory, log, "log"),
 		},
+	}
+
+	if experimental {
+		app.Commands = append(app.Commands,
+			cli.Command{
+				Name:  "config",
+				Usage: "Manage tool configuration.",
+				Subcommands: []cli.Command{{
+					Name:   "show",
+					Usage:  "Show configuration.",
+					Action: ctlcli.ExitErrAction(ConfigShow, log, "show"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "defaults",
+							Usage: "Show also default configuration",
+						},
+					},
+				}, {
+					Name:   "set",
+					Usage:  "Set a value for the given key, overwriting default one.",
+					Action: ctlcli.ExitErrAction(ConfigSet, log, "set"),
+				}, {
+					Name:   "unset",
+					Usage:  "Unset the given key, restoring the defaut value.",
+					Action: ctlcli.ExitErrAction(ConfigUnset, log, "set"),
+				}},
+			},
+			cli.Command{
+				Name:      "credential",
+				ShortName: "c",
+				Usage:     "Manage stack credentials.",
+				Subcommands: []cli.Command{{
+					Name:   "import",
+					Usage:  "Import stack credentials from Koding account.",
+					Action: ctlcli.ExitErrAction(CredentialImport, log, "import"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+						cli.StringFlag{
+							Name:  "provider, p",
+							Usage: "Specify credential provider.",
+						},
+						cli.StringFlag{
+							Name:  "team, t",
+							Usage: "Specify team which the credential belongs to.",
+						},
+					},
+				}, {
+					Name:      "list",
+					ShortName: "ls",
+					Usage:     "List imported stack credentials.",
+					Action:    ctlcli.ExitErrAction(CredentialList, log, "list"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+						cli.StringFlag{
+							Name:  "provider, p",
+							Usage: "Specify credential provider.",
+						},
+						cli.StringFlag{
+							Name:  "team, t",
+							Usage: "Specify team which the credential belongs to.",
+						},
+					},
+				}, {
+					Name:   "create",
+					Usage:  "Create new stack credential.",
+					Action: ctlcli.ExitErrAction(CredentialCreate, log, "create"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+						cli.StringFlag{
+							Name:  "provider, p",
+							Usage: "Specify credential provider.",
+						},
+						cli.StringFlag{
+							Name:  "file, f",
+							Value: "-",
+							Usage: "Read credential from a file.",
+						},
+						cli.StringFlag{
+							Name:  "team, t",
+							Usage: "Specify team which the credential belongs to.",
+						},
+					},
+				}},
+			},
+		)
 	}
 
 	app.Run(os.Args)
@@ -403,6 +502,7 @@ func ExitWithMessage(f ExitingWithMessageCommand, log logging.Logger, cmd string
 		if s != "" {
 			fmt.Println(s)
 		}
+		ctlcli.Close()
 		os.Exit(e)
 	}
 }

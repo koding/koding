@@ -22,28 +22,27 @@ const (
 )
 
 type Query struct {
-	Id                   int64     `url:"id,omitempty"`
-	Skip                 int       `url:"skip"`
-	Limit                int       `url:"limit"`
-	To                   time.Time `url:"to"`
-	From                 time.Time `url:"from"`
-	GroupName            string    `url:"groupName"`
-	GroupChannelId       int64     `url:"groupChannelId"`
-	Type                 string    `url:"type"`
-	Privacy              string    `url:"privacy"`
-	AccountId            int64     `url:"accountId"`
-	AccountNickname      string    `url:"accountNickname"`
-	Name                 string    `url:"name"`
-	Slug                 string    `url:"slug"`
-	SortOrder            string    `url:"sortOrder"`
-	ShowExempt           bool      `url:"showExempt"`
-	ShowModerationNeeded bool      `url:showModerationNeeded`
-	ReplyLimit           int       `url:"replyLimit"`
-	ReplySkip            int       `url:"replySkip"`
-	AddIsInteracted      bool      `url:"addIsInteracted"`
-	ObjectId             int64     `url:"objectId"`
-	Exclude              map[string]interface{}
-	Sort                 map[string]string
+	Id              int64     `url:"id,omitempty"`
+	Skip            int       `url:"skip"`
+	Limit           int       `url:"limit"`
+	To              time.Time `url:"to"`
+	From            time.Time `url:"from"`
+	GroupName       string    `url:"groupName"`
+	GroupChannelId  int64     `url:"groupChannelId"`
+	Type            string    `url:"type"`
+	Privacy         string    `url:"privacy"`
+	AccountId       int64     `url:"accountId"`
+	AccountNickname string    `url:"accountNickname"`
+	Name            string    `url:"name"`
+	Slug            string    `url:"slug"`
+	SortOrder       string    `url:"sortOrder"`
+	ShowExempt      bool      `url:"showExempt"`
+	ReplyLimit      int       `url:"replyLimit"`
+	ReplySkip       int       `url:"replySkip"`
+	AddIsInteracted bool      `url:"addIsInteracted"`
+	ObjectId        int64     `url:"objectId"`
+	Exclude         map[string]interface{}
+	Sort            map[string]string
 }
 
 func NewQuery() *Query {
@@ -118,11 +117,6 @@ func (q *Query) MapURL(u *url.URL) *Query {
 	if showExempt := urlQuery.Get("showExempt"); showExempt != "" {
 		isExempt, _ := strconv.ParseBool(showExempt)
 		q.ShowExempt = isExempt
-	}
-
-	if showModerationNeeded := urlQuery.Get("showModerationNeeded"); showModerationNeeded != "" {
-		i, _ := strconv.ParseBool(showModerationNeeded)
-		q.ShowModerationNeeded = i
 	}
 
 	if addIsInteracted := urlQuery.Get("addIsInteracted"); addIsInteracted != "" {

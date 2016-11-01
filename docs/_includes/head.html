@@ -1,0 +1,40 @@
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Plain Description -->
+  <title>{{ page.title || site.title }}</title>
+  <meta name="keywords" content="integrated development environment, cloud ide, dev environment, cloud development environment, cloud editor, virtual dev environment, web based ide, test environment, docker, aws, vagrant, azure, rackspace">
+  <meta name="description" content="{% if page.excerpt %}{{page.excerpt}}{% else %}{{site.tagline}}{% endif %}">
+  <link rel="icon" type="image/png" href="{{ site.url }}/assets/img/favicon.png">
+
+  <!-- Google+ -->
+  <link rel="publisher" href="https://plus.google.com/{{site.googleplus}}"/>
+  <meta itemprop="name" content="{% if page.fulltitle %}{{page.fulltitle}}{% else %}{{page.title}} | {{ site.title }} {% endif %}">
+  <meta itemprop="description" content="{% if page.excerpt %}{{page.excerpt}}{% else %}{{site.tagline}}{% endif %}">
+  <meta itemprop="image" content="{% if page.image %}{{site.url}}{{page.image}}{% else %}{{site.url}}{{site.socialimg}}{% endif %}">
+
+  <!-- Facebook -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:title" content="{% if page.fulltitle %}{{page.fulltitle}}{% else %}{{page.title}} | {{ site.title }} {% endif %}"/>
+  <meta property="og:description" content="{% if page.excerpt %}{{page.excerpt}}{% else %}{{site.tagline}}{% endif %}"/>
+  <meta property="og:image" content="{% if page.image %}{{site.url}}{{page.image}}{% else %}{{site.url}}{{site.socialimg}}{% endif %}"/>
+  <meta property="og:url" content="{{site.url}}{{page.url}}"/>
+  <meta property="og:site_name" content="{{ site.title }} "/>
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{% if page.fulltitle %}{{page.fulltitle}}{% else %}{{page.title}} | {{ site.title }} {% endif %}">
+  <meta name="twitter:description" content="{% if page.excerpt %}{{page.excerpt}}{% else %}{{site.tagline}}{% endif %}">
+  <meta name="twitter:image" content="{{site.url}}{{site.socialimg}}">
+  <meta name="twitter:url" content="{{site.url}}{{page.url}}">
+
+  <!-- CSS & fonts -->
+  {% if include.no_additions %}
+
+  {% else %}
+  <style type="text/css">{% include css/reset.css %}</style>
+  <link rel="stylesheet" href="{{ site.url }}/css/main.css">
+  <script async onload="try{Typekit.load();}catch(e){}" src="//use.typekit.com/fyu0jgv.js"></script>
+  <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
+  {% endif %}

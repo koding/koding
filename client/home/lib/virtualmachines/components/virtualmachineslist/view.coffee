@@ -1,5 +1,5 @@
 kd              = require 'kd'
-React           = require 'kd-react'
+React           = require 'app/react'
 List            = require 'app/components/list'
 MachineItem     = require '../machineslist/listitem'
 
@@ -75,8 +75,9 @@ module.exports = class VirtualMachinesListView extends React.Component
           shouldRenderDetails={yes}
           shouldRenderSpecs={yes}
           shouldRenderPower={yes}
-          shouldRenderAlwaysOn={yes}
-          shouldRenderSharing={yes}
+          shouldRenderAlwaysOn={not stack.get 'disabled'}
+          shouldRenderSharing={not stack.get 'disabled'}
+          shouldRenderEditName={not stack.get 'disabled'}
           onChangeAlwaysOn={@lazyBound 'onChangeAlwaysOn', machine}
           onChangePowerStatus={@lazyBound 'onChangePowerStatus', machine}
           onSharedWithUser={@lazyBound 'onSharedWithUser', machine}

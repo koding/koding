@@ -605,19 +605,13 @@ func (t *NoErrorsTest) Mmap_NoMsync_MunmapBeforeClose() {
 	ExpectThat(t.getFlushes(), ElementsAre())
 	ExpectThat(t.getFsyncs(), ElementsAre())
 
-	// Close the file. We should see a flush. On Darwin, this will contain out of
-	// date contents (cf. https://github.com/osxfuse/osxfuse/issues/202).
+	// Close the file. We should see a flush with up to date contents.
 	err = t.f1.Close()
 	t.f1 = nil
 	AssertEq(nil, err)
 
-	if isDarwin {
-		ExpectThat(t.getFlushes(), ElementsAre("taco"))
-		ExpectThat(t.getFsyncs(), ElementsAre())
-	} else {
-		ExpectThat(t.getFlushes(), ElementsAre("paco"))
-		ExpectThat(t.getFsyncs(), ElementsAre())
-	}
+	ExpectThat(t.getFlushes(), ElementsAre("paco"))
+	ExpectThat(t.getFsyncs(), ElementsAre())
 }
 
 func (t *NoErrorsTest) Mmap_NoMsync_CloseBeforeMunmap() {

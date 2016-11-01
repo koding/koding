@@ -224,6 +224,8 @@ module.exports = class JGroup extends Module
           (signature Function)
         addSubscription:
           (signature String, Function)
+        fetchDataAt:
+          (signature String, Function)
         fetchSubscription:
           (signature Function)
         fetchPermissionSetOrDefault:
@@ -234,7 +236,9 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
         sendNotification:
           (signature String, String, Function)
-        setPlan:
+        setLimit:
+          (signature Object, Function)
+        setOAuth:
           (signature Object, Function)
         fetchApiTokens: [
           (signature Function)
@@ -272,7 +276,9 @@ module.exports = class JGroup extends Module
         ]]
       # parent        : ObjectRef
       counts        :
-        members     : Number
+        members     :
+          type      : Number
+          default   : -> 1
       customize     :
         coverPhoto  : String
         logo        : String
@@ -297,6 +303,7 @@ module.exports = class JGroup extends Module
       config        : Object
       # Api usage can be disabled or enabled for the group
       isApiEnabled : Boolean
+      payment      : Object
 
     broadcastableRelationships : [
       'member', 'moderator', 'admin'
@@ -569,9 +576,17 @@ module.exports = class JGroup extends Module
 
       return callback err  if err
 
-      path = "data.#{path}"  if path.indexOf 'data' isnt 0
+      path = "data.#{path}"  if path.indexOf 'data.' isnt 0
       callback null, data.getAt path
 
+
+  fetchDataAt$: permit
+    advanced: [
+      { permission: 'grant permissions' }
+      { permission: 'grant permissions', superadmin: yes }
+    ]
+    success: (client, path, callback) ->
+      @fetchDataAt path, callback
 
 
   sendNotification: (event, contents, callback) ->
@@ -1098,21 +1113,21 @@ module.exports = class JGroup extends Module
     success  : (client, data, callback) ->
 
       # it's not allowed to change followings
-      blacklist  = ['slug', 'slug_', 'config', '_activePlan']
+      blacklist  = ['slug', 'slug_', 'config', '_activeLimit']
       data[item] = null  for item in blacklist when data[item]?
 
       notifyOptions =
         group   : client?.context?.group
         target  : 'group'
 
-      { reviveGroupPlan } = require '../computeproviders/computeutils'
+      { reviveGroupLimits } = require '../computeproviders/computeutils'
 
-      reviveGroupPlan this, (err, group) =>
+      reviveGroupLimits this, (err, group) =>
 
         # we need to make sure if given stack template is
-        # valid for the current group plan ~ GG
+        # valid for the current group limit ~ GG
         templates = data.stackTemplates
-        if templates?.length > 0 and group._activePlan
+        if templates?.length > 0 and group._activeLimit
           ComputeProvider = require '../computeproviders/computeprovider'
           ComputeProvider.validateTemplates client, templates, group, (err) =>
             return callback err  if err
@@ -1121,25 +1136,102 @@ module.exports = class JGroup extends Module
           @updateAndNotify notifyOptions, { $set: data }, callback
 
 
-  setPlan    : permit
+  setLimit    : permit
     advanced : [{ permission: 'edit groups', superadmin: yes }]
     success  : (client, data, callback) ->
 
       if (@getAt 'slug') is 'koding'
         return callback new KodingError \
-          'Setting a plan on koding is not allowed'
+          'Setting a limit on koding is not allowed'
 
-      dataToUpdate = { 'config.planOverrides' : data.overrides }
+      dataToUpdate = { 'config.limitOverrides' : data.overrides }
 
-      # Allow koding admins to set a testplan on dev environments
-      if data.plan and KONFIG.environment isnt 'production'
-        dataToUpdate['config.testplan'] = data.plan
+      # Allow koding admins to set a testlimit on dev environments
+      if data.limit and KONFIG.environment isnt 'production'
+        dataToUpdate['config.testlimit'] = data.limit
 
-      if data.plan is 'noplan' and not data.overrides
-        dataToUpdate['config.testplan'] = {}
+      if data.limit is 'nolimit' and not data.overrides
+        dataToUpdate['config.testlimit'] = {}
         @update { $unset: dataToUpdate }, callback
       else
         @update { $set: dataToUpdate }, callback
+
+
+  disableOAuth: (provider, callback) ->
+
+    dataToUpdate = {}
+    dataToUpdate["config.#{provider}"] = null
+
+    group = @getAt 'slug'
+    notifyOptions = { target: 'group', group }
+
+    @updateAndNotify notifyOptions, { $unset: dataToUpdate }, (err) =>
+      return callback err  if err
+
+      JForeignAuth = require '../foreignauth'
+      JForeignAuth.remove { group, provider }
+
+      @fetchData (err, data) ->
+        return callback err  if err
+
+        dataToUnset = {}
+        dataToUnset["data.#{provider}.applicationSecret"] = null
+        data.update { $unset: dataToUnset }, callback
+
+
+
+  setOAuth   : permit
+    advanced : [
+      { permission: 'edit own groups', validateWith : Validators.group.admin }
+      { permission: 'edit groups',     superadmin   : yes }
+    ]
+    success: (client, options, callback) ->
+
+      { enabled, provider, url, applicationId, applicationSecret } = options
+
+      OAuth = require '../oauth'
+      group = client?.context?.group
+
+      if not group or group is 'koding'
+        return callback new KodingError 'Session data invalid'
+
+      if not (_provider = OAuth.PROVIDERS[provider]) or not _provider.enabled
+        return callback new KodingError 'Provider not supported at this time.'
+
+      dataToUpdate = {}
+      dataToUpdate["config.#{provider}"] = {}
+
+      notifyOptions = { target: group, group }
+
+      if not enabled
+        @disableOAuth provider, callback
+        return
+
+      validateOptions = { url, applicationId, applicationSecret }
+
+      OAuth.validateOAuth provider, validateOptions, (err, data) =>
+        return callback err  if err
+
+        url = data.url  if data.url
+
+        dataToUpdate["config.#{provider}"] = {
+          enabled: yes
+          applicationId
+          url
+        }
+
+        @updateAndNotify notifyOptions, { $set: dataToUpdate }, (err) =>
+          return callback err  if err
+
+          @fetchData (err, data) ->
+            return callback err  if err
+
+            dataToSet = {}
+            dataToSet["data.#{provider}"] = { applicationSecret }
+            data.update { $set: dataToSet }, (err) ->
+              return callback err  if err
+
+              callback null, { url }
 
 
   modifyMembershipPolicy: permit

@@ -29,12 +29,6 @@ module.exports = (options, credentials) ->
     aws: "aws"
     premium: "vagrant"
 
-  paymentwebhook =
-    port: "6600"
-    debug: false
-    customersKey: credentials.paymentwebhook.customersKey
-    secretKey: credentials.paymentwebhook.secretKey
-
   broker =
     name: "broker"
     serviceGenericName: "broker"
@@ -138,6 +132,10 @@ module.exports = (options, credentials) ->
     userPublicKey: credentials.kloud.userPublicKey
     userPrivateKey: credentials.kloud.userPrivateKey
 
+    keygenAccessKey: credentials.kloud.keygenAccessKey
+    keygenSecretKey: credentials.kloud.keygenSecretKey
+    keygenBucket: credentials.kloud.keygenBucket
+
     address: "http://localhost:#{kloudPort}/kite"
 
     kontrolUrl: kontrol.url
@@ -145,22 +143,14 @@ module.exports = (options, credentials) ->
     tunnelUrl: "#{options.tunnelUrl}"
     klientUrl: "https://s3.amazonaws.com/koding-klient/development/latest/klient.deb"
 
-    planEndpoint: "#{socialApiProxyUrl}/payments/subscriptions"
     credentialEndPoint: "#{socialApiProxyUrl}/credential"
-    networkUsageEndpoint: "http://localhost:#{vmwatcherPort}"
 
     janitorSecretKey: credentials.janitor.secretKey
     vmWatcherSecretKey: credentials.vmwatcher.secretKey
-    paymentWebHookSecretKey: credentials.paymentwebhook.secretKey
     terraformerSecretKey: credentials.terraformer.secretKey
-
-    awsAccessKeyId: credentials.awsKeys.vm_kloud.accessKeyId
-    awsSecretAccessKey: credentials.awsKeys.vm_kloud.secretAccessKey
 
   vmwatcher =
     port: vmwatcherPort
-    awsKey: credentials.awsKeys.vm_vmwatcher.accessKeyId
-    awsSecret: credentials.awsKeys.vm_vmwatcher.secretAccessKey
     kloudSecretKey: kloud.kloudSecretKey
     kloudAddr: kloud.address
     connectToKlient: options.vmwatcherConnectToKlient
@@ -169,7 +159,7 @@ module.exports = (options, credentials) ->
     redis: credentials.redis.url
     secretKey: credentials.vmwatcher.secretKey
 
-  hubspotPageURL      = "http://www.koding.com"
+  marketingPagesURL = "http://www.koding.com"
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
@@ -181,7 +171,6 @@ module.exports = (options, credentials) ->
     disabledFeatures       : options.disabledFeatures
 
     stripe                 : credentials.stripe
-    paypal                 : credentials.paypal
     github                 : credentials.github
     gitlab                 : gitlab
     janitor                : credentials.janitor
@@ -202,7 +191,6 @@ module.exports = (options, credentials) ->
     gatekeeper             : gatekeeper
     integration            : integration
     webhookMiddleware      : webhookMiddleware
-    paymentwebhook         : paymentwebhook
     customDomain           : options.customDomain
     email                  : email
 
@@ -216,6 +204,25 @@ module.exports = (options, credentials) ->
     configFilePath         : "$KONFIG_PROJECTROOT/go/src/socialapi/config/#{options.configName}.toml"
     disableCaching         : no
     debug                  : no
+
+  # configuration for Go's back-end part of Koding. Configuration structure is
+  # defined in ./go/src/koding/kites/config/config.go
+  goKoding =
+    environment        : options.environment
+    buckets            :
+      publicLogs       :
+        name           : options.publicLogsS3BucketName
+        region         : 'us-east-1'
+    endpoints          :
+      ip               : "https://#{options.proxySubdomain}.koding.com/-/ip"
+      ipCheck          : "https://#{options.proxySubdomain}.koding.com/-/ipcheck"
+      kdLatest         : "https://koding-kd.s3.amazonaws.com/#{options.environment}/latest-version.txt"
+      klientLatest     : "https://koding-klient.s3.amazonaws.com/#{options.environment}/latest-version.txt"
+      kloud            : "#{options.publicHostname}/kloud/kite",
+      kontrol          : "#{options.publicHostname}/kontrol/kite",
+      tunnelServer     : "#{options.tunnelUrl}/kite"
+    routes             :
+      'dev.koding.com' : '127.0.0.1'
 
   KONFIG =
     configName                    : options.configName
@@ -266,14 +273,15 @@ module.exports = (options, credentials) ->
     dummyAdmins                   : credentials.dummyAdmins
     druid                         : credentials.druid
     clearbit                      : credentials.clearbit
+    wufoo                         : credentials.wufoo
 
-    paymentwebhook                : paymentwebhook
     regions                       : regions
     broker                        : broker
     tunnelproxymanager            : tunnelproxymanager
     tunnelserver                  : tunnelserver
-    hubspotPageURL                : hubspotPageURL
+    marketingPagesURL             : marketingPagesURL
     socialapi                     : socialapi
+    goKoding                      : goKoding
     githubapi                     : githubapi
     email                         : email
     kloud                         : kloud
@@ -292,7 +300,6 @@ module.exports = (options, credentials) ->
     boxproxy                      : { port: parseInt(options.publicPort, 10) }
     sourcemaps                    : { port: 3526 }
     rerouting                     : { port: 9500 }
-    gowebserver                   : { port: 6500 }
     gatheringestor                : { port: 6800 }
     sessionCookie                 : { maxAge: 1000 * 60 * 60 * 24 * 14, secure: options.secureCookie }
     troubleshoot                  : { recipientEmail: "can@koding.com" }

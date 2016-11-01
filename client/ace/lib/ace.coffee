@@ -12,9 +12,7 @@ settings             = require './settings'
 
 prependWithOrigin = (path) -> [location.origin, path].join '/'
 
-module.exports =
-
-class Ace extends KDView
+module.exports = class Ace extends KDView
 
   ACE_READY = no
 
@@ -38,6 +36,8 @@ class Ace extends KDView
 
 
   toBindKey = (binding) ->
+
+    return {}  unless binding
 
     bindKey = {}
     bindKey[globals.keymapType] = binding
@@ -90,11 +90,10 @@ class Ace extends KDView
 
     @hide()
 
-    @appStorage.fetchStorage (storage) -> # XXX: wtf? -og
-
-    if ACE_READY
-    then @scriptLoaded()
-    else Ace.once 'ScriptLoaded', @bound 'scriptLoaded'
+    @appStorage.fetchStorage =>
+      if ACE_READY
+      then @scriptLoaded()
+      else Ace.once 'ScriptLoaded', @bound 'scriptLoaded'
 
 
   scriptLoaded: ->

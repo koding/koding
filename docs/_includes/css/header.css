@@ -1,0 +1,350 @@
+body {
+  padding-top: 69px;
+}
+
+.Homepage-Header {
+  height: 69px;
+  z-index: 2;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.Homepage-HeaderWrapper {
+  display: flex;
+  max-width: 1399px;
+  margin: 0 auto;
+  height: 100%;
+}
+
+.Homepage-Header * {
+  box-sizing: content-box;
+}
+
+.Homepage-Header .logo svg {
+  width: 99px;
+  min-width: 99px;
+  margin-top: -8px;
+}
+.Homepage-Header .logo svg * {
+  fill: white
+}
+
+.Homepage-Header a {
+  flex-basis: content;
+  justify-content: center;
+  display: flex;
+  align-items: center;
+  padding-left: 30px;
+  padding-right: 30px;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-size: 13px;
+  text-transform: uppercase;
+  border-radius: 6px;
+  margin: 10px;
+  /*border-color: rgba(0,0,0,0.15);*/
+  /*border-style: solid;*/
+}
+
+.Homepage-Header .item {
+  flex-basis: 100%;
+  max-width: 70px;
+}
+
+.Homepage-Header a:hover {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.Homepage-Header a:first-child:hover {
+  color: white;
+  background-color: inherit;
+}
+
+.Homepage-Header a:active, .Homepage-Header a.active {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.Homepage-Header .spacer {
+  flex-grow: 1;
+  /*border-left-width: 1px;*/
+  /*border-style: solid;*/
+  /*border-color: rgba(0,0,0,0.15);*/
+}
+
+.Homepage-Header .burger {
+  display: none;
+}
+
+.Homepage-Header .social {
+  padding-left: 30px;
+  padding-right: 30px;
+  border-left-width: 1px;
+  border-right: 0;
+}
+
+.Homepage-Header svg g {
+  fill: rgba(255, 255, 255, 0.8);
+}
+
+.Homepage-Header a:hover svg g {
+  fill: white;
+}
+
+.Homepage-Header .signup {
+  background-color: #FFC442;
+  color: rgba(0,0,0,0.39);
+  text-transform: uppercase;
+  font-weight: bold;
+  padding-left: 35px;
+  padding-right: 35px;
+  text-decoration: none;
+}
+
+.Homepage-Header .signup:hover, .Homepage-Header .signup:active {
+  background-color: #FFB920;
+  color: rgba(0,0,0,0.39);
+}
+
+.Homepage-Header .signup svg {
+  margin-right: 6px;
+}
+
+.Homepage-Header .signup:hover svg g, .Homepage-Header .signup svg g {
+  fill: rgba(0,0,0,0.39)
+}
+
+
+
+@media (max-width: 1199px) {
+
+  .Homepage-Header a {
+    flex-grow: 1;
+  }
+
+  .Homepage-Header .item, .Homepage-Header .logo {
+    padding: 0 20px;
+  }
+
+  .Homepage-Header .social {
+    max-width: 26px;
+    min-width: 26px;
+  }
+
+  .Homepage-Header .spacer {
+    max-width: 0;
+    display: none;
+  }
+
+  .Homepage-Header .signup {
+    display: none;
+  }
+
+}
+
+@media (max-width: 991px) {
+
+  body {
+    padding-top: 46px;
+  }
+
+  .Homepage-Header {
+    height: 46px;
+  }
+
+  .Homepage-Header .logo svg {
+    width: 72px;
+    min-width: 72px;
+  }
+
+  .Homepage-Header .social {
+    padding: 0 20px;
+  }
+
+}
+
+@media (max-width: 767px) {
+  .Homepage-Header a {
+    flex-grow: 0;
+  }
+  .Homepage-Header .item, .Homepage-Header .social {
+    display: none;
+  }
+  .Homepage-Header .logo, .Homepage-Header .logo:hover {
+    border: 0;
+    background-color: transparent;
+  }
+  .Homepage-Header .burger {
+    display: flex;
+    padding: 0 10px;
+    cursor: pointer;
+    margin: 10px 10px 10px 0;
+  }
+  .Homepage-Header .burger svg g {
+    fill: rgba(255,255,255,0.8);
+  }
+  .Homepage-Header .burger:hover svg g {
+    fill: rgba(255,255,255,1);
+  }
+  .Homepage-Header .spacer {
+    max-width: none;
+    display: block;
+    border: 0;
+  }
+  .Homepage-Header .signup {
+    display: flex;
+    background-color: transparent;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    padding: 0 10px;
+    margin: 10px 0;
+  }
+  .Homepage-Header .signup:hover,
+  .Homepage-Header .burger:hover {
+    background-color: transparent;
+  }
+  .Homepage-Header .signup svg {
+    margin: 0;
+  }
+  .Homepage-Header .signup span {
+    display: none;
+  }
+  .Homepage-Header .signup svg g {
+    fill: rgba(255,255,255,0.8);
+  }
+  .Homepage-Header .signup:hover svg g {
+    fill: rgba(255,255,255,1);
+  }
+
+  .burgerToggle .Homepage-Header {
+    height: auto;
+    flex-wrap: wrap;
+  }
+
+  .burgerToggle .Homepage-Header .logo {
+    height: 26px;
+  }
+
+  .burgerToggle .Homepage-Header .item {
+    order: 10;
+    display: flex;
+    min-width: 100%;
+    height: 50px;
+    width: 100%;
+    padding: 0;
+    border-top-width: 1px;
+    flex: 1 0 100%;
+    margin: 0;
+    border-radius: 0;
+  }
+}
+
+
+.Homepage-Header.light,
+.StickyHeader .Homepage-Header {
+  background-color: #F7F7F7;
+  border-bottom: 1px solid rgba(0,0,0,.05);
+}
+
+.StickyHeader .Homepage-Header {
+  position: fixed;
+  width: 100%;
+  z-index: 10;
+  top: -100px;
+  transform: translateY(0);
+  transition: opacity .377s ease, transform .177s ease;
+  opacity: 0;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.Homepage-Header.light a:hover,
+.StickyHeader .Homepage-Header a:hover {
+  color: white;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.Homepage-Header.light .spacer,
+.StickyHeader .Homepage-Header .spacer {
+  border-color: rgba(0,0,0,.05);
+}
+.Homepage-Header.light a:active,
+.Homepage-Header.light a.active,
+.StickyHeader .Homepage-Header a:active,
+.StickyHeader .Homepage-Header a.active {
+  background-color: white;
+}
+.Homepage-Header.light .logo svg * ,
+.StickyHeader .Homepage-Header .logo svg * {
+  fill: rgba(53,139,176,1);
+}
+.Homepage-Header.light a,
+.StickyHeader .Homepage-Header a {
+  color: rgba(53,139,176,0.8);
+}
+.Homepage-Header.light a:hover,
+.StickyHeader .Homepage-Header a:hover {
+  color: rgba(53,139,176,1);
+}
+.Homepage-Header.light .social svg g,
+.StickyHeader .Homepage-Header .social svg g {
+  fill: rgba(53,139,176,0.8);
+}
+.Homepage-Header.light .social:hover svg g,
+.StickyHeader .Homepage-Header .social:hover svg g {
+  fill: rgba(53,139,176,1);
+}
+.Homepage-Header.light a,
+.StickyHeader .Homepage-Header a {
+  border-color: rgba(0,0,0,0.05);
+}
+.Homepage-Header.light .signup,
+.Homepage-Header.light .signup:hover,
+.StickyHeader .Homepage-Header .signup,
+.StickyHeader .Homepage-Header .signup:hover {
+  color: rgba(0,0,0,0.39);
+}
+.StickyHeader.in .Homepage-Header {
+  transform: translateY(100px);
+  opacity: 1;
+}
+.Homepage-Header.light .burger svg g ,
+.StickyHeader .Homepage-Header .burger svg g {
+  fill: rgba(53,139,176,0.8)
+}
+.Homepage-Header.light .burger:hover svg g,
+.StickyHeader .Homepage-Header .burger:hover svg g {
+  fill: rgba(53,139,176,1)
+}
+
+@media (max-width: 1340px) {
+  .Homepage-Header .item {
+    max-width: 55px;
+  }
+}
+
+@media (max-width: 1199px) {
+  .StickyHeader .Homepage-Header .social {
+    display: none;
+  }
+  .StickyHeader .Homepage-Header .signup {
+    display: flex;
+  }
+
+  .Homepage-Header .item {
+    max-width: none;
+    flex-basis: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .Homepage-Header.light .signup svg g,
+  .StickyHeader .Homepage-Header .signup svg g {
+    fill: rgba(53,139,176,0.8);
+  }
+  .Homepage-Header.light .signup:hover svg g,
+  .StickyHeader .Homepage-Header .signup:hover svg g {
+    fill: rgba(53,139,176,1);
+  }
+}
+

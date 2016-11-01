@@ -7,9 +7,10 @@ module.exports = class ChangeTeamView extends kd.ModalView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry 'change-team-modal', options.cssClass
-    options.width    = 480
-    options.overlay ?= yes
+    options.cssClass       = kd.utils.curry 'change-team-modal', options.cssClass
+    options.width          = 480
+    options.overlay       ?= yes
+    options.overlayOptions = { cssClass : 'change-team-modal-overlay' }
 
     super options, data
 

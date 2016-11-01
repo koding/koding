@@ -5,13 +5,16 @@ showError            = require './util/showError'
 KodingAppsController = require './kodingappscontroller'
 HomeGetters          = require 'home/flux/getters'
 LocalStorage = require 'app/localstorage'
+isGroupDisabled = require './util/isGroupDisabled'
+getRole = require './util/getRole'
 
 module.exports = class KodingRouter extends kd.Router
 
   constructor: (@defaultRoute) ->
 
     @breadcrumb = []
-    @defaultRoute or= global.location.pathname + global.location.search
+    { pathname, search, hash } = global.location
+    @defaultRoute or= "#{pathname}#{search}#{hash}"
     @openRoutes     = {}
     @openRoutesById = {}
 
@@ -33,7 +36,7 @@ module.exports = class KodingRouter extends kd.Router
         entryPoint      : globals.config.entryPoint
 
 
-  handleRoute: (route, options = {}) ->
+  handleRoute: (route = '', options = {}) ->
 
     @breadcrumb.push route
 
@@ -49,12 +52,26 @@ module.exports = class KodingRouter extends kd.Router
       name = _slug
 
     appManager = kd.getSingleton 'appManager'
+
     if appManager.shouldLoadApp name
       return KodingAppsController.loadInternalApp name, (err, res) =>
         return kd.warn err  if err
         kd.utils.defer => @handleRoute route, options
 
+    group = kd.singletons.groupsController.getCurrentGroup()
+
+    # make sure that the team is routed to the disabled route when
+    # it's disabled.
+    if isGroupDisabled(group) and not @isRouteAllowed route
+      return @handleRoute @getGroupDisabledRoute route
+
+    # make sure that disabled route is not being shown to not disabled
+    # teams.
+    if not isGroupDisabled(group) and @isDisabledRoute route
+      return location.replace @getDefaultRoute()
+
     return @handleRoute @getDefaultRoute()  if /<|>/.test route
+
     super route, options
 
 
@@ -99,6 +116,28 @@ module.exports = class KodingRouter extends kd.Router
       return '/Welcome'
 
 
+  isRouteAllowed: (route) ->
+
+    allowedRoutes =
+      admin: [
+        '/Home/team-billing'
+        '/Disabled/Admin'
+      ]
+      member: [
+        '/Disabled/Member'
+        '/Disabled/Member/notify-success'
+        '/Disabled/Member/upgrade-notify-success'
+        '/Disabled/Member/suspended-notify-success'
+        '/Logout'
+      ]
+
+    return route in allowedRoutes[getRole()]
+
+
+  getGroupDisabledRoute: -> "/Disabled/#{getRole().capitalize()}"
+
+
+  isDisabledRoute: (route) -> new RegExp(@getGroupDisabledRoute()).test route
 
 
   setPageTitle: (title = 'Koding') -> kd.singletons.pageTitle.update title

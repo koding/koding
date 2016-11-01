@@ -149,6 +149,56 @@ runTests = -> describe 'workers.social.group.index', ->
 
           async.series queue, done
 
+  describe '#leave()', ->
+
+    describe 'when group slug is not koding', ->
+
+      group        = {}
+      groupSlug    = generateRandomString()
+      adminClient  = {}
+      adminAccount = {}
+
+      # before running test cases creating a group
+      before (done) ->
+
+        options = { createGroup : yes, context : { group : groupSlug } }
+        withConvertedUser options, (data) ->
+          { group, client : adminClient, account : adminAccount } = data
+          done()
+
+      it 'should be able leave the group', (done) ->
+
+        options = { context : { group : groupSlug } }
+        withConvertedUser options, ({ client, account, userFormData }) ->
+
+          queue = [
+            (next) ->
+              # expecting no error from kick member request
+              group.leave client, {}, (err) ->
+                expect(err).to.not.exist
+                next()
+
+            (next) ->
+              # admin client search for kicked member within group member
+              group.searchMembers adminClient, userFormData.username, {}, (err, members) ->
+                expect(err).to.not.exist
+                expect(members.length).to.be.equal 0
+                next()
+
+            (next) ->
+              # expecting session to be deleted after kicking member
+              params =
+                username  : account.profile.nickname
+                groupName : client.context.group
+
+              JSession.one params, (err, data) ->
+                expect(err).to.not.exist
+                expect(data).to.not.exist
+                next()
+          ]
+
+          async.series queue, done
+
 
   describe '#searchMembers()', ->
 
@@ -475,7 +525,7 @@ runTests = -> describe 'workers.social.group.index', ->
         async.series queue
 
 
-  describe 'setPlan()', ->
+  describe 'setLimit()', ->
 
     describe 'when permissions are not valid', ->
 
@@ -483,7 +533,7 @@ runTests = -> describe 'workers.social.group.index', ->
 
         options = { createGroup : yes }
         withConvertedUser options, ({ client, group }) ->
-          expectAccessDenied group, 'setPlan', done
+          expectAccessDenied group, 'setLimit', done
 
 
       it 'should fail if user an admin in a group but not in koding', (done) ->
@@ -491,7 +541,7 @@ runTests = -> describe 'workers.social.group.index', ->
         options = { createGroup: yes, role: 'admin' }
 
         withConvertedUser options, ({ client, group }) ->
-          group.setPlan client, { plan: 'default' }, (err) ->
+          group.setLimit client, { limit: 'default' }, (err) ->
             expect(err).to.exist
             expect(err.message).to.be.equal 'Access denied'
 
@@ -500,18 +550,18 @@ runTests = -> describe 'workers.social.group.index', ->
 
     describe 'when permissions are ok', ->
 
-      it 'should fail if user wants to set plan for koding group', (done) ->
+      it 'should fail if user wants to set limit for koding group', (done) ->
 
         options = { role: 'admin' }
 
         withConvertedUser options, ({ client, group }) ->
-          group.setPlan client, { plan: 'default' }, (err) ->
+          group.setLimit client, { limit: 'default' }, (err) ->
             expect(err).to.exist
-            expect(err.message).to.be.equal 'Setting a plan on koding is not allowed'
+            expect(err.message).to.be.equal 'Setting a limit on koding is not allowed'
 
             done()
 
-      it 'should allow to update plan overrides if provided plan is valid', (done) ->
+      it 'should allow to update limit overrides if provided limit is valid', (done) ->
 
         withConvertedUser { createGroup: 'yes' }, ({ group }) ->
 
@@ -519,9 +569,9 @@ runTests = -> describe 'workers.social.group.index', ->
             _client = data.client
 
             overrides = { member: 5, validFor: 25 }
-            group.setPlan _client, { overrides }, (err) ->
+            group.setLimit _client, { overrides }, (err) ->
               expect(err).to.not.exist
-              expect(group.getAt 'config.planOverrides').to.be.equal overrides
+              expect(group.getAt 'config.limitOverrides').to.be.equal overrides
 
               done()
 

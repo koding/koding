@@ -1,7 +1,7 @@
 kd = require 'kd'
 headerize = require '../commons/headerize'
 sectionize = require '../commons/sectionize'
-isFeatureEnabled = require 'app/util/isFeatureEnabled'
+hasIntegration = require 'app/util/hasIntegration'
 
 HomeAccountEditProfile = require './homeaccounteditprofile'
 HomeAccountChangePassword = require './homeaccountchangepassword'
@@ -27,10 +27,22 @@ module.exports = class HomeAccount extends kd.CustomScrollView
     @wrapper.addSubView headerize 'Security'
     @wrapper.addSubView sectionize 'Security', HomeAccountSecurityView
 
-    if isFeatureEnabled 'gitlab'
+    if hasIntegration 'gitlab'
       @wrapper.addSubView headerize 'Integrations'
       @wrapper.addSubView sectionize 'Integrations', HomeAccountIntegrationsView
 
     @wrapper.addSubView headerize 'Sessions'
     @wrapper.addSubView sectionize 'Sessions', HomeAccountSessionsView
 
+
+  handleAnchor: (anchor) ->
+
+    kd.utils.defer ->
+      selector = switch anchor
+        when '#password'
+          '[name=password]'
+        when ''
+          '[name=firstName]'
+
+      if selector
+        document.querySelector(selector).focus?()

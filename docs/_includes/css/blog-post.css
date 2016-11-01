@@ -1,0 +1,26 @@
+.BlogPost {
+  max-width: 634px;
+  width: 100%;
+  padding: 48px 30px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.BlogPost-PrevNext {
+  margin: 24px 0 0 0;
+  display: flex;
+}
+
+.BlogPost-PrevNext a {
+  flex: 1 0 auto;
+  color: #989898;
+  text-decoration: none;
+}
+
+.BlogPost-PrevNext a:hover {
+  color: #727272;
+}
+
+.BlogPost-PrevNext a:last-child {
+  text-align: right;
+}

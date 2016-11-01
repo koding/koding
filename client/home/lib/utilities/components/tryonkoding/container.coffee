@@ -1,6 +1,6 @@
 _               = require 'lodash'
 kd              = require 'kd'
-React           = require 'kd-react'
+React           = require 'app/react'
 View            = require './view'
 TeamFlux        = require 'app/flux/teams'
 showError       = require 'app/util/showError'

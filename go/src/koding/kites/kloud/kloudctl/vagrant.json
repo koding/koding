@@ -1,9 +1,0 @@
-{
-    "resource": {
-        "vagrant_instance": {
-            "example_1": {
-                "user_data": "sudo apt-get install sl -y\ntouch /tmp/${var.koding_user_username}.txt",
-            }
-        }
-    }
-}

@@ -305,12 +305,6 @@ leaveTeam = (partial) ->
             global.location.replace '/'
 
 
-focusSendInvites = (focus) ->
-
-  { reactor } = kd.singletons
-  reactor.dispatch actions.FOCUS_SEND_INVITES_SECTION, focus
-
-
 fetchApiTokens = ->
 
   { groupsController, reactor } = kd.singletons
@@ -384,7 +378,6 @@ module.exports = {
   loadDisabledUsers
   handleDisabledUser
   handlePermanentlyDeleteMember
-  focusSendInvites
   fetchApiTokens
   deleteApiToken
   addApiToken

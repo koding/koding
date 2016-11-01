@@ -1,8 +1,11 @@
 package object
 
 import (
+	"encoding"
 	"encoding/json"
+	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/fatih/structs"
@@ -44,21 +47,22 @@ type Builder struct {
 
 	// Recursive tells when struct fields should be processed as well.
 	Recursive bool
+
+	// FieldFunc is used to format struct's field name.
+	//
+	// By default struct's field name is used as-is.
+	FieldFunc func(string) string
 }
 
 // New creates new child builder for the given prefix.
 func (b *Builder) New(prefix string) *Builder {
-	newB := &Builder{
-		Tag:       b.Tag,
-		Sep:       b.Sep,
-		Recursive: b.Recursive,
-	}
+	newB := *b
 	if b.Prefix != "" {
 		newB.Prefix = b.Prefix + newB.Sep + prefix
 	} else {
 		newB.Prefix = prefix
 	}
-	return newB
+	return &newB
 }
 
 // Build creates flat object representation of the given value v ignoring
@@ -67,6 +71,87 @@ func (b *Builder) Build(v interface{}, ignored ...string) Object {
 	obj := make(Object)
 	b.build(v, obj, ignored...)
 	return obj
+}
+
+// TODO(rjeczalik): add support for patching - accept path instead of key,
+// so it's possible to partially update nested structs / maps.
+func (b *Builder) Set(v interface{}, key string, value interface{}) error {
+	type setter interface {
+		Set(string) error
+	}
+
+	for _, field := range structs.New(toStruct(v)).Fields() {
+		if !field.IsExported() {
+			continue
+		}
+
+		name := field.Name()
+		if b.Tag != "" {
+			if s := field.Tag(b.Tag); s != "" {
+				name = s
+			}
+
+			if i := strings.IndexRune(name, ','); i != -1 {
+				name = name[:i]
+			}
+		}
+
+		if name != key {
+			continue
+		}
+
+		if value == nil {
+			return field.Set(reflect.Zero(reflect.TypeOf(field.Value())).Interface())
+		}
+
+		var s string
+
+		switch v := value.(type) {
+		case string:
+			s = v
+		case fmt.Stringer:
+			s = v.String()
+		default:
+			s = fmt.Sprintf("%v", v)
+		}
+
+		switch f := field.Value().(type) {
+		case encoding.TextUnmarshaler:
+			if err := f.UnmarshalText([]byte(s)); err != nil {
+				return err
+			}
+		case setter:
+			if err := f.Set(s); err != nil {
+				return err
+			}
+		case int:
+			n, err := strconv.Atoi(s)
+			if err != nil {
+				return err
+			}
+
+			if err := field.Set(n); err != nil {
+				return err
+			}
+		case bool:
+			b, err := strconv.ParseBool(s)
+			if err != nil {
+				return err
+			}
+
+			if err := field.Set(b); err != nil {
+				return err
+			}
+		default:
+			if err := field.Set(value); err != nil {
+				return err
+			}
+		}
+
+		break
+	}
+
+	return nil
 }
 
 // Decode marshals map-like obj value into v.
@@ -101,6 +186,10 @@ func decode(tag string, in, out interface{}) error {
 }
 
 func (b *Builder) build(v interface{}, obj Object, ignored ...string) {
+	if v == nil {
+		return
+	}
+
 	for _, prefix := range ignored {
 		if b.Prefix == prefix {
 			return
@@ -128,13 +217,13 @@ func (b *Builder) buildMapObject(v interface{}, obj Object, ignored ...string) {
 		vv := m.MapIndex(vkey).Interface()
 
 		if !b.Recursive {
-			b.set(obj, key, vv)
+			b.set(obj, key, vv, ignored...)
 			continue
 		}
 
 		child := flatten(vv)
 		if child == nil {
-			b.set(obj, key, vv)
+			b.set(obj, key, vv, ignored...)
 			continue
 		}
 
@@ -154,13 +243,13 @@ func (b *Builder) buildStruct(v interface{}, obj Object, ignored ...string) {
 		}
 
 		if !b.Recursive {
-			b.set(obj, key, field.Value())
+			b.set(obj, key, field.Value(), ignored...)
 			continue
 		}
 
 		child := flatten(field.Value())
 		if child == nil {
-			b.set(obj, key, field.Value())
+			b.set(obj, key, field.Value(), ignored...)
 			continue
 		}
 
@@ -168,10 +257,17 @@ func (b *Builder) buildStruct(v interface{}, obj Object, ignored ...string) {
 	}
 }
 
-func (b *Builder) set(obj Object, key string, value interface{}) {
+func (b *Builder) set(obj Object, key string, value interface{}, ignored ...string) {
 	if b.Prefix != "" {
 		key = b.Prefix + b.Sep + key
 	}
+
+	for _, prefix := range ignored {
+		if key == prefix {
+			return
+		}
+	}
+
 	// Do not overwrite existing keys.
 	if _, ok := obj[key]; !ok {
 		obj[key] = value
@@ -189,10 +285,17 @@ func (b *Builder) keyFromField(f *structs.Field) string {
 	case "-":
 		return ""
 	case "":
-		return strings.ToLower(f.Name())
+		return b.fieldFunc(f.Name())
 	}
 
 	return tag
+}
+
+func (b *Builder) fieldFunc(s string) string {
+	if b.FieldFunc != nil {
+		return b.FieldFunc(s)
+	}
+	return s
 }
 
 func isMapObject(v interface{}) bool {

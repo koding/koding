@@ -31,6 +31,3 @@ PostThrottleCount    = 100
 
 [emailnotification]
 TemplateRoot = "../templates/"
-
-[sitemap]
-RedisDB = 2

@@ -1,4 +1,4 @@
-React              = require 'kd-react'
+React              = require 'app/react'
 ReactDOM           = require 'react-dom'
 expect             = require 'expect'
 TestUtils          = require 'react-addons-test-utils'

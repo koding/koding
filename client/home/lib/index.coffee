@@ -7,6 +7,7 @@ HomeMyTeam          = require './myteam'
 HomeTeamBilling     = require './billing'
 HomePaymentHistory  = require './paymenthistory'
 HomeStacks          = require './stacks'
+HomeIntegrations    = require './integrations'
 
 do require './routehandler'
 
@@ -19,8 +20,8 @@ module.exports = class HomeAppController extends AppController
   TABS = [
     { title : 'Stacks', viewClass : HomeStacks, role: 'member' }
     { title : 'My Team', viewClass : HomeMyTeam, role: 'member' }
-    # Do not show billing temporarily until new pricing is in place. ~can
-    # { title : 'Team Billing', viewClass : HomeTeamBilling }
+    { title : 'Integrations', viewClass : HomeIntegrations }
+    { title : 'Team Billing', viewClass : HomeTeamBilling, showOnDisabled: yes }
     # { title : 'Payment History', viewClass : HomePaymentHistory }
     { title : 'Koding Utilities', viewClass : HomeUtilities, role: 'member' }
     { title : 'My Account', viewClass : HomeAccount, role: 'member' }
@@ -39,7 +40,9 @@ module.exports = class HomeAppController extends AppController
 
   openSection: (args...) -> @mainView.ready => @openSection_ args...
 
-  openSection_: (section, query, action, identifier) ->
+  openSection_: (options) ->
+
+    { section, query, action, identifier, anchor } = options
 
     if section is 'Oauth' and query.provider?
       @handleOauthRedirect query
@@ -65,10 +68,13 @@ module.exports = class HomeAppController extends AppController
     else if action
       targetPaneView.handleAction? action, query
     else
+      targetPaneView.handleSection?()
       @doOnboarding targetPane
 
-    unless identifier and action
-      return targetPaneView.handleSection?()  unless action
+    kd.utils.defer ->
+      if anchor and window.location.hash isnt anchor
+        window.location.replace anchor
+      targetPaneView.handleAnchor? anchor
 
 
   handleOauthRedirect: (options) ->
@@ -78,7 +84,7 @@ module.exports = class HomeAppController extends AppController
     error = null  if error is 'null'
     kd.singletons.oauthController.authCompleted error, provider
 
-    kd.singletons.router.handleRoute "/#{@options.name}/my-account",
+    kd.singletons.router.handleRoute '/Home/my-account#integrations',
       shouldPushState : yes
       replaceState    : yes
 

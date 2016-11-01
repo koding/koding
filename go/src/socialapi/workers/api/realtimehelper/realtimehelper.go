@@ -59,3 +59,17 @@ func NotifyUser(a *models.Account, eventName string, body interface{}, groupName
 
 	return bongo.B.Emit("dispatcher_notify_user", request)
 }
+
+func NotifyGroup(groupName string, eventName string, body interface{}) error {
+	request := map[string]interface{}{
+		"groupName": groupName,
+		"eventName": NotificationTypeMessage,
+		"body": map[string]interface{}{
+			"event":    eventName,
+			"context":  groupName,
+			"contents": body,
+		},
+	}
+
+	return bongo.B.Emit("dispatcher_notify_group", request)
+}

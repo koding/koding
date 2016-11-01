@@ -33,6 +33,7 @@ nginx.pid
 kontrol-data-*
 /erl_crash.dump
 /go/src/socialapi/db/sql/kontrol/001-schema.sql
+/go/src/koding/kites/kloud/kloud/import.go
 
 /go/bin
 /go/bin-vagrant
@@ -40,6 +41,7 @@ kontrol-data-*
 /go/pkg
 /go/data
 /go/binexport
+/go/src/github.com
 /go/src/socialapi/db/sql/kontrol
 /go/src/socialapi/config/*.toml
 
@@ -74,6 +76,7 @@ website/a/out
 website/a/p
 
 client/.sprites
+client/.tmp
 client/node_modules
 client/.config.json
 client/.schema.json

@@ -7,6 +7,19 @@ import (
 	"github.com/koding/kite"
 )
 
+// Error is used to differentiate expected stack errors
+// from the unexpected ones. If kloud kite method handler
+// return non-nil error of *stack.Error type, the error
+// is going to be logged.
+type Error struct {
+	Err error
+}
+
+// Error implements the builtin error interface.
+func (e *Error) Error() string {
+	return e.Err.Error()
+}
+
 type EventerError struct {
 	Msg string
 }
@@ -54,6 +67,9 @@ const (
 	ErrStaterNotImplemented   = 409
 	ErrProviderIsWrong        = 410
 	ErrProviderIsDisabled     = 411
+	ErrMachineNotImplemented  = 412
+	ErrStackNotImplemented    = 413
+	ErrCredentialIsMissing    = 414
 
 	ErrUserNotConfirmed = 500
 )
@@ -87,9 +103,12 @@ var kloudErrors = map[int]string{
 	ErrProviderNotImplemented: "Provider doesn't implement the given interface",
 	ErrBuilderNotImplemented:  "Provider doesn't implement the builder interface",
 	ErrStaterNotImplemented:   "Provider doesn't implement the stater interface",
+	ErrMachineNotImplemented:  "Provider doesn't implement the machine interface",
+	ErrStackNotImplemented:    "Provider doesn't implement the stack interface",
 	ErrProviderIsMissing:      "Provider argument is missing.",
 	ErrProviderIsWrong:        "Provider doesn't match the internal name",
 	ErrProviderIsDisabled:     "Provider is disabled",
+	ErrCredentialIsMissing:    "Credential is missing",
 
 	// User errors
 	ErrUserNotConfirmed: "User account is not confirmed",

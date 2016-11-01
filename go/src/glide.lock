@@ -13,6 +13,8 @@ imports:
   version: a3ebdb999b831ecb6ab8a226e31b07b2b9061c47
   subpackages:
   - cidr
+- name: github.com/vaughan0/go-ini
+  version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1
 - name: github.com/apparentlymart/go-grafana-api
   version: d49f95c81c580a4e7a15244b9b12dce8f60750f4
 - name: github.com/apparentlymart/go-rundeck-api
@@ -287,10 +289,6 @@ imports:
   version: b9698164669e386680621e2006cab02271257611
   subpackages:
   - github
-- name: github.com/google/go-querystring
-  version: 9235644dd9e52eeae6fa48efd539fdc351a0af53
-  subpackages:
-  - query
 - name: github.com/gopherjs/gopherjs
   version: 72e303cb5f235b23471872477b57e573dc1c71d0
   subpackages:
@@ -352,7 +350,7 @@ imports:
   subpackages:
   - simplelru
 - name: github.com/hashicorp/hcl
-  version: d8c773c4cba11b11539e3d45f93daeaa5dcf1fa1
+  version: 8fa153c5b4e9d1ccecda7075821ffc7c1f6d912b
   subpackages:
   - hcl/ast
   - hcl/fmtcmd
@@ -486,7 +484,7 @@ imports:
   - models
   - pkg/escape
 - name: github.com/jacobsa/fuse
-  version: 0b9db0a706bc0248f8a37cba1dd5372b4c9a8b72
+  version: 3b8b4e55df5483817cd361a28d0a830d5acd962b
   subpackages:
   - fuseops
   - fuseutil
@@ -582,11 +580,9 @@ imports:
 - name: github.com/koding/metrics
   version: 9a17123e052386b38746eb19fe9ec6f5bb047c90
 - name: github.com/koding/multiconfig
-  version: adb14a9648f101b3a5ac2b370a7d37c4a4a08b39
+  version: 8163d2b108ed2aa94820f6110f2ded169329c8d0
 - name: github.com/koding/passwd
   version: 68f4dfed95ab896a23ea76ed08fbb2b5a874339e
-- name: github.com/koding/paypal
-  version: 0f12d2c2a1863a6afa6b678afc70e364c8603b6b
 - name: github.com/koding/pubnub
   version: a3b695f8d7b6f32014aba0a929b000bd66a33f30
 - name: github.com/koding/rabbitmq
@@ -596,7 +592,7 @@ imports:
 - name: github.com/koding/runner
   version: 4731344e1a09114928a27d9b34e7d546f334d366
 - name: github.com/koding/service
-  version: c42533d8756bcad688f9cebe92b1b462d8842600
+  version: 700ef8751f1408ee03a0bf07bbee9969f934672f
 - name: github.com/koding/sshkey
   version: 1394f67258c7dca5203b1dc75c50d0b9f5762cd0
 - name: github.com/koding/terraform-provider-github
@@ -608,7 +604,7 @@ imports:
   subpackages:
   - proto
 - name: github.com/koding/vagrantutil
-  version: 72e6057782dc66468205cb161299ffae2215338e
+  version: 8c62faaf2409b722ec49275cee16ea85ca2fb6d5
 - name: github.com/kolo/xmlrpc
   version: 0826b98aaa29c0766956cb40d45cf7482a597671
 - name: github.com/kr/binarydist
@@ -921,6 +917,10 @@ imports:
   - internal/timeseries
   - trace
   - websocket
+- name: golang.org/x/sync
+  version: 316e794f7b5e3df4e95175a45a5fb8b12f85cb4f
+  subpackages:
+  - errgroup
 - name: golang.org/x/oauth2
   version: 8a57ed94ffd43444c0879fe75701732a38afc985
   subpackages:
@@ -1005,12 +1005,28 @@ imports:
   - store/redigostore
 - name: gopkg.in/tomb.v1
   version: dd632973f1e7218eb1089048e0798ec9ae7dceb8
+- name: cloud.google.com/go/compute/metadata
+  version: 4c4584f3b5aa40a0217ea68afc9adad12b38eca1
 - name: gopkg.in/yaml.v2
   version: e4d366fc3c7938e2958e662b4258c7a89e1f0e3e
 - name: labix.org/v2/mgo
   version: "287"
   subpackages:
   - bson
+- name: github.com/digitalocean/godo
+  version: 2ff8a02a86cd6918b384a5000ceebe886844fbce
+- name: github.com/google/go-querystring/query
+  version: 9235644dd9e52eeae6fa48efd539fdc351a0af53
+- name: github.com/tent/http-link-go
+  version: ac974c61c2f990f4115b119354b5e0b47550e888
+- name: github.com/Azure/azure-sdk-for-go
+  version: 91f3d4a4d024e3c0d4d9412916d05cf84504a616
+- name: github.com/Banno/terraform-provider-marathon
+  version: 693aa37ced14fe2323e619f8ab29532772a79452
+- name: github.com/gambol99/go-marathon
+  version: 6e3f9771c1f9f19b8034e8de6a7ca537c02be7de
+- name: github.com/donovanhide/eventsource
+  version: fd1de70867126402be23c306e1ce32828455d85b
 testImports:
 - name: github.com/vaughan0/go-ini
   version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1

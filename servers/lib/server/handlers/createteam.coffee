@@ -9,6 +9,7 @@ KONFIG                                  = require 'koding-config-manager'
 { hostname, environment }               = KONFIG
 { getClientId, handleClientIdNotFound } = require './../helpers'
 { validateTeamDomain }                  = require '../../../../workers/social/lib/social/models/user/validators'
+createPaymentPlan                       = require './createpaymentplan'
 
 module.exports = (req, res, next) ->
 
@@ -122,7 +123,8 @@ module.exports = (req, res, next) ->
   ]
 
   unless KONFIG.environment is 'production'
-    res.header 'Access-Control-Allow-Origin', 'http://www.koding.com'
+    res.header 'Access-Control-Allow-Origin', 'http://dev.koding.com:4000'
+
 
   async.series queue, (err) ->
 
@@ -168,8 +170,8 @@ createGroupKallback = (client, req, res, body) ->
       domains
       # username or email of the user, can be already registered or a new one for creation
       username
-      # title of team's plan
-      plan
+      # title of team's limit
+      limit
     } = body
 
     token = result.newToken or result.replacementToken
@@ -204,8 +206,8 @@ createGroupKallback = (client, req, res, body) ->
       allowedDomains  : convertToArray domains # clear & convert domains into array
       defaultChannels : []
 
-    if plan
-      createOptions.config = { plan }
+    if limit
+      createOptions.config = { limit }
 
     JGroup.create client, createOptions, owner, afterGroupCreate
 
@@ -214,7 +216,7 @@ createGroupKallback = (client, req, res, body) ->
 afterGroupCreateKallback = (res, params) ->
 
   { JUser, JTeamInvitation, Tracker } = koding.models
-  { body : { slug, invitees }, client,  username } = params
+  { body : { slug, invitees, coupon }, client,  username } = params
 
   return (err, group) ->
     if err or not group
@@ -224,8 +226,16 @@ afterGroupCreateKallback = (res, params) ->
     queue = [
 
       # add other parallel operations here
-      (fin) -> createInvitations client, invitees, (err) ->
+      (fin) ->
+        createInvitations client, invitees, (err) ->
           console.error 'Err while creating invitations', err  if err
+          fin()
+
+      (fin) ->
+        params = { sessionToken: client.sessionToken }
+        params.coupon = coupon  if coupon
+        createPaymentPlan params, (err) ->
+          console.error 'Err while creating payment plan', err  if err
           fin()
 
     ]

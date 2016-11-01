@@ -105,6 +105,8 @@ rest = ->
     log "6) you can then type './run' to run Koding and see it on #{options.hostname}"
 
     (require "./deployment/socialapiconfig.coffee").create KONFIG
+    (require "./deployment/mongomigrationconfig.coffee").create KONFIG
+    (require "./deployment/gokodingconfig.coffee").create KONFIG
 
   # write revision to client/.config.json
   writeVersion = (obj) ->
@@ -162,7 +164,7 @@ git.long (str) ->
     updateVault()
   else
     log "lemme find your IP"
-    request "http://echoip.net", (err, res, body) ->
+    request "https://p.koding.com/-/ip", (err, res, body) ->
       ip = body
       options.hostname = ip
       log "my ip is #{ip}"

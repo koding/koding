@@ -13,6 +13,7 @@ module.exports = class WelcomeModal extends kd.ModalView
     options.cssClass = "HomeWelcomeModal#{if landedOnWelcome then ' hidden' else ''}"
     options.width    = 710
     options.overlay  = yes
+    options.overlayOptions = { cssClass: if landedOnWelcome then 'hidden' else '' }
 
     super options, data
 
@@ -79,8 +80,14 @@ module.exports = class WelcomeModal extends kd.ModalView
 
     @setClass 'out'
 
-    kd.singletons.router.handleRoute '/IDE'  if selfInitiated
+    { router, computeController } = kd.singletons
+
+    previousRoutes = router.visitedRoutes.filter (route) ->
+      not (/^\/(?:Home).*/.test(route) or \
+           /^\/(?:Welcome).*/.test(route) or \
+           /\//.test(route))
+    route = previousRoutes.last ? '/IDE'
+    router.handleRoute route  if selfInitiated
 
     # fat arrow is not unnecessary - sy
     kd.utils.wait 400, => super
-

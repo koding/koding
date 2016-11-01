@@ -36,7 +36,7 @@ func TestBlockUser(t *testing.T) {
 	username, blockedReason := "testuser", "testing"
 
 	user := &models.User{
-		Name: username, ObjectId: bson.NewObjectId(), Status: UserStatusBlocked,
+		Name: username, ObjectId: bson.NewObjectId(), Status: models.UserBlocked,
 	}
 
 	defer func() {
@@ -58,7 +58,7 @@ func TestBlockUser(t *testing.T) {
 		t.Error(err)
 	}
 
-	if user.Status != UserStatusBlocked {
+	if user.Status != models.UserBlocked {
 		t.Errorf("User status is not blocked")
 	}
 

@@ -28,7 +28,9 @@ module.exports = koding = new Bongo
 
     JUser.authenticateClient sessionToken, (err, res = {}) ->
 
-      return console.error err  if err
+      if err
+        console.error '[fetchClient]', err
+        return callback err
 
       { account, session } = res
       context ?= { group: session?.groupName ? 'koding' }

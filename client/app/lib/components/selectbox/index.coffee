@@ -1,4 +1,4 @@
-React = require 'kd-react'
+React = require 'app/react'
 Select = require 'react-select'
 
 require './styl/selectbox.styl'

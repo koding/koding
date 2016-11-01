@@ -4,15 +4,15 @@ package klient
 import (
 	"errors"
 	"io/ioutil"
+	"strings"
+	"time"
+
 	"koding/klient/client"
 	"koding/klient/command"
 	"koding/klient/fs"
 	"koding/klient/remote/req"
 	"koding/klientctl/config"
 	"koding/klientctl/list"
-	"path/filepath"
-	"strings"
-	"time"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
@@ -73,8 +73,8 @@ type KlientOptions struct {
 // NewKlientOptions returns KlientOptions initialized to default values.
 func NewKlientOptions() KlientOptions {
 	return KlientOptions{
-		Address:     config.KlientAddress,
-		KiteKeyPath: filepath.Join(config.KiteHome, "kite.key"),
+		Address:     config.Konfig.KlientURL,
+		KiteKeyPath: config.Konfig.KiteKeyFile,
 		Name:        config.Name,
 		Version:     config.KiteVersion,
 		Environment: config.Environment,

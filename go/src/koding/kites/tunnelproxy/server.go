@@ -17,6 +17,7 @@ import (
 
 	"koding/artifact"
 	"koding/httputil"
+	konfig "koding/kites/config"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/utils"
 	"koding/tools/util"
@@ -34,16 +35,17 @@ import (
 type ServerOptions struct {
 	// Server config.
 	BaseVirtualHost string `json:"baseVirtualHost"`
-	HostedZone      string `json:"hostedZone" required:"true"`
-	AccessKey       string `json:"accessKey" required:"true"`
-	SecretKey       string `json:"secretKey" required:"true"`
+	HostedZone      string `json:"hostedZone"`
+	AccessKey       string `json:"accessKey"`
+	SecretKey       string `json:"secretKey"`
 
 	// Server kite config.
 	Port        int            `json:"port" required:"true"`
 	Region      string         `json:"region" required:"true"`
 	Environment string         `json:"environment" required:"true"`
 	Config      *config.Config `json:"kiteConfig"`
-	RegisterURL *url.URL       `json:"registerURL"`
+	RegisterURL string         `json:"registerURL"`
+	KontrolURL  string         `json:"kontrolURL"`
 
 	TCPRangeFrom int    `json:"tcpRangeFrom,omitempty"`
 	TCPRangeTo   int    `json:"tcpRangeTo,omitempty"`
@@ -54,6 +56,22 @@ type ServerOptions struct {
 
 	Log     logging.Logger     `json:"-"`
 	Metrics *metrics.DogStatsD `json:"-"`
+}
+
+func (opts *ServerOptions) registerURL() string {
+	if opts.RegisterURL != "" {
+		return opts.RegisterURL
+	}
+
+	return konfig.Builtin.Endpoints.TunnelServer
+}
+
+func (opts *ServerOptions) kontrolURL() string {
+	if opts.KontrolURL != "" {
+		return opts.KontrolURL
+	}
+
+	return konfig.Builtin.Endpoints.Kontrol
 }
 
 // Server represents tunneling server that handles managing authorization
@@ -99,6 +117,10 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 		optsCopy.BaseVirtualHost = optsCopy.HostedZone
 	}
 
+	if optsCopy.BaseVirtualHost == "" {
+		return nil, errors.New("either BaseVirtualHost or HostedZone parameter is required to be non-empty")
+	}
+
 	optsCopy.BaseVirtualHost = customPort(optsCopy.BaseVirtualHost, opts.Port, 80, 443)
 	optsCopy.ServerAddr = customPort(optsCopy.ServerAddr, opts.Port)
 
@@ -119,18 +141,32 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 		return nil, err
 	}
 
-	dnsOpts := &dnsclient.Options{
-		Creds:      credentials.NewStaticCredentials(optsCopy.AccessKey, optsCopy.SecretKey, ""),
-		HostedZone: optsCopy.HostedZone,
-		Log:        optsCopy.Log,
-		Debug:      optsCopy.Debug,
-	}
-	dns, err := dnsclient.NewRoute53Client(dnsOpts)
-	if err != nil {
-		return nil, err
+	if optsCopy.NoCNAME && (optsCopy.AccessKey == "" || optsCopy.SecretKey == "") {
+		return nil, errors.New("no valid Route53 configuration found")
 	}
 
-	if !optsCopy.NoCNAME {
+	var dns *dnsclient.Route53
+	if optsCopy.AccessKey != "" && optsCopy.SecretKey != "" {
+		dnsOpts := &dnsclient.Options{
+			Creds:      credentials.NewStaticCredentials(optsCopy.AccessKey, optsCopy.SecretKey, ""),
+			HostedZone: optsCopy.HostedZone,
+			Log:        optsCopy.Log,
+			Debug:      optsCopy.Debug,
+		}
+		dns, err = dnsclient.NewRoute53Client(dnsOpts)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Inserts DNS records for the tunnelserver. Host-routing requires an A record pointing
+	// to the tunnelserver and a wildcard CNAME record pointing to that A record.
+	// In other words if tunnel.example.com resolves to the tunnelserver, then
+	// *.tunnel.example.com must also resolve to the very same tunnelserver instance.
+	//
+	// If there are not route53 credentials passed, we assume the DNS records are
+	// taken care externally.
+	if !optsCopy.NoCNAME && dns != nil {
 		id, err := instanceID()
 		if err != nil {
 			if optsCopy.Test {
@@ -140,12 +176,12 @@ func NewServer(opts *ServerOptions) (*Server, error) {
 				}
 
 				id = "koding-" + username
-			} else {
-				return nil, err
 			}
 		}
 
-		optsCopy.BaseVirtualHost = strings.TrimPrefix(id, "i-") + "." + optsCopy.BaseVirtualHost
+		if id != "" {
+			optsCopy.BaseVirtualHost = strings.TrimPrefix(id, "i-") + "." + optsCopy.BaseVirtualHost
+		}
 
 		ip := host(optsCopy.ServerAddr)
 		base := host(optsCopy.BaseVirtualHost)
@@ -794,6 +830,9 @@ func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 		s.opts.Config = cfg
 	}
 
+	s.opts.Config.KontrolURL = s.opts.kontrolURL()
+	s.opts.Config.Transport = config.XHRPolling
+
 	if s.opts.Port != 0 {
 		s.opts.Config.Port = s.opts.Port
 	}
@@ -829,8 +868,13 @@ func NewServerKite(s *Server, name, version string) (*kite.Kite, error) {
 	// Route all the rest requests (match all paths that does not begin with /-/).
 	k.HandleHTTP(`/{rest:.?$|[^\/].+|\/[^-].+|\/-[^\/].*}`, s.serverHandler())
 
-	if s.opts.RegisterURL == nil {
-		s.opts.RegisterURL = k.RegisterURL(false)
+	u, err := url.Parse(s.opts.registerURL())
+	if err != nil {
+		return nil, fmt.Errorf("error parsing registerURL: %s", err)
+	}
+
+	if err := k.RegisterForever(u); err != nil {
+		return nil, fmt.Errorf("error registering to Kontrol: %s", err)
 	}
 
 	return k, nil

@@ -27,6 +27,7 @@ ActiveStackStore                  = ['ActiveStackStore']
 TeamStackTemplatesStore           = ['TeamStackTemplatesStore']
 PrivateStackTemplatesStore        = ['PrivateStackTemplatesStore']
 SelectedTemplateIdStore           = ['SelectedTemplateIdStore']
+expandedMachineLabelStore         = ['ExpandedMachineLabelStore']
 
 
 workspacesWithChannels = [
@@ -134,6 +135,7 @@ stacks = [
 
       .map (stack) ->
         stack
+          .set 'disabled', stack.getIn(['config', 'oldOwner'])?
           .set 'accessLevel', templates.getIn [stack.get('baseStackId'), 'accessLevel']
           .set 'baseTemplate', templates.get stack.get 'baseStackId'
           .update 'machines', (machines) ->
@@ -212,17 +214,6 @@ disabledUsersStacks = [
   (_stacks) -> _stacks.filter (s) -> s.hasIn ['config', 'oldOwner']
 ]
 
-disabledUsersStackTemplates = [
-  teamStackTemplates
-  disabledUsersStacks
-  (templates, _stacks) ->
-    _stacks
-      .map (s) -> templates.get s.get('baseStackId')
-      .reduce (acc, template) ->
-        acc.set template.get('_id'), template
-      , immutable.Map({})
-]
-
 
 module.exports = {
   stacks
@@ -251,5 +242,5 @@ module.exports = {
   inUsePrivateStackTemplates
   draftStackTemplates
   disabledUsersStacks
-  disabledUsersStackTemplates
+  expandedMachineLabelStore
 }

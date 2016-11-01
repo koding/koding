@@ -1,5 +1,5 @@
 kd                        = require 'kd'
-React                     = require 'kd-react'
+React                     = require 'app/react'
 immutable                 = require 'immutable'
 SidebarSection            = require 'app/components/sidebarsection'
 KDReactorMixin            = require 'app/flux/base/reactormixin'
@@ -7,9 +7,10 @@ EnvironmentFlux           = require 'app/flux/environment'
 StackUpdatedWidget        = require './stackupdatedwidget'
 getBoundingClientReact    = require 'app/util/getBoundingClientReact'
 SidebarMachinesListItem   = require 'app/components/sidebarmachineslistitem'
+canCreateStacks = require 'app/util/canCreateStacks'
 isAdmin = require 'app/util/isAdmin'
 remote = require 'app/remote'
-isStackTemplateSharedWithTeam = require 'app/util/isstacktemplatesharedwithteam'
+isDefaultTeamStack = require 'app/util/isdefaultteamstack'
 { findDOMNode } = require 'react-dom'
 
 require './styl/sidebarstacksection.styl'
@@ -35,7 +36,7 @@ module.exports = class SidebarStackSection extends React.Component
 
 
   getDataBindings: ->
-
+    activeMachine: EnvironmentFlux.getters.activeMachine
     selectedTemplateId: EnvironmentFlux.getters.selectedTemplateId
 
 
@@ -87,13 +88,18 @@ module.exports = class SidebarStackSection extends React.Component
 
 
     switch title
-      when 'Edit' then router.handleRoute "/Stack-Editor/#{templateId}"
+      when 'Edit', 'View Stack' then router.handleRoute "/Stack-Editor/#{templateId}"
       when 'Reinitialize', 'Update'
         reinitStackFromWidget(stack).then ->
           # invalidate editor cache
           appManager.tell 'Stackeditor', 'reloadEditor', templateId
+      when 'Clone'
+        remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
+          if err
+            return new kd.NotificationView { title: 'Error occured while cloning template' }
+          EnvironmentFlux.actions.cloneStackTemplate template, no
       when 'Destroy VMs' then deleteStack { stack }
-      when 'VMs' then router.handleRoute "/Home/Stacks/virtual-machines"
+      when 'VMs' then router.handleRoute "/Home/stacks/virtual-machines"
       when 'Open on GitLab'
         remoteUrl = stack.getIn ['config', 'remoteDetails', 'originalUrl']
         linkController.openOrFocus remoteUrl
@@ -124,12 +130,20 @@ module.exports = class SidebarStackSection extends React.Component
 
     if managedVM
       menuItems['VMs'] = { callback }
+    else if @props.stack.get 'disabled'
+      # because of disabled stack's baseTemplate came undefined
+      # no need to show Edit, Clone, Reinitialize options
+      ['VMs', 'Destroy VMs'].forEach (name) ->
+        menuItems[name] = { callback }
     else
       if isAdmin() or @props.stack.get('accessLevel') is 'private'
         menuItems['Edit'] = { callback }
+        menuItems['Clone'] = { callback }  if canCreateStacks()
+      else
+        menuItems['View Stack'] = { callback }
       ['Reinitialize', 'VMs', 'Destroy VMs'].forEach (name) ->
         menuItems[name] = { callback }
-      if isAdmin() and not isStackTemplateSharedWithTeam @props.stack.get 'baseStackId'
+      if isAdmin() and not isDefaultTeamStack @props.stack.get 'baseStackId'
         menuItems['Make Team Default'] = { callback }
 
     { top } = findDOMNode(this).getBoundingClientRect()
@@ -179,10 +193,11 @@ module.exports = class SidebarStackSection extends React.Component
   render: ->
 
     return null  unless @props.stack.get('machines').length
-
     className  = 'SidebarStackSection'
-    className += ' active'  if @state.selectedTemplateId is @props.stack.get 'baseStackId'
-
+    for machine in @props.stack.get 'machines'
+      if machine.get('_id') is @state.activeMachine
+        className += ' active'
+        break
 
     <SidebarSection
       ref='sidebarSection'

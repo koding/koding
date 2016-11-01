@@ -14,7 +14,3 @@ module.exports =
 
     VirtualMachinesSearchFlux = require '../virtualmachines/flux/search'
     VirtualMachinesSearchFlux.register reactor
-    VirtualMachinesSelectedMachineFlux = require '../virtualmachines/flux/selectedmachine'
-    VirtualMachinesSelectedMachineFlux.register reactor
-
-

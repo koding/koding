@@ -1,9 +1,8 @@
-kd         = require 'kd'
-whoami     = require './util/whoami'
+kd     = require 'kd'
+whoami = require './util/whoami'
 
-module.exports =
 
-class AppStorage extends kd.Object
+module.exports = class AppStorage extends kd.Object
 
   @DEFAULT_VERSION: '1.0'
 
@@ -21,24 +20,33 @@ class AppStorage extends kd.Object
     super
 
 
-  fetchStorage: (callback, force = no) ->
+  fetchStorage: do (queue = {}) -> (callback, force = no) ->
 
     [ appId, version ] = [ @_applicationID, @_applicationVersion ]
+
+    key = "#{appId}-#{version}"
+    queue[key] ?= []
 
     if not @_storage or force
 
       { mainController } = kd.singletons
 
+      queue[key].push callback
+
+      return  if queue[key].length > 1
+
       mainController.ready =>
-        whoami().fetchAppStorage { appId, version }, (error, storage) =>
+
+        whoami().fetchCombinedStorage { appId, version }, (error, storage) =>
 
           if not error and storage
             @reset()
             @_storage = storage
-            callback? @_storage
+
             @_setReady()
-          else
-            callback? null
+
+          cb? @_storage  for cb in queue[key]
+          queue[key] = []
 
     else
 
@@ -50,10 +58,6 @@ class AppStorage extends kd.Object
   _setReady: ->
 
     @isReady = yes
-
-    @emit 'storageFetched' # this shouldn't be here, not sure what else is using this.
-                           # most probably obsolete. -og
-
     @emit 'ready'
 
 
@@ -89,7 +93,7 @@ class AppStorage extends kd.Object
 
     @fetchStorage (storage) ->
       query = { $set : pack }
-      storage?.upsert appId, { query, notify }, ->
+      storage?.upsert? appId, { query, notify }, ->
         callback?()
 
 
@@ -112,6 +116,7 @@ class AppStorage extends kd.Object
 
   reset: ->
 
+    whoami()?.resetStorageCache?()
     @_storage     = null
     @_storageData = {}
 

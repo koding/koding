@@ -1,6 +1,6 @@
 kd = require 'kd'
 os = require 'os'
-React = require 'kd-react'
+React = require 'app/react'
 
 
 module.exports = class DesktopAppView extends React.Component

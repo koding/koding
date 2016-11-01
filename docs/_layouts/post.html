@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js">
+<!--<![endif]-->
+<head>
+  {% include head.html %}
+  <link rel="stylesheet" href="{{ site.url }}/css/markdown.css">
+  <link rel="stylesheet" href="{{ site.url }}/css/syntax.css">
+  <style>{% include css/blog-post.css %}</style>
+  <style>{% include css/blog-listitem.css %}</style>
+  <style>{% include css/blog-author.css %}</style>
+</head>
+
+<body>
+  <!--[if lt IE 8]>
+  <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+  <![endif]-->
+
+  {% include header.html
+     with_signup_form='true'
+     has_sticky_navigation='true'
+     cssClass='light' %}
+
+  <!-- POST -->
+  <section class="BlogPost">
+
+    <main class="markdown-body">
+
+      <!-- POST TITLE -->
+      <h1>{{ page.title }}</h1>
+
+      {% if page.image %}
+      <!-- POST IMAGE -->
+      <figure><img src="{{ site.url }}{{ page.image }}"></figure>
+      {% endif %}
+
+      <!-- POST CONTENT -->
+      {{ content }}
+
+    </main>
+
+    <!-- POST AUTHOR -->
+    {% include blog-author.html author = page.author date = page.date %}
+
+    <!-- SHARE -->
+    {% include blog-share.html post = page %}
+
+    <!-- PREV/NEXT -->
+    <div class="BlogPost-PrevNext">
+      {% if page.next.url %}
+        <a class="next" href="{{site.url}}/{{page.next.url}}" alt="{{page.next.title | escape}}">&laquo; Next post</a>
+      {% endif %}
+      {% if page.previous.url %}
+        <a class="prev" href="{{site.url}}/{{page.previous.url}}" alt="{{page.previous.title | escape}}">Previous post &raquo;</a>
+      {% endif %}
+    </div>
+
+
+  </section>
+
+  <!-- RECENT POSTS -->
+  {% include blog-recent.html %}
+
+  <!-- FOOTER -->
+  {% include footer.html %}
+  <script>{% include js/md5.min.js %}</script>
+  <script>{% include js/blog-home.js %}</script>
+
+</body>
+</html>

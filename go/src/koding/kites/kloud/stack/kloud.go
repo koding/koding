@@ -7,8 +7,9 @@ import (
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/gateway"
+	"koding/kites/keygen"
 	"koding/kites/kloud/contexthelper/publickeys"
+	"koding/kites/kloud/credential"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/pkg/dnsclient"
@@ -31,7 +32,7 @@ type Kloud struct {
 
 	// rename to providers once finished
 	// Providers that can satisfy procotol.Builder, protocol.Controller, etc..
-	providers map[string]interface{}
+	providers map[string]Provider
 
 	// statusCache is used to cache stack statuses for describeStack calls.
 	statusCache *cache.MemoryTTL
@@ -67,6 +68,17 @@ type Kloud struct {
 	// publicKey's on the fly and generates the privateKey themself.
 	PublicKeys *publickeys.Keys
 
+	// DescribeFunc is used to obtain provider types description.
+	//
+	// TODO(rjeczalik): It wraps provider.Desc function to avoid circular
+	// dependency. The Kloud kite handlers should be moved from this
+	// package to kloud one in order to solve this and improve the
+	// import structure.
+	DescribeFunc func(providers ...string) map[string]*Description
+
+	// CredClient handles credential.* methods.
+	CredClient *credential.Client
+
 	Metrics *metrics.DogStatsD
 
 	// Enable debug mode
@@ -75,11 +87,13 @@ type Kloud struct {
 
 // New creates a new Kloud instance without initializing the default providers.
 func New() *Kloud {
+	log := logging.NewLogger(NAME)
+
 	kld := &Kloud{
 		idlock:      idlock.New(),
-		Log:         logging.NewLogger(NAME),
+		Log:         log,
 		Eventers:    make(map[string]eventer.Eventer),
-		providers:   make(map[string]interface{}, 0),
+		providers:   make(map[string]Provider),
 		statusCache: cache.NewMemoryWithTTL(time.Second * 10),
 	}
 
@@ -90,7 +104,7 @@ func New() *Kloud {
 
 // AddProvider adds the given Provider with the providerName. It returns an
 // error if the provider already exists.
-func (k *Kloud) AddProvider(providerName string, provider interface{}) error {
+func (k *Kloud) AddProvider(providerName string, provider Provider) error {
 	_, ok := k.providers[providerName]
 	if ok {
 		NewError(ErrProviderAvailable)
@@ -107,7 +121,7 @@ func (k *Kloud) setTraceID(user, method string, ctx context.Context) context.Con
 }
 
 // ValidateUser is an AuthFunc, that ensures user is active.
-func (k *Kloud) ValidateUser(req *gateway.AuthRequest) error {
+func (k *Kloud) ValidateUser(req *keygen.AuthRequest) error {
 	status, err := modelhelper.UserStatus(req.User)
 	if err != nil {
 		return err

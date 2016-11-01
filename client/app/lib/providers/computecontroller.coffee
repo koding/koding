@@ -22,14 +22,14 @@ ManagedKiteChecker   = require './managed/managedkitechecker'
 envDataProvider      = require 'app/userenvironmentdataprovider'
 Tracker              = require 'app/util/tracker'
 getGroup             = require 'app/util/getGroup'
-createShareModal = require 'stack-editor/editor/createShareModal'
-
+createShareModal     = require 'stack-editor/editor/createShareModal'
+isGroupDisabled      = require 'app/util/isGroupDisabled'
+ContentModal = require 'app/components/contentModal'
 { actions : HomeActions } = require 'home/flux'
-
 require './config'
 
-
 module.exports = class ComputeController extends KDController
+
 
   @providers = globals.config.providers
   @Error     = {
@@ -47,7 +47,13 @@ module.exports = class ComputeController extends KDController
 
     do @reset
 
+    remote.once 'ready', =>
+      @disabled = getGroup().isDisabled()
+      do @reset  if @disabled
+
     mainController.ready =>
+
+      @bindGroupStatusEvents()
 
       @on 'MachineBuilt',             => do @reset
       @on 'MachineDestroyed',         => do @reset
@@ -65,11 +71,6 @@ module.exports = class ComputeController extends KDController
         @stateChecker.machines = @machines
         @stateChecker.start()
 
-        kd.singletons
-          .paymentController.on ['UserPlanUpdated', 'PaypalRequestFinished'], =>
-            @lastKnownUserPlan = null
-            @fetchUserPlan()
-
         @createDefaultStack()
 
         @storage = kd.singletons.appStorageController.storage 'Compute', '0.0.1'
@@ -83,6 +84,17 @@ module.exports = class ComputeController extends KDController
 
         @info machine for machine in @machines
 
+
+  bindGroupStatusEvents: ->
+
+    { groupsController } = kd.singletons
+
+    # /cc @cihangir: not sure if this is the right way to bind the event.
+    groupsController.on 'payment_status_changed', ({ oldStatus, newStatus }) =>
+      before = @disabled
+      @disabled = after = getGroup().isDisabled()
+
+      do @reset  if before isnt after
 
   # ComputeController internal helpers
   #
@@ -206,6 +218,10 @@ module.exports = class ComputeController extends KDController
   fetchStacks: do (queue = []) ->
 
     (callback = kd.noop, force = no) -> kd.singletons.mainController.ready =>
+
+      if @disabled
+        callback null, []
+        return
 
       if @stacks.length > 0 and not force
         callback null, @stacks
@@ -343,68 +359,7 @@ module.exports = class ComputeController extends KDController
     remote.api.ComputeProvider.fetchUsage options, callback
 
 
-  fetchUserPlan: (callback = kd.noop) ->
-
-    if @lastKnownUserPlan?
-      return callback @lastKnownUserPlan
-
-    kd.singletons.paymentController.subscriptions (err, subscription) =>
-
-      kd.warn 'Failed to fetch subscription:', err  if err?
-
-      if err? or not subscription?
-      then callback 'free'
-      else callback @lastKnownUserPlan = subscription.planTitle
-
-
-  fetchPlans: (callback = kd.noop) ->
-
-    if @plans
-      kd.utils.defer => callback @plans
-    else
-      remote.api.ComputeProvider.fetchPlans (err, plans) =>
-        # If there is an error at least return a simple plan
-        # which includes only 'free' plan
-        if err? or not plans?
-          kd.warn err
-          callback { free: { total: 1, alwaysOn: 0, storage: 3 } }
-        else
-          @plans = plans
-          callback plans
-
-
-  fetchTeamPlans: (callback = kd.noop) ->
-
-    if @teamplans
-      kd.utils.defer => callback @teamplans
-    else
-      remote.api.ComputeProvider.fetchTeamPlans (err, plans) =>
-        # If there is an error at least return a simple plan
-        # which includes only 'default' plan
-        if err? or not plans?
-          kd.warn err
-          callback
-            default              :
-              member             : 1  # max number, can be overwritten in group data
-                                      # by a super-admin (an admin in Koding group)
-              validFor           : 0  # no expire date
-              instancePerMember  : 1  # allows one instance per member
-              allowedInstances   : [ 't2.nano', 't2.micro' ]
-              maxInstance        : 1  # maximum instance count for this group (total)
-              storagePerInstance : 5  # means 5GB storage for this plan in total (max).
-                                      # 1 member x 1 instancePerMember = 1 instance
-                                      # 5GB per instance x 1 instances = 5GB in total
-              restrictions       :
-                supports         : [ 'provider', 'resource' ]
-                provider         : [ 'aws' ]
-                resource         : [ 'aws_instance' ]
-                custom           :
-                  ami            : no
-                  tags           : no
-                  user_data      : yes
-        else
-          @teamplans = plans
-          callback plans
+  fetchUserPlan: (callback = kd.noop) -> callback 'free'
 
 
   fetchRewards: (options, callback) ->
@@ -424,21 +379,6 @@ module.exports = class ComputeController extends KDController
       amount = Math.floor amount / 1000  if unit is 'GB'
 
       callback null, amount
-
-
-  fetchPlanCombo: (provider, callback) ->
-
-    [callback, provider] = [provider, callback]  unless callback?
-    provider ?= 'koding'
-
-    @fetchUserPlan (plan) => @fetchPlans (plans) =>
-      @fetchUsage { provider }, (err, usage) =>
-        @fetchRewards { unit: 'GB' }, (err, reward) ->
-          # If there is an invalid plan set for user
-          # or plans failed to fetch, then fallback to 'free' plan
-          plan = 'free'  unless plans[plan]?
-
-          callback err, { plan, plans, usage, reward }
 
 
   # create helpers on top of remote.ComputeProvider
@@ -1410,3 +1350,58 @@ module.exports = class ComputeController extends KDController
       kd.warn err  if err
       callback null, @_soloMachines
 
+  deleteStackTemplate: (template, revive = no) ->
+
+    template = remote.revive template  if revive
+
+    { groupsController, computeController, router, reactor }  = kd.singletons
+    currentGroup  = groupsController.getCurrentGroup()
+
+    if template._id in (currentGroup.stackTemplates ? [])
+      return showError 'This template currently in use by the Team.'
+
+    if computeController.findStackFromTemplateId template._id
+      return showError 'You currently have a stack generated from this template.'
+
+    title       = 'Are you sure?'
+    description = '<h2>Do you want to delete this stack template?</h2>'
+    callback    = ({ status, modal }) ->
+      return  unless status
+
+      actions.removeStackTemplate template
+        .then ->
+          router.handleRoute '/IDE'
+          modal.destroy()
+        .catch (err) ->
+          new kd.NotificationView { title: 'Something went wrong!' }
+          modal.destroy()
+
+
+    template.hasStacks (err, result) ->
+      return showError err  if err
+
+      if result
+        description = '''<p>
+          There is a stack generated from this template by another team member. Deleting it can break their stack.
+          Do you still want to delete this stack template?</p>
+        '''
+
+      modal = new ContentModal
+        width : 400
+        overlay : yes
+        cssClass : 'delete-stack-template content-modal'
+        title   : title
+        content : description
+        buttons :
+          cancel      :
+            title     : 'Cancel'
+            cssClass  : 'kdbutton solid medium'
+            callback  : ->
+              modal.destroy()
+              callback { status : no }
+          ok          :
+            title     : 'Yes'
+            cssClass  : 'kdbutton solid medium'
+            callback  : -> callback { status : yes, modal }
+
+      modal.setAttribute 'testpath', 'RemoveStackModal'

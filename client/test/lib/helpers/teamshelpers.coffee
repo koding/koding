@@ -32,7 +32,7 @@ emailSelector            = "#{modalSelector} input[name=email]"
 companyNameSelector      = "#{modalSelector} input[name=companyName]"
 signUpButton             = "#{modalSelector} button[type=submit]"
 teamsModalSelector       = '.TeamsModal--groupCreation'
-doneButton               = "#{teamsModalSelector} button.TeamsModal-button--green"
+doneButton               = "#{teamsModalSelector} button.TeamsModal-button"
 usernameInput            = "#{teamsModalSelector} input[name=username]"
 passwordInput            = "#{teamsModalSelector} input[name=password]"
 errorMessage             = '.kdnotification.main'
@@ -68,6 +68,16 @@ module.exports =
             .click                  doneButton
             .waitForElementVisible  userInfoErrorMsg, 20000
             .assert.containsText    userInfoErrorMsg, 'Username should be between 4 and 25 characters!'
+
+        when 'SameDomainAndUserName'
+          browser
+            .waitForElementVisible  usernameInput, 20000
+            .clearValue             usernameInput
+            .setValue               usernameInput, user.teamSlug
+            .setValue               passwordInput, user.password
+            .click                  doneButton
+            .waitForElementVisible  errorMessage, 20000
+            .assert.containsText    errorMessage, 'Sorry, your group domain and your username can not be the same!'
 
         when 'AlreadyRegisteredUserName'
           browser
@@ -266,6 +276,26 @@ module.exports =
             .waitForElementVisible errorMessage, 5000
             .assert.containsText   errorMessage, 'Invalid domain!'
 
+        when 'EmptyTeamUrl'
+          @fillTeamSignUp(browser, user.email, '')
+          browser
+            .waitForElementVisible  userInfoErrorMsg, 20000
+            .assert.containsText    userInfoErrorMsg, 'Please enter a team name.'
+          @fillTeamSignUp(browser, user.email, user.teamSlug)
+          browser
+            .waitForElementVisible  'input[name=slug]', 20000
+            .clearValue             'input[name=slug]'
+            .setValue               'input[name=slug]', ''
+            .click                  'button[testpath=domain-button]'
+            .waitForElementVisible  errorMessage, 20000
+            .assert.containsText   errorMessage, 'Domain name should be longer than 2 characters!'
+
+        when 'UpperCaseTeamUrl'
+          @fillTeamSignUp(browser, user.email, 'KodingTest')
+          browser.waitForElementVisible  'input[name=slug]', 20000
+          browser.getValue 'input[name=slug]', (result) ->
+            browser.assert.equal result.value, 'kodingtest'
+
         when 'AlreadyUsedTeamUrl'
           @fillTeamSignUp(browser, user.email, 'koding')
           @enterTeamURL(browser)
@@ -274,6 +304,12 @@ module.exports =
             .assert.containsText   errorMessage, 'Domain is taken!'
 
         when 'InvalidUserName'
+          @fillTeamSignUp(browser, user.email, user.teamSlug)
+          @enterTeamURL(browser)
+          @checkForgotPassword(browser)
+          @fillUsernamePasswordForm(browser, user, yes, invalidInfo)
+
+        when 'SameDomainAndUserName'
           @fillTeamSignUp(browser, user.email, user.teamSlug)
           @enterTeamURL(browser)
           @checkForgotPassword(browser)
@@ -457,8 +493,9 @@ module.exports =
       .waitForElementVisible '.kdview.jtreeview.expanded', 20000
       .assert.containsText   'body.ide .kdlistitemview-finderitem > div .title', 'Applications'
     @waitUntilVmRunning browser, =>
-      @waitStartCoding browser, ->
-        done()
+      browser.pause 6000, =>
+        @waitStartCoding browser, ->
+          done()
 
   waitStartCoding: (browser, done) ->
     buttonSelector = '.resource-state-modal.kdmodal .build-stack-flow footer .GenericButton'
@@ -494,10 +531,10 @@ module.exports =
     vmSelector = "#{sidebarStackSection} .SidebarMachinesListItem cite"
 
     browser
-      .pause 10000
       .getAttribute vmSelector, 'title', (result) =>
         if result.value.substring(16) is 'Running'
           console.log '   VM is running'
+          browser.pause 2000
           done()
         else
           console.log '   VM is still building'
@@ -644,7 +681,7 @@ module.exports =
     browser.url logoutUrl, ->
       callback()
 
-  
+
   closeModal: (browser, done) ->
     browser.element 'css selector', closeModal, (result) =>
       if result.status is 0
@@ -837,7 +874,7 @@ module.exports =
   clearInviteInputByIndex: (browser, index) ->
     invitationsModalSelector = '.HomeAppView--section.send-invites'
     emailInputSelector = "#{invitationsModalSelector} .ListView-row:nth-of-type(#{index}) .kdinput.text.user-email"
- 
+
     browser
       .click invitationsModalSelector
       .waitForElementVisible emailInputSelector, 20000
@@ -845,7 +882,7 @@ module.exports =
       .setValue emailInputSelector, ''
       .click invitationsModalSelector
 
-  
+
   inviteUsers: (browser, invitations, callback) ->
 
     fn = ( invitations, done ) ->
@@ -875,14 +912,13 @@ module.exports =
         { status, value } = result
 
         if status is 0 and value
-          browser.waitForElementVisible '.WelcomeStacksView', 50000, yes, =>
-            browser.click closeModal
+          browser.waitForElementVisible '#main-sidebar .logo-wrapper .nickname', 50000, yes, =>
             @logoutTeam browser, =>
               teamUrl       = helpers.getUrl yes
               invitationUrl = "#{teamUrl}/Invitation/#{result.value}"
               browser.url invitationUrl, =>
                 @fillJoinForm browser, user, yes, =>
-                  browser.waitForElementVisible '.WelcomeStacksView', 20000, yes, =>
+                  browser.waitForElementVisible '#main-sidebar .logo-wrapper .nickname', 20000, yes, =>
                     @logoutTeam browser, (res) =>
                       @loginToTeam browser, host, no, '',  ->
                         callback res

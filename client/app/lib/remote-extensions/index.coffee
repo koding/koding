@@ -15,6 +15,8 @@ module.exports = RemoteExtensions =
 
     remote.api.JComputeStack = require './computestack'
     remote.api.JMachine      = require './machine'
+    remote.api.JAccount      = require './account'
+    remote.api.JGroup        = require './group'
 
 
   injectCacheOnAPI: (remote) ->
@@ -44,9 +46,9 @@ module.exports = RemoteExtensions =
         RemoteExtensions.addInstance data._id, this
 
       # small helper to check instance ownership
-      # if originId is provided in the modal
+      # if originId is provided in the model
       # please be aware this will return false all the time
-      # if modal doesn't have originId field in its schema
+      # if model doesn't have originId field in its schema
       remote.api[model]::isMine = -> @originId is whoami()._id
 
 

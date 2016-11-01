@@ -1,7 +1,7 @@
 _ = require 'lodash'
 kd = require 'kd'
 Link = require 'app/components/common/link'
-React = require 'kd-react'
+React = require 'app/react'
 Scroller = require 'app/components/scroller'
 KDReactorMixin = require 'app/flux/base/reactormixin'
 EnvironmentFlux = require 'app/flux/environment'
@@ -11,12 +11,16 @@ SidebarStackHeaderSection = require 'app/components/sidebarstacksection/sidebars
 SidebarSharedMachinesSection = require 'app/components/sidebarsharedmachinessection'
 SharingMachineInvitationWidget = require 'app/components/sidebarmachineslistitem/sharingmachineinvitationwidget'
 SidebarDifferentStackResources = require 'app/components/sidebarstacksection/sidebardifferentstackresources'
+SidebarGroupDisabled = require './groupdisabled'
+isGroupDisabled = require 'app/util/isGroupDisabled'
+getGroup = require 'app/util/getGroup'
 { findDOMNode } = require 'react-dom'
 SidebarFlux = require 'app/flux/sidebar'
 TeamFlux = require 'app/flux/teams'
 DEFAULT_LOGOPATH = '/a/images/logos/sidebar_footer_logo.svg'
 MENU = null
 isAdmin = require 'app/util/isAdmin'
+canCreateStacks = require 'app/util/canCreateStacks'
 
 require './styl/sidebar.styl'
 require './styl/sidebarmenu.styl'
@@ -93,11 +97,15 @@ module.exports = class Sidebar extends React.Component
       when 'Initialize'
         EnvironmentFlux.actions.generateStack(id).then ({ template }) ->
           appManager.tell 'Stackeditor', 'reloadEditor', template._id
+      when 'Clone'
+        EnvironmentFlux.actions.cloneStackTemplate draft.toJS(), yes
       when 'Open on GitLab'
         remoteUrl = draft.getIn ['config', 'remoteDetails', 'originalUrl']
         linkController.openOrFocus remoteUrl
       when 'Make Team Default'
         computeController.makeTeamDefault draft.toJS(), yes
+      when 'Delete'
+        computeController.deleteStackTemplate draft.toJS(), yes
 
 
 
@@ -118,9 +126,9 @@ module.exports = class Sidebar extends React.Component
       menuItems['Open on GitLab'] = { callback }
 
     ['Edit', 'Initialize'].forEach (name) => menuItems[name] = { callback }
-
-    menuItems['Make Team Default'] = { callback } if isAdmin() and draft.get('machines').length
-
+    menuItems['Clone'] = { callback }  if canCreateStacks() or isAdmin()
+    menuItems['Make Team Default'] = { callback } if isAdmin() and draft.get('machines').size
+    menuItems['Delete'] = { callback }
     { top } = findDOMNode(@refs["draft-#{id}"]).getBoundingClientRect()
 
     menuOptions = { cssClass: 'SidebarMenu', x: 36, y: top + 31 }
@@ -209,7 +217,9 @@ module.exports = class Sidebar extends React.Component
 
   renderStacks: ->
 
-    if @state.stacks.size or @state.drafts.size
+    if isGroupDisabled getGroup()
+      <SidebarGroupDisabled />
+    else if @state.stacks.size or @state.drafts.size
       <SidebarStackHeaderSection>
         {@prepareStacks()}
       </SidebarStackHeaderSection>

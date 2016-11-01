@@ -1,62 +1,34 @@
 package vagrant
 
 import (
+	"bytes"
+	"compress/gzip"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"net/url"
 	"time"
 
 	"koding/kites/kloud/api/vagrantapi"
-	"koding/kites/kloud/provider"
+	puser "koding/kites/kloud/scripts/provisionklient/userdata"
 	"koding/kites/kloud/stack"
-	"koding/kites/kloud/stackplan"
+	"koding/kites/kloud/stack/provider"
 	"koding/kites/kloud/utils"
 	"koding/klient/tunnel"
 
-	"github.com/fatih/structs"
 	"github.com/koding/kite"
-	"golang.org/x/net/context"
 )
 
-func init() {
-	stackplan.MetaFuncs["vagrant"] = func() interface{} { return &VagrantMeta{} }
+// VagrantResource represents vagrant_instance Terraform resource.
+type VagrantResource struct {
+	Build map[string]map[string]interface{} `hcl:"vagrant_instance"`
 }
 
-var _ stack.Validator = (*VagrantMeta)(nil)
-
-// VagrantMeta represents jCredentialDatas.meta for "vagrant" provider.
-type VagrantMeta struct {
-	QueryString string `json:"queryString" bson:"queryString" hcl:"queryString"`
-	Memory      int    `json:"memory" bson:"memory" hcl:"memory"`
-	CPU         int    `json:"cpus" bson:"cpus" hcl:"cpus"`
-	Box         string `json:"box" bson:"box" hcl:"box"`
-}
-
-// Valid implements the kloud.Validator interface.
-func (meta *VagrantMeta) Valid() error {
-	if meta.QueryString == "" {
-		return errors.New("vagrant meta: query string is empty")
-	}
-	meta.QueryString = utils.QueryString(meta.QueryString)
-	return nil
-}
-
-// SetDefaults sets default values for vagrant credential metadata.
-//
-// TODO(rjeczalik): Compatibility code, remove when defaults are set elsewhere.
-func (meta *VagrantMeta) SetDefaults() (updated bool) {
-	if !structs.HasZero(meta) {
-		return false
-	}
-	if meta.Memory == 0 {
-		meta.Memory = 2048
-	}
-	if meta.CPU == 0 {
-		meta.CPU = 2
-	}
-	if meta.Box == "" {
-		meta.Box = "ubuntu/trusty64"
-	}
-	return true
+type Tunnel struct {
+	Name    string
+	KiteURL string
 }
 
 // Stack provides an implementation for the kloud.Stacker interface.
@@ -66,21 +38,239 @@ type Stack struct {
 	// TunnelURL for klient connection inside vagrant boxes.
 	TunnelURL *url.URL
 
-	// Credential represents Vagrant credential value.
-	//
-	// The Meta field is of *VagrantMeta type.
-	// The field is set during injecting variables to a template.
-	Credential *stackplan.Credential
-
-	// The following fields are set by buildResources method:
-	ids        stackplan.KiteMap
-	klients    map[string]*stackplan.DialState
-	region     string
-	hostQuery  string
-	credential string
-
 	api *vagrantapi.Klient
-	p   *stackplan.Planner
+}
+
+var (
+	_ provider.Stack = (*Stack)(nil)
+	_ stack.Stacker  = (*Stack)(nil)
+)
+
+func (s *Stack) VerifyCredential(c *stack.Credential) error {
+	version, err := s.api.Version(c.Credential.(*Cred).QueryString)
+	if err != nil {
+		return err
+	}
+
+	if version == "" {
+		return errors.New("invalid version empty response")
+	}
+
+	return nil
+}
+
+func (s *Stack) BootstrapTemplates(*stack.Credential) ([]*stack.Template, error) {
+	return make([]*stack.Template, 0), nil
+}
+
+// InjectVagrantData sets default properties for vagrant_instance Terraform template.
+func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
+	t := s.Builder.Template
+	cred := c.Credential.(*Cred)
+
+	var res VagrantResource
+
+	if err := t.DecodeResource(&res); err != nil {
+		return nil, err
+	}
+
+	if len(res.Build) == 0 {
+		return nil, errors.New("no vagrant instances specified")
+	}
+
+	uids := s.Builder.MachineUIDs()
+
+	s.Log.Debug("machine uids (%d): %v", len(uids), uids)
+
+	klientURL, err := s.Session.Userdata.LookupKlientURL()
+	if err != nil {
+		return nil, err
+	}
+
+	// queryString is taken from jCredentialData.meta.queryString,
+	// for debugging purposes it can be overwritten in the template,
+	// however if template has multiple machines, all of them
+	// are required to overwrite the queryString to the same value
+	// to match current implementation of terraformplugins/vagrant
+	// provider.
+	//
+	// Otherwise we fail early to show problem with the template.
+	var queryString string
+	for resourceName, box := range res.Build {
+		kiteKey, err := s.BuildKiteKey(resourceName, s.Req.Username)
+		if err != nil {
+			return nil, err
+		}
+
+		// set kontrolURL if not provided via template
+		kontrolURL := s.Session.Userdata.Keycreator.KontrolURL
+		if k, ok := box["kontrolURL"].(string); ok {
+			kontrolURL = k
+		} else {
+			box["kontrolURL"] = kontrolURL
+		}
+
+		if q, ok := box["queryString"].(string); ok {
+			q = utils.QueryString(q)
+			if queryString != "" && queryString != q {
+				return nil, fmt.Errorf("mismatched queryString provided for multiple instances; want %q, got %q", queryString, q)
+			}
+			queryString = q
+		} else {
+			box["queryString"] = "${var.vagrant_queryString}"
+			queryString = cred.QueryString
+		}
+
+		// set default filePath to relative <stackdir>/<boxname>; for
+		// default configured klient it resolves to ~/.vagrant.d/<stackdir>/<boxname>
+		if _, ok := box["filePath"]; !ok {
+			uid, ok := uids[resourceName]
+			if !ok {
+				// For Plan call we return random uid as it won't be returned
+				// as a part of meta; the filePath is inserted into meta by
+				// the apply method.
+				uid = resourceName + "-" + utils.RandString(6)
+			}
+			box["filePath"] = "koding/${var.koding_group_slug}/" + uid
+		}
+
+		// set default CPU number
+		if _, ok := box["cpus"]; !ok {
+			box["cpus"] = "${var.vagrant_cpus}"
+		}
+
+		// set default RAM in MiB
+		if _, ok := box["memory"]; !ok {
+			box["memory"] = "${var.vagrant_memory}"
+		}
+
+		// set default box type
+		if _, ok := box["box"]; !ok {
+			box["box"] = "${var.vagrant_box}"
+		}
+
+		var ports []interface{}
+
+		switch p := box["forwarded_ports"].(type) {
+		case []interface{}:
+			ports = p
+		case []map[string]interface{}:
+			ports = make([]interface{}, len(p))
+
+			for i := range p {
+				ports[i] = p[i]
+			}
+		}
+
+		// klient kite port
+		kitePort := &vagrantapi.ForwardedPort{
+			HostPort:  2200,
+			GuestPort: 56789,
+		}
+
+		// tlsproxy port
+		kitesPort := &vagrantapi.ForwardedPort{
+			HostPort:  2201,
+			GuestPort: 56790,
+		}
+
+		ports = append(ports, kitePort, kitesPort)
+
+		box["forwarded_ports"] = ports
+		box["username"] = s.Req.Username
+
+		tunnel := s.newTunnel(resourceName)
+
+		s.Builder.InterpolateField(box, resourceName, "user_data")
+
+		if b, ok := box["debug"].(bool); ok && b {
+			s.Debug = true
+		}
+
+		data := puser.Value{
+			Username:        s.Req.Username,
+			Groups:          []string{"sudo"},
+			Hostname:        s.Req.Username, // no typo here. hostname = username
+			KiteKey:         kiteKey,
+			LatestKlientURL: klientURL,
+			TunnelName:      tunnel.Name,
+			TunnelKiteURL:   tunnel.KiteURL,
+			KontrolURL:      kontrolURL,
+		}
+
+		// pass the values as a JSON encoded as base64. Our script will decode
+		// and unmarshall and use it inside the Vagrant box
+		val, err := json.Marshal(&data)
+		if err != nil {
+			return nil, err
+		}
+
+		// Compressing the provision data isn't doing any serious optimizations,
+		// it's just here so the debug output does not take half a screen.
+		//
+		// The provisionclient handles both compressed and uncompressed JSONs.
+		var buf bytes.Buffer
+		if cw, err := gzip.NewWriterLevel(&buf, 9); err == nil {
+			if _, err = io.Copy(cw, bytes.NewReader(val)); err == nil && cw.Close() == nil {
+				s.Log.Debug("using compressed provision data: %d vs %d", len(val), len(buf.Bytes()))
+
+				val = buf.Bytes()
+			}
+		}
+
+		box["provisionData"] = base64.StdEncoding.EncodeToString(val)
+		res.Build[resourceName] = box
+	}
+
+	t.Resource["vagrant_instance"] = res.Build
+
+	if err := t.Flush(); err != nil {
+		return nil, err
+	}
+
+	content, err := t.JsonOutput()
+	if err != nil {
+		return nil, err
+	}
+
+	return &stack.Template{
+		Content: content,
+	}, nil
+}
+
+func (s *Stack) machinesFromTemplate(t *provider.Template) (stack.Machines, error) {
+	var res VagrantResource
+	if err := t.DecodeResource(&res); err != nil {
+		return nil, err
+	}
+
+	machines := make(stack.Machines, len(res.Build))
+
+	for label, box := range res.Build {
+		m := &stack.Machine{
+			Provider:   "vagrant",
+			Label:      label,
+			Attributes: make(map[string]string),
+		}
+
+		if cpus, ok := box["cpus"].(string); ok && !provider.IsVariable(cpus) {
+			m.Attributes["cpus"] = cpus
+		}
+		if mem, ok := box["memory"].(string); ok && !provider.IsVariable(mem) {
+			m.Attributes["memory"] = mem
+		}
+		if typ, ok := box["box"].(string); ok && !provider.IsVariable(typ) {
+			m.Attributes["box"] = typ
+		}
+
+		if _, ok := machines[label]; ok {
+			return nil, errors.New("duplicate instance labels: " + label)
+		}
+
+		machines[label] = m
+	}
+
+	return machines, nil
 }
 
 func (s *Stack) checkTunnel(c *kite.Client) error {
@@ -119,43 +309,15 @@ func (s *Stack) checkTunnel(c *kite.Client) error {
 	return nil
 }
 
-// Ensure Provider implements the kloud.StackProvider interface.
-//
-// StackProvider is an interface for team kloud API.
-var _ stack.StackProvider = (*Provider)(nil)
-
-// Stack
-func (p *Provider) Stack(ctx context.Context) (stack.Stacker, error) {
-	bs, err := p.BaseStack(ctx)
-	if err != nil {
-		return nil, err
+func (s *Stack) newTunnel(resourceName string) *Tunnel {
+	t := &Tunnel{
+		Name:    utils.RandString(12),
+		KiteURL: s.TunnelURL.String(),
 	}
 
-	tunnelURL, err := p.tunnelURL()
-	if err != nil {
-		return nil, err
+	if m, ok := s.Builder.Machines[resourceName]; ok {
+		t.Name = m.Uid
 	}
 
-	api := &vagrantapi.Klient{
-		Kite:  bs.Session.Kite,
-		Log:   bs.Log.New("vagrantapi"),
-		Debug: p.Debug || bs.TraceID != "",
-	}
-
-	s := &Stack{
-		BaseStack: bs,
-		TunnelURL: tunnelURL,
-		api:       api,
-		p: &stackplan.Planner{
-			Provider:     "vagrant",
-			ResourceType: "instance",
-		},
-	}
-
-	s.p.OnDial = s.checkTunnel
-	bs.BuildResources = s.buildResources
-	bs.WaitResources = s.waitResources
-	bs.UpdateResources = s.updateResources
-
-	return s, nil
+	return t
 }

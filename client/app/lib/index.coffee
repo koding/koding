@@ -15,6 +15,7 @@ localStorage           = require './localstorage'
 isStarted = false
 
 require './styl/require-styles'
+require('./util/ping')()
 
 run = (defaults) ->
 
@@ -48,6 +49,7 @@ bootup = ->
     globals.currentGroup           = remote.revive globals.currentGroup
     globals.userAccount            = remote.revive globals.userAccount
     globals.config.entryPoint.slug = globals.currentGroup.slug
+    kd.singletons.groupsController.currentGroupData.setGroup globals.currentGroup
 
     setupAnalytics()  unless globals.config.environment is 'default'
 
@@ -94,34 +96,16 @@ bootup = ->
 
   status.on 'connected', ->
     ConnectionChecker.globalNotification.hide()
-    startAuthenticationInterval()
     kd.log 'kd remote connected'
 
   status.on 'reconnected', (options = {}) ->
     ConnectionChecker.globalNotification.hide()
-    startAuthenticationInterval()
     kd.log 'kd remote re-connected'
 
   status.on 'disconnected', (options = {}) ->
-    stopAuthenticationInterval()
     kd.log 'kd remote disconnected'
 
   remote.connect()
-
-  ###
-  # USER AUTHENTICATION
-  ###
-  authenticationInterval = null
-
-  startAuthenticationInterval = ->
-    return  if authenticationInterval
-
-    authenticationInterval = kd.utils.repeat 20000, ->
-      remote.authenticateUser()
-
-  stopAuthenticationInterval = ->
-    kd.utils.killRepeat authenticationInterval
-    authenticationInterval = null
 
   return true
 

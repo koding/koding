@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"log"
 	"socialapi/config"
 	algoliaapi "socialapi/workers/algoliaconnector/api"
 	"socialapi/workers/api/handlers"
@@ -15,7 +15,6 @@ import (
 	"socialapi/workers/api/modules/notificationsetting"
 	"socialapi/workers/api/modules/participant"
 	"socialapi/workers/api/modules/pinnedactivity"
-	"socialapi/workers/api/modules/popular"
 	"socialapi/workers/api/modules/privatechannel"
 	"socialapi/workers/api/modules/reply"
 	collaboration "socialapi/workers/collaboration/api"
@@ -24,15 +23,12 @@ import (
 	emailapi "socialapi/workers/email/api"
 	mailapi "socialapi/workers/email/mailparse/api"
 	"socialapi/workers/helper"
-	topicmoderationapi "socialapi/workers/moderation/topic/api"
 	notificationapi "socialapi/workers/notification/api"
 	"socialapi/workers/payment"
 	paymentapi "socialapi/workers/payment/api"
-	permissionapi "socialapi/workers/permission/api"
+	presenceapi "socialapi/workers/presence/api"
 	realtimeapi "socialapi/workers/realtime/api"
-	sitemapapi "socialapi/workers/sitemap/api"
 	slackapi "socialapi/workers/slack/api"
-	trollmodeapi "socialapi/workers/trollmode/api"
 
 	"github.com/koding/runner"
 )
@@ -44,10 +40,8 @@ var (
 func main() {
 	r := runner.New(Name)
 	if err := r.Init(); err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
-	defer r.Close()
 
 	// appConfig
 	c := config.MustRead(r.Conf.Path)
@@ -62,13 +56,9 @@ func main() {
 	m.SetRedis(redisConn)
 
 	handlers.AddHandlers(m)
-	permissionapi.AddHandlers(m)
-	topicmoderationapi.AddHandlers(m)
 	collaboration.AddHandlers(m)
 	paymentapi.AddHandlers(m)
 	notificationapi.AddHandlers(m)
-	trollmodeapi.AddHandlers(m)
-	sitemapapi.AddHandlers(m)
 	mailapi.AddHandlers(m)
 	algoliaapi.AddHandlers(m, r.Log)
 
@@ -80,11 +70,11 @@ func main() {
 	messagelist.AddHandlers(m)
 	participant.AddHandlers(m)
 	pinnedactivity.AddHandlers(m)
-	popular.AddHandlers(m)
 	privatechannel.AddHandlers(m)
 	reply.AddHandlers(m)
 	notificationsetting.AddHandlers(m)
 	realtimeapi.AddHandlers(m)
+	presenceapi.AddHandlers(m)
 	slackapi.AddHandlers(m, c)
 	credential.AddHandlers(m, r.Log, c)
 	emailapi.AddHandlers(m)

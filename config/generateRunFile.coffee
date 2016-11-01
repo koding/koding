@@ -18,16 +18,15 @@ generateDev = (KONFIG, options) ->
       echo '#---> BUILDING CLIENT <---#'
       make -C $KONFIG_PROJECTROOT/client unit-tests
 
-      echo '#---> BUILDING GO WORKERS (@farslan) <---#'
+      echo '#---> BUILDING GO WORKERS <---#'
       $KONFIG_PROJECTROOT/go/build.sh
 
-      echo '#---> BUILDING SOCIALAPI (@cihangir) <---#'
+      echo '#---> BUILDING SOCIALAPI <---#'
       pushd $KONFIG_PROJECTROOT/go/src/socialapi
       make configure
       # make install
-      cleanchatnotifications
 
-      echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY (@farslan) <---#'
+      echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY <---#'
       KITE_KEY=$KONFIG_KITEHOME/kite.key
       mkdir $HOME/.kite &>/dev/null
       echo copying $KITE_KEY to $HOME/.kite/kite.key
@@ -55,6 +54,14 @@ generateDev = (KONFIG, options) ->
       exit 1
     fi
 
+    function is_ready () {
+      exit 0
+      check_connectivity mongo
+      check_connectivity postgres
+      check_connectivity redis
+      check_connectivity rabbitmq
+    }
+
     mkdir $KONFIG_PROJECTROOT/.logs &>/dev/null
 
     SERVICES="mongo redis postgres rabbitmq imply"
@@ -68,6 +75,7 @@ generateDev = (KONFIG, options) ->
 
     function ctrl_c () {
       supervisorctl shutdown
+      exit 1;
     }
 
     function nginxstop () {
@@ -104,8 +112,8 @@ generateDev = (KONFIG, options) ->
       fi
     }
 
-    function migrations () {
-      # a temporary migration line (do we still need this?)
+    function apply_custom_pg_migrations () {
+      # we can remove these after https://github.com/mattes/migrate/issues/13
       export PGPASSWORD=$KONFIG_POSTGRES_PASSWORD
       PSQL_COMMAND="psql -tA -h $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_DBNAME -U $KONFIG_POSTGRES_USERNAME"
       $PSQL_COMMAND -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'collaboration';"
@@ -123,14 +131,6 @@ generateDev = (KONFIG, options) ->
 
     function run () {
 
-      # Check if PG DB schema update required
-      go run $KONFIG_PROJECTROOT/go/src/socialapi/tests/pg-update.go $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_PORT
-      RESULT=$?
-
-      if [ $RESULT -ne 0 ]; then
-        exit 1
-      fi
-
       # Update node modules
       if ! scripts/check-node_modules.sh; then
         npm install --silent
@@ -139,21 +139,11 @@ generateDev = (KONFIG, options) ->
       # Check everything else
       check
 
-      # Remove old watcher files (do we still need this?)
-      rm -rf $KONFIG_PROJECTROOT/go/bin/goldorf-main-*
-      rm -rf $KONFIG_PROJECTROOT/go/bin/watcher-*
-
       # Run Go builder
       $KONFIG_PROJECTROOT/go/build.sh
 
-      # Run Social Api builder
-      make -C $KONFIG_PROJECTROOT/go/src/socialapi configure
-
       # Do PG Migration if necessary
-      migrate up
-
-      # Sanitize email addresses
-      node $KONFIG_PROJECTROOT/scripts/sanitize-email
+      migrations up
 
       supervisord && sleep 1
 
@@ -186,24 +176,21 @@ generateDev = (KONFIG, options) ->
       echo "  run logs                  : to see all workers logs"
       echo "  run log [worker]          : to see of specified worker logs only"
       echo "  run buildservices         : to initialize and start services"
-      echo "  run resetdb               : to reset databases"
       echo "  run services              : to stop and restart services"
-      echo "  run worker                : to list workers"
       echo "  run printconfig           : to print koding config environment variables (output in json via --json flag)"
-      echo "  run worker [worker]       : to run a single worker"
       echo "  run migrate [command]     : to apply/revert database changes (command: [create|up|down|version|reset|redo|to|goto])"
-      echo "  run importusers           : to import koding user data"
+      echo "  run mongomigrate [command]: to apply/revert mongo database changes (command: [create|up|down])"
+      echo "  run migrations [command]  : to apply/revert mongo and postgres database changes (command: [create|up|down])"
       echo "  run nodeservertests       : to run tests for node.js web server"
       echo "  run socialworkertests     : to run tests for social worker"
       echo "  run nodetestfiles         : to run a single test or all test files in a directory"
-      echo "  run sanitize-email        : to sanitize email"
       echo "  run help                  : to show this list"
       echo ""
 
     }
 
     function migrate () {
-      migrations
+      apply_custom_pg_migrations
 
       params=(create up down version reset redo to goto)
       param=$1
@@ -243,7 +230,45 @@ generateDev = (KONFIG, options) ->
       if [ "$param" == "create" ]; then
         echo "Please edit created script files and add them to your repository."
       fi
+    }
 
+    function mongomigrate () {
+      params=(create up down)
+      param=$1
+      case "${params[@]}" in  *"$param"*)
+        ;;
+      *)
+        echo "Error: Command not found: $param"
+        echo "Usage: run migrate COMMAND [arg]"
+        echo ""
+        echo "Commands:  "
+        echo "  create [filename] : create new migration file under ./workers/migrations (ids will increase by 5)"
+        echo "  up                : apply all available migrations"
+        echo "  down [id]         : roll back to id (if not given roll back all migrations)"
+
+        echo ""
+        exit 1
+      ;;
+      esac
+
+      if [ "$param" == "create" ] && [ -z "$2" ]; then
+        echo "Please choose a migration file name. (ex. add_super_user)"
+        echo "Usage: ./run mongomigrate create [filename]"
+        echo ""
+        exit 1
+      fi
+
+      node $KONFIG_PROJECTROOT/node_modules/mongodb-migrate -runmm --config ../deployment/generated_files/mongomigration.json --dbPropName conn -c $KONFIG_PROJECTROOT/workers $1 $2
+
+      if [ "$param" == "create" ]; then
+        echo "Please edit created script files and add them to your repository."
+      fi
+    }
+
+
+    function migrations () {
+      mongomigrate $1 $2
+      migrate $1 $2
     }
 
     function check (){
@@ -252,7 +277,7 @@ generateDev = (KONFIG, options) ->
 
       if [[ `uname` == 'Darwin' ]]; then
         if [ -z "$DOCKER_HOST" ]; then
-          echo "You need to export DOCKER_HOST, run 'boot2docker up' and follow the instructions."
+          echo "You need to export DOCKER_HOST, run 'boot2docker up' and follow the instructions. (or run 'eval $(docker-machine env default)')"
           exit 1
         fi
       fi
@@ -282,20 +307,21 @@ generateDev = (KONFIG, options) ->
 
     function check_service_dependencies () {
       echo "checking required services: nginx, docker, mongo, graphicsmagick..."
+      command -v curl          >/dev/null 2>&1 || { echo >&2 "I require curl but it's not installed.  Aborting."; exit 1; }
       command -v go            >/dev/null 2>&1 || { echo >&2 "I require go but it's not installed.  Aborting."; exit 1; }
       command -v docker        >/dev/null 2>&1 || { echo >&2 "I require docker but it's not installed.  Aborting."; exit 1; }
       command -v nginx         >/dev/null 2>&1 || { echo >&2 "I require nginx but it's not installed. (brew install nginx maybe?)  Aborting."; exit 1; }
-      command -v mongorestore  >/dev/null 2>&1 || { echo >&2 "I require mongorestore but it's not installed.  Aborting."; exit 1; }
+      command -v mongo         >/dev/null 2>&1 || { echo >&2 "I require mongo but it's not installed. (brew install mongo maybe?)  Aborting."; exit 1; }
+      command -v pg_isready    >/dev/null 2>&1 || { echo >&2 "I require pg_isready but it's not installed. (brew install postgresql maybe?)  Aborting."; exit 1; }
       command -v node          >/dev/null 2>&1 || { echo >&2 "I require node but it's not installed.  Aborting."; exit 1; }
       command -v npm           >/dev/null 2>&1 || { echo >&2 "I require npm but it's not installed.  Aborting."; exit 1; }
       command -v gulp          >/dev/null 2>&1 || { echo >&2 "I require gulp but it's not installed. (npm i gulp -g)  Aborting."; exit 1; }
-      # command -v stylus      >/dev/null 2>&1 || { echo >&2 "I require stylus  but it's not installed. (npm i stylus -g)  Aborting."; exit 1; }
       command -v coffee        >/dev/null 2>&1 || { echo >&2 "I require coffee-script but it's not installed. (npm i coffee-script -g)  Aborting."; exit 1; }
       check_psql
 
       if [[ `uname` == 'Darwin' ]]; then
         brew info graphicsmagick >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
-        command -v boot2docker   >/dev/null 2>&1 || { echo >&2 "I require boot2docker but it's not installed.  Aborting."; exit 1; }
+        command -v boot2docker >/dev/null 2>&1 || command -v docker-machine >/dev/null 2>&1 || { echo >&2 "I require boot2docker but it's not installed.  Aborting."; exit 1; }
       elif [[ `uname` == 'Linux' ]]; then
         command -v gm >/dev/null 2>&1 || { echo >&2 "I require graphicsmagick but it's not installed.  Aborting."; exit 1; }
       fi
@@ -311,56 +337,140 @@ generateDev = (KONFIG, options) ->
       set +o errexit
     }
 
-    function build_services () {
+    function check_connectivity_mongo() {
+      local MONGO_OK=$(mongo $KONFIG_MONGO \
+                       --quiet \
+                       --eval "db.serverStatus().ok == true")
 
-      if [[ `uname` == 'Darwin' ]]; then
-        boot2docker up
+      if [[ $? != 0 || "$MONGO_OK" != true ]]; then
+        echo "error: mongodb service check failed on $KONFIG_MONGO"
+        return 1
       fi
 
-      echo "Stopping services: $SERVICES"
-      docker stop $SERVICES
+      return 0
+    }
 
-      echo "Removing services: $SERVICES"
-      docker rm   $SERVICES
+    function check_connectivity_rabbitmq() {
+      local USER=$KONFIG_MQ_LOGIN:$KONFIG_MQ_PASSWORD
+      local HOST=$KONFIG_MQ_HOST:$KONFIG_MQ_APIPORT
+      local RESPONSE_CODE=$(curl --silent --output /dev/null --write-out '%{http_code}' --user $USER http://$HOST/api/overview)
 
-      # Build Mongo service
-      pushd $KONFIG_PROJECTROOT/install/docker-mongo
-      docker build -t koding/mongo .
+      if [[ $? != 0 || $RESPONSE_CODE != 200 ]]; then
+        echo "error: rabbitmq service check failed on $KONFIG_MQ_HOST:$KONFIG_MQ_APIPORT"
+        return 1
+      fi
+
+      return 0
+    }
+
+
+    function check_connectivity_postgres() {
+      pg_isready --host $KONFIG_POSTGRES_HOST \
+                 --port $KONFIG_POSTGRES_PORT \
+                 --username $KONFIG_POSTGRES_USERNAME \
+                 --dbname $KONFIG_POSTGRES_DBNAME \
+                 --quiet
+
+      if [ $? != 0 ]; then
+        echo "error: postgres service check failed on $KONFIG_POSTGRES_HOST:$KONFIG_POSTGRES_PORT"
+        return 1
+      fi
+
+      return 0
+    }
+
+
+    function check_connectivity_redis() {
+      local REDIS_PONG=$(redis-cli -h $KONFIG_REDIS_HOST \
+                -p $KONFIG_REDIS_PORT \
+                ping)
+
+      if [[ $? != 0 || "$REDIS_PONG" != PONG ]]; then
+        echo "error: redis service check failed on $KONFIG_REDIS_HOST:$KONFIG_REDIS_PORT"
+        return 1
+      fi
+
+      return 0
+    }
+
+    function check_connectivity() {
+      retries=600
+      until eval "check_connectivity_$@"; do
+        sleep 1
+        let retries--
+        if [ $retries == 0 ]; then
+          echo "time out while waiting for $@ is ready"
+          exit 1
+        fi
+        echo "$@ is not reachable yet, trying again..."
+      done
+      echo "$@ is up and running..."
+
+    }
+
+    function runMongoDocker () {
+        docker run -d -p 27017:27017 --name=mongo mongo:2.4
+        check_connectivity mongo
+    }
+
+    function runPostgresqlDocker () {
+        docker run -d -p 5432:5432 --name=postgres koding/postgres
+        check_connectivity postgres
+    }
+
+    function runRabbitMQDocker () {
+        docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq rabbitmq:3-management
+        check_connectivity rabbitmq
+    }
+
+    function runRedisDocker () {
+        docker run -d -p 6379:6379 --name=redis redis
+    }
+
+    function runImplyDocker () {
+        docker run -d -p 18081-18110:8081-8110 -p 18200:8200 -p 19095:9095 --name=imply imply/imply:1.2.1
+    }
+
+    function run_docker_wrapper () {
+      if [[ `uname` == 'Darwin' ]]; then
+        command -v boot2docker >/dev/null 2>&1 && boot2docker up
+        command -v docker-machine >/dev/null 2>&1 && docker-machine start default || echo 1
+      fi
+    }
+
+    function build_services () {
+      run_docker_wrapper
 
       # Build postgres
       pushd $KONFIG_PROJECTROOT/go/src/socialapi/db/sql
-
-      # Include this to dockerfile before we continute with building
       mkdir -p kontrol
-      cp $KONFIG_PROJECTROOT/go/src/vendor/github.com/koding/kite/kontrol/*.sql kontrol/
-      sed -i -e "s/somerandompassword/$KONFIG_KONTROL_POSTGRES_PASSWORD/" kontrol/001-schema.sql
-      sed -i -e "s/kontrolapplication/$KONFIG_KONTROL_POSTGRES_USERNAME/" kontrol/001-schema.sql
-
+      sed -i -e "s/USER kontrolapplication/USER $KONFIG_KONTROL_POSTGRES_USERNAME/" kontrol/001-schema.sql
+      sed -i -e "s/PASSWORD 'kontrolapplication'/PASSWORD '$KONFIG_KONTROL_POSTGRES_PASSWORD'/" kontrol/001-schema.sql
+      sed -i -e "s/GRANT kontrol TO kontrolapplication/GRANT kontrol TO $KONFIG_KONTROL_POSTGRES_USERNAME/" kontrol/001-schema.sql
       docker build -t koding/postgres .
+      git checkout kontrol/001-schema.sql
+      popd
 
-      docker run -d -p 27017:27017                                        --name=mongo    koding/mongo --dbpath /data/db --smallfiles --nojournal
-      docker run -d -p 5672:5672 -p 15672:15672                           --name=rabbitmq rabbitmq:3-management
-
-      docker run -d -p 6379:6379                                          --name=redis    redis
-      docker run -d -p 5432:5432                                          --name=postgres koding/postgres
-
-      docker run -d -p 18081-18110:8081-8110 -p 18200:8200 -p 19095:9095  --name=imply    imply/imply:1.2.1
       restoredefaultmongodump
+      restoreredis
+      restorerabbitmq
+      restoredefaultpostgresdump
+      restoreimply
 
-      echo "#---> CLEARING ALGOLIA INDEXES: @chris <---#"
+
+      echo "#---> CLEARING ALGOLIA INDEXES: <---#"
       pushd $KONFIG_PROJECTROOT
       ./scripts/clear-algolia-index.sh -i "accounts$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
       ./scripts/clear-algolia-index.sh -i "topics$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
       ./scripts/clear-algolia-index.sh -i "messages$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
 
-      migrate up
+      nginxrun
     }
 
     function services () {
 
-      if [[ `uname` == 'Darwin' ]]; then
-        boot2docker up
-      fi
+      run_docker_wrapper
+
       EXISTS=$(docker inspect --format="{{ .State.Running }}" $SERVICES 2> /dev/null)
       if [ $? -eq 1 ]; then
         echo ""
@@ -377,68 +487,49 @@ generateDev = (KONFIG, options) ->
       nginxrun
     }
 
-
-    function importusers () {
-
-      node $KONFIG_PROJECTROOT/scripts/user-importer -c dev
-      migrateusers
-
-    }
-
-    function migrateusers () {
-
-      echo '#---> UPDATING MONGO DB TO WORK WITH SOCIALAPI @cihangir <---#'
-      mongo $KONFIG_MONGO --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
-
-      go run $KONFIG_PROJECTROOT/go/src/socialapi/workers/cmd/migrator/main.go -c $KONFIG_SOCIALAPI_CONFIGFILEPATH
-
-      # Required step for guestuser
-      mongo $KONFIG_MONGO --eval='db.jAccounts.update({"profile.nickname":"guestuser"},{$set:{type:"unregistered", socialApiId:0}});'
-
+    function removeDockerByName () {
+      docker stop $1
+      docker ps -all --quiet --filter name=$1 | xargs docker rm -f && echo deleted $1 image
     }
 
     function restoredefaultmongodump () {
+      removeDockerByName mongo
+      runMongoDocker
 
-      echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
-
-      mongo $KONFIG_MONGO --eval "db.dropDatabase()"
-
-      pushd $KONFIG_PROJECTROOT/install/docker-mongo
-      if [[ -f $KONFIG_PROJECTROOT/install/docker-mongo/custom-db-dump.tar.bz2 ]]; then
-        tar jxvf $KONFIG_PROJECTROOT/install/docker-mongo/custom-db-dump.tar.bz2
-      else
-        tar jxvf $KONFIG_PROJECTROOT/install/docker-mongo/default-db-dump.tar.bz2
-      fi
-
-      read HOST _ DB <<<"$(echo $KONFIG_MONGO | awk -F '[:/]' '{ print $1, $2, $3}')"
-      mongorestore --host $HOST --db $DB dump/koding
-
-      rm -rf ./dump
-
-      updatePermissions
-
+      mongomigrate up
     }
 
-    function updatePermissions () {
+    function restoredefaultpostgresdump () {
+      removeDockerByName postgres
+      runPostgresqlDocker
 
-      echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @gokmen) <---#'
-      node $KONFIG_PROJECTROOT/scripts/permission-updater -c dev --reset
+      migrate up
 
+      # sync users between postgres and mongo
+      go run $KONFIG_PROJECTROOT/go/src/socialapi/workers/cmd/migrator/main.go -c $KONFIG_SOCIALAPI_CONFIGFILEPATH
     }
 
-    function updateusers () {
-
-      node $KONFIG_PROJECTROOT/scripts/user-updater
-
+    function restoreredis () {
+      removeDockerByName redis
+      runRedisDocker
     }
 
-    function cleanchatnotifications () {
-      $GOBIN/notification -c $KONFIG_SOCIALAPI_CONFIGFILEPATH -h
+    function restorerabbitmq () {
+      removeDockerByName rabbitmq
+      runRabbitMQDocker
+    }
+
+    function restoreimply () {
+      removeDockerByName imply
+      runImplyDocker
     }
 
     if [ "$#" == "0" ]; then
       checkrunfile
       run $1
+
+    elif [ "$1" == "is_ready" ]; then
+      is_ready
 
     elif [ "$1" == "docker-compose" ]; then
       shift
@@ -479,32 +570,6 @@ generateDev = (KONFIG, options) ->
       check_service_dependencies
       services
 
-    elif [ "$1" == "updatepermissions" ]; then
-      updatePermissions
-
-    elif [ "$1" == "resetdb" ]; then
-
-      if [ "$2" == "--yes" ]; then
-
-        env PGPASSWORD=social_superuser psql -tA -h $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_DBNAME -U social_superuser -c "DELETE FROM \"api\".\"channel_participant\"; DELETE FROM \"api\".\"channel\";DELETE FROM \"api\".\"account\";"
-        restoredefaultmongodump
-        migrateusers
-
-        exit 0
-
-      fi
-
-      read -p "This will reset current databases, all data will be lost! (y/N)" -n 1 -r
-      echo ""
-      if [[ ! $REPLY =~ ^[Yy]$ ]]
-      then
-          exit 1
-      fi
-
-      env PGPASSWORD=social_superuser psql -tA -h $KONFIG_POSTGRES_HOST $KONFIG_POSTGRES_DBNAME -U social_superuser -c "DELETE FROM \"api\".\"channel_participant\"; DELETE FROM \"api\".\"channel\";DELETE FROM \"api\".\"account\";"
-      restoredefaultmongodump
-      migrateusers
-
     elif [ "$1" == "buildservices" ]; then
       check_service_dependencies
 
@@ -517,56 +582,13 @@ generateDev = (KONFIG, options) ->
       fi
 
       build_services
-      migrate up
 
     elif [ "$1" == "help" ]; then
       printHelp
 
-    elif [ "$1" == "importusers" ]; then
-      importusers
-
-    elif [ "$1" == "updateusers" ]; then
-      updateusers
-
-    elif [ "$1" == "cleanchatnotifications" ]; then
-      cleanchatnotifications
-
-    elif [ "$1" == "worker" ]; then
-
-      if [ "$2" == "" ]; then
-        echo Available workers:
-        echo "-------------------"
-        supervisorctl status | awk '${print $1} | sort'
-      else
-        trap - INT
-        trap
-        exec supervisorctl start $2
-      fi
-
-    elif [ "$1" == "migrate" ]; then
-      check_psql
-
-      if [ -z "$2" ]; then
-        echo "Please choose a migrate command [create|up|down|version|reset|redo|to|goto]"
-        echo ""
-      else
-        pushd $GOPATH/src/socialapi
-        make install-migrate
-        migrate $2 $3
-      fi
-
-    elif [ "$1" == "vmwatchertests" ]; then
-      go test koding/vmwatcher -test.v=true
-
     elif [ "$1" == "janitortests" ]; then
       pushd $KONFIG_PROJECTROOT/go/src/koding/workers/janitor
       ./test.sh
-
-    elif [ "$1" == "gatheringestortests" ]; then
-      go test koding/workers/gatheringestor -test.v=true
-
-    elif [ "$1" == "gomodeltests" ]; then
-      go test koding/db/mongodb/modelhelper -test.v=true
 
     elif [ "$1" == "socialworkertests" ]; then
       $KONFIG_PROJECTROOT/scripts/node-testing/mocha-runner "$KONFIG_PROJECTROOT/workers/social"
@@ -578,11 +600,15 @@ generateDev = (KONFIG, options) ->
     elif [ "$1" == "nodetestfiles" ]; then
       $KONFIG_PROJECTROOT/scripts/node-testing/mocha-runner $2
 
-    elif [ "$1" == "sanitize-email" ]; then
-      node $KONFIG_PROJECTROOT/scripts/sanitize-email
+    elif [ "$1" == "migrate" ]; then
+      check_psql
+      migrate $2 $3
+
+    elif [ "$1" == "mongomigrate" ]; then
+      mongomigrate $2 $3
 
     elif [ "$1" == "migrations" ]; then
-      migrations
+      migrations $2 $3
 
     else
       echo "Unknown command: $1"

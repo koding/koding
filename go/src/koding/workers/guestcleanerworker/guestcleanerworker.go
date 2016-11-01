@@ -54,7 +54,7 @@ func main() {
 
 	err := helpers.Iter(helper.Mongo, iterOptions)
 	if err != nil {
-		log.Fatal("Error while iter: %v", err)
+		log.Fatal("Error while iter: ", err)
 	}
 	log.Info("Guest cleaner worker finished")
 }
@@ -80,8 +80,8 @@ func deleteGuestAccounts(account interface{}) error {
 	clearAllNames(acc)
 
 	selector := helper.Selector{"$or": []helper.Selector{
-		helper.Selector{"sourceId": acc.Id},
-		helper.Selector{"targetId": acc.Id},
+		{"sourceId": acc.Id},
+		{"targetId": acc.Id},
 	}}
 
 	// Get all relationships for current acc

@@ -2,7 +2,6 @@ kd = require 'kd'
 BuildStackPageView = require '../views/stackflow/buildstackpageview'
 BuildStackErrorPageView = require '../views/stackflow/buildstackerrorpageview'
 BuildStackSuccessPageView = require '../views/stackflow/buildstacksuccesspageview'
-BuildStackLogsPageView = require '../views/stackflow/buildstacklogspageview'
 BuildStackTimeoutPageView = require '../views/stackflow/buildstacktimeoutpageview'
 constants = require '../constants'
 sendDataDogEvent = require 'app/util/sendDataDogEvent'
@@ -22,21 +21,36 @@ module.exports = class BuildStackController extends kd.Controller
     @buildStackPage = new BuildStackPageView {}, { stack, file : @getLogFile() }
     @errorPage = new BuildStackErrorPageView {}, { stack }
     @successPage = new BuildStackSuccessPageView {}, { stack }
-    @logsPage = new BuildStackLogsPageView { tailOffset : constants.BUILD_LOG_TAIL_OFFSET }, { stack }
     @timeoutPage = new BuildStackTimeoutPageView {}, { stack }
 
+    { router, appManager } = kd.singletons
     @buildStackPage.on 'BuildDone', @bound 'completePostBuildProcess'
     @forwardEvent @buildStackPage, 'ClosingRequested'
-    @forwardEvent @errorPage, 'CredentialsRequested'
-    @errorPage.on 'RebuildRequested', =>
-      @buildStackPage.reset()
-      @emit 'RebuildRequested', stack
     @forwardEvent @successPage, 'ClosingRequested'
-    @successPage.on 'LogsRequested', @bound 'showLogs'
-    @forwardEvent @logsPage, 'ClosingRequested'
+    @successPage.on 'InstallRequested', =>
+      router.handleRoute '/Home/koding-utilities#kd-cli'
+      @emit 'ClosingRequested'
+    @successPage.on 'CollaborationInvite', =>
+      tooltipContent = '''
+        <h3>Collaboration is starting...</h3>
+        <p>You can invite your teammates when collaboration is started.</p>
+      '''
+      appManager.tell 'IDE', 'startCollaborationSession', { tooltipContent }
+      @emit 'ClosingRequested'
+    @forwardErrorPageEvent 'CredentialsRequested'
+    @forwardErrorPageEvent 'RebuildRequested'
     @forwardEvent @timeoutPage, 'ClosingRequested'
 
-    container.appendPages @buildStackPage, @errorPage, @successPage, @logsPage, @timeoutPage
+    container.appendPages @buildStackPage, @errorPage, @successPage, @timeoutPage
+
+
+  forwardErrorPageEvent: (eventName) ->
+
+    @errorPage.on eventName, =>
+      { stack } = @getData()
+      stack.status.state = 'NotInitialized'
+      @buildStackPage.reset()
+      @emit eventName, stack
 
 
   getLogFile: ->
@@ -128,14 +142,6 @@ module.exports = class BuildStackController extends kd.Controller
     { container } = @getOptions()
     container.showPage @errorPage
     @errorPage.setErrors [ err ]
-
-
-  showLogs: ->
-
-    { container } = @getOptions()
-    { stack }     = @getData()
-    container.showPage @logsPage
-    @logsPage.setData { stack, file : @getLogFile() }
 
 
   show: ->

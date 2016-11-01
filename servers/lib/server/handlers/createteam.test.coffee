@@ -14,6 +14,7 @@ KONFIG                              = require 'koding-config-manager'
 { testCsrfToken }                   = require '../../../testhelper/handler'
 { generateRegisterRequestParams }   = require '../../../testhelper/handler/registerhelper'
 { generateCreateTeamRequestParams } = require '../../../testhelper/handler/teamhelper'
+{ Status }                          = require '../../../../client/app/lib/redux/modules/payment/constants'
 
 
 JUser               = require '../../../models/user'
@@ -84,6 +85,10 @@ runTests = -> describe 'server.handlers.createteam', ->
         JGroup.one { slug }, (err, group) ->
           expect(err).to.not.exist
           expect(group.title).to.be.equal companyName
+
+          expect(group.payment).to.exist
+          expect(group.payment.subscription).to.exist
+          expect(group.payment.subscription.status).to.be.equal Status.TRIALING
 
           allowedDomains.forEach (domain) ->
             expect(group.allowedDomains).to.include domain
@@ -596,9 +601,9 @@ runTests = -> describe 'server.handlers.createteam', ->
         done()
 
 
-  it 'should save given plan title to the config', (done) ->
+  it 'should save given limit title to the config', (done) ->
 
-    options = { body: { plan: 'foo', slug: "slug#{generateRandomString 11}" } }
+    options = { body: { limit: 'foo', slug: "slug#{generateRandomString 11}" } }
 
     queue = [
       (next) ->
@@ -612,7 +617,7 @@ runTests = -> describe 'server.handlers.createteam', ->
         JGroup.one { slug: options.body.slug }, (err, group) ->
           expect(err).to.not.exist
           expect(group).to.exist
-          expect(group.config.plan).to.be.equal 'foo'
+          expect(group.config.limit).to.be.equal 'foo'
           next()
     ]
 

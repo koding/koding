@@ -1,5 +1,6 @@
 process.title = 'koding-webserver'
 { argv }      = require 'optimist'
+cors          = require 'cors'
 
 Object.defineProperty global, \
   'KONFIG', { value : require 'koding-config-manager' }
@@ -82,9 +83,8 @@ app.post '/-/analytics/page'                     , require './handlers/analytics
 
 app.get  '/-/my/permissionsAndRoles'             , require './handlers/myPermissionsAndRoles'
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
-app.get  '/-/auth/check/:key'                    , require './handlers/authkeycheck'
 app.post '/-/support/new', bodyParser.json()     , require './handlers/supportnew'
-app.get  '/-/auth/register/:hostname/:key'       , require './handlers/authregister'
+app.post '/-/wufoo/submit/:identifier?'          , cors(), require './handlers/wufooproxy'
 # should deprecate those /Validates, they don't look like api endpoints
 app.post '/:name?/Validate/Username/:username?'  , require './handlers/validateusername'
 app.post '/:name?/Validate/Email/:email?'        , require './handlers/validateemail'
@@ -120,19 +120,14 @@ app.get  '/-/api/ssotoken/login'                 , require './handlers/api/ssoto
 app.get  '/-/api/logs'                           , require './handlers/api/logs'
 app.post '/-/api/gitlab', bodyParser.json()      , require './handlers/api/gitlab'
 app.get  '/-/image/cache'                        , require './image_cache'
-app.get  '/-/oauth/github/callback'              , require './github_callback'
+# app.get  '/-/oauth/github/callback'              , require './github_callback'
 app.get  '/-/oauth/gitlab/callback'              , require './gitlab_callback'
-app.get  '/-/oauth/facebook/callback'            , require './facebook_callback'
-app.get  '/-/oauth/google/callback'              , require './google_callback'
-app.get  '/-/oauth/linkedin/callback'            , require './linkedin_callback'
-app.get  '/-/oauth/twitter/callback'             , require './twitter_callback'
+# app.get  '/-/oauth/facebook/callback'            , require './facebook_callback'
+# app.get  '/-/oauth/google/callback'              , require './google_callback'
+# app.get  '/-/oauth/linkedin/callback'            , require './linkedin_callback'
+# app.get  '/-/oauth/twitter/callback'             , require './twitter_callback'
 app.post '/:name?/OAuth'                         , require './oauth'
 app.get  '/:name?/OAuth/url'                     , require './oauth_url'
-app.get  '/-/subscriptions'                      , require './subscriptions'
-app.get  '/-/payments/paypal/return'             , require './paypal_return'
-app.get  '/-/payments/paypal/cancel'             , require './paypal_cancel'
-app.get  '/-/payments/customers'                 , require './customers'
-app.post '/-/payments/paypal/webhook'            , require './paypal_webhook'
 app.post '/-/emails/subscribe'                   , (req, res) -> res.status(501).send 'ok'
 app.post '/Hackathon2014/Apply'                  , require './handlers/hackathonapply'
 # should deprecate those /Validates, they don't look like api endpoints

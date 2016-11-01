@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"log"
 
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 
@@ -20,8 +20,7 @@ var (
 func main() {
 	r := runner.New(Name)
 	if err := r.Init(); err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err.Error())
 	}
 
 	appConfig := config.MustRead(r.Conf.Path)
@@ -47,9 +46,6 @@ func main() {
 	r.Register(models.ChannelMessageList{}).OnCreate().Handle((*algoliaconnector.Controller).MessageListSaved)
 	r.Register(models.ChannelMessageList{}).OnDelete().Handle((*algoliaconnector.Controller).MessageListDeleted)
 	r.Register(models.ChannelMessage{}).OnUpdate().Handle((*algoliaconnector.Controller).MessageUpdated)
-
-	// moderation related
-	r.Register(models.ChannelLink{}).OnCreate().Handle((*algoliaconnector.Controller).ChannelLinkCreated)
 
 	// participant related events
 	r.Register(models.ChannelParticipant{}).OnCreate().Handle((*algoliaconnector.Controller).ParticipantCreated)

@@ -34,47 +34,28 @@ PACKAGES = \
 	socialapi/workers/dailyemailnotifier \
 	socialapi/workers/notification \
 	socialapi/workers/pinnedpost \
-	socialapi/workers/popularpost \
-	socialapi/workers/trollmode \
-	socialapi/workers/populartopic \
 	socialapi/workers/realtime \
-	socialapi/workers/topicfeed \
 	socialapi/workers/migrator \
-	socialapi/workers/sitemap/sitemapfeeder \
-	socialapi/workers/sitemap/sitemapgenerator \
-	socialapi/workers/sitemap/sitemapinitializer \
 	socialapi/workers/integration \
 	socialapi/workers/algoliaconnector
 
 
 all: testapi
 
-develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev \
-	notificationdev trollmodeldev pinnedpostdev algoliaconnectordev \
-	emaildev sitemapdev collaborationdev mailsenderdev topicmoderationdev \
+develop: apidev realtimedev \
+	notificationdev pinnedpostdev algoliaconnectordev \
+	emaildev collaborationdev mailsenderdev \
 	teamdev eventsenderdev integrationdev
-minimal: apidev topicfeeddev realtimedev pinnedpostdev
+minimal: apidev realtimedev pinnedpostdev
 default: configure
-
-paymentwebhookdev:
-	@echo "$(OK_COLOR)==> Running Payment Webhook Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/payment/paymentwebhook -c $(CONFIG) -kite-init=true $(DBG) $(EXTRAS)
 
 apidev:
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/api -watch socialapi -c $(CONFIG) $(PORT) $(DBG) $(EXTRAS)
 
-topicfeeddev:
-	@echo "$(OK_COLOR)==> Running Topic Feed Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/topicfeed -watch socialapi/workers/topicfeed -c $(CONFIG) $(DBG) $(EXTRAS)
-
 realtimedev:
 	@echo "$(OK_COLOR)==> Running Realtime Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/realtime -watch socialapi/workers/realtime/realtime -c $(CONFIG) $(DBG) $(EXTRAS)
-
-populartopicdev:
-	@echo "$(OK_COLOR)==> Running Popular Topics Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/populartopic -watch socialapi/workers/populartopic -c $(CONFIG) $(DBG) $(EXTRAS)
 
 pinnedpostdev:
 	@echo "$(OK_COLOR)==> Running PinnedPost Worker $(NO_COLOR)"
@@ -108,14 +89,6 @@ privatemessageemailsenderdev:
 	@echo "$(OK_COLOR)==> Running Private Message Email Sender Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/privatemessageemailsender -watch socialapi/workers/email/privatemessageemail/privatemessageemailsender -c $(CONFIG) $(DBG) $(EXTRAS)
 
-popularpostdev:
-	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/popularpost -watch socialapi/workers/popularpost -c $(CONFIG) $(DBG) $(EXTRAS)
-
-trollmodeldev:
-	@echo "$(OK_COLOR)==> Running Troll Mode Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/trollmode -watch socialapi/workers/trollmode -c $(CONFIG) $(DBG) $(EXTRAS)
-
 dispatcherdev:
 	@echo "$(OK_COLOR)==> Running Dispatcher Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/realtime/dispatcher -watch socialapi/workers/realtime/dispatcher -c $(CONFIG) $(DBG) $(EXTRAS)
@@ -132,11 +105,6 @@ mailsenderdev:
 	@echo "$(OK_COLOR)==> Running Mailsender Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/emailsender -watch socialapi/workers/email/emailsender -c $(CONFIG) $(DBG) $(EXTRAS)
 
-
-topicmoderationdev:
-	@echo "$(OK_COLOR)==> Running Topic Moderation Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/topicmoderation -watch socialapi/workers/moderation -c $(CONFIG) $(DBG) $(EXTRAS)
-
 onfiguremigration:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jNewStatusUpdates.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
@@ -147,19 +115,6 @@ onfiguremigration:
 migrate:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/migrator -watch socialapi/workers/migrator/controller -c $(CONFIG) $(DBG) $(EXTRAS)
-sitemapdev: sitemapfeederdev sitemapgeneratordev
-
-sitemapfeederdev:
-	@echo "$(OK_COLOR)==> Running Sitemap Feeder Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/sitemap/sitemapfeeder -watch socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) $(DBG) $(EXTRAS)
-
-sitemapgeneratordev:
-	@echo "$(OK_COLOR)==> Running Sitemap Generator Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/sitemap/sitemapgenerator -watch socialapi/workers/sitemap/sitemapgenerator -c $(CONFIG) $(DBG) $(EXTRAS)
-
-sitemapinitdev:
-	@echo "$(OK_COLOR)==> Running Sitemap Initializer Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/sitemap/sitemapinitializer -watch socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) $(DBG) $(EXTRAS)
 
 teamdev:
 	@echo "$(OK_COLOR)==> Running Team Worker $(NO_COLOR)"
@@ -231,17 +186,17 @@ testwebhook:
 	@./tests.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm ./tests.test
 
+testpresence:
+	@echo "$(OK_COLOR)--> presence tests... $(NO_COLOR)"
+	@`which go` test -race -c workers/presence/*.go
+	@./presence.test $(DBG) $(EXTRAS) -c $(CONFIG)
+	@rm ./presence.test
+
 testeventsender:
 	@echo "$(OK_COLOR)--> eventsender tests... $(NO_COLOR)"
 	@`which go` test -c workers/integration/eventsender/*.go
 	@./eventsender.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm  ./eventsender.test
-
-testpermission:
-	@echo "$(OK_COLOR)--> permission tests... $(NO_COLOR)"
-	@`which go` test -c workers/permission/tests/*.go
-	@./permission.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm  ./permission.test
 
 testteam: testteamunit testteamintegration
 
@@ -257,32 +212,11 @@ testteamintegration:
 	@./tests.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm ./tests.test
 
-testmoderation: testmoderationunit testmoderationintegration
-
-testmoderationunit:
-	@echo "$(OK_COLOR)--> moderation unit tests... $(NO_COLOR)"
-	@`which go` test -c workers/moderation/topic/*.go
-	@./topic.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./topic.test
-
-testmoderationintegration:
-	@echo "$(OK_COLOR)--> moderation integration tests... $(NO_COLOR)"
-	@`which go` test -c workers/moderation/topic/tests/*.go
-	@./tests.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./tests.test
-
 testalgolia:
 	@echo "$(OK_COLOR)--> algoliaconnector unit tests... $(NO_COLOR)"
 	@`which go` test -c workers/algoliaconnector/algoliaconnector/*.go
 	@./algoliaconnector.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm ./algoliaconnector.test
-
-
-testtopicfeeed:
-	@echo "$(OK_COLOR)--> topic feed tests... $(NO_COLOR)"
-	@`which go` test -c workers/topicfeed/*.go
-	@./topicfeed.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./topicfeed.test
 
 # testcollaboration runs the unit and integration tests of collaboration worker
 testcollaboration:
@@ -351,38 +285,9 @@ testnotificationunit:
 	@./notification.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm ./notification.test
 
-
-testtrollmode:
-	@echo "$(OK_COLOR)--> troll mode tests... $(NO_COLOR)"
-	@`which go` test workers/trollmode/tests/*.go
-	@`which go` test -c workers/trollmode/*.go
-	@./trollmode.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm  ./trollmode.test
-
 testpayment:
 	@echo "$(OK_COLOR)--> payment tests... $(NO_COLOR)"
-	@`which go` test -c workers/payment/*.go
-	@./payment.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./payment.test
-
-	@echo "$(OK_COLOR)--> stripe tests... $(NO_COLOR)"
-	@`which go` test -c workers/payment/stripe/*.go
-	@./stripe.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./stripe.test
-
-	@echo "$(OK_COLOR)--> paypal tests... $(NO_COLOR)"
-	@`which go` test -c workers/payment/paypal/*.go
-	@./paypal.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./paypal.test
-
-
-	@echo "$(OK_COLOR)--> paymentwebhook tests... $(NO_COLOR)"
-	@`which go` test -c workers/payment/paymentwebhook/*.go
-	@./main.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./main.test
-
-	@echo "$(OK_COLOR)--> paymentwebhook#webhookmodels tests... $(NO_COLOR)"
-	@`which go` test workers/payment/paymentwebhook/webhookmodels/*.go
+	./workers/payment/tests.sh
 
 testintegration:
 	@echo "$(OK_COLOR)--> api integration tests... $(NO_COLOR)"
@@ -403,8 +308,8 @@ testrealtime:
 
 
 testapi: testcollaboration testmailsender testmail testmodels testemailworker \
-	testmoderation testtopicfeeed testnotification testtrollmode \
-	testteam testintegration testrealtime testwebhook
+	testnotification \
+	testteam testintegration testrealtime testwebhook testpresence
 
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 
@@ -414,24 +319,10 @@ testapi: testcollaboration testmailsender testmail testmodels testemailworker \
 
 	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
 
-
-	@echo "$(OK_COLOR)--> permission tests... $(NO_COLOR)"
-	@`which go` test -c workers/permission/tests/*.go
-	@./permission.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm  ./permission.test
-
 	@echo "$(OK_COLOR)--> handler tests... $(NO_COLOR)"
 	@`which go` test -c workers/common/handler/*.go
 	@./handler.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm ./handler.test
-
-	@echo "$(OK_COLOR)--> sitemap generator tests... $(NO_COLOR)"
-	@`which go` test -c workers/sitemap/sitemapgenerator/*.go
-	@./generator.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./generator.test
-
-	@echo "$(OK_COLOR)--> sitemap model tests... $(NO_COLOR)"
-	@`which go` test workers/sitemap/models/*.go
 
 doc:
 	@for package in $(PACKAGES); \
@@ -446,7 +337,6 @@ vet:
 pkgs = \
 	realtime \
 	rerun \
-	topicfeed \
 	notification
 
 dep:

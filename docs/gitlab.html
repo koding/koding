@@ -1,0 +1,140 @@
+---
+layout: empty
+title: Koding + GitLab
+permalink: /gitlab
+---
+
+{% assign videoPath = site.url | append: '/assets/video/' %}
+
+<script src="https://use.typekit.net/iey3fid.js"></script>
+<script>try{Typekit.load({ async: true });}catch(e){}</script>
+<style type="text/css">{% include css/reset.css %}</style>
+<link rel="stylesheet" href="{{ site.url }}/css/koding-gitlab-main.css">
+
+<section class='MainSection MainSection-Hero'>
+  <header>
+    <div><a class="KodingLogo" href="{{ site.url }}">Koding.com</a></div>
+    <div><a class="GitlabLogo" href="https://www.gitlab.com">GitLab.com</a></div>
+  </header>
+  <div class='MainSection-Wrapper'>
+    <div class="HeroVideo-Wrapper">
+      <div class="HeroVideo-Wrapper--flex">
+        <div>
+          <h2 class="LustBig">The Future Of Coding</h2>
+          <h3 class="EavesDesc">A chat about integrating Koding<br/>& GitLab, creating a better way to code, and team collaboration</h3>
+          <h4>Devrim Yasar, CEO of Koding</h4>
+          <h4>Sid Sijbrandij, CEO of GitLab</h4>
+        </div>
+        <div>
+          <cite class="PlayButton" id="mainVideoPlayButton"></cite>
+        </div>
+      </div>
+    </div>
+    <div class="HeroVideo-Buttons">
+      <div class="left">
+        <a href="#Try-Koding-and-GitLab" id='scrollDown'>Coming Soon!</a>
+        <cite></cite>
+      </div>
+      <div class="right">
+        <a class="tw" href="//twitter.com/koding"></a>
+        <a class="fb" href="//facebook.com/koding"></a>
+        <a class="in" href="//linkedin.com/company/koding"></a>
+        <cite>SHARE</cite>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class='MainSection MainSection-Description' id="descriptionSection">
+  <div class='MainSection-Wrapper'>
+    <div>
+      <h2 class="LustBig">One click to build every project</h2>
+      <h3 class="EavesDesc"><strong>Coming soon!</strong> GitLab+Koding's new integration means you can contribute code faster with one click to build every project, issue, and merge request.</h3>
+      <div class="MainSection-Description--buttons">
+        <a class="MainSection-Description--button green" id="oneClickWatch" href="#">Watch Koding build in one click</a>
+        <span>OR</span>
+        <a class="MainSection-Description--button pink" id="lifeSucksWatch" href="#">See how slow life is without Koding</a>
+      </div>
+    </div>
+  </div>
+  <!-- <figure class='FloatingBox koding'>In order to contribute code you must first build your development environment</figure> -->
+  <!-- <figure class='FloatingBox gitlab'>The blocks represent chunks of code in your GitLab repository</figure> -->
+  <video id="blocksVideoWithKoding" preload="auto">
+    <source type='video/mp4;codecs="avc1.42E01E"' src="{{ videoPath }}buildwithKoding.m4v"></source>
+    <source type='video/webm;codecs="vp8"' src="{{ videoPath }}buildwithKoding.webm"></source>
+    <source type='video/ogg;codecs="theora"' src="{{ videoPath }}buildwithKoding.ogv"></source>
+    I'm sorry; your browser doesn't support HTML5 video in WebM with VP8 or MP4 with H.264.
+  </video>
+  <video id="blocksVideoWithoutKoding" preload="auto">
+    <source type='video/mp4;codecs="avc1.42E01E"' src="{{ videoPath }}buildingbyhand.m4v"></source>
+    <source type='video/webm;codecs="vp8"' src="{{ videoPath }}buildingbyhand.webm"></source>
+    <source type='video/ogg;codecs="theora"' src="{{ videoPath }}buildingbyhand.ogv"></source>
+    I'm sorry; your browser doesn't support HTML5 video in WebM with VP8 or MP4 with H.264.
+  </video>
+</section>
+
+
+<section class='MainSection MainSection-Quotes'>
+  <h3>WHAT OTHERS ARE SAYING</h3>
+  <div class='MainSection-Wrapper'>
+    <div>
+      <blockquote>GitLab+Koding means you can ship code faster, and contribute to more projects in a collaborative environment.</blockquote>
+      <cite><b>Sid Sijbrandij</b>, Co-founder, CEO, GitLab</cite>
+    </div>
+    <div>
+      <blockquote>When you allow developers to spend more time in the code, they will be happier and more productive.</blockquote>
+      <cite><b>Devrim Yasar</b>, Co-founder, CEO, Koding</cite>
+    </div>
+  </div>
+</section>
+
+
+<section class='MainSection MainSection-Try' id='Try-Koding-and-GitLab'>
+  <div class='MainSection-Wrapper'>
+    <div>
+      <h2 class="LustBig">Koding+GitLab coming soon</h2>
+      <h3 class="EavesDesc">Sign-up to receive updates about the one-click dev environment solution. We will send you an email when it is launched.</h3>
+
+      <ul class="hidden gitlab-stay-updated-success">
+        <li><p>Thanks for subscribing!</p></li>
+      </ul>
+      <form id="gitlab-stay-updated">
+        <input type="email" name="Field1" placeholder="Enter your email">
+        <input type="hidden" name="Field3">
+        <button formnovalidate type="submit">STAY UPDATED</button>
+      </form>
+
+    </div>
+    <div class="MainSection-Try--appChrome">
+      <video id="tryVideo"  preload="auto" loop poster="{{ site.url }}/assets/img/landing/gitlab/productshot.jpg" controls>
+        <source type='video/mp4;codecs="avc1.42E01E, mp4a.40.2"' src="{{ videoPath }}GitLab-Koding.m4v"></source>
+        <source type='video/webm;codecs="vp8, vorbis"' src="{{ videoPath }}GitLab-Koding.webm"></source>
+        <source type='video/ogg;codecs="theora, vorbis"' src="{{ videoPath }}GitLab-Koding.ogv"></source>
+        I'm sorry; your browser doesn't support HTML5 video in WebM with VP8 or MP4 with H.264.
+      </video>
+    </div>
+  </div>
+</section>
+
+
+<section class='MainSection MainSection-Footer'>
+  <div class='MainSection-Wrapper'>
+    <h3>Start your Koding free trial today</h3>
+    <a class="MainSection-Description--button" href="{{ site.url }}">TRY KODING NOW</a>
+  </div>
+</section>
+
+<section class='MainSection MainSection-FullScreenVideo' id="MainVideo-FullScreen"></section>
+
+<script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
+<script src="{{ site.url }}/js/koding-gitlab.js"></script>
+<script type="text/javascript" src="{{ site.url }}/js/form-submission.js" /></script>
+<script type="text/javascript">
+  KODING_UTILS.bindFormSubmission({
+    referrerSelector: '#gitlab-stay-updated input[name=Field3]',
+    formSelector: '#gitlab-stay-updated',
+    resultSelector: 'ul.gitlab-stay-updated-success',
+    formHash: 'rqdtxw21drksfl'
+  });
+</script>

@@ -5,8 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"math/rand"
-
 	"github.com/koding/bongo"
 	"github.com/koding/runner"
 	"gopkg.in/mgo.v2/bson"
@@ -260,94 +258,6 @@ func TestAccountCreateFollowingFeedChannel(t *testing.T) {
 				cff, err := acc.CreateFollowingFeedChannel()
 				So(err, ShouldBeNil)
 				So(cff.TypeConstant, ShouldEqual, Channel_TYPE_FOLLOWERS)
-			})
-		})
-	})
-}
-
-func TestAccountUnMarkAsTroll(t *testing.T) {
-	tests.WithRunner(t, func(r *runner.Runner) {
-
-		Convey("while unmarking as troll", t, func() {
-			Convey("it should have account id", func() {
-				acc := NewAccount()
-
-				err := acc.UnMarkAsTroll()
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, ErrAccountIdIsNotSet)
-			})
-
-			Convey("it should have account in db", func() {
-				acc := NewAccount()
-				acc.Id = rand.Int63()
-				err := acc.UnMarkAsTroll()
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, bongo.RecordNotFound)
-			})
-
-			// Convey("it should have error if not troll", func() {
-			// 	// create account
-			// 	acc := CreateAccountWithTest()
-			// 	So(acc.Create(), ShouldBeNil)
-
-			// 	err := acc.UnMarkAsTroll()
-			// 	So(err, ShouldNotBeNil)
-			// 	So(err.Error(), ShouldContainSubstring, "account is not a troll")
-			// })
-
-			Convey("it should not have error if troll is mark as not a troll", func() {
-				// create account
-				acc := CreateAccountWithTest()
-				acc.IsTroll = true
-				So(acc.Create(), ShouldBeNil)
-
-				err := acc.UnMarkAsTroll()
-				So(err, ShouldBeNil)
-			})
-		})
-	})
-}
-
-func TestAccountMarkAsTroll(t *testing.T) {
-	tests.WithRunner(t, func(r *runner.Runner) {
-		Convey("while marking account as troll", t, func() {
-			Convey("it should have account id", func() {
-				acc := NewAccount()
-
-				err := acc.MarkAsTroll()
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, ErrAccountIdIsNotSet)
-			})
-
-			Convey("it should have account in db", func() {
-				acc := NewAccount()
-				acc.Id = 1122312
-
-				err := acc.MarkAsTroll()
-				So(err, ShouldNotBeNil)
-				So(err, ShouldEqual, bongo.RecordNotFound)
-			})
-
-			// Convey("it should have error if account is already troll", func() {
-			// 	// create account
-			// 	acc := CreateAccountWithTest()
-			// 	acc.IsTroll = true
-			// 	So(acc.Create(), ShouldBeNil)
-
-			// 	err := acc.MarkAsTroll()
-			// 	So(err, ShouldNotBeNil)
-			// 	So(err.Error(), ShouldContainSubstring, "account is already a troll")
-			// })
-
-			Convey("it should not have error if non-troll account is marked as troll", func() {
-				// create account
-				acc := CreateAccountWithTest()
-				acc.IsTroll = false
-				So(acc.Create(), ShouldBeNil)
-
-				err := acc.MarkAsTroll()
-				So(err, ShouldBeNil)
-				So(acc.IsTroll, ShouldEqual, true)
 			})
 		})
 	})

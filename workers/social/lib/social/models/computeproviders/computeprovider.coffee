@@ -60,10 +60,6 @@ module.exports = class ComputeProvider extends Base
           (signature Object, Function)
         fetchUsage        :
           (signature Object, Function)
-        fetchPlans        :
-          (signature Function)
-        fetchTeamPlans    :
-          (signature Function)
         fetchProviders    :
           (signature Function)
         createGroupStack  :
@@ -98,7 +94,7 @@ module.exports = class ComputeProvider extends Base
 
     shouldReviveClient       : yes
     shouldReviveProvisioners : yes
-    shouldFetchGroupPlan     : yes
+    shouldFetchGroupLimit    : yes
 
   , (client, options, callback) ->
 
@@ -139,7 +135,7 @@ module.exports = class ComputeProvider extends Base
     shouldPassCredential : yes
     shouldReviveProvider : no
     shouldLockProcess    : yes
-    shouldFetchGroupPlan : yes
+    shouldFetchGroupLimit : yes
 
   , (client, options, callback) ->
 
@@ -187,18 +183,6 @@ module.exports = class ComputeProvider extends Base
 
     { slug } = options.provider
     fetchUsage client, { provider: slug }, callback
-
-
-  @fetchPlans = permit 'create machines',
-    success: (client, callback) ->
-      callback null, PLANS
-
-
-  @fetchTeamPlans = permit 'create machines',
-    success: (client, callback) ->
-      callback null, if KONFIG.environment is 'default'
-      then { unlimited: teamutils.TEAMPLANS.unlimited }
-      else teamutils.TEAMPLANS
 
 
   @update = secure revive
@@ -319,16 +303,16 @@ module.exports = class ComputeProvider extends Base
       async.series queue, -> callback null, { stack, results }
 
 
-  # Just takes the plan config and the stack template content generates rules
-  # based on th plan then verifies the content based on the rules generated
-  @validateTemplateContent = (content, planConfig, callback) ->
+  # Just takes the limit config and the stack template content generates rules
+  # based on the limits then verifies the content based on the rules generated
+  @validateTemplateContent = (content, limitConfig, callback) ->
 
     try
       template = JSON.parse content
     catch
       return callback new KodingError 'Template is not valid'
 
-    teamutils.fetchConstraints planConfig, (err, rules) ->
+    teamutils.fetchConstraints limitConfig, (err, rules) ->
 
       { passed, results } = konstraints template, rules, {}
       return callback new KodingError results.last[1]  unless passed
@@ -337,13 +321,13 @@ module.exports = class ComputeProvider extends Base
 
 
   # Template checker, this will fetch the stack template from given id,
-  # will generate konstraint rules based on the group's plan and finally
+  # will generate konstraint rules based on the group's limit and finally
   # validate the stack template based on these informations ~ GG
   @validateTemplate = (client, stackTemplateId, group, callback) ->
 
-    planConfig = helpers.getPlanConfig group
+    limitConfig = helpers.getLimitConfig group
 
-    return callback null  unless planConfig.plan
+    return callback null  unless limitConfig.limit
 
     JStackTemplate = require './stacktemplate'
     JStackTemplate.one$ client, { _id: stackTemplateId }, (err, data) =>
@@ -351,7 +335,7 @@ module.exports = class ComputeProvider extends Base
       return callback err  if err
       return callback new KodingError 'Stack template not found'  unless data
 
-      @validateTemplateContent data.template.content, planConfig, callback
+      @validateTemplateContent data.template.content, limitConfig, callback
 
 
   # Takes an array of stack template ids and returns the final result ^^
@@ -425,13 +409,13 @@ module.exports = class ComputeProvider extends Base
 
     return callback null  if group.slug is 'koding'
 
-    planConfig = helpers.getPlanConfig group
+    limitConfig = helpers.getLimitConfig group
 
-    teamutils.fetchPlanData planConfig, (err, plan) =>
+    teamutils.fetchLimitData limitConfig, (err, limits) =>
 
       return callback err  if err
 
-      maxAllowed = plan.member ? MAX_INT
+      maxAllowed = limits.member ? MAX_INT
 
       JCounter = require '../counter'
       JCounter[change]
@@ -453,14 +437,14 @@ module.exports = class ComputeProvider extends Base
     # A stack template without machines in it? ~ GG
     return callback null  if group.slug is 'koding' or amount is 0
 
-    planConfig   = helpers.getPlanConfig group
+    limitConfig   = helpers.getLimitConfig group
     maxAllowed   = MAX_INT
 
-    teamutils.fetchPlanData planConfig, (err, plan) =>
+    teamutils.fetchLimitData limitConfig, (err, limits) =>
 
       return callback err  if err
 
-      maxAllowed = plan.maxInstance  if plan
+      maxAllowed = limits.maxInstance  if limits
 
       JCounter = require '../counter'
       JCounter[change]
@@ -495,7 +479,7 @@ module.exports = class ComputeProvider extends Base
 
         message = "
           #{user} failed to create #{provider}#{item} due to
-          plan limitations. #{template}
+          limitations. #{template}
         "
 
         KodingLogger.warn group, message
@@ -670,8 +654,8 @@ module.exports = class ComputeProvider extends Base
     # be updated) to allow users to provide any stackTemplate to create a stack
     # from it (::generateStackFromTemplate)
     # We then need to check if they are eligible to use that stack template,
-    # we need to check plan limits for the current group and create the stack
-    # and related machines here, this is very critical for multiple stacks ~ GG
+    # we need to check limits for the current group and create the stack and
+    # related machines here, this is very critical for multiple stacks ~ GG
 
     async.series [
 

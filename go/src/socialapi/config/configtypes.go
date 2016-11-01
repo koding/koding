@@ -19,9 +19,6 @@ type (
 		// Email holds the required configuration data for email related workers
 		Email Email
 
-		// Sitemap holds configuration for Sitemap workers
-		Sitemap Sitemap
-
 		// Algolia holds configuration parameters for Aloglia search engine
 		Algolia Algolia
 
@@ -33,8 +30,6 @@ type (
 
 		Stripe Stripe
 
-		Paypal Paypal
-
 		// Holds access information for realtime message authenticator
 		GateKeeper GateKeeper
 
@@ -45,8 +40,6 @@ type (
 		WebhookMiddleware WebhookMiddleware
 
 		Kloud Kloud
-
-		PaymentWebhook PaymentWebhook
 
 		ProxyURL string
 
@@ -89,12 +82,6 @@ type (
 		TemplateRoot            string `env:"key=KONFIG_SOCIALAPI_EMAIL_TEMPLATEROOT 	        default=workers/sitemap/files/"`
 	}
 
-	// Sitemap holds Sitemap Workers' config
-	Sitemap struct {
-		RedisDB        int    `env:"key=KONFIG_SOCIALAPI_SITEMAP_REDISDB"`
-		UpdateInterval string `env:"key=KONFIG_SOCIALAPI_SITEMAP_UPDATEINTERVAL"`
-	}
-
 	// Algolia holds Algolia service credentials
 	Algolia struct {
 		AppId            string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APPID                        required"`
@@ -119,15 +106,6 @@ type (
 
 	Stripe struct {
 		SecretToken string `env:"key=KONFIG_SOCIALAPI_STRIPE_SECRETTOKEN"`
-	}
-
-	Paypal struct {
-		Username  string `env:"key=KONFIG_SOCIALAPI_PAYPAL_USERNAME"`
-		Password  string `env:"key=KONFIG_SOCIALAPI_PAYPAL_PASSWORD"`
-		Signature string `env:"key=KONFIG_SOCIALAPI_PAYPAL_SIGNATURE"`
-		ReturnUrl string `env:"key=KONFIG_SOCIALAPI_PAYPAL_RETURNURL"`
-		CancelUrl string `env:"key=KONFIG_SOCIALAPI_PAYPAL_CANCELURL"`
-		IsSandbox bool   `env:"key=KONFIG_SOCIALAPI_PAYPAL_ISANDBOX"`
 	}
 
 	GateKeeper struct {
@@ -165,12 +143,6 @@ type (
 		Address   string `env:"key=KONFIG_SOCIALAPI_KLOUD_ADDRESS"`
 	}
 
-	PaymentWebhook struct {
-		Port      string `env:"key=KONFIG_SOCIALAPI_PAYMENTWEBHOOK_PORT"`
-		Debug     bool   `env:"key=KONFIG_SOCIALAPI_PAYMENTWEBHOOK_DEBUG"`
-		SecretKey string `env:"key=KONFIG_SOCIALAPI_PAYMENTWEBHOOK_SECRETKEY"`
-	}
-
 	GoogleapiServiceAccount struct {
 		ClientId              string `env:"key=KONFIG_SOCIALAPI_GOOGLEAPISERVICEACCOUNT_CLIENTID"`
 		ClientSecret          string `env:"key=KONFIG_SOCIALAPI_GOOGLEAPISERVICEACCOUNT_CLIENTSECRET"`
@@ -179,7 +151,6 @@ type (
 	}
 
 	DisabledFeatures struct {
-		Moderation bool
 		BotChannel bool
 	}
 

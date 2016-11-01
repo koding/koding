@@ -1,5 +1,5 @@
 kd     = require 'kd'
-React  = require 'kd-react'
+React  = require 'app/react'
 Toggle = require 'app/components/common/toggle'
 
 
@@ -33,7 +33,7 @@ module.exports = class GenericToggler extends React.Component
     if button
       buttonClassName = 'GenericToggler-button'
       toggleClassName = 'GenericToggler-toggle hidden'
-      topClassName = 'GenericToggler-top button'
+      topClassName = 'GenericToggler-top build-logs'
 
     unless machineState
       buttonClassName = "#{buttonClassName} disabled"

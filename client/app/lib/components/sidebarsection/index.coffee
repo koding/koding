@@ -1,6 +1,6 @@
 kd                 = require 'kd'
 Link               = require 'app/components/common/link'
-React              = require 'kd-react'
+React              = require 'app/react'
 isKoding           = require 'app/util/isKoding'
 classnames         = require 'classnames'
 UnreadCount        = require 'app/components/sidebarmachineslistitem/unreadcount'
@@ -44,7 +44,7 @@ module.exports = class SidebarSection extends React.Component
     then 'unread'
     else ''
 
-    linkProps = { titleLink: @props.titleLink }
+    linkProps = { }
     if @props.onTitleClick
       linkProps.onClick = @props.onTitleClick
 

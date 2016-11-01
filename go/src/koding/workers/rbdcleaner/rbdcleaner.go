@@ -48,7 +48,7 @@ func main() {
 	}
 
 	// and then for every other intervals
-	for _ = range time.Tick(interval) {
+	for range time.Tick(interval) {
 		err := rbdCleaner()
 		if err != nil {
 			log.Error(err.Error())

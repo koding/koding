@@ -1076,7 +1076,7 @@ func (cmd *GroupCreate) waitFunc(timeout time.Duration) WaitFunc {
 			select {
 			case <-initialTimeout:
 				if !building {
-					return fmt.Errorf("waiting for %q to become building has timed out, aborting")
+					return fmt.Errorf("waiting for %q to become building has timed out, aborting", id)
 				}
 			case <-overallTimeout:
 				return fmt.Errorf("giving up waiting for %q to be running; last state %q", id, lastState)

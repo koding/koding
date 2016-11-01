@@ -43,25 +43,6 @@ func TeamRequestFromContext(ctx context.Context) (*TeamRequest, bool) {
 	return req, ok
 }
 
-// Stacker is a provider-specific handler that implements team methods.
-type Stacker interface {
-	Apply(context.Context) (interface{}, error)
-	Authenticate(context.Context) (interface{}, error)
-	Bootstrap(context.Context) (interface{}, error)
-	Plan(context.Context) (interface{}, error)
-}
-
-// Migrater provides an interface to import solo machine (from "koding"
-// provider) to the specific stack provider.
-type Migrater interface {
-	Migrate(context.Context) (interface{}, error)
-}
-
-// StackProvider is responsible for creating stack providers.
-type StackProvider interface {
-	Stack(ctx context.Context) (Stacker, error)
-}
-
 // StackFunc handles execution of a single team method.
 type StackFunc func(Stacker, context.Context) (interface{}, error)
 
@@ -98,42 +79,14 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 		args.GroupName = "koding"
 	}
 
-	p, ok := k.providers[args.Provider].(StackProvider)
+	p, ok := k.providers[args.Provider].(Provider)
 	if !ok {
 		return nil, NewError(ErrProviderNotFound)
 	}
 
-	// Build context value.
-	ctx := request.NewContext(context.Background(), r)
-	ctx = context.WithValue(ctx, TeamRequestKey, &args)
-	if k.PublicKeys != nil {
-		ctx = publickeys.NewContext(ctx, k.PublicKeys)
-	}
-
-	if k.ContextCreator != nil {
-		ctx = k.ContextCreator(ctx)
-	}
-
-	if args.StackID != "" {
-		evID := r.Method + "-" + args.StackID
-		ctx = eventer.NewContext(ctx, k.NewEventer(evID))
-
-		k.Log.Debug("Eventer created %q", evID)
-	} else if args.Identifier != "" {
-		evID := r.Method + "-" + args.GroupName + "-" + args.Identifier
-		ctx = eventer.NewContext(ctx, k.NewEventer(evID))
-
-		k.Log.Debug("Eventer created %q", evID)
-	}
-
-	if args.Debug {
-		ctx = k.setTraceID(r.Username, r.Method, ctx)
-	}
-
-	// Create stack handler.
-	s, err := p.Stack(ctx)
+	s, ctx, err := k.NewStack(p, r, &args)
 	if err != nil {
-		return nil, errors.New("error creating stack: " + err.Error())
+		return nil, err
 	}
 
 	ctx = k.traceRequest(ctx, args.metricTags())
@@ -147,13 +100,13 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 
 	// Do not log error in production as most of them are expected:
 	//
-	//  - authenticate errors due to invalid credentials
 	//  - plan errors due to invalud user input
-	//
-	// TODO(rjeczalik): Refactor errors so the user-originated have different
-	// type and log unexpected errors with k.Log.Error().
 	if err != nil {
-		k.Log.Debug("method %q for user %q failed: %s", r.Method, r.Username, err)
+		if _, ok := err.(*Error); ok {
+			k.Log.Warning("%s (method=%s, user=%s, group=%s)", err, r.Method, r.Username, args.GroupName)
+		} else {
+			k.Log.Debug("method %q for user %q failed: %s", r.Method, r.Username, err)
+		}
 
 		// ensure UI receives proper error origin - kloudError
 		if _, ok := err.(*kite.Error); !ok {
@@ -164,4 +117,46 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 	k.send(ctx)
 
 	return resp, err
+}
+
+func (k *Kloud) NewStack(p Provider, r *kite.Request, req *TeamRequest) (Stacker, context.Context, error) {
+	// Build context value.
+	ctx := request.NewContext(context.Background(), r)
+	ctx = context.WithValue(ctx, TeamRequestKey, req)
+	if k.PublicKeys != nil {
+		ctx = publickeys.NewContext(ctx, k.PublicKeys)
+	}
+
+	if k.ContextCreator != nil {
+		ctx = k.ContextCreator(ctx)
+	}
+
+	if req.StackID != "" {
+		evID := r.Method + "-" + req.StackID
+		ctx = eventer.NewContext(ctx, k.NewEventer(evID))
+
+		k.Log.Debug("Eventer created %q", evID)
+	} else if req.Identifier != "" {
+		evID := r.Method + "-" + req.GroupName + "-" + req.Identifier
+		ctx = eventer.NewContext(ctx, k.NewEventer(evID))
+
+		k.Log.Debug("Eventer created %q", evID)
+	}
+
+	if req.Debug {
+		ctx = k.setTraceID(r.Username, r.Method, ctx)
+	}
+
+	// Create stack handler.
+	v, err := p.Stack(ctx)
+	if err != nil {
+		return nil, nil, errors.New("error creating stack: " + err.Error())
+	}
+
+	s, ok := v.(Stacker)
+	if !ok {
+		return nil, nil, NewError(ErrStackNotImplemented)
+	}
+
+	return s, ctx, nil
 }

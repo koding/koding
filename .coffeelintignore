@@ -37,6 +37,7 @@ builder/lib/index.coffee
 feeder/lib/feedcontroller.coffee
 stacks/lib/views/stacks/definestackview.coffee
 test/lib/helpers/teamshelpers.coffee
+client/home/lib/integrations
 client/home/lib/billing/components
 client/home/lib/billing/hometeambillingcreditcard.coffee
 client/home/lib/billing/hometeambillingpaymentinformation.coffee
@@ -56,6 +57,7 @@ client/home/lib/virtualmachines/homevirtualmachinesconnectedmachines.coffee
 client/home/lib/virtualmachines/homevirtualmachinessharedmachines.coffee
 client/home/lib/virtualmachines/homevirtualmachinesvirtualmachines.coffee
 client/home/lib/welcome/index.coffee
+client/home/lib/billing/index.coffee
 client/mocks/
 client/stack-editor/lib/editor/index.coffee
 
@@ -66,3 +68,5 @@ client/home/lib/welcome/components/welcomesteps/view.coffee
 client/home/lib/welcome/homewelcomesteps.coffee
 
 client/app/lib/shortcuts/accounteditshortcutsrow.coffee
+
+client/component-lab/

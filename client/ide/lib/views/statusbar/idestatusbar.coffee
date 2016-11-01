@@ -27,14 +27,15 @@ module.exports = class IDEStatusBar extends kd.View
     @participantAvatars = {}
     @avatarTimers       = {}
 
-    @on 'ShowAvatars',          @bound 'showAvatars'
-    @on 'ParticipantLeft',      @bound 'dimParticipantAvatar'
-    @on 'ParticipantJoined',    @bound 'addParticipantAvatar'
-    @on 'CollaborationLoading', @bound 'handleCollaborationLoading'
-    @on 'CollaborationEnded',   @bound 'handleCollaborationEnded'
-    @on 'CollaborationStarted', @bound 'handleCollaborationStarted'
-    @on 'ParticipantWatched',   @bound 'decorateWatchedAvatars'
-    @on 'ParticipantUnwatched', @bound 'decorateUnwatchedAvatars'
+    @on 'ShowAvatars',            @bound 'showAvatars'
+    @on 'ParticipantLeft',        @bound 'dimParticipantAvatar'
+    @on 'ParticipantJoined',      @bound 'addParticipantAvatar'
+    @on 'CollaborationPreparing', @bound 'handleCollaborationPreparing'
+    @on 'CollaborationLoading',   @bound 'handleCollaborationLoading'
+    @on 'CollaborationEnded',     @bound 'handleCollaborationEnded'
+    @on 'CollaborationStarted',   @bound 'handleCollaborationStarted'
+    @on 'ParticipantWatched',     @bound 'decorateWatchedAvatars'
+    @on 'ParticipantUnwatched',   @bound 'decorateUnwatchedAvatars'
 
     { mainController, router, appManager } = kd.singletons
 
@@ -44,7 +45,17 @@ module.exports = class IDEStatusBar extends kd.View
       cssClass: 'collaboration-link-container'
 
     superKey  = if globals.os is 'mac' then '⌘' else 'CTRL'
-    shareCopy = 'This is your collaboration link. You can share this link to invite someone to your session. Click here to copy!'
+
+    shareCopy = new kd.CustomHTMLView
+      partial: ''' <h3>Collaboration session is started. Share link to invite.</h3>
+      <p>This is your collaboration link. You can share this link anytime to invite someone to your
+      session. Click link to copy!</p>
+      '''
+
+    copyLink = new kd.CustomHTMLView
+      cssClass: 'copied-link'
+      partial: '<strong>Collaboration link is copied to clipboard.</strong>'
+
 
     @collaborationLinkContainer.addSubView @collaborationLink = new kd.CustomHTMLView
       cssClass   : 'collaboration-link'
@@ -52,7 +63,8 @@ module.exports = class IDEStatusBar extends kd.View
       bind       : 'mouseenter mouseleave'
       mouseleave : -> @tooltip.hide()
       mouseenter : ->
-        @tooltip.setTitle shareCopy
+        @tooltip.update shareCopy
+        @tooltip.setView shareCopy
         @tooltip.show()
         @tooltip.once 'ReceivedClickElsewhere', @tooltip.bound 'hide'
 
@@ -64,16 +76,17 @@ module.exports = class IDEStatusBar extends kd.View
           copied = document.execCommand 'copy'
           couldntCopy = "couldn't copy"
           throw couldntCopy  unless copied
-          tooltipPartial = 'Copied to clipboard!'
         catch
           tooltipPartial = "Hit #{superKey} + C to copy!"
 
-        @tooltip.setTitle tooltipPartial
+        @tooltip.update copyLink
+        @tooltip.setView copyLink
         @tooltip.show()
         @tooltip.once 'ReceivedClickElsewhere', @tooltip.bound 'hide'
 
     @collaborationLink.setTooltip
-      title     : shareCopy
+      view      : shareCopy
+      cssClass  : 'is-light'
       placement : 'above'
       sticky    : yes
 
@@ -95,7 +108,6 @@ module.exports = class IDEStatusBar extends kd.View
         title         : 'Loading'
         cssClass      : 'start-session transparent'
         callback      : @bound 'handleShareButtonClick'
-
 
     if isKoding() and isSoloProductLite()
       isPlanFree (err, isFree) =>
@@ -135,18 +147,13 @@ module.exports = class IDEStatusBar extends kd.View
 
   startSession: ->
 
-    @share.setOption 'startProgress', yes
-    @share.updateProgress 0 # Make sure initial value is 0
-
-    PROGRESS_DELAYS.forEach (item) =>
-      kd.utils.killWait item.timer  if item.timer # Kill already defined waits
-      item.timer = kd.utils.wait item.delay, => @share.updateProgress item.progress
-
-    kd.singletons.appManager.tell 'IDE', 'startCollaborationSession', (err) =>
-      @resetProgress()  if err
+    kd.singletons.appManager.tell 'IDE', 'startCollaborationSession'
 
 
-  resetProgress: -> @share.resetProgress()
+  resetProgress: ->
+
+    @share.resetProgress()
+    @share.unsetTooltip()
 
 
   showInformation: ->
@@ -243,6 +250,26 @@ module.exports = class IDEStatusBar extends kd.View
     return unless avatarView = @participantAvatars[from]
 
     avatarView.showRequestPermissionView()
+
+
+  handleCollaborationPreparing: (tooltipContent) ->
+
+    @share.startProgress()
+    @share.updateProgress 0 # Make sure initial value is 0
+
+    PROGRESS_DELAYS.forEach (item) =>
+      kd.utils.killWait item.timer  if item.timer # Kill already defined waits
+      item.timer = kd.utils.wait item.delay, => @share.updateProgress item.progress
+
+    return  unless tooltipContent
+
+    @share.setTooltip
+      view      : new kd.CustomHTMLView
+        partial : tooltipContent
+      cssClass  : 'is-light collaboration-start-tooltip'
+      placement : 'above'
+      sticky    : yes
+    @share.getTooltip().show()
 
 
   handleCollaborationLoading: ->

@@ -22,7 +22,7 @@ import (
 )
 
 func main() {
-	vagrant, _ = vagrantutil.NewVagrant("myfolder")
+	vagrant, _ := vagrantutil.NewVagrant("myfolder")
 
 	vagrant.Create(`# -*- mode: ruby -*-
 # vi: set ft=ruby :

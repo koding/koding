@@ -1,0 +1,189 @@
+---
+layout: default
+title: Features
+permalink: /features
+---
+
+<!-- HEADER -->
+{% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#F2778A' %}
+
+{% assign path = site.url | append: '/assets/img/landing/misc' %}
+
+<style>{% include css/about-hero.css %}</style>
+<div class="aboutus-hero features-hero">
+  <div class="aboutus-gradient"  style="background: linear-gradient(to bottom,  #F2778A 0%, #F8BBC4 100%);">
+    <h1>Flawlessly configure dev environments in one click</h1>
+    <p>No matter how complex your project is, Koding for teams makes it easy to share your entire development stack with anyone, anywhere.</p>
+  </div>
+  <img src="{{ path }}/as.png?t=1473370419565&amp;width=1465&amp;height=483&amp;name=as.png" width="1465" height="483" alt="as.png" srcset="{{ path }}/as.png?t=1473370419565&amp;width=733&amp;height=242&amp;name=as.png 733w, {{ path }}/as.png?t=1473370419565&amp;width=1465&amp;height=483&amp;name=as.png 1465w, {{ path }}/as.png?t=1473370419565&amp;width=2198&amp;height=725&amp;name=as.png 2198w, {{ path }}/as.png?t=1473370419565&amp;width=2930&amp;height=966&amp;name=as.png 2930w, {{ path }}/as.png?t=1473370419565&amp;width=3663&amp;height=1208&amp;name=as.png 3663w, {{ path }}/as.png?t=1473370419565&amp;width=4395&amp;height=1449&amp;name=as.png 4395w" sizes="(max-width: 1465px) 100vw, 1465px">
+</div>
+
+
+<style>{% include css/features-video.css %}</style>
+<div class="Homepage--container FeaturesVideo">
+  <h2 class="feature-title">A flawless replica of your dev project</h2>
+  <p class="feature-lead">A flawless replica of your dev project</p>
+  <a href="#"><img src="{{ path }}/video.png" width="1100" srcset="{{ path }}/video.png, {{ path }}/video_mobile.png 767w" alt="features video"></a>
+  <ul>
+    <li>Cloud VM<br />Create</li>
+    <li>Packages<br />Installed</li>
+    <li>Codebase<br />Pulled In</li>
+    <li>Configuration<br />Done</li>
+  </ul>
+</div>
+
+
+<style>{% include css/features-services.css %}</style>
+<div class="FeatureServices">
+  <div class="Homepage--container ">
+    <h2 class="feature-title">If you can build it in the cloud, you can build it with Koding for Teams.</h2>
+
+    <div class="FeatureServices-cols">
+      <div class="FeatureServices-cols--imageWrapper">
+        <img src="{{ path }}/code.png" srcset="{{ path }}/code2x.png 2x, {{ path }}/services-1.png 767w"/>
+      </div>
+      <div>
+        <h3>Integrate any service with a few lines of code.</h3>
+        <p>Whether you use Heroku with MongoDB & Node.js, or AWS with Ruby and MySQL, Koding’s powerful configuration manager can handle it. Just add the service you need to Koding’s stack script, and voilå — you're ready to roll.</p>
+      </div>
+    </div>
+  </div>
+  <div class="FeatureServices-logos" style="background-image:url('{{ path }}/services.png')"></div>
+</div>
+
+
+<style>{% include css/features-content.css %}</style>
+{% include features-content.html
+   title1="The power of AWS without the pain."
+   column1="Get your whole team working on cloud VMs without the steep learning curve of setting them up."
+   title2="Send stack updates to your whole team."
+   column2="Send automatic alerts whenever your team stack changes, so your team can pull the latest updates."
+   title3="No sliced-up hosts  means no restrictions"
+   column3="We don’t slice up hosting resources like LXC or Docker, so your environment will never be compromised." %}
+
+{% include home-logobar.html
+   logo1_src="/assets/img/landing/company-logos/logo_aws.svg"
+   logo2_src="/assets/img/landing/company-logos/logo_openstack.svg"
+   logo3_src="/assets/img/landing/company-logos/logo_docker.svg"
+   logo4_src="/assets/img/landing/company-logos/logo_digitalocean.svg"
+   logo5_src="/assets/img/landing/company-logos/logo_github.svg"
+   logo6_src="/assets/img/landing/company-logos/logo_gitlab.svg"
+   title="Seamless support for <strong>your favorite cloud providers</strong>"
+   cssClass="features" %}
+
+{% include features-content.html
+   title="Keep the terminal, IDE and shortcuts you love"
+   paragraph="Koding for Teams uses a blazing-fast FUSE-based file system to simulate a local environment on whatever machine you’re using. So your development workflow stays local and familiar while you code entirely in the cloud."
+   image_below="/assets/img/landing/misc/terminal.png"
+   image_below_mobile="/assets/img/landing/misc/terminal-mobile.png"
+   image_below_width="1840"
+   image_below_height="822"
+   image1="/assets/img/landing/misc/img-local2x.png"
+   image1_width="88"
+   image1_height="88"
+   title1="Looks and feels local. Takes up zero space."
+   column1="Got a monster, terabyte-sized app? Access it on a personal laptop as easily as you would on cloud provisioned hardware."
+   image2="/assets/img/landing/misc/img-thumbdown2x.png"
+   image2_width="88"
+   image2_height="88"
+   title2="Seamlessly develop in the cloud"
+   column2="Stop stressing out over chronic connection timeouts and baffling host errors. Koding for Teams’ seamless cloud setup means you’ll never upload via FTP or scp again."
+   image3="/assets/img/landing/misc/img-console2x.png"
+   image3_width="88"
+   image3_height="88"
+   title3="Coding in the browser is 100% optional."
+   column3="We get it: No one wants to give up their terminal & text editor to code in the cloud. With Koding, you only use the browser-based IDE when you feel like it."
+   alternate_background="yes" %}
+
+{% include features-content.html
+   title="Eliminate meetings: Achieve true flow."
+   paragraph="Koding for Teams’ powerful collaboration tools allow developers to work together without having to resort to time-consuming meetings and conference calls."
+   image_above="/assets/img/landing/misc/img-above.png"
+   image_above_width="700"
+   image_above_height="686"
+   image1="/assets/img/landing/misc/icon-click.png"
+   image1_width="100"
+   image1_height="100"
+   title1="Drag, drop and share your whole environment"
+   column1="Stuck? Drag your entire workspace into a chat window and let someone else take a stab at it. Pair-program instantly (no screensharing or conference apps needed)."
+   image2="/assets/img/landing/misc/icon-chat-1.png"
+   image2_width="100"
+   image2_height="100"
+   title2="Stay connected via social channels"
+   column2="Share ideas and solve problems via hashtag-based channels, private messaging, and real-time chat. Integrate updates from GitHub, Pivotal Tracker and more."
+   image3="/assets/img/landing/misc/icon-video.png"
+   image3_width="100"
+   image3_height="100"
+   title3="Fire up video and audio while you code"
+   column3="Sometimes you just need to talk things out. Jump into lag-free video and audio sessions the instant you need them, while still working in our cloud IDE." %}
+
+
+<style>{% include css/features-threecols.css %}</style>
+{% include features-threecols.html
+   headline="EVERYTHING YOU NEED TO"
+   title="Code comfortably in the cloud"
+   column_1="
+    <h3>Preserve your workflow</h3>
+    <p><span>Connect your local development tools and workflow to the cloud with a single curl command.</span></p>
+    <h3>Shortcuts for everything</h3>
+    <p><span>Koding’s comprehensive keyboard shortcuts allow you to ditch your mouse completely.</span></p>"
+   column_2="
+    <h3>No hardware restrictions</h3>
+    <p><span>Keep all your projects in the cloud and access them on any device. All you need is a web browser.</span></p>
+    <h3>Built-in preview</h3>
+    <p><span>See your latest changes instantly with Koding’s built-in browser.<br></span></p>"
+   column_3="
+    <h3>A flexible, intuitive IDE</h3>
+    <p><span>Access a powerful browser-based IDE &amp; terminal when you’re away from your regular workspace.</span></p>
+    <h3>Multi-tab terminal.</h3>
+    <p><span>Open as many Terminal tabs as you need. Multi-task like a master.</span></p>"
+   background_color="yes" %}
+
+<style>{% include css/features-cta.css %}</style>
+<div class="FeatureCTA">
+  <p>Developers love Koding because they can still use the IDEs and services they love</p>
+  <a href="{{ site.url }}/teams/create">GET STARTED</a>
+</div>
+
+{% include features-threecols.html
+   headline="EVERYTHING YOU NEED TO"
+   title="Collaborate with your team"
+   column_1="
+    <h3>Hashtag-based channels</h3>
+    <p>Create team channels for any topic. Pull in activity from your favorite productivity apps.</p>"
+   column_2="
+    <h3>Instant pair programming</h3>
+    <p>Jump into each other’s editors to code together. Collaborate in groups or one-on-one.</p>
+    <h3>Robust, topic-based search</h3>
+    <p>Search your channel history to find virtually any file, link or conversation, no matter how far back.</p>"
+   column_3="
+    <h3>Lag-free video, audio & chat</h3>
+    <p>Resolve complicated issues faster with lag-free, real-time communication whenever you need it.</p>" %}
+
+{% include features-threecols.html
+   headline="EVERYTHING YOU NEED TO"
+   title="Embrace infrastructure as code"
+   column_1="
+    <h3>Simple stack scripts</h3>
+    <p><span>The core of every Koding for Teams project is a simple, shareable stack script that serves as a blueprint for your app’s entire infrastructure.</span></p>
+    <h3>Connect your own machine</h3>
+    <p><span>Connect any Ubuntu Linux machine with a public IP address to your Koding account.</span></p>
+    <h3>Sudo access</h3>
+    <p><span>Unrestricted root access to your box. Delete anything, update anything. You’re in control.</span></p>"
+   column_2="
+    <h3>Stack-level version control</h3>
+    <p><span>Koding stack scripts are versionable, so you can manage low-level components like storage and networking as easily as conventional code.</span></p>
+    <h3>Deploy multiple VMs</h3>
+    <p><span>Run your app on an entire network of machines by simply adding a few lines of code to your stack script.</span></p>
+    <h3>SSH access</h3>
+    <p><span>Keep full SSH access to your box so you can still use your localhost to connect to your Koding VMs.</span></p>"
+   column_3="
+    <h3>Secure user permissions</h3>
+    <p><span>Only administrators get write access to the stack script, keeping project configuration security manageable no matter how many people join your team.</span></p>
+    <h3>Public IPs and custom domains</h3>
+    <p><span>Every Koding VM comes with a publicly accessible IP address that supports custom domains, making it easy to share and distribute your work.</span></p>"
+   background_color="yes" %}
+
+
+<!-- FOOTER -->
+{% include footer.html %}

@@ -1,5 +1,5 @@
 kd = require 'kd'
-React = require 'kd-react'
+React = require 'app/react'
 KDReactorMixin = require 'app/flux/base/reactormixin'
 CreditCard = require './view'
 CardFormValues = require '../../flux/cardformvalues'

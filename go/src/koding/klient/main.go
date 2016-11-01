@@ -3,28 +3,20 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
-	"os/user"
 	"path/filepath"
 	"runtime"
 	"time"
 
+	"koding/kites/config"
 	"koding/klient/app"
-	"koding/klient/protocol"
+	konfig "koding/klient/config"
+	"koding/klient/klientsvc"
 	"koding/klient/registration"
 )
 
-func defaultKiteHome() string {
-	if u, err := user.Current(); err == nil {
-		return filepath.Join(u.HomeDir, ".kite")
-	}
-	return "."
-}
-
-func defaultNoTunnel() bool {
-	return os.Getenv("KITE_NO_TUNNEL") == "1"
-}
-
+// TODO(rjeczalik): replace with multiconfig
 var (
 	flagIP          = flag.String("ip", "", "Change public ip")
 	flagPort        = flag.Int("port", 56789, "Change running port")
@@ -35,7 +27,7 @@ var (
 	flagDBPath      = flag.String("dbpath", "", "Bolt DB database path. Must be absolute)")
 
 	// Registration flags
-	flagKiteHome   = flag.String("kite-home", defaultKiteHome(), "Change kite home path")
+	flagKiteHome   = flag.String("kite-home", "", "Change kite home path")
 	flagUsername   = flag.String("username", "", "Username to be registered to Kontrol")
 	flagToken      = flag.String("token", "", "Token to be passed to Kontrol to register")
 	flagRegister   = flag.Bool("register", false, "Register to Kontrol with your Koding Password")
@@ -59,11 +51,19 @@ var (
 	flagAutoupdate    = flag.Bool("autoupdate", false, "Force turn automatic updates on")
 
 	// Upload log flags
-	flagLogBucketRegion   = flag.String("log-bucket-region", "us-west-1", "Change bucket region to upload logs")
-	flagLogBucketName     = flag.String("log-bucket-name", "koding-klient-logs", "Change bucket name to upload logs")
-	flagLogUploadLimit    = flag.Int("log-upload-limit", 1024*400, "Change file size of logs")
-	flagLogUploadInterval = flag.Duration("log-upload-interval", time.Hour*3, "Change interval of upload logs")
+	flagLogBucketRegion   = flag.String("log-bucket-region", "", "Change bucket region to upload logs")
+	flagLogBucketName     = flag.String("log-bucket-name", "", "Change bucket name to upload logs")
+	flagKeygenURL         = flag.String("log-keygen-url", "", "Change keygen endpoint URL for bucket authorization")
+	flagLogUploadInterval = flag.Duration("log-upload-interval", 90*time.Minute, "Change interval of upload logs")
+
+	// Metadata flags.
+	flagMetadata     = flag.String("metadata", "", "Base64-encoded Koding metadata")
+	flagMetadataFile = flag.String("metadata-file", "", "Koding metadata file")
 )
+
+func defaultNoTunnel() bool {
+	return os.Getenv("KITE_NO_TUNNEL") == "1"
+}
 
 func main() {
 	// Call realMain instead of doing the work here so we can use
@@ -80,25 +80,41 @@ func realMain() int {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	if *flagVersion {
-		fmt.Println(protocol.Version)
+		fmt.Println(konfig.Version)
 		return 0
 	}
+
+	debug := *flagDebug || konfig.Konfig.Debug
 
 	if *flagRegister {
-		if err := registration.Register(*flagKontrolURL, *flagKiteHome, *flagUsername, *flagToken, *flagDebug); err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
+		if err := registration.Register(*flagKontrolURL, *flagKiteHome, *flagUsername, *flagToken, debug); err != nil {
+			fmt.Fprintln(os.Stderr, err)
 			return 1
 		}
+
+		// Create new konfig.bolt with variables used during registration.
+		kfg := &config.Konfig{
+			KontrolURL:         *flagKontrolURL,
+			TunnelURL:          *flagTunnelName,
+			KloudURL:           *flagKeygenURL,
+			PublicBucketName:   *flagLogBucketName,
+			PublicBucketRegion: *flagLogBucketRegion,
+		}
+
+		if *flagKiteHome != "" {
+			kfg.KiteKeyFile = filepath.Join(*flagKiteHome, "kite.key")
+		}
+
+		if err := config.DumpToBolt("", config.Metadata{"konfig": kfg}, nil); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			return 1
+		}
+
 		return 0
 	}
 
-	dbPath := ""
-	vagrantHome := ""
-	u, err := user.Current()
-	if err == nil {
-		dbPath = filepath.Join(u.HomeDir, "/.config/koding/klient.bolt")
-		vagrantHome = filepath.Join(u.HomeDir, ".vagrant.d")
-	}
+	dbPath := filepath.Join(config.CurrentUser.HomeDir, filepath.FromSlash(".config/koding/klient.bolt"))
+	vagrantHome := filepath.Join(config.CurrentUser.HomeDir, ".vagrant.d")
 
 	if *flagDBPath != "" {
 		dbPath = *flagDBPath
@@ -111,16 +127,16 @@ func realMain() int {
 	}
 
 	conf := &app.KlientConfig{
-		Name:              protocol.Name,
-		Environment:       protocol.Environment,
-		Region:            protocol.Region,
-		Version:           protocol.Version,
+		Name:              konfig.Name,
+		Environment:       konfig.Environment,
+		Region:            konfig.Region,
+		Version:           konfig.Version,
 		DBPath:            dbPath,
 		IP:                *flagIP,
 		Port:              *flagPort,
 		RegisterURL:       *flagRegisterURL,
 		KontrolURL:        *flagKontrolURL,
-		Debug:             *flagDebug,
+		Debug:             debug,
 		UpdateInterval:    *flagUpdateInterval,
 		UpdateURL:         *flagUpdateURL,
 		ScreenrcPath:      *flagScreenrc,
@@ -132,15 +148,45 @@ func realMain() int {
 		Autoupdate:        *flagAutoupdate,
 		LogBucketRegion:   *flagLogBucketRegion,
 		LogBucketName:     *flagLogBucketName,
-		LogUploadLimit:    *flagLogUploadLimit,
+		LogKeygenURL:      *flagKeygenURL,
 		LogUploadInterval: *flagLogUploadInterval,
+		Metadata:          *flagMetadata,
+		MetadataFile:      *flagMetadataFile,
 	}
 
-	a := app.NewKlient(conf)
-	defer a.Close()
+	a, err := app.NewKlient(conf)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// Run Forrest, Run!
-	a.Run()
+	if len(flag.Args()) == 0 {
+		defer a.Close()
+		a.Run()
+		return 0
+	}
+
+	// The following commands are intended for internal use
+	// only. They are used by kloud to install klient
+	// where no kd is available.
+	//
+	// TODO(rjeczalik): we should bundle klient with kd
+	// and have only 1 klient/kd distribution.
+	switch flag.Arg(0) {
+	case "config":
+		err = a.PrintConfig()
+	case "install":
+		err = klientsvc.Install()
+	case "start":
+		err = klientsvc.Start()
+	case "stop":
+		err = klientsvc.Stop()
+	default:
+		log.Fatalf("unrecognized command: %s", flag.Arg(0))
+	}
+
+	if err != nil {
+		log.Fatalf("internal command failed: %s", err)
+	}
 
 	return 0
 }

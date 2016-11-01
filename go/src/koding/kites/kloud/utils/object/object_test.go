@@ -3,6 +3,7 @@ package object_test
 import (
 	"encoding/json"
 	"reflect"
+	"strings"
 	"testing"
 
 	"koding/kites/kloud/provider/aws"
@@ -32,6 +33,7 @@ func TestBuilder(t *testing.T) {
 		Sep:       "+",
 		Prefix:    "prefix",
 		Recursive: true,
+		FieldFunc: strings.ToLower,
 	}
 
 	cases := []struct {
@@ -144,13 +146,66 @@ func TestBuilderDecode(t *testing.T) {
 	}}
 
 	for i, cas := range cases {
-		if err := obj.Decode(cas.in, cas.out); err != nil {
+		if err := b.Decode(cas.in, cas.out); err != nil {
 			t.Errorf("%d: Decode()=%s", i, err)
 			continue
 		}
 
 		if !reflect.DeepEqual(cas.out, cas.want) {
 			t.Errorf("%d: got %# v, want %# v", i, cas.out, cas.want)
+		}
+	}
+}
+
+func TestBuilderSet(t *testing.T) {
+	cases := []struct {
+		v     interface{}
+		key   string
+		value interface{}
+		want  interface{}
+	}{{
+		&Foo{},
+		"foo",
+		"Foo",
+		&Foo{Dupa: "Foo"},
+	}, {
+		&Bar{Bar: "old"},
+		"barbar",
+		"Bar",
+		&Bar{Bar: "Bar"},
+	}, {
+		&Bar{Bar: "Bar"},
+		"barbar",
+		nil,
+		&Bar{},
+	}, {
+		&Baz{Baz: 10},
+		"Baz",
+		12,
+		&Baz{Baz: 12},
+	}, {
+		&Baz{Baz: 10},
+		"Baz",
+		"13",
+		&Baz{Baz: 13},
+	}}
+
+	b := &object.Builder{
+		Tag:       "object",
+		Sep:       ".", // TODO(rjeczalik): patching support
+		Recursive: true,
+	}
+
+	for i, cas := range cases {
+		err := b.Set(cas.v, cas.key, cas.value)
+		if err != nil {
+			t.Errorf("%d: Set()=%s", i, err)
+			continue
+		}
+
+		if !reflect.DeepEqual(cas.v, cas.want) {
+			t.Errorf("%d: got %+v, want %+v", i, cas.v, cas.want)
+			continue
 		}
 	}
 }
@@ -167,7 +222,7 @@ func TestBuilderDecodeAwsMeta(t *testing.T) {
 		"vpc":        "vpc-f0e09594",
 		"ami":        "ami-cf35f3a4",
 	}
-	var meta = &awsprovider.AwsMeta{
+	var meta = &aws.Bootstrap{
 		CidrBlock: "10.0.0.0/16",
 		IGW:       "igw-aa43bdce",
 		RTB:       "rtb-3e19315a",
@@ -184,7 +239,7 @@ func TestBuilderDecodeAwsMeta(t *testing.T) {
 		Recursive: true,
 	}
 
-	decoded := &awsprovider.AwsMeta{}
+	decoded := &aws.Bootstrap{}
 	if err := b.Decode(RootModule, decoded); err != nil {
 		t.Fatal(err)
 	}

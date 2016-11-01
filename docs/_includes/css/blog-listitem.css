@@ -1,0 +1,40 @@
+.BlogHome-Listing--item {
+  border-bottom: 1px solid #f1f2f4;
+}
+
+.BlogPost-Excerpt {
+  margin-bottom: 48px;
+  text-decoration: none;
+  display: block;
+}
+
+.BlogPost-Excerpt > figure {
+  width: 100%;
+  height: 242px;
+  background-size: cover;
+  background-position: center;
+  margin-bottom: 24px;
+}
+
+.BlogPost-Excerpt > h2 {
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 1.2em;
+  margin-bottom: 24px;
+  color: #F2778A;
+}
+
+.BlogPost-Excerpt > p {
+  font-weight: 300;
+  color: #31425d;
+  line-height: 1.6em;
+  font-size: 16px;
+}
+
+.BlogPost-Excerpt > cite {
+  display: block;
+  font-weight: 300;
+  color: #989898;
+  font-size: 14px;
+  margin-top: 12px;
+}

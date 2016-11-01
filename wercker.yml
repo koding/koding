@@ -1,4 +1,4 @@
-box: koding/base@0.0.33
+box: koding/base@0.0.41
 no-response-timeout: 10
 services:
   - userminddeployer/postgresql9.3@0.0.7-usermind-9.3-1
@@ -84,10 +84,11 @@ build:
         name: build go binaries
         code: go/build.sh
     - script:
-        name: ensure koding/config is not stale
-        code: |
-          go generate koding/config
-          git diff --name-only --exit-code go/src/koding/config/config.json.go
+        name: test go koding config
+        code: scripts/wercker/run-command ./run exec go test -v --race koding/kites/config
+    - script:
+        name: ensure JSON and generated files in go/src/koding are not stale
+        code: scripts/check-generated-files.sh
     - script:
         name: test klient
         code: scripts/wercker/run-command scripts/test-klient.sh
@@ -97,9 +98,6 @@ build:
     - script:
         name: test kites
         code: scripts/wercker/run-command go/src/koding/kites/e2etest/e2etest.sh
-    - script:
-        name: build social api
-        code: scripts/wercker/run-command go/src/socialapi/build.sh
     - script:
         name: build backend finished
         code: scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build backend finished" "building" 40
@@ -125,14 +123,11 @@ build:
         name: test janitor
         code: scripts/wercker/run-command ./run janitortests
     - script:
-        name: test gatheringestor
-        code: scripts/wercker/run-command ./run gatheringestortests
-    - script:
         name: test koding mongo models
-        code: scripts/wercker/run-command ./run gomodeltests
+        code: scripts/wercker/run-command ./run exec go test koding/db/mongodb/modelhelper
     - script:
-        name: test vmwatcher
-        code: scripts/wercker/run-command ./run vmwatchertests
+        name: test kontrol
+        code: scripts/wercker/run-command ./run exec go test koding/kites/kontrol/kontrol -v
     - script:
         name: testing backend finished
         code: |

@@ -71,4 +71,7 @@ module.exports = class TeamsView extends kd.TabPaneView
       <h5>Let us know what your email is so we can start the process.</h5>
       {{> @form}}
     </div>
+    <div class="ufo-bg"></div>
+    <div class="ground-bg"></div>
+    <div class="footer-bg"></div>
     '''

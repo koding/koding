@@ -3,6 +3,7 @@ package modelhelper
 import (
 	"errors"
 	"koding/db/models"
+	"time"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -11,13 +12,20 @@ import (
 const GroupsCollectionName = "jGroups"
 
 func GetGroupById(id string) (*models.Group, error) {
-	group := new(models.Group)
+	var group models.Group
 
-	query := func(c *mgo.Collection) error {
+	return &group, Mongo.Run(GroupsCollectionName, func(c *mgo.Collection) error {
 		return c.Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&group)
-	}
+	})
+}
 
-	return group, Mongo.Run(GroupsCollectionName, query)
+// GetGroupsByIds returns groups by their given IDs
+func GetGroupsByIds(ids ...bson.ObjectId) ([]*models.Group, error) {
+	var groups []*models.Group
+
+	return groups, Mongo.Run(GroupsCollectionName, func(c *mgo.Collection) error {
+		return c.Find(bson.M{"_id": bson.M{"$in": ids}}).All(&groups)
+	})
 }
 
 // GetGroupFieldsByIds retrieves a slice of groups matching the given ids and
@@ -141,4 +149,18 @@ func CreateGroup(m *models.Group) error {
 	}
 
 	return Mongo.Run(GroupsCollectionName, query)
+}
+
+func MakeAdmin(accountId, groupId bson.ObjectId) error {
+	r := &models.Relationship{
+		Id:         bson.NewObjectId(),
+		TargetId:   accountId,
+		TargetName: "JAccount",
+		SourceId:   groupId,
+		SourceName: "JGroup",
+		As:         "admin",
+		TimeStamp:  time.Now().UTC(),
+	}
+
+	return AddRelationship(r)
 }

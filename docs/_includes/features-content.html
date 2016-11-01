@@ -1,0 +1,37 @@
+<div class="FeatureContent {% if include.alternate_background %}FeatureContent-Background{% endif %}">
+  <div class="Homepage--container ">
+    {% if include.image_above %}
+      <img class="img" src="{{ site.url }}{{ include.image_above }}" width="{{ include.image_above_width | divided_by: 2 }}">
+    {% endif %}
+    {% if include.title %}<h2 class="feature-title">{{ include.title }}</h2>{% endif %}
+    {% if include.paragraph %}<p class="lead">{{ include.paragraph }}</p>{% endif %}
+    {% if include.image_below %}
+      <img class="img" src="{{ site.url }}{{ include.image_below }}" srcset="{{ site.url }}{{ include.image_below }}, {{ site.url }}{{ include.image_below_mobile }} 767w" width="{{ include.image_below_width | divided_by: 2 }}"">
+    {% endif %}
+    <div>
+      <div class="FeatureContent-Cols">
+        <div>
+          {% if include.image1 %}
+            <img src="{{ site.url }}{{ include.image1 }}" width="{{ include.image1_width | divided_by: 2 }}" height="{{ include.image1_height | divided_by: 2 }}"">
+          {% endif %}
+          <h3>{{ include.title1 }}</h3>
+          {{ include.column1 }}
+        </div>
+        <div>
+          {% if include.image2 %}
+            <img src="{{ site.url }}{{ include.image2 }}" width="{{ include.image2_width | divided_by: 2 }}" height="{{ include.image2_height | divided_by: 2 }}"">
+          {% endif %}
+          <h3>{{ include.title2 }}</h3>
+          {{ include.column2 }}
+        </div>
+        <div>
+          {% if include.image3 %}
+            <img src="{{ site.url }}{{ include.image3 }}" width="{{ include.image3_width | divided_by: 2 }}" height="{{ include.image3_height | divided_by: 2 }}"">
+          {% endif %}
+          <h3>{{ include.title3 }}</h3>
+          {{ include.column3 }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -23,6 +23,9 @@ type Userdata struct {
 	// KlientURL url of klient deb. When non-empty it's used instead of
 	// looking for a latest deb with Bucket.
 	KlientURL string
+
+	// TunnelURL is an tunnelserver endpoint.
+	TunnelURL string
 }
 
 // CloudInitConfig is used as source for the cloudInit template.
@@ -46,9 +49,8 @@ type CloudInitConfig struct {
 	KiteKey string
 
 	LatestKlientURL string // URL of the latest version of the Klient package
-	ApachePort      int    // Defines the base apache running port, should be 80 or 443
-	KitePort        int    // Defines the running kite port, like 3000
-	KiteId          string
+	KontrolURL      string // kontrol kite URL
+	TunnelURL       string // tunnelserver kite URL
 
 	// DisableEC2Metadata adds a nul route to AWS's metadata service so it
 	// can't be accessed from the instance
@@ -60,17 +62,9 @@ type CloudInitConfig struct {
 	// The value of UserData is expected to be base64-encoded. If UserData
 	// is empty, the execution is going to be a nop.
 	UserData string
-
-	// KodingSetup setups koding specific changes, such as Apache config,
-	// custom bashrc, custom directories... These files are only available in
-	// the KodingAMI
-	KodingSetup bool
 }
 
 var (
-	DefaultApachePort = 80
-	DefaultKitePort   = 3000
-
 	// funcMap contains easy to use template functions
 	funcMap = template.FuncMap{
 		"user_keys": func(keys []string) string {
@@ -89,8 +83,7 @@ var (
 
 	cloudInitTemplate = template.Must(template.New("cloudinit").Funcs(funcMap).Parse(cloudInit))
 
-	cloudInit = `
-#cloud-config
+	cloudInit = `#cloud-config
 output : { all : '| tee -a /var/log/cloud-init-output.log' }
 disable_root: false
 disable_ec2_metadata: {{.DisableEC2MetaData}}
@@ -113,104 +106,46 @@ write_files:
     content: |
       {{.KiteKey}}
 
+  # Create Koding metadata file.
+  - path: /var/lib/koding/metadata.json
+    permissions: '0644'
+    content: |-
+      {
+          "konfig": {
+              "kontrolURL": "{{.KontrolURL}}",
+              "tunnelURL": "{{.TunnelURL}}"
+          }
+      }
+
 {{if .UserData}}
   # Create user script.
-  - path: /root/user-data.sh
+  - path: /var/lib/koding/user-data.sh
+    permissions: '0755'
     encoding: b64
     content: |
       {{.UserData}}
 {{end}}
 
-{{if .KodingSetup}}
-  # Apache configuration (/etc/apache2/sites-available/000-default.conf)
-  - content: |
-      <VirtualHost *:{{.ApachePort}}>
-        ServerAdmin webmaster@localhost
-
-        # Rewrite scheme to ws otherwise apache can't do a websocket proxy
-        RewriteEngine on
-        RewriteCond %{HTTP:UPGRADE} ^WebSocket$ [NC]
-        RewriteCond %{HTTP:CONNECTION} ^Upgrade$ [NC]
-        RewriteRule .* ws://localhost:{{.KitePort}}%{REQUEST_URI} [P]
-
-        # Proxy /kite path to our klient kite
-        ProxyRequests Off
-        ProxyPass /kite http://localhost:{{.KitePort}}/kite keepalive=On
-        ProxyPassReverse /kite http://localhost:{{.KitePort}}/kite
-
-        DocumentRoot /var/www
-        <Directory />
-          Options +FollowSymLinks
-          AllowOverride None
-        </Directory>
-        <Directory /var/www/>
-          Options +Indexes +FollowSymLinks +MultiViews +ExecCGI
-          AddHandler cgi-script .cgi .pl .rb .py
-          AllowOverride All
-          Order allow,deny
-          Allow from all
-        </Directory>
-
-        ScriptAlias /cgi-bin/ /usr/lib/cgi-bin/
-        <Directory "/usr/lib/cgi-bin">
-          AllowOverride None
-          Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
-          Order allow,deny
-          Allow from all
-        </Directory>
-
-        ErrorLog ${APACHE_LOG_DIR}/error.log
-
-        # Possible values include: debug, info, notice, warn, error, crit,
-        # alert, emerg.
-        LogLevel warn
-
-        CustomLog ${APACHE_LOG_DIR}/access.log combined
-      </VirtualHost>
-    path: /etc/apache2/sites-available/000-default.conf
-{{end}}
-
 runcmd:
-  - [sh, -c, 'echo "127.0.0.1 {{.Hostname}}" >> /etc/hosts']
+  # - [sh, -c, 'echo "127.0.0.1 {{.Hostname}}" >> /etc/hosts']
 
   # Install & Configure klient
+  - [touch, /var/log/upstart/klient.log, /var/log/cloud-init-output.log, /var/log/cloud-init.log, /var/lib/koding/user-data.sh]
+  - [chmod, +r, /var/log/upstart/klient.log, /var/log/cloud-init-output.log, /var/log/cloud-init.log, /var/lib/koding/user-data.sh]
   - [wget, "{{.LatestKlientURL}}", --retry-connrefused, --tries, 5, -O, /tmp/latest-klient.deb]
   - [dpkg, -i, /tmp/latest-klient.deb]
   - [chown, -R, '{{.Username}}:{{.Username}}', /opt/kite/klient]
+  - [sudo, -E, -u, "{{.Username}}", /opt/kite/klient/klient, -metadata-file, /var/lib/koding/metadata.json]
   - [service, klient, stop]
   - [sed, -i, 's/\.\/klient/sudo -E -u {{.Username}} \.\/klient/g', /etc/init/klient.conf]
   - [service, klient, start]
   - [rm, -f, /tmp/latest-klient.deb]
-
-{{if .KodingSetup}}
-  # Configure the bash prompt. XXX: Sometimes /etc/skel/.bashrc is not honored when creating a new user.
-  - [sh, -c, 'cp /etc/skel/.bashrc /root/.bashrc']
-  - [sh, -c, 'cp /etc/skel/.bashrc /home/ubuntu/.bashrc']
-  - [sh, -c, 'cp /etc/skel/.bashrc /home/{{.Username}}/.bashrc']
-
-  # Configure user's home directory
-  - [sh, -c, 'cp -r /opt/koding/userdata/* /home/{{.Username}}/']
-  - [chown, -R, '{{.Username}}:{{.Username}}', /home/{{.Username}}/]
-  - [chmod, +x, /home/{{.Username}}/Web/perl.pl]
-  - [chmod, +x, /home/{{.Username}}/Web/python.py]
-  - [chmod, +x, /home/{{.Username}}/Web/ruby.rb]
-  - [rm, -rf, /opt/koding/userdata]
-
-  # Configure Apache to serve user's web content
-  - [rm, -rf, /var/www]
-  - [ln, -s, /home/{{.Username}}/Web, /var/www]
-  - [a2enmod, cgi]
-  - [service, apache2, restart]
-{{end}}
-
 {{if .UserData}}
   # Run user data script.
-  - [chmod, +x, /root/user-data.sh]
-  - [/root/user-data.sh]
+  - [/var/lib/koding/user-data.sh]
 {{end}}
-  - [echo, _KD_DONE_]
 
-final_message: "All done!"
+final_message: "_KD_DONE_"
 `
 )
 
@@ -234,28 +169,16 @@ func (u *Userdata) LookupKlientURL() (string, error) {
 func (u *Userdata) Create(c *CloudInitConfig) ([]byte, error) {
 	var err error
 
-	// only change it KiteKey was not passed from outside
-	if c.KiteKey == "" {
-		c.KiteKey, err = u.Keycreator.Create(c.Username, c.KiteId)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	latestURL, err := u.LookupKlientURL()
 	if err != nil {
 		return nil, err
 	}
 
+	if c.KiteKey == "" {
+		return nil, errors.New("userdata: kite.key is empty")
+	}
+
 	c.LatestKlientURL = latestURL
-
-	if c.ApachePort == 0 {
-		c.ApachePort = DefaultApachePort
-	}
-
-	if c.KitePort == 0 {
-		c.KitePort = DefaultKitePort
-	}
 
 	// validate the public keys
 	validatedKeys := make([]string, 0)
@@ -271,6 +194,14 @@ func (u *Userdata) Create(c *CloudInitConfig) ([]byte, error) {
 	}
 
 	c.UserSSHKeys = validatedKeys
+
+	if c.KontrolURL == "" {
+		c.KontrolURL = u.Keycreator.KontrolURL
+	}
+
+	if c.TunnelURL == "" {
+		c.TunnelURL = u.TunnelURL
+	}
 
 	var udata bytes.Buffer
 	err = cloudInitTemplate.Funcs(funcMap).Execute(&udata, c)

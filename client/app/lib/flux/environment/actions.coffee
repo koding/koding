@@ -806,6 +806,28 @@ setLabel = (machineUId, label) ->
         return reject err  if err
         resolve newLabel
 
+cloneStackTemplate = (template, revive) ->
+
+    new kd.NotificationView { title: 'Cloning Stack Template' }
+
+    { reactor } = kd.singletons
+    template = remote.revive template  if revive
+
+    template.clone (err, stackTemplate) ->
+      if err
+        return new kd.NotificationView
+          title: 'Error occured while cloning template'
+
+      Tracker.track Tracker.STACKS_CLONED_TEMPLATE
+      reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
+      kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"
+
+loadExpandedMachineLabel = (label) ->
+
+  { reactor } = kd.singletons
+  reactor.dispatch actions.LOAD_EXPANDED_MACHINE_LABEL_SUCCESS, { label }
+
+
 
 module.exports = {
   loadMachines
@@ -853,4 +875,6 @@ module.exports = {
   disconnectMachine
   setLabel
   fetchAndUpdateStackTemplate
+  cloneStackTemplate
+  loadExpandedMachineLabel
 }

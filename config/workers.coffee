@@ -6,22 +6,6 @@ module.exports = (KONFIG, options, credentials) ->
   GOPATH = "%(ENV_KONFIG_PROJECTROOT)s/go"
 
   workers =
-    gowebserver         :
-      group             : "webserver"
-      ports             :
-        incoming       : "#{KONFIG.gowebserver.port}"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/go-webserver"
-          watch         : "#{GOBIN}/watcher -run koding/go-webserver"
-      nginx             :
-        locations       : [
-          location      : "~^/IDE/.*"
-      ]
-
-      healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.gowebserver.port}/version"
-
     kontrol             :
       group             : "environment"
       ports             :
@@ -135,22 +119,6 @@ module.exports = (KONFIG, options, credentials) ->
       healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
-    paymentwebhook      :
-      group             : "socialapi"
-      ports             :
-        incoming        : KONFIG.paymentwebhook.port
-      supervisord       :
-        stopwaitsecs    : 20
-        command         :
-          run           : "#{GOBIN}/paymentwebhook -kite-init=true"
-          watch         : "make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi paymentwebhookdev"
-      healthCheckURL    : "http://localhost:#{KONFIG.paymentwebhook.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.paymentwebhook.port}/version"
-      nginx             :
-        locations       : [
-          { location    : "= /-/payments/stripe/webhook" },
-        ]
-
     vmwatcher           :
       group             : "environment"
       instances         : 1
@@ -219,12 +187,16 @@ module.exports = (KONFIG, options, credentials) ->
             proxyPass   : "http://socialapi/sshkey$1$is_args$args"
           }
           {
-            location    : "~ /api/social/moderation/(.*)"
-            proxyPass   : "http://socialapi/moderation/$1$is_args$args"
-          }
-          {
             location    : "~ /api/social/account/channels"
             proxyPass   : "http://socialapi/account/channels$is_args$args"
+          }
+          {
+            location    : "~ /api/social/payment/(.*)"
+            proxyPass   : "http://socialapi/payment/$1$is_args$args"
+          }
+          {
+            location    : "~ /api/social/presence/(.*)"
+            proxyPass   : "http://socialapi/presence/$1$is_args$args"
           }
           {
             location    : "~* ^/api/social/slack/(.*)"
@@ -264,20 +236,6 @@ module.exports = (KONFIG, options, credentials) ->
           run           : "#{GOBIN}/notification"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/notification -watch socialapi/workers/notification"
 
-    popularpost         :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/popularpost"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/popularpost -watch socialapi/workers/popularpost"
-
-    populartopic        :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/populartopic"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/populartopic -watch socialapi/workers/populartopic"
-
     pinnedpost          :
       group             : "socialapi"
       supervisord       :
@@ -313,20 +271,6 @@ module.exports = (KONFIG, options, credentials) ->
           run           : "#{GOBIN}/activityemail"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/activityemail -watch socialapi/workers/email/activityemail"
 
-    topicfeed           :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/topicfeed"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/topicfeed -watch socialapi/workers/topicfeed"
-
-    trollmode           :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/trollmode"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/trollmode -watch socialapi/workers/trollmode"
-
     privatemessageemailfeeder:
       group             : "socialapi"
       supervisord       :
@@ -341,12 +285,12 @@ module.exports = (KONFIG, options, credentials) ->
           run           : "#{GOBIN}/privatemessageemailsender"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/privatemessageemailsender -watch socialapi/workers/email/privatemessageemailsender"
 
-    topicmoderation     :
+    presence            :
       group             : "socialapi"
       supervisord       :
         command         :
-          run           : "#{GOBIN}/topicmoderation"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/topicmoderation -watch socialapi/workers/topicmoderation"
+          run           : "#{GOBIN}/presence"
+          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/presence -watch socialapi/workers/presence"
 
     collaboration       :
       group             : "socialapi"

@@ -204,68 +204,6 @@ func (a *Account) ByOldId(oldId string) error {
 }
 
 // Tests are done.
-func (a *Account) MarkAsTroll() error {
-	if a.Id == 0 {
-		return ErrAccountIdIsNotSet
-	}
-
-	if err := a.ById(a.Id); err != nil {
-		return err
-	}
-
-	// once, mongo sync problem happened and we couldnt mark the user as troll
-	// in social api, in order to prevent it from happening again, i am removing
-	// this check ~ CS
-
-	// // do not try to mark twice
-	// if a.IsTroll {
-	// 	return fmt.Errorf("account is already a troll %d", a.Id)
-	// }
-
-	a.IsTroll = true
-	if err := a.Update(); err != nil {
-		return err
-	}
-
-	if err := bongo.B.PublishEvent("marked_as_troll", a); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// Tests are done
-func (a *Account) UnMarkAsTroll() error {
-	if a.Id == 0 {
-		return ErrAccountIdIsNotSet
-	}
-
-	if err := a.ById(a.Id); err != nil {
-		return err
-	}
-
-	// once, mongo sync problem happened and we couldnt mark the user as troll
-	// in social api, in order to prevent it from happening again, i am removing
-	// this check ~ CS
-
-	// // do not try to un-mark twice
-	// if !a.IsTroll {
-	// 	return fmt.Errorf("account is not a troll %d", a.Id)
-	// }
-
-	a.IsTroll = false
-	if err := a.Update(); err != nil {
-		return err
-	}
-
-	if err := bongo.B.PublishEvent("unmarked_as_troll", a); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// Tests are done.
 func (a *Account) CreateFollowingFeedChannel() (*Channel, error) {
 	if a.Id == 0 {
 		return nil, ErrAccountIdIsNotSet

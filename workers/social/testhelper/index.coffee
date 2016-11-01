@@ -93,6 +93,10 @@ withConvertedUser = (opts, callback) ->
 
   withDummyClient context, ({ client }) ->
     JUser.convert client, userFormData, (err, data) ->
+      if err
+        console.trace()
+        console.log 'Err: JUser.convert', err
+
       expect(err).to.not.exist
 
       { account, newToken, user } = data
@@ -169,7 +173,6 @@ generateUserInfo = (opts = {}) ->
     password        : 'testpass'
     lastName        : 'user'
     firstName       : 'kodingtest'
-    foreignAuth     : null
     emailFrequency  : null
     passwordStatus  : 'valid'
 

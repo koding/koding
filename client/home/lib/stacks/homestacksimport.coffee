@@ -62,16 +62,15 @@ module.exports = class HomeStacksImport extends kd.CustomHTMLView
         return
 
       { host } = config
-      _host    = "http://#{host}"  # FIXME Add protocol support ~ GG
 
       @actionButton.show()
       @actionButton.setTitle 'Open GitLab'
       @actionButton.setCallback ->
-        kd.singletons.linkController.openOrFocus _host
+        kd.singletons.linkController.openOrFocus host
 
       @message.updatePartial """
         This tool is intended to be used with GitLab. The integration is
-        enabled for this team at <a href="#{_host}">#{host}</a>. To be able to
+        enabled for this team at <a href="#{host}">#{host}</a>. To be able to
         run your projects on Koding, please use action endpoints provided in
         your GitLab service.
       """

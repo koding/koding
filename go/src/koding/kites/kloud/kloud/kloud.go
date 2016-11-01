@@ -17,24 +17,15 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/httputil"
 	"koding/kites/common"
-	"koding/kites/gateway"
-	"koding/kites/kloud/api/amazon"
-	"koding/kites/kloud/api/sl"
+	"koding/kites/keygen"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/credential"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/keycreator"
-	"koding/kites/kloud/pkg/dnsclient"
-	"koding/kites/kloud/plans"
-	"koding/kites/kloud/provider"
-	awsprovider "koding/kites/kloud/provider/aws"
-	"koding/kites/kloud/provider/disabled"
-	"koding/kites/kloud/provider/koding"
-	"koding/kites/kloud/provider/softlayer"
-	"koding/kites/kloud/provider/vagrant"
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/stack"
-	"koding/kites/kloud/stackplan/stackcred"
+	"koding/kites/kloud/stack/provider"
 	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
 
@@ -44,13 +35,24 @@ import (
 	"github.com/koding/logging"
 )
 
+//go:generate go run genimport.go -o import.go
+//go:generate go fmt import.go
+
+// Name holds kite name
 var Name = "kloud"
 
 // Kloud represents a configured kloud kite.
 type Kloud struct {
-	Kite    *kite.Kite
-	Stack   *stack.Kloud
-	Gateway *gateway.Server
+	Kite   *kite.Kite
+	Stack  *stack.Kloud
+	Keygen *keygen.Server
+
+	// Queue is responsible for executing checks and actions on user
+	// machines. Given the interval they are queued and processed,
+	// thus the naming. For example queue is responsible for
+	// shutting down a non-always-on vm when it idles for more
+	// than 1h.
+	Queue *queue.Queue
 }
 
 // Config defines the configuration that Kloud needs to operate.
@@ -64,14 +66,8 @@ type Config struct {
 	// Connect to Koding mongodb
 	MongoURL string `required:"true"`
 
-	// Endpoint for fetching plans
-	PlanEndpoint string `required:"true"`
-
 	// CredentialEndpoint is an API for managing stack credentials.
 	CredentialEndpoint string
-
-	// Endpoint for fetching user machine network usage
-	NetworkUsageEndpoint string `required:"true"`
 
 	// --- DEVELOPMENT CONFIG ---
 	// Show version and exit if enabled
@@ -88,18 +84,6 @@ type Config struct {
 
 	// Defines the base domain for domain creation
 	HostedZone string `required:"true"`
-
-	// Defines the default AMI Tag to use for koding provider
-	AMITag string
-
-	// Defines the default name tag value to lookup a Block Device Template
-	// for softlayer provider
-	SLTemplateTag string
-
-	// Overrides the default post install URL to userdata binary
-	// for Softlayer instances. By default the binary is built from
-	// scripts/softlayer.
-	SLScriptURL string
 
 	// MaxResults limits the max items fetched per page for each
 	// AWS Describe* API calls.
@@ -128,28 +112,26 @@ type Config struct {
 	UserPublicKey  string `required:"true"`
 	UserPrivateKey string `required:"true"`
 
-	// Gateway configuration.
-	GatewayAccessKey string
-	GatewaySecretKey string
-	GatewayBucket    string
-	GatewayRegion    string        `default:"us-east-1"`
-	GatewayTokenTTL  time.Duration `default:"3h"`
+	// Keygen configuration.
+	KeygenAccessKey string
+	KeygenSecretKey string
+	KeygenBucket    string
+	KeygenRegion    string        `default:"us-east-1"`
+	KeygenTokenTTL  time.Duration `default:"3h"`
 
 	// --- KONTROL CONFIGURATION ---
 	Public      bool   // Try to register with a public ip
 	RegisterURL string // Explicitly register with this given url
 
+	// TODO(rjeczalik): rework klient.deb lookups in (kloud/userdata).NewBucket
+	// and get rid of aws dependency.
 	AWSAccessKeyId     string
 	AWSSecretAccessKey string
 
-	SLUsername string
-	SLAPIKey   string
-
-	JanitorSecretKey        string
-	VmwatcherSecretKey      string
-	PaymentwebhookSecretKey string
-	KloudSecretKey          string
-	TerraformerSecretKey    string
+	JanitorSecretKey     string
+	VmwatcherSecretKey   string
+	KloudSecretKey       string
+	TerraformerSecretKey string
 }
 
 // New gives new, registered kloud kite.
@@ -174,23 +156,6 @@ func New(conf *Config) (*Kloud, error) {
 		k.Config.Environment = conf.Environment
 	}
 
-	if conf.AMITag != "" {
-		k.Log.Warning("Default AMI Tag changed from %s to %s", koding.DefaultCustomAMITag, conf.AMITag)
-		koding.DefaultCustomAMITag = conf.AMITag
-	}
-
-	if conf.SLTemplateTag != "" {
-		k.Log.Warning("Default Template tag changed from %s to %s",
-			softlayer.DefaultTemplateTag, conf.SLTemplateTag)
-		softlayer.DefaultTemplateTag = conf.SLTemplateTag
-	}
-
-	if conf.SLScriptURL != "" {
-		k.Log.Warning("Default script URL changed from %s to %s",
-			softlayer.PostInstallScriptUri, conf.SLScriptURL)
-		softlayer.PostInstallScriptUri = conf.SLScriptURL
-	}
-
 	// TODO(rjeczalik): refactor modelhelper methods to not use global DB
 	modelhelper.Initialize(conf.MongoURL)
 
@@ -200,10 +165,9 @@ func New(conf *Config) (*Kloud, error) {
 	}
 
 	authUsers := map[string]string{
-		"kloudctl":       conf.KloudSecretKey,
-		"janitor":        conf.JanitorSecretKey,
-		"vmwatcher":      conf.VmwatcherSecretKey,
-		"paymentwebhook": conf.PaymentwebhookSecretKey,
+		"kloudctl":  conf.KloudSecretKey,
+		"janitor":   conf.JanitorSecretKey,
+		"vmwatcher": conf.VmwatcherSecretKey,
 	}
 
 	var credURL *url.URL
@@ -218,132 +182,113 @@ func New(conf *Config) (*Kloud, error) {
 		sess.Log.Warning(`disabling "Sneaker" for storing stack credential data`)
 	}
 
-	storeOpts := &stackcred.StoreOptions{
+	storeOpts := &credential.Options{
 		MongoDB: sess.DB,
 		Log:     sess.Log.New("stackcred"),
 		CredURL: credURL,
 		Client:  httputil.DefaultRestClient(conf.DebugMode),
 	}
 
-	bp := &provider.BaseProvider{
+	stacker := &provider.Stacker{
 		DB:             sess.DB,
 		Log:            sess.Log,
 		Kite:           sess.Kite,
 		Userdata:       sess.Userdata,
 		Debug:          conf.DebugMode,
 		KloudSecretKey: conf.KloudSecretKey,
-		CredStore:      stackcred.NewStore(storeOpts),
+		CredStore:      credential.NewStore(storeOpts),
+		TunnelURL:      conf.TunnelURL,
 	}
-
-	awsProvider := &awsprovider.Provider{
-		BaseProvider: bp.New("aws"),
-	}
-
-	vagrantProvider := &vagrant.Provider{
-		BaseProvider: bp.New("vagrant"),
-		TunnelURL:    conf.TunnelURL,
-	}
-
-	softlayerProvider := newSoftlayerProvider(sess, conf)
-
-	kodingProvider := newKodingProvider(sess, conf, authUsers)
-
-	if k, ok := kodingProvider.(*koding.Provider); ok {
-		awsProvider.Koding = k
-	}
-
-	go runQueue(kodingProvider, awsProvider, sess, conf)
 
 	stats := common.MustInitMetrics(Name)
 
-	kld := stack.New()
-	kld.ContextCreator = func(ctx context.Context) context.Context {
+	kloud := &Kloud{
+		Kite:  k,
+		Stack: stack.New(),
+		Queue: &queue.Queue{
+			Interval: 5 * time.Second,
+			Log:      sess.Log.New("queue"),
+			Kite:     k,
+			MongoDB:  sess.DB,
+		},
+	}
+
+	kloud.Stack.DescribeFunc = provider.Desc
+	kloud.Stack.CredClient = credential.NewClient(storeOpts)
+
+	kloud.Stack.ContextCreator = func(ctx context.Context) context.Context {
 		return session.NewContext(ctx, sess)
 	}
-	kld.Metrics = stats
 
+	kloud.Stack.Metrics = stats
 	userPrivateKey, userPublicKey := userMachinesKeys(conf.UserPublicKey, conf.UserPrivateKey)
 
 	// RSA key pair that we add to the newly created machine for
 	// provisioning.
-	kld.PublicKeys = &publickeys.Keys{
+	kloud.Stack.PublicKeys = &publickeys.Keys{
 		KeyName:    publickeys.DeployKeyName,
 		PrivateKey: userPrivateKey,
 		PublicKey:  userPublicKey,
 	}
-	kld.DomainStorage = sess.DNSStorage
-	kld.Domainer = sess.DNSClient
-	kld.Locker = bp
-	kld.Log = sess.Log
-	kld.SecretKey = conf.KloudSecretKey
+	kloud.Stack.DomainStorage = sess.DNSStorage
+	kloud.Stack.Domainer = sess.DNSClient
+	kloud.Stack.Locker = stacker
+	kloud.Stack.Log = sess.Log
+	kloud.Stack.SecretKey = conf.KloudSecretKey
 
-	err = kld.AddProvider("koding", kodingProvider)
-	if err != nil {
-		return nil, err
+	for _, p := range provider.All() {
+		s := stacker.New(p)
+
+		if err = kloud.Stack.AddProvider(p.Name, s); err != nil {
+			return nil, err
+		}
+
+		kloud.Queue.Register(s)
+
+		sess.Log.Debug("registering %q provider", p.Name)
 	}
 
-	err = kld.AddProvider("aws", awsProvider)
-	if err != nil {
-		return nil, err
-	}
+	go kloud.Queue.Run()
 
-	err = kld.AddProvider("vagrant", vagrantProvider)
-	if err != nil {
-		return nil, err
-	}
-
-	err = kld.AddProvider("softlayer", softlayerProvider)
-	if err != nil {
-		return nil, err
-	}
-
-	var gwSrv *gateway.Server
-	if conf.GatewayAccessKey != "" && conf.GatewaySecretKey != "" {
-		cfg := &gateway.Config{
-			AccessKey:  conf.GatewayAccessKey,
-			SecretKey:  conf.GatewaySecretKey,
-			Region:     conf.GatewayRegion,
-			Bucket:     conf.GatewayBucket,
-			AuthExpire: conf.GatewayTokenTTL,
-			AuthFunc:   kld.ValidateUser,
+	if conf.KeygenAccessKey != "" && conf.KeygenSecretKey != "" {
+		cfg := &keygen.Config{
+			AccessKey:  conf.KeygenAccessKey,
+			SecretKey:  conf.KeygenSecretKey,
+			Region:     conf.KeygenRegion,
+			Bucket:     conf.KeygenBucket,
+			AuthExpire: conf.KeygenTokenTTL,
+			AuthFunc:   kloud.Stack.ValidateUser,
 			Kite:       k,
 		}
 
-		gwSrv = gateway.NewServer(cfg)
+		kloud.Keygen = keygen.NewServer(cfg)
+	} else {
+		k.Log.Warning(`disabling "keygen" methods due to missing S3/STS credentials`)
 	}
 
 	// Teams/stack handling methods
-	k.HandleFunc("plan", kld.Plan)
-	k.HandleFunc("apply", kld.Apply)
-	k.HandleFunc("migrate", kld.Migrate)
-	k.HandleFunc("describeStack", kld.Status)
-	k.HandleFunc("authenticate", kld.Authenticate)
-	k.HandleFunc("bootstrap", kld.Bootstrap)
+	k.HandleFunc("plan", kloud.Stack.Plan)
+	k.HandleFunc("apply", kloud.Stack.Apply)
+	k.HandleFunc("describeStack", kloud.Stack.Status)
+	k.HandleFunc("authenticate", kloud.Stack.Authenticate)
+	k.HandleFunc("bootstrap", kloud.Stack.Bootstrap)
+	k.HandleFunc("import", kloud.Stack.Import)
+
+	k.HandleFunc("credential.describe", kloud.Stack.CredentialDescribe)
+	k.HandleFunc("credential.list", kloud.Stack.CredentialList)
+	k.HandleFunc("credential.add", kloud.Stack.CredentialAdd)
+
+	k.HandleFunc("machine.list", kloud.Stack.MachineList)
 
 	// Single machine handling
-	k.HandleFunc("build", kld.Build)
-	k.HandleFunc("destroy", kld.Destroy)
-	k.HandleFunc("stop", kld.Stop)
-	k.HandleFunc("start", kld.Start)
-	k.HandleFunc("reinit", kld.Reinit)
-	k.HandleFunc("restart", kld.Restart)
-	k.HandleFunc("info", kld.Info)
-	k.HandleFunc("event", kld.Event)
-	k.HandleFunc("resize", kld.Resize)
-
-	// Snapshot functionality
-	k.HandleFunc("createSnapshot", kld.CreateSnapshot)
-	k.HandleFunc("deleteSnapshot", kld.DeleteSnapshot)
-
-	// Domain records handling methods
-	k.HandleFunc("domain.set", kld.DomainSet)
-	k.HandleFunc("domain.unset", kld.DomainUnset)
-	k.HandleFunc("domain.add", kld.DomainAdd)
-	k.HandleFunc("domain.remove", kld.DomainRemove)
+	k.HandleFunc("stop", kloud.Stack.Stop)
+	k.HandleFunc("start", kloud.Stack.Start)
+	k.HandleFunc("info", kloud.Stack.Info)
+	k.HandleFunc("event", kloud.Stack.Event)
 
 	// Klient proxy methods
-	k.HandleFunc("admin.add", kld.AdminAdd)
-	k.HandleFunc("admin.remove", kld.AdminRemove)
+	k.HandleFunc("admin.add", kloud.Stack.AdminAdd)
+	k.HandleFunc("admin.remove", kloud.Stack.AdminRemove)
 
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())
@@ -384,11 +329,7 @@ func New(conf *Config) (*Kloud, error) {
 		return nil, err
 	}
 
-	return &Kloud{
-		Kite:    k,
-		Stack:   kld,
-		Gateway: gwSrv,
-	}, nil
+	return kloud, nil
 }
 
 func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
@@ -415,6 +356,7 @@ func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 				KontrolPublicKey:  kontrolPublicKey,
 			},
 			KlientURL: conf.KlientURL,
+			TunnelURL: conf.TunnelURL,
 			Bucket:    userdata.NewBucket("koding-klient", klientFolder, c),
 		},
 		Terraformer: &terraformer.Options{
@@ -427,172 +369,7 @@ func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 
 	sess.DNSStorage = dnsstorage.NewMongodbStorage(sess.DB)
 
-	if conf.AWSAccessKeyId != "" && conf.AWSSecretAccessKey != "" {
-
-		dnsOpts := &dnsclient.Options{
-			Creds:      c,
-			HostedZone: conf.HostedZone,
-			Log:        logging.NewCustom("kloud-dns", conf.DebugMode),
-			Debug:      conf.DebugMode,
-		}
-
-		dns, err := dnsclient.NewRoute53Client(dnsOpts)
-		if err != nil {
-			return nil, err
-		}
-
-		sess.DNSClient = dns
-
-		opts := &amazon.ClientOptions{
-			Credentials: c,
-			Regions:     amazon.ProductionRegions,
-			Log:         logging.NewCustom("kloud-koding", conf.DebugMode),
-			MaxResults:  int64(conf.MaxResults),
-			Debug:       conf.DebugMode,
-		}
-
-		ec2clients, err := amazon.NewClients(opts)
-		if err != nil {
-			return nil, err
-		}
-
-		sess.AWSClients = ec2clients
-	}
-
 	return sess, nil
-}
-
-// Providers ctors. If a provider has a dependencty on a service
-// defined in *session.Session, and the service is disabled (nil)
-// due to missing configuration or any other reason, we return
-// disabled provider that rejects all requests with 411 *kite.Error.
-
-func newKodingProvider(sess *session.Session, conf *Config, authUsers map[string]string) stack.Provider {
-	if conf.Environment == "default" {
-		// TODO(rjeczalik): Koding provider (the one behind Koding Solo) is
-		// disabled for default environment as it relies heavily on
-		// bootstrapped AWS environment with a fixed VPC, Subnet names,
-		// tags etc.
-		//
-		// The TODO is to either parametrize all used by koding provider
-		// AWS resources or remove koding provider altogether replacing
-		// it with team provider.
-		sess.Log.Warning(`disabling "koding" provider for default environment`)
-
-		return disabled.NewProvider("koding")
-	}
-
-	if sess.DNSClient == nil {
-		sess.Log.Warning(`disabling "koding" provider due to invalid/missing Route53 credentials`)
-
-		return disabled.NewProvider("koding")
-	}
-
-	if sess.AWSClients == nil {
-		sess.Log.Warning(`disabling "koding" provider due to invalid/missing EC2 credentials`)
-
-		return disabled.NewProvider("koding")
-	}
-
-	// TODO(rjeczalik): refactor koding provider to use interface instead
-	dns, ok := sess.DNSStorage.(*dnsstorage.MongodbStorage)
-	if !ok {
-		sess.Log.Warning(`disabling "koding" provider due to invalid DNS storage: %T`, sess.DNSStorage)
-
-		return disabled.NewProvider("koding")
-	}
-
-	// TODO(rjeczalik): refactor koding provider to use interface instead
-	dnsClient, ok := sess.DNSClient.(*dnsclient.Route53)
-	if !ok {
-		sess.Log.Warning(`disabling "koding" provider due to invalid DNS client: %T`, sess.DNSClient)
-
-		return disabled.NewProvider("koding")
-	}
-
-	kp := &koding.Provider{
-		DB:         sess.DB,
-		Log:        sess.Log.New("koding"),
-		DNSClient:  dnsClient,
-		DNSStorage: dns,
-		Kite:       sess.Kite,
-		EC2Clients: sess.AWSClients,
-		Userdata:   sess.Userdata,
-		PaymentFetcher: &plans.Payment{
-			PaymentEndpoint: conf.PlanEndpoint,
-		},
-		CheckerFetcher: &plans.KodingChecker{
-			NetworkUsageEndpoint: conf.NetworkUsageEndpoint,
-		},
-		AuthorizedUsers: authUsers,
-	}
-	// TODO(rjeczalik): move interval to config
-	go kp.RunCleaners(time.Minute * 60)
-
-	return kp
-}
-
-func newSoftlayerProvider(sess *session.Session, conf *Config) stack.Provider {
-	if sess.DNSClient == nil {
-		sess.Log.Warning(`disabling "softlayer" provider due to invalid/missing Route53 credentials`)
-
-		return disabled.NewProvider("softlayer")
-	}
-
-	if conf.SLUsername == "" || conf.SLAPIKey == "" {
-		sess.Log.Warning(`disabling "softlayer" provider due to missing Softlayer credentials`)
-
-		return disabled.NewProvider("softlayer")
-	}
-
-	// TODO(rjeczalik): refactor softlayer provider to use interface instead
-	dns, ok := sess.DNSStorage.(*dnsstorage.MongodbStorage)
-	if !ok {
-		sess.Log.Warning(`disabling "softlayer" provider due to invalid DNS storage: %T`, sess.DNSStorage)
-
-		return disabled.NewProvider("softlayer")
-	}
-
-	// TODO(rjeczalik): refactor softlayer provider to use interface instead
-	dnsClient, ok := sess.DNSClient.(*dnsclient.Route53)
-	if !ok {
-		sess.Log.Warning(`disabling "softlayer" provider due to invalid DNS client: %T`, sess.DNSClient)
-
-		return disabled.NewProvider("softlayer")
-	}
-	sess.SLClient = sl.NewSoftlayer(conf.SLUsername, conf.SLAPIKey)
-
-	return &softlayer.Provider{
-		DB:         sess.DB,
-		Log:        sess.Log.New("softlayer"),
-		DNSClient:  dnsClient,
-		DNSStorage: dns,
-		Kite:       sess.Kite,
-		Userdata:   sess.Userdata,
-		SLClient:   sess.SLClient,
-	}
-}
-
-func runQueue(k, aws stack.Provider, sess *session.Session, conf *Config) {
-	q := &queue.Queue{
-		Log: sess.Log.New("queue"),
-	}
-
-	if p, ok := aws.(*awsprovider.Provider); ok {
-		q.AwsProvider = p
-	}
-
-	if p, ok := k.(*koding.Provider); ok {
-		q.KodingProvider = p
-	}
-
-	// TODO(rjeczalik): move to config
-	interv := 5 * time.Second
-	if conf.ProdMode {
-		interv = time.Second / 2
-	}
-
-	go q.RunCheckers(interv)
 }
 
 func userMachinesKeys(publicPath, privatePath string) (string, string) {

@@ -163,9 +163,9 @@ createStubLocation = (env)->
 createRootLocation = (KONFIG) ->
   return "" if isProxy KONFIG.ebEnvName
 
-  proxy = KONFIG.hubspotPageURL
+  proxy = KONFIG.marketingPagesURL
   if KONFIG.environment in ["dev", "default", "sandbox"]
-    proxy = "http://gowebserver"
+    proxy = "http://webserver"
 
   return """
       location ~*(^(\/(Pricing|About|Legal|Features|Blog|Docs))) {

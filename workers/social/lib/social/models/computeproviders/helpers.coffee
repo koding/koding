@@ -58,12 +58,12 @@ updateMachine = (options, callback) ->
       callback err
 
 
-getPlanConfig = (group) ->
+getLimitConfig = (group) ->
 
   return {
-    plan      : group._activePlan ? 'unlimited'
-    overrides : group.getAt 'config.planOverrides'
+    limit     : group._activeLimit ? 'unlimited'
+    overrides : group.getAt 'config.limitOverrides'
   }
 
 
-module.exports = { updateMachine, validateResizeByMachine, validateResizeByUserPlan, getPlanConfig }
+module.exports = { updateMachine, validateResizeByMachine, validateResizeByUserPlan, getLimitConfig }

@@ -1,0 +1,38 @@
+---
+layout: default
+title: Store
+permalink: /store/stacks
+---
+
+<!-- HEADER -->
+{% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#7F7E9E' %}
+
+<link rel="stylesheet" href="{{ site.url }}/css/store.css">
+
+<div class="StacksHero">
+  <h1>Stacks Built by Our Community</h1>
+  {% include store-search.html has_searchbar='true' %}
+</div>
+
+<div class="StoreResults-container">
+  {% include store-set.html data=site.data.store-stacks limit=16 %}
+
+  <div class="pagination-container">
+    <div class="Pagination">
+      <a href="#" class="is-selected">
+        1</a><a href="#">
+        2</a><a href="#">
+        3</a><a href="#">
+        4</a><a href="#">
+        ...</a><a href="#">12</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  {% include js/store.js %}
+</script>
+
+<!-- FOOTER -->
+
+{% include footer.html %}

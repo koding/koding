@@ -19,7 +19,6 @@ module.exports = class Joinable
       if err then callback err
       else
         @emit 'MemberAdded', delegate  if as is 'member'
-        @updateCounts()
         callback null
 
   addToPrivateGroup_ = (client, { as, inviteCode }, callback) ->

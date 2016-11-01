@@ -19,8 +19,6 @@ getAction = (formName) -> switch formName
   when 'register' then 'register'
 
 handleRoot = ->
-  # don't load the root content when we're just consuming a hash fragment
-  return if global.location.hash.length > 0
 
   { router }     = kd.singletons
   { entryPoint } = globals.config

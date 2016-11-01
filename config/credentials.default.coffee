@@ -26,17 +26,7 @@ module.exports = (options) ->
     worker_tunnelproxymanager_route53: kodingdev_master_2016_05
     #Encryption and Storage on S3
     worker_sneakerS3 : kodingdev_master_2016_05
-    vm_vmwatcher:     # vm_vmwatcher_dev
-      accessKeyId: ""
-      secretAccessKey: ""
-    vm_kloud:         # vm_kloud_dev
-      accessKeyId: ""
-      secretAccessKey: ""
 
-  slKeys =
-    vm_kloud:
-      username: ""
-      apiKey: ""
   mongo = "#{options.serviceHost}:27017/koding"
   redis =
     host: "#{options.serviceHost}"
@@ -89,9 +79,6 @@ module.exports = (options) ->
       secret: awsKeys.worker_terraformer.secretAccessKey
       bucket: "kodingdev-terraformer-state-#{options.configName}"
     localStorePath:  "$KONFIG_PROJECTROOT/go/data/terraformer"
-  paymentwebhook =
-    customersKey: 'R1PVxSPvjvDSWdlPRVqRv8IdwXZB'
-    secretKey: "paymentwebhooksecretkey-#{options.configName}"
   googleapiServiceAccount =
     clientId: ''
     clientSecret: ''
@@ -110,6 +97,7 @@ module.exports = (options) ->
     redirectUri: ''
     systemHookToken: ''
     hooksEnabled: no
+    allowPrivateOAuthEndpoints: no
   facebook =
     clientId: ''
     clientSecret: ''
@@ -171,14 +159,6 @@ module.exports = (options) ->
   recaptcha =
     secret: ''
     public: ''
-  paypal =
-    username: ''
-    password: ''
-    signature: ''
-    returnUrl: "#{options.customDomain.public}/-/payments/paypal/return"
-    cancelUrl: "#{options.customDomain.public}/-/payments/paypal/cancel"
-    isSandbox: yes
-    formUrl: 'https://www.sandbox.paypal.com/incontext'
   janitor =
     port: '6700'
     secretKey: ''
@@ -203,11 +183,11 @@ module.exports = (options) ->
     port : 8090
   clearbit = '9d961e7ac862a6bc430f783da5cf9422'
   intercomAppId = ''
+  wufoo = ''
 
   return {
     kiteHome
     awsKeys
-    slKeys
     mongo
     redis
     monitoringRedis
@@ -217,7 +197,6 @@ module.exports = (options) ->
     kontrolPostgres
     pubnub
     terraformer
-    paymentwebhook
     googleapiServiceAccount
     github
     gitlab
@@ -237,7 +216,6 @@ module.exports = (options) ->
     sneakerS3
     stripe
     recaptcha
-    paypal
     janitor
     segment
     kontrol
@@ -247,4 +225,5 @@ module.exports = (options) ->
     druid
     clearbit
     intercomAppId
+    wufoo
   }

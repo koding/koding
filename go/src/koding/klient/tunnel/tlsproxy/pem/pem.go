@@ -5,4 +5,4 @@ package pem
 const Hostname = "dev.kodi.ng"
 
 //go:generate go get github.com/jteeuwen/go-bindata
-//go:generate go-bindata -pkg pem fullchain.pem privkey.pem
+//go:generate go-bindata -mode 420 -modtime 1474360936 -pkg pem -o bindata.go fullchain.pem privkey.pem

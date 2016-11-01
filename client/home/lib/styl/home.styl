@@ -71,6 +71,7 @@ $subtleColor                = #A59999
   overflow                  hidden
   size                      auto, 100%
   border-left               1px solid #E4E4E4
+  border-radius             0px 6px 6px 0
   borderBox()
 
 .HomeAppView--scroller
@@ -135,24 +136,38 @@ $subtleColor                = #A59999
 
   .SidebarListItem-unreadCount
     right                   initial
-    margin-left             10px
-    margin-top              5px
+    margin-top              3px
     pointer()
 
 .HomeAppViewListItem-description
 .HomeAppViewListItem-label
   width                     50%
-
-.HomeAppViewListItem-label
-  font-weight               600
-  font-size                 16px
-  color                     #769ECC
-  line-height               25px
-  pointer()
-  text-decoration           none
-  fontPrecisionForSoleil()
-  &.member
+  &.disabled
+    opacity                 0.5
     pointer-events          none
+
+.HomeAppViewListItem-label--wrapper
+  width                     400px
+  .HomeAppViewListItem-label
+    font-weight             600
+    font-size               16px
+    line-height             25px
+    color                   #769ECC
+    text-decoration         none
+    margin-right            10px
+    pointer()
+    fontPrecisionForSoleil()
+  .tag
+    rel()
+    display                 inline-block
+    top                     -4px
+    margin-right            10px
+    padding                 2px 10px
+    color                   #fff
+    bg                      color #48BA7D
+    font-size               12px
+    line-height             13px
+    font-weight             300
 
 .HomeAppViewListItem-description
   font-style                italic

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"log"
 	"socialapi/config"
 	sender "socialapi/workers/email/privatemessageemail/privatemessageemailsender"
 
@@ -14,8 +14,7 @@ const Name = "PrivateMessageEmailSender"
 func main() {
 	r := runner.New(Name)
 	if err := r.Init(); err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
 	appConfig := config.MustRead(r.Conf.Path)

@@ -19,7 +19,7 @@ parseTerraformOutput = require 'app/util/stacks/parseterraformoutput'
 providersParser = require 'app/util/stacks/providersparser'
 updateCustomVariable = require 'app/util/stacks/updatecustomvariable'
 addUserInputOptions = require 'app/util/stacks/adduserinputoptions'
-
+isClonedTemplate = require 'app/util/isclonedtemplate'
 CustomLinkView = require 'app/customlinkview'
 
 OutputView = require './outputview'
@@ -34,7 +34,7 @@ CredentialListItem = require '../credentials/credentiallistitem'
 EnvironmentFlux = require 'app/flux/environment'
 ContentModal = require 'app/components/contentModal'
 createShareModal = require './createShareModal'
-
+isDefaultTeamStack = require 'app/util/isdefaultteamstack'
 { actions : HomeActions } = require 'home/flux'
 
 module.exports = class StackEditorView extends kd.View
@@ -55,22 +55,7 @@ module.exports = class StackEditorView extends kd.View
 
     super options, data
 
-    @isMine = yes
-    kd.singletons.groupsController.ready =>
-
-      { groupsController } = kd.singletons
-
-      @isMine = isAdmin() or isMine(stackTemplate)
-
-      if not @isMine and stackTemplate
-        @tabView.setClass 'StackEditorTabs isntMine'
-        @warningView.show()
-        @deleteStack.hide()
-        @saveButton.setClass 'isntMine'
-        @inputTitle.setClass 'template-title isntMine'
-        @editName.hide()
-
-
+    @canUpdate = isAdmin() or isMine stackTemplate
 
     @setClass 'edit-mode'  if inEditMode = @getOption 'inEditMode'
 
@@ -84,17 +69,25 @@ module.exports = class StackEditorView extends kd.View
 
     @createStackNameInput title
 
-    stackEditorTabsCssClass = unless @isMine then 'StackEditorTabs isntMine' else 'StackEditorTabs'
-
     @addSubView @tabView = new kd.TabView
       hideHandleCloseIcons : yes
       maxHandleWidth       : 300
-      cssClass             : stackEditorTabsCssClass
+      cssClass             : 'StackEditorTabs'
 
 
     @tabView.addSubView @warningView = new kd.CustomHTMLView
       cssClass: 'warning-view hidden'
       partial: 'You must be an admin to edit this stack.'
+
+    @warningView.addSubView @cloneOption = new kd.CustomHTMLView
+      tagName: 'span'
+      partial: " However, you can
+        <span class='clone-button'>clone this template </span>
+          and create a private stack."
+      click: (event) =>
+        if event.target?.className is 'clone-button'
+          @cloneStackTemplate()
+
 
     @addSubView @secondaryActions = new kd.CustomHTMLView
       cssClass             : 'StackEditor-SecondaryActions'
@@ -118,6 +111,7 @@ module.exports = class StackEditorView extends kd.View
 
     @editorViews.stackTemplate = @stackTemplateView = new StackTemplateView {
       delegate: this
+      @canUpdate
     }, data
 
     @tabView.addPane stackTemplatePane = new kd.TabPaneView
@@ -126,12 +120,15 @@ module.exports = class StackEditorView extends kd.View
 
     @editorViews.variables = @variablesView = new VariablesView {
       delegate: this
+      @canUpdate
     }, data
     @tabView.addPane variablesPane = new kd.TabPaneView
       name : 'Custom Variables'
       view : @variablesView
 
-    @editorViews.readme = @readmeView = new ReadmeView {}, data
+    @editorViews.readme = @readmeView = new ReadmeView {
+      @canUpdate
+    }, data
     @tabView.addPane readmePane = new kd.TabPaneView
       name : 'Readme'
       view : @readmeView
@@ -168,18 +165,14 @@ module.exports = class StackEditorView extends kd.View
     @tabView.on 'PaneDidShow', (pane) =>
       if pane.name is 'Credentials'
         @warningView.hide()
-      unless @isMine
+      unless @canUpdate
         if pane.name isnt 'Credentials'
           @warningView.show()
 
     @createOutputView()
     @createMainButtons()
 
-    # if stackTemplate is initialized make save button disabled
-    @saveButton.disable()  if stackTemplate?.machines.length
-
     @providersView.on 'ItemSelected', (credentialItem) =>
-      @saveButton.enable() # credential change, enable button
       credential = credentialItem.getData()
 
       @credentialStatusView.setCredential credential
@@ -188,7 +181,6 @@ module.exports = class StackEditorView extends kd.View
       credentialItem.inuseView.show()
 
     @providersView.on 'ItemDeleted', (credential) =>
-      @saveButton.enable() # credential change, enable button
       { identifier } = credential.getData()
       if identifier in @credentialStatusView.credentials
         @credentialStatusView.setCredential() # To unset active credential since it's deleted
@@ -225,6 +217,11 @@ module.exports = class StackEditorView extends kd.View
 
     @listenContentChanges()
 
+    if not @canUpdate and stackTemplate
+      @tabView.setClass 'StackEditorTabs readonly'
+      @warningView.show()
+      @deleteStack.hide()
+
 
   listenContentChanges: ->
 
@@ -238,9 +235,8 @@ module.exports = class StackEditorView extends kd.View
       { editorView } = view
       { ace }        = editorView.aceView
 
-      editorView.on 'EditorReady', =>
+      editorView.ready =>
         ace.on 'FileContentChanged', =>
-          @saveButton.enable()
           @changedContents[key] = ace.isContentChanged()
 
 
@@ -254,13 +250,21 @@ module.exports = class StackEditorView extends kd.View
     return isChanged
 
 
+  cloneStackTemplate: ->
+
+     { stackTemplate } = @getData()
+     EnvironmentFlux.actions.cloneStackTemplate stackTemplate, no
+
+
   createStackNameInput: (generatedStackTemplateTitle) ->
 
     { stackTemplate } = @getData()
-
+    headerCssClass = 'StackEditorView--header'
+    unless @canUpdate
+      headerCssClass = 'StackEditorView--header readonly'
     @addSubView @header = new kd.CustomHTMLView
       tagName: 'header'
-      cssClass: 'StackEditorView--header'
+      cssClass: headerCssClass
 
     valueGetter = [
       EnvironmentFlux.getters.teamStackTemplates
@@ -283,11 +287,31 @@ module.exports = class StackEditorView extends kd.View
         changeTemplateTitle stackTemplate?._id, e.target.value
 
     @header.addSubView @inputTitle = new kd.InputView options
+    @inputTitle.resize()
 
-    @header.addSubView @editName = new CustomLinkView
+    @header.addSubView @titleActionsWrapper = new kd.CustomHTMLView
+      cssClass: 'StackEditorView--header-subHeader'
+
+    @titleActionsWrapper.addSubView @editName = new CustomLinkView
       cssClass: 'edit-name'
       title: 'Edit Name'
       click : @inputTitle.bound 'setFocus'
+
+    @titleActionsWrapper.addSubView @saveName = new CustomLinkView
+      cssClass: 'edit-name hidden'
+      title: 'Save Name'
+      click : @inputTitle.bound 'setBlur'
+
+    isClonedTemplate stackTemplate, (originalTemplate) =>
+      if originalTemplate
+        @titleActionsWrapper.addSubView @clonedFrom = new kd.CustomHTMLView
+          cssClass: 'cloned-from-text'
+          partial: 'Clone Of'
+
+        @clonedFrom.addSubView new kd.CustomHTMLView
+          cssClass: 'cloned-from'
+          partial: "  #{originalTemplate.title}"
+          click: -> kd.singletons.router.handleRoute "/Stack-Editor/#{originalTemplate._id}"
 
     kd.singletons.reactor.observe valueGetter, (value) =>
 
@@ -301,7 +325,10 @@ module.exports = class StackEditorView extends kd.View
       @inputTitle.prepareClone()
       @inputTitle.resize()
 
-    @inputTitle.on 'blur', @editName.bound 'show'
+    @inputTitle.on 'blur', =>
+      @titleActionsWrapper.bound 'show'
+      @saveName.hide()
+      @editName.show()
 
     @inputTitle.on 'keydown', (event) =>
       return  unless event.keyCode is 13
@@ -310,6 +337,7 @@ module.exports = class StackEditorView extends kd.View
     @inputTitle.on 'focus', =>
       @inputTitle.resize()
       @editName.hide()
+      @saveName.show()
 
 
   createOutputView: ->
@@ -330,6 +358,7 @@ module.exports = class StackEditorView extends kd.View
   createMainButtons: ->
 
     { appManager } = kd.singletons
+    { stackTemplate } = @getData()
 
     @header.addSubView @buttons = new kd.CustomHTMLView { cssClass: 'buttons' }
 
@@ -355,6 +384,8 @@ module.exports = class StackEditorView extends kd.View
       loader         : yes
       callback       : =>
         appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
+        if isDefaultTeamStack stackTemplate._id
+          return EnvironmentFlux.actions.reinitStackFromWidget()
         @handleGenerateStack()
 
 
@@ -884,58 +915,8 @@ module.exports = class StackEditorView extends kd.View
 
   deleteStack: ->
 
-    { groupsController, computeController, router, reactor }  = kd.singletons
-    currentGroup  = groupsController.getCurrentGroup()
-    template      = @getData().stackTemplate
-
-    if template._id in (currentGroup.stackTemplates ? [])
-      return showError 'This template currently in use by the Team.'
-
-    if computeController.findStackFromTemplateId template._id
-      return showError 'You currently have a stack generated from this template.'
-
-    title       = 'Are you sure?'
-    description = '<h2>Do you want to delete this stack template?</h2>'
-    callback    = ({ status, modal }) ->
-      return  unless status
-
-      EnvironmentFlux.actions.removeStackTemplate template
-        .then ->
-          router.handleRoute '/IDE'
-          modal.destroy()
-        .catch (err) ->
-          new kd.NotificationView { title: 'Something went wrong!' }
-          modal.destroy()
-
-
-    template.hasStacks (err, result) ->
-      return showError err  if err
-
-      if result
-        description = '''<p>
-          There is a stack generated from this template by another team member. Deleting it can break their stack.
-          Do you still want to delete this stack template?</p>
-        '''
-
-      modal = new ContentModal
-        width : 400
-        overlay : yes
-        cssClass : 'delete-stack-template content-modal'
-        title   : title
-        content : description
-        buttons :
-          cancel      :
-            title     : 'Cancel'
-            cssClass  : 'kdbutton solid medium'
-            callback  : ->
-              modal.destroy()
-              callback { status : no }
-          ok          :
-            title     : 'Yes'
-            cssClass  : 'kdbutton solid medium'
-            callback  : -> callback { status : yes, modal }
-
-      modal.setAttribute 'testpath', 'RemoveStackModal'
+    { computeController }  = kd.singletons
+    computeController.deleteStackTemplate @getData().stackTemplate
 
 
   shareCredentials: (callback) ->

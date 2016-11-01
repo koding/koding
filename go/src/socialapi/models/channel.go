@@ -599,9 +599,6 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
 	}
 
-	// this will hide moderation needed channels
-	bongoQuery.AddScope(RemoveModerationNeededContent(c, q.ShowModerationNeeded))
-
 	bongoQuery.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
 	query := bongo.B.BuildQuery(c, bongoQuery)
@@ -649,20 +646,6 @@ func (c *Channel) ByName(q *request.Query) (Channel, error) {
 	err := c.One(query)
 	if err != nil && err != bongo.RecordNotFound {
 		return channel, err
-	}
-
-	// try to fetch it's root
-	if err == bongo.RecordNotFound {
-		query.Selector["type_constant"] = ChannelLinkedPrefix + q.Type
-		if err := c.One(query); err != nil {
-			return channel, err
-		}
-
-		if root, err := c.FetchRoot(); err != nil {
-			return channel, err
-		} else {
-			return channel, ErrChannelIsLeafFunc(root.Name, root.TypeConstant)
-		}
 	}
 
 	return *c, nil
@@ -737,8 +720,6 @@ func (c *Channel) List(q *request.Query) ([]Channel, error) {
 		query.Selector["type_constant"] = q.Type
 	}
 
-	// this will hide moderation needed channels
-	query.AddScope(RemoveModerationNeededContent(c, q.ShowModerationNeeded))
 	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
 	err := c.Some(&channels, query)
@@ -1083,21 +1064,11 @@ func isMessageCrossIndexed(messageId int64) (error, bool) {
 	return nil, count > 0
 }
 
-func (c *Channel) RemoveChannelLinks() error {
-	cl := NewChannelLink()
-	cl.RootId = c.Id
-	if err := cl.RemoveLinksWithRoot(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (c *Channel) deleteChannelMessages(messageMap map[int64]struct{}) error {
 	var errs *multierror.Error
 	messageIds := make([]int64, 0)
 
-	for messageId, _ := range messageMap {
+	for messageId := range messageMap {
 		messageIds = append(messageIds, messageId)
 	}
 
@@ -1179,20 +1150,6 @@ func (c *Channel) deleteChannelLists() (map[int64]struct{}, error) {
 			return messageMap, nil
 		}
 	}
-}
-
-// FetchRoot fetches the root of a channel if linked
-func (c *Channel) FetchRoot() (*Channel, error) {
-	cl := NewChannelLink()
-	cl.LeafId = c.Id
-	return cl.FetchRoot()
-}
-
-// FetchLeaves fetches the leaves of a channel if linked
-func (c *Channel) FetchLeaves() ([]Channel, error) {
-	cl := NewChannelLink()
-	cl.RootId = c.Id
-	return cl.List(request.NewQuery())
 }
 
 func (c *Channel) ShowUnreadCount() bool {

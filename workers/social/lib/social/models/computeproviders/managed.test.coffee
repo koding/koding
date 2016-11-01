@@ -64,7 +64,7 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
           done()
 
 
-    it 'should fail to create required managed vm data if plan limit has been reached', (done) ->
+    it 'should fail to create required managed vm data if group limit has been reached', (done) ->
 
       withConvertedUser { createGroup: 'yes' }, ({ client, account, user, group }) ->
 
@@ -73,7 +73,7 @@ runTests = -> describe 'workers.social.models.computeproviders.managed', ->
           (next) ->
             withConvertedUser { role: 'admin' }, (data) ->
               _client = data.client
-              group._activePlan = 'test'
+              group._activeLimit = 'test'
               next()
 
           (next) ->

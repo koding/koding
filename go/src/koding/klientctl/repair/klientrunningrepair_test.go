@@ -122,7 +122,7 @@ func TestKlientRunningRepairRepair(t *testing.T) {
 		Convey("It should call for klient to restart", func() {
 			r.Repair()
 			So(fakeCommandRun.RunLog, ShouldResemble, [][]string{
-				[]string{"sudo", "kd", "restart"},
+				{"sudo", "kd", "restart"},
 			})
 		})
 

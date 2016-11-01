@@ -83,47 +83,6 @@ func TestChannelMessageListCount(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(cnt, ShouldEqual, 1)
 			})
-
-			Convey("it should not count message if account of message is troll ", func() {
-				// create channel
-				acc := CreateAccountWithTest()
-				c := CreateChannelWithTest(acc.Id)
-
-				// create account as troll
-				acc1 := CreateAccountWithTest()
-				err := acc1.MarkAsTroll()
-				So(err, ShouldBeNil)
-
-				acc2 := CreateAccountWithTest()
-
-				// create message that creator is troll
-				msg := CreateMessageWithTest()
-				msg.AccountId = acc1.Id
-				So(msg.Create(), ShouldBeNil)
-
-				msg2 := CreateMessageWithTest()
-				msg2.AccountId = acc2.Id
-				So(msg2.Create(), ShouldBeNil)
-
-				// add message to the channel
-				// account is troll !!
-				_, erro := c.AddMessage(msg)
-				So(erro, ShouldBeNil)
-
-				_, erre := c.AddMessage(msg2)
-				So(erre, ShouldBeNil)
-
-				cml := NewChannelMessageList()
-				cml.ChannelId = c.Id
-
-				// there is 2 message in the channel
-				// but one of the account of message is troll so;
-				// Count will not count this message
-				// messages of troll is not valid to count
-				cnt, err := cml.Count(cml.ChannelId)
-				So(err, ShouldBeNil)
-				So(cnt, ShouldEqual, 1)
-			})
 		})
 	})
 }
@@ -138,27 +97,6 @@ func TestChannelMessageListisExempt(t *testing.T) {
 				So(err, ShouldNotBeNil)
 				So(err, ShouldEqual, ErrMessageIdIsNotSet)
 				So(is, ShouldEqual, false)
-			})
-
-			Convey("it should return true is channel is exempt", func() {
-				// create account as troll
-				acc := CreateAccountWithTest()
-				So(acc.MarkAsTroll(), ShouldBeNil)
-
-				c := CreateChannelWithTest(acc.Id)
-
-				// create message
-				msg := CreateMessageWithTest()
-				msg.AccountId = acc.Id
-				So(msg.Create(), ShouldBeNil)
-
-				cml := NewChannelMessageList()
-				cml.ChannelId = c.Id
-				cml.MessageId = msg.Id
-
-				is, err := cml.isExempt()
-				So(err, ShouldBeNil)
-				So(is, ShouldEqual, true)
 			})
 
 			Convey("it should return false is channel is not exempt", func() {
@@ -195,28 +133,6 @@ func TestChannelMessageListMarkIfExempt(t *testing.T) {
 				err := cml.MarkIfExempt()
 				So(err, ShouldNotBeNil)
 				So(err, ShouldEqual, ErrMessageIdIsNotSet)
-			})
-
-			Convey("it should mark as exempt if channel is exempt", func() {
-				// create account as troll
-				acc := CreateAccountWithTest()
-				err := acc.MarkAsTroll()
-				So(err, ShouldBeNil)
-
-				// create channel
-				c := CreateChannelWithTest(acc.Id)
-
-				// create message
-				msg := CreateMessageWithTest()
-				msg.AccountId = acc.Id
-				So(msg.Create(), ShouldBeNil)
-
-				cml := NewChannelMessageList()
-				cml.ChannelId = c.Id
-				cml.MessageId = msg.Id
-
-				errr := cml.MarkIfExempt()
-				So(errr, ShouldBeNil)
 			})
 		})
 	})
@@ -307,37 +223,6 @@ func TestChannelMessageListUnreadCount(t *testing.T) {
 				So(err, ShouldNotBeNil)
 				So(err, ShouldEqual, ErrLastSeenAtIsNotSet)
 				So(cnt, ShouldEqual, 0)
-			})
-
-			Convey("it should count if participant is troll", func() {
-				// create account as troll
-				accTroll := CreateAccountWithTest()
-				So(accTroll.MarkAsTroll(), ShouldBeNil)
-
-				c := CreateChannelWithTest(accTroll.Id)
-
-				// create message
-				msg := CreateMessageWithTest()
-				msg.AccountId = accTroll.Id
-				So(msg.Create(), ShouldBeNil)
-
-				cml := NewChannelMessageList()
-				cml.ChannelId = c.Id
-				cml.MessageId = msg.Id
-
-				_, errs := c.AddParticipant(accTroll.Id)
-				So(errs, ShouldBeNil)
-
-				cp := NewChannelParticipant()
-				cp.ChannelId = c.Id
-				cp.AccountId = accTroll.Id
-
-				_, erre := c.AddMessage(msg)
-				So(erre, ShouldBeNil)
-
-				cnt, err := cml.UnreadCount(cp)
-				So(err, ShouldBeNil)
-				So(cnt, ShouldEqual, 1)
 			})
 		})
 	})

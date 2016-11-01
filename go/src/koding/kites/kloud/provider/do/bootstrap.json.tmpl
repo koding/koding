@@ -1,0 +1,34 @@
+{
+  "provider": {
+    "digitalocean": {
+      "token": "${var.digitalocean_token}"
+    }
+  },
+  "output": {
+    "key_name": {
+      "value": "${digitalocean_ssh_key.koding_ssh_key.name}"
+    },
+    "key_fingerprint": {
+      "value": "${digitalocean_ssh_key.koding_ssh_key.fingerprint}"
+    },
+    "key_id": {
+      "value": "${digitalocean_ssh_key.koding_ssh_key.id}"
+    }
+  },
+  "resource": {
+    "digitalocean_ssh_key": {
+      "koding_ssh_key": {
+        "name": "${var.key_name}",
+        "public_key": "${var.public_key}"
+      }
+    }
+  },
+  "variable": {
+    "key_name": {
+      "default": "{{.KeyName}}"
+    },
+    "public_key": {
+      "default": "{{.PublicKey}}"
+    }
+  }
+}

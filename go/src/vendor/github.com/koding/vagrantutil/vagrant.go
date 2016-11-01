@@ -48,6 +48,9 @@ type Vagrant struct {
 	// Vagrantfile is being stored.
 	VagrantfilePath string
 
+	// ProviderName overwrites the default provider used for the Vagrantfile.
+	ProviderName string
+
 	// ID is the unique ID of the given box.
 	ID string
 
@@ -229,6 +232,10 @@ func (v *Vagrant) List() ([]*Vagrant, error) {
 // contains the output stream. At the end of the output, the error is put into
 // the Error field if there is any.
 func (v *Vagrant) Up() (<-chan *CommandOutput, error) {
+	if v.ProviderName != "" {
+		return v.vagrantCommand().start("up", "--provider", v.ProviderName)
+	}
+
 	return v.vagrantCommand().start("up")
 }
 

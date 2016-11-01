@@ -1,13 +1,14 @@
 kd = require 'kd'
 _ = require 'lodash'
 $ = require 'jquery'
-React = require 'kd-react'
+React = require 'app/react'
 TimeAgo = require 'app/components/common/timeago'
 UnreadCount = require 'app/components/sidebarmachineslistitem/unreadcount'
 getBoundingClientReact = require 'app/util/getBoundingClientReact'
 StackUpdatedWidget = require 'app/components/sidebarstacksection/stackupdatedwidget'
 isAdmin = require 'app/util/isAdmin'
 whoami = require 'app/util/whoami'
+isDefaultTeamStack = require 'app/util/isdefaultteamstack'
 
 module.exports = class StackTemplateItem extends React.Component
 
@@ -32,13 +33,17 @@ module.exports = class StackTemplateItem extends React.Component
 
   componentDidMount: ->
 
-    $('.kdscrollview').on 'scroll', _.debounce @bound('scrollOnPage'), 500, { leading: yes, trailing: no }
+    $('.kdscrollview').on 'scroll', @bound 'scrollOnPage'
     @setCoordinates()
 
 
-  scrollOnPage: ->
+  componentWillUnmount: ->
+    $('.kdscrollview').off 'scroll', @bound 'scrollOnPage'
 
-    @setState { showWidget: no }
+
+  scrollOnPage: -> _.debounce =>
+    @setState({ showWidget: no })
+  , 500, { leading: yes, trailing: no }
 
 
   setCoordinates: ->
@@ -51,7 +56,7 @@ module.exports = class StackTemplateItem extends React.Component
 
   renderButton: ->
 
-    { template, onAddToSidebar, onRemoveFromSidebar, isVisibleOnSidebar } = @props
+    { onAddToSidebar, onRemoveFromSidebar, isVisibleOnSidebar } = @props
 
     if isVisibleOnSidebar
       <a href="#" className="HomeAppView--button primary" onClick={onRemoveFromSidebar}>REMOVE FROM SIDEBAR</a>
@@ -102,27 +107,52 @@ module.exports = class StackTemplateItem extends React.Component
       onClose={@bound 'onWidgetClose'}
     />
 
+  renderDisabledStack: (stack, onOpen) ->
+
+    <div className='HomeAppViewListItem StackTemplateItem'>
+      <a
+        ref='stackTemplateItem'
+        className='HomeAppViewListItem-label disabled'
+        onClick={onOpen}>
+        { makeTitle { stack } }
+      </a>
+      <div className='HomeAppViewListItem-description disabled'>
+        Last updated <TimeAgo from={stack.getIn ['meta', 'modifiedAt']} />
+      </div>
+      <div className='HomeAppViewListItem-SecondaryContainer'>
+        {@renderButton()}
+      </div>
+    </div>
+
+  renderDefaultTag: ->
+    { template } = @props
+    if isDefaultTeamStack template.get '_id'
+      <div className='tag'>DEFAULT</div>
+    else
+      null
+
 
   render: ->
 
     { template, stack, onOpen } = @props
 
+    return @renderDisabledStack(stack, onOpen)  if stack?.get 'disabled'
     return null  unless template
 
-
     editorUrl = "/Stack-Editor/#{template.get '_id'}"
-    listItemClassName = 'HomeAppViewListItem-label'
-    unless isAdmin() or template.get('originId') is whoami()._id
-      listItemClassName = 'HomeAppViewListItem-label member'
+
     <div className='HomeAppViewListItem StackTemplateItem'>
-      <a
-        ref='stackTemplateItem'
-        href={editorUrl}
-        className={listItemClassName}
-        onClick={onOpen}>
-        { makeTitle { template, stack } }
-      </a>
-      {@renderUnreadCount()}
+      <div className='HomeAppViewListItem-label--wrapper'>
+        <a
+          ref='stackTemplateItem'
+          href={editorUrl}
+          className='HomeAppViewListItem-label'
+          onClick={onOpen}>
+          { makeTitle { template, stack } }
+        </a>
+        {@renderDefaultTag()}
+        {@renderUnreadCount()}
+      </div>
       {@renderStackUpdatedWidget()}
       <div className='HomeAppViewListItem-description'>
         Last updated <TimeAgo from={template.getIn ['meta', 'modifiedAt']} />
@@ -135,9 +165,10 @@ module.exports = class StackTemplateItem extends React.Component
 
 makeTitle = ({ template, stack }) ->
 
-  title = _.unescape template.get 'title'
+  title = _.unescape template?.get 'title'
 
   return title  unless stack
-  return title  unless oldOwner = stack.getIn(['config', 'oldOwner'])
+  if stack.getIn(['config', 'oldOwner'])
+    title = stack.get 'title'
 
-  return "#{title} (@#{oldOwner})"
+  return "#{title}"

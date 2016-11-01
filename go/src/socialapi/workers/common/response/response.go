@@ -21,6 +21,7 @@ var (
 // http response properties
 func NewBadRequest(err error) (int, http.Header, interface{}, error) {
 	l := runner.MustGetLogger()
+	l = l.New("response")
 	l.SetCallDepth(2) // get previous error line
 
 	return NewBadRequestWithLogger(l, err)
@@ -68,6 +69,7 @@ func NewInvalidRequest(err error) (int, http.Header, interface{}, error) {
 // here not to leak info about the resource do send NotFound err
 func NewAccessDenied(err error) (int, http.Header, interface{}, error) {
 	l := runner.MustGetLogger()
+	l = l.New("response")
 	l.SetCallDepth(1) // get previous error line
 	l.Error("Access Denied Err: %s", err.Error())
 
@@ -83,6 +85,7 @@ func HandleResultAndError(res interface{}, err error) (int, http.Header, interfa
 	}
 
 	l := runner.MustGetLogger()
+	l = l.New("response")
 	l.SetCallDepth(2) // get 2 previous call stack
 
 	if err != nil {

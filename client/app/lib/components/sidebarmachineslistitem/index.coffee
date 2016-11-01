@@ -1,6 +1,6 @@
 kd                             = require 'kd'
 Link                           = require 'app/components/common/link'
-React                          = require 'kd-react'
+React                          = require 'app/react'
 ReactDOM                       = require 'react-dom'
 remote                         = require 'app/remote'
 actions                        = require 'app/flux/environment/actions'
@@ -191,7 +191,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
     kd.utils.stopDOMEvent event
 
     if @machine('type') is 'own' or @machine 'hasOldOwner'
-      kd.singletons.router.handleRoute "/Home/Stacks/virtual-machines/#{@machine 'label'}"
+      kd.singletons.router.handleRoute "/Home/stacks/virtual-machines/#{@machine('_id')}"
     else
       sidebarListItem = ReactDOM.findDOMNode @refs.sidebarMachinesListItem
       clientRect      = sidebarListItem.getBoundingClientRect()

@@ -70,7 +70,7 @@ func startKlient(log logging.Logger, s service.Service) error {
 
 	fmt.Println("Starting...")
 
-	err := WaitUntilStarted(config.KlientAddress, CommandAttempts, CommandWaitTime)
+	err := WaitUntilStarted(config.Konfig.KlientURL, CommandAttempts, CommandWaitTime)
 	if err != nil {
 		log.Error(
 			"Timed out while waiting for Klient to start. attempts:%d, err:%s",

@@ -34,7 +34,7 @@ if [[ -z "$VERSION" ]]; then
 fi
 
 kd_build() {
-	go build -v -ldflags "-X koding/klientctl/config.Version=$VERSION -X koding/klientctl/config.SegmentKey=$KD_SEGMENTIO_KEY -X koding/klientctl/config.Environment=$CHANNEL -X koding/klientctl/config.TunnelKiteAddress $TUNNEL_URL -X koding/klientctl/config.KontrolURL=$KONTROL_URL" koding/klientctl
+	go install -v -ldflags "-X koding/klientctl/config.Version=$VERSION -X koding/klientctl/config.SegmentKey=$KD_SEGMENTIO_KEY -X koding/klientctl/config.Environment=$CHANNEL" koding/klientctl
 	mv "${REPO_PATH}/klientctl" "${REPO_PATH}/kd"
 }
 
@@ -66,10 +66,12 @@ pushd $REPO_PATH
 
 kd_build
 
-gzip -9 -N -f kd
-mv kd.gz "${PREFIX}.darwin_amd64.gz"
+if [[ -z "${KD_DEBUG:-}" ]]; then
+	gzip -9 -N -f kd
+	mv kd.gz "${PREFIX}.darwin_amd64.gz"
 
-docker run -t -v $PWD:/opt/koding -e KD_SEGMENTIO_KEY="$KD_SEGMENTIO_KEY" koding/base:klient go/src/koding/klientctl/build.sh "$CHANNEL" "$VERSION"
+	docker run -t -v $PWD:/opt/koding -e KD_SEGMENTIO_KEY="$KD_SEGMENTIO_KEY" koding/base:klient go/src/koding/klientctl/build.sh "$CHANNEL" "$VERSION"
+fi
 
 popd
 

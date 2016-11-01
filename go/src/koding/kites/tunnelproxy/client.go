@@ -7,9 +7,8 @@ import (
 	"sync"
 	"time"
 
-	cfg "koding/config"
 	"koding/httputil"
-	"koding/klient/protocol"
+	cfg "koding/kites/config"
 
 	"github.com/cenkalti/backoff"
 	"github.com/koding/kite"
@@ -27,12 +26,6 @@ var (
 	defaultTimeout          = 30 * time.Second
 )
 
-// TunnelKiteURLFromEnv gives tunnel server kite URL base on the given
-// environment.
-func TunnelKiteURLFromEnv(env string) string {
-	return cfg.Builtin.Endpoints.URL("tunnelserver", env)
-}
-
 // ClientOptions are used to alternate behavior of
 type ClientOptions struct {
 	// TunnelName is a name for the tunnel to use. Based on this value
@@ -45,7 +38,7 @@ type ClientOptions struct {
 
 	// TunnelKiteURL is a global tunnel server kite URL.
 	//
-	// If empty, TunnelKiteURLFromEnv is used instead.
+	// If empty, TunnelServer from kites/config is used instead.
 	TunnelKiteURL string
 
 	// LastVirtualHost is saved virtual host from previous connection.
@@ -97,7 +90,8 @@ func (opts *ClientOptions) tunnelKiteURL() string {
 	if opts.TunnelKiteURL != "" {
 		return opts.TunnelKiteURL
 	}
-	return TunnelKiteURLFromEnv(protocol.Environment)
+
+	return cfg.Builtin.Endpoints.TunnelServer
 }
 
 func (opts *ClientOptions) maxRegisterRetry() int {

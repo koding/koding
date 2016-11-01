@@ -1,5 +1,5 @@
 kd = require 'kd'
-React = require 'kd-react'
+React = require 'app/react'
 ReactSpinner = require 'react-spinner'
 
 require './styl/spinner.styl'

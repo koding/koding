@@ -80,7 +80,12 @@ func createQuery(iterOptions *iterOptions) func(coll *mgo.Collection) error {
 		skip := iterOptions.Skip   // this is a starting point
 		index := skip              // this is the item count to be processed
 		limit := iterOptions.Limit // this will be the ending point
-		count := index + limit     // total count
+		if limit == 0 {
+			// if limit is not given process all the records
+			limit = totalCount
+		}
+
+		count := index + limit // total count
 		sort := iterOptions.Sort
 
 		if len(sort) == 0 {

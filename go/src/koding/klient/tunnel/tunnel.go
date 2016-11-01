@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	kconf "koding/config"
+	kconf "koding/kites/config"
 	"koding/kites/tunnelproxy"
 	"koding/klient/info/publicip"
 	"koding/klient/storage"
@@ -458,7 +458,7 @@ func (t *Tunnel) LocalKontrolURL() *url.URL {
 			return nil
 		}
 
-		u.Host = "127.0.0.1:3000" // move to koding/config
+		u.Host = "127.0.0.1:3000" // move to koding/kites/config
 		return u
 	}
 
