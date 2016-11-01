@@ -283,6 +283,19 @@ module.exports = class AccountCredentialListController extends KodingListControl
             </div>
           </main>
           '''
+        click: (event) ->
+
+          return  unless event.target.classList.contains 'contact'
+
+          if window.Intercom
+            kd.stopDOMEvent event
+            Intercom 'show'
+            return no
+          else
+            return yes
+
+
+
 
     { computeController } = kd.singletons
 
