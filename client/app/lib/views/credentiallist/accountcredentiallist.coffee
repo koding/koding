@@ -24,11 +24,11 @@ module.exports = class AccountCredentialList extends KodingListView
   showCredential: (options = {}) ->
 
     { credential, cred } = options
-    
+
     content = "<pre><code>#{cred}</code></pre>"
-    
+
     scrollView = new kd.CustomScrollView { cssClass : 'credential-scroll' }
-    
+
     scrollView.wrapper.addSubView new kd.CustomHTMLView
       tagName : 'p'
       cssClass : 'markdown-content'
