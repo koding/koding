@@ -62,6 +62,7 @@ module.exports = class ComputeController extends KDController
       groupsController.on 'StackTemplateChanged', @bound 'checkGroupStacks'
       groupsController.on 'StackAdminMessageCreated', @bound 'handleStackAdminMessageCreated'
       groupsController.on 'ShareStackTemplate', @bound 'handleSharedStackTemplate'
+      groupsController.on 'UnshareStackTemplate', @bound 'handleUnsharedStackTemplate'
 
       @fetchStacks =>
 
@@ -985,10 +986,21 @@ module.exports = class ComputeController extends KDController
           @emit 'StacksInconsistent', stack
 
 
+  handleUnsharedStackTemplate: (params) ->
+
+    { contents: stackTemplate } = params
+    { mainController, reactor } = kd.singletons
+
+    reactor.dispatch 'REMOVE_TEAM_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
+
+
   handleSharedStackTemplate: (params) ->
 
     { contents: stackTemplate } = params
-    { mainController } = kd.singletons
+    { mainController, reactor } = kd.singletons
+
+    reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
+    reactor.dispatch 'REMOVE_PRIVATE_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
 
     mainController.ready =>
       { _id, originId } = stackTemplate
@@ -1016,9 +1028,8 @@ module.exports = class ComputeController extends KDController
       # TMS-1919: This can stay as is, but this time it will create the first
       # avaiable stacktemplate for who has no stacks yet. ~ GG
 
-      @createDefaultStack yes, stackTemplate  if stackTemplate
-
       @createDefaultStack yes  unless _currentGroup.sharedStackTemplates?.length
+      @createDefaultStack yes, stackTemplate  if stackTemplate
 
       @checkGroupStackRevisions()
 
@@ -1326,6 +1337,8 @@ module.exports = class ComputeController extends KDController
     # stacks. For this reason, we need to define to flow first for this and
     # change the code based on the flow requirements. ~ GG
 
+    { groupsController } = kd.singletons
+    currentGroup = groupsController.getCurrentGroup()
     @ui.askFor 'reinitStack', {}, (status) =>
 
       unless status.confirmed
@@ -1341,10 +1354,9 @@ module.exports = class ComputeController extends KDController
         if err or not template
           console.warn 'The base template of the stack has been removed:', stack.baseStackId
 
-        groupStack = stack.config?.groupStack
+        groupStack = yes  if currentGroup.sharedStackTemplates?.length
 
         @destroyStack stack, (err) =>
-
           if err
             notification.destroy()
             callback err
