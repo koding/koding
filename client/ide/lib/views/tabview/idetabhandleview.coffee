@@ -95,7 +95,10 @@ module.exports = class IDETabHandleView extends KDTabHandleView
       @setClass 'edit-mode'
       @titleInput.setValue title
       @titleInput.setFocus()
-      @titleInput.selectAll()
+      if lastIndex = title.lastIndexOf('.') > 0
+        @titleInput.selectRange 0, lastIndex
+      else
+        @titleInput.selectAll()
       windowController.addLayer this
     else
       @unsetClass 'edit-mode'
