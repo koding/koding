@@ -1,12 +1,17 @@
 {% for item in include.data %}
-  <div class="headline">{{ item.headline }}</div>
-  <div class="flowContainer{% if item.imagepos == 'left' %} imageLeft{% else %} imageRight{% endif %}">
+  <div id="flowContainer{{forloop.index}}" class="FlowContainer{% if item.imagepos == 'left' %} imageLeft{% else %} imageRight{% endif %}">
+    <svg class="dashedLine" width="50" height="608px" viewBox="0 0 50 608">
+      <line x1="25" x2="25" y1="6" y2="608" stroke="#444444" stroke-width="1" stroke-height="5" stroke-linecap="butt" stroke-dasharray="1, 6"/>
+    </svg>
+    <div class="headline">{{ item.headline }}</div>
+    <div class="clearfix"></div>
     <div class="imgContainer">
     </div>
     <div class="captionContainer">
       <h2>{{ item.title }}</h2>
       <p>{{ item.description }}</p>
-      <a href="{{ item.link }}">{{ item.linktext }}</a>
+      <a href="{{ item.link }}">
+      <svg class="arrowCircle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 27 27"><defs><style>.cls-1{fill:#48ba7d;}.cls-2{fill:none;stroke:#fff;stroke-miterlimit:10;stroke-width:2px;}</style></defs><title>Asset 1</title><g id="Layer_2" data-name="Layer 2"><g id="content"><circle class="cls-1" cx="13.5" cy="13.5" r="13.5"/><polyline class="cls-2" points="14.11 8.86 19.17 13.92 14.11 18.98"/><line class="cls-2" x1="18.86" y1="13.92" x2="6.43" y2="13.92"/></g></g></svg>{{ item.linktext }}</a>
     </div>
     <div class="clearfix"></div>
   </div>
