@@ -105,6 +105,7 @@ module.exports = class GroupsController extends kd.Controller
           'GroupLeft'
           'StackAdminMessageCreated'
           'ShareStackTemplate'
+          'UnshareStackTemplate'
         ]
 
         callback null
@@ -230,18 +231,15 @@ module.exports = class GroupsController extends kd.Controller
 
         Tracker.track Tracker.STACKS_MAKE_DEFAULT  if type is 'default'
 
-        reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
-        reactor.dispatch 'REMOVE_PRIVATE_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
-
         if stackTemplate._updated
           id = currentGroup.socialApiDefaultChannelId
 
         # Warn other group members about stack template update
 
-        if type is 'share'
-          currentGroup.sendNotification 'ShareStackTemplate', stackTemplate
-        else
+        if type is 'default'
           currentGroup.sendNotification 'StackTemplateChanged', stackTemplate
+        else
+          currentGroup.sendNotification 'ShareStackTemplate', stackTemplate
 
         callback null
 
@@ -257,22 +255,17 @@ module.exports = class GroupsController extends kd.Controller
     stackTemplate.setAccess 'private', (err) ->
 
       return callback err  if err
-      reactor.dispatch 'REMOVE_TEAM_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
-      reactor.dispatch 'CREATE_STACK_TEMPLATE_SUCCESS', { stackTemplate }
 
-    if stackTemplates
-      index = stackTemplates.indexOf(stackTemplate._id)
+      if stackTemplates
+        index = stackTemplates.indexOf(stackTemplate._id)
 
-      if index > -1
-        stackTemplates.splice(index, 1)
+        if index > -1
+          stackTemplates.splice(index, 1)
 
-    currentGroup.modify { stackTemplates }, (err) ->
+      currentGroup.modify { stackTemplates }, (err) ->
 
-      callback err  if err
+        callback err  if err
+        reactor.dispatch 'LOAD_TEAM_SUCCESS', { team: currentGroup }
+        callback()
 
-      reactor.dispatch 'LOAD_TEAM_SUCCESS', { team: currentGroup }
-
-
-
-
-
+        currentGroup.sendNotification 'UnshareStackTemplate', stackTemplate
