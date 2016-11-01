@@ -56,6 +56,8 @@ parent: /docs/home
 > If you do not have an AWS account yet, please create one on Amazon AWS here [aws.amazon.com](http://aws.amazon.com), login and make sure you subscribe to EC2 service on AWS console, click **Services** (top left) **-> EC2**. 
 > Then <span>_follow first 5 steps_ at the bottom of this [AWS guide ](http://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html)to generate your keys.
 
+## Add an AWS Credential
+
 > **Alert**
 > If you followed AWS recommended tip on creating an IAM user rather than using your AWS root user account to generate the crednetials, you need to make sure your new IAM user has enough privileges to create EC2's. Please follow our [Setup AWS IAM user](/docs/setup-aws-iam-user) guide to know which roles should be assigned for this user in order to use the credentials to build your stack successfully.
 
