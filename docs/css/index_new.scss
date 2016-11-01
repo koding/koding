@@ -43,7 +43,7 @@ body {
     left: 0;
     z-index: 0;
   }
-  .header {
+  .HomeHeaderContainer-header {
     z-index: 1;
     position: relative;
     height: 100%;
@@ -61,7 +61,7 @@ body {
       bottom: -1px;
       position: absolute;
     }
-    .openSource {
+    .HomeHeaderContainer-openSource {
       margin-top: 119px;
       background-color: #276184;
       display: inline-block;
@@ -81,13 +81,13 @@ body {
       padding: 0 109px;
     }
 
-    .getStarted {
+    .u-getStarted {
       margin-bottom: 148px;
     }
   }
 }
 
-.getStarted {
+.u-getStarted {
   background-color: #F2778A;
   color: #fff;
   display: inline-block;
@@ -124,34 +124,34 @@ body {
   font-family: 'fira-sans';
   overflow: hidden;
 
-  .imgContainer {
+  .FlowContainer-image {
     background-repeat: no-repeat;
     width: 550px;
     margin-left: 13px;
   }
 
-  &#flowContainer4 .imgContainer {
+  &#flowContainer4 .FlowContainer-image {
     width: 575px;
     padding-right: 0;
   }
-  &#flowContainer5 .imgContainer {
+  &#flowContainer5 .FlowContainer-image {
     width: 566px;
     height: 410px;
     margin-bottom: -56px;
   }
 
-  svg.dashedLine {
+  .FlowContainer-line {
     position: absolute;
     top: 56px;
     left: 50%;
     margin-left: -25px;
   }
 
-  .headline {
+  .u-headline {
     margin-bottom: 133px;
   }
 
-  svg.arrowCircle {
+  .FlowContainer-arrowCircle {
     width: 28px;
     height: 28px;
     vertical-align: -8px;
@@ -164,11 +164,11 @@ body {
   margin-bottom: 50px;
   font-family: 'fira-sans';
 
-  .headline {
+  .u-headline {
     margin-bottom: 52px;
   }
 
-  .header {
+  .EndContainer-header {
     margin-bottom: 5px;
     color: #0C5A99;
     font-size: 76px;
@@ -177,12 +177,12 @@ body {
     padding: 0 56px;
   }
 
-  .getStarted {
+  .u-getStarted {
     margin-bottom: 117px;
   }
 }
 
-.headline {
+.u-headline {
   border: 1px solid #ccc;
   border-radius: 25px;
   padding: 18px 30px 19px;
@@ -197,7 +197,7 @@ body {
   margin-bottom: 122px;
 }
 
-.captionContainer {
+.FlowContainer-caption {
   width: 547px;
   text-align: left;
   padding-top: 8px;
@@ -281,19 +281,19 @@ body {
         font-weight: 500;
         box-sizing: border-box;
 
-        &#button1 {
+        &#lightBlueButton {
           background-color: #00A3D5;
         }
 
-        &#button2 {
+        &#greenButton {
           background-color: #18CD7A;
         }
 
-        &#button3 {
+        &#redButton {
           background-color: #F2778A;
         }
 
-        &#button4 {
+        &#darkBlueButton {
           background-color: #358BB0;
         }
       }
@@ -303,12 +303,12 @@ body {
 
 @media (max-width: 1200px) {
 
-  .HomeHeaderContainer .header h1,
-  .EndContainer .header {
+  .HomeHeaderContainer .HomeHeaderContainer-header h1,
+  .EndContainer .EndContainer-header {
     font-size: 64px;
   }
 
-  .getStarted {
+  .u-getStarted {
     font-size: 24px;
   }
 
@@ -319,19 +319,19 @@ body {
   .FlowContainer {
     padding-bottom: 90px;
 
-    .headline {
+    .u-headline {
       margin-bottom: 100px;
     }
 
-    .imgContainer,
-    &#flowContainer4 .imgContainer,
-    &#flowContainer5 .imgContainer {
+    .FlowContainer-image,
+    &#flowContainer4 .FlowContainer-image,
+    &#flowContainer5 .FlowContainer-image {
       width: 468px;
       background-size: 468px;
     }
   }
 
-  .captionContainer {
+  .FlowContainer-caption {
     width: 430px;
 
     h2 {
@@ -362,23 +362,23 @@ body {
 }
 
 @media (min-width: 1200px) {
-  .imageLeft {
-    .imgContainer {
+  .u-imageLeft {
+    .FlowContainer-image {
       padding-left: 13px;
     }
 
-    .captionContainer {
+    .FlowContainer-caption {
       margin-right: 8px;
       padding-right: 13px;
     }
   }
 
-  .imageRight {
-    .imgContainer {
+  .u-imageRight {
+    .FlowContainer-image {
       padding-right: 13px;
     }
 
-    .captionContainer {
+    .FlowContainer-caption {
       padding-left: 13px;
     }
   }
@@ -386,22 +386,22 @@ body {
 
 @media (min-width: 992px) {
 
-  .imageLeft {
-    .imgContainer {
+  .u-imageLeft {
+    .FlowContainer-image {
       float: left;
     }
 
-    .captionContainer {
+    .FlowContainer-caption {
       float: right;
     }
   }
 
-  .imageRight {
-    .imgContainer {
+  .u-imageRight {
+    .FlowContainer-image {
       float: right;
     }
 
-    .captionContainer {
+    .FlowContainer-caption {
       float: left;
     }
   }
@@ -414,20 +414,20 @@ body {
     width: 700px;
   }
 
-  .HomeHeaderContainer .header h1,
-  .EndContainer .header {
+  .HomeHeaderContainer .HomeHeaderContainer-header h1,
+  .EndContainer .EndContainer-header {
     font-size: 54px;
     line-height: 64px;
   }
 
   .FlowContainer {
-    svg.dashedLine {
+    .FlowContainer-line {
       display: block;
       left: 6%;
     }
 
-    .imgContainer, .captionContainer,
-    &#flowContainer4 .imgContainer {
+    .FlowContainer-image, .FlowContainer-caption,
+    &#flowContainer4 .FlowContainer-image {
       margin: 0 auto;
       text-align: center;
     }
@@ -441,14 +441,14 @@ body {
     }
   }
 
-  .headline {
+  .u-headline {
     margin-bottom: 70px;
   }
   
 }
 
 @media (min-width: 691px) and (max-width: 991px) {
-  .headline {
+  .u-headline {
     display: block;
     float: left;
   }
@@ -465,13 +465,13 @@ body {
     padding: 0 5vh;
   }
 
-  .HomeHeaderContainer .header h1,
-  .EndContainer .header {
+  .HomeHeaderContainer .HomeHeaderContainer-header h1,
+  .EndContainer .EndContainer-header {
     font-size: 40px;
     line-height: 54px;
   }
 
-  .HomeHeaderContainer .header h1 {
+  .HomeHeaderContainer .HomeHeaderContainer-header h1 {
     padding: 0 35px;
   }
 
@@ -479,13 +479,13 @@ body {
     padding-left: 5vh;
     padding-right: 5vh;
 
-    svg.dashedLine {
+    .FlowContainer-line {
       display: none;
     }
 
-    .imgContainer,
-    &#flowContainer4 .imgContainer,
-    &#flowContainer5 .imgContainer {
+    .FlowContainer-image,
+    &#flowContainer4 .FlowContainer-image,
+    &#flowContainer5 .FlowContainer-image {
       width: auto;
       background-size: 100%;
       height: 277px;
@@ -493,7 +493,7 @@ body {
     }
   }
 
-  .captionContainer {
+  .FlowContainer-caption {
     width: auto;
   }
 
