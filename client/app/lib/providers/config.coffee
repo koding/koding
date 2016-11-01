@@ -167,6 +167,10 @@ module.exports = globals.config.providers =
     defaultTemplate        : require './templates/azure'
     description            : 'Azure'
     instanceTypes          : require './instance-types/azure'
+    attributeMapping       :
+      image                : 'image'
+      instance_type        : 'size'
+      region               : 'location'
     credentialFields       :
       publish_settings     :
         label              : 'Publish Settings'
