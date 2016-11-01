@@ -58,7 +58,7 @@ body {
       background-position: bottom center;
       width: 100%;
       height: 325px;
-      bottom: 0;
+      bottom: -1px;
       position: absolute;
     }
     .openSource {
@@ -115,6 +115,7 @@ body {
   text-align: center;
   margin: 0 auto;
   font-family: 'fira-sans';
+  padding-top: 1px;
 }
 
 .FlowContainer {
@@ -413,15 +414,17 @@ body {
     line-height: 64px;
   }
 
-  .FlowContainer svg.dashedLine {
-    display: block;
-    left: 6%;
-  }
+  .FlowContainer {
+    svg.dashedLine {
+      display: block;
+      left: 6%;
+    }
 
-  .imgContainer, .captionContainer,
-  .FlowContainer#flowContainer4 .imgContainer {
-    margin: 0 auto;
-    text-align: center;
+    .imgContainer, .captionContainer,
+    &#flowContainer4 .imgContainer {
+      margin: 0 auto;
+      text-align: center;
+    }
   }
 
   .LearnMoreContainer ul {
