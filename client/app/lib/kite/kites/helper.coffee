@@ -141,7 +141,7 @@ BASH_RC = '''
 
 generateFileSystem = (username) ->
 
-  makeFolder = -> { "": yes }
+  makeFolder = -> { '': yes }
 
   config = makeFolder()
   config.home = makeFolder()
