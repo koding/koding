@@ -201,7 +201,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
     @getView().parent.prepend addButton = new KDButtonView
       cssClass  : 'add-big-btn'
-      title     : 'Create New'
+      title     : 'Add a New Credential'
       icon      : yes
       callback  : @lazyBound 'showAddCredentialFormFor', @getOption 'provider'
 
