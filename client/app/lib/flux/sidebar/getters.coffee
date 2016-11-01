@@ -20,6 +20,9 @@ sidebarStacks = [
     stacks
       .filter (stack) ->
 
+        template = templates.get(stack.get 'baseStackId')
+        return no  unless template
+
         if stackFilter = stackFilters.get id = stack.get '_id'
           # check for id is for backwards compatibility. ~Umut
           return stackFilter in ['visible']
