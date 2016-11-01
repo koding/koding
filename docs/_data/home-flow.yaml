@@ -1,0 +1,30 @@
+- headline: 1. Improve your dev process with stack scripts
+  title: Script your dev environment in a .YAML file
+  description: Developers get everything they need to spin up full-stack, project-specific environments in seconds. Share them, update them, and manage infrastructure from a simple interface.
+  linktext: Learn more about stack scripts
+  link: http://google.com
+  imagepos: left
+- headline: 2. Spend more time in the code
+  title: One click to build dev environments for any project
+  description: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+  linktext: Learn more about stack scripts
+  link: http://google.com
+  imagepos: right
+- headline: 3. Collaborate with your team faster
+  title: Live collaboration in the code means you debug faster
+  description: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+  linktext: Learn more about stack scripts
+  link: http://google.com
+  imagepos: left
+- headline: 4. Share VM’s with ease
+  title: Share any VM and onboard teammates with ease
+  description: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+  linktext: Learn more about stack scripts
+  link: http://google.com
+  imagepos: right
+- headline: 6. Code faster by using your favorite local IDE
+  title: KD connects directly to your VM’s from your local IDE
+  description: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut.
+  linktext: Learn more about stack scripts
+  link: http://google.com
+  imagepos: left

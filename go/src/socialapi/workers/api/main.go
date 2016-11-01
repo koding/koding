@@ -28,7 +28,6 @@ import (
 	paymentapi "socialapi/workers/payment/api"
 	presenceapi "socialapi/workers/presence/api"
 	realtimeapi "socialapi/workers/realtime/api"
-	sitemapapi "socialapi/workers/sitemap/api"
 	slackapi "socialapi/workers/slack/api"
 
 	"github.com/koding/runner"
@@ -60,7 +59,6 @@ func main() {
 	collaboration.AddHandlers(m)
 	paymentapi.AddHandlers(m)
 	notificationapi.AddHandlers(m)
-	sitemapapi.AddHandlers(m)
 	mailapi.AddHandlers(m)
 	algoliaapi.AddHandlers(m, r.Log)
 

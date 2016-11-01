@@ -3,9 +3,8 @@ KONFIG     = require 'koding-config-manager'
 
 module.exports = class JLog extends Module
 
-  # do not make QA's waiting for 5 mins. We test this feature only test on sandbox
-  TRY_LIMIT_FOR_BLOCKING  = if KONFIG.environment is 'sandbox' then 1 else 5
-  TIME_LIMIT_IN_MIN       = 5
+  TRY_LIMIT_FOR_BLOCKING = 5
+  TIME_LIMIT_IN_MIN      = if KONFIG.environment is 'sandbox' then 1 else 5
 
   @set
     softDelete      : no
@@ -98,4 +97,3 @@ module.exports = class JLog extends Module
       checkRestrictions err, results, (res) ->
         return callback false  unless res
         return callback true
-
