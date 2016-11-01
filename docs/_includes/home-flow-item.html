@@ -1,11 +1,13 @@
-<div id="flowContainer{{forloop.index}}" class="FlowContainer{% if include.imagepos == 'left' %} imageLeft{% else %} imageRight{% endif %}">
+{% assign src = include.imagesrc %}
+{% assign ext = include.imageext %}
+
+<div id="flowContainer{{include.itempos}}" class="FlowContainer{% if include.imagepos == 'left' %} imageLeft{% else %} imageRight{% endif %}">
   <svg class="dashedLine" width="50" height="880px" viewBox="0 0 50 880">
     <line x1="25" x2="25" y1="6" y2="880" stroke="#444444" stroke-width="1" stroke-height="5" stroke-linecap="butt" stroke-dasharray="1, 6"/>
   </svg>
-  <div class="headline">{{ include.headline }}</div>
+  <div class="headline">{{include.itempos}}. {{ include.headline }}</div>
   <div class="clearfix"></div>
-  <div class="imgContainer">
-  </div>
+  <img class='imgContainer' src="{{ site.url }}{{ src }}.{{ ext }}" srcset="{{ site.url }}{{ src }}.{{ ext }} 1x, {{ site.url }}{{ src }}@2x.{{ ext }} 2x" />
   <div class="captionContainer">
     <h2>{{ include.title }}</h2>
     <p>{{ include.description }}</p>

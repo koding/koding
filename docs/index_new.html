@@ -6,6 +6,8 @@ permalink: /new
 
 <!-- HEADER -->
 {% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='transparent' %}
+{% assign path = site.url | append: '/assets/img/landing/interim' %}
+
 <!-- particles.js container -->
 <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
 <link rel="stylesheet" href="{{ site.url }}/css/index_new.css">
@@ -21,16 +23,61 @@ permalink: /new
 
 <div class="HomeContainer">
 
-  {% include home-flow-item.html headline="1. Improve your dev process with stack scripts" title="Script your dev environment in a .YAML file" description="Developers get everything they need to spin up full-stack, project-specific environments in seconds. Share them, update them, and manage infrastructure from a simple interface." linktext="Learn more about stack scripts" link="http://google.com" imagepos="left" %}
+  {% include home-flow-item.html
+     headline="Improve your dev process with stack scripts"
+     title="Script your dev environment in a .YAML file"
+     description="Developers get everything they need to spin up full-stack, project-specific environments in seconds. Share them, update them, and manage infrastructure from a simple interface."
+     linktext="Learn more about stack scripts"
+     link="http://google.com"
+     imagepos="left"
+     imagesrc="/assets/img/landing/interim/index1"
+     imageext="jpg"
+     itempos="1" %}
 
-  {% include home-flow-item.html headline="2. Spend more time in the code" title="One click to build dev environments for any project" description="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut." linktext="Learn more about stack scripts" link="http://google.com" imagepos="right" %}
+  {% include home-flow-item.html
+     headline="Spend more time in the code"
+     title="One click to build dev environments for any project"
+     description="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut."
+     linktext="Learn more about stack scripts"
+     link="http://google.com"
+     imagepos="right"
+     imagesrc="/assets/img/landing/interim/index2"
+     imageext="jpg"
+     itempos="2" %}
 
-  {% include home-flow-item.html headline="3. Collaborate with your team faster" title="Script your dev environment in a .YAML file" description="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut." linktext="Learn more about stack scripts" link="http://google.com" imagepos="left" %}
+  {% include home-flow-item.html
+     headline="Collaborate with your team faster"
+     title="Script your dev environment in a .YAML file"
+     description="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut."
+     linktext="Learn more about stack scripts"
+     link="http://google.com"
+     imagepos="left"
+     imagesrc="/assets/img/landing/interim/index3"
+     imageext="jpg"
+     itempos="3" %}
 
-  {% include home-flow-item.html headline="4. Share VM’s with ease" title="Script your dev environment in a .YAML file" description="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut." linktext="Learn more about stack scripts" link="http://google.com" imagepos="right" %}
+  {% include home-flow-item.html
+     headline="Share VM’s with ease"
+     title="Script your dev environment in a .YAML file"
+     description="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut."
+     linktext="Learn more about stack scripts"
+     link="http://google.com"
+     imagepos="right"
+     imagesrc="/assets/img/landing/interim/index4"
+     imageext="jpg"
+     itempos="4" %}
 
-  {% include home-flow-item.html headline="6. Code faster by using your favorite local IDE" title="Script your dev environment in a .YAML file" description="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut." linktext="Learn more about stack scripts" link="http://google.com" imagepos="left" %}
-  
+  {% include home-flow-item.html
+     headline="Code faster by using your favorite local IDE"
+     title="Script your dev environment in a .YAML file"
+     description="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut."
+     linktext="Learn more about stack scripts"
+     link="http://google.com"
+     imagepos="left"
+     imagesrc="/assets/img/landing/interim/index5"
+     imageext="jpg"
+     itempos="5" %}
+
   <div class="EndContainer">
     <div class="headline">Closing copy blah blah blah</div>
     <div class="clearfix"></div>

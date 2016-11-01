@@ -126,27 +126,15 @@ body {
 
   .imgContainer {
     background-repeat: no-repeat;
-    height: 353px;
     width: 550px;
     margin-left: 13px;
   }
 
-  &#flowContainer1 .imgContainer {
-    background-image: url({{path}}/interim/index1.jpg);
-  }
-  &#flowContainer2 .imgContainer {
-    background-image: url({{path}}/interim/index2.jpg);
-  }
-  &#flowContainer3 .imgContainer {
-    background-image: url({{path}}/interim/index3.jpg);
-  }
   &#flowContainer4 .imgContainer {
-    background-image: url({{path}}/interim/index4.jpg);
     width: 575px;
     padding-right: 0;
   }
   &#flowContainer5 .imgContainer {
-    background-image: url({{path}}/interim/index5.jpg);
     width: 566px;
     height: 410px;
     margin-bottom: -56px;
@@ -373,16 +361,13 @@ body {
   }
 }
 
-@media (min-width: 992px) {
-
+@media (min-width: 1200px) {
   .imageLeft {
     .imgContainer {
-      float: left;
       padding-left: 13px;
     }
 
     .captionContainer {
-      float: right;
       margin-right: 8px;
       padding-right: 13px;
     }
@@ -390,13 +375,34 @@ body {
 
   .imageRight {
     .imgContainer {
-      float: right;
       padding-right: 13px;
     }
 
     .captionContainer {
-      float: left;
       padding-left: 13px;
+    }
+  }
+}
+
+@media (min-width: 992px) {
+
+  .imageLeft {
+    .imgContainer {
+      float: left;
+    }
+
+    .captionContainer {
+      float: right;
+    }
+  }
+
+  .imageRight {
+    .imgContainer {
+      float: right;
+    }
+
+    .captionContainer {
+      float: left;
     }
   }
 }
