@@ -1,7 +1,7 @@
 {% for item in include.data %}
   <div id="flowContainer{{forloop.index}}" class="FlowContainer{% if item.imagepos == 'left' %} imageLeft{% else %} imageRight{% endif %}">
-    <svg class="dashedLine" width="50" height="608px" viewBox="0 0 50 608">
-      <line x1="25" x2="25" y1="6" y2="608" stroke="#444444" stroke-width="1" stroke-height="5" stroke-linecap="butt" stroke-dasharray="1, 6"/>
+    <svg class="dashedLine" width="50" height="880px" viewBox="0 0 50 880">
+      <line x1="25" x2="25" y1="6" y2="880" stroke="#444444" stroke-width="1" stroke-height="5" stroke-linecap="butt" stroke-dasharray="1, 6"/>
     </svg>
     <div class="headline">{{ item.headline }}</div>
     <div class="clearfix"></div>

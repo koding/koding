@@ -118,9 +118,10 @@ body {
 }
 
 .FlowContainer {
-  margin-bottom: 120px;
+  padding-bottom: 120px;
   position: relative;
   font-family: 'fira-sans';
+  overflow: hidden;
 
   .imgContainer {
     background-repeat: no-repeat;
@@ -325,6 +326,12 @@ body {
   }
 
   .FlowContainer {
+    padding-bottom: 90px;
+
+    .headline {
+      margin-bottom: 100px;
+    }
+
     .imgContainer,
     &#flowContainer4 .imgContainer,
     &#flowContainer5 .imgContainer {
@@ -401,7 +408,8 @@ body {
   }
 
   .FlowContainer svg.dashedLine {
-    display: none;
+    display: block;
+    left: 6%;
   }
 
   .imgContainer, .captionContainer,
@@ -410,10 +418,25 @@ body {
     text-align: center;
   }
 
-  .LearnMoreContainer ul li {
-    width: 490px;
+  .LearnMoreContainer ul {
+    width: 100%;
+
+    li {
+      width: 50%;
+    }
+  }
+
+  .headline {
+    margin-bottom: 70px;
   }
   
+}
+
+@media (min-width: 691px) and (max-width: 991px) {
+  .headline {
+    display: block;
+    float: left;
+  }
 }
 
 // stacked picture and text
@@ -423,9 +446,52 @@ body {
     width: 100%;
   }
 
+  .EndContainer {
+    padding: 0 5vh;
+  }
+
   .HomeHeaderContainer .header h1,
   .EndContainer .header {
     font-size: 40px;
     line-height: 54px;
+  }
+
+  .HomeHeaderContainer .header h1 {
+    padding: 0 35px;
+  }
+
+  .FlowContainer {
+    padding-left: 5vh;
+    padding-right: 5vh;
+
+    svg.dashedLine {
+      display: none;
+    }
+
+    .imgContainer,
+    &#flowContainer4 .imgContainer,
+    &#flowContainer5 .imgContainer {
+      width: auto;
+      background-size: 100%;
+      height: 277px;
+      margin-bottom: 30px;
+    }
+  }
+
+  .captionContainer {
+    width: auto;
+  }
+
+  .LearnMoreContainer ul li {
+    width: 100%;
+
+    div {
+      height: auto;
+    }
+
+    p {
+      height: auto;
+      margin-bottom: 40px;
+    }
   }
 }
