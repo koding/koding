@@ -62,9 +62,10 @@
     formSelector: '#subscribe-to-newsletter',
     resultSelector: 'ul.subscribe-to-newsletter-success',
     formHash: 'z5z2m7x0ln3g44'
-  });  
+  });
 </script>
 
+{% if jekyll.environment == 'production' %}
 <!-- Google Analytics -->
 <script>
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -113,3 +114,4 @@ src="https://www.facebook.com/tr?id=1167150530016578&ev=PageView&noscript=1"
     })(window,document,'//static.hotjar.com/c/hotjar-','.js?sv=');
 </script>
 <!-- End Hotjar Tracking Code -->
+{% endif %}
