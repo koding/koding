@@ -28,9 +28,6 @@
     {% include nav-docs.html %}
 
     <section class="markdown-body">
-      {% if page.url contains '/docs/terraform/' %}
-      <blockquote>Most code samples are written in HCL, consider converting them to YAML while adding them to your stack script.</blockquote>
-      {% endif %}
 
       {{ content }}
 
