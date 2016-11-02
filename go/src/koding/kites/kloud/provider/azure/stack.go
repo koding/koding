@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+	"time"
 
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
@@ -25,7 +26,9 @@ type BootstrapConfig struct {
 	TeamSlug           string
 	HostedServiceName  string
 	StorageType        string
+	AddressSpace       string
 	StorageServiceName string
+	SubnetName         string
 	SecurityGroupName  string
 	VirtualNetworkName string
 	Rule               bool
@@ -86,7 +89,7 @@ func (s *Stack) VerifyCredential(c *stack.Credential) error {
 		return err
 	}
 
-	client, err := management.ClientFromPublishSettingsData(cred.PublishSettings, cred.SubscriptionID)
+	client, err := management.ClientFromPublishSettingsData([]byte(cred.PublishSettings), cred.SubscriptionID)
 	if err != nil {
 		return err
 	}
@@ -99,6 +102,14 @@ func (s *Stack) VerifyCredential(c *stack.Credential) error {
 	return nil
 }
 
+func substringN(s string, n int) string {
+	if len(s) > n {
+		return s[:n]
+	}
+
+	return s
+}
+
 // BootstrapTemplates returns bootstrap templates that are used
 // to bootstrap an Azure stack.
 func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, error) {
@@ -109,9 +120,11 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 		TeamSlug:           s.BootstrapArg().GroupName,
 		HostedServiceName:  "koding-hs-" + c.Identifier,
 		StorageType:        cred.Storage,
-		StorageServiceName: strings.ToLower("kodings" + c.Identifier),
+		AddressSpace:       boot.addressSpace(),
+		StorageServiceName: substringN(strings.ToLower("kodings"+c.Identifier), 24),
 		SecurityGroupName:  "koding-sg-" + c.Identifier,
 		VirtualNetworkName: "koding-vn-" + c.Identifier,
+		SubnetName:         "koding-su-" + c.Identifier,
 		Rule:               false,
 	}
 
@@ -161,6 +174,10 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	}
 
 	for name, vm := range res.AzureInstance {
+		if n, ok := vm["name"].(string); !ok || n == "" {
+			vm["name"] = name + "-" + s.id()
+		}
+
 		s.injectBoostrap(vm, cred, boot)
 
 		s.injectEndpointRules(vm)
@@ -314,6 +331,17 @@ func (s *Stack) injectCloudInit(vm map[string]interface{}, name, kiteKeyName str
 	}
 
 	return countKeys, nil
+}
+
+func (s *Stack) id() string {
+	switch arg := s.Arg.(type) {
+	case *stack.ApplyRequest:
+		return arg.StackID
+	case *stack.PlanRequest:
+		return arg.StackTemplateID
+	default:
+		return strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+	}
 }
 
 func newBootstrapTmpl(cfg *BootstrapConfig) ([]byte, error) {

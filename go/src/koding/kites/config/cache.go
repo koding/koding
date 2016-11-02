@@ -90,10 +90,13 @@ func currentUser() *user.User {
 		return u
 	}
 
-	u2, err := user.Lookup(os.Getenv("SUDO_USER"))
-	if err != nil {
-		return u
+	if sudoU, err := user.Lookup(os.Getenv("SUDO_USER")); err == nil {
+		return sudoU
 	}
 
-	return u2
+	if rootU, err := user.Lookup(os.Getenv("USERNAME")); err == nil {
+		return rootU
+	}
+
+	return u
 }

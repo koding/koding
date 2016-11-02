@@ -49,6 +49,7 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 	bs.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", bs.Builder.Koding, bs.Builder.Template)
 
 	contentID := bs.Req.Username + "-" + arg.StackTemplateID
+
 	bs.Log.Debug("Parsing template (%s):\n%s", contentID, stackTemplate.Template.Content)
 
 	if err := bs.Builder.BuildTemplate(stackTemplate.Template.Content, contentID); err != nil {
@@ -93,8 +94,7 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 		TraceID:   bs.TraceID,
 	}
 
-	bs.Log.Debug("Calling plan with content")
-	bs.Log.Debug("%+v", tfReq)
+	bs.Log.Debug("Calling plan with content: %+v", tfReq)
 
 	plan, err := tfKite.Plan(tfReq)
 	if err != nil {
