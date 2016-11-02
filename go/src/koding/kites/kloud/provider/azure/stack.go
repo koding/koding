@@ -180,8 +180,10 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 		}
 
 		// Set ssh_key_thumbprint if not provided explicitly.
-		if thumb, ok := vm["ssh_key_thumbprint"]; !ok || thumb == "" {
-			vm["ssh_key_thumbprint"] = cred.SSHKeyThumbprint
+		if cred.SSHKeyThumbprint != "" {
+			if thumb, ok := vm["ssh_key_thumbprint"]; !ok || thumb == "" {
+				vm["ssh_key_thumbprint"] = cred.SSHKeyThumbprint
+			}
 		}
 
 		pass, _ := vm["password"].(string)
