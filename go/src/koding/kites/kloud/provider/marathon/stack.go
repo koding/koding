@@ -117,8 +117,6 @@ func (s *Stack) ApplyTemplate(_ *stack.Credential) (*stack.Template, error) {
 	return &stack.Template{
 		Content: content,
 	}, nil
-
-	return nil, nil
 }
 
 // convertInstancesToGroup converts instances property to a count one.
