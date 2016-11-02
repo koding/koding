@@ -167,6 +167,7 @@ module.exports = globals.config.providers =
     defaultTemplate        : require './templates/azure'
     description            : 'Azure'
     instanceTypes          : require './instance-types/azure'
+    advancedFields         : ['password', 'ssh_key_thumbprint']
     attributeMapping       :
       image                : 'image'
       instance_type        : 'size'
@@ -179,6 +180,13 @@ module.exports = globals.config.providers =
       subscription_id      :
         label              : 'Subscription ID'
         placeholder        : 'subscription id of azure account'
+      password             :
+        label              : 'Password'
+        placeholder        : 'default password for instances'
+        type               : 'password'
+      ssh_key_thumbprint   :
+        label              : 'SSH Key'
+        placeholder        : 'ssh key thumb print'
       location             :
         label              : 'Location'
         type               : 'selection'
@@ -220,7 +228,7 @@ module.exports = globals.config.providers =
           { title: 'Seoul (korea-central)',             value: 'Korea Central' }
         ]
       storage              :
-        label              : 'Storage Replication'
+        label              : 'Storage'
         type               : 'selection'
         placeholder        : 'storage replication type'
         defaultValue       : 'Standard_LRS'
