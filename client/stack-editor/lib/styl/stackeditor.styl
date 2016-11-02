@@ -111,7 +111,6 @@ $borderColor                = #E3E3E3
     &.stack-template
       .searchStackInput
         margin              -10px 0 16px 0px
-        width               882px
         left                0px
         bg                  color, #FFF
         font-size           14px
@@ -137,7 +136,7 @@ $borderColor                = #E3E3E3
           background-position initial
 
       .stack-script-search-scroll
-        width               880px
+        width               calc(100% \- 62px)
         min-height          53px
         max-height          calc(100% \- 145px)
         height              initial !important
@@ -152,7 +151,6 @@ $borderColor                = #E3E3E3
 
         .item-wrapper
           cursor            pointer
-          width             830px
           font-size         14px
           padding           10px 20px
           font-weight       400
