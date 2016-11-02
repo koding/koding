@@ -17,7 +17,6 @@ type ChannelMessageContainer struct {
 	UnreadRepliesCount int                      `json:"unreadRepliesCount,omitempty"`
 	ParentID           int64                    `json:"parentId,omitempty,string"`
 	Err                error                    `json:"-"`
-	Integration        *ChannelIntegrationMeta  `json:"integration"`
 }
 
 // Tests are done.
