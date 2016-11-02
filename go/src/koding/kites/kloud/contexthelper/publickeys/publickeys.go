@@ -1,8 +1,8 @@
 package publickeys
 
 import (
-	"crypto/sha256"
-	"encoding/base64"
+	"crypto/sha1"
+	"encoding/hex"
 
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/net/context"
@@ -29,9 +29,9 @@ func (k *Keys) Thumbprint() (string, error) {
 		return "", err
 	}
 
-	hash := sha256.Sum256(key.PublicKey().Marshal())
+	hash := sha1.Sum(key.PublicKey().Marshal())
 
-	return base64.RawStdEncoding.EncodeToString(hash[:]), nil
+	return hex.EncodeToString(hash[:]), nil
 }
 
 func FromContext(ctx context.Context) (*Keys, bool) {
