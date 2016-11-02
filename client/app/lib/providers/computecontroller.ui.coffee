@@ -173,11 +173,12 @@ module.exports = class ComputeControllerUI
     # Add advanced fields into form
     if advancedFields = currentProvider.advancedFields
       advancedFields.forEach (field) ->
-        fields[field] =
-          label       : field.capitalize()
-          placeholder : field
-          cssClass    : 'advanced-field'
+        fields[field] ?=
+          label        : field.capitalize()
+          placeholder  : field
 
+        fields[field].cssClass = 'advanced-field'
+        fields[field].required = no
         fields[field].defaultValue = defaultValues[field]  if defaultValues[field]?
 
 
