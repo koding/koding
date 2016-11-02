@@ -12,30 +12,26 @@ module.exports = class LeaveSharedMachineWidget extends React.Component
     className : 'Approved'
 
   constructor: (props) ->
+      
+    @state = { isModalActive: yes }
 
-    super
-
-    @state = {
-      isModalActive : true
-    }
 
   onLeaveClicked: ->
 
-    console.log('@state ', @state)
-    @setState {isModalActive: false}
+    @setState { isModalActive: no }
     modal = new ContentModal
       title   : 'Are you sure?'
       content : "<p class='text-center'>This will remove the shared VM from your sidebar. You won't be able to access it unless you are invited again.</p>"
       cssClass : 'content-modal'
       cancel : =>
-        @setState {isModalActive: true}
+        @setState { isModalActive: yes }
 
       buttons :
         No         :
           title    : 'Cancel'
           cssClass : 'solid cancel medium'
           callback : =>
-            @setState {isModalActive: true}
+            @setState { isModalActive: yes }
             modal.destroy()
         Yes        :
           title    : 'Yes'
@@ -44,8 +40,9 @@ module.exports = class LeaveSharedMachineWidget extends React.Component
           callback : =>
             actions.rejectInvitation @props.machine
             Tracker.track Tracker.VM_LEFT_SHARED
-            @setState {isModalActive: true}
+            @setState { isModalActive: yes }
             modal.destroy()
+
 
   render: ->
 
