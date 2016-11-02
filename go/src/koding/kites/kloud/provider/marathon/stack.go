@@ -106,7 +106,7 @@ func (s *Stack) ApplyTemplate(_ *stack.Credential) (*stack.Template, error) {
 	}
 
 	if err := t.Flush(); err != nil {
-		return nil, errors.New("marathom: error flushing template: " + err.Error())
+		return nil, errors.New("marathon: error flushing template: " + err.Error())
 	}
 
 	content, err := t.JsonOutput()
