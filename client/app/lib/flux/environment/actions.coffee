@@ -19,6 +19,8 @@ requirementsParser = require 'app/util/stacks/requirementsparser'
 generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 Tracker = require 'app/util/tracker'
 $ = require 'jquery'
+ContentModal = require 'app/components/contentModal'
+isAdmin = require 'app/util/isAdmin'
 
 _eventsCache = { machine: {}, stack: no }
 
@@ -709,16 +711,38 @@ removeStackTemplate = (stackTemplate) ->
 
 deleteStack = ({ stackTemplateId, stack }) ->
 
-  { computeController, appManager, router, reactor } = kd.singletons
+  { computeController, appManager, router, reactor, groupsController } = kd.singletons
 
   teamStackTemplatesStore = reactor.evaluate(['TeamStackTemplatesStore'])
-
+  currentGroup = groupsController.getCurrentGroup()
   _stack = remote.revive stack.toJS()  if stack
 
   if not _stack and stackTemplateId
     _stack = computeController.findStackFromTemplateId stackTemplateId
 
   return  unless _stack
+
+  if _stack.baseStackId in currentGroup.stackTemplates
+    if isAdmin()
+      content = '<p>This is team stack which is shared with all team members.
+        You have to make this stack private to be able to delete.
+        </p>'
+    else
+      content = "<p>This stack has been shared with team, you are not allowed
+        to delete team stack. You can go to dashboard and remove from sidebar
+        If you don't like to see it on your sidebar.</p>"
+    return modal = new ContentModal
+      width         : 600
+      cssClass      : 'content-modal'
+      title         : 'Destroy Stack Warning!'
+      content       : content
+      overlay       : yes
+      buttons       :
+        'OK'  :
+          cssClass  : 'solid medium'
+          title     : 'OK'
+          callback  : -> modal.destroy()
+
 
   computeController.ui.askFor 'deleteStack', {}, (status) ->
     return  unless status.confirmed
