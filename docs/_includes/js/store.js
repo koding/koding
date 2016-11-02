@@ -1,4 +1,6 @@
 (function() {
+  window.LANDING_UTILS = window.LANDING_UTILS || {};
+
   var searchBar      = document.querySelector('.SearchBar'),
       searchBarInput = document.querySelector('.SearchBar input'),
       searchResults  = document.querySelector('.SearchBar-resultsData'),
@@ -8,6 +10,8 @@
       dropdownOptions = document.querySelectorAll('.Dropdown .Dropdown-options a'),
 
       removeIcon = document.querySelector('.remove-icon'),
+
+      modalContent = document.querySelector('.modal-content');
 
       itemDetailsTabs = document.querySelectorAll('.ItemDetails ul li');
 
@@ -47,6 +51,13 @@
       [].forEach.call(itemDetailsTabs, function(el) {
         el.addEventListener('click', selectTab);
       });
+    }
+
+    if (modalContent && LANDING_UTILS.modal) {
+      var modalOptions = {};
+      modalOptions.content = modalContent.innerHTML;
+
+      LANDING_UTILS.modal(modalOptions);
     }
   }
 
