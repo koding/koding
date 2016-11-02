@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"koding/kites/kloud/stack"
@@ -22,7 +23,13 @@ var schema = &provider.Schema{
 			return &Metadata{}
 		}
 
-		meta := &Metadata{}
+		meta := &Metadata{
+			AppID: m.Attributes["app_id"],
+		}
+
+		if n, err := strconv.Atoi(m.Attributes["app_count"]); err == nil {
+			meta.AppCount = n
+		}
 
 		return meta
 	},
@@ -80,16 +87,16 @@ func (c *Credential) requestTimeout() time.Duration {
 
 // Metadata represents a single app metadata.
 type Metadata struct {
-	GroupName string  `json:"groupName" bson:"groupName" hcl:"groupName"`
-	GroupSize int     `json:"groupSize" bson:"groupSize" hcl:"groupSize"`
-	CPU       float64 `json:"cpu" bson:"cpu" hcl:"cpu"`
-	Mem       float64 `json:"mem" bson:"mem" hcl:"mem"`
+	AppID    string  `json:"app_id" bson:"app_id" hcl:"app_id"`
+	AppCount int     `json:"app_count" bson:"app_count" hcl:"app_count"`
+	CPU      float64 `json:"cpu" bson:"cpu" hcl:"cpu"`
+	Mem      float64 `json:"mem" bson:"mem" hcl:"mem"`
 }
 
 // Valid implements the stack.Validator interface.
 func (m *Metadata) Valid() error {
-	if m.GroupName == "" {
-		return errors.New("invalid empty app / group name")
+	if m.AppID == "" {
+		return errors.New("invalid empty app ID or group name")
 	}
 
 	return nil

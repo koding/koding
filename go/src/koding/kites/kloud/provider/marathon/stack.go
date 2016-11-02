@@ -8,6 +8,7 @@ import (
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
 	"path"
+	"strconv"
 
 	marathon "github.com/gambol99/go-marathon"
 )
@@ -32,6 +33,10 @@ type Stack struct {
 
 	EntrypointBaseURL string
 	KlientURL         string
+
+	AppOrGroupName string
+	AppCount       int
+	Labels         []string
 }
 
 var (
@@ -40,11 +45,15 @@ var (
 )
 
 func newStack(bs *provider.BaseStack) (provider.Stack, error) {
-	return &Stack{
+	s := &Stack{
 		BaseStack:         bs,
 		EntrypointBaseURL: "https://koding-klient.s3.amazonaws.com/entrypoint",
 		KlientURL:         stack.Konfig.KlientGzURL(),
-	}, nil
+	}
+
+	bs.PlanFunc = s.plan
+
+	return s, nil
 }
 
 // VerifyCredential checks whether the given credentials
@@ -82,18 +91,17 @@ func (s *Stack) ApplyTemplate(_ *stack.Credential) (*stack.Template, error) {
 		return nil, errors.New("applications are empty")
 	}
 
-	for _, app := range resource.MarathonApp {
-		originalAppID := s.convertInstancesToGroup(app)
+	for name, app := range resource.MarathonApp {
+		originalAppID := s.convertInstancesToGroup(name, app)
 
-		labels, err := s.injectEntrypoint(app, originalAppID)
-		if err != nil {
+		if err := s.injectEntrypoint(app, originalAppID); err != nil {
 			return nil, err
 		}
 
-		s.injectFetchEntrypoints(app, len(labels))
+		s.injectFetchEntrypoints(app, len(s.Labels))
 		s.injectHealthChecks(app)
 
-		if err := s.injectMetadata(app, labels); err != nil {
+		if err := s.injectMetadata(app, s.Labels); err != nil {
 			return nil, err
 		}
 	}
@@ -129,7 +137,7 @@ func (s *Stack) ApplyTemplate(_ *stack.Credential) (*stack.Template, error) {
 //
 // What we do instead is we convert multiple instances of an application to
 // an application group as a workaround.
-func (s *Stack) convertInstancesToGroup(app map[string]interface{}) (originalAppID string) {
+func (s *Stack) convertInstancesToGroup(name string, app map[string]interface{}) (originalAppID string) {
 	instances, ok := app["instances"].(int)
 	if ok {
 		delete(app, "instances")
@@ -145,12 +153,20 @@ func (s *Stack) convertInstancesToGroup(app map[string]interface{}) (originalApp
 	count *= instances
 
 	app["count"] = count
+	s.AppCount = count
 
 	// Each app within group must have unique name.
 	appID, ok := app["app_id"].(string)
+	if !ok || appID == "" {
+		appID = name
+		app["app_id"] = appID
+	}
 
-	if ok && appID != "" && count > 1 {
-		app["app_id"] = path.Join(appID, path.Base(appID)+"-${count.index + 1}")
+	s.AppOrGroupName = appID
+
+	if count > 1 {
+		s.AppOrGroupName = path.Base(appID)
+		app["app_id"] = path.Join(appID, s.AppOrGroupName+"-${count.index + 1}")
 	}
 
 	return appID
@@ -168,9 +184,9 @@ var ErrIncompatibleEntrypoint = errors.New(`marathon: setting "args" argument co
 //     the container's entrypoint (by default /bin/sh) is replaced
 //     with the Koding one
 //
-func (s *Stack) injectEntrypoint(app map[string]interface{}, originalAppID string) (labels []string, err error) {
+func (s *Stack) injectEntrypoint(app map[string]interface{}, originalAppID string) error {
 	if _, ok := app["args"]; ok {
-		return nil, ErrIncompatibleEntrypoint
+		return ErrIncompatibleEntrypoint
 	}
 
 	count, ok := app["count"].(int)
@@ -187,14 +203,15 @@ func (s *Stack) injectEntrypoint(app map[string]interface{}, originalAppID strin
 		// as Mesos sets fixed entrypoint to /bin/sh for
 		// every container.
 		if count == 1 {
-			return []string{originalAppID}, nil
+			s.Labels = []string{originalAppID}
+			return nil
 		}
 
 		for i := 0; i < count; i++ {
-			labels = append(labels, fmt.Sprintf("%s-%d", originalAppID, i+1))
+			s.Labels = append(s.Labels, fmt.Sprintf("%s-%d", originalAppID, i+1))
 		}
 
-		return labels, nil
+		return nil
 	}
 
 	containerCount := 0
@@ -230,11 +247,11 @@ func (s *Stack) injectEntrypoint(app map[string]interface{}, originalAppID strin
 
 	for i := 0; i < count; i++ {
 		for j := 0; j < containerCount; j++ {
-			labels = append(labels, fmt.Sprintf("%s-%d.docker.%d", i+1, j))
+			s.Labels = append(s.Labels, fmt.Sprintf("%s-%d-%d", i+1, j))
 		}
 	}
 
-	return labels, nil
+	return nil
 }
 
 func (s *Stack) injectFetchEntrypoints(app map[string]interface{}, metadataCount int) {
@@ -328,6 +345,25 @@ func (s *Stack) injectMetadata(app map[string]interface{}, labels []string) erro
 	app["env"] = envs
 
 	return nil
+}
+
+func (s *Stack) plan() (stack.Machines, error) {
+	machines := make(stack.Machines, len(s.Labels))
+
+	for _, label := range s.Labels {
+		m := &stack.Machine{
+			Provider: "marathon",
+			Label:    label,
+			Attributes: map[string]string{
+				"app_id":    strconv.Itoa(s.AppCount),
+				"app_count": s.AppOrGroupName,
+			},
+		}
+
+		machines[label] = m
+	}
+
+	return machines, nil
 }
 
 // Credential gives Marathon credentials that are attached
