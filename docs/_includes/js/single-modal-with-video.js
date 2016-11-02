@@ -7,6 +7,8 @@
   var initialize = function() {
     [].forEach.call(showModal, function(el) {
       el.addEventListener('click', function(e) {
+        e.preventDefault();
+
         var close, overlay, modal;
 
         overlay = document.createElement("div");
@@ -20,6 +22,7 @@
 
         youtube_id = e.currentTarget.getAttribute('data-youtube-id');
         modal.innerHTML += '<iframe width="656" height="369" src="https://www.youtube.com/embed/' + youtube_id + '?enablejsapi=1"></iframe>';
+        modal.classList.add('Modal--withVideo');
 
         document.getElementsByTagName('body')[0].appendChild(overlay);
         document.getElementsByTagName('body')[0].appendChild(modal);
@@ -47,9 +50,11 @@
   }
 
   var toggleVideo = function(youtube, state) {
-    var iframe = youtube.contentWindow;
-    var func = state == 'hide' ? 'pauseVideo' : 'playVideo';
-    iframe.postMessage('{"event":"command","func":"' + func + '","args":""}', '*');
+    setTimeout( function() {
+      var iframe = youtube.contentWindow;
+      var func = state == 'hide' ? 'pauseVideo' : 'playVideo';
+      iframe.postMessage('{"event":"command","func":"' + func + '","args":""}', '*');
+    }, 500)
   }
 
   initialize();
