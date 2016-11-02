@@ -6,8 +6,8 @@
 
   var initialize = function() {
     [].forEach.call(showModal, function(el) {
-      el.addEventListener('click', function(e) {
-        e.preventDefault();
+      el.addEventListener('click', function(evt) {
+        evt.preventDefault();
 
         var close, overlay, modal;
 
@@ -17,11 +17,11 @@
         modal   = document.createElement('div');
         modal.className = "Modal";
         modal.innerHTML = '<a href="#" class="u-icon u-modalClose"></a>';
+        modal.id = "Modal";
 
         close   = modal.querySelector('.u-modalClose');
 
-        youtube_id = e.currentTarget.getAttribute('data-youtube-id');
-        modal.innerHTML += '<iframe width="656" height="369" src="https://www.youtube.com/embed/' + youtube_id + '?enablejsapi=1"></iframe>';
+        youtube_id = evt.currentTarget.getAttribute('data-youtube-id');
         modal.classList.add('Modal--withVideo');
 
         document.getElementsByTagName('body')[0].appendChild(overlay);
@@ -29,14 +29,20 @@
         overlay.classList.add('isShown');
         modal.classList.add('isShown');
 
-        youtube = document.getElementsByTagName("iframe")[0];
+        modal.innerHTML += '<div id="ModalBody"></div>';
 
-        if (youtube) {
-          toggleVideo(youtube, 'show');
-        }
+        var player = new YT.Player('ModalBody', {
+            width: 656,
+            height: 369,
+            videoId: youtube_id,
+            events: {
+              'onReady': onPlayerReady
+            }
+        });
 
         [].forEach.call([close, overlay], function(el) {
           el.addEventListener('click', function(e) {
+            player.destroy();
             overlay.remove();
             modal.remove();
 
@@ -49,12 +55,8 @@
     })
   }
 
-  var toggleVideo = function(youtube, state) {
-    setTimeout( function() {
-      var iframe = youtube.contentWindow;
-      var func = state == 'hide' ? 'pauseVideo' : 'playVideo';
-      iframe.postMessage('{"event":"command","func":"' + func + '","args":""}', '*');
-    }, 500)
+  var onPlayerReady = function(event) {
+    event.target.playVideo();
   }
 
   initialize();
