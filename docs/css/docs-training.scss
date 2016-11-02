@@ -149,10 +149,16 @@ a {
   }
 
   .imgContainer {
-    background-color: blue;
+    background-color: #444;
     width: 438px;
     height: 338px;
     position: relative;
+    text-align: center;
+
+    img {
+      max-width: 100%;
+      max-height: 100%;
+    }
 
     .playButton {
       position: absolute;
