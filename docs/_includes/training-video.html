@@ -2,8 +2,8 @@
 <div class="Lesson{% if lesson.imgPos == 'right' %} Lesson--imageRight{% else %} Lesson--imageLeft{% endif %}{% if lesson.isComplete %} Lesson--isComplete{% endif %}">
   <div class="imgContainer">
     <img />
-    <a href="#" class="playButton u-icon u-playButton"></a>
-    <a href="#" class="playButton--isComplete u-icon u-playButton">WATCH AGAIN</a>
+    <a href="#" data-youtube-id="DWRmEIbGqPQ" class="showModal playButton u-icon u-playButton"></a>
+    <a href="#" data-youtube-id="DWRmEIbGqPQ" class="showModal playButton--isComplete u-icon u-playButton">WATCH AGAIN</a>
   </div>
   <div class="captionContainer">
     <p class="Title">{{ lesson.number }} - <span class="Title-label">{{ lesson.title }}</span>{% if lesson.isComplete %} <span class="Title-complete u-icon u-checkmark">Completed</span>{% endif %}</p>

@@ -7,6 +7,7 @@ permalink: /docs/training
 <!-- HEADER -->
 {% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#7F7E9E' %}
 
+<link rel="stylesheet" href="{{ site.url }}/css/modal.css">
 <link rel="stylesheet" href="{{ site.url }}/css/docs-training.css">
 <link rel="stylesheet" href="{{ site.url }}/css/store.css">
 
@@ -34,6 +35,16 @@ permalink: /docs/training
 </div>
 {% include training-video.html data=site.data.training-video position=3 %}
 <a href="#" class="loadMore">LOAD MORE VIDEOS</a>
+<div style="display:none">
+  <iframe width="656" height="369"
+  src="https://www.youtube.com/embed/DWRmEIbGqPQ?enablejsapi=1">
+  </iframe>
+  <a href="#" class="u-icon u-modalClose"></a>
+</div>
+<script>
+  {% include js/store.js %}
+  {% include js/single-modal-with-video.js %}
+</script>
 
 <!-- FOOTER -->
 
