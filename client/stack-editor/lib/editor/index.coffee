@@ -540,9 +540,6 @@ module.exports = class StackEditorView extends kd.View
 
       hasStack = stackTemplate._id in templateIds
 
-      # TMS-1919: This needs to be reimplemented, once we have multiple
-      # stacktemplates set for a team this will be broken ~ GG
-
       if hasStack
         if isAdmin()
           # admin is editing a team stack
@@ -912,10 +909,6 @@ module.exports = class StackEditorView extends kd.View
     { groupsController, reactor } = kd.singletons
 
     @outputView.add 'Setting this as default team stack template...'
-
-    # TMS-1919: This should only add the stacktemplate to the list of
-    # available stacktemplates, we can also provide set one of the template
-    # as default ~ GG
 
     groupsController.setDefaultTemplate stackTemplate, 'default', (err) =>
 

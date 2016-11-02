@@ -682,9 +682,6 @@ module.exports = class ComputeController extends KDController
 
   destroyStack: (stack, callback, followEvents = yes) ->
 
-    # TMS-1919: This only takes a stack instance so it's ok
-    # for multiple stacks ~ GG
-
     return  unless stack
 
     { state } = stack.status
@@ -809,9 +806,6 @@ module.exports = class ComputeController extends KDController
     # not requires to re-init their stacks when a credential is changed but not
     # the template itself. ~ GG
     unless isKoding()
-
-      # TMS-1919: This is already written for multiple stacks, just a check
-      # might be required ~ GG
 
       stack = @findStackFromMachineId machine._id
       return updateWith options  unless stack
@@ -968,9 +962,6 @@ module.exports = class ComputeController extends KDController
 
     return  if isKoding()
 
-    # TMS-1919: This is already written for multiple stacks, code change
-    # might be required if existing flow changes ~ GG
-
     @stacks.forEach (stack) =>
 
       stack.checkRevision (error, data) =>
@@ -1024,10 +1015,6 @@ module.exports = class ComputeController extends KDController
       currentGroup.stackTemplates = _currentGroup.stackTemplates
       @emit 'GroupStackTemplatesUpdated'
 
-
-      # TMS-1919: This can stay as is, but this time it will create the first
-      # avaiable stacktemplate for who has no stacks yet. ~ GG
-
       @createDefaultStack yes  unless _currentGroup.sharedStackTemplates?.length
       @createDefaultStack yes, stackTemplate  if stackTemplate
 
@@ -1046,9 +1033,6 @@ module.exports = class ComputeController extends KDController
     return  if not stackTemplates?.length
 
     existents = 0
-
-    # TMS-1919: This is already written for multiple stacks, just a check
-    # might be required ~ GG
 
     for stackTemplate in stackTemplates
       for stack in @stacks when stack.baseStackId is stackTemplate
@@ -1229,7 +1213,7 @@ module.exports = class ComputeController extends KDController
       kd.singletons.router.handleRoute route
 
 
-  shareWithTeam: (stackTemplate, callback) ->
+  shareStackWithTeam: (stackTemplate, callback) ->
 
     { reactor, groupsController } = kd.singletons
     { credentials, config: { requiredProviders } } = stackTemplate
@@ -1242,13 +1226,13 @@ module.exports = class ComputeController extends KDController
         else modal.destroy()
 
 
-  makePrivate: (stackTemplate) ->
+  makeStackPrivate: (stackTemplate) ->
 
     { reactor, groupsController } = kd.singletons
     modal = new ContentModal
       title   : 'Are you sure?'
       content : "<p class='text-center'>
-        Your teammate will have no longer to access this stack template anymore.
+        Your teammate will have no longer to access this stack anymore
         If they haven't clone yet.</p>"
       cssClass : 'content-modal'
       buttons :
@@ -1329,13 +1313,6 @@ module.exports = class ComputeController extends KDController
         @createDefaultStack()
 
       return
-
-    # TMS-1919: This should be re-written from scratch probably,
-    # Currently this destroys the existing stack and recreate the default
-    # one which is covering the stacktemplate updates and stacktemplate
-    # change for the group, but this will be invalid once we have multiple
-    # stacks. For this reason, we need to define to flow first for this and
-    # change the code based on the flow requirements. ~ GG
 
     { groupsController } = kd.singletons
     currentGroup = groupsController.getCurrentGroup()

@@ -108,12 +108,12 @@ module.exports = class SidebarStackSection extends React.Component
       when 'Make Team Default'
         remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
           computeController.makeTeamDefault template, no  unless err
-      when 'Share With Team'
+      when 'Share Stack With Team'
         remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
-          computeController.shareWithTeam template  unless err
-      when 'Make Private'
+          computeController.shareStackWithTeam template  unless err
+      when 'Make Stack Private'
         remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
-          computeController.makePrivate template  unless err
+          computeController.makeStackPrivate template  unless err
 
 
   onTitleClick: (event) ->
@@ -158,9 +158,9 @@ module.exports = class SidebarStackSection extends React.Component
       if isAdmin() and not isDefaultTeamStack baseStackId
         menuItems['Make Team Default'] = { callback }
         if baseStackId in Object.keys(@state.groupStackTemplates.toJS())
-          menuItems['Make Private'] = { callback }
+          menuItems['Make Stack Private'] = { callback }
         else
-          menuItems['Share With Team'] = { callback }
+          menuItems['Share Stack With Team'] = { callback }
 
 
 

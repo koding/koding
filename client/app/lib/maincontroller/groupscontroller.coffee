@@ -182,15 +182,17 @@ module.exports = class GroupsController extends kd.Controller
 
   ###*
    *  Sets given stack template as current group's default stack template
+   *  Or sets given stack template as current group's shared stack templates list
    *
    *  @param  {JStackTemplate}  stackTemplate
+   *  @param  {String}          type
    *  @param  {Func}            callback  [ err ]
   ###
   setDefaultTemplate: (stackTemplate, type = 'default', callback = kd.noop) ->
 
     { computeController, reactor }   = kd.singletons
     { slug, stackTemplates, sharedStackTemplates } = currentGroup = @getCurrentGroup()
-
+    { _id: id } = stackTemplate
     if slug is 'koding'
       return callback 'Setting stack template for koding is disabled'
 
@@ -198,19 +200,15 @@ module.exports = class GroupsController extends kd.Controller
     stackTemplate.setAccess 'group', (err) ->
       return callback err  if err
 
-      # Modify group data to use this stackTemplate as default
-      # TMS-1919: Needs to be changed to update stackTemplates list
-      # instead of setting it as is for the given stacktemplate ~ GG
-      id = stackTemplate._id
       if stackTemplates
         unless id in stackTemplates
           stackTemplates.push id
       else
-        stackTemplates = [stackTemplate._id]
+        stackTemplates = [id]
       data = { stackTemplates }
 
       if type is 'default'
-        sharedStackTemplates = [stackTemplate._id]
+        sharedStackTemplates = [id]
         data = { stackTemplates, sharedStackTemplates }
 
       currentGroup.modify data, (err) ->
@@ -220,15 +218,9 @@ module.exports = class GroupsController extends kd.Controller
           title : "Team (#{slug}) stack has been saved!"
           type  : 'mini'
 
-        # Re-call create default stack flow to make sure it exists
-        # TMS-1919: This is possibly not needed for multiple stacks
-        # since we will allow users to select one stacktemplate from
-        # available stacktemplates list of group ~ GG
-
         reactor.dispatch 'LOAD_TEAM_SUCCESS', { team: currentGroup }
 
         computeController.createDefaultStack yes
-
         Tracker.track Tracker.STACKS_MAKE_DEFAULT  if type is 'default'
 
         if stackTemplate._updated
@@ -244,6 +236,12 @@ module.exports = class GroupsController extends kd.Controller
         callback null
 
 
+  ###*
+   *  Remove given stack template from current group's shared stack template list
+   *
+   *  @param  {JStackTemplate}  stackTemplate
+   *  @param  {Func}            callback  [ err ]
+  ###
   setPrivate: (stackTemplate, callback = kd.noop) ->
 
     { computeController, reactor }   = kd.singletons
