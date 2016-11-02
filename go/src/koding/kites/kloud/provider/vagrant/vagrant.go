@@ -123,6 +123,7 @@ func newStack(bs *provider.BaseStack) (provider.Stack, error) {
 	}
 
 	bs.Planner.OnDial = s.checkTunnel
+	bs.PlanFunc = s.plan
 
 	return s, nil
 }
