@@ -1,13 +1,11 @@
 ---
 ---
 
+@import "colors";
+
 body {
   font-family: "proxima nova",Helvetica,Arial,sans-serif;
 }
-
-$froly: #F2778A;
-$alabaster: #F7F7F7;
-$scorpian: #5E5E5E;
 
 .u-icon {
   background-repeat: no-repeat;
@@ -53,7 +51,7 @@ body {
 }
 
 a {
-  color: #56A2D3;
+  color: $shakespeare;
   text-decoration: none
 }
 
@@ -89,16 +87,16 @@ a {
     top: 29px;
     width: 1176px;
     border: 0;
-    border-top: 1px solid #E5E5E5;
+    border-top: 1px solid $mercury2;
     z-index: 1;
     margin-top: 10px;
   }
 
   p {
     font-weight: 300;
-    color: #9B9B9B;
+    color: $dusty-gray4;
     margin: -16px auto 0;
-    background-color: #f7f7f7;
+    background-color: $alabaster;
     display: inline-block;
     z-index: 2;
     position: absolute;
@@ -108,7 +106,7 @@ a {
 }
 
 .Lesson {
-  background-color: #ffffff;
+  background-color: $white;
   padding: 19px 21px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.08);
   width: 1176px;
@@ -118,7 +116,7 @@ a {
 
   &.Lesson--isComplete {
     .Title .Title-label {
-      color: #9B9B9B;
+      color: $dusty-gray4;
     }
 
     .imgContainer {
@@ -131,16 +129,8 @@ a {
       }
     }
 
-    .description {
-      color: #CACACA;
-    }
-
-    .whatToLearn {
-      color: #CACACA;
-    }
-
-    ul {
-      color: #CACACA;
+    .description, .whatToLearn, ul {
+      color: $silver;
     }
   }
 
@@ -149,7 +139,7 @@ a {
   }
 
   .imgContainer {
-    background-color: #444;
+    background-color: $emperor;
     width: 438px;
     height: 338px;
     position: relative;
@@ -174,7 +164,7 @@ a {
       padding-top: 59px;
       box-sizing: border-box;
       text-align: center;
-      color: #fff;
+      color: $white;
       font-weight: bold;
       position: absolute;
       top: 50%;
@@ -189,7 +179,7 @@ a {
 
   .captionContainer {
     width: 635px;
-    color: #9B9B9B;
+    color: $dusty-gray4;
     margin-bottom: 7px;
   }
 
@@ -211,7 +201,7 @@ a {
       font-size: 18px;
       background-color: rgba(115, 196,97,0.30);
       padding: 6px 13px 5px 37px;
-      color: #73C461;
+      color: $mantis;
       border-radius: 2px;
       vertical-align: 1px;
       background-position: 10px 9px;
