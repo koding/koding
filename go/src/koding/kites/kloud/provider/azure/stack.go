@@ -174,8 +174,22 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	}
 
 	for name, vm := range res.AzureInstance {
+		// Set unique name for the instance if not provided explicitly.
 		if n, ok := vm["name"].(string); !ok || n == "" {
 			vm["name"] = name + "-" + s.id()
+		}
+
+		// Set ssh_key_thumbprint if not provided explicitly.
+		if thumb, ok := vm["ssh_key_thumbprint"]; !ok || thumb == "" {
+			vm["ssh_key_thumbprint"] = cred.SSHKeyThumbprint
+		}
+
+		pass, _ := vm["password"].(string)
+		thumb, _ := vm["ssh_key_thumbprint"].(string)
+
+		// Use kloud key if no required resource arguments were configured.
+		if pass == "" && thumb == "" {
+			vm["ssh_key_thumbprint"] = s.SSHKeyThumbprint
 		}
 
 		s.injectBoostrap(vm, cred, boot)

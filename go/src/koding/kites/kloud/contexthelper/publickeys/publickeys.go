@@ -1,6 +1,12 @@
 package publickeys
 
-import "golang.org/x/net/context"
+import (
+	"crypto/sha256"
+	"encoding/base64"
+
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/net/context"
+)
 
 type key int
 
@@ -15,6 +21,17 @@ type Keys struct {
 	PublicKey  string
 	PrivateKey string
 	KeyName    string
+}
+
+func (k *Keys) Thumbprint() (string, error) {
+	key, err := ssh.ParsePrivateKey([]byte(k.PrivateKey))
+	if err != nil {
+		return "", err
+	}
+
+	hash := sha256.Sum256(key.PublicKey().Marshal())
+
+	return base64.RawStdEncoding.EncodeToString(hash[:]), nil
 }
 
 func FromContext(ctx context.Context) (*Keys, bool) {

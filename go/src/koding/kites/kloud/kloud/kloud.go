@@ -189,6 +189,8 @@ func New(conf *Config) (*Kloud, error) {
 		Client:  httputil.DefaultRestClient(conf.DebugMode),
 	}
 
+	userPrivateKey, userPublicKey := userMachinesKeys(conf.UserPublicKey, conf.UserPrivateKey)
+
 	stacker := &provider.Stacker{
 		DB:             sess.DB,
 		Log:            sess.Log,
@@ -198,6 +200,15 @@ func New(conf *Config) (*Kloud, error) {
 		KloudSecretKey: conf.KloudSecretKey,
 		CredStore:      credential.NewStore(storeOpts),
 		TunnelURL:      conf.TunnelURL,
+		SSHKey: &publickeys.Keys{
+			KeyName:    publickeys.DeployKeyName,
+			PrivateKey: userPrivateKey,
+			PublicKey:  userPublicKey,
+		},
+	}
+
+	if thumb, err := stacker.SSHKey.Thumbprint(); err == nil {
+		stacker.SSHKeyThumbprint = thumb
 	}
 
 	stats := common.MustInitMetrics(Name)
@@ -221,15 +232,10 @@ func New(conf *Config) (*Kloud, error) {
 	}
 
 	kloud.Stack.Metrics = stats
-	userPrivateKey, userPublicKey := userMachinesKeys(conf.UserPublicKey, conf.UserPrivateKey)
 
 	// RSA key pair that we add to the newly created machine for
 	// provisioning.
-	kloud.Stack.PublicKeys = &publickeys.Keys{
-		KeyName:    publickeys.DeployKeyName,
-		PrivateKey: userPrivateKey,
-		PublicKey:  userPublicKey,
-	}
+	kloud.Stack.PublicKeys = stacker.SSHKey
 	kloud.Stack.DomainStorage = sess.DNSStorage
 	kloud.Stack.Domainer = sess.DNSClient
 	kloud.Stack.Locker = stacker

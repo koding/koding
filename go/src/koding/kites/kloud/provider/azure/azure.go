@@ -83,10 +83,11 @@ type Subscription struct {
 
 // Cred represents jCredentialDatas.meta for "azure" provider.
 type Cred struct {
-	PublishSettings string `json:"publish_settings" bson:"publish_settings" hcl:"publish_settings"`                  // required
-	SubscriptionID  string `json:"subscription_id,omitempty" bson:"subscription_id,omitempty" hcl:"subscription_id"` // required if PublishSettings contains multiple subscriptions
-	Location        string `json:"location,omitempty" bson:"location,omitempty" hcl:"location"`                      // by default "East US 2"
-	Storage         string `json:"storage,omitempty" bson:"storage,omitempty" hcl:"storage"`                         // by default "Standard_LRS"
+	PublishSettings  string `json:"publish_settings" bson:"publish_settings" hcl:"publish_settings"`                  // required
+	SubscriptionID   string `json:"subscription_id,omitempty" bson:"subscription_id,omitempty" hcl:"subscription_id"` // required if PublishSettings contains multiple subscriptions
+	Location         string `json:"location,omitempty" bson:"location,omitempty" hcl:"location"`                      // by default "East US 2"
+	Storage          string `json:"storage,omitempty" bson:"storage,omitempty" hcl:"storage"`                         // by default "Standard_LRS"
+	SSHKeyThumbprint string `json:"ssh_key_thumbprint,omitempty" bson:"ssh_key_thumbprint" hcl:"ssh_key_thumbprint"`
 }
 
 var _ stack.Validator = (*Cred)(nil)

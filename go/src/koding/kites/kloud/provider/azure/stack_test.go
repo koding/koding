@@ -19,7 +19,7 @@ import (
 	"github.com/koding/logging"
 )
 
-var publishSettings = []byte(`<?xml version="1.0" encoding="utf-8"?>
+var publishSettings = `<?xml version="1.0" encoding="utf-8"?>
 <PublishData>
   <PublishProfile
     SchemaVersion="2.0"
@@ -36,7 +36,7 @@ var publishSettings = []byte(`<?xml version="1.0" encoding="utf-8"?>
       ManagementCertificate="..." />
   </PublishProfile>
 </PublishData>
-`)
+`
 
 func TestAzureMeta_PublishSettings(t *testing.T) {
 	cases := map[string]struct {
@@ -250,7 +250,7 @@ func TestAzure_ApplyTemplate(t *testing.T) {
 	log := logging.NewCustom("test", true)
 
 	cred := &stack.Credential{
-		Credential: &azure.Cred{PublishSettings: []byte("publish_settings")},
+		Credential: &azure.Cred{PublishSettings: "publish_settings"},
 		Bootstrap: &azure.Bootstrap{
 			AddressSpace:     "10.10.10.10/16",
 			StorageServiceID: "storage-serice",
