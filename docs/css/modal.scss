@@ -58,6 +58,17 @@ $shakespeare: #56A2D3;
     text-decoration: none;
     color: $shakespeare;
   }
+
+
+  &.Modal--withVideo {
+    height: 369px;
+    width: 656px;
+    margin: 0 auto;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+  }
 }
 
 @media only screen and (min--moz-device-pixel-ratio: 2),
