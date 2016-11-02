@@ -154,7 +154,7 @@ module.exports = globals.config.providers =
       region               : 'region'
     credentialFields       :
       access_token         :
-        label              : 'Personal Access Token'
+        label              : 'Access Token'
         placeholder        : 'Digital Ocean access token'
 
   azure                    :
