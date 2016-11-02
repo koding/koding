@@ -90,7 +90,10 @@ func TestAzure_ApplyTemplate(t *testing.T) {
 	log := logging.NewCustom("test", true)
 
 	cred := &stack.Credential{
-		Credential: &azure.Cred{PublishSettings: "publish_settings"},
+		Credential: &azure.Cred{
+			PublishSettings:  "publish_settings",
+			SSHKeyThumbprint: "12:23:45:56:67:89:90",
+		},
 		Bootstrap: &azure.Bootstrap{
 			AddressSpace:     "10.10.10.10/16",
 			StorageServiceID: "storage-serice",
@@ -150,8 +153,7 @@ func TestAzure_ApplyTemplate(t *testing.T) {
 					Req: &kite.Request{
 						Username: "user",
 					},
-					KlientIDs:        make(stack.KiteMap),
-					SSHKeyThumbprint: "12:23:45:56:67:89:90",
+					KlientIDs: make(stack.KiteMap),
 				},
 			}
 

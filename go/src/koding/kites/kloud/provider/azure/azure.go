@@ -88,6 +88,7 @@ type Cred struct {
 	Location         string `json:"location,omitempty" bson:"location,omitempty" hcl:"location"`                      // by default "East US 2"
 	Storage          string `json:"storage,omitempty" bson:"storage,omitempty" hcl:"storage"`                         // by default "Standard_LRS"
 	SSHKeyThumbprint string `json:"ssh_key_thumbprint,omitempty" bson:"ssh_key_thumbprint" hcl:"ssh_key_thumbprint"`
+	Password         string `json:"password" bson:"password" hcl:"password"`
 }
 
 var _ stack.Validator = (*Cred)(nil)
