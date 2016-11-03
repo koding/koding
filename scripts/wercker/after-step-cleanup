@@ -10,10 +10,7 @@ fi
 
 SCRIPTS=$(dirname $0)/..
 
-INSTANCE_IDS=$(cat $INSTANCE_DATA_FILE | awk '{print $1}')
-
-# `terminate` script does accept a single instance id.  `xargs -n 1`
-# passes instance ids to `terminate` script one by one.
-
-echo $INSTANCE_IDS | xargs -n 1 $SCRIPTS/test-instance/unprotect
-echo $INSTANCE_IDS | xargs -n 1 $SCRIPTS/test-instance/terminate
+while read INSTANCE_DATA; do
+  $SCRIPTS/test-instance/unprotect $INSTANCE_DATA
+  $SCRIPTS/test-instance/terminate $INSTANCE_DATA
+done < $INSTANCE_DATA_FILE
