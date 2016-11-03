@@ -180,20 +180,6 @@ func createReply(groupChannel *socialapimodels.Channel, owner *socialapimodels.A
 	return reply, nil
 }
 
-func createInteraction(actor *socialapimodels.Account, message *socialapimodels.ChannelMessage, action string) (*socialapimodels.Interaction, error) {
-	i := socialapimodels.NewInteraction()
-	i.AccountId = actor.Id
-	i.MessageId = message.Id
-	i.TypeConstant = action
-
-	err := i.Create()
-	if err != nil {
-		return nil, err
-	}
-
-	return i, nil
-}
-
 func deleteInteraction(actor *socialapimodels.Account, message *socialapimodels.ChannelMessage, action string) error {
 
 	i := socialapimodels.NewInteraction()
@@ -252,20 +238,6 @@ func TestNotificationCreation(t *testing.T) {
 
 	createReplyHelper := func(owner *socialapimodels.Account, parentMessage *socialapimodels.ChannelMessage, reply string) {
 		createReplyWithGroupHelper(owner, parentMessage, reply, testGroupChannel)
-	}
-
-	likeMessage := func(actor *socialapimodels.Account, message *socialapimodels.ChannelMessage) {
-		interaction, err := createInteraction(actor, message, socialapimodels.Interaction_TYPE_LIKE)
-		So(err, ShouldBeNil)
-		So(interaction, ShouldNotBeNil)
-
-		err = controller.CreateInteractionNotification(interaction)
-		So(err, ShouldBeNil)
-	}
-
-	unlikeMessage := func(actor *socialapimodels.Account, message *socialapimodels.ChannelMessage) {
-		err := deleteInteraction(actor, message, socialapimodels.Interaction_TYPE_LIKE)
-		So(err, ShouldBeNil)
 	}
 
 	Convey("while testing notifications", t, func() {
