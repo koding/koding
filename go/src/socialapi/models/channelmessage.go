@@ -451,25 +451,8 @@ func (c *ChannelMessage) isInChannel(query *request.Query, channelName string) (
 }
 
 // DeleteMessageDependencies deletes all records from the database that are
-// dependencies of a given message. This includes interactions, optionally
-// replies, and channel message lists.
+// dependencies of a given message. This includes replies, and channel message lists.
 func (c *ChannelMessage) DeleteMessageAndDependencies(deleteReplies bool) error {
-	// fetch interactions
-	i := NewInteraction()
-	i.MessageId = c.Id
-	interactions, err := i.FetchAll("like")
-	if err != nil {
-		return err
-	}
-
-	// delete interactions
-	for _, interaction := range interactions {
-		err := interaction.Delete()
-		if err != nil {
-			return err
-		}
-	}
-
 	if deleteReplies {
 		if err := c.DeleteReplies(); err != nil {
 			return err
@@ -477,11 +460,11 @@ func (c *ChannelMessage) DeleteMessageAndDependencies(deleteReplies bool) error 
 	}
 
 	// delete any associated channel message lists
-	if err = c.DeleteChannelMessageLists(); err != nil {
+	if err := c.DeleteChannelMessageLists(); err != nil {
 		return err
 	}
 
-	err = NewMessageReply().DeleteByOrQuery(c.Id)
+	err := NewMessageReply().DeleteByOrQuery(c.Id)
 	if err != nil {
 		return err
 	}
