@@ -83,7 +83,7 @@ module.exports = class IDEEditorPane extends IDEPane
     { ace } = @aceView
 
     ace.ready =>
-      @getEditor().setValue content, 1
+      @getEditor().session.setValue content, 1
       ace.setReadOnly yes  if @getOptions().readOnly
       @bindChangeListeners()
       @bindFileSyncEvents()

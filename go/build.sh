@@ -46,7 +46,6 @@ export COMMANDS=(
 
 	socialapi/workers/api
 	socialapi/workers/cmd/notification
-	socialapi/workers/cmd/pinnedpost
 	socialapi/workers/cmd/realtime
 	socialapi/workers/cmd/realtime/gatekeeper
 	socialapi/workers/cmd/realtime/dispatcher

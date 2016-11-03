@@ -33,7 +33,6 @@ PACKAGES = \
 	socialapi/workers/emailnotifier \
 	socialapi/workers/dailyemailnotifier \
 	socialapi/workers/notification \
-	socialapi/workers/pinnedpost \
 	socialapi/workers/realtime \
 	socialapi/workers/migrator \
 	socialapi/workers/integration \
@@ -42,117 +41,14 @@ PACKAGES = \
 
 all: testapi
 
-develop: apidev realtimedev \
-	notificationdev pinnedpostdev algoliaconnectordev \
-	emaildev collaborationdev mailsenderdev \
-	teamdev eventsenderdev integrationdev
-minimal: apidev realtimedev pinnedpostdev
 default: configure
-
-apidev:
-	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/api -watch socialapi -c $(CONFIG) $(PORT) $(DBG) $(EXTRAS)
-
-realtimedev:
-	@echo "$(OK_COLOR)==> Running Realtime Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/realtime -watch socialapi/workers/realtime/realtime -c $(CONFIG) $(DBG) $(EXTRAS)
-
-pinnedpostdev:
-	@echo "$(OK_COLOR)==> Running PinnedPost Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/pinnedpost -watch socialapi/workers/pinnedpost -c $(CONFIG) $(DBG) $(EXTRAS)
-
-algoliaconnectordev:
-	@echo "$(OK_COLOR)==> Running TopicIndex Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/algoliaconnector -watch socialapi/workers/algoliaconnector -c $(CONFIG) $(DBG) $(EXTRAS)
-
-notificationdev:
-	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/notification -watch socialapi/workers/notification -c $(CONFIG) $(DBG) $(EXTRAS)
-
-emaildev: activityemaildev dailyemaildev privatemessageemaildev
-
-activityemaildev:
-	@echo "$(OK_COLOR)==> Running Email Notifier Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/activityemail -watch socialapi/workers/email/activityemail -c $(CONFIG) $(DBG) $(EXTRAS)
-
-dailyemaildev:
-	@echo "$(OK_COLOR)==> Running Daily Email Notifier Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/dailyemail -watch socialapi/workers/email/dailyemail -c $(CONFIG) $(DBG) $(EXTRAS)
-
-privatemessageemaildev: privatemessageemailfeederdev privatemessageemailsenderdev
-
-privatemessageemailfeederdev:
-	@echo "$(OK_COLOR)==> Running Private Message Email Feeder Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/privatemessageemailfeeder -watch socialapi/workers/email/privatemessageemail/privatemessageemailfeeder -c $(CONFIG) $(DBG) $(EXTRAS)
-
-privatemessageemailsenderdev:
-	@echo "$(OK_COLOR)==> Running Private Message Email Sender Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/privatemessageemailsender -watch socialapi/workers/email/privatemessageemail/privatemessageemailsender -c $(CONFIG) $(DBG) $(EXTRAS)
-
-dispatcherdev:
-	@echo "$(OK_COLOR)==> Running Dispatcher Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/realtime/dispatcher -watch socialapi/workers/realtime/dispatcher -c $(CONFIG) $(DBG) $(EXTRAS)
-
-gatekeeperdev:
-	@echo "$(OK_COLOR)==> Running Gatekeeper Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/realtime/gatekeeper -watch socialapi/workers/realtime/gatekeeper -c $(CONFIG) $(DBG) $(EXTRAS)
-
-collaborationdev:
-	@echo "$(OK_COLOR)==> Running Collaboration Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/collaboration -watch socialapi/workers/collaboration -kite-init -c $(CONFIG) $(DBG) $(EXTRAS)
-
-mailsenderdev:
-	@echo "$(OK_COLOR)==> Running Mailsender Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/emailsender -watch socialapi/workers/email/emailsender -c $(CONFIG) $(DBG) $(EXTRAS)
-
-onfiguremigration:
-	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
-	(vagrant ssh default --command "mongo localhost/koding --eval='db.jNewStatusUpdates.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
-	(vagrant ssh default --command "mongo localhost/koding --eval='db.jComments.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
-	(vagrant ssh default --command "mongo localhost/koding --eval='db.jTags.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
-	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
 
 migrate:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/migrator -watch socialapi/workers/migrator/controller -c $(CONFIG) $(DBG) $(EXTRAS)
 
-teamdev:
-	@echo "$(OK_COLOR)==> Running Team Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/team -watch socialapi/workers/team -c $(CONFIG) $(DBG) $(EXTRAS)
-
-integrationdev: webhookdev middlewaredev
-
-webhookdev:
-	@echo "$(OK_COLOR)==> Running Webhook Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/integration/webhook -watch socialapi/workers/integration/webhook -c $(CONFIG) $(DBG) $(EXTRAS)
-
-middlewaredev:
-	@echo "$(OK_COLOR)==> Running Webhook Middleware Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/integration/webhookmiddleware -watch github.com/koding/integration -c $(CONFIG) $(DBG) $(EXTRAS)
-
-eventsenderdev:
-	@echo "$(OK_COLOR)==> Running Event Sender Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/integration/eventsender -watch socialapi/workers/integration/eventsender -c $(CONFIG) $(DBG) $(EXTRAS)
-
-createdb:
-	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
-	(vagrant ssh default --command "mongo localhost/koding --eval='db.jGroups.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
-	(vagrant ssh default --command "/opt/koding/go/src/socialapi/db/sql/definition/create.sh /opt/koding/go/src/socialapi/db/sql")
-
-configure: install installwatcher install-migrate
+configure: install
 	@echo "$(OK_COLOR)==> Configuration is done $(NO_COLOR)"
-
-install-postgres:
-	@echo "$(OK_COLOR)==> Installing postgresql"
-	(vagrant ssh default --command "/opt/koding/go/src/socialapi/db/sql/definition/install.sh")
-
-installwatcher:
-	@`which go` get github.com/canthefason/go-watcher
-	@`which go` install github.com/canthefason/go-watcher/cmd/watcher
-
-install-migrate:
-	@`which go` get github.com/mattes/migrate
-	@`which go` install github.com/mattes/migrate
 
 install:
 	@echo $(CONFIG)
@@ -160,9 +56,6 @@ install:
 	@echo "NOTICE: make install is deprecated use ../../build.sh"
 	@echo "building with ../../build.sh"
 	../../build.sh
-test:
-	@echo "$(OK_COLOR)==> Testing all packages $(NO_COLOR)"
-	@`which go` test $(VERBOSE) ${PACKAGES}
 
 build:
 	@echo "$(OK_COLOR)==> Building all packages $(NO_COLOR)"
@@ -323,47 +216,3 @@ testapi: testcollaboration testmailsender testmail testmodels testemailworker \
 	@`which go` test -c workers/common/handler/*.go
 	@./handler.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm ./handler.test
-
-doc:
-	@for package in $(PACKAGES); \
-	do \
-		(echo "$(OK_COLOR)==> Running godoc for $$package $(NO_COLOR)"); \
-		godoc $$package | less; \
-	done;
-
-vet:
-	@`which go` tool vet -all=true .
-
-pkgs = \
-	realtime \
-	rerun \
-	notification
-
-dep:
-	@echo "$(OK_COLOR)==> Copying files $(NO_COLOR)";
-	@for pkg in $(pkgs); \
-	do \
-	TMP=/tmp/socialapi; \
-	OUTFOLDER=$$TMP/out; \
-	CONTENTFOLDER=$$TMP/$$pkg; \
-	ZIPNAME=$$OUTFOLDER/$$pkg-$(MAJOR).$(MINOR).tar; \
-	mkdir -p $$TMP; \
-	mkdir -p $$OUTFOLDER; \
-	rm -rf $$CONTENTFOLDER; \
-	mkdir $$CONTENTFOLDER; \
-	cp $(GOBINDIR)/$$pkg $$CONTENTFOLDER ;\
-	cp $(CONFIG) $$CONTENTFOLDER ;\
-    done;
-
-	@echo "$(OK_COLOR)==> Generating TAR files $(NO_COLOR)";
-	@for pkg in $(pkgs); \
-	do \
-	TMP=/tmp/socialapi; \
-	OUTFOLDER=$$TMP/out; \
-	CONTENTFOLDER=$$TMP/$$pkg; \
-	ZIPNAME=$$OUTFOLDER/$$pkg-$(MAJOR).$(MINOR).tar; \
-    echo "Creating" $$ZIPNAME ;\
-	cd $$TMP && tar cof $$ZIPNAME ./$$pkg; \
-	done;
-
-	@echo "$(OK_COLOR)==> Files are located at files $(NO_COLOR)";

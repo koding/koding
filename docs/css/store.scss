@@ -1,29 +1,9 @@
 ---
 ---
 
+@import "colors";
+
 {% assign path = site.url | append: '/assets/img/landing/store' %}
-
-$white: #FFFFFF;
-$alabaster: #F7F7F7;
-$porcelain: #F5F6F7;
-$gallery: #EBEBEB;
-$gallery2: #EFEFEF;
-$mercury: #E1E1E1;
-$alto: #DCDCDC;
-$alto2: #D2D2D2;
-$emperor: #515151;
-$dove-gray: #727272;
-$dusty-gray: #989898;
-$dusty-gray2: #A59999;
-$gray: #8D8D8D;
-
-$froly: #F2778A;
-
-$cornflower-blue: #67A2EE;
-$anakiwa: #A8CEFF;
-$shakespeare: #56A2D3;
-
-$waterloo: #7F7E9E;
 
 .u-icon {
   &.u-aws, &.u-windows, &.u-server {
@@ -58,11 +38,6 @@ $waterloo: #7F7E9E;
     background-position: center;
     background-repeat: no-repeat;
   }
-  &.u-modalClose {
-    background-image: var(--icon-modalClose);
-    height: 10px;
-    width: 10px;
-  }
 }
 
 :root {
@@ -83,8 +58,6 @@ $waterloo: #7F7E9E;
   --icon-dropdown: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAHCAYAAAA4R3wZAAAAAXNSR0IArs4c6QAAAEhJREFUGBmV0MEJACAMQ1EzbcdQx+i0lQiKaIsa6O2/S6Gqxcxy+hiACvY/mEhESoeveCD2E97wig4Y4R25cMceYhOOD+NFQQPghjLo2Cv8NQAAAABJRU5ErkJggg==');
   --icon-dropdown-2: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAOCAYAAAA8E3wEAAAAAXNSR0IArs4c6QAAAHNJREFUOBG91MsNgDAMA1AybcagjJFpg4IEQqVpPrS15KP1bgYiKsy8bwsCAAeIswIVDBHLBc5Gb0ycB5yFvrEPOBqtsSY4Cm1hKvgX1bAumEV7mAlGUQtzgV7Ug7lBC/ViIVBDI1gYrNEoJvtU5HulmfEJKtxq7wwgVYMAAAAASUVORK5CYII=');
   --icon-server: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAypJREFUWAm9V79v00AUPjtO86MKGyqKyI+BILVJ2Sp1hIEFJCRm/gNGVgRDK1b+i8xIlZjLGImNpF2K1AxJQ0SWtGmbH0rD9x0+y27PceLWPcm+87t77/t8997zsyEWbAcHByuz2ewFrjdQ2UCfNQwjS3WMTzA+wfAQ/R6u/XK5POZcUDOCFgD40dXV1WesewegB0HrOQ8Cp+iqpmnugMifeTq+BI6OjhKj0egjwD/AwOo8I3PmzkHiayKR+FIqlUa6dVoCfOvpdPoNCts6pRCyWiwWe6vbjRsE6vX6M2z1d4A8DgE0T6UVj8dfra+v192LPATsN/8ZAbjCbGEnttw74RDgmV9eXv7ASs+2F4tFkclklIGl+7OzM9FsNt16tVQq9Vz5hKlm6HAYe8A5twj4cDgU4/GY4SgGg4HslUyjv21jSWhJwA41enuo1mq1RLfbFRcXF+L4+FgQvN1ui06no7XHyCImJy3e7DgPG2qiUCgw9gXOV2BrRTKZFPl8XspoX9NWbcz3Bpis4OGvX5KJwAckHyYr5IiHFoCZXn0z3DUH0rxMOBExiU0CzO2+LaodICCx6YQbvuiY0HjxjeXK42FwkShw62+YUJJfNLd02fGyUaDsE9uCM2TJ/DYtRBRIOGI7iciPADNZUEOOF5ZlybBjCLIpWYD+jE7IQuKp1NLcoooCQgG7wyM4wcCXQJRRQGwewaHmxR1RxFFwaILFnoMWchA2CojNI9jHdYpj8M2GQbzCRAExiW3a1WvVDyTAi6Wa8ngYlB8iCpVsjn6V2LIgsSuh39Bb6ouYy+VEr9cTKGQkkSVu5/hyPmFl5FREjUZjB1/FT8oI38CvpdNpgapGpmmCTyYT0e/3BQpZPxW5Rk3iK7hbqVRY6v+vBzhg6QxjLzGUVdHa2hrF2kZwlXDYw3+oz7pCu55COqrdasRSD84OUGAfxb0WpZ5ULM/EMF6Di0NXMb2DXpblxHDb8hDgxObm5i+WzhjW3AtvOeaPydb1fwLavEGAQrJk6UxnweM5ZSEbf812aev6myt7Hh9QQndPv7ALyPv9OXWT4JjFK7z9zn/P/wHZC8ZssblbZAAAAABJRU5ErkJggg==');
-  --icon-modalClose: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAAI1JREFUGBmNkNENgCAMRG0H48MZHEcx6jq6ggE2cCGwR6wxjSb2g7Svx1FKMcaDiFbn3NK8hPR7wS2XUrac85xSmqwOTPow2GsPIIRQnmLLSF3QEGfPzDOY5jLSiPoWolAxclxQUa1x/InbUd2+nq5mdnBAywh7wgrsTCq+PuVZQCsLH56DQ4S42ChG3QkuZXH6QsyXEwAAAABJRU5ErkJggg==');
-  --icon-modalClose-2: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAARxJREFUOBGtlDESgjAQRU04hpfwBMBVKG0cGm0cLbQTC7Wx9CpwAy/hMRjc77DMItkEHLcgIfv/Y4fNrKmqats0zdIYc0mS5Dz7IcqyXJEti6LoZAGjlzmtBSUOU3mt50q+RV3XG0uBF47dFGir3bGZ1oeN47igzVEcjoI6YMc0TW+GQYpgz3m5+rQdEAafkIEhTQ8YgoZg8A+AGhTnFLIB+GeDX+IEwumoBsccThiSKhBJBarC4LF4/DPUCpXq+NtqlU6gA8YXf3pTXDDupi/HpfcqHGMIaTpgSMgVYPVpP0CfQILkXvMYSmA4yhGmdlACsf+G0pBe4x5mQjgaBk/bLL4BMxrSucXYptyT6Dl3U3wguIUHlZHwRev9DS/WpZdxeYXjAAAAAElFTkSuQmCC');
 }
 
 input, textarea, keygen, select, button {
@@ -414,21 +387,6 @@ input, textarea, keygen, select, button {
   }
 }
 
-.Overlay {
-  background-color: rgba(43,51,61, 0.8);
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 2;
-  display: none;
-
-  &.isShown {
-    display: block;
-  }
-}
-
 .Modal {
   background-color: $alabaster;
   border-radius: 6px;
@@ -436,23 +394,6 @@ input, textarea, keygen, select, button {
   width: 533px;
   text-align: center;
   padding-top: 53px;
-  margin: 5vh auto 0;
-  position: absolute;
-  display: none;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 2;
-
-  &.isShown {
-    display: block;
-  }
-
-  .u-icon.u-modalClose {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-  }
 
   h1 {
     color: $froly;
@@ -513,11 +454,6 @@ input, textarea, keygen, select, button {
       font-weight: 600;
       font-size: 16px;
     }
-  }
-
-  a {
-    text-decoration: none;
-    color: $shakespeare;
   }
 }
 
@@ -1195,11 +1131,6 @@ only screen and (min-device-pixel-ratio: 2) {
 
     &.u-verified {
       background-image: var(--icon-verified-2);
-      background-size: 100%;
-    }
-
-    &.u-modalClose {
-      background-image: var(--icon-modalClose-2);
       background-size: 100%;
     }
   }

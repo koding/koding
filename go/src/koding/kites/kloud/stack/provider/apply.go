@@ -208,8 +208,7 @@ func (bs *BaseStack) destroyAsync(ctx context.Context, req *stack.ApplyRequest) 
 			TraceID:   bs.TraceID,
 		}
 
-		bs.Log.Debug("Calling terraform.destroy method with context:")
-		bs.Log.Debug("%+v", tfReq)
+		bs.Log.Debug("Calling terraform.destroy method with context: %+v", tfReq)
 
 		_, err = tfKite.Destroy(tfReq)
 		if err != nil {
@@ -255,7 +254,6 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 	}
 
 	bs.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", bs.Builder.Koding, bs.Builder.Template)
-	bs.Log.Debug("Connection to Terraformer")
 
 	tfKite, err := terraformer.Connect(bs.Session.Terraformer)
 	if err != nil {
@@ -270,10 +268,7 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 		return err
 	}
 
-	bs.Log.Debug("Stack template before injecting Koding data:")
-	bs.Log.Debug("%s", bs.Builder.Template)
-
-	bs.Log.Debug("Injecting variables from credential data identifiers, such as aws, custom, etc..")
+	bs.Log.Debug("Stack template before injecting Koding data: %s", bs.Builder.Template)
 
 	t, err := bs.stack.ApplyTemplate(cred)
 	if err != nil {
@@ -284,14 +279,14 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 		t.Key = defaultContentID
 	}
 
+	bs.Log.Debug("Stack template after injecting Koding data: %s", t)
+
 	bs.Builder.Stack.Template = t.Content
 
 	done := make(chan struct{})
 
 	// because apply can last long, we are going to increment the eventer's
 	// percentage as long as we build automatically.
-	//
-	// TODO(rjeczalik):
 	go func() {
 		start := 45
 		ticker := time.NewTicker(time.Second * 5)

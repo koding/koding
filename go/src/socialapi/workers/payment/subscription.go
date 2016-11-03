@@ -9,6 +9,14 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+const (
+	SubStatusTrailing stripe.SubStatus = "trialing"
+	SubStatusActive   stripe.SubStatus = "active"
+	SubStatusPastDue  stripe.SubStatus = "past_due"
+	SubStatusCanceled stripe.SubStatus = "canceled"
+	SubStatusUnpaid   stripe.SubStatus = "unpaid"
+)
+
 // CancelSubscriptionForGroup cancels the subscription for a team. In order to
 // achive that, first deletes the current subscription then subscribes to new
 // plan with new quantity, ( reasoning behind that is subscribing to a new plan

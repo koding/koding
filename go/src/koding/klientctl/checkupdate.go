@@ -1,12 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"math/rand"
 	"net/http"
-	"strconv"
-	"strings"
 	"time"
 
 	"koding/klientctl/config"
@@ -67,7 +64,7 @@ type CheckUpdate struct {
 func NewCheckUpdate() *CheckUpdate {
 	return &CheckUpdate{
 		LocalVersion:       config.VersionNum(),
-		Location:           config.Konfig.KlientLatestURL,
+		Location:           config.Konfig.KDLatestURL,
 		RandomSeededNumber: rand.Intn(3),
 		ForceCheck:         false,
 	}
@@ -81,14 +78,9 @@ func (c *CheckUpdate) IsUpdateAvailable() (bool, error) {
 	}
 	defer resp.Body.Close()
 
-	buf := new(bytes.Buffer)
-	if _, err := buf.ReadFrom(resp.Body); err != nil {
-		return false, err
-	}
+	var newVersion int
 
-	// remove any newlines at EOF.
-	str := strings.TrimSpace(buf.String())
-	newVersion, err := strconv.Atoi(str)
+	_, err = fmt.Fscanf(resp.Body, "%d", &newVersion)
 	if err != nil {
 		return false, err
 	}

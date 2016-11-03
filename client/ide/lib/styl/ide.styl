@@ -83,8 +83,29 @@ body.ide
           vendor            transform, translateX(-50%) translateY(-50%)
 
       .kdtabhandle
-        .tab-handle-text
-          width             90%
+        &:before
+          content           ''
+          position          absolute
+          top               12px
+          left              15px
+          r-sprite          'ide', 'ws_tab_file'
+          display           block
+          opacity           0.5
+        
+        &.terminal:before
+          r-sprite          'ide', 'ws_tab_terminal'
+          
+        &.plus:before
+          content           none
+
+	&.files:before
+          content           none
+          
+        &.settings:before
+          content           none
+        
+        &.active:before
+          opacity           1
 
         .tab-handle-input
           border-radius     1px
@@ -139,6 +160,7 @@ body.ide .dark
     &.active
       bg                    color, dark-panel-bg
       color                 dark-active-tab-color
+      border-top            2px solid #67A2EE
 
     &.menu-visible
       .options
