@@ -214,8 +214,7 @@ func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageCont
 		return nil, err
 	}
 
-	// return cmc, cmc.AddIsFollowed(query).AddIsInteracted(query).Err
-	return cmc, cmc.AddIsInteracted(query).Err
+	return cmc, nil
 }
 
 func (c *ChannelMessage) CheckIsMessageFollowed(query *request.Query) (bool, error) {
