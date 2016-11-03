@@ -161,7 +161,7 @@ module.exports = class JStackTemplate extends Module
         return callback new KodingError 'Title required.'
 
       validateTemplate data.template, group, (err) ->
-        return callback validationError  if err
+        return callback err  if err
 
         if data.config?
           data.config.groupStack = no
@@ -395,7 +395,7 @@ module.exports = class JStackTemplate extends Module
           return next()  unless template?
 
           validateTemplate template, group, (err) =>
-            return next validationError  if err
+            return next err  if err
 
             data.template = generateTemplateObject \
               template, rawContent, templateDetails

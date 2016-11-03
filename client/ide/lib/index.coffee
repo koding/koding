@@ -253,7 +253,6 @@ class IDEAppController extends AppController
 
   isTabViewFocused: (tabView) ->
 
-    return no  if @isChatInputFocused()
     return @activeTabView is tabView
 
 
@@ -564,7 +563,7 @@ class IDEAppController extends AppController
           @fakeTabView      = @activeTabView
           fakeTerminalView  = new kd.CustomHTMLView { partial: splashes.getTerminal nickname }
           @fakeTerminalPane = @fakeTabView.parent.createPane_ fakeTerminalView, { name: 'Terminal' }
-          @fakeFinderView   = new kd.CustomHTMLView { partial: splashes.getFileTree nickname }, machineLabel
+          @fakeFinderView   = new kd.CustomHTMLView { partial: splashes.getFileTree nickname, machineLabel }
 
           @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
           @fakeEditor.once 'EditorIsReady', => kd.utils.wait 1500, => @fakeEditor.setFocus no
@@ -2046,11 +2045,6 @@ class IDEAppController extends AppController
     [ target ] = @ideViews.filter (ideView) -> ideView.hash is hash
 
     return target?.tabView
-
-
-  isChatInputFocused: ->
-
-    return kd.dom.hasClass document.activeElement, 'collab-chat-input'
 
 
   resetDragState: ->

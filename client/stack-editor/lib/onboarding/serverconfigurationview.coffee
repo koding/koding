@@ -29,7 +29,7 @@ module.exports = class ServerConfigurationView extends kd.View
             command      : config.command
             defaultValue : no
             click        : =>
-              @emit 'UpdateStackTemplate'
+              @emit 'StackDataChanged'
               @emit 'HiliteTemplate', 'line', config.package
 
 
@@ -38,7 +38,7 @@ module.exports = class ServerConfigurationView extends kd.View
             cssClass : 'label'
             click    : =>
               if checkbox.getValue() then checkbox.setValue 0 else checkbox.setValue 1
-              @emit 'UpdateStackTemplate'
+              @emit 'StackDataChanged'
               @emit 'HiliteTemplate', 'line', config.package
 
           @configurationToggles.push checkbox

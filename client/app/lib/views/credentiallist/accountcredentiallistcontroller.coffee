@@ -128,10 +128,11 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
   destroyResources: (credential, callback) ->
 
+    provider = credential.provider
     identifiers = [ credential.identifier ]
 
     kd.singletons.computeController.getKloud()
-      .bootstrap { identifiers, destroy: yes }
+      .bootstrap { identifiers, provider, destroy: yes }
       .then -> callback null
       .catch (err) ->
         kd.singletons.computeController.ui.showComputeError

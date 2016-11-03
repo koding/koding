@@ -129,6 +129,7 @@ module.exports = class Sidebar extends React.Component
     menuItems['Clone'] = { callback }  if canCreateStacks() or isAdmin()
     menuItems['Make Team Default'] = { callback } if isAdmin() and draft.get('machines').size
     menuItems['Delete'] = { callback }
+
     { top } = findDOMNode(@refs["draft-#{id}"]).getBoundingClientRect()
 
     menuOptions = { cssClass: 'SidebarMenu', x: 36, y: top + 31 }
