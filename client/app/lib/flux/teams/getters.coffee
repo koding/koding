@@ -62,7 +62,7 @@ membersWithPendingInvitations = [
     members.forEach (member) ->
       if member
         member = member.set 'status', 'member' if !member.get('status') or member.get('status') is not 'pending'
-	member = member.set 'status', 'owner' if member.get('role') is 'owner'
+        member = member.set 'status', 'owner' if member.get('role') is 'owner'
 
     return members
 ]
@@ -77,12 +77,12 @@ sortedMembersWithPendingInvitations = [
           member.get('firstName')  if member.get 'firstname'
           member.get('lastName')  if member.get 'lastName'
           member.get('email')
-	  member.get('status')
+          member.get('status')
         else
           member.getIn(['profile', 'firstName'])  if member.getIn(['profile', 'firstName'])
           member.getIn(['profile', 'lastName'])  if member.getIn(['profile', 'lastName'])
           member.getIn(['profile', 'email'])
-	  member.get('status')
+          member.get('status')
 ]
 
 
