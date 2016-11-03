@@ -12,7 +12,6 @@ import (
 	"socialapi/workers/api/modules/interaction"
 	"socialapi/workers/api/modules/message"
 	"socialapi/workers/api/modules/messagelist"
-	"socialapi/workers/api/modules/notificationsetting"
 	"socialapi/workers/api/modules/participant"
 	"socialapi/workers/api/modules/privatechannel"
 	"socialapi/workers/api/modules/reply"
@@ -70,7 +69,6 @@ func main() {
 	participant.AddHandlers(m)
 	privatechannel.AddHandlers(m)
 	reply.AddHandlers(m)
-	notificationsetting.AddHandlers(m)
 	realtimeapi.AddHandlers(m)
 	presenceapi.AddHandlers(m)
 	slackapi.AddHandlers(m, c)
