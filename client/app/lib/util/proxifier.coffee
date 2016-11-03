@@ -32,7 +32,7 @@ module.exports = class Proxifier
 
     # subdomain is for different proxy environments
     # one for development the other for production
-    subdomain = if isInProduction then 'p' else 'dev-p2'
+    subdomain = if isInProduction then 'p' else 'dev-p'
 
     # create the base url
     # Since proxy is a service from koding.com we need to use it
