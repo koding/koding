@@ -178,13 +178,12 @@ type BaseStack struct {
 	Credential interface{}
 	Bootstrap  interface{}
 
-	Keys             *publickeys.Keys
-	Eventer          eventer.Eventer
-	Planner          *Planner
-	KlientIDs        stack.KiteMap
-	Klients          map[string]*DialState
-	TunnelURL        string
-	SSHKeyThumbprint string
+	Keys      *publickeys.Keys
+	Eventer   eventer.Eventer
+	Planner   *Planner
+	KlientIDs stack.KiteMap
+	Klients   map[string]*DialState
+	TunnelURL string
 
 	Debug   bool
 	TraceID string

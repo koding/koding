@@ -207,10 +207,6 @@ func New(conf *Config) (*Kloud, error) {
 		},
 	}
 
-	if thumb, err := stacker.SSHKey.Thumbprint(); err == nil {
-		stacker.SSHKeyThumbprint = thumb
-	}
-
 	stats := common.MustInitMetrics(Name)
 
 	kloud := &Kloud{

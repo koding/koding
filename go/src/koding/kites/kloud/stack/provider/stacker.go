@@ -51,10 +51,9 @@ type Stacker struct {
 	Debug          bool
 	TunnelURL      string
 
-	Userdata         *userdata.Userdata
-	SSHKey           *publickeys.Keys
-	SSHKeyThumbprint string
-	CredStore        credential.Store
+	Userdata  *userdata.Userdata
+	SSHKey    *publickeys.Keys
+	CredStore credential.Store
 }
 
 func (s *Stacker) New(p *Provider) *Stacker {
@@ -208,12 +207,11 @@ func (s *Stacker) BaseStack(ctx context.Context) (*BaseStack, error) {
 			Provider:     s.Provider.Name,
 			ResourceType: s.Provider.resourceName(),
 		},
-		Provider:         s.Provider,
-		KlientIDs:        make(stack.KiteMap),
-		Klients:          make(map[string]*DialState),
-		TunnelURL:        s.TunnelURL,
-		Keys:             s.SSHKey,
-		SSHKeyThumbprint: s.SSHKeyThumbprint,
+		Provider:  s.Provider,
+		KlientIDs: make(stack.KiteMap),
+		Klients:   make(map[string]*DialState),
+		TunnelURL: s.TunnelURL,
+		Keys:      s.SSHKey,
 	}
 
 	var ok bool
