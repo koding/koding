@@ -6,7 +6,7 @@ type Status int
 
 const (
 	// Zero value, status is unknown.
-	StatusUnknown MachineStatus = iota
+	StatusUnknown Status = iota
 
 	// The machine is not reachable via HTTP protocol.
 	StatusOffline

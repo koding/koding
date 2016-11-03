@@ -1,6 +1,9 @@
 package machine
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 // Info stores the basic information about the machine.
 type Info struct {
@@ -96,7 +99,7 @@ func (s InfoSlice) FindByName(name string) *Info {
 		return nil
 	}
 
-	for _, info := range infos {
+	for _, info := range s {
 		if info != nil && info.VMName == matchedName {
 			return info
 		}

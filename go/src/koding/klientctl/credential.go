@@ -29,7 +29,7 @@ import (
 //
 
 func CredentialImport(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	kloud, err := lazy.Kloud()
+	kloud, err := lazy.Kloud(log)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
 		return 1, err
@@ -169,7 +169,7 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 		return 1, err
 	}
 
-	kloud, err := lazy.Kloud()
+	kloud, err := lazy.Kloud(log)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
 		return 1, err

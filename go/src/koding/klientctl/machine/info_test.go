@@ -14,7 +14,7 @@ func TestInfoSliceSort(t *testing.T) {
 	}{
 		{
 			// 0 //
-			Provided: {
+			Provided: []*Info{
 				testInfo("coconut", StatusDisconnected, ListMountInfo{}),
 				testInfo("apple", StatusOffline),
 				testInfo("pear", StatusOnline),
@@ -26,7 +26,7 @@ func TestInfoSliceSort(t *testing.T) {
 				testInfo("kiwi", StatusOnline),
 				testInfo("jackfruit", StatusConnected, ListMountInfo{}),
 			},
-			Expected: {
+			Expected: []*Info{
 				testInfo("coconut", StatusDisconnected, ListMountInfo{}),
 				testInfo("jackfruit", StatusConnected, ListMountInfo{}),
 				testInfo("squash", StatusConnected, ListMountInfo{}),
@@ -68,7 +68,7 @@ func TestInfoSliceFindByName(t *testing.T) {
 	}{
 		{
 			// 0 //
-			Provided: {
+			Provided: []*Info{
 				testInfo("a", StatusOnline),
 				testInfo("b", StatusOnline),
 				testInfo("c", StatusOnline),
@@ -81,7 +81,7 @@ func TestInfoSliceFindByName(t *testing.T) {
 		},
 		{
 			// 1 //
-			Provided: {
+			Provided: []*Info{
 				testInfo("aa", StatusOnline),
 				testInfo("bb", StatusOnline),
 				testInfo("cc", StatusOnline),
@@ -91,7 +91,7 @@ func TestInfoSliceFindByName(t *testing.T) {
 		},
 		{
 			// 2 //
-			Provided: {
+			Provided: []*Info{
 				testInfo("aa", StatusOnline),
 				testInfo("a", StatusOnline),
 				testInfo("aaa", StatusOnline),
@@ -101,7 +101,7 @@ func TestInfoSliceFindByName(t *testing.T) {
 		},
 		{
 			// 3 //
-			Provided: {
+			Provided: []*Info{
 				testInfo("g", StatusOnline),
 			},
 			Name:     "a",

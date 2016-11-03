@@ -2,6 +2,8 @@ package machine
 
 import (
 	"fmt"
+	"os"
+	"time"
 
 	"koding/kites/kloud/stack"
 	"koding/klientctl/lazy"
@@ -14,7 +16,7 @@ type ListOptions struct {
 }
 
 func List(options *ListOptions) ([]*Info, error) {
-	kloud, err := lazy.Kloud()
+	kloud, err := lazy.Kloud(options.Log)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
 		return nil, err
@@ -29,11 +31,11 @@ func List(options *ListOptions) ([]*Info, error) {
 	}
 
 	res := &stack.MachineListResponse{}
-	if err := r.Unmarshal(resp); err != nil {
+	if err := r.Unmarshal(res); err != nil {
 		return nil, err
 	}
 
-	machineInfos := make([]*Info, len(res.Machines))
+	//machineInfos := make([]*Info, len(res.Machines))
 	for i := range res.Machines {
 		fmt.Printf("machine %d: %# v\n\n", i, res.Machines[i])
 	}
