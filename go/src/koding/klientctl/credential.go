@@ -12,6 +12,7 @@ import (
 
 	"koding/kites/kloud/stack"
 	"koding/klient/storage"
+	"koding/klientctl/lazy"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
@@ -28,7 +29,7 @@ import (
 //
 
 func CredentialImport(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	kloud, err := Kloud()
+	kloud, err := lazy.Kloud()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
 		return 1, err
@@ -51,7 +52,7 @@ func CredentialImport(c *cli.Context, log logging.Logger, _ string) (int, error)
 		return 1, err
 	}
 
-	if err := Cache().SetValue("credentials", &resp); err != nil {
+	if err := lazy.Cache().SetValue("credentials", &resp); err != nil {
 		return 1, err
 	}
 
@@ -96,7 +97,7 @@ func CredentialList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 	var resp stack.CredentialListResponse
 
-	if err := Cache().GetValue("credentials", &resp); err != nil && err != storage.ErrKeyNotFound {
+	if err := lazy.Cache().GetValue("credentials", &resp); err != nil && err != storage.ErrKeyNotFound {
 		return 1, err
 	}
 
@@ -168,7 +169,7 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 		return 1, err
 	}
 
-	kloud, err := Kloud()
+	kloud, err := lazy.Kloud()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
 		return 1, err
@@ -204,7 +205,7 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 
 	var creds stack.CredentialListResponse
 
-	if err := Cache().GetValue("credentials", &creds); err != nil && err != storage.ErrKeyNotFound {
+	if err := lazy.Cache().GetValue("credentials", &creds); err != nil && err != storage.ErrKeyNotFound {
 		return 1, err
 	}
 
@@ -214,7 +215,7 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 
 	creds.Credentials[req.Provider] = append(creds.Credentials[req.Provider], cred)
 
-	if err := Cache().SetValue("credentials", &creds); err != nil {
+	if err := lazy.Cache().SetValue("credentials", &creds); err != nil {
 		return 1, err
 	}
 

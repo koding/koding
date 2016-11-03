@@ -1,25 +1,39 @@
 package stack
 
-import "github.com/koding/kite"
+import (
+	"koding/kites/kloud/machine"
+
+	"github.com/koding/kite"
+)
 
 type MachineListRequest struct {
 	Provider string `json:"provider,omitempty"`
 	Team     string `json:"team,omitempty"`
 }
 
-type MachineItem struct {
-	Team         string `json:"team"`
-	Provider     string `json:"provider"`
-	ID           string `json:"id"`
-	Label        string `json:"label"`
-	Status       string `json:"status"`
-	StatusReason string `json:"statusReason"`
-}
-
 type MachineListResponse struct {
-	Machines []MachineItem `json:"machines"`
+	Machines []*machine.Machine `json:"machines"`
 }
 
 func (k *Kloud) MachineList(r *kite.Request) (interface{}, error) {
-	return nil, nil
+	var req MachineListRequest
+
+	if err := r.Args.One().Unmarshal(&req); err != nil {
+		return nil, err
+	}
+
+	k.Log.Info("List request: %#v", req)
+
+	f := &machine.Filter{
+		Username: r.Username,
+	}
+
+	machines, err := k.MachineClient.Machines(f)
+	if err != nil {
+		return nil, err
+	}
+
+	return MachineListResponse{
+		Machines: machines,
+	}, nil
 }
