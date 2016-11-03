@@ -73,6 +73,7 @@ module.exports = class StackScriptSearchBoxContainer extends React.Component
 
     new ContentModal
       width : 1024
+      overlay: yes
       cssClass : 'has-markdown content-modal stack-script'
       title : "Stack Script: #{query} Preview"
       content : scrollView
