@@ -1,5 +1,6 @@
 kd      = require 'kd'
 kookies = require 'kookies'
+$       = require 'jquery'
 
 RECAPTCHA_CHECK_INTERVAL = 1000 * 60 * 60 * 24 # 1 day
 SUBMIT_COUNT_WITHOUT_RECAPTCHA = 3
