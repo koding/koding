@@ -171,14 +171,6 @@ func TestPinnedActivityChannel(t *testing.T) {
 
 				// replies count should be 0
 				So(len(history.MessageList[0].Replies), ShouldEqual, 0)
-
-				// interactions should not be 0, like should be there
-				So(len(history.MessageList[0].Interactions), ShouldEqual, 1)
-
-				// like count should be 0
-				So(history.MessageList[0].Interactions["like"].ActorsCount, ShouldEqual, 0)
-				// current user should not be interacted with it
-				So(history.MessageList[0].Interactions["like"].IsInteracted, ShouldBeFalse)
 			})
 
 			Convey("Messages shouldnt be added as pinned twice ", func() {
