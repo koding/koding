@@ -10,6 +10,7 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
+	kitecfg "github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
 	"github.com/koding/logging"
 )
@@ -48,6 +49,7 @@ func Kite(log logging.Logger) *kite.Kite {
 	k.Config = config.Konfig.KiteConfig()
 	k.Config.KontrolURL = config.Konfig.KontrolURL
 	k.Config.Environment = config.Environment
+	k.Config.Transport = kitecfg.XHRPolling
 	k.Log = log
 
 	return k
