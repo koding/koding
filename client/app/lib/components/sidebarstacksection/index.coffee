@@ -96,9 +96,8 @@ module.exports = class SidebarStackSection extends React.Component
           # invalidate editor cache
           appManager.tell 'Stackeditor', 'reloadEditor', templateId
       when 'Clone'
-        remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
-          if err
-            return new kd.NotificationView { title: 'Error occured while cloning template' }
+        remote.api.JStackTemplate.one { _id: templateId }, (err, template) =>
+          return @showErrorMessage 'Error occured while cloning template'  if err
           EnvironmentFlux.actions.cloneStackTemplate template, no
       when 'Destroy VMs' then deleteStack { stack }
       when 'VMs' then router.handleRoute "/Home/stacks/virtual-machines"
@@ -106,14 +105,20 @@ module.exports = class SidebarStackSection extends React.Component
         remoteUrl = stack.getIn ['config', 'remoteDetails', 'originalUrl']
         linkController.openOrFocus remoteUrl
       when 'Make Team Default'
-        remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
-          computeController.makeTeamDefault template, no  unless err
+        remote.api.JStackTemplate.one { _id: templateId }, (err, template) =>
+          return @showErrorMessage 'Error occured while making this stack team default'  if err
+          EnvironmentFlux.actions.makeTeamDefault template  unless err
       when 'Share Stack With Team'
-        remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
-          computeController.shareStackWithTeam template  unless err
+        remote.api.JStackTemplate.one { _id: templateId }, (err, template) =>
+          return @showErrorMessage 'Error occured while sharing stack with team'  if err
+          EnvironmentFlux.actions.shareWithTeam template  unless err
       when 'Make Stack Private'
-        remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
-          computeController.makeStackPrivate template  unless err
+        remote.api.JStackTemplate.one { _id: templateId }, (err, template) =>
+          return @showErrorMessage 'Error occured while unsharing this stack'  if err
+          EnvironmentFlux.actions.makePrivate template  unless err
+
+
+  showErrorMessage: (title) -> new kd.NotificationView { title }
 
 
   onTitleClick: (event) ->
