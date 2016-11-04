@@ -131,9 +131,6 @@ build:
         name: test social api
         code: scripts/wercker/run-command scripts/wercker/test-social-api
     - script:
-        name: test janitor
-        code: scripts/wercker/run-command ./run janitortests
-    - script:
         name: test koding mongo models
         code: scripts/wercker/run-command ./run exec go test koding/db/mongodb/modelhelper
     - script:
