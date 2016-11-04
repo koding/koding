@@ -1184,6 +1184,11 @@ a:hover {
     background-size: 170px 37px;
   }
 }
+@media (max-width: 991px) {
+  .m-hero {
+    margin-top: 47px;
+  }
+}
 
 @media screen and (max-width: 1200px) {
   .Pricing-SupportPlans--support,
@@ -1347,6 +1352,7 @@ a:hover {
 
 }
 @media screen and (max-width: 480px) {
+
   .Pricing-SupportPlans--support {
     padding: 35px 0;
     flex-direction: column;
