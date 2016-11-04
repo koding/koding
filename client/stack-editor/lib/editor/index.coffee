@@ -893,14 +893,17 @@ module.exports = class StackEditorView extends kd.View
 
   handleSetDefaultTemplate: (callback = kd.noop) ->
 
-    createShareModal (needShare, modal) =>
-      @_handleSetDefaultTemplate (stackTemplate) =>
+    { stackTemplate } = @getData()
+    @outputView.add 'Setting this as default team stack template...'
+    EnvironmentFlux.actions.makeTeamDefault stackTemplate, (err, stackTemplate) =>
 
-        if needShare
-        then @shareCredentials -> modal.destroy()
-        else modal.destroy()
+      @setAsDefaultButton.hideLoader()
 
-        callback stackTemplate
+      return  if @outputView.handleError err
+
+      @setAsDefaultButton.disable()
+      @emit 'Reload'
+      callback stackTemplate  unless err
 
 
   _handleSetDefaultTemplate: (callback = kd.noop) ->
@@ -910,8 +913,7 @@ module.exports = class StackEditorView extends kd.View
 
     @outputView.add 'Setting this as default team stack template...'
 
-    groupsController.setDefaultTemplate stackTemplate, 'default', (err) =>
-
+    stackTemplate.makeTeamDefault (err, stackTemplate) =>
       @setAsDefaultButton.hideLoader()
 
       return  if @outputView.handleError err
