@@ -487,6 +487,24 @@ func CreateMachine(m *models.Machine) error {
 	return Mongo.Run(MachinesColl, query)
 }
 
+func CreateMachines(m ...*models.Machine) error {
+	query := func(c *mgo.Collection) error {
+		docs := make([]interface{}, len(m))
+
+		for i := range m {
+			docs[i] = m[i]
+		}
+
+		b := c.Bulk()
+		b.Insert(docs...)
+
+		_, err := b.Run()
+		return err
+	}
+
+	return Mongo.Run(MachinesColl, query)
+}
+
 // DeleteMachine deletes the machine from mongodb, it is here just for cleaning
 // purposes(after tests), machines should not be removed from database  unless
 // you are kloud

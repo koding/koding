@@ -223,7 +223,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 		k.send(ctx)
 	}()
 
-	return ControlResult{
+	return &ControlResult{
 		EventId: eventId,
 	}, nil
 }
