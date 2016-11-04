@@ -1,10 +1,10 @@
 #! 4691279c-8028-4275-b174-ac9192669997
 # title: login_to_an_existing_team_with_alwaysON_VM
 # start_uri: /
-# tags: automated
+# tags: sandbox
 #
 
-Enter "{{ always_on_existing_team.name }}" (in lowercase like in the 'rainforestqateam') in the input field 'your-team-name' and click on 'LOGIN' button and then if you see 'Authentication Required' form enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In' (if not do nothing and check the items below)
+Enter "{{ always_on_existing_team.name }}" (in lowercase like in the 'rainforestqateam') in the input field 'your-team-name' and click on 'LOGIN' button and then if you see 'Authentication Required' form enter "koding" in the 'User Name:' and "1q2w3e4r" in the 'Password:' fields and click on 'Log In' (if not do nothing and check the items below)
 Do you see 'Sign in to {{ always_on_existing_team.name }}' text? Do you see 'Username or Email' and 'Password' fields and a 'SIGN IN' button?
 
 Enter "rainforestqa99@koding.com" in the 'Username or Email' and "rainforestqa99" in the 'Password' fields and click on 'SIGN IN' button

@@ -26,13 +26,13 @@ Click on 'Credentials' tab and then click on 'USE THIS & CONTINUE' button next t
 Have you seen 'Verifying Credentials...' message displayed? Are you switched to 'Stack Template' tab? (If you're not switched and you got 'Failed to verify: operation timed out' error, click on the same button again)
 
 Click on the 'SAVE' button on top right and wait for a few seconds for that process to be completed
-Do you see 'Share Your Stack' title on a pop-up displayed? Do you see that 'Share the credentials I used for this stack with my team.' checkbox is already checked? Do you see 'CANCEL' and 'SHARE WITH THE TEAM' buttons?
+Do you see 'MAKE TEAM DEFAULT', 'INITIALIZE' and 'SAVE' buttons?
 
-Click on the 'SHARE WITH THE TEAM' button and then click on the 'YES' button and wait for a while for process to be completed
-Do you see 'Rainforestqa99's Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'Read Me' text and a 'NEXT' and 'VIEW STACK TEMPLATE' buttons on the bottom? Do you see 'STACKS', 'Rainforestqa99's Stack' and 'example-instance-1' labels on left sidebar?
+Click on 'INITIALIZE' button and wait for a few seconds for process to be completed
+Is that page closed? Do you see 'Rainforestqa99's Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'Read Me' text and a 'NEXT' and 'VIEW STACK TEMPLATE' buttons on the bottom? Do you see 'STACKS', 'Rainforestqa99's Stack' and 'example-instance-1' labels on left sidebar?
 
 Click on the 'NEXT' button and then click on the 'BUILD STACK' button and wait for a few minutes for process to be completed
-Do you see 'Success' text? Do you see 'Your stack has been built.' text below it? Do you see 'View The Logs', 'Install Your KD' and 'Invite to Collaborate' sections? Do you see 'START CODING' button on the bottom? Do you see 'Rainforestqa99'S Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'example_1' label? Do you see '/home/rainforestqa99' label on top of a file list? Do you see 'cloud-init-o...' file on top and 'Terminal' tab on the bottom pane?
+Do you see 'Success! Your stack has been built.' text? Do you see 'View The Logs', 'Connect your Local Machine' and 'Invite to Collaborate' sections? Do you see 'START CODING' button on the bottom? Do you see 'Rainforestqa99'S Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'example-instance-1' label? Do you see '/home/rainforestqa99' label on top of a file list? Do you see 'cloud-init-o...' file on top and 'Terminal' tab on the bottom pane?
 
 Click 'example-instance' labels on the left
 Do you see file 'testfile{{random.number}}.txt' with arrow icon at the left in the file tree?
