@@ -370,20 +370,6 @@ func TestNotificationCreation(t *testing.T) {
 			for _, notification := range nl.Notifications {
 				So(notification.Glanced, ShouldEqual, true)
 			}
-
-			Convey("As a message owner I should be able to receive new notifications as unread after glance", func() {
-				createReplyHelper(thirdUser, firstMessage, "anotherreply")
-
-				nl, err := fetchNotification(ownerAccount.Id, testGroupChannel)
-				So(err, ShouldBeNil)
-				So(nl, ShouldNotBeNil)
-				So(nl.UnreadCount, ShouldEqual, 1)
-				So(len(nl.Notifications), ShouldEqual, 2)
-				So(nl.Notifications[0].Glanced, ShouldEqual, false)
-
-				So(nl.Notifications[1].Glanced, ShouldEqual, true)
-
-			})
 		})
 
 		Convey("I should be able to receive notifications when a user mentions me in their post", func() {
