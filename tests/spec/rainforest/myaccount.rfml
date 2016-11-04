@@ -17,7 +17,7 @@ Click on 'My Account'
 Do you see 'First Name', 'Last Name', 'Email Address' and 'UserName' field?
 
 Enter {{ random.first_name }} in 'First Name' field and enter {{ random.last_name }} in 'Last Name' field then click on 'Save Changes'
-Do you see 'Your account information is updated' message?
+Do you see 'Your account information is updated.' message?
 
 Enter new {{ random.first_name }}@koding.com in the 'Email address' then click on 'Save Changes'
 Do you see 'Please verify your current password'  modal?

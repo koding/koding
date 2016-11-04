@@ -38,7 +38,10 @@ Mouse over the editor header where the file '{{random.address_city}}{{random.num
 Is editor tab closed?
 
 Mouse over the editor header where the file '{{random.address_city}}{{random.number}}.txt' is opened and click 'x' icon
-Is editor tab closed?
+Do you see a pop-up with 'Do you want to save your changes?' title?
+
+Click on 'DON'T SAVE' button
+Is the editor tab closed?
 
 Double click on the '{{random.address_city}}{{random.number}}.txt' file
 Do you see a new editor tab opened for this file? Do you see the same file content you entered before for the original file ('Lorem ipsum...')?

@@ -26,7 +26,7 @@ Click on the 'NEXT' and 'BUILD STACK' buttons respectively
 Do you see 'Fetching and validating credentials...' text in a progress bar? Do you see a green progress bar below 'example-instance' label on left sidebar?
 
 Wait for a few minutes for process to be completed
-Do you see 'Success' text? Do you see 'Your stack has been built.' text below it? Do you see 'View The Logs', 'Install Your KD' and 'Invite to Collaborate' sections? Do you see 'START CODING' button on the bottom?
+Do you see 'Success! Your stack has been built.' text? Do you see 'View The Logs', 'Connect your Local Machine' and 'Invite to Collaborate' sections? Do you see 'START CODING' button on the bottom?
 
 Move your mouse over 'example-instance' label on left sidebar and click on the circle button appeared next to it
 Has a pop-up appeared? Do you see 'Stacks', 'Virtual Machines' and 'Credentials' tabs on top? Do you see 'example-inst_' under 'Virtual Machines' section? Do you see 'Edit VM Name', 'VM Power', 'Always On', 'VM Sharing' and 'Build Logs' sections under it?

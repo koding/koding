@@ -13,7 +13,7 @@ Do you see 'Enable “Try On Koding” Button' text? Do you see a toggle button 
 Click on the toggle button
 Is it turned into green? Is 'OFF' updated as 'ON'? Do you see a text field appeared starting with '<a href="https://_' text? Do you see '_Try on Koding' button appeared below that text field?
 
-Open a new incognito window by clicking on the 3 dots on the top corner of the browser and selecting 'New Incognito Window' and then go to '{{ random.last_name }}{{ random.number }}.{{ site.host }}' by pasting the url (using ctrl-v) in the address bar,then if you see 'Authentication Required' form enter "koding" in the 'User Name' and "1q2w3e4r" in the 'Password' fields and click on 'Log In' (if not do nothing and check the items below) 
+Open a new incognito window by clicking on the 3 dots on the top corner of the browser and selecting 'New Incognito Window' and then go to '{{ random.last_name }}{{ random.number }}.{{site.host}}' by pasting the url (using ctrl-v) in the address bar,then if you see 'Authentication Required' form enter "koding" in the 'User Name:' and "1q2w3e4r" in the 'Password:' fields and click on 'Log In' (if not do nothing and check the items below) 
 Do you see 'Sign in to {{ random.last_name }}{{ random.number }}' text, 'Username or Email' and 'Password' fields and a 'SIGN IN' button? Do you see 'If you don't have a Koding account sign up here so you can join {{ random.last_name }}{{ random.number }}!' text below that form?
 
 Enter "rainforestqa22" both in the 'Username or Email' and 'Password' fields and click on 'SIGN IN' button
