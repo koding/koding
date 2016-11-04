@@ -842,7 +842,7 @@ setLabel = (machineUId, label) ->
         return reject err  if err
         resolve newLabel
 
-cloneStackTemplate = (template, revive) ->
+cloneStackTemplate = (template, revive, callback = ->) ->
 
   new kd.NotificationView { title:'Cloning Stack Template' }
 
@@ -850,16 +850,15 @@ cloneStackTemplate = (template, revive) ->
   template = remote.revive template  if revive
 
   template.clone (err, stackTemplate) ->
-    if err
-      return new kd.NotificationView
-        title: 'Error occured while cloning template'
+    return callback err  if err
 
     Tracker.track Tracker.STACKS_CLONED_TEMPLATE
     reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
     kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"
+    callback null
 
 
-shareWithTeam = (stackTemplate) ->
+shareWithTeam = (stackTemplate, callback = -> ) ->
 
   { reactor, computeController: cc, groupsController } = kd.singletons
   { credentials, config: { requiredProviders } } = stackTemplate
@@ -867,9 +866,8 @@ shareWithTeam = (stackTemplate) ->
 
   createShareModal (needShare, modal) ->
     stackTemplate.shareWithTeam (err, stackTemplate) ->
-      if err
-        return new kd.NotificationView
-          title: 'Error occured while sharing template'
+
+      return callback err  if err
 
       if needShare
       then cc.shareCredentials credentials, requiredProviders, -> modal.destroy()
@@ -877,6 +875,7 @@ shareWithTeam = (stackTemplate) ->
       remote.api.JGroup.one { slug }, (err, _currentGroup) ->
         reactor.dispatch 'LOAD_TEAM_SUCCESS', { team: _currentGroup }
         _currentGroup.sendNotification 'ShareStackTemplate', stackTemplate
+        callback err
 
 
 makeTeamDefault = (stackTemplate, callback = ->) ->
@@ -887,21 +886,19 @@ makeTeamDefault = (stackTemplate, callback = ->) ->
 
   createShareModal (needShare, modal) ->
     stackTemplate.makeTeamDefault (err, stackTemplate) ->
-      if err
-        return new kd.NotificationView
-          title: 'Error occured while sharing template'
+      return callback err  if err
 
       if needShare
       then cc.shareCredentials credentials, requiredProviders, -> modal.destroy()
       else modal.destroy()
       remote.api.JGroup.one { slug }, (err, _currentGroup) ->
         reactor.dispatch 'LOAD_TEAM_SUCCESS', { team: _currentGroup }
-        _currentGroup.sendNotification 'StackTemplateChanged', stackTemplate
-        callback err, stackTemplate
+        _currentGroup.sendNotification 'ShareStackTemplate', stackTemplate
+        callback err
 
 
 
-makePrivate = (stackTemplate) ->
+makePrivate = (stackTemplate, callback = ->) ->
 
   { reactor } = kd.singletons
   { group: slug } = stackTemplate
@@ -923,14 +920,12 @@ makePrivate = (stackTemplate) ->
         loader   : yes
         callback : ->
           stackTemplate.makePrivate (err, data) ->
-            if err
-              return new kd.NotificationView
-                title: 'Error occured while sharing template'
+            return callback err  if err
             modal.destroy()
             remote.api.JGroup.one { slug }, (err, _currentGroup) ->
               reactor.dispatch 'LOAD_TEAM_SUCCESS', { team: _currentGroup }
               _currentGroup.sendNotification 'UnshareStackTemplate', stackTemplate
-
+              callback err
 
 
 loadExpandedMachineLabel = (label) ->
