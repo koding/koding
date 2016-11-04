@@ -64,12 +64,12 @@ module.exports = utils = {
     basePattern  = (kd.config.domains.main.split ':')[0].replace /\./g, '\\.'
 
     predefinedPatterns = [
-      # <team-domain>.<(dev|sandbox|latest|prod)>.koding.com
-      { predict: "(dev|sandbox|latest|prod)\.#{basePattern}" }
-
       # <team-domain>.koding.com
       # <team-domain>.<username>.koding.team
       { predict: "#{basePattern}" }
+
+      # <team-domain>.<(dev|sandbox|latest|prod)>.koding.com
+      { predict: "(dev|sandbox|latest|prod)\.#{basePattern}" }
 
       # <team-domain>.<IPv4>.xip.io
       # IPV4: A.B.C.D
