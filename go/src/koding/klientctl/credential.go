@@ -83,7 +83,7 @@ func CredentialImport(c *cli.Context, log logging.Logger, _ string) (int, error)
 
 		last := keys[len(keys)-1]
 
-		fmt.Fprintf(&buf, "and %d %s credentials.", len(creds[last]), last)
+		fmt.Fprintf(&buf, " and %d %s credentials.", len(creds[last]), last)
 	}
 
 	fmt.Println(buf.String())
