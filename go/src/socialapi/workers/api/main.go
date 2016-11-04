@@ -9,7 +9,6 @@ import (
 	"socialapi/workers/api/modules/account"
 	"socialapi/workers/api/modules/channel"
 	"socialapi/workers/api/modules/client"
-	"socialapi/workers/api/modules/interaction"
 	"socialapi/workers/api/modules/message"
 	"socialapi/workers/api/modules/messagelist"
 	"socialapi/workers/api/modules/participant"
@@ -63,7 +62,6 @@ func main() {
 	account.AddHandlers(m)
 	channel.AddHandlers(m)
 	client.AddHandlers(m)
-	interaction.AddHandlers(m)
 	message.AddHandlers(m)
 	messagelist.AddHandlers(m)
 	participant.AddHandlers(m)

@@ -29,8 +29,6 @@ func main() {
 
 	r.SetContext(realtime.New(r.Bongo.Broker.MQ, r.Log))
 	r.Register(models.ChannelMessage{}).OnUpdate().Handle((*realtime.Controller).MessageUpdated)
-	r.Register(models.Interaction{}).OnCreate().Handle((*realtime.Controller).InteractionSaved)
-	r.Register(models.Interaction{}).OnDelete().Handle((*realtime.Controller).InteractionDeleted)
 	r.Register(models.MessageReply{}).OnCreate().Handle((*realtime.Controller).MessageReplySaved)
 	r.Register(models.MessageReply{}).OnDelete().Handle((*realtime.Controller).MessageReplyDeleted)
 	r.Register(models.ChannelMessageList{}).OnCreate().Handle((*realtime.Controller).MessageListSaved)
