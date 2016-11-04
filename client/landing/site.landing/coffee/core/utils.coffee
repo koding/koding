@@ -88,7 +88,7 @@ module.exports = utils = {
 
       unless labelFn
         labelFn = do (predict) -> (hostname) ->
-          hostname.replace(new RegExp("\.?#{predict}$"), '').split('.').pop()
+          hostname.replace(new RegExp("\\.?#{predict}$"), '').split('.').pop()
 
       if hostname.match new RegExp "#{predict}$"
         return labelFn(hostname) or 'koding'
