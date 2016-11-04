@@ -115,7 +115,7 @@ module.exports = class Sidebar extends React.Component
           return @showErrorMessage 'Error occured while making this stack team default'  if err
           EnvironmentFlux.actions.makeTeamDefault template, (err) =>
             return @showErrorMessage 'Error occured while making this stack team default'  if err
-            return @showErrorMessage 'Your stack successfully set.'
+            return @showErrorMessage 'Your stack is team default now.'
       when 'Delete'
         computeController.deleteStackTemplate draft.toJS(), yes
 

@@ -111,7 +111,7 @@ module.exports = class SidebarStackSection extends React.Component
           return @showErrorMessage 'Error occured while making this stack team default'  if err
           EnvironmentFlux.actions.makeTeamDefault template, (err) =>
             return @showErrorMessage 'Error occured while making this stack team default'  if err
-            return @showErrorMessage 'Your stack successfully set.'
+            return @showErrorMessage 'Your stack is team default now.'
 
       when 'Share Stack With Team'
         remote.api.JStackTemplate.one { _id }, (err, template) =>
@@ -124,7 +124,7 @@ module.exports = class SidebarStackSection extends React.Component
           return @showErrorMessage 'Error occured while unsharing this stack'  if err
           EnvironmentFlux.actions.makePrivate template, (err) =>
             return @showErrorMessage 'Error occured while unsharing this stack'  if err
-            return @showErrorMessage 'Your stack successfully private'
+            return @showErrorMessage 'Your stack is private now.'
 
 
   showErrorMessage: (title) -> new kd.NotificationView { title }
