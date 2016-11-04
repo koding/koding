@@ -70,10 +70,7 @@ type Config struct {
 		KloudSecretKey string
 		KloudAddr      string
 	}
-	Segment        string
-	GatherIngestor struct {
-		Port int
-	}
+	Segment string
 	Mailgun struct {
 		Domain     string
 		PrivateKey string
