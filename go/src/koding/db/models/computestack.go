@@ -31,9 +31,10 @@ type ComputeStack struct {
 		ModifiedAt time.Time `bson:"modifiedAt"`
 	} `bson:"status"`
 
-	Config bson.M `bson:"config,omitempty"`
-	Meta   bson.M `bson:"meta,omitempty"`
-	Title  string `bson:"title,omitempty"`
+	Revision string `bson:"stackRevision"`
+	Config   bson.M `bson:"config,omitempty"`
+	Meta     bson.M `bson:"meta,omitempty"`
+	Title    string `bson:"title,omitempty"`
 }
 
 func (c *ComputeStack) State() stackstate.State {

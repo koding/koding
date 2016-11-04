@@ -77,7 +77,7 @@ func (bs *BaseStack) HandleApply(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	return stack.ControlResult{
+	return &stack.ControlResult{
 		EventId: bs.Eventer.ID(),
 	}, nil
 }
