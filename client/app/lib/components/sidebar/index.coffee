@@ -19,6 +19,7 @@ SidebarFlux = require 'app/flux/sidebar'
 TeamFlux = require 'app/flux/teams'
 DEFAULT_LOGOPATH = '/a/images/logos/sidebar_footer_logo.svg'
 MENU = null
+remote = require 'app/remote'
 isAdmin = require 'app/util/isAdmin'
 canCreateStacks = require 'app/util/canCreateStacks'
 
@@ -92,6 +93,8 @@ module.exports = class Sidebar extends React.Component
     MENU.destroy()
 
     draft = @state.drafts.get id
+    _id = draft.get '_id'
+
     switch title
       when 'Edit','ViewStack'
         router.handleRoute "/Stack-Editor/#{id}"
@@ -99,15 +102,25 @@ module.exports = class Sidebar extends React.Component
         EnvironmentFlux.actions.generateStack(id).then ({ template }) ->
           appManager.tell 'Stackeditor', 'reloadEditor', template._id
       when 'Clone'
-        EnvironmentFlux.actions.cloneStackTemplate draft.toJS(), yes
+        remote.api.JStackTemplate.one { _id }, (err, template) =>
+          return @showErrorMessage 'Error occured while cloning template'  if err
+          EnvironmentFlux.actions.cloneStackTemplate template, no, (err) =>
+            return @showErrorMessage 'Error occured while cloning template'  if err
+            return @showErrorMessage 'Your stack template successfully cloned'
       when 'Open on GitLab'
         remoteUrl = draft.getIn ['config', 'remoteDetails', 'originalUrl']
         linkController.openOrFocus remoteUrl
       when 'Make Team Default'
-        computeController.makeTeamDefault draft.toJS(), yes
+        remote.api.JStackTemplate.one { _id }, (err, template) =>
+          return @showErrorMessage 'Error occured while making this stack team default'  if err
+          EnvironmentFlux.actions.makeTeamDefault template, (err) =>
+            return @showErrorMessage 'Error occured while making this stack team default'  if err
+            return @showErrorMessage 'Your stack successfully set.'
       when 'Delete'
         computeController.deleteStackTemplate draft.toJS(), yes
 
+
+  showErrorMessage: (title) -> new kd.NotificationView { title }
 
 
   onDraftTitleClick: (id, event) ->
