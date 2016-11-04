@@ -276,12 +276,12 @@ fetchGroupStackTemplate = (client, options, callback) ->
     { _id } = options
     # TODO Make this works with multiple stacks ~ gg
 
-    _id = if _id then _id else group.sharedStackTemplates?[0] or group.stackTemplates[0]
+    _id ?= group.sharedStackTemplates?[0] or group.stackTemplates[0]
 
     # TODO make all these in seperate functions
     JStackTemplate = require './stacktemplate'
 
-    JStackTemplate.one { _id: _id }, (err, template) ->
+    JStackTemplate.one { _id }, (err, template) ->
 
       if err
         console.warn "Failed to fetch stack template for #{group.slug} group"
