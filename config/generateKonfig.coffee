@@ -113,7 +113,6 @@ module.exports = (options, credentials) ->
     privateKey: credentials.kontrol.privateKey
 
   socialApiProxyUrl = "#{options.customDomain.local}/api/social"
-  vmwatcherPort = '6400'
 
   kloud =
     port: kloudPort = 5500
@@ -146,18 +145,8 @@ module.exports = (options, credentials) ->
     credentialEndPoint: "#{socialApiProxyUrl}/credential"
 
     janitorSecretKey: credentials.janitor.secretKey
-    vmWatcherSecretKey: credentials.vmwatcher.secretKey
     terraformerSecretKey: credentials.terraformer.secretKey
 
-  vmwatcher =
-    port: vmwatcherPort
-    kloudSecretKey: kloud.kloudSecretKey
-    kloudAddr: kloud.address
-    connectToKlient: options.vmwatcherConnectToKlient
-    debug: false,
-    mongo: credentials.mongo
-    redis: credentials.redis.url
-    secretKey: credentials.vmwatcher.secretKey
 
   marketingPagesURL = "http://www.koding.com"
 
@@ -289,7 +278,6 @@ module.exports = (options, credentials) ->
     gatekeeper                    : gatekeeper
     integration                   : integration
     recaptcha                     : recaptcha
-    vmwatcher                     : vmwatcher
     uri                           : { address: options.customDomain.public }
     misc                          : { claimGlobalNamesForUsers: no , debugConnectionErrors: yes, updateAllSlugs: false }
     # TODO: average request count per hour for a user should be measured and a reasonable limit should be set

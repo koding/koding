@@ -63,13 +63,6 @@ type Config struct {
 			Local  string
 		}
 	}
-	Vmwatcher struct {
-		Port           string
-		AwsKey         string
-		AwsSecret      string
-		KloudSecretKey string
-		KloudAddr      string
-	}
 	Segment string
 	Mailgun struct {
 		Domain     string
