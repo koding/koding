@@ -112,7 +112,7 @@ body.ide
           &.settings:before
             content         none
 
-          &.active:before
+          &.active.focus:before
             opacity         1
 
         .tab-handle-input
@@ -161,7 +161,7 @@ body.ide .dark
 
   .kdtabhandle.kddraggable
     color                   dark-tab-color
-
+    border-top              2px solid #2b2b30
     &:hover .options
       opacity               1
 
@@ -170,6 +170,7 @@ body.ide .dark
       color                 dark-active-tab-color
 
     &.active.focus
+      color                 #fff
       border-top            2px solid #67A2EE
 
     &.menu-visible
