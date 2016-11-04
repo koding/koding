@@ -1213,62 +1213,6 @@ module.exports = class ComputeController extends KDController
       kd.singletons.router.handleRoute route
 
 
-  shareStackWithTeam: (stackTemplate, callback) ->
-
-    { reactor, groupsController } = kd.singletons
-    { credentials, config: { requiredProviders } } = stackTemplate
-
-    createShareModal (needShare, modal) =>
-
-      groupsController.setDefaultTemplate stackTemplate, 'share', (err) =>
-        if needShare
-        then @shareCredentials credentials, requiredProviders, -> modal.destroy()
-        else modal.destroy()
-
-
-  makeStackPrivate: (stackTemplate) ->
-
-    { reactor, groupsController } = kd.singletons
-    modal = new ContentModal
-      title   : 'Are you sure?'
-      content : "<p class='text-center'>
-        Your teammate will have no longer to access this stack anymore
-        If they haven't clone yet.</p>"
-      cssClass : 'content-modal'
-      buttons :
-        No         :
-          title    : 'Cancel'
-          cssClass : 'solid cancel medium'
-          callback : -> modal.destroy()
-        Yes        :
-          title    : 'Yes'
-          cssClass : 'solid medium'
-          loader   : yes
-          callback : ->
-            groupsController.setPrivate stackTemplate, (err) ->
-              modal.destroy()
-              title = 'Error occured while unsharing your stack'  if err
-              title = 'Your stack is private now.'
-              new kd.NotificationView { title }
-
-
-  makeTeamDefault: (stackTemplate, revive) ->
-
-    if revive
-      stackTemplate = remote.revive stackTemplate
-
-    { credentials, config: { requiredProviders } } = stackTemplate
-    { groupsController, reactor } = kd.singletons
-
-    createShareModal (needShare, modal) =>
-
-      groupsController.setDefaultTemplate stackTemplate, 'default', (err) =>
-
-        if needShare
-        then @shareCredentials credentials, requiredProviders, -> modal.destroy()
-        else modal.destroy()
-
-
   shareCredentials: (credentials, requiredProviders, callback) ->
 
     for selectedProvider in requiredProviders
