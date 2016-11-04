@@ -216,11 +216,11 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 
 	t.Resource["azure_instance"] = res.AzureInstance
 
-	if err := t.Flush(); err != nil {
+	if err := t.ShadowVariables("FORBIDDEN", "azure_publish_settings", "azure_settings_file"); err != nil {
 		return nil, err
 	}
 
-	if err := t.ShadowVariables("FORBIDDEN", "azure_publish_settings", "azure_settings_file"); err != nil {
+	if err := t.Flush(); err != nil {
 		return nil, err
 	}
 
@@ -289,7 +289,7 @@ func (s *Stack) injectEndpointRules(vm map[string]interface{}) {
 		endpoints = append(endpoints, vmSSH)
 	}
 
-	vm["endpoint"] = provider.ToSlice(endpoints)
+	vm["endpoint"] = endpoints
 }
 
 func (s *Stack) injectCloudInit(vm map[string]interface{}, name, kiteKeyName string) (map[string]string, error) {

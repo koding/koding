@@ -3,8 +3,6 @@ package provider
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"strconv"
 	"strings"
 
 	"koding/kites/kloud/stack"
@@ -17,85 +15,6 @@ import (
 	"github.com/hashicorp/terraform/config"
 	"github.com/koding/logging"
 )
-
-// Slice is a workaround for hcl.DecodeObject,
-// which always appends to existing slices,
-// thus making the output of DecodeObject
-// non-idempotent, as it always doubles
-// any slices values.
-//
-// Wrapping a slice value with ToSlice
-// prevents from doubling the items
-// on hcl.DecodeObject.
-type Slice map[string]interface{}
-
-var (
-	_ json.Marshaler   = new(Slice)
-	_ json.Unmarshaler = new(Slice)
-)
-
-func (s *Slice) init(v []interface{}) {
-	*s = make(Slice, len(v))
-
-	for i := range v {
-		(*s)[strconv.Itoa(i)] = v[i]
-	}
-}
-
-func (s Slice) slice() []interface{} {
-	max := 0
-	slice := make([]interface{}, len(s))
-
-	for k, v := range s {
-		i, err := strconv.Atoi(k)
-		if err != nil {
-			// HCL's decoder errornously merges object's keys
-			// into the slice. In order to make it working,
-			// we just ignore them.
-			continue
-		}
-
-		slice[i] = v
-
-		if i > max {
-			max = i
-		}
-	}
-
-	return slice[:max+1]
-}
-
-// MarshalJSON implements the json.Marshaler interface.
-func (s Slice) MarshalJSON() ([]byte, error) {
-	return json.Marshal(s.slice())
-}
-
-// UnmarshalJSON implements the json.Unmarshaler interface.
-func (s *Slice) UnmarshalJSON(p []byte) error {
-	var slice []interface{}
-
-	if err := json.Unmarshal(p, &slice); err != nil {
-		return err
-	}
-
-	s.init(slice)
-
-	return nil
-}
-
-// ToSlice creates a Slice value out of slice argument.
-func ToSlice(slice []interface{}) Slice {
-	var s Slice
-
-	s.init(slice)
-
-	return s
-}
-
-// FromSlice gives generic slice representation of s.
-func FromSlice(s Slice) []interface{} {
-	return s.slice()
-}
 
 // Template represents a HCL template.
 type Template struct {
@@ -269,34 +188,32 @@ func (t *Template) DetectUserVariables(prefix string) (map[string]string, error)
 // ShadowVariables shadows the given variables with the given holder. Variables
 // need to be in interpolation form, i.e: ${var.foo}
 func (t *Template) ShadowVariables(holder string, vars ...string) error {
-	for i, item := range t.node.Items {
-		key := item.Keys[0].Token.Text
-		switch key {
-		case "resource", `"resource"`:
-			// check for both, quoted and unquoted
-		default:
-			// We are going to shadow any variable inside the resource,
-			// anything else doesn't matter.
-			continue
+	replace := func(s string) string {
+		variables := ReadVariables(s)
+		if len(variables) == 0 {
+			return ""
 		}
 
-		item.Val = ast.Walk(item.Val, func(n ast.Node) (ast.Node, bool) {
-			switch t := n.(type) {
-			case *ast.LiteralType:
-				for _, v := range vars {
-					iVar := fmt.Sprintf(`${var.%s}`, v)
-					t.Token.Text = strings.Replace(t.Token.Text, iVar, holder, -1)
+		var matching []Variable
+
+	lookup:
+		for _, variable := range variables {
+			for _, name := range vars {
+				if variable.Name == name {
+					matching = append(matching, variable)
+					continue lookup
 				}
-
-				n = t
 			}
-			return n, true
-		})
+		}
 
-		t.node.Items[i] = item
+		if len(matching) == 0 {
+			return ""
+		}
+
+		return ReplaceVariables(s, matching, holder)
 	}
 
-	return t.decode("resource", &t.Resource)
+	return object.ReplaceFunc(t.Resource, replace)
 }
 
 // fillVariables finds variables declared with the given prefix and fills the

@@ -75,6 +75,19 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
+	machines, err := bs.plan()
+	if err != nil {
+		return nil, err
+	}
+
+	bs.Log.Debug("Machines planned to be created: %+v", machines)
+
+	return &stack.PlanResponse{
+		Machines: machines.Slice(),
+	}, nil
+}
+
+func (bs *BaseStack) Plan() (stack.Machines, error) {
 	out, err := bs.Builder.Template.JsonOutput()
 	if err != nil {
 		return nil, err
@@ -86,11 +99,9 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 	}
 	defer tfKite.Close()
 
-	stackTemplate.Template.Content = out
-
 	tfReq := &tf.TerraformRequest{
-		Content:   stackTemplate.Template.Content,
-		ContentID: contentID,
+		Content:   out,
+		ContentID: bs.Req.Username + "-" + bs.Arg.(*stack.PlanRequest).StackTemplateID,
 		TraceID:   bs.TraceID,
 	}
 
@@ -101,14 +112,5 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	machines, err := bs.Planner.MachinesFromPlan(plan)
-	if err != nil {
-		return nil, err
-	}
-
-	bs.Log.Debug("Machines planned to be created: %+v", machines)
-
-	return &stack.PlanResponse{
-		Machines: machines.Slice(),
-	}, nil
+	return bs.Planner.MachinesFromPlan(plan)
 }

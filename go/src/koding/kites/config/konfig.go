@@ -1,6 +1,8 @@
 package config
 
 import (
+	"net/url"
+	"path"
 	"path/filepath"
 	"time"
 
@@ -21,6 +23,8 @@ var KonfigCache = &CacheOptions{
 }
 
 type Konfig struct {
+	Environment string `json:"environment,omitempty"`
+
 	// Kite configuration.
 	KiteKeyFile string `json:"kiteKeyFile,omitempty"`
 	KiteKey     string `json:"kiteKey,omitempty"`
@@ -50,6 +54,17 @@ func (k *Konfig) KiteHome() string {
 
 func (k *Konfig) KiteConfig() *konfig.Config {
 	return k.buildKiteConfig()
+}
+
+func (k *Konfig) KlientGzURL() string {
+	u, err := url.Parse(k.KlientLatestURL)
+	if err != nil {
+		return ""
+	}
+
+	u.Path = path.Join(path.Base(u.Path), k.Environment, "klient.gz")
+
+	return u.String()
 }
 
 func (k *Konfig) buildKiteConfig() *konfig.Config {
@@ -108,6 +123,7 @@ func (e *Environments) kdEnv() string {
 
 func NewKonfig(e *Environments) *Konfig {
 	return &Konfig{
+		Environment:        e.Env,
 		KiteKeyFile:        "/etc/kite/kite.key",
 		KlientURL:          "http://127.0.0.1:56789/kite",
 		KontrolURL:         Builtin.Endpoints.Kontrol,

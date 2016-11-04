@@ -1,0 +1,27 @@
+{
+  "resource": {
+    "marathon_app": {
+      "multi-app": {
+        "app_id": "/multi-app",
+        "container": {
+          "docker": [
+            {
+              "image": "python:3",
+              "network": "BRIDGE"
+            },
+            {
+              "image": "ubuntu:14.04",
+              "network": "BRIDGE"
+            },
+            {
+              "image": "centos:7",
+              "network": "BRIDGE"
+            }
+          ]
+        },
+        "cpus": 2,
+        "mem": 128
+      }
+    }
+  }
+}

@@ -321,3 +321,7 @@ func (s *Stack) newTunnel(resourceName string) *Tunnel {
 
 	return t
 }
+
+func (s *Stack) plan() (stack.Machines, error) {
+	return s.machinesFromTemplate(s.Builder.Template)
+}
