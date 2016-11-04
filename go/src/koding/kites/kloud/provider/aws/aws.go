@@ -3,6 +3,7 @@ package aws
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -184,6 +185,11 @@ func (c *Cred) AccountID() (string, error) {
 	return "", err
 }
 
+var (
+	reAccessKey = regexp.MustCompile("AKIA[0-9A-Z]{16}")
+	reSecretKey = regexp.MustCompile("[0-9a-zA-Z/+]{40}")
+)
+
 // Valid implements the kloud.Validator interface.
 func (meta *Cred) Valid() error {
 	if meta.Region == "" {
@@ -194,6 +200,12 @@ func (meta *Cred) Valid() error {
 	}
 	if meta.SecretKey == "" {
 		return errors.New("aws meta: secret key is empty")
+	}
+	if !reAccessKey.MatchString(meta.AccessKey) {
+		return errors.New("aws meta: access key is illformed")
+	}
+	if !reSecretKey.MatchString(meta.SecretKey) {
+		return errors.New("aws meta: secret key is illformed")
 	}
 	return nil
 }
