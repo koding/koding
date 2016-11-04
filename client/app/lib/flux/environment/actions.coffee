@@ -21,7 +21,7 @@ Tracker = require 'app/util/tracker'
 $ = require 'jquery'
 ContentModal = require 'app/components/contentModal'
 isAdmin = require 'app/util/isAdmin'
-
+createShareModal = require 'stack-editor/editor/createShareModal'
 _eventsCache = { machine: {}, stack: no }
 
 _bindMachineEvents = (environmentData) ->
@@ -858,6 +858,81 @@ cloneStackTemplate = (template, revive) ->
     reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
     kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"
 
+
+shareWithTeam = (stackTemplate) ->
+
+  { reactor, computeController: cc, groupsController } = kd.singletons
+  { credentials, config: { requiredProviders } } = stackTemplate
+  { group: slug } = stackTemplate
+
+  createShareModal (needShare, modal) ->
+    stackTemplate.shareWithTeam (err, stackTemplate) ->
+      if err
+        return new kd.NotificationView
+          title: 'Error occured while sharing template'
+
+      if needShare
+      then cc.shareCredentials credentials, requiredProviders, -> modal.destroy()
+      else modal.destroy()
+      remote.api.JGroup.one { slug }, (err, _currentGroup) ->
+        reactor.dispatch 'LOAD_TEAM_SUCCESS', { team: _currentGroup }
+        _currentGroup.sendNotification 'ShareStackTemplate', stackTemplate
+
+
+makeTeamDefault = (stackTemplate, callback = ->) ->
+
+  { reactor, computeController: cc, groupsController } = kd.singletons
+  { credentials, config: { requiredProviders } } = stackTemplate
+  { group: slug } = stackTemplate
+
+  createShareModal (needShare, modal) ->
+    stackTemplate.makeTeamDefault (err, stackTemplate) ->
+      if err
+        return new kd.NotificationView
+          title: 'Error occured while sharing template'
+
+      if needShare
+      then cc.shareCredentials credentials, requiredProviders, -> modal.destroy()
+      else modal.destroy()
+      remote.api.JGroup.one { slug }, (err, _currentGroup) ->
+        reactor.dispatch 'LOAD_TEAM_SUCCESS', { team: _currentGroup }
+        _currentGroup.sendNotification 'StackTemplateChanged', stackTemplate
+        callback err, stackTemplate
+
+
+
+makePrivate = (stackTemplate) ->
+
+  { reactor } = kd.singletons
+  { group: slug } = stackTemplate
+
+  modal = new ContentModal
+    title   : 'Are you sure?'
+    content : "<p class='text-center'>
+      Your teammate will have no longer to access this stack anymore
+      If they haven't clone yet.</p>"
+    cssClass : 'content-modal'
+    buttons :
+      No         :
+        title    : 'Cancel'
+        cssClass : 'solid cancel medium'
+        callback : -> modal.destroy()
+      Yes        :
+        title    : 'Yes'
+        cssClass : 'solid medium'
+        loader   : yes
+        callback : ->
+          stackTemplate.makePrivate (err, data) ->
+            if err
+              return new kd.NotificationView
+                title: 'Error occured while sharing template'
+            modal.destroy()
+            remote.api.JGroup.one { slug }, (err, _currentGroup) ->
+              reactor.dispatch 'LOAD_TEAM_SUCCESS', { team: _currentGroup }
+              _currentGroup.sendNotification 'UnshareStackTemplate', stackTemplate
+
+
+
 loadExpandedMachineLabel = (label) ->
 
   { reactor } = kd.singletons
@@ -912,4 +987,7 @@ module.exports = {
   fetchAndUpdateStackTemplate
   cloneStackTemplate
   loadExpandedMachineLabel
+  shareWithTeam
+  makePrivate
+  makeTeamDefault
 }
