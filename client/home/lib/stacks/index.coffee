@@ -97,7 +97,7 @@ module.exports = class HomeStacks extends kd.CustomScrollView
     for pane in @tabView.panes when kd.utils.slugify(pane.name) is action
       pane_ = @tabView.showPane pane
       if action is 'virtual-machines'
-        {reactor} = kd.singletons
+        { reactor } = kd.singletons
         machine = reactor.evaluate ['MachinesStore']
           .toList()
           .filter (machine) -> machine.get('_id') is identifier
@@ -119,9 +119,9 @@ module.exports = class HomeStacks extends kd.CustomScrollView
     if canCreateStacks()
       @stacks.addSubView view = new HomeStacksCreate
 
-      view.on 'CreateButtonClick', =>
-        @destroy()
-        kd.singletons.router.handleRoute '/Stack-Editor/New'
+      view.on 'CreateButtonClick', ->
+        kd.singletons.appManager
+          .tell 'Stackeditor', 'openStackWizard', handleRoute = no
 
     @stacks.addSubView headerize 'Team Stacks'
     @stacks.addSubView sectionize 'Team Stacks', HomeStacksTeamStacks, { delegate : this }

@@ -177,6 +177,7 @@ generateDev = (KONFIG, options) ->
       echo "  run log [worker]          : to see of specified worker logs only"
       echo "  run buildservices         : to initialize and start services"
       echo "  run services              : to stop and restart services"
+      echo "  run nginx                 : to stop and restart nginx"
       echo "  run printconfig           : to print koding config environment variables (output in json via --json flag)"
       echo "  run migrate [command]     : to apply/revert database changes (command: [create|up|down|version|reset|redo|to|goto])"
       echo "  run mongomigrate [command]: to apply/revert mongo database changes (command: [create|up|down])"
@@ -569,6 +570,9 @@ generateDev = (KONFIG, options) ->
     elif [ "$1" == "services" ]; then
       check_service_dependencies
       services
+
+    elif [ "$1" == "nginx" ]; then
+      nginxrun
 
     elif [ "$1" == "buildservices" ]; then
       check_service_dependencies

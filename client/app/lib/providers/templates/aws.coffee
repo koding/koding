@@ -1,26 +1,31 @@
-module.exports = {
+# AWS PROVIDER DEFAULT STACK TEMPLATE
+
+module.exports =
+  # JSON FORMAT
   json: '''
-  {
-    "provider": {
-      "aws": {
-        "access_key": "${var.aws_access_key}",
-        "secret_key": "${var.aws_secret_key}"
-      }
-    },
-    "resource": {
-      "aws_instance": {
-        "example-instance": {
-          "tags": {
-            "Name": "${var.koding_user_username}-${var.koding_group_slug}"
-          },
-          "instance_type": "t2.nano",
-          "ami": "",
-          "user_data": "\\necho \\\"hello world!\\\" >> /helloworld.txt\\n"
-        }
+{
+  "provider": {
+    "aws": {
+      "access_key": "${var.aws_access_key}",
+      "secret_key": "${var.aws_secret_key}"
+    }
+  },
+  "resource": {
+    "aws_instance": {
+      "aws-instance": {
+        "tags": {
+          "Name": "${var.koding_user_username}-${var.koding_group_slug}"
+        },
+        "instance_type": "t2.nano",
+        "ami": "",
+        "user_data": "\\necho \\\"hello world!\\\" >> /helloworld.txt\\n"
       }
     }
   }
-'''
+}
+    '''
+
+  # YAML FORMAT WITH COMMENTS
   yaml: '''
 # Here is your stack preview
 # You can make advanced changes like modifying your VM,
@@ -33,7 +38,7 @@ provider:
 resource:
   aws_instance:
     # this is the name of your VM
-    example-instance:
+    aws-instance:
       # select your instance_type here: eg. c3.xlarge
       instance_type: t2.nano
       # select your ami (optional) eg. ami-xxxxx (it should be based on ubuntu 14.04)
@@ -45,7 +50,6 @@ resource:
       user_data: |-
         # let's create a file on your root folder:
         echo "hello world!" >> /helloworld.txt
-
         # please note: all commands under user_data will be run as root.
         # now add your credentials and save this stack.
         # once vm finishes building, you can see this file by typing
@@ -53,8 +57,8 @@ resource:
         #
         # for more information please click the link below "Stack Script Docs"
 
-'''
-}
+    '''
+
 
 ### Full YAML Example
 
@@ -132,4 +136,3 @@ resource:
       email: '${var.koding_username}@koding.com'
       notificationEmail: '${var.koding_user_contact_email}'
 ###
-

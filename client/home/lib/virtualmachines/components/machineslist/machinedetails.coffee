@@ -310,7 +310,8 @@ generateSpecs = (machine) ->
   instanceType = jMachine.meta?.instance_type ? configs[providerName]['base-vm']
   size = jMachine.meta?.storage_size
 
-  { ram, cpu } = instanceTypes[instanceType]
+  instanceData = instanceTypes[instanceType]
+  { ram, cpu } = instanceData ? instanceTypes['base-vm']
 
   disk = if size? then "#{size}GB HDD" else 'N/A'
 

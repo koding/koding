@@ -83,7 +83,7 @@ module.exports = {
   STACKS_WIZARD_SELECTED_VAGRANT      : 'selected vagrant provider'
   STACKS_WIZARD_SELECTED_AZURE        : 'selected azure provider'
   STACKS_WIZARD_SELECTED_DIGITALOCEAN : 'selected digitalocean provider'
-  STACKS_WIZARD_SELECTED_GOOGLECLOUD  : 'selected googlecloud provider'
+  STACKS_WIZARD_SELECTED_GOOGLE       : 'selected google provider'
   STACKS_WIZARD_SELECTED_RACKSPACE    : 'selected rackspace provider'
 
   # DATABASE

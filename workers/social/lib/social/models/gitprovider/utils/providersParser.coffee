@@ -1,3 +1,4 @@
+# TODO: Add support for provider slug support ~ GG
 module.exports = providersParser = (content) ->
 
   regex     = /\$\{var\.(\w+?)\_/g
