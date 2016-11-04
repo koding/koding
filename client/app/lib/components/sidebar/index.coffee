@@ -104,7 +104,7 @@ module.exports = class Sidebar extends React.Component
       when 'Clone'
         remote.api.JStackTemplate.one { _id }, (err, template) =>
           return @showErrorMessage 'Error occured while cloning template'  if err
-          EnvironmentFlux.actions.cloneStackTemplate template, no, (err) =>
+          EnvironmentFlux.actions.cloneStackTemplate template, (err) =>
             return @showErrorMessage 'Error occured while cloning template'  if err
             return @showErrorMessage 'Your stack template successfully cloned'
       when 'Open on GitLab'

@@ -842,12 +842,11 @@ setLabel = (machineUId, label) ->
         return reject err  if err
         resolve newLabel
 
-cloneStackTemplate = (template, revive, callback = ->) ->
+cloneStackTemplate = (template, callback = ->) ->
 
   new kd.NotificationView { title:'Cloning Stack Template' }
 
   { reactor } = kd.singletons
-  template = remote.revive template  if revive
 
   template.clone (err, stackTemplate) ->
     return callback err  if err
@@ -858,7 +857,7 @@ cloneStackTemplate = (template, revive, callback = ->) ->
     callback null
 
 
-shareWithTeam = (stackTemplate, callback = -> ) ->
+shareWithTeam = (stackTemplate, callback = ->) ->
 
   { reactor, computeController: cc, groupsController } = kd.singletons
   { credentials, config: { requiredProviders } } = stackTemplate
