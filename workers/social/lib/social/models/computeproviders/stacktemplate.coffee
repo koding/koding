@@ -147,7 +147,7 @@ module.exports = class JStackTemplate extends Module
     return []  unless object
     stackTemplates = []
     for i in [0..object.length-1]
-        stackTemplates.push object[i]
+      stackTemplates.push object[i].toHexString()
 
     return stackTemplates
 
@@ -359,7 +359,7 @@ module.exports = class JStackTemplate extends Module
       { stackTemplates } = group
 
       stackTemplates = makeArray stackTemplates
-      id = @getId()
+      id = @getId().toHexString()
 
       if stackTemplates.length
         unless id in stackTemplates
@@ -394,7 +394,7 @@ module.exports = class JStackTemplate extends Module
       { stackTemplates } = group
 
       stackTemplates = makeArray stackTemplates
-      id = @getId()
+      id = @getId().toHexString()
 
       if stackTemplates.length
         index = stackTemplates.indexOf(id)
@@ -428,7 +428,7 @@ module.exports = class JStackTemplate extends Module
       { stackTemplates } = group
 
       stackTemplates = makeArray stackTemplates
-      id = @getId()
+      id = @getId().toHexString()
 
       if stackTemplates.length
         unless id in stackTemplates
