@@ -146,7 +146,7 @@ module.exports = class JStackTemplate extends Module
 
     return []  unless object
     stackTemplates = []
-    for i in [0..object.length-1]
+    for i in [0..object.length - 1]
       stackTemplates.push object[i].toHexString()
 
     return stackTemplates
