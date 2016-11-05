@@ -23,7 +23,6 @@ export COMMANDS=(
 	koding/kites/cmd/terraformer
 	koding/kites/cmd/tunnelserver
 	koding/workers/guestcleanerworker
-	koding/go-webserver
 	koding/workers/cmd/tunnelproxymanager
 	koding/vmwatcher
 	koding/workers/janitor

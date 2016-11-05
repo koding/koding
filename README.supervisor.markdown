@@ -81,7 +81,6 @@ socialapi:trollmode                   STARTING
 socialapi:webhook                     STARTING
 webserver:authworker                  STARTING
 webserver:broker                      STARTING
-webserver:gowebserver                 STARTING
 webserver:rerouting                   STARTING
 webserver:socialworker                STARTING
 webserver:sourcemaps                  STARTING
@@ -124,7 +123,6 @@ socialapi:trollmode                   RUNNING   pid 3359, uptime 0:00:15
 socialapi:webhook                     RUNNING   pid 3383, uptime 0:00:15
 webserver:authworker                  RUNNING   pid 3446, uptime 0:00:15
 webserver:broker                      RUNNING   pid 3448, uptime 0:00:15
-webserver:gowebserver                 RUNNING   pid 3476, uptime 0:00:15
 webserver:rerouting                   RUNNING   pid 3418, uptime 0:00:15
 webserver:socialworker                RUNNING   pid 3482, uptime 0:00:15
 webserver:sourcemaps                  RUNNING   pid 3419, uptime 0:00:15
