@@ -4,9 +4,11 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -87,15 +89,21 @@ func RandString(n int) string {
 	return hex.EncodeToString(p)
 }
 
+var reKiteID = regexp.MustCompile(`[0-9a-f\-]{36}`)
+
 // QueryString converts Kite ID to Kite Query Path.
 //
 // Function returns s if it's already a Kite Query Path.
-func QueryString(s string) string {
+func QueryString(s string) (string, error) {
 	if s == "" {
-		return ""
+		return "", nil
 	}
 	if !strings.HasPrefix(s, "/") {
-		return protocol.Kite{ID: s}.String()
+		if !reKiteID.MatchString(s) {
+			return "", errors.New("invalid kite ID")
+		}
+
+		return protocol.Kite{ID: s}.String(), nil
 	}
-	return s
+	return s, nil
 }

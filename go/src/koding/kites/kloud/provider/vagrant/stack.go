@@ -111,7 +111,10 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 		}
 
 		if q, ok := box["queryString"].(string); ok {
-			q = utils.QueryString(q)
+			q, err := utils.QueryString(q)
+			if err != nil {
+				return nil, fmt.Errorf("%s: error reading queryString: %s", resourceName, err)
+			}
 			if queryString != "" && queryString != q {
 				return nil, fmt.Errorf("mismatched queryString provided for multiple instances; want %q, got %q", queryString, q)
 			}
