@@ -193,19 +193,19 @@ var (
 // Valid implements the kloud.Validator interface.
 func (meta *Cred) Valid() error {
 	if meta.Region == "" {
-		return errors.New("aws meta: region is empty")
+		return errors.New("aws: region is empty")
 	}
 	if meta.AccessKey == "" {
-		return errors.New("aws meta: access key is empty")
+		return errors.New("aws: access key is empty")
 	}
 	if meta.SecretKey == "" {
-		return errors.New("aws meta: secret key is empty")
+		return errors.New("aws: secret key is empty")
 	}
 	if !reAccessKey.MatchString(meta.AccessKey) {
-		return errors.New("aws meta: access key is illformed")
+		return errors.New("aws: access key is ill-formed")
 	}
 	if !reSecretKey.MatchString(meta.SecretKey) {
-		return errors.New("aws meta: secret key is illformed")
+		return errors.New("aws: secret key is ill-formed")
 	}
 	return nil
 }

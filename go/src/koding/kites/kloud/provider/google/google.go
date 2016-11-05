@@ -88,7 +88,7 @@ func (c *Cred) Valid() error {
 	var raw json.RawMessage
 
 	if err := json.Unmarshal([]byte(c.Credentials), &raw); err != nil {
-		return fmt.Errorf("illformed credentials: %s", err)
+		return fmt.Errorf("credentials are ill-formed: %s", err)
 	}
 
 	return c.Region.Valid()
