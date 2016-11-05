@@ -1,6 +1,7 @@
 fs = require 'fs'
 module.exports.create = (KONFIG)->
 
-  conn = { "conn": { "connectionString": "mongodb://#{KONFIG.mongo}" } }
+  connectionString = "mongodb://#{KONFIG.mongo}"
+  conn = { connectionString }
   fileName = "./deployment/generated_files/mongomigration.json"
-  fs.writeFileSync fileName, JSON.stringify conn
+  fs.writeFileSync fileName, JSON.stringify { conn }
