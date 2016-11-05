@@ -1,6 +1,7 @@
 package google
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -82,6 +83,12 @@ func (c *Cred) Valid() error {
 	}
 	if c.Project == "" {
 		return errors.New(`cred value for "project" is empty`)
+	}
+
+	var raw json.RawMessage
+
+	if err := json.Unmarshal([]byte(c.Credentials), &raw); err != nil {
+		return fmt.Errorf("illformed credentials: %s", err)
 	}
 
 	return c.Region.Valid()
