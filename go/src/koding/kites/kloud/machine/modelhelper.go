@@ -8,7 +8,7 @@ import (
 )
 
 // modelHelperAdapter wraps modelhelper package with adapter interface. So, it
-// allows to use it as ordinal object with satisfies adapter interface.
+// allows to use it as ordinal object that can satisfy adapter interface.
 type modelHelperAdapter struct{}
 
 // GetMachinesByUsername forwards function call to modelhelper package.

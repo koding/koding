@@ -170,9 +170,9 @@ func TestMongoDatabaseFix1(t *testing.T) {
 				t.Fatalf("want valid test = %t; got err: %v", test.IsValid, err)
 			}
 
-			//if len(machines) != len(test.Machines) {
-			//	t.Fatalf("want slice length = %d; got %d", len(test.Machines), len(machines))
-			//}
+			if len(machines) != len(test.Machines) {
+				t.Fatalf("want slice length = %d; got %d", len(test.Machines), len(machines))
+			}
 
 			for i := range test.Machines {
 				if !reflect.DeepEqual(machines[i], test.Machines[i]) {

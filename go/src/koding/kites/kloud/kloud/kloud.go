@@ -187,7 +187,6 @@ func New(conf *Config) (*Kloud, error) {
 		CredURL: credURL,
 		Client:  httputil.DefaultRestClient(conf.DebugMode),
 	}
-	fmt.Printf("Credential options: %# v\n\n", *storeOpts)
 
 	userPrivateKey, userPublicKey := userMachinesKeys(conf.UserPublicKey, conf.UserPrivateKey)
 
@@ -222,7 +221,7 @@ func New(conf *Config) (*Kloud, error) {
 
 	kloud.Stack.DescribeFunc = provider.Desc
 	kloud.Stack.CredClient = credential.NewClient(storeOpts)
-	kloud.Stack.MachineClient = machine.NewClient(&machine.MongoDatabase{})
+	kloud.Stack.MachineClient = machine.NewClient(machine.NewMongoDatabase())
 
 	kloud.Stack.ContextCreator = func(ctx context.Context) context.Context {
 		return session.NewContext(ctx, sess)

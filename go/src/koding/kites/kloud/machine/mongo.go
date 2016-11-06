@@ -10,9 +10,9 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// adapter is a private interface used as adapter to database mongo singleton.
-// This allows to mock database and create reproducible tests for MongoDatabase
-// methods implementation.
+// adapter is a private interface used as an adapter for database mongo
+// singleton. This allows to mock database and create reproducible tests for
+// MongoDatabase logic.
 type adapter interface {
 	// GetMachinesByUsername gets all machines which are accessible to provided
 	// user.
@@ -38,7 +38,7 @@ func NewMongoDatabase() *MongoDatabase {
 	}
 }
 
-// Machines returns all machines stored in MongDB database that matches a given
+// Machines returns all machines stored in MongoDB database that matches a given
 // filter.
 func (m *MongoDatabase) Machines(f *Filter) ([]*Machine, error) {
 	if m.adapter == nil {
@@ -74,7 +74,7 @@ func (m *MongoDatabase) Machines(f *Filter) ([]*Machine, error) {
 			for j := range machinesDB[i].Users {
 				if machinesDB[i].Users[j].Username == f.Username && // user of machine
 					!machinesDB[i].Users[j].Owner && // and not an owner
-					!machinesDB[i].Users[j].Approved { //who didn't approve sharing.
+					!machinesDB[i].Users[j].Approved { // who didn't approve sharing.
 					machinesDB = append(machinesDB[:i], machinesDB[i+1:]...)
 					i--
 				}
@@ -99,7 +99,7 @@ func (m *MongoDatabase) Machines(f *Filter) ([]*Machine, error) {
 		return nil, models.ResError(err, modelhelper.StackTemplateColl)
 	}
 
-	// Helper to simplify searching for group and title names.
+	// Helper made to simplify searching for group and title names.
 	groupTitles := make(map[bson.ObjectId][2]string, len(stackTmplsDB))
 	for _, st := range stackTmplsDB {
 		groupTitles[st.Id] = [2]string{st.Group, st.Title}

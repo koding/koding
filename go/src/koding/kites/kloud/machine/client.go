@@ -44,10 +44,12 @@ type Database interface {
 	Machines(*Filter) ([]*Machine, error)
 }
 
+// Client enables communication with machine related logic.
 type Client struct {
 	db Database
 }
 
+// NewClient creates a new Client instance.
 func NewClient(db Database) *Client {
 	return &Client{
 		db: db,

@@ -6,26 +6,27 @@ import (
 	"github.com/koding/kite"
 )
 
-type MachineListRequest struct {
-	Provider string `json:"provider,omitempty"`
-	Team     string `json:"team,omitempty"`
-}
+// MachineListRequest represents a request value for "machine.list" method.
+type MachineListRequest struct{}
 
+// MachineListResponse represents a response value from "machine.list" method.
 type MachineListResponse struct {
 	Machines []*machine.Machine `json:"machines"`
 }
 
+// CredentialList is a kite.Handler for "machine.list" kite method.
 func (k *Kloud) MachineList(r *kite.Request) (interface{}, error) {
 	var req MachineListRequest
-
 	if err := r.Args.One().Unmarshal(&req); err != nil {
 		return nil, err
 	}
 
-	k.Log.Info("List request: %#v", req)
-
+	// We need to keep machine owners as well as skip unapproved shared machines
+	// which shouldn't be visible until user approve them.
 	f := &machine.Filter{
-		Username: r.Username,
+		Username:     r.Username,
+		Owners:       true,
+		OnlyApproved: true,
 	}
 
 	machines, err := k.MachineClient.Machines(f)
@@ -33,7 +34,5 @@ func (k *Kloud) MachineList(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	return MachineListResponse{
-		Machines: machines,
-	}, nil
+	return MachineListResponse{Machines: machines}, nil
 }
