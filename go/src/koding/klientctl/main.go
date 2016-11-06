@@ -495,7 +495,7 @@ func main() {
 					Name:      "list",
 					ShortName: "ls",
 					Usage:     "List machines available for the user",
-					Action:    ctlcli.ExitErrAction(ConfigShow, log, "list"),
+					Action:    ctlcli.ExitErrAction(MachineListCommand, log, "list"),
 					Flags: []cli.Flag{
 						cli.BoolFlag{
 							Name:  "json",
