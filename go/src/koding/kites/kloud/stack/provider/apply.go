@@ -41,7 +41,7 @@ func (bs *BaseStack) HandleApply(ctx context.Context) (interface{}, error) {
 	if !ok {
 		arg = &stack.ApplyRequest{}
 
-		if err := bs.Req.Args.One().Unmarshal(&arg); err != nil {
+		if err := bs.Req.Args.One().Unmarshal(arg); err != nil {
 			return nil, err
 		}
 	}
@@ -64,7 +64,7 @@ func (bs *BaseStack) HandleApply(ctx context.Context) (interface{}, error) {
 		rt.Hijack()
 	}
 
-	bs.Arg = &arg
+	bs.Arg = arg
 
 	if arg.Destroy {
 		err = bs.destroy(ctx, arg)
