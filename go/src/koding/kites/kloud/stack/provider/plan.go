@@ -17,7 +17,7 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 	if !ok {
 		arg = &stack.PlanRequest{}
 
-		if err := bs.Req.Args.One().Unmarshal(&arg); err != nil {
+		if err := bs.Req.Args.One().Unmarshal(arg); err != nil {
 			return nil, err
 		}
 	}
@@ -26,7 +26,7 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	bs.Arg = &arg
+	bs.Arg = arg
 
 	bs.Log.Debug("Fetching template for id %s", arg.StackTemplateID)
 	stackTemplate, err := modelhelper.GetStackTemplate(arg.StackTemplateID)
