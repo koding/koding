@@ -127,8 +127,6 @@ func resourceGithubAddUserCreate(d *schema.ResourceData, meta interface{}) error
 		return errors.New("team name is not defined")
 	}
 
-	member, _, err := client.Organizations.GetOrgMembership("", org)
-	if err != nil {
 	member, resp, err := client.Organizations.GetOrgMembership("", org)
 	// user might be a member of organization key
 	// otherwise it will response 404, and we need to ignore that error
