@@ -41,6 +41,9 @@ KODING_UTILS.bindFormSubmission = (options) ->
         catch e
           console.log 'couldn\'t parse the response'
 
-        console.log responseText
+        if responseText
+          { FieldErrors } = responseText
+          for err in FieldErrors
+            $("input[name=#{err.ID}]").addClass 'error'
 
     return no
