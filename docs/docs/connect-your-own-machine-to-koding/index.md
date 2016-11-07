@@ -2,7 +2,6 @@
 layout: doc
 title: Connect your own machine
 permalink: /docs/connect-your-own-machine-to-koding
-redirect_from: "/docs/connect-your-own-machine"
 parent: /docs/home
 ---
 
