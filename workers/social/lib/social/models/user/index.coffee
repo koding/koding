@@ -1697,14 +1697,6 @@ module.exports = class JUser extends jraphical.Module
 
     return jwt.sign data, secret, options
 
-  @removeUnsubscription:({ email }, callback) ->
-
-    JUnsubscribedMail = require '../unsubscribedmail'
-    JUnsubscribedMail.one { email }, (err, unsubscribed) ->
-      return callback err  if err or not unsubscribed
-      unsubscribed.remove callback
-
-
   @grantInitialInvitations = (username) ->
     JInvitation.grant { 'profile.nickname': username }, 3, (err) ->
       console.log 'An error granting invitations', err if err
