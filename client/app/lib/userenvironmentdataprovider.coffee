@@ -103,9 +103,7 @@ module.exports =
 
   getMachineWithPredicate: (fn, predicate) ->
 
-    filtered = @getAllMachines().filter predicate
-
-    if filtered.length then filtered[0] else null
+    @getAllMachines().filter(predicate)[0]
 
 
   fetchMachine: (identifier, callback) ->
