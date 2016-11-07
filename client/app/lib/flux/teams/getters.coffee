@@ -63,6 +63,7 @@ membersWithPendingInvitations = [
       if member
         member = member.set 'status', 'member' if !member.get('status') or member.get('status') is not 'pending'
         member = member.set 'status', 'owner' if member.get('role') is 'owner'
+        members.set member.get('_id'), member
 
     return members
 ]
