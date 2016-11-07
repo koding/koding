@@ -13,7 +13,7 @@ Have you seen 'Invitation is sent to rainforestqa22@koding.com' message displaye
 Scroll the page up to 'Permissions' section, then click on the toggle button next to 'Stack Creation' (button shown in image here: http://take.ms/zLcTG)
 Did it turn into green? Did the label updated as 'ON'?
 
-Open a new incognito window by clicking on the 3 dots on the top corner of the browser and selecting 'New Incognito Window' and then go to '{{ random.last_name }}{{ random.number }}.{{site.host}}' by pasting the url (using ctrl-v) in the address bar,then if you see 'Authentication Required' form enter "koding" in the 'User Name:' and "1q2w3e4r" in the 'Password:' fields and click on 'Log In' (if not do nothing and check the items below) 
+Open a new incognito window by clicking on the 3 dots on the top corner of the browser and selecting 'New Incognito Window' and then go to '{{ sandbox.auth }}@{{ random.last_name }}{{ random.number }}.{{site.host}}' by pasting the url (using ctrl-v) in the address bar
 Do you see 'Sign in to {{ random.last_name }}{{ random.number }}' text, 'Username or Email' and 'Password' fields and a 'SIGN IN' button?
 
 Enter "rainforestqa22" both in the 'Username or Email' and 'Password' fields and click on 'SIGN IN' button
