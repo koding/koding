@@ -25,7 +25,6 @@ SLACK_ENABLED  = False
 
 WHITE_LIST     = [
     "kloud",
-    "vmwatcher",
     "koding-webserver",
     "koding-authworker",
     "koding-socialworker",

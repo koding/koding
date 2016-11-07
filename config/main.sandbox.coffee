@@ -34,7 +34,6 @@ Configuration = (options = {}) ->
   options.recaptchaEnabled or= yes
   options.debugGithubAPI or= no
   options.autoConfirmAccounts or= no
-  options.vmwatcherConnectToKlient = yes
   options.secureCookie = yes
   options.algoliaIndexSuffix = ".sandbox"
   options.socialQueueName = "koding-social-#{options.configName}"

@@ -53,7 +53,6 @@ environment:janitor                   STARTING
 environment:kloud                     STARTING
 environment:kontrol                   STARTING
 environment:terraformer               STARTING
-environment:vmwatcher                 STARTING
 socialapi:activityemail               STARTING
 socialapi:algoliaconnector            STARTING
 socialapi:collaboration               STARTING
@@ -95,7 +94,6 @@ environment:janitor                   RUNNING   pid 3638, uptime 0:00:11
 environment:kloud                     RUNNING   pid 3276, uptime 0:00:15
 environment:kontrol                   RUNNING   pid 3271, uptime 0:00:15
 environment:terraformer               RUNNING   pid 3274, uptime 0:00:15
-environment:vmwatcher                 RUNNING   pid 3273, uptime 0:00:15
 socialapi:activityemail               RUNNING   pid 3380, uptime 0:00:15
 socialapi:algoliaconnector            RUNNING   pid 3327, uptime 0:00:15
 socialapi:collaboration               RUNNING   pid 3382, uptime 0:00:15

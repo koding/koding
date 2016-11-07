@@ -119,21 +119,6 @@ module.exports = (KONFIG, options, credentials) ->
       healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
-    vmwatcher           :
-      group             : "environment"
-      instances         : 1
-      ports             :
-        incoming        : "#{KONFIG.vmwatcher.port}"
-      supervisord       :
-        stopwaitsecs    : 20
-        command         :
-          run           : "#{GOBIN}/vmwatcher"
-          watch         : "#{GOBIN}/watcher -run koding/vmwatcher"
-      nginx             :
-        locations       : [ { location: "/vmwatcher" } ]
-      healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
-
     socialapi:
       group             : "socialapi"
       instances         : 1
