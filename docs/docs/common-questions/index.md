@@ -1,7 +1,8 @@
 ---
 layout: doc
 title: Common Questions
-permalink: /docs/common-questions
+permalink: /docs/faq
+redirect_from: "/docs/common-questions"
 parent: /docs/home
 ---
 
