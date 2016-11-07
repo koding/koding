@@ -1969,12 +1969,8 @@ module.exports = class JUser extends jraphical.Module
 
   unlinkOAuths: (callback) ->
 
-    @update { $unset: { foreignAuth:1 } }, (err) =>
-      return callback err  if err
-
-      @fetchOwnAccount (err, account) ->
-        return callback err  if err
-        account.unstoreAll callback
+    @update { $unset: { foreignAuth:1 } }, (err) ->
+      return callback err
 
 
   @setSSHKeys: secure (client, sshKeys, callback) ->

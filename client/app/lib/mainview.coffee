@@ -57,7 +57,6 @@ module.exports = class MainView extends kd.View
       else
         @createAccountArea()
 
-      @setStickyNotification()
       @emit 'ready'
 
 
@@ -340,23 +339,6 @@ module.exports = class MainView extends kd.View
     @introVideo = null
     @introVideoViewIsShown = no
     @emit 'IntroVideoViewIsHidden'
-
-
-  setStickyNotification: ->
-
-    return if not isLoggedIn() # don't show it to guests
-
-    { JSystemStatus } = remote.api
-
-    kd.utils.wait 2000, =>
-      remote.api.JSystemStatus.getCurrentSystemStatuses (err, statuses) =>
-        if err then kd.log 'current system status:', err
-        else if statuses and Array.isArray statuses
-          queue = statuses.map (status) => (next) =>
-            @createGlobalNotification status
-            kd.utils.wait 500, -> next()
-
-          async.series queue.reverse()
 
 
   hideAllNotifications: ->
