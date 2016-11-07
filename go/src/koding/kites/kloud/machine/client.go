@@ -4,25 +4,25 @@ import "time"
 
 // Machine represents a single machine.
 type Machine struct {
-	Team      string        `json:"team"`
-	Stack     string        `json:"stack"`
-	Provider  string        `json:"provider"`
-	Label     string        `json:"label"`
-	IP        string        `json:"ip"`
-	CreatedAt time.Time     `json:"createdAt" `
-	Status    MachineStatus `json:"status"`
-	Users     []MachineUser `json:"users"`
+	Team      string    `json:"team"`
+	Stack     string    `json:"stack"`
+	Provider  string    `json:"provider"`
+	Label     string    `json:"label"`
+	IP        string    `json:"ip"`
+	CreatedAt time.Time `json:"createdAt"`
+	Status    Status    `json:"status"`
+	Users     []User    `json:"users"`
 }
 
-// MachineStatus represents current status of machine.
-type MachineStatus struct {
+// Status represents the current status of machine.
+type Status struct {
 	State      string    `json:"state"`
 	Reason     string    `json:"reason"`
 	ModifiedAt time.Time `json:"modifiedAt"`
 }
 
-// MachineUser represents a single user of described machine.
-type MachineUser struct {
+// User represents a single user of described machine.
+type User struct {
 	Sudo      bool   `json:"sudo"`
 	Owner     bool   `json:"owner"`
 	Permanent bool   `json:"permanent"`

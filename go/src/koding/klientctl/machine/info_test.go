@@ -15,35 +15,35 @@ func TestInfoSliceSort(t *testing.T) {
 		{
 			// 0 //
 			Provided: []*Info{
-				testInfo("coconut", StatusDisconnected, ListMountInfo{}),
-				testInfo("apple", StatusOffline),
-				testInfo("pear", StatusOnline),
-				testInfo("date", StatusOnline),
-				testInfo("grapefruit", StatusOffline),
-				testInfo("orange", StatusOffline),
-				testInfo("banana", StatusOffline),
-				testInfo("squash", StatusConnected, ListMountInfo{}),
-				testInfo("kiwi", StatusOnline),
-				testInfo("jackfruit", StatusConnected, ListMountInfo{}),
+				testInfo("coconut", StateDisconnected, ListMountInfo{}),
+				testInfo("apple", StateOffline),
+				testInfo("pear", StateOnline),
+				testInfo("date", StateOnline),
+				testInfo("grapefruit", StateOffline),
+				testInfo("orange", StateOffline),
+				testInfo("banana", StateOffline),
+				testInfo("squash", StateConnected, ListMountInfo{}),
+				testInfo("kiwi", StateOnline),
+				testInfo("jackfruit", StateConnected, ListMountInfo{}),
 			},
 			Expected: []*Info{
-				testInfo("coconut", StatusDisconnected, ListMountInfo{}),
-				testInfo("jackfruit", StatusConnected, ListMountInfo{}),
-				testInfo("squash", StatusConnected, ListMountInfo{}),
-				testInfo("date", StatusOnline),
-				testInfo("kiwi", StatusOnline),
-				testInfo("pear", StatusOnline),
-				testInfo("apple", StatusOffline),
-				testInfo("banana", StatusOffline),
-				testInfo("grapefruit", StatusOffline),
-				testInfo("orange", StatusOffline),
+				testInfo("coconut", StateDisconnected, ListMountInfo{}),
+				testInfo("jackfruit", StateConnected, ListMountInfo{}),
+				testInfo("squash", StateConnected, ListMountInfo{}),
+				testInfo("date", StateOnline),
+				testInfo("kiwi", StateOnline),
+				testInfo("pear", StateOnline),
+				testInfo("apple", StateOffline),
+				testInfo("banana", StateOffline),
+				testInfo("grapefruit", StateOffline),
+				testInfo("orange", StateOffline),
 			},
 		},
 	}
 
 	getNames := func(is []*Info) (names []string) {
 		for _, info := range is {
-			names = append(names, info.VMName)
+			names = append(names, info.Alias)
 		}
 		return
 	}
@@ -69,40 +69,40 @@ func TestInfoSliceFindByName(t *testing.T) {
 		{
 			// 0 //
 			Provided: []*Info{
-				testInfo("a", StatusOnline),
-				testInfo("b", StatusOnline),
-				testInfo("c", StatusOnline),
-				testInfo("d", StatusOnline),
-				testInfo("e", StatusOnline),
-				testInfo("f", StatusOnline),
+				testInfo("a", StateOnline),
+				testInfo("b", StateOnline),
+				testInfo("c", StateOnline),
+				testInfo("d", StateOnline),
+				testInfo("e", StateOnline),
+				testInfo("f", StateOnline),
 			},
 			Name:     "d",
-			Expected: testInfo("d", StatusOnline),
+			Expected: testInfo("d", StateOnline),
 		},
 		{
 			// 1 //
 			Provided: []*Info{
-				testInfo("aa", StatusOnline),
-				testInfo("bb", StatusOnline),
-				testInfo("cc", StatusOnline),
+				testInfo("aa", StateOnline),
+				testInfo("bb", StateOnline),
+				testInfo("cc", StateOnline),
 			},
 			Name:     "b",
-			Expected: testInfo("bb", StatusOnline),
+			Expected: testInfo("bb", StateOnline),
 		},
 		{
 			// 2 //
 			Provided: []*Info{
-				testInfo("aa", StatusOnline),
-				testInfo("a", StatusOnline),
-				testInfo("aaa", StatusOnline),
+				testInfo("aa", StateOnline),
+				testInfo("a", StateOnline),
+				testInfo("aaa", StateOnline),
 			},
 			Name:     "a",
-			Expected: testInfo("a", StatusOnline),
+			Expected: testInfo("a", StateOnline),
 		},
 		{
 			// 3 //
 			Provided: []*Info{
-				testInfo("g", StatusOnline),
+				testInfo("g", StateOnline),
 			},
 			Name:     "a",
 			Expected: nil,
@@ -120,10 +120,12 @@ func TestInfoSliceFindByName(t *testing.T) {
 	}
 }
 
-func testInfo(vmname string, status Status, mounts ...ListMountInfo) *Info {
+func testInfo(alias string, state State, mounts ...ListMountInfo) *Info {
 	return &Info{
-		VMName: vmname,
-		Status: status,
+		Alias: alias,
+		Status: Status{
+			State: state,
+		},
 		Mounts: mounts,
 	}
 }

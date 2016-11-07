@@ -68,7 +68,7 @@ func (m *MongoDatabase) Machines(f *Filter) ([]*Machine, error) {
 		}
 	}
 
-	// Leave only shared machines which user approved.
+	// Leave only shared machines that user approved.
 	if f.OnlyApproved {
 		for i := 0; i < len(machinesDB); i++ {
 			for j := range machinesDB[i].Users {
@@ -82,15 +82,15 @@ func (m *MongoDatabase) Machines(f *Filter) ([]*Machine, error) {
 		}
 	}
 
-	// Get stack template IDs used by machines. Using map as storage will remove
-	// duplicated values.
+	// Get stack template IDs used by machines. Using map as the storage will
+	// remove duplicated values.
 	stackTmplIDs := make(map[bson.ObjectId]struct{})
 	for i := range machinesDB {
 		stackTmplIDs[machinesDB[i].GeneratedFrom.TemplateId] = struct{}{}
 	}
 
-	// We don't need to search in jGroups collection  in order to find team name
-	// because jStackTemplates also contains its name.
+	// We don't need to search in jGroups collection in order to find team name
+	// because jStackTemplates also contains that information.
 	stackTmplsDB, err := m.adapter.GetStackTemplateFieldsByIds(
 		toSlice(stackTmplIDs),             // stack templates to find.
 		[]string{"_id", "group", "title"}, // fields we need from jStackTemplates.
@@ -114,7 +114,7 @@ func (m *MongoDatabase) Machines(f *Filter) ([]*Machine, error) {
 			Label:     mdb.Label,
 			IP:        hostOnly(mdb.IpAddress),
 			CreatedAt: mdb.CreatedAt,
-			Status: MachineStatus{
+			Status: Status{
 				State:      mdb.Status.State,
 				Reason:     mdb.Status.Reason,
 				ModifiedAt: mdb.Status.ModifiedAt,
@@ -137,8 +137,8 @@ func toSlice(set map[bson.ObjectId]struct{}) (s []bson.ObjectId) {
 // makeMachineUser converts machine users from model to MachineUser object.
 // We have separate MachineUser type here to not propagate internal
 // bson.ObjectId value outside the back-end.
-func makeMachineUser(mu *models.MachineUser) MachineUser {
-	return MachineUser{
+func makeMachineUser(mu *models.MachineUser) User {
+	return User{
 		Sudo:      mu.Sudo,
 		Owner:     mu.Owner,
 		Permanent: mu.Permanent,
@@ -149,7 +149,7 @@ func makeMachineUser(mu *models.MachineUser) MachineUser {
 
 // filterUsers removes users specified by provided filter. This prevents from
 // receiving possibly sensitive information about machine users.
-func filterUsers(users []models.MachineUser, f *Filter) (res []MachineUser) {
+func filterUsers(users []models.MachineUser, f *Filter) (res []User) {
 	for i := range users {
 		// Filter by user name.
 		if f.Username != "" && users[i].Username == f.Username {

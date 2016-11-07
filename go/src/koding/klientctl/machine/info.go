@@ -7,32 +7,47 @@ import (
 
 // Info stores the basic information about the machine.
 type Info struct {
-	// The machines last known status.
-	Status Status `json:"machineStatus"`
+	// Team is the name of the team which created the machine.
+	Team string `json:"team"`
 
-	// The message (if any) associated with the machine status.
-	StatusMessage string `json:"statusMessage"`
+	// Stack describes machine parent stack.
+	Stack string `json:"stack"`
 
-	// The last time this machine was online. This may be zero valued if the
-	// machine has not been online since Klient was restarted.
-	OnlineAt time.Time `json:"onlineAt"`
+	// Provider represents machine provider.
+	Provider string `json:"provider"`
 
-	// The Ip of the running machine.
+	// Label is the machine label, as seen by the Koding UI.
+	Label string `json:"label"`
+
+	// The IP of the running machine.
 	IP string `json:"ip"`
 
-	// The human friendly "name" of the machine.
-	VMName string `json:"vmName"`
+	// CreatedAt tells about machine age.
+	CreatedAt time.Time `json:"createdAt"`
 
-	// The machine label, as seen by the koding ui
-	MachineLabel string `json:"machineLabel"`
+	// The machines last known status.
+	Status Status `json:"status"`
 
-	// The team names for the remote machine, if any
-	Teams []string `json:"teams"`
+	// The user name of the Koding user.
+	Username string `json:"username"`
 
+	// Owner describes who shared the machine if it's shared.
+	Owner string `json:"owner"`
+
+	// Alias it a human friendly "name" of the machine.
+	Alias string `json:"alias"`
+
+	// Mounts represents current mounts to the machine.
+	//
+	// TODO(ppknap) implement or remove from machine info.
 	Mounts []ListMountInfo `json:"mounts"`
+}
 
-	// The username of the koding user.
-	Username string
+// Status represents the current status of machine.
+type Status struct {
+	State      State     `json:"state"`
+	Reason     string    `json:"reason"`
+	ModifiedAt time.Time `json:"modifiedAt"`
 }
 
 // ListMountInfo is the machine info response from the `remote.list` handler.
@@ -62,7 +77,7 @@ func (s InfoSlice) Less(i, j int) bool {
 	case groupRank(s[i]) < groupRank(s[j]):
 		return true
 	case groupRank(s[i]) == groupRank(s[j]):
-		return s[i].VMName < s[j].VMName
+		return s[i].Alias < s[j].Alias
 	default:
 		return false
 	}
@@ -74,13 +89,13 @@ func groupRank(i *Info) int {
 	}
 
 	switch {
-	case i.Status == StatusRemounting, len(i.Mounts) != 0: // Mounted machines first.
+	case i.Status.State == StateRemounting || len(i.Mounts) != 0: // Mounted machines first.
 		return 0
-	case i.Status == StatusError: // Mounting has failed.
+	case i.Status.State == StateError: // Mounting has failed.
 		return 1
-	case i.Status == StatusOnline: // On-line machines.
+	case i.Status.State == StateOnline: // On-line machines.
 		return 2
-	case i.Status == StatusOffline: // Off-line machines.
+	case i.Status.State == StateOffline: // Off-line machines.
 		return 3
 	default:
 		return 4
@@ -91,7 +106,7 @@ func groupRank(i *Info) int {
 func (s InfoSlice) FindByName(name string) *Info {
 	infoNames := make([]string, 0, len(s))
 	for _, info := range s {
-		infoNames = append(infoNames, info.VMName)
+		infoNames = append(infoNames, info.Alias)
 	}
 
 	matchedName, ok := matchFullOrShortcut(infoNames, name)
@@ -100,7 +115,7 @@ func (s InfoSlice) FindByName(name string) *Info {
 	}
 
 	for _, info := range s {
-		if info != nil && info.VMName == matchedName {
+		if info != nil && info.Alias == matchedName {
 			return info
 		}
 	}

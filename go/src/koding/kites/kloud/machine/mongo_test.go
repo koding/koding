@@ -29,12 +29,12 @@ func TestMongoDatabaseFix1(t *testing.T) {
 					Label:     "bober-aws-0",
 					IP:        "127.0.0.1",
 					CreatedAt: time.Date(2016, 1, 1, 0, 0, 0, 0, time.UTC),
-					Status: MachineStatus{
+					Status: Status{
 						State:      "running",
 						Reason:     "because it can",
 						ModifiedAt: time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC),
 					},
-					Users: []MachineUser{
+					Users: []User{
 						{
 							Sudo:     true,
 							Owner:    true,
@@ -46,7 +46,7 @@ func TestMongoDatabaseFix1(t *testing.T) {
 					Team:  "orange",
 					Stack: "boberStack",
 					Label: "bober-aws-1",
-					Users: []MachineUser{
+					Users: []User{
 						{
 							Sudo:     true,
 							Owner:    true,
@@ -58,7 +58,7 @@ func TestMongoDatabaseFix1(t *testing.T) {
 					Team:  "orange",
 					Stack: "johnStack",
 					Label: "john-google-0",
-					Users: []MachineUser{
+					Users: []User{
 						{
 							Sudo:     true,
 							Owner:    true,
@@ -85,7 +85,7 @@ func TestMongoDatabaseFix1(t *testing.T) {
 					Team:  "orange",
 					Stack: "boberStack",
 					Label: "bober-aws-1",
-					Users: []MachineUser{
+					Users: []User{
 						{
 							Sudo:     true,
 							Owner:    true,
@@ -101,7 +101,7 @@ func TestMongoDatabaseFix1(t *testing.T) {
 					Team:  "orange",
 					Stack: "johnStack",
 					Label: "john-google-0",
-					Users: []MachineUser{
+					Users: []User{
 						{
 							Sudo:     true,
 							Owner:    true,
@@ -124,7 +124,7 @@ func TestMongoDatabaseFix1(t *testing.T) {
 					Team:  "orange",
 					Stack: "boberStack",
 					Label: "bober-aws-1",
-					Users: []MachineUser{
+					Users: []User{
 						{
 							Sudo:     true,
 							Owner:    true,
@@ -140,7 +140,7 @@ func TestMongoDatabaseFix1(t *testing.T) {
 					Team:  "orange",
 					Stack: "blasterStack",
 					Label: "blaster-aws-0",
-					Users: []MachineUser{
+					Users: []User{
 						{
 							Sudo:     true,
 							Owner:    true,

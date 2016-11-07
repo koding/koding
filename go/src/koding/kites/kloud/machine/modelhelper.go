@@ -7,8 +7,8 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// modelHelperAdapter wraps modelhelper package with adapter interface. So, it
-// allows to use it as ordinal object that can satisfy adapter interface.
+// modelHelperAdapter wraps modelhelper package with adapter interface. Thus,
+// it allows to use it as ordinal object which satisfies adapter interface.
 type modelHelperAdapter struct{}
 
 // GetMachinesByUsername forwards function call to modelhelper package.
