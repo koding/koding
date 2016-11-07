@@ -20,4 +20,4 @@ Return to the incognito browser window
 Do you see 'Session ended' dialog? Do you see 'LEAVE' button?
 
 Click on 'LEAVE' button
-Are 'example-instance' item removed from the left module and all panes from that VM closed?
+Are 'aws-instance' item removed from the left module and all panes from that VM closed?

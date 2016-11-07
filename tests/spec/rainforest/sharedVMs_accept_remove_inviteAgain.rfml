@@ -23,7 +23,7 @@ Switch to the incognito window
 Do you see a pop-up with 'Machine access revoked' title? Do you see 'Your access to this machine has been removed by its owner.' text? Do you see 'OK' button?
 
 Click on 'OK'
-Are you swithced to 'Rainforestqa99's Stack'? Do you see that 'test' is removed from left sidebar? Do you see that '/home/rainforestqa99' label and 'Terminal' tab are not displayed anymore?
+Are you swithced to '_Aws Stack'? Do you see that 'test' is removed from left sidebar? Do you see that '/home/rainforestqa99' label and 'Terminal' tab are not displayed anymore?
 
 Return to the first browser, enter 'rainforestqa22' in the text box, hit enter and wait for a few seconds for process to be completed
 Is 'rainforestqa22' added below 'Type a username' text box? Is 'This VM has not yet been shared with anyone.' text removed?

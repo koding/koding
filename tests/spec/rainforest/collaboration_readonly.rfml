@@ -16,5 +16,5 @@ Are you unable to enter commands in the terminal?
 Try click '+' icon at the right of terminal and select New Terminal -> New Session ( http://snag.gy/UnOoo.jpg )
 Are you unable to click this button or button is unavailable?
 
-Mouse over 'example-instance' item bellow the 'SHARED VMS' label and click '...' icon displayed (like on screenshot http://snag.gy/RhBjF.jpg)
+Mouse over 'aws-instance' item bellow the 'SHARED VMS' label and click '...' icon displayed (like on screenshot http://snag.gy/RhBjF.jpg)
 Do you see popup with red 'LEAVE SESSION' button?

@@ -26,7 +26,7 @@ Click on 'LEAVE SHARED VM' button
 Do you see 'Are you sure?' titled pop-up? Do you see 'This will remove the shared VM from your sidebar.' text? Do you see 'CANCEL' and 'YES' buttons?
 
 Click on 'YES'
-Are 'SHARED VMS' and 'test(@rainforestqa99)' removed from left sidebar? Are you switched to 'Rainforestqa99's Stack? Do you see that '/home/rainforestqa99' label and 'Terminal' tab are not displayed anymore?
+Are 'SHARED VMS' and 'test(@rainforestqa99)' removed from left sidebar? Are you switched to '_Aws Stack? Do you see that '/home/rainforestqa99' label and 'Terminal' tab are not displayed anymore?
 
 Return to the first browser and close that modal by clicking (x) from top right corner
 Do you see '{{ random.first_name }}.txt' at the end of file list under '/home/rainforestqa99' next to left sidebar?
