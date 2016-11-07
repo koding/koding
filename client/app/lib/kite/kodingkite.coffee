@@ -91,12 +91,13 @@ module.exports = class KodingKite extends kd.Object
 
             resolve (@transport?.tell args...
 
-              .then (res) =>
+              .then (res) ->
 
                 KiteLogger.success name, rpcMethod
                 return res
 
               .catch (err) =>
+
                 if _errPromise = @handleKiteError err, args
                   return _errPromise
 
