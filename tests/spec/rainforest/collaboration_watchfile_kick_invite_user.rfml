@@ -29,7 +29,7 @@ Return to the other browser window, click  'START COLLABORATION' button in the b
 Do you see 'Copied to clipboard!' popup message?
 
 Return to the incognito browser window and paste copied URL in the browser address bar and press enter
-Do you see 'SHARED VMS' label in the left module on the page? Do you see 'example-instance' item bellow the 'SHARED VMS' label? Do you see white popup with 'Reject' and 'Accept' buttons?
+Do you see 'SHARED VMS' label in the left module on the page? Do you see 'aws-instance' item bellow the 'SHARED VMS' label? Do you see white popup with 'Reject' and 'Accept' buttons?
 
 Click 'Accept' button
 Do you see 'Joining to collaboration session' progress bar? Do you see the same panes (terminal, untitled.txt) like on the browser where you are logged in as 'rainforestqa99'

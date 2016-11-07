@@ -1,7 +1,7 @@
 #! cf7a5a0d-e849-42a7-82fd-db8ecda325ce
 # title: create_stack_with_setup_guide
 # start_uri: /
-# tags: automated
+# tags: outdated
 #
 
 - 1ae7b10f-f120-47de-bc67-eae94efbd491
@@ -20,7 +20,7 @@ Click on 'MySQL' under Database, 'Python' under Language, 'Apache' under Web Ser
 Do you see 'Where is your code?' title? Do you see 'GitHub', 'Bitbucket' and 'Gitlab'?
 
 Select 'GitHub' and click on 'NEXT' button
-Do you see 'Rainforestqa99's Stack' title? Do you see 'Stack Template', 'Custom Variables', 'Readme' tabs? Do you see 'Credentials' text having a red (!) next to it? Do you see 'PREVIEW', 'LOGS', 'DELETE STACK TEMPLATE' buttons on the bottom and 'SAVE' button on top right?
+Do you see 'Rainforestqa99's Stack' title? Do you see 'Stack Template', 'Custom Variables', 'Readme' tabs? Do you see 'Credentials' text having a red (!) next to it? Do you see 'PREVIEW', 'LOGS', 'DELETE THIS STACK TEMPLATE' buttons on the bottom and 'SAVE' button on top right?
 
 Click on 'Credentials' text having a red (!) next to it
 Do you see 'rainforestqa99's AWS keys'? Do you see 'USE THIS & CONTINUE' button next to it? Do you see 'CREATE NEW' button on the bottom?

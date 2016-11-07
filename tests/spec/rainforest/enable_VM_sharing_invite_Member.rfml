@@ -7,10 +7,10 @@
 - 5e284d48-6055-49c0-91ea-c73681036aca
 
 # redirect: false
-Move your mouse over 'example-instance' label on left sidebar and click on the circle button appeared next to it
-Has a pop-up appeared? Do you see 'Stacks', 'Virtual Machines' and 'Credentials' tabs on top? Do you see 'example-inst_' text under 'Virtual Machines' section? Do you see 'Edit VM Name', 'VM Power', 'Always On', 'VM Sharing' and 'Build Logs' sections under it?
+Move your mouse over 'aws-instance' label on left sidebar and click on the circle button appeared next to it
+Has a pop-up appeared? Do you see 'Stacks', 'Virtual Machines' and 'Credentials' tabs on top? Do you see 'aws-inst_' text under 'Virtual Machines' section? Do you see 'Edit VM Name', 'VM Power', 'Always On', 'VM Sharing' and 'Build Logs' sections under it?
 
-Click on 'Edit Name' link next to 'Edit VM Name' section, delete 'example-instance', type 'test' instead and hit enter (like in screencast here: http://recordit.co/8HU8DZyTtX)
+Click on 'Edit Name' link next to 'Edit VM Name' section, delete 'aws-instance', type 'test' instead and hit enter (like in screencast here: http://recordit.co/8HU8DZyTtX)
 Do you see that it's updated?
 
 Click on 'My Team' from left vertical menu
@@ -23,7 +23,7 @@ Open a new incognito window by clicking on the 3 dots on the top corner of the b
 Do you see 'Sign in to {{ random.last_name }}{{ random.number }}' text, 'Username or Email' and 'Password' fields and a 'SIGN IN' button?
 
 Enter "rainforestqa22" both in the 'Username or Email' and 'Password' fields and click on 'SIGN IN' button
-Are you successfully logged in? Do you see '{{ random.last_name }}{{ random.number }}' label at the top left corner? Do you see 'Rainforestqa99's Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'Read Me' text and a 'NEXT' and 'VIEW STACK TEMPLATE' buttons on the bottom? Do you see 'STACKS', 'Rainforestqa99's Stack' and 'example-instance' labels on left sidebar?
+Are you successfully logged in? Do you see '{{ random.last_name }}{{ random.number }}' label at the top left corner? Do you see '_Aws Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'Read Me' text and a 'NEXT' and 'VIEW STACK TEMPLATE' buttons on the bottom? Do you see 'STACKS', '_Aws Stack' and 'aws-instance' labels on left sidebar?
 
 Return to the first browser, click on 'Stacks' from left vertical menu and click on the toggle button next to 'VM Sharing'
 Is the label updated as 'ON'? Is it turned to green? Has a text-box with 'Type a username' label appeared? Do you see 'This VM has not yet been shared with anyone.' text below that text box?

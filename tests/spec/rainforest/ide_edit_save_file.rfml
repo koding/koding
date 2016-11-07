@@ -67,6 +67,6 @@ Is overlay closed? Is editor tab with '{{random.address_city}}{{random.number}}.
 Double click on the '{{random.address_city}}{{random.number}}.txt' file in the filetree
 Do you see a new editor tab opened for this file without the changes from previous step? 
 
-Make some changes in the editor and click 'Ctrl+Option+W ( Ctrl+Alt+W)' shortcut
+Make some changes in the editor and click 'Ctrl+Option+W (Ctrl+Alt+W)' shortcut
 Do you see 'Do you want to save your changes?' modal displayed? Do you see 'Cancel', 'Don't save' and 'Save and close' buttons on the modal?
 

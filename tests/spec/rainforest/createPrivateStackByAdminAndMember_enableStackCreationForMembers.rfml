@@ -7,26 +7,26 @@
 - 1ae7b10f-f120-47de-bc67-eae94efbd491
 
 # redirect: false
-Click on 'Create a Stack for Your Team' section and then click on 'CREATE A NEW STACK' button 
-Do you see 'Select a Provider' title? Do you see 'amazon web services', 'VAGRANT' and other 'Coming Soon' labeled providers? Do you see 'BACK' and 'NEXT' buttons below?
+Click on 'Create a Stack for Your Team' section
+Do you see 'Select a Provider' title? Do you see 'amazon web services', 'VAGRANT', 'Google Cloud Platform', 'DigitalOcean', 'Azure' and 'Softlayer'? Do you see 'CANCEL' and 'CREATE STACK' buttons below?
 
-Click on 'amazon web services' and click on 'SKIP GUIDE'
-Has that pop-up disappeared? Do you see 'Rainforestqa99's Stack' title? Do you see 'Stack Template', 'Custom Variables', 'Readme' tabs? Do you see 'Credentials' text having a red (!) next to it? Do you see '# Here is your stack preview' in the first line of main content? Do you see 'PREVIEW', 'LOGS', 'DELETE STACK TEMPLATE' buttons on the bottom and 'SAVE' button on top right?
+Click on 'amazon web services' and then click on 'CREATE STACK' button
+Has that pop-up disappeared? Do you see '_Aws Stack' title? Do you see 'Stack Template', 'Custom Variables', 'Readme' tabs? Do you see 'Credentials' text having a red (!) next to it? Do you see '# Here is your stack preview' in the first line of main content? Do you see 'PREVIEW', 'LOGS', 'DELETE THIS STACK TEMPLATE' buttons on the bottom and 'SAVE' button on top right?
 
 Click on 'Credentials' and then click on 'USE THIS & CONTINUE' button next to 'rainforestqa99's AWS keys' and wait for a second for process to be completed
 Have you seen 'Verifying Credentials...' message displayed? Are you switched to 'Stack Template' tab? (If you're not switched and you got 'Failed to verify: operation timed out' error, click on the same button again)
 
 Click on the 'SAVE' button on top right and wait for a few seconds for that process to be completed
-Do you see 'Share Your Stack' title on a pop-up displayed? Do you see that 'Share the credentials I used for this stack with my team.' checkbox is already checked? Do you see 'CANCEL' and 'SHARE WITH THE TEAM' buttons?
+Do you see 'Share Your Stack_' title on a pop-up displayed? Do you see that 'Share the credentials I used for this stack with my team.' checkbox is already checked? Do you see 'CANCEL' and 'SHARE WITH THE TEAM' buttons?
 
-Click on 'CANCEL' button and then click on 'Rainforestqa99's Stack' from left sidebar
+Click on 'CANCEL' button and then click on '_Aws Stack' from left sidebar
 Do you see 'Edit', 'Initialize' and 'Make Team Default' options?
 
 Select 'Initialize' and wait for a few seconds for process to be completed
-Do you see 'Rainforestqa99's Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'Read Me' text and a 'NEXT' and 'VIEW STACK TEMPLATE' buttons on the bottom? Do you see 'STACKS', 'Rainforestqa99's Stack' and 'example-instance' labels on left sidebar?
+Do you see '_Aws Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'Read Me' text and a 'NEXT' and 'VIEW STACK TEMPLATE' buttons on the bottom? Do you see 'STACKS', '_Aws Stack' and 'aws-instance' labels on left sidebar?
 
 Click on 'STACKS' title from left sidebar
-Do you see 'Rainforestqa99's Stack' under 'Private Stacks' section? Do you see that the other sections are empty?
+Do you see '_Aws Stack' under 'Private Stacks' section? Do you see that the other sections are empty?
 
 Click on 'My Team' from left vertical menu
 Do you see 'Team Settings', 'Permissions' and 'Send Invites' sections?
@@ -49,8 +49,8 @@ Did it turn into green? Did the label updated as 'ON'?
 Switch to the incognito window again and reload the page
 Do you see that 'Create New Stack Template' text and 'NEW STACK' button appeared on top?
 
-Click on 'NEW STACK' and 'CREATE A NEW STACK' buttons respectively and then click on 'amazon web services' and click on 'SKIP GUIDE'
-Has that pop-up disappeared? Do you see 'Rainforestqa22's Stack' title? Do you see 'Stack Template', 'Custom Variables', 'Readme' tabs? Do you see 'Credentials' text having a red (!) next to it? Do you see 'Rainforestqa22's Stack' text under 'STACKS' title on left siderbar?
+Click on 'NEW STACK' then click on 'amazon web services' and click on 'CREATE STACK' button
+Has that pop-up disappeared? Do you see '_Aws Stack' title? Do you see 'Stack Template', 'Custom Variables', 'Readme' tabs? Do you see 'Credentials' text having a red (!) next to it? Do you see '_Aws Stack' text under 'STACKS' title on left siderbar?
 
 Click on 'Credentials' and then click on 'USE THIS & CONTINUE' button next to 'RainforestQATeam2 AWS keys' and wait for a second for process to be completed
 Have you seen 'Verifying Credentials...' message displayed? Are you switched to 'Stack Template' tab? (If you're not switched and you got 'Failed to verify: operation timed out' error, click on the same button again)
@@ -59,10 +59,10 @@ Click on the 'SAVE' button on top right and wait for a few seconds for that proc
 Do you see that 'INITIALIZE' button appeared next to 'SAVE' button?
 
 Click on 'INITIALIZE' button and wait for a few seconds for process to be completed
-Do you see 'Rainforestqa22's Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'STACKS', 'Rainforestqa22's Stack' and 'example-instance' labels on left sidebar?
+Do you see '_Aws Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'STACKS', '_Aws Stack' and 'aws-instance' labels on left sidebar?
 
 Click on 'STACKS' title from left sidebar
-Do you see 'Rainforestqa22's Stack' under 'Private Stacks' section? Do you see that the other sections are empty?
+Do you see '_Aws Stack' under 'Private Stacks' section? Do you see that the other sections are empty?
 
 Return to the first browser again and click on 'Stacks' from the left vertical menu and reload the page
-Do you still see only 'Rainforestqa99's Stack' under 'Private Stacks' section? Do you see that the other sections are still empty?
+Do you still see only '_Aws Stack' under 'Private Stacks' section? Do you see that the other sections are still empty?

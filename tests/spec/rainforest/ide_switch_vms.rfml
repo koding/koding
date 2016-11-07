@@ -14,13 +14,10 @@ Enter 'testfile{{random.number}}.txt' folder name and press Enter
 Do you see file 'testfile{{random.number}}.txt' with arrow icon at the left in the file tree?
 
 Mouse over 'STACKS' and click '+' icon
-Do you see 'Create a Stack Template' title?
+Do you see 'Select a Provider' title? Do you see 'amazon web services', 'VAGRANT', 'Google Cloud Platform', 'DigitalOcean', 'Azure' and 'Softlayer'? Do you see 'CANCEL' and 'CREATE STACK' buttons below?
 
-Click 'CREATE A NEW STACK' button
-Do you see 'Select a Provider' title? Do you see 'amazon web services', 'VAGRANT' and other 'Coming Soon' labeled providers? Do you see 'BACK' and 'NEXT' buttons below?
-
-Click on 'amazon web services' and click on 'SKIP GUIDE'
-Has that pop-up disappeared? Do you see 'Rainforestqa99's Stack' title? Do you see 'Stack Template', 'Custom Variables', 'Readme' tabs? Do you see 'Credentials' text having a red (!) next to it? Do you see '# Here is your stack preview' in the first line of main content? Do you see 'PREVIEW', 'LOGS', 'DELETE STACK TEMPLATE' buttons on the bottom and 'SAVE' button on top right?
+Click on 'amazon web services' and then click on 'CREATE STACK' button
+Has that pop-up disappeared? Do you see '_Aws Stack' title? Do you see 'Stack Template', 'Custom Variables', 'Readme' tabs? Do you see 'Credentials' text having a red (!) next to it? Do you see '# Here is your stack preview' in the first line of main content? Do you see 'PREVIEW', 'LOGS', 'DELETE THIS STACK TEMPLATE' buttons on the bottom and 'SAVE' button on top right?
 
 Click on 'Credentials' tab and then click on 'USE THIS & CONTINUE' button next to 'rainforestqa99's AWS keys' and wait for a second for process to be completed
 Have you seen 'Verifying Credentials...' message displayed? Are you switched to 'Stack Template' tab? (If you're not switched and you got 'Failed to verify: operation timed out' error, click on the same button again)
@@ -29,15 +26,15 @@ Click on the 'SAVE' button on top right and wait for a few seconds for that proc
 Do you see 'MAKE TEAM DEFAULT', 'INITIALIZE' and 'SAVE' buttons?
 
 Click on 'INITIALIZE' button and wait for a few seconds for process to be completed
-Is that page closed? Do you see 'Rainforestqa99's Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'Read Me' text and a 'NEXT' and 'VIEW STACK TEMPLATE' buttons on the bottom? Do you see 'STACKS', 'Rainforestqa99's Stack' and 'example-instance-1' labels on left sidebar?
+Is that page closed? Do you see '_Aws Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'Read Me' text and a 'NEXT' and 'VIEW STACK TEMPLATE' buttons on the bottom? Do you see 'STACKS', '_Aws Stack' and 'aws-instance-1' labels on left sidebar?
 
 Click on the 'NEXT' button and then click on the 'BUILD STACK' button and wait for a few minutes for process to be completed
-Do you see 'Success! Your stack has been built.' text? Do you see 'View The Logs', 'Connect your Local Machine' and 'Invite to Collaborate' sections? Do you see 'START CODING' button on the bottom? Do you see 'Rainforestqa99'S Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'example-instance-1' label? Do you see '/home/rainforestqa99' label on top of a file list? Do you see 'cloud-init-o...' file on top and 'Terminal' tab on the bottom pane?
+Do you see 'Success! Your stack has been built.' text? Do you see 'View The Logs', 'Connect your Local Machine' and 'Invite to Collaborate' sections? Do you see 'START CODING' button on the bottom? Do you see '_Aws Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'aws-instance-1' label? Do you see '/home/rainforestqa99' label on top of a file list? Do you see 'cloud-init-o...' file on top and 'Terminal' tab on the bottom pane?
 
-Click 'example-instance' labels on the left
+Click 'aws-instance' labels on the left
 Do you see file 'testfile{{random.number}}.txt' with arrow icon at the left in the file tree?
 
-Click 'example-instance-1' labels on the left
+Click 'aws-instance-1' labels on the left
 Is 'testfile{{random.number}}.txt' file not visible at the left in the file tree?
 
 

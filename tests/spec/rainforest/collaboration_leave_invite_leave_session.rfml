@@ -11,7 +11,7 @@ Click  'LEAVE SESSION' button
 Do you see 'Are you sure?' modal? Do you see 'YES', 'CANCEL' button?
 
 Click on 'YES'
-Are 'example-instance' item removed from the left module and all panes from that VM closed?
+Are 'aws-instance' item removed from the left module and all panes from that VM closed?
 
 Switch the other browser window where you are logged in as 'rainforestqa99'
 Do you see the only 'camera' icon at the left of 'END COLLABORATION' button without any other icons/avatars?
@@ -20,7 +20,7 @@ Click shortened URL in the bottom status bar
 Do you see 'Copied to clipboard!' popup message?
 
 Switch the incognito window and paste copied URL in the browser address bar and press enter
-Do you see 'SHARED VMS' label in the left module on the page? Do you see 'example-instance' item bellow the 'SHARED VMS' label? Do you see white popup with 'Reject' and 'Accept' buttons?
+Do you see 'SHARED VMS' label in the left module on the page? Do you see 'aws-instance' item bellow the 'SHARED VMS' label? Do you see white popup with 'Reject' and 'Accept' buttons?
 
 Click 'Accept' button
 Do you see 'Joining to collaboration session' progress bar? Do you see the same panes (terminal, untitled.txt) like on the browser where you are logged in as 'rainforestqa99'
@@ -29,7 +29,7 @@ Click on 'LEAVE SESSION' button
 Do you see 'Are you sure?' dialog?
 
 Click on 'YES'
-Are 'example-instance' item removed from the left module and all panes from that VM closed?
+Are 'aws-instance' item removed from the left module and all panes from that VM closed?
 
 Switch the other browser window where you are logged in as 'rainforestqa99'
 Do you see the only 'camera' icon at the left of 'END COLLABORATION' button without any other icons/avatars?
