@@ -50,14 +50,4 @@ module.exports = (options, callback) ->
     </html>
     """
 
-  switch campaign
-    when 'hackathon'
-      bongoModels.JWFGH.getStats account, (err, stats) ->
-
-        return callback null, prepareHTML 'landing'  if err
-
-        campaignStats = JSON.stringify stats
-        return callback null, prepareHTML 'hackathon'
-
-    else
-      return callback null, prepareHTML 'landing'
+  return callback null, prepareHTML 'landing'

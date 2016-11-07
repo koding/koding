@@ -19,7 +19,6 @@ module.exports = class JAccount extends jraphical.Module
   JTag                = require './tag'
   JName               = require './name'
   JKite               = require './kite'
-  JStorage            = require './storage'
   JCombinedAppStorage = require './combinedappstorage'
 
   @getFlagRole            = 'content'
@@ -128,14 +127,6 @@ module.exports = class JAccount extends jraphical.Module
         markUserAsExempt:
           (signature Boolean, Function)
         checkGroupMembership:
-          (signature String, Function)
-        fetchStorage:
-          (signature String, Function)
-        fetchStorages:
-          (signature [String], Function)
-        store:
-          (signature Object, Function)
-        unstore:
           (signature String, Function)
         isEmailVerified:
           (signature Function)
@@ -258,10 +249,6 @@ module.exports = class JAccount extends jraphical.Module
       JStackTemplate   = require './computeproviders/stacktemplate'
 
       return {
-        storage       :
-          as          : 'storage'
-          targetType  : 'JStorage'
-
         tag:
           as          : 'skill'
           targetType  : 'JTag'
@@ -883,61 +870,6 @@ module.exports = class JAccount extends jraphical.Module
   getFullName: ->
     { firstName, lastName } = @data.profile
     return "#{firstName} #{lastName}"
-
-  fetchStorage$: (name, callback) ->
-
-    @fetchStorage { 'data.name' : name }, callback
-
-  fetchStorages$: (whitelist = [], callback) ->
-
-    options = if whitelist.length then { 'data.name' : { $in : whitelist } } else {}
-
-    @fetchStorages options, callback
-
-  store: secure (client, { name, content }, callback) ->
-    unless @equals client.connection.delegate
-      return callback new KodingError 'Attempt to access unauthorized storage'
-
-    @_store { name, content }, callback
-
-  unstore: secure (client, name, callback) ->
-
-    unless @equals client.connection.delegate
-      return callback new KodingError 'Attempt to remove unauthorized storage'
-
-    @fetchStorage { 'data.name' : name }, (err, storage) ->
-      console.error err, storage  if err
-      return callback err  if err
-      unless storage
-        return callback new KodingError 'No such storage'
-
-      storage.remove callback
-
-  unstoreAll: (callback) ->
-    @fetchStorages [], (err, storages) ->
-      queue = storages.map (storage) ->
-        (next) -> storage.remove -> next()
-      async.series queue, -> callback null
-
-  _store: ({ name, content }, callback) ->
-    @fetchStorage { 'data.name' : name }, (err, storage) =>
-      if err
-        return callback new KodingError 'Attempt to access storage failed'
-      else if storage
-        storage.update { $set: { content } }, (err) -> callback err, storage
-      else
-        storage = new JStorage { name, content }
-        storage.save (err) =>
-          return callback err  if err
-          rel = new Relationship
-            targetId    : storage.getId()
-            targetName  : 'JStorage'
-            sourceId    : @getId()
-            sourceName  : 'JAccount'
-            as          : 'storage'
-            data        : { name }
-          rel.save (err) -> callback err, storage
-
 
   fetchOrCreateAppStorage: (options, callback) ->
 
