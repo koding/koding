@@ -303,24 +303,6 @@ module.exports = (KONFIG, options, credentials) ->
       healthCheckURL    : "http://localhost:#{KONFIG.socialapi.janitor.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.socialapi.janitor.port}/version"
 
-    gatheringestor      :
-      ports             :
-        incoming        : KONFIG.gatheringestor.port
-      group             : "environment"
-      instances         : 1
-      supervisord       :
-        stopwaitsecs    : 20
-        command         :
-          run           : "#{GOBIN}/gatheringestor"
-          watch         : "#{GOBIN}/watcher -run koding/workers/gatheringestor"
-      healthCheckURL    : "http://localhost:#{KONFIG.gatheringestor.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.gatheringestor.port}/version"
-      nginx             :
-        locations       : [
-          location      : "~ /-/ingestor/(.*)"
-          proxyPass     : "http://gatheringestor/$1$is_args$args"
-        ]
-
     integration         :
       group             : "socialapi"
       ports             :
