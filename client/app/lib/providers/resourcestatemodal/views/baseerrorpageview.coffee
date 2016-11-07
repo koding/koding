@@ -1,8 +1,7 @@
 kd = require 'kd'
 _  = require 'lodash'
 JView = require 'app/jview'
-copyToClipboard = require 'app/util/copyToClipboard'
-getCopyToClipboardShortcut = require 'app/util/getCopyToClipboardShortcut'
+
 
 module.exports = class BaseErrorPageView extends JView
 
@@ -30,19 +29,14 @@ module.exports = class BaseErrorPageView extends JView
       cssClass : 'error-title'
       partial  : """
         You got #{if isSingleError then 'an error' else 'some errors'}:
-        <cite>#{getCopyToClipboardShortcut()}</cite>
       """
 
-    _copied = no
     errorPartial = if isSingleError
     then _.escape errs.first
     else (errs.map (err) -> "<li>#{_.escape err}</li>").join ''
     @errorContent.addSubView new kd.CustomHTMLView
       tagName  : if isSingleError then 'pre' else 'ul'
       partial  : errorPartial
-      click    : ->
-        copyToClipboard @getElement()  unless _copied
-        _copied = yes
 
     kd.utils.defer =>
       @errorContainer.wrapper.scrollToBottom()
