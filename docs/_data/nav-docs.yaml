@@ -18,6 +18,8 @@
     title: Simple two VM setup
   - id: database-vm-schema-setup
     title: Advanced stack editing
+  - id: how-to-share-your-vm-with-someone
+    title: How to share your VM with someone
   - id: create-elastic-ip-for-your-instance
     title: Assign Elastic IP
   - id: create-an-aws-vpc
@@ -42,5 +44,5 @@
     title: Try on Koding button
   - id: terraform-to-koding
     title: TERRAFORM to KODING
-  - id: common-questions
-    title: Common Questions
+  - id: faq
+    title: FAQ
