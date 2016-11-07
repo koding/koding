@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"os"
 	"text/tabwriter"
 	"time"
 
@@ -39,9 +40,9 @@ func tabFormatter(w io.Writer, infos []*machine.Info) {
 			info.Stack,
 			info.Provider,
 			info.Label,
-			info.IP,
-			timeToAgo(info.CreatedAt, now),
 			info.Owner,
+			timeToAgo(info.CreatedAt, now),
+			info.IP,
 			prettyStatus(info.Status),
 		)
 	}
@@ -51,16 +52,14 @@ func tabFormatter(w io.Writer, infos []*machine.Info) {
 func prettyStatus(status machine.Status) string {
 	now := time.Now()
 
-	if status.State == machine.StatusOnline {
-		return fmt.Sprintf("%s (%s)", status.State, timeToAgo(status.ModifiedAt, now))
+	if status.State == machine.StateOnline {
+		return fmt.Sprintf("%-9s (%s)", status.State, timeToAgo(status.ModifiedAt, now))
 	}
 
-	timeReasonFmt := "(" + timeToAgo(status.ModifiedAt, now)
+	timeReasonFmt := timeToAgo(status.ModifiedAt, now)
 	if status.Reason != "" {
 		timeReasonFmt += ": " + status.Reason
-	} else {
-		timeReasonFmt += ")"
 	}
 
-	return status.State.String() + " " + timeReasonFmt
+	return fmt.Sprintf("%-9s (%s)", status.State, timeReasonFmt)
 }

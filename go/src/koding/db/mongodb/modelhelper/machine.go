@@ -154,6 +154,19 @@ func GetMachinesByUsername(username string) ([]*models.Machine, error) {
 	return findMachine(query)
 }
 
+func GetAllMachinesByUsername(username string) ([]*models.Machine, error) {
+	user, err := GetUser(username)
+	if err != nil {
+		return nil, err
+	}
+
+	query := bson.M{"users": bson.M{
+		"$elemMatch": bson.M{"id": user.ObjectId},
+	}}
+
+	return findMachine(query)
+}
+
 // GetMachineFieldsByUsername retrieves a slice of machines owned by the given user,
 // limited to the specified fields.
 func GetMachineFieldsByUsername(username string, fields []string) ([]*models.Machine, error) {

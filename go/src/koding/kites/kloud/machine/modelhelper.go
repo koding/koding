@@ -11,9 +11,9 @@ import (
 // it allows to use it as ordinal object which satisfies adapter interface.
 type modelHelperAdapter struct{}
 
-// GetMachinesByUsername forwards function call to modelhelper package.
-func (modelHelperAdapter) GetMachinesByUsername(username string) ([]*models.Machine, error) {
-	return modelhelper.GetMachinesByUsername(username)
+// GetAllMachinesByUsername forwards function call to modelhelper package.
+func (modelHelperAdapter) GetAllMachinesByUsername(username string) ([]*models.Machine, error) {
+	return modelhelper.GetAllMachinesByUsername(username)
 }
 
 // GetStackTemplateFieldsByIds forwards function call to modelhelper package.

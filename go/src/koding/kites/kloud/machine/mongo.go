@@ -14,9 +14,9 @@ import (
 // singleton. This allows to mock database and create reproducible tests for
 // MongoDatabase logic.
 type adapter interface {
-	// GetMachinesByUsername gets all machines which are accessible to provided
-	// user.
-	GetMachinesByUsername(string) ([]*models.Machine, error)
+	// GetAllMachinesByUsername gets all machines which are accessible to
+	// provided user.
+	GetAllMachinesByUsername(string) ([]*models.Machine, error)
 
 	// GetStackTemplateFieldsByIds retrieves a slice of stack templates matching
 	// the given ids and limited to the specified fields.
@@ -55,7 +55,7 @@ func (m *MongoDatabase) Machines(f *Filter) ([]*Machine, error) {
 
 	// Get all machines that can be seen by provided user. This also includes
 	// shared machines.
-	machinesDB, err := m.adapter.GetMachinesByUsername(f.Username)
+	machinesDB, err := m.adapter.GetAllMachinesByUsername(f.Username)
 	if err != nil {
 		return nil, models.ResError(err, modelhelper.MachinesColl)
 	}

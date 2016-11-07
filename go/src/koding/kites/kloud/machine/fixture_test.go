@@ -18,8 +18,8 @@ type fixture struct {
 
 var _ adapter = (*fixture)(nil)
 
-// GetMachinesByUsername mocks GetMachinesByUsername method.
-func (f *fixture) GetMachinesByUsername(username string) (ms []*models.Machine, err error) {
+// GetAllMachinesByUsername mocks GetMachinesByUsername method.
+func (f *fixture) GetAllMachinesByUsername(username string) (ms []*models.Machine, err error) {
 	for _, m := range f.MachineColl {
 		for _, u := range m.Users {
 			if u.Username == username {
