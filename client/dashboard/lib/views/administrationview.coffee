@@ -99,25 +99,6 @@ module.exports = class AdministrationView extends KDTabViewWithForms
                         else
                           modal.destroy()
 
-        'Broadcast Message' :
-          buttons           :
-            'Broadcast Message'  :
-              title         : 'Broadcast'
-              style         : 'solid medium green'
-              loader        : yes
-
-              callback      : (event) =>
-                { inputs, buttons } = @forms['Broadcast Message']
-
-                remote.api.JSystemStatus.create
-                  scheduledAt : Date.now() + inputs.Duration.getValue() * 1000
-                  title       : inputs.Title.getValue()
-                  content     : inputs.Description.getValue()
-                  type        : inputs.Type.getValue()
-                , (err, status) ->
-                  showError err  if err
-                  buttons['Broadcast Message'].hideLoader()
-
           fields            :
             Presets         :
               label         : 'Use Preset'
