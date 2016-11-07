@@ -63,7 +63,7 @@ membersWithPendingInvitations = [
       if member
         member = member.set 'status', 'member' if !member.get('status') or member.get('status') is not 'pending'
         member = member.set 'status', 'owner' if member.get('role') is 'owner'
-        members.set member.get('_id'), member
+        members = members.set member.get('_id'), member
 
     return members
 ]
@@ -100,9 +100,12 @@ isMemberIncluded = (member, value) ->
   if value is 'invited'
     member.get('status') is 'pending'
   else if member.get('status') is 'pending'
-    member.get('role') is value
+    if value is 'member'
+      false
+    else
+      member.get('role') is value
   else
-    member.getIn(['profile', 'role']) is value
+    member.get('role') is value
 
 
 filteredMembersByKey = [
