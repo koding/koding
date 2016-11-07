@@ -494,7 +494,7 @@ func main() {
 				Subcommands: []cli.Command{{
 					Name:      "list",
 					ShortName: "ls",
-					Usage:     "List machines available for the user",
+					Usage:     "List available machines",
 					Action:    ctlcli.ExitErrAction(MachineListCommand, log, "list"),
 				}},
 			},
