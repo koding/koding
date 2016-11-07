@@ -478,7 +478,7 @@ func main() {
 						},
 						cli.StringFlag{
 							Name:  "file, f",
-							Value: "-",
+							Value: "",
 							Usage: "Read credential from a file.",
 						},
 						cli.StringFlag{
@@ -496,6 +496,38 @@ func main() {
 					ShortName: "ls",
 					Usage:     "List available machines",
 					Action:    ctlcli.ExitErrAction(MachineListCommand, log, "list"),
+				}},
+			},
+			cli.Command{
+				Name:  "stack",
+				Usage: "Manage stacks.",
+				Subcommands: []cli.Command{{
+					Name:   "create",
+					Usage:  "Create new stack.",
+					Action: ctlcli.ExitErrAction(StackCreate, log, "create"),
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "provider, p",
+							Usage: "Specify stack provider.",
+						},
+						cli.StringSliceFlag{
+							Name:  "credential, c",
+							Usage: "Specify stack credentials.",
+						},
+						cli.StringFlag{
+							Name:  "team, t",
+							Usage: "Specify team which the stack belongs to.",
+						},
+						cli.StringFlag{
+							Name:  "file, f",
+							Value: "",
+							Usage: "Read stack template from a file.",
+						},
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+					},
 				}},
 			},
 		)

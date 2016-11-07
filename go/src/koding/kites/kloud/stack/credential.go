@@ -82,6 +82,22 @@ type CredentialListResponse struct {
 	Credentials map[string][]CredentialItem `json:"credentials"`
 }
 
+// Provider gives a provider name for the given identifier.
+//
+// If no credential with the given identifier is found,
+// an empty string is returned.
+func (c *CredentialListResponse) Provider(identifier string) string {
+	for provider, credentials := range c.Credentials {
+		for _, credential := range credentials {
+			if credential.Identifier == identifier {
+				return provider
+			}
+		}
+	}
+
+	return ""
+}
+
 // CredentialAddRequest represents a request
 // value for "credential.add" kloud method.
 type CredentialAddRequest struct {
