@@ -19,7 +19,9 @@ requirementsParser = require 'app/util/stacks/requirementsparser'
 generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 Tracker = require 'app/util/tracker'
 $ = require 'jquery'
-
+ContentModal = require 'app/components/contentModal'
+isAdmin = require 'app/util/isAdmin'
+createShareModal = require 'stack-editor/editor/createShareModal'
 _eventsCache = { machine: {}, stack: no }
 
 _bindMachineEvents = (environmentData) ->
@@ -709,16 +711,38 @@ removeStackTemplate = (stackTemplate) ->
 
 deleteStack = ({ stackTemplateId, stack }) ->
 
-  { computeController, appManager, router, reactor } = kd.singletons
+  { computeController, appManager, router, reactor, groupsController } = kd.singletons
 
   teamStackTemplatesStore = reactor.evaluate(['TeamStackTemplatesStore'])
-
+  currentGroup = groupsController.getCurrentGroup()
   _stack = remote.revive stack.toJS()  if stack
 
   if not _stack and stackTemplateId
     _stack = computeController.findStackFromTemplateId stackTemplateId
 
   return  unless _stack
+
+  if _stack.baseStackId in currentGroup.stackTemplates
+    if isAdmin()
+      content = '<p>This is team stack which is shared with all team members.
+        You have to make this stack private to be able to delete.
+        </p>'
+    else
+      content = "<p>This stack has been shared with team, you are not allowed
+        to delete team stack. You can go to dashboard and remove from sidebar
+        If you don't like to see it on your sidebar.</p>"
+    return modal = new ContentModal
+      width         : 600
+      cssClass      : 'content-modal'
+      title         : 'Destroy Stack Warning!'
+      content       : content
+      overlay       : yes
+      buttons       :
+        'OK'  :
+          cssClass  : 'solid medium'
+          title     : 'OK'
+          callback  : -> modal.destroy()
+
 
   computeController.ui.askFor 'deleteStack', {}, (status) ->
     return  unless status.confirmed
@@ -818,21 +842,90 @@ setLabel = (machineUId, label) ->
         return reject err  if err
         resolve newLabel
 
-cloneStackTemplate = (template, revive) ->
+cloneStackTemplate = (template, callback = ->) ->
 
   new kd.NotificationView { title:'Cloning Stack Template' }
 
   { reactor } = kd.singletons
-  template = remote.revive template  if revive
 
   template.clone (err, stackTemplate) ->
-    if err
-      return new kd.NotificationView
-        title: 'Error occured while cloning template'
+    return callback err  if err
 
     Tracker.track Tracker.STACKS_CLONED_TEMPLATE
     reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
     kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"
+    callback null
+
+
+shareWithTeam = (stackTemplate, callback = ->) ->
+
+  { reactor, computeController: cc, groupsController } = kd.singletons
+  { credentials, config: { requiredProviders } } = stackTemplate
+  { group: slug } = stackTemplate
+
+  createShareModal (needShare, modal) ->
+    stackTemplate.shareWithTeam (err, stackTemplate) ->
+
+      return callback err  if err
+
+      if needShare
+      then cc.shareCredentials credentials, requiredProviders, -> modal.destroy()
+      else modal.destroy()
+      remote.api.JGroup.one { slug }, (err, _currentGroup) ->
+        reactor.dispatch 'LOAD_TEAM_SUCCESS', { team: _currentGroup }
+        _currentGroup.sendNotification 'ShareStackTemplate', stackTemplate
+        callback err
+
+
+makeTeamDefault = (stackTemplate, callback = ->) ->
+
+  { reactor, computeController: cc, groupsController } = kd.singletons
+  { credentials, config: { requiredProviders } } = stackTemplate
+  { group: slug } = stackTemplate
+
+  createShareModal (needShare, modal) ->
+    stackTemplate.makeTeamDefault (err, stackTemplate) ->
+      return callback err  if err
+
+      if needShare
+      then cc.shareCredentials credentials, requiredProviders, -> modal.destroy()
+      else modal.destroy()
+      remote.api.JGroup.one { slug }, (err, _currentGroup) ->
+        reactor.dispatch 'LOAD_TEAM_SUCCESS', { team: _currentGroup }
+        _currentGroup.sendNotification 'ShareStackTemplate', stackTemplate
+        callback err
+
+
+
+makePrivate = (stackTemplate, callback = ->) ->
+
+  { reactor } = kd.singletons
+  { group: slug } = stackTemplate
+
+  modal = new ContentModal
+    title   : 'Are you sure?'
+    content : "<p class='text-center'>
+      Your teammate will have no longer to access this stack anymore
+      If they haven't clone yet.</p>"
+    cssClass : 'content-modal'
+    buttons :
+      No         :
+        title    : 'Cancel'
+        cssClass : 'solid cancel medium'
+        callback : -> modal.destroy()
+      Yes        :
+        title    : 'Yes'
+        cssClass : 'solid medium'
+        loader   : yes
+        callback : ->
+          stackTemplate.makePrivate (err, data) ->
+            return callback err  if err
+            modal.destroy()
+            remote.api.JGroup.one { slug }, (err, _currentGroup) ->
+              reactor.dispatch 'LOAD_TEAM_SUCCESS', { team: _currentGroup }
+              _currentGroup.sendNotification 'UnshareStackTemplate', stackTemplate
+              callback err
+
 
 loadExpandedMachineLabel = (label) ->
 
@@ -888,4 +981,7 @@ module.exports = {
   fetchAndUpdateStackTemplate
   cloneStackTemplate
   loadExpandedMachineLabel
+  shareWithTeam
+  makePrivate
+  makeTeamDefault
 }

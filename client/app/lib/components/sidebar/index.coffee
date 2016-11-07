@@ -19,6 +19,7 @@ SidebarFlux = require 'app/flux/sidebar'
 TeamFlux = require 'app/flux/teams'
 DEFAULT_LOGOPATH = '/a/images/logos/sidebar_footer_logo.svg'
 MENU = null
+remote = require 'app/remote'
 isAdmin = require 'app/util/isAdmin'
 canCreateStacks = require 'app/util/canCreateStacks'
 
@@ -92,21 +93,34 @@ module.exports = class Sidebar extends React.Component
     MENU.destroy()
 
     draft = @state.drafts.get id
+    _id = draft.get '_id'
+
     switch title
-      when 'Edit' then router.handleRoute "/Stack-Editor/#{id}"
+      when 'Edit','ViewStack'
+        router.handleRoute "/Stack-Editor/#{id}"
       when 'Initialize'
         EnvironmentFlux.actions.generateStack(id).then ({ template }) ->
           appManager.tell 'Stackeditor', 'reloadEditor', template._id
       when 'Clone'
-        EnvironmentFlux.actions.cloneStackTemplate draft.toJS(), yes
+        remote.api.JStackTemplate.one { _id }, (err, template) =>
+          return @showErrorMessage 'Error occured while cloning template'  if err
+          EnvironmentFlux.actions.cloneStackTemplate template, (err) =>
+            return @showErrorMessage 'Error occured while cloning template'  if err
+            return @showErrorMessage 'Your stack template successfully cloned'
       when 'Open on GitLab'
         remoteUrl = draft.getIn ['config', 'remoteDetails', 'originalUrl']
         linkController.openOrFocus remoteUrl
       when 'Make Team Default'
-        computeController.makeTeamDefault draft.toJS(), yes
+        remote.api.JStackTemplate.one { _id }, (err, template) =>
+          return @showErrorMessage 'Error occured while making this stack team default'  if err
+          EnvironmentFlux.actions.makeTeamDefault template, (err) =>
+            return @showErrorMessage 'Error occured while making this stack team default'  if err
+            return @showErrorMessage 'Your stack is team default now.'
       when 'Delete'
         computeController.deleteStackTemplate draft.toJS(), yes
 
+
+  showErrorMessage: (title) -> new kd.NotificationView { title }
 
 
   onDraftTitleClick: (id, event) ->
@@ -125,7 +139,11 @@ module.exports = class Sidebar extends React.Component
     if draft.getIn ['config', 'remoteDetails', 'originalUrl']
       menuItems['Open on GitLab'] = { callback }
 
-    ['Edit', 'Initialize'].forEach (name) => menuItems[name] = { callback }
+    if draft.get('accessLevel') is 'private' or isAdmin()
+      menuItems['Edit'] = { callback }
+    else
+      menuItems['ViewStack'] = { callback }
+    menuItems['Initialize'] = { callback }
     menuItems['Clone'] = { callback }  if canCreateStacks() or isAdmin()
     menuItems['Make Team Default'] = { callback } if isAdmin() and draft.get('machines').size
     menuItems['Delete'] = { callback }

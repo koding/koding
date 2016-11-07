@@ -61,6 +61,8 @@ module.exports = class ComputeController extends KDController
 
       groupsController.on 'StackTemplateChanged', @bound 'checkGroupStacks'
       groupsController.on 'StackAdminMessageCreated', @bound 'handleStackAdminMessageCreated'
+      groupsController.on 'ShareStackTemplate', @bound 'handleSharedStackTemplate'
+      groupsController.on 'UnshareStackTemplate', @bound 'handleUnsharedStackTemplate'
 
       @fetchStacks =>
 
@@ -392,31 +394,31 @@ module.exports = class ComputeController extends KDController
       @reset yes, -> callback null, machine
 
 
+  handleStackCreate: (err, newStack) ->
+
+    return kd.warn err  if err
+    return kd.warn 'Stack data not found'  unless newStack
+
+    { results : { machines } } = newStack
+    [ machine ] = machines
+    @reset yes, =>
+      @reloadIDE machine.obj.slug
+      @checkGroupStacks()
+
+
   createDefaultStack: (force, template) ->
 
     return  unless isLoggedIn()
 
     { mainController, groupsController } = kd.singletons
 
-    handleStackCreate = (err, newStack) =>
-      return kd.warn err  if err
-      return kd.warn 'Stack data not found'  unless newStack
-
-      { results : { machines } } = newStack
-      [ machine ] = machines
-
-      @reset yes, =>
-        @reloadIDE machine.obj.slug
-        @checkGroupStacks()
-
     mainController.ready =>
 
       if template
-        template.generateStack handleStackCreate
+        template.generateStack @bound 'handleStackCreate'
       else if force or groupsController.currentGroupHasStack()
-        for stack in @stacks
-          return  if stack.config?.groupStack
-        remote.api.ComputeProvider.createGroupStack handleStackCreate
+        return  if groupsController.getCurrentGroup().sharedStackTemplates?.length
+        remote.api.ComputeProvider.createGroupStack {}, @bound 'handleStackCreate'
       else
         @emit 'StacksNotConfigured'
 
@@ -680,9 +682,6 @@ module.exports = class ComputeController extends KDController
 
   destroyStack: (stack, callback, followEvents = yes) ->
 
-    # TMS-1919: This only takes a stack instance so it's ok
-    # for multiple stacks ~ GG
-
     return  unless stack
 
     { state } = stack.status
@@ -807,9 +806,6 @@ module.exports = class ComputeController extends KDController
     # not requires to re-init their stacks when a credential is changed but not
     # the template itself. ~ GG
     unless isKoding()
-
-      # TMS-1919: This is already written for multiple stacks, just a check
-      # might be required ~ GG
 
       stack = @findStackFromMachineId machine._id
       return updateWith options  unless stack
@@ -966,9 +962,6 @@ module.exports = class ComputeController extends KDController
 
     return  if isKoding()
 
-    # TMS-1919: This is already written for multiple stacks, code change
-    # might be required if existing flow changes ~ GG
-
     @stacks.forEach (stack) =>
 
       stack.checkRevision (error, data) =>
@@ -984,9 +977,33 @@ module.exports = class ComputeController extends KDController
           @emit 'StacksInconsistent', stack
 
 
-  checkGroupStacks: ->
+  handleUnsharedStackTemplate: (params) ->
+
+    { contents: stackTemplate } = params
+    { mainController, reactor } = kd.singletons
+
+    reactor.dispatch 'REMOVE_TEAM_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
+
+
+  handleSharedStackTemplate: (params) ->
+
+    { contents: stackTemplate } = params
+    { mainController, reactor } = kd.singletons
+
+    reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
+    reactor.dispatch 'REMOVE_PRIVATE_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
+
+    mainController.ready =>
+      { _id, originId } = stackTemplate
+
+      remote.api.ComputeProvider.createGroupStack { _id, originId }, @bound 'handleStackCreate'
+
+
+  checkGroupStacks: (params = {}) ->
 
     @checkStackRevisions()
+
+    { contents: stackTemplate } = params
 
     { groupsController } = kd.singletons
     { slug } = currentGroup = groupsController.getCurrentGroup()
@@ -998,12 +1015,8 @@ module.exports = class ComputeController extends KDController
       currentGroup.stackTemplates = _currentGroup.stackTemplates
       @emit 'GroupStackTemplatesUpdated'
 
-      # TMS-1919: This can stay as is, but this time it will create the first
-      # avaiable stacktemplate for who has no stacks yet. ~ GG
-
-      groupStacks = @stacks.filter (stack) -> stack.config?.groupStack
-
-      @createDefaultStack yes  if groupStacks.length is 0
+      @createDefaultStack yes  unless _currentGroup.sharedStackTemplates?.length
+      @createDefaultStack yes, stackTemplate  if stackTemplate
 
       @checkGroupStackRevisions()
 
@@ -1015,21 +1028,18 @@ module.exports = class ComputeController extends KDController
 
     { groupsController } = kd.singletons
     currentGroup         = groupsController.getCurrentGroup()
-    { stackTemplates }   = currentGroup
+    { stackTemplates, sharedStackTemplates }   = currentGroup
 
     return  if not stackTemplates?.length
 
     existents = 0
-
-    # TMS-1919: This is already written for multiple stacks, just a check
-    # might be required ~ GG
 
     for stackTemplate in stackTemplates
       for stack in @stacks when stack.baseStackId is stackTemplate
         existents++
         break # only count one matched stack ~ GG
 
-    if existents isnt stackTemplates.length
+    if existents isnt stackTemplates.length and not sharedStackTemplates
     then @emit 'GroupStacksInconsistent'
     else @emit 'GroupStacksConsistent'
 
@@ -1203,28 +1213,6 @@ module.exports = class ComputeController extends KDController
       kd.singletons.router.handleRoute route
 
 
-  makeTeamDefault: (stackTemplate, revive) ->
-
-    if revive
-      stackTemplate = remote.revive stackTemplate
-    { credentials, config: { requiredProviders } } = stackTemplate
-
-    { groupsController, reactor } = kd.singletons
-
-    createShareModal (needShare, modal) =>
-
-      groupsController.setDefaultTemplate stackTemplate, (err) =>
-
-        reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
-        reactor.dispatch 'REMOVE_PRIVATE_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
-
-        Tracker.track Tracker.STACKS_MAKE_DEFAULT
-
-        if needShare
-        then @shareCredentials credentials, requiredProviders, -> modal.destroy()
-        else modal.destroy()
-
-
   shareCredentials: (credentials, requiredProviders, callback) ->
 
     for selectedProvider in requiredProviders
@@ -1270,13 +1258,8 @@ module.exports = class ComputeController extends KDController
 
       return
 
-    # TMS-1919: This should be re-written from scratch probably,
-    # Currently this destroys the existing stack and recreate the default
-    # one which is covering the stacktemplate updates and stacktemplate
-    # change for the group, but this will be invalid once we have multiple
-    # stacks. For this reason, we need to define to flow first for this and
-    # change the code based on the flow requirements. ~ GG
-
+    { groupsController } = kd.singletons
+    currentGroup = groupsController.getCurrentGroup()
     @ui.askFor 'reinitStack', {}, (status) =>
 
       unless status.confirmed
@@ -1292,10 +1275,9 @@ module.exports = class ComputeController extends KDController
         if err or not template
           console.warn 'The base template of the stack has been removed:', stack.baseStackId
 
-        groupStack = stack.config?.groupStack
+        groupStack = yes  if currentGroup.sharedStackTemplates?.length
 
         @destroyStack stack, (err) =>
-
           if err
             notification.destroy()
             callback err
@@ -1315,6 +1297,8 @@ module.exports = class ComputeController extends KDController
 
           if template and not groupStack
           then @createDefaultStack no, template
+          else if template and groupStack
+          then @handleSharedStackTemplate { contents: template }
           else @createDefaultStack()
 
         , followEvents = no

@@ -234,8 +234,10 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
         toggleFeature:
           (signature Object, Function)
-        sendNotification:
+        sendNotification: [
           (signature String, String, Function)
+          (signature String, Object, Function)
+        ]
         setLimit:
           (signature Object, Function)
         setOAuth:
@@ -289,6 +291,8 @@ module.exports = class JGroup extends Module
       # it would break the onboarding process of showing the initial stacks not
       # configured modal, so don't. - SY
       stackTemplates  : [ ObjectId ]
+
+      sharedStackTemplates: [ ObjectId ]
       # DefaultChannels holds the default channels for a group, when a user joins
       # to this group, participants will be automatically added to regarding
       # channels

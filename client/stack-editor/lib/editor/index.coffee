@@ -531,7 +531,7 @@ module.exports = class StackEditorView extends kd.View
         @outputView.add 'Parsing failed, please check your template and try again'
         return callback err
 
-      { stackTemplates }       = groupsController.getCurrentGroup()
+      { stackTemplates, sharedStackTemplates } = currentGroup = groupsController.getCurrentGroup()
       stackTemplate.isDefault ?= stackTemplate._id in (stackTemplates or [])
       hasGroupTemplates        = stackTemplates?.length
 
@@ -540,13 +540,10 @@ module.exports = class StackEditorView extends kd.View
 
       hasStack = stackTemplate._id in templateIds
 
-      # TMS-1919: This needs to be reimplemented, once we have multiple
-      # stacktemplates set for a team this will be broken ~ GG
-
       if hasStack
         if isAdmin()
           # admin is editing a team stack
-          if stackTemplate.isDefault
+          if stackTemplate._id is sharedStackTemplates[0]
             @_handleSetDefaultTemplate =>
               @outputView.add '''
                 Your stack script has been successfully saved and all your new team
@@ -558,7 +555,8 @@ module.exports = class StackEditorView extends kd.View
               '''
           # admin is editing a private stack
           else
-            @afterProcessTemplate 'maketeamdefault'
+            if hasStack then currentGroup.sendNotification 'StackTemplateChanged', stackTemplate
+            else @afterProcessTemplate 'maketeamdefault'
 
         # since this is an existing stack, show renit buttons and update
         # sidebar no matter what.
@@ -895,14 +893,17 @@ module.exports = class StackEditorView extends kd.View
 
   handleSetDefaultTemplate: (callback = kd.noop) ->
 
-    createShareModal (needShare, modal) =>
-      @_handleSetDefaultTemplate (stackTemplate) =>
+    { stackTemplate } = @getData()
+    @outputView.add 'Setting this as default team stack template...'
+    EnvironmentFlux.actions.makeTeamDefault stackTemplate, (err, stackTemplate) =>
 
-        if needShare
-        then @shareCredentials -> modal.destroy()
-        else modal.destroy()
+      @setAsDefaultButton.hideLoader()
 
-        callback stackTemplate
+      return  if @outputView.handleError err
+
+      @setAsDefaultButton.disable()
+      @emit 'Reload'
+      callback stackTemplate  unless err
 
 
   _handleSetDefaultTemplate: (callback = kd.noop) ->
@@ -912,24 +913,12 @@ module.exports = class StackEditorView extends kd.View
 
     @outputView.add 'Setting this as default team stack template...'
 
-    # TMS-1919: This should only add the stacktemplate to the list of
-    # available stacktemplates, we can also provide set one of the template
-    # as default ~ GG
-
-    groupsController.setDefaultTemplate stackTemplate, (err) =>
-
-      reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
-      reactor.dispatch 'REMOVE_PRIVATE_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
-
+    stackTemplate.makeTeamDefault (err, stackTemplate) =>
       @setAsDefaultButton.hideLoader()
 
       return  if @outputView.handleError err
 
       @setAsDefaultButton.disable()
-
-      Tracker.track Tracker.STACKS_MAKE_DEFAULT
-
-      stackTemplate.isDefault = yes
 
       @emit 'Reload'
       callback stackTemplate

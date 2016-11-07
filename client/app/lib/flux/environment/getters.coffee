@@ -243,4 +243,5 @@ module.exports = {
   draftStackTemplates
   disabledUsersStacks
   expandedMachineLabelStore
+  teamStackTemplatesStore: TeamStackTemplatesStore
 }

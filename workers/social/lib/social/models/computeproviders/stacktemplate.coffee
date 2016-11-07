@@ -65,6 +65,13 @@ module.exports = class JStackTemplate extends Module
           (signature String, Function)
         hasStacks     :
           (signature Function)
+        shareWithTeam :
+          (signature Function)
+        makePrivate   :
+          (signature Function)
+        makeTeamDefault:
+          (signature Function)
+
 
     sharedEvents      :
       static          : []
@@ -133,6 +140,16 @@ module.exports = class JStackTemplate extends Module
         .update content
         .digest 'hex'
     }
+
+
+  makeArray = (object) ->
+
+    return []  unless object
+    stackTemplates = []
+    for i in [0..object.length - 1]
+      stackTemplates.push object[i].toHexString()
+
+    return stackTemplates
 
 
   validateTemplate = (template, group, callback) ->
@@ -322,10 +339,115 @@ module.exports = class JStackTemplate extends Module
         callback err, this
 
 
-  generateStack: permit
+  shareWithTeam: permit
 
     advanced: [
       { permission: 'update own stack template', validateWith: Validators.own }
+      { permission: 'update stack template' }
+    ]
+
+    success: revive
+
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+      shouldFetchGroupLimit : yes
+
+    , (client, callback) ->
+
+      { group }    = client.r
+      { delegate } = client.connection
+      { stackTemplates } = group
+
+      stackTemplates = makeArray stackTemplates
+      id = @getId().toHexString()
+
+      if stackTemplates.length
+        unless id in stackTemplates
+          stackTemplates.push id
+      else stackTemplates = [id]
+
+      console.log 'stackTemplates', stackTemplates
+      @setAccess client, 'group', (err) =>
+        group.modify client, { stackTemplates }, (err) =>
+          return callback err  if err
+
+          return callback err, this
+
+
+  makePrivate: permit
+
+    advanced: [
+      { permission: 'update own stack template', validateWith: Validators.own }
+      { permission: 'update stack template' }
+    ]
+
+    success: revive
+
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+      shouldFetchGroupLimit : yes
+
+    , (client, callback) ->
+
+      { group }    = client.r
+      { delegate } = client.connection
+      { stackTemplates } = group
+
+      stackTemplates = makeArray stackTemplates
+      id = @getId().toHexString()
+
+      if stackTemplates.length
+        index = stackTemplates.indexOf(id)
+        if index > -1
+          stackTemplates.splice(index, 1)
+
+      @setAccess client, 'private', (err) =>
+        group.modify client, { stackTemplates }, (err) =>
+          return callback err  if err
+
+          return callback err, this
+
+
+  makeTeamDefault: permit
+
+    advanced: [
+      { permission: 'update own stack template', validateWith: Validators.own }
+      { permission: 'update stack template' }
+    ]
+
+    success: revive
+
+      shouldReviveClient   : yes
+      shouldReviveProvider : no
+      shouldFetchGroupLimit : yes
+
+    , (client, callback) ->
+
+      { group }    = client.r
+      { delegate } = client.connection
+      { stackTemplates } = group
+
+      stackTemplates = makeArray stackTemplates
+      id = @getId().toHexString()
+
+      if stackTemplates.length
+        unless id in stackTemplates
+          stackTemplates.push id
+      else stackTemplates = [id]
+
+      sharedStackTemplates = [id]
+
+      @setAccess client, 'group', (err) =>
+        group.modify client, { stackTemplates, sharedStackTemplates }, (err) =>
+          return callback err  if err
+
+          return callback err, this
+
+
+  generateStack: permit
+
+    advanced: [
+      { permission: 'update own stack template' }
       { permission: 'update stack template' }
     ]
 
