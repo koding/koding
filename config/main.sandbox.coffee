@@ -46,7 +46,7 @@ Configuration = (options = {}) ->
   options.credentialPath or= path.join options.vaultPath, "./config/credentials.#{options.environment}.coffee"
   options.clientUploadS3BucketName = 'kodingdev-client'
   options.publicLogsS3BucketName or= 'kodingdev-publiclogs'
-  options.proxySubdomain or= 'dev-p2'
+  options.proxySubdomain or= 'dev-p'
 
 
   try fs.lstatSync options.credentialPath

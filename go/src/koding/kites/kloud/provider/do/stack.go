@@ -126,11 +126,11 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 
 	template.Resource["digitalocean_droplet"] = droplet
 
-	if err := template.Flush(); err != nil {
+	if err := template.ShadowVariables("FORBIDDEN", "digitalocean_access_token"); err != nil {
 		return nil, err
 	}
 
-	if err := template.ShadowVariables("FORBIDDEN", "digitalocean_token"); err != nil {
+	if err := template.Flush(); err != nil {
 		return nil, err
 	}
 

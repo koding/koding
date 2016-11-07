@@ -46,14 +46,6 @@ func Register(kontrolURL, kiteHome, username, token string, debug bool) error {
 		k.SetLogLevel(kite.DEBUG)
 	}
 
-	if kiteHome == "" {
-		kiteHome = konfig.Konfig.KiteHome()
-	}
-
-	if kontrolURL == "" {
-		kontrolURL = konfig.Konfig.KontrolURL
-	}
-
 	// Production Koding servers are only working over HTTP
 	k.Config.Transport = config.XHRPolling
 

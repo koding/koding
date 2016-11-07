@@ -12,6 +12,7 @@ import (
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
 	"koding/kites/kloud/userdata"
+	"koding/tools/utils"
 
 	"github.com/Azure/azure-sdk-for-go/management"
 )
@@ -174,8 +175,25 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	}
 
 	for name, vm := range res.AzureInstance {
+		// Set unique name for the instance if not provided explicitly.
 		if n, ok := vm["name"].(string); !ok || n == "" {
 			vm["name"] = name + "-" + s.id()
+		}
+
+		// Set ssh_key_thumbprint if not provided explicitly.
+		if cred.SSHKeyThumbprint != "" {
+			if thumb, ok := vm["ssh_key_thumbprint"]; !ok || thumb == "" {
+				vm["ssh_key_thumbprint"] = cred.SSHKeyThumbprint
+			}
+		}
+
+		// Set password if not provided explicitely.
+		if pass, ok := vm["password"]; !ok || pass == "" {
+			if cred.Password != "" {
+				vm["password"] = cred.Password
+			} else {
+				vm["password"] = utils.RandomString()
+			}
 		}
 
 		s.injectBoostrap(vm, cred, boot)
@@ -198,11 +216,11 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 
 	t.Resource["azure_instance"] = res.AzureInstance
 
-	if err := t.Flush(); err != nil {
+	if err := t.ShadowVariables("FORBIDDEN", "azure_publish_settings", "azure_settings_file"); err != nil {
 		return nil, err
 	}
 
-	if err := t.ShadowVariables("FORBIDDEN", "azure_publish_settings", "azure_settings_file"); err != nil {
+	if err := t.Flush(); err != nil {
 		return nil, err
 	}
 
@@ -271,7 +289,7 @@ func (s *Stack) injectEndpointRules(vm map[string]interface{}) {
 		endpoints = append(endpoints, vmSSH)
 	}
 
-	vm["endpoint"] = provider.ToSlice(endpoints)
+	vm["endpoint"] = endpoints
 }
 
 func (s *Stack) injectCloudInit(vm map[string]interface{}, name, kiteKeyName string) (map[string]string, error) {

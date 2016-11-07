@@ -1,7 +1,6 @@
 kd = require 'kd'
 Encoder = require 'htmlencode'
 MarkdownEditorView = require './markdowneditorview'
-defaults = require 'app/util/stacks/defaults'
 
 
 module.exports = class ReadmeView extends kd.View
@@ -15,7 +14,7 @@ module.exports = class ReadmeView extends kd.View
 
     content = if stackTemplate?.description \
       then Encoder.htmlDecode stackTemplate?.description
-      else defaults.description
+      else ''
 
     @editorView   = @addSubView new MarkdownEditorView
       content     : content

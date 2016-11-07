@@ -254,12 +254,12 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 
 	t.Resource["google_compute_instance"] = resource.GCInstance
 
-	if err := t.Flush(); err != nil {
+	err = t.ShadowVariables("FORBIDDEN", "google_credentials")
+	if err != nil {
 		return nil, err
 	}
 
-	err = t.ShadowVariables("FORBIDDEN", "google_credentials")
-	if err != nil {
+	if err := t.Flush(); err != nil {
 		return nil, err
 	}
 

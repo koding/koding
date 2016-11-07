@@ -64,12 +64,12 @@ module.exports = utils = {
     basePattern  = (kd.config.domains.main.split ':')[0].replace /\./g, '\\.'
 
     predefinedPatterns = [
-      # <team-domain>.<(dev|sandbox|latest|prod)>.koding.com
-      { predict: "(dev|sandbox|latest|prod)\.#{basePattern}" }
-
       # <team-domain>.koding.com
       # <team-domain>.<username>.koding.team
       { predict: "#{basePattern}" }
+
+      # <team-domain>.<(dev|sandbox|latest|prod)>.koding.com
+      { predict: "(dev|sandbox|latest|prod)\.#{basePattern}" }
 
       # <team-domain>.<IPv4>.xip.io
       # IPV4: A.B.C.D
@@ -88,7 +88,7 @@ module.exports = utils = {
 
       unless labelFn
         labelFn = do (predict) -> (hostname) ->
-          hostname.replace(new RegExp("\.?#{predict}$"), '').split('.').pop()
+          hostname.replace(new RegExp("\\.?#{predict}$"), '').split('.').pop()
 
       if hostname.match new RegExp "#{predict}$"
         return labelFn(hostname) or 'koding'

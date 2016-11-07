@@ -6,10 +6,10 @@ Proxifier = require 'app/util/proxifier'
 baseDomain    = 'koding.com'
 tunnelDomain  = 'koding.me'
 prodProxyUrl  = "p.#{baseDomain}/-/prodproxy"
-devProxyUrl   = "dev-p2.#{baseDomain}/-/devproxy"
+devProxyUrl   = "dev-p.#{baseDomain}/-/devproxy"
 
 prodTunnelUrl = "p.#{baseDomain}/-/prodtunnel"
-devTunnelUrl  = "dev-p2.#{baseDomain}/-/devtunnel"
+devTunnelUrl  = "dev-p.#{baseDomain}/-/devtunnel"
 
 testTunnelUrl = "some.test.url.3f5.#{tunnelDomain}/kite"
 

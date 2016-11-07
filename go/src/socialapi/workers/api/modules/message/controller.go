@@ -409,8 +409,6 @@ func GetWithRelated(u *url.URL, h http.Header, _ interface{}, ctx *models.Contex
 		return response.NewBadRequest(err)
 	}
 
-	cmc.AddIsInteracted(query).AddIsFollowed(query)
-
 	return response.HandleResultAndError(cmc, cmc.Err)
 }
 
@@ -450,8 +448,6 @@ func GetBySlug(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (i
 	if err := cmc.Fetch(cm.Id, query); err != nil {
 		return response.NewBadRequest(err)
 	}
-
-	cmc.AddIsInteracted(query).AddIsFollowed(query)
 
 	return response.HandleResultAndError(cmc, cmc.Err)
 }

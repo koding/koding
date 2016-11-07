@@ -1,7 +1,6 @@
 package notification
 
 import (
-	"fmt"
 	socialapimodels "socialapi/models"
 	"socialapi/workers/notification/models"
 	"time"
@@ -294,61 +293,6 @@ func newNotification(contentId, notifierId int64, subscribedAt time.Time) *model
 	n.SubscribedAt = subscribedAt
 
 	return n
-}
-
-func (c *Controller) CreateInteractionNotification(i *socialapimodels.Interaction) error {
-	cm := socialapimodels.NewChannelMessage()
-	if err := cm.ById(i.MessageId); err != nil {
-		return err
-	}
-
-	// user likes her own message, so we bypass notification
-	if cm.AccountId == i.AccountId {
-		return nil
-	}
-
-	groupChannel, err := cm.FetchParentChannel()
-	if err != nil {
-		return err
-	}
-
-	isParticipant, err := isParticipant(cm.AccountId, groupChannel)
-	if err != nil || !isParticipant {
-		return err
-	}
-
-	in := models.NewInteractionNotification(i.TypeConstant)
-	if cm.TypeConstant == socialapimodels.ChannelMessage_TYPE_POST {
-		in.TargetId = i.MessageId
-	} else {
-		mr := socialapimodels.NewMessageReply()
-		mr.ReplyId = i.MessageId
-
-		cm, err := mr.FetchParent()
-		if err != nil {
-			return err
-		}
-
-		in.TargetId = cm.Id
-	}
-
-	in.MessageId = i.MessageId
-	in.NotifierId = i.AccountId
-	nc, err := models.CreateNotificationContent(in)
-	if err != nil {
-		return err
-	}
-
-	notification := models.NewNotification()
-	notification.NotificationContentId = nc.Id
-	notification.AccountId = cm.AccountId       // notify message owner
-	notification.ActivatedAt = time.Now().UTC() // enables notification immediately
-	notification.ContextChannelId = groupChannel.Id
-	if err = notification.Upsert(); err != nil {
-		return fmt.Errorf("An error occurred while notifying user %d: %s", cm.AccountId, err.Error())
-	}
-
-	return nil
 }
 
 func filterRepliers(repliers, mentionedUsers []int64) []int64 {

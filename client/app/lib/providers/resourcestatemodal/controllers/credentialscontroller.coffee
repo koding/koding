@@ -152,8 +152,9 @@ module.exports = class CredentialsController extends kd.Controller
           return next err  if err
           return next null, identifier  if state  # already bootstrapped
 
+          provider = credential.provider
           computeController.getKloud()
-            .bootstrap { identifiers: [ identifier ] }
+            .bootstrap { identifiers: [ identifier ], provider }
             .then (response) -> next null, identifier
             .catch (err) -> next err.message
             .timeout constants.CREDENTIAL_BOOTSTRAP_TIMEOUT

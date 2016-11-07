@@ -91,22 +91,34 @@ func realMain() int {
 	debug := *flagDebug || konfig.Konfig.Debug
 
 	if *flagRegister {
-		if err := registration.Register(*flagKontrolURL, *flagKiteHome, *flagUsername, *flagToken, debug); err != nil {
+		kontrolURL := *flagKontrolURL
+		if kontrolURL == "" {
+			kontrolURL = konfig.Konfig.KontrolURL
+		}
+
+		kiteHome := *flagKiteHome
+		if kiteHome == "" {
+			kiteHome = konfig.Konfig.KiteHome()
+		}
+
+		kloudURL := *flagKeygenURL
+		if kloudURL == "" {
+			kloudURL = konfig.Konfig.KloudURL
+		}
+
+		if err := registration.Register(kontrolURL, kiteHome, *flagUsername, *flagToken, debug); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return 1
 		}
 
 		// Create new konfig.bolt with variables used during registration.
 		kfg := &config.Konfig{
-			KontrolURL:         *flagKontrolURL,
+			KiteKeyFile:        filepath.Join(kiteHome, "kite.key"),
+			KontrolURL:         kontrolURL,
 			TunnelURL:          *flagTunnelName,
-			KloudURL:           *flagKeygenURL,
+			KloudURL:           kloudURL,
 			PublicBucketName:   *flagLogBucketName,
 			PublicBucketRegion: *flagLogBucketRegion,
-		}
-
-		if *flagKiteHome != "" {
-			kfg.KiteKeyFile = filepath.Join(*flagKiteHome, "kite.key")
 		}
 
 		if err := config.DumpToBolt("", config.Metadata{"konfig": kfg}, nil); err != nil {

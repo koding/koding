@@ -1,9 +1,10 @@
 kd = require 'kd'
-KDButtonView = kd.ButtonView
+globals = require 'globals'
 Encoder = require 'htmlencode'
 curryIn = require 'app/util/curryIn'
-StackTemplateEditorView = require './stacktemplateeditorview'
+KDButtonView = kd.ButtonView
 StackScriptSearchView = require './stackscriptsearchview'
+StackTemplateEditorView = require './stacktemplateeditorview'
 
 
 module.exports = class StackTemplateView extends kd.View
@@ -26,7 +27,8 @@ module.exports = class StackTemplateView extends kd.View
       else
         content = template.content
     else
-      content = null
+      content     = globals.config.providers.aws.defaultTemplate.yaml
+      contentType = 'yaml'
 
     delegate = @getDelegate()
     @searhText = null

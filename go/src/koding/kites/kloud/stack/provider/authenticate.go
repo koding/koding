@@ -16,7 +16,7 @@ func (bs *BaseStack) HandleAuthenticate(ctx context.Context) (interface{}, error
 	if !ok {
 		arg = &stack.AuthenticateRequest{}
 
-		if err := bs.Req.Args.One().Unmarshal(&arg); err != nil {
+		if err := bs.Req.Args.One().Unmarshal(arg); err != nil {
 			return nil, err
 		}
 	}
@@ -25,7 +25,7 @@ func (bs *BaseStack) HandleAuthenticate(ctx context.Context) (interface{}, error
 		return nil, err
 	}
 
-	bs.Arg = &arg
+	bs.Arg = arg
 
 	if err := bs.Builder.BuildCredentials(bs.Req.Method, bs.Req.Username, arg.GroupName, arg.Identifiers); err != nil {
 		return nil, err

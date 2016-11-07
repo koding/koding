@@ -1,4 +1,8 @@
 module.exports =
+  'Basic_A1':
+    ram: '768MB RAM'
+    cpu: '1x CPU'
+    description: ''
   'Standard_A0':
     ram: '768MB RAM'
     cpu: '1x CPU'
@@ -24,4 +28,4 @@ module.exports =
     cpu: '16x CPU'
     description: ''
 
-  'base-vm': 'Standard_A0'
+  'base-vm': 'Basic_A1'

@@ -74,7 +74,7 @@ func TestStack_BootstrapTemplates(t *testing.T) {
 	wantTemplate := `{
   "provider": {
     "digitalocean": {
-      "token": "${var.digitalocean_token}"
+      "token": "${var.digitalocean_access_token}"
     }
   },
   "output": {
@@ -155,7 +155,7 @@ func newDoBaseStack() (*provider.BaseStack, error) {
     },
     "provider": {
         "digitalocean": {
-            "token": "${var.digitalocean_token}"
+            "token": "${var.digitalocean_access_token}"
         }
     },
     "resource": {

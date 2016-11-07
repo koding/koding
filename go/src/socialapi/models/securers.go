@@ -30,14 +30,6 @@ func AccountReadSecurer(permissionName string, context *Context) error {
 	return nil
 }
 
-func InteractionSecurer(permissionName string, request *Interaction, context *Context) error {
-	return nil
-}
-
-func InteractionReadSecurer(permissionName string, context *Context) error {
-	return nil
-}
-
 func ParticipantMultiSecurer(permissionName string, request []*ChannelParticipant, context *Context) error {
 	return nil
 }

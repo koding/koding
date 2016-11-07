@@ -69,7 +69,6 @@ func decorateContainers(containers []*models.ChannelMessageContainer, messages [
 	var err error
 	for i, message := range messages {
 		d := models.NewChannelMessage()
-		d = d
 		*d = message
 
 		containers[i], err = d.BuildEmptyMessageContainer()
@@ -77,22 +76,5 @@ func decorateContainers(containers []*models.ChannelMessageContainer, messages [
 			log.Error("Could not create message container for message %d: %s", containers[i].Message.Id, err)
 			continue
 		}
-
-		it := models.NewInteraction()
-		it.MessageId = containers[i].Message.Id
-
-		query := request.NewQuery()
-		query.Type = "like"
-		query.Limit = 3
-
-		query.AccountId = accountId
-
-		interactionContainer, err := it.FetchInteractionContainer(query)
-		if err != nil {
-			log.Error("Could not fetch interactions for message %d: %s", containers[i].Message.Id, err)
-			continue
-		}
-
-		containers[i].Interactions["like"] = interactionContainer
 	}
 }
