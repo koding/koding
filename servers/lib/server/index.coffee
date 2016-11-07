@@ -1,4 +1,7 @@
 process.title = 'koding-webserver'
+
+require 'coffee-cache'
+
 { argv }      = require 'optimist'
 cors          = require 'cors'
 

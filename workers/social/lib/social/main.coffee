@@ -1,5 +1,7 @@
 process.title = 'koding-socialworker'
 
+require 'coffee-cache'
+
 log = -> console.log arguments...
 
 { argv } = require 'optimist'
