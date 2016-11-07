@@ -11,6 +11,7 @@ module.exports = class OwnMachinesStore extends KodingFluxStore
   initialize: ->
 
     @on actions.LOAD_USER_ENVIRONMENT_SUCCESS, @load
+    @on actions.ADD_TEST_MACHINE, @set
 
 
   load: (machines, { own }) ->
@@ -18,3 +19,6 @@ module.exports = class OwnMachinesStore extends KodingFluxStore
     machines.withMutations (machines) ->
       own.forEach ({ machine }) ->
         machines.set machine._id, machine._id
+
+
+  set: (machines, machine) -> machines.set machine._id, machine._id

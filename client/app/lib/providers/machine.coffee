@@ -4,9 +4,17 @@ KDObject              = kd.Object
 doesQueryStringValid  = require '../util/doesQueryStringValid'
 nick                  = require '../util/nick'
 globals               = require 'globals'
+runMiddlewares        = require 'app/util/runMiddlewares'
+TestMachineMiddleware = require './middlewares/testmachine'
 
 
 module.exports = class Machine extends KDObject
+
+  @getMiddlewares = ->
+    return [
+      TestMachineMiddleware.Machine
+    ]
+
 
   @State = {
 
@@ -114,6 +122,11 @@ module.exports = class Machine extends KDObject
 
     { kontrol } = kd.singletons
 
+    # this is a chance for other middlewares to inject their own kite/klient.
+    testKlient = runMiddlewares.sync this, 'getBaseKite', createIfNotExists
+
+    return testKlient  if testKlient
+
     klient = kontrol.kites?.klient?[@uid]
     return klient  if klient
 
@@ -159,3 +172,4 @@ module.exports = class Machine extends KDObject
   isStopped   : -> @status?.state is Machine.State.Stopped
   isUsable    : -> @isRunning() or @isStopped()
   getOldOwner : -> @jMachine.meta.oldOwner
+
