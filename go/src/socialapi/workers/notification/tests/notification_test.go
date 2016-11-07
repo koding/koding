@@ -180,29 +180,6 @@ func createReply(groupChannel *socialapimodels.Channel, owner *socialapimodels.A
 	return reply, nil
 }
 
-func createInteraction(actor *socialapimodels.Account, message *socialapimodels.ChannelMessage, action string) (*socialapimodels.Interaction, error) {
-	i := socialapimodels.NewInteraction()
-	i.AccountId = actor.Id
-	i.MessageId = message.Id
-	i.TypeConstant = action
-
-	err := i.Create()
-	if err != nil {
-		return nil, err
-	}
-
-	return i, nil
-}
-
-func deleteInteraction(actor *socialapimodels.Account, message *socialapimodels.ChannelMessage, action string) error {
-
-	i := socialapimodels.NewInteraction()
-	i.AccountId = actor.Id
-	i.MessageId = message.Id
-
-	return i.Delete()
-}
-
 func glance(actor *socialapimodels.Account) error {
 	n := models.NewNotification()
 	n.AccountId = actor.Id
@@ -252,20 +229,6 @@ func TestNotificationCreation(t *testing.T) {
 
 	createReplyHelper := func(owner *socialapimodels.Account, parentMessage *socialapimodels.ChannelMessage, reply string) {
 		createReplyWithGroupHelper(owner, parentMessage, reply, testGroupChannel)
-	}
-
-	likeMessage := func(actor *socialapimodels.Account, message *socialapimodels.ChannelMessage) {
-		interaction, err := createInteraction(actor, message, socialapimodels.Interaction_TYPE_LIKE)
-		So(err, ShouldBeNil)
-		So(interaction, ShouldNotBeNil)
-
-		err = controller.CreateInteractionNotification(interaction)
-		So(err, ShouldBeNil)
-	}
-
-	unlikeMessage := func(actor *socialapimodels.Account, message *socialapimodels.ChannelMessage) {
-		err := deleteInteraction(actor, message, socialapimodels.Interaction_TYPE_LIKE)
-		So(err, ShouldBeNil)
 	}
 
 	Convey("while testing notifications", t, func() {
@@ -395,56 +358,6 @@ func TestNotificationCreation(t *testing.T) {
 			})
 		})
 
-		Convey("As a message owner I want to receive like notifications", func() {
-			Convey("I should be able to receive notification when a user likes my post", func() {
-				likeMessage(firstUser, firstMessage)
-
-				nl, err := fetchNotification(ownerAccount.Id, testGroupChannel)
-				So(err, ShouldBeNil)
-				So(nl, ShouldNotBeNil)
-
-				So(len(nl.Notifications), ShouldEqual, 2)
-				So(nl.UnreadCount, ShouldEqual, 2)
-				So(nl.Notifications[0].TypeConstant, ShouldEqual, models.NotificationContent_TYPE_LIKE)
-				So(nl.Notifications[0].ActorCount, ShouldEqual, 1)
-				So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
-				So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
-
-				// other users like the message
-				likeMessage(secondUser, firstMessage)
-				likeMessage(thirdUser, firstMessage)
-				likeMessage(forthUser, firstMessage)
-
-				nl, err = fetchNotification(ownerAccount.Id, testGroupChannel)
-				So(err, ShouldBeNil)
-				So(nl, ShouldNotBeNil)
-
-				So(len(nl.Notifications), ShouldEqual, 2)
-				So(nl.UnreadCount, ShouldEqual, 2)
-				So(nl.Notifications[0].TypeConstant, ShouldEqual, models.NotificationContent_TYPE_LIKE)
-				So(nl.Notifications[0].ActorCount, ShouldEqual, 4)
-				So(len(nl.Notifications[0].LatestActors), ShouldEqual, 3)
-				So(nl.Notifications[0].LatestActors[0], ShouldEqual, forthUser.Id)
-
-				Convey("In case of a relike, I should not receive a new notification item", func() {
-					unlikeMessage(firstUser, firstMessage)
-					likeMessage(firstUser, firstMessage)
-
-					nl, err := fetchNotification(ownerAccount.Id, testGroupChannel)
-					So(err, ShouldBeNil)
-					So(nl, ShouldNotBeNil)
-
-					So(len(nl.Notifications), ShouldEqual, 2)
-					So(nl.UnreadCount, ShouldEqual, 2)
-					So(nl.Notifications[0].TypeConstant, ShouldEqual, models.NotificationContent_TYPE_LIKE)
-					So(nl.Notifications[0].ActorCount, ShouldEqual, 4)
-					So(len(nl.Notifications[0].LatestActors), ShouldEqual, 3)
-					So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
-				})
-			})
-
-		})
-
 		Convey("As a message owner I should be able to glance notifications", func() {
 			err := glance(ownerAccount)
 			So(err, ShouldBeNil)
@@ -457,20 +370,6 @@ func TestNotificationCreation(t *testing.T) {
 			for _, notification := range nl.Notifications {
 				So(notification.Glanced, ShouldEqual, true)
 			}
-
-			Convey("As a message owner I should be able to receive new notifications as unread after glance", func() {
-				createReplyHelper(thirdUser, firstMessage, "anotherreply")
-
-				nl, err := fetchNotification(ownerAccount.Id, testGroupChannel)
-				So(err, ShouldBeNil)
-				So(nl, ShouldNotBeNil)
-				So(nl.UnreadCount, ShouldEqual, 1)
-				So(len(nl.Notifications), ShouldEqual, 2)
-				So(nl.Notifications[0].Glanced, ShouldEqual, false)
-
-				So(nl.Notifications[1].Glanced, ShouldEqual, true)
-
-			})
 		})
 
 		Convey("I should be able to receive notifications when a user mentions me in their post", func() {
@@ -509,14 +408,6 @@ func TestNotificationCreation(t *testing.T) {
 				createReplyWithGroupHelper(firstUser, cm, "anotherreply", testGroupChannel2)
 
 				nl, err := fetchNotification(ownerAccount.Id, testGroupChannel2)
-				So(err, ShouldBeNil)
-				So(nl, ShouldNotBeNil)
-				So(nl.UnreadCount, ShouldEqual, 0)
-				So(len(nl.Notifications), ShouldEqual, 0)
-
-				// checking like notification
-				likeMessage(firstUser, cm)
-				nl, err = fetchNotification(ownerAccount.Id, testGroupChannel2)
 				So(err, ShouldBeNil)
 				So(nl, ShouldNotBeNil)
 				So(nl.UnreadCount, ShouldEqual, 0)

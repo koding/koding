@@ -7,9 +7,8 @@ import (
 )
 
 type ChannelMessageContainer struct {
-	Message      *ChannelMessage                  `json:"message"`
-	Interactions map[string]*InteractionContainer `json:"interactions"`
-	RepliesCount int                              `json:"repliesCount"`
+	Message      *ChannelMessage `json:"message"`
+	RepliesCount int             `json:"repliesCount"`
 	// Replies should stay as   ChannelMessageContainers
 	// not as a pointer
 	Replies            ChannelMessageContainers `json:"replies"`
@@ -24,26 +23,8 @@ type ChannelMessageContainer struct {
 // Tests are done.
 func NewChannelMessageContainer() *ChannelMessageContainer {
 	container := &ChannelMessageContainer{}
-	container.Interactions = make(map[string]*InteractionContainer)
-	container.Interactions["like"] = NewInteractionContainer()
 
 	return container
-}
-
-type InteractionContainer struct {
-	IsInteracted  bool     `json:"isInteracted"`
-	ActorsPreview []string `json:"actorsPreview"`
-	ActorsCount   int      `json:"actorsCount"`
-}
-
-// Tests are done.
-func NewInteractionContainer() *InteractionContainer {
-	interactionContainer := &InteractionContainer{}
-	interactionContainer.ActorsPreview = make([]string, 0)
-	interactionContainer.IsInteracted = false
-	interactionContainer.ActorsCount = 0
-
-	return interactionContainer
 }
 
 func withChannelMessageContainerChecks(cmc *ChannelMessageContainer, f func(c *ChannelMessageContainer) error) *ChannelMessageContainer {
@@ -128,7 +109,6 @@ func (cc *ChannelMessageContainer) AddAccountOldId() *ChannelMessageContainer {
 func (c *ChannelMessageContainer) SetGenerics(query *request.Query) *ChannelMessageContainer {
 	c.AddReplies(query)
 	c.AddRepliesCount(query)
-	c.AddInteractions(query)
 
 	return c
 }
@@ -194,50 +174,6 @@ func (cc *ChannelMessageContainer) AddRepliesCount(query *request.Query) *Channe
 	})
 }
 
-func (cc *ChannelMessageContainer) AddInteractions(query *request.Query) *ChannelMessageContainer {
-	return withChannelMessageContainerChecks(cc, func(c *ChannelMessageContainer) error {
-
-		// get preview
-		q := query.Clone()
-		q.Type = "like"
-		q.Limit = 3
-
-		// if the message is reply do not add  isInteracted data
-		if c.Message.TypeConstant == ChannelMessage_TYPE_REPLY {
-			q.AddIsInteracted = false
-		}
-
-		i := NewInteraction()
-		i.MessageId = c.Message.Id
-		interactionContainer, err := i.FetchInteractionContainer(q)
-		if err != nil {
-			return err
-		}
-
-		c.Interactions[q.Type] = interactionContainer
-
-		return nil
-	})
-}
-
-func (cc *ChannelMessageContainer) AddIsInteracted(query *request.Query) *ChannelMessageContainer {
-	return withChannelMessageContainerChecks(cc, func(c *ChannelMessageContainer) error {
-		i := NewInteraction()
-		i.MessageId = c.Message.Id
-		isInteracted, err := i.IsInteracted(query.AccountId)
-		if err != nil {
-			return err
-		}
-
-		c.Interactions["like"].IsInteracted = isInteracted
-		if cc.Replies != nil {
-			cc.Replies = *cc.Replies.AddIsInteracted(query)
-		}
-
-		return nil
-	})
-}
-
 func (cc *ChannelMessageContainer) AddIsFollowed(query *request.Query) *ChannelMessageContainer {
 	return withChannelMessageContainerChecks(cc, func(c *ChannelMessageContainer) error {
 		isFollowed, err := c.Message.CheckIsMessageFollowed(query)
@@ -285,12 +221,4 @@ func (ccs *ChannelMessageContainers) Err() error {
 	}
 
 	return nil
-}
-
-func (ccs *ChannelMessageContainers) AddIsInteracted(query *request.Query) *ChannelMessageContainers {
-	for i, cc := range *ccs {
-		(*ccs)[i] = *cc.AddIsInteracted(query)
-	}
-
-	return ccs
 }

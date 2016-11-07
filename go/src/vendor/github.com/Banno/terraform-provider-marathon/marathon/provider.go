@@ -73,6 +73,10 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	}
 	marathonConfig.EventsTransport = marathon.EventsTransportSSE
 
+	marathonConfig.HTTPClient = &http.Client{
+		Timeout: (time.Duration(d.Get("deployment_timeout").(int)) * time.Second),
+	}
+
 	config := config{
 		config: marathonConfig,
 		DefaultDeploymentTimeout: time.Duration(d.Get("deployment_timeout").(int)) * time.Second,

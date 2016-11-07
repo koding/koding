@@ -14,15 +14,6 @@ koding-go-install() {
 	go install -v -tags "${KODING_TAGS}" -ldflags "${KODING_LDFLAGS}" $*
 }
 
-export VENDOR_COMMANDS=(
-	vendor/github.com/koding/kite/kitectl
-	vendor/github.com/canthefason/go-watcher
-	vendor/github.com/mattes/migrate
-	vendor/github.com/alecthomas/gocyclo
-	vendor/github.com/remyoudompheng/go-misc/deadcode
-	vendor/github.com/jteeuwen/go-bindata/go-bindata
-)
-
 export COMMANDS=(
 	koding/broker
 	koding/rerouting
@@ -32,7 +23,6 @@ export COMMANDS=(
 	koding/kites/cmd/terraformer
 	koding/kites/cmd/tunnelserver
 	koding/workers/guestcleanerworker
-	koding/go-webserver
 	koding/workers/cmd/tunnelproxymanager
 	koding/vmwatcher
 	koding/workers/janitor
@@ -65,11 +55,21 @@ export COMMANDS=(
 	socialapi/workers/algoliaconnector/contentmigrator
 	socialapi/workers/cmd/integration/eventsender
 	socialapi/workers/cmd/integration/webhookmiddleware
+
+	vendor/github.com/koding/kite/kitectl
+	vendor/github.com/canthefason/go-watcher
+	vendor/github.com/mattes/migrate
+	vendor/github.com/alecthomas/gocyclo
+	vendor/github.com/remyoudompheng/go-misc/deadcode
+	vendor/github.com/jteeuwen/go-bindata/go-bindata
 )
 
 export TERRAFORM_COMMANDS=(
 	vendor/github.com/hashicorp/terraform
 	vendor/github.com/hashicorp/terraform/builtin/bins/...
+)
+
+export TERRAFORM_CUSTOM_COMMANDS=(
 	koding/kites/cmd/provider-vagrant
 	vendor/github.com/koding/terraform-provider-github/cmd/provider-github
 	vendor/github.com/Banno/terraform-provider-marathon
@@ -86,12 +86,13 @@ for provider in $KODING_REPO/go/src/koding/kites/kloud/provider/*; do
 	fi
 done
 
-koding-go-install ${VENDOR_COMMANDS[@]}
-
 go generate koding/kites/config
 go generate koding/kites/kloud/kloud
 
 koding-go-install ${COMMANDS[@]} ${TERRAFORM_COMMANDS[@]}
+rm -rf $GOBIN/provider-github
+koding-go-install ${TERRAFORM_CUSTOM_COMMANDS[@]}
+
 
 mkdir -p $GOPATH/build/broker
 cp -f $GOBIN/broker $GOPATH/build/broker/broker

@@ -23,11 +23,9 @@ const (
 	ChannelUpdatedEventName     = "ChannelUpdated"
 
 	// instance events
-	ReplyRemovedEventName       = "ReplyRemoved"
-	ReplyAddedEventName         = "ReplyAdded"
-	UpdateInstanceEventName     = "updateInstance"
-	InteractionAddedEventName   = "InteractionAdded"
-	InteractionRemovedEventName = "InteractionRemoved"
+	ReplyRemovedEventName   = "ReplyRemoved"
+	ReplyAddedEventName     = "ReplyAdded"
+	UpdateInstanceEventName = "updateInstance"
 )
 
 var mongoAccounts map[int64]*mongomodels.Account
@@ -242,65 +240,6 @@ func (f *Controller) fetchNotifiedParticipantIds(c *models.Channel, pe *models.P
 		}
 	}
 	return notifiedParticipantIds, nil
-}
-
-// InteractionSaved runs when interaction is added
-func (f *Controller) InteractionSaved(i *models.Interaction) error {
-	return f.handleInteractionEvent(InteractionAddedEventName, i)
-}
-
-// InteractionSaved runs when interaction is removed
-func (f *Controller) InteractionDeleted(i *models.Interaction) error {
-	return f.handleInteractionEvent(InteractionRemovedEventName, i)
-}
-
-// here inorder to solve overflow
-// bug of javascript with int64 values of Go
-type InteractionEvent struct {
-	MessageId    int64  `json:"messageId,string"`
-	AccountId    int64  `json:"accountId,string"`
-	AccountOldId string `json:"accountOldId"`
-	TypeConstant string `json:"typeConstant"`
-	Count        int    `json:"count"`
-}
-
-// handleInteractionEvent handle the required info of interaction
-func (f *Controller) handleInteractionEvent(eventName string, i *models.Interaction) error {
-	q := &request.Query{
-		Type:       models.Interaction_TYPE_LIKE,
-		ShowExempt: false, // this is default value
-	}
-
-	count, err := i.Count(q)
-	if err != nil {
-		return err
-	}
-
-	// fetchs oldId from cache
-	acc, err := models.Cache.Account.ById(i.AccountId)
-	if err != nil {
-		return err
-	}
-
-	res := &InteractionEvent{
-		MessageId:    i.MessageId,
-		AccountId:    i.AccountId,
-		AccountOldId: acc.OldId,
-		TypeConstant: i.TypeConstant,
-		Count:        count,
-	}
-
-	m, err := models.Cache.Message.ById(i.MessageId)
-	if err != nil {
-		return err
-	}
-
-	err = f.sendInstanceEvent(m, res, eventName)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // MessageReplySaved updates the channels , send messages in updated channel

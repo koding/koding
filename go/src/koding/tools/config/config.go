@@ -53,10 +53,7 @@ type Config struct {
 		Url string
 	}
 	SubscriptionEndpoint string
-	Gowebserver          struct {
-		Port int
-	}
-	Rerouting struct {
+	Rerouting            struct {
 		Port int
 	}
 	SocialApi struct {

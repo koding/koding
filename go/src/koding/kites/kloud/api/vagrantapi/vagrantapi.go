@@ -116,7 +116,10 @@ func (k *Klient) timeout() time.Duration {
 }
 
 func (k *Klient) send(queryString, method string, req, resp interface{}) (string, error) {
-	queryString = utils.QueryString(queryString)
+	queryString, err := utils.QueryString(queryString)
+	if err != nil {
+		return "", err
+	}
 
 	k.Log.Debug("calling %q method on %q with %+v", method, queryString, req)
 
@@ -145,7 +148,10 @@ func (k *Klient) send(queryString, method string, req, resp interface{}) (string
 }
 
 func (k *Klient) cmd(queryString, method, boxPath string) error {
-	queryString = utils.QueryString(queryString)
+	queryString, err := utils.QueryString(queryString)
+	if err != nil {
+		return err
+	}
 
 	k.Log.Debug("calling %q command on %q with %q", method, queryString, boxPath)
 

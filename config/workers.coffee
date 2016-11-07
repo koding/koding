@@ -236,12 +236,6 @@ module.exports = (KONFIG, options, credentials) ->
           run           : "#{GOBIN}/notification"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/notification -watch socialapi/workers/notification"
 
-    pinnedpost          :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/pinnedpost"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/pinnedpost -watch socialapi/workers/pinnedpost"
 
     realtime            :
       group             : "socialapi"
@@ -249,41 +243,6 @@ module.exports = (KONFIG, options, credentials) ->
         command         :
           run           : "#{GOBIN}/realtime"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/realtime -watch socialapi/workers/realtime"
-
-    sitemapfeeder       :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/sitemapfeeder"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/sitemapfeeder -watch socialapi/workers/sitemapfeeder"
-
-    sitemapgenerator    :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/sitemapgenerator"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/sitemapgenerator -watch socialapi/workers/sitemapgenerator"
-
-    activityemail       :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/activityemail"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/activityemail -watch socialapi/workers/email/activityemail"
-
-    privatemessageemailfeeder:
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/privatemessageemailfeeder"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/privatemessageemailfeeder -watch socialapi/workers/email/privatemessageemailfeeder"
-
-    privatemessageemailsender:
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/privatemessageemailsender"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/privatemessageemailsender -watch socialapi/workers/email/privatemessageemailsender"
 
     presence            :
       group             : "socialapi"

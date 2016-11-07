@@ -1,10 +1,47 @@
 #!/usr/bin/env coffee
 
-instanceId = process.argv[2]
-
-return  unless instanceId
+[
+  instanceId
+  ipAddress
+  hostname
+] = process.argv.slice 2, 5
 
 AWS = require './aws'
 EC2 = new AWS.EC2()
+R53 = new AWS.Route53()
+
 EC2.terminateInstances InstanceIds: [instanceId], (err, res) ->
-  console.error err  if err
+  if err
+    console.error err
+
+  params =
+    HostedZoneId: process.env.TEST_AWS_HOSTED_ZONE_ID
+    ChangeBatch: {
+      Changes: [
+        {
+          Action: 'DELETE',
+          ResourceRecordSet: {
+            Name: hostname
+            Type: 'A'
+            TTL: 300
+            ResourceRecords: [{ Value: ipAddress }]
+          }
+        }
+
+        {
+          Action: 'DELETE',
+          ResourceRecordSet: {
+            Name: "*.#{hostname}"
+            Type: 'CNAME'
+            TTL: 300
+            ResourceRecords: [{ Value: hostname }]
+          }
+        }
+      ]
+    }
+
+  R53.changeResourceRecordSets params, (err, res) ->
+    if err
+      console.error err
+
+    process.exit()

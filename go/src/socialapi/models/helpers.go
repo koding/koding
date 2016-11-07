@@ -343,13 +343,3 @@ func UpdateUsernameInBothDbs(currentUsername, newUsername string) error {
 
 	return acc.Update()
 }
-
-func AddInteractionWithTest(iType string, messageId int64, accountId int64) (*Interaction, error) {
-	cm := NewInteraction()
-	cm.AccountId = accountId
-	cm.MessageId = messageId
-	cm.TypeConstant = iType
-	So(cm.Create(), ShouldBeNil)
-
-	return cm, nil
-}
