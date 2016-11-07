@@ -123,9 +123,9 @@ module.exports = class Machine extends KDObject
     { kontrol } = kd.singletons
 
     # this is a chance for other middlewares to inject their own kite/klient.
-    klient = runMiddlewares.sync this, 'getBaseKite', createIfNotExists
+    testKlient = runMiddlewares.sync this, 'getBaseKite', createIfNotExists
 
-    return klient  if klient
+    return testKlient  if testKlient
 
     klient = kontrol.kites?.klient?[@uid]
     return klient  if klient
