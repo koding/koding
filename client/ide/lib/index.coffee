@@ -258,6 +258,14 @@ class IDEAppController extends AppController
 
   setActiveTabView: (tabView) ->
 
+    activePane = tabView.getActivePane()
+
+    for view in @ideViews
+      for tab in view.holderView.tabs.subViews
+        if tab is activePane?.tabHandle
+        then activePane.tabHandle.setClass 'focus'
+        else tab.unsetClass 'focus'
+
     return  if tabView is @activeTabView
     return  if tabView.isDestroyed
 
