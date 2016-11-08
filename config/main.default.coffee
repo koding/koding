@@ -35,7 +35,6 @@ Configuration = (options = {}) ->
   options.recaptchaEnabled or= no
   options.debugGithubAPI or= yes
   options.autoConfirmAccounts or= yes
-  options.vmwatcherConnectToKlient = no
   options.secureCookie = no
   options.algoliaIndexSuffix = ".#{ os.hostname() }"
   options.socialQueueName = "koding-social-#{options.configName}"
@@ -80,7 +79,6 @@ Configuration = (options = {}) ->
   options.disabledWorkers = [
     "algoliaconnector"
     "gatekeeper"
-    "vmwatcher"
   ]
 
   for worker in options.disabledWorkers

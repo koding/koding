@@ -278,17 +278,7 @@ import:
 - package: github.com/donovanhide/eventsource
 ignore:
 - koding/tools/logger
-- koding/kite
-- koding/kodingkite
-- koding/kite/dnode
-- koding/tools/irc
-- koding/kites/kloud/protocol
-- koding/kite/kd/util
-- koding/kite/kodingkey
 - config
 - kite
-- koding/kites/klient/protocol
-- koding/virt
-- koding/databases/neo4j
 - code.google.com/p/goauth2
 - code.google.com/p/google-api-go-client
