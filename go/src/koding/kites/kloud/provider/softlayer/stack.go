@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"text/template"
-	"time"
 
 	// "koding/kites/kloud/api/sl"
 	"koding/kites/kloud/stack"
@@ -84,10 +83,9 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 
 	vs := &bootstrapVars{
 		KeyName: fmt.Sprintf(
-			"koding-deployment-%s-%s-%d",
+			"koding-%s-%s",
 			s.Req.Username,
-			s.BootstrapArg().GroupName,
-			time.Now().UTC(),
+			c.Identifier,
 		),
 		PublicKey: s.Keys.PublicKey,
 		Username: cred.Username,
