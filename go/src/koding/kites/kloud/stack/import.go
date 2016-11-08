@@ -100,6 +100,7 @@ func (k *Kloud) Import(r *kite.Request) (interface{}, error) {
 	tmpl.Template.Content = string(req.Template)
 	tmpl.Template.RawContent = string(raw)
 	tmpl.Template.Sum = hex.EncodeToString(sum[:])
+	tmpl.Title = req.Title
 
 	if err := modelhelper.CreateStackTemplate(tmpl); err != nil {
 		return nil, fmt.Errorf("error creating jStackTemplate: %s", err)
