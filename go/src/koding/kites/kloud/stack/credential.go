@@ -72,14 +72,73 @@ type CredentialListRequest struct {
 // metadata.
 type CredentialItem struct {
 	Title      string `json:"title"`
-	Team       string `json:"team,omitempty"`
 	Identifier string `json:"identifier"`
+	Team       string `json:"team,omitempty"`
+	Provider   string `json:"provider,omitempty"`
 }
 
 // CredentialListResponse represents a response
 // value for "credential.list" kloud method.
 type CredentialListResponse struct {
-	Credentials map[string][]CredentialItem `json:"credentials"`
+	Credentials Credentials `json:"credentials"`
+}
+
+// Credentials represents a collection of user's credentials.
+type Credentials map[string][]CredentialItem
+
+// ByProvider filters credentials by the given provider.
+func (c Credentials) ByProvider(provider string) Credentials {
+	if provider == "" {
+		return c
+	}
+
+	items, ok := c[provider]
+	if !ok || len(items) == 0 {
+		return nil
+	}
+
+	return Credentials{provider: items}
+}
+
+// ByTeam filters credentials by the given team.
+func (c Credentials) ByTeam(team string) Credentials {
+	if team == "" {
+		return c
+	}
+
+	f := make(Credentials)
+
+	for provider, creds := range c {
+		var filtered []CredentialItem
+
+		for _, cred := range creds {
+			if cred.Team != "" && cred.Team != team {
+				continue
+			}
+
+			filtered = append(filtered, cred)
+		}
+
+		if len(filtered) != 0 {
+			f[provider] = filtered
+		}
+	}
+
+	return f
+}
+
+// Find looks for a credential with the given identifier.
+func (c Credentials) Find(identifier string) (cred CredentialItem, ok bool) {
+	for provider, creds := range c {
+		for _, cred := range creds {
+			if cred.Identifier == identifier {
+				cred.Provider = provider
+				return cred, true
+			}
+		}
+	}
+
+	return
 }
 
 // Provider gives a provider name for the given identifier.
@@ -142,8 +201,10 @@ func (k *Kloud) CredentialDescribe(r *kite.Request) (interface{}, error) {
 func (k *Kloud) CredentialList(r *kite.Request) (interface{}, error) {
 	var req CredentialListRequest
 
-	if err := r.Args.One().Unmarshal(&req); err != nil {
-		return nil, err
+	if r.Args != nil {
+		if err := r.Args.One().Unmarshal(&req); err != nil {
+			return nil, err
+		}
 	}
 
 	if IsKloudctlAuth(r, k.SecretKey) {
