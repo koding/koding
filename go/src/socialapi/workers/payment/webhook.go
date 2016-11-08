@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	humanize "github.com/dustin/go-humanize"
 	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/customer"
 	stripeinvoice "github.com/stripe/stripe-go/invoice"
@@ -116,13 +115,7 @@ func customerSubscriptionCreatedHandler(raw []byte) error {
 	}
 
 	durSec := req.TrialEnd - req.TrialStart
-	durStr := humanize.RelTime(
-		time.Unix(req.TrialStart, 0),
-		time.Unix(req.TrialEnd, 0),
-		"",
-		"",
-	)
-
+	durStr := ""
 	if durSec > 0 {
 		durStr = "seven days"
 	}
