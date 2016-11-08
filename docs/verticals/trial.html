@@ -122,21 +122,6 @@ permalink: /verticals/trial
 <script>
   {% include js/landing-modal.js %}
   {% include js/trial.js %}
-
-  (function() {
-    var contact = document.querySelectorAll('.contact');
-
-    [].forEach.call(contact, function(el) {
-      el.addEventListener('click', function(evt) {
-        evt.preventDefault();
-
-        if (Intercom) {
-          Intercom('show')
-        }
-      });
-    });
-
-  })();
 </script>
 
 <!-- FOOTER -->
