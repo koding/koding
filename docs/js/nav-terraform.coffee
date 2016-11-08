@@ -33,13 +33,13 @@ do ->
     else
 
       ul = $ '<ul/>'
-      createSubNavItems value, ul, key  for own key, value of doc
+      sortedKeys = (key for own key, value of doc).sort()
+      createSubNavItems doc[key], ul, key  for key in sortedKeys
       parent.find('li').last().append ul
 
     return ul
 
   return  unless TERRAFORM_DOCS
-
 
   TERRAFORM_DOCS.forEach (doc) ->
     id = doc.url.replace('/docs/terraform/', '').split '/'
