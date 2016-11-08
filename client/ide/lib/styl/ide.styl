@@ -83,29 +83,37 @@ body.ide
           vendor            transform, translateX(-50%) translateY(-50%)
 
       .kdtabhandle
-        &:before
-          content           ''
-          position          absolute
-          top               12px
-          left              15px
-          r-sprite          'ide', 'ws_tab_file'
-          display           block
-          opacity           0.5
-        
-        &.terminal:before
-          r-sprite          'ide', 'ws_tab_terminal'
-          
-        &.plus:before
-          content           none
 
-	&.files:before
-          content           none
-          
-        &.settings:before
-          content           none
-        
-        &.active:before
-          opacity           1
+        .tab-handle-text
+          margin-left       17px
+          ellipsis()
+          max-width         90px
+
+        &.kddraggable
+          &:before
+            content         ''
+            position        absolute
+            top             12px
+            left            10px
+            r-sprite        'ide', 'ws_tab_file'
+            display         block
+            opacity         0.5
+            border-radius   0px
+
+          &.terminal:before
+            r-sprite        'ide', 'ws_tab_terminal'
+
+          &.plus:before
+            content         none
+
+  	     &.files:before
+            content         none
+
+          &.settings:before
+            content         none
+
+          &.active.focus:before
+            opacity         1
 
         .tab-handle-input
           border-radius     1px
@@ -151,15 +159,18 @@ body.ide .dark
     r-sprite                'finder', 'expanded'
     top                     -8px !important
 
-  .kdtabhandle
+  .kdtabhandle.kddraggable
     color                   dark-tab-color
-
+    border-top              2px solid #2b2b30
     &:hover .options
       opacity               1
 
     &.active
       bg                    color, dark-panel-bg
       color                 dark-active-tab-color
+
+    &.active.focus
+      color                 #fff
       border-top            2px solid #67A2EE
 
     &.menu-visible

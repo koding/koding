@@ -22,12 +22,8 @@ export COMMANDS=(
 	koding/kites/kloud/kloudctl
 	koding/kites/cmd/terraformer
 	koding/kites/cmd/tunnelserver
-	koding/workers/guestcleanerworker
 	koding/workers/cmd/tunnelproxymanager
-	koding/vmwatcher
 	koding/workers/janitor
-	koding/workers/gatheringestor
-	koding/workers/appstoragemigrator
 	koding/kites/kloud/cleaners/cmd/cleaner
 	koding/kites/kloud/scripts/userdebug
 	koding/kites/kloud/scripts/sl

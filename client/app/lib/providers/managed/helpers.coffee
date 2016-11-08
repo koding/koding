@@ -42,7 +42,7 @@ queryKites = ->
         return []
 
 
-fetchStack = (callback) ->
+ensureManagedStack = (callback) ->
 
   { computeController } = kd.singletons
 
@@ -60,7 +60,7 @@ fetchStack = (callback) ->
 
 createMachine = (kite, callback) ->
 
-  fetchStack (err, stack) ->
+  ensureManagedStack (err, stack) ->
 
     return callback err  if err
 
@@ -83,6 +83,7 @@ updateMachineData = ({ machine, kite }, callback) ->
 
 
 module.exports = {
+  ensureManagedStack
   createMachine
   updateMachineData
   queryKites

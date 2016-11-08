@@ -119,21 +119,6 @@ module.exports = (KONFIG, options, credentials) ->
       healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
-    vmwatcher           :
-      group             : "environment"
-      instances         : 1
-      ports             :
-        incoming        : "#{KONFIG.vmwatcher.port}"
-      supervisord       :
-        stopwaitsecs    : 20
-        command         :
-          run           : "#{GOBIN}/vmwatcher"
-          watch         : "#{GOBIN}/watcher -run koding/vmwatcher"
-      nginx             :
-        locations       : [ { location: "/vmwatcher" } ]
-      healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
-
     socialapi:
       group             : "socialapi"
       instances         : 1
@@ -302,24 +287,6 @@ module.exports = (KONFIG, options, credentials) ->
         command         : "#{GOBIN}/janitor -kite-init=true"
       healthCheckURL    : "http://localhost:#{KONFIG.socialapi.janitor.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.socialapi.janitor.port}/version"
-
-    gatheringestor      :
-      ports             :
-        incoming        : KONFIG.gatheringestor.port
-      group             : "environment"
-      instances         : 1
-      supervisord       :
-        stopwaitsecs    : 20
-        command         :
-          run           : "#{GOBIN}/gatheringestor"
-          watch         : "#{GOBIN}/watcher -run koding/workers/gatheringestor"
-      healthCheckURL    : "http://localhost:#{KONFIG.gatheringestor.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.gatheringestor.port}/version"
-      nginx             :
-        locations       : [
-          location      : "~ /-/ingestor/(.*)"
-          proxyPass     : "http://gatheringestor/$1$is_args$args"
-        ]
 
     integration         :
       group             : "socialapi"
