@@ -256,6 +256,7 @@ import:
 - package: github.com/kr/binarydist
 - package: github.com/google/go-github/github
 - package: github.com/Sirupsen/logrus
+- package: github.com/dustin/go-humanize
 - package: github.com/opencontainers/runc
 - package: github.com/kardianos/osext
 - package: golang.org/x/sync

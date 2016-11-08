@@ -833,6 +833,8 @@ imports:
   version: da0f3ffca5b3ebafaac6284af378baff0ebf8725
 - name: github.com/Sirupsen/logrus
   version: 6d9ae300aaf85d6acd2e5424081c7fcddb21dab8
+- name: github.com/dustin/go-humanize
+  version: bd88f87ad3a420f7bcf05e90566fd1ceb351fa7f
 - name: github.com/smartystreets/goconvey
   version: d4c757aa9afd1e2fc1832aaab209b5794eb336e1
   subpackages:
