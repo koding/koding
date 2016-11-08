@@ -46,7 +46,7 @@ Do you see 'Passwords should be at least 8 characters!' message?
 Enter '12345678' in 'New Password' field, enter '12345678' in 'Repeat New Password' field and enter invalid current password in 'Your Current Password' field then click 'UPDATE PASSWORD'
 Do you see 'Old password did not match our records!' message?
 
-Enter '12345678' in 'New Password' field, enter '12345678' in 'Repeat New Password' field and enter {{ random.number }} in 'Your Current Password' field then click 'UPDATE PASSWORD'
+Enter '12345678' in 'New Password' field, enter '12345678' in 'Repeat New Password' field and enter {{ random.password }} in 'Your Current Password' field then click 'UPDATE PASSWORD'
 Do you see 'Password successfully changed!' message?
 
 Scroll down to the bottom of the page
