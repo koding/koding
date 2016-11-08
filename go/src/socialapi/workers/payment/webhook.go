@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	humanize "github.com/dustin/go-humanize"
 	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/customer"
 	stripeinvoice "github.com/stripe/stripe-go/invoice"
@@ -97,7 +98,6 @@ func getAmountOpts(currency string, amount int64) map[string]interface{} {
 
 var oneDayTrialDur int64 = 24 * 60 * 60
 var sevenDayTrialDur = 7 * oneDayTrialDur
-var thirtyDayTrialDur = 30 * oneDayTrialDur
 
 func customerSubscriptionCreatedHandler(raw []byte) error {
 	var req *stripe.Sub
@@ -116,14 +116,18 @@ func customerSubscriptionCreatedHandler(raw []byte) error {
 	}
 
 	durSec := req.TrialEnd - req.TrialStart
-	durStr := ""
-	switch durSec {
-	case sevenDayTrialDur:
+	durStr := humanize.RelTime(
+		time.Unix(req.TrialStart, 0),
+		time.Unix(req.TrialEnd, 0),
+		"",
+		"",
+	)
+
+	if durSec > 0 {
 		durStr = "seven days"
-	case thirtyDayTrialDur:
+	}
+	if durSec > sevenDayTrialDur {
 		durStr = "thirty days"
-	default:
-		durStr = time.Duration(durSec).String()
 	}
 
 	eventName = fmt.Sprintf("%s trial started", durStr)
