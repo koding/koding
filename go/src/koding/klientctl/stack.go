@@ -9,7 +9,7 @@ import (
 
 	"koding/kites/kloud/stack"
 	"koding/klient/storage"
-	"koding/klientctl/lazy"
+	"koding/klientctl/kloud"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
@@ -35,7 +35,7 @@ func StackCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, err
 	}
 
-	kloud, err := lazy.Kloud(log)
+	kloud, err := kloud.Kloud(log)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
 		return 1, err
@@ -51,7 +51,7 @@ func StackCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 	var creds stack.CredentialListResponse
 
-	if err := lazy.Cache().GetValue("credentials", &creds); err != nil && err != storage.ErrKeyNotFound {
+	if err := kloud.Cache().GetValue("credentials", &creds); err != nil && err != storage.ErrKeyNotFound {
 		return 1, err
 	}
 

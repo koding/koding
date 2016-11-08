@@ -1,4 +1,4 @@
-package lazy
+package kloud
 
 import (
 	"path/filepath"

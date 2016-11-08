@@ -12,7 +12,7 @@ import (
 
 	"koding/kites/kloud/stack"
 	"koding/klient/storage"
-	"koding/klientctl/lazy"
+	"koding/klientctl/kloud"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
@@ -29,7 +29,7 @@ import (
 //
 
 func CredentialImport(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	kloud, err := lazy.Kloud(log)
+	kloud, err := kloud.Kloud(log)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
 		return 1, err
@@ -52,7 +52,7 @@ func CredentialImport(c *cli.Context, log logging.Logger, _ string) (int, error)
 		return 1, err
 	}
 
-	if err := lazy.Cache().SetValue("credentials", &resp); err != nil {
+	if err := kloud.Cache().SetValue("credentials", &resp); err != nil {
 		return 1, err
 	}
 
@@ -97,7 +97,7 @@ func CredentialList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 	var resp stack.CredentialListResponse
 
-	if err := lazy.Cache().GetValue("credentials", &resp); err != nil && err != storage.ErrKeyNotFound {
+	if err := kloud.Cache().GetValue("credentials", &resp); err != nil && err != storage.ErrKeyNotFound {
 		return 1, err
 	}
 
@@ -169,7 +169,7 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 		return 1, err
 	}
 
-	kloud, err := lazy.Kloud(log)
+	kloud, err := kloud.Kloud(log)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
 		return 1, err
@@ -205,7 +205,7 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 
 	var creds stack.CredentialListResponse
 
-	if err := lazy.Cache().GetValue("credentials", &creds); err != nil && err != storage.ErrKeyNotFound {
+	if err := kloud.Cache().GetValue("credentials", &creds); err != nil && err != storage.ErrKeyNotFound {
 		return 1, err
 	}
 
@@ -215,7 +215,7 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 
 	creds.Credentials[req.Provider] = append(creds.Credentials[req.Provider], cred)
 
-	if err := lazy.Cache().SetValue("credentials", &creds); err != nil {
+	if err := kloud.Cache().SetValue("credentials", &creds); err != nil {
 		return 1, err
 	}
 

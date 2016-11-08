@@ -8,7 +8,7 @@ import (
 
 	"koding/kites/kloud/machine"
 	"koding/kites/kloud/stack"
-	"koding/klientctl/lazy"
+	"koding/klientctl/kloud"
 
 	"github.com/koding/logging"
 )
@@ -20,7 +20,7 @@ type ListOptions struct {
 
 // List retrieves user's machines from kloud.
 func List(options *ListOptions) ([]*Info, error) {
-	kloud, err := lazy.Kloud(options.Log)
+	kloud, err := kloud.Kloud(options.Log)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
 		return nil, err
