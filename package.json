@@ -39,6 +39,7 @@
     "csv-parse": "1.1.0",
     "curlrequest": "0.5.2",
     "dateformat": "1.0.2-1.2.3",
+    "debug": "2.3.0",
     "deep-equal": "0.1.2",
     "disposable-email-domains": "1.0.4",
     "dns": "0.2.2",
