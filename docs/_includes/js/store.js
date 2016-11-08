@@ -1,5 +1,4 @@
 (function() {
-  window.LANDING_UTILS = window.LANDING_UTILS || {};
 
   var searchBar      = document.querySelector('.SearchBar'),
       searchBarInput = document.querySelector('.SearchBar input'),

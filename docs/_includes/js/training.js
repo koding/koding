@@ -1,7 +1,5 @@
 (function() {
 
-  window.LANDING_UTILS = window.LANDING_UTILS || {};
-
   var modalOptions = {}, player;
 
   modalOptions.onLoaded = function(clickEvent) {
