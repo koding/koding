@@ -625,16 +625,9 @@ a:hover {
   padding: 60px 0;
 }
 
-.Pricing-PriceSegments > div {
-  margin-bottom: 30px;
-}
-
-.Pricing-PriceSegments section {
-  margin: 0 auto;
-}
-
 .Pricing-PriceSegments section {
   max-width: 1176px;
+  margin: 0 auto 30px;
   background: #FFFFFF;
   border: 1px solid #EBEBEB;
   border-radius: 4px;
@@ -1021,14 +1014,14 @@ a:hover {
 #Pricing-PriceSegments--more p a {
   color: #67A2EE;
 }
-.Pricing-PriceSegments > div:last-child .Pricing-PriceSegments--priceSection {
+.Pricing-PriceSegments section:last-child .Pricing-PriceSegments--priceSection {
   padding-bottom: 50px;
 }
 
 /* PRICING SEGMENTS */
 /* DEV TEAMS */
 
-.Pricing-PriceSegments > div:first-child {
+.Pricing-PriceSegments section:first-child {
   margin-top: -150px;
   margin-bottom: 0;
 }
