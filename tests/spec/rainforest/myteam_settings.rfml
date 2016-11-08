@@ -40,8 +40,8 @@ Is 'Team settings has been successfully updated' message displayed? Is logo remo
 Switch to the incognito window then click on 'LEAVE TEAM'
 Do you see 'Please verify your current password', 'FORGOT PASSWORD', 'CONFIRM' buttons ?
 
-Enter your current password then click on 'CONFIRM'
-Did you logout? Do you see "{{ random.last_name }}{{ random.number }}" on the login form?
+Enter "rainforestqa22" then click on 'CONFIRM'
+Are you logged out? Do you see random team name that you assigned on the login form?
 
 Enter "rainforestqa22" both in the 'Username or Email' and 'Password' fields and click on 'SIGN IN' button
 Do you see 'You are not allowed to access this team' message?

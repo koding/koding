@@ -20,7 +20,7 @@ Enter "rainforestqa22" both in the 'Username or Email' and 'Password' fields and
 Are you successfully logged in? Do you see '_Aws Stack' label?
 
 Click on the 'NEXT' button
-Do you see 'Select Credentials' text? Do you see AWS Keys label in a text box? Do you see a 'BUILD STACK' button and 'BACK TO INSTRUCTIONS' text on the bottom?
+Do you see 'Select Credentials' text? Do you see 'Use default credential' label in a text box? Do you see a 'BUILD STACK' button and 'BACK TO INSTRUCTIONS' text on the bottom?
 
 Click on the 'BUILD STACK' button
 Do you see 'Fetching and validating credentials...' text in a progress bar?
@@ -31,19 +31,19 @@ Do you see 'Success! Your stack has been built.' text? Do you see 'View The Logs
 Click on 'START CODING' button
 Do you see '_Aws Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'aws-instance' label? Do you see '/home/rainforestqa22' label on top of a file list? Do you see 'cloud-init-o...' file on top and 'Terminal' tab on the bottom pane? 
 
-Switch the first browser and close that modal by clicking (x) from top right corner of the 'Invitations' pane
+Switch to the first browser and close that modal by clicking (x) from top right corner of the 'Invitations' pane
 Is that pane closed?
 
-Click  'START COLLABORATION' button in the bottom right corner
-Do you see 'Starting session' progress bar bellow the button and after that 'START COLLABORATION' button is converted to 'END COLLABORATION'? Do you see a shortened URL in the bottom status bar (like on screenshot http://snag.gy/dp1Cn.jpg )?
+Click on 'START COLLABORATION' button in the bottom right corner
+Do you see 'Starting session' progress bar below the button and after that 'START COLLABORATION' button is converted to 'END COLLABORATION'? Do you see a shortened URL in the bottom status bar (like on screenshot http://snag.gy/dp1Cn.jpg )?
 
-Click shortened URL in the bottom status bar
+Click on the shortened URL in the bottom status bar
 Do you see 'Copied to clipboard!' popup message?
 
-Remember the list of panes opened (terminal, untitled.txt, etc) and select the incognito window and paste copied URL in the browser address bar and press enter
-Do you see 'SHARED VMS' label in the left module on the page? Do you see 'aws-instance' item bellow the 'SHARED VMS' label? Do you see white popup with 'Reject' and 'Accept' buttons?
+Switch to the incognito window and paste copied URL in the browser address bar and press enter
+Do you see 'SHARED VMS' label in the left module on the page? Do you see 'aws-instance' item bellow the 'SHARED VMS' label? Do you see a white popup with 'Reject' and 'Accept' buttons?
 
-Click 'Accept' button
-Do you see 'Joining to collaboration session' progress bar? Do you see the same panes (terminal, untitled.txt) like on the browser where you are logged in as 'rainforestqa99'
+Click on 'Accept' button
+Do you see 'Joining to collaboration session' progress bar? Do you see the same panes (terminal, untitled.txt) like on the other window where you are logged in as 'rainforestqa99'
 
 

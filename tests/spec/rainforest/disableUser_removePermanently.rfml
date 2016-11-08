@@ -49,5 +49,5 @@ Is 'rainforestqa22' removed from the list?
 Switch to the incognito window
 Do you see that you're logged out automatically? Do you see 'Sign in to {{ random.last_name }}{{ random.number }}' text, 'Username or Email' and 'Password' fields and a 'SIGN IN' button? (If not, do you see 'Your access is revoked!' text?)
 
-Enter "rainforestqa22" both in the 'Username or Email' and 'Password' fields and click on 'SIGN IN' button
+Enter "rainforestqa22" both in the 'Username or Email' and 'Password' fields and click on 'SIGN IN' button (If you see 'Your access is revoked!' text, delete '/Banned' from the address bar above and press enter, then do the actions above)
 Have you seen 'You are not allowed to access this team' warning displayed?

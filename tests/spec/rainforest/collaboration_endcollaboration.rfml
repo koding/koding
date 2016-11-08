@@ -7,17 +7,17 @@
 - 661370e4-14d7-448d-a664-54d2a1bbdf98
 
 # redirect: false
-Mouse over user icon at the left of 'END COLLABORATION' button
+Switch back to the first window and move your mouse over the default avatar icon on the left of 'END COLLABORATION' button
 Do you see a popup menu with participant's name?
 
-Click on 'End ' button
-Do you see 'Are you sure?' dialog?
+Click on 'END COLLABORATION' button
+Do you see 'Are you sure?' titled pop-up? Do you see 'CANCEL' and 'YES' buttons?
 
-Click 'END COLLABORATION' button and click 'Yes' on the 'Are you sure?' dialog
-Is 'END COLLABORATION' button changed to 'START COLLABORATION'? Is 'Camera' icon removed from the bottom status bar?
+Click on 'YES' and wait for a few seconds for process to be completed
+Has 'END COLLABORATION' button on the bottom changed to 'START COLLABORATION'? Is 'Camera' icon removed from the bottom status bar?
 
-Return to the incognito browser window
-Do you see 'Session ended' dialog? Do you see 'LEAVE' button?
+Return to the incognito window
+Do you see 'Session ended' title pop-up? Do you see 'LEAVE' button?
 
 Click on 'LEAVE' button
-Are 'aws-instance' item removed from the left module and all panes from that VM closed?
+Is 'aws-instance' item removed from the left module and all panes from that VM closed?
