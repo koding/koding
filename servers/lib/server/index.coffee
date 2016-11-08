@@ -1,4 +1,7 @@
 process.title = 'koding-webserver'
+
+require 'coffee-cache'
+
 { argv }      = require 'optimist'
 cors          = require 'cors'
 
@@ -19,7 +22,6 @@ webPort               = argv.p ? webserver.port
 { generateHumanstxt } = require './humanstxt'
 csrf                  = require './csrf'
 setCrsfToken          = require './setcsrftoken'
-{ NodejsProfiler }    = require 'koding-datadog'
 
 do ->
   cookieParser = require 'cookie-parser'
@@ -154,9 +156,11 @@ koding.once 'dbClientReady', ->
   # start user tracking
   usertracker.start koding.redisClient
 
-  # start monitoring nodejs metrics (memory, gc, cpu etc...)
-  nodejsProfiler = new NodejsProfiler 'nodejs.webserver'
-  nodejsProfiler.startMonitoring()
+  if KONFIG.environment is 'production'
+    { NodejsProfiler } = require 'koding-datadog'
+    # start monitoring nodejs metrics (memory, gc, cpu etc...)
+    nodejsProfiler = new NodejsProfiler 'nodejs.webserver'
+    nodejsProfiler.startMonitoring()
 
   # NOTE: in the event of errors, send 500 to the client rather
   #       than the stack trace.
