@@ -23,7 +23,7 @@ Select 'GitHub' and click on 'NEXT' button
 Do you see 'Rainforestqa99's Stack' title? Do you see 'Stack Template', 'Custom Variables', 'Readme' tabs? Do you see 'Credentials' text having a red (!) next to it? Do you see 'PREVIEW', 'LOGS', 'DELETE THIS STACK TEMPLATE' buttons on the bottom and 'SAVE' button on top right?
 
 Click on 'Credentials' text having a red (!) next to it
-Do you see 'rainforestqa99's AWS keys'? Do you see 'USE THIS & CONTINUE' button next to it? Do you see 'CREATE NEW' button on the bottom?
+Do you see 'rainforestqa99's AWS keys'? Do you see 'USE THIS & CONTINUE' button next to it? Do you see 'ADD A NEW CREDENTIAL' button on the bottom?
 
 Click on 'USE THIS & CONTINUE' button (next to 'rainforestqa99's AWS keys') and wait for a second for process to be completed
 Have you seen 'Verifying Credentials...' message displayed? Are you switched to 'Stack Template' tab? (If you're not switched and you got 'Failed to verify: operation timed out' error, click on the same button again)
