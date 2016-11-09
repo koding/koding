@@ -2,11 +2,12 @@ package do
 
 import (
 	"bytes"
+	"crypto/sha1"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"html/template"
 	"strconv"
-	"time"
 
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
@@ -90,9 +91,16 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 	}, nil
 }
 
-// keyName returns the keyName used for the bootstrap data
+// keyName returns the keyName used for the bootstrap data.
+//
+// The key pair creation is idempotent - if the key already
+// exists with the same name and content the create
+// operation is a nop. If key already exists, but under
+// a different name, key pair creation is going to fail
+// due to a name conflict.
 func (s *Stack) keyName() string {
-	return fmt.Sprintf("koding-deployment-%s-%s-%d", s.Req.Username, s.BootstrapArg().GroupName, time.Now().UTC().UnixNano())
+	sum := sha1.Sum([]byte(s.Keys.PublicKey))
+	return "koding-deployment-" + hex.EncodeToString(sum[:])
 }
 
 // ApplyTemplate enhances and updates the DigitalOcean terraform template. It

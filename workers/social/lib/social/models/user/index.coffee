@@ -100,9 +100,6 @@ module.exports = class JUser extends jraphical.Module
         validate    : JName.validateName
         set         : (value) -> value.toLowerCase()
       oldUsername   : String
-      uid           :
-        type        : Number
-        set         : Math.floor
       email         :
         type        : String
         validate    : JName.validateEmail
@@ -1697,14 +1694,6 @@ module.exports = class JUser extends jraphical.Module
 
     return jwt.sign data, secret, options
 
-  @removeUnsubscription:({ email }, callback) ->
-
-    JUnsubscribedMail = require '../unsubscribedmail'
-    JUnsubscribedMail.one { email }, (err, unsubscribed) ->
-      return callback err  if err or not unsubscribed
-      unsubscribed.remove callback
-
-
   @grantInitialInvitations = (username) ->
     JInvitation.grant { 'profile.nickname': username }, 3, (err) ->
       console.log 'An error granting invitations', err if err
@@ -1980,12 +1969,8 @@ module.exports = class JUser extends jraphical.Module
 
   unlinkOAuths: (callback) ->
 
-    @update { $unset: { foreignAuth:1 } }, (err) =>
-      return callback err  if err
-
-      @fetchOwnAccount (err, account) ->
-        return callback err  if err
-        account.unstoreAll callback
+    @update { $unset: { foreignAuth:1 } }, (err) ->
+      return callback err
 
 
   @setSSHKeys: secure (client, sshKeys, callback) ->

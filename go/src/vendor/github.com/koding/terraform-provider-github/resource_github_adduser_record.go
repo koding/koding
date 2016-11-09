@@ -128,8 +128,11 @@ func resourceGithubAddUserCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	member, resp, err := client.Organizations.GetOrgMembership("", org)
-	// user might be a member of organization key
-	// otherwise it will response 404, and we need to ignore that error
+	// user might be a member of organization key or not
+	// with that error checking;
+	// if user is a member of organization, we can change user's role as admin or member
+	// if user is not a member of organization, it will give 404 error, then we need to ignore that
+	// error for process (adding user into the organization etc..)
 	if err != nil && resp.StatusCode != 404 {
 		return err
 	}

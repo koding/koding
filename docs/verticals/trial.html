@@ -118,30 +118,10 @@ permalink: /verticals/trial
   <h3>Let your customers easily try out your software in minutes without the hassle of installation</h3>
   <a href="#" class="contact">CONTACT US</a>
 </div>
-<div class="Overlay"></div>
-<div class="Modal">
-  <iframe width="656" height="369"
-  src="https://www.youtube.com/embed/DWRmEIbGqPQ?enablejsapi=1">
-  </iframe>
-  <a href="#" class="u-icon u-modalClose"></a>
-</div>
+<script src="https://www.youtube.com/iframe_api"></script>
 <script>
-  {% include js/single-modal-with-video.js %}
-
-  (function() {
-    var contact = document.querySelectorAll('.contact');
-
-    [].forEach.call(contact, function(el) {
-      el.addEventListener('click', function(evt) {
-        evt.preventDefault();
-
-        if (Intercom) {
-          Intercom('show')
-        }
-      });
-    });
-
-  })();
+  {% include js/landing-modal.js %}
+  {% include js/trial.js %}
 </script>
 
 <!-- FOOTER -->

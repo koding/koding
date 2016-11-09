@@ -1,0 +1,56 @@
+- number: 1.1
+  title: Introduction to Koding
+  description: We have created and curated these videos that can help you to understand how to use Koding efficiently. We have explained all teh details and tips so that you can be an expert on Koding. It will save your time and help you to create better work environments.
+  subjects:
+    - Introduction to Koding
+    - How to create a stack
+    - How to use dashboard
+    - Managing your teams and profiles
+  youtube: youtube.com
+  facebook: facebook.com
+  twitter: twitter.com
+  linkedin: linkedin.com
+  imgPos: left
+  isComplete: true
+- number: 2.1
+  title: Introduction to Koding
+  description: We have created and curated these videos that can help you to understand how to use Koding efficiently. We have explained all teh details and tips so that you can be an expert on Koding. It will save your time and help you to create better work environments.
+  subjects:
+    - Introduction to Koding
+    - How to create a stack
+    - How to use dashboard
+    - Managing your teams and profiles
+  youtube: youtube.com
+  facebook: facebook.com
+  twitter: twitter.com
+  linkedin: linkedin.com
+  imgPos: right
+  isComplete: false
+- number: 2.2
+  title: Introduction to Koding
+  description: We have created and curated these videos that can help you to understand how to use Koding efficiently. We have explained all teh details and tips so that you can be an expert on Koding. It will save your time and help you to create better work environments.
+  subjects:
+    - Introduction to Koding
+    - How to create a stack
+    - How to use dashboard
+    - Managing your teams and profiles
+  youtube: youtube.com
+  facebook: facebook.com
+  twitter: twitter.com
+  linkedin: linkedin.com
+  imgPos: left
+  isComplete: false
+- number: 3.1
+  title: Long Introduction Headline to Koding
+  description: We have created and curated these videos that can help you to understand how to use Koding efficiently. We have explained all teh details and tips so that you can be an expert on Koding. It will save your time and help you to create better work environments.
+  subjects:
+    - Introduction to Koding
+    - How to create a stack
+    - How to use dashboard
+    - Managing your teams and profiles
+  youtube: youtube.com
+  facebook: facebook.com
+  twitter: twitter.com
+  linkedin: linkedin.com
+  imgPos: right
+  isComplete: false
