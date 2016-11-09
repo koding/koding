@@ -26,12 +26,9 @@ Click on 'Member' and select 'Disable user'
 Is 'Member' label next to it updated as 'Disabled'? Is it moved to the bottom of the list?
 
 Switch to the incognito window
-Do you see 'Your access is revoked!' text? Do you see '_/Banned' in the URL above in address bar?
+Do you see that you're logged out automatically? Do you see 'Sign in to {{ random.last_name }}{{ random.number }}' text, 'Username or Email' and 'Password' fields and a 'SIGN IN' button? (If not, do you see 'Your access is revoked!' text?)
 
-Delete '/Banned' from the URL above and hit enter
-Do you see 'Sign in to {{ random.last_name }}{{ random.number }}' text, 'Username or Email' and 'Password' fields and a 'SIGN IN' button?
-
-Enter "rainforestqa22" both in the 'Username or Email' and 'Password' fields and click on 'SIGN IN' button
+Enter "rainforestqa22" both in the 'Username or Email' and 'Password' fields and click on 'SIGN IN' button (If you see 'Your access is revoked!' text, delete '/Banned' from the address bar above and press enter, then do the actions above)
 Have you seen 'You are not allowed to access this team' warning displayed?
 
 Return to the first browser, click on 'Disabled' label and select 'Enable user'

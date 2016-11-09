@@ -11,7 +11,7 @@ Click down arrow icon at the right of '/home/Rainforestqa99' label at the top of
 Do you see new folder 'NewFolder' added to the file tree? Is folder name displayed in edit mode?
 
 Enter '{{random.address_state}}{{random.number}}' folder name and press Enter
-Do you see a folder '{{random.address_state}}{{random.number}}' with arrow icon at the left in the file tree?
+Do you see a folder '{{random.address_state}}{{random.number}}' with arrow icon next to it in the file tree?
 
 Click down arrow icon at the right of  '{{random.address_state}}{{random.number}}' folder and click 'Terminal from here' in the menu ( http://snag.gy/a8gQD.jpg )
 Do you see a new terminal opened? Do you see ' ~/{{random.address_state}}{{random.number}}' in the terminal?

@@ -11,7 +11,7 @@ Open filetree menu ( http://snag.gy/Rmoax.jpg ) and click 'New file' in the menu
 Do you see new file 'NewFolder' added to the file tree? Is folder name displayed in edit mode?
 
 Enter 'testfile{{random.number}}.txt' folder name and press Enter
-Do you see file 'testfile{{random.number}}.txt' with arrow icon at the left in the file tree?
+Do you see file 'testfile{{random.number}}.txt' with arrow icon next to it in the file tree?
 
 Click down arrow icon at the right of 'testfile{{random.number}}.txt' file in the file tree, mouse over 'Set permissions' section and disable 'Read' and 'Write' toggles for owner ( http://snag.gy/UhCoH.jpg ) and click 'Set'
 Are toggles turned to gray?
@@ -53,7 +53,7 @@ Open filetree menu ( http://snag.gy/Rmoax.jpg ) and click 'New folder' in the me
 Do you see new folder 'NewFolder' added to the file tree? Is folder name displayed in edit mode?
 
 Enter '{{random.address_state}}{{random.number}}' folder name and press Enter
-Do you see folder '{{random.address_state}}{{random.number}}' with arrow icon at the left in the file tree?
+Do you see folder '{{random.address_state}}{{random.number}}' with arrow icon next to it in the file tree?
 
 Open menu for  '{{random.address_state}}{{random.number}}' folder in the file tree, mouse over 'Set Permissions' section, disable all three 'Execute' toggles ( http://snag.gy/6Jyg9.jpg )  and click 'Set'
 Are 'Execute' toggles turned to gray?

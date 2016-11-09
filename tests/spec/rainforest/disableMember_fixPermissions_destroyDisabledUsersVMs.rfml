@@ -37,11 +37,11 @@ Do you only see 'Edit' and 'Initialize' options?
 Click on 'Initialize'
 Have you seen 'Stack generated successfully' message displayed? Do you see '_Aws Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'STACKS', '_Aws Stack' and 'aws-instance' labels on left sidebar?
 
-Click on 'NEXT' and 'BUILD STACK' buttons respectively
+Click on 'NEXT' and BUILD STACK buttons respectively
 Do you see 'Fetching and validating credentials...' text in a progress bar? Do you see a green progress bar also below 'aws-instance' label on left sidebar?
 
 Wait for a few minutes for process to be completed
-Do you see 'Success! Your stack has been built.' text? Do you see 'View The Logs', 'Connect your Local Machine' and 'Invite to Collaborate' sections? Do you see 'START CODING' button on the bottom?
+Do you see 'Success! Your stack has been built.' text? Do you see 'View The Logs', 'Connect your Local Machine' and 'Invite to Collaborate' sections? Do you see START CODING button on the bottom?
 
 Return to the first browser and scroll down the page to the 'Teammates' section and click on the little down arrow next to 'Member' label of 'rainforestqa22'
 Do you see 'Make owner', 'Make admin' and 'Disable user' options?

@@ -38,16 +38,16 @@ Click on the 'YES' button and wait for a while for process to be completed
 Do you see 'Rainforestqa99's Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'Read Me' text and a 'NEXT' and 'VIEW STACK TEMPLATE' buttons on the bottom? Do you see 'STACKS', 'Rainforestqa99's Stack' and 'example_1' labels on left sidebar?
 
 Click on the 'NEXT' button
-Do you see 'Select Credentials' text? Do you see 'rainforestqa99's AWS keys' label in a text box? Do you see a 'BUILD STACK' button on the bottom?
+Do you see 'Select Credentials' text? Do you see 'rainforestqa99's AWS keys' label in a text box? Do you see a BUILD STACK button on the bottom?
 
-Click on the 'BUILD STACK' button
+Click on the BUILD STACK button
 Do you see 'Fetching and validating credentials...' text in a progress bar?
 
 Wait for a few minutes for process to be completed
-Do you see 'Success! Your stack has been built.' text? Do you see 'View The Logs', 'Connect your Local Machine' and 'Invite to Collaborate' sections? Do you see 'START CODING' button on the bottom?
+Do you see 'Success! Your stack has been built.' text? Do you see 'View The Logs', 'Connect your Local Machine' and 'Invite to Collaborate' sections? Do you see START CODING button on the bottom?
 
-Click on 'START CODING' button
-Do you see 'Rainforestqa99'S Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'example_1' label? Do you see '/home/rainforestqa99' label on top of a file list? Do you see 'cloud-init-o...' file on top and 'Terminal' tab on the bottom pane? 
+Click on START CODING button
+Do you see 'Rainforestqa99'S Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'example_1' label? Do you see '/home/rainforestqa99' label on top of a file list? Do you see 'cloud-init-o_' file on top and 'Terminal' tab on the bottom pane? 
 
 Click on the tab where it says 'Terminal', type 'expr 5 + 5' hit enter
 Do you see '10' as a result?

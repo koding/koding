@@ -11,7 +11,7 @@ Open filetree menu ( http://snag.gy/Rmoax.jpg ) and click 'New folder' in the me
 Do you see new folder 'NewFolder' added to the file tree? Is folder name displayed in edit mode?
 
 Enter '{{random.address_state}}{{random.number}}' folder name and press Enter
-Do you see folder '{{random.address_state}}{{random.number}}' with arrow icon at the left in the file tree?
+Do you see folder '{{random.address_state}}{{random.number}}' with arrow icon next to it in the file tree?
 
 Click down arrow icon at the right of '{{random.address_state}}{{random.number}}' folder in the file tree and click 'Duplicate' in the menu ( http://snag.gy/a8gQD.jpg )
 Do you see a new folder '{{random.address_state}}{{random.number}}_1' created?

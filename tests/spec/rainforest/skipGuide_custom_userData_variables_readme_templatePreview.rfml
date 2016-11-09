@@ -20,7 +20,7 @@ Move your mouse over 'USE THIS & CONTINUE' button
 Have 'PREVIEW' and 'DELETE' texts appeared?
 
 Click on 'PREVIEW'
-Do you see 'rainforestqa99's AWS keys Preview' title on a pop-up displayed? Do you see 'access key', 'region', 'secret_key' and 'identifier' sections? 
+Do you see 'rainforestqa99's AWS keys Preview' title on a pop-up displayed? Do you see 'access_key', 'region', 'secret_key' and 'identifier' sections? 
 
 Close that modal by clicking (x) from top right corner and click on 'USE THIS & CONTINUE' button (next to 'rainforestqa99's AWS keys') and wait for a second for process to be completed
 Have you seen 'Verifying Credentials...' message displayed? Are you switched to 'Stack Template' tab? (If you're not switched and you got 'Failed to verify: operation timed out' error, click on the same button again)
@@ -44,9 +44,10 @@ Delete the text and copy and paste "# WELCOME TO KODING! You've said goodbye to 
 Do you see 'Readme Preview' title on a pop-up displayed? Do you see the text you pasted?
 
 Close that modal by clicking (x) from top right corner, switch to 'Stack Template' tab and click on 'PREVIEW' button on the right bottom
-Do you see 'Template Preview' title on a pop-up displayed? Do you see 'These variables: name will be requested from user.' text? Do you see 'YAML' and 'JSON' tabs and 'EXPAND' button?
+# Do you see 'Template Preview' title on a pop-up displayed?
+Do you see 'name will be requested from user.' text? Do you see 'YAML' and 'JSON' tabs and EXPAND button?
 
-Click on 'EXPAND'
+Click on EXPAND
 Has that pop-up expanded? Do you see 'COLLAPSE' button on top right?
 
 Click on 'COLLAPSE', close the 'Template Preview' by clicking (x) from top right and then click on 'SAVE' button on top right and wait for a few seconds for that process to be completed
@@ -61,14 +62,14 @@ Do you see 'Team Stack' title? Do you see 'Instructions', 'Credentials' and 'Bui
 Click on the 'NEXT' button
 Do you see 'Select Credentials and Other Requirements' text? Do you see 'rainforestqa99's AWS keys' label in the text box on the left-side? Do you see 'Requirements:' title, 'Requirement Selection' text and a text box on the right-side? Do you see '+ Create New' link below?
 
-Click on '+ Create New', enter "{{ random.first_name }}_build" in 'Title', "{{ random.first_name }}" in 'Name' fields and click on 'BUILD STACK' button
+Click on '+ Create New', enter "{{ random.first_name }}_build" in 'Title', "{{ random.first_name }}" in 'Name' fields and click on BUILD STACK button
 Do you see 'Fetching and validating credentials...' text in a progress bar? Do you see a green progress bar also below 'aws-instance' label on left sidebar?
 
 Wait for a few minutes for process to be completed
-Do you see 'Success! Your stack has been built.' text? Do you see 'View The Logs', 'Connect your Local Machine' and 'Invite to Collaborate' sections? Do you see 'START CODING' button on the bottom?
+Do you see 'Success! Your stack has been built.' text? Do you see 'View The Logs', 'Connect your Local Machine' and 'Invite to Collaborate' sections? Do you see START CODING button on the bottom?
 
-Click on 'START CODING' button
-Do you see 'Team Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'aws-instance' label? Do you see '/home/rainforestqa99' label on top of a file list? Do you see 'cloud-init-o...' file on top and 'Terminal' tab on the bottom pane? 
+Click on START CODING button
+Do you see 'Team Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'aws-instance' label? Do you see '/home/rainforestqa99' label on top of a file list? Do you see 'cloud-init-o_' file on top and 'Terminal' tab on the bottom pane? 
 
 Click on the tab where it says 'Terminal', type "ls /" and hit enter
 Do you see the green colored 'helloworld.txt', 'qa_test' and '{{ random.first_name }}' files in the list?
