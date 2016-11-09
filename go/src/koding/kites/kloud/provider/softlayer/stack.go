@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"text/template"
 
-	// "koding/kites/kloud/api/sl"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
 	"koding/kites/kloud/userdata"
@@ -23,7 +22,6 @@ var (
 	_ stack.Stacker  = (*Stack)(nil)
 )
 
-// Read in bootstrap template
 func mustAsset(s string) string {
 	a, err := Asset(s)
 	if err != nil {
@@ -35,10 +33,8 @@ func mustAsset(s string) string {
 var BootstrapTemplate = template.Must(template.New("").Parse(mustAsset("bootstrap.json.tmpl")))
 
 type bootstrapVars struct {
-	KeyName 		string
-	PublicKey   string
-	Username		string
-	ApiKey			string
+	KeyName   string
+	PublicKey string
 }
 
 // Responsible for building/updating/destroying Softlayer's stack
@@ -63,7 +59,7 @@ func (s *Stack) VerifyCredential(c *stack.Credential) error {
 	client := softlayerGo.NewSoftLayerClient(cred.Username, cred.ApiKey)
 	service, err := client.GetSoftLayer_Virtual_Guest_Service()
 	if err != nil {
-	  return err
+		return err
 	}
 	_, err = service.GetObject(1234567)
 	if err != nil {
@@ -77,22 +73,15 @@ func (s *Stack) BootstrapArg() *stack.BootstrapRequest {
 	return s.BaseStack.Arg.(*stack.BootstrapRequest)
 }
 
-// Returns provisioning templates that will be executed with provided Credential.
+// BootstrapTemplates creates the template that is used to generate default
+// output values, to bootstrap a SoftLayer stack
 func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, error) {
-	fmt.Println("Entered BootstrapTemplates()")
-
-	cred := c.Credential.(*Credential)
-	fmt.Printf("The scope's creds are %s %s", cred.Username, cred.ApiKey)
-
 	vs := &bootstrapVars{
 		KeyName: fmt.Sprintf(
-			"koding-%s-%s",
-			s.Req.Username,
+			"koding-%s",
 			c.Identifier,
 		),
 		PublicKey: s.Keys.PublicKey,
-		Username: cred.Username,
-		ApiKey: cred.ApiKey,
 	}
 
 	var bootstrap bytes.Buffer
@@ -100,121 +89,112 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 		return nil, err
 	}
 
-	fmt.Println(bootstrap.String())
-
-	fmt.Println("Leaving BootstrapTemplates()")
+	// NOTE: Should we shadow out private vars here?
 
 	return []*stack.Template{{
 		Content: bootstrap.String(),
 	}}, nil
 }
 
-// Responsible for ensuring each new Softlayer instance will
+// injectBootstrap injects bootstrap resources into a SoftLayer stack, which
+// is to say, it provides specific default values if user doesn't provide them
+func (s *Stack) injectBootstrap(b *Bootstrap, guest map[string]interface{}) error {
+	bootstrapKey, err := strconv.Atoi(b.KeyID)
+	if err != nil {
+		return err
+	}
+
+	// Apply user ssh keys if provided, otherwise use the bootstrap key
+	keys := []int{bootstrapKey}
+
+	if userKeys, ok := guest["ssh_keys"].([]int); ok {
+		keys = append(keys, userKeys...)
+	}
+	guest["ssh_keys"] = keys
+
+	guest["image"] = "UBUNTU_14_64"
+	// NOTE: Should we allow for user override here? Do all images work with klient?
+	if userImage, ok := guest["image"]; ok {
+		guest["image"] = userImage
+	}
+
+	return nil
+}
+
+// injectKiteKeys creates a kite key for each virtual guest, and sets up
+// the runtime injection of said key using cloud-init/user_data
+func (s *Stack) injectKiteKeys(guest map[string]interface{}, name string) error {
+	s.Builder.InterpolateField(guest, name, "user_data")
+
+	kiteKey, err := s.BuildKiteKey(name, s.Req.Username)
+	if err != nil {
+		return err
+	}
+
+	// Map the generated kite key to the guest via cloud-init config
+	cloudInitConfig := &userdata.CloudInitConfig{
+		Username: s.Req.Username,
+		Groups:   []string{"sudo"},
+		Hostname: s.Req.Username,
+		KiteKey:  kiteKey,
+	}
+
+	// If user provided user data, associate that with our cloud init config
+	if ud, ok := guest["user_data"].(string); ok {
+		cloudInitConfig.UserData = ud
+	}
+
+	// Create cloud init and associate with guest
+	cloudInit, err := s.Session.Userdata.Create(cloudInitConfig)
+	if err != nil {
+		return err
+	}
+	guest["user_data"] = string(cloudInit)
+
+	return nil
+}
+
+// ApplyTemplate injects bootstrap resources into a SoftLayer stack,
+// and is responsible for ensuring each new Softlayer instance will
 // connect to Koding upon start.
 func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
-	// TODO: In order to connect to Koding, two things must happen
-	// TODO: 1. Generate kite.key for each instance
-	// TODO: 2. Provision Klient on each instance with kite.key
-
-	fmt.Println("Entered ApplyTemplate()")
-
 	t := s.Builder.Template
 
-	cred := c.Credential.(*Credential)
-	bootstrap := c.Bootstrap.(*Bootstrap)
-
-	t.Provider["softlayer"] = map[string]interface{}{
-		"username": cred.Username,
-		"api_key": cred.ApiKey,
-	}
-
-	keyID, err := strconv.Atoi(bootstrap.KeyID)
-	if err != nil {
-		return nil, err
-	}
-
-	///////////////
 	var resource struct {
 		VirtualGuest map[string]map[string]interface{} `hcl:"softlayer_virtual_guest"`
 	}
 
+	// Decode the user provided stack template, searching for
+	// virtual guest definitions
 	if err := s.Builder.Template.DecodeResource(&resource); err != nil {
 		return nil, err
 	}
 
+	// If user hasn't specified a virtual guest definitions
+	// in their stack, then we have nothing else to do
 	if len(resource.VirtualGuest) == 0 {
-		return nil, errors.New("There are no virtual guests available")
+		return nil, errors.New("No softlayer_virtual_guest resources were defined in stack.")
 	}
 
-	// There might be multiple virtual guests, need to iterate here
+	bootstrap := c.Bootstrap.(*Bootstrap)
+
+	// Iterate through n softlayer_virtual_guest definitions, filling in
+	// configuration gaps with bootstrap, and setting up kite keys with
+	// cloud-init for each.
 	for name, guest := range resource.VirtualGuest {
-
-		// TODO: handle user override for ssh keys
-		guest["ssh_keys"] = []int{keyID}
-
-		// Check image input
-		if _, ok := guest["image"]; !ok {
-			guest["image"] = "UBUNTU_14_64"
-		}
-
-		// Each machine must have a unique kite id, setup count interpolation
-		count := 1
-		if n, ok := guest["count"].(int); ok && n > 1 {
-			count = n
-		}
-
-		labels := []string{name}
-		if count > 1 {
-			for i := 0; i < count; i++ {
-				labels = append(labels, fmt.Sprintf("%s.%d", name, i))
-			}
-		}
-
-		kiteKeyName := fmt.Sprintf("kitekey_%s", name)
-
-		s.Builder.InterpolateField(guest, name, "user_data")
-
-		userConfig := &userdata.CloudInitConfig{
-			Username: s.Req.Username,
-			Groups: []string{"sudo"},
-			Hostname: s.Req.Username,
-			KiteKey: fmt.Sprintf("${lookup(var.%s, count.index)}", kiteKeyName),
-		}
-
-		if s, ok := guest["user_data"].(string); ok {
-			userConfig.UserData = s
-		}
-
-		userdata, err := s.Session.Userdata.Create(userConfig)
-		if err != nil {
+		if err := s.injectBootstrap(bootstrap, guest); err != nil {
 			return nil, err
 		}
 
-		guest["user_data"] = string(userdata)
-
-		// Create kite key for each instance and create a Terraform lookup map
-		// which is used in conjuntion with the `count.index`
-		countKeys := make(map[string]string, count)
-		for i, label := range labels {
-			kiteKey, err := s.BuildKiteKey(label, s.Req.Username)
-			if err != nil {
-				return nil, err
-			}
-
-			countKeys[strconv.Itoa(i)] = kiteKey
+		if err := s.injectKiteKeys(guest, name); err != nil {
+			return nil, err
 		}
-
-		s.Builder.Template.Variable[kiteKeyName] = map[string]interface{}{
-			"default": countKeys,
-		}
-
-		resource.VirtualGuest[name] = guest
 	}
-	///////////////
 
 	t.Resource["softlayer_virtual_guest"] = resource.VirtualGuest
 
-	if err := t.ShadowVariables("FORBIDDEN", "softlayer_api_key"); err != nil {
+	// Don't show secret things in frontend logs to the user
+	if err := t.ShadowVariables("FORBIDDEN", "api_key"); err != nil {
 		return nil, err
 	}
 
@@ -226,10 +206,6 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(t)
-
-	fmt.Println("Leaving ApplyTemplate()")
 
 	return &stack.Template{
 		Content: content,

@@ -1,6 +1,8 @@
 package softlayer
 
 import (
+	"strconv"
+
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
 )
@@ -17,13 +19,17 @@ var Provider = &provider.Provider{
 		NewCredential: func() interface{} { return &Credential{} },
 		NewBootstrap:  func() interface{} { return &Bootstrap{} },
 		NewMetadata: func(m *stack.Machine) interface{} {
+			meta := &Metadata{}
+
 			if m == nil {
-				return &Metadata{}
+				return meta
 			}
 
-			return &Metadata{
-				ID: m.Attributes["external_id"],
+			if id, err := strconv.Atoi(m.Attributes["id"]); err == nil {
+				meta.Id = id
 			}
+
+			return meta
 		},
 	},
 }

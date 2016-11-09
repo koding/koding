@@ -2,14 +2,16 @@ package softlayer
 
 import (
 	"errors"
+	"strings"
 
-	// "koding/kites/kloud/api/sl"
+	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/stack/provider"
-
-	softlayerGo "github.com/maximilien/softlayer-go/client"
+	"koding/kites/kloud/waitstate"
 
 	"golang.org/x/net/context"
+
+	softlayerGo "github.com/maximilien/softlayer-go/client"
 )
 
 var (
@@ -43,24 +45,132 @@ func NewMachine(bm *provider.BaseMachine) (provider.Machine, error) {
 
 // Start the remote Softlayer instance.
 func (m *Machine) Start(ctx context.Context) (interface{}, error) {
-	// template := m.Client
+	ev, withPush := eventer.FromContext(ctx)
 
-	// TODO:
+	if withPush {
+		ev.Push(&eventer.Event{
+			Message:    "Starting machine",
+			Status:     machinestate.Starting,
+			Percentage: 25,
+		})
+	}
 
-	return nil, nil
+	metadata := m.BaseMachine.Metadata.(*Metadata)
+
+	service, err := m.Client.GetSoftLayer_Virtual_Guest_Service()
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = service.PowerOn(metadata.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	stateFunc := func(currentPercentage int) (machinestate.State, error) {
+		if withPush {
+			ev.Push(&eventer.Event{
+				Message:    "Starting machine",
+				Status:     machinestate.Starting,
+				Percentage: currentPercentage,
+			})
+		}
+
+		state, _, err := m.Info(nil)
+		if err != nil {
+			return machinestate.Unknown, err
+		}
+
+		return state, err
+	}
+
+	ws := waitstate.WaitState{
+		StateFunc:    stateFunc,
+		DesiredState: machinestate.Running,
+		Start:        45,
+		Finish:       60,
+	}
+
+	return nil, ws.Wait()
 }
 
 // Stop the remote Softlayer instance.
 func (m *Machine) Stop(ctx context.Context) (interface{}, error) {
-	// TODO:
-	return nil, nil
+	ev, withPush := eventer.FromContext(ctx)
+
+	if withPush {
+		ev.Push(&eventer.Event{
+			Message:    "Stopping machine",
+			Status:     machinestate.Stopping,
+			Percentage: 25,
+		})
+	}
+
+	metadata := m.BaseMachine.Metadata.(*Metadata)
+
+	service, err := m.Client.GetSoftLayer_Virtual_Guest_Service()
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = service.PowerOffSoft(metadata.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	stateFunc := func(currentPercentage int) (machinestate.State, error) {
+		if withPush {
+			ev.Push(&eventer.Event{
+				Message:    "Stopping machine",
+				Status:     machinestate.Stopping,
+				Percentage: currentPercentage,
+			})
+		}
+
+		state, _, err := m.Info(nil)
+		if err != nil {
+			return machinestate.Unknown, err
+		}
+
+		return state, err
+	}
+
+	ws := waitstate.WaitState{
+		StateFunc:    stateFunc,
+		DesiredState: machinestate.Stopped,
+		Start:        45,
+		Finish:       60,
+	}
+
+	return nil, ws.Wait()
 }
 
 // Returns the state of the remote Softlayer instance
 func (m *Machine) Info(context.Context) (machinestate.State, interface{}, error) {
-	// TODO: actually query state of Softlayer instance
+	metadata := m.BaseMachine.Metadata.(*Metadata)
 
-	return machinestate.Running, nil, nil
+	service, err := m.Client.GetSoftLayer_Virtual_Guest_Service()
+	if err != nil {
+		return machinestate.Unknown, nil, err
+	}
+
+	state, err := service.GetPowerState(metadata.Id)
+	if err != nil {
+		return machinestate.Unknown, nil, err
+	}
+
+	return toMachineState(state.Name), nil, nil
+}
+
+func toMachineState(softlayerState string) machinestate.State {
+	switch strings.ToLower(softlayerState) {
+	case "running":
+		return machinestate.Running
+	case "halted":
+		return machinestate.Stopped
+	default:
+		return machinestate.Unknown
+	}
 }
 
 // Returns credential value using the provider defined type.

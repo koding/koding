@@ -1,7 +1,6 @@
 package softlayer_test
 
 import (
-	// "fmt"
 	"os"
 	"testing"
 
@@ -17,56 +16,20 @@ import (
 	"koding/kites/kloud/userdata"
 )
 
-var baseTemplate = `
+var minimumTemplate = `
 {
-  "provider": {
-    "softlayer": {
-      "username": "${var.username}",
-      "api_key": "${var.api_key}"
-    }
-  },
-  "output": {
-    "key_id": {
-      "value": "${softlayer_ssh_key.koding_ssh_key.id}"
-    },
-    "key_fingerprint": {
-      "value": "${softlayer_ssh_key.koding_ssh_key.fingerprint}"
-    }
-  },
-  "resource": {
-    "softlayer_ssh_key": {
-      "koding_ssh_key": {
-        "name": "${var.key_name}",
-        "public_key": "${var.public_key}"
-      }
-    },
+	"resource": {
 		"softlayer_virtual_guest": {
-			"softlayer-vg": {
-				"name": "softlayer-vg",
-				"domain": "koding.com",
-				"ssh_keys": ["${softlayer_ssh_key.koding_ssh_key.id}"],
-				"machine_type": "t2.micro",
-				"image": "UBUNTU-14-64",
-				"region": "dal09",
-				"public_network_speed": 10,
-				"cpu": 1,
-				"ram": 1024
+			"test": {
+				"name": "test"
 			}
 		}
-  },
-  "variable": {
-    "key_name": {
-      "default": "{{.KeyName}}"
-    },
-    "public_key": {
-      "default": "{{.PublicKey}}"
-    }
-  }
+	}
 }
 `
 
 func newBaseStack() (*provider.BaseStack, error) {
-	t, err := provider.ParseTemplate(baseTemplate, nil)
+	t, err := provider.ParseTemplate(minimumTemplate, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +78,7 @@ func TestVerifyCredential(t *testing.T) {
 	c := &stack.Credential{
 		Credential: &softlayer.Credential{
 			Username: os.Getenv("SL_USERNAME"),
-			ApiKey: os.Getenv("SL_API_KEY"),
+			ApiKey:   os.Getenv("SL_API_KEY"),
 		},
 	}
 
@@ -131,7 +94,7 @@ func TestBootstrapTemplates(t *testing.T) {
 	c := &stack.Credential{
 		Credential: &softlayer.Credential{
 			Username: os.Getenv("SL_USERNAME"),
-			ApiKey: os.Getenv("SL_API_KEY"),
+			ApiKey:   os.Getenv("SL_API_KEY"),
 		},
 	}
 
@@ -148,11 +111,10 @@ func TestApplyTemplate(t *testing.T) {
 	c := &stack.Credential{
 		Credential: &softlayer.Credential{
 			Username: os.Getenv("SL_USERNAME"),
-			ApiKey: os.Getenv("SL_API_KEY"),
+			ApiKey:   os.Getenv("SL_API_KEY"),
 		},
 		Bootstrap: &softlayer.Bootstrap{
 			KeyID: "123456789",
-			KeyFingerprint: "aa:bb:cc:dd:ee:ff",
 		},
 	}
 

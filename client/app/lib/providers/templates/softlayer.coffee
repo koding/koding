@@ -5,18 +5,26 @@ module.exports =
   # JSON
   json: '''
 {
+  "provider": {
+    "softlayer": {
+      "username": "softlayer_username",
+      "api_key": "${var.softlayer_api_key}"
+    }
+  },
+
   "resource": {
     "softlayer_virtual_guest": {
       "softlayer-vg": {
         "name": "softlayer-vg",
         "domain": "koding.com",
-        "ssh_keys": ["${softlayer_ssh_key.koding_ssh_key.id}"],
-        "machine_type": "t2.micro",
-        "image": "UBUNTU-14-64",
         "region": "dal09",
-        "public_network_speed": 10,
+        "ssh_keys": ["123456"],
+        "image": "UBUNTU_14_64",
         "cpu": 1,
-        "ram": 1024
+        "ram": 1024,
+        "local_disk": true,
+        "public_network_speed": 10,
+        "hourly_billing": true
       }
     }
   }
@@ -29,20 +37,32 @@ module.exports =
 # You can make advanced changes like modifying your VM,
 # installing packages, and running shell commands.
 
+provider:
+  softlayer:
+    username: '${var.softlayer_username}'
+    api_key: '${var.softlayer_api_key}'
+
 resource:
   softlayer_virtual_guest:
-    # this is the name of your VM
     softlayer_vg:
-      # and this is its identifier (required)
-      name: softlayer_vg
+      name: softlayer-vg
       domain: koding.com
-      # base image for your instance
-      image: UBUNTU-14-64
-      # select your region which must be in provided region: eg. dal09
+
+      # Extra keypairs to be added to the new instance.
+      # ssh_keys:
+      #  - 123456
+
+      # One of available SoftLayer regions
       region: dal09
-      public_network_speed: 10
+
+      # Default image is Ubuntu 14.04 LTS x64
+      # image: UBUNTU_14_64
+
       cpu: 1
       ram: 1024
       local_disk: true
+      public_network_speed: 10
+
       hourly_billing: true
+
   '''

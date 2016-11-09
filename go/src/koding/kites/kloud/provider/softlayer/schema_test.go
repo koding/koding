@@ -8,8 +8,8 @@ import (
 
 func TestCredential_Valid(t *testing.T) {
 	c := &softlayer.Credential{
-		Username:   "xxxxxx",
-		ApiKey: "xxxxxxxxxxxxx",
+		Username: "xxxxxx",
+		ApiKey:   "xxxxxxxxxxxxx",
 	}
 
 	err := c.Valid()
