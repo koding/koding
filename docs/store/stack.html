@@ -138,9 +138,7 @@ permalink: /store/stack
     </div><div class="clearfix"></div>
   </div>
 </div>
-<div class="Overlay"></div>
-<div class="Modal">
-  <a href="#" class="u-icon u-modalClose"></a>
+<div class="modal-content" style="display:none;">
   <h1>Select a Team to Clone to</h1>
   <h2>Which team you want it to be cloned to?</h2>
   <div class="Modal-teamList">
@@ -164,8 +162,8 @@ permalink: /store/stack
   <a href="#">Are you a member of another team?</a>
 </div>
 <script>
+  {% include js/landing-modal.js %}
   {% include js/store.js %}
-  {% include js/single-modal-with-video.js %}
 </script>
 
 <!-- FOOTER -->

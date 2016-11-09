@@ -1,12 +1,7 @@
 module.exports = (options, callback) ->
 
-  getTitle = require './../title'
-
-  { campaign, account, bongoModels } = options
-  campaign or= 'landing'
-
+  { account } = options
   userAccount   = JSON.stringify account
-  campaignStats = null
 
   addSiteScripts = require './sitescripts'
   addSiteTags    = require './sitetags'
@@ -50,14 +45,4 @@ module.exports = (options, callback) ->
     </html>
     """
 
-  switch campaign
-    when 'hackathon'
-      bongoModels.JWFGH.getStats account, (err, stats) ->
-
-        return callback null, prepareHTML 'landing'  if err
-
-        campaignStats = JSON.stringify stats
-        return callback null, prepareHTML 'hackathon'
-
-    else
-      return callback null, prepareHTML 'landing'
+  return callback null, prepareHTML 'landing'

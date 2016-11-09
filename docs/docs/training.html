@@ -1,0 +1,45 @@
+---
+layout: default
+title: Training
+permalink: /docs/training
+---
+
+<!-- HEADER -->
+{% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#7F7E9E' %}
+
+<link rel="stylesheet" href="{{ site.url }}/css/modal.css">
+<link rel="stylesheet" href="{{ site.url }}/css/docs-training.css">
+
+<div class="Header">
+  <h1>Training Videos</h1>
+  <p>Watch the curated videos to become an expert and use Koding efficiently.</p>
+</div>
+<div class="Stage">
+  <h2>STAGE 1</h2>
+  <hr>
+  <p>GETTING STARTED</p>
+</div>
+{% include training-video.html data=site.data.training-video position=0 youtube_id="P_SlAzsXa7E" %}
+<div class="Stage">
+  <h2>STAGE 2</h2>
+  <hr>
+  <p>HOW TO CREATE A DEV ENVIRONMENT</p>
+</div>
+{% include training-video.html data=site.data.training-video position=1 youtube_id="DWRmEIbGqPQ" %}
+{% include training-video.html data=site.data.training-video position=2 youtube_id="dQw4w9WgXcQ" %}
+<div class="Stage">
+  <h2>STAGE 3</h2>
+  <hr>
+  <p>HOW TO CREATE A DEV ENVIRONMENT</p>
+</div>
+{% include training-video.html data=site.data.training-video position=3 youtube_id="9bZkp7q19f0" %}
+<a href="#" class="loadMore">LOAD MORE VIDEOS</a>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+  {% include js/landing-modal.js %}
+  {% include js/training.js %}
+</script>
+
+<!-- FOOTER -->
+
+{% include footer.html %}
