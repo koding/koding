@@ -119,7 +119,9 @@ func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 		return nil, ErrCustomerNotExists
 	}
 
-	thirtyDaysLater := time.Now().UTC().Add(30 * 24 * time.Hour).Unix()
+	now := time.Now().UTC()
+	thirtyDaysLater := now.Add(30 * 24 * time.Hour).Unix()
+	sevenDaysLater := now.Add(7 * 24 * time.Hour).Unix()
 
 	if params == nil {
 		params = &stripe.SubParams{
@@ -129,8 +131,12 @@ func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 		}
 	}
 
-	// this might be changed in the future
-	if params.TrialEnd > thirtyDaysLater {
+	// we only allow 0, 7 and 30 day trials
+	if params.TrialEnd < sevenDaysLater && params.TrialEnd != 0 {
+		params.TrialEnd = sevenDaysLater
+	}
+
+	if params.TrialEnd > sevenDaysLater {
 		params.TrialEnd = thirtyDaysLater
 	}
 
