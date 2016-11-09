@@ -997,6 +997,9 @@ module.exports = class ComputeController extends KDController
           @emit 'StacksInconsistent', stack
 
 
+  sharingStackTemplate: (_id, type) ->
+    remote.api.JStackTemplate.one { _id }, (err, template) ->
+      template.setAccess type
   checkGroupStacks: ->
 
     @checkStackRevisions()
