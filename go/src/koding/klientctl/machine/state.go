@@ -54,7 +54,7 @@ func (s State) String() string {
 	case StateRemounting:
 		return "remounting"
 	default:
-		return "<invalid value>"
+		return "<unknown>"
 	}
 }
 

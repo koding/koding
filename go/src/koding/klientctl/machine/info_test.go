@@ -1,19 +1,17 @@
 package machine
 
 import (
-	"fmt"
 	"reflect"
 	"sort"
 	"testing"
 )
 
 func TestInfoSliceSort(t *testing.T) {
-	tests := []struct {
+	tests := map[string]struct {
 		Provided []*Info
 		Expected []*Info
 	}{
-		{
-			// 0 //
+		"sort by state": {
 			Provided: []*Info{
 				testInfo("coconut", StateDisconnected, ListMountInfo{}),
 				testInfo("apple", StateOffline),
@@ -48,8 +46,8 @@ func TestInfoSliceSort(t *testing.T) {
 		return
 	}
 
-	for i, test := range tests {
-		t.Run(fmt.Sprintf("test_no_%d", i), func(t *testing.T) {
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
 			sort.Sort(InfoSlice(test.Provided))
 
 			provided, expected := getNames(test.Provided), getNames(test.Expected)
@@ -61,13 +59,12 @@ func TestInfoSliceSort(t *testing.T) {
 }
 
 func TestInfoSliceFindByName(t *testing.T) {
-	tests := []struct {
+	tests := map[string]struct {
 		Provided []*Info
 		Name     string
 		Expected *Info
 	}{
-		{
-			// 0 //
+		"simple find": {
 			Provided: []*Info{
 				testInfo("a", StateOnline),
 				testInfo("b", StateOnline),
@@ -79,8 +76,7 @@ func TestInfoSliceFindByName(t *testing.T) {
 			Name:     "d",
 			Expected: testInfo("d", StateOnline),
 		},
-		{
-			// 1 //
+		"by prefix": {
 			Provided: []*Info{
 				testInfo("aa", StateOnline),
 				testInfo("bb", StateOnline),
@@ -89,8 +85,7 @@ func TestInfoSliceFindByName(t *testing.T) {
 			Name:     "b",
 			Expected: testInfo("bb", StateOnline),
 		},
-		{
-			// 2 //
+		"exact match": {
 			Provided: []*Info{
 				testInfo("aa", StateOnline),
 				testInfo("a", StateOnline),
@@ -99,8 +94,7 @@ func TestInfoSliceFindByName(t *testing.T) {
 			Name:     "a",
 			Expected: testInfo("a", StateOnline),
 		},
-		{
-			// 3 //
+		"not found": {
 			Provided: []*Info{
 				testInfo("g", StateOnline),
 			},
@@ -109,8 +103,8 @@ func TestInfoSliceFindByName(t *testing.T) {
 		},
 	}
 
-	for i, test := range tests {
-		t.Run(fmt.Sprintf("test_no_%d", i), func(t *testing.T) {
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
 			found := InfoSlice(test.Provided).FindByName(test.Name)
 
 			if !reflect.DeepEqual(found, test.Expected) {

@@ -2,7 +2,6 @@ package machine
 
 import (
 	"errors"
-	"net"
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
@@ -14,9 +13,9 @@ import (
 // singleton. This allows to mock database and create reproducible tests for
 // MongoDatabase logic.
 type adapter interface {
-	// GetAllMachinesByUsername gets all machines which are accessible to
+	// GetParticipatedMachinesByUsername gets all machines which are accessible to
 	// provided user.
-	GetAllMachinesByUsername(string) ([]*models.Machine, error)
+	GetParticipatedMachinesByUsername(string) ([]*models.Machine, error)
 
 	// GetStackTemplateFieldsByIds retrieves a slice of stack templates matching
 	// the given ids and limited to the specified fields.
@@ -55,7 +54,7 @@ func (m *MongoDatabase) Machines(f *Filter) ([]*Machine, error) {
 
 	// Get all machines that can be seen by provided user. This also includes
 	// shared machines.
-	machinesDB, err := m.adapter.GetAllMachinesByUsername(f.Username)
+	machinesDB, err := m.adapter.GetParticipatedMachinesByUsername(f.Username)
 	if err != nil {
 		return nil, models.ResError(err, modelhelper.MachinesColl)
 	}
@@ -112,7 +111,7 @@ func (m *MongoDatabase) Machines(f *Filter) ([]*Machine, error) {
 			Stack:     groupTitles[mdb.GeneratedFrom.TemplateId][1],
 			Provider:  mdb.Provider,
 			Label:     mdb.Label,
-			IP:        hostOnly(mdb.IpAddress),
+			IP:        mdb.IpAddress,
 			CreatedAt: mdb.CreatedAt,
 			Status: Status{
 				State:      mdb.Status.State,
@@ -165,15 +164,4 @@ func filterUsers(users []models.MachineUser, f *Filter) (res []User) {
 	}
 
 	return
-}
-
-// hostOnly returns only host part of provided address. This is a fix for
-// machine IpAddress field which contains klient's port.
-func hostOnly(hostport string) string {
-	host, _, err := net.SplitHostPort(hostport)
-	if err != nil {
-		return hostport
-	}
-
-	return host
 }

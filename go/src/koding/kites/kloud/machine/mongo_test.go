@@ -3,10 +3,179 @@ package machine
 import (
 	"reflect"
 	"testing"
-	"time"
+
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
+	"koding/db/mongodb/modelhelper/modeltesthelper"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
-func TestMongoDatabaseFix1(t *testing.T) {
+// User names.
+var (
+	bober   = bson.NewObjectId().Hex()
+	john    = bson.NewObjectId().Hex()
+	blaster = bson.NewObjectId().Hex()
+)
+
+// Stack template names.
+var (
+	boberStack   = bson.NewObjectId()
+	johnStack    = bson.NewObjectId()
+	blasterStack = bson.NewObjectId()
+)
+
+func prepareMongoMachines() error {
+	userIDs := map[string]bson.ObjectId{}
+	for _, u := range []string{bober, john, blaster} {
+		user, _, err := modeltesthelper.CreateUser(u)
+		if err != nil {
+			return err
+		}
+		userIDs[u] = user.ObjectId
+	}
+
+	machines := []*models.Machine{
+		&models.Machine{
+			ObjectId:  bson.NewObjectId(),
+			IpAddress: "127.0.0.1",
+			Provider:  "aws",
+			Label:     "bober-aws-0",
+			Users: []models.MachineUser{
+				{
+					Id:       userIDs[bober],
+					Sudo:     true,
+					Owner:    true,
+					Username: bober,
+				},
+			},
+			Status: models.MachineStatus{
+				State:  "running",
+				Reason: "because it can",
+			},
+			GeneratedFrom: models.MachineGeneratedFrom{
+				TemplateId: boberStack,
+			},
+		},
+		&models.Machine{
+			ObjectId: bson.NewObjectId(),
+			Label:    "bober-aws-1",
+			Users: []models.MachineUser{
+				{
+					Id:       userIDs[bober],
+					Sudo:     true,
+					Owner:    true,
+					Username: bober,
+				},
+				{
+					Id:       userIDs[john],
+					Approved: true,
+					Username: john,
+				},
+				{
+					Id:       userIDs[blaster],
+					Approved: true,
+					Username: blaster,
+				},
+			},
+			GeneratedFrom: models.MachineGeneratedFrom{
+				TemplateId: boberStack,
+			},
+		},
+		&models.Machine{
+			ObjectId: bson.NewObjectId(),
+			Label:    "john-google-0",
+			Users: []models.MachineUser{
+				{
+					Id:       userIDs[john],
+					Sudo:     true,
+					Owner:    true,
+					Username: john,
+				},
+				{
+					Id:       userIDs[bober],
+					Approved: true,
+					Username: bober,
+				},
+				{
+					Id:       userIDs[blaster],
+					Username: blaster,
+				},
+			},
+			GeneratedFrom: models.MachineGeneratedFrom{
+				TemplateId: johnStack,
+			},
+		},
+		&models.Machine{
+			ObjectId: bson.NewObjectId(),
+			Label:    "blaster-aws-0",
+			Users: []models.MachineUser{
+				{
+					Id:       userIDs[blaster],
+					Sudo:     true,
+					Owner:    true,
+					Username: blaster,
+				},
+			},
+			GeneratedFrom: models.MachineGeneratedFrom{
+				TemplateId: blasterStack,
+			},
+		},
+		&models.Machine{
+			ObjectId: bson.NewObjectId(),
+			Provider: modelhelper.MachineProviderKoding,
+			Users: []models.MachineUser{
+				{
+					Id:       userIDs[blaster],
+					Sudo:     true,
+					Owner:    true,
+					Username: blaster,
+				},
+			},
+		},
+	}
+
+	for _, m := range machines {
+		if err := modelhelper.CreateMachine(m); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func prepareMongoStackTmpls() error {
+	stackTmpls := []*models.StackTemplate{
+		&models.StackTemplate{
+			Id:       boberStack,
+			Group:    "orange",
+			Title:    "boberStack",
+			OriginID: bson.NewObjectId(),
+		},
+		&models.StackTemplate{
+			Id:       johnStack,
+			Group:    "orange",
+			Title:    "johnStack",
+			OriginID: bson.NewObjectId(),
+		},
+		&models.StackTemplate{
+			Id:       blasterStack,
+			Group:    "orange",
+			Title:    "blasterStack",
+			OriginID: bson.NewObjectId(),
+		},
+	}
+
+	for _, st := range stackTmpls {
+		if err := modelhelper.CreateStackTemplate(st); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func TestMongoDatabase(t *testing.T) {
 	tests := []struct {
 		Name     string
 		Filter   *Filter
@@ -16,29 +185,27 @@ func TestMongoDatabaseFix1(t *testing.T) {
 		{
 			Name: "bober machine list",
 			Filter: &Filter{
-				Username:     "bober",
+				Username:     bober,
 				Owners:       true,
 				OnlyApproved: true,
 			},
 			IsValid: true,
 			Machines: []*Machine{
 				&Machine{
-					Team:      "orange",
-					Stack:     "boberStack",
-					Provider:  "aws",
-					Label:     "bober-aws-0",
-					IP:        "127.0.0.1",
-					CreatedAt: time.Date(2016, 1, 1, 0, 0, 0, 0, time.UTC),
+					Team:     "orange",
+					Stack:    "boberStack",
+					Provider: "aws",
+					Label:    "bober-aws-0",
+					IP:       "127.0.0.1",
 					Status: Status{
-						State:      "running",
-						Reason:     "because it can",
-						ModifiedAt: time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC),
+						State:  "running",
+						Reason: "because it can",
 					},
 					Users: []User{
 						{
 							Sudo:     true,
 							Owner:    true,
-							Username: "bober",
+							Username: bober,
 						},
 					},
 				},
@@ -50,7 +217,7 @@ func TestMongoDatabaseFix1(t *testing.T) {
 						{
 							Sudo:     true,
 							Owner:    true,
-							Username: "bober",
+							Username: bober,
 						},
 					},
 				},
@@ -62,11 +229,11 @@ func TestMongoDatabaseFix1(t *testing.T) {
 						{
 							Sudo:     true,
 							Owner:    true,
-							Username: "john",
+							Username: john,
 						},
 						{
 							Approved: true,
-							Username: "bober",
+							Username: bober,
 						},
 					},
 				},
@@ -75,7 +242,7 @@ func TestMongoDatabaseFix1(t *testing.T) {
 		{
 			Name: "john machine list",
 			Filter: &Filter{
-				Username:     "john",
+				Username:     john,
 				Owners:       true,
 				OnlyApproved: true,
 			},
@@ -89,11 +256,11 @@ func TestMongoDatabaseFix1(t *testing.T) {
 						{
 							Sudo:     true,
 							Owner:    true,
-							Username: "bober",
+							Username: bober,
 						},
 						{
 							Approved: true,
-							Username: "john",
+							Username: john,
 						},
 					},
 				},
@@ -105,7 +272,7 @@ func TestMongoDatabaseFix1(t *testing.T) {
 						{
 							Sudo:     true,
 							Owner:    true,
-							Username: "john",
+							Username: john,
 						},
 					},
 				},
@@ -114,7 +281,7 @@ func TestMongoDatabaseFix1(t *testing.T) {
 		{
 			Name: "blaster machine list",
 			Filter: &Filter{
-				Username:     "blaster",
+				Username:     blaster,
 				Owners:       true,
 				OnlyApproved: true,
 			},
@@ -128,11 +295,11 @@ func TestMongoDatabaseFix1(t *testing.T) {
 						{
 							Sudo:     true,
 							Owner:    true,
-							Username: "bober",
+							Username: bober,
 						},
 						{
 							Approved: true,
-							Username: "blaster",
+							Username: blaster,
 						},
 					},
 				},
@@ -144,7 +311,7 @@ func TestMongoDatabaseFix1(t *testing.T) {
 						{
 							Sudo:     true,
 							Owner:    true,
-							Username: "blaster",
+							Username: blaster,
 						},
 					},
 				},
@@ -162,7 +329,19 @@ func TestMongoDatabaseFix1(t *testing.T) {
 		},
 	}
 
-	mongoDB := MongoDatabase{adapter: Fix1}
+	// Prepare database.
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
+
+	if err := prepareMongoMachines(); err != nil {
+		t.Fatalf("want err == nil; got %v", err)
+	}
+
+	if err := prepareMongoStackTmpls(); err != nil {
+		t.Fatalf("want err == nil; got %v", err)
+	}
+
+	mongoDB := NewMongoDatabase()
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
 			machines, err := mongoDB.Machines(test.Filter)

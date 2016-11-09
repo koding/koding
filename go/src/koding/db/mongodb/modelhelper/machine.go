@@ -154,7 +154,7 @@ func GetMachinesByUsername(username string) ([]*models.Machine, error) {
 	return findMachine(query)
 }
 
-func GetAllMachinesByUsername(username string) ([]*models.Machine, error) {
+func GetParticipatedMachinesByUsername(username string) ([]*models.Machine, error) {
 	user, err := GetUser(username)
 	if err != nil {
 		return nil, err
