@@ -200,13 +200,6 @@ module.exports = (KONFIG, options, credentials) ->
 
         ]
 
-    dailyemailnotifier  :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/dailyemail"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/dailyemail -watch socialapi/workers/email/dailyemail"
-
     algoliaconnector    :
       group             : "socialapi"
       supervisord       :
