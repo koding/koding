@@ -2,12 +2,15 @@ package softlayer
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
+	"strconv"
 	"text/template"
 
 	// "koding/kites/kloud/api/sl"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
+	"koding/kites/kloud/userdata"
 
 	softlayerGo "github.com/maximilien/softlayer-go/client"
 )
@@ -118,18 +121,102 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	t := s.Builder.Template
 
 	cred := c.Credential.(*Credential)
-	// bootstrap := c.Bootstrap.(*Bootstrap)
-
-	fmt.Printf("Credential: Username=%s ApiKeyLength=%d", cred.Username, len(cred.ApiKey))
+	bootstrap := c.Bootstrap.(*Bootstrap)
 
 	t.Provider["softlayer"] = map[string]interface{}{
 		"username": cred.Username,
 		"api_key": cred.ApiKey,
 	}
 
-	// var resource struct {
-	// 	SLVirtualGuest map[string]map[string]interface{} `hcl:"softlayer_virtual_guest"`
-	// }
+	keyID, err := strconv.Atoi(bootstrap.KeyID)
+	if err != nil {
+		return nil, err
+	}
+
+	///////////////
+	var resource struct {
+		VirtualGuest map[string]map[string]interface{} `hcl:"softlayer_virtual_guest"`
+	}
+
+	if err := s.Builder.Template.DecodeResource(&resource); err != nil {
+		return nil, err
+	}
+
+	if len(resource.VirtualGuest) == 0 {
+		return nil, errors.New("There are no virtual guests available")
+	}
+
+	// There might be multiple virtual guests, need to iterate here
+	for name, guest := range resource.VirtualGuest {
+
+		// TODO: handle user override for ssh keys
+		guest["ssh_keys"] = []int{keyID}
+
+		// Check image input
+		if _, ok := guest["image"]; !ok {
+			guest["image"] = "UBUNTU_14_64"
+		}
+
+		// Each machine must have a unique kite id, setup count interpolation
+		count := 1
+		if n, ok := guest["count"].(int); ok && n > 1 {
+			count = n
+		}
+
+		labels := []string{name}
+		if count > 1 {
+			for i := 0; i < count; i++ {
+				labels = append(labels, fmt.Sprintf("%s.%d", name, i))
+			}
+		}
+
+		kiteKeyName := fmt.Sprintf("kitekey_%s", name)
+
+		s.Builder.InterpolateField(guest, name, "user_data")
+
+		userConfig := &userdata.CloudInitConfig{
+			Username: s.Req.Username,
+			Groups: []string{"sudo"},
+			Hostname: s.Req.Username,
+			KiteKey: fmt.Sprintf("${lookup(var.%s, count.index)}", kiteKeyName),
+		}
+
+		if s, ok := guest["user_data"].(string); ok {
+			userConfig.UserData = s
+		}
+
+		userdata, err := s.Session.Userdata.Create(userConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		guest["user_data"] = string(userdata)
+
+		// Create kite key for each instance and create a Terraform lookup map
+		// which is used in conjuntion with the `count.index`
+		countKeys := make(map[string]string, count)
+		for i, label := range labels {
+			kiteKey, err := s.BuildKiteKey(label, s.Req.Username)
+			if err != nil {
+				return nil, err
+			}
+
+			countKeys[strconv.Itoa(i)] = kiteKey
+		}
+
+		s.Builder.Template.Variable[kiteKeyName] = map[string]interface{}{
+			"default": countKeys,
+		}
+
+		resource.VirtualGuest[name] = guest
+	}
+	///////////////
+
+	t.Resource["softlayer_virtual_guest"] = resource.VirtualGuest
+
+	if err := t.ShadowVariables("FORBIDDEN", "softlayer_api_key"); err != nil {
+		return nil, err
+	}
 
 	if err := t.Flush(); err != nil {
 		return nil, err
@@ -139,6 +226,8 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println(t)
 
 	fmt.Println("Leaving ApplyTemplate()")
 

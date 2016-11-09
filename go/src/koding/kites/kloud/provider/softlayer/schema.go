@@ -7,8 +7,8 @@ import (
 // Defines parameters required for provisioning against Softlayer API
 // Persisted to Koding safe store
 type Credential struct {
-	Username   string `json:"username"`
-	ApiKey string `json:"api_key" kloud: ",secret"`
+	Username   string `json:"username" bson:"username" hcl:"username"`
+	ApiKey string `json:"api_key" bson:"api_key" hcl:"api_key" kloud:",secret"`
 }
 
 func (c *Credential) Valid() error {

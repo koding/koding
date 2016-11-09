@@ -39,7 +39,20 @@ var baseTemplate = `
         "name": "${var.key_name}",
         "public_key": "${var.public_key}"
       }
-    }
+    },
+		"softlayer_virtual_guest": {
+			"softlayer-vg": {
+				"name": "softlayer-vg",
+				"domain": "koding.com",
+				"ssh_keys": ["${softlayer_ssh_key.koding_ssh_key.id}"],
+				"machine_type": "t2.micro",
+				"image": "UBUNTU-14-64",
+				"region": "dal09",
+				"public_network_speed": 10,
+				"cpu": 1,
+				"ram": 1024
+			}
+		}
   },
   "variable": {
     "key_name": {
@@ -130,7 +143,21 @@ func TestBootstrapTemplates(t *testing.T) {
 
 func TestApplyTemplate(t *testing.T) {
 	bs, _ := newBaseStack()
-	_ = &softlayer.Stack{BaseStack: bs}
+	s := &softlayer.Stack{BaseStack: bs}
 
-	// TODO:
+	c := &stack.Credential{
+		Credential: &softlayer.Credential{
+			Username: os.Getenv("SL_USERNAME"),
+			ApiKey: os.Getenv("SL_API_KEY"),
+		},
+		Bootstrap: &softlayer.Bootstrap{
+			KeyID: "123456789",
+			KeyFingerprint: "aa:bb:cc:dd:ee:ff",
+		},
+	}
+
+	_, err := s.ApplyTemplate(c)
+	if err != nil {
+		t.Fatal(err)
+	}
 }
