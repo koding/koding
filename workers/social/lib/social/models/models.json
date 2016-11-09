@@ -15,7 +15,6 @@
   "DataDog": "/datadog.coffee",
   "JProposedDomain": "/domain.coffee",
   "JDomainAlias": "/domainalias.coffee",
-  "JMailNotification": "/emailnotification.coffee",
   "JForeignAuth": "/foreignauth.coffee",
   "Github": "/github.coffee",
   "GitProvider": "/gitprovider/index.coffee",
