@@ -22,7 +22,6 @@
   "JGroupData": "/group/groupdata.coffee",
   "JGroupLimit": "/group/grouplimit.coffee",
   "JGroup": "/group/index.coffee",
-  "JMembershipPolicy": "/group/membershippolicy.coffee",
   "JPermissionSet": "/group/permissionset.coffee",
   "JGroupRole": "/group/role.coffee",
   "JInvitation": "/invitation.coffee",
