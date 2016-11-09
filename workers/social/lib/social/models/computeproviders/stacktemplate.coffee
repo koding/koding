@@ -296,9 +296,8 @@ module.exports = class JStackTemplate extends Module
 
 
   setAccess: permit
-
     advanced: [
-      { permission: 'update own stack template', validateWith: Validators.own }
+      { permission: 'update own stack template' }
       { permission: 'update stack template' }
     ]
 
@@ -314,18 +313,17 @@ module.exports = class JStackTemplate extends Module
       query = { $set: { accessLevel } }
 
       notifyOptions =
-        account : client.r.account
         group   : group.slug
-        target  : if accessLevel is 'group' then 'group' else 'account'
+        target  : 'group'
 
-      @updateAndNotify notifyOptions, query, (err) =>
+      @updateTemplateAndNotify notifyOptions, query, (err) =>
         callback err, this
 
 
   generateStack: permit
 
     advanced: [
-      { permission: 'update own stack template', validateWith: Validators.own }
+      { permission: 'update own stack template' }
       { permission: 'update stack template' }
     ]
 
