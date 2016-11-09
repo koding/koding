@@ -35,7 +35,6 @@
   "Payment": "/payment.coffee",
   "JProxyFilter": "/proxy/index.coffee",
   "JProxyRestriction": "/proxy/restriction.coffee",
-  "JRegistrationPreferences": "/registrationpreferences.coffee",
   "JEarnedReward": "/rewards/earnedreward.coffee",
   "JReward": "/rewards/index.coffee",
   "JRewardCampaign": "/rewards/rewardcampaign.coffee",
