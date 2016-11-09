@@ -44,7 +44,7 @@ Mouse over the editor header where the file '.profile' is opened, click down arr
 Do you see search form on the screen with 'Type a file name to search' input field?
 
 Type 'bash' in the 'Type a file name to search' input field
-Are search performed in real time and search results displayed bellow the input field? Are search results contain 2 rows containing:  '_1.bashrc' and '_1.bash_logout'?
+Are search performed in real time and search results displayed below the input field? Are search results contain 2 rows containing:  '_1.bashrc' and '_1.bash_logout'?
 
 Click '_1.bash_logout' in the search result
 Do you see new editor tab opened with  '_1.bash_logout' file content?

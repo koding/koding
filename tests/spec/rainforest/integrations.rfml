@@ -20,16 +20,16 @@ Click on the toggle button next to 'GitLab Integration'
 Do you see 'Create a new application on your GitLab instance by using this address '? Do you see 'GitLab URL' field? Do you see 'Application ID'?
 
 Click on 'VIEW GUIDE' button under 'GitLab' section
-Do you see 'Coming soon_' text?
+Do you see 'Coming soon' text?
 
-Scroll down
+Close that tab and scroll down on Integrations tab
 Do you see 'Intercom'?
 
-Click on 'VIEW GUIDE'
-Do you see 'Coming soon:' text?
+Click on 'VIEW GUIDE' button under 'Intercom' section
+Do you see 'Coming soon' text?
 
 Close the tab, go to 'Chatlio' section, enter a 'Chatlio data-widget-id' and save it
 Did you see the 'Chatlio id successfully saved!' notification?
 
-Click on 'VIEW GUIDE' button
-Is new tab opened? Do you see 'Chatlio Integration', 'Coming soon:' in new tab?
+Click on 'VIEW GUIDE' button under 'Chatlio' section
+Is new tab opened? Do you see 'Chatlio Integration', 'Coming soon' in new tab?

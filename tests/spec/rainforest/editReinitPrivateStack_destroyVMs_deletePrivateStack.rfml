@@ -13,7 +13,7 @@ Do you see 'Select a Provider' title? Do you see 'amazon web services', 'VAGRANT
 Click on 'amazon web services' and then click on 'CREATE STACK' button
 Has that pop-up disappeared? Do you see '_Aws Stack' title? Do you see 'Stack Template', 'Custom Variables', 'Readme' tabs? Do you see 'Credentials' text having a red (!) next to it? Do you see '# Here is your stack preview' in the first line of main content? Do you see 'PREVIEW', 'LOGS', 'DELETE THIS STACK TEMPLATE' buttons on the bottom and 'SAVE' button on top right?
 
-Click on 'Credentials' and then click on 'USE THIS & CONTINUE' button next to 'rainforestqa99's AWS keys' and wait for a second for process to be completed
+Click on 'Credentials' and then click on 'USE THIS & CONTINUE' button next to 'rainforestqa99's AWS keys' and wait for a second for process to be completed (scroll down if you cannot see 'rainforestqa99's AWS keys')
 Have you seen 'Verifying Credentials...' message displayed? Are you switched to 'Stack Template' tab? (If you're not switched and you got 'Failed to verify: operation timed out' error, click on the same button again)
 
 Click on the 'SAVE' button on top right and wait for a few seconds for that process to be completed
@@ -22,11 +22,11 @@ Do you see 'Share Your Stack_' title on a pop-up displayed? Do you see that 'Sha
 Click on 'CANCEL' and 'INITIALIZE' buttons respectively and wait for a few seconds for process to be completed
 Do you see '_Aws Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'Read Me' text? Do you see 'NEXT' and 'VIEW STACK TEMPLATE' buttons on the bottom? Do you see 'STACKS', '_Aws Stack' and 'aws-instance' labels on left sidebar?
 
-Click on the 'NEXT' and 'BUILD STACK' buttons respectively
+Click on the 'NEXT' and BUILD STACK buttons respectively
 Do you see 'Fetching and validating credentials...' text in a progress bar? Do you see a green progress bar also below 'aws-instance' label on left sidebar?
 
 Wait for a few minutes for process to be completed
-Do you see 'Success! Your stack has been built.' text? Do you see 'View The Logs', 'Connect your Local Machine' and 'Invite to Collaborate' sections? Do you see 'START CODING' button on the bottom?
+Do you see 'Success! Your stack has been built.' text? Do you see 'View The Logs', 'Connect your Local Machine' and 'Invite to Collaborate' sections? Do you see START CODING button on the bottom?
 
 Click on 'STACKS' title from left sidebar
 Do you see '_Aws Stack' under 'Private Stacks' section? Do you see that the other sections are empty?
@@ -47,19 +47,19 @@ Close that modal by clicking (x) from top right corner and click on 'STACKS' fro
 Do you see that all of the 'Team Stacks', 'Private Stacks' and 'Drafts' sections are empty?
 
 Return to the first browser and click on 'Stacks' item from the left vertical menu under 'Dashboard' and click on '_Aws Stack'
-Do you see that the stack editor is opened? (you can see ../Stack-Editor/.. above in the address bar) Do you see '_Aws Stack' text and 'Edit Name' link below it? Do you see 'DELETE THIS STACK TEMPLATE' and 'STACK SCRIPT DOCS' links on the bottom of the page?
+Do you see that the stack editor is opened? (you can see ../Stack-Editor/.. above in the address bar) Do you see '_Aws Stack' text and 'Edit Name' link below it? Do you see 'DELETE THIS STACK TEMPLATE' and STACK SCRIPT DOCS links on the bottom of the page?
 
 Click on 'DELETE THIS STACK TEMPLATE'
 Have you seen 'You currently have a stack generated from this template.' message displayed?
 
-Click on 'Edit Name', delete the text there and enter "Team Stack" and then go to line #12, delete aws-instance and type "test-machine" instead (like in this image: http://take.ms/oxOXl) and then click on 'SAVE' button from top right and wait for a few seconds for process to be completed
+Click on 'Edit Name', delete the text there and enter "Team Stack" and then go to line #12, delete aws-instance and type "testmachine" instead (like in this image: http://take.ms/oxOXl) and then click on 'SAVE' button from top right and wait for a few seconds for process to be completed
 Have 'RE-INITIALIZE' and 'MAKE TEAM DEFAULT' buttons appeared next to 'SAVE' button? Do you see 'STACK UPDATED' pop-up appeared next to (1) notification on left sidebar? Do you see 'Team Stack' text on sidebar?
 
 Click on 'UPDATE MY MACHINES' and then 'PROCEED' buttons respectively and wait for a few seconds for process to be completed
-Do you see 'Team Stack' title on the modal in the center of the page? Do you see 'STACKS', 'Team Stack' and 'test-machine' labels on left sidebar?
+Do you see 'Team Stack' title on the modal in the center of the page? Do you see 'STACKS', 'Team Stack' and 'testmachine' labels on left sidebar?
 
 Click on 'Team Stack' from left sidebar and select 'Destroy VMs' and then click on 'PROCEED' button on the 'Destroy Stack' titled pop-up and wait for a few seconds for process to be completed
-Is 'test-machine' label under 'Team Stack' removed from left sidebar? Do you see 'Create a stack for your team' text and 'CREATE A TEAM STACK' button in the center of the page?
+Is 'testmachine' label under 'Team Stack' removed from left sidebar? Do you see 'Create a stack for your team' text and 'CREATE A TEAM STACK' button in the center of the page?
 
 Click on 'STACKS' title from left sidebar
 Do you see 'Team Stack' under 'Drafts' section? Do you see that the other sections are empty?
@@ -68,7 +68,7 @@ Switch to the incognito window and reload the page
 Do you see that all of the 'Team Stacks', 'Private Stacks' and 'Drafts' sections are still empty?
 
 Return to the first browser and click on 'Team Stack'
-Do you see that the stack editor is opened? (you can see ../Stack-Editor/.. above in the address bar) Do you see 'DELETE THIS STACK TEMPLATE' and 'STACK SCRIPT DOCS' links on the bottom of the page?
+Do you see that the stack editor is opened? (you can see ../Stack-Editor/.. above in the address bar) Do you see 'DELETE THIS STACK TEMPLATE' and STACK SCRIPT DOCS links on the bottom of the page?
 
 Click on 'DELETE THIS STACK TEMPLATE' and 'YES' buttons respectively
 Is 'Team Stack' removed from left sidebar? Do you see 'Your stacks has not been fully configured yet,' text under 'STACKS' title?

@@ -52,14 +52,8 @@ Do you see 'Password successfully changed!' message?
 Scroll down to the bottom of the page
 Do you see 'Sessions' list?
 
-Click on 'TERMINATE' in one of non-active sessions
+Click on 'TERMINATE' next to active session
 Do you see 'Do you really want to remove this session?' modal?
 
 Click on 'YES'
-Is terminated session removed from session list?
-
-Click on 'TERMINATE' in active sessions
-Do you see 'Do you really want to remove this session?' modal?
-
-Click on 'YES'
-Are you logged out?
+Are you logged out? Do you see 'Sign in to {{ random.last_name }}{{ random.number }}' text in a sign in page?

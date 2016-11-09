@@ -19,17 +19,17 @@ Is modal closed? Do you see the 'file1.txt' title of the opened file instead of 
 Return to the incognito browser window
 Do you see the 'file1.txt' file in the file tree?
 
-Mouse over user icon at the left of 'END COLLABORATION' button (like on the screenshot http://snag.gy/UWgYw.jpg ),click 'Kick' in the menu and click on 'END COLLABORATION'
+Switch back to the first window and move your mouse over default avatar icon next to 'END COLLABORATION' button (like on the screenshot http://snag.gy/UWgYw.jpg ),click on 'Kick' in the menu and then click on 'END COLLABORATION'
 Is user icon removed from the bottom navigation bar?
 
 Return to the incognito browser window
-Is 'Session End' dialog not displayed? Is 'LEAVE SESSION' not visible?
+Has 'Session End' dialog not displayed (it shouldn't be displayed)? Is 'LEAVE SESSION' button not visible anymore? Do you see 'Your session has been closed' titled pop-up?
 
-Return to the other browser window, click  'START COLLABORATION' button in the bottom right corner and click shortened URL in the bottom status bar
+Return to the other browser window, click  'START COLLABORATION' button in the bottom right corner and click on the shortened URL in the bottom status bar
 Do you see 'Copied to clipboard!' popup message?
 
 Return to the incognito browser window and paste copied URL in the browser address bar and press enter
-Do you see 'SHARED VMS' label in the left module on the page? Do you see 'aws-instance' item bellow the 'SHARED VMS' label? Do you see white popup with 'Reject' and 'Accept' buttons?
+Do you see 'SHARED VMS' label in the left module on the page? Do you see 'aws-instance' item below the 'SHARED VMS' label? Do you see white popup with 'Reject' and 'Accept' buttons?
 
 Click 'Accept' button
 Do you see 'Joining to collaboration session' progress bar? Do you see the same panes (terminal, untitled.txt) like on the browser where you are logged in as 'rainforestqa99'

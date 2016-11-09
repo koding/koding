@@ -8,7 +8,7 @@
 
 # redirect: false
 Open filetree menu, click 'New file', enter '{{random.address_city}}{{random.number}}.html' file name and press Enter
-Do you see new file 'NewFile.html' added to the file tree? Is file name displayed in edit mode? Do you see file '{{random.address_city}}{{random.number}}.html' with green icon in the file tree?
+Do you see new file 'NewFile.html' added to the file tree? Is file name displayed in edit mode? Do you see file '{{random.address_city}}{{random.number}}.html' with blue icon on its left at the end of the file tree?
 
 Double click '{{random.address_city}}{{random.number}}.html' file in the file tree
 Do you see a new editor tab opened for this file?
