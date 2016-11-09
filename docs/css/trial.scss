@@ -75,8 +75,9 @@ p {
 
     .imgContainer {
       background-image: url({{path}}/training_success.png);
-      height: 488px;
-      width: 675px;
+      height: 480px;
+      width: 660px;
+      background-size: 100%;
     }
   }
 
@@ -359,6 +360,7 @@ p {
     background-image: url({{ path }}/training_invites.png);
     height: 429px;
     width: 588px;
+    background-size: 100%;
   }
 
   .Caption {
