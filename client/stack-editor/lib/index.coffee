@@ -181,13 +181,13 @@ module.exports = class StackEditorAppController extends AppController
         buttons:
           cancel:
             title: 'Cancel'
-            style: 'solid light-gray medium'
+            style: 'solid medium'
             callback: ->
               confirmation.destroy()
               confirmation = null
           ok:
             title: 'OK'
-            style: 'solid green medium'
+            style: 'solid medium'
             callback: =>
               view.destroy()
               delete @editors[stackTemplate._id]
