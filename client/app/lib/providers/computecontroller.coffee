@@ -28,6 +28,7 @@ ContentModal         = require 'app/components/contentModal'
 runMiddlewares       = require 'app/util/runMiddlewares'
 TestMachineMiddleware = require './middlewares/testmachine'
 
+whoami = require 'app/util/whoami'
 
 { actions : HomeActions } = require 'home/flux'
 require './config'
@@ -71,6 +72,7 @@ module.exports = class ComputeController extends KDController
 
       groupsController.on 'StackTemplateChanged', @bound 'checkGroupStacks'
       groupsController.on 'StackAdminMessageCreated', @bound 'handleStackAdminMessageCreated'
+      groupsController.on 'SetStackTemplateAccessLevel', @bound 'setStackTemplateAccessLevel'
 
       @fetchStacks =>
 
@@ -1000,6 +1002,32 @@ module.exports = class ComputeController extends KDController
   sharingStackTemplate: (_id, type) ->
     remote.api.JStackTemplate.one { _id }, (err, template) ->
       template.setAccess type
+
+
+  setStackTemplateAccessLevel: (params) ->
+
+    { reactor } = kd.singletons
+    { contents: { id: _id, change: { $set: { accessLevel } } } } = params
+
+    if accessLevel is 'group'
+      new kd.NotificationView title : 'Stack Template is Shared With Group'
+    else
+      new kd.NotificationView title : 'Stack Template is Unshared With Group'
+    remote.api.JStackTemplate.one { _id }, (err, stackTemplate) =>
+
+      if stackTemplate
+        reactor.dispatch 'REMOVE_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
+        reactor.dispatch 'UPDATE_STACK_TEMPLATE_SUCCESS', { stackTemplate }
+      else
+        reactor.dispatch 'REMOVE_STACK_TEMPLATE_SUCCESS', { id: _id }
+
+      remote.api.JComputeStack.one { baseStackId: _id }, (err, stack) =>
+        if stack
+          @checkStackRevisions()  if accessLevel is 'group'
+          if accessLevel is 'private' and not stackTemplate
+            new kd.NotificationView { title: "You have no longer access to #{stack.title}" }
+
+
   checkGroupStacks: ->
 
     @checkStackRevisions()
