@@ -20,6 +20,9 @@ TeamFlux = require 'app/flux/teams'
 DEFAULT_LOGOPATH = '/a/images/logos/sidebar_footer_logo.svg'
 MENU = null
 isAdmin = require 'app/util/isAdmin'
+remote = require 'app/remote'
+whoami = require 'app/util/whoami'
+
 canCreateStacks = require 'app/util/canCreateStacks'
 
 require './styl/sidebar.styl'
@@ -93,7 +96,7 @@ module.exports = class Sidebar extends React.Component
 
     draft = @state.drafts.get id
     switch title
-      when 'Edit' then router.handleRoute "/Stack-Editor/#{id}"
+      when 'Edit', 'View Stack' then router.handleRoute "/Stack-Editor/#{id}"
       when 'Initialize'
         EnvironmentFlux.actions.generateStack(id).then ({ template }) ->
           appManager.tell 'Stackeditor', 'reloadEditor', template._id
@@ -106,6 +109,10 @@ module.exports = class Sidebar extends React.Component
         computeController.makeTeamDefault draft.toJS(), yes
       when 'Delete'
         computeController.deleteStackTemplate draft.toJS(), yes
+      when 'Share With Team'
+        computeController.sharingStackTemplate draft.get('_id'), 'group'
+      when 'Make Private'
+        computeController.sharingStackTemplate draft.get('_id'), 'private'
 
 
 
@@ -124,10 +131,21 @@ module.exports = class Sidebar extends React.Component
 
     if draft.getIn ['config', 'remoteDetails', 'originalUrl']
       menuItems['Open on GitLab'] = { callback }
+    if whoami()._id is draft.get 'originId'
+      menuItems['Edit'] = { callback }
+    else
+      menuItems['View Stack'] = { callback }
 
-    ['Edit', 'Initialize'].forEach (name) => menuItems[name] = { callback }
+    menuItems['Initialize'] = { callback }
     menuItems['Clone'] = { callback }  if canCreateStacks() or isAdmin()
-    menuItems['Make Team Default'] = { callback } if isAdmin() and draft.get('machines').size
+
+    if draft.get('machines').size
+      menuItems['Make Team Default'] = { callback } if isAdmin()
+      if whoami()._id is draft.get('originId')
+        if draft.get('accessLevel') is 'private'
+        then menuItems['Share With Team'] = { callback }
+        else  menuItems['Make Private'] = { callback }
+
     menuItems['Delete'] = { callback }
 
     { top } = findDOMNode(@refs["draft-#{id}"]).getBoundingClientRect()
