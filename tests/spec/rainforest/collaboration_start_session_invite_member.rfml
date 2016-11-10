@@ -38,7 +38,7 @@ Click on 'START COLLABORATION' button in the bottom right corner
 Do you see 'Starting session' progress bar below the button and after that 'START COLLABORATION' button is converted to 'END COLLABORATION'? Do you see a shortened URL in the bottom status bar (like on screenshot http://snag.gy/dp1Cn.jpg )?
 
 Click on the shortened URL in the bottom status bar
-Do you see 'Copied to clipboard!' popup message?
+Do you see 'Collaboration link is copied to clipboard.' popup message?
 
 Switch to the incognito window and paste copied URL in the browser address bar and press enter
 Do you see 'SHARED VMS' label in the left module on the page? Do you see 'aws-instance' item below the 'SHARED VMS' label? Do you see a white popup with 'Reject' and 'Accept' buttons?

@@ -8,7 +8,7 @@
 
 # redirect: false
 Open filetree menu ( http://snag.gy/Rmoax.jpg ) and click 'New file' in the menu
-Do you see new file 'NewFolder' added to the file tree? Is folder name displayed in edit mode?
+Do you see new file 'NewFile.txt' added to the file tree? Is file name displayed in edit mode?
 
 Enter 'testfile{{random.number}}.txt' folder name and press Enter
 Do you see file 'testfile{{random.number}}.txt' with arrow icon next to it in the file tree?
