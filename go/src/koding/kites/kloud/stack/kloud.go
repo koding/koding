@@ -1,7 +1,9 @@
 package stack
 
 import (
+	"encoding/json"
 	"errors"
+	"sort"
 	"sync"
 	"time"
 
@@ -157,4 +159,25 @@ func (k *Kloud) ValidateUser(req *keygen.AuthRequest) error {
 	default:
 		return errors.New("user is not active")
 	}
+}
+
+// ReadProviders reads all providers used in the given stack template.
+func ReadProviders(template []byte) ([]string, error) {
+	var v struct {
+		Provider map[string]struct{} `json:"provider"`
+	}
+
+	if err := json.Unmarshal(template, &v); err != nil {
+		return nil, err
+	}
+
+	providers := make([]string, len(v.Provider))
+
+	for p := range v.Provider {
+		providers = append(providers, p)
+	}
+
+	sort.Strings(providers)
+
+	return providers, nil
 }

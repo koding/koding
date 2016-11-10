@@ -8,6 +8,7 @@ import (
 	"sort"
 
 	"koding/kites/kloud/stack"
+	kloudstack "koding/kites/kloud/stack"
 	"koding/klientctl/endpoint/credential"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/team"
@@ -52,7 +53,7 @@ func (c *Client) Create(opts *CreateOptions) (*stack.ImportResponse, error) {
 		return nil, fmt.Errorf("stack: template encoding error: %s", err)
 	}
 
-	providers, err := c.readProviders(data)
+	providers, err := kloudstack.ReadProviders(data)
 	if err != nil {
 		return nil, fmt.Errorf("stack: unable to read providers: %s", err)
 	}
