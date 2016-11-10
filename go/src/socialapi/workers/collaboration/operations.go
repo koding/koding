@@ -1,6 +1,7 @@
 package collaboration
 
 import (
+	mongomodels "koding/db/models"
 	socialapimodels "socialapi/models"
 	"socialapi/workers/collaboration/models"
 	"strconv"
@@ -15,6 +16,7 @@ import (
 	"github.com/koding/bongo"
 	"github.com/koding/kite"
 
+	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -65,14 +67,8 @@ func (c *Controller) EndPrivateMessage(ping *models.Ping) error {
 	ws, err := modelhelper.GetWorkspaceByChannelId(
 		strconv.FormatInt(ping.ChannelId, 10),
 	)
-
-	if err != nil && err != mgo.ErrNotFound {
+	if checkErr(err) {
 		return err
-	}
-
-	// if the workspace is not there, nothing to do
-	if err == mgo.ErrNotFound {
-		return nil
 	}
 
 	return modelhelper.UnsetSocialChannelFromWorkspace(ws.ObjectId)
@@ -88,13 +84,8 @@ func (c *Controller) UnshareVM(ping *models.Ping, toBeRemovedUsers []bson.Object
 	ws, err := modelhelper.GetWorkspaceByChannelId(
 		strconv.FormatInt(ping.ChannelId, 10),
 	)
-	if err != nil && err != mgo.ErrNotFound {
+	if checkErr(err) {
 		return err
-	}
-
-	// if the workspace is not there, nothing to do
-	if err == mgo.ErrNotFound {
-		return nil
 	}
 
 	if len(toBeRemovedUsers) == 0 {
@@ -108,17 +99,12 @@ func (c *Controller) findToBeRemovedUsers(ping *models.Ping) ([]bson.ObjectId, e
 	ws, err := modelhelper.GetWorkspaceByChannelId(
 		strconv.FormatInt(ping.ChannelId, 10),
 	)
-	if err != nil && err != mgo.ErrNotFound {
+	if checkErr(err) {
 		return nil, err
 	}
 
-	// if the workspace is not there, nothing to do
-	if err == mgo.ErrNotFound {
-		return nil, nil
-	}
-
 	machine, err := modelhelper.GetMachineByUid(ws.MachineUID)
-	if checkErr(err) != nil {
+	if checkErr(err) {
 		return nil, err
 	}
 
@@ -129,13 +115,13 @@ func (c *Controller) findToBeRemovedUsers(ping *models.Ping) ([]bson.ObjectId, e
 	}
 
 	ownerAccount, err := modelhelper.GetAccountByUserId(ownerMachineUser.Id)
-	if checkErr(err) != nil {
+	if checkErr(err) {
 		return nil, err
 	}
 
 	//	get workspaces of the owner
 	ownersWorkspaces, err := modelhelper.GetWorkspaces(ownerAccount.Id)
-	if checkErr(err) != nil {
+	if checkErr(err) {
 		return nil, err
 	}
 
@@ -174,15 +160,15 @@ func (c *Controller) findToBeRemovedUsers(ping *models.Ping) ([]bson.ObjectId, e
 	return filteredUsers, nil
 }
 
-func checkErr(err error) error {
-	if err != mgo.ErrNotFound {
-		return err
+func checkErr(err error) bool {
+	if err == mgo.ErrNotFound {
+		return true
 	}
 
-	return nil
+	return err != nil
 }
 
-func (c *Controller) partitionUsers(ownerAccount *models.Account, ownersWorkspaces []*models.Workspace, ws *models.Workspace) map[string]int {
+func partitionUsers(ownerAccount *mongomodels.Account, ownersWorkspaces []*mongomodels.Workspace, ws *mongomodels.Workspace) map[string]int {
 	users := make(map[string]int)
 	for _, ownerWS := range ownersWorkspaces {
 		// if the workspace belongs to other vm, skip
@@ -199,7 +185,7 @@ func (c *Controller) partitionUsers(ownerAccount *models.Account, ownersWorkspac
 		channel.Id = channelId
 		participants, err := channel.FetchParticipants(&request.Query{})
 		if err != nil {
-			return nil, err
+			return nil
 		}
 
 		// fetch the channels of the workspaces
@@ -227,23 +213,13 @@ func (c *Controller) RemoveUsersFromMachine(ping *models.Ping, toBeRemovedUsers 
 	}
 
 	ws, err := modelhelper.GetWorkspaceByChannelId(strconv.FormatInt(ping.ChannelId, 10))
-	if err != nil && err != mgo.ErrNotFound {
+	if checkErr(err) {
 		return err
-	}
-
-	// if the workspace is not there, nothing to do
-	if err == mgo.ErrNotFound {
-		return nil
 	}
 
 	m, err := modelhelper.GetMachineByUid(ws.MachineUID)
-	if err != nil && err != mgo.ErrNotFound {
+	if checkErr(err) {
 		return err
-	}
-
-	// if the machine is not there, nothing to do
-	if err == mgo.ErrNotFound {
-		return nil
 	}
 
 	// Get the klient.

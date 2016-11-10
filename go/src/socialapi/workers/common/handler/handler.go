@@ -6,9 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"net/http"
+	"reflect"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"koding/tools/utils"
 	"socialapi/models"
@@ -23,9 +27,10 @@ import (
 	kmetrics "github.com/koding/metrics"
 	"github.com/koding/redis"
 	"github.com/koding/runner"
-	tigertonic "github.com/rcrowley/go-tigertonic"
-
 	gometrics "github.com/rcrowley/go-metrics"
+	tigertonic "github.com/rcrowley/go-tigertonic"
+	mgo "gopkg.in/mgo.v2"
+	throttled "gopkg.in/throttled/throttled.v2"
 )
 
 const (
@@ -375,4 +380,46 @@ func parseCookiesToArray(cookie string) []*http.Cookie {
 	}
 
 	return cookies
+}
+
+func writeJSONError(w http.ResponseWriter, err error) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(errorStatusCode(err))
+	if jsonErr := json.NewEncoder(w).Encode(map[string]string{
+		"description": err.Error(),
+		"error":       errorName(err, "error"),
+	}); nil != jsonErr {
+		log.Printf("Error marshalling error response into JSON output: %s", jsonErr)
+	}
+}
+
+func errorStatusCode(err error) int {
+	if httpEquivError, ok := err.(tigertonic.HTTPEquivError); ok {
+		return httpEquivError.StatusCode()
+	}
+	return http.StatusInternalServerError
+}
+
+func errorName(err error, fallback string) string {
+	if namedError, ok := err.(tigertonic.NamedError); ok {
+		if name := namedError.Name(); "" != name {
+			return name
+		}
+	}
+	if httpEquivError, ok := err.(tigertonic.HTTPEquivError); ok && tigertonic.SnakeCaseHTTPEquivErrors {
+		return strings.Replace(
+			strings.ToLower(http.StatusText(httpEquivError.StatusCode())),
+			" ",
+			"_",
+			-1,
+		)
+	}
+	t := reflect.TypeOf(err)
+	if reflect.Ptr == t.Kind() {
+		t = t.Elem()
+	}
+	if r, _ := utf8.DecodeRuneInString(t.Name()); unicode.IsLower(r) {
+		return fallback
+	}
+	return t.String()
 }
