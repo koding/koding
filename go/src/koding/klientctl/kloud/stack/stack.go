@@ -6,13 +6,12 @@ import (
 	"fmt"
 	"sort"
 
-	yaml "gopkg.in/yaml.v2"
-
 	"koding/kites/kloud/stack"
 	"koding/klientctl/kloud"
 	"koding/klientctl/kloud/credential"
 
 	"github.com/hashicorp/hcl"
+	yaml "gopkg.in/yaml.v2"
 )
 
 // CreateOptions
@@ -20,7 +19,7 @@ type CreateOptions struct {
 	Team        string
 	Title       string
 	Credentials []string
-	Data        []byte
+	Template    []byte
 }
 
 // Valid
@@ -29,12 +28,15 @@ func (opts *CreateOptions) Valid() error {
 		return errors.New("stack: arguments are missing")
 	}
 
-	if len(opts.Data) == 0 {
+	if len(opts.Template) == 0 {
 		return errors.New("stack: template data is missing")
 	}
 
 	return nil
 }
+
+// DefaultClient
+var DefaultClient Client
 
 // Client
 type Client struct {
@@ -48,9 +50,9 @@ func (c *Client) Create(opts *CreateOptions) (*stack.ImportResponse, error) {
 		return nil, err
 	}
 
-	data, err := c.jsonReencode(opts.Data)
+	data, err := c.jsonReencode(opts.Template)
 	if err != nil {
-		return nil, fmt.Errorf("stack: ")
+		return nil, fmt.Errorf("stack: template encoding error: %s", err)
 	}
 
 	providers, err := c.readProviders(data)
@@ -160,6 +162,11 @@ func (c *Client) readProviders(data []byte) ([]string, error) {
 	sort.Strings(providers)
 
 	return providers, nil
+}
+
+// Create
+func Create(opts *CreateOptions) (*stack.ImportResponse, error) {
+	return DefaultClient.Create(opts)
 }
 
 // fixHCL is a best-effort method to "fix" value representation of

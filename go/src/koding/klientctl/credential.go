@@ -14,9 +14,6 @@ import (
 )
 
 func CredentialList(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	provider := c.String("provider")
-	team := c.String("team")
-
 	opts := &credential.ListOptions{
 		Provider: c.String("provider"),
 		Team:     c.String("team"),
