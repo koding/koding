@@ -1,9 +1,21 @@
 package stack
 
 import (
+	"context"
+	"crypto/sha1"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/machinestate"
+	"koding/tools/utils"
+	"strings"
+	"time"
+
+	"gopkg.in/mgo.v2/bson"
+	yaml "gopkg.in/yaml.v2"
 
 	"github.com/koding/kite"
 )
@@ -64,6 +76,27 @@ func (k *Kloud) Import(r *kite.Request) (interface{}, error) {
 
 	if req.Title == "" {
 		req.Title = fmt.Sprintf("%s's Stack", strings.ToTitle(r.Username))
+	}
+
+	// TODO(rjeczalik): Refactor stack/provider/apply to make it possible to build
+	// multiple stacks at once.
+	if req.Provider == "" {
+		providers, err := ReadProviders(req.Template)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, provider := range providers {
+			if _, ok := k.providers[provider]; ok {
+				req.Provider = provider
+				break
+			}
+		}
+	}
+
+	c, ok := req.Credentials[req.Provider]
+	if !ok || len(c) == 0 {
+		return nil, fmt.Errorf("no credential for %q provider", req.Provider)
 	}
 
 	p, ok := k.providers[req.Provider]
