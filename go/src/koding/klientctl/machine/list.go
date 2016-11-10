@@ -20,7 +20,7 @@ type ListOptions struct {
 
 // List retrieves user's machines from kloud.
 func List(options *ListOptions) ([]*Info, error) {
-	kloud, err := kloud.Kloud(options.Log)
+	kloud, err := kloud.Kloud()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
 		return nil, err

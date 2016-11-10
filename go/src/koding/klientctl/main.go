@@ -20,6 +20,7 @@ import (
 
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
+	"koding/klientctl/kloud"
 	"koding/klientctl/util"
 
 	"github.com/koding/logging"
@@ -101,6 +102,8 @@ func main() {
 		ctlcli.Close()
 		os.Exit(10)
 	}
+
+	kloud.DefaultClient.Log = log
 
 	defer ctlcli.Close()
 
@@ -427,24 +430,6 @@ func main() {
 				ShortName: "c",
 				Usage:     "Manage stack credentials.",
 				Subcommands: []cli.Command{{
-					Name:   "import",
-					Usage:  "Import stack credentials from Koding account.",
-					Action: ctlcli.ExitErrAction(CredentialImport, log, "import"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-						cli.StringFlag{
-							Name:  "provider, p",
-							Usage: "Specify credential provider.",
-						},
-						cli.StringFlag{
-							Name:  "team, t",
-							Usage: "Specify team which the credential belongs to.",
-						},
-					},
-				}, {
 					Name:      "list",
 					ShortName: "ls",
 					Usage:     "List imported stack credentials.",

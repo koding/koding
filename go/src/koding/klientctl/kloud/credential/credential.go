@@ -67,6 +67,8 @@ func (c *Client) List(opts *ListOptions) (stack.Credentials, error) {
 		return nil, err
 	}
 
+	c.cache(resp.Credentials)
+
 	return resp.Credentials, nil
 }
 

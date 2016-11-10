@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"sort"
 
 	"koding/kites/kloud/credential"
 	"koding/kites/kloud/utils/object"
@@ -85,6 +86,30 @@ type CredentialListResponse struct {
 
 // Credentials represents a collection of user's credentials.
 type Credentials map[string][]CredentialItem
+
+// ToSlice converts credentials to a slice sorted by a provider name.
+func (c Credentials) ToSlice() []CredentialItem {
+	n, providers := 0, make([]string, 0, len(c))
+
+	for provider, creds := range c {
+		providers = append(providers, provider)
+		n += len(creds)
+	}
+
+	sort.Strings(providers)
+
+	creds := make([]CredentialItem, 0, n)
+
+	for _, provider := range providers {
+		for _, cred := range c[provider] {
+			cred.Provider = provider
+
+			creds = append(creds, cred)
+		}
+	}
+
+	return creds
+}
 
 // ByProvider filters credentials by the given provider.
 func (c Credentials) ByProvider(provider string) Credentials {
