@@ -12,10 +12,9 @@ import (
 )
 
 var (
-	Name            = "Migrator"
-	flagSchedule    = flag.Bool("s", false, "Schedule worker")
-	flagPubNub      = flag.Bool("p", false, "Grant public access to channels")
-	flagIntegration = flag.Bool("i", false, "Create integrations")
+	Name         = "Migrator"
+	flagSchedule = flag.Bool("s", false, "Schedule worker")
+	flagPubNub   = flag.Bool("p", false, "Grant public access to channels")
 )
 
 func main() {
@@ -49,12 +48,6 @@ func main() {
 
 	if *flagPubNub {
 		handler.GrantPublicAccess()
-
-		return
-	}
-
-	if *flagIntegration {
-		handler.EnsureIntegrations()
 
 		return
 	}
