@@ -712,19 +712,40 @@ module.exports = class JUser extends jraphical.Module
 
       accountValues = {
         type                      : 'deleted'
-        skillTags                 : []
-        ircNickame                : ''
-        globalFlags               : ['deleted']
-        locationTags              : []
-        'profile.about'           : ''
-        'profile.hash'            : getHash createId()
-        'profile.avatar'          : ''
         'profile.nickname'        : usernameAfterDelete
-        'profile.lastName'        : 'koding user'
-        'profile.firstName'       : 'a former'
-        'profile.experience'      : ''
-        'profile.experiencePoints': 0
-        'profile.lastStatusUpdate': ''
+      }
+
+      unsetValues = {
+        shareLocation               : 1
+        skillTags                   : 1
+        locationTags                : 1
+        systemInfo                  : 1
+        counts                      : 1
+        environmentIsCreated        : 1
+        'profile.about'             : 1
+        'profile.hash'              : 1
+        'profile.ircNickname'       : 1
+        'profile.firstName'         : 1
+        'profile.lastName'          : 1
+        'profile.description'       : 1
+        'profile.avatar'            : 1
+        'profile.status'            : 1
+        'profile.experience'        : 1
+        'profile.experiencePoints'  : 1
+        'profile.lastStatusUpdate'  : 1
+        referrerUsername            : 1
+        referralUsed                : 1
+        preferredKDProxyDomain      : 1
+        isExempt                    : 1
+        globalFlags                 : 1
+        'meta._events'              : 1
+        'meta.delimiter'            : 1
+        'meta.likes'                : 1
+        'meta.listenerTree'         : 1
+        'meta.tags'                 : 1
+        'meta.views'                : 1
+        'meta.votes'                : 1
+        onlineStatus                : 1
       }
 
       params = { 'profile.nickname' : toBeDeletedUsername }
