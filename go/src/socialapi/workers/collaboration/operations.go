@@ -15,7 +15,6 @@ import (
 	"github.com/koding/bongo"
 	"github.com/koding/kite"
 
-	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -119,12 +118,8 @@ func (c *Controller) findToBeRemovedUsers(ping *models.Ping) ([]bson.ObjectId, e
 	}
 
 	machine, err := modelhelper.GetMachineByUid(ws.MachineUID)
-	if err != nil && err != mgo.ErrNotFound {
+	if checkErr(err) != nil {
 		return nil, err
-	}
-
-	if err == mgo.ErrNotFound {
-		return nil, nil
 	}
 
 	ownerMachineUser := machine.Owner()
@@ -134,24 +129,60 @@ func (c *Controller) findToBeRemovedUsers(ping *models.Ping) ([]bson.ObjectId, e
 	}
 
 	ownerAccount, err := modelhelper.GetAccountByUserId(ownerMachineUser.Id)
-	if err != nil && err != mgo.ErrNotFound {
+	if checkErr(err) != nil {
 		return nil, err
-	}
-
-	if err == mgo.ErrNotFound {
-		return nil, nil
 	}
 
 	//	get workspaces of the owner
 	ownersWorkspaces, err := modelhelper.GetWorkspaces(ownerAccount.Id)
-	if err != nil && err != mgo.ErrNotFound {
+	if checkErr(err) != nil {
 		return nil, err
 	}
 
-	if err == mgo.ErrNotFound {
-		return nil, nil
+	users := partitionUsers(ownerAccount, ownersWorkspaces, ws)
+
+	toBeRemovedUsers := make([]bson.ObjectId, 0)
+	for accountId, count := range users {
+		// if we count the user more than once, that means user is in another
+		// workspace too
+		if count > 1 {
+			continue
+		}
+
+		u, err := modelhelper.GetUserByAccountId(accountId)
+		if err != nil {
+			return nil, err
+		}
+
+		toBeRemovedUsers = append(toBeRemovedUsers, u.ObjectId)
 	}
 
+	filteredUsers := make([]bson.ObjectId, 0)
+	permanentUsers := make(map[string]struct{})
+	for _, user := range machine.Users {
+		if user.Permanent {
+			permanentUsers[user.Id.Hex()] = struct{}{}
+		}
+	}
+
+	for _, toBeRemovedUser := range toBeRemovedUsers {
+		if _, ok := permanentUsers[toBeRemovedUser.Hex()]; !ok {
+			filteredUsers = append(filteredUsers, toBeRemovedUser)
+		}
+	}
+
+	return filteredUsers, nil
+}
+
+func checkErr(err error) error {
+	if err != mgo.ErrNotFound {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Controller) partitionUsers(ownerAccount *models.Account, ownersWorkspaces []*models.Workspace, ws *models.Workspace) map[string]int {
 	users := make(map[string]int)
 	for _, ownerWS := range ownersWorkspaces {
 		// if the workspace belongs to other vm, skip
@@ -185,37 +216,7 @@ func (c *Controller) findToBeRemovedUsers(ping *models.Ping) ([]bson.ObjectId, e
 		}
 	}
 
-	toBeRemovedUsers := make([]bson.ObjectId, 0)
-	for accountId, count := range users {
-		// if we count the user more than once, that means user is in another
-		// workspace too
-		if count > 1 {
-			continue
-		}
-
-		u, err := modelhelper.GetUserByAccountId(accountId)
-		if err != nil {
-			return nil, err
-		}
-
-		toBeRemovedUsers = append(toBeRemovedUsers, u.ObjectId)
-	}
-
-	filteredUsers := make([]bson.ObjectId, 0)
-	permanentUsers := make(map[string]struct{})
-	for _, user := range machine.Users {
-		if user.Permanent {
-			permanentUsers[user.Id.Hex()] = struct{}{}
-		}
-	}
-
-	for _, toBeRemovedUser := range toBeRemovedUsers {
-		if _, ok := permanentUsers[toBeRemovedUser.Hex()]; !ok {
-			filteredUsers = append(filteredUsers, toBeRemovedUser)
-		}
-	}
-
-	return filteredUsers, nil
+	return users
 }
 
 // RemoveUsersFromMachine removes the collaboraters from the host machine

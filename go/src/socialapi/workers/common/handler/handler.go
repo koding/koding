@@ -10,8 +10,6 @@ import (
 	"net/http"
 	"time"
 
-	"gopkg.in/mgo.v2"
-
 	"koding/tools/utils"
 	"socialapi/models"
 	"socialapi/workers/common/response"
@@ -26,7 +24,6 @@ import (
 	"github.com/koding/redis"
 	"github.com/koding/runner"
 	tigertonic "github.com/rcrowley/go-tigertonic"
-	"gopkg.in/throttled/throttled.v2"
 
 	gometrics "github.com/rcrowley/go-metrics"
 )
@@ -59,9 +56,6 @@ type Request struct {
 	Name           string
 	CollectMetrics bool
 	Metrics        *kmetrics.Metrics
-
-	// Securer holds the secure functions for handlers
-	Securer interface{}
 
 	// used for external requests
 	Params    map[string]string
@@ -243,11 +237,7 @@ func Wrapper(r Request) http.Handler {
 
 	var hHandler http.Handler
 
-	if r.Securer != nil {
-		hHandler = Secure(handler, r.Securer, r.Name)
-	} else {
-		hHandler = tigertonic.Marshaled(handler)
-	}
+	hHandler = tigertonic.Marshaled(handler)
 
 	hHandler = buildHandlerWithTimeTracking(hHandler, r)
 
