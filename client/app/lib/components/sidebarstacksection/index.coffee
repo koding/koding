@@ -125,49 +125,48 @@ module.exports = class SidebarStackSection extends React.Component
     callback = @bound 'onMenuItemClick'
 
     menuItems = {}
+    template = @props.template
 
-    remote.api.JStackTemplate.one { _id: @props.stack.get 'baseStackId' }, (err, template) =>
+    { originId, accessLevel } = template.toJS()  if template
 
-      { originId, accessLevel } = template
+    if @getStackUnreadCount()
+      menuItems['Update'] = { callback }
 
-      if @getStackUnreadCount()
-        menuItems['Update'] = { callback }
+    if @props.stack.getIn ['config', 'remoteDetails', 'originalUrl']
+      menuItems['Open on GitLab'] = { callback }
 
-      if @props.stack.getIn ['config', 'remoteDetails', 'originalUrl']
-        menuItems['Open on GitLab'] = { callback }
+    managedVM = @props.stack.get('title').indexOf('Managed VMs') > -1
 
-      managedVM = @props.stack.get('title').indexOf('Managed VMs') > -1
-
-      console.log 'whoami()._id is originId', whoami()._id, originId
-
-      if managedVM
-        menuItems['VMs'] = { callback }
-      else if @props.stack.get 'disabled'
-        # because of disabled stack's baseTemplate came undefined
-        # no need to show Edit, Clone, Reinitialize options
-        ['VMs', 'Destroy VMs'].forEach (name) ->
-          menuItems[name] = { callback }
+    if managedVM
+      menuItems['VMs'] = { callback }
+    else if @props.stack.get 'disabled'
+      # because of disabled stack's baseTemplate came undefined
+      # no need to show Edit, Clone, Reinitialize options
+      ['VMs', 'Destroy VMs'].forEach (name) ->
+        menuItems[name] = { callback }
+    else
+      if isAdmin() or (template and whoami()._id is originId)
+        menuItems['Edit'] = { callback }
+        menuItems['Clone'] = { callback }  if canCreateStacks()
       else
-        if isAdmin() or @props.stack.get('accessLevel') is 'private'
-          menuItems['Edit'] = { callback }
-          menuItems['Clone'] = { callback }  if canCreateStacks()
-        else
-          menuItems['View Stack'] = { callback }
-        ['Reinitialize', 'VMs', 'Destroy VMs'].forEach (name) ->
-          menuItems[name] = { callback }
-        if isAdmin() and not isDefaultTeamStack @props.stack.get 'baseStackId'
-          menuItems['Make Team Default'] = { callback }
-        if template and whoami()._id is originId
-          menuItems['Share With Team'] = { callback }  if accessLevel is 'private'
-          menuItems['Make Private'] = { callback }  if accessLevel is 'group'
+        menuItems['View Stack'] = { callback }
+      ['Reinitialize', 'VMs', 'Destroy VMs'].forEach (name) ->
+        menuItems[name] = { callback }
+      if isAdmin() and not isDefaultTeamStack @props.stack.get 'baseStackId'
+        menuItems['Make Team Default'] = { callback }
 
-      { top } = findDOMNode(this).getBoundingClientRect()
+      if template and whoami()._id is originId
+        console.log 'accessLevel', accessLevel
+        menuItems['Share With Team'] = { callback }  if accessLevel is 'private'
+        menuItems['Make Private'] = { callback }  if accessLevel is 'group'
 
-      menuOptions = { cssClass: 'SidebarMenu', x: 36, y: top + 31 }
+    { top } = findDOMNode(this).getBoundingClientRect()
 
-      MENU = new kd.ContextMenu menuOptions, menuItems
+    menuOptions = { cssClass: 'SidebarMenu', x: 36, y: top + 31 }
 
-      MENU.once 'KDObjectWillBeDestroyed', -> kd.utils.wait 50, -> MENU = null
+    MENU = new kd.ContextMenu menuOptions, menuItems
+
+    MENU.once 'KDObjectWillBeDestroyed', -> kd.utils.wait 50, -> MENU = null
 
 
   renderStackUpdatedWidget: ->
@@ -212,14 +211,15 @@ module.exports = class SidebarStackSection extends React.Component
     className  = 'SidebarStackSection'
     className += ' active'  if @state.selectedTemplateId is @props.stack.get 'baseStackId'
 
-
     <SidebarSection
       ref='sidebarSection'
       className={kd.utils.curry className, @props.className}
       title={@props.stack.get 'title'}
       onTitleClick={@bound 'onTitleClick'}
       secondaryLink=''
+      baseStackId={@props.stack.get 'baseStackId'}
       unreadCount={@getStackUnreadCount()}
+      originalTemplateUpdate={@props.stack.getIn ['config', 'needUpdate']}
       unreadCountClickHandler={@bound 'unreadCountClickHandler'}
       >
       {@renderMachines()}
