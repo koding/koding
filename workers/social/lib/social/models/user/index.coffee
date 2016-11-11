@@ -746,6 +746,7 @@ module.exports = class JUser extends jraphical.Module
         'meta.views'                : 1
         'meta.votes'                : 1
         onlineStatus                : 1
+        migration                   : 1
       }
 
       params = { 'profile.nickname' : toBeDeletedUsername }
