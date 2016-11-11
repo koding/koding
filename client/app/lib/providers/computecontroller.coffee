@@ -1301,6 +1301,33 @@ module.exports = class ComputeController extends KDController
     else showError 'Failed to share credential'
 
 
+  removeClonedFromAttr: (stackTemplate, callback = kd.noop) ->
+
+    @ui.askFor 'dontWarnMe', {}, (status) =>
+
+      return callback yes  unless status.confirmed
+
+      { reactor } = kd.singletons
+
+      stack = @findStackFromTemplateId stackTemplate._id
+      { config } = stack
+
+      delete config.clonedFrom
+      delete config.needUpdate
+
+      stack.modify { config }, (err) ->
+        reactor.dispatch 'STACK_UPDATED', stack
+
+      { config } = stackTemplate
+
+      delete config.clonedFrom
+      delete config.needUpdate
+
+      stackTemplate.update { config }, (err) ->
+        reactor.dispatch 'UPDATE_STACK_TEMPLATE_SUCCESS', { stackTemplate }
+        callback no
+
+
   ###*
    * Reinit's given stack or groups default stack
    * If stack given, it asks for re-init and first deletes and then calls
