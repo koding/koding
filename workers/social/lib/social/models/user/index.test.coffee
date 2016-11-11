@@ -784,7 +784,6 @@ runTests = -> describe 'workers.social.user.index', ->
               expect(err)                  .to.not.exist
               expect(account)              .to.exist
               expect(account.type)         .to.be.equal 'registered'
-              expect(account.onlineStatus) .to.be.equal 'online'
               next()
 
           (next) ->
