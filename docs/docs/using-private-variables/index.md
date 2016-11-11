@@ -1,7 +1,8 @@
 ---
 layout: doc
-title: Using Private Variables
-permalink: /docs/using-private-variables
+title: Using Custom Variables
+permalink: /docs/using-custom-variables
+redirect_from: "/docs/using-private-variables"
 parent: /docs/home
 ---
 
@@ -15,7 +16,7 @@ In this guide we will use the custom variables section to save the credentials r
 
 We add our credentials in key value pairs format to the custom variables section
 
-![priv_vars.png][1]
+![custom_vars.png][1]
 
 ```yaml
   ftp_user: <your-ftp-user-name>
@@ -69,5 +70,5 @@ Other developers would be able to build stack and view stack, but will not be ab
 
 ![Stack_viewer.png][2]
 
-[1]: {{ site.url }}/assets/img/guides/private-vars/priv_vars.png
-[2]: {{ site.url }}/assets/img/guides/private-vars/Stack_viewer.png
+[1]: {{ site.url }}/assets/img/guides/custom-vars/custom-vars.png
+[2]: {{ site.url }}/assets/img/guides/custom-vars/Stack_viewer.png
