@@ -30,6 +30,7 @@
   "homepage": "https://github.com/koding/koding#readme",
   "devDependencies": {
     "coffee-script": "^1.11.1",
+    "electron": "^1.4.6",
     "electron-packager": "^8.2.0",
     "electron-prebuilt": "^1.4.6"
   }
