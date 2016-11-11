@@ -381,6 +381,10 @@ module.exports = class ComputeControllerUI
             Are you sure you want to proceed?</p>
           '
           button  : 'Yes, remove'
+        dontWarnMe:
+          title   : 'Are you sure?'
+          message : '<h2>By clicking Yes, You will not recieve anymore update for this stack.</h2>'
+          button  : 'Yes'
       managed     :
         destroy   :
           title   : 'Delete Machine from Koding'
@@ -400,6 +404,7 @@ module.exports = class ComputeControllerUI
 
             Are you sure you want to proceed?'
           button  : 'Yes'
+
 
     task = tasks[provider]?[action] ? tasks.default[action]
 
