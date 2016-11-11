@@ -35,4 +35,4 @@ Enter 'koding' in the username, and '{{ random.password }}' in the password fiel
 Have you seen 'Sorry, "koding" is already taken!' warning?
 
 Enter '{{ random.first_name }}{{ random.number }}' as converted to uppercase in the username field and click on 'Done!' button
-Do you see 'Authentication Required' form? If not do you see 'You are almost there,_' title? Do you see 'Create a Stack for Your Team', 'Enter your Credentials', 'Build Your Stack', 'Invite Your Team' and 'Install KD' sections? Do you see 'CREATE', 'ENTER', 'BUILD', 'INVITE' and 'INSTALL' buttons next to them?
+Do you see 'Authentication Required' form? If not do you see 'You are almost there,_' title? Do you see 'Create a Stack for Your Team', 'Enter your Credentials', 'Build Your Stack', 'Invite Your Team' and 'Install KD' sections? Do you see 'CREATE', 'ENTER', 'BUILD', 'INVITE' and 'INSTALL' links next to them?

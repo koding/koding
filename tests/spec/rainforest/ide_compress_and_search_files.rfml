@@ -40,12 +40,12 @@ Do you see a new file '{{random.address_state}}{{random.number}}.tar.gz' in the 
 Double click '.profile' file in the file tree
 Do you see new editor tab opened with this file content?
 
-Click down arrow icon at the right of '.profile' file and click 'Search in All Files'
-Do you see the search form with 'Find', 'Where', 'Case Sensitive', 'Whole Word', 'Use Regexp' field?
+Click on down arrow on the rigth-side of '.profile' tab that you just opened and select 'Search in All Files'
+Do you see a pop-up with 'Find', 'Where', 'Case Sensitive', 'Whole Word', 'Use regexp' texts?
 
-Type 'if' in 'Find' field, check all three fields and click 'SEARCH'
-Is search result opened in new tab and is search term highlighted?
+Type 'if' in 'Find' field, check all of the three checkboxes next to 'Case Sensitive', 'Whole Word' and 'Use regexp' fields and click on 'SEARCH'
+Is search result opened in a new tab? Is search term 'if' highlighted?
 
-Double click one of the highlighted search term
-Is file opened in the new IDE tab?
+Click on one of the highlighted search term
+Is a file opened on a new tab?
 

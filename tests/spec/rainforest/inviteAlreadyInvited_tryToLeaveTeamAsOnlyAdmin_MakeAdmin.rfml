@@ -44,7 +44,7 @@ Switch to the incognito window
 Do you see 'Your team role has been changed!' title on a pop-up displayed? Do you see '@rainforestqa99 made you an admin,_' text  and 'RELOAD PAGE' button?
 
 Click on 'RELOAD PAGE' button
-Do you see 'Create a Stack for Your Team', 'Enter your Credentials', 'Build Your Stack', 'Invite Your Team' and 'Install KD' sections on the pop-up displayed? Do you see 'CREATE', 'ENTER', 'BUILD', 'INVITE' and 'INSTALL' buttons next to them?
+Do you see 'Create a Stack for Your Team', 'Enter your Credentials', 'Build Your Stack', 'Invite Your Team' and 'Install KD' sections on the pop-up displayed? Do you see 'CREATE', 'ENTER', 'BUILD', 'INVITE' and 'INSTALL' links next to them?
 
 Close that modal by clicking (x) from top right corner and click on 'STACKS' title from left sidebar
 Do you see 'Create New Stack Template' text and 'NEW STACK' button next to it? Do you see 'Team Billing' item in the left vertical menu under 'Dashboard' title?
