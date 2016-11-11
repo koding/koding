@@ -258,7 +258,7 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	t.Resource["google_compute_instance"] = resource.GCInstance
 
 	t.Variable["koding_stack_id"] = map[string]interface{}{
-		"default": shorten(s.id(), 8),
+		"default": shortN(s.id(), 8),
 	}
 
 	err = t.ShadowVariables("FORBIDDEN", "google_credentials")
@@ -377,7 +377,7 @@ func (s *Stack) id() string {
 	}
 }
 
-func shorten(str string, size int) string {
+func shortN(str string, size int) string {
 	sum := sha1.Sum([]byte(str))
 	hash := hex.EncodeToString(sum[:])
 
