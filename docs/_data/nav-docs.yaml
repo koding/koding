@@ -14,6 +14,8 @@
     title: Use your own IDE
   - id: connect-your-own-machine-to-koding
     title: Connect your own machine
+  - id: koding-stacks-variables
+    title: Koding Stacks Variables
   - id: two-vm-setup-apachephp-server-db-server
     title: Simple two VM setup
   - id: database-vm-schema-setup
