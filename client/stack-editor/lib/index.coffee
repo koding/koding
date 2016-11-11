@@ -6,6 +6,7 @@ showError = require 'app/util/showError'
 OnboardingView = require './onboarding/onboardingview'
 EnvironmentFlux = require 'app/flux/environment'
 ContentModal = require 'app/components/contentModal'
+isClonedTemplate = require 'app/util/isclonedtemplate'
 
 do require './routehandler'
 
@@ -31,8 +32,7 @@ module.exports = class StackEditorAppController extends AppController
       Object.keys(@shouldReloadMap).forEach @bound 'removeEditor'
 
 
-  openEditor: (stackTemplateId) ->
-
+  openEditor: (stackTemplateId = no) ->
     { mainController, groupsController, computeController } = kd.singletons
     { setSelectedMachineId, setSelectedTemplateId } = EnvironmentFlux.actions
 
@@ -53,9 +53,7 @@ module.exports = class StackEditorAppController extends AppController
         if err
           kd.singletons.router.handleRoute '/IDE'
           return showError err
-
-        @showView stackTemplate
-
+        editor = @showView stackTemplate
         # If selected template is deleted, then redirect them to ide.
         # TODO: show an information modal to the user if he/she is admin. ~Umut
         stackTemplate.on 'deleteInstance', =>
@@ -63,6 +61,15 @@ module.exports = class StackEditorAppController extends AppController
           @selectedEditor = null
           @removeEditor stackTemplate._id
           kd.singletons.router.handleRoute '/IDE'
+
+        isClonedTemplate stackTemplate, (originalTemplate) =>
+          if originalTemplate
+            editor.addClonedFrom originalTemplate
+            originalTemplate.on 'update', (update) ->
+              if stackTemplate.template.sum isnt originalTemplate.template.sum
+                return editor.addCloneUpdateView originalTemplate
+            if stackTemplate.template.sum isnt originalTemplate.template.sum
+                editor.addCloneUpdateView originalTemplate
 
     else
       @showView()
@@ -135,6 +142,8 @@ module.exports = class StackEditorAppController extends AppController
     { onboarding } = kd.singletons
     onboarding.run 'StackEditorOpened'
 
+    return editor
+
 
   removeEditor: (templateId) ->
 
@@ -170,33 +179,33 @@ module.exports = class StackEditorAppController extends AppController
 
     confirmation = null
 
-    stackTemplate.on? 'update', =>
+    # stackTemplate.on? 'update', =>
 
-      return  if confirmation
-      return  if view._stackSaveInAction
+    #   return  if confirmation
+    #   return  if view._stackSaveInAction
 
-      view.addSubView confirmation = new ContentModal
-        title: 'Stack Template is Updated'
-        cssClass: 'content-modal'
-        buttons:
-          cancel:
-            title: 'Cancel'
-            style: 'solid medium'
-            callback: ->
-              confirmation.destroy()
-              confirmation = null
-          ok:
-            title: 'OK'
-            style: 'solid medium'
-            callback: =>
-              view.destroy()
-              delete @editors[stackTemplate._id]
-              @openEditor stackTemplate._id
-        content: '''
-          <div class='modalformline'
-            <p>This stack template is updated by another admin. Do you want to reload?</p>
-          </div>
-          '''
+    #   view.addSubView confirmation = new ContentModal
+    #     title: 'Stack Template is Updated'
+    #     cssClass: 'content-modal'
+    #     buttons:
+    #       cancel:
+    #         title: 'Cancel'
+    #         style: 'solid medium'
+    #         callback: ->
+    #           confirmation.destroy()
+    #           confirmation = null
+    #       ok:
+    #         title: 'OK'
+    #         style: 'solid medium'
+    #         callback: =>
+    #           view.destroy()
+    #           delete @editors[stackTemplate._id]
+    #           @openEditor stackTemplate._id
+    #     content: '''
+    #       <div class='modalformline'
+    #         <p>This stack template is updated by another admin. Do you want to reload?</p>
+    #       </div>
+    #       '''
 
 
     view.on 'StackSaveInAction',  -> @_stackSaveInAction = yes
