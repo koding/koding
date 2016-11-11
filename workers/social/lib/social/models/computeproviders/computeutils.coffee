@@ -11,6 +11,7 @@ PROVIDERS      =
   google       : require './google'
   managed      : require './managed'
   vagrant      : require './vagrant'
+  marathon     : require './marathon'
 
 PLANS          = require './plans'
 
