@@ -29,4 +29,4 @@ Enter "rainforestqa22@koding.com" in the 'your username' and "{{ random.password
 Have you seen 'Access denied!' warning message displayed?
 
 Enter "rainforestqa22" in the 'password' field and click on 'DONE!' button, then if you see 'Authentication Required' form enter "koding" in the 'User Name:' and "1q2w3e4r" in the 'Password:' fields and click on 'Log In' (if not do nothing and check the items below)
-Do you see 'You are almost there, rainforestqa22!' title? Do you see 'Create a Stack for Your Team', 'Enter your Credentials', 'Build Your Stack', 'Invite Your Team' and 'Install KD' sections? Do you see 'CREATE', 'ENTER', 'BUILD', 'INVITE' and 'INSTALL' buttons next to them?
+Do you see 'You are almost there, rainforestqa22!' title? Do you see 'Create a Stack for Your Team', 'Enter your Credentials', 'Build Your Stack', 'Invite Your Team' and 'Install KD' sections? Do you see 'CREATE', 'ENTER', 'BUILD', 'INVITE' and 'INSTALL' links next to them?

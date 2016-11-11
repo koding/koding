@@ -58,10 +58,10 @@ Do you see '_Aws Stack_' and 'aws-instance_' labels on left sidebar?
 Close the 'You are almost there, rainforestqa99!' titled pop-up by clicking (x) from top right corner
 Do you see '/home/rainforestqa22' label on top of a file list next to the left sidebar?
 
-Click on 'STACKS' from left sidebar
+Click on 'STACKS' from left sidebar and scroll down to the end of the page
 Do you see '_Aws Stack (@rainforestqa22)' under 'Disabled User Stacks' section?
 
-Close that modal by clicking (x) from top right corner, then click on '_Aws Stack_' from left sidebar and click on 'Destroy VMs' and 'PROCEED' respectively
+Close that modal by clicking (x) from top right corner, then click on '_Aws Stack (@_' from left sidebar and click on 'Destroy VMs' and 'PROCEED' respectively
 Is it removed from left sidebar? Do you see 'Your stacks has not been fully configured yet,_' text under 'STACKS' title?
 
 
