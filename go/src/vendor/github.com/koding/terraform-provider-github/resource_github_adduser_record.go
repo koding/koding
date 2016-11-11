@@ -122,23 +122,28 @@ func resourceGithubAddUserCreate(d *schema.ResourceData, meta interface{}) error
 	if err := checkScopePermissions(client, user); err != nil {
 		return err
 	}
-
 	if len(teamNames) == 0 {
 		return errors.New("team name is not defined")
 	}
 
-	member, resp, err := client.Organizations.GetOrgMembership("", org)
+	member, _, err := client.Organizations.GetOrgMembership("", org)
 	// user might be a member of organization key or not
 	// with that error checking;
 	// if user is a member of organization, we can change user's role as admin or member
 	// if user is not a member of organization, it will give 404 error, then we need to ignore that
 	// error for process (adding user into the organization etc..)
-	if err != nil && resp.StatusCode != 404 {
-		return err
+	if err != nil {
+		gErr, ok := err.(*github.ErrorResponse)
+		if !ok {
+			return err
+		}
+		if gErr.Response.StatusCode != 404 {
+			return err
+		}
 	}
 
 	// override member role here if user is admin of organization
-	if member.Role == &admin {
+	if member != nil && member.Role == &admin {
 		role = admin
 	}
 
@@ -147,66 +152,64 @@ func resourceGithubAddUserCreate(d *schema.ResourceData, meta interface{}) error
 	optAddOrgMembership := &github.OrganizationAddTeamMembershipOptions{
 		Role: role,
 	}
-
 	if len(teamNames) != len(teamIDs) {
 		return errors.New("team name is not found")
 	}
-
 	for _, teamID := range teamIDs {
+
 		_, _, err := clientOrg.Organizations.AddTeamMembership(teamID, user, optAddOrgMembership)
+
 		if err != nil {
 			return err
 		}
 	}
-
 	active := "active"
-
 	membership := &github.Membership{
 		// state should be active to add the user into organization
+
 		State: &active,
 
 		// Role is the required for the membership
 		Role: &role,
 	}
-
 	// EditOrgMembership edits the membership for user in specified organization.
 	// if user is authenticated, we dont need to set 1.parameter as user
+
 	_, _, err = client.Organizations.EditOrgMembership("", org, membership)
 	if err != nil {
+
 		return err
 	}
-
 	for _, repo := range interfaceToStringSlice(d.Get("repos")) {
 		// Creates a fork for the authenticated user.
 		_, _, err = client.Repositories.CreateFork(org, repo, nil)
 		if err != nil {
+
 			return err
 		}
 	}
-
 	title := d.Get("title").(string)
 	keySSH := d.Get("SSHKey").(string)
 
 	key := &github.Key{
+
 		Title: &title,
 		Key:   &keySSH,
 	}
-
 	// CreateKey creates a public key. Requires that you are authenticated via Basic Auth,
 	// or OAuth with at least `write:public_key` scope.
 	//
 	// If SSH key is already set up, when u try to add same SSHKEY then
+
 	//you are gonna get 422: Validation error.
 	_, _, err = client.Users.CreateKey(key)
 	if err != nil && !isErr422ValidationFailed(err) {
 		return err
 	}
-
 	d.SetId(user)
 
 	return nil
 }
-
 func resourceGithubAddUserRead(d *schema.ResourceData, meta interface{}) error {
 	org := d.Get("organization").(string)
 	user := d.Get("username").(string)
