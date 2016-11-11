@@ -24,6 +24,10 @@ module.exports = class DraftsListContainer extends React.Component
 
     SidebarFlux.actions.makeHidden 'draft', stackTemplateId
 
+  onCloneFromDashboard: (stackTemplate) ->
+
+    EnvironmentFlux.actions.cloneStackTemplate stackTemplate.toJS(), yes
+
 
   render: ->
     <View
@@ -32,6 +36,7 @@ module.exports = class DraftsListContainer extends React.Component
       onOpenItem={@props.onOpenItem}
       onAddToSidebar={@bound 'onAddToSidebar'}
       onRemoveFromSidebar={@bound 'onRemoveFromSidebar'}
+      onCloneFromDashboard={@bound 'onCloneFromDashboard'}
     />
 
 
