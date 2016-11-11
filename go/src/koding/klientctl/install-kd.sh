@@ -235,6 +235,9 @@ install_vagrant_darwin() {
   sudo installer -pkg "/Volumes/Vagrant/Vagrant.pkg" -target /
   diskutil unmount force "/Volumes/Vagrant"
 
+  # Workaround for Vagrant 1.8.7, which fails to "box add".
+  sudo rm -f /opt/vagrant/embedded/bin/curl || true
+
   rm -f "$vagrantDmg"
 }
 
