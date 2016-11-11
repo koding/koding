@@ -21,7 +21,7 @@ module.exports = class JPermissionSet extends Module
         type                : Boolean
         default             : yes
       permissions           :
-        type                : Array
+        type                : [ Object ]
         default             : -> []
 
   { intersection } = require 'underscore'
