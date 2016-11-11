@@ -1009,17 +1009,19 @@ module.exports = class ComputeController extends KDController
     { reactor } = kd.singletons
     { contents: { id: _id, change: { $set: { accessLevel } } } } = params
 
-    if accessLevel is 'group'
-      new kd.NotificationView title : 'Stack Template is Shared With Group'
-    else
-      new kd.NotificationView title : 'Stack Template is Unshared With Group'
     remote.api.JStackTemplate.one { _id }, (err, stackTemplate) =>
 
-      if stackTemplate
-        reactor.dispatch 'REMOVE_STACK_TEMPLATE_SUCCESS', { id: stackTemplate._id }
-        reactor.dispatch 'UPDATE_STACK_TEMPLATE_SUCCESS', { stackTemplate }
+      if accessLevel is 'group'
+        reactor.dispatch 'REMOVE_STACK_TEMPLATE_SUCCESS', { id: _id }
+        reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
+        new kd.NotificationView { title : 'Stack Template is Shared With Group' }
+        @checkRevisonFromOriginalStackTemplate stackTemplate._id, yes
       else
         reactor.dispatch 'REMOVE_STACK_TEMPLATE_SUCCESS', { id: _id }
+        @checkRevisonFromOriginalStackTemplate _id, no
+        new kd.NotificationView { title : 'Stack Template is Unshared With Group' }
+
+
   checkRevisonFromOriginalStackTemplate: (stackTemplateId, group) ->
 
     { reactor } = kd.singletons
