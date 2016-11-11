@@ -467,6 +467,7 @@ module.exports = class JStackTemplate extends Module
 
       cloneData.config           ?= {}
       cloneData.config.clonedFrom = @getId()
+      cloneData.config.clonedSum = @getAt 'template.sum'
 
       { custom } = cloneData.credentials or {}
       custom    ?= []
