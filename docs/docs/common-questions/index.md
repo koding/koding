@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: Common Questions
+title: FAQ
 permalink: /docs/faq
 redirect_from: "/docs/common-questions"
 parent: /docs/home
@@ -22,11 +22,15 @@ parent: /docs/home
 
 ### <a name="new-koding-team"></a> How do I create a new Koding Team?
 
-* Creating a team in koding is easy and straight forward, just go to [www.koding.com][133], click **Sign Up** for a new account and follow the on screen steps.
+* Creating a team in koding is easy and straight forward, just go to [www.koding.com][10], click **Sign Up** for a new account and follow the on screen steps.
+
+---
 
 ### <a name="user-content-createstack"></a> What is a stack file?
 
 * Koding for Teams allows you to create a development **Stack** for your team. A stack file is a YAML file that describes the complete environment configuration which may include multiple VMs with different packages and applications installed on each VM. During the **Stack** setup, you can also configure a code pull from any of the famous code repository providers.
+
+---
 
 ### <a name="invite-team-members"></a> How do I invite new team members?
 
@@ -34,15 +38,18 @@ parent: /docs/home
 * Click Invitations from left pane
 * Type in user(s) email, and optionally their first and last names. Check "Admin" if they will be admin users
 * Click **Invite Members**
-For a step by step guide [click here][134]
 
+---
 
 ### <a name="setup-stack-for-team"></a> How do I setup a stack for my team?
 
 * Click **Stacks** from the left side bar
 * Click **Group Stack Templates**
-* Click** Create New Stack**
-Please check the Stack setup guide at [Create a stack][135]
+* Click **Create New Stack**
+
+Please check the Stack setup guide at [Create a stack][11]
+
+---
 
 ### <a name="user-content-availabilityZone"></a> I receive an error related to the parameter `availabilityZone` when creating my stack file,_ex_:
 
@@ -51,10 +58,15 @@ Please check the Stack setup guide at [Create a stack][135]
 * This is related to your AWS account, you may try to change the **Region** in your credentials tab within the stack setup phase:
  ![region-1.png][1]
 
+---
+
 ### <a name="user-content-InstanceLimitExceeded"></a> Me or one of my teammates is receiving an error `InstanceLimitExceeded` when building a stack:
 
 > aws_instance.apache_server: Error launching source instance: **InstanceLimitExceeded:** Your quota allows for 0 more running instance(s). You requested at least 1 status code: 400, request id:
+
 * Check the number of VMs in your AWS account, the error indicates that you exceeded your maximum allowed VMs. Follow the [AWS Terminate Your Instance user guide][2] to shutdown some of the unused VMs. _Make sure you select the correct region in your AWS account dashboard_.
+
+---
 
 ### <a name="delete-stack"></a> How can I delete a Stack?
 
@@ -63,10 +75,14 @@ Please check the Stack setup guide at [Create a stack][135]
 > All your data on these VMs will be completely lost.
 
 ![destroy-vms.png][3]
+
 2. Click on **Stacks** from left side panel, click the **Remove From Side Bar** on the stack you want to remove
+
 ![remove-from-side-bar.png][4]
 
 > **ALERT:** If you have only one stack you will not be able to delete it. You need to have at least two to be able to delete one of them.
+
+---
 
 ### <a name="delete-stack-template"></a> How can I delete a stack template file?
 
@@ -78,3 +94,5 @@ Please check the Stack setup guide at [Create a stack][135]
 [3]: {{ site.url }}/assets/img/guides/FAQ/destroy-vms.png
 [4]: {{ site.url }}/assets/img/guides/FAQ/remove-from-side-bar.png
 [5]: {{ site.url }}/assets/img/guides/FAQ/delete-stack.png
+[10]: {{ site.url }}
+[11]: {{ site.url}}/docs/creating-an-aws-stack
