@@ -28,8 +28,8 @@
     title: Setup AWS IAM user
   - id: assigning-domain-names-with-route53
     title: Assign domain names with Route53
-  - id: using-private-variables
-    title: Using Private Variables
+  - id: using-custom-variables
+    title: Using Custom Variables
   - id: user-input
     title: User Input
   - id: using-amis
