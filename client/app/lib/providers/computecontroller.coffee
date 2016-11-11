@@ -1020,12 +1020,22 @@ module.exports = class ComputeController extends KDController
         reactor.dispatch 'UPDATE_STACK_TEMPLATE_SUCCESS', { stackTemplate }
       else
         reactor.dispatch 'REMOVE_STACK_TEMPLATE_SUCCESS', { id: _id }
+  checkRevisonFromOriginalStackTemplate: (stackTemplateId, group) ->
 
-      remote.api.JComputeStack.one { baseStackId: _id }, (err, stack) =>
-        if stack
-          @checkStackRevisions()  if accessLevel is 'group'
-          if accessLevel is 'private' and not stackTemplate
-            new kd.NotificationView { title: "You have no longer access to #{stack.title}" }
+    { reactor } = kd.singletons
+
+    stacks = @stacks.filter (stack) -> stack.config?.clonedFrom is stackTemplateId
+
+    return  unless stacks.length
+    stacks.forEach (stack) ->
+      config  = stack.config ?= {}
+      config.needUpdate = group
+      unless group
+        delete config.needUpdate
+        delete config.clonedFrom
+      stack.modify { config }, (err) ->
+        stack.config = config
+        reactor.dispatch 'STACK_UPDATED', stack
 
 
   checkGroupStacks: ->
