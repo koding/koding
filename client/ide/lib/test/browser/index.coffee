@@ -2,19 +2,25 @@ React = require 'react'
 ReactView = require 'app/react/reactview'
 Dialog = require 'lab/Dialog'
 
-expect = require 'expect'
+IntegrationTestManager = require 'ide/integration-tests'
 
 run = ->
 
-  tests = [
-    require './example'
-  ]
+  manager = new IntegrationTestManager()
 
-  try
-    tests.forEach (test) -> test expect
-    showSuccessModal()
-  catch e
-    showErrorModal(e.message)
+  manager.on 'status', (status) ->
+    console.log 'status changed', status
+
+  manager.on 'test', (test) ->
+    console.log 'Started test', test.title
+
+  manager.on 'test end', (test) ->
+    console.log 'Test ended', test.title
+
+  manager.on 'suite', (suite) ->
+    console.log 'Started suite', suite.title
+
+  manager.start()
 
 
 prepare = (machine, workspace) ->
@@ -26,28 +32,7 @@ prepare = (machine, workspace) ->
               refresh your browser on this page.'
     buttonTitle: 'Run'
     onButtonClick: ->
-      modal.destroy()
       run()
-
-showSuccessModal = ->
-
-  modal = new ModalView
-    title: 'Success!'
-    type: 'success'
-    message: 'All tests passed'
-    buttonTitle: 'Close'
-    onButtonClick: -> modal.destroy()
-
-
-showErrorModal = (message) ->
-
-  modal = new ModalView
-    title: 'Error!'
-    subtitle: 'There is an error'
-    type: 'danger'
-    message: message
-    buttonTitle: 'Close'
-    onButtonClick: -> modal.destroy()
 
 # /cc @gokmen: this might be a strong possible replacement for
 # pistachio. KDViews will be where we write logic, React components will always
