@@ -2,10 +2,13 @@ package google
 
 import (
 	"bytes"
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"strconv"
 	"strings"
 	"text/template"
+	"time"
 
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
@@ -254,6 +257,10 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 
 	t.Resource["google_compute_instance"] = resource.GCInstance
 
+	t.Variable["koding_stack_id"] = map[string]interface{}{
+		"default": shortN(s.id(), 8),
+	}
+
 	err = t.ShadowVariables("FORBIDDEN", "google_credentials")
 	if err != nil {
 		return nil, err
@@ -357,6 +364,28 @@ func (s *Stack) getDiskSize(currentProject string, computeService *compute.Servi
 
 		return int(computeImg.DiskSizeGb)
 	}
+}
+
+func (s *Stack) id() string {
+	switch arg := s.Arg.(type) {
+	case *stack.ApplyRequest:
+		return arg.StackID
+	case *stack.PlanRequest:
+		return arg.StackTemplateID
+	default:
+		return strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+	}
+}
+
+func shortN(str string, size int) string {
+	sum := sha1.Sum([]byte(str))
+	hash := hex.EncodeToString(sum[:])
+
+	if len(hash) < size {
+		return hash
+	}
+
+	return hash[:size]
 }
 
 func mustAsset(s string) string {
