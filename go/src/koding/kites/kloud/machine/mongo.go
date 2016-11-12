@@ -2,6 +2,7 @@ package machine
 
 import (
 	"errors"
+	"net"
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
@@ -111,7 +112,7 @@ func (m *MongoDatabase) Machines(f *Filter) ([]*Machine, error) {
 			Stack:     groupTitles[mdb.GeneratedFrom.TemplateId][1],
 			Provider:  mdb.Provider,
 			Label:     mdb.Label,
-			IP:        mdb.IpAddress,
+			IP:        hostOnly(mdb.IpAddress),
 			CreatedAt: mdb.CreatedAt,
 			Status: Status{
 				State:      mdb.Status.State,
@@ -164,4 +165,18 @@ func filterUsers(users []models.MachineUser, f *Filter) (res []User) {
 	}
 
 	return
+}
+
+// hostOnly returns only host part of provided address. This is a fix for
+// machine IpAddress field which contains klient's port. Following bug is
+// already fixed, however some of jMachines documents may still have invalid
+// value. Remove this function when you are sure that there are no buggy
+// entries in db.
+func hostOnly(hostport string) string {
+	host, _, err := net.SplitHostPort(hostport)
+	if err != nil {
+		return hostport
+	}
+
+	return host
 }
