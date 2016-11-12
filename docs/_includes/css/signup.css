@@ -62,6 +62,7 @@
     color: #FFFFFF;
     letter-spacing: 0px;
     margin-top: 20px;
+    cursor: pointer;
 }
 
 .SignupFieldset strong {
