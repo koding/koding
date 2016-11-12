@@ -88,5 +88,8 @@ You have now mounted the cloud VM on a local folder called '_grape_'. You can us
 
 Congratulations, you are done! You now know how to use **kd** to mount your VM on a local folder and start using your favorite editor. All your edits will be saved on your cloud machine(s).
 
+See more information about [KD here][3]
+
 [1]: {{ site.url }}/assets/img/guides/kd/kd-install-command.png
 [2]: {{ site.url }}/assets/img/guides/kd/kd.gif
+[3]: {{ site.url }}/docs/kd

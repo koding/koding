@@ -7,7 +7,7 @@ parent: /docs/home
 
 # {{ page.title }}
 
-KD is a tool to mount your VM files on your local machine. With KD you can:
+KD is a tool to run commands & mount your remote VM files on your local machine. With KD you can:
 
 1. Access your remote VM files and edit them using your favorite local IDE(s).
 2. Run commands on your remote VM
