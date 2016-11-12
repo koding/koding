@@ -62,14 +62,14 @@ module.exports = class StackEditorAppController extends AppController
           @removeEditor stackTemplate._id
           kd.singletons.router.handleRoute '/IDE'
 
-        isClonedTemplate stackTemplate, (originalTemplate) =>
+        isClonedTemplate stackTemplate, (originalTemplate) ->
           if originalTemplate
             editor.addClonedFrom originalTemplate
             originalTemplate.on 'update', (update) ->
               if stackTemplate.template.sum isnt originalTemplate.template.sum
                 return editor.addCloneUpdateView originalTemplate
             if stackTemplate.template.sum isnt originalTemplate.template.sum
-                editor.addCloneUpdateView originalTemplate
+              editor.addCloneUpdateView originalTemplate
 
     else
       @showView()
