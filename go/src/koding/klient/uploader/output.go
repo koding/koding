@@ -50,7 +50,7 @@ func FixPerms() error {
 
 type File struct {
 	F      *os.File
-	Upload func(string) error
+	Upload func() error
 }
 
 var _ io.WriteCloser = (*File)(nil)
@@ -60,7 +60,7 @@ func (f *File) Write(p []byte) (int, error) {
 }
 
 func (f *File) Close() error {
-	return nonil(f.F.Close(), f.Upload(f.F.Name()))
+	return nonil(f.F.Close(), f.Upload())
 }
 
 func (up *Uploader) Output(path string) (io.WriteCloser, error) {
@@ -73,7 +73,7 @@ func (up *Uploader) Output(path string) (io.WriteCloser, error) {
 
 	return &File{
 		F: f,
-		Upload: func(path string) error {
+		Upload: func() error {
 			_, err := up.UploadFile(path, 0)
 			return err
 		},
