@@ -294,11 +294,12 @@ figure.hackathon-header
     color               inherit
 
 
-validationRed = rgba(217, 58, 55, 1)
+validationRed = #f2778a
+
 .kdtooltip.validation-error
 .kdtooltip.validation-error.just-text
   min-width                   none
-  max-width                   234px
+  max-width                   300px
   min-height                  none
 
   div.wrapper
@@ -330,6 +331,9 @@ validationRed = rgba(217, 58, 55, 1)
   &.placement-top
     &:after
       border-top-color      validationRed
+
+    &.direction-left
+      margin-left           0
 
     &.direction-left:after
       right                 9px
