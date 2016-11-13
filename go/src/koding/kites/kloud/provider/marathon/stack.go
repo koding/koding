@@ -104,6 +104,11 @@ func (s *Stack) ApplyTemplate(_ *stack.Credential) (*stack.Template, error) {
 	}
 
 	for name, app := range resource.MarathonApp {
+		if debug, ok := app["debug"].(bool); ok {
+			s.Debug = debug
+			delete(app, "debug")
+		}
+
 		originalAppID := s.convertInstancesToGroup(name, app)
 
 		if err := s.injectEntrypoint(app, originalAppID); err != nil {

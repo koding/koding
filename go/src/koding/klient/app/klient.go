@@ -382,7 +382,7 @@ func (k *Klient) RegisterMethods() {
 	// don't allow anyone to call a method if we are during an update.
 	k.kite.PreHandleFunc(func(r *kite.Request) (interface{}, error) {
 		// Koding (kloud) connects to much, don't display it.
-		if r.Username != "koding" {
+		if r.Username != "koding" && !k.debug() {
 			k.log.Info("Kite '%s/%s/%s' called method: '%s'",
 				r.Username, r.Client.Environment, r.Client.Name, r.Method)
 		}
@@ -558,6 +558,14 @@ func (k *Klient) tunnelID() string {
 	}
 
 	return konfig.Konfig.TunnelID
+}
+
+func (k *Klient) debug() bool {
+	if k.config.Debug {
+		return true
+	}
+
+	return konfig.Konfig.Debug
 }
 
 func (k *Klient) tunnelOptions() (*tunnel.Options, error) {
