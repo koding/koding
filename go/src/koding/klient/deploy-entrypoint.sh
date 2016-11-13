@@ -50,13 +50,19 @@ set -eu
 #
 # Maintenance: Rafal Jeczalik <rafal@koding.com>
 
-echo "executing Koding entrypoint for KODING_METADATA_${i}" >&2
+export USER_LOG=/var/log/cloud-init-output.log
+trap "echo _KD_DONE_ | tee -a \$USER_LOG" EXIT
+
+echo "[entrypoint] connecting to Koding wih KODING_METADATA_${i}" | tee -a \$USER_LOG >&2
 
 gzip --decompress --force --stdout /mnt/mesos/sandbox/klient.gz > /tmp/klient
 chmod +x /tmp/klient
 /tmp/klient -metadata \$KODING_METADATA_${i} run
 
-sh -c \$*
+echo "[entrypoint] executing: \$@" | tee -a \$USER_LOG >&2
+echo _KD_DONE_ >> \$USER_LOG
+
+exec "\$@"
 EOF
 
 
