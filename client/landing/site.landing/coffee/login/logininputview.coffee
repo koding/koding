@@ -22,7 +22,6 @@ module.exports = class LoginInputView extends JView
     super options, null
 
     @input       = new kd.InputView inputOptions, data
-    @icon        = new kd.CustomHTMLView { cssClass : 'validation-icon' }
     @placeholder = new kd.CustomHTMLView
       tagName    : 'label'
       cssClass   : 'placeholder-helper'
@@ -49,21 +48,21 @@ module.exports = class LoginInputView extends JView
     { stickyTooltip } = @getOptions()
 
     if err
-      @icon.setTooltip
+      @setTooltip
         cssClass  : 'validation-error'
         title     : "<p>#{err}</p>"
         direction : 'left'
         sticky    : yes  if stickyTooltip
         permanent : yes  if stickyTooltip
         offset    :
-          top     : -15
+          top     : 0
           left    : 0
-      @icon.tooltip.show()
+      @tooltip.show()
 
     else
-      @icon.unsetTooltip()
+      @unsetTooltip()
 
     @setClass if err then 'validation-error' else 'validation-passed'
 
 
-  pistachio: -> '{{> @input}}{{> @placeholder}}{{> @icon}}'
+  pistachio: -> '{{> @input}}{{> @placeholder}}'
