@@ -13,7 +13,8 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
       inputOptions    :
         name          : 'username'
         forceCase     : 'lowercase'
-        placeholder   : 'Username or Email'
+        label         : 'Your Username or Email'
+        placeholder   : 'Enter your username or email'
         testPath      : 'login-form-username'
         attributes    :
           testpath    : 'login-form-username'
@@ -27,7 +28,8 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
       inputOptions    :
         name          : 'password'
         type          : 'password'
-        placeholder   : 'Password'
+        label         : 'Your Password'
+        placeholder   : 'Enter your password'
         testPath      : 'login-form-password'
         attributes    :
           testpath    : 'login-form-password'
@@ -40,7 +42,8 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
     @tfcode = new LoginInputView
       inputOptions    :
         name          : 'tfcode'
-        placeholder   : 'Two-Factor Authentication Code'
+        label         : '2FA Verification code'
+        placeholder   : 'Enter the 6-digit code'
         testPath      : 'login-form-tfcode'
         attributes    :
           testpath    : 'login-form-tfcode'
