@@ -46,6 +46,46 @@ button
 .no-anim
   noAnim()
 
+.login-input-view
+  margin                    0 0 17px 0
+  bg                        color white
+  margin                    0 auto 21px !important
+  borderBox()
+
+  input.kdinput.text
+    border                  1px solid #d9d9d9
+    font-size               18px
+    letter-spacing          .31px
+    line-height             25px
+    height                  60px
+    color                   #4a4a4a !important
+    text-align              left
+    padding                 24px 16px 14px
+    margin                  0
+    rounded                 3px
+    font-weight             400
+    bg                      color, transparent
+    rounded                 3px
+    borderBox()
+    &:focus
+      shadow                none
+      border-color          #A8CEFF
+    &::-webkit-input-placeholder
+      color                 #ccc
+      font-weight           300
+    &::-moz-placeholder
+      color                 #ccc
+      font-weight           300
+
+  .placeholder-helper
+    abs                     9px 0 0 17px
+    letter-spacing          .2px
+    color                   #989898
+    font-size               12px
+    text-align              left
+    z-index                 1
+    opacity                 1
+
 .mobile-menu
   overflow                  hidden
   bg                        color, #232323
@@ -732,31 +772,6 @@ footer.main-footer
 
   .kdmodal-content
     overflow                visible
-
-    .login-input-view
-      margin                0 0 17px 0
-
-      input
-        text-align          center
-
-      .kdinput.text.medium
-        bg                  color, transparent
-        rounded             3px
-
-      .placeholder-helper
-        abs()
-        top                 11px
-        font-size           14px
-        text-align          center
-        size                100%, auto
-        color               #53585C
-        vendor              transition, top .1s ease\,\
-                                    opacity .3s .3s ease\,\
-                                    font-size .1s ease
-
-        &.out
-          top               -23px
-          font-size         12px
 
     .kdbutton.solid.green
       size                  100% auto

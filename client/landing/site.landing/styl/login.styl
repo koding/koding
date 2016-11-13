@@ -375,37 +375,6 @@ body.login
   .email .login-input-view .validation-icon
     right               55px
 
-  .login-input-view
-    overflow            visible
-
-    .kdinput
-      text-align        center
-      background        transparent
-
-    .placeholder-helper
-      abs()
-      size              100% auto
-      left              0
-      color             #53585c
-      top               17px
-      font-size         14px
-      text-align        center
-      z-index           0
-      opacity           1
-      vendor            transition, top .1s ease\,\
-                                    opacity .3s .3s ease\,\
-                                    font-size .1s ease
-      span
-        font-size       12px
-
-      &.out
-        top             -15px
-        font-size       12px
-        &.puff
-          opacity       0
-    // &.validation-error .out.puff
-    //   opacity           1
-
   .validation-icon
     abs                 18px 15px 0 0
     vendor              transition, opacity .15s ease-out
