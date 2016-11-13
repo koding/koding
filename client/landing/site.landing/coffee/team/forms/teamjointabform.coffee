@@ -42,7 +42,7 @@ module.exports = class TeamJoinTabForm extends kd.FormView
         validate    :
           container : this
           rules     : { required: yes }
-          messages  : { required: 'Please enter a password.' }
+          messages  : { required: 'Please enter your password.' }
 
 
   getTFCode: ->
