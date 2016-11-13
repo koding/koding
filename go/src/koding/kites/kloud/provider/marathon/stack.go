@@ -257,10 +257,17 @@ func (s *Stack) injectEntrypoint(app map[string]interface{}, originalAppID strin
 func (s *Stack) injectFetchEntrypoints(app map[string]interface{}, metadataCount int) {
 	fetch := getSlice(app["fetch"])
 
+	fetch = append(fetch, map[string]interface{}{
+		"uri":        s.KlientURL,
+		"executable": false,
+		"cache":      false,
+	})
+
 	for i := 0; i < metadataCount; i++ {
 		fetch = append(fetch, map[string]interface{}{
 			"uri":        fmt.Sprintf("%s/entrypoint.%d.sh", s.EntrypointBaseURL, i+1),
 			"executable": true,
+			"cache":      false,
 		})
 	}
 

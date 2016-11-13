@@ -82,15 +82,23 @@
         },
         "fetch": [
           {
+            "executable": false,
+            "cache": false,
+            "uri": "$KLIENT_URL"
+          },
+          {
             "executable": true,
+            "cache": false,
             "uri": "$ENTRYPOINT_URL/entrypoint.1.sh"
           },
           {
             "executable": true,
+            "cache": false,
             "uri": "$ENTRYPOINT_URL/entrypoint.2.sh"
           },
           {
             "executable": true,
+            "cache": false,
             "uri": "$ENTRYPOINT_URL/entrypoint.3.sh"
           }
         ],

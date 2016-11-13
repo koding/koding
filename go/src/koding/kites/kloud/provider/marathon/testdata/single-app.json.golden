@@ -31,7 +31,13 @@
         },
         "fetch": [
           {
+            "executable": false,
+            "cache": false,
+            "uri": "$KLIENT_URL"
+          },
+          {
             "executable": true,
+            "cache": false,
             "uri": "$ENTRYPOINT_URL/entrypoint.1.sh"
           }
         ],
