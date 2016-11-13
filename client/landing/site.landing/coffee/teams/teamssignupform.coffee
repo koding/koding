@@ -2,7 +2,6 @@ kd                       = require 'kd'
 utils                    = require './../core/utils'
 LoginViewInlineForm      = require './../login/loginviewinlineform'
 LoginInputView           = require './../login/logininputview'
-LoginInputViewWithLoader = require './../login/logininputwithloader'
 
 module.exports = class TeamsSignupForm extends LoginViewInlineForm
 
@@ -14,7 +13,7 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
     email       = team.invitation?.email
     companyName = team.signup?.companyName
 
-    @email = new LoginInputViewWithLoader
+    @email = new LoginInputView
       inputOptions   :
         name         : 'email'
         label        : 'Email Address'
@@ -28,10 +27,6 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
             email    : 'Please type a valid email address.'
 
     @companyName = new LoginInputView
-
-    # make the placeholders go away
-    @email.inputReceivedKeyup()        if email
-    @companyName.inputReceivedKeyup()  if companyName
       inputOptions   :
         name         : 'companyName'
         label        : 'Team Name'
