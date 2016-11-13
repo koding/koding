@@ -27,12 +27,10 @@
   <script src='lib/highlight.9.1.0.pack_extended.js' type='text/javascript'></script>
   <script src='lib/jsoneditor.min.js' type='text/javascript'></script>
   <script src='lib/marked.js' type='text/javascript'></script>
-  <script src='lib/swagger-oauth.js' type='text/javascript'></script>
 
-  <!-- Some basic translations -->
-  <!-- <script src='lang/translator.js' type='text/javascript'></script> -->
-  <!-- <script src='lang/ru.js' type='text/javascript'></script> -->
-  <!-- <script src='lang/en.js' type='text/javascript'></script> -->
+  <script src='lang/translator.js' type='text/javascript'></script>
+  <script src='lang/tr.js' type='text/javascript'></script>
+  <script src='lang/en.js' type='text/javascript'></script>
 
   <script type="text/javascript">
     $(function () {
@@ -40,7 +38,7 @@
       if (url && url.length > 1) {
         url = decodeURIComponent(url[1]);
       } else {
-        url = "http://petstore.swagger.io/v2/swagger.json";
+        url = "/swagger.json";
       }
 
       hljs.configure({
@@ -54,30 +52,19 @@
       window.swaggerUi = new SwaggerUi({
         url: url,
         dom_id: "swagger-ui-container",
-        supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
-        onComplete: function(swaggerApi, swaggerUi){
-          if(typeof initOAuth == "function") {
-            initOAuth({
-              clientId: "your-client-id",
-              clientSecret: "your-client-secret-if-required",
-              realm: "your-realms",
-              appName: "your-app-name",
-              scopeSeparator: " ",
-              additionalQueryStringParams: {}
-            });
-          }
-
+        supportedSubmitMethods: ['get', 'post'],
+        docExpansion: "list",
+        jsonEditor: true,
+        validatorUrl: null,
+        enableCookies: true,
+        apisSorter: "alpha",
+        defaultModelRendering: 'schema',
+        showRequestHeaders: true,
+        onComplete: function() {
           if(window.SwaggerTranslator) {
             window.SwaggerTranslator.translate();
           }
-        },
-        onFailure: function(data) {
-          log("Unable to Load SwaggerUI");
-        },
-        docExpansion: "none",
-        jsonEditor: false,
-        defaultModelRendering: 'schema',
-        showRequestHeaders: false
+        }
       });
 
       window.swaggerUi.load();
