@@ -14,7 +14,8 @@ module.exports = class TeamJoinByLoginForm extends TeamJoinTabForm
 
     @username = new LoginInputView
       inputOptions    :
-        placeholder   : 'your username'
+        label         : 'Username or Email'
+        placeholder   : 'Enter your koding username or email'
         name          : 'username'
         validate      :
           rules       : { required: yes }

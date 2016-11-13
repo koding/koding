@@ -17,7 +17,8 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
     @email = new LoginInputViewWithLoader
       inputOptions   :
         name         : 'email'
-        placeholder  : 'Email address'
+        label        : 'Email Address'
+        placeholder  : 'Enter your work email'
         defaultValue : email  if email
         attributes   : { testpath : 'register-form-email' }
         validate     :
@@ -27,20 +28,21 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
             email    : 'Please type a valid email address.'
 
     @companyName = new LoginInputView
-      inputOptions    :
-        name          : 'companyName'
-        placeholder   : 'Name your team (i.e. your company name)'
-        defaultValue  : companyName  if companyName
-        attributes    : { testpath : 'company-name' }
-        validate      :
-          rules       :
-            required  : yes
-          messages    :
-            required  : 'Please enter a team name.'
 
     # make the placeholders go away
     @email.inputReceivedKeyup()        if email
     @companyName.inputReceivedKeyup()  if companyName
+      inputOptions   :
+        name         : 'companyName'
+        label        : 'Team Name'
+        placeholder  : 'Name your team (i.e. your company name)'
+        defaultValue : companyName  if companyName
+        attributes   : { testpath : 'company-name' }
+        validate     :
+          rules      :
+            required : yes
+          messages   :
+            required : 'Please enter a team name.'
 
     @button = new kd.ButtonView
       title       : 'Sign up'

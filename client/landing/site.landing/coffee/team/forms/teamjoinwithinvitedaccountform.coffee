@@ -20,7 +20,8 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
     @username = new LoginInputView
       cssClass        : 'hidden'
       inputOptions    :
-        placeholder   : 'pick a username'
+        label         : 'Your Username'
+        placeholder   : 'Pick a username'
         name          : 'username'
         defaultValue  : @getOption 'email'
 
