@@ -37,6 +37,8 @@ for i in $(seq 1 $N); do
 	cat >entrypoint/entrypoint.${i}.sh <<EOF
 #!/bin/sh
 
+set -eu
+
 # Koding Entrypoint.
 #
 # This script is a part of Koding. It wraps container's entrypoint
@@ -50,7 +52,9 @@ for i in $(seq 1 $N); do
 
 echo "executing Koding entrypoint for KODING_METADATA_${i}" >&2
 
-curl -sSL --retry 5 --retry-delay 0 \$KODING_KLIENT_URL | gunzip - > /tmp/klient && chmod +x /tmp/klient && /tmp/klient -metadata \$KODING_METADATA_${i} run
+gzip --decompress --force --stdout /mnt/mesos/sandbox/klient.gz > /tmp/klient
+chmod +x /tmp/klient
+/tmp/klient -metadata \$KODING_METADATA_${i} run
 
 sh -c \$*
 EOF
