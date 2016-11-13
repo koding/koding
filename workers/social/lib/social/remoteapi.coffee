@@ -102,8 +102,9 @@ module.exports = RemoteHandler = (koding) ->
       sessionToken
     }
 
+
     args = if Array.isArray body
-    then args.concat body
+    then body
     else if (Object.keys body).length
     then [body]
     else []
