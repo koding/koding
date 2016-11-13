@@ -152,7 +152,14 @@ do ->
   app.use cors()
 
   options = { rateLimitOptions : KONFIG.nodejsRateLimiter }
+
+  app.post '/remote.api/:model/:id?', (require './remoteapi') koding
+
+  app.get  '/remote.api', (req, res) ->
+    res.send 'REST API is OK'
+
   app.post '/xhr', koding.expressify options
+
   app.get '/xhr', (req, res) ->
     res.send 'Socialworker is OK'
 

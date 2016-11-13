@@ -115,7 +115,10 @@ module.exports = (KONFIG, options, credentials) ->
       supervisord       :
         command         : "./watch-node %(ENV_KONFIG_PROJECTROOT)s/workers/social/index.js"
       nginx             :
-        locations       : [ { location: "/xhr" } ]
+        locations       : [
+          { location: "/xhr"  }
+          { location: "/remote.api" }
+        ]
       healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
