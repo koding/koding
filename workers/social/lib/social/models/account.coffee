@@ -56,16 +56,8 @@ module.exports = class JAccount extends jraphical.Module
         ]
         some:
           (signature Object, Object, Function)
-        cursor:
-          (signature Object, Object, Function)
-        each: [
-          (signature Object, Object, Function)
-          (signature Object, Object, Object, Function)
-        ]
         someWithRelationship:
           (signature Object, Object, Function)
-        someData:
-          (signature Object, Object, Object, Function)
         count: [
           (signature Function)
           (signature Object, Function)
@@ -144,8 +136,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature String, Function)
           (signature [String], Function)
         ]
-        likeMember:
-          (signature String, Function)
         fetchKites :
           (signature Object, Function)
         fetchMetaInformation :

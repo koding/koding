@@ -86,7 +86,7 @@ module.exports = class ComputeProvider extends Base
   @ping$ = permit 'ping machines',
     success: revive {
       shouldReviveClient   : yes
-      shouldPassCredential : yes
+      shouldPassCredential : no
     }, @ping
 
 
