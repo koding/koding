@@ -15,7 +15,6 @@ run = ->
     isOpen: yes
 
   manager.on 'status', (status) ->
-    console.log 'received event', status
     modal.options.title = 'Testing Koding: ' + status
 
     if status is 'failed' or status is 'success'
