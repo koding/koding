@@ -79,9 +79,8 @@ module.exports = class TeamDomainTab extends kd.TabPaneView
     '''
 
 
-track = (action) ->
+track = (action, properties = {}) ->
 
-  category = 'TeamSignup'
-  label    = 'DomainTab'
-
-  utils.analytics.track action, { category, label }
+  properties.category = 'TeamSignup'
+  properties.label    = 'DomainTab'
+  utils.analytics.track action, properties

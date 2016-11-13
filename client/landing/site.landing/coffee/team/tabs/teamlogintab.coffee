@@ -5,11 +5,11 @@ MainHeaderView  = require './../../core/mainheaderview'
 LoginInlineForm = require './../../login/loginform'
 Encoder         = require 'htmlencode'
 
-track = (action) ->
+track = (action, properties = {}) ->
 
-  category = 'Team'
-  label    = 'LoginForm'
-  utils.analytics.track action, { category, label }
+  properties.category = 'Team'
+  properties.label    = 'LoginForm'
+  utils.analytics.track action, properties
 
 
 module.exports = class TeamLoginTab extends kd.TabPaneView

@@ -6,14 +6,11 @@ LoginInputView    = require './../login/logininputview'
 TeamsSelectorForm = require './teamselectorform'
 
 
-track = (action, entry) ->
+track = (action, properties = {}) ->
 
-  category = 'TeamSelector'
-  label    = 'TeamSelector'
-  entry    = entry
-
-  utils.analytics.track action, { category, label, entry }
-
+  properties.category = 'TeamSelector'
+  properties.label    = 'TeamSelector'
+  utils.analytics.track action, properties
 
 module.exports = class TeamSelectorView extends kd.TabPaneView
 
@@ -76,7 +73,7 @@ module.exports = class TeamSelectorView extends kd.TabPaneView
 
     return notify()  if slug is 'koding'
 
-    track 'navigated to team login page', slug
+    track 'navigated to team login page', { entry: slug }
 
     utils.checkIfGroupExists slug, (err, group) ->
 

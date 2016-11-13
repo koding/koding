@@ -5,12 +5,11 @@ JView           = require './../../core/jview'
 MainHeaderView  = require './../../core/mainheaderview'
 ResetInlineForm = require './../../login/resetform'
 
-track = (action) ->
+track = (action, properties = {}) ->
 
-  category = 'Team'
-  label    = 'ResetForm'
-  utils.analytics.track action, { category, label }
-
+  properties.category = 'Team'
+  properties.label    = 'ResetForm'
+  utils.analytics.track action, properties
 
 module.exports = class TeamResetTab extends kd.TabPaneView
 

@@ -4,11 +4,11 @@ MainHeaderView  = require './../core/mainheaderview'
 JView           = require './../core/jview'
 TeamsSignupForm = require './teamssignupform'
 
-track = (action) ->
+track = (action, properties = {}) ->
 
-  category = 'TeamSignup'
-  label    = 'SignupForm'
-  utils.analytics.track action, { category, label }
+  properties.category = 'TeamSignup'
+  properties.label    = 'SignupForm'
+  utils.analytics.track action, properties
 
 module.exports = class TeamsView extends kd.TabPaneView
 

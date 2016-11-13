@@ -6,11 +6,11 @@ TeamLoginAndCreateTabForm        = require './../forms/teamloginandcreatetabform
 TeamCreateWithMemberAccountForm  = require './../forms/teamcreatewithmemberaccountform'
 
 
-track = (action) ->
+track = (action, properties = {}) ->
 
-  category = 'TeamSignup'
-  label    = 'AccountTab'
-  utils.analytics.track action, { category, label }
+  properties.category = 'TeamSignup'
+  properties.label    = 'AccountTab'
+  utils.analytics.track action, properties
 
 
 module.exports = class TeamUsernameTab extends TeamJoinTab
