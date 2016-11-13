@@ -63,7 +63,7 @@ module.exports = class TeamDomainTab extends kd.TabPaneView
   showError: (error) ->
 
     track 'entered an invalid domain'
-    @form.input.parent.setClass 'validation-error'
+    @form.teamName.input.parent.setClass 'validation-error'
     new kd.NotificationView { title : error }
 
 
