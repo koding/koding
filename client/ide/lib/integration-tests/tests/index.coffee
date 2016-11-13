@@ -1,1 +1,1 @@
-require './basic'
+require './sidebar'
