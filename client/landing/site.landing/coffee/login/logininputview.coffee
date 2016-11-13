@@ -33,32 +33,12 @@ module.exports = class LoginInputView extends JView
     @errors       = {}
     @errorMessage = ''
 
-    # @input.on 'keyup',                     @bound 'inputReceivedKeyup'
-    @input.on 'focus',                     @bound 'inputReceivedFocus'
-    @input.on 'blur',                      @bound 'inputReceivedBlur'
     @input.on 'ValidationError',           @bound 'decorateValidation'
     @input.on 'ValidationPassed',          @bound 'decorateValidation'
     @input.on 'ValidationFeedbackCleared', @bound 'decorateValidation'
 
 
   setFocus: -> @input.setFocus()
-
-  inputReceivedKeyup: ->
-
-    if   @input.getValue().length > 0
-    then @placeholder.setClass 'out'
-    else @placeholder.unsetClass 'out'
-
-
-  inputReceivedFocus: -> @placeholder.setClass 'out'
-
-  inputReceivedBlur: ->
-
-    if @input.getValue().length > 0
-      @placeholder.setClass 'puff'
-    else
-      @placeholder.unsetClass 'puff'
-      @placeholder.unsetClass 'out'
 
 
   resetDecoration: -> @unsetClass 'validation-error validation-passed'
