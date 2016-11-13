@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
 	"koding/kites/kloud/utils"
@@ -12,6 +13,7 @@ import (
 	"strconv"
 
 	marathon "github.com/gambol99/go-marathon"
+	"github.com/hashicorp/terraform/terraform"
 )
 
 var klientPort = map[string]interface{}{
@@ -61,6 +63,7 @@ func newStack(bs *provider.BaseStack) (provider.Stack, error) {
 	}
 
 	bs.PlanFunc = s.plan
+	bs.StateFunc = s.state
 
 	return s, nil
 }
@@ -384,6 +387,41 @@ func (s *Stack) plan() (stack.Machines, error) {
 		}
 
 		machines[label] = m
+	}
+
+	return machines, nil
+}
+
+func (s *Stack) state(state *terraform.State, klients map[string]*provider.DialState) (map[string]*stack.Machine, error) {
+	machines := make(map[string]*stack.Machine, len(s.Labels))
+
+	for _, label := range s.Labels {
+
+		state, ok := klients[label]
+		if !ok {
+			return nil, fmt.Errorf("no klient state found for %q app", label)
+		}
+
+		m := &stack.Machine{
+			Provider: "marathon",
+			Label:    label,
+			Attributes: map[string]string{
+				"app_id":    strconv.Itoa(s.AppCount),
+				"app_count": s.AppOrGroupName,
+			},
+			QueryString: state.KiteID,
+			RegisterURL: state.KiteURL,
+			State:       machinestate.Running,
+			StateReason: "Created with kloud.apply",
+		}
+
+		if state.Err != nil {
+			m.State = machinestate.Stopped
+			m.StateReason = fmt.Sprintf("Stopped due to dial failure: %s", state.Err)
+		}
+
+		machines[m.Label] = m
+
 	}
 
 	return machines, nil
