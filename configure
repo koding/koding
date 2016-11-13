@@ -41,7 +41,7 @@ options.runGoWatcher = argv.hasOwnProperty 'with-go-watcher'
 options.sendEventsToSegment = if argv['disable-segment'] then off else on
 
 rest = ->
-  options.publicHostname = argv.publichostname or "http://#{options.hostname}:8090"
+  options.publicHostname = argv.publichostname or "http://#{options.hostname}:#{options.publicPort}"
   # if git commit id consists only numbers, js converts it to number
   options.version        = "#{options.version or version or "1.0"}"
   options.tag            = options.tag     or version or "1.0"
