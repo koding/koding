@@ -1,4 +1,4 @@
-package main
+package lazy
 
 import (
 	"path/filepath"
@@ -11,6 +11,7 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
 	"github.com/koding/kite/protocol"
+	"github.com/koding/logging"
 )
 
 var (
@@ -38,7 +39,7 @@ func Cache() *cfg.Cache {
 	return cache
 }
 
-func Kite() *kite.Kite {
+func Kite(log logging.Logger) *kite.Kite {
 	if k != nil {
 		return k
 	}
@@ -52,10 +53,10 @@ func Kite() *kite.Kite {
 	return k
 }
 
-func Kloud() (*kite.Client, error) {
+func Kloud(log logging.Logger) (*kite.Client, error) {
 	const timeout = 4 * time.Second
 
-	c := Kite().NewClient(config.Konfig.KloudURL)
+	c := Kite(log).NewClient(config.Konfig.KloudURL)
 
 	if err := c.DialTimeout(timeout); err != nil {
 		query := &protocol.KontrolQuery{
@@ -63,12 +64,12 @@ func Kloud() (*kite.Client, error) {
 			Environment: config.Environment,
 		}
 
-		clients, err := Kite().GetKites(query)
+		clients, err := Kite(log).GetKites(query)
 		if err != nil {
 			return nil, err
 		}
 
-		c = Kite().NewClient(clients[0].URL)
+		c = Kite(log).NewClient(clients[0].URL)
 
 		if err := c.DialTimeout(timeout); err != nil {
 			return nil, err
@@ -77,7 +78,7 @@ func Kloud() (*kite.Client, error) {
 
 	c.Auth = &kite.Auth{
 		Type: "kiteKey",
-		Key:  Kite().Config.KiteKey,
+		Key:  Kite(log).Config.KiteKey,
 	}
 
 	return c, nil

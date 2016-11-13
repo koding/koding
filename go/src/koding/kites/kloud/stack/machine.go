@@ -1,25 +1,38 @@
 package stack
 
-import "github.com/koding/kite"
+import (
+	"koding/kites/kloud/machine"
 
-type MachineListRequest struct {
-	Provider string `json:"provider,omitempty"`
-	Team     string `json:"team,omitempty"`
-}
+	"github.com/koding/kite"
+)
 
-type MachineItem struct {
-	Team         string `json:"team"`
-	Provider     string `json:"provider"`
-	ID           string `json:"id"`
-	Label        string `json:"label"`
-	Status       string `json:"status"`
-	StatusReason string `json:"statusReason"`
-}
+// MachineListRequest represents a request value for "machine.list" method.
+type MachineListRequest struct{}
 
+// MachineListResponse represents a response value from "machine.list" method.
 type MachineListResponse struct {
-	Machines []MachineItem `json:"machines"`
+	Machines []*machine.Machine `json:"machines"`
 }
 
+// CredentialList is a kite.Handler for "machine.list" kite method.
 func (k *Kloud) MachineList(r *kite.Request) (interface{}, error) {
-	return nil, nil
+	var req MachineListRequest
+	if err := r.Args.One().Unmarshal(&req); err != nil {
+		return nil, err
+	}
+
+	// We need to keep machine owners as well as skip unapproved shared machines
+	// which shouldn't be visible until user approve them.
+	f := &machine.Filter{
+		Username:     r.Username,
+		Owners:       true,
+		OnlyApproved: true,
+	}
+
+	machines, err := k.MachineClient.Machines(f)
+	if err != nil {
+		return nil, err
+	}
+
+	return MachineListResponse{Machines: machines}, nil
 }

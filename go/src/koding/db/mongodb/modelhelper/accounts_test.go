@@ -1,8 +1,11 @@
-package modelhelper
+package modelhelper_test
 
 import (
-	"koding/db/models"
 	"testing"
+
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
+	"koding/db/mongodb/modelhelper/modeltesthelper"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -18,7 +21,7 @@ func createTestAccount(t *testing.T) *models.Account {
 		Type: "registered",
 	}
 
-	if err := CreateAccount(acc); err != nil {
+	if err := modelhelper.CreateAccount(acc); err != nil {
 		t.Error(err)
 	}
 
@@ -26,19 +29,19 @@ func createTestAccount(t *testing.T) *models.Account {
 }
 
 func TestGetAccountsByIds(t *testing.T) {
-	initMongoConn()
-	defer Close()
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
 
 	acc1 := createTestAccount(t)
-	defer RemoveAccount(acc1.Id)
+	defer modelhelper.RemoveAccount(acc1.Id)
 
 	acc2 := createTestAccount(t)
-	defer RemoveAccount(acc2.Id)
+	defer modelhelper.RemoveAccount(acc2.Id)
 
 	acc3 := createTestAccount(t)
-	defer RemoveAccount(acc3.Id)
+	defer modelhelper.RemoveAccount(acc3.Id)
 
-	accounts, err := GetAccountsByIds([]bson.ObjectId{acc1.Id, acc2.Id, acc3.Id})
+	accounts, err := modelhelper.GetAccountsByIds([]bson.ObjectId{acc1.Id, acc2.Id, acc3.Id})
 	if err != nil {
 		t.Error(err)
 	}
