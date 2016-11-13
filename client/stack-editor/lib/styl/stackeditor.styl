@@ -222,7 +222,7 @@ $borderColor                = #E3E3E3
       display               inline-block
       cursor                pointer
       float                 right
-      top                   -16px
+      top                   -18px
       right                 24px
       r-sprite              stack-editor dontwarnmeagain
       bg                    color transparent
@@ -232,20 +232,21 @@ $borderColor                = #E3E3E3
 
       visibility            hidden
       font-size             13px
-      color                 #2B2B2B
+      font-weight           300
+      color                 #FFF
       text-align            center
       border-radius         4px
       padding               10px 10px
       width                 150px
-      top                   -48px
+      bottom                30px
       right                 -24px
-      bg                    color #FFF
+      bg                    color #424242
       box-shadow            0px 2px 10px 0px rgba(0,0,0,0.05)
       abs()
 
     .tooltiptext:after, .tooltiptext:before
-      top -10px
-      left 50%
+      bottom  -20px
+      right 24px
       border solid transparent
       content " "
       height 0
@@ -254,12 +255,12 @@ $borderColor                = #E3E3E3
       pointer-events none
 
     .tooltiptext:after
-      border-top-color #FFF
+      border-top-color #424242
       border-width 10px
       margin-left -10px
 
     .tooltiptext:before
-      border-top-color #FFF
+      border-top-color transparent
       border-width 10px
       margin-left -10px
 
