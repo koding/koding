@@ -33,7 +33,18 @@ module.exports = class TeamsView extends kd.TabPaneView
       cssClass : 'login-form'
       callback : (formData) ->
 
-        track 'started team signup', { category: 'TeamSignUp' }
+        { email } = formData
+
+        track 'started team signup', { contact: email }
+
+        isEnterprise = /type\=enterprise/.test location.search
+        withDemo = /demo\=on/.test location.search
+
+        if isEnterprise and withDemo
+          track 'started team signup enterprise with demo request', { contact: email }
+        else if isEnterprise
+          track 'started team signup enterprise without demo request', { contact: email }
+
 
         finalize = (email) ->
           utils.storeNewTeamData 'signup', formData
@@ -49,7 +60,6 @@ module.exports = class TeamsView extends kd.TabPaneView
             success : (profile) ->
               utils.storeNewTeamData 'profile', profile
 
-        { email } = formData
         utils.validateEmail { email },
           success : ->
             track 'entered an unregistered email'
@@ -60,6 +70,7 @@ module.exports = class TeamsView extends kd.TabPaneView
             track 'entered a registered email'
             formData.alreadyMember = yes
             finalize email
+
 
 
   pistachio: ->
