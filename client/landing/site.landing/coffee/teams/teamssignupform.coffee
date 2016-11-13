@@ -45,7 +45,7 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
             required : 'Please enter a team name.'
 
     @button = new kd.ButtonView
-      title       : 'Sign up'
+      title       : 'Next'
       icon        : yes
       style       : 'TeamsModal-button'
       attributes  : { testpath : 'signup-company-button' }
