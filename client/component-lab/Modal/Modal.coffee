@@ -67,6 +67,15 @@ exports.Footer = Modal.Footer = (props) ->
     </div>
   </div>
 
+exports.TextFooter = Modal.TextFooter = (props) ->
+  { text } = props
+
+  <div className={styles.footer}>
+    <div className={styles.footerContainer} style={margin: '0 auto'}>
+      <Label type="info">{text}</Label>
+    </div>
+  </div>
+
 Modal.Footer.defaultProps =
   primaryButtonType: 'primary-1'
   secondaryButtonType: 'secondary'
