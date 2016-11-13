@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
+	"koding/kites/kloud/utils"
 	"path"
 	"strconv"
 
@@ -330,11 +331,18 @@ func (s *Stack) injectMetadata(app map[string]interface{}, labels []string) erro
 			return err
 		}
 
+		tunnelID := utils.RandString(8)
+
+		if m, ok := s.Builder.Machines[label]; ok && m.Uid != "" {
+			tunnelID = m.Uid
+		}
+
 		konfig := map[string]interface{}{
 			"kiteKey":    kiteKey,
 			"kontrolURL": stack.Konfig.KontrolURL,
 			"kloudURL":   stack.Konfig.KloudURL,
 			"tunnelURL":  stack.Konfig.TunnelURL,
+			"tunnelID":   tunnelID,
 		}
 
 		if s.Debug {
