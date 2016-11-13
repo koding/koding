@@ -25,36 +25,20 @@ class IntegrationTestManager extends KDController
 
 
   # Bind to mocha test suite events, and emit when necessary.
-  # Registers to end, test start/end and suite start events.
   bindEvents: (runner) ->
-    runner.on 'test', (response) =>
-      @emit 'test start', {
-        title: response.title
-        state: status.STARTED
-      }
-
-    runner.on 'test end', (response) =>
-      @emit 'test end', {
-        title: response.title
-        state: response.state
-      }
-
-    runner.on 'suite', (response) =>
-      @emit 'suite start', {
-        title: response.title
-        state: response.STARTED
-      }
-
     runner.on 'end', =>
+      console.log 'ended with', runner.currentRunnable.state
       @emit 'status', runner.currentRunnable.state
 
 
   # Setups mocha and add necessary tests.
   _run: () ->
-    mocha.setup
-      ui: 'bdd'
-      ignoreLeaks: no
-      noHighlighting: yes
+    mocha.ui('bdd')
+
+    mocha.traceIgnores = [
+      'https://cdnjs.cloudflare.com/ajax/libs/mocha/3.1.2/mocha.min.js'
+      'https://cdnjs.cloudflare.com/ajax/libs/should.js/11.1.1/should.min.js'
+    ]
 
     require './tests'
 
@@ -62,7 +46,7 @@ class IntegrationTestManager extends KDController
 
     runner = mocha.run()
 
-    @bindEvents(runner)
+    @bindEvents runner
 
 
 module.exports = IntegrationTestManager
