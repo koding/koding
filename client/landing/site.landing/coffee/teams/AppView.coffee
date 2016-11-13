@@ -68,7 +68,7 @@ module.exports = class TeamsView extends kd.TabPaneView
     {{> @header }}
     <div class="TeamsModal TeamsModal--create">
       <h4>Let's sign you up!</h4>
-      <h5>Let us know what your email is so we can start the process.</h5>
+      <h5>Let us know what your email and your team name are so we can start the process.</h5>
       {{> @form}}
     </div>
     <div class="ufo-bg"></div>

@@ -34,11 +34,11 @@ module.exports = class TeamUsernameTab extends TeamJoinTab
 
   getModalTitle: ->
     if @alreadyMember and @wantsToUseDifferentAccount
-      'Sign in'
+      'Your account'
     else if @alreadyMember
       ''
     else
-      'Create your account'
+      'Your account'
 
 
   getDescription: ->
