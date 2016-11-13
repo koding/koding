@@ -62,7 +62,7 @@ func (k *Konfig) KlientGzURL() string {
 		return ""
 	}
 
-	u.Path = path.Join(path.Base(u.Path), k.Environment, "klient.gz")
+	u.Path = path.Join(path.Dir(u.Path), "latest", "klient.gz")
 
 	return u.String()
 }
