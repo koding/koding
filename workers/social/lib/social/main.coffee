@@ -121,9 +121,6 @@ koding.connect ->
     if err then console.log err.message
     else console.log 'Default group roles created!'
 
-  if KONFIG.misc?.claimGlobalNamesForUsers
-    require('./models/account').reserveNames console.log
-
   { forcedRecipientEmail } = KONFIG.email
   Tracker = require './models/tracker'
   Tracker.identify forcedRecipientEmail  if forcedRecipientEmail
