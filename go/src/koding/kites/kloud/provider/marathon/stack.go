@@ -22,7 +22,15 @@ var klientPort = map[string]interface{}{
 
 var healthCheck = map[string]interface{}{
 	"command": map[string]interface{}{
-		"value": "curl -f -X GET http://$$HOST:$${PORT_56789}/kite",
+		// TODO(rjeczalik): use http healthcheck - implement mapping port indexes,
+		// the following fails with:
+		//
+		//   curl(52): Empty response from server
+		//
+		// Which makes Marathon redeploy healthy container.
+		//
+		//   "value": "curl -f -X GET http://$$HOST:$${PORT_56789}/kite",
+		"value": "true",
 	},
 	"max_consecutive_failures": 3,
 	"protocol":                 "COMMAND",
