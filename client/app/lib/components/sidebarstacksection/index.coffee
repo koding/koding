@@ -156,7 +156,6 @@ module.exports = class SidebarStackSection extends React.Component
         menuItems['Make Team Default'] = { callback }
 
       if template and whoami()._id is originId
-        console.log 'accessLevel', accessLevel
         menuItems['Share With Team'] = { callback }  if accessLevel is 'private'
         menuItems['Make Private'] = { callback }  if accessLevel is 'group'
 
