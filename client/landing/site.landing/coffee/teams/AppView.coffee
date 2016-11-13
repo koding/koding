@@ -33,7 +33,7 @@ module.exports = class TeamsView extends kd.TabPaneView
       cssClass : 'login-form'
       callback : (formData) ->
 
-        track 'submitted signup form', { category: 'TeamSignUp' }
+        track 'started team signup', { category: 'TeamSignUp' }
 
         finalize = (email) ->
           utils.storeNewTeamData 'signup', formData
