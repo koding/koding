@@ -48,7 +48,7 @@ module.exports = class TeamResetTab extends kd.TabPaneView
       type      : 'POST'
       error     : (xhr) =>
         { responseText } = xhr
-        @resetForm.button.hideLoader()
+        @form.button.hideLoader()
         new kd.NotificationView { title : responseText }
       success   : ({ username }) =>
         @form.button.hideLoader()
