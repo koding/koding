@@ -30,7 +30,7 @@ module.exports = class TeamDomainTab extends kd.TabPaneView
         utils.verifySlug formData.slug,
           success : =>
             track 'entered a valid domain'
-            @form.input.parent.unsetClass 'validation-error'
+            @form.teamName.input.parent.unsetClass 'validation-error'
             utils.storeNewTeamData name, formData
             # removed these steps
             # temp putting these empty values here to not break stuff - SY
@@ -52,7 +52,7 @@ module.exports = class TeamDomainTab extends kd.TabPaneView
     then teamName = slug
     else teamName = utils.slugifyCompanyName team
 
-    { input } = @form
+    { input } = @form.teamName
 
     input.setValue teamName
     input.emit 'input'
