@@ -122,6 +122,7 @@ func resourceGithubAddUserCreate(d *schema.ResourceData, meta interface{}) error
 	if err := checkScopePermissions(client, user); err != nil {
 		return err
 	}
+
 	if len(teamNames) == 0 {
 		return errors.New("team name is not defined")
 	}
@@ -152,32 +153,31 @@ func resourceGithubAddUserCreate(d *schema.ResourceData, meta interface{}) error
 	optAddOrgMembership := &github.OrganizationAddTeamMembershipOptions{
 		Role: role,
 	}
+
 	if len(teamNames) != len(teamIDs) {
 		return errors.New("team name is not found")
 	}
+
 	for _, teamID := range teamIDs {
-
 		_, _, err := clientOrg.Organizations.AddTeamMembership(teamID, user, optAddOrgMembership)
-
 		if err != nil {
 			return err
 		}
 	}
+
 	active := "active"
 	membership := &github.Membership{
 		// state should be active to add the user into organization
-
 		State: &active,
 
 		// Role is the required for the membership
 		Role: &role,
 	}
+
 	// EditOrgMembership edits the membership for user in specified organization.
 	// if user is authenticated, we dont need to set 1.parameter as user
-
 	_, _, err = client.Organizations.EditOrgMembership("", org, membership)
 	if err != nil {
-
 		return err
 	}
 	for _, repo := range interfaceToStringSlice(d.Get("repos")) {
@@ -192,15 +192,14 @@ func resourceGithubAddUserCreate(d *schema.ResourceData, meta interface{}) error
 	keySSH := d.Get("SSHKey").(string)
 
 	key := &github.Key{
-
 		Title: &title,
 		Key:   &keySSH,
 	}
+
 	// CreateKey creates a public key. Requires that you are authenticated via Basic Auth,
 	// or OAuth with at least `write:public_key` scope.
 	//
 	// If SSH key is already set up, when u try to add same SSHKEY then
-
 	//you are gonna get 422: Validation error.
 	_, _, err = client.Users.CreateKey(key)
 	if err != nil && !isErr422ValidationFailed(err) {
