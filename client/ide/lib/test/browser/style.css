@@ -12,6 +12,28 @@
   text-decoration: none;
 }
 
+#mocha-stats {
+  border-bottom: 1px solid #ebebeb;
+  padding: 10px;
+}
+
+#mocha-stats .progress {
+  float: right;
+}
+
+#mocha-stats .progress > canvas {
+  margin: 0 5px;
+}
+
+#mocha-stats .passes, #mocha-stats .duration {
+  margin-bottom: 3px;
+}
+
+#mocha-stats .failures, #mocha-stats .passes, #mocha-stats .duration {
+  text-align: left;
+  padding-left: 10px;
+}
+
 #mocha-stats .failures a {
   color: #c0392b;
 }
@@ -39,12 +61,12 @@
   text-decoration: none;
 }
 
-#mocha-report .test.fail h2 a {
-  color: #c0392b;
-  text-decoration: none;
+#mocha-report .test {
+  color: gray;
+  font-weight: 300;
 }
 
-#mocha-report .test.pass h2 a {
+#mocha-report .test.fail h2 a, #mocha-report .test.pass h2 a {
   text-decoration: none;
 }
 
@@ -54,4 +76,8 @@
 
 #mocha-report .duration {
   margin-left: 5px;
+}
+
+#mocha-report code {
+  font-size: 10px;
 }
