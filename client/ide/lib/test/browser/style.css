@@ -1,0 +1,57 @@
+#mocha {
+  height: 365px;
+  width: 600px;
+  overflow-y: scroll;
+  padding-top:10px;
+}
+
+#mocha-stats a, #mocha-report h1 {
+  pointer-events: none;
+  cursor: default;
+  color:inherit;
+  text-decoration: none;
+}
+
+#mocha-stats .failures a {
+  color: #c0392b;
+}
+
+#mocha-stats .passes a {
+  color: #27ae60;
+}
+
+#mocha-stats .duration {
+  color: #2980b9;
+}
+
+#mocha-stats .duration em {
+  color: black;
+}
+
+#mocha-report {
+  text-align: left;
+  padding: 20px;
+}
+
+#mocha-report h1 a {
+  font-size: 18px;
+  color: #2c3e50;
+  text-decoration: none;
+}
+
+#mocha-report .test.fail h2 a {
+  color: #c0392b;
+  text-decoration: none;
+}
+
+#mocha-report .test.pass h2 a {
+  text-decoration: none;
+}
+
+#mocha-report .test {
+  margin-left: 10px;
+}
+
+#mocha-report .duration {
+  margin-left: 5px;
+}
