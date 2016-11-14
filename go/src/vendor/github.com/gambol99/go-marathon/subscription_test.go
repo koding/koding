@@ -133,7 +133,22 @@ var testCases = testCaseList{
 		source: `{
 	"eventType": "deployment_info",
 	"timestamp": "2016-07-29T08:03:52.542Z",
-	"plan": {},
+	"plan": {
+		"id": "dcf63e4a-ef27-4816-e865-1730fcb26ac3",
+		"version": "2016-07-29T08:03:52.542Z",
+		"original": {},
+		"target": {},
+		"steps": [
+			{
+				"actions": [
+					{
+						"type": "ScaleApplication",
+						"app": "/my-app"
+					}
+				]
+			}
+		]
+	},
 	"currentStep": {
 		"actions": [
 			{
@@ -146,7 +161,25 @@ var testCases = testCaseList{
 		expectation: &EventDeploymentInfo{
 			EventType: "deployment_info",
 			Timestamp: "2016-07-29T08:03:52.542Z",
-			Plan:      &DeploymentPlan{},
+			Plan: &DeploymentPlan{
+				ID:       "dcf63e4a-ef27-4816-e865-1730fcb26ac3",
+				Version:  "2016-07-29T08:03:52.542Z",
+				Original: &Group{},
+				Target:   &Group{},
+				Steps: []*StepActions{
+					&StepActions{
+						Actions: []struct {
+							Type string `json:"type"`
+							App  string `json:"app"`
+						}{
+							{
+								Type: "ScaleApplication",
+								App:  "/my-app",
+							},
+						},
+					},
+				},
+			},
 			CurrentStep: &StepActions{
 				Actions: []struct {
 					Type string `json:"type"`
