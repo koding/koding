@@ -175,7 +175,10 @@ $borderColor                = #E3E3E3
 .StackEditorTabs.readonly
   .warning-view
     height                  30px
-    color                   #575757
+    color                   #989898
+    font-size               14px
+    line-height             17px
+    font-weight             400
     padding-top             12px
     padding-left            30px
     bg                      color #FEF2F4
@@ -202,7 +205,8 @@ $borderColor                = #E3E3E3
   .info-view
     bg                      color #FEF2F4
     height                  30px
-    color                   #575757
+    color                   #989898
+    font-weight             400
     padding-top             12px
     padding-left            30px
     border                  1px solid #DDD
@@ -211,24 +215,36 @@ $borderColor                = #E3E3E3
     top                     70px
     right                   0
     z-index                 1
+    font-size               14px
+    line-height             17px
     abs()
 
-    .reinit
+    &.saveTemplate
+      bg                    color #F6FCF9
+
+    .save
+    .update
       color                 #769ecc !important
       cursor                pointer
 
-    div.tooltip
+    span.clone-button
+      text-decoration       none
+      color                 #769ecc !important
+      pointer               cursor
+
+
+    div.close-update-view
       rel()
       display               inline-block
       cursor                pointer
       float                 right
-      top                   -18px
+      top                   -1px
       right                 24px
       r-sprite              stack-editor dontwarnmeagain
       bg                    color transparent
       box-sizing            border-box
 
-    div.tooltip span.tooltiptext
+    div.close-update-view span.tooltiptext
 
       visibility            hidden
       font-size             13px
@@ -265,7 +281,7 @@ $borderColor                = #E3E3E3
       margin-left -10px
 
 
-    div.tooltip:hover span.tooltiptext
+    div.close-update-view:hover span.tooltiptext
       visibility visible
 
 

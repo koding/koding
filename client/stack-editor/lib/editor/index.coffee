@@ -168,9 +168,11 @@ module.exports = class StackEditorView extends kd.View
       if pane.name is 'Credentials'
         @warningView.hide()
         @stackTemplateUpdateWarningView?.hide()
+        @saveUpdatedTemplateView?.hide()
       else
         @warningView.show()  unless @canUpdate
         @stackTemplateUpdateWarningView?.show()
+        @saveUpdatedTemplateView?.show()
 
     @createOutputView()
     @createMainButtons()
@@ -348,29 +350,64 @@ module.exports = class StackEditorView extends kd.View
 
     return  if @stackTemplateUpdateWarningView
 
+    @tabView.setClass 'view-info'
+
+    @createUpdateWarningView originalTemplate
+    @createSaveUpdatedView originalTemplate
+
+
+  createSaveUpdatedView: (originalTemplate) ->
+
+    { appManager } = kd.singletons
+
+    @tabView.addSubView @saveUpdatedTemplateView = new kd.CustomHTMLView
+      cssClass: 'info-view saveTemplate hidden'
+      partial: "The stack template has been updated with the original stack template #{originalTemplate.title}! "
+
+    @saveUpdatedTemplateView.addSubView new kd.CustomHTMLView
+      tagName: 'span'
+      cssClass: 'save'
+      partial: ' Click here to save!'
+      click: (event) =>
+        if event.target?.className is 'save'
+          appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
+          @handleSave()
+          @saveButton.showLoader()
+          @cleanUpdateView()
+
+    @saveUpdatedTemplateView.addSubView new kd.CustomHTMLView
+      cssClass: 'close-update-view'
+      click: (event) =>
+        if event.target?.className is 'close-update-view'
+          @cleanUpdateView()
+
+
+  createUpdateWarningView: (originalTemplate) ->
+
     { computeController } = kd.singletons
 
-    @tabView.setClass 'view-info'
     @tabView.addSubView @stackTemplateUpdateWarningView = new kd.CustomHTMLView
       cssClass: 'info-view'
       partial: "Stay up to date, original stack template has been updated #{originalTemplate.title}! "
+
     @stackTemplateUpdateWarningView.addSubView new kd.CustomHTMLView
       tagName: 'span'
-      cssClass: 'reinit'
+      cssClass: 'update'
       partial: ' Click here to update!'
       click: (event) =>
-        if event.target?.className is 'reinit'
-          ace = @stackTemplateView.editorView.getAce()
-          ace.setContent Encoder.htmlDecode originalTemplate.template.rawContent
-          @cleanUpdateView()
+        if event.target?.className is 'update'
+          stackTemplateAce = @stackTemplateView.editorView.getAce()
+          stackTemplateAce.setContent Encoder.htmlDecode originalTemplate.template.rawContent
+          readmeAce = @readmeView.editorView.getAce()
+          readmeAce.setContent originalTemplate.description
+          @stackTemplateUpdateWarningView.destroy()
+          @saveUpdatedTemplateView.show()
 
-    @stackTemplateUpdateWarningView.addSubView @tooltip = new kd.CustomHTMLView
-      partial:"
-        <div class='tooltip'>
-          <span class='tooltiptext'> Do not warn me for updates anymore!
-        </div>"
+    @stackTemplateUpdateWarningView.addSubView new kd.CustomHTMLView
+      cssClass: 'close-update-view'
+      partial:"<span class='tooltiptext'> Do not warn me for updates anymore!"
       click: (event) =>
-        if event.target?.className is 'tooltip'
+        if event.target?.className is 'close-update-view'
           computeController.removeClonedFromAttr @stackTemplate, (err) =>
             @cleanUpdateView()  unless err
             @clonedFrom.destroy()
@@ -380,6 +417,7 @@ module.exports = class StackEditorView extends kd.View
 
     @tabView.unsetClass 'view-info'
     @stackTemplateUpdateWarningView.destroy()
+    @saveUpdatedTemplateView.destroy()
     @emit 'Reload'
 
 
