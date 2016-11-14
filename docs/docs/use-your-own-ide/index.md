@@ -2,6 +2,7 @@
 layout: doc
 title: Use your own IDE
 permalink: /docs/use-your-own-ide
+redirect_from: "/docs/connect-your-machine"
 parent: /docs/home
 ---
 
