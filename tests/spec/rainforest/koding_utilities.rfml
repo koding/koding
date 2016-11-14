@@ -34,10 +34,11 @@ Do you see 'KD CLI', 'Koding OS X App'?
 Click on the KD command line which starts with 'curl -sL ...'
 Did you see 'Copied to clipboard!' notification?
 
-Click on 'VIEW GUIDE' button
-Is new tab opened? Do you see 'Use your own IDE', 'Introduction', 'Step 1: Get the kd install command' in new tab?
+# Click on 'VIEW GUIDE' button
+# Is new tab opened? Do you see 'Use your own IDE', 'Introduction', 'Step 1: Get the kd install command' in new tab?
 
-Close the newly opened tab, go to 'Koding OS X App' section and click on 'DOWNLOAD' button
+# Close the newly opened tab, go to 'Koding OS X App' section and click on 'DOWNLOAD' button
+Go to 'Koding OS X App' section and click on 'DOWNLOAD' button
 Does '.zip' file start to download?
 
 Click on 'VIEW GUIDE' button
