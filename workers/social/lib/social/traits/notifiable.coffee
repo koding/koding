@@ -33,25 +33,6 @@ module.exports = class Notifiable
           account.sendNotification 'InstanceChanged', opts
 
 
-  updateTemplateAndNotify: (options, change, callback) ->
-
-    { group } = options
-    id = @getId()
-
-    @update change, (err) ->
-
-      callback err
-      return  unless group
-
-      JGroup = require '../models/group'
-      JGroup.one { slug : group }, (err, group_) ->
-        return  if err or not group_
-
-        opts = { id, group, change, timestamp: Date.now() }
-        group_.sendNotification 'SetStackTemplateAccessLevel', opts
-
-
-
   removeAndNotify: (options, callback) ->
 
     { account, group, target } = options
