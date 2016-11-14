@@ -64,6 +64,7 @@ fi
 if [ ! -e /usr/share/terminfo ]; then
 	mkdir -p /usr/share
 	ln -sf /opt/kite/klient/embedded/share/terminfo /usr/share/terminfo
+	ln -sf /usr/share/terminfo/X /usr/share/terminfo/x
 fi
 
 gzip --decompress --force --stdout /mnt/mesos/sandbox/klient.gz > /tmp/klient
