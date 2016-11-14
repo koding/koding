@@ -55,9 +55,15 @@ trap "echo _KD_DONE_ | tee -a \$USER_LOG" EXIT
 
 echo "[entrypoint] connecting to Koding wih KODING_METADATA_${i}" | tee -a \$USER_LOG >&2
 
-if [ ! -f /usr/bin/screen ]; then
-	tar -C / -xf /mnt/mesos/sandbox/screen.tar.gz
-	ln -s /opt/kite/klient/embedded/bin/screen /usr/bin/screen
+tar -C / -xf /mnt/mesos/sandbox/screen.tar.gz
+
+if [ ! -x /usr/bin/screen ]; then
+	ln -sf /opt/kite/klient/embedded/bin/screen /usr/bin/screen
+fi
+
+if [ ! -e /usr/share/terminfo ]; then
+	mkdir -p /usr/share
+	ln -sf /opt/kite/klient/embedded/share/terminfo /usr/share/terminfo
 fi
 
 gzip --decompress --force --stdout /mnt/mesos/sandbox/klient.gz > /tmp/klient
