@@ -220,7 +220,7 @@ syncWithRedis = (callback) ->
     callback null
 
 
-module.exports = (email, callback = -> ) ->
+module.exports = emailchecker = (email, callback = -> ) ->
 
   unless email
     callback no

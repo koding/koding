@@ -28,7 +28,6 @@ WHITE_LIST     = [
     "koding-webserver",
     "koding-authworker",
     "koding-socialworker",
-    "privatemessageemailsender"
 ]
 
 (status, hostaddr) = commands.getstatusoutput(

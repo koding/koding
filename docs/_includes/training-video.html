@@ -1,0 +1,26 @@
+{% assign lesson = include.data[include.position] %}
+<div class="Lesson{% if lesson.imgPos == 'right' %} Lesson--imageRight{% else %} Lesson--imageLeft{% endif %}{% if lesson.isComplete %} Lesson--isComplete{% endif %}">
+  <div class="imgContainer">
+    <img src="{{ site.url }}/assets/img/landing/misc/training_placeholder.png" />
+    <a href="#" data-youtube-id="{{include.youtube_id}}" class="showModal playButton u-icon u-playButton"></a>
+    <a href="#" data-youtube-id="{{include.youtube_id}}" class="showModal playButton--isComplete u-icon u-playButton">WATCH AGAIN</a>
+  </div>
+  <div class="captionContainer">
+    <p class="Title">{{ lesson.number }} - <span class="Title-label">{{ lesson.title }}</span>{% if lesson.isComplete %} <span class="Title-complete u-icon u-checkmark">Completed</span>{% endif %}</p>
+    <p class="description">{{ lesson.description }}</p>
+    <p class="whatToLearn">What to learn on this video:</p>
+    <ul>
+    {% for subject in lesson.subjects %}
+      <li><span>{{ subject }}</span></li>
+    {% endfor %}
+    </ul>
+    <div class="shareContainer">
+      <div>Share:</div>
+      <a href="{{ lesson.youtube }}" class="u-icon u-youtube"></a>
+      <a href="{{ lesson.facebook }}" class="u-icon u-facebook"></a>
+      <a href="{{ lesson.twitter }}" class="u-icon u-twitter"></a>
+      <a href="{{ lesson.linkedin }}" class="u-icon u-linkedin"></a>
+    </div>
+  </div>
+  <div class="clearfix"></div>
+</div>

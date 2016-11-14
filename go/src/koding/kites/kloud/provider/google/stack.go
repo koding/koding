@@ -207,9 +207,9 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 
 		// Cloud-Init can be injected only via "user-data" field defined in
 		// root "metadata" object.
-		metadata, ok := instance["metadata"].(map[string]interface{})
-		if !ok {
-			metadata = make(map[string]interface{})
+		var metadata = make(map[string]interface{})
+		if meta, ok := instance["metadata"].([]map[string]interface{}); ok {
+			metadata = flatten(meta)
 		}
 		s.Builder.InterpolateField(metadata, resourceName, "user-data")
 
@@ -357,6 +357,23 @@ func (s *Stack) getDiskSize(currentProject string, computeService *compute.Servi
 
 		return int(computeImg.DiskSizeGb)
 	}
+}
+
+func flatten(data []map[string]interface{}) map[string]interface{} {
+	res := make(map[string]interface{})
+	for _, ms := range data {
+		for key, m := range ms {
+			if val, ok := m.(string); ok {
+				if res[key] == nil {
+					res[key] = val
+				} else {
+					res[key] = res[key].(string) + "\n" + val
+				}
+			}
+		}
+	}
+
+	return res
 }
 
 func mustAsset(s string) string {

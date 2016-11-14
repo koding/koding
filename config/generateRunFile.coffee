@@ -9,36 +9,6 @@ generateDev = (KONFIG, options) ->
 
   options.requirementCommands ?= []
 
-  installScript = """
-      pushd $KONFIG_PROJECTROOT
-      git submodule update --init
-
-      npm install --unsafe-perm
-
-      echo '#---> BUILDING CLIENT <---#'
-      make -C $KONFIG_PROJECTROOT/client unit-tests
-
-      echo '#---> BUILDING GO WORKERS <---#'
-      $KONFIG_PROJECTROOT/go/build.sh
-
-      echo '#---> BUILDING SOCIALAPI <---#'
-      pushd $KONFIG_PROJECTROOT/go/src/socialapi
-      make configure
-      # make install
-
-      echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY <---#'
-      KITE_KEY=$KONFIG_KITEHOME/kite.key
-      mkdir $HOME/.kite &>/dev/null
-      echo copying $KITE_KEY to $HOME/.kite/kite.key
-      cp -f $KITE_KEY $HOME/.kite/kite.key
-
-      echo
-      echo
-      echo 'ALL DONE. Enjoy! :)'
-      echo
-      echo
-  """
-
   run = """
     #!/bin/bash
 
@@ -258,6 +228,8 @@ generateDev = (KONFIG, options) ->
         echo ""
         exit 1
       fi
+
+      coffee deployment/mongomigrationconfig.coffee
 
       node $KONFIG_PROJECTROOT/node_modules/mongodb-migrate -runmm --config ../deployment/generated_files/mongomigration.json --dbPropName conn -c $KONFIG_PROJECTROOT/workers $1 $2
 
@@ -542,7 +514,34 @@ generateDev = (KONFIG, options) ->
 
     elif [ "$1" == "install" ]; then
       check_service_dependencies
-      #{installScript}
+
+      pushd $KONFIG_PROJECTROOT
+      git submodule update --init
+
+      npm install --unsafe-perm
+
+      echo '#---> BUILDING CLIENT <---#'
+      make -C $KONFIG_PROJECTROOT/client unit-tests
+
+      echo '#---> BUILDING GO WORKERS <---#'
+      $KONFIG_PROJECTROOT/go/build.sh
+
+      echo '#---> BUILDING SOCIALAPI <---#'
+      pushd $KONFIG_PROJECTROOT/go/src/socialapi
+      make configure
+      # make install
+
+      echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY <---#'
+      KITE_KEY=$KONFIG_KITEHOME/kite.key
+      mkdir $HOME/.kite &>/dev/null
+      echo copying $KITE_KEY to $HOME/.kite/kite.key
+      cp -f $KITE_KEY $HOME/.kite/kite.key
+
+      echo
+      echo
+      echo 'ALL DONE. Enjoy! :)'
+      echo
+      echo
 
     elif [ "$1" == "printconfig" ]; then
 

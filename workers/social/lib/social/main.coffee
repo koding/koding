@@ -1,5 +1,7 @@
 process.title = 'koding-socialworker'
 
+require 'coffee-cache'
+
 log = -> console.log arguments...
 
 { argv } = require 'optimist'
@@ -7,7 +9,6 @@ log = -> console.log arguments...
 { exec }           = require 'child_process'
 { extend }         = require 'underscore'
 { join: joinPath } = require 'path'
-{ NodejsProfiler } = require 'koding-datadog'
 
 usertracker = require '../../../usertracker'
 datadog     = require '../../../datadog'
@@ -138,9 +139,11 @@ app = express()
 do ->
   usertracker.start redisClient
 
-  # start monitoring nodejs metrics (memory, gc, cpu etc...)
-  nodejsProfiler = new NodejsProfiler 'socialWorker'
-  nodejsProfiler.startMonitoring()
+  if KONFIG.environment is 'production'
+    { NodejsProfiler } = require 'koding-datadog'
+    # start monitoring nodejs metrics (memory, gc, cpu etc...)
+    nodejsProfiler = new NodejsProfiler 'socialWorker'
+    nodejsProfiler.startMonitoring()
 
   compression = require 'compression'
   bodyParser = require 'body-parser'

@@ -1,5 +1,5 @@
 electron       = require 'electron'
-Menu           = require 'menu'
+Menu           = electron.Menu
 { app, shell } = electron
 
 module.exports = class ApplicationMenu

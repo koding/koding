@@ -158,7 +158,7 @@ func (s *Stack) convertInstancesToGroup(name string, app map[string]interface{})
 	// Each app within group must have unique name.
 	appID, ok := app["app_id"].(string)
 	if !ok || appID == "" {
-		appID = name
+		appID = path.Join("/", name)
 		app["app_id"] = appID
 	}
 

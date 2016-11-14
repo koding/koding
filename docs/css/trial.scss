@@ -75,8 +75,9 @@ p {
 
     .imgContainer {
       background-image: url({{path}}/training_success.png);
-      height: 488px;
-      width: 675px;
+      height: 480px;
+      width: 660px;
+      background-size: 100%;
     }
   }
 
@@ -221,7 +222,7 @@ p {
       }
 
       .timeline {
-        color: $dusty-gray4;
+        color: $dusty-gray;
         padding-top: 25px;
         padding-bottom: 38px;
 
@@ -359,6 +360,7 @@ p {
     background-image: url({{ path }}/training_invites.png);
     height: 429px;
     width: 588px;
+    background-size: 100%;
   }
 
   .Caption {
@@ -401,16 +403,6 @@ p {
     text-align: center;
     margin-bottom: 128px;
   }
-}
-
-.Modal {
-  height: 369px;
-  width: 656px;
-  margin: 0 auto;
-  top: 50%;
-  -webkit-transform: translateY(-50%);
-  -ms-transform: translateY(-50%);
-  transform: translateY(-50%);
 }
 
 @media screen and (max-width: 1200px) {

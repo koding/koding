@@ -33,6 +33,5 @@ module.exports = {
     'modifiedAt': '2015-12-24T21:29:42.909Z',
     'likes': 0
   },
-  'onlineStatus': 'online',
   '_id': '567c63c6178902000012673f'
 }

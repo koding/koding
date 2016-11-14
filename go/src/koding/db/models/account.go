@@ -17,8 +17,7 @@ type Account struct {
 	SystemInfo  struct {
 		DefaultToLastUsedEnvironment bool `json:"defaultToLastUsedEnvironment" bson:"defaultToLastUsedEnvironment"`
 	} `json:"systemInfo"`
-	OnlineStatus bool `bson:"onlineStatus" json:"onlineStatus"`
-	Meta         struct {
+	Meta struct {
 		ModifiedAt time.Time `bson:"modifiedAt" json:"modifiedAt"`
 		CreatedAt  time.Time `bson:"createdAt" json:"createdAt"`
 		Likes      int       `json:"likes" bson:"likes"`

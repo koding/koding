@@ -1,11 +1,14 @@
-package modelhelper
+package modelhelper_test
 
 import (
-	"koding/db/models"
 	"math/rand"
 	"strconv"
 	"testing"
 	"time"
+
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
+	"koding/db/mongodb/modelhelper/modeltesthelper"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -24,12 +27,13 @@ func createWorkspace() (*models.Workspace, error) {
 		IsDefault:    true,
 	}
 
-	return ws, CreateWorkspace(ws)
+	return ws, modelhelper.CreateWorkspace(ws)
 }
 
 func TestGetWorkspaceByChannelId(t *testing.T) {
-	initMongoConn()
-	defer Close()
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
+
 	rand.Seed(time.Now().UnixNano())
 
 	w, err := createWorkspace()
@@ -37,7 +41,7 @@ func TestGetWorkspaceByChannelId(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	w2, err := GetWorkspaceByChannelId(w.ChannelId)
+	w2, err := modelhelper.GetWorkspaceByChannelId(w.ChannelId)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -50,15 +54,16 @@ func TestGetWorkspaceByChannelId(t *testing.T) {
 		t.Errorf("workspaces are not same: expected: %+v, got: ", w)
 	}
 
-	_, err = GetWorkspaceByChannelId(strconv.FormatInt(rand.Int63(), 10))
+	_, err = modelhelper.GetWorkspaceByChannelId(strconv.FormatInt(rand.Int63(), 10))
 	if err == nil {
 		t.Errorf("we should not be able to find the WS")
 	}
 }
 
 func TestUnsetSocialChannelFromWorkspace(t *testing.T) {
-	initMongoConn()
-	defer Close()
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
+
 	rand.Seed(time.Now().UnixNano())
 
 	w, err := createWorkspace()
@@ -67,7 +72,7 @@ func TestUnsetSocialChannelFromWorkspace(t *testing.T) {
 	}
 
 	// first fetch it
-	w2, err := GetWorkspaceByChannelId(w.ChannelId)
+	w2, err := modelhelper.GetWorkspaceByChannelId(w.ChannelId)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -80,12 +85,12 @@ func TestUnsetSocialChannelFromWorkspace(t *testing.T) {
 		t.Errorf("workspaces are not same: expected: %+v, got: ", w)
 	}
 
-	err = UnsetSocialChannelFromWorkspace(w.ObjectId)
+	err = modelhelper.UnsetSocialChannelFromWorkspace(w.ObjectId)
 	if err != nil {
 		t.Errorf("we should be able to unset social channel id")
 	}
 
-	_, err = GetWorkspaceByChannelId(w.ChannelId)
+	_, err = modelhelper.GetWorkspaceByChannelId(w.ChannelId)
 	if err == nil {
 		t.Errorf("we should not be able to find the WS")
 	}
