@@ -32,7 +32,7 @@ Click on the 'SAVE' button on top right and wait for a few seconds for that proc
 Do you see that 'INITIALIZE' button appeared next to 'SAVE' button?
 
 Click on '_Aws Stack' from left sidebar
-Do you only see 'Edit' and 'Initialize' options?
+Do you see 'Edit', 'Initialize', 'Clone' and 'Delete' options?
 
 Click on 'Initialize'
 Have you seen 'Stack generated successfully' message displayed? Do you see '_Aws Stack' title? Do you see 'Instructions', 'Credentials' and 'Build Stack' sections? Do you see 'STACKS', '_Aws Stack' and 'aws-instance' labels on left sidebar?
