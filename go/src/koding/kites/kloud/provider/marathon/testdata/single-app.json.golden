@@ -31,18 +31,18 @@
         },
         "fetch": [
           {
-            "executable": false,
             "cache": false,
+            "executable": false,
             "uri": "$SCREEN_URL"
           },
           {
-            "executable": false,
             "cache": false,
+            "executable": false,
             "uri": "$KLIENT_URL"
           },
           {
-            "executable": true,
             "cache": false,
+            "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.1.sh"
           }
         ],

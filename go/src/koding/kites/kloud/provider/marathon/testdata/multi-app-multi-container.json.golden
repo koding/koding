@@ -88,58 +88,58 @@
         },
         "fetch": [
           {
-            "executable": false,
             "cache": false,
+            "executable": false,
             "uri": "$SCREEN_URL"
           },
           {
-            "executable": false,
             "cache": false,
+            "executable": false,
             "uri": "$KLIENT_URL"
           },
           {
-            "executable": true,
             "cache": false,
+            "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.1.sh"
           },
           {
-            "executable": true,
             "cache": false,
+            "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.2.sh"
           },
           {
-            "executable": true,
             "cache": false,
+            "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.3.sh"
           },
           {
-            "executable": true,
             "cache": false,
+            "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.4.sh"
           },
           {
-            "executable": true,
             "cache": false,
+            "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.5.sh"
           },
           {
-            "executable": true,
             "cache": false,
+            "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.6.sh"
           },
           {
-            "executable": true,
             "cache": false,
+            "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.7.sh"
           },
           {
-            "executable": true,
             "cache": false,
+            "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.8.sh"
           },
           {
-            "executable": true,
             "cache": false,
+            "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.9.sh"
           }
         ],
