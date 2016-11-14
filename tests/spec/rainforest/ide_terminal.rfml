@@ -43,11 +43,11 @@ Is one of the active terminals closed?
 Click '+' icon at the right of the terminal and mouse over 'New Terminal' section and click 'Terminate all' in the menu
 Are all terminal tabs closed? Click 'No' on the 'Would you like us to remove the pane when there are no tabs left?' modal if it's displayed ( http://snag.gy/WynLF.jpg )
 
-Click '+' icon in the header where terminals were opened and click 'New Drawing Board' in the menu
-Do you see a new tab with drawing board opened?
+# Click '+' icon in the header where terminals were opened and click 'New Drawing Board' in the menu
+# Do you see a new tab with drawing board opened?
 
-Try to draw something using a mouse on the drawing board area
-Are you able to draw?
+# Try to draw something using a mouse on the drawing board area
+# Are you able to draw?
 
 Click '+' icon at the right of the terminal and select New Terminal -> New Session (http://snag.gy/UnOoo.jpg)
 Do you see new terminal tab opened?
@@ -58,7 +58,7 @@ Do you see all opened terminals, drawing boards are remembered?
 Click '+' icon at the right of the file name in the editor header and click 'Enter Fullscreen' ( http://snag.gy/rb5Po.jpg )
 Is editor displayed in fullscreen mode?
 
-Click '+' icon at the right of the file name in the editor header and click 'Exit Fullscreen' 
+Click '+' icon at the right of the file name in the editor header and click 'Exit Fullscreen'
 Is editor displayed in normal mode?
 
 Click 'Fullscreen' icon in the top right corner of the editor header ( http://snag.gy/YMM7u.jpg )
