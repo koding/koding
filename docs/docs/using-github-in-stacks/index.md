@@ -120,7 +120,7 @@ Login with an admin/master GitHub user account. Use the account to login to Gith
 
 - Using the admin/master user [create SSH key](https://help.github.com/articles/generating-a-new-ssh-key/)
 - Add the PUBLIC KEY to the admin GitHub account, for steps [click here](https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/)
-- Create a [personal access token](https://github.com/settings/tokens/new), and check **repo, admin:org, admin:public_key, user**
+- Create a [personal access token](https://github.com/settings/tokens/new), and check scopes **`repo, admin:org, admin:public_key, user`**
 
 ### Step 3 - Create the stack:
 
@@ -155,12 +155,12 @@ provider:
   - In the `resources`section,  the stack template will add the user using the user and repo information.
     - `username `developer GitHub username _defined as user input_
     - `organization` GitHub Organization
-    - `repos` GitHub repository name
-    - `teams` GitHub team the user will be created
-    - `title` key title
+    - `repos` GitHub repository names the user could fork
+    - `teams` GitHub organization teams the user will be added
+    - `title` title for SSHKey
     - `SSHKey` developer Public Key
 
-    In our case, the organization "mars-org" has a team called "Devs" working on the "bricks4" repo
+    In our case, the organization "mars-org" has a team called "Devs" working on the "bricks4" repo (teams and repos can take more than 1 argument)
 
 ```yaml
 resource:
