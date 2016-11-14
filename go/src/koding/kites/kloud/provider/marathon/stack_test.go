@@ -92,6 +92,7 @@ func TestApplyTemplate(t *testing.T) {
 					KlientIDs: make(stack.KiteMap),
 				},
 				EntrypointBaseURL: "$ENTRYPOINT_URL",
+				ScreenURL:         "$SCREEN_URL",
 				KlientURL:         "$KLIENT_URL",
 			}
 

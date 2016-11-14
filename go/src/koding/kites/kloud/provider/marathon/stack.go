@@ -43,6 +43,7 @@ type Stack struct {
 	*provider.BaseStack
 
 	EntrypointBaseURL string
+	ScreenURL         string
 	KlientURL         string
 
 	AppOrGroupName string
@@ -59,6 +60,7 @@ func newStack(bs *provider.BaseStack) (provider.Stack, error) {
 	s := &Stack{
 		BaseStack:         bs,
 		EntrypointBaseURL: "https://koding-klient.s3.amazonaws.com/entrypoint",
+		ScreenURL:         "https://koding-dl.s3.amazonaws.com/screen.tar.gz",
 		KlientURL:         stack.Konfig.KlientGzURL(),
 	}
 
@@ -275,6 +277,10 @@ func (s *Stack) injectFetchEntrypoints(app map[string]interface{}, metadataCount
 	fetch := getSlice(app["fetch"])
 
 	fetch = append(fetch, map[string]interface{}{
+		"uri":        s.ScreenURL,
+		"executable": false,
+		"cache":      true,
+	}, map[string]interface{}{
 		"uri":        s.KlientURL,
 		"executable": false,
 		"cache":      false,

@@ -89,6 +89,11 @@
         "fetch": [
           {
             "executable": false,
+            "cache": true,
+            "uri": "$SCREEN_URL"
+          },
+          {
+            "executable": false,
             "cache": false,
             "uri": "$KLIENT_URL"
           },
