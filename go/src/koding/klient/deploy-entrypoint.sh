@@ -67,6 +67,12 @@ if [ ! -e /usr/share/terminfo ]; then
 	ln -sf /usr/share/terminfo/X /usr/share/terminfo/x
 fi
 
+if [ ! -e /var/run/screen ]; then
+	mkdir -p /tmp/screens
+	chmod 0755 /tmp/screens
+	ln -s /tmp/screens /var/run/screen
+fi
+
 gzip --decompress --force --stdout /mnt/mesos/sandbox/klient.gz > /tmp/klient
 chmod +x /tmp/klient
 /tmp/klient -metadata \$KODING_METADATA_${i} run
