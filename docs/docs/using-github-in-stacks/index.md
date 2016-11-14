@@ -51,9 +51,9 @@ resource:
   github_adduser:
     user:
       username      : ${var.userInput_github_username}  # Ask user to enter their github username
-      organization  : my-company                        # Your organization username on github
+      organization  : my-company                        # Your organization name on github
       repos         : [bricks4]                         # Repositories that will be forked to the user
-      teams         : [Devs]                            # Teams that the user will be added as a member
+      teams         : [Devs]                            # Teams that the user will be added as a member or admin
       title         : key used in koding-vms            # Title of the key that will be inserted into users github account
       SSHKey        : ${var.userInput_PublicKey}        # User's public key that will be inserted along with the title
 
