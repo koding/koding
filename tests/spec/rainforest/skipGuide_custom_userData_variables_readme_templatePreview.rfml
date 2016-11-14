@@ -50,7 +50,7 @@ Do you see 'name will be requested from user.' text? Do you see 'YAML' and 'JSON
 Click on EXPAND
 Has that pop-up expanded? Do you see 'COLLAPSE' button on top right?
 
-Click on 'COLLAPSE', close the 'Template Preview' by clicking (x) from top right and then click on 'SAVE' button on top right and wait for a few seconds for that process to be completed
+Click on 'COLLAPSE', close the 'Template Preview' by clicking (x) from top right (if you cannot see (x) then press ESC) and then click on 'SAVE' button on top right and wait for a few seconds for that process to be completed
 Do you see 'Share Your Stack_' title on a pop-up displayed? Do you see that 'Share the credentials I used for this stack with my team.' checkbox is already checked? Do you see 'CANCEL' and 'SHARE WITH THE TEAM' buttons?
 
 Click on 'CANCEL'
