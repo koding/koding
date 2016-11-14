@@ -92,10 +92,6 @@ type Klient struct {
 
 	log kite.Logger
 
-	// disconnectTimer is used track disconnected users and eventually remove
-	// them from the collaboration storage.
-	disconnectTimer *time.Timer
-
 	// config stores all necessary configuration needed for Klient to work.
 	// It's supplied with the NewKlient() function.
 	config *KlientConfig
@@ -454,6 +450,37 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("client.Subscribe", ps.Subscribe)
 	k.kite.HandleFunc("client.Unsubscribe", ps.Unsubscribe)
 
+	// Close all active sessions of the current. Do not close it immediately,
+	// instead of give some time so users can safely exit. If the user
+	// reconnects again the timer will be stopped so we don't unshare for
+	// network hiccups accidentally.
+	closeSessionsFunc := func() {
+		sharedUsers, err := k.collab.GetAll()
+		if err != nil {
+			k.log.Warning("Couldn't unshare users: %s", err)
+			return
+		}
+
+		if len(sharedUsers) == 0 {
+			return
+		}
+
+		k.log.Info("Unsharing users '%s'", sharedUsers)
+		for user, option := range sharedUsers {
+			// dont touch permanent users
+			if option.Permanent {
+				k.log.Info("User is permanent, avoiding it: %q", user)
+				continue
+			}
+
+			if err := k.collab.Delete(user); err != nil {
+				k.log.Warning("Couldn't delete user from storage: %s", err)
+			}
+			k.terminal.CloseSessions(user)
+		}
+	}
+	df := NewDeferTime(time.Minute, closeSessionsFunc)
+
 	k.kite.OnFirstRequest(func(c *kite.Client) {
 		// Koding (kloud) connects to much, don't display it.
 		if c.Username != "koding" {
@@ -464,13 +491,8 @@ func (k *Klient) RegisterMethods() {
 			return // we don't care for others
 		}
 
-		// it's still not initialized, so don't do anything
-		if k.disconnectTimer != nil {
-			// stop previously started disconnect timer.
-			k.log.Info("Disconnection timer is cancelled.")
-			k.disconnectTimer.Stop()
-		}
-
+		k.log.Info("Canceling disconnection timer.")
+		df.Stop()
 	})
 
 	// Unshare collab users if the klient owner disconnects
@@ -484,47 +506,8 @@ func (k *Klient) RegisterMethods() {
 			return // we don't care for others
 		}
 
-		// if there is any previously created timers stop them so we don't leak
-		// goroutines
-		if k.disconnectTimer != nil {
-			k.disconnectTimer.Stop()
-		}
-
-		k.log.Info("Disconnection timer of 1 minutes is fired.")
-		k.disconnectTimer = time.NewTimer(time.Minute * 1)
-
-		// Close all active sessions of the current. Do not close it
-		// immediately, instead of give some time so users can safely exit. If
-		// the user reconnects again the timer will be stopped so we don't
-		// unshare for network hiccups accidentally.
-		go func() {
-			select {
-			case <-k.disconnectTimer.C:
-				sharedUsers, err := k.collab.GetAll()
-				if err != nil {
-					k.log.Warning("Couldn't unshare users: '%s'", err)
-					return
-				}
-
-				if len(sharedUsers) == 0 {
-					return // nothing to do ...
-				}
-
-				k.log.Info("Unsharing users '%s'", sharedUsers)
-				for user, option := range sharedUsers {
-					// dont touch permanent users
-					if option.Permanent {
-						k.log.Info("User is permanent, avoiding it: '%s'", user)
-						continue
-					}
-
-					if err := k.collab.Delete(user); err != nil {
-						k.log.Warning("Couldn't delete user from storage: '%s'", err)
-					}
-					k.terminal.CloseSessions(user)
-				}
-			}
-		}()
+		k.log.Info("Start disconnection timer with 1 minute delay.")
+		df.Start()
 	})
 }
 
