@@ -341,11 +341,11 @@ main.main-container
 
 .ContentModal.content-modal.stack-template-preview
   width                     900px !important
-  height                    800px !important
+  height                    100% !important
   main
     margin                  20px
     .preview-label
-      color #868686
+      color                 #868686
       font-weight           300
     .has-markdown
       font-size             14px
@@ -353,11 +353,13 @@ main.main-container
       font-weight           300
 
     button.expand-button
-      abs                   170px 40px 0 0
+      abs()
+      right                 40px
+      bottom                calc(100% \- 198px)
       z-index               10
 
     button.minimize-button
-      display none
+      display               none
 
     .kdtabpaneview
       height                600px !important
@@ -402,8 +404,8 @@ main.main-container
   header
   .preview-label
   .has-markdown
-    display none
+    display                 none
 
   button.minimize-button
-    abs 97px 60px 0 0
-    z-index 10
+    abs                     100px 60px 0 0
+    z-index                 10
