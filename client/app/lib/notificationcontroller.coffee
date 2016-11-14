@@ -8,6 +8,7 @@ KDModalView        = kd.ModalView
 KDNotificationView = kd.NotificationView
 KDObject           = kd.Object
 ContentModal = require 'app/components/contentModal'
+EnvironmentFlux = require 'app/flux/environment'
 
 remote_extensions  = require 'app/remote-extensions'
 
@@ -100,12 +101,22 @@ module.exports = class NotificationController extends KDObject
         @once 'EmailConfirmed', displayEmailConfirmedNotification.bind this, modal
         modal.on 'KDObjectWillBeDestroyed', deleteUserCookie.bind this
 
+    @on 'MachineShareListUpdated', (data = {}) ->
+
+      { machineId, action, permanent } = data
+
+      switch action
+        when 'deny'
+          EnvironmentFlux.actions.loadMachineSharedUsers machineId
+
+
     @on 'MachineListUpdated', (data = {}) ->
 
       { machineUId, action, permanent } = data
 
       switch action
         when 'removed'
+          EnvironmentFlux.actions.dispatchSharedVMInvitationRejected machineUId
           if (ideInstance = envDataProvider.getIDEFromUId machineUId) and permanent
             ideInstance.showUserRemovedModal()
 
