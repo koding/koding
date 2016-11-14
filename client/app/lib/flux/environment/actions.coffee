@@ -794,9 +794,9 @@ unshareMachineWithUser = (machineId, nickname) ->
         showError err  unless err.message is 'user is not in the shared list.'
 
 
-unshareMachineWihAllUsers = (machineId) ->
+unshareMachineWithAllUsers = (machineId) ->
 
-  machine = _kd.singletons.reactor.evaluate ['MachinesStore', machineId]
+  machine = kd.singletons.reactor.evaluate ['MachinesStore', machineId]
 
   new Promise (resolve, reject) ->
     queue = machine.get('sharedUsers').toJS().map (user) -> (next) ->
@@ -882,7 +882,7 @@ module.exports = {
   loadMachineSharedUsers
   shareMachineWithUser
   unshareMachineWithUser
-  unshareMachineWihAllUsers
+  unshareMachineWithAllUsers
   disconnectMachine
   setLabel
   fetchAndUpdateStackTemplate
