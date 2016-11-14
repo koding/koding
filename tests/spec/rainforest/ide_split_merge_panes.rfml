@@ -22,7 +22,7 @@ Is the tabs merged ?
 Double click '.profile' file in the file tree
 Do you see new editor tab opened with this file content?
 
-Hold by mouse the file tab, drag this tab to the middle of any of the IDE pane and release the tab
+Click and hold the file tab titled '.profile' and drag and drop it to bottom half of editor area
 Did you see the 'Drop to move source pane to this split' green message and is the selected pane splitted?
 
 Click on the (x) icon appearing when you mouse over the top right corner or the 'bottom' pane until there's nothing left on the bottom pane
