@@ -10,7 +10,7 @@
 Return to the first browser, close the modal by clicking (x) from top right corner and then click on the little down arrow next to '/home/rainforestqa99' label and select 'New file'
 Do you see that 'NewFile.txt' added to the end of vertical list?
 
-Enter '{{ random.first_name }}' instead of 'NewFile' text and hit enter
+Type '{{ random.first_name }}' and hit ENTER
 Do you see '{{ random.first_name }}.txt' in the list?
 
 Switch to the incognito window, click on 'ACCEPT' button on the pop-up appeared
