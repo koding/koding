@@ -2,7 +2,7 @@
   "resource": {
     "marathon_app": {
       "multi-app": {
-        "app_id": "/multi-app/multi-app-${count.index + 1}",
+        "app_id": "/multi-app/multi-app-foobar-ident-${count.index + 1}",
         "container": [
           {
             "docker": [
@@ -147,7 +147,7 @@
           "health_check": [
             {
               "command": {
-                "value": "curl -f -X GET http://$$HOST:$${PORT_56789}/kite"
+                "value": "true"
               },
               "max_consecutive_failures": 3,
               "protocol": "COMMAND"

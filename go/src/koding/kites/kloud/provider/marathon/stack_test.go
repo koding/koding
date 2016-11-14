@@ -29,28 +29,54 @@ func TestApplyTemplate(t *testing.T) {
 	log := logging.NewCustom("test", true)
 
 	cred := &stack.Credential{
+		Identifier: "ident",
 		Credential: &marathon.Credential{URL: "http://127.0.0.1:8080"},
 	}
 
 	cases := map[string]struct {
-		stack string
-		want  string
+		stack  string
+		want   string
+		labels []marathon.Label
 	}{
 		"single app stack": {
 			"testdata/single-app.json",
 			"testdata/single-app.json.golden",
+			[]marathon.Label{
+				{Label: "/app", AppID: "/app-foobar-ident"},
+			},
 		},
 		"multi app stack": {
 			"testdata/multi-app.json",
 			"testdata/multi-app.json.golden",
+			[]marathon.Label{
+				{Label: "/multi-app-1", AppID: "/multi-app/multi-app-foobar-ident-1"},
+				{Label: "/multi-app-2", AppID: "/multi-app/multi-app-foobar-ident-2"},
+				{Label: "/multi-app-3", AppID: "/multi-app/multi-app-foobar-ident-3"},
+			},
 		},
 		"multi container stack": {
 			"testdata/multi-container.json",
 			"testdata/multi-container.json.golden",
+			[]marathon.Label{
+				{Label: "/multi-app-1", AppID: "/multi-app-foobar-ident"},
+				{Label: "/multi-app-2", AppID: "/multi-app-foobar-ident"},
+				{Label: "/multi-app-3", AppID: "/multi-app-foobar-ident"},
+			},
 		},
 		"multi app multi container stack": {
 			"testdata/multi-app-multi-container.json",
 			"testdata/multi-app-multi-container.json.golden",
+			[]marathon.Label{
+				{Label: "/multi-app-1-1", AppID: "/multi-app/multi-app-foobar-ident-1"},
+				{Label: "/multi-app-1-2", AppID: "/multi-app/multi-app-foobar-ident-1"},
+				{Label: "/multi-app-1-3", AppID: "/multi-app/multi-app-foobar-ident-1"},
+				{Label: "/multi-app-2-1", AppID: "/multi-app/multi-app-foobar-ident-2"},
+				{Label: "/multi-app-2-2", AppID: "/multi-app/multi-app-foobar-ident-2"},
+				{Label: "/multi-app-2-3", AppID: "/multi-app/multi-app-foobar-ident-2"},
+				{Label: "/multi-app-3-1", AppID: "/multi-app/multi-app-foobar-ident-3"},
+				{Label: "/multi-app-3-2", AppID: "/multi-app/multi-app-foobar-ident-3"},
+				{Label: "/multi-app-3-3", AppID: "/multi-app/multi-app-foobar-ident-3"},
+			},
 		},
 	}
 
@@ -73,6 +99,9 @@ func TestApplyTemplate(t *testing.T) {
 
 			s := &marathon.Stack{
 				BaseStack: &provider.BaseStack{
+					Arg: &stack.ApplyRequest{
+						GroupName: "foobar",
+					},
 					Session: &session.Session{
 						Userdata: &userdata.Userdata{
 							KlientURL: "http://127.0.0.1/klient.gz",
@@ -103,6 +132,10 @@ func TestApplyTemplate(t *testing.T) {
 
 			if err := equal(stack.Content, string(pWant)); err != nil {
 				t.Fatal(err)
+			}
+
+			if !reflect.DeepEqual(s.Labels, cas.labels) {
+				t.Fatalf("got %#v, want %#v", s.Labels, cas.labels)
 			}
 		})
 	}

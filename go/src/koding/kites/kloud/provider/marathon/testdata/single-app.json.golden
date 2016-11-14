@@ -2,7 +2,7 @@
   "resource": {
     "marathon_app": {
       "app": {
-        "app_id": "/app",
+        "app_id": "/app-foobar-ident",
         "cmd": "/mnt/mesos/sandbox/entrypoint.${count.index + 1}.sh python3 -m http.server 8080",
         "container": [
           {
@@ -50,7 +50,7 @@
           "health_check": [
             {
               "command": {
-                "value": "curl -f -X GET http://$$HOST:$${PORT_56789}/kite"
+                "value": "true"
               },
               "max_consecutive_failures": 3,
               "protocol": "COMMAND"

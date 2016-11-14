@@ -198,18 +198,26 @@ func (s *Stack) convertInstancesToGroup(name, unique string, app map[string]inte
 		}
 	}
 
+	forEachContainer(app, func(map[string]interface{}) error {
+		s.Count++
+		return nil
+	})
+
+	// BUG(rjeczalik): when "cmd" argument is set, we assume
+	// there's going to be only one klient injected, since
+	// it's not possible to wrap containers' entrypoints,
+	// as Mesos sets fixed entrypoint to /bin/sh for
+	// every container.
+	cmd, ok := app["cmd"].(string)
+	globalEntrypoint := ok && cmd != ""
+
 	if count > 1 {
 		app["app_id"] = fmt.Sprintf(appID, "${count.index + 1}")
-
-		forEachContainer(app, func(map[string]interface{}) error {
-			s.Count++
-			return nil
-		})
 
 		for i := 1; i <= count; i++ {
 			id := fmt.Sprintf(appID, i)
 
-			if s.Count > 1 {
+			if s.Count > 1 && !globalEntrypoint {
 				for j := 1; j <= s.Count; j++ {
 					s.Labels = append(s.Labels, Label{
 						Label: fmt.Sprintf("%s-%d-%d", label, i, j),
@@ -224,12 +232,21 @@ func (s *Stack) convertInstancesToGroup(name, unique string, app map[string]inte
 			}
 		}
 	} else {
-		app["app_id"] = path.Join("/", appID)
+		app["app_id"] = appID
 
-		s.Labels = append(s.Labels, Label{
-			Label: label,
-			AppID: appID,
-		})
+		if s.Count > 1 && !globalEntrypoint {
+			for i := 1; i <= s.Count; i++ {
+				s.Labels = append(s.Labels, Label{
+					Label: fmt.Sprintf("%s-%d", label, i),
+					AppID: appID,
+				})
+			}
+		} else {
+			s.Labels = append(s.Labels, Label{
+				Label: label,
+				AppID: appID,
+			})
+		}
 	}
 }
 
