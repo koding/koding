@@ -214,6 +214,8 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 
 	command, err := newCommand(params.Mode, params.Session, user.Username)
 	if err != nil {
+		t.Log.Warning("terminal: connect failed for user %q: %s", user.Username, err)
+
 		return nil, err
 	}
 
