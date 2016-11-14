@@ -89,7 +89,7 @@
         "fetch": [
           {
             "executable": false,
-            "cache": true,
+            "cache": false,
             "uri": "$SCREEN_URL"
           },
           {

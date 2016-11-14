@@ -279,7 +279,7 @@ func (s *Stack) injectFetchEntrypoints(app map[string]interface{}, metadataCount
 	fetch = append(fetch, map[string]interface{}{
 		"uri":        s.ScreenURL,
 		"executable": false,
-		"cache":      true,
+		"cache":      false,
 	}, map[string]interface{}{
 		"uri":        s.KlientURL,
 		"executable": false,
