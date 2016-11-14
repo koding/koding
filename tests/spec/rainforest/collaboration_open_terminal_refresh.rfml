@@ -14,7 +14,7 @@ Return to the incognito browser window
 Do you see green warning 'ACCESS GRANTED: You can make changes now!'?
 
 Click + icon in the editor area and click 'New Session' in the 'New Terminal' section of the menu (like on screenshot http://snag.gy/jJiod.jpg )
-Do you see a new terminal tab opened and displayed near the 'file2.txt'?
+Do you see a new terminal tab opened?
 
 Remember the list of editors and terminals opened and return to the other browser window where you are logged in as 'rainforestqa99', close the browser notification if displayed
 Do you see a new terminal tab opened?
