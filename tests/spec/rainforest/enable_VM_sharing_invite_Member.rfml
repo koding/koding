@@ -31,5 +31,5 @@ Is the label updated as 'ON'? Is it turned to green? Has a text-box with 'Type a
 Enter 'rainforestqa22' in the text box, hit enter and wait for a few seconds for process to be completed
 Is 'rainforestqa22' added below 'Type a username' text box? Is 'This VM has not yet been shared with anyone.' text removed?
 
-Switch to the incognito window
+Close the modal by clicking close button on top right corner then switch to the incognito window
 Do you see 'test(@rainforestqa99)' below 'SHARED VMS' title on left sidebar? Do you see a pop-up appeared next to it? Do you see 'wants to share their VM with you.' text in that pop-up? Do you also see 'REJECT' and 'ACCEPT' buttons?
