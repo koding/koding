@@ -15,7 +15,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-message-create",
 			Type:     handler.PostRequest,
 			Endpoint: "/channel/{id}/message",
-			Securer:  models.MessageSecurer,
 		},
 	)
 
@@ -25,7 +24,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     models.REQUEST_NAME_MESSAGE_DELETE,
 			Type:     handler.DeleteRequest,
 			Endpoint: "/message/{id}",
-			Securer:  models.MessageDeleteSecurer,
 		},
 	)
 
@@ -35,7 +33,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     models.REQUEST_NAME_MESSAGE_UPDATE,
 			Type:     handler.PostRequest,
 			Endpoint: "/message/{id}",
-			Securer:  models.MessageSecurer,
 		},
 	)
 
@@ -47,7 +44,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     models.REQUEST_NAME_MESSAGE_GET,
 			Type:     handler.GetRequest,
 			Endpoint: "/message/{id}",
-			Securer:  models.MessageReadSecurer,
 		},
 	)
 
@@ -59,7 +55,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "message-get-with-related",
 			Type:     handler.GetRequest,
 			Endpoint: "/message/{id}/related",
-			Securer:  models.MessageReadSecurer,
 		},
 	)
 
@@ -71,7 +66,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "message-get-by-slug",
 			Type:     handler.GetRequest,
 			Endpoint: "/message/slug/{slug}",
-			Securer:  models.MessageReadSecurer,
 		},
 	)
 }
