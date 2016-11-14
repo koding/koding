@@ -40,17 +40,11 @@ export COMMANDS=(
 	socialapi/workers/cmd/algoliaconnector/deletedaccountremover
 	socialapi/workers/cmd/presence
 	socialapi/workers/cmd/collaboration
-	socialapi/workers/cmd/email/activityemail
-	socialapi/workers/cmd/email/dailyemail
-	socialapi/workers/cmd/email/privatemessageemailfeeder
-	socialapi/workers/cmd/email/privatemessageemailsender
 	socialapi/workers/cmd/email/emailsender
 	socialapi/workers/cmd/team
-	socialapi/workers/cmd/integration/webhook
 	socialapi/workers/algoliaconnector/tagmigrator
 	socialapi/workers/algoliaconnector/contentmigrator
 	socialapi/workers/cmd/integration/eventsender
-	socialapi/workers/cmd/integration/webhookmiddleware
 
 	vendor/github.com/koding/kite/kitectl
 	vendor/github.com/canthefason/go-watcher

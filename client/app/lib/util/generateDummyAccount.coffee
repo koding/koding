@@ -27,7 +27,6 @@ module.exports = (id, nickname, firstName = nickname, lastName = nickname) ->
       createdAt     : timeString
       modifiedAt    : timeString
       likes         : 0
-    onlineStatus    : 'online'
     _id             : id
     timestamp_      : timeString
   }

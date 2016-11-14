@@ -70,9 +70,14 @@ module.exports = utils = {
       {
         predict: "#{basePattern}"
         labelFn: (hostname) ->
-          labels = hostname.split('.').reverse()[2..] # exclude leading ['com', 'koding']
-          if slug = labels[0] in ['dev', 'sandbox', 'latest', 'prod']
-            slug = labels[1]
+          labels = hostname
+            .replace ///\.?#{basePattern}$///, ''
+            .split '.'
+            .reverse()
+
+          slug = labels.shift()
+          if slug in ['dev', 'sandbox', 'latest', 'prod']
+            slug = labels.shift()
           return slug
       }
 

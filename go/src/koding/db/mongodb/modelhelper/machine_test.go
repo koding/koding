@@ -1,9 +1,12 @@
-package modelhelper
+package modelhelper_test
 
 import (
-	"koding/db/models"
 	"testing"
 	"time"
+
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
+	"koding/db/mongodb/modelhelper/modeltesthelper"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -53,7 +56,7 @@ func createMachine(t *testing.T) *models.Machine {
 		UserDeleted: false,
 	}
 
-	err := CreateMachine(m)
+	err := modelhelper.CreateMachine(m)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -62,17 +65,17 @@ func createMachine(t *testing.T) *models.Machine {
 }
 
 func TestUnshareMachine(t *testing.T) {
-	initMongoConn()
-	defer Close()
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
 
 	m := createMachine(t)
-	defer DeleteMachine(m.ObjectId)
+	defer modelhelper.DeleteMachine(m.ObjectId)
 
-	if err := UnshareMachineByUid(m.Uid); err != nil {
+	if err := modelhelper.UnshareMachineByUid(m.Uid); err != nil {
 		t.Error(err)
 	}
 
-	m2, err := GetMachineByUid(m.Uid)
+	m2, err := modelhelper.GetMachineByUid(m.Uid)
 	if err != nil {
 		t.Error(err.Error())
 	}
@@ -87,13 +90,13 @@ func TestUnshareMachine(t *testing.T) {
 }
 
 func TestGetMachinesByUsernameAndProvider(t *testing.T) {
-	initMongoConn()
-	defer Close()
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
 
 	user := &models.User{Name: "testuser", ObjectId: bson.NewObjectId()}
-	defer RemoveUser(user.Name)
+	defer modelhelper.RemoveUser(user.Name)
 
-	if err := CreateUser(user); err != nil {
+	if err := modelhelper.CreateUser(user); err != nil {
 		t.Error(err)
 	}
 
@@ -107,11 +110,11 @@ func TestGetMachinesByUsernameAndProvider(t *testing.T) {
 		},
 	}
 
-	if err := CreateMachine(m1); err != nil {
+	if err := modelhelper.CreateMachine(m1); err != nil {
 		t.Errorf(err.Error())
 	}
 
-	defer DeleteMachine(m1.ObjectId)
+	defer modelhelper.DeleteMachine(m1.ObjectId)
 
 	// non koding provider machine
 	m2 := &models.Machine{
@@ -123,14 +126,14 @@ func TestGetMachinesByUsernameAndProvider(t *testing.T) {
 		},
 	}
 
-	if err := CreateMachine(m2); err != nil {
+	if err := modelhelper.CreateMachine(m2); err != nil {
 		t.Errorf(err.Error())
 	}
 
-	defer DeleteMachine(m2.ObjectId)
+	defer modelhelper.DeleteMachine(m2.ObjectId)
 
 	// should only get koding provider machine
-	machines, err := GetMachinesByUsernameAndProvider(user.Name, m1.Provider)
+	machines, err := modelhelper.GetMachinesByUsernameAndProvider(user.Name, m1.Provider)
 	if err != nil {
 		t.Error(err.Error())
 	}

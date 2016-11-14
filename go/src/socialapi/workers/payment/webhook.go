@@ -97,7 +97,6 @@ func getAmountOpts(currency string, amount int64) map[string]interface{} {
 
 var oneDayTrialDur int64 = 24 * 60 * 60
 var sevenDayTrialDur = 7 * oneDayTrialDur
-var thirtyDayTrialDur = 30 * oneDayTrialDur
 
 func customerSubscriptionCreatedHandler(raw []byte) error {
 	var req *stripe.Sub
@@ -117,13 +116,11 @@ func customerSubscriptionCreatedHandler(raw []byte) error {
 
 	durSec := req.TrialEnd - req.TrialStart
 	durStr := ""
-	switch durSec {
-	case sevenDayTrialDur:
+	if durSec > 0 {
 		durStr = "seven days"
-	case thirtyDayTrialDur:
+	}
+	if durSec > sevenDayTrialDur {
 		durStr = "thirty days"
-	default:
-		durStr = time.Duration(durSec).String()
 	}
 
 	eventName = fmt.Sprintf("%s trial started", durStr)

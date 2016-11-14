@@ -9,7 +9,6 @@ module.exports = {
       "referredUsers":0,
       "topics":0
     },
-    "onlineStatus":"online",
     "meta":{
       "data":{
         "createdAt":"2016-04-27T16:27:37.805Z",
@@ -106,7 +105,6 @@ module.exports = {
       "staffLikes":0,
       "likes":0
     },
-    "onlineStatus":"online",
     "meta":{
       "data":{
         "modifiedAt":"2014-06-11T00:01:48.675Z",

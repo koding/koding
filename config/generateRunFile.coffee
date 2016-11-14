@@ -229,6 +229,8 @@ generateDev = (KONFIG, options) ->
         exit 1
       fi
 
+      coffee deployment/mongomigrationconfig.coffee
+
       node $KONFIG_PROJECTROOT/node_modules/mongodb-migrate -runmm --config ../deployment/generated_files/mongomigration.json --dbPropName conn -c $KONFIG_PROJECTROOT/workers $1 $2
 
       if [ "$param" == "create" ]; then
