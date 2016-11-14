@@ -25,7 +25,7 @@ Have you seen that the green dot next to '{{ random.first_name }}.txt' disappear
 Type "{{ random.number }}" next to '{{ random.full_name }}' in the file, click on the little down arrow next to '{{ random.first_name }}.txt' label above and then select 'Save As...'
 Do you see 'Filename:' title and a text field with '{{ random.first_name }}.txt' in it? Do you see 'Select a folder:' title? Do you see 'CANCEL' and 'SAVE' buttons?
 
-Type "{{ random.last_name }}" instead of '{{ random.last_name }}' and click on 'SAVE' button
+Clear text in filename input then type "{{ random.last_name }}.txt" and then click to 'SAVE' button
 Is '{{ random.last_name }}.txt' added to the pane next to '{{ random.first_name }}.txt'? Is it also added to the end of file list under '/home/rainforestqa99'?
 
 Return to the first browser
