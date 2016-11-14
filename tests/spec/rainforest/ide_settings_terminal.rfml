@@ -25,14 +25,14 @@ Is font size in the terminal changed according to selected value?
 Change 'Theme' option in Terminal Settings
 Is color theme for terminal changed?
 
-Select '50' value for the Scrollback option in the 'Terminal Settings', type 'man -?' command in the terminal and press Enter
-Do you see only 50 rows of results in the terminal and other results are cut off?
+# Select '50' value for the Scrollback option in the 'Terminal Settings', type 'man -?' command in the terminal and press Enter
+# Do you see only 50 rows of results in the terminal and other results are cut off?
 
-Select '100' value for the Scrollback option in the 'Terminal Settings', type 'sudo' in the terminal and press Enter, type 'man -?' in the terminal and press Enter
-Do you see only 100 rows of results in the terminal and other results are cut off?
+# Select '100' value for the Scrollback option in the 'Terminal Settings', type 'sudo' in the terminal and press Enter, type 'man -?' in the terminal and press Enter
+# Do you see only 100 rows of results in the terminal and other results are cut off?
 
-Select '10000' value for the Scrollback option in the 'Terminal Settings', type 'man -?' in the terminal and press Enter and repeat several times
-Do you see all results (up to 10000 rows) in the terminal?
+# Select '10000' value for the Scrollback option in the 'Terminal Settings', type 'man -?' in the terminal and press Enter and repeat several times
+# Do you see all results (up to 10000 rows) in the terminal?
 
 Toggle on 'Use visual bell' in Terminal Settings, enter wrong text in terminal and press Enter
 Is Visual 'Bell' warning displayed? or is beep via speeker performed?
@@ -45,5 +45,3 @@ Do you see text color is changed to white? Does it looks inactive?
 
 Toggle off 'Dim if inactive' in Terminal Settings
 Do you see text color is changed to green? Does it looks active?
-
-
