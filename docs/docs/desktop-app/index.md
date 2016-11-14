@@ -9,7 +9,7 @@ parent: /docs/home
 
 ### INTRODUCTION:
 
-If you are using OSX or linux, you can install Koding OS X App. Koding Collaborative Development Environment (CDE) is built on top of the Atom IDE, it offers real-time VM-level collaboration.
+If you are using OS X or linux, you can install Koding OS X App. Koding Collaborative Development Environment (CDE) is built on top of the Atom IDE, it offers real-time VM-level collaboration.
 
 Note that:
 
@@ -20,7 +20,7 @@ Note that:
 
 Login to your team from your browser to access your Dashboard. Click on Koding Utilities and go to **Koding OS X App** and click **Download**.
 
-![Download Koding OSX App][1]
+![Download Koding OS X App][1]
 
 ### Login from Koding OSX app
 
@@ -33,7 +33,7 @@ Enter your account information to Login
 ### Congratulations!
 
 You should now have the Koding OSX App running successfully
-![Koding OSX App][4]
+![Koding OS X App][4]
 
 [1]: {{ site.url }}/assets/img/guides/desktop-app/download.png
 [2]: {{ site.url }}/assets/img/guides/desktop-app/osxapp-team.png
