@@ -311,13 +311,20 @@ module.exports = class JStackTemplate extends Module
 
       { group } = client.r
       query = { $set: { accessLevel } }
+      id = @getId()
 
-      notifyOptions =
-        group   : group.slug
-        target  : 'group'
+      @update query, (err) =>
 
-      @updateTemplateAndNotify notifyOptions, query, (err) =>
-        callback err, this
+        callback err
+        return  unless group.slug
+
+        JGroup = require '../models/group'
+        JGroup.one { slug : group.slug }, (err, group_) =>
+          return callback err, this  if err or not group_
+
+          opts = { id, group: group.slug, change: query, timestamp: Date.now() }
+          group_.sendNotification 'SetStackTemplateAccessLevel', opts
+          callback err, this
 
 
   generateStack: permit
