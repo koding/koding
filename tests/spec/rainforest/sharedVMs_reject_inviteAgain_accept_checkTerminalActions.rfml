@@ -7,14 +7,17 @@
 - 2f953286-4d03-47aa-9665-b80e2cd03c5a
 
 # redirect: false
-Click on 'REJECT' button and then return to the first browser
-Is 'rainforestqa22' removed from the list under 'VM Sharing' section? Do you see 'This VM has not yet been shared with anyone.' text again?
+Click to 'REJECT' button
+Did popup disappear? Did 'aws-instance' disappear along with 'Shared VMs' section in sidebar on the left?
 
-Enter 'rainforestqa22' in the text box again (before doing this if text box is not visible click on the toggle button next to 'VM Sharing' and enable it), hit enter and wait for a few seconds for process to be completed
+Switch back to first window and click on 'Stacks' from left vertical menu and click on the toggle button next to 'VM Sharing'
+Is the label updated as 'OFF'? Is it turned to gray?
+
+Click to toggle button next to 'VM Sharing' and then enter 'rainforestqa22' in the text box again, hit enter and wait for a few seconds for process to be completed
 Is 'rainforestqa22' added below 'Type a username' text box? Is 'This VM has not yet been shared with anyone.' text removed?
 
 Switch to the incognito window and click on 'ACCEPT' button this time
-Do you see '/home/rainforestqa99' label on top of a file list next to left sidebar? Do you see 'Terminal' tab on the bottom? Do you see 'rainforestqa99@rainforestqa99:~$' in that 'Terminal' tab? 
+Do you see '/home/rainforestqa99' label on top of a file list next to left sidebar? Do you see 'Terminal' tab on the bottom? Do you see 'rainforestqa99@rainforestqa99:~$' in that 'Terminal' tab?
 
 Click on the tab where it says 'Terminal', type "expr 5 + 5" and hit enter
 Do you see '10' as a result?
