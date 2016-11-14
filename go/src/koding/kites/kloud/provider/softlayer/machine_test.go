@@ -12,7 +12,14 @@ import (
 	"golang.org/x/net/context"
 )
 
-func newBaseMachine() *provider.BaseMachine {
+func newBaseMachine(t *testing.T) *provider.BaseMachine {
+  guestId := os.Getenv("SL_GUEST_ID")
+
+	if guestId == "" {
+		t.Skip("Environment variable SL_GUEST_ID is not set.")
+		return nil
+	}
+
 	return &provider.BaseMachine{
 		Machine: &models.Machine{},
 		Session: nil,
@@ -31,13 +38,13 @@ func newBaseMachine() *provider.BaseMachine {
 }
 
 func TestNewMachine(t *testing.T) {
-	if _, err := softlayer.NewMachine(newBaseMachine()); err != nil {
+	if _, err := softlayer.NewMachine(newBaseMachine(t)); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestMachineStart(t *testing.T) {
-	m, _ := softlayer.NewMachine(newBaseMachine())
+	m, _ := softlayer.NewMachine(newBaseMachine(t))
 
 	c := context.Background()
 	_, err := m.Start(c)
@@ -47,7 +54,7 @@ func TestMachineStart(t *testing.T) {
 }
 
 func TestMachineStop(t *testing.T) {
-	m, _ := softlayer.NewMachine(newBaseMachine())
+	m, _ := softlayer.NewMachine(newBaseMachine(t))
 
 	c := context.Background()
 	_, err := m.Stop(c)
@@ -57,7 +64,7 @@ func TestMachineStop(t *testing.T) {
 }
 
 func TestMachineInfo(t *testing.T) {
-	m, _ := softlayer.NewMachine(newBaseMachine())
+	m, _ := softlayer.NewMachine(newBaseMachine(t))
 
 	c := context.Background()
 	_, _, err := m.Info(c)

@@ -1,6 +1,7 @@
 package softlayer_test
 
 import (
+	"io/ioutil"
 	"os"
 	"testing"
 
@@ -13,6 +14,7 @@ import (
 	"koding/kites/kloud/provider/softlayer"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
+	"koding/kites/kloud/stack/provider/providertest"
 	"koding/kites/kloud/userdata"
 )
 
@@ -28,8 +30,8 @@ var minimumTemplate = `
 }
 `
 
-func newBaseStack() (*provider.BaseStack, error) {
-	t, err := provider.ParseTemplate(minimumTemplate, nil)
+func newBaseStack(template string) (*provider.BaseStack, error) {
+	t, err := provider.ParseTemplate(template, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -37,11 +39,17 @@ func newBaseStack() (*provider.BaseStack, error) {
 	s := &provider.BaseStack{
 		Provider: softlayer.Provider,
 		Req: &kite.Request{
-			Username: "testuser",
+			Username: "test",
 		},
-		Arg: &stack.BootstrapRequest{
-			Provider:  "softlayer",
-			GroupName: "testgroup",
+		Session: &session.Session{
+			Userdata: &userdata.Userdata{
+				KlientURL: "https://test.com/klient.gz",
+				Keycreator: &keycreator.Key{
+					KontrolURL:        "https://test.com/kontrol/kite",
+					KontrolPrivateKey: testkeys.Private,
+					KontrolPublicKey:  testkeys.Public,
+				},
+			},
 		},
 		Keys: &publickeys.Keys{
 			PublicKey: "random-publickey",
@@ -49,30 +57,13 @@ func newBaseStack() (*provider.BaseStack, error) {
 		Builder: &provider.Builder{
 			Template: t,
 		},
-		Session: &session.Session{
-			Userdata: &userdata.Userdata{
-				KlientURL: "https://example-klient.com",
-				Keycreator: &keycreator.Key{
-					KontrolURL:        "https://example-kontrol.com",
-					KontrolPrivateKey: testkeys.Private,
-					KontrolPublicKey:  testkeys.Public,
-				},
-			},
-		},
-		KlientIDs: stack.KiteMap(map[string]string{}),
+		KlientIDs: make(stack.KiteMap),
 	}
 	return s, nil
 }
 
-func TestNewBaseStack(t *testing.T) {
-	_, err := newBaseStack()
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
 func TestVerifyCredential(t *testing.T) {
-	bs, _ := newBaseStack()
+	bs, _ := newBaseStack(minimumTemplate)
 	s := &softlayer.Stack{BaseStack: bs}
 
 	c := &stack.Credential{
@@ -88,7 +79,7 @@ func TestVerifyCredential(t *testing.T) {
 }
 
 func TestBootstrapTemplates(t *testing.T) {
-	bs, _ := newBaseStack()
+	bs, _ := newBaseStack(minimumTemplate)
 	s := &softlayer.Stack{BaseStack: bs}
 
 	c := &stack.Credential{
@@ -104,9 +95,24 @@ func TestBootstrapTemplates(t *testing.T) {
 	}
 }
 
+func stripNondeterministicResources(s string) string {
+	if s == "user_data" {
+		return "***"
+	}
+
+	return ""
+}
+
 func TestApplyTemplate(t *testing.T) {
-	bs, _ := newBaseStack()
-	s := &softlayer.Stack{BaseStack: bs}
+	cases := map[string]struct {
+		stack string
+		want  string
+	}{
+		"single guest stack": {
+			"testdata/single-guest.json",
+			"testdata/single-guest.golden.json",
+		},
+	}
 
 	c := &stack.Credential{
 		Credential: &softlayer.Credential{
@@ -114,12 +120,33 @@ func TestApplyTemplate(t *testing.T) {
 			ApiKey:   os.Getenv("SL_API_KEY"),
 		},
 		Bootstrap: &softlayer.Bootstrap{
-			KeyID: "123456789",
+			KeyID: "12345",
 		},
 	}
 
-	_, err := s.ApplyTemplate(c)
-	if err != nil {
-		t.Fatal(err)
+	for name, cas := range cases {
+		t.Run(name, func(t *testing.T) {
+			pStack, err := ioutil.ReadFile(cas.stack)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			pWant, err := ioutil.ReadFile(cas.want)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			bs, _ := newBaseStack(string(pStack))
+			s := &softlayer.Stack{BaseStack: bs}
+
+			stack, err := s.ApplyTemplate(c)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if err := providertest.Equal(stack.Content, string(pWant), stripNondeterministicResources); err != nil {
+				t.Fatal(err)
+			}
+		})
 	}
 }

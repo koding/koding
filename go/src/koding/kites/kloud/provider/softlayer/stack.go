@@ -89,8 +89,6 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 		return nil, err
 	}
 
-	// NOTE: Should we shadow out private vars here?
-
 	return []*stack.Template{{
 		Content: bootstrap.String(),
 	}}, nil
@@ -113,7 +111,6 @@ func (s *Stack) injectBootstrap(b *Bootstrap, guest map[string]interface{}) erro
 	guest["ssh_keys"] = keys
 
 	guest["image"] = "UBUNTU_14_64"
-	// NOTE: Should we allow for user override here? Do all images work with klient?
 	if userImage, ok := guest["image"]; ok {
 		guest["image"] = userImage
 	}
