@@ -227,14 +227,14 @@ user_data: |-
 
 Edit the Readme message to educate your developers and save even more time. Let them know the steps they need to take with a simple message.
 
-    You'll be asked to provide the following info:
+>You'll be asked to provide the following
+>
+>Enter your Github
+>Enter your Github Key [click here to generate one](https://github.com/settings/tokens/)
+>SELECT THESE IN THE KEY:  [repo, admin:org, admin:public_key, user](http://take.ms/)
+>Enter your private and public ssh key
 
-    * Enter your Github username
-    * Enter your Github Key [click here to generate one](https://github.com/settings/tokens/new)
-    * SELECT THESE IN THE KEY: [repo, admin:org, admin:public_key, user](http://take.ms/61py7)
-    * Enter your private and public ssh key
-
-    Happy Koding!
+Happy Koding!
 
 ![github_readme.png][2]
 
