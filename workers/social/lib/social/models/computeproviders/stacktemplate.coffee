@@ -315,7 +315,7 @@ module.exports = class JStackTemplate extends Module
 
       @update query, (err) =>
 
-        callback err
+        return callback err  if err
         return  unless group.slug
 
         JGroup = require '../group'
