@@ -19,11 +19,11 @@ Do you see 'Editor Settings' and 'Terminal Settings' instead of file tree?
 Toggle 'Trim trailing whitespaces' option on in Editor Settings
 Is 'Trim trailing whitespaces' toggle green?
 
-Create a new row in the editor, create tabulation by pressing tab on keyboard, type several spaces and press Enter
-Are all spaces and tabulations removed from the row you entered?
+Create a new line in the editor, create tabulation by pressing tab on keyboard, type several spaces and press Enter
+Are all spaces and tabulations removed from the line you entered?
 
-Set cursor to the end of any not-empty row in the editor, type several spaces and press Enter
-Are all spaces removed from the end of the row?
+Set cursor to the end of any not-empty line in the editor, type several spaces and press Enter
+Are all spaces removed from the end of the line?
 
 Toggle 'Trim trailing whitespaces' option off in Editor Settings
 Is 'Trim trailing whitespaces' toggle gray?
@@ -31,13 +31,13 @@ Is 'Trim trailing whitespaces' toggle gray?
 Disable 'Enable Autocomplete' toggle in the 'Editor Settings'
 Is 'Enable Autocomplete' toggle gray?
 
-Click editor area, create a new row and type 'tested test' (type, not copy/paste)
+Click editor area, create a new line and type 'tested test' (type, not copy/paste)
 Do you see the text entered without any hints at the bottom (hint like this http://snag.gy/HdTHS.jpg shouldn't be displayed)?
 
 Enable 'Enable Autocomplete' toggle in the 'Editor Settings'
 Is 'Enable Autocomplete' toggle green?
 
-Click editor area, create a new row and type 'test' (type, not copy/paste)
+Click editor area, create a new line and type 'test' (type, not copy/paste)
 Do you see the text entered with a hint at the bottom of the text containing words with 'test' in it (like on screenshot http://snag.gy/LnDQx.jpg )?
 
 Toggle 'Enable emmet' on in Editor Settings, clear file content, type 'html:5' and press tab
@@ -67,5 +67,5 @@ Is font size in the editor changed according to selected value?
 Change 'Theme' option in Editor Settings
 Is color theme for editor changed?
 
-Change value for 'Tab size' option, create a new row in the editor, create tabulation by pressing tab on keyboard and type 'new row'
+Change value for 'Tab size' option, create a new line in the editor, create tabulation by pressing tab on keyboard and type 'new line'
 Is tabulation displayed the number of spaces equals the selected value in the settings?
