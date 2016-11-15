@@ -13,8 +13,8 @@ Do you see new folder 'NewFolder' added to the file tree? Is folder name display
 Enter '{{random.address_state}}{{random.number}}' folder name and press Enter
 Do you see a folder '{{random.address_state}}{{random.number}}' with arrow icon next to it in the file tree?
 
-Click down arrow icon at the right of  '{{random.address_state}}{{random.number}}' folder and click 'Terminal from here' in the menu ( http://snag.gy/a8gQD.jpg )
-Do you see a new terminal opened? Do you see ' ~/{{random.address_state}}{{random.number}}' in the terminal?
+Click to folder '{{random.address_state}}{{random.number}}' and then click to down arrow icon at the right hand of the folder. Click 'Terminal from here' in the menu opened ( http://snag.gy/a8gQD.jpg )
+Do you see a new terminal opened? Do you see ' ~/{{random.address_state}}{{random.number}}_' in the terminal?
 
 Click down arrow icon in the terminal header and click 'Rename' in the menu ( http://snag.gy/KlOHf.jpg )
 Do you see an edit mode for terminal tab title is displayed in edit mode?
