@@ -41,5 +41,5 @@ We can also test our AMI. In our case we used a bitnami-wordpress Ubuntu AMI, we
 
 [1]: http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html
 [2]: {{ site.url }}/assets/img/guides/stack-aws/4-ami/amis-choose.png
-[3]: {{ site.url }}/assets/img/guides/stack-aws/4-ami/stack-ready.png
+[3]: {{ site.url }}/assets/img/guides/stack-aws/4-ami/stack-built.png
 [4]: {{ site.url }}/assets/img/guides/stack-aws/4-ami/wordpress-running.png
