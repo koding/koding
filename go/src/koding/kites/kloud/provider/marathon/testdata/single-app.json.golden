@@ -3,13 +3,20 @@
     "marathon_app": {
       "app": {
         "app_id": "/app-foobar-ident",
-        "cmd": "/mnt/mesos/sandbox/entrypoint.${count.index + 1}.sh python3 -m http.server 8080",
         "container": [
           {
             "docker": [
               {
                 "image": "python:3",
                 "network": "BRIDGE",
+                "parameters": {
+                  "parameter": [
+                    {
+                      "key": "entrypoint",
+                      "value": "/mnt/mesos/sandbox/entrypoint.${count.index * 1 + 1}.sh"
+                    }
+                  ]
+                },
                 "port_mappings": {
                   "port_mapping": [
                     {
@@ -26,6 +33,7 @@
         "count": 1,
         "cpus": 1.2,
         "env": {
+          "KODING_CMD": "${base64encode(null_resource.app.triggers.cmd)}",
           "KODING_KLIENT_URL": "$KLIENT_URL",
           "KODING_METADATA_1": "..."
         },
@@ -61,6 +69,14 @@
         "ports": [
           0
         ]
+      }
+    },
+    "null_resource": {
+      "app": {
+        "depends_on": [],
+        "triggers": {
+          "cmd": "python3 -m http.server 8080"
+        }
       }
     }
   }

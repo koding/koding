@@ -124,7 +124,7 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 		s.injectFetchEntrypoints(app)
 		s.injectHealthChecks(app)
 
-		if err := s.injectMetadata(app); err != nil {
+		if err := s.injectMetadata(app, name); err != nil {
 			return nil, err
 		}
 	}
@@ -203,21 +203,13 @@ func (s *Stack) convertInstancesToGroup(name, unique string, app map[string]inte
 		return nil
 	})
 
-	// BUG(rjeczalik): when "cmd" argument is set, we assume
-	// there's going to be only one klient injected, since
-	// it's not possible to wrap containers' entrypoints,
-	// as Mesos sets fixed entrypoint to /bin/sh for
-	// every container.
-	cmd, ok := app["cmd"].(string)
-	globalEntrypoint := ok && cmd != ""
-
 	if count > 1 {
 		app["app_id"] = fmt.Sprintf(appID, "${count.index + 1}")
 
 		for i := 1; i <= count; i++ {
 			id := fmt.Sprintf(appID, i)
 
-			if s.Count > 1 && !globalEntrypoint {
+			if s.Count > 1 {
 				for j := 1; j <= s.Count; j++ {
 					s.Labels = append(s.Labels, Label{
 						Label: fmt.Sprintf("%s-%d-%d", label, i, j),
@@ -234,7 +226,7 @@ func (s *Stack) convertInstancesToGroup(name, unique string, app map[string]inte
 	} else {
 		app["app_id"] = appID
 
-		if s.Count > 1 && !globalEntrypoint {
+		if s.Count > 1 {
 			for i := 1; i <= s.Count; i++ {
 				s.Labels = append(s.Labels, Label{
 					Label: fmt.Sprintf("%s-%d", label, i),
@@ -265,11 +257,6 @@ var ErrIncompatibleEntrypoint = errors.New(`marathon: setting "args" argument co
 func (s *Stack) injectEntrypoint(app map[string]interface{}) error {
 	if _, ok := app["args"]; ok {
 		return ErrIncompatibleEntrypoint
-	}
-
-	if cmd, ok := app["cmd"].(string); ok && cmd != "" {
-		app["cmd"] = "/mnt/mesos/sandbox/entrypoint.${count.index + 1}.sh " + cmd
-		return nil
 	}
 
 	i := 0
@@ -365,8 +352,16 @@ func (s *Stack) injectHealthChecks(app map[string]interface{}) {
 	app["ports"] = ports
 }
 
-func (s *Stack) injectMetadata(app map[string]interface{}) error {
+func (s *Stack) injectMetadata(app map[string]interface{}, name string) error {
 	envs := getObject(app["env"])
+
+	s.Builder.InterpolateField(app, name, "cmd")
+
+	cmd, ok := app["cmd"]
+	if ok {
+		delete(app, "cmd")
+		envs["KODING_CMD"] = cmd
+	}
 
 	if val, ok := envs["KODING_KLIENT_URL"].(string); !ok || val == "" {
 		envs["KODING_KLIENT_URL"] = s.KlientURL

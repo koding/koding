@@ -77,10 +77,20 @@ gzip --decompress --force --stdout /mnt/mesos/sandbox/klient.gz > /tmp/klient
 chmod +x /tmp/klient
 /tmp/klient -metadata \$KODING_METADATA_${i} run
 
-echo "[entrypoint] executing: \$@" | tee -a \$USER_LOG >&2
 echo _KD_DONE_ >> \$USER_LOG
 
-exec "\$@"
+if [ -n "\$KODING_CMD" ]; then
+	echo "[entrypoint] executing: /tmp/cmd.sh" | tee -a \$USER_LOG >&2
+	echo \$KODING_CMD | base64 --decode > /tmp/cmd.sh
+	chmod +x /tmp/cmd.sh
+	exec /tmp/cmd.sh
+elif [ -n "\$@" ]; then
+	echo "[entrypoint] executing: \$@" | tee -a \$USER_LOG >&2
+	exec "\$@"
+else
+	echo "[entrypoint] sleeping" >&2
+	while sleep 600; do true; done
+fi
 EOF
 
 
