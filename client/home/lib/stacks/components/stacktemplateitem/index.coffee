@@ -150,8 +150,8 @@ module.exports = class StackTemplateItem extends React.Component
           onClick={onOpen}>
           { makeTitle { template, stack } }
         </a>
-        {@renderDefaultTag()}
         {@renderUnreadCount()}
+        {@renderDefaultTag()}
       </div>
       {@renderStackUpdatedWidget()}
       <div className='HomeAppViewListItem-description'>
