@@ -1014,12 +1014,12 @@ module.exports = class ComputeController extends KDController
       if accessLevel is 'group'
         reactor.dispatch 'REMOVE_STACK_TEMPLATE_SUCCESS', { id: _id }
         reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
-        new kd.NotificationView { title : 'Stack Template is Shared With Group' }
+        new kd.NotificationView { title : 'Stack Template is Shared With Team' }
         @checkRevisonFromOriginalStackTemplate stackTemplate._id, yes
       else
         reactor.dispatch 'REMOVE_STACK_TEMPLATE_SUCCESS', { id: _id }
         @checkRevisonFromOriginalStackTemplate _id, no
-        new kd.NotificationView { title : 'Stack Template is Unshared With Group' }
+        new kd.NotificationView { title : 'Stack Template is Unshared With Team' }
 
 
   checkRevisonFromOriginalStackTemplate: (stackTemplateId, group) ->
