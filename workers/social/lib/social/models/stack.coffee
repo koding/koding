@@ -172,6 +172,9 @@ module.exports = class JComputeStack extends jraphical.Module
 
     success: (client, data, callback) ->
 
+      unless client.context?.group or client.connection?.delegate
+        return callback new KodingError 'Session is not valid'
+
       data.account   = client.connection.delegate
       data.groupSlug = client.context.group
 
