@@ -54,17 +54,6 @@
             "uri": "$ENTRYPOINT_URL/entrypoint.1.sh"
           }
         ],
-        "health_checks": {
-          "health_check": [
-            {
-              "command": {
-                "value": "true"
-              },
-              "max_consecutive_failures": 3,
-              "protocol": "COMMAND"
-            }
-          ]
-        },
         "mem": 256,
         "ports": [
           0

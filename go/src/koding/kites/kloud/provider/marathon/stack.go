@@ -23,15 +23,7 @@ var klientPort = map[string]interface{}{
 
 var healthCheck = map[string]interface{}{
 	"command": map[string]interface{}{
-		// TODO(rjeczalik): use http healthcheck - implement mapping port indexes,
-		// the following fails with:
-		//
-		//   curl(52): Empty response from server
-		//
-		// Which makes Marathon redeploy healthy container.
-		//
-		//   "value": "curl -f -X GET http://$$HOST:$${PORT_56789}/kite",
-		"value": "true",
+		"value": "curl -f -X GET http://$$HOST:$${PORT_56789}/kite",
 	},
 	"max_consecutive_failures": 3,
 	"protocol":                 "COMMAND",
@@ -310,13 +302,19 @@ func (s *Stack) injectFetchEntrypoints(app map[string]interface{}) {
 }
 
 func (s *Stack) injectHealthChecks(app map[string]interface{}) {
-	healthCheckGroup, ok := app["health_checks"].(map[string]interface{})
-	if !ok {
-		healthCheckGroup = make(map[string]interface{})
-		app["health_checks"] = healthCheckGroup
-	}
-
-	healthCheckGroup["health_check"] = appendSlice(healthCheckGroup["health_check"], healthCheck)
+	// TODO(rjeczalik): use http healthcheck - implement mapping port indexes,
+	// the following fails with:
+	//
+	//   curl(52): Empty response from server
+	//
+	// Which makes Marathon redeploy healthy container.
+	//
+	// healthCheckGroup, ok := app["health_checks"].(map[string]interface{})
+	// if !ok {
+	//    healthCheckGroup = make(map[string]interface{})
+	//    app["health_checks"] = healthCheckGroup
+	// }
+	// healthCheckGroup["health_check"] = appendSlice(healthCheckGroup["health_check"], healthCheck)
 
 	containerCount := 0
 
