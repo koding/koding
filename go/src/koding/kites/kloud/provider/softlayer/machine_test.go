@@ -13,7 +13,7 @@ import (
 )
 
 func newBaseMachine(t *testing.T) *provider.BaseMachine {
-  guestId := os.Getenv("SL_GUEST_ID")
+	guestId := os.Getenv("SL_GUEST_ID")
 
 	if guestId == "" {
 		t.Skip("Environment variable SL_GUEST_ID is not set.")

@@ -78,7 +78,8 @@ func (s *Stack) BootstrapArg() *stack.BootstrapRequest {
 func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, error) {
 	vs := &bootstrapVars{
 		KeyName: fmt.Sprintf(
-			"koding-%s",
+			"koding-%s-%s",
+			s.Arg(*stack.BootstrapRequest).GroupName,
 			c.Identifier,
 		),
 		PublicKey: s.Keys.PublicKey,

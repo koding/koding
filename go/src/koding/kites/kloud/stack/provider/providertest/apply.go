@@ -1,29 +1,29 @@
 package providertest
 
 import (
-  "encoding/json"
-  "fmt"
-  "reflect"
+	"encoding/json"
+	"fmt"
+	"reflect"
 )
 
 func mask(v interface{}, fn func(string) string) error {
-  switch t := v.(type) {
-  case map[string]interface{}:
-    for key, val := range t {
-      if s := fn(key); s != "" {
-        t[key] = s
-        continue
-      }
+	switch t := v.(type) {
+	case map[string]interface{}:
+		for key, val := range t {
+			if s := fn(key); s != "" {
+				t[key] = s
+				continue
+			}
 
-      mask(val, fn)
-    }
-  case []interface{}:
-    for _, val := range t {
-      mask(val, fn)
-    }
-  }
+			mask(val, fn)
+		}
+	case []interface{}:
+		for _, val := range t {
+			mask(val, fn)
+		}
+	}
 
-  return nil
+	return nil
 }
 
 func Equal(got, want string, fn func(string) string) error {
@@ -37,13 +37,13 @@ func Equal(got, want string, fn func(string) string) error {
 		return err
 	}
 
-  if err := mask(v1, fn); err != nil {
-    return err
-  }
+	if err := mask(v1, fn); err != nil {
+		return err
+	}
 
-  if err := mask(v2, fn); err != nil {
-    return err
-  }
+	if err := mask(v2, fn); err != nil {
+		return err
+	}
 
 	if !reflect.DeepEqual(v1, v2) {
 		p1, err := json.MarshalIndent(v1, "", "\t")

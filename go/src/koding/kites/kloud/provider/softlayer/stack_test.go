@@ -110,7 +110,7 @@ func TestApplyTemplate(t *testing.T) {
 	}{
 		"single guest stack": {
 			"testdata/single-guest.json",
-			"testdata/single-guest.golden.json",
+			"testdata/single-guest.json.golden",
 		},
 	}
 
