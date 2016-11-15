@@ -10,7 +10,7 @@ purify = (data) ->
 getConstructorName = (name, Models) ->
 
   for own model, konstructor of Models
-    return model  if model.toLowerCase() is name
+    return model  if model.toLowerCase() is name.toLowerCase()
 
 
 sendApiError = (res, error) ->
@@ -79,6 +79,34 @@ parseRequest = (req, res) ->
   return { model, id, method, sessionToken }
 
 
+sendSignatureErr = (signatures, method, res) ->
+
+  # Make signatures human readable ~ GG
+  signatures = signatures.map (signature) ->
+    [
+      signature
+        .replace /,F$/, ''
+        .replace /O/g, 'Object'
+        .replace /S/g, 'String'
+        .replace /F/g, 'Function'
+        .replace /N/g, 'Number'
+        .replace /B/g, 'Boolean'
+        .replace /A/g, 'Array'
+    ]
+
+  signatures = signatures[0]  if signatures.length is 1
+  signatures = if signatures.length is 1 and signatures[0] is 'Function'
+  then 'No parameter required'
+  else "Possible signatures are #{JSON.stringify(signatures).replace /"/g, ''}"
+
+  sendApiError res, {
+    ok: false
+    error: "
+      Unrecognized signature for '#{method}' #{signatures}
+    "
+  }
+
+
 module.exports = RemoteHandler = (koding) ->
 
   Models = koding.models
@@ -119,19 +147,7 @@ module.exports = RemoteHandler = (koding) ->
     [validCall, signatures] = Models[constructorName].testSignature type, method, args
 
     unless validCall
-
-      # Remove Function signature from signatures
-      # since we are handling it in here ~ GG
-      signatures = signatures.map (signature) -> signature.replace /,F$/, ''
-
-      sendApiError res, {
-        ok: false
-        error: """
-          Unrecognized signature: #{constructorName}.#{method}
-          Possible signatures are #{JSON.stringify signatures}
-        """
-      }
-
+      sendSignatureErr signatures, "#{constructorName}.#{method}", res
       return
 
     bongoRequest = {
