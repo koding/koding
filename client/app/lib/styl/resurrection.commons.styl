@@ -346,17 +346,21 @@ a.custom-link-view.border-only-green
         bg                  color, transparent
         r-sprite              app '20_close_tab'
 
-    &.modified:before
+    &.modified:after
       content               ""
       size                  5px, 5px
       rounded               50%
-      bg                    color, #616f74
-      abs                   14px 0 0 5px
+      border                1px solid #121212
+      bg                    color, #FEC34F
+      abs                   9px 0 0 16px
       fl()
       vendor                transition, background-color .33s
 
-    &.modified.saved:before
-      bg                    color, #24b463
+    &.active.modified:after
+      border                1px solid #2b2b30
+
+    &.modified.saved:after
+      bg                    color, #4DB97F
 
 
 .header-facets
