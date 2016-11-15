@@ -186,12 +186,6 @@ func processPresence(api *slack.Client, workChan chan slack.User, resultChan cha
 		// set presence info
 		u.Presence = p.Presence
 
-		// LastActivity works inconsistently, disabling it for now
-		// if u.Presence != slackAway {
-		//  LastActiveTime := p.LastActivity.Time()
-		//  lastActive = &LastActiveTime
-		// }
-
 		resultChan <- SlackUser{u, lastActive}
 	}
 }

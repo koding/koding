@@ -18,7 +18,7 @@ import (
 // over, she’ll never be billed at all.
 
 const (
-	planPrefix       = "p_"
+	// planPrefix       = "p_"
 	customPlanPrefix = "p_c_"
 
 	Free        = "p_free"

@@ -1,7 +1,6 @@
 package account
 
 import (
-	"socialapi/models"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
 )
@@ -15,7 +14,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-channel-list",
 			Type:     handler.GetRequest,
 			Endpoint: "/account/{id}/channels",
-			Securer:  models.AccountReadSecurer,
 		},
 	)
 
@@ -34,7 +32,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-channel-list-count",
 			Type:     handler.GetRequest,
 			Endpoint: "/account/{id}/channels/count",
-			Securer:  models.AccountReadSecurer,
 		},
 	)
 
@@ -45,7 +42,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-post-list",
 			Type:     handler.GetRequest,
 			Endpoint: "/account/{id}/posts",
-			Securer:  models.AccountReadSecurer,
 		},
 	)
 
@@ -65,7 +61,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-follow",
 			Type:     handler.PostRequest,
 			Endpoint: "/account/{id}/follow",
-			Securer:  models.AccountSecurer,
 		},
 	)
 
@@ -76,7 +71,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-create",
 			Type:     handler.PostRequest,
 			Endpoint: "/account",
-			Securer:  models.AccountReadSecurer,
 		},
 	)
 
@@ -86,7 +80,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-update",
 			Type:     handler.PostRequest,
 			Endpoint: "/account/{id}",
-			Securer:  models.AccountSecurer,
 		},
 	)
 
@@ -97,7 +90,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-unfollow",
 			Type:     handler.PostRequest,
 			Endpoint: "/account/{id}/unfollow",
-			Securer:  models.AccountSecurer,
 		},
 	)
 
@@ -108,7 +100,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-owns",
 			Type:     handler.GetRequest,
 			Endpoint: "/account/{id}/owns",
-			Securer:  models.AccountReadSecurer,
 		},
 	)
 
@@ -118,7 +109,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-group-channel-list",
 			Type:     handler.GetRequest,
 			Endpoint: "/account/channels",
-			Securer:  models.AccountReadSecurer,
 		},
 	)
 

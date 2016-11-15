@@ -15,7 +15,6 @@ var SendEmailEventName = "send"
 
 const (
 	keyInvitedCreateTeam     = "was invited to create a team"
-	subjectStartRegister     = "Welcome to Koding! ♥"
 	subjectInvitedCreateTeam = "You're invited to try Koding for Teams!"
 	emailFrom                = "Devrim <dy@koding.com>"
 )
@@ -117,8 +116,4 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	delivery.Nack(false, true)
 
 	return false
-}
-
-func isForceRecipient(email string) bool {
-	return email != ""
 }

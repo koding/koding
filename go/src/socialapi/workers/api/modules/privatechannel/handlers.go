@@ -1,7 +1,6 @@
 package privatechannel
 
 import (
-	"socialapi/models"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
 )
@@ -14,7 +13,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "privatechannel-init",
 			Type:     handler.PostRequest,
 			Endpoint: "/privatechannel/init",
-			Securer:  models.PrivateMessageSecurer,
 		},
 	)
 
@@ -24,7 +22,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "privatechannel-send",
 			Type:     handler.PostRequest,
 			Endpoint: "/privatechannel/send",
-			Securer:  models.PrivateMessageSecurer,
 		},
 	)
 
@@ -65,7 +62,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-init-with-participants",
 			Type:     handler.PostRequest,
 			Endpoint: "/channel/initwithparticipants",
-			Securer:  models.PrivateMessageSecurer,
 		},
 	)
 
@@ -75,7 +71,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-send-with-participants",
 			Type:     handler.PostRequest,
 			Endpoint: "/channel/sendwithparticipants",
-			Securer:  models.PrivateMessageSecurer,
 		},
 	)
 

@@ -1,7 +1,6 @@
 package messagelist
 
 import (
-	"socialapi/models"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
 )
@@ -17,7 +16,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-history-list",
 			Endpoint: "/channel/{id}/history",
 			Type:     handler.GetRequest,
-			Securer:  models.MessageListReadSecurer,
 		},
 	)
 
@@ -27,7 +25,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-message-history-list",
 			Endpoint: "/channel/{id}/list",
 			Type:     handler.GetRequest,
-			Securer:  models.MessageListReadSecurer,
 		},
 	)
 
@@ -38,7 +35,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-history-count",
 			Endpoint: "/channel/{id}/history/count",
 			Type:     handler.GetRequest,
-			Securer:  models.MessageListReadSecurer,
 		},
 	)
 }
