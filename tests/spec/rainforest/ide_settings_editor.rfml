@@ -19,11 +19,8 @@ Do you see 'Editor Settings' and 'Terminal Settings' instead of file tree?
 Toggle 'Trim trailing whitespaces' option on in Editor Settings
 Is 'Trim trailing whitespaces' toggle green?
 
-Create a new line in the editor, create tabulation by pressing tab on keyboard, type several spaces and press Enter
-Are all spaces and tabulations removed from the line you entered?
-
-Set cursor to the end of any not-empty line in the editor, type several spaces and press Enter
-Are all spaces removed from the end of the line?
+Create a new line in the editor, insert tabs by pressing tab on keyboard, type some spaces and press Enter. Move mouse over to the editor tab where the file '{{random.address_city}}{{random.number}}.html' is opened and click arrow icon and then click to 'Save' action in menu displayed
+Are all spaces and tabs removed from the line you entered?
 
 Toggle 'Trim trailing whitespaces' option off in Editor Settings
 Is 'Trim trailing whitespaces' toggle gray?
