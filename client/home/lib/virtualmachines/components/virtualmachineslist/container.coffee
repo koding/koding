@@ -21,7 +21,7 @@ module.exports = class VirtualMachinesListContainer extends React.Component
 
   onCancelSharing: (machineId) ->
 
-    EnvironmentFlux.actions.unshareMachineWihAllUsers machineId
+    EnvironmentFlux.actions.unshareMachineWithAllUsers machineId
 
 
   onSharedWithUser: (machineId, nickname) -> EnvironmentFlux.actions.shareMachineWithUser machineId, nickname

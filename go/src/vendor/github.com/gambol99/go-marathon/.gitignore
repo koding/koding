@@ -7,9 +7,13 @@ go-marathon.iml
 Gemfile.lock
 thin.*
 examples/applications/applications
-examples/multiple_endpoints/multiple_endpoints
-examples/subscription/subscription
+examples/events_callback_transport/events_callback_transport
+examples/events_sse_transport/events_sse_transport
+examples/glog/glog
 examples/groups/groups
+examples/multiple_endpoints/multiple_endpoints
+examples/queue/queue
+examples/tasks/tasks
 
 # Folders
 _obj
@@ -31,8 +35,4 @@ _testmain.go
 *.test
 *.prof
 
-
-
-examples/events/events
 tests/rest-api/rest-api
-examples/tasks/tasks

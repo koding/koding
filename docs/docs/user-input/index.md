@@ -37,7 +37,7 @@ resource:
         echo "${var.userInput_key}"
 ```
 
-In the above example we are asking our developers to enter three values **user_name**, **user_pass**, & **key. **These are defined under the **user_data** section in our example, but you can use user input variables in any area in your stack template. Once a developer builds this stack, they will be prompted with a GUI box asking to enter the values for the above three variables as seen below.
+In the above example we are asking our developers to enter three values **user_name**, **user_pass**, & **key**. These are defined under the **user_data** section in our example, but you can use user input variables in any area in your stack template. Once a developer builds this stack, they will be prompted with a GUI box asking to enter the values for the above three variables as seen below.
 
 ![User-input-modal-1.png][1]
 
@@ -49,6 +49,6 @@ In our example when the stack is built, we are only displaying the values the us
 
 Congratulations, you can now make use of user inputs in your Stack template.
 
-[1]: {{ site.url }}/assets/img/guides/user-input/User-input-modal-1.png
-[2]: {{ site.url }}/assets/img/guides/user-input/user-input-gif.gif
+[1]: {{ site.url }}/assets/img/guides/user-input/inputvars.png
+[2]: {{ site.url }}/assets/img/guides/user-input/userinput-walkthrough.gif
 [3]: /docs/using-github-in-stacks

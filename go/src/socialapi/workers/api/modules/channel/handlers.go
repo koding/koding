@@ -1,7 +1,6 @@
 package channel
 
 import (
-	"socialapi/models"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
 )
@@ -13,7 +12,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-create",
 			Type:     handler.PostRequest,
 			Endpoint: "/channel",
-			Securer:  models.ChannelSecurer,
 		},
 	)
 
@@ -25,7 +23,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-list",
 			Type:     handler.GetRequest,
 			Endpoint: "/channel",
-			Securer:  models.ChannelReadSecurer,
 		},
 	)
 
@@ -37,7 +34,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-search",
 			Type:     handler.GetRequest,
 			Endpoint: "/channel/search",
-			Securer:  models.ChannelReadSecurer,
 		},
 	)
 
@@ -49,7 +45,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-get-byname",
 			Type:     handler.GetRequest,
 			Endpoint: "/channel/name/{name}",
-			Securer:  models.ChannelReadSecurer,
 		},
 	)
 
@@ -61,7 +56,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-get",
 			Type:     handler.GetRequest,
 			Endpoint: "/channel/{id}",
-			Securer:  models.ChannelReadSecurer,
 		},
 	)
 
@@ -71,7 +65,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-check-participation",
 			Type:     handler.GetRequest,
 			Endpoint: "/channel/checkparticipation",
-			Securer:  models.ChannelReadSecurer,
 		},
 	)
 
@@ -81,7 +74,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-delete",
 			Type:     handler.PostRequest,
 			Endpoint: "/channel/{id}/delete",
-			Securer:  models.ChannelSecurer,
 		},
 	)
 
@@ -91,7 +83,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-update",
 			Type:     handler.PostRequest,
 			Endpoint: "/channel/{id}/update",
-			Securer:  models.ChannelSecurer,
 		},
 	)
 

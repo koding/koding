@@ -26,7 +26,7 @@ resource:
 ```
 On building the VM you will need to wait for a couple of minutes until Docker is installed and you should be able to see a whale saying 'boo'!
 
-### ![boo.png][1]
+### ![boo][1]
 
 Your developers can now run Docker images using the command `docker run `.Developers may be required to preface each docker command on this page with `sudo`. To avoid this behavior, you can create a Unix group called docker and add users to it.
 
@@ -48,8 +48,9 @@ hello-world          latest      91c95931e552        5 weeks ago        910 B
 Add the below line on your stack under `user_data` section to install Docker.
 
 ```bash
-curl -fsSL https://get.docker.com/ | sh
+  curl -fsSL https://get.docker.com/ | sh
 ```
+
 ### Running Docker Apps
 
 Docker allows you to run applications inside **containers** using a single command `docker run`, we will run **WhaleSay** image as an example. WhaleSay contains an adaption of the Linux cowsay game, it will display a whale saying whatever message you pass as parameter, in the below line the message is 'boo'! Of course in your case replace the WhaleSay image with the Docker app you want to install for your team.
@@ -60,5 +61,5 @@ docker run docker/whalesay cowsay boo
 
 Reference: [Getting started with Docker][2]
 
-[1]: {{ site.url }}/assets/img/guides/docker/boo.png
+[1]: {{ site.url }}/assets/img/guides/docker/docker-ready-boo.png
 [2]: https://docs.docker.com/linux/step_one/

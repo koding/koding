@@ -164,9 +164,8 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
 
   renderLeaveSharedMachine: ->
-    
-    return null  if @state.activeMachine isnt @machine('_id')
-    return null  if @machine('type') is 'own'
+
+    return null  if @machine('type') is 'own' or @machine 'hasOldOwner'
     return null  unless @machine 'isApproved'
 
     <LeaveSharedMachineWidget

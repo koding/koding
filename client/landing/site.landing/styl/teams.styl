@@ -82,7 +82,6 @@ teams.styl
 
   section.main-wrapper
     min-height              600px
-    font-family             adelleSans
     font-size               14px
     line-height             20px
     text-align              center
@@ -398,7 +397,6 @@ teams.styl
         .login-input-view input.kdinput
           text-align        left
           padding           17px 15px
-          font-family       adelle
   ul
     margin                  0 auto
     max-width               700px
@@ -411,7 +409,6 @@ teams.styl
       margin-bottom         .5em
       i
         font-style          italic
-        font-family         adelle
         color               yellowColor
       a
         color               yellowColor
@@ -438,7 +435,7 @@ teams.styl
     padding                 .34em 1em
     margin                  0 0 60px 0
     color                   #ffffff
-    font                    32px adelle
+    font-size               32px
     letter-spacing          .1em
     background              #1eb2df
     display                 inline-block
@@ -733,7 +730,7 @@ teams.styl
     .ribbon
       padding               .34em 1em
       margin                0 0 60px 0
-      font                  22px adelle
+      font-size             22px
 
     footer
       .inner-container
@@ -813,10 +810,9 @@ teams.styl
     .ribbon
       padding               .34em 1em
       margin                0 0 60px 0
-      font                  32px adelle
+      font-size             32px
 
 .TeamsModal--middle
-  font-family               openSansFamily
   font-size                 22px
   line-height               32px
   margin                    0 auto 50px auto
@@ -901,24 +897,20 @@ teams.styl
         rounded             4px
         bg                  color white
         margin-bottom       0
+
         input.kdinput
           rounded           4px
           margin            0
           font-size         14px
           font-weight       400
-          font-family       openSansFamily
           text-align        left
           padding           8px 14px 8px 43px
+
         .placeholder-helper
           text-align        left
           top               4px
           padding           0 15px 0 44px
           borderBox()
-          &.out
-            top         -32px
-            color       white
-            &.puff
-              opacity   1
 
 @media screen and (max-width : 767px)
   .main-header
@@ -965,7 +957,6 @@ teams.styl
               vendor        transform,  rotate(-45deg)
 
   nav.full-menu
-    font-family             SoleilFamily
     left                    0
     width                   100%
     z-index                 9

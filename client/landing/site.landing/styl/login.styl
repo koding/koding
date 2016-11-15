@@ -79,7 +79,6 @@ body.login
     top                 50%
     rounded             4px
     bg                  color #fafafa
-    font-family         adelleSans
     borderBox()
     rel()
     // &.one
@@ -341,9 +340,9 @@ body.login
           color           red
         // .placeholder-helper
         //   color           #e79a8f
-        .validation-icon
-          r-sprite        account 'cross_8'
-          opacity         1
+        // .validation-icon
+        //   r-sprite        account 'cross_8'
+        //   opacity         1
 
       // &.validation-passed
       //   .validation-icon
@@ -373,45 +372,14 @@ body.login
     margin-bottom       0!important
     vendor              transition, height .15s ease-out
 
-  .email .login-input-view .validation-icon
-    right               55px
+  // .email .login-input-view .validation-icon
+  //   right               55px
 
-  .login-input-view
-    overflow            visible
-
-    .kdinput
-      text-align        center
-      background        transparent
-
-    .placeholder-helper
-      abs()
-      size              100% auto
-      left              0
-      color             #53585c
-      top               17px
-      font-size         14px
-      text-align        center
-      z-index           0
-      opacity           1
-      vendor            transition, top .1s ease\,\
-                                    opacity .3s .3s ease\,\
-                                    font-size .1s ease
-      span
-        font-size       12px
-
-      &.out
-        top             -15px
-        font-size       12px
-        &.puff
-          opacity       0
-    // &.validation-error .out.puff
-    //   opacity           1
-
-  .validation-icon
-    abs                 18px 15px 0 0
-    vendor              transition, opacity .15s ease-out
-    opacity             0
-    z-index             2
+  // .validation-icon
+  //   abs                 18px 15px 0 0
+  //   vendor              transition, opacity .15s ease-out
+  //   opacity             0
+  //   z-index             2
 
   .kdloader.input-loader
     abs()
@@ -579,7 +547,6 @@ body.login.koding
     width               calc(50% - 5px)
     rounded             4px
     font-size           14px
-    font-family         sloganFont
     text-align          left
     border-color        #bbb
     padding             8px 14px
@@ -629,9 +596,9 @@ body.login.koding
       .input-wrapper
         height          44px
 
-      .validation-icon
-        abs             15px 12px 0 0
-        size            20px 20px
+      // .validation-icon
+      //   abs             15px 12px 0 0
+      //   size            20px 20px
 
       .placeholder-helper
         hidden()

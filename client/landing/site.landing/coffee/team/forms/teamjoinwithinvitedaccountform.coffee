@@ -20,13 +20,14 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
     @username = new LoginInputView
       cssClass        : 'hidden'
       inputOptions    :
-        placeholder   : 'pick a username'
+        label         : 'Your Username'
+        placeholder   : 'Pick a username'
         name          : 'username'
         defaultValue  : @getOption 'email'
 
     @password   = @getPassword()
     @tfcode     = @getTFCode()
-    @button     = @getButton 'Done!'
+    @button     = @getButton 'Create Your Team'
     @buttonLink = @getButtonLink @createButtonLinkPartial(), null, (event) =>
       kd.utils.stopDOMEvent event
       return  unless event.target.tagName is 'A'

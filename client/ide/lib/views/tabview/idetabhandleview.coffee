@@ -16,7 +16,9 @@ module.exports = class IDETabHandleView extends KDTabHandleView
 
     options.draggable ?= yes
     options.bind       = 'dragstart dblclick dragend'
-    options.view       = new KDView { tagName : 'span' }
+    options.view       = new KDView
+      tagName : 'span'
+      cssClass: 'tab-handle-tabname'
 
     { pane } = options
 

@@ -1,9 +1,9 @@
 kd             = require 'kd'
 utils          = require './../../core/utils'
 JView          = require './../../core/jview'
+LoginInputView = require './../../login/logininputview'
 
-
-module.exports = class TeamDomainTab extends kd.FormView
+module.exports = class TeamDomainTabForm extends kd.FormView
 
   JView.mixin @prototype
 
@@ -14,19 +14,18 @@ module.exports = class TeamDomainTab extends kd.FormView
     super options, data
 
 
-    @inputView = new kd.CustomHTMLView
-      cssClass     : 'login-input-view'
-      click        : => @input.setFocus()
+    @teamName = new LoginInputView
+      inputOptions :
+        label        : 'Your Team URL'
+        placeholder  : 'your-team-name'
+        name         : 'slug'
 
-    @inputView.addSubView @input = new kd.InputView
-      placeholder  : 'your-team-name'
-      name         : 'slug'
+    @teamName.input.on 'ValidationFeedbackCleared', =>
+      @teamName.input.unsetClass 'validation-error validation-passed'
 
-    @input.on 'ValidationFeedbackCleared', =>
-      @inputView.unsetClass 'validation-error validation-passed'
-
-    @inputView.addSubView @suffix = new kd.View
+    @suffix = new kd.View
       tagName      : 'span'
+      cssClass     : 'TeamDomainSuffix'
       partial      : ".#{kd.config.domains.main}"
 
     @backLink = new kd.CustomHTMLView
@@ -46,7 +45,8 @@ module.exports = class TeamDomainTab extends kd.FormView
 
     # <p class='dim'>Your team url can only contain lowercase letters numbers and dashes.</p>
     '''
-    {{> @inputView}}
-    {{> @button}}
-    {{> @backLink}}
+    {{> @teamName }}
+    {{> @suffix }}
+    {{> @button }}
+    {{> @backLink }}
     '''

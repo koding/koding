@@ -8,11 +8,11 @@ TeamJoinBySignupForm           = require './../forms/teamjoinbysignupform'
 TeamJoinWithInvitedAccountForm = require './../forms/teamjoinwithinvitedaccountform'
 
 
-track = (action) ->
+track = (action, properties = {}) ->
 
-  category = 'TeamJoin'
-  label    = 'JoinTab'
-  utils.analytics.track action, { category, label }
+  properties.category = 'TeamJoin'
+  properties.label    = 'JoinTab'
+  utils.analytics.track action, properties
 
 module.exports = class TeamJoinTab extends kd.TabPaneView
 

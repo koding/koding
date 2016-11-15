@@ -1,14 +1,12 @@
 package algoliaconnector
 
 import (
-	"errors"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"strconv"
 	"strings"
-	"time"
 
-	"gopkg.in/mgo.v2"
+	mgo "gopkg.in/mgo.v2"
 )
 
 // AccountCreated adds user the algolia and adds koding group's channel id
@@ -250,27 +248,4 @@ func (f *Controller) deleteAllGuestNicks(indexName string, objectIDs []string) e
 	}
 
 	return nil
-}
-
-var errDeadline = errors.New("deadline reached")
-
-// makeSureAccount checks if the given id's get request returns the desired err,
-// it will re-try every 100ms until deadline of 2 minutes reached. Algolia
-// doesnt index the records right away, so try to go to a desired state
-func makeSureAccount(handler *Controller, id string, f func(map[string]interface{}, error) bool) error {
-	deadLine := time.After(time.Minute * 2)
-	tick := time.Tick(time.Millisecond * 100)
-	for {
-		select {
-		case <-tick:
-			record, err := handler.get(IndexAccounts, id)
-			if f(record, err) {
-				return nil
-			}
-		case <-deadLine:
-			handler.log.Critical("deadline reached on account but not returning an error")
-			// return errDeadline
-			return nil
-		}
-	}
 }

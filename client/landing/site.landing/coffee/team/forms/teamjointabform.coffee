@@ -37,11 +37,12 @@ module.exports = class TeamJoinTabForm extends kd.FormView
       inputOptions  :
         type        : 'password'
         name        : 'password'
-        placeholder : 'password'
+        label       : 'Your Password'
+        placeholder : 'Enter your koding password'
         validate    :
           container : this
           rules     : { required: yes }
-          messages  : { required: 'Please enter a password.' }
+          messages  : { required: 'Please enter your password.' }
 
 
   getTFCode: ->
@@ -50,7 +51,8 @@ module.exports = class TeamJoinTabForm extends kd.FormView
       cssClass      : 'hidden two-factor'
       inputOptions  :
         name        : 'tfcode'
-        placeholder : 'authentication code'
+        label       : '2FA Verification code'
+        placeholder : 'Enter the 6-digit code'
         testPath    : 'login-form-tfcode'
         attributes  : { testpath: 'login-form-tfcode' }
 

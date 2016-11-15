@@ -99,7 +99,9 @@ module.exports = class SidebarStackSection extends React.Component
             return new kd.NotificationView { title: 'Error occured while cloning template' }
           EnvironmentFlux.actions.cloneStackTemplate template, no
       when 'Destroy VMs' then deleteStack { stack }
-      when 'VMs' then router.handleRoute "/Home/stacks/virtual-machines"
+      when 'VMs'
+        firstMachineId = stack.get('machines').first.get '_id'
+        router.handleRoute "/Home/stacks/virtual-machines/#{firstMachineId}"
       when 'Open on GitLab'
         remoteUrl = stack.getIn ['config', 'remoteDetails', 'originalUrl']
         linkController.openOrFocus remoteUrl

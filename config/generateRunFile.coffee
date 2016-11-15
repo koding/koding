@@ -34,7 +34,7 @@ generateDev = (KONFIG, options) ->
 
     mkdir $KONFIG_PROJECTROOT/.logs &>/dev/null
 
-    SERVICES="mongo redis postgres rabbitmq imply"
+    SERVICES="mongo redis postgres rabbitmq"
 
     NGINX_CONF="$KONFIG_PROJECTROOT/nginx.conf"
     NGINX_PID="$KONFIG_PROJECTROOT/nginx.pid"
@@ -428,8 +428,6 @@ generateDev = (KONFIG, options) ->
       restoreredis
       restorerabbitmq
       restoredefaultpostgresdump
-      restoreimply
-
 
       echo "#---> CLEARING ALGOLIA INDEXES: <---#"
       pushd $KONFIG_PROJECTROOT
