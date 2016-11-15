@@ -14,22 +14,22 @@ module.exports =
   "resource": {
     "marathon_app": {
       "app": {
-        "cmd": "python3 -m http.server 8080",
         "container": {
           "docker": [
             {
-              "image": "python:3",
+              "image": "ubuntu:14.04",
               "network": "BRIDGE"
             }
           ]
         },
-        "cpus": 1.2,
+        "instances": 1,
+        "cpus": 1.0,
         "mem": 256
       }
     }
   }
 }
-    '''
+'''
 
   # YAML FORMAT WITH COMMENTS
   yaml: '''
@@ -47,16 +47,16 @@ resource:
   marathon_app:
     # this is the name of your app
     app:
-      # entry point command for your app
-      cmd: python3 -m http.server 8080
-
-      # base container for this app
+      # this is a list of containers running within your app
       container:
         docker:
-        - image: python:3
+        - image: ubuntu:14.04
           network: BRIDGE
 
-      # define your container specs here, 1.2 cpus, 256MB of memory etc.
-      cpus: 1.2
+      # number of my-app instances
+      instances: 1
+
+      # define your container specs here, 1.0 cpus, 256MB of memory etc.
+      cpus: 1.0
       mem: 256
 '''
