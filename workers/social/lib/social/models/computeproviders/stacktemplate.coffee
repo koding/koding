@@ -297,7 +297,7 @@ module.exports = class JStackTemplate extends Module
 
   setAccess: permit
     advanced: [
-      { permission: 'update own stack template' }
+      { permission: 'update own stack template', validateWith: Validators.own }
       { permission: 'update stack template' }
     ]
 
@@ -318,7 +318,7 @@ module.exports = class JStackTemplate extends Module
         callback err
         return  unless group.slug
 
-        JGroup = require '../models/group'
+        JGroup = require '../group'
         JGroup.one { slug : group.slug }, (err, group_) =>
           return callback err, this  if err or not group_
 
@@ -330,7 +330,7 @@ module.exports = class JStackTemplate extends Module
   generateStack: permit
 
     advanced: [
-      { permission: 'update own stack template' }
+      { permission: 'update own stack template', validateWith: Validators.own }
       { permission: 'update stack template' }
     ]
 
