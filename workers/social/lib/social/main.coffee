@@ -151,6 +151,17 @@ do ->
   helmet.defaults app
   app.use cors()
 
+  # Generic error handler
+  app.use (err, req, res, next) ->
+    error = {}
+    error[err.name] = err.body
+    if res.headersSent
+      next error
+    else
+      res.status(500)
+        .send { ok: false, error }
+        .end()
+
   options = { rateLimitOptions : KONFIG.nodejsRateLimiter }
 
   app.post '/remote.api/:model/:id?', (require './remoteapi') koding
