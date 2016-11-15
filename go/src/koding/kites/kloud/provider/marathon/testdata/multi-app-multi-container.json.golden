@@ -93,6 +93,11 @@
             "uri": "$SCREEN_URL"
           },
           {
+            "cache": true,
+            "executable": false,
+            "uri": "$CERT_URL"
+          },
+          {
             "cache": false,
             "executable": false,
             "uri": "$KLIENT_URL"

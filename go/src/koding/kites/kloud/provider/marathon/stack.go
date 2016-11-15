@@ -41,6 +41,7 @@ type Stack struct {
 
 	EntrypointBaseURL string
 	ScreenURL         string
+	CertURL           string
 	KlientURL         string
 
 	Labels []Label
@@ -57,6 +58,7 @@ func newStack(bs *provider.BaseStack) (provider.Stack, error) {
 		BaseStack:         bs,
 		EntrypointBaseURL: "https://koding-klient.s3.amazonaws.com/entrypoint",
 		ScreenURL:         "https://koding-dl.s3.amazonaws.com/screen.tar.gz",
+		CertURL:           "https://koding-dl.s3.amazonaws.com/ca-certificates.crt.gz",
 		KlientURL:         stack.Konfig.KlientGzURL(),
 	}
 
@@ -284,6 +286,10 @@ func (s *Stack) injectFetchEntrypoints(app map[string]interface{}) {
 		"uri":        s.ScreenURL,
 		"executable": false,
 		"cache":      false,
+	}, map[string]interface{}{
+		"uri":        s.CertURL,
+		"executable": false,
+		"cache":      true,
 	}, map[string]interface{}{
 		"uri":        s.KlientURL,
 		"executable": false,

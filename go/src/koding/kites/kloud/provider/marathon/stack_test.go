@@ -122,6 +122,7 @@ func TestApplyTemplate(t *testing.T) {
 				},
 				EntrypointBaseURL: "$ENTRYPOINT_URL",
 				ScreenURL:         "$SCREEN_URL",
+				CertURL:           "$CERT_URL",
 				KlientURL:         "$KLIENT_URL",
 			}
 

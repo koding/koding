@@ -51,6 +51,7 @@ set -eu
 # Maintenance: Rafal Jeczalik <rafal@koding.com>
 
 export USER_LOG=/var/log/cloud-init-output.log
+export KODING_CMD=\${KODING_CMD:-}
 trap "echo _KD_DONE_ | tee -a \$USER_LOG" EXIT
 
 echo "[entrypoint] connecting to Koding wih KODING_METADATA_${i}" | tee -a \$USER_LOG >&2
@@ -73,6 +74,11 @@ if [ ! -e /var/run/screen ]; then
 	ln -s /tmp/screens /var/run/screen
 fi
 
+if [ ! -f /etc/ssl/certs/ca-certificates.crt ]; then
+	mkdir -p /etc/ssl/certs/
+	gzip --decompress --force --stdout /mnt/mesos/sandbox/ca-certificates.crt.gz > /etc/ssl/certs/ca-certificates.crt
+fi
+
 gzip --decompress --force --stdout /mnt/mesos/sandbox/klient.gz > /tmp/klient
 chmod +x /tmp/klient
 /tmp/klient -metadata \$KODING_METADATA_${i} run
@@ -84,7 +90,7 @@ if [ -n "\$KODING_CMD" ]; then
 	echo \$KODING_CMD | base64 --decode > /tmp/cmd.sh
 	chmod +x /tmp/cmd.sh
 	exec /tmp/cmd.sh
-elif [ -n "\$@" ]; then
+elif [ \$# -gt 0 ]; then
 	echo "[entrypoint] executing: \$@" | tee -a \$USER_LOG >&2
 	exec "\$@"
 else
