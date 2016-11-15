@@ -32,7 +32,7 @@ Click on the little down arrow next to '{{ random.email }}' again and then click
 Is '{{ random.email }}' removed from the list?
 
 Open a new incognito window by clicking on the 3 dots on the top corner of the browser and selecting 'New Incognito Window' and then go to '{{ random.inbox }}' by pasting the url (using ctrl-v) in the address bar, wait ~1min and refresh the page
-Do you see two 'You are invited to join a team on Koding' emails in inbox that received a few minutes ago (and, probably, several older emails)?
+Do you see two 'You are invited to join a team on Koding' emails in inbox that received a few minutes ago? (Ignore older emails)
 
 Click on 'Open Email' for the last one of 'You are invited to join a team on Koding' emails
 Do you see 'Hi there, You received this email because rainforestqa99 would like you to join {{ random.last_name }}{{ random.number }}'s Team on Koding.com' text in the email? Do you see 'ACCEPT INVITE' button?
