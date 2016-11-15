@@ -19,10 +19,8 @@ body.teams #kdmaincontainer #main-tab-view
 
 // HEADER
 .main-header.team
+  abs                       0px
   max-width                 100%
-  border-bottom             1px solid rgba(0,0,0,0.15)
-  abs()
-  top                       0
   height                    69px
   padding                   0 40px
   z-index                   1
@@ -40,7 +38,6 @@ body.teams #kdmaincontainer #main-tab-view
 
 .content-area-pane.team
 .content-area-pane.teams
-  font-family               ProximaNovaFamily
   -webkit-font-smoothing    antialiased
   -moz-osx-font-smoothing   grayscale
 
@@ -97,6 +94,10 @@ body.teams #kdmaincontainer #main-tab-view
       margin-top            5px
       margin-bottom         10px
 
+    a
+      color                 white
+      text-decoration       underline
+
 // TEAMS MODAL STYLES
 .TeamsModal
   padding                   38px 40px 24px 40px
@@ -123,23 +124,6 @@ body.teams #kdmaincontainer #main-tab-view
     kalc                    left, 50% \- 40px
 
   .login-input-view
-    bg                      color white
-    margin                  0 auto 19px !important
-    borderBox()
-
-    input.kdinput
-      border                1px solid #d9d9d9
-      font-size             18px
-      letter-spacing        .35px
-      line-height           25px
-      height                51px
-      color                 #4a4a4a !important
-      text-align            left
-      padding               10px 14px 14px
-      margin                0
-      borderBox()
-      rounded               3px
-      font-weight           400
 
     &.validation-error input.kdinput
     input.kdinput.validation-error
@@ -160,7 +144,7 @@ body.teams #kdmaincontainer #main-tab-view
 
   .TeamsModal-button-separator
     bg                      color, #E8E2DE
-    margin                  32px auto
+    margin                  30px auto
     height                  1px
 
   p.intro
@@ -306,15 +290,14 @@ body.teams #kdmaincontainer #main-tab-view
 
   // TEAMS MODAL BUTTONS
   .TeamsModal-button
-    margin                    0 auto
-    padding                   10px 0 12px 0
+    margin                    0 auto 21px
+    padding                   20px 0 19px 0
     bg                        color, #f2778a
     color                     #fff
     rounded                   4px
-    size                      100% 50px
+    size                      100% 60px
     font-size                 18px
     line-height               21px
-    margin-bottom             25px
     display                   inline-block !important
     float                     none !important
     text-transform            uppercase
@@ -323,7 +306,8 @@ body.teams #kdmaincontainer #main-tab-view
     letter-spacing            .04em
 
     &:focus
-      border-color            #7dbef1
+      border-color          transparent
+      shadow                0 0 3px 3px #a8ceff
 
     &.compact
       height                  24px
@@ -365,9 +349,9 @@ body.teams #kdmaincontainer #main-tab-view
       bg                    color #ddd
       bg                    size cover
       bg                    position, 50% 50%
-      border                3px solid modalBackground
-      margin                -57px auto 20px
-      rounded               6px
+      border                3px solid white
+      margin                -73px auto 20px
+      rounded               50%
       size                  64px 64px
       overflow              hidden
 

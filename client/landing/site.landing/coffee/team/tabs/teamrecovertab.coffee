@@ -5,12 +5,11 @@ JView             = require './../../core/jview'
 MainHeaderView    = require './../../core/mainheaderview'
 RecoverInlineForm = require './../../login/recoverform'
 
-track = (action) ->
+track = (action, properties = {}) ->
 
-  category = 'Team'
-  label    = 'RecoverForm'
-  utils.analytics.track action, { category, label }
-
+  properties.category = 'Team'
+  properties.label    = 'RecoverForm'
+  utils.analytics.track action, properties
 
 module.exports = class TeamRecoverTab extends kd.TabPaneView
 

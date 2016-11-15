@@ -11,7 +11,7 @@ module.exports = class TeamUsernameTabForm extends TeamJoinBySignupForm
 
     teamData = utils.getTeamData()
 
-    options.buttonTitle   = 'Done!'
+    options.buttonTitle   = 'Create Your Team'
     options.email       or= teamData.signup?.email
 
     super options, data

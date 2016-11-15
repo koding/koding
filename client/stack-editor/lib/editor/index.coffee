@@ -37,6 +37,7 @@ ContentModal = require 'app/components/contentModal'
 createShareModal = require './createShareModal'
 isDefaultTeamStack = require 'app/util/isdefaultteamstack'
 { actions : HomeActions } = require 'home/flux'
+canCreateStacks = require 'app/util/canCreateStacks'
 
 module.exports = class StackEditorView extends kd.View
 
@@ -86,6 +87,9 @@ module.exports = class StackEditorView extends kd.View
         <span class='clone-button'>clone this template </span>
           and create a private stack."
       click: (event) =>
+        unless canCreateStacks()
+          return new kd.NotificationView
+            title: 'You are not allowed to create/edit stacks!'
         if event.target?.className is 'clone-button'
           @cloneStackTemplate()
 
