@@ -65,11 +65,27 @@
           if(window.SwaggerTranslator) {
             window.SwaggerTranslator.translate();
           }
+          checkKodingLogin();
         }
       });
 
       window.swaggerUi.load();
 
+      function setAuth(auth) {
+        swaggerUi.api.clientAuthorizations.remove("clientId");
+        swaggerUi.api.clientAuthorizations.add("clientId",
+          new SwaggerClient.ApiKeyAuthorization(
+            "Authorization", "Bearer " + auth
+          , "header")
+        );
+      }
+
+      function checkKodingLogin() {
+        var clientId = Cookies.get('clientId');
+        if (clientId) {
+          setAuth(clientId);
+        }
+      };
       function log() {
         if ('console' in window) {
           console.log.apply(console, arguments);

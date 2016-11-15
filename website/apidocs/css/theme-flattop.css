@@ -444,9 +444,6 @@
 .swagger-section .swagger-ui-wrap .model-signature .signature-container {
   clear: both;
   font-family: "Anonymous Pro", "Menlo", "Consolas", "Bitstream Vera Sans Mono", "Courier New", monospace;
-  font-size: 17px;
-  line-height: 32px;
-  padding: 0 10px;
 }
 .swagger-section .swagger-ui-wrap .body-textarea {
   width: 300px;
