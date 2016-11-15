@@ -97,11 +97,7 @@ module.exports = RemoteHandler = (koding) ->
 
     body = if req.body then clone req.body else null
     req.body ?= {}
-    req.body  = {
-      userArea: { group: 'koding' }
-      sessionToken
-    }
-
+    req.body  = { userArea: {}, sessionToken }
 
     args = if Array.isArray body
     then body
