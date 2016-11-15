@@ -50,7 +50,7 @@ Click second row in the editor, type some random text, press Enter and type some
 Is entered text displayed correctly in the editor?
 
 Mouse over the editor header where the file '{{random.address_city}}{{random.number}}.txt' is opened and click 'x' icon
-Do you see 'Do you want to save your changes?' modal displayed? Do you see 'Cancel', 'Don't save' and 'Save and close' buttons on the modal?
+Do you see 'Do you want to save your changes?' modal displayed? Do you see 'Don't save' and 'Save and Close' buttons?
 
 Click 'Cancel' button on the modal
 Is overlay closed? Is editor tab with '{{random.address_city}}{{random.number}}.txt' file still displayed?
