@@ -34,14 +34,14 @@ Is color theme for terminal changed?
 # Select '10000' value for the Scrollback option in the 'Terminal Settings', type 'man -?' in the terminal and press Enter and repeat several times
 # Do you see all results (up to 10000 rows) in the terminal?
 
-Toggle on 'Use visual bell' in Terminal Settings, enter wrong text in terminal and press Enter
-Is Visual 'Bell' warning displayed? or is beep via speeker performed?
+# Toggle on 'Use visual bell' in Terminal Settings, enter wrong text in terminal and press Enter
+# Is Visual 'Bell' warning displayed?
 
-Toggle on/off 'Blinking cursor' option in the Terminal Settings and select the terminal tab
-Is cursor blinking/not in the terminal?
+Toggle on/off 'Blinking cursor' option in the Terminal Settings and click into terminal pane
+Do you see cursor blinking?
 
-Toggle on 'Dim if inactive' in Terminal Settings
-Do you see text color is changed to white? Does it looks inactive?
+Toggle on 'Dim if inactive' in Terminal Settings and then click into an empty area in the text editor
+Do you see text color is changed to white? Does it look inactive?
 
-Toggle off 'Dim if inactive' in Terminal Settings
-Do you see text color is changed to green? Does it looks active?
+Toggle off 'Dim if inactive' in Terminal Settings and then click into an empty area in the text editor
+Do you see text color is changed back to regular colors in the terminal? Does it look active?
