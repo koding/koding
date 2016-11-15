@@ -1,0 +1,35 @@
+{% assign path = include.path %}
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js">
+<!--<![endif]-->
+<head>
+  {% include head.html %}
+  <style>{% include css/micropage.css %}</style>
+  <style>{% include css/signup.css %}</style>
+  <link rel="canonical" href="{{ path }}">
+  <meta http-equiv="refresh" content="0; url={{ path }}">
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  {% include header.html has_sticky_navigation='true' exclude_main_nav='true' %}
+
+  <main class="Micropage">
+    <div class="Micropage--container">
+
+      <h1>Redirecting…</h1>
+      <h3>If you weren't redirected please click <a href="{{ path }}">here</a></h3>
+
+    </div>
+    <figure class="Micropage--UFO"></figure>
+    <figure class="Micropage--Ground"></figure>
+  </main>
+  {% include analytics.html %}
+
+</body>
+</html>

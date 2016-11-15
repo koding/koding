@@ -21,7 +21,7 @@ body
   height            100%
 
 body
-  font-family       openSansFamily
+  font-family       mainFontFamily
   font-weight       400
 
   &.noscroll
@@ -38,13 +38,53 @@ body
 input
 textarea
 button
-  font-family               SoleilFamily
+  font-family               mainFontFamily
 
 .kdview
   overflow                  visible
 
 .no-anim
   noAnim()
+
+.login-input-view
+  margin                    0 0 17px 0
+  bg                        color white
+  margin                    0 auto 21px !important
+  borderBox()
+
+  input.kdinput.text
+    border                  1px solid #d9d9d9
+    font-size               18px
+    letter-spacing          .31px
+    line-height             25px
+    height                  60px
+    color                   #4a4a4a !important
+    text-align              left
+    padding                 24px 16px 14px
+    margin                  0
+    rounded                 3px
+    font-weight             400
+    bg                      color, transparent
+    rounded                 3px
+    borderBox()
+    &:focus
+      shadow                none
+      border-color          #A8CEFF
+    &::-webkit-input-placeholder
+      color                 #ccc
+      font-weight           300
+    &::-moz-placeholder
+      color                 #ccc
+      font-weight           300
+
+  .placeholder-helper
+    abs                     9px 0 0 17px
+    letter-spacing          .2px
+    color                   #989898
+    font-size               12px
+    text-align              left
+    z-index                 1
+    opacity                 1
 
 .mobile-menu
   overflow                  hidden
@@ -119,7 +159,6 @@ figure.hackathon-header
     font-weight             700
     line-height             16px
     color                   #fff
-    font-family             sloganFont
     -webkit-font-smoothing  antialiased
     noTextDeco()
     visible()
@@ -177,7 +216,6 @@ figure.hackathon-header
     a
       font-size             14px
       margin-right          40px
-      font-family           Soleil, openSansFamily
       color                 white
       padding-bottom        1px
       noTextDeco()
@@ -256,11 +294,12 @@ figure.hackathon-header
     color               inherit
 
 
-validationRed = rgba(217, 58, 55, 1)
+validationRed = #f2778a
+
 .kdtooltip.validation-error
 .kdtooltip.validation-error.just-text
   min-width                   none
-  max-width                   234px
+  max-width                   300px
   min-height                  none
 
   div.wrapper
@@ -292,6 +331,9 @@ validationRed = rgba(217, 58, 55, 1)
   &.placement-top
     &:after
       border-top-color      validationRed
+
+    &.direction-left
+      margin-left           0
 
     &.direction-left:after
       right                 9px
@@ -482,7 +524,6 @@ validationRed = rgba(217, 58, 55, 1)
     shadow                0 12px 19px rgba(0,0,0,.50)
     border                1px solid #979797
     position              fixed !important
-    font-family           adelleSans
 
     .kdmodal-inner
       background          #fafafa
@@ -656,7 +697,6 @@ FOOTER VIEW
 
 footer.main-footer
   padding               56px 0
-  font-family           openSansFamily
   font-weight           400
   background            #F0F0F0
   border-top            1px solid #E8E8E8
@@ -736,31 +776,6 @@ footer.main-footer
 
   .kdmodal-content
     overflow                visible
-
-    .login-input-view
-      margin                0 0 17px 0
-
-      input
-        text-align          center
-
-      .kdinput.text.medium
-        bg                  color, transparent
-        rounded             3px
-
-      .placeholder-helper
-        abs()
-        top                 11px
-        font-size           14px
-        text-align          center
-        size                100%, auto
-        color               #53585C
-        vendor              transition, top .1s ease\,\
-                                    opacity .3s .3s ease\,\
-                                    font-size .1s ease
-
-        &.out
-          top               -23px
-          font-size         12px
 
     .kdbutton.solid.green
       size                  100% auto

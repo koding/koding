@@ -11,11 +11,11 @@ SOLO_USER_ERROR = 'Solo user detected'
 
 FAREWELL_SOLO_URL = 'https://www.koding.com/farewell-solo'
 
-track = (action) ->
+track = (action, properties = {}) ->
 
-  category = 'Teams'
-  label    = 'FindTeam'
-  utils.analytics.track action, { category, label }
+  properties.category = 'Teams'
+  properties.label    = 'FindTeam'
+  utils.analytics.track action, properties
 
 
 module.exports = class FindTeamView extends kd.TabPaneView
