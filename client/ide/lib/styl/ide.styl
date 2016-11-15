@@ -72,6 +72,7 @@ body.ide
         size                20px 20px
         top                 8px
         right               4px
+        z-index             1
 
         span
           r-sprite          'ide', 'tab_close'
@@ -85,9 +86,8 @@ body.ide
       .kdtabhandle
 
         .tab-handle-text
-          margin-left       17px
           ellipsis()
-          max-width         90px
+          max-width         100px
 
         &.kddraggable
           &:before
@@ -160,8 +160,15 @@ body.ide .dark
     top                     -8px !important
 
   .kdtabhandle.kddraggable
+    display                 flex
     color                   dark-tab-color
     border-top              2px solid #2b2b30
+    padding                 0 0 0 10px
+
+    .tab-handle-tabname
+      min-width             30px
+      padding-right         34px
+      padding-left          5px
     &:hover .options
       opacity               1
 
@@ -178,12 +185,12 @@ body.ide .dark
         opacity             1
 
     .options
-      position              absolute
+      position              relative
       top                   8px
-      right                 23px
+      display               inline-block
+      right                 calc(40px \- 100%)
       size                  20px 20px
       z-index               1
-      dBlock()
       opacity               0
 
       &:before
