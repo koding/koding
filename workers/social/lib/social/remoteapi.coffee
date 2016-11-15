@@ -116,13 +116,20 @@ module.exports = RemoteHandler = (koding) ->
         sendApiError res, { ok: false, error: 'No such method' }
         return
 
-    validCall = Models[constructorName].testSignature type, method, args
+    [validCall, signatures] = Models[constructorName].testSignature type, method, args
 
     unless validCall
 
+      # Remove Function signature from signatures
+      # since we are handling it in here ~ GG
+      signatures = signatures.map (signature) -> signature.replace /,F$/, ''
+
       sendApiError res, {
         ok: false
-        error: "unrecognized signature: #{constructorName}.#{method}"
+        error: """
+          Unrecognized signature: #{constructorName}.#{method}
+          Possible signatures are #{JSON.stringify signatures}
+        """
       }
 
       return
