@@ -257,10 +257,10 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 	args = append(args, command.Args...)
 	var cmd *exec.Cmd
 
-	if _, err := exec.LookPath("sudo"); err == nil {
-		cmd = exec.Command("/usr/bin/sudo", args...)
-	} else {
+	if _, err := os.Stat("/usr/bin/sudo"); os.IsNotExist(err) {
 		cmd = exec.Command(args[1], args[2:]...)
+	} else {
+		cmd = exec.Command("/usr/bin/sudo", args...)
 	}
 
 	// For test use this, sudo is not going to work
