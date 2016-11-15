@@ -13,8 +13,8 @@ Is popup removed from the screen?
 Return to the incognito browser window
 Do you see green warning 'ACCESS GRANTED: You can make changes now!'?
 
-Close the warning and click  down arrow icon at the right of /home/{{random.first_name}}{{random.number}} label in the center part of the page, click 'New file' in the menu (like on screenshot http://snag.gy/nJ2Dd.jpg ) and enter 'file1.txt' file name and press Enter
-Do you see file 'file1.txt' with green icon in the file tree?
+Close the warning and click  down arrow icon at the right of /home/rainforestqa99 label in the center part of the page, click 'New file' in the menu (like on screenshot http://snag.gy/nJ2Dd.jpg ) and enter 'file{{random.number}}.txt' file name and press Enter
+Do you see file 'file{{random.number}}.txt' with green icon in the file tree?
 
 Click down arrow icon at the right of 'newfile{{random.number}}.txt' file in the file tree and click 'Delete' in the menu
 Do you see 'Are you sure?' text and red 'Delete' button above the file name?
