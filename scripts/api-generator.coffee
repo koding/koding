@@ -35,7 +35,13 @@ swagger =
       description: "Mongo ID of target instance"
       required: true
       type: "string"
-      default: "58261e440a7b5f3622400bed"
+    bodyParam:
+      in: "body"
+      name: "body"
+      schema:
+        type: "object"
+      required: true
+      description: "body of the request"
 
   paths:
     "/-/version":
@@ -47,15 +53,10 @@ swagger =
       post:
         tags: [ "remote" ]
         consumes: [ 'application/json' ]
-        parameters: [
-          {
-            in: "body"
-            name: "body"
-            description: "Pet object that needs to be added to the store"
-            default: """{"profile.nickname": "guestuser"}"""
-            required: true
-          }
-        ]
+        parameters: [{
+          $ref: "#/parameters/bodyParam"
+          default: "[{ }]"
+        }]
         responses:
           "200":
             description: "OK"
