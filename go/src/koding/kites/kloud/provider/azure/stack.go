@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
-	"time"
 
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
@@ -175,11 +174,6 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	}
 
 	for name, vm := range res.AzureInstance {
-		// Set unique name for the instance if not provided explicitly.
-		if n, ok := vm["name"].(string); !ok || n == "" {
-			vm["name"] = name + "-" + s.id()
-		}
-
 		// Set ssh_key_thumbprint if not provided explicitly.
 		if cred.SSHKeyThumbprint != "" {
 			if thumb, ok := vm["ssh_key_thumbprint"]; !ok || thumb == "" {
@@ -349,17 +343,6 @@ func (s *Stack) injectCloudInit(vm map[string]interface{}, name, kiteKeyName str
 	}
 
 	return countKeys, nil
-}
-
-func (s *Stack) id() string {
-	switch arg := s.Arg.(type) {
-	case *stack.ApplyRequest:
-		return arg.StackID
-	case *stack.PlanRequest:
-		return arg.StackTemplateID
-	default:
-		return strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-	}
 }
 
 func newBootstrapTmpl(cfg *BootstrapConfig) ([]byte, error) {
