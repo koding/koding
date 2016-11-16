@@ -37,8 +37,8 @@ Is 'Enable Autocomplete' toggle green?
 Click editor area, create a new line and type 'test' (type, not copy/paste)
 Do you see the text entered with a hint at the bottom of the text containing words with 'test' in it (like on screenshot http://snag.gy/LnDQx.jpg )?
 
-Toggle 'Enable emmet' on in Editor Settings, clear file content, type 'html:5' and press tab
-Do you see html code blog  starts with '<!DOCTYPE html> <html lang="en"> ...'?
+Toggle 'Enable emmet' on in Editor Settings. Delete all the text in the editor. Type 'html:5' and then press TAB key
+Does 'html:5' replaced with '<h5 id="" ></h5>'?
 
 Toggle 'Enable snippets' on
 Did it turn to green?
