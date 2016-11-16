@@ -42,8 +42,12 @@ module.exports = class JSession extends Model
       instance          : []
       static            : []
     sharedMethods       :
+      static            :
+        activeSession   :
+          (signature Function)
       instance          :
-        remove: (signature Function)
+        remove          :
+          (signature Function)
 
   do ->
     JAccount  = require './account'
@@ -55,6 +59,10 @@ module.exports = class JSession extends Model
 
         JSession.remove { username: oldUsername }, (err) ->
           console.error err  if err?
+
+
+  @activeSession = secure (client, callback) ->
+    @one { clientId: client.sessionToken }, callback
 
 
   # TODO not sure why we are creating session only for guest user
