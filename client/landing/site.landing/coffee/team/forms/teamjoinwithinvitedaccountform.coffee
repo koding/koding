@@ -10,7 +10,7 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
 
     teamData = utils.getTeamData()
 
-    options.buttonTitle or= 'Sign up & join'
+    options.buttonTitle or= "Join #{kd.config.groupName}!"
     options.email       or= teamData.signup.username
 
     super options, data
@@ -27,7 +27,7 @@ module.exports = class TeamJoinWithInvitedAccountForm extends TeamJoinTabForm
 
     @password   = @getPassword()
     @tfcode     = @getTFCode()
-    @button     = @getButton 'Create Your Team'
+    @button     = @getButton @getOption 'buttonTitle'
     @buttonLink = @getButtonLink @createButtonLinkPartial(), null, (event) =>
       kd.utils.stopDOMEvent event
       return  unless event.target.tagName is 'A'
