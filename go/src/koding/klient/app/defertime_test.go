@@ -6,13 +6,14 @@ import (
 )
 
 func TestDeferTimeStart(t *testing.T) {
-	const timeToWait = 500 * time.Millisecond
+	const timeToWait = 10 * time.Millisecond
 	now := time.Now()
 	afterC := make(chan time.Time)
 
 	dt := NewDeferTime(timeToWait, func() {
 		afterC <- time.Now()
 	})
+	defer dt.Close()
 
 	dt.Start()
 
@@ -27,12 +28,13 @@ func TestDeferTimeStart(t *testing.T) {
 }
 
 func TestDeferTimeStartStop(t *testing.T) {
-	const timeToWait = 500 * time.Millisecond
+	const timeToWait = 10 * time.Millisecond
 	afterC := make(chan time.Time)
 
 	dt := NewDeferTime(timeToWait, func() {
 		afterC <- time.Now()
 	})
+	defer dt.Close()
 
 	dt.Start()
 	time.Sleep(timeToWait / 2)
@@ -47,13 +49,14 @@ func TestDeferTimeStartStop(t *testing.T) {
 }
 
 func TestDeferTimeStartTwice(t *testing.T) {
-	const timeToWait = 500 * time.Millisecond
+	const timeToWait = 10 * time.Millisecond
 	now := time.Now()
 	afterC := make(chan time.Time)
 
 	dt := NewDeferTime(timeToWait, func() {
 		afterC <- time.Now()
 	})
+	defer dt.Close()
 
 	dt.Start()
 
@@ -79,12 +82,13 @@ func TestDeferTimeStartTwice(t *testing.T) {
 }
 
 func TestDeferTimeShift(t *testing.T) {
-	const timeToWait = 500 * time.Millisecond
+	const timeToWait = 10 * time.Millisecond
 	afterC := make(chan time.Time)
 
 	dt := NewDeferTime(timeToWait, func() {
 		afterC <- time.Now()
 	})
+	defer dt.Close()
 
 	dt.Start()
 	time.Sleep(timeToWait / 2)

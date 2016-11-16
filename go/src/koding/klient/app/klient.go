@@ -71,6 +71,10 @@ type Klient struct {
 	// from the storage
 	collab *collaboration.Collaboration
 
+	// collabCloser is used to de-register third party users after some
+	// specific time when klient's root user ends his connection.
+	collabCloser *DeferTime
+
 	storage *storage.Storage
 
 	// terminal provides wmethods
@@ -317,6 +321,36 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 
 	kl.kite.OnRegister(kl.updateKiteKey)
 
+	// Close all active sessions of the current. Do not close it immediately,
+	// instead of give some time so users can safely exit. If the user
+	// reconnects again the timer will be stopped so we don't unshare for
+	// network hiccups accidentally.
+	kl.collabCloser = NewDeferTime(time.Minute, func() {
+		sharedUsers, err := kl.collab.GetAll()
+		if err != nil {
+			kl.log.Warning("Couldn't unshare users: %s", err)
+			return
+		}
+
+		if len(sharedUsers) == 0 {
+			return
+		}
+
+		kl.log.Info("Unsharing users '%s'", sharedUsers)
+		for user, option := range sharedUsers {
+			// dont touch permanent users
+			if option.Permanent {
+				kl.log.Info("User is permanent, avoiding it: %q", user)
+				continue
+			}
+
+			if err := kl.collab.Delete(user); err != nil {
+				kl.log.Warning("Couldn't delete user from storage: %s", err)
+			}
+			kl.terminal.CloseSessions(user)
+		}
+	})
+
 	// This is important, don't forget it
 	kl.RegisterMethods()
 
@@ -450,37 +484,6 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("client.Subscribe", ps.Subscribe)
 	k.kite.HandleFunc("client.Unsubscribe", ps.Unsubscribe)
 
-	// Close all active sessions of the current. Do not close it immediately,
-	// instead of give some time so users can safely exit. If the user
-	// reconnects again the timer will be stopped so we don't unshare for
-	// network hiccups accidentally.
-	closeSessionsFunc := func() {
-		sharedUsers, err := k.collab.GetAll()
-		if err != nil {
-			k.log.Warning("Couldn't unshare users: %s", err)
-			return
-		}
-
-		if len(sharedUsers) == 0 {
-			return
-		}
-
-		k.log.Info("Unsharing users '%s'", sharedUsers)
-		for user, option := range sharedUsers {
-			// dont touch permanent users
-			if option.Permanent {
-				k.log.Info("User is permanent, avoiding it: %q", user)
-				continue
-			}
-
-			if err := k.collab.Delete(user); err != nil {
-				k.log.Warning("Couldn't delete user from storage: %s", err)
-			}
-			k.terminal.CloseSessions(user)
-		}
-	}
-	df := NewDeferTime(time.Minute, closeSessionsFunc)
-
 	k.kite.OnFirstRequest(func(c *kite.Client) {
 		// Koding (kloud) connects to much, don't display it.
 		if c.Username != "koding" {
@@ -492,7 +495,7 @@ func (k *Klient) RegisterMethods() {
 		}
 
 		k.log.Info("Canceling disconnection timer.")
-		df.Stop()
+		k.collabCloser.Stop()
 	})
 
 	// Unshare collab users if the klient owner disconnects
@@ -507,7 +510,7 @@ func (k *Klient) RegisterMethods() {
 		}
 
 		k.log.Info("Start disconnection timer with 1 minute delay.")
-		df.Start()
+		k.collabCloser.Start()
 	})
 }
 
@@ -683,6 +686,7 @@ func (k *Klient) register(registerURL *url.URL) error {
 }
 
 func (k *Klient) Close() {
+	k.collabCloser.Close()
 	k.collab.Close()
 	k.kite.Close()
 }

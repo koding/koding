@@ -10,6 +10,7 @@ type DeferTime struct {
 
 	startC chan struct{}
 	stopC  chan struct{}
+	closeC chan struct{}
 }
 
 // NewDeferTime creates a new DeferTime instance and runs internal worker
@@ -21,6 +22,7 @@ func NewDeferTime(d time.Duration, f func()) *DeferTime {
 		f:      f,
 		startC: make(chan struct{}, 1),
 		stopC:  make(chan struct{}, 1),
+		closeC: make(chan struct{}, 1),
 	}
 
 	go dt.loop()
@@ -45,6 +47,14 @@ func (dt *DeferTime) Start() {
 func (dt *DeferTime) Stop() {
 	select {
 	case dt.stopC <- struct{}{}:
+	default:
+	}
+}
+
+// Close stops differed timer. It doesn't not invoke registered function.
+func (dt *DeferTime) Close() {
+	select {
+	case dt.closeC <- struct{}{}:
 	default:
 	}
 }
@@ -76,7 +86,12 @@ func (dt *DeferTime) loop() {
 			} else {
 				timer = time.NewTimer(dt.d)
 			}
-			c = timer.C
+			c, sawTimer = timer.C, false
+		case <-dt.closeC:
+			if timer != nil && !timer.Stop() && !sawTimer {
+				<-timer.C
+			}
+			return
 		}
 	}
 }
