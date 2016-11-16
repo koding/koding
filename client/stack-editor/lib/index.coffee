@@ -96,6 +96,9 @@ module.exports = class StackEditorAppController extends AppController
       createOnce selectedProvider
       modal.destroy()
 
+    view.on 'StackOnboardingCanceled', ->
+      modal.destroy()
+
     modal.addSubView view
 
     if handleRoute
