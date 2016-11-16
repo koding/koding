@@ -79,6 +79,18 @@ parseRequest = (req, res) ->
   return { model, id, method, sessionToken }
 
 
+verifySession = (Models, sessionToken, callback) ->
+
+  Models.JSession.one { clientId: sessionToken }, (err, session) ->
+
+    if err or not session
+      return callback apiErrors.unauthorizedRequest
+
+    { groupName: group } = session
+
+    callback null, { userArea: { group }, sessionToken }
+
+
 sendSignatureErr = (signatures, method, res) ->
 
   # Make signatures human readable ~ GG
@@ -117,52 +129,58 @@ module.exports = RemoteHandler = (koding) ->
 
     { model, id, method, sessionToken } = parsedRequest
 
-    constructorName = getConstructorName model, Models
+    verifySession Models, sessionToken, (err, context) ->
 
-    unless constructorName
-      sendApiError res, apiErrors.invalidInput
-      return
+      if err
+        sendApiError res, err
+        return
 
-    body = if req.body then clone req.body else null
-    req.body ?= {}
-    req.body  = { userArea: {}, sessionToken }
+      constructorName = getConstructorName model, Models
 
-    args = if Array.isArray body
-    then body
-    else if (Object.keys body).length
-    then [body]
-    else []
+      unless constructorName
+        sendApiError res, apiErrors.invalidInput
+        return
 
-    args.push (->)
+      body = if req.body then clone req.body else null
+      req.body ?= {}
+      req.body  = context
 
-    callbacks = { 1: [args.length - 1] }
+      args = if Array.isArray body
+      then body
+      else if (Object.keys body).length
+      then [body]
+      else []
 
-    type = if id then 'instance' else 'static'
+      args.push (->)
 
-    unless Models[constructorName].getSignature type, method
-      sendApiError res, { ok: false, error: 'No such method' }
-      return
+      callbacks = { 1: [args.length - 1] }
 
-    [validCall, signatures] = Models[constructorName].testSignature type, method, args
+      type = if id then 'instance' else 'static'
 
-    unless validCall
-      sendSignatureErr signatures, "#{constructorName}.#{method}", res
-      return
+      unless Models[constructorName].getSignature type, method
+        sendApiError res, { ok: false, error: 'No such method' }
+        return
 
-    bongoRequest = {
-      arguments: args
-      callbacks
-      method: {
-        constructorName
-        method
-        type
+      [validCall, signatures] = Models[constructorName].testSignature type, method, args
+
+      unless validCall
+        sendSignatureErr signatures, "#{constructorName}.#{method}", res
+        return
+
+      bongoRequest = {
+        arguments: args
+        callbacks
+        method: {
+          constructorName
+          method
+          type
+        }
       }
-    }
 
-    bongoRequest.method.id = id  if id
-    req.body.queue = [ bongoRequest ]
+      bongoRequest.method.id = id  if id
+      req.body.queue = [ bongoRequest ]
 
-    (koding.expressify {
-      rateLimitOptions: KONFIG.nodejsRateLimiter
-      processPayload
-    }) req, res
+      (koding.expressify {
+        rateLimitOptions: KONFIG.nodejsRateLimiter
+        processPayload
+      }) req, res
