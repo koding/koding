@@ -8,7 +8,7 @@
 
 # redirect: false
 Click to 'REJECT' button
-Did popup disappear? Did 'aws-instance' disappear along with 'Shared VMs' section in sidebar on the left?
+Did popup disappear? Did 'test_' label disappear along with 'Shared VMs' section in sidebar on the left?
 
 Switch back to first window and move your mouse over 'test' label on left sidebar and click on the circle button appeared next to it. Scroll down until you see 'VM Sharing'. Click on the toggle button next to 'VM Sharing'
 Is the label updated as 'OFF'? Is it turned to gray?
