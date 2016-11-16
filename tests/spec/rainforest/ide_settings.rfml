@@ -40,11 +40,11 @@ Is tabulation displayed like set of dots before the 'soft tabs' text in the edit
 Toggle 'Line numbers' option on/off in Editor Settings
 Are line numbers displayed/hidden in editor tabs?
 
-Toogle 'Remove pane when last tab closed' on in Editor Settings, open some tabs and close all tabs in editor tabs
-Is 'Would you like us to remove the pane when there are no tabs left?' dialog displayed for the first time if user didn't this toggle? Is empty pane closed?
+# Toogle 'Remove pane when last tab closed' on in Editor Settings, open some tabs and close all tabs in editor tabs
+# Is 'Would you like us to remove the pane when there are no tabs left?' dialog displayed for the first time if user didn't this toggle? Is empty pane closed?
 
-Toogle 'Remove pane when last tab closed' off in Editor Settings, click on the (+) button next to the tabs on that pane and select 'Split Horizontally' option, open some files and then close all tabs in editor tabs
-Is the view splitted to two pieces as top and bottom panes? Is empty pane stayed?
+# Toogle 'Remove pane when last tab closed' off in Editor Settings, click on the (+) button next to the tabs on that pane and select 'Split Horizontally' option, open some files and then close all tabs in editor tabs
+# Is the view splitted to two pieces as top and bottom panes? Is empty pane stayed?
 
 Toggle 'Use word wrapping' option on/off in Editor Settings
 Are long lines word wrapped (displayed on multiline within the screen) in editor tabs?
@@ -60,5 +60,3 @@ Are invisible symbols like spaces, row wraps, tabs showed/hidden?
 
 Toggle 'Use scroll past end' option on/off in Editor Settings and try to scroll any file in the editor
 Is scrolling past the last row allowed / not-allowed?
-
-
