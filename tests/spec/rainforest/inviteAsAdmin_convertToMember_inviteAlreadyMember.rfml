@@ -20,9 +20,9 @@ Click on 'THAT'S FINE' button
 Have you seen 'All invitations are sent.' message displayed?
 
 Open a new incognito window by clicking on the 3 dots on the top corner of the browser and selecting 'New Incognito Window' and then go to '{{ sandbox.auth }}@{{ random.last_name }}{{ random.number }}.{{site.host}}' by pasting the url (using ctrl-v) in the address bar
-Do you see 'Sign in to {{ random.last_name }}{{ random.number }}' text, 'Username or Email' and 'Password' fields and a 'SIGN IN' button?
+Do you see 'Sign in to {{ random.last_name }}{{ random.number }}' text, 'Your Username or Email' and 'Your Password' fields and a 'SIGN IN' button?
 
-Enter "rainforestqa22" both in the 'Username or Email' and 'Password' fields and click on 'SIGN IN' button
+Enter "rainforestqa22" both in the 'Your Username or Email' and 'Your Password' fields and click on 'SIGN IN' button
 Are you successfully logged in? Do you see '{{ random.last_name }}{{ random.number }}' label at the top left corner? Do you see 'You are almost there, rainforestqa22!' title? Do you see 'Create a Stack for Your Team', 'Enter your Credentials', 'Build Your Stack', 'Invite Your Team' and 'Install KD' sections? Do you see 'CREATE', 'ENTER', 'BUILD', 'INVITE' and 'INSTALL' links next to them?
 
 Click on 'Invite Your Team' section

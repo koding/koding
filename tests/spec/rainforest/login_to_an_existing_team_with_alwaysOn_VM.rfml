@@ -5,9 +5,9 @@
 #
 
 Enter "{{ always_on_existing_team.name }}" (in lowercase like in the 'rainforestqateam') in the input field 'your-team-name' and click on 'LOGIN' button and then if you see 'Authentication Required' form enter "koding" in the 'User Name:' and "1q2w3e4r" in the 'Password:' fields and click on 'Log In' (if not do nothing and check the items below)
-Do you see 'Sign in to {{ always_on_existing_team.name }}' text? Do you see 'Username or Email' and 'Password' fields and a 'SIGN IN' button?
+Do you see 'Sign in to {{ always_on_existing_team.name }}' text? Do you see 'Your Username or Email' and 'Your Password' fields and a 'SIGN IN' button?
 
-Enter "rainforestqa99@koding.com" in the 'Username or Email' and "rainforestqa99" in the 'Password' fields and click on 'SIGN IN' button
+Enter "rainforestqa99@koding.com" in the 'Your Username or Email' and "rainforestqa99" in the 'Your Password' fields and click on 'SIGN IN' button
 Do you see '{{ always_on_existing_team.name }}' label at the top left corner? Do you see 'You are almost there, rainforestqa99!' title? Do you see 'Create a Stack for Your Team', 'Enter your Credentials', 'Build Your Stack', 'Invite Your Team' and 'Install KD' sections? Do you see 'CREATE', 'ENTER', 'BUILD', 'INVITE' and 'INSTALL' links next to them?
 
 Close that modal by clicking (x) from top right corner
