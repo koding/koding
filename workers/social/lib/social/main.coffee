@@ -12,9 +12,10 @@ log = -> console.log arguments...
 
 usertracker = require '../../../usertracker'
 datadog     = require '../../../datadog'
+apiErrors   = require './apiErrors'
 
 process.on 'uncaughtException', (err) ->
-  console.log err, err?.stack
+  console.log 'Something went wrong:', err, err?.stack
   process.exit 1
 
 Bongo = require 'bongo'
@@ -151,17 +152,6 @@ do ->
   helmet.defaults app
   app.use cors()
 
-  # Generic error handler
-  app.use (err, req, res, next) ->
-    error = {}
-    error[err.name] = err.body
-    if res.headersSent
-      next error
-    else
-      res.status(500)
-        .send { ok: false, error }
-        .end()
-
   options = { rateLimitOptions : KONFIG.nodejsRateLimiter }
 
   app.post '/remote.api/:model/:id?', (require './remoteapi') koding
@@ -181,3 +171,20 @@ do ->
     res.send "Socialworker is running with version: #{KONFIG.version}"
 
   app.listen argv.p or KONFIG.social.port
+
+  # Generic error handler
+  app.use (err, req, res, next) ->
+
+    console.error '[SocialWorker] Something went wrong', err, err?.stack
+
+    error = {}
+    if err.name and err.body
+    then error[err.name] = err.body
+    else error = apiErrors.internalError
+
+    if res.headersSent
+      next error
+    else
+      res.status(500)
+        .send { ok: false, error }
+        .end()
