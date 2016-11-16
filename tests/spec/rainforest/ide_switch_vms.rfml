@@ -32,7 +32,7 @@ Click on the 'NEXT' button and then click on the BUILD STACK button below and wa
 Do you see 'Success! Your stack has been built.' text? Do you see 'View The Logs', 'Connect Your Local Machine' and 'Invite to Collaborate' sections? Do you see START CODING button on the bottom? Do you see '_Aws Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'aws-instance-1' label?
 
 Click 'aws-instance' labels on the left
-Do you see file 'testfile{{random.number}}.txt' with arrow icon next to it in the file tree?
+Do you see file 'testfile{{random.number}}.txt' with a note icon in the file tree?
 
 Click 'aws-instance-1' labels on the left
 Is 'testfile{{random.number}}.txt' file not visible at the left in the file tree?
