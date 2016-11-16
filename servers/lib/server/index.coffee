@@ -64,7 +64,7 @@ app.use require './setsession'
 # routes ordered as before no particular structure
 
 app.post '/-/teams/validate-token'               , require './handlers/checktoken'
-app.post '/-/teams/allow'                        , setCrsfToken, (req, res) -> res.json { token: req.pendingCookies._csrf }
+app.post '/-/teams/allow'                        , setCrsfToken
 app.post '/-/teams/create'                       , csrf,   require './handlers/createteam'
 app.post '/-/teams/join'                         , csrf,   require './handlers/jointeam'
 app.post '/-/teams/verify-domain'                , require './handlers/verifyslug'
