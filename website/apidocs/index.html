@@ -5,8 +5,8 @@
   <title>Koding API</title>
 
   <link rel="icon" type="image/png" href="/a/images/favicon.ico" sizes="48x48" />
+  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,700|Roboto:400,700" rel="stylesheet">
 
-  <link href='css/typography.css' media='screen' rel='stylesheet' type='text/css'/>
   <link href='css/reset.css' media='screen' rel='stylesheet' type='text/css'/>
   <link href='css/screen.css' media='screen' rel='stylesheet' type='text/css'/>
   <link href='css/reset.css' media='print' rel='stylesheet' type='text/css'/>
@@ -29,10 +29,6 @@
   <script src='lib/cookies.js' type='text/javascript'></script>
   <script src='lib/marked.js' type='text/javascript'></script>
 
-  <script src='lang/translator.js' type='text/javascript'></script>
-  <script src='lang/tr.js' type='text/javascript'></script>
-  <script src='lang/en.js' type='text/javascript'></script>
-
   <script type="text/javascript">
     $(function () {
       var url = window.location.search.match(/url=([^&]+)/);
@@ -46,10 +42,6 @@
         highlightSizeThreshold: 5000
       });
 
-      // Pre load translate...
-      if(window.SwaggerTranslator) {
-        window.SwaggerTranslator.translate();
-      }
       window.swaggerUi = new SwaggerUi({
         url: url,
         dom_id: "swagger-ui-container",
@@ -62,9 +54,6 @@
         defaultModelRendering: 'schema',
         showRequestHeaders: true,
         onComplete: function() {
-          if(window.SwaggerTranslator) {
-            window.SwaggerTranslator.translate();
-          }
           checkKodingLogin();
         }
       });
@@ -192,7 +181,7 @@
 
       function loginFailed (reason, err) {
         console.log("Failed to login", reason, err);
-        $('#login-box input').css('border', '2px solid red');
+        $('#login-box input').addClass('parameter required error');
       }
 
       function clearCookies () {
@@ -202,8 +191,8 @@
       }
 
       $('#login-form').submit(function(event) {
-        $('#login-box input').css('border', '');
         event.preventDefault();
+        $('#login-box input').removeClass('parameter required error');
         var username = $('input[name=username]').val(),
             password = $('input[name=password]').val(),
             team     = $('input[name=team]').val();
@@ -224,7 +213,7 @@
       <input name="team" placeholder="team" value="koding" />
       <input name="username" placeholder="username" />
       <input name="password" placeholder="password" type="password" />
-      <input type="submit" hidden="true" />
+      <button type="submit">Login</button>
     </form>
     <div id="login-info" style='display: none;'>
       <span id="logged-in-message"></span>
