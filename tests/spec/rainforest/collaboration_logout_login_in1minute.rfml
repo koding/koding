@@ -22,5 +22,8 @@ Do you see with opening menu with 'Logout' item?
 Click on 'Logout'
 Did you logout?
 
-Enter "rainforestqa99" both in the 'Username or Email' and 'Password' fields and click on 'SIGN IN' button (You have to login again less than 1 minute)
-Are you successfully logged in? Is collaboration session still continue? Do you still see 'LEAVE SESSION?'
+Enter "rainforestqa99" both in the 'Username or Email' and 'Password' fields and click on 'SIGN IN' button (You have to login less than 1 minute)
+Are you successfully logged in?
+
+Click to 'aws-instance_' under 'Shared VMs' section and wait for it to load
+Do you see 'LEAVE SESSION?' button at the bottom right corner?
