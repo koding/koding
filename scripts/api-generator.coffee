@@ -6,72 +6,71 @@ fs = require 'fs'
 bongo = require '../servers/lib/server/bongo'
 
 swagger =
-  swagger: "2.0"
+  swagger: '2.0'
   info:
-    title: "Koding API"
-    version: "0.0.2"
-    description: "Koding API for integrate your application with Koding services"
+    title: 'Koding API'
+    version: '0.0.2'
+    description: 'Koding API for integrating your application with Koding services'
     license:
-      name: "Apache 2.0"
-      url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+      name: 'Apache 2.0'
+      url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
   tags: [
     {
-      name: "system"
-      description: "System endpoints for various purposes"
-    },
-    {
-      name: "remote"
-      description: "Remote API endpoints for all operations"
+      name: 'system'
+      description: 'System endpoints for various purposes'
     }
   ]
+
   schemes: [
-    "http"
-    "https"
+    'http'
+    'https'
   ]
+
   parameters:
     instanceParam:
-      in: "path"
-      name: "id"
-      description: "Mongo ID of target instance"
+      in: 'path'
+      name: 'id'
+      description: 'Mongo ID of target instance'
       required: true
-      type: "string"
+      type: 'string'
     bodyParam:
-      in: "body"
-      name: "body"
-      schema:
-        type: "object"
+      in: 'body'
+      name: 'body'
+      schema: $ref: '#/definitions/defaultSelector'
       required: true
-      description: "body of the request"
+      description: 'body of the request'
 
   paths:
-    "/-/version":
+    '/-/version':
       get:
-        tags: [ "system" ]
-        responses: "200": description: "OK"
-
-    "/remote.api/jaccount.one":
-      post:
-        tags: [ "remote" ]
-        consumes: [ 'application/json' ]
-        parameters: [{
-          $ref: "#/parameters/bodyParam"
-          default: "[{ }]"
-        }]
+        tags: [ 'system' ]
         responses:
-          "200":
-            description: "OK"
-            schema: $ref: "#/definitions/JAccount"
+          '200':
+            description: 'OK'
 
-    "/remote.api/jaccount.fetchEmail/{id}":
+    '/remote.api/jaccount.one':
       post:
-        tags: [ "remote" ]
+        tags: [ 'remote' ]
         consumes: [ 'application/json' ]
         parameters: [
-          { $ref: "#/parameters/instanceParam" }
+          { $ref: '#/parameters/bodyParam' }
         ]
         responses:
-          "200":
-            description: "OK"
+          '200':
+            description: 'OK'
+            schema:
+              $ref: '#/definitions/JAccount'
+
+    '/remote.api/jaccount.fetchEmail/{id}':
+      post:
+        tags: [ 'remote' ]
+        consumes: [ 'application/json' ]
+        parameters: [
+          { $ref: '#/parameters/instanceParam' }
+        ]
+        responses:
+          '200':
+            description: 'OK'
 
 parseType = (type) ->
 
