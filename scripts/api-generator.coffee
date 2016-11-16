@@ -26,6 +26,32 @@ swagger =
     'https'
   ]
 
+  definitions:
+    defaultSelector:
+      type: 'object'
+      properties:
+        _id:
+          type: 'string'
+          description: 'Mongo Object ID'
+          example: '582c21d43bf248161538450b'
+    defaultResponse:
+      type: 'object'
+      properties:
+        ok:
+          type: 'boolean'
+          description: 'If the request processed by endpoint'
+          example: true
+        error:
+          type: 'object'
+          description: 'Error description'
+          example:
+            message: "Something went wrong"
+            name: "SomethingWentWrong"
+        data:
+          type: 'object'
+          description: 'Result of the operation'
+          example: "Hello World"
+
   parameters:
     instanceParam:
       in: 'path'
@@ -122,7 +148,8 @@ generateDefinition = (model) ->
 
 bongo.on 'apiReady', ->
 
-  definitions = {}
+  paths       = swagger.paths
+  definitions = swagger.definitions
 
   for name, model of bongo.models when (model.schema? and model.describeSchema?)
     try
