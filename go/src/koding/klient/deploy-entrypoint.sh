@@ -81,21 +81,27 @@ fi
 
 gzip --decompress --force --stdout /mnt/mesos/sandbox/klient.gz > /tmp/klient
 chmod +x /tmp/klient
-/tmp/klient -metadata \$KODING_METADATA_${i} run
+/tmp/klient -metadata \$KODING_METADATA_${i} install
 
 echo _KD_DONE_ >> \$USER_LOG
 
+# TODO(rjeczalik): Make klient write /var/log/klient.pid and log it here.
+# There could be also healthcheck for the pid file.
+
 if [ -n "\$KODING_CMD" ]; then
+	/opt/kite/klient/klient start
+
 	echo "[entrypoint] executing: /tmp/cmd.sh" | tee -a \$USER_LOG >&2
 	echo \$KODING_CMD | base64 --decode > /tmp/cmd.sh
 	chmod +x /tmp/cmd.sh
 	exec /tmp/cmd.sh
 elif [ \$# -gt 0 ]; then
+	/opt/kite/klient/klient start
+
 	echo "[entrypoint] executing: \$@" | tee -a \$USER_LOG >&2
 	exec "\$@"
 else
-	echo "[entrypoint] sleeping" >&2
-	while sleep 600; do true; done
+	/opt/kite/klient/klient
 fi
 EOF
 
