@@ -74,29 +74,6 @@ swagger =
           '200':
             description: 'OK'
 
-    '/remote.api/jaccount.one':
-      post:
-        tags: [ 'remote' ]
-        consumes: [ 'application/json' ]
-        parameters: [
-          { $ref: '#/parameters/bodyParam' }
-        ]
-        responses:
-          '200':
-            description: 'OK'
-            schema:
-              $ref: '#/definitions/JAccount'
-
-    '/remote.api/jaccount.fetchEmail/{id}':
-      post:
-        tags: [ 'remote' ]
-        consumes: [ 'application/json' ]
-        parameters: [
-          { $ref: '#/parameters/instanceParam' }
-        ]
-        responses:
-          '200':
-            description: 'OK'
 
 parseType = (type) ->
 
