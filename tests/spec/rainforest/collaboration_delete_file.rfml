@@ -16,12 +16,11 @@ Do you see green warning 'ACCESS GRANTED: You can make changes now!'?
 Close the warning and click  down arrow icon at the right of /home/rainforestqa99 label in the center part of the page, click 'New file' in the menu (like on screenshot http://snag.gy/nJ2Dd.jpg ) and enter 'file{{random.number}}.txt' file name and press Enter
 Do you see file 'file{{random.number}}.txt' with green icon in the file tree?
 
-Click down arrow icon at the right of 'newfile{{random.number}}.txt' file in the file tree and click 'Delete' in the menu
+Click down arrow icon at the right of 'file{{random.number}}.txt' file in the file tree and click 'Delete' in the menu
 Do you see 'Are you sure?' text and red 'Delete' button above the file name?
 
 Click on 'DELETE' button
-Is 'newfile{{random.number}}.txt' file deleted from file tree?
+Is 'file{{random.number}}.txt' file deleted from file tree?
 
 Return to the other browser window where you are logged in as 'rainforestqa99', close the browser notification if displayed
-Do you see the uploaded file under the filetree? Is 'newfile{{random.number}}.txt' file removed from file tree?
-
+Do you see the uploaded file under the filetree? Is 'file{{random.number}}.txt' file removed from file tree?
