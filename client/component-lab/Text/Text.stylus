@@ -12,7 +12,7 @@ $fw-bold = 600
 $fw-bolder = 900
 
 .Label
-  font-family               SoleilFamily
+  font-family               mainFontFamily
   font-weight               $fw-thin
   color                     $additional-4
   letter-spacing            0.15px
