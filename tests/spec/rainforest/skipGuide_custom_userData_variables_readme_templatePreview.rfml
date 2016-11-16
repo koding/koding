@@ -62,7 +62,7 @@ Do you see 'Team Stack' title? Do you see 'Instructions', 'Credentials' and 'Bui
 Click on the 'NEXT' button
 Do you see 'Select Credentials and Other Requirements' text? Do you see 'rainforestqa99's AWS keys' label in the text box on the left-side? Do you see 'Requirements:' title, 'Requirement Selection' text and a text box on the right-side? Do you see '+ Create New' link below?
 
-Click on '+ Create New', enter "{{ random.first_name }}_build" in 'Title', "{{ random.first_name }}" in 'Name' fields and click on BUILD STACK button
+Click on '+ Create New' under Requirements (if you don't see '+ Create New under requirements section just enter the following values under 'New Requirements:' section on the right-side), enter "{{ random.first_name }}_build" in 'Title', "{{ random.first_name }}" in 'Name' fields and click on BUILD STACK button
 Do you see 'Fetching and validating credentials...' text in a progress bar? Do you see a green progress bar also below 'aws-instance' label on left sidebar?
 
 Wait for a few minutes for process to be completed
