@@ -146,20 +146,70 @@ generateDefinition = (model) ->
   return def
 
 
+generateMethodPaths = (model, definitions, paths) ->
+
+  name = model.name
+  methods = model.getSharedMethods()
+
+  schema = if definitions[name]
+  then { $ref: "#/definitions/#{name}" }
+  else { $ref: "#/definitions/defaultResponse" }
+
+  for method, signatures of methods.statik
+
+    paths["/remote.api/#{name}.#{method}"] =
+      post:
+        tags: [ name ]
+        consumes: [ 'application/json' ]
+        parameters: [
+          { $ref: '#/parameters/bodyParam' }
+        ]
+        responses:
+          '200':
+            description: 'OK'
+            schema: schema
+
+
+  for method, signatures of methods.instance
+
+    paths["/remote.api/#{name}.#{method}/{id}"] =
+      post:
+        tags: [ name ]
+        consumes: [ 'application/json' ]
+        parameters: [
+          { $ref: '#/parameters/instanceParam' }
+        ]
+        responses:
+          '200':
+            description: 'OK'
+            schema: schema
+
+
 bongo.on 'apiReady', ->
 
   paths       = swagger.paths
   definitions = swagger.definitions
 
-  for name, model of bongo.models when (model.schema? and model.describeSchema?)
+  for name, model of bongo.models
+
     try
-      definitions[name] = generateDefinition model
+      if model.schema? and model.describeSchema?
+        definitions[name] = generateDefinition model
     catch e
-      console.log 'Failed on', name, e
+      console.log 'Failed while building definitions:', name, e
       console.log 'Schema was:', bongo.models[name].describeSchema()
       process.exit()
 
+    try
+      generateMethodPaths model, definitions, paths
+    catch e
+      console.log 'Failed while building methods:', name, e
+      console.log 'Methods were:', bongo.models[name].getSharedMethods()
+      process.exit()
+
+  swagger.paths = paths
   swagger.definitions = definitions
+
   fs.writeFileSync 'website/swagger.json', JSON.stringify swagger, ' ', 2
 
   process.exit()
