@@ -52,10 +52,7 @@ Is entered text displayed correctly in the editor?
 Mouse over the editor header where the file '{{random.address_city}}{{random.number}}.txt' is opened and click 'x' icon
 Do you see 'Do you want to save your changes?' modal displayed? Do you see 'Don't save' and 'Save and Close' buttons?
 
-Click 'Cancel' button on the modal
-Is overlay closed? Is editor tab with '{{random.address_city}}{{random.number}}.txt' file still displayed?
-
-Mouse over the editor header where the file '{{random.address_city}}{{random.number}}.txt' is opened and click 'x' icon and click 'Save and close' button on the modal
+Click to 'Save and close' button
 Is overlay closed? Is editor tab with '{{random.address_city}}{{random.number}}.txt' file also closed?
 
 Double click on the '{{random.address_city}}{{random.number}}.txt' file in the filetree
