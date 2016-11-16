@@ -161,6 +161,7 @@
 
       function logoutFromKoding (callback) {
         var clientId = Cookies.get('clientId');
+        swaggerUi.api.clientAuthorizations.remove("clientId");
         setCsrfToken(function (csrfToken) {
           $.ajax({
             url: '/remote.api/JUser.logout',
