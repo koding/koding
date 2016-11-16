@@ -139,10 +139,9 @@ module.exports = RemoteHandler = (koding) ->
 
     type = if id then 'instance' else 'static'
 
-    if type is 'static'
-      unless Models[constructorName]?[method]
-        sendApiError res, { ok: false, error: 'No such method' }
-        return
+    unless Models[constructorName].getSignature type, method
+      sendApiError res, { ok: false, error: 'No such method' }
+      return
 
     [validCall, signatures] = Models[constructorName].testSignature type, method, args
 
