@@ -12,7 +12,7 @@ log = -> console.log arguments...
 
 usertracker = require '../../../usertracker'
 datadog     = require '../../../datadog'
-apiErrors   = require './apiErrors'
+apiErrors   = require './apierrors'
 
 process.on 'uncaughtException', (err) ->
   console.log 'Something went wrong:', err, err?.stack

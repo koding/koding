@@ -51,6 +51,21 @@ swagger =
           type: 'object'
           description: 'Result of the operation'
           example: "Hello World"
+    unauthorizedRequest:
+      type: 'object'
+      properties:
+        status:
+          type: 'integer'
+          description: 'HTTP Error Code'
+          example: 401
+        message:
+          type: 'string'
+          description: 'Error description'
+          example: "The request is unauthorized, an api token is required."
+        code:
+          type: 'string'
+          description: 'Error Code'
+          example: "UnauthorizedRequest"
 
   parameters:
     instanceParam:
@@ -134,17 +149,23 @@ generateMethodPaths = (model, definitions, paths) ->
 
   for method, signatures of methods.statik
 
+    if hasParams = signatures.length > 1 or signatures[0].split(',').length > 1
+      parameters = [{ $ref: '#/parameters/bodyParam' }]
+    else
+      parameters = null
+
     paths["/remote.api/#{name}.#{method}"] =
       post:
         tags: [ name ]
         consumes: [ 'application/json' ]
-        parameters: [
-          { $ref: '#/parameters/bodyParam' }
-        ]
+        parameters: parameters
         responses:
           '200':
-            description: 'OK'
-            schema: schema
+            description: 'Request processed succesfully'
+            schema: $ref: "#/definitions/defaultResponse"
+          '401':
+            description: 'Unauthorized request'
+            schema: $ref: '#/definitions/unauthorizedRequest'
 
 
   for method, signatures of methods.instance

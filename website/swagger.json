@@ -53,6 +53,26 @@
         }
       }
     },
+    "unauthorizedRequest": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "description": "HTTP Error Code",
+          "example": 401
+        },
+        "message": {
+          "type": "string",
+          "description": "Error description",
+          "example": "The request is unauthorized, an api token is required."
+        },
+        "code": {
+          "type": "string",
+          "description": "Error Code",
+          "example": "UnauthorizedRequest"
+        }
+      }
+    },
     "JAccount": {
       "type": "object",
       "properties": {
@@ -1447,9 +1467,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -1470,9 +1496,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -1493,9 +1525,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -1516,9 +1554,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -1539,9 +1583,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -1562,9 +1612,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -1585,9 +1641,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -1608,9 +1670,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -2406,16 +2474,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JApiToken"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -2459,9 +2529,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -2482,9 +2558,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -2505,9 +2587,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -2551,9 +2639,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -2574,9 +2668,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -2597,9 +2697,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -2620,9 +2726,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -2643,9 +2755,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -2666,9 +2784,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -2682,16 +2806,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -2705,16 +2831,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -2735,9 +2863,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -2751,16 +2885,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -2781,9 +2917,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JCredential"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -2804,9 +2946,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JCredential"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -2827,9 +2975,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JCredential"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -3011,9 +3165,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JMachine"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -3034,9 +3194,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JMachine"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -3241,9 +3407,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JProvisioner"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -3264,9 +3436,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JProvisioner"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -3287,9 +3465,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JProvisioner"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -3379,9 +3563,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JSnapshot"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -3402,9 +3592,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JSnapshot"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -3448,9 +3644,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JStackTemplate"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -3471,9 +3673,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JStackTemplate"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -3494,9 +3702,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JStackTemplate"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -3678,9 +3892,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JCustomPartials"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -3701,9 +3921,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JCustomPartials"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -3770,9 +3996,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -3793,9 +4025,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -3816,9 +4054,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JProposedDomain"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -3832,16 +4076,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JProposedDomain"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -3862,9 +4108,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JProposedDomain"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -4000,9 +4252,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JDomainAlias"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -4023,9 +4281,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JDomainAlias"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -4046,9 +4310,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -4069,9 +4339,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -4092,9 +4368,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -4115,9 +4397,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -4138,9 +4426,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -4161,9 +4455,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -4184,9 +4484,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -4207,9 +4513,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -4230,9 +4542,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -4253,9 +4571,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -4276,9 +4600,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -4299,9 +4629,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5127,9 +5463,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JInvitation"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5150,9 +5492,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JInvitation"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5173,9 +5521,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JInvitation"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5196,9 +5550,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JInvitation"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5219,9 +5579,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JInvitation"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5242,9 +5608,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JInvitation"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5311,9 +5683,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JKite"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5334,9 +5712,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JKite"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5465,16 +5849,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JLocation"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5488,16 +5874,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JLocation"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5518,9 +5906,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JLocation"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5541,9 +5935,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JLocation"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5564,9 +5964,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JName"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5580,16 +5986,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JName"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5610,9 +6018,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5633,9 +6047,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JPasswordRecovery"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5656,9 +6076,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JPasswordRecovery"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5679,9 +6105,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JPasswordRecovery"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5702,9 +6134,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JPasswordRecovery"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5725,9 +6163,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JPasswordRecovery"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5748,9 +6192,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5771,9 +6221,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5794,9 +6250,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5817,9 +6279,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5833,16 +6301,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5863,9 +6333,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5879,16 +6355,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5909,9 +6387,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5932,9 +6416,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5955,9 +6445,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -5978,9 +6474,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6001,9 +6503,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6017,16 +6525,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6040,16 +6550,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6063,16 +6575,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6093,9 +6607,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JProxyFilter"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6116,9 +6636,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JProxyFilter"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6185,9 +6711,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JProxyRestriction"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6208,9 +6740,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JProxyRestriction"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6231,9 +6769,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JProxyRestriction"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6254,9 +6798,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JProxyRestriction"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6277,9 +6827,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JReward"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6300,9 +6856,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JReward"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6323,9 +6885,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JReward"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6346,9 +6914,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JReward"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6369,9 +6943,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JRewardCampaign"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6392,9 +6972,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JRewardCampaign"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6415,9 +7001,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JRewardCampaign"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6438,9 +7030,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JRewardCampaign"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6500,16 +7098,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6523,16 +7123,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JSession"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6576,9 +7178,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6599,9 +7207,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6615,16 +7229,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6645,9 +7261,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6668,9 +7290,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6691,9 +7319,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6714,9 +7348,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6737,9 +7377,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6760,9 +7406,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6783,9 +7435,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6806,9 +7464,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6829,9 +7493,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6852,9 +7522,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6875,9 +7551,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6898,9 +7580,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6921,9 +7609,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6944,9 +7638,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6967,9 +7667,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -6990,9 +7696,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7013,9 +7725,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7036,9 +7754,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7059,9 +7783,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7082,9 +7812,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7105,9 +7841,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7128,9 +7870,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7151,9 +7899,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7174,9 +7928,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7197,9 +7957,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7220,9 +7986,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7243,9 +8015,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7266,9 +8044,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7289,9 +8073,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7312,9 +8102,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7335,9 +8131,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7358,9 +8160,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7381,9 +8189,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7404,9 +8218,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7427,9 +8247,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7450,9 +8276,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7473,9 +8305,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7496,9 +8334,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7519,9 +8363,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7542,9 +8392,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7565,9 +8421,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7588,9 +8450,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7611,9 +8479,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7634,9 +8508,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7657,9 +8537,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7680,9 +8566,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7703,9 +8595,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7726,9 +8624,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7749,9 +8653,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7772,9 +8682,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JComputeStack"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7795,9 +8711,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JComputeStack"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -7818,9 +8740,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JComputeStack"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8002,9 +8930,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8025,9 +8959,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8048,9 +8988,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8071,9 +9017,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8094,9 +9046,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8110,16 +9068,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8140,9 +9100,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8163,9 +9129,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8186,9 +9158,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8209,9 +9187,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8232,9 +9216,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8255,9 +9245,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8278,9 +9274,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8301,9 +9303,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8324,9 +9332,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8600,9 +9614,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JTeamInvitation"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8623,9 +9643,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JTeamInvitation"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8646,9 +9672,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JTeamInvitation"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8692,9 +9724,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
               "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8715,9 +9753,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JUrlAlias"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8738,9 +9782,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JUrlAlias"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8761,9 +9811,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JUser"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8777,16 +9833,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JUser"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8800,16 +9858,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JUser"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8830,9 +9890,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JUser"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8846,16 +9912,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JUser"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8876,9 +9944,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JUser"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8892,16 +9966,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JUser"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8922,9 +9998,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JUser"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8945,9 +10027,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JUser"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8968,9 +10056,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JUser"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -8991,9 +10085,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JUser"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -9014,9 +10114,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JUser"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -9037,9 +10143,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JUser"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -9060,9 +10172,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JUser"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -9083,9 +10201,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JUser"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -9106,9 +10230,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JWorkspace"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -9129,9 +10259,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JWorkspace"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -9152,9 +10288,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JWorkspace"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -9175,9 +10317,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JWorkspace"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -9191,16 +10339,18 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
+        "parameters": null,
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JWorkspace"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
@@ -9221,9 +10371,15 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
+            "description": "Request processed succesfully",
             "schema": {
-              "$ref": "#/definitions/JWorkspace"
+              "$ref": "#/definitions/defaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/unauthorizedRequest"
             }
           }
         }
