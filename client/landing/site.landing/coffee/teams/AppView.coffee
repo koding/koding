@@ -22,6 +22,8 @@ module.exports = class TeamsView extends kd.TabPaneView
 
     { mainController } = kd.singletons
     { group }          = kd.config
+    isEnterprise       = /type\=enterprise/.test location.search
+    withDemo           = /demo\=on/.test location.search
 
     @header = new MainHeaderView
       cssClass : 'team'
@@ -29,19 +31,18 @@ module.exports = class TeamsView extends kd.TabPaneView
         { title : 'Login',    href : '/Teams',    name : 'login' }
       ]
 
+
     @form = new TeamsSignupForm
       cssClass : 'login-form'
       callback : (formData) ->
 
-        { email } = formData
+        { email, phone } = formData
 
         track 'started team signup', { contact: email }
 
-        isEnterprise = /type\=enterprise/.test location.search
-        withDemo = /demo\=on/.test location.search
 
         if isEnterprise and withDemo
-          track 'started team signup enterprise with demo request', { contact: email }
+          track 'started team signup enterprise with demo request', { contact: email, phone }
         else if isEnterprise
           track 'started team signup enterprise without demo request', { contact: email }
 
@@ -71,7 +72,7 @@ module.exports = class TeamsView extends kd.TabPaneView
             formData.alreadyMember = yes
             finalize email
 
-
+    @form.phone.show()  if isEnterprise and withDemo
 
   pistachio: ->
 
