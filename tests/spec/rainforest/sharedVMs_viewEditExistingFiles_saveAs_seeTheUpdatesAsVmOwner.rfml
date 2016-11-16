@@ -16,7 +16,7 @@ Do you see '{{ random.first_name }}.txt' in the list?
 Switch to the incognito window, click on 'ACCEPT' button on the pop-up appeared
 Do you see '/home/rainforestqa99' label on top of a file list next to left sidebar? Do you see '{{ random.first_name }}.txt' in the file list under '/home/rainforestqa99' label? Do you see 'Terminal' tab on the bottom? Do you see 'rainforestqa99@rainforestqa99:~$' in that 'Terminal' tab?
 
-Click on the area under 'Untitled.txt' on top, then double click on the '{{ random.first_name }}.txt' file 
+Click on the area under 'Untitled.txt' on top, then double click on the '{{ random.first_name }}.txt' file
 Do you see that it's empty?
 
 Type "{{ random.full_name }}" in it, click on the little down arrow next to '{{ random.first_name }}.txt' label above and then select 'Save'
@@ -28,7 +28,7 @@ Do you see 'Filename:' title and a text field with '{{ random.first_name }}.txt'
 Clear text in filename input then type "{{ random.last_name }}.txt" and then click to 'SAVE' button
 Is '{{ random.last_name }}.txt' added to the pane next to '{{ random.first_name }}.txt'? Is it also added to the end of file list under '/home/rainforestqa99'?
 
-Return to the first browser
+Switch back to first browser window which you are logged in as user rainforestqa99
 Do you see that '{{ random.last_name }}.txt' is added to the end of file list under '/home/rainforestqa99'? Do you see 'This file has changed on disk. Do you want to reload it?' text under '{{ random.first_name }}.txt'? Do you also see 'NO' and 'YES' buttons?
 
 Click on 'YES' button
