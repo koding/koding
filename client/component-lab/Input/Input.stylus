@@ -20,7 +20,7 @@ placeholder()
   &:-ms-input-placeholder
     {block}
 
-$fm = 'Proxima Nova', 'proxima-nova', Helvetica, Arial
+$fm = mainFontFamily
 $fm-mask = SourceCodePro
 
 .Input

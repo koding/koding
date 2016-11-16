@@ -17,7 +17,7 @@ $br-xlarge = 4px
 
 createSizeClass(size)
   .{size}
-    font-family             'Proxima Nova', 'proxima-nova', Helvetica, Arial
+    font-family             mainFontFamily
     cursor                  pointer
     padding                 lookup('$padding-'+size)
     font-size               lookup('$fs-'+size)
