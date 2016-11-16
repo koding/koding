@@ -55,7 +55,7 @@
         dom_id: "swagger-ui-container",
         supportedSubmitMethods: ['get', 'post'],
         docExpansion: "list",
-        jsonEditor: true,
+        jsonEditor: false,
         validatorUrl: null,
         enableCookies: true,
         apisSorter: "alpha",
@@ -81,22 +81,158 @@
       }
 
       function checkKodingLogin() {
-        var clientId = Cookies.get('clientId');
-        if (clientId) {
+        var clientId = Cookies.get('clientId'),
+            username = Cookies.get('koding-username'),
+            team     = Cookies.get('koding-team');
+        if (clientId && username && team) {
           setAuth(clientId);
+          $('#login-form').hide();
+          $('#logged-in-message')
+            .html("Logged in as <b>" + username + "</b> on <b>" + team +"</b> team");
+          $('#login-info').show();
+
+        } else {
+          $('#login-form').show();
+          $('#login-info').hide();
+          $('input[name=username]').focus();
         }
-      };
+      }
+
       function log() {
         if ('console' in window) {
           console.log.apply(console, arguments);
         }
       }
+
+      function fetchActiveSession (clientId) {
+        $.ajax({
+          url: '/remote.api/JSession.activeSession',
+          type: 'POST',
+          headers: { Authorization : "Bearer " + clientId },
+          success: function(session) {
+            if (session.ok) {
+              Cookies.set('koding-username', session.data.username);
+              Cookies.set('koding-team', session.data.groupName);
+              checkKodingLogin();
+            } else {
+              loginFailed('Session invalid', session);
+            }
+          },
+          error: function() {
+            console.warn('Failed to fetch session', arguments);
+            clearCookies();
+            checkKodingLogin();
+          }
+        });
+
+      }
+
+      function setCsrfToken (callback) {
+        $.ajax({
+          url: '/-/teams/allow',
+          type: 'POST',
+          xhrFields: {
+            withCredentials: true
+          },
+          success: function(data) {
+            var csrfToken = data.token;
+            Cookies.set('_csrf', csrfToken);
+            callback(csrfToken);
+          },
+          error: function() {
+            loginFailed('Failed to set csrf token', arguments)
+          }
+        });
+      }
+
+      function loginToKoding (team, username, password) {
+        setCsrfToken(function (csrfToken) {
+          $.ajax({
+            url: '/Login',
+            data: {
+              groupName: team ? team : 'koding',
+              username: username,
+              password: password,
+              _csrf: csrfToken
+            },
+            type: 'POST',
+            xhrFields: {
+              withCredentials: true
+            },
+            success: function () {
+              var clientId = Cookies.get('clientId');
+              fetchActiveSession(clientId);
+            },
+            error: function () {
+              loginFailed('Invalid auth', arguments);
+            }
+          })
+        });
+      }
+
+      function logoutFromKoding (callback) {
+        var clientId = Cookies.get('clientId');
+        setCsrfToken(function (csrfToken) {
+          $.ajax({
+            url: '/remote.api/JUser.logout',
+            type: 'POST',
+            headers: { Authorization : "Bearer " + clientId },
+            success: function() {
+              clearCookies();
+              callback();
+            },
+            error: function() {
+              console.warn('Failed to call logout, clearing cookies.', arguments);
+              clearCookies();
+              callback();
+            }
+          })
+        });
+      }
+
+      function loginFailed (reason, err) {
+        console.log("Failed to login", reason, err);
+        $('#login-box input').css('border', '2px solid red');
+      }
+
+      function clearCookies () {
+        Cookies.remove('clientId');
+        Cookies.remove('koding-username');
+        Cookies.remove('koding-team');
+      }
+
+      $('#login-form').submit(function(event) {
+        $('#login-box input').css('border', '');
+        event.preventDefault();
+        var username = $('input[name=username]').val(),
+            password = $('input[name=password]').val(),
+            team     = $('input[name=team]').val();
+        loginToKoding(team, username, password);
+      });
+
+      $('#logout-button').click(function(event) {
+        logoutFromKoding(checkKodingLogin);
+      });
+
   });
   </script>
 </head>
 
 <body class="swagger-section">
+  <div id="login-box">
+    <form id="login-form" action="/Login" method="post" style='display: none;'>
+      <input name="team" placeholder="team" value="koding" />
+      <input name="username" placeholder="username" />
+      <input name="password" placeholder="password" type="password" />
+      <input type="submit" hidden="true" />
+    </form>
+    <div id="login-info" style='display: none;'>
+      <span id="logged-in-message"></span>
+      <button id='logout-button'>Logout</button>
+    </div>
+  </div>
   <div id="message-bar" class="swagger-ui-wrap" data-sw-translate>&nbsp;</div>
-  <div id="swagger-ui-container" class="swagger-ui-wrap"></div>
+  <div id="swagger-ui-container" class="swagger-ui-wrap">
+  </div>
 </body>
 </html>

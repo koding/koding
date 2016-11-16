@@ -1279,3 +1279,20 @@
   text-align: center;
   padding-top: 10px;
 }
+
+#login-box {
+  font-family: "Droid Sans", sans-serif;
+  font-size: 12px;
+  max-width: 960px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: right;
+  height: 30px;
+  border-bottom: 1px solid #EEE;
+  margin-top: 10px;
+  margin-bottom: -70px; /* Just for POC */
+}
+
+#login-box b {
+  font-weight: bold;
+}
