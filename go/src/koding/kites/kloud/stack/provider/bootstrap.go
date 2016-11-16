@@ -104,7 +104,7 @@ func (bs *BaseStack) bootstrap(arg *stack.BootstrapRequest) (interface{}, error)
 
 				// TODO(rjeczalik): use []byte for templates to avoid allocations
 				if err := bs.Builder.BuildTemplate(string(tmpl.Content), tmpl.Key); err != nil {
-					return nil, err
+					return nil, fmt.Errorf("error building template: %s", err)
 				}
 
 				content, err := bs.Builder.Template.JsonOutput()

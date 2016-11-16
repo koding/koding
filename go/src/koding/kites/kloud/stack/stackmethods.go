@@ -95,8 +95,8 @@ func GenerateSSHKeyPair() (*SSHKeyPair, error) {
 	}
 
 	key := &SSHKeyPair{
-		Private: privBuf.Bytes(),
-		Public:  ssh.MarshalAuthorizedKey(pub),
+		Private: bytes.TrimSpace(privBuf.Bytes()),
+		Public:  bytes.TrimSpace(ssh.MarshalAuthorizedKey(pub)),
 	}
 
 	sum := sha1.Sum(key.Private)
