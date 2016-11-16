@@ -7,8 +7,8 @@
 - 2f953286-4d03-47aa-9665-b80e2cd03c5a
 
 # redirect: false
-Return to the first browser, close the modal by clicking (x) from top right corner and then click on the little down arrow next to '/home/rainforestqa99' label and select 'New file'
-Do you see that 'NewFile.txt' added to the end of vertical list?
+Switch back to first browser window. Click to down arrow next to '/home/rainforestqa99' label and then click to 'New file'
+Do you see that 'NewFile.txt' added?
 
 Type '{{ random.first_name }}' and hit ENTER
 Do you see '{{ random.first_name }}.txt' in the list?
