@@ -17,7 +17,8 @@ module.exports = class IDEStatusBarMenu extends KDContextMenu
     options.cssClass      or= "IDE-StatusBarMenu #{paneType}-context-menu"
     options.treeItemClass or= IDEStatusBarMenuItem
 
-    super options, @getItems paneType, file.isDummyFile()
+    dummy = if file then file.isDummyFile() else no
+    super options, @getItems paneType, dummy
 
     @on 'ContextMenuItemReceivedClick', (view, event) =>
       @destroy()  unless event.target.parentNode.classList.contains 'kdselectbox'
