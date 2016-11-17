@@ -219,7 +219,7 @@ module.exports = class JUser extends jraphical.Module
         registeredFrom      : 1
         inactive            : 1
       }
-      modifier = { $set: userValues, $unset: $unsetValues }
+      modifier = { $set: userValues, $unset: unsetValues }
       # update the user with empty data
 
       user.update modifier, updateUnregisteredUserAccount({
