@@ -25,7 +25,7 @@ module.exports = class OnboardingView extends JView
     @cancelButton = new kd.ButtonView
       cssClass : 'StackEditor-OnboardingModal--cancel'
       title    : 'CANCEL'
-      callback : @bound 'destroy'
+      callback : => @emit 'StackOnboardingCanceled'
 
     @createButton = new kd.ButtonView
       cssClass  : 'outline next'

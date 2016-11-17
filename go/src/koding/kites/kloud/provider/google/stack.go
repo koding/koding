@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
-	"strings"
 	"text/template"
 
 	"koding/kites/kloud/stack"
@@ -193,13 +192,6 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 			labels = labels[:0]
 			for i := 0; i < count; i++ {
 				labels = append(labels, fmt.Sprintf("%s.%d", resourceName, i))
-			}
-
-			// instance names must be unique, if user set count property, she
-			// need to use interpolation in name attribute. If she doesn't, we
-			// will attach index number at the end of name string.
-			if instr := instanceName.(string); !strings.Contains(instr, "${count.index}") {
-				instance["name"] = instr + "-${count.index}"
 			}
 		}
 

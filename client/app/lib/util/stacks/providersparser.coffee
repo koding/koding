@@ -11,11 +11,15 @@ module.exports = providersParser = (content) ->
     match = regex.exec content
 
   knownProviders = globals.config.providers
-  providers = (Object.keys providers).map (provider) ->
-    (Object.keys knownProviders).forEach (_provider) ->
-      if knownProviders[_provider].slug is provider
-        provider = _provider
-    provider
+  providers = (Object.keys providers)
+    .filter (provider) ->
+      provider isnt 'koding'
+    .map (provider) ->
+      (Object.keys knownProviders).forEach (_provider) ->
+        if knownProviders[_provider].slug is provider
+          provider = _provider
+      provider
+
 
   # Return list of providers
   return providers

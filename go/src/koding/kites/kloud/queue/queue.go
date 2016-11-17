@@ -44,10 +44,7 @@ func (q *Queue) Run() {
 	defer t.Stop()
 
 	for range t.C {
-		q.Log.Debug("queue interval hit")
-
 		for _, s := range q.stackers {
-			q.Log.Debug("queue running checker for %q provider", s.Provider.Name)
 
 			go func(s *provider.Stacker) {
 				if err := q.Check(s); err != nil {
@@ -123,13 +120,13 @@ func (q *Queue) Check(s *provider.Stacker) error {
 
 	err := q.FetchProvider(s.Provider.Name, &m)
 	if err != nil {
-		q.Log.Debug("no running machines for %q provider found", s.Provider.Name)
-
 		// do not show an error if the query didn't find anything, that
 		// means there is no such a document, which we don't care
 		if err == mgo.ErrNotFound {
 			return nil
 		}
+
+		q.Log.Debug("no running machines for %q provider found", s.Provider.Name)
 
 		return fmt.Errorf("check %q provider error: %s", s.Provider.Name, err)
 	}

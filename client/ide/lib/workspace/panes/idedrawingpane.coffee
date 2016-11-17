@@ -30,6 +30,7 @@ module.exports = class IDEDrawingPane extends IDEPane
   createCanvas: ->
 
     @canvas      = new KDCustomHTMLView
+      cssClass   : 'drawing'
       tagName    : 'canvas'
       attributes :
         width    : @getWidth()
@@ -110,12 +111,12 @@ module.exports = class IDEDrawingPane extends IDEPane
 
   init: ->
 
-    @$canvas = @canvas.getDomElement()
+    @$canvas = $('canvas.drawing')
     @$canvas.sketchpad
       aspectRatio : 1
       canvasColor : '#2B2B2B'
 
-    @$canvas.setLineSize  3
+    @$canvas.setLineSize 3
     @$canvas.setLineColor colors.first
 
     @$canvas.on 'mouseup mouseleave touchend ', @bound 'emitChangeHappened'
