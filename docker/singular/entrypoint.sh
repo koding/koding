@@ -18,7 +18,7 @@ function init_mongodb() {
     tar --extract --bzip2 --directory /tmp/
 
   service mongodb start
-  /opt/wait.sh mongo
+  /opt/koding/wait.sh mongo
 
   mongorestore /tmp/dump
 
@@ -52,7 +52,7 @@ trap handle_interrupt INT TERM
 function run_backend(){
   init_databases
   start_services
-  ./run exec scripts/check-service-connectivity.sh
+  sleep 20
   nginx -c $(pwd)/nginx.conf
   ./run migrate up
   ./run exec supervisord -c supervisord.conf
