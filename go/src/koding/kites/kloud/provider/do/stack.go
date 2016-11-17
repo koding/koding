@@ -2,8 +2,6 @@ package do
 
 import (
 	"bytes"
-	"crypto/sha1"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"html/template"
@@ -33,10 +31,18 @@ var _ provider.Stack = (*Stack)(nil)
 // Stack is responsible of handling the terraform templates
 type Stack struct {
 	*provider.BaseStack
+
+	sshKeyPair *stack.SSHKeyPair
 }
 
-func newStack(stack *provider.BaseStack) (provider.Stack, error) {
-	return &Stack{BaseStack: stack}, nil
+func newStack(bs *provider.BaseStack) (provider.Stack, error) {
+	s := &Stack{
+		BaseStack: bs,
+	}
+
+	bs.SSHKeyPairFunc = s.setSSHKeyPair
+
+	return s, nil
 }
 
 // VerifyCredential verifies whether the users DO credentials (access token) is
@@ -67,6 +73,11 @@ func (s *Stack) VerifyCredential(c *stack.Credential) error {
 	return nil
 }
 
+func (s *Stack) setSSHKeyPair(keypair *stack.SSHKeyPair) error {
+	s.sshKeyPair = keypair
+	return nil
+}
+
 // BootstrapTemplates returns terraform templates that needs to be executed
 // before a droplet is created. In our case we'll create a template that
 // creates a ssh key on behalf of Koding, that will be later used during
@@ -80,8 +91,8 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 	// fill the template
 	var buf bytes.Buffer
 	if err := bootstrapTmpl.Execute(&buf, &tmplData{
-		KeyName:   s.keyName(),
-		PublicKey: s.Keys.PublicKey,
+		KeyName:   s.sshKeyPair.Name,
+		PublicKey: string(s.sshKeyPair.Public),
 	}); err != nil {
 		return nil, err
 	}
@@ -89,18 +100,6 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 	return []*stack.Template{
 		{Content: buf.String()},
 	}, nil
-}
-
-// keyName returns the keyName used for the bootstrap data.
-//
-// The key pair creation is idempotent - if the key already
-// exists with the same name and content the create
-// operation is a nop. If key already exists, but under
-// a different name, key pair creation is going to fail
-// due to a name conflict.
-func (s *Stack) keyName() string {
-	sum := sha1.Sum([]byte(s.Keys.PublicKey))
-	return "koding-deployment-" + hex.EncodeToString(sum[:])
 }
 
 // ApplyTemplate enhances and updates the DigitalOcean terraform template. It

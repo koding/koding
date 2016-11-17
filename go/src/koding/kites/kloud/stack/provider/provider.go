@@ -211,6 +211,19 @@ type BaseStack struct {
 	// state file.
 	PlanFunc func() (stack.Machines, error)
 
+	// SSHKeyPairFunc is used by HandleBootstrap
+	// to inject a newly generated SSH keypair
+	// into provider's bootstrap data.
+	//
+	// If the function is non-nil, BaseStack will
+	// generate a new SSH keypair and expect
+	// provider implementation will add it
+	// to its bootstrap template.
+	//
+	// SSHKeyPairFunc can overwrite keypair's fields
+	// to any other values.
+	SSHKeyPairFunc func(keypair *stack.SSHKeyPair) error
+
 	stack Stack
 }
 

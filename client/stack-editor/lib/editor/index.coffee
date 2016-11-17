@@ -49,8 +49,8 @@ module.exports = class StackEditorView extends kd.View
 
     if stackTemplate
       unless selectedProvider = stackTemplate.selectedProvider
-        for selectedProvider in stackTemplate.config.requiredProviders
-          break  if selectedProvider in ['aws', 'vagrant']
+        for selectedProvider in stackTemplate.config.requiredProviders when selectedProvider isnt 'koding'
+          break
       selectedProvider ?= (Object.keys stackTemplate.credentials ? { aws: yes }).first
 
     options.selectedProvider = selectedProvider ?= 'aws'
