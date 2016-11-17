@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"net"
 	"net/url"
 	"strings"
 	"time"
@@ -408,6 +409,10 @@ func (bs *BaseStack) buildUpdateObj(m *stack.Machine, s *DialState, now time.Tim
 		obj["registerUrl"] = s.KiteURL
 
 		if u, err := url.Parse(s.KiteURL); err == nil && u.Host != "" {
+			if host, _, err := net.SplitHostPort(u.Host); err == nil {
+				u.Host = host
+			}
+
 			obj["ipAddress"] = u.Host
 		}
 	}
