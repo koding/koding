@@ -28,9 +28,6 @@ Did it turn to gray? Do you see a dot at the left of file name in the editor tab
 Toggle 'Use soft tabs' option off in Editor Settings
 Is 'Use soft tabs' toggle gray?
 
-Create a new row in the editor, create tabulation by pressing tab on keyboard and type 'hard tabs'
-Is tabulation displayed like '->' arrow before the 'hard tabs' text in the editor ( http://snag.gy/HWb5O.jpg )?
-
 Toggle 'Use soft tabs' option on in Editor Settings
 Is 'Use soft tabs' toggle green?
 
@@ -55,8 +52,8 @@ Are lines showing the print margin displayed/hidden in editor tabs?
 Toggle 'Highlight active line' option on/off in Editor Settings
 Is the line where the cursor highlighted/not in editor tabs?
 
-Toggle 'Show invisibles' on/off in Editor Settings
-Are invisible symbols like spaces, row wraps, tabs showed/hidden?
+# Toggle 'Show invisibles' on/off in Editor Settings
+# Are invisible symbols like spaces, row wraps, tabs showed/hidden?
 
 Toggle 'Use scroll past end' option on/off in Editor Settings and try to scroll any file in the editor
 Is scrolling past the last row allowed / not-allowed?
