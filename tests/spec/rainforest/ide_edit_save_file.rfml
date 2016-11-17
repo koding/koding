@@ -28,13 +28,13 @@ Did you see any error? You are expected to not see any error.
 Make some changes in the editor, Mouse over the editor header where the file 'file{{random.number}}.txt' is opened, click down arrow icon and Click 'Save as' in the menu
 Do you see the form with 'Filename', 'Select a folder' field?
 
-Enter 'file{{random.number}}_new.txt' file name, select '.config' in 'Select a folder' field and click 'SAVE'
-Do you see a new editor tab opened for 'file{{random.number}}_new.txt' file?
+Enter 'newfile{{random.number}}.txt' file name, select '.config' in 'Select a folder' field and click 'SAVE'
+Do you see a new editor tab opened for 'newfile{{random.number}}.txt' file?
 
 Click '.config' in file tree list on the left
-Do you see the 'file{{random.number}}_new.txt' file under '.config' folder?
+Do you see the 'newfile{{random.number}}.txt' file under '.config' folder?
 
-Mouse over the editor header where the file 'file{{random.number}}_new.txt' is opened and click 'x' icon
+Mouse over the editor header where the file 'newfile{{random.number}}.txt' is opened and click 'x' icon
 Is editor tab closed?
 
 Mouse over the editor header where the file 'file{{random.number}}.txt' is opened and click 'x' icon
