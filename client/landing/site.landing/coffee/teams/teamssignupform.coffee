@@ -39,6 +39,13 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
           messages   :
             required : 'Please enter a team name.'
 
+    @phone = new LoginInputView
+      cssClass       : 'hidden'
+      inputOptions   :
+        name         : 'phone'
+        label        : 'Phone number'
+        placeholder  : 'Enter your phone number'
+
     @button = new kd.ButtonView
       title       : 'Next'
       icon        : yes
@@ -49,7 +56,8 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
 
   pistachio: ->
     """
-    <div class='email'>{{> @email}}</div>
-    <div class='company-name'>{{> @companyName}}</div>
-    <div class='submit'>{{> @button}}</div>
+    <div class='email'>{{> @email }}</div>
+    <div class='phone'>{{> @phone }}</div>
+    <div class='company-name'>{{> @companyName }}</div>
+    <div class='submit'>{{> @button }}</div>
     """

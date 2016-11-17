@@ -5,7 +5,7 @@ $border-radius = 4px
 
 .Box
   width                     100%
-  font-family               SoleilFamily
+  font-family               mainFontFamily
   overflow                  hidden
   borderBox()
 

@@ -128,11 +128,17 @@ body.ide
           display           none
 
         &.edit-mode
-          padding           6px 7px
+          padding           5px 0 0 4px
           box-sizing        border-box
           line-height       14px
 
+          :before
+            display         none
+
           .tab-handle-text
+            display         none
+
+          .options
             display         none
 
           .close-tab
@@ -158,6 +164,7 @@ body.ide .dark
   .vm-header .buttons .chevron
     r-sprite                'finder', 'expanded'
     top                     -8px !important
+
 
   .kdtabhandle.kddraggable
     display                 flex
@@ -203,6 +210,10 @@ body.ide .dark
 
     &.plus
       border-left-color     transparent
+
+  .kdtabhandle.cloud-init-outputlog.kddraggable
+    span.kdview.tab-handle-tabname
+      padding-left          20px !important
 
   .jtreeview-wrapper .jtreeitem.selected .chevron
     display                 inline-block
@@ -452,9 +463,9 @@ body.ide .dark
       .kdview.kdscrolltrack &.out
         opacity             1 !important
 
-  .kdtabhandle.dummy
+  .kdtabhandle.kddraggable.dummy
   .kdview.dummy
-    display                 none
+    display                 none !important
 
   .application-tabview
     z-index                 1
@@ -1265,7 +1276,7 @@ body.ide .kddialogview.save-as-dialog
   .editor-pane
     .description-view
       height                auto
-      padding               4px 6px 6px
+      padding               7px 6px 4px
       font-size             12px
       line-height           15px
       color                 #CCC
