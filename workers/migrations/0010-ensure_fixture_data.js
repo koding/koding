@@ -6,7 +6,7 @@ data = {
   "relationships": [
     {
       "_id": ObjectId("5196fcb0bc9bdb000000001e"),
-      "timestamp": new ISODate("2013-05-18T03:59:44.971Z"),
+      "timestamp": new Date("2013-05-18T03:59:44.971Z"),
       "targetId": ObjectId("5196fcb0bc9bdb0000000011"),
       "targetName": "JAccount",
       "sourceId": ObjectId("5196fcb0bc9bdb0000000009"),
@@ -15,7 +15,7 @@ data = {
     },
     {
       "_id": ObjectId("5196fcb2bc9bdb0000000028"),
-      "timestamp": new ISODate("2013-05-18T03:59:46.184Z"),
+      "timestamp": new Date("2013-05-18T03:59:46.184Z"),
       "targetId": ObjectId("5196fcb0bc9bdb0000000011"),
       "targetName": "JAccount",
       "sourceId": ObjectId("5196fcb2bc9bdb0000000027"),
@@ -24,7 +24,7 @@ data = {
     },
     {
       "_id": ObjectId("5196fcb2bc9bdb0000000029"),
-      "timestamp": new ISODate("2013-05-18T03:59:46.188Z"),
+      "timestamp": new Date("2013-05-18T03:59:46.188Z"),
       "targetId": ObjectId("5196fcb0bc9bdb0000000011"),
       "targetName": "JAccount",
       "sourceId": ObjectId("5196fcb2bc9bdb0000000027"),
@@ -33,7 +33,7 @@ data = {
     },
     {
       "_id": ObjectId("5196fcb2bc9bdb000000002a"),
-      "timestamp": new ISODate("2013-05-18T03:59:46.218Z"),
+      "timestamp": new Date("2013-05-18T03:59:46.218Z"),
       "targetId": ObjectId("5196fcb0bc9bdb0000000011"),
       "targetName": "JAccount",
       "sourceId": ObjectId("5196fcb2bc9bdb0000000027"),
@@ -42,7 +42,7 @@ data = {
     },
     {
       "_id": ObjectId("5196fcb2bc9bdb000000002e"),
-      "timestamp": new ISODate("2013-05-18T03:59:46.348Z"),
+      "timestamp": new Date("2013-05-18T03:59:46.348Z"),
       "targetId": ObjectId("5196fcb2bc9bdb000000002c"),
       "targetName": "JPermissionSet",
       "sourceId": ObjectId("5196fcb2bc9bdb0000000027"),
@@ -51,7 +51,7 @@ data = {
     },
     {
       "_id": ObjectId("5196fcb2bc9bdb000000002f"),
-      "timestamp": new ISODate("2013-05-18T03:59:46.359Z"),
+      "timestamp": new Date("2013-05-18T03:59:46.359Z"),
       "targetId": ObjectId("5196fcb0bc9bdb0000000019"),
       "targetName": "JGroupRole",
       "sourceId": ObjectId("5196fcb2bc9bdb0000000027"),
@@ -60,7 +60,7 @@ data = {
     },
     {
       "_id": ObjectId("5196fcb2bc9bdb0000000030"),
-      "timestamp": new ISODate("2013-05-18T03:59:46.361Z"),
+      "timestamp": new Date("2013-05-18T03:59:46.361Z"),
       "targetId": ObjectId("5196fcb0bc9bdb000000001a"),
       "targetName": "JGroupRole",
       "sourceId": ObjectId("5196fcb2bc9bdb0000000027"),
@@ -69,7 +69,7 @@ data = {
     },
     {
       "_id": ObjectId("5196fcb2bc9bdb0000000031"),
-      "timestamp": new ISODate("2013-05-18T03:59:46.362Z"),
+      "timestamp": new Date("2013-05-18T03:59:46.362Z"),
       "targetId": ObjectId("5196fcb0bc9bdb000000001b"),
       "targetName": "JGroupRole",
       "sourceId": ObjectId("5196fcb2bc9bdb0000000027"),
@@ -78,7 +78,7 @@ data = {
     },
     {
       "_id": ObjectId("5196fcb2bc9bdb0000000032"),
-      "timestamp": new ISODate("2013-05-18T03:59:46.364Z"),
+      "timestamp": new Date("2013-05-18T03:59:46.364Z"),
       "targetId": ObjectId("5196fcb0bc9bdb000000001c"),
       "targetName": "JGroupRole",
       "sourceId": ObjectId("5196fcb2bc9bdb0000000027"),
@@ -87,7 +87,7 @@ data = {
     },
     {
       "_id": ObjectId("5196fcb2bc9bdb0000000033"),
-      "timestamp": new ISODate("2013-05-18T03:59:46.366Z"),
+      "timestamp": new Date("2013-05-18T03:59:46.366Z"),
       "targetId": ObjectId("5196fcb0bc9bdb000000001d"),
       "targetName": "JGroupRole",
       "sourceId": ObjectId("5196fcb2bc9bdb0000000027"),
@@ -97,7 +97,7 @@ data = {
     {
       "_id": ObjectId("539f486cd46c2000003e7374"),
       "data": {},
-      "timestamp": new ISODate("2014-06-16T19:41:32.458Z"),
+      "timestamp": new Date("2014-06-16T19:41:32.458Z"),
       "targetId": ObjectId("539f486cd46c2000003e7373"),
       "targetName": "JPermissionSet",
       "sourceId": ObjectId("5196fcb2bc9bdb0000000027"),
@@ -112,12 +112,12 @@ data = {
       "sourceName": "JGroup",
       "targetId": ObjectId("51d5bda6bc698b560a000007"),
       "targetName": "JMembershipPolicy",
-      "timestamp": new ISODate("2015-01-18T19:57:02.879Z")
+      "timestamp": new Date("2015-01-18T19:57:02.879Z")
     },
     {
       "_id": ObjectId("54eb1e6228f392b018969ddd"),
       "data": {},
-      "timestamp": new ISODate("2015-02-23T12:34:42.002Z"),
+      "timestamp": new Date("2015-02-23T12:34:42.002Z"),
       "targetId": ObjectId("54eb1e6128f392b018969ddc"),
       "targetName": "JAccount",
       "sourceId": ObjectId("54eb1e6128f392b018969ddb"),
@@ -127,7 +127,7 @@ data = {
     {
       "_id": ObjectId("54eb1e6228f392b018969ddf"),
       "data": {},
-      "timestamp": new ISODate("2015-02-23T12:34:42.036Z"),
+      "timestamp": new Date("2015-02-23T12:34:42.036Z"),
       "targetId": ObjectId("54eb1e6128f392b018969ddc"),
       "targetName": "JAccount",
       "sourceId": ObjectId("5196fcb2bc9bdb0000000027"),
@@ -137,7 +137,7 @@ data = {
     {
       "_id": ObjectId("54eb1e6228f392b018969de1"),
       "data": {},
-      "timestamp": new ISODate("2015-02-23T12:34:42.068Z"),
+      "timestamp": new Date("2015-02-23T12:34:42.068Z"),
       "targetId": ObjectId("53925a609b76835748c0c4fd"),
       "targetName": "JStackTemplate",
       "sourceId": ObjectId("54eb1e6128f392b018969ddc"),
@@ -146,7 +146,7 @@ data = {
     },
     {
       "data": {},
-      "timestamp": new ISODate("2016-10-08T02:38:07.197Z"),
+      "timestamp": new Date("2016-10-08T02:38:07.197Z"),
       "targetId": ObjectId("5196fcb0bc9bdb0000000011"),
       "targetName": "JAccount",
       "sourceId": ObjectId("57f85c0ff8578ae3d9d8b498"),
@@ -156,7 +156,7 @@ data = {
     },
     {
       "data": {},
-      "timestamp": new ISODate("2016-10-08T02:38:07.200Z"),
+      "timestamp": new Date("2016-10-08T02:38:07.200Z"),
       "targetId": ObjectId("5196fcb0bc9bdb0000000011"),
       "targetName": "JAccount",
       "sourceId": ObjectId("57f85c0ff8578ae3d9d8b498"),
@@ -166,7 +166,7 @@ data = {
     },
     {
       "data": {},
-      "timestamp": new ISODate("2016-10-08T02:38:07.200Z"),
+      "timestamp": new Date("2016-10-08T02:38:07.200Z"),
       "targetId": ObjectId("5196fcb0bc9bdb0000000011"),
       "targetName": "JAccount",
       "sourceId": ObjectId("57f85c0ff8578ae3d9d8b498"),
@@ -176,7 +176,7 @@ data = {
     },
     {
       "data": {},
-      "timestamp": new ISODate("2016-10-08T02:38:07.207Z"),
+      "timestamp": new Date("2016-10-08T02:38:07.207Z"),
       "targetId": ObjectId("57f85c0ff8578ae3d9d8b49c"),
       "targetName": "JPermissionSet",
       "sourceId": ObjectId("57f85c0ff8578ae3d9d8b498"),
@@ -186,7 +186,7 @@ data = {
     },
     {
       "data": {},
-      "timestamp": new ISODate("2016-10-08T02:38:07.210Z"),
+      "timestamp": new Date("2016-10-08T02:38:07.210Z"),
       "targetId": ObjectId("5196fcb0bc9bdb0000000019"),
       "targetName": "JGroupRole",
       "sourceId": ObjectId("57f85c0ff8578ae3d9d8b498"),
@@ -196,7 +196,7 @@ data = {
     },
     {
       "data": {},
-      "timestamp": new ISODate("2016-10-08T02:38:07.210Z"),
+      "timestamp": new Date("2016-10-08T02:38:07.210Z"),
       "targetId": ObjectId("5196fcb0bc9bdb000000001a"),
       "targetName": "JGroupRole",
       "sourceId": ObjectId("57f85c0ff8578ae3d9d8b498"),
@@ -206,7 +206,7 @@ data = {
     },
     {
       "data": {},
-      "timestamp": new ISODate("2016-10-08T02:38:07.211Z"),
+      "timestamp": new Date("2016-10-08T02:38:07.211Z"),
       "targetId": ObjectId("5196fcb0bc9bdb000000001b"),
       "targetName": "JGroupRole",
       "sourceId": ObjectId("57f85c0ff8578ae3d9d8b498"),
@@ -216,7 +216,7 @@ data = {
     },
     {
       "data": {},
-      "timestamp": new ISODate("2016-10-08T02:38:07.211Z"),
+      "timestamp": new Date("2016-10-08T02:38:07.211Z"),
       "targetId": ObjectId("5196fcb0bc9bdb000000001c"),
       "targetName": "JGroupRole",
       "sourceId": ObjectId("57f85c0ff8578ae3d9d8b498"),
@@ -226,7 +226,7 @@ data = {
     },
     {
       "data": {},
-      "timestamp": new ISODate("2016-10-08T02:38:07.211Z"),
+      "timestamp": new Date("2016-10-08T02:38:07.211Z"),
       "targetId": ObjectId("5196fcb0bc9bdb000000001d"),
       "targetName": "JGroupRole",
       "sourceId": ObjectId("57f85c0ff8578ae3d9d8b498"),
@@ -236,7 +236,7 @@ data = {
     },
     {
       "data": {},
-      "timestamp": new ISODate("2016-10-08T02:38:07.380Z"),
+      "timestamp": new Date("2016-10-08T02:38:07.380Z"),
       "targetId": ObjectId("57f85c0ff8578ae3d9d8b4a3"),
       "targetName": "JMembershipPolicy",
       "sourceId": ObjectId("57f85c0ff8578ae3d9d8b498"),
@@ -261,12 +261,12 @@ data = {
       "globalFlags": [
         "super-admin"
       ],
-      "lastLoginDate": new ISODate("2016-10-08T02:38:07.179Z"),
+      "lastLoginDate": new Date("2016-10-08T02:38:07.179Z"),
       "onlineStatus": {
         "actual": "online"
       },
       "password": "c1ef3f51979f497ac87ea460e4f6582be9d9417a",
-      "registeredAt": new ISODate("2013-05-18T03:59:44.745Z"),
+      "registeredAt": new Date("2013-05-18T03:59:44.745Z"),
       "salt": "9cdca15921eb5c9fa9cd6660f653758d",
       "sanitizedEmail": "root@localhost",
       "status": "confirmed",
@@ -291,13 +291,13 @@ data = {
         "mention": true,
         "marketing": true
       },
-      "lastLoginDate": new ISODate("2015-02-23T12:34:41.983Z"),
+      "lastLoginDate": new Date("2015-02-23T12:34:41.983Z"),
       "onlineStatus": {
         "actual": "online"
       },
       "password": "b89b59f14a19a4673afab065a532ad401ac49281",
       "passwordStatus": "valid",
-      "registeredAt": new ISODate("2015-02-23T12:34:41.983Z"),
+      "registeredAt": new Date("2015-02-23T12:34:41.983Z"),
       "salt": "d91387b84d9975faf7d8a6e233dc287c",
       "sanitizedEmail": "guestuser@koding.com",
       "status": "confirmed",
@@ -346,8 +346,8 @@ data = {
     {
       "_id": ObjectId("53925a609b76835748c0c4fd"),
       "meta": {
-        "modifiedAt": new ISODate("2014-05-15T02:04:11.033Z"),
-        "createdAt": new ISODate("2014-05-15T02:04:11.032Z"),
+        "modifiedAt": new Date("2014-05-15T02:04:11.033Z"),
+        "createdAt": new Date("2014-05-15T02:04:11.032Z"),
         "likes": 0
       },
       "accessLevel": "private",
@@ -1286,7 +1286,7 @@ data = {
   ],
   "jDomainAliases": [
     {
-      "createdAt": new ISODate("2016-07-20T19:10:53.258Z"),
+      "createdAt": new Date("2016-07-20T19:10:53.258Z"),
       "machineId": ObjectId("578fccbdafa5c44a4cd37144"),
       "domain": "admin.dev.koding.io",
       "originId": ObjectId("578fccbdafa5c44a4cd3713e"),
@@ -1306,8 +1306,8 @@ data = {
         ObjectId("578fccbdafa5c44a4cd37144")
       ],
       "meta": {
-        "createdAt": new ISODate("2016-07-20T19:10:53.219Z"),
-        "modifiedAt": new ISODate("2016-07-20T19:10:53.219Z"),
+        "createdAt": new Date("2016-07-20T19:10:53.219Z"),
+        "modifiedAt": new Date("2016-07-20T19:10:53.219Z"),
         "tags": null,
         "views": null,
         "votes": null,
@@ -1329,7 +1329,7 @@ data = {
         "followers": 0,
         "following": 0,
         "invitations": 0,
-        "lastLoginDate": new ISODate("2016-10-08T02:38:07.179Z"),
+        "lastLoginDate": new Date("2016-10-08T02:38:07.179Z"),
         "likes": 0,
         "referredUsers": 0,
         "staffLikes": 0,
@@ -1341,8 +1341,8 @@ data = {
       ],
       "lastLoginTimezoneOffset": 420,
       "meta": {
-        "modifiedAt": new ISODate("2014-06-11T00:01:48.675Z"),
-        "createdAt": new ISODate("2013-05-18T03:59:44.831Z"),
+        "modifiedAt": new Date("2014-06-11T00:01:48.675Z"),
+        "createdAt": new Date("2013-05-18T03:59:44.831Z"),
         "likes": 0
       },
       "migration": "completed",
@@ -1370,8 +1370,8 @@ data = {
       "error": "guests are not allowed",
       "isExempt": false,
       "meta": {
-        "modifiedAt": new ISODate("2015-02-23T12:34:41.993Z"),
-        "createdAt": new ISODate("2015-02-23T12:34:41.992Z"),
+        "modifiedAt": new Date("2015-02-23T12:34:41.993Z"),
+        "createdAt": new Date("2015-02-23T12:34:41.992Z"),
         "tags": null,
         "views": null,
         "votes": null,
