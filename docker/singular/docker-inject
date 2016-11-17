@@ -2,8 +2,6 @@
 
 set -o errexit
 
-ls -la
-
 services="mongodb postgresql rabbitmq-server redis-server"
 
 function start_services () {
@@ -74,6 +72,9 @@ if [[ -z "$*" ]]; then
   run_backend
 elif [[ "${1:0:1}" = '-' ]]; then
   ./configure $*
+  run_backend
+elif [[ $1 = "simple" ]]; then
+  ./configure --host localhost --hostname localhost --publicPort 80
   run_backend
 else
   exec "$@"
