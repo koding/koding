@@ -11,8 +11,17 @@ NOT_IMPLEMENTED = ->
 
   return NOT_IMPLEMENTED_MESSAGE
 
-PASS_THROUGH = (..., callback) -> callback null
+PASS_THROUGH = (rest... , callback) -> callback null
 
+# Base class for all providers
+#
+# @example How to subclass a provider
+#   class Aws extends ProviderInterface
+#
+#     @providerSlug  = 'aws'
+#     @bootstrapKeys = ['key_pair', 'rtb', 'acl']
+#     @sensitiveKeys = ['access_key', 'secret_key']
+#
 module.exports = class ProviderInterface
 
   @notImplementedMessage = NOT_IMPLEMENTED_MESSAGE
@@ -31,6 +40,13 @@ module.exports = class ProviderInterface
 
   @postCreate     = PASS_THROUGH
 
+  # Generic fetcher for JCredential's data on this provider
+  #
+  # @param [Object] client valid client object
+  # @param [Object] credential valid JCredential instance
+  # @param [Function] callback function
+  # @return [Boolean, Object] credential data
+  #
   @fetchCredentialData = (client, credential, callback) ->
 
     if not credential?.fetchData?
@@ -45,6 +61,15 @@ module.exports = class ProviderInterface
       else
         callback null, {}
 
+
+  # Generic modifier for JMachine's on this provider
+  #
+  # @param [Object] valid client object
+  # @param [Object] options for update
+  # @option options [String] machineId target JMachine._id
+  # @option options [Boolean] alwaysOn always on state of the machine
+  # @return [Boolean, Object] modified JMachine instance
+  #
   @update = (client, options, callback) ->
 
     { machineId, alwaysOn } = options

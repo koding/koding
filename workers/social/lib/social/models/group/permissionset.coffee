@@ -30,7 +30,6 @@ module.exports = class JPermissionSet extends Module
 
   MAIN_GROUP = 'koding'
 
-  # coffeelint: disable=indentation
   constructor: (data = {}, options = {}) ->
 
     super data

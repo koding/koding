@@ -210,4 +210,5 @@ bongo.on 'apiReady', ->
 
   fs.writeFileSync 'website/swagger.json', JSON.stringify swagger, ' ', 2
 
+  console.log 'Swagger.json updated succesfully!'
   process.exit()

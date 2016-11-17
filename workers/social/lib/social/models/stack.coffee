@@ -161,13 +161,13 @@ module.exports = class JComputeStack extends jraphical.Module
     @update { $addToSet: itemToAppend }, (err) -> callback err
 
 
-  ###*
-   * JComputeStack::create wrapper for client requests
-   * @param  {Mixed}    client
-   * @param  {Object}   data
-   * @param  {Function} callback
-   * @return {void}
-  ###
+  # JComputeStack::create wrapper for client requests
+  # @param  {Mixed}    client
+  # @param  {Object}   data
+  # @param  {Function} callback
+  # @return {void}
+  #
+  # @create$ = (client, data, callback) ->
   @create$ = permit 'create stack',
 
     success: (client, data, callback) ->
@@ -196,12 +196,12 @@ module.exports = class JComputeStack extends jraphical.Module
             else callback null, stack
 
 
-  ###*
-   * JComputeStack::create
-   * @param  {Object}   data
-   * @param  {Function} callback
-   * @return {void}
-  ###
+  # JComputeStack::create
+  #
+  # @param  {Object}   data
+  # @param  {Function} callback
+  # @return {void}
+  #
   @create = (data, callback) ->
 
     { account, groupSlug, config, credentials
