@@ -147,7 +147,7 @@ module.exports = class TeamJoinTab extends kd.TabPaneView
     { getProfile, getGravatarUrl, getTeamData } = utils
 
     getProfile email,
-      error   : ->
+      error   : =>
         @intro.updatePartial ''
         utils.storeNewTeamData 'profile', null
       success : (profile) =>
