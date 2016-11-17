@@ -204,8 +204,10 @@ type CredentialAddResponse struct {
 func (k *Kloud) CredentialDescribe(r *kite.Request) (interface{}, error) {
 	var req CredentialDescribeRequest
 
-	if err := r.Args.One().Unmarshal(&req); err != nil {
-		return nil, err
+	if r.Args != nil {
+		if err := r.Args.One().Unmarshal(&req); err != nil {
+			return nil, err
+		}
 	}
 
 	// TODO: add support for reading the provider names by parsing

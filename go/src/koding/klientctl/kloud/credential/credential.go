@@ -44,9 +44,10 @@ func (opts *CreateOptions) Valid() error {
 type Client struct {
 	Kloud *kloud.Client
 
-	once   sync.Once // for c.init()
-	cached stack.Credentials
-	used   map[string]string
+	once     sync.Once // for c.init()
+	cached   stack.Credentials
+	used     map[string]string
+	describe map[string]*stack.Description
 }
 
 // List
@@ -143,12 +144,28 @@ func (c *Client) Provider(identifier string) (provider string, err error) {
 	return "", fmt.Errorf("credential: %q does not exist or is not shared with the user", identifier)
 }
 
+func (c *Client) Describe() (map[string]*stack.Description, error) {
+	c.init()
+
+	var req stack.CredentialDescribeRequest
+	var resp stack.CredentialDescribeResponse
+
+	if err := c.kloud().Call("credential.describe", &req, &resp); err != nil {
+		return nil, err
+	}
+
+	c.describe = resp.Description
+
+	return c.describe, nil
+}
+
 // Close
 func (c *Client) Close() (err error) {
 	if len(c.cached) != 0 {
 		err = nonil(
 			c.kloud().Cache().SetValue("credentials", c.cached),
 			c.kloud().Cache().SetValue("credentials.used", c.used),
+			c.kloud().Cache().SetValue("credentials.describe", c.describe),
 		)
 	}
 
@@ -189,11 +206,13 @@ func (c *Client) init() {
 func (c *Client) readCache() {
 	c.cached = make(stack.Credentials)
 	c.used = make(map[string]string)
+	c.describe = make(map[string]*stack.Description)
 
 	// Ignoring read error, if it's non-nil then empty cache is going to
 	// be used instead.
 	_ = c.kloud().Cache().GetValue("credentials", &c.cached)
 	_ = c.kloud().Cache().GetValue("credentials.used", &c.used)
+	_ = c.kloud().Cache().GetValue("credentials.describe", &c.describe)
 
 	// Flush cache on exit.
 	ctlcli.CloseOnExit(c)
@@ -219,6 +238,7 @@ func nonil(err ...error) error {
 
 func List(opts *ListOptions) (stack.Credentials, error)         { return DefaultClient.List(opts) }
 func Create(opts *CreateOptions) (*stack.CredentialItem, error) { return DefaultClient.Create(opts) }
+func Describe() (map[string]*stack.Description, error)          { return DefaultClient.Describe() }
 func Use(identifier string) error                               { return DefaultClient.Use(identifier) }
 func Used() map[string]string                                   { return DefaultClient.Used() }
 func Provider(identifier string) (string, error)                { return DefaultClient.Provider(identifier) }
