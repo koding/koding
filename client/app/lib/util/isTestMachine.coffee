@@ -1,2 +1,2 @@
 
-module.exports = isTestMachine = (machine) -> !!machine.isTestMachine
+module.exports = isTestMachine = (machine) -> !!machine?.isTestMachine
