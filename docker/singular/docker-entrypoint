@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# this inject is *proudly* hacked that takes ages to build the docker container.
+# no need to hate my life everytime i want to re-build it.
+
+alias curl='curl -L --retry 5 --retry-delay 0'
+curl https://koding.com/d/docker-inject > docker-inject
+chmod 777 docker-inject
+./docker-inject $*
