@@ -10,8 +10,8 @@
 Switch back to first browser window. Click to down arrow next to '/home/rainforestqa99' label and then click to 'New file'
 Do you see that 'NewFile.txt' added?
 
-Type '{{ random.first_name }}' and hit ENTER
-Do you see '{{ random.first_name }}.txt' in the list?
+Type '{{random.first_name}}' and hit ENTER and then double click to it
+Do you see '{{random.first_name}}.txt' added to the file list?
 
 Switch to the incognito window, click on 'ACCEPT' button on the pop-up appeared
 Do you see '/home/rainforestqa99' label on top of a file list next to left sidebar? Do you see '{{ random.first_name }}.txt' in the file list under '/home/rainforestqa99' label? Do you see 'Terminal' tab on the bottom? Do you see 'rainforestqa99@rainforestqa99:~$' in that 'Terminal' tab?
