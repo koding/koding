@@ -15,12 +15,7 @@ RUN sed -i "s/#listen_addresses =.*/listen_addresses = '*'/" /etc/postgresql/9.3
 RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/9.3/main/pg_hba.conf
 USER root
 
-ADD entrypoint.sh /opt/
-ADD wait.sh /opt/wait.sh
-
-RUN wget --quiet https://github.com/koding/koding/archive/master.zip && \
-    unzip -q master.zip && mv koding-master /opt/koding && \
-    rm -f master.zip
+RUN cd /opt && git clone https://github.com/koding/koding.git
 
 WORKDIR /opt/koding
 
@@ -36,8 +31,11 @@ RUN npm install --unsafe-perm && \
     make -C client dist && \
     rm -rf generated
 
+
+ADD docker-entrypoint /opt/koding/docker-entrypoint
+ADD entrypoint.sh /opt/koding/entrypoint.sh
+ADD wait.sh /opt/koding/wait.sh
+
 EXPOSE 80
 
-VOLUME ["/var/lib/mongodb", "/var/lib/postgresql"]
-
-ENTRYPOINT ["/opt/entrypoint.sh"]
+ENTRYPOINT ["/opt/koding/docker-entrypoint"]
