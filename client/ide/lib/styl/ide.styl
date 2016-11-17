@@ -192,13 +192,12 @@ body.ide .dark
         opacity             1
 
     .options
-      position              relative
       top                   8px
-      display               inline-block
-      right                 calc(40px \- 100%)
+      right                 22px
       size                  20px 20px
       z-index               1
       opacity               0
+      abs()
 
       &:before
         content             ''
@@ -211,10 +210,8 @@ body.ide .dark
     &.plus
       border-left-color     transparent
 
-  .kdtabhandle.cloud-init-outputlog.kddraggable
-  .kdtabhandle.drawing.kddraggable
-    span.kdview.tab-handle-tabname
-      padding-left          20px !important
+  span.kdview.tab-handle-tabname
+    padding-left          20px !important
 
   .jtreeview-wrapper .jtreeitem.selected .chevron
     display                 inline-block
