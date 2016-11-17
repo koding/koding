@@ -20,7 +20,7 @@ Toggle 'Enable autosave' option on in Editor Settings
 Did it turn to green?
 
 Enter some text in opened file{{random.number}}.html' file
-Is entered text displayed correctly in the editor? Is a dot at the left of file name in the editor tab unvisible?
+Did you see a yellow dot turned to green and then disappear on file icon next to file{{random.number}} at the top?
 
 Toggle 'Enable autosave' option off in Editor Settings and enter some text the same file
 Did it turn to gray? Do you see a dot at the left of file name in the editor tab?
