@@ -14,7 +14,7 @@ Click on 'Edit Name' link next to 'Edit VM Name' section, delete 'aws-instance',
 Do you see that it's updated?
 
 Click on 'My Team' from left vertical menu
-Do you see 'Team Settings', 'Permissions' and 'Send Invites' sections?
+Do you see 'Team Settings', 'Permissions' and 'Send Invites' sections? Please scroll down to see 'Send Invites' section if it doesn't visible initially
 
 Enter "rainforestqa22@koding.com" in 'Email' field of the first row of 'Send Invites' section, uncheck the 'Admin' checkbox at the end of the row and then click on 'SEND INVITES' below (like in screencast here: http://recordit.co/2zVr5nwBzH)
 Have you seen 'Invitation is sent to rainforestqa22@koding.com' message displayed?
