@@ -8,7 +8,7 @@
 
 # redirect: false
 click on team name "{{ random.last_name }}{{ random.number }}" on the left side, click on 'Dashboard' in the opening menu, click on 'My Team' then scroll down to 'Send Invites' section
-Do you see that 'Email' fields?
+Do you see the form with 'Email', 'First Name', 'Last Name' and 'Admin' columns? Please SCROLL DOWN if you couldn't find 'Send Invites' section
 
 Enter "rainforestqa22@koding.com" in the 'Email' field of the second row and click on 'SEND INVITES' button
 Have you seen 'Invitation is sent to rainforestqa22@koding.com' message displayed?
@@ -29,7 +29,7 @@ Wait for a few minutes for process to be completed
 Do you see 'Success! Your stack has been built.' text? Do you see 'View The Logs', 'Connect your Local Machine' and 'Invite to Collaborate' sections? Do you see START CODING button on the bottom?
 
 Click on START CODING button
-Do you see '_Aws Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'aws-instance' label? Do you see '/home/rainforestqa22' label on top of a file list? Do you see 'cloud-init-o_' file on top and 'Terminal' tab on the bottom pane? 
+Do you see '_Aws Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'aws-instance' label? Do you see '/home/rainforestqa22' label on top of a file list? Do you see 'cloud-init-o_' file on top and 'Terminal' tab on the bottom pane?
 
 Switch to the first browser and close that modal by clicking (x) at top right corner
 Is that pane closed?
@@ -45,5 +45,3 @@ Do you see 'SHARED VMS' label in the left module on the page? Do you see 'aws-in
 
 Click on 'Accept' button
 Do you see 'Joining to collaboration session' progress bar? Do you see the same panes (terminal, untitled.txt) like on the other window where you are logged in as 'rainforestqa99'
-
-
