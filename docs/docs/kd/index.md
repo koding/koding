@@ -28,7 +28,7 @@ Click on **STACKS** from the left side bar, and go to **Koding Utilities**
 
 Copy the **kd** install command then paste it in your local machine terminal &amp; run..
 
-```bash
+```
     john@johns-mac:~ $curl -sL https://kodi.ng/d/kd | bash -s 901f9a44
     Hello, this is the Koding application (kd) installer.
     This installer requires sudo permissions, please input password if prompted...
@@ -61,7 +61,7 @@ Copy the **kd** install command then paste it in your local machine terminal &am
 
 You can get a list of KD commands using `kd help`
 
-```shell
+```
 john@johns-mac:~ $ kd help
 
 USAGE:
@@ -97,7 +97,7 @@ To know how to use a particular KD command, you can get help simply by running `
 
 For example, to learn more on using the command `kd mount` we would run `kd help mount`
 
-```shell
+```
 john@johns-mac:~ $ kd help mount
 USAGE:
     kd mount [optional args] <alias:remote path> <local folder>
@@ -122,7 +122,7 @@ Here's a list of the common KD commands
 
 Run `kd list` to view all your Koding cloud VMs:
 
-```shell
+```
   john@johns-mac:~ $ kd list
       TEAM   LABEL           IP        ALIAS   MOUNTED     PATHS
   1. bloom   example_1  52.49.116.216  grape
@@ -132,7 +132,7 @@ Run `kd list` to view all your Koding cloud VMs:
 
 Run `kd mount` to mount your cloud VM(s) to a local folder and start editing your files using your favorite local editors. You can use the **ALIAS** name to mount your VM:
 
-```shell
+```
   john@johns-mac:~ $ kd mount grape ./grape
   The mount folder does not exist, would you like to create it? [Y/n]y
   Mount success.
@@ -154,7 +154,7 @@ You have now mounted the cloud VM on a local folder called '_grape_'. You can mo
 
 `kd update` will update **kd** to the newest version
 
-```shell
+```
 john@johns-mac:~ $ sudo kd update
 Password:
 Updating...
@@ -166,7 +166,7 @@ Successfully updated to latest version of kd.
 
 `kd version` will show the installed **kd** version
 
-```shell
+```
 john@johns-mac:~ $ kd version
 Installed Version: 0.1.74
 Latest Version: 0.1.74
