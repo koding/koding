@@ -5,6 +5,7 @@ import (
 
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/terraformer"
+	"koding/kites/kloud/utils/object"
 	tf "koding/kites/terraformer"
 
 	"golang.org/x/net/context"
@@ -50,10 +51,26 @@ func (bs *BaseStack) bootstrap(arg *stack.BootstrapRequest) (interface{}, error)
 
 	bs.Log.Debug("Iterating over credentials")
 
-	var updatedCreds []*stack.Credential
+	updatedCreds := make(map[string]*stack.Credential)
+
 	for _, cred := range bs.Builder.Credentials {
 		if cred.Provider != bs.Planner.Provider {
 			continue
+		}
+
+		var bootstrapMixin interface{}
+
+		if bs.SSHKeyPairFunc != nil {
+			keypair, err := stack.GenerateSSHKeyPair()
+			if err != nil {
+				return nil, fmt.Errorf("error generating SSH key-pair: %s", err)
+			}
+
+			if err := bs.SSHKeyPairFunc(keypair); err != nil {
+				return nil, fmt.Errorf("error injecting SSH key-pair: %s", err)
+			}
+
+			bootstrapMixin = keypair
 		}
 
 		templates, err := bs.stack.BootstrapTemplates(cred)
@@ -61,7 +78,7 @@ func (bs *BaseStack) bootstrap(arg *stack.BootstrapRequest) (interface{}, error)
 			return nil, err
 		}
 
-		destroyUniq := make(map[string]interface{}) // protects from double-destroy
+		destroyUniq := make(map[string]struct{}) // protects from double-destroy
 		for _, tmpl := range templates {
 			if tmpl.Key == "" {
 				tmpl.Key = bs.Planner.Provider + "-" + arg.GroupName + "-" + cred.Identifier
@@ -81,14 +98,13 @@ func (bs *BaseStack) bootstrap(arg *stack.BootstrapRequest) (interface{}, error)
 
 					cred.Bootstrap = bs.Provider.newBootstrap()
 					destroyUniq[tmpl.Key] = struct{}{}
-					updatedCreds = append(updatedCreds, cred)
 				}
 			} else {
 				bs.Log.Debug("Bootstrap template for %s: %s", cred.Identifier, tmpl)
 
 				// TODO(rjeczalik): use []byte for templates to avoid allocations
 				if err := bs.Builder.BuildTemplate(string(tmpl.Content), tmpl.Key); err != nil {
-					return nil, err
+					return nil, fmt.Errorf("error building template: %s", err)
 				}
 
 				content, err := bs.Builder.Template.JsonOutput()
@@ -120,15 +136,24 @@ func (bs *BaseStack) bootstrap(arg *stack.BootstrapRequest) (interface{}, error)
 						return nil, fmt.Errorf("invalid bootstrap metadata for %q: %s", cred.Identifier, err)
 					}
 				}
-
-				updatedCreds = append(updatedCreds, cred)
 			}
+
+			if bootstrapMixin != nil {
+				cred.Bootstrap = object.Inline(cred.Bootstrap, bootstrapMixin)
+			}
+
+			updatedCreds[cred.Identifier] = cred
 
 			bs.Log.Debug("[%s] Bootstrap response: %+v", cred.Identifier, cred.Bootstrap)
 		}
 	}
 
-	if err := bs.Builder.PutCredentials(bs.Req.Username, updatedCreds...); err != nil {
+	creds := make([]*stack.Credential, 0, len(updatedCreds))
+	for _, cred := range updatedCreds {
+		creds = append(creds, cred)
+	}
+
+	if err := bs.Builder.PutCredentials(bs.Req.Username, creds...); err != nil {
 		return nil, err
 	}
 
