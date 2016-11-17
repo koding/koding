@@ -10,7 +10,7 @@
 Move your mouse over 'aws-instance' label on left sidebar and click on the circle button appeared next to it
 Has a pop-up appeared? Do you see 'Stacks', 'Virtual Machines' and 'Credentials' tabs on top? Do you see 'aws-inst_' text under 'Virtual Machines' section? Do you see 'Edit VM Name', 'VM Power', 'Always On', 'VM Sharing' and 'Build Logs' sections under it?
 
-Click on 'Edit Name' link next to 'Edit VM Name' section, delete 'aws-instance', type 'test' instead and hit enter (like in screencast here: http://recordit.co/8HU8DZyTtX)
+Click on 'Edit Name' link next to 'Edit VM Name' section, delete 'aws-instance', type 'test' instead and hit ENTER key (like in screencast here: http://recordit.co/8HU8DZyTtX)
 Do you see that it's updated?
 
 Click on 'My Team' from left vertical menu
