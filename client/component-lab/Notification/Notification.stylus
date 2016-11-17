@@ -4,8 +4,9 @@ $notifications-z-index          = 20000
 
 .kd_notification_list
   position                      fixed
-  bottom                        0
+  top                           30px
   right                         30px
+  width                         370px
   z-index                       $notifications-z-index
 
 .kd_notification
@@ -30,16 +31,11 @@ $notifications-z-index          = 20000
   -webkit-box-sizing            border-box
   -moz-box-sizing               border-box
   box-sizing                    border-box
-  -webkit-transition            all 0.3s ease-in-out
-  -moz-transition               all 0.3s ease-in-out
-  -ms-transition                all 0.3s ease-in-out
-  -o-transition                 all 0.3s ease-in-out
-  transition                    all 0.3s ease-in-out
   .kd_notification_level
     flex                        0 0 50px
-    padding-top 18px
-    border-bottom-left-radius   4px
-    border-top-left-radius      4px
+    padding:                    18px 0 0
+    border-bottom-right-radius  0
+    border-top-right-radius     0
     -webkit-box-sizing          border-box
     -moz-box-sizing             border-box
     box-sizing                  border-box
@@ -48,27 +44,15 @@ $notifications-z-index          = 20000
   &.kd_notification_success
     .kd_notification_level
       background-color          $primary-2
-    .kd_notification_button
-      &.kd_notification_button_primary
-        color                   $primary-2
   &.kd_notification_update
     .kd_notification_level
       background-color          $primary-6
-    .kd_notification_button
-      &.kd_notification_button_primary
-        color                   $primary-6
   &.kd_notification_warning
     .kd_notification_level
       background-color          $primary-4
-    .kd_notification_button
-      &.kd_notification_button_primary
-        color                   #ffffff
   &.kd_notification_caution
     .kd_notification_level
       background-color          $primary-1
-    .kd_notification_button
-      &.kd_notification_button_primary
-        color                   $primary-1
   .kd_notification_content
     padding                     20px 25px 20px 20px
     line-height                 18px
@@ -91,11 +75,15 @@ $notifications-z-index          = 20000
     -webkit-box-sizing          border-box
     -moz-box-sizing             border-box
     box-sizing                  border-box
-  &.kd_notification_visible
-    opacity                     1
-  &.kd_notification_hidden
-    opacity                     0
 .kd_notification_actions
+  button
+    padding                     10px 0
+    width                       100%
+    height                      100%
+    border-radius               0
+    -webkit-box-sizing          border-box
+    -moz-box-sizing             border-box
+    box-sizing                  border-box
   .kd_notification_single_action
     padding                     10px 0
     width                       100%
@@ -124,25 +112,11 @@ $notifications-z-index          = 20000
       justify-content           center
       align-items               center
       display                   flex
+      &:first-child
+        border-bottom           1px solid $additional-5
+      &:last-child
+        border-top              1px solid $additional-5
 
-.kd_notification_multiple_actions
-  .kd_notification_action
-    &:first-child
-      border-bottom             1px solid $additional-5
-    &:last-child
-      border-top                1px solid $additional-5
-
-.kd_notification_button
-  border                        none
-  background                    none
-  font-size                     16px
-  font-weight                   400
-  padding                       0
-  outline                       none
-  cursor                        pointer
-  color                         #ffffff
-  &.kd_notification_button_secondary
-    color                       $additional-6
 
 .kd_notification_close
   position                      absolute

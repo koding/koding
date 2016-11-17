@@ -1,8 +1,14 @@
+_ = require 'lodash'
 React = require('react')
 ReactDOM = require('react-dom')
-Helpers = require('./helpers')
+kd = require ('kd')
+
+Button = require '../Button/Button'
+Box = require '../Box/Box'
 
 styles = require './Notification.stylus'
+Helpers = require('./helpers')
+Constants = require './constants'
 
 whichTransitionEvent = ->
 
@@ -13,44 +19,40 @@ whichTransitionEvent = ->
     OTransition : 'oTransitionEnd'
     MozTransition : 'transitionend'
     WebkitTransition : 'webkitTransitionEnd'
-  Object.keys(transitions).forEach (transitionKey) ->
+  _.keys(transitions).forEach (transitionKey) ->
     if el.style[transitionKey] isnt undefined
       transition = transitions[transitionKey]
     return
   transition
 
 
-module.exports = NotificationView = React.createClass
+module.exports = class NotificationView extends React.Component
 
-    propTypes :
-      notification : React.PropTypes.object
-      onRemove : React.PropTypes.func
+    constructor: (props) ->
 
-    getDefaultProps: ->
-
-      {
-        onRemove: ->
-      }
-
-
-    getInitialState: ->
-
-      {
-        visible : false
-        removed : false
-      }
+      super props
+      @_style = { zIndex: 100 - @props.index};
+      @_notificationTimer = null
+      @_isMounted = no
+      @_noAnimation = no
+      @_removeCount = 0
+      @state =
+        visible : no
+        removed : no
+      @_hideNotification = @_hideNotification.bind this
+      @_removeNotification = @_removeNotification.bind this
+      @_dismiss = @_dismiss.bind this
+      @_showNotification = @_showNotification.bind this
+      @_onTransitionEnd = @_onTransitionEnd.bind this
+      @_handleMouseEnter = @_handleMouseEnter.bind this
+      @_handleMouseLeave = @_handleMouseLeave.bind this
+      @_handlePrimaryButtonClick = @_handlePrimaryButtonClick.bind this
+      @_handleSecondaryButtonClick = @_handleSecondaryButtonClick.bind this
 
 
     componentWillMount: ->
 
       @_noAnimation = @props.noAnimation
-      return
-
-
-    _notificationTimer : null
-    _isMounted : false
-    _noAnimation : null
-    _removeCount : 0
 
 
     _hideNotification: ->
@@ -59,8 +61,8 @@ module.exports = NotificationView = React.createClass
         @_notificationTimer.clear()
       if @_isMounted
         @setState
-          visible : false
-          removed : true
+          visible : no
+          removed : yes
       if @_noAnimation
         @_removeNotification()
       return
@@ -105,14 +107,14 @@ module.exports = NotificationView = React.createClass
 
       self = this
       transitionEvent = whichTransitionEvent()
-      element = ReactDOM.findDOMNode(this)
+      element = ReactDOM.findDOMNode(self)
       notification = @props.notification
-      @_isMounted = true
+      @_isMounted = yes
       if not @_noAnimation
         if transitionEvent
           element.addEventListener transitionEvent, @_onTransitionEnd
         else
-          @_noAnimation = true
+          @_noAnimation = yes
       if not notification.dismissible and not notification.primaryButtonTitle and not notification.secondaryButtonTitle
         @_notificationTimer = new (Helpers.Timer)((->
           self._hideNotification()
@@ -163,8 +165,7 @@ module.exports = NotificationView = React.createClass
       element = ReactDOM.findDOMNode(this)
       transitionEvent = whichTransitionEvent()
       element.removeEventListener transitionEvent, @_onTransitionEnd
-      @_isMounted = false
-      return
+      @_isMounted = no
 
 
     render: ->
@@ -178,11 +179,6 @@ module.exports = NotificationView = React.createClass
         styles.kd_notification_icon
         styles["kd_notification_icon_#{notification.type}"]
       ]
-      closeButton = null
-      actions = null
-      actionsClass = null
-      primaryButton = null
-      secondaryButton = null
       message = notification.content
       if @state.visible
         className.push styles.kd_notification_visible
@@ -190,47 +186,79 @@ module.exports = NotificationView = React.createClass
         className.push styles.kd_notification_hidden
       if notification.dismissible
         className.push styles.kd_notification_dismissible
-        closeButton = <button className={styles.kd_notification_close} onClick={this._dismiss}>&times;</button>
-      if notification.primaryButtonTitle
-        primaryButton = <div className={styles.kd_notification_action}>
-            <button type="button"
-                    className={[
-                      styles.kd_notification_button
-                      styles.kd_notification_button_primary
-                    ].join ' '}
-                    onClick={this._handlePrimaryButtonClick}>
-                {notification.primaryButtonTitle}
-            </button>
-          </div>
-      if notification.secondaryButtonTitle
-        secondaryButton = <div className={styles.kd_notification_action}>
-            <button type="button"
-                    className={[
-                      styles.kd_notification_button
-                      styles.kd_notification_button_secondary
-                    ].join ' '}
-                    onClick={this._handleSecondaryButtonClick}>
-                {notification.secondaryButtonTitle}
-            </button>
-          </div>
       if notification.primaryButtonTitle or notification.secondaryButtonTitle
-        closeButton = null
         className = className.filter (word) -> word isnt styles.kd_notification_dismissible
-        actionsClass = if not notification.secondaryButtonTitle then styles.kd_notification_single_action else styles.kd_notification_multiple_actions
-        actions = <div className={styles.kd_notification_actions}>
-            <div className={actionsClass}>
-              {primaryButton}
-              {secondaryButton}
-            </div>
-          </div>
-      <div className={className.join ' '} onClick={this._dismiss} onMouseEnter={ this._handleMouseEnter }
-        onMouseLeave={this._handleMouseLeave}>
-        <div className={styles.kd_notification_level}>
+      <div
+        className={className.join ' '}
+        style={@_style}
+        onMouseEnter={ @_handleMouseEnter }
+        onMouseLeave={@_handleMouseLeave}>
+        <Box className={styles.kd_notification_level}>
           <i className={iconClass.join ' '}></i>
+        </Box>
+        <div className={styles.kd_notification_content}>
+          {message}
         </div>
-          <div className={styles.kd_notification_content}>
-            {message}
-          </div>
-        {closeButton}
-        {actions}
+        {
+          if notification.dismissible
+            <CloseButton onClick={@_dismiss} />
+        }
+        {
+          if notification.primaryButtonTitle or notification.secondaryButtonTitle
+            <Actions
+              notification={notification}
+              onPrimaryButtonClick={@_handlePrimaryButtonClick}
+              onSecondaryButtonClick={@_handleSecondaryButtonClick} />
+        }
       </div>
+
+    @propTypes :
+      notification : React.PropTypes.object
+      onRemove : React.PropTypes.func
+
+    @defaultProps =
+      onRemove: kd.noop
+
+
+CloseButton = ({onClick}) ->
+
+  <button
+    className={styles.kd_notification_close}
+    onClick={onClick}>
+      &times;
+  </button>
+
+
+ActionButton = ({type, title, onClick}) ->
+
+  <div className={styles.kd_notification_action}>
+    <Button
+      type={type}
+      size="medium"
+      onClick={onClick}>
+      {title}
+    </Button>
+  </div>
+
+
+Actions = ({notification, onPrimaryButtonClick, onSecondaryButtonClick}) ->
+
+  actionsClass = if not notification.secondaryButtonTitle then styles.kd_notification_single_action else styles.kd_notification_multiple_actions
+  <div className={styles.kd_notification_actions}>
+    <div className={actionsClass}>
+      {
+        if notification.primaryButtonTitle
+          <ActionButton
+            type={'link-'+Constants.types[notification.type]}
+            title={notification.primaryButtonTitle}
+            onClick={onPrimaryButtonClick} />
+      }
+      {
+        if notification.secondaryButtonTitle
+          <ActionButton
+            type="link-secondary"
+            title={notification.secondaryButtonTitle}
+            onClick={onSecondaryButtonClick} />
+      }
+    </div>
+  </div>

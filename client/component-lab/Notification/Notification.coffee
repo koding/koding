@@ -1,29 +1,47 @@
+_ = require 'lodash'
 React = require 'react'
-Constants = require './constants'
+
 NotificationView = require './NotificationView'
+FlipMove = require 'react-flip-move'
 
 styles = require './Notification.stylus'
+Constants = require './constants'
 
-module.exports = Notification = React.createClass
+module.exports = class Notification extends React.Component
 
-  uid : 1000
-  _isMounted : false
+  constructor: (props) ->
 
-  getInitialState: ->
-    {
-      notifications : []
-      noAnimation : false
-    }
-
+    super props
+    @uid = 1000
+    @_isMounted = no
+    @_enterAnimation =
+       from :
+         transform : 'scale(0.9)'
+         opacity : 0
+       to :
+        transform : ''
+        opacity : ''
+    @_leaveAnimation =
+       from :
+         transform : 'scale(1)'
+         opacity : 1
+       to :
+        transform : 'scale(0.9)'
+        opacity : 0
+    @state =
+      notifications: []
+      noAnimation: no
+    @addNotification = @addNotification.bind this
+    @_didNotificationRemoved = @_didNotificationRemoved.bind this
 
   addNotification: (notification) ->
 
-    _notification = Object.assign({}, Constants.notification, notification)
+    _notification = _.assign({}, Constants.notification, notification)
     notifications = @state.notifications
     i = null
     if not _notification.type
       throw new Error('Notification type is required.')
-    if Object.keys(Constants.types).indexOf(_notification.type) is -1
+    if _.keys(Constants.types).indexOf(_notification.type) is -1
       throw new Error("\"#{_notification.type} \" is not a valid type.")
     if isNaN(_notification.duration)
       throw new Error('\"duration\" must be a number.')
@@ -35,64 +53,53 @@ module.exports = Notification = React.createClass
     i = 0
     while i < notifications.length
       if notifications[i].uid is _notification.uid
-        return false
+        return no
       i++
     notifications.push _notification
     if typeof _notification.onAdd is 'function'
       notification.onAdd _notification
-    @setState notifications : notifications
+    @setState { notifications : notifications }
     _notification
 
 
-  removeNotification: (notification) ->
-
-    self = this
-    Object.keys(self.refs.container.refs).forEach (_notification) ->
-      uid = if notification.uid then notification.uid else notification
-      if _notification is "notification-#{uid}"
-        self.refs.container.refs[_notification]._hideNotification()
-      return
-    return
-
-
   _didNotificationRemoved: (uid) ->
-
     notification = null
-    notifications = @state.notifications.filter((toCheck) ->
+    notifications = _.filter @state.notifications, (toCheck) ->
       if toCheck.uid is uid
         notification = toCheck
       toCheck.uid isnt uid
-    )
     if notification and notification.onRemove
       notification.onRemove notification
-    if @isMounted
-      @setState notifications : notifications
+    if @_isMounted
+      @setState { notifications : notifications }
     return
 
 
   componentDidMount: ->
 
-    @_isMounted = true
-    return
+    @_isMounted = yes
 
 
   componentWillUnmount: ->
 
-    @_isMounted = false
-    return
+    @_isMounted = no
 
 
   render: ->
-    
+
     self = this
     notifications = null
-    notifications = @state.notifications.map((notification) ->
+    notifications = _.map @state.notifications, (notification, index) ->
       <NotificationView
-        ref={"notification-#{notification.uid}"}
+        index={index}
         key={notification.uid}
         noAnimation={notification.noAnimation}
         notification={notification}
-        onRemove={self._didNotificationRemoved}/>)
-    <div className={styles.kd_notification_list} ref="container">
-      { notifications }
+        onRemove={self._didNotificationRemoved} />
+    <div className={styles.kd_notification_list}>
+      <FlipMove
+        enterAnimation={@_enterAnimation}
+        leaveAnimation={@_leaveAnimation}>
+        { notifications }
+      </FlipMove>
     </div>

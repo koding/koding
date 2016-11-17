@@ -11,38 +11,63 @@ class NotificationContainer extends React.Component
     @_notification = null
 
 
-  componentDidMount: ->
-
-    @_notification = @refs.notification
-
-
   _handleSimpleClick: ->
 
     @_notification.addNotification
       type : 'update'
       duration : 2000
       content : 'Lorem ipsum dolor sit amet'
-      noAnimation : false
+      noAnimation : yes
 
 
   _handleDismissibleClick: ->
 
     @_notification.addNotification
       type : 'success'
-      dismissible : true
+      dismissible : yes
       content : 'Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet'
       onRemove : -> action 'button clicked'
-      noAnimation : false
+      noAnimation : yes
 
 
-  _handlePrimaryClick: ->
+  _handlePrimarySuccessClick: ->
+
+    @_notification.addNotification
+      type : 'success'
+      content : 'Lorem ipsum dolor sit amet'
+      primaryButtonTitle : 'Install'
+      onPrimaryButtonClick : -> action 'button clicked'
+      noAnimation : yes
+
+
+  _handlePrimaryUpdateClick: ->
+
+    @_notification.addNotification
+      type : 'update'
+      content : 'Lorem ipsum dolor sit amet'
+      primaryButtonTitle : 'Install'
+      onPrimaryButtonClick : -> action 'button clicked'
+      noAnimation : yes
+
+
+  _handlePrimaryWarningClick: ->
 
     @_notification.addNotification
       type : 'warning'
       content : 'Lorem ipsum dolor sit amet'
       primaryButtonTitle : 'Install'
       onPrimaryButtonClick : -> action 'button clicked'
-      noAnimation : false
+      noAnimation : yes
+
+
+  _handlePrimaryCautionClick: ->
+
+    @_notification.addNotification
+      type : 'caution'
+      content : 'Lorem ipsum dolor sit amet'
+      primaryButtonTitle : 'Install'
+      onPrimaryButtonClick : -> action 'button clicked'
+      noAnimation : yes
 
 
   _handleSecondaryClick: ->
@@ -54,17 +79,21 @@ class NotificationContainer extends React.Component
       secondaryButtonTitle : 'Cancel'
       onSecondaryButtonClick : -> action 'button clicked'
       content : 'Lorem ipsum dolor sit amet'
-      noAnimation : false
+      noAnimation : yes
 
 
   render: ->
-    
+
+    self = this
     <div>
       <div style={{marginBottom: 10}}><Button onClick={@_handleSimpleClick.bind this}>Simple Notification</Button></div>
       <div style={{marginBottom: 10}}><Button onClick={@_handleDismissibleClick.bind this}>Dismissible Notification</Button></div>
-      <div style={{marginBottom: 10}}><Button onClick={@_handlePrimaryClick.bind this}>Primary action Notification</Button></div>
+      <div style={{marginBottom: 10}}><Button onClick={@_handlePrimarySuccessClick.bind this}>Primary Success action Notification</Button></div>
+      <div style={{marginBottom: 10}}><Button onClick={@_handlePrimaryUpdateClick.bind this}>Primary Update action Notification</Button></div>
+      <div style={{marginBottom: 10}}><Button onClick={@_handlePrimaryWarningClick.bind this}>Primary Warning action Notification</Button></div>
+      <div style={{marginBottom: 10}}><Button onClick={@_handlePrimaryCautionClick.bind this}>Primary Caution action Notification</Button></div>
       <div style={{marginBottom: 10}}><Button onClick={@_handleSecondaryClick.bind this}>Secondary action Notification</Button></div>
-      <Notification ref="notification"/>
+      <Notification ref={(notification) -> self._notification = notification}/>
     </div>
 
 
