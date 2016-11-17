@@ -72,8 +72,8 @@ type CredentialListRequest struct {
 // CredentialItem represents a single credential
 // metadata.
 type CredentialItem struct {
-	Title      string `json:"title"`
 	Identifier string `json:"identifier"`
+	Title      string `json:"title"`
 	Team       string `json:"team,omitempty"`
 	Provider   string `json:"provider,omitempty"`
 }
