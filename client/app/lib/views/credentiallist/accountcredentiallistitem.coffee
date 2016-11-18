@@ -51,7 +51,7 @@ module.exports = class AccountCredentialListItem extends kd.ListItemView
   pistachio: ->
     '''
     <div class="credential-info">
-      {div.title{#(title)}} {{> @providerTag}}
+      {div.title{#(title)}}{{> @providerTag}}
     </div>
     {{> @credentialLinks}}
     '''
