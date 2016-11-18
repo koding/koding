@@ -31,8 +31,8 @@ Is 'Use soft tabs' toggle gray?
 Toggle 'Use soft tabs' option on in Editor Settings
 Is 'Use soft tabs' toggle green?
 
-Create a new row in the editor, create tabulation by pressing tab on keyboard and type 'soft tabs'
-Is tabulation displayed like set of dots before the 'soft tabs' text in the editor ( http://snag.gy/luhbr.jpg )?
+# Create a new row in the editor, create tabulation by pressing tab on keyboard and type 'soft tabs'
+# Is tabulation displayed like set of dots before the 'soft tabs' text in the editor ( http://snag.gy/luhbr.jpg )?
 
 Toggle 'Line numbers' option on/off in Editor Settings
 Are line numbers displayed/hidden in editor tabs?
