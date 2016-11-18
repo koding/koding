@@ -83,6 +83,8 @@ module.exports = globals.config.providers =
       queryString          :
         label              : 'Kite ID'
         placeholder        : 'ID for my local machine kite'
+        attributes         :
+          autocomplete     : if isProd then 'off' else 'on'
 
   koding                   :
     name                   : 'Koding'
@@ -122,13 +124,13 @@ module.exports = globals.config.providers =
         attributes         :
           autocomplete     : if isProd then 'off' else 'on'
       credentials          :
-        label              : 'Service account JSON key'
+        label              : 'Service Account'
         placeholder        : 'Provide content of key in JSON format'
         type               : 'textarea'
       region               :
         label              : 'Region'
         type               : 'selection'
-        placeholder        : '' # dunno
+        placeholder        : 'Select target region' # dunno
         defaultValue       : 'us-central1'
         values             : [
           { title: 'Western US (us-west1)',         value: 'us-west1' }
@@ -157,6 +159,8 @@ module.exports = globals.config.providers =
       access_token         :
         label              : 'Access Token'
         placeholder        : 'Digital Ocean access token'
+        attributes         :
+          autocomplete     : if isProd then 'off' else 'on'
 
   azure                    :
     name                   : 'Azure'
@@ -181,13 +185,19 @@ module.exports = globals.config.providers =
       subscription_id      :
         label              : 'Subscription ID'
         placeholder        : 'subscription id of azure account'
+        attributes         :
+          autocomplete     : if isProd then 'off' else 'on'
       password             :
         label              : 'Password'
         placeholder        : 'default password for instances'
         type               : 'password'
+        attributes         :
+          autocomplete     : 'new-password'
       ssh_key_thumbprint   :
         label              : 'SSH Key'
         placeholder        : 'ssh key thumb print'
+        attributes         :
+          autocomplete     : 'off'
       location             :
         label              : 'Location'
         type               : 'selection'
@@ -253,9 +263,13 @@ module.exports = globals.config.providers =
       username             :
         label              : 'Username'
         placeholder        : 'username for rackspace'
+        attributes         :
+          autocomplete     : if isProd then 'off' else 'on'
       apiKey               :
         label              : 'API Key'
         placeholder        : 'rackspace api key'
+        attributes         :
+          autocomplete     : if isProd then 'off' else 'on'
 
   softlayer                :
     name                   : 'Softlayer'
@@ -272,6 +286,8 @@ module.exports = globals.config.providers =
       api_key              :
         label              : 'API Key'
         placeholder        : 'softlayer api key'
+        attributes         :
+          autocomplete     : if isProd then 'off' else 'on'
 
   userInput                :
     name                   : 'User Input'
