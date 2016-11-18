@@ -187,12 +187,13 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 			count = n
 		}
 
-		labels := []string{resourceName}
+		var labels []string
 		if count > 1 {
-			labels = labels[:0]
 			for i := 0; i < count; i++ {
 				labels = append(labels, fmt.Sprintf("%s.%d", resourceName, i))
 			}
+		} else {
+			labels = append(labels, resourceName)
 		}
 
 		kiteKeyName := fmt.Sprintf("kitekeys_%s", resourceName)
