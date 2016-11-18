@@ -303,15 +303,16 @@ module.exports = class MachineDetails extends React.Component
 generateSpecs = (machine) ->
 
   jMachine = machine.toJS()
-  providerName = jMachine.meta?.type
+  providerName = jMachine.meta?.type ? 'vagrant'
 
-  { instanceTypes } = globals.config.providers[providerName]
+  configs = globals.config.providers
+  { instanceTypes } = configs[providerName]
 
-  instanceType = jMachine.meta?.instance_type ? configs[providerName]['base-vm']
+  instanceType = jMachine.meta?.instance_type ? instanceTypes['base-vm']
   size = jMachine.meta?.storage_size
 
   instanceData = instanceTypes[instanceType]
-  { ram, cpu } = instanceData ? instanceTypes['base-vm']
+  { ram, cpu } = instanceData ? instanceTypes[instanceTypes['base-vm']]
 
   disk = if size? then "#{size}GB HDD" else 'N/A'
 
