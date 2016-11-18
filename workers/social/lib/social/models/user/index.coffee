@@ -276,7 +276,7 @@ module.exports = class JUser extends jraphical.Module
   #
   # Returns your JAccount instance based on the session data
   #
-  # @return {JAccount} your JAccount instance
+  # @return {DefaultResponse}
   #
   @whoami = ->
   @whoami = secure ({ connection:{ delegate } }, callback) -> callback null, delegate

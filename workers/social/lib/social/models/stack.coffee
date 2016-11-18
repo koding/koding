@@ -3,6 +3,16 @@ jraphical = require 'jraphical'
 
 stackRevisionErrors = require './stackrevisionerrors'
 
+# JComputeStack keeps stack data
+# including machines and credential references
+#
+# @example
+#
+#   stack = new JComputeStack {
+#     title: 'test stack'
+#     machines: [Array<JMachine._id>]
+#   }
+#
 module.exports = class JComputeStack extends jraphical.Module
 
   KodingError        = require '../error'
@@ -160,20 +170,6 @@ module.exports = class JComputeStack extends jraphical.Module
 
     @update { $addToSet: itemToAppend }, (err) -> callback err
 
-
-  # JComputeStack::create wrapper for client requests
-  #
-  # @param {Object} data
-  #   Data needs to provide default schema of JComputeStack
-  #   `data = { config, credentials, title }`
-  #
-  # @option data [String] title stack title
-  # @option data [Object] config details for stack
-  # @option data [Object] credentials list of credentials that is needed for stack
-  #
-  # @return {JComputeStack} created JComputeStack instance
-  #
-  @create$ = (client, data, callback) ->
   @create$ = permit 'create stack',
 
     success: (client, data, callback) ->
@@ -204,9 +200,15 @@ module.exports = class JComputeStack extends jraphical.Module
 
   # JComputeStack::create
   #
-  # @param  {Object}   data
-  # @param  {Function} callback
-  # @return {void}
+  # @param {Object} data
+  #   Data needs to provide default schema of JComputeStack
+  #   `data = { config, credentials, title }`
+  #
+  # @option data [String] title stack title
+  # @option data [Object] config details for stack
+  # @option data [Object] credentials list of credentials that is needed for stack
+  #
+  # @return {JComputeStack} created JComputeStack instance
   #
   @create = (data, callback) ->
 
