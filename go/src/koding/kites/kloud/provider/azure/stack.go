@@ -187,15 +187,8 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 
 		s.injectEndpointRules(vm)
 
-		kiteKeyName := "kitekeys_" + name
-
-		kites, err := s.injectCloudInit(vm, name, kiteKeyName)
-		if err != nil {
+		if err := s.injectCloudInit(vm, name, "kitekeys_"+name); err != nil {
 			return nil, err
-		}
-
-		t.Variable[kiteKeyName] = map[string]interface{}{
-			"default": kites,
 		}
 
 		res.AzureInstance[name] = vm
@@ -308,7 +301,7 @@ func (s *Stack) injectEndpointRules(vm map[string]interface{}) {
 	vm["endpoint"] = endpoints
 }
 
-func (s *Stack) injectCloudInit(vm map[string]interface{}, name, kiteKeyName string) (map[string]string, error) {
+func (s *Stack) injectCloudInit(vm map[string]interface{}, name, kiteKeyName string) error {
 	// means there will be several instances, we need to create a userdata
 	// with count interpolation, because each machine must have an unique
 	// kite id.
@@ -347,7 +340,7 @@ func (s *Stack) injectCloudInit(vm map[string]interface{}, name, kiteKeyName str
 
 	userdata, err := s.Session.Userdata.Create(userCfg)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	vm["custom_data"] = string(userdata)
@@ -358,13 +351,17 @@ func (s *Stack) injectCloudInit(vm map[string]interface{}, name, kiteKeyName str
 	for i, label := range labels {
 		kiteKey, err := s.BuildKiteKey(label, s.Req.Username)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		countKeys[strconv.Itoa(i)] = kiteKey
 	}
 
-	return countKeys, nil
+	s.Builder.Template.Variable[kiteKeyName] = map[string]interface{}{
+		"default": countKeys,
+	}
+
+	return nil
 }
 
 func newBootstrapTmpl(cfg *BootstrapConfig) ([]byte, error) {
