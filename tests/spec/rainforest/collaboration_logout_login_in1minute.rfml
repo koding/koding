@@ -29,4 +29,4 @@ Enter "rainforestqa99" both in the 'Username or Email' and 'Password' fields and
 Are you successfully logged in?
 
 Click to 'aws-instance' in 'Stacks' section and wait for it to load
-Do you see 'END COLLABORATION' button at the bottom right corner?
+If you see a modal then close it by clicking (x) at top right corner and wait for loading. Do you see 'END COLLABORATION' button at the bottom right corner?
