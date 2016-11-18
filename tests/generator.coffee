@@ -84,6 +84,20 @@ class Generator
     file = @filename.split('.')[0] + '.coffee'
     fs.writeFile("./#{file}", @mocha)
 
+  isTestsValid: () ->
+    coffeefilename = @filename.split('.')[0] + '.coffee'
+    console.info "Checking is file is valid for #{coffeefilename}..."
+    coffeeFile = fs.readFileSync "./#{coffeefilename}", 'utf-8'
+    testCount = @mapping[@title].testCount
+
+    validTests = coffeeFile.match(/describe/g).length + 1;
+
+    if (validTests is not testCount)
+      throw new Error('Test failed! Inccorrect amount of test exists.')
+
+    console.info "File is valid."
+
+
   @createMapping: () ->
     console.info 'Creating mapping for RainForest tests...'
     files = this.getRainforestTests()
@@ -114,9 +128,12 @@ files = Generator.getRainforestTests()
 generator = new Generator()
 
 files.forEach (file) ->
+  generator.openFile file
+  generator.parseFile()
+  generator.getRequiredModule mapping
+
   if not Generator.isFileExist file.split('.')[0] + '.coffee'
-    generator.openFile file
-    generator.parseFile()
-    generator.getRequiredModule mapping
     generator.generateMochaTest()
     generator.save()
+  else
+    generator.isTestsValid()
