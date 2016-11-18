@@ -162,12 +162,18 @@ module.exports = class JComputeStack extends jraphical.Module
 
 
   # JComputeStack::create wrapper for client requests
-  # @param  {Mixed}    client
-  # @param  {Object}   data
-  # @param  {Function} callback
-  # @return {void}
   #
-  # @create$ = (client, data, callback) ->
+  # @param {Object} data
+  #   Data needs to provide default schema of JComputeStack
+  #   `data = { config, credentials, title }`
+  #
+  # @option data [String] title stack title
+  # @option data [Object] config details for stack
+  # @option data [Object] credentials list of credentials that is needed for stack
+  #
+  # @return {JComputeStack} created JComputeStack instance
+  #
+  @create$ = (client, data, callback) ->
   @create$ = permit 'create stack',
 
     success: (client, data, callback) ->

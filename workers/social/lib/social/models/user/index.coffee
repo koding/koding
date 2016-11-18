@@ -272,6 +272,13 @@ module.exports = class JUser extends jraphical.Module
     require('crypto').createHash('md5').update(value.toLowerCase()).digest('hex')
 
 
+  # whoami
+  #
+  # Returns your JAccount instance based on the session data
+  #
+  # @return {JAccount} your JAccount instance
+  #
+  @whoami = ->
   @whoami = secure ({ connection:{ delegate } }, callback) -> callback null, delegate
 
 
