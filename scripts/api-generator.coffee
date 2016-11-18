@@ -27,14 +27,14 @@ swagger =
   ]
 
   definitions:
-    defaultSelector:
+    DefaultSelector:
       type: 'object'
       properties:
         _id:
           type: 'string'
           description: 'Mongo Object ID'
           example: '582c21d43bf248161538450b'
-    defaultResponse:
+    DefaultResponse:
       type: 'object'
       properties:
         ok:
@@ -51,7 +51,7 @@ swagger =
           type: 'object'
           description: 'Result of the operation'
           example: "Hello World"
-    unauthorizedRequest:
+    UnauthorizedRequest:
       type: 'object'
       properties:
         status:
@@ -77,7 +77,7 @@ swagger =
     bodyParam:
       in: 'body'
       name: 'body'
-      schema: $ref: '#/definitions/defaultSelector'
+      schema: $ref: '#/definitions/DefaultSelector'
       required: true
       description: 'body of the request'
 
@@ -145,7 +145,7 @@ generateMethodPaths = (model, definitions, paths) ->
 
   schema = if definitions[name]
   then { $ref: "#/definitions/#{name}" }
-  else { $ref: "#/definitions/defaultResponse" }
+  else { $ref: "#/definitions/DefaultResponse" }
 
   for method, signatures of methods.statik
 
@@ -162,10 +162,10 @@ generateMethodPaths = (model, definitions, paths) ->
         responses:
           '200':
             description: 'Request processed succesfully'
-            schema: $ref: "#/definitions/defaultResponse"
+            schema: $ref: "#/definitions/DefaultResponse"
           '401':
             description: 'Unauthorized request'
-            schema: $ref: '#/definitions/unauthorizedRequest'
+            schema: $ref: '#/definitions/UnauthorizedRequest'
 
 
   for method, signatures of methods.instance
