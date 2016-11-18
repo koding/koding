@@ -246,6 +246,15 @@ func (s *Stack) injectBoostrap(vm map[string]interface{}, cred *Cred, boot *Boot
 	}
 }
 
+// sainitizePassword sanitizes a password before injecting it
+// into Terraform template. If the generate string contained
+// a "${" character sequence, plan and apply request are
+// going to fail with:
+//
+//   * Variable 'passwords_azure-instance': cannot contain interpolations
+//
+var sanitizePassword = strings.NewReplacer("${", "@{")
+
 func (s *Stack) injectPasswords(vm map[string]interface{}, cred *Cred, passwordVar string) {
 	pass, ok := vm["password"]
 	if ok && pass != "" {
@@ -262,7 +271,7 @@ func (s *Stack) injectPasswords(vm map[string]interface{}, cred *Cred, passwordV
 	for i := 0; i < count; i++ {
 		pass := cred.Password
 		if pass == "" {
-			pass = utils.Pwgen(16)
+			pass = sanitizePassword.Replace(utils.Pwgen(16))
 		}
 
 		passwords[strconv.Itoa(i)] = pass
