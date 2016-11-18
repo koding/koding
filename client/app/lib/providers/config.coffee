@@ -77,6 +77,7 @@ module.exports = globals.config.providers =
     supported              : yes
     enabled                : 'beta'
     defaultTemplate        : require './templates/vagrant'
+    instanceTypes          : require './instance-types/vagrant'
     description            : 'Local provisioning with Vagrant'
     credentialFields       :
       queryString          :
