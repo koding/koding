@@ -16,10 +16,12 @@ module.exports = (container, callback = kd.noop, options = {}) ->
     container     : container
     height        : 'auto'
     buttons       :
-      SAVE        :
+      save        :
+        title     : 'SAVE'
         style     : 'GenericButton primary'
         callback  : -> callback input, finderController, dialog
-      CANCEL      :
+      cancel      :
+        title     : 'CANCEL'
         style     : 'GenericButton cancel'
         callback  : ->
           finderController.stopAllWatchers()
@@ -38,7 +40,7 @@ module.exports = (container, callback = kd.noop, options = {}) ->
     label        : label
     defaultValue : options.inputDefaultValue or ''
     keydown      : (event) ->
-      dialog.buttons.Save.click()  if event.which is 13
+      dialog.buttons.save.click()  if event.which is 13
 
   dialog.on 'KDObjectWillBeDestroyed', ->
     container.ace?.focus()
