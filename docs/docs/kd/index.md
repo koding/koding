@@ -14,7 +14,7 @@ KD is a tool to run commands & mount your remote VM files on your local machine.
 
 ## KD requirements
 
-Please note that the below is required for successfull installation of **KD**:
+Please note that the below is required for successful installation of **KD**:
 
 1. sudo permission on your local machine is required
 2. works only on **OSX** and **Linux**
