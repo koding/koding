@@ -165,13 +165,6 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 		if err := addLeaveActivity(query.Id, query.AccountId, participants[i]); err != nil {
 			return response.NewBadRequest(err)
 		}
-
-		// when user left from any channel, then remove user's notification setting of that channel
-		if err := participants[i].RemoveNotificationSetting(); err != nil {
-			if err != bongo.RecordNotFound {
-				return response.NewBadRequest(err)
-			}
-		}
 	}
 
 	// this could be moved into another worker, but i did not want to create a new worker that will be used

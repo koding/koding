@@ -86,6 +86,9 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 
 	cmc := models.NewChannelMessageContainer()
 	err = cmc.Fetch(req.Id, request.GetQuery(u))
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
 
 	// assign client request id back to message response because
 	// client uses it for latency compansation
@@ -409,8 +412,6 @@ func GetWithRelated(u *url.URL, h http.Header, _ interface{}, ctx *models.Contex
 		return response.NewBadRequest(err)
 	}
 
-	cmc.AddIsInteracted(query).AddIsFollowed(query)
-
 	return response.HandleResultAndError(cmc, cmc.Err)
 }
 
@@ -450,8 +451,6 @@ func GetBySlug(u *url.URL, h http.Header, _ interface{}, ctx *models.Context) (i
 	if err := cmc.Fetch(cm.Id, query); err != nil {
 		return response.NewBadRequest(err)
 	}
-
-	cmc.AddIsInteracted(query).AddIsFollowed(query)
 
 	return response.HandleResultAndError(cmc, cmc.Err)
 }

@@ -357,8 +357,6 @@ module.exports =
 
     stacksPageSelector = '.HomeAppView-Stacks--create'
     newStackButton = "#{stacksPageSelector} .kdbutton.GenericButton.HomeAppView-Stacks--createButton"
-    stackOnboardingPage = '.kdview.stack-onboarding.main-content.get-started'
-    createStackButton = '.kdbutton.GenericButton.StackEditor-OnboardingModal--create'
     providers = '.providers.box-wrapper'
     providerSelector = "#{providers} .provider.box.#{provider}"
     skipGuideButton = '.kdview.stack-onboarding.main-content a.custom-link-view.HomeAppView--button'
@@ -373,9 +371,6 @@ module.exports =
       .waitForElementVisible stacksPageSelector, 20000
       .click newStackButton
       .pause 1000
-      .waitForElementVisible stackOnboardingPage, 20000
-      .waitForElementVisible createStackButton, 20000
-      .click createStackButton
       .waitForElementVisible providers, 20000
       .click providerSelector
       .waitForElementVisible skipGuideButton, 20000

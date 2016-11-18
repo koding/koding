@@ -119,21 +119,6 @@ module.exports = (KONFIG, options, credentials) ->
       healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
-    vmwatcher           :
-      group             : "environment"
-      instances         : 1
-      ports             :
-        incoming        : "#{KONFIG.vmwatcher.port}"
-      supervisord       :
-        stopwaitsecs    : 20
-        command         :
-          run           : "#{GOBIN}/vmwatcher"
-          watch         : "#{GOBIN}/watcher -run koding/vmwatcher"
-      nginx             :
-        locations       : [ { location: "/vmwatcher" } ]
-      healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
-
     socialapi:
       group             : "socialapi"
       instances         : 1
@@ -215,13 +200,6 @@ module.exports = (KONFIG, options, credentials) ->
 
         ]
 
-    dailyemailnotifier  :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/dailyemail"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/dailyemail -watch socialapi/workers/email/dailyemail"
-
     algoliaconnector    :
       group             : "socialapi"
       supervisord       :
@@ -236,12 +214,6 @@ module.exports = (KONFIG, options, credentials) ->
           run           : "#{GOBIN}/notification"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/notification -watch socialapi/workers/notification"
 
-    pinnedpost          :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/pinnedpost"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/pinnedpost -watch socialapi/workers/pinnedpost"
 
     realtime            :
       group             : "socialapi"
@@ -249,41 +221,6 @@ module.exports = (KONFIG, options, credentials) ->
         command         :
           run           : "#{GOBIN}/realtime"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/realtime -watch socialapi/workers/realtime"
-
-    sitemapfeeder       :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/sitemapfeeder"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/sitemapfeeder -watch socialapi/workers/sitemapfeeder"
-
-    sitemapgenerator    :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/sitemapgenerator"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/sitemapgenerator -watch socialapi/workers/sitemapgenerator"
-
-    activityemail       :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/activityemail"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/activityemail -watch socialapi/workers/email/activityemail"
-
-    privatemessageemailfeeder:
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/privatemessageemailfeeder"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/privatemessageemailfeeder -watch socialapi/workers/email/privatemessageemailfeeder"
-
-    privatemessageemailsender:
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/privatemessageemailsender"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/privatemessageemailsender -watch socialapi/workers/email/privatemessageemailsender"
 
     presence            :
       group             : "socialapi"
@@ -343,24 +280,6 @@ module.exports = (KONFIG, options, credentials) ->
         command         : "#{GOBIN}/janitor -kite-init=true"
       healthCheckURL    : "http://localhost:#{KONFIG.socialapi.janitor.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.socialapi.janitor.port}/version"
-
-    gatheringestor      :
-      ports             :
-        incoming        : KONFIG.gatheringestor.port
-      group             : "environment"
-      instances         : 1
-      supervisord       :
-        stopwaitsecs    : 20
-        command         :
-          run           : "#{GOBIN}/gatheringestor"
-          watch         : "#{GOBIN}/watcher -run koding/workers/gatheringestor"
-      healthCheckURL    : "http://localhost:#{KONFIG.gatheringestor.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.gatheringestor.port}/version"
-      nginx             :
-        locations       : [
-          location      : "~ /-/ingestor/(.*)"
-          proxyPass     : "http://gatheringestor/$1$is_args$args"
-        ]
 
     integration         :
       group             : "socialapi"

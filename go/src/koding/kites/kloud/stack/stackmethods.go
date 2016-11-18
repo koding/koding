@@ -1,11 +1,18 @@
 package stack
 
 import (
+	"bytes"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha1"
+	"crypto/x509"
+	"encoding/hex"
+	"encoding/json"
+	"encoding/pem"
 	"errors"
+	"fmt"
 	"sort"
 	"time"
-
-	"gopkg.in/mgo.v2/bson"
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
@@ -13,6 +20,8 @@ import (
 
 	"github.com/koding/cache"
 	"github.com/koding/kite"
+	"golang.org/x/crypto/ssh"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type contextKey byte
@@ -55,6 +64,47 @@ type Credential struct {
 	Bootstrap  interface{}
 }
 
+// SSHKeyPair represents SSH key-pair.
+type SSHKeyPair struct {
+	Name    string `json:"ssh_key_name"`
+	Private []byte `json:"ssh_private_key"`
+	Public  []byte `json:"ssh_public_key"`
+}
+
+// GenerateSSHKeyPair generates new key-pair for use with SSH.
+func GenerateSSHKeyPair() (*SSHKeyPair, error) {
+	priv, err := rsa.GenerateKey(rand.Reader, 1024)
+	if err != nil {
+		return nil, err
+	}
+
+	var privBuf bytes.Buffer
+
+	privPEM := &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(priv),
+	}
+
+	if err := pem.Encode(&privBuf, privPEM); err != nil {
+		return nil, err
+	}
+
+	pub, err := ssh.NewPublicKey(&priv.PublicKey)
+	if err != nil {
+		return nil, err
+	}
+
+	key := &SSHKeyPair{
+		Private: bytes.TrimSpace(privBuf.Bytes()),
+		Public:  bytes.TrimSpace(ssh.MarshalAuthorizedKey(pub)),
+	}
+
+	sum := sha1.Sum(key.Private)
+	key.Name = "koding-ssh-keypair-" + hex.EncodeToString(sum[:])
+
+	return key, nil
+}
+
 // Machine represents a jComputeStack.machine value.
 type Machine struct {
 	// Fields set by kloud.plan:
@@ -92,9 +142,26 @@ func (m Machines) Slice() []*Machine {
 	return machines
 }
 
+// Template describes json-encoded Terraform template.
 type Template struct {
 	Key     string // unique terraformer key for a given template; optional
 	Content string // terraformer template content; required; TODO(rjeczalik): []byte
+}
+
+// String implements the fmt.Stringer interface.
+func (t *Template) String() string {
+	var v interface{}
+
+	if err := json.Unmarshal([]byte(t.Content), &v); err != nil {
+		return fmt.Sprintf("%%!(ERROR %s)", err)
+	}
+
+	p, err := json.MarshalIndent(v, "", "\t")
+	if err != nil {
+		return fmt.Sprintf("%%!(ERROR %s)", err)
+	}
+
+	return string(p)
 }
 
 // Validator validates and returns non-nil error when it's ill-formed.

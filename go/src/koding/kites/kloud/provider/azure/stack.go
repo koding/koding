@@ -11,6 +11,7 @@ import (
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
 	"koding/kites/kloud/userdata"
+	"koding/tools/utils"
 
 	"github.com/Azure/azure-sdk-for-go/management"
 )
@@ -25,7 +26,9 @@ type BootstrapConfig struct {
 	TeamSlug           string
 	HostedServiceName  string
 	StorageType        string
+	AddressSpace       string
 	StorageServiceName string
+	SubnetName         string
 	SecurityGroupName  string
 	VirtualNetworkName string
 	Rule               bool
@@ -86,7 +89,7 @@ func (s *Stack) VerifyCredential(c *stack.Credential) error {
 		return err
 	}
 
-	client, err := management.ClientFromPublishSettingsData(cred.PublishSettings, cred.SubscriptionID)
+	client, err := management.ClientFromPublishSettingsData([]byte(cred.PublishSettings), cred.SubscriptionID)
 	if err != nil {
 		return err
 	}
@@ -99,6 +102,14 @@ func (s *Stack) VerifyCredential(c *stack.Credential) error {
 	return nil
 }
 
+func substringN(s string, n int) string {
+	if len(s) > n {
+		return s[:n]
+	}
+
+	return s
+}
+
 // BootstrapTemplates returns bootstrap templates that are used
 // to bootstrap an Azure stack.
 func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, error) {
@@ -109,9 +120,11 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 		TeamSlug:           s.BootstrapArg().GroupName,
 		HostedServiceName:  "koding-hs-" + c.Identifier,
 		StorageType:        cred.Storage,
-		StorageServiceName: strings.ToLower("kodings" + c.Identifier),
+		AddressSpace:       boot.addressSpace(),
+		StorageServiceName: substringN(strings.ToLower("kodings"+c.Identifier), 24),
 		SecurityGroupName:  "koding-sg-" + c.Identifier,
 		VirtualNetworkName: "koding-vn-" + c.Identifier,
+		SubnetName:         "koding-su-" + c.Identifier,
 		Rule:               false,
 	}
 
@@ -161,6 +174,22 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	}
 
 	for name, vm := range res.AzureInstance {
+		// Set ssh_key_thumbprint if not provided explicitly.
+		if cred.SSHKeyThumbprint != "" {
+			if thumb, ok := vm["ssh_key_thumbprint"]; !ok || thumb == "" {
+				vm["ssh_key_thumbprint"] = cred.SSHKeyThumbprint
+			}
+		}
+
+		// Set password if not provided explicitely.
+		if pass, ok := vm["password"]; !ok || pass == "" {
+			if cred.Password != "" {
+				vm["password"] = cred.Password
+			} else {
+				vm["password"] = utils.RandomString()
+			}
+		}
+
 		s.injectBoostrap(vm, cred, boot)
 
 		s.injectEndpointRules(vm)
@@ -181,11 +210,11 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 
 	t.Resource["azure_instance"] = res.AzureInstance
 
-	if err := t.Flush(); err != nil {
+	if err := t.ShadowVariables("FORBIDDEN", "azure_publish_settings", "azure_settings_file"); err != nil {
 		return nil, err
 	}
 
-	if err := t.ShadowVariables("FORBIDDEN", "azure_publish_settings", "azure_settings_file"); err != nil {
+	if err := t.Flush(); err != nil {
 		return nil, err
 	}
 
@@ -254,7 +283,7 @@ func (s *Stack) injectEndpointRules(vm map[string]interface{}) {
 		endpoints = append(endpoints, vmSSH)
 	}
 
-	vm["endpoint"] = provider.ToSlice(endpoints)
+	vm["endpoint"] = endpoints
 }
 
 func (s *Stack) injectCloudInit(vm map[string]interface{}, name, kiteKeyName string) (map[string]string, error) {

@@ -1,6 +1,7 @@
 package algoliaconnector
 
 import (
+	"errors"
 	"socialapi/models"
 	"strconv"
 	"testing"
@@ -231,6 +232,8 @@ func ensureMessageWithTag(handler *Controller, id int64, tag string) error {
 		return false
 	})
 }
+
+var errDeadline = errors.New("deadline reached")
 
 // makeSureMessage checks if the given id's get request returns the desired err, it
 // will re-try every 100ms until deadline of 15 seconds reached. Algolia doesnt

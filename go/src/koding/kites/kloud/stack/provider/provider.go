@@ -101,23 +101,31 @@ type Provider struct {
 	// If empty, "instance" will be used instead.
 	ResourceName string
 
-	// Machine
+	// Machine creates a Machine value, that is responsible
+	// for managing lifetime of a single machine
+	// within user's stack (start/stop etc.).
 	//
 	// Required.
 	Machine func(*BaseMachine) (Machine, error)
 
-	// Stack
+	// Stack creates new Stack value, that handles Koding flavor
+	// of user's Terraform templates. By augumenting user's stack
+	// template it takes care of injecting Klient / Koding metadata
+	// into the template.
 	//
 	// Required.
 	Stack func(*BaseStack) (Stack, error)
 
-	// Schema
+	// Schema represents data structures which are
+	// used when transferring infromation throughout
+	// a number parts of the Koding system.
 	//
 	// If nil, DefaultSchema will be used instead.
 	Schema *Schema
 }
 
-// DefaultSchema TODO!
+// DefaultSchema describes default schema used,
+// when a registered provider has a nil Schema.
 var DefaultSchema = &Schema{
 	NewCredential: func() interface{} { return make(map[string]interface{}) },
 	NewBootstrap:  nil,
@@ -131,19 +139,22 @@ var DefaultSchema = &Schema{
 }
 
 type Schema struct {
-	// NewCredential
+	// NewCredential is called when unmarshaling credential information
+	// from a JSON-encdoded value obtained from a secure store.
 	//
 	// If either NewCredential field or the returned credential
 	// is nil, DefaultSchema.NewCredential is going to be used instead.
 	NewCredential func() (credential interface{})
 
-	// NewBootstrap
+	// NewBootstrap is called when unmarshaling bootstrap information
+	// from a JSON-encoded value obtained from a secure store.
 	//
 	// If either NewBootstrap field or the returned v is nil,
 	// no bootstrap data will be read or written.
 	NewBootstrap func() (bootstrap interface{})
 
-	// NewMetadata
+	// NewMetadata is called when unmarshaling machine metadata
+	// from a BSON-encoded value obtained from Koding database.
 	//
 	// If the given Machine is nil, NewMetadata is expected
 	// to return a zero-value of the metadata.
@@ -188,7 +199,40 @@ type BaseStack struct {
 	Debug   bool
 	TraceID string
 
+	// PlanFunc is used by HandlePlan method to
+	// build a list of machines created by
+	// a particular stack.
+	//
+	// If PlanFunc is nil, default implementation
+	// is used, which is provided by (*BaseStack).Plan.
+	// The default implementation creates a list
+	// of machine by sending a plan request
+	// to terraformer and reading the plan
+	// state file.
+	PlanFunc func() (stack.Machines, error)
+
+	// SSHKeyPairFunc is used by HandleBootstrap
+	// to inject a newly generated SSH keypair
+	// into provider's bootstrap data.
+	//
+	// If the function is non-nil, BaseStack will
+	// generate a new SSH keypair and expect
+	// provider implementation will add it
+	// to its bootstrap template.
+	//
+	// SSHKeyPairFunc can overwrite keypair's fields
+	// to any other values.
+	SSHKeyPairFunc func(keypair *stack.SSHKeyPair) error
+
 	stack Stack
+}
+
+func (bs *BaseStack) plan() (stack.Machines, error) {
+	if bs.PlanFunc != nil {
+		return bs.PlanFunc()
+	}
+
+	return bs.Plan()
 }
 
 type BaseMachine struct {

@@ -1,0 +1,28 @@
+{
+  "provider": {
+    "azure": {
+      "publish_settings": "${var.azure_publish_settings}",
+      "subscription_id": "${var.azure_subscription_id}"
+    }
+  },
+  "resource": {
+    "azure_instance": {
+      "example-instance": {
+        "custom_data": "echo Hello world!",
+        "endpoint": [
+          {
+            "name": "MySQL",
+            "private_port": 3306,
+            "protocol": "tcp",
+            "public_port": 3306
+          }
+        ],
+        "hosted_service_name": "Custom hosted service",
+        "image": "Ubuntu Server 14.04 LTS",
+        "location": "EU West 3",
+        "size": "Basic_A1",
+        "storage_service_name": "Custom storage service"
+      }
+    }
+  }
+}

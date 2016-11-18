@@ -9,6 +9,7 @@
   {% include head.html %}
   <link rel="stylesheet" href="{{ site.url }}/css/doc.css">
   <link rel="stylesheet" href="{{ site.url }}/css/markdown.css">
+  <link rel="stylesheet" href="{{ site.url }}/css/github-gist.css">
   <link rel="stylesheet" href="{{ site.url }}/css/syntax.css">
 </head>
 
@@ -27,9 +28,6 @@
     {% include nav-docs.html %}
 
     <section class="markdown-body">
-      {% if page.url contains '/docs/terraform/' %}
-      <blockquote>Most code samples are written in HCL, consider converting them to YAML while adding them to your stack script.</blockquote>
-      {% endif %}
 
       {{ content }}
 
@@ -47,7 +45,76 @@
 
   {% if page.url contains '/docs/terraform/' %}
   <script src="{{ site.url }}/js/hcl-to-json.js"></script>
+  <script src="{{ site.url }}/js/yaml.min.js"></script>
+  <script src="{{ site.url }}/js/highlight.pack.js"></script>
   <script src="{{ site.url }}/js/docs-tf-link-converter.js"></script>
+  <script>
+    $(function() {
+      $('pre code').each(function(){
+        var el = $(this),
+            yaml = null,
+            obj = null,
+            wasJSON = false,
+            block = el.parent().parent(),
+            tabs = "<nav><a href='#' class='yaml active'>yaml</a><a href='#' class='hcl'>hcl</a></nav>",
+            hcl = el.text();
+
+        try {
+
+          // dirty work around #0
+          // do nothing if single line
+          if (!/\n/.test(hcl)) throw 'nah!';
+
+          // dirty work around #1
+          // get rid of `...`
+          hcl = hcl.replace('...', '');
+
+          // dirty work around #2
+          // if starts with `$ ` or `export ` or `terraform `
+          if (/^\$|^export\s|^terraform\s/.test(hcl)) throw 'nah!';
+
+          // if it's already json
+          try {
+            obj = JSON.parse(hcl);
+            tabs = "<nav><a href='#' class='yaml active'>yaml</a><a href='#' class='json'>json</a></nav>";
+          } catch(e) {
+            obj = hcltojson(hcl);
+          }
+
+          // convert to yaml
+          yaml = YAML.stringify(obj, 10, 2);
+
+          // dirty work around #3
+          // after conversion if it has keys like: `"":` or `'['
+          if (/"":|'\['/.test(yaml)) throw 'nah!';
+
+          // rest is basic jquery to create tabs for yaml and hcl
+          block.find('pre').hide();
+          block.addClass('split').prepend( tabs + "<pre><code class='yaml'>" + yaml + "</code></pre>");
+          hljs.highlightBlock(block.find('code.yaml')[0]);
+
+          block.find('a').on('click', function(event){
+            event.stopPropagation();
+            event.preventDefault();
+
+            block.find('a').removeClass('active');
+            $(this).addClass('active');
+
+            if(event.target.classList.contains('yaml')){
+              block.find('pre').first().show();
+              block.find('pre').last().hide();
+            } else {
+              block.find('pre').first().hide();
+              block.find('pre').last().show();
+            }
+          });
+
+        } catch(e) {
+          console.log('nah!')
+        }
+      });
+    });
+  </script>
   {% endif %}
 
 </body>

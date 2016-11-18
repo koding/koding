@@ -1,4 +1,7 @@
 process.title = 'koding-webserver'
+
+require 'coffee-cache'
+
 { argv }      = require 'optimist'
 cors          = require 'cors'
 
@@ -19,7 +22,6 @@ webPort               = argv.p ? webserver.port
 { generateHumanstxt } = require './humanstxt'
 csrf                  = require './csrf'
 setCrsfToken          = require './setcsrftoken'
-{ NodejsProfiler }    = require 'koding-datadog'
 
 do ->
   cookieParser = require 'cookie-parser'
@@ -65,7 +67,6 @@ app.post '/-/teams/validate-token'               , require './handlers/checktoke
 app.post '/-/teams/allow'                        , setCrsfToken, (req, res) -> res.json { token: req.pendingCookies._csrf }
 app.post '/-/teams/create'                       , csrf,   require './handlers/createteam'
 app.post '/-/teams/join'                         , csrf,   require './handlers/jointeam'
-app.post '/-/teams/early-access'                 , require './handlers/earlyaccess'
 app.post '/-/teams/verify-domain'                , require './handlers/verifyslug'
 app.post '/-/teams/invite-by-csv'                , require('./handlers/invitetoteambycsv').handler
 app.post '/-/teams/invite-by-csv-analyze'        , require('./handlers/invitetoteambycsvAnalyze').handler
@@ -104,9 +105,6 @@ app.post '/:name?/Optout'                        , require './handlers/optout'
 app.all  '/:name?/Logout'                        , csrf,   require './handlers/logout'
 app.post '/:name?/Unregister'                    , require './handlers/unregister'
 app.get  '/humans.txt'                           , generateHumanstxt
-app.get  '/members/:username?*'                  , (req, res) -> res.redirect 301, "/#{req.params.username}"
-app.get  '/w/members/:username?*'                , (req, res) -> res.redirect 301, "/#{req.params.username}"
-app.get  '/activity/p/?*'                        , (req, res) -> res.redirect 301, '/Activity'
 app.get  '/-/healthCheck'                        , require './handlers/healthcheck'
 app.get  '/-/versionCheck'                       , require './handlers/versioncheck'
 app.get  '/-/version'                            , (req, res) -> res.jsonp { version: KONFIG.version }
@@ -122,6 +120,10 @@ app.post '/-/api/gitlab', bodyParser.json()      , require './handlers/api/gitla
 app.get  '/-/image/cache'                        , require './image_cache'
 # app.get  '/-/oauth/github/callback'              , require './github_callback'
 app.get  '/-/oauth/gitlab/callback'              , require './gitlab_callback'
+
+app.get '/-/terraform/document-search/:query'    , cors(), require './handlers/stackscripttitle'
+app.get '/-/terraform/document-content/:query'   , cors(), require './handlers/stackscriptmarkdown'
+
 # app.get  '/-/oauth/facebook/callback'            , require './facebook_callback'
 # app.get  '/-/oauth/google/callback'              , require './google_callback'
 # app.get  '/-/oauth/linkedin/callback'            , require './linkedin_callback'
@@ -129,11 +131,9 @@ app.get  '/-/oauth/gitlab/callback'              , require './gitlab_callback'
 app.post '/:name?/OAuth'                         , require './oauth'
 app.get  '/:name?/OAuth/url'                     , require './oauth_url'
 app.post '/-/emails/subscribe'                   , (req, res) -> res.status(501).send 'ok'
-app.post '/Hackathon2014/Apply'                  , require './handlers/hackathonapply'
 # should deprecate those /Validates, they don't look like api endpoints
 app.post '/Gravatar'                             , require './handlers/gravatar'
 app.post '/-/gravatar'                           , require './handlers/gravatar'
-app.get  '/Hackathon2014/:section?'              , require './handlers/hackathon'
 app.get  '/-/confirm'                            , require './handlers/confirm'
 app.get  '/-/loginwithtoken'                     , require './handlers/loginwithtoken'
 app.get  '/:name?/Develop/?*'                    , (req, res) -> res.redirect 301, '/'
@@ -150,9 +150,11 @@ koding.once 'dbClientReady', ->
   # start user tracking
   usertracker.start koding.redisClient
 
-  # start monitoring nodejs metrics (memory, gc, cpu etc...)
-  nodejsProfiler = new NodejsProfiler 'nodejs.webserver'
-  nodejsProfiler.startMonitoring()
+  if KONFIG.environment is 'production'
+    { NodejsProfiler } = require 'koding-datadog'
+    # start monitoring nodejs metrics (memory, gc, cpu etc...)
+    nodejsProfiler = new NodejsProfiler 'nodejs.webserver'
+    nodejsProfiler.startMonitoring()
 
   # NOTE: in the event of errors, send 500 to the client rather
   #       than the stack trace.

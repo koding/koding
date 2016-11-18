@@ -1,0 +1,61 @@
+{
+  "provider": {
+    "azure": {
+      "publish_settings": "${var.azure_publish_settings}",
+      "subscription_id": "${var.azure_subscription_id}"
+    }
+  },
+  "resource": {
+    "azure_instance": {
+      "example-instance": {
+        "custom_data": "...",
+        "endpoint": [
+          {
+            "name": "MySQL",
+            "private_port": 3306,
+            "protocol": "tcp",
+            "public_port": 3306
+          },
+          {
+            "name": "klient",
+            "private_port": 56789,
+            "protocol": "tcp",
+            "public_port": 56789
+          },
+          {
+            "name": "ssh",
+            "private_port": 22,
+            "protocol": "tcp",
+            "public_port": 22
+          }
+        ],
+        "hosted_service_name": "Custom hosted service",
+        "image": "Ubuntu Server 14.04 LTS",
+        "location": "EU West 3",
+        "name": "...",
+        "security_group": "security-group",
+        "size": "Basic_A1",
+        "ssh_key_thumbprint": "12:23:45:56:67:89:90",
+        "storage_service_name": "Custom storage service",
+        "subnet": "subnet",
+        "username": "user",
+        "virtual_network": "virtual-network"
+      }
+    },
+    "null_resource": {
+      "example-instance": {
+        "depends_on": [],
+        "triggers": {
+          "custom_data": "echo Hello world!"
+        }
+      }
+    }
+  },
+  "variable": {
+    "kitekeys_example-instance": {
+      "default": {
+        "0": "..."
+      }
+    }
+  }
+}

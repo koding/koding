@@ -18,7 +18,8 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
     @email = new LoginInputView
       inputOptions      :
         name            : 'email'
-        placeholder     : 'your email address'
+        label           : 'Email address'
+        placeholder     : 'Enter your work email'
         defaultValue    : @getOption 'email'
         validate        :
           rules         : { email: yes }
@@ -26,11 +27,10 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
           events        :
             regExp      : 'keyup'
 
-    @email.inputReceivedKeyup()  if @getOption 'email'
-
     @username = new LoginInputView
       inputOptions       :
-        placeholder      : 'pick a username'
+        label            : 'Your Username'
+        placeholder      : 'Pick a username'
         name             : 'username'
         validate         :
           rules          :
@@ -55,7 +55,8 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
       inputOptions    :
         type          : 'password'
         name          : 'password'
-        placeholder   : 'set a password'
+        label         : 'Your Password'
+        placeholder   : 'Set a password'
         validate      :
           container   : this
           rules       :

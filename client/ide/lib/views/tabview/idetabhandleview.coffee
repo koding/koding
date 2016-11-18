@@ -16,7 +16,9 @@ module.exports = class IDETabHandleView extends KDTabHandleView
 
     options.draggable ?= yes
     options.bind       = 'dragstart dblclick dragend'
-    options.view       = new KDView { tagName : 'span' }
+    options.view       = new KDView
+      tagName : 'span'
+      cssClass: 'tab-handle-tabname'
 
     { pane } = options
 
@@ -95,7 +97,12 @@ module.exports = class IDETabHandleView extends KDTabHandleView
       @setClass 'edit-mode'
       @titleInput.setValue title
       @titleInput.setFocus()
-      @titleInput.selectAll()
+
+      lastIndex = title.lastIndexOf('.')
+      if lastIndex > 0
+        @titleInput.selectRange 0, lastIndex
+      else
+        @titleInput.selectAll()
       windowController.addLayer this
     else
       @unsetClass 'edit-mode'

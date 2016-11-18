@@ -9,7 +9,6 @@ module.exports = {
       "lastLoginDate":"2016-04-13T23:59:10.628Z",
       "referredUsers":0
     },
-    "onlineStatus":"online",
     "meta":{
       "data":{
         "createdAt":"2016-04-11T16:49:35.435Z",
@@ -50,7 +49,6 @@ module.exports = {
       "lastLoginDate":"2016-04-13T23:57:29.413Z",
       "referredUsers":0
     },
-    "onlineStatus":"online",
     "meta":{
       "data":{
         "createdAt":"2016-04-11T16:49:34.753Z",
@@ -92,7 +90,6 @@ module.exports = {
       "lastLoginDate":"2016-04-13T20:53:06.040Z",
       "referredUsers":0
     },
-    "onlineStatus":"online",
     "meta":{
       "data":{
         "createdAt":"2016-04-11T16:49:36.208Z",

@@ -1022,9 +1022,9 @@ imports:
 - name: github.com/Azure/azure-sdk-for-go
   version: 91f3d4a4d024e3c0d4d9412916d05cf84504a616
 - name: github.com/Banno/terraform-provider-marathon
-  version: 693aa37ced14fe2323e619f8ab29532772a79452
+  version: 1ccf8237686780c3e77fefe173293de31199b7ea
 - name: github.com/gambol99/go-marathon
-  version: 6e3f9771c1f9f19b8034e8de6a7ca537c02be7de
+  version: 8eb32fcc2ee7946a9b8927c66e143e6c9c48100c
 - name: github.com/donovanhide/eventsource
   version: fd1de70867126402be23c306e1ce32828455d85b
 testImports:

@@ -485,7 +485,7 @@ module.exports = class JCredential extends jraphical.Module
 
   # Poor man's shadow function ~ GG
   shadowed = (c) ->
-    return  unless c
+    return ''  unless c
     r = (c) -> Math.ceil c.length / 1.5
     return "*#{Array(r c).join '*'}#{c[(r c)..]}"
 

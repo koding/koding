@@ -6,6 +6,7 @@ admin/lib/views/members/adminmembersview.coffee
 ide/lib/index.coffee
 ide/lib/collaborationcontroller.coffee
 ide/lib/views/contentsearch/idecontentsearch.coffee
+ide/lib/test/browser/index.coffee
 admin/lib/views/integrations/adminintegrationdetailsview.coffee
 app/lib/applicationmanager.coffee
 app/lib/providers/environmentsmachinestatemodal.coffee
@@ -70,3 +71,5 @@ client/home/lib/welcome/homewelcomesteps.coffee
 client/app/lib/shortcuts/accounteditshortcutsrow.coffee
 
 client/component-lab/
+client/stack-editor/lib/components/
+client/stack-editor/lib/editor/stackscriptsearchview.coffee

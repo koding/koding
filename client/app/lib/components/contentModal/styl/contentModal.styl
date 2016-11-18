@@ -6,7 +6,6 @@ contentModal.styl
 */
 }
 .ContentModal
-  font-family               SoleilFamily
   overflow                  hidden
   rounded                   6px
   border                    none
@@ -84,7 +83,7 @@ contentModal.styl
             text-transform  uppercase
             bg              color #F2778A
             padding         0 28px
-            fontPrecisionForSoleil()
+
 
             &.cancel
             &.no
@@ -122,7 +121,7 @@ contentModal.styl
         line-height         60px
         display             inline-block
         letter-spacing      0px
-        fontPrecisionForSoleil()
+
         ellipsis()
         max-width           450px
 
@@ -179,7 +178,7 @@ contentModal.styl
         letter-spacing      0.18px
         line-height         20px
         font-weight         300
-        fontPrecisionForSoleil()
+
         text-align          center
         font-weight         400
 
@@ -190,7 +189,7 @@ contentModal.styl
         font-weight         300
         line-height         27px
         letter-spacing      .2px
-        fontPrecisionForSoleil()
+
         strong
           color             #F2778A
 
@@ -240,7 +239,7 @@ contentModal.styl
         border-radius       4px
         text-transform      uppercase
         background          #F2778A
-        fontPrecisionForSoleil()
+
 
         &.cancel
         &.no
@@ -275,27 +274,40 @@ main.main-container
     borderBox()
 
     .markdown-content
-      margin-top            10px
-      max-width             450px
+      padding                   11px 25px
 
-      pre code
-        overflow            auto
+  .credential-scroll
+    bg color #FFFFFF
+
+    .markdown-content
+      padding                   20px
+
+      pre
+        margin                  0px
+        padding                 0px
+
+        code
+          margin                0px
+          padding               0px
+
+  .stack-script
+    bg                      color #FFFFFF
 
   input.kdinput.text
-    line-height           20px
-    outline               none
-    resize                none
-    border-radius         4px
-    border                1px solid #d2d2d2
-    background            #fff
-    font-size             14px
-    color                 #a2a2a2
+    line-height             20px
+    outline                 none
+    resize                  none
+    border-radius           4px
+    border                  1px solid #d2d2d2
+    background              #fff
+    font-size               14px
+    color                   #a2a2a2
 
     &:hover
-      border            1px solid #D3E6FF
+      border                1px solid #D3E6FF
     &:focus
-      border            1px solid rgba(125,190,241,1)
-      shadow            inset 0 1px 2px rgba(0,0,0,0.075),0 0 5px 1px rgba(81,167,232,0.5)
+      border                1px solid rgba(125,190,241,1)
+      shadow                inset 0 1px 2px rgba(0,0,0,0.075),0 0 5px 1px rgba(81,167,232,0.5)
 
 
   &.tabview
@@ -314,6 +326,9 @@ main.main-container
   .kdcustomscrollview.has-vertical
     padding-right           0px
 
+  .kdcustomscrollview.has-horizontal
+    padding-bottom          0px
+
 &.has-markdown
   pre
     padding-top             0px
@@ -324,10 +339,12 @@ main.main-container
       border                0px
 
 .ContentModal.content-modal.stack-template-preview
+  width                     900px !important
+  height                    100% !important
   main
     margin                  20px
     .preview-label
-      color #868686
+      color                 #868686
       font-weight           300
     .has-markdown
       font-size             14px
@@ -335,35 +352,59 @@ main.main-container
       font-weight           300
 
     button.expand-button
-      abs 0 40px 375px 0
-      z-index 10
+      abs()
+      right                 40px
+      bottom                calc(100% \- 198px)
+      z-index               10
 
     button.minimize-button
-      display none
+      display               none
+
+    .kdtabpaneview
+      height                600px !important
+
+
+
+.ContentModal.content-modal.stack-script
+  height                    700px !important
+  main
+    margin                  0px
+    hr
+      display               none
+    h2
+      font-size             15px
+    p
+      line-height           20px
+
+  main.kdscrollview
+    max-height              640px
+    border                  none
+    code
+      bg                    color, #FBFBFB
 
 
 .ContentModal.expanded-stack-template-preview
-  left 10px !important
-  top 10px !important
-  width 99% !important
-  height 98% !important
+  left                      10px !important
+  top                       10px !important
+  width                     99% !important
+  height                    98% !important
 
   main:empty
-    display none
+    display                 none
 
   main
-    height calc(100% \- 80px)
+    height                  calc(100% \- 80px)
 
     .kdtabpaneview
-      height calc(100% \- 43px)
+      height                calc(100% \- 43px)
 
 
   .expand-button
   header
   .preview-label
   .has-markdown
-    display none
+    display                 none
 
   button.minimize-button
-    abs 97px 60px 0 0
-    z-index 10
+    abs                     100px 60px 0 0
+    z-index                 10

@@ -1,21 +1,9 @@
 ---
 ---
 
+@import "colors";
+
 {% assign path = site.url | append: '/assets/img/landing/verticals' %}
-
-$white: #FFFFFF;
-$dusty-gray: #949494;
-$dusty-gray2: #989898;
-$dove-gray: #727272;
-$alto: #D8D8D8;
-
-$shakespeare: #56A2D3;
-$onahau: #D0EFFF;
-$froly: #F47689;
-$froly2: #F2778A;
-$ocean-green: #48BA7D;
-$boston-blue: #308AB2;
-$blumine: #216081;
 
 .u-icon {
   &.u-kodingWith {
@@ -28,27 +16,6 @@ $blumine: #216081;
 
   &.u-playVideo {
     background-image: var(--icon-playVideo);
-  }
-}
-
-@media only screen and (min--moz-device-pixel-ratio: 2),
-only screen and (-o-min-device-pixel-ratio: 2/1),
-only screen and (-webkit-min-device-pixel-ratio: 2),
-only screen and (min-device-pixel-ratio: 2) {
-
-  .u-icon {
-    &.u-kodingWith {
-      background-image: var(--icon-kodingWith-2);
-    }
-
-    &.u-kodingWithout {
-      background-image: var(--icon-kodingWithout-2);
-    }
-
-    &.u-playVideo {
-      background-image: var(--icon-playVideo-2);
-      background-size: 25%;
-    }
   }
 }
 
@@ -67,7 +34,7 @@ h3 {
 
 p {
   line-height: 37px;
-  color: $dusty-gray;
+  color: $dusty-gray3;
   font-size: 18px;
   padding-top: 33px;
 }
@@ -77,10 +44,50 @@ p {
   margin: 0 auto;
 }
 .Hero {
-  background-color: #ccc;
-  padding-top: 127px;
   padding-bottom: 286px;
   text-align: center;
+  position: relative;
+  margin-top: -69px;
+  padding-top: 196px;
+
+  &:before {
+    opacity: 0.5;
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      url({{path}}/hero-backgroundL.png),
+      url({{path}}/hero-backgroundR.png);
+    background-repeat: no-repeat, no-repeat;
+    background-position: bottom left, bottom right;
+    background-size: 45%, 50%;
+  }
+
+  &.Training-hero {
+    background-image: linear-gradient($emperor,$shuttle-gray);
+
+    h2 {
+      color: $half-baked;
+    }
+
+    .imgContainer {
+      background-image: url({{path}}/training_success.png);
+      height: 480px;
+      width: 660px;
+      background-size: 100%;
+    }
+  }
+
+  &.Trial-hero {
+    background-image: linear-gradient($boston-blue2,$morning-glory);
+
+    .imgContainer {
+      background-image: url({{path}}/trial-hero.png);
+    }
+  }
 
   h1 {
     color: $white;
@@ -96,7 +103,7 @@ p {
   }
 
   a.Button {
-    background-color: $froly;
+    background-color: $froly2;
     color: $white;
     text-decoration: none;
     margin-top: 34px;
@@ -107,15 +114,16 @@ p {
     width: 160px;
     text-align: center;
     border-radius: 6px;
+    position: relative;
   }
 
   .imgContainer {
     margin: 88px auto -485px;
     position: relative;
     cursor:pointer;
-    background: url({{path}}/trial-hero.png);
     width: 604px;
     height: 398px;
+    background-repeat: no-repeat;
   }
 
   .u-playVideo {
@@ -214,7 +222,7 @@ p {
       }
 
       .timeline {
-        color: $dusty-gray2;
+        color: $dusty-gray;
         padding-top: 25px;
         padding-bottom: 38px;
 
@@ -233,14 +241,14 @@ p {
         }
 
         .timelineElement {
-          border-left: 1px solid $alto;
+          border-left: 1px solid $alto3;
           float: right;
           min-height: 88px;
           position: relative;
 
           &:before {
             content: "";
-            border: 1px solid $alto;
+            border: 1px solid $alto3;
             height: 7px;
             width: 7px;
             border-radius: 4px;
@@ -284,7 +292,7 @@ p {
       }
 
       .timeLength {
-        background-color: $froly2;
+        background-color: $froly;
       }
 
       .timeline {
@@ -293,12 +301,12 @@ p {
         .timelineElement.last {
 
           &:before {
-            border: 1px solid $froly2;
-            background-color: $froly2;
+            border: 1px solid $froly;
+            background-color: $froly;
           }
 
           .timeLabel {
-            color: $froly2;
+            color: $froly;
           }
         }
       }
@@ -337,8 +345,22 @@ p {
 .Section-3 {
   padding-top: 240px;
 
-  img {
-    float: left
+  .imgContainer {
+    float: left;
+    background-repeat: no-repeat;
+  }
+
+  &.Trial-section3 .imgContainer {
+    background-image: url({{ path }}/software-trials.png);
+    height: 395px;
+    width: 605px;
+  }
+
+  &.Training-section3 .imgContainer {
+    background-image: url({{ path }}/training_invites.png);
+    height: 429px;
+    width: 588px;
+    background-size: 100%;
   }
 
   .Caption {
@@ -371,7 +393,7 @@ p {
   a {
     display: inline-block;
     text-decoration: none;
-    background-color: $froly;
+    background-color: $froly2;
     color: $white;
     width: 228px;
     padding: 24px 0 20px;
@@ -402,7 +424,7 @@ p {
     }
 
     h2 {
-      color: #216081;
+      color: $blumine;
       padding-top: 16px;
       font-size: 25px;
     }
@@ -440,8 +462,17 @@ p {
   .Section-3 {
     padding-top: 20px;
 
-    img {
+    &.Trial-section3 .imgContainer, &.Training-section3 .imgContainer {
       width: 533px;
+      background-size: 533px;
+    }
+
+    &.Trial-section3 .imgContainer {
+      height: 343px;
+    }
+
+    &.Training-section3 .imgContainer {
+      height: 390px;
     }
 
     .Caption {
@@ -480,6 +511,12 @@ p {
 
     a.Button {
       margin-top: 50px;
+    }
+
+    &.Training-hero .imgContainer {
+      width: 419px;
+      height: 303px;
+      background-size: 419px 303px;
     }
 
     .imgContainer {
@@ -535,8 +572,17 @@ p {
   .Section-3 {
     padding-top: 45px;
 
-    img {
+    &.Trial-section3 .imgContainer, &.Training-section3 .imgContainer {
       width: 402px;
+      background-size: 402px;
+    }
+
+    &.Trial-section3 .imgContainer {
+      height: 260px;
+    }
+
+    &.Training-section3 .imgContainer {
+      height: 300px;
     }
 
     .Caption {
@@ -588,6 +634,10 @@ p {
   .Hero {
     padding-top: 82px;
 
+    &:before {
+      opacity: 0;
+    }
+
     h1 {
       line-height: 37px;
       width: 300px;
@@ -603,6 +653,14 @@ p {
 
     a.Button {
       margin-top: 41px;
+    }
+
+    &.Training-hero {
+      .imgContainer {
+        height: 241px;
+        width: 332px;
+        background-size: 332px 241px;
+      }
     }
 
     .imgContainer {
@@ -660,9 +718,19 @@ p {
   .Section-3 {
     padding-top: 64px;
 
-    img {
+    &.Trial-section3 .imgContainer, &.Training-section3 .imgContainer {
       width: 337px;
+      background-size: 337px;
       float: none;
+      margin-left: -6px;
+    }
+
+    &.Trial-section3 .imgContainer {
+      height: 218px;
+    }
+
+    &.Training-section3 .imgContainer {
+      height: 248px;
     }
   }
 
@@ -678,4 +746,59 @@ p {
       width: 290px;
     }
   }
+}
+
+
+@media only screen and (min--moz-device-pixel-ratio: 2),
+only screen and (-o-min-device-pixel-ratio: 2/1),
+only screen and (-webkit-min-device-pixel-ratio: 2),
+only screen and (min-device-pixel-ratio: 2) {
+
+  .u-icon {
+    &.u-kodingWith {
+      background-image: var(--icon-kodingWith-2);
+      background-size: 100%;
+    }
+
+    &.u-kodingWithout {
+      background-image: var(--icon-kodingWithout-2);
+      background-size: 100%;
+    }
+
+    &.u-playVideo {
+      background-image: var(--icon-playVideo-2);
+      background-size: 20%;
+    }
+  }
+
+  .Hero {
+    &:before {
+      background-image:
+        url({{path}}/hero-backgroundL@2x.png),
+        url({{path}}/hero-backgroundR@2x.png)
+    }
+
+    &.Training-hero .imgContainer {
+      background-image: url({{path}}/training_success@2x.png);
+      background-size: 100%;
+    }
+
+    &.Trial-hero .imgContainer {
+      background-image: url({{path}}/trial-hero@2x.png);
+      background-size: 100%;
+    }
+  }
+
+  .Section-3 {
+    &.Trial-section3 .imgContainer {
+      background-image: url({{path}}/software-trials@2x.png);
+      background-size: 100%;
+    }
+
+    &.Training-section3 .imgContainer {
+      background-image: url({{path}}/training_invites@2x.png);
+      background-size: 100%;
+    }
+  }
+
 }

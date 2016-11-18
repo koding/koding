@@ -12,6 +12,7 @@ import (
 	"koding/kites/kloud/credential"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
+	"koding/kites/kloud/machine"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/pkg/idlock"
 
@@ -78,6 +79,9 @@ type Kloud struct {
 
 	// CredClient handles credential.* methods.
 	CredClient *credential.Client
+
+	// MachineClient handles machine.* methods.
+	MachineClient *machine.Client
 
 	Metrics *metrics.DogStatsD
 

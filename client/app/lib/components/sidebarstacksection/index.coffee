@@ -36,7 +36,7 @@ module.exports = class SidebarStackSection extends React.Component
 
 
   getDataBindings: ->
-    activeMachine: EnvironmentFlux.getters.activeMachine
+
     selectedTemplateId: EnvironmentFlux.getters.selectedTemplateId
 
 
@@ -99,7 +99,9 @@ module.exports = class SidebarStackSection extends React.Component
             return new kd.NotificationView { title: 'Error occured while cloning template' }
           EnvironmentFlux.actions.cloneStackTemplate template, no
       when 'Destroy VMs' then deleteStack { stack }
-      when 'VMs' then router.handleRoute "/Home/stacks/virtual-machines"
+      when 'VMs'
+        firstMachineId = stack.get('machines').first.get '_id'
+        router.handleRoute "/Home/stacks/virtual-machines/#{firstMachineId}"
       when 'Open on GitLab'
         remoteUrl = stack.getIn ['config', 'remoteDetails', 'originalUrl']
         linkController.openOrFocus remoteUrl
@@ -193,11 +195,10 @@ module.exports = class SidebarStackSection extends React.Component
   render: ->
 
     return null  unless @props.stack.get('machines').length
+
     className  = 'SidebarStackSection'
-    for machine in @props.stack.get 'machines'
-      if machine.get('_id') is @state.activeMachine
-        className += ' active'
-        break
+    className += ' active'  if @state.selectedTemplateId is @props.stack.get 'baseStackId'
+
 
     <SidebarSection
       ref='sidebarSection'

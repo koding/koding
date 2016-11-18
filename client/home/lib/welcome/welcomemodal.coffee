@@ -31,32 +31,33 @@ module.exports = class WelcomeModal extends kd.ModalView
   showCongratulationModal: ->
 
     { appStorageController } = kd.singletons
-
     appStorage = appStorageController.storage "WelcomeSteps-#{globals.currentGroup.slug}"
-    appStorage.fetchValue 'OnboardingSuccessModalShown', (result) ->
+    buckets = appStorage.storage.bucket
+    welcomeStepsStore = buckets["WelcomeSteps-#{globals.currentGroup.slug}"]
+    isShown = welcomeStepsStore.data.OnboardingSuccessModalShown
 
-      return  if result
+    return  if isShown
 
-      appStorage.setValue 'OnboardingSuccessModalShown', yes
+    appStorage.setValue 'OnboardingSuccessModalShown', yes
 
-      modal = new kd.ModalView
-        title : 'Success!'
-        width : 530
-        cssClass : 'Congratulation-modal'
-        content : "<p class='description'>Congratulations. You have completed all items on your onboarding list.</p>"
-
-
-      kd.View::addSubView.call modal, new kd.CustomHTMLView
-        cssClass : 'alien'
+    modal = new kd.ModalView
+      title : 'Success!'
+      width : 530
+      cssClass : 'Congratulation-modal'
+      content : "<p class='description'>Congratulations. You have completed all items on your onboarding list.</p>"
 
 
-      modal.addSubView new kd.CustomHTMLView
-        cssClass : 'image-wrapper'
+    kd.View::addSubView.call modal, new kd.CustomHTMLView
+      cssClass : 'alien'
 
-      modal.addSubView new kd.ButtonView
-        title : 'KEEP ROCKING!'
-        cssClass: 'GenericButton'
-        callback : -> modal.destroy()
+
+    modal.addSubView new kd.CustomHTMLView
+      cssClass : 'image-wrapper'
+
+    modal.addSubView new kd.ButtonView
+      title : 'KEEP ROCKING!'
+      cssClass: 'GenericButton'
+      callback : -> modal.destroy()
 
 
   initialShow: ->

@@ -2,7 +2,7 @@
 
 set -o errexit
 
-HOST=$(ec2metadata | grep public-ipv4 | FS=':' awk '{print $2}')
+HOSTNAME="`ec2metadata --instance-id`.test.ci.koding.io"
 
 export HOME=/root/
 export REPOSITORY_PATH='/opt/koding'
@@ -23,10 +23,11 @@ export KONFIG_SNEAKERS3_AWSSECRETACCESSKEY="" \
        KONFIG_SNEAKERS3_AWSACCESSKEYID="" \
        KONFIG_SNEAKERS3_SNEAKERS3PATH="" \
        KONFIG_SNEAKERS3_SNEAKERMASTERKEY="" \
-       KONFIG_SNEAKERS3_AWSREGION=""
+       KONFIG_SNEAKERS3_AWSREGION="" \
+       KONFIG_KLOUD_CREDENTIALENDPOINT=""
 
 npm install --unsafe-perm
-./configure --config dev --host $HOST:8090 --disable-segment
+./configure --config dev --host $HOSTNAME:8090 --hostname $HOSTNAME --publicPort 8090 --disable-segment
 go/build.sh
 make -C client dist
 

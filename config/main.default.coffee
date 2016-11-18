@@ -35,7 +35,6 @@ Configuration = (options = {}) ->
   options.recaptchaEnabled or= no
   options.debugGithubAPI or= yes
   options.autoConfirmAccounts or= yes
-  options.vmwatcherConnectToKlient = no
   options.secureCookie = no
   options.algoliaIndexSuffix = ".#{ os.hostname() }"
   options.socialQueueName = "koding-social-#{options.configName}"
@@ -46,7 +45,7 @@ Configuration = (options = {}) ->
   options.credentialPath or= "$KONFIG_PROJECTROOT/config/credentials.#{options.environment}.coffee"
   options.clientUploadS3BucketName or= 'kodingdev-client'
   options.publicLogsS3BucketName or= 'kodingdev-publiclogs'
-  options.proxySubdomain or= 'dev-p2'
+  options.proxySubdomain or= 'dev-p'
 
   _port = if options.publicPort is '80' then '' else ":#{options.publicPort}"
   options.host or= "#{options.hostname}#{_port}"
@@ -80,7 +79,6 @@ Configuration = (options = {}) ->
   options.disabledWorkers = [
     "algoliaconnector"
     "gatekeeper"
-    "vmwatcher"
   ]
 
   for worker in options.disabledWorkers

@@ -315,14 +315,6 @@ func (c *Channel) removeParticipation(typeConstant string, participantIds ...int
 		if err := cp.Update(); err != nil {
 			return err
 		}
-
-		// when we remove participant from channel,
-		// then need to remove user's notification settings of that channel
-		if err := cp.RemoveNotificationSetting(); err != nil {
-			if err != bongo.RecordNotFound {
-				return err
-			}
-		}
 	}
 
 	pe.Participants = participants
@@ -344,9 +336,9 @@ func (c *Channel) FetchParticipantIds(q *request.Query) ([]int64, error) {
 		Table(cp.BongoName()).
 		Where("channel_id = ?", c.Id).
 		Where("status_constant in (?)",
-		[]string{ChannelParticipant_STATUS_ACTIVE,
-			ChannelParticipant_STATUS_REQUEST_PENDING,
-		})
+			[]string{ChannelParticipant_STATUS_ACTIVE,
+				ChannelParticipant_STATUS_REQUEST_PENDING,
+			})
 
 	if !q.ShowExempt {
 		bq = bq.Where("meta_bits <> ?", Troll)
@@ -673,19 +665,19 @@ func (c *Channel) ByParticipants(participants []int64, q *request.Query) ([]Chan
 		Model(cp).
 		Table(cp.BongoName()).
 		Joins(
-		`left join api.channel on
+			`left join api.channel on
 		 api.channel_participant.channel_id = api.channel.id`).
 		Where(
-		`api.channel_participant.account_id IN ( ? ) and
+			`api.channel_participant.account_id IN ( ? ) and
 		 api.channel_participant.status_constant = ? and
 		 api.channel.group_name = ? and
 		 api.channel.deleted_at < '0001-01-02 00:00:00+00' and
 		 api.channel.type_constant = ?`,
-		participants,
-		ChannelParticipant_STATUS_ACTIVE,
-		q.GroupName,
-		q.Type,
-	).
+			participants,
+			ChannelParticipant_STATUS_ACTIVE,
+			q.GroupName,
+			q.Type,
+		).
 		Group("channel_participant.channel_id, channel.created_at").
 		Having("COUNT (channel_participant.channel_id) = ?", len(participants)).
 		Order("channel.created_at").
@@ -1065,7 +1057,6 @@ func isMessageCrossIndexed(messageId int64) (error, bool) {
 }
 
 func (c *Channel) deleteChannelMessages(messageMap map[int64]struct{}) error {
-	var errs *multierror.Error
 	messageIds := make([]int64, 0)
 
 	for messageId := range messageMap {
@@ -1087,29 +1078,12 @@ func (c *Channel) deleteChannelMessages(messageMap map[int64]struct{}) error {
 			continue
 		}
 
-		interactions, err := NewInteraction().FetchInteractionsWithMessage(message.Id)
-		if err != nil {
-			return err
-		}
-
-		// we are gonna try to iterate all over the interactions of the message
-		// if there is and error, we are gonna skip this and will try to remove other interactions
-		for _, interaction := range interactions {
-			if err := interaction.Delete(); err != nil {
-				errs = multierror.Append(errs, err)
-			}
-		}
-
-		if err := NewMessageReply().DeleteByOrQuery(message.Id); err != nil {
+		if err = NewMessageReply().DeleteByOrQuery(message.Id); err != nil {
 			return err
 		}
 
 		if err = message.Delete(); err != nil {
 			return err
-		}
-
-		if errs.ErrorOrNil() != nil {
-			return errs
 		}
 	}
 

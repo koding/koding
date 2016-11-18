@@ -220,14 +220,27 @@ body {
 
   .burgerToggle .Homepage-Header {
     height: auto;
-    flex-wrap: wrap;
   }
 
-  .burgerToggle .Homepage-Header .logo {
+  .burgerToggle .Homepage-HeaderWrapper {
+    height: auto;
+    flex-wrap: wrap;
+    display: block;
+    max-width: initial;
+    margin: initial;
+    height: initial;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .logo {
     height: 26px;
   }
 
-  .burgerToggle .Homepage-Header .item {
+  .burgerToggle .Homepage-HeaderWrapper .burger,
+  .burgerToggle .Homepage-HeaderWrapper .signup {
+    display: none;
+  }
+
+  .burgerToggle .Homepage-HeaderWrapper .item {
     order: 10;
     display: flex;
     min-width: 100%;
@@ -338,6 +351,10 @@ body {
 }
 
 @media (max-width: 767px) {
+  .Homepage-Header .logo svg {
+    margin-top: 0;
+  }
+
   .Homepage-Header.light .signup svg g,
   .StickyHeader .Homepage-Header .signup svg g {
     fill: rgba(53,139,176,0.8);

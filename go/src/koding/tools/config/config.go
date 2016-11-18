@@ -53,10 +53,7 @@ type Config struct {
 		Url string
 	}
 	SubscriptionEndpoint string
-	Gowebserver          struct {
-		Port int
-	}
-	Rerouting struct {
+	Rerouting            struct {
 		Port int
 	}
 	SocialApi struct {
@@ -66,17 +63,7 @@ type Config struct {
 			Local  string
 		}
 	}
-	Vmwatcher struct {
-		Port           string
-		AwsKey         string
-		AwsSecret      string
-		KloudSecretKey string
-		KloudAddr      string
-	}
-	Segment        string
-	GatherIngestor struct {
-		Port int
-	}
+	Segment string
 	Mailgun struct {
 		Domain     string
 		PrivateKey string

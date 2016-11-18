@@ -90,7 +90,7 @@ And [link](https://docs.npmjs.com/cli/link) it:
 npm link
 ```
 
-Go back to `koding/client` folder, and remove `kd.js` in `node_modules`: 
+Go back to `koding/client` folder, and remove `kd.js` in `node_modules`:
 
 ```sh
 rm -fr node_modules/kd.js
@@ -110,7 +110,7 @@ Start for listening changes in `koding/client`:
 make scripts
 ```
 
-This will start watching your symlinked clone, change to your clone dir again, and type in the holy letters: 
+This will start watching your symlinked clone, change to your clone dir again, and type in the holy letters:
 
 ```sh
 make development
@@ -123,7 +123,7 @@ That's it. Now whenever you change a file in `lib` directory in your clone, its 
 
 Besides for being the framework itself, `KD` was also being extended in runtime in two separate occasions:
 
-* As a globally accessible object, it was being extended with configuration stuff. See go-webserver entry html.
+* As a globally accessible object, it was being extended with configuration stuff.
 * And with `KD.extend` and `KD.utils.extend` it was possible mix-in new methods onto it.
 
 These two are separated. (See `globals` and `app/util`)

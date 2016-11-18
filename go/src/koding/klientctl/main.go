@@ -488,6 +488,16 @@ func main() {
 					},
 				}},
 			},
+			cli.Command{
+				Name:  "machine",
+				Usage: "Manage remote machines",
+				Subcommands: []cli.Command{{
+					Name:      "list",
+					ShortName: "ls",
+					Usage:     "List available machines",
+					Action:    ctlcli.ExitErrAction(MachineListCommand, log, "list"),
+				}},
+			},
 		)
 	}
 

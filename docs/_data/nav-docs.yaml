@@ -10,14 +10,20 @@
     title: Create AWS stack
   - id: creating-a-vagrant-stack
     title: Create Vagrant stack
+  - id: kd
+    title: KD
   - id: use-your-own-ide
     title: Use your own IDE
   - id: connect-your-own-machine-to-koding
     title: Connect your own machine
+  - id: koding-stacks-variables
+    title: Koding Stacks Variables
   - id: two-vm-setup-apachephp-server-db-server
     title: Simple two VM setup
   - id: database-vm-schema-setup
     title: Advanced stack editing
+  - id: how-to-share-your-vm-with-someone
+    title: How to share your VM with someone
   - id: create-elastic-ip-for-your-instance
     title: Assign Elastic IP
   - id: create-an-aws-vpc
@@ -26,8 +32,8 @@
     title: Setup AWS IAM user
   - id: assigning-domain-names-with-route53
     title: Assign domain names with Route53
-  - id: using-private-variables
-    title: Using Private Variables
+  - id: using-custom-variables
+    title: Using Custom Variables
   - id: user-input
     title: User Input
   - id: using-amis
@@ -42,5 +48,5 @@
     title: Try on Koding button
   - id: terraform-to-koding
     title: TERRAFORM to KODING
-  - id: common-questions
-    title: Common Questions
+  - id: faq
+    title: FAQ

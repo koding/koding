@@ -20,7 +20,7 @@ html.app
 
 body
   bg                      color, #2b2b30
-  font-family             openSansFamily
+  font-family             mainFontFamily
   font-weight             400
   -webkit-font-smoothing  subpixel-antialiased
 
@@ -38,7 +38,7 @@ body
 input
 textarea
 button
-  font-family       SoleilFamily
+  font-family               mainFontFamily
 
 input[type=checkbox]:checked + label:after
   border-right              3px solid #48BA7D !important
@@ -302,7 +302,6 @@ pre
     bg                      color #F69C31
     color                   white
     z-index                 10
-    font-family             SoleilFamily
     font-size               14px
     font-weight             300
     line-height             18px
@@ -394,7 +393,6 @@ pre
       font-size         16px
       margin-left       12px
       font-weight       500
-      font-family       openSansFamily
       color             rgba(255,255,255,.83)
       padding-bottom    1px
       noTextDeco()
@@ -1034,8 +1032,9 @@ paymentGrayLighter  = #f8f8f8
 
 // machine state modal
 .kdoverlay.env-modal-overlay
-  bg                    color, rgba(43, 43, 48, .75)
-  opacity               1
+  bg                    color, #151516
+  bg                    image, radial-gradient(#5B5B64, #151516)
+  opacity               0.90
   abs()
 
 
@@ -1207,7 +1206,6 @@ paymentGrayLighter  = #f8f8f8
       margin-bottom     10px
       color             #4ea04c
       padding-bottom    10px
-      font-family       adelleSans
 
     b
       font-weight       bold

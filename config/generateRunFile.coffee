@@ -9,36 +9,6 @@ generateDev = (KONFIG, options) ->
 
   options.requirementCommands ?= []
 
-  installScript = """
-      pushd $KONFIG_PROJECTROOT
-      git submodule update --init
-
-      npm install --unsafe-perm
-
-      echo '#---> BUILDING CLIENT <---#'
-      make -C $KONFIG_PROJECTROOT/client unit-tests
-
-      echo '#---> BUILDING GO WORKERS <---#'
-      $KONFIG_PROJECTROOT/go/build.sh
-
-      echo '#---> BUILDING SOCIALAPI <---#'
-      pushd $KONFIG_PROJECTROOT/go/src/socialapi
-      make configure
-      # make install
-
-      echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY <---#'
-      KITE_KEY=$KONFIG_KITEHOME/kite.key
-      mkdir $HOME/.kite &>/dev/null
-      echo copying $KITE_KEY to $HOME/.kite/kite.key
-      cp -f $KITE_KEY $HOME/.kite/kite.key
-
-      echo
-      echo
-      echo 'ALL DONE. Enjoy! :)'
-      echo
-      echo
-  """
-
   run = """
     #!/bin/bash
 
@@ -64,7 +34,7 @@ generateDev = (KONFIG, options) ->
 
     mkdir $KONFIG_PROJECTROOT/.logs &>/dev/null
 
-    SERVICES="mongo redis postgres rabbitmq imply"
+    SERVICES="mongo redis postgres rabbitmq"
 
     NGINX_CONF="$KONFIG_PROJECTROOT/nginx.conf"
     NGINX_PID="$KONFIG_PROJECTROOT/nginx.pid"
@@ -177,6 +147,7 @@ generateDev = (KONFIG, options) ->
       echo "  run log [worker]          : to see of specified worker logs only"
       echo "  run buildservices         : to initialize and start services"
       echo "  run services              : to stop and restart services"
+      echo "  run nginx                 : to stop and restart nginx"
       echo "  run printconfig           : to print koding config environment variables (output in json via --json flag)"
       echo "  run migrate [command]     : to apply/revert database changes (command: [create|up|down|version|reset|redo|to|goto])"
       echo "  run mongomigrate [command]: to apply/revert mongo database changes (command: [create|up|down])"
@@ -257,6 +228,8 @@ generateDev = (KONFIG, options) ->
         echo ""
         exit 1
       fi
+
+      coffee deployment/mongomigrationconfig.coffee
 
       node $KONFIG_PROJECTROOT/node_modules/mongodb-migrate -runmm --config ../deployment/generated_files/mongomigration.json --dbPropName conn -c $KONFIG_PROJECTROOT/workers $1 $2
 
@@ -455,8 +428,6 @@ generateDev = (KONFIG, options) ->
       restoreredis
       restorerabbitmq
       restoredefaultpostgresdump
-      restoreimply
-
 
       echo "#---> CLEARING ALGOLIA INDEXES: <---#"
       pushd $KONFIG_PROJECTROOT
@@ -541,7 +512,34 @@ generateDev = (KONFIG, options) ->
 
     elif [ "$1" == "install" ]; then
       check_service_dependencies
-      #{installScript}
+
+      pushd $KONFIG_PROJECTROOT
+      git submodule update --init
+
+      npm install --unsafe-perm
+
+      echo '#---> BUILDING CLIENT <---#'
+      make -C $KONFIG_PROJECTROOT/client unit-tests
+
+      echo '#---> BUILDING GO WORKERS <---#'
+      $KONFIG_PROJECTROOT/go/build.sh
+
+      echo '#---> BUILDING SOCIALAPI <---#'
+      pushd $KONFIG_PROJECTROOT/go/src/socialapi
+      make configure
+      # make install
+
+      echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY <---#'
+      KITE_KEY=$KONFIG_KITEHOME/kite.key
+      mkdir $HOME/.kite &>/dev/null
+      echo copying $KITE_KEY to $HOME/.kite/kite.key
+      cp -f $KITE_KEY $HOME/.kite/kite.key
+
+      echo
+      echo
+      echo 'ALL DONE. Enjoy! :)'
+      echo
+      echo
 
     elif [ "$1" == "printconfig" ]; then
 
@@ -569,6 +567,9 @@ generateDev = (KONFIG, options) ->
     elif [ "$1" == "services" ]; then
       check_service_dependencies
       services
+
+    elif [ "$1" == "nginx" ]; then
+      nginxrun
 
     elif [ "$1" == "buildservices" ]; then
       check_service_dependencies

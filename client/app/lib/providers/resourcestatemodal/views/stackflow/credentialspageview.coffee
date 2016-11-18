@@ -1,6 +1,7 @@
 kd = require 'kd'
 async = require 'async'
 JView = require 'app/jview'
+globals = require 'globals'
 CredentialForm = require './credentialform'
 KDCredentialForm = require './kdcredentialform'
 
@@ -134,14 +135,14 @@ module.exports = class CredentialsPageView extends JView
           title : helpers.getCredentialsTitle provider
           selectionLabel : 'KD Selection'
           selectionPlaceholder : 'Select your existent KD...'
-        when 'aws'
-          title : helpers.getCredentialsTitle provider
-          selectionLabel : 'Credential Selection'
-          selectionPlaceholder : 'Select credential...'
         when 'userInput'
           title : 'Requirements'
           selectionLabel : 'Requirement Selection'
           selectionPlaceholder : 'Select from existing requirements...'
+        else
+          title : helpers.getCredentialsTitle provider
+          selectionLabel : 'Credential Selection'
+          selectionPlaceholder : 'Select credential...'
 
 
     getTitleAndDescription: (data) ->
@@ -156,7 +157,7 @@ module.exports = class CredentialsPageView extends JView
         when not hasRequirements then 'Select Credentials'
         else 'Select Credentials and Other Requirements'
 
-      description  = "Your stack requires #{helpers.getCredentialsTitle provider} "
+      description  = "Your stack requires a #{helpers.getCredentialsTitle provider} "
       description += 'and a few requirements '  if requirements.fields
       description += 'in order to boot'
 
@@ -165,10 +166,7 @@ module.exports = class CredentialsPageView extends JView
 
     getCredentialsTitle: (provider) ->
 
-      switch provider
-        when 'vagrant' then 'KD Local Host'
-        when 'aws'     then 'AWS Credential'
-        else ''
+      globals.config.providers[provider]?.title ? ''
 
 
     createValidationCallback: (form) ->

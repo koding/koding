@@ -1,12 +1,12 @@
 {% assign p = include.page %}
 
-<div class="BlogHome-Listing--item">
+<div class="BlogHome-Listing--item" itemscope itemtype="http://schema.org/BlogPosting">
   {% include blog-author.html author = p.author date = p.date %}
 
   <a class="BlogPost-Excerpt" href="{{site.url}}{{ p.url }}">
     {% if p.image %}<figure style="background-image: url('{{ site.url }}{{ p.image }}');" alt="{{ p.title }} featured image"></figure>{% endif %}
-    <h2 class="BlogPost-Title">{{ p.title }}</h2>
-    <p>{{ p.excerpt | strip_html }}</p>
+    <h2 class="BlogPost-Title" itemprop="headline">{{ p.title }}</h2>
+    <p itemprop="text">{{ p.excerpt | strip_html }}</p>
     <cite>Read more...</cite>
   </a>
 </div>

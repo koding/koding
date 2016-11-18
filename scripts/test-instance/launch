@@ -15,8 +15,13 @@ unless keyName = process.env.TEST_AWS_KEY_NAME
   console.error 'error: TEST_AWS_KEY_NAME is not set'
   process.exit 1
 
+unless domainBase = process.env.TEST_AWS_R53_DOMAIN_BASE
+  console.error 'error: TEST_AWS_R53_DOMAIN_BASE is not set'
+  process.exit 1
+
 AWS = require './aws'
 EC2 = new AWS.EC2()
+R53 = new AWS.Route53()
 
 revision = 'FETCH_HEAD'  unless revision = argv.commit
 
@@ -101,6 +106,46 @@ tag = ->
   EC2.createTags { Resources, Tags }, (err, res) ->
 
 
+createRecordSets = (Instances, callback) ->
+
+  Changes = []
+
+  Instances.forEach ({InstanceId, PublicIpAddress}) ->
+    hostname = "#{InstanceId}.#{domainBase}"
+
+    Changes.push {
+      Action: 'UPSERT',
+      ResourceRecordSet: {
+        Name: hostname
+        Type: 'A'
+        TTL: 300
+        ResourceRecords: [{ Value: PublicIpAddress }]
+      }
+    }
+
+    Changes.push {
+      Action: 'UPSERT',
+      ResourceRecordSet: {
+        Name: "*.#{hostname}"
+        Type: 'CNAME'
+        TTL: 300
+        ResourceRecords: [{ Value: hostname }]
+      }
+    }
+
+  params =
+    HostedZoneId: process.env.TEST_AWS_HOSTED_ZONE_ID
+    ChangeBatch: { Changes }
+
+  R53.changeResourceRecordSets params, (err, res) ->
+
+    if err
+      console.error JSON.stringify err, null, 2
+      return process.exit 1
+
+    callback()
+
+
 monitor = ->
 
   EC2.describeInstances {InstanceIds}, (err, data) ->
@@ -112,7 +157,10 @@ checkInstances = ({Instances}) ->
 
   Instances.forEach checkInstanceState
   if RunningInstances.length is InstanceIds.length
-    exit()
+    if process.env.TEST_AWS_HOSTED_ZONE_ID
+      createRecordSets Instances, exit
+    else
+      exit()
 
 
 checkInstanceState = (Instance) ->
@@ -136,4 +184,4 @@ printInstanceInfo = ->
 
   RunningInstances.forEach (Instance) ->
     {InstanceId, PublicIpAddress} = Instance
-    console.log InstanceId, PublicIpAddress
+    console.log InstanceId, PublicIpAddress, "#{InstanceId}.#{domainBase}"

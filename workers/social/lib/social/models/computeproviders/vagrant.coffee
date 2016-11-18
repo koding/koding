@@ -32,11 +32,17 @@ module.exports = class Vagrant extends ProviderInterface
 
     assignedLabel = "#{label}"
 
-    guessNextLabel { user, group, label, provider }, (err, label) ->
+    guessNextLabel { user, group, label, provider }, (err, label) =>
 
       return callback err  if err
 
-      meta = { hostQueryString, alwaysOn: yes, assignedLabel }
+      meta = {
+        type      : @providerSlug
+        alwaysOn  : yes
+        hostQueryString
+        assignedLabel
+      }
+
       callback null, { meta, label, credential }
 
 
@@ -48,31 +54,3 @@ module.exports = class Vagrant extends ProviderInterface
     JWorkspace = require '../workspace'
     JWorkspace.createDefault client, machine.uid, callback
 
-
-  @update = (client, options, callback) ->
-
-    { ObjectId } = require 'bongo'
-    { machineId, alwaysOn } = options
-    { r: { group, user, account } } = client
-
-    unless machineId? or alwaysOn?
-      return callback new KodingError \
-        'A valid machineId and an update option required.', 'WrongParameter'
-
-    provider = @providerSlug
-
-    selector       =
-      $or          : [
-        { _id      : ObjectId machineId }
-        { uid      : machineId }
-      ]
-      users        :
-        $elemMatch :
-          id       : user.getId()
-          sudo     : yes
-          owner    : yes
-      groups       :
-        $elemMatch :
-          id       : group.getId()
-
-    updateMachine { selector, alwaysOn }, callback

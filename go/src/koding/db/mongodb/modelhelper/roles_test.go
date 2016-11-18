@@ -1,28 +1,31 @@
-package modelhelper
+package modelhelper_test
 
 import (
-	"koding/db/models"
 	"testing"
+
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
+	"koding/db/mongodb/modelhelper/modeltesthelper"
 
 	"gopkg.in/mgo.v2/bson"
 )
 
 func TestFetchAdminAccounts(t *testing.T) {
-	initMongoConn()
-	defer Close()
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
 
 	acc1 := createTestAccount(t)
-	defer RemoveAccount(acc1.Id)
+	defer modelhelper.RemoveAccount(acc1.Id)
 
 	acc2 := createTestAccount(t)
-	defer RemoveAccount(acc2.Id)
+	defer modelhelper.RemoveAccount(acc2.Id)
 
 	group, err := createGroup()
 	if err != nil {
 		t.Error(err)
 	}
 
-	accounts, err := FetchAdminAccounts(group.Slug)
+	accounts, err := modelhelper.FetchAdminAccounts(group.Slug)
 	if err != nil {
 		t.Error(err)
 	}
@@ -31,7 +34,7 @@ func TestFetchAdminAccounts(t *testing.T) {
 		t.Errorf("accounts count should be 0, got: %d", len(accounts))
 	}
 
-	if err := AddRelationship(&models.Relationship{
+	if err := modelhelper.AddRelationship(&models.Relationship{
 		Id:         bson.NewObjectId(),
 		TargetId:   acc1.Id,
 		TargetName: "JAccount",
@@ -42,7 +45,7 @@ func TestFetchAdminAccounts(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := AddRelationship(&models.Relationship{
+	if err := modelhelper.AddRelationship(&models.Relationship{
 		Id:         bson.NewObjectId(),
 		TargetId:   acc2.Id,
 		TargetName: "JAccount",
@@ -53,7 +56,7 @@ func TestFetchAdminAccounts(t *testing.T) {
 		t.Error(err)
 	}
 
-	accounts, err = FetchAdminAccounts(group.Slug)
+	accounts, err = modelhelper.FetchAdminAccounts(group.Slug)
 	if err != nil {
 		t.Error(err)
 	}
@@ -64,13 +67,13 @@ func TestFetchAdminAccounts(t *testing.T) {
 }
 
 func TestFetchAccountGroups(t *testing.T) {
-	initMongoConn()
-	defer Close()
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
 
 	acc1 := createTestAccount(t)
-	defer RemoveAccount(acc1.Id)
+	defer modelhelper.RemoveAccount(acc1.Id)
 
-	groups, err := FetchAccountGroups(acc1.Profile.Nickname)
+	groups, err := modelhelper.FetchAccountGroups(acc1.Profile.Nickname)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -84,7 +87,7 @@ func TestFetchAccountGroups(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	if err := AddRelationship(&models.Relationship{
+	if err := modelhelper.AddRelationship(&models.Relationship{
 		Id:         bson.NewObjectId(),
 		TargetId:   acc1.Id,
 		TargetName: "JAccount",
@@ -95,7 +98,7 @@ func TestFetchAccountGroups(t *testing.T) {
 		t.Error(err)
 	}
 
-	groups, err = FetchAccountGroups(acc1.Profile.Nickname)
+	groups, err = modelhelper.FetchAccountGroups(acc1.Profile.Nickname)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -110,7 +113,7 @@ func TestFetchAccountGroups(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := AddRelationship(&models.Relationship{
+	if err := modelhelper.AddRelationship(&models.Relationship{
 		Id:         bson.NewObjectId(),
 		TargetId:   acc1.Id,
 		TargetName: "JAccount",
@@ -121,7 +124,7 @@ func TestFetchAccountGroups(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := AddRelationship(&models.Relationship{
+	if err := modelhelper.AddRelationship(&models.Relationship{
 		Id:         bson.NewObjectId(),
 		TargetId:   acc1.Id,
 		TargetName: "JAccount",
@@ -132,7 +135,7 @@ func TestFetchAccountGroups(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	groups, err = FetchAccountGroups(acc1.Profile.Nickname)
+	groups, err = modelhelper.FetchAccountGroups(acc1.Profile.Nickname)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}

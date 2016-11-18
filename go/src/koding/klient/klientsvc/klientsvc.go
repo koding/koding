@@ -41,14 +41,20 @@ func (s *Service) Install() error {
 
 	cfg := s.config()
 
-	fw, err := os.OpenFile(cfg.Executable, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0755)
-	if err != nil {
-		return err
-	}
+	if absPath, err := filepath.Abs(s.KlientBin); err != nil || absPath != cfg.Executable {
+		if err := os.MkdirAll(filepath.Dir(cfg.Executable), 0755); err != nil {
+			return err
+		}
 
-	_, err = io.Copy(fw, fr)
-	if err := nonil(err, fw.Close()); err != nil {
-		return err
+		fw, err := os.OpenFile(cfg.Executable, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0755)
+		if err != nil {
+			return err
+		}
+
+		_, err = io.Copy(fw, fr)
+		if err := nonil(err, fw.Close()); err != nil {
+			return err
+		}
 	}
 
 	svc, err := service.New(nopService{}, cfg)
@@ -90,6 +96,18 @@ func (s *Service) Stop() error {
 	return svc.Stop()
 }
 
+// Uninstall uninstalls the service.
+func (s *Service) Uninstall() error {
+	svc, err := service.New(nopService{}, s.config())
+	if err != nil {
+		return err
+	}
+
+	_ = svc.Stop()
+
+	return svc.Uninstall()
+}
+
 func (s *Service) config() *service.Config {
 	return &service.Config{
 		Name:        "klient",
@@ -122,6 +140,11 @@ func Start() error {
 // Stop stops the DefaultService.
 func Stop() error {
 	return DefaultService.Stop()
+}
+
+// Uninstall uninstalls the DefaultService.
+func Uninstall() error {
+	return DefaultService.Uninstall()
 }
 
 type nopService struct{}

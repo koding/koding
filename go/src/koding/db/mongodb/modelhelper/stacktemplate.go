@@ -27,6 +27,31 @@ func GetStackTemplate(id string) (*models.StackTemplate, error) {
 	return stackTemplate, nil
 }
 
+// GetStackTemplateFieldsByIds retrieves a slice of stack templates matching the
+// given ids and limited to the specified fields.
+func GetStackTemplateFieldsByIds(ids []bson.ObjectId, fields []string) ([]*models.StackTemplate, error) {
+	var stackTmpls []*models.StackTemplate
+
+	selects := bson.M{}
+	for _, f := range fields {
+		selects[f] = 1
+	}
+
+	query := func(c *mgo.Collection) error {
+		iter := c.Find(bson.M{
+			"_id": bson.M{"$in": ids},
+		}).Select(selects).Iter()
+
+		for st := new(models.StackTemplate); iter.Next(st); st = new(models.StackTemplate) {
+			stackTmpls = append(stackTmpls, st)
+		}
+
+		return iter.Close()
+	}
+
+	return stackTmpls, Mongo.Run(StackTemplateColl, query)
+}
+
 func CreateStackTemplate(tmpl *models.StackTemplate) error {
 	query := insertQuery(tmpl)
 	return Mongo.Run(StackTemplateColl, query)

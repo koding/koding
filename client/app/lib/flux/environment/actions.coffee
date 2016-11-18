@@ -1,23 +1,24 @@
 _ = require 'lodash'
-kd                      = require 'kd'
-async                   = require 'async'
-actions                 = require './actiontypes'
-getters                 = require './getters'
-Promise                 = require 'bluebird'
-Encoder                 = require 'htmlencode'
-remote                  = require 'app/remote'
-Promise                 = require 'bluebird'
-showError               = require 'app/util/showError'
-toImmutable             = require 'app/util/toImmutable'
-getGroup                = require 'app/util/getGroup'
-whoami                  = require 'app/util/whoami'
+kd = require 'kd'
+async = require 'async'
+actions = require './actiontypes'
+getters = require './getters'
+Promise = require 'bluebird'
+Encoder = require 'htmlencode'
+remote = require 'app/remote'
+Promise = require 'bluebird'
+showError = require 'app/util/showError'
+toImmutable = require 'app/util/toImmutable'
+getGroup = require 'app/util/getGroup'
+whoami = require 'app/util/whoami'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
+globals = require 'globals'
 Machine = require 'app/providers/machine'
-stackDefaults = require 'app/util/stacks/defaults'
 providersParser = require 'app/util/stacks/providersparser'
 requirementsParser = require 'app/util/stacks/requirementsparser'
-generateTemplateRawContent = require 'app/util/generateTemplateRawContent'
+generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 Tracker = require 'app/util/tracker'
+$ = require 'jquery'
 
 _eventsCache = { machine: {}, stack: no }
 
@@ -500,9 +501,9 @@ setMachineAlwaysOn = (machineId, state) ->
 
   reactor.dispatch actions.SET_MACHINE_ALWAYS_ON_BEGIN, { id : machineId, state }
 
-  computeController.fetchUserPlan (plan) =>
+  computeController.fetchUserPlan (plan) ->
 
-    computeController.setAlwaysOn machine, state, (err) =>
+    computeController.setAlwaysOn machine, state, (err) ->
 
       unless err
         return reactor.dispatch actions.SET_MACHINE_ALWAYS_ON_SUCCESS, { id : machineId }
@@ -553,27 +554,38 @@ createStackTemplate = (options) ->
       resolve { stackTemplate }
 
 
-createStackTemplateWithDefaults = (overrides = {}) ->
+createStackTemplateWithDefaults = (selectedProvider) ->
 
-  if overrides.template
-    template = overrides.template
-    rawContent = generateTemplateRawContent template
-  else
-    { template, rawContent } = stackDefaults
+  Providers = globals.config.providers
+  provider  = Providers[selectedProvider]
+
+  unless provider?.defaultTemplate
+    throw 'Provider doesn\'t have stack template!'
+
+  { json: template, yaml: rawContent } = provider.defaultTemplate
 
   requiredProviders = providersParser template
+  requiredProviders.push selectedProvider
+  requiredData      = requirementsParser template
 
-  if overrides.selectedProvider is 'vagrant'
-    requiredProviders.push 'vagrant'
+  stackData = {
+    template
+    rawContent
+    title: generateStackTemplateTitle selectedProvider
+    description: '''
+      ###### Stack Template Readme
 
-  requiredData = requirementsParser template
+      You can write a readme for this stack template here.
+      It will be displayed whenever a user attempts to build this stack.
+      You can use markdown within the readme content.
 
-  options = _.assign {}, stackDefaults,
-    template: template
-    rawContent: rawContent
+    '''
     config: { requiredData, requiredProviders }
+    credentials: {}
+    templateDetails: null
+  }
 
-  return createStackTemplate options
+  return createStackTemplate stackData
 
 
 updateStackTemplate = (stackTemplate, options) ->
@@ -753,7 +765,7 @@ shareMachineWithUser = (machineId, nickname) ->
   machine = computeController.findMachineFromMachineId machineId
   return  unless machine
 
-  remote.api.SharedMachine.add machine.uid, [nickname], (err) =>
+  remote.api.SharedMachine.add machine.uid, [nickname], (err) ->
 
     return showError err  if err
 
@@ -771,7 +783,7 @@ unshareMachineWithUser = (machineId, nickname) ->
   machine = computeController.findMachineFromMachineId machineId
   return  unless machine
 
-  remote.api.SharedMachine.kick machine.uid, [nickname], (err) =>
+  remote.api.SharedMachine.kick machine.uid, [nickname], (err) ->
 
     return showError err  if err
 
@@ -782,9 +794,9 @@ unshareMachineWithUser = (machineId, nickname) ->
         showError err  unless err.message is 'user is not in the shared list.'
 
 
-unshareMachineWihAllUsers = (machineId) ->
+unshareMachineWithAllUsers = (machineId) ->
 
-  machine = _kd.singletons.reactor.evaluate ['MachinesStore', machineId]
+  machine = kd.singletons.reactor.evaluate ['MachinesStore', machineId]
 
   new Promise (resolve, reject) ->
     queue = machine.get('sharedUsers').toJS().map (user) -> (next) ->
@@ -797,7 +809,7 @@ unshareMachineWihAllUsers = (machineId) ->
 
 setLabel = (machineUId, label) ->
 
-  {computeController} = kd.singletons
+  { computeController } = kd.singletons
 
   new Promise (resolve, reject) ->
     fetchMachineByUId machineUId, (machine) ->
@@ -808,25 +820,24 @@ setLabel = (machineUId, label) ->
 
 cloneStackTemplate = (template, revive) ->
 
-    new kd.NotificationView { title: 'Cloning Stack Template' }
+  new kd.NotificationView { title:'Cloning Stack Template' }
 
-    { reactor } = kd.singletons
-    template = remote.revive template  if revive
+  { reactor } = kd.singletons
+  template = remote.revive template  if revive
 
-    template.clone (err, stackTemplate) ->
-      if err
-        return new kd.NotificationView
-          title: 'Error occured while cloning template'
+  template.clone (err, stackTemplate) ->
+    if err
+      return new kd.NotificationView
+        title: 'Error occured while cloning template'
 
-      Tracker.track Tracker.STACKS_CLONED_TEMPLATE
-      reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
-      kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"
+    Tracker.track Tracker.STACKS_CLONED_TEMPLATE
+    reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
+    kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"
 
 loadExpandedMachineLabel = (label) ->
 
   { reactor } = kd.singletons
   reactor.dispatch actions.LOAD_EXPANDED_MACHINE_LABEL_SUCCESS, { label }
-
 
 
 module.exports = {
@@ -871,7 +882,7 @@ module.exports = {
   loadMachineSharedUsers
   shareMachineWithUser
   unshareMachineWithUser
-  unshareMachineWihAllUsers
+  unshareMachineWithAllUsers
   disconnectMachine
   setLabel
   fetchAndUpdateStackTemplate

@@ -16,7 +16,7 @@ func (bs *BaseStack) HandleAuthenticate(ctx context.Context) (interface{}, error
 	if !ok {
 		arg = &stack.AuthenticateRequest{}
 
-		if err := bs.Req.Args.One().Unmarshal(&arg); err != nil {
+		if err := bs.Req.Args.One().Unmarshal(arg); err != nil {
 			return nil, err
 		}
 	}
@@ -25,7 +25,7 @@ func (bs *BaseStack) HandleAuthenticate(ctx context.Context) (interface{}, error
 		return nil, err
 	}
 
-	bs.Arg = &arg
+	bs.Arg = arg
 
 	if err := bs.Builder.BuildCredentials(bs.Req.Method, bs.Req.Username, arg.GroupName, arg.Identifiers); err != nil {
 		return nil, err
@@ -49,7 +49,9 @@ func (bs *BaseStack) HandleAuthenticate(ctx context.Context) (interface{}, error
 			res.Message = err.Error()
 
 			if _, ok := err.(*stack.Error); ok {
-				bs.Log.Warning("authenticate: %s (team=%s, user=%s, provider=%s)", removeNewLines.Replace(err.Error()), arg.GroupName, bs.Req.Username, cred.Provider)
+				bs.Log.Warning("authenticate: %s (team=%s, user=%s, identifier=%s, provider=%s)",
+					removeNewLines.Replace(err.Error()), arg.GroupName, bs.Req.Username, cred.Identifier,
+					cred.Provider)
 			}
 
 			continue

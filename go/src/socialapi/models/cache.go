@@ -40,9 +40,6 @@ func init() {
 		Participant: &ParticipantCache{
 			id: cache.NewLRU(cacheSize),
 		},
-		Integration: &IntegrationCache{
-			id: cache.NewMemoryWithTTL(cacheTTL),
-		},
 	}
 }
 
@@ -52,7 +49,6 @@ type StaticCache struct {
 	Channel     *ChannelCache
 	Message     *MessageCache
 	Participant *ParticipantCache
-	Integration *IntegrationCache
 }
 
 //////////////// Account Cache ////////////////////
@@ -421,43 +417,4 @@ func SetAccountToCache(a *Account) {
 	}
 
 	Cache.Account.SetToCache(a)
-}
-
-////////////// IntegrationCache
-
-type IntegrationCache struct {
-	id cache.Cache
-}
-
-func (i *IntegrationCache) ByChannelIntegrationId(id int64) (*ChannelIntegrationMeta, error) {
-	data, err := i.id.Get(strconv.FormatInt(id, 10))
-	if err != nil && err != cache.ErrNotFound {
-		return nil, err
-	}
-
-	if err == nil {
-		ci, ok := data.(*ChannelIntegrationMeta)
-		if ok {
-			return ci, nil
-		}
-	}
-
-	ci := new(ChannelIntegrationMeta)
-	if err := ci.ByChannelIntegrationId(id); err != nil {
-		return nil, err
-	}
-
-	if err := i.SetToCache(ci); err != nil {
-		return nil, err
-	}
-
-	return ci, nil
-}
-
-func (i *IntegrationCache) SetToCache(ci *ChannelIntegrationMeta) error {
-	if err := i.id.Set(strconv.FormatInt(ci.Id, 10), ci); err != nil {
-		return err
-	}
-
-	return nil
 }

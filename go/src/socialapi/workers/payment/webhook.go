@@ -39,8 +39,8 @@ var stripeActions = map[string]StripeHandler{
 	"customer.source.deleted":              customerSourceDeletedHandler,
 
 	"invoice.created":           invoiceCreatedHandler,
-	"invoice.payment_failed":    invoicePaymentHandler,
-	"invoice.payment_succeeded": invoicePaymentHandler,
+	"invoice.payment_failed":    invoicePaymentFailedHandler,
+	"invoice.payment_succeeded": invoicePaymentSucceededHandler,
 }
 
 // GetHandler returns the registered handler for stripe webhooks if registered
@@ -53,7 +53,7 @@ func GetHandler(name string) (StripeHandler, error) {
 	return action, nil
 }
 
-func formatCurrency(currencyStr string, amount uint64) string {
+func formatCurrency(currencyStr string, amount int64) string {
 	switch currencyStr {
 	case "USD", "usd":
 		currencyStr = "$"
@@ -71,7 +71,7 @@ func chargeSucceededHandler(raw []byte) error {
 		return err
 	}
 
-	opts := getAmountOpts(charge)
+	opts := getAmountOpts(string(charge.Currency), int64(charge.Amount))
 	eventName := "charge succeeded"
 
 	return sendEventForCustomer(charge.Customer.ID, eventName, opts)
@@ -84,20 +84,19 @@ func chargeFailedHandler(raw []byte) error {
 		return err
 	}
 
-	opts := getAmountOpts(charge)
+	opts := getAmountOpts(string(charge.Currency), int64(charge.Amount))
 	eventName := "charge failed"
 
 	return sendEventForCustomer(charge.Customer.ID, eventName, opts)
 }
 
-func getAmountOpts(charge *stripe.Charge) map[string]interface{} {
-	amount := formatCurrency(string(charge.Currency), charge.Amount)
-	return map[string]interface{}{"amount": amount}
+func getAmountOpts(currency string, amount int64) map[string]interface{} {
+	formatted := formatCurrency(currency, amount)
+	return map[string]interface{}{"amount": formatted}
 }
 
 var oneDayTrialDur int64 = 24 * 60 * 60
 var sevenDayTrialDur = 7 * oneDayTrialDur
-var thirtyDayTrialDur = 30 * oneDayTrialDur
 
 func customerSubscriptionCreatedHandler(raw []byte) error {
 	var req *stripe.Sub
@@ -117,13 +116,11 @@ func customerSubscriptionCreatedHandler(raw []byte) error {
 
 	durSec := req.TrialEnd - req.TrialStart
 	durStr := ""
-	switch durSec {
-	case sevenDayTrialDur:
+	if durSec > 0 {
 		durStr = "seven days"
-	case thirtyDayTrialDur:
+	}
+	if durSec > sevenDayTrialDur {
 		durStr = "thirty days"
-	default:
-		durStr = time.Duration(durSec).String()
 	}
 
 	eventName = fmt.Sprintf("%s trial started", durStr)
@@ -350,14 +347,29 @@ func switchToNewSub(info *Usage) error {
 	return sendEventForCustomer(info.Customer.ID, eventNameJoinedNewPricingTier, opts)
 }
 
-func invoicePaymentHandler(raw []byte) error {
+func invoicePaymentFailedHandler(raw []byte) error {
+	return invoicePaymentHandler(raw, "payment failed")
+}
+
+func invoicePaymentSucceededHandler(raw []byte) error {
+	return invoicePaymentHandler(raw, "payment succeeded")
+}
+
+func invoicePaymentHandler(raw []byte, eventName string) error {
 	var invoice *stripe.Invoice
 	err := json.Unmarshal(raw, &invoice)
 	if err != nil {
 		return err
 	}
 
+	go sendInvoiceEvent(invoice, eventName)
+
 	return handleInvoiceStateChange(invoice)
+}
+
+func sendInvoiceEvent(invoice *stripe.Invoice, eventName string) error {
+	opts := getAmountOpts(string(invoice.Currency), invoice.Amount)
+	return sendEventForCustomer(invoice.Customer.ID, eventName, opts)
 }
 
 func handleInvoiceStateChange(invoice *stripe.Invoice) error {
@@ -366,12 +378,17 @@ func handleInvoiceStateChange(invoice *stripe.Invoice) error {
 		return err
 	}
 
-	if cus.Subs.Count != 1 {
+	if cus.Subs.Count > 1 {
 		// TODO CRITICAL
 		return errors.New("customer should only have one subscription")
 	}
 
-	status := cus.Subs.Values[0].Status
+	// on payment failure, sub is deleted eventually
+	status := SubStatusCanceled
+
+	if cus.Subs.Count != 0 {
+		status = cus.Subs.Values[0].Status
+	}
 
 	group, err := modelhelper.GetGroup(cus.Meta["groupName"])
 	// we might get events from other environments where we might not have the
@@ -386,6 +403,16 @@ func handleInvoiceStateChange(invoice *stripe.Invoice) error {
 
 	if group.Payment.Subscription.Status == string(status) {
 		return nil
+	}
+
+	// if sub is in cancelled state within 2 months send an event
+	if status == SubStatusCanceled {
+		// if group has been created in last 2 months (1 month trial + 1 month free)
+		totalTrialTime := time.Now().UTC().Add(-time.Hour * 24 * 60)
+		if group.Id.Time().After(totalTrialTime) {
+			eventName := "trial ended without payment"
+			sendEventForCustomer(invoice.Customer.ID, eventName, nil)
+		}
 	}
 
 	// send instance notification to group

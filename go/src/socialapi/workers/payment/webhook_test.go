@@ -1,6 +1,7 @@
 package payment
 
 import (
+	"encoding/json"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
@@ -1007,6 +1008,53 @@ func TestInvoiceCreatedHandlerWithZeroUser(t *testing.T) {
 								So(err, ShouldBeNil)
 								So(count, ShouldEqual, 0)
 							})
+						})
+					})
+				})
+			})
+		})
+	})
+}
+
+func TestInvoiceHandlers(t *testing.T) {
+	testData := `
+{
+    "id": "in_00000000000000",
+    "object": "invoice",
+    "amount_due": 100,
+    "currency": "usd",
+    "customer": %q
+}`
+
+	tests.WithConfiguration(t, func(c *config.Config) {
+		stripe.Key = c.Stripe.SecretToken
+
+		Convey("Given stub data", t, func() {
+			withStubData(func(username, groupName, sessionID string) {
+				Convey("Then Group should have customer id", func() {
+					group, err := modelhelper.GetGroup(groupName)
+					tests.ResultedWithNoErrorCheck(group, err)
+					Convey("When invoice handlers are triggered", func() {
+						var invoice *stripe.Invoice
+						raw := fmt.Sprintf(testData, group.Payment.Customer.ID)
+						err := json.Unmarshal([]byte(raw), &invoice)
+						So(err, ShouldBeNil)
+
+						var capturedMails []*emailsender.Mail
+
+						realMailSender := mailSender
+						mailSender = func(m *emailsender.Mail) error {
+							capturedMails = append(capturedMails, m)
+							return nil
+						}
+
+						eventName := "test event name"
+						err = sendInvoiceEvent(invoice, eventName)
+						So(err, ShouldBeNil)
+						mailSender = realMailSender
+						Convey("properties of event should be set accordingly", func() {
+							So(len(capturedMails), ShouldEqual, 1)
+							So(capturedMails[0].Subject, ShouldEqual, eventName)
 						})
 					})
 				})

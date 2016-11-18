@@ -4,7 +4,7 @@ module.exports.create = (KONFIG, options = {}) ->
   env = ''
 
   add = (name, value) ->
-    env += "export #{name}=${#{name}:-#{value}}\n"
+    env += "declare -p #{name} &> /dev/null || export #{name}=\"#{value}\"\n"
 
   traverse.paths(KONFIG).forEach (path) ->
     node = traverse.get KONFIG, path

@@ -1,10 +1,12 @@
-package modelhelper
+package modelhelper_test
 
 import (
 	"fmt"
 	"testing"
 
 	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
+	"koding/db/mongodb/modelhelper/modeltesthelper"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -16,23 +18,23 @@ func (c *cleaner) add(v interface{}) {
 	switch model := v.(type) {
 	case *models.User:
 		fn = func() {
-			RemoveUser(model.Name)
+			modelhelper.RemoveUser(model.Name)
 		}
 	case *models.Account:
 		fn = func() {
-			RemoveAccount(model.Id)
+			modelhelper.RemoveAccount(model.Id)
 		}
 	case *models.Group:
 		fn = func() {
-			RemoveGroup(model.Id)
+			modelhelper.RemoveGroup(model.Id)
 		}
 	case *models.Machine:
 		fn = func() {
-			DeleteMachine(model.ObjectId)
+			modelhelper.DeleteMachine(model.ObjectId)
 		}
 	case *models.ComputeStack:
 		fn = func() {
-			DeleteComputeStack(model.Id.Hex())
+			modelhelper.DeleteComputeStack(model.Id.Hex())
 		}
 	default:
 		panic(fmt.Errorf("cleaner for %T not implemented", v))
@@ -54,7 +56,7 @@ func testFixture(t *testing.T) (*models.User, *models.Group, *models.Machine, *m
 		Name:     "testuser",
 	}
 
-	if err := CreateUser(user); err != nil {
+	if err := modelhelper.CreateUser(user); err != nil {
 		c.clean()
 		t.Fatalf("error creating user: %s", err)
 	}
@@ -71,7 +73,7 @@ func testFixture(t *testing.T) (*models.User, *models.Group, *models.Machine, *m
 		Type: "registered",
 	}
 
-	if err := CreateAccount(account); err != nil {
+	if err := modelhelper.CreateAccount(account); err != nil {
 		c.clean()
 		t.Fatalf("error creating account: %s", err)
 	}
@@ -98,7 +100,7 @@ func testFixture(t *testing.T) (*models.User, *models.Group, *models.Machine, *m
 		},
 	}
 
-	if err := CreateMachine(machine); err != nil {
+	if err := modelhelper.CreateMachine(machine); err != nil {
 		c.clean()
 		t.Fatalf("error creating machine: %s", err)
 	}
@@ -109,13 +111,13 @@ func testFixture(t *testing.T) (*models.User, *models.Group, *models.Machine, *m
 }
 
 func TestAddAndRemoveFromStack(t *testing.T) {
-	initMongoConn()
-	defer Close()
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
 
 	user, group, machine, account, clean := testFixture(t)
 	defer clean()
 
-	sd := &StackDetails{
+	sd := &modelhelper.StackDetails{
 		UserID:    user.ObjectId,
 		GroupID:   group.Id,
 		MachineID: machine.ObjectId,
@@ -129,12 +131,12 @@ func TestAddAndRemoveFromStack(t *testing.T) {
 
 	// Add for a first time.
 
-	err := AddToStack(sd)
+	err := modelhelper.AddToStack(sd)
 	if err != nil {
 		t.Fatalf("error adding machine %q to stack: %s", machine.ObjectId.Hex(), err)
 	}
 
-	s, err := GetComputeStackByGroup(group.Slug, account.Id)
+	s, err := modelhelper.GetComputeStackByGroup(group.Slug, account.Id)
 	if err != nil {
 		t.Fatalf("error getting stack for koding, %q: %s", account.Id.Hex(), err)
 	}
@@ -147,7 +149,7 @@ func TestAddAndRemoveFromStack(t *testing.T) {
 		t.Fatalf("want machine %q to be added to stack, got %q instead", machine.ObjectId.Hex(), s.Machines[0].Hex())
 	}
 
-	m, err := GetMachine(machine.ObjectId.Hex())
+	m, err := modelhelper.GetMachine(machine.ObjectId.Hex())
 	if err != nil {
 		t.Fatalf("error getting machine %q: %s", machine.ObjectId.Hex(), err)
 	}
@@ -162,12 +164,12 @@ func TestAddAndRemoveFromStack(t *testing.T) {
 
 	// Adding for a second time must be idempotent.
 
-	err = AddToStack(sd)
+	err = modelhelper.AddToStack(sd)
 	if err != nil {
 		t.Fatalf("error adding machine %q to stack: %s", machine.ObjectId.Hex(), err)
 	}
 
-	s2, err := GetComputeStackByGroup(group.Slug, account.Id)
+	s2, err := modelhelper.GetComputeStackByGroup(group.Slug, account.Id)
 	if err != nil {
 		t.Fatalf("error getting stack for koding, %q: %s", account.Id.Hex(), err)
 	}
@@ -184,7 +186,7 @@ func TestAddAndRemoveFromStack(t *testing.T) {
 		t.Fatalf("want machine %q to be added to stack, got %q instead", machine.ObjectId.Hex(), s.Machines[0].Hex())
 	}
 
-	m, err = GetMachine(machine.ObjectId.Hex())
+	m, err = modelhelper.GetMachine(machine.ObjectId.Hex())
 	if err != nil {
 		t.Fatalf("error getting machine %q: %s", machine.ObjectId.Hex(), err)
 	}
@@ -198,13 +200,12 @@ func TestAddAndRemoveFromStack(t *testing.T) {
 	}
 
 	// Remove from stack.
-
-	err = RemoveFromStack(sd)
+	err = modelhelper.RemoveFromStack(sd)
 	if err != nil {
 		t.Fatalf("error removing %q from stack: %s", machine.ObjectId.Hex(), err)
 	}
 
-	s3, err := GetComputeStackByGroup(group.Slug, account.Id)
+	s3, err := modelhelper.GetComputeStackByGroup(group.Slug, account.Id)
 	if err != nil {
 		t.Fatalf("error getting stack for koding, %q: %s", account.Id.Hex(), err)
 	}
@@ -213,7 +214,7 @@ func TestAddAndRemoveFromStack(t *testing.T) {
 		t.Fatalf("want 0 machine, got %d", len(s.Machines))
 	}
 
-	m, err = GetMachine(machine.ObjectId.Hex())
+	m, err = modelhelper.GetMachine(machine.ObjectId.Hex())
 	if err != nil {
 		t.Fatalf("error getting machine %q: %s", machine.ObjectId.Hex(), err)
 	}

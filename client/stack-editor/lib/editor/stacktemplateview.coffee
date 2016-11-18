@@ -1,7 +1,9 @@
-kd                      = require 'kd'
-KDButtonView            = kd.ButtonView
-Encoder                 = require 'htmlencode'
-curryIn                 = require 'app/util/curryIn'
+kd = require 'kd'
+globals = require 'globals'
+Encoder = require 'htmlencode'
+curryIn = require 'app/util/curryIn'
+KDButtonView = kd.ButtonView
+StackScriptSearchView = require './stackscriptsearchview'
 StackTemplateEditorView = require './stacktemplateeditorview'
 
 
@@ -25,9 +27,13 @@ module.exports = class StackTemplateView extends kd.View
       else
         content = template.content
     else
-      content = null
+      content     = globals.config.providers.aws.defaultTemplate.yaml
+      contentType = 'yaml'
 
     delegate = @getDelegate()
+    @searhText = null
+    if @canUpdate
+      @addSubView new StackScriptSearchView
 
     @addSubView @editorView = new StackTemplateEditorView {
       delegate: this, content, contentType, showHelpContent
@@ -73,3 +79,4 @@ module.exports = class StackTemplateView extends kd.View
   setReadOnly: ->
     @setClass 'readonly'
     @editorView.aceView.ace.editor.setReadOnly yes
+

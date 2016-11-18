@@ -41,7 +41,14 @@ func (meta *Cred) Valid() error {
 	if meta.QueryString == "" {
 		return errors.New("vagrant meta: query string is empty")
 	}
-	meta.QueryString = utils.QueryString(meta.QueryString)
+
+	query, err := utils.QueryString(meta.QueryString)
+	if err != nil {
+		return err
+	}
+
+	meta.QueryString = query
+
 	return nil
 }
 
@@ -123,6 +130,7 @@ func newStack(bs *provider.BaseStack) (provider.Stack, error) {
 	}
 
 	bs.Planner.OnDial = s.checkTunnel
+	bs.PlanFunc = s.plan
 
 	return s, nil
 }

@@ -1,6 +1,7 @@
 _ = require 'lodash'
 kd = require 'kd'
 jspath = require 'jspath'
+globals = require 'globals'
 Encoder = require 'htmlencode'
 
 isMine = require 'app/util/isMine'
@@ -36,6 +37,7 @@ ContentModal = require 'app/components/contentModal'
 createShareModal = require './createShareModal'
 isDefaultTeamStack = require 'app/util/isdefaultteamstack'
 { actions : HomeActions } = require 'home/flux'
+canCreateStacks = require 'app/util/canCreateStacks'
 
 module.exports = class StackEditorView extends kd.View
 
@@ -47,8 +49,8 @@ module.exports = class StackEditorView extends kd.View
 
     if stackTemplate
       unless selectedProvider = stackTemplate.selectedProvider
-        for selectedProvider in stackTemplate.config.requiredProviders
-          break  if selectedProvider in ['aws', 'vagrant']
+        for selectedProvider in stackTemplate.config.requiredProviders when selectedProvider isnt 'koding'
+          break
       selectedProvider ?= (Object.keys stackTemplate.credentials ? { aws: yes }).first
 
     options.selectedProvider = selectedProvider ?= 'aws'
@@ -62,7 +64,7 @@ module.exports = class StackEditorView extends kd.View
     if stackTemplate?.title
       stackTemplate.title = Encoder.htmlDecode stackTemplate.title
 
-    generatedStackTemplateTitle = generateStackTemplateTitle()
+    generatedStackTemplateTitle = generateStackTemplateTitle selectedProvider
 
     title   = stackTemplate?.title or generatedStackTemplateTitle
     content = stackTemplate?.template?.content
@@ -85,6 +87,9 @@ module.exports = class StackEditorView extends kd.View
         <span class='clone-button'>clone this template </span>
           and create a private stack."
       click: (event) =>
+        unless canCreateStacks()
+          return new kd.NotificationView
+            title: 'You are not allowed to create/edit stacks!'
         if event.target?.className is 'clone-button'
           @cloneStackTemplate()
 
@@ -95,14 +100,14 @@ module.exports = class StackEditorView extends kd.View
 
     @secondaryActions.addSubView @deleteStack = new CustomLinkView
       cssClass : 'HomeAppView--button danger'
-      title    : 'DELETE STACK TEMPLATE'
+      title    : 'DELETE THIS STACK TEMPLATE'
       click    : @bound 'deleteStack'
 
     @secondaryActions.addSubView new CustomLinkView
       cssClass : 'HomeAppView--button secondary fr'
       attributes :
         style  : 'color: #67a2ee;'
-      title    : 'CLICK HERE TO READ STACK SCRIPT DOCS'
+      title    : 'STACK SCRIPT DOCS'
       href     : 'http://www.koding.com/docs'
 
     @tabView.unsetClass 'kdscrollview'
@@ -132,6 +137,8 @@ module.exports = class StackEditorView extends kd.View
     @tabView.addPane readmePane = new kd.TabPaneView
       name : 'Readme'
       view : @readmeView
+
+
 
     { @credentials } = @stackTemplateView.credentialStatus or {}
 
@@ -412,7 +419,21 @@ module.exports = class StackEditorView extends kd.View
       @saveButton.hideLoader()
       return
 
-    @saveAndTestStackTemplate (err, stackTemplate) => @emit 'Reload', err?
+    @emit 'StackSaveInAction'
+    @saveAndTestStackTemplate (err, stackTemplate) =>
+      # Here we need to wait at least 2 seconds to re-listen
+      # changes on stack template. This will allow us to listen
+      # new changes made by other admins. This is not a perfect
+      # solution for something like this.
+      #
+      # We can remove this wait from here if we could able to
+      # send author information with the change, so then we
+      # will have enough data to understand who made the change
+      #
+      # If you are willing to implement such feature please
+      # take a look at notifiable trait in social backend ~ GG
+      kd.utils.wait 2000, @lazyBound 'emit', 'StackSaveCompleted'
+      @emit 'Reload', err?
 
 
   saveAndTestStackTemplate: (callback) ->
@@ -596,12 +617,16 @@ module.exports = class StackEditorView extends kd.View
       .add 'Verifying credentials...'
       .add 'Bootstrap check initiated for credentials...'
 
-    if not credential or credential.provider not in ['aws', 'vagrant']
+    if not credential?.provider?
       return failed '
         Required credentials are not provided yet, we are unable to test the
         stack template. Stack template content is saved and can be tested once
         required credentials are provided.
       '
+
+    _provider = globals.config.providers[credential.provider]
+    if not _provider.enabled
+      return failed 'Selected provider currently not supported.'
 
     credential.isBootstrapped (err, state) =>
 
@@ -616,12 +641,13 @@ module.exports = class StackEditorView extends kd.View
 
         @outputView.add 'Bootstrap required, initiating to bootstrap...'
 
+        provider              = credential.provider
         identifiers           = [credential.identifier]
         { computeController } = kd.singletons
 
         computeController.getKloud()
 
-          .bootstrap { identifiers }
+          .bootstrap { identifiers, provider }
 
           .then (response) =>
 
@@ -648,7 +674,7 @@ module.exports = class StackEditorView extends kd.View
 
     req                   = { stackTemplateId: stackTemplate._id }
     selectedProvider      = @getOption 'selectedProvider'
-    req.provider          = selectedProvider  if selectedProvider is 'vagrant'
+    req.provider          = selectedProvider
 
     computeController.getKloud()
       .checkTemplate req
@@ -656,12 +682,12 @@ module.exports = class StackEditorView extends kd.View
 
         console.log '[KLOUD:checkTemplate]', err, response
 
-        if err or not response
+        if err or not response.machines?.length
           @outputView
             .add 'Something went wrong with the template:'
             .add err?.message or 'No response from Kloud'
 
-          callback err
+          callback err ? { message: 'No respoonse from Kloud' }
 
         else
 
@@ -923,6 +949,6 @@ module.exports = class StackEditorView extends kd.View
 
     [ credential ] = @credentialStatusView.credentialsData
     { slug } = kd.singletons.groupsController.getCurrentGroup()
-    credential.shareWith { target: slug }, (err) =>
+    credential.shareWith { target: slug }, (err) ->
       console.warn 'Failed to share credential:', err  if err
       callback()

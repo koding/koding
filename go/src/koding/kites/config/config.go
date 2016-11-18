@@ -7,8 +7,7 @@ import (
 	"github.com/koding/multiconfig"
 )
 
-//go:generate $GOPATH/bin/go-bindata -mode 420 -modtime 1476710288 -pkg config -o config.json.go config.json
-//go:generate go fmt config.json.go
+//go:generate go run genconfig.go -pkg config -i config.json -o config.json.go
 
 // Builtin stores configuration that was generated at compile time.
 var Builtin *Config

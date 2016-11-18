@@ -43,7 +43,7 @@ $borderColor                = #CACACA
 
     > div
       flex                  0 0 auto
-      margin                0 30px 0 0
+      margin                0 10px 0 0
       padding               4px 0 0
 
       &:last-of-type
@@ -51,10 +51,13 @@ $borderColor                = #CACACA
 
     .MachinesListItem-machineLabel
       flex                0 1 auto
-      width               150px
-      padding-left        22px
-      ellipsis()
-      pointer()
+
+      .label
+        height              20px
+        width               150px
+        padding-left        20px
+        ellipsis()
+        pointer()
 
     .SidebarListItem-progressbar
       abs                   76px 0 0 0px
@@ -79,14 +82,15 @@ $borderColor                = #CACACA
                                       margin .3s ease
 
     .MachinesListItem-hostName
-      width                 100px
-      text-align            center
-      ellipsis()
+      .ip-address
+        width               150px
+        text-align          center
+        ellipsis()
 
     .MachinesListItem-stackLabel
       flex                  1 0 auto
       text-transform        uppercase
-      margin                0 20px 0 0
+      text-align            right
       margin-top            1px
       .HomeAppView--button
         ellipsis()

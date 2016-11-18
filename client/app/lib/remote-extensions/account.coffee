@@ -10,10 +10,10 @@ module.exports = class JAccount extends remote.api.JAccount
     super
 
     @_storageQueue = []
+    @_combinedStorage = null
 
-    @_combinedStorage = if cs = globals.combinedStorage
-    then remote.revive cs
-    else null
+    if (cs = globals.combinedStorage) and Object.keys(cs).length
+      @_combinedStorage = remote.revive cs
 
 
   fetchCombinedStorage: (options, callback) ->

@@ -1,9 +1,11 @@
 package google
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
@@ -82,6 +84,29 @@ func (c *Cred) Valid() error {
 	}
 	if c.Project == "" {
 		return errors.New(`cred value for "project" is empty`)
+	}
+
+	// This variable is used to check most important JSON-credential fields.
+	var acckey = struct {
+		Typ        string `json:"type"`
+		ProjectID  string `json:"project_id"`
+		PrivateKey string `json:"private_key"`
+	}{}
+
+	if err := json.Unmarshal([]byte(c.Credentials), &acckey); err != nil {
+		return fmt.Errorf("credentials are ill-formed: %s", err)
+	}
+
+	if acckey.Typ != "service_account" {
+		return fmt.Errorf("account type field is invalid: %s", acckey.Typ)
+	}
+
+	if acckey.ProjectID == "" {
+		return errors.New("account project_id field is missing or empty")
+	}
+
+	if !strings.HasPrefix(acckey.PrivateKey, "-----BEGIN PRIVATE KEY-----") {
+		return errors.New("account private_key field format is invalid")
 	}
 
 	return c.Region.Valid()

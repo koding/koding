@@ -1,5 +1,5 @@
-kd      = require 'kd'
-JView   = require 'app/jview'
+kd = require 'kd'
+JView = require 'app/jview'
 globals = require 'globals'
 Tracker = require 'app/util/tracker'
 checkFlag = require 'app/util/checkFlag'
@@ -15,49 +15,45 @@ module.exports = class ProviderSelectionView extends JView
 
     @createProviders()
 
+
   createProviders: ->
 
-    providers        = [
-      'aws', 'vagrant', 'azure', 'digitalocean', 'googlecloud', 'rackspace'
-    ]
-    enabledProviders = ['aws', 'vagrant']
-    betaProviders = ['vagrant']
+    { providers } = globals.config
 
-    @providers = new kd.CustomHTMLView { cssClass: 'providers box-wrapper clearfix' }
+    supportedProviders = (Object.keys providers).filter (p) ->
+      return p  if providers[p].supported
 
-    providers.forEach (provider) =>
-      extraClass = 'coming-soon'
-      label      = 'Coming Soon'
-      beta       = ''
-      betaLabel  = ''
+    @providers = new kd.CustomHTMLView
+      cssClass: 'providers box-wrapper clearfix'
 
-      if provider in enabledProviders
+    supportedProviders.forEach (provider) =>
+
+      _provider = providers[provider]
+
+      if not _provider.enabled
+        extraClass = 'coming-soon'
+        stateLabel = 'Coming soon'
+      else if _provider.enabled is 'beta'
+        extraClass = 'beta'
+        stateLabel = 'BETA'
+      else
         extraClass = ''
-        label      = ''
-
-        if provider in betaProviders
-          beta       = 'beta'
-          betaLabel  = 'BETA'
-
+        stateLabel = ''
 
       @providers.addSubView providerView = new kd.CustomHTMLView
-        cssClass : "provider box #{extraClass} #{provider}"
-        provider : provider
-        partial  : """
-          <img class="#{provider}" src="/a/images/providers/stacks/#{provider}.png" />
-          <div class="label">#{label}</div>
-          <div class="#{beta}">#{betaLabel}</div>
-        """
-        click: =>
-          return if extraClass is 'coming-soon'
+        cssClass   : "provider box #{provider} #{extraClass}"
+        provider   : provider
+        attributes : { 'data-before-content': stateLabel }
+        click      : =>
+          return  if extraClass is 'coming-soon'
 
           Tracker.track Tracker["STACKS_WIZARD_SELECTED_#{provider.toUpperCase()}"]
 
           providerView.setClass 'selected'
           @selected?.unsetClass 'selected'
+
           @selected = if @selected is providerView then null else providerView
-          @emit 'UpdateStackTemplate', @selected
-          @emit 'HiliteTemplate', 'all'
+          @emit 'SelectedProviderChanged', @selected
 
 
   pistachio: ->

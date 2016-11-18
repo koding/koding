@@ -1,10 +1,13 @@
-package modelhelper
+package modelhelper_test
 
 import (
-	"koding/db/models"
 	"reflect"
 	"sort"
 	"testing"
+
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
+	"koding/db/mongodb/modelhelper/modeltesthelper"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -19,7 +22,7 @@ func allCounters() ([]*models.Counter, error) {
 		return c.Find(nil).All(&counters)
 	}
 
-	if err := Mongo.Run(CountersColl, query); err != nil {
+	if err := modelhelper.Mongo.Run(modelhelper.CountersColl, query); err != nil {
 		return nil, err
 	}
 
@@ -38,12 +41,12 @@ func delCounters() error {
 		return err
 	}
 
-	return Mongo.Run(CountersColl, query)
+	return modelhelper.Mongo.Run(modelhelper.CountersColl, query)
 }
 
 func TestCounter(t *testing.T) {
-	initMongoConn()
-	defer Close()
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
 
 	if err := delCounters(); err != nil {
 		t.Fatalf("delCounters()=%s", err)
@@ -73,7 +76,7 @@ func TestCounter(t *testing.T) {
 
 	sort.Sort(models.Counters(counters))
 
-	if err := CreateCounters(counters...); err != nil {
+	if err := modelhelper.CreateCounters(counters...); err != nil {
 		t.Fatalf("CreateCounters()=%s", err)
 	}
 
@@ -99,13 +102,13 @@ func TestCounter(t *testing.T) {
 	for i, cas := range decCases {
 		c := counters[i]
 
-		err := DecrementOrCreateCounter(c.Namespace, c.Type, cas.n)
+		err := modelhelper.DecrementOrCreateCounter(c.Namespace, c.Type, cas.n)
 		if err != nil {
 			t.Errorf("%d (%s): DecrementOrCreateCounter()=%s", i, c.ID.Hex(), err)
 			continue
 		}
 
-		got, err := CounterByID(c.ID)
+		got, err := modelhelper.CounterByID(c.ID)
 		if err != nil {
 			t.Errorf("%d (%s): CounterByID()=%d", i, c.ID.Hex(), err)
 			continue
@@ -126,13 +129,13 @@ func TestCounter(t *testing.T) {
 	}
 
 	for i, cas := range newCases {
-		err := DecrementOrCreateCounter(cas.namespace, cas.typ, cas.n)
+		err := modelhelper.DecrementOrCreateCounter(cas.namespace, cas.typ, cas.n)
 		if err != nil {
 			t.Errorf("%d: DecrementOrCreateCounter()=%s", i, err)
 		}
 	}
 
-	c, err = CountersByNamespace("qux")
+	c, err = modelhelper.CountersByNamespace("qux")
 	if err != nil {
 		t.Fatalf("CountersByNamespace()=%s", err)
 	}

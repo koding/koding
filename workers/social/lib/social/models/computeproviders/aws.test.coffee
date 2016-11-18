@@ -3,13 +3,7 @@
   withConvertedUser
   checkBongoConnectivity } = require '../../../../testhelper'
 
-{ withConvertedUserAnd } = require \
-  '../../../../testhelper/models/computeproviders/computeproviderhelper'
-
-Aws      = require './aws'
-JGroup   = require '../group'
-JMachine = require '../computeproviders/machine'
-
+Aws = require './aws'
 
 # this function will be called once before running any test
 beforeTests = -> before (done) ->
@@ -56,15 +50,6 @@ runTests = -> describe 'workers.social.models.computeproviders.aws', ->
 
   describe '#create()', ->
 
-    it 'should fail when storage is not a number', (done) ->
-
-      client = null
-
-      Aws.create client, { storage : 'notaNumber' }, (err, data) ->
-        expect(err?.message).to.be.equal 'Requested storage size is not valid.'
-        done()
-
-
     describe 'when data is not provided', ->
 
       it 'should create default meta data', (done) ->
@@ -78,7 +63,6 @@ runTests = -> describe 'workers.social.models.computeproviders.aws', ->
           expect(data.meta.region)          .to.be.equal 'us-east-1'
           expect(data.meta.instance_type)   .to.be.equal 't2.nano'
           expect(data.credential)           .to.be.equal options.credential
-          expect(data.meta.source_ami)      .to.not.exist
           done()
 
 
@@ -89,79 +73,20 @@ runTests = -> describe 'workers.social.models.computeproviders.aws', ->
         client = null
 
         options =
-          ami           : 'someAmi'
+          image         : 'someAmi'
           region        : 'someRegion'
-          storage       : 2
+          storage_size  : 2
           credential    : 'someCredential'
-          instanceType  : 'someInstanceType'
+          instance_type : 'someInstanceType'
 
         Aws.create client, options, (err, data) ->
           expect(err).to.not.exist
           expect(data.meta.type)            .to.be.equal Aws.providerSlug
           expect(data.meta.region)          .to.be.equal options.region
-          expect(data.meta.instance_type)   .to.be.equal options.instanceType
+          expect(data.meta.instance_type)   .to.be.equal options.instance_type
           expect(data.credential)           .to.be.equal options.credential
-          expect(data.meta.source_ami)      .to.be.equal options.ami
+          expect(data.meta.image)           .to.be.equal options.image
           done()
-
-
-  describe '#update()', ->
-
-    it 'should fail to update machine when options is empty', (done) ->
-
-      withConvertedUser ({ client, account, user }) ->
-        client.r      = { account, user }
-        expectedError = 'A valid machineId and an update option required.'
-
-        options = {}
-        Aws.update client, options, (err) ->
-          expect(err?.message).to.be.equal expectedError
-          done()
-
-
-    it 'should be able to update machine when valid data provided', (done) ->
-
-      withConvertedUserAnd ['ComputeProvider'], (data) ->
-        { client, account, user, machine } = data
-        group = null
-
-        queue = [
-
-          (next) ->
-            JGroup.one { slug : client.context.group }, (err, group_) ->
-              expect(err).to.not.exist
-              group = group_
-              next()
-
-          (next) ->
-            client.r = { account, user, group }
-            options = { machineId : machine._id.toString(), alwaysOn : false }
-            Aws.update client, options, (err) ->
-              expect(err?.message).to.not.exist
-              next()
-
-          (next) ->
-            JMachine.one { _id : machine._id }, (err, machine_) ->
-              expect(err).to.not.exist
-              expect(machine_.meta.alwaysOn).to.be.falsy
-              next()
-
-          (next) ->
-            client.r = { account, user, group }
-            options = { machineId : machine._id.toString(), alwaysOn : true }
-            Aws.update client, options, (err) ->
-              expect(err?.message).to.not.exist
-              next()
-
-          (next) ->
-            JMachine.one { _id : machine._id }, (err, machine_) ->
-              expect(err).to.not.exist
-              expect(machine_.meta.alwaysOn).to.be.truthy
-              next()
-
-        ]
-
-        async.series queue, done
 
 
 beforeTests()

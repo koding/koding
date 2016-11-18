@@ -8,7 +8,6 @@ $titleColor                 = #424242
 $subtleColor                = #A59999
 
 .HomeAppView
-  font-family               SoleilFamily
   color                     #9f9f9f
 
   .close-icon.closeModal
@@ -156,18 +155,24 @@ $subtleColor                = #A59999
     text-decoration         none
     margin-right            10px
     pointer()
-    fontPrecisionForSoleil()
-  .tag
-    rel()
+
+  .SidebarListItem-unreadCount
+    position                relative
     display                 inline-block
     top                     -4px
     margin-right            10px
-    padding                 2px 10px
+    padding                 1px 2px 0
+    height                  15px
+
+  .tag
+    rel()
+    display                 inline-block
+    top                     -3px
+    margin-right            10px
+    padding                 4px 10px 1px
     color                   #fff
     bg                      color #48BA7D
     font-size               12px
-    line-height             13px
-    font-weight             300
 
 .HomeAppViewListItem-description
   font-style                italic

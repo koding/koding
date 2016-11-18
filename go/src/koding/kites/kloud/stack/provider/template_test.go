@@ -1,7 +1,6 @@
 package provider_test
 
 import (
-	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"reflect"
@@ -40,51 +39,6 @@ const testTemplate = `{
 }`
 
 var log = logging.NewCustom("test", true)
-
-func TestSlice(t *testing.T) {
-	cases := map[string]struct {
-		raw  string
-		want []interface{}
-	}{
-		"string slice": {
-			`["a","b","c","d","e","f"]`,
-			[]interface{}{"a", "b", "c", "d", "e", "f"},
-		},
-		"float slice": {
-			`[1,2,4,8]`,
-			[]interface{}{1.0, 2.0, 4.0, 8.0},
-		},
-		"nil slice": {
-			`[null,null,null]`,
-			[]interface{}{nil, nil, nil},
-		},
-	}
-
-	for name, cas := range cases {
-		t.Run(name, func(t *testing.T) {
-			var s provider.Slice
-
-			if err := json.Unmarshal([]byte(cas.raw), &s); err != nil {
-				t.Fatalf("Unmarshal()=%s", err)
-			}
-
-			got := provider.FromSlice(s)
-
-			if !reflect.DeepEqual(got, cas.want) {
-				t.Fatalf("got %+v, want %+v", got, cas.want)
-			}
-
-			p, err := json.Marshal(s)
-			if err != nil {
-				t.Fatalf("Marshal()=%s", err)
-			}
-
-			if cas.raw != string(p) {
-				t.Fatalf("got %s, want %s", p, cas.raw)
-			}
-		})
-	}
-}
 
 func TestTerraformTemplate_NewNil(t *testing.T) {
 	template, err := provider.ParseTemplate(testTemplate, log)

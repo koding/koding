@@ -24,9 +24,14 @@ Tracker              = require 'app/util/tracker'
 getGroup             = require 'app/util/getGroup'
 createShareModal     = require 'stack-editor/editor/createShareModal'
 isGroupDisabled      = require 'app/util/isGroupDisabled'
-ContentModal = require 'app/components/contentModal'
+ContentModal         = require 'app/components/contentModal'
+runMiddlewares       = require 'app/util/runMiddlewares'
+TestMachineMiddleware = require './middlewares/testmachine'
+
+
 { actions : HomeActions } = require 'home/flux'
 require './config'
+
 
 module.exports = class ComputeController extends KDController
 
@@ -36,6 +41,11 @@ module.exports = class ComputeController extends KDController
     'TimeoutError', 'KiteError', 'NotSupported'
     Pending: '107', NotVerified: '500'
   }
+
+  @getMiddlewares = ->
+    return [
+      TestMachineMiddleware.ComputeController
+    ]
 
   constructor: ->
 
@@ -258,6 +268,8 @@ module.exports = class ComputeController extends KDController
               .map    (machineId) => @machinesById[machineId]
             @stacksById[stack._id] = stack
 
+          stacks = runMiddlewares.sync this, 'fetchStacks', stacks
+
           @stacks   = stacks
           @machines = machines
 
@@ -386,10 +398,15 @@ module.exports = class ComputeController extends KDController
 
   create: (options, callback) ->
 
-    remote.api.ComputeProvider.create options, (err, machine) =>
+    kallback = (err, machine) =>
       return callback err  if err?
-
       @reset yes, -> callback null, machine
+
+    runMiddlewares this, 'create', options, (err, newOptions) ->
+      if newOptions.shouldStop
+        return kallback err, newOptions.machine
+
+      remote.api.ComputeProvider.create newOptions, kallback
 
 
   createDefaultStack: (force, template) ->
@@ -806,25 +823,21 @@ module.exports = class ComputeController extends KDController
     # credential if it fits with the current JMachine requirements. So user
     # not requires to re-init their stacks when a credential is changed but not
     # the template itself. ~ GG
-    unless isKoding()
 
-      # TMS-1919: This is already written for multiple stacks, just a check
-      # might be required ~ GG
+    # TMS-1919: This is already written for multiple stacks, just a check
+    # might be required ~ GG
 
-      stack = @findStackFromMachineId machine._id
-      return updateWith options  unless stack
+    stack = @findStackFromMachineId machine._id
+    return updateWith options  unless stack
 
-      @fetchBaseStackTemplate stack, (err, template) ->
-        return updateWith options  if err or not template
+    @fetchBaseStackTemplate stack, (err, template) ->
+      return updateWith options  if err or not template
 
-        credential = template.credentials[provider]?.first ? machine.credential
-        options.credential = credential
-
-        updateWith options
-
-    else
+      credential = template.credentials[provider]?.first ? machine.credential
+      options.credential = credential
 
       updateWith options
+
 
   # Stacks
 

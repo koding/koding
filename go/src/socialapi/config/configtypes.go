@@ -33,12 +33,6 @@ type (
 		// Holds access information for realtime message authenticator
 		GateKeeper GateKeeper
 
-		// Holds host and port information for integration worker
-		Integration Integration
-
-		// Holds host and port information for webhook middleware
-		WebhookMiddleware WebhookMiddleware
-
 		Kloud Kloud
 
 		ProxyURL string
@@ -112,16 +106,6 @@ type (
 		Host   string `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_HOST"`
 		Port   string `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_PORT"`
 		Pubnub Pubnub
-	}
-
-	Integration struct {
-		Host string `env:"key=KONFIG_SOCIALAPI_INTEGRATION_HOST"`
-		Port string `env:"key=KONFIG_SOCIALAPI_INTEGRATION_PORT"`
-	}
-
-	WebhookMiddleware struct {
-		Host string `env:"key=KONFIG_SOCIALAPI_WEBHOOKMIDDLEWARE_HOST"`
-		Port string `env:"key=KONFIG_SOCIALAPI_WEBHOOKMIDDLEWARE_PORT"`
 	}
 
 	Pubnub struct {

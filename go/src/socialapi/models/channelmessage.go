@@ -75,7 +75,6 @@ const (
 	ChannelMessage_TYPE_SYSTEM          = "system"
 
 	ChannelMessagePayloadKeyLocation    = "location"
-	ChannelMessagePayloadKeyIntegration = "channelIntegrationId"
 )
 
 func (c *ChannelMessage) Location() *string {
@@ -214,8 +213,7 @@ func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageCont
 		return nil, err
 	}
 
-	// return cmc, cmc.AddIsFollowed(query).AddIsInteracted(query).Err
-	return cmc, cmc.AddIsInteracted(query).Err
+	return cmc, nil
 }
 
 func (c *ChannelMessage) CheckIsMessageFollowed(query *request.Query) (bool, error) {
@@ -451,25 +449,8 @@ func (c *ChannelMessage) isInChannel(query *request.Query, channelName string) (
 }
 
 // DeleteMessageDependencies deletes all records from the database that are
-// dependencies of a given message. This includes interactions, optionally
-// replies, and channel message lists.
+// dependencies of a given message. This includes replies, and channel message lists.
 func (c *ChannelMessage) DeleteMessageAndDependencies(deleteReplies bool) error {
-	// fetch interactions
-	i := NewInteraction()
-	i.MessageId = c.Id
-	interactions, err := i.FetchAll("like")
-	if err != nil {
-		return err
-	}
-
-	// delete interactions
-	for _, interaction := range interactions {
-		err := interaction.Delete()
-		if err != nil {
-			return err
-		}
-	}
-
 	if deleteReplies {
 		if err := c.DeleteReplies(); err != nil {
 			return err
@@ -477,11 +458,11 @@ func (c *ChannelMessage) DeleteMessageAndDependencies(deleteReplies bool) error 
 	}
 
 	// delete any associated channel message lists
-	if err = c.DeleteChannelMessageLists(); err != nil {
+	if err := c.DeleteChannelMessageLists(); err != nil {
 		return err
 	}
 
-	err = NewMessageReply().DeleteByOrQuery(c.Id)
+	err := NewMessageReply().DeleteByOrQuery(c.Id)
 	if err != nil {
 		return err
 	}
@@ -579,12 +560,7 @@ func (c *ChannelMessage) PopulatePayload() (*ChannelMessage, error) {
 		return nil, err
 	}
 
-	i, err := cm.PopulateIntegration()
-	if err != nil {
-		return nil, err
-	}
-
-	return i.PopulateInitialParticipants()
+	return cm.PopulateInitialParticipants()
 }
 
 func (c *ChannelMessage) PopulateAddedBy() (*ChannelMessage, error) {
@@ -610,29 +586,6 @@ func (c *ChannelMessage) PopulateAddedBy() (*ChannelMessage, error) {
 	newCm.Payload["addedBy"] = addedByData
 
 	return newCm, nil
-}
-
-func (c *ChannelMessage) PopulateIntegration() (*ChannelMessage, error) {
-	newCm := NewChannelMessage()
-	*newCm = *c
-
-	channelIntegration := c.GetPayload(ChannelMessagePayloadKeyIntegration)
-	if channelIntegration != nil && *channelIntegration != "" {
-		id, err := strconv.ParseInt(*channelIntegration, 10, 64)
-		if err != nil {
-			return c, err
-		}
-
-		i, err := Cache.Integration.ByChannelIntegrationId(id)
-		if err != nil {
-			return c, err
-		}
-		newCm.SetPayload("integrationTitle", i.Title)
-		newCm.SetPayload("integrationIconPath", i.IconPath)
-
-		return newCm, nil
-	}
-	return c, nil
 }
 
 func (c *ChannelMessage) PopulateInitialParticipants() (*ChannelMessage, error) {

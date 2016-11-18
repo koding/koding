@@ -24,6 +24,8 @@ import (
 	marathon "github.com/gambol99/go-marathon"
 )
 
+const waitTime = 5 * time.Second
+
 var marathonURL string
 
 func init() {
@@ -44,7 +46,7 @@ func main() {
 		} else {
 			log.Printf("Retrieved a list of applications, %v", application)
 		}
-		log.Printf("Going to sleep for 20 seconds")
-		time.Sleep(5 * time.Second)
+		log.Printf("Going to sleep for %s\n", waitTime)
+		time.Sleep(waitTime)
 	}
 }

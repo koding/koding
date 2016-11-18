@@ -5,6 +5,7 @@ StackEditorView = require './editor'
 showError = require 'app/util/showError'
 OnboardingView = require './onboarding/onboardingview'
 EnvironmentFlux = require 'app/flux/environment'
+ContentModal = require 'app/components/contentModal'
 
 do require './routehandler'
 
@@ -42,10 +43,17 @@ module.exports = class StackEditorAppController extends AppController
         mainController.tellChatlioWidget 'show', { expanded: no }
 
     setSelectedMachineId null
+
     if stackTemplateId
       setSelectedTemplateId stackTemplateId
+      if @editors[stackTemplateId]
+        return  @showView { _id: stackTemplateId }
+
       computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) =>
-        return showError err  if err
+        if err
+          kd.singletons.router.handleRoute '/IDE'
+          return showError err
+
         @showView stackTemplate
 
         # If selected template is deleted, then redirect them to ide.
@@ -55,53 +63,47 @@ module.exports = class StackEditorAppController extends AppController
           @selectedEditor = null
           @removeEditor stackTemplate._id
           kd.singletons.router.handleRoute '/IDE'
+
     else
       @showView()
 
 
-  openStackWizard: ->
-
-    @openEditor()
+  openStackWizard: (handleRoute = yes) ->
 
     modal = new kd.ModalView
-      cssClass : 'StackEditor-OnboardingModal'
-      width : 820
-      overlay : yes
+      cssClass       : 'StackEditor-OnboardingModal'
+      width          : 820
+      overlay        : yes
+      overlayOptions :
+        cssClass     : 'second-overlay'
+
 
     view = new OnboardingView
 
-    createOnce = do (isCreated = no) -> (overrides) ->
+    createOnce = do (isCreated = no) -> (selectedProvider) ->
       return  if isCreated
       isCreated = yes
 
       { router } = kd.singletons
 
-      return router.handleRoute '/IDE'  unless overrides
+      return router.handleRoute '/IDE'  unless selectedProvider
 
-      EnvironmentFlux.actions.createStackTemplateWithDefaults overrides
+      EnvironmentFlux.actions.createStackTemplateWithDefaults selectedProvider
         .then ({ stackTemplate }) ->
           router.handleRoute "/Stack-Editor/#{stackTemplate._id}"
 
-    view.on 'StackOnboardingCompleted', (result) ->
-      overrides = {}
+    view.on 'StackOnboardingCompleted', (selectedProvider) ->
+      createOnce selectedProvider
+      modal.destroy()
 
-      if result?.template
-        overrides = _.assign overrides, { template: result.template.content }
-
-      if result?.selectedProvider
-        overrides = _.assign overrides, { selectedProvider: result.selectedProvider }
-
-      createOnce overrides
+    view.on 'StackOnboardingCanceled', ->
       modal.destroy()
 
     modal.addSubView view
 
-    modal.on 'KDObjectWillBeDestroyed', createOnce
-
-    view.on 'StackCreationCancelled', ->
-      modal.off 'KDObjectWillBeDestroyed'
-      modal.destroy()
-      createOnce()
+    if handleRoute
+      modal.on 'KDObjectWillBeDestroyed', ->
+        kd.singletons.router.back()
 
 
   showView: (stackTemplate) ->
@@ -166,34 +168,38 @@ module.exports = class StackEditorAppController extends AppController
     view    = new StackEditorView options, data
     view.on 'Cancel', -> kd.singletons.router.back()
 
-    # TODO: Will activate this with following PRs.
-    # Not removing to leave it as ref. ~Umut
-    # confirmation = null
+    confirmation = null
 
-    # stackTemplate.on? 'update', =>
+    stackTemplate.on? 'update', =>
 
-    #   return  if confirmation
+      return  if confirmation
+      return  if view._stackSaveInAction
 
-    #   view.addSubView confirmation = new kd.ModalView
-    #     title: 'Stack Template is Updated'
-    #     buttons:
-    #       ok:
-    #         title: 'OK'
-    #         style: 'solid green medium'
-    #         callback: =>
-    #           view.destroy()
-    #           delete @editors[stackTemplate._id]
-    #           @openEditor stackTemplate._id
-    #       cancel:
-    #         title: 'Cancel'
-    #         style: 'solid light-gray medium'
-    #         callback: ->
-    #           confirmation.destroy()
-    #           confirmation = null
-    #     content: '''
-    #       <div class='modalformline'
-    #         <p>This stack template is updated by another admin. Do you want to reload?
-    #       </div>
-    #       '''
+      view.addSubView confirmation = new ContentModal
+        title: 'Stack Template is Updated'
+        cssClass: 'content-modal'
+        buttons:
+          cancel:
+            title: 'Cancel'
+            style: 'solid light-gray medium'
+            callback: ->
+              confirmation.destroy()
+              confirmation = null
+          ok:
+            title: 'OK'
+            style: 'solid green medium'
+            callback: =>
+              view.destroy()
+              delete @editors[stackTemplate._id]
+              @openEditor stackTemplate._id
+        content: '''
+          <div class='modalformline'
+            <p>This stack template is updated by another admin. Do you want to reload?</p>
+          </div>
+          '''
+
+
+    view.on 'StackSaveInAction',  -> @_stackSaveInAction = yes
+    view.on 'StackSaveCompleted', -> @_stackSaveInAction = no
 
     return view

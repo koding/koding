@@ -5,15 +5,16 @@ permalink: /verticals/trial
 ---
 
 <!-- HEADER -->
-{% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#358BB0' %}
+{% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='transparent' %}
 
+<link rel="stylesheet" href="{{ site.url }}/css/modal.css">
 <link rel="stylesheet" href="{{ site.url }}/css/trial.css">
 
-<div class="Hero">
+<div class="Hero Trial-hero">
   <h1>Software evaluation with one click.</h1>
   <h2>Stop losing conversions due to a complex software trial process.</h2>
-  <a href="#" class="Button">CONTACT US</a>
-  <div class="imgContainer">
+  <a href="#" onclick='javascript:Intercom("show");' class="Button contact">CONTACT US</a>
+  <div class="imgContainer showModal">
     <a href="#" class="u-icon u-playVideo"></a>
   </div>
 </div>
@@ -103,9 +104,9 @@ permalink: /verticals/trial
     <div class="clearfix"></div>
   </div>
 </div>
-<div class="Section-3">
+<div class="Section-3 Trial-section3">
   <div class="container">
-    <img src="{{ site.url }}/assets/img/landing/verticals/software-trials.png" />
+    <div class="imgContainer"></div>
     <div class="Caption">
       <h3>Software trials made easy</h3>
       <p>What if you could let users try your product directly from an email? Or from a tweet? We give you a link that you can use anywhere online. Provide an online environment for all your potential users to try your software painlessly and immediately.</p>
@@ -115,8 +116,13 @@ permalink: /verticals/trial
 </div>
 <div class="Section-4">
   <h3>Let your customers easily try out your software in minutes without the hassle of installation</h3>
-  <a href="#">CONTACT US</a>
+  <a href="#" onclick='javascript:Intercom("show");' class="contact">CONTACT US</a>
 </div>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+  {% include js/landing-modal.js %}
+  {% include js/trial.js %}
+</script>
 
 <!-- FOOTER -->
 

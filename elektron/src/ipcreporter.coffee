@@ -1,5 +1,4 @@
 electron         = require 'electron'
-Menu             = require 'menu'
 { app, ipcMain } = electron
 
 module.exports = class IPCReporter

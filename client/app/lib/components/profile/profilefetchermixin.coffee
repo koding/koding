@@ -2,7 +2,7 @@ React = require 'app/react'
 helper = require './helper'
 fetchAccount = require 'app/util/fetchAccount'
 
-module.exports =
+module.exports = ProfileFetcherMixin =
 
 
   getInitialState: ->

@@ -35,7 +35,6 @@ Configuration = (options = {}) ->
   options.recaptchaEnabled or= no
   options.debugGithubAPI or= yes
   options.autoConfirmAccounts or= yes
-  options.vmwatcherConnectToKlient = no
   options.secureCookie = no
   options.algoliaIndexSuffix = ".#{ os.hostname() }"
   options.socialQueueName = "koding-social-#{options.configName}"
@@ -47,7 +46,7 @@ Configuration = (options = {}) ->
   options.credentialPath or= path.join options.vaultPath, "./config/credentials.#{options.config}.coffee"
   options.clientUploadS3BucketName = 'kodingdev-client'
   options.publicLogsS3BucketName or= 'kodingdev-publiclogs'
-  options.proxySubdomain or= 'dev-p2'
+  options.proxySubdomain or= 'dev-p'
 
   try fs.lstatSync options.credentialPath
   catch

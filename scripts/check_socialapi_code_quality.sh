@@ -19,25 +19,8 @@ echo "checking cyclo complexity (disabled due to go1.6 switch - fixme!)"
 #
 # ./go/bin/gocyclo -top 28 ./go/src/socialapi/*/**/**.go
 
-echo "checking deadcode (disabled due to go1.6 switch - fixme!)"
-# Due to go1.6 deadcode check suddenly started to work showing
-# a number of dead functions in socialapi:
-#
-#   https://app.wercker.com/#buildstep/5794af80d5df0401007a95dd
-#
-# Please fix code and enable this check.
-#
-# ./scripts/deadcode.sh
+echo "checking deadcode"
+./scripts/deadcode.sh
 
-echo "checking go vet (TODO: enable or remove me!)"
-# ./scripts/govet.sh
-
-# Due to go1.6 unsused variable check suddenly started to work showing
-# a number of unused variables in socialapi:
-#
-#   https://app.wercker.com/#buildstep/5794af80d5df0401007a95dd
-#
-# Please fix code and enable this check.
-#
 echo "checking unused variables"
-# ./scripts/govarcheck.sh
+./scripts/govarcheck.sh

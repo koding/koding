@@ -1,4 +1,5 @@
 (function() {
+
   var searchBar      = document.querySelector('.SearchBar'),
       searchBarInput = document.querySelector('.SearchBar input'),
       searchResults  = document.querySelector('.SearchBar-resultsData'),
@@ -9,9 +10,9 @@
 
       removeIcon = document.querySelector('.remove-icon'),
 
-      itemDetailsTabs = document.querySelectorAll('.ItemDetails ul li'),
+      modalContent = document.querySelector('.modal-content');
 
-      showModal = document.querySelectorAll('.showModal');
+      itemDetailsTabs = document.querySelectorAll('.ItemDetails ul li');
 
   var initialize = function() {
 
@@ -51,25 +52,12 @@
       });
     }
 
-    [].forEach.call(showModal, function(el) {
-      el.addEventListener('click', function(e) {
-        var close, overlay, modal;
+    if (modalContent && LANDING_UTILS.modal) {
+      var modalOptions = {};
+      modalOptions.content = modalContent.innerHTML;
 
-        overlay = document.querySelector('.Overlay');
-        modal   = document.querySelector('.Modal');
-        close   = document.querySelector('.u-modalClose');
-
-        overlay.classList.add('isShown');
-        modal.classList.add('isShown');
-
-        [].forEach.call([close, overlay], function(el) {
-          el.addEventListener('click', function(e) {
-            overlay.classList.remove('isShown');
-            modal.classList.remove('isShown');
-          })
-        });
-      });
-    })
+      LANDING_UTILS.modal(modalOptions);
+    }
   }
 
   var searchResultTemplate = function(obj) {

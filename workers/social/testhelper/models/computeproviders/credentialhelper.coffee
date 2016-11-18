@@ -48,11 +48,8 @@ createCredential = (client, options, callback) ->
   options.title    ?= 'koding'
 
   JCredential.create client, options, (err, credential) ->
-
     addToRemoveList client, credential.identifier  if credential
-
-    console.log '>>> ERROR ON CREATE CREDENTIAL', err  if err
-
+    console.error 'createCredential:', err  if err
     callback err, { credential }
 
 
@@ -65,6 +62,7 @@ withConvertedUserAndCredential = (options, callback) ->
     { client } = data
 
     createCredential client, options, (err, { credential }) ->
+      console.error 'withConvertedUserAndCredential:', err  if err
       expect(err).to.not.exist
       data.credential = credential
       callback data

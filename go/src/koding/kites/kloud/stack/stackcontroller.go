@@ -2,6 +2,7 @@ package stack
 
 import (
 	"errors"
+	"koding/kites/config"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/eventer"
@@ -9,6 +10,8 @@ import (
 	"github.com/koding/kite"
 	"golang.org/x/net/context"
 )
+
+var Konfig *config.Konfig // initialized in main by koding/kites/kloud/kloud
 
 type TeamRequest struct {
 	Provider    string `json:"provider"`

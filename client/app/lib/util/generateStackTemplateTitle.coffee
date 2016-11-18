@@ -1,5 +1,10 @@
 nick = require './nick'
+pokemon = require 'pokemon-random-name'
 
-module.exports = ->
+module.exports = generateStackTemplateTitle = (provider) ->
 
-  "#{nick().capitalize()}'s Stack"
+  provider = if provider
+  then " #{provider.capitalize()} "
+  else ' '
+
+  "#{(pokemon() ? nick()).capitalize()}#{provider}Stack"

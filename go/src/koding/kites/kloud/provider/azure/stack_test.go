@@ -3,6 +3,7 @@ package azure_test
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"reflect"
 	"strings"
 	"testing"
@@ -19,7 +20,7 @@ import (
 	"github.com/koding/logging"
 )
 
-var publishSettings = []byte(`<?xml version="1.0" encoding="utf-8"?>
+var publishSettings = `<?xml version="1.0" encoding="utf-8"?>
 <PublishData>
   <PublishProfile
     SchemaVersion="2.0"
@@ -36,7 +37,7 @@ var publishSettings = []byte(`<?xml version="1.0" encoding="utf-8"?>
       ManagementCertificate="..." />
   </PublishProfile>
 </PublishData>
-`)
+`
 
 func TestAzureMeta_PublishSettings(t *testing.T) {
 	cases := map[string]struct {
@@ -85,172 +86,14 @@ func TestAzureMeta_PublishSettings(t *testing.T) {
 	}
 }
 
-var basicStack = `{
-  "provider": {
-    "azure": {
-      "publish_settings": "${var.azure_publish_settings}",
-      "subscription_id": "${var.azure_subscription_id}"
-    }
-  },
-  "resource": {
-    "azure_instance": {
-      "example-instance": {
-        "custom_data": "echo Hello world!",
-        "image": "Ubuntu Server 14.04 LTS",
-        "size": "Basic_A1"
-      }
-    }
-  }
-}`
-
-var appliedBasicStack = `{
-  "provider": {
-    "azure": {
-      "publish_settings": "${var.azure_publish_settings}",
-      "subscription_id": "${var.azure_subscription_id}"
-    }
-  },
-  "resource": {
-    "azure_instance": {
-      "example-instance": {
-        "custom_data": "...",
-        "endpoint": [
-          {
-            "name": "klient",
-            "private_port": 56789,
-            "protocol": "tcp",
-            "public_port": 56789
-          },
-          {
-            "name": "ssh",
-            "private_port": 22,
-            "protocol": "tcp",
-            "public_port": 22
-          }
-        ],
-        "hosted_service_name": "hosted-service",
-        "image": "Ubuntu Server 14.04 LTS",
-        "location": "",
-        "security_group": "security-group",
-        "size": "Basic_A1",
-        "storage_service_name": "storage-serice",
-        "subnet": "subnet",
-        "username": "user",
-        "virtual_network": "virtual-network"
-      }
-    },
-    "null_resource": {
-      "example-instance": {
-        "depends_on": [],
-        "triggers": {
-          "custom_data": "echo Hello world!"
-        }
-      }
-    }
-  },
-  "variable": {
-    "kitekeys_example-instance": {
-      "default": {
-        "0": "..."
-      }
-    }
-  }
-}`
-
-var customStack = `{
-  "provider": {
-    "azure": {
-      "publish_settings": "${var.azure_publish_settings}",
-      "subscription_id": "${var.azure_subscription_id}"
-    }
-  },
-  "resource": {
-    "azure_instance": {
-      "example-instance": {
-        "custom_data": "echo Hello world!",
-        "endpoint": [
-          {
-            "name": "MySQL",
-            "private_port": 3306,
-            "protocol": "tcp",
-            "public_port": 3306
-          }
-        ],
-        "hosted_service_name": "Custom hosted service",
-        "image": "Ubuntu Server 14.04 LTS",
-        "location": "EU West 3",
-        "size": "Basic_A1",
-        "storage_service_name": "Custom storage service"
-      }
-    }
-  }
-}`
-
-var appliedCustomStack = `{
-  "provider": {
-    "azure": {
-      "publish_settings": "${var.azure_publish_settings}",
-      "subscription_id": "${var.azure_subscription_id}"
-    }
-  },
-  "resource": {
-    "azure_instance": {
-      "example-instance": {
-        "custom_data": "...",
-        "endpoint": [
-          {
-            "name": "MySQL",
-            "private_port": 3306,
-            "protocol": "tcp",
-            "public_port": 3306
-          },
-          {
-            "name": "klient",
-            "private_port": 56789,
-            "protocol": "tcp",
-            "public_port": 56789
-          },
-          {
-            "name": "ssh",
-            "private_port": 22,
-            "protocol": "tcp",
-            "public_port": 22
-          }
-        ],
-        "hosted_service_name": "Custom hosted service",
-        "image": "Ubuntu Server 14.04 LTS",
-        "location": "EU West 3",
-        "security_group": "security-group",
-        "size": "Basic_A1",
-        "storage_service_name": "Custom storage service",
-        "subnet": "subnet",
-        "username": "user",
-        "virtual_network": "virtual-network"
-      }
-    },
-    "null_resource": {
-      "example-instance": {
-        "depends_on": [],
-        "triggers": {
-          "custom_data": "echo Hello world!"
-        }
-      }
-    }
-  },
-  "variable": {
-    "kitekeys_example-instance": {
-      "default": {
-        "0": "..."
-      }
-    }
-  }
-}`
-
 func TestAzure_ApplyTemplate(t *testing.T) {
 	log := logging.NewCustom("test", true)
 
 	cred := &stack.Credential{
-		Credential: &azure.Cred{PublishSettings: []byte("publish_settings")},
+		Credential: &azure.Cred{
+			PublishSettings:  "publish_settings",
+			SSHKeyThumbprint: "12:23:45:56:67:89:90",
+		},
 		Bootstrap: &azure.Bootstrap{
 			AddressSpace:     "10.10.10.10/16",
 			StorageServiceID: "storage-serice",
@@ -262,22 +105,32 @@ func TestAzure_ApplyTemplate(t *testing.T) {
 	}
 
 	cases := map[string]struct {
-		stack string
-		want  string
+		stackFile string
+		wantFile  string
 	}{
 		"basic stack": {
-			basicStack,
-			appliedBasicStack,
+			"testdata/basic-stack.json",
+			"testdata/basic-stack.json.golden",
 		},
-		"custom stack": {
-			customStack,
-			appliedCustomStack,
+		"custom endpoint": {
+			"testdata/custom-endpoint.json",
+			"testdata/custom-endpoint.json.golden",
 		},
 	}
 
 	for name, cas := range cases {
 		t.Run(name, func(t *testing.T) {
-			template, err := provider.ParseTemplate(cas.stack, log)
+			content, err := ioutil.ReadFile(cas.stackFile)
+			if err != nil {
+				t.Fatalf("ReadFile(%s)=%s", cas.stackFile, err)
+			}
+
+			want, err := ioutil.ReadFile(cas.wantFile)
+			if err != nil {
+				t.Fatalf("ReadFile(%s)=%s", cas.wantFile, err)
+			}
+
+			template, err := provider.ParseTemplate(string(content), log)
 			if err != nil {
 				t.Fatalf("ParseTemplate()=%s", err)
 			}
@@ -309,7 +162,7 @@ func TestAzure_ApplyTemplate(t *testing.T) {
 				t.Fatalf("ApplyTemplate()=%s", err)
 			}
 
-			if err := equal(stack.Content, cas.want); err != nil {
+			if err := equal(stack.Content, string(want)); err != nil {
 				t.Fatal(err)
 			}
 		})
@@ -376,6 +229,7 @@ func stripNondeterministicResources(v interface{}) {
 		}
 
 		vm["custom_data"] = "..."
+		vm["name"] = "..."
 	}
 
 	variable, ok := m["variable"].(map[string]interface{})

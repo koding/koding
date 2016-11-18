@@ -11,18 +11,28 @@ module.exports = class LeaveSharedMachineWidget extends React.Component
   @defaultProps =
     className : 'Approved'
 
+  constructor: (props) ->
+
+    @state = { isModalActive: yes }
+
 
   onLeaveClicked: ->
 
+    @setState { isModalActive: no }
     modal = new ContentModal
       title   : 'Are you sure?'
       content : "<p class='text-center'>This will remove the shared VM from your sidebar. You won't be able to access it unless you are invited again.</p>"
       cssClass : 'content-modal'
+      cancel : =>
+        @setState { isModalActive: yes }
+
       buttons :
         No         :
           title    : 'Cancel'
           cssClass : 'solid cancel medium'
-          callback : -> modal.destroy()
+          callback : =>
+            @setState { isModalActive: yes }
+            modal.destroy()
         Yes        :
           title    : 'Yes'
           cssClass : 'solid medium'
@@ -30,8 +40,8 @@ module.exports = class LeaveSharedMachineWidget extends React.Component
           callback : =>
             actions.rejectInvitation @props.machine
             Tracker.track Tracker.VM_LEFT_SHARED
+            @setState { isModalActive: yes }
             modal.destroy()
-
 
 
   render: ->
@@ -40,13 +50,15 @@ module.exports = class LeaveSharedMachineWidget extends React.Component
     then 'LEAVE SESSION'
     else 'LEAVE SHARED VM'
 
-    <SidebarWidget {...@props}>
+    if @state.isModalActive
+      <SidebarWidget {...@props}>
       <p className='SidebarWidget-Title'>Shared with you by</p>
-      <InvitationWidgetUserPart
-        owner={@props.machine.get 'owner'}
-       />
+        <InvitationWidgetUserPart
+          owner={@props.machine.get 'owner'}
+        />
       <button className='kdbutton GenericButton' onClick={@bound 'onLeaveClicked'}>
         <span className='button-title'>{buttonText}</span>
       </button>
-    </SidebarWidget>
-
+      </SidebarWidget>
+    else
+      null

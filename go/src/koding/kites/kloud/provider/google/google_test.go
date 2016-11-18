@@ -7,21 +7,71 @@ import (
 )
 
 func TestValidators(t *testing.T) {
-	tests := []struct {
+	tests := map[string]struct {
 		Validator stack.Validator
 		IsValid   bool
 	}{
-		{
-			// 0 //
+		"invalid cred JSON": {
 			Validator: &Cred{
 				Credentials: `{"google":"secret"}`,
 				Project:     `infra-treat-123456`,
 				Region:      `us-central1`,
 			},
+			IsValid: false,
+		},
+		"valid cred": {
+			Validator: &Cred{
+				Credentials: `{
+					"type": "service_account",
+					"project_id": "infra-treat-103712",
+					"private_key_id": "243523123324",
+					"private_key": "-----BEGIN PRIVATE KEY-----\nPK\n-----END PRIVATE KEY-----\n"
+					}`,
+				Project: "infra-treat-103712",
+				Region:  `us-central1`,
+			},
 			IsValid: true,
 		},
-		{
-			// 1 //
+		"unknown cred type": {
+			Validator: &Cred{
+				Credentials: `{
+					"type": "unknown_account",
+					"project_id": "infra-treat-103712",
+					"private_key_id": "243523123324",
+					"private_key": "-----BEGIN PRIVATE KEY-----\nPK\n-----END PRIVATE KEY-----\n"
+					}`,
+				Project: "infra-treat-103712",
+				Region:  `us-central1`,
+			},
+			IsValid: false,
+		},
+		"invalid cred private_key": {
+			Validator: &Cred{
+				Credentials: `{
+					"type": "unknown_account",
+					"project_id": "infra-treat-103712",
+					"private_key_id": "243523123324",
+					"private_key": "-----BEGIN PUBLIC KEY-----\nPK\n-----END PUBLIC KEY-----\n"
+					}`,
+				Project: "infra-treat-103712",
+				Region:  `us-central1`,
+			},
+			IsValid: false,
+		},
+		"empty cred project": {
+			Validator: &Cred{
+				Credentials: `{
+					"type": "unknown_account",
+					"project_id": "",
+					"private_key_id": "243523123324",
+					"private_key": "-----BEGIN PRIVATE KEY-----\nPK\n-----END PRIVATE KEY-----\n"
+					}`,
+				Project: "infra-treat-103712",
+				Region:  `us-central1`,
+			},
+			IsValid: false,
+		},
+		"missing cred": {
 			Validator: &Cred{
 				Credentials: ``,
 				Project:     `infra-treat-123456`,
@@ -29,8 +79,7 @@ func TestValidators(t *testing.T) {
 			},
 			IsValid: false,
 		},
-		{
-			// 2 //
+		"missing project": {
 			Validator: &Cred{
 				Credentials: `{"google":"secret"}`,
 				Project:     ``,
@@ -38,8 +87,7 @@ func TestValidators(t *testing.T) {
 			},
 			IsValid: false,
 		},
-		{
-			// 3 //
+		"missing region": {
 			Validator: &Cred{
 				Credentials: `{"google":"secret"}`,
 				Project:     `infra-treat-123456`,
@@ -47,8 +95,7 @@ func TestValidators(t *testing.T) {
 			},
 			IsValid: false,
 		},
-		{
-			// 4 //
+		"invalid region": {
 			Validator: &Cred{
 				Credentials: `{"google":"secret"}`,
 				Project:     `infra-treat-123456`,
@@ -56,8 +103,7 @@ func TestValidators(t *testing.T) {
 			},
 			IsValid: false,
 		},
-		{
-			// 5 //
+		"valid meta": {
 			Validator: &Meta{
 				Name:        `gce-development-instance`,
 				Region:      `us-central1`,
@@ -68,8 +114,7 @@ func TestValidators(t *testing.T) {
 			},
 			IsValid: true,
 		},
-		{
-			// 6 //
+		"missing meta name": {
 			Validator: &Meta{
 				Name:        ``,
 				Region:      `us-central1`,
@@ -80,8 +125,7 @@ func TestValidators(t *testing.T) {
 			},
 			IsValid: false,
 		},
-		{
-			// 7 //
+		"missing meta region": {
 			Validator: &Meta{
 				Name:        `gce-development-instance`,
 				Region:      ``,
@@ -92,8 +136,7 @@ func TestValidators(t *testing.T) {
 			},
 			IsValid: false,
 		},
-		{
-			// 8 //
+		"missing meta zone": {
 			Validator: &Meta{
 				Name:        `gce-development-instance`,
 				Region:      `us-central1`,
@@ -104,8 +147,7 @@ func TestValidators(t *testing.T) {
 			},
 			IsValid: false,
 		},
-		{
-			// 9 //
+		"missing meta image": {
 			Validator: &Meta{
 				Name:        `gce-development-instance`,
 				Region:      `us-central1`,
@@ -116,8 +158,7 @@ func TestValidators(t *testing.T) {
 			},
 			IsValid: false,
 		},
-		{
-			// 10 //
+		"meta with zero storage size": {
 			Validator: &Meta{
 				Name:        `gce-development-instance`,
 				Region:      `us-central1`,
@@ -128,8 +169,7 @@ func TestValidators(t *testing.T) {
 			},
 			IsValid: true,
 		},
-		{
-			// 11 //
+		"missing meta machine type": {
 			Validator: &Meta{
 				Name:        `gce-development-instance`,
 				Region:      `us-central1`,
@@ -140,8 +180,7 @@ func TestValidators(t *testing.T) {
 			},
 			IsValid: false,
 		},
-		{
-			// 12 //
+		"empty koding network ID": {
 			Validator: &Bootstrap{
 				KodingNetworkID: ``,
 			},
@@ -149,15 +188,17 @@ func TestValidators(t *testing.T) {
 		},
 	}
 
-	for i, test := range tests {
-		err := test.Validator.Valid()
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := test.Validator.Valid()
 
-		if test.IsValid && err != nil {
-			t.Errorf("want err = nil; got %v (i:%d)", err, i)
-		}
+			if test.IsValid && err != nil {
+				t.Fatalf("want err = nil; got %v", err)
+			}
 
-		if !test.IsValid && err == nil {
-			t.Errorf("want err != nil; got nil (i:%d)", i)
-		}
+			if !test.IsValid && err == nil {
+				t.Fatalf("want err != nil; got nil")
+			}
+		})
 	}
 }

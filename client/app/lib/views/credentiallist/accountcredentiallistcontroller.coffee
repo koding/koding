@@ -128,10 +128,11 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
   destroyResources: (credential, callback) ->
 
+    provider = credential.provider
     identifiers = [ credential.identifier ]
 
     kd.singletons.computeController.getKloud()
-      .bootstrap { identifiers, destroy: yes }
+      .bootstrap { identifiers, provider, destroy: yes }
       .then -> callback null
       .catch (err) ->
         kd.singletons.computeController.ui.showComputeError
@@ -201,7 +202,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
     @getView().parent.prepend addButton = new KDButtonView
       cssClass  : 'add-big-btn'
-      title     : 'Create New'
+      title     : 'Add a New Credential'
       icon      : yes
       callback  : @lazyBound 'showAddCredentialFormFor', @getOption 'provider'
 
@@ -268,14 +269,34 @@ module.exports = class AccountCredentialListController extends KodingListControl
       view.scrollView.wrapper.addSubView view.intro = new kd.CustomHTMLView
         cssClass  : 'credential-creation-intro'
         partial   : '''
-          <p>Add your AWS credentials</a>
-          <ol>
-            <li>Create an AWS user</li>
-            <li>Attach the AdministratorAccess policy</li>
-            <li>Add the Access Key ID and Secret here</li>
-          </ol>
-          <p>Need some help? <a href='https://koding.com/docs/creating-an-aws-stack'>Follow our guide</a>
+          <h2>Add your AWS credentials</h2>
+          <main>
+            <div>
+              <p>Koding will host your new cloud development environment on Amazon Web Services.</p>
+              <p>You’ll need your own AWS account, or a corporate account with rights to create new IAM users. Please ask your IT administrator or <a href="mailto:support@koding.com" class='contact'>contact us</a> if your team would like help getting setup.</a>
+            </div>
+            <div>
+              <ol>
+                <li>Login to the <a href="https://console.aws.amazon.com/console/home">AWS Management Console</a>. If you don’t already have an account, <a href="https://www.koding.com/docs/creating-an-aws-stack">follow our guide</a> to sign up.</li>
+                <li>Create a <a href="https://www.koding.com/docs/setup-aws-iam-user">new AWS IAM user</a> with <cite>AmazonEC2FullAccess</cite> and <cite>IAMReadOnlyAccess</cite> policies enabled (recommended), or provide your AWS root credentials (quicker).</li>
+                <li>Copy your AWS Key ID and Secret credentials</li>
+              </ol>
+            </div>
+          </main>
           '''
+        click: (event) ->
+
+          return  unless event.target.classList.contains 'contact'
+
+          if window.Intercom
+            kd.stopDOMEvent event
+            Intercom 'show'
+            return no
+          else
+            return yes
+
+
+
 
     { computeController } = kd.singletons
 

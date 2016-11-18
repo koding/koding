@@ -230,7 +230,7 @@ class ShortcutsController extends events.EventEmitter
   _handleStoreReady: ->
 
     appId     = @_store._applicationID
-    overrides = @_store._storage[AppStorage.DEFAULT_GROUP_NAME][appId]?.data ? []
+    overrides = @_store._storage[AppStorage.DEFAULT_GROUP_NAME]?[appId]?.data ? []
 
     _.each overrides, (objs, collectionName) =>
       collection = @shortcuts.get collectionName

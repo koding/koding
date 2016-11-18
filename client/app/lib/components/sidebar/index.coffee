@@ -79,7 +79,7 @@ module.exports = class Sidebar extends React.Component
         else
           EnvironmentFlux.actions.setActiveLeavingSharedMachineId { id: null }
           EnvironmentFlux.actions.dispatchCollaborationInvitationRejected options.machineId
-          EnvironmentFlux.actions.dispatchSharedVMInvitationRejected options.machineId
+          EnvironmentFlux.actions.dispatchSharedVMInvitationRejected options.uid
 
         EnvironmentFlux.actions.loadMachines()
 
@@ -129,6 +129,7 @@ module.exports = class Sidebar extends React.Component
     menuItems['Clone'] = { callback }  if canCreateStacks() or isAdmin()
     menuItems['Make Team Default'] = { callback } if isAdmin() and draft.get('machines').size
     menuItems['Delete'] = { callback }
+
     { top } = findDOMNode(@refs["draft-#{id}"]).getBoundingClientRect()
 
     menuOptions = { cssClass: 'SidebarMenu', x: 36, y: top + 31 }

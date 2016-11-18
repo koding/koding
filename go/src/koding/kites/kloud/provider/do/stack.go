@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"html/template"
 	"strconv"
-	"time"
 
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
@@ -32,10 +31,18 @@ var _ provider.Stack = (*Stack)(nil)
 // Stack is responsible of handling the terraform templates
 type Stack struct {
 	*provider.BaseStack
+
+	sshKeyPair *stack.SSHKeyPair
 }
 
-func newStack(stack *provider.BaseStack) (provider.Stack, error) {
-	return &Stack{BaseStack: stack}, nil
+func newStack(bs *provider.BaseStack) (provider.Stack, error) {
+	s := &Stack{
+		BaseStack: bs,
+	}
+
+	bs.SSHKeyPairFunc = s.setSSHKeyPair
+
+	return s, nil
 }
 
 // VerifyCredential verifies whether the users DO credentials (access token) is
@@ -66,6 +73,11 @@ func (s *Stack) VerifyCredential(c *stack.Credential) error {
 	return nil
 }
 
+func (s *Stack) setSSHKeyPair(keypair *stack.SSHKeyPair) error {
+	s.sshKeyPair = keypair
+	return nil
+}
+
 // BootstrapTemplates returns terraform templates that needs to be executed
 // before a droplet is created. In our case we'll create a template that
 // creates a ssh key on behalf of Koding, that will be later used during
@@ -79,8 +91,8 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 	// fill the template
 	var buf bytes.Buffer
 	if err := bootstrapTmpl.Execute(&buf, &tmplData{
-		KeyName:   s.keyName(),
-		PublicKey: s.Keys.PublicKey,
+		KeyName:   s.sshKeyPair.Name,
+		PublicKey: string(s.sshKeyPair.Public),
 	}); err != nil {
 		return nil, err
 	}
@@ -88,11 +100,6 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 	return []*stack.Template{
 		{Content: buf.String()},
 	}, nil
-}
-
-// keyName returns the keyName used for the bootstrap data
-func (s *Stack) keyName() string {
-	return fmt.Sprintf("koding-deployment-%s-%s-%d", s.Req.Username, s.BootstrapArg().GroupName, time.Now().UTC().UnixNano())
 }
 
 // ApplyTemplate enhances and updates the DigitalOcean terraform template. It
@@ -126,11 +133,11 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 
 	template.Resource["digitalocean_droplet"] = droplet
 
-	if err := template.Flush(); err != nil {
+	if err := template.ShadowVariables("FORBIDDEN", "digitalocean_access_token"); err != nil {
 		return nil, err
 	}
 
-	if err := template.ShadowVariables("FORBIDDEN", "digitalocean_token"); err != nil {
+	if err := template.Flush(); err != nil {
 		return nil, err
 	}
 
@@ -190,11 +197,13 @@ func (s *Stack) modifyDroplets(keyID int) (map[string]map[string]interface{}, er
 			count = n
 		}
 
-		labels := []string{dropletName}
+		var labels []string
 		if count > 1 {
 			for i := 0; i < count; i++ {
 				labels = append(labels, fmt.Sprintf("%s.%d", dropletName, i))
 			}
+		} else {
+			labels = append(labels, dropletName)
 		}
 
 		kiteKeyName := fmt.Sprintf("kitekeys_%s", dropletName)

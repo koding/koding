@@ -45,7 +45,7 @@ module.exports = class StackTemplatePreviewModal extends ContentModal
 
 
     @main.addSubView new kd.CustomHTMLView
-      partial : "<p class='preview-label'>This Preview is generated from your account data.</p>"
+      partial : "<p class='preview-label'>This preview renders variables such as ${var.koding_user_username} to their actual values.</p>"
 
     @main.addSubView new kd.CustomHTMLView
       cssClass : 'has-markdown'

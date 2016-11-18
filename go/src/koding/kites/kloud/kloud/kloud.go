@@ -23,6 +23,7 @@ import (
 	"koding/kites/kloud/credential"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/keycreator"
+	"koding/kites/kloud/machine"
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
@@ -129,7 +130,6 @@ type Config struct {
 	AWSSecretAccessKey string
 
 	JanitorSecretKey     string
-	VmwatcherSecretKey   string
 	KloudSecretKey       string
 	TerraformerSecretKey string
 }
@@ -165,9 +165,8 @@ func New(conf *Config) (*Kloud, error) {
 	}
 
 	authUsers := map[string]string{
-		"kloudctl":  conf.KloudSecretKey,
-		"janitor":   conf.JanitorSecretKey,
-		"vmwatcher": conf.VmwatcherSecretKey,
+		"kloudctl": conf.KloudSecretKey,
+		"janitor":  conf.JanitorSecretKey,
 	}
 
 	var credURL *url.URL
@@ -189,6 +188,8 @@ func New(conf *Config) (*Kloud, error) {
 		Client:  httputil.DefaultRestClient(conf.DebugMode),
 	}
 
+	userPrivateKey, userPublicKey := userMachinesKeys(conf.UserPublicKey, conf.UserPrivateKey)
+
 	stacker := &provider.Stacker{
 		DB:             sess.DB,
 		Log:            sess.Log,
@@ -198,6 +199,11 @@ func New(conf *Config) (*Kloud, error) {
 		KloudSecretKey: conf.KloudSecretKey,
 		CredStore:      credential.NewStore(storeOpts),
 		TunnelURL:      conf.TunnelURL,
+		SSHKey: &publickeys.Keys{
+			KeyName:    publickeys.DeployKeyName,
+			PrivateKey: userPrivateKey,
+			PublicKey:  userPublicKey,
+		},
 	}
 
 	stats := common.MustInitMetrics(Name)
@@ -215,21 +221,17 @@ func New(conf *Config) (*Kloud, error) {
 
 	kloud.Stack.DescribeFunc = provider.Desc
 	kloud.Stack.CredClient = credential.NewClient(storeOpts)
+	kloud.Stack.MachineClient = machine.NewClient(machine.NewMongoDatabase())
 
 	kloud.Stack.ContextCreator = func(ctx context.Context) context.Context {
 		return session.NewContext(ctx, sess)
 	}
 
 	kloud.Stack.Metrics = stats
-	userPrivateKey, userPublicKey := userMachinesKeys(conf.UserPublicKey, conf.UserPrivateKey)
 
 	// RSA key pair that we add to the newly created machine for
 	// provisioning.
-	kloud.Stack.PublicKeys = &publickeys.Keys{
-		KeyName:    publickeys.DeployKeyName,
-		PrivateKey: userPrivateKey,
-		PublicKey:  userPublicKey,
-	}
+	kloud.Stack.PublicKeys = stacker.SSHKey
 	kloud.Stack.DomainStorage = sess.DNSStorage
 	kloud.Stack.Domainer = sess.DNSClient
 	kloud.Stack.Locker = stacker

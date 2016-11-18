@@ -1,8 +1,9 @@
+{ updateMachine } = require './helpers'
+KodingError = require '../../error'
+
 NOT_IMPLEMENTED_MESSAGE = 'Not implemented yet.'
 
 NOT_IMPLEMENTED = ->
-
-  KodingError   = require '../../error'
 
   if arguments.length > 0 and fn = arguments[arguments.length - 1]
     if typeof fn is 'function'
@@ -43,3 +44,18 @@ module.exports = class ProviderInterface
         callback null, credData
       else
         callback null, {}
+
+  @update = (client, options, callback) ->
+
+    { machineId, alwaysOn } = options
+    { r: { group, user, account } } = client
+
+    unless machineId? or alwaysOn?
+      return callback new KodingError \
+        'A valid machineId and an update option required.', 'WrongParameter'
+
+    JMachine = require './machine'
+    selector = JMachine.getSelectorFor client, { machineId, owner: yes }
+    selector.provider = @providerSlug
+
+    updateMachine { selector, alwaysOn }, callback

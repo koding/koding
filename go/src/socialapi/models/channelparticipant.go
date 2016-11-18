@@ -629,20 +629,3 @@ func (c *ChannelParticipant) Glance() error {
 
 	return nil
 }
-
-// RemoveNotificationSetting removes the notification settings of participation's channel
-func (c *ChannelParticipant) RemoveNotificationSetting() error {
-	if c.ChannelId == 0 {
-		return ErrChannelIdIsNotSet
-	}
-
-	if c.AccountId == 0 {
-		return ErrAccountIdIsNotSet
-	}
-
-	ns := NewNotificationSetting()
-	ns.ChannelId = c.ChannelId
-	ns.AccountId = c.AccountId
-
-	return ns.Delete()
-}

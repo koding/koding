@@ -60,6 +60,12 @@ type KlientOptions struct {
 	// to authorize kdbin requests to Klient.
 	KiteKeyPath string
 
+	// KiteKey is a content of kite.key, which is used for
+	// authenticating kd with other klients.
+	//
+	// If not empty, this fields is used instead of KiteKeyPath.
+	KiteKey string
+
 	// Name, as passed to the first argument in `kite.New()`.
 	Name string
 
@@ -75,6 +81,7 @@ func NewKlientOptions() KlientOptions {
 	return KlientOptions{
 		Address:     config.Konfig.KlientURL,
 		KiteKeyPath: config.Konfig.KiteKeyFile,
+		KiteKey:     config.Konfig.KiteKey,
 		Name:        config.Name,
 		Version:     config.KiteVersion,
 		Environment: config.Environment,
@@ -103,8 +110,13 @@ func CreateKlientClient(opts KlientOptions) (*kite.Client, error) {
 	k.Config.Environment = opts.Environment
 	c := k.NewClient(opts.Address)
 
-	// If a key path is declared, load it and setup auth.
-	if opts.KiteKeyPath != "" {
+	if opts.KiteKey != "" {
+		c.Auth = &kite.Auth{
+			Type: "kiteKey",
+			Key:  opts.KiteKey,
+		}
+	} else if opts.KiteKeyPath != "" {
+		// If a key path is declared, load it and setup auth.
 		data, err := ioutil.ReadFile(opts.KiteKeyPath)
 		if err != nil {
 			return nil, err

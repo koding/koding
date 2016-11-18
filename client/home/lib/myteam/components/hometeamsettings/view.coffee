@@ -77,7 +77,7 @@ ActionBar = ({ canEdit, callback, onLeaveTeam, teamNameChanged }) ->
 
 LeaveTeam = ({ onLeaveTeam }) ->
 
-  <GenericButton title={'LEAVE TEAM'} callback={onLeaveTeam} />
+  <GenericButton className='fl' title={'LEAVE TEAM'} callback={onLeaveTeam} />
 
 
 TeamDomain = ({ slug }) ->

@@ -197,13 +197,13 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 
 	t.Resource["aws_instance"] = resource.AwsInstance
 
-	if err := t.Flush(); err != nil {
-		return nil, err
-	}
-
 	// TODO(rjeczalik): move to stackplan
 	err := t.ShadowVariables("FORBIDDEN", "aws_access_key", "aws_secret_key")
 	if err != nil {
+		return nil, err
+	}
+
+	if err := t.Flush(); err != nil {
 		return nil, err
 	}
 

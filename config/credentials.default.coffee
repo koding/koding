@@ -162,8 +162,6 @@ module.exports = (options) ->
   janitor =
     port: '6700'
     secretKey: ''
-  vmwatcher =
-    secretKey: ''
   segment = ''
   kontrol =
     publicKey: "$KONFIG_PROJECTROOT/generated/private_keys/kontrol/kontrol.pub"
@@ -173,14 +171,13 @@ module.exports = (options) ->
     privateKey: kontrol.privateKey
     secretKey: ''
     janitorSecretKey: janitor.secretKey
-    vmwatcherSecretKey: vmwatcher.secretKey
     terraformerSecretKey: terraformer.secretKey
     userPublicKey: "$KONFIG_PROJECTROOT/generated/private_keys/kloud/kloud.pub"
     userPrivateKey: "$KONFIG_PROJECTROOT/generated/private_keys/kloud/kloud.pem"
   dummyAdmins = ['superadmin', 'admin', 'koding']
   druid =
     host : options.serviceHost
-    port : 8090
+    port : '8090'
   clearbit = '9d961e7ac862a6bc430f783da5cf9422'
   intercomAppId = ''
   wufoo = ''
@@ -220,7 +217,6 @@ module.exports = (options) ->
     segment
     kontrol
     kloud
-    vmwatcher
     dummyAdmins
     druid
     clearbit

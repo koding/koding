@@ -30,7 +30,7 @@ func newMachine(bm *provider.BaseMachine) (provider.Machine, error) {
 	m := &Machine{BaseMachine: bm}
 	cred := m.Cred()
 
-	c, err := management.ClientFromPublishSettingsDataWithConfig(cred.PublishSettings, cred.SubscriptionID, management.DefaultConfig())
+	c, err := management.ClientFromPublishSettingsDataWithConfig([]byte(cred.PublishSettings), cred.SubscriptionID, management.DefaultConfig())
 	if err != nil {
 		return nil, err
 	}
@@ -83,11 +83,12 @@ type Subscription struct {
 
 // Cred represents jCredentialDatas.meta for "azure" provider.
 type Cred struct {
-	// Credentials.
-	PublishSettings []byte `json:"publish_settings" bson:"publish_settings" hcl:"publish_settings"`                  // required
-	SubscriptionID  string `json:"subscription_id,omitempty" bson:"subscription_id,omitempty" hcl:"subscription_id"` // required if PublishSettings contains multiple subscriptions
-	Location        string `json:"location,omitempty" bson:"location,omitempty" hcl:"location"`                      // by default "East US 2"
-	Storage         string `json:"storage,omitempty" bson:"storage,omitempty" hcl:"storage"`                         // by default "Standard_LRS"
+	PublishSettings  string `json:"publish_settings" bson:"publish_settings" hcl:"publish_settings"`                  // required
+	SubscriptionID   string `json:"subscription_id,omitempty" bson:"subscription_id,omitempty" hcl:"subscription_id"` // required if PublishSettings contains multiple subscriptions
+	Location         string `json:"location,omitempty" bson:"location,omitempty" hcl:"location"`                      // by default "East US 2"
+	Storage          string `json:"storage,omitempty" bson:"storage,omitempty" hcl:"storage"`                         // by default "Standard_LRS"
+	SSHKeyThumbprint string `json:"ssh_key_thumbprint,omitempty" bson:"ssh_key_thumbprint" hcl:"ssh_key_thumbprint"`
+	Password         string `json:"password" bson:"password" hcl:"password"`
 }
 
 var _ stack.Validator = (*Cred)(nil)
@@ -97,7 +98,7 @@ var _ stack.Validator = (*Cred)(nil)
 func (meta *Cred) PublishData() (*PublishData, error) {
 	var pb PublishData
 
-	if err := xml.Unmarshal(meta.PublishSettings, &pb); err != nil {
+	if err := xml.Unmarshal([]byte(meta.PublishSettings), &pb); err != nil {
 		return nil, err
 	}
 
@@ -162,9 +163,8 @@ var _ stack.Validator = (*Bootstrap)(nil)
 
 // Valid implements the stack.Validator interface.
 func (b *Bootstrap) Valid() error {
-	if b.AddressSpace == "" {
-		b.AddressSpace = "10.0.0.0/16"
-	}
+	b.AddressSpace = b.addressSpace()
+
 	if b.HostedServiceID == "" {
 		return errors.New("hosted service ID is empty or missing")
 	}
@@ -181,6 +181,14 @@ func (b *Bootstrap) Valid() error {
 		return errors.New("subnet name is empty or missing")
 	}
 	return nil
+}
+
+func (b *Bootstrap) addressSpace() string {
+	if b.AddressSpace != "" {
+		return b.AddressSpace
+	}
+
+	return "10.0.0.0/16"
 }
 
 // Meta represents a metadata for a single Azure machine.

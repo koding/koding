@@ -1,10 +1,6 @@
 package provider
 
 import (
-	"errors"
-
-	"koding/db/models"
-	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/terraformer"
 	tf "koding/kites/terraformer"
@@ -17,7 +13,7 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 	if !ok {
 		arg = &stack.PlanRequest{}
 
-		if err := bs.Req.Args.One().Unmarshal(&arg); err != nil {
+		if err := bs.Req.Args.One().Unmarshal(arg); err != nil {
 			return nil, err
 		}
 	}
@@ -26,21 +22,17 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	bs.Arg = &arg
+	bs.Arg = arg
 
 	bs.Log.Debug("Fetching template for id %s", arg.StackTemplateID)
-	stackTemplate, err := modelhelper.GetStackTemplate(arg.StackTemplateID)
-	if err != nil {
-		return nil, models.ResError(err, "jStackTemplate")
+
+	if err := bs.Builder.BuildStackTemplate(arg.StackTemplateID); err != nil {
+		return nil, err
 	}
 
-	if stackTemplate.Template.Content == "" {
-		return nil, errors.New("Stack template content is empty")
-	}
+	bs.Log.Debug("Fetching credentials for id %v", bs.Builder.StackTemplate.Credentials)
 
-	bs.Log.Debug("Fetching credentials for id %v", stackTemplate.Credentials)
-
-	credIDs := FlattenValues(stackTemplate.Credentials)
+	credIDs := FlattenValues(bs.Builder.StackTemplate.Credentials)
 
 	if err := bs.Builder.BuildCredentials(bs.Req.Method, bs.Req.Username, arg.GroupName, credIDs); err != nil {
 		return nil, err
@@ -49,9 +41,10 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 	bs.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", bs.Builder.Koding, bs.Builder.Template)
 
 	contentID := bs.Req.Username + "-" + arg.StackTemplateID
-	bs.Log.Debug("Parsing template (%s):\n%s", contentID, stackTemplate.Template.Content)
 
-	if err := bs.Builder.BuildTemplate(stackTemplate.Template.Content, contentID); err != nil {
+	bs.Log.Debug("Parsing template (%s):\n%s", contentID, bs.Builder.StackTemplate.Template.Content)
+
+	if err := bs.Builder.BuildTemplate(bs.Builder.StackTemplate.Template.Content, contentID); err != nil {
 		return nil, err
 	}
 
@@ -74,6 +67,19 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
+	machines, err := bs.plan()
+	if err != nil {
+		return nil, err
+	}
+
+	bs.Log.Debug("Machines planned to be created: %+v", machines)
+
+	return &stack.PlanResponse{
+		Machines: machines.Slice(),
+	}, nil
+}
+
+func (bs *BaseStack) Plan() (stack.Machines, error) {
 	out, err := bs.Builder.Template.JsonOutput()
 	if err != nil {
 		return nil, err
@@ -85,30 +91,18 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 	}
 	defer tfKite.Close()
 
-	stackTemplate.Template.Content = out
-
 	tfReq := &tf.TerraformRequest{
-		Content:   stackTemplate.Template.Content,
-		ContentID: contentID,
+		Content:   out,
+		ContentID: bs.Req.Username + "-" + bs.Arg.(*stack.PlanRequest).StackTemplateID,
 		TraceID:   bs.TraceID,
 	}
 
-	bs.Log.Debug("Calling plan with content")
-	bs.Log.Debug("%+v", tfReq)
+	bs.Log.Debug("Calling plan with content: %+v", tfReq)
 
 	plan, err := tfKite.Plan(tfReq)
 	if err != nil {
 		return nil, err
 	}
 
-	machines, err := bs.Planner.MachinesFromPlan(plan)
-	if err != nil {
-		return nil, err
-	}
-
-	bs.Log.Debug("Machines planned to be created: %+v", machines)
-
-	return &stack.PlanResponse{
-		Machines: machines.Slice(),
-	}, nil
+	return bs.Planner.MachinesFromPlan(plan)
 }

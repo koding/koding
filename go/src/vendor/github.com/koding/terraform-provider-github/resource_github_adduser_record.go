@@ -128,12 +128,23 @@ func resourceGithubAddUserCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	member, _, err := client.Organizations.GetOrgMembership("", org)
+	// user might be a member of organization key or not
+	// with that error checking;
+	// if user is a member of organization, we can change user's role as admin or member
+	// if user is not a member of organization, it will give 404 error, then we need to ignore that
+	// error for process (adding user into the organization etc..)
 	if err != nil {
-		return err
+		gErr, ok := err.(*github.ErrorResponse)
+		if !ok {
+			return err
+		}
+		if gErr.Response.StatusCode != 404 {
+			return err
+		}
 	}
 
 	// override member role here if user is admin of organization
-	if member.Role == &admin {
+	if member != nil && member.Role == &admin {
 		role = admin
 	}
 
@@ -155,7 +166,6 @@ func resourceGithubAddUserCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	active := "active"
-
 	membership := &github.Membership{
 		// state should be active to add the user into organization
 		State: &active,
@@ -170,15 +180,14 @@ func resourceGithubAddUserCreate(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		return err
 	}
-
 	for _, repo := range interfaceToStringSlice(d.Get("repos")) {
 		// Creates a fork for the authenticated user.
 		_, _, err = client.Repositories.CreateFork(org, repo, nil)
 		if err != nil {
+
 			return err
 		}
 	}
-
 	title := d.Get("title").(string)
 	keySSH := d.Get("SSHKey").(string)
 
@@ -196,12 +205,10 @@ func resourceGithubAddUserCreate(d *schema.ResourceData, meta interface{}) error
 	if err != nil && !isErr422ValidationFailed(err) {
 		return err
 	}
-
 	d.SetId(user)
 
 	return nil
 }
-
 func resourceGithubAddUserRead(d *schema.ResourceData, meta interface{}) error {
 	org := d.Get("organization").(string)
 	user := d.Get("username").(string)

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	konfig "koding/kites/config"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/stack"
 
@@ -54,6 +55,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	stack.Konfig = konfig.NewKonfig(&konfig.Environments{
+		Env: k.Kite.Config.Environment,
+	})
 
 	// DataDog listens to it
 	go func() {

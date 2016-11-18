@@ -149,8 +149,6 @@ type Marathon interface {
 }
 
 var (
-	// ErrInvalidEndpoint is thrown when the marathon url specified was invalid
-	ErrInvalidEndpoint = errors.New("invalid Marathon endpoint specified")
 	// ErrInvalidResponse is thrown when marathon responds with invalid or error response
 	ErrInvalidResponse = errors.New("invalid response from Marathon")
 	// ErrMarathonDown is thrown when all the marathon endpoints are down
@@ -178,8 +176,8 @@ type marathonClient struct {
 	eventsHTTP *http.Server
 	// the http client use for making requests
 	httpClient *http.Client
-	// the marathon cluster
-	cluster Cluster
+	// the marathon hosts
+	hosts *cluster
 	// a map of service you wish to listen to
 	listeners map[EventsChannel]EventsChannelContext
 	// a custom logger for debug log messages
@@ -200,7 +198,7 @@ func NewClient(config Config) (Marathon, error) {
 	}
 
 	// step: create a new cluster
-	cluster, err := newCluster(config.HTTPClient, config.URL)
+	hosts, err := newCluster(config.HTTPClient, config.URL)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +211,7 @@ func NewClient(config Config) (Marathon, error) {
 	return &marathonClient{
 		config:     config,
 		listeners:  make(map[EventsChannel]EventsChannelContext),
-		cluster:    cluster,
+		hosts:      hosts,
 		httpClient: config.HTTPClient,
 		debugLog:   log.New(debugLogOutput, "", 0),
 	}, nil
@@ -221,7 +219,7 @@ func NewClient(config Config) (Marathon, error) {
 
 // GetMarathonURL retrieves the marathon url
 func (r *marathonClient) GetMarathonURL() string {
-	return r.cluster.URL()
+	return r.config.URL
 }
 
 // Ping pings the current marathon endpoint (note, this is not a ICMP ping, but a rest api call)
@@ -249,66 +247,78 @@ func (r *marathonClient) apiDelete(uri string, post, result interface{}) error {
 }
 
 func (r *marathonClient) apiCall(method, uri string, body, result interface{}) error {
+	for {
+		// step: grab a member from the cluster and attempt to perform the request
+		member, err := r.hosts.getMember()
+		if err != nil {
+			return ErrMarathonDown
+		}
 
-	// Get a member from the cluster
-	marathon, err := r.cluster.GetMember()
-	if err != nil {
-		return err
-	}
+		// step: Create the endpoint url
+		url := fmt.Sprintf("%s/%s", member, uri)
+		if r.config.DCOSToken != "" {
+			url = fmt.Sprintf("%s/%s", member+"/marathon", uri)
+		}
 
-	var url string
+		// step: marshall the request to json
+		var requestBody []byte
+		if body != nil {
+			if requestBody, err = json.Marshal(body); err != nil {
+				return err
+			}
+		}
 
-	if r.config.DCOSToken != "" {
-		url = fmt.Sprintf("%s/%s", marathon+"/marathon", uri)
-	} else {
-		url = fmt.Sprintf("%s/%s", marathon, uri)
-	}
-
-	var jsonBody []byte
-	if body != nil {
-		jsonBody, err = json.Marshal(body)
+		// step: create the api request
+		request, err := r.buildAPIRequest(method, url, bytes.NewReader(requestBody))
 		if err != nil {
 			return err
 		}
-	}
-
-	// step: create an API request
-	request, err := r.apiRequest(method, url, bytes.NewReader(jsonBody))
-	if err != nil {
-		return err
-	}
-
-	response, err := r.httpClient.Do(request)
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
-
-	respBody, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return err
-	}
-
-	if len(jsonBody) > 0 {
-		r.debugLog.Printf("apiCall(): %v %v %s returned %v %s\n", request.Method, request.URL.String(), jsonBody, response.Status, oneLogLine(respBody))
-	} else {
-		r.debugLog.Printf("apiCall(): %v %v returned %v %s\n", request.Method, request.URL.String(), response.Status, oneLogLine(respBody))
-	}
-
-	if response.StatusCode >= 200 && response.StatusCode <= 299 {
-		if result != nil {
-			if err := json.Unmarshal(respBody, result); err != nil {
-				r.debugLog.Printf("apiCall(): failed to unmarshall the response from marathon, error: %s\n", err)
-				return ErrInvalidResponse
-			}
+		response, err := r.httpClient.Do(request)
+		if err != nil {
+			r.hosts.markDown(member)
+			// step: attempt the request on another member
+			r.debugLog.Printf("apiCall(): request failed on host: %s, error: %s, trying another\n", member, err)
+			continue
 		}
-		return nil
+		defer response.Body.Close()
+
+		// step: read the response body
+		respBody, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return err
+		}
+
+		if len(requestBody) > 0 {
+			r.debugLog.Printf("apiCall(): %v %v %s returned %v %s\n", request.Method, request.URL.String(), requestBody, response.Status, oneLogLine(respBody))
+		} else {
+			r.debugLog.Printf("apiCall(): %v %v returned %v %s\n", request.Method, request.URL.String(), response.Status, oneLogLine(respBody))
+		}
+
+		// step: check for a successfull response
+		if response.StatusCode >= 200 && response.StatusCode <= 299 {
+			if result != nil {
+				if err := json.Unmarshal(respBody, result); err != nil {
+					r.debugLog.Printf("apiCall(): failed to unmarshall the response from marathon, error: %s\n", err)
+					return ErrInvalidResponse
+				}
+			}
+			return nil
+		}
+
+		// step: if the member node returns a >= 500 && <= 599 we should try another node?
+		if response.StatusCode >= 500 && response.StatusCode <= 599 {
+			// step: mark the host as down
+			r.hosts.markDown(member)
+			r.debugLog.Printf("apiCall(): request failed, host: %s, status: %d, trying another\n", member, response.StatusCode)
+			continue
+		}
+
+		return NewAPIError(response.StatusCode, respBody)
 	}
-	return NewAPIError(response.StatusCode, respBody)
 }
 
-// apiRequest creates a default API request
-func (r *marathonClient) apiRequest(method, url string, reader io.Reader) (*http.Request, error) {
+// buildAPIRequest creates a default API request
+func (r *marathonClient) buildAPIRequest(method, url string, reader io.Reader) (*http.Request, error) {
 	// Make the http request to Marathon
 	request, err := http.NewRequest(method, url, reader)
 	if err != nil {

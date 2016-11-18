@@ -49,8 +49,8 @@ module.exports = class ComputeControllerUI
                          stored, please take a copy of following private key.
                          \n
                          **You won't be able to access this private key later**
-                        "
-      content         : applyMarkdown "```\n#{privateKey}\n```"
+                         ```\n#{privateKey}\n```
+      "
       cssClass        : 'has-markdown content-modal'
       width           : 530
       overlay         : yes
@@ -173,11 +173,12 @@ module.exports = class ComputeControllerUI
     # Add advanced fields into form
     if advancedFields = currentProvider.advancedFields
       advancedFields.forEach (field) ->
-        fields[field] =
-          label       : field.capitalize()
-          placeholder : field
-          cssClass    : 'advanced-field'
+        fields[field] ?=
+          label        : field.capitalize()
+          placeholder  : field
 
+        fields[field].cssClass = 'advanced-field'
+        fields[field].required = no
         fields[field].defaultValue = defaultValues[field]  if defaultValues[field]?
 
 
@@ -431,7 +432,7 @@ module.exports = class ComputeControllerUI
             callback { confirmed: no }
         ok           :
           title      : button ? 'Yes, remove'
-          style      : "solid medium"
+          style      : 'solid medium'
           callback   : ->
             modal.destroy()
             callback { confirmed: yes }

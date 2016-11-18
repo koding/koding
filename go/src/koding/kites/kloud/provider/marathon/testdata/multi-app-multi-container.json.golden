@@ -1,0 +1,153 @@
+{
+  "resource": {
+    "marathon_app": {
+      "multi-app": {
+        "app_id": "/multi-app/multi-app-${count.index + 1}",
+        "container": [
+          {
+            "docker": [
+              {
+                "image": "python:3",
+                "network": "BRIDGE",
+                "parameters": {
+                  "parameter": [
+                    {
+                      "key": "entrypoint",
+                      "value": "/mnt/mesos/sandbox/entrypoint.${count.index * 3 + 1}.sh"
+                    }
+                  ]
+                },
+                "port_mappings": {
+                  "port_mapping": [
+                    {
+                      "container_port": 56789,
+                      "host_port": 0,
+                      "protocol": "tcp"
+                    }
+                  ]
+                }
+              },
+              {
+                "image": "ubuntu:14.04",
+                "network": "BRIDGE",
+                "parameters": {
+                  "parameter": [
+                    {
+                      "key": "entrypoint",
+                      "value": "/mnt/mesos/sandbox/entrypoint.${count.index * 3 + 2}.sh"
+                    }
+                  ]
+                },
+                "port_mappings": {
+                  "port_mapping": [
+                    {
+                      "container_port": 56789,
+                      "host_port": 0,
+                      "protocol": "tcp"
+                    }
+                  ]
+                }
+              },
+              {
+                "image": "centos:7",
+                "network": "BRIDGE",
+                "parameters": {
+                  "parameter": [
+                    {
+                      "key": "entrypoint",
+                      "value": "/mnt/mesos/sandbox/entrypoint.${count.index * 3 + 3}.sh"
+                    }
+                  ]
+                },
+                "port_mappings": {
+                  "port_mapping": [
+                    {
+                      "container_port": 56789,
+                      "host_port": 0,
+                      "protocol": "tcp"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "count": 3,
+        "cpus": 2,
+        "env": {
+          "KODING_KLIENT_URL": "$KLIENT_URL",
+          "KODING_METADATA_1": "...",
+          "KODING_METADATA_2": "...",
+          "KODING_METADATA_3": "...",
+          "KODING_METADATA_4": "...",
+          "KODING_METADATA_5": "...",
+          "KODING_METADATA_6": "...",
+          "KODING_METADATA_7": "...",
+          "KODING_METADATA_8": "...",
+          "KODING_METADATA_9": "..."
+        },
+        "fetch": [
+          {
+            "executable": true,
+            "uri": "$ENTRYPOINT_URL/entrypoint.1.sh"
+          },
+          {
+            "executable": true,
+            "uri": "$ENTRYPOINT_URL/entrypoint.2.sh"
+          },
+          {
+            "executable": true,
+            "uri": "$ENTRYPOINT_URL/entrypoint.3.sh"
+          },
+          {
+            "executable": true,
+            "uri": "$ENTRYPOINT_URL/entrypoint.4.sh"
+          },
+          {
+            "executable": true,
+            "uri": "$ENTRYPOINT_URL/entrypoint.5.sh"
+          },
+          {
+            "executable": true,
+            "uri": "$ENTRYPOINT_URL/entrypoint.6.sh"
+          },
+          {
+            "executable": true,
+            "uri": "$ENTRYPOINT_URL/entrypoint.7.sh"
+          },
+          {
+            "executable": true,
+            "uri": "$ENTRYPOINT_URL/entrypoint.8.sh"
+          },
+          {
+            "executable": true,
+            "uri": "$ENTRYPOINT_URL/entrypoint.9.sh"
+          }
+        ],
+        "health_checks": {
+          "health_check": [
+            {
+              "command": {
+                "value": "curl -f -X GET http://$$HOST:$${PORT_56789}/kite"
+              },
+              "max_consecutive_failures": 3,
+              "protocol": "COMMAND"
+            }
+          ]
+        },
+        "mem": 128,
+        "ports": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    }
+  }
+}

@@ -7,6 +7,8 @@ module.exports = class TeamCreateWithMemberAccountForm extends TeamJoinWithInvit
 
   constructor: (options = {}, data) ->
 
+    options.buttonTitle = 'Create Your Team'
+
     super options, data
 
     @username.input.setValue utils.getTeamData().profile?.nickname

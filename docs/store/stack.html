@@ -9,6 +9,7 @@ permalink: /store/stack
 
 <link rel="stylesheet" href="{{ site.url }}/css/markdown.css">
 <link rel="stylesheet" href="{{ site.url }}/css/syntax.css">
+<link rel="stylesheet" href="{{ site.url }}/css/modal.css">
 <link rel="stylesheet" href="{{ site.url }}/css/store.css">
 
 <div class="ItemDetails">
@@ -137,9 +138,7 @@ permalink: /store/stack
     </div><div class="clearfix"></div>
   </div>
 </div>
-<div class="Overlay"></div>
-<div class="Modal">
-  <a href="#" class="u-icon u-modalClose"></a>
+<div class="modal-content" style="display:none;">
   <h1>Select a Team to Clone to</h1>
   <h2>Which team you want it to be cloned to?</h2>
   <div class="Modal-teamList">
@@ -163,6 +162,7 @@ permalink: /store/stack
   <a href="#">Are you a member of another team?</a>
 </div>
 <script>
+  {% include js/landing-modal.js %}
   {% include js/store.js %}
 </script>
 
