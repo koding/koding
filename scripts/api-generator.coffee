@@ -2,8 +2,9 @@
 
 require 'coffee-cache'
 
-fs = require 'fs'
-bongo = require '../servers/lib/server/bongo'
+fs     = require 'fs'
+bongo  = require '../servers/lib/server/bongo'
+docGen = require './docgen'
 
 swagger =
   swagger: '2.0'
@@ -138,7 +139,7 @@ generateDefinition = (model) ->
   return def
 
 
-generateMethodPaths = (model, definitions, paths) ->
+generateMethodPaths = (model, definitions, paths, docs) ->
 
   name = model.name
   methods = model.getSharedMethods()
@@ -159,6 +160,7 @@ generateMethodPaths = (model, definitions, paths) ->
         tags: [ name ]
         consumes: [ 'application/json' ]
         parameters: parameters
+        description: docs[name]['static'][method]?.description ? ''
         responses:
           '200':
             description: 'Request processed succesfully'
@@ -174,6 +176,7 @@ generateMethodPaths = (model, definitions, paths) ->
       post:
         tags: [ name ]
         consumes: [ 'application/json' ]
+        description: docs[name]['instance'][method]?.description ? ''
         parameters: [
           { $ref: '#/parameters/instanceParam' }
         ]
@@ -185,10 +188,23 @@ generateMethodPaths = (model, definitions, paths) ->
 
 bongo.on 'apiReady', ->
 
-  paths       = swagger.paths
   definitions = swagger.definitions
+  paths       = swagger.paths
+  tags        = swagger.tags
+  docs        = docGen bongo.modelPaths[0], bongo.modelFiles
+
+  if docs.errors.length > 0
+    console.log 'Generated docs has some issues:', doc.errors
+    process.exit()
+  else
+    docs = docs.doc
 
   for name, model of bongo.models
+
+    swagger.tags.push {
+      description: docs[name].description
+      name
+    }
 
     try
       if model.schema? and model.describeSchema?
@@ -199,7 +215,7 @@ bongo.on 'apiReady', ->
       process.exit()
 
     try
-      generateMethodPaths model, definitions, paths
+      generateMethodPaths model, definitions, paths, docs
     catch e
       console.log 'Failed while building methods:', name, e
       console.log 'Methods were:', bongo.models[name].getSharedMethods()
