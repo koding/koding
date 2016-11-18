@@ -1,0 +1,18 @@
+{
+  "provider": {
+    "azure": {
+      "publish_settings": "${var.azure_publish_settings}",
+      "subscription_id": "${var.azure_subscription_id}"
+    }
+  },
+  "resource": {
+    "azure_instance": {
+      "example-instance": {
+        "count": 3,
+        "custom_data": "echo Hello world!",
+        "image": "Ubuntu Server 14.04 LTS",
+        "size": "Basic_A1"
+      }
+    }
+  }
+}
