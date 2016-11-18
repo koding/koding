@@ -197,11 +197,13 @@ func (s *Stack) modifyDroplets(keyID int) (map[string]map[string]interface{}, er
 			count = n
 		}
 
-		labels := []string{dropletName}
+		var labels []string
 		if count > 1 {
 			for i := 0; i < count; i++ {
 				labels = append(labels, fmt.Sprintf("%s.%d", dropletName, i))
 			}
+		} else {
+			labels = append(labels, dropletName)
 		}
 
 		kiteKeyName := fmt.Sprintf("kitekeys_%s", dropletName)

@@ -1,7 +1,11 @@
 package do
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/koding/kite"
@@ -62,6 +66,10 @@ func TestStack_BootstrapTemplates(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	st.(*Stack).sshKeyPair = &stack.SSHKeyPair{
+		Name: "test-key",
+	}
+
 	templates, err := st.BootstrapTemplates(nil)
 	if err != nil {
 		t.Fatal(err)
@@ -107,7 +115,7 @@ func TestStack_BootstrapTemplates(t *testing.T) {
 }
 `
 
-	wantTemplate = fmt.Sprintf(wantTemplate, st.(*Stack).keyName(), bs.Keys.PublicKey)
+	wantTemplate = fmt.Sprintf(wantTemplate, st.(*Stack).sshKeyPair.Name, bs.Keys.PublicKey)
 	gotTemplate := templates[0].Content
 
 	if gotTemplate != wantTemplate {
@@ -117,15 +125,7 @@ func TestStack_BootstrapTemplates(t *testing.T) {
 }
 
 func TestStack_ApplyTemplate(t *testing.T) {
-	bs, err := newDoBaseStack()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	st, err := newStack(bs)
-	if err != nil {
-		t.Fatal(err)
-	}
+	log := logging.NewCustom("test", true)
 
 	cred := &stack.Credential{
 		Credential: &Credential{
@@ -137,10 +137,68 @@ func TestStack_ApplyTemplate(t *testing.T) {
 		},
 	}
 
-	// we just run the function to catch any c
-	_, err = st.ApplyTemplate(cred)
-	if err != nil {
-		t.Fatal(err)
+	cases := map[string]struct {
+		stackFile string
+		wantFile  string
+	}{
+		"basic stack": {
+			"testdata/basic-stack.json",
+			"testdata/basic-stack.json.golden",
+		},
+		"basic stack count 2": {
+			"testdata/basic-stack-count-2.json",
+			"testdata/basic-stack-count-2.json.golden",
+		},
+	}
+
+	for name, cas := range cases {
+		t.Run(name, func(t *testing.T) {
+			content, err := ioutil.ReadFile(cas.stackFile)
+			if err != nil {
+				t.Fatalf("ReadFile(%s)=%s", cas.stackFile, err)
+			}
+
+			want, err := ioutil.ReadFile(cas.wantFile)
+			if err != nil {
+				t.Fatalf("ReadFile(%s)=%s", cas.wantFile, err)
+			}
+
+			template, err := provider.ParseTemplate(string(content), log)
+			if err != nil {
+				t.Fatalf("ParseTemplate()=%s", err)
+			}
+
+			s := &Stack{
+				BaseStack: &provider.BaseStack{
+					Session: &session.Session{
+						Userdata: &userdata.Userdata{
+							KlientURL: "http://127.0.0.1/klient.gz",
+							Keycreator: &keycreator.Key{
+								KontrolURL:        "http://127.0.0.1/kontrol/kite",
+								KontrolPublicKey:  testkeys.Public,
+								KontrolPrivateKey: testkeys.Private,
+							},
+						},
+					},
+					Builder: &provider.Builder{
+						Template: template,
+					},
+					Req: &kite.Request{
+						Username: "user",
+					},
+					KlientIDs: make(stack.KiteMap),
+				},
+			}
+
+			stack, err := s.ApplyTemplate(cred)
+			if err != nil {
+				t.Fatalf("ApplyTemplate()=%s", err)
+			}
+
+			if err := equal(stack.Content, string(want)); err != nil {
+				t.Fatal(err)
+			}
+		})
 	}
 }
 
@@ -203,4 +261,93 @@ func newDoBaseStack() (*provider.BaseStack, error) {
 		},
 		KlientIDs: stack.KiteMap(map[string]string{}),
 	}, nil
+}
+
+func equal(got, want string) error {
+	var v1, v2 interface{}
+
+	if err := json.Unmarshal([]byte(got), &v1); err != nil {
+		return err
+	}
+
+	if err := json.Unmarshal([]byte(want), &v2); err != nil {
+		return err
+	}
+
+	stripNondeterministicResources(v1)
+	stripNondeterministicResources(v2)
+
+	if !reflect.DeepEqual(v1, v2) {
+		p1, err := json.MarshalIndent(v1, "", "\t")
+		if err != nil {
+			panic(err)
+		}
+
+		p2, err := json.MarshalIndent(v2, "", "\t")
+		if err != nil {
+			panic(err)
+		}
+
+		return fmt.Errorf("got:\n%s\nwant:\n%s\n", p1, p2)
+	}
+
+	return nil
+}
+
+// stripNondeterministicResources sets the following fields to "...",
+// as they change between test runs:
+//
+//   - resource.digitalocean_droplet.*.user_data
+//   - variable.kitekeys_*.default.*
+//
+func stripNondeterministicResources(v interface{}) {
+	m, ok := v.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	resource, ok := m["resource"].(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	instance, ok := resource["digitalocean_droplet"].(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	for _, v := range instance {
+		vm, ok := v.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		vm["user_data"] = "..."
+		vm["name"] = "..."
+	}
+
+	variable, ok := m["variable"].(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	for name, v := range variable {
+		if !strings.HasPrefix(name, "kitekeys_") {
+			continue
+		}
+
+		v, ok := v.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		list, ok := v["default"].(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		for i := range list {
+			list[i] = "..."
+		}
+	}
 }
