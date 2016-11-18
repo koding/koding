@@ -238,7 +238,7 @@ func stripNondeterministicResources(v interface{}) {
 	}
 
 	for name, v := range variable {
-		if !strings.HasPrefix(name, "kitekeys_") {
+		if !strings.HasPrefix(name, "kitekeys_") && !strings.HasPrefix(name, "passwords_") {
 			continue
 		}
 

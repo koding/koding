@@ -27,6 +27,7 @@
         "image": "Ubuntu Server 14.04 LTS",
         "location": "",
         "name": "...",
+        "password": "${lookup(var.passwords_example-instance, count.index)}",
         "security_group": "security-group",
         "size": "Basic_A1",
         "ssh_key_thumbprint": "12:23:45:56:67:89:90",
@@ -47,6 +48,11 @@
   },
   "variable": {
     "kitekeys_example-instance": {
+      "default": {
+        "0": "..."
+      }
+    },
+    "passwords_example-instance": {
       "default": {
         "0": "..."
       }

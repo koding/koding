@@ -181,20 +181,13 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 			}
 		}
 
-		// Set password if not provided explicitely.
-		if pass, ok := vm["password"]; !ok || pass == "" {
-			if cred.Password != "" {
-				vm["password"] = cred.Password
-			} else {
-				vm["password"] = utils.RandomString()
-			}
-		}
+		s.injectPasswords(vm, cred, "passwords_"+name)
 
 		s.injectBoostrap(vm, cred, boot)
 
 		s.injectEndpointRules(vm)
 
-		kiteKeyName := fmt.Sprintf("kitekeys_%s", name)
+		kiteKeyName := "kitekeys_" + name
 
 		kites, err := s.injectCloudInit(vm, name, kiteKeyName)
 		if err != nil {
@@ -257,6 +250,35 @@ func (s *Stack) injectBoostrap(vm map[string]interface{}, cred *Cred, boot *Boot
 
 	if u, ok := vm["username"]; !ok || u == "" {
 		vm["username"] = s.Req.Username
+	}
+}
+
+func (s *Stack) injectPasswords(vm map[string]interface{}, cred *Cred, passwordVar string) {
+	pass, ok := vm["password"]
+	if ok && pass != "" {
+		return
+	}
+
+	count := 1
+	if n, ok := vm["count"].(int); ok && n > 1 {
+		count = n
+	}
+
+	passwords := make(map[string]string, count)
+
+	for i := 0; i < count; i++ {
+		pass := cred.Password
+		if pass == "" {
+			pass = utils.Pwgen(16)
+		}
+
+		passwords[strconv.Itoa(i)] = pass
+	}
+
+	vm["password"] = "${lookup(var." + passwordVar + ", count.index)}"
+
+	s.Builder.Template.Variable[passwordVar] = map[string]interface{}{
+		"default": passwords,
 	}
 }
 
