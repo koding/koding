@@ -1,6 +1,6 @@
 # Connect Koding on Koding
 
-Staying true to our tagline of “Say goodbye to localhost”, we’ve moved development of koding.com from our local machines to team on koding.com. It’s a big undertaking, but it’s necessary to do it to understand the day to day experience of using teams on koding.com. Support for local development (boot2docker) is now deprecated and will be removed very soon.
+We’ve moved development of koding.com from our local machines to team on koding.com. It’s a big undertaking, but it’s necessary to do it to understand the day to day experience of using teams on koding.com. Support for local development (boot2docker) is now deprecated and will be removed very soon.
 
 You should have been invited to [team.koding.com](https://team.koding.com) already. Please do the following:
 
