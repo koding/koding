@@ -10,10 +10,4 @@ module.exports = (site) ->
     <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1" />
     '''
 
-  switch site
-
-    when 'landing'   then tags += require './tags/landing'
-    when 'hackathon' then tags += require './tags/hackathon'
-    else tags += ''
-
-  return tags
+  tags += require './tags/landing'
