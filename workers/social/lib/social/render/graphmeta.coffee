@@ -3,10 +3,10 @@ encoder = require 'htmlencode'
 { uri, domains, client: { version } } = require 'koding-config-manager'
 
 module.exports = (options = {}) ->
-  options.title ?= 'Koding | Say goodbye to your localhost and write code in the cloud.'
+  options.title ?= 'Modern Dev Environment Delivered · Koding'
   options.shareUrl ?= "https://#{domains.base}"
   options.image ?= "#{uri.address}/a/images/logos/share_logo.png"
-  options.body ?= 'Koding is a developer community and cloud development environment where developers come together and code in the browser.'
+  options.body ?= 'Instantly create, share, scale and manage development environments'
 
   """
   <meta name="keywords" content="Web IDE, Cloud VM, VM, VPS, Ruby, Node, PHP, Python, WordPress, Django, Programming, virtual machines">
