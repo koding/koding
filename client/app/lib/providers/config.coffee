@@ -251,6 +251,39 @@ module.exports = globals.config.providers =
           { title: 'Premium Locally redundant storage (P_LRS)',  value: 'Premium_LRS' }
         ]
 
+  marathon                 :
+    name                   : 'Marathon'
+    link                   : 'https://mesosphere.github.io/marathon/'
+    title                  : 'Marathon Credential'
+    color                  : '#B52025'
+    supported              : yes
+    enabled                : 'beta'
+    defaultTemplate        : require './templates/marathon'
+    description            : 'A container orchestration platform for Mesos and DC/OS'
+    advancedFields         : [
+      'request_timeout',
+      'deployment_timeout'
+    ]
+    credentialFields       :
+      url                  :
+        label              : 'URL'
+        placeholder        : 'url of marathon application'
+      basic_auth_user      :
+        label              : 'Basic Auth User'
+        placeholder        : 'basic auth user for marathon'
+        required           : no
+      basic_auth_password  :
+        label              : 'Basic Auth Password'
+        type               : 'password'
+        placeholder        : 'basic auth password for marathon'
+        required           : no
+      request_timeout      :
+        label              : 'Req. Timeout'
+        placeholder        : 'request timeout value in seconds'
+      deployment_timeout   :
+        label              : 'Deploy Timeout'
+        placeholder        : 'deploy timeout value in seconds'
+
   rackspace                :
     name                   : 'Rackspace'
     link                   : 'http://www.rackspace.com'

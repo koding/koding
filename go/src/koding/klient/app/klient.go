@@ -382,7 +382,7 @@ func (k *Klient) RegisterMethods() {
 	// don't allow anyone to call a method if we are during an update.
 	k.kite.PreHandleFunc(func(r *kite.Request) (interface{}, error) {
 		// Koding (kloud) connects to much, don't display it.
-		if r.Username != "koding" {
+		if r.Username != "koding" && !k.debug() {
 			k.log.Info("Kite '%s/%s/%s' called method: '%s'",
 				r.Username, r.Client.Environment, r.Client.Name, r.Method)
 		}
@@ -552,6 +552,22 @@ func (k *Klient) registerURL() (u *url.URL, err error) {
 	return u, nil
 }
 
+func (k *Klient) tunnelID() string {
+	if k.config.TunnelName != "" {
+		return k.config.TunnelName
+	}
+
+	return konfig.Konfig.TunnelID
+}
+
+func (k *Klient) debug() bool {
+	if k.config.Debug {
+		return true
+	}
+
+	return konfig.Konfig.Debug
+}
+
 func (k *Klient) tunnelOptions() (*tunnel.Options, error) {
 	ip, err := k.PublicIP()
 	if err != nil {
@@ -559,7 +575,7 @@ func (k *Klient) tunnelOptions() (*tunnel.Options, error) {
 	}
 
 	opts := &tunnel.Options{
-		TunnelName:    k.config.TunnelName,
+		TunnelName:    k.tunnelID(),
 		TunnelKiteURL: k.config.TunnelKiteURL,
 		PublicIP:      ip,
 		Debug:         k.config.Debug,
@@ -609,7 +625,7 @@ func (k *Klient) Run() {
 		log.Fatal(err)
 	}
 
-	if !isAWS && !isKoding && !k.config.NoTunnel {
+	if (!isAWS && !isKoding && !k.config.NoTunnel) || k.tunnelID() != "" {
 		opts, err := k.tunnelOptions()
 		if err != nil {
 			log.Fatal(err)

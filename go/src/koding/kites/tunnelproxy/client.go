@@ -12,6 +12,7 @@ import (
 
 	"github.com/cenkalti/backoff"
 	"github.com/koding/kite"
+	"github.com/koding/kite/config"
 	"github.com/koding/logging"
 	"github.com/koding/tunnel"
 )
@@ -135,8 +136,18 @@ func NewClient(opts *ClientOptions) (*Client, error) {
 		optsCopy.Log = logging.NewCustom("tunnelclient", optsCopy.Debug)
 	}
 
+	// TODO(rjeczalik): fix production to use WebSocket by default
+	//
+	// BUG(rjeczalik): starting a kite that is not registered to
+	// kontrol will prevent the kite from updating it's keypair,
+	// when it changes in kontrol - the only fix is to restart
+	// kite process.
+	k := kite.New("tunnelclient", "0.0.1")
+	k.Config = optsCopy.Kite.Config.Copy()
+	k.Config.Transport = config.WebSocket
+
 	c := &Client{
-		kite:          optsCopy.Kite,
+		kite:          k,
 		opts:          &optsCopy,
 		tunnelKiteURL: optsCopy.tunnelKiteURL(),
 		stateChanges:  make(chan *tunnel.ClientStateChange, 128),

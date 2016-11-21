@@ -135,7 +135,11 @@ func screenSessions(username string) []string {
 
 	// We need to use ls here, because /var/run/screen mount is only
 	// visible from inside of container. Errors are ignored.
-	out, _ := exec.Command("ls", "/var/run/screen/S-"+username).Output()
+	out, err := exec.Command("ls", "/var/run/screen/S-"+username).Output()
+	if err != nil {
+		log.Printf("terminal: listing sessions failed: %s", err)
+	}
+
 	shellOut := string(bytes.TrimSpace(out))
 	if shellOut == "" {
 		return []string{}
