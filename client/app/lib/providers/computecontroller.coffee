@@ -999,10 +999,8 @@ module.exports = class ComputeController extends KDController
           @emit 'StacksInconsistent', stack
 
 
-  sharingStackTemplate: (_id, type) ->
-    remote.api.JStackTemplate.one { _id }, (err, template) ->
-      template.setAccess type
-
+  setStackTemplateAccessLevel: (template, type) ->
+    template.setAccess type
 
 
   sharedStackTemplateAccessLevel: (params) ->
@@ -1261,8 +1259,6 @@ module.exports = class ComputeController extends KDController
 
   makeTeamDefault: (stackTemplate, revive) ->
 
-    if revive
-      stackTemplate = remote.revive stackTemplate
     { credentials, config: { requiredProviders } } = stackTemplate
 
     { groupsController, reactor } = kd.singletons
@@ -1433,9 +1429,8 @@ module.exports = class ComputeController extends KDController
       kd.warn err  if err
       callback null, @_soloMachines
 
-  deleteStackTemplate: (template, revive = no) ->
 
-    template = remote.revive template  if revive
+  deleteStackTemplate: (template) ->
 
     { groupsController, computeController, router, reactor }  = kd.singletons
     currentGroup  = groupsController.getCurrentGroup()

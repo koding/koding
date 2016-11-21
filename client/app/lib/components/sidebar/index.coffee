@@ -100,18 +100,18 @@ module.exports = class Sidebar extends React.Component
         EnvironmentFlux.actions.generateStack(id).then ({ template }) ->
           appManager.tell 'Stackeditor', 'reloadEditor', template._id
       when 'Clone'
-        EnvironmentFlux.actions.cloneStackTemplate draft.toJS(), yes
+        EnvironmentFlux.actions.cloneStackTemplate remote.revive draft.toJS()
       when 'Open on GitLab'
         remoteUrl = draft.getIn ['config', 'remoteDetails', 'originalUrl']
         linkController.openOrFocus remoteUrl
       when 'Make Team Default'
-        computeController.makeTeamDefault draft.toJS(), yes
+        computeController.makeTeamDefault remote.revive draft.toJS()
       when 'Delete'
-        computeController.deleteStackTemplate draft.toJS(), yes
+        computeController.deleteStackTemplate remote.revive draft.toJS()
       when 'Share With Team'
-        computeController.sharingStackTemplate draft.get('_id'), 'group'
+        computeController.setStackTemplateAccessLevel remote.revive(draft.toJS()), 'group'
       when 'Make Private'
-        computeController.sharingStackTemplate draft.get('_id'), 'private'
+        computeController.setStackTemplateAccessLevel remote.revive(draft.toJS()), 'private'
 
 
 

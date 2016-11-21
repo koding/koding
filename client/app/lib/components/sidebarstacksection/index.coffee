@@ -94,10 +94,10 @@ module.exports = class SidebarStackSection extends React.Component
           # invalidate editor cache
           appManager.tell 'Stackeditor', 'reloadEditor', templateId
       when 'Clone'
-        remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
-          if err
-            return new kd.NotificationView { title: 'Error occured while cloning template' }
-          EnvironmentFlux.actions.cloneStackTemplate template, no
+        computeController.fetchStackTemplate templateId, (err, template) =>
+          return @onMenuItemClickError 'cloning'  if err
+
+          EnvironmentFlux.actions.cloneStackTemplate template
       when 'Destroy VMs' then deleteStack { stack }
       when 'VMs'
         firstMachineId = stack.get('machines').first.get '_id'
@@ -106,12 +106,26 @@ module.exports = class SidebarStackSection extends React.Component
         remoteUrl = stack.getIn ['config', 'remoteDetails', 'originalUrl']
         linkController.openOrFocus remoteUrl
       when 'Make Team Default'
-        remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
-          computeController.makeTeamDefault template, no  unless err
+        computeController.fetchStackTemplate templateId, (err, template) =>
+          return @onMenuItemClickError 'making team default'  if err
+
+          computeController.makeTeamDefault template  unless err
       when 'Share With Team'
-        computeController.sharingStackTemplate templateId, 'group'
+        computeController.fetchStackTemplate templateId, (err, template) =>
+          return @onMenuItemClickError 'sharing'  if err
+
+          computeController.setStackTemplateAccessLevel template, 'group'
       when 'Make Private'
-        computeController.sharingStackTemplate templateId, 'private'
+        computeController.fetchStackTemplate templateId, (err, template) =>
+          return @onMenuItemClickError 'cloning'  if err
+
+          computeController.setStackTemplateAccessLevel template, 'private'
+
+
+
+  onMenuItemClickError: (name) ->
+
+    return new kd.NotificationView { title: "Error occured while #{name} template" }
 
 
   onTitleClick: (event) ->

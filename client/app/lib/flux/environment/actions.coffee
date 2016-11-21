@@ -818,12 +818,11 @@ setLabel = (machineUId, label) ->
         return reject err  if err
         resolve newLabel
 
-cloneStackTemplate = (template, revive) ->
+cloneStackTemplate = (template) ->
 
   new kd.NotificationView { title:'Cloning Stack Template' }
 
   { reactor } = kd.singletons
-  template = remote.revive template  if revive
 
   template.clone (err, stackTemplate) ->
     if err
