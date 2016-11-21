@@ -18,7 +18,7 @@ function init_mongodb() {
     tar --extract --bzip2 --directory /tmp/
 
   service mongodb start
-  /opt/wait.sh mongo
+  /opt/koding/wait.sh mongo
 
   mongorestore /tmp/dump
 
@@ -52,7 +52,7 @@ trap handle_interrupt INT TERM
 function run_backend(){
   init_databases
   start_services
-  ./run exec scripts/check-service-connectivity.sh
+  sleep 20
   nginx -c $(pwd)/nginx.conf
   ./run migrate up
   ./run exec supervisord -c supervisord.conf
@@ -61,10 +61,20 @@ function run_backend(){
 }
 
 if [[ -z "$*" ]]; then
-  ./configure --host localhost --hostname localhost --publicPort 80
+  git fetch origin
+  git checkout -fq $TEST_SHA
+  ver=${TEST_SHA:0:8}
+  echo $ver > VERSION
+  npm install --unsafe-perm
+  ./configure --host $TEST_HOSTNAME --hostname $TEST_HOSTNAME --publicPort 80 --version $ver
+  go/build.sh
+  make -C client dist
   run_backend
 elif [[ "${1:0:1}" = '-' ]]; then
   ./configure $*
+  run_backend
+elif [[ $1 = "simple" ]]; then
+  ./configure --host localhost --hostname localhost --publicPort 80
   run_backend
 else
   exec "$@"
