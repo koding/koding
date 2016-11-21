@@ -74,6 +74,20 @@ module.exports = class ComputeProvider extends Base
     callback null, Object.keys PROVIDERS
 
 
+  # pings to requested provider implementation
+  #
+  # @param {Object} options
+  #   generic options for ComputeProvider calls should include
+  #   the provider slug as parameter
+  #
+  # @option options [String] provider provider slug
+  #
+  # @example api
+  #
+  #   {
+  #     "provider": "aws"
+  #   }
+  #
   @ping = (client, options, callback) ->
 
     { provider } = options
@@ -87,6 +101,30 @@ module.exports = class ComputeProvider extends Base
     }, @ping
 
 
+  # creates a JMachine for requested provider with the provided options
+  #
+  # @param {Object} options
+  #   generic options for ComputeProvider calls should include
+  #   the provider slug as parameter
+  #
+  # @option options [String] provider provider slug
+  #
+  # @example api
+  #
+  #   {
+  #     "provider": "aws",
+  #     "label": "My new Machine",
+  #     "stack": "ID_OF_TARGET_STACK",
+  #     "credential": "ID_OF_CREDENTIAL",
+  #     "meta": {
+  #       "instance_type": "t2.micro",
+  #       "region": "us-east-1",
+  #       "image": "ami-XXXX",
+  #       "storage_size": 10
+  #     }
+  #   }
+  #
+  @create = ->
   @create = revive
 
     shouldReviveClient       : yes
