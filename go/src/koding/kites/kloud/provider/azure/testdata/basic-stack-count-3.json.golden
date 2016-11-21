@@ -8,6 +8,7 @@
   "resource": {
     "azure_instance": {
       "example-instance": {
+        "count": 3,
         "custom_data": "...",
         "endpoint": [
           {
@@ -49,12 +50,16 @@
   "variable": {
     "kitekeys_example-instance": {
       "default": {
-        "0": "..."
+        "0": "...",
+        "1": "...",
+        "2": "..."
       }
     },
     "passwords_example-instance": {
       "default": {
-        "0": "..."
+        "0": "...",
+        "1": "...",
+        "2": "..."
       }
     }
   }
