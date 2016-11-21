@@ -61,14 +61,31 @@ Make sure to copy your generated token, Digital Ocean will not show your persona
 
 ![initialize stack][10]
 
-9. You can choose to share your own Digital Ocean **Access Token** with your team, this is useful in case you want to have all instances created by your team to be under your Digital Ocean account.
+9. You can choose to share your own Digital Ocean **Access Token** with your team, this is useful in case you want to have all instances created by your team to be under your Digital Ocean account. If you agree, keep the share credentials check box ticked, if not, make sure to uncheck this option. Then click **Share With The Team** to share your stack.
 
 ![Share credentials?][11]
 
+10. Now it's time to build our stack. You will see the first message displayed in the Build Stack is what we entered earlier in our Readme tab when creating the stack. Click **Next**
 
+![Build VM Read me][12]
 
-14. Click on **Build Stack** and your new Stack will start building..
-15. Congratulations, your Stack was successfully built and you can now use your new VM !
+11. Make sure the correct token is chosen (you can save multiple access tokens) and click **Build Stack**
+
+![Build Stack][13]
+
+12. Your VM will start building..
+
+![Stack is building][14]
+
+13. Click **Start Coding** to begin using your VM
+
+![Stack building complete][15]
+
+15. Congratulations, your Stack was successfully built and you can now use your new VM!
+
+16. If you check your Digital Ocean account, you will see the new VM under your droplets.
+
+![Stack building complete][17]
 
 ## This is the default stack template for Digital Ocean stacks
 
@@ -116,7 +133,10 @@ resource:
 [9]: {{ site.url }}/assets/img/guides/digitalocean/do-saved.png
 [10]: {{ site.url }}/assets/img/guides/digitalocean/do-saved-initialize.png
 [11]: {{ site.url }}/assets/img/guides/digitalocean/do-share-stack.png
-[12]: {{ site.url }}/assets/img/guides/digitalocean/
-[13]: {{ site.url }}/assets/img/guides/digitalocean/
-[14]: {{ site.url }}/assets/img/guides/digitalocean/
+[12]: {{ site.url }}/assets/img/guides/digitalocean/do-build-vm-1.png
+[13]: {{ site.url }}/assets/img/guides/digitalocean/do-build-vm-2.png
+[14]: {{ site.url }}/assets/img/guides/digitalocean/do-build-vm-4.png
+[15]: {{ site.url }}/assets/img/guides/digitalocean/do-build-vm-done.png
+[16]: {{ site.url }}/assets/img/guides/digitalocean/
+[17]: {{ site.url }}/assets/img/guides/digitalocean/do-build-vm-doside.png
 [100]: https://www.digitalocean.com
