@@ -1201,7 +1201,7 @@ data = {
   "jGroups": [
     {
       "_id": ObjectId("5196fcb2bc9bdb0000000027"),
-      "body": "Say goodbye to your localhost",
+      "body": "Modern Dev Environment Delivered · Koding",
       "counts": {
         "members": 3
       },

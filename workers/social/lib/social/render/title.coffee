@@ -2,6 +2,6 @@ encoder = require 'htmlencode'
 
 module.exports = (options = {}, callback) ->
 
-  options.title or= 'Koding | Say goodbye to your localhost and write code in the cloud.'
+  options.title or= 'Modern Dev Environment Delivered · Koding'
 
   """<title>#{encoder.XSSEncode options.title}</title>"""
