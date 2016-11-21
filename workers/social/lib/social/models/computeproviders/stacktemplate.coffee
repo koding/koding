@@ -323,7 +323,7 @@ module.exports = class JStackTemplate extends Module
           return callback err, this  if err or not group_
 
           opts = { id, group: group.slug, change: query, timestamp: Date.now() }
-          group_.sendNotification 'SetStackTemplateAccessLevel', opts
+          group_.sendNotification 'SharedStackTemplateAccessLevel', opts
           callback err, this
 
 

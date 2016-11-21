@@ -72,7 +72,7 @@ module.exports = class ComputeController extends KDController
 
       groupsController.on 'StackTemplateChanged', @bound 'checkGroupStacks'
       groupsController.on 'StackAdminMessageCreated', @bound 'handleStackAdminMessageCreated'
-      groupsController.on 'SetStackTemplateAccessLevel', @bound 'setStackTemplateAccessLevel'
+      groupsController.on 'SharedStackTemplateAccessLevel', @bound 'sharedStackTemplateAccessLevel'
 
       @fetchStacks =>
 
@@ -1004,8 +1004,8 @@ module.exports = class ComputeController extends KDController
       template.setAccess type
 
 
-  setStackTemplateAccessLevel: (params) ->
 
+  sharedStackTemplateAccessLevel: (params) ->
     { reactor } = kd.singletons
     { contents: { id: _id, change: { $set: { accessLevel } } } } = params
 
