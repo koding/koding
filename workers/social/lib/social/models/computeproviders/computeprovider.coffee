@@ -1,6 +1,3 @@
-# coffeelint: disable=cyclomatic_complexity
-# FIXME ~GG ^^
-
 { Base, secure, signature } = require 'bongo'
 
 KONFIG       = require 'koding-config-manager'
@@ -207,6 +204,25 @@ module.exports = class ComputeProvider extends Base
     provider.remove client, options, callback
 
 
+  addGroupAdmin = (group, machineInfo, callback) ->
+
+    # TODO Do we need all admins or only some of them? ~ GG
+    # Maybe some of them as admin some of them as user etc.
+    group.fetchAdmin (err, admin) ->
+
+      if not err and admin and not admin.getId().equals account.getId()
+        admin.fetchUser (err, adminUser) ->
+          if not err and adminUser
+            machineInfo.users = [{
+              id       : adminUser.getId(),
+              username : adminUser.username,
+              sudo     : yes, owner: yes
+            }]
+          callback machineInfo
+      else
+        callback machineInfo
+
+
   @generateStackFromTemplate = (data, options, callback) ->
 
     { account, user, group, template, client } = data
@@ -280,25 +296,10 @@ module.exports = class ComputeProvider extends Base
 
           # This is optional, since for koding group for example
           # we don't want to add our admins into users machines ~ GG
-          unless options.addGroupAdminToMachines
-            return create machineInfo
-
-          # TODO Do we need all admins or only some of them? ~ GG
-          # Maybe some of them as admin some of them as user etc.
-          group.fetchAdmin (err, admin) ->
-
-            if not err and admin and not admin.getId().equals account.getId()
-              admin.fetchUser (err, adminUser) ->
-                if not err and adminUser
-                  machineInfo.users = [{
-                    id       : adminUser.getId(),
-                    username : adminUser.username,
-                    sudo     : yes, owner: yes
-                  }]
-                create machineInfo
-            else
-              create machineInfo
-
+          if options.addGroupAdminToMachines
+            addGroupAdmin group, machineInfo, (_machine) -> create _machine
+          else
+            create machineInfo
 
       async.series queue, -> callback null, { stack, results }
 
