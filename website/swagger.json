@@ -2744,7 +2744,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "Method JApiToken.create",
         "responses": {
           "200": {
@@ -2910,10 +2910,22 @@
         ],
         "parameters": [
           {
-            "$ref": "#/parameters/bodyParam"
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "provider": {
+                  "type": "string",
+                  "default": "aws"
+                }
+              }
+            },
+            "required": true,
+            "description": "body of the request"
           }
         ],
-        "description": "Method ComputeProvider.ping",
+        "description": "pings to requested provider implementation",
         "responses": {
           "200": {
             "description": "Request processed succesfully",
@@ -2940,10 +2952,57 @@
         ],
         "parameters": [
           {
-            "$ref": "#/parameters/bodyParam"
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "provider": {
+                  "type": "string",
+                  "default": "aws"
+                },
+                "label": {
+                  "type": "string",
+                  "default": "My new Machine"
+                },
+                "stack": {
+                  "type": "string",
+                  "default": "ID_OF_TARGET_STACK"
+                },
+                "credential": {
+                  "type": "string",
+                  "default": "ID_OF_CREDENTIAL"
+                },
+                "meta": {
+                  "type": "object",
+                  "properties": {
+                    "instance_type": {
+                      "type": "string"
+                    },
+                    "region": {
+                      "type": "string"
+                    },
+                    "image": {
+                      "type": "string"
+                    },
+                    "storage_size": {
+                      "type": "number"
+                    }
+                  },
+                  "default": {
+                    "instance_type": "t2.micro",
+                    "region": "us-east-1",
+                    "image": "ami-XXXX",
+                    "storage_size": 10
+                  }
+                }
+              }
+            },
+            "required": true,
+            "description": "body of the request"
           }
         ],
-        "description": "",
+        "description": "creates a JMachine for requested provider with the provided options",
         "responses": {
           "200": {
             "description": "Request processed succesfully",
@@ -3088,7 +3147,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "",
         "responses": {
           "200": {
@@ -3114,7 +3173,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "Method ComputeProvider.createGroupStack",
         "responses": {
           "200": {
@@ -3170,7 +3229,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "",
         "responses": {
           "200": {
@@ -4408,7 +4467,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "",
         "responses": {
           "200": {
@@ -6252,7 +6311,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "",
         "responses": {
           "200": {
@@ -6278,7 +6337,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "",
         "responses": {
           "200": {
@@ -6394,7 +6453,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "",
         "responses": {
           "200": {
@@ -6720,7 +6779,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "",
         "responses": {
           "200": {
@@ -6776,7 +6835,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "",
         "responses": {
           "200": {
@@ -6952,7 +7011,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "",
         "responses": {
           "200": {
@@ -6978,7 +7037,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "",
         "responses": {
           "200": {
@@ -7004,7 +7063,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "",
         "responses": {
           "200": {
@@ -7546,7 +7605,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "",
         "responses": {
           "200": {
@@ -7572,7 +7631,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "",
         "responses": {
           "200": {
@@ -7682,7 +7741,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "",
         "responses": {
           "200": {
@@ -9586,7 +9645,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "",
         "responses": {
           "200": {
@@ -10380,7 +10439,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "whoami\n\nReturns your JAccount instance based on the session data",
         "responses": {
           "200": {
@@ -10406,7 +10465,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "",
         "responses": {
           "200": {
@@ -10462,7 +10521,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "",
         "responses": {
           "200": {
@@ -10518,7 +10577,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "",
         "responses": {
           "200": {
@@ -10904,7 +10963,7 @@
         "consumes": [
           "application/json"
         ],
-        "parameters": null,
+        "parameters": [],
         "description": "",
         "responses": {
           "200": {

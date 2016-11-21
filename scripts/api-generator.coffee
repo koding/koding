@@ -152,6 +152,17 @@ generateMethodPaths = (model, definitions, paths, docs) ->
 
     if hasParams = signatures.length > 1 or signatures[0].split(',').length > 1
       parameters = [{ $ref: '#/parameters/bodyParam' }]
+      examples = docs[name]['static'][method]?.examples ? []
+      for example in examples when example.title is 'api'
+        parameters = [
+          {
+            in: 'body'
+            name: 'body'
+            schema: example.schema
+            required: true
+            description: 'body of the request'
+          }
+        ]
     else
       parameters = null
 
@@ -159,7 +170,7 @@ generateMethodPaths = (model, definitions, paths, docs) ->
       post:
         tags: [ name ]
         consumes: [ 'application/json' ]
-        parameters: parameters
+        parameters: parameters ? []
         description: docs[name]['static'][method]?.description ? ''
         responses:
           '200':
