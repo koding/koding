@@ -1,6 +1,26 @@
 #!/usr/bin/env coffee
 
 codo = require 'codo'
+generateSchema = require 'generate-schema'
+
+compileSample = (sample) ->
+  schema = generateSchema.json sample
+  delete schema['$schema']
+  for own field of schema.properties
+    schema.properties[field].default = sample[field]
+  return schema
+
+
+compileApiExamples = (examples) ->
+
+  for example, index in examples when example.title is 'api'
+    try
+      example.schema = compileSample JSON.parse example.code
+    catch e
+      console.log 'Failed to parse example:', example, e
+
+  return examples
+
 
 module.exports = docGen = (path, files) ->
 
@@ -26,7 +46,7 @@ module.exports = docGen = (path, files) ->
     else
       description = classDoc.comment  ? "Model #{klass.name}"
       parameters  = classDoc.params   ? []
-      examples    = classDoc.examples ? []
+      examples    = compileApiExamples (classDoc.examples ? [])
 
       doc[klass.name] = {
         description
@@ -51,6 +71,7 @@ module.exports = docGen = (path, files) ->
         parameters  : methodDoc.params  ? []
         returns     : methodDoc.returns ? {}
         options     : methodDoc.options ? {}
+        examples    : compileApiExamples (methodDoc.examples ? [])
 
 
   return { errors, doc }
