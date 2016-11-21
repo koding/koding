@@ -11,20 +11,21 @@
   <link href='css/screen.css' media='screen' rel='stylesheet' type='text/css'/>
   <link href='css/reset.css' media='print' rel='stylesheet' type='text/css'/>
   <link href='css/print.css' media='print' rel='stylesheet' type='text/css'/>
+  <link href='css/search.css' media='screen' rel='stylesheet' type='text/css'/>
+  <link href='css/theme-koding.css' media='screen' rel='stylesheet' type='text/css'/>
 
-  <link rel="stylesheet" href="css/theme-flattop.css" />
-
-  <script src='lib/object-assign-pollyfill.js' type='text/javascript'></script>
   <script src='lib/jquery-1.8.0.min.js' type='text/javascript'></script>
   <script src='lib/jquery.slideto.min.js' type='text/javascript'></script>
   <script src='lib/jquery.wiggle.min.js' type='text/javascript'></script>
   <script src='lib/jquery.ba-bbq.min.js' type='text/javascript'></script>
+  <script src='lib/jquery.sieve.js' type='text/javascript'></script>
   <script src='lib/handlebars-4.0.5.js' type='text/javascript'></script>
   <script src='lib/lodash.min.js' type='text/javascript'></script>
   <script src='lib/backbone-min.js' type='text/javascript'></script>
   <script src='swagger-ui.js' type='text/javascript'></script>
   <script src='lib/highlight.9.1.0.pack.js' type='text/javascript'></script>
   <script src='lib/highlight.9.1.0.pack_extended.js' type='text/javascript'></script>
+  <script src='lib/object-assign-pollyfill.js' type='text/javascript'></script>
   <script src='lib/jsoneditor.min.js' type='text/javascript'></script>
   <script src='lib/cookies.js' type='text/javascript'></script>
   <script src='lib/marked.js' type='text/javascript'></script>
@@ -46,7 +47,7 @@
         url: url,
         dom_id: "swagger-ui-container",
         supportedSubmitMethods: ['get', 'post'],
-        docExpansion: "list",
+        docExpansion: "none",
         jsonEditor: false,
         validatorUrl: null,
         enableCookies: true,
@@ -55,6 +56,22 @@
         showRequestHeaders: true,
         onComplete: function() {
           checkKodingLogin();
+
+          $('pre code').each(function(i, e) {
+            hljs.highlightBlock(e)
+          });
+
+          var searchTemplate = "<div class='filter'><fieldset class='search'><input type='text' placeholder='Search for methods... '><button type='submit'><i class='icon-search'></i></button></fieldset></div>";
+
+          $("#swagger-ui-container").find(">div>ul").sieve({
+            itemSelector: "li",
+            searchTemplate: searchTemplate
+          });
+
+          $(".filter input").on("keypress", function() {
+           $("#resources > li > ul.endpoints").show();
+          });
+
         }
       });
 
