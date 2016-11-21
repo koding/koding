@@ -37,7 +37,7 @@ Your new team members will be able to use your stack to build their Koding VMs a
 
 ![Readme tab][4]
 
-5. You need to add your Digital Ocean account access token to the credentials tab. To do that, login to your Digital Ocean account and go to **API** --> **Token** and click **Generate New Token**
+5. You need to add your Digital Ocean account access token to the credentials tab. To do that, login to your Digital Ocean account and go to **API** --> **Tokens** and click **Generate New Token**
 
 ![DO access token][5]
 
@@ -49,11 +49,11 @@ Make sure to copy your generated token, Digital Ocean will not show your persona
 
 ![DO access token generated][7]
 
-6. Go to your **Credentials** tab on Koding for Teams, give your token a title and paste your Digital Ocean Token in the **Access Token** field and click **USE THIS & CONTINUE**
+6. Go to your **Credentials** tab on Koding for Teams, give your token a title and paste your Digital Ocean Token in the **Access Token** field and click **SAVE THIS & CONTINUE**
 
 ![Paste your access token][8]
 
-7. Click **Save** on the top-right to save your access token
+7. Click **Save** on the top-right to save your credentials
 
 ![Save access token][9]
 
@@ -61,11 +61,11 @@ Make sure to copy your generated token, Digital Ocean will not show your persona
 
 ![initialize stack][10]
 
-9. You can choose to share your own Digital Ocean **Access Token** with your team, this is useful in case you want to have all instances created by your team to be under your Digital Ocean account. If you agree, keep the share credentials check box ticked, if not, make sure to uncheck this option. Then click **Share With The Team** to share your stack.
+9. You can choose to share your own Digital Ocean **Access Token** with your team, this is useful in case you want to have all instances created by your team to be under your Digital Ocean account. If you agree, keep the "share the credentials" check box ticked, if not, make sure to uncheck this option. Then click **Share With The Team** to share your stack with your team.
 
 ![Share credentials?][11]
 
-10. Now it's time to build our stack. You will see the first message displayed in the Build Stack is what we entered earlier in our Readme tab when creating the stack. Click **Next**
+10. Now it's time to build our VMs. You will see a message displayed in the Build Stack window, this is what we earlier added to our Readme tab when creating the stack. Click **Next**
 
 ![Build VM Read me][12]
 
@@ -82,6 +82,8 @@ Make sure to copy your generated token, Digital Ocean will not show your persona
 ![Stack building complete][15]
 
 15. Congratulations, your Stack was successfully built and you can now use your new VM!
+
+![VM started][16]
 
 16. If you check your Digital Ocean account, you will see the new VM under your droplets.
 
@@ -137,6 +139,6 @@ resource:
 [13]: {{ site.url }}/assets/img/guides/digitalocean/do-build-vm-2.png
 [14]: {{ site.url }}/assets/img/guides/digitalocean/do-build-vm-4.png
 [15]: {{ site.url }}/assets/img/guides/digitalocean/do-build-vm-done.png
-[16]: {{ site.url }}/assets/img/guides/digitalocean/
+[16]: {{ site.url }}/assets/img/guides/digitalocean/do-vm-started.png
 [17]: {{ site.url }}/assets/img/guides/digitalocean/do-build-vm-doside.png
 [100]: https://www.digitalocean.com
