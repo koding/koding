@@ -5,7 +5,7 @@ module.exports = {
     'instanceId': 'c37b525eb749dea52c5bd423f98f19e2'
   },
   'title': 'Koding',
-  'body': 'Say goodbye to your localhost',
+  'body': 'Modern Dev Environment Delivered · Koding',
   'socialApiChannelId': '6093214666459185153',
   'socialApiAnnouncementChannelId': '6093214666857644034',
   'slug': 'koding',

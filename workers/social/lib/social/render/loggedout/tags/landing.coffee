@@ -1,7 +1,7 @@
 KONFIG      = require 'koding-config-manager'
 { domains } = KONFIG
 origin      = domains.base
-title       = 'Koding | Say goodbye to your localhost and write code in the cloud'
+title       = 'Modern Dev Environment Delivered · Koding'
 shareUrl    = "https://#{origin}/"
 description = 'Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go,  Java, NodeJS, PHP, C, C++, Perl, Python, etc.'
 gpImage     = "#{origin}/a/site.landing/images/share.g+.jpg?#{KONFIG.version}"
