@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Koding API</title>
 
-  <link rel="icon" type="image/png" href="/a/images/favicon.ico" sizes="48x48" />
+  <link rel="icon" type="image/png" href="images/favicon.ico" sizes="48x48" />
   <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,700|Roboto:400,700" rel="stylesheet">
 
   <link href='css/reset.css' media='screen' rel='stylesheet' type='text/css'/>
@@ -156,7 +156,7 @@
           $.ajax({
             url: '/Login',
             data: {
-              groupName: team ? team : 'koding',
+              groupName: team,
               username: username,
               password: password,
               _csrf: csrfToken
@@ -214,7 +214,10 @@
         var username = $('input[name=username]').val(),
             password = $('input[name=password]').val(),
             team     = $('input[name=team]').val();
-        loginToKoding(team, username, password);
+        if (!username || !password || !team)
+          loginFailed('Missing data provided');
+        else
+          loginToKoding(team, username, password);
       });
 
       $('#logout-button').click(function(event) {
@@ -228,7 +231,7 @@
 <body class="swagger-section">
   <div id="login-box">
     <form id="login-form" action="/Login" method="post" style='display: none;'>
-      <input name="team" placeholder="team" value="koding" />
+      <input name="team" placeholder="team" />
       <input name="username" placeholder="username" />
       <input name="password" placeholder="password" type="password" />
       <button type="submit">Login</button>
