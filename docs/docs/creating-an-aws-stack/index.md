@@ -21,23 +21,10 @@ parent: /docs/home
 
 ![step002.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step002.png)
 
-3. The stack builder guide will open, click **Create A New Stack**
-
-![step003.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step003.png)
-
 4. Click **amazon web services** and click **Next**
 
 ![step004.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step004.png)
 
-5. You can now choose your machine type and add any extra configurations or services that you want installed on your machine.
-  - Machine Types
-    1.  t2.nano
-    2.  t2.micro
-    3.  t2.small
-    4.  t2.medium
-    ![step005.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step005.png)
-6.  Pull your project codebase, you can pull your code to your machine directly from one of the below providers. If you do not have your code hosted on any of them or you do not wish to pull your code now, click **Next**.
-![step006.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step006.png "step5.png")
 7.  You can give your stack a name by clicking on the **Stack Name**. In this modal you will find _four tabs_:
 
     1.  **Stack template**: configuration file for your VMs
