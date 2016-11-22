@@ -5,6 +5,7 @@ require 'coffee-cache'
 fs     = require 'fs'
 bongo  = require '../servers/lib/server/bongo'
 docGen = require './docgen'
+{ expect } = require 'chai'
 
 swagger =
   swagger: '2.0'
@@ -200,45 +201,81 @@ generateMethodPaths = (model, definitions, paths, docs) ->
             schema: schema
 
 
-bongo.on 'apiReady', ->
+module.exports = generateApi = (callback) ->
 
-  definitions = swagger.definitions
-  paths       = swagger.paths
-  tags        = swagger.tags
-  docs        = docGen bongo.modelPaths[0], bongo.modelFiles
+  bongo.on 'apiReady', ->
 
-  if docs.errors.length > 0
-    console.log 'Generated docs has some issues:', doc.errors
+    definitions = swagger.definitions
+    paths       = swagger.paths
+    tags        = swagger.tags
+    docs        = docGen bongo.modelPaths[0], bongo.modelFiles
+
+    if docs.errors.length > 0
+      return callback
+        message: 'Docs has errors!'
+        details: { error: doc.errors }
+    else
+      docs = docs.doc
+
+    for name, model of bongo.models
+
+      swagger.tags.push {
+        description: docs[name].description
+        name
+      }
+
+      try
+        if model.schema? and model.describeSchema?
+          definitions[name] = generateDefinition model
+      catch error
+        schema = bongo.models[name].describeSchema()
+        return callback
+          message: 'Failed while building definitions!'
+          details: { name, error, schema }
+
+      try
+        generateMethodPaths model, definitions, paths, docs
+      catch error
+        methods = bongo.models[name].getSharedMethods()
+        return callback
+          message: 'Failed while building methods!'
+          details: { name, error, methods }
+
+        process.exit()
+
+    swagger.paths = paths
+    swagger.definitions = definitions
+
+    callback null, swagger
+
+
+unless module.parent
+
+  generateApi (err, swagger) ->
+
+    if err
+      console.error err
+      process.exit 1
+
+    swaggerInJson = JSON.stringify swagger, ' ', 2
+
+    if process.argv[2] is '--check'
+      try
+        oldDataInJson = (fs.readFileSync 'website/swagger.json').toString()
+        oldData = JSON.parse oldDataInJson
+        expect(oldData).to.deep.equal swagger
+        console.log 'Swagger.json is up-to-date'
+      catch e
+        console.error '''
+          Swagger.json is outdated. Please run following to update it;
+
+            ./run exec scripts/api-generator.coffee
+
+        '''
+        process.exit 1
+
+    else
+      fs.writeFileSync 'website/swagger.json', swaggerInJson
+      console.log 'Swagger.json updated succesfully!'
+
     process.exit()
-  else
-    docs = docs.doc
-
-  for name, model of bongo.models
-
-    swagger.tags.push {
-      description: docs[name].description
-      name
-    }
-
-    try
-      if model.schema? and model.describeSchema?
-        definitions[name] = generateDefinition model
-    catch e
-      console.log 'Failed while building definitions:', name, e
-      console.log 'Schema was:', bongo.models[name].describeSchema()
-      process.exit()
-
-    try
-      generateMethodPaths model, definitions, paths, docs
-    catch e
-      console.log 'Failed while building methods:', name, e
-      console.log 'Methods were:', bongo.models[name].getSharedMethods()
-      process.exit()
-
-  swagger.paths = paths
-  swagger.definitions = definitions
-
-  fs.writeFileSync 'website/swagger.json', JSON.stringify swagger, ' ', 2
-
-  console.log 'Swagger.json updated succesfully!'
-  process.exit()
