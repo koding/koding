@@ -2,7 +2,7 @@
   "resource": {
     "marathon_app": {
       "multi-app": {
-        "app_id": "/multi-app",
+        "app_id": "/multi-app-foobar-ident",
         "container": [
           {
             "docker": [
@@ -82,29 +82,36 @@
         },
         "fetch": [
           {
+            "cache": false,
+            "executable": false,
+            "uri": "$SCREEN_URL"
+          },
+          {
+            "cache": true,
+            "executable": false,
+            "uri": "$CERT_URL"
+          },
+          {
+            "cache": false,
+            "executable": false,
+            "uri": "$KLIENT_URL"
+          },
+          {
+            "cache": false,
             "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.1.sh"
           },
           {
+            "cache": false,
             "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.2.sh"
           },
           {
+            "cache": false,
             "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.3.sh"
           }
         ],
-        "health_checks": {
-          "health_check": [
-            {
-              "command": {
-                "value": "curl -f -X GET http://$$HOST:$${PORT_56789}/kite"
-              },
-              "max_consecutive_failures": 3,
-              "protocol": "COMMAND"
-            }
-          ]
-        },
         "mem": 128,
         "ports": [
           0,

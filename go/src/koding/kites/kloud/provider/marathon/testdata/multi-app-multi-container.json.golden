@@ -2,7 +2,7 @@
   "resource": {
     "marathon_app": {
       "multi-app": {
-        "app_id": "/multi-app/multi-app-${count.index + 1}",
+        "app_id": "/multi-app/multi-app-foobar-ident-${count.index + 1}",
         "container": [
           {
             "docker": [
@@ -88,53 +88,66 @@
         },
         "fetch": [
           {
+            "cache": false,
+            "executable": false,
+            "uri": "$SCREEN_URL"
+          },
+          {
+            "cache": true,
+            "executable": false,
+            "uri": "$CERT_URL"
+          },
+          {
+            "cache": false,
+            "executable": false,
+            "uri": "$KLIENT_URL"
+          },
+          {
+            "cache": false,
             "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.1.sh"
           },
           {
+            "cache": false,
             "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.2.sh"
           },
           {
+            "cache": false,
             "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.3.sh"
           },
           {
+            "cache": false,
             "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.4.sh"
           },
           {
+            "cache": false,
             "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.5.sh"
           },
           {
+            "cache": false,
             "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.6.sh"
           },
           {
+            "cache": false,
             "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.7.sh"
           },
           {
+            "cache": false,
             "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.8.sh"
           },
           {
+            "cache": false,
             "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.9.sh"
           }
         ],
-        "health_checks": {
-          "health_check": [
-            {
-              "command": {
-                "value": "curl -f -X GET http://$$HOST:$${PORT_56789}/kite"
-              },
-              "max_consecutive_failures": 3,
-              "protocol": "COMMAND"
-            }
-          ]
-        },
         "mem": 128,
         "ports": [
           0,

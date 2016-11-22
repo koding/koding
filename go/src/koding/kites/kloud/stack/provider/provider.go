@@ -11,6 +11,7 @@ import (
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/stack"
 
+	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"golang.org/x/net/context"
@@ -224,6 +225,14 @@ type BaseStack struct {
 	// to any other values.
 	SSHKeyPairFunc func(keypair *stack.SSHKeyPair) error
 
+	// StateFunc is used by HandleApply method to
+	// build a list of machines to update after
+	// a successful apply operation.
+	//
+	// If StateFunc is nil, default implementation
+	// is used, which is provided by (*Planner).MachinesFromState.
+	StateFunc func(*terraform.State, map[string]*DialState) (map[string]*stack.Machine, error)
+
 	stack Stack
 }
 
@@ -233,6 +242,14 @@ func (bs *BaseStack) plan() (stack.Machines, error) {
 	}
 
 	return bs.Plan()
+}
+
+func (bs *BaseStack) state(state *terraform.State, klients map[string]*DialState) (map[string]*stack.Machine, error) {
+	if bs.StateFunc != nil {
+		return bs.StateFunc(state, klients)
+	}
+
+	return bs.Planner.MachinesFromState(state, klients)
 }
 
 type BaseMachine struct {

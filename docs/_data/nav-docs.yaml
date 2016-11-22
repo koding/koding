@@ -10,6 +10,8 @@
     title: Create AWS stack
   - id: creating-a-vagrant-stack
     title: Create Vagrant stack
+  - id: creating-a-digitalocean-stack
+    title: Create Digital Ocean stack
   - id: kd
     title: KD
   - id: use-your-own-ide
