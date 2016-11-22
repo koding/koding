@@ -20,14 +20,15 @@ TeamFlux = require 'app/flux/teams'
 DEFAULT_LOGOPATH = '/a/images/logos/sidebar_footer_logo.svg'
 MENU = null
 isAdmin = require 'app/util/isAdmin'
+remote = require 'app/remote'
+whoami = require 'app/util/whoami'
+
 canCreateStacks = require 'app/util/canCreateStacks'
 
 require './styl/sidebar.styl'
 require './styl/sidebarmenu.styl'
 
 module.exports = class Sidebar extends React.Component
-
-  PREVIEW_COUNT = 10
 
   constructor: (props) ->
 
@@ -47,6 +48,7 @@ module.exports = class Sidebar extends React.Component
       activeLeavingSharedMachineId : EnvironmentFlux.getters.activeLeavingSharedMachineId
       requiredInvitationMachine    : EnvironmentFlux.getters.requiredInvitationMachine
       differentStackResourcesStore : EnvironmentFlux.getters.differentStackResourcesStore
+      allStackTemplates            : EnvironmentFlux.getters.allStackTemplates
       team                         : TeamFlux.getters.team
       selectedTemplateId           : EnvironmentFlux.getters.selectedTemplateId
     }
@@ -93,19 +95,23 @@ module.exports = class Sidebar extends React.Component
 
     draft = @state.drafts.get id
     switch title
-      when 'Edit' then router.handleRoute "/Stack-Editor/#{id}"
+      when 'Edit', 'View Stack' then router.handleRoute "/Stack-Editor/#{id}"
       when 'Initialize'
         EnvironmentFlux.actions.generateStack(id).then ({ template }) ->
           appManager.tell 'Stackeditor', 'reloadEditor', template._id
       when 'Clone'
-        EnvironmentFlux.actions.cloneStackTemplate draft.toJS(), yes
+        EnvironmentFlux.actions.cloneStackTemplate remote.revive draft.toJS()
       when 'Open on GitLab'
         remoteUrl = draft.getIn ['config', 'remoteDetails', 'originalUrl']
         linkController.openOrFocus remoteUrl
       when 'Make Team Default'
-        computeController.makeTeamDefault draft.toJS(), yes
+        computeController.makeTeamDefault remote.revive draft.toJS()
       when 'Delete'
-        computeController.deleteStackTemplate draft.toJS(), yes
+        computeController.deleteStackTemplate remote.revive draft.toJS()
+      when 'Share With Team'
+        computeController.setStackTemplateAccessLevel remote.revive(draft.toJS()), 'group'
+      when 'Make Private'
+        computeController.setStackTemplateAccessLevel remote.revive(draft.toJS()), 'private'
 
 
 
@@ -124,10 +130,21 @@ module.exports = class Sidebar extends React.Component
 
     if draft.getIn ['config', 'remoteDetails', 'originalUrl']
       menuItems['Open on GitLab'] = { callback }
+    if whoami()._id is draft.get 'originId'
+      menuItems['Edit'] = { callback }
+    else
+      menuItems['View Stack'] = { callback }
 
-    ['Edit', 'Initialize'].forEach (name) => menuItems[name] = { callback }
+    menuItems['Initialize'] = { callback }
     menuItems['Clone'] = { callback }  if canCreateStacks() or isAdmin()
-    menuItems['Make Team Default'] = { callback } if isAdmin() and draft.get('machines').size
+
+    if draft.get('machines').size
+      menuItems['Make Team Default'] = { callback } if isAdmin()
+      if whoami()._id is draft.get('originId')
+        if draft.get('accessLevel') is 'private'
+        then menuItems['Share With Team'] = { callback }
+        else  menuItems['Make Private'] = { callback }
+
     menuItems['Delete'] = { callback }
 
     { top } = findDOMNode(@refs["draft-#{id}"]).getBoundingClientRect()
@@ -190,11 +207,13 @@ module.exports = class Sidebar extends React.Component
 
   renderStack: (stack) ->
 
+    template = @state.allStackTemplates.get stack.get 'baseStackId'
+
     <SidebarStackSection
       key={stack.get '_id'}
-      previewCount={PREVIEW_COUNT}
       selectedId={@state.selectedThreadId}
       stack={stack}
+      template={template}
       machines={stack.get 'machines'}/>
 
 

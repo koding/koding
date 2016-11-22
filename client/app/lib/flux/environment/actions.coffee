@@ -81,12 +81,12 @@ _bindStackEvents = ->
 
 _bindTemplateEvents = (stackTemplate) ->
 
-  { reactor } = kd.singletons
+  { reactor, computeController } = kd.singletons
 
   { _id: id } = stackTemplate
 
   stackTemplate.on 'update', ->
-    reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
+    computeController.checkRevisonFromOriginalStackTemplate stackTemplate._id, yes
   stackTemplate.on 'deleteInstance', ->
     reactor.dispatch actions.REMOVE_STACK_TEMPLATE_SUCCESS, { id }
 
@@ -818,12 +818,11 @@ setLabel = (machineUId, label) ->
         return reject err  if err
         resolve newLabel
 
-cloneStackTemplate = (template, revive) ->
+cloneStackTemplate = (template) ->
 
   new kd.NotificationView { title:'Cloning Stack Template' }
 
   { reactor } = kd.singletons
-  template = remote.revive template  if revive
 
   template.clone (err, stackTemplate) ->
     if err
