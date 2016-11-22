@@ -62,7 +62,15 @@ module.exports = class JSession extends Model
 
 
   @activeSession = secure (client, callback) ->
-    @one { clientId: client.sessionToken }, callback
+
+    username = client.connection?.delegate?.profile?.nickname
+    clientId = client.sessionToken
+
+    if not username or not clientId
+      return callback new KodingError 'Access denied'
+
+    @one { username, clientId }, callback
+
 
 
   # TODO not sure why we are creating session only for guest user
@@ -177,6 +185,6 @@ module.exports = class JSession extends Model
 
     # check if requester is the owner of the current session
     unless @username is username
-      return callback new KodingError 'Access denied.'
+      return callback new KodingError 'Access denied'
 
     @remove callback
