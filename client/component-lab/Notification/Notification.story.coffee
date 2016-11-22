@@ -1,7 +1,8 @@
-React = require 'react'
+React = require 'app/react'
 { storiesOf, action } = require '@kadira/storybook'
 Button = require 'lab/Button'
 Notification = require './Notification'
+Label = require '../Text/Label'
 
 class NotificationContainer extends React.Component
 
@@ -9,94 +10,68 @@ class NotificationContainer extends React.Component
 
     super props
     @_notification = null
+    @type = @props.type
 
 
   _handleSimpleClick: ->
 
     @_notification.addNotification
-      type : 'update'
+      type : @type
       duration : 2000
       content : 'Lorem ipsum dolor sit amet'
-      noAnimation : yes
 
 
   _handleDismissibleClick: ->
 
     @_notification.addNotification
-      type : 'success'
+      type : @type
       dismissible : yes
       content : 'Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet'
       onRemove : -> action 'button clicked'
-      noAnimation : yes
 
 
-  _handlePrimarySuccessClick: ->
+  _handleSingleActionClick: ->
 
     @_notification.addNotification
-      type : 'success'
+      type : @type
       content : 'Lorem ipsum dolor sit amet'
       primaryButtonTitle : 'Install'
       onPrimaryButtonClick : -> action 'button clicked'
-      noAnimation : yes
 
 
-  _handlePrimaryUpdateClick: ->
-
-    @_notification.addNotification
-      type : 'update'
-      content : 'Lorem ipsum dolor sit amet'
-      primaryButtonTitle : 'Install'
-      onPrimaryButtonClick : -> action 'button clicked'
-      noAnimation : yes
-
-
-  _handlePrimaryWarningClick: ->
+  _handleDoubleActionClick: ->
 
     @_notification.addNotification
-      type : 'warning'
-      content : 'Lorem ipsum dolor sit amet'
-      primaryButtonTitle : 'Install'
-      onPrimaryButtonClick : -> action 'button clicked'
-      noAnimation : yes
-
-
-  _handlePrimaryCautionClick: ->
-
-    @_notification.addNotification
-      type : 'caution'
-      content : 'Lorem ipsum dolor sit amet'
-      primaryButtonTitle : 'Install'
-      onPrimaryButtonClick : -> action 'button clicked'
-      noAnimation : yes
-
-
-  _handleSecondaryClick: ->
-
-    @_notification.addNotification
-      type : 'caution'
+      type : @type
       primaryButtonTitle : 'Submit'
       onPrimaryButtonClick : -> action 'button clicked'
       secondaryButtonTitle : 'Cancel'
       onSecondaryButtonClick : -> action 'button clicked'
       content : 'Lorem ipsum dolor sit amet'
-      noAnimation : yes
 
 
   render: ->
 
     self = this
     <div>
-      <div style={{marginBottom: 10}}><Button onClick={@_handleSimpleClick.bind this}>Simple Notification</Button></div>
-      <div style={{marginBottom: 10}}><Button onClick={@_handleDismissibleClick.bind this}>Dismissible Notification</Button></div>
-      <div style={{marginBottom: 10}}><Button onClick={@_handlePrimarySuccessClick.bind this}>Primary Success action Notification</Button></div>
-      <div style={{marginBottom: 10}}><Button onClick={@_handlePrimaryUpdateClick.bind this}>Primary Update action Notification</Button></div>
-      <div style={{marginBottom: 10}}><Button onClick={@_handlePrimaryWarningClick.bind this}>Primary Warning action Notification</Button></div>
-      <div style={{marginBottom: 10}}><Button onClick={@_handlePrimaryCautionClick.bind this}>Primary Caution action Notification</Button></div>
-      <div style={{marginBottom: 10}}><Button onClick={@_handleSecondaryClick.bind this}>Secondary action Notification</Button></div>
+      <Label size="xlarge">{@type.toUpperCase()}</Label>
+      <div style={{marginBottom: 10}} />
+      <div style={{marginBottom: 10}}><Button onClick={@bound '_handleSimpleClick'}>Simple Notification</Button></div>
+      <div style={{marginBottom: 10}}><Button onClick={@bound '_handleDismissibleClick'}>Dismissible Notification</Button></div>
+      <div style={{marginBottom: 10}}><Button onClick={@bound '_handleSingleActionClick'}>One action Notification</Button></div>
+      <div style={{marginBottom: 10}}><Button onClick={@bound '_handleDoubleActionClick'}>Two actions Notification</Button></div>
       <Notification ref={(notification) -> self._notification = notification}/>
     </div>
 
 
 storiesOf 'Notification', module
-  .add 'notifications', ->
-    <NotificationContainer/>
+  .add 'default', ->
+    <NotificationContainer type="default"/>
+  .add 'update', ->
+    <NotificationContainer type="update"/>
+  .add 'success', ->
+    <NotificationContainer type="success"/>
+  .add 'warning', ->
+    <NotificationContainer type="warning"/>
+  .add 'caution', ->
+    <NotificationContainer type="caution"/>
