@@ -270,9 +270,11 @@ unless module.parent
         console.log 'Swagger.json is up-to-date'
       catch e
         console.error '''
-          Swagger.json is outdated. Please run following to update it;
+          Swagger.json is outdated. Please run following commands to update it;
 
             ./run exec scripts/api-generator.coffee
+
+          and commit updated swagger.json file to current branch
 
         '''
         process.exit 1

@@ -108,15 +108,16 @@ sendSignatureErr = (signatures, method, res) ->
     ]
 
   signatures = signatures[0]  if signatures.length is 1
-  signatures = if signatures.length is 1 and signatures[0] is 'Function'
+  signaturesMessage = if signatures.length is 1 and signatures[0] is 'Function'
   then 'No parameter required'
   else "Possible signatures are #{JSON.stringify(signatures).replace /"/g, ''}"
 
   sendApiError res, {
     ok: false
     error: "
-      Unrecognized signature for '#{method}' #{signatures}
+      Unrecognized signature for '#{method}' #{signaturesMessage}
     "
+    signatures
   }
 
 
