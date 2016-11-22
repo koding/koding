@@ -1,3 +1,4 @@
+{ merge } = require 'lodash'
 kd       = require 'kd'
 ReactDOM = require 'react-dom'
 
@@ -9,6 +10,11 @@ module.exports = class ReactView extends kd.CustomHTMLView
 
     @on 'KDObjectWillBeDestroyed', =>
       ReactDOM.unmountComponentAtNode @getElement()
+
+
+  updateOptions: (newOptions) ->
+    @options = merge {}, @options, newOptions
+    @viewAppended()
 
 
   renderReact: ->
