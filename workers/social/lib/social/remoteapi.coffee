@@ -28,6 +28,7 @@ sendResponse = (res) -> (err, data) ->
       .send { ok: true, data }
       .end()
 
+
 processPayload = (payload, callback) ->
 
   [ error, data ] = payload[0].arguments
@@ -181,6 +182,6 @@ module.exports = RemoteHandler = (koding) ->
       req.body.queue = [ bongoRequest ]
 
       (koding.expressify {
-        rateLimitOptions: KONFIG.nodejsRateLimiter
+        rateLimitOptions: KONFIG.nodejsRateLimiterForApi
         processPayload
       }) req, res
