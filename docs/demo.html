@@ -31,6 +31,11 @@ title: Request a Demo
       <br><br>
       <a href="{{ site.url }}">Go back to homepage</a>
     </h3>
+    <h3 class="form-duplicate-entry hidden">
+      We <strong>previously received</strong> your request for a demo. One of our teammates will reach out to you soon to get it scheduled.
+      <br><br>
+      <a href="{{ site.url }}">Go back to homepage</a>
+    </h3>
 
     <form id="SignupForm" novalidate data-persist="garlic" data-domain="true">
 
@@ -95,6 +100,30 @@ title: Request a Demo
       $('.Micropage--container > h1').text('Awesome!');
       $('.form-success').removeClass('hidden');
       $('#SignupForm').hide();
+    },
+    error: function(arg) {
+      var FieldErrors, e, err, i, len, responseText, results;
+      responseText = arg.responseText;
+      try {
+        responseText = JSON.parse(responseText);
+      } catch (_error) {
+        e = _error;
+        console.log('couldn\'t parse the response');
+      }
+      if (responseText) {
+        FieldErrors = responseText.FieldErrors;
+        results = [];
+        for (i = 0, len = FieldErrors.length; i < len; i++) {
+          err = FieldErrors[i];
+          results.push($("input[name=" + err.ID + "]").addClass('error'));
+          if (err.ID == 'Field8' && /unique\sentry/.test(err.ErrorText)){
+            $('#SignupForm').hide();
+            $('.Micropage--container > h1').text('Demo Pending!');
+            $('.form-duplicate-entry').removeClass('hidden');
+          }
+        }
+        return results;
+      }
     }
   });
 </script>
