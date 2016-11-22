@@ -88,7 +88,7 @@ func (s *Stack) BootstrapTemplates(*stack.Credential) (_ []*stack.Template, _ er
 }
 
 // StacklyTemplate applies the given credentials to user's stack template.
-func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
+func (s *Stack) ApplyTemplate(_ *stack.Credential) (*stack.Template, error) {
 	t := s.Builder.Template
 
 	var resource struct {
@@ -109,7 +109,7 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 			delete(app, "debug")
 		}
 
-		s.convertInstancesToGroup(name, s.team()+"-"+c.Identifier, app)
+		s.convertInstancesToGroup(name, s.Req.Username+"-"+s.Builder.Stack.ID.Hex(), app)
 
 		if err := s.injectEntrypoint(app); err != nil {
 			return nil, err
@@ -458,21 +458,6 @@ func (s *Stack) state(state *terraform.State, klients map[string]*provider.DialS
 	}
 
 	return machines, nil
-}
-
-func (s *Stack) team() string {
-	switch arg := s.Arg.(type) {
-	case *stack.ApplyRequest:
-		return arg.GroupName
-	case *stack.PlanRequest:
-		return arg.GroupName
-	case *stack.AuthenticateRequest:
-		return arg.GroupName
-	case *stack.TeamRequest:
-		return arg.GroupName
-	default:
-		return "koding"
-	}
 }
 
 // Credential gives Marathon credentials that are attached
