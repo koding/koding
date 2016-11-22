@@ -26,7 +26,11 @@ title: Request a Demo
 
     <h1>Request a Demo</h1>
 
-    <h3 class="form-success hidden">Thanks, we'll be in touch!</h3>
+    <h3 class="form-success hidden">
+      We just received your request for a 1-on-1 demo. One of our teammates will reach out to you in the next 48 hours to get it scheduled.
+      <br><br>
+      <a href="{{ site.url }}">Go back to homepage</a>
+    </h3>
 
     <form id="SignupForm" novalidate data-persist="garlic" data-domain="true">
 
@@ -86,8 +90,12 @@ title: Request a Demo
 <script type="text/javascript">
   KODING_UTILS.bindFormSubmission({
     formSelector: '#SignupForm',
-    resultSelector: 'h3.form-success',
-    formHash: 'sfmen9h0e6syoi'
+    formHash: 'sfmen9h0e6syoi',
+    success: function() {
+      $('.Micropage--container > h1').text('Awesome!');
+      $('.form-success').removeClass('hidden');
+      $('#SignupForm').hide();
+    }
   });
 </script>
 
