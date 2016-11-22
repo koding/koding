@@ -26,6 +26,7 @@
     margin-bottom: 15px;
     text-align: center;
 }
+.Micropage--container h3 a,
 .Micropage--container h4 a {
     font-size: 14px;
     color: #67A2EE;
@@ -117,7 +118,6 @@
     top: 4px;
 }
 
-/*
 .SignupFieldset > div label span {
     display: none;
 }
@@ -272,4 +272,3 @@
     text-rendering: geometricPrecision;
     opacity: .99;
 }
-*/

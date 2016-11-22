@@ -20,6 +20,7 @@ parseTerraformOutput = require 'app/util/stacks/parseterraformoutput'
 providersParser = require 'app/util/stacks/providersparser'
 updateCustomVariable = require 'app/util/stacks/updatecustomvariable'
 addUserInputOptions = require 'app/util/stacks/adduserinputoptions'
+isClonedTemplate = require 'app/util/isclonedtemplate'
 CustomLinkView = require 'app/customlinkview'
 
 OutputView = require './outputview'
@@ -45,7 +46,6 @@ module.exports = class StackEditorView extends kd.View
     options.cssClass = kd.utils.curry 'StackEditorView', options.cssClass
 
     { stackTemplate } = data
-    @stackTemplate = stackTemplate
 
     if stackTemplate
       unless selectedProvider = stackTemplate.selectedProvider
@@ -76,6 +76,7 @@ module.exports = class StackEditorView extends kd.View
       maxHandleWidth       : 300
       cssClass             : 'StackEditorTabs'
 
+
     @tabView.addSubView @warningView = new kd.CustomHTMLView
       cssClass: 'warning-view hidden'
       partial: 'You must be an admin to edit this stack.'
@@ -92,8 +93,10 @@ module.exports = class StackEditorView extends kd.View
         if event.target?.className is 'clone-button'
           @cloneStackTemplate()
 
+
     @addSubView @secondaryActions = new kd.CustomHTMLView
       cssClass             : 'StackEditor-SecondaryActions'
+
 
     @secondaryActions.addSubView @deleteStack = new CustomLinkView
       cssClass : 'HomeAppView--button danger'
@@ -135,6 +138,8 @@ module.exports = class StackEditorView extends kd.View
       name : 'Readme'
       view : @readmeView
 
+
+
     { @credentials } = @stackTemplateView.credentialStatus or {}
 
     @providersView = new ProvidersView {
@@ -167,12 +172,9 @@ module.exports = class StackEditorView extends kd.View
     @tabView.on 'PaneDidShow', (pane) =>
       if pane.name is 'Credentials'
         @warningView.hide()
-        @stackTemplateUpdateWarningView?.hide()
-        @saveUpdatedTemplateView?.hide()
-      else
-        @warningView.show()  unless @canUpdate
-        @stackTemplateUpdateWarningView?.show()
-        @saveUpdatedTemplateView?.show()
+      unless @canUpdate
+        if pane.name isnt 'Credentials'
+          @warningView.show()
 
     @createOutputView()
     @createMainButtons()
@@ -307,6 +309,17 @@ module.exports = class StackEditorView extends kd.View
       title: 'Save Name'
       click : @inputTitle.bound 'setBlur'
 
+    isClonedTemplate stackTemplate, (originalTemplate) =>
+      if originalTemplate
+        @titleActionsWrapper.addSubView @clonedFrom = new kd.CustomHTMLView
+          cssClass: 'cloned-from-text'
+          partial: 'Clone Of'
+
+        @clonedFrom.addSubView new kd.CustomHTMLView
+          cssClass: 'cloned-from'
+          partial: "  #{originalTemplate.title}"
+          click: -> kd.singletons.router.handleRoute "/Stack-Editor/#{originalTemplate._id}"
+
     kd.singletons.reactor.observe valueGetter, (value) =>
 
       value = Encoder.htmlDecode value
@@ -332,94 +345,6 @@ module.exports = class StackEditorView extends kd.View
       @inputTitle.resize()
       @editName.hide()
       @saveName.show()
-
-
-  addClonedFrom: (originalTemplate) ->
-
-    @titleActionsWrapper.addSubView @clonedFrom = new kd.CustomHTMLView
-      cssClass: 'cloned-from-text'
-      partial: 'Clone Of'
-
-    @clonedFrom.addSubView new kd.CustomHTMLView
-      cssClass: 'cloned-from'
-      partial: "  #{originalTemplate.title}"
-      click: -> kd.singletons.router.handleRoute "/Stack-Editor/#{originalTemplate._id}"
-
-
-  addCloneUpdateView: (originalTemplate) ->
-
-    return  if @stackTemplateUpdateWarningView
-
-    @tabView.setClass 'view-info'
-
-    @createUpdateWarningView originalTemplate
-    @createSaveUpdatedView originalTemplate
-
-
-  createSaveUpdatedView: (originalTemplate) ->
-
-    { appManager } = kd.singletons
-
-    @tabView.addSubView @saveUpdatedTemplateView = new kd.CustomHTMLView
-      cssClass: 'info-view saveTemplate hidden'
-      partial: "The stack template has been updated with the original stack template #{originalTemplate.title}! "
-
-    @saveUpdatedTemplateView.addSubView new kd.CustomHTMLView
-      tagName: 'span'
-      cssClass: 'save'
-      partial: ' Click here to save!'
-      click: (event) =>
-        if event.target?.className is 'save'
-          appManager.tell 'Stacks', 'exitFullscreen'  unless @getOption 'skipFullscreen'
-          @handleSave()
-          @saveButton.showLoader()
-          @cleanUpdateView()
-
-    @saveUpdatedTemplateView.addSubView new kd.CustomHTMLView
-      cssClass: 'close-update-view'
-      click: (event) =>
-        if event.target?.className is 'close-update-view'
-          @cleanUpdateView()
-
-
-  createUpdateWarningView: (originalTemplate) ->
-
-    { computeController } = kd.singletons
-
-    @tabView.addSubView @stackTemplateUpdateWarningView = new kd.CustomHTMLView
-      cssClass: 'info-view'
-      partial: "Stay up to date, original stack template has been updated #{originalTemplate.title}! "
-
-    @stackTemplateUpdateWarningView.addSubView new kd.CustomHTMLView
-      tagName: 'span'
-      cssClass: 'update'
-      partial: ' Click here to update!'
-      click: (event) =>
-        if event.target?.className is 'update'
-          stackTemplateAce = @stackTemplateView.editorView.getAce()
-          stackTemplateAce.setContent Encoder.htmlDecode originalTemplate.template.rawContent
-          readmeAce = @readmeView.editorView.getAce()
-          readmeAce.setContent originalTemplate.description
-          @stackTemplateUpdateWarningView.destroy()
-          @saveUpdatedTemplateView.show()
-
-    @stackTemplateUpdateWarningView.addSubView new kd.CustomHTMLView
-      cssClass: 'close-update-view'
-      partial:"<span class='tooltiptext'> Do not warn me for updates anymore!"
-      click: (event) =>
-        if event.target?.className is 'close-update-view'
-          computeController.removeClonedFromAttr @stackTemplate, (err) =>
-            @cleanUpdateView()  unless err
-            @clonedFrom.destroy()
-
-
-  cleanUpdateView: ->
-
-    @tabView.unsetClass 'view-info'
-    @stackTemplateUpdateWarningView.destroy()
-    @saveUpdatedTemplateView.destroy()
-    @emit 'Reload'
-
 
 
   createOutputView: ->
@@ -950,7 +875,7 @@ module.exports = class StackEditorView extends kd.View
 
     return  unless foundStack
 
-    kd.singletons.computeController.reinitStack foundStack, null, @lazyBound 'emit', 'Reload'
+    kd.singletons.computeController.reinitStack foundStack, @lazyBound 'emit', 'Reload'
 
 
   handleGenerateStack: ->
@@ -1027,6 +952,3 @@ module.exports = class StackEditorView extends kd.View
     credential.shareWith { target: slug }, (err) ->
       console.warn 'Failed to share credential:', err  if err
       callback()
-
-
-

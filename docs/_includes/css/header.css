@@ -342,11 +342,14 @@ body {
   }
   .StickyHeader .Homepage-Header .signup {
     display: flex;
+    padding: 0 15px;
+    max-width: 130px;
   }
 
   .Homepage-Header .item {
     max-width: none;
     flex-basis: 0;
+    margin: 10px 0;
   }
 }
 

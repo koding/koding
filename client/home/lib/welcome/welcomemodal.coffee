@@ -85,7 +85,8 @@ module.exports = class WelcomeModal extends kd.ModalView
 
     previousRoutes = router.visitedRoutes.filter (route) ->
       not (/^\/(?:Home).*/.test(route) or \
-           /^\/(?:Welcome).*/.test(route))
+           /^\/(?:Welcome).*/.test(route) or \
+           /\//.test(route))
     route = previousRoutes.last ? '/IDE'
     router.handleRoute route  if selfInitiated
 

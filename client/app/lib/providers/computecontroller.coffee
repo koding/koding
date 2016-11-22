@@ -28,7 +28,6 @@ ContentModal         = require 'app/components/contentModal'
 runMiddlewares       = require 'app/util/runMiddlewares'
 TestMachineMiddleware = require './middlewares/testmachine'
 
-whoami = require 'app/util/whoami'
 
 { actions : HomeActions } = require 'home/flux'
 require './config'
@@ -72,7 +71,6 @@ module.exports = class ComputeController extends KDController
 
       groupsController.on 'StackTemplateChanged', @bound 'checkGroupStacks'
       groupsController.on 'StackAdminMessageCreated', @bound 'handleStackAdminMessageCreated'
-      groupsController.on 'SharedStackTemplateAccessLevel', @bound 'sharedStackTemplateAccessLevel'
 
       @fetchStacks =>
 
@@ -999,45 +997,6 @@ module.exports = class ComputeController extends KDController
           @emit 'StacksInconsistent', stack
 
 
-  setStackTemplateAccessLevel: (template, type) ->
-    template.setAccess type
-
-
-  sharedStackTemplateAccessLevel: (params) ->
-    { reactor } = kd.singletons
-    { contents: { id: _id, change: { $set: { accessLevel } } } } = params
-
-    remote.api.JStackTemplate.one { _id }, (err, stackTemplate) =>
-
-      if accessLevel is 'group'
-        reactor.dispatch 'REMOVE_STACK_TEMPLATE_SUCCESS', { id: _id }
-        reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
-        new kd.NotificationView { title : 'Stack Template is Shared With Team' }
-        @checkRevisonFromOriginalStackTemplate stackTemplate._id, yes
-      else
-        reactor.dispatch 'REMOVE_STACK_TEMPLATE_SUCCESS', { id: _id }
-        @checkRevisonFromOriginalStackTemplate _id, no
-        new kd.NotificationView { title : 'Stack Template is Unshared With Team' }
-
-
-  checkRevisonFromOriginalStackTemplate: (stackTemplateId, group) ->
-
-    { reactor } = kd.singletons
-
-    stacks = @stacks.filter (stack) -> stack.config?.clonedFrom is stackTemplateId
-
-    return  unless stacks.length
-    stacks.forEach (stack) ->
-      config  = stack.config ?= {}
-      config.needUpdate = group
-      unless group
-        delete config.needUpdate
-        delete config.clonedFrom
-      stack.modify { config }, (err) ->
-        stack.config = config
-        reactor.dispatch 'STACK_UPDATED', stack
-
-
   checkGroupStacks: ->
 
     @checkStackRevisions()
@@ -1259,6 +1218,8 @@ module.exports = class ComputeController extends KDController
 
   makeTeamDefault: (stackTemplate, revive) ->
 
+    if revive
+      stackTemplate = remote.revive stackTemplate
     { credentials, config: { requiredProviders } } = stackTemplate
 
     { groupsController, reactor } = kd.singletons
@@ -1295,33 +1256,6 @@ module.exports = class ComputeController extends KDController
           showError 'Failed to share credential'  if err
           callback()
     else showError 'Failed to share credential'
-
-
-  removeClonedFromAttr: (stackTemplate, callback = kd.noop) ->
-
-    @ui.askFor 'dontWarnMe', {}, (status) =>
-
-      return callback yes  unless status.confirmed
-
-      { reactor } = kd.singletons
-
-      stack = @findStackFromTemplateId stackTemplate._id
-      { config } = stack
-
-      delete config.clonedFrom
-      delete config.needUpdate
-
-      stack.modify { config }, (err) ->
-        reactor.dispatch 'STACK_UPDATED', stack
-
-      { config } = stackTemplate
-
-      delete config.clonedFrom
-      delete config.needUpdate
-
-      stackTemplate.update { config }, (err) ->
-        reactor.dispatch 'UPDATE_STACK_TEMPLATE_SUCCESS', { stackTemplate }
-        callback no
 
 
   ###*
@@ -1429,8 +1363,9 @@ module.exports = class ComputeController extends KDController
       kd.warn err  if err
       callback null, @_soloMachines
 
+  deleteStackTemplate: (template, revive = no) ->
 
-  deleteStackTemplate: (template) ->
+    template = remote.revive template  if revive
 
     { groupsController, computeController, router, reactor }  = kd.singletons
     currentGroup  = groupsController.getCurrentGroup()
