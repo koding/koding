@@ -46,12 +46,12 @@ swagger =
           type: 'object'
           description: 'Error description'
           example:
-            message: "Something went wrong"
-            name: "SomethingWentWrong"
+            message: 'Something went wrong'
+            name: 'SomethingWentWrong'
         data:
           type: 'object'
           description: 'Result of the operation'
-          example: "Hello World"
+          example: 'Hello World'
     UnauthorizedRequest:
       type: 'object'
       properties:
@@ -62,11 +62,11 @@ swagger =
         message:
           type: 'string'
           description: 'Error description'
-          example: "The request is unauthorized, an api token is required."
+          example: 'The request is unauthorized, an api token is required.'
         code:
           type: 'string'
           description: 'Error Code'
-          example: "UnauthorizedRequest"
+          example: 'UnauthorizedRequest'
 
   parameters:
     instanceParam:
@@ -78,7 +78,8 @@ swagger =
     bodyParam:
       in: 'body'
       name: 'body'
-      schema: $ref: '#/definitions/DefaultSelector'
+      schema:
+        $ref: '#/definitions/DefaultSelector'
       required: true
       description: 'body of the request'
 
@@ -146,7 +147,7 @@ generateMethodPaths = (model, definitions, paths, docs) ->
 
   schema = if definitions[name]
   then { $ref: "#/definitions/#{name}" }
-  else { $ref: "#/definitions/DefaultResponse" }
+  else { $ref: '#/definitions/DefaultResponse' }
 
   for method, signatures of methods.statik
 
@@ -175,10 +176,12 @@ generateMethodPaths = (model, definitions, paths, docs) ->
         responses:
           '200':
             description: 'Request processed succesfully'
-            schema: $ref: "#/definitions/DefaultResponse"
+            schema:
+              $ref: '#/definitions/DefaultResponse'
           '401':
             description: 'Unauthorized request'
-            schema: $ref: '#/definitions/UnauthorizedRequest'
+            schema:
+              $ref: '#/definitions/UnauthorizedRequest'
 
 
   for method, signatures of methods.instance

@@ -80,18 +80,18 @@ module.exports = docGen = (path, files) ->
 unless module.parent
 
   unless project = process.argv[2]
-    console.log """
+    console.log '''
 
       usage: docgen [path]
              where path refers to source code path for docs to generate
 
-    """
+    '''
     process.exit 1
 
   try
     { errors, doc } = docGen project
   catch e
-    console.log "An error occured", e
+    console.log 'An error occured', e
 
   console.log JSON.stringify doc, ' ', 2
   if errors.length > 0
