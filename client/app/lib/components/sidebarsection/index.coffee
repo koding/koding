@@ -18,19 +18,9 @@ module.exports = class SidebarSection extends React.Component
 
 
   renderUnreadCount: ->
-
-    unless @props.originalTemplateUpdate
-      <UnreadCount
-        count={@props.unreadCount}
-        onClick={@bound 'handleUnreadCountClick'} />
-    else
-      <UnreadCount
-        count={1}
-        onClick={@bound 'handleOpenStackEditor'} />
-
-
-  handleOpenStackEditor: ->
-    kd.singletons.router.handleRoute "/Stack-Editor/#{@props.baseStackId}"
+    <UnreadCount
+      count={@props.unreadCount}
+      onClick={@bound 'handleUnreadCountClick'} />
 
 
   handleUnreadCountClick: ->

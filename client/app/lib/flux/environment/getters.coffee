@@ -185,6 +185,12 @@ privateStackTemplates = [
         .set 'isDefault', template.get('_id') in (getGroup().stackTemplates or [])
 ]
 
+allStackTemplates = [
+  teamStackTemplates
+  privateStackTemplates
+  (teamTemplates, privateTemplates) -> teamTemplates.merge privateTemplates
+]
+
 inUseTeamStackTemplates = [
   teamStackTemplates
   (templates) -> templates.filter (t) -> t.get('inUse')
