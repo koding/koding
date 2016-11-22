@@ -1,3 +1,4 @@
+kd = require 'kd'
 ModalView = require './modal'
 OutputModal = require './output'
 Modal = require 'lab/Modal'
@@ -15,11 +16,14 @@ run = ->
     isOpen: yes
 
   manager.on 'status', (status) ->
-    modal.options.title = 'Testing Koding: ' + status
+    newOptions =
+      title: "Testing Koding: #{status or 'umut'}"
+      # this works but the latest event is coming as undefined
+      # that's why you will not see a modal, if you want to force
+      # show modal, just pass `yes` here.
+      isOpen: yes # status in ['failed', 'success']
 
-    if status is 'failed' or status is 'success'
-      modal.options.isOpen = yes
-
+    modal.updateOptions newOptions
 
   manager.start()
 
@@ -35,7 +39,6 @@ prepare = (machine, workspace) ->
     onButtonClick: ->
       modal.destroy()
       run()
-
 
 
 module.exports = {
