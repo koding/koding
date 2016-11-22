@@ -20,8 +20,8 @@ Koding makes use of providers to host the VMs created from your Stacks. You spec
 ## Amazon Web Services <a name="amazon-web-services"></a>
 AWS is a world-class option for computing in the cloud. It is well-respected, mature, and is by far the most used. It also comes with some great features that you can leverage in your Stacks. AWS also offers a Free Tier!
 
-- ***[Creating a Stack with AWS](/docs/aws/creating-a-stack-with-aws)***
-- ***[AWS Stack Reference](https://www.terraform.io/docs/providers/aws/index.html)***
+- [**Creating a Stack with AWS**](/docs/aws/creating-a-stack-with-aws)
+- [**AWS Stack Reference**](https://www.terraform.io/docs/providers/aws/index.html)
 
 > Choosing AWS as a provider will require you to sign up with AWS and to subscribe to EC2. If you haven't signed up for AWS, you can do that [here](https://aws.amazon.com/). Once you've signed up, log in to your AWS console, select Services from the menu at the top of the screen and select EC2 from the list of services. You'll be prompted to subscribe to the service. Once you have done so, you can obtain an Access Key ID and Secret Access Key using [this guide](http://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html). That ID and Key is all you need to build a Stack with AWS as your provider.
 
