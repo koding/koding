@@ -12,7 +12,7 @@ isAdmin = require 'app/util/isAdmin'
 remote = require 'app/remote'
 isDefaultTeamStack = require 'app/util/isdefaultteamstack'
 { findDOMNode } = require 'react-dom'
-whoami = require 'app/util/whoami'
+
 require './styl/sidebarstacksection.styl'
 require './styl/sidebarstackwidgets.styl'
 
@@ -94,10 +94,10 @@ module.exports = class SidebarStackSection extends React.Component
           # invalidate editor cache
           appManager.tell 'Stackeditor', 'reloadEditor', templateId
       when 'Clone'
-        computeController.fetchStackTemplate templateId, (err, template) =>
-          return @onMenuItemClickError 'cloning'  if err
-
-          EnvironmentFlux.actions.cloneStackTemplate template
+        remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
+          if err
+            return new kd.NotificationView { title: 'Error occured while cloning template' }
+          EnvironmentFlux.actions.cloneStackTemplate template, no
       when 'Destroy VMs' then deleteStack { stack }
       when 'VMs'
         firstMachineId = stack.get('machines').first.get '_id'
@@ -106,26 +106,8 @@ module.exports = class SidebarStackSection extends React.Component
         remoteUrl = stack.getIn ['config', 'remoteDetails', 'originalUrl']
         linkController.openOrFocus remoteUrl
       when 'Make Team Default'
-        computeController.fetchStackTemplate templateId, (err, template) =>
-          return @onMenuItemClickError 'making team default'  if err
-
-          computeController.makeTeamDefault template  unless err
-      when 'Share With Team'
-        computeController.fetchStackTemplate templateId, (err, template) =>
-          return @onMenuItemClickError 'sharing'  if err
-
-          computeController.setStackTemplateAccessLevel template, 'group'
-      when 'Make Private'
-        computeController.fetchStackTemplate templateId, (err, template) =>
-          return @onMenuItemClickError 'cloning'  if err
-
-          computeController.setStackTemplateAccessLevel template, 'private'
-
-
-
-  onMenuItemClickError: (name) ->
-
-    return new kd.NotificationView { title: "Error occured while #{name} template" }
+        remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
+          computeController.makeTeamDefault template, no  unless err
 
 
   onTitleClick: (event) ->
@@ -139,9 +121,6 @@ module.exports = class SidebarStackSection extends React.Component
     callback = @bound 'onMenuItemClick'
 
     menuItems = {}
-    template = @props.template
-
-    { originId, accessLevel } = template.toJS()  if template
 
     if @getStackUnreadCount()
       menuItems['Update'] = { callback }
@@ -159,7 +138,7 @@ module.exports = class SidebarStackSection extends React.Component
       ['VMs', 'Destroy VMs'].forEach (name) ->
         menuItems[name] = { callback }
     else
-      if isAdmin() or (template and whoami()._id is originId)
+      if isAdmin() or @props.stack.get('accessLevel') is 'private'
         menuItems['Edit'] = { callback }
         menuItems['Clone'] = { callback }  if canCreateStacks()
       else
@@ -168,10 +147,6 @@ module.exports = class SidebarStackSection extends React.Component
         menuItems[name] = { callback }
       if isAdmin() and not isDefaultTeamStack @props.stack.get 'baseStackId'
         menuItems['Make Team Default'] = { callback }
-
-      if template and whoami()._id is originId
-        menuItems['Share With Team'] = { callback }  if accessLevel is 'private'
-        menuItems['Make Private'] = { callback }  if accessLevel is 'group'
 
     { top } = findDOMNode(this).getBoundingClientRect()
 
@@ -224,15 +199,14 @@ module.exports = class SidebarStackSection extends React.Component
     className  = 'SidebarStackSection'
     className += ' active'  if @state.selectedTemplateId is @props.stack.get 'baseStackId'
 
+
     <SidebarSection
       ref='sidebarSection'
       className={kd.utils.curry className, @props.className}
       title={@props.stack.get 'title'}
       onTitleClick={@bound 'onTitleClick'}
       secondaryLink=''
-      baseStackId={@props.stack.get 'baseStackId'}
       unreadCount={@getStackUnreadCount()}
-      originalTemplateUpdate={@props.stack.getIn ['config', 'needUpdate']}
       unreadCountClickHandler={@bound 'unreadCountClickHandler'}
       >
       {@renderMachines()}

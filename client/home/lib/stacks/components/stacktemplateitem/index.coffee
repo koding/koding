@@ -56,24 +56,12 @@ module.exports = class StackTemplateItem extends React.Component
 
   renderButton: ->
 
-    { onAddToSidebar, onRemoveFromSidebar, isVisibleOnSidebar, onCloneFromDashboard, template } = @props
+    { onAddToSidebar, onRemoveFromSidebar, isVisibleOnSidebar } = @props
 
-    if onCloneFromDashboard and template.get('originId') isnt whoami()._id
-      <a href="#" className="HomeAppView--button primary" onClick={onCloneFromDashboard}>CLONE STACK</a>
+    if isVisibleOnSidebar
+      <a href="#" className="HomeAppView--button primary" onClick={onRemoveFromSidebar}>REMOVE FROM SIDEBAR</a>
     else
-
-      if isVisibleOnSidebar
-        <a href="#" className="HomeAppView--button primary" onClick={onRemoveFromSidebar}>REMOVE FROM SIDEBAR</a>
-      else
-        <a href="#" className="HomeAppView--button primary" onClick={onAddToSidebar}>ADD TO SIDEBAR</a>
-
-
-  renderCloneButton: ->
-
-    { template, onCloneFromDashboard } = @props
-    return  if template.get('accessLevel') is 'private'
-    return  if template.get('originId') is whoami()._id
-
+      <a href="#" className="HomeAppView--button primary" onClick={onAddToSidebar}>ADD TO SIDEBAR</a>
 
 
   getStackUnreadCount: (stack = @props.stack) ->
@@ -136,14 +124,10 @@ module.exports = class StackTemplateItem extends React.Component
       </div>
     </div>
 
-  renderTags: ->
-
-    { template, onCloneFromDashboard } = @props
-
+  renderDefaultTag: ->
+    { template } = @props
     if isDefaultTeamStack template.get '_id'
-      <div className='tag default'>DEFAULT</div>
-    else if onCloneFromDashboard and template.get('accessLevel') is 'group'
-      <div className='tag shared'>SHARED</div>
+      <div className='tag'>DEFAULT</div>
     else
       null
 
@@ -167,7 +151,7 @@ module.exports = class StackTemplateItem extends React.Component
           { makeTitle { template, stack } }
         </a>
         {@renderUnreadCount()}
-        {@renderTags()}
+        {@renderDefaultTag()}
       </div>
       {@renderStackUpdatedWidget()}
       <div className='HomeAppViewListItem-description'>

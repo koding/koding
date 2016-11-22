@@ -296,6 +296,7 @@ module.exports = class JStackTemplate extends Module
 
 
   setAccess: permit
+
     advanced: [
       { permission: 'update own stack template', validateWith: Validators.own }
       { permission: 'update stack template' }
@@ -311,20 +312,14 @@ module.exports = class JStackTemplate extends Module
 
       { group } = client.r
       query = { $set: { accessLevel } }
-      id = @getId()
 
-      @update query, (err) =>
+      notifyOptions =
+        account : client.r.account
+        group   : group.slug
+        target  : if accessLevel is 'group' then 'group' else 'account'
 
-        return callback err  if err
-        return  unless group.slug
-
-        JGroup = require '../group'
-        JGroup.one { slug : group.slug }, (err, group_) =>
-          return callback err, this  if err or not group_
-
-          opts = { id, group: group.slug, change: query, timestamp: Date.now() }
-          group_.sendNotification 'SharedStackTemplateAccessLevel', opts
-          callback err, this
+      @updateAndNotify notifyOptions, query, (err) =>
+        callback err, this
 
 
   generateStack: permit
@@ -474,7 +469,6 @@ module.exports = class JStackTemplate extends Module
 
       cloneData.config           ?= {}
       cloneData.config.clonedFrom = @getId()
-      cloneData.config.clonedSum = @getAt 'template.sum'
 
       { custom } = cloneData.credentials or {}
       custom    ?= []
