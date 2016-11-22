@@ -1,21 +1,67 @@
 #!/usr/bin/env coffee
 
 codo = require 'codo'
-generateSchema = require 'generate-schema'
+_    = require 'lodash'
 
-compileSample = (sample) ->
-  schema = generateSchema.json sample
-  delete schema['$schema']
-  for own field of schema.properties
-    schema.properties[field].default = sample[field]
-  return schema
+generateSchema = (sample, required = no) ->
+
+  # The MIT License (MIT) Copyright ⒞ 2016 Santtu Pajukanta
+  # Taken from https://github.com/japsu/json-schema-by-example/blob/master/index.js
+  # which is designed for es6 wasn't working with current
+  # node version that we have and there was a missing
+  # feature that we needed.
+  #
+  # This one provides `default` value of fields
+  # in the schema so we can completely define the schema by providing
+  # one simple example in the docs ~ GG
+  #
+  # TODO make a pull request to https://github.com/japsu/json-schema-by-example
+  # or make a new package based on this one ~ GG
+  rules = [
+
+    [_.isNull,    (data)    -> { type: 'null',    default: data }],
+    [_.isNumber,  (data)    -> { type: 'number',  default: data }],
+    [_.isString,  (data)    -> { type: 'string',  default: data }],
+    [_.isBoolean, (data)    -> { type: 'boolean', default: data }],
+    [_.isRegExp,  (pattern) -> { type: 'string',  pattern }],
+
+    [
+      (example) -> _.isArray(example) and not example.length
+    , ->
+      { type: 'array' }
+    ],
+
+    [
+      _.isArray
+    , (items) -> {
+        type: 'array', items: generateSchema items[0]
+      }
+    ],
+
+    [
+      _.isPlainObject
+    , (object) ->
+      obj = {
+        type: 'object',
+        properties: _.mapValues object, (sample) -> generateSchema sample
+      }
+      obj.required = _.keys object  if required
+      return obj
+    ]
+
+  ]
+
+  for [isMatch, makeSchema] in rules when isMatch sample
+    return makeSchema sample
+
+  throw new TypeError sample
 
 
-compileApiExamples = (examples) ->
+compileApiExamples = (examples, methodOptions) ->
 
   for example, index in examples when example.title is 'api'
     try
-      example.schema = compileSample JSON.parse example.code
+      example.schema = generateSchema (JSON.parse example.code)
     catch e
       console.log 'Failed to parse example:', example, e
 
@@ -66,12 +112,13 @@ module.exports = docGen = (path, files) ->
       else
         doc[klass.name][kind][method.name] = {}
 
+      methodOptions = methodDoc.options ? {}
       doc[klass.name][kind][method.name] =
         description : methodDoc.comment ? "Method #{klass.name}.#{method.name}"
         parameters  : methodDoc.params  ? []
         returns     : methodDoc.returns ? {}
-        options     : methodDoc.options ? {}
-        examples    : compileApiExamples (methodDoc.examples ? [])
+        options     : methodOptions
+        examples    : compileApiExamples (methodDoc.examples ? []), methodOptions
 
 
   return { errors, doc }

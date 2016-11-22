@@ -2977,23 +2977,21 @@
                   "type": "object",
                   "properties": {
                     "instance_type": {
-                      "type": "string"
+                      "type": "string",
+                      "default": "t2.micro"
                     },
                     "region": {
-                      "type": "string"
+                      "type": "string",
+                      "default": "us-east-1"
                     },
                     "image": {
-                      "type": "string"
+                      "type": "string",
+                      "default": "ami-XXXX"
                     },
                     "storage_size": {
-                      "type": "number"
+                      "type": "number",
+                      "default": 10
                     }
-                  },
-                  "default": {
-                    "instance_type": "t2.micro",
-                    "region": "us-east-1",
-                    "image": "ami-XXXX",
-                    "storage_size": 10
                   }
                 }
               }

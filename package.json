@@ -51,7 +51,6 @@
     "express": "4.9.5",
     "express-session": "1.10.4",
     "faker": "1.1.0",
-    "generate-schema": "2.3.1",
     "geoip-lite": "1.1.6",
     "git-rev": "0.2.1",
     "github": "0.2.4",
