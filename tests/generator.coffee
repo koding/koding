@@ -56,20 +56,19 @@ class Generator
 
     @parsedBody.forEach (test, index) ->
       if index is 0
-        mocha += "describe '#{filename}', ->\n"
+        mocha += 'describe "' + filename + '", ->\n'
         mocha += "  before -> \n"
         mocha += "    require './#{requires}'\n\n"
         return
 
-      should = test.split('\n')[0].replace replacedChar, "\\'"
-      mocha += "  describe '#{should}', ->\n"
+      should = test.split('\n')[0]
+      mocha += '  describe "' + should + '", ->\n'
 
       assertions = test.split('\n')[1].split('? ')
 
       assertions.forEach (assertion, index, array) ->
         if assertion.length > 1
-          assertion = assertion.replace replacedChar, "\\'"
-          mocha += "    it '#{assertion}?', -> \n"
+          mocha += '    it "' + assertion + '?", -> \n'
           mocha += "      console.warning 'Not yet implemented.'\n\n"
 
         mocha += "\n" if index is (array.length - 1)
@@ -122,7 +121,7 @@ class Generator
     JSON.parse fs.readFileSync './mapping.json', 'utf-8'
 
 
-mapping = Generator.createMapping()
+mapping = Generator.getMapping()
 files = Generator.getRainforestTests()
 
 generator = new Generator()
