@@ -5,7 +5,6 @@ _               = require 'underscore'
 KodingError     = require '../../error'
 
 socialProxyUrl  = '/api/social'
-webhookProxyUrl = '/api/integration'
 localDomain     = KONFIG.socialapi.customDomain.local
 
 wrapCallback = (callback) ->
@@ -440,10 +439,6 @@ deleteCredential = (data, callback) ->
   url = "#{socialProxyUrl}/credential/#{data.pathName}"
   deleteReq url, data, callback
 
-fetchBotChannel = (data, callback) ->
-  url = "#{webhookProxyUrl}/botchannel"
-  get url, data, callback
-
 publishMailEvent = (data, callback) ->
   url = "#{socialProxyUrl}/private/mail/publish"
   post url, data, callback
@@ -599,7 +594,6 @@ module.exports = {
   storeCredential
   getCredential
   deleteCredential
-  fetchBotChannel
   post
   get
   deleteReq
