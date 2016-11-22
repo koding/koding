@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
-	"strconv"
 	"time"
 
 	"koding/kites/kloud/stack"
@@ -25,10 +24,6 @@ var schema = &provider.Schema{
 
 		meta := &Metadata{
 			AppID: m.Attributes["app_id"],
-		}
-
-		if n, err := strconv.Atoi(m.Attributes["app_count"]); err == nil {
-			meta.AppCount = n
 		}
 
 		return meta
@@ -95,9 +90,5 @@ type Metadata struct {
 
 // Valid implements the stack.Validator interface.
 func (m *Metadata) Valid() error {
-	if m.AppID == "" {
-		return errors.New("invalid empty app ID or group name")
-	}
-
 	return nil
 }

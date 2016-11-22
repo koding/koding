@@ -2,6 +2,7 @@
 layout: doc
 title: Product walkthrough
 permalink: /docs/product-walkthrough
+redirect_from: "/docs/product-walk-through"
 parent: /docs/home
 ---
 <br />

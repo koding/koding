@@ -9,7 +9,7 @@ module.exports = (options = {}) ->
   options.body ?= 'Instantly create, share, scale and manage development environments'
 
   """
-  <meta name="keywords" content="Web IDE, Cloud VM, VM, VPS, Ruby, Node, PHP, Python, WordPress, Django, Programming, virtual machines">
+  <meta name="keywords" content="integrated development environment, cloud ide, dev environment, cloud development environment, cloud editor, virtual dev environment, web based ide, test environment, docker, aws, vagrant, azure, rackspace">
   <meta charset="utf-8">
 
   <meta name="msvalidate.01" content="F56689F2116FE1CC34876D855B2A5A8A" />

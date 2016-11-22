@@ -71,6 +71,7 @@ var States = map[string]State{
 	"Snapshotting":   Snapshotting,
 	"Pending":        Pending,
 	"Unknown":        Unknown,
+	"":               Unknown,
 }
 
 // MarshalJSON implements the json.Marshaler interface. The state is a quoted
