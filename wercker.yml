@@ -140,6 +140,11 @@ build:
         name: check connectivity
         code: scripts/wercker/run-command scripts/wercker/check-connectivity INSTANCE_DATA
     - script:
+        name: check api consistency
+        code: |
+          HOST=(head -n1 INSTANCE_DATA | awk '{print $2}')
+          scripts/test-instance/ssh $HOST /opt/koding/run exec /opt/koding/scripts/api-generator.coffee --check
+    - script:
         name: test nodejs
         code: scripts/wercker/run-command scripts/node-testing/run-tests INSTANCE_DATA
     - script:

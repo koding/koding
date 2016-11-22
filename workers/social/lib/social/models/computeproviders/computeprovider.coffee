@@ -13,7 +13,8 @@ MAX_INT      = Math.pow(2, 32) - 1
 
 helpers      = require './helpers'
 
-
+# Base class for compute related operations
+#
 module.exports = class ComputeProvider extends Base
 
   {

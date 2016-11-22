@@ -3,6 +3,7 @@
 require 'coffee-cache'
 
 fs     = require 'fs'
+path   = require 'path'
 bongo  = require '../servers/lib/server/bongo'
 docGen = require './docgen'
 { expect } = require 'chai'
@@ -251,6 +252,8 @@ module.exports = generateApi = (callback) ->
 
 unless module.parent
 
+  swaggerFilePath = path.resolve path.join __dirname, '../website/swagger.json'
+
   generateApi (err, swagger) ->
 
     if err
@@ -261,7 +264,7 @@ unless module.parent
 
     if process.argv[2] is '--check'
       try
-        oldDataInJson = (fs.readFileSync 'website/swagger.json').toString()
+        oldDataInJson = (fs.readFileSync swaggerFilePath).toString()
         oldData = JSON.parse oldDataInJson
         expect(oldData).to.deep.equal swagger
         console.log 'Swagger.json is up-to-date'
@@ -275,7 +278,7 @@ unless module.parent
         process.exit 1
 
     else
-      fs.writeFileSync 'website/swagger.json', swaggerInJson
+      fs.writeFileSync swaggerFilePath, swaggerInJson
       console.log 'Swagger.json updated succesfully!'
 
     process.exit()
