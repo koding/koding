@@ -33,7 +33,7 @@ $notifications-z-index          = 20000
   box-sizing                    border-box
   .kd_notification_level
     flex                        0 0 50px
-    padding:                    18px 0 0
+    padding:                    13px 0 0
     border-bottom-right-radius  0
     border-top-right-radius     0
     -webkit-box-sizing          border-box
@@ -54,9 +54,9 @@ $notifications-z-index          = 20000
     .kd_notification_level
       background-color          $primary-1
   .kd_notification_content
-    padding                     20px 25px 20px 20px
-    line-height                 18px
-    font-size                   16px
+    padding                     17px 25px 17px 20px
+    line-height                 16px
+    font-size                   14px
     color                       $additional-6-faded
     font-weight                 200
     vertical-align              top
@@ -84,20 +84,33 @@ $notifications-z-index          = 20000
     -webkit-box-sizing          border-box
     -moz-box-sizing             border-box
     box-sizing                  border-box
+    border                      none
+    &:hover
+      background-color          $additional-4//rgba(85,85,85,0.5)
+    &:active
+      background-color          $additional-4-darker//rgba(85,85,85,1)
   .kd_notification_single_action
-    padding                     10px 0
+    margin                      10px 0
     width                       100%
     height                      100%
     -webkit-box-sizing          border-box
     -moz-box-sizing             border-box
     box-sizing                  border-box
     .kd_notification_action
-      border-left               1px solid $additional-5
       display                   flex
       align-items               center
       justify-content           center
       width                     100%
       height                    100%
+      &:before
+        content                 ''
+        width                   1px
+        height                  calc(100% - 20px)
+        background-color        $additional-5
+        -webkit-box-sizing      border-box
+        -moz-box-sizing         border-box
+        box-sizing              border-box
+
   .kd_notification_multiple_actions
     width                       100%
     height                      100%
@@ -130,6 +143,10 @@ $notifications-z-index          = 20000
   color                         $additional-6-faded
   font-weight                   100
   cursor                        pointer
+  &:hover
+    color                       $additional-6-faded-lighter
+  &:active
+    color                       $additional-6-faded-light
 
 .kd_notification_icon
   background                    url(./notification_sprites.png) no-repeat
