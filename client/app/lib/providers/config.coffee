@@ -100,6 +100,7 @@ module.exports = globals.config.providers =
     title                  : 'Managed VM'
     color                  : '#6d119e'
     description            : 'Use your power.'
+    instanceTypes          : null
     credentialFields       : {}
 
   google                   :
