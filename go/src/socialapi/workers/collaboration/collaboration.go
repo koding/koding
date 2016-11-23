@@ -9,6 +9,8 @@ import (
 	"socialapi/config"
 	socialapimodels "socialapi/models"
 
+	mgo "gopkg.in/mgo.v2"
+
 	"github.com/koding/bongo"
 
 	"socialapi/workers/collaboration/models"
@@ -217,19 +219,23 @@ func (c *Controller) EndSession(ping *models.Ping) error {
 		// 	- DO NOT CHANGE THE ORDER
 		//
 		toBeRemovedUsers, err := c.findToBeRemovedUsers(ping)
-		if err != nil {
+		if err == nil {
+			// then remove them from the db
+			if err := c.UnshareVM(ping, toBeRemovedUsers); err != nil {
+				return err
+			}
+
+			// first remove the users from klient
+			if err := c.RemoveUsersFromMachine(ping, toBeRemovedUsers); err != nil {
+				return err
+			}
+		} else if err != mgo.ErrNotFound {
 			return err
 		}
 
-		// then remove them from the db
-		if err := c.UnshareVM(ping, toBeRemovedUsers); err != nil {
-			return err
-		}
-
-		// first remove the users from klient
-		if err := c.RemoveUsersFromMachine(ping, toBeRemovedUsers); err != nil {
-			return err
-		}
+		// even if we cant find any users to be removed from the machines (which
+		// means workspace is already deleted by frontend) try to remove the
+		// privatemessage channel
 
 		// then end the private messaging
 		return c.EndPrivateMessage(ping)
