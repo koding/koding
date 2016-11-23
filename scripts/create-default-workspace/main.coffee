@@ -103,7 +103,7 @@ koding.once 'dbClientReady', ->
           console.log 'Machine:', machine.uid
           createDefaultWorkspace machine, ->
             process.stdout.write "\n"
-            iterate()
+            process.nextTick -> iterate()
         else
           console.log 'Done'
           process.exit 0
