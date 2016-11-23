@@ -94,7 +94,7 @@ body {
 }
 
 .Homepage-Header .signup {
-  background-color: #FFC442;
+  background-color: #18C6DB;
   color: rgba(0,0,0,0.39);
   text-transform: uppercase;
   font-weight: bold;
@@ -104,7 +104,7 @@ body {
 }
 
 .Homepage-Header .signup:hover, .Homepage-Header .signup:active {
-  background-color: #FFB920;
+  background-color: rgba(24, 198, 219, .8);
   color: rgba(0,0,0,0.39);
 }
 

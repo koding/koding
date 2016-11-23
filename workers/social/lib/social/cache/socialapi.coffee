@@ -42,9 +42,6 @@ module.exports = (options = {}, callback) ->
 
     SocialMessage.fetchPrivateMessages client, options, cb
 
-  fetchBotChannel = (cb) ->
-    SocialChannel.fetchBotChannel client, cb
-
   fetchGroupActivities = (cb) ->
     SocialChannel.fetchGroupActivities client, { sessionToken }, cb
 
@@ -79,7 +76,6 @@ module.exports = (options = {}, callback) ->
     # pinned message channel is no-longer used
     # { fn:fetchPinnedMessages,    key: 'pinnedMessages'   }
     { fn:fetchPrivateMessages,   key: 'privateMessages' }
-    { fn:fetchBotChannel,        key: 'bot' }
   ]
 
   handleQueue fetchActivitiesForNavigatedURL, reqs, params, callback
