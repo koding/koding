@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"text/tabwriter"
 
-	"koding/kites/kloud/utils/object"
+	"koding/kites/kloud/stack"
 	"koding/klientctl/kloud/credential"
 
 	"github.com/codegangsta/cli"
@@ -30,11 +32,17 @@ func CredentialList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	}
 
 	if c.Bool("json") {
-		object.JSONPrinter.Print(creds)
+		p, err := json.MarshalIndent(creds, "", "\t")
+		if err != nil {
+			return 1, err
+		}
+
+		fmt.Printf("%s\n", p)
+
 		return 0, nil
 	}
 
-	object.TabPrinter.Print(creds.ToSlice())
+	printCreds(creds.ToSlice())
 
 	return 0, nil
 }
@@ -77,4 +85,15 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 	fmt.Fprintf(os.Stderr, "Created %q credential with %s identifier.\n", cred.Title, cred.Identifier)
 
 	return 0, nil
+}
+
+func printCreds(creds []stack.CredentialItem) {
+	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
+	defer w.Flush()
+
+	fmt.Fprintln(w, "ID\tTITLE\tTEAM\tPROVIDER")
+
+	for _, cred := range creds {
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", cred.Identifier, cred.Title, cred.Team, cred.Provider)
+	}
 }
