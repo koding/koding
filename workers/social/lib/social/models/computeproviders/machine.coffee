@@ -670,6 +670,16 @@ module.exports = class JMachine extends Module
       then callback err
       else JMachine::shareWith.call this, options, callback
 
+  update$: secure (client, query, callback) ->
+
+    { group }    = client.r
+    { delegate } = client.connection
+
+    @updateAndNotify {
+      account : delegate
+      group   : group.slug
+    }, query, callback
+
 
   share: secure (client, users, callback) ->
 
