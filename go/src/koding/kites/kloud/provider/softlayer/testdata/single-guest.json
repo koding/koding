@@ -2,14 +2,14 @@
   "resource": {
     "softlayer_virtual_guest": {
       "test": {
-        "name": "test",
-        "domain": "koding.com",
-        "region": "dal09",
         "cpu": 1,
-        "ram": 1024,
+        "domain": "koding.com",
+        "hourly_billing": true,
         "local_disk": true,
+        "name": "test",
         "public_network_speed": 10,
-        "hourly_billing": true
+        "ram": 1024,
+        "region": "dal09"
       }
     }
   }
