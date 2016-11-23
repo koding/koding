@@ -8537,36 +8537,6 @@
         }
       }
     },
-    "/remote.api/SocialChannel.fetchBotChannel": {
-      "post": {
-        "tags": [
-          "SocialChannel"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "Method SocialChannel.fetchBotChannel",
-        "responses": {
-          "200": {
-            "description": "Request processed succesfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
     "/remote.api/SocialChannel.create": {
       "post": {
         "tags": [
