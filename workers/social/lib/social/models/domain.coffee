@@ -74,7 +74,7 @@ module.exports = class JProposedDomain extends jraphical.Module
         set           : (value) -> value.toLowerCase()
 
       machines        :
-        type          : Array
+        type          : [ Object ]
         default       : -> []
 
       proxy           :

@@ -26,6 +26,7 @@
     "busboy": "0.2.13",
     "cache-manager": "1.2.2",
     "cli-table": "0.3.1",
+    "codo": "2.1.2",
     "coffee-cache": "1.0.2",
     "coffee-script": "1.8",
     "coffee-unused": "0.2.0",
