@@ -1,0 +1,13 @@
+{
+   "uuid" : "some-eth1-guid",
+   "port" : 1,
+   "name" : "eth",
+   "networkId" : 2222222,
+   "primaryIpAddress" : "1.2.3.4",
+   "macAddress" : "11:22:33:44:55:66",
+   "speed" : 1000,
+   "maxSpeed" : 1000,
+   "status" : "ACTIVE",
+   "guestId" : 1234567,
+   "id" : 9999999
+}
