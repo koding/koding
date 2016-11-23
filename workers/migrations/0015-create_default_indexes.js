@@ -1,7 +1,7 @@
 var mongodb = require('mongodb');
 var async = require('async');
 
-indexes = {
+var indexes = {
   "relationships": [{
     "name": "_id_",
     "key": {
