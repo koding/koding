@@ -1,31 +1,31 @@
 module.exports = (options) ->
   kiteHome = "$KONFIG_PROJECTROOT/generated/kite_home/koding"
 
-  kodingdev_master_2016_05 =
+  kodingdev_master =
     accessKeyId: ""
     secretAccessKey: ""
 
   awsKeys =
-    kodingdev_master_2016_05: kodingdev_master_2016_05
+    kodingdev_master: kodingdev_master
     # s3 full access
-    worker_terraformer: kodingdev_master_2016_05
+    worker_terraformer: kodingdev_master
     # s3 put only to koding-client bucket
-    worker_koding_client_s3_put_only: kodingdev_master_2016_05
+    worker_koding_client_s3_put_only: kodingdev_master
     # admin
-    worker_test: kodingdev_master_2016_05
+    worker_test: kodingdev_master
     # s3 put only
-    worker_test_data_exporter: kodingdev_master_2016_05
+    worker_test_data_exporter: kodingdev_master
     # AmazonRDSReadOnlyAccess
-    worker_rds_log_parser: kodingdev_master_2016_05
+    worker_rds_log_parser: kodingdev_master
     # ELB & EC2 -> AmazonEC2ReadOnlyAccess
-    worker_multi_ssh: kodingdev_master_2016_05
+    worker_multi_ssh: kodingdev_master
     # AmazonEC2FullAccess
-    worker_test_instance_launcher: kodingdev_master_2016_05
+    worker_test_instance_launcher: kodingdev_master
     # TunnelProxyPolicy
-    worker_tunnelproxymanager: kodingdev_master_2016_05
-    worker_tunnelproxymanager_route53: kodingdev_master_2016_05
+    worker_tunnelproxymanager: kodingdev_master
+    worker_tunnelproxymanager_route53: kodingdev_master
     #Encryption and Storage on S3
-    worker_sneakerS3 : kodingdev_master_2016_05
+    worker_sneakerS3 : kodingdev_master
 
   mongo = "#{options.serviceHost}:27017/koding"
   redis =
