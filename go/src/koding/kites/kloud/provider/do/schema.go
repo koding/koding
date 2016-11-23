@@ -48,15 +48,35 @@ type Bootstrap struct {
 	KeyFingerprint string `json:"key_fingerprint" bson:"key_fingerprint" hcl:"key_fingerprint"`
 }
 
-// Region represents a DigitalOcean region
-type Region string
+// RegionType represents a DigitalOcean region
+type RegionType string
+
+var _ stack.Enumer = RegionType("")
+
+var Regions = []stack.Enum{
+	{Title: "Amsterdam 1", Value: "ams1"},
+	{Title: "Amsterdam 2", Value: "ams2"},
+	{Title: "Amsterdam 3", Value: "ams3"},
+	{Title: "Bangalore 1", Value: "blr1"},
+	{Title: "France 1", Value: "fra1"},
+	{Title: "London 1", Value: "lon1"},
+	{Title: "New York 1", Value: "nyc1"},
+	{Title: "New York 2", Value: "nyc2"},
+	{Title: "New York 3", Value: "nyc3"},
+	{Title: "San Francisco 1", Value: "sfo1"},
+	{Title: "San Francisco 2", Value: "sfo2"},
+	{Title: "Singapore 1", Value: "sgp1"},
+	{Title: "Toronto 1", Value: "tor1"},
+}
+
+func (RegionType) Enums() []stack.Enum { return Regions }
 
 // Metadata represent the data that is stored on Koding's DB storage
 type Metadata struct {
-	DropletID int    `json:"droplet_id" bson:"droplet_id" hcl:"droplet_id"`
-	Region    Region `json:"region" bson:"region" hcl:"region"`
-	Size      string `json:"size" bson:"size" hcl:"size"`
-	Image     string `json:"image" bson:"image" hcl:"image"`
+	DropletID int        `json:"droplet_id" bson:"droplet_id" hcl:"droplet_id"`
+	Region    RegionType `json:"region" bson:"region" hcl:"region"`
+	Size      string     `json:"size" bson:"size" hcl:"size"`
+	Image     string     `json:"image" bson:"image" hcl:"image"`
 }
 
 func newSchema() *provider.Schema {
@@ -83,7 +103,7 @@ func newMetadata(m *stack.Machine) interface{} {
 	meta := &Metadata{
 		Size:   m.Attributes["size"],
 		Image:  m.Attributes["image"],
-		Region: Region(m.Attributes["region"]),
+		Region: RegionType(m.Attributes["region"]),
 	}
 
 	if id, err := strconv.Atoi(m.Attributes["id"]); err == nil {
@@ -115,9 +135,8 @@ func (m *Metadata) Valid() error {
 		return errors.New("region cannot be empty")
 	}
 
-	if !m.Region.isValid() {
-		return fmt.Errorf("region %q is not valid. Valid regions can be one of the following: %v",
-			m.Region, validRegions)
+	if err := m.Region.Valid(); err != nil {
+		return err
 	}
 
 	if m.Image == "" {
@@ -148,26 +167,12 @@ func (b *Bootstrap) Valid() error {
 	return nil
 }
 
-// isValid checks whether the given region is valid or not
-func (r Region) isValid() bool {
-	for _, validRegion := range validRegions {
-		if validRegion == string(r) {
-			return true
+// Valid implements the stack.Validator interface.
+func (r RegionType) Valid() error {
+	for _, region := range Regions {
+		if r == RegionType(region.Value.(string)) {
+			return nil
 		}
 	}
-	return false
-}
-
-// Enum implements the stack.Enumer interface
-func (Region) Enum() []interface{} {
-	// TODO: check whether the valid regions have metadata listed as their
-	// features and only show those regions, because User Data is currently
-	// only available in regions with metadata listed in their features.
-	regions := make([]interface{}, len(validRegions))
-
-	for i, region := range validRegions {
-		regions[i] = region
-	}
-
-	return regions
+	return fmt.Errorf("region %q is not valid", r)
 }
