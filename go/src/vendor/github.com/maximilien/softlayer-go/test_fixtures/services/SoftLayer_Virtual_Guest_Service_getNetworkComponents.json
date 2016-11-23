@@ -1,0 +1,28 @@
+[
+  {
+    "guestId": 1234567,
+    "id": 8888888,
+    "macAddress": "00:11:22:33:44:55",
+    "maxSpeed": 1000,
+    "name": "eth",
+    "networkId": 1111111,
+    "port": 0,
+    "speed": 1000,
+    "status": "ACTIVE",
+    "uuid": "some-eth0-guid",
+    "primaryIpAddress": "10.10.10.10"
+  },
+  {
+    "guestId": 1234567,
+    "id": 9999999,
+    "macAddress": "11:22:33:44:55:66",
+    "maxSpeed": 1000,
+    "name": "eth",
+    "networkId": 2222222,
+    "port": 1,
+    "speed": 1000,
+    "status": "ACTIVE",
+    "uuid": "some-eth1-guid",
+    "primaryIpAddress": "1.2.3.4"
+  }
+]

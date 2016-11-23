@@ -37,7 +37,7 @@ var _ = Describe("SoftLayer_Billing_Item_Cancellation_Request", func() {
 		Expect(billingItemCancellationRequestService).ToNot(BeNil())
 	})
 
-	Context("#GetNam", func() {
+	Context("#GetName", func() {
 		It("returns the name for the service", func() {
 			name := billingItemCancellationRequestService.GetName()
 			Expect(name).To(Equal("SoftLayer_Billing_Item_Cancellation_Request"))
@@ -45,20 +45,43 @@ var _ = Describe("SoftLayer_Billing_Item_Cancellation_Request", func() {
 	})
 
 	Context("#CreateObject", func() {
+		var request datatypes.SoftLayer_Billing_Item_Cancellation_Request
+
 		BeforeEach(func() {
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Billing_Item_Cancellation_Request_Service_createObject.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Billing_Item_Cancellation_Request_Service_createObject.json")
 			Expect(err).ToNot(HaveOccurred())
+
+			request = datatypes.SoftLayer_Billing_Item_Cancellation_Request{}
 		})
 
 		It("returns an instance of datatypes.SoftLayer_Network_Storage", func() {
-
-			request := datatypes.SoftLayer_Billing_Item_Cancellation_Request{}
-
 			result, err := billingItemCancellationRequestService.CreateObject(request)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result.Id).To(Equal(123))
 			Expect(result.AccountId).To(Equal(456))
 			Expect(result.TicketId).To(Equal(789))
+		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := billingItemCancellationRequestService.CreateObject(request)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := billingItemCancellationRequestService.CreateObject(request)
+					Expect(err).To(HaveOccurred())
+				}
+			})
 		})
 	})
 })

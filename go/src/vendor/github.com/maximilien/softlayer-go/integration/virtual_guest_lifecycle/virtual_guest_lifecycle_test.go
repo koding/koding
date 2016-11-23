@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	datatypes "github.com/maximilien/softlayer-go/data_types"
-	softlayer "github.com/maximilien/softlayer-go/softlayer"
+	"github.com/maximilien/softlayer-go/softlayer"
 	testhelpers "github.com/maximilien/softlayer-go/test_helpers"
 )
 
@@ -94,9 +94,24 @@ var _ = Describe("SoftLayer Virtual Guest Lifecycle", func() {
 			virtualGuestService, err := testhelpers.CreateVirtualGuestService()
 			Expect(err).ToNot(HaveOccurred())
 
-			available, err := virtualGuestService.CheckHostDiskAvailability(virtualGuest.Id, 1024)
+			available, err := virtualGuestService.CheckHostDiskAvailability(virtualGuest.Id, 1)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(available).To(BeTrue())
+		})
+
+		It("creates the virtual guest and waits for it to be active and checks if the disk type is local", func() {
+			virtualGuest := testhelpers.CreateVirtualGuestAndMarkItTest([]datatypes.SoftLayer_Security_Ssh_Key{})
+			defer testhelpers.CleanUpVirtualGuest(virtualGuest.Id)
+
+			testhelpers.WaitForVirtualGuestToBeRunning(virtualGuest.Id)
+			testhelpers.WaitForVirtualGuestToHaveNoActiveTransactions(virtualGuest.Id)
+
+			virtualGuestService, err := testhelpers.CreateVirtualGuestService()
+			Expect(err).ToNot(HaveOccurred())
+
+			disktype, err := virtualGuestService.GetLocalDiskFlag(virtualGuest.Id)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(disktype).To(BeTrue())
 		})
 	})
 

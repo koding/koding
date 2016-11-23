@@ -45,7 +45,7 @@ var _ = Describe("SoftLayer_Network_Storage_Allowed_Host", func() {
 
 	Context("#GetCredential", func() {
 		BeforeEach(func() {
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Network_Storage_Allowed_Host_Service_getCredential.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Network_Storage_Allowed_Host_Service_getCredential.json")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -55,6 +55,28 @@ var _ = Describe("SoftLayer_Network_Storage_Allowed_Host", func() {
 			Expect(credential).ToNot(BeNil())
 			Expect(credential.Username).To(Equal("fake-username"))
 			Expect(credential.Password).To(Equal("fake-password"))
+		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := networkStorageAllowedHostService.GetCredential(123456)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := networkStorageAllowedHostService.GetCredential(123456)
+					Expect(err).To(HaveOccurred())
+				}
+			})
 		})
 	})
 })
