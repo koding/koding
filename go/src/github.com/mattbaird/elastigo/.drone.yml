@@ -1,0 +1,10 @@
+script:
+  - go get -t ./...
+  - go get github.com/bmizerany/assert
+  - cd lib
+  - go build 
+  - go test -v -loaddata
+  - go test -v
+  
+services:
+  - dockerfile/elasticsearch

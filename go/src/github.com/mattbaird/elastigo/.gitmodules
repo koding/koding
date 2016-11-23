@@ -1,0 +1,12 @@
+[submodule "java"]
+	path = java
+	url = https://github.com/cookbooks/java.git
+[submodule "cookbooks/java"]
+	path = cookbooks/java
+	url = https://github.com/cookbooks/java.git
+[submodule "cookbooks/apt"]
+	path = cookbooks/apt
+	url = https://github.com/opscode-cookbooks/apt.git
+[submodule "cookbooks/elasticsearch"]
+	path = cookbooks/elasticsearch
+	url = https://github.com/mattbaird/elasticsearch-chef.git
