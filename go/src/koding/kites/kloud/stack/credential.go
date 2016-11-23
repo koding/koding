@@ -48,6 +48,37 @@ type Enum struct {
 	Value interface{} `json:"value"`
 }
 
+// Enums is an enum list.
+type Enums []Enum
+
+// Contains gives true if enums contains the given value.
+func (e Enums) Contains(value interface{}) bool {
+	for _, e := range e {
+		if e.Value == value {
+			return true
+		}
+	}
+	return false
+}
+
+// Values gives all enums' values.
+func (e Enums) Values() []interface{} {
+	v := make([]interface{}, len(e))
+	for i := range e {
+		v[i] = e[i].Value
+	}
+	return v
+}
+
+// Titles gives all enums' titles.
+func (e Enums) Titles() []string {
+	t := make([]string, len(e))
+	for i := range e {
+		t[i] = e[i].Title
+	}
+	return t
+}
+
 // Value represents a description of a single
 // field within Bootstrap or Credential struct.
 type Value struct {
@@ -56,7 +87,7 @@ type Value struct {
 	Label    string `json:"label"`
 	Secret   bool   `json:"secret"`
 	ReadOnly bool   `json:"readOnly"`
-	Values   []Enum `json:"values,omitempty"`
+	Values   Enums  `json:"values,omitempty"`
 }
 
 // CredentialListRequest represents a request

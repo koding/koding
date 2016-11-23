@@ -156,6 +156,12 @@ func AskCredentialCreate(c *cli.Context) (*credential.CreateOptions, error) {
 			}
 
 			creds[field.Name] = d
+		case "enum":
+			if !field.Values.Contains(value) {
+				return nil, fmt.Errorf("invalid %q enumeration value for %q field - valid values are: %v", value, field.Label, field.Values.Values())
+			}
+
+			creds[field.Name] = value
 		default:
 			creds[field.Name] = value
 		}
