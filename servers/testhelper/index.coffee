@@ -1,4 +1,5 @@
 _           = require 'underscore'
+url         = require 'url'
 hat         = require 'hat'
 async       = require 'async'
 Bongo       = require 'bongo'
@@ -40,34 +41,10 @@ generateRandomUsername = -> generateRandomString()
 
 
 generateUrl = (opts = {}) ->
-
-  getRoute = (route) ->
-    if    route
-    then  "/#{route}"
-    else  ''
-
-  getSubdomain = (subdomain) ->
-    if    subdomain
-    then  "#{subdomain}."
-    else  ''
-
-  urlParts =
-    hostname  : if KONFIG.environment is 'dev' then 'dev.koding.com' else 'localhost'
-    port      : ':8090'
-    route     : ''
-    protocol  : 'http://'
-    subdomain : ''
-
-  urlParts = _.extend urlParts, opts
-
-  url =
-    urlParts.protocol +
-    getSubdomain(urlParts.subdomain) +
-    urlParts.hostname +
-    urlParts.port +
-    getRoute(urlParts.route)
-
-  return url
+  uri = url.parse(KONFIG.uri.address)
+  uri.host = "#{opts.subdomain}.#{uri.host}"  if opts.subdomain
+  uri.pathname = opts.route
+  return url.format(uri)
 
 
 generateDefaultHeadersObject = (opts = {}) ->
