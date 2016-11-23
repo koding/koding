@@ -429,7 +429,7 @@ module.exports = class StackEditorView extends kd.View
       cssClass: 'close-update-view'
       click: (event) =>
         if event.target?.className is 'close-update-view'
-          @cleanUpdateView()
+          @cleanUpdateView no
 
 
   createUpdateWarningView: (originalTemplate) ->
@@ -463,13 +463,20 @@ module.exports = class StackEditorView extends kd.View
             @clonedFrom.destroy()
 
 
-  cleanUpdateView: ->
+  cleanUpdateView: (update = yes) ->
+
+    { computeController:cc } = kd.singletons
 
     @tabView.unsetClass 'view-info'
     @stackTemplateUpdateWarningView.destroy()
     @saveUpdatedTemplateView.destroy()
     @emit 'Reload'
-
+    if update
+      for stack in cc.stacks
+        if stack.baseStackId is @stackTemplate._id
+          config = stack.config ?= {}
+          config.needUpdate = no
+          cc.updateStackConfig stack, config
 
 
   createOutputView: ->
