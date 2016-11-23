@@ -2,6 +2,7 @@ package response
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"socialapi/config"
@@ -132,6 +133,7 @@ func NewNotFound() (int, http.Header, interface{}, error) {
 
 // NewDeleted returns http StatusAccepted response
 func NewDeleted() (int, http.Header, interface{}, error) {
+	fmt.Println("test")
 	return http.StatusAccepted, nil, nil, nil
 }
 
