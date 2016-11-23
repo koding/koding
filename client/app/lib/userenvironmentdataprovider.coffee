@@ -38,7 +38,15 @@ module.exports =
 
 
   get: ->
-    return @setDefaults_ globals.userEnvironmentData
+
+    switch typeof globals.userEnvironmentData
+      when 'string'
+        data = try
+          JSON.parse globals.userEnvironmentData
+        catch
+          null
+
+    return @setDefaults_ data
 
 
   setDefaults_: (data = {}) ->
