@@ -174,5 +174,5 @@ func (r RegionType) Valid() error {
 			return nil
 		}
 	}
-	return fmt.Errorf("region %q is not valid", r)
+	return fmt.Errorf("region %q does not exist", r)
 }
