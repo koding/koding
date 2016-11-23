@@ -147,7 +147,7 @@ module.exports = (req, res, next) ->
     # generating callback function to be used in both login and convert
     createGroup = createGroupKallback client, req, res, body
 
-    if alreadyMember
+    if alreadyMember is 'true'
     then JUser.login client.sessionToken, body, createGroup
     else JUser.convert client, body, createGroup
 
