@@ -24,9 +24,6 @@ module.exports = class NotificationView extends React.Component
       @_removeCount = 0
       @state =
         removed : no
-      @_hideNotification = @_hideNotification.bind this
-      @_removeNotification = @_removeNotification.bind this
-      @_onTransitionEnd = @_onTransitionEnd.bind this
 
 
     _hideNotification: ->
@@ -38,7 +35,7 @@ module.exports = class NotificationView extends React.Component
 
     _removeNotification: ->
 
-      @props.onRemove(@props.notification.uid)
+      @props.onRemove @props.notification.uid
 
 
     _dismiss: ->
@@ -54,35 +51,34 @@ module.exports = class NotificationView extends React.Component
 
 
     autoDismissible: (notification) ->
-
-      not notification.dismissible and not notification.primaryButtonTitle and not notification.secondaryButtonTitle
+      { dismissible, primaryButtonTitle, secondaryButtonTitle} = notification
+      not dismissible and not primaryButtonTitle and not secondaryButtonTitle
 
 
     componentDidMount: ->
 
-      self = this
       transitionEvent = getVendorTransition()
-      element = ReactDOM.findDOMNode(self)
+      element = ReactDOM.findDOMNode this
       notification = @props.notification
       @_isMounted = yes
       if transitionEvent
         element.addEventListener transitionEvent, @_onTransitionEnd
-      if @autoDismissible(notification)
-        @_notificationTimer = new (Helpers.Timer)((->
-          self._hideNotification()
-          return
-        ), notification.duration)
+        if @autoDismissible notification
+          @_notificationTimer = new Helpers.Timer =>
+            @_hideNotification()
+            return
+          , notification.duration
 
 
     _handleMouseEnter: ->
 
-      if @autoDismissible(@props.notification)
+      if @autoDismissible @props.notification
         @_notificationTimer.pause()
 
 
     _handleMouseLeave: ->
 
-      if @autoDismissible(@props.notification)
+      if @autoDismissible @props.notification
         @_notificationTimer.resume()
 
 
@@ -106,7 +102,7 @@ module.exports = class NotificationView extends React.Component
 
     componentWillUnmount: ->
 
-      element = ReactDOM.findDOMNode(this)
+      element = ReactDOM.findDOMNode this
       transitionEvent = getVendorTransition()
       element.removeEventListener transitionEvent, @_onTransitionEnd
       @_isMounted = no
@@ -185,7 +181,7 @@ ActionButton = ({type, title, onClick}) ->
 
 
 Actions = ({notification, onPrimaryButtonClick, onSecondaryButtonClick}) ->
-  
+
   actionsClass = if not notification.secondaryButtonTitle then styles.kd_notification_single_action else styles.kd_notification_multiple_actions
   <div className={styles.kd_notification_actions}>
     <div className={actionsClass}>

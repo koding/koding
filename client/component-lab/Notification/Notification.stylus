@@ -15,29 +15,17 @@ $notifications-z-index          = 20000
   background-color              $additional-4-light
   width                         370px
   border-radius                 4px
-  font-family                   Soleil, 'Open Sans', 'Proxima Nova', 'Helvetica Neue', Helvetica, Arial
+  font-family                   "Proxima Nova", "proxima-nova", Helvetica, Arial
   overflow                      hidden
-  -webkit-box-shadow            0 0 5px 0 rgba(77, 77, 77, 0.7)
   box-shadow                    0 0 5px 0 rgba(77, 77, 77, 0.7)
-  display                       -webkit-box
-  display                       -moz-box
-  display                       -ms-flexbox
-  display                       -webkit-flex
   display                       flex
-  -webkit-flex-direction        row
-  -moz-flex-direction           row
-  -ms-flex-direction            row
   flex-direction                row
-  -webkit-box-sizing            border-box
-  -moz-box-sizing               border-box
   box-sizing                    border-box
   .kd_notification_level
     flex                        0 0 50px
     padding:                    13px 0 0
     border-bottom-right-radius  0
     border-top-right-radius     0
-    -webkit-box-sizing          border-box
-    -moz-box-sizing             border-box
     box-sizing                  border-box
     .kd_notification_icon
       margin                    0 auto
@@ -72,8 +60,6 @@ $notifications-z-index          = 20000
     flex-direction              row
     align-items                 center
     justify-content             flex-start
-    -webkit-box-sizing          border-box
-    -moz-box-sizing             border-box
     box-sizing                  border-box
 .kd_notification_actions
   button
@@ -81,8 +67,6 @@ $notifications-z-index          = 20000
     width                       100%
     height                      100%
     border-radius               0
-    -webkit-box-sizing          border-box
-    -moz-box-sizing             border-box
     box-sizing                  border-box
     border                      none
     &:hover
@@ -93,8 +77,6 @@ $notifications-z-index          = 20000
     margin                      10px 0
     width                       100%
     height                      100%
-    -webkit-box-sizing          border-box
-    -moz-box-sizing             border-box
     box-sizing                  border-box
     .kd_notification_action
       display                   flex
@@ -107,8 +89,6 @@ $notifications-z-index          = 20000
         width                   1px
         height                  calc(100% - 20px)
         background-color        $additional-5
-        -webkit-box-sizing      border-box
-        -moz-box-sizing         border-box
         box-sizing              border-box
 
   .kd_notification_multiple_actions
@@ -117,8 +97,6 @@ $notifications-z-index          = 20000
     display                     flex
     flex-direction              column
     border-left                 1px solid $additional-5
-    -webkit-box-sizing          border-box
-    -moz-box-sizing             border-box
     box-sizing                  border-box
     .kd_notification_action
       flex                      1
@@ -166,8 +144,7 @@ $notifications-z-index          = 20000
   width                         24px
   height                        24px
 
-@media only screen and (-webkit-min-device-pixel-ratio: 2),
-only screen and (min-device-pixel-ratio: 2)
+@media only screen and (min-device-pixel-ratio: 2)
   .kd_notification_icon
     &.kd_notification_icon_caution
       background-position       -39px -5px

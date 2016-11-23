@@ -30,15 +30,14 @@ module.exports = class Notification extends React.Component
         opacity : 0
     @state =
       notifications: []
-    @addNotification = @addNotification.bind this
 
   addNotification: (notification) ->
 
-    _notification = _.assign({}, Constants.notification, notification)
-    Helpers.propsValidation(_notification, Constants.types)
+    _notification = _.assign {}, Constants.notification, notification
+    Helpers.propsValidation _notification, Constants.types
     notifications = @state.notifications
     _notification.type = _notification.type.toLowerCase()
-    _notification.duration = parseInt(_notification.duration, 10)
+    _notification.duration = parseInt _notification.duration, 10
     _notification.uid = _notification.uid or @uid
     _notification.ref = "notification-#{_notification.uid}"
     @uid += 1
@@ -80,14 +79,13 @@ module.exports = class Notification extends React.Component
 
   getNotifications: ->
 
-    self = this
     notifications = null
-    notifications = _.map @state.notifications, (notification, index) ->
+    notifications = _.map @state.notifications, (notification, index) =>
       <NotificationView
         index={index}
         key={notification.uid}
         notification={notification}
-        onRemove={self.bound 'onNotificationRemove'} />
+        onRemove={@bound 'onNotificationRemove'} />
 
   render: ->
 
