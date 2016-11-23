@@ -14,17 +14,17 @@ module.exports =
 
   "resource": {
     "softlayer_virtual_guest": {
-      "softlayer-vg": {
-        "name": "softlayer-vg",
+      "softlayer-instance": {
+        "name": "softlayer-instance",
         "domain": "koding.com",
         "region": "dal09",
-        "ssh_keys": ["123456"],
         "image": "UBUNTU_14_64",
         "cpu": 1,
         "ram": 1024,
         "local_disk": true,
         "public_network_speed": 10,
-        "hourly_billing": true
+        "hourly_billing": true,
+        "user_data": "\\necho \\\"hello world!\\\" >> /helloworld.txt\\n"
       }
     }
   }
@@ -44,8 +44,8 @@ provider:
 
 resource:
   softlayer_virtual_guest:
-    softlayer_vg:
-      name: softlayer-vg
+    softlayer-instance:
+      name: softlayer-instance
       domain: koding.com
 
       # Extra keypairs to be added to the new instance.
@@ -56,7 +56,7 @@ resource:
       region: dal09
 
       # Default image is Ubuntu 14.04 LTS x64
-      # image: UBUNTU_14_64
+      image: UBUNTU_14_64
 
       cpu: 1
       ram: 1024
@@ -64,5 +64,16 @@ resource:
       public_network_speed: 10
 
       hourly_billing: true
+
+      # on user_data section we will write bash and configure our VM
+      user_data: |-
+        # let's create a file on your root folder:
+        echo "hello world!" >> /helloworld.txt
+        # please note: all commands under user_data will be run as root.
+        # now add your credentials and save this stack.
+        # once vm finishes building, you can see this file by typing
+        # ls /
+        #
+        # for more information please click the link below "Stack Script Docs"
 
   '''

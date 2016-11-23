@@ -11,105 +11,28 @@ module.exports = class Softlayer extends ProviderInterface
 
   @providerSlug = 'softlayer'
 
+  @bootstrapKeys = ['key_id']
+
+  @sensitiveKeys = ['api_key']
+
+
   @ping = (client, options, callback) ->
 
     { nickname } = client.r.account.profile
     callback null, "#{ @providerSlug } is the best #{ nickname }!"
 
 
-  ###*
-   * @param {Object} options
-   * @param {String=} options.snapshotId - The unique snapshotId to create
-   *   this machine from, if any.
-  ###
   @create = (client, options, callback) ->
 
-    { label } = options
-    { r: { group, user, account } } = client
+    { credential, region, image, label } = options
 
-    storage  = 25
-    provider = @providerSlug
+    meta =
+      type          : @providerSlug
+      assignedLabel : label
+      region        : region ? 'dal09'
+      instance_type : 'virtual_guest'
+      storage_size  : 10
+      image         : image ? 'UBUNTU_14_64'
 
-    { guessNextLabel, checkUsage
-      fetchUserPlan, fetchUsage } = require './computeutils'
+    callback null, { meta, credential }
 
-    guessNextLabel { user, group, label, provider }, (err, label) ->
-      return callback err  if err
-
-      fetchUserPlan client, (err, userPlan) ->
-        return callback err  if err
-
-        fetchUsage client, { provider }, (err, usage) ->
-          return callback err  if err
-
-          # Softlayer vm limit is 1 for all plans, until we decide ~ GG
-          userPlan.total = 1
-
-          if err = checkUsage usage, userPlan
-            return callback err
-
-          meta            =
-            type          : 'softlayer'
-            storage_size  : storage
-          # datacenter    : 'hou02'
-            alwaysOn      : no
-
-          callback null, { meta, label, credential: client.r.user.username }
-
-
-  @postCreate = (client, options, callback) ->
-
-    { r: { account } } = client
-    { machine } = options
-
-    JDomainAlias = require '../domainalias'
-    JDomainAlias.ensureTopDomainExistence account, machine._id, (err) ->
-      return callback err  if err
-
-      JWorkspace = require '../workspace'
-      JWorkspace.createDefault client, machine.uid, callback
-
-
-  @update = (client, options, callback) ->
-
-    { machineId, alwaysOn } = options
-    { r: { group, user, account } } = client
-
-    unless machineId? or alwaysOn?
-      return callback new KodingError \
-        'A valid machineId and an update option required.', 'WrongParameter'
-
-    provider = @providerSlug
-
-    { fetchUserPlan, fetchUsage } = require './computeutils'
-
-    fetchUserPlan client, (err, userPlan) ->
-
-      return callback err  if err?
-
-      fetchUsage client, { provider }, (err, usage) ->
-
-        return callback err  if err?
-
-        if alwaysOn and usage.alwaysOn >= userPlan.alwaysOn
-          return callback new KodingError \
-            """Total limit of #{userPlan.alwaysOn}
-               always on vm limit has been reached.""", 'UsageLimitReached'
-
-        { ObjectId } = require 'bongo'
-
-        selector  =
-          $or     : [
-            { _id : ObjectId machineId }
-            { uid : machineId }
-          ]
-          users        :
-            $elemMatch :
-              id       : user.getId()
-              sudo     : yes
-              owner    : yes
-          groups       :
-            $elemMatch :
-              id       : group.getId()
-
-        updateMachine { selector, alwaysOn, usage, userPlan }, callback

@@ -285,12 +285,36 @@ module.exports = globals.config.providers =
         label              : 'Deploy Timeout'
         placeholder        : 'deploy timeout value in seconds'
 
+  softlayer                :
+    name                   : 'Softlayer'
+    link                   : 'http://www.softlayer.com'
+    title                  : 'Softlayer'
+    color                  : '#B52025'
+    supported              : yes
+    enabled                : 'beta'
+    defaultTemplate        : require './templates/softlayer'
+    instanceTypes          : require './instance-types/softlayer'
+    description            : 'Softlayer Virtual Guest'
+    attributeMapping       :
+      image                : 'image'
+      instance_type        : 'size'
+      region               : 'region'
+    credentialFields       :
+      username             :
+        label              : 'User ID'
+        placeholder        : 'user id including prefix (like SL or IBM)'
+      api_key              :
+        label              : 'API Key'
+        placeholder        : 'softlayer api key'
+        attributes         :
+          autocomplete     : if isProd then 'off' else 'on'
+
   rackspace                :
     name                   : 'Rackspace'
     link                   : 'http://www.rackspace.com'
     title                  : 'Rackspace'
     color                  : '#d8deea'
-    supported              : no
+    supported              : yes
     enabled                : no
     description            : 'Rackspace machines'
     credentialFields       :
@@ -302,26 +326,6 @@ module.exports = globals.config.providers =
       apiKey               :
         label              : 'API Key'
         placeholder        : 'rackspace api key'
-        attributes         :
-          autocomplete     : if isProd then 'off' else 'on'
-
-  softlayer                :
-    name                   : 'Softlayer'
-    link                   : 'http://www.softlayer.com'
-    title                  : 'Softlayer'
-    color                  : '#B52025'
-    supported              : yes
-    enabled                : 'beta'
-    defaultTemplate        : require './templates/softlayer'
-    instanceTypes          : require './instance-types/softlayer'
-    description            : 'Softlayer Virtual Guest'
-    credentialFields       :
-      username             :
-        label              : 'Username'
-        placeholder        : 'username for softlayer'
-      api_key              :
-        label              : 'API Key'
-        placeholder        : 'softlayer api key'
         attributes         :
           autocomplete     : if isProd then 'off' else 'on'
 

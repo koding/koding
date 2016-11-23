@@ -1,7 +1,7 @@
 module.exports =
-  't2.micro':
-    ram: '1024'
-    cpu:'1'
+  'virtual_guest':
+    ram: '1024MB RAM'
+    cpu: '1x CPU'
     description: ''
 
-  'base-vm': 't2.micro'
+  'base-vm': 'virtual_guest'
