@@ -1,0 +1,6 @@
+name,description,binding,readonly,enabled,hidden,options
+e#save,Save,"[[u'ctrl+s'], [u'command+s']]",False,True,False,{u'ace': True}
+e#saveas,Save As...,"[[u'ctrl+shift+s'], [u'command+shift+s']]",False,True,False,{u'ace': True}
+e#gotoline,Go to Line,"[[u'ctrl+g'], [u'command+g']]",False,True,False,{u'ace': True}
+e#find,Find,"[[u'ctrl+f'], [u'command+f']]",False,True,False,{u'ace': True}
+e#findandreplace,Find and Replace,"[[u'ctrl+shift+f'], [u'command+shift+f']]",False,True,False,{u'ace': True}

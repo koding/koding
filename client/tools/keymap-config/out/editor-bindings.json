@@ -1,0 +1,92 @@
+[
+  {
+    "name": "e#save",
+    "description": "Save",
+    "binding": [
+      [
+        "ctrl+s"
+      ],
+      [
+        "command+s"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "ace": true
+    }
+  },
+  {
+    "name": "e#saveas",
+    "description": "Save As...",
+    "binding": [
+      [
+        "ctrl+shift+s"
+      ],
+      [
+        "command+shift+s"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "ace": true
+    }
+  },
+  {
+    "name": "e#gotoline",
+    "description": "Go to Line",
+    "binding": [
+      [
+        "ctrl+g"
+      ],
+      [
+        "command+g"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "ace": true
+    }
+  },
+  {
+    "name": "e#find",
+    "description": "Find",
+    "binding": [
+      [
+        "ctrl+f"
+      ],
+      [
+        "command+f"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "ace": true
+    }
+  },
+  {
+    "name": "e#findandreplace",
+    "description": "Find and Replace",
+    "binding": [
+      [
+        "ctrl+shift+f"
+      ],
+      [
+        "command+shift+f"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "ace": true
+    }
+  }
+]

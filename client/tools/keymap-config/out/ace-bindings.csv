@@ -1,0 +1,114 @@
+name,description,binding,readonly,enabled,hidden,options
+e#ace#default#showSettingsMenu,Show Settings Menu,"[[u'ctrl+,'], [u'command+,']]",True,False,True,{u'ace': True}
+e#ace#default#goToNextError,Go to Next Error,"[[u'alt+e'], [u'ctrl+e']]",True,True,False,{u'ace': True}
+e#ace#default#goToPreviousError,Go to Previous Error,"[[u'alt+shift+e'], [u'ctrl+shift+e']]",True,True,False,{u'ace': True}
+e#ace#default#selectall,Select All,"[[u'ctrl+a'], [u'command+a']]",True,True,False,{u'ace': True}
+e#ace#default#centerselection,Center Selection,"[None, [u'ctrl+l']]",True,True,False,{u'ace': True}
+e#ace#default#gotoline,Go to Line,"[[u'ctrl+l'], [u'command+l']]",True,False,True,{u'ace': True}
+e#ace#default#fold,Fold,"[[u'alt+l', u'ctrl+f1'], [u'command+alt+l', u'command+f1']]",True,True,False,{u'ace': True}
+e#ace#default#unfold,Unfold,"[[u'alt+shift+l', u'ctrl+shift+f1'], [u'command+alt+shift+l', u'command+shift+f1']]",True,True,False,{u'ace': True}
+e#ace#default#toggleFoldWidget,Toggle Fold Widget,"[[u'f2'], [u'f2']]",True,True,False,{u'ace': True}
+e#ace#default#toggleParentFoldWidget,Toggle Parent Fold Widget,"[[u'alt+f2'], [u'alt+f2']]",True,True,False,{u'ace': True}
+e#ace#default#foldall,Fold All,"[[u'ctrl+alt+0'], [u'ctrl+command+option+0']]",True,True,False,{u'ace': True}
+e#ace#default#foldOther,Fold Other,"[[u'alt+0'], [u'command+option+0']]",True,True,False,{u'ace': True}
+e#ace#default#unfoldall,Unfold All,"[[u'alt+shift+0'], [u'command+option+shift+0']]",True,True,False,{u'ace': True}
+e#ace#default#findnext,Find Next,"[[u'ctrl+k'], [u'command+g']]",True,True,False,{u'ace': True}
+e#ace#default#findprevious,Find Previous,"[[u'ctrl+shift+k'], [u'command+shift+g']]",True,True,False,{u'ace': True}
+e#ace#default#selectOrFindNext,Select or Find Next,"[[u'alt+k'], [u'ctrl+g']]",True,True,False,{u'ace': True}
+e#ace#default#selectOrFindPrevious,Select or Find Previous,"[[u'alt+shift+k'], [u'ctrl+shift+g']]",True,True,False,{u'ace': True}
+e#ace#default#find,Find,"[[u'ctrl+f'], [u'command+f']]",True,False,True,{u'ace': True}
+e#ace#default#overwrite,Overwrite,"[[u'insert'], [u'insert']]",True,True,False,{u'ace': True}
+e#ace#default#selecttostart,Select Lines Above the Current Line,"[[u'ctrl+shift+home'], [u'command+shift+up']]",True,True,False,{u'ace': True}
+e#ace#default#gotostart,Move to the Beginning of File,"[[u'ctrl+home'], [u'command+home', u'command+up']]",True,True,False,{u'ace': True}
+e#ace#default#selectup,Select the Line Above,"[[u'shift+up'], [u'shift+up']]",True,True,False,{u'ace': True}
+e#ace#default#golineup,Move Up,"[[u'up'], [u'up', u'ctrl+p']]",True,True,False,{u'ace': True}
+e#ace#default#selecttoend,Select Lines Below the Current Line,"[[u'ctrl+shift+end'], [u'command+shift+down']]",True,True,False,{u'ace': True}
+e#ace#default#gotoend,Move to the End of File,"[[u'ctrl+end'], [u'command+end', u'command+down']]",True,True,False,{u'ace': True}
+e#ace#default#selectdown,Select the Line Below,"[[u'shift+down'], [u'shift+down']]",True,True,False,{u'ace': True}
+e#ace#default#golinedown,Move Down,"[[u'down'], [u'down', u'ctrl+n']]",True,True,False,{u'ace': True}
+e#ace#default#selectwordleft,Select the Word Before Cursor,"[[u'ctrl+shift+left'], [u'option+shift+left']]",True,True,False,{u'ace': True}
+e#ace#default#gotowordleft,Move Backward a Word,"[[u'ctrl+left'], [u'option+left']]",True,True,False,{u'ace': True}
+e#ace#default#selecttolinestart,Select Text Before Cursor,"[[u'alt+shift+left'], [u'command+shift+left']]",True,True,False,{u'ace': True}
+e#ace#default#gotolinestart,Move to The Beginning of the Line,"[[u'alt+left', u'home'], [u'command+left', u'home', u'ctrl+a']]",True,True,False,{u'ace': True}
+e#ace#default#selectleft,Select to the Left,"[[u'shift+left'], [u'shift+left']]",True,True,False,{u'ace': True}
+e#ace#default#gotoleft,Move Left,"[[u'left'], [u'left', u'ctrl+b']]",True,True,False,{u'ace': True}
+e#ace#default#selectwordright,Select the Word After Cursor,"[[u'ctrl+shift+right'], [u'option+shift+right']]",True,True,False,{u'ace': True}
+e#ace#default#gotowordright,Move Forward a Word,"[[u'ctrl+right'], [u'option+right']]",True,True,False,{u'ace': True}
+e#ace#default#selecttolineend,Select Text After Cursor,"[[u'alt+shift+right'], [u'command+shift+right']]",True,True,False,{u'ace': True}
+e#ace#default#gotolineend,Move to The End of The Line,"[[u'alt+right', u'end'], [u'command+right', u'end', u'ctrl+e']]",True,True,False,{u'ace': True}
+e#ace#default#selectright,Select to the Right,"[[u'shift+right'], [u'shift+right']]",True,True,False,{u'ace': True}
+e#ace#default#gotoright,Move Right,"[[u'right'], [u'right', u'ctrl+f']]",True,True,False,{u'ace': True}
+e#ace#default#selectpagedown,Select Page Down,"[[u'shift+pagedown'], [u'shift+pagedown']]",True,True,False,{u'ace': True}
+e#ace#default#pagedown,Pagedown,"[None, [u'option+pagedown']]",True,True,False,{u'ace': True}
+e#ace#default#gotopagedown,Go to Page Down,"[[u'pagedown'], [u'pagedown', u'ctrl+v']]",True,True,False,{u'ace': True}
+e#ace#default#selectpageup,Select Page Up,"[[u'shift+pageup'], [u'shift+pageup']]",True,True,False,{u'ace': True}
+e#ace#default#pageup,Pageup,"[None, [u'option+pageup']]",True,True,False,{u'ace': True}
+e#ace#default#gotopageup,Go to Page Up,"[[u'pageup'], [u'pageup']]",True,True,False,{u'ace': True}
+e#ace#default#scrollup,Scroll Up,"[[u'ctrl+up'], None]",True,True,False,{u'ace': True}
+e#ace#default#scrolldown,Scroll Down,"[[u'ctrl+down'], None]",True,True,False,{u'ace': True}
+e#ace#default#selectlinestart,Select Line Start,"[[u'shift+home'], [u'shift+home']]",True,True,False,{u'ace': True}
+e#ace#default#selectlineend,Select Line End,"[[u'shift+end'], [u'shift+end']]",True,True,False,{u'ace': True}
+e#ace#default#togglerecording,Toggle Recording,"[[u'ctrl+alt+e'], [u'command+option+e']]",True,True,False,{u'ace': True}
+e#ace#default#replaymacro,Replay Macro,"[[u'ctrl+shift+e'], [u'command+shift+e']]",True,True,False,{u'ace': True}
+e#ace#default#jumptomatching,Jump to Matching,"[[u'ctrl+p'], [u'ctrl+p']]",True,True,False,{u'ace': True}
+e#ace#default#selecttomatching,Select to Matching,"[[u'ctrl+shift+p'], [u'ctrl+shift+p']]",True,True,False,{u'ace': True}
+e#ace#default#expandToMatching,Expand To Matching,"[[u'ctrl+shift+m'], [u'ctrl+shift+m']]",True,True,False,{u'ace': True}
+e#ace#default#passKeysToBrowser,Pass Keys to Browser,"[[None], [None]]",True,True,True,{u'ace': True}
+e#ace#default#removeline,Delete the Current Line,"[[u'ctrl+d'], [u'command+d']]",False,True,False,{u'ace': True}
+e#ace#default#duplicateSelection,Duplicate Selection,"[[u'ctrl+shift+d'], [u'command+shift+d']]",False,True,False,{u'ace': True}
+e#ace#default#sortlines,Sort Lines,"[[u'ctrl+alt+s'], [u'command+alt+s']]",False,False,False,{u'ace': True}
+e#ace#default#togglecomment,Toggle Comment,"[[u'ctrl+/'], [u'command+/']]",False,True,False,{u'ace': True}
+e#ace#default#toggleBlockComment,Toggle Block Comment,"[[u'ctrl+shift+/'], [u'command+shift+/']]",False,True,False,{u'ace': True}
+e#ace#default#modifyNumberUp,Increment Number,"[[u'ctrl+shift+up'], [u'alt+shift+up']]",False,True,False,{u'ace': True}
+e#ace#default#modifyNumberDown,Decrement Number,"[[u'ctrl+shift+down'], [u'alt+shift+down']]",False,True,False,{u'ace': True}
+e#ace#default#replace,Replace,"[[u'ctrl+h'], [u'command+option+f']]",False,True,False,{u'ace': True}
+e#ace#default#undo,Undo,"[[u'ctrl+z'], [u'command+z']]",False,True,False,{u'ace': True}
+e#ace#default#redo,Redo,"[[u'ctrl+shift+z', u'ctrl+y'], [u'command+shift+z', u'command+y']]",False,True,False,{u'ace': True}
+e#ace#default#copylinesup,Duplicate Lines Upwards,"[[u'alt+shift+up'], [u'command+option+up']]",False,True,False,{u'ace': True}
+e#ace#default#movelinesup,Move Lines Up,"[[u'alt+up'], [u'option+up']]",False,True,False,{u'ace': True}
+e#ace#default#copylinesdown,Duplicate Lines Downwards,"[[u'alt+shift+down'], [u'command+option+down']]",False,True,False,{u'ace': True}
+e#ace#default#movelinesdown,Move Lines Down,"[[u'alt+down'], [u'option+down']]",False,True,False,{u'ace': True}
+e#ace#default#del,Delete,"[[u'delete'], [u'delete', u'ctrl+d', u'shift+delete']]",False,True,False,{u'ace': True}
+e#ace#default#backspace,Backspace,"[[u'shift+backspace', u'backspace'], [u'ctrl+backspace', u'shift+backspace', u'backspace', u'ctrl+h']]",False,True,False,{u'ace': True}
+e#ace#default#cut_or_delete,Cut or Delete,"[[u'shift+delete'], None]",False,True,False,{u'ace': True}
+e#ace#default#removetolinestart,Delete to the Beginning of the Line,"[[u'alt+backspace'], [u'command+backspace']]",False,True,False,{u'ace': True}
+e#ace#default#removetolineend,Delete to the End of the Line,"[[u'alt+delete'], [u'ctrl+k']]",False,True,False,{u'ace': True}
+e#ace#default#removewordleft,Delete Word Before Cursor,"[[u'ctrl+backspace'], [u'alt+backspace', u'ctrl+alt+backspace']]",False,True,False,{u'ace': True}
+e#ace#default#removewordright,Delete Word After Cursor,"[[u'ctrl+delete'], [u'alt+delete']]",False,True,False,{u'ace': True}
+e#ace#default#outdent,Outdent,"[[u'shift+tab'], [u'shift+tab']]",False,True,False,{u'ace': True}
+e#ace#default#indent,Indent,"[[u'tab'], [u'tab']]",False,True,False,{u'ace': True}
+e#ace#default#blockoutdent,Outdent a Block,"[[u'ctrl+['], [u'ctrl+[']]",False,True,False,{u'ace': True}
+e#ace#default#blockindent,Indent a Block,"[[u'ctrl+]'], [u'ctrl+]']]",False,True,False,{u'ace': True}
+e#ace#default#splitline,Split a Line into Multiple Lines,"[None, [u'ctrl+o']]",False,True,False,{u'ace': True}
+e#ace#default#transposeletters,Swap Characters,"[[u'ctrl+t'], [u'ctrl+t']]",False,True,False,{u'ace': True}
+e#ace#default#touppercase,Convert to Uppercase,"[[u'ctrl+u'], [u'ctrl+u']]",False,True,False,{u'ace': True}
+e#ace#default#tolowercase,Convert to Lowercase,"[[u'ctrl+shift+u'], [u'ctrl+shift+u']]",False,True,False,{u'ace': True}
+e#ace#default#expandtoline,Select All From Multi-selection,"[[u'ctrl+shift+l'], [u'command+shift+l']]",True,True,False,{u'ace': True}
+e#ace#defaultMultiSelect#addCursorAbove,Place a Cursor to the Line Above,"[[u'ctrl+alt+up'], [u'ctrl+alt+up']]",True,True,False,{u'ace': True}
+e#ace#defaultMultiSelect#addCursorBelow,Place a Cursor to the Line Below,"[[u'ctrl+alt+down'], [u'ctrl+alt+down']]",True,True,False,{u'ace': True}
+e#ace#defaultMultiSelect#addCursorAboveSkipCurrent,Move Multi-cursor to the Line Above,"[[u'ctrl+alt+shift+up'], [u'ctrl+alt+shift+up']]",True,True,False,{u'ace': True}
+e#ace#defaultMultiSelect#addCursorBelowSkipCurrent,Move Multi-cursor to the Line Below,"[[u'ctrl+alt+shift+down'], [u'ctrl+alt+shift+down']]",True,True,False,{u'ace': True}
+e#ace#defaultMultiSelect#selectMoreBefore,Add Previous Occurence to Multi-selection,"[[u'ctrl+alt+left'], [u'ctrl+alt+left']]",True,True,False,{u'ace': True}
+e#ace#defaultMultiSelect#selectMoreAfter,Add Next Occurence to Multi-selection,"[[u'ctrl+alt+right'], [u'ctrl+alt+right']]",True,True,False,{u'ace': True}
+e#ace#defaultMultiSelect#selectNextBefore,Remove Current Occurence from Multi-selection and Jump to the Previous Occurence,"[[u'ctrl+alt+shift+left'], [u'ctrl+alt+shift+left']]",True,True,False,{u'ace': True}
+e#ace#defaultMultiSelect#selectNextAfter,Remove Current Occurence from Multi-selection and Jump to the Next Occurence,"[[u'ctrl+alt+shift+right'], [u'ctrl+alt+shift+right']]",True,True,False,{u'ace': True}
+e#ace#defaultMultiSelect#splitIntoLines,Split Multi-selection into Lines,"[[u'ctrl+alt+l'], [u'ctrl+alt+l']]",True,True,False,{u'ace': True}
+e#ace#defaultMultiSelect#alignCursors,Align Cursors,"[[u'ctrl+alt+a'], [u'ctrl+alt+a']]",False,True,False,{u'ace': True}
+e#ace#defaultMultiSelect#findAll,Find All,"[[u'ctrl+alt+g'], [u'ctrl+alt+k']]",True,True,False,{u'ace': True}
+e#ace#multiSelect#singleSelection,Single Selection,"[[u'esc'], [u'esc']]",True,True,True,{u'ace': True}
+e#ace#iSearch#restartSearch,Restart Search,"[[u'command+f'], [u'ctrl+f']]",True,True,False,{u'ace': True}
+e#ace#iSearch#searchForward,Search Forward,"[[u'ctrl+s', u'command+g'], [u'ctrl+s', u'ctrl+k']]",True,True,False,{u'ace': True}
+e#ace#iSearch#searchBackward,Search Backward,"[[u'ctrl+r', u'command+shift+g'], [u'ctrl+r', u'ctrl+shift+k']]",True,True,False,{u'ace': True}
+e#ace#iSearch#extendSearchTermSpace,Extend Search Term Space,"[[u'space'], [u'space']]",True,True,False,{u'ace': True}
+e#ace#iSearch#shrinkSearchTerm,Shrink Search term,"[[u'backspace'], [u'backspace']]",True,True,False,{u'ace': True}
+e#ace#iSearch#confirmSearch,Confirm Search,"[[u'return'], [u'return']]",True,True,False,{u'ace': True}
+e#ace#iSearch#cancelSearch,Cancel Search,"[u'esc', u'ctrl+g']",True,True,False,{u'ace': True}
+e#ace#iSearch#occurisearch,Occur Incremental Search,"[[u'ctrl+o'], [u'ctrl+o']]",True,True,True,{u'ace': True}
+e#ace#iSearch#yankNextWord,Yank Next Word,"[[u'ctrl+w'], [u'ctrl+w']]",True,True,False,{u'ace': True}
+e#ace#iSearch#yankNextChar,Yank Next Character,"[[u'ctrl+alt+y'], [u'ctrl+alt+y']]",True,True,False,{u'ace': True}
+e#ace#iSearch#recenterTopBottom,Recenter Top Bottom,"[[u'ctrl+l'], [u'ctrl+l']]",True,True,True,{u'ace': True}
+e#ace#iSearch#selectAllMatches,Select All Matches,"[[u'ctrl+space'], [u'ctrl+space']]",True,True,False,{u'ace': True}
+e#ace#iSearch#searchAsRegExp,Search as Regular Expression,"[[u'alt+r'], [u'alt+r']]",True,True,False,{u'ace': True}
+e#ace#iSearchStart#iSearch,Incremental Search,"[[u'command+f'], [u'ctrl+f']]",True,True,True,{u'ace': True}
+e#ace#iSearchStart#iSearchAndGo,Incremental Search and Go,"[[u'command+g'], [u'ctrl+k']]",True,True,True,{u'ace': True}
+e#ace#iSearchStart#iSearchBackwardsAndGo,Incremental Search Backwards and Go,"[[u'command+shift+g'], [u'ctrl+shift+k']]",True,True,True,{u'ace': True}
