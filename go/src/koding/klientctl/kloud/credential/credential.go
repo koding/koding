@@ -172,12 +172,9 @@ func (c *Client) cache(credentials stack.Credentials) {
 			continue
 		}
 
-	merge:
 		for _, cred := range creds {
-			for _, cached := range c.cached[provider] {
-				if cached.Identifier == cred.Identifier {
-					continue merge
-				}
+			if _, ok := c.cached.Find(cred.Identifier); ok {
+				continue
 			}
 
 			c.cached[provider] = append(c.cached[provider], cred)
