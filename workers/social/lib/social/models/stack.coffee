@@ -355,38 +355,6 @@ module.exports = class JComputeStack extends jraphical.Module
     }, callback
 
 
-  destroy: (callback) ->
-
-    @fetchGroup (err, group) =>
-      return callback err  if err
-
-      @update { $set: { status: { state: 'Destroying' } } }, (err) =>
-        return callback err  if err
-
-        JMachine = require './computeproviders/machine'
-
-        updateGroupResourceUsage this, group, 'decrement', =>
-
-          machineIds = (machineId for machineId in @machines)
-
-          JMachine.update
-            _id   :
-              $in : machineIds
-          ,
-            $set  :
-              'status.state' : 'Terminated'
-              'users'        : [] # remove users from machines since it's going
-                                  # to be terminated so users of this
-                                  # machine won't be able to see it ~ GG
-          , { multi : yes }
-          , (err) =>
-
-            if err
-              console.warn 'Failed to mark stack machines as Terminated:', err
-
-            @unuseStackTemplate callback
-
-
   delete: (callback, force = no) ->
 
     if @baseStackId and not force
