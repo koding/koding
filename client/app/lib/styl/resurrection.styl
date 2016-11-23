@@ -1103,6 +1103,23 @@ paymentGrayLighter  = #f8f8f8
   left                      50% !important
   margin-left               -172px
 
+  &.AppModal--admin
+    overflow                hidden
+
+    .kdtabhandlecontainer
+      .kdtabhandle b
+        overflow            visible
+
+    .kdtabpaneview
+      max-height            450px
+
+      > div pre
+        padding-bottom      0
+
+      &.stack-template code
+        max-height          420px
+        overflow            auto
+
 
 .kdmodal.env-machine-state
   left                      50% !important
