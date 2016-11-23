@@ -127,15 +127,15 @@ func (c *Controller) findToBeRemovedUsers(ping *models.Ping) ([]bson.ObjectId, e
 
 	users := partitionUsers(ownerAccount, ownersWorkspaces, ws)
 
-	toBeRemovedUsers := make([]bson.ObjectId, 0)
-	for accountId, count := range users {
+	var toBeRemovedUsers []bson.ObjectId
+	for accountID, count := range users {
 		// if we count the user more than once, that means user is in another
 		// workspace too
 		if count > 1 {
 			continue
 		}
 
-		u, err := modelhelper.GetUserByAccountId(accountId)
+		u, err := modelhelper.GetUserByAccountId(accountID)
 		if err != nil {
 			return nil, err
 		}
@@ -143,7 +143,7 @@ func (c *Controller) findToBeRemovedUsers(ping *models.Ping) ([]bson.ObjectId, e
 		toBeRemovedUsers = append(toBeRemovedUsers, u.ObjectId)
 	}
 
-	filteredUsers := make([]bson.ObjectId, 0)
+	var filteredUsers []bson.ObjectId
 	permanentUsers := make(map[string]struct{})
 	for _, user := range machine.Users {
 		if user.Permanent {
