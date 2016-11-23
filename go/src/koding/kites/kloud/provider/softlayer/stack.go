@@ -11,7 +11,7 @@ import (
 	"koding/kites/kloud/stack/provider"
 	"koding/kites/kloud/userdata"
 
-	softlayerGo "github.com/maximilien/softlayer-go/client"
+	softlayer "github.com/maximilien/softlayer-go/client"
 )
 
 //go:generate $GOPATH/bin/go-bindata -mode 420 -modtime 1475345133 -pkg softlayer -o bootstrap.json.tmpl.go bootstrap.json.tmpl
@@ -56,17 +56,14 @@ func (s *Stack) VerifyCredential(c *stack.Credential) error {
 
 	// Do a quick check to verify the credentials are valid for
 	// communitcating with the SoftLayer apis
-	client := softlayerGo.NewSoftLayerClient(cred.Username, cred.ApiKey)
-	service, err := client.GetSoftLayer_Virtual_Guest_Service()
-	if err != nil {
-		return err
-	}
-	_, err = service.GetObject(1234567)
+	client := softlayer.NewSoftLayerClient(cred.Username, cred.ApiKey)
+	account, err := client.GetSoftLayer_Account_Service()
 	if err != nil {
 		return err
 	}
 
-	return nil
+	_, err = account.GetAccountStatus()
+	return err
 }
 
 func (s *Stack) BootstrapArg() *stack.BootstrapRequest {
