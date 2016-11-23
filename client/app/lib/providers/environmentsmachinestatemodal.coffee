@@ -554,8 +554,8 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
   createStateButton: ->
 
-    # Don't display run button for managed vms
-    return  if @isManaged
+    # Don't display run button for managed and shared vms
+    return  if @isManaged or @machine.isPermanent()
 
     if @state in [Terminated, 'NotFound']
       callback = 'requestNewMachine'
