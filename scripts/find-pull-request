@@ -1,0 +1,10 @@
+#!/bin/bash
+
+for HEAD in $(git branch -r --contains ${REVISION:0:7}); do
+  if [ -n "$(echo $HEAD | grep '/pull/')" ]; then
+    echo $HEAD | awk -F '/' '{print $NF}'
+    exit 0
+  fi
+done
+
+exit 1
