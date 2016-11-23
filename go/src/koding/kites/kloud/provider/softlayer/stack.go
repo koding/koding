@@ -77,11 +77,7 @@ func (s *Stack) BootstrapArg() *stack.BootstrapRequest {
 // output values, to bootstrap a SoftLayer stack
 func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, error) {
 	vs := &bootstrapVars{
-		KeyName: fmt.Sprintf(
-			"koding-%s-%s",
-			s.Arg(*stack.BootstrapRequest).GroupName,
-			c.Identifier,
-		),
+		KeyName:   "koding-" + s.Arg.(*stack.BootstrapRequest).GroupName + "-" + c.Identifier,
 		PublicKey: s.Keys.PublicKey,
 	}
 
