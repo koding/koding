@@ -1,6 +1,7 @@
 package softlayer
 
 import (
+	"os"
 	"strconv"
 
 	"koding/kites/kloud/stack"
@@ -35,7 +36,9 @@ var Provider = &provider.Provider{
 }
 
 func init() {
-
 	// Register Softlayer provider with Koding
 	provider.Register(Provider)
+
+	// Makes softlayer-go to not output debug information.
+	os.Setenv("NON_VERBOSE", "yes")
 }
