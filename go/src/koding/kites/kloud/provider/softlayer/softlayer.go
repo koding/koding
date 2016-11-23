@@ -35,7 +35,6 @@ var Provider = &provider.Provider{
 }
 
 func init() {
-
 	// Register Softlayer provider with Koding
 	provider.Register(Provider)
 }
