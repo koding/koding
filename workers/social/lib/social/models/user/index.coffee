@@ -1747,7 +1747,9 @@ module.exports = class JUser extends jraphical.Module
 
         account.sendNotification 'SessionHasEnded', { clientId }
 
-        selector = { clientId: { $ne: client.sessionToken } }
+        selector =
+          clientId :
+            $ne    : client.sessionToken
 
         user.killSessions selector, callback
 
