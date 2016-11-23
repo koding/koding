@@ -11,6 +11,7 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"koding/kites/config"
 	"koding/kites/kloud/stack"
 	"koding/klientctl/kloud/credential"
 
@@ -70,29 +71,39 @@ func askSecret(format string, args ...interface{}) (string, error) {
 	return string(p), nil
 }
 
-func AskCredential(c *cli.Context) (provider string, creds map[string]interface{}, err error) {
+func AskCredentialCreate(c *cli.Context) (*credential.CreateOptions, error) {
 	descs, err := credential.Describe()
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
 
-	provider = c.String("provider")
+	opts := &credential.CreateOptions{
+		Provider: c.String("provider"),
+		Team:     c.String("team"),
+		Title:    c.String("title"),
+	}
 
-	if provider == "" {
-		s, err := ask("Provider type []: ")
+	if opts.Provider == "" {
+		opts.Provider, err = ask("Provider type []: ")
 		if err != nil {
-			return "", nil, err
+			return nil, err
 		}
-
-		provider = s
 	}
 
-	desc, ok := descs[provider]
+	if opts.Title == "" {
+		opts.Title = config.CurrentUser.Username + " " + time.Now().Format(time.ANSIC)
+		opts.Title, err = ask("Title [%s]: ", opts.Title)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	desc, ok := descs[opts.Provider]
 	if !ok {
-		return "", nil, fmt.Errorf("provider %q does not exist", provider)
+		return nil, fmt.Errorf("provider %q does not exist", opts.Provider)
 	}
 
-	creds = make(map[string]interface{}, len(desc.Credential))
+	creds := make(map[string]interface{}, len(desc.Credential))
 
 	// TODO(rjeczalik): Add field.OmitEmpty so we validate required
 	// fields client-side.
@@ -127,21 +138,21 @@ func AskCredential(c *cli.Context) (provider string, creds map[string]interface{
 		}
 
 		if err != nil {
-			return "", nil, err
+			return nil, err
 		}
 
 		switch field.Type {
 		case "integer":
 			n, err := strconv.Atoi(value)
 			if err != nil {
-				return "", nil, fmt.Errorf("invalid integer for %q field: %s", field.Label, err)
+				return nil, fmt.Errorf("invalid integer for %q field: %s", field.Label, err)
 			}
 
 			creds[field.Name] = n
 		case "duration":
 			d, err := time.ParseDuration(value)
 			if err != nil {
-				return "", nil, fmt.Errorf("invalid time duration for %q field: %s", field.Label, err)
+				return nil, fmt.Errorf("invalid time duration for %q field: %s", field.Label, err)
 			}
 
 			creds[field.Name] = d
@@ -150,24 +161,36 @@ func AskCredential(c *cli.Context) (provider string, creds map[string]interface{
 		}
 	}
 
-	return provider, creds, nil
+	// TODO(rjeczalik): remove when support for generic team is implemented
+	if opts.Team == "" {
+		opts.Team, err = ask("Team name []: ")
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	p, err := json.Marshal(creds)
+	if err != nil {
+		return nil, err
+	}
+
+	opts.Data = p
+
+	return opts, nil
 }
 
 func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	var p []byte
 	var err error
-	var provider = c.String("provider")
+	var opts *credential.CreateOptions
 
 	switch file := c.String("file"); file {
 	case "":
-		s, creds, err := AskCredential(c)
+		opts, err = AskCredentialCreate(c)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Error building credential data:", err)
 			return 1, err
 		}
-
-		p, err = json.Marshal(creds)
-		provider = s
 	case "-":
 		p, err = ioutil.ReadAll(os.Stdin)
 	default:
@@ -181,11 +204,13 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 
 	fmt.Fprintln(os.Stderr, "Creating credential... ")
 
-	opts := &credential.CreateOptions{
-		Provider: provider,
-		Team:     c.String("team"),
-		Title:    c.String("title"),
-		Data:     p,
+	if opts == nil {
+		opts = &credential.CreateOptions{
+			Provider: c.String("provider"),
+			Team:     c.String("team"),
+			Title:    c.String("title"),
+			Data:     p,
+		}
 	}
 
 	cred, err := credential.Create(opts)
