@@ -72,15 +72,15 @@ Please check the Stack setup guide at [Create a stack][11]
 
 1. To delete the stack and the entire VMs created in this Stack, click on the Stack name from the left side panel and click **Destroy VMs.**
 
-> All your data on these VMs will be completely lost.
+    > All your data on these VMs will be completely lost.
 
-![destroy-vms.png][3]
+    ![destroy-vms.png][3]
 
 2. Click on **Stacks** from left side panel, click the **Remove From Side Bar** on the stack you want to remove
 
-![remove-from-side-bar.png][4]
+    ![remove-from-side-bar.png][4]
 
-> **ALERT:** If you have only one stack you will not be able to delete it. You need to have at least two to be able to delete one of them.
+    > **ALERT:** If you have only one stack you will not be able to delete it. You need to have at least two to be able to delete one of them.
 
 ---
 
