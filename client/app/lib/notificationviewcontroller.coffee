@@ -1,7 +1,7 @@
 kd = require 'kd'
 _ = require 'lodash'
 
-NotificationContainer = require '../../component-lab/Notification/NotificationContainer'
+NotificationViewContainer = require '../../component-lab/Notification/NotificationViewContainer'
 
 Constants = require '../../component-lab/Notification/constants'
 Helpers = require '../../component-lab/Notification/helpers'
@@ -9,16 +9,18 @@ Helpers = require '../../component-lab/Notification/helpers'
 module.exports = class NotificationViewController extends kd.Controller
 
   constructor: (options = {}, data) ->
+
     super options, data
-    @container = new NotificationContainer
+    @container = new NotificationViewContainer
     @container.appendToDomBody()
     @uid = 1000
 
-  addNotification: (notificationOptions) ->
+
+  addNotification: (notificationOptions) =>
 
     _notification = _.assign {}, Constants.notification, notificationOptions
     Helpers.validateProps _notification, Constants.types
-    notifications = @getNotificationOptions notifications
+    notifications = @getNotificationOptions "notifications"
     _notification.type = _notification.type.toLowerCase()
     _notification.duration = parseInt _notification.duration, 10
     _notification.uid = _notification.uid or @uid
@@ -29,12 +31,16 @@ module.exports = class NotificationViewController extends kd.Controller
     if typeof _notification.onAdd is 'function'
       notificationOptions.onAdd _notification
     @container.updateOptions { notifications }
-    return _notification
+    _notification
+
 
   getNotificationOptions: (option) ->
-    return @container.options[option]
+
+    @container.options[option]
+
 
   onNotificationRemove: (uid) ->
+
     notification = null
     notifications = @getNotificationOptions notifications
     notifications = notifications.filter (n) ->

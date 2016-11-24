@@ -6,16 +6,18 @@ FlipMove = require 'react-flip-move'
 
 styles = require './Notification.stylus'
 
-module.exports = class NotificationContainer extends ReactView
+module.exports = class NotificationViewContainer extends ReactView
 
   constructor: (options = {}, data) ->
+
     options.appendToDomBody ?= yes
     options.notifications ?= []
     super options
     @appendToDomBody()  if @getOptions().appendToDomBody
 
+
   getAnimationProps: ->
-    return
+
       enter :
         from :
           transform : 'scale(0.9)'
@@ -31,10 +33,14 @@ module.exports = class NotificationContainer extends ReactView
           transform : 'scale(0.9)'
           opacity : 0
 
+
   onNotificationRemove: (uid) ->
+
     @options.onNotificationRemove(uid)
 
+
   renderReact: ->
+
     return <span />  unless @options.notifications.length
 
     { enter, leave } = @getAnimationProps()
