@@ -15,21 +15,18 @@ $borderColor                = #E3E3E3
 //
 
 .StackEditorView
-  padding                   40px
-  bg                        color #F5F3F3
+  bg                        color #FFF
   min-height                600px
   min-width                 720px
-  max-width                 1024px
   borderBox()
 
   .kdtabpaneview
     bg                      color, #FFF
-    border                  1px solid #E4E4E4
     border-top              none
     borderBox()
 
     > div.kdview
-      padding               30px
+      padding               0
       borderBox()
       &.readonly
         opacity             0.5 !important
@@ -37,9 +34,8 @@ $borderColor                = #E3E3E3
 
   .kdtabhandlecontainer
     bg                      color #FFFFFF
-    border                  1px solid $borderColor
-    rounded                 4px 4px 0 0
-    size                    100% 70px
+    border                  none
+    size                    100% 40px
     padding                 0
     borderBox()
     rel()
@@ -48,22 +44,22 @@ $borderColor                = #E3E3E3
       margin                0
       padding               0
       size                  auto auto
+      display               flex
       rel()
 
     .kdtabhandle
-      height                35px
-      line-height           35px
+      flex                  0 0 auto
+      height                16px
+      line-height           1
       bg                    color transparent
       border                none
       color                 #5E5E5E
-      padding               17px 0 18px
-      float                 none
-      display               inline-block
+      padding               13px 0 9px
       contentBox()
 
       b
         border-right        1px solid #CACACA
-        padding             0 30px
+        padding             0 20px
         font-weight         400
         font-size           15px
         letter-spacing      .5px
@@ -80,6 +76,11 @@ $borderColor                = #E3E3E3
         padding-right       40px
         padding-left        20px
 
+      &.stack-template
+        flex                1 0 auto
+        b
+          hidden()
+
 
   .indicator
     size                  18px, 18px
@@ -91,19 +92,18 @@ $borderColor                = #E3E3E3
     font-weight           200
     rounded               18px
     vendor                transition, top .2s ease
-    abs                   90px 13px 0 0
+    abs                   76px 13px 0 0
 
     &.in
-      top                 25px
+      top                 11px
 
     &.red
       bg                  color, darkred
 
-.StackEditorTabs
-  kalc                      height, (100% \- 133px)
-
-  > .kdtabpaneview
-    height                  calc(100% \- 30px)
+.StackEditorTabs > .kdtabpaneview
+  height                    calc(100% - 80px)
+  .editor-pane.editor-view
+    height                  calc(100% \- 44px)
 
 .StackEditor-SearchWrapper
   overflow                  hidden
@@ -209,7 +209,11 @@ $borderColor                = #E3E3E3
       pointer               cursor
 
 .StackEditor-SecondaryActions
-  margin-top                60px
+  width                     100%
+  abs                       0 0 0px 0
+  z-index                   10
+  padding                   13px 20px 11px
+  borderBox()
 
 //
 // MOVED STACK EDITOR STYLES
@@ -481,11 +485,11 @@ $borderColor                = #E3E3E3
     .template-preview-button
     .fullscreen-button
       z-index               13
-      right                 0
-      bottom                0
+      right                 100px
+      bottom                -31px
       margin                0
       bg                    color, white !important
-      border-width          1px
+      border-width          0
       letter-spacing        .5px
       font-weight           300
       abs()
@@ -493,10 +497,10 @@ $borderColor                = #E3E3E3
         vendor              box-shadow, none
 
     .template-preview-button
-      right                 78px
+      right                 178px
 
     .fullscreen-button
-      right                 175px
+      right                 275px
       hidden()
 
   .kdview.output
@@ -522,3 +526,65 @@ $borderColor                = #E3E3E3
       line-height           49px
       text-indent           17px
       margin                0
+
+.StackEditorView--header-subHeader
+  display                   flex
+  font-size                 13px
+  font-weight               300
+  padding                   0 10px
+
+  .edit-name
+    color                   #67A2EE
+    text-decoration         none
+    margin-right            10px
+    font-size               12px
+    line-height             18px
+
+  .cloned-from-text
+    color                   #A59999
+    max-width               300px
+    ellipsis()
+
+    &:before
+      content               ''
+      rel()
+      borderBox()
+      dIBlock()
+      border                3px solid #A59999
+      rounded               100%
+      top                   -1px
+      margin-right          5px
+
+  .cloned-from
+    color                   #67A2EE
+    cursor                  pointer
+    display                 initial
+    font-size               13px
+
+  .kdinput.text
+    flex                    0 1 auto
+    font-size               15px
+    display                 block
+    size                    auto 16px
+    padding                 0 10px
+    border                  1px solid transparent
+    rounded                 3px
+    color                   #424242
+    bg                      color transparent
+    max-width               50%
+    font-weight             400
+    outline                 none
+    shadow                  none
+    pointer-events          none
+    contentBox()
+
+    &:hover
+      border                1px solid transparent
+
+    &:focus
+      pointer-events        auto
+      padding               6px 10px 5px
+      margin                -6px 0 0
+      outline               inherit
+      bg                    color #FFFFFF
+      border                1px solid $borderColor
