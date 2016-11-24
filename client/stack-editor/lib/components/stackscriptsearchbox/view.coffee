@@ -50,7 +50,7 @@ SearchInputBox = ({ value, onChangeCallback, onFocusCallback }) ->
   <input
     type='text'
     className='kdinput text searchStackInput'
-    placeholder='Search Anything, AWS, S3, Azure, GCP...'
+    placeholder='Search Docs, AWS, S3, Azure, GCP...'
     value={value}
     onChange={onChangeCallback}
     onKeyUp={onKeyUp}
