@@ -15,8 +15,9 @@ module.exports = class NotificationContainer extends ReactView
     super options
     @appendToDomBody()  if @getOptions().appendToDomBody
 
+
   getAnimationProps: ->
-    
+
       enter :
         from :
           transform : 'scale(0.9)'
@@ -32,9 +33,11 @@ module.exports = class NotificationContainer extends ReactView
           transform : 'scale(0.9)'
           opacity : 0
 
+
   onNotificationRemove: (uid) ->
 
     @options.onNotificationRemove(uid)
+
 
   renderReact: ->
 
