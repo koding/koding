@@ -117,19 +117,30 @@ func (s *Stack) injectBootstrap(b *Bootstrap, guest map[string]interface{}) erro
 // injectKiteKeys creates a kite key for each virtual guest, and sets up
 // the runtime injection of said key using cloud-init/user_data
 func (s *Stack) injectKiteKeys(guest map[string]interface{}, name string) error {
-	s.Builder.InterpolateField(guest, name, "user_data")
-
-	kiteKey, err := s.BuildKiteKey(name, s.Req.Username)
-	if err != nil {
-		return err
+	count := 1
+	if n, ok := guest["count"].(int); ok && n > 1 {
+		count = n
 	}
+
+	var labels []string
+	if count > 1 {
+		for i := 0; i < count; i++ {
+			labels = append(labels, fmt.Sprintf("%s.%d", name, i))
+		}
+	} else {
+		labels = append(labels, name)
+	}
+
+	kiteKeyName := fmt.Sprintf("kitekeys_%s", name)
+
+	s.Builder.InterpolateField(guest, name, "user_data")
 
 	// Map the generated kite key to the guest via cloud-init config
 	cloudInitConfig := &userdata.CloudInitConfig{
 		Username: s.Req.Username,
 		Groups:   []string{"sudo"},
 		Hostname: s.Req.Username,
-		KiteKey:  kiteKey,
+		KiteKey:  fmt.Sprintf("${lookup(var.%s, count.index)}", kiteKeyName),
 	}
 
 	// If user provided user data, associate that with our cloud init config
@@ -143,6 +154,20 @@ func (s *Stack) injectKiteKeys(guest map[string]interface{}, name string) error 
 		return err
 	}
 	guest["user_data"] = string(cloudInit)
+
+	countKeys := make(map[string]string, count)
+	for i, label := range labels {
+		kiteKey, err := s.BuildKiteKey(label, s.Req.Username)
+		if err != nil {
+			return err
+		}
+
+		countKeys[strconv.Itoa(i)] = kiteKey
+	}
+
+	s.Builder.Template.Variable[kiteKeyName] = map[string]interface{}{
+		"default": countKeys,
+	}
 
 	return nil
 }
