@@ -18,11 +18,11 @@ Your new team members will be able to use your stack to build their Koding VMs a
 
 1. Click '+' sign to **Create a New Stack**
 
-![Create new stack][1]
+    ![Create new stack][1]
 
 2. Choose **Digital Ocean** and click **Create Stack**
 
-![Choose Digital Ocean][2]
+    ![Choose Digital Ocean][2]
 
 3. Your default Digital Ocean stack is now created _(If you wish you can give your stack a name by clicking on **Edit Name** below your stack name)_. In this modal you will find _four tabs_:
 
@@ -31,63 +31,63 @@ Your new team members will be able to use your stack to build their Koding VMs a
     3.  **Readme**: This will be the text displayed in a message box when your team builds the stack
     4.  **Credentials**: add your Digital Ocean access token here
 
-![Stack template][3]
+    ![Stack template][3]
 
 4. Edit your **Readme** file to greet your team and provide them with information regarding your project or stack
 
-![Readme tab][4]
+    ![Readme tab][4]
 
 5. You need to add your Digital Ocean account access token to the credentials tab. To do that, login to your Digital Ocean account and go to **API** --> **Tokens** and click **Generate New Token**
 
-![DO access token][5]
+    ![DO access token][5]
 
-Give your token a title and click **Generate Token**
+    Give your token a title and click **Generate Token**
 
-![DO access token title][6]
+    ![DO access token title][6]
 
-Make sure to copy your generated token, Digital Ocean will not show your personal token again!
+    Make sure to copy your generated token, Digital Ocean will not show your personal token again!
 
-![DO access token generated][7]
+    ![DO access token generated][7]
 
 6. Go to your **Credentials** tab on Koding for Teams, give your token a title and paste your Digital Ocean Token in the **Access Token** field and click **SAVE THIS & CONTINUE**
 
-![Paste your access token][8]
+    ![Paste your access token][8]
 
 7. Click **Save** on the top-right to save your credentials
 
-![Save access token][9]
+    ![Save access token][9]
 
 8. Click **Initialize** to initialize your stack
 
-![initialize stack][10]
+    ![initialize stack][10]
 
 9. You can choose to share your own Digital Ocean **Access Token** with your team, this is useful in case you want to have all instances created by your team to be under your Digital Ocean account. If you agree, keep the "share the credentials" check box ticked, if not, make sure to uncheck this option. Then click **Share With The Team** to share your stack with your team.
 
-![Share credentials?][11]
+    ![Share credentials?][11]
 
 10. Now it's time to build our VMs. You will see a message displayed in the Build Stack window, this is what we earlier added to our Readme tab when creating the stack. Click **Next**
 
-![Build VM Read me][12]
+    ![Build VM Read me][12]
 
 11. Make sure the correct token is chosen (you can save multiple access tokens) and click **Build Stack**
 
-![Build Stack][13]
+    ![Build Stack][13]
 
 12. Your VM will start building..
 
-![Stack is building][14]
+    ![Stack is building][14]
 
 13. Click **Start Coding** to begin using your VM
 
-![Stack building complete][15]
+    ![Stack building complete][15]
 
-15. Congratulations, your Stack was successfully built and you can now use your new VM!
+14. Congratulations, your Stack was successfully built and you can now use your new VM!
 
-![VM started][16]
+    ![VM started][16]
 
-16. If you check your Digital Ocean account, you will see the new VM under your droplets.
+15. If you check your Digital Ocean account, you will see the new VM under your droplets.
 
-![Stack building complete][17]
+    ![Stack building complete][17]
 
 ## This is the default stack template for Digital Ocean stacks
 
