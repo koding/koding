@@ -1,11 +1,8 @@
 kd = require 'kd'
 _ = require 'lodash'
-React = require 'app/react'
 
-FlipMove = require 'react-flip-move'
-NotificationView = require '../../component-lab/Notification/NotificationView'
+NotificationContainer = require '../../component-lab/Notification/NotificationContainer'
 
-styles = require '../../component-lab/Notification/Notification.stylus'
 Constants = require '../../component-lab/Notification/constants'
 Helpers = require '../../component-lab/Notification/helpers'
 
@@ -13,7 +10,7 @@ module.exports = class NotificationViewController extends kd.Controller
 
   constructor: (options = {}, data) ->
     super options, data
-    @container = new NotificationContainerView
+    @container = new NotificationContainer
     @container.appendToDomBody()
     @uid = 1000
 
