@@ -27,6 +27,7 @@ Timer = (callback, delay) ->
   @resume()
 
 validateProps = (notification, types) ->
+  
   if not notification.type
     throw new Error('Notification type is required.')
   if _.keys(types).indexOf(notification.type) is -1
