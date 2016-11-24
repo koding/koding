@@ -3,7 +3,7 @@ React = require 'app/react'
 ScrollableContent = require 'app/components/scroller'
 
 
-module.exports = class StackScriptSeachBoxView extends React.Component
+module.exports = class StackScriptSearchBoxView extends React.Component
 
   renderResultList: ->
 
