@@ -23,11 +23,23 @@ var kdCacheOpts = &cfg.CacheOptions{
 	Bucket: []byte("kd"),
 }
 
+// Transport is an interface that abstracts underlying
+// RPC round trip.
+//
+// Default implementation used in this package is
+// a kiteTransport, but plain net/rpc can also be
+// used.
+type Transport interface {
+	Call(method string, arg, reply interface{}) error
+}
+
 // DefaultClient is a default client used by Cache, Kite,
 // KiteConfig and Kloud functions.
 var DefaultClient = &Client{
-	DialTimeout: 30 * time.Second,
-	TellTimeout: 60 * time.Second,
+	Transport: &KiteTransport{
+		DialTimeout: 30 * time.Second,
+		TellTimeout: 60 * time.Second,
+	},
 }
 
 // Client is responsible for communication with Kloud kite.
@@ -35,21 +47,12 @@ type Client struct {
 	// Log is used for logging.
 	Log logging.Logger
 
-	// DialTimeout is a maximum time external kite is
-	// going to be dialed for.
-	DialTimeout time.Duration
-
-	// TellTimeout is a maximum time of kite's
-	// request/response roundtrip.
-	TellTimeout time.Duration
+	// Transport is used for RPC communication.
+	Transport Transport
 
 	cache *cfg.Cache
-	k     *kite.Kite
-	kCfg  *kitecfg.Config
-	kloud *kite.Client
 }
 
-// Cache
 func (c *Client) Cache() *cfg.Cache {
 	if c.cache != nil {
 		return c.cache
@@ -61,87 +64,109 @@ func (c *Client) Cache() *cfg.Cache {
 	return c.cache
 }
 
-// Kite
-func (c *Client) Kite() *kite.Kite {
-	if c.k != nil {
-		return c.k
-	}
-
-	c.k = kite.New(config.Name, config.KiteVersion)
-	c.k.Config = config.Konfig.KiteConfig()
-	c.k.Config.KontrolURL = config.Konfig.KontrolURL
-	c.k.Config.Environment = config.Environment
-	c.k.Config.Transport = kitecfg.XHRPolling
-	c.k.Log = c.Log
-
-	return c.k
+func (c *Client) Call(method string, arg, reply interface{}) error {
+	return c.Transport.Call(method, arg, reply)
 }
 
-// KiteConfig
-func (c *Client) KiteConfig() *kitecfg.Config {
-	if c.kCfg != nil {
-		return c.kCfg
-	}
+// KiteTransport is a default transport that uses github.com/koding/kite
+// for underlying communication.
+type KiteTransport struct {
+	// DialTimeout is a maximum time external kite is
+	// going to be dialed for.
+	DialTimeout time.Duration
 
-	c.kCfg = config.Konfig.KiteConfig()
-	c.kCfg.KontrolURL = config.Konfig.KontrolURL
-	c.kCfg.Environment = config.Environment
-	c.kCfg.Transport = kitecfg.XHRPolling
+	// TellTimeout is a maximum time of kite's
+	// request/response roundtrip.
+	TellTimeout time.Duration
 
-	return c.kCfg
+	// Log is used for logging.
+	Log logging.Logger
+
+	k      *kite.Kite
+	kCfg   *kitecfg.Config
+	kKloud *kite.Client
 }
 
-// Kloud
-func (c *Client) Kloud() (*kite.Client, error) {
-	if c.kloud != nil {
-		return c.kloud, nil
+var _ Transport = (*KiteTransport)(nil)
+
+func (kt *KiteTransport) Call(method string, arg, reply interface{}) error {
+	k, err := kt.kloud()
+	if err != nil {
+		return err
 	}
 
-	kloud := c.Kite().NewClient(config.Konfig.KloudURL)
+	r, err := k.TellWithTimeout(method, kt.TellTimeout, arg)
+	if err != nil {
+		return err
+	}
 
-	if err := kloud.DialTimeout(c.DialTimeout); err != nil {
+	return r.Unmarshal(reply)
+}
+
+func (kt *KiteTransport) kite() *kite.Kite {
+	if kt.k != nil {
+		return kt.k
+	}
+
+	kt.k = kite.New(config.Name, config.KiteVersion)
+	kt.k.Config = config.Konfig.KiteConfig()
+	kt.k.Config.KontrolURL = config.Konfig.KontrolURL
+	kt.k.Config.Environment = config.Environment
+	kt.k.Config.Transport = kitecfg.XHRPolling
+	kt.k.Log = kt.Log
+
+	return kt.k
+}
+
+func (kt *KiteTransport) kiteConfig() *kitecfg.Config {
+	if kt.kCfg != nil {
+		return kt.kCfg
+	}
+
+	kt.kCfg = config.Konfig.KiteConfig()
+	kt.kCfg.KontrolURL = config.Konfig.KontrolURL
+	kt.kCfg.Environment = config.Environment
+	kt.kCfg.Transport = kitecfg.XHRPolling
+
+	return kt.kCfg
+}
+
+func (kt *KiteTransport) kloud() (*kite.Client, error) {
+	if kt.kKloud != nil {
+		return kt.kKloud, nil
+	}
+
+	kloud := kt.kite().NewClient(config.Konfig.KloudURL)
+
+	if err := kloud.DialTimeout(kt.DialTimeout); err != nil {
 		query := &protocol.KontrolQuery{
 			Name:        "kloud",
-			Environment: c.KiteConfig().Environment,
+			Environment: kt.kiteConfig().Environment,
 		}
 
-		clients, err := c.Kite().GetKites(query)
+		clients, err := kt.kite().GetKites(query)
 		if err != nil {
 			return nil, err
 		}
 
-		kloud = c.Kite().NewClient(clients[0].URL)
+		kloud = kt.kite().NewClient(clients[0].URL)
 
-		if err := kloud.DialTimeout(c.DialTimeout); err != nil {
+		if err := kloud.DialTimeout(kt.DialTimeout); err != nil {
 			return nil, err
 		}
 	}
 
-	c.kloud = kloud
-	c.kloud.Auth = &kite.Auth{
+	kt.kKloud = kloud
+	kt.kKloud.Auth = &kite.Auth{
 		Type: "kiteKey",
-		Key:  c.KiteConfig().KiteKey,
+		Key:  kt.kiteConfig().KiteKey,
 	}
 
-	return c.kloud, nil
+	return kt.kKloud, nil
 }
 
-// Tell
-func (c *Client) Tell(method string, in, out interface{}) error {
-	k, err := c.Kloud()
-	if err != nil {
-		return err
-	}
+func Cache() *cfg.Cache { return DefaultClient.Cache() }
 
-	r, err := k.TellWithTimeout(method, c.TellTimeout, in)
-	if err != nil {
-		return err
-	}
-
-	return r.Unmarshal(out)
+func Call(method string, arg, reply interface{}) error {
+	return DefaultClient.Call(method, arg, reply)
 }
-
-func Cache() *cfg.Cache            { return DefaultClient.Cache() }
-func Kite() *kite.Kite             { return DefaultClient.Kite() }
-func KiteConfig() *kitecfg.Config  { return DefaultClient.KiteConfig() }
-func Kloud() (*kite.Client, error) { return DefaultClient.Kloud() }

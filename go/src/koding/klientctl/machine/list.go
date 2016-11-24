@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"sort"
-	"time"
 
 	"koding/kites/kloud/machine"
 	"koding/kites/kloud/stack"
@@ -20,22 +19,11 @@ type ListOptions struct {
 
 // List retrieves user's machines from kloud.
 func List(options *ListOptions) ([]*Info, error) {
-	kloud, err := kloud.Kloud()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
-		return nil, err
-	}
-
 	req := &stack.MachineListRequest{}
-
-	r, err := kloud.TellWithTimeout("machine.list", 10*time.Second, req)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
-		return nil, err
-	}
-
 	res := &stack.MachineListResponse{}
-	if err := r.Unmarshal(res); err != nil {
+
+	if err := kloud.Call("machine.list", req, res); err != nil {
+		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
 		return nil, err
 	}
 

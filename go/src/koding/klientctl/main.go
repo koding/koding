@@ -104,6 +104,9 @@ func main() {
 	}
 
 	kloud.DefaultClient.Log = log
+	if kt, ok := kloud.DefaultClient.Transport.(*kloud.KiteTransport); ok {
+		kt.Log = log
+	}
 
 	defer ctlcli.Close()
 

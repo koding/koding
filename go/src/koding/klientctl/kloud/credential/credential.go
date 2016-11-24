@@ -63,7 +63,7 @@ func (c *Client) List(opts *ListOptions) (stack.Credentials, error) {
 		}
 	}
 
-	if err := c.kloud().Tell("credential.list", req, &resp); err != nil {
+	if err := c.kloud().Call("credential.list", req, &resp); err != nil {
 		return nil, err
 	}
 
@@ -89,7 +89,7 @@ func (c *Client) Create(opts *CreateOptions) (*stack.CredentialItem, error) {
 
 	var resp stack.CredentialAddResponse
 
-	if err := c.kloud().Tell("credential.add", req, &resp); err != nil {
+	if err := c.kloud().Call("credential.add", req, &resp); err != nil {
 		return nil, err
 	}
 

@@ -97,7 +97,7 @@ func (c *Client) Create(opts *CreateOptions) (*stack.ImportResponse, error) {
 		req.Credentials[provider] = []string{identifier}
 	}
 
-	if err := c.kloud().Tell("import", req, &resp); err != nil {
+	if err := c.kloud().Call("import", req, &resp); err != nil {
 		return nil, fmt.Errorf("stack: unable to communicate with Kloud: %s", err)
 	}
 
