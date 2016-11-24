@@ -40,6 +40,8 @@ type bootstrapVars struct {
 // Responsible for building/updating/destroying Softlayer's stack
 type Stack struct {
 	*provider.BaseStack
+
+	sshKeyPair *stack.SSHKeyPair
 }
 
 // Verifies the given Softlayer credential.
@@ -74,8 +76,8 @@ func (s *Stack) BootstrapArg() *stack.BootstrapRequest {
 // output values, to bootstrap a SoftLayer stack
 func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, error) {
 	vs := &bootstrapVars{
-		KeyName:   "koding-" + s.Arg.(*stack.BootstrapRequest).GroupName + "-" + c.Identifier,
-		PublicKey: s.Keys.PublicKey,
+		KeyName:   s.sshKeyPair.Name,
+		PublicKey: string(s.sshKeyPair.Public),
 	}
 
 	var bootstrap bytes.Buffer
@@ -201,4 +203,9 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	return &stack.Template{
 		Content: content,
 	}, nil
+}
+
+func (s *Stack) setSSHKeyPair(keypair *stack.SSHKeyPair) error {
+	s.sshKeyPair = keypair
+	return nil
 }
