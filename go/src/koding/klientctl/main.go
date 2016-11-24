@@ -56,6 +56,10 @@ var (
 )
 
 func main() {
+	run(os.Args)
+}
+
+func run(args []string) {
 	// For forward-compatibility with go1.5+, where GOMAXPROCS is
 	// always set to a number of available cores.
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -521,7 +525,7 @@ func main() {
 		)
 	}
 
-	app.Run(os.Args)
+	app.Run(args)
 }
 
 // ExitWithMessage takes a ExitingWithMessageCommand type and returns a
