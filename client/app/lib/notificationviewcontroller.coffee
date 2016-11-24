@@ -31,11 +31,11 @@ module.exports = class NotificationViewController extends kd.Controller
     if typeof _notification.onAdd is 'function'
       notificationOptions.onAdd _notification
     @container.updateOptions { notifications }
-    return _notification
+    _notification
 
   getNotificationOptions: (option) ->
 
-    return @container.options[option]
+    @container.options[option]
 
   onNotificationRemove: (uid) ->
 
