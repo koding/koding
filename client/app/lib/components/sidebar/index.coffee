@@ -198,6 +198,11 @@ module.exports = class Sidebar extends React.Component
       machines={stack.get 'machines'}/>
 
 
+  onTitleClick: (id) ->
+
+    kd.singletons.router.handleRoute "/Stack-Editor/#{id}"
+
+
   renderDrafts: ->
 
     @state.drafts?.toList().toJS().map (template) =>
@@ -210,7 +215,7 @@ module.exports = class Sidebar extends React.Component
           ref="draft-#{id}"
           className="SidebarSection-header">
           <h4 className='SidebarSection-headerTitle'>
-            <Link href="/Stack-Editor/#{id}" onClick={@onDraftTitleClick.bind this, id}>{title}</Link>
+            <Link href="/Stack-Editor/#{id}" onClick={@onTitleClick.bind this, id}>{title}</Link>
           </h4>
         </header>
       </section>
