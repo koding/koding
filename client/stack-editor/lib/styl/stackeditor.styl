@@ -105,71 +105,90 @@ $borderColor                = #E3E3E3
   > .kdtabpaneview
     height                  calc(100% \- 30px)
 
-.StackEditorTabs
-  > .kdtabpaneview
-    &.stack-template
-      .searchStackInput
-        margin              -10px 0 16px 0px
-        left                0px
-        bg                  color, #FFF
-        font-size           14px
-        font-weight         400
-        padding-left        20px
+.StackEditor-SearchWrapper
+  overflow                  hidden
+  .stack-script-search-link
+    abs                     15px 38px
+    transition              transform .2s ease\,
+                            opacity .2s .2s ease
+    font-size               0
+    opacity                 0
+    z-index                 0
 
-      .close-icon
-      .loading-icon
-        z-index             1
-        top                 36px
-        right               42px
+  input.kdinput.searchStackInput
+    margin                  5px 20px
+    left                    0px
+    bg                      color, #FFF
+    font-size               14px
+    font-weight             400
+    padding-left            20px
+    width                   250px
+    padding                 5px 14px
+    transition              width .2s ease\,
+                            box-shadow .2s .2s ease\,
+                            border-color .2s .2s ease
+    &:focus
+      width                 calc(100% \- 40px)
+    &:focus ~ .stack-script-search-link
+      font-size             16px
+      opacity               1
+      z-index               1
+      &.shift
+        transform           translateX(-30px)
 
-      .loading-icon
-        width               30px
-        height              30px
-        background          url("/a/images/loader.svg") 0 0
-        position            absolute
-        top                 27px
+  .close-icon
+  .loading-icon
+    z-index                 1
+    top                     15px
+    right                   38px
 
-      .close-icon
-        r-sprite            app content_modal_close_icon
-        &:hover
-          background-position initial
+  .loading-icon
+    width                   18px
+    height                  18px
+    background              url("/a/images/loader.svg") 0 0
+    bg                      size cover
+    position                absolute
+    top                     13px
 
-      .stack-script-search-scroll
-        width               calc(100% \- 62px)
-        min-height          53px
-        max-height          calc(100% \- 145px)
-        height              initial !important
-        border              1px solid #DDD
-        border-radius       4px
-        position            absolute !important
-        top                 64px
-        left                30px
-        bg                  color #FFF
-        z-index             100
-        overflow            hidden
+  .close-icon
+    r-sprite                app content_modal_close_icon
+    &:hover
+      background-position   initial
 
-        .item-wrapper
-          cursor            pointer
-          font-size         14px
-          padding           10px 20px
-          font-weight       400
-          line-height       15px
-          color             #5e5e5e
-          border-bottom     1px solid #ddd
-          .item
-            max-width       650px
-          .title
-            margin-bottom   4px
-          .description
-            color           #989898
-            line-height     14px
-            font-weight     200
-            font-size       13px
-            max-width       650px
-            ellipsis()
+  .stack-script-search-scroll
+    width                   calc(100% \- 42px)
+    min-height              53px
+    max-height              calc(100% \- 145px)
+    height                  initial !important
+    border                  1px solid #DDD
+    border-radius           4px
+    position                absolute !important
+    top                     40px
+    left                    20px
+    bg                      color #FFF
+    z-index                 100
+    overflow                hidden
 
-      .editor-pane.editor-view
-        height              calc(100% \- 44px)
+    .item-wrapper
+      cursor                pointer
+      font-size             14px
+      padding               10px 20px
+      font-weight           400
+      line-height           15px
+      color                 #5e5e5e
+      border-bottom         1px solid #ddd
+      .item
+        max-width           650px
+      .title
+        margin-bottom       4px
+      .description
+        color               #989898
+        line-height         14px
+        font-weight         200
+        font-size           13px
+        max-width           650px
+        ellipsis()
+
 
 .StackEditorTabs.readonly
   .warning-view

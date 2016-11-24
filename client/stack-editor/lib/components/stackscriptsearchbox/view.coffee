@@ -22,13 +22,17 @@ module.exports = class StackScriptSearchBoxView extends React.Component
     </ScrollableContent>
 
 
-  renderIcon: ->
+  isIconVisible: ->
 
     icon = if @props.loading then 'loading-icon' else 'close-icon'
+    return (!(@props.query or @props.scripts.length)) or (@props.close and icon is 'close-icon')
 
-    return  unless @props.query or @props.scripts.length
-    return  if @props.close and icon is 'close-icon'
 
+  renderIcon: ->
+
+    return  if @isIconVisible()
+
+    icon = if @props.loading then 'loading-icon' else 'close-icon'
     <span className={icon} onClick={@props.onIconClick}></span>
 
 
@@ -45,7 +49,7 @@ module.exports = class StackScriptSearchBoxView extends React.Component
 
   render: ->
 
-    <div>
+    <div className='StackEditor-SearchWrapper'>
       <SearchInputBox
         value={@props.query}
         onChangeCallback={@props.onChange}
@@ -57,7 +61,7 @@ module.exports = class StackScriptSearchBoxView extends React.Component
     </div>
 
 
-SearchInputBox = ({ value, onChangeCallback, onFocusCallback }) ->
+SearchInputBox = ({ value, onChangeCallback, onFocusCallback, onKeyUp }) ->
 
   <input
     type='text'
@@ -66,6 +70,7 @@ SearchInputBox = ({ value, onChangeCallback, onFocusCallback }) ->
     value={value}
     onChange={onChangeCallback}
     onKeyUp={onKeyUp}
+    onClick={onFocusCallback}
     onFocus={onFocusCallback} />
 
 
