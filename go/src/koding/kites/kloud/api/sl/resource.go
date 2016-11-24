@@ -54,7 +54,7 @@ func (c *Softlayer) tag(req *TagRequest) error {
 	}
 
 	path := fmt.Sprintf("%s/%d/setTags.json", req.Service, req.ID)
-	p, err = c.DoRawHttpRequest(path, "POST", bytes.NewBuffer(p))
+	p, _, err = c.DoRawHttpRequest(path, "POST", bytes.NewBuffer(p))
 	if err != nil {
 		return err
 	}
@@ -129,7 +129,7 @@ func (c *Softlayer) get(req *ResourceRequest) error {
 }
 
 func (c *Softlayer) clientGet(req *ResourceRequest) ([]byte, error) {
-	p, err := c.DoRawHttpRequestWithObjectMask(
+	p, _, err := c.DoRawHttpRequestWithObjectMask(
 		req.Path, req.ObjectMask, "GET", nullBuf,
 	)
 	if err != nil {
@@ -149,7 +149,7 @@ func (c *Softlayer) serverGet(req *ResourceRequest) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	p, err = c.DoRawHttpRequestWithObjectFilterAndObjectMask(
+	p, _, err = c.DoRawHttpRequestWithObjectFilterAndObjectMask(
 		req.Path, req.ObjectMask, string(p), "GET", nullBuf,
 	)
 	if err != nil {

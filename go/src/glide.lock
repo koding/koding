@@ -670,7 +670,7 @@ imports:
 - name: github.com/mattn/go-sqlite3
   version: c3e9588849195eefa783417c3a53d092f6e93526
 - name: github.com/maximilien/softlayer-go
-  version: 8f14c251491233bac034a0d3b560ea1001cdb830
+  version: 1d4217550aef2c9207aeae5a93c7ce5c3c91ef21
   subpackages:
   - client
   - common

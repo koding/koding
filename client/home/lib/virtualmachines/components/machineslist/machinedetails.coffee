@@ -307,16 +307,16 @@ generateSpecs = (machine) ->
 
   configs = globals.config.providers
   { instanceTypes } = configs[providerName]
+  if instanceTypes
+    instanceType = jMachine.meta?.instance_type ? instanceTypes['base-vm']
 
-  instanceType = jMachine.meta?.instance_type ? instanceTypes['base-vm']
+    instanceData = instanceTypes[instanceType]
+    { ram, cpu } = instanceData ? instanceTypes[instanceTypes['base-vm']]
+
   size = jMachine.meta?.storage_size
+  disk = if size then "#{size}GB HDD" else null
 
-  instanceData = instanceTypes[instanceType]
-  { ram, cpu } = instanceData ? instanceTypes[instanceTypes['base-vm']]
-
-  disk = if size? then "#{size}GB HDD" else 'N/A'
-
-  return [providerName, instanceType, ram, cpu, disk]
+  return [providerName, instanceType, ram, cpu, disk].filter(Boolean)
 
 
 EditVMNameDescription = ->

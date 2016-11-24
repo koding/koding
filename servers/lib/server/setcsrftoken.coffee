@@ -1,7 +1,7 @@
 KONFIG = require 'koding-config-manager'
 { v4: createId } = require 'node-uuid'
 
-module.exports = (req, res, next) ->
+module.exports = setCrsfToken = (req, res, next) ->
 
   unless KONFIG.environment is 'production'
     res.header 'Access-Control-Allow-Origin', 'http://dev.koding.com:4000'
@@ -18,5 +18,6 @@ module.exports = (req, res, next) ->
   expires = new Date Date.now() + 360
   res.cookie '_csrf', csrfToken, { expires, secure }
 
-  next()
-
+  res
+    .json { token: req.pendingCookies._csrf }
+    .end()

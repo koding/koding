@@ -21,7 +21,7 @@ module.exports = class JPermissionSet extends Module
         type                : Boolean
         default             : yes
       permissions           :
-        type                : Array
+        type                : [ Object ]
         default             : -> []
 
   { intersection } = require 'underscore'
@@ -30,7 +30,6 @@ module.exports = class JPermissionSet extends Module
 
   MAIN_GROUP = 'koding'
 
-  # coffeelint: disable=indentation
   constructor: (data = {}, options = {}) ->
 
     super data

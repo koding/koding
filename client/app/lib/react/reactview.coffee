@@ -1,3 +1,4 @@
+{ merge } = require 'lodash'
 kd       = require 'kd'
 ReactDOM = require 'react-dom'
 
@@ -11,6 +12,11 @@ module.exports = class ReactView extends kd.CustomHTMLView
       ReactDOM.unmountComponentAtNode @getElement()
 
 
+  updateOptions: (newOptions) ->
+    @options = merge {}, @options, newOptions
+    @viewAppended()
+
+
   renderReact: ->
 
     console.error "#{@constructor.name}: needs to implement 'renderReact' method"
@@ -19,9 +25,9 @@ module.exports = class ReactView extends kd.CustomHTMLView
 
 
   viewAppended: ->
-
-    ReactDOM.render(
-      @renderReact()
-      @getElement()
-    )
+    kd.singletons.mainView.ready =>
+      ReactDOM.render(
+        @renderReact()
+        @getElement()
+      )
 

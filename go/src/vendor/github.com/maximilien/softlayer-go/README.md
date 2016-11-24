@@ -1,4 +1,4 @@
-softlayer-go [![Build Status](https://travis-ci.org/maximilien/softlayer-go.svg?branch=master)](https://travis-ci.org/maximilien/softlayer-go#)
+softlayer-go [![Build Status](https://travis-ci.org/maximilien/softlayer-go.svg?branch=master)](https://travis-ci.org/maximilien/softlayer-go#) [![Join the chat at https://gitter.im/maximilien/softlayer-go](https://badges.gitter.im/maximilien/softlayer-go.svg)](https://gitter.im/maximilien/softlayer-go?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ============
 
 An *incomplete* SoftLayer (SL) client API written in Go language.
@@ -24,7 +24,7 @@ client := slclient.NewSoftLayerClient(username, apiKey)
 //Create a template for the virtual guest (changing properties as needed)
 virtualGuestTemplate := datatypes.SoftLayer_Virtual_Guest_Template{
   Hostname:  "some-hostname",
-	Domain:    "softlayergo.com",
+	Domain:    "some-domain.com",
 	StartCpus: 1,
 	MaxMemory: 1024,
 	Datacenter: datatypes.Datacenter{
@@ -69,15 +69,14 @@ $ git clone https://github.com/maximilien/softlayer-go.git
 $ cd softlayer-go
 $ export SL_USERNAME=your-username@your-org.com
 $ export SL_API_KEY=your-softlayer-api-key
-$ godep restore
 $ ./bin/build
 $ ./bin/test-unit
 $ ./bin/test-integration
 ```
 
-NOTE: you may need to install [godep](https://github.com/tools/godep) on your system, if you have not already. You can with this one line command: `$ go get github.com/tools/godep`
+NOTE: you may need to install [govendor](https://github.com/kardianos/govendor) on your system, if you have not already. You can with this one line command: `$ go get github.com/kardianos/govendor`
 
-NOTE2: if you get any dependency errors, then use `go get path/to/dependency` to get it, e.g., `go get github.com/onsi/ginkgo` and `go get github.com/onsi/gomega`
+NOTE2: if you get any dependency errors, then use `go get path/to/dependency` to get it, e.g., `go get github.com/onsi/ginkgo` and `go get github.com/onsi/gomega`. You also need to do `govendor fetch package` in order for any new or updated dependencies to be reflected into the `vendor` directory.
 
 The executable output should now be located in: `out/slgo`. It does not do anything currently, expect printing a version number. In time this may change. For now, this project is intended to be a set of useful and reusable Golang libraries to access SoftLayer.
 
@@ -96,18 +95,18 @@ You should run the tests to make sure all is well, do this with: `$ ./bin/test-u
 The output should of `$ ./bin/test-unit` be similar to:
 
 ```
-$ ./bin/build
-$ bin/test-unit
+➜  softlayer-go git:(master) bin/test-unit
 
  Cleaning build artifacts...
 
  Formatting packages...
 
  Unit Testing packages:
-[1435782974] SoftLayer Client Suite - 11/11 specs - 7 nodes ••••••••••• SUCCESS! 7.280209ms
-[1435782974] Services Suite - 89/89 specs - 7 nodes ••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••• SUCCESS! 50.117056ms
+[1457666427] SoftLayer Client Suite - 14/14 specs - 4 nodes •••••••••••••• SUCCESS! 40.325961ms
+[1457666427] Services Suite - 327/327 specs - 4 nodes ••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••• SUCCESS! 288.0041ms
+[1457666427] Common Suite - 4/4 specs - 4 nodes •••• SUCCESS! 13.394673ms
 
-Ginkgo ran 2 suites in 2.006026409s
+Ginkgo ran 3 suites in 5.387042692s
 Test Suite Passed
 
  Vetting packages for potential issues...
@@ -142,14 +141,10 @@ SWEET SUITE SUCCESS
 ### Managing dependencies
 -------------------------
 
-* All dependencies managed via [Godep](https://github.com/tools/godep). See [Godeps/_workspace](https://github.com/maximilien/softlayer-go/tree/master/Godeps/_workspace) directory on master
+* All dependencies managed via [govendor](https://github.com/tools/govendor). See [vendor/](https://github.com/maximilien/softlayer-go/tree/master/vendor) directory on master
 
-#### Short `godep` Guide
-* If you ever import a new package `foo/bar` (after you `go get foo/bar`, so that foo/bar is in `$GOPATH`), you can type `godep save ./...` to add it to the `Godeps` directory.
-* To restore dependencies from the `Godeps` directory, simply use `godep restore`. `restore` is the opposite of `save`.
-* If you ever remove a dependency or a link becomes deprecated, the easiest way is probably to remove your entire `Godeps` directory and run `godep save ./...` again, after making sure all your dependencies are in your `$GOPATH`. Don't manually edit `Godeps.json`!
-* To update an existing dependency, you can use `godep update foo/bar` or `godep update foo/...` (where `...` is a wildcard)
-* The godep project [readme](https://github.com/tools/godep/README.md) is a pretty good resource: [https://github.com/tools/godep](https://github.com/tools/godep)
+#### `govendor` Guide
+Please find govendor FAQ in [govendor FAQ](https://github.com/kardianos/govendor/blob/master/doc/faq.md)
 
 ### Current conventions
 -----------------------

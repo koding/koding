@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 
 	. "github.com/onsi/ginkgo"
@@ -26,6 +27,8 @@ var _ = Describe("SoftLayerClient", func() {
 		username = os.Getenv("SL_USERNAME")
 		apiKey = os.Getenv("SL_API_KEY")
 
+		os.Setenv("NON_VERBOSE", "TRUE")
+
 		client = slclient.NewSoftLayerClient(username, apiKey)
 	})
 
@@ -42,18 +45,18 @@ var _ = Describe("SoftLayerClient", func() {
 	Context("#NewSoftLayerClient_HTTPClient", func() {
 		It("creates a new client which should have an initialized default HTTP client", func() {
 			client = slclient.NewSoftLayerClient(username, apiKey)
-			if c, ok := client.(*slclient.SoftLayerClient); ok {
-				Expect(c.HTTPClient).ToNot(BeNil())
-			}
-		})
 
-		It("creates a new client with a custom HTTP client", func() {
-			client = slclient.NewSoftLayerClient(username, apiKey)
-			c, _ := client.(*slclient.SoftLayerClient)
+			c, ok := client.(*slclient.SoftLayerClient)
+			Expect(ok).To(BeTrue())
+			Expect(c.HttpClient).ToNot(BeNil())
+
+			httpClient, ok := c.GetHttpClient().(*slclient.HttpClient)
+			Expect(ok).To(BeTrue())
+			Expect(httpClient.HTTPClient).ToNot(BeNil())
 
 			// Assign a malformed dialer to test if the HTTP client really works
 			var errDialFailed = errors.New("dial failed")
-			c.HTTPClient = &http.Client{
+			httpClient.HTTPClient = &http.Client{
 				Transport: &http.Transport{
 					Dial: func(network, addr string) (net.Conn, error) {
 						return nil, errDialFailed
@@ -61,9 +64,14 @@ var _ = Describe("SoftLayerClient", func() {
 				},
 			}
 
-			_, err := c.DoRawHttpRequest("/foo", "application/text", bytes.NewBufferString("random text"))
-			Expect(err).To(Equal(errDialFailed))
+			Expect(client.GetHttpClient()).ToNot(BeNil())
 
+			_, errorCode, err := client.GetHttpClient().DoRawHttpRequest("/foo", "GET", bytes.NewBufferString("random text"))
+			if urlErr, ok := err.(*url.Error); ok {
+				err = urlErr.Err
+			}
+			Expect(err).To(Equal(errDialFailed))
+			Expect(errorCode).To(BeNumerically(">", 400))
 		})
 	})
 
@@ -153,6 +161,15 @@ var _ = Describe("SoftLayerClient", func() {
 		})
 	})
 
+	Context("#GetSoftLayer_Billing_Item", func() {
+		It("returns a instance implemementing the SoftLayer_Billing_Item interface", func() {
+			var billingItemService softlayer.SoftLayer_Billing_Item_Service
+			billingItemService, err := client.GetSoftLayer_Billing_Item_Service()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(billingItemService).ToNot(BeNil())
+		})
+	})
+
 	Context("#GetSoftLayer_Virtual_Guest_Block_Device_Template_Group_Service", func() {
 		It("returns a instance implemementing the SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service interface", func() {
 			var vgbdtgService softlayer.SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service
@@ -168,6 +185,24 @@ var _ = Describe("SoftLayerClient", func() {
 			hardwareService, err := client.GetSoftLayer_Hardware_Service()
 			Expect(err).ToNot(HaveOccurred())
 			Expect(hardwareService).ToNot(BeNil())
+		})
+	})
+
+	Context("#GetApiEndpoint", func() {
+		Context("#when SL_API_ENDPOINT is set correctly", func() {
+			It("returns the correct SL api endpoint url", func() {
+				os.Setenv("SL_API_ENDPOINT", "api.service.softlayer.com")
+				slApiEndPointUrl := slclient.GetSLApiEndpoint()
+				Expect(slApiEndPointUrl).To(Equal("api.service.softlayer.com/rest/v3"))
+			})
+		})
+
+		Context("#when SL_API_ENDPOINT is NOT set correctly", func() {
+			It("returns the correct SL api endpoint url", func() {
+				os.Setenv("SL_API_ENDPOINT", "xxxxxx.softlayer.com")
+				slApiEndPointUrl := slclient.GetSLApiEndpoint()
+				Expect(slApiEndPointUrl).To(Equal("api.softlayer.com/rest/v3"))
+			})
 		})
 	})
 })

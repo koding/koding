@@ -56,6 +56,7 @@ type Softlayer struct {
 	// wrapped, so the external softlayer-go client implementation
 	// is not tighly coupled with our Softlayer provider.
 	softlayer.Client
+	softlayer.HttpClient
 
 	opts *Options
 }
@@ -63,7 +64,6 @@ type Softlayer struct {
 // NewSoftlayer creates new Softlayer client for the given credentials.
 func NewSoftlayer(username, apiKey string) *Softlayer {
 	client := client.NewSoftLayerClient(username, apiKey)
-	client.HTTPClient = NewClient()
 	opts := &Options{
 		SLClient: client,
 	}
@@ -72,10 +72,17 @@ func NewSoftlayer(username, apiKey string) *Softlayer {
 
 // NewSoftlayerWithOptions creates new Softlayer client for the given options.
 func NewSoftlayerWithOptions(opts *Options) *Softlayer {
-	return &Softlayer{
-		Client: opts.SLClient,
-		opts:   opts,
+	s := &Softlayer{
+		Client:     opts.SLClient,
+		HttpClient: opts.SLClient.GetHttpClient(),
+		opts:       opts,
 	}
+
+	if c, ok := s.HttpClient.(*client.HttpClient); ok {
+		c.HTTPClient = NewClient()
+	}
+
+	return s
 }
 
 // KeysByFilter fetches all keys and performs client-side filtering using the
@@ -135,7 +142,7 @@ func (c *Softlayer) CreateKey(key *Key) (*Key, error) {
 	}
 
 	const path = "SoftLayer_Security_Ssh_Key/createObject.json"
-	p, err = c.DoRawHttpRequest(path, "POST", bytes.NewBuffer(p))
+	p, _, err = c.DoRawHttpRequest(path, "POST", bytes.NewBuffer(p))
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +162,7 @@ func (c *Softlayer) CreateKey(key *Key) (*Key, error) {
 // DeleteKey deletes SSH key given by the id.
 func (c *Softlayer) DeleteKey(id int) error {
 	path := fmt.Sprintf("SoftLayer_Security_Ssh_Key/%d", id)
-	p, err := c.DoRawHttpRequest(path, "DELETE", nullBuf)
+	p, _, err := c.DoRawHttpRequest(path, "DELETE", nullBuf)
 	if err != nil {
 		return err
 	}
@@ -431,7 +438,7 @@ func (c *Softlayer) VlanSetTags(id int, tags Tags) error {
 // DeleteInstance requests a VM termination given by the id.
 func (c *Softlayer) DeleteInstance(id int) error {
 	path := fmt.Sprintf("SoftLayer_Virtual_Guest/%d", id)
-	p, err := c.DoRawHttpRequest(path, "DELETE", nullBuf)
+	p, _, err := c.DoRawHttpRequest(path, "DELETE", nullBuf)
 	if err != nil {
 		return err
 	}
