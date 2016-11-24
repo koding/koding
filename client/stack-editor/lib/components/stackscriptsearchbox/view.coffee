@@ -38,6 +38,7 @@ module.exports = class StackScriptSeachBoxView extends React.Component
       <SearchInputBox
         value={@props.query}
         onChangeCallback={@props.onChange}
+        onKeyUp={@props.onKeyUp}
         onFocusCallback={@props.onFocus} />
       {@renderIcon()}
       {@renderResults()}
@@ -52,6 +53,7 @@ SearchInputBox = ({ value, onChangeCallback, onFocusCallback }) ->
     placeholder='Search Anything, AWS, S3, Azure, GCP...'
     value={value}
     onChange={onChangeCallback}
+    onKeyUp={onKeyUp}
     onFocus={onFocusCallback} />
 
 
