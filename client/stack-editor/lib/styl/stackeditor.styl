@@ -456,11 +456,20 @@ $borderColor                = #E3E3E3
       rounded               4px 4px 0 0
 
     .preview-button
-      bg                    color, white !important
       z-index               13
-      bottom                0
-      right                 15px
+      bottom                -80px
+      margin                0
+      bg                    color, white !important
+      border-width          0
+      letter-spacing        .5px
       abs()
+      &:focus
+        vendor              box-shadow, none
+      right                 164px
+      .button-title
+        font-weight         300
+        line-height         24px
+        font-size           14px
 
   .readme
   .custom-variables
