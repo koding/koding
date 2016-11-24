@@ -50,7 +50,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
       switch action
 
         when 'ShowItem'
-          @fetchCredentialData credential, (err, data) ->
+          credential.fetchData (err, data) ->
             return  if showError err
 
             { meta }        = data
@@ -63,7 +63,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
             listView.showCredential { credential, cred }
 
         when 'EditItem'
-          @fetchCredentialData credential, (err, data) ->
+          credential.fetchData (err, data) ->
             return  if showError err
 
             Tracker.track Tracker.USER_EDIT_CREDENTIALS
@@ -163,11 +163,6 @@ module.exports = class AccountCredentialListController extends KodingListControl
       @filterStates.query.fields ?= requiredFields.map (field) -> field.name ? field
 
     super
-
-
-  fetchCredentialData: (credential, callback) ->
-
-    credential.fetchData (err, data) -> callback err, data
 
 
   filterByProvider: (query = {}) ->
