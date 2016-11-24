@@ -7,24 +7,24 @@ parent: /docs/home
 
 # {{ page.title }}
 
-#### Edit your stack name
+### Edit your stack name
 
 It is a good practice to name your Stack, specially if you plan to have multiple stacks. We named our stack "DB server alpha"
 
 ![rename-stack-894.png][1]
 
-#### Edit your VM name
+### Edit your VM name
 
 Let us also rename our VM to something more descriptive, the name of the VM is defined under the `aws_instance:` header. In our case we chose the name '_db_server_'.
 
-```yaml
+``` yaml
 resource:
   aws_instance:
     db_server: # name changed to 'db_server'
       instance_type: t2.micro
 ```
 
-#### Modify the `user_data` section
+### Modify the `user_data` section
 
 We will update the _user_data_ section (which contains the commands to run when the VM is first built) to install MySQL. In our example, we want to:
 
@@ -40,7 +40,7 @@ We will update the _user_data_ section (which contains the commands to run when 
 
 * Using the pipe dash "&#124;-" after the `user_data:` header will allow you to write your commands on several lines (multi-lines)
 
-#### Create a `variable` block
+### Create a `variable` block
 
 We will now create a variable in our **Stack** file. This variable will hold our table schema example. (_Later on, we will call this variable to create the Database table on the VM after MySQL is installed._)
 
@@ -68,7 +68,7 @@ variable:
      default: 'create database customer_accounts;use customer_accounts;create table customers(CustomerID int,LastName varchar(255),FirstName varchar(255),Address varchar(255),Phone varchar(255),PRIMARY KEY (`CustomerID`));'
 ```
 
-#### Update the `user_data` section
+### Update the `user_data` section
 
 We will update the **user_data** section to create our database schema and save the schema in a file in the user home directory. This will show how variables are placed in our **Stack Template**
 
@@ -87,48 +87,52 @@ user_data: |-
 * `mysql -u root "" < /home/${var.koding_user_username}/dbconstruct.sql`
   * We login to MySQL using root user and use the **dbconstruct.sql** file as input to MySQL to create our database.
 
-#### Let's build our Stack &amp; test!
+### Let's build our Stack & test!
 
 1. Click **SAVE**, you should see the message that your stack was built successfully if all is well.
-![stack-build-success.png][2]
+
+    ![stack-build-success.png][2]
 
 2. Click **Make Team Default**, this will populate your stack to the team and send them updates that a new stack is in place.
-![share-creds-854.png][3]
-Choose whether you wish to enable the checkbox _share your credentials with the team_, then click **Share with the team**
 
-> Sharing your credentials with your team is very helpful if you don't want your team (_developers/students_) to go through creating an AWS account each, or if you want to have full control over the machines created in AWS.
+    ![share-creds-854.png][3]
 
-> Sharing your AWS credentials means all built machines will be under your AWS account, which will incur charges to your AWS account for each machine built by your team.
+    Choose whether you wish to enable the checkbox _share your credentials with the team_, then click **Share with the team**
+
+    > Sharing your credentials with your team is very helpful if you don't want your team (_developers/students_) to go through creating an AWS account each, or if you want to have full control over the machines created in AWS.
+
+    > Sharing your AWS credentials means all built machines will be under your AWS account, which will incur charges to your AWS account for each machine built by your team.
 
 3. Click **Initialize**
 
-> **If you are updating an _already_ created stack, please note:**
-Any data that was on your earlier Stack VM's will be removed when you choose to _build/re-initialize_ the new stack this also applies to your teammates when they click build/re-initialize new stack. When a user chooses to Build the new Stack all their VM's will be re-initialized as complete new VM's with the new configuration from your stack template. A warning will pop up to alert the user about this before continuing to build the new stack. Please make sure to backup your data before building your new stack in that case!
+    > **If you are updating an _already_ created stack, please note:**
+    Any data that was on your earlier Stack VM's will be removed when you choose to _build/re-initialize_ the new stack this also applies to your teammates when they click build/re-initialize new stack. When a user chooses to Build the new Stack all their VM's will be re-initialized as complete new VM's with the new configuration from your stack template. A warning will pop up to alert the user about this before continuing to build the new stack. Please make sure to backup your data before building your new stack in that case!
 
 4. The Build Your Stack modal will open, click **Next**
-![build-stack-step1.png][4]
 
-> Noticed the **Read Me First** content? This is the readme that is defined by default when creating a stack, you can edit its content from the **Readme tab** during Stack creation.
+    ![build-stack-step1.png][4]
+
+    > Noticed the **Read Me First** content? This is the readme that is defined by default when creating a stack, you can edit its content from the **Readme tab** during Stack creation.
 
 5. Choose the credentials you want to use with your stack and click **Build Stack**
 
-![build-stcak-step2.png][5]
+    ![build-stcak-step2.png][5]
 
 6. Stack building will start..
 
-![build-stack-inprogress.png][6]
+    ![build-stack-inprogress.png][6]
 
 7. Successfully built stack, click **Start Coding**
 
-![build-success.png][7]
+    ![build-success.png][7]
 
 8. **user-data** commands still running
 
-![09-stack-running-commands-zoom.png][8]
+    ![stack-running-commands-zoom.png][8]
 
-**user-data** commands complete we can now start using our VM(s)
+    **user-data** commands complete we can now start using our VM(s)
 
-![10-commands-finished-zoom.png][9]
+    ![10-commands-finished-zoom.png][9]
 
 9. Let us check if our `user_data` commands ran successfully. If all went well, we should be able to see the file **dbconstruct.sql** created, and that it contains our DB Schema, MySQL installed, and the _**customer_accounts**_ database created with a _**customer**_ table as defined in our DB schema file. Here's a reminder of our `user_data `block from our Stack Template
 
@@ -140,32 +144,33 @@ user_data: |-
     echo '${var.my_DB_construct}' > /home/${var.koding_user_username}/dbconstruct.sql
     mysql -u root "" < /home/${var.koding_user_username}/dbconstruct.sql
 ```
-  1. Let's first see if the file **dbconstruct.sql** was created and that it contains our DB schema commands as we defined it in our `variable` block.
+  - Let's first see if the file **dbconstruct.sql** was created and that it contains our DB schema commands as we defined it in our `variable` block.
 
   ![11-check-files-zoom-1.png][10]
-    _Yes! all is well, the file exists in our Files viewer section in Koding, or by typing in the `ls` command._
 
-  2. Opening the file shows that our variable content was dumped in the file as we expected
+  _Yes! all is well, the file exists in our Files viewer section in Koding, or by typing in the `ls` command._
+
+  - Opening the file shows that our variable content was dumped in the file as we expected
 
   ![12-review-files-zoom2-1.png][11]
 
-  3. Time to check if MySQL database was installed and our **customer_accounts** database and table **customers** created successfully.
+  - Time to check if MySQL database was installed and our **customer_accounts** database and table **customers** created successfully.
 
-_MySQL has been installed_
+    _MySQL has been installed_
 
-![13-mysql-zoom.png][12]
+    ![13-mysql-zoom.png][12]
 
-_Our **customer_accounts** database created successfully_
+    _Our **customer_accounts** database created successfully_
 
-![14-database-zoom.png][13]
+    ![14-database-zoom.png][13]
 
-_Our **customers** table created successfully_
+    _Our **customers** table created successfully_
 
-![15-tables-zoom-1.png][14]
+    ![15-tables-zoom-1.png][14]
 
-_Our **customers** schema is in place_
+    _Our **customers** schema is in place_
 
-![16-tables-ready-zoom.png][15]
+    ![16-tables-ready-zoom.png][15]
 
 ## Conclusion
 
