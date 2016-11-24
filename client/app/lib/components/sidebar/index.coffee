@@ -217,6 +217,7 @@ module.exports = class Sidebar extends React.Component
           <h4 className='SidebarSection-headerTitle'>
             <Link href="/Stack-Editor/#{id}" onClick={@onTitleClick.bind this, id}>{title}</Link>
           </h4>
+          <div onClick={@onDraftTitleClick.bind this, id} className='menu-icon'></div>
         </header>
       </section>
 
