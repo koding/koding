@@ -32,6 +32,17 @@ module.exports = class StackScriptSeachBoxView extends React.Component
     <span className={icon} onClick={@props.onIconClick}></span>
 
 
+  renderLink: ->
+    className = "HomeAppView--button secondary stack-script-search-link"
+    className = kd.utils.curry className, 'shift'  unless @isIconVisible()
+    <a
+      className={className}
+      href='http://www.koding.com/docs/home'
+      style={ color: '#67a2ee' }>
+      GO TO DOCS
+    </a>
+
+
   render: ->
 
     <div>
@@ -40,6 +51,7 @@ module.exports = class StackScriptSeachBoxView extends React.Component
         onChangeCallback={@props.onChange}
         onKeyUp={@props.onKeyUp}
         onFocusCallback={@props.onFocus} />
+      {@renderLink()}
       {@renderIcon()}
       {@renderResults()}
     </div>
