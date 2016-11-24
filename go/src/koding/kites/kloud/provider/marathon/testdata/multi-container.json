@@ -2,7 +2,6 @@
   "resource": {
     "marathon_app": {
       "multi-app": {
-        "app_id": "/multi-app",
         "container": {
           "docker": [
             {

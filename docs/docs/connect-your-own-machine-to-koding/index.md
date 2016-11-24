@@ -2,6 +2,7 @@
 layout: doc
 title: Connect your own machine
 permalink: /docs/connect-your-own-machine-to-koding
+redirect_from: "/docs/connect-your-machine"
 parent: /docs/home
 ---
 
@@ -33,11 +34,16 @@ The steps are outlined below but in a nutshell, what happens is that you downloa
 Connecting your machine to Koding is easy, just follow these steps but first make sure that the requirements stated above are met:
 
 1. Click on **STACKS**
-![step1stacks.png][2]
-2.Go to **Virtual Machines**, and click **Add Your Own Machine**
-![access-add-machine2.png][3]
+
+  ![step1stacks.png][2]
+
+2. Go to **Virtual Machines**, and click **Add Your Own Machine**
+
+  ![access-add-machine2.png][3]
+
 3. In the dialogue box that appears, **copy** the install script and run it on your machine and leave this modal open (_check below tip_)
-![add-your-own-machine-modal.png][4]
+
+  ![add-your-own-machine-modal.png][4]
 
 > Leave the dialogue box open while you run the install script on your machine. **This is a** **requirement** since we are **_listening_**&nbsp;for a connection from your machine. Also, make sure you have root access to run the install script otherwise it will fail.
 

@@ -71,6 +71,10 @@ type Klient struct {
 	// from the storage
 	collab *collaboration.Collaboration
 
+	// collabCloser is used to de-register third party users after some
+	// specific time when klient's root user ends his connection.
+	collabCloser *DeferTime
+
 	storage *storage.Storage
 
 	// terminal provides wmethods
@@ -91,10 +95,6 @@ type Klient struct {
 	tunnel *tunnel.Tunnel
 
 	log kite.Logger
-
-	// disconnectTimer is used track disconnected users and eventually remove
-	// them from the collaboration storage.
-	disconnectTimer *time.Timer
 
 	// config stores all necessary configuration needed for Klient to work.
 	// It's supplied with the NewKlient() function.
@@ -321,6 +321,36 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 
 	kl.kite.OnRegister(kl.updateKiteKey)
 
+	// Close all active sessions of the current. Do not close it immediately,
+	// instead of give some time so users can safely exit. If the user
+	// reconnects again the timer will be stopped so we don't unshare for
+	// network hiccups accidentally.
+	kl.collabCloser = NewDeferTime(time.Minute, func() {
+		sharedUsers, err := kl.collab.GetAll()
+		if err != nil {
+			kl.log.Warning("Couldn't unshare users: %s", err)
+			return
+		}
+
+		if len(sharedUsers) == 0 {
+			return
+		}
+
+		kl.log.Info("Unsharing users '%s'", sharedUsers)
+		for user, option := range sharedUsers {
+			// dont touch permanent users
+			if option.Permanent {
+				kl.log.Info("User is permanent, avoiding it: %q", user)
+				continue
+			}
+
+			if err := kl.collab.Delete(user); err != nil {
+				kl.log.Warning("Couldn't delete user from storage: %s", err)
+			}
+			kl.terminal.CloseSessions(user)
+		}
+	})
+
 	// This is important, don't forget it
 	kl.RegisterMethods()
 
@@ -352,7 +382,7 @@ func (k *Klient) RegisterMethods() {
 	// don't allow anyone to call a method if we are during an update.
 	k.kite.PreHandleFunc(func(r *kite.Request) (interface{}, error) {
 		// Koding (kloud) connects to much, don't display it.
-		if r.Username != "koding" {
+		if r.Username != "koding" && !k.debug() {
 			k.log.Info("Kite '%s/%s/%s' called method: '%s'",
 				r.Username, r.Client.Environment, r.Client.Name, r.Method)
 		}
@@ -464,13 +494,8 @@ func (k *Klient) RegisterMethods() {
 			return // we don't care for others
 		}
 
-		// it's still not initialized, so don't do anything
-		if k.disconnectTimer != nil {
-			// stop previously started disconnect timer.
-			k.log.Info("Disconnection timer is cancelled.")
-			k.disconnectTimer.Stop()
-		}
-
+		k.log.Info("Canceling disconnection timer.")
+		k.collabCloser.Stop()
 	})
 
 	// Unshare collab users if the klient owner disconnects
@@ -484,47 +509,8 @@ func (k *Klient) RegisterMethods() {
 			return // we don't care for others
 		}
 
-		// if there is any previously created timers stop them so we don't leak
-		// goroutines
-		if k.disconnectTimer != nil {
-			k.disconnectTimer.Stop()
-		}
-
-		k.log.Info("Disconnection timer of 1 minutes is fired.")
-		k.disconnectTimer = time.NewTimer(time.Minute * 1)
-
-		// Close all active sessions of the current. Do not close it
-		// immediately, instead of give some time so users can safely exit. If
-		// the user reconnects again the timer will be stopped so we don't
-		// unshare for network hiccups accidentally.
-		go func() {
-			select {
-			case <-k.disconnectTimer.C:
-				sharedUsers, err := k.collab.GetAll()
-				if err != nil {
-					k.log.Warning("Couldn't unshare users: '%s'", err)
-					return
-				}
-
-				if len(sharedUsers) == 0 {
-					return // nothing to do ...
-				}
-
-				k.log.Info("Unsharing users '%s'", sharedUsers)
-				for user, option := range sharedUsers {
-					// dont touch permanent users
-					if option.Permanent {
-						k.log.Info("User is permanent, avoiding it: '%s'", user)
-						continue
-					}
-
-					if err := k.collab.Delete(user); err != nil {
-						k.log.Warning("Couldn't delete user from storage: '%s'", err)
-					}
-					k.terminal.CloseSessions(user)
-				}
-			}
-		}()
+		k.log.Info("Start disconnection timer with 1 minute delay.")
+		k.collabCloser.Start()
 	})
 }
 
@@ -566,6 +552,22 @@ func (k *Klient) registerURL() (u *url.URL, err error) {
 	return u, nil
 }
 
+func (k *Klient) tunnelID() string {
+	if k.config.TunnelName != "" {
+		return k.config.TunnelName
+	}
+
+	return konfig.Konfig.TunnelID
+}
+
+func (k *Klient) debug() bool {
+	if k.config.Debug {
+		return true
+	}
+
+	return konfig.Konfig.Debug
+}
+
 func (k *Klient) tunnelOptions() (*tunnel.Options, error) {
 	ip, err := k.PublicIP()
 	if err != nil {
@@ -573,7 +575,7 @@ func (k *Klient) tunnelOptions() (*tunnel.Options, error) {
 	}
 
 	opts := &tunnel.Options{
-		TunnelName:    k.config.TunnelName,
+		TunnelName:    k.tunnelID(),
 		TunnelKiteURL: k.config.TunnelKiteURL,
 		PublicIP:      ip,
 		Debug:         k.config.Debug,
@@ -623,7 +625,7 @@ func (k *Klient) Run() {
 		log.Fatal(err)
 	}
 
-	if !isAWS && !isKoding && !k.config.NoTunnel {
+	if (!isAWS && !isKoding && !k.config.NoTunnel) || k.tunnelID() != "" {
 		opts, err := k.tunnelOptions()
 		if err != nil {
 			log.Fatal(err)
@@ -700,6 +702,7 @@ func (k *Klient) register(registerURL *url.URL) error {
 }
 
 func (k *Klient) Close() {
+	k.collabCloser.Close()
 	k.collab.Close()
 	k.kite.Close()
 }

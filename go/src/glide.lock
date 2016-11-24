@@ -557,7 +557,7 @@ imports:
   - helpers
   - services
 - name: github.com/koding/kite
-  version: c81a54521915fd3f4a8b9ee20d10bf2c158dc500
+  version: 077dc6df5fcfc0419e399f68445dc633f8cfc853
   subpackages:
   - config
   - dnode
@@ -670,7 +670,7 @@ imports:
 - name: github.com/mattn/go-sqlite3
   version: c3e9588849195eefa783417c3a53d092f6e93526
 - name: github.com/maximilien/softlayer-go
-  version: 8f14c251491233bac034a0d3b560ea1001cdb830
+  version: 1d4217550aef2c9207aeae5a93c7ce5c3c91ef21
   subpackages:
   - client
   - common
@@ -1024,7 +1024,7 @@ imports:
 - name: github.com/Banno/terraform-provider-marathon
   version: 1ccf8237686780c3e77fefe173293de31199b7ea
 - name: github.com/gambol99/go-marathon
-  version: 6e3f9771c1f9f19b8034e8de6a7ca537c02be7de
+  version: 8eb32fcc2ee7946a9b8927c66e143e6c9c48100c
 - name: github.com/donovanhide/eventsource
   version: fd1de70867126402be23c306e1ce32828455d85b
 testImports:

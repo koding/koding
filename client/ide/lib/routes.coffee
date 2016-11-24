@@ -54,7 +54,7 @@ loadIDENotFound = ->
     appManager.tell 'IDE', 'showNoMachineState'
 
 
-loadIDE = (data) ->
+loadIDE = (data, done = kd.noop) ->
 
   { selectWorkspaceOnSidebar, findInstance } = module.exports
 
@@ -85,7 +85,7 @@ loadIDE = (data) ->
         # If you want it, ping Turunc or Acet.
         app.amIHost           = yes
 
-      app.mountMachineByMachineUId machineUId
+      app.mountMachineByMachineUId machineUId, done
 
   return callback()  unless ideApps?.instances
 
@@ -117,6 +117,22 @@ findInstance = (machine, workspace) ->
           ideInstance = instance
 
   return ideInstance
+
+
+routeToTestWorkspace = ->
+
+  kd.singletons.router.handleRoute '/IDE/test-machine/test-workspace'
+
+
+loadTestIDE = ->
+
+  { workspaces } = machine = require('mocks/mockmanagedmachine')()
+  machine = remote.revive machine
+  workspace = remote.revive workspaces[0]
+
+  require('app/util/createTestMachine')().then ->
+    loadIDE { machine, workspace, username: nick }, ->
+      require('ide/test/browser').prepare(machine, workspace)
 
 
 routeToFallback = ->
@@ -238,7 +254,10 @@ routeHandler = (type, info, state, path, ctx) ->
       { machineLabel } = info.params
 
       # we assume that if machineLabel is all numbers it is the channelId - SY
-      if /^[0-9]+$/.test machineLabel then loadCollaborativeIDE machineLabel
+      if /^[0-9]+$/.test machineLabel
+        loadCollaborativeIDE machineLabel
+      else if machineLabel is 'test-machine'
+        routeToTestWorkspace()
       else
         dataProvider.fetchMachine machineLabel, (machine) ->
           if machine then routeToMachineWorkspace machine
@@ -246,6 +265,9 @@ routeHandler = (type, info, state, path, ctx) ->
 
     when 'workspace'
       { params } = info
+
+      if params.workspaceSlug is 'test-workspace'
+        return loadTestIDE()
 
       dataProvider.fetchMachine params.machineLabel, (machine) ->
 

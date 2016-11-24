@@ -30,7 +30,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
           testpath        : 'register-password'
         placeholder      : 'Password'
         focus            : =>
-          @password.icon.unsetTooltip()
+          @password.unsetTooltip()
           return yes
         keydown          : (event) =>
           if event.which is ENTER
@@ -59,7 +59,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
           tfcode          : @tfcode
         decorateValidation: no
         focus             : =>
-          @email.icon.unsetTooltip()
+          @email.unsetTooltip()
           return yes
         blur              : =>
           @fetchGravatarInfo @email.input.getValue()
@@ -97,8 +97,8 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     @bind2FAEvents()
 
     kd.singletons.router.on 'RouteInfoHandled', =>
-      @email.icon.unsetTooltip()
-      @password.icon.unsetTooltip()
+      @email.unsetTooltip()
+      @password.unsetTooltip()
 
 
   create2FAInput: ->

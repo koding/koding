@@ -2,7 +2,6 @@
 
 koding                 = require './../bongo'
 { generateFakeClient } = require './../client'
-Crawler                = require './../../crawler'
 
 module.exports = (req, res, next, options) ->
 
@@ -18,7 +17,7 @@ module.exports = (req, res, next, options) ->
 
     return next err  if err
     return res.status(404).send error_404()  unless result?
-    return Crawler.crawl koding, { req, res, slug: name, isProfile: yes }  unless loggedIn
+    return res.status(404).send error_404()  unless loggedIn
     return next()  unless result.models.last?
 
     model = result.models.last

@@ -206,7 +206,9 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	uploader.FixPerms()
+	// Best-effort attempts at fixinig permissions and ownership, ignore any errors.
+	_ = uploader.FixPerms()
+	_ = konfig.FixOwner("", nil)
 
 	fmt.Printf("Successfully updated to latest version of %s.\n", config.Name)
 	return 0

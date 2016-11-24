@@ -1,8 +1,8 @@
-JStorage    = require './storage'
+jraphical = require 'jraphical'
 KodingError = require '../error'
 { notifyByUsernames } = require './notify'
 
-module.exports = class JCombinedAppStorage extends JStorage
+module.exports = class JCombinedAppStorage extends jraphical.Module
 
   { signature, ObjectId, secure } = require 'bongo'
 

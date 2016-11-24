@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
-	"strings"
 	"text/template"
 
 	"koding/kites/kloud/stack"
@@ -188,28 +187,22 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 			count = n
 		}
 
-		labels := []string{resourceName}
+		var labels []string
 		if count > 1 {
-			labels = labels[:0]
 			for i := 0; i < count; i++ {
 				labels = append(labels, fmt.Sprintf("%s.%d", resourceName, i))
 			}
-
-			// instance names must be unique, if user set count property, she
-			// need to use interpolation in name attribute. If she doesn't, we
-			// will attach index number at the end of name string.
-			if instr := instanceName.(string); !strings.Contains(instr, "${count.index}") {
-				instance["name"] = instr + "-${count.index}"
-			}
+		} else {
+			labels = append(labels, resourceName)
 		}
 
 		kiteKeyName := fmt.Sprintf("kitekeys_%s", resourceName)
 
 		// Cloud-Init can be injected only via "user-data" field defined in
 		// root "metadata" object.
-		metadata, ok := instance["metadata"].(map[string]interface{})
-		if !ok {
-			metadata = make(map[string]interface{})
+		var metadata = make(map[string]interface{})
+		if meta, ok := instance["metadata"].([]map[string]interface{}); ok {
+			metadata = flatten(meta)
 		}
 		s.Builder.InterpolateField(metadata, resourceName, "user-data")
 
@@ -357,6 +350,23 @@ func (s *Stack) getDiskSize(currentProject string, computeService *compute.Servi
 
 		return int(computeImg.DiskSizeGb)
 	}
+}
+
+func flatten(data []map[string]interface{}) map[string]interface{} {
+	res := make(map[string]interface{})
+	for _, ms := range data {
+		for key, m := range ms {
+			if val, ok := m.(string); ok {
+				if res[key] == nil {
+					res[key] = val
+				} else {
+					res[key] = res[key].(string) + "\n" + val
+				}
+			}
+		}
+	}
+
+	return res
 }
 
 func mustAsset(s string) string {

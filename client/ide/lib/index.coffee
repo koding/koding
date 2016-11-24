@@ -258,6 +258,14 @@ class IDEAppController extends AppController
 
   setActiveTabView: (tabView) ->
 
+    activePane = tabView.getActivePane()
+
+    for view in @ideViews
+      for tab in view.holderView.tabs.subViews
+        if tab is activePane?.tabHandle
+        then activePane.tabHandle.setClass 'focus'
+        else tab.unsetClass 'focus'
+
     return  if tabView is @activeTabView
     return  if tabView.isDestroyed
 
@@ -621,7 +629,7 @@ class IDEAppController extends AppController
     @getView().addSubView @noStackFoundView = new NoStackFoundView
 
 
-  mountMachineByMachineUId: (machineUId) ->
+  mountMachineByMachineUId: (machineUId, done = kd.noop) ->
 
     return  if @mountedMachine
 
@@ -629,22 +637,13 @@ class IDEAppController extends AppController
     container         = @getView()
     withFakeViews     = no
 
-    environmentDataProvider.fetchMachineByUId machineUId, (machineItem) =>
+    mount = (machineItem) =>
 
       unless machineItem
         return @showNoMachineState()
 
       unless machineItem instanceof Machine
         machineItem = new Machine { machine: machineItem }
-
-      # Don't run these lines on `Teams` scope.
-      # Because `Teams` uses new Sidebar with React + Flux
-      if not isTeamReactSide() and not machineItem.isMine() and not machineItem.isApproved()
-        { activitySidebar } = kd.singletons.mainView
-        box = activitySidebar.getMachineBoxByMachineUId machineItem.uid
-        box.machineItem.showSharePopup { sticky: yes, workspaceId: @workspaceData.getId() }
-
-        withFakeViews = yes
 
       @setMountedMachine machineItem
       @prepareIDE withFakeViews
@@ -686,6 +685,10 @@ class IDEAppController extends AppController
 
       else
         return @showNoMachineState()
+
+    environmentDataProvider.fetchMachineByUId machineUId, (machineItem) ->
+      mount machineItem
+      done()
 
 
   bindMachineEvents: (machineItem) ->

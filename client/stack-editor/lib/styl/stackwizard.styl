@@ -7,7 +7,6 @@ Stacks Onboarding styles
 $accentColor                = #F2778A
 
 .StackEditor-OnboardingModal
-  font-family               SoleilFamily
   overflow                  hidden
   rounded                   6px
   border                    none
@@ -35,7 +34,7 @@ $accentColor                = #F2778A
       line-height           20px
       margin                31px 0
       display               inline-block
-      fontPrecisionForSoleil()
+
 
   main
     text-align              center
@@ -46,7 +45,7 @@ $accentColor                = #F2778A
       font-size             27px
       font-weight           300
       line-height           27px
-      fontPrecisionForSoleil()
+
 
     > p
       margin                0 140px
@@ -56,7 +55,7 @@ $accentColor                = #F2778A
       line-height           27px
       color                 #A59999
       letter-spacing        .2px
-      fontPrecisionForSoleil()
+
 
   footer
     height                  75px
@@ -86,7 +85,7 @@ $accentColor                = #F2778A
       letter-spacing        .2px
       text-transform        uppercase
       line-height           42px
-      fontPrecisionForSoleil()
+
 
   button.back
     abs                     15px 0 0 26px
@@ -148,7 +147,7 @@ $accentColor                = #F2778A
     font-size               19px
     letter-spacing          .2px
     text-transform          uppercase
-    fontPrecisionForSoleil()
+
 
 // stack onboarding styling
 .stack-onboarding
@@ -178,13 +177,13 @@ $accentColor                = #F2778A
         color               #A8A1A1
 
   .box-wrapper
-    width                   525px
-    margin                  57px auto
+    width                   572px
+    margin                  46px auto
 
   .box
     size                    256px, 112px
-    width                   256px !important
-    height                  112px !important
+    width                   276px !important
+    height                  90px !important
     rounded                 4px
     border                  1px solid #E7E7E7
     background              #fff
@@ -195,7 +194,7 @@ $accentColor                = #F2778A
     fl()
 
     &:nth-child(2n -1)
-      margin-right          11px
+      margin-right          15px
 
     &.aws
       r-sprite              'stack-editor' 'aws'
@@ -211,6 +210,8 @@ $accentColor                = #F2778A
       r-sprite              'stack-editor' 'rackspace'
     &.softlayer
       r-sprite              'stack-editor' 'softlayer'
+    &.marathon
+      r-sprite              'stack-editor' 'marathon'
 
   .beta:before
   .coming-soon:before
@@ -219,9 +220,9 @@ $accentColor                = #F2778A
     background              #A8CEFD
     color                   white
     line-height             18px
-    height                  19px
-    padding                 0 10px
-    abs                     10px, 0px
+    height                  18px
+    padding                 0 7px
+    abs                     0px, 0px
 
   .coming-soon
     cursor                  not-allowed
@@ -237,7 +238,7 @@ $accentColor                = #F2778A
     height                  auto
 
     .provider
-      margin-top            11px
+      margin-top            15px
       rel()
 
       &:first-child

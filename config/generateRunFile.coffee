@@ -9,36 +9,6 @@ generateDev = (KONFIG, options) ->
 
   options.requirementCommands ?= []
 
-  installScript = """
-      pushd $KONFIG_PROJECTROOT
-      git submodule update --init
-
-      npm install --unsafe-perm
-
-      echo '#---> BUILDING CLIENT <---#'
-      make -C $KONFIG_PROJECTROOT/client unit-tests
-
-      echo '#---> BUILDING GO WORKERS <---#'
-      $KONFIG_PROJECTROOT/go/build.sh
-
-      echo '#---> BUILDING SOCIALAPI <---#'
-      pushd $KONFIG_PROJECTROOT/go/src/socialapi
-      make configure
-      # make install
-
-      echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY <---#'
-      KITE_KEY=$KONFIG_KITEHOME/kite.key
-      mkdir $HOME/.kite &>/dev/null
-      echo copying $KITE_KEY to $HOME/.kite/kite.key
-      cp -f $KITE_KEY $HOME/.kite/kite.key
-
-      echo
-      echo
-      echo 'ALL DONE. Enjoy! :)'
-      echo
-      echo
-  """
-
   run = """
     #!/bin/bash
 
@@ -64,7 +34,7 @@ generateDev = (KONFIG, options) ->
 
     mkdir $KONFIG_PROJECTROOT/.logs &>/dev/null
 
-    SERVICES="mongo redis postgres rabbitmq imply"
+    SERVICES="mongo redis postgres rabbitmq"
 
     NGINX_CONF="$KONFIG_PROJECTROOT/nginx.conf"
     NGINX_PID="$KONFIG_PROJECTROOT/nginx.pid"
@@ -259,6 +229,8 @@ generateDev = (KONFIG, options) ->
         exit 1
       fi
 
+      coffee deployment/mongomigrationconfig.coffee
+
       node $KONFIG_PROJECTROOT/node_modules/mongodb-migrate -runmm --config ../deployment/generated_files/mongomigration.json --dbPropName conn -c $KONFIG_PROJECTROOT/workers $1 $2
 
       if [ "$param" == "create" ]; then
@@ -274,6 +246,7 @@ generateDev = (KONFIG, options) ->
 
     function check (){
 
+      check_api_consistency
       check_service_dependencies
 
       if [[ `uname` == 'Darwin' ]]; then
@@ -409,6 +382,10 @@ generateDev = (KONFIG, options) ->
 
     }
 
+    function check_api_consistency() {
+      scripts/api-generator.coffee --check
+    }
+
     function runMongoDocker () {
         docker run -d -p 27017:27017 --name=mongo mongo:2.4
         check_connectivity mongo
@@ -456,8 +433,6 @@ generateDev = (KONFIG, options) ->
       restoreredis
       restorerabbitmq
       restoredefaultpostgresdump
-      restoreimply
-
 
       echo "#---> CLEARING ALGOLIA INDEXES: <---#"
       pushd $KONFIG_PROJECTROOT
@@ -542,7 +517,34 @@ generateDev = (KONFIG, options) ->
 
     elif [ "$1" == "install" ]; then
       check_service_dependencies
-      #{installScript}
+
+      pushd $KONFIG_PROJECTROOT
+      git submodule update --init
+
+      npm install --unsafe-perm
+
+      echo '#---> BUILDING CLIENT <---#'
+      make -C $KONFIG_PROJECTROOT/client unit-tests
+
+      echo '#---> BUILDING GO WORKERS <---#'
+      $KONFIG_PROJECTROOT/go/build.sh
+
+      echo '#---> BUILDING SOCIALAPI <---#'
+      pushd $KONFIG_PROJECTROOT/go/src/socialapi
+      make configure
+      # make install
+
+      echo '#---> AUTHORIZING THIS COMPUTER WITH MATCHING KITE.KEY <---#'
+      KITE_KEY=$KONFIG_KITEHOME/kite.key
+      mkdir $HOME/.kite &>/dev/null
+      echo copying $KITE_KEY to $HOME/.kite/kite.key
+      cp -f $KITE_KEY $HOME/.kite/kite.key
+
+      echo
+      echo
+      echo 'ALL DONE. Enjoy! :)'
+      echo
+      echo
 
     elif [ "$1" == "printconfig" ]; then
 

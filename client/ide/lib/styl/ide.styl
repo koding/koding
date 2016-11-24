@@ -72,6 +72,7 @@ body.ide
         size                20px 20px
         top                 8px
         right               4px
+        z-index             1
 
         span
           r-sprite          'ide', 'tab_close'
@@ -83,29 +84,36 @@ body.ide
           vendor            transform, translateX(-50%) translateY(-50%)
 
       .kdtabhandle
-        &:before
-          content           ''
-          position          absolute
-          top               12px
-          left              15px
-          r-sprite          'ide', 'ws_tab_file'
-          display           block
-          opacity           0.5
-        
-        &.terminal:before
-          r-sprite          'ide', 'ws_tab_terminal'
-          
-        &.plus:before
-          content           none
 
-	&.files:before
-          content           none
-          
-        &.settings:before
-          content           none
-        
-        &.active:before
-          opacity           1
+        .tab-handle-text
+          ellipsis()
+          max-width         100px
+
+        &.kddraggable
+          &:before
+            content         ''
+            position        absolute
+            top             12px
+            left            10px
+            r-sprite        'ide', 'ws_tab_file'
+            display         block
+            opacity         0.5
+            border-radius   0px
+
+          &.terminal:before
+            r-sprite        'ide', 'ws_tab_terminal'
+
+          &.plus:before
+            content         none
+
+  	     &.files:before
+            content         none
+
+          &.settings:before
+            content         none
+
+          &.active.focus:before
+            opacity         1
 
         .tab-handle-input
           border-radius     1px
@@ -120,11 +128,17 @@ body.ide
           display           none
 
         &.edit-mode
-          padding           6px 7px
+          padding           5px 0 0 4px
           box-sizing        border-box
           line-height       14px
 
+          :before
+            display         none
+
           .tab-handle-text
+            display         none
+
+          .options
             display         none
 
           .close-tab
@@ -151,15 +165,26 @@ body.ide .dark
     r-sprite                'finder', 'expanded'
     top                     -8px !important
 
-  .kdtabhandle
-    color                   dark-tab-color
 
+  .kdtabhandle.kddraggable
+    display                 flex
+    color                   dark-tab-color
+    border-top              2px solid #2b2b30
+    padding                 0 0 0 10px
+
+    .tab-handle-tabname
+      min-width             30px
+      padding-right         34px
+      padding-left          5px
     &:hover .options
       opacity               1
 
     &.active
       bg                    color, dark-panel-bg
       color                 dark-active-tab-color
+
+    &.active.focus
+      color                 #fff
       border-top            2px solid #67A2EE
 
     &.menu-visible
@@ -167,13 +192,12 @@ body.ide .dark
         opacity             1
 
     .options
-      position              absolute
       top                   8px
-      right                 23px
+      right                 22px
       size                  20px 20px
       z-index               1
-      dBlock()
       opacity               0
+      abs()
 
       &:before
         content             ''
@@ -185,6 +209,9 @@ body.ide .dark
 
     &.plus
       border-left-color     transparent
+
+  span.kdview.tab-handle-tabname
+    padding-left          20px !important
 
   .jtreeview-wrapper .jtreeitem.selected .chevron
     display                 inline-block
@@ -434,9 +461,9 @@ body.ide .dark
       .kdview.kdscrolltrack &.out
         opacity             1 !important
 
-  .kdtabhandle.dummy
+  .kdtabhandle.kddraggable.dummy
   .kdview.dummy
-    display                 none
+    display                 none !important
 
   .application-tabview
     z-index                 1
@@ -1247,7 +1274,7 @@ body.ide .kddialogview.save-as-dialog
   .editor-pane
     .description-view
       height                auto
-      padding               4px 6px 6px
+      padding               7px 6px 4px
       font-size             12px
       line-height           15px
       color                 #CCC

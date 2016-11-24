@@ -36,4 +36,3 @@ module.exports = class TeamsAppController extends kd.ViewController
     page = @getView().getActivePane()
     { input } = page.form.companyName
     input.setValue query.group.capitalize()
-    page.form.companyName.inputReceivedKeyup()

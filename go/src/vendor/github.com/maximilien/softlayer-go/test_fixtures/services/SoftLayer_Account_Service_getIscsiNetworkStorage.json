@@ -1,0 +1,27 @@
+[
+  {
+    "accountId": 123,
+    "capacityGb": 20,
+    "createDate": "2016-08-16T11:31:12+08:00",
+    "guestId": 200,
+    "hardwareId": 200,
+    "id": 123,
+    "nasType": "nastype",
+    "notes": "notes",
+    "password": "password",
+    "serviceProviderId": 123,
+    "upgradableFlag": true,
+    "username": "user",
+    "billingItem": {
+      "id": 123,
+      "orderItem": {
+        "order": {
+          "id": 123
+        }
+      }
+
+    },
+    "lunId": "lunid",
+    "serviceResourceBackendIpAddress": "10.10.10.10"
+  }
+]

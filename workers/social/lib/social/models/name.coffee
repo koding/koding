@@ -27,7 +27,7 @@ module.exports = class JName extends Model
       name            : ['unique']
     schema            :
       name            : String
-      slugs           : Array # [collectionName, constructorName, slug, usedAsPath]
+      slugs           : [ Object ] # [collectionName, constructorName, slug, usedAsPath]
       constructorName : String
       usedAsPath      : String
     registeredAt      :

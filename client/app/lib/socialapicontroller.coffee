@@ -624,8 +624,6 @@ module.exports = class SocialApiController extends KDController
         @channel.byId { id }, topicChannelKallback
       when 'post', 'message'
         @message.byId { id }, kallback
-      when 'bot'
-        @account.fetchBotChannel kallback
       else callback { message: "#{type} not implemented in revive" }
 
   getMessageEvents = ->
@@ -1311,17 +1309,7 @@ module.exports = class SocialApiController extends KDController
         endPoint :  "/Impersonate/#{username}?_csrf=#{csrfToken}"
         async    : yes
       , callback
-
-    fetchBotChannel      : (callback) ->
-
-      doXhrRequest
-        type     : 'GET'
-        endPoint : '/api/integration/botchannel'
-      , (err, response) ->
-        return callback err  if err
-
-        return callback null, mapChannel response.data
-
+      
     fetchChannels        : (callback) ->
 
       doXhrRequest

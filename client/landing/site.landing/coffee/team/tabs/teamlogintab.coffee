@@ -5,11 +5,11 @@ MainHeaderView  = require './../../core/mainheaderview'
 LoginInlineForm = require './../../login/loginform'
 Encoder         = require 'htmlencode'
 
-track = (action) ->
+track = (action, properties = {}) ->
 
-  category = 'Team'
-  label    = 'LoginForm'
-  utils.analytics.track action, { category, label }
+  properties.category = 'Team'
+  properties.label    = 'LoginForm'
+  utils.analytics.track action, properties
 
 
 module.exports = class TeamLoginTab extends kd.TabPaneView
@@ -56,7 +56,6 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
     if location.search isnt '' and location.search.search('username=') > 0
       username = location.search.split('username=').last.replace(/\&.+/, '') # trim the rest params if any
       @form.username.input.setValue decodeURIComponent username  # decode in case it is an email
-      @form.username.inputReceivedKeyup()
 
     @inviteDesc = new kd.CustomHTMLView
       tagName : 'p'

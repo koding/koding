@@ -29,6 +29,15 @@
   <meta name="twitter:image" content="{{site.url}}{{site.socialimg}}">
   <meta name="twitter:url" content="{{site.url}}{{page.url}}">
 
+  <!-- Microdata -->
+  <link href="{{ site.social.facebook }}" itemprop="sameAs" id="sitelink-profile-facebook">
+  <link href="{{ site.social.twitter }}" itemprop="sameAs" id="sitelink-profile-twitter">
+  <link href="{{ site.social.linkedin }}" itemprop="sameAs" id="sitelink-profile-linkedin">
+  <link href="{{ site.social.github }}" itemprop="sameAs" id="sitelink-profile-github">
+  <meta itemscope="" itemtype="http://schema.org/WebSite" itemref="sitename sitelink  sitelink-profile-facebook sitelink-profile-twitter sitelink-profile-linkedin sitelink-profile-github ">
+  <meta itemprop="name" content="Koding" id="sitename">
+  <link href="{{ site.url }}" itemprop="url" id="sitelink">
+
   <!-- CSS & fonts -->
   {% if include.no_additions %}
 

@@ -113,7 +113,6 @@ module.exports = (options, credentials) ->
     privateKey: credentials.kontrol.privateKey
 
   socialApiProxyUrl = "#{options.customDomain.local}/api/social"
-  vmwatcherPort = '6400'
 
   kloud =
     port: kloudPort = 5500
@@ -146,18 +145,8 @@ module.exports = (options, credentials) ->
     credentialEndPoint: "#{socialApiProxyUrl}/credential"
 
     janitorSecretKey: credentials.janitor.secretKey
-    vmWatcherSecretKey: credentials.vmwatcher.secretKey
     terraformerSecretKey: credentials.terraformer.secretKey
 
-  vmwatcher =
-    port: vmwatcherPort
-    kloudSecretKey: kloud.kloudSecretKey
-    kloudAddr: kloud.address
-    connectToKlient: options.vmwatcherConnectToKlient
-    debug: false,
-    mongo: credentials.mongo
-    redis: credentials.redis.url
-    secretKey: credentials.vmwatcher.secretKey
 
   marketingPagesURL = "http://www.koding.com"
 
@@ -289,18 +278,17 @@ module.exports = (options, credentials) ->
     gatekeeper                    : gatekeeper
     integration                   : integration
     recaptcha                     : recaptcha
-    vmwatcher                     : vmwatcher
     uri                           : { address: options.customDomain.public }
     misc                          : { claimGlobalNamesForUsers: no , debugConnectionErrors: yes, updateAllSlugs: false }
     # TODO: average request count per hour for a user should be measured and a reasonable limit should be set
-    nodejsRateLimiter             : { enabled: no, guestRules: [{ interval: 3600, limit: 5000 }], userRules: [{ interval: 3600, limit: 10000 }] } # limit: request limit per rate limit window, interval: rate limit window duration in seconds
+    nodejsRateLimiter             : { enabled: no,  guestRules: [{ interval: 3600, limit: 5000 }], userRules: [{ interval: 3600, limit: 10000 }] } # limit: request limit per rate limit window, interval: rate limit window duration in seconds
+    nodejsRateLimiterForApi       : { enabled: yes, guestRules: [{ interval: 60,   limit: 10 }],   userRules: [{ interval: 60,   limit: 300 }] }   # limit: request limit per rate limit window, interval: rate limit window duration in seconds
     webserver                     : { port: 8080, useCacheHeader: no }
     authWorker                    : { login: credentials.rabbitmq.login, queueName: options.socialQueueName + 'auth', authExchange: "auth", authAllExchange: "authAll", port : 9530 }
     social                        : { port: 3030, login: "#{credentials.rabbitmq.login}", queueName: options.socialQueueName, kitePort: 8760, kiteKey: "#{credentials.kiteHome}/kite.key" }
     boxproxy                      : { port: parseInt(options.publicPort, 10) }
     sourcemaps                    : { port: 3526 }
     rerouting                     : { port: 9500 }
-    gatheringestor                : { port: 6800 }
     sessionCookie                 : { maxAge: 1000 * 60 * 60 * 24 * 14, secure: options.secureCookie }
     troubleshoot                  : { recipientEmail: "can@koding.com" }
     contentRotatorUrl             : 'http://koding.github.io'

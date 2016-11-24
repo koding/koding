@@ -22,12 +22,8 @@ export COMMANDS=(
 	koding/kites/kloud/kloudctl
 	koding/kites/cmd/terraformer
 	koding/kites/cmd/tunnelserver
-	koding/workers/guestcleanerworker
 	koding/workers/cmd/tunnelproxymanager
-	koding/vmwatcher
 	koding/workers/janitor
-	koding/workers/gatheringestor
-	koding/workers/appstoragemigrator
 	koding/kites/kloud/cleaners/cmd/cleaner
 	koding/kites/kloud/scripts/userdebug
 	koding/kites/kloud/scripts/sl
@@ -44,17 +40,11 @@ export COMMANDS=(
 	socialapi/workers/cmd/algoliaconnector/deletedaccountremover
 	socialapi/workers/cmd/presence
 	socialapi/workers/cmd/collaboration
-	socialapi/workers/cmd/email/activityemail
-	socialapi/workers/cmd/email/dailyemail
-	socialapi/workers/cmd/email/privatemessageemailfeeder
-	socialapi/workers/cmd/email/privatemessageemailsender
 	socialapi/workers/cmd/email/emailsender
 	socialapi/workers/cmd/team
-	socialapi/workers/cmd/integration/webhook
 	socialapi/workers/algoliaconnector/tagmigrator
 	socialapi/workers/algoliaconnector/contentmigrator
 	socialapi/workers/cmd/integration/eventsender
-	socialapi/workers/cmd/integration/webhookmiddleware
 
 	vendor/github.com/koding/kite/kitectl
 	vendor/github.com/canthefason/go-watcher
@@ -67,6 +57,9 @@ export COMMANDS=(
 export TERRAFORM_COMMANDS=(
 	vendor/github.com/hashicorp/terraform
 	vendor/github.com/hashicorp/terraform/builtin/bins/...
+)
+
+export TERRAFORM_CUSTOM_COMMANDS=(
 	koding/kites/cmd/provider-vagrant
 	vendor/github.com/koding/terraform-provider-github/cmd/provider-github
 	vendor/github.com/Banno/terraform-provider-marathon
@@ -87,6 +80,9 @@ go generate koding/kites/config
 go generate koding/kites/kloud/kloud
 
 koding-go-install ${COMMANDS[@]} ${TERRAFORM_COMMANDS[@]}
+rm -rf $GOBIN/provider-github
+koding-go-install ${TERRAFORM_CUSTOM_COMMANDS[@]}
+
 
 mkdir -p $GOPATH/build/broker
 cp -f $GOBIN/broker $GOPATH/build/broker/broker

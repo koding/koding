@@ -30,7 +30,7 @@ module.exports = (options, callback) ->
 
     <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
-    #{KONFIG.getConfigScriptTag { entryPoint: { slug : slug, type: "group" }, roles:['guest'], permissions:[] }}
+    #{KONFIG.getConfigScriptTag { entryPoint: { slug, type: "group" }, roles: ['guest'], permissions: [] }}
     <script>KD.isLoggedInOnLoad=false;</script>
     #{scripts}
     </body>

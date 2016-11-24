@@ -79,7 +79,7 @@ module.exports = class LoginView extends JView
     @headBanner = new kd.CustomHTMLView
       domId    : 'invite-recovery-notification-bar'
       cssClass : 'invite-recovery-notification-bar hidden'
-      partial  : '...'
+      partial  : '…'
 
     { oauthController } = kd.singletons
 

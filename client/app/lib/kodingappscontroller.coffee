@@ -16,7 +16,10 @@ AppClasses =
   home: require 'home'
   ide: require 'ide'
   kites: require 'kites'
-  'stack-editor': require 'stack-editor'
+  'stack-editor': do ->
+    if Cookies.get 'use-nse'
+    then require 'new-stack-editor'
+    else require 'stack-editor'
   testrunner: require 'testrunner'
 
 

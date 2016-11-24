@@ -37,10 +37,6 @@ type User struct {
 		Title string `bson:"title"`
 		Key   string `bson:"key"`
 	} `bson:"sshKeys"`
-	OnlineStatus struct {
-		Actual string `bson:"actual"`
-	} `bson:"onlineStatus"`
-
 	BlockedReason string `bson:"blockedReason" json:"blockedReason"`
 
 	EmailFrequency *EmailFrequency `bson:"emailFrequency" json:"emailFrequency"`

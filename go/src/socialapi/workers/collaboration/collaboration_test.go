@@ -7,7 +7,6 @@ import (
 	"socialapi/config"
 	apimodels "socialapi/models"
 	"socialapi/rest"
-	"socialapi/workers/collaboration"
 	"socialapi/workers/collaboration/models"
 	"strconv"
 	"testing"
@@ -88,7 +87,7 @@ func TestCollaboration(t *testing.T) {
 				req.CreatedAt = time.Now().UTC()
 				err := redisConn.Setex(
 					PrepareFileKey(req.FileId),
-					collaboration.ExpireSessionKeyDuration, // expire the key after this period
+					ExpireSessionKeyDuration, // expire the key after this period
 					req.CreatedAt.Add(-terminateSessionDuration),
 				)
 
@@ -157,8 +156,8 @@ func TestCollaboration(t *testing.T) {
 			// prepare a valid key
 			err := redisConn.Setex(
 				PrepareFileKey(req.FileId),
-				collaboration.ExpireSessionKeyDuration, // expire the key after this period
-				req.CreatedAt.Unix(),                   // value - unix time
+				ExpireSessionKeyDuration, // expire the key after this period
+				req.CreatedAt.Unix(),     // value - unix time
 			)
 
 			So(err, ShouldBeNil)
@@ -181,8 +180,8 @@ func TestCollaboration(t *testing.T) {
 				req.CreatedAt = time.Now().UTC()
 				err := redisConn.Setex(
 					PrepareFileKey(req.FileId),
-					collaboration.ExpireSessionKeyDuration, // expire the key after this period
-					"req.CreatedAt.Unix()",                 // replace timestamp with unix time
+					ExpireSessionKeyDuration, // expire the key after this period
+					"req.CreatedAt.Unix()",   // replace timestamp with unix time
 				)
 
 				err = handler.checkIfKeyIsValid(req)
@@ -194,7 +193,7 @@ func TestCollaboration(t *testing.T) {
 				req.CreatedAt = time.Now().UTC()
 				err := redisConn.Setex(
 					PrepareFileKey(req.FileId),
-					collaboration.ExpireSessionKeyDuration, // expire the key after this period
+					ExpireSessionKeyDuration, // expire the key after this period
 					req.CreatedAt.Add(-terminateSessionDuration).Unix(),
 				)
 
@@ -250,7 +249,7 @@ func testPingTimes(
 
 	err := redis.Setex(
 		PrepareFileKey(req.FileId),
-		collaboration.ExpireSessionKeyDuration, // expire the key after this period
+		ExpireSessionKeyDuration, // expire the key after this period
 		req.CreatedAt.Unix(),
 	)
 

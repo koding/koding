@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"net"
 	"net/url"
 	"time"
 
@@ -180,11 +181,17 @@ func (bm *BaseMachine) updateMachine(state *DialState, meta interface{}, dbState
 			obj["registerUrl"] = state.KiteURL
 		}
 
-		if u, err := url.Parse(state.KiteURL); err == nil && u.Host != "" && bm.IpAddress != u.Host {
-			// TODO(rjeczalik): when path routing is added (#9021) either we
-			// change the ipAddress field to more generic endpoint field,
-			// or we use here state.KiteURL directly.
-			obj["ipAddress"] = u.Host
+		if u, err := url.Parse(state.KiteURL); err == nil && u.Host != "" {
+			if host, _, err := net.SplitHostPort(u.Host); err == nil {
+				u.Host = host
+			}
+
+			if bm.IpAddress != u.Host {
+				// TODO(rjeczalik): when path routing is added (#9021) either we
+				// change the ipAddress field to more generic endpoint field,
+				// or we use here state.KiteURL directly.
+				obj["ipAddress"] = u.Host
+			}
 		}
 	}
 

@@ -12,7 +12,7 @@ module.exports =
   "resource": {
     "digitalocean_droplet": {
       "do-instance": {
-        "name": "do-instance",
+        "name": "koding-${var.koding_group_slug}-${var.koding_stack_id}-${count.index+1}",
         "size": "512mb",
         "region": "nyc2",
         "image": "ubuntu-14-04-x64",
@@ -38,7 +38,7 @@ resource:
     # this is the name of your VM
     do-instance:
       # and this is its identifier (required)
-      name: do-instance
+      name: 'koding-${var.koding_group_slug}-${var.koding_stack_id}-${count.index+1}'
       # select your instance_type here: eg. 512mb
       size: 512mb
       # select your instance zone which must be in provided region: eg. nyc2

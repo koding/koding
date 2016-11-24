@@ -112,6 +112,10 @@ func TestAzure_ApplyTemplate(t *testing.T) {
 			"testdata/basic-stack.json",
 			"testdata/basic-stack.json.golden",
 		},
+		"basic stack with count=3": {
+			"testdata/basic-stack-count-3.json",
+			"testdata/basic-stack-count-3.json.golden",
+		},
 		"custom endpoint": {
 			"testdata/custom-endpoint.json",
 			"testdata/custom-endpoint.json.golden",
@@ -238,7 +242,7 @@ func stripNondeterministicResources(v interface{}) {
 	}
 
 	for name, v := range variable {
-		if !strings.HasPrefix(name, "kitekeys_") {
+		if !strings.HasPrefix(name, "kitekeys_") && !strings.HasPrefix(name, "passwords_") {
 			continue
 		}
 

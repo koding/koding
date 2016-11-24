@@ -3,7 +3,7 @@ React = require 'app/react'
 ScrollableContent = require 'app/components/scroller'
 
 
-module.exports = class StackScriptSeachBoxView extends React.Component
+module.exports = class StackScriptSearchBoxView extends React.Component
 
   renderResultList: ->
 
@@ -22,36 +22,55 @@ module.exports = class StackScriptSeachBoxView extends React.Component
     </ScrollableContent>
 
 
-  renderIcon: ->
+  isIconVisible: ->
 
     icon = if @props.loading then 'loading-icon' else 'close-icon'
+    return (!(@props.query or @props.scripts.length)) or (@props.close and icon is 'close-icon')
 
-    return  unless @props.query or @props.scripts.length
-    return  if @props.close and icon is 'close-icon'
 
+  renderIcon: ->
+
+    return  if @isIconVisible()
+
+    icon = if @props.loading then 'loading-icon' else 'close-icon'
     <span className={icon} onClick={@props.onIconClick}></span>
+
+
+  renderLink: ->
+    className = "HomeAppView--button secondary stack-script-search-link"
+    className = kd.utils.curry className, 'shift'  unless @isIconVisible()
+    <a
+      className={className}
+      href='http://www.koding.com/docs/home'
+      style={ color: '#67a2ee' }>
+      GO TO DOCS
+    </a>
 
 
   render: ->
 
-    <div>
+    <div className='StackEditor-SearchWrapper'>
       <SearchInputBox
         value={@props.query}
         onChangeCallback={@props.onChange}
+        onKeyUp={@props.onKeyUp}
         onFocusCallback={@props.onFocus} />
+      {@renderLink()}
       {@renderIcon()}
       {@renderResults()}
     </div>
 
 
-SearchInputBox = ({ value, onChangeCallback, onFocusCallback }) ->
+SearchInputBox = ({ value, onChangeCallback, onFocusCallback, onKeyUp }) ->
 
   <input
     type='text'
     className='kdinput text searchStackInput'
-    placeholder='Search Anything, AWS, S3, Azure, GCP...'
+    placeholder='Search Docs, AWS, S3, Azure, GCP...'
     value={value}
     onChange={onChangeCallback}
+    onKeyUp={onKeyUp}
+    onClick={onFocusCallback}
     onFocus={onFocusCallback} />
 
 

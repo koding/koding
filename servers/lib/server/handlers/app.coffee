@@ -1,5 +1,4 @@
-{ serve, serveHome, isMainDomain }   = require './../helpers'
-
+{ error_404, serve, serveHome, isMainDomain }   = require './../helpers'
 koding                 = require './../bongo'
 { generateFakeClient } = require './../client'
 Crawler                = require './../../crawler'
@@ -14,17 +13,7 @@ module.exports = (req, res, next, options) ->
 
   return next()  unless isMainDomain req
 
-  # do not show static page for team subdomains
-  if name is 'Activity'
-    # When we try to access /Activity/Message/New route, it is trying to
-    # fetch message history with channel id = 'New' and returning:
-    # Bad Request: strconv.ParseInt: parsing "New": invalid syntax error.
-    # Did not like the way I resolve this, but this handler function is already
-    # saying 'Refactor me' :) - CtF
-    return next()                    if section is 'Message' and slug is 'New'
-    return serveHome req, res, next  if loggedIn
-
-    return Crawler.crawl koding, { req, res, slug : path }
+  res.status(404).send error_404()  if name is 'Activity'
 
   generateFakeClient req, res, (err, client) ->
 

@@ -202,7 +202,15 @@ func (p *Planner) MachinesFromPlan(plan *terraform.Plan) (stack.Machines, error)
 }
 
 func (p *Planner) checkSingleKlient(k *kite.Kite, label, kiteID string) *DialState {
-	kiteID = utils.QueryString(kiteID)
+	kiteID, err := utils.QueryString(kiteID)
+	if err != nil {
+		return &DialState{
+			Label:  label,
+			KiteID: kiteID,
+			State:  "dial",
+			Err:    err,
+		}
+	}
 
 	start := time.Now()
 

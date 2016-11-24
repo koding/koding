@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
-	"strconv"
 	"time"
 
 	"koding/kites/kloud/stack"
@@ -27,10 +26,6 @@ var schema = &provider.Schema{
 			AppID: m.Attributes["app_id"],
 		}
 
-		if n, err := strconv.Atoi(m.Attributes["app_count"]); err == nil {
-			meta.AppCount = n
-		}
-
 		return meta
 	},
 }
@@ -43,11 +38,11 @@ var (
 // Credential represents credential information
 // that are required to deploy a Marathon app.
 type Credential struct {
-	URL                string `json:"url" bson:"url" hcl:"url"`
-	BasicAuthUser      string `json:"basic_auth_user" bson:"basic_auth_user" hcl:"basic_auth_user"`
-	BasicAuthPassowrd  string `json:"basic_auth_password" bson:"basic_auth_password" hcl:"basic_auth_password"`
-	RequestTimeout     int    `json:"request_timeout" bson:"request_timeout" hcl:"request_timeout"`
-	DeploymentTimepout int    `json:"deployment_timeout" bson:"deployment_timeout" hcl:"deployment_timeout"`
+	URL               string `json:"url" bson:"url" hcl:"url"`
+	BasicAuthUser     string `json:"basic_auth_user" bson:"basic_auth_user" hcl:"basic_auth_user"`
+	BasicAuthPassword string `json:"basic_auth_password" bson:"basic_auth_password" hcl:"basic_auth_password"`
+	RequestTimeout    int    `json:"request_timeout" bson:"request_timeout" hcl:"request_timeout"`
+	DeploymentTimeout int    `json:"deployment_timeout" bson:"deployment_timeout" hcl:"deployment_timeout"`
 }
 
 // Valid implements the stack.Validator interface.
@@ -69,7 +64,7 @@ func (c *Credential) Config() *marathon.Config {
 
 	cfg.URL = c.URL
 	cfg.HTTPBasicAuthUser = c.BasicAuthUser
-	cfg.HTTPBasicPassword = c.BasicAuthPassowrd
+	cfg.HTTPBasicPassword = c.BasicAuthPassword
 	cfg.HTTPClient = &http.Client{
 		Timeout: c.requestTimeout() * time.Second,
 	}
@@ -95,9 +90,5 @@ type Metadata struct {
 
 // Valid implements the stack.Validator interface.
 func (m *Metadata) Valid() error {
-	if m.AppID == "" {
-		return errors.New("invalid empty app ID or group name")
-	}
-
 	return nil
 }

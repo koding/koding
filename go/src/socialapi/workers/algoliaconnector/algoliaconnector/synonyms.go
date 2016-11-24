@@ -1,16 +1,5 @@
 package algoliaconnector
 
-import "socialapi/models"
-
-func isValidChannelType(c *models.Channel) bool {
-	return models.IsIn(
-		c.TypeConstant,
-		// type constant should be one of followings
-		models.Channel_TYPE_TOPIC,
-		models.Channel_TYPE_LINKED_TOPIC,
-	)
-}
-
 // addSynonym adds given synonym pairs to the given index. do not worry about
 // duplicate synonyms, algolia handles them perfectly
 func (f *Controller) addSynonym(indexName string, synonyms ...string) error {

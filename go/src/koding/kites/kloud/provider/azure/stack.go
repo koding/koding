@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
-	"time"
 
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
@@ -175,11 +174,6 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	}
 
 	for name, vm := range res.AzureInstance {
-		// Set unique name for the instance if not provided explicitly.
-		if n, ok := vm["name"].(string); !ok || n == "" {
-			vm["name"] = name + "-" + s.id()
-		}
-
 		// Set ssh_key_thumbprint if not provided explicitly.
 		if cred.SSHKeyThumbprint != "" {
 			if thumb, ok := vm["ssh_key_thumbprint"]; !ok || thumb == "" {
@@ -187,28 +181,14 @@ func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 			}
 		}
 
-		// Set password if not provided explicitely.
-		if pass, ok := vm["password"]; !ok || pass == "" {
-			if cred.Password != "" {
-				vm["password"] = cred.Password
-			} else {
-				vm["password"] = utils.RandomString()
-			}
-		}
+		s.injectPasswords(vm, cred, "passwords_"+name)
 
 		s.injectBoostrap(vm, cred, boot)
 
 		s.injectEndpointRules(vm)
 
-		kiteKeyName := fmt.Sprintf("kitekeys_%s", name)
-
-		kites, err := s.injectCloudInit(vm, name, kiteKeyName)
-		if err != nil {
+		if err := s.injectCloudInit(vm, name, "kitekeys_"+name); err != nil {
 			return nil, err
-		}
-
-		t.Variable[kiteKeyName] = map[string]interface{}{
-			"default": kites,
 		}
 
 		res.AzureInstance[name] = vm
@@ -266,6 +246,44 @@ func (s *Stack) injectBoostrap(vm map[string]interface{}, cred *Cred, boot *Boot
 	}
 }
 
+// sainitizePassword sanitizes a password before injecting it
+// into Terraform template. If the generate string contained
+// a "${" character sequence, plan and apply request are
+// going to fail with:
+//
+//   * Variable 'passwords_azure-instance': cannot contain interpolations
+//
+var sanitizePassword = strings.NewReplacer("${", "@{")
+
+func (s *Stack) injectPasswords(vm map[string]interface{}, cred *Cred, passwordVar string) {
+	pass, ok := vm["password"]
+	if ok && pass != "" {
+		return
+	}
+
+	count := 1
+	if n, ok := vm["count"].(int); ok && n > 1 {
+		count = n
+	}
+
+	passwords := make(map[string]string, count)
+
+	for i := 0; i < count; i++ {
+		pass := cred.Password
+		if pass == "" {
+			pass = sanitizePassword.Replace(utils.Pwgen(16))
+		}
+
+		passwords[strconv.Itoa(i)] = pass
+	}
+
+	vm["password"] = "${lookup(var." + passwordVar + ", count.index)}"
+
+	s.Builder.Template.Variable[passwordVar] = map[string]interface{}{
+		"default": passwords,
+	}
+}
+
 func (s *Stack) injectEndpointRules(vm map[string]interface{}) {
 	endpoints, ok := vm["endpoint"].([]interface{})
 	if !ok {
@@ -292,7 +310,7 @@ func (s *Stack) injectEndpointRules(vm map[string]interface{}) {
 	vm["endpoint"] = endpoints
 }
 
-func (s *Stack) injectCloudInit(vm map[string]interface{}, name, kiteKeyName string) (map[string]string, error) {
+func (s *Stack) injectCloudInit(vm map[string]interface{}, name, kiteKeyName string) error {
 	// means there will be several instances, we need to create a userdata
 	// with count interpolation, because each machine must have an unique
 	// kite id.
@@ -331,7 +349,7 @@ func (s *Stack) injectCloudInit(vm map[string]interface{}, name, kiteKeyName str
 
 	userdata, err := s.Session.Userdata.Create(userCfg)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	vm["custom_data"] = string(userdata)
@@ -342,24 +360,17 @@ func (s *Stack) injectCloudInit(vm map[string]interface{}, name, kiteKeyName str
 	for i, label := range labels {
 		kiteKey, err := s.BuildKiteKey(label, s.Req.Username)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		countKeys[strconv.Itoa(i)] = kiteKey
 	}
 
-	return countKeys, nil
-}
-
-func (s *Stack) id() string {
-	switch arg := s.Arg.(type) {
-	case *stack.ApplyRequest:
-		return arg.StackID
-	case *stack.PlanRequest:
-		return arg.StackTemplateID
-	default:
-		return strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+	s.Builder.Template.Variable[kiteKeyName] = map[string]interface{}{
+		"default": countKeys,
 	}
+
+	return nil
 }
 
 func newBootstrapTmpl(cfg *BootstrapConfig) ([]byte, error) {

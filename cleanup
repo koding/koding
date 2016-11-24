@@ -19,7 +19,7 @@ do cleanup = ->
       console.log "if they get DELETED, you get mad.  exiting now... (do git status and resolve first or use --force  )"
       process.exit()
     else
-      exec "git clean -d -f #{sure} -x -e go/bin -e cleanup -e .vagrant -e node_modules -e node_modules_koding #{includeGo}", (err, res)->
+      exec "git clean -d -f #{sure} -x -e cleanup -e .vagrant -e node_modules -e node_modules_koding #{includeGo}", (err, res)->
 
         if res isnt ''
 

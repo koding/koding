@@ -5,6 +5,7 @@ StackEditorView = require './editor'
 showError = require 'app/util/showError'
 OnboardingView = require './onboarding/onboardingview'
 EnvironmentFlux = require 'app/flux/environment'
+ContentModal = require 'app/components/contentModal'
 
 do require './routehandler'
 
@@ -95,6 +96,9 @@ module.exports = class StackEditorAppController extends AppController
       createOnce selectedProvider
       modal.destroy()
 
+    view.on 'StackOnboardingCanceled', ->
+      modal.destroy()
+
     modal.addSubView view
 
     if handleRoute
@@ -171,9 +175,16 @@ module.exports = class StackEditorAppController extends AppController
       return  if confirmation
       return  if view._stackSaveInAction
 
-      view.addSubView confirmation = new kd.ModalView
+      view.addSubView confirmation = new ContentModal
         title: 'Stack Template is Updated'
+        cssClass: 'content-modal'
         buttons:
+          cancel:
+            title: 'Cancel'
+            style: 'solid light-gray medium'
+            callback: ->
+              confirmation.destroy()
+              confirmation = null
           ok:
             title: 'OK'
             style: 'solid green medium'
@@ -181,12 +192,6 @@ module.exports = class StackEditorAppController extends AppController
               view.destroy()
               delete @editors[stackTemplate._id]
               @openEditor stackTemplate._id
-          cancel:
-            title: 'Cancel'
-            style: 'solid light-gray medium'
-            callback: ->
-              confirmation.destroy()
-              confirmation = null
         content: '''
           <div class='modalformline'
             <p>This stack template is updated by another admin. Do you want to reload?</p>

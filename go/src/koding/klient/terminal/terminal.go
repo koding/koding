@@ -214,6 +214,8 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 
 	command, err := newCommand(params.Mode, params.Session, user.Username)
 	if err != nil {
+		t.Log.Warning("terminal: connect failed for user %q: %s", user.Username, err)
+
 		return nil, err
 	}
 
@@ -253,7 +255,13 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 	}
 
 	args = append(args, command.Args...)
-	cmd := exec.Command("/usr/bin/sudo", args...)
+	var cmd *exec.Cmd
+
+	if _, err := os.Stat("/usr/bin/sudo"); os.IsNotExist(err) {
+		cmd = exec.Command(args[1], args[2:]...)
+	} else {
+		cmd = exec.Command("/usr/bin/sudo", args...)
+	}
 
 	// For test use this, sudo is not going to work
 	// cmd := exec.Command(command.Name, command.Args...)

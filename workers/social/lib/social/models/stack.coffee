@@ -3,6 +3,16 @@ jraphical = require 'jraphical'
 
 stackRevisionErrors = require './stackrevisionerrors'
 
+# JComputeStack keeps stack data
+# including machines and credential references
+#
+# @example
+#
+#   stack = new JComputeStack {
+#     title: 'test stack'
+#     machines: [Array<JMachine._id>]
+#   }
+#
 module.exports = class JComputeStack extends jraphical.Module
 
   KodingError        = require '../error'
@@ -160,17 +170,12 @@ module.exports = class JComputeStack extends jraphical.Module
 
     @update { $addToSet: itemToAppend }, (err) -> callback err
 
-
-  ###*
-   * JComputeStack::create wrapper for client requests
-   * @param  {Mixed}    client
-   * @param  {Object}   data
-   * @param  {Function} callback
-   * @return {void}
-  ###
   @create$ = permit 'create stack',
 
     success: (client, data, callback) ->
+
+      unless client.context?.group or client.connection?.delegate
+        return callback new KodingError 'Session is not valid'
 
       data.account   = client.connection.delegate
       data.groupSlug = client.context.group
@@ -193,12 +198,18 @@ module.exports = class JComputeStack extends jraphical.Module
             else callback null, stack
 
 
-  ###*
-   * JComputeStack::create
-   * @param  {Object}   data
-   * @param  {Function} callback
-   * @return {void}
-  ###
+  # JComputeStack::create
+  #
+  # @param {Object} data
+  #   Data needs to provide default schema of JComputeStack
+  #   `data = { config, credentials, title }`
+  #
+  # @option data [String] title stack title
+  # @option data [Object] config details for stack
+  # @option data [Object] credentials list of credentials that is needed for stack
+  #
+  # @return {JComputeStack} created JComputeStack instance
+  #
   @create = (data, callback) ->
 
     { account, groupSlug, config, credentials

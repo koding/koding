@@ -1,13 +1,22 @@
+_       = require 'lodash'
 kd      = require 'kd'
 globals = require 'globals'
 remote  = require 'app/remote'
 Machine = require 'app/providers/machine'
 async   = require 'async'
 
+runMiddlewares = require 'app/util/runMiddlewares'
+TestMachineMiddleware = require 'app/providers/middlewares/testmachine'
+
 KDNotificationView = kd.NotificationView
 
 
 module.exports =
+
+  getMiddlewares: ->
+    return [
+      TestMachineMiddleware.EnvironmentDataProvider
+    ]
 
 
   fetch: (callback, ensureDefaultWorkspace = no) ->
@@ -23,6 +32,11 @@ module.exports =
       else callback data
 
 
+  addTestMachine: (machine, workspaces) ->
+    @_testMachine = { machine, workspaces }
+    @revive()
+
+
   get: ->
     return @setDefaults_ globals.userEnvironmentData
 
@@ -33,7 +47,7 @@ module.exports =
     data.shared        or= []
     data.collaboration or= []
 
-    return data
+    return runMiddlewares.sync this, 'setDefaults_', data
 
 
   hasData: ->
@@ -85,6 +99,11 @@ module.exports =
   getRunningMachines: ->
 
     @getAllMachines().filter (vm) -> vm.machine.status.state is 'Running'
+
+
+  getMachineWithPredicate: (fn, predicate) ->
+
+    @getAllMachines().filter(predicate)[0]
 
 
   fetchMachine: (identifier, callback) ->

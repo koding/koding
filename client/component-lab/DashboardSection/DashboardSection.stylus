@@ -18,6 +18,9 @@
 .footer
   padding                   25px 0 0
 
+  button
+    padding                 7px 20px 5px
+
   button:not(:last-child)
     margin-right            10px
 

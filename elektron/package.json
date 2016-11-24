@@ -4,14 +4,14 @@
   "description": "Koding Desktop App",
   "main": "./lib/main.js",
   "scripts": {
-    "prestart": "coffee --compile --output lib/ src/",
-    "start": "electron ./lib/main.js",
+    "prestart": "./node_modules/.bin/coffee --compile --output lib/ src/",
+    "start": "./node_modules/.bin/electron ./lib/main.js",
     "preapp-mac": "rm -rf dist/ && coffee --compile --output lib/ src/",
-    "app-mac": "electron-packager . Koding --out ./dist --ignore=\"node_modules/(electron-packager|electron-prebuilt|path|coffee-script)\"  --platform=darwin --arch=x64 --version=0.36.6 --overwrite --icon=./assets/icons/koding-appIcon.icns",
+    "app-mac": "./node_modules/.bin/electron-packager . Koding --out ./dist --ignore=\"node_modules/(electron-packager|electron-prebuilt|path|coffee-script)\"  --platform=darwin --arch=x64 --version=1.4.6 --overwrite --icon=./assets/icons/koding-appIcon.icns",
     "preapp-win": "rm -rf dist/ && coffee --compile --output lib/ src/",
-    "app-win": "electron-packager . Koding --out ./dist --ignore=\"node_modules/(electron-packager|electron-prebuilt|path|coffee-script)\" --platform=win32 --arch=x64 --version=0.36.6 --overwrite --icon=./assets/icons/koding-appIcon.ico",
+    "app-win": "./node_modules/.bin/electron-packager . Koding --out ./dist --ignore=\"node_modules/(electron-packager|electron-prebuilt|path|coffee-script)\" --platform=win32 --arch=x64 --version=1.4.6 --overwrite --icon=./assets/icons/koding-appIcon.ico",
     "preapp-linux": "rm -rf dist/ && coffee --compile --output lib/ src/",
-    "app-linux": "electron-packager . Koding --out ./dist --ignore=\"node_modules/(electron-packager|electron-prebuilt|path|coffee-script)\" --platform=linux --arch=x64 --version=0.36.6 --overwrite --icon=./assets/icons/koding-appIcon-linux"
+    "app-linux": "./node_modules/.bin/electron-packager . Koding --out ./dist --ignore=\"node_modules/(electron-packager|electron-prebuilt|path|coffee-script)\" --platform=linux --arch=x64 --version=1.4.6 --overwrite --icon=./assets/icons/koding-appIcon-linux"
   },
   "repository": {
     "type": "git",
@@ -29,8 +29,9 @@
   },
   "homepage": "https://github.com/koding/koding#readme",
   "devDependencies": {
-    "coffee-script": "^1.10.0",
-    "electron-packager": "^5.2.1",
-    "electron-prebuilt": "^0.36.5"
+    "coffee-script": "^1.11.1",
+    "electron": "^1.4.6",
+    "electron-packager": "^8.2.0",
+    "electron-prebuilt": "^1.4.6"
   }
 }

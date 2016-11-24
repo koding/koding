@@ -37,6 +37,7 @@ ContentModal = require 'app/components/contentModal'
 createShareModal = require './createShareModal'
 isDefaultTeamStack = require 'app/util/isdefaultteamstack'
 { actions : HomeActions } = require 'home/flux'
+canCreateStacks = require 'app/util/canCreateStacks'
 
 module.exports = class StackEditorView extends kd.View
 
@@ -48,8 +49,8 @@ module.exports = class StackEditorView extends kd.View
 
     if stackTemplate
       unless selectedProvider = stackTemplate.selectedProvider
-        for selectedProvider in stackTemplate.config.requiredProviders
-          break  if selectedProvider in ['aws', 'vagrant']
+        for selectedProvider in stackTemplate.config.requiredProviders when selectedProvider isnt 'koding'
+          break
       selectedProvider ?= (Object.keys stackTemplate.credentials ? { aws: yes }).first
 
     options.selectedProvider = selectedProvider ?= 'aws'
@@ -72,7 +73,7 @@ module.exports = class StackEditorView extends kd.View
 
     @addSubView @tabView = new kd.TabView
       hideHandleCloseIcons : yes
-      maxHandleWidth       : 300
+      maxHandleWidth       : '100%'
       cssClass             : 'StackEditorTabs'
 
 
@@ -86,25 +87,19 @@ module.exports = class StackEditorView extends kd.View
         <span class='clone-button'>clone this template </span>
           and create a private stack."
       click: (event) =>
+        unless canCreateStacks()
+          return new kd.NotificationView
+            title: 'You are not allowed to create/edit stacks!'
         if event.target?.className is 'clone-button'
           @cloneStackTemplate()
 
-
     @addSubView @secondaryActions = new kd.CustomHTMLView
-      cssClass             : 'StackEditor-SecondaryActions'
-
+      cssClass : 'StackEditor-SecondaryActions'
 
     @secondaryActions.addSubView @deleteStack = new CustomLinkView
       cssClass : 'HomeAppView--button danger'
       title    : 'DELETE THIS STACK TEMPLATE'
       click    : @bound 'deleteStack'
-
-    @secondaryActions.addSubView new CustomLinkView
-      cssClass : 'HomeAppView--button secondary fr'
-      attributes :
-        style  : 'color: #67a2ee;'
-      title    : 'STACK SCRIPT DOCS'
-      href     : 'http://www.koding.com/docs'
 
     @tabView.unsetClass 'kdscrollview'
 
@@ -115,9 +110,15 @@ module.exports = class StackEditorView extends kd.View
       @canUpdate
     }, data
 
-    @tabView.addPane stackTemplatePane = new kd.TabPaneView
+    stackTemplatePane = new kd.TabPaneView
       name : 'Stack Template'
       view : @stackTemplateView
+
+
+    stackTemplatePane.tabHandle = @titleTabHandle
+
+    @tabView.addPane stackTemplatePane
+    kd.utils.defer => @inputTitle.resize()
 
     @editorViews.variables = @variablesView = new VariablesView {
       delegate: this
@@ -225,6 +226,14 @@ module.exports = class StackEditorView extends kd.View
       @warningView.show()
       @deleteStack.hide()
 
+    stackTemplatePane.on 'KDTabPaneActive', =>
+      @buttons.show()
+      @secondaryActions.show()
+
+    stackTemplatePane.on 'KDTabPaneInactive', =>
+      @buttons.hide()
+      @secondaryActions.hide()
+
 
   listenContentChanges: ->
 
@@ -289,11 +298,15 @@ module.exports = class StackEditorView extends kd.View
         { changeTemplateTitle } = EnvironmentFlux.actions
         changeTemplateTitle stackTemplate?._id, e.target.value
 
-    @header.addSubView @inputTitle = new kd.InputView options
-    @inputTitle.resize()
+    @titleTabHandle = new kd.TabHandleView
+      cssClass : 'stack-template'
+      title : 'Stack Template'
+      click : => @tabView.showPaneByName 'Stack Template'
 
-    @header.addSubView @titleActionsWrapper = new kd.CustomHTMLView
+    @titleTabHandle.addSubView @titleActionsWrapper = new kd.CustomHTMLView
       cssClass: 'StackEditorView--header-subHeader'
+
+    @titleActionsWrapper.addSubView @inputTitle = new kd.InputView options
 
     @titleActionsWrapper.addSubView @editName = new CustomLinkView
       cssClass: 'edit-name'

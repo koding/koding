@@ -100,7 +100,7 @@ do ->
     return kd.singletons.router.openSection 'Team', null, null, (app) ->
       app.jumpTo 'login'
       if query.provider
-        new kd.NotificationView { title: 'Login in progress...' }
+        new kd.NotificationView { title: 'Login in progress…' }
         kd.singletons.oauthController.authCompleted null, query.provider
 
 

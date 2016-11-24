@@ -3,6 +3,8 @@
 # this file named as socialaccount while it is under social folder, because i
 # dont want it to be listed first item while searching for account.coffe in
 # sublime ~ CS
+
+# SocialAccount
 module.exports = class SocialAccount extends Base
   JAccount      = require '../account'
   JGroup        = require '../group'

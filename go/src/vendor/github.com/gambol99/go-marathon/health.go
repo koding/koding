@@ -82,6 +82,7 @@ type HealthCheckResult struct {
 	ConsecutiveFailures int    `json:"consecutiveFailures"`
 	FirstSuccess        string `json:"firstSuccess"`
 	LastFailure         string `json:"lastFailure"`
+	LastFailureCause    string `json:"lastFailureCause"`
 	LastSuccess         string `json:"lastSuccess"`
 	TaskID              string `json:"taskId"`
 }

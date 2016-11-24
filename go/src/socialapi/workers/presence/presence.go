@@ -34,9 +34,6 @@ var (
 	// this may lead to max 5 mins of invalid tracking data if a group changes
 	// their sub status during that period
 	groupCache = cache.NewMemoryWithTTL(time.Minute * 5)
-
-	// send pings every 30 secs
-	pingDuration = time.Second * 30
 )
 
 // Controller holds the basic context data for handlers
