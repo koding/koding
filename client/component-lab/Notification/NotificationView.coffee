@@ -28,8 +28,8 @@ module.exports = class NotificationView extends React.Component
 
     _hideNotification: ->
 
-      @_notificationTimer.clear() if @_notificationTimer
-      @setState { removed : yes } if @_isMounted
+      @_notificationTimer.clear()  if @_notificationTimer
+      @setState { removed : yes }  if @_isMounted
       @_removeNotification()
 
 
@@ -40,7 +40,7 @@ module.exports = class NotificationView extends React.Component
 
     _dismiss: ->
 
-      @_hideNotification() if @props.notification.dismissible
+      @_hideNotification()  if @props.notification.dismissible
 
 
     _onTransitionEnd: ->
@@ -168,8 +168,9 @@ CloseButton = ({onClick}) ->
   </button>
 
 
-ActionButton = ({type, title, onClick}) ->
+ActionButton = (options) ->
 
+  {type, title, onClick} = options
   <div className={styles.kd_notification_action}>
     <Button
       type={type}
@@ -180,8 +181,9 @@ ActionButton = ({type, title, onClick}) ->
   </div>
 
 
-Actions = ({notification, onPrimaryButtonClick, onSecondaryButtonClick}) ->
+Actions = (options) ->
 
+  {notification, onPrimaryButtonClick, onSecondaryButtonClick} = options
   actionsClass = if not notification.secondaryButtonTitle then styles.kd_notification_single_action else styles.kd_notification_multiple_actions
   <div className={styles.kd_notification_actions}>
     <div className={actionsClass}>

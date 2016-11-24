@@ -1,3 +1,5 @@
+_ = require 'lodash'
+
 Timer = (callback, delay) ->
 
   timerId = undefined
@@ -24,7 +26,7 @@ Timer = (callback, delay) ->
 
   @resume()
 
-propsValidation = (notification, types) ->
+validateProps = (notification, types) ->
   if not notification.type
     throw new Error('Notification type is required.')
   if _.keys(types).indexOf(notification.type) is -1
@@ -32,4 +34,4 @@ propsValidation = (notification, types) ->
   if isNaN(notification.duration)
     throw new Error('\"duration\" must be a number.')
 
-module.exports = { Timer, propsValidation }
+module.exports = { Timer, validateProps }

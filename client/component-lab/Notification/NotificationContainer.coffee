@@ -15,22 +15,21 @@ module.exports = class NotificationContainer extends ReactView
     @appendToDomBody()  if @getOptions().appendToDomBody
 
   getAnimationProps: ->
-    {
-      enter:
+    return
+      enter :
         from :
           transform : 'scale(0.9)'
           opacity : 0
         to :
           transform : ''
           opacity : ''
-      leave:
+      leave :
         from :
           transform : 'scale(1)'
           opacity : 1
         to :
           transform : 'scale(0.9)'
           opacity : 0
-    }
 
   onNotificationRemove: (uid) ->
     @options.onNotificationRemove(uid)
@@ -53,5 +52,3 @@ module.exports = class NotificationContainer extends ReactView
         }
       </FlipMove>
     </div>
-
-    
