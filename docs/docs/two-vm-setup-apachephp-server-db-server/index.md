@@ -21,19 +21,9 @@ Let's create a stack setup with 2 AWS Micro VMs to learn more about stack templa
 2. MySQL server
 Go ahead and start a new stack, and in the installed services screen, check the below options:
 
-### Stack installed services
+### Stack template
 
-#### Server 1
-
-![server01.png][2]
-
-#### Server 2
-
-![server02.png][3]
-
-### The Auto-generated Stack file
-
-Here is the **Stack Template** file that was _auto-generated_ from our stack setup:
+Here is the **Stack Template** file, we added commands under the `user_data` section for both VMs to install the required packages:
 
 ```yaml
 # Here is your stack preview
