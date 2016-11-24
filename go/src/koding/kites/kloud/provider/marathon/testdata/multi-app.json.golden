@@ -2,14 +2,21 @@
   "resource": {
     "marathon_app": {
       "multi-app": {
-        "app_id": "/multi-app/multi-app-${count.index + 1}",
-        "cmd": "/mnt/mesos/sandbox/entrypoint.${count.index + 1}.sh python3 -m http.server 8080",
+        "app_id": "/multi-app/multi-app-foobar-ident-${count.index + 1}",
         "container": [
           {
             "docker": [
               {
                 "image": "python:3",
                 "network": "BRIDGE",
+                "parameters": {
+                  "parameter": [
+                    {
+                      "key": "entrypoint",
+                      "value": "/mnt/mesos/sandbox/entrypoint.${count.index * 1 + 1}.sh"
+                    }
+                  ]
+                },
                 "port_mappings": {
                   "port_mapping": [
                     {
@@ -26,6 +33,7 @@
         "count": 3,
         "cpus": 1.2,
         "env": {
+          "KODING_CMD": "${base64encode(null_resource.multi-app.triggers.cmd)}",
           "KODING_KLIENT_URL": "$KLIENT_URL",
           "KODING_METADATA_1": "...",
           "KODING_METADATA_2": "...",
@@ -33,35 +41,50 @@
         },
         "fetch": [
           {
+            "cache": false,
+            "executable": false,
+            "uri": "$SCREEN_URL"
+          },
+          {
+            "cache": true,
+            "executable": false,
+            "uri": "$CERT_URL"
+          },
+          {
+            "cache": false,
+            "executable": false,
+            "uri": "$KLIENT_URL"
+          },
+          {
+            "cache": false,
             "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.1.sh"
           },
           {
+            "cache": false,
             "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.2.sh"
           },
           {
+            "cache": false,
             "executable": true,
             "uri": "$ENTRYPOINT_URL/entrypoint.3.sh"
           }
         ],
-        "health_checks": {
-          "health_check": [
-            {
-              "command": {
-                "value": "curl -f -X GET http://$$HOST:$${PORT_56789}/kite"
-              },
-              "max_consecutive_failures": 3,
-              "protocol": "COMMAND"
-            }
-          ]
-        },
         "mem": 256,
         "ports": [
           0,
           0,
           0
         ]
+      }
+    },
+    "null_resource": {
+      "multi-app": {
+        "depends_on": [],
+        "triggers": {
+          "cmd": "python3 -m http.server 8080"
+        }
       }
     }
   }

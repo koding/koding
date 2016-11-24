@@ -86,6 +86,9 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 
 	cmc := models.NewChannelMessageContainer()
 	err = cmc.Fetch(req.Id, request.GetQuery(u))
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
 
 	// assign client request id back to message response because
 	// client uses it for latency compansation

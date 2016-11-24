@@ -10,7 +10,7 @@ module.exports = class TeamLoginAndCreateTabForm extends TeamJoinByLoginForm
   constructor: (options = {}, data) ->
 
     options.cssClass      = 'clearfix login-form'
-    options.buttonTitle or= 'Done!'
+    options.buttonTitle or= 'Create Your Team'
 
     super options, data
 

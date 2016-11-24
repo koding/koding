@@ -29,10 +29,8 @@ module.exports = class JApiToken extends jraphical.Module
       code             : 'unique'
     sharedMethods      :
       static:
-        create: [
+        create:
           (signature Function)
-          (signature Object, Function)
-        ]
       instance:
         remove:
           (signature Function)

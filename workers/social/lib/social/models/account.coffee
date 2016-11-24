@@ -19,7 +19,6 @@ module.exports = class JAccount extends jraphical.Module
   JTag                = require './tag'
   JName               = require './name'
   JKite               = require './kite'
-  JStorage            = require './storage'
   JCombinedAppStorage = require './combinedappstorage'
 
   @getFlagRole            = 'content'
@@ -57,28 +56,14 @@ module.exports = class JAccount extends jraphical.Module
         ]
         some:
           (signature Object, Object, Function)
-        cursor:
-          (signature Object, Object, Function)
-        each: [
-          (signature Object, Object, Function)
-          (signature Object, Object, Object, Function)
-        ]
         someWithRelationship:
           (signature Object, Object, Function)
-        someData:
-          (signature Object, Object, Object, Function)
         count: [
           (signature Function)
           (signature Object, Function)
         ]
-        byRelevance: [
-          (signature String, Function)
+        byRelevance:
           (signature String, Object, Function)
-        ]
-        reserveNames: [
-          (signature Function)
-          (signature Object, Function)
-        ]
         verifyEmailByUsername:
           (signature String, Function)
         fetchBlockedUsers:
@@ -129,14 +114,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature Boolean, Function)
         checkGroupMembership:
           (signature String, Function)
-        fetchStorage:
-          (signature String, Function)
-        fetchStorages:
-          (signature [String], Function)
-        store:
-          (signature Object, Function)
-        unstore:
-          (signature String, Function)
         isEmailVerified:
           (signature Function)
         fetchEmail:
@@ -157,8 +134,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature String, Function)
           (signature [String], Function)
         ]
-        likeMember:
-          (signature String, Function)
         fetchKites :
           (signature Object, Function)
         fetchMetaInformation :
@@ -178,29 +153,7 @@ module.exports = class JAccount extends jraphical.Module
 
 
     schema                  :
-      shareLocation         : Boolean
       socialApiId           : String
-      skillTags             : [String]
-      locationTags          : [String]
-      systemInfo            :
-        defaultToLastUsedEnvironment :
-          type              : Boolean
-          default           : yes
-      # counts                : Followable.schema.counts
-      counts                :
-        followers           :
-          type              : Number
-          default           : 0
-        following           :
-          type              : Number
-          default           : 0
-        topics              :
-          type              : Number
-          default           : 0
-        likes               :
-          type              : Number
-          default           : 0
-
       environmentIsCreated  : Boolean
       type                  :
         type                : String
@@ -211,13 +164,11 @@ module.exports = class JAccount extends jraphical.Module
                               ]]
         default             : 'unregistered'
       profile               :
-        about               : String
         nickname            :
           type              : String
           validate          : require('./name').validateName
           set               : (value) -> value.toLowerCase()
         hash                : String
-        ircNickname         : String
         firstName           :
           type              : String
           required          : yes
@@ -227,26 +178,15 @@ module.exports = class JAccount extends jraphical.Module
           type              : String
           default           : 'user'
           validate          : validateFullName
-        description         : String
         avatar              : String
-        status              : String
-        experience          : String
-        experiencePoints    :
-          type              : Number
-          default           : 0
-        lastStatusUpdate    : String
       referrerUsername      : String
       referralUsed          : Boolean
-      preferredKDProxyDomain: String
       isExempt              : # is a troll ?
         type                : Boolean
         default             : false
       globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
-      onlineStatus          :
-        type                : String
-        enum                : ['invalid status', ['online', 'offline', 'away', 'busy']]
-        default             : 'online'
+
     broadcastableRelationships : [ 'follower' ]
 
 
@@ -258,10 +198,6 @@ module.exports = class JAccount extends jraphical.Module
       JStackTemplate   = require './computeproviders/stacktemplate'
 
       return {
-        storage       :
-          as          : 'storage'
-          targetType  : 'JStorage'
-
         tag:
           as          : 'skill'
           targetType  : 'JTag'
@@ -585,28 +521,6 @@ module.exports = class JAccount extends jraphical.Module
           return callback new Error 'An error occurred while confirming email' if err
           callback null, yes
 
-  @reserveNames = (options, callback) ->
-    [callback, options] = [options, callback]  unless callback
-    options       ?= {}
-    options.limit ?= 100
-    options.skip  ?= 0
-    @someData {}, { 'profile.nickname':1 }, options, (err, cursor) =>
-      if err then callback err
-      else
-        count = 0
-        cursor.each (err, account) =>
-          if err then callback err
-          else if account?
-            { nickname } = account.profile
-            JName.claim nickname, 'JUser', 'username', (err) =>
-              count++
-              if err then callback err
-              else
-                callback err, nickname
-                if count is options.limit
-                  options.skip += options.limit
-                  @reserveNames options, callback
-
 
   @fetchBlockedUsers = secure ({ connection:{ delegate } }, options, callback) ->
     unless delegate.can 'list-blocked-users'
@@ -883,61 +797,6 @@ module.exports = class JAccount extends jraphical.Module
   getFullName: ->
     { firstName, lastName } = @data.profile
     return "#{firstName} #{lastName}"
-
-  fetchStorage$: (name, callback) ->
-
-    @fetchStorage { 'data.name' : name }, callback
-
-  fetchStorages$: (whitelist = [], callback) ->
-
-    options = if whitelist.length then { 'data.name' : { $in : whitelist } } else {}
-
-    @fetchStorages options, callback
-
-  store: secure (client, { name, content }, callback) ->
-    unless @equals client.connection.delegate
-      return callback new KodingError 'Attempt to access unauthorized storage'
-
-    @_store { name, content }, callback
-
-  unstore: secure (client, name, callback) ->
-
-    unless @equals client.connection.delegate
-      return callback new KodingError 'Attempt to remove unauthorized storage'
-
-    @fetchStorage { 'data.name' : name }, (err, storage) ->
-      console.error err, storage  if err
-      return callback err  if err
-      unless storage
-        return callback new KodingError 'No such storage'
-
-      storage.remove callback
-
-  unstoreAll: (callback) ->
-    @fetchStorages [], (err, storages) ->
-      queue = storages.map (storage) ->
-        (next) -> storage.remove -> next()
-      async.series queue, -> callback null
-
-  _store: ({ name, content }, callback) ->
-    @fetchStorage { 'data.name' : name }, (err, storage) =>
-      if err
-        return callback new KodingError 'Attempt to access storage failed'
-      else if storage
-        storage.update { $set: { content } }, (err) -> callback err, storage
-      else
-        storage = new JStorage { name, content }
-        storage.save (err) =>
-          return callback err  if err
-          rel = new Relationship
-            targetId    : storage.getId()
-            targetName  : 'JStorage'
-            sourceId    : @getId()
-            sourceName  : 'JAccount'
-            as          : 'storage'
-            data        : { name }
-          rel.save (err) -> callback err, storage
-
 
   fetchOrCreateAppStorage: (options, callback) ->
 

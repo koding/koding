@@ -77,11 +77,14 @@ module.exports = globals.config.providers =
     supported              : yes
     enabled                : 'beta'
     defaultTemplate        : require './templates/vagrant'
+    instanceTypes          : require './instance-types/vagrant'
     description            : 'Local provisioning with Vagrant'
     credentialFields       :
       queryString          :
         label              : 'Kite ID'
         placeholder        : 'ID for my local machine kite'
+        attributes         :
+          autocomplete     : if isProd then 'off' else 'on'
 
   koding                   :
     name                   : 'Koding'
@@ -97,6 +100,7 @@ module.exports = globals.config.providers =
     title                  : 'Managed VM'
     color                  : '#6d119e'
     description            : 'Use your power.'
+    instanceTypes          : null
     credentialFields       : {}
 
   google                   :
@@ -121,13 +125,13 @@ module.exports = globals.config.providers =
         attributes         :
           autocomplete     : if isProd then 'off' else 'on'
       credentials          :
-        label              : 'Service account JSON key'
+        label              : 'Service Account'
         placeholder        : 'Provide content of key in JSON format'
         type               : 'textarea'
       region               :
         label              : 'Region'
         type               : 'selection'
-        placeholder        : '' # dunno
+        placeholder        : 'Select target region' # dunno
         defaultValue       : 'us-central1'
         values             : [
           { title: 'Western US (us-west1)',         value: 'us-west1' }
@@ -156,6 +160,8 @@ module.exports = globals.config.providers =
       access_token         :
         label              : 'Access Token'
         placeholder        : 'Digital Ocean access token'
+        attributes         :
+          autocomplete     : if isProd then 'off' else 'on'
 
   azure                    :
     name                   : 'Azure'
@@ -180,13 +186,19 @@ module.exports = globals.config.providers =
       subscription_id      :
         label              : 'Subscription ID'
         placeholder        : 'subscription id of azure account'
+        attributes         :
+          autocomplete     : if isProd then 'off' else 'on'
       password             :
         label              : 'Password'
         placeholder        : 'default password for instances'
         type               : 'password'
+        attributes         :
+          autocomplete     : 'new-password'
       ssh_key_thumbprint   :
         label              : 'SSH Key'
         placeholder        : 'ssh key thumb print'
+        attributes         :
+          autocomplete     : 'off'
       location             :
         label              : 'Location'
         type               : 'selection'
@@ -240,21 +252,38 @@ module.exports = globals.config.providers =
           { title: 'Premium Locally redundant storage (P_LRS)',  value: 'Premium_LRS' }
         ]
 
-  rackspace                :
-    name                   : 'Rackspace'
-    link                   : 'http://www.rackspace.com'
-    title                  : 'Rackspace'
-    color                  : '#d8deea'
-    supported              : no
-    enabled                : no
-    description            : 'Rackspace machines'
+  marathon                 :
+    name                   : 'Marathon'
+    link                   : 'https://mesosphere.github.io/marathon/'
+    title                  : 'Marathon Credential'
+    color                  : '#B52025'
+    supported              : yes
+    enabled                : 'beta'
+    defaultTemplate        : require './templates/marathon'
+    description            : 'A container orchestration platform for Mesos and DC/OS'
+    advancedFields         : [
+      'request_timeout',
+      'deployment_timeout'
+    ]
     credentialFields       :
-      username             :
-        label              : 'Username'
-        placeholder        : 'username for rackspace'
-      apiKey               :
-        label              : 'API Key'
-        placeholder        : 'rackspace api key'
+      url                  :
+        label              : 'URL'
+        placeholder        : 'url of marathon application'
+      basic_auth_user      :
+        label              : 'Basic Auth User'
+        placeholder        : 'basic auth user for marathon'
+        required           : no
+      basic_auth_password  :
+        label              : 'Basic Auth Password'
+        type               : 'password'
+        placeholder        : 'basic auth password for marathon'
+        required           : no
+      request_timeout      :
+        label              : 'Req. Timeout'
+        placeholder        : 'request timeout value in seconds'
+      deployment_timeout   :
+        label              : 'Deploy Timeout'
+        placeholder        : 'deploy timeout value in seconds'
 
   softlayer                :
     name                   : 'Softlayer'
@@ -262,15 +291,43 @@ module.exports = globals.config.providers =
     title                  : 'Softlayer'
     color                  : '#B52025'
     supported              : yes
-    enabled                : no
-    description            : 'Softlayer resources'
+    enabled                : 'beta'
+    defaultTemplate        : require './templates/softlayer'
+    instanceTypes          : require './instance-types/softlayer'
+    description            : 'Softlayer Virtual Guest'
+    attributeMapping       :
+      image                : 'image'
+      instance_type        : 'size'
+      region               : 'region'
     credentialFields       :
       username             :
-        label              : 'Username'
-        placeholder        : 'username for softlayer'
+        label              : 'User ID'
+        placeholder        : 'user id including prefix (like SL or IBM)'
       api_key              :
         label              : 'API Key'
         placeholder        : 'softlayer api key'
+        attributes         :
+          autocomplete     : if isProd then 'off' else 'on'
+
+  rackspace                :
+    name                   : 'Rackspace'
+    link                   : 'http://www.rackspace.com'
+    title                  : 'Rackspace'
+    color                  : '#d8deea'
+    supported              : yes
+    enabled                : no
+    description            : 'Rackspace machines'
+    credentialFields       :
+      username             :
+        label              : 'Username'
+        placeholder        : 'username for rackspace'
+        attributes         :
+          autocomplete     : if isProd then 'off' else 'on'
+      apiKey               :
+        label              : 'API Key'
+        placeholder        : 'rackspace api key'
+        attributes         :
+          autocomplete     : if isProd then 'off' else 'on'
 
   userInput                :
     name                   : 'User Input'

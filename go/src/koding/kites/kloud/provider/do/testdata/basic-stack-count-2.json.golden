@@ -1,0 +1,38 @@
+{
+  "provider": {
+    "digitalocean": {
+      "token": "12345"
+    }
+  },
+  "resource": {
+    "digitalocean_droplet": {
+      "do-instance": {
+        "count": 2,
+        "image": "ubuntu-14-04-x64",
+        "name": "...",
+        "region": "nyc2",
+        "size": "512mb",
+        "ssh_keys": [
+          56789
+        ],
+        "user_data": "..."
+      }
+    },
+    "null_resource": {
+      "do-instance": {
+        "depends_on": [],
+        "triggers": {
+          "user_data": "\\necho \\\"hello world!\\\" >> /helloworld.txt\\n"
+        }
+      }
+    }
+  },
+  "variable": {
+    "kitekeys_do-instance": {
+      "default": {
+        "0": "...",
+        "1": "..."
+      }
+    }
+  }
+}

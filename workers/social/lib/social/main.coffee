@@ -1,5 +1,7 @@
 process.title = 'koding-socialworker'
 
+require 'coffee-cache'
+
 log = -> console.log arguments...
 
 { argv } = require 'optimist'
@@ -7,13 +9,13 @@ log = -> console.log arguments...
 { exec }           = require 'child_process'
 { extend }         = require 'underscore'
 { join: joinPath } = require 'path'
-{ NodejsProfiler } = require 'koding-datadog'
 
 usertracker = require '../../../usertracker'
 datadog     = require '../../../datadog'
+apiErrors   = require './apierrors'
 
 process.on 'uncaughtException', (err) ->
-  console.log err, err?.stack
+  console.log 'Something went wrong:', err, err?.stack
   process.exit 1
 
 Bongo = require 'bongo'
@@ -120,9 +122,6 @@ koding.connect ->
     if err then console.log err.message
     else console.log 'Default group roles created!'
 
-  if KONFIG.misc?.claimGlobalNamesForUsers
-    require('./models/account').reserveNames console.log
-
   { forcedRecipientEmail } = KONFIG.email
   Tracker = require './models/tracker'
   Tracker.identify forcedRecipientEmail  if forcedRecipientEmail
@@ -138,9 +137,11 @@ app = express()
 do ->
   usertracker.start redisClient
 
-  # start monitoring nodejs metrics (memory, gc, cpu etc...)
-  nodejsProfiler = new NodejsProfiler 'socialWorker'
-  nodejsProfiler.startMonitoring()
+  if KONFIG.environment is 'production'
+    { NodejsProfiler } = require 'koding-datadog'
+    # start monitoring nodejs metrics (memory, gc, cpu etc...)
+    nodejsProfiler = new NodejsProfiler 'socialWorker'
+    nodejsProfiler.startMonitoring()
 
   compression = require 'compression'
   bodyParser = require 'body-parser'
@@ -152,7 +153,14 @@ do ->
   app.use cors()
 
   options = { rateLimitOptions : KONFIG.nodejsRateLimiter }
+
+  app.post '/remote.api/:model/:id?', (require './remoteapi') koding
+
+  app.get  '/remote.api', (req, res) ->
+    res.send 'REST API is OK'
+
   app.post '/xhr', koding.expressify options
+
   app.get '/xhr', (req, res) ->
     res.send 'Socialworker is OK'
 
@@ -163,3 +171,20 @@ do ->
     res.send "Socialworker is running with version: #{KONFIG.version}"
 
   app.listen argv.p or KONFIG.social.port
+
+  # Generic error handler
+  app.use (err, req, res, next) ->
+
+    console.error '[SocialWorker] Something went wrong', err, err?.stack
+
+    error = {}
+    if err.name and err.body
+    then error[err.name] = err.body
+    else error = apiErrors.internalError
+
+    if res.headersSent
+      next error
+    else
+      res.status(500)
+        .send { ok: false, error }
+        .end()

@@ -23,6 +23,7 @@ import (
 	"koding/kites/kloud/credential"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/keycreator"
+	"koding/kites/kloud/machine"
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
@@ -129,7 +130,6 @@ type Config struct {
 	AWSSecretAccessKey string
 
 	JanitorSecretKey     string
-	VmwatcherSecretKey   string
 	KloudSecretKey       string
 	TerraformerSecretKey string
 }
@@ -165,9 +165,8 @@ func New(conf *Config) (*Kloud, error) {
 	}
 
 	authUsers := map[string]string{
-		"kloudctl":  conf.KloudSecretKey,
-		"janitor":   conf.JanitorSecretKey,
-		"vmwatcher": conf.VmwatcherSecretKey,
+		"kloudctl": conf.KloudSecretKey,
+		"janitor":  conf.JanitorSecretKey,
 	}
 
 	var credURL *url.URL
@@ -222,6 +221,7 @@ func New(conf *Config) (*Kloud, error) {
 
 	kloud.Stack.DescribeFunc = provider.Desc
 	kloud.Stack.CredClient = credential.NewClient(storeOpts)
+	kloud.Stack.MachineClient = machine.NewClient(machine.NewMongoDatabase())
 
 	kloud.Stack.ContextCreator = func(ctx context.Context) context.Context {
 		return session.NewContext(ctx, sess)

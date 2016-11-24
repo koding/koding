@@ -1,10 +1,13 @@
-package modelhelper
+package modelhelper_test
 
 import (
-	"koding/db/models"
 	"math/rand"
 	"testing"
 	"time"
+
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
+	"koding/db/mongodb/modelhelper/modeltesthelper"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -24,12 +27,13 @@ func createGroup() (*models.Group, error) {
 		// channels
 		DefaultChannels: []string{"0"},
 	}
-	return g, CreateGroup(g)
+	return g, modelhelper.CreateGroup(g)
 }
 
 func TestCreateAndGetGroup(t *testing.T) {
-	initMongoConn()
-	defer Close()
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
+
 	rand.Seed(time.Now().UnixNano())
 
 	g, err := createGroup()
@@ -37,7 +41,7 @@ func TestCreateAndGetGroup(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	g2, err := GetGroup(g.Slug)
+	g2, err := modelhelper.GetGroup(g.Slug)
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -51,7 +55,7 @@ func TestCreateAndGetGroup(t *testing.T) {
 	}
 
 	randomName := bson.NewObjectId().Hex()
-	_, err = GetGroup(randomName)
+	_, err = modelhelper.GetGroup(randomName)
 	if err == nil {
 		t.Errorf("we should not be able to find the group")
 	}

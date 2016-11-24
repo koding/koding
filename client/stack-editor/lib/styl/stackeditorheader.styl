@@ -11,47 +11,17 @@ $subtleColor                = #A59999
 $borderColor                = #E3E3E3
 
 .StackEditorView--header
-  display                   flex
-  flex-flow                 row nowrap
-  justify-content           space-around
-  margin-bottom             33px
-
-  .buttons
-    flex                    1 0 auto
+  margin-bottom             0
+  abs                       42px 15px 0 0
+  z-index                   1
 
   .GenericButton
-    margin                  3px 0 0 10px
-    padding                 12px 40px
-    height                  43px
+    margin                  5px 5px 0 10px
+    padding                 6px 20px 5px
+    height                  30px
     &:not(.save-test)
       padding               12px 20px
 
-  .kdinput.text
-    flex                    0 1 auto
-    font-size               20px
-    display                 block
-    size                    auto 42px
-    padding                 5px 0
-    border                  1px solid transparent
-    rounded                 3px
-    color                   #424242
-    bg                      color transparent
-    max-width               50%
-    font-weight             400
-    outline                 none
-    shadow                  none
-    pointer-events          none
-
-    &:hover
-      border                1px solid transparent
-
-    &:focus
-      pointer-events        auto
-      padding-left          10px
-      padding-right         10px
-      outline               inherit
-      bg                    color #FFFFFF
-      border                1px solid $borderColor
 
 .StackEditorView--header.readonly
   .GenericButton.save-test
@@ -59,35 +29,4 @@ $borderColor                = #E3E3E3
     display                 none
   input.kdinput.text
     opacity                 0.5
-
-.StackEditorView--header-subHeader
-    abs 83px 0 0 41px
-    display flex
-    font-size               13px
-    font-weight             300
-    .edit-name
-      color                 #67A2EE
-      text-decoration       none
-      margin-right          10px
-
-    .cloned-from-text
-      color                 #A59999
-      max-width             300px
-      ellipsis()
-
-      &:before
-        content               ''
-        rel()
-        borderBox()
-        dIBlock()
-        border              3px solid #A59999
-        rounded             100%
-        top                 -1px
-        margin-right        5px
-
-    .cloned-from
-      color #67A2EE
-      cursor pointer
-      display initial
-      font-size 13px
 

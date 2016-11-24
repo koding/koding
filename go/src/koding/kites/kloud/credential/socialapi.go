@@ -11,6 +11,7 @@ import (
 	"path"
 
 	"koding/db/mongodb/modelhelper"
+	"koding/tools/util"
 
 	"github.com/hashicorp/go-multierror"
 	"gopkg.in/mgo.v2"
@@ -146,6 +147,9 @@ func (s *socialStore) do(req *socialRequest) error {
 		if err != nil {
 			return fmt.Errorf("%q: unable to encode: %s", req.ident, err)
 		}
+
+		s.Log.Debug("socialStore: body: %s", util.PrettyJSON(p))
+
 		body = bytes.NewReader(p)
 	}
 

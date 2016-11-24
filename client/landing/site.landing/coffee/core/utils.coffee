@@ -66,10 +66,20 @@ module.exports = utils = {
     predefinedPatterns = [
       # <team-domain>.koding.com
       # <team-domain>.<username>.koding.team
-      { predict: "#{basePattern}" }
-
       # <team-domain>.<(dev|sandbox|latest|prod)>.koding.com
-      { predict: "(dev|sandbox|latest|prod)\.#{basePattern}" }
+      {
+        predict: "#{basePattern}"
+        labelFn: (hostname) ->
+          labels = hostname
+            .replace ///\.?#{basePattern}$///, ''
+            .split '.'
+            .reverse()
+
+          slug = labels.shift()
+          if slug in ['dev', 'sandbox', 'latest', 'prod']
+            slug = labels.shift()
+          return slug
+      }
 
       # <team-domain>.<IPv4>.xip.io
       # IPV4: A.B.C.D

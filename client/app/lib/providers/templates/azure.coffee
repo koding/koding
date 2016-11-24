@@ -13,6 +13,7 @@ module.exports =
   "resource": {
     "azure_instance": {
       "azure-instance": {
+        "name": "koding-${var.koding_group_slug}-${var.koding_stack_id}-${count.index+1}",
         "size": "Basic_A1",
         "image": "Ubuntu Server 14.04 LTS",
         "custom_data": "\\necho \\\"hello world!\\\" >> /helloworld.txt\\n"
@@ -37,6 +38,7 @@ resource:
   azure_instance:
     # this is the name of your VM
     azure-instance:
+      name: 'koding-${var.koding_group_slug}-${var.koding_stack_id}-${count.index+1}'
       # select your instance size here: eg. Basic_A1
       size: Basic_A1
       # base image for your instance

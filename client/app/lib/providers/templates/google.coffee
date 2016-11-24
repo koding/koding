@@ -14,7 +14,7 @@ module.exports =
   "resource": {
     "google_compute_instance": {
       "google-instance": {
-        "name": "google-instance",
+        "name": "koding-${var.koding_group_slug}-${var.koding_stack_id}-${count.index+1}",
         "machine_type": "f1-micro",
         "disk": {
           "image": "ubuntu-1404-lts"
@@ -46,7 +46,7 @@ resource:
     # this is the name of your VM
     google-instance:
       # and this is its identifier (required)
-      name: google-instance
+      name: 'koding-${var.koding_group_slug}-${var.koding_stack_id}-${count.index+1}'
       # select your instance_type here: eg. n1-standard-1
       machine_type: f1-micro
       # base image for your instance

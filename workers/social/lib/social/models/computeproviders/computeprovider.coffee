@@ -1,6 +1,3 @@
-# coffeelint: disable=cyclomatic_complexity
-# FIXME ~GG ^^
-
 { Base, secure, signature } = require 'bongo'
 
 KONFIG       = require 'koding-config-manager'
@@ -16,7 +13,8 @@ MAX_INT      = Math.pow(2, 32) - 1
 
 helpers      = require './helpers'
 
-
+# Base class for compute related operations
+#
 module.exports = class ComputeProvider extends Base
 
   {
@@ -77,6 +75,20 @@ module.exports = class ComputeProvider extends Base
     callback null, Object.keys PROVIDERS
 
 
+  # pings to requested provider implementation
+  #
+  # @param {Object} options
+  #   generic options for ComputeProvider calls should include
+  #   the provider slug as parameter
+  #
+  # @option options [String] provider provider slug
+  #
+  # @example api
+  #
+  #   {
+  #     "provider": "aws"
+  #   }
+  #
   @ping = (client, options, callback) ->
 
     { provider } = options
@@ -86,10 +98,34 @@ module.exports = class ComputeProvider extends Base
   @ping$ = permit 'ping machines',
     success: revive {
       shouldReviveClient   : yes
-      shouldPassCredential : yes
+      shouldPassCredential : no
     }, @ping
 
 
+  # creates a JMachine for requested provider with the provided options
+  #
+  # @param {Object} options
+  #   generic options for ComputeProvider calls should include
+  #   the provider slug as parameter
+  #
+  # @option options [String] provider provider slug
+  #
+  # @example api
+  #
+  #   {
+  #     "provider": "aws",
+  #     "label": "My new Machine",
+  #     "stack": "ID_OF_TARGET_STACK",
+  #     "credential": "ID_OF_CREDENTIAL",
+  #     "meta": {
+  #       "instance_type": "t2.micro",
+  #       "region": "us-east-1",
+  #       "image": "ami-XXXX",
+  #       "storage_size": 10
+  #     }
+  #   }
+  #
+  @create = ->
   @create = revive
 
     shouldReviveClient       : yes
@@ -207,6 +243,25 @@ module.exports = class ComputeProvider extends Base
     provider.remove client, options, callback
 
 
+  addGroupAdmin = (group, machineInfo, callback) ->
+
+    # TODO Do we need all admins or only some of them? ~ GG
+    # Maybe some of them as admin some of them as user etc.
+    group.fetchAdmin (err, admin) ->
+
+      if not err and admin and not admin.getId().equals account.getId()
+        admin.fetchUser (err, adminUser) ->
+          if not err and adminUser
+            machineInfo.users = [{
+              id       : adminUser.getId(),
+              username : adminUser.username,
+              sudo     : yes, owner: yes
+            }]
+          callback machineInfo
+      else
+        callback machineInfo
+
+
   @generateStackFromTemplate = (data, options, callback) ->
 
     { account, user, group, template, client } = data
@@ -280,25 +335,10 @@ module.exports = class ComputeProvider extends Base
 
           # This is optional, since for koding group for example
           # we don't want to add our admins into users machines ~ GG
-          unless options.addGroupAdminToMachines
-            return create machineInfo
-
-          # TODO Do we need all admins or only some of them? ~ GG
-          # Maybe some of them as admin some of them as user etc.
-          group.fetchAdmin (err, admin) ->
-
-            if not err and admin and not admin.getId().equals account.getId()
-              admin.fetchUser (err, adminUser) ->
-                if not err and adminUser
-                  machineInfo.users = [{
-                    id       : adminUser.getId(),
-                    username : adminUser.username,
-                    sudo     : yes, owner: yes
-                  }]
-                create machineInfo
-            else
-              create machineInfo
-
+          if options.addGroupAdminToMachines
+            addGroupAdmin group, machineInfo, (_machine) -> create _machine
+          else
+            create machineInfo
 
       async.series queue, -> callback null, { stack, results }
 

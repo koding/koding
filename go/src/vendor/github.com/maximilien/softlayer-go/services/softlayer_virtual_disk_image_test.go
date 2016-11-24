@@ -50,7 +50,7 @@ var _ = Describe("SoftLayer_Virtual_Disk_Image_Service", func() {
 
 	Context("#GetObject", func() {
 		BeforeEach(func() {
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Disk_Image_Service_getObject.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Disk_Image_Service_getObject.json")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -68,6 +68,28 @@ var _ = Describe("SoftLayer_Virtual_Disk_Image_Service", func() {
 			Expect(virtualDiskImage.TypeId).To(Equal(241))
 			Expect(virtualDiskImage.Units).To(Equal("GB"))
 			Expect(virtualDiskImage.Uuid).To(Equal("8c7a8358-d9a9-4e4d-9345-6f637e10ccb7"))
+		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err = virtualDiskImageService.GetObject(4868344)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err = virtualDiskImageService.GetObject(4868344)
+					Expect(err).To(HaveOccurred())
+				}
+			})
 		})
 	})
 })

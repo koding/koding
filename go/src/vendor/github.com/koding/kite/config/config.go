@@ -149,6 +149,7 @@ func (c *Config) ReadKiteKey() error {
 	return c.ReadToken(key)
 }
 
+// ReadToken reads Kite Claims from JWT token and uses them to initialize Config.
 func (c *Config) ReadToken(key *jwt.Token) error {
 	c.KiteKey = key.Raw
 

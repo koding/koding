@@ -1,0 +1,7 @@
+{
+  "credentialId": 1234567,
+  "id": 1234567,
+  "name": "fake-allowed-host",
+  "resourceTabledId": 1234567,
+  "resourceTableName": "fake-resource-table-name"
+}

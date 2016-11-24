@@ -7,53 +7,61 @@ title: Home
 {% include header.html has_sticky_navigation='true' exclude_main_nav='true' %}
 <style>{% include css/micropage.css %}</style>
 <style>{% include css/signup.css %}</style>
+<link rel="stylesheet" href="{{ site.url }}/css/custom-radio.css">
 
 <main class="Micropage">
   <div class="Micropage--container">
 
     <h1>Let’s Create Your Team</h1>
 
-    <form id="SignupForm" novalidate data-persist="garlic" data-domain="true">
+    {% if jekyll.environment == 'production' %}
+      {% assign signup_path = 'https://koding.com/Teams/Create' %}
+    {% else %}
+      {% assign signup_path = 'http://dev.koding.com:8090/Teams/Create' %}
+    {% endif %}
+
+    <form
+      id="SignupForm"
+      action="{{ signup_path }}"
+      novalidate
+      data-persist="garlic"
+      data-domain="true">
 
       <div class="SignupFieldset">
-        <h3>Get developers up &amp; running in seconds</h3>
-        <h4><a href="{{ site.url }}/teams/create/existing">Already a member?</a></h4>
-      </div>
-
-      <div class="SignupFieldset double">
-        <div class="firstname">
-          <legend></legend>
-          <input type="text" name="firstname" placeholder="First name...">
-        </div>
-        <div class="lastname">
-          <legend></legend>
-          <input type="text" name="lastname" placeholder="Last name...">
-        </div>
-      </div>
-
-      <div class="SignupFieldset double">
-        <div class="username">
-          <legend></legend>
-          <input type="text" name="username" placeholder="Your username...">
-        </div>
-        <div class="password">
-          <legend data-strength='Strength:'>Your password should be a minimum of 8 characters.</legend>
-          <input type="password" name="password" placeholder="Password...">
-        </div>
+        <h3>How would you like to use your team account?</h3>
       </div>
 
       <div class="SignupFieldset">
-        <div class="email">
-          <legend>If you use your work email, your trial may be extended and you may qualify for free credit in your account.</legend>
-          <input type="email" name="email" placeholder="Work email...">
-        </div>
-      </div>
+        <fieldset class="radiogroup">
+          <div>
+            <input type="radio" name="type" id="single-user" value="single-user" />
+            <label for="single-user">
+              <h5>Single Developer</h5>
+              <p>You would like to setup a vagrant or cloud stack as your personal development playground.</p>
+            </label>
+          </div>
+          <div>
+            <input type="radio" name="type" id="team" value="team" checked />
+            <label for="team">
+              <h5>Team</h5>
+              <p>You would like to setup a dev environment for a team of developers for private or open-source projects.</p>
+            </label>
+          </div>
+          <div>
+            <input type="radio" name="type" id="enterprise" value="enterprise" />
+            <label for="enterprise">
+              <h5>Enterprise</h5>
+              <p>You have multiple teams with different dev environments in multiple locations.</p>
+            </label>
+            <div>
+              <input type="checkbox" name="requests-demo" id="requests-demo" checked />
+              <label for="requests-demo">
+                <p>Schedule a <strong>free review</strong> of your development processes, and we'll setup a live cloud-based development environment for your team.</p>
+              </label>
+            </div>
 
-      <div class="SignupFieldset">
-        <div class="team_url">
-          <legend>This part of your team URL will also be used as your team name.  You can change it later.  All members of your team will use this URL to access Koding.</legend>
-          <input type="text" name="team_url" placeholder="Your team URL...">
-        </div>
+          </div>
+        </fieldset>
       </div>
 
       <div class="SignupFieldset">
@@ -69,13 +77,6 @@ title: Home
   <figure class="Micropage--Ground"></figure>
 </main>
 
-<script>{% include js/autosize.min.js %}</script>
-<script>{% include js/jquery.pwstrength.min.js %}</script>
-<script>{% include js/garlic.min.js %}</script>
-<script type="text/javascript" src="{{ site.url }}/js/create-team-base.js" /></script>
-<script type="text/javascript" src="{{ site.url }}/js/create-team-errors.js" /></script>
-<script type="text/javascript" src="{{ site.url }}/js/create-team-validators.js" /></script>
-<script type="text/javascript" src="{{ site.url }}/js/requests.js" /></script>
-<script type="text/javascript" src="{{ site.url }}/js/signup.js" /></script>
-
 {% include analytics.html %}
+
+<script>{% include js/garlic.min.js %}</script>

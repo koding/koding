@@ -163,16 +163,6 @@ module.exports = class GroupsController extends kd.Controller
   cancelGroupRequest: (group, callback) ->
     whoami().cancelRequest group.slug, callback
 
-  cancelMembershipPolicyChange: (policy, membershipPolicyView, modal) ->
-    membershipPolicyView.enableInvitations.setValue policy.invitationsEnabled
-
-  updateMembershipPolicy: (group, policy, formData, membershipPolicyView, callback) ->
-    group.modifyMembershipPolicy formData, (err) ->
-      unless err
-        policy.emit 'MembershipPolicyChangeSaved'
-        new kd.NotificationView { title: 'Membership policy has been updated.' }
-      showError err
-
   canEditGroup: ->
     ['admin', 'owner'].reduce (prole, role) ->
       prole or (role in globals.userRoles)

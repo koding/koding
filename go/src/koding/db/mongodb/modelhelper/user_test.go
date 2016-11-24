@@ -1,37 +1,20 @@
-package modelhelper
+package modelhelper_test
 
 import (
 	"fmt"
-	"koding/db/models"
-	"os"
 	"testing"
 	"time"
 
-	"log"
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
+	"koding/db/mongodb/modelhelper/modeltesthelper"
 
 	"gopkg.in/mgo.v2/bson"
 )
 
-func initMongoConn() {
-	// i didnt write this
-	mongoURL := ""
-
-	if url := os.Getenv("WERCKER_MONGODB_URL"); url != "" {
-		mongoURL = url
-	} else {
-		mongoURL = os.Getenv("MONGODB_URL")
-	}
-
-	if mongoURL == "" {
-		log.Fatalf("either WERCKER_MONGODB_URL or MONGODB_URL should be set")
-	}
-
-	Initialize(mongoURL)
-}
-
 func TestBlockUser(t *testing.T) {
-	initMongoConn()
-	defer Close()
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
 
 	username, blockedReason := "testuser", "testing"
 
@@ -40,20 +23,20 @@ func TestBlockUser(t *testing.T) {
 	}
 
 	defer func() {
-		RemoveUser(username)
+		modelhelper.RemoveUser(username)
 	}()
 
-	err := CreateUser(user)
+	err := modelhelper.CreateUser(user)
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = BlockUser(username, blockedReason, 1*time.Hour)
+	err = modelhelper.BlockUser(username, blockedReason, 1*time.Hour)
 	if err != nil {
 		t.Error(err)
 	}
 
-	user, err = GetUser(username)
+	user, err = modelhelper.GetUser(username)
 	if err != nil {
 		t.Error(err)
 	}
@@ -72,33 +55,33 @@ func TestBlockUser(t *testing.T) {
 }
 
 func TestRemoveUser(t *testing.T) {
-	initMongoConn()
-	defer Close()
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
 
 	username := "testuser"
 	user := &models.User{
 		Name: username, ObjectId: bson.NewObjectId(),
 	}
 
-	err := CreateUser(user)
+	err := modelhelper.CreateUser(user)
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = RemoveUser(username)
+	err = modelhelper.RemoveUser(username)
 	if err != nil {
 		t.Error(err)
 	}
 
-	user, err = GetUser(username)
+	user, err = modelhelper.GetUser(username)
 	if err == nil {
 		t.Errorf("User should've been deleted, but wasn't")
 	}
 }
 
 func TestGetAnyUserTokenFromGroup(t *testing.T) {
-	initMongoConn()
-	defer Close()
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
 
 	id := bson.NewObjectId()
 	username := id.Hex()
@@ -108,7 +91,7 @@ func TestGetAnyUserTokenFromGroup(t *testing.T) {
 		Email:    username + "@" + username + ".com",
 	}
 
-	err := CreateUser(user)
+	err := modelhelper.CreateUser(user)
 	if err != nil {
 		t.Error(err)
 	}
@@ -120,7 +103,7 @@ func TestGetAnyUserTokenFromGroup(t *testing.T) {
 	selector := bson.M{"username": username}
 	update := bson.M{key: token}
 
-	if err := UpdateUser(selector, update); err != nil {
+	if err := modelhelper.UpdateUser(selector, update); err != nil {
 		t.Error("Error while updating user")
 	}
 
@@ -132,7 +115,7 @@ func TestGetAnyUserTokenFromGroup(t *testing.T) {
 		Email:    username2 + "@" + username2 + ".com",
 	}
 
-	err = CreateUser(user2)
+	err = modelhelper.CreateUser(user2)
 	if err != nil {
 		t.Error(err)
 	}
@@ -143,11 +126,11 @@ func TestGetAnyUserTokenFromGroup(t *testing.T) {
 	selector2 := bson.M{"username": username2}
 	update2 := bson.M{key2: token2}
 
-	if err := UpdateUser(selector2, update2); err != nil {
+	if err := modelhelper.UpdateUser(selector2, update2); err != nil {
 		t.Error("Error while updating user")
 	}
 
-	users, err := GetAnySlackTokenWithGroup(groupName)
+	users, err := modelhelper.GetAnySlackTokenWithGroup(groupName)
 	if err != nil {
 		t.Error("Error while getting user token")
 	}
@@ -156,7 +139,7 @@ func TestGetAnyUserTokenFromGroup(t *testing.T) {
 		t.Error("Length of user should be 1")
 	}
 
-	err = RemoveUser(username)
+	err = modelhelper.RemoveUser(username)
 	if err != nil {
 		t.Error(err)
 	}

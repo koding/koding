@@ -1,9 +1,46 @@
 {
-	"bareMetalInstanceFlag": 1,
-	"domain": "testing.com",
-	"hostname": "softlayer",
-	"id": 123,
-	"hardwareStatusId": 1,
-	"provisionDate": "2014-11-01T15:04:05-07:00",
-	"GlobalIdentifier": "abcdefg"
+	"bareMetalInstanceFlag": 0,
+	"domain": "fake.domain.com",
+	"hardwareStatusId": 5,
+	"hostname": "fake.hostname",
+	"id": 123456,
+	"provisionDate": "2016-03-08T22:52:17+08:00",
+	"datacenter": {
+		"id": 358694,
+		"longName": "London 2",
+		"name": "lon02"
+	},
+	"globalIdentifier": "abcdefg",
+	"operatingSystem": {
+		"hardwareId": 780189,
+		"id": 9505997,
+		"manufacturerLicenseInstance": "",
+		"passwords": [
+			{
+				"password": "Fw3f8b84",
+				"username": "root"
+			}
+		],
+		"softwareLicense": {
+			"id": 1938,
+			"softwareDescriptionId": 1346,
+			"softwareDescription": {
+				"controlPanel": 0,
+				"id": 1346,
+				"licenseTermValue": null,
+				"longDescription": "Ubuntu 14.04-64 Minimal for Bare Metal",
+				"manufacturer": "Ubuntu",
+				"name": "Ubuntu",
+				"operatingSystem": 1,
+				"referenceCode": "UBUNTU_14_64",
+				"upgradeSoftwareDescriptionId": null,
+				"upgradeSwDescId": null,
+				"version": "14.04-64 Minimal for Bare Metal",
+				"virtualLicense": 0,
+				"virtualizationPlatform": 0,
+				"requiredUser": "root"
+			}
+		}
+	},
+	"primaryIpAddress": "169.50.71.69"
 }

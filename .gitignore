@@ -26,6 +26,7 @@ nginx.pid
 /.pydevproject
 /.revision
 /.settings
+/.coffee
 /install/docker-mongo/dump
 /broker/apps/broker/src/broker.app.src
 /broker/deps
@@ -99,3 +100,4 @@ elektron/node_modules
 
 .env.sh
 .env.json
+website/apidocs/lang

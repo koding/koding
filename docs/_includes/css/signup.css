@@ -26,6 +26,7 @@
     margin-bottom: 15px;
     text-align: center;
 }
+.Micropage--container h3 a,
 .Micropage--container h4 a {
     font-size: 14px;
     color: #67A2EE;
@@ -47,16 +48,80 @@
 .SignupFieldset {
     margin-bottom: 10px;
 }
+.Micropage--container form div > button {
+    width: 100%;
+    padding: 14px 0 13px;
+    text-align: center;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background: #F2778A;
+    border: 1px solid #F2778A;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 18px;
+    color: #FFFFFF;
+    letter-spacing: 0px;
+    margin-top: 20px;
+    cursor: pointer;
+}
+
+.SignupFieldset strong {
+    font-weight: 600;
+}
+
+.SignupFieldset label h5 {
+    margin: 0 0 5px 40px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #727272;
+    letter-spacing: 0.34px;
+}
+
+.SignupFieldset label p {
+    margin-left: 40px;
+    font-size: 14px;
+    color: #979797;
+    letter-spacing: 0;
+    line-height: 18px;
+    padding-bottom: 20px;
+}
+.SignupFieldset .radiogroup > div {
+    margin-top: 17px;
+    border-bottom: 1px solid #D8D8D8;
+}
+.SignupFieldset .radiogroup > div:last-child {
+    border-bottom: none;
+}
+.SignupFieldset .radiogroup > div input ~ div {
+    position: relative;
+    display: none;
+    margin-left: 40px;
+}
+.SignupFieldset .radiogroup > div input:checked ~ div {
+    display: block;
+}
+.SignupFieldset .radiogroup > div input:checked ~ div p {
+    margin-left: 26px;
+    font-size: 14px;
+}
+.SignupFieldset .radiogroup > div input:checked ~ div label:before {
+    border-radius: 4px;
+    width: 16px;
+    height: 16px;
+}
+.SignupFieldset .radiogroup > div input:checked ~ div label:after {
+    border-radius: 2px;
+    width: 8px;
+    height: 8px;
+    left: 4px;
+    top: 4px;
+}
+
 .SignupFieldset > div label span {
     display: none;
 }
-.SignupFieldset > div label span.hs-form-required {
-    position: absolute;
-    right: 0px;
-    color: red;
-    top: 10px;
-    font-size: 20px;
-}
+
 .SignupFieldset.double {
     display: flex;
     justify-content: space-between;
@@ -158,22 +223,6 @@
 }
 .SignupFieldset > div input.error {
     border-color: #F2778A !important;
-}
-.Micropage--container form div > button {
-    width: 100%;
-    padding: 14px 0 13px;
-    text-align: center;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    background: #F2778A;
-    border: 1px solid #F2778A;
-    border-radius: 4px;
-    font-weight: 500;
-    font-size: 18px;
-    color: #FFFFFF;
-    letter-spacing: 0px;
-    margin-top: 20px;
 }
 
 .SignupFieldset > div textarea {

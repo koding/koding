@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"net"
 	"net/url"
 	"strings"
 	"time"
@@ -41,7 +42,7 @@ func (bs *BaseStack) HandleApply(ctx context.Context) (interface{}, error) {
 	if !ok {
 		arg = &stack.ApplyRequest{}
 
-		if err := bs.Req.Args.One().Unmarshal(&arg); err != nil {
+		if err := bs.Req.Args.One().Unmarshal(arg); err != nil {
 			return nil, err
 		}
 	}
@@ -64,7 +65,7 @@ func (bs *BaseStack) HandleApply(ctx context.Context) (interface{}, error) {
 		rt.Hijack()
 	}
 
-	bs.Arg = &arg
+	bs.Arg = arg
 
 	if arg.Destroy {
 		err = bs.destroy(ctx, arg)
@@ -353,7 +354,7 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 }
 
 func (bs *BaseStack) UpdateResources(state *terraform.State) error {
-	machines, err := bs.Planner.MachinesFromState(state, bs.Klients)
+	machines, err := bs.state(state, bs.Klients)
 	if err != nil {
 		return err
 	}
@@ -408,6 +409,10 @@ func (bs *BaseStack) buildUpdateObj(m *stack.Machine, s *DialState, now time.Tim
 		obj["registerUrl"] = s.KiteURL
 
 		if u, err := url.Parse(s.KiteURL); err == nil && u.Host != "" {
+			if host, _, err := net.SplitHostPort(u.Host); err == nil {
+				u.Host = host
+			}
+
 			obj["ipAddress"] = u.Host
 		}
 	}

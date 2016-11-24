@@ -18,7 +18,8 @@ module.exports = class FindTeamForm extends LoginViewInlineForm
     @usernameOrEmail = new LoginInputView
       inputOptions             :
         name                   : 'email'
-        placeholder            : 'Email address...'
+        label                  : 'Email address'
+        placeholder            : 'Enter your email address'
         testPath               : 'find-team-input'
         defaultValue           : email
         validate               :

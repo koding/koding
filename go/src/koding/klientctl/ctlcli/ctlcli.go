@@ -94,7 +94,10 @@ func ExitAction(f ExitingCommand, log logging.Logger, cmdName string) func(*cli.
 func ExitErrAction(f ExitingErrCommand, log logging.Logger, cmdName string) func(*cli.Context) {
 	return func(c *cli.Context) {
 		exit, err := f(c, log, cmdName)
-		log.Error("ExitErrAction encountered error. err:%s", err)
+		if err != nil {
+			log.Error("ExitErrAction encountered error. err:%s", err)
+		}
+
 		Close()
 		os.Exit(exit)
 	}

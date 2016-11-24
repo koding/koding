@@ -1,7 +1,7 @@
-kd      = require 'kd'
-utils   = require './../core/utils'
-JView   = require './../core/jview'
-
+kd             = require 'kd'
+utils          = require './../core/utils'
+JView          = require './../core/jview'
+LoginInputView = require './../login/logininputview'
 
 module.exports = class TeamsSelectorForm extends kd.FormView
 
@@ -16,17 +16,16 @@ module.exports = class TeamsSelectorForm extends kd.FormView
     teams    = utils.getPreviousTeams()
     lastTeam = teams?.latest
 
-    @inputView = new kd.CustomHTMLView
-      cssClass     : 'login-input-view'
-      click        : => @input.setFocus()
+    @teamName = new LoginInputView
+      inputOptions   :
+        label        : 'Team URL'
+        placeholder  : 'your-team-name'
+        name         : 'slug'
+        defaultValue : lastTeam  if lastTeam
 
-    @inputView.addSubView @input = new kd.InputView
-      placeholder  : 'your-team-name'
-      name         : 'slug'
-      defaultValue : lastTeam  if lastTeam
-
-    @inputView.addSubView @suffix = new kd.View
+    @suffix = new kd.View
       tagName      : 'span'
+      cssClass     : 'TeamDomainSuffix'
       partial      : ".#{kd.config.domains.main}"
 
 
@@ -37,13 +36,14 @@ module.exports = class TeamsSelectorForm extends kd.FormView
       attributes  : { testpath : 'goto-team-button' }
       type        : 'submit'
 
-    @input.on 'ValidationFeedbackCleared', =>
-      @inputView.unsetClass 'validation-error validation-passed'
+    @teamName.input.on 'ValidationFeedbackCleared', =>
+      @teamName.input.unsetClass 'validation-error validation-passed'
 
 
   pistachio: ->
 
     """
-    {{> @inputView}}
-    <div class='submit'>{{> @button}}</div>
+    {{> @teamName }}
+    {{> @suffix }}
+    <div class='submit'>{{> @button }}</div>
     """

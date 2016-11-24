@@ -21,14 +21,16 @@ import (
 // KodingMeta represents "koding_"-prefixed variables injected into Terraform
 // template.
 type KodingMeta struct {
-	Email     string `hcl:"user_email"`
-	Username  string `hcl:"user_username"`
-	Nickname  string `hcl:"account_profile_nickname"`
-	Firstname string `hcl:"account_profile_firstName"`
-	Lastname  string `hcl:"account_profile_lastName"`
-	Hash      string `hcl:"account_profile_hash"`
-	Title     string `hcl:"group_title"`
-	Slug      string `hcl:"group_slug"`
+	Email      string `hcl:"user_email"`
+	Username   string `hcl:"user_username"`
+	Nickname   string `hcl:"account_profile_nickname"`
+	Firstname  string `hcl:"account_profile_firstName"`
+	Lastname   string `hcl:"account_profile_lastName"`
+	Hash       string `hcl:"account_profile_hash"`
+	Title      string `hcl:"group_title"`
+	Slug       string `hcl:"group_slug"`
+	StackID    string `hcl:"stack_id"`
+	TemplateID string `hcl:"template_id"`
 }
 
 // CustomMeta represents private variables injected into Terraform template.
@@ -97,11 +99,12 @@ type Builder struct {
 	Schema    map[string]*Schema
 
 	// Fields being built:
-	Stack       *stack.Stack
-	Machines    map[string]*models.Machine // maps label to jMachine
-	Koding      *stack.Credential
-	Credentials []*stack.Credential
-	Template    *Template
+	Stack         *stack.Stack
+	StackTemplate *models.StackTemplate
+	Machines      map[string]*models.Machine // maps label to jMachine
+	Koding        *stack.Credential
+	Credentials   []*stack.Credential
+	Template      *Template
 }
 
 // NewBuilder gives new *Builder value.
@@ -180,6 +183,22 @@ func (b *Builder) BuildStack(stackID string, credentials map[string][]string) er
 		len(b.Stack.Machines), len(b.Stack.Credentials), overallErr)
 
 	return overallErr
+}
+
+// BuildStackTemplate fetched stack template details from MongoDB.
+//
+// When nil error is returned, the b.StackTemplate field is guaranteed to be non-nil.
+func (b *Builder) BuildStackTemplate(templateID string) error {
+	var err error
+	if b.StackTemplate, err = modelhelper.GetStackTemplate(templateID); err != nil {
+		return models.ResError(err, "jStackTemplate")
+	}
+
+	if b.StackTemplate.Template.Content == "" {
+		return errors.New("Stack template content is empty")
+	}
+
+	return nil
 }
 
 // FindMachine looks for a jMachine document in b.Machines which meta.assignedLabel
@@ -356,6 +375,15 @@ func (b *Builder) BuildCredentials(method, username, groupname string, identifie
 		Firstname: account.Profile.FirstName,
 		Lastname:  account.Profile.LastName,
 		Hash:      account.Profile.Hash,
+	}
+
+	if b.StackTemplate != nil {
+		kodingMeta.TemplateID = b.StackTemplate.Id.Hex()
+	}
+
+	if b.Stack != nil {
+		kodingMeta.StackID = b.Stack.Stack.Id.Hex()
+		kodingMeta.TemplateID = b.Stack.Stack.BaseStackId.Hex()
 	}
 
 	groupIDs := []bson.ObjectId{account.Id}

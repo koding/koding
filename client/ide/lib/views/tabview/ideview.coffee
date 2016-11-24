@@ -81,6 +81,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       @focusTab()  if frontApp.isTabViewFocused @tabView
 
     @tabView.on 'PaneAdded', (pane) =>
+      pane.tabHandle.setClass 'focus'
 
       { addSplitHandlers } = @getOptions()
 

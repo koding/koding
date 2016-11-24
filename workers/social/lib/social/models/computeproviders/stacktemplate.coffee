@@ -14,6 +14,7 @@ module.exports = class JStackTemplate extends Module
   @trait __dirname, '../../traits/protected'
   @trait __dirname, '../../traits/notifiable'
 
+
   @share()
 
   @set
@@ -72,14 +73,23 @@ module.exports = class JStackTemplate extends Module
 
     schema            :
 
-      machines        : [ Object ]
+      machines        :
+        type          : [ Object ]
+        _description  : 'Machines found in stack template'
+        default       : -> []
 
       title           :
         type          : String
         required      : yes
+        _description  : 'Title of this stack template'
 
-      description     : String
-      config          : Object
+      description     :
+        type          : String
+        _description  : 'Stack template description'
+
+      config          :
+        type          : Object
+        _description  : 'Private config data for stack template'
 
       accessLevel     :
         type          : String
@@ -99,10 +109,18 @@ module.exports = class JStackTemplate extends Module
         required      : yes
 
       template        :
-        content       : String
-        sum           : String
-        details       : Object
-        rawContent    : String
+        content       :
+          type        : String
+          _description: 'Stack template content in JSON format'
+        sum           :
+          type        : String
+          _description: 'Sum of stringified JSON content, auto-generated'
+        details       :
+          type        : Object
+          _description: 'Details data for stack template'
+        rawContent    :
+          type        : String
+          _description: 'Stack template content in YAML format'
 
       # Identifiers of JCredentials
       # structured like following;

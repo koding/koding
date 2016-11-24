@@ -18,10 +18,10 @@ module.exports = class SharedMachinesStore extends KodingFluxStore
 
     machines.withMutations (machines) ->
       shared.forEach ({ machine }) ->
-        machines.set machine._id, machine._id
+        machines.set machine.uid, machine._id
 
 
-  rejectInvitation: (machines, id ) ->
+  rejectInvitation: (machines, id) ->
 
     return machines  unless machines.has id
 

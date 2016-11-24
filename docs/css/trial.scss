@@ -75,8 +75,9 @@ p {
 
     .imgContainer {
       background-image: url({{path}}/training_success.png);
-      height: 488px;
-      width: 675px;
+      height: 480px;
+      width: 660px;
+      background-size: 100%;
     }
   }
 
@@ -113,6 +114,7 @@ p {
     width: 160px;
     text-align: center;
     border-radius: 6px;
+    position: relative;
   }
 
   .imgContainer {
@@ -220,7 +222,7 @@ p {
       }
 
       .timeline {
-        color: $dusty-gray4;
+        color: $dusty-gray;
         padding-top: 25px;
         padding-bottom: 38px;
 
@@ -358,6 +360,7 @@ p {
     background-image: url({{ path }}/training_invites.png);
     height: 429px;
     width: 588px;
+    background-size: 100%;
   }
 
   .Caption {
@@ -400,16 +403,6 @@ p {
     text-align: center;
     margin-bottom: 128px;
   }
-}
-
-.Modal {
-  height: 369px;
-  width: 656px;
-  margin: 0 auto;
-  top: 50%;
-  -webkit-transform: translateY(-50%);
-  -ms-transform: translateY(-50%);
-  transform: translateY(-50%);
 }
 
 @media screen and (max-width: 1200px) {
@@ -764,15 +757,17 @@ only screen and (min-device-pixel-ratio: 2) {
   .u-icon {
     &.u-kodingWith {
       background-image: var(--icon-kodingWith-2);
+      background-size: 100%;
     }
 
     &.u-kodingWithout {
       background-image: var(--icon-kodingWithout-2);
+      background-size: 100%;
     }
 
     &.u-playVideo {
       background-image: var(--icon-playVideo-2);
-      background-size: 25%;
+      background-size: 20%;
     }
   }
 
@@ -785,20 +780,24 @@ only screen and (min-device-pixel-ratio: 2) {
 
     &.Training-hero .imgContainer {
       background-image: url({{path}}/training_success@2x.png);
+      background-size: 100%;
     }
 
     &.Trial-hero .imgContainer {
       background-image: url({{path}}/trial-hero@2x.png);
+      background-size: 100%;
     }
   }
 
   .Section-3 {
     &.Trial-section3 .imgContainer {
       background-image: url({{path}}/software-trials@2x.png);
+      background-size: 100%;
     }
 
     &.Training-section3 .imgContainer {
       background-image: url({{path}}/training_invites@2x.png);
+      background-size: 100%;
     }
   }
 

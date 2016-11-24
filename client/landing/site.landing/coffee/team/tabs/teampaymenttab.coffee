@@ -161,13 +161,11 @@ module.exports = class TeamPaymentTab extends kd.TabPaneView
     '''
 
 
-track = (action) ->
+track = (action, properties = {}) ->
 
-  category = 'TeamSignup'
-  label    = 'PaymentTab'
-
-  utils.analytics.track action, { category, label }
-
+  properties.category = 'TeamSignup'
+  properties.label    = 'PaymentTab'
+  utils.analytics.track action, properties
 
 loadScript = (url, callback) ->
 

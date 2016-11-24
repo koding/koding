@@ -28,17 +28,6 @@ ifdef port
 	PORT="-port=$(port)"
 endif
 
-PACKAGES = \
-	socialapi/workers/api \
-	socialapi/workers/emailnotifier \
-	socialapi/workers/dailyemailnotifier \
-	socialapi/workers/notification \
-	socialapi/workers/realtime \
-	socialapi/workers/migrator \
-	socialapi/workers/integration \
-	socialapi/workers/algoliaconnector
-
-
 all: testapi
 
 default: configure
@@ -62,22 +51,6 @@ build:
 	@echo "NOTICE: make build is deprecated use ../../build.sh"
 	@echo "building with ../../build.sh"
 	../../build.sh
-
-testwebhook:
-	@echo "$(OK_COLOR)--> webhook model tests... $(NO_COLOR)"
-	@`which go` test -c workers/integration/webhook/*.go
-	@./webhook.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm  ./webhook.test
-
-	@echo "$(OK_COLOR)--> webhook api tests... $(NO_COLOR)"
-	@`which go` test -c workers/integration/webhook/api/*.go
-	@./api.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm  ./api.test
-
-	@echo "$(OK_COLOR)--> webhook integration tests... $(NO_COLOR)"
-	@`which go` test -c workers/integration/webhook/tests/*.go
-	@./tests.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./tests.test
 
 testpresence:
 	@echo "$(OK_COLOR)--> presence tests... $(NO_COLOR)"
@@ -145,25 +118,6 @@ testmail:
 	@./tests.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm ./tests.test
 
-testemailworker:
-	# @echo "$(OK_COLOR)--> activity email tests.. $(NO_COLOR)"
-	# @`which go` test -c workers/email/activityemail/*.go
-	# @./activityemail.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	# @rm ./activityemail.test
-
-	@echo "$(OK_COLOR)--> notification email tests... $(NO_COLOR)"
-	@`which go` test -c workers/email/privatemessageemail/privatemessageemailfeeder/*.go
-	@./feeder.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./feeder.test
-
-	@`which go` test -c workers/email/privatemessageemail/privatemessageemailsender/*.go
-	@./sender.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./sender.test
-
-	@`which go` test -c workers/email/emailmodels/*.go
-	@./emailmodels.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./emailmodels.test
-
 testnotification: testnotificationunit testnotificationintegration
 
 testnotificationintegration:
@@ -200,9 +154,9 @@ testrealtime:
 	@rm ./models.test
 
 
-testapi: testcollaboration testmailsender testmail testmodels testemailworker \
+testapi: testcollaboration testmailsender testmail testmodels \
 	testnotification \
-	testteam testintegration testrealtime testwebhook testpresence
+	testteam testintegration testrealtime testpresence
 
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 

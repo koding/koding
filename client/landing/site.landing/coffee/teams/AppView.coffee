@@ -4,11 +4,11 @@ MainHeaderView  = require './../core/mainheaderview'
 JView           = require './../core/jview'
 TeamsSignupForm = require './teamssignupform'
 
-track = (action) ->
+track = (action, properties = {}) ->
 
-  category = 'TeamSignup'
-  label    = 'SignupForm'
-  utils.analytics.track action, { category, label }
+  properties.category = 'TeamSignup'
+  properties.label    = 'SignupForm'
+  utils.analytics.track action, properties
 
 module.exports = class TeamsView extends kd.TabPaneView
 
@@ -22,6 +22,8 @@ module.exports = class TeamsView extends kd.TabPaneView
 
     { mainController } = kd.singletons
     { group }          = kd.config
+    isEnterprise       = /type\=enterprise/.test location.search
+    withDemo           = /demo\=on/.test location.search
 
     @header = new MainHeaderView
       cssClass : 'team'
@@ -29,11 +31,21 @@ module.exports = class TeamsView extends kd.TabPaneView
         { title : 'Login',    href : '/Teams',    name : 'login' }
       ]
 
+
     @form = new TeamsSignupForm
       cssClass : 'login-form'
       callback : (formData) ->
 
-        track 'submitted signup form', { category: 'TeamSignUp' }
+        { email, phone } = formData
+
+        track 'started team signup', { contact: email }
+
+
+        if isEnterprise and withDemo
+          track 'started team signup enterprise with demo request', { contact: email, phone }
+        else if isEnterprise
+          track 'started team signup enterprise without demo request', { contact: email }
+
 
         finalize = (email) ->
           utils.storeNewTeamData 'signup', formData
@@ -49,7 +61,6 @@ module.exports = class TeamsView extends kd.TabPaneView
             success : (profile) ->
               utils.storeNewTeamData 'profile', profile
 
-        { email } = formData
         utils.validateEmail { email },
           success : ->
             track 'entered an unregistered email'
@@ -61,6 +72,7 @@ module.exports = class TeamsView extends kd.TabPaneView
             formData.alreadyMember = yes
             finalize email
 
+    @form.phone.show()  if isEnterprise and withDemo
 
   pistachio: ->
 
@@ -68,7 +80,7 @@ module.exports = class TeamsView extends kd.TabPaneView
     {{> @header }}
     <div class="TeamsModal TeamsModal--create">
       <h4>Let's sign you up!</h4>
-      <h5>Let us know what your email is so we can start the process.</h5>
+      <h5>Let us know what your email and your team name are so we can start the process.</h5>
       {{> @form}}
     </div>
     <div class="ufo-bg"></div>

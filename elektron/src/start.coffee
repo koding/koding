@@ -1,6 +1,6 @@
 path            = require 'path'
-shell           = require 'shell'
 electron        = require 'electron'
+shell           = electron.shell
 ApplicationMenu = require './applicationmenu'
 IPCReporter     = require './ipcreporter'
 TrayIcon        = require './trayicon'

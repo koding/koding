@@ -12,7 +12,7 @@ module.exports = class LeaveSharedMachineWidget extends React.Component
     className : 'Approved'
 
   constructor: (props) ->
-      
+
     @state = { isModalActive: yes }
 
 

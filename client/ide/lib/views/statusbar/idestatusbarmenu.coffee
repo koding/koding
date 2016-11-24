@@ -10,20 +10,21 @@ module.exports = class IDEStatusBarMenu extends KDContextMenu
 
   constructor: (options = {}) ->
 
-    { delegate, paneType } = options
+    { delegate, paneType, paneView: { file } } = options
 
     options.x              ?= delegate.getX() - 5
     options.y              ?= delegate.getY() + 20
     options.cssClass      or= "IDE-StatusBarMenu #{paneType}-context-menu"
     options.treeItemClass or= IDEStatusBarMenuItem
 
-    super options, @getItems paneType
+    dummy = if file then file.isDummyFile() else no
+    super options, @getItems paneType, dummy
 
     @on 'ContextMenuItemReceivedClick', (view, event) =>
       @destroy()  unless event.target.parentNode.classList.contains 'kdselectbox'
 
 
-  getItems: (paneType) ->
+  getItems: (paneType, dummy = no) ->
 
     { shortcuts, appManager } = kd.singletons
 
@@ -33,7 +34,7 @@ module.exports = class IDEStatusBarMenu extends KDContextMenu
       editor: collection.find { _key: 'editor' }
       workspace: collection.find { _key: 'workspace' }
 
-    itemsData = @getItemsData paneType
+    itemsData = @getItemsData paneType, dummy
     _
       .chain itemsData
       .chunk 2
@@ -60,7 +61,7 @@ module.exports = class IDEStatusBarMenu extends KDContextMenu
       .value()
 
 
-  getItemsData: (paneType) ->
+  getItemsData: (paneType, dummy = no) ->
 
     if paneType is 'terminal'
       return [
@@ -69,8 +70,7 @@ module.exports = class IDEStatusBarMenu extends KDContextMenu
       ]
 
     @syntaxSelector = new IDESyntaxSelectorMenuItem
-    return [
-      # Shortcut                 # IDE method
+    ideShortcuts = [
       'editor.save'              , 'saveFile'
       'editor.saveas'            , 'saveAs'
       'workspace.saveallfiles'   , 'saveAllFiles'
@@ -81,5 +81,9 @@ module.exports = class IDEStatusBarMenu extends KDContextMenu
       'workspace.searchallfiles' , 'showContentSearch'
       'workspace.findfilebyname' , 'showFileFinder'
       'editor.gotoline'          , 'goToLine'
-      'Rename'                   , 'showRenameTerminalView'
     ]
+
+    ideShortcuts = ideShortcuts.concat ['Rename', 'showRenameTerminalView']  unless dummy
+
+    return ideShortcuts
+

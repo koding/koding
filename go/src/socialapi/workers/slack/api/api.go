@@ -17,8 +17,6 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-const slackAway = "away"
-
 // Slack holds runtime config for slack OAuth system
 type Slack struct {
 	Hostname          string

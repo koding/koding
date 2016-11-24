@@ -1,4 +1,3 @@
-nodePath = require 'path'
 Bongo      = require 'bongo'
 { extend } = require 'underscore'
 

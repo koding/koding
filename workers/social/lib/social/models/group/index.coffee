@@ -202,14 +202,8 @@ module.exports = class JGroup extends Module
         ]
         changeMemberRoles:
           (signature String, [String], Function)
-        canOpenGroup:
-          (signature Function)
         canEditGroup:
           (signature Function)
-        fetchMembershipPolicy:
-          (signature Function)
-        modifyMembershipPolicy:
-          (signature Object, Function)
         isMember:
           (signature Object, Function)
         kickMember:
@@ -335,18 +329,9 @@ module.exports = class JGroup extends Module
         blockedAccount:
           targetType  : JAccount
           as          : 'blockedAccount'
-        subgroup      :
-          targetType  : 'JGroup'
-          as          : 'parent'
-        tag           :
-          targetType  : 'JTag'
-          as          : 'tag'
         role          :
           targetType  : 'JGroupRole'
           as          : 'role'
-        membershipPolicy :
-          targetType  : 'JMembershipPolicy'
-          as          : 'owner'
         invitation:
           targetType  : 'JInvitation'
           as          : 'owner'
@@ -425,7 +410,6 @@ module.exports = class JGroup extends Module
     groupData.defaultChannels or= []
 
     JPermissionSet        = require './permissionset'
-    JMembershipPolicy     = require './membershippolicy'
     JSession              = require '../session'
     JName                 = require '../name'
 
@@ -501,10 +485,6 @@ module.exports = class JGroup extends Module
       #     next()
 
     ]
-
-    if 'private' is group.privacy
-      queue.push (next) ->
-        group.createMembershipPolicy groupData.requestType, -> next()
 
     async.series queue, (err) ->
       return callback err  if err
@@ -1050,20 +1030,16 @@ module.exports = class JGroup extends Module
   fetchHomepageView: (options, callback) ->
     { account, section } = options
     kallback = =>
-      @fetchMembershipPolicy (err, policy) =>
-        if err then callback err
-        else
-          homePageOptions = extend options, {
-            @slug
-            @title
-            policy
-            @avatar
-            @body
-            @counts
-            @customize
-          }
-          prefix = if account?.type is 'unregistered' then 'loggedOut' else 'loggedIn'
-          JGroup.render[prefix].groupHome homePageOptions, callback
+      homePageOptions = extend options, {
+        @slug
+        @title
+        @avatar
+        @body
+        @counts
+        @customize
+      }
+      prefix = if account?.type is 'unregistered' then 'loggedOut' else 'loggedIn'
+      JGroup.render[prefix].groupHome homePageOptions, callback
 
     if @visibility is 'hidden' and section isnt 'Invitation'
       @isMember account, (err, isMember) ->
@@ -1072,38 +1048,6 @@ module.exports = class JGroup extends Module
         else do callback
     else
       kallback()
-
-
-  createMembershipPolicy:(requestType, queue, callback) ->
-    [callback, queue] = [queue, callback]  unless callback
-    queue ?= []
-
-    JMembershipPolicy = require './membershippolicy'
-    membershipPolicy  = new JMembershipPolicy
-    membershipPolicy.approvalEnabled = no  if requestType is 'by-invite'
-
-    queue.push(
-
-      (next) ->
-        membershipPolicy.save next
-
-      (next) =>
-        @addMembershipPolicy membershipPolicy, next
-
-    )
-
-    async.series queue, (err) ->
-      return callback err  if err
-      return callback null, membershipPolicy
-
-
-  destroyMemebershipPolicy:(callback) ->
-    @fetchMembershipPolicy (err, policy) ->
-      if err then callback err
-      else unless policy?
-        callback new KodingError '404 Membership policy not found'
-      else policy.remove callback
-
 
   modify     : permit
     advanced : [
@@ -1123,6 +1067,9 @@ module.exports = class JGroup extends Module
       { reviveGroupLimits } = require '../computeproviders/computeutils'
 
       reviveGroupLimits this, (err, group) =>
+
+        return callback err  if err
+        return callback new KodingError 'No such group!'  unless group
 
         # we need to make sure if given stack template is
         # valid for the current group limit ~ GG
@@ -1234,14 +1181,6 @@ module.exports = class JGroup extends Module
               callback null, { url }
 
 
-  modifyMembershipPolicy: permit
-    advanced: PERMISSION_EDIT_GROUPS
-    success: (client, formData, callback) ->
-      @fetchMembershipPolicy (err, policy) ->
-        if err then callback err
-        else policy.update { $set: formData }, callback
-
-
   toggleFeature: permit
     advanced: [
       { permission: 'grant permissions' }
@@ -1288,20 +1227,6 @@ module.exports = class JGroup extends Module
       { permission: 'list members' }
       { permission: 'list members', superadmin: yes }
     ]
-
-  canOpenGroup: permit 'open group',
-    failure:(client, callback) ->
-      @fetchMembershipPolicy (err, policy) ->
-        explanation = policy?.explain() ?
-                      err?.message ?
-                      'No membership policy!'
-        clientError = err ? new KodingError explanation
-        clientError.accessCode = policy?.code ?
-          if err then ERROR_UNKNOWN
-          else if explanation? then ERROR_POLICY
-          else ERROR_NO_POLICY
-        callback clientError, no
-
 
   isMember: (account, callback) ->
 
@@ -1624,10 +1549,6 @@ module.exports = class JGroup extends Module
         (next) =>
           @fetchDefaultPermissionSet (err, permSet) ->
             removeHelper permSet, err, next
-
-        (next) =>
-          @fetchMembershipPolicy (err, policy) ->
-            removeHelper policy, err, next
 
         (next) =>
           JInvitation = require '../invitation'

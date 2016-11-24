@@ -315,7 +315,7 @@ a.custom-link-view.border-only-green
     font-size               14px
     font-family             'Proxima Nova'
     font-weight             300
-    max-width               145px !important
+    max-width               160px !important
     color                   #5e7074
     &:hover
       span.close-tab
@@ -336,6 +336,7 @@ a.custom-link-view.border-only-green
         r-sprite              app '20_tab_plus'
         margin              8px 9px 9px 8px
         display             block
+
     &.active
       bg                    color, #1b2224
       color                 #eeeeee
@@ -345,17 +346,21 @@ a.custom-link-view.border-only-green
         bg                  color, transparent
         r-sprite              app '20_close_tab'
 
-    &.modified:before
+    &.modified:after
       content               ""
       size                  5px, 5px
       rounded               50%
-      bg                    color, #616f74
-      abs                   14px 0 0 5px
+      border                1px solid #121212
+      bg                    color, #FEC34F
+      abs                   9px 0 0 16px
       fl()
       vendor                transition, background-color .33s
 
-    &.modified.saved:before
-      bg                    color, #24b463
+    &.active.modified:after
+      border                1px solid #2b2b30
+
+    &.modified.saved:after
+      bg                    color, #4DB97F
 
 
 .header-facets
@@ -964,10 +969,8 @@ button.app-settings-menu
   rounded               6px
   shadow                0 12px 19px rgba(0,0,0,.50)
   position              fixed !important
-  font-family           adelleSans
 
   .kdmodal-inner
-    font-family         SoleilFamily
     background          #fafafa
     margin              15px 25px 25px
 
@@ -1743,7 +1746,6 @@ section.testimonials
   article
     width              46%
     position           relative
-    font-family        openSansFamily
     padding            2px 0 32px 69px
     margin-bottom      26px
     rounded            0 0 12px 12px
@@ -1840,7 +1842,6 @@ FOOTER VIEW
 
 footer.main-footer
   padding                   31px 0
-  font-family               SoleilFamily
   font-weight               400
   height                    auto
 
@@ -2044,9 +2045,6 @@ footer.main-footer
 
   &.kdmodal
     border                  none
-
-  .kdmodal-title span.title
-    font-family             SoleilFamily
 
   .notification
     padding                 10px 20px

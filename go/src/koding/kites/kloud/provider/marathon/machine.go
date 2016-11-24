@@ -42,7 +42,7 @@ func (m *Machine) Stop(ctx context.Context) (interface{}, error) {
 
 // Info gives state of the app.
 func (m *Machine) Info(context.Context) (machinestate.State, interface{}, error) {
-	return machinestate.Running, nil, nil
+	return machinestate.States[m.Status.State], nil, nil
 }
 
 // Credential gives a Marathon credential that is attached

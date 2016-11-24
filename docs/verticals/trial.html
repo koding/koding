@@ -13,7 +13,7 @@ permalink: /verticals/trial
 <div class="Hero Trial-hero">
   <h1>Software evaluation with one click.</h1>
   <h2>Stop losing conversions due to a complex software trial process.</h2>
-  <a href="#" class="Button">CONTACT US</a>
+  <a href="#" onclick='javascript:Intercom("show");' class="Button contact">CONTACT US</a>
   <div class="imgContainer showModal">
     <a href="#" class="u-icon u-playVideo"></a>
   </div>
@@ -116,17 +116,12 @@ permalink: /verticals/trial
 </div>
 <div class="Section-4">
   <h3>Let your customers easily try out your software in minutes without the hassle of installation</h3>
-  <a href="#">CONTACT US</a>
+  <a href="#" onclick='javascript:Intercom("show");' class="contact">CONTACT US</a>
 </div>
-<div class="Overlay"></div>
-<div class="Modal">
-  <iframe width="656" height="369"
-  src="https://www.youtube.com/embed/DWRmEIbGqPQ?enablejsapi=1">
-  </iframe>
-  <a href="#" class="u-icon u-modalClose"></a>
-</div>
+<script src="https://www.youtube.com/iframe_api"></script>
 <script>
-  {% include js/single-modal-with-video.js %}
+  {% include js/landing-modal.js %}
+  {% include js/trial.js %}
 </script>
 
 <!-- FOOTER -->

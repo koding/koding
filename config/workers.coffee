@@ -115,24 +115,12 @@ module.exports = (KONFIG, options, credentials) ->
       supervisord       :
         command         : "./watch-node %(ENV_KONFIG_PROJECTROOT)s/workers/social/index.js"
       nginx             :
-        locations       : [ { location: "/xhr" } ]
+        locations       : [
+          { location: "/xhr"  }
+          { location: "/remote.api" }
+        ]
       healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
-
-    vmwatcher           :
-      group             : "environment"
-      instances         : 1
-      ports             :
-        incoming        : "#{KONFIG.vmwatcher.port}"
-      supervisord       :
-        stopwaitsecs    : 20
-        command         :
-          run           : "#{GOBIN}/vmwatcher"
-          watch         : "#{GOBIN}/watcher -run koding/vmwatcher"
-      nginx             :
-        locations       : [ { location: "/vmwatcher" } ]
-      healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
 
     socialapi:
       group             : "socialapi"
@@ -215,13 +203,6 @@ module.exports = (KONFIG, options, credentials) ->
 
         ]
 
-    dailyemailnotifier  :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/dailyemail"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/email/dailyemail -watch socialapi/workers/email/dailyemail"
-
     algoliaconnector    :
       group             : "socialapi"
       supervisord       :
@@ -302,56 +283,6 @@ module.exports = (KONFIG, options, credentials) ->
         command         : "#{GOBIN}/janitor -kite-init=true"
       healthCheckURL    : "http://localhost:#{KONFIG.socialapi.janitor.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.socialapi.janitor.port}/version"
-
-    gatheringestor      :
-      ports             :
-        incoming        : KONFIG.gatheringestor.port
-      group             : "environment"
-      instances         : 1
-      supervisord       :
-        stopwaitsecs    : 20
-        command         :
-          run           : "#{GOBIN}/gatheringestor"
-          watch         : "#{GOBIN}/watcher -run koding/workers/gatheringestor"
-      healthCheckURL    : "http://localhost:#{KONFIG.gatheringestor.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.gatheringestor.port}/version"
-      nginx             :
-        locations       : [
-          location      : "~ /-/ingestor/(.*)"
-          proxyPass     : "http://gatheringestor/$1$is_args$args"
-        ]
-
-    integration         :
-      group             : "socialapi"
-      ports             :
-        incoming        : "#{KONFIG.integration.port}"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/webhook"
-          watch         : "make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi webhookdev"
-      healthCheckURL    : "#{options.customDomain.local}/api/integration/healthCheck"
-      versionURL        : "#{options.customDomain.local}/api/integration/version"
-      nginx             :
-        locations       : [
-          location      : "~ /api/integration/(.*)"
-          proxyPass     : "http://integration/$1$is_args$args"
-        ]
-
-    webhook             :
-      group             : "socialapi"
-      ports             :
-        incoming        : "#{KONFIG.socialapi.webhookMiddleware.port}"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/webhookmiddleware"
-          watch         : "make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi middlewaredev"
-      healthCheckURL    : "#{options.customDomain.local}/api/webhook/healthCheck"
-      versionURL        : "#{options.customDomain.local}/api/webhook/version"
-      nginx             :
-        locations       : [
-          location      : "~ /api/webhook/(.*)"
-          proxyPass     : "http://webhook/$1$is_args$args"
-        ]
 
     eventsender         :
       group             : "socialapi"

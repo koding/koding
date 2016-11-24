@@ -25,20 +25,20 @@
      cssClass='light' %}
 
   <!-- POST -->
-  <section class="BlogPost">
+  <section class="BlogPost" itemscope itemtype="http://schema.org/BlogPosting">
 
     <main class="markdown-body">
 
       <!-- POST TITLE -->
-      <h1>{{ page.title }}</h1>
+      <h1 itemprop="headline">{{ page.title }}</h1>
 
       {% if page.image %}
       <!-- POST IMAGE -->
-      <figure><img src="{{ site.url }}{{ page.image }}"></figure>
+      <figure><img src="{{ site.url }}{{ page.image }}" itemprop="image"></figure>
       {% endif %}
 
       <!-- POST CONTENT -->
-      {{ content }}
+      <div itemprop="articleBody">{{ content }}</div>
 
     </main>
 

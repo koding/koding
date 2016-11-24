@@ -134,28 +134,8 @@ func deleteDocumentsFromRelationships(rels []models.Relationship) {
 }
 
 var ToBeTruncatedNames = []string{
-	"cActivities",
-	"cFolloweeBuckets",
-	"cLikeeBuckets",
-	"cLikerBuckets",
-	"cNewMemberBuckets",
-	"cReplieeBuckets",
-	"jEmailConfirmations",
-	"jEmailNotifications",
-	"jInvitationRequests",
 	"jInvitations",
 	"jLogs",
-	"jMailNotifications",
-	"jMails",
-	"jOldUsers",
 	"jPasswordRecoveries",
 	"jVerificationTokens",
-
-	"jBadges",
-	"jComments",
-	"jNewStatusUpdates",
-	"jNotificationMailTokens",
-	"jPasswordRecoveries",
-	"jPrivateMessages",
-	"jTags",
 }

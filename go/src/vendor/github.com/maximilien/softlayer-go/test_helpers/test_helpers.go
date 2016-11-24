@@ -19,8 +19,9 @@ import (
 	. "github.com/onsi/gomega/gexec"
 
 	slclient "github.com/maximilien/softlayer-go/client"
+	fakesslclient "github.com/maximilien/softlayer-go/client/fakes"
 	datatypes "github.com/maximilien/softlayer-go/data_types"
-	softlayer "github.com/maximilien/softlayer-go/softlayer"
+	"github.com/maximilien/softlayer-go/softlayer"
 )
 
 var (
@@ -36,14 +37,20 @@ const (
 	TEST_EMAIL = "testemail@sl.com"
 	TEST_HOST  = "test.example.com"
 	TEST_TTL   = 900
-
-	MAX_WAIT_RETRIES = 10
-	WAIT_TIME        = 5
 )
 
 func ReadJsonTestFixtures(packageName, fileName string) ([]byte, error) {
 	wd, _ := os.Getwd()
 	return ioutil.ReadFile(filepath.Join(wd, "..", "test_fixtures", packageName, fileName))
+}
+
+func SetTestFixturesForFakeSoftLayerClient(fakeSoftLayerClient *fakesslclient.FakeSoftLayerClient, fileNames []string) {
+	for _, fileName := range fileNames {
+		fileContents, err := ReadJsonTestFixtures("services", fileName)
+		Expect(err).ToNot(HaveOccurred())
+
+		fakeSoftLayerClient.FakeHttpClient.DoRawHttpRequestResponses = append(fakeSoftLayerClient.FakeHttpClient.DoRawHttpRequestResponses, fileContents)
+	}
 }
 
 func FindTestVirtualGuests() ([]datatypes.SoftLayer_Virtual_Guest, error) {
@@ -65,48 +72,6 @@ func FindTestVirtualGuests() ([]datatypes.SoftLayer_Virtual_Guest, error) {
 	}
 
 	return testVirtualGuests, nil
-}
-
-func FindTestVirtualDiskImages() ([]datatypes.SoftLayer_Virtual_Disk_Image, error) {
-	accountService, err := CreateAccountService()
-	if err != nil {
-		return []datatypes.SoftLayer_Virtual_Disk_Image{}, err
-	}
-
-	virtualDiskImages, err := accountService.GetVirtualDiskImages()
-	if err != nil {
-		return []datatypes.SoftLayer_Virtual_Disk_Image{}, err
-	}
-
-	testVirtualDiskImages := []datatypes.SoftLayer_Virtual_Disk_Image{}
-	for _, vDI := range virtualDiskImages {
-		if strings.Contains(vDI.Description, TEST_NOTES_PREFIX) {
-			testVirtualDiskImages = append(testVirtualDiskImages, vDI)
-		}
-	}
-
-	return testVirtualDiskImages, nil
-}
-
-func FindTestNetworkStorage() ([]datatypes.SoftLayer_Network_Storage, error) {
-	accountService, err := CreateAccountService()
-	if err != nil {
-		return []datatypes.SoftLayer_Network_Storage{}, err
-	}
-
-	networkStorageArray, err := accountService.GetNetworkStorage()
-	if err != nil {
-		return []datatypes.SoftLayer_Network_Storage{}, err
-	}
-
-	testNetworkStorageArray := []datatypes.SoftLayer_Network_Storage{}
-	for _, storage := range networkStorageArray {
-		if strings.Contains(storage.Notes, TEST_NOTES_PREFIX) {
-			testNetworkStorageArray = append(testNetworkStorageArray, storage)
-		}
-	}
-
-	return testNetworkStorageArray, nil
 }
 
 func FindTestSshKeys() ([]datatypes.SoftLayer_Security_Ssh_Key, error) {
@@ -361,7 +326,7 @@ func CreateDisk(size int, location string) datatypes.SoftLayer_Network_Storage {
 	Expect(err).ToNot(HaveOccurred())
 
 	fmt.Printf("----> creating new disk\n")
-	disk, err := networkStorageService.CreateIscsiVolume(size, location)
+	disk, err := networkStorageService.CreateNetworkStorage(size, 1000, location, true)
 	Expect(err).ToNot(HaveOccurred())
 	fmt.Printf("----> created disk: %d\n", disk.Id)
 
@@ -445,7 +410,7 @@ func DeleteDisk(diskId int) {
 	Expect(err).ToNot(HaveOccurred())
 
 	fmt.Printf("----> deleting disk: %d\n", diskId)
-	err = networkStorageService.DeleteIscsiVolume(diskId, true)
+	err = networkStorageService.DeleteNetworkStorage(diskId, true)
 	Expect(err).ToNot(HaveOccurred())
 }
 
@@ -662,25 +627,6 @@ func TestUserMetadata(userMetadata, sshKeyValue string) {
 	Expect(retCode).To(Equal(0))
 }
 
-func WaitForIscsiStorageToBeDeleted(storageId int) {
-	accountService, err := CreateAccountService()
-	Expect(err).ToNot(HaveOccurred())
-
-	fmt.Printf("----> waiting for created iSCSI volume to be deleted\n")
-	Eventually(func() bool {
-		storages, err := accountService.GetIscsiNetworkStorage()
-		Expect(err).ToNot(HaveOccurred())
-
-		deletedFlag := false
-		for _, storage := range storages {
-			if storage.Id == storageId && storage.BillingItem == nil {
-				deletedFlag = true
-			}
-		}
-		return deletedFlag
-	}, TIMEOUT, POLLING_INTERVAL).Should(BeTrue(), "created iSCSI volume but not deleted successfully")
-}
-
 func GetVirtualGuestPrimaryIpAddress(virtualGuestId int) string {
 	virtualGuestService, err := CreateVirtualGuestService()
 	Expect(err).ToNot(HaveOccurred())
@@ -762,7 +708,7 @@ func WaitForDeletedDnsDomainToNoLongerBePresent(dnsDomainId int) {
 	fmt.Printf("----> waiting for deleted dns domain to no longer be present\n")
 	Eventually(func() bool {
 		dnsDomain, err := dnsDomainService.GetObject(dnsDomainId)
-		Expect(err).ToNot(HaveOccurred())
+		Expect(err).To(HaveOccurred())
 
 		if dnsDomain.Id == dnsDomainId {
 			return false

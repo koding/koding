@@ -1,10 +1,6 @@
 package models
 
-import (
-	"socialapi/request"
-
-	"github.com/koding/bongo"
-)
+import "socialapi/request"
 
 type ChannelMessageContainer struct {
 	Message      *ChannelMessage `json:"message"`
@@ -17,7 +13,6 @@ type ChannelMessageContainer struct {
 	UnreadRepliesCount int                      `json:"unreadRepliesCount,omitempty"`
 	ParentID           int64                    `json:"parentId,omitempty,string"`
 	Err                error                    `json:"-"`
-	Integration        *ChannelIntegrationMeta  `json:"integration"`
 }
 
 // Tests are done.
@@ -50,20 +45,11 @@ func withChannelMessageContainerChecks(cmc *ChannelMessageContainer, f func(c *C
 }
 
 func (c *ChannelMessageContainer) Fetch(id int64, q *request.Query) error {
-	if q.ShowExempt {
-		cmc, err := BuildChannelMessageContainer(id, q)
-		if err != nil {
-			return err
-		}
-		*c = *cmc
-
-	} else {
-		if err := bongo.B.Fetch(c, id); err != nil {
-			return err
-		}
-
-		return c.UpdateReplies(q).Err
+	cmc, err := BuildChannelMessageContainer(id, q)
+	if err != nil {
+		return err
 	}
+	*c = *cmc
 
 	return nil
 }

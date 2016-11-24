@@ -1,7 +1,6 @@
 package participant
 
 import (
-	"socialapi/models"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
 )
@@ -15,7 +14,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "participant-list",
 			Type:     handler.GetRequest,
 			Endpoint: "/channel/{id}/participants",
-			Securer:  models.ParticipantReadSecurer,
 		},
 	)
 
@@ -25,7 +23,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "participant-multi-add",
 			Type:     handler.PostRequest,
 			Endpoint: "/channel/{id}/participants/add",
-			Securer:  models.ParticipantMultiSecurer,
 		},
 	)
 
@@ -35,7 +32,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "participant-multi-remove",
 			Type:     handler.PostRequest,
 			Endpoint: "/channel/{id}/participants/remove",
-			Securer:  models.ParticipantMultiSecurer,
 		},
 	)
 
@@ -63,7 +59,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "participant-presence-update",
 			Type:     handler.PostRequest,
 			Endpoint: "/channel/{id}/participant/{accountId}/presence",
-			Securer:  models.ParticipantSecurer,
 		},
 	)
 
@@ -73,7 +68,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "participant-invitation-accept",
 			Type:     handler.PostRequest,
 			Endpoint: "/channel/{id}/invitation/accept",
-			Securer:  models.ParticipantSecurer,
 		},
 	)
 
@@ -83,7 +77,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "participant-invitation-reject",
 			Type:     handler.PostRequest,
 			Endpoint: "/channel/{id}/invitation/reject",
-			Securer:  models.ParticipantSecurer,
 		},
 	)
 }

@@ -583,13 +583,17 @@ func TestIPAddressPerTask(t *testing.T) {
 	ipPerTask := IPAddressPerTask{}
 	assert.Nil(t, ipPerTask.Groups)
 	assert.Nil(t, ipPerTask.Labels)
+	assert.Nil(t, ipPerTask.Discovery)
 
-	ipPerTask.AddGroup("label")
-	ipPerTask.AddLabel("key", "value")
+	ipPerTask.
+		AddGroup("label").
+		AddLabel("key", "value").
+		SetDiscovery(Discovery{})
 
 	assert.Equal(t, 1, len(*ipPerTask.Groups))
 	assert.Equal(t, "label", (*ipPerTask.Groups)[0])
 	assert.Equal(t, "value", (*ipPerTask.Labels)["key"])
+	assert.NotEmpty(t, ipPerTask.Discovery)
 
 	ipPerTask.EmptyGroups()
 	assert.Equal(t, 0, len(*ipPerTask.Groups))

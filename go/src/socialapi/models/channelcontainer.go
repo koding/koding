@@ -31,15 +31,11 @@ func (c *ChannelContainer) BongoName() string {
 }
 
 func (c *ChannelContainer) Fetch(id int64, q *request.Query) error {
-	if q.ShowExempt {
-		cc, err := BuildChannelContainer(id, q)
-		if err != nil {
-			return err
-		}
-		*c = *cc
-	} else {
-		return bongo.B.Fetch(c, id)
+	cc, err := BuildChannelContainer(id, q)
+	if err != nil {
+		return err
 	}
+	*c = *cc
 
 	return nil
 }
