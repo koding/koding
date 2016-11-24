@@ -13,7 +13,5 @@ require 'ide/styl'
 # require 'legal/styl'
 # require 'pricing/styl'
 require 'stack-editor/styl'
+require 'new-stack-editor/styl'
 # require 'stacks/styl'
-
-
-
