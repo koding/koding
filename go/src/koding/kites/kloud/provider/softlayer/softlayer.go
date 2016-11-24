@@ -14,7 +14,11 @@ var Provider = &provider.Provider{
 	ResourceName: "virtual_guest",
 	Machine:      NewMachine,
 	Stack: func(bs *provider.BaseStack) (provider.Stack, error) {
-		return &Stack{BaseStack: bs}, nil
+		s := &Stack{BaseStack: bs}
+
+		bs.SSHKeyPairFunc = s.setSSHKeyPair
+
+		return s, nil
 	},
 	Schema: &provider.Schema{
 		NewCredential: func() interface{} { return &Credential{} },
