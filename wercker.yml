@@ -76,6 +76,9 @@ build:
           ./configure --config dev     --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
           ./configure --config sandbox --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
     - script:
+        name: check api consistency
+        code: scripts/wercker/run-command ./run exec scripts/api-generator.coffee --check
+    - script:
         name: build client
         code: |
           make -C client dist

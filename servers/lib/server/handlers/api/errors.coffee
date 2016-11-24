@@ -32,7 +32,7 @@ module.exports = {
 
   unauthorizedRequest           :
     status                      : 401
-    message                     : 'The request is unauthorized, an api token is required.'
+    message                     : 'The request is unauthorized, a valid session or an api token is required.'
     code                        : 'UnauthorizedRequest'
 
   invalidInput                  :

@@ -6,7 +6,7 @@
   base=$( cd "$( dirname "$( dirname "$0" )")" && pwd )
   base_gopath=$( cd $base/../../../.. && pwd )
 
-  export GOPATH=$base/Godeps/_workspace:$base_gopath:$GOPATH
+  export GOPATH=$base_gopath:$GOPATH
 
   function printStatus {
       if [ $? -eq 0 ]; then
@@ -28,7 +28,7 @@
   cd $base
 
   echo -e "\n Integration Testing packages:"
-  ginkgo -r -p -v --noisyPendings integration
+  ginkgo -r -p -v --noisyPendings=false -skipPackage=dns_domain integration
 
   echo -e "\n Vetting packages for potential issues..."
   go tool vet services data_types main client common test_helpers integration

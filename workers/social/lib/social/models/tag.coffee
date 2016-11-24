@@ -2,6 +2,7 @@ async     = require 'async'
 jraphical = require 'jraphical'
 KodingError = require '../error'
 
+
 module.exports = class JTag extends jraphical.Module
 
   { Relationship } = jraphical
@@ -136,8 +137,9 @@ module.exports = class JTag extends jraphical.Module
       category      :
         type        : String
         default     : 'user-tag'
-      # owner         : ObjectId
+
     relationships   : ->
+
       JAccount = require './account'
 
       return {
@@ -489,3 +491,4 @@ module.exports = class JTag extends jraphical.Module
     { connection:{ delegate } } = client
     if delegate and not delegate.checkFlag 'super-admin'
       selector.status = { $nin: ['deleted', 'synonym'] }
+

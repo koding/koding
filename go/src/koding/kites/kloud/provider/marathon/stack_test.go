@@ -1,11 +1,8 @@
 package marathon_test
 
 import (
-	"encoding/json"
-	"fmt"
 	"io/ioutil"
-	"reflect"
-	"strings"
+	"regexp"
 	"testing"
 
 	"koding/kites/config"
@@ -14,6 +11,7 @@ import (
 	"koding/kites/kloud/provider/marathon"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
+	"koding/kites/kloud/stack/provider/providertest"
 	"koding/kites/kloud/userdata"
 
 	"github.com/koding/kite"
@@ -23,6 +21,19 @@ import (
 
 func init() {
 	stack.Konfig = &config.Konfig{}
+}
+
+// stripNondeterministicResources sets the following fields to "...",
+// as they change between test runs:
+//
+//   - resource.marathon_app.*.env.KODING_METADATA_#
+//
+func stripNondeterministicResources(s string) string {
+	if matched, _ := regexp.MatchString("KODING_METADATA_[0-9]", s); matched {
+		return "***"
+	}
+
+	return ""
 }
 
 func TestApplyTemplate(t *testing.T) {
@@ -131,7 +142,7 @@ func TestApplyTemplate(t *testing.T) {
 				t.Fatalf("ApplyTemplate()=%s", err)
 			}
 
-			if err := equal(stack.Content, string(pWant)); err != nil {
+			if err := providertest.Equal(stack.Content, string(pWant), stripNondeterministicResources); err != nil {
 				t.Fatal(err)
 			}
 
@@ -139,76 +150,5 @@ func TestApplyTemplate(t *testing.T) {
 				t.Fatalf("got %#v, want %#v", s.Labels, cas.labels)
 			}
 		})
-	}
-}
-
-func equal(got, want string) error {
-	var v1, v2 interface{}
-
-	if err := json.Unmarshal([]byte(got), &v1); err != nil {
-		return err
-	}
-
-	if err := json.Unmarshal([]byte(want), &v2); err != nil {
-		return err
-	}
-
-	stripNondeterministicResources(v1)
-	stripNondeterministicResources(v2)
-
-	if !reflect.DeepEqual(v1, v2) {
-		p1, err := json.MarshalIndent(v1, "", "\t")
-		if err != nil {
-			panic(err)
-		}
-
-		p2, err := json.MarshalIndent(v2, "", "\t")
-		if err != nil {
-			panic(err)
-		}
-
-		return fmt.Errorf("got:\n%s\nwant:\n%s\n", p1, p2)
-	}
-
-	return nil
-}
-
-// stripNondeterministicResources sets the following fields to "...",
-// as they change between test runs:
-//
-//   - resource.marathon_app.*.env.KODING_METADATA_#
-//
-func stripNondeterministicResources(v interface{}) {
-	m, ok := v.(map[string]interface{})
-	if !ok {
-		return
-	}
-
-	resource, ok := m["resource"].(map[string]interface{})
-	if !ok {
-		return
-	}
-
-	instance, ok := resource["marathon_app"].(map[string]interface{})
-	if !ok {
-		return
-	}
-
-	for _, v := range instance {
-		vm, ok := v.(map[string]interface{})
-		if !ok {
-			continue
-		}
-
-		envs, ok := vm["env"].(map[string]interface{})
-		if !ok {
-			continue
-		}
-
-		for k := range envs {
-			if strings.HasPrefix(k, "KODING_METADATA_") {
-				envs[k] = "..."
-			}
-		}
 	}
 }

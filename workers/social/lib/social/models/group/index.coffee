@@ -1068,6 +1068,9 @@ module.exports = class JGroup extends Module
 
       reviveGroupLimits this, (err, group) =>
 
+        return callback err  if err
+        return callback new KodingError 'No such group!'  unless group
+
         # we need to make sure if given stack template is
         # valid for the current group limit ~ GG
         templates = data.stackTemplates

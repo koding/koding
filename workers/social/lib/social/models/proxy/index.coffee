@@ -19,7 +19,7 @@ module.exports = class JProxyFilter extends jraphical.Module
         required      : yes
       enabled         : Boolean
         defaultValue  : yes
-      rules           : Array
+      rules           : [ Object ]
       owner           : ObjectId
       createdAt       :
         type          : Date

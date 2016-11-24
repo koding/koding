@@ -12,7 +12,7 @@ import (
 	testhelpers "github.com/maximilien/softlayer-go/test_helpers"
 )
 
-var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
+var _ = Describe("SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service", func() {
 	var (
 		username, apiKey string
 		err              error
@@ -41,6 +41,24 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 		Expect(vgbdtgService).ToNot(BeNil())
 
 		vgbdtGroup = datatypes.SoftLayer_Virtual_Guest_Block_Device_Template_Group{}
+
+		locations = []datatypes.SoftLayer_Location{
+			datatypes.SoftLayer_Location{
+				Id:       0,
+				Name:     "0",
+				LongName: "Location 0",
+			},
+			datatypes.SoftLayer_Location{
+				Id:       1,
+				Name:     "1",
+				LongName: "Location 1",
+			},
+			datatypes.SoftLayer_Location{
+				Id:       2,
+				Name:     "2",
+				LongName: "Location 2",
+			},
+		}
 	})
 
 	Context("#GetName", func() {
@@ -53,7 +71,7 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 	Context("#GetObject", func() {
 		BeforeEach(func() {
 			vgbdtGroup.Id = 200150
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_getObject.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_getObject.json")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -65,20 +83,42 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 			Expect(vgbdtg.Id).To(Equal(vgbdtGroup.Id))
 			Expect(vgbdtg.Name).To(Equal("BOSH-eCPI-packer-centos-2014-08-12T15:54:16Z"))
 			Expect(vgbdtg.Note).To(Equal("centos image created by packer at 2014-08-12T15:54:16Z"))
-			Expect(vgbdtg.ParentId).To(BeNil())
+			Expect(vgbdtg.ParentId).To(Equal(0))
 			Expect(vgbdtg.PublicFlag).To(Equal(0))
 			Expect(vgbdtg.StatusId).To(Equal(1))
 			Expect(vgbdtg.Summary).To(Equal("centos image created by packer at 2014-08-12T15:54:16Z"))
-			Expect(vgbdtg.TransactionId).To(BeNil())
+			Expect(vgbdtg.TransactionId).To(Equal(0))
 			Expect(vgbdtg.UserRecordId).To(Equal(239954))
 			Expect(vgbdtg.GlobalIdentifier).To(Equal("8071601b-5ee1-483e-a9e8-6e5582dcb9f7"))
+		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.GetObject(vgbdtGroup.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.GetObject(vgbdtGroup.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
 		})
 	})
 
 	Context("#DeleteObject", func() {
 		BeforeEach(func() {
 			vgbdtGroup.Id = 1234567
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_deleteObject.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_deleteObject.json")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -100,12 +140,34 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 			Expect(transaction.TransactionStatus.FriendlyName).To(Equal("Cloud Reclaim Prep"))
 			Expect(transaction.TransactionStatus.Name).To(Equal("CLOUD_RECLAIM_PREP"))
 		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.DeleteObject(vgbdtGroup.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.DeleteObject(vgbdtGroup.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+		})
 	})
 
 	Context("#GetDatacenters", func() {
 		BeforeEach(func() {
 			vgbdtGroup.Id = 1234567
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_getDatacenters.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_getDatacenters.json")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -122,12 +184,34 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 			Expect(locations[1].LongName).To(Equal("Dallas 6"))
 			Expect(locations[1].Name).To(Equal("dal06"))
 		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.DeleteObject(vgbdtGroup.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.DeleteObject(vgbdtGroup.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+		})
 	})
 
 	Context("#GetSshKeys", func() {
 		BeforeEach(func() {
 			vgbdtGroup.Id = 1234567
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_getSshKeys.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_getSshKeys.json")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -146,12 +230,34 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 				Expect(sshKey.Label).To(Equal("TEST:softlayer-go"))
 			}
 		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.GetSshKeys(vgbdtGroup.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.GetSshKeys(vgbdtGroup.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+		})
 	})
 
 	Context("#GetStatus", func() {
 		BeforeEach(func() {
 			vgbdtGroup.Id = 1234567
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_getStatus.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_getStatus.json")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -162,12 +268,34 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 			Expect(status.KeyName).To(Equal("ACTIVE"))
 			Expect(status.Name).To(Equal("Active"))
 		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.GetStatus(vgbdtGroup.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.GetStatus(vgbdtGroup.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+		})
 	})
 
 	Context("#GetStorageLocations", func() {
 		BeforeEach(func() {
 			vgbdtGroup.Id = 1234567
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_getStorageLocations.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_getStorageLocations.json")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -187,12 +315,34 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 			}
 			Expect(found).To(BeTrue())
 		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.GetStorageLocations(vgbdtGroup.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.GetStorageLocations(vgbdtGroup.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+		})
 	})
 
 	Context("#GetImageType", func() {
 		BeforeEach(func() {
 			vgbdtGroup.Id = 1234567
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_getImageType.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_getImageType.json")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -203,12 +353,34 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 			Expect(imageType.KeyName).To(Equal("SYSTEM"))
 			Expect(imageType.Name).To(Equal("System"))
 		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.GetImageType(vgbdtGroup.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.GetImageType(vgbdtGroup.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+		})
 	})
 
 	Context("#GetImageTypeKeyName", func() {
 		BeforeEach(func() {
 			vgbdtGroup.Id = 1234567
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_getImageTypeKeyName.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_getImageTypeKeyName.json")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -216,6 +388,28 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 			imageTypeKeyName, err := vgbdtgService.GetImageTypeKeyName(vgbdtGroup.Id)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(imageTypeKeyName).To(Equal("SYSTEM"))
+		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.GetImageTypeKeyName(vgbdtGroup.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.GetImageTypeKeyName(vgbdtGroup.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
 		})
 	})
 
@@ -229,7 +423,7 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 				OperatingSystemReferenceCode: "fake-operating-system-reference-code",
 				Uri: "swift://FakeObjectStorageAccountName>@fake-clusterName/fake-containerName/fake-fileName.vhd",
 			}
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_createFromExternalSource.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_createFromExternalSource.json")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -241,13 +435,35 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 			Expect(vgbdtGroup.Id).To(Equal(211582))
 			Expect(vgbdtGroup.Name).To(Equal(" ubuntu-10.04-bosh-2168-IEM-itcs104-dea-stemcell"))
 			Expect(vgbdtGroup.Note).To(Equal("fake-note"))
-			Expect(*vgbdtGroup.ParentId).To(Equal(211578))
+			Expect(vgbdtGroup.ParentId).To(Equal(211578))
 			Expect(vgbdtGroup.PublicFlag).To(Equal(0))
 			Expect(vgbdtGroup.StatusId).To(Equal(1))
 			Expect(vgbdtGroup.Summary).To(Equal("fake-summary"))
-			Expect(vgbdtGroup.TransactionId).To(BeNil())
+			Expect(vgbdtGroup.TransactionId).To(Equal(0))
 			Expect(vgbdtGroup.UserRecordId).To(Equal(180816))
 			Expect(vgbdtGroup.GlobalIdentifier).To(Equal("fake-global-identifier"))
+		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.CreateFromExternalSource(configuration)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.CreateFromExternalSource(configuration)
+					Expect(err).To(HaveOccurred())
+				}
+			})
 		})
 	})
 
@@ -261,7 +477,7 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 				OperatingSystemReferenceCode: "fake-operating-system-reference-code",
 				Uri: "swift://FakeObjectStorageAccountName>@fake-clusterName/fake-containerName/fake-fileName.vhd",
 			}
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_copyToExternalSource.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_copyToExternalSource.json")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -270,12 +486,34 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(copied).To(BeTrue())
 		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.CopyToExternalSource(configuration)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.CopyToExternalSource(configuration)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+		})
 	})
 
 	Context("#GetTransaction", func() {
 		BeforeEach(func() {
 			vgbdtGroup.Id = 1234567
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_deleteObject.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_deleteObject.json")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -285,12 +523,34 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 
 			Expect(transaction.TransactionStatus).ToNot(BeNil())
 		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.GetTransaction(vgbdtGroup.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.GetTransaction(vgbdtGroup.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+		})
 	})
 
 	Context("#DenySharingAccess", func() {
 		BeforeEach(func() {
 			vgbdtGroup.Id = 1234567
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_denySharingAccess.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_denySharingAccess.json")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -300,12 +560,34 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 
 			Expect(denySharing).To(BeTrue())
 		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.DenySharingAccess(vgbdtGroup.Id, 1234567)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.DenySharingAccess(vgbdtGroup.Id, 1234567)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+		})
 	})
 
 	Context("#PermitSharingAccess", func() {
 		BeforeEach(func() {
 			vgbdtGroup.Id = 1234567
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_permitSharingAccess.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_permitSharingAccess.json")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -315,33 +597,35 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 
 			Expect(permitSharing).To(BeTrue())
 		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.PermitSharingAccess(vgbdtGroup.Id, 1234567)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.PermitSharingAccess(vgbdtGroup.Id, 1234567)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+		})
 	})
 
 	Context("#XyzLocations", func() {
-		BeforeEach(func() {
-			locations = []datatypes.SoftLayer_Location{
-				datatypes.SoftLayer_Location{
-					Id:       0,
-					Name:     "0",
-					LongName: "Location 0",
-				},
-				datatypes.SoftLayer_Location{
-					Id:       1,
-					Name:     "1",
-					LongName: "Location 1",
-				},
-				datatypes.SoftLayer_Location{
-					Id:       2,
-					Name:     "2",
-					LongName: "Location 2",
-				},
-			}
-		})
-
 		Context("#AddLocations", func() {
 			BeforeEach(func() {
 				vgbdtGroup.Id = 1234567
-				fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_addLocations.json")
+				fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_addLocations.json")
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -351,12 +635,34 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 
 				Expect(result).To(BeTrue())
 			})
+
+			Context("when HTTP client returns error codes 40x or 50x", func() {
+				It("fails for error code 40x", func() {
+					errorCodes := []int{400, 401, 499}
+					for _, errorCode := range errorCodes {
+						fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+						_, err := vgbdtgService.AddLocations(vgbdtGroup.Id, locations)
+						Expect(err).To(HaveOccurred())
+					}
+				})
+
+				It("fails for error code 50x", func() {
+					errorCodes := []int{500, 501, 599}
+					for _, errorCode := range errorCodes {
+						fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+						_, err := vgbdtgService.AddLocations(vgbdtGroup.Id, locations)
+						Expect(err).To(HaveOccurred())
+					}
+				})
+			})
 		})
 
 		Context("#RemoveLocations", func() {
 			BeforeEach(func() {
 				vgbdtGroup.Id = 1234567
-				fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_removeLocations.json")
+				fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_removeLocations.json")
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -366,12 +672,34 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 
 				Expect(result).To(BeTrue())
 			})
+
+			Context("when HTTP client returns error codes 40x or 50x", func() {
+				It("fails for error code 40x", func() {
+					errorCodes := []int{400, 401, 499}
+					for _, errorCode := range errorCodes {
+						fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+						_, err := vgbdtgService.RemoveLocations(vgbdtGroup.Id, locations)
+						Expect(err).To(HaveOccurred())
+					}
+				})
+
+				It("fails for error code 50x", func() {
+					errorCodes := []int{500, 501, 599}
+					for _, errorCode := range errorCodes {
+						fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+						_, err := vgbdtgService.RemoveLocations(vgbdtGroup.Id, locations)
+						Expect(err).To(HaveOccurred())
+					}
+				})
+			})
 		})
 
 		Context("#SetAvailableLocations", func() {
 			BeforeEach(func() {
 				vgbdtGroup.Id = 1234567
-				fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_setAvailableLocations.json")
+				fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_setAvailableLocations.json")
 				Expect(err).ToNot(HaveOccurred())
 			})
 
@@ -380,6 +708,107 @@ var _ = Describe("SoftLayer_Virtual_Guest_Service", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(result).To(BeTrue())
+			})
+
+			Context("when HTTP client returns error codes 40x or 50x", func() {
+				It("fails for error code 40x", func() {
+					errorCodes := []int{400, 401, 499}
+					for _, errorCode := range errorCodes {
+						fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+						_, err := vgbdtgService.SetAvailableLocations(vgbdtGroup.Id, locations)
+						Expect(err).To(HaveOccurred())
+					}
+				})
+
+				It("fails for error code 50x", func() {
+					errorCodes := []int{500, 501, 599}
+					for _, errorCode := range errorCodes {
+						fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+						_, err := vgbdtgService.SetAvailableLocations(vgbdtGroup.Id, locations)
+						Expect(err).To(HaveOccurred())
+					}
+				})
+			})
+		})
+
+		Context("#CreatePublicArchiveTransaction", func() {
+			var (
+				groupName, summary, note string
+			)
+
+			BeforeEach(func() {
+				vgbdtGroup.Id = 0
+				fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_createPublicArchiveTransaction.json")
+				Expect(err).ToNot(HaveOccurred())
+
+				groupName = "fake-group-name"
+				summary = "fake-summary"
+				note = "fake-note"
+			})
+
+			It("successfully creates a public archive transaction", func() {
+				transactionId, err := vgbdtgService.CreatePublicArchiveTransaction(vgbdtGroup.Id, groupName, summary, note, locations)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(transactionId).To(Equal(0))
+			})
+
+			Context("when HTTP client returns error codes 40x or 50x", func() {
+				It("fails for error code 40x", func() {
+					errorCodes := []int{400, 401, 499}
+					for _, errorCode := range errorCodes {
+						fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+						_, err := vgbdtgService.CreatePublicArchiveTransaction(vgbdtGroup.Id, groupName, summary, note, locations)
+						Expect(err).To(HaveOccurred())
+					}
+				})
+
+				It("fails for error code 50x", func() {
+					errorCodes := []int{500, 501, 599}
+					for _, errorCode := range errorCodes {
+						fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+						_, err := vgbdtgService.CreatePublicArchiveTransaction(vgbdtGroup.Id, groupName, summary, note, locations)
+						Expect(err).To(HaveOccurred())
+					}
+				})
+			})
+		})
+	})
+
+	Context("#GetGlobalIdentifier", func() {
+		BeforeEach(func() {
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Virtual_Guest_Block_Device_Template_Group_Service_getGlobalIdentifier.json")
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("successfully gets global identifier for a VGDTG", func() {
+			globalIdentifier, err := vgbdtgService.GetGlobalIdentifier(vgbdtGroup.Id)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(globalIdentifier).To(Equal("4f48b668-ba04-46bc-b9cd-c3543aacedc2"))
+		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.GetGlobalIdentifier(vgbdtGroup.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := vgbdtgService.GetGlobalIdentifier(vgbdtGroup.Id)
+					Expect(err).To(HaveOccurred())
+				}
 			})
 		})
 	})
