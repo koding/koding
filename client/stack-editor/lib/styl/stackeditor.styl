@@ -70,8 +70,10 @@ $borderColor                = #E3E3E3
         width               auto
         vendor              transition, padding .177s ease
 
-      &.active b
-        color               $accentColor
+      &.active
+        b
+        .kdinput.text.template-title.autogrow
+          color               $accentColor
 
       &:last-of-type b
         border-right        none
