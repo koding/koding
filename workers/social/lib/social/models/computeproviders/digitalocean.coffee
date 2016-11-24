@@ -6,7 +6,7 @@ module.exports = class DigitalOcean extends ProviderInterface
 
   @bootstrapKeys = ['key_id', 'key_name', 'key_fingerprint']
 
-  @sensitiveKeys = ['access_token']
+  @secretKeys    = ['access_token']
 
   @ping = (client, options, callback) ->
 

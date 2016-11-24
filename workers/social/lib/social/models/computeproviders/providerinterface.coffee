@@ -18,9 +18,9 @@ PASS_THROUGH = (rest... , callback) -> callback null
 # @example How to subclass a provider
 #   class Aws extends ProviderInterface
 #
-#     @providerSlug  = 'aws'
+#     @providerSlug = 'aws'
 #     @bootstrapKeys = ['key_pair', 'rtb', 'acl']
-#     @sensitiveKeys = ['access_key', 'secret_key']
+#     @secretKeys = ['access_key', 'secret_key']
 #
 module.exports = class ProviderInterface
 
@@ -29,6 +29,7 @@ module.exports = class ProviderInterface
   @providerSlug   = 'baseprovider'
   @bootstrapKeys  = []
   @sensitiveKeys  = []
+  @secretKeys     = []
 
   @ping           = NOT_IMPLEMENTED
 
