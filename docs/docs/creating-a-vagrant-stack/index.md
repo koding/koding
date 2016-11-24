@@ -24,43 +24,39 @@ It is recommended that you choose the Vagrant stack if you have access to a phys
 
 1. **Install KD** by copying the KD CLI command and pasting in your _local terminal_. Click **Stacks -&gt; Koding Utilities** to find the KD CLI command.
 
-> If you already have **KD** installed make sure you have the latest version by running **sudo kd update** in your local terminal.
+    > If you already have **KD** installed make sure you have the latest version by running **sudo kd update** in your local terminal.
 
-![install-kd.png][3]
+    ![install-kd.png][3]
 
 2. After the installation is successful on your **local terminal** , copy the **Kite Query ID**.
 
-> If you already have the latest **KD** installed, you can run **kd version** on your local terminal to obtain your **Kite Query ID**.
+    > If you already have the latest **KD** installed, you can run **kd version** on your local terminal to obtain your **Kite Query ID**.
 
-![kite-query-id.png][4]
+    ![kite-query-id.png][4]
 
-3. It's time to create our Vagrant stack, go to Koding again and click **STACKS**.
+3. It's time to create your Vagrant stack, go to Koding again and click **STACKS**.
 
-![step001.png][5]
+    ![step001.png][5]
 
 4. Click **New Stack** button.
 
-![step002.png][6]
+    ![step002.png][6]
 
-5. The stack builder guide will open, click **Create A New Stack**.
+5. Choose **Vagrant** as the provider.
 
-![step003.png][7]
+    ![provider-vagrant.png][8]
 
-6. Choose **Vagrant** as the provider.
+6. Rename your Stack to something you remember, we named ours **Vagrant Stack**.
 
-![provider-vagrant.png][8]
+    ![rename-stack.png][9]
 
-7. Rename your Stack to something you remember, we named ours **Vagrant Stack**.
+7. Move to the **Credentials** tab and give any **Title** to your credential, and paste the **Kite Query ID**&nbsp;you copied in step 2 into **Kite ID**. Then click **SAVE THIS &amp; CONTINUE**.
 
-![rename-stack.png][9]
+    ![credentials.png][10]
 
-8. Move to the **Credentials** tab and give any **Title** to your credential, and paste the **Kite Query ID**&nbsp;you copied in step 2 into **Kite ID**. Then click **SAVE THIS &amp; CONTINUE**.
+8. Click **Save**, then **Initialize** and follow the stack building wizard to build your Vagrant Stack. Once you are done, you will be able to use your Vagrant VM on Koding.
 
-![credentials.png][10]
-
-9. Click **Save**, then **Initialize** and follow the stack building wizard to build your Vagrant Stack. Once you are done, you will be able to use your Vagrant VM on Koding.
-
-![vagrant-stack-started.png][11]
+    ![vagrant-stack-started.png][11]
 
 ## Advanced notes regarding Vagrant Stack template
 
@@ -89,8 +85,8 @@ This is an example stack script with more&nbsp;configuration options that you ca
             sudo apt-get install mysql-server postgresql -y
 ```
 
-* _**debug: true**_ makes all the&nbsp;Vagrant output to be logged in `/Library/Logs/klient.log`
-* _**forwarded_ports**_ forwards specified port from guest to host
+- **debug: true** makes all the Vagrant output to be logged in `/Library/Logs/klient.log`
+- **forwarded_ports** forwards specified port from guest to host
 
 [1]: http://www.virtualbox.org
 [2]: https://www.vagrantup.com/about.html
