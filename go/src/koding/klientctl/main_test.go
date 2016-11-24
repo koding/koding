@@ -62,7 +62,12 @@ func (mc *MainCmd) Run(args ...string) error {
 	}
 	defer os.RemoveAll(dir)
 
-	cmd.Env = append(os.Environ(), "TEST_MAIN_HELPER=1", "KODING_HOME="+dir)
+	cmd.Env = append(os.Environ(),
+		"TEST_MAIN_HELPER=1",
+		"KODING_HOME="+dir,
+		"KD_EXPERIMENTAL=1",
+	)
+
 	if s := mc.FT.String(); s != "" {
 		cmd.Env = append(cmd.Env, "TEST_MAIN_HELPER_FAKETRANSPORT="+s)
 	}
