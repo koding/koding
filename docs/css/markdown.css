@@ -380,6 +380,14 @@
   margin-bottom: 16px;
 }
 
+.markdown-body ul li{
+  list-style-type: circle;
+}
+
+.markdown-body ol li{
+  list-style-type: decimal;
+}
+
 .markdown-body hr {
   height: 0.25em;
   padding: 0;
