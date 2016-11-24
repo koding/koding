@@ -20,6 +20,7 @@ import (
 
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
+	"koding/klientctl/kloud"
 	"koding/klientctl/util"
 
 	"github.com/koding/logging"
@@ -55,6 +56,10 @@ var (
 )
 
 func main() {
+	run(os.Args)
+}
+
+func run(args []string) {
 	// For forward-compatibility with go1.5+, where GOMAXPROCS is
 	// always set to a number of available cores.
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -100,6 +105,11 @@ func main() {
 		fmt.Println("Error: this command requires sudo.")
 		ctlcli.Close()
 		os.Exit(10)
+	}
+
+	kloud.DefaultClient.Log = log
+	if kt, ok := kloud.DefaultClient.Transport.(*kloud.KiteTransport); ok {
+		kt.Log = log
 	}
 
 	defer ctlcli.Close()
@@ -427,24 +437,6 @@ func main() {
 				ShortName: "c",
 				Usage:     "Manage stack credentials.",
 				Subcommands: []cli.Command{{
-					Name:   "import",
-					Usage:  "Import stack credentials from Koding account.",
-					Action: ctlcli.ExitErrAction(CredentialImport, log, "import"),
-					Flags: []cli.Flag{
-						cli.BoolFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-						cli.StringFlag{
-							Name:  "provider, p",
-							Usage: "Specify credential provider.",
-						},
-						cli.StringFlag{
-							Name:  "team, t",
-							Usage: "Specify team which the credential belongs to.",
-						},
-					},
-				}, {
 					Name:      "list",
 					ShortName: "ls",
 					Usage:     "List imported stack credentials.",
@@ -478,12 +470,16 @@ func main() {
 						},
 						cli.StringFlag{
 							Name:  "file, f",
-							Value: "-",
+							Value: "",
 							Usage: "Read credential from a file.",
 						},
 						cli.StringFlag{
 							Name:  "team, t",
 							Usage: "Specify team which the credential belongs to.",
+						},
+						cli.StringFlag{
+							Name:  "title",
+							Usage: "Specify credential title.",
 						},
 					},
 				}},
@@ -498,10 +494,42 @@ func main() {
 					Action:    ctlcli.ExitErrAction(MachineListCommand, log, "list"),
 				}},
 			},
+			cli.Command{
+				Name:  "stack",
+				Usage: "Manage stacks.",
+				Subcommands: []cli.Command{{
+					Name:   "create",
+					Usage:  "Create new stack.",
+					Action: ctlcli.ExitErrAction(StackCreate, log, "create"),
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "provider, p",
+							Usage: "Specify stack provider.",
+						},
+						cli.StringSliceFlag{
+							Name:  "credential, c",
+							Usage: "Specify stack credentials.",
+						},
+						cli.StringFlag{
+							Name:  "team, t",
+							Usage: "Specify team which the stack belongs to.",
+						},
+						cli.StringFlag{
+							Name:  "file, f",
+							Value: "",
+							Usage: "Read stack template from a file.",
+						},
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+					},
+				}},
+			},
 		)
 	}
 
-	app.Run(os.Args)
+	app.Run(args)
 }
 
 // ExitWithMessage takes a ExitingWithMessageCommand type and returns a
