@@ -477,6 +477,10 @@ func run(args []string) {
 							Name:  "team, t",
 							Usage: "Specify team which the credential belongs to.",
 						},
+						cli.StringFlag{
+							Name:  "title",
+							Usage: "Specify credential title.",
+						},
 					},
 				}},
 			},

@@ -82,6 +82,17 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 		return 1, err
 	}
 
+	if c.Bool("json") {
+		p, err := json.MarshalIndent(cred, "", "\t")
+		if err != nil {
+			return 1, err
+		}
+
+		fmt.Printf("%s\n", p)
+
+		return 0, nil
+	}
+
 	fmt.Fprintf(os.Stderr, "Created %q credential with %s identifier.\n", cred.Title, cred.Identifier)
 
 	return 0, nil

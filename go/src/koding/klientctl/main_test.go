@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"koding/klientctl/kloud"
 	stdlog "log"
 	"os"
@@ -45,7 +46,7 @@ type MainCmd struct {
 	FT FakeTransport
 }
 
-func (mc *MainCmd) Run(args []string) error {
+func (mc *MainCmd) Run(args ...string) error {
 	args = append([]string{"-test.run=TestMainHelper", "--"}, args...)
 
 	cmd := exec.Command(os.Args[0], args...)
@@ -54,7 +55,14 @@ func (mc *MainCmd) Run(args []string) error {
 	cmd.Stdout = mc.Stdout
 	cmd.Stderr = mc.Stderr
 
-	cmd.Env = append(os.Environ(), "TEST_MAIN_HELPER=1")
+	// Do not share konfig.bolt between test runs.
+	dir, err := ioutil.TempDir("", "maincmd")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(dir)
+
+	cmd.Env = append(os.Environ(), "TEST_MAIN_HELPER=1", "KODING_HOME="+dir)
 	if s := mc.FT.String(); s != "" {
 		cmd.Env = append(cmd.Env, "TEST_MAIN_HELPER_FAKETRANSPORT="+s)
 	}
