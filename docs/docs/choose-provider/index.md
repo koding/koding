@@ -162,7 +162,7 @@ Monitor your instances for performance and uptime without resorting to third-par
 
 ## Microsoft Azure <a name="azure"></a>
 
-# Coming Soon...
+ Coming Soon...
 
 [1]: {{ site.url }}/docs/creating-an-aws-stack
 [2]: {{ site.url }}/docs/terraform/providers/aws/
