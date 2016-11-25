@@ -12,6 +12,22 @@ KD is a tool to run commands & mount your remote VM files on your local machine.
 1. Access your remote VM files and edit them using your favorite local IDE(s).
 2. Run commands on your remote VM
 
+## Table of Contents
+
+  - [KD requirements](#requirements)
+  - [Installing KD](#installation)
+  - [KD commands](#kdcommands)
+  - [KD help](#kdhelp)
+  - [Using KD](#using-kd)
+    - [kd list](#kd-list)
+    - [kd mount](#kd-mount)
+    - [kd run](#kd-run)
+    - [kd update](#kd-update)
+    - [kd version](#kd-version)
+    - [kd uninstall](#kd-uninstall)
+
+<a id="requirements"></a>
+
 ## KD requirements
 
 Please note that the below is required for successful installation of **KD**:
@@ -20,42 +36,46 @@ Please note that the below is required for successful installation of **KD**:
 2. works only on **OSX** and **Linux**
 3. **KD** is currently in beta
 
+<a id="installation"></a>
+
 ## Installing KD
 
-Click on **STACKS** from the left side bar, and go to **Koding Utilities**
+  Click on **STACKS** from the left side bar, and go to **Koding Utilities**
 
 ![kd-install-command.png][1]
 
-Copy the **kd** install command then paste it in your local machine terminal &amp; run..
+  Copy the **kd** install command then paste it in your local machine terminal &amp; run..
 
+```yaml
+  john@johns-mac:~ $curl -sL https://kodi.ng/d/kd | bash -s 901f9a44
+  Hello, this is the Koding application (kd) installer.
+  This installer requires sudo permissions, please input password if prompted...
+  Password:
+
+  Downloading kd...
+   % Total % Received % Xferd Average Speed Time Time Time Current
+   Dload Upload Total Spent Left Speed
+  100 11.0M 100 11.0M 0 0 160k 0 0:01:10 0:01:10 --:--:-- 242k
+  Created /usr/local/bin/kd
+
+  Downloading...
+  Created /opt/kite/klient/klient
+  Authenticating you to the KD Daemon
+
+  Authenticated successfully
+  Created /etc/kite/kite.key
+  Verifying installation...
+
+  Successfully installed and started the KD Daemon!
+  Success! kd has been successfully installed. Please run the
+  following command for more information:
+
+   kd -h
+
+  john@johns-mac:~ $
 ```
-    john@johns-mac:~ $curl -sL https://kodi.ng/d/kd | bash -s 901f9a44
-    Hello, this is the Koding application (kd) installer.
-    This installer requires sudo permissions, please input password if prompted...
-    Password:
 
-    Downloading kd...
-     % Total % Received % Xferd Average Speed Time Time Time Current
-     Dload Upload Total Spent Left Speed
-    100 11.0M 100 11.0M 0 0 160k 0 0:01:10 0:01:10 --:--:-- 242k
-    Created /usr/local/bin/kd
-
-    Downloading...
-    Created /opt/kite/klient/klient
-    Authenticating you to the KD Daemon
-
-    Authenticated successfully
-    Created /etc/kite/kite.key
-    Verifying installation...
-
-    Successfully installed and started the KD Daemon!
-    Success! kd has been successfully installed. Please run the
-    following command for more information:
-
-     kd -h
-
-    john@johns-mac:~ $
-```
+<a id="kdcommands"></a>
 
 ## KD full list of commands
 
@@ -90,6 +110,7 @@ COMMANDS:
    open            Open the given file(s) on the Koding UI
    help, h         Shows a list of commands or help for one command
 ```
+<a id="kdhelp"></a>
 
 ## KD help
 
@@ -113,10 +134,13 @@ DESCRIPTION
     that does a lot of filesystem operations like git,
     use --oneway-sync.
 ```
+<a id="using-kd"></a>
 
 ## Using KD
 
 Here's a list of the common KD commands
+
+<a id="kd-list"></a>
 
 ### kd list
 
@@ -127,6 +151,8 @@ Run `kd list` to view all your Koding cloud VMs:
       TEAM   LABEL           IP        ALIAS   MOUNTED     PATHS
   1. bloom   example_1  52.49.116.216  grape
 ```
+
+<a id="kd-mount"></a>
 
 ### kd mount < vm alias > < local mount folder >
 
@@ -146,9 +172,13 @@ You have now mounted the cloud VM on a local folder called '_grape_'. You can mo
 
 > Use the `-p` option with `kd mount` if you have a slow connection. It will force **kd** to retrieve only top level folder/files. Rest is fetched on request (fastest to mount). For more options run `kd help mount`
 
+<a id="kd-run"></a>
+
 ### kd run < command >
 
 `kd run` is very useful as you can use it to run commands on your remote VM.
+
+<a id="kd-update"></a>
 
 ### kd update
 
@@ -162,6 +192,8 @@ Stopping KD Daemon...
 Successfully updated to latest version of kd.
 ```
 
+<a id="kd-version"></a>
+
 ### kd version
 
 `kd version` will show the installed **kd** version
@@ -173,6 +205,8 @@ Latest Version: 0.1.74
 Environment: production
 Kite Query ID: a7e1e03f-7f01-47a3-b4ac-2566b5256564
 ```
+
+<a id="kd-uninstall"></a>
 
 ### kd uninstall
 
