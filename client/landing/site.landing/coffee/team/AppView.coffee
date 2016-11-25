@@ -12,6 +12,7 @@ module.exports = class TeamView extends kd.View
     join            : require './tabs/teamjointab'
     banned          : require './tabs/teambannedtab'
     authenticate    : require './tabs/teamauthenticatetab'
+    payment         : require './tabs/stripepaymenttab'
 
 
   constructor: (options = {}, data) ->
