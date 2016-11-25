@@ -8,7 +8,7 @@ module.exports = class Azure extends ProviderInterface
 
   @secretKeys    = ['publish_settings', 'password']
 
-  @sensitiveKeys = ['ssh_key_thumbprint']
+  @sensitiveKeys = ProviderInterface.sensitiveKeys.concat ['ssh_key_thumbprint']
 
 
   @ping = (client, callback) ->

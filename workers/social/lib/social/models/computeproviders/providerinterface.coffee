@@ -28,7 +28,7 @@ module.exports = class ProviderInterface
 
   @providerSlug   = 'baseprovider'
   @bootstrapKeys  = []
-  @sensitiveKeys  = []
+  @sensitiveKeys  = ['ssh_private_key', 'ssh_public_key']
   @secretKeys     = []
 
   @ping           = NOT_IMPLEMENTED

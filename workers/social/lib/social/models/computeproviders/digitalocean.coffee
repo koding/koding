@@ -8,7 +8,6 @@ module.exports = class DigitalOcean extends ProviderInterface
 
   @secretKeys    = ['access_token']
 
-  @sensitiveKeys = ['ssh_private_key', 'ssh_public_key']
 
   @ping = (client, options, callback) ->
 
