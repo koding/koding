@@ -10,7 +10,7 @@ parent: /docs/home
 ## Introduction
 
 This guide will help you build Digital Ocean droplets stack. You can configure the number of droplets and applications installed on each instance. Along with configuring droplet size and region.
-Your new team members will be able to use your stack to build their Koding VMs and start working from day one.
+Your new team members will be able to use your stack to build their VMs environment and start working from day one.
 
 > If you do not have a Digital Ocean account yet, you can signup here [www.digitalocean.com][100]
 
