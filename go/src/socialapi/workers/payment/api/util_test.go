@@ -20,8 +20,6 @@ import (
 
 func withStubData(endpoint string, f func(username string, groupName string, sessionID string)) {
 	createURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerCreate)
-	deleteURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerDelete)
-
 	acc, _, groupName := models.CreateRandomGroupDataWithChecks()
 
 	group, err := modelhelper.GetGroup(groupName)
@@ -41,8 +39,7 @@ func withStubData(endpoint string, f func(username string, groupName string, ses
 
 	f(acc.Nick, groupName, ses.ClientId)
 
-	res, err = rest.DoRequestWithAuth("DELETE", deleteURL, nil, ses.ClientId)
-	tests.ResultedWithNoErrorCheck(res, err)
+	So(payment.DeleteCustomerForGroup(groupName), ShouldBeNil)
 }
 
 func withTestPlan(f func(planID string)) {
@@ -105,6 +102,25 @@ func withTestCreditCardToken(f func(token string)) {
 	})
 	tests.ResultedWithNoErrorCheck(t, err)
 	f(t.ID)
+}
+
+func addCreditCardToUserWithChecks(endpoint, sessionID string) {
+	customerUpdateURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerUpdate)
+
+	withTestCreditCardToken(func(token string) {
+		cp := &stripe.CustomerParams{
+			Source: &stripe.SourceParams{
+				Token: token,
+			},
+		}
+		req, err := json.Marshal(cp)
+		So(err, ShouldBeNil)
+		So(req, ShouldNotBeNil)
+
+		res, err := rest.DoRequestWithAuth("POST", customerUpdateURL, req, sessionID)
+		So(err, ShouldBeNil)
+		So(res, ShouldNotBeNil)
+	})
 }
 
 func withTestCoupon(f func(string)) {

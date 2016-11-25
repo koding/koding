@@ -24,6 +24,8 @@ func TestInvoiceList(t *testing.T) {
 					group, err := modelhelper.GetGroup(groupName)
 					tests.ResultedWithNoErrorCheck(group, err)
 
+					addCreditCardToUserWithChecks(endpoint, sessionID)
+
 					Convey("We should be able to create a subscription", func() {
 						req, err := json.Marshal(&stripe.SubParams{
 							Customer: group.Payment.Customer.ID,
