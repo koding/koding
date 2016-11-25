@@ -36,7 +36,7 @@ module.exports = class TeamDomainTab extends kd.TabPaneView
             # temp putting these empty values here to not break stuff - SY
             utils.storeNewTeamData 'email-domains', { domains : '' }
             utils.storeNewTeamData 'invite', { invitee1 : '', invitee2 : '', invitee3 : '' }
-            kd.singletons.router.handleRoute '/Team/Username'
+            kd.singletons.router.handleRoute '/Team/Payment'
 
           error   : (error) =>
             @showError error or 'That domain is invalid or taken, please try another one.'
