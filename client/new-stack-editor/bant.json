@@ -1,0 +1,15 @@
+{
+  "name": "new-stack-editor",
+  "main": "./lib/index.coffee",
+  "routes": {
+    "/Stack-Editor": "home",
+    "/Stack-Editor/New": "new",
+    "/Stack-Editor/:stackTemplateId": "edit-stack"
+  },
+  "sprites": [
+    "./lib/sprites"
+  ],
+  "styles": [
+    "./lib/styl/*.styl"
+  ]
+}
