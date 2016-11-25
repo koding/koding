@@ -115,7 +115,7 @@ DigitalOcean lets you assign domains to an IP address (and thus use DigitalOcean
 
 ***
 
-## Google Compute Engine <a name="google-compute-cloud"></a>
+## Google Compute Engine <a name="google-compute-engine"></a>
 
 - [**Getting Started with Google Compute Engine**][50]
 - [**Google Cloud Platform Website**][51]
