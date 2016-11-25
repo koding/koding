@@ -42,7 +42,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
     listView.on 'ItemDeleted', @bound 'showNoItemWidget'
 
-    listView.on 'ItemAction', ({ action, item, options }) =>
+    listView.on 'ItemAction', ({ action, item, options }) ->
 
       credential    = item.getData()
       { provider }  = credential
