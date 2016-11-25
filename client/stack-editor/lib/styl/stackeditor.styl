@@ -27,6 +27,7 @@ $borderColor                = #E3E3E3
 
     > div.kdview
       padding               0
+      overflow              hidden
       borderBox()
       &.readonly
         opacity             0.5 !important
@@ -116,10 +117,10 @@ $borderColor                = #E3E3E3
   .stack-script-search-link
     abs                     15px 38px
     transition              transform .2s ease\,
-                            opacity .2s .2s ease
-    font-size               0
+                            opacity .1s ease
     opacity                 0
-    z-index                 0
+    z-index                 1
+    transform               translateX(300px)
 
   input.kdinput.searchStackInput
     margin                  5px 20px
@@ -141,6 +142,7 @@ $borderColor                = #E3E3E3
       font-size             16px
       opacity               1
       z-index               1
+      transform             translateX(0px)
       &.shift
         transform           translateX(-30px)
 
