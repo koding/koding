@@ -32,6 +32,7 @@ LocationController             = require './locationcontroller'
 MainView                       = require './mainview'
 MainViewController             = require './mainviewcontroller'
 NotificationController         = require './notificationcontroller'
+NotificationViewController     = require './notificationviewcontroller'
 OAuthController                = require './oauthcontroller'
 OnboardingController           = require './onboarding/onboardingcontroller'
 PaymentController              = require './payment/paymentcontroller'
@@ -90,6 +91,7 @@ module.exports = class MainController extends KDController
     kd.registerSingleton 'appManager',   appManager = new ApplicationManager
     kd.registerSingleton 'store',                     store = createStore()
     kd.registerSingleton 'notificationController',    new NotificationController
+    kd.registerSingleton 'notificationViewController',new NotificationViewController
     kd.registerSingleton 'desktopNotifications',      new DesktopNotificationsController
     kd.registerSingleton 'linkController',            new LinkController
     kd.registerSingleton 'display',                   new ContentDisplayController
