@@ -168,38 +168,4 @@ module.exports = class StackEditorAppController extends AppController
     view    = new StackEditorView options, data
     view.on 'Cancel', -> kd.singletons.router.back()
 
-    confirmation = null
-
-    stackTemplate.on? 'update', =>
-
-      return  if confirmation
-      return  if view._stackSaveInAction
-
-      view.addSubView confirmation = new ContentModal
-        title: 'Stack Template is Updated'
-        cssClass: 'content-modal'
-        buttons:
-          cancel:
-            title: 'Cancel'
-            style: 'solid light-gray medium'
-            callback: ->
-              confirmation.destroy()
-              confirmation = null
-          ok:
-            title: 'OK'
-            style: 'solid green medium'
-            callback: =>
-              view.destroy()
-              delete @editors[stackTemplate._id]
-              @openEditor stackTemplate._id
-        content: '''
-          <div class='modalformline'
-            <p>This stack template is updated by another admin. Do you want to reload?</p>
-          </div>
-          '''
-
-
-    view.on 'StackSaveInAction',  -> @_stackSaveInAction = yes
-    view.on 'StackSaveCompleted', -> @_stackSaveInAction = no
-
     return view

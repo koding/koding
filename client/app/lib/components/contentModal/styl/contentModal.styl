@@ -31,6 +31,8 @@ contentModal.styl
 
       .kdtabview
         overflow            hidden
+        padding             2px
+        borderBox()
 
     .kdmodal-inner .close-icon
       r-sprite              app content_modal_close_icon
@@ -342,7 +344,11 @@ main.main-container
   width                     900px !important
   height                    100% !important
   main
+    > div
+      height                100%
+
     margin                  20px
+    height                  calc(100% \- 100px)
     .preview-label
       color                 #868686
       font-weight           300
@@ -352,17 +358,14 @@ main.main-container
       font-weight           300
 
     button.expand-button
-      abs()
-      right                 40px
-      bottom                calc(100% \- 198px)
       z-index               10
+      abs                   60px, 20px
 
     button.minimize-button
       display               none
 
     .kdtabpaneview
-      height                600px !important
-
+      height                100% !important
 
 
 .ContentModal.content-modal.stack-script
@@ -393,11 +396,14 @@ main.main-container
     display                 none
 
   main
+    > div
+      height                100%
+
     height                  calc(100% \- 80px)
 
     .kdtabpaneview
-      height                calc(100% \- 43px)
-
+      height                calc(100% \- 42px)
+      border-bottom         1px solid #DDD
 
   .expand-button
   header
@@ -406,5 +412,5 @@ main.main-container
     display                 none
 
   button.minimize-button
-    abs                     100px 60px 0 0
+    abs                     60px, 20px
     z-index                 10
