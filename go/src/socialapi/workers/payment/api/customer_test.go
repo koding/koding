@@ -24,7 +24,6 @@ func TestCustomer(t *testing.T) {
 					So(group.Payment.Customer.ID, ShouldNotBeBlank)
 					Convey("We should be able to get the customer", func() {
 						getURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerGet)
-						updateURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerUpdate)
 
 						res, err := rest.DoRequestWithAuth("GET", getURL, nil, sessionID)
 						So(err, ShouldBeNil)
@@ -41,34 +40,20 @@ func TestCustomer(t *testing.T) {
 						So(v.Meta["username"], ShouldEqual, username)
 
 						Convey("After adding credit card to the user", func() {
-							withTestCreditCardToken(func(token string) {
-								cp := &stripe.CustomerParams{
-									Source: &stripe.SourceParams{
-										Token: token,
-									},
-								}
+							addCreditCardToUserWithChecks(endpoint, sessionID)
 
-								req, err := json.Marshal(cp)
+							res, err = rest.DoRequestWithAuth("GET", getURL, nil, sessionID)
+							So(err, ShouldBeNil)
+							So(res, ShouldNotBeNil)
+
+							Convey("Customer should have CC assigned", func() {
+								v = &stripe.Customer{}
+								err = json.Unmarshal(res, v)
 								So(err, ShouldBeNil)
-								So(req, ShouldNotBeNil)
 
-								res, err := rest.DoRequestWithAuth("POST", updateURL, req, sessionID)
-								So(err, ShouldBeNil)
-								So(res, ShouldNotBeNil)
-
-								res, err = rest.DoRequestWithAuth("GET", getURL, nil, sessionID)
-								So(err, ShouldBeNil)
-								So(res, ShouldNotBeNil)
-
-								Convey("Customer should have CC assigned", func() {
-									v = &stripe.Customer{}
-									err = json.Unmarshal(res, v)
-									So(err, ShouldBeNil)
-
-									So(v.DefaultSource, ShouldNotBeNil)
-									So(v.DefaultSource.Deleted, ShouldBeFalse)
-									So(v.DefaultSource.ID, ShouldNotBeEmpty)
-								})
+								So(v.DefaultSource, ShouldNotBeNil)
+								So(v.DefaultSource.Deleted, ShouldBeFalse)
+								So(v.DefaultSource.ID, ShouldNotBeEmpty)
 							})
 						})
 					})
@@ -121,6 +106,7 @@ func TestInfoPlan(t *testing.T) {
 		withTestServer(t, func(endpoint string) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
 				withTestPlan(func(planID string) {
+					addCreditCardToUserWithChecks(endpoint, sessionID)
 					withSubscription(endpoint, groupName, sessionID, planID, func(subscriptionID string) {
 						Convey("We should be able to get info", func() {
 							infoURL := fmt.Sprintf("%s%s", endpoint, EndpointInfo)
