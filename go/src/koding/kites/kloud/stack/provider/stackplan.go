@@ -81,6 +81,8 @@ type Planner struct {
 	Provider     string // Terraform provider name
 	ResourceType string // Terraform resource type
 
+	Log logging.Logger // used for logging
+
 	KlientTimeout time.Duration // when zero-value, DefaultKlientTimeout is used
 
 	// OnDial, when non-nil, is called to perform additional check
@@ -101,6 +103,8 @@ func (p *Planner) MachinesFromState(state *terraform.State, klients map[string]*
 	if len(state.Modules) == 0 {
 		return nil, errors.New("state modules is empty")
 	}
+
+	p.Log.Debug("MachinesFromState: state=%#v, klients=%#v", state, klients)
 
 	machines := make(map[string]*stack.Machine)
 
