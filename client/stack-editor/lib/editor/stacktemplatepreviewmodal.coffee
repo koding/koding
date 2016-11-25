@@ -21,40 +21,37 @@ module.exports = class StackTemplatePreviewModal extends ContentModal
     errors   = createReportFor errors,   'errors'
     warnings = createReportFor warnings, 'warnings'
 
-    @addSubView @main = new kd.CustomHTMLView
-      tagName : 'main'
+    @main.addSubView container = new kd.CustomHTMLView
 
-    @main.addSubView expandButton = new kd.ButtonView
-      cssClass : 'solid compact solid-bg expand-button'
-      title : 'Expand'
-      callback : =>
-        @unsetClass 'stack-template-preview'
-        @setClass 'expanded-stack-template-preview'
-        @minimizeButton.show()
-        @resizeOpenPane()
-
-
-    @main.addSubView @minimizeButton = new kd.ButtonView
-      cssClass : 'solid compact solid-bg minimize-button hidden'
-      title : 'Collapse'
-      callback : =>
-        @setClass 'stack-template-preview'
-        @unsetClass 'expanded-stack-template-preview'
-        @minimizeButton.hide()
-        @resizeOpenPane()
-
-
-    @main.addSubView new kd.CustomHTMLView
+    container.addSubView new kd.CustomHTMLView
       partial : "<p class='preview-label'>This preview renders variables such as ${var.koding_user_username} to their actual values.</p>"
 
-    @main.addSubView new kd.CustomHTMLView
+    container.addSubView new kd.CustomHTMLView
       cssClass : 'has-markdown'
       partial  : applyMarkdown """
         #{errors}
         #{warnings}
         """
 
-    @main.addSubView @tabView = new kd.TabView { hideHandleCloseIcons : yes }
+    container.addSubView @tabView = new kd.TabView { hideHandleCloseIcons : yes }
+
+    @tabView.addSubView expandButton = new kd.ButtonView
+      cssClass : 'solid compact solid-bg expand-button'
+      title    : 'Expand'
+      callback : =>
+        @unsetClass 'stack-template-preview'
+        @setClass 'expanded-stack-template-preview'
+        @minimizeButton.show()
+        @resizeOpenPane()
+
+    @tabView.addSubView @minimizeButton = new kd.ButtonView
+      cssClass : 'solid compact solid-bg minimize-button hidden'
+      title    : 'Collapse'
+      callback : =>
+        @setClass 'stack-template-preview'
+        @unsetClass 'expanded-stack-template-preview'
+        @minimizeButton.hide()
+        @resizeOpenPane()
 
     @createYamlView()
     @createJSONView()
@@ -62,8 +59,6 @@ module.exports = class StackTemplatePreviewModal extends ContentModal
     @tabView.showPaneByIndex 0
     @tabView.on 'PaneDidShow', => @resizeOpenPane()
 
-    defaultHeight = @getHeight()
-    defaultWidth = @getWidth()
 
   resizeOpenPane: ->
 
