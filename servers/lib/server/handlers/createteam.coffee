@@ -216,7 +216,7 @@ createGroupKallback = (client, req, res, body) ->
 afterGroupCreateKallback = (res, params) ->
 
   { JUser, JTeamInvitation, Tracker } = koding.models
-  { body : { slug, invitees, coupon }, client,  username } = params
+  { body : { slug, invitees, coupon, stripeToken }, client,  username } = params
 
   return (err, group) ->
     if err or not group
@@ -234,6 +234,7 @@ afterGroupCreateKallback = (res, params) ->
       (fin) ->
         params = { sessionToken: client.sessionToken }
         params.coupon = coupon  if coupon
+        params.source = stripeToken  if stripeToken
         createPaymentPlan params, (err) ->
           console.error 'Err while creating payment plan', err  if err
           fin()
