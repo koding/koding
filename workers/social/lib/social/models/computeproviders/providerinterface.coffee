@@ -53,7 +53,7 @@ module.exports = class ProviderInterface
     if not credential?.fetchData?
       return callback null, {}
 
-    credential.fetchData client, (err, credData) ->
+    credential.fetchData client, {}, (err, credData) ->
 
       if err?
         callback new KodingError 'Failed to fetch credential'

@@ -473,14 +473,16 @@ module.exports = class JCredential extends jraphical.Module
         title    : @getAt 'title'
         provider : @getAt 'provider'
 
-      @fetchData client, (err, data) ->
+      options =
+        shadowSecretData    : no
+        shadowSensitiveData : no
+
+      @fetchData client, options, (err, data) ->
 
         return callback err  if err
 
         cloneData.meta = data.meta  if data?.meta
         JCredential.create client, cloneData, callback
-
-      , shadowSensitiveData = no
 
 
   # Poor man's shadow function ~ GG
@@ -490,8 +492,14 @@ module.exports = class JCredential extends jraphical.Module
     return "*#{Array(r c).join '*'}#{c[(r c)..]}"
 
 
-  fetchData: (client, callback, shadowSensitiveData = yes) ->
+  fetchData: (client, options, callback) ->
 
+    { shadowSensitiveData, shadowSecretData } = options
+
+    shadowSensitiveData ?= yes
+    shadowSecretData    ?= yes
+
+    secretKeys    = PROVIDERS[@provider]?.secretKeys    or []
     sensitiveKeys = PROVIDERS[@provider]?.sensitiveKeys or []
 
     CredentialStore.fetch client, @identifier, (err, data) ->
@@ -501,6 +509,11 @@ module.exports = class JCredential extends jraphical.Module
       if shadowSensitiveData
         meta = data?.meta or {}
         sensitiveKeys.forEach (key) ->
+          meta[key] = shadowed meta[key]
+
+      if shadowSecretData
+        meta = data?.meta or {}
+        secretKeys.forEach (key) ->
           meta[key] = shadowed meta[key]
 
       callback null, data
@@ -519,7 +532,11 @@ module.exports = class JCredential extends jraphical.Module
 
     success: (client, callback) ->
 
-      @fetchData client, callback
+      options =
+        shadowSecretData    : yes
+        shadowSensitiveData : yes
+
+      @fetchData client, options, callback
 
 
   update$: permit
@@ -557,7 +574,7 @@ module.exports = class JCredential extends jraphical.Module
   isBootstrapped: permit
 
     advanced: [
-      { permission: 'update credential' } # , validateWith: Validators.own }
+      { permission: 'update credential' }
     ]
 
     success: (client, callback) ->
@@ -575,7 +592,7 @@ module.exports = class JCredential extends jraphical.Module
       if bootstrapKeys.length is 0
         return callback null, no
 
-      @fetchData client, (err, data) ->
+      @fetchData client, {}, (err, data) ->
         return callback err  if err
         return callback new KodingError 'Failed to fetch data'  unless data
 
