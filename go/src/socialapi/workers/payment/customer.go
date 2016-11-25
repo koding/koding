@@ -13,7 +13,6 @@ import (
 	"github.com/stripe/stripe-go/customer"
 	stripeplan "github.com/stripe/stripe-go/plan"
 	"golang.org/x/sync/errgroup"
-	"gopkg.in/mgo.v2/bson"
 )
 
 var (
@@ -23,6 +22,8 @@ var (
 	ErrCustomerNotExists = errors.New("user is not created for subscription")
 	// ErrGroupAlreadyHasSub error when a group tries to create a sub and they try to create another
 	ErrGroupAlreadyHasSub = errors.New("group already has a subscription")
+	// ErrCustomerSourceNotExists holds the error when a customer does not have a card
+	ErrCustomerSourceNotExists = errors.New("does not have source")
 )
 
 // Usage holds current usage information, which will be calculated on the fly
@@ -61,11 +62,6 @@ func EnsureCustomerForGroup(username string, groupName string, req *stripe.Custo
 		return customer.Get(group.Payment.Customer.ID, nil)
 	}
 
-	isAdmin, err := modelhelper.IsAdmin(username, groupName)
-	if err != nil {
-		return nil, err
-	}
-
 	req, err = populateCustomerParams(username, group.Slug, req)
 	if err != nil {
 		return nil, err
@@ -80,8 +76,7 @@ func EnsureCustomerForGroup(username string, groupName string, req *stripe.Custo
 		modelhelper.Selector{"_id": group.Id},
 		modelhelper.Selector{
 			"$set": modelhelper.Selector{
-				"payment.customer.id":       cus.ID,
-				"payment.customer.isMember": !isAdmin,
+				"payment.customer.id": cus.ID,
 			},
 		},
 	); err != nil {
@@ -93,6 +88,7 @@ func EnsureCustomerForGroup(username string, groupName string, req *stripe.Custo
 
 // DeleteCustomerForGroup deletes the customer for a given group. If customer is
 // not registered, returns error. If customer is already deleted, returns success.
+// Not necessarily should be used. Call with care.
 func DeleteCustomerForGroup(groupName string) error {
 	group, err := modelhelper.GetGroup(groupName)
 	if err != nil {
@@ -117,7 +113,7 @@ func DeleteCustomerForGroup(groupName string) error {
 	)
 }
 
-// UpdateCustomerForGroup updates customer data of a group`
+// UpdateCustomerForGroup updates customer data of a group
 func UpdateCustomerForGroup(username, groupName string, params *stripe.CustomerParams) (*stripe.Customer, error) {
 	if _, err := EnsureCustomerForGroup(username, groupName, params); err != nil {
 		return nil, err
@@ -137,25 +133,7 @@ func UpdateCustomerForGroup(username, groupName string, params *stripe.CustomerP
 		return nil, err
 	}
 
-	cus, err := customer.Update(group.Payment.Customer.ID, params)
-	if err != nil {
-		return nil, err
-	}
-
-	// create subscription for the user if they dont have any sub info, this can
-	// happen if the customer did not pay the previous invoice - stripe deletes
-	// the sub automatically.
-	subParams := &stripe.SubParams{
-		Customer: group.Payment.Customer.ID,
-		Plan:     Plans[Free].ID,
-	}
-
-	if _, err := EnsureSubscriptionForGroup(groupName, subParams); err != nil {
-		return nil, err
-	}
-
-	return cus, nil
-
+	return customer.Update(group.Payment.Customer.ID, params)
 }
 
 // GetCustomerForGroup get the registered customer info of a group if exists
@@ -294,15 +272,6 @@ func getPlan(subscription *stripe.Sub, totalCount int) (*stripe.Plan, error) {
 	return stripeplan.Get(expectedPlanID, nil)
 }
 
-func createFilter(groupID bson.ObjectId) modelhelper.Selector {
-	return modelhelper.Selector{
-		"as":         modelhelper.Selector{"$in": []string{"owner", "admin", "member"}},
-		"targetName": "JAccount",
-		"sourceName": "JGroup",
-		"sourceId":   groupID,
-	}
-}
-
 // deleteCustomer tries to make customer deletion idempotent
 func deleteCustomer(customerID string) error {
 	cus, err := customer.Del(customerID)
@@ -358,4 +327,20 @@ func populateCustomerParams(username, groupName string, initial *stripe.Customer
 	req.Params.Meta["username"] = username
 
 	return req, nil
+}
+
+func checkCustomerHasSource(cusID string) (bool, error) {
+	cus, err := customer.Get(cusID, nil)
+	if err != nil {
+		return false, err
+	}
+
+	count := 0
+	for _, source := range cus.Sources.Values {
+		if !source.Deleted {
+			count++
+		}
+	}
+
+	return count == 1, nil
 }
