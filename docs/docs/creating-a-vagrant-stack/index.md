@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: Create Vagrant stack
+title: Create a Vagrant stack
 permalink: /docs/creating-a-vagrant-stack
 parent: /docs/home
 ---

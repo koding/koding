@@ -1,6 +1,6 @@
 ---
 layout: doc
-title: Create a Google Cloud Engine stack
+title: Create a Google Compute Engine stack
 permalink: /docs/creating-a-gce-stack
 parent: /docs/home
 ---
