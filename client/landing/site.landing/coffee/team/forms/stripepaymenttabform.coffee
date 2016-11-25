@@ -63,7 +63,7 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
       type: 'submit'
       loader: yes
 
-    @backLink = @getButtonLink 'BACK', '/Team/Username'
+    @backLink = @getButtonLink 'BACK', '/Team/Domain'
 
     @on [ 'FormSubmitFailed', 'FormValidationFailed' ], @button.bound 'hideLoader'
 
