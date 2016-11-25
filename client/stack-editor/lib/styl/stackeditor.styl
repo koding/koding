@@ -133,8 +133,10 @@ $borderColor                = #E3E3E3
     transition              width .2s ease\,
                             box-shadow .2s .2s ease\,
                             border-color .2s .2s ease
+    &.active
     &:focus
       width                 calc(100% \- 40px)
+    &.active ~ .stack-script-search-link
     &:focus ~ .stack-script-search-link
       font-size             16px
       opacity               1
