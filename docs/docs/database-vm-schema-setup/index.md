@@ -12,8 +12,8 @@ parent: /docs/home
 In this example we will create a **Stack** with a single VM acting as a database server. In this example we will cover:
 
 1. Creating a Stack
-2. Editing Stack `user_data` section to install MySQL server whenever a VM is created using that Stack
-3. Using custom variables to create a database table and to place a file in user's home folder
+2. Editing Stack `user_data` section to install MySQL server whenever a VM is built
+3. Using **Custom Variables** to create a database table and to place a file in user's home folder
 
 ### Table of contents
 
