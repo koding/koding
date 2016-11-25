@@ -336,55 +336,6 @@ dl dd {
   font-size: 1.1em;
   line-height: 1.4em;
 }
-
-/* 404 page */
-body#unsupported-page,
-body#not-found-page {
-	background: #f8f8f8;
-	text-align: center;
-}
-#unsupported-page h2,
-#not-found-page h2 {
-	font-size: 60px;
-	color: #626262;
-	text-shadow: none;
-	font-weight: 600;
-	margin: 50px 0 20px 0;
-	line-height: normal;
-}
-#not-found-page a.return-home {
-	display: inline-block;
-	color : #9a9a9a;
-	letter-spacing: .04em;
-	margin: 0 0 100px 0;
-	text-decoration: none;
-	border-bottom: 1px solid #9a9a9a;
-}
-#unsupported-page p,
-#not-found-page a.return-home p {
-	font-size: 25px;
-	font-weight: 100;
-	color: #9a9a9a;
-	margin: 0;
-}
-.astronaut-problem-wrapper {
-	width: 664px;
-	height: 455px;
-	margin: 0 auto 50px;
-	background: url(../img/space.gif) no-repeat center center;
-	position: relative;
-}
-.astronaut-problem-wrapper .astronaut-problem {
-	left: 155px;
-	top: 30px;
-	position: absolute;
-	-webkit-transform: translateY(10px);
-	-webkit-animation: astronautHover 5s infinite ease;
-	-moz-transform: translateY(10px);
-	-moz-animation: astronautHover 5s infinite ease;
-	transform: translateY(10px);
-	animation: astronautHover 5s infinite ease;
-}
 #unsupported-page .browsers {
 	width: 200px;
 	height: 60px;
