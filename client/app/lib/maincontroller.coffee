@@ -35,6 +35,9 @@ KodingFluxReactor      = require './flux/base/reactor'
 bowser                 = require 'bowser'
 fetchChatlioKey        = require 'app/util/fetchChatlioKey'
 createStore            = require './redux/createStore'
+
+NotificationViewController  = require './notificationviewcontroller'
+
 dispatchInitialActions = require './redux/dispatchInitialActions'
 
 module.exports = class MainController extends kd.Controller
@@ -77,6 +80,7 @@ module.exports = class MainController extends kd.Controller
     kd.registerSingleton 'appManager',   appManager = new ApplicationManager
     kd.registerSingleton 'store',             store = createStore()
     kd.registerSingleton 'notificationController',    new NotificationController
+    kd.registerSingleton 'notificationViewController',new NotificationViewController
     kd.registerSingleton 'linkController',            new LinkController
     kd.registerSingleton 'router',           router = new KodingRouter
     kd.registerSingleton 'localStorageController',    new LocalStorageController
