@@ -488,6 +488,7 @@ module.exports = class JCredential extends jraphical.Module
   # Poor man's shadow function ~ GG
   shadowed = (c) ->
     return ''  unless c
+    c = c[0...(Math.min  c.length, 30)]
     r = (c) -> Math.ceil c.length / 1.5
     return "*#{Array(r c).join '*'}#{c[(r c)..]}"
 
@@ -535,6 +536,9 @@ module.exports = class JCredential extends jraphical.Module
       options =
         shadowSecretData    : yes
         shadowSensitiveData : yes
+
+      if client._allowedPermissionIndex is 0
+        options.shadowSensitiveData = no
 
       @fetchData client, options, callback
 
