@@ -34,27 +34,35 @@ module.exports = class NotificationViewContainer extends ReactView
           opacity : 0
 
 
-  onNotificationRemove: (uid) ->
+  onNotificationRemove: (uid) =>
 
-    @options.onNotificationRemove(uid)
+    notification = null
+    notifications = @options.notifications
+    notifications = notifications.filter (n) ->
+      notification = n if n.uid is uid
+      n.uid isnt uid
+    notification.onRemove notification  if notification && notification.onRemove
+    @options.notifications = notifications
+    @appendToDomBody()
+
+
+  getNotifications: ->
+
+      @options.notifications.map (notification, index) =>
+        <NotificationView
+        index={index}
+        key={notification.uid}
+        notification={notification}
+        onRemove={@bound 'onNotificationRemove'} />
 
 
   renderReact: ->
 
-    return <span />  unless @options.notifications.length
-
     { enter, leave } = @getAnimationProps()
-    <div className={styles.kd_notification_list}>
+    <div className={styles.kd_notification_list} class={'hidden'  unless @options.notifications.length}>
       <FlipMove
         enterAnimation={enter}
         leaveAnimation={leave}>
-        {
-          @options.notifications.map (notification, index) =>
-            <NotificationView
-            index={index}
-            key={notification.uid}
-            notification={notification}
-            onRemove={@bound 'onNotificationRemove'} />
-        }
+        { @getNotifications() }
       </FlipMove>
     </div>
