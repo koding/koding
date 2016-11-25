@@ -55,8 +55,8 @@ func GetCustomer(u *url.URL, h http.Header, _ interface{}, context *models.Conte
 
 // CreateCustomer creates the customer for a group
 func CreateCustomer(u *url.URL, h http.Header, req *stripe.CustomerParams, context *models.Context) (int, http.Header, interface{}, error) {
-	if !context.IsLoggedIn() {
-		return response.NewBadRequest(models.ErrNotLoggedIn)
+	if err := checkContext(context); err != nil {
+		return response.NewBadRequest(err)
 	}
 
 	return response.HandleResultAndError(
