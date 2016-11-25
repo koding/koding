@@ -241,6 +241,10 @@ func invoiceCreatedHandler(raw []byte) error {
 	}
 
 	info, err := GetInfoForGroup(group)
+	if err == mgo.ErrNotFound {
+		return nil
+	}
+
 	if err != nil {
 		return err
 	}
@@ -388,6 +392,10 @@ func sendEventForCustomer(customerID string, eventName string, options map[strin
 	}
 
 	admins, err := modelhelper.FetchAdminAccounts(cus.Meta["groupName"])
+	if err == mgo.ErrNotFound {
+		return nil
+	}
+
 	if err != nil {
 		return err
 	}
