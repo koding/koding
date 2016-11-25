@@ -10,82 +10,201 @@ permalink: /new
 
 <!-- particles.js container -->
 <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<link rel="stylesheet" href="{{ site.url }}/css/modal.css">
 <link rel="stylesheet" href="{{ site.url }}/css/index_new.css">
 
 <div class="HomeHeaderContainer" id="particles">
   <div class="HomeHeaderContainer-header">
-    <div class="HomeHeaderContainer-openSource fade">Open source tools for developers</div>
-    <h1 class="fade">Automate your team's development environments</h1>
-    <a class="u-getStarted fade" href="{{ site.url }}/teams/create">Get started</a>
-    <figure id="alien"></figure>
+    <h1 class="fade">Modern Development Environment Delivered.</h1>
+    <p>Development environment needs to adapt to modern IT and micro-services. Mimicking production environment on a single laptop no longer works for these complex architecture.</p>
+    <div class="HomeHeaderContainer-linkContainer">
+      <a href="#" data-youtube-id="2COxlWQ0J1U" class="showModal playButton u-icon u-playButton">Koding's Vision</a>
+      <a href="/docs">Product Demo</a>
+    </div>
   </div>
 </div>
 
-<div class="HomeContainer">
-
-  {% include home-flow-item.html
-     headline="Improve your dev process with stack scripts"
-     title="Script your dev environment in a .YAML file"
-     description="Developers get everything they need to spin up full-stack, project-specific environments in seconds. Share them, update them, and manage infrastructure from a simple interface."
-     linktext="Learn more about stack scripts"
-     link="http://google.com"
-     imagepos="left"
-     imagesrc="/assets/img/landing/interim/terraform"
-     imageext="jpg"
-     itempos="1" %}
-
-  {% include home-flow-item.html
-     headline="Spend more time in the code"
-     title="One click to build dev environments for any project"
-     description="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut."
-     linktext="Learn more about stack scripts"
-     link="http://google.com"
-     imagepos="right"
-     imagesrc="/assets/img/landing/interim/untitled"
-     imageext="jpg"
-     itempos="2" %}
-
-  {% include home-flow-item.html
-     headline="Collaborate with your team faster"
-     title="Script your dev environment in a .YAML file"
-     description="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut."
-     linktext="Learn more about stack scripts"
-     link="http://google.com"
-     imagepos="left"
-     imagesrc="/assets/img/landing/interim/helloworld"
-     imageext="jpg"
-     itempos="3" %}
-
-  {% include home-flow-item.html
-     headline="Share VM’s with ease"
-     title="Script your dev environment in a .YAML file"
-     description="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut."
-     linktext="Learn more about stack scripts"
-     link="http://google.com"
-     imagepos="right"
-     imagesrc="/assets/img/landing/interim/share"
-     imageext="jpg"
-     itempos="4" %}
-
-  {% include home-flow-item.html
-     headline="Code faster by using your favorite local IDE"
-     title="Script your dev environment in a .YAML file"
-     description="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut."
-     linktext="Learn more about stack scripts"
-     link="http://google.com"
-     imagepos="left"
-     imagesrc="/assets/img/landing/interim/kdcli"
-     imageext="jpg"
-     itempos="5" %}
-
-  <div class="EndContainer">
-    <div class="u-headline">Closing copy blah blah blah</div>
-    <div class="clearfix"></div>
-    <div class="EndContainer-header">A better development process is waiting for you</div>
-    <div class="u-getStarted">Get started</div>
+<div id="Slide1" class="Slide">
+  <div class="container">
+    <h2>Traditional Software development is broken in the enterprise</h2>
+    <div class="Slide1-container">
+      <p>Did you know that <span>8 hours of every developer’s time is wasted</span> on waiting? Which results in <span>$33M loss in a 1000 people organization</span>, not to mention loss in efficiency or <span>slipping milestones for months*</span>?</p>
+      <p>Best companies in the world today ship code faster, their developers can collaborate across timezones, and any developer can get started on any project in minutes. Can your organization do the same?</p>
+      <div class="clearfix"></div>
+    </div>
+    <h3>With Koding, Yes!</h3>
+    <p>* Source: DevOps Guide, Selected resources to start your journey. IT Revolution Press</p>
   </div>
 </div>
+<div id="Slide2" class="Slide">
+  <div>KODING GETS YOU HERE</div>
+
+  <table>
+    <tr>
+      <th>
+      </th>
+      <th>
+        Modern Tech Company
+      </th>
+      <th>
+        Traditional Enterprise
+      </th>
+    </tr>
+    <tr>
+      <td>
+        Deploy frequency
+      </td>
+      <td>
+        100-1000s of times a day
+      </td>
+      <td>
+        Once per 6-12 months
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Deploy lead time
+      </td>
+      <td>
+        Minutes
+      </td>
+      <td>
+        Months or quarters
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Environment Automation
+      </td>
+      <td>
+        Fully automated
+      </td>
+      <td>
+        None - hand coded
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Dev / Prod Env Consistency
+      </td>
+      <td>
+        High
+      </td>
+      <td>
+        Low / Medium
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Team Env Consistency
+      </td>
+      <td>
+        Easy to update and share
+      </td>
+      <td>
+        Out of sync
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Customer responsiveness
+      </td>
+      <td>
+        High
+      </td>
+      <td>
+        Low / Medium
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Outage risk
+      </td>
+      <td>
+        Low
+      </td>
+      <td>
+        Medium / High
+      </td>
+    </tr>
+    <tr>
+      <td>
+        Code maintainability
+      </td>
+      <td>
+        High
+      </td>
+      <td>
+        Low / Medium
+      </td>
+    </tr>
+  </table>
+</div>
+
+{% include home-headerwithimage.html
+   id="Slide3"
+   image_src="/assets/img/landing/interim/kodingWork"
+   image_ext="png"
+   title="How does Koding work?"
+   description="Script and automate your dev environments to enable developer productivity within minutes." %}
+
+{% include home-headerwithimage.html
+   id="Slide4"
+   image_src="/assets/img/landing/interim/productivity"
+   image_ext="png"
+   title="Increase productivity through collaboration"
+   description="Developers waits 8 hours a week on avg. for help on code. If you have 100 devs then you waste aprx. 384,000 hours a year." %}
+
+{% include home-headerwithimage.html
+   id="Slide5"
+   image_src="/assets/img/landing/interim/analytics"
+   image_ext="png"
+   title="Improve productivity with analytics"
+   description="Easily understand where your process has bottlenecks and locate holes in productivity."
+   caption_title="View real-time charts about:"
+   caption="<ul>
+     <li>Time spent booting up environment</li>
+     <li>Num devs needed to resolve issues</li>
+     <li>Time spent collaborating</li>
+     <li>Team stack focus areas</li>
+   </ul>"
+   image_pos="right" %}
+
+<div id="Slide6" class="Slide">
+  <div class="container">
+    <h2>Write in your IDE, execute on your terminal</h2>
+    <h3>Yes, no more online IDE</h3>
+    <p>We heard you, and we developed KD, our command line tool that is able to mount any VM that you provision seamlessly to your local computer and you code in your favorite IDE. Since mount is just files, your IDE won’t know the difference. Use your terminal to drop in your code into the server.</p>
+    <a href="#" class="bottomLink">Learn more about KD</a>
+  </div>
+</div>
+<div id="Slide7" class="Slide">
+  <div class="container">
+    <h2>100% Software Development Lifecycle</h2>
+    <p>Koding fills the gap in your end-to-end software development workflow, with integrations to GitLab and Mesosphere.</p>
+    <img src="/assets/img/landing/interim/integrations.png" />
+    <div class="Slide7-linkContainer">
+      <a href="#" data-youtube-id="T59sN8Bsqxs" class="showModal playButton u-icon u-playButton">Koding integrates with Gitlab</a>
+      <a href="#" data-youtube-id="csFxrXkJb7U" class="showModal playButton u-icon u-playButton">Koding and IBM discuss</a>
+    </div>
+  </div>
+</div>
+
+{% include home-headerwithimage.html
+   id="Slide8"
+   image_src="/assets/img/landing/interim/tetris"
+   image_ext="png"
+   title="Koding works with everything! Seamlessly."
+   caption_title="Powerful dev denvironments in 5 minutes"
+   caption="Powered by Terraform, you can create any dev environment using any cloud AWS, Vagrant, GCP, Azure, Digital Ocean, Mesosphere, VMWare and 50 other more service providers like Github, Cloudflare.<br /><br />
+
+   You can configure your dev environment by writing a simple script where you define the VM(s) you need, the installed packages & tools on each VM and the network configuration.<br /><br />
+
+   After configuration, you can onboard your team in just 5 minutes. This makes it easy for anyone to jump in to help on problems in other teams right away. "
+   caption_link="Learn more about Stack scripts"
+   image_pos="left" %}
 <div class="LearnMoreContainer">
+  <h2>Koding is for Every Team</h2>
   <ul>
     <li>
       <div>Developer teams</div>
@@ -107,97 +226,11 @@ permalink: /new
   </ul>
 
 </div>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+  {% include js/landing-modal.js %}
+  {% include js/landing.js %}
+</script>
 
 <!-- FOOTER -->
 {% include footer.html %}
-
-<script>
-(function(){
-  var alien = $('#alien'),
-      faderinos = $('.HomeHeaderContainer .header .fade');
-
-  var fade = function(){
-    var scrollTop = $(window).scrollTop();
-    if (1 - scrollTop / 500 < 0) return;
-
-    var ratio = 1 - scrollTop / 500,
-        alienX = -Math.max( Math.min((ratio * 1000), 1000), 0);
-
-    faderinos.css('opacity', ratio);
-    alien.css({
-      'transform': 'translateX(' + alienX + '%)  rotateZ(-2deg)',
-      'opacity': 1 - ratio
-    });
-  }
-
-  $(window).scroll(fade);
-})();
-
-particlesJS("particles", {
-  "particles": {
-    "number": {
-      "value": 150,
-      "density": {
-        "enable": true,
-        "value_area": 800
-      }
-    },
-    "color": {
-      "value": "#8BA9D1"
-    },
-    "shape": {
-      "type": "circle",
-      "stroke": {
-        "width": 0,
-        "color": "#000000"
-      }
-    },
-    "opacity": {
-      "value": 1,
-      "random": true,
-      "anim": {
-        "enable": true,
-        "speed": 1,
-        "opacity_min": 0.2,
-        "sync": false
-      }
-    },
-    "size": {
-      "value": 1,
-      "random": false,
-      "anim": {
-        "enable": false
-      }
-    },
-    "line_linked": {
-      "enable": false
-    },
-    "move": {
-      "enable": true,
-      "speed": 1,
-      "direction": "none",
-      "random": true,
-      "straight": false,
-      "out_mode": "out",
-      "bounce": false,
-      "attract": {
-        "enable": false,
-        "rotateX": 600,
-        "rotateY": 600
-      }
-    }
-  },
-  "interactivity": {
-    "events": {
-      "onhover": {
-        "enable": false,
-      },
-      "onclick": {
-        "enable": false,
-      },
-      "resize": false
-    }
-  },
-  "retina_detect": true
-});
-</script>
