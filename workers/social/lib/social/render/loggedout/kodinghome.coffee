@@ -31,7 +31,8 @@ module.exports = (options, callback) ->
           google    : #{JSON.stringify KONFIG.client.runtimeOptions.google},
           gitlab    : #{JSON.stringify KONFIG.client.runtimeOptions.gitlab},
           recaptcha : #{JSON.stringify KONFIG.client.runtimeOptions.recaptcha},
-          domains   : #{JSON.stringify KONFIG.client.runtimeOptions.domains}
+          domains   : #{JSON.stringify KONFIG.client.runtimeOptions.domains},
+          stripe    : #{JSON.stringify KONFIG.client.runtimeOptions.stripe}
         }
       </script>
 
