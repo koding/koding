@@ -20,7 +20,7 @@ module.exports = class NotificationViewController extends kd.Controller
 
     _notification = _.assign {}, Constants.notification, notificationOptions
     Helpers.validateProps _notification, Constants.types
-    notifications = @getNotificationOptions "notifications"
+    notifications = @getNotificationOptions 'notifications'
     _notification.type = _notification.type.toLowerCase()
     _notification.duration = parseInt _notification.duration, 10
     _notification.uid = _notification.uid or @uid
@@ -36,13 +36,3 @@ module.exports = class NotificationViewController extends kd.Controller
   getNotificationOptions: (option) ->
 
     @container.options[option]
-
-  onNotificationRemove: (uid) ->
-
-    notification = null
-    notifications = @getNotificationOptions notifications
-    notifications = notifications.filter (n) ->
-      notification = n if n.uid is uid
-      n.uid isnt uid
-    notification.onRemove notification  if notification && notification.onRemove
-    @container.updateOptions { notifications }
