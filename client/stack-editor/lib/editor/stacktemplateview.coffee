@@ -3,6 +3,7 @@ globals = require 'globals'
 Encoder = require 'htmlencode'
 curryIn = require 'app/util/curryIn'
 KDButtonView = kd.ButtonView
+CustomLinkView = require 'app/customlinkview'
 StackScriptSearchView = require './stackscriptsearchview'
 StackTemplateEditorView = require './stacktemplateeditorview'
 
@@ -40,8 +41,8 @@ module.exports = class StackTemplateView extends kd.View
     }
 
     @editorView.addSubView @previewButton = new KDButtonView
-      title    : 'Preview'
-      cssClass : 'solid compact light-gray template-preview-button'
+      title    : 'PREVIEW'
+      cssClass : 'HomeAppView--button secondary template-preview-button'
       loader   : yes
       loaderOptions: { color: '#858585' }
       tooltip  :
@@ -49,12 +50,12 @@ module.exports = class StackTemplateView extends kd.View
       callback : => @emit 'ShowTemplatePreview'
 
     @editorView.addSubView new KDButtonView
-      title    : 'Logs'
-      cssClass : 'solid compact light-gray showlogs-button'
+      title    : 'LOGS'
+      cssClass : 'HomeAppView--button secondary showlogs-button'
       callback : => @emit 'ShowOutputView'
 
     @editorView.addSubView new KDButtonView
-      cssClass : 'solid compact light-gray fullscreen-button'
+      cssClass : 'HomeAppView--button secondary fullscreen-button'
       title    : ''
       callback : =>
         kd.singletons.appManager.tell 'Stacks', 'toggleFullscreen'

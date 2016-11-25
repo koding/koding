@@ -3,10 +3,10 @@
 readonly releaseChannel="%RELEASE_CHANNEL%"
 
 readonly OSXFUSE_URL="https://s3.amazonaws.com/koding-dl/osxfuse-3.5.2.dmg"
-readonly VIRTUALBOX_URL_LINUX="http://download.virtualbox.org/virtualbox/5.0.20/VirtualBox-5.0.20-106931-Linux_amd64.run"
-readonly VIRTUALBOX_URL_DARWIN="http://download.virtualbox.org/virtualbox/5.0.20/VirtualBox-5.0.20-106931-OSX.dmg"
-readonly VAGRANT_URL_LINUX="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb"
-readonly VAGRANT_URL_DARWIN="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1.dmg"
+readonly VIRTUALBOX_URL_LINUX="http://download.virtualbox.org/virtualbox/5.1.8/VirtualBox-5.1.8-111374-Linux_amd64.run"
+readonly VIRTUALBOX_URL_DARWIN="http://download.virtualbox.org/virtualbox/5.1.8/VirtualBox-5.1.8-111374-OSX.dmg"
+readonly VAGRANT_URL_LINUX="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.7_x86_64.deb"
+readonly VAGRANT_URL_DARWIN="https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.7.dmg"
 
 VERSION="$(curl -sSL https://koding-kd.s3.amazonaws.com/${releaseChannel}/latest-version.txt)"
 PLATFORM="$(uname | tr '[:upper:]' '[:lower:]')"
@@ -234,6 +234,9 @@ install_vagrant_darwin() {
   sudo hdiutil attach "$vagrantDmg"
   sudo installer -pkg "/Volumes/Vagrant/Vagrant.pkg" -target /
   diskutil unmount force "/Volumes/Vagrant"
+
+  # Workaround for Vagrant 1.8.7, which fails to "box add".
+  sudo rm -f /opt/vagrant/embedded/bin/curl || true
 
   rm -f "$vagrantDmg"
 }

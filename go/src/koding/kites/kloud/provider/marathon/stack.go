@@ -88,7 +88,7 @@ func (s *Stack) BootstrapTemplates(*stack.Credential) (_ []*stack.Template, _ er
 }
 
 // StacklyTemplate applies the given credentials to user's stack template.
-func (s *Stack) ApplyTemplate(_ *stack.Credential) (*stack.Template, error) {
+func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	t := s.Builder.Template
 
 	var resource struct {
@@ -109,7 +109,7 @@ func (s *Stack) ApplyTemplate(_ *stack.Credential) (*stack.Template, error) {
 			delete(app, "debug")
 		}
 
-		s.convertInstancesToGroup(name, s.Req.Username+"-"+s.Builder.Stack.ID.Hex(), app)
+		s.convertInstancesToGroup(name, s.unique(c), app)
 
 		if err := s.injectEntrypoint(app); err != nil {
 			return nil, err
@@ -424,6 +424,14 @@ func (s *Stack) plan() (stack.Machines, error) {
 	}
 
 	return machines, nil
+}
+
+func (s *Stack) unique(c *stack.Credential) string {
+	if s.Builder.Stack != nil {
+		return s.Req.Username + "-" + s.Builder.Stack.ID.Hex()
+	}
+
+	return s.Req.Username + "-" + c.Identifier
 }
 
 func (s *Stack) state(state *terraform.State, klients map[string]*provider.DialState) (map[string]*stack.Machine, error) {

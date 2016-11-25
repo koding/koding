@@ -27,7 +27,7 @@ module.exports = class StackScriptSearchBoxContainer extends React.Component
 
     event.persist()
     @setState { searchQuery: event.target.value }
-    @setState { loading: yes }
+    @setState { close: no, loading: yes }
     @getStackScript @state.searchQuery
 
 
@@ -86,6 +86,12 @@ module.exports = class StackScriptSearchBoxContainer extends React.Component
       searchQuery: ''
 
 
+  onKeyUp: (event) ->
+
+    @onIconClick()  if event.keyCode is 27
+
+
+
   render: ->
 
     <View
@@ -94,6 +100,7 @@ module.exports = class StackScriptSearchBoxContainer extends React.Component
       onFocus={@bound 'onFocus'}
       onClick={@bound 'onClick'}
       onIconClick={@bound 'onIconClick'}
+      onKeyUp={@bound 'onKeyUp'}
       scripts={@state.scripts}
       query={@state.searchQuery}
       loading={@state.loading}

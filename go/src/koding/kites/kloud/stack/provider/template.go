@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"strings"
@@ -117,27 +118,18 @@ func (t *Template) String() string {
 	return out
 }
 
-var unescapeJSON = strings.NewReplacer(
-	"\\u003c", "<",
-	"\\u003e", ">",
-	"\\u0026", "&",
-	"\\u0043", "+",
-)
-
 // JsonOutput returns a JSON formatted output of the template
 func (t *Template) JsonOutput() (string, error) {
-	out, err := json.Marshal(t)
-	if err != nil {
+	var buf bytes.Buffer
+
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+
+	if err := enc.Encode(t); err != nil {
 		return "", err
 	}
 
-	// replace escaped brackets and ampersand. the marshal package is encoding
-	// them automtically so it can be safely processed inside HTML scripts, but
-	// we don't need it
-	//
-	//   https://github.com/golang/go/issues/8592
-	//
-	return unescapeJSON.Replace(string(out)), nil
+	return buf.String(), nil
 }
 
 // DetectUserVariables parses the template for any ${var.foo}, ${var.bar},
