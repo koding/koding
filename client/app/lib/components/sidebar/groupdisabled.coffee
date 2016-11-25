@@ -23,6 +23,8 @@ module.exports = SidebarGroupDisabled = ->
     <section className='SidebarSection SidebarStackSection SidebarStackWidgets'>
       <div className='SidebarSection-body'>
         <p>{message}</p>
+        {if isAdmin()
+          <a href='/Home/team-billing'>Go to Team Billing</a>}
       </div>
     </section>
   </div>
