@@ -8,6 +8,8 @@ module.exports = class Google extends ProviderInterface
 
   @secretKeys    = ['credentials']
 
+  @sensitiveKeys = ['ssh_private_key', 'ssh_public_key']
+
 
   @ping = (client, callback) ->
     callback null, "Google. #{ client.connection.delegate.profile.nickname }!"

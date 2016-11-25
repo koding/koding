@@ -15,6 +15,8 @@ module.exports = class Softlayer extends ProviderInterface
 
   @secretKeys    = ['api_key']
 
+  @sensitiveKeys = ['ssh_private_key', 'ssh_public_key']
+
 
   @ping = (client, options, callback) ->
 

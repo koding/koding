@@ -8,6 +8,8 @@ module.exports = class DigitalOcean extends ProviderInterface
 
   @secretKeys    = ['access_token']
 
+  @sensitiveKeys = ['ssh_private_key', 'ssh_public_key']
+
   @ping = (client, options, callback) ->
 
     callback null, "DigitalOcean is better #{ client.r.account.profile.nickname }!"

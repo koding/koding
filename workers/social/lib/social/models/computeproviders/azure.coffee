@@ -8,6 +8,8 @@ module.exports = class Azure extends ProviderInterface
 
   @secretKeys    = ['publish_settings', 'password']
 
+  @sensitiveKeys = ['ssh_key_thumbprint']
+
 
   @ping = (client, callback) ->
     callback null, "Azure is cool #{ client.connection.delegate.profile.nickname }!"
