@@ -3,6 +3,7 @@ package payment
 import (
 	"errors"
 	"koding/db/mongodb/modelhelper"
+	socialapimodels "socialapi/models"
 	"time"
 
 	stripe "github.com/stripe/stripe-go"
@@ -139,9 +140,21 @@ func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 		}
 	}
 
+	// override quantity and plan in case we did not charge the user previously
+	// due to failed payment and the subscription is deleted by stripe, create
+	// new subscription
+	quantity := uint64(1)
+	activeCount, _ := (&socialapimodels.PresenceDaily{}).CountDistinctByGroupName(groupName)
+	if activeCount != 0 {
+		quantity = uint64(activeCount)
+		params.Plan = GetPlanID(activeCount)
+		params.TrialEnd = 0
+	}
+
 	// only send our whitelisted params
 	req := &stripe.SubParams{
 		Customer: group.Payment.Customer.ID,
+		Quantity: quantity,
 		Plan:     params.Plan,
 		Coupon:   params.Coupon,
 		Token:    params.Token,
