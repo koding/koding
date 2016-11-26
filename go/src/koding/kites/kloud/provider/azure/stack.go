@@ -119,7 +119,7 @@ func (s *Stack) BootstrapTemplates(c *stack.Credential) ([]*stack.Template, erro
 	cfg := &BootstrapConfig{
 		TeamSlug:           s.BootstrapArg().GroupName,
 		HostedServiceName:  "koding-hs-" + c.Identifier,
-		StorageType:        cred.Storage,
+		StorageType:        string(cred.Storage),
 		AddressSpace:       boot.addressSpace(),
 		StorageServiceName: substringN(strings.ToLower("kodings"+c.Identifier), 24),
 		SecurityGroupName:  "koding-sg-" + c.Identifier,

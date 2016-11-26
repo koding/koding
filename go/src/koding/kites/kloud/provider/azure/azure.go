@@ -67,7 +67,7 @@ func newMetadata(m *stack.Machine) interface{} {
 	}
 
 	if cred, ok := m.Credential.Credential.(*Cred); ok {
-		meta.Location = cred.Location
+		meta.Location = string(cred.Location)
 	}
 
 	return meta
@@ -81,14 +81,53 @@ type Subscription struct {
 	ID string `xml:"Id,attr"`
 }
 
+type (
+	StorageType  string
+	LocationType string
+)
+
+var (
+	_ stack.Enumer = StorageType("")
+	_ stack.Enumer = LocationType("")
+)
+
+var (
+	Storages = []stack.Enum{
+		{Title: "Locally redundant storage (LRS)", Value: "Standard_LRS"},
+		{Title: "Zone-redundant storage (ZRS)", Value: "Standard_ZRS"},
+		{Title: "Geo-redundant storage (GRS)", Value: "Standard_GRS"},
+		{Title: "Read-access geo-redundant storage (RA-GRS)", Value: "Standard_RAGRS"},
+		{Title: "Premium Locally redundant storage (P_LRS)", Value: "Premium_LRS"},
+	}
+
+	Locations = []stack.Enum{
+		{Title: "East US", Value: "East US"},
+		{Title: "East US 2", Value: "East US 2"},
+		{Title: "West US", Value: "West US"},
+		{Title: "Central US", Value: "Central US"},
+		{Title: "South Central US", Value: "South Central US"},
+		{Title: "North Europe", Value: "North Europe"},
+		{Title: "West Europe", Value: "West Europe"},
+		{Title: "East Asia", Value: "East Asia"},
+		{Title: "Southeast Asia", Value: "Southeast Asia"},
+		{Title: "Japan East", Value: "Japan East"},
+		{Title: "Japan West", Value: "Japan West"},
+		{Title: "North Central US", Value: "North Central US"},
+		{Title: "Brazil South", Value: "Brazil South"},
+	}
+)
+
+func (StorageType) Enums() []stack.Enum  { return Storages }
+func (LocationType) Enums() []stack.Enum { return Locations }
+
 // Cred represents jCredentialDatas.meta for "azure" provider.
 type Cred struct {
-	PublishSettings  string `json:"publish_settings" bson:"publish_settings" hcl:"publish_settings"`                  // required
-	SubscriptionID   string `json:"subscription_id,omitempty" bson:"subscription_id,omitempty" hcl:"subscription_id"` // required if PublishSettings contains multiple subscriptions
-	Location         string `json:"location,omitempty" bson:"location,omitempty" hcl:"location"`                      // by default "East US 2"
-	Storage          string `json:"storage,omitempty" bson:"storage,omitempty" hcl:"storage"`                         // by default "Standard_LRS"
-	SSHKeyThumbprint string `json:"ssh_key_thumbprint,omitempty" bson:"ssh_key_thumbprint" hcl:"ssh_key_thumbprint"`
-	Password         string `json:"password" bson:"password" hcl:"password"`
+	PublishSettings  string       `json:"publish_settings" bson:"publish_settings" hcl:"publish_settings"`                  // required
+	SubscriptionID   string       `json:"subscription_id,omitempty" bson:"subscription_id,omitempty" hcl:"subscription_id"` // required if PublishSettings contains multiple subscriptions
+	Location         LocationType `json:"location,omitempty" bson:"location,omitempty" hcl:"location"`                      // by default "East US 2"
+	Storage          StorageType  `json:"storage,omitempty" bson:"storage,omitempty" hcl:"storage"`                         // by default "Standard_LRS"
+	SSHKeyThumbprint string       `json:"ssh_key_thumbprint,omitempty" bson:"ssh_key_thumbprint" hcl:"ssh_key_thumbprint"`
+	Password         string       `json:"password" bson:"password" hcl:"password"`
 }
 
 var _ stack.Validator = (*Cred)(nil)
