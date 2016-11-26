@@ -86,9 +86,9 @@ runTests = -> describe 'server.handlers.createteam', ->
           expect(err).to.not.exist
           expect(group.title).to.be.equal companyName
 
-          expect(group.payment).to.exist
-          expect(group.payment.subscription).to.exist
-          expect(group.payment.subscription.status).to.be.equal Status.TRIALING
+          # expect(group.payment).to.exist
+          # expect(group.payment.subscription).to.exist
+          # expect(group.payment.subscription.status).to.be.equal Status.TRIALING
 
           allowedDomains.forEach (domain) ->
             expect(group.allowedDomains).to.include domain
