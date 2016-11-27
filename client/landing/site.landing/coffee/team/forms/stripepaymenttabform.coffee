@@ -6,9 +6,11 @@ Payment = require 'payment'
 
 module.exports = class StripePaymentTabForm extends LoginViewInlineForm
 
-  constructor: ->
+  constructor: (options = {}, data) ->
 
-    super
+    options.cssClass = kd.utils.curry 'cc-form', options.cssClass
+
+    super options, data
 
     team = utils.getTeamData()
 
