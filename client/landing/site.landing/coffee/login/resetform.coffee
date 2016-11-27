@@ -12,6 +12,8 @@ module.exports = class ResetInlineForm extends LoginViewInlineForm
         testPath      : 'recover-password'
         label         : 'New Password'
         placeholder   : 'Enter a new password'
+        attributes    :
+          autocomplete : 'new-password'
         validate      :
           container   : this
           rules       :
@@ -28,6 +30,8 @@ module.exports = class ResetInlineForm extends LoginViewInlineForm
         label         : 'Confirm Password'
         testPath      : 'recover-password-confirm'
         placeholder   : 'Confirm the new password'
+        attributes    :
+          autocomplete : 'new-password'
         validate      :
           container   : this
           rules       :
