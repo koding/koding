@@ -10,9 +10,4 @@ COUNT=$(coffee -e "console.log require('$SCRIPTS_DIR/test-instance/parallel-sets
 INSTANCE_OPTIONS=$($SCRIPTS_DIR/test-instance/get-options)
 INSTANCE_OPTIONS="--branch-name $BRANCH_NAME $INSTANCE_OPTIONS"
 INSTANCE_OPTIONS="--count $COUNT $INSTANCE_OPTIONS"
-echo $INSTANCE_OPTIONS
-
-$SCRIPTS_DIR/test-instance/launch $INSTANCE_OPTIONS > INSTANCE_DATA
-cat INSTANCE_DATA
-
-exit 0
+$SCRIPTS_DIR/test-instance/launch $INSTANCE_OPTIONS

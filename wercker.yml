@@ -63,7 +63,7 @@ build:
         code: scripts/wercker/run-command scripts/lint-coffeescript.sh
     - script:
         name: launch test hosts
-        code: scripts/wercker/run-command scripts/wercker/launch-test-hosts
+        code: scripts/wercker/run-command scripts/wercker/launch-test-hosts | tee INSTANCE_DATA
     - script:
         name: check configs
         code: |
