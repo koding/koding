@@ -3,12 +3,18 @@ $ = require 'jquery'
 # It is important that you should restore your current state,
 # after each test. If not, you will break the sync testing.
 describe 'SidebarMenu', ->
-  before ->
-    $('.team-name.no-logo').click() #show dropdown
+  beforeEach (done) ->
+    console.log('before')
+    $('.WelcomeSteps-miniview--count.in').click()
+    done()
 
-  after ->
-    $('.team-name.no-logo').click() #hide dropdown
+  afterEach (done) ->
+    console.log('after')
+    $('.WelcomeSteps-miniview.in ul.bullets').click()
+    done()
 
-  it 'should open on team click', ->
-    sidebar = $('.kdview.kdcontextmenu.SidebarMenu')
-    should(sidebar).exist
+  it 'should open on team click', (done) ->
+    console.log('done')
+    expert = $('.WelcomeSteps-miniview.in')
+    should(expert).exist
+    done()

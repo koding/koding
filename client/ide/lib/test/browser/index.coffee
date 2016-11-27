@@ -13,15 +13,15 @@ run = ->
 
   modal = new OutputModal
     title: 'Testing Koding'
-    isOpen: yes
+    isOpen: no
 
   manager.on 'status', (status) ->
+    status ?= 'passed'
     newOptions =
-      title: "Testing Koding: #{status or 'umut'}"
-      # this works but the latest event is coming as undefined
-      # that's why you will not see a modal, if you want to force
-      # show modal, just pass `yes` here.
-      isOpen: yes # status in ['failed', 'success']
+      title: "Testing Koding: #{status}"
+
+    if (status is 'success' or 'failed' or 'passed')
+      newOptions.isOpen = yes
 
     modal.updateOptions newOptions
 
