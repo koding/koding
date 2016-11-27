@@ -20,12 +20,6 @@ else
   OPTIONS="--commit $REVISION $OPTIONS"
 fi
 
-COUNT=$(coffee -e 'console.log require("./parallel-sets").length')
-
-if [ -n "$COUNT" ]; then
-  OPTIONS="--count $COUNT $OPTIONS"
-fi
-
 echo $OPTIONS
 
 exit 0
