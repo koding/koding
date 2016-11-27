@@ -63,7 +63,9 @@ build:
         code: scripts/wercker/run-command scripts/lint-coffeescript.sh
     - script:
         name: launch test hosts
-        code: scripts/wercker/run-command scripts/wercker/launch-test-hosts | tee INSTANCE_DATA
+        code: |
+          scripts/wercker/run-command scripts/wercker/launch-test-hosts | tee INSTANCE_DATA
+          scripts/wercker/run-command scripts/wercker/launch-rainforest-host | tee RAINFOREST_HOST
     - script:
         name: check configs
         code: |
