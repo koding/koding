@@ -39,6 +39,8 @@ module.exports = class TeamJoinTabForm extends kd.FormView
         name        : 'password'
         label       : 'Your Password'
         placeholder : 'Enter your koding password'
+        attributes   :
+          autocomplete : 'password'
         validate    :
           container : this
           rules     : { required: yes }

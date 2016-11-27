@@ -21,8 +21,10 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
         name         : 'number'
         label        : 'Card Number'
         placeholder  : '•••• •••• •••• ••••'
-        attributes   : { maxlength: 19 } # 16 + 3 spaces
         keydown      : cleanPayment
+        attributes   :
+          maxlength  : 19 # 16 + 3 spaces
+          autocomplete : 'cc-number'
         validate     :
           rules      :
             required : yes
@@ -35,6 +37,9 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
         label        : 'CVC'
         placeholder  : '•••'
         keydown      : cleanPayment
+        attributes   :
+          maxlength  : 4
+          autocomplete : 'cc-csc'
         validate     :
           rules      :
             required : yes
@@ -47,6 +52,9 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
         label        : 'Month'
         placeholder  : '••'
         keydown      : cleanPayment
+        attributes   :
+          maxlength  : 2
+          autocomplete : 'cc-exp-month'
         validate     :
           rules      :
             required : yes
@@ -59,6 +67,9 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
         label        : 'Year'
         placeholder  : '••••'
         keydown      : cleanPayment
+        attributes   :
+          maxlength  : 4
+          autocomplete : 'cc-exp-year'
         validate     :
           rules      :
             required : yes
