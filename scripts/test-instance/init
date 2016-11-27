@@ -27,11 +27,11 @@ export KONFIG_SNEAKERS3_AWSSECRETACCESSKEY="" \
        KONFIG_KLOUD_CREDENTIALENDPOINT=""
 
 npm install --unsafe-perm
-./configure --config dev --host $HOSTNAME:8090 --hostname $HOSTNAME --publicPort 8090 --disable-segment
+./configure --config dev --host $HOSTNAME --hostname $HOSTNAME --publicPort 80 --disable-segment
 go/build.sh
 make -C client dist
 
-TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090" \
+TEST_EXTRAS="--no-start-selenium --url http://$HOST" \
   make -C client/test build
 
 ./run buildservices force
