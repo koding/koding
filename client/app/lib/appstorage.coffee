@@ -77,9 +77,12 @@ module.exports = class AppStorage extends kd.Object
   getValue: (key, group = AppStorage.DEFAULT_GROUP_NAME) ->
 
     appId = @_applicationID
-    return unless @_storage
-    return if @_storageData[group]?[appId]?.data?[key]? then @_storageData[group][appId].data[key]
-    return if @_storage[group]?[appId]?.data?[key]?     then @_storage[group][appId].data[key]
+    data  = do =>
+      return unless @_storage
+      return if @_storageData[group]?[appId]?.data?[key]? then @_storageData[group][appId].data[key]
+      return if @_storage[group]?[appId]?.data?[key]?     then @_storage[group][appId].data[key]
+
+    _.clone data
 
 
   setValue: (key, value, callback, group = AppStorage.DEFAULT_GROUP_NAME, notify = no) ->
