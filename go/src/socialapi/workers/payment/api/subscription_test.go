@@ -22,7 +22,7 @@ func TestCreateSubscription(t *testing.T) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
 				withTestPlan(func(planID string) {
 					withTestCreditCardToken(func(token string) {
-						updateURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerUpdate)
+						updateURL := endpoint + EndpointCustomerUpdate
 						cp := &stripe.CustomerParams{
 							Source: &stripe.SourceParams{
 								Token: token,
@@ -35,7 +35,7 @@ func TestCreateSubscription(t *testing.T) {
 
 						withSubscription(endpoint, groupName, sessionID, planID, func(subscriptionID string) {
 							So(subscriptionID, ShouldNotBeEmpty)
-							getURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionGet)
+							getURL := endpoint + EndpointSubscriptionGet
 							res, err := rest.DoRequestWithAuth("GET", getURL, nil, sessionID)
 							tests.ResultedWithNoErrorCheck(res, err)
 
@@ -57,7 +57,7 @@ func TestCreateSubscriptionWithPlan(t *testing.T) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
 				withNonFreeTestPlan(func(planID string) {
 					withTestCreditCardToken(func(token string) {
-						updateURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerUpdate)
+						updateURL := endpoint + EndpointCustomerUpdate
 
 						cp := &stripe.CustomerParams{
 							Source: &stripe.SourceParams{
@@ -74,7 +74,7 @@ func TestCreateSubscriptionWithPlan(t *testing.T) {
 						withSubscription(endpoint, groupName, sessionID, planID, func(subscriptionID string) {
 							So(subscriptionID, ShouldNotBeEmpty)
 							Convey("We should be able to get the subscription", func() {
-								getURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionGet)
+								getURL := endpoint + EndpointSubscriptionGet
 								res, err := rest.DoRequestWithAuth("GET", getURL, nil, sessionID)
 								tests.ResultedWithNoErrorCheck(res, err)
 
@@ -97,7 +97,7 @@ func TestSubscribingToPaidPlanWithWithTrialPeriodHavingNoCC(t *testing.T) {
 		withTestServer(t, func(endpoint string) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
 				withNonFreeTestPlan(func(planID string) {
-					createURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCreate)
+					createURL := endpoint + EndpointSubscriptionCreate
 					group, err := modelhelper.GetGroup(groupName)
 					tests.ResultedWithNoErrorCheck(group, err)
 
@@ -138,8 +138,8 @@ func TestSubscribingToPaidPlanWithWithDifferentTrialPeriodThanDefault(t *testing
 
 				addCreditCardToUserWithChecks(endpoint, sessionID)
 
-				createURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCreate)
-				deleteURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCancel)
+				createURL := endpoint + EndpointSubscriptionCreate
+				deleteURL := endpoint + EndpointSubscriptionCancel
 				group, err := modelhelper.GetGroup(groupName)
 				tests.ResultedWithNoErrorCheck(group, err)
 
@@ -178,9 +178,10 @@ func TestCancellingSubscriptionCreatesAnotherInvoice(t *testing.T) {
 		withTestServer(t, func(endpoint string) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
 				withTrialTestPlan(func(planID string) {
-					createURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCreate)
-					deleteURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCancel)
-					customerUpdateURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerUpdate)
+					createURL := endpoint + EndpointSubscriptionCreate
+					deleteURL := endpoint + EndpointSubscriptionCancel
+					customerUpdateURL := endpoint + EndpointCustomerUpdate
+
 					group, err := modelhelper.GetGroup(groupName)
 					tests.ResultedWithNoErrorCheck(group, err)
 
@@ -208,7 +209,7 @@ func TestCancellingSubscriptionCreatesAnotherInvoice(t *testing.T) {
 						tests.ResultedWithNoErrorCheck(sub, err)
 
 						Convey("We should be able to list invoices", func() {
-							listInvoicesURL := fmt.Sprintf("%s%s", endpoint, EndpointInvoiceList)
+							listInvoicesURL := endpoint + EndpointInvoiceList
 							res, err := rest.DoRequestWithAuth("GET", listInvoicesURL, nil, sessionID)
 							tests.ResultedWithNoErrorCheck(res, err)
 
@@ -227,7 +228,7 @@ func TestCancellingSubscriptionCreatesAnotherInvoice(t *testing.T) {
 								So(v.Status, ShouldEqual, "canceled")
 
 								Convey("We should be able to list invoices with startingAfter query param", func() {
-									listInvoicesURLWithQuery := fmt.Sprintf("%s%s", endpoint, EndpointInvoiceList)
+									listInvoicesURLWithQuery := endpoint + EndpointInvoiceList
 									res, err = rest.DoRequestWithAuth("GET", listInvoicesURLWithQuery, nil, sessionID)
 									tests.ResultedWithNoErrorCheck(res, err)
 
@@ -261,7 +262,7 @@ func TestSubscribingToPaidPlanWithWithNoTrialPeriodHavingNoCC(t *testing.T) {
 						})
 						tests.ResultedWithNoErrorCheck(req, err)
 
-						createURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCreate)
+						createURL := endpoint + EndpointSubscriptionCreate
 						_, err = rest.DoRequestWithAuth("POST", createURL, req, sessionID)
 						So(err, ShouldNotBeNil)
 					})
@@ -285,13 +286,13 @@ func TestAtTheEndOfTrialPeriodSubscriptionStatusIsStillTrialing(t *testing.T) {
 
 					res, err := rest.DoRequestWithAuth(
 						"POST",
-						fmt.Sprintf("%s%s", endpoint, EndpointCustomerUpdate),
+						endpoint+EndpointCustomerUpdate,
 						req,
 						sessionID,
 					)
 					tests.ResultedWithNoErrorCheck(res, err)
 
-					createURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCreate)
+					createURL := endpoint + EndpointSubscriptionCreate
 					group, err := modelhelper.GetGroup(groupName)
 					tests.ResultedWithNoErrorCheck(group, err)
 

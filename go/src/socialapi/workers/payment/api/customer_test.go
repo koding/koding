@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/rest"
 	"socialapi/workers/common/tests"
@@ -23,7 +22,7 @@ func TestCustomer(t *testing.T) {
 
 					So(group.Payment.Customer.ID, ShouldNotBeBlank)
 					Convey("We should be able to get the customer", func() {
-						getURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerGet)
+						getURL := endpoint + EndpointCustomerGet
 
 						res, err := rest.DoRequestWithAuth("GET", getURL, nil, sessionID)
 						So(err, ShouldBeNil)
@@ -70,7 +69,7 @@ func TestCouponApply(t *testing.T) {
 				withTestCoupon(func(couponID string) {
 					Convey("After adding coupon to the user", func() {
 
-						updateURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerUpdate)
+						updateURL := endpoint + EndpointCustomerUpdate
 
 						cp := &stripe.CustomerParams{
 							Coupon: couponID,
@@ -109,7 +108,7 @@ func TestInfoPlan(t *testing.T) {
 					addCreditCardToUserWithChecks(endpoint, sessionID)
 					withSubscription(endpoint, groupName, sessionID, planID, func(subscriptionID string) {
 						Convey("We should be able to get info", func() {
-							infoURL := fmt.Sprintf("%s%s", endpoint, EndpointInfo)
+							infoURL := endpoint + EndpointInfo
 							res, err := rest.DoRequestWithAuth("GET", infoURL, nil, sessionID)
 							tests.ResultedWithNoErrorCheck(res, err)
 
