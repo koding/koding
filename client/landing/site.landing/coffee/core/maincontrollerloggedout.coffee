@@ -5,7 +5,7 @@ KodingRouter       = require './kodingrouter'
 OAuthController    = require './oauthcontroller'
 MainView           = require './mainview'
 MainViewController = require './mainviewcontroller'
-utils              = require './utils'
+TestController     = require './testcontroller'
 
 module.exports = class MainControllerLoggedOut extends kd.Controller
 
@@ -30,7 +30,7 @@ module.exports = class MainControllerLoggedOut extends kd.Controller
     kd.registerSingleton 'mainView',             mv = new MainView
     kd.registerSingleton 'mainViewController',  mvc = new MainViewController { view : mv }
     kd.registerSingleton 'oauthController',           new OAuthController
-
+    kd.registerSingleton 'testController',            new TestController
     @mainViewController = mvc
     mv.appendToDomBody()
 

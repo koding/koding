@@ -3,6 +3,8 @@ kd      = require 'kd'
 kookies = require 'kookies'
 
 RECAPTCHA_JS = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoaded&render=explicit'
+MOCHA_JS = 'https://cdnjs.cloudflare.com/ajax/libs/mocha/3.1.2/mocha.min.js'
+MOCHA_CLEAN_JS = 'https://cdn.rawgit.com/rstacruz/mocha-clean/v0.4.0/index.js'
 
 createFormData = (teamData) ->
 
@@ -453,4 +455,30 @@ module.exports = utils = {
         defer    : yes
 
     recaptchaScript.appendToDomBody()
+
+  loadMochaScript: (callback) ->
+
+    return callback()  if mocha?
+
+    mochaScript = new kd.CustomHTMLView
+      tagName : 'script'
+      attributes :
+        type : 'text/javascript'
+        src : MOCHA_JS
+        async : yes
+        defer : yes
+
+
+    mochaScript.appendToDomBody()
+
+    mochaCleanScript = new kd.CustomHTMLView
+      tagName : 'script'
+      attributes :
+        type : 'text/javascript'
+        src : MOCHA_CLEAN_JS
+        async : yes
+        defer : yes
+
+    mochaCleanScript.appendToDomBody()
+
 }
