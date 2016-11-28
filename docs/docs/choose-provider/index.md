@@ -68,7 +68,7 @@ Every EC2 instance is built using an image. This image specifies the operating s
 AWS VPC is a Virtual Network! It allows you to create an complete logical network infrastructure for your VMs. This opens up a world of possibilities for using multiple VMs together. If you don't require any special networking, Koding handles this automatically. However, if you want to create a custom network environment, you can configure it simply within your Stack.
 
   - [**AWS Documentation**][16]
-  - [**Using IAM in your Stack**][17]
+  - [**Using VPC in your Stack**][17]
   - [**Stack Reference**][18]
 
 ***
@@ -162,7 +162,7 @@ Monitor your instances for performance and uptime without resorting to third-par
 
 ## Microsoft Azure <a name="azure"></a>
 
-# Coming Soon...
+ Coming Soon...
 
 [1]: {{ site.url }}/docs/creating-an-aws-stack
 [2]: {{ site.url }}/docs/terraform/providers/aws/
