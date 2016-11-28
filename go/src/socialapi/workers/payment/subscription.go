@@ -116,13 +116,8 @@ func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 		return nil, ErrCustomerNotExists
 	}
 
-	hasSource, err := checkCustomerHasSource(group.Payment.Customer.ID)
-	if err != nil {
+	if err := checkCustomerHasSource(group.Payment.Customer.ID); err != nil {
 		return nil, err
-	}
-
-	if !hasSource {
-		return nil, ErrCustomerSourceNotExists
 	}
 
 	now := time.Now().UTC()

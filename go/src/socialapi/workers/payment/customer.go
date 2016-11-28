@@ -329,10 +329,10 @@ func populateCustomerParams(username, groupName string, initial *stripe.Customer
 	return req, nil
 }
 
-func checkCustomerHasSource(cusID string) (bool, error) {
+func checkCustomerHasSource(cusID string) error {
 	cus, err := customer.Get(cusID, nil)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	count := 0
@@ -342,5 +342,9 @@ func checkCustomerHasSource(cusID string) (bool, error) {
 		}
 	}
 
-	return count == 1, nil
+	if count == 1 {
+		return nil
+	}
+
+	return ErrCustomerSourceNotExists
 }
