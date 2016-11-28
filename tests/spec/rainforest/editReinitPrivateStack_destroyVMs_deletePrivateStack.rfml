@@ -8,6 +8,7 @@
 - 1ae7b10f-f120-47de-bc67-eae94efbd491
 
 # redirect: false
+Click on 'Create a Stack for Your Team' section
 Do you see 'Select a Provider' title? Do you see 'amazon web services', 'VAGRANT', 'Google Cloud Platform', 'DigitalOcean', 'Azure', 'Marathon' and 'Softlayer'? Do you see 'CANCEL' and 'CREATE STACK' buttons below?
 
 Click on 'amazon web services' and then click on 'CREATE STACK' button
