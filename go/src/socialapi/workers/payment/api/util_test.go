@@ -19,7 +19,7 @@ import (
 )
 
 func withStubData(endpoint string, f func(username string, groupName string, sessionID string)) {
-	createURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerCreate)
+	createURL := endpoint + EndpointCustomerCreate
 	acc, _, groupName := models.CreateRandomGroupDataWithChecks()
 
 	group, err := modelhelper.GetGroup(groupName)
@@ -104,9 +104,9 @@ func withTestCreditCardToken(f func(token string)) {
 	f(t.ID)
 }
 
-func addCreditCardToUserWithChecks(endpoint, sessionID string) {
-	customerUpdateURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerUpdate)
-
+func addCreditCardToUserWithChecks(endpoint, sessionID string) *stripe.Customer {
+	customerUpdateURL := endpoint + EndpointCustomerUpdate
+	c := &stripe.Customer{}
 	withTestCreditCardToken(func(token string) {
 		cp := &stripe.CustomerParams{
 			Source: &stripe.SourceParams{
@@ -120,7 +120,11 @@ func addCreditCardToUserWithChecks(endpoint, sessionID string) {
 		res, err := rest.DoRequestWithAuth("POST", customerUpdateURL, req, sessionID)
 		So(err, ShouldBeNil)
 		So(res, ShouldNotBeNil)
+
+		err = json.Unmarshal(res, c)
+		So(err, ShouldBeNil)
 	})
+	return c
 }
 
 func withTestCoupon(f func(string)) {
@@ -141,8 +145,8 @@ func withTestCoupon(f func(string)) {
 }
 
 func withSubscription(endpoint, groupName, sessionID, planID string, f func(subscriptionID string)) {
-	createURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCreate)
-	deleteURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCancel)
+	createURL := endpoint + EndpointSubscriptionCreate
+	deleteURL := endpoint + EndpointSubscriptionCancel
 
 	group, err := modelhelper.GetGroup(groupName)
 	tests.ResultedWithNoErrorCheck(group, err)

@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"koding/db/mongodb/modelhelper"
@@ -14,14 +13,14 @@ import (
 	"github.com/stripe/stripe-go"
 )
 
-func TestCreditCard(t *testing.T) {
+func TestCreditCardDelete(t *testing.T) {
 	Convey("Given a user", t, func() {
 		withTestServer(t, func(endpoint string) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
 				Convey("When a credit card added", func() {
 					withTestCreditCardToken(func(token string) {
-						updateURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerUpdate)
-						getURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerGet)
+						updateURL := endpoint + EndpointCustomerUpdate
+						getURL := endpoint + EndpointCustomerGet
 
 						cp := &stripe.CustomerParams{
 							Source: &stripe.SourceParams{
@@ -69,7 +68,7 @@ func TestCreditCard(t *testing.T) {
 										So(c1.DefaultSource.ID, ShouldNotEqual, c2.DefaultSource.ID)
 
 										Convey("After deleting the credit card", func() {
-											ccdeleteURL := fmt.Sprintf("%s%s", endpoint, EndpointCreditCardDelete)
+											ccdeleteURL := endpoint + EndpointCreditCardDelete
 
 											res, err = rest.DoRequestWithAuth("DELETE", ccdeleteURL, nil, sessionID)
 											tests.ResultedWithNoErrorCheck(res, err)
@@ -102,7 +101,7 @@ func TestCreditCard(t *testing.T) {
 	})
 }
 
-func TestCreditCardNonAdmin(t *testing.T) {
+func TestCreditCardDeleteNonAdmin(t *testing.T) {
 	Convey("When a non admin user request comes", t, func() {
 		withTestServer(t, func(endpoint string) {
 			acc, _, groupName := models.CreateRandomGroupDataWithChecks()
@@ -111,7 +110,7 @@ func TestCreditCardNonAdmin(t *testing.T) {
 			tests.ResultedWithNoErrorCheck(ses, err)
 
 			Convey("Endpoint should return error", func() {
-				ccdeleteURL := fmt.Sprintf("%s%s", endpoint, EndpointCreditCardDelete)
+				ccdeleteURL := endpoint + EndpointCreditCardDelete
 				_, err := rest.DoRequestWithAuth("DELETE", ccdeleteURL, nil, ses.ClientId)
 				So(err, ShouldNotBeNil)
 			})
@@ -119,11 +118,11 @@ func TestCreditCardNonAdmin(t *testing.T) {
 	})
 }
 
-func TestCreditCardLoggedOut(t *testing.T) {
+func TestCreditCardDeleteLoggedOut(t *testing.T) {
 	Convey("When a non registered request comes", t, func() {
 		withTestServer(t, func(endpoint string) {
 			Convey("Endpoint should return error", func() {
-				ccdeleteURL := fmt.Sprintf("%s%s", endpoint, EndpointCreditCardDelete)
+				ccdeleteURL := endpoint + EndpointCreditCardDelete
 				_, err := rest.DoRequestWithAuth("DELETE", ccdeleteURL, nil, "")
 				So(err, ShouldNotBeNil)
 			})
@@ -131,7 +130,7 @@ func TestCreditCardLoggedOut(t *testing.T) {
 	})
 }
 
-func TestCreditCardNotSubscribingMember(t *testing.T) {
+func TestCreditCardDeleteNotSubscribingMember(t *testing.T) {
 	Convey("When a non subscribed user request to delete CC", t, func() {
 		withTestServer(t, func(endpoint string) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
@@ -147,7 +146,7 @@ func TestCreditCardNotSubscribingMember(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("Endpoint should return error", func() {
-					ccdeleteURL := fmt.Sprintf("%s%s", endpoint, EndpointCreditCardDelete)
+					ccdeleteURL := endpoint + EndpointCreditCardDelete
 					_, err = rest.DoRequestWithAuth("DELETE", ccdeleteURL, nil, sessionID)
 					So(err, ShouldNotBeNil)
 
