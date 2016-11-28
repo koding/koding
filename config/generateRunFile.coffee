@@ -387,7 +387,7 @@ generateDev = (KONFIG, options) ->
     }
 
     function runMongoDocker () {
-        docker run -d -p 27017:27017 --name=mongo mongo:2.4
+        docker run -d -p 27017:27017 --name=mongo mongo:2.4 --nojournal --noprealloc --smallfiles
         check_connectivity mongo
     }
 
