@@ -20,7 +20,7 @@ var (
 
 // Represents a single Softlayer instance. It is responsible for
 // starting/stopping of the remote instance via it's client
-// which implements the remote Softlayer API
+// which implements the remote Softlayer API.
 type Machine struct {
 	*provider.BaseMachine
 
@@ -28,7 +28,7 @@ type Machine struct {
 }
 
 // Uses credentials provided during stack build to create
-// a Softlayer machine representation and it's client
+// a Softlayer machine representation and it's client.
 func NewMachine(bm *provider.BaseMachine) (provider.Machine, error) {
 	c, ok := bm.Credential.(*Credential)
 	if !ok {
