@@ -22,7 +22,7 @@ var (
 	ErrCustomerNotExists = errors.New("user is not created for subscription")
 	// ErrGroupAlreadyHasSub error when a group tries to create a sub and they try to create another
 	ErrGroupAlreadyHasSub = errors.New("group already has a subscription")
-	// ErrCustomerSourceNotExists holds the error when a customer does not have a card
+	// ErrCustomerSourceNotExists holds the error when a customer does not have a source
 	ErrCustomerSourceNotExists = errors.New("does not have source")
 )
 
