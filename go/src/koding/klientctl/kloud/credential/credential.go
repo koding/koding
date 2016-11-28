@@ -144,7 +144,7 @@ func (c *Client) Provider(identifier string) (provider string, err error) {
 	return "", fmt.Errorf("credential: %q does not exist or is not shared with the user", identifier)
 }
 
-func (c *Client) Describe() (map[string]*stack.Description, error) {
+func (c *Client) Describe() (stack.Descriptions, error) {
 	c.init()
 
 	var req stack.CredentialDescribeRequest
@@ -238,7 +238,7 @@ func nonil(err ...error) error {
 
 func List(opts *ListOptions) (stack.Credentials, error)         { return DefaultClient.List(opts) }
 func Create(opts *CreateOptions) (*stack.CredentialItem, error) { return DefaultClient.Create(opts) }
-func Describe() (map[string]*stack.Description, error)          { return DefaultClient.Describe() }
+func Describe() (stack.Descriptions, error)                     { return DefaultClient.Describe() }
 func Use(identifier string) error                               { return DefaultClient.Use(identifier) }
 func Used() map[string]string                                   { return DefaultClient.Used() }
 func Provider(identifier string) (string, error)                { return DefaultClient.Provider(identifier) }

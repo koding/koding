@@ -241,6 +241,39 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 	return 0, nil
 }
 
+func CredentialDescribe(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	descs, err := credential.Describe()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error requesting credential description:", err)
+		return 1, err
+	}
+
+	if p := c.String("provider"); p != "" {
+		desc, ok := descs[p]
+		if !ok {
+			fmt.Fprintf(os.Stderr, "No description found for %q provider.\n", p)
+			return 1, err
+		}
+
+		descs = stack.Descriptions{p: desc}
+	}
+
+	if c.Bool("json") {
+		p, err := json.MarshalIndent(descs.Slice(), "", "\t")
+		if err != nil {
+			return 1, err
+		}
+
+		fmt.Printf("%s\n", p)
+
+		return 0, nil
+	}
+
+	printDescs(descs.Slice())
+
+	return 0, nil
+}
+
 func printCreds(creds []stack.CredentialItem) {
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
 	defer w.Flush()
@@ -249,5 +282,18 @@ func printCreds(creds []stack.CredentialItem) {
 
 	for _, cred := range creds {
 		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", cred.Identifier, cred.Title, cred.Team, cred.Provider)
+	}
+}
+
+func printDescs(descs []*stack.Description) {
+	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
+	defer w.Flush()
+
+	fmt.Fprintln(w, "PROVIDER\tATTRIBUTE\tTYPE\tSECRET")
+
+	for _, desc := range descs {
+		for _, field := range desc.Credential {
+			fmt.Fprintf(w, "%s\t%s\t%s\t%t\n", desc.Provider, field.Name, field.Type, field.Secret)
+		}
 	}
 }
