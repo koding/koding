@@ -115,7 +115,7 @@ type PostRemoteAPIComputeProviderCreateBody struct {
 
 	// meta
 	// Required: true
-	Meta *BodyMeta `json:"meta"`
+	Meta interface{} `json:"meta"`
 
 	// provider
 	// Required: true
