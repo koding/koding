@@ -279,6 +279,7 @@ import:
 - package: github.com/go-openapi/runtime
 - package: github.com/go-openapi/validate
 - package: github.com/go-openapi/swag
+- package: github.com/go-openapi/strfmt
 ignore:
 - koding/tools/logger
 - config
