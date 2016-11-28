@@ -276,6 +276,7 @@ import:
 - package: github.com/Banno/terraform-provider-marathon
 - package: github.com/gambol99/go-marathon
 - package: github.com/donovanhide/eventsource
+- package: github.com/go-openapi/runtime
 ignore:
 - koding/tools/logger
 - config

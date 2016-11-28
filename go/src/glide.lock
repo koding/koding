@@ -1027,6 +1027,8 @@ imports:
   version: 8eb32fcc2ee7946a9b8927c66e143e6c9c48100c
 - name: github.com/donovanhide/eventsource
   version: fd1de70867126402be23c306e1ce32828455d85b
+- name: github.com/go-openapi/runtime
+  version: 14b161b40ece9dac8e244ab2fde2d209e108c6f5
 testImports:
 - name: github.com/vaughan0/go-ini
   version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1
