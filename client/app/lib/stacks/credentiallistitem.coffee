@@ -1,4 +1,6 @@
 kd      = require 'kd'
+globals = require 'globals'
+
 JView   = require 'app/jview'
 Tracker = require 'app/util/tracker'
 
