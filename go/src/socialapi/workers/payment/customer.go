@@ -133,6 +133,13 @@ func UpdateCustomerForGroup(username, groupName string, params *stripe.CustomerP
 		return nil, err
 	}
 
+	// if the update request has a new CC, delete old ones.
+	if params != nil && params.Source != nil && params.Source.Token != "" {
+		if err := DeleteCreditCardForGroup(groupName); err != nil {
+			return nil, err
+		}
+	}
+
 	return customer.Update(group.Payment.Customer.ID, params)
 }
 
