@@ -120,8 +120,6 @@ module.exports = class NFinderController extends KDViewController
     if @getMachineNode uid
       return kd.warn "Machine #{machine.getName()} is already mounted!"
 
-    @updateMountState uid, yes
-
     @machines.push FSHelper.createFileInstance
       name           : path
       path           : "[#{uid}]#{path}"
@@ -159,7 +157,6 @@ module.exports = class NFinderController extends KDViewController
     machineItem = @getMachineNode uid
     return kd.warn 'No such Machine!'  unless machineItem
 
-    @updateMountState uid, no
     @stopWatching machineItem.data.path
     FSHelper.unregisterMachineFiles uid
     @treeController.removeNodeView machineItem
@@ -306,18 +303,6 @@ module.exports = class NFinderController extends KDViewController
 
 
   setReadOnly: (state) -> @treeController.isReadOnly = state
-
-
-  # Settings helpers
-  #
-  updateMountState: (uid, state) ->
-
-    return  if isGuest()
-
-    machines = @appStorage.getValue('mountedMachines') or {}
-    machines[uid] = state
-
-    @appStorage.setValue 'mountedMachines', machines
 
 
   # FS Watcher helpers
