@@ -288,6 +288,7 @@ import:
 - package: github.com/asaskevich/govalidator
 - package: github.com/go-openapi/spec
 - package: github.com/go-openapi/jsonreference
+- package: github.com/PuerkitoBio/purell
 ignore:
 - koding/tools/logger
 - config

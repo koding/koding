@@ -1051,6 +1051,8 @@ imports:
   version: f7ae86df5bc115a2744343016c789a89f065a4bd
 - name: github.com/go-openapi/jsonreference
   version: 36d33bfe519efae5632669801b180bf1a245da3b
+- name: github.com/PuerkitoBio/purell
+  version: 0bcb03f4b4d0a9428594752bd2a3b9aa0a9d4bd4
 testImports:
 - name: github.com/vaughan0/go-ini
   version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1
