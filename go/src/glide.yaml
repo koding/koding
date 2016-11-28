@@ -282,6 +282,7 @@ import:
 - package: github.com/go-openapi/strfmt
 - package: github.com/go-openapi/errors
 - package: github.com/mailru/easyjson
+- package: github.com/go-openapi/loads
 ignore:
 - koding/tools/logger
 - config

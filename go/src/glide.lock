@@ -1039,6 +1039,8 @@ imports:
   version: 49fe8b3a0e0d32a617d8d50c67f856ad6e45b28b
 - name: github.com/mailru/easyjson
   version: 159cdb893c982e3d1bc6450322fedd514f9c9de3
+- name: github.com/go-openapi/loads
+  version: 315567415dfd74b651f7a62cabfc82a57ed7b9ad
 testImports:
 - name: github.com/vaughan0/go-ini
   version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1
