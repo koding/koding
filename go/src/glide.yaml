@@ -281,6 +281,7 @@ import:
 - package: github.com/go-openapi/swag
 - package: github.com/go-openapi/strfmt
 - package: github.com/go-openapi/errors
+- package: github.com/mailru/easyjson
 ignore:
 - koding/tools/logger
 - config
