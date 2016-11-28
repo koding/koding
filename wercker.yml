@@ -102,6 +102,9 @@ build:
         name: test kites
         code: scripts/wercker/run-command go/src/koding/kites/e2etest/e2etest.sh
     - script:
+        name: test providers
+        code: scripts/wercker/run-command ./run exec go test -v -race koding/kites/kloud/provider/...
+    - script:
         name: build backend finished
         code: scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build backend finished" "building" 40
     - script:
