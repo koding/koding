@@ -277,6 +277,7 @@ import:
 - package: github.com/gambol99/go-marathon
 - package: github.com/donovanhide/eventsource
 - package: github.com/go-openapi/runtime
+- package: github.com/go-openapi/validate
 ignore:
 - koding/tools/logger
 - config
