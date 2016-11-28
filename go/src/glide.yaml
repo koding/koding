@@ -283,6 +283,7 @@ import:
 - package: github.com/go-openapi/errors
 - package: github.com/mailru/easyjson
 - package: github.com/go-openapi/loads
+- package: github.com/go-openapi/jsonpointer
 ignore:
 - koding/tools/logger
 - config
