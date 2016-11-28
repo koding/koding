@@ -73,6 +73,8 @@ Your new team members will be able to use your stack to build their VMs environm
 
         ![GCE Enable Billing][14]
 
+        > Google Cloud applies resources quotas based on your usage, you may need to request quota increase, for both global and regional limit. See [more information here](https://cloud.google.com/compute/docs/resource-quotas)
+
     8. Once you are done with adding your billing information, go to your project **Credentials** menu and click **Create credentials**
 
         ![GCE Credentials][15]
