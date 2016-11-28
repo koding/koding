@@ -1,6 +1,7 @@
 package api
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"net/url"
 
@@ -15,9 +16,13 @@ func DeleteCreditCard(u *url.URL, h http.Header, _ interface{}, context *models.
 		return response.NewBadRequest(err)
 	}
 
-	return response.HandleResultAndError(
-		payment.DeleteCreditCardForGroup(context.GroupName),
-	)
+	if err := payment.DeleteCreditCardForGroup(context.GroupName); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewDefaultOK()
+}
+
 // HasCreditCard returns the existance status of group's credit card
 func HasCreditCard(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	if !context.IsLoggedIn() {
