@@ -278,6 +278,7 @@ import:
 - package: github.com/donovanhide/eventsource
 - package: github.com/go-openapi/runtime
 - package: github.com/go-openapi/validate
+- package: github.com/go-openapi/swag
 ignore:
 - koding/tools/logger
 - config
