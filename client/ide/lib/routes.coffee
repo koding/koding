@@ -129,10 +129,11 @@ loadTestIDE = ->
   { workspaces } = machine = require('mocks/mockmanagedmachine')()
   machine = remote.revive machine
   workspace = remote.revive workspaces[0]
+  { testController } = kd.singletons
 
   require('app/util/createTestMachine')().then ->
     loadIDE { machine, workspace, username: nick }, ->
-      require('ide/test/browser').prepare(machine, workspace)
+      testController.prepare(machine, workspace)
 
 
 routeToFallback = ->
