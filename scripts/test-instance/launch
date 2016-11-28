@@ -28,7 +28,6 @@ revision = 'FETCH_HEAD'  unless revision = argv.commit
 if argv['pull-request']
   refspec = "+refs/pull/#{argv['pull-request']}/head"
 
-git_fetch    = "git fetch origin #{refspec or ''}"
 git_checkout = "git checkout -fq #{revision}"
 
 git_clone_vault = (branchName = 'master') ->
@@ -51,7 +50,7 @@ userData =
     - echo 127.0.0.1 freegeoip.net >> /etc/hosts
     - ip -s -s neigh flush all
     - cd /opt/koding
-    - #{git_fetch}
+    - git fetch origin #{refspec or argv.commit}
     - #{git_checkout}
     - rm -rf ./vault # delete vault folder if exists
     - #{git_clone_vault argv['branch-name']} || #{git_clone_vault()}
