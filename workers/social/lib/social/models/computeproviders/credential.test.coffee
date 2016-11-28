@@ -447,10 +447,10 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
   describe 'fetchData', ->
 
-    testFetchDataFailure = (method, done) ->
+    testFetchDataFailure = (method, args, done) ->
       withConvertedUserAndCredential ({ client, credential }) ->
 
-        args  = [client]
+        args  = [client].concat args ? []
         queue = [
 
           (next) ->
@@ -469,8 +469,11 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
         async.series queue, done
 
 
-    testFetchDataSuccess = (method, done) ->
+    testFetchDataSuccess = (method, args, done) ->
+
       withConvertedUserAndCredential ({ client, credential }) ->
+
+        args = [client].concat args ? []
 
         checkCredData = (err, credData) ->
           expect(err).to.not.exist
@@ -478,19 +481,19 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
           expect(credData.identifier).to.be.equal credential.identifier
           done()
 
-        credential[method] client, checkCredData
+        credential[method] args..., checkCredData
 
 
     describe 'fetchData()', ->
 
       it 'should fail if there is no data', (done) ->
 
-        testFetchDataFailure 'fetchData', done
+        testFetchDataFailure 'fetchData', {}, done
 
 
       it 'should be able to fetch credential data', (done) ->
 
-        testFetchDataSuccess 'fetchData', done
+        testFetchDataSuccess 'fetchData', {}, done
 
 
     describe 'fetchData$()', ->
@@ -503,12 +506,12 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
 
       it 'should fail if there is no data', (done) ->
 
-        testFetchDataFailure 'fetchData$', done
+        testFetchDataFailure 'fetchData$', null, done
 
 
       it 'should be able to fetch credential data', (done) ->
 
-        testFetchDataSuccess 'fetchData$', done
+        testFetchDataSuccess 'fetchData$', null, done
 
 
   describe 'update$', ->

@@ -14,7 +14,7 @@ module.exports = class Marathon extends ProviderInterface
 
   @bootstrapKeys = ['url']
 
-  @sensitiveKeys = ['basic_auth_user', 'basic_auth_password']
+  @secretKeys    = ['basic_auth_user', 'basic_auth_password']
 
   @ping = (client, options, callback) ->
 
