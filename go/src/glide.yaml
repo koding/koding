@@ -285,6 +285,7 @@ import:
 - package: github.com/go-openapi/loads
 - package: github.com/go-openapi/analysis
 - package: github.com/go-openapi/jsonpointer
+- package: github.com/asaskevich/govalidator
 ignore:
 - koding/tools/logger
 - config
