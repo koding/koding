@@ -43,7 +43,9 @@ module.exports = class StripePaymentTab extends kd.TabPaneView
 
         if response.error
         then @onSubmitError response.error
-        else @onSubmitSuccess response
+        else @onSubmitSuccess response.id, {
+          number, cvc, exp_month, exp_year
+        }
 
 
   onSubmitError: (error) ->
@@ -56,9 +58,13 @@ module.exports = class StripePaymentTab extends kd.TabPaneView
     new kd.NotificationView { title: error.message }
 
 
-  onSubmitSuccess: ({ id: stripeToken }) ->
+  onSubmitSuccess: (token, card) ->
 
-    utils.storeNewTeamData 'payment', { stripeToken }
+    @form.button.hideLoader()
+
+    utils.savePaymentToken token
+    utils.saveCardInfo card
+
     kd.singletons.router.handleRoute '/Team/Username'
 
 
