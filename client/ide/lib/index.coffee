@@ -491,20 +491,6 @@ class IDEAppController extends AppController
     @activeTabView.emit 'MachineWebPageRequested', machineData
 
 
-  ensureReadme: (snapshot) ->
-
-    layout     = IDELayoutManager.convertSnapshotToFlatArray snapshot
-    readmePath = "/home/#{@mountedMachine.getOwner()}/README.md"
-
-    return @openReadme()  if layout.length is 0
-
-    hasReadme  = (layout.filter ({ context }) ->
-      path = context.file?.path
-      path and FSHelper.plainPath(path) is readmePath).length > 0
-
-    @openReadme()  unless hasReadme
-
-
   openReadme: (machine) ->
 
     machine or= @mountedMachine
@@ -580,8 +566,6 @@ class IDEAppController extends AppController
 
           @fetchSnapshot (snapshot) =>
 
-            if @mountedMachine.provider is 'softlayer'
-              @ensureReadme snapshot
 
             # Just resurrect snapshot for host or without collaboration.
             # Because we need check the `@myWatchMap` and it is not possible here.
