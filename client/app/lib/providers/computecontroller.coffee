@@ -1418,3 +1418,8 @@ module.exports = class ComputeController extends KDController
             callback  : -> callback { status : yes, modal }
 
       modal.setAttribute 'testpath', 'RemoveStackModal'
+
+
+  infoTest: (machine) ->
+    ComputeHelpers = require './computehelpers'
+    ComputeHelpers.infoTest machine
