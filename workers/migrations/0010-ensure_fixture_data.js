@@ -2,7 +2,7 @@ var mongodb = require('mongodb');
 var async = require('async');
 var ObjectId = mongodb.ObjectID;
 
-data = {
+var data = {
   "relationships": [
     {
       "_id": ObjectId("5196fcb0bc9bdb000000001e"),
