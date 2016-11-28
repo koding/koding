@@ -509,10 +509,10 @@ class IDEAppController extends AppController
   mountMachine: (machineData) ->
 
     # interrupt if workspace was changed
-    return if machineData.uid isnt @workspaceData.machineUId
+    return  if machineData.uid isnt @workspaceData.machineUId
 
-    panel        = @workspace.getView()
-    filesPane    = panel.getPaneByName 'filesPane'
+    panel     = @workspace.getView()
+    filesPane = panel.getPaneByName 'filesPane'
 
     path = @workspaceData?.rootPath
 
@@ -535,7 +535,7 @@ class IDEAppController extends AppController
 
   createInitialView: (withFakeViews) ->
 
-    @getMountedMachine (err, machine) =>
+    @getMountedMachine (err, machine) => @workspace.ready =>
 
       return  unless machine
 

@@ -45,19 +45,16 @@ module.exports = class NFinderController extends KDViewController
 
     { appStorageController } = kd.singletons
     @appStorage = appStorageController.storage 'Finder', '2.0'
-
     @watchers = {}
 
     if options.useStorage
 
-      @appStorage.ready =>
+      @treeController.on 'folder.expanded', (folder) =>
+        @setRecentFolder folder.path
 
-        @treeController.on 'folder.expanded', (folder) =>
-          @setRecentFolder folder.path
-
-        @treeController.on 'folder.collapsed', ({ path }) =>
-          @unsetRecentFolder path
-          @stopWatching path
+      @treeController.on 'folder.collapsed', ({ path }) =>
+        @unsetRecentFolder path
+        @stopWatching path
 
     @cleanup()
 
@@ -98,29 +95,36 @@ module.exports = class NFinderController extends KDViewController
       return @mountMachine machineToMount
 
 
-  mountMachine: (machine, options = {}) -> @appStorage.ready =>
+  mountMachine: (machine, options = {}) ->
+
+    unless machine
+      kd.warn '[Finder][mountMachine] Machine not provided!'
+      return
+
+    unless machine instanceof Machine
+      kd.warn '[Finder][mountMachine] Not a Machine instance!'
+      machine = new Machine { machine }
+
+    { uid } = machine
 
     @setOption 'machineToMount', machine
 
+    unless machine.isRunning()
+      return kd.warn "[Finder][mountMachine] Machine '#{machine.getName()}'
+                      was not ready, I skipped it."
+
     options.fetchContent ?= yes
 
-    unless machine.status.state is Machine.State.Running
-      return kd.warn "Machine '#{machine.getName()}' was not ready, I skipped it."
 
-    options.mountPath = null  if options.mountPath is '/'
-
-    { uid } = machine
     mRoots  = (@appStorage.getValue 'machineRoots') or {}
+
     path    = mRoots[uid] or options.mountPath or '/'
     path   ?= '/root'  if machine.isManaged()
     path   ?= if owner = machine.getOwner()
     then "/home/#{owner}"
     else '/'
 
-    if @getMachineNode uid
-      return kd.warn "Machine #{machine.getName()} is already mounted!"
-
-    @machines.push FSHelper.createFileInstance
+    @machines.push machineItem = FSHelper.createFileInstance
       name           : path
       path           : "[#{uid}]#{path}"
       type           : 'machine'
@@ -128,21 +132,16 @@ module.exports = class NFinderController extends KDViewController
       treeController : @treeController
       parentPath     : 0
 
-    machineItem = @treeController.addNode @machines.last
+    machineItem = @treeController.addNode machineItem
 
     @emit 'MachineMounted', machine, path
 
     if options.fetchContent and machineItem
-
-      kd.utils.defer =>
-
-        @treeController.expandFolder machineItem, (err) =>
-
-          @treeController.selectNode machineItem
-
-          kd.utils.defer =>
-            if @getOptions().useStorage then @reloadPreviousState uid
-        , yes
+      @treeController.expandFolder machineItem, (err) =>
+        @treeController.selectNode machineItem
+        kd.utils.defer =>
+          if @getOptions().useStorage then @reloadPreviousState uid
+      , yes
 
 
   mountMachines: (machines) ->
@@ -180,7 +179,7 @@ module.exports = class NFinderController extends KDViewController
 
     computeController.fetchMachine uid, (err, machine) =>
       return showError err  if err
-      @mountMachine machine    if machine?
+      @mountMachine machine
 
 
   hideDotFiles: (uid) ->
