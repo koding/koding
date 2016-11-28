@@ -2,7 +2,7 @@
   "resource": {
     "marathon_app": {
       "multi-app": {
-        "app_id": "/multi-app/multi-app-foobar-ident-${count.index + 1}",
+        "app_id": "/multi-app/multi-app-user-ident-${count.index + 1}",
         "container": [
           {
             "docker": [
@@ -35,9 +35,9 @@
         "env": {
           "KODING_CMD": "${base64encode(null_resource.multi-app.triggers.cmd)}",
           "KODING_KLIENT_URL": "$KLIENT_URL",
-          "KODING_METADATA_1": "...",
-          "KODING_METADATA_2": "...",
-          "KODING_METADATA_3": "..."
+          "KODING_METADATA_1": "***",
+          "KODING_METADATA_2": "***",
+          "KODING_METADATA_3": "***"
         },
         "fetch": [
           {
