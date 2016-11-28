@@ -68,6 +68,10 @@ type RegisterRequest struct {
 
 // RegisterCommand displays version information like Environment or Kite Query ID.
 func RegisterCommand(c *cli.Context, log logging.Logger, _ string) int {
+	if len(c.Args()) != 2 {
+		cli.ShowCommandHelp(c, "register")
+		return 1
+	}
 	host := c.GlobalString("host")
 
 	// TODO(mehmetali): make a generalized client to be used in klientctl
