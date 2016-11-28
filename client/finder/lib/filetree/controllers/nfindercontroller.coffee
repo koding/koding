@@ -35,10 +35,10 @@ module.exports = class NFinderController extends KDViewController
     treeOptions.maxRecentFolders  = options.maxRecentFolders  or= 10
     treeOptions.useStorage        = options.useStorage         ?= no
     treeOptions.loadFilesOnInit   = options.loadFilesOnInit    ?= no
+    treeOptions.saveChanges       = options.saveChanges        ?= yes
     treeOptions.delegate          = this
 
     super options, data
-
 
     TreeControllerClass = options.treeControllerClass or NFinderTreeController
     @treeController     = new TreeControllerClass treeOptions, []
@@ -215,7 +215,7 @@ module.exports = class NFinderController extends KDViewController
 
     prefs = @appStorage.getValue('machinesDotFileChoices') or {}
     prefs[uid] = state
-    @appStorage.setValue 'machinesDotFileChoices', prefs
+    @store 'machinesDotFileChoices', prefs
 
 
   getRecentFolders: ->
@@ -231,7 +231,7 @@ module.exports = class NFinderController extends KDViewController
     unless folderPath in recentFolders
       recentFolders.push folderPath
     recentFolders.sort (path) -> if path is folderPath then -1 else 0
-    @appStorage.setValue 'recentFolders', recentFolders, callback
+    @store 'recentFolders', recentFolders, callback
 
 
   unsetRecentFolder: (folderPath, callback) ->
@@ -241,7 +241,7 @@ module.exports = class NFinderController extends KDViewController
       path.indexOf(folderPath) isnt 0
     recentFolders.sort (path) ->
       if path is folderPath then -1 else 0
-    @appStorage.setValue 'recentFolders', recentFolders, callback
+    @store 'recentFolders', recentFolders, callback
 
 
   expandFolder: (folderPath, callback = kd.noop) ->
@@ -333,3 +333,11 @@ module.exports = class NFinderController extends KDViewController
     FSHelper.resetRegistry()
     @stopAllWatchers()
     @machines = []
+
+
+  store: (key, value, callback) ->
+
+    callback ?= kd.noop
+    if @getOption('saveChanges') is no
+      return callback null
+    @appStorage.setValue key, value, callback
