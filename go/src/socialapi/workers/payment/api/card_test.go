@@ -164,3 +164,88 @@ func TestCreditCardDeleteNotSubscribingMember(t *testing.T) {
 		})
 	})
 }
+
+func TestCreditCardInfo(t *testing.T) {
+	Convey("Given a user", t, func() {
+		withTestServer(t, func(endpoint string) {
+			withStubData(endpoint, func(username, groupName, sessionID string) {
+				Convey("When a credit card added", func() {
+					c1 := addCreditCardToUserWithChecks(endpoint, sessionID)
+
+					Convey("Group should have the credit card", func() {
+						_, err := rest.DoRequestWithAuth("GET", endpoint+EndpointCreditCardHas, nil, sessionID)
+						So(err, ShouldBeNil)
+
+						Convey("After updating the credit card", func() {
+							c2 := addCreditCardToUserWithChecks(endpoint, sessionID)
+
+							Convey("Group should still have a card", func() {
+								_, err := rest.DoRequestWithAuth("GET", endpoint+EndpointCreditCardHas, nil, sessionID)
+								So(err, ShouldBeNil)
+
+								// current and previous cc id should not be same
+								So(c1.DefaultSource.ID, ShouldNotEqual, c2.DefaultSource.ID)
+
+								Convey("After deleting the credit card", func() {
+									ccdeleteURL := endpoint + EndpointCreditCardDelete
+
+									res, err := rest.DoRequestWithAuth("DELETE", ccdeleteURL, nil, sessionID)
+									tests.ResultedWithNoErrorCheck(res, err)
+
+									Convey("Customer should not have the a credit card", func() {
+										_, err := rest.DoRequestWithAuth("GET", endpoint+EndpointCreditCardHas, nil, sessionID)
+										So(err, ShouldNotBeNil)
+									})
+								})
+							})
+						})
+					})
+				})
+			})
+		})
+	})
+}
+
+func TestCreditCardInfoLoggedOut(t *testing.T) {
+	Convey("When a non registered request comes", t, func() {
+		withTestServer(t, func(endpoint string) {
+			Convey("Endpoint should return error", func() {
+				_, err := rest.DoRequestWithAuth("GET", endpoint+EndpointCreditCardHas, nil, "")
+				So(err, ShouldNotBeNil)
+			})
+		})
+	})
+}
+
+func TestCreditCardInfoNotSubscribingMember(t *testing.T) {
+	Convey("When a non subscribed user request to get CC", t, func() {
+		withTestServer(t, func(endpoint string) {
+			withStubData(endpoint, func(username, groupName, sessionID string) {
+				group, err := modelhelper.GetGroup(groupName)
+				tests.ResultedWithNoErrorCheck(group, err)
+
+				err = modelhelper.UpdateGroupPartial(
+					modelhelper.Selector{"_id": group.Id},
+					modelhelper.Selector{
+						"$unset": modelhelper.Selector{"payment.customer.id": ""},
+					},
+				)
+				So(err, ShouldBeNil)
+
+				Convey("Endpoint should return error", func() {
+					_, err := rest.DoRequestWithAuth("GET", endpoint+EndpointCreditCardHas, nil, sessionID)
+					So(err, ShouldNotBeNil)
+
+					// set the customer id back becase test data callback requires it.
+					err = modelhelper.UpdateGroupPartial(
+						modelhelper.Selector{"_id": group.Id},
+						modelhelper.Selector{
+							"$set": modelhelper.Selector{"payment.customer.id": group.Payment.Customer.ID},
+						},
+					)
+					So(err, ShouldBeNil)
+				})
+			})
+		})
+	})
+}
