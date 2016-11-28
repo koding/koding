@@ -535,50 +535,46 @@ class IDEAppController extends AppController
 
   createInitialView: (withFakeViews) ->
 
-    kd.utils.defer =>
+    @getMountedMachine (err, machine) =>
 
-      @getMountedMachine (err, machine) =>
+      return  unless machine
 
-        return unless machine
+      for ideView in @ideViews
+        ideView.mountedMachine = @mountedMachine
 
-        machine = new Machine { machine }  unless machine instanceof Machine
+      if not @isMachineRunning() or withFakeViews
 
-        for ideView in @ideViews
-          ideView.mountedMachine = @mountedMachine
+        nickname     = machine.getOwner()
+        machineLabel = machine.slug or machine.label
+        splashes     = splashMarkups
 
-        if not @isMachineRunning() or withFakeViews
-          nickname     = machine.getOwner()
-          machineLabel = machine.slug or machine.label
-          splashes     = splashMarkups
+        @splitTabView { type: 'horizontal', dontSave: yes }
+
+        @fakeEditor       = @ideViews.first.createEditor()
+        @fakeTabView      = @activeTabView
+        fakeTerminalView  = new kd.CustomHTMLView { partial: splashes.getTerminal nickname }
+        @fakeTerminalPane = @fakeTabView.parent.createPane_ fakeTerminalView, { name: 'Terminal' }
+        @fakeFinderView   = new kd.CustomHTMLView { partial: splashes.getFileTree nickname, machineLabel }
+
+        @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
+        @fakeEditor.once 'EditorIsReady', => kd.utils.wait 1500, => @fakeEditor.setFocus no
+
+      else
+
+        @fetchSnapshot (snapshot) =>
+
+          # Just resurrect snapshot for host or without collaboration.
+          # Because we need check the `@myWatchMap` and it is not possible here.
+          if snapshot and (@amIHost or @mountedMachine.isPermanent())
+            return @layoutManager.resurrectSnapshot snapshot
+
+          # Be quiet. Don't write initial views's changes to snapshot.
+          # After that, get participant's snapshot from collaboration data and build workspace.
+          @silent = yes  if @isInSession and not @amIHost and not @mountedMachine.isPermanent()
 
           @splitTabView { type: 'horizontal', dontSave: yes }
 
-          @fakeEditor       = @ideViews.first.createEditor()
-          @fakeTabView      = @activeTabView
-          fakeTerminalView  = new kd.CustomHTMLView { partial: splashes.getTerminal nickname }
-          @fakeTerminalPane = @fakeTabView.parent.createPane_ fakeTerminalView, { name: 'Terminal' }
-          @fakeFinderView   = new kd.CustomHTMLView { partial: splashes.getFileTree nickname, machineLabel }
-
-          @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
-          @fakeEditor.once 'EditorIsReady', => kd.utils.wait 1500, => @fakeEditor.setFocus no
-
-        else
-
-          @fetchSnapshot (snapshot) =>
-
-
-            # Just resurrect snapshot for host or without collaboration.
-            # Because we need check the `@myWatchMap` and it is not possible here.
-            if snapshot and (@amIHost or @mountedMachine.isPermanent())
-              return @layoutManager.resurrectSnapshot snapshot
-
-            # Be quiet. Don't write initial views's changes to snapshot.
-            # After that, get participant's snapshot from collaboration data and build workspace.
-            @silent = yes  if @isInSession and not @amIHost and not @mountedMachine.isPermanent()
-
-            @splitTabView { type: 'horizontal', dontSave: yes }
-
-            @addInitialViews()
+          @addInitialViews()
 
 
   setMountedMachine: (machine) ->
@@ -596,14 +592,19 @@ class IDEAppController extends AppController
 
   getMountedMachine: (callback = noop) ->
 
-    return callback()  unless @mountedMachineUId
+    unless @mountedMachineUId
+      return callback null, null
 
-    kd.utils.defer =>
-      environmentDataProvider.fetchMachineByUId @mountedMachineUId, (machine, ws) =>
-        machine = new Machine { machine }  unless machine instanceof Machine
-        @setMountedMachine machine
+    if @mountedMachine
+      return callback null, @mountedMachine
 
-        callback null, machine
+    environmentDataProvider.fetchMachineByUId @mountedMachineUId, (machine, ws) =>
+
+      unless machine instanceof Machine
+        machine = new Machine { machine }
+
+      @setMountedMachine machine
+      callback null, machine
 
 
   showNoMachineState: ->
@@ -1850,8 +1851,7 @@ class IDEAppController extends AppController
   fetchFromKiteStorage: (callback, prefix) ->
 
     if not @mountedMachine or not @mountedMachine.isRunning()
-      callback null
-      return
+      return callback null
 
     handleError = (err) ->
 
