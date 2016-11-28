@@ -18,6 +18,7 @@ import (
 	"os"
 	"runtime"
 
+	"koding/klientctl/auth"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/kloud"
@@ -152,6 +153,29 @@ func run(args []string) {
 						},
 					},
 				},
+			},
+		},
+		{
+			Name:  "auth",
+			Usage: "Authorization for user",
+			// Action: ctlcli.ExitAction(CheckUpdateFirst(ListCommand, log, "list")),
+			Flags: []cli.Flag{
+				cli.BoolFlag{
+					Name:  "json",
+					Usage: "Output in JSON format",
+				},
+				cli.BoolFlag{
+					Name:  "all",
+					Usage: "Include machines that have been offline for more than 24h.",
+				},
+				cli.StringFlag{
+					Name:  "host",
+					Usage: "Specify the base endpoint domain for Koding.",
+					Value: "http://dev.koding.com:8080",
+				},
+			},
+			Subcommands: []cli.Command{
+				auth.NewRegisterSubCommand(log),
 			},
 		},
 		{
