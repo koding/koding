@@ -38,6 +38,8 @@ createShareModal = require './createShareModal'
 isDefaultTeamStack = require 'app/util/isdefaultteamstack'
 { actions : HomeActions } = require 'home/flux'
 canCreateStacks = require 'app/util/canCreateStacks'
+applyMarkdown = require 'app/util/applyMarkdown'
+
 
 module.exports = class StackEditorView extends kd.View
 
@@ -136,7 +138,6 @@ module.exports = class StackEditorView extends kd.View
       view : @readmeView
 
 
-
     { @credentials } = @stackTemplateView.credentialStatus or {}
 
     @providersView = new ProvidersView {
@@ -226,13 +227,47 @@ module.exports = class StackEditorView extends kd.View
       @warningView.show()
       @deleteStack.hide()
 
+    readmePane.on 'KDTabPaneActive', =>
+      @readMeActionWrapper.show()
+
+    readmePane.on 'KDTabPaneInactive', =>
+      @readMeActionWrapper.hide()
+
     stackTemplatePane.on 'KDTabPaneActive', =>
       @buttons.show()
       @secondaryActions.show()
+      @stackTemplateActionWrapper.show()
 
     stackTemplatePane.on 'KDTabPaneInactive', =>
       @buttons.hide()
       @secondaryActions.hide()
+      @stackTemplateActionWrapper.hide()
+
+    @stackTemplateActionWrapper = new kd.CustomHTMLView
+      cssClass: 'stack-template-action-wrapper'
+
+    @stackTemplateActionWrapper.addSubView new kd.ButtonView
+      title    : 'PREVIEW'
+      cssClass : 'HomeAppView--button secondary template-preview-button'
+      tooltip  :
+        title  : 'Generates a preview of this template with your own account information.'
+      callback : => @stackTemplateView.emit 'ShowTemplatePreview'
+
+    @stackTemplateActionWrapper.addSubView new kd.ButtonView
+      title    : 'LOGS'
+      cssClass : 'HomeAppView--button secondary showlogs-button'
+      callback : => @stackTemplateView.emit 'ShowOutputView'
+
+    @readMeActionWrapper = new kd.CustomHTMLView
+      cssClass: 'readme-action-wrapper hidden'
+
+    @readMeActionWrapper.addSubView new kd.ButtonView
+      title    : 'PREVIEW'
+      cssClass : 'HomeAppView--button secondary preview'
+      callback : => @readmeView.emit 'ShowReadMePreview'
+
+    @addSubView @stackTemplateActionWrapper
+    @addSubView @readMeActionWrapper
 
 
   listenContentChanges: ->
@@ -365,7 +400,8 @@ module.exports = class StackEditorView extends kd.View
     @stackTemplateView.on 'ShowTemplatePreview', @bound 'handlePreview'
     @stackTemplateView.on 'ReinitStack',         @bound 'handleReinit'
 
-    @previewButton = @stackTemplateView.previewButton
+    @readmeView.on 'ShowReadMePreview', @bound 'handleReadMePreview'
+
     @reinitButton  = @outputView.reinitButton
 
     @outputView.add 'Welcome to Stack Template Editor'
@@ -818,6 +854,29 @@ module.exports = class StackEditorView extends kd.View
       callback err, stackTemplate
 
 
+  handleReadMePreview: ->
+
+    title = ''
+    content = @readmeView.editorView.getValue()
+
+    scrollView = new kd.CustomScrollView { cssClass : 'readme-scroll' }
+
+    markdown = applyMarkdown content, { breaks: false }
+
+    scrollView.wrapper.addSubView markdown_content = new kd.CustomHTMLView
+      cssClass : 'markdown-content'
+      partial : markdown
+
+    new ContentModal
+      width : 600
+      overlay : yes
+      cssClass : 'readme-preview has-markdown content-modal'
+      attributes     : { testpath: 'ReadmePreviewModal' }
+      overlayOptions : { cssClass : 'second-overlay' }
+      title          : title or 'Readme Preview'
+      content        : scrollView
+
+
   handlePreview: ->
 
     template      = @stackTemplateView.editorView.getValue()
@@ -859,7 +918,7 @@ module.exports = class StackEditorView extends kd.View
         overlay : yes
       , { errors, warnings, template }
 
-      @previewButton.hideLoader()
+      # @previewButton.hideLoader()
 
 
     if requiredData.user?
