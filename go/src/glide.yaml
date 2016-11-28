@@ -290,6 +290,7 @@ import:
 - package: github.com/go-openapi/jsonreference
 - package: github.com/PuerkitoBio/purell
 - package: github.com/docker/go-units
+- package: github.com/stretchr/testify
 ignore:
 - koding/tools/logger
 - config
