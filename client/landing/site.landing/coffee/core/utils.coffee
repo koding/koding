@@ -27,7 +27,37 @@ window.onRecaptchaLoaded = ->
   recaptchaLoadCallbacks = []
 
 
+savePaymentToken = (token) ->
+  global._payment or= {}
+  _payment.token = token
+
+saveCardInfo = ({ number, exp_month, exp_year }) ->
+  global._payment or= {}
+
+  _payment.card =
+    exp_month: exp_month
+    exp_year: exp_year
+    last4: do ->
+      parts = number.split(' ').filter(Boolean)
+      lastPart = parts[parts.length - 1]
+      return lastPart.substring lastPart.length - 4
+
+
+getCardInfo = -> global._payment?.card
+
+erasePaymentToken = -> delete global._payment?.token
+eraseCardInfo = -> delete global._payment?.cardInfo
+
+cleanPayment = ->
+  erasePaymentToken()
+  eraseCardInfo()
+
+getPayment = -> global._payment
+
+
 module.exports = utils = {
+
+  savePaymentToken, saveCardInfo, getPayment, cleanPayment
 
   clearKiteCaches: ->
 
@@ -235,6 +265,7 @@ module.exports = utils = {
     formData.agree           = 'on'
     formData.passwordConfirm = formData.password
     formData.redirect        = "#{location.protocol}//#{formData.slug}.#{location.host}?username=#{formData.username}"
+    formData.stripeToken     = global._stripeToken
 
     $.ajax
       url       : '/-/teams/create'
