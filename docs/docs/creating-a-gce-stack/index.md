@@ -110,19 +110,15 @@ Your new team members will be able to use your stack to build their VMs environm
 
     ![GCE Init Stack][23]
 
-9. Click **Initialize** to start your stack
+9. Now let's start building our stack
 
-    ![GCE Init Stack][23]
-
-10. Now let's start building our stack
-
-    > You will notice that the first page in the building stack contains the message we wrote in our Read Me tab in our stack. This is the same message your team will see when they build their stack. It is a good practice to include information about your project or stack for your teammates.
+    > You will notice that the first page in the building stack window contains the message we wrote in our Read Me tab in our stack. This is the same message your team will see when they build their stack. It is a good practice to include information about your project or stack for your teammates.
 
     Click **Next**
 
     ![GCE Init Stack][24]
 
-11. Make sure the correct credentials are selected (you can save multiple credentials) and click **Build Stack**
+10. Make sure the correct credentials are selected (you can save multiple credentials) and click **Build Stack**
 
     ![GCE build stack][25]
 
@@ -130,7 +126,7 @@ Your new team members will be able to use your stack to build their VMs environm
 
     ![GCE stack building][26]
 
-12. Congratulations, your stack was built successfully, click **Start Coding**
+11. Congratulations, your stack was built successfully, click **Start Coding**
 
     ![GCE stack built successfully][27]
 
