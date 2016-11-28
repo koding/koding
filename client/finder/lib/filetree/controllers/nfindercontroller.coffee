@@ -111,7 +111,7 @@ module.exports = class NFinderController extends KDViewController
 
     { uid } = machine
     mRoots  = (@appStorage.getValue 'machineRoots') or {}
-    path    = options.mountPath or mRoots[uid] or '/'
+    path    = mRoots[uid] or options.mountPath or '/'
     path   ?= '/root'  if machine.isManaged()
     path   ?= if owner = machine.getOwner()
     then "/home/#{owner}"
@@ -252,6 +252,7 @@ module.exports = class NFinderController extends KDViewController
     return  unless folderPath
     for own path, node of @treeController.nodes
       return @treeController.expandFolder node, callback  if path is folderPath
+
     callback { message:"Folder not exists: #{folderPath}" }
 
 
@@ -259,7 +260,9 @@ module.exports = class NFinderController extends KDViewController
 
     if typeof paths is 'string'
       paths = FSHelper.getPathHierarchy paths
-    path = paths.pop()
+
+    path = paths.shift()
+
     @expandFolder path, (err) =>
       @unsetRecentFolder path  if err
       if paths.length is 0
@@ -270,11 +273,15 @@ module.exports = class NFinderController extends KDViewController
   reloadPreviousState: (uid) ->
 
     recentFolders = @getRecentFolders()
+
     if uid
+
       recentFolders = recentFolders.filter (folder) ->
-        folder.indexOf "[#{uid}]" is 0
+        folder.indexOf("[#{uid}]") is 0
+
       if recentFolders.length is 0
         recentFolders = ["[#{uid}]/"]
+
     @expandFolders recentFolders
 
 
