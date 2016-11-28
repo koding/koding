@@ -12,12 +12,17 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
 
     team = utils.getTeamData()
 
+    cleanPayment = ->
+      if utils.getPayment()
+        utils.cleanPayment()
+
     @number = new LoginInputView
       inputOptions   :
         name         : 'number'
         label        : 'Card Number'
         placeholder  : '•••• •••• •••• ••••'
         attributes   : { maxlength: 19 } # 16 + 3 spaces
+        keydown      : cleanPayment
         validate     :
           rules      :
             required : yes
@@ -29,6 +34,7 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
         name         : 'cvc'
         label        : 'CVC'
         placeholder  : '•••'
+        keydown      : cleanPayment
         validate     :
           rules      :
             required : yes
@@ -40,6 +46,7 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
         name         : 'exp_month'
         label        : 'Month'
         placeholder  : '••'
+        keydown      : cleanPayment
         validate     :
           rules      :
             required : yes
@@ -51,6 +58,7 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
         name         : 'exp_year'
         label        : 'Year'
         placeholder  : '••••'
+        keydown      : cleanPayment
         validate     :
           rules      :
             required : yes
@@ -68,8 +76,32 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
     @on [ 'FormSubmitFailed', 'FormValidationFailed' ], @button.bound 'hideLoader'
 
     kd.singletons.router.on 'RouteInfoHandled', =>
+
+      # cleanup first
       [@number, @cvc, @exp_month, @exp_year].forEach (view) ->
         view.input.setValue ''
+
+      { card } = utils.getPayment()
+      return @setValues card  if card
+
+
+  setValues: (values) ->
+    Object.keys(values).forEach (inputType) =>
+      value = values[inputType]
+
+      if inputType is 'last4'
+        inputType = 'number'
+        value = "•••• •••• •••• #{value}"
+
+      { input } = this[inputType]
+
+      console.log {inputType, input}
+
+      return  unless input
+
+      return  if input.getValue() is value
+
+      input.setValue value
 
 
   viewAppended: ->
