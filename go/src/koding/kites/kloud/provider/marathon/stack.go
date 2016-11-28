@@ -285,7 +285,7 @@ func (s *Stack) injectFetchEntrypoints(app map[string]interface{}) {
 	fetch = append(fetch, map[string]interface{}{
 		"uri":        s.ScreenURL,
 		"executable": false,
-		"cache":      false,
+		"cache":      true,
 	}, map[string]interface{}{
 		"uri":        s.CertURL,
 		"executable": false,

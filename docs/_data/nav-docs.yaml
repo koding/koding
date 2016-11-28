@@ -6,12 +6,20 @@
   items:
   - id: what-is-a-stack
     title: What is a Stack
+  - id: choose-provider
+    title: Choosing a Provider
   - id: creating-an-aws-stack
     title: Create AWS stack
   - id: creating-a-vagrant-stack
     title: Create Vagrant stack
   - id: creating-a-digitalocean-stack
     title: Create Digital Ocean stack
+  - id: creating-a-gce-stack
+    title: Create Google Compute Engine stack
+  - id: creating-an-azure-stack
+    title: Create Azure stack
+- title: Getting more from Koding
+  items:
   - id: kd
     title: KD
   - id: use-your-own-ide

@@ -30,11 +30,11 @@ There are several use cases where this makes sense. For example:
 
 ### How can I stop sharing my VM?
 
-1. Go into VM settings and remove the user with whom you no longer wish to share your VM, or turn off sharing completely. ![5][7]
+- Go into VM settings and remove the user with whom you no longer wish to share your VM, or turn off sharing completely. ![5][7]
 
 ### How do I leave a shared VM?
 
-1. Click the VM settings for the shared VM and then select "Leave Shared VM" to remove the VM from your Sidebar.![6][8]
+- Click the VM settings for the shared VM and then select "Leave Shared VM" to remove the VM from your Sidebar.![6][8]
 
 [1]: https://github.com/koding/kdlearn/blob/master/guides/collaboration
 [2]: mailto:support@koding.com

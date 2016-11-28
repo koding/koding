@@ -54,6 +54,7 @@ module.exports = class StackScriptSearchBoxView extends React.Component
         value={@props.query}
         onChangeCallback={@props.onChange}
         onKeyUp={@props.onKeyUp}
+        active={not @isIconVisible()}
         onFocusCallback={@props.onFocus} />
       {@renderLink()}
       {@renderIcon()}
@@ -61,11 +62,11 @@ module.exports = class StackScriptSearchBoxView extends React.Component
     </div>
 
 
-SearchInputBox = ({ value, onChangeCallback, onFocusCallback, onKeyUp }) ->
+SearchInputBox = ({ value, onChangeCallback, onFocusCallback, onKeyUp, active }) ->
 
   <input
     type='text'
-    className='kdinput text searchStackInput'
+    className="kdinput text searchStackInput#{if active then ' active' else ''}"
     placeholder='Search Docs, AWS, S3, Azure, GCP...'
     value={value}
     onChange={onChangeCallback}
