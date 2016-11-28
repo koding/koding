@@ -108,6 +108,7 @@ func (m *MongoDatabase) Machines(f *Filter) ([]*Machine, error) {
 	machines := make([]*Machine, len(machinesDB))
 	for i, mdb := range machinesDB {
 		machines[i] = &Machine{
+			ID:        mdb.ObjectId.Hex(),
 			Team:      groupTitles[mdb.GeneratedFrom.TemplateId][0],
 			Stack:     groupTitles[mdb.GeneratedFrom.TemplateId][1],
 			Provider:  mdb.Provider,

@@ -3,10 +3,18 @@ package machine
 import (
 	"strings"
 	"time"
+
+	"koding/klient/machine"
 )
 
 // Info stores the basic information about the machine.
 type Info struct {
+	// ID is an unique identifier for a given machine.
+	ID string `json:"id"`
+
+	// Alias stores a human readable alias for machine.
+	Alias string `json:"alias"`
+
 	// Team is the name of the team which created the machine.
 	Team string `json:"team"`
 
@@ -26,36 +34,13 @@ type Info struct {
 	CreatedAt time.Time `json:"createdAt"`
 
 	// The machines last known status.
-	Status Status `json:"status"`
+	Status machine.Status `json:"status"`
 
 	// The user name of the Koding user.
 	Username string `json:"username"`
 
 	// Owner describes who shared the machine if it's shared.
 	Owner string `json:"owner"`
-
-	// Alias it a human friendly "name" of the machine.
-	Alias string `json:"alias"`
-
-	// Mounts represents current mounts to the machine.
-	//
-	// TODO(ppknap) implement or remove from machine info.
-	Mounts []ListMountInfo `json:"mounts"`
-}
-
-// Status represents the current status of machine.
-type Status struct {
-	State      State     `json:"state"`
-	Reason     string    `json:"reason"`
-	ModifiedAt time.Time `json:"modifiedAt"`
-}
-
-// ListMountInfo is the machine info response from the `remote.list` handler.
-type ListMountInfo struct {
-	MountName  string `json:"mountName"`
-	RemotePath string `json:"remotePath"`
-	LocalPath  string `json:"localPath"`
-	MountType  int    `json:"mountType"`
 }
 
 // InfoSlice attaches the methods of Interface to []Info, they provide priority
@@ -89,16 +74,14 @@ func groupRank(i *Info) int {
 	}
 
 	switch {
-	case i.Status.State == StateRemounting || len(i.Mounts) != 0: // Mounted machines first.
+	case i.Status.State == machine.StateConnected: // There is an active connection.
 		return 0
-	case i.Status.State == StateError: // Mounting has failed.
+	case i.Status.State == machine.StateOnline: // On-line machines.
 		return 1
-	case i.Status.State == StateOnline: // On-line machines.
+	case i.Status.State == machine.StateOffline: // Off-line machines.
 		return 2
-	case i.Status.State == StateOffline: // Off-line machines.
-		return 3
 	default:
-		return 4
+		return 3
 	}
 }
 

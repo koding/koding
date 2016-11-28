@@ -34,6 +34,8 @@ import (
 	"koding/klient/info"
 	"koding/klient/info/publicip"
 	"koding/klient/logfetcher"
+	"koding/klient/machine"
+	"koding/klient/machine/machinegroup"
 	kos "koding/klient/os"
 	"koding/klient/remote"
 	"koding/klient/sshkeys"
@@ -112,6 +114,11 @@ type Klient struct {
 	// connected to, and so on. It is typically called from a local kite,
 	// and is responsible for Klient's `remote.*` methods.
 	remote *remote.Remote
+
+	// machines manages a group of machines that can be seen or used by Klient.
+	//
+	// TODO(ppknap): this field is going to store all machine operations.
+	machines *machinegroup.Group
 
 	// updater polls s3://latest-version.txt with config.UpdateInterval
 	// and updates current binary if version is never than config.Version.
@@ -308,6 +315,18 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		// EventSub: mountEvents,
 	}
 
+	machinesOpts := machinegroup.GroupOpts{
+		Storage:         storage.NewEncodingStorage(db, []byte("machines")),
+		Builder:         machine.DisconnectedClientBuilder{},
+		DynAddrInterval: 2 * time.Second,
+		PingInterval:    15 * time.Second,
+	}
+
+	machines, err := machinegroup.New(machinesOpts)
+	if err != nil {
+		k.Log.Fatal("Cannot initialize machine group: %s", err)
+	}
+
 	c := k.NewClient(konfig.Konfig.KloudURL)
 	c.Auth = &kite.Auth{
 		Type: "kiteKey",
@@ -344,6 +363,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		config:   conf,
 		remote:   remote.NewRemote(remoteOpts),
 		uploader: up,
+		machines: machines,
 		updater: &Updater{
 			Endpoint:       conf.UpdateURL,
 			Interval:       conf.UpdateInterval,
@@ -414,7 +434,7 @@ func klientXHRClientFunc(opts *sockjsclient.DialOptions) *http.Client {
 	}
 }
 
-// Kite retursn the underlying Kite instance
+// Kite returns the underlying Kite instance.
 func (k *Klient) Kite() *kite.Kite {
 	return k.kite
 }
@@ -484,6 +504,9 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("fs.copy", fs.Copy)
 	k.kite.HandleFunc("fs.getDiskInfo", fs.GetDiskInfo)
 	k.kite.HandleFunc("fs.getPathSize", fs.GetPathSize)
+
+	// Machine group handlers.
+	k.kite.HandleFunc("machine.create", machinegroup.KiteCreateHandler(k.machines))
 
 	// Vagrant
 	k.kite.HandleFunc("vagrant.create", k.vagrant.Create)

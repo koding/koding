@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+
+	"koding/klient/machine"
 )
 
 func TestInfoSliceSort(t *testing.T) {
@@ -13,28 +15,28 @@ func TestInfoSliceSort(t *testing.T) {
 	}{
 		"sort by state": {
 			Provided: []*Info{
-				testInfo("coconut", StateDisconnected, ListMountInfo{}),
-				testInfo("apple", StateOffline),
-				testInfo("pear", StateOnline),
-				testInfo("date", StateOnline),
-				testInfo("grapefruit", StateOffline),
-				testInfo("orange", StateOffline),
-				testInfo("banana", StateOffline),
-				testInfo("squash", StateConnected, ListMountInfo{}),
-				testInfo("kiwi", StateOnline),
-				testInfo("jackfruit", StateConnected, ListMountInfo{}),
+				testInfo("coconut", machine.StateUnknown),
+				testInfo("apple", machine.StateOffline),
+				testInfo("pear", machine.StateOnline),
+				testInfo("date", machine.StateOnline),
+				testInfo("grapefruit", machine.StateOffline),
+				testInfo("orange", machine.StateOffline),
+				testInfo("banana", machine.StateOffline),
+				testInfo("squash", machine.StateConnected),
+				testInfo("kiwi", machine.StateOnline),
+				testInfo("jackfruit", machine.StateConnected),
 			},
 			Expected: []*Info{
-				testInfo("coconut", StateDisconnected, ListMountInfo{}),
-				testInfo("jackfruit", StateConnected, ListMountInfo{}),
-				testInfo("squash", StateConnected, ListMountInfo{}),
-				testInfo("date", StateOnline),
-				testInfo("kiwi", StateOnline),
-				testInfo("pear", StateOnline),
-				testInfo("apple", StateOffline),
-				testInfo("banana", StateOffline),
-				testInfo("grapefruit", StateOffline),
-				testInfo("orange", StateOffline),
+				testInfo("jackfruit", machine.StateConnected),
+				testInfo("squash", machine.StateConnected),
+				testInfo("date", machine.StateOnline),
+				testInfo("kiwi", machine.StateOnline),
+				testInfo("pear", machine.StateOnline),
+				testInfo("apple", machine.StateOffline),
+				testInfo("banana", machine.StateOffline),
+				testInfo("grapefruit", machine.StateOffline),
+				testInfo("orange", machine.StateOffline),
+				testInfo("coconut", machine.StateUnknown),
 			},
 		},
 	}
@@ -66,37 +68,37 @@ func TestInfoSliceFindByName(t *testing.T) {
 	}{
 		"simple find": {
 			Provided: []*Info{
-				testInfo("a", StateOnline),
-				testInfo("b", StateOnline),
-				testInfo("c", StateOnline),
-				testInfo("d", StateOnline),
-				testInfo("e", StateOnline),
-				testInfo("f", StateOnline),
+				testInfo("a", machine.StateOnline),
+				testInfo("b", machine.StateOnline),
+				testInfo("c", machine.StateOnline),
+				testInfo("d", machine.StateOnline),
+				testInfo("e", machine.StateOnline),
+				testInfo("f", machine.StateOnline),
 			},
 			Name:     "d",
-			Expected: testInfo("d", StateOnline),
+			Expected: testInfo("d", machine.StateOnline),
 		},
 		"by prefix": {
 			Provided: []*Info{
-				testInfo("aa", StateOnline),
-				testInfo("bb", StateOnline),
-				testInfo("cc", StateOnline),
+				testInfo("aa", machine.StateOnline),
+				testInfo("bb", machine.StateOnline),
+				testInfo("cc", machine.StateOnline),
 			},
 			Name:     "b",
-			Expected: testInfo("bb", StateOnline),
+			Expected: testInfo("bb", machine.StateOnline),
 		},
 		"exact match": {
 			Provided: []*Info{
-				testInfo("aa", StateOnline),
-				testInfo("a", StateOnline),
-				testInfo("aaa", StateOnline),
+				testInfo("aa", machine.StateOnline),
+				testInfo("a", machine.StateOnline),
+				testInfo("aaa", machine.StateOnline),
 			},
 			Name:     "a",
-			Expected: testInfo("a", StateOnline),
+			Expected: testInfo("a", machine.StateOnline),
 		},
 		"not found": {
 			Provided: []*Info{
-				testInfo("g", StateOnline),
+				testInfo("g", machine.StateOnline),
 			},
 			Name:     "a",
 			Expected: nil,
@@ -114,12 +116,11 @@ func TestInfoSliceFindByName(t *testing.T) {
 	}
 }
 
-func testInfo(alias string, state State, mounts ...ListMountInfo) *Info {
+func testInfo(alias string, state machine.State) *Info {
 	return &Info{
 		Alias: alias,
-		Status: Status{
+		Status: machine.Status{
 			State: state,
 		},
-		Mounts: mounts,
 	}
 }

@@ -4,6 +4,7 @@ import "time"
 
 // Machine represents a single machine.
 type Machine struct {
+	ID        string    `json:"id"`
 	Team      string    `json:"team"`
 	Stack     string    `json:"stack"`
 	Provider  string    `json:"provider"`

@@ -7,6 +7,7 @@ import (
 	"text/tabwriter"
 	"time"
 
+	kmachine "koding/klient/machine"
 	"koding/klientctl/machine"
 
 	"github.com/codegangsta/cli"
@@ -33,9 +34,11 @@ func tabFormatter(w io.Writer, infos []*machine.Info) {
 	now := time.Now()
 	tw := tabwriter.NewWriter(w, 2, 0, 2, ' ', 0)
 
-	fmt.Fprintf(tw, "TEAM\tSTACK\tPROVIDER\tLABEL\tOWNER\tAGE\tIP\tSTATUS\n")
+	fmt.Fprintf(tw, "ID\tALIAS\tTEAM\tSTACK\tPROVIDER\tLABEL\tOWNER\tAGE\tIP\tSTATUS\n")
 	for _, info := range infos {
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+			info.ID,
+			info.Alias,
 			info.Team,
 			info.Stack,
 			info.Provider,
@@ -49,17 +52,17 @@ func tabFormatter(w io.Writer, infos []*machine.Info) {
 	tw.Flush()
 }
 
-func prettyStatus(status machine.Status) string {
+func prettyStatus(status kmachine.Status) string {
 	now := time.Now()
 
-	if status.State == machine.StateOnline {
-		return fmt.Sprintf("%-9s (%s)", status.State, timeToAgo(status.ModifiedAt, now))
+	if status.State == kmachine.StateOnline {
+		return fmt.Sprintf("%s (%s)", status.State, timeToAgo(status.Since, now))
 	}
 
-	timeReasonFmt := timeToAgo(status.ModifiedAt, now)
+	timeReasonFmt := timeToAgo(status.Since, now)
 	if status.Reason != "" {
 		timeReasonFmt += ": " + status.Reason
 	}
 
-	return fmt.Sprintf("%-9s (%s)", status.State, timeReasonFmt)
+	return fmt.Sprintf("%s (%s)", status.State, timeReasonFmt)
 }
