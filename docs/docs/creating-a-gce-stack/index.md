@@ -146,7 +146,7 @@ Your new team members will be able to use your stack to build their VMs environm
 [1]: https://cloud.google.com/
 [2]: https://cloud.google.com/compute/
 [3]: https://cloud.google.com/compute/pricing
-[4]: {{ site.url }}/assets/img/guides/digitalocean/create-new-stack.png
+[4]: {{ site.url }}/assets/img/guides/azure/create-new-stack.png
 [5]: {{ site.url }}/assets/img/guides/gce/provider-gce.png
 [6]: {{ site.url }}/assets/img/guides/gce/gce-default-stack.png
 [7]: {{ site.url }}/assets/img/guides/gce/gce-readme.png
