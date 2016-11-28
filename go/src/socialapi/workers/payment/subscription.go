@@ -116,7 +116,7 @@ func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 		return nil, ErrCustomerNotExists
 	}
 
-	if err := checkCustomerHasSource(group.Payment.Customer.ID); err != nil {
+	if err := CheckCustomerHasSource(group.Payment.Customer.ID); err != nil {
 		return nil, err
 	}
 

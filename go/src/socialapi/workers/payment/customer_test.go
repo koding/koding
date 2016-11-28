@@ -23,8 +23,8 @@ func TestCheckCustomerHasSource(t *testing.T) {
 				So(group.Payment.Customer.ID, ShouldNotBeBlank)
 
 				Convey("When customer does not have card", func() {
-					err := checkCustomerHasSource(group.Payment.Customer.ID)
-					Convey("checkCustomerHasSource should return false", func() {
+					err := CheckCustomerHasSource(group.Payment.Customer.ID)
+					Convey("CheckCustomerHasSource should return false", func() {
 						So(err, ShouldEqual, ErrCustomerSourceNotExists)
 
 						Convey("When customer does have card", func() {
@@ -38,8 +38,8 @@ func TestCheckCustomerHasSource(t *testing.T) {
 								}
 								c, err := UpdateCustomerForGroup(username, groupName, cp)
 								tests.ResultedWithNoErrorCheck(c, err)
-								Convey("checkCustomerHasSource should return true", func() {
-									err := checkCustomerHasSource(group.Payment.Customer.ID)
+								Convey("CheckCustomerHasSource should return true", func() {
+									err := CheckCustomerHasSource(group.Payment.Customer.ID)
 									So(err, ShouldBeNil)
 								})
 							})

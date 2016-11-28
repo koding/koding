@@ -329,7 +329,9 @@ func populateCustomerParams(username, groupName string, initial *stripe.Customer
 	return req, nil
 }
 
-func checkCustomerHasSource(cusID string) error {
+// CheckCustomerHasSource checks if the given customer has any kind of active
+// source.
+func CheckCustomerHasSource(cusID string) error {
 	cus, err := customer.Get(cusID, nil)
 	if err != nil {
 		return err
