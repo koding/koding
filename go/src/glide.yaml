@@ -289,6 +289,7 @@ import:
 - package: github.com/go-openapi/spec
 - package: github.com/go-openapi/jsonreference
 - package: github.com/PuerkitoBio/purell
+- package: github.com/docker/go-units
 ignore:
 - koding/tools/logger
 - config
