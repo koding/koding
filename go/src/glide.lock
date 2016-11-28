@@ -1047,6 +1047,8 @@ imports:
   version: 7222828b8ce19afee3c595aef6643b9e42150120
 - name: github.com/asaskevich/govalidator
   version: 7b3beb6df3c42abd3509abfc3bcacc0fbfb7c877
+- name: github.com/go-openapi/spec
+  version: f7ae86df5bc115a2744343016c789a89f065a4bd
 testImports:
 - name: github.com/vaughan0/go-ini
   version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1
