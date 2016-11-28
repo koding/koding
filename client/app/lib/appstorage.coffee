@@ -1,4 +1,5 @@
 kd     = require 'kd'
+_      = require 'lodash'
 whoami = require './util/whoami'
 
 
@@ -88,6 +89,9 @@ module.exports = class AppStorage extends kd.Object
     @_storageData[group][appId]            or= {}
     @_storageData[group][appId].data       or= {}
     @_storageData[group][appId].data[key]    = value
+
+    if _.isEqual @_storage?[group]?[appId]?.data?[key], value
+      return callback?()
 
     pack = @zip key, group, value
 
