@@ -230,17 +230,26 @@ module.exports = class NFinderController extends KDViewController
     recentFolders = @getRecentFolders()
     unless folderPath in recentFolders
       recentFolders.push folderPath
-    recentFolders.sort (path) -> if path is folderPath then -1 else 0
+    recentFolders
+      .sort (path) ->
+        if path is folderPath then -1 else 0
+      .sort (a, b) ->
+        a.length - b.length
+
     @store 'recentFolders', recentFolders, callback
 
 
   unsetRecentFolder: (folderPath, callback) ->
 
     recentFolders = @getRecentFolders()
-    recentFolders = recentFolders.filter (path) ->
-      path.indexOf(folderPath) isnt 0
-    recentFolders.sort (path) ->
-      if path is folderPath then -1 else 0
+    recentFolders = recentFolders
+      .filter (path) ->
+        path.indexOf(folderPath) isnt 0
+      .sort (path) ->
+        if path is folderPath then -1 else 0
+      .sort (a, b) ->
+        a.length - b.length
+
     @store 'recentFolders', recentFolders, callback
 
 
@@ -257,6 +266,9 @@ module.exports = class NFinderController extends KDViewController
 
     if typeof paths is 'string'
       paths = FSHelper.getPathHierarchy paths
+
+    paths.sort (a, b) ->
+      a.length - b.length
 
     path = paths.shift()
 

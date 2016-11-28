@@ -61,10 +61,8 @@ module.exports = class IDEFinderPane extends IDEPane
       mgr.tell 'IDE', 'tailFile', options
       kd.getSingleton('windowController').setKeyView null
 
-
     tc.on 'TerminalRequested', (machine) ->
       mgr.tell 'IDE', 'openMachineTerminal', machine
-
 
     @on 'MachineMountRequested', (machine, rootPath) ->
       fc.mountMachine machine, { mountPath: rootPath }
