@@ -1,9 +1,13 @@
 package api
 
 import (
+	"errors"
 	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"net/url"
+
+	stripe "github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go/charge"
 
 	"socialapi/models"
 	"socialapi/workers/common/response"
@@ -48,4 +52,55 @@ func HasCreditCard(u *url.URL, h http.Header, _ interface{}, context *models.Con
 	}
 
 	return response.NewDefaultOK()
+}
+
+// AuthCreditCard auths some many from given source. For more info:
+// https://support.stripe.com/questions/does-stripe-support-authorize-and-capture
+func AuthCreditCard(u *url.URL, h http.Header, req *stripe.ChargeParams, context *models.Context) (int, http.Header, interface{}, error) {
+	if context.Client.SessionID == "" {
+		return response.NewBadRequest(errors.New("does not have session id"))
+	}
+
+	if context.IsLoggedIn() {
+		return response.NewAccessDenied(errors.New("logged out users only"))
+	}
+
+	ses, err := modelhelper.GetSession(context.Client.SessionID)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	const chargeIDKey = "chargeID"
+	_, err = ses.Data.GetString(chargeIDKey)
+	if err == nil {
+		return response.NewBadRequest(errors.New("has already an auth"))
+	}
+
+	if req.Email == "" {
+		return response.NewBadRequest(errors.New("email is not set"))
+	}
+
+	chargeParams := &stripe.ChargeParams{
+		Amount:   50, // fifty cent
+		Currency: "usd",
+		Desc:     "AUTH FOR KODING REGISTERATION",
+		Source:   req.Source,
+		Email:    req.Email,
+		// this will help us with validating the request.
+		NoCapture: true,
+	}
+	ch, err := charge.New(chargeParams)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	data := map[string]interface{}{
+		chargeIDKey: ch.ID,
+	}
+
+	if err := modelhelper.UpdateSessionData(ses.ClientId, data); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(data)
 }

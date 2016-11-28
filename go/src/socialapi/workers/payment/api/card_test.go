@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/rest"
@@ -106,7 +107,7 @@ func TestCreditCardDeleteNonAdmin(t *testing.T) {
 		withTestServer(t, func(endpoint string) {
 			acc, _, groupName := models.CreateRandomGroupDataWithChecks()
 
-			ses, err := models.FetchOrCreateSession(acc.Nick, groupName)
+			ses, err := modelhelper.CreateSessionForAccount(acc.Nick, groupName)
 			tests.ResultedWithNoErrorCheck(ses, err)
 
 			Convey("Endpoint should return error", func() {
@@ -245,6 +246,133 @@ func TestCreditCardInfoNotSubscribingMember(t *testing.T) {
 					)
 					So(err, ShouldBeNil)
 				})
+			})
+		})
+	})
+}
+
+func TestCreditCardAuthNoSession(t *testing.T) {
+	Convey("When a non subscribed user request for Auth", t, func() {
+		withTestServer(t, func(endpoint string) {
+			withTestCreditCardToken(func(token string) {
+				cp := &stripe.ChargeParams{
+					Source: &stripe.SourceParams{
+						Token: token,
+					},
+					Email: "testcreditcardauth@kd.io",
+				}
+
+				req, err := json.Marshal(cp)
+				tests.ResultedWithNoErrorCheck(req, err)
+
+				res, err := rest.DoRequestWithAuth("POST", endpoint+EndpointCreditCardAuth, req, "")
+				So(err, ShouldNotBeNil)
+				So(res, ShouldBeNil)
+				So(err.Error(), ShouldContainSubstring, "does not have session id")
+			})
+		})
+	})
+}
+func TestCreditCardAuthEmptyEmail(t *testing.T) {
+	Convey("When a non subscribed user request for Auth", t, func() {
+		withTestServer(t, func(endpoint string) {
+			withTestCreditCardToken(func(token string) {
+				testUsername := "guest-testcreditcardauth"
+				testGroupName := "guests"
+
+				ses, err := modelhelper.CreateSessionForAccount(testUsername, testGroupName)
+				tests.ResultedWithNoErrorCheck(ses, err)
+
+				cp := &stripe.ChargeParams{
+					Source: &stripe.SourceParams{
+						Token: token,
+					},
+				}
+
+				req, err := json.Marshal(cp)
+				tests.ResultedWithNoErrorCheck(req, err)
+
+				res, err := rest.DoRequestWithAuth("POST", endpoint+EndpointCreditCardAuth, req, ses.ClientId)
+				So(err, ShouldNotBeNil)
+				So(res, ShouldBeNil)
+				So(err.Error(), ShouldContainSubstring, "email is not set")
+			})
+		})
+	})
+}
+
+func TestCreditCardAuthValid(t *testing.T) {
+	Convey("When a non subscribed user request for Auth", t, func() {
+		withTestServer(t, func(endpoint string) {
+			withTestCreditCardToken(func(token string) {
+				testUsername := "guest-testcreditcardauth"
+				testGroupName := "guests"
+
+				ses, err := modelhelper.CreateSessionForAccount(testUsername, testGroupName)
+				tests.ResultedWithNoErrorCheck(ses, err)
+
+				cp := &stripe.ChargeParams{
+					Source: &stripe.SourceParams{
+						Token: token,
+					},
+					Email: "testcreditcardauth@kd.io",
+				}
+
+				req, err := json.Marshal(cp)
+				tests.ResultedWithNoErrorCheck(req, err)
+
+				res, err := rest.DoRequestWithAuth("POST", endpoint+EndpointCreditCardAuth, req, ses.ClientId)
+				So(err, ShouldBeNil)
+
+				var m mongomodels.Data
+				err = json.Unmarshal(res, &m)
+				So(err, ShouldBeNil)
+				val, err := m.GetString("chargeID")
+				So(err, ShouldBeNil)
+				So(val, ShouldNotBeNil)
+
+				Convey("session should have the same value", func() {
+					ses2, err := modelhelper.GetSession(ses.ClientId)
+					So(err, ShouldBeNil)
+					So(ses2, ShouldNotBeNil)
+
+					val2, err := ses2.Data.GetString("chargeID")
+					So(err, ShouldBeNil)
+					So(val, ShouldNotBeNil)
+					So(val, ShouldEqual, val2)
+				})
+			})
+		})
+	})
+}
+
+func TestCreditCardAuthRetryFail(t *testing.T) {
+	Convey("When a non subscribed user request for Auth", t, func() {
+		withTestServer(t, func(endpoint string) {
+			withTestCreditCardToken(func(token string) {
+				testUsername := "guest-testcreditcardauth"
+				testGroupName := "guests"
+
+				ses, err := modelhelper.CreateSessionForAccount(testUsername, testGroupName)
+				tests.ResultedWithNoErrorCheck(ses, err)
+
+				cp := &stripe.ChargeParams{
+					Source: &stripe.SourceParams{
+						Token: token,
+					},
+					Email: "testcreditcardauth@kd.io",
+				}
+
+				req, err := json.Marshal(cp)
+				tests.ResultedWithNoErrorCheck(req, err)
+
+				res, err := rest.DoRequestWithAuth("POST", endpoint+EndpointCreditCardAuth, req, ses.ClientId)
+				So(err, ShouldBeNil)
+
+				res, err = rest.DoRequestWithAuth("POST", endpoint+EndpointCreditCardAuth, req, ses.ClientId)
+				So(err, ShouldNotBeNil)
+				So(res, ShouldBeNil)
+				So(err.Error(), ShouldContainSubstring, "has already an auth")
 			})
 		})
 	})

@@ -15,6 +15,7 @@ const (
 	EndpointCustomerDelete     = "/payment/customer/delete"
 	EndpointCreditCardDelete   = "/payment/creditcard/delete"
 	EndpointCreditCardHas      = "/payment/creditcard/has"
+	EndpointCreditCardAuth     = "/payment/creditcard/auth"
 	EndpointWebhook            = "/payment/webhook"
 	EndpointInvoiceList        = "/payment/invoice/list"
 	EndpointInfo               = "/payment/info"
@@ -102,6 +103,15 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "payment-has-creditcard",
 			Type:     handler.GetRequest,
 			Endpoint: EndpointCreditCardHas,
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  AuthCreditCard,
+			Name:     "payment-auth-creditcard",
+			Type:     handler.PostRequest,
+			Endpoint: EndpointCreditCardAuth,
 		},
 	)
 
