@@ -83,11 +83,18 @@ module.exports = class Machine extends KDObject
 
       @updateLocalData()
 
+    @fetchInfo => @emit 'ready'
+
 
   updateLocalData: ->
+
     { @label, @ipAddress, @_id, @provisioners, @provider, @credential
       @status, @uid, @domain, @queryString, @slug } = @jMachine
     @alwaysOn = @jMachine.meta.alwaysOn ? no
+
+    @readyState = 0
+    @fetchInfo()
+
 
 
   setLabel: (label, callback) ->
@@ -142,6 +149,29 @@ module.exports = class Machine extends KDObject
         disconnect : kd.noop
         ready      : kd.noop
       }
+
+
+  fetchInfo: (callback = kd.noop) ->
+
+    owner = @getOwner()
+
+    setAndReturnDefault = =>
+      callback null, @info =
+        home     : "/home/#{owner}"
+        groups   : [owner, 'sudo']
+        username : owner
+
+    if @isRunning()
+      kite = @getBaseKite()
+      kite.init().then =>
+        kite.klientInfo().then (info) =>
+          callback null, @info = info
+        .timeout globals.COMPUTECONTROLLER_TIMEOUT
+        .catch (err) =>
+          kd.warn '[Machine][fetchInfo] Failed to get klient.info', err
+          setAndReturnDefault()
+    else
+      setAndReturnDefault()
 
 
   getOwner: ->
