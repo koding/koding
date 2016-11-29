@@ -246,7 +246,7 @@ Invite your developers to your Koding for teams group and ask them to login and 
 
 ![Success01.png][4]
 
-[1]: {{ site.url }}/assets/img/guides/github/koding_github.png
+[1]: {{ site.url }}/assets/img/guides/github/koding_github2.png
 [2]: {{ site.url }}/assets/img/guides/github/github_readme.png
 [3]: {{ site.url }}/assets/img/guides/github/github-stack-user-input.png
 [4]: {{ site.url }}/assets/img/guides/github/Success01.png
