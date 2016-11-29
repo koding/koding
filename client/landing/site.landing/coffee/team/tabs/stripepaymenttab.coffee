@@ -55,7 +55,6 @@ module.exports = class StripePaymentTab extends kd.TabPaneView
   onSubmitSuccess: ->
 
     @form.button.hideLoader()
-    utils.storeNewTeamData 'payment', {}
     kd.singletons.router.handleRoute '/Team/Username'
 
 
