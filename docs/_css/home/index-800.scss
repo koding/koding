@@ -1,0 +1,12 @@
+@media (max-width: 767px) {
+  body {
+    overflow-x: hidden;
+  }
+  .Homepage--container {
+    max-width: 315px;
+  }
+  .Homepage--mobile-cta {
+    display: block;
+  }
+
+}
