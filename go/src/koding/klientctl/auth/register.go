@@ -3,10 +3,14 @@ package auth
 import (
 	"encoding/json"
 	"fmt"
+	"koding/httputil"
+	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
+	"koding/klientctl/kloud"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/codegangsta/cli"
@@ -72,24 +76,28 @@ type RegisterRequest struct {
 
 // RegisterCommand displays version information like Environment or Kite Query ID.
 func RegisterCommand(c *cli.Context, log logging.Logger, _ string) int {
-	if len(c.Args()) != 2 {
-		cli.ShowCommandHelp(c, "register")
-		return 1
-	}
-	host := c.GlobalString("host")
+	host := config.Konfig.KodingBaseURL()
 
 	// TODO(mehmetali): make a generalized client to be used in klientctl
-	client := &http.Client{}
+	client := httputil.DefaultRestClient(false)
 
+	// TODO ~mehmetali
+	// handle --alreadyMember flag with various option.
+	// There might be some situations that errors need to be ignored
 	token, err := doRegisterRequest(c, client, host)
 	if err != nil {
-		log.Error(err.Error())
+		fmt.Fprintln(os.Stderr, "Register failed with error:", err)
+		log.Error("%s", err)
 		return 1
 	}
 
 	clientID, err := doLoginRequest(client, host, token)
 	if err != nil {
-		log.Error(err.Error())
+		// we don't need to inform user about the error after user registered successfully
+		log.Error("%s", err)
+		return 1
+	}
+
 	// Set clientId into the kd.bolt
 	if err = kloud.Cache().Set("clientId", clientID); err != nil {
 		log.Error("error while caching clientId")
