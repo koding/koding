@@ -3,6 +3,7 @@ utils = require '../../core/utils'
 LoginViewInlineForm = require '../../login/loginviewinlineform'
 LoginInputView = require '../../login/logininputview'
 Payment = require 'payment'
+Cookies = require 'js-cookie'
 
 module.exports = class StripePaymentTabForm extends LoginViewInlineForm
 
@@ -84,20 +85,36 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
       loader: yes
 
     @backLink = @getButtonLink 'BACK', '/Team/Domain'
+    @resetFormLink = @getResetFormLink()
 
     @on [ 'FormSubmitFailed', 'FormValidationFailed' ], @button.bound 'hideLoader'
 
     kd.singletons.router.on 'RouteInfoHandled', =>
 
-      # cleanup first
-      [@number, @cvc, @exp_month, @exp_year].forEach (view) ->
-        view.input.setValue ''
+      @resetValues()
 
-      { card } = utils.getPayment()
-      return @setValues card  if card
+      return  unless card = utils.getPayment().card
 
+      @resetFormLink.show()
+      @setValues card
+      @makeDisabled()
+
+
+  forEachInputView: (callback) ->
+    [@number, @cvc, @exp_month, @exp_year].forEach callback
+
+
+  resetValues: ->
+    @forEachInputView (view) -> view.input.setValue ''
+
+
+  makeDisabled: ->
+    @forEachInputView (view) -> view.input.makeDisabled()
 
   setValues: (values) ->
+
+    values['cvc'] ?= '•••'
+
     Object.keys(values).forEach (inputType) =>
       value = values[inputType]
 
@@ -122,6 +139,17 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
     Payment.formatCardCVC @cvc.getElement()
 
 
+  getResetFormLink: ->
+
+    new kd.CustomHTMLView
+      tagName  : 'a'
+      cssClass : 'hidden'
+      partial  : 'Use different card'
+      click    : ->
+        Cookies.remove 'clientId'
+        location.reload()
+
+
   getButtonLink: (partial, href, callback) ->
 
     new kd.CustomHTMLView
@@ -134,6 +162,9 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
   pistachio: ->
 
     """
+    <div class='cc-form-resetLink'>
+      {{> @resetFormLink}}
+    </div>
     {{> @number}}
     <div class="form-group">
       {{> @cvc}}
