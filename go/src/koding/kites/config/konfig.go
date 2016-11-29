@@ -33,6 +33,7 @@ type Konfig struct {
 	KontrolURL string `json:"kontrolURL,omitempty"`
 	KlientURL  string `json:"klientURL,omitempty"`
 	KloudURL   string `json:"kloudURL,omitempty"`
+	KodingURL  string `json:"kodingURL,omitempty"`
 	TunnelURL  string `json:"tunnelURL,omitempty"`
 	RemoteURL  string `json:"remoteURL,omitempty"`
 	IPURL      string `json:"ipURL,omitempty"`
