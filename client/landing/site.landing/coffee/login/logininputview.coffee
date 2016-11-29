@@ -34,6 +34,8 @@ module.exports = class LoginInputView extends JView
     @input.on 'ValidationPassed',          @bound 'decorateValidation'
     @input.on 'ValidationFeedbackCleared', @bound 'decorateValidation'
 
+    @on 'click', @bound 'setFocus'
+
 
   setFocus: -> @input.setFocus()
 
