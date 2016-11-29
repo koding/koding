@@ -13,7 +13,7 @@ module.exports = class TeamCreateWithMemberAccountForm extends TeamJoinWithInvit
 
     @username.input.setValue utils.getTeamData().profile?.nickname
 
-    @backLink = @getButtonLink 'BACK', '/Team/Domain'
+    @backLink = @getButtonLink 'BACK', '/Team/Payment'
 
 
   createButtonLinkPartial: -> "Not you? Create with a <a href='#'>fresh account!</a>"

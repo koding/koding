@@ -16,7 +16,7 @@ module.exports = class TeamUsernameTabForm extends TeamJoinBySignupForm
 
     super options, data
 
-    @backLink = @getButtonLink 'BACK', '/Team/Domain'
+    @backLink = @getButtonLink 'BACK', '/Team/Payment'
 
 
   pistachio: ->
