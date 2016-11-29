@@ -14,16 +14,11 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
 
     team = utils.getTeamData()
 
-    cleanPayment = ->
-      if utils.getPayment()
-        utils.cleanPayment()
-
     @number = new LoginInputView
       inputOptions   :
         name         : 'number'
         label        : 'Card Number'
         placeholder  : '•••• •••• •••• ••••'
-        keydown      : cleanPayment
         attributes   :
           maxlength  : 19 # 16 + 3 spaces
           autocomplete : 'cc-number'
@@ -38,7 +33,6 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
         name         : 'cvc'
         label        : 'CVC'
         placeholder  : '•••'
-        keydown      : cleanPayment
         attributes   :
           maxlength  : 4
           autocomplete : 'cc-csc'
@@ -53,7 +47,6 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
         name         : 'exp_month'
         label        : 'Month'
         placeholder  : '••'
-        keydown      : cleanPayment
         attributes   :
           maxlength  : 2
           autocomplete : 'cc-exp-month'
@@ -68,7 +61,6 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
         name         : 'exp_year'
         label        : 'Year'
         placeholder  : '••••'
-        keydown      : cleanPayment
         attributes   :
           maxlength  : 4
           autocomplete : 'cc-exp-year'
