@@ -4,6 +4,8 @@ kookies = require 'kookies'
 
 RECAPTCHA_JS = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoaded&render=explicit'
 
+PAYMENT_BACKEND_URI = '/api/social/payment'
+
 createFormData = (teamData) ->
 
   teamData ?= utils.getTeamData()
@@ -484,4 +486,61 @@ module.exports = utils = {
         defer    : yes
 
     recaptchaScript.appendToDomBody()
+
+  makeChargeRequest: (token, email) -> new Promise (resolve, reject) ->
+    options =
+      url: "#{PAYMENT_BACKEND_URI}/creditcard/auth"
+      type: 'POST'
+      contentType: 'application/json'
+      data: JSON.stringify { source: { token }, email }
+      success: resolve
+      error: (err) ->
+        reject JSON.parse err.responseText
+
+    $.ajax options
+
+  loadStripe: -> new Promise (resolve, reject) ->
+
+    return resolve global.Stripe  if global.Stripe
+
+    global.document.head.appendChild (new kd.CustomHTMLView
+      tagName    : 'script'
+      attributes :
+        type     : 'text/javascript'
+        src      : 'https://js.stripe.com/v2/'
+      bind       : 'load'
+      load       : ->
+        Stripe.setPublishableKey kd.config.stripe.token
+        return resolve(global.Stripe)
+    ).getElement()
+
+  createToken: (formData) ->
+
+    utils.loadStripe().then (Stripe) ->
+
+      { number, cvc, exp_month, exp_year } = formData
+
+      cardInfo =
+        number    : number
+        cvc       : cvc
+        exp_month : exp_month
+        exp_year  : exp_year
+
+      return new Promise (resolve, reject) ->
+
+        Stripe.createToken cardInfo, (status, response) ->
+          if response.error
+            return reject response.error
+
+          token = response.id
+          { email } = utils.getTeamData().signup
+
+          utils.makeChargeRequest token, email
+            .then (response) ->
+              utils.savePaymentToken token
+              utils.saveCardInfo cardInfo
+              resolve response
+            .catch (err) ->
+              utils.cleanPayment()
+              reject err
 }
