@@ -1269,13 +1269,14 @@ class IDEAppController extends AppController
     { computeController } = kd.singletons
     { finderController }  = @finderPane
 
-    if @workspaceData
-      finderController.updateMachineRoot @mountedMachine.uid, @workspaceData.rootPath
-    else
-      finderController.reset()
-
     # when MachineStateModal calls this func, we need to rebind Klient.
     @bindKlientEvents machine
+
+    machine.fetchInfo (err, info) =>
+      kd.warn '[IDE] Failed to fetch info', err  if err
+      rootPath = info?.home or @workspaceData?.rootPath or '/'
+      finderController.updateMachineRoot @mountedMachine.uid, rootPath
+
     machine.getBaseKite()?.fetchTerminalSessions?()
 
     @fetchSnapshot (snapshot) =>

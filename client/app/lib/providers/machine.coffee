@@ -167,7 +167,7 @@ module.exports = class Machine extends KDObject
         kite.klientInfo().then (info) =>
           callback null, @info = info
         .timeout globals.COMPUTECONTROLLER_TIMEOUT
-        .catch (err) =>
+        .catch (err) ->
           kd.warn '[Machine][fetchInfo] Failed to get klient.info', err
           setAndReturnDefault()
     else
