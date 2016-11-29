@@ -56,6 +56,19 @@ type Konfig struct {
 	Debug bool `json:"debug,omitempty"`
 }
 
+// KodingBaseURL specifies the base url for koding
+// TODO ~mehmetali
+// Use KodingURL field in Konfig struct instead of this method
+func (k *Konfig) KodingBaseURL() string {
+	u, err := url.Parse(k.KloudURL)
+	if err != nil {
+		return ""
+	}
+
+	u.Path = ""
+	return u.String()
+}
+
 func (k *Konfig) KiteHome() string {
 	return filepath.Dir(k.KiteKeyFile)
 }
