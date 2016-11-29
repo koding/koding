@@ -25,46 +25,35 @@ module.exports = class StripePaymentTab extends kd.TabPaneView
     @form = new StripePaymentTabForm
       callback: @bound 'onSubmit'
 
-    loadStripe()
+    utils.loadStripe()
 
 
   onSubmit: (formData) ->
 
-    loadStripe().then (Stripe) =>
-
-      { number, cvc, exp_month, exp_year } = formData
-
-      Stripe.card.createToken {
-        number    : number
-        cvc       : cvc
-        exp_month : exp_month
-        exp_year  : exp_year
-      }, (status, response) =>
-
-        if response.error
-        then @onSubmitError response.error
-        else @onSubmitSuccess response.id, {
-          number, cvc, exp_month, exp_year
-        }
-
+    utils.createToken(formData)
+      .then @bound 'onSubmitSuccess'
+      .catch @bound 'onSubmitError'
 
   onSubmitError: (error) ->
 
     @form.emit 'FormSubmitFailed'
 
-    if input = @form[error.param]?.input
-      input.parent.setClass 'validation-error'
+    if view = @form[error.param]
+      input = view.input
+    else
+      try
+        if error.code is 'card_declined'
+          input = @form['number'].input
+      catch
+        error = { message: 'There is a problem. Please try again!' }
 
+    input?.parent.setClass 'validation-error'
     new kd.NotificationView { title: error.message }
 
 
-  onSubmitSuccess: (token, card) ->
+  onSubmitSuccess: ->
 
     @form.button.hideLoader()
-
-    utils.savePaymentToken token
-    utils.saveCardInfo card
-
     kd.singletons.router.handleRoute '/Team/Username'
 
 
@@ -85,17 +74,3 @@ track = (action, properties = {}) ->
   utils.analytics.track action, properties
 
 
-loadStripe = -> new Promise (resolve, reject) ->
-
-  return resolve global.Stripe  if global.Stripe
-
-  global.document.head.appendChild (new kd.CustomHTMLView
-    tagName    : 'script'
-    attributes :
-      type     : 'text/javascript'
-      src      : 'https://js.stripe.com/v2/'
-    bind       : 'load'
-    load       : ->
-      Stripe.setPublishableKey kd.config.stripe.token
-      return resolve(global.Stripe)
-  ).getElement()
