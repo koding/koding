@@ -31,6 +31,8 @@ $modal-z-index              = 20000
   right                     auto
   transform                 translateX(-50%)
 
+.xlarge
+  width                     1024px
 .large
   width                     600px
 .medium
@@ -46,6 +48,8 @@ $modal-z-index              = 20000
   height                    470px
 .tall
   height                    540px
+.taller
+  height                    740px
 
 .overlay
   position                  fixed

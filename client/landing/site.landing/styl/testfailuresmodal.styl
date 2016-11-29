@@ -1,0 +1,136 @@
+.failures-output
+  margin-top                20px
+.suite-results
+  height                    auto !important
+  width                     auto !important
+  overflow-y                none !important
+  overflow                  hidden !important
+  padding-top               10px
+  text-align                left
+
+
+.suite-results .suite
+  margin-bottom             10px
+
+
+.suite-results .suite .file-name-wrapper
+  font-weight               400
+  font-size                 24px
+  color                     #5e5e5e
+  display                   flex
+  cursor                    pointer
+  border-bottom             1px solid #ebebeb
+  padding-bottom            5px
+
+
+.suite-results .suite .file-name-wrapper .file-name
+  max-width                 880px
+  text-overflow             ellipsis
+  white-space               nowrap
+  overflow                  hidden
+
+.suite-results .suite .file-name.rainforest::after
+  content                   'must go to rainforest'
+  position                  relative
+  top                       -3px
+  margin-left               15px
+  font-size                 14px
+  font-weight               400
+  font-style                italic
+  color                     #c0392b
+
+
+
+.suite-results .suite .file-name-wrapper::before
+  content                   '+'
+  font-size                 20px
+  display                   block
+  position                  relative
+  color                     black
+  top                       6px
+  margin-right              10px
+
+
+.suite-results .suite .file-name-wrapper.active::before
+  content '-'               !important
+  margin-right              15px
+
+
+.suite-results .suite .suite-info-wrapper
+  display                   flex
+  margin-top                10px
+  margin-left               20px
+  font-size                 14px
+  line-height               20px
+  font-weight               400
+  border-bottom             1px solid #ebebeb
+  padding-bottom            5px
+
+
+.suite-results .suite .suite-info-wrapper .title
+  max-width                 calc(100% - 200px)
+  white-space               nowrap
+  text-overflow             ellipsis
+  overflow                  hidden
+  color                     #5e5e5e
+
+
+.suite-results .suite .header
+  font-size                 20px
+  color                     #5e5e5e
+  font-weight               600
+  display                   flex
+  border-bottom             1px solid #ebebeb
+  margin-left               10px
+  padding                   10px 24px
+
+
+.suite-results .suite .header .status
+  margin-left               auto
+
+
+.suite-results .suite .suite-info-wrapper .status
+  margin-left               auto
+
+
+.suite-results .suite .suite-info-wrapper .status-wrapper
+  margin-left               auto
+  display                   flex
+
+
+.suite-results .suite .suite-info-wrapper::before
+  content                   '-'
+  width                     6px
+  display                   block
+  position                  relative
+  height                    6px
+  color                     black
+  top                       -1px
+  margin-right               10px
+
+
+.suite-results .suite .suite-info-wrapper > div
+  margin-right              5px
+
+.suite-results .suite .suite-info-wrapper > span
+  margin-right              10px
+
+.suite-results .suite .suite-info-wrapper span.ni
+  color                     #f8903b
+
+.suite-results .suite .suite-info-wrapper span.error
+  color                     #f2778a
+
+.suite-results .suite .suite-info-wrapper span.hti
+  color                     #CA4A18
+
+.show-failures-output
+  padding                   5px 10px
+  position                  relative
+  border                    1px solid #ebebeb
+  width                     200px
+  left                      calc(50% - 100px)
+  border-radius             4px
+  cursor                    pointer
+  background                #f2778a
+  color                     white

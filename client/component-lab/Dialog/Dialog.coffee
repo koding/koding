@@ -26,8 +26,8 @@ module.exports = Dialog = (props) ->
     isOpen: isOpen
     showAlien: showAlien
     shouldCloseOnOverlayClick: no
-    width: 'medium'
-    height: 'short'
+    width: props.width or 'medium'
+    height: props.height or 'short'
 
   titleClassName = "#{styles.title} #{styles[type]}"
 

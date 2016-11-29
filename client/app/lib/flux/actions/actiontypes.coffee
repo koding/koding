@@ -30,4 +30,6 @@ module.exports = {
   'DELETE_TEAM_MEMBER'
 
   'LOAD_LOGGED_IN_USER_EMAIL_SUCCESS'
+
+  'TEST_SUITE_FAIL'
 }

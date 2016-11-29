@@ -4,6 +4,7 @@ module.exports =
   stores: [
     require './stores/usersstore'
     require './stores/loggedinuseremailstore'
+    require './stores/testsuitesfailurestore'
   ]
 
   register: (reactor) ->
