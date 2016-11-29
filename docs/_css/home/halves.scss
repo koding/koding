@@ -1,0 +1,57 @@
+.Homepage-halves {
+  display: flex;
+}
+.Homepage-half--container {
+  flex: 0 0 auto;
+  width: 50%;
+  &:first-child {
+    background: #394457;
+    .Homepage-half {
+      float: right;
+      color: #FFFFFF;
+      padding-right: 110px;
+      h4 {
+        color: #FFFFFF;
+      }
+    }
+  }
+  &:last-child {
+    background: #F2F2F2;
+    .Homepage-half {
+      padding-left: 110px;
+    }
+  }
+}
+.Homepage-half {
+  padding: 204px 0 107px;
+  max-width: 600px;
+  font-size: 20px;
+  line-height: 28px;
+  text-align: center;
+  box-sizing: border-box;
+  &.analytics h4:before {
+    background: transparent url('/assets/img/landing/home/icon-analytics-big.png') no-repeat 0 0;
+    width: 63px;
+    height: 54px;
+  }
+  &.freedom h4:before {
+    background: transparent url('/assets/img/landing/home/icon-freedom.png') no-repeat 0 0;
+    width: 99px;
+    height: 79px;
+  }
+  h4 {
+    font-size: 32px;
+    margin-bottom: 30px;
+    position: relative;
+    &:before {
+      content: '';
+      position: absolute;
+      top: -105px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
+  p {
+    margin-bottom: 51px;
+  }
+}
