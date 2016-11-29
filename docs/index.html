@@ -15,15 +15,6 @@ permalink: /
 {% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='transparent' %}
 
 <!-- CONTENT SECTION -->
-{% include home-threethings.html %}
-
-{% include home-contentwithvisual.html
-   image_src="/assets/img/landing/misc/koding_terraform"
-   icon_src="/assets/img/landing/misc/icon_stacks.svg"
-   image_ext="png"
-   title="Create stack templates that let you boot, build, test and share virtual machines in the cloud"
-   description="Developers get everything they need to spin up full-stack, project-specific environments in seconds. Share them, update them, and manage infrastructure from a simple interface." %}
-
 {% include home-logobar.html
    logo1_src="/assets/img/landing/company-logos/logo_aws.svg"
    logo2_src="/assets/img/landing/company-logos/logo_openstack.svg"
@@ -57,6 +48,17 @@ permalink: /
 {% include home/hero.html
    h1="Modern Development Environment Delivered."
    h2="Koding lets your organization create and share fully automated dev environments on any infrastructure for modern distributed applications, micro-services and containers." %}
+
+{% include home/content-with-video.html
+   img_src="/assets/img/landing/home/how-koding-works-placeholder.png"
+   img2x_src="/assets/img/landing/home/how-koding-works-placeholder@2x.png"
+   video_src="https://www.youtube.com/embed/2COxlWQ0J1U"
+   video_title="Watch how Koding works"
+   heading="KODING SOLUTION"
+   title="Dev Environments as Code, Powerful Collaboration and Analytics"
+   description="Koding provides an interface for developers and team managers to streamline dev workflows in the cloud without slowing down freedom and creativity. Spend less time configuring and more time building!"
+   footnote="In other words,<br>Koding saves <strong>1000 people organization $33M</strong> and gives back quarter of their year." %}
+
 
 
 <!-- FOOTER -->
