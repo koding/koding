@@ -1,0 +1,80 @@
+.Homepage-video-columns {
+  padding: 90px 0 150px;
+}
+.Homepage-video-columns .Homepage--container {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.Homepage-video-column {
+  flex: 0 0 auto;
+  width: 380px;
+  margin: 90px 0 0;
+  h5 {
+    font-size: 18px;
+    color: #AAB2B9;
+  }
+  h4 {
+    font-size: 20px;
+    margin: 17px 0 27px;
+  }
+  p {
+    line-height: 26px;
+  }
+  figure {
+    display: block;
+    width: 100%;
+    position: relative;
+    background-position: 0 17px;
+    background-repeat: no-repeat;
+    background-size: 100% 195px;
+    height: 212px;
+    margin-bottom: 40px;
+    cursor: pointer;
+    &:before {
+      content: '';
+      display: block;
+      background: #ECECEC;
+      border: 1px solid #DEDEDE;
+      border-bottom: none;
+      border-radius: 5px 5px 0 0;
+      height: 17px;
+      box-sizing: border-box;
+      width: 100%;
+    }
+    &:after {
+      content: '•••';
+      position: absolute;
+      color: #CECECE;
+      top: -2px;
+      left: 6px;
+      font-size: 28px;
+      letter-spacing: vpx;
+      line-height: 18px;
+    }
+    &.vision {
+      background-image: url('/assets/img/landing/home/thumb-vision.png');
+    }
+    &.ibm {
+      background-image: url('/assets/img/landing/home/thumb-ibm.png');
+    }
+    &.gitlab {
+      background-image: url('/assets/img/landing/home/thumb-gitlab.png');
+    }
+    svg {
+      display: block;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translateY(-50%) translateX(-50%);
+      width: 48px;
+      height: 48px;
+      margin-top: 18px;
+      fill: #DEDEDE;
+    }
+    &:hover svg {
+      fill: #FFFFFF;
+    }
+  }
+}
