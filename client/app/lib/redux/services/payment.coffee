@@ -15,6 +15,8 @@ exports.Endpoints = Endpoints =
   CustomerUpdate     : '/customer/update'
   CustomerDelete     : '/customer/delete'
   CreditCardDelete   : '/creditcard/delete'
+  CreditCardHas      : '/creditcard/has'
+  CreditCardAuth     : '/creditcard/auth'
   InvoiceList        : '/invoice/list'
   Info               : '/info'
 
