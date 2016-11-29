@@ -14,7 +14,7 @@ This guide will help you build a Microsoft Azure stack. [Microsoft Azure][1] is 
 You can configure the number of VMs and applications installed on each VM instance. Along with configuring VM size and region.
 Your new team members will be able to use your stack to build their VMs environment and start working from day one.
 
-> You will need to have a Microsoft Azure account to be able to create VMs. This will require you to provide your credit card information. You can sign up for a 30 day free trial and $200 in credit. Learn more about [Microsoft Azure pricing][3].
+> You will need to have a Microsoft Azure account to be able to create VMs. See [Microsoft Azure pricing][3].
 
 ## Step by step guide
 
@@ -57,6 +57,8 @@ In this modal you will find _four tabs_:
         - Click **ACCOUNT** -> **Subscriptions** and click on your subscription plan
 
         ![Azure get your subscription ID][12]
+
+        > Please note that you need to be at least on the Pay-as-you-go or developer trial. The Free trial has some limitations and may not allow your stack to build successfully. [See subscription offers](https://account.windowsazure.com/signup?showCatalog=True)
 
         - Scroll down to your **Subscription ID**
 
@@ -101,7 +103,7 @@ In this modal you will find _four tabs_:
 
     11. Congratulations, your stack was built successfully, click **Start Coding**
 
-        ![Azure stack built successfully][20]
+        <!-- ![Azure stack built successfully][20] -->
 
         You can now start working on your new VM
 
@@ -130,5 +132,8 @@ In this modal you will find _four tabs_:
 [16]: {{ site.url }}/assets/img/guides/azure/azure-stack-saved.png
 [17]: {{ site.url }}/assets/img/guides/azure/azure-stack-build-1.png
 [18]: {{ site.url }}/assets/img/guides/azure/azure-stack-build-2.png
-[19]: {{ site.url }}/assets/img/guides/azure/
-[20]: {{ site.url }}/assets/img/guides/azure/
+[19]: {{ site.url }}/assets/img/guides/azure/azure-stack-building.png
+<!-- [20]: -->
+
+[21]: {{ site.url }}/assets/img/guides/azure/azure-stack-built.png
+[22]: {{ site.url }}/assets/img/guides/azure/azure-backend-success.png
