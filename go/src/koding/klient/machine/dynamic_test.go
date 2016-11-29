@@ -83,7 +83,7 @@ func TestDynamicClientContext(t *testing.T) {
 			}
 		})
 	}
-	// Machine is on so dynamic client should not close its channel.
+	// Machine is on so dynamic client should not close its context.
 	if err := g.Wait(); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
