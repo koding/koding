@@ -30,11 +30,11 @@ func Equal(got, want string, fn func(string) string) error {
 	var v1, v2 interface{}
 
 	if err := json.Unmarshal([]byte(got), &v1); err != nil {
-		return err
+		return fmt.Errorf(`failed to parse "got" JSON: %s`, err)
 	}
 
 	if err := json.Unmarshal([]byte(want), &v2); err != nil {
-		return err
+		return fmt.Errorf(`failed to parse "want" JSON: %s`, err)
 	}
 
 	if err := mask(v1, fn); err != nil {

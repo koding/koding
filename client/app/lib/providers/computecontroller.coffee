@@ -1252,7 +1252,7 @@ module.exports = class ComputeController extends KDController
     if creds.length > 0 and credential = credentials["#{selectedProvider}"]?.first
       remote.api.JCredential.one credential, (err, credential) ->
         { slug } = groupsController.getCurrentGroup()
-        credential.shareWith { target: slug }, (err) ->
+        credential.shareWith { target: slug, accessLevel: 'write' }, (err) ->
           showError 'Failed to share credential'  if err
           callback()
     else showError 'Failed to share credential'

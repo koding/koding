@@ -1,11 +1,21 @@
 package info
 
-import "github.com/koding/kite"
+import (
+	"sort"
+
+	"koding/kites/config"
+
+	"github.com/koding/kite"
+)
 
 type info struct {
 	// ProviderName is the name of the machine (vm or otherwise) provider,
 	// as identified by the
 	ProviderName string `json:"providerName"`
+
+	Username string   `json:"username"`
+	Home     string   `json:"home"`
+	Groups   []string `json:"groups"`
 }
 
 // Info implements the klient.info method, returning klient specific
@@ -20,7 +30,15 @@ func Info(r *kite.Request) (interface{}, error) {
 
 	i := info{
 		ProviderName: providerName.String(),
+		Username:     config.CurrentUser.Username,
+		Home:         config.CurrentUser.HomeDir,
 	}
+
+	for _, group := range config.CurrentUser.Groups {
+		i.Groups = append(i.Groups, group.Name)
+	}
+
+	sort.Strings(i.Groups)
 
 	return i, nil
 }

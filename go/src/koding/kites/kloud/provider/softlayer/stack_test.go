@@ -3,6 +3,7 @@ package softlayer_test
 import (
 	"io/ioutil"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/koding/kite"
@@ -59,12 +60,24 @@ func newBaseStack(template string) (*provider.BaseStack, error) {
 		},
 		KlientIDs: make(stack.KiteMap),
 	}
+
 	return s, nil
 }
 
 func TestVerifyCredential(t *testing.T) {
-	bs, _ := newBaseStack(minimumTemplate)
-	s := &softlayer.Stack{BaseStack: bs}
+	if os.Getenv("SL_USERNAME") == "" || os.Getenv("SL_API_KEY") == "" {
+		t.Skip("missing SL_USERNAME / SL_API_KEY env vars")
+	}
+
+	bs, err := newBaseStack(minimumTemplate)
+	if err != nil {
+		t.Fatalf("newBaseStack()=%s", err)
+	}
+
+	s, err := softlayer.Provider.Stack(bs)
+	if err != nil {
+		t.Fatalf("Stack()=%s", err)
+	}
 
 	c := &stack.Credential{
 		Credential: &softlayer.Credential{
@@ -79,8 +92,17 @@ func TestVerifyCredential(t *testing.T) {
 }
 
 func TestBootstrapTemplates(t *testing.T) {
-	bs, _ := newBaseStack(minimumTemplate)
-	s := &softlayer.Stack{BaseStack: bs}
+	bs, err := newBaseStack(minimumTemplate)
+	if err != nil {
+		t.Fatalf("newBaseStack()=%s", err)
+	}
+
+	s, err := softlayer.Provider.Stack(bs)
+	if err != nil {
+		t.Fatalf("Stack()=%s", err)
+	}
+
+	bs.SSHKeyPairFunc(&stack.SSHKeyPair{})
 
 	c := &stack.Credential{
 		Credential: &softlayer.Credential{
@@ -89,7 +111,7 @@ func TestBootstrapTemplates(t *testing.T) {
 		},
 	}
 
-	_, err := s.BootstrapTemplates(c)
+	_, err = s.BootstrapTemplates(c)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,6 +119,10 @@ func TestBootstrapTemplates(t *testing.T) {
 
 func stripNondeterministicResources(s string) string {
 	if s == "user_data" {
+		return "***"
+	}
+
+	if _, err := strconv.Atoi(s); err == nil {
 		return "***"
 	}
 

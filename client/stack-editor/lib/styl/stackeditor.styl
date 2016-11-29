@@ -88,6 +88,20 @@ $borderColor                = #E3E3E3
         b
           hidden()
 
+  .stack-template-action-wrapper
+  .readme-action-wrapper
+    abs                     0 120px 10px 0
+    button.kdbutton
+      margin-right          20px
+      border                0px
+      background            #fff
+      cursor                pointer
+      z-index               10
+      &:active
+      &:focus
+        border              none
+        box-shadow          none
+
 
   .indicator
     size                  18px, 18px
@@ -218,10 +232,6 @@ $borderColor                = #E3E3E3
       color                 #769ecc !important
       pointer               cursor
 
-  .editor-pane.editor-view
-    button.template-preview-button
-    button.showlogs-button
-      bottom                -76px
 
 .StackEditor-SecondaryActions
   width                     100%
@@ -505,27 +515,6 @@ $borderColor                = #E3E3E3
     .editor-view
       rounded               4px 4px 0 0
 
-    .showlogs-button
-    .template-preview-button
-    .fullscreen-button
-      z-index               13
-      right                 100px
-      bottom                -31px
-      margin                0
-      bg                    color, white !important
-      border-width          0
-      letter-spacing        .5px
-      font-weight           300
-      abs()
-      &:focus
-        vendor              box-shadow, none
-
-    .template-preview-button
-      right                 178px
-
-    .fullscreen-button
-      right                 275px
-      hidden()
 
   .kdview.output
     vendor                  transition, height .2s ease

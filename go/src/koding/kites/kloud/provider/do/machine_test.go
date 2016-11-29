@@ -219,9 +219,7 @@ func newDoBaseMachine(dropletID int) *provider.BaseMachine {
 		Credential: doProvider.Schema.NewCredential(),
 		Bootstrap:  doProvider.Schema.NewBootstrap(),
 		Metadata: doProvider.Schema.NewMetadata(&stack.Machine{
-			Attributes: map[string]string{
-				"droplet_id": strconv.Itoa(dropletID),
-			},
+			Attributes: map[string]string{"id": strconv.Itoa(dropletID)},
 		}),
 		Provider: "digitalocean",
 	}
