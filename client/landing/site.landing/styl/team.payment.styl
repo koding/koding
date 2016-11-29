@@ -22,3 +22,22 @@ form.cc-form
     strong
       display               block
       color                 #42BB7B
+
+  .form-group .login-input-view
+    background              transparent
+
+    input
+      background            #fff
+
+.cc-form-resetLink a
+  display                   block
+  padding                   0 0 20px
+  font-size                 18px
+
+$disabledOpacity = .5
+
+.cc-form input[disabled=disabled]
+  opacity                   $disabledOpacity
+  cursor                    not-allowed
+  & ~ .placeholder-helper
+    opacity                 $disabledOpacity
