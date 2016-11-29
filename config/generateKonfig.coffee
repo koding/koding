@@ -209,6 +209,7 @@ module.exports = (options, credentials) ->
       klientLatest     : "https://koding-klient.s3.amazonaws.com/#{options.environment}/latest-version.txt"
       kloud            : "#{options.publicHostname}/kloud/kite",
       kontrol          : "#{options.publicHostname}/kontrol/kite",
+      remoteAPI        : "#{options.publicHostname}/remote.api",
       tunnelServer     : "#{options.tunnelUrl}/kite"
     routes             :
       'dev.koding.com' : '127.0.0.1'
