@@ -105,43 +105,41 @@ module.exports = class NFinderController extends KDViewController
       kd.warn '[Finder][mountMachine] Not a Machine instance!'
       machine = new Machine { machine }
 
-    { uid } = machine
-
-    @setOption 'machineToMount', machine
-
     unless machine.isRunning()
       return kd.warn "[Finder][mountMachine] Machine '#{machine.getName()}'
                       was not ready, I skipped it."
 
+    @setOption 'machineToMount', machine
+
+    { uid } = machine
+    mRoots  = (@appStorage.getValue 'machineRoots') or {}
     options.fetchContent ?= yes
 
+    findMountPath = (callback) ->
+      if path = mRoots[uid]
+      then callback path
+      else machine.ready -> callback machine.info.home
 
-    mRoots  = (@appStorage.getValue 'machineRoots') or {}
+    findMountPath (path) =>
 
-    path    = mRoots[uid] or options.mountPath or '/'
-    path   ?= '/root'  if machine.isManaged()
-    path   ?= if owner = machine.getOwner()
-    then "/home/#{owner}"
-    else '/'
+      @machines.push machineItem = FSHelper.createFileInstance
+        name           : path
+        path           : "[#{uid}]#{path}"
+        type           : 'machine'
+        machine        : machine
+        treeController : @treeController
+        parentPath     : 0
 
-    @machines.push machineItem = FSHelper.createFileInstance
-      name           : path
-      path           : "[#{uid}]#{path}"
-      type           : 'machine'
-      machine        : machine
-      treeController : @treeController
-      parentPath     : 0
+      machineItem = @treeController.addNode machineItem
 
-    machineItem = @treeController.addNode machineItem
+      @emit 'MachineMounted', machine, path
 
-    @emit 'MachineMounted', machine, path
-
-    if options.fetchContent and machineItem
-      @treeController.expandFolder machineItem, (err) =>
-        @treeController.selectNode machineItem
-        kd.utils.defer =>
-          if @getOptions().useStorage then @reloadPreviousState uid
-      , yes
+      if options.fetchContent and machineItem
+        @treeController.expandFolder machineItem, (err) =>
+          @treeController.selectNode machineItem
+          kd.utils.defer =>
+            if @getOptions().useStorage then @reloadPreviousState uid
+        , yes
 
 
   mountMachines: (machines) ->
