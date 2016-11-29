@@ -1,3 +1,7 @@
+body {
+  padding-top: 0 !important;
+}
+
 .Homepage--container {
   max-width: $content-width;
   margin: 0 auto;
@@ -26,31 +30,29 @@
   }
 }
 
-@media (max-width: 1600px) {
-
-  .Homepage--container {
-    max-width: 995px;
+a.cta {
+  text-decoration: none;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  background-color: #48BA7D;
+  color: #FFFFFF;
+  font-size: 20px;
+  font-weight: 600;
+  padding: 12px 40px 10px;
+  width: auto;
+  border-radius: 4px;
+  letter-spacing: 0.13px;
+  &.secondary {
+    background-color: #FFFFFF;
+    color: #727272;
   }
-
 }
 
-@media (max-width: 119px) {
-
-  .Homepage--container {
-    max-width: 734px;
-  }
-
+h3.title {
+  font-size: 32px;
 }
 
-@media (max-width: 767px) {
-  body {
-    overflow-x: hidden;
-  }
-  .Homepage--container {
-    max-width: 315px;
-  }
-  .Homepage--mobile-cta {
-    display: block;
-  }
-
+.center {
+  text-align: center;
 }
