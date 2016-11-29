@@ -39,10 +39,11 @@ module.exports = class StripePaymentTab extends kd.TabPaneView
 
     @form.emit 'FormSubmitFailed'
 
-    if view = @form[error.param]
+    if error.param and view = @form[error.param]
       input = view.input
     else
       try
+        error = JSON.parse error.description
         if error.code is 'card_declined'
           input = @form['number'].input
       catch
