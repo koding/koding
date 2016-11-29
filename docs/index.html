@@ -15,29 +15,12 @@ permalink: /
 {% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='transparent' %}
 
 <!-- CONTENT SECTION -->
-{% include home-logobar.html
-   logo1_src="/assets/img/landing/company-logos/logo_aws.svg"
-   logo2_src="/assets/img/landing/company-logos/logo_openstack.svg"
-   logo3_src="/assets/img/landing/company-logos/logo_docker.svg"
-   logo4_src="/assets/img/landing/company-logos/logo_digitalocean.svg"
-   logo5_src="/assets/img/landing/company-logos/logo_github.svg"
-   logo6_src="/assets/img/landing/company-logos/logo_gitlab.svg"
-   title="Use these services and more in your Koding Stack Templates" %}
-
 {% include home-contentwithvisual.html
    image_src="/assets/img/landing/misc/koding_code"
    icon_src="/assets/img/landing/misc/icon_spheres.svg"
    image_ext="png"
    title="Code collaboratively & integrate slack for team communication"
    description="Koding‘s powerful collaboration tools allow developers to share their VM and code together in Koding’s browser-based IDE without having to resort to time-consuming meetings & conference calls." %}
-
-{% include home-logobar.html
-   logo1_src="/assets/img/landing/company-logos/logo_uber.svg"
-   logo2_src="/assets/img/landing/company-logos/logo_ibm.svg"
-   logo3_src="/assets/img/landing/company-logos/logo_hp.svg"
-   logo4_src="/assets/img/landing/company-logos/logo_mit.svg"
-   logo5_src="/assets/img/landing/company-logos/logo_berkeley.svg"
-   title="Over one million developers use Koding at a variety of different companies including:" %}
 
 {% include home-contentwithvisual.html
    image_src="/assets/img/landing/misc/koding_kd"
@@ -60,6 +43,25 @@ permalink: /
    footnote="In other words,<br>Koding saves <strong>1000 people organization $33M</strong> and gives back quarter of their year." %}
 
 
+<div class='Homepage-trust'>
+  <h3 class="title center">Koding can provision dev environments on your favorite cloud providers.</h3>
+  <div class='Homepage--container'>
+    {% include home-logobar.html
+       path="/assets/img/landing/company-logos/"
+       logos="Amazon AWS--logo_aws.svg--140--53||
+              Digital Ocean--logo_do.svg--100--75||
+              Softlayer--logo_softlayer.svg--180--15||
+              Vagrant--logo_vagrant.svg--180--46||
+              Microsoft Azure--logo_azure.svg--190--26" %}
+    {% include home-logobar.html
+       path="/assets/img/landing/company-logos/"
+       logos="Google Cloud Platform--logo_gcp.svg--300--33||
+              Docker--logo_docker.svg--180--43||
+              Mesosphere--logo_mesos.svg--240--34||
+              Openstack--logo_openstack1.svg--155--28" %}
+    <hr>
+  </div>
+</div>
 
 <!-- FOOTER -->
 {% include footer.html %}
