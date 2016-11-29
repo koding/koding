@@ -15,9 +15,6 @@ module.exports = class StripePaymentTab extends kd.TabPaneView
 
     name = @getOption 'name'
 
-    teamData = utils.getTeamData()
-    @alreadyMember = teamData.signup?.alreadyMember
-
     @header = new MainHeaderView
       cssClass : 'team'
       navItems : []
@@ -36,6 +33,7 @@ module.exports = class StripePaymentTab extends kd.TabPaneView
     utils.authorizeCreditCard(formData)
       .then @bound 'onSubmitSuccess'
       .catch @bound 'onSubmitError'
+
 
   onSubmitError: (error) ->
 
