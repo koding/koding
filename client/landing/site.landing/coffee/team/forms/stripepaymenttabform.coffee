@@ -93,7 +93,7 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
 
       @resetValues()
 
-      return  unless card = utils.getPayment().card
+      return  unless card = utils.getPayment()?.card
 
       @resetFormLink.show()
       @setValues card
