@@ -168,11 +168,6 @@ func run(args []string) {
 					Name:  "all",
 					Usage: "Include machines that have been offline for more than 24h.",
 				},
-				cli.StringFlag{
-					Name:  "host",
-					Usage: "Specify the base endpoint domain for Koding.",
-					Value: "http://dev.koding.com:8080",
-				},
 			},
 			Subcommands: []cli.Command{
 				auth.NewRegisterSubCommand(log),
