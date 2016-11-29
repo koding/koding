@@ -53,7 +53,7 @@ generateUrl = (opts = {}) ->
 
   urlParts =
     hostname  : KONFIG.domains.base
-    port      : ':8090'
+    port      : ":#{KONFIG.publicPort}"
     route     : ''
     protocol  : 'http://'
     subdomain : ''
