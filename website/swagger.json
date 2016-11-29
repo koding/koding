@@ -1388,6 +1388,9 @@
         },
         "impersonating": {
           "type": "boolean"
+        },
+        "data": {
+          "type": "object"
         }
       }
     },

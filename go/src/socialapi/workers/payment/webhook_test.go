@@ -301,40 +301,60 @@ func TestInvoiceCreatedHandlerCustomPlan(t *testing.T) {
 					Quantity: totalMembers,
 				}
 
-				sub, err := EnsureSubscriptionForGroup(group.Slug, params)
-				tests.ResultedWithNoErrorCheck(sub, err)
+				Convey("Even if we process customer with a custom plan we should require CC", func() {
+					_, err := EnsureSubscriptionForGroup(group.Slug, params)
+					So(err, ShouldEqual, ErrCustomerSourceNotExists)
 
-				// check if group has correct sub id
-				groupAfterSub, err := modelhelper.GetGroup(groupName)
-				tests.ResultedWithNoErrorCheck(groupAfterSub, err)
-				So(sub.ID, ShouldEqual, groupAfterSub.Payment.Subscription.ID)
+					Convey("When custom plan holder has CC", func() {
+						withTestCreditCardToken(func(token string) {
+							// attach payment source
+							cp := &stripe.CustomerParams{
+								Source: &stripe.SourceParams{
+									Token: token,
+								},
+							}
+							c, err := UpdateCustomerForGroup(username, groupName, cp)
+							tests.ResultedWithNoErrorCheck(c, err)
 
-				Convey("When invoice.created is triggered with custom plan", func() {
-					raw := []byte(fmt.Sprintf(
-						testData,
-						group.Payment.Customer.ID,
-					))
+							Convey("We should be able to create subscription", func() {
+								sub, err := EnsureSubscriptionForGroup(group.Slug, params)
+								tests.ResultedWithNoErrorCheck(sub, err)
 
-					err := invoiceCreatedHandler(raw)
-					So(err, ShouldBeNil)
+								// check if group has correct sub id
+								groupAfterSub, err := modelhelper.GetGroup(groupName)
+								tests.ResultedWithNoErrorCheck(groupAfterSub, err)
+								So(sub.ID, ShouldEqual, groupAfterSub.Payment.Subscription.ID)
 
-					Convey("subscription id should stay same", func() {
-						groupAfterHook, err := modelhelper.GetGroup(groupName)
-						tests.ResultedWithNoErrorCheck(groupAfterHook, err)
+								Convey("When invoice.created is triggered with custom plan", func() {
+									raw := []byte(fmt.Sprintf(
+										testData,
+										group.Payment.Customer.ID,
+									))
 
-						// group should have correct sub id
-						So(sub.ID, ShouldEqual, groupAfterHook.Payment.Subscription.ID)
+									err := invoiceCreatedHandler(raw)
+									So(err, ShouldBeNil)
 
-						count, err := (&models.PresenceDaily{}).CountDistinctByGroupName(group.Slug)
-						So(err, ShouldBeNil)
-						So(count, ShouldEqual, 0)
+									Convey("subscription id should stay same", func() {
+										groupAfterHook, err := modelhelper.GetGroup(groupName)
+										tests.ResultedWithNoErrorCheck(groupAfterHook, err)
 
-						Convey("we should clean up successfully", func() {
-							sub, err := DeleteSubscriptionForGroup(group.Slug)
-							tests.ResultedWithNoErrorCheck(sub, err)
+										// group should have correct sub id
+										So(sub.ID, ShouldEqual, groupAfterHook.Payment.Subscription.ID)
 
-							_, err = plan.Del(pp.ID)
-							So(err, ShouldBeNil)
+										count, err := (&models.PresenceDaily{}).CountDistinctByGroupName(group.Slug)
+										So(err, ShouldBeNil)
+										So(count, ShouldEqual, 0)
+
+										Convey("we should clean up successfully", func() {
+											sub, err := DeleteSubscriptionForGroup(group.Slug)
+											tests.ResultedWithNoErrorCheck(sub, err)
+
+											_, err = plan.Del(pp.ID)
+											So(err, ShouldBeNil)
+										})
+									})
+								})
+							})
 						})
 					})
 				})

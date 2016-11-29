@@ -5,32 +5,33 @@ import (
 
 	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/card"
-	"github.com/stripe/stripe-go/customer"
 )
 
 // DeleteCreditCardForGroup deletes credit card of the group, if customer is not
 // registered yet for the group, returns error. Credit card operations hanled by
 // Stripe.
-func DeleteCreditCardForGroup(groupName string) (*stripe.Card, error) {
+func DeleteCreditCardForGroup(groupName string) error {
 	group, err := modelhelper.GetGroup(groupName)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if group.Payment.Customer.ID == "" {
-		return nil, ErrCustomerNotExists
+		return ErrCustomerNotExists
 	}
 
 	return deleteCreditCard(group.Payment.Customer.ID)
 }
 
-func deleteCreditCard(customerID string) (*stripe.Card, error) {
-	cus, err := customer.Get(customerID, nil)
-	if err != nil {
-		return nil, err
+func deleteCreditCard(customerID string) error {
+	params := &stripe.CardListParams{Customer: customerID}
+	i := card.List(params)
+	for i.Next() {
+		c := i.Card()
+		params := &stripe.CardParams{Customer: customerID}
+		if _, err := card.Del(c.ID, params); err != nil {
+			return err
+		}
 	}
-
-	params := &stripe.CardParams{Customer: customerID}
-
-	return card.Del(cus.DefaultSource.ID, params)
+	return i.Err()
 }
