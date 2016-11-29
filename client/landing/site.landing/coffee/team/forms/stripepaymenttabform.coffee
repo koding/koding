@@ -58,12 +58,13 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
             required : 'Expiration Month is invalid'
 
     @exp_year = new LoginInputView
+      cssClass       : 'exp-year'
       inputOptions   :
         name         : 'exp_year'
         label        : 'Year'
-        placeholder  : '••••'
+        placeholder  : '••'
         attributes   :
-          maxlength  : 4
+          maxlength  : 2
           autocomplete : 'cc-exp-year'
         validate     :
           rules      :
