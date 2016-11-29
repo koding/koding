@@ -90,6 +90,17 @@ func RegisterCommand(c *cli.Context, log logging.Logger, _ string) int {
 	clientID, err := doLoginRequest(client, host, token)
 	if err != nil {
 		log.Error(err.Error())
+	// Set clientId into the kd.bolt
+	if err = kloud.Cache().Set("clientId", clientID); err != nil {
+		log.Error("error while caching clientId")
+		return 1
+	}
+
+	// team cannot be empty (because of required while registering)
+	// otherwise it return error while registering user
+	// store groupName or slug as "team" inside the cache
+	if err = kloud.Cache().Set("team", c.String("team")); err != nil {
+		log.Error("error while caching team")
 		return 1
 	}
 
