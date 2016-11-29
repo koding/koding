@@ -1,3 +1,4 @@
+_       = require 'lodash'
 $       = require 'jquery'
 kd      = require 'kd'
 kookies = require 'kookies'
@@ -9,9 +10,6 @@ PAYMENT_BACKEND_URI = '/api/social/payment'
 createFormData = (teamData) ->
 
   teamData ?= utils.getTeamData()
-
-  if (payment = utils.getPayment())?.token?
-    teamData.payment = { stripeToken: payment.token }
 
   formData  = {}
 
@@ -233,7 +231,13 @@ module.exports = utils = {
 
   getTeamData: ->
 
-    return kd.team  if kd.team
+    attachPayment = (data, stripeToken) ->
+      return _.assign {}, data, { payment: { stripeToken } }
+
+    if team = kd.team
+      if token = getPayment()?.token
+        team = attachPayment kd.team, token
+      return team
 
     return {}  unless data = localStorage.teamData
 
@@ -241,7 +245,11 @@ module.exports = utils = {
       team    = JSON.parse data
       kd.team = team
 
-    return team  if team
+    if team
+      if token = getPayment()?.token
+        team = attachPayment team, token
+      return team
+
     return {}
 
 
