@@ -29,6 +29,7 @@ import (
 	"koding/kites/kloud/stack/provider"
 	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
+	"koding/remoteapi"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/koding/kite"
@@ -132,6 +133,9 @@ type Config struct {
 	JanitorSecretKey     string
 	KloudSecretKey       string
 	TerraformerSecretKey string
+
+	// RemoteAPIURL configures the endpoint URL for remote.api.
+	RemoteAPIURL string
 }
 
 // New gives new, registered kloud kite.
@@ -181,6 +185,18 @@ func New(conf *Config) (*Kloud, error) {
 		sess.Log.Warning(`disabling "Sneaker" for storing stack credential data`)
 	}
 
+	var remoteURL *url.URL
+
+	if conf.RemoteAPIURL != "" {
+		if u, err := url.Parse(conf.RemoteAPIURL); err == nil {
+			remoteURL = u
+		}
+	}
+
+	if remoteURL == nil {
+		sess.Log.Warning(`disabling "remote.api" for stack operations`)
+	}
+
 	storeOpts := &credential.Options{
 		MongoDB: sess.DB,
 		Log:     sess.Log.New("stackcred"),
@@ -222,6 +238,10 @@ func New(conf *Config) (*Kloud, error) {
 	kloud.Stack.DescribeFunc = provider.Desc
 	kloud.Stack.CredClient = credential.NewClient(storeOpts)
 	kloud.Stack.MachineClient = machine.NewClient(machine.NewMongoDatabase())
+	kloud.Stack.RemoteClient = &remoteapi.Client{
+		Endpoint: remoteURL,
+		Client:   storeOpts.Client,
+	}
 
 	kloud.Stack.ContextCreator = func(ctx context.Context) context.Context {
 		return session.NewContext(ctx, sess)
