@@ -44,6 +44,10 @@ func NewRegisterSubCommand(log logging.Logger) cli.Command {
 				Name:  "team",
 				Usage: "Team Name to register",
 			},
+			cli.StringFlag{
+				Name:  "company",
+				Usage: "Team Company Name to register (default: team name)",
+			},
 			cli.BoolFlag{
 				Name:  "newsletter",
 				Usage: "Do you want to get occasional newsletters from Koding?",
