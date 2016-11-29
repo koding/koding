@@ -1,0 +1,140 @@
+.Homepage-ContentWithVideo {
+  padding: 95px 0;
+  .Homepage--container {
+    display: flex;
+    justify-content: space-between;
+  }
+  h4 {
+    font-size: 18px;
+    color: #AAB2B9;
+    letter-spacing: 1.5px;
+    margin-bottom: 22px;
+  }
+}
+.Homepage-ContentWithVideo--visual {
+  flex: 0 0 auto;
+  width: 540px;
+  height: 320px;
+  position: relative;
+  cursor: pointer;
+  &:hover {
+    h4 {
+      color: white;
+    }
+    svg {
+      fill: #FFFFFF;
+    }
+  }
+  img {
+    z-index: 0;
+  }
+  h4 {
+    z-index: 1;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 23px;
+    color: #AAB2B9;
+    position: absolute;
+    bottom: 27%;
+    left: 0;
+    width: 100%;
+    text-align: center;
+  }
+  svg {
+    position: absolute;
+    top: 47%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    -moz-transform: translate(-50%, -50%);
+    width: 48px;
+    height: 48px;
+    fill: #AAB2B9;
+  }
+}
+.Homepage-ContentWithVideo--content {
+  flex: 1 0 auto;
+  max-width: 600px;
+  > h3 {
+    font-size: 32px;
+    color: #1E2E42;
+    line-height: 46px;
+    margin-bottom: 30px;
+  }
+  > p {
+    font-size: 18px;
+    color: #617283;
+    line-height: 28px;
+    margin-bottom: 30px;
+  }
+  > span {
+    display: blocl;
+    font-weight: 500;
+    font-size: 14px;
+    color: #AAB2B9;
+    line-height: 20px;
+  }
+  strong {
+    font-weight: 600;
+  }
+}
+
+@media (max-width: 1600px) {
+}
+
+@media (max-width: 1200px) {
+  .Homepage-ContentWithVideo .Homepage--container {
+    max-width: 768px;
+  }
+  .Homepage-ContentWithVideo--visual {
+    width: 461px;
+    height: 334px;
+    margin-left: 0;
+  }
+  .Homepage-ContentWithVideo--content {
+    flex: 0 0 auto;
+    width: 233px;
+    margin-right: 0;
+    > img {
+      width: 76px;
+      height: 96px;
+      margin-bottom: 15px;
+      margin-top: -5px;
+    }
+    > h3 {
+      font-size: 17px;
+      letter-spacing: 0.11px;
+      margin-bottom: 14px;
+    }
+    > p {
+      font-size: 14px;
+      color: #999999;
+      letter-spacing: 0.09px;
+      line-height: 22px;
+      margin-bottom: 0;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .Homepage-ContentWithVideo {
+    padding: 60px 0 43px;
+  }
+  .Homepage-ContentWithVideo .Homepage--container {
+    max-width: 475px;
+    padding: 0 33px;
+  }
+  .Homepage-ContentWithVideo--visual {
+    display: none;
+  }
+  .Homepage-ContentWithVideo--content {
+    flex: 0 0 auto;
+    width: 310px;
+    margin-right: 0;
+    text-align: center;
+    > img {
+      width: 118px;
+      height: 144px;
+      margin-bottom: 40px;
+    }
+  }
+}
