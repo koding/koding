@@ -15,8 +15,6 @@ permalink: /
 {% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='transparent' %}
 
 <!-- CONTENT SECTION -->
-{% include home-hero.html %}
-
 {% include home-threethings.html %}
 
 {% include home-contentwithvisual.html
@@ -56,6 +54,10 @@ permalink: /
    image_ext="png"
    title="The convenience of coding locally with the advantages of hosting in the cloud"
    description="Koding for Teams uses a blazing-fast FUSE-based file system to sync your cloud environment file system on your local machine.<br><br>Your development workflow stays local and familiar while you develop entirely in the cloud" %}
+{% include home/hero.html
+   h1="Modern Development Environment Delivered."
+   h2="Koding lets your organization create and share fully automated dev environments on any infrastructure for modern distributed applications, micro-services and containers." %}
+
 
 <!-- FOOTER -->
 {% include footer.html %}
