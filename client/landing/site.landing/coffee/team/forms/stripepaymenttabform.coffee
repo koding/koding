@@ -107,8 +107,6 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
 
       { input } = this[inputType]
 
-      console.log {inputType, input}
-
       return  unless input
 
       return  if input.getValue() is value
