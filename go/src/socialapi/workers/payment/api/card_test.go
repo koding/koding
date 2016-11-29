@@ -70,13 +70,8 @@ func TestCreditCardDelete(t *testing.T) {
 										Convey("After deleting the credit card", func() {
 											ccdeleteURL := endpoint + EndpointCreditCardDelete
 
-											res, err = rest.DoRequestWithAuth("DELETE", ccdeleteURL, nil, sessionID)
+											_, err = rest.DoRequestWithAuth("DELETE", ccdeleteURL, nil, sessionID)
 											tests.ResultedWithNoErrorCheck(res, err)
-
-											c := &stripe.Card{}
-											err = json.Unmarshal(res, c)
-											So(err, ShouldBeNil)
-											So(c.Deleted, ShouldBeTrue)
 
 											res, err = rest.DoRequestWithAuth("GET", getURL, nil, sessionID)
 											So(err, ShouldBeNil)
