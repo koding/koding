@@ -1,0 +1,20 @@
+{% assign path = include.path | append: '/' %}
+{% assign cols = include.columns | split: "$$" %}
+
+<div class='Homepage-Columns'>
+  <div class='Homepage--container'>
+  {% for col in cols %}
+    {% assign row = col | split: "||" %}
+    {% assign img = row[0] | strip | prepend: path | prepend: site.url %}
+    {% assign img2x = img | replace: '.png', '@2x.png' %}
+    {% assign title = row[1] | strip %}
+    {% assign desc = row[2] | strip %}
+    <div class='Homepage-Column'>
+      <img src="{{ img }}" srcset="{{ img }} 1x, {{ img2x | }} 2x" />
+      <h4 class="title">{{ title }}</h4>
+      <p>{{ desc }}</p>
+    </div>
+  {% endfor %}
+  </div>
+</div>
+
