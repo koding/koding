@@ -63,10 +63,6 @@ func (c *Client) New(clientID string) *client.Koding {
 	} else {
 		// NOTE(rjeczalik): optimization - since kloud and remote.api are
 		// accessible on local network, use 127.0.0.1 host instead.
-		//
-		// Requests will still have "Host: <original host>" header set,
-		// just in case the e.g. the c.Endpoint is behind nginx that
-		// is configured with host routing.
 		endpoint = copyURL(c.Endpoint)
 
 		if _, port, err := net.SplitHostPort(endpoint.Host); err == nil {
@@ -74,6 +70,11 @@ func (c *Client) New(clientID string) *client.Koding {
 		} else {
 			endpoint.Host = "127.0.0.1"
 		}
+
+		// Requests will still have "Host: <original host>" header set,
+		// just in case the e.g. the c.Endpoint is behind nginx that
+		// is configured with host routing.
+		httpClient.Transport.(*transport).Host = c.Endpoint.Host
 	}
 
 	return client.New(newRuntime(endpoint, httpClient), strfmt.Default)
