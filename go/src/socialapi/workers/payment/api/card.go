@@ -65,19 +65,8 @@ func AuthCreditCard(u *url.URL, h http.Header, req *stripe.ChargeParams, context
 		return response.NewAccessDenied(errors.New("logged out users only"))
 	}
 
-	ses, err := modelhelper.GetSession(context.Client.SessionID)
-	if err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	const chargeIDKey = "chargeID"
-	_, err = ses.Data.GetString(chargeIDKey)
-	if err == nil {
-		return response.NewBadRequest(errors.New("has already an auth"))
-	}
-
 	if req.Email == "" {
-		return response.NewBadRequest(errors.New("email is not set"))
+		return http.StatusBadRequest, nil, nil, errors.New("email is not set")
 	}
 
 	chargeParams := &stripe.ChargeParams{
@@ -89,18 +78,5 @@ func AuthCreditCard(u *url.URL, h http.Header, req *stripe.ChargeParams, context
 		// this will help us with validating the request.
 		NoCapture: true,
 	}
-	ch, err := charge.New(chargeParams)
-	if err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	data := map[string]interface{}{
-		chargeIDKey: ch.ID,
-	}
-
-	if err := modelhelper.UpdateSessionData(ses.ClientId, data); err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	return response.NewOK(data)
+	return response.HandleResultAndClientError(charge.New(chargeParams))
 }

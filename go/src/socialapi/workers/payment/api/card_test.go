@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"testing"
 
-	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/rest"
@@ -321,26 +320,8 @@ func TestCreditCardAuthValid(t *testing.T) {
 				req, err := json.Marshal(cp)
 				tests.ResultedWithNoErrorCheck(req, err)
 
-				res, err := rest.DoRequestWithAuth("POST", endpoint+EndpointCreditCardAuth, req, ses.ClientId)
+				_, err = rest.DoRequestWithAuth("POST", endpoint+EndpointCreditCardAuth, req, ses.ClientId)
 				So(err, ShouldBeNil)
-
-				var m mongomodels.Data
-				err = json.Unmarshal(res, &m)
-				So(err, ShouldBeNil)
-				val, err := m.GetString("chargeID")
-				So(err, ShouldBeNil)
-				So(val, ShouldNotBeNil)
-
-				Convey("session should have the same value", func() {
-					ses2, err := modelhelper.GetSession(ses.ClientId)
-					So(err, ShouldBeNil)
-					So(ses2, ShouldNotBeNil)
-
-					val2, err := ses2.Data.GetString("chargeID")
-					So(err, ShouldBeNil)
-					So(val, ShouldNotBeNil)
-					So(val, ShouldEqual, val2)
-				})
 			})
 		})
 	})
@@ -372,7 +353,6 @@ func TestCreditCardAuthRetryFail(t *testing.T) {
 				res, err = rest.DoRequestWithAuth("POST", endpoint+EndpointCreditCardAuth, req, ses.ClientId)
 				So(err, ShouldNotBeNil)
 				So(res, ShouldBeNil)
-				So(err.Error(), ShouldContainSubstring, "has already an auth")
 			})
 		})
 	})
