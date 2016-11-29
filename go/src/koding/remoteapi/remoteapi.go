@@ -12,19 +12,41 @@ import (
 
 //go:generate swagger generate client -f ../../../../website/swagger.json
 
+// Client is a REST client used to interact with remote.api.
+//
+// It creates new client object per client, so it requires
+// authorisation (obtaining jSession.clientId) happens
+// externally.
+//
+// TODO(rjeczalik): Add admin mode for remote.api for it's possible
+// for kloud to use one persistant session to interact with
+// remote.api on behalf of the users. See discussion #9667.
 type Client struct {
+	// Endpoint is URL of remote.api endpoint.
+	// Required.
 	Endpoint *url.URL
-	Client   *http.Client
+
+	// Client is an underlying HTTP client used for
+	// communication with remote.api server.
+	//
+	// If nil, http.DefaultClient is used instead.
+	Client *http.Client
 }
 
 func (c *Client) New(clientID string) *client.Koding {
 	httpClient := &http.Client{
 		Transport: &transport{
-			RoundTripper: c.Client.Transport,
+			RoundTripper: http.DefaultTransport,
 			ClientID:     clientID,
 		},
-		Jar:     c.Client.Jar,
-		Timeout: c.Client.Timeout,
+		Jar:     http.DefaultClient.Jar,
+		Timeout: http.DefaultClient.Timeout,
+	}
+
+	if c.Client != nil {
+		httpClient.Transport.(*transport).RoundTripper = c.Client.Transport
+		httpClient.Jar = c.Client.Jar
+		httpClient.Timeout = c.Client.Timeout
 	}
 
 	return client.New(newRuntime(c.Endpoint, httpClient), strfmt.Default)
@@ -34,6 +56,8 @@ func newRuntime(u *url.URL, c *http.Client) *runtime.Runtime {
 	return runtime.NewWithClient(u.Host, u.Path, []string{u.Scheme}, c)
 }
 
+// transport is a signing transport that
+// authorizes each request with jSession.clientId.
 type transport struct {
 	http.RoundTripper
 	ClientID string
