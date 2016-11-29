@@ -30,7 +30,10 @@ module.exports = class StripePaymentTab extends kd.TabPaneView
 
   onSubmit: (formData) ->
 
-    utils.createToken(formData)
+    if utils.getPayment()
+      return @onSubmitSuccess()
+
+    utils.authorizeCreditCard(formData)
       .then @bound 'onSubmitSuccess'
       .catch @bound 'onSubmitError'
 
@@ -54,6 +57,7 @@ module.exports = class StripePaymentTab extends kd.TabPaneView
   onSubmitSuccess: ->
 
     @form.button.hideLoader()
+    utils.storeNewTeamData 'payment', {}
     kd.singletons.router.handleRoute '/Team/Username'
 
 

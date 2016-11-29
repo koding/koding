@@ -9,6 +9,10 @@ PAYMENT_BACKEND_URI = '/api/social/payment'
 createFormData = (teamData) ->
 
   teamData ?= utils.getTeamData()
+
+  if (payment = utils.getPayment())?.token?
+    teamData.payment = { stripeToken: payment.token }
+
   formData  = {}
 
   for own step, fields of teamData when not ('boolean' is typeof fields)
@@ -53,6 +57,7 @@ eraseCardInfo = -> delete global._payment?.cardInfo
 cleanPayment = ->
   erasePaymentToken()
   eraseCardInfo()
+  delete global._payment
 
 getPayment = -> global._payment
 
@@ -260,6 +265,9 @@ module.exports = utils = {
 
   createTeam: (callbacks = {}) ->
 
+    unless token = utils.getPayment()?.token
+      new kd.NotificationView { title : 'You need to enter your credit card!' }
+
     formData = createFormData()
 
     formData._csrf           = Cookies.get '_csrf'
@@ -267,7 +275,6 @@ module.exports = utils = {
     formData.agree           = 'on'
     formData.passwordConfirm = formData.password
     formData.redirect        = "#{location.protocol}//#{formData.slug}.#{location.host}?username=#{formData.username}"
-    formData.stripeToken     = global._stripeToken
 
     $.ajax
       url       : '/-/teams/create'
@@ -514,33 +521,33 @@ module.exports = utils = {
         return resolve(global.Stripe)
     ).getElement()
 
-  createToken: (formData) ->
 
-    utils.loadStripe().then (Stripe) ->
+  createStripeToken: (Stripe, cardInfo) -> new Promise (resolve, reject) ->
+    Stripe.createToken cardInfo, (status, response) ->
+      if response.error
+      then reject response.error
+      else resolve response.id
 
-      { number, cvc, exp_month, exp_year } = formData
+  authorizeCreditCard: (formData) ->
 
-      cardInfo =
-        number    : number
-        cvc       : cvc
-        exp_month : exp_month
-        exp_year  : exp_year
+    { number, cvc, exp_month, exp_year } = formData
+    { email } = utils.getTeamData().signup
 
-      return new Promise (resolve, reject) ->
+    cardInfo =
+      number    : number
+      cvc       : cvc
+      exp_month : exp_month
+      exp_year  : exp_year
 
-        Stripe.createToken cardInfo, (status, response) ->
-          if response.error
-            return reject response.error
-
-          token = response.id
-          { email } = utils.getTeamData().signup
-
-          utils.makeChargeRequest token, email
-            .then (response) ->
-              utils.savePaymentToken token
-              utils.saveCardInfo cardInfo
-              resolve response
-            .catch (err) ->
-              utils.cleanPayment()
-              reject err
+    utils.loadStripe()
+      # first create a token for a authorization charge (50cent)
+      .then -> utils.createStripeToken global.Stripe, cardInfo
+      .then (token) -> utils.makeChargeRequest token, email
+      # then create another token for subscription
+      .then -> utils.createStripeToken global.Stripe, cardInfo
+      .then (token) ->
+        utils.savePaymentToken token
+        utils.saveCardInfo cardInfo
+      .catch (err) ->
+        utils.cleanPayment()
 }
