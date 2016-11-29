@@ -558,4 +558,5 @@ module.exports = utils = {
         utils.saveCardInfo cardInfo
       .catch (err) ->
         utils.cleanPayment()
+        Promise.reject err
 }
