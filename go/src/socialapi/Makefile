@@ -156,7 +156,8 @@ testrealtime:
 
 testapi: testcollaboration testmailsender testmail testmodels \
 	testnotification \
-	testteam testintegration testrealtime testpresence
+	testteam testintegration testrealtime testpresence \
+	testpayment
 
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 
