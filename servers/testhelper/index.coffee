@@ -52,7 +52,7 @@ generateUrl = (opts = {}) ->
     else  ''
 
   urlParts =
-    hostname  : if KONFIG.environment is 'dev' then 'dev.koding.com' else 'localhost'
+    hostname  : KONFIG.domains.base
     port      : ':8090'
     route     : ''
     protocol  : 'http://'
