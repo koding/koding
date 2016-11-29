@@ -42,7 +42,7 @@ In this modal you will find _four tabs_:
 
 5. **Setting up your Azure Account**. You need to add your Azure **Publish Settings** file content and **Subscription ID** to the credentials tab. To do that, login to your Azure account, and follow the below steps:
 
-    1. First, get your **Publish Settings** file by following the [steps in this URL][8]. Or open this link directly [http://go.microsoft.com/fwlink/?LinkID=294709][9]:
+    1. First, get your **Publish Settings** file by following the [steps in this URL][8]. Or open this link directly [https://manage.windowsazure.com/publishsettings][9]:
 
         > If you haven't created an account yet, please visit [Azure website][1] to create one now.
 
@@ -122,7 +122,7 @@ In this modal you will find _four tabs_:
 [6]: {{ site.url }}/assets/img/guides/azure/azure-default-stack.png
 [7]: {{ site.url }}/assets/img/guides/azure/azure-readme.png
 [8]: https://msdn.microsoft.com/en-us/dynamics-nav/how-to--download-and-import-publish-settings-and-subscription-information
-[9]: http://go.microsoft.com/fwlink/?LinkID=294709
+[9]: https://manage.windowsazure.com/publishsettings
 [10]: {{ site.url }}/assets/img/guides/azure/azure-get-publish-settings.png
 [11]: {{ site.url }}/assets/img/guides/azure/azure-download-publish-settings-file.png
 [12]: {{ site.url }}/assets/img/guides/azure/azure-get-sub-id-1.png
