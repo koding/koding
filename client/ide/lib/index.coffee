@@ -514,10 +514,8 @@ class IDEAppController extends AppController
     panel     = @workspace.getView()
     filesPane = panel.getPaneByName 'filesPane'
 
-    path = @workspaceData?.rootPath
-
     @workspace.ready ->
-      filesPane.emit 'MachineMountRequested', machineData, path
+      filesPane.emit 'MachineMountRequested', machineData
 
 
   unmountMachine: (machineData) ->
