@@ -410,7 +410,7 @@ func run(args []string) {
 		app.Commands = append(app.Commands,
 			cli.Command{
 				Name:  "auth",
-				Usage: "Authorization for user",
+				Usage: "User authorization.",
 				Subcommands: []cli.Command{
 					{
 						Name:   "login",
@@ -559,6 +559,23 @@ func run(args []string) {
 						},
 					},
 				}},
+			},
+			cli.Command{
+				Name:  "team",
+				Usage: "List available teams and set team context.",
+				Subcommands: []cli.Command{
+					{
+						Name:   "show",
+						Usage:  "Shows your currently used team.",
+						Action: ctlcli.ExitErrAction(TeamShow, log, "show"),
+						Flags: []cli.Flag{
+							cli.BoolFlag{
+								Name:  "json",
+								Usage: "Output in JSON format.",
+							},
+						},
+					},
+				},
 			},
 		)
 	}
