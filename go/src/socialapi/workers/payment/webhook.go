@@ -62,7 +62,7 @@ func chargeFailedHandler(raw []byte) error {
 
 func chargeHandler(raw []byte, op string) error {
 	var charge *stripe.Charge
-	err := json.Unmarshal(raw, &charge)
+	err := json.Unmarshal(raw, charge)
 	if err != nil {
 		return err
 	}
