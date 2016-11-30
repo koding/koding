@@ -50,7 +50,7 @@ module.exports = class NFinderController extends KDViewController
     if options.useStorage
 
       @treeController.on 'folder.expanded', (folder) =>
-        @setRecentFolder folder.path
+        @setRecentFolder folder.path  unless @_restoreInProgress
 
       @treeController.on 'folder.collapsed', ({ path }) =>
         @unsetRecentFolder path
@@ -115,10 +115,12 @@ module.exports = class NFinderController extends KDViewController
     mRoots  = (@appStorage.getValue 'machineRoots') or {}
     options.fetchContent ?= yes
 
-    findMountPath = (callback) ->
+    findMountPath = (callback) =>
       if path = mRoots[uid]
       then callback path
-      else machine.ready -> callback machine.info.home
+      else machine.ready =>
+        path = machine.info.home
+        @updateMachineRoot uid, path, -> callback path
 
     findMountPath (path) =>
 
@@ -135,6 +137,7 @@ module.exports = class NFinderController extends KDViewController
       @emit 'MachineMounted', machine, path
 
       if options.fetchContent and machineItem
+        @_restoreInProgress = yes
         @treeController.expandFolder machineItem, (err) =>
           @treeController.selectNode machineItem
           kd.utils.defer =>
@@ -224,6 +227,8 @@ module.exports = class NFinderController extends KDViewController
 
   setRecentFolder: (folderPath, callback) ->
 
+    return  if @_restoreInProgress
+
     recentFolders = @getRecentFolders()
     unless folderPath in recentFolders
       recentFolders.push folderPath
@@ -288,7 +293,9 @@ module.exports = class NFinderController extends KDViewController
       if recentFolders.length is 0
         recentFolders = ["[#{uid}]/"]
 
-    @expandFolders recentFolders
+    @_restoreInProgress = yes
+    @expandFolders recentFolders, => kd.utils.defer =>
+      @_restoreInProgress = no
 
 
   uploadTo: (path) ->
