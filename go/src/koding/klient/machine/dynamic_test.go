@@ -78,7 +78,7 @@ func TestDynamicClientContext(t *testing.T) {
 			select {
 			case <-dc.Context().Done():
 				return errors.New("context closed unexpectedly")
-			case <-time.After(50 * time.Microsecond):
+			case <-time.After(50 * time.Millisecond):
 				return nil
 			}
 		})
