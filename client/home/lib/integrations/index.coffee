@@ -3,6 +3,7 @@ sectionize = require '../commons/sectionize'
 headerize  = require '../commons/headerize'
 
 HomeIntegrationsGitlab = require './homeintegrationsgitlab'
+HomeIntegrationsGithub = require './homeintegrationsgithub'
 HomeIntegrationsCustomerFeedback = require './homeintegrationscustomerfeedback'
 HomeIntegrationsIntercom = require './homeintegrationsintercomintegration'
 
@@ -14,6 +15,8 @@ module.exports = class HomeIntegrations extends kd.CustomScrollView
 
     super options, data
 
+    @wrapper.addSubView headerize 'Github'
+    @wrapper.addSubView sectionize 'Github', HomeIntegrationsGithub
     @wrapper.addSubView headerize 'GitLab'
     @wrapper.addSubView sectionize 'GitLab', HomeIntegrationsGitlab
     @wrapper.addSubView headerize 'Intercom'

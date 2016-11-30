@@ -155,7 +155,7 @@ module.exports = class OAuth extends bongo.Base
         if not applicationSecret then return callback new KodingError \
           MissingFieldError, 'MissingField', { fields: ['applicationSecret'] }
 
-        url               = "https://github.com"
+        url               = 'https://github.com'
         options           =
           url             : "#{url}/login/oauth/access_token"
           timeout         : 7000
