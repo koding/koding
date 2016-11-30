@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"koding/klientctl/kloud"
 	stdlog "log"
 	"os"
 	"os/exec"
 	"testing"
+
+	"koding/klientctl/endpoint/kloud"
 )
 
 func TestMainHelper(t *testing.T) {
@@ -149,3 +150,5 @@ func (ft *FakeTransport) Call(method string, arg, reply interface{}) error {
 
 	return nil
 }
+
+func (*FakeTransport) Valid() (_ error) { return }

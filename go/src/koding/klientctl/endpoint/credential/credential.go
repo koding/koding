@@ -162,11 +162,15 @@ func (c *Client) Describe() (stack.Descriptions, error) {
 // Close
 func (c *Client) Close() (err error) {
 	if len(c.cached) != 0 {
-		err = nonil(
-			c.kloud().Cache().SetValue("credentials", c.cached),
-			c.kloud().Cache().SetValue("credentials.used", c.used),
-			c.kloud().Cache().SetValue("credentials.describe", c.describe),
-		)
+		err = c.kloud().Cache().SetValue("credential", c.cached)
+	}
+
+	if len(c.used) != 0 {
+		err = nonil(err, c.kloud().Cache().SetValue("credential.used", c.used))
+	}
+
+	if len(c.describe) != 0 {
+		err = nonil(err, c.kloud().Cache().SetValue("credential.describe", c.describe))
 	}
 
 	return err
@@ -210,9 +214,9 @@ func (c *Client) readCache() {
 
 	// Ignoring read error, if it's non-nil then empty cache is going to
 	// be used instead.
-	_ = c.kloud().Cache().GetValue("credentials", &c.cached)
-	_ = c.kloud().Cache().GetValue("credentials.used", &c.used)
-	_ = c.kloud().Cache().GetValue("credentials.describe", &c.describe)
+	_ = c.kloud().Cache().GetValue("credential", &c.cached)
+	_ = c.kloud().Cache().GetValue("credential.used", &c.used)
+	_ = c.kloud().Cache().GetValue("credential.describe", &c.describe)
 
 	// Flush cache on exit.
 	ctlcli.CloseOnExit(c)
