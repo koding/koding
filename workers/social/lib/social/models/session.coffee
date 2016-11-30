@@ -38,6 +38,9 @@ module.exports = class JSession extends Model
       returnUrl         : String
       foreignAuthType   : String
       impersonating     : Boolean
+      # data holds arbitary transitive session based info, not necessarily
+      # should be used. There won't be any kind of index on this field.
+      data              : Object
     sharedEvents        :
       instance          : []
       static            : []

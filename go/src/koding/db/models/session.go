@@ -1,10 +1,17 @@
 package models
 
 import (
+	"errors"
 	"time"
 
 	"gopkg.in/mgo.v2/bson"
 )
+
+// ErrDataKeyNotExists holds exported error for non-existing key
+var ErrDataKeyNotExists = errors.New("key does not exist")
+
+// ErrDataInvalidType holds the exported error for invalid value type
+var ErrDataInvalidType = errors.New("invalid value type")
 
 type Session struct {
 	Id            bson.ObjectId `bson:"_id" json:"-"`
@@ -17,4 +24,27 @@ type Session struct {
 	SessionBegan  time.Time     `bson:"sessionBegan"`
 	LastAccess    time.Time     `bson:"lastAccess"`
 	Impersonating bool          `bson:"impersonating"`
+	Data          *Data         `bson:"data,omitempty" json:"data,omitempty"`
+}
+
+// Data holds arbitary data
+type Data map[string]interface{}
+
+// GetString returns value as string with given key
+func (d *Data) GetString(key string) (string, error) {
+	if d == nil {
+		return "", ErrDataKeyNotExists
+	}
+
+	dt, ok := (*d)[key]
+	if !ok {
+		return "", ErrDataKeyNotExists
+	}
+
+	s, ok := dt.(string)
+	if !ok {
+		return "", ErrDataInvalidType
+	}
+
+	return s, nil
 }
