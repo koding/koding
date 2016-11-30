@@ -72,7 +72,9 @@ func (s *Status) String() string {
 	return strings.Join(toks, ", ")
 }
 
-// MergeStatus is an utility function
+// MergeStatus is an utility function that merges two statuses into one. Younger
+// statuses have higher priority. But, if both have identical state, older
+// status may be returned as we assume that it didn't change at all.
 func MergeStatus(a, b Status) Status {
 	// Swap a with b when b is older than a.
 	if a.Since.After(b.Since) {
