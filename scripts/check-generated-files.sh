@@ -12,8 +12,7 @@ find go/src/koding -type f \( -name '*.json' -or -name '*.json.golden' \)  -exec
 # NOTE(rjeczalik): For go-bindata it is good to pass fixed -mode and -modtime
 # flag values, so the files are no regenerated each time.
 # See koding/kites/config/config.go for an example.
-go generate koding/...
-
+go generate koding/kites/...
 
 # Ensure there are no changes in the working tree.
 git diff --exit-code go/src/koding

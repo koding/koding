@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Page Not Found
+title: Error!
 permalink: /404
 ---
 
@@ -10,8 +10,8 @@ permalink: /404
 <style>{% include css/404.css %}</style>
 
 <div class="a404-Hero">
-  <h1>Crash Landing! This page does not exist</h1>
-  <h1 class="mini">Crash Landing!<br>This page does not exist</h1>
+  <h1><span class="code"></span> - Crash Landing! <span class="message"></span></h1>
+  <h1 class="mini"><span class="code"></span>Crash Landing!<br><span class="message"></span></h1>
   <ul>
     <li><a href="/" class="button">Go to home page</a></li>
     <li><a href="/docs/home" class="button">Visit Help Center</a></li>
@@ -19,6 +19,28 @@ permalink: /404
   </ul>
 </div>
 <figure class="a404-Ground"></figure>
+
+<script>
+  function getParameterByName(name, url) {
+    if (!url) {
+      url = window.location.href;
+    }
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+  }
+
+  var error_code = window.location.pathname.split( '/' )[1];
+  var error_msg = getParameterByName("msg");
+
+  document.querySelector("h1 .code").innerHTML = error_code;
+  document.querySelector("h1.mini .code").innerHTML = error_code;
+  document.querySelector("h1 .message").innerHTML = error_msg;
+  document.querySelector("h1.mini .message").innerHTML = error_msg;
+</script>
 
 <!-- FOOTER -->
 {% include footer.html %}

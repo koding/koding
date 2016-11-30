@@ -40,27 +40,6 @@ module.exports = class StackTemplateView extends kd.View
       delegate: this, content, contentType, showHelpContent
     }
 
-    @editorView.addSubView @previewButton = new KDButtonView
-      title    : 'PREVIEW'
-      cssClass : 'HomeAppView--button secondary template-preview-button'
-      loader   : yes
-      loaderOptions: { color: '#858585' }
-      tooltip  :
-        title  : 'Generates a preview of this template with your own account information.'
-      callback : => @emit 'ShowTemplatePreview'
-
-    @editorView.addSubView new KDButtonView
-      title    : 'LOGS'
-      cssClass : 'HomeAppView--button secondary showlogs-button'
-      callback : => @emit 'ShowOutputView'
-
-    @editorView.addSubView new KDButtonView
-      cssClass : 'HomeAppView--button secondary fullscreen-button'
-      title    : ''
-      callback : =>
-        kd.singletons.appManager.tell 'Stacks', 'toggleFullscreen'
-        kd.utils.wait 250, => @editorView.resize()
-
     @editorView.on 'click', => @emit 'HideOutputView'
 
 

@@ -116,9 +116,13 @@ module.exports = class JPermissionSet extends Module
     # if one of them passes, breaks the loop and returns true
     kallback = (current, main) ->
 
+      # we will keep the passed advanced permission index
+      # so based on this information we can get information
+      # about the permission owner ~ GG
+      permissionIndex = -1
       hasPermission = no
 
-      queue = advanced.map ({ permission, validateWith, superadmin }) -> (next) ->
+      queue = advanced.map ({ permission, validateWith, superadmin }, _permIndex) -> (next) ->
 
         return next()  if hasPermission
 
@@ -142,11 +146,13 @@ module.exports = class JPermissionSet extends Module
 
         validateWith.call target, client, group, permission, permissionSet, args,
           (err, _hasPermission) ->
-            hasPermission = _hasPermission  if _hasPermission
+            if _hasPermission
+              hasPermission = _hasPermission
+              permissionIndex = _permIndex
             next err
 
       async.series queue, (err) ->
-        callback err, hasPermission
+        callback err, hasPermission, permissionIndex
 
     # set groupName from given target or client
     client.groupName = getGroupnameFrom target, client
@@ -202,10 +208,32 @@ module.exports = class JPermissionSet extends Module
       permissions = (p.permission for p in advanced).join ', '
 
       JPermissionSet.checkPermission client, advanced, this, rest,
-        (err, hasPermission) ->
+        (err, hasPermission, permissionIndex) ->
           args = [client, rest..., callback]
           if err then callback err
           else if hasPermission
+            # client._allowedPermissionIndex
+            #
+            # if you write something like this;
+            #
+            #   foo: permit
+            #
+            #     advanced: [
+            #       { permission   : 'some permission', validateWith: Validators.own }
+            #       {
+            #         permission   : 'access related'
+            #         validateWith : accessValidator ACCESSLEVEL.READ
+            #       }
+            #       { permission   : 'modify object', superadmin: yes }
+            #     ]
+            #
+            #     success: (client, callback) ->
+            #       ...
+            #
+            # and this permission is granted because you were a superadmin then
+            # client._allowedPermissionIndex will become 2. But if you are owner of
+            # this instance this time it will become 0 because the first rule granted.
+            args[0]._allowedPermissionIndex = permissionIndex
             success.apply null, args
           else if failure?
             failure.apply null, args

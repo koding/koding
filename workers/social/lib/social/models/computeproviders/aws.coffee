@@ -7,7 +7,7 @@ module.exports = class Aws extends ProviderInterface
 
   @bootstrapKeys = ['key_pair', 'rtb', 'acl']
 
-  @sensitiveKeys = ['access_key', 'secret_key']
+  @secretKeys = ['access_key', 'secret_key']
 
 
   @ping = (client, options, callback) ->

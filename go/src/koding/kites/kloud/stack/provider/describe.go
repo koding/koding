@@ -1,13 +1,18 @@
 package provider
 
 import (
+	"bytes"
 	"fmt"
 	"koding/kites/kloud/stack"
 	"reflect"
 	"strings"
+	"time"
+	"unicode"
 )
 
 var describeTags = []string{"bson", "hcl", "json"}
+
+var durationTyp = reflect.TypeOf((*time.Duration)(nil)).Elem()
 
 // Describe creates a schema definition for the given v value.
 //
@@ -46,7 +51,7 @@ func Describe(v interface{}) ([]stack.Value, error) {
 
 		v := stack.Value{
 			Name:  f.Name,
-			Label: strings.Title(f.Name),
+			Label: title(f.Name),
 		}
 
 		switch fTyp.Kind() {
@@ -62,6 +67,10 @@ func Describe(v interface{}) ([]stack.Value, error) {
 			v.Type = "string"
 		case reflect.Map:
 			v.Type = "object" // TODO(rjeczalik): this may be not needed
+		}
+
+		if fTyp == durationTyp {
+			v.Type = "duration"
 		}
 
 		if enumer, ok := val.Field(i).Interface().(stack.Enumer); ok {
@@ -112,4 +121,31 @@ func mustDescribe(v interface{}) []stack.Value {
 		panic(fmt.Errorf("unable to create description for %T: %s", v, err))
 	}
 	return desc
+}
+
+var titler = strings.NewReplacer("_", " ")
+
+func title(s string) string {
+	if s == "" {
+		return ""
+	}
+
+	var buf bytes.Buffer
+
+	runes := []rune(strings.Title(titler.Replace(s)))
+	buf.WriteRune(runes[0])
+
+	for i := 1; i < len(runes)-1; i++ {
+		if !unicode.IsSpace(runes[i]) && !unicode.IsSpace(runes[i-1]) && unicode.IsUpper(runes[i]) && (unicode.IsLower(runes[i+1]) || unicode.IsLower(runes[i-1])) {
+			buf.WriteRune(' ')
+		}
+
+		buf.WriteRune(runes[i])
+	}
+
+	if len(runes) != 1 {
+		buf.WriteRune(runes[len(runes)-1])
+	}
+
+	return buf.String()
 }

@@ -31,45 +31,42 @@ func init() {
 	provider.Register(p)
 }
 
-// Region represents google's geographical region code.
-type Region string
+// RegionType represents google's geographical region code.
+type RegionType string
 
-var regions = []Region{
-	"asia-east1",
-	"europe-west1",
-	"us-central1",
-	"us-east1",
-	"us-west1",
+var _ stack.Enumer = RegionType("")
+
+var Regions = []stack.Enum{
+	{Title: "Asia West 1", Value: "asia-east1"},
+	{Title: "Europte West 1", Value: "europe-west1"},
+	{Title: "US Central 1", Value: "us-central1"},
+	{Title: "US East 1", Value: "us-east1"},
+	{Title: "US West 1", Value: "us-west1"},
 }
 
 // Enum returns all available regions for "google" provider.
-func (Region) Enum() (rs []interface{}) {
-	for _, region := range regions {
-		rs = append(rs, region)
-	}
-	return rs
-}
+func (RegionType) Enums() []stack.Enum { return Regions }
 
 // Valid checks if stored region code is available in GCP.
-func (r Region) Valid() error {
+func (r RegionType) Valid() error {
 	if r == "" {
 		return fmt.Errorf("region name is not set")
 	}
 
-	for _, region := range regions {
-		if r == region {
+	for _, region := range Regions {
+		if r == RegionType(region.Value.(string)) {
 			return nil
 		}
 	}
 
-	return fmt.Errorf("unknown region name: %v", r)
+	return fmt.Errorf("region %q does not exist", r)
 }
 
 // Cred represents jCredentialDatas.meta for "google" provider.
 type Cred struct {
-	Credentials string `json:"credentials" bson:"credentials" hcl:"credentials" kloud:",secret"`
-	Project     string `json:"project" bson:"project" hcl:"project"`
-	Region      Region `json:"region" bson:"region" hcl:"region"`
+	Credentials string     `json:"credentials" bson:"credentials" hcl:"credentials" kloud:",secret"`
+	Project     string     `json:"project" bson:"project" hcl:"project"`
+	Region      RegionType `json:"region" bson:"region" hcl:"region"`
 }
 
 var _ stack.Validator = (*Cred)(nil)
@@ -139,12 +136,12 @@ func (b *Bootstrap) Valid() error {
 }
 
 type Meta struct {
-	Name        string `json:"name" bson:"name" hcl:"name"`
-	Region      Region `json:"region" bson:"region" hcl:"region"`
-	Zone        string `json:"zone" bson:"zone" hcl:"zone"`
-	Image       string `json:"image" bson:"image" hcl:"image"`
-	StorageSize int    `json:"storage_size" bson:"storage_size" hcl:"storage_size"`
-	MachineType string `json:"machine_type" bson:"machine_type" hcl:"machine_type"`
+	Name        string     `json:"name" bson:"name" hcl:"name"`
+	Region      RegionType `json:"region" bson:"region" hcl:"region"`
+	Zone        string     `json:"zone" bson:"zone" hcl:"zone"`
+	Image       string     `json:"image" bson:"image" hcl:"image"`
+	StorageSize int        `json:"storage_size" bson:"storage_size" hcl:"storage_size"`
+	MachineType string     `json:"machine_type" bson:"machine_type" hcl:"machine_type"`
 }
 
 var _ stack.Validator = (*Meta)(nil)
