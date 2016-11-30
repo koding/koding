@@ -44,7 +44,7 @@ Do you see '###### Stack Template Readme' text in the first line? Do you see 'PR
 Delete the text and copy and paste "# WELCOME TO KODING! You've said goodbye to your localhost and are ready to develop software in the cloud!" there and click on 'PREVIEW' button
 Do you see 'Readme Preview' title on a pop-up displayed? Do you see the text you pasted?
 
-Close that modal by clicking (x) from top right corner, switch to 'Stack Template' tab and click on 'PREVIEW' button on the right bottom
+Close that modal by clicking (x) from top right corner, click on 'Team Stack' tab and click on 'PREVIEW' button on the right bottom
 # Do you see 'Template Preview' title on a pop-up displayed?
 Do you see 'name will be requested from user.' text? Do you see 'YAML' and 'JSON' tabs and EXPAND button?
 
