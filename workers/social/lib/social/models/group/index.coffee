@@ -1156,7 +1156,7 @@ module.exports = class JGroup extends Module
 
       validateOptions = { url, applicationId, applicationSecret }
 
-      OAuth.validateOAuth provider, validateOptions, (err, data) =>
+      OAuth.validateOAuth provider, validateOptions, (err, data = {}) =>
         return callback err  if err
 
         url = data.url  if data.url

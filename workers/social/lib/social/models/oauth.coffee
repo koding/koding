@@ -130,7 +130,7 @@ module.exports = class OAuth extends bongo.Base
 
     github    :
       title   : 'Github OAuth Provider'
-      enabled : false
+      enabled : yes
       getUrl  : (client, urlOptions, callback) ->
 
         { clientId } = KONFIG.github
@@ -145,7 +145,46 @@ module.exports = class OAuth extends bongo.Base
         callback null, url
 
       validateOAuth: (options, callback) ->
-        callback ERROR.VALIDATION
+
+        { applicationId, applicationSecret } = options
+
+        MissingFieldError = 'Missing field for validating oauth'
+
+        if not applicationId then return callback new KodingError \
+          MissingFieldError, 'MissingField', { fields: ['applicationId'] }
+        if not applicationSecret then return callback new KodingError \
+          MissingFieldError, 'MissingField', { fields: ['applicationSecret'] }
+
+        url               = "https://github.com"
+        options           =
+          url             : "#{url}/login/oauth/access_token"
+          timeout         : 7000
+          method          : 'POST'
+          headers         :
+            'Accept'      : 'application/json'
+            'User-Agent'  : 'Koding'
+          json            :
+            client_id     : applicationId
+            client_secret : applicationSecret
+
+        request options, (error, response, body) ->
+
+          if error
+            callback new KodingError \
+              'Host not reachable', 'NotReachable', { fields: [] }
+          else
+            # Github OAuth does not support [grant_type = 'client_credentials']
+            # so, to make sure if client_id and client_secret are valid we are
+            # requesting a new token without a code here, if it passes and
+            # fails with bad_verification_code means provided auths are ok ~GG
+            if body.error is 'bad_verification_code'
+              callback null, { url }
+            else
+              callback new KodingError \
+                'Verification failed', 'VerificationFailed', { fields: [
+                    'applicationSecret',
+                    'applicationId'
+                ] }
 
 
     # -- FACEBOOK PROVIDER ------------------------------------------------8<--
