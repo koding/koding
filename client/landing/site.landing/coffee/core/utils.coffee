@@ -559,4 +559,13 @@ module.exports = utils = {
       .catch (err) ->
         utils.cleanPayment()
         Promise.reject err
+
+  getDummyCard: ->
+    return {
+      number: '4242424242424242'
+      cvc: '111'
+      exp_month: '11'
+      exp_year: '21'
+    }
+
 }

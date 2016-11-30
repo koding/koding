@@ -22,7 +22,15 @@ module.exports = class StripePaymentTab extends kd.TabPaneView
     @form = new StripePaymentTabForm
       callback: @bound 'onSubmit'
 
-    utils.loadStripe()
+    utils.loadStripe().then =>
+      if kd.config.environment is 'development'
+        @submitWithDummyCard()
+
+
+  submitWithDummyCard: ->
+    @form.makeDisabled()
+    @form.setValues utils.getDummyCard()
+    @form.submit()
 
 
   onSubmit: (formData) ->
