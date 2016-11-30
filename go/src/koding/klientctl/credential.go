@@ -13,7 +13,7 @@ import (
 
 	"koding/kites/config"
 	"koding/kites/kloud/stack"
-	"koding/klientctl/kloud/credential"
+	"koding/klientctl/endpoint/credential"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"

@@ -7,8 +7,8 @@ import (
 	"sort"
 
 	"koding/kites/kloud/stack"
-	"koding/klientctl/kloud"
-	"koding/klientctl/kloud/credential"
+	"koding/klientctl/endpoint/credential"
+	"koding/klientctl/endpoint/kloud"
 
 	"github.com/hashicorp/hcl"
 	yaml "gopkg.in/yaml.v2"
