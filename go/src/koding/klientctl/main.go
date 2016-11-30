@@ -20,7 +20,6 @@ import (
 
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
-	"koding/klientctl/endpoint/auth"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/util"
 
@@ -409,6 +408,27 @@ func run(args []string) {
 
 	if experimental {
 		app.Commands = append(app.Commands,
+			cli.Command{
+				Name:  "auth",
+				Usage: "Authorization for user",
+				Subcommands: []cli.Command{
+					{
+						Name:   "login",
+						Usage:  "Log in to your kd.io or koding.com account.",
+						Action: ctlcli.ExitErrAction(AuthLogin, log, "login"),
+						Flags: []cli.Flag{
+							cli.BoolFlag{
+								Name:  "json",
+								Usage: "Output in JSON format.",
+							},
+							cli.StringFlag{
+								Name:  "team, t",
+								Usage: "Specify a koding.com team to log in. Leaving empty logs in to kd.io by default.",
+							},
+						},
+					},
+				},
+			},
 			cli.Command{
 				Name:  "config",
 				Usage: "Manage tool configuration.",

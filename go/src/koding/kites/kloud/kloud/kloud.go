@@ -288,7 +288,7 @@ func New(conf *Config) (*Kloud, error) {
 		k.Log.Warning(`disabling "keygen" methods due to missing S3/STS credentials`)
 	}
 
-	// Teams/stack handling methods
+	// Teams/stack handling methods.
 	k.HandleFunc("plan", kloud.Stack.Plan)
 	k.HandleFunc("apply", kloud.Stack.Apply)
 	k.HandleFunc("describeStack", kloud.Stack.Status)
@@ -296,19 +296,24 @@ func New(conf *Config) (*Kloud, error) {
 	k.HandleFunc("bootstrap", kloud.Stack.Bootstrap)
 	k.HandleFunc("import", kloud.Stack.Import)
 
+	// Credential handling.
 	k.HandleFunc("credential.describe", kloud.Stack.CredentialDescribe)
 	k.HandleFunc("credential.list", kloud.Stack.CredentialList)
 	k.HandleFunc("credential.add", kloud.Stack.CredentialAdd)
 
+	// Authorization handling.
+	k.HandleFunc("auth.login", kloud.Stack.AuthLogin)
+
+	// Machine handling.
 	k.HandleFunc("machine.list", kloud.Stack.MachineList)
 
-	// Single machine handling
+	// Single machine handling.
 	k.HandleFunc("stop", kloud.Stack.Stop)
 	k.HandleFunc("start", kloud.Stack.Start)
 	k.HandleFunc("info", kloud.Stack.Info)
 	k.HandleFunc("event", kloud.Stack.Event)
 
-	// Klient proxy methods
+	// Klient proxy methods.
 	k.HandleFunc("admin.add", kloud.Stack.AdminAdd)
 	k.HandleFunc("admin.remove", kloud.Stack.AdminRemove)
 
