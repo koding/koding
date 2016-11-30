@@ -33,7 +33,7 @@ func (g *Group) Create(req *CreateRequest) (*CreateResponse, error) {
 		// Add addresses.
 		for _, a := range addrs {
 			if err := g.address.Add(id, a); err != nil {
-				g.log.Error("Cannot add %s(%s) for %s: %s", a, a.Net, id, err)
+				g.log.Error("Cannot add %s for %s: %s", a, id, err)
 				continue
 			}
 		}

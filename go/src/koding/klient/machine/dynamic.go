@@ -163,8 +163,8 @@ func (dc *DynamicClient) cron() {
 			// Look address cache for new addresses. This does not require
 			// pinging remote machines because it only checks current address
 			// book state. Thus, it may be run more frequently than ping.
-			a, err := dc.opts.AddrFunc(curr.Net)
-			if err != nil || (a.Net == curr.Net && a.Val == curr.Val) {
+			a, err := dc.opts.AddrFunc(curr.Network)
+			if err != nil || (a.Network == curr.Network && a.Value == curr.Value) {
 				break
 			}
 			dc.tryUpdate(&curr)
@@ -194,13 +194,13 @@ func (dc *DynamicClient) tryUpdate(addr *Addr) {
 		return
 	}
 
-	if a.Net == addr.Net && a.Val == addr.Val {
+	if a.Network == addr.Network && a.Value == addr.Value {
 		// Client address did not change.
 		return
 	}
 
 	// Create new client.
-	dc.log.Info("Reinitializing client with %s address: %s", a.Net, a.Val)
+	dc.log.Info("Reinitializing client with %s address: %s", a.Network, a.Value)
 	ctx, cancel := context.WithCancel(context.Background())
 	c := dc.opts.Builder.Build(ctx, a)
 
