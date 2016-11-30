@@ -101,7 +101,11 @@ func (kt *KiteTransport) Call(method string, arg, reply interface{}) error {
 		return err
 	}
 
-	return r.Unmarshal(reply)
+	if reply != nil {
+		return r.Unmarshal(reply)
+	}
+
+	return nil
 }
 
 func (kt *KiteTransport) kite() *kite.Kite {
@@ -171,7 +175,7 @@ func (kt *KiteTransport) Valid() error {
 	// we need to call some kite method. For that purpose we
 	// use builtin "kite.print" method with empty string, since
 	// this is the only nop method available.
-	return kt.Call("kite.print", "", &struct{}{})
+	return kt.Call("kite.print", "", nil)
 }
 
 func Cache() *cfg.Cache { return DefaultClient.Cache() }
