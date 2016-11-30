@@ -6,11 +6,12 @@ FLOW_ROUTES  =
   'signup'        : '/Teams'
   'domain'        : '/Team/Domain'
   'username'      : '/Team/Username'
+  'payment'       : '/Team/Payment'
   'join'          : '/Team/Join'
   'register'      : '/Team/Register'
 
 
-CREATION_FLOW = [ 'signup', 'domain', 'username' ]
+CREATION_FLOW = [ 'signup', 'domain', 'payment', 'username' ]
 
 
 getFlow = (step) ->

@@ -276,6 +276,22 @@ import:
 - package: github.com/Banno/terraform-provider-marathon
 - package: github.com/gambol99/go-marathon
 - package: github.com/donovanhide/eventsource
+- package: github.com/go-openapi/runtime
+- package: github.com/go-openapi/validate
+- package: github.com/go-openapi/swag
+- package: github.com/go-openapi/strfmt
+- package: github.com/go-openapi/errors
+- package: github.com/mailru/easyjson
+- package: github.com/go-openapi/loads
+- package: github.com/go-openapi/analysis
+- package: github.com/go-openapi/jsonpointer
+- package: github.com/asaskevich/govalidator
+- package: github.com/go-openapi/spec
+- package: github.com/go-openapi/jsonreference
+- package: github.com/PuerkitoBio/purell
+- package: github.com/docker/go-units
+- package: github.com/stretchr/testify
+- package: github.com/PuerkitoBio/urlesc
 ignore:
 - koding/tools/logger
 - config

@@ -20,9 +20,11 @@ module.exports = createPaymentPlan = (params = {}, callback) ->
 
   params.trialEnd ?= getDefaultTrialEnd()
 
-  { sessionToken } = params
+  { sessionToken, source } = params
 
-  createCustomer { sessionToken }, (err, customer) ->
+  delete params.source
+
+  createCustomer { sessionToken, source }, (err, customer) ->
     return callback err  if err
 
     params.customer = customer.id
