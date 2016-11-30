@@ -17,7 +17,11 @@
   height: 320px;
   position: relative;
   cursor: pointer;
+  transition: transform .1s ease, box-shadow .1s ease;
+  border-radius: 6px;
   &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 30px rgba(0,0,0,.5);
     h4 {
       color: white;
     }
@@ -29,6 +33,7 @@
     z-index: 0;
   }
   h4 {
+    transition: color .1s ease;
     z-index: 1;
     font-weight: 500;
     font-size: 16px;
@@ -41,6 +46,7 @@
     text-align: center;
   }
   svg {
+    transition: fill .1s ease;
     position: absolute;
     top: 47%;
     left: 50%;
