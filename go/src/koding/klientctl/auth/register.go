@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"koding/httputil"
@@ -12,6 +13,8 @@ import (
 	"net/url"
 	"os"
 	"strings"
+
+	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
@@ -25,7 +28,7 @@ func NewRegisterSubCommand(log logging.Logger) cli.Command {
 		Action: ctlcli.ExitAction(RegisterCommand, log, "register"),
 		Flags: []cli.Flag{
 			cli.StringFlag{
-				Name:  "username",
+				Name:  "username, u",
 				Usage: "Username to register",
 			},
 			cli.StringFlag{
@@ -78,11 +81,137 @@ type RegisterRequest struct {
 	AlreadyMember   string `json:"alreadyMember,string"`
 	Agree           string `json:"agree"`
 }
+
+// CheckRequiredStringFlag checks the all required flags
+func CheckRequiredStringFlag(c *cli.Context, args ...string) error {
+	for _, arg := range args {
+		if c.String(arg) == "" {
+			return fmt.Errorf("Required %s flag\n", arg)
+		}
+	}
+
+	return nil
 }
+
+// TODO move this function under the helper package (create & move)
+// These are already used in credential.go dont duplicate
+func ask(format string, args ...interface{}) (string, error) {
+	fmt.Printf(format, args...)
+	s, err := bufio.NewReader(os.Stdin).ReadString('\n')
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(s), nil
+}
+
+func askSecret(format string, args ...interface{}) (string, error) {
+	fmt.Printf(format, args...)
+	p, err := terminal.ReadPassword(int(os.Stdin.Fd()))
+	fmt.Println()
+	if err != nil {
+		return "", err
+	}
+	return string(p), nil
+}
+
+func checkAndAskRequiredFields(r *RegisterRequest) (*RegisterRequest, error) {
+	var err error
+
+	if r.Username == "" {
+		r.Username, err = ask("Username : ")
+		if err != nil {
+			return nil, err
+		}
+	}
+	if r.FirstName == "" {
+		r.FirstName, err = ask("FirstName : ")
+		if err != nil {
+			return nil, err
+		}
+	}
+	if r.LastName == "" {
+		r.LastName, err = ask("LastName : ")
+		if err != nil {
+			return nil, err
+		}
+	}
+	if r.Password == "" {
+		r.Password, err = askSecret("Password [***]: ")
+		if err != nil {
+			return nil, err
+		}
+	}
+	if r.PasswordConfirm == "" {
+		r.PasswordConfirm, err = askSecret("Confirm Password [***]: ")
+		if err != nil {
+			return nil, err
+		}
+		if r.PasswordConfirm != r.Password {
+			return nil, fmt.Errorf("Different Password/ConfirmPassword ")
+		}
+	}
+	if r.Email == "" {
+		r.Email, err = ask("Email []: ")
+		if err != nil {
+			return nil, err
+		}
+	}
+	if r.Slug == "" {
+		r.Slug, err = ask("Team Name []: ")
+		if err != nil {
+			return nil, err
+		}
+	}
+	if r.CompanyName == "" {
+		r.CompanyName, err = ask("Company Name []: ")
+		if err != nil {
+			return nil, err
+		}
+	}
+	if r.AlreadyMember == falseValue {
+		r.AlreadyMember, err = ask("Are you already koding member? [%s or %s] : ", trueValue, falseValue)
+		if err != nil {
+			return nil, err
+		}
+		if r.AlreadyMember != trueValue && r.AlreadyMember != falseValue {
+			return nil, fmt.Errorf("Valid input [%s or %s]", trueValue, falseValue)
+		}
+	}
+
+	return r, nil
+}
+
+const (
+	trueValue  = "true"
+	falseValue = "false"
+)
+
+func initRegisterRequest(c *cli.Context) *RegisterRequest {
+	return &RegisterRequest{
+		Username:        c.String("username"),
+		FirstName:       c.String("firstName"),
+		LastName:        c.String("lastName"),
+		Password:        c.String("password"),
+		PasswordConfirm: c.String("passwordConfirm"),
+		Email:           c.String("email"),
+		Slug:            c.String("team"),
+		CompanyName:     c.String("team"), // CompanyName should be optional
+		Newsletter:      c.String("newsletter"),
+		AlreadyMember:   c.String("alreadyMember"),
+		Agree:           "on",
+	}
 }
 
 // RegisterCommand displays version information like Environment or Kite Query ID.
 func RegisterCommand(c *cli.Context, log logging.Logger, _ string) int {
+	rr := initRegisterRequest(c)
+	_, err := checkAndAskRequiredFields(rr)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Register failed with error:", err)
+		log.Error("%s", err)
+		return 1
+	}
+
 	host := config.Konfig.KodingBaseURL()
 
 	// TODO(mehmetali): make a generalized client to be used in klientctl
