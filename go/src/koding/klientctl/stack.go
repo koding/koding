@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"koding/klientctl/kloud/stack"
+	"koding/klientctl/endpoint/stack"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
