@@ -14,7 +14,7 @@ func TeamShow(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	t := team.Used()
 
 	if err := t.Valid(); err != nil {
-		fmt.Fprintln(os.Stderr, `You are not currently logged in to any team.\n\nPlease log in first with "kd auth login".`)
+		fmt.Fprintln(os.Stderr, `You are not currently logged in to any team. Please log in first with "kd auth login".`)
 		return 1, err
 	}
 

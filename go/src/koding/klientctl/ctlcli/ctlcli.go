@@ -24,8 +24,8 @@ func CloseOnExit(c io.Closer) {
 // Close is a hack to close program-lifetime-bound resources,
 // like log file or BoltDB database.
 func Close() {
-	for _, c := range closers {
-		c.Close()
+	for i := len(closers) - 1; i >= 0; i-- {
+		closers[i].Close()
 	}
 }
 
