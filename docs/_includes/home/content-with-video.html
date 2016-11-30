@@ -10,7 +10,7 @@
       <p>{{ include.description }}</p>
       <span>{{ include.footnote }}</span>
     </div>
-    <div class='Homepage-ContentWithVideo--visual'>
+    <div class='Homepage-ContentWithVideo--visual showModal' data-youtube-id="{{ include.video_id}}">
       <img src="{{ site.url }}{{ img }}" srcset="{{ site.url }}{{ img }} 1x, {{ site.url }}{{ img2x }} 2x" />
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><use xlink:href="#video-play-button"></use></svg>
       <h4 class="title">{{ include.video_title }}</h4>

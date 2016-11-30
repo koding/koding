@@ -3,6 +3,7 @@ layout: home
 title: Modern Dev Environment Delivered · Koding
 permalink: /
 ---
+
 <svg class='hidden'>
   <defs>
     <g id="video-play-button">
@@ -22,7 +23,7 @@ permalink: /
 {% include home/content-with-video.html
    img_src="/assets/img/landing/home/how-koding-works-placeholder.png"
    img2x_src="/assets/img/landing/home/how-koding-works-placeholder@2x.png"
-   video_src="https://www.youtube.com/embed/2COxlWQ0J1U"
+   video_id="ita9OPYpU1k"
    video_title="Watch how Koding works"
    heading="KODING SOLUTION"
    title="Dev Environments as Code, Powerful Collaboration and Analytics"
@@ -44,14 +45,14 @@ permalink: /
     <div class='Homepage-half analytics'>
       <h4 class="title">Analytics for CTOs</h4>
       <p>Frames UI Kit is a huge pack of high fidelity assets to create prototypes and wireframes with ease. Consisting from more than 1k elements, 100 components and 10 categories.</p>
-      <a class="cta secondary" href="{{ site.url }}/teams/create">Request a Demo</a>
+      <a class="cta secondary" href="{{ site.url }}/demo">Request a Demo</a>
     </div>
   </div>
   <div class='Homepage-half--container'>
     <div class='Homepage-half freedom'>
       <h4 class="title">Freedom for Developers</h4>
       <p>Engineers are no longer limited by the gatekeepers who create their dev environments, they are working together to create the best environments using Terraform, supporting more than 70 providers.</p>
-      <a class="cta red" href="{{ site.url }}/teams/create">Explore Stack Scripts</a>
+      <a class="cta red" href="{{ site.url }}/docs/home">Explore Stack Scripts</a>
     </div>
   </div>
 </div>
@@ -61,19 +62,19 @@ permalink: /
   <h3 class="title center">Take the step towards a modern tech company.</h3>
   <div class='Homepage--container'>
     <div class='Homepage-video-column'>
-      <figure class="vision">{{ playButton }}</figure>
+      <figure class="vision showModal" data-youtube-id="2COxlWQ0J1U">{{ playButton }}</figure>
       <h5 class="title">Koding Vision</h5>
       <h4 class="title">Empower Engineers</h4>
       <p>We believe Cloud is the next frontier in our next advance as humans.</p>
     </div>
     <div class='Homepage-video-column'>
-      <figure class="ibm">{{ playButton }}</figure>
+      <figure class="ibm showModal" data-youtube-id="csFxrXkJb7U">{{ playButton }}</figure>
       <h5 class="title">IBM OpenCloud</h5>
       <h4 class="title">Future of Devops</h4>
       <p>Jonas Jacobi, Vice President, Cloud and Mobile Technology Strategy at IBM and Devrim, CEO of Koding talk about the future.</p>
     </div>
     <div class='Homepage-video-column'>
-      <figure class="gitlab">{{ playButton }}</figure>
+      <figure class="gitlab showModal" data-youtube-id="T59sN8Bsqxs">{{ playButton }}</figure>
       <h5 class="title">Koding + Gitlab</h5>
       <h4 class="title">CEO of Gitlab & Koding</h4>
       <p>Sytse and Devrim explain why it is important to get to a development environment in one click</p>
@@ -117,7 +118,7 @@ permalink: /
     <h6>Creating consistent environments that are instantly shareable helps your organization in multiple ways.</h6>
     <div class="actions">
       <a class="cta" href="{{ site.url }}/teams/create">Start Free Trial</a>
-      <a class="cta secondary" href="{{ site.url }}/teams/create">Request a Demo</a>
+      <a class="cta secondary" href="{{ site.url }}/demo">Request a Demo</a>
     </div>
     <hr>
     <div class="cases">
@@ -145,10 +146,72 @@ permalink: /
 <div class='Homepage-outro'>
   <h4 class="title center">WE LOVE TO GIVE BACK</h4>
   <h3 class="title center">Koding is Free for Open Source, Education and small teams</h3>
-  <a class="cta" href="{{ site.url }}/teams/create">Request Form</a>
+  <a class="cta" target="_blank" href="https://docs.google.com/a/koding.com/forms/d/e/1FAIpQLSfW8ccPQBpeHyDBmiyDdDtwjjQLSv4iPWToVhvpZ_jbh4t-cA/viewform?c=0&w=1">Request Form</a>
 </div>
 
 
 
 <!-- FOOTER -->
 {% include footer.html %}
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+  {% include js/landing-modal.js %}
+  (function() {
+
+    var modalOptions = {}, player;
+
+    var onPlayerReady = function(event) {
+      event.target.playVideo();
+    }
+
+    var onStateChange = function(event) {
+      var UNSTARTED = -1, // (unstarted)
+          ENDED     = 0,  // (ended)
+          PLAYING   = 1,  // (playing)
+          PAUSED    = 2,  // (paused)
+          BUFFERING = 3,  // (buffering)
+          VIDEOCUED = 5;  // (video cued)
+
+      if (event.data == ENDED) {
+        $('#Modal').addClass('out');
+        $('.Overlay').addClass('out');
+
+        setTimeout(function() {
+          player.destroy();
+          $('#Modal').remove();
+          $('.Overlay').remove();
+        }, 500);
+      }
+    }
+
+    modalOptions.onLoaded = function(clickEvent) {
+      var youtube_id = clickEvent.currentTarget.getAttribute('data-youtube-id');
+
+      player = new YT.Player('ModalBody', {
+        width: 853,
+        height: 480,
+        videoId: youtube_id,
+        playerVars: {
+          controls: 2,
+          showinfo: 0,
+          rel: 0,
+          modestbranding: true
+        },
+        events: {
+          onReady: onPlayerReady,
+          onStateChange: onStateChange
+        }
+      });
+
+      document.querySelector('#Modal').classList.add('Modal--withVideo');
+    }
+
+    modalOptions.onDestroy = function() {
+      player.destroy();
+    }
+
+    var modal = LANDING_UTILS.modal(modalOptions);
+
+  })();
+</script>
