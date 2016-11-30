@@ -66,12 +66,19 @@ func NewRegisterSubCommand(log logging.Logger) cli.Command {
 
 // RegisterRequest holds the registration request to Koding.
 type RegisterRequest struct {
-	Username      string `json:"username"`
-	Password      string `json:"password"`
-	Email         string `json:"email"`
-	Slug          string `json:"slug"`
-	Newsletter    bool   `json:"newsletter,string"`
-	AlreadyMember bool   `json:"alreadyMember,string"`
+	Username        string `json:"username"`
+	FirstName       string `json:"firstName"`
+	LastName        string `json:"lastName"`
+	Password        string `json:"password"`
+	PasswordConfirm string `json:"passwordConfirm"`
+	Email           string `json:"email"`
+	Slug            string `json:"slug"`
+	CompanyName     string `json:"companyName"`
+	Newsletter      string `json:"newsletter,string"`
+	AlreadyMember   string `json:"alreadyMember,string"`
+	Agree           string `json:"agree"`
+}
+}
 }
 
 // RegisterCommand displays version information like Environment or Kite Query ID.
