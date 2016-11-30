@@ -1,4 +1,5 @@
 Promise               = require 'bluebird'
+_                     = require 'lodash'
 kd                    = require 'kd'
 KDObject              = kd.Object
 doesQueryStringValid  = require '../util/doesQueryStringValid'
@@ -155,23 +156,24 @@ module.exports = class Machine extends KDObject
 
     owner = @getOwner()
 
-    setAndReturnDefault = =>
-      callback null, @info =
+    kallback = (info = {}) =>
+      callback null, @info = _.merge {},
         home     : "/home/#{owner}"
         groups   : [owner, 'sudo']
         username : owner
+      , info
 
     if @isRunning()
       kite = @getBaseKite()
-      kite.init().then =>
-        kite.klientInfo().then (info) =>
-          callback null, @info = info
+      kite.init().then ->
+        kite.klientInfo().then (info) ->
+          kallback info
         .timeout globals.COMPUTECONTROLLER_TIMEOUT
         .catch (err) ->
           kd.warn '[Machine][fetchInfo] Failed to get klient.info', err
-          setAndReturnDefault()
+          kallback()
     else
-      setAndReturnDefault()
+      kallback()
 
 
   getOwner: ->
