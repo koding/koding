@@ -20,7 +20,8 @@ import (
 
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
-	"koding/klientctl/kloud"
+	"koding/klientctl/endpoint/auth"
+	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/util"
 
 	"github.com/koding/logging"

@@ -7,7 +7,7 @@ import (
 
 	"koding/kites/kloud/stack"
 	"koding/klientctl/ctlcli"
-	"koding/klientctl/kloud"
+	"koding/klientctl/endpoint/kloud"
 )
 
 // DefaultClient
