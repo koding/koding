@@ -24,9 +24,8 @@ import (
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/util"
 
-	"github.com/koding/logging"
-
 	"github.com/codegangsta/cli"
+	"github.com/koding/logging"
 )
 
 // ExitingWithMessageCommand is a function which prints the given message to
@@ -53,7 +52,7 @@ var log logging.Logger
 
 var (
 	debug        = os.Getenv("KD_DEBUG") == "1"
-	experimental = os.Getenv("KD_EXPERIMENTAL") == "1"
+	experimental = os.Getenv("KD_EXPERIMENTAL") == "1" || config.Konfig.Environment == "development"
 )
 
 func main() {
