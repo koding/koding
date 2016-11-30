@@ -22,7 +22,7 @@ type CredentialDescribeRequest struct {
 // CredentialDescribeResponse represents a response
 // value from "credential.describe" kloud method.
 type CredentialDescribeResponse struct {
-	Description map[string]*Description `json:"description"`
+	Description Descriptions `json:"description"`
 }
 
 // Description describes Credential and Bootstrap
@@ -31,6 +31,30 @@ type Description struct {
 	Provider   string  `json:"provider,omitempty"`
 	Credential []Value `json:"credential"`
 	Bootstrap  []Value `json:"bootstrap,omitempty"`
+}
+
+// Descriptions maps credential description per provider.
+type Descriptions map[string]*Description
+
+// Slice converts d to *Description slice.
+func (d Descriptions) Slice() []*Description {
+	keys := make([]string, 0, len(d))
+
+	for k := range d {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+
+	slice := make([]*Description, 0, len(d))
+
+	for _, key := range keys {
+		desc := *d[key]
+		desc.Provider = key
+		slice = append(slice, &desc)
+	}
+
+	return slice
 }
 
 // Enumer represents a value, that can have

@@ -9,11 +9,11 @@ KodingError       = require '../../error'
 
 module.exports = class Softlayer extends ProviderInterface
 
-  @providerSlug = 'softlayer'
+  @providerSlug  = 'softlayer'
 
   @bootstrapKeys = ['key_id']
 
-  @sensitiveKeys = ['api_key']
+  @secretKeys    = ['api_key']
 
 
   @ping = (client, options, callback) ->

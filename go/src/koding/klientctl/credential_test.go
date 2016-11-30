@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"os"
 	"reflect"
 	"testing"
 
@@ -57,6 +58,7 @@ func TestCredentialCreate(t *testing.T) {
 			cmd := &MainCmd{
 				Stdin:  bytes.NewReader(p),
 				Stdout: &buf,
+				Stderr: os.Stderr,
 			}
 
 			cmd.FT.Add("credential.add", cas.reply)
@@ -81,6 +83,67 @@ func TestCredentialCreate(t *testing.T) {
 
 			if !reflect.DeepEqual(&got, cas.reply) {
 				t.Fatalf("got %#v, want %#v", &got, cas.reply)
+			}
+		})
+	}
+}
+
+func TestCredentialDescribe(t *testing.T) {
+	cases := map[string]struct {
+		args  []string
+		reply stack.Descriptions
+		want  []*stack.Description
+	}{
+		"all credentials": {
+			nil,
+			stack.Descriptions{
+				"provider 1": {Credential: []stack.Value{{Name: "key", Type: "string"}}},
+				"provider 2": {Credential: []stack.Value{{Name: "token", Type: "string"}}},
+			},
+			[]*stack.Description{
+				{Provider: "provider 1", Credential: []stack.Value{{Name: "key", Type: "string"}}},
+				{Provider: "provider 2", Credential: []stack.Value{{Name: "token", Type: "string"}}},
+			},
+		},
+		"filtered credential": {
+			[]string{"--provider", "foobar"},
+			stack.Descriptions{
+				"provider 1": {Credential: []stack.Value{{Name: "key", Type: "string"}}},
+				"provider 2": {Credential: []stack.Value{{Name: "token", Type: "string"}}},
+				"foobar":     {Credential: []stack.Value{{Name: "foo", Type: "enum"}}},
+			},
+			[]*stack.Description{
+				{Provider: "foobar", Credential: []stack.Value{{Name: "foo", Type: "enum"}}},
+			},
+		},
+	}
+
+	for name, cas := range cases {
+		t.Run(name, func(t *testing.T) {
+			var buf bytes.Buffer
+
+			cmd := &MainCmd{
+				Stdout: &buf,
+				Stderr: os.Stderr,
+			}
+
+			cmd.FT.Add("credential.describe", stack.CredentialDescribeResponse{Description: cas.reply})
+
+			args := []string{"credential", "describe", "--json"}
+
+			err := cmd.Run(append(args, cas.args...)...)
+			if err != nil {
+				t.Fatalf("Run()=%s", err)
+			}
+
+			var got []*stack.Description
+
+			if err := json.Unmarshal(buf.Bytes(), &got); err != nil {
+				t.Fatalf("Unmarshal()=%s", err)
+			}
+
+			if !reflect.DeepEqual(got, cas.want) {
+				t.Fatalf("got %#v, want %#v", got, cas.want)
 			}
 		})
 	}

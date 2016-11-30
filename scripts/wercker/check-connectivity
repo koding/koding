@@ -34,9 +34,8 @@ function terminate_failing_instances () {
     return 0
   fi
 
-  INSTANCE_IDS=$(cat $FAILING_INSTANCES_DATA_FILE | awk '{print $1}')
   $SCRIPTS/wercker/upload-logs $FAILING_INSTANCES_DATA_FILE
-  echo $INSTANCE_IDS | xargs -n 1 $SCRIPTS/test-instance/terminate
+  cat $FAILING_INSTANCES_DATA_FILE | xargs -n 1 $SCRIPTS/test-instance/terminate
 }
 
 function check_revision () {

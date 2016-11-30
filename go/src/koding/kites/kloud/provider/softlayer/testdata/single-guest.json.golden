@@ -17,5 +17,12 @@
         "user_data": "***"
       }
     }
+  },
+  "variable": {
+    "kitekeys_test": {
+      "default": {
+        "0": "***"
+      }
+    }
   }
 }

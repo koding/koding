@@ -28,11 +28,11 @@ runTests = -> describe 'workers.social.models.computeproviders.aws', ->
       expect(Aws.bootstrapKeys).to.be.deep.equal ['key_pair', 'rtb', 'acl']
 
 
-  describe '#sensitiveKeys', ->
+  describe '#secretKeys', ->
 
     it 'should be equal to aws sensitive keys', ->
 
-      expect(Aws.sensitiveKeys).to.be.deep.equal ['access_key', 'secret_key']
+      expect(Aws.secretKeys).to.be.deep.equal ['access_key', 'secret_key']
 
 
   describe '#ping()', ->

@@ -18,9 +18,9 @@ PASS_THROUGH = (rest... , callback) -> callback null
 # @example How to subclass a provider
 #   class Aws extends ProviderInterface
 #
-#     @providerSlug  = 'aws'
+#     @providerSlug = 'aws'
 #     @bootstrapKeys = ['key_pair', 'rtb', 'acl']
-#     @sensitiveKeys = ['access_key', 'secret_key']
+#     @secretKeys = ['access_key', 'secret_key']
 #
 module.exports = class ProviderInterface
 
@@ -28,7 +28,8 @@ module.exports = class ProviderInterface
 
   @providerSlug   = 'baseprovider'
   @bootstrapKeys  = []
-  @sensitiveKeys  = []
+  @sensitiveKeys  = ['ssh_private_key', 'ssh_public_key']
+  @secretKeys     = []
 
   @ping           = NOT_IMPLEMENTED
 
@@ -52,7 +53,7 @@ module.exports = class ProviderInterface
     if not credential?.fetchData?
       return callback null, {}
 
-    credential.fetchData client, (err, credData) ->
+    credential.fetchData client, {}, (err, credData) ->
 
       if err?
         callback new KodingError 'Failed to fetch credential'
