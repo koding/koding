@@ -27,7 +27,7 @@ func withStubData(f func(username string, groupName string, sessionID string)) {
 	err = modelhelper.MakeAdmin(bson.ObjectIdHex(acc.OldId), group.Id)
 	So(err, ShouldBeNil)
 
-	ses, err := models.FetchOrCreateSession(acc.Nick, groupName)
+	ses, err := modelhelper.FetchOrCreateSession(acc.Nick, groupName)
 	tests.ResultedWithNoErrorCheck(ses, err)
 
 	cus, err := EnsureCustomerForGroup(acc.Nick, groupName, &stripe.CustomerParams{})

@@ -49,7 +49,7 @@ func TestEventSenderHandler(t *testing.T) {
 
 			err = c.MessageCreated(cm)
 			So(err, ShouldBeNil)
-			//session, err := models.FetchOrCreateSession(acc.Nick)
+			//session, err := modelhelper.FetchOrCreateSession(acc.Nick)
 			//So(err, ShouldBeNil)
 			//botChannelId, err := rest.DoBotChannelRequest(session.ClientId)
 			//So(err, ShouldBeNil)
@@ -72,7 +72,7 @@ func TestEventSenderHandler(t *testing.T) {
 
 			err = c.ChannelCreated(ch)
 			So(err, ShouldBeNil)
-			//session, err := models.FetchOrCreateSession(acc.Nick)
+			//session, err := modelhelper.FetchOrCreateSession(acc.Nick)
 			//So(err, ShouldBeNil)
 
 			//botChannelId, err := rest.DoBotChannelRequest(session.ClientId)
@@ -96,7 +96,7 @@ func TestEventSenderHandler(t *testing.T) {
 			ws.AccountId = acc.Id
 			err = c.WorkspaceCreated(ws)
 			So(err, ShouldBeNil)
-			//session, err := models.FetchOrCreateSession(acc.Nick)
+			//session, err := modelhelper.FetchOrCreateSession(acc.Nick)
 			//So(err, ShouldBeNil)
 
 			//botChannelId, err := rest.DoBotChannelRequest(session.ClientId)

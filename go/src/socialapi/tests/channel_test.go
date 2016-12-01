@@ -1,6 +1,7 @@
 package main
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/rest"
 	"socialapi/workers/common/tests"
@@ -21,7 +22,7 @@ func TestChannelCreation(t *testing.T) {
 
 				groupName := models.RandomGroupName()
 
-				ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+				ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 				So(err, ShouldBeNil)
 				So(ses, ShouldNotBeNil)
 
@@ -40,7 +41,7 @@ func TestChannelCreation(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(nonOwnerAccount, ShouldNotBeNil)
 
-				noses, err := models.FetchOrCreateSession(
+				noses, err := modelhelper.FetchOrCreateSession(
 					nonOwnerAccount.Nick,
 					groupName,
 				)
@@ -241,7 +242,7 @@ func TestChannelCreation(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(nonOwnerAccount2, ShouldNotBeNil)
 
-					nonOwnerSes2, err := models.FetchOrCreateSession(nonOwnerAccount2.Nick, groupName)
+					nonOwnerSes2, err := modelhelper.FetchOrCreateSession(nonOwnerAccount2.Nick, groupName)
 					So(err, ShouldBeNil)
 					So(nonOwnerSes2, ShouldNotBeNil)
 
@@ -271,7 +272,7 @@ func TestChannelByParticipants(t *testing.T) {
 		Convey("while fetching channels by their participants", t, func() {
 			admin1, _, groupName1 := models.CreateRandomGroupDataWithChecks()
 
-			ses1, err := models.FetchOrCreateSession(admin1.Nick, groupName1)
+			ses1, err := modelhelper.FetchOrCreateSession(admin1.Nick, groupName1)
 			So(err, ShouldBeNil)
 			So(ses1, ShouldNotBeNil)
 
@@ -305,7 +306,7 @@ func TestChannelByParticipants(t *testing.T) {
 					groupName2,
 				)
 
-				ses2, err := models.FetchOrCreateSession(admin1.Nick, groupName2)
+				ses2, err := modelhelper.FetchOrCreateSession(admin1.Nick, groupName2)
 				So(err, ShouldBeNil)
 				So(ses2, ShouldNotBeNil)
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/rest"
 	"socialapi/workers/common/tests"
@@ -20,7 +21,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 			Convey("First Create Users and initiate conversation", func() {
 				ownerAccount, groupChannel, groupName := models.CreateRandomGroupDataWithChecks()
 
-				ownerSes, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
+				ownerSes, err := modelhelper.FetchOrCreateSession(ownerAccount.Nick, groupName)
 				So(err, ShouldBeNil)
 				So(ownerSes, ShouldNotBeNil)
 
@@ -44,10 +45,10 @@ func TestChannelParticipantOperations(t *testing.T) {
 				_, err = groupChannel.AddParticipant(devrim.Id)
 				So(err, ShouldBeNil)
 
-				ses, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
+				ses, err := modelhelper.FetchOrCreateSession(ownerAccount.Nick, groupName)
 				tests.ResultedWithNoErrorCheck(ses, err)
 
-				secondSes, err := models.FetchOrCreateSession(secondAccount.Nick, groupName)
+				secondSes, err := modelhelper.FetchOrCreateSession(secondAccount.Nick, groupName)
 				tests.ResultedWithNoErrorCheck(secondSes, err)
 
 				pmr := models.ChannelRequest{}
@@ -169,7 +170,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 					So(len(participants), ShouldEqual, 2)
 
 					Convey("Second user should be able to reject invitation", func() {
-						ses, err := models.FetchOrCreateSession(secondAccount.Nick, groupName)
+						ses, err := modelhelper.FetchOrCreateSession(secondAccount.Nick, groupName)
 						So(err, ShouldBeNil)
 						So(ses, ShouldNotBeNil)
 
@@ -183,7 +184,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 					})
 
 					Convey("Second user should be able to accept invitation", func() {
-						ses, err := models.FetchOrCreateSession(secondAccount.Nick, groupName)
+						ses, err := modelhelper.FetchOrCreateSession(secondAccount.Nick, groupName)
 						So(err, ShouldBeNil)
 						So(ses, ShouldNotBeNil)
 
@@ -233,7 +234,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(participant, ShouldNotBeNil)
 
-					ses, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
+					ses, err := modelhelper.FetchOrCreateSession(ownerAccount.Nick, groupName)
 					So(err, ShouldBeNil)
 
 					ch, err := rest.CreateChannelByGroupNameAndType(ownerAccount.Id, groupName, models.Channel_TYPE_BOT, ses.ClientId)
@@ -254,7 +255,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(participant, ShouldNotBeNil)
 
-					ses, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
+					ses, err := modelhelper.FetchOrCreateSession(ownerAccount.Nick, groupName)
 					So(err, ShouldBeNil)
 
 					ch, err := rest.CreateChannelByGroupNameAndType(ownerAccount.Id, groupName, models.Channel_TYPE_TOPIC, ses.ClientId)
@@ -293,10 +294,10 @@ func TestChannelParticipantOperations(t *testing.T) {
 					So(err, ShouldBeNil)
 					So(participant2, ShouldNotBeNil)
 
-					ownerSes, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
+					ownerSes, err := modelhelper.FetchOrCreateSession(ownerAccount.Nick, groupName)
 					So(err, ShouldBeNil)
 
-					ses, err := models.FetchOrCreateSession(participant.Nick, groupName)
+					ses, err := modelhelper.FetchOrCreateSession(participant.Nick, groupName)
 					So(err, ShouldBeNil)
 
 					ch, err := rest.CreateChannelByGroupNameAndType(ownerAccount.Id, groupName, models.Channel_TYPE_GROUP, ownerSes.ClientId)
