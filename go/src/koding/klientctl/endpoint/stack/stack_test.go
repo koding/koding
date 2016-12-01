@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"koding/klientctl/kloud/stack"
+	"koding/klientctl/endpoint/stack"
 
 	"github.com/hashicorp/hcl"
 )
