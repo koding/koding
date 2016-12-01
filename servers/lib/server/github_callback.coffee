@@ -1,125 +1,64 @@
-{
-  redirectOauth
-  saveOauthToSession
-}          = require './helpers'
+request = require 'request'
+koding = require './bongo'
 
-{ github } = KONFIG
-http       = require 'https'
-provider   = 'github'
+{ failedReq, fetchUserOAuthInfo, fetchGroupOAuthSettings } = require './helpers'
+urljoin = require 'url-join'
 
-saveOauthAndRedirect = (resp, res, clientId, req) ->
-  { returnUrl } = resp
-  saveOauthToSession resp, clientId, provider, (err) ->
-    options = { provider, returnUrl }
-    redirectOauth err, req, res, options
+provider = 'github'
+url      = 'https://github.com'
+apiUrl   = 'https://api.github.com'
+headers  =
+  'Accept'     : 'application/json'
+  'User-Agent' : 'Koding'
 
 
-fetchUserEmail = (req, res,  userEmailResp, originalResp) ->
-  { clientId }  = req.cookies
-  rawResp       = ''
-  userEmailResp.on 'data', (chunk) -> rawResp += chunk
-  userEmailResp.on 'end', ->
-    try
-      emails = JSON.parse(rawResp)
-    catch e
-      return redirectOauth 'could not parse github response', req, res, { provider }
+# Get access token with code
+authorizeUser = (url, req, res) -> (error, response, body) ->
 
-    for email in emails when email.verified and email.primary
-      originalResp.email = email.email
+  if error or not access_token = body.access_token
+    console.error '[GITHUB][3/4] Failed to get access_token:', error ? body
+    return failedReq provider, req, res
 
-    saveOauthAndRedirect originalResp, res, clientId, req
+  options   =
+    url     : urljoin apiUrl, "/user?access_token=#{access_token}"
+    method  : 'GET'
+    headers :
+      'Accept'     : 'application/vnd.github.v3.full+json'
+      'User-Agent' : 'Koding'
+
+  { scope } = body
+
+  request options, fetchUserOAuthInfo provider, req, res, {
+    scope, access_token
+  }
 
 
 module.exports = (req, res) ->
-  { code, returnUrl } = req.query
-  { clientId }        = req.cookies
-  access_token        = null
-  scope               = null
 
-  unless code
-    redirectOauth 'No code', req, res, { provider }
-    return
+  unless code = req.query.code
+    console.error '[GITHUB][1/4] Failed to get code from query:', req.query
+    return failedReq provider, req, res
 
-  headers =
-    'Accept'     : 'application/json'
-    'User-Agent' : 'Koding'
+  { clientId } = req.cookies
+  { state }    = req.query
 
-  # Get access token with code
-  authorizeUser = (authUserResp) ->
-    rawResp = ''
-    authUserResp.on 'data', (chunk) -> rawResp += chunk
-    authUserResp.on 'end', ->
+  fetchGroupOAuthSettings provider, clientId, state, (err, settings) ->
 
-      try
-        authResponse = JSON.parse rawResp
-      catch e
-        return redirectOauth 'could not parse github response', req, res, { provider }
+    if err or not settings
+      console.error '[GITHUB][2/4] Failed to fetch group settings:', err
+      return failedReq provider, req, res
 
-      { access_token, scope } = authResponse
+    { applicationId, applicationSecret, redirectUri } = settings
 
-      if access_token
-        options =
-          host    : 'api.github.com'
-          path    : "/user?access_token=#{access_token}"
-          method  : 'GET'
-          headers : headers
-        r = http.request options, fetchUserInfo
-        r.end()
+    options           =
+      url             : urljoin url, '/login/oauth/access_token'
+      method          : 'POST'
+      headers         : headers
+      json            :
+        redirect_uri  : redirectUri
+        grant_type    : 'authorization_code'
+        client_id     : applicationId
+        client_secret : applicationSecret
+        code          : code
 
-  # Get user info with access token
-  fetchUserInfo = (userInfoResp) ->
-    rawResp = ''
-    userInfoResp.on 'data', (chunk) -> rawResp += chunk
-    userInfoResp.on 'end', ->
-
-      try
-        userInfo = JSON.parse rawResp
-      catch e
-        return redirectOauth 'could not parse github response', req, res, { provider }
-
-      { login, id, email, name } = userInfo
-
-      if name
-        [firstName, restOfNames...] = name.split ' '
-        lastName = restOfNames.join ' '
-
-      resp = {
-        firstName
-        lastName
-        email
-        foreignId : String(id)
-        token     : access_token
-        username  : login
-        profile   : lastName
-        scope     : scope
-        returnUrl : returnUrl
-      }
-
-      headers['Accept'] = 'application/vnd.github.v3.full+json'
-
-      # Some users don't have email in public profile, so we make 2nd call
-      # to get them.
-      if not email? or email is ''
-        options =
-          host    : 'api.github.com'
-          path    : "/user/emails?access_token=#{access_token}"
-          method  : 'GET'
-          headers : headers
-        r = http.request options, (newResp) ->
-          fetchUserEmail req, res,  newResp, resp
-        r.end()
-      else
-        saveOauthAndRedirect resp, res, clientId, req
-
-  path = '/login/oauth/access_token?'
-  path += "client_id=#{github.clientId}&"
-  path += "client_secret=#{github.clientSecret}&"
-  path += "code=#{code}"
-
-  options =
-    host   : 'github.com'
-    path   : path
-    method : 'POST'
-    headers : headers
-  r = http.request options, authorizeUser
-  r.end()
+    request options, authorizeUser url, req, res
