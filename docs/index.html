@@ -62,32 +62,38 @@ permalink: /
 </div>
 
 {% assign playButton = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><use xlink:href="#video-play-button"></use></svg>' %}
-<div class='Homepage-video-columns'>
+<div class='Homepage-video-columns Homepage--containerOffset'>
   <h3 class="title center">Take the step towards a modern tech company.</h3>
   <div class='Homepage--container'>
     <div class='Homepage-video-column'>
       <figure class="vision showModal" data-youtube-id="2COxlWQ0J1U">{{ playButton }}</figure>
-      <h5 class="title">Koding Vision</h5>
-      <h4 class="title">Empower Engineers</h4>
-      <p>We believe Cloud is the next frontier in our next advance as humans.</p>
+      <div>
+        <h5 class="title">Koding Vision</h5>
+        <h4 class="title">Empower Engineers</h4>
+        <p>We believe Cloud is the next frontier in our next advance as humans.</p>
+      </div>
     </div>
     <div class='Homepage-video-column'>
       <figure class="ibm showModal" data-youtube-id="csFxrXkJb7U">{{ playButton }}</figure>
-      <h5 class="title">IBM OpenCloud</h5>
-      <h4 class="title">Future of Devops</h4>
-      <p>Jonas Jacobi, Vice President, Cloud and Mobile Technology Strategy at IBM and Devrim, CEO of Koding talk about the future.</p>
+      <div>
+        <h5 class="title">IBM OpenCloud</h5>
+        <h4 class="title">Future of Devops</h4>
+        <p>Jonas Jacobi, Vice President, Cloud and Mobile Technology Strategy at IBM and Devrim, CEO of Koding talk about the future.</p>
+      </div>
     </div>
     <div class='Homepage-video-column'>
       <figure class="gitlab showModal" data-youtube-id="T59sN8Bsqxs">{{ playButton }}</figure>
-      <h5 class="title">Koding + Gitlab</h5>
-      <h4 class="title">CEO of Gitlab & Koding</h4>
-      <p>Sytse and Devrim explain why it is important to get to a development environment in one click</p>
+      <div>
+        <h5 class="title">Koding + Gitlab</h5>
+        <h4 class="title">CEO of Gitlab & Koding</h4>
+        <p>Sytse and Devrim explain why it is important to get to a development environment in one click</p>
+      </div>
     </div>
   </div>
 </div>
 
 
-<div class='Homepage-trust'>
+<div class='Homepage-trust Homepage--containerOffset'>
   <h3 class="title center">Koding can provision dev environments on your favorite cloud providers.</h3>
   <div class='Homepage--container'>
     {% include home-logobar.html
@@ -96,10 +102,8 @@ permalink: /
               Digital Ocean--logo_do.svg--100--75||
               Softlayer--logo_softlayer.svg--180--15||
               Vagrant--logo_vagrant.svg--180--46||
-              Microsoft Azure--logo_azure.svg--190--26" %}
-    {% include home-logobar.html
-       path="/assets/img/landing/company-logos/"
-       logos="Google Cloud Platform--logo_gcp.svg--300--33||
+              Microsoft Azure--logo_azure.svg--190--26||
+              Google Cloud Platform--logo_gcp.svg--300--33||
               Docker--logo_docker.svg--180--43||
               Mesosphere--logo_mesos.svg--240--34||
               Openstack--logo_openstack1.svg--155--28" %}
@@ -115,7 +119,7 @@ permalink: /
   </div>
 </div>
 
-<div class='Homepage-use-cases'>
+<div class='Homepage-use-cases Homepage--containerOffset'>
   <h4 class="title center">GET STARTED WITH KODING</h4>
   <h3 class="title center">Koding takes care of many other use cases too.</h3>
   <div class='Homepage--container'>
@@ -147,7 +151,7 @@ permalink: /
 </div>
 
 
-<div class='Homepage-outro'>
+<div class='Homepage-outro Homepage--containerOffset'>
   <h4 class="title center">WE LOVE TO GIVE BACK</h4>
   <h3 class="title center">Koding is Free for Open Source, Education and small teams</h3>
   <a class="cta" target="_blank" href="https://docs.google.com/a/koding.com/forms/d/e/1FAIpQLSfW8ccPQBpeHyDBmiyDdDtwjjQLSv4iPWToVhvpZ_jbh4t-cA/viewform?c=0&w=1">Request Form</a>
