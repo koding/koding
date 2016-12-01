@@ -10,6 +10,80 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+func TestHasRole(t *testing.T) {
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
+
+	acc1 := createTestAccount(t)
+	defer modelhelper.RemoveAccount(acc1.Id)
+
+	acc2 := createTestAccount(t)
+	defer modelhelper.RemoveAccount(acc2.Id)
+
+	group, err := createGroup()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if err := modelhelper.AddRelationship(&models.Relationship{
+		Id:         bson.NewObjectId(),
+		TargetId:   acc1.Id,
+		TargetName: "JAccount",
+		SourceId:   group.Id,
+		SourceName: "JGroup",
+		As:         "member",
+	}); err != nil {
+		t.Error(err)
+	}
+
+	tests := []struct {
+		Title string
+		Nick  string
+		Slug  string
+		Role  string
+		Has   bool
+	}{
+		{
+			Title: "Member account",
+			Nick:  acc1.Profile.Nickname,
+			Slug:  group.Slug,
+			Role:  "member",
+			Has:   true,
+		},
+		{
+			Title: "Non-member account",
+			Nick:  acc2.Profile.Nickname,
+			Slug:  group.Slug,
+			Role:  "member",
+			Has:   false,
+		},
+		{
+			Title: "Invalid role correct account",
+			Nick:  acc1.Profile.Nickname,
+			Slug:  group.Slug,
+			Role:  "admin",
+			Has:   false,
+		},
+		{
+			Title: "Invalid role in-correct account",
+			Nick:  acc1.Profile.Nickname,
+			Slug:  group.Slug,
+			Role:  "admin",
+			Has:   false,
+		},
+	}
+
+	for _, test := range tests {
+		has, err := modelhelper.HasRole(test.Nick, test.Slug, test.Role)
+		if err != nil {
+			t.Error(err)
+		}
+		if has != test.Has {
+			t.Error("expected %s's \"has\" equal to %t, but it wasnt!", test.Title, test.Has)
+		}
+	}
+}
+
 func TestFetchAdminAccounts(t *testing.T) {
 	db := modeltesthelper.NewMongoDB(t)
 	defer db.Close()
