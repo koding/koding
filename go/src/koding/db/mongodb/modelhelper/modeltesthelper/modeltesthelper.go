@@ -37,7 +37,7 @@ func NewMongoDB(t *testing.T) *MongoDB {
 	}
 
 	if mongoURL == "" {
-		t.Skip("mongodb: one of env variables must be set:", strings.Join(mongoEnvs, ", "))
+		t.Fatalf("mongodb: one of env variables must be set: %s", strings.Join(mongoEnvs, ", "))
 	}
 
 	modelhelper.Initialize(mongoURL)
