@@ -28,7 +28,7 @@ func withStubData(endpoint string, f func(username string, groupName string, ses
 	err = modelhelper.MakeAdmin(bson.ObjectIdHex(acc.OldId), group.Id)
 	So(err, ShouldBeNil)
 
-	ses, err := models.FetchOrCreateSession(acc.Nick, groupName)
+	ses, err := modelhelper.FetchOrCreateSession(acc.Nick, groupName)
 	tests.ResultedWithNoErrorCheck(ses, err)
 
 	req, err := json.Marshal(&stripe.CustomerParams{})

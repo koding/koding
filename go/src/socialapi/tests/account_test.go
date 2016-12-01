@@ -1,6 +1,7 @@
 package main
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/rest"
 	"socialapi/workers/common/tests"
@@ -61,7 +62,7 @@ func TestCheckOwnership(t *testing.T) {
 		Convey("accounts can own things", t, func() {
 			account, groupChannel, groupName := models.CreateRandomGroupDataWithChecks()
 
-			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+			ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 			tests.ResultedWithNoErrorCheck(ses, err)
 
 			tedsAccount, err := models.CreateAccountInBothDbsWithNick("ted")
@@ -105,7 +106,7 @@ func TestAccountFetchProfile(t *testing.T) {
 		Convey("while fetching account activities in profile page", t, func() {
 			account, _, groupName := models.CreateRandomGroupDataWithChecks()
 
-			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+			ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
@@ -134,7 +135,7 @@ func TestAccountProfilePostCount(t *testing.T) {
 		Convey("While fetching account activity count in profile page", t, func() {
 			account, _, groupName := models.CreateRandomGroupDataWithChecks()
 
-			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+			ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
@@ -172,7 +173,7 @@ func TestAccountGroupChannels(t *testing.T) {
 		Convey("While fetching account activity count in profile page", t, func() {
 			account, _, groupName := models.CreateRandomGroupDataWithChecks()
 
-			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+			ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
@@ -37,7 +38,7 @@ func TestPrivateMesssages(t *testing.T) {
 			)
 
 			// fetch admin's session
-			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+			ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
@@ -276,7 +277,7 @@ func TestPrivateMesssages(t *testing.T) {
 				account, err := models.CreateAccountInBothDbs()
 				tests.ResultedWithNoErrorCheck(account, err)
 				// fetch admin's session
-				ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+				ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 				So(err, ShouldBeNil)
 				So(ses, ShouldNotBeNil)
 
@@ -390,7 +391,7 @@ func TestPrivateMesssages(t *testing.T) {
 				_, err = rest.AddChannelParticipant(cc.Channel.Id, ses.ClientId, recipient.Id)
 				So(err, ShouldBeNil)
 
-				ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+				ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 				So(err, ShouldBeNil)
 				So(ses, ShouldNotBeNil)
 
@@ -424,7 +425,7 @@ func TestPrivateMesssages(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(cc, ShouldNotBeNil)
 
-				ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+				ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 				So(err, ShouldBeNil)
 				So(ses, ShouldNotBeNil)
 
