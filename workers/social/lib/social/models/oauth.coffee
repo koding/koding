@@ -141,7 +141,7 @@ module.exports = class OAuth extends bongo.Base
         checkGroupIntegrationSettings 'github', client, (err, data) ->
           return callback err  if err
 
-          url = "https://github.com"
+          url = 'https://github.com'
 
           { applicationId, state } = data ? {}
 

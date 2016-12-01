@@ -24,7 +24,7 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
     @containers = {}
 
     mainController = kd.getSingleton 'mainController'
-    for provider in @supportedProviders
+    @supportedProviders.forEach (provider) =>
 
       @linked[provider] = no
       foreignEvent = "ForeignAuthSuccess.#{provider}"
@@ -54,29 +54,34 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
   handleForeignAuth: (provider) ->
 
     @whenOauthInfoFetched provider, =>
+      kd.utils.defer -> new kd.NotificationView
+        title: "Your #{provider.capitalize()} integration is now enabled."
       @linked[provider] = yes
       @switches[provider].setOn no
 
 
   whenOauthInfoFetched: (provider, callback) ->
 
-    if @fetched[provider] then callback()
-    else @once 'OauthInfoFetched', (_provider) ->
-      do callback  if provider is _provider
+    if @fetched[provider]
+      do callback
+    else
+      @once "OauthInfoFetched.#{provider}", callback
 
 
   viewAppended: ->
 
     me = whoami()
     me.fetchOAuthInfo (err, foreignAuth) =>
+      return showError err  if err
 
-      for provider in @supportedProviders
+      @supportedProviders.forEach (provider) =>
+
         @linked[provider] = foreignAuth?[provider]?
         @switches[provider].setDefaultValue @linked[provider]
         @switches[provider].makeEnabled()
         @fetched[provider] = yes
 
-        @emit 'OauthInfoFetched', provider
+        @emit "OauthInfoFetched.#{provider}"
 
 
   show: ->
@@ -100,9 +105,8 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
     me.unlinkOauth provider, (err) =>
       return showError err  if err
 
-      new kd.NotificationView {
+      new kd.NotificationView
         title: "Your #{provider.capitalize()} integration is now disabled."
-      }
 
       @linked[provider] = no
 

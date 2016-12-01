@@ -56,19 +56,19 @@ GithubForm = ({ err, enabled, applicationId, applicationSecret, onInputChange, c
 
   <div>
     <cite className='warning'>
-      Create a new application on Github by using this address as endpoint:
+      Register a new OAuth application on Github by using this URL as authorization callback URL
       <code className='HomeAppView--code'>{callbackUrl}</code>
-      and provide generated <code className='HomeAppView--code'>applicationId</code> and
-      <code className='HomeAppView--code'>applicationSecret</code> here.
+      and provide generated <code className='HomeAppView--code'>clientId</code> and
+      <code className='HomeAppView--code'>clientSecret</code> here.
     </cite>
 
     <span className="separator" />
 
     <fieldset>
       {<ErrorMessage message={err.message} />  if err.fields.length}
-      <label>Application ID</label>
+      <label>Client ID</label>
       <InputArea error={'applicationId' in err?.fields} value={applicationId} callback={onInputChange 'applicationId'} />
-      <label>Application Secret</label>
+      <label>Client Secret</label>
       <InputArea error={'applicationSecret' in err?.fields} value={applicationSecret} callback={onInputChange 'applicationSecret'} />
     </fieldset>
   </div>
