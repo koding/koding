@@ -91,7 +91,10 @@ module.exports = class GithubContainer extends React.Component
     saveGithubConfig options, (err) =>
       if err
       then @setState { enabled: yes }
-      else @setState @makeInitialState()
+      else
+        @setState @makeInitialState()
+        delete getGroup().config.github
+        kd.singletons.mainController.emit 'IntegrationsUpdated'
 
 
   onSave: ->
@@ -111,8 +114,11 @@ module.exports = class GithubContainer extends React.Component
         newState.err = err  if err
         newState = _.pick options, 'applicationId', 'applicationSecret'
 
-        newState.err = err
         newState.isSaving = no
+
+        unless err
+          getGroup().config.github = { enabled: yes }
+          kd.singletons.mainController.emit 'IntegrationsUpdated'
 
         @setState newState
 

@@ -92,7 +92,10 @@ module.exports = class GitLabContainer extends React.Component
     saveGitlabConfig options, (err) =>
       if err
       then @setState { enabled: yes }
-      else @setState @makeInitialState()
+      else
+        @setState @makeInitialState()
+        delete getGroup().config.gitlab
+        kd.singletons.mainController.emit 'IntegrationsUpdated'
 
 
   onSave: ->
@@ -116,8 +119,11 @@ module.exports = class GitLabContainer extends React.Component
         # on successful save request, we need to update it on UI as well
         newState.url = config?.url ? options.url
 
-        newState.err = err
         newState.isSaving = no
+
+        unless err
+          getGroup().config.gitlab = { enabled: yes }
+          kd.singletons.mainController.emit 'IntegrationsUpdated'
 
         @setState newState
 
