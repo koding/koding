@@ -33,7 +33,6 @@ type Konfig struct {
 	KontrolURL string `json:"kontrolURL,omitempty"`
 	KlientURL  string `json:"klientURL,omitempty"`
 	KloudURL   string `json:"kloudURL,omitempty"`
-	KodingURL  string `json:"kodingURL,omitempty"`
 	TunnelURL  string `json:"tunnelURL,omitempty"`
 	RemoteURL  string `json:"remoteURL,omitempty"`
 	IPURL      string `json:"ipURL,omitempty"`
@@ -57,8 +56,6 @@ type Konfig struct {
 }
 
 // KodingBaseURL specifies the base url for koding
-// TODO ~mehmetali
-// Use KodingURL field in Konfig struct instead of this method
 func (k *Konfig) KodingBaseURL() string {
 	u, err := url.Parse(k.KloudURL)
 	if err != nil {

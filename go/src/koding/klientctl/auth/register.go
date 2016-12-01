@@ -65,6 +65,11 @@ func NewRegisterSubCommand(log logging.Logger) cli.Command {
 	}
 }
 
+const (
+	trueValue  = "true"
+	falseValue = "false"
+)
+
 // RegisterRequest holds the registration request to Koding.
 type RegisterRequest struct {
 	Username        string `json:"username"`
@@ -80,10 +85,84 @@ type RegisterRequest struct {
 	Agree           string `json:"agree"`
 }
 
-const (
-	trueValue  = "true"
-	falseValue = "false"
-)
+// RegisterCommand displays version information like Environment or Kite Query ID.
+func RegisterCommand(c *cli.Context, log logging.Logger, _ string) int {
+	rr := initRegisterRequest(c)
+	r, err := checkAndAskRequiredFields(rr)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Register failed with error:", err)
+		log.Error("%s", err)
+		return 1
+	}
+
+	host := config.Konfig.KodingBaseURL()
+
+	client := httputil.DefaultRestClient(false)
+
+	// TODO ~mehmetali
+	// handle --alreadyMember flag with various option.
+	// There might be some situations that errors need to be ignored
+	token, err := doRegisterRequest(r, client, host)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Register failed with error:", err)
+		log.Error("%s", err)
+		return 1
+	}
+
+	clientID, err := doLoginRequest(client, host, token)
+	if err != nil {
+		// we don't need to inform user about the error after user registered successfully
+		log.Error("%s", err)
+		return 1
+	}
+
+	// Set clientId into the kd.bolt
+	if err = kloud.Cache().Set("clientId", clientID); err != nil {
+		log.Error("error while caching clientId")
+		return 1
+	}
+
+	// team cannot be empty (because of required while registering)
+	// otherwise it return error while registering user
+	// store groupName or slug as "team" inside the cache
+	if err = kloud.Cache().Set("team", c.String("team")); err != nil {
+		log.Error("error while caching team")
+		return 1
+	}
+
+	fmt.Println("This is your session ID, keep it safe.", clientID)
+	return 0
+}
+
+func initRegisterRequest(c *cli.Context) *RegisterRequest {
+	return &RegisterRequest{
+		Username:        c.String("username"),
+		FirstName:       c.String("firstName"),
+		LastName:        c.String("lastName"),
+		Password:        c.String("password"),
+		PasswordConfirm: c.String("passwordConfirm"),
+		Email:           c.String("email"),
+		Slug:            c.String("team"),
+		// if company flag exists, value will be company one
+		// otherwise value would be team's value
+		CompanyName:   selectExistingOne(c, "company", "team"),
+		Newsletter:    c.String("newsletter"),
+		AlreadyMember: c.String("alreadyMember"),
+		Agree:         "on",
+	}
+}
+
+// selectExistingOne selects the argument that existing value
+// first existing value will be chosen all the time
+func selectExistingOne(c *cli.Context, args ...string) string {
+	for _, arg := range args {
+		if c.String(arg) != "" {
+			return c.String(arg)
+		}
+	}
+
+	return ""
+}
 
 func checkAndAskRequiredFields(r *RegisterRequest) (*RegisterRequest, error) {
 	var err error
@@ -150,71 +229,6 @@ func checkAndAskRequiredFields(r *RegisterRequest) (*RegisterRequest, error) {
 	}
 
 	return r, nil
-}
-
-func initRegisterRequest(c *cli.Context) *RegisterRequest {
-	return &RegisterRequest{
-		Username:        c.String("username"),
-		FirstName:       c.String("firstName"),
-		LastName:        c.String("lastName"),
-		Password:        c.String("password"),
-		PasswordConfirm: c.String("passwordConfirm"),
-		Email:           c.String("email"),
-		Slug:            c.String("team"),
-		CompanyName:     c.String("team"), // CompanyName should be optional
-		Newsletter:      c.String("newsletter"),
-		AlreadyMember:   c.String("alreadyMember"),
-		Agree:           "on",
-	}
-}
-
-// RegisterCommand displays version information like Environment or Kite Query ID.
-func RegisterCommand(c *cli.Context, log logging.Logger, _ string) int {
-	rr := initRegisterRequest(c)
-	r, err := checkAndAskRequiredFields(rr)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Register failed with error:", err)
-		log.Error("%s", err)
-		return 1
-	}
-
-	host := config.Konfig.KodingBaseURL()
-
-	client := httputil.DefaultRestClient(false)
-
-	// TODO ~mehmetali
-	// handle --alreadyMember flag with various option.
-	// There might be some situations that errors need to be ignored
-	token, err := doRegisterRequest(r, client, host)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Register failed with error:", err)
-		log.Error("%s", err)
-		return 1
-	}
-
-	clientID, err := doLoginRequest(client, host, token)
-	if err != nil {
-		// we don't need to inform user about the error after user registered successfully
-		log.Error("%s", err)
-		return 1
-	}
-
-	// Set clientId into the kd.bolt
-	if err = kloud.Cache().Set("clientId", clientID); err != nil {
-		log.Error("error while caching clientId")
-		return 1
-	}
-
-	// team cannot be empty (because of required while registering)
-	// otherwise it return error while registering user
-	// store groupName or slug as "team" inside the cache
-	if err = kloud.Cache().Set("team", c.String("team")); err != nil {
-		log.Error("error while caching team")
-		return 1
-	}
-
-	fmt.Println("This is your session ID, keep it safe.", clientID)
-	return 0
 }
 
 func doRegisterRequest(r *RegisterRequest, client *http.Client, host string) (string, error) {
