@@ -1,6 +1,7 @@
 .Homepage-use-cases {
   background-image: linear-gradient(-45deg, #2A3445 0%, #62476B 100%);
-  padding: 114px 0 80px;
+  padding-top: 114px;
+  padding-bottom: 80px;
   text-align: center;
   > h4 {
     font-weight: 600;
@@ -34,8 +35,8 @@
     display: flex;
     justify-content: space-between;
     > div {
-      flex: 0 0 auto;
-      width: 260px;
+      flex: 0 1 auto;
+      width: 23%;
     }
     h3 {
       font-weight: 600;
@@ -48,4 +49,50 @@
       line-height: 26px;
     }
   }
+}
+
+@media (max-width: 880px) {
+  .Homepage-use-cases {
+    padding-top: 94px;
+    padding-bottom: 21px;
+    .actions {
+      a {
+        display: block;
+        margin-bottom: 10px;
+        max-width: 325px;
+        margin: 0 auto 10px !important;
+      }
+    }
+    hr {
+      display: none;
+    }
+    .cases {
+      margin-top: 54px;
+      flex-wrap: wrap;
+      > div {
+        width: 45%;
+        padding-bottom: 33px;
+        margin-bottom: 33px;
+        &:nth-child(1),
+        &:nth-child(2) {
+          border-bottom: 1px solid rgba(255,255,255,.1);
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 660px) {
+  .Homepage-use-cases {
+    .cases {
+      justify-content: center;
+      > div {
+        width: 100%;
+        &:nth-child(3) {
+          border-bottom: 1px solid rgba(255,255,255,.1);
+        }
+      }
+    }
+  }
+
 }
