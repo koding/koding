@@ -1,20 +1,18 @@
 package auth
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"koding/httputil"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
+	"koding/klientctl/helper"
 	"koding/klientctl/kloud"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
 	"os"
 	"strings"
-
-	"golang.org/x/crypto/ssh/terminal"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
@@ -82,67 +80,40 @@ type RegisterRequest struct {
 	Agree           string `json:"agree"`
 }
 
-// CheckRequiredStringFlag checks the all required flags
-func CheckRequiredStringFlag(c *cli.Context, args ...string) error {
-	for _, arg := range args {
-		if c.String(arg) == "" {
-			return fmt.Errorf("Required %s flag\n", arg)
-		}
-	}
-
-	return nil
-}
-
-// TODO move this function under the helper package (create & move)
-// These are already used in credential.go dont duplicate
-func ask(format string, args ...interface{}) (string, error) {
-	fmt.Printf(format, args...)
-	s, err := bufio.NewReader(os.Stdin).ReadString('\n')
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(s), nil
-}
-
-func askSecret(format string, args ...interface{}) (string, error) {
-	fmt.Printf(format, args...)
-	p, err := terminal.ReadPassword(int(os.Stdin.Fd()))
-	fmt.Println()
-	if err != nil {
-		return "", err
-	}
-	return string(p), nil
-}
+const (
+	trueValue  = "true"
+	falseValue = "false"
+)
 
 func checkAndAskRequiredFields(r *RegisterRequest) (*RegisterRequest, error) {
 	var err error
 
 	if r.Username == "" {
-		r.Username, err = ask("Username : ")
+		r.Username, err = helper.Ask("Username : ")
 		if err != nil {
 			return nil, err
 		}
 	}
 	if r.FirstName == "" {
-		r.FirstName, err = ask("FirstName : ")
+		r.FirstName, err = helper.Ask("FirstName : ")
 		if err != nil {
 			return nil, err
 		}
 	}
 	if r.LastName == "" {
-		r.LastName, err = ask("LastName : ")
+		r.LastName, err = helper.Ask("LastName : ")
 		if err != nil {
 			return nil, err
 		}
 	}
 	if r.Password == "" {
-		r.Password, err = askSecret("Password [***]: ")
+		r.Password, err = helper.AskSecret("Password [***]: ")
 		if err != nil {
 			return nil, err
 		}
 	}
 	if r.PasswordConfirm == "" {
-		r.PasswordConfirm, err = askSecret("Confirm Password [***]: ")
+		r.PasswordConfirm, err = helper.AskSecret("Confirm Password [***]: ")
 		if err != nil {
 			return nil, err
 		}
@@ -151,25 +122,25 @@ func checkAndAskRequiredFields(r *RegisterRequest) (*RegisterRequest, error) {
 		}
 	}
 	if r.Email == "" {
-		r.Email, err = ask("Email []: ")
+		r.Email, err = helper.Ask("Email []: ")
 		if err != nil {
 			return nil, err
 		}
 	}
 	if r.Slug == "" {
-		r.Slug, err = ask("Team Name []: ")
+		r.Slug, err = helper.Ask("Team Name []: ")
 		if err != nil {
 			return nil, err
 		}
 	}
 	if r.CompanyName == "" {
-		r.CompanyName, err = ask("Company Name []: ")
+		r.CompanyName, err = helper.Ask("Company Name []: ")
 		if err != nil {
 			return nil, err
 		}
 	}
 	if r.AlreadyMember == falseValue {
-		r.AlreadyMember, err = ask("Are you already koding member? [%s or %s] : ", trueValue, falseValue)
+		r.AlreadyMember, err = helper.Ask("Are you already koding member? [%s or %s] : ", trueValue, falseValue)
 		if err != nil {
 			return nil, err
 		}
@@ -180,11 +151,6 @@ func checkAndAskRequiredFields(r *RegisterRequest) (*RegisterRequest, error) {
 
 	return r, nil
 }
-
-const (
-	trueValue  = "true"
-	falseValue = "false"
-)
 
 func initRegisterRequest(c *cli.Context) *RegisterRequest {
 	return &RegisterRequest{
@@ -205,7 +171,7 @@ func initRegisterRequest(c *cli.Context) *RegisterRequest {
 // RegisterCommand displays version information like Environment or Kite Query ID.
 func RegisterCommand(c *cli.Context, log logging.Logger, _ string) int {
 	rr := initRegisterRequest(c)
-	_, err := checkAndAskRequiredFields(rr)
+	r, err := checkAndAskRequiredFields(rr)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Register failed with error:", err)
 		log.Error("%s", err)
@@ -214,13 +180,12 @@ func RegisterCommand(c *cli.Context, log logging.Logger, _ string) int {
 
 	host := config.Konfig.KodingBaseURL()
 
-	// TODO(mehmetali): make a generalized client to be used in klientctl
 	client := httputil.DefaultRestClient(false)
 
 	// TODO ~mehmetali
 	// handle --alreadyMember flag with various option.
 	// There might be some situations that errors need to be ignored
-	token, err := doRegisterRequest(c, client, host)
+	token, err := doRegisterRequest(r, client, host)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Register failed with error:", err)
 		log.Error("%s", err)
@@ -248,26 +213,14 @@ func RegisterCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	// TODO(mehmetali): decide where to store this cookie
 	fmt.Println("This is your session ID, keep it safe.", clientID)
 	return 0
 }
 
-func doRegisterRequest(c *cli.Context, client *http.Client, host string) (string, error) {
+func doRegisterRequest(r *RegisterRequest, client *http.Client, host string) (string, error) {
 	endpoint := host + "/-/teams/create"
 
-	form := url.Values{}
-	form.Add("username", c.String("username"))
-	form.Add("firstName", c.String("firstName"))
-	form.Add("lastName", c.String("lastName"))
-	form.Add("password", c.String("password"))
-	form.Add("passwordConfirm", c.String("password"))
-	form.Add("email", c.String("email"))
-	form.Add("slug", c.String("team"))
-	form.Add("companyName", c.String("team"))
-	form.Add("newsletter", c.String("newsletter"))
-	form.Add("alreadyMember", c.String("alreadyMember"))
-	form.Add("agree", "on")
+	form := createForm(r)
 
 	req, err := http.NewRequest("POST", endpoint, strings.NewReader(form.Encode()))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -328,6 +281,23 @@ func doLoginRequest(client *http.Client, host, token string) (string, error) {
 	clientID := getClientID(jar.Cookies(urll))
 
 	return clientID, nil
+}
+
+func createForm(r *RegisterRequest) url.Values {
+	form := url.Values{}
+	form.Add("username", r.Username)
+	form.Add("firstName", r.FirstName)
+	form.Add("lastName", r.LastName)
+	form.Add("password", r.Password)
+	form.Add("passwordConfirm", r.PasswordConfirm)
+	form.Add("email", r.Email)
+	form.Add("slug", r.Slug)
+	form.Add("companyName", r.CompanyName)
+	form.Add("newsletter", r.Newsletter)
+	form.Add("alreadyMember", r.AlreadyMember)
+	form.Add("agree", "on")
+
+	return form
 }
 
 // getClientID gets client id from cookie, if fails, returns empty string.
