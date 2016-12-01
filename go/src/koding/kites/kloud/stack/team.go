@@ -9,9 +9,9 @@ import (
 // TeamListRequest represents a request type for "team.list" kloud's
 // kite method.
 type TeamListRequest struct {
-	// TeamName is a filter for team name. If empty, all available teams for a
+	// Name is a filter for team name. If empty, all available teams for a
 	// given user will be returned.
-	Team string `json:"team"`
+	Name string `json:"name"`
 }
 
 // TeamListResponse represents a response model for "team.list" kloud's
@@ -29,7 +29,7 @@ func (k *Kloud) TeamList(r *kite.Request) (interface{}, error) {
 
 	f := &team.Filter{
 		Username: r.Username,
-		Teamname: req.Team,
+		Teamname: req.Name,
 	}
 
 	teams, err := k.TeamClient.Teams(f)
