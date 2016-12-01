@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
@@ -29,7 +30,7 @@ func TestCollaborationChannels(t *testing.T) {
 			account, err := models.CreateAccountInBothDbs()
 			tests.ResultedWithNoErrorCheck(account, err)
 			// fetch admin's session
-			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+			ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
@@ -81,7 +82,7 @@ func TestCollaborationChannels(t *testing.T) {
 			})
 
 			Convey("if group name is nil, should not fail to create collaboration channel", func() {
-				ses, err := models.FetchOrCreateSession(sinan.Nick, "koding")
+				ses, err := modelhelper.FetchOrCreateSession(sinan.Nick, "koding")
 				So(err, ShouldBeNil)
 				So(ses, ShouldNotBeNil)
 
@@ -294,7 +295,7 @@ func TestCollaborationChannels(t *testing.T) {
 				account, err := models.CreateAccountInBothDbs()
 				tests.ResultedWithNoErrorCheck(account, err)
 				// fetch admin's session
-				ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+				ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 				So(err, ShouldBeNil)
 				So(ses, ShouldNotBeNil)
 
@@ -398,7 +399,7 @@ func TestCollaborationChannels(t *testing.T) {
 				_, err = rest.AddChannelParticipant(cc.Channel.Id, ses.ClientId, recipient.Id)
 				So(err, ShouldBeNil)
 
-				ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+				ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 				So(err, ShouldBeNil)
 				So(ses, ShouldNotBeNil)
 
@@ -433,7 +434,7 @@ func TestCollaborationChannels(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(cc, ShouldNotBeNil)
 
-				ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+				ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 				So(err, ShouldBeNil)
 				So(ses, ShouldNotBeNil)
 

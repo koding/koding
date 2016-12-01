@@ -57,7 +57,7 @@ func TestCollaborationSesionEnd(t *testing.T) {
 			groupName,
 		)
 
-		ownerSession, err := apimodels.FetchOrCreateSession(owner.Nick, groupName)
+		ownerSession, err := modelhelper.FetchOrCreateSession(owner.Nick, groupName)
 		So(err, ShouldBeNil)
 		So(ownerSession, ShouldNotBeNil)
 

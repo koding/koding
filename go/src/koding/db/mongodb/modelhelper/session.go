@@ -122,6 +122,17 @@ func CreateSession(s *models.Session) error {
 	return Mongo.Run(SessionColl, insertQuery(s))
 }
 
+// FetchOrCreateSession fetches or creates a new session for given user & group
+// pair
+func FetchOrCreateSession(nick, groupName string) (*models.Session, error) {
+	session, err := GetOneSessionForAccount(nick, groupName)
+	if err == nil {
+		return session, nil
+	}
+
+	return CreateSessionForAccount(nick, groupName)
+}
+
 func CreateSessionForAccount(username, groupName string) (*models.Session, error) {
 	uuid1 := uuid.NewV4()
 
