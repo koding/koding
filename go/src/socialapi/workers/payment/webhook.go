@@ -61,8 +61,8 @@ func chargeFailedHandler(raw []byte) error {
 }
 
 func chargeHandler(raw []byte, op string) error {
-	var charge *stripe.Charge
-	err := json.Unmarshal(raw, charge)
+	var charge stripe.Charge
+	err := json.Unmarshal(raw, &charge)
 	if err != nil {
 		return err
 	}
@@ -93,7 +93,7 @@ var oneDayTrialDur int64 = 24 * 60 * 60
 var sevenDayTrialDur = 7 * oneDayTrialDur
 
 func customerSubscriptionCreatedHandler(raw []byte) error {
-	var req *stripe.Sub
+	var req stripe.Sub
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
@@ -126,7 +126,7 @@ func customerSubscriptionCreatedHandler(raw []byte) error {
 }
 
 func customerSubscriptionDeletedHandler(raw []byte) error {
-	var req *stripe.Sub
+	var req stripe.Sub
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
@@ -142,7 +142,7 @@ func customerSubscriptionDeletedHandler(raw []byte) error {
 }
 
 func customerSubscriptionUpdatedHandler(raw []byte) error {
-	var req *stripe.Sub
+	var req stripe.Sub
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
@@ -159,7 +159,7 @@ func customerSubscriptionUpdatedHandler(raw []byte) error {
 }
 
 func customerSubscriptionTrialWillEndHandler(raw []byte) error {
-	var req *stripe.Sub
+	var req stripe.Sub
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
@@ -175,8 +175,8 @@ func customerSubscriptionTrialWillEndHandler(raw []byte) error {
 }
 
 func customerSourceCreatedHandler(raw []byte) error {
-	var req *stripe.Card
-	err := json.Unmarshal(raw, &req)
+	var req stripe.Card
+	err := json.Unmarshal(raw, req)
 	if err != nil {
 		return err
 	}
@@ -187,7 +187,7 @@ func customerSourceCreatedHandler(raw []byte) error {
 }
 
 func customerSourceDeletedHandler(raw []byte) error {
-	var req *stripe.Card
+	var req stripe.Card
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
@@ -199,7 +199,7 @@ func customerSourceDeletedHandler(raw []byte) error {
 }
 
 func invoiceCreatedHandler(raw []byte) error {
-	var invoice *stripe.Invoice
+	var invoice stripe.Invoice
 	err := json.Unmarshal(raw, &invoice)
 	if err != nil {
 		return err
@@ -314,15 +314,15 @@ func invoicePaymentSucceededHandler(raw []byte) error {
 }
 
 func invoicePaymentHandler(raw []byte, eventName string) error {
-	var invoice *stripe.Invoice
+	var invoice stripe.Invoice
 	err := json.Unmarshal(raw, &invoice)
 	if err != nil {
 		return err
 	}
 
-	go sendInvoiceEvent(invoice, eventName)
+	go sendInvoiceEvent(&invoice, eventName)
 
-	return handleInvoiceStateChange(invoice)
+	return handleInvoiceStateChange(&invoice)
 }
 
 func handleInvoiceStateChange(invoice *stripe.Invoice) error {
