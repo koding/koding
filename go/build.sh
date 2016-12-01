@@ -76,13 +76,11 @@ for provider in $KODING_REPO/go/src/koding/kites/kloud/provider/*; do
 	fi
 done
 
-go generate koding/kites/config
-go generate koding/kites/kloud/kloud
+go generate koding/kites/config koding/kites/kloud/kloud
 
 koding-go-install ${COMMANDS[@]} ${TERRAFORM_COMMANDS[@]}
 rm -rf $GOBIN/provider-github
 koding-go-install ${TERRAFORM_CUSTOM_COMMANDS[@]}
-
 
 mkdir -p $GOPATH/build/broker
 cp -f $GOBIN/broker $GOPATH/build/broker/broker
