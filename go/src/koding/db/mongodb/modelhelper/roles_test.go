@@ -40,46 +40,60 @@ func TestHasRole(t *testing.T) {
 		Title string
 		Nick  string
 		Slug  string
-		Role  string
+		Roles []string
 		Has   bool
 	}{
 		{
 			Title: "Member account",
 			Nick:  acc1.Profile.Nickname,
 			Slug:  group.Slug,
-			Role:  "member",
+			Roles: []string{"member"},
+			Has:   true,
+		},
+		{
+			Title: "Member account with multi role",
+			Nick:  acc1.Profile.Nickname,
+			Slug:  group.Slug,
+			Roles: []string{"member", "admin"},
+			Has:   true,
+		},
+		{
+			Title: "Member account with default roles",
+			Nick:  acc1.Profile.Nickname,
+			Slug:  group.Slug,
+			Roles: modelhelper.DefaultRoles,
 			Has:   true,
 		},
 		{
 			Title: "Non-member account",
 			Nick:  acc2.Profile.Nickname,
 			Slug:  group.Slug,
-			Role:  "member",
+			Roles: []string{"member"},
 			Has:   false,
 		},
 		{
 			Title: "Invalid role correct account",
 			Nick:  acc1.Profile.Nickname,
 			Slug:  group.Slug,
-			Role:  "admin",
+			Roles: []string{"admin"},
 			Has:   false,
 		},
 		{
 			Title: "Invalid role in-correct account",
-			Nick:  acc1.Profile.Nickname,
+			Nick:  acc2.Profile.Nickname,
 			Slug:  group.Slug,
-			Role:  "admin",
+			Roles: []string{"admin"},
 			Has:   false,
 		},
 	}
 
 	for _, test := range tests {
-		has, err := modelhelper.HasRole(test.Nick, test.Slug, test.Role)
+		has, err := modelhelper.HasAnyRole(test.Nick, test.Slug, test.Roles...)
 		if err != nil {
 			t.Error(err)
 		}
 		if has != test.Has {
-			t.Error("expected %s's \"has\" equal to %t, but it wasnt!", test.Title, test.Has)
+			t.Errorf("expected %q's \"has\" equal to %t, but it wasnt!", test.Title, test.Has)
 		}
 	}
 }
