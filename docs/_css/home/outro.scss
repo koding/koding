@@ -1,6 +1,7 @@
 .Homepage-outro {
   background-color: #FFFFFF;
-  padding: 83px 0 85px;
+  padding-top: 83px;
+  padding-bottom: 85px;
   text-align: center;
   > h3 {
     margin: 22px auto 40px;
@@ -10,5 +11,21 @@
     font-size: 18px;
     color: #AAB2B9;
     letter-spacing: 1px;
+  }
+}
+
+@media (max-width: 880px) {
+  .Homepage-outro {
+    padding-top: 52px;
+    padding-bottom: 54px;
+    > h3 {
+      font-size: 24px;
+    }
+    h4 {
+      font-size: 16px;
+    }
+    a.cta {
+      width: 325px;
+    }
   }
 }
