@@ -13,7 +13,11 @@ permalink: /
 </svg>
 
 <!-- HEADER -->
-{% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='transparent' %}
+{% include header.html
+   with_signup_form='true'
+   has_sticky_navigation='true'
+   background_color='transparent'
+   background_color_mobile='rgba(0,0,0,.85)' %}
 
 <!-- CONTENT SECTION -->
 {% include home/hero.html
