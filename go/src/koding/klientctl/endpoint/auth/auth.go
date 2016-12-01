@@ -7,7 +7,6 @@ import (
 	"koding/kites/kloud/stack"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/kloud"
-	"koding/klientctl/endpoint/kontrol"
 )
 
 var DefaultClient = &Client{}
@@ -42,8 +41,7 @@ type LoginOptions struct {
 }
 
 type Client struct {
-	Kloud   *kloud.Client
-	Kontrol *kontrol.Client
+	Kloud *kloud.Client
 
 	once     sync.Once // for c.init()
 	sessions Sessions
@@ -108,13 +106,6 @@ func (c *Client) kloud() *kloud.Client {
 		return c.Kloud
 	}
 	return kloud.DefaultClient
-}
-
-func (c *Client) kontrol() *kontrol.Client {
-	if c.Kontrol != nil {
-		return c.Kontrol
-	}
-	return kontrol.DefaultClient
 }
 
 func Login(opts *LoginOptions) (*Session, error) { return DefaultClient.Login(opts) }
