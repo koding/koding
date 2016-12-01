@@ -30,16 +30,20 @@ body.ace
         margin-left       0
         
 .ace_editor.uploading-files-drag
-  position relative
-  &:after
-    content ''
-    position absolute
-    top 0
-    left 10px
-    right 20px
-    bottom 0
-    border 2px dashed #a7cdff
-    z-index 99
+    position        relative
+    pointer-events  none
+    &:after
+      content       ''
+      position      absolute
+      top           0
+      left          10px
+      right         20px
+      bottom        0
+      border        2px dashed #a7cdff
+      z-index       99
+      
+.ace_editor.uploading-files-drag *
+    pointer-events  none
       
 
   .kdview.kdcontextmenu.kdbuttonmenu.editor-advanced-settings-menu.split-view-button

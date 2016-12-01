@@ -3,7 +3,6 @@ Encoder = require 'htmlencode'
 s3upload             = require 'app/util/s3upload'
 MarkdownEditorView = require './markdowneditorview'
 ContentModal = require 'app/components/contentModal'
-require '../styl/stackupload.styl'
 
 module.exports = class ReadmeView extends kd.View
 
@@ -55,16 +54,18 @@ module.exports = class ReadmeView extends kd.View
     
     
   setDragClass: ->
-    
+
     @editorView.aceView.ace.editor.container.classList.add('uploading-files-drag')
     
     
   removeDragClass: ->
-    
-    @editorView.aceView.ace.editor.container.classList.remove('uploading-files-drag')
+
+    if @editorView.aceView.ace.editor.container.classList.contains('uploading-files-drag')
+      @editorView.aceView.ace.editor.container.classList.remove('uploading-files-drag')
     
     
   openFileInput: () ->
+    
     @uploadFileInput.domElement[0].click()
     
     
@@ -73,16 +74,16 @@ module.exports = class ReadmeView extends kd.View
     if event.dataTransfer.files.length > 0
     
       supportedFormats = ['image/jpg','image/jpeg','image/gif','image/png']
-      
       for val in event.dataTransfer.files
       
         fileSize = val.size
-        if  0 > supportedFormats.indexOf(val.type) || fileSize > 20000000 || fileSize < 2000
+        
+        if  0 > supportedFormats.indexOf(val.type) or fileSize > 20000000 or fileSize < 2000
           @handleUploadError(val.name)
           return false
           
         that = this
-        do (that) ->
+        do () ->
           file = val
           mimeType      = file.type
           reader        = new FileReader
@@ -118,7 +119,8 @@ module.exports = class ReadmeView extends kd.View
   getFileToUpload: (file, callback) ->
     
     { mimeType, content } = file
-    @editorView.aceView.ace.editor.insert('\n[Uploading '+content.name+'...]', @editorView.aceView.ace.editor.selection.getCursor())
+    @editorView.aceView.ace.editor.insert("\n[Uploading #{content.name}...]",
+    @editorView.aceView.ace.editor.selection.getCursor())
     
     s3upload
       name    : content.name
@@ -126,7 +128,10 @@ module.exports = class ReadmeView extends kd.View
       mimeType: mimeType
       timeout : 30000
     , (err, url) =>
-      whereToReplace = @editorView.aceView.ace.editor.find('[Uploading '+content.name+'...]',{ wrap: true,caseSensitive: false, wholeWord: false,regExp: false,preventScroll: true})
+      console.log err
+      whereToReplace = @editorView.aceView.ace.editor.find("[Uploading #{content.name}...]",
+        { wrap: true,caseSensitive: false, wholeWord: false,regExp: false,preventScroll: true})
+      
       if err
         @editorView.aceView.ace.editor.session.replace(whereToReplace, '')
         @handleUploadError(content.name)
@@ -136,9 +141,11 @@ module.exports = class ReadmeView extends kd.View
 
   handleUploadError: (fileName) ->
     
+    fileErrorContent = "<h6 class='upload-file-title'>Selected file:</h6><div class='upload-file-name'>...#{fileName}</div><div class='upload-file-modal-error'>It seems that file you have selected is wrong file format or the images are broken. Please make sure that you have selected the right file.</div>"
+    
     fileError = new kd.CustomHTMLView
       cssClass : 'markdown-content'
-      partial : "<h6 class='upload-file-title'>Selected file:</h6><div class='upload-file-name'>..."+fileName+"</div><div class='upload-file-modal-error'>It seems that file you have selected is wrong file format or the images are broken. Please make sure that you have selected the right file.</div>"
+      partial : fileErrorContent
 
     modal = new ContentModal
       width : 650
@@ -155,5 +162,7 @@ module.exports = class ReadmeView extends kd.View
         SelectAgain:
           title    : 'SELECT AGAIN AND UPLOAD'
           style    : 'GenericButton button-float-right'
-          callback :  @bound 'openFileInput'
+          callback :  =>
+            @openFileInput()
+            modal.destroy()
 

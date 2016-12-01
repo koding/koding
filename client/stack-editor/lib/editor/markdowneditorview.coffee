@@ -12,12 +12,13 @@ module.exports = class MarkdownEditorView extends BaseStackEditorView
 
     options.targetContentType ?= 'markdown'
     
-    options.bind = 'dragover dragleave drop'
+    options.bind = 'drag dragstart dragend dragover dragenter dragleave  drop'
 
     super options, data
     
     @on 'drop', (event) => @listenDropEvent(event)
-    @on 'dragover', => @listenDragEvent()
+    @on 'dragenter', (event) => @listenDragEvent(event)
+    @on 'dragleave', (event) => @listenLeaveEvent(event)
     
     
   viewAppended: ->
@@ -32,17 +33,33 @@ module.exports = class MarkdownEditorView extends BaseStackEditorView
       callback : @bound 'handlePreview'
       
   
-  listenDragEvent: ->
+  listenDragEvent: (event) ->
     
-    @getOptions().setDragClass()
+    event.stopPropagation()
+    event.preventDefault()
+    that = this
+    
+    setTimeout ->
+      that.getOptions().setDragClass()
+    , 1
+    
+  listenLeaveEvent: (event) ->
+    
+    event.stopPropagation()
+    event.preventDefault()
+    @getOptions().removeDragClass()
     
     
   listenDropEvent: (event) ->
     
-    @getOptions().removeDragClass()
-
+    that = this
+    
+    setTimeout ->
+      that.getOptions().removeDragClass()
+    , 17
+    
     thisEvent = event
-    if !event.dataTransfer
+    unless event.dataTransfer
       thisEvent = event.originalEvent
     @getOptions().setFileInputToUpload(thisEvent)
 

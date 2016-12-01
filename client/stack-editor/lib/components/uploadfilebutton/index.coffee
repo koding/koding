@@ -11,7 +11,7 @@ module.exports = class UploadFileButton extends KDCustomHTMLView
     
     @addSubView button = new kd.ButtonView
       cssClass: 'upload-file-button'
-      partial : "Attach image files by dragging & dropping or <span>selecing them</span>."
+      partial : 'Attach image files by dragging & dropping or <span>selecing them</span>.'
       callback: @bound 'handleFileUpload'
     
     
