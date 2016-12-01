@@ -1,7 +1,6 @@
 package modelhelper
 
 import (
-	"fmt"
 	"koding/db/models"
 
 	"gopkg.in/mgo.v2/bson"
@@ -35,14 +34,24 @@ func FetchAdminAccounts(groupName string) ([]models.Account, error) {
 
 // IsAdmin checks if the given username is an admin of the given groupName
 func IsAdmin(username, groupName string) (bool, error) {
+	return HasRole(username, groupName, "admin")
+}
+
+// IsMember checks if the given username is a member in given groupName
+func IsMember(username, groupName string) (bool, error) {
+	return HasRole(username, groupName, "member")
+}
+
+// HasRole checks if the given username has the given role in given groupName
+func HasRole(username, groupName, role string) (bool, error) {
 	group, err := GetGroup(groupName)
 	if err != nil {
-		return false, fmt.Errorf("getGroup(%s) err: %s", groupName, err)
+		return false, err
 	}
 
 	account, err := GetAccount(username)
 	if err != nil {
-		return false, fmt.Errorf("getAccount(%s) err: %s", username, err)
+		return false, err
 	}
 
 	selector := Selector{
@@ -50,12 +59,12 @@ func IsAdmin(username, groupName string) (bool, error) {
 		"sourceName": "JGroup",
 		"targetId":   account.Id,
 		"targetName": "JAccount",
-		"as":         "admin",
+		"as":         role,
 	}
 
 	count, err := RelationshipCount(selector)
 	if err != nil {
-		return false, fmt.Errorf("checkAdminRelationship err: %s", err)
+		return false, err
 	}
 
 	return count == 1, nil
