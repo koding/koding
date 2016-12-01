@@ -1,6 +1,7 @@
 .Homepage-trust {
   background-color: #F8F9FB;
-  padding: 88px 0 124px;
+  padding-top: 88px;
+  padding-bottom: 124px;
   > h3 {
     margin: 0 auto 77px;
     max-width: 577px;
@@ -17,5 +18,17 @@
     color: #AAB2B9;
     letter-spacing: 1px;
     text-align: center;
+  }
+}
+
+@media (max-width: 880px) {
+  .Homepage-trust {
+    padding-bottom: 74px;
+    > h3.title {
+      font-size: 28px;
+    }
+    hr {
+      margin: 4px 0 54px;
+    }
   }
 }
