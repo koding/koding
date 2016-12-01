@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"sync"
 )
 
 const maxBodyLen = 2 << 20 // 2 MiB
@@ -50,17 +51,17 @@ func (s *Session) Valid() error {
 	return nil
 }
 
+// AuthFunc
 type AuthFunc func(*AuthOptions) (*Session, error)
 
-type cacheKey struct {
-	Username string
-	Team     string
-}
+type cacheKey struct{ username, team string }
 
+// SessionCache
 type SessionCache struct {
 	AuthFunc AuthFunc
 
-	cache map[cacheKey]*Session
+	cacheMu sync.RWMutex
+	cache   map[cacheKey]*Session
 }
 
 func NewSessionCache(fn AuthFunc) *SessionCache {
@@ -76,7 +77,43 @@ func (s *SessionCache) Auth(opts *AuthOptions) (*Session, error) {
 		panic("socialapi: AuthFunc is nil")
 	}
 
-	return nil, nil
+	// Early return - return existing session if it's valid
+	// and we were not ask to invalidate it.
+	if err := opts.Session.Valid(); err == nil && !opts.Refresh {
+		return opts.Session, nil
+	}
+
+	if opts.Session == nil {
+		return nil, errors.New("cannot determine user session")
+	}
+
+	key := cacheKey{
+		username: opts.Session.Username,
+		team:     opts.Session.Team,
+	}
+
+	if !opts.Refresh {
+		s.cacheMu.RLock()
+		session, ok := s.cache[key]
+		s.cacheMu.RUnlock()
+
+		if ok {
+			return session, nil
+		}
+	}
+
+	session, err := s.Auth(opts)
+
+	s.cacheMu.Lock()
+	if opts.Refresh {
+		delete(s.cache, key)
+	}
+	if err == nil {
+		s.cache[key] = session
+	}
+	s.cacheMu.Unlock()
+
+	return session, err
 }
 
 // AuthOptions
@@ -91,6 +128,27 @@ type AuthOptions struct {
 	Request *http.Request
 }
 
+type httpTransport interface {
+	http.RoundTripper
+	httpRequestCanceler
+	httpIdleConnectionsCloser
+}
+
+type httpRequestCanceler interface {
+	CancelRequest(*http.Request)
+}
+
+type httpIdleConnectionsCloser interface {
+	CloseIdleConnections()
+}
+
+// nopCloser is like ioutil.NopCloser, but wraps io.ReadSeeker.
+type nopCloser struct{ io.ReadSeeker }
+
+func (nopCloser) Close() (_ error) { return }
+
+var _ io.ReadSeeker = nopCloser{bytes.NewReader(nil)}
+
 // Transport is a signing transport that
 // authorizes each request with jSession.clientId.
 type Transport struct {
@@ -104,20 +162,6 @@ type Transport struct {
 
 	// AuthFunc
 	AuthFunc AuthFunc
-}
-
-type httpTransport interface {
-	http.RoundTripper
-	httpRequestCanceler
-	httpIdleConnectionsCloser
-}
-
-type httpRequestCanceler interface {
-	CancelRequest(*http.Request)
-}
-
-type httpIdleConnectionsCloser interface {
-	CloseIdleConnections()
 }
 
 var _ httpTransport = (*Transport)(nil)
@@ -138,7 +182,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 			return nil, err // non-retryable
 		}
 
-		reqCopy.Body = ioutil.NopCloser(bytes.NewReader(p))
+		reqCopy.Body = nopCloser{bytes.NewReader(p)}
 	}
 
 	var refresh bool
@@ -156,25 +200,23 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 			}
 		}
 
-		if err := session.Valid(); err != nil || refresh {
-			opts := &AuthOptions{
-				Session: session,
-				Refresh: refresh,
-				Request: reqCopy,
-			}
-
-			s, err := t.AuthFunc(opts)
-			if err != nil {
-				return nil, err // non-retryable
-			}
-
-			if err := s.Valid(); err != nil {
-				return nil, err // non-retryable
-			}
-
-			session = s
-			refresh = false
+		opts := &AuthOptions{
+			Session: session,
+			Refresh: refresh,
+			Request: reqCopy,
 		}
+
+		s, err := t.AuthFunc(opts)
+		if err != nil {
+			return nil, err // non-retryable
+		}
+
+		if err := s.Valid(); err != nil {
+			return nil, err // non-retryable
+		}
+
+		session = s
+		refresh = false
 
 		reqCopy.Header.Set("Authorization", "Bearer "+session.ClientID)
 		if t.Host != "" {
