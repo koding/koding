@@ -17,39 +17,6 @@ getPathFor = (url, path) ->
   url ?= "#{gitlab.host}#{port}"
   urljoin url, path
 
-fail = (req, res) ->
-  redirectOauth 'could not grant access', req, res, { provider }
-
-# Get user info with access token
-fetchUserInfo = (req, res, access_token) -> (error, response, body) ->
-
-  if error or not id = body.id
-    console.error '[GITLAB][4/4] Failed to fetch user info:', error
-    return fail req, res
-
-  { username, id, email, name } = body
-  { returnUrl } = req.query
-  { clientId }  = req.cookies
-
-  if name
-    [firstName, restOfNames...] = name.split ' '
-    lastName = restOfNames.join ' '
-
-  resp = {
-    email
-    lastName
-    username
-    firstName
-    token     : access_token
-    profile   : lastName
-    foreignId : String(id)
-    returnUrl : returnUrl
-  }
-
-  saveOauthToSession resp, clientId, provider, (err) ->
-    redirectOauth err, req, res, { provider, returnUrl }
-
-
 # Get access token with code
 authorizeUser = (url, req, res) -> (error, response, body) ->
 
