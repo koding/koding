@@ -134,16 +134,24 @@ module.exports = class OAuth extends bongo.Base
       enabled : yes
       getUrl  : (client, urlOptions, callback) ->
 
-        { clientId } = KONFIG.github
-        { scope, returnUrl } = urlOptions
-        scope = 'user:email'  unless scope
+        { scope, returnUrl, redirectUri } = urlOptions
         redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
+        scope ?= 'user:email'
 
-        url  = 'https://github.com/login/oauth/authorize?'
-        url += "client_id=#{clientId}&"
-        url += "scope=#{scope}&redirect_uri=#{redirectUri}"
+        checkGroupIntegrationSettings 'github', client, (err, data) ->
+          return callback err  if err
 
-        callback null, url
+          url = "https://github.com"
+
+          { applicationId, state } = data ? {}
+
+          state = "&state=#{state}"
+          url   = "#{url}/login/oauth/authorize?"
+          url  += "client_id=#{applicationId}&"
+          url  += "scope=#{scope}#{state}&"
+          url  += "redirect_uri=#{redirectUri}"
+
+          callback null, url
 
       validateOAuth: (options, callback) ->
 
