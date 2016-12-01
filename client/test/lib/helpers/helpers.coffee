@@ -4,6 +4,8 @@ utils    = require '../utils/utils.js'
 assert   = require 'assert'
 HUBSPOT  = no
 
+KONFIG = require 'koding-config-manager'
+
 require '../utils/fail.js' # require fail to wrap NW::fail.
 
 
@@ -405,7 +407,7 @@ module.exports =
 
   setCookie: (browser, name, value) ->
 
-    domain = '.dev.koding.com'
+    domain = ".#{KONFIG.domains.base}"
 
     browser
       .cookie    'POST', { name, value, domain }
@@ -421,7 +423,7 @@ module.exports =
 
   getUrl: (teamsUrl) ->
 
-    url = 'dev.koding.com:8090'
+    url = "#{KONFIG.domains.base}:#{KONFIG.publicPort}"
 
     if teamsUrl
       user = utils.getUser()
