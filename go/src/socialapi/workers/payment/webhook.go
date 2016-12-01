@@ -176,7 +176,7 @@ func customerSubscriptionTrialWillEndHandler(raw []byte) error {
 
 func customerSourceCreatedHandler(raw []byte) error {
 	var req stripe.Card
-	err := json.Unmarshal(raw, req)
+	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
 	}
