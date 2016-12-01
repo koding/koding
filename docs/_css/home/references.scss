@@ -45,3 +45,19 @@
     }
   }
 }
+
+@media (max-width: 880px) {
+  .Homepage-References {
+    .heads {
+      margin: 25px auto 25px;
+    }
+    h5 {
+      margin-top: 26px;
+      font-size: 18px;
+    }
+    blockquote {
+      font-size: 18px;
+      margin: 37px auto 0;
+    }
+  }
+}
