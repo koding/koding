@@ -10,7 +10,11 @@
     {% assign src = logo[1] | prepend: include.path | prepend: site.url %}
     {% assign width = logo[2] %}
     {% assign height = logo[3] %}
-    <img src="{{ src }}" width="{{ width }}px" height="{{ height }}px" alt="{{ name }}"/>
+    <img
+      src="{{ src }}"
+      {% if width %}width="{{ width }}px"{% endif %}
+      {% if height %}height="{{ height }}px"{% endif %}
+      alt="{{ name }}"/>
   {% endfor %}
   </div>
 </div>

@@ -17,15 +17,11 @@
 .Homepage-LogoBar--logos {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-around;
   flex-wrap: wrap;
   img {
     flex: 0 0 auto;
-  }
-}
-@media (max-width: 1199px) {
-  .Homepage-LogoBar--logos img {
-    max-width: 110px;
+    margin: 0 30px 30px;
   }
 }
 .Homepage-LogoBar-Gray {
@@ -34,7 +30,6 @@
   border-bottom: 1px solid #E8ECEE;
   padding-bottom: 75px;
 }
-
 .Homepage-LogoBar-Gray h3 {
   font-size: 18px;
   padding: 0;
@@ -42,24 +37,18 @@
   margin-bottom: 40px;
   color: #989898;
 }
-@media (max-width: 767px) {
+@media (max-width: 1200px) {
   .Homepage-LogoBar--logos {
-    flex-direction: column;
-    justify-content: center;
+    img {
+      margin: 0 0 30px;
+      width: 30%;
+    }
   }
-  .Homepage-LogoBar--logos img {
-    max-width: none;
-    max-height: 40px;
-    height: 40px;
-  }
-  .Homepage-LogoBar-Gray {
-    padding-bottom: 30px;
-  }
-  .Homepage-LogoBar h3 {
-    letter-spacing: -1px;
-    padding-left: 0;
-    padding-right: 0;
-    margin-left: 25px;
-    margin-right: 25px;
+}
+@media (max-width: 660px) {
+  .Homepage-LogoBar--logos {
+    img {
+      width: 100%;
+    }
   }
 }
