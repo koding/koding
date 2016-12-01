@@ -27,7 +27,7 @@ module.exports = class HomeAccount extends kd.CustomScrollView
     @wrapper.addSubView headerize 'Security'
     @wrapper.addSubView sectionize 'Security', HomeAccountSecurityView
 
-    if hasIntegration 'gitlab'
+    if (hasIntegration 'gitlab') or (hasIntegration 'github')
       @wrapper.addSubView headerize 'Integrations'
       @wrapper.addSubView sectionize 'Integrations', HomeAccountIntegrationsView
 

@@ -289,8 +289,20 @@ Home My Account styles
 
 
   &.integrations
-    .integration-switch
-      abs                   30px, 30px
+    .container
+      height                40px
+      borderBox()
+
+      &:hover
+        border-bottom       1px solid #ccc
+
+      > div
+        margin-top          12px
+        fl()
+
+      .integration-switch
+        margin-top          10px
+        fr()
 
   &.sessions
     .session-info

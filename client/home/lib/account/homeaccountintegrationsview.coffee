@@ -3,6 +3,7 @@ whoami         = require 'app/util/whoami'
 showError      = require 'app/util/showError'
 CustomLinkView = require 'app/customlinkview'
 KodingSwitch   = require 'app/commonviews/kodingswitch'
+hasIntegration = require 'app/util/hasIntegration'
 
 module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
 
@@ -14,64 +15,89 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
 
     super options, data
 
+    @linked  = {}
+    @fetched = {}
+
+    @enabledProviders = []
+    for provider in ['gitlab', 'github']
+      @enabledProviders.push provider  if hasIntegration provider
+
     mainController = kd.getSingleton 'mainController'
-    mainController.on 'ForeignAuthSuccess.gitlab', =>
-      @whenOauthInfoFetched =>
-        @linked = yes
-        @switch.setOn no
+    for provider in @enabledProviders
+      @linked[provider] = no
+      foreignEvent = "ForeignAuthSuccess.#{provider}"
+      mainController.on foreignEvent, @lazyBound 'handleForeignAuth', provider
 
 
-  whenOauthInfoFetched: (callback) ->
+  handleForeignAuth: (provider) ->
 
-    if @fetched then callback()
-    else @once 'OauthInfoFetched', callback
+    @whenOauthInfoFetched provider, =>
+      @linked[provider] = yes
+      @switches[provider].setOn no
+
+
+  whenOauthInfoFetched: (provider, callback) ->
+
+    if @fetched[provider] then callback()
+    else @once 'OauthInfoFetched', (_provider) ->
+      do callback  if provider is _provider
 
 
   viewAppended: ->
 
     @addSubView loader = @getLoaderView()
 
-    @switch = new KodingSwitch
-      cssClass: 'integration-switch'
-      callback: (state) =>
-        if state
-          @link()
-          @switch.setOn no
-        else
-          @unlink()
-          @switch.setOff no
+    @switches = {}
+
+    for provider in @enabledProviders
+      @switches[provider] = new KodingSwitch
+        cssClass: 'integration-switch'
+        callback: (state) =>
+          if state
+            @link provider
+            @switches[provider].setOn no
+          else
+            @unlink provider
+            @switches[provider].setOff no
 
     me = whoami()
     me.fetchOAuthInfo (err, foreignAuth) =>
 
       loader.hide()
 
-      @linked = foreignAuth?.gitlab?
-      @switch.setDefaultValue @linked
+      for provider in @enabledProviders
 
-      @fetched = yes
-      @emit 'OauthInfoFetched'
+        @addSubView container = new kd.CustomHTMLView
+          cssClass: 'container'
 
-      @addSubView new kd.CustomHTMLView { partial: 'GitLab Integration' }
-      @addSubView @switch
+        @linked[provider] = foreignAuth?[provider]?
+        @switches[provider].setDefaultValue @linked[provider]
+        @fetched[provider] = yes
+
+        @emit 'OauthInfoFetched', provider
+
+        container.addSubView new kd.CustomHTMLView
+          partial: "#{provider.capitalize()} Integration"
+
+        container.addSubView @switches[provider]
 
 
-  link: ->
+  link: (provider) ->
 
-    kd.singletons.oauthController.redirectToOauthUrl { provider: 'gitlab' }
+    kd.singletons.oauthController.redirectToOauthUrl { provider }
 
 
-  unlink: ->
+  unlink: (provider) ->
 
     me = whoami()
-    me.unlinkOauth 'gitlab', (err) =>
+    me.unlinkOauth provider, (err) =>
       return showError err  if err
 
       new kd.NotificationView {
-        title: 'Your GitLab integration is now disabled.'
+        title: "Your #{provider.capitalize()} integration is now disabled."
       }
 
-      @linked = no
+      @linked[provider] = no
 
 
   getLoaderView: ->
