@@ -143,8 +143,7 @@ func copyURL(u *url.URL) *url.URL {
 func copyRequest(req *http.Request) *http.Request {
 	reqCopy := new(http.Request)
 	*reqCopy = *req
-	reqCopy.URL = new(url.URL)
-	*reqCopy.URL = *req.URL
+	reqCopy.URL = copyURL(req.URL)
 	reqCopy.Header = make(http.Header, len(req.Header))
 	for k, s := range req.Header {
 		reqCopy.Header[k] = append([]string(nil), s...)
