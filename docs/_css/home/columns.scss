@@ -1,5 +1,6 @@
 .Homepage-Columns {
-  padding: 28px 0 74px 0;
+  padding-top: 28px;
+  padding-top: 74px;
 }
 .Homepage-Columns .Homepage--container {
   display: flex;
@@ -8,7 +9,7 @@
 }
 
 .Homepage-Column {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   width: 30%;
   box-sizing: border-box;
   padding-left: 48px;
@@ -28,5 +29,19 @@
   }
   p {
     line-height: 26px;
+  }
+}
+
+@media (max-width: 880px) {
+  .Homepage-Column {
+    width: 47%;
+    margin-bottom: 75px;
+  }
+}
+
+@media (max-width: 600px) {
+  .Homepage-Column {
+    width: 100%;
+    margin-bottom: 42px;
   }
 }
