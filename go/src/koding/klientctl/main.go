@@ -580,8 +580,9 @@ func run(args []string) {
 						Usage:  "Lists user's teams.",
 						Action: ctlcli.ExitErrAction(TeamList, log, "list"),
 						Flags: []cli.Flag{
-							cli.BoolFlag{
+							cli.StringFlag{
 								Name:  "name",
+								Value: "",
 								Usage: "Limits the output to the specified team",
 							},
 							cli.BoolFlag{

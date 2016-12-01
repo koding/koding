@@ -14,7 +14,7 @@ var DefaultClient = &Client{}
 
 // ListOptions are options available for `team list` command.
 type ListOptions struct {
-	Name string // Limit to a specific team with a given name.
+	Slug string // Limit to a specific team with a given name.
 }
 
 type Team struct {
@@ -53,7 +53,7 @@ func (c *Client) List(opts *ListOptions) ([]*team.Team, error) {
 
 	req := &stack.TeamListRequest{}
 	if opts != nil {
-		req.Name = opts.Name
+		req.Slug = opts.Slug
 	}
 
 	resp := &stack.TeamListResponse{}

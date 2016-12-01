@@ -12,7 +12,7 @@ type Team struct {
 // Filter is used for filtering team records.
 type Filter struct {
 	Username string // user name.
-	Teamname string // limit response to a given team name.
+	Slug     string // limit response to a given group name.
 }
 
 // Database abstracts database read access to the machines.

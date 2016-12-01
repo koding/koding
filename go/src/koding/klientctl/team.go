@@ -15,7 +15,7 @@ import (
 
 func TeamList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	opts := &epteam.ListOptions{
-		Name: c.String("name"),
+		Slug: c.String("slug"),
 	}
 
 	teams, err := epteam.List(opts)
@@ -24,11 +24,11 @@ func TeamList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	}
 
 	if len(teams) == 0 {
-		if opts.Name == "" {
+		if opts.Slug == "" {
 			fmt.Fprintln(os.Stderr, "You do not belong to any team.")
 			return 0, nil
 		} else {
-			fmt.Fprintf(os.Stderr, "Cannot find %q team.", opts.Name)
+			fmt.Fprintf(os.Stderr, "Cannot find %q team.", opts.Slug)
 			return 1, nil
 		}
 	}

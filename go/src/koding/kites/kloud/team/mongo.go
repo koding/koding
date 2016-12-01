@@ -46,16 +46,16 @@ func (m *MongoDatabase) Teams(f *Filter) ([]*Team, error) {
 		return nil, models.ResError(err, modelhelper.AccountsColl)
 	}
 
-	if f.Teamname != "" {
-		return m.fetchOne(accountDB.Id, f.Username, f.Teamname)
+	if f.Slug != "" {
+		return m.fetchOne(accountDB.Id, f.Username, f.Slug)
 	} else {
 		return m.fetchAll(accountDB.Id)
 	}
 }
 
 // fetchOne returns only specified team.
-func (m *MongoDatabase) fetchOne(accID bson.ObjectId, user, teamSlug string) ([]*Team, error) {
-	groupDB, err := m.adapter.GetGroup(teamSlug)
+func (m *MongoDatabase) fetchOne(accID bson.ObjectId, user, slug string) ([]*Team, error) {
+	groupDB, err := m.adapter.GetGroup(slug)
 	if err != nil {
 		return nil, models.ResError(err, modelhelper.GroupsCollectionName)
 	}
@@ -68,7 +68,7 @@ func (m *MongoDatabase) fetchOne(accID bson.ObjectId, user, teamSlug string) ([]
 
 	count, err := m.adapter.RelationshipCount(belongs)
 	if err == nil && count == 0 {
-		err = fmt.Errorf("user %q does not belong to %q group", user, teamSlug)
+		err = fmt.Errorf("user %q does not belong to %q group", user, slug)
 	}
 	if err != nil {
 		return nil, models.ResError(err, modelhelper.RelationshipColl)
