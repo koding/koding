@@ -1,7 +1,7 @@
 {% assign path = include.path | append: '/' %}
 {% assign cols = include.columns | split: "$$" %}
 
-<div class='Homepage-Columns'>
+<div class='Homepage-Columns Homepage--containerOffset'>
   <div class='Homepage--container'>
   {% for col in cols %}
     {% assign row = col | split: "||" %}

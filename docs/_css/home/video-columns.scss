@@ -1,5 +1,6 @@
 .Homepage-video-columns {
-  padding: 90px 0 150px;
+  padding-top: 90px;
+  padding-bottom: 150px;
 }
 .Homepage-video-columns .Homepage--container {
   display: flex;
@@ -8,8 +9,9 @@
 }
 
 .Homepage-video-column {
-  flex: 0 0 auto;
-  width: 380px;
+  flex: 0 1 auto;
+  width: 30%;
+  max-width: 380px;
   margin: 90px 0 0;
   h5 {
     font-size: 18px;
@@ -22,14 +24,18 @@
   p {
     line-height: 26px;
   }
-  figure {
+  > div {
+    flex: 1 1 auto;
+  }
+  > figure {
+    flex: 0 0 auto;
     display: block;
     width: 100%;
     position: relative;
-    background-position: 0 17px;
+    background-position: 50% 17px;
     background-repeat: no-repeat;
-    background-size: 100% 195px;
-    height: 212px;
+    background-size: cover;
+    height: 180px;
     margin-bottom: 40px;
     cursor: pointer;
     transition: transform .1s ease, box-shadow .1s ease;
@@ -83,6 +89,52 @@
       height: 48px;
       margin-top: 18px;
       fill: #DEDEDE;
+    }
+  }
+}
+
+@media (max-width: 880px) {
+  .Homepage-video-columns {
+    padding-top: 92px;
+    padding-bottom: 112px;
+  }
+  .Homepage-video-column {
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    margin-top: 60px;
+    > div {
+
+    }
+    > figure {
+      width: 325px;
+      margin-right: 45px;
+      margin-bottom: 0;
+    }
+  }
+}
+
+@media (max-width: 680px) {
+  .Homepage-video-columns {
+    padding-top: 52px;
+    padding-bottom: 58px;
+  }
+  .Homepage-video-column {
+    flex-wrap: wrap;
+    margin-top: 50px;
+    > div {
+      width: 100%;
+      h4 {
+        margin: 7px 0 8px;
+      }
+    }
+    > figure {
+      width: 100%;
+      margin-right: 0;
+      margin-bottom: 14px;
     }
   }
 }
