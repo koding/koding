@@ -14,6 +14,10 @@ import (
 
 const UserColl = "jUsers"
 
+// ErrNotParticipant holds the error case where a user tries to login to a
+// non-participated group
+var ErrNotParticipant = errors.New("not a participant of group")
+
 // CheckAndGetUser validates the user with the given password. If not
 // successfull it returns nil
 func CheckAndGetUser(username string, password string) (*models.User, error) {
@@ -299,4 +303,23 @@ func GetPermittedUser(requesterName string, users []models.MachineUser) (*models
 
 	// nothing found, just return the first one
 	return allowedUsers[0], nil
+}
+
+// UserLogin checks if the given username is participant of the given group. On
+// successfull validation returns a session for the user in the context of the
+// given group.
+//
+// There are multiple ways to login in Koding but does not hadle all the cases.
+// For other custom logic use, webserver's login handler.
+func UserLogin(username, groupName string) (*models.Session, error) {
+	isMember, err := IsParticipant(username, groupName)
+	if err != nil {
+		return nil, err
+	}
+
+	if !isMember {
+		return nil, ErrNotParticipant
+	}
+
+	return FetchOrCreateSession(username, groupName)
 }
