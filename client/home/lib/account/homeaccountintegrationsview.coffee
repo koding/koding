@@ -18,15 +18,37 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
     @linked  = {}
     @fetched = {}
 
-    @enabledProviders = []
-    for provider in ['gitlab', 'github']
-      @enabledProviders.push provider  if hasIntegration provider
+    @supportedProviders = ['gitlab', 'github']
+
+    @switches   = {}
+    @containers = {}
 
     mainController = kd.getSingleton 'mainController'
-    for provider in @enabledProviders
+    for provider in @supportedProviders
+
       @linked[provider] = no
       foreignEvent = "ForeignAuthSuccess.#{provider}"
       mainController.on foreignEvent, @lazyBound 'handleForeignAuth', provider
+
+      @switches[provider] = new KodingSwitch
+        cssClass: 'integration-switch'
+        callback: (state) =>
+          if state
+            @link provider
+            @switches[provider].setOn no
+          else
+            @unlink provider
+            @switches[provider].setOff no
+
+      @switches[provider].makeDisabled()
+
+      @addSubView @containers[provider] = new kd.CustomHTMLView
+        cssClass: 'container hidden'
+
+      @containers[provider].addSubView new kd.CustomHTMLView
+        partial: "#{provider.capitalize()} Integration"
+
+      @containers[provider].addSubView @switches[provider]
 
 
   handleForeignAuth: (provider) ->
@@ -45,41 +67,26 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
 
   viewAppended: ->
 
-    @addSubView loader = @getLoaderView()
-
-    @switches = {}
-
-    for provider in @enabledProviders
-      @switches[provider] = new KodingSwitch
-        cssClass: 'integration-switch'
-        callback: (state) =>
-          if state
-            @link provider
-            @switches[provider].setOn no
-          else
-            @unlink provider
-            @switches[provider].setOff no
-
     me = whoami()
     me.fetchOAuthInfo (err, foreignAuth) =>
 
-      loader.hide()
-
-      for provider in @enabledProviders
-
-        @addSubView container = new kd.CustomHTMLView
-          cssClass: 'container'
-
+      for provider in @supportedProviders
         @linked[provider] = foreignAuth?[provider]?
         @switches[provider].setDefaultValue @linked[provider]
+        @switches[provider].makeEnabled()
         @fetched[provider] = yes
 
         @emit 'OauthInfoFetched', provider
 
-        container.addSubView new kd.CustomHTMLView
-          partial: "#{provider.capitalize()} Integration"
 
-        container.addSubView @switches[provider]
+  show: ->
+
+    super
+
+    for provider in @supportedProviders
+      if hasIntegration provider
+      then @containers[provider].show()
+      else @containers[provider].hide()
 
 
   link: (provider) ->

@@ -27,12 +27,34 @@ module.exports = class HomeAccount extends kd.CustomScrollView
     @wrapper.addSubView headerize 'Security'
     @wrapper.addSubView sectionize 'Security', HomeAccountSecurityView
 
-    if (hasIntegration 'gitlab') or (hasIntegration 'github')
-      @wrapper.addSubView headerize 'Integrations'
-      @wrapper.addSubView sectionize 'Integrations', HomeAccountIntegrationsView
+    @integrationHeader  = @wrapper.addSubView \
+      headerize 'Integrations'
+    @integrationSection = @wrapper.addSubView \
+      sectionize 'Integrations', HomeAccountIntegrationsView
+
+    @checkIntegrations()
+    kd.singletons.mainController.on 'IntegrationsUpdated', =>
+      @checkIntegrations()
 
     @wrapper.addSubView headerize 'Sessions'
     @wrapper.addSubView sectionize 'Sessions', HomeAccountSessionsView
+
+
+  checkIntegrations: ->
+    if (hasIntegration 'gitlab') or (hasIntegration 'github')
+      @showIntegrations()
+    else
+      @hideIntegrations()
+
+
+  hideIntegrations: ->
+    @integrationHeader.hide()
+    @integrationSection.hide()
+
+
+  showIntegrations: ->
+    @integrationHeader.show()
+    @integrationSection.show()
 
 
   handleAnchor: (anchor) ->
