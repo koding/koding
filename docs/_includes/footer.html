@@ -62,6 +62,11 @@
     resultSelector: 'ul.subscribe-to-newsletter-success',
     formHash: 'z5z2m7x0ln3g44'
   });
+  // footer mobile menu expand/collaps
+  $('.Footer--col h3').on('click', function(){
+    $('.Footer--col').removeClass('active');
+    $(this).parent().addClass('active');
+  });
 </script>
 
 {% include analytics.html %}
