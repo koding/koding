@@ -508,6 +508,9 @@ module.exports = {
   serveHome
   isLoggedIn
   getAlias
+  fetchGroupOAuthSettings
+  fetchUserOAuthInfo
+  failedReq
   addReferralCode
   saveOauthToSession
   redirectOauth

@@ -2,7 +2,7 @@ request = require 'request'
 koding = require './bongo'
 KONFIG = require 'koding-config-manager'
 
-{ redirectOauth, saveOauthToSession } = require './helpers'
+{ failedReq, fetchUserOAuthInfo, fetchGroupOAuthSettings } = require './helpers'
 { isAddressValid, cleanUrl } = require '../../models/utils'
 urljoin = require 'url-join'
 
@@ -22,7 +22,7 @@ authorizeUser = (url, req, res) -> (error, response, body) ->
 
   if error or not access_token = body.access_token
     console.error '[GITLAB][3/4] Failed to get access_token:', error ? body
-    return fail req, res
+    return failedReq provider, req, res
 
   options   =
     url     : getPathFor url, '/api/v3/user'
@@ -30,24 +30,28 @@ authorizeUser = (url, req, res) -> (error, response, body) ->
     headers : headers
     json    : { access_token }
 
-  request options, fetchUserInfo req, res, access_token
+  { scope } = body
+
+  request options, fetchUserOAuthInfo provider, req, res, {
+    access_token, scope
+  }
 
 
 module.exports = (req, res) ->
 
   unless code = req.query.code
     console.error '[GITLAB][1/4] Failed to get code from query:', req.query
-    return fail req, res
+    return failedReq provider, req, res
 
-  { gitlab } = KONFIG
+  { gitlab }   = KONFIG
   { clientId } = req.cookies
   { state }    = req.query
 
-  fetchGroupSettings clientId, state, (err, settings) ->
+  fetchGroupOAuthSettings provider, clientId, state, (err, settings) ->
 
     if err or not settings
       console.error '[GITLAB][2/4] Failed to fetch group settings:', err
-      return fail req, res
+      return failedReq provider, req, res
 
     { url, applicationId, applicationSecret, redirectUri } = settings
 
@@ -59,11 +63,11 @@ module.exports = (req, res) ->
 
         if err.type is 'NOT_REACHABLE'
           console.error '[GITLAB][2/4] Provided url is not reachable:', url
-          return fail req, res
+          return failedReq provider, req, res
 
         else if err.type is 'PRIVATE_IP' and not gitlab.allowPrivateOAuthEndpoints
           console.error '[GITLAB][2/4] Provided url is not allowed:', url
-          return fail req, res
+          return failedReq provider, req, res
 
       options           =
         url             : getPathFor url, '/oauth/token'
