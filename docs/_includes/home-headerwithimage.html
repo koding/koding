@@ -1,0 +1,25 @@
+{% assign src = include.image_src %}
+{% assign ext = include.image_ext %}
+{% assign pos = include.image_pos %}
+
+<div id="{{include.id}}" class="Slide {% if pos %}image{{ pos }}{% endif %}">
+  <div class="container">
+    <h2>{{include.title}}</h2>
+    {% if include.description %}
+      <p>{{include.description}}</p>
+    {% endif %}
+    <img src="{{src}}" src="{{ site.url }}{{ src }}.{{ ext }}" srcset="{{ site.url }}{{ src }}.{{ ext }} 1x, {{ site.url }}{{ src }}2x.{{ ext }} 2x" {% if pos %} class="isPositioned"{% endif %} />
+    {% if include.caption %}
+      <div class="caption">
+        {% if include.caption_title %}
+            <h3>{{include.caption_title}}</h3>
+        {% endif %}
+        {{include.caption}}
+        {% if include.caption_link %}
+          <a href="#" class="bottomLink">{{include.caption_link}}</a>
+        {% endif %}
+      </div>
+    {% endif %}
+    <div class="clearfix"></div>
+  </div>
+</div>
