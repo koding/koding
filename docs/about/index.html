@@ -7,7 +7,31 @@ permalink: /about
 <!-- HEADER -->
 {% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#358BB0' %}
 
-<style>{% include css/about-hero.css %}</style>
+<style>
+{% include css/about-hero.css %}
+
+.Homepage-LogoBar--logos {
+  max-width: 1200px !important;
+  margin: 0 auto;
+}
+
+@media (max-width: 1200px) {
+  .Homepage-LogoBar--logos img {
+    margin: 0 30px 30px !important;
+    width: inherit !important;
+  }
+}
+@media (max-width: 660px) {
+  .Homepage-LogoBar--logos {
+    display: block !important;
+  }
+  .Homepage-LogoBar--logos img {
+    margin: 0 auto 30px !important;
+    display: block !important;
+  }
+}
+</style>
+<link rel="stylesheet" href="{{ site.url }}/css/logobar.css">
 
 <div class="aboutus-hero">
   <div class="aboutus-gradient"  style="background: #F7FAFC;">
@@ -39,13 +63,14 @@ permalink: /about
 </div>
 
 {% include home-logobar.html
-   logo1_src="/assets/img/landing/investor-logos/rtp.png"
-   logo2_src="/assets/img/landing/investor-logos/greycroft.png"
-   logo3_src="/assets/img/landing/investor-logos/matrix_partners.png"
-   logo4_src="/assets/img/landing/investor-logos/khosla_ventures.png"
-   logo5_src="/assets/img/landing/investor-logos/500_startups.png"
+   title="Our Investors"
+   path="/assets/img/landing/investor-logos/"
    cssClass="Homepage-LogoBar-Gray"
-   title="Our Investors" %}
+   logos="rtp--rtp.png--92--40||
+          greycroft--greycroft.png--157--40||
+          matrix_partners--matrix_partners.png--100--40||
+          khosla_ventures--khosla_ventures.png--339--40||
+          500_startups--500_startups.png--92--40" %}
 
 <div class="Homepage--container AboutUs-Team">
   <style>{% include css/about-heads.css %}</style>
