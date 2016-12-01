@@ -415,6 +415,39 @@ analyzedInvitationResults = (params) ->
   return { result, data }
 
 
+fetchGroupOAuthSettings = (provider, clientId, state, callback) ->
+
+  { JSession, JGroup } = koding.models
+  { hostname, protocol } = KONFIG
+
+  JSession.one { clientId }, (err, session) ->
+    return callback err  if err
+    return callback { message: 'Session invalid' }  unless session
+
+    unless session._id.equals state
+      return callback { message: 'Invalid oauth flow' }
+
+    { groupName: slug } = session
+
+    JGroup.one { slug }, (err, group) ->
+      return callback err  if err
+      return callback { message: 'Group invalid' }  unless group
+
+      if not group.config?[provider]?.enabled
+        return callback { message: 'Integration not enabled yet.' }
+
+      group.fetchDataAt provider, (err, data) ->
+        return callback err  if err
+        return callback { message: 'Integration settings invalid' }  unless data
+
+        callback null, {
+          url: group.config[provider].url
+          applicationId: group.config[provider].applicationId
+          applicationSecret: data.applicationSecret
+          redirectUri: "#{protocol}//#{slug}.#{hostname}/-/oauth/#{provider}/callback"
+        }
+
+
 module.exports = {
   error_
   error_404
