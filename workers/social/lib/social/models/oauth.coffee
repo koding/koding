@@ -22,6 +22,33 @@ module.exports = class OAuth extends bongo.Base
 
   # -- OAUTH PROVIDERS ----------------------------------------------------8<--
 
+  checkGroupIntegrationSettings = (provider, client, callback) ->
+
+    { sessionToken: clientId, context: { group: slug } } = client
+
+    JSession = require './session'
+    JSession.one { clientId }, (err, session) ->
+      return callback err  if err
+      return callback new KodingError 'Session invalid'  unless session
+
+      JGroup = require './group'
+      JGroup.one { slug }, (err, group) ->
+
+        if not err and group and group.config?[provider]?.enabled
+
+          settings = {
+            url: group.config[provider].url
+            applicationId: group.config[provider].applicationId
+            state: session._id
+          }
+
+          callback null, settings
+
+        else
+
+          callback new KodingError 'Integration is not enabled'
+
+
   @PROVIDERS =
 
     # -- GITLAB PROVIDER --------------------------------------------------8<--
@@ -31,32 +58,6 @@ module.exports = class OAuth extends bongo.Base
       enabled : true
       getUrl  : (client, urlOptions, callback) ->
 
-        checkGroupGitLabSettings = (client, callback) ->
-
-          { sessionToken: clientId, context: { group: slug } } = client
-
-          JSession = require './session'
-          JSession.one { clientId }, (err, session) ->
-            return callback err  if err
-            return callback new KodingError 'Session invalid'  unless session
-
-            JGroup = require './group'
-            JGroup.one { slug }, (err, group) ->
-
-              if not err and group and group.config?.gitlab?.enabled
-
-                settings = {
-                  url: group.config.gitlab.url
-                  applicationId: group.config.gitlab.applicationId
-                  state: session._id
-                }
-
-                callback null, settings
-
-              else
-
-                callback new KodingError 'Integration is not enabled'
-
         { returnUrl, redirectUri } = urlOptions
         { applicationId, host, port } = KONFIG.gitlab
         protocol = '//'
@@ -64,7 +65,7 @@ module.exports = class OAuth extends bongo.Base
         host = urlOptions.host ? host
         redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
 
-        checkGroupGitLabSettings client, (err, data) ->
+        checkGroupIntegrationSettings 'gitlab', client, (err, data) ->
           return callback err  if err
 
           url = "#{protocol}#{host}#{port}"
