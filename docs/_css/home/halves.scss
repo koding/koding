@@ -1,5 +1,6 @@
 .Homepage-halves {
   display: flex;
+  flex-wrap: wrap;
 }
 .Homepage-half--container {
   flex: 0 0 auto;
@@ -53,5 +54,37 @@
   }
   p {
     margin-bottom: 51px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .Homepage-half--container:first-child,
+  .Homepage-half--container:last-child {
+    .Homepage-half {
+      padding-right: 50px;
+      padding-left: 50px;
+    }
+  }
+}
+
+@media (max-width: 880px) {
+  .Homepage-half--container {
+    width: 100%;
+    &:first-child {
+      .Homepage-half {
+        float: none;
+        padding-right: 50px;
+        padding-left: 73px;
+        margin: 0 auto;
+      }
+    }
+    &:last-child {
+      .Homepage-half {
+        padding-left: 50px;
+        padding-right: 73px;
+        float: none;
+        margin: 0 auto;
+      }
+    }
   }
 }
