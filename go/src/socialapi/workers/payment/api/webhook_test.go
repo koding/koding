@@ -13,7 +13,7 @@ func TestWebhook(t *testing.T) {
 			webhookURL := endpoint + EndpointWebhook
 
 			Convey("Should give error when event id is not valid", func() {
-				req := []byte(webhookTestData["charge.succeeded"])
+				req := []byte(webhookTestData["customer.subscription.created"])
 				_, err := rest.DoRequestWithAuth("POST", webhookURL, req, "")
 				So(err, ShouldNotBeNil)
 			})
