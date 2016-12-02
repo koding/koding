@@ -2,7 +2,7 @@ package team
 
 // Team represents a single team.
 type Team struct {
-	Name         string `json:"Name"`         // Team name.
+	Name         string `json:"name"`         // Team name.
 	Slug         string `json:"slug"`         // Team slug.
 	Members      string `json:"members"`      // Number of team members.
 	Privacy      string `json:"privacy"`      // Whether team is public or private.
