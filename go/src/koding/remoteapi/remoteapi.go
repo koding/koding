@@ -1,11 +1,11 @@
 package remoteapi
 
 import (
-	"net"
 	"net/http"
 	"net/url"
 
 	"koding/remoteapi/client"
+	"koding/socialapi"
 
 	runtime "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
@@ -33,51 +33,36 @@ type Client struct {
 	//
 	// If nil, http.DefaultClient is used instead.
 	Client *http.Client
+
+	// Transport is a caching transport that authorizes each
+	// request with clientID.
+	Transport *socialapi.Transport
 }
 
-func (c *Client) New(clientID string) *client.Koding {
+func (c *Client) New(session *socialapi.Session) *client.Koding {
 	httpClient := &http.Client{
-		Transport: &transport{
-			RoundTripper: http.DefaultTransport,
-			Host:         c.Endpoint.Host,
-			ClientID:     clientID,
-		},
-		Jar:     http.DefaultClient.Jar,
-		Timeout: http.DefaultClient.Timeout,
+		Transport: c.Transport.NewSingleClient(session),
+		Jar:       http.DefaultClient.Jar,
+		Timeout:   http.DefaultClient.Timeout,
 	}
 
 	if c.Client != nil {
-		httpClient.Transport.(*transport).RoundTripper = c.Client.Transport
 		httpClient.Jar = c.Client.Jar
 		httpClient.Timeout = c.Client.Timeout
 	}
 
-	var endpoint *url.URL
+	return client.New(newRuntime(c.endpoint(), httpClient), strfmt.Default)
+}
 
-	if c.Endpoint == nil {
-		endpoint = &url.URL{
-			Scheme: "http",
-			Host:   "127.0.0.1",
-			Path:   "/remote.api",
-		}
-	} else {
-		// NOTE(rjeczalik): optimization - since kloud and remote.api are
-		// accessible on local network, use 127.0.0.1 host instead.
-		endpoint = copyURL(c.Endpoint)
-
-		if _, port, err := net.SplitHostPort(endpoint.Host); err == nil {
-			endpoint.Host = net.JoinHostPort("127.0.0.1", port)
-		} else {
-			endpoint.Host = "127.0.0.1"
-		}
-
-		// Requests will still have "Host: <original host>" header set,
-		// just in case the e.g. the c.Endpoint is behind nginx that
-		// is configured with host routing.
-		httpClient.Transport.(*transport).Host = c.Endpoint.Host
+func (c *Client) endpoint() *url.URL {
+	if c.Endpoint != nil {
+		return c.Endpoint
 	}
-
-	return client.New(newRuntime(endpoint, httpClient), strfmt.Default)
+	return &url.URL{
+		Scheme: "http",
+		Host:   "127.0.0.1",
+		Path:   "/remote.api",
+	}
 }
 
 func newRuntime(u *url.URL, c *http.Client) *runtime.Runtime {
