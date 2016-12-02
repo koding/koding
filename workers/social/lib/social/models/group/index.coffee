@@ -1134,7 +1134,7 @@ module.exports = class JGroup extends Module
     ]
     success: (client, options, callback) ->
 
-      { enabled, provider, url, applicationId, applicationSecret } = options
+      { enabled, provider, url, applicationId, applicationSecret, scope } = options
 
       OAuth = require '../oauth'
       group = client?.context?.group
@@ -1154,16 +1154,18 @@ module.exports = class JGroup extends Module
         @disableOAuth provider, callback
         return
 
-      validateOptions = { url, applicationId, applicationSecret }
+      validateOptions = { url, applicationId, applicationSecret, scope }
 
       OAuth.validateOAuth provider, validateOptions, (err, data = {}) =>
         return callback err  if err
 
-        url = data.url  if data.url
+        url   = data.url    if data.url
+        scope = data.scope  if data.scope
 
         dataToUpdate["config.#{provider}"] = {
           enabled: yes
           applicationId
+          scope
           url
         }
 
@@ -1178,7 +1180,7 @@ module.exports = class JGroup extends Module
             data.update { $set: dataToSet }, (err) ->
               return callback err  if err
 
-              callback null, { url }
+              callback null, { url, scope }
 
 
   toggleFeature: permit

@@ -38,6 +38,7 @@ module.exports = class OAuth extends bongo.Base
 
           settings = {
             url: group.config[provider].url
+            scope: group.config[provider].scope
             applicationId: group.config[provider].applicationId
             state: session._id
           }
@@ -49,7 +50,7 @@ module.exports = class OAuth extends bongo.Base
           callback new KodingError 'Integration is not enabled'
 
 
-  @PROVIDERS =
+  @PROVIDERS = PROVIDERS =
 
     # -- GITLAB PROVIDER --------------------------------------------------8<--
 
@@ -130,20 +131,25 @@ module.exports = class OAuth extends bongo.Base
     # -- GITHUB PROVIDER --------------------------------------------------8<--
 
     github    :
-      title   : 'Github OAuth Provider'
+      title   : 'GitHub OAuth Provider'
       enabled : yes
+      scopes  : ['user','user:email','user:follow','public_repo','repo',
+                 'repo_deployment','repo:status','delete_repo','notifications',
+                 'gist','read:repo_hook','write:repo_hook','admin:repo_hook',
+                 'admin:org_hook','read:org','write:org','admin:org',
+                 'read:public_key','write:public_key','admin:public_key',
+                 'read:gpg_key','write:gpg_key','admin:gpg_key']
       getUrl  : (client, urlOptions, callback) ->
 
         { scope, returnUrl, redirectUri } = urlOptions
         redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
-        scope ?= 'user:email'
 
         checkGroupIntegrationSettings 'github', client, (err, data) ->
           return callback err  if err
 
           url = 'https://github.com'
 
-          { applicationId, state } = data ? {}
+          { applicationId, scope, state } = data ? {}
 
           state = "&state=#{state}"
           url   = "#{url}/login/oauth/authorize?"
@@ -155,7 +161,7 @@ module.exports = class OAuth extends bongo.Base
 
       validateOAuth: (options, callback) ->
 
-        { applicationId, applicationSecret } = options
+        { applicationId, applicationSecret, scope } = options
 
         MissingFieldError = 'Missing field for validating oauth'
 
@@ -163,6 +169,13 @@ module.exports = class OAuth extends bongo.Base
           MissingFieldError, 'MissingField', { fields: ['applicationId'] }
         if not applicationSecret then return callback new KodingError \
           MissingFieldError, 'MissingField', { fields: ['applicationSecret'] }
+
+        scope  = 'user:email'  if not scope or not scope.trim?()
+        scopes = scope.split ','
+        scope  = (scopes
+          .map    (s) -> s.trim()
+          .filter (s) -> s in PROVIDERS.github.scopes
+        ).join ', '
 
         url               = 'https://github.com'
         options           =
@@ -187,7 +200,7 @@ module.exports = class OAuth extends bongo.Base
             # requesting a new token without a code here, if it passes and
             # fails with bad_verification_code means provided auths are ok ~GG
             if body.error is 'bad_verification_code'
-              callback null, { url }
+              callback null, { url, scope }
             else
               callback new KodingError \
                 'Verification failed', 'VerificationFailed', { fields: [
