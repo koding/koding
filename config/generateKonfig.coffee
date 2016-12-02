@@ -144,6 +144,7 @@ module.exports = (options, credentials) ->
     klientUrl: "https://s3.amazonaws.com/koding-klient/development/latest/klient.deb"
 
     credentialEndPoint: "#{socialApiProxyUrl}/credential"
+    presencePrivateEndpoint: "#{socialApiProxyUrl}/private/presence/ping"
 
     janitorSecretKey: credentials.janitor.secretKey
     terraformerSecretKey: credentials.terraformer.secretKey

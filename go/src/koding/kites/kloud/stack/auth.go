@@ -1,6 +1,15 @@
 package stack
 
-import "github.com/koding/kite"
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
+	"net/http"
+
+	"github.com/koding/kite"
+)
 
 // LoginRequest represents a request model for "auth.login"
 // kloud's kite method.
@@ -30,16 +39,74 @@ type LoginResponse struct {
 //
 // TODO(rjeczalik): Add AuthLogout to force creation of a new
 // session.
-func (k *Kloud) AuthLogin(r *kite.Request) (interface{}, error) {
-	// TODO:
-	//
-	// - use "kd-io" if req.GroupName is empty
-	// - check if req.GroupName exists
-	// - check whether user belongs to req.GroupName
-	// - check whether group's subscription is active
-	// - check whether there exists a jSession for {GroupName, Username}
-	//   and return clienId if it does
-	// - create new jSession and return it's clientId
-	//
-	return nil, nil
+func (k *Kloud) AuthLogin(presenceEndpoint string) func(r *kite.Request) (interface{}, error) {
+	return func(r *kite.Request) (interface{}, error) {
+		k.Log.Debug("auth login called by %q with %q", r.Username, r.Args.Raw)
+
+		req, err := getLoginReq(r)
+		if err != nil {
+			return nil, err
+		}
+
+		ses, err := modelhelper.UserLogin(r.Username, req.GroupName)
+		if err != nil {
+			return nil, NewError(ErrInternalServer)
+		}
+
+		if err := sendPresenceRequest(presenceEndpoint, r.Username, req.GroupName); err != nil {
+			// we dont need to block user login if there is something wrong with socialapi.
+			k.Log.Error("sendPresenceRequest failed with & for", err.Error(), r.Username)
+		}
+
+		return &LoginResponse{
+			ClientID:  ses.ClientId,
+			GroupName: req.GroupName,
+		}, nil
+	}
+}
+
+func getLoginReq(r *kite.Request) (*LoginRequest, error) {
+	if r.Args == nil {
+		return nil, NewError(ErrNoArguments)
+	}
+
+	var req LoginRequest
+	if err := r.Args.One().Unmarshal(&req); err != nil {
+		return nil, NewError(ErrBadRequest)
+	}
+
+	if req.GroupName == "" {
+		req.GroupName = models.KDIOGroupName
+	}
+
+	return &req, nil
+}
+
+func sendPresenceRequest(url, username, groupName string) error {
+	jsonValue, err := json.Marshal(struct {
+		Username  string
+		GroupName string
+	}{
+		Username:  username,
+		GroupName: groupName,
+	})
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonValue))
+	defer func() {
+		if resp != nil {
+			resp.Body.Close()
+		}
+	}()
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode < 400 {
+		return errors.New("bad request")
+	}
+
+	return nil
 }

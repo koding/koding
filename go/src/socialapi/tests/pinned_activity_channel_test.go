@@ -1,6 +1,7 @@
 package main
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"socialapi/models"
 	"socialapi/rest"
@@ -25,7 +26,7 @@ func TestPinnedActivityChannel(t *testing.T) {
 			So(account, ShouldNotBeNil)
 			So(account.Id, ShouldNotEqual, 0)
 
-			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+			ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
@@ -35,7 +36,7 @@ func TestPinnedActivityChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(nonOwnerAccount, ShouldNotBeNil)
 
-			nonOwnerSes, err := models.FetchOrCreateSession(nonOwnerAccount.Nick, groupName)
+			nonOwnerSes, err := modelhelper.FetchOrCreateSession(nonOwnerAccount.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(nonOwnerSes, ShouldNotBeNil)
 
