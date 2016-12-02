@@ -50,8 +50,8 @@ type SessionCache struct {
 	cache   map[string]*Session
 }
 
-// NewSessionCache gives new SessionCache value.
-func NewSessionCache(fn AuthFunc) *SessionCache {
+// NewCache gives new SessionCache value.
+func NewCache(fn AuthFunc) *SessionCache {
 	return &SessionCache{
 		AuthFunc: fn,
 		cache:    make(map[string]*Session),
@@ -109,7 +109,14 @@ func (s *SessionCache) Auth(opts *AuthOptions) (*Session, error) {
 	//   try to use it again at most once.
 	//
 	// - if set failed, we are going to request session again
+	//   for the next request
 	//
+	// System-wise Kloud uses in-memory cache while KD and Klient
+	// use BoltDB-backed cache. Since the latter two take exclusive
+	// lock of the database file, the only reason storage can
+	// fail are filesystem errors - there is no recovery from
+	// that, and falling back to memory makes sense only for
+	// Klient.
 	s.cacheMu.Lock()
 	if opts.Refresh {
 		_ = s.delete(session)

@@ -1,26 +1,73 @@
 package socialapi_test
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"sync"
 
 	"koding/kites/kloud/utils"
 	"koding/socialapi"
 )
 
-type FakeAuth map[string]*socialapi.Session
+type FakeAuth struct {
+	Sessions map[string]*socialapi.Session
+
+	mu sync.RWMutex
+}
+
+func NewFakeAuth() *FakeAuth {
+	return &FakeAuth{
+		Sessions: make(map[string]*socialapi.Session),
+	}
+}
 
 func (fa FakeAuth) Auth(opts *socialapi.AuthOptions) (*socialapi.Session, error) {
-	session, ok := fa[opts.Session.Key()]
+	fa.mu.Lock()
+	defer fa.mu.Unlock()
+
+	session, ok := fa.Sessions[opts.Session.Key()]
 	if !ok || opts.Refresh {
 		session = &socialapi.Session{
 			ClientID: utils.RandString(12),
 			Username: opts.Session.Username,
 			Team:     opts.Session.Team,
 		}
-		fa[opts.Session.Key()] = session
+		fa.Sessions[opts.Session.Key()] = session
 	}
 
 	return session, nil
+}
+
+func (fa FakeAuth) GetSession(w http.ResponseWriter, r *http.Request) {
+	var req socialapi.Session
+
+	req.ReadFrom(r)
+
+	var session *socialapi.Session
+
+	fa.mu.RLock()
+	for _, s := range fa.Sessions {
+		if s.ClientID == req.ClientID {
+			session = s
+			break
+		}
+	}
+	fa.mu.RUnlock()
+
+	p, err := ioutil.ReadAll(r.Body)
+	if err == nil && len(p) != 0 {
+		log.Printf("FakeAuth.GetSession: read body: %s", p)
+	}
+
+	if session == nil {
+		w.WriteHeader(http.StatusUnauthorized)
+	} else {
+		json.NewEncoder(w).Encode(session)
+	}
 }
 
 type Trx struct {
@@ -66,14 +113,8 @@ func (trx TrxStorage) Match(other TrxStorage) error {
 				i, trx.Type, other[i].Type)
 		}
 
-		if trx.Session.Username != other[i].Session.Username {
-			return fmt.Errorf("trx %d username is  %q, the other one is %q",
-				i, trx.Session.Username, other[i].Session.Username)
-		}
-
-		if trx.Session.Team != other[i].Session.Team {
-			return fmt.Errorf("trx %d team is  %q, the other one is %q",
-				i, trx.Session.Team, other[i].Session.Team)
+		if err := trx.Session.Match(other[i].Session); err != nil {
+			return fmt.Errorf("trx %d: %s", i, err)
 		}
 	}
 
@@ -95,4 +136,55 @@ func (trx TrxStorage) Build() map[string]*socialapi.Session {
 	}
 
 	return m
+}
+
+type contextKey struct {
+	name string
+}
+
+var (
+	ErrorContextKey    = &contextKey{"fake-error"}
+	ResponseContextKey = &contextKey{"fake-response"}
+)
+
+type FakeTransport struct {
+	*socialapi.Transport
+}
+
+var _ socialapi.HTTPTransport = (*FakeTransport)(nil)
+
+func (ft FakeTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	errs, ok := req.Context().Value(ErrorContextKey).(*[]error)
+	if ok && len(*errs) != 0 {
+		err, *errs = (*errs)[0], (*errs)[1:]
+		return nil, err
+	}
+
+	resps, ok := req.Context().Value(ResponseContextKey).(*[]*http.Response)
+	if ok && len(*resps) != 0 {
+		resp, *resps = (*resps)[0], (*resps)[1:]
+		return resp, nil
+	}
+
+	return ft.Transport.RoundTrip(req)
+}
+
+func WithErrors(req *http.Request, errs ...error) *http.Request {
+	return req.WithContext(context.WithValue(req.Context(), ErrorContextKey, &errs))
+}
+
+func WithResponses(req *http.Request, resps ...*http.Response) *http.Request {
+	return req.WithContext(context.WithValue(req.Context(), ResponseContextKey, &resps))
+}
+
+func WithResponseCodes(req *http.Request, codes ...int) *http.Request {
+	resps := make([]*http.Response, len(codes))
+
+	for i, code := range codes {
+		resps[i] = &http.Response{
+			StatusCode: code,
+		}
+	}
+
+	return WithResponses(req, resps...)
 }

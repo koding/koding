@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 const maxBodyLen = 2 << 20 // 2 MiB
@@ -61,6 +62,21 @@ func (s *Session) Valid() error {
 		return errors.New("empty client ID")
 	}
 	return nil
+}
+
+// WithRequest attaches the session to the given request.
+func (s *Session) WithRequest(req *http.Request) *http.Request {
+	return req.WithContext(context.WithValue(req.Context(), SessionContextKey, s))
+}
+
+func (s *Session) writeTo(req *http.Request) {
+	req.Header.Set("Authorization", "Bearer "+s.ClientID)
+}
+
+func (s *Session) readFrom(req *http.Request) {
+	if auth := req.Header.Get("Authorization"); strings.HasPrefix(auth, "Bearer ") {
+		s.ClientID = auth[len("Bearer "):]
+	}
 }
 
 // AuthFunc is used to fetch session information.
@@ -117,10 +133,10 @@ var _ io.ReadSeeker = nopCloser{bytes.NewReader(nil)}
 // Transport is a signing transport that
 // authorizes each request with jSession.clientId.
 type Transport struct {
-	http.RoundTripper          // a transport to use; required
+	http.RoundTripper          // a transport to use; optional, by default http.DefaultClient.Transport
 	AuthFunc          AuthFunc // clientID authorisation to use; required
 	Host              string   // original Host name, overwrites req.Host; optional
-	RetryNum          int      // number of retries in case of temporary failures; optional
+	RetryNum          int      // number of retries in case of temporary failures; optional, by default 3
 }
 
 var _ httpTransport = (*Transport)(nil)
@@ -138,7 +154,7 @@ func (t *Transport) NewSingleClient(session *Session) http.RoundTripper {
 	return &DirectorTransport{
 		RoundTripper: t,
 		Director: func(req *http.Request) {
-			*req = *req.WithContext(context.WithValue(req.Context(), SessionContextKey, session))
+			*req = *session.WithRequest(req)
 		},
 	}
 }
@@ -196,12 +212,13 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		session = s
 		refresh = false
 
-		reqCopy.Header.Set("Authorization", "Bearer "+session.ClientID)
+		session.writeTo(reqCopy)
+
 		if t.Host != "" {
 			reqCopy.Host = t.Host
 		}
 
-		resp, err := t.RoundTripper.RoundTrip(reqCopy)
+		resp, err := t.roundTripper().RoundTrip(reqCopy)
 		if e, ok := err.(net.Error); ok && (e.Temporary() || e.Timeout()) {
 			lastErr = err
 			continue // retry
@@ -224,15 +241,27 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 func (t *Transport) CancelRequest(req *http.Request) {
-	if rc, ok := t.RoundTripper.(httpRequestCanceler); ok {
+	if rc, ok := t.roundTripper().(httpRequestCanceler); ok {
 		rc.CancelRequest(req)
 	}
 }
 
 func (t *Transport) CloseIdleConnections() {
-	if icl, ok := t.RoundTripper.(httpIdleConnectionsCloser); ok {
+	if icl, ok := t.roundTripper().(httpIdleConnectionsCloser); ok {
 		icl.CloseIdleConnections()
 	}
+}
+
+func (t *Transport) roundTripper() http.RoundTripper {
+	if t.RoundTripper != nil {
+		return t.RoundTripper
+	}
+
+	if http.DefaultClient.Transport != nil {
+		return http.DefaultClient.Transport
+	}
+
+	return http.DefaultTransport
 }
 
 func (t *Transport) retryNum() int {

@@ -10,7 +10,7 @@ import (
 
 func TestSessionCache(t *testing.T) {
 	var storage TrxStorage
-	var auth = make(FakeAuth)
+	var auth = NewFakeAuth()
 
 	users := []*socialapi.Session{
 		{Username: "user1", Team: "foobar"},
@@ -21,8 +21,8 @@ func TestSessionCache(t *testing.T) {
 
 	cases := []struct {
 		name string
-		opts *socialapi.AuthOptions
-		trxs TrxStorage
+		opts *socialapi.AuthOptions // client
+		trxs TrxStorage             // underlying cache operations
 	}{{
 		"new user1",
 		&socialapi.AuthOptions{
@@ -94,7 +94,7 @@ func TestSessionCache(t *testing.T) {
 		allKeys[cas.opts.Session.Key()] = struct{}{}
 	}
 
-	cache := socialapi.NewSessionCache(auth.Auth)
+	cache := socialapi.NewCache(auth.Auth)
 	cache.Storage = &storage
 
 	for _, cas := range cases {
@@ -112,16 +112,16 @@ func TestSessionCache(t *testing.T) {
 		})
 	}
 
-	if storage := FakeAuth(storage.Build()); !reflect.DeepEqual(auth, storage) {
-		t.Fatalf("got %+v, want %+v", auth, storage)
+	if sessions := storage.Build(); !reflect.DeepEqual(sessions, auth.Sessions) {
+		t.Fatalf("got %+v, want %+v", sessions, auth.Sessions)
 	}
 
-	if len(auth) != len(allKeys) {
-		t.Fatalf("want len(auth)=%d == len(allKeys)=%d", len(auth), len(allKeys))
+	if len(auth.Sessions) != len(allKeys) {
+		t.Fatalf("want len(auth)=%d == len(allKeys)=%d", len(auth.Sessions), len(allKeys))
 	}
 
 	for key := range allKeys {
-		if _, ok := auth[key]; !ok {
+		if _, ok := auth.Sessions[key]; !ok {
 			t.Fatalf("key %q not found in auth", key)
 		}
 	}
