@@ -216,6 +216,33 @@ func (t *Transport) retryNum() int {
 	return 3
 }
 
+// DirectoryTransport is a Transport that modifies each request before
+// passing it over to underlying round-tripper.
+type DirectorTransport struct {
+	http.RoundTripper                     // a transport to direct; required
+	Director          func(*http.Request) // function that modifies request; required
+}
+
+var _ httpTransport = (*DirectorTransport)(nil)
+
+// RoundTrip implements the http.RoundTripper interface.
+func (dt *DirectorTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	// TODO
+	return nil, nil
+}
+
+func (dt *DirectorTransport) CancelRequest(req *http.Request) {
+	if rc, ok := dt.RoundTripper.(httpRequestCanceler); ok {
+		rc.CancelRequest(req)
+	}
+}
+
+func (dt *DirectorTransport) CloseIdleConnections() {
+	if icl, ok := dt.RoundTripper.(httpIdleConnectionsCloser); ok {
+		icl.CloseIdleConnections()
+	}
+}
+
 func copyURL(u *url.URL) *url.URL {
 	uCopy := *u
 	if u.User != nil {
