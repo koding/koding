@@ -154,16 +154,16 @@ func TestFetchAdminAccounts(t *testing.T) {
 	}
 }
 
-func TestFetchAccountGroups(t *testing.T) {
+func TestFetchAccountGroupNames(t *testing.T) {
 	db := modeltesthelper.NewMongoDB(t)
 	defer db.Close()
 
 	acc1 := createTestAccount(t)
 	defer modelhelper.RemoveAccount(acc1.Id)
 
-	groups, err := modelhelper.FetchAccountGroups(acc1.Profile.Nickname)
+	groups, err := modelhelper.FetchAccountGroupNames(acc1.Profile.Nickname)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatal(err)
 	}
 
 	if len(groups) != 0 {
@@ -172,7 +172,7 @@ func TestFetchAccountGroups(t *testing.T) {
 
 	group1, err := createGroup()
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatal(err)
 	}
 
 	if err := modelhelper.AddRelationship(&models.Relationship{
@@ -186,9 +186,9 @@ func TestFetchAccountGroups(t *testing.T) {
 		t.Error(err)
 	}
 
-	groups, err = modelhelper.FetchAccountGroups(acc1.Profile.Nickname)
+	groups, err = modelhelper.FetchAccountGroupNames(acc1.Profile.Nickname)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatal(err)
 	}
 
 	if len(groups) != 1 {
@@ -220,16 +220,94 @@ func TestFetchAccountGroups(t *testing.T) {
 		SourceName: "JGroup",
 		As:         "member",
 	}); err != nil {
-		t.Fatalf(err.Error())
+		t.Fatal(err)
 	}
 
-	groups, err = modelhelper.FetchAccountGroups(acc1.Profile.Nickname)
+	groups, err = modelhelper.FetchAccountGroupNames(acc1.Profile.Nickname)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatal(err)
 	}
 
 	if len(groups) != 2 {
 		t.Fatalf("expected len(groups) to be 2, got groups: %+v", groups)
 	}
+}
 
+func TestFetchAccountGroups(t *testing.T) {
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
+
+	acc1 := createTestAccount(t)
+	defer modelhelper.RemoveAccount(acc1.Id)
+
+	groups, err := modelhelper.FetchAccountGroups(acc1.Profile.Nickname)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(groups) != 0 {
+		t.Fatalf("expected len(groups) to be 0, got groups: %+v", groups)
+	}
+
+	group1, err := createGroup()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := modelhelper.AddRelationship(&models.Relationship{
+		Id:         bson.NewObjectId(),
+		TargetId:   acc1.Id,
+		TargetName: "JAccount",
+		SourceId:   group1.Id,
+		SourceName: "JGroup",
+		As:         "member",
+	}); err != nil {
+		t.Error(err)
+	}
+
+	groups, err = modelhelper.FetchAccountGroups(acc1.Profile.Nickname)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(groups) != 1 {
+		t.Fatalf("expected len(groups) to be 1, got groups: %+v", groups)
+	}
+
+	// test having 2 relationsips in one group
+	group2, err := createGroup()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if err := modelhelper.AddRelationship(&models.Relationship{
+		Id:         bson.NewObjectId(),
+		TargetId:   acc1.Id,
+		TargetName: "JAccount",
+		SourceId:   group2.Id,
+		SourceName: "JGroup",
+		As:         "admin",
+	}); err != nil {
+		t.Error(err)
+	}
+
+	if err := modelhelper.AddRelationship(&models.Relationship{
+		Id:         bson.NewObjectId(),
+		TargetId:   acc1.Id,
+		TargetName: "JAccount",
+		SourceId:   group2.Id,
+		SourceName: "JGroup",
+		As:         "member",
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	groups, err = modelhelper.FetchAccountGroups(acc1.Profile.Nickname)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(groups) != 2 {
+		t.Fatalf("expected len(groups) to be 2, got groups: %+v", groups)
+	}
 }

@@ -8,16 +8,13 @@ import (
 	"koding/db/mongodb/modelhelper"
 
 	mgo "gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 )
 
 // adapter is a private interface used as an adapter for mongo singleton.
 type adapter interface {
-	GetAccount(username string) (*models.Account, error)          // AccountsColl
-	RelationshipCount(selector modelhelper.Selector) (int, error) // RelationshipColl
-	GetAllRelationships(selector modelhelper.Selector) ([]models.Relationship, error)
 	GetGroup(slugName string) (*models.Group, error)
-	GetGroupsByIds(ids ...bson.ObjectId) ([]*models.Group, error) // GroupsCollectionName
+	IsParticipant(username, groupName string) (bool, error)
+	FetchAccountGroups(username string) (groups []*models.Group, err error)
 }
 
 // MongoDatabase implements Database interface. This type is responsible for
@@ -42,68 +39,40 @@ func (m *MongoDatabase) Teams(f *Filter) ([]*Team, error) {
 		f = &Filter{}
 	}
 
-	accountDB, err := m.adapter.GetAccount(f.Username)
-	if err != nil {
-		return nil, models.ResError(err, modelhelper.AccountsColl)
-	}
-
 	if f.Slug != "" {
-		return m.fetchOne(accountDB.Id, f.Username, f.Slug)
+		return m.fetchOne(f.Username, f.Slug)
 	} else {
-		return m.fetchAll(accountDB.Id)
+		return m.fetchAll(f.Username)
 	}
 }
 
 // fetchOne returns only specified team.
-func (m *MongoDatabase) fetchOne(accID bson.ObjectId, user, slug string) ([]*Team, error) {
-	groupDB, err := m.adapter.GetGroup(slug)
+func (m *MongoDatabase) fetchOne(user, slug string) ([]*Team, error) {
+	group, err := m.adapter.GetGroup(slug)
 	if err == mgo.ErrNotFound {
 		return []*Team{}, nil
 	} else if err != nil {
 		return nil, models.ResError(err, modelhelper.GroupsCollectionName)
 	}
 
-	belongs := modelhelper.Selector{
-		"targetId": accID,
-		"sourceId": groupDB.Id,
-		"as":       "member",
-	}
-
-	count, err := m.adapter.RelationshipCount(belongs)
-	if err == nil && count == 0 {
-		err = fmt.Errorf("user %q does not belong to %q group", user, slug)
-	}
-	if err != nil {
+	switch participand, err := m.adapter.IsParticipant(user, slug); {
+	case err != nil:
 		return nil, models.ResError(err, modelhelper.RelationshipColl)
+	case !participand:
+		return nil, fmt.Errorf("user %q does not belong to %q group", user, slug)
 	}
 
-	return groups2teams(groupDB), nil
+	return groups2teams(group), nil
 }
 
 // fetchOne returns all user's teams.
-func (m *MongoDatabase) fetchAll(accID bson.ObjectId) ([]*Team, error) {
-	belongs := modelhelper.Selector{
-		"targetId":   accID,
-		"sourceName": "JGroup",
-		"as":         "member",
-	}
-
-	relsDB, err := m.adapter.GetAllRelationships(belongs)
-	if err != nil {
-		return nil, models.ResError(err, modelhelper.RelationshipColl)
-	}
-
-	ids := make([]bson.ObjectId, len(relsDB))
-	for i := range relsDB {
-		ids[i] = relsDB[i].SourceId
-	}
-
-	groupsDB, err := modelhelper.GetGroupsByIds(ids...)
+func (m *MongoDatabase) fetchAll(user string) ([]*Team, error) {
+	groups, err := m.adapter.FetchAccountGroups(user)
 	if err != nil && err != mgo.ErrNotFound {
 		return nil, models.ResError(err, modelhelper.GroupsCollectionName)
 	}
 
-	return groups2teams(groupsDB...), nil
+	return groups2teams(groups...), nil
 }
 
 func groups2teams(groups ...*models.Group) []*Team {
@@ -114,7 +83,7 @@ func groups2teams(groups ...*models.Group) []*Team {
 		}
 
 		// Filter teams that have empty subscription.
-		if group.Payment.Subscription.ID == "" {
+		if group.Payment.Subscription.Status == "" {
 			continue
 		}
 
