@@ -63,7 +63,9 @@ build:
         code: scripts/wercker/run-command scripts/lint-coffeescript.sh
     - script:
         name: launch test hosts
-        code: scripts/wercker/run-command scripts/wercker/launch-test-hosts | tee INSTANCE_DATA
+        code: |
+          scripts/wercker/run-command scripts/wercker/launch-test-hosts | tee INSTANCE_DATA
+          scripts/wercker/run-command scripts/wercker/launch-rainforest-host | tee RAINFOREST_HOST
     - script:
         name: check configs
         code: |
@@ -144,7 +146,12 @@ build:
           [ "$CONFIG" != "prod" ] && scripts/delete-deployment-credentials.sh
     - script:
         name: check connectivity
-        code: scripts/wercker/run-command scripts/wercker/check-connectivity INSTANCE_DATA
+        code: |
+          scripts/wercker/run-command scripts/wercker/check-connectivity INSTANCE_DATA
+          scripts/wercker/run-command scripts/wercker/check-connectivity-rainforest RAINFOREST_HOST
+    - script:
+        name: run rainforest
+        code: scripts/wercker/run-rainforest RAINFOREST_HOST
     - script:
         name: test nodejs
         code: scripts/wercker/run-command scripts/node-testing/run-tests INSTANCE_DATA

@@ -62,7 +62,7 @@ userData =
 
 params =
   ImageId          : (require './ami').id
-  InstanceType     : 'm4.large'
+  InstanceType     : 'c4.xlarge'
   MinCount         : argv.count
   MaxCount         : argv.count
   SubnetId         : subnetId
