@@ -5,13 +5,13 @@
   {% for personData in people %}
     {% assign person = personData | strip | split: "--" %}
     {% assign name = person[0] %}
-    {% assign avatar = person[1] | prepend: include.path | prepend: site.url %}
-    {% assign avatar2x = avatar | replace: '.png', '@2x.png' %}
+    {% assign avatar = person[1] | strip %}
+    {% if avatar != '' %}
+      {% assign avatar = person[1] | prepend: include.path | prepend: site.url %}
+    {% endif %}
     {% assign title = person[2] %}
     {% assign org = person[3] %}
-    <figure data-index="{% increment foo %}" {% if foo == 0 %}class="active"{% endif %}>
-      <img src="{{ avatar }}" srcset="{{ avatar }} 1x, {{ avatar2x | }} 2x" />
-    </figure>
+    <figure data-index="{% increment foo %}" {% if foo == 0 %}class="active"{% endif %}{% if avatar != '' %}style="background-image: url('{{ avatar }}')"{% endif %}></figure>
   {% endfor %}
   </div>
 
