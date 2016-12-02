@@ -188,6 +188,7 @@ func (s *SessionCache) Auth(opts *AuthOptions) (*Session, error) {
 	// - if storage failed to delete invalidated session,
 	//   then the worst case any concurrent requests could
 	//   try to use it again at most once.
+	//
 	// - if set failed, we are going to request session again
 	//
 	s.cacheMu.Lock()
