@@ -99,7 +99,7 @@ func (s *SessionCache) Auth(opts *AuthOptions) (*Session, error) {
 		}
 	}
 
-	session, err := s.Auth(opts)
+	session, err := s.AuthFunc(opts)
 
 	// TODO(rjeczalik): for now we ignore storage errors,
 	// maybe we should handle them (fallback to memory?).

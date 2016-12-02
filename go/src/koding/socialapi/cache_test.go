@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	"koding/kites/kloud/utils"
 	"koding/socialapi"
 )
 
@@ -23,13 +24,68 @@ func TestSessionCache(t *testing.T) {
 		opts *socialapi.AuthOptions
 		trxs TrxStorage
 	}{{
-		"new user",
+		"new user1",
 		&socialapi.AuthOptions{
 			Session: users[0],
 		},
 		TrxStorage{
 			{Type: "get", Session: users[0]},
 			{Type: "set", Session: users[0]},
+		},
+	}, {
+		"already cached user",
+		&socialapi.AuthOptions{
+			Session: users[0],
+		},
+		TrxStorage{
+			{Type: "get", Session: users[0]},
+		},
+	}, {
+		"nop on valid session",
+		&socialapi.AuthOptions{
+			Session: &socialapi.Session{
+				ClientID: utils.RandString(12),
+				Username: users[0].Username,
+				Team:     users[0].Team,
+			},
+		},
+		nil,
+	}, {
+		"invalide session of a cached user",
+		&socialapi.AuthOptions{
+			Session: users[0],
+			Refresh: true,
+		},
+		TrxStorage{
+			{Type: "delete", Session: users[0]},
+			{Type: "set", Session: users[0]},
+		},
+	}, {
+		"new user2",
+		&socialapi.AuthOptions{
+			Session: users[1],
+		},
+		TrxStorage{
+			{Type: "get", Session: users[1]},
+			{Type: "set", Session: users[1]},
+		},
+	}, {
+		"new user3",
+		&socialapi.AuthOptions{
+			Session: users[2],
+		},
+		TrxStorage{
+			{Type: "get", Session: users[2]},
+			{Type: "set", Session: users[2]},
+		},
+	}, {
+		"new user",
+		&socialapi.AuthOptions{
+			Session: users[3],
+		},
+		TrxStorage{
+			{Type: "get", Session: users[3]},
+			{Type: "set", Session: users[3]},
 		},
 	}}
 
