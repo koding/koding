@@ -296,8 +296,9 @@ $borderColor                = #E3E3E3
       > .kdview
         margin-top          30px
     &.stack-template
-      .searchStackInput
-        margin-top          20px
+      .editor-pane.editor-view
+        top                 37px
+
   .info-view
     bg                      color #FEF2F4
     height                  30px
@@ -307,13 +308,13 @@ $borderColor                = #E3E3E3
     padding-left            30px
     border                  1px solid #DDD
     border-width            0 1px
-    left                    0
-    top                     70px
-    right                   0
     z-index                 1
     font-size               14px
     line-height             17px
-    abs()
+    abs                     30px 0px 0 0px
+
+    &.template
+      top                   79px
 
     &.saveTemplate
       bg                    color #F6FCF9
