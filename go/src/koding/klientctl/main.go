@@ -581,9 +581,9 @@ func run(args []string) {
 						Action: ctlcli.ExitErrAction(TeamList, log, "list"),
 						Flags: []cli.Flag{
 							cli.StringFlag{
-								Name:  "name",
+								Name:  "slug",
 								Value: "",
-								Usage: "Limits the output to the specified team",
+								Usage: "Limits the output to the specified team slug",
 							},
 							cli.BoolFlag{
 								Name:  "json",

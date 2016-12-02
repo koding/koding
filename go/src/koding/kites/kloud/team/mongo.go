@@ -7,6 +7,7 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 
+	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -56,7 +57,9 @@ func (m *MongoDatabase) Teams(f *Filter) ([]*Team, error) {
 // fetchOne returns only specified team.
 func (m *MongoDatabase) fetchOne(accID bson.ObjectId, user, slug string) ([]*Team, error) {
 	groupDB, err := m.adapter.GetGroup(slug)
-	if err != nil {
+	if err == mgo.ErrNotFound {
+		return []*Team{}, nil
+	} else if err != nil {
 		return nil, models.ResError(err, modelhelper.GroupsCollectionName)
 	}
 
@@ -96,7 +99,7 @@ func (m *MongoDatabase) fetchAll(accID bson.ObjectId) ([]*Team, error) {
 	}
 
 	groupsDB, err := modelhelper.GetGroupsByIds(ids...)
-	if err != nil {
+	if err != nil && err != mgo.ErrNotFound {
 		return nil, models.ResError(err, modelhelper.GroupsCollectionName)
 	}
 
