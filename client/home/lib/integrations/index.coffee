@@ -15,8 +15,8 @@ module.exports = class HomeIntegrations extends kd.CustomScrollView
 
     super options, data
 
-    @wrapper.addSubView headerize 'Github'
-    @wrapper.addSubView sectionize 'Github', HomeIntegrationsGithub
+    @wrapper.addSubView headerize 'GitHub'
+    @wrapper.addSubView sectionize 'GitHub', HomeIntegrationsGithub
     @wrapper.addSubView headerize 'GitLab'
     @wrapper.addSubView sectionize 'GitLab', HomeIntegrationsGitlab
     @wrapper.addSubView headerize 'Intercom'

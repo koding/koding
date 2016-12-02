@@ -6,13 +6,13 @@ getGroup = require 'app/util/getGroup'
 getOAuthEndPoint = require 'app/util/getOAuthEndPoint'
 
 
-saveGithubConfig = (options = {}, callback) ->
+saveGitHubConfig = (options = {}, callback) ->
 
   options = _.assign {}, options, { provider: 'github' }
   getGroup().setOAuth options, callback
 
 
-module.exports = class GithubContainer extends React.Component
+module.exports = class GitHubContainer extends React.Component
 
   constructor: (props) ->
 
@@ -88,7 +88,7 @@ module.exports = class GithubContainer extends React.Component
     options = _.pick @state, 'applicationId', 'applicationSecret'
     options.enabled = no
 
-    saveGithubConfig options, (err) =>
+    saveGitHubConfig options, (err) =>
       if err
       then @setState { enabled: yes }
       else
@@ -108,7 +108,7 @@ module.exports = class GithubContainer extends React.Component
       options.enabled = yes
 
       # save it to the config
-      saveGithubConfig options, (err, config) =>
+      saveGitHubConfig options, (err, config) =>
 
         newState = {}
         newState.err = err  if err

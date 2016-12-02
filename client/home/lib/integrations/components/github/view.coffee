@@ -5,7 +5,7 @@ ConfirmModal = require 'lab/ConfirmModal'
 classnames = require 'classnames'
 
 
-module.exports = class GithubView extends React.Component
+module.exports = class GitHubView extends React.Component
 
   render: ->
 
@@ -17,8 +17,8 @@ module.exports = class GithubView extends React.Component
 
       <ConfirmModal
         isOpen={isConfirmModalOpen}
-        title="Remove Github Integration"
-        message="Are you sure you want to remove Github integration? It will logout all team members who are logged in using this integration."
+        title="Remove GitHub Integration"
+        message="Are you sure you want to remove GitHub integration? It will logout all team members who are logged in using this integration."
         confirmTitle={if isRemoving then 'REMOVING...' else 'REMOVE'}
         cancelTitle="CANCEL"
         onCancel={onRemoveCancel}
@@ -29,11 +29,11 @@ module.exports = class GithubView extends React.Component
         className='HomeApp-ApiToken--swicth-toggle'
         callback={onToggleChange} />
 
-      <strong>Github Integration</strong>
-      <div>Koding & Github for continous development</div>
+      <strong>GitHub Integration</strong>
+      <div>Koding & GitHub for continous development</div>
       <span className="separator" />
 
-      <GithubForm
+      <GitHubForm
         err={err}
         enabled={enabled}
         callbackUrl={callbackUrl}
@@ -56,7 +56,7 @@ GithubForm = ({ err, enabled, applicationId, applicationSecret, onInputChange, c
 
   <div>
     <cite className='warning'>
-      Register a new OAuth application on Github by using this URL as authorization callback URL
+      Register a new OAuth application on GitHub by using this URL as authorization callback URL
       <code className='HomeAppView--code'>{callbackUrl}</code>
       and provide generated <code className='HomeAppView--code'>clientId</code> and
       <code className='HomeAppView--code'>clientSecret</code> here.
