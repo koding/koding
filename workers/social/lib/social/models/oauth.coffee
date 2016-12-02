@@ -133,12 +133,13 @@ module.exports = class OAuth extends bongo.Base
     github    :
       title   : 'GitHub OAuth Provider'
       enabled : yes
-      scopes  : ['user','user:email','user:follow','public_repo','repo',
-                 'repo_deployment','repo:status','delete_repo','notifications',
-                 'gist','read:repo_hook','write:repo_hook','admin:repo_hook',
-                 'admin:org_hook','read:org','write:org','admin:org',
-                 'read:public_key','write:public_key','admin:public_key',
-                 'read:gpg_key','write:gpg_key','admin:gpg_key']
+      scopes  : ['user', 'user:email', 'user:follow', 'public_repo', 'repo',
+                 'repo_deployment', 'repo:status', 'delete_repo',
+                 'notifications', 'gist', 'read:repo_hook', 'write:repo_hook',
+                 'admin:repo_hook', 'admin:org_hook', 'read:org', 'write:org',
+                 'admin:org', 'read:public_key', 'write:public_key',
+                 'admin:public_key', 'read:gpg_key', 'write:gpg_key',
+                 'admin:gpg_key']
       getUrl  : (client, urlOptions, callback) ->
 
         { scope, returnUrl, redirectUri } = urlOptions
@@ -171,7 +172,7 @@ module.exports = class OAuth extends bongo.Base
           MissingFieldError, 'MissingField', { fields: ['applicationSecret'] }
 
         scope  = 'user:email'  if not scope or not scope.trim?()
-        scopes = scope.split ','
+        scopes = scope.split ', '
         scope  = (scopes
           .map    (s) -> s.trim()
           .filter (s) -> s in PROVIDERS.github.scopes

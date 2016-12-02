@@ -20,6 +20,7 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
       gitlab: 'GitLab'
 
     @linked     = {}
+    @scopes     = {}
     @switches   = {}
     @containers = {}
 
@@ -47,6 +48,10 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
 
       @containers[provider].addSubView new kd.CustomHTMLView
         partial: "#{@providers[provider]} Integration"
+
+      @containers[provider].addSubView @scopes[provider] = new kd.CustomHTMLView
+        cssClass: 'scope hidden'
+        partial: ''
 
       @containers[provider].addSubView @switches[provider]
 
@@ -76,6 +81,15 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
         @switches[provider].setDefaultValue @linked[provider]
         @switches[provider].makeEnabled()
 
+        if @linked[provider] and scope = foreignAuth[provider].scope
+          scope = scope.replace /,/g, ', '
+          @scopes[provider].updatePartial scope
+          @scopes[provider].setTooltip
+            title: "Scopes: #{scope}"
+          @scopes[provider].show()
+        else
+          @scopes[provider].unsetTooltip()
+          @scopes[provider].hide()
 
       do callback
 
@@ -107,6 +121,8 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
         title: "Your #{@providers[provider]} integration is now disabled."
 
       @linked[provider] = no
+      @scopes[provider].unsetTooltip()
+      @scopes[provider].hide()
 
 
   getLoaderView: ->
