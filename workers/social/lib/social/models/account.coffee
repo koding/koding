@@ -56,28 +56,14 @@ module.exports = class JAccount extends jraphical.Module
         ]
         some:
           (signature Object, Object, Function)
-        cursor:
-          (signature Object, Object, Function)
-        each: [
-          (signature Object, Object, Function)
-          (signature Object, Object, Object, Function)
-        ]
         someWithRelationship:
           (signature Object, Object, Function)
-        someData:
-          (signature Object, Object, Object, Function)
         count: [
           (signature Function)
           (signature Object, Function)
         ]
-        byRelevance: [
-          (signature String, Function)
+        byRelevance:
           (signature String, Object, Function)
-        ]
-        reserveNames: [
-          (signature Function)
-          (signature Object, Function)
-        ]
         verifyEmailByUsername:
           (signature String, Function)
         fetchBlockedUsers:
@@ -148,8 +134,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature String, Function)
           (signature [String], Function)
         ]
-        likeMember:
-          (signature String, Function)
         fetchKites :
           (signature Object, Function)
         fetchMetaInformation :
@@ -536,28 +520,6 @@ module.exports = class JAccount extends jraphical.Module
         user.confirmEmail (err) ->
           return callback new Error 'An error occurred while confirming email' if err
           callback null, yes
-
-  @reserveNames = (options, callback) ->
-    [callback, options] = [options, callback]  unless callback
-    options       ?= {}
-    options.limit ?= 100
-    options.skip  ?= 0
-    @someData {}, { 'profile.nickname':1 }, options, (err, cursor) =>
-      if err then callback err
-      else
-        count = 0
-        cursor.each (err, account) =>
-          if err then callback err
-          else if account?
-            { nickname } = account.profile
-            JName.claim nickname, 'JUser', 'username', (err) =>
-              count++
-              if err then callback err
-              else
-                callback err, nickname
-                if count is options.limit
-                  options.skip += options.limit
-                  @reserveNames options, callback
 
 
   @fetchBlockedUsers = secure ({ connection:{ delegate } }, options, callback) ->

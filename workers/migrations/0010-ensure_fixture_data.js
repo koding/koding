@@ -2,7 +2,7 @@ var mongodb = require('mongodb');
 var async = require('async');
 var ObjectId = mongodb.ObjectID;
 
-data = {
+var data = {
   "relationships": [
     {
       "_id": ObjectId("5196fcb0bc9bdb000000001e"),
@@ -1201,7 +1201,7 @@ data = {
   "jGroups": [
     {
       "_id": ObjectId("5196fcb2bc9bdb0000000027"),
-      "body": "Say goodbye to your localhost",
+      "body": "Modern Dev Environment Delivered · Koding",
       "counts": {
         "members": 3
       },

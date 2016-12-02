@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/workers/api/realtimehelper"
@@ -28,9 +27,6 @@ var mailSender = emailsender.Send
 type StripeHandler func([]byte) error
 
 var stripeActions = map[string]StripeHandler{
-	"charge.succeeded": chargeSucceededHandler,
-	"charge.failed":    chargeFailedHandler,
-
 	"customer.subscription.created":        customerSubscriptionCreatedHandler,
 	"customer.subscription.deleted":        customerSubscriptionDeletedHandler,
 	"customer.subscription.updated":        customerSubscriptionUpdatedHandler,
@@ -53,6 +49,11 @@ func GetHandler(name string) (StripeHandler, error) {
 	return action, nil
 }
 
+func getAmountOpts(currency string, amount int64) map[string]interface{} {
+	formatted := formatCurrency(currency, amount)
+	return map[string]interface{}{"amount": formatted}
+}
+
 func formatCurrency(currencyStr string, amount int64) string {
 	switch currencyStr {
 	case "USD", "usd":
@@ -64,42 +65,11 @@ func formatCurrency(currencyStr string, amount int64) string {
 	return fmt.Sprintf("%s%v", currencyStr, amount/100)
 }
 
-func chargeSucceededHandler(raw []byte) error {
-	var charge *stripe.Charge
-	err := json.Unmarshal(raw, &charge)
-	if err != nil {
-		return err
-	}
-
-	opts := getAmountOpts(string(charge.Currency), int64(charge.Amount))
-	eventName := "charge succeeded"
-
-	return sendEventForCustomer(charge.Customer.ID, eventName, opts)
-}
-
-func chargeFailedHandler(raw []byte) error {
-	var charge *stripe.Charge
-	err := json.Unmarshal(raw, &charge)
-	if err != nil {
-		return err
-	}
-
-	opts := getAmountOpts(string(charge.Currency), int64(charge.Amount))
-	eventName := "charge failed"
-
-	return sendEventForCustomer(charge.Customer.ID, eventName, opts)
-}
-
-func getAmountOpts(currency string, amount int64) map[string]interface{} {
-	formatted := formatCurrency(currency, amount)
-	return map[string]interface{}{"amount": formatted}
-}
-
 var oneDayTrialDur int64 = 24 * 60 * 60
 var sevenDayTrialDur = 7 * oneDayTrialDur
 
 func customerSubscriptionCreatedHandler(raw []byte) error {
-	var req *stripe.Sub
+	var req stripe.Sub
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
@@ -107,6 +77,10 @@ func customerSubscriptionCreatedHandler(raw []byte) error {
 
 	eventName := fmt.Sprintf("subscribed to %s plan", req.Plan.ID)
 	if err := sendEventForCustomer(req.Customer.ID, eventName, nil); err != nil {
+		return err
+	}
+
+	if err := syncGroupWithCustomerID(req.Customer.ID); err != nil {
 		return err
 	}
 
@@ -128,14 +102,13 @@ func customerSubscriptionCreatedHandler(raw []byte) error {
 }
 
 func customerSubscriptionDeletedHandler(raw []byte) error {
-	var req *stripe.Sub
+	var req stripe.Sub
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
 	}
 
-	// on sub deletion, remove info from db.
-	if err := unsetSubInfo(req); err != nil {
+	if err := syncGroupWithCustomerID(req.Customer.ID); err != nil {
 		return err
 	}
 
@@ -144,58 +117,15 @@ func customerSubscriptionDeletedHandler(raw []byte) error {
 	return sendEventForCustomer(req.Customer.ID, eventName, nil)
 }
 
-func getGroupInfoFromSub(req *stripe.Sub) (*mongomodels.Group, error) {
-	cus, err := customer.Get(req.Customer.ID, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return modelhelper.GetGroup(cus.Meta["groupName"])
-}
-
-func unsetSubInfo(req *stripe.Sub) error {
-	group, err := getGroupInfoFromSub(req)
-	if err == mgo.ErrNotFound {
-		return nil
-	}
-
-	if err != nil {
-		return err
-	}
-
-	if group.Payment.Subscription.ID == req.ID && group.Payment.Subscription.Status == string(req.Status) {
-		return nil
-	}
-
-	return unsetSubData(group.Id)
-}
-
-func setSubInfo(req *stripe.Sub) error {
-	group, err := getGroupInfoFromSub(req)
-	if err == mgo.ErrNotFound {
-		return nil
-	}
-
-	if err != nil {
-		return err
-	}
-
-	if group.Payment.Subscription.ID == req.ID && group.Payment.Subscription.Status == string(req.Status) {
-		return nil
-	}
-
-	return setSubData(group.Id, req)
-}
-
 func customerSubscriptionUpdatedHandler(raw []byte) error {
-	var req *stripe.Sub
+	var req stripe.Sub
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
 	}
 
 	// on sub update, update info from db.
-	if err := setSubInfo(req); err != nil {
+	if err := syncGroupWithCustomerID(req.Customer.ID); err != nil {
 		return err
 	}
 
@@ -205,7 +135,7 @@ func customerSubscriptionUpdatedHandler(raw []byte) error {
 }
 
 func customerSubscriptionTrialWillEndHandler(raw []byte) error {
-	var req *stripe.Sub
+	var req stripe.Sub
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
@@ -221,7 +151,7 @@ func customerSubscriptionTrialWillEndHandler(raw []byte) error {
 }
 
 func customerSourceCreatedHandler(raw []byte) error {
-	var req *stripe.Card
+	var req stripe.Card
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
@@ -233,7 +163,7 @@ func customerSourceCreatedHandler(raw []byte) error {
 }
 
 func customerSourceDeletedHandler(raw []byte) error {
-	var req *stripe.Card
+	var req stripe.Card
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
@@ -245,7 +175,7 @@ func customerSourceDeletedHandler(raw []byte) error {
 }
 
 func invoiceCreatedHandler(raw []byte) error {
-	var invoice *stripe.Invoice
+	var invoice stripe.Invoice
 	err := json.Unmarshal(raw, &invoice)
 	if err != nil {
 		return err
@@ -287,6 +217,10 @@ func invoiceCreatedHandler(raw []byte) error {
 	}
 
 	info, err := GetInfoForGroup(group)
+	if err == mgo.ErrNotFound {
+		return nil
+	}
+
 	if err != nil {
 		return err
 	}
@@ -356,20 +290,15 @@ func invoicePaymentSucceededHandler(raw []byte) error {
 }
 
 func invoicePaymentHandler(raw []byte, eventName string) error {
-	var invoice *stripe.Invoice
+	var invoice stripe.Invoice
 	err := json.Unmarshal(raw, &invoice)
 	if err != nil {
 		return err
 	}
 
-	go sendInvoiceEvent(invoice, eventName)
+	go sendInvoiceEvent(&invoice, eventName)
 
-	return handleInvoiceStateChange(invoice)
-}
-
-func sendInvoiceEvent(invoice *stripe.Invoice, eventName string) error {
-	opts := getAmountOpts(string(invoice.Currency), invoice.Amount)
-	return sendEventForCustomer(invoice.Customer.ID, eventName, opts)
+	return handleInvoiceStateChange(&invoice)
 }
 
 func handleInvoiceStateChange(invoice *stripe.Invoice) error {
@@ -378,16 +307,8 @@ func handleInvoiceStateChange(invoice *stripe.Invoice) error {
 		return err
 	}
 
-	if cus.Subs.Count > 1 {
-		// TODO CRITICAL
-		return errors.New("customer should only have one subscription")
-	}
-
-	// on payment failure, sub is deleted eventually
-	status := SubStatusCanceled
-
-	if cus.Subs.Count != 0 {
-		status = cus.Subs.Values[0].Status
+	if err := syncGroupWithCustomerID(invoice.Customer.ID); err != nil {
+		return err
 	}
 
 	group, err := modelhelper.GetGroup(cus.Meta["groupName"])
@@ -401,12 +322,10 @@ func handleInvoiceStateChange(invoice *stripe.Invoice) error {
 		return err
 	}
 
-	if group.Payment.Subscription.Status == string(status) {
-		return nil
-	}
+	status := group.Payment.Subscription.Status
 
 	// if sub is in cancelled state within 2 months send an event
-	if status == SubStatusCanceled {
+	if status == string(SubStatusCanceled) {
 		// if group has been created in last 2 months (1 month trial + 1 month free)
 		totalTrialTime := time.Now().UTC().Add(-time.Hour * 24 * 60)
 		if group.Id.Time().After(totalTrialTime) {
@@ -425,19 +344,13 @@ func handleInvoiceStateChange(invoice *stripe.Invoice) error {
 		},
 	)
 
-	if err := modelhelper.UpdateGroupPartial(
-		modelhelper.Selector{"_id": group.Id},
-		modelhelper.Selector{
-			"$set": modelhelper.Selector{
-				"payment.subscription.status": status,
-			},
-		},
-	); err != nil {
-		return err
-	}
-
 	eventName := fmt.Sprintf("subscription status %s", status)
 	return sendEventForCustomer(invoice.Customer.ID, eventName, nil)
+}
+
+func sendInvoiceEvent(invoice *stripe.Invoice, eventName string) error {
+	opts := getAmountOpts(string(invoice.Currency), invoice.Amount)
+	return sendEventForCustomer(invoice.Customer.ID, eventName, opts)
 }
 
 func sendEventForCustomer(customerID string, eventName string, options map[string]interface{}) error {
@@ -455,6 +368,10 @@ func sendEventForCustomer(customerID string, eventName string, options map[strin
 	}
 
 	admins, err := modelhelper.FetchAdminAccounts(cus.Meta["groupName"])
+	if err == mgo.ErrNotFound {
+		return nil
+	}
+
 	if err != nil {
 		return err
 	}

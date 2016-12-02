@@ -139,6 +139,7 @@ module.exports = (options, credentials) ->
 
     kontrolUrl: kontrol.url
     registerUrl: "#{options.customDomain.public}/kloud/kite"
+    remoteApiUrl: "#{options.customDomain.public}/remote.api"
     tunnelUrl: "#{options.tunnelUrl}"
     klientUrl: "https://s3.amazonaws.com/koding-klient/development/latest/klient.deb"
 
@@ -209,6 +210,7 @@ module.exports = (options, credentials) ->
       klientLatest     : "https://koding-klient.s3.amazonaws.com/#{options.environment}/latest-version.txt"
       kloud            : "#{options.publicHostname}/kloud/kite",
       kontrol          : "#{options.publicHostname}/kontrol/kite",
+      remoteAPI        : "#{options.publicHostname}/remote.api",
       tunnelServer     : "#{options.tunnelUrl}/kite"
     routes             :
       'dev.koding.com' : '127.0.0.1'
@@ -281,7 +283,8 @@ module.exports = (options, credentials) ->
     uri                           : { address: options.customDomain.public }
     misc                          : { claimGlobalNamesForUsers: no , debugConnectionErrors: yes, updateAllSlugs: false }
     # TODO: average request count per hour for a user should be measured and a reasonable limit should be set
-    nodejsRateLimiter             : { enabled: no, guestRules: [{ interval: 3600, limit: 5000 }], userRules: [{ interval: 3600, limit: 10000 }] } # limit: request limit per rate limit window, interval: rate limit window duration in seconds
+    nodejsRateLimiter             : { enabled: no,  guestRules: [{ interval: 3600, limit: 5000 }], userRules: [{ interval: 3600, limit: 10000 }] } # limit: request limit per rate limit window, interval: rate limit window duration in seconds
+    nodejsRateLimiterForApi       : { enabled: yes, guestRules: [{ interval: 60,   limit: 10 }],   userRules: [{ interval: 60,   limit: 300 }] }   # limit: request limit per rate limit window, interval: rate limit window duration in seconds
     webserver                     : { port: 8080, useCacheHeader: no }
     authWorker                    : { login: credentials.rabbitmq.login, queueName: options.socialQueueName + 'auth', authExchange: "auth", authAllExchange: "authAll", port : 9530 }
     social                        : { port: 3030, login: "#{credentials.rabbitmq.login}", queueName: options.socialQueueName, kitePort: 8760, kiteKey: "#{credentials.kiteHome}/kite.key" }

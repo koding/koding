@@ -109,8 +109,13 @@ module.exports = class SidebarStackSection extends React.Component
         remote.api.JStackTemplate.one { _id: templateId }, (err, template) ->
           computeController.makeTeamDefault template, no  unless err
 
-
   onTitleClick: (event) ->
+
+    id = @props.stack.get 'baseStackId'
+    kd.singletons.router.handleRoute "/Stack-Editor/#{id}"
+
+
+  onMenuIconClick: (event) ->
 
     kd.utils.stopDOMEvent event
 
@@ -205,6 +210,7 @@ module.exports = class SidebarStackSection extends React.Component
       className={kd.utils.curry className, @props.className}
       title={@props.stack.get 'title'}
       onTitleClick={@bound 'onTitleClick'}
+      onMenuIconClick={@bound 'onMenuIconClick'}
       secondaryLink=''
       unreadCount={@getStackUnreadCount()}
       unreadCountClickHandler={@bound 'unreadCountClickHandler'}

@@ -97,7 +97,7 @@ module.exports = class Validators
 
   @isSoloAccessible: ({ groupName, account, cutoffDate, env }) ->
     # old data might not have createdAt?
-    return yes if not account?.meta?.createdAt?
+    return yes  if not account?.meta?.createdAt?
 
     # everyone can login to their own team
     return yes  if groupName isnt 'koding'
@@ -109,6 +109,6 @@ module.exports = class Validators
     return yes  if account.meta.createdAt.getTime() < cutoffDate.getTime()
 
     # but in any case allow logins on dev and sandbox env
-    return yes if env in ['dev', 'sandbox']
+    return yes  if env in ['dev', 'sandbox']
 
     return no

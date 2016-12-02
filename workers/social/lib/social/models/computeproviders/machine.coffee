@@ -97,8 +97,8 @@ module.exports = class JMachine extends Module
         type            : [ ObjectId ]
 
       credential        : String
-      users             : Array
-      groups            : Array
+      users             : [ Object ]
+      groups            : [ Object ]
 
       createdAt         : Date
 

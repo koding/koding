@@ -97,8 +97,40 @@ func UpdateSessionIP(token string, ip string) error {
 	return nil
 }
 
+// UpdateSessionData updates the transitive data in given session. Overrides the
+// current data if any.
+func UpdateSessionData(clientID string, data map[string]interface{}) error {
+	query := func(c *mgo.Collection) error {
+		return c.Update(
+			bson.M{"clientId": clientID},
+			bson.M{
+				"$set": bson.M{
+					"data": data,
+				},
+			},
+		)
+	}
+
+	if err := Mongo.Run(SessionColl, query); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func CreateSession(s *models.Session) error {
 	return Mongo.Run(SessionColl, insertQuery(s))
+}
+
+// FetchOrCreateSession fetches or creates a new session for given user & group
+// pair
+func FetchOrCreateSession(nick, groupName string) (*models.Session, error) {
+	session, err := GetOneSessionForAccount(nick, groupName)
+	if err == nil {
+		return session, nil
+	}
+
+	return CreateSessionForAccount(nick, groupName)
 }
 
 func CreateSessionForAccount(username, groupName string) (*models.Session, error) {

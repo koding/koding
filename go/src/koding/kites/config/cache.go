@@ -22,6 +22,14 @@ type CacheOptions struct {
 	File   string
 	BoltDB *bolt.Options
 	Bucket []byte
+	Owner  *User
+}
+
+func (o *CacheOptions) owner() *User {
+	if o.Owner != nil {
+		return o.Owner
+	}
+	return CurrentUser
 }
 
 // Cache is a file-based cached used to persist values between
@@ -65,7 +73,9 @@ func NewBoltCache(options *CacheOptions) (*Cache, error) {
 }
 
 func newBoltDB(o *CacheOptions) (*bolt.DB, error) {
-	os.MkdirAll(filepath.Dir(o.File), 0755)
+	dir := filepath.Dir(o.File)
+	os.MkdirAll(dir, 0755)
+	chown(dir, o.owner())
 
 	return bolt.Open(o.File, 0644, o.BoltDB)
 }
@@ -80,7 +90,31 @@ func KodingHome() string {
 	return home
 }
 
-func currentUser() *user.User {
+type User struct {
+	*user.User
+	Groups []*user.Group
+}
+
+func currentUser() *User {
+	u := &User{
+		User: currentStdUser(),
+	}
+
+	ids, err := u.GroupIds()
+	if err != nil {
+		return u
+	}
+
+	for _, id := range ids {
+		if g, err := user.LookupGroupId(id); err == nil {
+			u.Groups = append(u.Groups, g)
+		}
+	}
+
+	return u
+}
+
+func currentStdUser() *user.User {
 	u, err := user.Current()
 	if err != nil {
 		panic(err)

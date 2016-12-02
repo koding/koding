@@ -36,6 +36,13 @@ module.exports = class SidebarSection extends React.Component
       href={@props.secondaryLink} />
 
 
+  renderMenuIcon: ->
+
+    return null  unless @props.onMenuIconClick
+
+    <div onClick={@props.onMenuIconClick} className='menu-icon'></div>
+
+
   renderHeader: ->
 
     return null  unless @props.title
@@ -52,6 +59,7 @@ module.exports = class SidebarSection extends React.Component
       <h4 className='SidebarSection-headerTitle'>
         <Link {...linkProps}>{@props.title}</Link>
       </h4>
+      {@renderMenuIcon()}
       {@renderSecondaryLink()}
       {@renderUnreadCount()}
     </header>

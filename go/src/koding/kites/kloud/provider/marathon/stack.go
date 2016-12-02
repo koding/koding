@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
+	"koding/kites/kloud/utils"
 	"path"
-	"strconv"
 
 	marathon "github.com/gambol99/go-marathon"
+	"github.com/hashicorp/terraform/terraform"
 )
 
 var klientPort = map[string]interface{}{
@@ -27,16 +29,23 @@ var healthCheck = map[string]interface{}{
 	"protocol":                 "COMMAND",
 }
 
+// Label represents a single app's label.
+type Label struct {
+	Label string
+	AppID string
+}
+
 // Stack represents a Marathon application.
 type Stack struct {
 	*provider.BaseStack
 
 	EntrypointBaseURL string
+	ScreenURL         string
+	CertURL           string
 	KlientURL         string
 
-	AppOrGroupName string
-	AppCount       int
-	Labels         []string
+	Labels []Label
+	Count  int
 }
 
 var (
@@ -48,10 +57,13 @@ func newStack(bs *provider.BaseStack) (provider.Stack, error) {
 	s := &Stack{
 		BaseStack:         bs,
 		EntrypointBaseURL: "https://koding-klient.s3.amazonaws.com/entrypoint",
+		ScreenURL:         "https://koding-dl.s3.amazonaws.com/screen.tar.gz",
+		CertURL:           "https://koding-dl.s3.amazonaws.com/ca-certificates.crt.gz",
 		KlientURL:         stack.Konfig.KlientGzURL(),
 	}
 
 	bs.PlanFunc = s.plan
+	bs.StateFunc = s.state
 
 	return s, nil
 }
@@ -76,7 +88,7 @@ func (s *Stack) BootstrapTemplates(*stack.Credential) (_ []*stack.Template, _ er
 }
 
 // StacklyTemplate applies the given credentials to user's stack template.
-func (s *Stack) ApplyTemplate(_ *stack.Credential) (*stack.Template, error) {
+func (s *Stack) ApplyTemplate(c *stack.Credential) (*stack.Template, error) {
 	t := s.Builder.Template
 
 	var resource struct {
@@ -92,16 +104,21 @@ func (s *Stack) ApplyTemplate(_ *stack.Credential) (*stack.Template, error) {
 	}
 
 	for name, app := range resource.MarathonApp {
-		originalAppID := s.convertInstancesToGroup(name, app)
+		if debug, ok := app["debug"].(bool); ok {
+			s.Debug = debug
+			delete(app, "debug")
+		}
 
-		if err := s.injectEntrypoint(app, originalAppID); err != nil {
+		s.convertInstancesToGroup(name, s.unique(c), app)
+
+		if err := s.injectEntrypoint(app); err != nil {
 			return nil, err
 		}
 
-		s.injectFetchEntrypoints(app, len(s.Labels))
+		s.injectFetchEntrypoints(app)
 		s.injectHealthChecks(app)
 
-		if err := s.injectMetadata(app, s.Labels); err != nil {
+		if err := s.injectMetadata(app, name); err != nil {
 			return nil, err
 		}
 	}
@@ -137,7 +154,7 @@ func (s *Stack) ApplyTemplate(_ *stack.Credential) (*stack.Template, error) {
 //
 // What we do instead is we convert multiple instances of an application to
 // an application group as a workaround.
-func (s *Stack) convertInstancesToGroup(name string, app map[string]interface{}) (originalAppID string) {
+func (s *Stack) convertInstancesToGroup(name, unique string, app map[string]interface{}) {
 	instances, ok := app["instances"].(int)
 	if ok {
 		delete(app, "instances")
@@ -153,23 +170,70 @@ func (s *Stack) convertInstancesToGroup(name string, app map[string]interface{})
 	count *= instances
 
 	app["count"] = count
-	s.AppCount = count
 
 	// Each app within group must have unique name.
+	var label string
 	appID, ok := app["app_id"].(string)
 	if !ok || appID == "" {
-		appID = path.Join("/", name)
-		app["app_id"] = appID
+		label = path.Join("/", name)
+
+		if count > 1 {
+			appID = path.Join("/", name, path.Base(name)+"-"+unique+"-%v")
+		} else {
+			appID = path.Join("/", name+"-"+unique)
+		}
+	} else {
+		label = path.Join("/", path.Base(appID))
+
+		if count > 1 {
+			appID = path.Join("/", appID, path.Base(appID)+"-%v")
+		} else {
+			appID = path.Join("/", appID)
+		}
 	}
 
-	s.AppOrGroupName = appID
+	forEachContainer(app, func(map[string]interface{}) error {
+		s.Count++
+		return nil
+	})
 
 	if count > 1 {
-		s.AppOrGroupName = path.Base(appID)
-		app["app_id"] = path.Join(appID, s.AppOrGroupName+"-${count.index + 1}")
-	}
+		app["app_id"] = fmt.Sprintf(appID, "${count.index + 1}")
 
-	return appID
+		for i := 1; i <= count; i++ {
+			id := fmt.Sprintf(appID, i)
+
+			if s.Count > 1 {
+				for j := 1; j <= s.Count; j++ {
+					s.Labels = append(s.Labels, Label{
+						Label: fmt.Sprintf("%s-%d-%d", label, i, j),
+						AppID: id,
+					})
+				}
+			} else {
+				s.Labels = append(s.Labels, Label{
+					Label: fmt.Sprintf("%s-%d", label, i),
+					AppID: id,
+				})
+			}
+		}
+	} else {
+		app["app_id"] = appID
+
+		if s.Count > 1 {
+			for i := 1; i <= s.Count; i++ {
+				s.Labels = append(s.Labels, Label{
+					Label: fmt.Sprintf("%s-%d", label, i),
+					AppID: appID,
+				})
+			}
+		} else {
+			s.Labels = append(s.Labels, Label{
+				Label: label,
+				AppID: appID,
+			})
+		}
+	}
 }
 
 var ErrIncompatibleEntrypoint = errors.New(`marathon: setting "args" argument conflicts with Koding entrypoint injected into each container. Please use "cmd" argument instead.`)
@@ -184,41 +248,9 @@ var ErrIncompatibleEntrypoint = errors.New(`marathon: setting "args" argument co
 //     the container's entrypoint (by default /bin/sh) is replaced
 //     with the Koding one
 //
-func (s *Stack) injectEntrypoint(app map[string]interface{}, originalAppID string) error {
+func (s *Stack) injectEntrypoint(app map[string]interface{}) error {
 	if _, ok := app["args"]; ok {
 		return ErrIncompatibleEntrypoint
-	}
-
-	count, ok := app["count"].(int)
-	if !ok {
-		count = 1
-	}
-
-	if cmd, ok := app["cmd"].(string); ok && cmd != "" {
-		app["cmd"] = "/mnt/mesos/sandbox/entrypoint.${count.index + 1}.sh " + cmd
-
-		// BUG(rjeczalik): when "cmd" argument is set, we assume
-		// there's going to be only one klient injected, since
-		// it's not possible to wrap containers' entrypoints,
-		// as Mesos sets fixed entrypoint to /bin/sh for
-		// every container.
-		if count == 1 {
-			s.Labels = []string{originalAppID}
-			return nil
-		}
-
-		for i := 0; i < count; i++ {
-			s.Labels = append(s.Labels, fmt.Sprintf("%s-%d", originalAppID, i+1))
-		}
-
-		return nil
-	}
-
-	containerCount := 0
-
-	countContainers := func(_ map[string]interface{}) error {
-		containerCount++
-		return nil
 	}
 
 	i := 0
@@ -228,7 +260,7 @@ func (s *Stack) injectEntrypoint(app map[string]interface{}, originalAppID strin
 
 		entrypoint := map[string]interface{}{
 			"key":   "entrypoint",
-			"value": fmt.Sprintf("/mnt/mesos/sandbox/entrypoint.${count.index * %d + %d}.sh", containerCount, i),
+			"value": fmt.Sprintf("/mnt/mesos/sandbox/entrypoint.${count.index * %d + %d}.sh", s.Count, i),
 		}
 
 		parametersGroup, ok := c["parameters"].(map[string]interface{})
@@ -242,25 +274,33 @@ func (s *Stack) injectEntrypoint(app map[string]interface{}, originalAppID strin
 		return nil
 	}
 
-	forEachContainer(app, countContainers)
 	forEachContainer(app, injectEntrypoint)
-
-	for i := 0; i < count; i++ {
-		for j := 0; j < containerCount; j++ {
-			s.Labels = append(s.Labels, fmt.Sprintf("%s-%d-%d", i+1, j))
-		}
-	}
 
 	return nil
 }
 
-func (s *Stack) injectFetchEntrypoints(app map[string]interface{}, metadataCount int) {
+func (s *Stack) injectFetchEntrypoints(app map[string]interface{}) {
 	fetch := getSlice(app["fetch"])
 
-	for i := 0; i < metadataCount; i++ {
+	fetch = append(fetch, map[string]interface{}{
+		"uri":        s.ScreenURL,
+		"executable": false,
+		"cache":      true,
+	}, map[string]interface{}{
+		"uri":        s.CertURL,
+		"executable": false,
+		"cache":      true,
+	}, map[string]interface{}{
+		"uri":        s.KlientURL,
+		"executable": false,
+		"cache":      false,
+	})
+
+	for i := range s.Labels {
 		fetch = append(fetch, map[string]interface{}{
 			"uri":        fmt.Sprintf("%s/entrypoint.%d.sh", s.EntrypointBaseURL, i+1),
 			"executable": true,
+			"cache":      false,
 		})
 	}
 
@@ -268,13 +308,19 @@ func (s *Stack) injectFetchEntrypoints(app map[string]interface{}, metadataCount
 }
 
 func (s *Stack) injectHealthChecks(app map[string]interface{}) {
-	healthCheckGroup, ok := app["health_checks"].(map[string]interface{})
-	if !ok {
-		healthCheckGroup = make(map[string]interface{})
-		app["health_checks"] = healthCheckGroup
-	}
-
-	healthCheckGroup["health_check"] = appendSlice(healthCheckGroup["health_check"], healthCheck)
+	// TODO(rjeczalik): use http healthcheck - implement mapping port indexes,
+	// the following fails with:
+	//
+	//   curl(52): Empty response from server
+	//
+	// Which makes Marathon redeploy healthy container.
+	//
+	// healthCheckGroup, ok := app["health_checks"].(map[string]interface{})
+	// if !ok {
+	//    healthCheckGroup = make(map[string]interface{})
+	//    app["health_checks"] = healthCheckGroup
+	// }
+	// healthCheckGroup["health_check"] = appendSlice(healthCheckGroup["health_check"], healthCheck)
 
 	containerCount := 0
 
@@ -310,17 +356,31 @@ func (s *Stack) injectHealthChecks(app map[string]interface{}) {
 	app["ports"] = ports
 }
 
-func (s *Stack) injectMetadata(app map[string]interface{}, labels []string) error {
+func (s *Stack) injectMetadata(app map[string]interface{}, name string) error {
 	envs := getObject(app["env"])
+
+	s.Builder.InterpolateField(app, name, "cmd")
+
+	cmd, ok := app["cmd"]
+	if ok {
+		delete(app, "cmd")
+		envs["KODING_CMD"] = cmd
+	}
 
 	if val, ok := envs["KODING_KLIENT_URL"].(string); !ok || val == "" {
 		envs["KODING_KLIENT_URL"] = s.KlientURL
 	}
 
-	for i, label := range labels {
-		kiteKey, err := s.BuildKiteKey(label, s.Req.Username)
+	for i, label := range s.Labels {
+		kiteKey, err := s.BuildKiteKey(label.Label, s.Req.Username)
 		if err != nil {
 			return err
+		}
+
+		tunnelID := utils.RandString(8)
+
+		if m, ok := s.Builder.Machines[label.Label]; ok && m.Uid != "" {
+			tunnelID = m.Uid
 		}
 
 		konfig := map[string]interface{}{
@@ -328,6 +388,7 @@ func (s *Stack) injectMetadata(app map[string]interface{}, labels []string) erro
 			"kontrolURL": stack.Konfig.KontrolURL,
 			"kloudURL":   stack.Konfig.KloudURL,
 			"tunnelURL":  stack.Konfig.TunnelURL,
+			"tunnelID":   tunnelID,
 		}
 
 		if s.Debug {
@@ -353,14 +414,55 @@ func (s *Stack) plan() (stack.Machines, error) {
 	for _, label := range s.Labels {
 		m := &stack.Machine{
 			Provider: "marathon",
-			Label:    label,
+			Label:    label.Label,
 			Attributes: map[string]string{
-				"app_id":    strconv.Itoa(s.AppCount),
-				"app_count": s.AppOrGroupName,
+				"app_id": label.AppID,
 			},
 		}
 
-		machines[label] = m
+		machines[label.Label] = m
+	}
+
+	return machines, nil
+}
+
+func (s *Stack) unique(c *stack.Credential) string {
+	if s.Builder.Stack != nil {
+		return s.Req.Username + "-" + s.Builder.Stack.ID.Hex()
+	}
+
+	return s.Req.Username + "-" + c.Identifier
+}
+
+func (s *Stack) state(state *terraform.State, klients map[string]*provider.DialState) (map[string]*stack.Machine, error) {
+	machines := make(map[string]*stack.Machine, len(s.Labels))
+
+	for _, label := range s.Labels {
+
+		state, ok := klients[label.Label]
+		if !ok {
+			return nil, fmt.Errorf("no klient state found for %q app", label)
+		}
+
+		m := &stack.Machine{
+			Provider: "marathon",
+			Label:    label.Label,
+			Attributes: map[string]string{
+				"app_id": label.AppID,
+			},
+			QueryString: state.KiteID,
+			RegisterURL: state.KiteURL,
+			State:       machinestate.Running,
+			StateReason: "Created with kloud.apply",
+		}
+
+		if state.Err != nil {
+			m.State = machinestate.Stopped
+			m.StateReason = fmt.Sprintf("Stopped due to dial failure: %s", state.Err)
+		}
+
+		machines[m.Label] = m
+
 	}
 
 	return machines, nil

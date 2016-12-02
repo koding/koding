@@ -139,7 +139,7 @@ module.exports = class ComputeControllerUI
 
       _field = fields[field] = _.clone currentProvider.credentialFields[field]
 
-      _field.required     = yes
+      _field.required    ?= yes
       _field.defaultValue = defaultValues[field]  if defaultValues[field]?
 
       if _field.type is 'selection'

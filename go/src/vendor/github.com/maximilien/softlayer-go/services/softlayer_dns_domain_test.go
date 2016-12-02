@@ -46,7 +46,7 @@ var _ = Describe("SoftLayer_Dns_Domain", func() {
 
 	Context("#CreateDns", func() {
 		BeforeEach(func() {
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Dns_Domain_createObject.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Dns_Domain_createObject.json")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -58,6 +58,65 @@ var _ = Describe("SoftLayer_Dns_Domain", func() {
 			Expect(dns.Serial).NotTo(BeNil())
 			Expect(dns.UpdateDate).NotTo(BeNil())
 			Expect(dns.Name).To(Equal("qwerty123ff.com"))
+		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := dnsDomainService.CreateObject(datatypes.SoftLayer_Dns_Domain_Template{})
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := dnsDomainService.CreateObject(datatypes.SoftLayer_Dns_Domain_Template{})
+					Expect(err).To(HaveOccurred())
+				}
+			})
+		})
+	})
+
+	Context("#GetByDomainName", func() {
+		BeforeEach(func() {
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Dns_Domain_getByDomainName.json")
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("returns an array of datatypes.SoftLayer_Dns_Domain", func() {
+			dnsDomains, err := dnsDomainService.GetByDomainName("services.dal.bluemix.net")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(dnsDomains).NotTo(BeNil())
+			Expect(len(dnsDomains)).To(BeNumerically(">", 0))
+			Expect(dnsDomains[0].Name).To(Equal("services.dal.bluemix.net"))
+		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := dnsDomainService.GetByDomainName("services.dal.bluemix.net")
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := dnsDomainService.GetByDomainName("services.dal.bluemix.net")
+					Expect(err).To(HaveOccurred())
+				}
+			})
 		})
 	})
 })

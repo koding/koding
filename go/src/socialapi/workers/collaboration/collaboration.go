@@ -3,6 +3,7 @@
 package collaboration
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"socialapi/config"
@@ -325,9 +326,21 @@ type Error []error
 
 // Error returns the err string
 func (e Error) Error() string {
-	if len(e) == 0 {
-		return ""
+	var buf bytes.Buffer
+
+	if len(e) == 1 {
+		buf.WriteString("1 error: ")
+	} else {
+		fmt.Fprintf(&buf, "%d errors: ", len(e))
 	}
 
-	return fmt.Sprintf("collaboration: %+v", e)
+	for i, err := range e {
+		if i != 0 {
+			buf.WriteString("; ")
+		}
+
+		buf.WriteString(err.Error())
+	}
+
+	return buf.String()
 }

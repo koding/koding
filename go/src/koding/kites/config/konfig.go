@@ -29,13 +29,20 @@ type Konfig struct {
 	KiteKeyFile string `json:"kiteKeyFile,omitempty"`
 	KiteKey     string `json:"kiteKey,omitempty"`
 
-	// Koding endpoints konfiguration.
+	// Koding endpoints configuration.
 	KontrolURL string `json:"kontrolURL,omitempty"`
 	KlientURL  string `json:"klientURL,omitempty"`
 	KloudURL   string `json:"kloudURL,omitempty"`
 	TunnelURL  string `json:"tunnelURL,omitempty"`
+	RemoteURL  string `json:"remoteURL,omitempty"`
 	IPURL      string `json:"ipURL,omitempty"`
 	IPCheckURL string `json:"ipCheckURL,omitempty"`
+
+	// Koding networking configuration.
+	//
+	// TODO(rjeczalik): store command line flags in konfig.bolt
+	// per Koding executable (KD / Klient).
+	TunnelID string `json:"tunnelID,omitempty"`
 
 	// Klient / KD auto-update endpoints.
 	KlientLatestURL string `json:"klientLatestURL,omitempty"`
@@ -62,7 +69,7 @@ func (k *Konfig) KlientGzURL() string {
 		return ""
 	}
 
-	u.Path = path.Join(path.Base(u.Path), k.Environment, "klient.gz")
+	u.Path = path.Join(path.Dir(u.Path), "latest", "klient.gz")
 
 	return u.String()
 }
@@ -129,6 +136,7 @@ func NewKonfig(e *Environments) *Konfig {
 		KontrolURL:         Builtin.Endpoints.Kontrol,
 		KloudURL:           Builtin.Endpoints.Kloud,
 		TunnelURL:          Builtin.Endpoints.TunnelServer,
+		RemoteURL:          Builtin.Endpoints.RemoteAPI,
 		IPURL:              Builtin.Endpoints.IP,
 		IPCheckURL:         Builtin.Endpoints.IPCheck,
 		KlientLatestURL:    ReplaceEnv(Builtin.Endpoints.KlientLatest, e.klientEnv()),

@@ -2,10 +2,10 @@
 encoder      = require 'htmlencode'
 
 module.exports = (options = {}) ->
-  options.title    ?= 'Koding | Say goodbye to your localhost and write code in the cloud.'
+  options.title    ?= 'Modern Dev Environment Delivered · Koding'
   options.shareUrl ?= "https://#{domains.base}"
   options.image    ?= "#{uri.address}/a/images/logos/share_logo.png"
-  options.body     ?= 'Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go,  Java, NodeJS, PHP, C, C++, Perl, Python, etc.'
+  options.body     ?= 'Instantly create, share, scale and manage development environments.'
   options.index    ?= no
 
   robotsContent = 'noodp,noydir'
@@ -14,7 +14,7 @@ module.exports = (options = {}) ->
 
   """
   <title>#{options.title}</title>
-  <meta name="keywords" content="Web IDE, Cloud VM, VM, VPS, Ruby, Node, PHP, Python, WordPress, Django, Programming, virtual machines">
+  <meta name="keywords" content="integrated development environment, cloud ide, dev environment, cloud development environment, cloud editor, virtual dev environment, web based ide, test environment, docker, aws, vagrant, azure, rackspace">
   <meta charset="utf-8">
 
   <meta name="msvalidate.01" content="F56689F2116FE1CC34876D855B2A5A8A" />

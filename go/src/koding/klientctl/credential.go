@@ -1,163 +1,202 @@
 package main
 
 import (
-	"bytes"
+	"bufio"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"sort"
+	"strconv"
+	"strings"
+	"text/tabwriter"
 	"time"
 
+	"koding/kites/config"
 	"koding/kites/kloud/stack"
-	"koding/klient/storage"
-	"koding/klientctl/lazy"
+	"koding/klientctl/kloud/credential"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
-// TODO(rjeczalik):
-//
-//   - improve "credential add" to ask user interactively about
-//     the credentials (build the question dynamically basing
-//     on kloud's credential.describe)
-//   - improve --json handling in "credential list"
-//   - add "credential use" for setting default credentials
-//     for "kd stack create" command
-//
-
-func CredentialImport(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	kloud, err := lazy.Kloud(log)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
-		return 1, err
-	}
-
-	req := &stack.CredentialListRequest{
-		Team:     c.String("team"),
-		Provider: c.String("provider"),
-	}
-
-	r, err := kloud.TellWithTimeout("credential.list", 10*time.Second, req)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
-		return 1, err
-	}
-
-	var resp stack.CredentialListResponse
-
-	if err := r.Unmarshal(&resp); err != nil {
-		return 1, err
-	}
-
-	if err := lazy.Cache().SetValue("credentials", &resp); err != nil {
-		return 1, err
-	}
-
-	creds := resp.Credentials
-	keys := make([]string, 0, len(creds))
-
-	for key := range creds {
-		keys = append(keys, key)
-	}
-
-	sort.Strings(keys)
-
-	var buf bytes.Buffer
-
-	switch len(keys) {
-	case 0:
-		fmt.Fprintf(&buf, "You have no credentials attached to your Koding account.")
-	case 1:
-		fmt.Fprintf(&buf, "Imported %d %s credential.", len(creds[keys[0]]), keys[0])
-	case 2:
-		fmt.Fprintf(&buf, "Imported %d %s and %d %s credentials.", len(creds[keys[0]]), keys[0], len(creds[keys[1]]), keys[1])
-	default:
-		fmt.Fprintf(&buf, "Imported %d %s", len(creds[keys[0]]), keys[0])
-
-		for _, key := range keys[1 : len(keys)-1] {
-			fmt.Fprintf(&buf, ", %d %s", len(creds[key]), key)
-		}
-
-		last := keys[len(keys)-1]
-
-		fmt.Fprintf(&buf, "and %d %s credentials.", len(creds[last]), last)
-	}
-
-	fmt.Println(buf.String())
-
-	return 0, nil
-}
-
 func CredentialList(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	provider := c.String("provider")
-	team := c.String("team")
-
-	var resp stack.CredentialListResponse
-
-	if err := lazy.Cache().GetValue("credentials", &resp); err != nil && err != storage.ErrKeyNotFound {
-		return 1, err
+	opts := &credential.ListOptions{
+		Provider: c.String("provider"),
+		Team:     c.String("team"),
 	}
 
-	if len(resp.Credentials) == 0 {
-		fmt.Fprintln(os.Stderr, `You did not import any credentials yet. Please run "kd credential import".`)
-		return 1, nil
+	creds, err := credential.List(opts)
+	if err != nil {
+		return 0, err
 	}
 
-	if provider != "" {
-		for key := range resp.Credentials {
-			if key != provider {
-				delete(resp.Credentials, key)
-			}
-		}
-	}
-
-	if team != "" {
-		for key, creds := range resp.Credentials {
-			var filtered []stack.CredentialItem
-
-			for _, cred := range creds {
-				if cred.Team != "" && cred.Team != team {
-					continue
-				}
-
-				filtered = append(filtered, cred)
-			}
-
-			if len(filtered) != 0 {
-				resp.Credentials[key] = filtered
-			} else {
-				delete(resp.Credentials, key)
-			}
-		}
-	}
-
-	if len(resp.Credentials) == 0 {
+	if len(creds) == 0 {
 		fmt.Fprintln(os.Stderr, "You have no matching credentials attached to your Koding account.")
 		return 0, nil
 	}
 
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetIndent("", "\t")
+	if c.Bool("json") {
+		p, err := json.MarshalIndent(creds, "", "\t")
+		if err != nil {
+			return 1, err
+		}
 
-	if err := enc.Encode(resp.Credentials); err != nil {
-		return 1, err
+		fmt.Printf("%s\n", p)
+
+		return 0, nil
 	}
 
+	printCreds(creds.ToSlice())
+
 	return 0, nil
+}
+
+func ask(format string, args ...interface{}) (string, error) {
+	fmt.Printf(format, args...)
+	s, err := bufio.NewReader(os.Stdin).ReadString('\n')
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(s), nil
+}
+
+func askSecret(format string, args ...interface{}) (string, error) {
+	fmt.Printf(format, args...)
+	p, err := terminal.ReadPassword(int(os.Stdin.Fd()))
+	fmt.Println()
+	if err != nil {
+		return "", err
+	}
+	return string(p), nil
+}
+
+func AskCredentialCreate(c *cli.Context) (*credential.CreateOptions, error) {
+	descs, err := credential.Describe()
+	if err != nil {
+		return nil, err
+	}
+
+	opts := &credential.CreateOptions{
+		Provider: c.String("provider"),
+		Team:     c.String("team"),
+		Title:    c.String("title"),
+	}
+
+	if opts.Provider == "" {
+		opts.Provider, err = ask("Provider type []: ")
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if opts.Title == "" {
+		opts.Title = config.CurrentUser.Username + " " + time.Now().Format(time.ANSIC)
+		opts.Title, err = ask("Title [%s]: ", opts.Title)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	desc, ok := descs[opts.Provider]
+	if !ok {
+		return nil, fmt.Errorf("provider %q does not exist", opts.Provider)
+	}
+
+	creds := make(map[string]interface{}, len(desc.Credential))
+
+	// TODO(rjeczalik): Add field.OmitEmpty so we validate required
+	// fields client-side.
+	//
+	// TODO(rjeczalik): Refactor part which validates credential
+	// input on kloud/provider side to a separate library
+	// and use it here.
+	for _, field := range desc.Credential {
+		var value string
+
+		if field.Secret {
+			value, err = askSecret("%s [***]: ", field.Label)
+		} else {
+			var defaultValue string
+
+			switch {
+			case len(field.Values) > 0:
+				if s, ok := field.Values[0].Value.(string); ok {
+					defaultValue = s
+				}
+			case field.Type == "duration":
+				defaultValue = "0s"
+			case field.Type == "integer":
+				defaultValue = "0"
+			}
+
+			value, err = ask("%s [%s]: ", field.Label, defaultValue)
+
+			if value == "" {
+				value = defaultValue
+			}
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		switch field.Type {
+		case "integer":
+			n, err := strconv.Atoi(value)
+			if err != nil {
+				return nil, fmt.Errorf("invalid integer for %q field: %s", field.Label, err)
+			}
+
+			creds[field.Name] = n
+		case "duration":
+			d, err := time.ParseDuration(value)
+			if err != nil {
+				return nil, fmt.Errorf("invalid time duration for %q field: %s", field.Label, err)
+			}
+
+			creds[field.Name] = d
+		case "enum":
+			if !field.Values.Contains(value) {
+				return nil, fmt.Errorf("invalid %q enumeration value for %q field - valid values are: %v", value, field.Label, field.Values.Values())
+			}
+
+			creds[field.Name] = value
+		default:
+			creds[field.Name] = value
+		}
+	}
+
+	// TODO(rjeczalik): remove when support for generic team is implemented
+	if opts.Team == "" {
+		opts.Team, err = ask("Team name []: ")
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	p, err := json.Marshal(creds)
+	if err != nil {
+		return nil, err
+	}
+
+	opts.Data = p
+
+	return opts, nil
 }
 
 func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	var p []byte
 	var err error
+	var opts *credential.CreateOptions
 
 	switch file := c.String("file"); file {
 	case "":
-		// TODO(rjeczalik): remove once interactive mode is implemented
-		fmt.Fprintln(os.Stderr, "No credential file was provided.")
-		return 1, errors.New("no credential file was provided")
+		opts, err = AskCredentialCreate(c)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Error building credential data:", err)
+			return 1, err
+		}
 	case "-":
 		p, err = ioutil.ReadAll(os.Stdin)
 	default:
@@ -165,59 +204,96 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 	}
 
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error reading credential file: ", err)
+		fmt.Fprintln(os.Stderr, "Error reading credential file:", err)
 		return 1, err
 	}
 
-	kloud, err := lazy.Kloud(log)
+	fmt.Fprintln(os.Stderr, "Creating credential... ")
+
+	if opts == nil {
+		opts = &credential.CreateOptions{
+			Provider: c.String("provider"),
+			Team:     c.String("team"),
+			Title:    c.String("title"),
+			Data:     p,
+		}
+	}
+
+	cred, err := credential.Create(opts)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
+		fmt.Fprintln(os.Stderr, "Error creating credential:", err)
 		return 1, err
 	}
 
-	req := &stack.CredentialAddRequest{
-		Provider: c.String("provider"),
-		Team:     c.String("team"),
-		Title:    c.String("title"),
-		Data:     json.RawMessage(p),
+	if c.Bool("json") {
+		p, err := json.MarshalIndent(cred, "", "\t")
+		if err != nil {
+			return 1, err
+		}
+
+		fmt.Printf("%s\n", p)
+
+		return 0, nil
 	}
 
-	fmt.Println("Creating credential... ")
-
-	r, err := kloud.TellWithTimeout("credential.add", 10*time.Second, req)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
-		return 1, err
-	}
-
-	var resp stack.CredentialAddResponse
-
-	if err := r.Unmarshal(&resp); err != nil {
-		return 1, err
-	}
-
-	cred := stack.CredentialItem{
-		Identifier: resp.Identifier,
-		Title:      resp.Title,
-	}
-
-	fmt.Printf("Created %q credential with %s identifier.\n", cred.Title, cred.Identifier)
-
-	var creds stack.CredentialListResponse
-
-	if err := lazy.Cache().GetValue("credentials", &creds); err != nil && err != storage.ErrKeyNotFound {
-		return 1, err
-	}
-
-	if creds.Credentials == nil {
-		creds.Credentials = make(map[string][]stack.CredentialItem)
-	}
-
-	creds.Credentials[req.Provider] = append(creds.Credentials[req.Provider], cred)
-
-	if err := lazy.Cache().SetValue("credentials", &creds); err != nil {
-		return 1, err
-	}
+	fmt.Fprintf(os.Stderr, "Created %q credential with %s identifier.\n", cred.Title, cred.Identifier)
 
 	return 0, nil
+}
+
+func CredentialDescribe(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	descs, err := credential.Describe()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error requesting credential description:", err)
+		return 1, err
+	}
+
+	if p := c.String("provider"); p != "" {
+		desc, ok := descs[p]
+		if !ok {
+			fmt.Fprintf(os.Stderr, "No description found for %q provider.\n", p)
+			return 1, err
+		}
+
+		descs = stack.Descriptions{p: desc}
+	}
+
+	if c.Bool("json") {
+		p, err := json.MarshalIndent(descs.Slice(), "", "\t")
+		if err != nil {
+			return 1, err
+		}
+
+		fmt.Printf("%s\n", p)
+
+		return 0, nil
+	}
+
+	printDescs(descs.Slice())
+
+	return 0, nil
+}
+
+func printCreds(creds []stack.CredentialItem) {
+	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
+	defer w.Flush()
+
+	fmt.Fprintln(w, "ID\tTITLE\tTEAM\tPROVIDER")
+
+	for _, cred := range creds {
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", cred.Identifier, cred.Title, cred.Team, cred.Provider)
+	}
+}
+
+func printDescs(descs []*stack.Description) {
+	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
+	defer w.Flush()
+
+	fmt.Fprintln(w, "PROVIDER\tATTRIBUTE\tTYPE\tSECRET")
+
+	for _, desc := range descs {
+		for _, field := range desc.Credential {
+			fmt.Fprintf(w, "%s\t%s\t%s\t%t\n", desc.Provider, field.Name, field.Type, field.Secret)
+		}
+	}
 }

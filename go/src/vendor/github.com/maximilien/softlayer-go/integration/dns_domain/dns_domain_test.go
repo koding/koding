@@ -35,6 +35,10 @@ var _ = Describe("SoftLayer DNS domains", func() {
 
 			Expect(result.Name).To(Equal("test.domain.name"))
 
+			dnsDomains, err := dnsDomainService.GetByDomainName("test.domain.name")
+			Expect(err).ToNot(HaveOccurred())
+			Expect(len(dnsDomains)).To(BeNumerically(">", 0))
+
 			deleted, err := dnsDomainService.DeleteObject(createdDnsDomain.Id)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(deleted).To(BeTrue())

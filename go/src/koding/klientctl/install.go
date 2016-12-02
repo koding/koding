@@ -308,7 +308,9 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 		return 1, fmt.Errorf("error verifying the installation of klient: %s", err)
 	}
 
-	uploader.FixPerms()
+	// Best-effort attempts at fixinig permissions and ownership, ignore any errors.
+	_ = uploader.FixPerms()
+	_ = konfig.FixOwner("", nil)
 
 	// track metrics
 	metrics.TrackInstall(config.VersionNum())

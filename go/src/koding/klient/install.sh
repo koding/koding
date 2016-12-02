@@ -94,7 +94,7 @@ does_service_exist() {
 stop_klient() {
 	if [ ${is_macosx} -eq 1 ]; then
 		# try to stop old klient.plist
-		sudo launchctl unload -w "${init_dir}/com.koding.klient.plist" &>/dev/null && rm -v "${init_dir}/com.koding.klient.plist" || true
+		sudo launchctl unload -w "${init_dir}/com.koding.klient.plist" &>/dev/null && rm "${init_dir}/com.koding.klient.plist" >/dev/null 2>&1 || true
 	else
 		# try to stop old upstart klient
 		sudo stop klient &>/dev/null || true
@@ -234,7 +234,7 @@ export HOME=\$(eval cd ~\${USERNAME}; pwd)
 export PATH=\$PATH:/usr/local/bin
 
 ulimit -n 5000
-sudo -E -u "\$USERNAME" /opt/kite/klient/klient"
+sudo -E -u "\$USERNAME" /opt/kite/klient/klient
 EOF
 		cat <<EOF | sudo tee /opt/kite/klient/klient.init &>/dev/null
 <!--
@@ -427,7 +427,7 @@ EOF
 	fi
 
 	sudo chmod 755 /etc/kite
-	sudo chmod 755 /etc/init.d/klient 2>&1 >/dev/null || true
+	sudo chmod 755 /etc/init.d/klient >/dev/null 2>&1 || true
 	sudo chmod 644 /etc/kite/kite.key
 
 	cat << EOF

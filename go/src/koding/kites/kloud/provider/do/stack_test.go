@@ -67,7 +67,8 @@ func TestStack_BootstrapTemplates(t *testing.T) {
 	}
 
 	st.(*Stack).sshKeyPair = &stack.SSHKeyPair{
-		Name: "test-key",
+		Name:   "test-key",
+		Public: []byte("random-publickey"),
 	}
 
 	templates, err := st.BootstrapTemplates(nil)

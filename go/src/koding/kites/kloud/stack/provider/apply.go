@@ -354,7 +354,7 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 }
 
 func (bs *BaseStack) UpdateResources(state *terraform.State) error {
-	machines, err := bs.Planner.MachinesFromState(state, bs.Klients)
+	machines, err := bs.state(state, bs.Klients)
 	if err != nil {
 		return err
 	}

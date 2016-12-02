@@ -37,10 +37,11 @@ do ->
     new MainController group
 
   kd.config             or= {}
-  kd.config.environment   = if location.hostname is 'koding.com' then 'production' else 'development'
+  kd.config.environment   = window._runtimeOptions.environment
   kd.config.recaptcha     = window._runtimeOptions.recaptcha
   kd.config.google        = window._runtimeOptions.google
   kd.config.domains       = window._runtimeOptions.domains
+  kd.config.stripe        = window._runtimeOptions.stripe
   kd.config.groupName     = groupName = utils.getGroupNameFromLocation()
 
   if groupName is 'koding'

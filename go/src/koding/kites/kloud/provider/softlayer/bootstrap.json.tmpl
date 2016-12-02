@@ -1,0 +1,29 @@
+{
+  "provider": {
+    "softlayer": {
+      "username": "${var.softlayer_username}",
+      "api_key": "${var.softlayer_api_key}"
+    }
+  },
+  "output": {
+    "key_id": {
+      "value": "${softlayer_ssh_key.koding.id}"
+    }
+  },
+  "resource": {
+    "softlayer_ssh_key": {
+      "koding": {
+        "name": "${var.key_name}",
+        "public_key": "${var.public_key}"
+      }
+    }
+  },
+  "variable": {
+    "key_name": {
+      "default": "{{.KeyName}}"
+    },
+    "public_key": {
+      "default": "{{.PublicKey}}"
+    }
+  }
+}

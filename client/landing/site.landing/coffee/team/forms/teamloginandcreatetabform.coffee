@@ -14,7 +14,7 @@ module.exports = class TeamLoginAndCreateTabForm extends TeamJoinByLoginForm
 
     super options, data
 
-    @backLink = @getButtonLink 'BACK', '/Team/Domain'
+    @backLink = @getButtonLink 'BACK', '/Team/Payment'
 
 
   createButtonLinkPartial: ->

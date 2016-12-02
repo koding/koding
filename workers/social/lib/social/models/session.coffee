@@ -38,12 +38,19 @@ module.exports = class JSession extends Model
       returnUrl         : String
       foreignAuthType   : String
       impersonating     : Boolean
+      # data holds arbitary transitive session based info, not necessarily
+      # should be used. There won't be any kind of index on this field.
+      data              : Object
     sharedEvents        :
       instance          : []
       static            : []
     sharedMethods       :
+      static            :
+        activeSession   :
+          (signature Function)
       instance          :
-        remove: (signature Function)
+        remove          :
+          (signature Function)
 
   do ->
     JAccount  = require './account'
@@ -55,6 +62,10 @@ module.exports = class JSession extends Model
 
         JSession.remove { username: oldUsername }, (err) ->
           console.error err  if err?
+
+
+  @activeSession = secure (client, callback) ->
+    @one { clientId: client.sessionToken }, callback
 
 
   # TODO not sure why we are creating session only for guest user
@@ -169,6 +180,6 @@ module.exports = class JSession extends Model
 
     # check if requester is the owner of the current session
     unless @username is username
-      return callback new KodingError 'Access denied.'
+      return callback new KodingError 'Access denied'
 
     @remove callback

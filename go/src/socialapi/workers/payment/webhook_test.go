@@ -27,7 +27,7 @@ func withStubData(f func(username string, groupName string, sessionID string)) {
 	err = modelhelper.MakeAdmin(bson.ObjectIdHex(acc.OldId), group.Id)
 	So(err, ShouldBeNil)
 
-	ses, err := models.FetchOrCreateSession(acc.Nick, groupName)
+	ses, err := modelhelper.FetchOrCreateSession(acc.Nick, groupName)
 	tests.ResultedWithNoErrorCheck(ses, err)
 
 	cus, err := EnsureCustomerForGroup(acc.Nick, groupName, &stripe.CustomerParams{})
@@ -37,104 +37,6 @@ func withStubData(f func(username string, groupName string, sessionID string)) {
 
 	err = DeleteCustomerForGroup(groupName)
 	So(err, ShouldBeNil)
-}
-
-func TestChargeSuccededHandler(t *testing.T) {
-	testData := `
-{
-    "id": "ch_00000000000000",
-    "object": "charge",
-    "amount": 100,
-    "currency": "usd",
-    "customer": "%s",
-    "description": "My First Test Charge (created for API docs)",
-    "livemode": false,
-    "paid": true,
-    "status": "succeeded"
-}`
-	tests.WithConfiguration(t, func(c *config.Config) {
-		stripe.Key = c.Stripe.SecretToken
-
-		Convey("Given stub data", t, func() {
-			withStubData(func(username, groupName, sessionID string) {
-				Convey("Then Group should have customer id", func() {
-					group, err := modelhelper.GetGroup(groupName)
-					tests.ResultedWithNoErrorCheck(group, err)
-
-					So(group.Payment.Customer.ID, ShouldNotBeBlank)
-
-					Convey("When charge.succeeded is triggered", func() {
-
-						raw := []byte(fmt.Sprintf(testData, group.Payment.Customer.ID))
-
-						var capturedMail *emailsender.Mail
-
-						realMailSender := mailSender
-						mailSender = func(m *emailsender.Mail) error {
-							capturedMail = m
-							return nil
-						}
-						chargeSucceededHandler(raw)
-						mailSender = realMailSender
-
-						Convey("properties of event should be set accordingly", func() {
-							So(capturedMail, ShouldNotBeNil)
-							So(capturedMail.Subject, ShouldEqual, "charge succeeded")
-							So(capturedMail.Properties.Options["amount"], ShouldEqual, "$1")
-						})
-					})
-				})
-			})
-		})
-	})
-}
-
-func TestChargeFailedHandler(t *testing.T) {
-	testData := `
-{
-    "id": "ch_00000000000000",
-    "object": "charge",
-    "amount": 1000,
-    "currency": "usd",
-    "customer": "%s",
-    "description": "My First Test Charge (created for API docs)",
-    "livemode": false,
-    "paid": false,
-    "status": "succeeded"
-}`
-	tests.WithConfiguration(t, func(c *config.Config) {
-		stripe.Key = c.Stripe.SecretToken
-
-		Convey("Given stub data", t, func() {
-			withStubData(func(username, groupName, sessionID string) {
-				Convey("Then Group should have customer id", func() {
-					group, err := modelhelper.GetGroup(groupName)
-					tests.ResultedWithNoErrorCheck(group, err)
-
-					So(group.Payment.Customer.ID, ShouldNotBeBlank)
-
-					Convey("When charge.succeeded is triggered", func() {
-						raw := []byte(fmt.Sprintf(testData, group.Payment.Customer.ID))
-
-						var capturedMail *emailsender.Mail
-
-						realMailSender := mailSender
-						mailSender = func(m *emailsender.Mail) error {
-							capturedMail = m
-							return nil
-						}
-						chargeFailedHandler(raw)
-						mailSender = realMailSender
-						Convey("properties of event should be set accordingly", func() {
-							So(capturedMail, ShouldNotBeNil)
-							So(capturedMail.Subject, ShouldEqual, "charge failed")
-							So(capturedMail.Properties.Options["amount"], ShouldEqual, "$10")
-						})
-					})
-				})
-			})
-		})
-	})
 }
 
 func TestInvoiceCreatedHandlerStayInTheSamePlan(t *testing.T) {
@@ -301,40 +203,60 @@ func TestInvoiceCreatedHandlerCustomPlan(t *testing.T) {
 					Quantity: totalMembers,
 				}
 
-				sub, err := EnsureSubscriptionForGroup(group.Slug, params)
-				tests.ResultedWithNoErrorCheck(sub, err)
+				Convey("Even if we process customer with a custom plan we should require CC", func() {
+					_, err := EnsureSubscriptionForGroup(group.Slug, params)
+					So(err, ShouldEqual, ErrCustomerSourceNotExists)
 
-				// check if group has correct sub id
-				groupAfterSub, err := modelhelper.GetGroup(groupName)
-				tests.ResultedWithNoErrorCheck(groupAfterSub, err)
-				So(sub.ID, ShouldEqual, groupAfterSub.Payment.Subscription.ID)
+					Convey("When custom plan holder has CC", func() {
+						withTestCreditCardToken(func(token string) {
+							// attach payment source
+							cp := &stripe.CustomerParams{
+								Source: &stripe.SourceParams{
+									Token: token,
+								},
+							}
+							c, err := UpdateCustomerForGroup(username, groupName, cp)
+							tests.ResultedWithNoErrorCheck(c, err)
 
-				Convey("When invoice.created is triggered with custom plan", func() {
-					raw := []byte(fmt.Sprintf(
-						testData,
-						group.Payment.Customer.ID,
-					))
+							Convey("We should be able to create subscription", func() {
+								sub, err := EnsureSubscriptionForGroup(group.Slug, params)
+								tests.ResultedWithNoErrorCheck(sub, err)
 
-					err := invoiceCreatedHandler(raw)
-					So(err, ShouldBeNil)
+								// check if group has correct sub id
+								groupAfterSub, err := modelhelper.GetGroup(groupName)
+								tests.ResultedWithNoErrorCheck(groupAfterSub, err)
+								So(sub.ID, ShouldEqual, groupAfterSub.Payment.Subscription.ID)
 
-					Convey("subscription id should stay same", func() {
-						groupAfterHook, err := modelhelper.GetGroup(groupName)
-						tests.ResultedWithNoErrorCheck(groupAfterHook, err)
+								Convey("When invoice.created is triggered with custom plan", func() {
+									raw := []byte(fmt.Sprintf(
+										testData,
+										group.Payment.Customer.ID,
+									))
 
-						// group should have correct sub id
-						So(sub.ID, ShouldEqual, groupAfterHook.Payment.Subscription.ID)
+									err := invoiceCreatedHandler(raw)
+									So(err, ShouldBeNil)
 
-						count, err := (&models.PresenceDaily{}).CountDistinctByGroupName(group.Slug)
-						So(err, ShouldBeNil)
-						So(count, ShouldEqual, 0)
+									Convey("subscription id should stay same", func() {
+										groupAfterHook, err := modelhelper.GetGroup(groupName)
+										tests.ResultedWithNoErrorCheck(groupAfterHook, err)
 
-						Convey("we should clean up successfully", func() {
-							sub, err := DeleteSubscriptionForGroup(group.Slug)
-							tests.ResultedWithNoErrorCheck(sub, err)
+										// group should have correct sub id
+										So(sub.ID, ShouldEqual, groupAfterHook.Payment.Subscription.ID)
 
-							_, err = plan.Del(pp.ID)
-							So(err, ShouldBeNil)
+										count, err := (&models.PresenceDaily{}).CountDistinctByGroupName(group.Slug)
+										So(err, ShouldBeNil)
+										So(count, ShouldEqual, 0)
+
+										Convey("we should clean up successfully", func() {
+											sub, err := DeleteSubscriptionForGroup(group.Slug)
+											tests.ResultedWithNoErrorCheck(sub, err)
+
+											_, err = plan.Del(pp.ID)
+											So(err, ShouldBeNil)
+										})
+									})
+								})
+							})
 						})
 					})
 				})

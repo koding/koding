@@ -38,7 +38,6 @@ updateCookie = (req, res, session) ->
 generateFakeClientFromReq = (req, res, callback) ->
 
   { clientId } = req.cookies
-  { section }  = req.params
 
   # TODO change this with Team product
   groupName = 'koding'
@@ -47,7 +46,7 @@ generateFakeClientFromReq = (req, res, callback) ->
   if not clientId and req.pendingCookies?.clientId
     clientId = req.pendingCookies.clientId
 
-  generateFakeClient { clientId, groupName, section }, (err, fakeClient, session) ->
+  generateFakeClient { clientId, groupName }, (err, fakeClient, session) ->
 
     return callback err  if err
 
@@ -60,9 +59,9 @@ generateFakeClientFromReq = (req, res, callback) ->
 
 generateFakeClient = (options, callback) ->
 
-  { clientId, groupName, section } = options
+  { clientId, groupName } = options
 
-  fakeClient    =
+  fakeClient      =
     context       :
       group       : 'koding'
       user        : 'guest-1'

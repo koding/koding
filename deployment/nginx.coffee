@@ -441,12 +441,25 @@ createHealthcheck = (KONFIG) ->
   return """
     # ELB healthcheck with proxy_protocol disabled
     server {
-      listen 78;
+        listen 78;
 
-      location = /healthcheck {
-        return 200;
-        access_log off;
-      }
+        # proxy healthcheck requests to tunnelserver, if nginx is down,
+        # healthcheck does its job, if tunnelserver is down, healthcheck again
+        # does its job, two bird, one stone
+
+        location = /healthcheck {
+          proxy_pass http://tunnelserver/healthCheck;
+          proxy_set_header	  Host            $host;
+          proxy_set_header	  X-Host          $host;
+          proxy_set_header	  X-Real-IP	  $remote_addr;
+          proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_next_upstream   error timeout   invalid_header http_500;
+          proxy_connect_timeout 1;
+
+          # in need of a fallback, uncomment followings 
+          #return 200;
+          #access_log off;
+        }
     }
   """
 

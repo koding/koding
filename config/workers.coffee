@@ -115,7 +115,10 @@ module.exports = (KONFIG, options, credentials) ->
       supervisord       :
         command         : "./watch-node %(ENV_KONFIG_PROJECTROOT)s/workers/social/index.js"
       nginx             :
-        locations       : [ { location: "/xhr" } ]
+        locations       : [
+          { location: "/xhr"  }
+          { location: "/remote.api" }
+        ]
       healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
@@ -280,38 +283,6 @@ module.exports = (KONFIG, options, credentials) ->
         command         : "#{GOBIN}/janitor -kite-init=true"
       healthCheckURL    : "http://localhost:#{KONFIG.socialapi.janitor.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.socialapi.janitor.port}/version"
-
-    integration         :
-      group             : "socialapi"
-      ports             :
-        incoming        : "#{KONFIG.integration.port}"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/webhook"
-          watch         : "make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi webhookdev"
-      healthCheckURL    : "#{options.customDomain.local}/api/integration/healthCheck"
-      versionURL        : "#{options.customDomain.local}/api/integration/version"
-      nginx             :
-        locations       : [
-          location      : "~ /api/integration/(.*)"
-          proxyPass     : "http://integration/$1$is_args$args"
-        ]
-
-    webhook             :
-      group             : "socialapi"
-      ports             :
-        incoming        : "#{KONFIG.socialapi.webhookMiddleware.port}"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/webhookmiddleware"
-          watch         : "make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi middlewaredev"
-      healthCheckURL    : "#{options.customDomain.local}/api/webhook/healthCheck"
-      versionURL        : "#{options.customDomain.local}/api/webhook/version"
-      nginx             :
-        locations       : [
-          location      : "~ /api/webhook/(.*)"
-          proxyPass     : "http://webhook/$1$is_args$args"
-        ]
 
     eventsender         :
       group             : "socialapi"

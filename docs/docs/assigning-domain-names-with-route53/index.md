@@ -11,11 +11,13 @@ You can give your VM or stack a domain name or URL ex: _www.myappdomain.com_ for
 
 ### Preparation
 
+Please complete the below steps first:
+
 1. [Register a domain][2]. If your domain is registered with another registrar you can still use the AWS Route53 by [Migrating your DNS service to Amazon][3].
 2. [Configure Amazon Route53 as your DNS service][4]
 3. [Create a Hosted Zone][5]
 
- You will need the Zone ID of your Hosted Zone, you can find it by [following these steps][6]
+You will need the Zone ID of your Hosted Zone, you can find it by [following these steps][6]
 
 ###  Full Stack
 
@@ -50,7 +52,7 @@ resource:
 
 ### Explanation
 
-1. Preparing & creating our VM and install nginx
+- Preparing & creating our VM and install nginx
 
 ```yaml
 resource:
@@ -62,17 +64,16 @@ resource:
         apt-get -y install nginx
 ```
 
-2.  We create an Elastic IP for our VM to make sure the IP does not change on machine restart
+- We create an Elastic IP for our VM to make sure the IP does not change on machine restart
 
 ```yaml
 aws_eip:
   mars-webserver-eip:
     instance : "${aws_instance.mars-webserver.id}"
 ```
-
 > If your VM is inside a VPC, you will need to set `vpc: true` in the `aws_eip` section
 
-3. Next we setup our Route53 section parameters
+- Next we setup our Route53 section parameters
 
 ```yaml
 aws_route53_record:

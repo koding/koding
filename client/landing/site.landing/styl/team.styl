@@ -1,4 +1,3 @@
-@import 'lib/core.fonts'
 @import 'lib/core.fn'
 @import "nib/gradients"
 
@@ -123,6 +122,16 @@ body.teams #kdmaincontainer #main-tab-view
     top                     -32px
     kalc                    left, 50% \- 40px
 
+  .form-group
+    display                 flex
+    justify-content         space-between
+    borderBox()
+
+    .login-input-view
+      padding-right         10px
+    .login-input-view:last-child
+      padding-right         0
+
   .login-input-view
 
     &.validation-error input.kdinput
@@ -168,6 +177,8 @@ body.teams #kdmaincontainer #main-tab-view
       width                 100%
     b
       color                 #3e4f55
+      font-weight           600
+    strong
       font-weight           600
 
   p

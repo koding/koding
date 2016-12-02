@@ -19,9 +19,7 @@ import (
 )
 
 func withStubData(endpoint string, f func(username string, groupName string, sessionID string)) {
-	createURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerCreate)
-	deleteURL := fmt.Sprintf("%s%s", endpoint, EndpointCustomerDelete)
-
+	createURL := endpoint + EndpointCustomerCreate
 	acc, _, groupName := models.CreateRandomGroupDataWithChecks()
 
 	group, err := modelhelper.GetGroup(groupName)
@@ -30,7 +28,7 @@ func withStubData(endpoint string, f func(username string, groupName string, ses
 	err = modelhelper.MakeAdmin(bson.ObjectIdHex(acc.OldId), group.Id)
 	So(err, ShouldBeNil)
 
-	ses, err := models.FetchOrCreateSession(acc.Nick, groupName)
+	ses, err := modelhelper.FetchOrCreateSession(acc.Nick, groupName)
 	tests.ResultedWithNoErrorCheck(ses, err)
 
 	req, err := json.Marshal(&stripe.CustomerParams{})
@@ -41,8 +39,7 @@ func withStubData(endpoint string, f func(username string, groupName string, ses
 
 	f(acc.Nick, groupName, ses.ClientId)
 
-	res, err = rest.DoRequestWithAuth("DELETE", deleteURL, nil, ses.ClientId)
-	tests.ResultedWithNoErrorCheck(res, err)
+	So(payment.DeleteCustomerForGroup(groupName), ShouldBeNil)
 }
 
 func withTestPlan(f func(planID string)) {
@@ -107,6 +104,29 @@ func withTestCreditCardToken(f func(token string)) {
 	f(t.ID)
 }
 
+func addCreditCardToUserWithChecks(endpoint, sessionID string) *stripe.Customer {
+	customerUpdateURL := endpoint + EndpointCustomerUpdate
+	c := &stripe.Customer{}
+	withTestCreditCardToken(func(token string) {
+		cp := &stripe.CustomerParams{
+			Source: &stripe.SourceParams{
+				Token: token,
+			},
+		}
+		req, err := json.Marshal(cp)
+		So(err, ShouldBeNil)
+		So(req, ShouldNotBeNil)
+
+		res, err := rest.DoRequestWithAuth("POST", customerUpdateURL, req, sessionID)
+		So(err, ShouldBeNil)
+		So(res, ShouldNotBeNil)
+
+		err = json.Unmarshal(res, c)
+		So(err, ShouldBeNil)
+	})
+	return c
+}
+
 func withTestCoupon(f func(string)) {
 	c, err := coupon.New(&stripe.CouponParams{
 		Amount:   100,
@@ -125,8 +145,8 @@ func withTestCoupon(f func(string)) {
 }
 
 func withSubscription(endpoint, groupName, sessionID, planID string, f func(subscriptionID string)) {
-	createURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCreate)
-	deleteURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCancel)
+	createURL := endpoint + EndpointSubscriptionCreate
+	deleteURL := endpoint + EndpointSubscriptionCancel
 
 	group, err := modelhelper.GetGroup(groupName)
 	tests.ResultedWithNoErrorCheck(group, err)

@@ -49,44 +49,42 @@ main.Homepage-Hero {
   font-weight: 300;
   text-rendering:geometricPrecision;
 }
-.Homepage-Hero--intro form {
-  margin-top: 44px;
-  display: flex;
-  width: calc(100% - 9px);
+
+.Homepage-Hero--intro .actions {
+  display: inline-block;
 }
-.Homepage-Hero--intro form > div {
-  flex: 1 1 auto;
-}
-.Homepage-Hero--intro form .hs_submit {
-  flex: 0 0 auto;
-}
-.Homepage-Hero--intro form .hs_email.field.hs-form-field input {
-  background-color: white;
-  border: none;
-  padding: 24px 27px 22px;
-  height: 16px;
-  font-size: 16px;
-  color: #3C3B5A;
-  font-weight: 300;
-  width: calc(100% - 54px);
-  border-radius: 5px 0 0 5px;
-}
-.Homepage-Hero--intro form label {
-  display: none;
+.Homepage-Hero--intro a {
+  text-decoration: none;
+  text-align: center;
+  text-decoration: none;
 }
 
-.Homepage-Hero--intro .hs-button.primary.large {
-  background: #FFC442;
-  border: none;
-  font-size: 14px;
-  font-weight: 700;
+.Homepage-Hero--intro a strong {
+  font-weight: 600;
+}
+
+.Homepage-Hero--intro a.cta {
+  display: inline-block;
+  background-color: #ffc442;
   color: rgba(0,0,0,.39);
-  padding: 23px 0 22px;
-  cursor: pointer;
-  border-radius: 0 5px 5px 0;
-  margin: 0;
-  text-align: center;
-  width: 192px;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 40px 0 0;
+  padding: 23px 50px 22px;
+  border-radius: 6px;
+  width: auto;
+}
+
+.Homepage-Hero--intro a.secondary {
+  display: block;
+  margin: 20px 0 0;
+  font-weight: 300;
+  font-size: 16px;
+  color: #FFFFFF;
+  letter-spacing: -0.18px;
+}
+.Homepage-Hero--intro a.secondary:hover {
+  text-decoration: underline;
 }
 
 @media (max-width: 1200px) {
@@ -169,8 +167,9 @@ main.Homepage-Hero {
     position: static;
     margin-top: -289px;
   }
-  .Homepage-Hero .hs-form button {
-    display: none !important;
+  .Homepage-Hero a.cta,
+  .Homepage-Hero--intro a.secondary {
+    display: none;
   }
 
 }

@@ -52,7 +52,7 @@ var _ = Describe("SoftLayer_Ssh_Key_Service", func() {
 
 	Context("#CreateObject", func() {
 		BeforeEach(func() {
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Security_Ssh_Key_Service_createObject.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Security_Ssh_Key_Service_createObject.json")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -70,12 +70,46 @@ var _ = Describe("SoftLayer_Ssh_Key_Service", func() {
 			Expect(sshKey.Label).To(Equal("fake-label"))
 			Expect(sshKey.Notes).To(Equal("fake-notes"))
 		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					sshKeyTemplate = datatypes.SoftLayer_Security_Ssh_Key{
+						Fingerprint: "fake-fingerprint",
+						Key:         "fake-key",
+						Label:       "fake-label",
+						Notes:       "fake-notes",
+					}
+					_, err = sshKeyService.CreateObject(sshKeyTemplate)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					sshKeyTemplate = datatypes.SoftLayer_Security_Ssh_Key{
+						Fingerprint: "fake-fingerprint",
+						Key:         "fake-key",
+						Label:       "fake-label",
+						Notes:       "fake-notes",
+					}
+					_, err = sshKeyService.CreateObject(sshKeyTemplate)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+		})
 	})
 
 	Context("#GetObject", func() {
 		BeforeEach(func() {
 			sshKey.Id = 1337
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Security_Ssh_Key_Service_getObject.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Security_Ssh_Key_Service_getObject.json")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -88,12 +122,34 @@ var _ = Describe("SoftLayer_Ssh_Key_Service", func() {
 			Expect(key.Label).To(Equal("packer-53ead4c1-df11-9023-1173-eef40a291b7e"))
 			Expect(key.Notes).To(Equal("My test key"))
 		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := sshKeyService.GetObject(sshKey.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := sshKeyService.GetObject(sshKey.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+		})
 	})
 
 	Context("#EditObject", func() {
 		BeforeEach(func() {
 			sshKey.Id = 1338
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Security_Ssh_Key_Service_editObject.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Security_Ssh_Key_Service_editObject.json")
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -105,6 +161,34 @@ var _ = Describe("SoftLayer_Ssh_Key_Service", func() {
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).To(BeTrue())
 		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					edited := datatypes.SoftLayer_Security_Ssh_Key{
+						Label: "edited-label",
+					}
+					_, err := sshKeyService.EditObject(sshKey.Id, edited)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					edited := datatypes.SoftLayer_Security_Ssh_Key{
+						Label: "edited-label",
+					}
+					_, err := sshKeyService.EditObject(sshKey.Id, edited)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+		})
 	})
 
 	Context("#DeleteObject", func() {
@@ -113,23 +197,47 @@ var _ = Describe("SoftLayer_Ssh_Key_Service", func() {
 		})
 
 		It("sucessfully deletes the SoftLayer_Ssh_Key instance", func() {
-			fakeClient.DoRawHttpRequestResponse = []byte("true")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse = []byte("true")
+
 			deleted, err := sshKeyService.DeleteObject(sshKey.Id)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(deleted).To(BeTrue())
 		})
 
 		It("fails to delete the SoftLayer_Ssh_Key instance", func() {
-			fakeClient.DoRawHttpRequestResponse = []byte("false")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse = []byte("false")
+
 			deleted, err := sshKeyService.DeleteObject(sshKey.Id)
 			Expect(err).To(HaveOccurred())
 			Expect(deleted).To(BeFalse())
+		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := sshKeyService.DeleteObject(sshKey.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := sshKeyService.DeleteObject(sshKey.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
 		})
 	})
 
 	Context("#GetSoftwarePasswords", func() {
 		BeforeEach(func() {
-			fakeClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Security_Ssh_Key_Service_getSoftwarePasswords.json")
+			fakeClient.FakeHttpClient.DoRawHttpRequestResponse, err = testhelpers.ReadJsonTestFixtures("services", "SoftLayer_Security_Ssh_Key_Service_getSoftwarePasswords.json")
 			Expect(err).ToNot(HaveOccurred())
 
 			sshKey.Id = 1234567
@@ -153,6 +261,28 @@ var _ = Describe("SoftLayer_Ssh_Key_Service", func() {
 			Expect(password.Software.HardwareId).To(Equal(0))
 			Expect(password.Software.Id).To(Equal(4181746))
 			Expect(password.Software.ManufacturerLicenseInstance).To(Equal(""))
+		})
+
+		Context("when HTTP client returns error codes 40x or 50x", func() {
+			It("fails for error code 40x", func() {
+				errorCodes := []int{400, 401, 499}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := sshKeyService.GetSoftwarePasswords(sshKey.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
+
+			It("fails for error code 50x", func() {
+				errorCodes := []int{500, 501, 599}
+				for _, errorCode := range errorCodes {
+					fakeClient.FakeHttpClient.DoRawHttpRequestInt = errorCode
+
+					_, err := sshKeyService.GetSoftwarePasswords(sshKey.Id)
+					Expect(err).To(HaveOccurred())
+				}
+			})
 		})
 	})
 })

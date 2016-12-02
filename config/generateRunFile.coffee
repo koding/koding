@@ -246,6 +246,7 @@ generateDev = (KONFIG, options) ->
 
     function check (){
 
+      check_api_consistency
       check_service_dependencies
 
       if [[ `uname` == 'Darwin' ]]; then
@@ -381,8 +382,12 @@ generateDev = (KONFIG, options) ->
 
     }
 
+    function check_api_consistency() {
+      scripts/api-generator.coffee --check
+    }
+
     function runMongoDocker () {
-        docker run -d -p 27017:27017 --name=mongo mongo:2.4
+        docker run -d -p 27017:27017 --name=mongo mongo:2.4 --nojournal --noprealloc --smallfiles
         check_connectivity mongo
     }
 

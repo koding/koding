@@ -10,6 +10,94 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+func TestHasRole(t *testing.T) {
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
+
+	acc1 := createTestAccount(t)
+	defer modelhelper.RemoveAccount(acc1.Id)
+
+	acc2 := createTestAccount(t)
+	defer modelhelper.RemoveAccount(acc2.Id)
+
+	group, err := createGroup()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if err := modelhelper.AddRelationship(&models.Relationship{
+		Id:         bson.NewObjectId(),
+		TargetId:   acc1.Id,
+		TargetName: "JAccount",
+		SourceId:   group.Id,
+		SourceName: "JGroup",
+		As:         "member",
+	}); err != nil {
+		t.Error(err)
+	}
+
+	tests := []struct {
+		Title string
+		Nick  string
+		Slug  string
+		Roles []string
+		Has   bool
+	}{
+		{
+			Title: "Member account",
+			Nick:  acc1.Profile.Nickname,
+			Slug:  group.Slug,
+			Roles: []string{"member"},
+			Has:   true,
+		},
+		{
+			Title: "Member account with multi role",
+			Nick:  acc1.Profile.Nickname,
+			Slug:  group.Slug,
+			Roles: []string{"member", "admin"},
+			Has:   true,
+		},
+		{
+			Title: "Member account with default roles",
+			Nick:  acc1.Profile.Nickname,
+			Slug:  group.Slug,
+			Roles: modelhelper.DefaultRoles,
+			Has:   true,
+		},
+		{
+			Title: "Non-member account",
+			Nick:  acc2.Profile.Nickname,
+			Slug:  group.Slug,
+			Roles: []string{"member"},
+			Has:   false,
+		},
+		{
+			Title: "Invalid role correct account",
+			Nick:  acc1.Profile.Nickname,
+			Slug:  group.Slug,
+			Roles: []string{"admin"},
+			Has:   false,
+		},
+		{
+			Title: "Invalid role in-correct account",
+			Nick:  acc2.Profile.Nickname,
+			Slug:  group.Slug,
+			Roles: []string{"admin"},
+			Has:   false,
+		},
+	}
+
+	for _, test := range tests {
+		has, err := modelhelper.HasAnyRole(test.Nick, test.Slug, test.Roles...)
+		if err != nil {
+			t.Error(err)
+		}
+		if has != test.Has {
+			t.Errorf("expected %q's \"has\" equal to %t, but it wasnt!", test.Title, test.Has)
+		}
+	}
+}
+
 func TestFetchAdminAccounts(t *testing.T) {
 	db := modeltesthelper.NewMongoDB(t)
 	defer db.Close()

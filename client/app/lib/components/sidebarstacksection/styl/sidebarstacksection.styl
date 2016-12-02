@@ -31,24 +31,25 @@
         .SidebarListItem-unreadCount
           margin            0
 
+  .menu-icon
+    box-shadow          0 0 15px #323232
+    content             ''
+    r-sprite            'app' '20_chevron_gray'
+    margin-left         1px
+    opacity             .7
+    position            absolute
+    right               -3px
+    top                 -3px
+    dIBlock()
+
   .SidebarSection-headerTitle
     dBlock()
     width                   100%
     text-transform          capitalize
     noTextDeco()
 
-    &:hover a
-      width                 186px
-      &:after
-        box-shadow          0 0 15px #323232
-        content             ''
-        r-sprite            'app' '20_chevron_gray'
-        margin-left         1px
-        opacity             .7
-        position            absolute
-        right               -7px
-        top                 -3px
-        dIBlock()
+    a
+      width                 182px
 
     &:hover .SidebarSection-secondaryLink
       visible()

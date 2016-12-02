@@ -49,7 +49,7 @@ func TestCollaborationDriveService(t *testing.T) {
 
 		groupName := apimodels.RandomGroupName()
 
-		ownerSession, err := apimodels.FetchOrCreateSession(owner.Nick, groupName)
+		ownerSession, err := modelhelper.FetchOrCreateSession(owner.Nick, groupName)
 		So(err, ShouldBeNil)
 		So(ownerSession, ShouldNotBeNil)
 

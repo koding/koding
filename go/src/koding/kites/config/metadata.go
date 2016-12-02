@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"os/user"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -78,7 +77,7 @@ func (de *DumpError) Error() string {
 // If home is empty, KodingHome() will be used instead.
 //
 // If owner is nil, CurrentUser will be used instead.
-func DumpToBolt(home string, m Metadata, owner *user.User) error {
+func DumpToBolt(home string, m Metadata, owner *User) error {
 	var de DumpError
 
 	if home == "" {
@@ -113,6 +112,7 @@ func DumpToBolt(home string, m Metadata, owner *user.User) error {
 				Timeout: 5 * time.Second,
 			},
 			Bucket: []byte(bucket),
+			Owner:  owner,
 		}
 
 		db, err := NewBoltCache(opts)
@@ -143,7 +143,7 @@ func DumpToBolt(home string, m Metadata, owner *user.User) error {
 	return &de
 }
 
-func chown(file string, u *user.User) error {
+func chown(file string, u *User) error {
 	if u == nil {
 		return nil
 	}
@@ -159,6 +159,39 @@ func chown(file string, u *user.User) error {
 	}
 
 	return os.Chown(file, uid, gid)
+}
+
+func chownAll(dir string, u *User) error {
+	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		return chown(dir, u)
+	})
+}
+
+// FixOwner changes ownership of files and directories rooted
+// at home to the owner user, if it's not a root.
+//
+// If home is empty, KodingHome() is used instead.
+//
+// If owner is nil, CurrentUser is used instead.
+func FixOwner(home string, owner *User) error {
+	if home == "" {
+		home = KodingHome()
+	}
+
+	if owner == nil {
+		owner = CurrentUser
+	}
+
+	// Don't change owner
+	if owner.Uid == "0" {
+		return nil
+	}
+
+	return chownAll(home, owner)
 }
 
 func nonil(err ...error) error {

@@ -70,8 +70,6 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         update:
           (signature Object, Function)
-        fetchBotChannel:
-          (signature Object, Function)
         create:
           (signature Object, Function)
         createChannelWithParticipants:
@@ -304,8 +302,3 @@ module.exports = class SocialChannel extends Base
         return callback err  if err
 
         return callback null, options.channelId
-
-  @fetchBotChannel = (options, callback) ->
-
-    { fetchBotChannel } = require './requests'
-    fetchBotChannel options, callback
