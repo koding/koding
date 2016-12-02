@@ -1,5 +1,5 @@
 footer.Homepage-Footer {
-  background-color: #394457;
+  background-color: #282e3a;
   color: white;
   padding: 40px 40px;
 }
@@ -13,6 +13,7 @@ footer.Homepage-Footer h3 {
     font-size: 14px;
     font-weight: 600;
     margin: 0 0 23px;
+    font-family: 'fira-sans', 'proxima-nova', Helvetica, serif;
 }
 footer.Homepage-Footer ul {
     list-style: none;
@@ -25,7 +26,7 @@ footer.Homepage-Footer ul li {
 footer.Homepage-Footer ul li a {
     text-decoration: none;
     font-size: 14px;
-    color: #75B9D6;
+    color: rgba(255,255,255,0.6);
 }
 footer.Homepage-Footer ul li a:hover {
     color: white;
@@ -86,8 +87,8 @@ footer.Homepage-Footer form .btn {
     border-radius: 3px;
     border: 1px solid #D9D9D9;
     padding: 14px 16px;
-    font-size: 13px;
-    font-weight: 300;
+    font-size: 14px;
+    font-weight: 400;
     margin: 0 12px 0 0;
     line-height: 17px;
     box-sizing: border-box;
@@ -101,13 +102,11 @@ footer.Homepage-Footer form .btn {
     cursor: pointer;
     font-size: 16px;
     color: #FFFFFF;
-    text-transform: uppercase;
     letter-spacing: 0.01px;
     border-radius: 3px;
     margin: 0;
-    font-weight: 300;
+    font-weight: 600;
     font-family: inherit;
-    line-height: 45px;
 }
 .Homepage-Footer .Footer--col.large form input::-moz-placeholder {
     color: #999999;
