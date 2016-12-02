@@ -2,7 +2,9 @@ package tests
 
 import (
 	"koding/db/mongodb/modelhelper"
+	"net"
 	"socialapi/config"
+	"strconv"
 	"testing"
 
 	"github.com/koding/runner"
@@ -40,4 +42,20 @@ func WithConfiguration(t *testing.T, f func(c *config.Config)) {
 	defer modelhelper.Close()
 
 	f(c)
+}
+
+// GetFreePort find a free port on the current system.
+func GetFreePort() string {
+	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
+	if err != nil {
+		panic(err)
+	}
+
+	l, err := net.ListenTCP("tcp", addr)
+	if err != nil {
+		panic(err)
+	}
+	defer l.Close()
+
+	return strconv.Itoa(l.Addr().(*net.TCPAddr).Port)
 }
