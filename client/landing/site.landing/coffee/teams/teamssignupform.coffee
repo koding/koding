@@ -10,7 +10,7 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
     super
 
     team        = utils.getTeamData()
-    email       = team.invitation?.email
+    email       = team.invitation?.email ? team.signup?.email
     companyName = team.signup?.companyName
 
     @email = new LoginInputView
