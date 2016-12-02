@@ -1031,16 +1031,32 @@ module.exports = class ComputeController extends KDController
       config.needUpdate = no
       @updateStackConfig stack, config
 
+
+  checkRevisionFromOriginalStackTemplate: (stackTemplate) ->
+
+    { reactor } = kd.singletons
+
+    reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
+
+    stacks = @stacks.filter (stack) ->
+      stack.config?.clonedFrom is stackTemplate._id
+
     return  unless stacks.length
-    stacks.forEach (stack) ->
-      config  = stack.config ?= {}
-      config.needUpdate = group
-      unless group
-        delete config.needUpdate
-        delete config.clonedFrom
-      stack.modify { config }, (err) ->
-        stack.config = config
-        reactor.dispatch 'STACK_UPDATED', stack
+    stacks.forEach (stack) =>
+      @fetchBaseStackTemplate stack, (err, template) =>
+        unless err
+          if stackTemplate.template.sum isnt template.template.sum
+            config = stack.config ?= {}
+            config.needUpdate = yes
+            @updateStackConfig stack, config
+
+
+  updateStackConfig: (stack, config) ->
+    { reactor } = kd.singletons
+    stack.modify { config }, (err) ->
+      stack.config = config
+      reactor.dispatch 'STACK_UPDATED', stack
+
 
 
   checkGroupStacks: ->
