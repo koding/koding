@@ -110,9 +110,8 @@ module.exports = class GitHubContainer extends React.Component
       # save it to the config
       saveGitHubConfig options, (err, config) =>
 
-        newState = {}
-        newState.err = err  if err
         newState = _.pick options, 'applicationId', 'applicationSecret'
+        newState.err = err
 
         newState.isSaving = no
 
