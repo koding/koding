@@ -11,14 +11,7 @@ permalink: /
     display: flex;
   }
 </style>
-<svg class='hidden'>
-  <defs>
-    <g id="video-play-button">
-      <path class="button" d="M24,0A24,24,0,1,0,48,24,24,24,0,0,0,24,0ZM17.52,33.92V14.08L34.7,24Z"/>
-    <g>
-  </defs>
-</svg>
-
+{% include home/svgs.html %}
 <!-- HEADER -->
 {% include header.html
    with_signup_form='true'
@@ -43,17 +36,17 @@ permalink: /
 
 
 {% include home/columns.html
-   path="/assets/img/landing/home"
-   columns="icon-consistent.png||Consistent Dev Environments||Your entire team can share and collaborate on not only on your code, but also your dev environment.$$
-            icon-async.png||Sync or Async Dev Collaboration||No more screen sharing. You can share dev environments in real-time, or leave it open for the whole team.$$
-            icon-analytics.png||Dev Environment Analytics||For the first time, your team can locate the inefficiencies in their workflow, so that they can prioritize and fix them.$$
-            icon-large-teams.png||Made For Large Teams||A company with 1000s of developers waste at least a quarter of their year on configuring dev environments. Koding gives the time back to you.$$
-            icon-own-tools.png||Use Your Own Tools||No more online IDE! Use your own IDE, code editor and terminal. Koding’s CLI tool allows volume mounting and ssh’ing into their VMs.$$
-            icon-on-prem.png||Available On-Prem||You can try either cloud hosted or on-prem version of Koding; use your private cloud to provision dev environments."%}
+   columns="dev-env||Consistent Dev Environments||Your entire team can share and collaborate on not only on your code, but also your dev environment.$$
+            collaboration||Sync or Async Dev Collaboration||No more screen sharing. You can share dev environments in real-time, or leave it open for the whole team.$$
+            analytics||Dev Environment Analytics||For the first time, your team can locate the inefficiencies in their workflow, so that they can prioritize and fix them.$$
+            teams||Made For Large Teams||A company with 1000s of developers waste at least a quarter of their year on configuring dev environments. Koding gives the time back to you.$$
+            own-tools||Use Your Own Tools||No more online IDE! Use your own IDE, code editor and terminal. Koding’s CLI tool allows volume mounting and ssh’ing into their VMs.$$
+            on-prem||Available On-Prem||You can try either cloud hosted or on-prem version of Koding; use your private cloud to provision dev environments."%}
 
 <div class='Homepage-halves'>
   <div class='Homepage-half--container'>
     <div class='Homepage-half analytics'>
+      <svg xmlns="http://www.w3.org/2000/svg"><use xlink:href="#icon-chart"></use></svg>
       <h4 class="title">Analytics for CTOs</h4>
       <p>Frames UI Kit is a huge pack of high fidelity assets to create prototypes and wireframes with ease. Consisting from more than 1k elements, 100 components and 10 categories.</p>
       <a class="cta secondary" href="{{ site.url }}/demo">Request a Demo</a>
@@ -61,6 +54,7 @@ permalink: /
   </div>
   <div class='Homepage-half--container'>
     <div class='Homepage-half freedom'>
+      <svg xmlns="http://www.w3.org/2000/svg"><use xlink:href="#icon-freedom"></use></svg>
       <h4 class="title">Freedom for Developers</h4>
       <p>Engineers are no longer limited by the gatekeepers who create their dev environments, they are working together to create the best environments using Terraform, supporting more than 70 providers.</p>
       <a class="cta red" href="{{ site.url }}/docs/home">Explore Stack Scripts</a>
