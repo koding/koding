@@ -282,8 +282,8 @@ body {
   margin-top: 0px;
 }
 
-.StickyHeader .Homepage-Header a.logo:hover {
-  background-color: transparent;
+.Homepage-Header a.logo:hover {
+  background-color: transparent !important;
 }
 
 .Homepage-Header.light .spacer,
