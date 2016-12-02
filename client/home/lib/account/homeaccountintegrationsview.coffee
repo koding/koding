@@ -15,11 +15,11 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
 
     super options, data
 
-    @linked  = {}
-    @fetched = {}
+    @supportedProviders = Object.keys @providers =
+      github: 'GitHub'
+      gitlab: 'GitLab'
 
-    @supportedProviders = ['gitlab', 'github']
-
+    @linked     = {}
     @switches   = {}
     @containers = {}
 
@@ -46,29 +46,25 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
         cssClass: 'container hidden'
 
       @containers[provider].addSubView new kd.CustomHTMLView
-        partial: "#{provider.capitalize()} Integration"
+        partial: "#{@providers[provider]} Integration"
 
       @containers[provider].addSubView @switches[provider]
 
 
   handleForeignAuth: (provider) ->
 
-    @whenOauthInfoFetched provider, =>
-      kd.utils.defer -> new kd.NotificationView
-        title: "Your #{provider.capitalize()} integration is now enabled."
-      @linked[provider] = yes
-      @switches[provider].setOn no
-
-
-  whenOauthInfoFetched: (provider, callback) ->
-
-    if @fetched[provider]
-      do callback
-    else
-      @once "OauthInfoFetched.#{provider}", callback
+    @fetchOAuthInfo =>
+      if @linked[provider]
+        kd.utils.defer => new kd.NotificationView
+          title: "Your #{@providers[provider]} integration is now enabled."
 
 
   viewAppended: ->
+
+    @fetchOAuthInfo()
+
+
+  fetchOAuthInfo: (callback = kd.noop) ->
 
     me = whoami()
     me.fetchOAuthInfo (err, foreignAuth) =>
@@ -79,9 +75,9 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
         @linked[provider] = foreignAuth?[provider]?
         @switches[provider].setDefaultValue @linked[provider]
         @switches[provider].makeEnabled()
-        @fetched[provider] = yes
 
-        @emit "OauthInfoFetched.#{provider}"
+
+      do callback
 
 
   show: ->
@@ -97,6 +93,8 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
   link: (provider) ->
 
     kd.singletons.oauthController.redirectToOauthUrl { provider }
+    new kd.NotificationView
+      title: "Redirecting to #{@providers[provider]}..."
 
 
   unlink: (provider) ->
@@ -106,7 +104,7 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
       return showError err  if err
 
       new kd.NotificationView
-        title: "Your #{provider.capitalize()} integration is now disabled."
+        title: "Your #{@providers[provider]} integration is now disabled."
 
       @linked[provider] = no
 
