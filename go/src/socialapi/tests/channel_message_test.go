@@ -1,6 +1,7 @@
 package main
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"socialapi/models"
 	"socialapi/request"
@@ -20,10 +21,10 @@ func TestChannelMessage(t *testing.T) {
 
 			nonOwnerAccount := models.CreateAccountInBothDbsWithCheck()
 
-			nonOwnerSes, err := models.FetchOrCreateSession(nonOwnerAccount.Nick, groupName)
+			nonOwnerSes, err := modelhelper.FetchOrCreateSession(nonOwnerAccount.Nick, groupName)
 			So(err, ShouldBeNil)
 
-			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+			ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 			So(err, ShouldBeNil)
 
 			Convey("message should be able added to the group channel", func() {
@@ -51,7 +52,7 @@ func TestChannelMessage(t *testing.T) {
 			})
 
 			Convey("topic messages initialChannelId must be set as owner group channel id", func() {
-				ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+				ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 				So(err, ShouldBeNil)
 				So(ses, ShouldNotBeNil)
 
@@ -185,7 +186,7 @@ func TestChannelMessage(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(post, ShouldNotBeNil)
 
-				sesNonOwner, err := models.FetchOrCreateSession(nonOwnerAccount.Nick, groupName)
+				sesNonOwner, err := modelhelper.FetchOrCreateSession(nonOwnerAccount.Nick, groupName)
 				So(err, ShouldBeNil)
 
 				reply, err := rest.AddReply(post.Id, groupChannel.Id, nonOwnerSes.ClientId)

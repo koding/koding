@@ -38,13 +38,13 @@ module.exports =
     user = utils.getUser(yes)
     teamsHelpers.createTeam(browser, user, '' , 'ShortPassword')
 
-  createAccountAlreadyRegisteredUserName: (browser) ->
-    url = helpers.getUrl()
-    teamsHelpers.createTeam(browser, user, inviteLink)
-    teamsHelpers.createTeam(browser, user, createLink, 'AlreadyRegisteredUserName')
-    teamsHelpers.logoutTeamfromUrl browser, (result) ->
-      browser.url url
-      browser.waitForElementVisible '.content-page.Team section a.previous-team', 40000
+  # createAccountAlreadyRegisteredUserName: (browser) ->
+  #   url = helpers.getUrl()
+  #   teamsHelpers.createTeam(browser, user, inviteLink)
+  #   teamsHelpers.createTeam(browser, user, createLink, 'AlreadyRegisteredUserName')
+  #   teamsHelpers.logoutTeamfromUrl browser, (result) ->
+  #     browser.url url
+  #     browser.waitForElementVisible '.content-page.Team section a.previous-team', 40000
 
   signInWithNotAllowedEmail: (browser) ->
     teamsHelpers.loginTeam browser, user, yes , 'NotAllowedEmail', ->

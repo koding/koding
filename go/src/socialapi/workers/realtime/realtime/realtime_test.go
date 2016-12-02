@@ -1,6 +1,7 @@
 package realtime
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/rest"
 	"socialapi/workers/common/tests"
@@ -24,7 +25,7 @@ func TestAddRemoveChannelParticipant(t *testing.T) {
 			)
 
 			// fetch admin's session
-			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+			ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 

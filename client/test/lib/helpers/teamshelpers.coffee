@@ -43,6 +43,7 @@ proceedButton            = '[testpath=proceed]'
 url                      = helpers.getUrl()
 logoutUrl  = "#{helpers.getUrl(yes)}/logout"
 
+KONFIG = require 'koding-config-manager'
 
 module.exports =
   enterTeamURL: (browser) ->
@@ -191,7 +192,7 @@ module.exports =
   loginTeam: (browser, user, invalidCredentials = no, invalidInfo, callback = -> ) ->
 
     user               ?= utils.getUser()
-    url                = "http://#{user.teamSlug}.dev.koding.com:8090"
+    url                = "http://#{user.teamSlug}.#{KONFIG.domains.base}:#{KONFIG.publicPort}"
     inviteLink         = "#{helpers.getUrl()}/Teams/Create?email=#{user.email}"
     teamsLogin         = '.TeamsModal--login'
     stackCatalogModal  = '.StackCatalogModal'

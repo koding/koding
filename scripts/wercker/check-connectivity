@@ -64,7 +64,7 @@ function check_connectivity () {
 function health_check () {
   INSTANCE=$1
   HOST=$(echo $INSTANCE | awk '{print $2}')
-  OUTPUT=$(curl --silent --dump-header /dev/stdout "http://$HOST:8090/-/healthCheck")
+  OUTPUT=$(curl --silent --dump-header /dev/stdout "http://$HOST/-/healthCheck")
   STATUS_LINE=$(echo "$OUTPUT" | head -n1)
   STATUS_LINE=$(echo "$STATUS_LINE" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
@@ -89,7 +89,7 @@ truncate --size 0 $INSTANCE_DATA_FILE
 for INSTANCE in $INSTANCES; do
   (
     check_revision $INSTANCE || fail_instance $INSTANCE
-    repeat 1m 20 check_connectivity $INSTANCE 8090 || fail_instance $INSTANCE
+    repeat 1m 20 check_connectivity $INSTANCE 80 || fail_instance $INSTANCE
     repeat 1m 10 health_check $INSTANCE || fail_instance $INSTANCE
     echo $INSTANCE >> $INSTANCE_DATA_FILE
   ) &

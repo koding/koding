@@ -34,6 +34,7 @@ type Konfig struct {
 	KlientURL  string `json:"klientURL,omitempty"`
 	KloudURL   string `json:"kloudURL,omitempty"`
 	TunnelURL  string `json:"tunnelURL,omitempty"`
+	RemoteURL  string `json:"remoteURL,omitempty"`
 	IPURL      string `json:"ipURL,omitempty"`
 	IPCheckURL string `json:"ipCheckURL,omitempty"`
 
@@ -135,6 +136,7 @@ func NewKonfig(e *Environments) *Konfig {
 		KontrolURL:         Builtin.Endpoints.Kontrol,
 		KloudURL:           Builtin.Endpoints.Kloud,
 		TunnelURL:          Builtin.Endpoints.TunnelServer,
+		RemoteURL:          Builtin.Endpoints.RemoteAPI,
 		IPURL:              Builtin.Endpoints.IP,
 		IPCheckURL:         Builtin.Endpoints.IPCheck,
 		KlientLatestURL:    ReplaceEnv(Builtin.Endpoints.KlientLatest, e.klientEnv()),
