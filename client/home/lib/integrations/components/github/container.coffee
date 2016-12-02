@@ -26,6 +26,7 @@ module.exports = class GitHubContainer extends React.Component
       enabled: no
       applicationId: ''
       applicationSecret: ''
+      scope: 'user:email, repo'
       isConfirmModalOpen: no
       isSaving: no
       isRemoving: no
@@ -39,12 +40,12 @@ module.exports = class GitHubContainer extends React.Component
 
     return  unless group.config?.github?
 
-
     group.fetchDataAt 'github.applicationSecret', (err, applicationSecret) =>
 
       { github } = group.config
 
       @setState
+        scope: github.scope
         enabled: github.enabled
         applicationId: github.applicationId
         applicationSecret: applicationSecret
@@ -85,7 +86,7 @@ module.exports = class GitHubContainer extends React.Component
 
     @setState { isRemoving: yes, enabled: false }
 
-    options = _.pick @state, 'applicationId', 'applicationSecret'
+    options = _.pick @state, 'applicationId', 'applicationSecret', 'scope'
     options.enabled = no
 
     saveGitHubConfig options, (err) =>
@@ -102,7 +103,7 @@ module.exports = class GitHubContainer extends React.Component
     @setState { isSaving: yes }, =>
 
       # get data from the form/state
-      options = _.pick @state, 'applicationId', 'applicationSecret'
+      options = _.pick @state, 'applicationId', 'applicationSecret', 'scope'
 
       # mark it as `enabled` to make sure.
       options.enabled = yes
@@ -110,8 +111,12 @@ module.exports = class GitHubContainer extends React.Component
       # save it to the config
       saveGitHubConfig options, (err, config) =>
 
-        newState = _.pick options, 'applicationId', 'applicationSecret'
+        newState = _.pick options, 'applicationId', 'applicationSecret', 'scope'
         newState.err = err
+
+        # JGroup.setOAuth will return updated scope (aka cleaned scope)
+        # on successful save request, we need to update it on UI as well
+        newState.scope = config?.scope ? options.scope
 
         newState.isSaving = no
 
@@ -124,13 +129,14 @@ module.exports = class GitHubContainer extends React.Component
 
   render: ->
 
-    { enabled, applicationId, isRemoving, err
+    { enabled, applicationId, isRemoving, err, scope
       isSaving, applicationSecret, isConfirmModalOpen } = @state
 
     <View
       enabled={enabled}
       err={err}
       callbackUrl={getOAuthEndPoint 'github'}
+      scope={scope}
       applicationId={applicationId}
       applicationSecret={applicationSecret}
       isConfirmModalOpen={isConfirmModalOpen}
@@ -141,4 +147,3 @@ module.exports = class GitHubContainer extends React.Component
       onRemoveCancel={@bound 'onRemoveCancel'}
       onSave={@bound 'onSave'}
       onInputChange={@bound 'onInputChange'} />
-

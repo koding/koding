@@ -9,7 +9,7 @@ module.exports = class GitHubView extends React.Component
 
   render: ->
 
-    { enabled, applicationId, applicationSecret, isSaving, err
+    { enabled, applicationId, applicationSecret, scope, isSaving, err
       onInputChange, onSave, onToggleChange, isConfirmModalOpen
       onRemoveCancel, onRemoveSuccess, isRemoving, callbackUrl } = @props
 
@@ -39,6 +39,7 @@ module.exports = class GitHubView extends React.Component
         callbackUrl={callbackUrl}
         applicationId={applicationId}
         applicationSecret={applicationSecret}
+        scope={scope}
         onInputChange={onInputChange} />
 
       {<SaveButton isSaving={isSaving} callback={onSave} />  if enabled}
@@ -46,7 +47,7 @@ module.exports = class GitHubView extends React.Component
     </div>
 
 
-GithubForm = ({ err, enabled, applicationId, applicationSecret, onInputChange, callbackUrl }) ->
+GitHubForm = ({ err, enabled, applicationId, applicationSecret, scope, onInputChange, callbackUrl }) ->
 
   return <span />  unless enabled
 
@@ -59,7 +60,9 @@ GithubForm = ({ err, enabled, applicationId, applicationSecret, onInputChange, c
       Register a new OAuth application on GitHub by using this URL as authorization callback URL
       <code className='HomeAppView--code'>{callbackUrl}</code>
       and provide generated <code className='HomeAppView--code'>clientId</code> and
-      <code className='HomeAppView--code'>clientSecret</code> here.
+      <code className='HomeAppView--code'>clientSecret</code> here. And below you can define
+      comma seperated<code className='HomeAppView--code'>scopes</code> you are going to ask from your
+      team members. Get details about scopes from GitHub <a href='https://developer.github.com/v3/oauth/#scopes' target='_blank'>documentation</a>.
     </cite>
 
     <span className="separator" />
@@ -70,6 +73,8 @@ GithubForm = ({ err, enabled, applicationId, applicationSecret, onInputChange, c
       <InputArea error={'applicationId' in err?.fields} value={applicationId} callback={onInputChange 'applicationId'} />
       <label>Client Secret</label>
       <InputArea error={'applicationSecret' in err?.fields} value={applicationSecret} callback={onInputChange 'applicationSecret'} />
+      <label>Requested Scopes</label>
+      <InputArea error={'scope' in err?.fields} value={scope} callback={onInputChange 'scope'} />
     </fieldset>
   </div>
 
