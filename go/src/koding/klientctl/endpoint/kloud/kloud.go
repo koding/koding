@@ -31,6 +31,7 @@ var kdCacheOpts = &cfg.CacheOptions{
 // used.
 type Transport interface {
 	Call(method string, arg, reply interface{}) error
+	Valid() error
 }
 
 // DefaultClient is a default client used by Cache, Kite,
@@ -100,7 +101,11 @@ func (kt *KiteTransport) Call(method string, arg, reply interface{}) error {
 		return err
 	}
 
-	return r.Unmarshal(reply)
+	if reply != nil {
+		return r.Unmarshal(reply)
+	}
+
+	return nil
 }
 
 func (kt *KiteTransport) kite() *kite.Kite {
@@ -163,6 +168,14 @@ func (kt *KiteTransport) kloud() (*kite.Client, error) {
 	}
 
 	return kt.kKloud, nil
+}
+
+func (kt *KiteTransport) Valid() error {
+	// In order to test whether we're able to authenticate with kloud
+	// we need to call some kite method. For that purpose we
+	// use builtin "kite.print" method with empty string, since
+	// this is the only nop method available.
+	return kt.Call("kite.print", "", nil)
 }
 
 func Cache() *cfg.Cache { return DefaultClient.Cache() }
