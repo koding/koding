@@ -7,7 +7,7 @@ import (
 
 	"koding/kites/kloud/machine"
 	"koding/kites/kloud/stack"
-	"koding/klientctl/kloud"
+	"koding/klientctl/endpoint/kloud"
 
 	"github.com/koding/logging"
 )
