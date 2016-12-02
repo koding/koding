@@ -1,8 +1,12 @@
 package stack
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"net/http"
 
 	"github.com/koding/kite"
 )
@@ -35,23 +39,30 @@ type LoginResponse struct {
 //
 // TODO(rjeczalik): Add AuthLogout to force creation of a new
 // session.
-func (k *Kloud) AuthLogin(r *kite.Request) (interface{}, error) {
-	k.Log.Debug("auth login called by %q with %q", r.Username, r.Args.Raw)
+func (k *Kloud) AuthLogin(presenceEndpoint string) func(r *kite.Request) (interface{}, error) {
+	return func(r *kite.Request) (interface{}, error) {
+		k.Log.Debug("auth login called by %q with %q", r.Username, r.Args.Raw)
 
-	req, err := getLoginReq(r)
-	if err != nil {
-		return nil, err
+		req, err := getLoginReq(r)
+		if err != nil {
+			return nil, err
+		}
+
+		ses, err := modelhelper.UserLogin(r.Username, req.GroupName)
+		if err != nil {
+			return nil, NewError(ErrInternalServer)
+		}
+
+		if err := sendPresenceRequest(presenceEndpoint, r.Username, req.GroupName); err != nil {
+			// we dont need to block user login if there is something wrong with socialapi.
+			k.Log.Error("sendPresenceRequest failed with & for", err.Error(), r.Username)
+		}
+
+		return &LoginResponse{
+			ClientID:  ses.ClientId,
+			GroupName: req.GroupName,
+		}, nil
 	}
-
-	ses, err := modelhelper.UserLogin(r.Username, req.GroupName)
-	if err != nil {
-		return nil, NewError(ErrInternalServer)
-	}
-
-	return &LoginResponse{
-		ClientID:  ses.ClientId,
-		GroupName: req.GroupName,
-	}, nil
 }
 
 func getLoginReq(r *kite.Request) (*LoginRequest, error) {
@@ -69,4 +80,33 @@ func getLoginReq(r *kite.Request) (*LoginRequest, error) {
 	}
 
 	return &req, nil
+}
+
+func sendPresenceRequest(url, username, groupName string) error {
+	jsonValue, err := json.Marshal(struct {
+		Username  string
+		GroupName string
+	}{
+		Username:  username,
+		GroupName: groupName,
+	})
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonValue))
+	defer func() {
+		if resp != nil {
+			resp.Body.Close()
+		}
+	}()
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode < 400 {
+		return errors.New("bad request")
+	}
+
+	return nil
 }
