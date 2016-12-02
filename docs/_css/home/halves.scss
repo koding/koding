@@ -24,19 +24,19 @@
   }
 }
 .Homepage-half {
-  padding: 204px 0 107px;
+  padding: 100px 0 107px;
   max-width: 600px;
   font-size: 20px;
   line-height: 28px;
   text-align: center;
   box-sizing: border-box;
-  &.analytics h4:before {
-    background: transparent url('/assets/img/landing/home/icon-analytics-big.png') no-repeat 0 0;
+  &.analytics svg {
+    margin-bottom: 51px;
     width: 63px;
     height: 54px;
   }
-  &.freedom h4:before {
-    background: transparent url('/assets/img/landing/home/icon-freedom.png') no-repeat 0 0;
+  &.freedom svg {
+    margin-bottom: 34px;
     width: 99px;
     height: 79px;
   }
@@ -44,13 +44,6 @@
     font-size: 32px;
     margin-bottom: 30px;
     position: relative;
-    &:before {
-      content: '';
-      position: absolute;
-      top: -105px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
   }
   p {
     margin-bottom: 51px;
