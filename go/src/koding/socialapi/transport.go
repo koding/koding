@@ -28,16 +28,21 @@ type contextKey struct {
 // The associated value will be of *Session type.
 var SessionContextKey = &contextKey{"client-session"}
 
-// Session represents
+// Session represents a user session.
 type Session struct {
-	// ClientID
+	// ClientID is an ID of the session.
 	ClientID string
 
-	// Username
+	// Username of the user holding the session.
 	Username string
 
-	// Team
+	// Team, which the user belongs to.
 	Team string
+}
+
+// Key is used for SessionCache to cache sessions by keys.
+func (s *Session) Key() string {
+	return s.Team + "/" + s.Username
 }
 
 // Valid implements the stack.Validator interface.
@@ -51,81 +56,185 @@ func (s *Session) Valid() error {
 	return nil
 }
 
-// AuthFunc
+// AuthFunc is used to fetch session information.
+//
+// When Refresh is true, AuthFunc must obtain
+// a session directly from an authorisation
+// endpoint, in case it was cached.
 type AuthFunc func(*AuthOptions) (*Session, error)
 
-type cacheKey struct{ username, team string }
+// AuthOptions represents the arguments for AuthFunc.
+type AuthOptions struct {
+	// Session represents either a valid session or
+	// Username/Team pair to request a new session
+	// from AuthFunc.
+	//
+	// If the session is valid and Refresh false,
+	// then it should be returned and AuthFunc
+	// should behave as nop.
+	//
+	// When Refresh is true, AuthFunc should request
+	// new session, no matter whether Session is
+	// valid or not.
+	Session *Session
 
-// SessionCache
-type SessionCache struct {
-	AuthFunc AuthFunc
+	// Refresh requests to refresh a session when true.
+	Refresh bool
 
-	cacheMu sync.RWMutex
-	cache   map[cacheKey]*Session
+	// Request is a copy of the request, for which
+	// we're building authorisation.
+	Request *http.Request
 }
 
+// ErrSessionNotFound is returned by Storage.Get
+// when requested session was not found.
+var ErrSessionNotFound = errors.New("session not found")
+
+// Storage is an interface for external session storage.
+type Storage interface {
+	// Get gets a session.
+	//
+	// It returns ErrSessionNotFound if requested
+	// session was not cached.
+	Get(*Session) error
+
+	// Set sets a session.
+	//
+	// It overwrites any session that may exist
+	// already.
+	Set(*Session) error
+
+	// Delete deletes a session.
+	//
+	// If requested session does not exist,
+	// the method is a nop.
+	Delete(*Session) error
+}
+
+// SessionCache is a wrapper for AuthFunc that caches
+// sessions and invalidates them when requested.
+type SessionCache struct {
+	// AuthFunc is a mean to obtain session information.
+	//
+	// It is only called when a session was requested
+	// for a user/team pair that is not cached yet.
+	// Or when we were explicitly asked to request
+	// new session with Refresh set to true.
+	AuthFunc AuthFunc
+
+	// Storage is an external storage for storing session.
+	//
+	// If nil, in-memory map is going to be used instead.
+	Storage Storage
+
+	cacheMu sync.RWMutex
+	cache   map[string]*Session
+}
+
+// NewSessionCache gives new SessionCache value.
 func NewSessionCache(fn AuthFunc) *SessionCache {
 	return &SessionCache{
 		AuthFunc: fn,
-		cache:    make(map[cacheKey]*Session),
+		cache:    make(map[string]*Session),
 	}
 }
 
-// Auth
+// Auth is a method, which method selector can be used
+// as a AuthFunc value, like:
+//
+//   cache := socialapi.NewSessionCache(authFn)
+//
+//   t := &socialapi.Transport{
+//       AuthFunc: cache.Auth,
+//   }
+//
 func (s *SessionCache) Auth(opts *AuthOptions) (*Session, error) {
 	if s.AuthFunc == nil {
 		panic("socialapi: AuthFunc is nil")
 	}
 
+	session := opts.Session
+
 	// Early return - return existing session if it's valid
 	// and we were not ask to invalidate it.
-	if err := opts.Session.Valid(); err == nil && !opts.Refresh {
-		return opts.Session, nil
+	if err := session.Valid(); err == nil && !opts.Refresh {
+		return session, nil
 	}
 
-	if opts.Session == nil {
+	if session == nil {
 		return nil, errors.New("cannot determine user session")
-	}
-
-	key := cacheKey{
-		username: opts.Session.Username,
-		team:     opts.Session.Team,
 	}
 
 	if !opts.Refresh {
 		s.cacheMu.RLock()
-		session, ok := s.cache[key]
+		err := s.get(session)
 		s.cacheMu.RUnlock()
 
-		if ok {
+		switch err {
+		case ErrSessionNotFound:
+			// continue
+		case nil:
 			return session, nil
+		default:
+			return nil, err
 		}
 	}
 
 	session, err := s.Auth(opts)
 
+	// TODO(rjeczalik): for now we ignore storage errors,
+	// maybe we should handle them (fallback to memory?).
+	//
+	// - if storage failed to delete invalidated session,
+	//   then the worst case any concurrent requests could
+	//   try to use it again at most once.
+	// - if set failed, we are going to request session again
+	//
 	s.cacheMu.Lock()
 	if opts.Refresh {
-		delete(s.cache, key)
+		_ = s.delete(session)
 	}
 	if err == nil {
-		s.cache[key] = session
+		_ = s.set(session)
 	}
 	s.cacheMu.Unlock()
 
 	return session, err
 }
 
-// AuthOptions
-type AuthOptions struct {
-	// Session
-	Session *Session
+func (s *SessionCache) get(session *Session) error {
+	if s.Storage != nil {
+		return s.Storage.Get(session)
+	}
 
-	// Refresh
-	Refresh bool
+	sess, ok := s.cache[session.Key()]
+	if !ok {
+		return ErrSessionNotFound
+	}
 
-	// Request
-	Request *http.Request
+	*session = *sess
+
+	return nil
+}
+
+func (s *SessionCache) set(session *Session) error {
+	if s.Storage != nil {
+		return s.Storage.Set(session)
+	}
+
+	s.cache[session.Key()] = session
+
+	return nil
+}
+
+func (s *SessionCache) delete(session *Session) error {
+	if s.Storage != nil {
+		return s.Storage.Delete(session)
+	}
+
+	delete(s.cache, session.Key())
+
+	return nil
 }
 
 type httpTransport interface {
@@ -152,20 +261,15 @@ var _ io.ReadSeeker = nopCloser{bytes.NewReader(nil)}
 // Transport is a signing transport that
 // authorizes each request with jSession.clientId.
 type Transport struct {
-	http.RoundTripper
-
-	// Host
-	Host string
-
-	// RetryNum
-	RetryNum int
-
-	// AuthFunc
-	AuthFunc AuthFunc
+	http.RoundTripper          // a transport to use; required
+	AuthFunc          AuthFunc // clientID authorisation to use; required
+	Host              string   // original Host name, overwrites req.Host; optional
+	RetryNum          int      // number of retries in case of temporary failures; optional
 }
 
 var _ httpTransport = (*Transport)(nil)
 
+// RoundTrip implements the http.RoundTripper interface.
 func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	if t.AuthFunc == nil {
 		panic("socialapi: AuthFunc is nil")
