@@ -136,6 +136,9 @@ type Config struct {
 
 	// RemoteAPIURL configures the endpoint URL for remote.api.
 	RemoteAPIURL string
+	// PresencePrivateEndpoint configures the endpoint URL for internal
+	// presence/ping.
+	PresencePrivateEndpoint string
 }
 
 // New gives new, registered kloud kite.
@@ -302,7 +305,7 @@ func New(conf *Config) (*Kloud, error) {
 	k.HandleFunc("credential.add", kloud.Stack.CredentialAdd)
 
 	// Authorization handling.
-	k.HandleFunc("auth.login", kloud.Stack.AuthLogin)
+	k.HandleFunc("auth.login", kloud.Stack.AuthLogin(conf.PresencePrivateEndpoint))
 
 	// Machine handling.
 	k.HandleFunc("machine.list", kloud.Stack.MachineList)
