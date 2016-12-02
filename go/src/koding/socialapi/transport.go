@@ -2,6 +2,7 @@ package socialapi
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -26,6 +27,13 @@ type contextKey struct {
 //
 // The associated value will be of *Session type.
 var SessionContextKey = &contextKey{"client-session"}
+
+// DirectorContextKey is a context key. It can be used
+// in HTTP handlers to obtain an original request
+// before it was edited by a DirectorTransport.
+//
+// The associated value will be of *http.Request type.
+var DirectorContextKey = &contextKey{"original-request"}
 
 // Session represents a user session.
 type Session struct {
@@ -116,6 +124,24 @@ type Transport struct {
 }
 
 var _ httpTransport = (*Transport)(nil)
+
+// NewSingleClient returns a HTTP transport that authenticates all
+// requests with the given session.
+//
+// Session is expected to be have a valid clientID. In order to be
+// able to refresh the session if it gets invalidated, the session
+// must also contain Username / Team information.
+//
+// This is usefull for api clients that give no control over HTTP requests,
+// like the swagger-generated ones (remote.api).
+func (t *Transport) NewSingleClient(session *Session) http.RoundTripper {
+	return &DirectorTransport{
+		RoundTripper: t,
+		Director: func(req *http.Request) {
+			*req = *req.WithContext(context.WithValue(req.Context(), SessionContextKey, session))
+		},
+	}
+}
 
 // RoundTrip implements the http.RoundTripper interface.
 func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -227,8 +253,8 @@ var _ httpTransport = (*DirectorTransport)(nil)
 
 // RoundTrip implements the http.RoundTripper interface.
 func (dt *DirectorTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	// TODO
-	return nil, nil
+	dt.Director(req)
+	return dt.RoundTripper.RoundTrip(req)
 }
 
 func (dt *DirectorTransport) CancelRequest(req *http.Request) {
