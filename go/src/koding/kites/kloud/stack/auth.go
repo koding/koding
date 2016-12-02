@@ -1,12 +1,8 @@
 package stack
 
 import (
-	"bytes"
-	"encoding/json"
-	"errors"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"net/http"
 
 	"github.com/koding/kite"
 )
@@ -32,6 +28,11 @@ type LoginResponse struct {
 	GroupName string `json:"groupName"`
 }
 
+// Pinger send ping requests for presence.
+type Pinger interface {
+	Ping(string, string) error
+}
+
 // AuthLogin creates a jSession for the given username and team.
 //
 // If a session already exists, the method is a nop and returns
@@ -39,7 +40,7 @@ type LoginResponse struct {
 //
 // TODO(rjeczalik): Add AuthLogout to force creation of a new
 // session.
-func (k *Kloud) AuthLogin(presenceEndpoint string) func(r *kite.Request) (interface{}, error) {
+func (k *Kloud) AuthLogin(p Pinger) func(r *kite.Request) (interface{}, error) {
 	return func(r *kite.Request) (interface{}, error) {
 		k.Log.Debug("auth login called by %q with %q", r.Username, r.Args.Raw)
 
@@ -53,7 +54,7 @@ func (k *Kloud) AuthLogin(presenceEndpoint string) func(r *kite.Request) (interf
 			return nil, NewError(ErrInternalServer)
 		}
 
-		if err := sendPresenceRequest(presenceEndpoint, r.Username, req.GroupName); err != nil {
+		if err := p.Ping(r.Username, req.GroupName); err != nil {
 			// we dont need to block user login if there is something wrong with socialapi.
 			k.Log.Error("sendPresenceRequest failed with & for", err.Error(), r.Username)
 		}
@@ -80,33 +81,4 @@ func getLoginReq(r *kite.Request) (*LoginRequest, error) {
 	}
 
 	return &req, nil
-}
-
-func sendPresenceRequest(url, username, groupName string) error {
-	jsonValue, err := json.Marshal(struct {
-		Username  string
-		GroupName string
-	}{
-		Username:  username,
-		GroupName: groupName,
-	})
-	if err != nil {
-		return err
-	}
-
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonValue))
-	defer func() {
-		if resp != nil {
-			resp.Body.Close()
-		}
-	}()
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode < 400 {
-		return errors.New("bad request")
-	}
-
-	return nil
 }
