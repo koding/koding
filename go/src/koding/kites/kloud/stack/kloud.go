@@ -15,6 +15,7 @@ import (
 	"koding/kites/kloud/machine"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/pkg/idlock"
+	"koding/remoteapi"
 
 	"github.com/koding/cache"
 	"github.com/koding/logging"
@@ -82,6 +83,9 @@ type Kloud struct {
 
 	// MachineClient handles machine.* methods.
 	MachineClient *machine.Client
+
+	// RemoteClient handles requests to "remote.api" endpoint.
+	RemoteClient *remoteapi.Client
 
 	Metrics *metrics.DogStatsD
 

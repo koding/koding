@@ -23,7 +23,7 @@ module.exports = class StripePaymentTab extends kd.TabPaneView
       callback: @bound 'onSubmit'
 
     utils.loadStripe().then =>
-      if kd.config.environment is 'development'
+      if kd.config.environment isnt 'production'
         @submitWithDummyCard()
 
 

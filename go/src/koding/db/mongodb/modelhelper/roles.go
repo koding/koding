@@ -1,11 +1,14 @@
 package modelhelper
 
 import (
-	"fmt"
+	"errors"
 	"koding/db/models"
 
 	"gopkg.in/mgo.v2/bson"
 )
+
+// DefaultRoles stores the logical roles in a team
+var DefaultRoles = []string{"owner", "admin", "member"}
 
 // FetchAdminAccounts fetches the admin accounts from database
 func FetchAdminAccounts(groupName string) ([]models.Account, error) {
@@ -35,14 +38,34 @@ func FetchAdminAccounts(groupName string) ([]models.Account, error) {
 
 // IsAdmin checks if the given username is an admin of the given groupName
 func IsAdmin(username, groupName string) (bool, error) {
+	return HasAnyRole(username, groupName, "admin")
+}
+
+// IsMember checks if the given username is a member in given groupName
+func IsMember(username, groupName string) (bool, error) {
+	return HasAnyRole(username, groupName, "member")
+}
+
+// IsParticipant checks if the given username is a participant in given
+// groupName, participant roles are defined in DefaultRoles.
+func IsParticipant(username, groupName string) (bool, error) {
+	return HasAnyRole(username, groupName, DefaultRoles...)
+}
+
+// HasAnyRole checks if the given username has the any of the given roles in given groupName
+func HasAnyRole(username, groupName string, roles ...string) (bool, error) {
+	if len(roles) == 0 {
+		return false, errors.New("role(s) required")
+	}
+
 	group, err := GetGroup(groupName)
 	if err != nil {
-		return false, fmt.Errorf("getGroup(%s) err: %s", groupName, err)
+		return false, err
 	}
 
 	account, err := GetAccount(username)
 	if err != nil {
-		return false, fmt.Errorf("getAccount(%s) err: %s", username, err)
+		return false, err
 	}
 
 	selector := Selector{
@@ -50,15 +73,15 @@ func IsAdmin(username, groupName string) (bool, error) {
 		"sourceName": "JGroup",
 		"targetId":   account.Id,
 		"targetName": "JAccount",
-		"as":         "admin",
+		"as":         bson.M{"$in": roles},
 	}
 
 	count, err := RelationshipCount(selector)
 	if err != nil {
-		return false, fmt.Errorf("checkAdminRelationship err: %s", err)
+		return false, err
 	}
 
-	return count == 1, nil
+	return count > 0, nil
 }
 
 // FetchAccountGroups lists the group memberships of a given username

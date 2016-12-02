@@ -57,6 +57,7 @@ type Config struct {
 		KlientLatest string `json:"klientLatest" required:"true"`
 		Kloud        string `json:"kloud" required:"true"`
 		Kontrol      string `json:"kontrol" required:"true"`
+		RemoteAPI    string `json:"remoteAPI" requied:"true"`
 		TunnelServer string `json:"tunnelServer" required:"true"`
 	}
 	Routes map[string]string `json:"routes"`

@@ -27,9 +27,6 @@ var mailSender = emailsender.Send
 type StripeHandler func([]byte) error
 
 var stripeActions = map[string]StripeHandler{
-	"charge.succeeded": chargeSucceededHandler,
-	"charge.failed":    chargeFailedHandler,
-
 	"customer.subscription.created":        customerSubscriptionCreatedHandler,
 	"customer.subscription.deleted":        customerSubscriptionDeletedHandler,
 	"customer.subscription.updated":        customerSubscriptionUpdatedHandler,
@@ -50,27 +47,6 @@ func GetHandler(name string) (StripeHandler, error) {
 	}
 
 	return action, nil
-}
-
-func chargeSucceededHandler(raw []byte) error {
-	return chargeHandler(raw, "succeeded")
-}
-
-func chargeFailedHandler(raw []byte) error {
-	return chargeHandler(raw, "failed")
-}
-
-func chargeHandler(raw []byte, op string) error {
-	var charge stripe.Charge
-	err := json.Unmarshal(raw, &charge)
-	if err != nil {
-		return err
-	}
-
-	opts := getAmountOpts(string(charge.Currency), int64(charge.Amount))
-	eventName := "charge " + op
-
-	return sendEventForCustomer(charge.Customer.ID, eventName, opts)
 }
 
 func getAmountOpts(currency string, amount int64) map[string]interface{} {

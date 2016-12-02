@@ -139,6 +139,7 @@ module.exports = (options, credentials) ->
 
     kontrolUrl: kontrol.url
     registerUrl: "#{options.customDomain.public}/kloud/kite"
+    remoteApiUrl: "#{options.customDomain.public}/remote.api"
     tunnelUrl: "#{options.tunnelUrl}"
     klientUrl: "https://s3.amazonaws.com/koding-klient/development/latest/klient.deb"
 
@@ -209,6 +210,7 @@ module.exports = (options, credentials) ->
       klientLatest     : "https://koding-klient.s3.amazonaws.com/#{options.environment}/latest-version.txt"
       kloud            : "#{options.publicHostname}/kloud/kite",
       kontrol          : "#{options.publicHostname}/kontrol/kite",
+      remoteAPI        : "#{options.publicHostname}/remote.api",
       tunnelServer     : "#{options.tunnelUrl}/kite"
     routes             :
       'dev.koding.com' : '127.0.0.1'
