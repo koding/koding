@@ -86,7 +86,7 @@ _bindTemplateEvents = (stackTemplate) ->
   { _id: id } = stackTemplate
 
   stackTemplate.on 'update', ->
-    computeController.checkRevisonFromOriginalStackTemplate stackTemplate._id, yes
+    computeController.checkRevisionFromOriginalStackTemplate stackTemplate
   stackTemplate.on 'deleteInstance', ->
     reactor.dispatch actions.REMOVE_STACK_TEMPLATE_SUCCESS, { id }
 
