@@ -261,6 +261,7 @@ func New(conf *Config) (*Kloud, error) {
 
 	transport := &socialapi.Transport{
 		RoundTripper: storeOpts.Client.Transport,
+		Host:         remoteURL.Host,
 		AuthFunc:     socialapi.NewCache(authFn).Auth,
 	}
 
