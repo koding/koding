@@ -5,11 +5,11 @@ import (
 	"sync"
 
 	"koding/klientctl/config"
+	"koding/klientctl/endpoint"
 	"koding/klientctl/endpoint/kloud"
 	"koding/remoteapi"
 	"koding/remoteapi/client"
 	"koding/socialapi"
-	"koding/socialapi/socialkite"
 )
 
 var DefaultClient = &Client{}
@@ -33,14 +33,7 @@ func (c *Client) init() {
 
 func (c *Client) initClient() {
 	c.c = &remoteapi.Client{
-		Transport: &socialapi.Transport{
-			AuthFunc: (&socialkite.KloudAuth{
-				Kite: c.kloud().Transport,
-				Storage: &socialkite.Storage{
-					Cache: c.kloud().Cache(),
-				},
-			}).Auth,
-		},
+		Transport: endpoint.Transport(c.kloud()),
 	}
 
 	if u, err := url.Parse(config.Konfig.RemoteURL); err == nil {
