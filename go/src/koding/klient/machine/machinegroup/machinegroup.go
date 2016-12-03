@@ -36,6 +36,9 @@ type GroupOpts struct {
 
 // Valid checks if provided options are correct.
 func (opts *GroupOpts) Valid() error {
+	if opts == nil {
+		return errors.New("nil group options provided")
+	}
 	if opts.Builder == nil {
 		return errors.New("nil client builder")
 	}
@@ -59,7 +62,7 @@ type Group struct {
 }
 
 // New creates a new Group object.
-func New(opts GroupOpts) (*Group, error) {
+func New(opts *GroupOpts) (*Group, error) {
 	if err := opts.Valid(); err != nil {
 		return nil, err
 	}
@@ -108,4 +111,9 @@ func New(opts GroupOpts) (*Group, error) {
 	}
 
 	return g, nil
+}
+
+// Close closes Group's underlying clients.
+func (g *Group) Close() {
+	g.client.Close()
 }

@@ -30,6 +30,9 @@ type ClientsOpts struct {
 
 // Valid checks if provided options are correct.
 func (opts *ClientsOpts) Valid() error {
+	if opts == nil {
+		return errors.New("nil clients options provided")
+	}
 	if opts.Builder == nil {
 		return errors.New("nil client builder")
 	}
