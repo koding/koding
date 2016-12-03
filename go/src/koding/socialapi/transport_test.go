@@ -3,6 +3,7 @@ package socialapi_test
 import (
 	"encoding/json"
 	"log"
+	"net"
 	"net/http"
 	"strings"
 	"testing"
@@ -46,18 +47,53 @@ func TestTransport(t *testing.T) {
 			{Type: "get", Session: users[0]},
 			{Type: "set", Session: users[0]},
 		},
+	}, {
+		"cached user1",
+		users[0],
+		nil, nil, nil,
+		TrxStorage{
+			{Type: "get", Session: users[0]},
+		},
+	}, {
+		"new user2",
+		users[1],
+		nil, nil, nil,
+		TrxStorage{
+			{Type: "get", Session: users[1]},
+			{Type: "set", Session: users[1]},
+		},
+	}, {
+		"new user3 with an error",
+		users[2],
+		[]error{&net.DNSError{IsTemporary: true}}, nil, nil,
+		TrxStorage{
+			{Type: "get", Session: users[2]},
+			{Type: "set", Session: users[2]},
+		},
+	}, {
+		"cached user3 with an error and response codes",
+		users[2],
+		[]error{&net.DNSError{IsTemporary: true}}, []int{401, 401}, nil,
+		TrxStorage{
+			{Type: "get", Session: users[2]},
+		},
 	}}
 
+	rec := &AuthRecorder{
+		AuthFunc: cache.Auth,
+	}
+
 	client := http.Client{
-		Transport: &FakeTransport{
-			Transport: &socialapi.Transport{
-				AuthFunc: cache.Auth,
-			},
+		Transport: &socialapi.Transport{
+			RoundTripper: &FakeTransport{},
+			AuthFunc:     rec.Auth,
 		},
 	}
 
 	for _, cas := range cases {
 		t.Run(cas.name, func(t *testing.T) {
+			rec.Reset()
+
 			req, err := http.NewRequest("POST", s.URL, strings.NewReader(cas.name))
 			if err != nil {
 				t.Fatalf("NewRequest()=%s", err)
@@ -76,6 +112,10 @@ func TestTransport(t *testing.T) {
 			resp, err := client.Do(req)
 			if err != nil {
 				t.Fatalf("Do()=%s", err)
+			}
+
+			if want, got := 1+len(cas.errs)+len(cas.codes), len(rec.Options); got != want {
+				t.Fatalf("want %d, got %d: %+v", got, want, rec.Options)
 			}
 
 			if resp.StatusCode != http.StatusOK {

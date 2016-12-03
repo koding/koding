@@ -107,6 +107,14 @@ type AuthOptions struct {
 	// Request is a copy of the request, for which
 	// we're building authorisation.
 	Request *http.Request
+
+	// Error is the error that was the reason
+	// of temporary failure received while trying
+	// to sending request.
+	//
+	// Error is non-nil when request failed with
+	// temporary error and Transport is retrying.
+	Error error
 }
 
 type httpTransport interface {
@@ -187,7 +195,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		session = s
 	}
 
-	for attempts := t.retryNum(); attempts > 0; attempts-- {
+	for attempts := t.retryNum(); attempts >= 0; attempts-- {
 		if reqCopy.Body != nil {
 			if _, err := reqCopy.Body.(io.ReadSeeker).Seek(0, io.SeekStart); err != nil {
 				return nil, err // non-retryable
@@ -198,6 +206,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 			Session: session,
 			Refresh: refresh,
 			Request: reqCopy,
+			Error:   lastErr,
 		}
 
 		s, err := t.AuthFunc(opts)

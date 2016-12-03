@@ -59,15 +59,33 @@ func (fa FakeAuth) GetSession(w http.ResponseWriter, r *http.Request) {
 	fa.mu.RUnlock()
 
 	p, err := ioutil.ReadAll(r.Body)
-	if err == nil && len(p) != 0 {
-		log.Printf("FakeAuth.GetSession: read body: %s", p)
-	}
+	log.Printf("FakeAuth.GetSession: read body: p=%q, err=%v", p, err)
 
 	if session == nil {
 		w.WriteHeader(http.StatusUnauthorized)
 	} else {
 		json.NewEncoder(w).Encode(session)
 	}
+}
+
+type AuthRecorder struct {
+	Options  []*socialapi.AuthOptions
+	AuthFunc socialapi.AuthFunc
+}
+
+func (ar *AuthRecorder) Auth(opts *socialapi.AuthOptions) (*socialapi.Session, error) {
+	sessionCopy := *opts.Session
+	optsCopy := *opts
+	optsCopy.Session = &sessionCopy
+	optsCopy.Request = nil
+
+	ar.Options = append(ar.Options, &optsCopy)
+
+	return ar.AuthFunc(opts)
+}
+
+func (ar *AuthRecorder) Reset() {
+	ar.Options = ar.Options[:0]
 }
 
 type Trx struct {
@@ -148,7 +166,7 @@ var (
 )
 
 type FakeTransport struct {
-	*socialapi.Transport
+	http.RoundTripper
 }
 
 var _ socialapi.HTTPTransport = (*FakeTransport)(nil)
@@ -166,7 +184,31 @@ func (ft FakeTransport) RoundTrip(req *http.Request) (resp *http.Response, err e
 		return resp, nil
 	}
 
-	return ft.Transport.RoundTrip(req)
+	return ft.roundTripper().RoundTrip(req)
+}
+
+func (ft FakeTransport) CancelRequest(req *http.Request) {
+	if rc, ok := ft.RoundTripper.(socialapi.HTTPRequestCanceler); ok {
+		rc.CancelRequest(req)
+	}
+}
+
+func (ft FakeTransport) CloseIdleConnections() {
+	if icl, ok := ft.RoundTripper.(socialapi.HTTPIdleConnectionsCloser); ok {
+		icl.CloseIdleConnections()
+	}
+}
+
+func (ft FakeTransport) roundTripper() http.RoundTripper {
+	if ft.RoundTripper != nil {
+		return ft.RoundTripper
+	}
+
+	if http.DefaultClient.Transport != nil {
+		return http.DefaultClient.Transport
+	}
+
+	return http.DefaultTransport
 }
 
 func WithErrors(req *http.Request, errs ...error) *http.Request {

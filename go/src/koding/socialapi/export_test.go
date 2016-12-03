@@ -16,6 +16,17 @@ type HTTPTransport interface {
 	httpTransport
 }
 
+// HTTPRequestCanceler exports httpRequestCanceler for test purposes.
+type HTTPRequestCanceler interface {
+	httpRequestCanceler
+}
+
+// HTTPIdleConnectionsCloser exports httpIdleConnectionsCloser for
+// tests purposes.
+type HTTPIdleConnectionsCloser interface {
+	httpIdleConnectionsCloser
+}
+
 // Match is a test helper for matching two sessions.
 //
 // Since ClientID is typically auto-generated, we match all the other fields.
