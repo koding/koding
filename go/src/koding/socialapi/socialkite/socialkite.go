@@ -3,6 +3,7 @@ package socialkite
 import (
 	"sync"
 
+	"koding/kites/config"
 	"koding/kites/kloud/stack"
 	"koding/socialapi"
 )
@@ -22,6 +23,8 @@ type KloudAuth struct {
 	once sync.Once
 	auth socialapi.AuthFunc
 }
+
+var _ socialapi.AuthFunc = (&KloudAuth{}).Auth
 
 func (ka *KloudAuth) init() {
 	ka.once.Do(ka.initAuth)
@@ -58,4 +61,55 @@ func (ka *KloudAuth) rpcAuth(opts *socialapi.AuthOptions) (*socialapi.Session, e
 		Username: opts.Session.Username,
 		Team:     resp.GroupName,
 	}, nil
+}
+
+// Storage is wrapper for config.Cache that implements socialapi.Storage.
+type Storage struct {
+	Cache *config.Cache
+}
+
+var _ socialapi.Storage = (*Storage)(nil)
+
+// Get implements the socialapi.Storage interface.
+func (st *Storage) Get(s *socialapi.Session) error {
+	var sessions map[string]socialapi.Session
+
+	if err := st.Cache.GetValue("auth.sessions", &sessions); err != nil {
+		return err
+	}
+
+	session, ok := sessions[s.Key()]
+	if !ok {
+		return socialapi.ErrSessionNotFound
+	}
+
+	*s = session
+
+	return nil
+}
+
+// Set implements the socialapi.Storage interface.
+func (st *Storage) Set(s *socialapi.Session) error {
+	sessions := make(map[string]socialapi.Session)
+
+	if err := st.Cache.GetValue("auth.sessions", &sessions); err != nil {
+		return err
+	}
+
+	sessions[s.Key()] = *s
+
+	return st.Cache.SetValue("auth.sessions", sessions)
+}
+
+// Delete implements the socialapi.Storage interface.
+func (st *Storage) Delete(s *socialapi.Session) error {
+	sessions := make(map[string]socialapi.Session)
+
+	if err := st.Cache.GetValue("auth.sessions", &sessions); err != nil {
+		return err
+	}
+
+	delete(sessions, s.Key())
+
+	return st.Cache.SetValue("auth.sessions", sessions)
 }
