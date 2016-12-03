@@ -47,6 +47,11 @@
     p {
       color: #AAB2B9;
       line-height: 26px;
+      a,
+      a:visited {
+        color: white;
+        text-decoration: none;
+      }
     }
   }
 }
