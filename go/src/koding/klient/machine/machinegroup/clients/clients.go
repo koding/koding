@@ -116,7 +116,28 @@ func (c *Clients) Drop(id machine.ID) error {
 	if dc != nil {
 		dc.Close()
 	} else {
-		c.log.Critical("Non existing client registered under %s ID", id)
+		panic("nonexistent client for " + string(id))
+	}
+
+	return nil
+}
+
+// Close closes and drops all dynamic clients registered to Clients.
+func (c *Clients) Close() error {
+	all := make(map[machine.ID]*machine.DynamicClient)
+	c.mu.Lock()
+	for id, dc := range c.m {
+		all[id] = dc
+		delete(c.m, id)
+	}
+	c.mu.Unlock()
+
+	for id, dc := range all {
+		if dc != nil {
+			dc.Close()
+		} else {
+			panic("nonexistent client for " + string(id))
+		}
 	}
 
 	return nil
