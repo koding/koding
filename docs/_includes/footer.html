@@ -65,8 +65,10 @@
   });
   // footer mobile menu expand/collaps
   $('.Footer--col h3').on('click', function(){
+    var wasActive = $(this).parent().hasClass('active');
     $('.Footer--col').removeClass('active');
-    $(this).parent().addClass('active');
+    if(!wasActive)
+      $(this).parent().addClass('active');
   });
 </script>
 
