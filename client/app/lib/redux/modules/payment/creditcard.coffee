@@ -11,6 +11,7 @@ info = require './info'
 withNamespace = reduxHelper.makeNamespace 'koding', 'payment', 'creditcard'
 
 REMOVE = reduxHelper.expandActionType withNamespace 'REMOVE'
+HAS_CARD = reduxHelper.expandActionType withNamespace 'HAS_CARD'
 
 reducer = (state = null, action) ->
 
@@ -32,7 +33,16 @@ reducer = (state = null, action) ->
       if c.default_source
         return normalized.entities.sources[c.default_source]
 
-    when REMOVE.SUCCESS, customer.REMOVE.SUCCESS
+    when HAS_CARD.SUCCESS
+      # we are returning an empty object here so that other parts
+      # of the system can know that there is a credit card
+      # available. This is for when a member loads the site, but
+      # doesn't know if the team is disabled or not. And this makes
+      # sure that, they only know that there is a credit card, but
+      # there is no info available for them.
+      return if state then state else immutable {}
+
+    when REMOVE.SUCCESS, HAS_CARD.FAIL, customer.REMOVE.SUCCESS
       return null
 
   return state
@@ -67,14 +77,23 @@ remove = ->
     payment: (service) -> service.deleteCreditCard()
   }
 
+hasCreditCard = ->
+  return {
+    types: [ HAS_CARD.BEGIN, HAS_CARD.SUCCESS, HAS_CARD.FAIL ]
+    payment: (service) -> service.hasCreditCard()
+  }
+
+
+creditCard = (state) -> state.creditCard
+
 
 module.exports = {
   namespace: withNamespace()
   reducer
 
-  values
+  values, creditCard
 
-  remove
-  REMOVE
+  remove, hasCreditCard
+  REMOVE, HAS_CARD
 }
 
