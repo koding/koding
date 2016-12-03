@@ -41,14 +41,14 @@ func (s *Server) TurnOn() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	value := s.addr.Val
+	value := s.addr.Value
 	if value == "" {
 		value = "0" // initial address.
 	}
 
 	s.addr = machine.Addr{
-		Net: "on",
-		Val: value,
+		Network: "on",
+		Value:   value,
 	}
 }
 
@@ -57,7 +57,7 @@ func (s *Server) TurnOff() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.addr.Net = "off"
+	s.addr.Network = "off"
 }
 
 // ChangeAddr generates a new address for server.
@@ -65,7 +65,7 @@ func (s *Server) ChangeAddr() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.addr.Val += "0"
+	s.addr.Value += "0"
 }
 
 // NilBuilder uses Server logic to build nil clients.
@@ -93,7 +93,7 @@ func (*NilBuilder) Ping(dynAddr machine.DynamicAddrFunc) (machine.Status, machin
 	}
 
 	status := machine.Status{}
-	switch addr.Net {
+	switch addr.Network {
 	case "on":
 		status.State = machine.StateOnline
 	case "off":
