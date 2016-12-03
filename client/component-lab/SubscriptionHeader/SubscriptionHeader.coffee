@@ -63,8 +63,6 @@ module.exports = class SubscriptionHeader extends Component
 
     { nextBillingAmount } = @props
 
-    nextBillingAmount = if @props.isTrial then 0 else nextBillingAmount
-
     <Col xs={4} className={textStyles.right}>
       <Label size="small" type="info">
         Next Bill Amount: <strong>${formatNumber(nextBillingAmount, 2) or 0}</strong>
