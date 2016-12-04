@@ -2,8 +2,10 @@ package modelhelper
 
 import (
 	"errors"
-	"koding/db/models"
 	"time"
+
+	"koding/db/models"
+	"koding/kites/kloud/utils"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -56,6 +58,33 @@ func GetGroupFieldsByIds(ids []string, fields []string) ([]*models.Group, error)
 	}
 
 	return groups, Mongo.Run(GroupsCollectionName, query)
+}
+
+// GetGroupForKite reverse looks up a team name for the given kiteID
+// by looking up a kiteID among jMachine.queryString fields.
+func GetGroupForKite(kiteID string) (*models.Group, error) {
+	qs, err := utils.QueryString(kiteID)
+	if err != nil {
+		return nil, err
+	}
+
+	var groups []struct {
+		ID bson.ObjectId `bson:"id"`
+	}
+
+	fn := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"queryString": qs}).Select(bson.M{"groups": 1}).One(&groups)
+	}
+
+	if err := Mongo.Run(MachinesColl, fn); err != nil {
+		return nil, err
+	}
+
+	if len(groups) == 0 {
+		return nil, mgo.ErrNotFound
+	}
+
+	return GetGroupById(groups[0].ID.Hex())
 }
 
 func GetGroup(slugName string) (*models.Group, error) {
