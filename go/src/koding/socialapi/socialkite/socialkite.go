@@ -2,6 +2,9 @@ package socialkite
 
 import (
 	"sync"
+	"time"
+
+	"github.com/koding/kite"
 
 	"koding/kites/config"
 	"koding/kites/kloud/stack"
@@ -12,6 +15,66 @@ import (
 // to make RPC calls.
 type Kite interface {
 	Call(method string, req, resp interface{}) error
+}
+
+// LazyKite is a wrapper for Client that dials the
+// kite on the first request.
+type LazyKite struct {
+	Client      *kite.Client  // kite client to use; required
+	DialTimeout time.Duration // max dial time; 30s by default
+	CallTimeout time.Duration // max call time; 60s by default
+
+	mu     sync.Mutex
+	dialed bool
+}
+
+var _ Kite = (*LazyKite)(nil)
+
+// Call implements the Kite interface.
+func (lk *LazyKite) Call(method string, req, resp interface{}) error {
+	if err := lk.init(); err != nil {
+		return err
+	}
+
+	r, err := lk.Client.TellWithTimeout(method, lk.callTimeout(), req)
+	if err != nil {
+		return err
+	}
+
+	if resp != nil {
+		return r.Unmarshal(resp)
+	}
+
+	return nil
+}
+
+func (lk *LazyKite) init() error {
+	lk.mu.Lock()
+	defer lk.mu.Unlock()
+
+	if !lk.dialed {
+		if err := lk.Client.DialTimeout(lk.dialTimeout()); err != nil {
+			return err
+		}
+
+		lk.dialed = true
+	}
+
+	return nil
+}
+
+func (lk *LazyKite) dialTimeout() time.Duration {
+	if lk.DialTimeout != 0 {
+		return lk.DialTimeout
+	}
+	return 30 * time.Second
+}
+
+func (lk *LazyKite) callTimeout() time.Duration {
+	if lk.CallTimeout != 0 {
+		return lk.CallTimeout
+	}
+	return 60 * time.Second
 }
 
 // KloudAuth provides socialapi.AuthFunc that is

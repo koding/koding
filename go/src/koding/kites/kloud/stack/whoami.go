@@ -23,7 +23,7 @@ type WhoamiResponse struct {
 
 // TestWhoami is a kite handler for a "team.whoami" kite method.
 func (k *Kloud) TeamWhoami(r *kite.Request) (interface{}, error) {
-	group, err := modelhelper.GetGroupForKite(r.Username, r.Client.ID)
+	group, err := modelhelper.GetGroupForKite(r.Client.ID)
 	if err != nil {
 		return nil, models.ResError(err, "jGroup")
 	}

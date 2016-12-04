@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"net/url"
+	"path"
 	"strconv"
 	"strings"
 
@@ -92,6 +93,13 @@ func (u *URL) UnmarshalJSON(p []byte) error {
 // MarshalJSON implements the json.Marshaler interface.
 func (u *URL) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(u.String())), nil
+}
+
+// WithPath gives new URL with append paths to its Path field.
+func (u *URL) WithPath(paths ...string) *url.URL {
+	ur := *u.URL
+	ur.Path = path.Join(ur.Path, path.Join(paths...))
+	return &ur
 }
 
 // Endpoint represents a single endpoint.

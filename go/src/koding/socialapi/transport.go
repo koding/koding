@@ -169,6 +169,11 @@ func (t *Transport) NewSingleClient(session *Session) http.RoundTripper {
 
 // RoundTrip implements the http.RoundTripper interface.
 func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
+	session, ok := req.Context().Value(SessionContextKey).(*Session)
+	if !ok {
+		return t.roundTripper().RoundTrip(req)
+	}
+
 	if t.AuthFunc == nil {
 		panic("socialapi: AuthFunc is nil")
 	}
@@ -189,11 +194,6 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 	var refresh bool
 	var lastErr error
-	var session *Session
-
-	if s, ok := reqCopy.Context().Value(SessionContextKey).(*Session); ok {
-		session = s
-	}
 
 	for attempts := t.retryNum(); attempts >= 0; attempts-- {
 		if reqCopy.Body != nil {
