@@ -212,8 +212,13 @@ module.exports = (options, credentials) ->
       kloud            : "#{options.publicHostname}/kloud/kite",
       kontrol          : "#{options.publicHostname}/kontrol/kite",
       kodingBase       : "#{options.publicHostname}",
-      remoteAPI        : "#{options.publicHostname}/remote.api",
+      remoteAPI        :
+        public         : "#{options.customDomain.public}/remote.api"
+        private        : "#{options.customDomain.local}/remote.api"
       tunnelServer     : "#{options.tunnelUrl}/kite"
+      socialAPI        :
+        public         : "#{options.customDomain.public}/api/social"
+        private        : "#{options.customDomain.local}/api/social"
     routes             :
       'dev.koding.com' : '127.0.0.1'
 

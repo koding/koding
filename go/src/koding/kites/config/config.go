@@ -2,6 +2,10 @@ package config
 
 import (
 	"bytes"
+	"encoding/json"
+	"flag"
+	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/koding/multiconfig"
@@ -44,6 +48,58 @@ func init() {
 // environment defines the environment on which configuration was generated.
 var environment string
 
+// URL is a wrapper for url.URL that implements the following interfaces:
+//
+//   - flag.Getter
+//   - json.Marshaler
+//   - json.Unmarshaler
+//
+type URL struct {
+	*url.URL
+}
+
+var (
+	_ flag.Getter      = (*URL)(nil)
+	_ json.Marshaler   = (*URL)(nil)
+	_ json.Unmarshaler = (*URL)(nil)
+)
+
+// Get implements the flag.Getter interface.
+func (u URL) Get() interface{} {
+	return u.URL
+}
+
+// Set implements the flag.Value interface.
+func (u *URL) Set(s string) error {
+	ur, err := url.Parse(s)
+	if err != nil {
+		return err
+	}
+	u.URL = ur
+	return nil
+}
+
+// Unmarshal implements the json.Unmarshaler interface.
+func (u *URL) UnmarshalJSON(p []byte) error {
+	s, err := strconv.Unquote(string(p))
+	if err != nil {
+		return err
+	}
+	u.URL, err = url.Parse(s)
+	return err
+}
+
+// MarshalJSON implements the json.Marshaler interface.
+func (u *URL) MarshalJSON() ([]byte, error) {
+	return []byte(strconv.Quote(u.String())), nil
+}
+
+// Endpoint represents a single endpoint.
+type Endpoint struct {
+	Public  *URL `json:"public"`
+	Private *URL `json:"private"`
+}
+
 // Config stores all static configuration data generated during ./configure phase.
 type Config struct {
 	Environment string `json:"environment" required:"true"`
@@ -51,15 +107,22 @@ type Config struct {
 		PublicLogs Bucket `json:"publicLogs" required:"true"`
 	} `json:"buckets" required:"true"`
 	Endpoints struct {
-		IP           string `json:"ip" required:"true"`
-		IPCheck      string `json:"ipCheck" required:"true"`
-		KDLatest     string `json:"kdLatest" required:"true"`
-		KlientLatest string `json:"klientLatest" required:"true"`
-		Kloud        string `json:"kloud" required:"true"`
-		KodingBase   string `json:"kodingBase" required:"true"`
-		Kontrol      string `json:"kontrol" required:"true"`
-		RemoteAPI    string `json:"remoteAPI" requied:"true"`
-		TunnelServer string `json:"tunnelServer" required:"true"`
+		IP           string    `json:"ip" required:"true"`
+		IPCheck      string    `json:"ipCheck" required:"true"`
+		KDLatest     string    `json:"kdLatest" required:"true"`
+		KlientLatest string    `json:"klientLatest" required:"true"`
+		Kloud        string    `json:"kloud" required:"true"`
+		KodingBase   string    `json:"kodingBase" required:"true"`
+		Kontrol      string    `json:"kontrol" required:"true"`
+		IP           string    `json:"ip" required:"true"`
+		IPCheck      string    `json:"ipCheck" required:"true"`
+		KDLatest     string    `json:"kdLatest" required:"true"`
+		KlientLatest string    `json:"klientLatest" required:"true"`
+		Kloud        string    `json:"kloud" required:"true"`
+		Kontrol      string    `json:"kontrol" required:"true"`
+		RemoteAPI    *Endpoint `json:"remoteAPI" requied:"true"`
+		TunnelServer string    `json:"tunnelServer" required:"true"`
+		SocialAPI    *Endpoint `json:"socialAPI" requied:"true"`
 	}
 	Routes map[string]string `json:"routes"`
 }
