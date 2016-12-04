@@ -96,8 +96,8 @@ func (u *URL) MarshalJSON() ([]byte, error) {
 
 // Endpoint represents a single endpoint.
 type Endpoint struct {
-	Public  *URL `json:"public"`
-	Private *URL `json:"private"`
+	Public  *URL `json:"public,omitempty"`
+	Private *URL `json:"private,omitempty"`
 }
 
 // Config stores all static configuration data generated during ./configure phase.
