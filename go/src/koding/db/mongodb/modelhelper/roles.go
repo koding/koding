@@ -4,6 +4,7 @@ import (
 	"errors"
 	"koding/db/models"
 
+	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -103,6 +104,10 @@ func FetchAccountGroupNames(username string) ([]string, error) {
 		return nil, err
 	}
 
+	if len(rels) == 0 {
+		return nil, mgo.ErrNotFound
+	}
+
 	var ids []string
 	for _, rel := range rels {
 		ids = append(ids, rel.SourceId.Hex())
@@ -144,6 +149,10 @@ func FetchAccountGroups(username string) (groups []*models.Group, err error) {
 	rels, err := GetAllRelationships(selector)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(rels) == 0 {
+		return nil, mgo.ErrNotFound
 	}
 
 	var ids []bson.ObjectId

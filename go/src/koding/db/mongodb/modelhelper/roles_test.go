@@ -7,6 +7,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/db/mongodb/modelhelper/modeltesthelper"
 
+	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -162,8 +163,8 @@ func TestFetchAccountGroupNames(t *testing.T) {
 	defer modelhelper.RemoveAccount(acc1.Id)
 
 	groups, err := modelhelper.FetchAccountGroupNames(acc1.Profile.Nickname)
-	if err != nil {
-		t.Fatal(err)
+	if err != mgo.ErrNotFound {
+		t.Fatalf("want err = %v; got %v", mgo.ErrNotFound, err)
 	}
 
 	if len(groups) != 0 {
@@ -241,8 +242,8 @@ func TestFetchAccountGroups(t *testing.T) {
 	defer modelhelper.RemoveAccount(acc1.Id)
 
 	groups, err := modelhelper.FetchAccountGroups(acc1.Profile.Nickname)
-	if err != nil {
-		t.Fatal(err)
+	if err != mgo.ErrNotFound {
+		t.Fatalf("want err = %v; got %v", mgo.ErrNotFound, err)
 	}
 
 	if len(groups) != 0 {

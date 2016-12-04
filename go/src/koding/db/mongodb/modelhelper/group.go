@@ -21,10 +21,6 @@ func GetGroupById(id string) (*models.Group, error) {
 
 // GetGroupsByIds returns groups by their given IDs
 func GetGroupsByIds(ids ...bson.ObjectId) ([]*models.Group, error) {
-	if len(ids) == 0 {
-		return nil, errors.New("no group id specified")
-	}
-
 	var groups []*models.Group
 
 	return groups, Mongo.Run(GroupsCollectionName, func(c *mgo.Collection) error {
