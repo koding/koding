@@ -55,10 +55,10 @@ func (m *MongoDatabase) fetchOne(user, slug string) ([]*Team, error) {
 		return nil, models.ResError(err, modelhelper.GroupsCollectionName)
 	}
 
-	switch participand, err := m.adapter.IsParticipant(user, slug); {
+	switch participant, err := m.adapter.IsParticipant(user, slug); {
 	case err != nil:
 		return nil, models.ResError(err, modelhelper.RelationshipColl)
-	case !participand:
+	case !participant:
 		return nil, fmt.Errorf("user %q does not belong to %q group", user, slug)
 	}
 

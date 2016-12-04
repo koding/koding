@@ -56,8 +56,8 @@ func (c *Client) List(opts *ListOptions) ([]*team.Team, error) {
 		req.Slug = opts.Slug
 	}
 
-	resp := &stack.TeamListResponse{}
-	if err := c.kloud().Call("team.list", req, resp); err != nil {
+	resp := stack.TeamListResponse{}
+	if err := c.kloud().Call("team.list", req, &resp); err != nil {
 		return nil, err
 	}
 
