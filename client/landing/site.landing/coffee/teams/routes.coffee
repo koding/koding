@@ -1,7 +1,28 @@
 kd    = require 'kd'
-utils = require './../core/utils'
+{ loadScript } = utils = require './../core/utils'
+Tests = require '../testrunner/tests'
+RunnerSocketConnector = require '../testrunner/runnersocketconnector'
+SOCKET_PORT = 1777
 
 do ->
+
+  appendScripts = (callback) ->
+
+    mochaOptions =
+      identifier : 'mocha'
+      url        : 'https://cdnjs.cloudflare.com/ajax/libs/mocha/2.2.4/mocha.js'
+
+    cssOptions =
+      identifier : 'mocha-css'
+      url        : 'https://cdnjs.cloudflare.com/ajax/libs/mocha/2.2.4/mocha.css'
+
+    socketIoOptions =
+      identifier : 'socket-io'
+      url        : 'https://cdn.socket.io/socket.io-1.2.0.js'
+
+    loadScript 'style', cssOptions, kd.noop
+    loadScript 'script', socketIoOptions, ->
+      loadScript 'script', mochaOptions, callback
 
   handleRoute = ({ params, query }, pageName = 'select') ->
 
@@ -19,8 +40,33 @@ do ->
 
     cb = (app) ->
       app.showPage pageName
-      app.handleQuery query  if query
+      if Object.keys(query).length
+        if query.test then runTest query
+        else app.handleQuery query
     router.openSection 'Teams', null, null, cb
+
+  runTest = (query) ->
+
+    query = query.test
+    if query
+      appendScripts ->
+        mocha.ui('bdd')
+        window.socket = io "http://localhost:#{SOCKET_PORT}"
+
+        socket.emit 'registerAs', 'popup'
+        socket.on 'connection', (id) ->
+          window.socketId = id
+          Tests['clone_stack_template']()
+          runner = mocha.run()
+          bindRunner runner, socket
+
+
+  bindRunner = (runner, socket) ->
+
+    connector = new RunnerSocketConnector runner, socket
+
+    runner.on 'end', ->
+      connector.sendResult()
 
 
   handleInvitation = (routeInfo) ->
