@@ -1,4 +1,5 @@
-kd     = require 'kd'
+kd = require 'kd'
+_ = require 'lodash'
 whoami = require './util/whoami'
 
 
@@ -15,9 +16,9 @@ module.exports = class AppStorage extends kd.Object
 
     @isReady = no
 
-    @reset()
-
     super
+
+    @setInitial()
 
 
   fetchStorage: do (queue = {}) -> (callback, force = no) ->
@@ -66,9 +67,7 @@ module.exports = class AppStorage extends kd.Object
     @reset()
     appId = @_applicationID
     @fetchStorage (storage) =>
-      @storage = storage
       value = @getValue key, group
-
       callback? value ? null
     , force
 
@@ -76,9 +75,11 @@ module.exports = class AppStorage extends kd.Object
   getValue: (key, group = AppStorage.DEFAULT_GROUP_NAME) ->
 
     appId = @_applicationID
-    return unless @_storage
-    return if @_storageData[group]?[appId]?.data?[key]? then @_storageData[group][appId].data[key]
-    return if @_storage[group]?[appId]?.data?[key]?     then @_storage[group][appId].data[key]
+    data  = do =>
+      return if @_storageData[group]?[appId]?.data?[key]? then @_storageData[group][appId].data[key]
+      return if @_storage?[group]?[appId]?.data?[key]?    then @_storage[group][appId].data[key]
+
+    _.clone data
 
 
   setValue: (key, value, callback, group = AppStorage.DEFAULT_GROUP_NAME, notify = no) ->
@@ -89,12 +90,19 @@ module.exports = class AppStorage extends kd.Object
     @_storageData[group][appId].data       or= {}
     @_storageData[group][appId].data[key]    = value
 
+    if _.isEqual @_storage?[group]?[appId]?.data?[key], value
+      return callback?()
+
     pack = @zip key, group, value
 
-    @fetchStorage (storage) ->
+    @fetchStorage (storage) =>
       query = { $set : pack }
-      storage?.upsert? appId, { query, notify }, ->
-        callback?()
+      if storage
+        storage.upsert appId, { query, notify }, (err, _storage) =>
+          @_storage = _storage  if _storage
+          callback? err, _storage
+      else
+        callback? null
 
 
   setDefaults: (defaults) ->
@@ -119,6 +127,14 @@ module.exports = class AppStorage extends kd.Object
     whoami()?.resetStorageCache?()
     @_storage     = null
     @_storageData = {}
+
+
+  setInitial: ->
+
+    @reset()
+
+    if storage = _globals.combinedStorage
+      @_storageData = storage
 
 
   zip: (key, group, value) ->

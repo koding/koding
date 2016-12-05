@@ -60,8 +60,8 @@ module.exports = class IDEFilesTabView extends IDEWorkspaceTabView
     { onboarding } = kd.singletons
     filesPane.on 'KDTabPaneActive', -> onboarding.refresh()
 
-    @on 'MachineMountRequested', (machineData, rootPath) =>
-      @finderPane.emit 'MachineMountRequested', machineData, rootPath
+    @on 'MachineMountRequested', (machineData) =>
+      @finderPane.emit 'MachineMountRequested', machineData
 
     @on 'MachineUnmountRequested', (machineData) =>
       @finderPane.emit 'MachineUnmountRequested', machineData

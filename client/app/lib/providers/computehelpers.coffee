@@ -227,15 +227,16 @@ module.exports = class ComputeHelpers
   # This method is not used in any place, I put it here until
   # we have a valid test suit for client side modular tests. ~ GG
   #
-  @infoTest = (count = 5) ->
+  @infoTest = (machine) ->
 
     { log } = kd
     cc      = kd.singletons.computeController
 
+    count   = 5
     kloud   = cc.getKloud()
     { now } = Date
 
-    machine      = cc.machines.first
+    machine     ?= cc.machines.first
     machineId    = machine._id
     currentState = machine.status.state
 
