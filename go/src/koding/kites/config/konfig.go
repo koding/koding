@@ -30,13 +30,14 @@ type Konfig struct {
 	KiteKey     string `json:"kiteKey,omitempty"`
 
 	// Koding endpoints configuration.
-	KontrolURL string `json:"kontrolURL,omitempty"`
-	KlientURL  string `json:"klientURL,omitempty"`
-	KloudURL   string `json:"kloudURL,omitempty"`
-	TunnelURL  string `json:"tunnelURL,omitempty"`
-	RemoteURL  string `json:"remoteURL,omitempty"`
-	IPURL      string `json:"ipURL,omitempty"`
-	IPCheckURL string `json:"ipCheckURL,omitempty"`
+	KontrolURL    string `json:"kontrolURL,omitempty"`
+	KlientURL     string `json:"klientURL,omitempty"`
+	KloudURL      string `json:"kloudURL,omitempty"`
+	KodingBaseURL string `json:"kodingBaseURL,omitempty"`
+	TunnelURL     string `json:"tunnelURL,omitempty"`
+	RemoteURL     string `json:"remoteURL,omitempty"`
+	IPURL         string `json:"ipURL,omitempty"`
+	IPCheckURL    string `json:"ipCheckURL,omitempty"`
 
 	// Koding networking configuration.
 	//
@@ -135,6 +136,7 @@ func NewKonfig(e *Environments) *Konfig {
 		KlientURL:          "http://127.0.0.1:56789/kite",
 		KontrolURL:         Builtin.Endpoints.Kontrol,
 		KloudURL:           Builtin.Endpoints.Kloud,
+		KodingBaseURL:      Builtin.Endpoints.KodingBase,
 		TunnelURL:          Builtin.Endpoints.TunnelServer,
 		RemoteURL:          Builtin.Endpoints.RemoteAPI,
 		IPURL:              Builtin.Endpoints.IP,
