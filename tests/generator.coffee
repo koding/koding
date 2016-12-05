@@ -7,40 +7,20 @@ landingTestPath = path.join(__dirname, '../client/landing/site.landing/coffee/te
 rfmlFilesPath = path.join(__dirname, '/spec/rainforest')
 
 class Generator
-  constructor: (opts = {}) ->
 
-  @getRainforestTests: () ->
-    files = fs.readdirSync './'
+  getRainforestTests: ->
 
-    files.filter (file) -> file.indexOf('rfml') != -1
+    files = fs.readdirSync rfmlFilesPath
+
+    files.filter (file) -> file.indexOf('.rfml') != -1
 
 
-  openFile: (filename) ->
-    @filename = filename
-    @body = fs.readFileSync './' + filename, 'utf-8'
+  isFileExist: (filename) ->
 
-  parseFile: () ->
-    lines = @body.split '\n\n'
-
-    @header = lines[0];
-    @title = lines[0].split('\n')[0].split(' ')[1]
-    @requires = lines[1].split(' ')[1]
-
-    # Delete first 2 for generation
-    lines.shift()
-    lines.shift()
-
-    # Remove #redirect false
-    if lines[0][0] is '#'
-      lines[0] = lines[0].substr lines[0].indexOf('\n') + 1, lines[0].length
-
-    @parsedBody = lines
-
-  @isFileExist: (filename) ->
     exists = no
 
     try
-      stats = fs.lstatSync "./#{filename}"
+      stats = fs.lstatSync "#{filename}"
       exists = stats.isFile()
     catch
       console.info "#{filename} doesnt exist at all. Proceeding..."
@@ -49,35 +29,17 @@ class Generator
 
     exists
 
-  generateMochaTest: () ->
-    replacedChar = new RegExp "'", "g"
-    mocha = @header + "\n\n"
-    requires = @requiredFileName
 
-    filename = @filename
   createMappingIfNotExist: ->
 
-    @parsedBody.forEach (test, index) ->
-      if index is 0
-        mocha += 'describe "' + filename + '", ->\n'
-        mocha += "  before -> \n"
-        mocha += "    require './#{requires}'\n\n"
-        return
     mappingPath = path.join(__dirname, 'mapping.json')
     if @isFileExist mappingPath
       mapping = fs.readFileSync mappingPath, 'utf-8'
       return JSON.parse mapping  if mapping?
 
-      should = test.split('\n')[0]
-      mocha += '  describe "' + should + '", ->\n'
     @createMapping()
 
-      assertions = test.split('\n')[1].split('? ')
 
-      assertions.forEach (assertion, index, array) ->
-        if assertion.length > 1
-          mocha += '    it "' + assertion + '?", -> \n'
-          mocha += "      console.warning 'Not yet implemented.'\n\n"
   createMapping: ->
     console.info 'Creating mapping for RainForest tests...'
     mapping = @parseRFMLFiles()
@@ -86,25 +48,81 @@ class Generator
     console.info 'Mapping finished.'
     mapping
 
-        mocha += "\n" if index is (array.length - 1)
 
-    @mocha = mocha
+  parseFileHeader: (header) ->
 
-  getRequiredModule: (mapping) ->
-    @mapping = mapping
-    @requiredFileName = mapping[@requires].name
+    id = header[0].split(' ')[1]
+    startUri = header[2].split(':')[1].trim()
+    tag = header[3].split(':')[1]
 
-  save: () ->
-    file = @filename.split('.')[0] + '.coffee'
-    fs.writeFile("./#{file}", @mocha)
+    if id and startUri and tag then { id, startUri, tag }
+    else throw new Error('Parse failed! while parsing file header')
 
-  isTestsValid: () ->
-    coffeefilename = @filename.split('.')[0] + '.coffee'
+
+  parseEmbeddedTestInfo: (embeddedInfo) ->
+
+    return null  unless embeddedInfo[1].indexOf('-') is 0
+
+    embedded =
+      name: embeddedInfo[0].split(' ')[1]
+      id: embeddedInfo[1].split(' ')[1]
+
+
+  parseTestSteps: (body, index = 1) ->
+
+    steps = []
+    [index..body.length - 1].forEach (i) ->
+      step = body[i]
+      if step.length
+        # remove redirect line
+        if step.indexOf('redirect') > -1
+          s = step.split('\n')
+          s.shift()
+          step = s.join('\n')
+
+        # get descritions and assertions
+        [description, asserts...] = step.split('\n')
+        step = { description, asserts: asserts[0].trim().split('? ') }
+        steps.push step
+
+    steps
+
+
+  parseRFMLFiles: ->
+
+    mapping = {}
+    fileNames = @getRainforestTests()
+    fileNames.forEach (fileName) =>
+      body = fs.readFileSync path.join(rfmlFilesPath, "#{fileName}"), 'utf-8'
+      body = body.split '\n\n'
+
+      fileName = fileName.split('.')[0]
+      # header parse
+      header = @parseFileHeader body[0].split('\n')
+
+      embedded = @parseEmbeddedTestInfo body[1].split('\n')
+
+      # body parse
+      startIndex = 1
+      startIndex = 2  if embedded
+      steps = @parseTestSteps body, startIndex
+
+      testCount = steps.length
+      { id, startUri, tag } = header
+      mapping[fileName] = { id, startUri, testCount, steps, tag, embedded: embedded if embedded? }
+
+    mapping
+
+
+  isTestsValid: (mapping, fileName) ->
+
+    coffeefilename = "#{fileName}.coffee"
     console.info "Checking is file is valid for #{coffeefilename}..."
-    coffeeFile = fs.readFileSync "./#{coffeefilename}", 'utf-8'
-    testCount = @mapping[@title].testCount
 
-    validTests = coffeeFile.match(/describe/g).length + 1;
+    coffeeFile = fs.readFileSync path.join(landingTestPath, "#{coffeefilename}"), 'utf-8'
+    testCount = mapping[fileName].testCount
+
+    validTests = coffeeFile.match(/describe/g)?.length + 1;
 
     if (validTests is not testCount)
       throw new Error('Test failed! Inccorrect amount of test exists.')
@@ -112,16 +130,6 @@ class Generator
     console.info "File is valid."
 
 
-  @createMapping: () ->
-    console.info 'Creating mapping for RainForest tests...'
-    files = this.getRainforestTests()
-    mapping = {}
-    files.forEach (file) ->
-      body = fs.readFileSync './' + file, 'utf-8'
-      body = body.split '\n\n'
-      requires = body[1].split(' ')[1]
-      id = body[0].split('\n')[0].split(' ')[1]
-      testCount = body.slice(1, body.length).length
 
       mapping[id] =
         name: file.split('.')[0] + '.coffee'
@@ -136,24 +144,13 @@ class Generator
     JSON.parse fs.readFileSync './mapping.json', 'utf-8'
 
 
-mapping = Generator.getMapping()
-files = Generator.getRainforestTests()
   initializeNeccessaryFiles: ->
 
-generator = new Generator()
     fs.writeFile path.join(landingTestPath, 'index.coffee'), 'module.exports = {\n'
     fs.writeFile path.join(landingTestPath, 'filenames.coffee'), 'module.exports = {\n'
 
-files.forEach (file) ->
-  generator.openFile file
-  generator.parseFile()
-  generator.getRequiredModule mapping
 generator = new Generator()
 generator.initializeNeccessaryFiles()
 mapping = generator.createMappingIfNotExist()
+  generator.closeNeccessaryFiles()
 
-  if not Generator.isFileExist file.split('.')[0] + '.coffee'
-    generator.generateMochaTest()
-    generator.save()
-  else
-    generator.isTestsValid()
