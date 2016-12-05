@@ -4,6 +4,8 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 
+	mgo "gopkg.in/mgo.v2"
+
 	"github.com/koding/kite"
 )
 
@@ -42,7 +44,7 @@ type Pinger interface {
 // session.
 func (k *Kloud) AuthLogin(p Pinger) func(r *kite.Request) (interface{}, error) {
 	return func(r *kite.Request) (interface{}, error) {
-		k.Log.Debug("auth login called by %q with %q", r.Username, r.Args.Raw)
+		k.Log.Debug("AuthLogin called by %q with %q", r.Username, r.Args.Raw)
 
 		req, err := getLoginReq(r)
 		if err != nil {
@@ -50,13 +52,20 @@ func (k *Kloud) AuthLogin(p Pinger) func(r *kite.Request) (interface{}, error) {
 		}
 
 		ses, err := modelhelper.UserLogin(r.Username, req.GroupName)
-		if err != nil {
+		switch err {
+		case nil:
+		case mgo.ErrNotFound:
+			return nil, NewError(ErrBadRequest)
+		case modelhelper.ErrNotParticipant:
+			return nil, NewError(ErrNotAuthorized)
+		default:
+			k.Log.Debug("Got generic error for UserLogin, username: %q, err: %q, args: %q", r.Username, err.Error(), r.Args.Raw)
 			return nil, NewError(ErrInternalServer)
 		}
 
 		if err := p.Ping(r.Username, req.GroupName); err != nil {
 			// we dont need to block user login if there is something wrong with socialapi.
-			k.Log.Error("sendPresenceRequest failed with & for", err.Error(), r.Username)
+			k.Log.Error("Ping failed with %q for user %q", err.Error(), r.Username)
 		}
 
 		return &LoginResponse{
