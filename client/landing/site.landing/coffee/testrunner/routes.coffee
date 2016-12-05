@@ -59,17 +59,23 @@ do ->
     steps.forEach (step) ->
       name = step[0]
       args = step[1]
-      updateResults name, args if args
+      updateTestResults name, args if args
 
 
-  updateResults = (name, args) ->
-    args = Encoder.htmlEncode args
-    args = args.slice 0, -1
+  updateTestResults = (name, args) ->
+
     switch name
-      when 'test end'
-        search = "[testpath*='#{Encoder.htmlEncode args}']"
+      when 'fail'
+        args = JSON.parse args
+        { title } = args
+        { err } = args
+        title = title.slice 0, -1
+        search = "[testpath*='#{Encoder.htmlEncode title}']"
         if search
-          $("#{search}").css({color: '#2b2b2b'})
+          cssClass = 'fail'
+          cssClass = 'not-implemented'  if err.message is 'Not Implemented'
+          cssClass = 'not-able-to-automated' if err.message is 'Cannot be Automated'
+          $("#{search}").addClass(cssClass)
 
 
   wait = (delay, fn) -> setTimeout fn, delay
