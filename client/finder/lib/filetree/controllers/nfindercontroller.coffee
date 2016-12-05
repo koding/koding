@@ -35,29 +35,26 @@ module.exports = class NFinderController extends KDViewController
     treeOptions.maxRecentFolders  = options.maxRecentFolders  or= 10
     treeOptions.useStorage        = options.useStorage         ?= no
     treeOptions.loadFilesOnInit   = options.loadFilesOnInit    ?= no
+    treeOptions.saveChanges       = options.saveChanges        ?= yes
     treeOptions.delegate          = this
 
     super options, data
-
 
     TreeControllerClass = options.treeControllerClass or NFinderTreeController
     @treeController     = new TreeControllerClass treeOptions, []
 
     { appStorageController } = kd.singletons
     @appStorage = appStorageController.storage 'Finder', '2.0'
-
     @watchers = {}
 
     if options.useStorage
 
-      @appStorage.ready =>
+      @treeController.on 'folder.expanded', (folder) =>
+        @setRecentFolder folder.path  unless @_restoreInProgress
 
-        @treeController.on 'folder.expanded', (folder) =>
-          @setRecentFolder folder.path
-
-        @treeController.on 'folder.collapsed', ({ path }) =>
-          @unsetRecentFolder path
-          @stopWatching path
+      @treeController.on 'folder.collapsed', ({ path }) =>
+        @unsetRecentFolder path
+        @stopWatching path
 
     @cleanup()
 
@@ -98,50 +95,51 @@ module.exports = class NFinderController extends KDViewController
       return @mountMachine machineToMount
 
 
-  mountMachine: (machine, options = {}) -> @appStorage.ready =>
+  mountMachine: (machine, options = {}) ->
+
+    unless machine
+      kd.warn '[Finder][mountMachine] Machine not provided!'
+      return
+
+    unless machine instanceof Machine
+      kd.warn '[Finder][mountMachine] Not a Machine instance!'
+      machine = new Machine { machine }
+
+    unless machine.isRunning()
+      return kd.warn "[Finder][mountMachine] Machine '#{machine.getName()}'
+                      was not ready, I skipped it."
 
     @setOption 'machineToMount', machine
 
-    options.fetchContent ?= yes
-
-    unless machine.status.state is Machine.State.Running
-      return kd.warn "Machine '#{machine.getName()}' was not ready, I skipped it."
-
-    options.mountPath = null  if options.mountPath is '/'
-
     { uid } = machine
     mRoots  = (@appStorage.getValue 'machineRoots') or {}
-    path    = options.mountPath or mRoots[uid] or '/'
-    path   ?= '/root'  if machine.isManaged()
-    path   ?= if owner = machine.getOwner()
-    then "/home/#{owner}"
-    else '/'
+    options.fetchContent ?= yes
 
-    if @getMachineNode uid
-      return kd.warn "Machine #{machine.getName()} is already mounted!"
+    findMountPath = (callback) =>
+      if path = mRoots[uid]
+      then callback path
+      else machine.ready =>
+        path = machine.info.home
+        @updateMachineRoot uid, path, -> callback path
 
-    @updateMountState uid, yes
+    findMountPath (path) =>
 
-    @machines.push FSHelper.createFileInstance
-      name           : path
-      path           : "[#{uid}]#{path}"
-      type           : 'machine'
-      machine        : machine
-      treeController : @treeController
-      parentPath     : 0
+      @machines.push machineItem = FSHelper.createFileInstance
+        name           : path
+        path           : "[#{uid}]#{path}"
+        type           : 'machine'
+        machine        : machine
+        treeController : @treeController
+        parentPath     : 0
 
-    machineItem = @treeController.addNode @machines.last
+      machineItem = @treeController.addNode machineItem
 
-    @emit 'MachineMounted', machine, path
+      @emit 'MachineMounted', machine, path
 
-    if options.fetchContent and machineItem
-
-      kd.utils.defer =>
-
+      if options.fetchContent and machineItem
+        @_restoreInProgress = yes
         @treeController.expandFolder machineItem, (err) =>
-
           @treeController.selectNode machineItem
-
           kd.utils.defer =>
             if @getOptions().useStorage then @reloadPreviousState uid
         , yes
@@ -159,7 +157,6 @@ module.exports = class NFinderController extends KDViewController
     machineItem = @getMachineNode uid
     return kd.warn 'No such Machine!'  unless machineItem
 
-    @updateMountState uid, no
     @stopWatching machineItem.data.path
     FSHelper.unregisterMachineFiles uid
     @treeController.removeNodeView machineItem
@@ -183,7 +180,7 @@ module.exports = class NFinderController extends KDViewController
 
     computeController.fetchMachine uid, (err, machine) =>
       return showError err  if err
-      @mountMachine machine    if machine?
+      @mountMachine machine
 
 
   hideDotFiles: (uid) ->
@@ -218,7 +215,7 @@ module.exports = class NFinderController extends KDViewController
 
     prefs = @appStorage.getValue('machinesDotFileChoices') or {}
     prefs[uid] = state
-    @appStorage.setValue 'machinesDotFileChoices', prefs
+    @store 'machinesDotFileChoices', prefs
 
 
   getRecentFolders: ->
@@ -230,21 +227,32 @@ module.exports = class NFinderController extends KDViewController
 
   setRecentFolder: (folderPath, callback) ->
 
+    return  if @_restoreInProgress
+
     recentFolders = @getRecentFolders()
     unless folderPath in recentFolders
       recentFolders.push folderPath
-    recentFolders.sort (path) -> if path is folderPath then -1 else 0
-    @appStorage.setValue 'recentFolders', recentFolders, callback
+    recentFolders
+      .sort (path) ->
+        if path is folderPath then -1 else 0
+      .sort (a, b) ->
+        a.length - b.length
+
+    @store 'recentFolders', recentFolders, callback
 
 
   unsetRecentFolder: (folderPath, callback) ->
 
     recentFolders = @getRecentFolders()
-    recentFolders = recentFolders.filter (path) ->
-      path.indexOf(folderPath) isnt 0
-    recentFolders.sort (path) ->
-      if path is folderPath then -1 else 0
-    @appStorage.setValue 'recentFolders', recentFolders, callback
+    recentFolders = recentFolders
+      .filter (path) ->
+        path.indexOf(folderPath) isnt 0
+      .sort (path) ->
+        if path is folderPath then -1 else 0
+      .sort (a, b) ->
+        a.length - b.length
+
+    @store 'recentFolders', recentFolders, callback
 
 
   expandFolder: (folderPath, callback = kd.noop) ->
@@ -252,6 +260,7 @@ module.exports = class NFinderController extends KDViewController
     return  unless folderPath
     for own path, node of @treeController.nodes
       return @treeController.expandFolder node, callback  if path is folderPath
+
     callback { message:"Folder not exists: #{folderPath}" }
 
 
@@ -259,7 +268,12 @@ module.exports = class NFinderController extends KDViewController
 
     if typeof paths is 'string'
       paths = FSHelper.getPathHierarchy paths
-    path = paths.pop()
+
+    paths.sort (a, b) ->
+      a.length - b.length
+
+    path = paths.shift()
+
     @expandFolder path, (err) =>
       @unsetRecentFolder path  if err
       if paths.length is 0
@@ -270,12 +284,18 @@ module.exports = class NFinderController extends KDViewController
   reloadPreviousState: (uid) ->
 
     recentFolders = @getRecentFolders()
+
     if uid
+
       recentFolders = recentFolders.filter (folder) ->
-        folder.indexOf "[#{uid}]" is 0
+        folder.indexOf("[#{uid}]") is 0
+
       if recentFolders.length is 0
         recentFolders = ["[#{uid}]/"]
-    @expandFolders recentFolders
+
+    @_restoreInProgress = yes
+    @expandFolders recentFolders, => kd.utils.defer =>
+      @_restoreInProgress = no
 
 
   uploadTo: (path) ->
@@ -299,18 +319,6 @@ module.exports = class NFinderController extends KDViewController
 
 
   setReadOnly: (state) -> @treeController.isReadOnly = state
-
-
-  # Settings helpers
-  #
-  updateMountState: (uid, state) ->
-
-    return  if isGuest()
-
-    machines = @appStorage.getValue('mountedMachines') or {}
-    machines[uid] = state
-
-    @appStorage.setValue 'mountedMachines', machines
 
 
   # FS Watcher helpers
@@ -341,3 +349,11 @@ module.exports = class NFinderController extends KDViewController
     FSHelper.resetRegistry()
     @stopAllWatchers()
     @machines = []
+
+
+  store: (key, value, callback) ->
+
+    callback ?= kd.noop
+    if @getOption('saveChanges') is no
+      return callback null
+    @appStorage.setValue key, value, callback

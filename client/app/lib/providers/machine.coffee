@@ -1,4 +1,5 @@
 Promise               = require 'bluebird'
+_                     = require 'lodash'
 kd                    = require 'kd'
 KDObject              = kd.Object
 doesQueryStringValid  = require '../util/doesQueryStringValid'
@@ -83,11 +84,18 @@ module.exports = class Machine extends KDObject
 
       @updateLocalData()
 
+    @fetchInfo => @emit 'ready'
+
 
   updateLocalData: ->
+
     { @label, @ipAddress, @_id, @provisioners, @provider, @credential
       @status, @uid, @domain, @queryString, @slug } = @jMachine
     @alwaysOn = @jMachine.meta.alwaysOn ? no
+
+    @readyState = 0
+    @fetchInfo()
+
 
 
   setLabel: (label, callback) ->
@@ -142,6 +150,30 @@ module.exports = class Machine extends KDObject
         disconnect : kd.noop
         ready      : kd.noop
       }
+
+
+  fetchInfo: (callback = kd.noop) ->
+
+    owner = @getOwner()
+
+    kallback = (info = {}) =>
+      callback null, @info = _.merge {},
+        home     : "/home/#{owner}"
+        groups   : [owner, 'sudo']
+        username : owner
+      , info
+
+    if @isRunning()
+      kite = @getBaseKite()
+      kite.init().then ->
+        kite.klientInfo().then (info) ->
+          kallback info
+        .timeout globals.COMPUTECONTROLLER_TIMEOUT
+        .catch (err) ->
+          kd.warn '[Machine][fetchInfo] Failed to get klient.info', err
+          kallback()
+    else
+      kallback()
 
 
   getOwner: ->
