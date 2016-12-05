@@ -352,6 +352,7 @@ func New(conf *Config) (*Kloud, error) {
 
 	// Team handling.
 	k.HandleFunc("team.list", kloud.Stack.TeamList)
+	k.HandleFunc("team.whoami", kloud.Stack.TeamWhoami)
 
 	// Machine handling.
 	k.HandleFunc("machine.list", kloud.Stack.MachineList)
