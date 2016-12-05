@@ -2,7 +2,7 @@ globals = require 'globals'
 isAdmin = require 'app/util/isAdmin'
 
 { LOAD: BONGO_LOAD } = bongo = require 'app/redux/modules/bongo'
-{ Plan } = require 'app/redux/modules/payment/constants'
+{ Plan, Status } = require 'app/redux/modules/payment/constants'
 
 { create: createCustomer } = require 'app/redux/modules/payment/customer'
 { load: loadPaymentInfo } = require 'app/redux/modules/payment/info'
@@ -31,61 +31,38 @@ loadUserDetails = ({ dispatch, getState }) ->
     bongo: (remote) -> remote.api.JUser.fetchUser()
   }
 
-ensurePaymentDetails = ({ dispatch, getState }) ->
+ensureGroupPayment = ->
 
-  # NOTE:
-  #
-  # `handleNoPayment{Admin,Member}` functions are for the cases where an
-  # existing team prior to our pricing release. Here are the expected
-  # behaviors:
-  #   - Admin:  First login will trigger the group plan creation process in the
-  #             backend. And don't have to do anything, the next time a new
-  #             member/admin is logged in everything will be ok. First logged
-  #             in will see a notification modal.
-  #
-  #   - Member: First login will trigger a customer/subscription process in
-  #             client side, not in backend. If things go smoothly members
-  #             shouldn't see anything and continue using Koding immediately.
+  if groupPayment = globals.currentGroup.payment
+  then Promise.resolve groupPayment
+  else Promise.reject Status.NEEDS_UPGRADE
 
-  handleNoPaymentAdmin = ->
-    # do nothing, we will show a modal, and doing any action over there will
-    # trigger a reload which should fix the problem.
-    console.info 'Got an old team, we need to reload'
+ensureCreditCard = ({ dispatch }) ->
 
-  handleNoPaymentMember = ->
-    # create customer & subscription
-    # then reload the page, in next reload, group will have `payment` object
-    # ready.
-    dispatch(createCustomer())
-      .then -> dispatch(createSubscription getState().customer.id, Plan.UP_TO_10_USERS)
-      .then -> location.reload()
+  if globals.hasCreditCard
+  then Promise.resolve()
+  else Promise.reject Status.NEEDS_UPGRADE
+
+loadPaymentDetails = ({ dispatch }) ->
 
   if isAdmin()
-
-    promise = dispatch(loadPaymentInfo())
-
-    if globals.currentGroup.payment
-    then promise.then -> dispatch(loadInvoices())
-    else handleNoPaymentAdmin()
-
-  else
-    if globals.currentGroup.payment
-    then dispatch(loadSubscription())
-    else handleNoPaymentMember()
-
+  then dispatch(loadPaymentInfo()).then -> dispatch(loadInvoices())
+  else dispatch(loadSubscription())
 
 
 module.exports = dispatchInitialActions = (store) ->
 
   { getState, dispatch } = store
 
-  console.log 'dispatching initial actions', store
-
   promise = loadAccount(store)
     .then -> loadGroup(store)
     .then -> loadUserDetails(store)
-    .then -> ensurePaymentDetails(store)
+    .then -> ensureGroupPayment()
+    .then -> loadPaymentDetails(store)
+    .then -> ensureCreditCard(store)
 
-  promise.then(console.log.bind(console, 'finished dispatching initial actions'))
+  promise
+    .then (args...) -> console.log 'finished dispatching initial actions'
+    .catch (err) -> console.info 'error when dispatching initial actions', err
 
 

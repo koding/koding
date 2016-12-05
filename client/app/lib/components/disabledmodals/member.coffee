@@ -26,7 +26,7 @@ module.exports = class DisabledMemberModal extends ReactView
 
     switch status
 
-      when Status.EXPIRED
+      when Status.EXPIRED, Status.NEEDS_UPGRADE
         onClick = =>
           @destroy()
           router.handleRoute '/Disabled/Member/notify-success'

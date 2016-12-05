@@ -6,7 +6,7 @@ module.exports = TrialEndedAdminModal = ({ isOpen, onButtonClick }) ->
 
   message = "
     We hope you have enjoyed using Koding. Please enter a credit card to
-    continue using Koding.
+    continue.
   "
 
   <Dialog
