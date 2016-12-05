@@ -130,18 +130,55 @@ class Generator
     console.info "File is valid."
 
 
+  generateMochaTests: (mapping, callback = ->) ->
 
-      mapping[id] =
-        name: file.split('.')[0] + '.coffee'
-        requires: requires
-        testCount: testCount
+    fileNames = @getRainforestTests()
 
-    fs.writeFile './mapping.json', JSON.stringify mapping
-    console.info 'Mapping finished.'
-    mapping
+    func = (fileName, next) =>
+      fileName = fileName.split('.')[0]
+      if not @isFileExist path.join(landingTestPath, "#{fileName}.coffee")
+        @generateMochaTest mapping, fileName, next
+      else
+        @isTestsValid mapping, fileName
 
-  @getMapping: () ->
-    JSON.parse fs.readFileSync './mapping.json', 'utf-8'
+    queue = fileNames.map (fileName) -> (next) -> func fileName, next
+    async.series queue, callback
+
+
+  generateMochaTest: (mapping, fileName, callback = ->) ->
+
+    embedded = mapping[fileName]?.embedded
+
+    mocha = "$ = require 'jquery'\n"
+    mocha += "assert = require 'assert'\n"
+    mocha += "#{embedded.name} = require './#{embedded.name}'\n\n"  if embedded
+    mocha += "module.exports = ->\n\n"
+
+    mocha += "\t#{embedded.name}()\n\n"  if embedded
+    mocha += "\tdescribe '#{fileName}', ->\n"
+    steps = mapping[fileName].steps
+    steps.forEach (step) ->
+      description = step.description
+      description = description.replace /"/g, "'"
+      asserts = step.asserts
+      mocha += "\t\tdescribe \"#{description}?\", ->\n"
+      mocha += '\t\t\tbefore (done) -> \n'
+      mocha += '\t\t\t\t# implement before hook \n\t\t\t\tdone()\n\n\n'
+
+      asserts.forEach (it) ->
+        it = it.replace /"/g, "'"
+        mocha += "\t\t\tit \"#{it}?\", (done) -> \n"
+        mocha += "\t\t\t\tassert(false, 'Not Implemented')\n\t\t\t\tdone()\n\n"
+
+    @save fileName, mocha, callback
+
+
+  save: (fileName, data, callback = ->) ->
+
+    fs.writeFile path.join(landingTestPath, "#{fileName}.coffee"), data, ->
+      callback()
+    fs.appendFile path.join(landingTestPath, "index.coffee"), "\t#{fileName}: require './#{fileName}'\n"
+    fs.appendFile path.join(landingTestPath, "filenames.coffee"), "\t'#{fileName}'\n"
 
 
   initializeNeccessaryFiles: ->
