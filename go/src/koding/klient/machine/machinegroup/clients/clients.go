@@ -194,7 +194,7 @@ func (c *Clients) Registered() []machine.ID {
 	defer c.mu.RUnlock()
 
 	registered := make([]machine.ID, 0, len(c.m))
-	for id, _ := range c.m {
+	for id := range c.m {
 		registered = append(registered, id)
 	}
 

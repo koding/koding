@@ -1,10 +1,11 @@
-package clients
+package clients_test
 
 import (
 	"testing"
 	"time"
 
 	"koding/klient/machine"
+	"koding/klient/machine/machinegroup/clients"
 	"koding/klient/machine/machinetest"
 
 	"golang.org/x/sync/errgroup"
@@ -21,7 +22,7 @@ func TestClients(t *testing.T) {
 		servB = &machinetest.Server{}
 	)
 
-	cs, err := New(&ClientsOpts{
+	cs, err := clients.New(&clients.ClientsOpts{
 		Builder:         builder,
 		DynAddrInterval: 10 * time.Millisecond,
 		PingInterval:    50 * time.Millisecond,
