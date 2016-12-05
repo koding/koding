@@ -1,6 +1,8 @@
 package multiconfig
 
 import (
+	"flag"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -117,6 +119,49 @@ func TestCustomUsageFunc(t *testing.T) {
 	}
 	if f.Usage != usageMsg {
 		t.Fatalf("usage message was %q, expected %q", f.Usage, usageMsg)
+	}
+}
+
+type URL struct {
+	*url.URL
+}
+
+var _ flag.Value = (*URL)(nil)
+
+func (u *URL) Set(s string) error {
+	ur, err := url.Parse(s)
+	if err != nil {
+		return err
+	}
+	u.URL = ur
+	return nil
+}
+
+type Endpoint struct {
+	Private *URL `required:"true"`
+	Public  *URL `required:"true"`
+}
+
+func TestFlagValueSupport(t *testing.T) {
+	m := &FlagLoader{}
+
+	m.Args = []string{
+		"-private", "http://127.0.0.1/kloud/kite",
+		"-public", "http://127.0.0.1/kloud/kite",
+	}
+
+	var e Endpoint
+
+	if err := m.Load(&e); err != nil {
+		t.Fatalf("Load()=%s", err)
+	}
+
+	if e.Private.String() != m.Args[1] {
+		t.Fatalf("got %q, want %q", e.Private, m.Args[3])
+	}
+
+	if e.Public.String() != m.Args[3] {
+		t.Fatalf("got %q, want %q", e.Public, m.Args[3])
 	}
 }
 

@@ -580,7 +580,7 @@ imports:
 - name: github.com/koding/metrics
   version: 9a17123e052386b38746eb19fe9ec6f5bb047c90
 - name: github.com/koding/multiconfig
-  version: 8163d2b108ed2aa94820f6110f2ded169329c8d0
+  version: 58dd6d6a05babfd20a5982e8d9e5f0bfb232618b
 - name: github.com/koding/passwd
   version: 68f4dfed95ab896a23ea76ed08fbb2b5a874339e
 - name: github.com/koding/pubnub
