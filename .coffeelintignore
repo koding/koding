@@ -73,3 +73,5 @@ client/app/lib/shortcuts/accounteditshortcutsrow.coffee
 client/component-lab/
 client/stack-editor/lib/components/
 client/stack-editor/lib/editor/stackscriptsearchview.coffee
+
+client/landing/site.landing/coffee/testrunner/tests/
