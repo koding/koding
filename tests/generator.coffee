@@ -1,8 +1,10 @@
 # Generates RainForest RFML file to simple mocha test as a starter.
-
 fs = require 'fs'
-Promise = require 'bluebird'
+path = require 'path'
+async = require 'async'
 
+landingTestPath = path.join(__dirname, '../client/landing/site.landing/coffee/testrunner/tests')
+rfmlFilesPath = path.join(__dirname, '/spec/rainforest')
 
 class Generator
   constructor: (opts = {}) ->
@@ -53,6 +55,7 @@ class Generator
     requires = @requiredFileName
 
     filename = @filename
+  createMappingIfNotExist: ->
 
     @parsedBody.forEach (test, index) ->
       if index is 0
@@ -60,9 +63,14 @@ class Generator
         mocha += "  before -> \n"
         mocha += "    require './#{requires}'\n\n"
         return
+    mappingPath = path.join(__dirname, 'mapping.json')
+    if @isFileExist mappingPath
+      mapping = fs.readFileSync mappingPath, 'utf-8'
+      return JSON.parse mapping  if mapping?
 
       should = test.split('\n')[0]
       mocha += '  describe "' + should + '", ->\n'
+    @createMapping()
 
       assertions = test.split('\n')[1].split('? ')
 
@@ -70,6 +78,13 @@ class Generator
         if assertion.length > 1
           mocha += '    it "' + assertion + '?", -> \n'
           mocha += "      console.warning 'Not yet implemented.'\n\n"
+  createMapping: ->
+    console.info 'Creating mapping for RainForest tests...'
+    mapping = @parseRFMLFiles()
+    fs.writeFile path.join(__dirname, 'mapping.json'), JSON.stringify mapping, null, 2
+    fs.writeFile path.join(landingTestPath, '../mapping.json'), JSON.stringify mapping, null, 2
+    console.info 'Mapping finished.'
+    mapping
 
         mocha += "\n" if index is (array.length - 1)
 
@@ -130,6 +145,8 @@ files.forEach (file) ->
   generator.openFile file
   generator.parseFile()
   generator.getRequiredModule mapping
+generator = new Generator()
+mapping = generator.createMappingIfNotExist()
 
   if not Generator.isFileExist file.split('.')[0] + '.coffee'
     generator.generateMochaTest()
