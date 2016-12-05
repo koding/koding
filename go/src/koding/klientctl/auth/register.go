@@ -7,7 +7,6 @@ import (
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	endpointauth "koding/klientctl/endpoint/auth"
-	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/helper"
 	"net/http"
 	"net/http/cookiejar"
@@ -117,34 +116,19 @@ func RegisterCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	// Set clientId into the kd.bolt
-	if err = kloud.Cache().Set("clientId", clientID); err != nil {
-		log.Error("error while caching clientId")
-		return 1
-	}
-
 	// team cannot be empty (because of required while registering)
 	// otherwise it return error while registering user
 	// store groupName or slug as "team" inside the cache
-	// if err = kloud.Cache().Set("team", c.String("team")); err != nil {
 	teamname := c.String("team")
-
 	session := endpointauth.Session{
 		ClientID: clientID,
 		Team:     teamname,
 	}
+	// Set clientId and teamname into the kd.bolt
 	if err := endpointauth.DefaultClient.SetSession(teamname, session); err != nil {
 		log.Error("error while caching team")
 		return 1
 	}
-
-	// sessions := endpointauth.DefaultClient.Sessions()
-	// sessions[teamname] = session
-	//
-	// if err = kloud.Cache().SetValue("auth.sessions", sessions); err != nil {
-	// 	log.Error("error while caching team")
-	// 	return 1
-	// }
 
 	return 0
 }
