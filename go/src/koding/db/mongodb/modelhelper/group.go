@@ -68,8 +68,10 @@ func GetGroupForKite(kiteID string) (*models.Group, error) {
 		return nil, err
 	}
 
-	var groups []struct {
-		ID bson.ObjectId `bson:"id"`
+	var groups struct {
+		Groups []struct {
+			ID bson.ObjectId `bson:"id"`
+		} `bson:"groups"`
 	}
 
 	fn := func(c *mgo.Collection) error {
@@ -80,11 +82,11 @@ func GetGroupForKite(kiteID string) (*models.Group, error) {
 		return nil, err
 	}
 
-	if len(groups) == 0 {
+	if len(groups.Groups) == 0 {
 		return nil, mgo.ErrNotFound
 	}
 
-	return GetGroupById(groups[0].ID.Hex())
+	return GetGroupById(groups.Groups[0].ID.Hex())
 }
 
 func GetGroup(slugName string) (*models.Group, error) {

@@ -133,7 +133,7 @@ func TestGetGroupForKite(t *testing.T) {
 
 	team, err := modelhelper.GetGroupForKite("64d81792-1691-49b1-b291-54122096b1ec")
 	if err != nil {
-		t.Fatalf("GetGroupForKite()=%s")
+		t.Fatalf("GetGroupForKite()=%s", err)
 	}
 
 	if team.Id != g.Id {
