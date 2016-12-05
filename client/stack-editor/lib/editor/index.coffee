@@ -341,6 +341,8 @@ module.exports = class StackEditorView extends kd.View
     @titleTabHandle.addSubView @titleActionsWrapper = new kd.CustomHTMLView
       cssClass: 'StackEditorView--header-subHeader'
 
+    @titleActionsWrapper.setClass 'readonly' unless @canUpdate
+
     @titleActionsWrapper.addSubView @inputTitle = new kd.InputView options
 
     @titleActionsWrapper.addSubView @editName = new CustomLinkView

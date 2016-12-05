@@ -1,102 +1,20 @@
-<style>
-  .Homepage-LogoBar {
-    background: white;
-    padding: 34px 0;
-  }
-  .Homepage-LogoBar .Homepage--container {
-    max-width: 1230px;
-  }
-  .Homepage-LogoBar h3 {
-    margin-top: -4px;
-    margin-bottom: 58px;
-    font-size: 14px;
-    color: #B3B3B3;
-    letter-spacing: 0px;
-    text-align: center;
-    padding: 0 28px;
-    line-height: 22px;
-  }
-  .Homepage-LogoBar--logos {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    padding-left: 15px;
-    padding-right: 15px;
-  }
-
-  .Homepage-LogoBar--logos img {
-    flex: 1 0 auto;
-    margin-bottom: 34px;
-    max-width: 160px;
-    margin-left: 10px;
-    margin-right: 10px;
-    max-height: 88px;
-  }
-  @media (max-width: 1199px) {
-    .Homepage-LogoBar--logos img {
-      max-width: 110px;
-    }
-  }
-  .Homepage-LogoBar-Gray {
-    background-color: #F5F9FB;
-    border-top: 1px solid #E8ECEE;
-    border-bottom: 1px solid #E8ECEE;
-    padding-bottom: 75px;
-  }
-
-  .Homepage-LogoBar-Gray h3 {
-    font-size: 18px;
-    padding: 0;
-    margin-top: 30px;
-    margin-bottom: 40px;
-    color: #989898;
-  }
-  @media (max-width: 767px) {
-    .Homepage-LogoBar--logos {
-      flex-direction: column;
-      justify-content: center;
-    }
-    .Homepage-LogoBar--logos img {
-      max-width: none;
-      max-height: 40px;
-      height: 40px;
-    }
-    .Homepage-LogoBar-Gray {
-      padding-bottom: 30px;
-    }
-    .Homepage-LogoBar h3 {
-      letter-spacing: -1px;
-      padding-left: 0;
-      padding-right: 0;
-      margin-left: 25px;
-      margin-right: 25px;
-    }
-  }
-</style>
-
 <div class='Homepage-LogoBar{% if include.cssClass %} {{ include.cssClass }}{% endif %}'>
-  <div class='Homepage--container'>
-    <h3>{{ include.title }}</h3>
-    <div class='Homepage-LogoBar--logos'>
-      {% if include.logo1_src %}
-      <img src="{{ site.url }}{{ include.logo1_src }}" alt="{{ include.logo1_alt }}">
-      {% endif %}
-      {% if include.logo2_src %}
-      <img src="{{ site.url }}{{ include.logo2_src }}" alt="{{ include.logo2_alt }}">
-      {% endif %}
-      {% if include.logo3_src %}
-      <img src="{{ site.url }}{{ include.logo3_src }}" alt="{{ include.logo3_alt }}">
-      {% endif %}
-      {% if include.logo4_src %}
-      <img src="{{ site.url }}{{ include.logo4_src }}" alt="{{ include.logo4_alt }}">
-      {% endif %}
-      {% if include.logo5_src %}
-      <img src="{{ site.url }}{{ include.logo5_src }}" alt="{{ include.logo5_alt }}">
-      {% endif %}
-      {% if include.logo6_src %}
-      <img src="{{ site.url }}{{ include.logo6_src }}" alt="{{ include.logo5_alt }}">
-      {% endif %}
-    </div>
+  {% assign logos = include.logos | split: "||" %}
+  {% if include.title %}
+  <h3>{{ include.title }}</h3>
+  {% endif %}
+ <div class='Homepage-LogoBar--logos'>
+  {% for logoData in logos %}
+    {% assign logo = logoData | strip | split: "--" %}
+    {% assign name = logo[0] %}
+    {% assign src = logo[1] | prepend: include.path | prepend: site.url %}
+    {% assign width = logo[2] %}
+    {% assign height = logo[3] %}
+    <img
+      src="{{ src }}"
+      {% if width %}width="{{ width }}px"{% endif %}
+      {% if height %}height="{{ height }}px"{% endif %}
+      alt="{{ name }}"/>
+  {% endfor %}
   </div>
 </div>

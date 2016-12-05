@@ -4,6 +4,14 @@
     {% assign c = include.background_color %}
     background-color: {% if c %}{{ c }}{% else %}#3C3D58{% endif %};
   }
+  {% assign c1 = include.background_color_mobile %}
+  {% if c1 %}
+  @media (max-width: 768px) {
+    .Homepage-Header {
+      background-color: {{ c1 }};
+    }
+  }
+  {% endif %}
 </style>
 
 <header class="Homepage-Header {{ include.cssClass }}">

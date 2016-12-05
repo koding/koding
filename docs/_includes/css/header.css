@@ -277,6 +277,15 @@ body {
   color: white;
   background-color: rgba(0, 0, 0, 0.05);
 }
+
+.StickyHeader .Homepage-Header a.logo svg {
+  margin-top: 0px;
+}
+
+.Homepage-Header a.logo:hover {
+  background-color: transparent !important;
+}
+
 .Homepage-Header.light .spacer,
 .StickyHeader .Homepage-Header .spacer {
   border-color: rgba(0,0,0,.05);

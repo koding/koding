@@ -20,12 +20,11 @@ import (
 
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
-	"koding/klientctl/kloud"
+	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/util"
 
-	"github.com/koding/logging"
-
 	"github.com/codegangsta/cli"
+	"github.com/koding/logging"
 )
 
 // ExitingWithMessageCommand is a function which prints the given message to
@@ -52,7 +51,7 @@ var log logging.Logger
 
 var (
 	debug        = os.Getenv("KD_DEBUG") == "1"
-	experimental = os.Getenv("KD_EXPERIMENTAL") == "1"
+	experimental = os.Getenv("KD_EXPERIMENTAL") == "1" || config.Konfig.Environment == "development"
 )
 
 func main() {
@@ -410,6 +409,27 @@ func run(args []string) {
 	if experimental {
 		app.Commands = append(app.Commands,
 			cli.Command{
+				Name:  "auth",
+				Usage: "User authorization.",
+				Subcommands: []cli.Command{
+					{
+						Name:   "login",
+						Usage:  "Log in to your kd.io or koding.com account.",
+						Action: ctlcli.ExitErrAction(AuthLogin, log, "login"),
+						Flags: []cli.Flag{
+							cli.BoolFlag{
+								Name:  "json",
+								Usage: "Output in JSON format.",
+							},
+							cli.StringFlag{
+								Name:  "team, t",
+								Usage: "Specify a koding.com team to log in. Leaving empty logs in to kd.io by default.",
+							},
+						},
+					},
+				},
+			},
+			cli.Command{
 				Name:  "config",
 				Usage: "Manage tool configuration.",
 				Subcommands: []cli.Command{{
@@ -539,6 +559,23 @@ func run(args []string) {
 						},
 					},
 				}},
+			},
+			cli.Command{
+				Name:  "team",
+				Usage: "List available teams and set team context.",
+				Subcommands: []cli.Command{
+					{
+						Name:   "show",
+						Usage:  "Shows your currently used team.",
+						Action: ctlcli.ExitErrAction(TeamShow, log, "show"),
+						Flags: []cli.Flag{
+							cli.BoolFlag{
+								Name:  "json",
+								Usage: "Output in JSON format.",
+							},
+						},
+					},
+				},
 			},
 		)
 	}

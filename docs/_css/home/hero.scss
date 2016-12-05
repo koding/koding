@@ -1,0 +1,80 @@
+main.Homepage-Hero {
+  height: 710px;
+  background-color: #000;
+  position: relative;
+  background: #000 url('/assets/img/landing/home/hero-main.png') no-repeat 50% 0;
+  background-size: cover;
+}
+.Homepage-Hero--container {
+  padding-top: 265px;
+  position: relative;
+  z-index: 1;
+}
+.Homepage-Hero--intro {
+  max-width: 850px;
+  margin: 0 auto;
+  text-align: center;
+  h1 {
+    font-family: $title-font-family;
+    font-size: 36px;
+    color: #FFFFFF;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+  h2 {
+    font-size: 22.11px;
+    color: rgba(255,255,255,0.8);
+    margin-top: 26px;
+    line-height: 1.4em;
+    letter-spacing: -.1px;
+    font-weight: 400;
+  }
+  .actions {
+    margin-top: 40px;
+  }
+  a {
+    &.secondary {
+      margin: 0 20px 10px 0;
+    }
+    strong {
+      font-weight: 600;
+    }
+  }
+}
+
+@media (max-width: 880px) {
+  .Homepage-Hero--intro {
+    h1 {
+      font-size: 32px;
+      line-height: 45px;
+    }
+  }
+}
+
+@media (max-width: 660px) {
+  main.Homepage-Hero {
+    height: 620px;
+  }
+  .Homepage-Hero--intro {
+    h1 {
+      font-size: 24px;
+      line-height: 34px;
+    }
+    h2 {
+      font-size: 18px;
+      margin-top: 16px;
+      line-height: 26px;
+    }
+    .actions {
+      margin-top: 97px;
+      a {
+        margin-right: 0;
+        display: block;
+        width: auto;
+      }
+    }
+  }
+  .Homepage-Hero--container {
+    padding-top: 165px;
+  }
+}

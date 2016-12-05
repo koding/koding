@@ -1,0 +1,33 @@
+.Homepage-outro {
+  background-color: #FFFFFF;
+  padding-top: 83px;
+  padding-bottom: 85px;
+  text-align: center;
+  > h3 {
+    margin: 22px auto 40px;
+  }
+  h4 {
+    font-weight: 600;
+    font-size: 18px;
+    color: #AAB2B9;
+    letter-spacing: 1px;
+  }
+}
+
+@media (max-width: 880px) {
+  .Homepage-outro {
+    padding-top: 52px;
+    padding-bottom: 54px;
+    > h3 {
+      font-size: 24px;
+    }
+    h4 {
+      font-size: 16px;
+    }
+    a.cta {
+      max-width: 325px;
+      display: block;
+      margin: 0 auto;
+    }
+  }
+}
