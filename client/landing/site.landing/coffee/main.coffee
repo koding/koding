@@ -9,6 +9,7 @@ require './core/kd.extend.coffee'
 require './login/AppController'
 require './team/AppController'
 require './teams/AppController'
+require './testrunner/AppController'
 
 # bootstrap app
 kookies        = require 'kookies'
@@ -22,6 +23,7 @@ do ->
     require './login/routes.coffee'
     require './teams/routes.coffee'
     require './team/routes.coffee'
+    require './testrunner/routes.coffee'
 
   setGroup = (err, group) ->
     registerRoutes()
