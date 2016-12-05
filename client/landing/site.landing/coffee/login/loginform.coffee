@@ -68,12 +68,30 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
       callback    : ->
         kd.singletons.oauthController.redirectToOauth { provider: 'gitlab' }
 
+    @githubButton = new kd.ButtonView
+      title       : 'SIGN IN WITH GITHUB'
+      style       : 'solid medium green github'
+      icon        : 'github'
+      loader      :
+        color     : '#48BA7D'
+      callback    : ->
+        kd.singletons.oauthController.redirectToOauth { provider: 'github' }
+
     @gitlabLogin = new JView
       cssClass  : 'gitlab hidden'
       pistachioParams : { @gitlabButton }
       pistachio : '''
         <div class='or'><span>or</span></div>
           {{> gitlabButton}}
+        </div>
+      '''
+
+    @githubLogin = new JView
+      cssClass  : 'github hidden'
+      pistachioParams : { @githubButton }
+      pistachio : '''
+        <div class='or'><span>or</span></div>
+          {{> githubButton}}
         </div>
       '''
 
@@ -91,5 +109,6 @@ module.exports = class LoginInlineForm extends LoginViewInlineForm
     <div>{{> @password}}</div>
     <div>{{> @tfcode}}</div>
     <div>{{> @button}}</div>
+    {{> @githubLogin}}
     {{> @gitlabLogin}}
     '''
