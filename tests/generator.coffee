@@ -138,14 +138,18 @@ class Generator
 
 mapping = Generator.getMapping()
 files = Generator.getRainforestTests()
+  initializeNeccessaryFiles: ->
 
 generator = new Generator()
+    fs.writeFile path.join(landingTestPath, 'index.coffee'), 'module.exports = {\n'
+    fs.writeFile path.join(landingTestPath, 'filenames.coffee'), 'module.exports = {\n'
 
 files.forEach (file) ->
   generator.openFile file
   generator.parseFile()
   generator.getRequiredModule mapping
 generator = new Generator()
+generator.initializeNeccessaryFiles()
 mapping = generator.createMappingIfNotExist()
 
   if not Generator.isFileExist file.split('.')[0] + '.coffee'
