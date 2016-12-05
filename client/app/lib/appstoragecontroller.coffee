@@ -27,6 +27,5 @@ class AppStorageController extends kd.Controller
     key = "#{opts.name}-#{opts.version}"
 
     storage = @appStorages[key] or= new AppStorage opts.name, opts.version
-    storage.fetchStorage()  unless opts.fetch is false
 
     return storage
