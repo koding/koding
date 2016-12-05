@@ -151,7 +151,7 @@ build:
           scripts/wercker/run-command scripts/wercker/check-connectivity-rainforest RAINFOREST_HOST
     - script:
         name: run rainforest
-        code: scripts/wercker/run-rainforest RAINFOREST_HOST
+        code: scripts/wercker/run-command scripts/wercker/run-rainforest RAINFOREST_HOST
     - script:
         name: test nodejs
         code: scripts/wercker/run-command scripts/node-testing/run-tests INSTANCE_DATA
