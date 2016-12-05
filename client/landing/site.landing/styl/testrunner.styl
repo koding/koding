@@ -1,0 +1,55 @@
+@import 'lib/core.fn'
+@import "nib/gradients"
+
+
+.testrunner-view
+  border                    1px solid
+  padding                   40px
+
+.testrunner-view .test-file
+  font-size                 24px
+  padding                   20px 0px
+  font-weight               bold
+
+.steps-wrapper
+  padding-top               10px
+  padding-left              15px
+
+.steps-wrapper .description
+  font-size                 15px
+  font-weight               400
+  padding                   10px 0px
+  color                     #5E5E5E
+
+.steps-wrapper .itsWrapper
+  padding-left              15px
+
+.assertsWrapper .it
+    font-size               18px
+    padding                 4px 0px
+    color                   #ebebeb
+    font-weight             400
+    &.fail
+      color                 brown
+      &:after
+        content             'FAIL'
+        margin-left         20px
+
+    &.not-implemented
+      color                 #f8903b
+      &:after
+        content             'Not Implemented'
+        margin-left         20px
+
+    &.not-able-to-automated
+      color                 #c0392b
+      &:after
+        content             'Cannot be Automated'
+        margin-left         20px
+
+
+    &.pass
+      color                 green
+      &:after
+        content             'PASS'
+        margin-left         20px
