@@ -38,6 +38,12 @@ type FlagLoader struct {
 	// EnvLoader is used
 	EnvPrefix string
 
+	// ErrorHandling is used to configure error handling used by
+	// *flag.FlagSet.
+	//
+	// By default it's flag.ContinueOnError.
+	ErrorHandling flag.ErrorHandling
+
 	// Args defines a custom argument list. If nil, os.Args[1:] is used.
 	Args []string
 
@@ -55,7 +61,7 @@ func (f *FlagLoader) Load(s interface{}) error {
 	strct := structs.New(s)
 	structName := strct.Name()
 
-	flagSet := flag.NewFlagSet(structName, flag.ContinueOnError)
+	flagSet := flag.NewFlagSet(structName, f.ErrorHandling)
 	f.flagSet = flagSet
 
 	for _, field := range strct.Fields() {

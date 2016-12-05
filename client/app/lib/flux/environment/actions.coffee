@@ -483,7 +483,7 @@ loadPrivateStackTemplates = ->
   remote.api.JStackTemplate.some query, { limit: 30 }, (err, templates) ->
 
     if err
-      reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_FAIL, { query, err }
+      return reactor.dispatch actions.LOAD_PRIVATE_STACK_TEMPLATES_FAIL, { query, err }
 
     templates = templates.filter (t) -> t.accessLevel is 'private'
 

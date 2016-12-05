@@ -22,7 +22,35 @@ module.exports = class OAuth extends bongo.Base
 
   # -- OAUTH PROVIDERS ----------------------------------------------------8<--
 
-  @PROVIDERS =
+  checkGroupIntegrationSettings = (provider, client, callback) ->
+
+    { sessionToken: clientId, context: { group: slug } } = client
+
+    JSession = require './session'
+    JSession.one { clientId }, (err, session) ->
+      return callback err  if err
+      return callback new KodingError 'Session invalid'  unless session
+
+      JGroup = require './group'
+      JGroup.one { slug }, (err, group) ->
+
+        if not err and group and group.config?[provider]?.enabled
+
+          settings = {
+            url: group.config[provider].url
+            scope: group.config[provider].scope
+            applicationId: group.config[provider].applicationId
+            state: session._id
+          }
+
+          callback null, settings
+
+        else
+
+          callback new KodingError 'Integration is not enabled'
+
+
+  @PROVIDERS = PROVIDERS =
 
     # -- GITLAB PROVIDER --------------------------------------------------8<--
 
@@ -31,32 +59,6 @@ module.exports = class OAuth extends bongo.Base
       enabled : true
       getUrl  : (client, urlOptions, callback) ->
 
-        checkGroupGitLabSettings = (client, callback) ->
-
-          { sessionToken: clientId, context: { group: slug } } = client
-
-          JSession = require './session'
-          JSession.one { clientId }, (err, session) ->
-            return callback err  if err
-            return callback new KodingError 'Session invalid'  unless session
-
-            JGroup = require './group'
-            JGroup.one { slug }, (err, group) ->
-
-              if not err and group and group.config?.gitlab?.enabled
-
-                settings = {
-                  url: group.config.gitlab.url
-                  applicationId: group.config.gitlab.applicationId
-                  state: session._id
-                }
-
-                callback null, settings
-
-              else
-
-                callback new KodingError 'Integration is not enabled'
-
         { returnUrl, redirectUri } = urlOptions
         { applicationId, host, port } = KONFIG.gitlab
         protocol = '//'
@@ -64,7 +66,7 @@ module.exports = class OAuth extends bongo.Base
         host = urlOptions.host ? host
         redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
 
-        checkGroupGitLabSettings client, (err, data) ->
+        checkGroupIntegrationSettings 'gitlab', client, (err, data) ->
           return callback err  if err
 
           url = "#{protocol}#{host}#{port}"
@@ -129,23 +131,83 @@ module.exports = class OAuth extends bongo.Base
     # -- GITHUB PROVIDER --------------------------------------------------8<--
 
     github    :
-      title   : 'Github OAuth Provider'
-      enabled : false
+      title   : 'GitHub OAuth Provider'
+      enabled : yes
+      scopes  : ['user', 'user:email', 'user:follow', 'public_repo', 'repo',
+                 'repo_deployment', 'repo:status', 'delete_repo',
+                 'notifications', 'gist', 'read:repo_hook', 'write:repo_hook',
+                 'admin:repo_hook', 'admin:org_hook', 'read:org', 'write:org',
+                 'admin:org', 'read:public_key', 'write:public_key',
+                 'admin:public_key', 'read:gpg_key', 'write:gpg_key',
+                 'admin:gpg_key']
       getUrl  : (client, urlOptions, callback) ->
 
-        { clientId } = KONFIG.github
-        { scope, returnUrl } = urlOptions
-        scope = 'user:email'  unless scope
+        { scope, returnUrl, redirectUri } = urlOptions
         redirectUri = "#{redirectUri}?returnUrl=#{returnUrl}"  if returnUrl
 
-        url  = 'https://github.com/login/oauth/authorize?'
-        url += "client_id=#{clientId}&"
-        url += "scope=#{scope}&redirect_uri=#{redirectUri}"
+        checkGroupIntegrationSettings 'github', client, (err, data) ->
+          return callback err  if err
 
-        callback null, url
+          url = 'https://github.com'
+
+          { applicationId, scope, state } = data ? {}
+
+          state = "&state=#{state}"
+          url   = "#{url}/login/oauth/authorize?"
+          url  += "client_id=#{applicationId}&"
+          url  += "scope=#{scope}#{state}&"
+          url  += "redirect_uri=#{redirectUri}"
+
+          callback null, url
 
       validateOAuth: (options, callback) ->
-        callback ERROR.VALIDATION
+
+        { applicationId, applicationSecret, scope } = options
+
+        MissingFieldError = 'Missing field for validating oauth'
+
+        if not applicationId then return callback new KodingError \
+          MissingFieldError, 'MissingField', { fields: ['applicationId'] }
+        if not applicationSecret then return callback new KodingError \
+          MissingFieldError, 'MissingField', { fields: ['applicationSecret'] }
+
+        scope  = 'user:email'  if not scope or not scope.trim?()
+        scopes = scope.split ', '
+        scope  = (scopes
+          .map    (s) -> s.trim()
+          .filter (s) -> s in PROVIDERS.github.scopes
+        ).join ', '
+
+        url               = 'https://github.com'
+        options           =
+          url             : "#{url}/login/oauth/access_token"
+          timeout         : 7000
+          method          : 'POST'
+          headers         :
+            'Accept'      : 'application/json'
+            'User-Agent'  : 'Koding'
+          json            :
+            client_id     : applicationId
+            client_secret : applicationSecret
+
+        request options, (error, response, body) ->
+
+          if error
+            callback new KodingError \
+              'Host not reachable', 'NotReachable', { fields: [] }
+          else
+            # Github OAuth does not support [grant_type = 'client_credentials']
+            # so, to make sure if client_id and client_secret are valid we are
+            # requesting a new token without a code here, if it passes and
+            # fails with bad_verification_code means provided auths are ok ~GG
+            if body.error is 'bad_verification_code'
+              callback null, { url, scope }
+            else
+              callback new KodingError \
+                'Verification failed', 'VerificationFailed', { fields: [
+                    'applicationSecret',
+                    'applicationId'
+                ] }
 
 
     # -- FACEBOOK PROVIDER ------------------------------------------------8<--

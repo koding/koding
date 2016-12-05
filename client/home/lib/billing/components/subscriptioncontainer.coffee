@@ -67,6 +67,7 @@ mapStateToProps = (state) ->
     # TODO(umut): activate this when we have coupon support.
     isSurveyTaken: yes # !!customer.coupon(state)
     isEmailVerified: isEmailVerified(state)
+    hasCreditCard: globals.hasCreditCard
   }
 
 

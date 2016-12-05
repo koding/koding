@@ -1,6 +1,7 @@
 package multiconfig
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"reflect"
@@ -114,6 +115,24 @@ func (d *DefaultLoader) MustValidate(conf interface{}) {
 // string value in a sane way and is usefulf or environment variables or flags
 // which are by nature in string types.
 func fieldSet(field *structs.Field, v string) error {
+	switch f := field.Value().(type) {
+	case flag.Value:
+		if v := reflect.ValueOf(field.Value()); v.IsNil() {
+			typ := v.Type()
+			if typ.Kind() == reflect.Ptr {
+				typ = typ.Elem()
+			}
+
+			if err := field.Set(reflect.New(typ).Interface()); err != nil {
+				return err
+			}
+
+			f = field.Value().(flag.Value)
+		}
+
+		return f.Set(v)
+	}
+
 	// TODO: add support for other types
 	switch field.Kind() {
 	case reflect.Bool:

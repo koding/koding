@@ -6,13 +6,13 @@ getGroup = require 'app/util/getGroup'
 getOAuthEndPoint = require 'app/util/getOAuthEndPoint'
 
 
-saveGitlabConfig = (options = {}, callback) ->
-  options = _.assign {}, options, { provider: 'gitlab' }
+saveGitHubConfig = (options = {}, callback) ->
 
+  options = _.assign {}, options, { provider: 'github' }
   getGroup().setOAuth options, callback
 
 
-module.exports = class GitLabContainer extends React.Component
+module.exports = class GitHubContainer extends React.Component
 
   constructor: (props) ->
 
@@ -24,9 +24,9 @@ module.exports = class GitLabContainer extends React.Component
   makeInitialState: ->
     return {
       enabled: no
-      url: ''
       applicationId: ''
       applicationSecret: ''
+      scope: 'user:email, repo'
       isConfirmModalOpen: no
       isSaving: no
       isRemoving: no
@@ -38,17 +38,16 @@ module.exports = class GitLabContainer extends React.Component
 
     group = getGroup()
 
-    return  unless group.config?.gitlab?
+    return  unless group.config?.github?
 
+    group.fetchDataAt 'github.applicationSecret', (err, applicationSecret) =>
 
-    group.fetchDataAt 'gitlab.applicationSecret', (err, applicationSecret) =>
-
-      { gitlab } = group.config
+      { github } = group.config
 
       @setState
-        enabled: gitlab.enabled
-        url: gitlab.url
-        applicationId: gitlab.applicationId
+        scope: github.scope
+        enabled: github.enabled
+        applicationId: github.applicationId
         applicationSecret: applicationSecret
 
 
@@ -67,7 +66,7 @@ module.exports = class GitLabContainer extends React.Component
     # just show form if it's going from disabled to enabled.
     return  if enabled
 
-    wasEnabled = getGroup().config?.gitlab?.enabled
+    wasEnabled = getGroup().config?.github?.enabled
 
     return  if not wasEnabled
 
@@ -77,7 +76,7 @@ module.exports = class GitLabContainer extends React.Component
   onRemoveCancel: ->
 
     state = _.assign {}, @state,
-      enabled: getGroup().config.gitlab.enabled
+      enabled: getGroup().config.github.enabled
       isConfirmModalOpen: no
 
     @setState state
@@ -87,15 +86,15 @@ module.exports = class GitLabContainer extends React.Component
 
     @setState { isRemoving: yes, enabled: false }
 
-    options = _.pick @state, 'url', 'applicationId', 'applicationSecret'
+    options = _.pick @state, 'applicationId', 'applicationSecret', 'scope'
     options.enabled = no
 
-    saveGitlabConfig options, (err) =>
+    saveGitHubConfig options, (err) =>
       if err
       then @setState { enabled: yes }
       else
         @setState @makeInitialState()
-        delete getGroup().config.gitlab
+        delete getGroup().config.github
         kd.singletons.mainController.emit 'IntegrationsUpdated'
 
 
@@ -104,25 +103,25 @@ module.exports = class GitLabContainer extends React.Component
     @setState { isSaving: yes }, =>
 
       # get data from the form/state
-      options = _.pick @state, 'url', 'applicationId', 'applicationSecret'
+      options = _.pick @state, 'applicationId', 'applicationSecret', 'scope'
 
       # mark it as `enabled` to make sure.
       options.enabled = yes
 
       # save it to the config
-      saveGitlabConfig options, (err, config) =>
+      saveGitHubConfig options, (err, config) =>
 
-        newState = _.pick options, 'applicationId', 'applicationSecret'
+        newState = _.pick options, 'applicationId', 'applicationSecret', 'scope'
         newState.err = err
 
-        # JGroup.setOAuth will return updated url (aka cleaned url)
+        # JGroup.setOAuth will return updated scope (aka cleaned scope)
         # on successful save request, we need to update it on UI as well
-        newState.url = config?.url ? options.url
+        newState.scope = config?.scope ? options.scope
 
         newState.isSaving = no
 
         unless err
-          getGroup().config.gitlab = { enabled: yes }
+          getGroup().config.github = { enabled: yes }
           kd.singletons.mainController.emit 'IntegrationsUpdated'
 
         @setState newState
@@ -130,14 +129,14 @@ module.exports = class GitLabContainer extends React.Component
 
   render: ->
 
-    { enabled, url, applicationId, isRemoving, err
+    { enabled, applicationId, isRemoving, err, scope
       isSaving, applicationSecret, isConfirmModalOpen } = @state
 
     <View
       enabled={enabled}
-      url={url}
       err={err}
-      callbackUrl={getOAuthEndPoint 'gitlab'}
+      callbackUrl={getOAuthEndPoint 'github'}
+      scope={scope}
       applicationId={applicationId}
       applicationSecret={applicationSecret}
       isConfirmModalOpen={isConfirmModalOpen}
@@ -148,4 +147,3 @@ module.exports = class GitLabContainer extends React.Component
       onRemoveCancel={@bound 'onRemoveCancel'}
       onSave={@bound 'onSave'}
       onInputChange={@bound 'onInputChange'} />
-

@@ -14,7 +14,7 @@ $modal-z-index              = 20000
   z-index                   $modal-z-index
 
 .wrapper
-  font-family               SoleilFamily
+  font-family               mainFontFamily
   height                    100%
   width                     100%
   display                   flex

@@ -4,7 +4,7 @@ ReactView = require 'app/react/reactview'
 
 GitLab = require './components/gitlab/'
 
-module.exports = class HomeUtilitiesCustomerFeedback extends ReactView
+module.exports = class HomeIntegrationsGitlab extends ReactView
 
   renderReact: ->
     <GitLab.Container />

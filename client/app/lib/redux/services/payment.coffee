@@ -63,6 +63,8 @@ exports.fetchInfo = fetchInfo = ->
     return info
 
 
+exports.hasCreditCard = -> client.get Endpoints.CreditCardHas
+
 getTimestamp = (date) ->
 
   thirtyDaysInMs = (30 * 24 * 60 * 60 * 1000)
