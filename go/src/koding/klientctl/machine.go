@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -23,6 +24,13 @@ func MachineListCommand(c *cli.Context, log logging.Logger, _ string) (int, erro
 	infos, err := machine.List(opts)
 	if err != nil {
 		return 1, err
+	}
+
+	if c.Bool("json") {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "\t")
+		enc.Encode(infos)
+		return 0, nil
 	}
 
 	tabFormatter(os.Stdout, infos)
