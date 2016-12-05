@@ -582,4 +582,29 @@ module.exports = utils = {
       exp_year: '21'
     }
 
+  loadScript: (type, options, callback = ->) ->
+
+    { identifier, url } = options
+
+    domId = "internal-#{type}-#{identifier}"
+    bind = 'load'
+    tagName = type
+    load = -> callback()
+
+    if type is 'style'
+      tagName = 'link'
+      attributes =
+        rel  : 'stylesheet'
+        href : url
+    else
+      attributes =
+        type : 'text/javascript'
+        src  : url
+
+    script = new kd.CustomHTMLView {
+      domId, tagName, attributes, bind, load
+    }
+
+    window.document.head.appendChild script.getElement()
+
 }
