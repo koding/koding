@@ -156,24 +156,6 @@ func run(args []string) {
 			},
 		},
 		{
-			Name:  "auth",
-			Usage: "Authorization for user",
-			// Action: ctlcli.ExitAction(CheckUpdateFirst(ListCommand, log, "list")),
-			Flags: []cli.Flag{
-				cli.BoolFlag{
-					Name:  "json",
-					Usage: "Output in JSON format",
-				},
-				cli.BoolFlag{
-					Name:  "all",
-					Usage: "Include machines that have been offline for more than 24h.",
-				},
-			},
-			Subcommands: []cli.Command{
-				auth.NewRegisterSubCommand(log),
-			},
-		},
-		{
 			Name:        "version",
 			Usage:       "Display version information.",
 			HideHelp:    true,
@@ -446,6 +428,8 @@ func run(args []string) {
 							},
 						},
 					},
+					// command: kd auth register
+					auth.NewRegisterSubCommand(log),
 				},
 			},
 			cli.Command{
