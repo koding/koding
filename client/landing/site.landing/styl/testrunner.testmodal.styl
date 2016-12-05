@@ -1,0 +1,65 @@
+.kdmodal.test-modal
+  width                     950px !important
+  height                    740px !important
+
+.kdmodal.test-modal .kdmodal-inner
+  height                    650px !important
+  .kdview.kdmodal-buttons
+    margin                  0px !important
+    abs                     0 0 20px 0
+    padding-top             10px
+    height                  42px !important
+
+  .kdmodal-content
+    margin-top              0px !important
+    height                  calc(100% \- 60px) !important
+
+.kdmodal.test-modal .kdmodal-inner
+  .kdview.kdmodal-buttons button.run-tests
+    background-color        #f2778a
+    span.button-title
+      color                 white
+      font-size             16px
+      line-height           20px
+      font-weight           500
+
+.kdmodal.test-modal .kdmodal-inner .test-info-wrapper
+  display                   flex
+  font-size                 14px
+  line-height               20px
+
+
+.kdmodal.test-modal .kdmodal-inner .test-file .file-name
+  text-decoration           none
+  color                     #2B2B2B
+
+.kdmodal.test-modal .kdmodal-inner .test-file .test-dependencies
+  font-size                 13px
+  padding-left              20px
+  display flex
+
+.kdmodal.test-modal .kdmodal-inner .test-file .test-dependency
+  color                     #2B2B2B
+  text-decoration           none
+  padding-left              10px
+  max-width                 250px
+  white-space               nowrap
+  overflow                  hidden
+  text-overflow             ellipsis
+
+.kdmodal.test-modal .kdmodal-inner .test-file .test-tag
+  font-size                 13px
+  padding-left              20px
+  font-weight               500
+  &.automated
+    color                   #603
+  &.embedded
+    color                   #063440
+  &.sandbox
+    color                   #B87234
+
+
+.kdmodal.test-modal .kdmodal-inner .test-file .test-count
+  font-size                 13px
+  padding-left              20px
+
