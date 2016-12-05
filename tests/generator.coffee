@@ -186,8 +186,16 @@ class Generator
     fs.writeFile path.join(landingTestPath, 'index.coffee'), 'module.exports = {\n'
     fs.writeFile path.join(landingTestPath, 'filenames.coffee'), 'module.exports = {\n'
 
+
+  closeNeccessaryFiles: ->
+
+    fs.appendFile path.join(landingTestPath, 'index.coffee'), "}\n"
+    fs.appendFile path.join(landingTestPath, 'filenames.coffee'), "}\n"
+
+
 generator = new Generator()
 generator.initializeNeccessaryFiles()
 mapping = generator.createMappingIfNotExist()
+generator.generateMochaTests mapping, ->
   generator.closeNeccessaryFiles()
 
