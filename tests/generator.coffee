@@ -154,21 +154,21 @@ class Generator
     mocha += "#{embedded.name} = require './#{embedded.name}'\n\n"  if embedded
     mocha += "module.exports = ->\n\n"
 
-    mocha += "\t#{embedded.name}()\n\n"  if embedded
-    mocha += "\tdescribe '#{fileName}', ->\n"
+    mocha += "  #{embedded.name}()\n\n"  if embedded
+    mocha += "  describe '#{fileName}', ->\n"
     steps = mapping[fileName].steps
     steps.forEach (step) ->
       description = step.description
       description = description.replace /"/g, "'"
       asserts = step.asserts
-      mocha += "\t\tdescribe \"#{description}?\", ->\n"
-      mocha += '\t\t\tbefore (done) -> \n'
-      mocha += '\t\t\t\t# implement before hook \n\t\t\t\tdone()\n\n\n'
+      mocha += "    describe \"#{description}?\", ->\n"
+      mocha += '      before (done) -> \n'
+      mocha += '        # implement before hook \n        done()\n\n\n'
 
       asserts.forEach (it) ->
         it = it.replace /"/g, "'"
-        mocha += "\t\t\tit \"#{it}?\", (done) -> \n"
-        mocha += "\t\t\t\tassert(false, 'Not Implemented')\n\t\t\t\tdone()\n\n"
+        mocha += "      it \"#{it}?\", (done) -> \n"
+        mocha += "        assert(false, 'Not Implemented')\n        done()\n\n"
 
     @save fileName, mocha, callback
 
@@ -177,8 +177,8 @@ class Generator
 
     fs.writeFile path.join(landingTestPath, "#{fileName}.coffee"), data, ->
       callback()
-    fs.appendFile path.join(landingTestPath, "index.coffee"), "\t#{fileName}: require './#{fileName}'\n"
-    fs.appendFile path.join(landingTestPath, "filenames.coffee"), "\t'#{fileName}'\n"
+    fs.appendFile path.join(landingTestPath, "index.coffee"), "  #{fileName}: require './#{fileName}'\n"
+    fs.appendFile path.join(landingTestPath, "filenames.coffee"), "  '#{fileName}'\n"
 
 
   initializeNeccessaryFiles: ->
