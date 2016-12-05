@@ -8,7 +8,7 @@ import (
 	"time"
 
 	kmachine "koding/klient/machine"
-	"koding/klientctl/machine"
+	"koding/klientctl/endpoint/machine"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
