@@ -12,11 +12,19 @@ import (
 	"time"
 )
 
+var defaultClient = &http.Client{
+	Transport: &http.Transport{
+		DialContext: (&net.Dialer{
+			Timeout: time.Second,
+		}).DialContext,
+	},
+}
+
 // Client is an http client to send ping requests to internal endpoint.
 type Client struct {
 	endpoint    string
 	requestType string
-	reqFunc     func(string, string) (string, io.Reader, error)
+	reqFunc     func(string, string) (*http.Cookie, io.Reader, error)
 	HTTPClient  *http.Client
 }
 
@@ -31,14 +39,22 @@ func NewInternal(host string) *Client {
 		endpoint:    fullURL,
 		requestType: "POST",
 		reqFunc:     internalReqFunc,
-		HTTPClient: &http.Client{
-			Transport: &http.Transport{
-				// timeout only for dialing, if the remote server is not listening, stop asking earlier.
-				Dial: func(network, addr string) (net.Conn, error) {
-					return net.DialTimeout(network, addr, time.Second)
-				},
-			},
-		},
+		HTTPClient:  defaultClient,
+	}
+}
+
+// NewPublic creates a new client for public ping requests.
+func NewPublic(host string) *Client {
+	fullURL := host + api.EndpointPresencePing
+	if _, err := url.ParseRequestURI(fullURL); err != nil {
+		panic("url is not valid")
+	}
+
+	return &Client{
+		endpoint:    fullURL,
+		requestType: "GET",
+		reqFunc:     publicReqFunc,
+		HTTPClient:  defaultClient,
 	}
 }
 
@@ -61,16 +77,18 @@ func (c *Client) NewRequest(identifier, groupName string) (*http.Request, error)
 		return nil, errors.New("groupName must be set")
 	}
 
-	queryString, body, err := c.reqFunc(identifier, groupName)
+	kookie, body, err := c.reqFunc(identifier, groupName)
 	if err != nil {
 		return nil, err
 	}
 
-	r, err := http.NewRequest(c.requestType, c.endpoint+queryString, body)
+	r, err := http.NewRequest(c.requestType, c.endpoint, body)
 	if err != nil {
 		return nil, err
 	}
-
+	if kookie != nil {
+		r.AddCookie(kookie)
+	}
 	r.Header.Set("Accept", "application/json")
 	r.Header.Set("Content-Type", "application/json")
 	return r, nil
@@ -93,13 +111,22 @@ func (c *Client) Do(req *http.Request) error {
 
 	return nil
 }
-func internalReqFunc(username, groupName string) (queryString string, body io.Reader, err error) {
+func internalReqFunc(username, groupName string) (cookie *http.Cookie, body io.Reader, err error) {
 	data, err := json.Marshal(map[string]string{
 		"username":  username,
 		"groupName": groupName,
 	})
 	if err != nil {
-		return "", nil, err
+		return nil, nil, err
 	}
-	return "", bytes.NewReader(data), nil
+	return nil, bytes.NewReader(data), nil
+}
+
+func publicReqFunc(token, _ string) (cookie *http.Cookie, body io.Reader, err error) {
+	cookie = &http.Cookie{
+		Name:  "clientId",
+		Value: token,
+		// Raw:     "clientId=" + token,
+	}
+	return cookie, nil, nil
 }
