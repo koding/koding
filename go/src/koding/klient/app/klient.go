@@ -308,8 +308,14 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		// EventSub: mountEvents,
 	}
 
+	c := k.NewClient(konfig.Konfig.KloudURL)
+	c.Auth = &kite.Auth{
+		Type: "kiteKey",
+		Key:  k.Config.KiteKey,
+	}
+
 	kloud := &socialkite.LazyKite{
-		Client: k.NewClient(konfig.Konfig.KloudURL),
+		Client: c,
 	}
 
 	restClient := httputil.DefaultRestClient(konfig.Konfig.Debug)
