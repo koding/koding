@@ -1,0 +1,44 @@
+<div class='Homepage-References'>
+  {% assign people = include.people | split: "||" %}
+
+  <div class="heads">
+  {% for personData in people %}
+    {% assign person = personData | strip | split: "--" %}
+    {% assign name = person[0] %}
+    {% assign avatar = person[1] | strip %}
+    {% if avatar != '' %}
+      {% assign avatar = person[1] | prepend: include.path | prepend: site.url %}
+    {% endif %}
+    {% assign title = person[2] %}
+    {% assign org = person[3] %}
+    <figure data-index="{% increment foo %}" {% if foo == 0 %}class="active"{% endif %}{% if avatar != '' %}style="background-image: url('{{ avatar }}')"{% endif %}></figure>
+  {% endfor %}
+  </div>
+
+  <div class="quotes">
+    {% for personData in people %}
+    <div class="quote" data-index="{% increment bar %}" {% if bar == 0 %}class="active"{% endif %}>
+      {% assign person = personData | strip | split: "--" %}
+      {% assign name = person[0] %}
+      {% assign title = person[2] %}
+      {% assign org = person[3] %}
+      {% assign quote = person[4] %}
+      <blockquote>
+        &ldquo;{{ quote }}&rdquo;
+      </blockquote>
+      <h5>- {{ name }}, {{ title }} at {{ org }}</h5>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+<script>
+  $('.heads figure').first().addClass('active');
+  $('.quotes .quote').first().addClass('active');
+  $('.heads figure').on('click', function(){
+    $('.heads figure').removeClass('active');
+    $(this).addClass('active');
+    index = $(this).data('index');
+    $('.quotes .quote').removeClass('active');
+    $('.quotes .quote').eq(index).addClass('active')
+  });
+</script>

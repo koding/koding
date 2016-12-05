@@ -55,7 +55,7 @@ resource:
         # once vm finishes building, you can see this file by typing
         # ls /
         #
-        # for more information please click the link below "Stack Script Docs"
+        # for more information please use the search box above
 
     '''
 

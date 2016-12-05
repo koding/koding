@@ -2,8 +2,7 @@ process.title = 'koding-webserver'
 
 require 'coffee-cache'
 
-{ argv }      = require 'optimist'
-cors          = require 'cors'
+{ argv } = require 'optimist'
 
 Object.defineProperty global, \
   'KONFIG', { value : require 'koding-config-manager' }
@@ -85,7 +84,7 @@ app.post '/-/analytics/page'                     , require './handlers/analytics
 app.get  '/-/my/permissionsAndRoles'             , require './handlers/myPermissionsAndRoles'
 app.get  '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
 app.post '/-/support/new', bodyParser.json()     , require './handlers/supportnew'
-app.post '/-/wufoo/submit/:identifier?'          , cors(), require './handlers/wufooproxy'
+app.post '/-/wufoo/submit/:identifier?'          , require './handlers/wufooproxy'
 # should deprecate those /Validates, they don't look like api endpoints
 app.post '/:name?/Validate/Username/:username?'  , require './handlers/validateusername'
 app.post '/:name?/Validate/Email/:email?'        , require './handlers/validateemail'
@@ -121,8 +120,8 @@ app.get  '/-/image/cache'                        , require './image_cache'
 # app.get  '/-/oauth/github/callback'              , require './github_callback'
 app.get  '/-/oauth/gitlab/callback'              , require './gitlab_callback'
 
-app.get '/-/terraform/document-search/:query'    , cors(), require './handlers/stackscripttitle'
-app.get '/-/terraform/document-content/:query'   , cors(), require './handlers/stackscriptmarkdown'
+app.get '/-/terraform/document-search/:query'    , require './handlers/stackscripttitle'
+app.get '/-/terraform/document-content/:query'   , require './handlers/stackscriptmarkdown'
 
 # app.get  '/-/oauth/facebook/callback'            , require './facebook_callback'
 # app.get  '/-/oauth/google/callback'              , require './google_callback'

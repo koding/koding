@@ -1,0 +1,54 @@
+.Homepage-LogoBar {
+  padding: 27px 0;
+  .Homepage--container {
+    max-width: 1200px;
+  }
+  h3 {
+    margin-top: -4px;
+    margin-bottom: 58px;
+    font-size: 14px;
+    color: #B3B3B3;
+    letter-spacing: 0px;
+    text-align: center;
+    padding: 0 28px;
+    line-height: 22px;
+  }
+}
+.Homepage-LogoBar--logos {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  img {
+    flex: 0 0 auto;
+    margin: 0 30px 30px;
+  }
+}
+.Homepage-LogoBar-Gray {
+  background-color: #F5F9FB;
+  border-top: 1px solid #E8ECEE;
+  border-bottom: 1px solid #E8ECEE;
+  padding-bottom: 75px;
+}
+.Homepage-LogoBar-Gray h3 {
+  font-size: 18px;
+  padding: 0;
+  margin-top: 30px;
+  margin-bottom: 40px;
+  color: #989898;
+}
+@media (max-width: 1200px) {
+  .Homepage-LogoBar--logos {
+    img {
+      margin: 0 0 30px;
+      width: 30%;
+    }
+  }
+}
+@media (max-width: 660px) {
+  .Homepage-LogoBar--logos {
+    img {
+      width: 100%;
+    }
+  }
+}
