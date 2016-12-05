@@ -1,7 +1,8 @@
 package machine
 
 import (
-	"strings"
+	"fmt"
+	"math"
 	"time"
 
 	"koding/klient/machine"
@@ -85,45 +86,39 @@ func groupRank(i *Info) int {
 	}
 }
 
-// FindByName finds a specific machine Info by its name.
-func (s InfoSlice) FindByName(name string) *Info {
-	infoNames := make([]string, 0, len(s))
-	for _, info := range s {
-		infoNames = append(infoNames, info.Alias)
+// PrettyStatus prints machine status in short and more human friendly format.
+func PrettyStatus(status machine.Status, now time.Time) string {
+	if status.State == machine.StateOnline {
+		return fmt.Sprintf("%s (%s)", status.State, ShortDuration(status.Since, now))
 	}
 
-	matchedName, ok := matchFullOrShortcut(infoNames, name)
-	if !ok {
-		return nil
+	timeReasonFmt := ShortDuration(status.Since, now)
+	if status.Reason != "" {
+		timeReasonFmt += ": " + status.Reason
 	}
 
-	for _, info := range s {
-		if info != nil && info.Alias == matchedName {
-			return info
-		}
-	}
-
-	return nil
+	return fmt.Sprintf("%s (%s)", status.State, timeReasonFmt)
 }
 
-// matchFullOrShortcut matches string in a slice of strings if provided name
-// is equal to an item or the item starts with provided name.
-func matchFullOrShortcut(items []string, name string) (string, bool) {
-	var (
-		match   string
-		matched bool
-	)
+// ShortDuration prints time.Duration between tow time points in very short
+// format.
+func ShortDuration(t, now time.Time) string {
+	dur := now.Sub(t)
 
-	for _, item := range items {
-		if item == name {
-			return item, true
-		}
-
-		if strings.HasPrefix(item, name) {
-			match = item
-			matched = true
-		}
+	if dur.Seconds() < 60.0 {
+		return fmt.Sprintf("%ds", int64(dur.Seconds()))
 	}
 
-	return match, matched
+	if dur.Minutes() < 60.0 {
+		secs := math.Mod(dur.Seconds(), 60)
+		return fmt.Sprintf("%dm %ds", int64(dur.Minutes()), int64(secs))
+	}
+
+	if dur.Hours() < 24.0 {
+		mins := math.Mod(dur.Minutes(), 60)
+		return fmt.Sprintf("%dh %dm", int64(dur.Hours()), int64(mins))
+	}
+
+	hours := math.Mod(dur.Hours(), 24)
+	return fmt.Sprintf("%dd %dh", int64(dur.Hours()/24), int64(hours))
 }

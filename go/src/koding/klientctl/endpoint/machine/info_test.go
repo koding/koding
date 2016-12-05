@@ -60,62 +60,6 @@ func TestInfoSliceSort(t *testing.T) {
 	}
 }
 
-func TestInfoSliceFindByName(t *testing.T) {
-	tests := map[string]struct {
-		Provided []*Info
-		Name     string
-		Expected *Info
-	}{
-		"simple find": {
-			Provided: []*Info{
-				testInfo("a", machine.StateOnline),
-				testInfo("b", machine.StateOnline),
-				testInfo("c", machine.StateOnline),
-				testInfo("d", machine.StateOnline),
-				testInfo("e", machine.StateOnline),
-				testInfo("f", machine.StateOnline),
-			},
-			Name:     "d",
-			Expected: testInfo("d", machine.StateOnline),
-		},
-		"by prefix": {
-			Provided: []*Info{
-				testInfo("aa", machine.StateOnline),
-				testInfo("bb", machine.StateOnline),
-				testInfo("cc", machine.StateOnline),
-			},
-			Name:     "b",
-			Expected: testInfo("bb", machine.StateOnline),
-		},
-		"exact match": {
-			Provided: []*Info{
-				testInfo("aa", machine.StateOnline),
-				testInfo("a", machine.StateOnline),
-				testInfo("aaa", machine.StateOnline),
-			},
-			Name:     "a",
-			Expected: testInfo("a", machine.StateOnline),
-		},
-		"not found": {
-			Provided: []*Info{
-				testInfo("g", machine.StateOnline),
-			},
-			Name:     "a",
-			Expected: nil,
-		},
-	}
-
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			found := InfoSlice(test.Provided).FindByName(test.Name)
-
-			if !reflect.DeepEqual(found, test.Expected) {
-				t.Errorf("want %v; got %v", test.Expected, found)
-			}
-		})
-	}
-}
-
 func testInfo(alias string, state machine.State) *Info {
 	return &Info{
 		Alias: alias,

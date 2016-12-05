@@ -7,7 +7,6 @@ import (
 	"text/tabwriter"
 	"time"
 
-	kmachine "koding/klient/machine"
 	"koding/klientctl/endpoint/machine"
 
 	"github.com/codegangsta/cli"
@@ -44,25 +43,10 @@ func tabFormatter(w io.Writer, infos []*machine.Info) {
 			info.Provider,
 			info.Label,
 			info.Owner,
-			timeToAgo(info.CreatedAt, now),
+			machine.ShortDuration(info.CreatedAt, now),
 			info.IP,
-			prettyStatus(info.Status),
+			machine.PrettyStatus(info.Status, now),
 		)
 	}
 	tw.Flush()
-}
-
-func prettyStatus(status kmachine.Status) string {
-	now := time.Now()
-
-	if status.State == kmachine.StateOnline {
-		return fmt.Sprintf("%s (%s)", status.State, timeToAgo(status.Since, now))
-	}
-
-	timeReasonFmt := timeToAgo(status.Since, now)
-	if status.Reason != "" {
-		timeReasonFmt += ": " + status.Reason
-	}
-
-	return fmt.Sprintf("%s (%s)", status.State, timeReasonFmt)
 }
