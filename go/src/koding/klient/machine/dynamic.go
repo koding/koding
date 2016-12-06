@@ -97,7 +97,7 @@ func NewDynamicClient(opts DynamicClientOpts) (*DynamicClient, error) {
 	if opts.Log != nil {
 		dc.log = opts.Log.New("monitor")
 	} else {
-		dc.log = logging.NewLogger("monitor")
+		dc.log = DefaultLogger.New("monitor")
 	}
 
 	dc.disconnected() // set disconnected client.

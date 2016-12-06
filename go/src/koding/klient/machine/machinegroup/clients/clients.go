@@ -73,7 +73,7 @@ func New(opts *ClientsOpts) (*Clients, error) {
 	}
 
 	if c.log == nil {
-		c.log = logging.NewLogger("")
+		c.log = machine.DefaultLogger
 	}
 
 	return c, nil
@@ -108,42 +108,41 @@ func (c *Clients) Create(id machine.ID, dynAddr machine.DynamicAddrFunc) error {
 // Drop closes and removes dynamic client binded to provided machine ID.
 func (c *Clients) Drop(id machine.ID) error {
 	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	return c.drop(id)
+}
+
+func (c *Clients) drop(id machine.ID) error {
 	dc, ok := c.m[id]
 	if !ok {
-		c.mu.Unlock()
 		return nil
 	}
 	delete(c.m, id)
-	c.mu.Unlock()
 
-	if dc != nil {
-		dc.Close()
-	} else {
-		panic("nonexistent client for " + string(id))
-	}
-
-	return nil
-}
-
-// Close closes and drops all dynamic clients registered to Clients.
-func (c *Clients) Close() error {
-	all := make(map[machine.ID]*machine.DynamicClient)
-	c.mu.Lock()
-	for id, dc := range c.m {
-		all[id] = dc
-		delete(c.m, id)
-	}
-	c.mu.Unlock()
-
-	for id, dc := range all {
+	go func() {
 		if dc != nil {
 			dc.Close()
 		} else {
 			panic("nonexistent client for " + string(id))
 		}
-	}
+	}()
 
 	return nil
+}
+
+// Close closes and drops all dynamic clients registered to Clients.
+func (c *Clients) Close() (err error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	for id := range c.m {
+		if e := c.drop(id); e != nil && err == nil {
+			err = e
+		}
+	}
+
+	return err
 }
 
 // Status gets machine dynamic client status. It may return nil error and zero
@@ -161,7 +160,7 @@ func (c *Clients) Status(id machine.ID) (machine.Status, error) {
 	return dc.Status(), nil
 }
 
-// Client returns the current status of provided machine.
+// Client returns the current clients of provided machine.
 // machine.ErrMachineNotFound is returned when there are no clients for a given
 // machine ID.
 func (c *Clients) Client(id machine.ID) (machine.Client, error) {

@@ -12,12 +12,6 @@ var (
 	ErrAddrNotFound = errors.New("address not found")
 )
 
-// IsAddrNotFound is a helper function that checks if provided error describes
-// missing address.
-func IsAddrNotFound(err error) bool {
-	return err == ErrAddrNotFound
-}
-
 // Addr satisfies net.Addr interface. It stores external machine address and
 // a time-stamp which indicates when the address was last seen being valid.
 type Addr struct {

@@ -11,12 +11,6 @@ var (
 	ErrDisconnected = errors.New("machine disconnected")
 )
 
-// IsDisconnected is a helper function that checks if provided error describes
-// unreachable machine.
-func IsDisconnected(err error) bool {
-	return err == ErrDisconnected
-}
-
 var _ Client = (*DisconnectedClient)(nil)
 
 // DisconnectedClient satisfies Client interface. It indicates disconnected

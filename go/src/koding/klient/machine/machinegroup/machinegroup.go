@@ -73,7 +73,7 @@ func New(opts *GroupOpts) (*Group, error) {
 	if opts.Log != nil {
 		g.log = opts.Log.New("machines")
 	} else {
-		g.log = logging.NewLogger("machines")
+		g.log = machine.DefaultLogger.New("machines")
 	}
 
 	// Create dynamic clients.
