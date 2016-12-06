@@ -4,6 +4,7 @@ import (
 	"errors"
 	"koding/db/models"
 
+	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -84,8 +85,8 @@ func HasAnyRole(username, groupName string, roles ...string) (bool, error) {
 	return count > 0, nil
 }
 
-// FetchAccountGroups lists the group memberships of a given username
-func FetchAccountGroups(username string) ([]string, error) {
+// FetchAccountGroupNames lists the group memberships of a given username
+func FetchAccountGroupNames(username string) ([]string, error) {
 	account, err := GetAccount(username)
 	if err != nil {
 		return nil, err
@@ -104,7 +105,7 @@ func FetchAccountGroups(username string) ([]string, error) {
 	}
 
 	if len(rels) == 0 {
-		return nil, nil
+		return nil, mgo.ErrNotFound
 	}
 
 	var ids []string
@@ -129,4 +130,52 @@ func FetchAccountGroups(username string) ([]string, error) {
 	}
 
 	return slugList, nil
+}
+
+// FetchAccountGroups lists the groups of a given username
+func FetchAccountGroups(username string) (groups []*models.Group, err error) {
+	account, err := GetAccount(username)
+	if err != nil {
+		return nil, err
+	}
+
+	selector := Selector{
+		"sourceName": "JGroup",
+		"targetId":   account.Id,
+		"targetName": "JAccount",
+		"as":         bson.M{"$in": []string{"owner", "admin", "member"}},
+	}
+
+	rels, err := GetAllRelationships(selector)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(rels) == 0 {
+		return nil, mgo.ErrNotFound
+	}
+
+	var ids []bson.ObjectId
+	for _, rel := range rels {
+		ids = append(ids, rel.SourceId)
+	}
+
+	all, err := GetGroupsByIds(ids...)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unify the list.
+	slugs := make(map[string]struct{})
+	for _, group := range all {
+		// Skip already added groups.
+		if _, ok := slugs[group.Slug]; ok {
+			continue
+		}
+
+		groups = append(groups, group)
+		slugs[group.Slug] = struct{}{}
+	}
+
+	return groups, nil
 }

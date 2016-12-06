@@ -83,7 +83,7 @@ func IsUserKodingEmployeeFn(user *models.User, w *Warning) (bool, error) {
 
 // HasMultipleMemberships checks if user is only Koding group member.
 func HasMultipleMembershipsFn(user *models.User, w *Warning) (bool, error) {
-	groups, err := modelhelper.FetchAccountGroups(user.Name)
+	groups, err := modelhelper.FetchAccountGroupNames(user.Name)
 	if err == mgo.ErrNotFound {
 		return false, nil
 	}

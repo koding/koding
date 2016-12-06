@@ -27,6 +27,7 @@ import (
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
+	"koding/kites/kloud/team"
 	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
 	"koding/remoteapi"
@@ -238,6 +239,7 @@ func New(conf *Config) (*Kloud, error) {
 	kloud.Stack.DescribeFunc = provider.Desc
 	kloud.Stack.CredClient = credential.NewClient(storeOpts)
 	kloud.Stack.MachineClient = machine.NewClient(machine.NewMongoDatabase())
+	kloud.Stack.TeamClient = team.NewClient(team.NewMongoDatabase())
 	kloud.Stack.RemoteClient = &remoteapi.Client{
 		Endpoint: remoteURL,
 		Client:   storeOpts.Client,
@@ -303,6 +305,9 @@ func New(conf *Config) (*Kloud, error) {
 
 	// Authorization handling.
 	k.HandleFunc("auth.login", kloud.Stack.AuthLogin)
+
+	// Team handling.
+	k.HandleFunc("team.list", kloud.Stack.TeamList)
 
 	// Machine handling.
 	k.HandleFunc("machine.list", kloud.Stack.MachineList)
