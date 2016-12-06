@@ -3,7 +3,6 @@ Encoder = require 'htmlencode'
 s3upload             = require 'app/util/s3upload'
 MarkdownEditorView = require './markdowneditorview'
 ContentModal = require 'app/components/contentModal'
-UploadFileButton = require '../components/uploadfilebutton'
 
 module.exports = class ReadmeView extends kd.View
 
@@ -13,11 +12,12 @@ module.exports = class ReadmeView extends kd.View
 
     super options, data
 
-    @on 'drop', (event)=> @listenDropEvent(event)
-    @on 'dragenter', => kd.utils.defer => @getOptions().setDragClass()
+    @on 'drop', (event) => @listenDropEvent(event)
+    @on 'dragenter', => kd.utils.defer => @editorView.getAce().setClass 'files-being-dragged'
     @on 'dragleave', => @editorView.getAce().unsetClass 'files-being-dragged'
-    @on 'drop', => @editorView.getAce().unsetClass 'files-being-dragged'
-
+    @on 'drop', =>  kd.utils.defer => @editorView.getAce().unsetClass 'files-being-dragged'
+  
+  
     { stackTemplate } = @getData()
     { @canUpdate } = @getOptions()
 
@@ -47,9 +47,6 @@ module.exports = class ReadmeView extends kd.View
       @setReadOnly()  unless @canUpdate
       @listenEditorEvents()
 
-    @addSubView new UploadFileButton
-      callback : @getOptions().openFileInputCallback
-
 
   handleDragender: ->
     @editorView.getAce().setClass 'files-being-dragged'
@@ -62,12 +59,10 @@ module.exports = class ReadmeView extends kd.View
 
   listenDropEvent: (event) ->
 
-    @editorView.getAce().setClass 'files-being-dragged'
-
     thisEvent = event
     unless event.dataTransfer
       thisEvent = event.originalEvent
-    @getOptions().setFileInputToUpload(thisEvent)
+    @setFileInputToUpload(thisEvent)
 
 
   setReadOnly: ->
@@ -82,30 +77,28 @@ module.exports = class ReadmeView extends kd.View
 
 
   setFileInputToUpload: (event)->
+    
+    supportedFormats = ['image/jpg','image/jpeg','image/gif','image/png']
 
-    return unless event.dataTransfer.files.length
+    for val in event.dataTransfer.files
+    
+      fileSize = val.size
+      if !val.type in supportedFormats or fileSize > 20000000 or fileSize < 2000
+        @handleUploadError val.name
+        return false
 
-      supportedFormats = ['image/jpg','image/jpeg','image/gif','image/png']
-      for val in event.dataTransfer.files
+      do =>
+        file = val
+        mimeType      = file.type
+        reader        = new FileReader
+        reader.onload = (event) =>
+          dataURL     = event.target.result
+          [_, base64] = dataURL.split ','
+          @getFileToUpload
+            mimeType : mimeType
+            content  : file
 
-        fileSize = val.size
-
-        if val.type in supportedFormats or fileSize > 20000000 or fileSize < 2000
-          @handleUploadError val.name
-          return false
-
-        do =>
-          file = val
-          mimeType      = file.type
-          reader        = new FileReader
-          reader.onload = (event) =>
-            dataURL     = event.target.result
-            [_, base64] = dataURL.split ','
-            @getFileToUpload
-              mimeType : mimeType
-              content  : file
-
-          reader.readAsDataURL file
+        reader.readAsDataURL file
 
 
   uploadInputChange: ->
@@ -130,9 +123,9 @@ module.exports = class ReadmeView extends kd.View
   getFileToUpload: (file, callback) ->
 
     { mimeType, content } = file
-    editor = @editorView.getAce()
-    editor.insert("\n[Uploading #{content.name}...]",
-      editor.getCursor())
+    editorView = @editorView.getAce()
+    editorView.editor.insert("\n[Uploading #{content.name}...]",
+      editorView.getCursor())
 
     s3upload
       name    : content.name
@@ -140,15 +133,16 @@ module.exports = class ReadmeView extends kd.View
       mimeType: mimeType
       timeout : 30000
     , (err, url) =>
+      
       console.log err
-      whereToReplace = editor.find("[Uploading #{content.name}...]",
+      whereToReplace = editorView.editor.find("[Uploading #{content.name}...]",
         { wrap: true, caseSensitive: false, wholeWord: false, regExp: false, preventScroll: true})
-
+        
       if err
-        editor.session.replace(whereToReplace, '')
+        editorView.editor.replace('', whereToReplace)
         @handleUploadError(content.name)
       else
-        editor.getSession().replace(whereToReplace, '![]('+url+')')
+        editorView.replace('![]('+url+')', whereToReplace)
 
 
   handleUploadError: (fileName) ->
