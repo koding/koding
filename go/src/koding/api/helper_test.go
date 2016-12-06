@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"sync"
 
@@ -59,7 +58,7 @@ func (fa FakeAuth) GetSession(w http.ResponseWriter, r *http.Request) {
 	fa.mu.RUnlock()
 
 	p, err := ioutil.ReadAll(r.Body)
-	log.Printf("FakeAuth.GetSession: read body: p=%q, err=%v", p, err)
+	api.Log.Info("FakeAuth.GetSession: read body: p=%q, err=%v", p, err)
 
 	if session == nil {
 		w.WriteHeader(http.StatusUnauthorized)

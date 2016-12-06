@@ -2,7 +2,6 @@ package api_test
 
 import (
 	"encoding/json"
-	"log"
 	"net"
 	"net/http"
 	"strings"
@@ -136,7 +135,7 @@ func TestTransport(t *testing.T) {
 				t.Fatalf("Match()=%s", err)
 			}
 
-			log.Printf("received session: %#v", &other)
+			api.Log.Info("received session: %#v", &other)
 		})
 	}
 }

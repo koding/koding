@@ -3,7 +3,13 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"testing"
+
+	"github.com/koding/logging"
 )
+
+// Log is a logger for use in tests.
+var Log = logging.NewCustom("api", testing.Verbose())
 
 // WriteTo exports writeTo for test purposes.
 func (s *Session) WriteTo(req *http.Request) { s.writeTo(req) }
