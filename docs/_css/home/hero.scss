@@ -46,9 +46,10 @@ main.Homepage-Hero {
   position: absolute;
   bottom: 0;
   color: #ffffff;
+  min-height: 80px;
   width: 100%;
   text-align: center;
-  padding: 20px;
+  padding: 30px;
   background-color: rgba(0,0,0,.6);
   box-sizing: border-box;
 
@@ -79,7 +80,7 @@ main.Homepage-Hero {
 
 @media (max-width: 660px) {
   main.Homepage-Hero {
-    height: 720px;
+    height: 780px;
   }
   .Homepage-Hero--intro {
     h1 {
