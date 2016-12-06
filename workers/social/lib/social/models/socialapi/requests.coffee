@@ -409,9 +409,12 @@ createSubscription = (data, callback) ->
   url = "#{socialProxyUrl}/payment/subscription/create"
   post url, data, callback
 
-hasCreditCard = (data, callback) ->
+hasCreditCard = (client, callback) ->
+
+  { sessionToken } = client
+
   url = "#{socialProxyUrl}/payment/creditcard/has"
-  get url, data, callback
+  get url, { sessionToken }, callback
 
 expireSubscription = (accountId, callback) ->
   url = "#{socialProxyUrl}/payments/customers/#{accountId}/expire"
