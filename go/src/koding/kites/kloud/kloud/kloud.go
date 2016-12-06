@@ -15,6 +15,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"koding/api"
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
 	"koding/httputil"
@@ -33,7 +34,6 @@ import (
 	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
 	"koding/remoteapi"
-	"koding/socialapi"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/koding/kite"
@@ -246,23 +246,22 @@ func New(conf *Config) (*Kloud, error) {
 		},
 	}
 
-	authFn := func(opts *socialapi.AuthOptions) (*socialapi.Session, error) {
+	authFn := func(opts *api.AuthOptions) (*api.Session, error) {
 		s, err := modelhelper.FetchOrCreateSession(opts.Session.Username, opts.Session.Team)
 		if err != nil {
 			return nil, err
 		}
 
-		return &socialapi.Session{
+		return &api.Session{
 			Username: s.Username,
 			Team:     s.GroupName,
 			ClientID: s.ClientId,
 		}, nil
 	}
 
-	transport := &socialapi.Transport{
+	transport := &api.Transport{
 		RoundTripper: storeOpts.Client.Transport,
-		Host:         remoteURL.Host,
-		AuthFunc:     socialapi.NewCache(authFn).Auth,
+		AuthFunc:     api.NewCache(authFn).Auth,
 	}
 
 	kloud.Stack.DescribeFunc = provider.Desc

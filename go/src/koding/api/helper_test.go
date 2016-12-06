@@ -1,4 +1,4 @@
-package socialapi_test
+package api_test
 
 import (
 	"context"
@@ -9,29 +9,29 @@ import (
 	"net/http"
 	"sync"
 
+	"koding/api"
 	"koding/kites/kloud/utils"
-	"koding/socialapi"
 )
 
 type FakeAuth struct {
-	Sessions map[string]*socialapi.Session
+	Sessions map[string]*api.Session
 
 	mu sync.RWMutex
 }
 
 func NewFakeAuth() *FakeAuth {
 	return &FakeAuth{
-		Sessions: make(map[string]*socialapi.Session),
+		Sessions: make(map[string]*api.Session),
 	}
 }
 
-func (fa FakeAuth) Auth(opts *socialapi.AuthOptions) (*socialapi.Session, error) {
+func (fa FakeAuth) Auth(opts *api.AuthOptions) (*api.Session, error) {
 	fa.mu.Lock()
 	defer fa.mu.Unlock()
 
 	session, ok := fa.Sessions[opts.Session.Key()]
 	if !ok || opts.Refresh {
-		session = &socialapi.Session{
+		session = &api.Session{
 			ClientID: utils.RandString(12),
 			Username: opts.Session.Username,
 			Team:     opts.Session.Team,
@@ -43,11 +43,11 @@ func (fa FakeAuth) Auth(opts *socialapi.AuthOptions) (*socialapi.Session, error)
 }
 
 func (fa FakeAuth) GetSession(w http.ResponseWriter, r *http.Request) {
-	var req socialapi.Session
+	var req api.Session
 
 	req.ReadFrom(r)
 
-	var session *socialapi.Session
+	var session *api.Session
 
 	fa.mu.RLock()
 	for _, s := range fa.Sessions {
@@ -69,11 +69,11 @@ func (fa FakeAuth) GetSession(w http.ResponseWriter, r *http.Request) {
 }
 
 type AuthRecorder struct {
-	Options  []*socialapi.AuthOptions
-	AuthFunc socialapi.AuthFunc
+	Options  []*api.AuthOptions
+	AuthFunc api.AuthFunc
 }
 
-func (ar *AuthRecorder) Auth(opts *socialapi.AuthOptions) (*socialapi.Session, error) {
+func (ar *AuthRecorder) Auth(opts *api.AuthOptions) (*api.Session, error) {
 	sessionCopy := *opts.Session
 	optsCopy := *opts
 	optsCopy.Session = &sessionCopy
@@ -90,19 +90,19 @@ func (ar *AuthRecorder) Reset() {
 
 type Trx struct {
 	Type    string // "set", "get" or "delete"
-	Session *socialapi.Session
+	Session *api.Session
 }
 
 type TrxStorage []Trx
 
-var _ socialapi.Storage = (*TrxStorage)(nil)
+var _ api.Storage = (*TrxStorage)(nil)
 
-func (trx *TrxStorage) Get(s *socialapi.Session) error {
+func (trx *TrxStorage) Get(s *api.Session) error {
 	*trx = append(*trx, Trx{Type: "get", Session: s})
 
 	trxS, ok := trx.Build()[s.Key()]
 	if !ok {
-		return socialapi.ErrSessionNotFound
+		return api.ErrSessionNotFound
 	}
 
 	*s = *trxS
@@ -110,12 +110,12 @@ func (trx *TrxStorage) Get(s *socialapi.Session) error {
 	return nil
 }
 
-func (trx *TrxStorage) Set(s *socialapi.Session) error {
+func (trx *TrxStorage) Set(s *api.Session) error {
 	*trx = append(*trx, Trx{Type: "set", Session: s})
 	return nil
 }
 
-func (trx *TrxStorage) Delete(s *socialapi.Session) error {
+func (trx *TrxStorage) Delete(s *api.Session) error {
 	*trx = append(*trx, Trx{Type: "delete", Session: s})
 	return nil
 }
@@ -139,8 +139,8 @@ func (trx TrxStorage) Match(other TrxStorage) error {
 	return nil
 }
 
-func (trx TrxStorage) Build() map[string]*socialapi.Session {
-	m := make(map[string]*socialapi.Session)
+func (trx TrxStorage) Build() map[string]*api.Session {
+	m := make(map[string]*api.Session)
 
 	for _, trx := range trx {
 		switch trx.Type {
@@ -169,7 +169,7 @@ type FakeTransport struct {
 	http.RoundTripper
 }
 
-var _ socialapi.HTTPTransport = (*FakeTransport)(nil)
+var _ api.HTTPTransport = (*FakeTransport)(nil)
 
 func (ft FakeTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	errs, ok := req.Context().Value(ErrorContextKey).(*[]error)
@@ -188,13 +188,13 @@ func (ft FakeTransport) RoundTrip(req *http.Request) (resp *http.Response, err e
 }
 
 func (ft FakeTransport) CancelRequest(req *http.Request) {
-	if rc, ok := ft.RoundTripper.(socialapi.HTTPRequestCanceler); ok {
+	if rc, ok := ft.RoundTripper.(api.HTTPRequestCanceler); ok {
 		rc.CancelRequest(req)
 	}
 }
 
 func (ft FakeTransport) CloseIdleConnections() {
-	if icl, ok := ft.RoundTripper.(socialapi.HTTPIdleConnectionsCloser); ok {
+	if icl, ok := ft.RoundTripper.(api.HTTPIdleConnectionsCloser); ok {
 		icl.CloseIdleConnections()
 	}
 }

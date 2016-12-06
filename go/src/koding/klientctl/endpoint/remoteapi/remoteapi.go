@@ -4,12 +4,12 @@ import (
 	"net/url"
 	"sync"
 
+	"koding/api"
 	"koding/klientctl/config"
 	"koding/klientctl/endpoint"
 	"koding/klientctl/endpoint/kloud"
 	"koding/remoteapi"
 	"koding/remoteapi/client"
-	"koding/socialapi"
 )
 
 var DefaultClient = &Client{}
@@ -21,7 +21,7 @@ type Client struct {
 	c    *remoteapi.Client
 }
 
-func (c *Client) New(session *socialapi.Session) *client.Koding {
+func (c *Client) New(session *api.Session) *client.Koding {
 	c.init()
 
 	return c.c.New(session)
@@ -48,4 +48,4 @@ func (c *Client) kloud() *kloud.Client {
 	return kloud.DefaultClient
 }
 
-func New(session *socialapi.Session) *client.Koding { return DefaultClient.New(session) }
+func New(session *api.Session) *client.Koding { return DefaultClient.New(session) }

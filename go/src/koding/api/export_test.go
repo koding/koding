@@ -1,4 +1,4 @@
-package socialapi
+package api
 
 import (
 	"fmt"

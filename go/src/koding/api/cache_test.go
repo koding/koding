@@ -1,18 +1,18 @@
-package socialapi_test
+package api_test
 
 import (
 	"reflect"
 	"testing"
 
+	"koding/api"
 	"koding/kites/kloud/utils"
-	"koding/socialapi"
 )
 
 func TestSessionCache(t *testing.T) {
 	var storage TrxStorage
 	var auth = NewFakeAuth()
 
-	users := []*socialapi.Session{
+	users := []*api.Session{
 		{Username: "user1", Team: "foobar"},
 		{Username: "user2", Team: "foobar"},
 		{Username: "user3", Team: "foobar"},
@@ -21,11 +21,11 @@ func TestSessionCache(t *testing.T) {
 
 	cases := []struct {
 		name string
-		opts *socialapi.AuthOptions // client
-		trxs TrxStorage             // underlying cache operations
+		opts *api.AuthOptions // client
+		trxs TrxStorage       // underlying cache operations
 	}{{
 		"new user1",
-		&socialapi.AuthOptions{
+		&api.AuthOptions{
 			Session: users[0],
 		},
 		TrxStorage{
@@ -34,7 +34,7 @@ func TestSessionCache(t *testing.T) {
 		},
 	}, {
 		"already cached user",
-		&socialapi.AuthOptions{
+		&api.AuthOptions{
 			Session: users[0],
 		},
 		TrxStorage{
@@ -42,8 +42,8 @@ func TestSessionCache(t *testing.T) {
 		},
 	}, {
 		"nop on valid session",
-		&socialapi.AuthOptions{
-			Session: &socialapi.Session{
+		&api.AuthOptions{
+			Session: &api.Session{
 				ClientID: utils.RandString(12),
 				Username: users[0].Username,
 				Team:     users[0].Team,
@@ -52,7 +52,7 @@ func TestSessionCache(t *testing.T) {
 		nil,
 	}, {
 		"invalide session of a cached user",
-		&socialapi.AuthOptions{
+		&api.AuthOptions{
 			Session: users[0],
 			Refresh: true,
 		},
@@ -62,7 +62,7 @@ func TestSessionCache(t *testing.T) {
 		},
 	}, {
 		"new user2",
-		&socialapi.AuthOptions{
+		&api.AuthOptions{
 			Session: users[1],
 		},
 		TrxStorage{
@@ -71,7 +71,7 @@ func TestSessionCache(t *testing.T) {
 		},
 	}, {
 		"new user3",
-		&socialapi.AuthOptions{
+		&api.AuthOptions{
 			Session: users[2],
 		},
 		TrxStorage{
@@ -80,7 +80,7 @@ func TestSessionCache(t *testing.T) {
 		},
 	}, {
 		"new user",
-		&socialapi.AuthOptions{
+		&api.AuthOptions{
 			Session: users[3],
 		},
 		TrxStorage{
@@ -94,7 +94,7 @@ func TestSessionCache(t *testing.T) {
 		allKeys[cas.opts.Session.Key()] = struct{}{}
 	}
 
-	cache := socialapi.NewCache(auth.Auth)
+	cache := api.NewCache(auth.Auth)
 	cache.Storage = &storage
 
 	for _, cas := range cases {

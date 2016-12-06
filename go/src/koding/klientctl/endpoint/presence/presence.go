@@ -4,10 +4,10 @@ import (
 	"path"
 	"sync"
 
+	"koding/api/presence"
 	"koding/klientctl/config"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/team"
-	"koding/socialapi/presence"
 )
 
 var DefaultClient = &Client{}

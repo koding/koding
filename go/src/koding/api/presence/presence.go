@@ -7,7 +7,7 @@ import (
 	"path"
 	"sync"
 
-	"koding/socialapi"
+	"koding/api"
 )
 
 type Client struct {
@@ -26,7 +26,7 @@ func (c *Client) Ping(username, team string) error {
 		return err
 	}
 
-	req = (&socialapi.Session{
+	req = (&api.Session{
 		Username: username,
 		Team:     team,
 	}).WithRequest(req)

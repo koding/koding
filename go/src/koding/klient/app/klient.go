@@ -19,6 +19,9 @@ import (
 	"sync"
 	"time"
 
+	"koding/api"
+	"koding/api/presence"
+	"koding/api/socialkite"
 	"koding/httputil"
 	cfg "koding/kites/config"
 	"koding/kites/kloud/stack"
@@ -40,9 +43,6 @@ import (
 	"koding/klient/uploader"
 	"koding/klient/usage"
 	"koding/klient/vagrant"
-	"koding/socialapi"
-	"koding/socialapi/presence"
-	"koding/socialapi/socialkite"
 
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
@@ -319,7 +319,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 	}
 
 	restClient := httputil.DefaultRestClient(konfig.Konfig.Debug)
-	restClient.Transport = &socialapi.Transport{
+	restClient.Transport = &api.Transport{
 		RoundTripper: restClient.Transport,
 		AuthFunc: (&socialkite.KloudAuth{
 			Kite: kloud,

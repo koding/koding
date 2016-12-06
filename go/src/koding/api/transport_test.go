@@ -1,4 +1,4 @@
-package socialapi_test
+package api_test
 
 import (
 	"encoding/json"
@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	"koding/api"
 	"koding/kites/tunnelproxy/discover/discovertest"
-	"koding/socialapi"
 )
 
 func TestTransport(t *testing.T) {
@@ -22,10 +22,10 @@ func TestTransport(t *testing.T) {
 	}
 	defer s.Close()
 
-	cache := socialapi.NewCache(auth.Auth)
+	cache := api.NewCache(auth.Auth)
 	cache.Storage = &storage
 
-	users := []*socialapi.Session{
+	users := []*api.Session{
 		{Username: "user1", Team: "foobar"},
 		{Username: "user2", Team: "foobar"},
 		{Username: "user3", Team: "foobar"},
@@ -34,11 +34,11 @@ func TestTransport(t *testing.T) {
 
 	cases := []struct {
 		name  string
-		sess  *socialapi.Session // client
-		errs  []error            // fake errors for endpoint
-		codes []int              // fake response codes for endpoint
-		err   error              // final error from client
-		trx   TrxStorage         // underlying cache operations
+		sess  *api.Session // client
+		errs  []error      // fake errors for endpoint
+		codes []int        // fake response codes for endpoint
+		err   error        // final error from client
+		trx   TrxStorage   // underlying cache operations
 	}{{
 		"new user1",
 		users[0],
@@ -84,7 +84,7 @@ func TestTransport(t *testing.T) {
 	}
 
 	client := http.Client{
-		Transport: &socialapi.Transport{
+		Transport: &api.Transport{
 			RoundTripper: &FakeTransport{},
 			AuthFunc:     rec.Auth,
 		},
@@ -122,7 +122,7 @@ func TestTransport(t *testing.T) {
 				t.Fatalf("got %q, want %q", http.StatusText(resp.StatusCode), http.StatusText(http.StatusOK))
 			}
 
-			var other socialapi.Session
+			var other api.Session
 
 			if err := json.NewDecoder(resp.Body).Decode(&other); err != nil {
 				t.Fatalf("Decode()=%s", err)

@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"net/url"
 
+	"koding/api"
 	"koding/remoteapi/client"
-	"koding/socialapi"
 
 	runtime "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
@@ -36,10 +36,10 @@ type Client struct {
 
 	// Transport is a caching transport that authorizes each
 	// request with clientID.
-	Transport *socialapi.Transport
+	Transport *api.Transport
 }
 
-func (c *Client) New(session *socialapi.Session) *client.Koding {
+func (c *Client) New(session *api.Session) *client.Koding {
 	httpClient := &http.Client{
 		Transport: c.Transport.NewSingleClient(session),
 		Jar:       http.DefaultClient.Jar,

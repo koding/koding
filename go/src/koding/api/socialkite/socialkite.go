@@ -6,9 +6,9 @@ import (
 
 	"github.com/koding/kite"
 
+	"koding/api"
 	"koding/kites/config"
 	"koding/kites/kloud/stack"
-	"koding/socialapi"
 )
 
 // Kite is an interface for kite.Kite, that is used
@@ -80,14 +80,14 @@ func (lk *LazyKite) callTimeout() time.Duration {
 // KloudAuth provides socialapi.AuthFunc that is
 // backed by kite RPC.
 type KloudAuth struct {
-	Kite    Kite              // kite transport to use; required
-	Storage socialapi.Storage // storage for cache to use; optional
+	Kite    Kite        // kite transport to use; required
+	Storage api.Storage // storage for cache to use; optional
 
 	once sync.Once
-	auth socialapi.AuthFunc
+	auth api.AuthFunc
 }
 
-var _ socialapi.AuthFunc = (&KloudAuth{}).Auth
+var _ api.AuthFunc = (&KloudAuth{}).Auth
 
 func (ka *KloudAuth) init() {
 	ka.once.Do(ka.initAuth)
@@ -95,7 +95,7 @@ func (ka *KloudAuth) init() {
 
 func (ka *KloudAuth) initAuth() {
 	if ka.Storage != nil {
-		cache := socialapi.NewCache(ka.rpcAuth)
+		cache := api.NewCache(ka.rpcAuth)
 		cache.Storage = ka.Storage
 		ka.auth = cache.Auth
 	} else {
@@ -104,12 +104,12 @@ func (ka *KloudAuth) initAuth() {
 }
 
 // Auth obtains user session by calling "auth.login" method over Kite transport.
-func (ka *KloudAuth) Auth(opts *socialapi.AuthOptions) (*socialapi.Session, error) {
+func (ka *KloudAuth) Auth(opts *api.AuthOptions) (*api.Session, error) {
 	ka.init()
 	return ka.auth(opts)
 }
 
-func (ka *KloudAuth) rpcAuth(opts *socialapi.AuthOptions) (*socialapi.Session, error) {
+func (ka *KloudAuth) rpcAuth(opts *api.AuthOptions) (*api.Session, error) {
 	var req = &stack.LoginRequest{GroupName: opts.Session.Team}
 	var resp stack.LoginResponse
 
@@ -117,7 +117,7 @@ func (ka *KloudAuth) rpcAuth(opts *socialapi.AuthOptions) (*socialapi.Session, e
 		return nil, err
 	}
 
-	return &socialapi.Session{
+	return &api.Session{
 		ClientID: resp.ClientID,
 		// TODO(rjeczalik): add Username field to stack.LoginResponse
 		// Username: resp.Username,
@@ -131,11 +131,11 @@ type Storage struct {
 	Cache *config.Cache
 }
 
-var _ socialapi.Storage = (*Storage)(nil)
+var _ api.Storage = (*Storage)(nil)
 
 // Get implements the socialapi.Storage interface.
-func (st *Storage) Get(s *socialapi.Session) error {
-	var sessions map[string]socialapi.Session
+func (st *Storage) Get(s *api.Session) error {
+	var sessions map[string]api.Session
 
 	if err := st.Cache.GetValue("auth.sessions", &sessions); err != nil {
 		return err
@@ -143,7 +143,7 @@ func (st *Storage) Get(s *socialapi.Session) error {
 
 	session, ok := sessions[s.Key()]
 	if !ok {
-		return socialapi.ErrSessionNotFound
+		return api.ErrSessionNotFound
 	}
 
 	*s = session
@@ -152,8 +152,8 @@ func (st *Storage) Get(s *socialapi.Session) error {
 }
 
 // Set implements the socialapi.Storage interface.
-func (st *Storage) Set(s *socialapi.Session) error {
-	sessions := make(map[string]socialapi.Session)
+func (st *Storage) Set(s *api.Session) error {
+	sessions := make(map[string]api.Session)
 
 	if err := st.Cache.GetValue("auth.sessions", &sessions); err != nil {
 		return err
@@ -165,8 +165,8 @@ func (st *Storage) Set(s *socialapi.Session) error {
 }
 
 // Delete implements the socialapi.Storage interface.
-func (st *Storage) Delete(s *socialapi.Session) error {
-	sessions := make(map[string]socialapi.Session)
+func (st *Storage) Delete(s *api.Session) error {
+	sessions := make(map[string]api.Session)
 
 	if err := st.Cache.GetValue("auth.sessions", &sessions); err != nil {
 		return err
