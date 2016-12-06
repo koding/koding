@@ -41,9 +41,7 @@ module.exports = class AppStorage extends kd.Object
         whoami().fetchCombinedStorage { appId, version }, (error, storage) =>
 
           if not error and storage
-            @reset()
             @_storage = storage
-
             @_setReady()
 
           cb? @_storage  for cb in queue[key]
@@ -64,7 +62,6 @@ module.exports = class AppStorage extends kd.Object
 
   fetchValue: (key, callback, group = AppStorage.DEFAULT_GROUP_NAME, force = no) ->
 
-    @reset()
     appId = @_applicationID
     @fetchStorage (storage) =>
       value = @getValue key, group
@@ -122,16 +119,11 @@ module.exports = class AppStorage extends kd.Object
       storage.upsert appId, { query }, ->
         callback?()
 
-  reset: ->
-
-    whoami()?.resetStorageCache?()
-    @_storage     = null
-    @_storageData = {}
-
 
   setInitial: ->
 
-    @reset()
+    @_storage     = null
+    @_storageData = {}
 
     if storage = _globals.combinedStorage
       @_storageData = storage
