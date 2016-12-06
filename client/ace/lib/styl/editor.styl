@@ -29,16 +29,13 @@ body.ace
       ul
         margin-left       0
         
-.ace_editor.uploading-files-drag
-    position        relative
+.ace_editor.files-being-dragged
+    rel()
     pointer-events  none
     &:after
       content       ''
       position      absolute
-      top           0
-      left          10px
-      right         20px
-      bottom        0
+      abs           0 20px 0 10px
       border        2px dashed #a7cdff
       z-index       99
       

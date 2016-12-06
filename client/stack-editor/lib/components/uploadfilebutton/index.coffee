@@ -6,6 +6,8 @@ require './styl/uploadbutton.styl'
 module.exports = class UploadFileButton extends KDCustomHTMLView
   
   constructor: (options = {}) ->
+    
+    options.callback or= kd.utils.noop
 
     super options 
     
@@ -17,4 +19,4 @@ module.exports = class UploadFileButton extends KDCustomHTMLView
     
   handleFileUpload: ->
     
-    @getOptions().openFileInput()
+    @getOptions().callback()
