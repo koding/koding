@@ -14,22 +14,23 @@
     color: #FFFFFF;
     margin: 16px 0 33px;
   }
-  hr {
-    height: 1px;
-    border: 0;
-    background: rgba(255,255,255,.1);
-    margin: 100px 0 74px;
-  }
   h6 {
     font-size: 22px;
     color: rgba(255,255,255,0.6);
     line-height: 28px;
+    max-width: 800px;
+    margin: 0 auto;
   }
   .actions {
     margin: 59px 0 0;
     a.secondary {
       margin-left: 20px;
     }
+  }
+  .cases-title {
+    padding: 61px 0 31px;
+    font-size: 19px;
+    color: #ffffff;
   }
   .cases {
     display: flex;
