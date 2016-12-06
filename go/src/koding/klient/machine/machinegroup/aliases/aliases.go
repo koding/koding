@@ -136,7 +136,7 @@ func (a *Aliases) Registered() []machine.ID {
 	defer a.mu.RUnlock()
 
 	registered := make([]machine.ID, 0, len(a.m))
-	for id, _ := range a.m {
+	for id := range a.m {
 		registered = append(registered, id)
 	}
 

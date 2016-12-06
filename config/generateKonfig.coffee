@@ -144,6 +144,7 @@ module.exports = (options, credentials) ->
     klientUrl: "https://s3.amazonaws.com/koding-klient/development/latest/klient.deb"
 
     credentialEndPoint: "#{socialApiProxyUrl}/credential"
+    socialProxyURL: "#{socialApiProxyUrl}"
 
     janitorSecretKey: credentials.janitor.secretKey
     terraformerSecretKey: credentials.terraformer.secretKey
@@ -210,6 +211,7 @@ module.exports = (options, credentials) ->
       klientLatest     : "https://koding-klient.s3.amazonaws.com/#{options.environment}/latest-version.txt"
       kloud            : "#{options.publicHostname}/kloud/kite",
       kontrol          : "#{options.publicHostname}/kontrol/kite",
+      kodingBase       : "#{options.publicHostname}",
       remoteAPI        : "#{options.publicHostname}/remote.api",
       tunnelServer     : "#{options.tunnelUrl}/kite"
     routes             :

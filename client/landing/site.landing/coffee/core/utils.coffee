@@ -125,6 +125,16 @@ module.exports = utils = {
           labels.splice -6, 6 # 'A.B.C.D.xip.io'.length
           return labels.pop()
       }
+
+      # <team-domain>.<IPv4>.nip.io
+      # IPV4: A.B.C.D
+      {
+        predict: 'nip\.io'
+        labelFn: (hostname) ->
+          labels = hostname.split('.')
+          labels.splice -6, 6 # 'A.B.C.D.nip.io'.length
+          return labels.pop()
+      }
     ]
 
     for pattern in predefinedPatterns

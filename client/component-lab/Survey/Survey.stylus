@@ -5,7 +5,7 @@
   align-items               center
 
   button
-    font-family             SoleilFamily
+    font-family             mainFontFamily
     padding                 12px 12px 10px
 
 .left

@@ -5,6 +5,7 @@ module.exports = (options = {}, callback) ->
   encoder   = require 'htmlencode'
   { argv }  = require 'optimist'
   _         = require 'lodash'
+  { hasCreditCard } = require '../../../../../servers/models/socialapi/requests'
 
   options.client               or= {}
   options.client.context       or= {}
@@ -22,6 +23,7 @@ module.exports = (options = {}, callback) ->
   roles               = null
   permissions         = null
   combinedStorage     = null
+  hasCard             = no
 
   { bongoModels, client, session } = options
 
@@ -67,6 +69,7 @@ module.exports = (options = {}, callback) ->
         userRoles: #{userRoles},
         userPermissions: #{userPermissions},
         currentGroup: #{currentGroup},
+        hasCreditCard: #{hasCard},
         isLoggedInOnLoad: true,
         socialApiData: #{encodedSocialApiData},
         userEnvironmentData: #{userEnvironmentData}
@@ -164,6 +167,12 @@ module.exports = (options = {}, callback) ->
         if user then userId = user.getId()
         else console.error '[scriptblock] user not found', err
         fin()
+
+    (fin) ->
+      hasCreditCard client, (err) ->
+        hasCard = not err?
+        return fin()
+
   ]
 
   async.parallel queue, -> callback null, createHTML(), socialapidata

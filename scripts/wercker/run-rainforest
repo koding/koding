@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -o errexit
+
+if [[ -n "$WERCKER" ]]; then
+  [[ -z "$RAINFOREST_TOKEN" ]] && exit 0
+  [[ -z "$RAINFOREST_SITE_ID" ]] && exit 0
+  [[ -z "$RAINFOREST_TESTS" ]] && exit 0
+fi
+
+declare hostname=$(head --lines 1 $1 | awk '{print $3}')
+declare branch=${WERCKER_GIT_BRANCH:-$(git rev-parse --abbrev-ref)}
+declare revision=$(git rev-parse --short HEAD)
+declare test_folder=$(pwd)/tests/spec/rainforest
+
+find $test_folder/ -name '*.rfml' -print0 | \
+  xargs --null sed --in-place --expression "s/{{site.host}}/$hostname/"
+
+until rainforest --token $RAINFOREST_TOKEN upload --test-folder $test_folder; do
+  sleep 5
+done
+
+git checkout tests/
+
+rainforest --token $RAINFOREST_TOKEN \
+           --description "$branch#$revision on $hostname" \
+           --site-id $RAINFOREST_SITE_ID \
+           --custom-url http://$hostname \
+           --tag automated \
+           run

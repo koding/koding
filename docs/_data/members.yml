@@ -12,17 +12,6 @@
   twitter: sinanyasar
   linkedin: sinanyasar
 
-- name: Michael Jeter
-  title: Brand Director
-  twitter: thewellarmed
-  linkedin: michaeljeter
-
-- name: George Sibble
-  title: VP Operations
-  twitter: georgesibble
-  linkedin: georgesibble
-  github: sibblegp
-
 - name: Gokmen Goksel
   title: Engineering Lead
   twitter: gokmen
@@ -74,6 +63,7 @@
 # - cssClass: 'invisible' # this is a spacer if needed
 - name: Hector Caceres
   title: Support Engineer
+  github: hectork01
 
 - name: Arsal Asal
   title: Creative Producer

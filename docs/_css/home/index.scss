@@ -1,0 +1,54 @@
+.Homepage--containerOffset {
+  padding-right: 40px;
+  padding-left: 40px;
+}
+.Homepage--container {
+  max-width: $content-width;
+  margin: 0 auto;
+}
+.Homepage--mobile-cta {
+  display: none;
+  width: 100%;
+  font-size: 16.6px;
+  color: #FFFFFF;
+  background: #FFC442;
+  text-align: center;
+  border: 1px solid rgba(0,0,0,.15);
+  border-width: 1px 0;
+  text-decoration: none;
+  padding: 21px 0 16px;
+  &:active,
+  &:hover,
+  &:visited {
+    color: #FFFFFF;
+    text-decoration: none;
+  }
+  :active,
+  :hover {
+    background: #FEBE30;
+  }
+}
+a.cta {
+  text-decoration: none;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  background-color: #48BA7D;
+  color: #FFFFFF;
+  font-size: 20px;
+  font-weight: 600;
+  padding: 12px 40px 10px;
+  width: auto;
+  border-radius: 4px;
+  letter-spacing: 0.13px;
+  &.secondary {
+    background-color: #FFFFFF;
+    color: #727272;
+  }
+}
+h3.title {
+  font-size: 32px;
+}
+.center {
+  text-align: center;
+}

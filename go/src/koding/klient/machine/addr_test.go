@@ -14,33 +14,33 @@ func TestAddrBookAddHas(t *testing.T) {
 		"local IP empty time": {
 			Has: false,
 			Addr: Addr{
-				Net:     "ip",
-				Val:     "127.0.0.231",
-				Updated: time.Time{},
+				Network:   "ip",
+				Value:     "127.0.0.231",
+				UpdatedAt: time.Time{},
 			},
 		},
 		"local IP time after 2012": {
 			Has: false,
 			Addr: Addr{
-				Net:     "ip",
-				Val:     "127.0.0.13",
-				Updated: time.Date(2012, time.May, 1, 0, 0, 0, 0, time.UTC),
+				Network:   "ip",
+				Value:     "127.0.0.13",
+				UpdatedAt: time.Date(2012, time.May, 1, 0, 0, 0, 0, time.UTC),
 			},
 		},
 		"local IP time after 2016": {
 			Has: true,
 			Addr: Addr{
-				Net:     "ip",
-				Val:     "127.0.0.1",
-				Updated: time.Date(2016, time.May, 1, 0, 0, 0, 0, time.UTC),
+				Network:   "ip",
+				Value:     "127.0.0.1",
+				UpdatedAt: time.Date(2016, time.May, 1, 0, 0, 0, 0, time.UTC),
 			},
 		},
 		"local TCP address": {
 			Has: true,
 			Addr: Addr{
-				Net:     "tcp",
-				Val:     "127.0.0.1:8080",
-				Updated: time.Time{},
+				Network:   "tcp",
+				Value:     "127.0.0.1:8080",
+				UpdatedAt: time.Time{},
 			},
 		},
 	}
@@ -67,43 +67,43 @@ func TestAddrBookAddHas(t *testing.T) {
 func TestAddrLatest(t *testing.T) {
 	addrs := []Addr{
 		{
-			Net:     "ip",
-			Val:     "127.0.0.1",
-			Updated: time.Time{},
+			Network:   "ip",
+			Value:     "127.0.0.1",
+			UpdatedAt: time.Time{},
 		},
 		{
-			Net:     "ip",
-			Val:     "127.0.0.1",
-			Updated: time.Date(2012, time.May, 1, 0, 0, 0, 0, time.UTC),
+			Network:   "ip",
+			Value:     "127.0.0.1",
+			UpdatedAt: time.Date(2012, time.May, 1, 0, 0, 0, 0, time.UTC),
 		},
 		{
-			Net:     "ip",
-			Val:     "127.0.0.1",
-			Updated: time.Time{},
+			Network:   "ip",
+			Value:     "127.0.0.1",
+			UpdatedAt: time.Time{},
 		},
 		{
-			Net:     "tcp",
-			Val:     "127.0.0.1:80",
-			Updated: time.Date(2009, time.May, 1, 0, 0, 0, 0, time.UTC),
+			Network:   "tcp",
+			Value:     "127.0.0.1:80",
+			UpdatedAt: time.Date(2009, time.May, 1, 0, 0, 0, 0, time.UTC),
 		},
 	}
 
 	tests := map[string]struct {
-		Updated time.Time
-		Addr    Addr
+		UpdatedAt time.Time
+		Addr      Addr
 	}{
 		"latest IP": {
-			Updated: time.Date(2012, time.May, 1, 0, 0, 0, 0, time.UTC),
+			UpdatedAt: time.Date(2012, time.May, 1, 0, 0, 0, 0, time.UTC),
 			Addr: Addr{
-				Net: "ip",
-				Val: "127.0.0.1",
+				Network: "ip",
+				Value:   "127.0.0.1",
 			},
 		},
 		"latest TCP": {
-			Updated: time.Date(2009, time.May, 1, 0, 0, 0, 0, time.UTC),
+			UpdatedAt: time.Date(2009, time.May, 1, 0, 0, 0, 0, time.UTC),
 			Addr: Addr{
-				Net: "tcp",
-				Val: "127.0.0.1:80",
+				Network: "tcp",
+				Value:   "127.0.0.1:80",
 			},
 		},
 	}
@@ -118,13 +118,13 @@ func TestAddrLatest(t *testing.T) {
 		test := test // capture range variable.
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			addr, err := ab.Latest(test.Addr.Net)
+			addr, err := ab.Latest(test.Addr.Network)
 			if err != nil {
 				t.Fatalf("want err = nil; got %v", err)
 			}
 
-			if !addr.Updated.Equal(test.Updated) {
-				t.Fatalf("want updated = %v; got %v", test.Updated, addr.Updated)
+			if !addr.UpdatedAt.Equal(test.UpdatedAt) {
+				t.Fatalf("want updated = %v; got %v", test.UpdatedAt, addr.UpdatedAt)
 			}
 		})
 	}
@@ -133,14 +133,14 @@ func TestAddrLatest(t *testing.T) {
 func TestAddrBookJSON(t *testing.T) {
 	addrs := []Addr{
 		{
-			Net:     "ip",
-			Val:     "127.0.0.1",
-			Updated: time.Time{},
+			Network:   "ip",
+			Value:     "127.0.0.1",
+			UpdatedAt: time.Time{},
 		},
 		{
-			Net:     "tcp",
-			Val:     "127.0.0.1:80",
-			Updated: time.Date(2009, time.May, 1, 0, 0, 0, 0, time.UTC),
+			Network:   "tcp",
+			Value:     "127.0.0.1:80",
+			UpdatedAt: time.Date(2009, time.May, 1, 0, 0, 0, 0, time.UTC),
 		},
 	}
 
@@ -161,13 +161,13 @@ func TestAddrBookJSON(t *testing.T) {
 	}
 
 	for i, addr := range addrs {
-		a, err := ab.Latest(addr.Net)
+		a, err := ab.Latest(addr.Network)
 		if err != nil {
 			t.Fatalf("want err = nil; got %v (i:%d)", err, i)
 		}
 
-		if !addr.Updated.Equal(a.Updated) {
-			t.Fatalf("want updated = %v; got %v (i:%d)", addr.Updated, a.Updated, i)
+		if !addr.UpdatedAt.Equal(a.UpdatedAt) {
+			t.Fatalf("want updated = %v; got %v (i:%d)", addr.UpdatedAt, a.UpdatedAt, i)
 		}
 	}
 }

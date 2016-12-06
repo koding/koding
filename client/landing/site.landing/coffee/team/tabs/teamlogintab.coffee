@@ -21,7 +21,7 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
     super options, data
 
     { mainController } = kd.singletons
-    { group, gitlab } = kd.config
+    { group } = kd.config
 
     @header = new MainHeaderView
       cssClass : 'team'
@@ -49,7 +49,10 @@ module.exports = class TeamLoginTab extends kd.TabPaneView
     if group.config?.gitlab?.enabled
       @form.gitlabLogin.show()
 
-    ['button', 'gitlabButton'].forEach (button) =>
+    if group.config?.github?.enabled
+      @form.githubLogin.show()
+
+    ['button', 'gitlabButton', 'githubButton'].forEach (button) =>
       @form[button].unsetClass 'solid medium green'
       @form[button].setClass 'TeamsModal-button'
 

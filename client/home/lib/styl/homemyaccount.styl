@@ -289,8 +289,32 @@ Home My Account styles
 
 
   &.integrations
-    .integration-switch
-      abs                   30px, 30px
+    .container
+      height                40px
+      borderBox()
+
+      &:hover
+        border-bottom       1px solid #ccc
+
+      > div
+        margin-top          12px
+        fl()
+
+      .scope
+        background          #eee
+        color               #666
+        padding             1px 4px
+        position            absolute
+        right               130px
+        max-width           350px
+        overflow            hidden
+        text-overflow       ellipsis
+        white-space         nowrap
+        font-size           13px
+
+      .integration-switch
+        margin-top          10px
+        fr()
 
   &.sessions
     .session-info

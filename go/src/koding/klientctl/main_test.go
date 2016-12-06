@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"koding/klientctl/kloud"
 	stdlog "log"
 	"os"
 	"os/exec"
+	"sync"
 	"testing"
+
+	"koding/klientctl/endpoint/kloud"
 )
 
 func TestMainHelper(t *testing.T) {
@@ -44,9 +46,14 @@ type MainCmd struct {
 	Stderr io.Writer
 
 	FT FakeTransport
+
+	once sync.Once // for mc.init()
+	home string
 }
 
 func (mc *MainCmd) Run(args ...string) error {
+	mc.init()
+
 	args = append([]string{"-test.run=TestMainHelper", "--"}, args...)
 
 	cmd := exec.Command(os.Args[0], args...)
@@ -56,15 +63,9 @@ func (mc *MainCmd) Run(args ...string) error {
 	cmd.Stderr = mc.Stderr
 
 	// Do not share konfig.bolt between test runs.
-	dir, err := ioutil.TempDir("", "maincmd")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(dir)
-
 	cmd.Env = append(os.Environ(),
 		"TEST_MAIN_HELPER=1",
-		"KODING_HOME="+dir,
+		"KODING_HOME="+mc.home,
 		"KD_EXPERIMENTAL=1",
 	)
 
@@ -73,6 +74,25 @@ func (mc *MainCmd) Run(args ...string) error {
 	}
 
 	return cmd.Run()
+}
+
+func (mc *MainCmd) Close() (err error) {
+	if mc.home != "" {
+		err = os.RemoveAll(mc.home)
+	}
+	return err
+}
+
+func (mc *MainCmd) init() {
+	mc.once.Do(mc.initHome)
+}
+
+func (mc *MainCmd) initHome() {
+	dir, err := ioutil.TempDir("", "maincmd")
+	if err != nil {
+		panic("unable to create temp directory: " + err.Error())
+	}
+	mc.home = dir
 }
 
 type FakeTransport struct {
@@ -137,8 +157,10 @@ func (ft *FakeTransport) Call(method string, arg, reply interface{}) error {
 		return fmt.Errorf("no response available for %q method", method)
 	}
 
-	if err := json.Unmarshal([]byte(responses[0]), reply); err != nil {
-		return err
+	if reply != nil {
+		if err := json.Unmarshal([]byte(responses[0]), reply); err != nil {
+			return err
+		}
 	}
 
 	if testing.Verbose() {
@@ -149,3 +171,5 @@ func (ft *FakeTransport) Call(method string, arg, reply interface{}) error {
 
 	return nil
 }
+
+func (*FakeTransport) Valid() (_ error) { return }

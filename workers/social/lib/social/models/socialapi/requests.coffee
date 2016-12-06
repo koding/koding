@@ -409,6 +409,13 @@ createSubscription = (data, callback) ->
   url = "#{socialProxyUrl}/payment/subscription/create"
   post url, data, callback
 
+hasCreditCard = (client, callback) ->
+
+  { sessionToken } = client
+
+  url = "#{socialProxyUrl}/payment/creditcard/has"
+  get url, { sessionToken }, callback
+
 expireSubscription = (accountId, callback) ->
   url = "#{socialProxyUrl}/payments/customers/#{accountId}/expire"
   post url, {}, callback
@@ -589,6 +596,7 @@ module.exports = {
   deleteNotificationSetting
   createCustomer
   createSubscription
+  hasCreditCard
   expireSubscription
   dispatchEvent
   storeCredential

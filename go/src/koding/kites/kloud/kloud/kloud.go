@@ -8,6 +8,7 @@ import (
 	"log"
 	_ "net/http/pprof"
 	"net/url"
+	"socialapi/workers/presence/client"
 	"strings"
 	"time"
 
@@ -27,6 +28,7 @@ import (
 	"koding/kites/kloud/queue"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
+	"koding/kites/kloud/team"
 	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
 	"koding/remoteapi"
@@ -136,6 +138,8 @@ type Config struct {
 
 	// RemoteAPIURL configures the endpoint URL for remote.api.
 	RemoteAPIURL string
+	// SocialProxyURL configures the endpoint URL for internal socialapi proxy host.
+	SocialProxyURL string
 }
 
 // New gives new, registered kloud kite.
@@ -197,11 +201,16 @@ func New(conf *Config) (*Kloud, error) {
 		sess.Log.Warning(`disabling "remote.api" for stack operations`)
 	}
 
+	restClient := httputil.DefaultRestClient(conf.DebugMode)
+
+	pinger := client.NewInternal(conf.SocialProxyURL)
+	pinger.HTTPClient = restClient
+
 	storeOpts := &credential.Options{
 		MongoDB: sess.DB,
 		Log:     sess.Log.New("stackcred"),
 		CredURL: credURL,
-		Client:  httputil.DefaultRestClient(conf.DebugMode),
+		Client:  restClient,
 	}
 
 	userPrivateKey, userPublicKey := userMachinesKeys(conf.UserPublicKey, conf.UserPrivateKey)
@@ -238,6 +247,7 @@ func New(conf *Config) (*Kloud, error) {
 	kloud.Stack.DescribeFunc = provider.Desc
 	kloud.Stack.CredClient = credential.NewClient(storeOpts)
 	kloud.Stack.MachineClient = machine.NewClient(machine.NewMongoDatabase())
+	kloud.Stack.TeamClient = team.NewClient(team.NewMongoDatabase())
 	kloud.Stack.RemoteClient = &remoteapi.Client{
 		Endpoint: remoteURL,
 		Client:   storeOpts.Client,
@@ -288,7 +298,7 @@ func New(conf *Config) (*Kloud, error) {
 		k.Log.Warning(`disabling "keygen" methods due to missing S3/STS credentials`)
 	}
 
-	// Teams/stack handling methods
+	// Teams/stack handling methods.
 	k.HandleFunc("plan", kloud.Stack.Plan)
 	k.HandleFunc("apply", kloud.Stack.Apply)
 	k.HandleFunc("describeStack", kloud.Stack.Status)
@@ -296,19 +306,27 @@ func New(conf *Config) (*Kloud, error) {
 	k.HandleFunc("bootstrap", kloud.Stack.Bootstrap)
 	k.HandleFunc("import", kloud.Stack.Import)
 
+	// Credential handling.
 	k.HandleFunc("credential.describe", kloud.Stack.CredentialDescribe)
 	k.HandleFunc("credential.list", kloud.Stack.CredentialList)
 	k.HandleFunc("credential.add", kloud.Stack.CredentialAdd)
 
+	// Authorization handling.
+	k.HandleFunc("auth.login", kloud.Stack.AuthLogin(pinger))
+
+	// Team handling.
+	k.HandleFunc("team.list", kloud.Stack.TeamList)
+
+	// Machine handling.
 	k.HandleFunc("machine.list", kloud.Stack.MachineList)
 
-	// Single machine handling
+	// Single machine handling.
 	k.HandleFunc("stop", kloud.Stack.Stop)
 	k.HandleFunc("start", kloud.Stack.Start)
 	k.HandleFunc("info", kloud.Stack.Info)
 	k.HandleFunc("event", kloud.Stack.Event)
 
-	// Klient proxy methods
+	// Klient proxy methods.
 	k.HandleFunc("admin.add", kloud.Stack.AdminAdd)
 	k.HandleFunc("admin.remove", kloud.Stack.AdminRemove)
 

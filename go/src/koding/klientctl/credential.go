@@ -1,23 +1,21 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"strconv"
-	"strings"
 	"text/tabwriter"
 	"time"
 
 	"koding/kites/config"
 	"koding/kites/kloud/stack"
-	"koding/klientctl/kloud/credential"
+	"koding/klientctl/endpoint/credential"
+	"koding/klientctl/helper"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 func CredentialList(c *cli.Context, log logging.Logger, _ string) (int, error) {
@@ -52,25 +50,6 @@ func CredentialList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	return 0, nil
 }
 
-func ask(format string, args ...interface{}) (string, error) {
-	fmt.Printf(format, args...)
-	s, err := bufio.NewReader(os.Stdin).ReadString('\n')
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(s), nil
-}
-
-func askSecret(format string, args ...interface{}) (string, error) {
-	fmt.Printf(format, args...)
-	p, err := terminal.ReadPassword(int(os.Stdin.Fd()))
-	fmt.Println()
-	if err != nil {
-		return "", err
-	}
-	return string(p), nil
-}
-
 func AskCredentialCreate(c *cli.Context) (*credential.CreateOptions, error) {
 	descs, err := credential.Describe()
 	if err != nil {
@@ -84,7 +63,7 @@ func AskCredentialCreate(c *cli.Context) (*credential.CreateOptions, error) {
 	}
 
 	if opts.Provider == "" {
-		opts.Provider, err = ask("Provider type []: ")
+		opts.Provider, err = helper.Ask("Provider type []: ")
 		if err != nil {
 			return nil, err
 		}
@@ -92,7 +71,7 @@ func AskCredentialCreate(c *cli.Context) (*credential.CreateOptions, error) {
 
 	if opts.Title == "" {
 		opts.Title = config.CurrentUser.Username + " " + time.Now().Format(time.ANSIC)
-		opts.Title, err = ask("Title [%s]: ", opts.Title)
+		opts.Title, err = helper.Ask("Title [%s]: ", opts.Title)
 		if err != nil {
 			return nil, err
 		}
@@ -115,7 +94,7 @@ func AskCredentialCreate(c *cli.Context) (*credential.CreateOptions, error) {
 		var value string
 
 		if field.Secret {
-			value, err = askSecret("%s [***]: ", field.Label)
+			value, err = helper.AskSecret("%s [***]: ", field.Label)
 		} else {
 			var defaultValue string
 
@@ -130,7 +109,7 @@ func AskCredentialCreate(c *cli.Context) (*credential.CreateOptions, error) {
 				defaultValue = "0"
 			}
 
-			value, err = ask("%s [%s]: ", field.Label, defaultValue)
+			value, err = helper.Ask("%s [%s]: ", field.Label, defaultValue)
 
 			if value == "" {
 				value = defaultValue
@@ -169,7 +148,7 @@ func AskCredentialCreate(c *cli.Context) (*credential.CreateOptions, error) {
 
 	// TODO(rjeczalik): remove when support for generic team is implemented
 	if opts.Team == "" {
-		opts.Team, err = ask("Team name []: ")
+		opts.Team, err = helper.Ask("Team name []: ")
 		if err != nil {
 			return nil, err
 		}

@@ -1,0 +1,47 @@
+.Homepage-Columns {
+  padding-top: 28px;
+  padding-top: 74px;
+}
+.Homepage-Columns .Homepage--container {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.Homepage-Column {
+  flex: 0 1 auto;
+  width: 30%;
+  box-sizing: border-box;
+  padding-left: 48px;
+  position: relative;
+  margin-bottom: 94px;
+  svg {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+  h4 {
+    font-weight: 500;
+    font-size: 20px;
+    color: $title-color;
+    letter-spacing: 0;
+    margin-bottom: 13px;
+  }
+  p {
+    line-height: 26px;
+  }
+}
+
+@media (max-width: 880px) {
+  .Homepage-Column {
+    width: 47%;
+    margin-bottom: 75px;
+  }
+}
+
+@media (max-width: 600px) {
+  .Homepage-Column {
+    width: 100%;
+    margin-bottom: 42px;
+  }
+}

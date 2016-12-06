@@ -1,0 +1,51 @@
+@charset "utf-8";
+
+// Our variables
+$title-font-family: "fira-sans", "proxima-nova", Helvetica, Arial, sans-serif;
+$base-font-family:  "proxima-nova", Helvetica, Arial, sans-serif;
+$base-font-size:    17px;
+$base-font-weight:  400;
+$small-font-size:   $base-font-size * 0.875;
+$base-line-height:  1.4;
+
+$spacing-unit:      30px;
+
+$text-color:        #617283;
+$title-color:       #1E2E42;
+$background-color:  #fdfdfd;
+$brand-color:       #2a7ae2;
+
+$grey-color:        #828282;
+$grey-color-light:  lighten($grey-color, 40%);
+$grey-color-dark:   darken($grey-color, 25%);
+
+// Width of the content area
+$content-width:     1200px;
+
+$on-palm:           600px;
+$on-laptop:         800px;
+
+
+body {
+  font-family: $base-font-family;
+  font-size: $base-font-size;
+  line-height: $base-line-height;
+  color: $text-color;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.clearfix {
+  float: none;
+  clear: both;
+}
+
+.hidden {
+  display: none;
+  visibility: hidden;
+}
+
+.title {
+  font-family: $title-font-family;
+  color: $title-color;
+}
