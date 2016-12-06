@@ -30,6 +30,17 @@ swagger =
   ]
 
   definitions:
+    Error:
+      type: 'object'
+      properties:
+        message:
+          type: 'string'
+          description: 'Error description'
+          example: 'Something went wrong'
+        name:
+          type: 'string'
+          description: 'Name of the error'
+          example: 'KodingError'
     DefaultSelector:
       type: 'object'
       properties:
