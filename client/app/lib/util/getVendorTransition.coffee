@@ -11,4 +11,4 @@ module.exports = getVendorTransition = ->
     WebkitTransition : 'webkitTransitionEnd'
   _.keys(transitions).forEach (transitionKey) ->
     transition = transitions[transitionKey] unless el.style[transitionKey]
-  transition
+  return transition
