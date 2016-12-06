@@ -1,12 +1,21 @@
 kd             = require 'kd'
+_              = require 'lodash'
 whoami         = require 'app/util/whoami'
+isAdmin        = require 'app/util/isAdmin'
+getGroup       = require 'app/util/getGroup'
 showError      = require 'app/util/showError'
 CustomLinkView = require 'app/customlinkview'
 KodingSwitch   = require 'app/commonviews/kodingswitch'
 hasIntegration = require 'app/util/hasIntegration'
+copyToClipboard = require 'app/util/copyToClipboard'
+
 
 module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
 
+  # Scopes required for organizationToken integration
+  # with stack templates, only valid for GitHub ~ GG
+  TEAM_SCOPE = 'repo, admin:org, admin:public_key, user'
+  ORG_TOKEN  = 'github.organizationToken'
 
   constructor: (options = {}, data) ->
 
@@ -20,7 +29,10 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
       gitlab: 'GitLab'
 
     @linked     = {}
+    @linkedData = {}
     @scopes     = {}
+    @tokens     = {}
+    @loaders    = {}
     @switches   = {}
     @containers = {}
 
@@ -106,9 +118,32 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
 
   link: (provider) ->
 
-    kd.singletons.oauthController.redirectToOauthUrl { provider }
-    new kd.NotificationView
-      title: "Redirecting to #{@providers[provider]}..."
+    @loaders[provider].show()
+
+    options  = { provider }
+    redirect = =>
+      kd.singletons.oauthController.redirectToOauthUrl options
+      new kd.NotificationView
+        title    : "Redirecting to #{@providers[provider]}..."
+        duration : 0
+
+    if provider is 'github' and isAdmin()
+      group = getGroup()
+      group.fetchDataAt ORG_TOKEN, (err, token) =>
+        return redirect()  if err or token
+
+        scope = TEAM_SCOPE
+        cc = kd.singletons.computeController
+        cc.ui.askFor 'enableTeamOAuth', { scope }, (status) =>
+          if status.cancelled
+            @switches[provider].setOff no
+            @loaders[provider].hide()
+          else
+            options.scope = scope  if status.confirmed
+            redirect()
+
+    else
+      redirect()
 
 
   unlink: (provider) ->
@@ -128,9 +163,12 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
   getLoaderView: ->
 
     new kd.LoaderView
-      cssClass   : 'main-loader'
       showLoader : yes
       size       :
-        width    : 25
-        height   : 25
+        width    : 12
+        height   : 12
 
+
+  isTeamScope: (scope) ->
+
+    _.isEqual scope.split(',').sort(), TEAM_SCOPE.split(', ').sort()
