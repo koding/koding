@@ -2,7 +2,7 @@ kd = require 'kd'
 React = require 'app/react'
 { storiesOf, action } = require '@kadira/storybook'
 Button = require 'lab/Button'
-Label = require '../Text/Label'
+Label = require 'lab/Text/Label'
 
 class NotificationContainer extends React.Component
 
@@ -12,7 +12,7 @@ class NotificationContainer extends React.Component
     @type = @props.type
 
 
-  _handleSimpleClick: ->
+  handleSimpleClick: ->
 
     kd.singletons.notificationViewController.addNotification
       type : @type
@@ -20,7 +20,7 @@ class NotificationContainer extends React.Component
       content : 'Lorem ipsum dolor sit amet'
 
 
-  _handleDismissibleClick: ->
+  handleDismissibleClick: ->
 
     kd.singletons.notificationViewController.addNotification
       type : @type
@@ -29,7 +29,7 @@ class NotificationContainer extends React.Component
       onRemove : -> action 'button clicked'
 
 
-  _handleSingleActionClick: ->
+  handleSingleActionClick: ->
 
     kd.singletons.notificationViewController.addNotification
       type : @type
@@ -38,7 +38,7 @@ class NotificationContainer extends React.Component
       onPrimaryButtonClick : -> action 'button clicked'
 
 
-  _handleDoubleActionClick: ->
+  handleDoubleActionClick: ->
 
     kd.singletons.notificationViewController.addNotification
       type : @type
@@ -55,10 +55,10 @@ class NotificationContainer extends React.Component
     <div>
       <Label size="xlarge">{@type.toUpperCase()}</Label>
       <div style={{marginBottom: 10}} />
-      <div style={{marginBottom: 10}}><Button onClick={@bound '_handleSimpleClick'}>Simple Notification</Button></div>
-      <div style={{marginBottom: 10}}><Button onClick={@bound '_handleDismissibleClick'}>Dismissible Notification</Button></div>
-      <div style={{marginBottom: 10}}><Button onClick={@bound '_handleSingleActionClick'}>One action Notification</Button></div>
-      <div style={{marginBottom: 10}}><Button onClick={@bound '_handleDoubleActionClick'}>Two actions Notification</Button></div>
+      <div style={{marginBottom: 10}}><Button onClick={@bound 'handleSimpleClick'}>Simple Notification</Button></div>
+      <div style={{marginBottom: 10}}><Button onClick={@bound 'handleDismissibleClick'}>Dismissible Notification</Button></div>
+      <div style={{marginBottom: 10}}><Button onClick={@bound 'handleSingleActionClick'}>One action Notification</Button></div>
+      <div style={{marginBottom: 10}}><Button onClick={@bound 'handleDoubleActionClick'}>Two actions Notification</Button></div>
     </div>
 
 
