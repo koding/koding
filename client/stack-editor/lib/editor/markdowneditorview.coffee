@@ -3,7 +3,6 @@ KDButtonView        = kd.ButtonView
 BaseStackEditorView = require './basestackeditorview'
 applyMarkdown       = require 'app/util/applyMarkdown'
 ContentModal = require 'app/components/contentModal'
-UploadFileButton = require '../components/uploadfilebutton'
 
 module.exports = class MarkdownEditorView extends BaseStackEditorView
 
@@ -22,9 +21,6 @@ module.exports = class MarkdownEditorView extends BaseStackEditorView
       title    : 'Preview'
       cssClass : 'solid compact light-gray preview-button'
       callback : @bound 'handlePreview'
-      
-    @addSubView new UploadFileButton
-      callback : @getOptions().openFileInputCallback
 
 
   handlePreview: ->

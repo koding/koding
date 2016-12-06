@@ -29,7 +29,6 @@ module.exports = class ReadmeView extends kd.View
       content     : content
       delegate    : this
       contentType : 'md'
-      openFileInputCallback: @bound 'openFileInput'
       setFileInputToUpload: @bound 'setFileInputToUpload'
 
     @uploadFileInput  = @addSubView new kd.InputView
