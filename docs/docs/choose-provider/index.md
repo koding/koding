@@ -162,7 +162,14 @@ Monitor your instances for performance and uptime without resorting to third-par
 
 ## Microsoft Azure <a name="azure"></a>
 
- Coming Soon...
+- [**Getting Started with Azure**][70]
+- [**Azure Website**][71]
+- [**Azure Documentation**][72]
+- [**Azure Stack Reference**][73]
+
+Microsoft Azure is a growing collection of integrated cloud services—analytics, computing, database, mobile, networking, storage, and web—for moving faster, achieving more, and saving money.
+
+**Images**
 
 [1]: {{ site.url }}/docs/creating-an-aws-stack
 [2]: {{ site.url }}/docs/terraform/providers/aws/
@@ -214,5 +221,9 @@ Monitor your instances for performance and uptime without resorting to third-par
 [61]: {{ site.url }}/docs/terraform/providers/google/r/compute_http_health_check.html/
 [62]: {{ site.url }}/docs/terraform/providers/google/r/compute_https_health_check.html/
 
+[70]: {{ site.url }}/docs/creating-an-azure-stack
+[71]: https://azure.microsoft.com
+[72]: https://www.koding.com/docs/terraform/providers/azurerm/index.html/
+[73]: https://docs.microsoft.com/en-us/azure/
 
 [1002]: https://www.terraform.io/docs/providers/aws/index.html

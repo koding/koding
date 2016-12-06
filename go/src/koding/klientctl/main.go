@@ -18,6 +18,7 @@ import (
 	"os"
 	"runtime"
 
+	"koding/klientctl/auth"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/kloud"
@@ -427,6 +428,8 @@ func run(args []string) {
 							},
 						},
 					},
+					// command: kd auth register
+					auth.NewRegisterSubCommand(log),
 				},
 			},
 			cli.Command{
