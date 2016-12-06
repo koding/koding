@@ -57,6 +57,14 @@ testpresence:
 	@`which go` test -race -c workers/presence/*.go
 	@./presence.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm ./presence.test
+	@echo "$(OK_COLOR)--> presence api tests... $(NO_COLOR)"
+	@`which go` test -race -c workers/presence/api/*.go
+	@./api.test $(DBG) $(EXTRAS) -c $(CONFIG)
+	@rm ./api.test
+	@echo "$(OK_COLOR)--> presence client tests... $(NO_COLOR)"
+	@`which go` test -race -c workers/presence/client/*.go
+	@./client.test $(DBG) $(EXTRAS) -c $(CONFIG)
+	@rm ./client.test
 
 testeventsender:
 	@echo "$(OK_COLOR)--> eventsender tests... $(NO_COLOR)"

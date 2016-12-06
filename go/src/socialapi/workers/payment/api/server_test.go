@@ -3,17 +3,17 @@ package api
 import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
-	"net"
 	"socialapi/config"
 	"socialapi/workers/common/mux"
+	"socialapi/workers/common/tests"
 	"socialapi/workers/payment"
-	"strconv"
 	"testing"
 
 	"github.com/koding/runner"
 	"github.com/stripe/stripe-go"
 )
 
+// TODO(cihangir): make generalized "withTestServer"
 func withTestServer(t *testing.T, f func(url string)) {
 	const workerName = "paymentwebhook"
 
@@ -29,7 +29,7 @@ func withTestServer(t *testing.T, f func(url string)) {
 
 	payment.Initialize(c)
 
-	port := getPort()
+	port := tests.GetFreePort()
 	mc := mux.NewConfig(workerName, "localhost", port)
 	mc.Debug = r.Conf.Debug
 	if r.Conf.Debug {
@@ -51,19 +51,4 @@ func withTestServer(t *testing.T, f func(url string)) {
 
 	// shutdown server
 	m.Close()
-}
-
-func getPort() string {
-	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
-	if err != nil {
-		panic(err)
-	}
-
-	l, err := net.ListenTCP("tcp", addr)
-	if err != nil {
-		panic(err)
-	}
-	defer l.Close()
-
-	return strconv.Itoa(l.Addr().(*net.TCPAddr).Port)
 }

@@ -20,6 +20,24 @@ func DynamicClientOpts(s *Server, b *NilBuilder) machine.DynamicClientOpts {
 	}
 }
 
+// TurnOnAddr returns address that "starts" test machine.
+func TurnOnAddr() machine.Addr {
+	return machine.Addr{
+		Network:   "on",
+		Value:     "0",
+		UpdatedAt: time.Now(),
+	}
+}
+
+// TurnOffAddr returns address that "stops" test machine.
+func TurnOffAddr() machine.Addr {
+	return machine.Addr{
+		Network:   "off",
+		Value:     "0",
+		UpdatedAt: time.Now(),
+	}
+}
+
 // Server simulates the real server.
 type Server struct {
 	mu   sync.Mutex
@@ -28,11 +46,15 @@ type Server struct {
 
 // AddrFunc returns machine.DynamicAddrFunc that can be used as addresses source.
 func (s *Server) AddrFunc() machine.DynamicAddrFunc {
-	return func(string) (machine.Addr, error) {
+	return func(network string) (machine.Addr, error) {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 
-		return s.addr, nil
+		if network == s.addr.Network {
+			return s.addr, nil
+		}
+
+		return machine.Addr{}, machine.ErrAddrNotFound
 	}
 }
 
@@ -41,14 +63,14 @@ func (s *Server) TurnOn() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	value := s.addr.Val
+	value := s.addr.Value
 	if value == "" {
 		value = "0" // initial address.
 	}
 
 	s.addr = machine.Addr{
-		Net: "on",
-		Val: value,
+		Network: "on",
+		Value:   value,
 	}
 }
 
@@ -57,7 +79,7 @@ func (s *Server) TurnOff() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.addr.Net = "off"
+	s.addr.Network = "off"
 }
 
 // ChangeAddr generates a new address for server.
@@ -65,7 +87,7 @@ func (s *Server) ChangeAddr() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	s.addr.Val += "0"
+	s.addr.Value += "0"
 }
 
 // NilBuilder uses Server logic to build nil clients.
@@ -87,20 +109,18 @@ func (*NilBuilder) Ping(dynAddr machine.DynamicAddrFunc) (machine.Status, machin
 		panic("nil dynamic function generator")
 	}
 
-	addr, err := dynAddr("")
-	if err != nil {
-		return machine.Status{}, addr, err
+	states := map[string]machine.State{
+		"":    machine.StateUnknown,
+		"on":  machine.StateOnline,
+		"off": machine.StateOffline,
+	}
+	for network, state := range states {
+		if addr, err := dynAddr(network); err == nil {
+			return machine.Status{State: state}, addr, err
+		}
 	}
 
-	status := machine.Status{}
-	switch addr.Net {
-	case "on":
-		status.State = machine.StateOnline
-	case "off":
-		status.State = machine.StateOffline
-	}
-
-	return status, addr, nil
+	return machine.Status{}, machine.Addr{}, machine.ErrAddrNotFound
 }
 
 // Build creates a nil client and increases builds counter.

@@ -2,6 +2,15 @@ package presence
 
 import "time"
 
+// PrivatePing is only used internaly for ping requests
+type PrivatePing struct {
+	// GroupName holds group name
+	GroupName string `json:"groupName"`
+
+	// Username holds the user's nick
+	Username string `json:"username"`
+}
+
 // Ping holds the ping data
 type Ping struct {
 	// GroupName holds group name

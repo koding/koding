@@ -578,6 +578,22 @@ func run(args []string) {
 							},
 						},
 					},
+					{
+						Name:   "list",
+						Usage:  "Lists user's teams.",
+						Action: ctlcli.ExitErrAction(TeamList, log, "list"),
+						Flags: []cli.Flag{
+							cli.StringFlag{
+								Name:  "slug",
+								Value: "",
+								Usage: "Limits the output to the specified team slug",
+							},
+							cli.BoolFlag{
+								Name:  "json",
+								Usage: "Output in JSON format.",
+							},
+						},
+					},
 				},
 			},
 		)

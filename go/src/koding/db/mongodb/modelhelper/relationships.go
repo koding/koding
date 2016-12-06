@@ -3,7 +3,7 @@ package modelhelper
 import (
 	"koding/db/models"
 
-	"gopkg.in/mgo.v2"
+	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
