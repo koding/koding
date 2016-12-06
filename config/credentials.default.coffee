@@ -2,8 +2,8 @@ module.exports = (options) ->
   kiteHome = "$KONFIG_PROJECTROOT/generated/kite_home/koding"
 
   kodingdev_master =
-    accessKeyId: "AKIAJYFSB4KOBWODAHEQ"
-    secretAccessKey: "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"
+    accessKeyId: ""
+    secretAccessKey: ""
 
   awsKeys =
     kodingdev_master: kodingdev_master
