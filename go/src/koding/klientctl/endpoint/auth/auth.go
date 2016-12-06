@@ -78,6 +78,30 @@ func (c *Client) Sessions() Sessions {
 	return c.sessions
 }
 
+func (c *Client) SetSession(team string, s Session) error {
+	c.init()
+
+	// update team session
+	c.sessions[team] = s
+
+	if err := c.kloud().Cache().SetValue("auth.sessions", c.sessions); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Client) GetSession(team string) *Session {
+	c.init()
+
+	v, ok := c.sessions[team]
+	if !ok {
+		return nil
+	}
+
+	return &v
+}
+
 func (c *Client) Close() (err error) {
 	if len(c.sessions) != 0 {
 		err = c.kloud().Cache().SetValue("auth.sessions", c.sessions)
