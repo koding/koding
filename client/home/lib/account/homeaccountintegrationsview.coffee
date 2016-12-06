@@ -176,8 +176,11 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
     @loaders[provider].show()
 
     me = whoami()
-    me.unlinkOauth provider, (err) =>
-      return showError err  if err
+    unlink = => me.unlinkOauth provider, (err) =>
+      if err
+        @switches[provider].setOn no
+        @loaders[provider].hide()
+        return showError err
 
       new kd.NotificationView
         title: "Your #{@providers[provider]} integration is now disabled."
@@ -185,6 +188,37 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
       @linked[provider] = no
       @scopes[provider].unsetTooltip()
       @scopes[provider].hide()
+
+      @tokens[provider].updatePartial "#{@providers[provider]} Integration"
+
+      @loaders[provider].hide()
+
+    if provider is 'github' and isAdmin()
+
+      group = getGroup()
+      group.fetchDataAt ORG_TOKEN, (err, token) =>
+        return unlink()  if err or not token
+
+        if token is @linkedData.github.token
+
+          cc = kd.singletons.computeController
+          cc.ui.askFor 'disableTeamOAuth', {}, (status) =>
+
+            if status.confirmed
+              data = {}
+              data[ORG_TOKEN] = null
+              group.modifyData data, (err) ->
+                console.log 'Removing team organization key failed:', err  if err
+              do unlink
+
+            else
+              @switches[provider].setOn no
+              @loaders[provider].hide()
+        else
+          do unlink
+
+    else
+      do unlink
 
 
   getLoaderView: ->
