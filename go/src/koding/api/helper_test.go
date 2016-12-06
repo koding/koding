@@ -97,17 +97,15 @@ type TrxStorage []Trx
 
 var _ api.Storage = (*TrxStorage)(nil)
 
-func (trx *TrxStorage) Get(s *api.Session) error {
+func (trx *TrxStorage) Get(s *api.Session) (*api.Session, error) {
 	*trx = append(*trx, Trx{Type: "get", Session: s})
 
 	trxS, ok := trx.Build()[s.Key()]
 	if !ok {
-		return api.ErrSessionNotFound
+		return nil, api.ErrSessionNotFound
 	}
 
-	*s = *trxS
-
-	return nil
+	return trxS, nil
 }
 
 func (trx *TrxStorage) Set(s *api.Session) error {

@@ -134,21 +134,19 @@ type Storage struct {
 var _ api.Storage = (*Storage)(nil)
 
 // Get implements the socialapi.Storage interface.
-func (st *Storage) Get(s *api.Session) error {
+func (st *Storage) Get(s *api.Session) (*api.Session, error) {
 	var sessions map[string]api.Session
 
 	if err := st.Cache.GetValue("auth.sessions", &sessions); err != nil {
-		return err
+		return nil, err
 	}
 
 	session, ok := sessions[s.Key()]
 	if !ok {
-		return api.ErrSessionNotFound
+		return nil, api.ErrSessionNotFound
 	}
 
-	*s = session
-
-	return nil
+	return &session, nil
 }
 
 // Set implements the socialapi.Storage interface.

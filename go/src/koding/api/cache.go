@@ -15,7 +15,7 @@ type Storage interface {
 	//
 	// It returns ErrSessionNotFound if requested
 	// session was not cached.
-	Get(*Session) error
+	Get(*Session) (*Session, error)
 
 	// Set sets a session.
 	//
@@ -86,14 +86,14 @@ func (s *SessionCache) Auth(opts *AuthOptions) (*Session, error) {
 
 	if !opts.Refresh {
 		s.cacheMu.RLock()
-		err := s.get(session)
+		cachedSession, err := s.get(session)
 		s.cacheMu.RUnlock()
 
 		switch err {
 		case ErrSessionNotFound:
 			// continue
 		case nil:
-			return session, nil
+			return cachedSession, nil
 		default:
 			return nil, err
 		}
@@ -129,19 +129,17 @@ func (s *SessionCache) Auth(opts *AuthOptions) (*Session, error) {
 	return session, err
 }
 
-func (s *SessionCache) get(session *Session) error {
+func (s *SessionCache) get(session *Session) (*Session, error) {
 	if s.Storage != nil {
 		return s.Storage.Get(session)
 	}
 
 	sess, ok := s.cache[session.Key()]
 	if !ok {
-		return ErrSessionNotFound
+		return nil, ErrSessionNotFound
 	}
 
-	*session = *sess
-
-	return nil
+	return sess, nil
 }
 
 func (s *SessionCache) set(session *Session) error {
