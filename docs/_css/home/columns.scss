@@ -30,6 +30,14 @@
   p {
     line-height: 26px;
   }
+
+  a {
+    color: rgba(53,139,176,0.8);
+    text-decoration: none;
+    font-size: 15px;
+    padding-top: 10px;
+    display: inline-block;
+  }
 }
 
 @media (max-width: 880px) {

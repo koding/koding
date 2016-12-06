@@ -8,6 +8,10 @@
     font-size: 18px;
     color: #AAB2B9;
     letter-spacing: 1.5px;
+
+    span {
+      color: #f6f6f6;
+    }
   }
   > h3 {
     font-size: 32px;
@@ -28,9 +32,24 @@
     }
   }
   .cases-title {
-    padding: 61px 0 31px;
+    padding: 53px 0;
     font-size: 19px;
     color: #ffffff;
+    position: relative;
+    &:before, &:after {
+      content: "";
+      width: 36%;
+      height: 5px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      position: absolute;
+      top: 51%;
+    }
+    &:before {
+      left: 0;
+    }
+    &:after {
+      right: 0;
+    }
   }
   .cases {
     display: flex;
@@ -72,6 +91,9 @@
     hr {
       display: none;
     }
+    .cases-title:before, .cases-title:after{
+      width: 30%;
+    }
     .cases {
       margin-top: 54px;
       flex-wrap: wrap;
@@ -90,6 +112,9 @@
 
 @media (max-width: 660px) {
   .Homepage-use-cases {
+    .cases-title:before, .cases-title:after{
+      display: none;
+    }
     .cases {
       justify-content: center;
       > div {
