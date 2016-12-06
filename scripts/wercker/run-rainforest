@@ -9,6 +9,7 @@ if [[ -n "$WERCKER" ]]; then
 fi
 
 declare hostname=$(head --lines 1 $1 | awk '{print $3}')
+declare branch=${WERCKER_GIT_BRANCH:-$(git rev-parse --abbrev-ref)}
 declare revision=$(git rev-parse --short HEAD)
 declare test_folder=$(pwd)/tests/spec/rainforest
 
@@ -22,7 +23,7 @@ done
 git checkout tests/
 
 rainforest --token $RAINFOREST_TOKEN \
-           --description "$revision on $hostname" \
+           --description "$branch#$revision on $hostname" \
            --site-id $RAINFOREST_SITE_ID \
            --custom-url http://$hostname \
            --tag automated \
