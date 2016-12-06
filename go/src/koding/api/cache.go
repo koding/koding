@@ -45,16 +45,13 @@ type SessionCache struct {
 	//
 	// If nil, in-memory map is going to be used instead.
 	Storage Storage
-
-	cacheMu sync.RWMutex
-	cache   map[string]*Session
 }
 
 // NewCache gives new SessionCache value.
 func NewCache(fn AuthFunc) *SessionCache {
 	return &SessionCache{
 		AuthFunc: fn,
-		cache:    make(map[string]*Session),
+		Storage:  newDefaultStorage(),
 	}
 }
 
@@ -85,9 +82,7 @@ func (s *SessionCache) Auth(opts *AuthOptions) (*Session, error) {
 	}
 
 	if !opts.Refresh {
-		s.cacheMu.RLock()
-		cachedSession, err := s.get(session)
-		s.cacheMu.RUnlock()
+		cachedSession, err := s.Storage.Get(session)
 
 		switch err {
 		case ErrSessionNotFound:
@@ -117,47 +112,54 @@ func (s *SessionCache) Auth(opts *AuthOptions) (*Session, error) {
 	// fail are filesystem errors - there is no recovery from
 	// that, and falling back to memory makes sense only for
 	// Klient.
-	s.cacheMu.Lock()
 	if opts.Refresh {
-		_ = s.delete(session)
+		_ = s.Storage.Delete(session)
 	}
 	if err == nil {
-		_ = s.set(session)
+		_ = s.Storage.Set(session)
 	}
-	s.cacheMu.Unlock()
 
 	return session, err
 }
 
-func (s *SessionCache) get(session *Session) (*Session, error) {
-	if s.Storage != nil {
-		return s.Storage.Get(session)
-	}
+// TODO(rjeczalik): replace with koding/cache
+type defaultStorage struct {
+	cacheMu sync.RWMutex
+	cache   map[string]*Session
+}
 
-	sess, ok := s.cache[session.Key()]
+var _ Storage = (*defaultStorage)(nil)
+
+func newDefaultStorage() *defaultStorage {
+	return &defaultStorage{
+		cache: make(map[string]*Session),
+	}
+}
+
+func (ds *defaultStorage) Get(s *Session) (*Session, error) {
+	ds.cacheMu.Lock()
+	session, ok := ds.cache[s.Key()]
+	ds.cacheMu.Unlock()
+
 	if !ok {
 		return nil, ErrSessionNotFound
 	}
 
-	return sess, nil
+	return session, nil
 }
 
-func (s *SessionCache) set(session *Session) error {
-	if s.Storage != nil {
-		return s.Storage.Set(session)
-	}
-
-	s.cache[session.Key()] = session
+func (ds *defaultStorage) Set(s *Session) error {
+	ds.cacheMu.Lock()
+	ds.cache[s.Key()] = s
+	ds.cacheMu.Unlock()
 
 	return nil
 }
 
-func (s *SessionCache) delete(session *Session) error {
-	if s.Storage != nil {
-		return s.Storage.Delete(session)
-	}
-
-	delete(s.cache, session.Key())
+func (ds *defaultStorage) Delete(s *Session) error {
+	ds.cacheMu.Lock()
+	delete(ds.cache, s.Key())
+	ds.cacheMu.Unlock()
 
 	return nil
 }
