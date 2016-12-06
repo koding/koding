@@ -2,7 +2,7 @@ package endpoint
 
 import (
 	"koding/api"
-	"koding/api/socialkite"
+	"koding/api/apikite"
 	"koding/klientctl/endpoint/kloud"
 )
 
@@ -16,9 +16,9 @@ func Transport(client *kloud.Client) *api.Transport {
 	}
 
 	return &api.Transport{
-		AuthFunc: (&socialkite.KloudAuth{
+		AuthFunc: (&apikite.KloudAuth{
 			Kite: client.Transport,
-			Storage: &socialkite.Storage{
+			Storage: &apikite.Storage{
 				Cache: client.Cache(),
 			},
 		}).Auth,

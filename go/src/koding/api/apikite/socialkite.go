@@ -1,4 +1,4 @@
-package socialkite
+package apikite
 
 import (
 	"sync"
