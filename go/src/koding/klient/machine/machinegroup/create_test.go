@@ -53,15 +53,6 @@ func TestClients(t *testing.T) {
 		t.Errorf("want aliasA != aliasB; got %s == %s", aliasA, aliasB)
 	}
 
-	// There weren't dynamic clients for these machines: unknown ping statuses.
-	statuses := map[machine.ID]machine.Status{
-		idA: machine.Status{State: machine.StateUnknown},
-		idB: machine.Status{State: machine.StateUnknown},
-	}
-	if !reflect.DeepEqual(statuses, res.Statuses) {
-		t.Fatalf("want statuses = %#v; got %#v", statuses, res.Statuses)
-	}
-
 	for i := 0; i < AddedServersCount; i++ {
 		if err := builder.WaitForBuild(time.Second); err != nil {
 			t.Fatalf("want err = nil; got %v", err)
@@ -82,7 +73,7 @@ func TestClients(t *testing.T) {
 	}
 
 	// Machines were pinged and they clients were build.
-	statuses = map[machine.ID]machine.Status{
+	statuses := map[machine.ID]machine.Status{
 		idA: machine.Status{State: machine.StateOffline},
 		idB: machine.Status{State: machine.StateOnline},
 	}

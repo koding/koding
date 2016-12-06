@@ -120,14 +120,7 @@ func (c *Clients) drop(id machine.ID) error {
 	}
 	delete(c.m, id)
 
-	go func() {
-		if dc != nil {
-			dc.Close()
-		} else {
-			panic("nonexistent client for " + string(id))
-		}
-	}()
-
+	dc.Close()
 	return nil
 }
 
