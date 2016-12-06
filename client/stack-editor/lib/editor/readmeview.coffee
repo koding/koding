@@ -162,11 +162,11 @@ module.exports = class ReadmeView extends kd.View
       buttons      :
         Cancel     :
           title    : 'CANCEL'
-          style    : 'cancel button-float-left'
+          style    : 'cancel fl'
           callback : -> modal.destroy()
         SelectAgain:
           title    : 'SELECT AGAIN AND UPLOAD'
-          style    : 'GenericButton button-float-right'
+          style    : 'GenericButton fr'
           callback :  =>
             @openFileInput()
             modal.destroy()
