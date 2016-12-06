@@ -58,8 +58,11 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
       @addSubView @containers[provider] = new kd.CustomHTMLView
         cssClass: 'container hidden'
 
-      @containers[provider].addSubView new kd.CustomHTMLView
+      @containers[provider].addSubView @tokens[provider] = new kd.CustomHTMLView
         partial: "#{@providers[provider]} Integration"
+        click: (event) ->
+          if event.target.tagName is 'CITE'
+            copyToClipboard @getElement().querySelector 'token'
 
       @containers[provider].addSubView @scopes[provider] = new kd.CustomHTMLView
         cssClass: 'scope hidden'
@@ -67,6 +70,7 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
 
       @containers[provider].addSubView @switches[provider]
 
+      @containers[provider].addSubView @loaders[provider] = @getLoaderView()
 
   handleForeignAuth: (provider) ->
 
@@ -92,6 +96,9 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
         @linked[provider] = foreignAuth?[provider]?
         @switches[provider].setDefaultValue @linked[provider]
         @switches[provider].makeEnabled()
+        @loaders[provider].hide()
+
+        @linkedData[provider] = foreignAuth?[provider] ? {}
 
         if @linked[provider] and scope = foreignAuth[provider].scope
           scope = scope.replace /,/g, ', '
@@ -99,9 +106,15 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
           @scopes[provider].setTooltip
             title: "Scopes: #{scope}"
           @scopes[provider].show()
+          @tokens[provider].updatePartial "
+            #{@providers[provider]} Integration
+            <cite>COPY TOKEN</cite>
+            <token>#{@linkedData[provider].token}</token>
+          "
         else
           @scopes[provider].unsetTooltip()
           @scopes[provider].hide()
+          @tokens[provider].updatePartial "#{@providers[provider]} Integration"
 
       do callback
 
@@ -147,6 +160,8 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
 
 
   unlink: (provider) ->
+
+    @loaders[provider].show()
 
     me = whoami()
     me.unlinkOauth provider, (err) =>
