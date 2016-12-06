@@ -87,7 +87,9 @@ module.exports = class AppStorage extends kd.Object
     @_storageData[group][appId].data       or= {}
     @_storageData[group][appId].data[key]    = value
 
-    if _.isEqual @_storage?[group]?[appId]?.data?[key], value
+    existingData = @_storage?[group]?[appId]?.data?[key] ? undefined
+
+    if _.isEqual existingData, value
       return callback?()
 
     pack = @zip key, group, value
