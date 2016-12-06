@@ -175,7 +175,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 
 	if t.AuthFunc == nil {
-		panic("socialapi: AuthFunc is nil")
+		panic("api: AuthFunc is nil")
 	}
 
 	reqCopy := copyRequest(req) // per RoundTripper contract
@@ -246,7 +246,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		return resp, nil
 	}
 
-	return nil, fmt.Errorf("socialapi: error sending request: %v", lastErr)
+	return nil, fmt.Errorf("api: error sending request: %v", lastErr)
 }
 
 func (t *Transport) CancelRequest(req *http.Request) {

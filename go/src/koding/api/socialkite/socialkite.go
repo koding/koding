@@ -77,7 +77,7 @@ func (lk *LazyKite) callTimeout() time.Duration {
 	return 60 * time.Second
 }
 
-// KloudAuth provides socialapi.AuthFunc that is
+// KloudAuth provides api.AuthFunc that is
 // backed by kite RPC.
 type KloudAuth struct {
 	Kite    Kite        // kite transport to use; required
@@ -126,14 +126,14 @@ func (ka *KloudAuth) rpcAuth(opts *api.AuthOptions) (*api.Session, error) {
 	}, nil
 }
 
-// Storage is wrapper for config.Cache that implements socialapi.Storage.
+// Storage is wrapper for config.Cache that implements api.Storage.
 type Storage struct {
 	Cache *config.Cache
 }
 
 var _ api.Storage = (*Storage)(nil)
 
-// Get implements the socialapi.Storage interface.
+// Get implements the api.Storage interface.
 func (st *Storage) Get(s *api.Session) (*api.Session, error) {
 	var sessions map[string]api.Session
 
@@ -149,7 +149,7 @@ func (st *Storage) Get(s *api.Session) (*api.Session, error) {
 	return &session, nil
 }
 
-// Set implements the socialapi.Storage interface.
+// Set implements the api.Storage interface.
 func (st *Storage) Set(s *api.Session) error {
 	sessions := make(map[string]api.Session)
 
@@ -162,7 +162,7 @@ func (st *Storage) Set(s *api.Session) error {
 	return st.Cache.SetValue("auth.sessions", sessions)
 }
 
-// Delete implements the socialapi.Storage interface.
+// Delete implements the api.Storage interface.
 func (st *Storage) Delete(s *api.Session) error {
 	sessions := make(map[string]api.Session)
 

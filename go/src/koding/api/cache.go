@@ -61,15 +61,15 @@ func NewCache(fn AuthFunc) *SessionCache {
 // Auth is a method, which method selector can be used
 // as a AuthFunc value, like:
 //
-//   cache := socialapi.NewSessionCache(authFn)
+//   cache := api.NewSessionCache(authFn)
 //
-//   t := &socialapi.Transport{
+//   t := &api.Transport{
 //       AuthFunc: cache.Auth,
 //   }
 //
 func (s *SessionCache) Auth(opts *AuthOptions) (*Session, error) {
 	if s.AuthFunc == nil {
-		panic("socialapi: AuthFunc is nil")
+		panic("api: AuthFunc is nil")
 	}
 
 	session := opts.Session

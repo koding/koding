@@ -11,8 +11,8 @@ import (
 )
 
 type Client struct {
-	Endpoint *url.URL     // presence endpoint of socialapi
-	Client   *http.Client // client with *socialapi.Transport transport
+	Endpoint *url.URL     // presence endpoint of api
+	Client   *http.Client // client with *api.Transport transport
 
 	once    sync.Once // for c.init()
 	pingURL string
