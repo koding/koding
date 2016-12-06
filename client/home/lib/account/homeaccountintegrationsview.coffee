@@ -72,12 +72,24 @@ module.exports = class HomeAccountIntegrationsView extends kd.CustomHTMLView
 
       @containers[provider].addSubView @loaders[provider] = @getLoaderView()
 
-  handleForeignAuth: (provider) ->
 
-    @fetchOAuthInfo =>
-      if @linked[provider]
-        kd.utils.defer => new kd.NotificationView
-          title: "Your #{@providers[provider]} integration is now enabled."
+  handleForeignAuth: (provider) -> @fetchOAuthInfo =>
+
+    if @linked[provider]
+
+      if provider is 'github' and isAdmin()
+        { scope, token } = @linkedData[provider]
+        if @isTeamScope scope
+          group = getGroup()
+          group.fetchDataAt ORG_TOKEN, (err, existingToken) ->
+            return  if err or existingToken
+            data = {}
+            data[ORG_TOKEN] = token
+            group.modifyData data, (err) ->
+              console.log 'Set team organization key failed:', err  if err
+
+      kd.utils.defer => new kd.NotificationView
+        title: "Your #{@providers[provider]} integration is now enabled."
 
 
   viewAppended: ->
