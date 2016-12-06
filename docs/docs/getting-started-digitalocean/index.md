@@ -1,3 +1,10 @@
+---
+layout: doc
+title: Getting Started with DigitalOcean
+permalink: /docs/getting-started-digitalocean
+parent: /docs/home
+---
+
 # Getting Started with DigitalOcean
 
 DigitalOcean is a very simple provider to get set up. This guide will take you through the whole process.
@@ -12,7 +19,7 @@ DigitalOcean is a very simple provider to get set up. This guide will take you t
 
 ## Sign Up <a name="sign-up"></a>
 
-Using DigitalOcean as your provider will require you to sign up on their website. It will also require you to enter your credit card information and make an initial payment of at least $5. You can do that [here](https://cloud.digitalocean.com/registrations/new). 
+Using DigitalOcean as your provider will require you to sign up on their website. It will also require you to enter your credit card information and make an initial payment of at least $5. You can do that [here](https://cloud.digitalocean.com/registrations/new).
 
 [Learn more about pricing](https://www.digitalocean.com/pricing/) at DigitalOcean.
 
@@ -20,7 +27,7 @@ Using DigitalOcean as your provider will require you to sign up on their website
 
 ## Create your Personal Access Token <a name="create-pat"></a>
 
-Your DigitalOcean Personal Access Token will provide the credentials you need to instantiate your Stacks using DigitalOcean. 
+Your DigitalOcean Personal Access Token will provide the credentials you need to instantiate your Stacks using DigitalOcean.
 
 To generate your token:
 
@@ -31,7 +38,7 @@ To generate your token:
 5. Give it Read and Write permissions
 6. Click Generate Token
 
-> You'll use this token string as your credentials for creating VMs with Koding later in this guide. 
+> You'll use this token string as your credentials for creating VMs with Koding later in this guide.
 
 ***
 
@@ -82,7 +89,7 @@ resource:
 ```
 Make whatever changes you'd like to this script. Our [Stack Reference for DigitalOcean](/terraform/providers/do/) will help you see what is possible.
 
-> You won't need to worry about the digitalocean_access_token variable. This will be automatically populated when you set up credentials in the next step. 
+> You won't need to worry about the digitalocean_access_token variable. This will be automatically populated when you set up credentials in the next step.
 
 ***
 
@@ -95,7 +102,7 @@ To add your DigitalOcean credentials:
 3. Name your Credentials whatever you like (pick something that will help you recognize them at a glance)
 4. Copy the Personal Access token that you generated [earlier](#create-pat)
 5. Click Save
-6. You'll be taken back the Credentials tab where you'll see your new credentials listed by name. Click Use This & Continue to set them as the credentials for this stack. 
+6. You'll be taken back the Credentials tab where you'll see your new credentials listed by name. Click Use This & Continue to set them as the credentials for this stack.
 
 ***
 
@@ -108,5 +115,3 @@ Once you've created your Stack and set our credentials:
 3. Click Initialize
 
 Your dev environment will begin to build based on your Stack and when it is finished, you can get to work!
-
-

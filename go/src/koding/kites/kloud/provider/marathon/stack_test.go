@@ -2,6 +2,7 @@ package marathon_test
 
 import (
 	"io/ioutil"
+	"reflect"
 	"regexp"
 	"testing"
 
@@ -53,40 +54,40 @@ func TestApplyTemplate(t *testing.T) {
 			"testdata/single-app.json",
 			"testdata/single-app.json.golden",
 			[]marathon.Label{
-				{Label: "/app", AppID: "/app-foobar-ident"},
+				{Label: "/app", AppID: "/app-user-ident"},
 			},
 		},
 		"multi app stack": {
 			"testdata/multi-app.json",
 			"testdata/multi-app.json.golden",
 			[]marathon.Label{
-				{Label: "/multi-app-1", AppID: "/multi-app/multi-app-foobar-ident-1"},
-				{Label: "/multi-app-2", AppID: "/multi-app/multi-app-foobar-ident-2"},
-				{Label: "/multi-app-3", AppID: "/multi-app/multi-app-foobar-ident-3"},
+				{Label: "/multi-app-1", AppID: "/multi-app/multi-app-user-ident-1"},
+				{Label: "/multi-app-2", AppID: "/multi-app/multi-app-user-ident-2"},
+				{Label: "/multi-app-3", AppID: "/multi-app/multi-app-user-ident-3"},
 			},
 		},
 		"multi container stack": {
 			"testdata/multi-container.json",
 			"testdata/multi-container.json.golden",
 			[]marathon.Label{
-				{Label: "/multi-app-1", AppID: "/multi-app-foobar-ident"},
-				{Label: "/multi-app-2", AppID: "/multi-app-foobar-ident"},
-				{Label: "/multi-app-3", AppID: "/multi-app-foobar-ident"},
+				{Label: "/multi-app-1", AppID: "/multi-app-user-ident"},
+				{Label: "/multi-app-2", AppID: "/multi-app-user-ident"},
+				{Label: "/multi-app-3", AppID: "/multi-app-user-ident"},
 			},
 		},
 		"multi app multi container stack": {
 			"testdata/multi-app-multi-container.json",
 			"testdata/multi-app-multi-container.json.golden",
 			[]marathon.Label{
-				{Label: "/multi-app-1-1", AppID: "/multi-app/multi-app-foobar-ident-1"},
-				{Label: "/multi-app-1-2", AppID: "/multi-app/multi-app-foobar-ident-1"},
-				{Label: "/multi-app-1-3", AppID: "/multi-app/multi-app-foobar-ident-1"},
-				{Label: "/multi-app-2-1", AppID: "/multi-app/multi-app-foobar-ident-2"},
-				{Label: "/multi-app-2-2", AppID: "/multi-app/multi-app-foobar-ident-2"},
-				{Label: "/multi-app-2-3", AppID: "/multi-app/multi-app-foobar-ident-2"},
-				{Label: "/multi-app-3-1", AppID: "/multi-app/multi-app-foobar-ident-3"},
-				{Label: "/multi-app-3-2", AppID: "/multi-app/multi-app-foobar-ident-3"},
-				{Label: "/multi-app-3-3", AppID: "/multi-app/multi-app-foobar-ident-3"},
+				{Label: "/multi-app-1-1", AppID: "/multi-app/multi-app-user-ident-1"},
+				{Label: "/multi-app-1-2", AppID: "/multi-app/multi-app-user-ident-1"},
+				{Label: "/multi-app-1-3", AppID: "/multi-app/multi-app-user-ident-1"},
+				{Label: "/multi-app-2-1", AppID: "/multi-app/multi-app-user-ident-2"},
+				{Label: "/multi-app-2-2", AppID: "/multi-app/multi-app-user-ident-2"},
+				{Label: "/multi-app-2-3", AppID: "/multi-app/multi-app-user-ident-2"},
+				{Label: "/multi-app-3-1", AppID: "/multi-app/multi-app-user-ident-3"},
+				{Label: "/multi-app-3-2", AppID: "/multi-app/multi-app-user-ident-3"},
+				{Label: "/multi-app-3-3", AppID: "/multi-app/multi-app-user-ident-3"},
 			},
 		},
 	}

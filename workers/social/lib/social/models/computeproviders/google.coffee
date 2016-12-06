@@ -6,7 +6,7 @@ module.exports = class Google extends ProviderInterface
 
   @bootstrapKeys = ['koding_network_id']
 
-  @sensitiveKeys = ['credentials']
+  @secretKeys    = ['credentials']
 
 
   @ping = (client, callback) ->

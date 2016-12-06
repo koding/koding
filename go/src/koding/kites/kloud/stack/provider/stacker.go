@@ -206,6 +206,7 @@ func (s *Stacker) BaseStack(ctx context.Context) (*BaseStack, error) {
 		Planner: &Planner{
 			Provider:     s.Provider.Name,
 			ResourceType: s.Provider.resourceName(),
+			Log:          s.Log,
 		},
 		Provider:  s.Provider,
 		KlientIDs: make(stack.KiteMap),
@@ -315,6 +316,7 @@ func (bm *BaseMachine) WaitKlientReady(timeout time.Duration) (*DialState, error
 
 	state := (&Planner{
 		KlientTimeout: timeout,
+		Log:           bm.Log,
 	}).checkSingleKlient(bm.Kite, bm.Label, bm.QueryString)
 
 	if state.Err != nil {

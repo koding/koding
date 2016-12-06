@@ -18,11 +18,13 @@ func TestInvoiceList(t *testing.T) {
 		withTestServer(t, func(endpoint string) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
 				withTestPlan(func(planID string) {
-					createURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCreate)
-					deleteURL := fmt.Sprintf("%s%s", endpoint, EndpointSubscriptionCancel)
+					createURL := endpoint + EndpointSubscriptionCreate
+					deleteURL := endpoint + EndpointSubscriptionCancel
 
 					group, err := modelhelper.GetGroup(groupName)
 					tests.ResultedWithNoErrorCheck(group, err)
+
+					addCreditCardToUserWithChecks(endpoint, sessionID)
 
 					Convey("We should be able to create a subscription", func() {
 						req, err := json.Marshal(&stripe.SubParams{
@@ -40,7 +42,7 @@ func TestInvoiceList(t *testing.T) {
 						So(v.Status, ShouldEqual, "active")
 
 						Convey("We should be able to list invoices", func() {
-							listInvoicesURL := fmt.Sprintf("%s%s", endpoint, EndpointInvoiceList)
+							listInvoicesURL := endpoint + EndpointInvoiceList
 							res, err = rest.DoRequestWithAuth("GET", listInvoicesURL, nil, sessionID)
 							tests.ResultedWithNoErrorCheck(res, err)
 

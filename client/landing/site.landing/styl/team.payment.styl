@@ -1,99 +1,54 @@
 @import "lib/core.fn"
 
-paymentGreen        = #00b156
-paymentGrayDarker   = #6f6f6f
-paymentGrayDark     = #a7a7a7
-paymentGraySoftDark = #d5d5d5
-paymentGray         = #e5e5e5
-paymentGrayLight    = #e8e8e8
-paymentGrayLighter  = #f8f8f8
+form.cc-form
 
-.has-payment-method-wrapper
-  margin-top                10px
+  input::-webkit-input-placeholder
+    letter-spacing          1px
+    font-size               24px
 
-  .has-payment-method-label
-    margin                  30px 0 30px
+  input:-moz-placeholder
+    letter-spacing          1px
+    font-size               24px
 
-  .use-different-card-link
-    color                   paymentGrayDark
+  .TeamsModal-ccwarning
+    bg                      color #F6FCF9
+    color                   #989898
+    shadow                  0 0 0 1px rgba(0,0,0,.05)
+    padding                 15px 40px
+    margin                  19px 0 30px -40px
+    line-height             1.4em
+    width                   100%
+    contentBox()
+    strong
+      display               block
+      color                 #42BB7B
 
-  .use-different-card-label
-    margin                  10px 0 30px
+  .form-group .login-input-view
+    background              transparent
 
+    input
+      background            #fff
 
-.payment-method-entry-form
-  background        paymentGrayLighter
-  border            1px solid paymentGray
-  padding           0 31px 17px 17px
-  rounded           4px
+  .login-input-view.exp-year
+    &:before
+      content               '20'
+      abs                   26px 0 0 17px
+      display               block
+      z-index               2
+      font-size             18px
+      color                 rgba(0,0,0,.4)
+    input.kdinput.text
+      padding-left          38px
 
-  .kdlabel
-    display         block !important
-    float           none !important
-    margin-top      19px !important
-    margin-bottom   3px
-    font-size       14px
-    color           paymentGrayDarker
-    opacity         .99
-    text-align      left
+.cc-form-resetLink a
+  display                   block
+  padding                   0 0 20px
+  font-size                 18px
 
-  .kdinput
-    background      #fff
-    border-radius   3px !important
-    border          1px solid paymentGray !important
-    margin          0
-    height          36px !important
-    transition      border-color .3s linear
+$disabledOpacity = .5
 
-    &.text
-      font-size     14px
-
-    &.validation-error
-      border-color  #D95F5F !important
-
-  .input-wrapper
-    margin          0
-
-  &.american-express .input-wrapper:after
-    r-sprite      'pricing', 'american_express'
-
-  &.visa .input-wrapper:after
-    r-sprite      'pricing', 'visa'
-
-  &.mastercard .input-wrapper:after
-    r-sprite      'pricing', 'mastercard'
-
-  &.discover .input-wrapper:after
-    r-sprite      'pricing', 'discover'
-
-  .formline
-    margin-left     13px
-    fl()
-
-    &.cardnumber
-      width         362px
-
-      .input-wrapper:after
-        content     ''
-        display     block
-        right       8px
-        top         51px
-        width       36px
-        height      22px
-        z-index     1
-        pointer-events none
-        abs()
-
-    &.cardcvc
-    &.cardmonth
-    &.cardyear
-      width         64px
-
-    &.cardmonth input
-      text-align    center
-
-    &.cardyear input
-      text-align    center
-
-    &.cardname
-      width         285px
+.cc-form input[disabled=disabled]
+  opacity                   $disabledOpacity
+  cursor                    not-allowed
+  & ~ .placeholder-helper
+    opacity                 $disabledOpacity

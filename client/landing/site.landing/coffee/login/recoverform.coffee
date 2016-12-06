@@ -19,6 +19,8 @@ module.exports = class RecoverInlineForm extends LoginViewInlineForm
         placeholder   : 'Enter your email address'
         testPath      : 'recover-password-input'
         defaultValue  : email
+        attributes    :
+          autocomplete : 'email'
         validate      :
           container   : this
           rules       :

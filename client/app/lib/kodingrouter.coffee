@@ -120,8 +120,10 @@ module.exports = class KodingRouter extends kd.Router
 
     allowedRoutes =
       admin: [
+        '/Home/stacks'
         '/Home/team-billing'
         '/Disabled/Admin'
+        '/Logout'
       ]
       member: [
         '/Disabled/Member'

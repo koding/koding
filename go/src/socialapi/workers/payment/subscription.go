@@ -1,12 +1,15 @@
 package payment
 
 import (
+	"errors"
 	"koding/db/mongodb/modelhelper"
+	socialapimodels "socialapi/models"
 	"time"
 
 	stripe "github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go/customer"
 	"github.com/stripe/stripe-go/sub"
-	"gopkg.in/mgo.v2/bson"
+	mgo "gopkg.in/mgo.v2"
 )
 
 const (
@@ -24,7 +27,7 @@ const (
 // reqiured because we charge our users at the end of the month based  on the
 // usage. So while cancelling group subscription, charge for the due usage
 // amount immediately then cancel subscription
-func CancelSubscriptionForGroup(groupName string) (interface{}, error) {
+func CancelSubscriptionForGroup(groupName string) (*stripe.Sub, error) {
 	group, err := modelhelper.GetGroup(groupName)
 	if err != nil {
 		return nil, err
@@ -62,23 +65,11 @@ func DeleteSubscriptionForGroup(groupName string) (*stripe.Sub, error) {
 		return nil, err
 	}
 
-	if err := unsetSubData(group.Id); err != nil {
+	if err := syncGroupWithCustomerID(group.Payment.Customer.ID); err != nil {
 		return nil, err
 	}
 
 	return sub, nil
-}
-
-func unsetSubData(groupID bson.ObjectId) error {
-	return modelhelper.UpdateGroupPartial(
-		modelhelper.Selector{"_id": groupID},
-		modelhelper.Selector{
-			"$unset": modelhelper.Selector{
-				"payment.subscription.id":     "",
-				"payment.subscription.status": "",
-			},
-		},
-	)
 }
 
 func deleteSubscription(subscriptionID, customerID string) (*stripe.Sub, error) {
@@ -106,6 +97,12 @@ func GetSubscriptionForGroup(groupName string) (*stripe.Sub, error) {
 
 // EnsureSubscriptionForGroup ensures subscription for a group
 func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*stripe.Sub, error) {
+	if params == nil {
+		params = &stripe.SubParams{
+			Plan: Plans[UpTo10Users].ID,
+		}
+	}
+
 	group, err := modelhelper.GetGroup(groupName)
 	if err != nil {
 		return nil, err
@@ -119,30 +116,40 @@ func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 		return nil, ErrCustomerNotExists
 	}
 
+	if err := CheckCustomerHasSource(group.Payment.Customer.ID); err != nil {
+		return nil, err
+	}
+
 	now := time.Now().UTC()
 	thirtyDaysLater := now.Add(30 * 24 * time.Hour).Unix()
 	sevenDaysLater := now.Add(7 * 24 * time.Hour).Unix()
 
-	if params == nil {
-		params = &stripe.SubParams{
-			Customer: group.Payment.Customer.ID,
-			Plan:     Plans[UpTo10Users].ID,
-			TrialEnd: thirtyDaysLater,
+	if params.TrialEnd != 0 {
+		// we only allow 0, 7 and 30 day trials
+		if params.TrialEnd < sevenDaysLater {
+			params.TrialEnd = sevenDaysLater
+		}
+
+		if params.TrialEnd > sevenDaysLater {
+			params.TrialEnd = thirtyDaysLater
 		}
 	}
 
-	// we only allow 0, 7 and 30 day trials
-	if params.TrialEnd < sevenDaysLater && params.TrialEnd != 0 {
-		params.TrialEnd = sevenDaysLater
-	}
-
-	if params.TrialEnd > sevenDaysLater {
-		params.TrialEnd = thirtyDaysLater
+	// override quantity and plan in case we did not charge the user previously
+	// due to failed payment and the subscription is deleted by stripe, create
+	// new subscription
+	quantity := uint64(1)
+	activeCount, _ := (&socialapimodels.PresenceDaily{}).CountDistinctByGroupName(groupName)
+	if activeCount != 0 {
+		quantity = uint64(activeCount)
+		params.Plan = GetPlanID(activeCount)
+		params.TrialEnd = 0
 	}
 
 	// only send our whitelisted params
 	req := &stripe.SubParams{
 		Customer: group.Payment.Customer.ID,
+		Quantity: quantity,
 		Plan:     params.Plan,
 		Coupon:   params.Coupon,
 		Token:    params.Token,
@@ -155,20 +162,54 @@ func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 		return nil, err
 	}
 
-	if err := setSubData(group.Id, sub); err != nil {
+	if err := syncGroupWithCustomerID(group.Payment.Customer.ID); err != nil {
 		return nil, err
 	}
 
 	return sub, nil
 }
 
-func setSubData(groupID bson.ObjectId, sub *stripe.Sub) error {
+func syncGroupWithCustomerID(cusID string) error {
+	cus, err := customer.Get(cusID, nil)
+	if err != nil {
+		return err
+	}
+
+	group, err := modelhelper.GetGroup(cus.Meta["groupName"])
+	if err == mgo.ErrNotFound {
+		return nil
+	}
+
+	if err != nil {
+		return err
+	}
+
+	// here sub count might be 0, but should not be gt 1
+	if cus.Subs.Count > 1 {
+		return errors.New("customer should only have one subscription")
+	}
+
+	subID := ""
+	subStatus := SubStatusCanceled
+
+	// if we dont have any sub, set it as canceled
+	if cus.Subs.Count == 1 {
+		subID = cus.Subs.Values[0].ID
+		subStatus = cus.Subs.Values[0].Status
+	}
+
+	// if subID and subStatus are same, update not needed
+	if group.Payment.Subscription.ID == subID &&
+		group.Payment.Subscription.Status == string(subStatus) {
+		return nil
+	}
+
 	return modelhelper.UpdateGroupPartial(
-		modelhelper.Selector{"_id": groupID},
+		modelhelper.Selector{"_id": group.Id},
 		modelhelper.Selector{
 			"$set": modelhelper.Selector{
-				"payment.subscription.id":     sub.ID,
-				"payment.subscription.status": sub.Status,
+				"payment.subscription.id":     subID,
+				"payment.subscription.status": string(subStatus),
 			},
 		},
 	)

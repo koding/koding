@@ -19,7 +19,9 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
         label        : 'Email Address'
         placeholder  : 'Enter your work email'
         defaultValue : email  if email
-        attributes   : { testpath : 'register-form-email' }
+        attributes   :
+          testpath   : 'register-form-email'
+          autocomplete : 'email'
         validate     :
           rules      :
             email    : yes
@@ -32,7 +34,9 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
         label        : 'Team Name'
         placeholder  : 'Name your team (i.e. your company name)'
         defaultValue : companyName  if companyName
-        attributes   : { testpath : 'company-name' }
+        attributes   :
+          testpath   : 'company-name'
+          autocomplete : 'org'
         validate     :
           rules      :
             required : yes
@@ -45,6 +49,8 @@ module.exports = class TeamsSignupForm extends LoginViewInlineForm
         name         : 'phone'
         label        : 'Phone number'
         placeholder  : 'Enter your phone number'
+        attributes   :
+          autocomplete : 'phone'
 
     @button = new kd.ButtonView
       title       : 'Next'

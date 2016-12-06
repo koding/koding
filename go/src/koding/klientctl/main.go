@@ -482,6 +482,20 @@ func run(args []string) {
 							Usage: "Specify credential title.",
 						},
 					},
+				}, {
+					Name:   "describe",
+					Usage:  "Describe credential documents.",
+					Action: ctlcli.ExitErrAction(CredentialDescribe, log, "describe"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+						cli.StringFlag{
+							Name:  "provider, p",
+							Usage: "Specify credential provider.",
+						},
+					},
 				}},
 			},
 			cli.Command{

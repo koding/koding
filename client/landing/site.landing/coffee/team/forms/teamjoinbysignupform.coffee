@@ -21,6 +21,8 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
         label           : 'Email address'
         placeholder     : 'Enter your work email'
         defaultValue    : @getOption 'email'
+        attributes      :
+          autocomplete  : 'email'
         validate        :
           rules         : { email: yes }
           messages      : { email: 'Please type a valid email address.' }
@@ -57,6 +59,8 @@ module.exports = class TeamJoinBySignupForm extends TeamJoinTabForm
         name          : 'password'
         label         : 'Your Password'
         placeholder   : 'Set a password'
+        attributes    :
+          autocomplete : 'password'
         validate      :
           container   : this
           rules       :

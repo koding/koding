@@ -3,6 +3,7 @@ kd                = require 'kd'
 whoami            = require '../util/whoami'
 kookies           = require 'kookies'
 getGroup          = require '../util/getGroup'
+getGroupStatus    = require '../util/getGroupStatus'
 showError         = require '../util/showError'
 
 remote            = require('../remote')
@@ -46,6 +47,9 @@ module.exports = class GroupsController extends kd.Controller
     FIXME = 'FIXME: array should never be passed'
     throw FIXME  if Array.isArray @currentGroupData.data
     return @currentGroupData.data
+
+
+  getCurrentGroupStatus: -> getGroupStatus @getCurrentGroup()
 
 
   currentGroupHasStack: ->

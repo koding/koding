@@ -6,7 +6,9 @@ module.exports = class Azure extends ProviderInterface
 
   @bootstrapKeys = ['subnet', 'hosted_service_name', 'address_space']
 
-  @sensitiveKeys = ['publish_settings', 'password', 'ssh_key_thumbprint']
+  @secretKeys    = ['publish_settings', 'password']
+
+  @sensitiveKeys = ProviderInterface.sensitiveKeys.concat ['ssh_key_thumbprint']
 
 
   @ping = (client, callback) ->

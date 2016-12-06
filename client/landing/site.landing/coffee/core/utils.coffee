@@ -1,12 +1,16 @@
+_       = require 'lodash'
 $       = require 'jquery'
 kd      = require 'kd'
 kookies = require 'kookies'
 
 RECAPTCHA_JS = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoaded&render=explicit'
 
+PAYMENT_BACKEND_URI = '/api/social/payment'
+
 createFormData = (teamData) ->
 
   teamData ?= utils.getTeamData()
+
   formData  = {}
 
   for own step, fields of teamData when not ('boolean' is typeof fields)
@@ -27,7 +31,38 @@ window.onRecaptchaLoaded = ->
   recaptchaLoadCallbacks = []
 
 
+savePaymentToken = (token) ->
+  global._payment or= {}
+  _payment.token = token
+
+saveCardInfo = ({ number, exp_month, exp_year }) ->
+  global._payment or= {}
+
+  _payment.card =
+    exp_month: exp_month
+    exp_year: exp_year
+    last4: do ->
+      parts = number.split(' ').filter(Boolean)
+      lastPart = parts[parts.length - 1]
+      return lastPart.substring lastPart.length - 4
+
+
+getCardInfo = -> global._payment?.card
+
+erasePaymentToken = -> delete global._payment?.token
+eraseCardInfo = -> delete global._payment?.cardInfo
+
+cleanPayment = ->
+  erasePaymentToken()
+  eraseCardInfo()
+  delete global._payment
+
+getPayment = -> global._payment
+
+
 module.exports = utils = {
+
+  savePaymentToken, saveCardInfo, getPayment, cleanPayment
 
   clearKiteCaches: ->
 
@@ -196,7 +231,13 @@ module.exports = utils = {
 
   getTeamData: ->
 
-    return kd.team  if kd.team
+    attachPayment = (data, stripeToken) ->
+      return _.assign {}, data, { payment: { stripeToken } }
+
+    if team = kd.team
+      if token = getPayment()?.token
+        team = attachPayment kd.team, token
+      return team
 
     return {}  unless data = localStorage.teamData
 
@@ -204,7 +245,11 @@ module.exports = utils = {
       team    = JSON.parse data
       kd.team = team
 
-    return team  if team
+    if team
+      if token = getPayment()?.token
+        team = attachPayment team, token
+      return team
+
     return {}
 
 
@@ -227,6 +272,9 @@ module.exports = utils = {
 
 
   createTeam: (callbacks = {}) ->
+
+    unless token = utils.getPayment()?.token
+      new kd.NotificationView { title : 'You need to enter your credit card!' }
 
     formData = createFormData()
 
@@ -453,4 +501,62 @@ module.exports = utils = {
         defer    : yes
 
     recaptchaScript.appendToDomBody()
+
+  makeChargeRequest: (token, email) -> new Promise (resolve, reject) ->
+    options =
+      url: "#{PAYMENT_BACKEND_URI}/creditcard/auth"
+      type: 'POST'
+      contentType: 'application/json'
+      data: JSON.stringify { source: { token }, email }
+      success: resolve
+      error: (err) ->
+        reject JSON.parse err.responseText
+
+    $.ajax options
+
+  loadStripe: -> new Promise (resolve, reject) ->
+
+    return resolve global.Stripe  if global.Stripe
+
+    global.document.head.appendChild (new kd.CustomHTMLView
+      tagName    : 'script'
+      attributes :
+        type     : 'text/javascript'
+        src      : 'https://js.stripe.com/v2/'
+      bind       : 'load'
+      load       : ->
+        Stripe.setPublishableKey kd.config.stripe.token
+        return resolve(global.Stripe)
+    ).getElement()
+
+
+  createStripeToken: (Stripe, cardInfo) -> new Promise (resolve, reject) ->
+    Stripe.createToken cardInfo, (status, response) ->
+      if response.error
+      then reject response.error
+      else resolve response.id
+
+  authorizeCreditCard: (formData) ->
+
+    { number, cvc, exp_month, exp_year } = formData
+    { email } = utils.getTeamData().signup
+
+    cardInfo =
+      number    : number
+      cvc       : cvc
+      exp_month : exp_month
+      exp_year  : exp_year
+
+    utils.loadStripe()
+      # first create a token for a authorization charge (50cent)
+      .then -> utils.createStripeToken global.Stripe, cardInfo
+      .then (token) -> utils.makeChargeRequest token, email
+      # then create another token for subscription
+      .then -> utils.createStripeToken global.Stripe, cardInfo
+      .then (token) ->
+        utils.savePaymentToken token
+        utils.saveCardInfo cardInfo
+      .catch (err) ->
+        utils.cleanPayment()
+        Promise.reject err
 }
