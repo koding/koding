@@ -122,12 +122,6 @@ type Config struct {
 		Kloud        string    `json:"kloud" required:"true"`
 		KodingBase   string    `json:"kodingBase" required:"true"`
 		Kontrol      string    `json:"kontrol" required:"true"`
-		IP           string    `json:"ip" required:"true"`
-		IPCheck      string    `json:"ipCheck" required:"true"`
-		KDLatest     string    `json:"kdLatest" required:"true"`
-		KlientLatest string    `json:"klientLatest" required:"true"`
-		Kloud        string    `json:"kloud" required:"true"`
-		Kontrol      string    `json:"kontrol" required:"true"`
 		RemoteAPI    *Endpoint `json:"remoteAPI" requied:"true"`
 		TunnelServer string    `json:"tunnelServer" required:"true"`
 		SocialAPI    *Endpoint `json:"socialAPI" requied:"true"`
