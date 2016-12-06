@@ -285,7 +285,6 @@ func checkScopePermissions(client *github.Client, username string) error {
 		{"write:public_key", "admin:public_key"},
 		{"user"},
 		{"repo", "public_repo"},
-		{"admin:org"},
 	}
 
 	for _, scopeElement := range scopeArray {
