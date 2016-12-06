@@ -76,6 +76,14 @@
   }
 }
 
+@media (min-width: 1030px) {
+  .Homepage-use-cases {
+    .cases-title:before, .cases-title:after{
+      width: 39%;
+    }
+  }
+}
+
 @media (max-width: 880px) {
   .Homepage-use-cases {
     padding-top: 94px;
@@ -95,7 +103,6 @@
       width: 30%;
     }
     .cases {
-      margin-top: 54px;
       flex-wrap: wrap;
       > div {
         width: 45%;
@@ -113,7 +120,7 @@
 @media (max-width: 660px) {
   .Homepage-use-cases {
     .cases-title:before, .cases-title:after{
-      display: none;
+      width: 27%;
     }
     .cases {
       justify-content: center;
@@ -125,5 +132,20 @@
       }
     }
   }
+}
 
+@media (max-width: 550px) {
+  .Homepage-use-cases .cases-title{
+    &:before, &:after{
+      width: 22%;
+    }
+  }
+}
+
+@media (max-width: 450px) {
+  .Homepage-use-cases .cases-title{
+    &:before, &:after{
+      width: 14%;
+    }
+  }
 }
