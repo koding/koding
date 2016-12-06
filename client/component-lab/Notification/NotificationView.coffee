@@ -5,8 +5,8 @@ kd = require 'kd'
 
 getVendorTransition = require 'app/util/getVendorTransition'
 
-Button = require '../Button/Button'
-Box = require '../Box/Box'
+Button = require 'lab/Button'
+Box = require 'lab/Box'
 
 styles = require './Notification.stylus'
 Helpers = require './helpers'
@@ -18,40 +18,40 @@ module.exports = class NotificationView extends React.Component
     constructor: (props) ->
 
       super props
-      @_style = { zIndex: 100 + @props.index }
-      @_notificationTimer = null
-      @_isMounted = no
-      @_removeCount = 0
+      @style = { zIndex: 100 + @props.index }
+      @notificationTimer = null
+      @isMounted = no
+      @removeCount = 0
       @state =
         removed : no
 
 
-    _hideNotification: ->
+    hideNotification: ->
 
-      @_notificationTimer.clear()  if @_notificationTimer
-      @setState { removed : yes }  if @_isMounted
-      @_removeNotification()
+      @notificationTimer.clear()  if @notificationTimer
+      @setState { removed : yes }  if @isMounted
+      @removeNotification()
 
 
-    _removeNotification: ->
+    removeNotification: ->
 
       @props.onRemove @props.notification.uid
 
 
-    _dismiss: ->
+    dismiss: ->
 
-      @_hideNotification()  if @props.notification.dismissible
+      @hideNotification()  if @props.notification.dismissible
 
 
-    _onTransitionEnd: ->
+    onTransitionEnd: ->
 
-      if @_removeCount == 0 and @state.removed
-        @_removeCount++
-        @_removeNotification()
+      if @removeCount == 0 and @state.removed
+        @removeCount++
+        @removeNotification()
 
 
     autoDismissible: (notification) ->
-      
+
       { dismissible, primaryButtonTitle, secondaryButtonTitle} = notification
       not dismissible and not primaryButtonTitle and not secondaryButtonTitle
 
@@ -61,42 +61,42 @@ module.exports = class NotificationView extends React.Component
       transitionEvent = getVendorTransition()
       element = ReactDOM.findDOMNode this
       notification = @props.notification
-      @_isMounted = yes
+      @isMounted = yes
       if transitionEvent
-        element.addEventListener transitionEvent, @_onTransitionEnd
+        element.addEventListener transitionEvent, @onTransitionEnd
         if @autoDismissible notification
-          @_notificationTimer = new Helpers.Timer =>
-            @_hideNotification()
+          @notificationTimer = new Helpers.Timer =>
+            @hideNotification()
             return
           , notification.duration
 
 
-    _handleMouseEnter: ->
+    handleMouseEnter: ->
 
       if @autoDismissible @props.notification
-        @_notificationTimer.pause()
+        @notificationTimer.pause()
 
 
-    _handleMouseLeave: ->
+    handleMouseLeave: ->
 
       if @autoDismissible @props.notification
-        @_notificationTimer.resume()
+        @notificationTimer.resume()
 
 
-    _handlePrimaryButtonClick: (event) ->
+    handlePrimaryButtonClick: (event) ->
 
       event.preventDefault()
       notification = @props.notification
-      @_hideNotification()
+      @hideNotification()
       if typeof notification.onPrimaryButtonClick is 'function'
         notification.onPrimaryButtonClick()
 
 
-    _handleSecondaryButtonClick: (event) ->
+    handleSecondaryButtonClick: (event) ->
 
       event.preventDefault()
       notification = @props.notification
-      @_hideNotification()
+      @hideNotification()
       if typeof notification.onSecondaryButtonClick is 'function'
         notification.onSecondaryButtonClick()
 
@@ -105,8 +105,8 @@ module.exports = class NotificationView extends React.Component
 
       element = ReactDOM.findDOMNode this
       transitionEvent = getVendorTransition()
-      element.removeEventListener transitionEvent, @_onTransitionEnd
-      @_isMounted = no
+      element.removeEventListener transitionEvent, @onTransitionEnd
+      @isMounted = no
 
 
     render: ->
@@ -127,9 +127,9 @@ module.exports = class NotificationView extends React.Component
         className = className.filter (word) -> word isnt styles.kd_notification_dismissible
       <div
         className={className.join ' '}
-        style={@_style}
-        onMouseEnter={@bound '_handleMouseEnter'}
-        onMouseLeave={@bound '_handleMouseLeave'}>
+        style={@style}
+        onMouseEnter={@bound 'handleMouseEnter'}
+        onMouseLeave={@bound 'handleMouseLeave'}>
         {
           if notification.type isnt 'default'
             <Box className={styles.kd_notification_level}>
@@ -141,14 +141,14 @@ module.exports = class NotificationView extends React.Component
         </div>
         {
           if notification.dismissible
-            <CloseButton onClick={@bound '_dismiss'} />
+            <CloseButton onClick={@bound 'dismiss'} />
         }
         {
           if notification.primaryButtonTitle or notification.secondaryButtonTitle
             <Actions
               notification={notification}
-              onPrimaryButtonClick={@bound '_handlePrimaryButtonClick'}
-              onSecondaryButtonClick={@bound '_handleSecondaryButtonClick'} />
+              onPrimaryButtonClick={@bound 'handlePrimaryButtonClick'}
+              onSecondaryButtonClick={@bound 'handleSecondaryButtonClick'} />
         }
       </div>
 
@@ -185,7 +185,9 @@ ActionButton = (options) ->
 Actions = (options) ->
 
   {notification, onPrimaryButtonClick, onSecondaryButtonClick} = options
-  actionsClass = if not notification.secondaryButtonTitle then styles.kd_notification_single_action else styles.kd_notification_multiple_actions
+  actionsClass = if not notification.secondaryButtonTitle
+    then styles.kd_notification_single_action 
+    else styles.kd_notification_multiple_actions
   <div className={styles.kd_notification_actions}>
     <div className={actionsClass}>
       {
