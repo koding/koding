@@ -74,14 +74,14 @@ func (s *SessionCache) Auth(opts *AuthOptions) (*Session, error) {
 
 	session := opts.Session
 
+	if session == nil {
+		return nil, errors.New("cannot determine user session")
+	}
+
 	// Early return - return existing session if it's valid
 	// and we were not ask to invalidate it.
 	if err := session.Valid(); err == nil && !opts.Refresh {
 		return session, nil
-	}
-
-	if session == nil {
-		return nil, errors.New("cannot determine user session")
 	}
 
 	if !opts.Refresh {
