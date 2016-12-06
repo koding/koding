@@ -135,6 +135,8 @@ module.exports = class JGroup extends Module
         ]
         modify:
           (signature Object, Function)
+        modifyData:
+          (signature Object, Function)
         fetchPermissions: [
           (signature Function)
           (signature Object, Function)
@@ -1048,6 +1050,49 @@ module.exports = class JGroup extends Module
         else do callback
     else
       kallback()
+
+
+  # modifies JGroupData related with the JGroup instance
+  #
+  # @param {Object} data
+  #   data to modify, only 'github.organizationToken' is allowed for now
+  #   set data to `null` to unset this if needed, requires admin privileges
+  #
+  # @option data [String] "github.organizationToken" github oauth token
+  #
+  # @example api
+  #
+  #   {
+  #     "github.organizationToken": "foobarbaz"
+  #   }
+  #
+  # @return [Error] includes error if something went wrong
+  #
+  modifyData : ->
+  modifyData : permit
+    advanced : [
+      { permission: 'edit own groups', validateWith : Validators.group.admin }
+      { permission: 'edit groups',     superadmin   : yes }
+    ]
+    success  : (client, _data, callback) ->
+
+      # it's only allowed to change followings
+      whitelist  = ['github.organizationToken']
+
+      # handle $set and $unset cases in one
+      operation  = { $set: {}, $unset: {} }
+      for item in whitelist
+        key = "data.#{item}"
+        if _data[item]?
+        then operation.$set[key]   = _data[item]
+        else operation.$unset[key] = _data[item]
+
+      @fetchData (err, data) ->
+        return callback err  if err
+
+        data.update operation, (err) ->
+          callback err
+
 
   modify     : permit
     advanced : [
