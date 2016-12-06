@@ -12,7 +12,6 @@ import (
 )
 
 func TestTransport(t *testing.T) {
-	var storage TrxStorage
 	var auth = NewFakeAuth()
 
 	s, err := discovertest.NewServer(http.HandlerFunc(auth.GetSession))
@@ -22,7 +21,6 @@ func TestTransport(t *testing.T) {
 	defer s.Close()
 
 	cache := api.NewCache(auth.Auth)
-	cache.Storage = &storage
 
 	users := []*api.Session{
 		{Username: "user1", Team: "foobar"},
@@ -37,45 +35,26 @@ func TestTransport(t *testing.T) {
 		errs  []error      // fake errors for endpoint
 		codes []int        // fake response codes for endpoint
 		err   error        // final error from client
-		trxs  []Trx        // underlying cache operations
 	}{{
 		"new user1",
 		users[0],
 		nil, nil, nil,
-		[]Trx{
-			{Type: "get", Session: users[0]},
-			{Type: "set", Session: users[0]},
-		},
 	}, {
 		"cached user1",
 		users[0],
 		nil, nil, nil,
-		[]Trx{
-			{Type: "get", Session: users[0]},
-		},
 	}, {
 		"new user2",
 		users[1],
 		nil, nil, nil,
-		[]Trx{
-			{Type: "get", Session: users[1]},
-			{Type: "set", Session: users[1]},
-		},
 	}, {
 		"new user3 with an error",
 		users[2],
 		[]error{&net.DNSError{IsTemporary: true}}, nil, nil,
-		[]Trx{
-			{Type: "get", Session: users[2]},
-			{Type: "set", Session: users[2]},
-		},
 	}, {
 		"cached user3 with an error and response codes",
 		users[2],
 		[]error{&net.DNSError{IsTemporary: true}}, []int{401, 401}, nil,
-		[]Trx{
-			{Type: "get", Session: users[2]},
-		},
 	}}
 
 	rec := &AuthRecorder{
