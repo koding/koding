@@ -5,6 +5,9 @@ import (
 )
 
 const (
+	// KDIOGroupName holds the team name of the kd.io service.
+	KDIOGroupName = "kd-io"
+
 	// PaymentStatusActive holds active payment status
 	PaymentStatusActive = "active"
 

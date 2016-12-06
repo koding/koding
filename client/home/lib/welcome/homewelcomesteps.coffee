@@ -15,6 +15,3 @@ module.exports = class HomeWelcomeSteps extends ReactView
   renderReact: ->
 
     <WelcomeSteps.Container kdParent={this} mini={ @getOption('mini') or no } />
-
-
-
