@@ -12,30 +12,21 @@ var (
 	ErrAddrNotFound = errors.New("address not found")
 )
 
-// IsAddrNotFound is a helper function that checks if provided error describes
-// missing address.
-func IsAddrNotFound(err error) bool {
-	return err == ErrAddrNotFound
-}
-
 // Addr satisfies net.Addr interface. It stores external machine address and
 // a time-stamp which indicates when the address was last seen being valid.
 type Addr struct {
-	// Net represents address network like "ip", "kite" etc.
-	Net string `json:"network"`
+	// Network represents address network like "ip", "kite" etc.
+	Network string `json:"network"`
 
 	// Val stores a string representation of an address.
-	Val string `json:"value"`
+	Value string `json:"value"`
 
-	// Updated stores the address update time.
-	Updated time.Time `json:"updated"`
+	// UpdatedAt stores the address update time.
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// Network returns the name of the network.
-func (a *Addr) Network() string { return a.Net }
-
 // String return a string form of stored address.
-func (a *Addr) String() string { return a.Val }
+func (a *Addr) String() string { return a.Network + " address " + a.Value }
 
 // AddrBook stores and manages multiple machine addresses. Each machine can
 // can change its end point address over time. This can store all of these
@@ -53,8 +44,8 @@ func (ab *AddrBook) Add(a Addr) {
 
 	// If Addr already exists, update only its Updated field.
 	for i := range ab.addrs {
-		if ab.addrs[i].Net == a.Net && ab.addrs[i].Val == a.Val && ab.addrs[i].Updated.Before(a.Updated) {
-			ab.addrs[i].Updated = a.Updated
+		if ab.addrs[i].Network == a.Network && ab.addrs[i].Value == a.Value && ab.addrs[i].UpdatedAt.Before(a.UpdatedAt) {
+			ab.addrs[i].UpdatedAt = a.UpdatedAt
 		}
 	}
 
@@ -67,7 +58,7 @@ func (ab *AddrBook) Has(a Addr) bool {
 	defer ab.mu.RUnlock()
 
 	for i := range ab.addrs {
-		if ab.addrs[i].Net == a.Net && ab.addrs[i].Val == a.Val {
+		if ab.addrs[i].Network == a.Network && ab.addrs[i].Value == a.Value {
 			return true
 		}
 	}
@@ -83,10 +74,10 @@ func (ab *AddrBook) Latest(network string) (Addr, error) {
 
 	t, addr, timeok := time.Time{}, (*Addr)(nil), false
 	for i := range ab.addrs {
-		timeok = t.Before(ab.addrs[i].Updated) || t.Equal(ab.addrs[i].Updated)
-		if network == ab.addrs[i].Net && timeok {
+		timeok = !ab.addrs[i].UpdatedAt.Before(t)
+		if network == ab.addrs[i].Network && timeok {
 			addr = &ab.addrs[i]
-			t = ab.addrs[i].Updated
+			t = ab.addrs[i].UpdatedAt
 		}
 	}
 

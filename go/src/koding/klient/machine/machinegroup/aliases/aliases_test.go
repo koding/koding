@@ -73,8 +73,8 @@ func TestAliasesMachineID(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			id, err := as.MachineID(test.Alias)
-			if notFound := machine.IsMachineNotFound(err); notFound != test.NotFound {
-				t.Fatalf("want err alias not found = %t; got %t", test.NotFound, notFound)
+			if (err == machine.ErrMachineNotFound) != test.NotFound {
+				t.Fatalf("want err machine not found = %t; got %v", test.NotFound, err)
 			}
 
 			if id != test.Expected {
