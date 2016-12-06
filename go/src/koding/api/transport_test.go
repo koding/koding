@@ -37,12 +37,12 @@ func TestTransport(t *testing.T) {
 		errs  []error      // fake errors for endpoint
 		codes []int        // fake response codes for endpoint
 		err   error        // final error from client
-		trx   TrxStorage   // underlying cache operations
+		trxs  []Trx        // underlying cache operations
 	}{{
 		"new user1",
 		users[0],
 		nil, nil, nil,
-		TrxStorage{
+		[]Trx{
 			{Type: "get", Session: users[0]},
 			{Type: "set", Session: users[0]},
 		},
@@ -50,14 +50,14 @@ func TestTransport(t *testing.T) {
 		"cached user1",
 		users[0],
 		nil, nil, nil,
-		TrxStorage{
+		[]Trx{
 			{Type: "get", Session: users[0]},
 		},
 	}, {
 		"new user2",
 		users[1],
 		nil, nil, nil,
-		TrxStorage{
+		[]Trx{
 			{Type: "get", Session: users[1]},
 			{Type: "set", Session: users[1]},
 		},
@@ -65,7 +65,7 @@ func TestTransport(t *testing.T) {
 		"new user3 with an error",
 		users[2],
 		[]error{&net.DNSError{IsTemporary: true}}, nil, nil,
-		TrxStorage{
+		[]Trx{
 			{Type: "get", Session: users[2]},
 			{Type: "set", Session: users[2]},
 		},
@@ -73,7 +73,7 @@ func TestTransport(t *testing.T) {
 		"cached user3 with an error and response codes",
 		users[2],
 		[]error{&net.DNSError{IsTemporary: true}}, []int{401, 401}, nil,
-		TrxStorage{
+		[]Trx{
 			{Type: "get", Session: users[2]},
 		},
 	}}

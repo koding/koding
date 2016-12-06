@@ -24,7 +24,7 @@ func NewFakeAuth() *FakeAuth {
 	}
 }
 
-func (fa FakeAuth) Auth(opts *api.AuthOptions) (*api.Session, error) {
+func (fa *FakeAuth) Auth(opts *api.AuthOptions) (*api.Session, error) {
 	fa.mu.Lock()
 	defer fa.mu.Unlock()
 
@@ -35,13 +35,14 @@ func (fa FakeAuth) Auth(opts *api.AuthOptions) (*api.Session, error) {
 			Username: opts.Session.Username,
 			Team:     opts.Session.Team,
 		}
+
 		fa.Sessions[opts.Session.Key()] = session
 	}
 
 	return session, nil
 }
 
-func (fa FakeAuth) GetSession(w http.ResponseWriter, r *http.Request) {
+func (fa *FakeAuth) GetSession(w http.ResponseWriter, r *http.Request) {
 	var req api.Session
 
 	req.ReadFrom(r)
@@ -92,14 +93,20 @@ type Trx struct {
 	Session *api.Session
 }
 
-type TrxStorage []Trx
+type TrxStorage struct {
+	Trxs []Trx
+
+	mu sync.Mutex
+}
 
 var _ api.Storage = (*TrxStorage)(nil)
 
 func (trx *TrxStorage) Get(s *api.Session) (*api.Session, error) {
-	*trx = append(*trx, Trx{Type: "get", Session: s})
+	trx.mu.Lock()
+	trx.Trxs = append(trx.Trxs, Trx{Type: "get", Session: s})
+	trxS, ok := trx.build()[s.Key()]
+	trx.mu.Unlock()
 
-	trxS, ok := trx.Build()[s.Key()]
 	if !ok {
 		return nil, api.ErrSessionNotFound
 	}
@@ -108,21 +115,28 @@ func (trx *TrxStorage) Get(s *api.Session) (*api.Session, error) {
 }
 
 func (trx *TrxStorage) Set(s *api.Session) error {
-	*trx = append(*trx, Trx{Type: "set", Session: s})
+	trx.mu.Lock()
+	trx.Trxs = append(trx.Trxs, Trx{Type: "set", Session: s})
+	trx.mu.Unlock()
 	return nil
 }
 
 func (trx *TrxStorage) Delete(s *api.Session) error {
-	*trx = append(*trx, Trx{Type: "delete", Session: s})
+	trx.mu.Lock()
+	trx.Trxs = append(trx.Trxs, Trx{Type: "delete", Session: s})
+	trx.mu.Unlock()
 	return nil
 }
 
-func (trx TrxStorage) Match(other TrxStorage) error {
-	if len(trx) != len(other) {
-		return fmt.Errorf("current storage has %d trxs, the other has %d", len(trx), len(other))
+func (trx *TrxStorage) Match(other []Trx) error {
+	trx.mu.Lock()
+	defer trx.mu.Unlock()
+
+	if len(trx.Trxs) != len(other) {
+		return fmt.Errorf("current storage has %d trxs, the other has %d", len(trx.Trxs), len(other))
 	}
 
-	for i, trx := range trx {
+	for i, trx := range trx.Trxs {
 		if trx.Type != other[i].Type {
 			return fmt.Errorf("trx %d is of %q type, the other one is %q",
 				i, trx.Type, other[i].Type)
@@ -136,10 +150,30 @@ func (trx TrxStorage) Match(other TrxStorage) error {
 	return nil
 }
 
-func (trx TrxStorage) Build() map[string]*api.Session {
+func (trx *TrxStorage) Build() map[string]*api.Session {
+	trx.mu.Lock()
+	defer trx.mu.Unlock()
+
+	return trx.build()
+}
+
+func (trx *TrxStorage) Slice(i int) *TrxStorage {
+	trx.mu.Lock()
+	defer trx.mu.Unlock()
+
+	slicedTrx := &TrxStorage{
+		Trxs: make([]Trx, len(trx.Trxs)-i),
+	}
+
+	copy(slicedTrx.Trxs, trx.Trxs[i:])
+
+	return slicedTrx
+}
+
+func (trx *TrxStorage) build() map[string]*api.Session {
 	m := make(map[string]*api.Session)
 
-	for _, trx := range trx {
+	for _, trx := range trx.Trxs {
 		switch trx.Type {
 		case "get":
 			// read-only op, ignore

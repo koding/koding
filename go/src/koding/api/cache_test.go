@@ -2,6 +2,8 @@ package api_test
 
 import (
 	"reflect"
+	"strconv"
+	"sync"
 	"testing"
 
 	"koding/api"
@@ -22,13 +24,13 @@ func TestSessionCache(t *testing.T) {
 	cases := []struct {
 		name string
 		opts *api.AuthOptions // client
-		trxs TrxStorage       // underlying cache operations
+		trxs []Trx            // underlying cache operations
 	}{{
 		"new user1",
 		&api.AuthOptions{
 			Session: users[0],
 		},
-		TrxStorage{
+		[]Trx{
 			{Type: "get", Session: users[0]},
 			{Type: "set", Session: users[0]},
 		},
@@ -37,7 +39,7 @@ func TestSessionCache(t *testing.T) {
 		&api.AuthOptions{
 			Session: users[0],
 		},
-		TrxStorage{
+		[]Trx{
 			{Type: "get", Session: users[0]},
 		},
 	}, {
@@ -56,7 +58,7 @@ func TestSessionCache(t *testing.T) {
 			Session: users[0],
 			Refresh: true,
 		},
-		TrxStorage{
+		[]Trx{
 			{Type: "delete", Session: users[0]},
 			{Type: "set", Session: users[0]},
 		},
@@ -65,7 +67,7 @@ func TestSessionCache(t *testing.T) {
 		&api.AuthOptions{
 			Session: users[1],
 		},
-		TrxStorage{
+		[]Trx{
 			{Type: "get", Session: users[1]},
 			{Type: "set", Session: users[1]},
 		},
@@ -74,7 +76,7 @@ func TestSessionCache(t *testing.T) {
 		&api.AuthOptions{
 			Session: users[2],
 		},
-		TrxStorage{
+		[]Trx{
 			{Type: "get", Session: users[2]},
 			{Type: "set", Session: users[2]},
 		},
@@ -83,7 +85,7 @@ func TestSessionCache(t *testing.T) {
 		&api.AuthOptions{
 			Session: users[3],
 		},
-		TrxStorage{
+		[]Trx{
 			{Type: "get", Session: users[3]},
 			{Type: "set", Session: users[3]},
 		},
@@ -99,14 +101,14 @@ func TestSessionCache(t *testing.T) {
 
 	for _, cas := range cases {
 		t.Run(cas.name, func(t *testing.T) {
-			trxID := len(storage)
+			trxID := len(storage.Trxs)
 
 			_, err := cache.Auth(cas.opts)
 			if err != nil {
 				t.Fatalf("Auth()=%s", err)
 			}
 
-			if err := storage[trxID:].Match(cas.trxs); err != nil {
+			if err := storage.Slice(trxID).Match(cas.trxs); err != nil {
 				t.Fatalf("Match()=%s", err)
 			}
 		})
@@ -124,5 +126,39 @@ func TestSessionCache(t *testing.T) {
 		if _, ok := auth.Sessions[key]; !ok {
 			t.Fatalf("key %q not found in auth", key)
 		}
+	}
+}
+
+func TestSessionCacheParallel(t *testing.T) {
+	var storage TrxStorage
+	var auth = NewFakeAuth()
+
+	cache := api.NewCache(auth.Auth)
+	cache.Storage = &storage
+
+	const ConcurrentAuths = 10
+
+	var wg sync.WaitGroup
+	wg.Add(ConcurrentAuths)
+	for i := 0; i < ConcurrentAuths; i++ {
+		go func(i int) {
+			defer wg.Done()
+			cache.Auth(&api.AuthOptions{
+				Session: &api.Session{
+					Username: "user" + strconv.Itoa(i),
+					Team:     "foobar" + strconv.Itoa(i),
+				},
+			})
+		}(i)
+	}
+
+	wg.Wait()
+
+	if sessions := storage.Build(); !reflect.DeepEqual(sessions, auth.Sessions) {
+		t.Fatalf("got %+v, want %+v", sessions, auth.Sessions)
+	}
+
+	if len(auth.Sessions) != ConcurrentAuths {
+		t.Fatalf("want len(auth)=%d; got: %d", ConcurrentAuths, len(auth.Sessions))
 	}
 }
