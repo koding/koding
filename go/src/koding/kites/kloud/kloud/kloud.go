@@ -8,6 +8,7 @@ import (
 	"log"
 	_ "net/http/pprof"
 	"net/url"
+	"socialapi/workers/presence/client"
 	"strings"
 	"time"
 
@@ -137,6 +138,8 @@ type Config struct {
 
 	// RemoteAPIURL configures the endpoint URL for remote.api.
 	RemoteAPIURL string
+	// SocialProxyURL configures the endpoint URL for internal socialapi proxy host.
+	SocialProxyURL string
 }
 
 // New gives new, registered kloud kite.
@@ -198,11 +201,16 @@ func New(conf *Config) (*Kloud, error) {
 		sess.Log.Warning(`disabling "remote.api" for stack operations`)
 	}
 
+	restClient := httputil.DefaultRestClient(conf.DebugMode)
+
+	pinger := client.NewInternal(conf.SocialProxyURL)
+	pinger.HTTPClient = restClient
+
 	storeOpts := &credential.Options{
 		MongoDB: sess.DB,
 		Log:     sess.Log.New("stackcred"),
 		CredURL: credURL,
-		Client:  httputil.DefaultRestClient(conf.DebugMode),
+		Client:  restClient,
 	}
 
 	userPrivateKey, userPublicKey := userMachinesKeys(conf.UserPublicKey, conf.UserPrivateKey)
@@ -304,7 +312,7 @@ func New(conf *Config) (*Kloud, error) {
 	k.HandleFunc("credential.add", kloud.Stack.CredentialAdd)
 
 	// Authorization handling.
-	k.HandleFunc("auth.login", kloud.Stack.AuthLogin)
+	k.HandleFunc("auth.login", kloud.Stack.AuthLogin(pinger))
 
 	// Team handling.
 	k.HandleFunc("team.list", kloud.Stack.TeamList)
