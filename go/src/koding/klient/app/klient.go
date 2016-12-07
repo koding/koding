@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"koding/api"
-	"koding/api/apikite"
+	"koding/api/apiutil"
 	"koding/api/presence"
 	"koding/httputil"
 	cfg "koding/kites/config"
@@ -126,7 +126,7 @@ type Klient struct {
 
 	presence      *presence.Client
 	presenceEvery *onceevery.OnceEvery
-	kloud         *apikite.LazyKite
+	kloud         *apiutil.LazyKite
 	teamMu        sync.Mutex
 	team          *stack.Team
 }
@@ -314,16 +314,16 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		Key:  k.Config.KiteKey,
 	}
 
-	kloud := &apikite.LazyKite{
+	kloud := &apiutil.LazyKite{
 		Client: c,
 	}
 
 	restClient := httputil.DefaultRestClient(konfig.Konfig.Debug)
 	restClient.Transport = &api.Transport{
 		RoundTripper: restClient.Transport,
-		AuthFunc: (&apikite.KloudAuth{
+		AuthFunc: (&apiutil.KloudAuth{
 			Kite: kloud,
-			Storage: &apikite.Storage{
+			Storage: &apiutil.Storage{
 				&cfg.Cache{
 					EncodingStorage: storage.NewEncodingStorage(db, []byte("klient")),
 				},

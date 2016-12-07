@@ -1,4 +1,4 @@
-package apikite
+package apiutil
 
 import (
 	"sync"
