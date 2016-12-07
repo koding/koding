@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	_ "net/http/pprof"
 	"net/url"
 	"socialapi/workers/presence/client"
@@ -32,6 +33,7 @@ import (
 	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
 	"koding/remoteapi"
+	"koding/socialapi"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/koding/kite"
@@ -244,13 +246,46 @@ func New(conf *Config) (*Kloud, error) {
 		},
 	}
 
+	authFn := func(opts *socialapi.AuthOptions) (*socialapi.Session, error) {
+		s, err := modelhelper.FetchOrCreateSession(opts.Session.Username, opts.Session.Team)
+		if err != nil {
+			return nil, err
+		}
+
+		return &socialapi.Session{
+			Username: s.Username,
+			Team:     s.GroupName,
+			ClientID: s.ClientId,
+		}, nil
+	}
+
+	transport := &socialapi.Transport{
+		RoundTripper: storeOpts.Client.Transport,
+		AuthFunc:     socialapi.NewCache(authFn).Auth,
+	}
+
 	kloud.Stack.DescribeFunc = provider.Desc
 	kloud.Stack.CredClient = credential.NewClient(storeOpts)
 	kloud.Stack.MachineClient = machine.NewClient(machine.NewMongoDatabase())
 	kloud.Stack.TeamClient = team.NewClient(team.NewMongoDatabase())
 	kloud.Stack.RemoteClient = &remoteapi.Client{
-		Endpoint: remoteURL,
-		Client:   storeOpts.Client,
+		Client:    storeOpts.Client,
+		Transport: transport,
+	}
+
+	if remoteURL != nil {
+		transport.Host = remoteURL.Host
+
+		localRemoteURL := *remoteURL
+
+		// TODO(rjeczalik): Add PrivateRemoteURL to koding/config.
+		if _, port, err := net.SplitHostPort(localRemoteURL.Host); err == nil {
+			localRemoteURL.Host = net.JoinHostPort("127.0.0.1", port)
+		} else {
+			localRemoteURL.Host = "127.0.0.1"
+		}
+
+		kloud.Stack.RemoteClient.Endpoint = &localRemoteURL
 	}
 
 	kloud.Stack.ContextCreator = func(ctx context.Context) context.Context {
