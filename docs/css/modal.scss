@@ -72,6 +72,22 @@ $shakespeare: #56A2D3;
   }
 }
 
+@media screen and (max-width: 660px) {
+  body .Modal.Modal--withVideo {
+    width: 100%;
+    padding-bottom: 57%;
+    height: auto;
+
+    iframe, object, embed {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+  }
+}
+
 @media only screen and (min--moz-device-pixel-ratio: 2),
 only screen and (-o-min-device-pixel-ratio: 2/1),
 only screen and (-webkit-min-device-pixel-ratio: 2),
