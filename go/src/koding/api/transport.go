@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 )
 
 const maxBodyLen = 2 << 20 // 2 MiB
@@ -134,6 +135,13 @@ type Transport struct {
 	UserFunc          UserFunc // used to get a user from request to authenticate for; by default looked up with UserContextKey
 	Host              string   // original Host name, overwrites req.Host; optional
 	RetryNum          int      // number of retries in case of temporary failures; optional, by default 3
+
+	// request mapping implementation stolen from:
+	//
+	//   https://github.com/golang/oauth2/blob/master/transport.go
+	//
+	mu     sync.Mutex                      // guards modReq
+	modReq map[*http.Request]*http.Request // original -> modified
 }
 
 var _ httpTransport = (*Transport)(nil)
@@ -161,6 +169,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 
 	reqCopy := copyRequest(req) // per RoundTripper contract
+	t.setModReq(req, reqCopy)
 
 	switch reqCopy.Body.(type) {
 	case nil:
@@ -217,6 +226,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		}
 
 		if err != nil {
+			t.setModReq(req, nil)
 			return nil, err // non-retryable
 		}
 
@@ -227,15 +237,27 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 			continue // retry and force new session
 		}
 
+		resp.Body = &onEOFReader{
+			rc: resp.Body,
+			fn: func() { t.setModReq(req, nil) },
+		}
+
 		return resp, nil
 	}
+
+	t.setModReq(req, nil)
 
 	return nil, fmt.Errorf("api: error sending request: %v", lastErr)
 }
 
 func (t *Transport) CancelRequest(req *http.Request) {
 	if rc, ok := t.roundTripper().(httpRequestCanceler); ok {
-		rc.CancelRequest(req)
+		t.mu.Lock()
+		modReq := t.modReq[req]
+		delete(t.modReq, req)
+		t.mu.Unlock()
+
+		rc.CancelRequest(modReq)
 	}
 }
 
@@ -272,6 +294,19 @@ func (t *Transport) retryNum() int {
 	return 3
 }
 
+func (t *Transport) setModReq(orig, mod *http.Request) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if t.modReq == nil {
+		t.modReq = make(map[*http.Request]*http.Request)
+	}
+	if mod == nil {
+		delete(t.modReq, orig)
+	} else {
+		t.modReq[orig] = mod
+	}
+}
+
 func copyURL(u *url.URL) *url.URL {
 	uCopy := *u
 	if u.User != nil {
@@ -291,4 +326,30 @@ func copyRequest(req *http.Request) *http.Request {
 		reqCopy.Header[k] = append([]string(nil), s...)
 	}
 	return reqCopy
+}
+
+type onEOFReader struct {
+	rc io.ReadCloser
+	fn func()
+}
+
+func (r *onEOFReader) Read(p []byte) (n int, err error) {
+	n, err = r.rc.Read(p)
+	if err == io.EOF {
+		r.runFunc()
+	}
+	return
+}
+
+func (r *onEOFReader) Close() error {
+	err := r.rc.Close()
+	r.runFunc()
+	return err
+}
+
+func (r *onEOFReader) runFunc() {
+	if fn := r.fn; fn != nil {
+		fn()
+		r.fn = nil
+	}
 }
