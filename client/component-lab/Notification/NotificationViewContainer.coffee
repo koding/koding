@@ -60,8 +60,8 @@ module.exports = class NotificationViewContainer extends ReactView
 
     { enter, leave } = @getAnimationProps()
     className = if @options.notifications.length
-      then ''
-      else 'hidden'
+    then ''
+    else 'hidden'
     <div className={[styles.kd_notification_list, className]}>
       <FlipMove
         enterAnimation={enter}
