@@ -23,10 +23,10 @@ func TestTransport(t *testing.T) {
 	cache := api.NewCache(auth.Auth)
 
 	users := []*api.Session{
-		{Username: "user1", Team: "foobar"},
-		{Username: "user2", Team: "foobar"},
-		{Username: "user3", Team: "foobar"},
-		{Username: "user", Team: "team"},
+		{User: &api.User{Username: "user1", Team: "foobar"}},
+		{User: &api.User{Username: "user2", Team: "foobar"}},
+		{User: &api.User{Username: "user3", Team: "foobar"}},
+		{User: &api.User{Username: "user", Team: "team"}},
 	}
 
 	cases := []struct {
@@ -77,7 +77,7 @@ func TestTransport(t *testing.T) {
 				t.Fatalf("NewRequest()=%s", err)
 			}
 
-			req = cas.sess.WithRequest(req)
+			req = cas.sess.User.WithRequest(req)
 
 			if len(cas.errs) != 0 {
 				req = WithErrors(req, cas.errs...)

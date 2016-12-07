@@ -15,7 +15,7 @@ type Storage interface {
 	//
 	// It returns ErrSessionNotFound if requested
 	// session was not cached.
-	Get(*Session) (*Session, error)
+	Get(*User) (*Session, error)
 
 	// Set sets a session.
 	//
@@ -65,30 +65,14 @@ func NewCache(fn AuthFunc) *SessionCache {
 //   }
 //
 func (s *SessionCache) Auth(opts *AuthOptions) (*Session, error) {
-	if s.AuthFunc == nil {
-		panic("api: AuthFunc is nil")
-	}
-
-	session := opts.Session
-
-	if session == nil {
-		return nil, errors.New("cannot determine user session")
-	}
-
-	// Early return - return existing session if it's valid
-	// and we were not ask to invalidate it.
-	if err := session.Valid(); err == nil && !opts.Refresh {
-		return session, nil
-	}
-
 	if !opts.Refresh {
-		cachedSession, err := s.Storage.Get(session)
+		session, err := s.Storage.Get(opts.User)
 
 		switch err {
 		case ErrSessionNotFound:
 			// continue
 		case nil:
-			return cachedSession, nil
+			return session, nil
 		default:
 			return nil, err
 		}
@@ -136,9 +120,9 @@ func newDefaultStorage() *defaultStorage {
 	}
 }
 
-func (ds *defaultStorage) Get(s *Session) (*Session, error) {
+func (ds *defaultStorage) Get(u *User) (*Session, error) {
 	ds.cacheMu.Lock()
-	session, ok := ds.cache[s.Key()]
+	session, ok := ds.cache[u.String()]
 	ds.cacheMu.Unlock()
 
 	if !ok {
@@ -150,7 +134,7 @@ func (ds *defaultStorage) Get(s *Session) (*Session, error) {
 
 func (ds *defaultStorage) Set(s *Session) error {
 	ds.cacheMu.Lock()
-	ds.cache[s.Key()] = s
+	ds.cache[s.User.String()] = s
 	ds.cacheMu.Unlock()
 
 	return nil
@@ -158,7 +142,7 @@ func (ds *defaultStorage) Set(s *Session) error {
 
 func (ds *defaultStorage) Delete(s *Session) error {
 	ds.cacheMu.Lock()
-	delete(ds.cache, s.Key())
+	delete(ds.cache, s.User.String())
 	ds.cacheMu.Unlock()
 
 	return nil

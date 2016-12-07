@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"koding/api"
-	"koding/kites/kloud/utils"
 )
 
 func TestSessionCache(t *testing.T) {
@@ -15,10 +14,15 @@ func TestSessionCache(t *testing.T) {
 	var auth = NewFakeAuth()
 
 	users := []*api.Session{
-		{Username: "user1", Team: "foobar"},
-		{Username: "user2", Team: "foobar"},
-		{Username: "user3", Team: "foobar"},
-		{Username: "user", Team: "team"},
+		{User: &api.User{Username: "user1", Team: "foobar"}},
+		{User: &api.User{Username: "user2", Team: "foobar"}},
+		{User: &api.User{Username: "user3", Team: "foobar"}},
+		{User: &api.User{Username: "user", Team: "team"}},
+	}
+
+	usernames := make(map[string]struct{}, len(users))
+	for _, user := range users {
+		usernames[user.User.String()] = struct{}{}
 	}
 
 	cases := []struct {
@@ -28,7 +32,7 @@ func TestSessionCache(t *testing.T) {
 	}{{
 		"new user1",
 		&api.AuthOptions{
-			Session: users[0],
+			User: users[0].User,
 		},
 		[]Trx{
 			{Type: "get", Session: users[0]},
@@ -37,25 +41,15 @@ func TestSessionCache(t *testing.T) {
 	}, {
 		"already cached user",
 		&api.AuthOptions{
-			Session: users[0],
+			User: users[0].User,
 		},
 		[]Trx{
 			{Type: "get", Session: users[0]},
 		},
 	}, {
-		"nop on valid session",
-		&api.AuthOptions{
-			Session: &api.Session{
-				ClientID: utils.RandString(12),
-				Username: users[0].Username,
-				Team:     users[0].Team,
-			},
-		},
-		nil,
-	}, {
 		"invalide session of a cached user",
 		&api.AuthOptions{
-			Session: users[0],
+			User:    users[0].User,
 			Refresh: true,
 		},
 		[]Trx{
@@ -65,7 +59,7 @@ func TestSessionCache(t *testing.T) {
 	}, {
 		"new user2",
 		&api.AuthOptions{
-			Session: users[1],
+			User: users[1].User,
 		},
 		[]Trx{
 			{Type: "get", Session: users[1]},
@@ -74,7 +68,7 @@ func TestSessionCache(t *testing.T) {
 	}, {
 		"new user3",
 		&api.AuthOptions{
-			Session: users[2],
+			User: users[2].User,
 		},
 		[]Trx{
 			{Type: "get", Session: users[2]},
@@ -83,18 +77,13 @@ func TestSessionCache(t *testing.T) {
 	}, {
 		"new user",
 		&api.AuthOptions{
-			Session: users[3],
+			User: users[3].User,
 		},
 		[]Trx{
 			{Type: "get", Session: users[3]},
 			{Type: "set", Session: users[3]},
 		},
 	}}
-
-	allKeys := make(map[string]struct{}, len(cases))
-	for _, cas := range cases {
-		allKeys[cas.opts.Session.Key()] = struct{}{}
-	}
 
 	cache := api.NewCache(auth.Auth)
 	cache.Storage = &storage
@@ -118,13 +107,13 @@ func TestSessionCache(t *testing.T) {
 		t.Fatalf("got %+v, want %+v", sessions, auth.Sessions)
 	}
 
-	if len(auth.Sessions) != len(allKeys) {
-		t.Fatalf("want len(auth)=%d == len(allKeys)=%d", len(auth.Sessions), len(allKeys))
+	if len(auth.Sessions) != len(usernames) {
+		t.Fatalf("want len(auth)=%d == len(allKeys)=%d", len(auth.Sessions), len(usernames))
 	}
 
-	for key := range allKeys {
-		if _, ok := auth.Sessions[key]; !ok {
-			t.Fatalf("key %q not found in auth", key)
+	for username := range usernames {
+		if _, ok := auth.Sessions[username]; !ok {
+			t.Fatalf("username %q not found in auth", username)
 		}
 	}
 }
@@ -144,7 +133,7 @@ func TestSessionCacheParallel(t *testing.T) {
 		go func(i int) {
 			defer wg.Done()
 			cache.Auth(&api.AuthOptions{
-				Session: &api.Session{
+				User: &api.User{
 					Username: "user" + strconv.Itoa(i),
 					Team:     "foobar" + strconv.Itoa(i),
 				},

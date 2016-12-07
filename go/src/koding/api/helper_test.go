@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -28,15 +29,17 @@ func (fa *FakeAuth) Auth(opts *api.AuthOptions) (*api.Session, error) {
 	fa.mu.Lock()
 	defer fa.mu.Unlock()
 
-	session, ok := fa.Sessions[opts.Session.Key()]
+	session, ok := fa.Sessions[opts.User.String()]
 	if !ok || opts.Refresh {
 		session = &api.Session{
 			ClientID: utils.RandString(12),
-			Username: opts.Session.Username,
-			Team:     opts.Session.Team,
+			User: &api.User{
+				Username: opts.User.Username,
+				Team:     opts.User.Team,
+			},
 		}
 
-		fa.Sessions[opts.Session.Key()] = session
+		fa.Sessions[opts.User.String()] = session
 	}
 
 	return session, nil
@@ -74,9 +77,9 @@ type AuthRecorder struct {
 }
 
 func (ar *AuthRecorder) Auth(opts *api.AuthOptions) (*api.Session, error) {
-	sessionCopy := *opts.Session
+	userCopy := *opts.User
 	optsCopy := *opts
-	optsCopy.Session = &sessionCopy
+	optsCopy.User = &userCopy
 	optsCopy.Request = nil
 
 	ar.Options = append(ar.Options, &optsCopy)
@@ -101,10 +104,10 @@ type TrxStorage struct {
 
 var _ api.Storage = (*TrxStorage)(nil)
 
-func (trx *TrxStorage) Get(s *api.Session) (*api.Session, error) {
+func (trx *TrxStorage) Get(u *api.User) (*api.Session, error) {
 	trx.mu.Lock()
-	trx.Trxs = append(trx.Trxs, Trx{Type: "get", Session: s})
-	trxS, ok := trx.build()[s.Key()]
+	trx.Trxs = append(trx.Trxs, Trx{Type: "get", Session: &api.Session{User: u}})
+	trxS, ok := trx.build()[u.String()]
 	trx.mu.Unlock()
 
 	if !ok {
@@ -178,9 +181,9 @@ func (trx *TrxStorage) build() map[string]*api.Session {
 		case "get":
 			// read-only op, ignore
 		case "set":
-			m[trx.Session.Key()] = trx.Session
+			m[trx.Session.User.String()] = trx.Session
 		case "delete":
-			delete(m, trx.Session.Key())
+			delete(m, trx.Session.User.String())
 		}
 	}
 
@@ -255,6 +258,7 @@ func WithResponseCodes(req *http.Request, codes ...int) *http.Request {
 
 	for i, code := range codes {
 		resps[i] = &http.Response{
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte{})),
 			StatusCode: code,
 		}
 	}

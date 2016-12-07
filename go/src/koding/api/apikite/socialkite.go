@@ -110,7 +110,7 @@ func (ka *KloudAuth) Auth(opts *api.AuthOptions) (*api.Session, error) {
 }
 
 func (ka *KloudAuth) rpcAuth(opts *api.AuthOptions) (*api.Session, error) {
-	var req = &stack.LoginRequest{GroupName: opts.Session.Team}
+	var req = &stack.LoginRequest{GroupName: opts.User.Team}
 	var resp stack.LoginResponse
 
 	if err := ka.Kite.Call("auth.login", req, &resp); err != nil {
@@ -121,8 +121,10 @@ func (ka *KloudAuth) rpcAuth(opts *api.AuthOptions) (*api.Session, error) {
 		ClientID: resp.ClientID,
 		// TODO(rjeczalik): add Username field to stack.LoginResponse
 		// Username: resp.Username,
-		Username: opts.Session.Username,
-		Team:     resp.GroupName,
+		User: &api.User{
+			Username: opts.User.Username,
+			Team:     resp.GroupName,
+		},
 	}, nil
 }
 
@@ -134,14 +136,14 @@ type Storage struct {
 var _ api.Storage = (*Storage)(nil)
 
 // Get implements the api.Storage interface.
-func (st *Storage) Get(s *api.Session) (*api.Session, error) {
+func (st *Storage) Get(u *api.User) (*api.Session, error) {
 	var sessions map[string]api.Session
 
 	if err := st.Cache.GetValue("auth.sessions", &sessions); err != nil {
 		return nil, err
 	}
 
-	session, ok := sessions[s.Key()]
+	session, ok := sessions[u.String()]
 	if !ok {
 		return nil, api.ErrSessionNotFound
 	}
@@ -157,7 +159,7 @@ func (st *Storage) Set(s *api.Session) error {
 		return err
 	}
 
-	sessions[s.Key()] = *s
+	sessions[s.User.String()] = *s
 
 	return st.Cache.SetValue("auth.sessions", sessions)
 }
@@ -170,7 +172,7 @@ func (st *Storage) Delete(s *api.Session) error {
 		return err
 	}
 
-	delete(sessions, s.Key())
+	delete(sessions, s.User.String())
 
 	return st.Cache.SetValue("auth.sessions", sessions)
 }

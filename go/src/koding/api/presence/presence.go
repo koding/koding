@@ -26,7 +26,7 @@ func (c *Client) Ping(username, team string) error {
 		return err
 	}
 
-	req = (&api.Session{
+	req = (&api.User{
 		Username: username,
 		Team:     team,
 	}).WithRequest(req)

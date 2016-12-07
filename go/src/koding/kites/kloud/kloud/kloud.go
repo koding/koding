@@ -236,15 +236,17 @@ func New(conf *Config) (*Kloud, error) {
 	}
 
 	authFn := func(opts *api.AuthOptions) (*api.Session, error) {
-		s, err := modelhelper.FetchOrCreateSession(opts.Session.Username, opts.Session.Team)
+		s, err := modelhelper.FetchOrCreateSession(opts.User.Username, opts.User.Team)
 		if err != nil {
 			return nil, err
 		}
 
 		return &api.Session{
-			Username: s.Username,
-			Team:     s.GroupName,
 			ClientID: s.ClientId,
+			User: &api.User{
+				Username: s.Username,
+				Team:     s.GroupName,
+			},
 		}, nil
 	}
 

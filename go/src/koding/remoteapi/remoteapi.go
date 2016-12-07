@@ -39,9 +39,9 @@ type Client struct {
 	Transport *api.Transport
 }
 
-func (c *Client) New(session *api.Session) *client.Koding {
+func (c *Client) New(user *api.User) *client.Koding {
 	httpClient := &http.Client{
-		Transport: c.Transport.NewSingleClient(session),
+		Transport: c.Transport.NewSingleUser(user),
 		Jar:       http.DefaultClient.Jar,
 		Timeout:   http.DefaultClient.Timeout,
 	}
