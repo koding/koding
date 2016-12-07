@@ -72,7 +72,7 @@ func AuthCreditCard(u *url.URL, h http.Header, req *stripe.ChargeParams, context
 	chargeParams := &stripe.ChargeParams{
 		Amount:   50, // fifty cent
 		Currency: "usd",
-		Desc:     "AUTH FOR KODING REGISTERATION",
+		Desc:     "AUTH FOR KODING REGISTRATION",
 		Source:   req.Source,
 		Email:    req.Email,
 		// this will help us with validating the request.
