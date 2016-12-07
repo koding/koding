@@ -1,3 +1,5 @@
+# coffeelint: disable=duplicate_key
+
 KONFIG         = require 'koding-config-manager'
 async          = require 'async'
 { Module }     = require 'jraphical'
