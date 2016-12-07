@@ -267,9 +267,15 @@ module.exports = class StackEditorView extends kd.View
       cssClass: 'readme-action-wrapper hidden'
 
     @readMeActionWrapper.addSubView new kd.ButtonView
+      cssClass: 'upload-file-button'
+      partial : 'Attach image files by dragging & dropping or <span>selecing them</span>.'
+      callback: => @readmeView.emit 'openFileInputCallback'
+
+    @readMeActionWrapper.addSubView new kd.ButtonView
       title    : 'PREVIEW'
       cssClass : 'HomeAppView--button secondary preview'
       callback : => @readmeView.emit 'ShowReadMePreview'
+
 
     @addSubView @stackTemplateActionWrapper
     @addSubView @readMeActionWrapper
@@ -489,6 +495,7 @@ module.exports = class StackEditorView extends kd.View
     @stackTemplateView.on 'ReinitStack',         @bound 'handleReinit'
 
     @readmeView.on 'ShowReadMePreview', @bound 'handleReadMePreview'
+    @readmeView.on 'openFileInputCallback', @bound 'handleFileInputCallback'
 
     @reinitButton  = @outputView.reinitButton
 
@@ -940,6 +947,10 @@ module.exports = class StackEditorView extends kd.View
         HomeActions.markAsDone 'stackCreation'
 
       callback err, stackTemplate
+
+  handleFileInputCallback: ->
+
+    @readmeView.uploadFileInput.domElement[0].click()
 
 
   handleReadMePreview: ->
