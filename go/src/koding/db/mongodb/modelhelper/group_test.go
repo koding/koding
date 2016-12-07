@@ -131,12 +131,29 @@ func TestGetGroupForKite(t *testing.T) {
 		}
 	}
 
-	team, err := modelhelper.GetGroupForKite("64d81792-1691-49b1-b291-54122096b1ec")
-	if err != nil {
-		t.Fatalf("GetGroupForKite()=%s", err)
+	cases := map[string]struct {
+		opts *modelhelper.LookupGroupOptions
+		id   bson.ObjectId
+	}{
+		"lookup by questString": {
+			&modelhelper.LookupGroupOptions{
+				Username: "user",
+				KiteID:   "64d81792-1691-49b1-b291-54122096b1ec",
+			},
+			g.Id,
+		},
 	}
 
-	if team.Id != g.Id {
-		t.Fatalf("got %q, want %q", g.Id.Hex(), team.Id.Hex())
+	for name, cas := range cases {
+		t.Run(name, func(t *testing.T) {
+			team, err := modelhelper.LookupGroup(cas.opts)
+			if err != nil {
+				t.Fatalf("GetGroupForKite()=%s", err)
+			}
+
+			if team.Id != cas.id {
+				t.Fatalf("got %q, want %q", team.Id.Hex(), cas.id.Hex())
+			}
+		})
 	}
 }
