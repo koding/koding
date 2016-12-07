@@ -4,6 +4,7 @@ ReactView = require 'app/react/reactview'
 NotificationView = require './NotificationView'
 FlipMove = require 'react-flip-move'
 
+generateClassName = require 'classnames'
 styles = require './Notification.stylus'
 
 module.exports = class NotificationViewContainer extends ReactView
@@ -50,19 +51,26 @@ module.exports = class NotificationViewContainer extends ReactView
 
       @options.notifications.map (notification, index) =>
         <NotificationView
-        index={index}
-        key={notification.uid}
-        notification={notification}
-        onRemove={@bound 'onNotificationRemove'} />
+          index={index}
+          key={notification.uid}
+          notification={notification}
+          onRemove={@bound 'onNotificationRemove'} />
 
 
   renderReact: ->
 
     { enter, leave } = @getAnimationProps()
-    className = if @options.notifications.length
+
+    stateClass = if @options.notifications.length
     then ''
     else 'hidden'
-    <div className={[styles.kd_notification_list, className]}>
+
+    className = generateClassName [
+      styles.kd_notification_list
+      stateClass
+    ]
+
+    <div className={className}>
       <FlipMove
         enterAnimation={enter}
         leaveAnimation={leave}>
