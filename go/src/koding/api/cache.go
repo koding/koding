@@ -2,16 +2,9 @@ package api
 
 import (
 	"errors"
-	"unsafe"
 
 	"github.com/koding/cache"
 )
-
-// DefaultMaxCacheSize sets a limit of memory to use
-// for in-memory caching of the sessions.
-//
-// It applies only for default, in-memory cache.
-var DefaultCacheSize = 256 // in MiB
 
 // ErrSessionNotFound is returned by Storage.Get
 // when requested session was not found.
@@ -121,10 +114,8 @@ type defaultStorage struct {
 var _ Storage = (*defaultStorage)(nil)
 
 func newDefaultStorage() *defaultStorage {
-	n := DefaultCacheSize * 1024 * 1024 / int(unsafe.Sizeof(Session{}))
-
 	return &defaultStorage{
-		cache: cache.NewLRU(n),
+		cache: cache.NewLRU(2000),
 	}
 }
 
