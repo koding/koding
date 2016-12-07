@@ -186,8 +186,8 @@ Actions = (options) ->
 
   {notification, onPrimaryButtonClick, onSecondaryButtonClick} = options
   actionsClass = if not notification.secondaryButtonTitle
-    then styles.kd_notification_single_action 
-    else styles.kd_notification_multiple_actions
+  then styles.kd_notification_single_action
+  else styles.kd_notification_multiple_actions
   <div className={styles.kd_notification_actions}>
     <div className={actionsClass}>
       {
