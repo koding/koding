@@ -31,11 +31,11 @@ module.exports = class ReadmeView extends kd.View
       contentType : 'md'
 
     @uploadFileInput  = @addSubView new kd.InputView
-        type       : 'file'
-        cssClass   : 'hidden'
-        change     : @bound 'uploadInputChange'
-        attributes :
-          accept   : 'image/jpeg,image/jpg,image/jpeg,image/gif,image/png'
+      type       : 'file'
+      cssClass   : 'hidden'
+      change     : @bound 'uploadInputChange'
+      attributes :
+        accept   : 'image/jpeg,image/jpg,image/jpeg,image/gif,image/png'
 
   viewAppended: ->
 
@@ -69,19 +69,19 @@ module.exports = class ReadmeView extends kd.View
     @editorView.aceView.ace.editor.setReadOnly yes
 
 
-  openFileInput: () ->
+  openFileInput: ->
 
     @uploadFileInput.domElement[0].click()
 
 
-  setFileInputToUpload: (event)->
+  setFileInputToUpload: (event) ->
 
-    supportedFormats = ['image/jpg','image/jpeg','image/gif','image/png']
+    supportedFormats = ['image/jpg', 'image/jpeg', 'image/gif', 'image/png']
 
     for val in event.dataTransfer.files
 
       fileSize = val.size
-      if !val.type in supportedFormats or fileSize > 20000000 or fileSize < 2000
+      if not val.type in supportedFormats or fileSize > 20000000 or fileSize < 2000
         @handleUploadError val.name
         return false
 
@@ -132,8 +132,15 @@ module.exports = class ReadmeView extends kd.View
       timeout : 30000
     , (err, url) =>
 
-      whereToReplace = editorView.editor.find("[Uploading #{content.name}...]",
-        { wrap: true, caseSensitive: false, wholeWord: false, regExp: false, preventScroll: true})
+      whereToReplace = editorView.editor.find(
+        "[Uploading #{content.name}...]", {
+          wrap: yes
+          caseSensitive: no
+          wholeWord: no
+          regExp: no
+          preventScroll: yes
+        }
+      )
 
       if err
         editorView.editor.replace('', whereToReplace)
