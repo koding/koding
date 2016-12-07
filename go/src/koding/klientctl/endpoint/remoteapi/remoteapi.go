@@ -21,10 +21,10 @@ type Client struct {
 	c    *remoteapi.Client
 }
 
-func (c *Client) New(session *api.Session) *client.Koding {
+func (c *Client) New(user *api.User) *client.Koding {
 	c.init()
 
-	return c.c.New(session)
+	return c.c.New(user)
 }
 
 func (c *Client) init() {
@@ -48,4 +48,4 @@ func (c *Client) kloud() *kloud.Client {
 	return kloud.DefaultClient
 }
 
-func New(session *api.Session) *client.Koding { return DefaultClient.New(session) }
+func New(user *api.User) *client.Koding { return DefaultClient.New(user) }
