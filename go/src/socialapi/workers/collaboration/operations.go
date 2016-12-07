@@ -67,8 +67,8 @@ func (c *Controller) EndPrivateMessage(ping *models.Ping) error {
 	ws, err := modelhelper.GetWorkspaceByChannelId(
 		strconv.FormatInt(ping.ChannelId, 10),
 	)
-	if checkErr(err) {
-		return err
+	if err != nil {
+		return filterErr(err)
 	}
 
 	return modelhelper.UnsetSocialChannelFromWorkspace(ws.ObjectId)
@@ -84,8 +84,8 @@ func (c *Controller) UnshareVM(ping *models.Ping, toBeRemovedUsers []bson.Object
 	ws, err := modelhelper.GetWorkspaceByChannelId(
 		strconv.FormatInt(ping.ChannelId, 10),
 	)
-	if checkErr(err) {
-		return err
+	if err != nil {
+		return filterErr(err)
 	}
 
 	if len(toBeRemovedUsers) == 0 {
@@ -99,13 +99,13 @@ func (c *Controller) findToBeRemovedUsers(ping *models.Ping) ([]bson.ObjectId, e
 	ws, err := modelhelper.GetWorkspaceByChannelId(
 		strconv.FormatInt(ping.ChannelId, 10),
 	)
-	if checkErr(err) {
-		return nil, err
+	if err != nil {
+		return nil, filterErr(err)
 	}
 
 	machine, err := modelhelper.GetMachineByUid(ws.MachineUID)
-	if checkErr(err) {
-		return nil, err
+	if err != nil {
+		return nil, filterErr(err)
 	}
 
 	ownerMachineUser := machine.Owner()
@@ -115,27 +115,27 @@ func (c *Controller) findToBeRemovedUsers(ping *models.Ping) ([]bson.ObjectId, e
 	}
 
 	ownerAccount, err := modelhelper.GetAccountByUserId(ownerMachineUser.Id)
-	if checkErr(err) {
-		return nil, err
+	if err != nil {
+		return nil, filterErr(err)
 	}
 
 	//	get workspaces of the owner
 	ownersWorkspaces, err := modelhelper.GetWorkspaces(ownerAccount.Id)
-	if checkErr(err) {
-		return nil, err
+	if err != nil {
+		return nil, filterErr(err)
 	}
 
 	users := partitionUsers(ownerAccount, ownersWorkspaces, ws)
 
-	toBeRemovedUsers := make([]bson.ObjectId, 0)
-	for accountId, count := range users {
+	var toBeRemovedUsers []bson.ObjectId
+	for accountID, count := range users {
 		// if we count the user more than once, that means user is in another
 		// workspace too
 		if count > 1 {
 			continue
 		}
 
-		u, err := modelhelper.GetUserByAccountId(accountId)
+		u, err := modelhelper.GetUserByAccountId(accountID)
 		if err != nil {
 			return nil, err
 		}
@@ -143,7 +143,7 @@ func (c *Controller) findToBeRemovedUsers(ping *models.Ping) ([]bson.ObjectId, e
 		toBeRemovedUsers = append(toBeRemovedUsers, u.ObjectId)
 	}
 
-	filteredUsers := make([]bson.ObjectId, 0)
+	var filteredUsers []bson.ObjectId
 	permanentUsers := make(map[string]struct{})
 	for _, user := range machine.Users {
 		if user.Permanent {
@@ -160,12 +160,14 @@ func (c *Controller) findToBeRemovedUsers(ping *models.Ping) ([]bson.ObjectId, e
 	return filteredUsers, nil
 }
 
-func checkErr(err error) bool {
-	if err == mgo.ErrNotFound {
-		return true
+// filterErr filters unwanted errors, this is useful on which cases we should
+// retry the operation.
+func filterErr(err error) error {
+	if err == mgo.ErrNotFound { // do not retry on mongo not found
+		return nil
 	}
 
-	return err != nil
+	return err
 }
 
 func partitionUsers(ownerAccount *mongomodels.Account, ownersWorkspaces []*mongomodels.Workspace, ws *mongomodels.Workspace) map[string]int {
@@ -176,13 +178,13 @@ func partitionUsers(ownerAccount *mongomodels.Account, ownersWorkspaces []*mongo
 			continue
 		}
 
-		channelId, err := strconv.ParseInt(ownerWS.ChannelId, 10, 64)
+		channelID, err := strconv.ParseInt(ownerWS.ChannelId, 10, 64)
 		if err != nil {
 			continue
 		}
 
 		channel := socialapimodels.NewChannel()
-		channel.Id = channelId
+		channel.Id = channelID
 		participants, err := channel.FetchParticipants(&request.Query{})
 		if err != nil {
 			return nil
@@ -213,13 +215,13 @@ func (c *Controller) RemoveUsersFromMachine(ping *models.Ping, toBeRemovedUsers 
 	}
 
 	ws, err := modelhelper.GetWorkspaceByChannelId(strconv.FormatInt(ping.ChannelId, 10))
-	if checkErr(err) {
-		return err
+	if err != nil {
+		return filterErr(err)
 	}
 
 	m, err := modelhelper.GetMachineByUid(ws.MachineUID)
-	if checkErr(err) {
-		return err
+	if err != nil {
+		return filterErr(err)
 	}
 
 	// Get the klient.
