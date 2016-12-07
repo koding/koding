@@ -48,6 +48,24 @@ func GetSessionsByUsername(username string) ([]*models.Session, error) {
 	return sessions, nil
 }
 
+func GetMostRecentSession(username string) (*models.Session, error) {
+	var session models.Session
+
+	fn := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"username": username}).Sort("lastAccess").One(&session)
+	}
+
+	if err := Mongo.Run(SessionColl, fn); err != nil {
+		return nil, err
+	}
+
+	if !session.Id.Valid() {
+		return nil, mgo.ErrNotFound
+	}
+
+	return &session, nil
+}
+
 func GetSessionFromToken(token string) (*models.Session, error) {
 	session := new(models.Session)
 
