@@ -1,10 +1,14 @@
 package modelhelper_test
 
 import (
+	"testing"
+	"time"
+
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/db/mongodb/modelhelper/modeltesthelper"
-	"testing"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 func TestSessionUpdateData(t *testing.T) {
@@ -50,5 +54,47 @@ func TestSessionUpdateData(t *testing.T) {
 
 	if val != value {
 		t.Error("expected", value, "got", val)
+	}
+}
+
+func TestGetMostRecentSession(t *testing.T) {
+	g, err := createGroup()
+	if err != nil {
+		t.Fatalf("createGroup()=%s", err)
+	}
+
+	newSession := func(long time.Duration) *models.Session {
+		return &models.Session{
+			Id:           bson.NewObjectId(),
+			ClientId:     bson.NewObjectId().Hex(),
+			Username:     "user",
+			GroupName:    g.Slug,
+			SessionBegan: time.Now().UTC().Add(long),
+			LastAccess:   time.Now().UTC().Add(long),
+		}
+	}
+
+	sessions := []*models.Session{
+		newSession(0),
+		newSession(10 * time.Minute),
+		newSession(1 * time.Hour), // <- this is most recent
+		newSession(15 * time.Second),
+		newSession(58 * time.Minute),
+		newSession(-1 * time.Hour),
+	}
+
+	for i, s := range sessions {
+		if err := modelhelper.CreateSession(s); err != nil {
+			t.Fatalf("%d: CreateSession()=%s", i, err)
+		}
+	}
+
+	got, err := modelhelper.GetMostRecentSession("user")
+	if err != nil {
+		t.Fatalf("GetMostRecentSession()=%s", err)
+	}
+
+	if got.Id != sessions[2].Id {
+		t.Fatalf("got %q, want %q", got.Id.Hex(), sessions[2].Id.Hex())
 	}
 }
