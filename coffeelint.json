@@ -25,7 +25,7 @@
     "level": "error"
   },
   "duplicate_key": {
-    "level": "error"
+    "level": "warn"
   },
   "empty_constructor_needs_parens": {
     "level": "ignore"
