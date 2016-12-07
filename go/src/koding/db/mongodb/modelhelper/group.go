@@ -116,7 +116,7 @@ func LookupGroup(opts *LookupGroupOptions) (*models.Group, error) {
 	}
 
 	// Look for questString.
-	if qs, err := utils.QueryString(opts.KiteID); err == nil {
+	if qs, err := utils.QueryString(opts.KiteID); err == nil && qs != "" {
 		for i := range m {
 			if len(m[i].Groups) == 0 {
 				continue
@@ -128,14 +128,19 @@ func LookupGroup(opts *LookupGroupOptions) (*models.Group, error) {
 		}
 	}
 
-	if host, err := parseHost(opts.ClientURL); err == nil {
+	if host, err := parseHost(opts.ClientURL); err == nil && host != "" {
 		// Look up for ipAddress.
 		for i := range m {
 			if len(m[i].Groups) == 0 {
 				continue
 			}
 
-			if mHost, err := parseHost(m[i].IPAddress); err == nil && mHost == host {
+			mHost := m[i].IPAddress
+			if host, _, err := net.SplitHostPort(mHost); err == nil {
+				mHost = host
+			}
+
+			if mHost == host {
 				return GetGroupById(m[i].Groups[0].ID.Hex())
 			}
 		}

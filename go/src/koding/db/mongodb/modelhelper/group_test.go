@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/koding/kite/protocol"
+
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/db/mongodb/modelhelper/modeltesthelper"
@@ -28,6 +30,21 @@ func createGroup() (*models.Group, error) {
 		DefaultChannels: []string{"0"},
 	}
 	return g, modelhelper.CreateGroup(g)
+}
+
+func createGroups(n int) ([]*models.Group, error) {
+	groups := make([]*models.Group, n)
+
+	for i := range groups {
+		g, err := createGroup()
+		if err != nil {
+			return nil, err
+		}
+
+		groups[i] = g
+	}
+
+	return groups, nil
 }
 
 func init() {
@@ -63,84 +80,92 @@ func TestCreateAndGetGroup(t *testing.T) {
 	}
 }
 
-func TestGetGroupForKite(t *testing.T) {
+func mustKiteID(queryString string) string {
+	k, err := protocol.KiteFromString(queryString)
+	if err != nil {
+		panic("mustKiteID: " + err.Error())
+	}
+
+	return k.ID
+}
+
+func TestLookupGroup(t *testing.T) {
+	const N = 10
+
 	db := modeltesthelper.NewMongoDB(t)
 	defer db.Close()
 
-	g, err := createGroup()
+	groups, err := createGroups(N + 1)
 	if err != nil {
-		t.Fatalf("createGroup()=%s", err)
+		t.Fatalf("createGroups()=%s", err)
 	}
 
-	m := []*models.Machine{{
-		ObjectId:    bson.NewObjectId(),
-		Uid:         bson.NewObjectId().Hex(),
-		QueryString: "///////44d81792-0091-49b1-b291-54122096b1ec",
-		Users: []models.MachineUser{{
-			Id:    bson.NewObjectId(),
-			Sudo:  true,
-			Owner: true,
-		}},
-		Groups: []models.MachineGroup{
-			{Id: bson.NewObjectId()},
-		},
-		CreatedAt: time.Now().UTC(),
-		Status: models.MachineStatus{
-			State:      "running",
-			ModifiedAt: time.Now().UTC(),
-		},
-	}, {
-		ObjectId:    bson.NewObjectId(),
-		Uid:         bson.NewObjectId().Hex(),
-		QueryString: "///////64d81792-1691-49b1-b291-54122096b1ec",
-		Users: []models.MachineUser{{
-			Id:    bson.NewObjectId(),
-			Sudo:  true,
-			Owner: true,
-		}},
-		Groups: []models.MachineGroup{
-			{Id: g.Id},
-		},
-		CreatedAt: time.Now().UTC(),
-		Status: models.MachineStatus{
-			State:      "running",
-			ModifiedAt: time.Now().UTC(),
-		},
-	}, {
-		ObjectId:    bson.NewObjectId(),
-		Uid:         bson.NewObjectId().Hex(),
-		QueryString: "///////04d81792-1094-49b1-d291-54122096b1ec",
-		Users: []models.MachineUser{{
-			Id:    bson.NewObjectId(),
-			Sudo:  true,
-			Owner: true,
-		}},
-		Groups: []models.MachineGroup{
-			{Id: bson.NewObjectId()},
-		},
-		CreatedAt: time.Now().UTC(),
-		Status: models.MachineStatus{
-			State:      "running",
-			ModifiedAt: time.Now().UTC(),
-		},
-	}}
+	machines, err := createMachines(N, t)
+	if err != nil {
+		t.Fatalf("createMachines()=%s", err)
+	}
 
-	for i, m := range m {
-		if err := modelhelper.CreateMachine(m); err != nil {
-			t.Fatalf("%d: CreateMachine()=%s", i, err)
+	for i := range machines {
+		machines[i].Groups = []models.MachineGroup{{Id: groups[i].Id}}
+
+		setGroups := bson.M{
+			"$set": bson.M{
+				"groups": machines[i].Groups,
+			},
 		}
+
+		if i&2 == 0 {
+			// force to lookup by registerUrl for machines with even index
+			setGroups["$set"].(bson.M)["ipAddress"] = ""
+		}
+
+		err := modelhelper.UpdateMachine(machines[i].ObjectId, setGroups)
+		if err != nil {
+			t.Fatalf("UpdateMachine()=%s", err)
+		}
+	}
+
+	session := &models.Session{
+		Id:        bson.NewObjectId(),
+		GroupName: groups[N].Slug,
+		Username:  "rafal",
+	}
+
+	if err := modelhelper.CreateSession(session); err != nil {
+		t.Fatalf("CreateSession()=%s")
 	}
 
 	cases := map[string]struct {
 		opts *modelhelper.LookupGroupOptions
 		id   bson.ObjectId
 	}{
-		"lookup by questString": {
+		"lookup by queryString": {
 			&modelhelper.LookupGroupOptions{
-				Username: "user",
-				KiteID:   "64d81792-1691-49b1-b291-54122096b1ec",
+				Username: "rafal",
+				KiteID:   mustKiteID(machines[0].QueryString),
 			},
-			g.Id,
+			groups[0].Id,
+		},
+		"lookup by ipAddress": {
+			&modelhelper.LookupGroupOptions{
+				Username:  "rafal",
+				ClientURL: machines[1].RegisterURL,
+			},
+			groups[1].Id,
+		},
+		"lookup by registerUrl": {
+			&modelhelper.LookupGroupOptions{
+				Username:  "rafal",
+				ClientURL: machines[4].RegisterURL,
+			},
+			groups[4].Id,
+		},
+		"lookup by most recent session for KD": {
+			&modelhelper.LookupGroupOptions{
+				Username:    "rafal",
+				Environment: "managed",
+			},
+			groups[N].Id,
 		},
 	}
 
@@ -148,7 +173,7 @@ func TestGetGroupForKite(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			team, err := modelhelper.LookupGroup(cas.opts)
 			if err != nil {
-				t.Fatalf("GetGroupForKite()=%s", err)
+				t.Fatalf("LookupGroup()=%s", err)
 			}
 
 			if team.Id != cas.id {
