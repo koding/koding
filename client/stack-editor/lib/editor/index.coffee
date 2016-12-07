@@ -31,7 +31,6 @@ StackTemplatePreviewModal = require './stacktemplatepreviewmodal'
 StackTemplateView = require './stacktemplateview'
 CredentialStatusView = require './credentialstatusview'
 CredentialListItem = require '../credentials/credentiallistitem'
-UploadFileButton = require '../components/uploadfilebutton'
 
 EnvironmentFlux = require 'app/flux/environment'
 ContentModal = require 'app/components/contentModal'
@@ -263,12 +262,14 @@ module.exports = class StackEditorView extends kd.View
       cssClass: 'readme-action-wrapper hidden'
 
     @readMeActionWrapper.addSubView new kd.ButtonView
+      cssClass: 'upload-file-button'
+      partial : 'Attach image files by dragging & dropping or <span>selecing them</span>.'
+      callback: => @readmeView.emit 'openFileInputCallback'
+
+    @readMeActionWrapper.addSubView new kd.ButtonView
       title    : 'PREVIEW'
       cssClass : 'HomeAppView--button secondary preview'
       callback : => @readmeView.emit 'ShowReadMePreview'
-      
-    @readMeActionWrapper.addSubView new UploadFileButton
-      callback : => @readmeView.emit 'openFileInputCallback'
 
 
     @addSubView @stackTemplateActionWrapper
@@ -862,7 +863,7 @@ module.exports = class StackEditorView extends kd.View
   handleFileInputCallback: ->
 
     @readmeView.uploadFileInput.domElement[0].click()
-    
+
 
   handleReadMePreview: ->
 

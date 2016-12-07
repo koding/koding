@@ -89,10 +89,12 @@ $borderColor                = #E3E3E3
           hidden()
 
   .stack-template-action-wrapper
+    abs   0 120px 10px 0
+
+
+  .stack-template-action-wrapper
   .readme-action-wrapper
-    abs                     0 0px 10px 0px
     button.kdbutton
-      abs                   0 120px 20px 0
       margin-right          20px
       border                0px
       background            #fff
@@ -102,6 +104,23 @@ $borderColor                = #E3E3E3
       &:focus
         border              none
         box-shadow          none
+
+  .readme-action-wrapper
+    display                 flex
+    width                   100%
+    abs()
+    bottom                  10px
+    button.preview
+      margin-right          120px
+    .upload-file-button
+      flex                  1 0 auto
+      text-align            left
+      color                 #848484
+      font-size             12px
+      letter-spacing        0.5px
+      margin-left           25px
+      span
+        color               #3f9cbe
 
 
   .indicator
