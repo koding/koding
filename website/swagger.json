@@ -248,6 +248,21 @@
     "https"
   ],
   "definitions": {
+    "Error": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "description": "Error description",
+          "example": "Something went wrong"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the error",
+          "example": "KodingError"
+        }
+      }
+    },
     "DefaultSelector": {
       "type": "object",
       "properties": {
@@ -5123,6 +5138,45 @@
             "description": "OK",
             "schema": {
               "$ref": "#/definitions/JGroup"
+            }
+          }
+        }
+      }
+    },
+    "/remote.api/JGroup.modifyData/{id}": {
+      "post": {
+        "tags": [
+          "JGroup"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "description": "modifies JGroupData related with the JGroup instance",
+        "parameters": [
+          {
+            "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "github.organizationToken": {
+                  "type": "string",
+                  "default": "foobarbaz"
+                }
+              }
+            },
+            "required": true,
+            "description": "body of the request"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "includes error if something went wrong",
+            "schema": {
+              "$ref": "#/definitions/Error"
             }
           }
         }
