@@ -16,8 +16,8 @@ module.exports = class ReadmeView extends kd.View
     @on 'dragenter', => kd.utils.defer => @editorView.getAce().setClass 'files-being-dragged'
     @on 'dragleave', => @editorView.getAce().unsetClass 'files-being-dragged'
     @on 'drop', =>  kd.utils.defer => @editorView.getAce().unsetClass 'files-being-dragged'
-  
-  
+
+
     { stackTemplate } = @getData()
     { @canUpdate } = @getOptions()
 
@@ -75,11 +75,11 @@ module.exports = class ReadmeView extends kd.View
 
 
   setFileInputToUpload: (event)->
-    
+
     supportedFormats = ['image/jpg','image/jpeg','image/gif','image/png']
 
     for val in event.dataTransfer.files
-    
+
       fileSize = val.size
       if !val.type in supportedFormats or fileSize > 20000000 or fileSize < 2000
         @handleUploadError val.name
@@ -131,16 +131,15 @@ module.exports = class ReadmeView extends kd.View
       mimeType: mimeType
       timeout : 30000
     , (err, url) =>
-      
-      console.log err
+
       whereToReplace = editorView.editor.find("[Uploading #{content.name}...]",
         { wrap: true, caseSensitive: false, wholeWord: false, regExp: false, preventScroll: true})
-        
+
       if err
         editorView.editor.replace('', whereToReplace)
         @handleUploadError(content.name)
       else
-        editorView.replace('![]('+url+')', whereToReplace)
+        editorView.editor.replace("![](#{url})", whereToReplace)
 
 
   handleUploadError: (fileName) ->
