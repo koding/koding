@@ -2,8 +2,16 @@ package api
 
 import (
 	"errors"
-	"sync"
+	"unsafe"
+
+	"github.com/koding/cache"
 )
+
+// DefaultMaxCacheSize sets a limit of memory to use
+// for in-memory caching of the sessions.
+//
+// It applies only for default, in-memory cache.
+var DefaultCacheSize = 256 // in MiB
 
 // ErrSessionNotFound is returned by Storage.Get
 // when requested session was not found.
@@ -43,7 +51,7 @@ type SessionCache struct {
 
 	// Storage is an external storage for storing session.
 	//
-	// If nil, in-memory map is going to be used instead.
+	// If nil, a default, in-memory map is going to be used instead.
 	Storage Storage
 }
 
@@ -106,44 +114,42 @@ func (s *SessionCache) Auth(opts *AuthOptions) (*Session, error) {
 	return session, err
 }
 
-// TODO(rjeczalik): replace with koding/cache
 type defaultStorage struct {
-	cacheMu sync.RWMutex
-	cache   map[string]*Session
+	cache cache.Cache
 }
 
 var _ Storage = (*defaultStorage)(nil)
 
 func newDefaultStorage() *defaultStorage {
+	n := DefaultCacheSize * 1024 * 1024 / int(unsafe.Sizeof(Session{}))
+
 	return &defaultStorage{
-		cache: make(map[string]*Session),
+		cache: cache.NewLRU(n),
 	}
 }
 
 func (ds *defaultStorage) Get(u *User) (*Session, error) {
-	ds.cacheMu.Lock()
-	session, ok := ds.cache[u.String()]
-	ds.cacheMu.Unlock()
+	s, err := ds.cache.Get(u.String())
 
-	if !ok {
+	if err == cache.ErrNotFound {
 		return nil, ErrSessionNotFound
 	}
+	if err != nil {
+		return nil, err
+	}
 
-	return session, nil
+	return s.(*Session), nil
 }
 
 func (ds *defaultStorage) Set(s *Session) error {
-	ds.cacheMu.Lock()
-	ds.cache[s.User.String()] = s
-	ds.cacheMu.Unlock()
-
-	return nil
+	return ds.cache.Set(s.User.String(), s)
 }
 
 func (ds *defaultStorage) Delete(s *Session) error {
-	ds.cacheMu.Lock()
-	delete(ds.cache, s.User.String())
-	ds.cacheMu.Unlock()
-
-	return nil
+	switch err := ds.cache.Delete(s.User.String()); err {
+	case cache.ErrNotFound:
+		return nil
+	default:
+		return err
+	}
 }
