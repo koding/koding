@@ -42,6 +42,33 @@ main.Homepage-Hero {
   }
 }
 
+.Homepage-Hero--banner {
+  position: absolute;
+  bottom: 0;
+  color: #ffffff;
+  min-height: 80px;
+  width: 100%;
+  text-align: center;
+  padding: 30px;
+  background-color: rgba(0,0,0,.6);
+  box-sizing: border-box;
+
+  .alert {
+    color: #f2778a;
+    font-weight: 700;
+  }
+
+  .bold {
+    font-weight: 700;
+  }
+
+  a {
+    font-weight: 700;
+    color: #ffffff;
+    text-decoration: none;
+  }
+}
+
 @media (max-width: 880px) {
   .Homepage-Hero--intro {
     h1 {
@@ -53,7 +80,7 @@ main.Homepage-Hero {
 
 @media (max-width: 660px) {
   main.Homepage-Hero {
-    height: 620px;
+    height: 780px;
   }
   .Homepage-Hero--intro {
     h1 {
