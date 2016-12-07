@@ -15,9 +15,9 @@ Click on 'amazon web services' and then click on 'CREATE STACK' button
 Has that pop-up disappeared? Do you see '_Aws Stack' title? Do you see 'Custom Variables', 'Readme' tabs? Do you see 'Credentials' text having a red (!) next to it? Do you see '# Here is your stack preview' in the first line of main content? Do you see 'DELETE THIS STACK TEMPLATE', 'PREVIEW' and 'LOGS' buttons on the bottom and 'SAVE' button on top right?
 
 Click on 'Credentials' text having a red (!) next to it
-Do you see 'rainforestqa99's AWS keys'? Do you see 'USE THIS & CONTINUE' button next to it? Do you see 'ADD A NEW CREDENTIAL' button on the bottom?
+Do you see 'rainforestqa99's AWS keys'?(if not, maybe you have more that 5 keys created, then scroll down until you see it), Do you see 'USE THIS & CONTINUE' button next to it? Do you see 'ADD A NEW CREDENTIAL' button on the bottom?
 
-Move your mouse over 'USE THIS & CONTINUE' button
+Move your mouse over 'USE THIS & CONTINUE' button tha is next to 'rainforestqa99's AWS keys'
 Have 'PREVIEW' and 'DELETE' texts appeared?
 
 Click on 'PREVIEW'
