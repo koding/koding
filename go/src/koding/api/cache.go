@@ -1,8 +1,9 @@
-package socialapi
+package api
 
 import (
 	"errors"
-	"sync"
+
+	"github.com/koding/cache"
 )
 
 // ErrSessionNotFound is returned by Storage.Get
@@ -15,7 +16,7 @@ type Storage interface {
 	//
 	// It returns ErrSessionNotFound if requested
 	// session was not cached.
-	Get(*Session) error
+	Get(*User) (*Session, error)
 
 	// Set sets a session.
 	//
@@ -43,51 +44,30 @@ type SessionCache struct {
 
 	// Storage is an external storage for storing session.
 	//
-	// If nil, in-memory map is going to be used instead.
+	// If nil, a default, in-memory map is going to be used instead.
 	Storage Storage
-
-	cacheMu sync.RWMutex
-	cache   map[string]*Session
 }
 
 // NewCache gives new SessionCache value.
 func NewCache(fn AuthFunc) *SessionCache {
 	return &SessionCache{
 		AuthFunc: fn,
-		cache:    make(map[string]*Session),
+		Storage:  newDefaultStorage(),
 	}
 }
 
 // Auth is a method, which method selector can be used
 // as a AuthFunc value, like:
 //
-//   cache := socialapi.NewSessionCache(authFn)
+//   cache := api.NewSessionCache(authFn)
 //
-//   t := &socialapi.Transport{
+//   t := &api.Transport{
 //       AuthFunc: cache.Auth,
 //   }
 //
 func (s *SessionCache) Auth(opts *AuthOptions) (*Session, error) {
-	if s.AuthFunc == nil {
-		panic("socialapi: AuthFunc is nil")
-	}
-
-	session := opts.Session
-
-	// Early return - return existing session if it's valid
-	// and we were not ask to invalidate it.
-	if err := session.Valid(); err == nil && !opts.Refresh {
-		return session, nil
-	}
-
-	if session == nil {
-		return nil, errors.New("cannot determine user session")
-	}
-
 	if !opts.Refresh {
-		s.cacheMu.RLock()
-		err := s.get(session)
-		s.cacheMu.RUnlock()
+		session, err := s.Storage.Get(opts.User)
 
 		switch err {
 		case ErrSessionNotFound:
@@ -117,49 +97,50 @@ func (s *SessionCache) Auth(opts *AuthOptions) (*Session, error) {
 	// fail are filesystem errors - there is no recovery from
 	// that, and falling back to memory makes sense only for
 	// Klient.
-	s.cacheMu.Lock()
 	if opts.Refresh {
-		_ = s.delete(session)
+		_ = s.Storage.Delete(session)
 	}
 	if err == nil {
-		_ = s.set(session)
+		_ = s.Storage.Set(session)
 	}
-	s.cacheMu.Unlock()
 
 	return session, err
 }
 
-func (s *SessionCache) get(session *Session) error {
-	if s.Storage != nil {
-		return s.Storage.Get(session)
-	}
-
-	sess, ok := s.cache[session.Key()]
-	if !ok {
-		return ErrSessionNotFound
-	}
-
-	*session = *sess
-
-	return nil
+type defaultStorage struct {
+	cache cache.Cache
 }
 
-func (s *SessionCache) set(session *Session) error {
-	if s.Storage != nil {
-		return s.Storage.Set(session)
+var _ Storage = (*defaultStorage)(nil)
+
+func newDefaultStorage() *defaultStorage {
+	return &defaultStorage{
+		cache: cache.NewLRU(2000),
 	}
-
-	s.cache[session.Key()] = session
-
-	return nil
 }
 
-func (s *SessionCache) delete(session *Session) error {
-	if s.Storage != nil {
-		return s.Storage.Delete(session)
+func (ds *defaultStorage) Get(u *User) (*Session, error) {
+	s, err := ds.cache.Get(u.String())
+
+	if err == cache.ErrNotFound {
+		return nil, ErrSessionNotFound
+	}
+	if err != nil {
+		return nil, err
 	}
 
-	delete(s.cache, session.Key())
+	return s.(*Session), nil
+}
 
-	return nil
+func (ds *defaultStorage) Set(s *Session) error {
+	return ds.cache.Set(s.User.String(), s)
+}
+
+func (ds *defaultStorage) Delete(s *Session) error {
+	switch err := ds.cache.Delete(s.User.String()); err {
+	case cache.ErrNotFound:
+		return nil
+	default:
+		return err
+	}
 }

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net"
 	_ "net/http/pprof"
 	"net/url"
 	"socialapi/workers/presence/client"
@@ -15,10 +14,12 @@ import (
 
 	"golang.org/x/net/context"
 
+	"koding/api"
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
 	"koding/httputil"
 	"koding/kites/common"
+	"koding/kites/config"
 	"koding/kites/keygen"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/session"
@@ -33,7 +34,6 @@ import (
 	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
 	"koding/remoteapi"
-	"koding/socialapi"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/koding/kite"
@@ -139,7 +139,8 @@ type Config struct {
 	TerraformerSecretKey string
 
 	// RemoteAPIURL configures the endpoint URL for remote.api.
-	RemoteAPIURL string
+	RemoteAPIURL *config.URL `required:"true"`
+
 	// SocialProxyURL configures the endpoint URL for internal socialapi proxy host.
 	SocialProxyURL string
 }
@@ -191,18 +192,6 @@ func New(conf *Config) (*Kloud, error) {
 		sess.Log.Warning(`disabling "Sneaker" for storing stack credential data`)
 	}
 
-	var remoteURL *url.URL
-
-	if conf.RemoteAPIURL != "" {
-		if u, err := url.Parse(conf.RemoteAPIURL); err == nil {
-			remoteURL = u
-		}
-	}
-
-	if remoteURL == nil {
-		sess.Log.Warning(`disabling "remote.api" for stack operations`)
-	}
-
 	restClient := httputil.DefaultRestClient(conf.DebugMode)
 
 	pinger := client.NewInternal(conf.SocialProxyURL)
@@ -246,22 +235,24 @@ func New(conf *Config) (*Kloud, error) {
 		},
 	}
 
-	authFn := func(opts *socialapi.AuthOptions) (*socialapi.Session, error) {
-		s, err := modelhelper.FetchOrCreateSession(opts.Session.Username, opts.Session.Team)
+	authFn := func(opts *api.AuthOptions) (*api.Session, error) {
+		s, err := modelhelper.FetchOrCreateSession(opts.User.Username, opts.User.Team)
 		if err != nil {
 			return nil, err
 		}
 
-		return &socialapi.Session{
-			Username: s.Username,
-			Team:     s.GroupName,
+		return &api.Session{
 			ClientID: s.ClientId,
+			User: &api.User{
+				Username: s.Username,
+				Team:     s.GroupName,
+			},
 		}, nil
 	}
 
-	transport := &socialapi.Transport{
+	transport := &api.Transport{
 		RoundTripper: storeOpts.Client.Transport,
-		AuthFunc:     socialapi.NewCache(authFn).Auth,
+		AuthFunc:     api.NewCache(authFn).Auth,
 	}
 
 	kloud.Stack.DescribeFunc = provider.Desc
@@ -271,21 +262,7 @@ func New(conf *Config) (*Kloud, error) {
 	kloud.Stack.RemoteClient = &remoteapi.Client{
 		Client:    storeOpts.Client,
 		Transport: transport,
-	}
-
-	if remoteURL != nil {
-		transport.Host = remoteURL.Host
-
-		localRemoteURL := *remoteURL
-
-		// TODO(rjeczalik): Add PrivateRemoteURL to koding/config.
-		if _, port, err := net.SplitHostPort(localRemoteURL.Host); err == nil {
-			localRemoteURL.Host = net.JoinHostPort("127.0.0.1", port)
-		} else {
-			localRemoteURL.Host = "127.0.0.1"
-		}
-
-		kloud.Stack.RemoteClient.Endpoint = &localRemoteURL
+		Endpoint:  conf.RemoteAPIURL.URL,
 	}
 
 	kloud.Stack.ContextCreator = func(ctx context.Context) context.Context {
@@ -351,6 +328,7 @@ func New(conf *Config) (*Kloud, error) {
 
 	// Team handling.
 	k.HandleFunc("team.list", kloud.Stack.TeamList)
+	k.HandleFunc("team.whoami", kloud.Stack.TeamWhoami)
 
 	// Machine handling.
 	k.HandleFunc("machine.list", kloud.Stack.MachineList)

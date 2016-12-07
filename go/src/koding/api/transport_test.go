@@ -1,19 +1,17 @@
-package socialapi_test
+package api_test
 
 import (
 	"encoding/json"
-	"log"
 	"net"
 	"net/http"
 	"strings"
 	"testing"
 
+	"koding/api"
 	"koding/kites/tunnelproxy/discover/discovertest"
-	"koding/socialapi"
 )
 
 func TestTransport(t *testing.T) {
-	var storage TrxStorage
 	var auth = NewFakeAuth()
 
 	s, err := discovertest.NewServer(http.HandlerFunc(auth.GetSession))
@@ -22,61 +20,41 @@ func TestTransport(t *testing.T) {
 	}
 	defer s.Close()
 
-	cache := socialapi.NewCache(auth.Auth)
-	cache.Storage = &storage
+	cache := api.NewCache(auth.Auth)
 
-	users := []*socialapi.Session{
-		{Username: "user1", Team: "foobar"},
-		{Username: "user2", Team: "foobar"},
-		{Username: "user3", Team: "foobar"},
-		{Username: "user", Team: "team"},
+	users := []*api.Session{
+		{User: &api.User{Username: "user1", Team: "foobar"}},
+		{User: &api.User{Username: "user2", Team: "foobar"}},
+		{User: &api.User{Username: "user3", Team: "foobar"}},
+		{User: &api.User{Username: "user", Team: "team"}},
 	}
 
 	cases := []struct {
 		name  string
-		sess  *socialapi.Session // client
-		errs  []error            // fake errors for endpoint
-		codes []int              // fake response codes for endpoint
-		err   error              // final error from client
-		trx   TrxStorage         // underlying cache operations
+		sess  *api.Session // client
+		errs  []error      // fake errors for endpoint
+		codes []int        // fake response codes for endpoint
+		err   error        // final error from client
 	}{{
 		"new user1",
 		users[0],
 		nil, nil, nil,
-		TrxStorage{
-			{Type: "get", Session: users[0]},
-			{Type: "set", Session: users[0]},
-		},
 	}, {
 		"cached user1",
 		users[0],
 		nil, nil, nil,
-		TrxStorage{
-			{Type: "get", Session: users[0]},
-		},
 	}, {
 		"new user2",
 		users[1],
 		nil, nil, nil,
-		TrxStorage{
-			{Type: "get", Session: users[1]},
-			{Type: "set", Session: users[1]},
-		},
 	}, {
 		"new user3 with an error",
 		users[2],
 		[]error{&net.DNSError{IsTemporary: true}}, nil, nil,
-		TrxStorage{
-			{Type: "get", Session: users[2]},
-			{Type: "set", Session: users[2]},
-		},
 	}, {
 		"cached user3 with an error and response codes",
 		users[2],
 		[]error{&net.DNSError{IsTemporary: true}}, []int{401, 401}, nil,
-		TrxStorage{
-			{Type: "get", Session: users[2]},
-		},
 	}}
 
 	rec := &AuthRecorder{
@@ -84,7 +62,7 @@ func TestTransport(t *testing.T) {
 	}
 
 	client := http.Client{
-		Transport: &socialapi.Transport{
+		Transport: &api.Transport{
 			RoundTripper: &FakeTransport{},
 			AuthFunc:     rec.Auth,
 		},
@@ -99,7 +77,7 @@ func TestTransport(t *testing.T) {
 				t.Fatalf("NewRequest()=%s", err)
 			}
 
-			req = cas.sess.WithRequest(req)
+			req = cas.sess.User.WithRequest(req)
 
 			if len(cas.errs) != 0 {
 				req = WithErrors(req, cas.errs...)
@@ -122,7 +100,7 @@ func TestTransport(t *testing.T) {
 				t.Fatalf("got %q, want %q", http.StatusText(resp.StatusCode), http.StatusText(http.StatusOK))
 			}
 
-			var other socialapi.Session
+			var other api.Session
 
 			if err := json.NewDecoder(resp.Body).Decode(&other); err != nil {
 				t.Fatalf("Decode()=%s", err)
@@ -136,7 +114,7 @@ func TestTransport(t *testing.T) {
 				t.Fatalf("Match()=%s", err)
 			}
 
-			log.Printf("received session: %#v", &other)
+			api.Log.Info("received session: %#v", &other)
 		})
 	}
 }

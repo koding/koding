@@ -1,53 +1,56 @@
-package socialapi_test
+package api_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"sync"
 
+	"koding/api"
 	"koding/kites/kloud/utils"
-	"koding/socialapi"
 )
 
 type FakeAuth struct {
-	Sessions map[string]*socialapi.Session
+	Sessions map[string]*api.Session
 
 	mu sync.RWMutex
 }
 
 func NewFakeAuth() *FakeAuth {
 	return &FakeAuth{
-		Sessions: make(map[string]*socialapi.Session),
+		Sessions: make(map[string]*api.Session),
 	}
 }
 
-func (fa FakeAuth) Auth(opts *socialapi.AuthOptions) (*socialapi.Session, error) {
+func (fa *FakeAuth) Auth(opts *api.AuthOptions) (*api.Session, error) {
 	fa.mu.Lock()
 	defer fa.mu.Unlock()
 
-	session, ok := fa.Sessions[opts.Session.Key()]
+	session, ok := fa.Sessions[opts.User.String()]
 	if !ok || opts.Refresh {
-		session = &socialapi.Session{
+		session = &api.Session{
 			ClientID: utils.RandString(12),
-			Username: opts.Session.Username,
-			Team:     opts.Session.Team,
+			User: &api.User{
+				Username: opts.User.Username,
+				Team:     opts.User.Team,
+			},
 		}
-		fa.Sessions[opts.Session.Key()] = session
+
+		fa.Sessions[opts.User.String()] = session
 	}
 
 	return session, nil
 }
 
-func (fa FakeAuth) GetSession(w http.ResponseWriter, r *http.Request) {
-	var req socialapi.Session
+func (fa *FakeAuth) GetSession(w http.ResponseWriter, r *http.Request) {
+	var req api.Session
 
 	req.ReadFrom(r)
 
-	var session *socialapi.Session
+	var session *api.Session
 
 	fa.mu.RLock()
 	for _, s := range fa.Sessions {
@@ -59,7 +62,7 @@ func (fa FakeAuth) GetSession(w http.ResponseWriter, r *http.Request) {
 	fa.mu.RUnlock()
 
 	p, err := ioutil.ReadAll(r.Body)
-	log.Printf("FakeAuth.GetSession: read body: p=%q, err=%v", p, err)
+	api.Log.Info("FakeAuth.GetSession: read body: p=%q, err=%v", p, err)
 
 	if session == nil {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -69,14 +72,14 @@ func (fa FakeAuth) GetSession(w http.ResponseWriter, r *http.Request) {
 }
 
 type AuthRecorder struct {
-	Options  []*socialapi.AuthOptions
-	AuthFunc socialapi.AuthFunc
+	Options  []*api.AuthOptions
+	AuthFunc api.AuthFunc
 }
 
-func (ar *AuthRecorder) Auth(opts *socialapi.AuthOptions) (*socialapi.Session, error) {
-	sessionCopy := *opts.Session
+func (ar *AuthRecorder) Auth(opts *api.AuthOptions) (*api.Session, error) {
+	userCopy := *opts.User
 	optsCopy := *opts
-	optsCopy.Session = &sessionCopy
+	optsCopy.User = &userCopy
 	optsCopy.Request = nil
 
 	ar.Options = append(ar.Options, &optsCopy)
@@ -90,42 +93,53 @@ func (ar *AuthRecorder) Reset() {
 
 type Trx struct {
 	Type    string // "set", "get" or "delete"
-	Session *socialapi.Session
+	Session *api.Session
 }
 
-type TrxStorage []Trx
+type TrxStorage struct {
+	Trxs []Trx
 
-var _ socialapi.Storage = (*TrxStorage)(nil)
+	mu sync.Mutex
+}
 
-func (trx *TrxStorage) Get(s *socialapi.Session) error {
-	*trx = append(*trx, Trx{Type: "get", Session: s})
+var _ api.Storage = (*TrxStorage)(nil)
 
-	trxS, ok := trx.Build()[s.Key()]
+func (trx *TrxStorage) Get(u *api.User) (*api.Session, error) {
+	trx.mu.Lock()
+	trx.Trxs = append(trx.Trxs, Trx{Type: "get", Session: &api.Session{User: u}})
+	trxS, ok := trx.build()[u.String()]
+	trx.mu.Unlock()
+
 	if !ok {
-		return socialapi.ErrSessionNotFound
+		return nil, api.ErrSessionNotFound
 	}
 
-	*s = *trxS
+	return trxS, nil
+}
 
+func (trx *TrxStorage) Set(s *api.Session) error {
+	trx.mu.Lock()
+	trx.Trxs = append(trx.Trxs, Trx{Type: "set", Session: s})
+	trx.mu.Unlock()
 	return nil
 }
 
-func (trx *TrxStorage) Set(s *socialapi.Session) error {
-	*trx = append(*trx, Trx{Type: "set", Session: s})
+func (trx *TrxStorage) Delete(s *api.Session) error {
+	trx.mu.Lock()
+	trx.Trxs = append(trx.Trxs, Trx{Type: "delete", Session: s})
+	trx.mu.Unlock()
 	return nil
 }
 
-func (trx *TrxStorage) Delete(s *socialapi.Session) error {
-	*trx = append(*trx, Trx{Type: "delete", Session: s})
-	return nil
-}
+func (trx *TrxStorage) Match(other []Trx) error {
+	trx.mu.Lock()
+	defer trx.mu.Unlock()
 
-func (trx TrxStorage) Match(other TrxStorage) error {
-	if len(trx) != len(other) {
-		return fmt.Errorf("current storage has %d trxs, the other has %d", len(trx), len(other))
+	if len(trx.Trxs) != len(other) {
+		return fmt.Errorf("current storage has %d trxs, the other has %d", len(trx.Trxs), len(other))
 	}
 
-	for i, trx := range trx {
+	for i, trx := range trx.Trxs {
 		if trx.Type != other[i].Type {
 			return fmt.Errorf("trx %d is of %q type, the other one is %q",
 				i, trx.Type, other[i].Type)
@@ -139,17 +153,37 @@ func (trx TrxStorage) Match(other TrxStorage) error {
 	return nil
 }
 
-func (trx TrxStorage) Build() map[string]*socialapi.Session {
-	m := make(map[string]*socialapi.Session)
+func (trx *TrxStorage) Build() map[string]*api.Session {
+	trx.mu.Lock()
+	defer trx.mu.Unlock()
 
-	for _, trx := range trx {
+	return trx.build()
+}
+
+func (trx *TrxStorage) Slice(i int) *TrxStorage {
+	trx.mu.Lock()
+	defer trx.mu.Unlock()
+
+	slicedTrx := &TrxStorage{
+		Trxs: make([]Trx, len(trx.Trxs)-i),
+	}
+
+	copy(slicedTrx.Trxs, trx.Trxs[i:])
+
+	return slicedTrx
+}
+
+func (trx *TrxStorage) build() map[string]*api.Session {
+	m := make(map[string]*api.Session)
+
+	for _, trx := range trx.Trxs {
 		switch trx.Type {
 		case "get":
 			// read-only op, ignore
 		case "set":
-			m[trx.Session.Key()] = trx.Session
+			m[trx.Session.User.String()] = trx.Session
 		case "delete":
-			delete(m, trx.Session.Key())
+			delete(m, trx.Session.User.String())
 		}
 	}
 
@@ -169,7 +203,7 @@ type FakeTransport struct {
 	http.RoundTripper
 }
 
-var _ socialapi.HTTPTransport = (*FakeTransport)(nil)
+var _ api.HTTPTransport = (*FakeTransport)(nil)
 
 func (ft FakeTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	errs, ok := req.Context().Value(ErrorContextKey).(*[]error)
@@ -188,13 +222,13 @@ func (ft FakeTransport) RoundTrip(req *http.Request) (resp *http.Response, err e
 }
 
 func (ft FakeTransport) CancelRequest(req *http.Request) {
-	if rc, ok := ft.RoundTripper.(socialapi.HTTPRequestCanceler); ok {
+	if rc, ok := ft.RoundTripper.(api.HTTPRequestCanceler); ok {
 		rc.CancelRequest(req)
 	}
 }
 
 func (ft FakeTransport) CloseIdleConnections() {
-	if icl, ok := ft.RoundTripper.(socialapi.HTTPIdleConnectionsCloser); ok {
+	if icl, ok := ft.RoundTripper.(api.HTTPIdleConnectionsCloser); ok {
 		icl.CloseIdleConnections()
 	}
 }
@@ -224,6 +258,7 @@ func WithResponseCodes(req *http.Request, codes ...int) *http.Request {
 
 	for i, code := range codes {
 		resps[i] = &http.Response{
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte{})),
 			StatusCode: code,
 		}
 	}

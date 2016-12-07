@@ -88,9 +88,6 @@ type MigrateOptions struct {
 // jMachine.users docs and setting proper states on both jMachine and
 // jComputeStack. Removing resources is destroying them on terraform part and
 // then removing corresponding docs from mongo.
-//
-// TODO(rjeczalik): move updateMachines from {aws,vagrant}/stackplan.go here
-// and merge them to single, generic Update(*UpdateOptions) method.
 type Database interface {
 	// Detach detaches user from the stack. The operation is performed
 	// prior to stack reinit - it allows the stack to be concurrently

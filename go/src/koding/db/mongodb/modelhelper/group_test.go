@@ -30,11 +30,13 @@ func createGroup() (*models.Group, error) {
 	return g, modelhelper.CreateGroup(g)
 }
 
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 func TestCreateAndGetGroup(t *testing.T) {
 	db := modeltesthelper.NewMongoDB(t)
 	defer db.Close()
-
-	rand.Seed(time.Now().UnixNano())
 
 	g, err := createGroup()
 	if err != nil {
@@ -58,5 +60,83 @@ func TestCreateAndGetGroup(t *testing.T) {
 	_, err = modelhelper.GetGroup(randomName)
 	if err == nil {
 		t.Errorf("we should not be able to find the group")
+	}
+}
+
+func TestGetGroupForKite(t *testing.T) {
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
+
+	g, err := createGroup()
+	if err != nil {
+		t.Fatalf("createGroup()=%s", err)
+	}
+
+	m := []*models.Machine{{
+		ObjectId:    bson.NewObjectId(),
+		Uid:         bson.NewObjectId().Hex(),
+		QueryString: "///////44d81792-0091-49b1-b291-54122096b1ec",
+		Users: []models.MachineUser{{
+			Id:    bson.NewObjectId(),
+			Sudo:  true,
+			Owner: true,
+		}},
+		Groups: []models.MachineGroup{
+			{Id: bson.NewObjectId()},
+		},
+		CreatedAt: time.Now().UTC(),
+		Status: models.MachineStatus{
+			State:      "running",
+			ModifiedAt: time.Now().UTC(),
+		},
+	}, {
+		ObjectId:    bson.NewObjectId(),
+		Uid:         bson.NewObjectId().Hex(),
+		QueryString: "///////64d81792-1691-49b1-b291-54122096b1ec",
+		Users: []models.MachineUser{{
+			Id:    bson.NewObjectId(),
+			Sudo:  true,
+			Owner: true,
+		}},
+		Groups: []models.MachineGroup{
+			{Id: g.Id},
+		},
+		CreatedAt: time.Now().UTC(),
+		Status: models.MachineStatus{
+			State:      "running",
+			ModifiedAt: time.Now().UTC(),
+		},
+	}, {
+		ObjectId:    bson.NewObjectId(),
+		Uid:         bson.NewObjectId().Hex(),
+		QueryString: "///////04d81792-1094-49b1-d291-54122096b1ec",
+		Users: []models.MachineUser{{
+			Id:    bson.NewObjectId(),
+			Sudo:  true,
+			Owner: true,
+		}},
+		Groups: []models.MachineGroup{
+			{Id: bson.NewObjectId()},
+		},
+		CreatedAt: time.Now().UTC(),
+		Status: models.MachineStatus{
+			State:      "running",
+			ModifiedAt: time.Now().UTC(),
+		},
+	}}
+
+	for i, m := range m {
+		if err := modelhelper.CreateMachine(m); err != nil {
+			t.Fatalf("%d: CreateMachine()=%s", i, err)
+		}
+	}
+
+	team, err := modelhelper.GetGroupForKite("64d81792-1691-49b1-b291-54122096b1ec")
+	if err != nil {
+		t.Fatalf("GetGroupForKite()=%s", err)
+	}
+
+	if team.Id != g.Id {
+		t.Fatalf("got %q, want %q", g.Id.Hex(), team.Id.Hex())
 	}
 }
