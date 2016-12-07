@@ -20,7 +20,7 @@ module.exports = class NotificationView extends React.Component
       super props
       @style = { zIndex: 100 + @props.index }
       @notificationTimer = null
-      @isMounted = no
+      @mounted = no
       @removeCount = 0
       @state =
         removed : no
@@ -29,7 +29,7 @@ module.exports = class NotificationView extends React.Component
     hideNotification: ->
 
       @notificationTimer.clear()  if @notificationTimer
-      @setState { removed : yes }  if @isMounted
+      @setState { removed : yes }  if @mounted
       @removeNotification()
 
 
@@ -61,7 +61,7 @@ module.exports = class NotificationView extends React.Component
       transitionEvent = getVendorTransition()
       element = ReactDOM.findDOMNode this
       notification = @props.notification
-      @isMounted = yes
+      @mounted = yes
       if transitionEvent
         element.addEventListener transitionEvent, @onTransitionEnd
         if @autoDismissible notification
@@ -106,7 +106,7 @@ module.exports = class NotificationView extends React.Component
       element = ReactDOM.findDOMNode this
       transitionEvent = getVendorTransition()
       element.removeEventListener transitionEvent, @onTransitionEnd
-      @isMounted = no
+      @mounted = no
 
 
     render: ->
