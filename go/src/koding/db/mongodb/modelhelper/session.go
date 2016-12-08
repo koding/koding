@@ -48,22 +48,33 @@ func GetSessionsByUsername(username string) ([]*models.Session, error) {
 	return sessions, nil
 }
 
-func GetMostRecentSession(username string) (*models.Session, error) {
-	var session models.Session
+// Sessions is a helper type for a slice of sessions,
+// that allows for filtering, sorting etc.
+type Sessions []*models.Session
 
-	fn := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"username": username}).Sort("lastAccess").One(&session)
+func (s Sessions) LastAccessed() *models.Session {
+	if len(s) == 0 {
+		return nil
 	}
 
-	if err := Mongo.Run(SessionColl, fn); err != nil {
+	lastAccessed := s[0]
+
+	for _, session := range s[1:] {
+		if session.LastAccess.After(lastAccessed.LastAccess) {
+			lastAccessed = session
+		}
+	}
+
+	return lastAccessed
+}
+
+func GetMostRecentSession(username string) (*models.Session, error) {
+	sessions, err := GetSessionsByUsername(username)
+	if err != nil {
 		return nil, err
 	}
 
-	if !session.Id.Valid() {
-		return nil, mgo.ErrNotFound
-	}
-
-	return &session, nil
+	return Sessions(sessions).LastAccessed(), nil
 }
 
 func GetSessionFromToken(token string) (*models.Session, error) {

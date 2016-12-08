@@ -58,6 +58,8 @@ func TestSessionUpdateData(t *testing.T) {
 }
 
 func TestGetMostRecentSession(t *testing.T) {
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
 	g, err := createGroup()
 	if err != nil {
 		t.Fatalf("createGroup()=%s", err)
