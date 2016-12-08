@@ -85,6 +85,10 @@ func (a *Account) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(a, data, q)
 }
 
+func (a *Account) Delete() error {
+	return bongo.B.DB.Unscoped().Delete(a).Error
+}
+
 func (a *Account) FetchByIds(ids []int64) ([]Account, error) {
 	var accounts []Account
 
