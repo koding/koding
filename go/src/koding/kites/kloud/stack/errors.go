@@ -74,6 +74,8 @@ const (
 	ErrNotAuthorized          = 416
 	ErrInternalServer         = 417
 
+	ErrTeamSubIsNotActive = 420
+
 	ErrUserNotConfirmed = 500
 )
 
@@ -115,6 +117,9 @@ var kloudErrors = map[int]string{
 	ErrBadRequest:             "Bad request",
 	ErrNotAuthorized:          "Not Authorized",
 	ErrInternalServer:         "Internal server error",
+
+	// Team errors
+	ErrTeamSubIsNotActive: "Team subsription is no longer active",
 
 	// User errors
 	ErrUserNotConfirmed: "User account is not confirmed",

@@ -381,6 +381,35 @@ module.exports = class ComputeControllerUI
             Are you sure you want to proceed?</p>
           '
           button  : 'Yes, remove'
+        dontWarnMe:
+          title   : 'Are you sure?'
+          message : '<h2>By clicking Yes, You will not recieve anymore update for this stack.</h2>'
+          button  : 'Yes'
+        enableTeamOAuth :
+          title   : 'Do you want to setup as organization token?'
+          message : applyMarkdown "
+            In order to use and share GitHub organization tokens with admins
+            you can set a team token for your team. For this, you need to be
+            organization admin on GitHub and a team admin on Koding. \n\n
+
+            You will need to allow `#{options.scope}` scopes with your
+            integration. \n\n
+
+            Do you want to enable your GitHub integration with these scopes or
+            do you want to setup this integration as a regular user?
+          "
+          button  : 'Setup as Organization'
+          cancel  : 'Setup as User'
+        disableTeamOAuth :
+          title   : 'Do you want to disable organization token?'
+          message : applyMarkdown '
+            Currently your GitHub token is also set as default for team
+            integration, if you continue, this integration will be removed
+            as well.\n\n
+
+            Do you want to continue?
+          '
+          button  : 'Yes, Disable Integration'
       managed     :
         destroy   :
           title   : 'Delete Machine from Koding'
@@ -401,11 +430,12 @@ module.exports = class ComputeControllerUI
             Are you sure you want to proceed?'
           button  : 'Yes'
 
+
     task = tasks[provider]?[action] ? tasks.default[action]
 
     throw { message: "Failed to find action #{action}" }  unless task
 
-    { title, message, button, buttonColor, dontAskAgain } = task
+    { title, message, button, cancel, buttonColor, dontAskAgain } = task
 
     buttonColor ?= 'red'
     dontAskAgain = 'hidden'  if not dontAskAgain
@@ -424,7 +454,7 @@ module.exports = class ComputeControllerUI
       overlay        : yes
       buttons        :
         cancel       :
-          title      : 'Cancel'
+          title      : cancel ? 'Cancel'
           style      : 'solid cancel medium'
           type       : 'button'
           callback   : ->
@@ -444,8 +474,9 @@ module.exports = class ComputeControllerUI
             modal.destroy()
             callback { dontAskAgain: yes }
 
-    modal.once 'ModalCancelled', -> callback { confirmed: no }
-    modal.overlay.on 'click',    -> callback { confirmed: no }
+    cancelledCallback = -> callback { confirmed: no, cancelled: yes }
+    modal.once 'ModalCancelled', cancelledCallback
+    modal.overlay.on 'click',    cancelledCallback
 
     return modal
 

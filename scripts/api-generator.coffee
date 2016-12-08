@@ -30,6 +30,17 @@ swagger =
   ]
 
   definitions:
+    Error:
+      type: 'object'
+      properties:
+        message:
+          type: 'string'
+          description: 'Error description'
+          example: 'Something went wrong'
+        name:
+          type: 'string'
+          description: 'Name of the error'
+          example: 'KodingError'
     DefaultSelector:
       type: 'object'
       properties:
@@ -188,18 +199,35 @@ generateMethodPaths = (model, definitions, paths, docs) ->
 
   for method, signatures of methods.instance
 
+    parameters = [ { $ref: '#/parameters/instanceParam' } ]
+    response = { description: 'OK', schema }
+    if returns = docs[name]['instance'][method]?.returns
+      if Object.keys(returns).length and swagger.definitions[returns.type]
+        response =
+          description: returns.description
+          schema: { $ref: "#/definitions/#{returns.type}" }
+
+    if hasParams = signatures.length > 1 or signatures[0].split(',').length > 1
+      examples = docs[name]['instance'][method]?.examples ? []
+      for example in examples when example.title is 'api'
+        parameters.push {
+          in: 'body'
+          name: 'body'
+          schema: example.schema
+          required: true
+          description: 'body of the request'
+        }
+
     paths["/remote.api/#{name}.#{method}/{id}"] =
       post:
         tags: [ name ]
         consumes: [ 'application/json' ]
         description: docs[name]['instance'][method]?.description ? ''
-        parameters: [
-          { $ref: '#/parameters/instanceParam' }
-        ]
+        parameters: parameters
         responses:
           '200':
-            description: 'OK'
-            schema: schema
+            description: response.description
+            schema: response.schema
 
 
 module.exports = generateApi = (callback) ->

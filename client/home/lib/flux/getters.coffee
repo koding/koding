@@ -39,6 +39,9 @@ welcomeSteps = [
     unless hasIntegration 'gitlab'
       steps = steps.delete 'gitlabIntegration'
 
+    unless hasIntegration 'github'
+      steps = steps.delete 'githubIntegration'
+
     return steps.sortBy (a) -> a.get('order')
 ]
 

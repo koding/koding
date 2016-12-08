@@ -150,7 +150,8 @@ module.exports = class OAuth extends bongo.Base
 
           url = 'https://github.com'
 
-          { applicationId, scope, state } = data ? {}
+          { applicationId, state } = data ? {}
+          scope ?= data.scope
 
           state = "&state=#{state}"
           url   = "#{url}/login/oauth/authorize?"
