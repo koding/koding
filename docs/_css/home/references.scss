@@ -60,3 +60,13 @@
     }
   }
 }
+@media (max-width: 550px) {
+  .Homepage-References {
+    overflow: hidden;
+
+    .heads {
+        margin: 0 auto;
+        padding: 25px 0 0 10px;
+    }
+  } 
+}
