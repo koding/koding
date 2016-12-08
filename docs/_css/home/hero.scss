@@ -6,7 +6,7 @@ main.Homepage-Hero {
   background-size: cover;
 }
 .Homepage-Hero--container {
-  padding-top: 265px;
+  padding-top: 215px;
   position: relative;
   z-index: 1;
 }
@@ -84,6 +84,9 @@ main.Homepage-Hero {
 }
 
 @media (max-width: 880px) {
+  .Homepage-Hero--container {
+    padding-top: 145px;
+  }
   .Homepage-Hero--intro {
     h1 {
       font-size: 32px;
@@ -116,6 +119,6 @@ main.Homepage-Hero {
     }
   }
   .Homepage-Hero--container {
-    padding-top: 165px;
+    padding-top: 115px;
   }
 }
