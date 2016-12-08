@@ -5,7 +5,6 @@ import (
 	"socialapi/rest"
 	"socialapi/workers/common/tests"
 	"testing"
-    "time"
 
 	"gopkg.in/mgo.v2/bson"
 
@@ -58,7 +57,6 @@ func TestAccountCreation(t *testing.T) {
 					Convey("Users creation should be succussfully", func() {
                         err := accountCreatorWithCount(10)
                         So(err,ShouldBeNil)
-                        time.Sleep(500*time.Millisecond)
                         Convey("Users should be in postgre with many accounts", func() {
                             accounts, err := models.FetchAccountsWithBongoOffset(100, 0)
                             So(err,ShouldBeNil)
