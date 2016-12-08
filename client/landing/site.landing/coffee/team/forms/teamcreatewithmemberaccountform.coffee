@@ -13,7 +13,11 @@ module.exports = class TeamCreateWithMemberAccountForm extends TeamJoinWithInvit
 
     @username.input.setValue utils.getTeamData().profile?.nickname
 
-    @backLink = @getButtonLink 'BACK', '/Team/Payment'
+    backRoute = if kd.config.environment is 'default'
+    then '/Team/Domain'
+    else '/Team/Payment'
+
+    @backLink = @getButtonLink 'BACK', backRoute
 
 
   createButtonLinkPartial: -> "Not you? Create with a <a href='#'>fresh account!</a>"

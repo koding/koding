@@ -1,6 +1,5 @@
 .docs__index {
   /*margin: 0 auto !important;*/
-  max-width: 638px;
   text-align: center;
   float: none !important;
 }
@@ -29,20 +28,27 @@
   box-sizing: border-box;
   overflow: hidden;
   padding: 1.5rem;
-  width: 100%;
+  width: 25%;
 }
 .docs__index__item:last-child {
   border-bottom: 1px solid #f6f6f9;
 }
 @media screen and (min-width: 701px) {
-  .docs__index__item {
-    width: 50%;
-  }
   .docs__index__item:nth-child(2n+2) {
     border-left: 0;
   }
   .docs__index__item:nth-last-child(-n+4) {
     border-bottom: 1px solid #f6f6f9;
+  }
+}
+@media screen and (max-width: 1160px) {
+  .docs__index__item {
+    width: 50%;
+  }
+}
+@media screen and (max-width: 875px) {
+  .docs__index__item {
+    width: 100%;
   }
 }
 .docs__index__item__icon {

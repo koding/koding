@@ -99,6 +99,7 @@ type Builder struct {
 	Schema    map[string]*Schema
 
 	// Fields being built:
+	Team          *models.Group
 	Stack         *stack.Stack
 	StackTemplate *models.StackTemplate
 	Machines      map[string]*models.Machine // maps label to jMachine
@@ -125,9 +126,24 @@ func NewBuilder(opts *BuilderOptions) *Builder {
 	return b
 }
 
+// BuildTeam fetches team details from MongoDB.
+//
+// When it returns with nil error, the b.Team field is
+// guranteed to be non-nil.
+func (b *Builder) BuildTeam(team string) error {
+	g, err := modelhelper.GetGroup(team)
+	if err != nil {
+		return err
+	}
+
+	b.Team = g
+
+	return nil
+}
+
 // BuildStack fetches stack details from MongoDB.
 //
-// When nil error is returned, the  b.Stack field is non-nil.
+// When nil error is returned, the b.Stack field is non-nil.
 func (b *Builder) BuildStack(stackID string, credentials map[string][]string) error {
 	var overallErr error
 

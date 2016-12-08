@@ -11,12 +11,15 @@ FLOW_ROUTES  =
   'register'      : '/Team/Register'
 
 
-CREATION_FLOW = [ 'signup', 'domain', 'payment', 'username' ]
-
+DEFAULT_ENV_FLOW = [ 'signup', 'domain', 'username' ]
+REGULAR_CREATE_FLOW = [ 'signup', 'domain', 'payment', 'username' ]
 
 getFlow = (step) ->
 
-  return CREATION_FLOW if CREATION_FLOW.indexOf(step) > -1
+  flow = if kd.config.environment is 'default'
+  then DEFAULT_ENV_FLOW else REGULAR_CREATE_FLOW
+
+  return flow if flow.indexOf(step) > -1
   return no
 
 

@@ -14,7 +14,7 @@ Do you see the form with 'Email', 'First Name', 'Last Name' and 'Admin' columns?
 Enter "rainforestqa22@koding.com" in the 'Email' field of the second row and click on 'SEND INVITES' button
 Have you seen 'Invitation is sent to rainforestqa22@koding.com' message displayed?
 
-Open a new incognito window by clicking on the 3 dots on the top corner of the browser and selecting 'New Incognito Window' and then go to '{{ sandbox.auth }}@{{ random.last_name }}{{ random.number }}.{{site.host}}' by pasting the url (using ctrl-v) in the address bar
+Open a new incognito window by clicking on the 3 dots on the top right corner of the browser and selecting 'New Incognito Window' and then go to '{{ sandbox.auth }}@{{ random.last_name }}{{ random.number }}.{{site.host}}' by pasting the url (using ctrl-v) in the address bar
 Do you see 'Sign in to {{ random.last_name }}{{ random.number }}' text, 'Your Username or Email' and 'Your Password' fields and a 'SIGN IN' button?
 
 Enter "rainforestqa22" both in the 'Your Username or Email' and 'Your Password' fields and click on 'SIGN IN' button
@@ -36,13 +36,13 @@ Switch to the first browser and close that modal by clicking (x) at top right co
 Is that pane closed?
 
 Click on 'START COLLABORATION' button in the bottom right corner
-Do you see 'Starting session' progress bar below the button and after that 'START COLLABORATION' button is converted to 'END COLLABORATION'? Do you see a shortened URL in the bottom status bar (like on screenshot http://snag.gy/dp1Cn.jpg )?
+Do you see a green progress bar below the button and after that progress is completed 'START COLLABORATION' button is converted to 'END COLLABORATION'? Do you see a shortened URL in the bottom status bar (like on screenshot http://snag.gy/dp1Cn.jpg )?
 
 Click on the shortened URL in the bottom status bar
 Do you see 'Collaboration link is copied to clipboard.' popup message?
 
 Switch to the incognito window and paste copied URL in the browser address bar and press enter
-Do you see 'SHARED VMS' label in the left module on the page? Do you see 'aws-instance' item below the 'SHARED VMS' label? Do you see a white popup with 'Reject' and 'Accept' buttons?
+Do you see 'SHARED VMS' label in the left module on the page? Do you see 'aws-instance_' item below the 'SHARED VMS' label? Do you see a white popup with 'Reject' and 'Accept' buttons?
 
 Click on 'Accept' button
-Do you see 'Joining to collaboration session' progress bar? Do you see the same panes (terminal, untitled.txt) like on the other window where you are logged in as 'rainforestqa99'
+Do you see 'Joining to collaboration session...' progress bar? Do you see the same panes (terminal, untitled.txt) like on the other window where you are logged in as 'rainforestqa99'

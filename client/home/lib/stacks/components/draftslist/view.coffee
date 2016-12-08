@@ -13,6 +13,9 @@ module.exports = class DraftsListView extends React.Component
   onRemoveFromSidebar: (template) -> @props.onRemoveFromSidebar template.get '_id'
 
 
+  onCloneHandler: (template) -> @props.onCloneFromDashboard template
+
+
   numberOfSections: -> 1
 
 
@@ -27,7 +30,7 @@ module.exports = class DraftsListView extends React.Component
     template = @props.templates.toList().get(rowIndex)
     onAddToSidebar = @lazyBound 'onAddToSidebar', template
     onRemoveFromSidebar = @lazyBound 'onRemoveFromSidebar', template
-
+    onCloneHandler = @lazyBound 'onCloneHandler', template
     isVisible = @props.sidebarDrafts.get template.get('_id')
 
     <StackTemplateItem
@@ -36,6 +39,7 @@ module.exports = class DraftsListView extends React.Component
       onOpen={@props.onOpenItem}
       onAddToSidebar={onAddToSidebar}
       onRemoveFromSidebar={onRemoveFromSidebar}
+      onCloneFromDashboard={onCloneHandler}
     />
 
 
