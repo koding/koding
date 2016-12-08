@@ -36,6 +36,19 @@ main.Homepage-Hero {
     &.secondary {
       margin: 0 20px 10px 0;
     }
+    &.vision {
+      color: rgba(255,255,255,0.7);
+      margin: 40px 0 0;
+      display: inline-block;
+      text-decoration: none;
+      font-size: 18px;
+      svg {
+        margin-right: 10px;
+        width: 24px;
+        height: 24px;
+        vertical-align: top;
+      }
+    }
     strong {
       font-weight: 600;
     }
