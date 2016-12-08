@@ -49,6 +49,7 @@
   .Homepage-References {
     .heads {
       margin: 25px auto 25px;
+      max-width: 100%;
     }
     h5 {
       margin-top: 26px;
@@ -60,13 +61,14 @@
     }
   }
 }
+
 @media (max-width: 550px) {
   .Homepage-References {
-    overflow: hidden;
-
     .heads {
-        margin: 0 auto;
-        padding: 25px 0 0 10px;
+      figure {
+        width: 60px;
+        height: 60px;
+      }
     }
   } 
 }
