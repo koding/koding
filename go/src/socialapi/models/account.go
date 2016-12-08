@@ -2,9 +2,13 @@ package models
 
 import (
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"socialapi/request"
 	"strings"
 
+	mgo "gopkg.in/mgo.v2"
+
+	"github.com/hashicorp/go-multierror"
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
@@ -233,10 +237,10 @@ func (a *Account) FetchFollowerChannelIds(q *request.Query) ([]int64, error) {
 	res := bongo.B.DB.
 		Table(cp.BongoName()).
 		Where(
-		"creator_id IN (?) and type_constant = ?",
-		followerIds,
-		Channel_TYPE_FOLLOWINGFEED,
-	).Find(&channelIds)
+			"creator_id IN (?) and type_constant = ?",
+			followerIds,
+			Channel_TYPE_FOLLOWINGFEED,
+		).Find(&channelIds)
 
 	if err := bongo.CheckErr(res); err != nil {
 		return nil, err
@@ -300,4 +304,78 @@ func FetchAccountsByNicks(nicks []string) ([]Account, error) {
 	}
 
 	return accounts, nil
+}
+
+//
+//
+// USE BELOW FUNCTION TO DELETE ACCOUNT FROM POSTGRE THAT NON-EXISTING ACCOUNTS INSIDE MONGODB
+//
+//
+
+func (a *Account) DeleteIfNotInMongo() error {
+	if a.OldId == "" {
+		return ErrOldIdIsNotSet
+	}
+
+	_, err := modelhelper.GetAccountById(a.OldId)
+	if err != nil {
+		if err == mgo.ErrNotFound {
+			return a.Delete()
+		}
+		return err
+	}
+
+	return nil
+}
+
+// FetchAccountsWithBongoOffset fetches the accounts with bongo
+func FetchAccountsWithBongoOffset(limit, offset int) ([]Account, error) {
+	acc := &Account{}
+	var accounts []Account
+	query := &bongo.Query{
+		Pagination: *bongo.NewPagination(limit, offset),
+	}
+	if err := acc.Some(&accounts, query); err != nil {
+		return nil, err
+	}
+
+	return accounts, nil
+}
+
+// DeleteDiffedDBAccounts
+func DeleteDiffedDBAccounts() error {
+	var errs *multierror.Error
+
+	limit := 100
+	offsetCounter := 100
+
+	offset := 0
+	for {
+		accs, err := FetchAccountsWithBongoOffset(limit, offset)
+		if err != nil {
+			errs = multierror.Append(errs, err)
+		}
+		for _, acc := range accs {
+			// don't remove 'bot' or 'admin' accounts
+			if acc.Nick == "bot" || acc.Nick == "admin" {
+				continue
+			}
+
+			if err := acc.DeleteIfNotInMongo(); err != nil {
+				errs = multierror.Append(errs, err)
+			}
+		}
+
+		offset += offsetCounter
+
+		// This check provide us to break the loop if there is no data left
+		// that need to be processed
+		// fetch tolerance is limit/2, is accounts count is less than limited number then break.
+		if len(accs) < (limit/2){
+			break
+		}
+	}
+
+	return errs.ErrorOrNil()
+
 }
