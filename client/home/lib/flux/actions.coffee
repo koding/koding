@@ -41,6 +41,7 @@ checkIntegrationSteps = ->
   return  unless hasIntegration 'gitlab'
   whoami().fetchOAuthInfo (err, oauth) ->
     markAsDone 'gitlabIntegration'  if oauth?.gitlab?
+    markAsDone 'githubIntegration'  if oauth?.github?
 
 
 checkCredentialSteps = ->

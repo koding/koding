@@ -2,8 +2,12 @@ package discovertest
 
 import (
 	"net"
+	"net/http"
+	"net/http/httptest"
 	"sync"
 )
+
+// TODO(rjeczalik): move to some top-level testing package
 
 // Listener is a listener that allows waiting for a server loop.
 //
@@ -40,4 +44,31 @@ func (l *Listener) Accept() (net.Conn, error) {
 	l.Do(l.Done)
 
 	return l.Listener.Accept()
+}
+
+// Listen gives new Listener that listening on the given
+// network and address.
+func Listen(network, addr string) (*Listener, error) {
+	l, err := net.Listen(network, addr)
+	if err != nil {
+		return nil, err
+	}
+	return NewListener(l), nil
+}
+
+// NewServer works like httptest.NewServer, but it waits until
+// the HTTP server actually started listening on connections.
+func NewServer(h http.Handler) (*httptest.Server, error) {
+	l, err := Listen("tcp", ":0")
+	if err != nil {
+		return nil, err
+	}
+
+	s := httptest.NewUnstartedServer(h)
+	s.Listener = l
+	s.Start()
+
+	l.Wait()
+
+	return s, nil
 }

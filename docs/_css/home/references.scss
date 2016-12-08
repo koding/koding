@@ -49,6 +49,7 @@
   .Homepage-References {
     .heads {
       margin: 25px auto 25px;
+      max-width: 100%;
     }
     h5 {
       margin-top: 26px;
@@ -59,4 +60,15 @@
       margin: 37px auto 0;
     }
   }
+}
+
+@media (max-width: 550px) {
+  .Homepage-References {
+    .heads {
+      figure {
+        width: 60px;
+        height: 60px;
+      }
+    }
+  } 
 }

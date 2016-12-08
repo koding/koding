@@ -5,6 +5,8 @@ HomeAppAvatarView = require './commons/homeappavatarview'
 HomeTabHandle     = require './commons/hometabhandle'
 isGroupDisabled   = require 'app/util/isGroupDisabled'
 
+isDefaultEnv = -> globals.config.environment is 'default'
+
 module.exports = class HomeAppView extends kd.ModalView
 
   constructor: (options = {}, data) ->
@@ -80,6 +82,9 @@ module.exports = class HomeAppView extends kd.ModalView
       role = if item.role? then item.role else 'admin'
 
       if checkRoles and role not in myRoles
+        continue
+
+      if isDefaultEnv() and item.hideOnDefault
         continue
 
       if isGroupDisabled(group) and not item.showOnDisabled

@@ -295,10 +295,36 @@ Home My Account styles
 
       &:hover
         border-bottom       1px solid #ccc
+        cite
+          visibility        visible
+        token
+          display           block
+          opacity           0
 
       > div
         margin-top          12px
         fl()
+
+        token
+          display           none
+          abs               0px, 0px
+
+        cite
+          font-size         12px
+          font-weight       bold
+          margin-left       5px
+          color             #769ecc
+          cursor            pointer
+          visibility        hidden
+
+      .kdloader
+        height              20px
+        width               70px
+        right               10px
+        background          rgba(255,255,255,0.5)
+        text-align          right
+        padding-top         14px
+        abs()
 
       .scope
         background          #eee
@@ -306,7 +332,7 @@ Home My Account styles
         padding             1px 4px
         position            absolute
         right               130px
-        max-width           350px
+        max-width           290px
         overflow            hidden
         text-overflow       ellipsis
         white-space         nowrap

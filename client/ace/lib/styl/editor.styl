@@ -28,6 +28,20 @@ body.ace
         borderBox()
       ul
         margin-left       0
+        
+.kdview.files-being-dragged
+    rel()
+    pointer-events  none
+    &:after
+      content       ''
+      position      absolute
+      abs           0px 20px 0px 10px
+      border        2px dashed #a7cdff
+      z-index       99
+      
+.kdview.uploading-files-drag *
+    pointer-events  none
+      
 
   .kdview.kdcontextmenu.kdbuttonmenu.editor-advanced-settings-menu.split-view-button
     .chevron-ghost-wrapper

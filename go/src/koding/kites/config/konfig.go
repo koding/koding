@@ -35,9 +35,12 @@ type Konfig struct {
 	KloudURL      string `json:"kloudURL,omitempty"`
 	KodingBaseURL string `json:"kodingBaseURL,omitempty"`
 	TunnelURL     string `json:"tunnelURL,omitempty"`
-	RemoteURL     string `json:"remoteURL,omitempty"`
+	RemoteURL     string `json:"remoteURL,omitempty"` // deprecated
 	IPURL         string `json:"ipURL,omitempty"`
 	IPCheckURL    string `json:"ipCheckURL,omitempty"`
+
+	RemoteAPI *Endpoint `json:"remoteAPI,omitempty"`
+	SocialAPI *Endpoint `json:"socialAPI,omitempty"`
 
 	// Koding networking configuration.
 	//
@@ -138,7 +141,9 @@ func NewKonfig(e *Environments) *Konfig {
 		KloudURL:           Builtin.Endpoints.Kloud,
 		KodingBaseURL:      Builtin.Endpoints.KodingBase,
 		TunnelURL:          Builtin.Endpoints.TunnelServer,
-		RemoteURL:          Builtin.Endpoints.RemoteAPI,
+		RemoteURL:          Builtin.Endpoints.RemoteAPI.Public.String(),
+		RemoteAPI:          Builtin.Endpoints.RemoteAPI,
+		SocialAPI:          Builtin.Endpoints.SocialAPI,
 		IPURL:              Builtin.Endpoints.IP,
 		IPCheckURL:         Builtin.Endpoints.IPCheck,
 		KlientLatestURL:    ReplaceEnv(Builtin.Endpoints.KlientLatest, e.klientEnv()),

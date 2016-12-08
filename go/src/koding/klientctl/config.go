@@ -128,7 +128,12 @@ func updateKonfigCache(key string, value interface{}) error {
 	}
 
 	if err := b.Set(&cfg, key, value); err != nil {
-		return fmt.Errorf("failed to updat %s=%v: %s", key, value, err)
+		if s, ok := value.(string); ok && s != "" {
+			err = mergeIn(&cfg, key, s)
+		}
+		if err != nil {
+			return fmt.Errorf("failed to update %s=%v: %s", key, value, err)
+		}
 	}
 
 	if err := db.SetValue("konfig", &cfg); err != nil {
@@ -136,4 +141,25 @@ func updateKonfigCache(key string, value interface{}) error {
 	}
 
 	return nil
+}
+
+// TODO(rjeczalik): a workaround for b.Set missing a patch feature,
+// so it's able to partially update e.g. a struct.
+func mergeIn(cfg *konfig.Konfig, key, raw string) error {
+	var v interface{}
+
+	if err := json.Unmarshal([]byte(raw), &v); err != nil {
+		return err
+	}
+
+	v = map[string]interface{}{
+		key: v,
+	}
+
+	p, err := json.Marshal(object.Inline(v, cfg))
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(p, cfg)
 }
