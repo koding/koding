@@ -55,17 +55,17 @@ func TestAccountCreation(t *testing.T) {
 						})
 					})
 					Convey("Users creation should be succussfully", func() {
-                        err := accountCreatorWithCount(10)
-                        So(err,ShouldBeNil)
-                        Convey("Users should be in postgre with many accounts", func() {
-                            accounts, err := models.FetchAccountsWithBongoOffset(100, 0)
-                            So(err,ShouldBeNil)
-                            So(len(accounts), ShouldBeGreaterThan, 9)
-                        })
-                        Convey("Users should not be in postgre after deleting accounts", func() {
-                            err := models.DeleteDiffedDBAccounts()
-                            So(err, ShouldBeNil)
-                        })
+						err := accountCreatorWithCount(10)
+						So(err, ShouldBeNil)
+						Convey("Users should be in postgre with many accounts", func() {
+							accounts, err := models.FetchAccountsWithBongoOffset(100, 0)
+							So(err, ShouldBeNil)
+							So(len(accounts), ShouldBeGreaterThan, 9)
+						})
+						Convey("Users should not be in postgre after deleting accounts", func() {
+							err := models.DeleteDiffedDBAccounts()
+							So(err, ShouldBeNil)
+						})
 					})
 				})
 			})
@@ -74,13 +74,13 @@ func TestAccountCreation(t *testing.T) {
 }
 
 func accountCreatorWithCount(count int) error {
-    for i := 0 ; i< count ; i ++{
-        account := models.NewAccount()
-        account.OldId = bson.NewObjectId().Hex()
-        account, err := rest.CreateAccount(account)
-        if err != nil {
-            return err
-        }
-    }
-    return nil
+	for i := 0; i < count; i++ {
+		account := models.NewAccount()
+		account.OldId = bson.NewObjectId().Hex()
+		account, err := rest.CreateAccount(account)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
