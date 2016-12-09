@@ -8,6 +8,7 @@ HomeTeamBilling     = require './billing'
 HomePaymentHistory  = require './paymenthistory'
 HomeStacks          = require './stacks'
 HomeIntegrations    = require './integrations'
+HomeAddons          = require './addons'
 
 do require './routehandler'
 
@@ -25,6 +26,7 @@ module.exports = class HomeAppController extends AppController
     # { title : 'Payment History', viewClass : HomePaymentHistory }
     { title : 'Koding Utilities', viewClass : HomeUtilities, role: 'member' }
     { title : 'My Account', viewClass : HomeAccount, role: 'member' }
+    { title : 'Add-ons', viewClass : HomeAddons }
   ]
 
 
@@ -125,3 +127,4 @@ module.exports = class HomeAppController extends AppController
       when 'team-billing'     then 'TeamBillingViewed'
       when 'koding-utilities' then 'KodingUtilitiesViewed'
       when 'my-account'       then 'MyAccountViewed'
+      when 'add-ons'          then 'AddOnsViewed'
