@@ -8,11 +8,12 @@ import (
 	"koding/helpers"
 	"koding/tools/config"
 	"koding/tools/logger"
+	"os"
+	"strings"
 
 	mgo "gopkg.in/mgo.v2"
 
 	"github.com/koding/cache"
-	"github.com/kr/pretty"
 )
 
 var log = logger.New("non existents")
@@ -22,13 +23,25 @@ var (
 	flagProfile = flag.String("c", "prod", "Configuration profile from file")
 	flagSkip    = flag.Int("s", 0, "Configuration profile from file")
 	flagLimit   = flag.Int("l", 1000, "Configuration profile from file")
+	flagDry     = flag.Bool("dry", false, "dry run")
+	flagColls   = flag.String("colls", "jUsers,jAccounts,jWorkspaces,jNames,jComputeStacks,jCombinedAppStorages,relationships", "collections to clean up")
+
+	deletedAccountByID    = cache.NewLRU(10000)
+	existingAccountByID   = cache.NewLRU(10000)
+	existingAccountByNick = cache.NewLRU(10000)
+	deletedAccountByNick  = cache.NewLRU(10000)
+
+	deletedUserByID    = cache.NewLRU(10000)
+	existingUserByID   = cache.NewLRU(10000)
+	existingUserByNick = cache.NewLRU(10000)
+	deletedUserByNick  = cache.NewLRU(10000)
 )
 
 func initialize() {
 	flag.Parse()
-	log.SetLevel(logger.DEBUG)
 	if *flagProfile == "" {
-		log.Fatal("Please specify profile via -c. Aborting.")
+		fmt.Printf("Please specify profile via -c. Aborting.")
+		os.Exit(1)
 	}
 
 	conf = config.MustConfig(*flagProfile)
@@ -38,7 +51,7 @@ func initialize() {
 func main() {
 	// init the package
 	initialize()
-	log.Info("Obsolete Deleter worker started")
+	fmt.Println("Non existent deleter started")
 
 	resources := []struct {
 		CollName string
@@ -64,10 +77,40 @@ func main() {
 			Filter:   filter(),
 			Res:      &models.Workspace{},
 		},
+		{ // delete jNames that have invalid collectionName.
+			CollName: "jNames",
+			Func:     deleteNames,
+			Filter:   filter(),
+			Res:      &models.Name{},
+		},
+		{ // delete jComputeStacks that does not have the account.
+			CollName: "jComputeStacks",
+			Func:     deleteComputeStacks,
+			Filter:   filter(),
+			Res:      &models.ComputeStack{},
+		},
+		{ // delete all jCombinedAppStorages which "accountId" does not exist in JAccount
+			CollName: "jCombinedAppStorages",
+			Func:     deleteCombinedAppStorages,
+			Filter:   filter(),
+			Res:      &models.CombinedAppStorage{},
+		},
+		{ // delete all rels that does not have source or target
+			CollName: "relationships",
+			Func:     deleteRels,
+			Filter:   filter(),
+			Res:      &models.Relationship{},
+		},
 	}
-	fmt.Printf("resources %# v\n", pretty.Formatter(resources))
+	collsToClean := strings.Split(*flagColls, ",")
+	fmt.Printf("will clean up following %q\n", collsToClean)
+
 	for _, res := range resources {
-		fmt.Printf("res %# v\n", pretty.Formatter(res))
+		if !isIn(res.CollName, collsToClean...) {
+			fmt.Printf("skipping %q it is not in op list\n", res.CollName)
+			continue
+		}
+
 		iterOptions := helpers.NewIterOptions()
 		iterOptions.CollectionName = res.CollName
 		iterOptions.F = res.Func
@@ -75,18 +118,17 @@ func main() {
 		iterOptions.Result = res.Res
 		iterOptions.Limit = *flagLimit
 		iterOptions.Skip = *flagSkip
-		iterOptions.Log = log
 
-		log.Info("starting operating on ", res.CollName)
+		fmt.Printf("starting operating on %q\n", res.CollName)
 		err := helpers.Iter(helper.Mongo, iterOptions)
 		if err != nil {
-
-			log.Fatal("Error while iter", err)
+			fmt.Printf("Error while iter %s\n", err)
+			os.Exit(1)
 		}
-		log.Info("finished with ", res.CollName)
+		fmt.Printf("finished with %s\n", res.CollName)
 	}
 
-	log.Info("worker done!")
+	fmt.Println("worker done!")
 }
 
 func filter() helper.Selector {
@@ -95,25 +137,29 @@ func filter() helper.Selector {
 
 func deleteUser(rel interface{}) error {
 	result := rel.(*models.User)
-	// on error cases, treat them like they exist
-	if !getAccountByNick(result.Name) {
-		fmt.Printf("user %# v\n", pretty.Formatter(result.Name))
+	if getAccountByNick(result.Name) {
+		return nil
 	}
 
-	existingUserByID.Set(result.ObjectId.Hex(), struct{}{})
-	existingUserByNick.Set(result.Name, result.ObjectId.Hex())
+	fmt.Printf("deleting user %q\n", result.Name)
+	if !*flagDry {
+		return helper.RemoveUser(result.Name)
+	}
+
 	return nil
 }
 
 func deleteAccount(res interface{}) error {
 	acc := res.(*models.Account)
-	// on error cases, treat them like they exist
-	if !getUserByNick(acc.Profile.Nickname) {
-		fmt.Printf("acc %# v\n", pretty.Formatter(acc.Profile.Nickname))
+	if getUserByNick(acc.Profile.Nickname) {
+		return nil
 	}
 
-	existingAccountByID.Set(acc.Id.Hex(), struct{}{})
-	existingAccountByNick.Set(acc.Profile.Nickname, acc.Id.Hex())
+	fmt.Printf("deleting acc %q\n", acc.Profile.Nickname)
+	if !*flagDry {
+		return helper.RemoveAccount(acc.Id)
+	}
+
 	return nil
 }
 
@@ -122,27 +168,100 @@ func deleteWorkspaces(res interface{}) error {
 
 	_, err := helper.GetWorkspacesForMachine(&models.Machine{Uid: ws.MachineUID})
 	if err == mgo.ErrNotFound {
-		fmt.Printf("machine does not exist %# v\n", pretty.Formatter(ws.MachineUID))
+		fmt.Printf("deleting WS with UID (corresponding machine does not exist) %q\n", ws.MachineUID)
+		if !*flagDry {
+			return helper.RemoveWorkspace(ws.ObjectId)
+		}
 	}
 
 	if !getAccountByID(ws.Owner) {
-		fmt.Printf("owner of the ws does not exit, delete it! %# v\n", pretty.Formatter(ws.Owner))
+		fmt.Printf("deleting WS with owner %q (corresponding acc does not exist)\n", ws.Owner)
+		if !*flagDry {
+			return helper.RemoveWorkspace(ws.ObjectId)
+		}
 	}
 
 	return nil
 }
 
-var (
-	deletedAccountByID    = cache.NewLRU(10000)
-	existingAccountByID   = cache.NewLRU(10000)
-	existingAccountByNick = cache.NewLRU(10000)
-	deletedAccountByNick  = cache.NewLRU(10000)
+func deleteNames(res interface{}) error {
+	name := res.(*models.Name)
 
-	deletedUserByID    = cache.NewLRU(10000)
-	existingUserByID   = cache.NewLRU(10000)
-	existingUserByNick = cache.NewLRU(10000)
-	deletedUserByNick  = cache.NewLRU(10000)
-)
+	for _, slug := range name.Slugs {
+		if slug.ConstructorName == "JGroup" {
+			continue
+		}
+
+		if slug.ConstructorName == "JUser" {
+			// if we have the user in db, do not delete, but if not continue,
+			// following code will remove it eventually
+			if getAccountByNick(slug.Slug) { // slug is username
+				continue
+			}
+		}
+
+		fmt.Printf("deleting jname %q\n", name.ID)
+		if !*flagDry {
+			return helper.RemoveName(name.ID)
+		}
+	}
+
+	return nil
+}
+
+// * delete all jComputeStacks which "originId" does not exist in JAccount
+// * delete alljComputeStacks which { group:koding }
+func deleteComputeStacks(res interface{}) error {
+	cs := res.(*models.ComputeStack)
+
+	if getAccountByID(cs.OriginId.Hex()) && cs.Group != "koding" {
+		return nil
+	}
+
+	fmt.Printf("deleting jComputeStack %q\n", cs.Id.Hex())
+	if !*flagDry {
+		return helper.DeleteComputeStack(cs.Id.Hex())
+	}
+
+	return nil
+}
+
+func deleteCombinedAppStorages(res interface{}) error {
+	cs := res.(*models.CombinedAppStorage)
+
+	if getAccountByID(cs.AccountId.Hex()) {
+		return nil
+	}
+
+	fmt.Printf("deleting CombinedAppStorage %q\n", cs.Id)
+	if !*flagDry {
+		return helper.RemoveCombinedAppStorage(cs.Id)
+	}
+	return nil
+}
+
+func deleteRels(res interface{}) error {
+	r := res.(*models.Relationship)
+
+	var data interface{}
+	targetCollectionName := helper.GetCollectionName(r.TargetName)
+	if err := helper.Mongo.One(targetCollectionName, r.TargetId.Hex(), &data); err != nil {
+		fmt.Printf("deleted because of target: id %q from %q name %q\n", r.TargetId.Hex(), targetCollectionName, r.TargetName)
+		if !*flagDry {
+			return helper.DeleteRelationship(r.Id)
+		}
+	}
+
+	sourceCollectionName := helper.GetCollectionName(r.SourceName)
+	if err := helper.Mongo.One(sourceCollectionName, r.SourceId.Hex(), &data); err != nil {
+		fmt.Printf("deleting because of source: id %q from %q name %q\n", r.SourceId.Hex(), sourceCollectionName, r.SourceName)
+		if !*flagDry {
+			return helper.DeleteRelationship(r.Id)
+		}
+	}
+
+	return nil
+}
 
 func getAccountByNick(nick string) bool {
 	if _, err := existingAccountByNick.Get(nick); err == nil {
@@ -154,16 +273,26 @@ func getAccountByNick(nick string) bool {
 	}
 
 	acc, err := helper.GetAccount(nick)
-	if err == nil {
-		id := acc.Id.Hex()
-		existingAccountByID.Set(id, struct{}{})
-		existingAccountByNick.Set(acc.Profile.Nickname, id)
-	}
-
 	if err == mgo.ErrNotFound {
 		deletedAccountByNick.Set(nick, struct{}{})
 		return false
 	}
+
+	// treat them as existing on random errors
+	if err != nil {
+		fmt.Printf("err while getting acc by nick %q, %s\n", nick, err.Error())
+		return true
+	}
+
+	id := acc.Id.Hex()
+	if acc.Type == "deleted" {
+		deletedAccountByID.Set(id, struct{}{})
+		deletedAccountByNick.Set(acc.Profile.Nickname, struct{}{})
+		return false
+	}
+
+	existingAccountByID.Set(id, struct{}{})
+	existingAccountByNick.Set(acc.Profile.Nickname, id)
 
 	return true
 }
@@ -178,16 +307,25 @@ func getUserByNick(nick string) bool {
 	}
 
 	user, err := helper.GetUser(nick)
-	if err == nil {
-		id := user.ObjectId.Hex()
-		existingUserByID.Set(id, struct{}{})
-		existingUserByNick.Set(user.Name, id)
-	}
-
 	if err == mgo.ErrNotFound {
 		deletedUserByNick.Set(nick, struct{}{})
 		return false
 	}
+
+	// treat them as existing on random errors
+	if err != nil {
+		fmt.Printf("err while getting user by nick %q, %s\n", nick, err.Error())
+		return true
+	}
+
+	if user.Status == "deleted" {
+		deletedUserByNick.Set(nick, struct{}{})
+		return false
+	}
+
+	id := user.ObjectId.Hex()
+	existingUserByID.Set(id, struct{}{})
+	existingUserByNick.Set(user.Name, id)
 
 	return true
 }
@@ -202,15 +340,35 @@ func getAccountByID(id string) bool {
 	}
 
 	acc, err := helper.GetAccountById(id)
-	if err == nil {
-		existingAccountByID.Set(id, struct{}{})
-		existingAccountByNick.Set(acc.Profile.Nickname, id)
-	}
-
 	if err == mgo.ErrNotFound {
 		deletedAccountByID.Set(id, struct{}{})
 		return false
 	}
 
+	// treat them as existing on random errors
+	if err != nil {
+		fmt.Printf("err while getting acc by id %q, %s\n", id, err.Error())
+		return true
+	}
+
+	if acc.Type == "deleted" {
+		deletedAccountByID.Set(id, struct{}{})
+		deletedAccountByNick.Set(acc.Profile.Nickname, struct{}{})
+		return false
+	}
+
+	existingAccountByID.Set(id, struct{}{})
+	existingAccountByNick.Set(acc.Profile.Nickname, id)
+
 	return true
+}
+
+func isIn(s string, ts ...string) bool {
+	for _, t := range ts {
+		if t == s {
+			return true
+		}
+	}
+
+	return false
 }
