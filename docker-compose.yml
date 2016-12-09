@@ -37,7 +37,7 @@ services:
       - .:/opt/koding
 
   mongo:
-    image: koding/mongo
+    image: mongo:2.4
 
   postgres:
     image: koding/postgres
