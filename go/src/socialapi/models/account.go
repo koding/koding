@@ -367,13 +367,13 @@ func DeleteDiffedDBAccounts() error {
 		}
 
 		// we increase offset number
-		// if deleting all fetched accounts we should not increase offset
+		// if delete all fetched accounts we should not increase offset
 		// if we increase offset, some data will be skiped without checking
 		// scenario;
 		// fetch with; limit:100 offset: 0 && delete all fetched accounts
 		// after this if we fetch with limit:100 offset:100
 		// some data will be skipped (the data that limit:100 offset:0).
-		offset = offset + limit - counter
+		offset += limit - counter
 
 		// This check provide us to break the loop if there is no data left
 		// that need to be processed
