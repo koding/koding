@@ -347,10 +347,9 @@ func DeleteDiffedDBAccounts() error {
 	var errs *multierror.Error
 
 	limit := 100
-	offsetCounter := 100
-
 	offset := 0
 	for {
+		counter := 0
 		accs, err := FetchAccountsWithBongoOffset(limit, offset)
 		if err != nil {
 			errs = multierror.Append(errs, err)
@@ -364,14 +363,22 @@ func DeleteDiffedDBAccounts() error {
 			if err := acc.DeleteIfNotInMongo(); err != nil {
 				errs = multierror.Append(errs, err)
 			}
+			counter++
 		}
 
-		offset += offsetCounter
+		// we increase offset number
+		// if deleting all fetched accounts we should not increase offset
+		// if we increase offset, some data will be skiped without checking
+		// scenario;
+		// fetch with; limit:100 offset: 0 && delete all fetched accounts
+		// after this if we fetch with limit:100 offset:100
+		// some data will be skipped (the data that limit:100 offset:0).
+		offset = offset + limit - counter
 
 		// This check provide us to break the loop if there is no data left
 		// that need to be processed
 		// fetch tolerance is limit/2, is accounts count is less than limited number then break.
-		if len(accs) < (limit/2){
+		if len(accs) < (limit / 2) {
 			break
 		}
 	}
