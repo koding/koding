@@ -56,11 +56,12 @@ getNumberBlocks = (number, brand) ->
 getPlaceholder = (field, brand) ->
   # get default field constant
   FIELD = constant field
+  BRAND = constant brand
 
   # get brand specific field constant
-  # by prefixing input field constant to
+  # by suffixing input field constant with
   # brand constant.
-  FIELD_BRAND = constant brand, FIELD
+  FIELD_BRAND = constant FIELD, BRAND
 
   return Placeholder[FIELD_BRAND] ? Placeholder[FIELD]
 
