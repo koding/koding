@@ -30,12 +30,6 @@ subscriptionTitle = createSelector(
 )
 
 
-freeCredit = createSelector(
-  customer.coupon
-  (coupon) -> if coupon then coupon.amount_off else 0
-)
-
-
 accountUser = createSelector(
   bongo.all('JUser')
   bongo.byId('JAccount', whoami()._id)
@@ -63,7 +57,7 @@ mapStateToProps = (state) ->
     endsAt: info.endsAt(state)
     daysLeft: info.daysLeft(state)
     isTrial: subscription.isTrial(state)
-    freeCredit: freeCredit(state)
+    freeCredit: customer.freeCredit(state)
     # TODO(umut): activate this when we have coupon support.
     isSurveyTaken: yes # !!customer.coupon(state)
     isEmailVerified: isEmailVerified(state)
