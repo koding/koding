@@ -10,13 +10,15 @@ styles = require './CreateCreditCardForm.stylus'
 
 module.exports = CreateCreditCardForm = (props) ->
 
-  { formValues, initialValues, handleSubmit, isDirty, loading } = props
+  { isDirty, handleSubmit, formValues: values, placeholders, loading } = props
 
-  values = formValues or initialValues
 
-  { brand } = values
-
-  brand or= 'visa'
+  if isDirty
+    brand = values.brand
+    cardProps = values
+  else
+    brand = placeholders.brand
+    cardProps = placeholders
 
   <form className={styles.main} onSubmit={handleSubmit}>
     <Row bottom='xs' between='xs'>
@@ -27,6 +29,7 @@ module.exports = CreateCreditCardForm = (props) ->
               disabled={loading}
               fieldType='number'
               name='number'
+              placeholder={if isDirty then null else placeholders.number}
               brand={brand}
               title='Credit Card Number' />
           </Col>
@@ -38,7 +41,7 @@ module.exports = CreateCreditCardForm = (props) ->
               guide={off}
               name='exp_month'
               title='Expiration'
-              placeholder='MM' />
+              placeholder={if isDirty then 'MM' else placeholders.exp_month} />
           </Col>
           <Col xs={4} className={styles.tight}>
             <Input.Field
@@ -46,7 +49,7 @@ module.exports = CreateCreditCardForm = (props) ->
               guide={off}
               disabled={loading}
               name='exp_year'
-              placeholder='YYYY' />
+              placeholder={if isDirty then 'YYYY' else placeholders.exp_year} />
           </Col>
           <Col xs={4} className={styles.tight}>
             <CreditCardInput.Field
@@ -62,7 +65,7 @@ module.exports = CreateCreditCardForm = (props) ->
       <Col xs className={styles.mainCol}>
         <Row bottom='xs'>
           <Col xs={12}>
-            <CreditCard {...values} brand={brand} />
+            <CreditCard {...cardProps} />
           </Col>
         </Row>
       </Col>
