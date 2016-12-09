@@ -1,15 +1,17 @@
+DOT = '•'
+
 Placeholder =
-  NUMBER: '•••• •••• •••• ••••'
+  NAME: '••••• •••••'
   EXP_MONTH: 'MM'
   EXP_YEAR: 'YY'
+  NUMBER: '•••• •••• •••• ••••'
   CVC: '•••'
-  NUMBER_AMEX: '•••• •••••• •••••'
-  CVC_AMEX: '••••'
-  NAME: '••••• •••••'
+  NUMBER_AMERICAN_EXPRESS: '•••• •••••• •••••'
+  CVC_AMERICAN_EXPRESS: '••••'
 
 NumberPattern =
   DEFAULT: [4, 4, 4, 4]
-  AMEX: [4, 6, 5]
+  AMERICAN_EXPRESS: [4, 6, 5]
 
 Brand =
   JCB: 'jcb'
@@ -21,7 +23,6 @@ Brand =
   VISA: 'visa'
   DEFAULT: 'default'
 
-DOT = '•'
 
 module.exports = {
   Placeholder, NumberPattern, Brand, DOT
