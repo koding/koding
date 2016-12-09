@@ -16,6 +16,7 @@ module.exports = class StackEditorAppController extends AppController
 
   @options     =
     name       : 'Stackeditor'
+    customName : 'new-stack-editor'
     behavior   : 'application'
 
   constructor: (options = {}, data) ->
