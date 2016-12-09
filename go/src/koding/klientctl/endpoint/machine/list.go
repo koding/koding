@@ -55,9 +55,9 @@ func List(options *ListOptions) ([]*Info, error) {
 	for _, m := range res.Machines {
 		mgreq.Addresses[kmachine.ID(m.ID)] = []kmachine.Addr{
 			{
-				Net:     "ip",
-				Val:     m.IP,
-				Updated: time.Now(),
+				Network:   "ip",
+				Value:     m.IP,
+				UpdatedAt: time.Now(),
 			},
 		}
 	}

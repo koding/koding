@@ -315,7 +315,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		// EventSub: mountEvents,
 	}
 
-	machinesOpts := machinegroup.GroupOpts{
+	machinesOpts := &machinegroup.GroupOpts{
 		Storage:         storage.NewEncodingStorage(db, []byte("machines")),
 		Builder:         machine.DisconnectedClientBuilder{},
 		DynAddrInterval: 2 * time.Second,
