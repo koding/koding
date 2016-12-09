@@ -4,6 +4,7 @@ React = require 'react'
 { Footer } = DashboardSection = require 'lab/DashboardSection'
 Subscription = require 'lab/Subscription'
 Button = require 'lab/Button'
+AddonsBanner = require './addonsbanner'
 
 module.exports = class SubscriptionSection extends React.Component
 
@@ -19,6 +20,7 @@ module.exports = class SubscriptionSection extends React.Component
 
     <DashboardSection title='Koding Subscription'>
       <Subscription {...subscriptionProps} />
+      <AddonsBanner />
       <Footer border>
         <Row style={{margin: '0'}} end='xs'>
           <Col>
