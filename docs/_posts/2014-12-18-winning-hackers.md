@@ -5,6 +5,7 @@ image: /assets/img/blog/hakatwinnersblogpost2x_720.png
 author:
   name: Nitin Gupta
   email: nitin@koding.com
+redirect_from: "/2014/12/31/koding-hackathon-by-the-numbers.html"
 excerpt_separator: "<!--more-->"
 ---
 <!--more-->

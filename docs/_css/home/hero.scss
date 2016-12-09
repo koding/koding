@@ -6,7 +6,7 @@ main.Homepage-Hero {
   background-size: cover;
 }
 .Homepage-Hero--container {
-  padding-top: 265px;
+  padding-top: 215px;
   position: relative;
   z-index: 1;
 }
@@ -35,6 +35,19 @@ main.Homepage-Hero {
   a {
     &.secondary {
       margin: 0 20px 10px 0;
+    }
+    &.vision {
+      color: rgba(255,255,255,0.7);
+      margin: 40px 0 0;
+      display: inline-block;
+      text-decoration: none;
+      font-size: 18px;
+      svg {
+        margin-right: 10px;
+        width: 24px;
+        height: 24px;
+        vertical-align: top;
+      }
     }
     strong {
       font-weight: 600;
@@ -71,6 +84,9 @@ main.Homepage-Hero {
 }
 
 @media (max-width: 880px) {
+  .Homepage-Hero--container {
+    padding-top: 145px;
+  }
   .Homepage-Hero--intro {
     h1 {
       font-size: 32px;
@@ -103,6 +119,6 @@ main.Homepage-Hero {
     }
   }
   .Homepage-Hero--container {
-    padding-top: 165px;
+    padding-top: 115px;
   }
 }
