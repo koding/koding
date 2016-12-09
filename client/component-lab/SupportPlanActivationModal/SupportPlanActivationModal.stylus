@@ -1,0 +1,26 @@
+@import '~lab/Colors/Colors.stylus'
+
+.support_plan_activation
+  m-sprite                  		'home', 'support_plan_activation'
+  
+.business_add_on_activation
+  m-sprite                  		'home', 'business_add_on_activation'
+  
+.SupportPlanActivationModal
+	
+	.header
+		> span
+			font-size 								22px
+			
+	.contentTitle
+		display 										block
+		color 											$primary-6
+		font-weight 								500
+		margin 											30px 0 20px
+		
+	.price
+		color                   		#858585
+		font-weight            			600
+	
+	.footer
+		justify-content 						center
