@@ -7,7 +7,6 @@ import (
 	helper "koding/db/mongodb/modelhelper"
 	"koding/helpers"
 	"koding/tools/config"
-	"koding/tools/logger"
 	"os"
 	"strings"
 
@@ -15,8 +14,6 @@ import (
 
 	"github.com/koding/cache"
 )
-
-var log = logger.New("non existents")
 
 var (
 	conf        *config.Config
