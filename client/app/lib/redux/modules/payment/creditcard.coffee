@@ -49,29 +49,6 @@ reducer = (state = null, action) ->
   return state
 
 
-valueSelector = (state) -> (key, fn = _.identity) -> fn state.creditCard[key]
-
-values = (state) ->
-
-  return null  unless state.creditCard
-
-  selector = valueSelector(state)
-
-  brand = selector 'brand', (brand) -> kd.utils.slugify brand.toLowerCase()
-  number = selector 'last4', (last4) ->
-    if brand is 'amex'
-    then "•••• •••••• •#{last4}"
-    else "•••• •••• •••• #{last4}"
-
-  return immutable {
-    brand: brand
-    number: number
-    name: selector 'name'
-    exp_month: selector 'exp_month'
-    exp_year: selector 'exp_year'
-  }
-
-
 remove = ->
   return {
     types: [ REMOVE.BEGIN, REMOVE.SUCCESS, REMOVE.FAIL ]
@@ -92,7 +69,7 @@ module.exports = {
   namespace: withNamespace()
   reducer
 
-  values, creditCard
+  creditCard
 
   remove, hasCreditCard
   REMOVE, HAS_CARD
