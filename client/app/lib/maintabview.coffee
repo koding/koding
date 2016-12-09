@@ -73,7 +73,7 @@ module.exports = class MainTabView extends KDTabView
 
     domId           = "maintabpane-#{kd.utils.slugify options.name}"
     o.domId         = domId  if global.document.getElementById domId
-    o.name          = options.name
+    o.name          = options.customName ? options.name
     o.behavior      = options.behavior
     o.hiddenHandle  = options.hiddenHandle
     o.view          = mainView
