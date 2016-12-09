@@ -1,3 +1,4 @@
+kd = require 'kd'
 _ = require 'lodash'
 immutable = require 'app/util/immutable'
 
@@ -56,7 +57,7 @@ values = (state) ->
 
   selector = valueSelector(state)
 
-  brand = selector 'brand', (brand) -> brand.toLowerCase()
+  brand = selector 'brand', (brand) -> kd.utils.slugify brand.toLowerCase()
   number = selector 'last4', (last4) ->
     if brand is 'amex'
     then "•••• •••••• •#{last4}"
