@@ -1,0 +1,97 @@
+@import '~lab/Colors/Colors.stylus'
+
+.supportPlan
+  color                                   #636363
+  position                                relative
+  display                                 flex
+  flex-direction                          row
+  justify-content                         space-between
+  padding                                 34px
+  &.active
+    background-color                      #f1f7f5
+    border-color                          #d2e8dc
+    
+  a
+    color                                 $primary-6
+    text-decoration                       none
+  
+  section
+    display                               flex
+    flex-direction                        row
+    align-items                           flex-start
+    justify-content                       center
+
+    &.features
+      .feature
+        color                             #a8a8a8
+        display                           block
+        font-size                         16px
+        font-weight                       200
+        line-height                       16px
+        padding-left                      10px
+        margin-bottom                     5px
+        position                          relative
+        &:before
+          content                         '\25CF'
+          position                        absolute
+          left                            0
+          font-size                       6px
+      
+    &.action
+      text-align                          center
+      display                             flex
+      flex-direction                      row
+      align-items                         center
+      justify-content                     center
+      width                               170px
+      
+      &.switchable
+        align-items                       flex-start
+
+      .planActive
+        color                             #54c390
+        font-size                         14px
+        font-weight                       600
+        &:before
+          content                         ''
+          m-sprite                        'home', 'active'
+          display                         inline-block
+          margin-right                    5px
+          margin-bottom                   2px
+          vertical-align                  middle
+          
+      .switchableAction
+        color                             #a8a8a8
+        font-weight                       100
+        text-align                        left
+        .switchableActionHeader
+          display                         block
+          font-size                       14px
+          font-weight                     600
+          margin-bottom                   5px
+    
+  .priceSegment
+    
+    span
+      display                             block
+      color                               #858585
+      
+    .name
+      font-size                           30px
+      font-weight                         500
+      color                               $primary-1
+      margin-bottom                       5px
+      
+    .price
+      margin-bottom                       5px
+      font-size                           28px
+      font-weight                         500
+      
+    .period
+      font-weight                         100
+      font-size                           14px
+      color                               #a8a8a8
+    
+    .special
+      font-size                           20px
+      
