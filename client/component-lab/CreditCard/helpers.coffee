@@ -2,9 +2,18 @@
 
 upper = (input) -> input.toUpperCase()
 
-# input: 'visa' => output: 'VISA'
-# input: 'american-express' => output: 'AMERICAN_EXPRESS'
-constant = (brand) -> brand.split('-').map(upper).join('_')
+# turn slug-case into CONSTANT_CASE
+#
+# constant('visa') => 'VISA'
+# constant('american-express') => 'AMERICAN_EXPRESS'
+# constant('american-express', 'NUMBER') => 'NUMBER_AMERICAN_EXPRESS'
+constant = (input = '', prefix = '') ->
+  input.split('-')
+    .concat(if prefix then [prefix] else [])
+    .filter(Boolean)
+    .map(upper)
+    .join('_')
+
 
 # pattern represents the block length for each card brand.
 # default is: [4, 4, 4, 4] for each card brand.
@@ -36,7 +45,29 @@ getNumberBlocks = (number, brand) ->
     slice = "#{slice}#{filler}"
 
 
+# Return placeholder for asked field.
+# if there is a custom placeholder defined in [constants]
+# it should returns it instead.
+#
+# [constants]: @see './constants.coffee'
+#
+# ('number', 'visa') => '•••• •••• •••• ••••'
+# ('cvc', 'american-express') => '••••'
+getPlaceholder = (field, brand) ->
+  # get default field constant
+  FIELD = constant field
+
+  # get brand specific field constant
+  # by prefixing input field constant to
+  # brand constant.
+  FIELD_BRAND = constant brand, FIELD
+
+  return Placeholder[FIELD_BRAND] ? Placeholder[FIELD]
+
+
 module.exports = {
+  getNumberPattern
   getNumberBlocks
+  getPlaceholder
 }
 
