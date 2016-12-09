@@ -8,12 +8,21 @@ Label = require 'lab/Text/Label'
 styles = require './CreditCard.stylus'
 textStyles = require '../Text/Text.stylus'
 
+{ Brand, Placeholder, NumberPattern } = require './constants'
+helpers = require './helpers'
+
+ensureProps = (props) ->
+  return {
+    name: props.name or Placeholder.NAME
+    exp_month: props.exp_month or Placeholder.EXP_MONTH
+    exp_year: props.exp_year or Placeholder.EXP_YEAR
+    brand: props.brand or Brand.DEFAULT
+    number: props.number or ''
+  }
+
 module.exports = CreditCard = (props) ->
 
-  { brand, number, name, exp_year, exp_month } = props
-
-  exp_month or= CreditCard.defaultProps.exp_month
-  exp_year or= CreditCard.defaultProps.exp_year
+  { brand, number, name, exp_year, exp_month } = ensureProps props
 
   <Box className={styles.main}>
     <Row className={styles.header}>
@@ -36,11 +45,26 @@ module.exports = CreditCard = (props) ->
   </Box>
 
 CreditCard.defaultProps =
-  brand: 'visa'
+  name: Placeholder.NAME
   number: ''
-  exp_month: 'MM'
-  exp_year: 'YY'
-  name: 'A koding user'
+  exp_month: Placeholder.EXP_MONTH
+  exp_year: Placeholder.EXP_YEAR
+  brand: Brand.DEFAULT
+
+
+CreditCard.propTypes =
+  name: PropTypes.string
+  number: PropTypes.string
+  brand: PropTypes.oneOf [
+    Brand.JCB
+    Brand.MAESTRO
+    Brand.MASTER_CARD
+    Brand.AMERICAN_EXPRESS
+    Brand.DINERS_CLUB
+    Brand.DISCOVER
+    Brand.VISA
+    Brand.DEFAULT
+  ]
 
 
 CardIcon = ({ brand }) -> <div className={styles["brand-#{brand}"]} />
@@ -51,27 +75,16 @@ CardChip = -> <div className={styles.chip} />
 
 CardNumber = ({ number, brand, reverse }) ->
 
-  isAmex = brand is 'american-express'
+  blocks = helpers.getNumberBlocks number, brand
 
-  template = if isAmex then [4, 6, 5] else [4, 4, 4, 4]
-
-  number = number.replace /\s/g, ''
-
-  cursor = 0
-  children = template.map (length, index) ->
-    slice = number.substr cursor, length
-    cursor += length
-
-    diff = length - slice.length
-    filler = [0...diff].map(-> '•').join('')
-    slice = "#{slice}#{filler}"
-
-    <Label key={index} monospaced size='medium' type='secondary'>{slice}</Label>
+  children = blocks.map (block, index) ->
+    <Label key={index} monospaced size='medium' type='secondary'>{block}</Label>
 
   <div className={styles.number}>{children}</div>
 
 
-CardName = ({ name }) -> <Label size='small' type='secondary'>{name}</Label>
+CardName = ({ name }) ->
+  <Label monospaced size='small' type='secondary'>{name}</Label>
 
 
 CardDate = ({ month, year }) ->
