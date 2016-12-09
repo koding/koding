@@ -385,9 +385,9 @@ func (s *Stack) injectMetadata(app map[string]interface{}, name string) error {
 
 		konfig := map[string]interface{}{
 			"kiteKey":    kiteKey,
-			"kontrolURL": stack.Konfig.KontrolURL,
-			"kloudURL":   stack.Konfig.KloudURL,
-			"tunnelURL":  stack.Konfig.TunnelURL,
+			"kontrolURL": stack.Konfig.Endpoints.Kontrol().Public.String(),
+			"kloudURL":   stack.Konfig.Endpoints.Kloud().Public.String(),
+			"tunnelURL":  stack.Konfig.Endpoints.Tunnel.Public.String(),
 			"tunnelID":   tunnelID,
 		}
 

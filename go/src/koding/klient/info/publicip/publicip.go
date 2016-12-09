@@ -63,15 +63,11 @@ func (d *director) EndpointPublicIP() string {
 		return "http://echoip.net"
 	}
 
-	return konfig.Konfig.IPURL
+	return konfig.Konfig.Endpoints.IP.Public.String()
 }
 
 func (d *director) EndpointIsReachable(port string) string {
-	if d.fallback {
-		return "http://rjk.io/test/" + port
-	}
-
-	return konfig.Konfig.IPCheckURL + "/" + port
+	return konfig.Konfig.Endpoints.IPCheck.Public.String() + "/" + port
 }
 
 func (d *director) ShouldRetry(err error) bool {

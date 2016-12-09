@@ -205,20 +205,19 @@ module.exports = (options, credentials) ->
         name           : options.publicLogsS3BucketName
         region         : 'us-east-1'
     endpoints          :
-      ip               : "https://#{options.proxySubdomain}.koding.com/-/ip"
-      ipCheck          : "https://#{options.proxySubdomain}.koding.com/-/ipcheck"
-      kdLatest         : "https://koding-kd.s3.amazonaws.com/#{options.environment}/latest-version.txt"
-      klientLatest     : "https://koding-klient.s3.amazonaws.com/#{options.environment}/latest-version.txt"
-      kloud            : "#{options.publicHostname}/kloud/kite",
-      kontrol          : "#{options.publicHostname}/kontrol/kite",
-      kodingBase       : "#{options.publicHostname}",
-      remoteAPI        :
-        public         : "#{options.customDomain.public}/remote.api"
-        private        : "#{options.customDomain.local}/remote.api"
-      tunnelServer     : "#{options.tunnelUrl}/kite"
-      socialAPI        :
-        public         : "#{options.customDomain.public}/api/social"
-        private        : "#{options.customDomain.local}/api/social"
+      ip               :
+        public         : "https://#{options.proxySubdomain}.koding.com/-/ip"
+      ipCheck          :
+        public         : "https://#{options.proxySubdomain}.koding.com/-/ipcheck"
+      kdLatest         :
+        public         : "https://koding-kd.s3.amazonaws.com/#{options.environment}/latest-version.txt"
+      klientLatest     :
+        public         : "https://koding-klient.s3.amazonaws.com/#{options.environment}/latest-version.txt"
+      kodingBase       :
+        public         : "#{options.publicHostname}"
+        private        : "#{options.customDomain.local}"
+      tunnelServer     :
+        public         : "#{options.tunnelUrl}/kite"
     routes             :
       'dev.koding.com' : '127.0.0.1'
 

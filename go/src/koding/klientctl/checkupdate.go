@@ -64,7 +64,7 @@ type CheckUpdate struct {
 func NewCheckUpdate() *CheckUpdate {
 	return &CheckUpdate{
 		LocalVersion:       config.VersionNum(),
-		Location:           config.Konfig.KDLatestURL,
+		Location:           config.Konfig.Endpoints.KDLatest.Public.String(),
 		RandomSeededNumber: rand.Intn(3),
 		ForceCheck:         false,
 	}

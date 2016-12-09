@@ -13,7 +13,7 @@ import (
 
 // VersionCommand displays version information like Environment or Kite Query ID.
 func VersionCommand(c *cli.Context, log logging.Logger, _ string) int {
-	latest, err := latestVersion(config.Konfig.KDLatestURL)
+	latest, err := latestVersion(config.Konfig.Endpoints.KDLatest.Public.String())
 
 	fmt.Printf("Installed Version: %s\n", getReadableVersion(config.Version))
 

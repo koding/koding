@@ -95,7 +95,7 @@ func RegisterCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	host := config.Konfig.KodingBaseURL
+	host := config.Konfig.Endpoints.Koding.Public.String()
 
 	client := httputil.DefaultRestClient(false)
 
