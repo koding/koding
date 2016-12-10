@@ -1,13 +1,16 @@
 <main class="Homepage-Hero">
+  <div class="Homepage-Hero--video out">
+    <iframe id="koding-vision" width="1262px" height="710px" src="https://www.youtube.com/embed/2COxlWQ0J1U?autoplay=0&modestbranding=1&rel=0&showinfo=0&enablejsapi=1&origin={{ site.url }}" frameborder="0" allowfullscreen></iframe>
+    <a class="close" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><use xlink:href="#icon-video-close"></use></svg></a>
+  </div>
   <div class="Homepage--container Homepage-Hero--container Homepage--containerOffset">
     <div class="Homepage-Hero--intro">
       <h1>{{ include.h1 }}</h1>
       <h2>{{ include.h2 }}</h2>
       <div class="actions">
-        <a class="cta secondary" href="{{ site.url }}/demo">Request a Demo</a>
+        <a class="cta vision" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><use xlink:href="#video-play-button"></use></svg>Koding’s Vision</a>
         <a class="cta" href="{{ site.url }}/teams/create">Sign Up</a>
       </div>
-      <a class="vision showModal" data-youtube-id="2COxlWQ0J1U" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><use xlink:href="#video-play-button"></use></svg>Koding's Vision</a>
     </div>
   </div>
   <div class="Homepage-Hero--banner Homepage--containerOffset">
