@@ -9,6 +9,10 @@ body {
   top: 0;
   left: 0;
   right: 0;
+  transition: transform .5s ease;
+}
+.Homepage-Header.out {
+  transform: translateY(-100%);
 }
 
 .Homepage-HeaderWrapper {
