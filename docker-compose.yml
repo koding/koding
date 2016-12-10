@@ -38,6 +38,7 @@ services:
 
   mongo:
     image: mongo:2.4
+    command: --nojournal
 
   postgres:
     image: koding/postgres
