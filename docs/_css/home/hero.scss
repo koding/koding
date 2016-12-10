@@ -4,6 +4,7 @@ main.Homepage-Hero {
   position: relative;
   background: #000 url('/assets/img/landing/home/hero-main.png') no-repeat 50% 0;
   background-size: cover;
+  overflow: hidden;
 }
 .Homepage-Hero--container {
   padding-top: 215px;
@@ -64,6 +65,37 @@ main.Homepage-Hero {
     z-index: 0;
   }
 }
+.Homepage-Hero--video {
+  opacity: 1;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  position: absolute;
+  box-sizing: border-box;
+  transition: opacity 1s ease;
+  iframe {
+    margin: 0 auto;
+    width: 100%;
+    height: 710px;
+    max-width: 1262px;
+    display: block;
+  }
+  .close {
+    position: absolute;
+    left: 50%;
+    margin-left: 592px;
+    top: 16px;
+    z-index: 100;
+    width: 32px;
+    height: 32px;
+    svg {
+      margin: 8px;
+      fill: white;
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
 .Homepage-Hero--banner {
   position: absolute;
   bottom: 0;
@@ -111,6 +143,9 @@ main.Homepage-Hero {
 
 @media (max-width: 660px) {
   main.Homepage-Hero {
+    height: 780px;
+  }
+  .Homepage-Hero--video iframe {
     height: 780px;
   }
   .Homepage-Hero--intro {
