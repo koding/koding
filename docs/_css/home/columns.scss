@@ -8,6 +8,18 @@
   flex-wrap: wrap;
 }
 
+// nested styles doesn't work
+// if svg has a parent here
+svg {
+  .opacity {
+    opacity: 0.2;
+    isolation: isolate;
+  }
+  .emphasis{
+    fill: #f2778a;
+  }
+}
+
 .Homepage-Column {
   flex: 0 1 auto;
   width: 30%;
@@ -20,6 +32,7 @@
     left: 0;
     top: 0;
     max-width: 40px;
+    fill: #aab2b9;
   }
   h4 {
     font-weight: 500;
