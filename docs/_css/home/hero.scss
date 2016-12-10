@@ -34,18 +34,20 @@ main.Homepage-Hero {
   }
   a {
     transition: transform .1s ease, box-shadow .1s ease;
+    &:hover {
+      transform: scale(1.05);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
     &.vision {
-      color: rgba(255,255,255,0.7);
-      margin: 40px 0 0;
-      display: inline-block;
-      text-decoration: none;
-      font-size: 18px;
+      margin: 0 20px 10px 0;
+      background: rgba(255,255,255,.15) url('/assets/img/landing/home/button-vision@2x.png') 50% 50% no-repeat;
+      background-size: cover;
       svg {
         margin-right: 10px;
         width: 24px;
         height: 24px;
         vertical-align: top;
+        fill: white;
       }
     }
     strong {
