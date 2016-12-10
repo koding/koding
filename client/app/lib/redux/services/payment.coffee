@@ -1,11 +1,9 @@
-_ = require 'lodash'
-makeHttpClient = require 'app/util/makeHttpClient'
-{ pickData } = makeHttpClient.helpers
+{ assign, omit } = require 'lodash'
 
+makeHttpClient = require 'app/util/makeHttpClient'
 { Status } = require 'app/redux/modules/payment/constants'
 
-exports.client = client = makeHttpClient { baseURL: '/api/social/payment' }
-
+# FIXME(umut): Request parameters validation and documentation.
 exports.Endpoints = Endpoints =
   SubscriptionDelete : '/subscription/delete'
   SubscriptionGet    : '/subscription/get'
@@ -20,6 +18,9 @@ exports.Endpoints = Endpoints =
   InvoiceList        : '/invoice/list'
   Info               : '/info'
 
+exports.client = client = makeHttpClient { baseURL: '/api/social/payment' }
+
+{ pickData } = makeHttpClient.helpers
 
 # fetchCustomer: fetches current group's payment customer.
 exports.fetchCustomer = fetchCustomer = pickData ->
@@ -59,11 +60,22 @@ exports.fetchInfo = fetchInfo = ->
   client.get(Endpoints.Info).then ({ data: info }) ->
     # if status is trialing, use `trialInfo`
     if info.subscription.status is Status.TRIALING
-      info = _.assign(_.omit(info, 'trialInfo'), info.trialInfo)
+      info = assign(omit(info, 'trialInfo'), info.trialInfo)
     return info
 
-
 exports.hasCreditCard = -> client.get Endpoints.CreditCardHas
+
+exports.authorize = (params = {}) ->
+
+  { source, email } = params
+
+  unless source?.token
+    throw new Error "invalid param: source. expected: { token: String }"
+
+  unless email?
+    throw new Error "invaid param: email. expected: String"
+
+  client.post Endpoints.CreditCardAuth, { source, email }
 
 getTimestamp = (date) ->
 
