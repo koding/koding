@@ -18,3 +18,68 @@
   </div>
 </main>
 <a class='Homepage--mobile-cta' href='{{ site.url }}/demo'>REQUEST A DEMO</a>
+<script>
+
+  var $items = $('header, .Homepage-Hero--intro, .Homepage-Hero--banner'),
+      $wrapper = $('.Homepage-Hero--video'),
+      $trigger = $('a.vision'),
+      $close = $('.Homepage-Hero--video a.close'),
+      player, timer;
+
+  function onYouTubeIframeAPIReady() {
+    player = new YT.Player('koding-vision', {
+        events: {
+          'onReady': function(){
+            console.log('ready');
+          },
+          'onStateChange': function(event) {
+            var UNSTARTED = -1, // (unstarted)
+                ENDED     = 0,  // (ended)
+                PLAYING   = 1,  // (playing)
+                PAUSED    = 2,  // (paused)
+                BUFFERING = 3,  // (buffering)
+                VIDEOCUED = 5;  // (video cued)
+            if (event.data == ENDED) {
+              hideVideo();
+            }
+            if (event.data == PAUSED) {
+              timer = setTimeout(hideVideo, 10000);
+            }
+          }
+        }
+    });
+  }
+
+  function showVideo(event) {
+    event.preventDefault();
+    $items.addClass('out');
+    $wrapper.removeClass('out');
+    player.playVideo();
+    return false;
+  }
+
+  function hideVideo(pause, event) {
+    if (pause) {
+      player.pauseVideo();
+      if (timer) {
+        clearTimeout(timer);
+      }
+    }
+    if (event && event.preventDefault) {
+      event.preventDefault();
+    }
+    $items.removeClass('out');
+    $wrapper.addClass('out');
+    return false;
+  }
+
+  $trigger.click(showVideo);
+  $close.click(hideVideo.bind(this, true));
+
+  $(window).scroll(function(event){
+    if (window.scrollY > 780){
+      hideVideo(true);
+    }
+  })
+
+</script>
