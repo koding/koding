@@ -372,13 +372,9 @@ body {
     margin-top: 0;
   }
 
-  .Homepage-Header.light .signup svg g,
-  .StickyHeader .Homepage-Header .signup svg g {
-    fill: rgba(53,139,176,0.8);
-  }
-  .Homepage-Header.light .signup:hover svg g,
-  .StickyHeader .Homepage-Header .signup:hover svg g {
-    fill: rgba(53,139,176,1);
+  .Homepage-Header.light .signup,
+  .StickyHeader header.Homepage-Header a.signup {
+    display: none;
   }
 }
 
