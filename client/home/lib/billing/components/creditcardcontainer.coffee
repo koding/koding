@@ -9,12 +9,14 @@ CreateCreditCardForm = require 'lab/CreateCreditCardForm'
 
 { select, FORM_NAME } = require './helpers'
 
-addCardToCustomer = (values, dispatch) ->
+mapErrors = (errors) ->
+  errors.reduce (res, { error }) ->
+    res[error.param] = error.message
+    return res
+  , {}
 
-  dispatch(stripe.createToken values)
-    .then (token) -> dispatch(customer.update { source: { token } })
-    .then -> dispatch(resetForm(FORM_NAME))
-    .catch (errors) -> throw new SubmissionError mapErrorsToValues errors
+
+
 
 # first we connect reduxForm to ensure
 # form values are stored in store and onSubmit is
@@ -22,7 +24,6 @@ addCardToCustomer = (values, dispatch) ->
 CreateCreditCardForm = reduxForm(
   form: FORM_NAME
   enableReinitialize: yes
-  onSubmit: addCardToCustomer
 )(CreateCreditCardForm)
 
 mapStateToProps = (state, props) ->
@@ -36,11 +37,6 @@ mapStateToProps = (state, props) ->
     formValues: select.values(state)
   }
 
-mapErrorsToValues = (errors) ->
-  errors.reduce (res, { error }) ->
-    res[error.param] = error.message
-    return res
-  , {}
 
 # then we connect our own state mapper.
 # make sure that necessary state values are passed
