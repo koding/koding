@@ -38,7 +38,7 @@ services:
 
   mongo:
     image: mongo:2.4
-    command: --nojournal --noprealloc
+    command: --nojournal --noprealloc --smallfiles
 
   postgres:
     image: koding/postgres
