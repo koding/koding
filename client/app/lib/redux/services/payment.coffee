@@ -70,10 +70,10 @@ exports.authorize = (params = {}) ->
   { source, email } = params
 
   unless source?.token
-    throw new Error "invalid param: source. expected: { token: String }"
+    throw new Error 'invalid param: source. expected: { token: String }'
 
   unless email?
-    throw new Error "invaid param: email. expected: String"
+    throw new Error 'invaid param: email. expected: String'
 
   client.post Endpoints.CreditCardAuth, { source, email }
 
