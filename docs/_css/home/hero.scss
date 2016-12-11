@@ -75,17 +75,21 @@ main.Homepage-Hero {
   position: absolute;
   box-sizing: border-box;
   transition: opacity 1s ease;
-  iframe {
-    margin: 0 auto;
+  > div {
     width: 100%;
     height: 710px;
     max-width: 1262px;
+    position: relative;
+    margin: 0 auto;
+  }
+  iframe {
+    width: 100%;
+    height: 100%;
     display: block;
   }
   .close {
     position: absolute;
-    left: 50%;
-    margin-left: 592px;
+    right: 16px;
     top: 16px;
     z-index: 100;
     width: 32px;
@@ -147,7 +151,7 @@ main.Homepage-Hero {
   main.Homepage-Hero {
     height: 780px;
   }
-  .Homepage-Hero--video iframe {
+  .Homepage-Hero--video > div {
     height: 780px;
   }
   .Homepage-Hero--intro {
