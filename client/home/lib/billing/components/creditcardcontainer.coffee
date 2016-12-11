@@ -7,13 +7,8 @@ customer = require 'app/redux/modules/payment/customer'
 
 CreateCreditCardForm = require 'lab/CreateCreditCardForm'
 
-{ select, FORM_NAME } = require './helpers'
+{ select, FORM_NAME, mapErrors } = require './helpers'
 
-mapErrors = (errors) ->
-  errors.reduce (res, { error }) ->
-    res[error.param] = error.message
-    return res
-  , {}
 
 
 
