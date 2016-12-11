@@ -41,7 +41,15 @@ var onYouTubeIframeAPIReady;
             hideVideo();
           }
           if (event.data == PAUSED) {
+            if (timer) {
+              clearTimeout(timer);
+            }
             timer = setTimeout(hideVideo, 10000);
+          }
+          if (event.data == PLAYING) {
+            if (timer) {
+              clearTimeout(timer);
+            }
           }
         }
       }
