@@ -357,7 +357,8 @@ body {
   .StickyHeader .Homepage-Header .signup {
     display: flex;
     padding: 0 15px;
-    max-width: 130px;
+    max-width: 160px;
+    font-weight: 600;
   }
 
   .Homepage-Header .item {
