@@ -9,6 +9,8 @@ main.Homepage-Hero {
 .Homepage-Hero--container {
   padding-top: 215px;
   position: relative;
+  height: 100%;
+  box-sizing: border-box;
 }
 .Homepage-Hero--intro {
   max-width: 850px;
