@@ -33,22 +33,34 @@ main.Homepage-Hero {
   }
   .actions {
     margin-top: 40px;
+    position: relative;
+    span.separator {
+      display: inline-block;
+      width: 1px;
+      height: 50px;
+      background: white;
+      vertical-align: top;
+    }
   }
   a {
-    transition: transform .1s ease, box-shadow .1s ease;
+    transition: transform .1s ease;
     &:hover {
       transform: scale(1.05);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
     &.cta {
-      background-color: #f2778a;
+      background-color: transparent;
+      padding-left: 0;
+      padding-right: 0;
+      font-weight: 400;
+    }
+    &.learn-more {
+      margin: 0 0 0 30px;
     }
     &.vision {
-      margin: 0 20px 10px 0;
-      background: rgba(255,255,255,.15) url('/assets/img/landing/home/button-vision@2x.png') 50% 50% no-repeat;
-      background-size: cover;
+      margin: 0 30px 0 -68px;
       svg {
         margin-right: 10px;
+        margin-top: 1px;
         width: 24px;
         height: 24px;
         vertical-align: top;
@@ -170,11 +182,17 @@ main.Homepage-Hero {
       line-height: 26px;
     }
     .actions {
-      margin-top: 97px;
+      margin-top: 60px;
       a {
-        margin-right: 0;
+        margin: 0 0 10px;
         display: block;
         width: auto;
+        &.learn-more {
+          display: none;
+        }
+      }
+      span.separator {
+        display: none;
       }
     }
   }

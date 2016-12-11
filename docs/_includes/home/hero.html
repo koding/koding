@@ -11,7 +11,8 @@
       <h2>{{ include.h2 }}</h2>
       <div class="actions">
         <a class="cta vision" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><use xlink:href="#video-play-button"></use></svg>Koding’s Vision</a>
-        <a class="cta" href="{{ site.url }}/teams/create">Sign Up</a>
+        <span class="separator"></span>
+        <a class="cta learn-more" href="#">Learn more…</a>
       </div>
     </div>
   </div>
@@ -26,6 +27,7 @@ var onYouTubeIframeAPIReady;
   var $items = $('header, .Homepage-Hero--intro, .Homepage-Hero--banner'),
       $wrapper = $('.Homepage-Hero--video'),
       $trigger = $('a.vision'),
+      $more = $('a.learn-more'),
       $close = $('.Homepage-Hero--video a.close'),
       player, timer;
 
@@ -85,6 +87,13 @@ var onYouTubeIframeAPIReady;
 
   $trigger.click(showVideo);
   $close.click(hideVideo.bind(this, true));
+
+  $more.click(function(event) {
+    event.preventDefault();
+    var top = $('.Homepage-ContentWithVideo').position().top;
+    $(document.body).animate({'scrollTop': top}, 500);
+    return false;
+  });
 
   $(window).scroll(function(){
     if (window.scrollY > 780){
