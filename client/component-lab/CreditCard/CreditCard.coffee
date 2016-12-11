@@ -59,6 +59,7 @@ CreditCard.propTypes =
     Brand.JCB
     Brand.MAESTRO
     Brand.MASTER_CARD
+    Brand.MASTERCARD
     Brand.AMERICAN_EXPRESS
     Brand.DINERS_CLUB
     Brand.DISCOVER

@@ -17,6 +17,7 @@ Brand =
   JCB: 'jcb'
   MAESTRO: 'maestro'
   MASTER_CARD: 'master-card'
+  MASTERCARD: 'mastercard'
   AMERICAN_EXPRESS: 'american-express'
   DINERS_CLUB: 'diners-club'
   DISCOVER: 'discover'
