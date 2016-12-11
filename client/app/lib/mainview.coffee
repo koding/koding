@@ -92,9 +92,9 @@ module.exports = class MainView extends kd.View
         click      : (event) -> kd.utils.stopDOMEvent event
     else
       { nickname } = whoami().profile
-      @logoWrapper.addSubView @teamname = new TeamName { cssClass: 'no-logo' }, getGroup()
+      @logoWrapper.addSubView @teamname = new TeamName {}, getGroup()
       @logoWrapper.addSubView @nickname = new kd.CustomHTMLView
-        cssClass : 'nickname no-logo'
+        cssClass : 'nickname'
         partial : "@#{nickname}"
 
     @logoWrapper.addSubView closeHandle = new kd.CustomHTMLView
@@ -108,7 +108,6 @@ module.exports = class MainView extends kd.View
 
     unless isKoding()
       @logoWrapper.addSubView @teamLogoWrapper = new kd.CustomHTMLView
-        tagName : 'div'
         cssClass : 'team-logo-wrapper'
       SidebarView = require './components/sidebar/view'
       @aside.addSubView @sidebar = new SidebarView
@@ -190,43 +189,23 @@ module.exports = class MainView extends kd.View
 
   createTeamLogo: ->
 
-    logo = ''
-
     { groupsController } = kd.singletons
     team = groupsController.getCurrentGroup()
 
-    if team.customize
-      logo = team.customize.logo
+    logo = team.customize?.logo
+    @teamLogoWrapper.addSubView teamLogo = new kd.CustomHTMLView
+      cssClass: 'team-logo'
+    teamLogo.setPartial "<img src=#{logo} />"  if logo
+    teamLogo.setClass 'default' unless logo
 
-    @teamLogoWrapper.addSubView @teamLogo = new kd.CustomHTMLView
-      tagName : 'img'
-      cssClass : ''
-      attributes :
-        src : "#{logo}"
-
-    unless logo
-      @teamLogoWrapper.hide()
-    else
-      @teamLogo.setClass 'team-logo'
-      @teamLogoWrapper.show()
-      @teamname.unsetClass 'no-logo'
-      @nickname.unsetClass 'no-logo'
-
-    groupsController.on 'TEAM_LOGO_CHANGED', (logo) =>
-
-      @teamLogo.setAttribute 'class', ''
-
-      unless logo
-        @teamLogo.setAttribute 'src', ''
-        @teamname.setClass 'no-logo'
-        @nickname.setClass 'no-logo'
-        @teamLogoWrapper.hide()
+    groupsController.on 'TEAM_LOGO_CHANGED', (newLogo) ->
+      unless newLogo
+        teamLogo.updatePartial ''
+        teamLogo.setClass 'default'
       else
-        @teamLogo.setAttribute 'src', logo
-        @teamLogo.setClass 'team-logo'
-        @teamLogoWrapper.show()
-        @teamname.unsetClass 'no-logo'
-        @nickname.unsetClass 'no-logo'
+        teamLogo.unsetClass 'default'
+        teamLogo.updatePartial "<img src=#{newLogo} />"
+
 
   createMiniWelcomeSteps: ->
 
