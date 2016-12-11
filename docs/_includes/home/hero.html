@@ -91,7 +91,7 @@ var onYouTubeIframeAPIReady;
   $more.click(function(event) {
     event.preventDefault();
     var top = $('.Homepage-ContentWithVideo').position().top;
-    $(document.body).animate({'scrollTop': top}, 500);
+    $('body, html').animate({'scrollTop': top}, 500);
     return false;
   });
 
