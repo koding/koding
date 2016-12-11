@@ -66,8 +66,16 @@ $values = (state) ->
   }
 
 
+mapErrors = (errors) ->
+  errors.reduce (res, { error }) ->
+    res[error.param] = error.message
+    return res
+  , {}
+
+
 module.exports = {
   FORM_NAME
+  mapErrors
   select: {
     dirty: $dirty
     values: $values
