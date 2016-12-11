@@ -1,16 +1,27 @@
-_ = require 'lodash'
-{ reduxForm, SubmissionError, isDirty, reset: resetForm } = require 'redux-form'
+{ reduxForm, SubmissionError, reset: resetForm } = require 'redux-form'
 { connect } = require 'react-redux'
 
-stripe = require 'app/redux/modules/stripe'
-customer = require 'app/redux/modules/payment/customer'
+{ updateCard } = require 'app/redux/modules/payment'
 
 CreateCreditCardForm = require 'lab/CreateCreditCardForm'
 
 { select, FORM_NAME, mapErrors } = require './helpers'
 
 
+# handleSubmit: redux-form `onSubmit` handler for credit card form.
+# it handles errors in a way that redux-form can make sense.
+#
+# @param {object} values - form values
+# @param {function} dispatch - Redux dispatch function
+# @return {Promise}
+handleSubmit = (values, dispatch) ->
 
+  Promise.resolve()
+    .then -> dispatch(updateCard values)
+    .then -> dispatch(resetForm FORM_NAME)
+    .catch (errors) ->
+      console.error 'errors in card submission', errors
+      throw new SubmissionError mapErrors errors
 
 
 # first we connect reduxForm to ensure
@@ -19,9 +30,11 @@ CreateCreditCardForm = require 'lab/CreateCreditCardForm'
 CreateCreditCardForm = reduxForm(
   form: FORM_NAME
   enableReinitialize: yes
+  onSubmit: handleSubmit
 )(CreateCreditCardForm)
 
-mapStateToProps = (state, props) ->
+
+mapStateToProps = (state) ->
   return {
     isDirty: select.dirty(state)
     # if form is not dirty credit card figure will use this data
@@ -33,9 +46,7 @@ mapStateToProps = (state, props) ->
   }
 
 
-# then we connect our own state mapper.
-# make sure that necessary state values are passed
-# down to the form.
+# then we connect our own state mapper to implement our custom logic.
 CreateCreditCardForm = connect(
   mapStateToProps
   null
