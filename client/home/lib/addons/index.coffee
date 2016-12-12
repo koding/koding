@@ -1,13 +1,15 @@
 kd = require 'kd'
+sectionize = require '../commons/sectionize'
+headerize = require '../commons/headerize'
+TeamFlux = require 'app/flux/teams'
 HomeAddonsTabHandle = require './addonstabhandle'
 HomeAddOnBusinessAddOnBanner = require './homeaddonsbusinessaddonbanner'
 BusinessAddOnSupportPlansBanner = require './components/businessaddonsupportplansbanner'
 SupportPlansBanner = require './components/supportplansbanner'
 SupportPlansBusinessAddOnBanner = require './components/supportplansbusinessaddonbanner'
 HomeAddOnSupportPlans = require './homeaddonsupportplans'
-sectionize = require '../commons/sectionize'
-headerize = require '../commons/headerize'
-TeamFlux = require 'app/flux/teams'
+HomeBusinessAddOnDeactivation = require './homebusinessaddondeactivation'
+HomeSupportPlanDeactivation = require './homesupportplandeactivation'
 HomeAddOnKodingButton = require './homeaddonkodingbutton'
 HomeAddOnIntercom = require './homeaddonintercom'
 HomeAddOnChatlio = require './homeaddonchatlio'
@@ -96,12 +98,15 @@ module.exports = class AddOns extends kd.CustomScrollView
 
     @addOn.addSubView sectionize 'Business Add On Support Plans Banner', BusinessAddOnSupportPlansBanner
 
+    @addOn.addSubView sectionize 'Business Add On Deactivation', HomeBusinessAddOnDeactivation  unless @getBusinessAddOnState()
+
 
   createSupportPlansViews: ->
     
     @plans.addSubView sectionize 'Support Plans Banner', SupportPlansBanner  unless @getActivePlan()
 
     @plans.addSubView headerize 'Available Plans'
-    @plans.addSubView sectionize 'Support Plans', HomeAddOnSupportPlans
+    @plans.addSubView sectionize 'Support Plans Section', HomeAddOnSupportPlans
 
     @plans.addSubView sectionize 'Support Plans Business Add On Banner', SupportPlansBusinessAddOnBanner
+    @plans.addSubView sectionize 'Support Plan Deactivation', HomeSupportPlanDeactivation  unless @getActivePlan()
