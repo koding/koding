@@ -187,5 +187,9 @@ func setKonfig(cfg *konfig.Konfig, key, value string) error {
 		return err
 	}
 
+	if value == "" {
+		*cfg = konfig.Konfig{}
+	}
+
 	return json.Unmarshal(p, cfg)
 }
