@@ -9,6 +9,7 @@ import (
 	"koding/tools/config"
 	"os"
 	"strings"
+	"time"
 
 	mgo "gopkg.in/mgo.v2"
 
@@ -32,6 +33,7 @@ var (
 	existingUserByID   = cache.NewLRU(10000)
 	existingUserByNick = cache.NewLRU(10000)
 	deletedUserByNick  = cache.NewLRU(10000)
+	deadline           = time.Date(2016, time.January, 1, 0, 0, 0, 0, time.UTC)
 )
 
 func initialize() {
@@ -134,7 +136,7 @@ func filter() helper.Selector {
 
 func deleteUser(rel interface{}) error {
 	result := rel.(*models.User)
-	if getAccountByNick(result.Name) {
+	if getAccountByNick(result.Name) && result.LastLoginDate.After(deadline) {
 		return nil
 	}
 
