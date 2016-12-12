@@ -2,9 +2,12 @@ kd = require 'kd'
 
 module.exports = class FlexSplit extends kd.View
 
-  @EVENT_EXPAND   = 'FlexSplit.EXPAND'
-  @EVENT_COLLAPSE = 'FlexSplit.COLLAPSE'
-  @EVENT_RESIZED  = 'FlexSplit.RESIZED'
+  @EVENT_EXPAND    = 'FlexSplit.EXPAND'
+  @EVENT_COLLAPSE  = 'FlexSplit.COLLAPSE'
+
+  @EVENT_RESIZED   = 'FlexSplit.RESIZED'
+  @EVENT_EXPANDED  = 'FlexSplit.EXPANDED'
+  @EVENT_COLLAPSED = 'FlexSplit.COLLAPSED'
 
   @MAX = 100
   @MIN = 0.0001
@@ -18,6 +21,7 @@ module.exports = class FlexSplit extends kd.View
     name      : 'vertical'
     axis      : 'x'
     getter    : 'getWidth'
+
 
   constructor: (options = {}, data) ->
 
@@ -34,17 +38,28 @@ module.exports = class FlexSplit extends kd.View
 
     @setupViews()
 
+
   createResizer: (view, size) ->
 
+    # This needs to be here to prevent circular dependency ~ GG
     FlexSplitResizer = require './resizer'
+
     @resizer = @addSubView new FlexSplitResizer { @type, view }
+
+    @forwardEvents @resizer, [
+      FlexSplit.EVENT_COLLAPSED
+      FlexSplit.EVENT_RESIZED
+      FlexSplit.EVENT_EXPANDED
+    ]
 
     @resizer.on FlexSplit.EVENT_EXPAND, ->
       if view.parent instanceof FlexSplit
         view.parent.emit FlexSplit.EVENT_EXPAND
+
     @resizer.on FlexSplit.EVENT_COLLAPSE, ->
       if view.parent instanceof FlexSplit
         view.parent.emit FlexSplit.EVENT_COLLAPSE
+
 
   setupViews: ->
 
