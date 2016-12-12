@@ -136,7 +136,7 @@ func filter() helper.Selector {
 
 func deleteUser(rel interface{}) error {
 	result := rel.(*models.User)
-	if getAccountByNick(result.Name) && result.LastLoginDate.After(deadline) {
+	if getAccountByNick(result.Name) && result.LastLoginDate.After(deadline) && result.Status != "deleted" {
 		return nil
 	}
 
