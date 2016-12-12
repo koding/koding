@@ -105,15 +105,7 @@ func LookupGroup(opts *LookupGroupOptions) (*models.Group, error) {
 	}
 
 	fn := func(c *mgo.Collection) error {
-		find := bson.M{
-			"users": bson.M{
-				"$elemMatch": bson.M{
-					"id": id,
-				},
-			},
-		}
-
-		return c.Find(find).Select(lookupGroupFields).All(&m)
+		return c.Find(bson.M{"users.id": id}).Select(lookupGroupFields).All(&m)
 	}
 
 	if err := Mongo.Run(MachinesColl, fn); err != nil && err != mgo.ErrNotFound {
