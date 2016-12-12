@@ -99,11 +99,16 @@ func LookupGroup(opts *LookupGroupOptions) (*models.Group, error) {
 		} `bson:"groups"`
 	}
 
+	id, err := GetUserID(opts.Username)
+	if err != nil {
+		return nil, err
+	}
+
 	fn := func(c *mgo.Collection) error {
 		find := bson.M{
 			"users": bson.M{
 				"$elemMatch": bson.M{
-					"username": opts.Username,
+					"id": id,
 				},
 			},
 		}
