@@ -8,7 +8,7 @@
   flex-direction                      row
   align-items                         center
   justify-content                     center
-  background-color                    rgba(240, 240, 240, 0.7)
+  background-color                    rgba(230, 230, 230, 0.7)
 
 .activationBox
   span
