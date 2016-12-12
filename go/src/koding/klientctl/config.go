@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	konfig "koding/kites/config"
@@ -109,7 +111,7 @@ func ConfigUnset(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, nil
 	}
 
-	if err := updateKonfigCache(c.Args().Get(0), nil); err != nil {
+	if err := updateKonfigCache(c.Args().Get(0), ""); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1, err
 	}
@@ -117,47 +119,71 @@ func ConfigUnset(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	return 0, nil
 }
 
-func updateKonfigCache(key string, value interface{}) error {
+func setFlatKeyValue(m map[string]interface{}, key, value string) error {
+	keys := strings.Split(key, ".")
+	it := m
+	last := len(keys) - 1
+
+	for _, key := range keys[:last] {
+		switch v := it[key].(type) {
+		case map[string]interface{}:
+			it = v
+		case nil:
+			newV := make(map[string]interface{})
+			it[key] = newV
+			it = newV
+		default:
+			return errors.New("key is not an object")
+		}
+	}
+
+	if value == "" {
+		delete(it, keys[last])
+	} else {
+		it[keys[last]] = value
+	}
+
+	return nil
+}
+
+func updateKonfigCache(key, value string) error {
 	db := konfig.NewCache(konfig.KonfigCache)
 	defer db.Close()
 
 	var cfg konfig.Konfig
 
 	if err := db.GetValue("konfig", &cfg); err != nil && err != storage.ErrKeyNotFound {
-		return fmt.Errorf("failed to update %s=%v: %s", key, value, err)
+		return fmt.Errorf("failed to update %s=%s: %s", key, value, err)
 	}
 
-	if err := b.Set(&cfg, key, value); err != nil {
-		if s, ok := value.(string); ok && s != "" {
-			err = mergeIn(&cfg, key, s)
-		}
-		if err != nil {
-			return fmt.Errorf("failed to update %s=%v: %s", key, value, err)
-		}
+	if err := setKonfig(&cfg, key, value); err != nil {
+		return fmt.Errorf("failed to update %s=%s: %s", key, value, err)
 	}
 
-	if err := db.SetValue("konfig", &cfg); err != nil {
-		return fmt.Errorf("failed to update %s=%v: %s", key, value, err)
+	if err := db.SetValue("konfig", cfg); err != nil {
+		return fmt.Errorf("failed to update %s=%s: %s", key, value, err)
 	}
 
 	return nil
 }
 
-// TODO(rjeczalik): a workaround for b.Set missing a patch feature,
-// so it's able to partially update e.g. a struct.
-func mergeIn(cfg *konfig.Konfig, key, raw string) error {
-	var v interface{}
+func setKonfig(cfg *konfig.Konfig, key, value string) error {
+	m := make(map[string]interface{})
 
-	if err := json.Unmarshal([]byte(raw), &v); err != nil {
+	p, err := json.Marshal(cfg)
+	if err != nil {
 		return err
 	}
 
-	v = map[string]interface{}{
-		key: v,
+	if err := json.Unmarshal(p, &m); err != nil {
+		return err
 	}
 
-	p, err := json.Marshal(object.Inline(v, cfg))
-	if err != nil {
+	if err := setFlatKeyValue(m, key, value); err != nil {
+		return err
+	}
+
+	if p, err = json.Marshal(m); err != nil {
 		return err
 	}
 
