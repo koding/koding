@@ -2,6 +2,8 @@ kd = require 'kd'
 bowser = require 'bowser'
 BaseView = require './baseview'
 FlexSplit = require './flexsplit'
+FlexSplitStorage = require './flexsplit/storage'
+LocalStorageAdapter = require './localstorageadapter'
 
 
 module.exports = class StackEditor extends kd.View
@@ -11,6 +13,9 @@ module.exports = class StackEditor extends kd.View
     super options, data
 
   viewAppended: ->
+
+    layoutStorage = new FlexSplitStorage
+      adapter     : LocalStorageAdapter
 
     toolbar = new kd.View
       cssClass: 'toolbar'
@@ -26,6 +31,7 @@ module.exports = class StackEditor extends kd.View
       views    : [editor, logs]
       sizes    : [90, 10]
 
+    layoutStorage.addView leftColumn, 'leftColumn'
 
     variables = new BaseView
       cssClass: 'variables'
@@ -39,6 +45,8 @@ module.exports = class StackEditor extends kd.View
       sizes    : [50, 50]
       views    : [variables, readme]
 
+    layoutStorage.addView rightColumn, 'rightColumn'
+
     contentView = new FlexSplit
       cssClass : 'content'
       views    : [leftColumn, rightColumn]
@@ -46,6 +54,8 @@ module.exports = class StackEditor extends kd.View
       type     : FlexSplit.VERTICAL
 
     contentView.setClass 'safari-fix'  if bowser.safari
+
+    layoutStorage.addView contentView, 'contentView'
 
     statusbar = new kd.View
       cssClass: 'statusbar'
