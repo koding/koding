@@ -241,10 +241,7 @@ module.exports = class AceView extends JView
     , { inputDefaultValue: file.name, machine: file.machine }
 
   _windowDidResize: ->
-    height = @getHeight()
-    bottomBarHeight = @$('.editor-bottom-bar').height()
-    newHeight = height - bottomBarHeight
-    @ace.setHeight newHeight unless newHeight is 0
+    @ace?.editor?.resize()
 
   viewAppended: ->
     super
