@@ -46,14 +46,14 @@ stackeditor.styl
     border-bottom           2px solid #000
     borderBox()
 
-  .content-view
+  .content
     background              #999
     &.safari-fix
       // just because of a bug in safari
       // https://bugs.webkit.org/show_bug.cgi?id=137730 ~ GG
       height                calc(100% \- 68px)
 
-  .main-view
+  .mainview
     border-left             2px solid #000
     border-right            2px solid #000
     borderBox()
@@ -65,8 +65,8 @@ stackeditor.styl
 
   .flex-view
     background              #232327
-    vendor                  transition, all .5s ease
     color                   #59595C
+    vendor                  transition, all .5s ease
 
     &.ondrag
       vendor                transition, none

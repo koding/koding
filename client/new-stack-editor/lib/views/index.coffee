@@ -24,16 +24,15 @@ module.exports = class StackEditor extends kd.View
 
     leftColumn = new FlexSplit
       views    : [editor, logs]
-      sizes    : [100, 0]
+      sizes    : [90, 10]
 
-    leftColumn.resizer.hide()
 
     variables = new BaseView
       cssClass: 'variables'
       title: 'Custom Variables'
 
     readme = new BaseView
-      cssClass: 'readme-view'
+      cssClass: 'readme'
       title: 'Readme'
 
     rightColumn = new FlexSplit
@@ -41,7 +40,7 @@ module.exports = class StackEditor extends kd.View
       views    : [variables, readme]
 
     contentView = new FlexSplit
-      cssClass : 'content-view'
+      cssClass : 'content'
       views    : [leftColumn, rightColumn]
       sizes    : [55, 45]
       type     : FlexSplit.VERTICAL
@@ -56,6 +55,6 @@ module.exports = class StackEditor extends kd.View
       resizable : no
 
     @addSubView mainView = new FlexSplit
-      cssClass  : 'main-view'
+      cssClass  : 'mainview'
       views     : [toolbar, mainsplit]
       resizable : no
