@@ -4,12 +4,16 @@ Home Business Add-ons styles
 */
 }
 
-.HomeAppView-Nav--Item.add-ons:before
-  content                             ''
-  r-sprite                            'home', 'add_ons'
-  position                            absolute
-  left                                45%
-
+.HomeAppView-Nav--Item.add-ons
+  &:before
+    content                           ''
+    r-sprite                          'home', 'add_ons'
+    position                          absolute
+    left                              45%
+.kdtabpaneview.add-ons
+  .HomeAppView--section
+    border-radius                     0
+    
 .HomeAppView--section.business-add-on-banner
 .HomeAppView--section.support-plans-banner
   border                              none
@@ -31,12 +35,12 @@ header#available-plans
   
 .HomeAppView--section.business-add-on-support-plans-banner
 .HomeAppView--section.support-plans-business-add-on-banner
-  padding 							              0
-  border 							                none
-  font-weight 						            inherit
+  padding                             0
+  border                              none
+  font-weight                         inherit
   
   .Actions
-    padding-right                   12px
+    padding-right                     12px
   
 .HomeAppView--section.support-plans-banner
   .Banner
@@ -44,4 +48,12 @@ header#available-plans
     
 .support-plans
   .SupportPlanSection
-      margin: 0 48px 30px;
+      margin                          0 48px 30px
+      
+.HomeAppView--section.support-plans-section
+.HomeAppView--section.business-add-on-deactivation
+.HomeAppView--section.support-plan-deactivation
+  padding                             0
+  margin                              0 0 30px
+  border                              none
+  background                          none
