@@ -1,0 +1,13 @@
+@import '~lab/Colors/Colors.stylus'
+
+.deactivation
+  display                         block
+  padding-top                     25px
+  border-top                      1px solid #d0d0d0
+  margin                          0 48px 30px
+  a
+    text-transform                uppercase
+    color                         $primary-6
+    text-decoration               none
+    font-size                     14px
+    font-weight                   500
