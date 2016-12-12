@@ -27,7 +27,7 @@ Return to the incognito browser window
 Has 'Session End' dialog not displayed (it shouldn't be displayed)? Is 'LEAVE SESSION' button not visible anymore? Do you see 'Your session has been closed' titled pop-up?
 
 Return to the other browser window, click  'START COLLABORATION' button in the bottom right corner and click on the shortened URL in the bottom status bar
-Do you see 'Copied to clipboard!' popup message?
+Do you see 'Collaboration link is copied to clipboard.' popup message?
 
 Return to the incognito browser window and paste copied URL in the browser address bar and press enter
 Do you see 'SHARED VMS' label in the left module on the page? Do you see 'aws-instance_' item below the 'SHARED VMS' label? Do you see white popup with 'Reject' and 'Accept' buttons?
