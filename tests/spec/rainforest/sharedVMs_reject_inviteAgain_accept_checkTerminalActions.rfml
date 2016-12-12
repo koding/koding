@@ -11,10 +11,10 @@
 Click to 'REJECT' button
 Did popup disappear? Did 'test_' label disappear along with 'Shared VMs' section in sidebar on the left?
 
-Switch back to first window and move your mouse over 'test' label on left sidebar and click on the circle button appeared next to it. Scroll down until you see 'VM Sharing'. Click on the toggle button next to 'VM Sharing'
+Switch back to first window and move your mouse over 'test' label on left sidebar and click on the circle button appeared next to it. Scroll down until you see 'VM Sharing'. 
 Is the label updated as 'OFF'? Is it turned to gray?
 
-Click to toggle button next to 'VM Sharing' and then enter 'rainforestqa22' in the text box again, hit enter and wait for a few seconds for process to be completed
+Click the toggle button next to 'VM Sharing' and then enter 'rainforestqa22' in the text box again, hit enter and wait for a few seconds for process to be completed
 Is 'rainforestqa22' added below 'Type a username' text box? Is 'This VM has not yet been shared with anyone.' text removed?
 
 Switch to the incognito window and click on 'ACCEPT' button this time

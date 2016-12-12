@@ -9,6 +9,10 @@ body {
   top: 0;
   left: 0;
   right: 0;
+  transition: transform .5s ease;
+}
+.Homepage-Header.out {
+  transform: translateY(-100%);
 }
 
 .Homepage-HeaderWrapper {
@@ -44,8 +48,6 @@ body {
   text-transform: uppercase;
   border-radius: 4px;
   margin: 10px;
-  /*border-color: rgba(0,0,0,0.15);*/
-  /*border-style: solid;*/
 }
 
 .Homepage-Header .item {
@@ -94,18 +96,21 @@ body {
 }
 
 .Homepage-Header .signup {
-  background-color: #18C6DB;
-  color: rgba(0,0,0,0.39);
+  background-color: transparent;
+  color: white;
   text-transform: uppercase;
   font-weight: bold;
   padding-left: 35px;
   padding-right: 35px;
   text-decoration: none;
+  border: 1px solid rgba(255,255,255,.44);
+  box-sizing: border-box;
+  opacity: 1;
+  transition: opacity .5s ease;
 }
 
 .Homepage-Header .signup:hover, .Homepage-Header .signup:active {
-  background-color: rgba(24, 198, 219, .8);
-  color: rgba(0,0,0,0.39);
+  background-color: rgba(255, 255, 255, .1);
 }
 
 .Homepage-Header .signup svg {
@@ -194,7 +199,7 @@ body {
     border: 0;
   }
   .Homepage-Header .signup {
-    display: flex;
+    display: none;
     background-color: transparent;
     border-left-width: 1px;
     border-right-width: 1px;
@@ -352,7 +357,8 @@ body {
   .StickyHeader .Homepage-Header .signup {
     display: flex;
     padding: 0 15px;
-    max-width: 130px;
+    max-width: 160px;
+    font-weight: 600;
   }
 
   .Homepage-Header .item {
@@ -367,13 +373,9 @@ body {
     margin-top: 0;
   }
 
-  .Homepage-Header.light .signup svg g,
-  .StickyHeader .Homepage-Header .signup svg g {
-    fill: rgba(53,139,176,0.8);
-  }
-  .Homepage-Header.light .signup:hover svg g,
-  .StickyHeader .Homepage-Header .signup:hover svg g {
-    fill: rgba(53,139,176,1);
+  .Homepage-Header.light .signup,
+  .StickyHeader header.Homepage-Header a.signup {
+    display: none;
   }
 }
 

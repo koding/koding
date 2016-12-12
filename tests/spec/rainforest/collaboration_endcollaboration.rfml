@@ -18,7 +18,7 @@ Click on 'YES' and wait for a few seconds for process to be completed
 Has 'END COLLABORATION' button on the bottom changed to 'START COLLABORATION'? Is 'Camera' icon removed from the bottom status bar?
 
 Return to the incognito window
-Do you see 'Session ended' title pop-up? Do you see 'LEAVE' button?
+Do you see 'Session ended' titled pop-up? Do you see 'LEAVE' button?
 
 Click on 'LEAVE' button
-Is 'aws-instance' item removed from the left module and all panes from that VM closed?
+Are 'SHARED VMS' and aws-instance_' below it removed from the left module and all panes from that VM closed? (They don't have to be removed just now, you can only check if they're not there!)

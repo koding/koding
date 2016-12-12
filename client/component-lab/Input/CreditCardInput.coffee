@@ -3,11 +3,16 @@
 
 Input = require './Input'
 
+{ Brand } = require 'lab/CreditCard/constants'
+{ getPlaceholder } = require 'lab/CreditCard/helpers'
+
 module.exports = CreditCardInput = (props) ->
 
-  { brand, fieldType } = props
+  { brand, fieldType, placeholder } = props
 
-  { placeholder, mask } = makeCardProps fieldType, brand
+  mask = makeMask fieldType, brand
+  placeholder or= getPlaceholder fieldType, brand
+
   props = _.omit props, ['brand', 'fieldType']
 
   <Input
@@ -37,13 +42,19 @@ InputForField = (props) ->
 
 CreditCardInput.propTypes =
   brand: PropTypes.oneOf [
-    'visa', 'master-card', 'american-express', 'diners-club'
-    'discover', 'jcb', 'maestro'
+    Brand.JCB
+    Brand.MAESTRO
+    Brand.MASTER_CARD
+    Brand.AMERICAN_EXPRESS
+    Brand.DINERS_CLUB
+    Brand.DISCOVER
+    Brand.VISA
+    Brand.DEFAULT
   ]
 
 
 CreditCardInput.defaultProps =
-  brand: 'visa'
+  brand: Brand.DEFAULT
 
 
 templates =

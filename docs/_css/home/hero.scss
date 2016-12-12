@@ -4,11 +4,13 @@ main.Homepage-Hero {
   position: relative;
   background: #000 url('/assets/img/landing/home/hero-main.png') no-repeat 50% 0;
   background-size: cover;
+  overflow: hidden;
 }
 .Homepage-Hero--container {
   padding-top: 215px;
   position: relative;
-  z-index: 1;
+  height: 100%;
+  box-sizing: border-box;
 }
 .Homepage-Hero--intro {
   max-width: 850px;
@@ -31,22 +33,38 @@ main.Homepage-Hero {
   }
   .actions {
     margin-top: 40px;
+    position: relative;
+    span.separator {
+      display: inline-block;
+      width: 1px;
+      height: 50px;
+      background: white;
+      vertical-align: top;
+    }
   }
   a {
-    &.secondary {
-      margin: 0 20px 10px 0;
+    transition: transform .1s ease;
+    &:hover {
+      transform: scale(1.05);
+    }
+    &.cta {
+      background-color: transparent;
+      padding-left: 0;
+      padding-right: 0;
+      font-weight: 400;
+    }
+    &.learn-more {
+      margin: 0 0 0 30px;
     }
     &.vision {
-      color: rgba(255,255,255,0.7);
-      margin: 40px 0 0;
-      display: inline-block;
-      text-decoration: none;
-      font-size: 18px;
+      margin: 0 30px 0 -68px;
       svg {
         margin-right: 10px;
+        margin-top: 1px;
         width: 24px;
         height: 24px;
         vertical-align: top;
+        fill: white;
       }
     }
     strong {
@@ -55,6 +73,52 @@ main.Homepage-Hero {
   }
 }
 
+.Homepage-Hero--intro,
+.Homepage-Hero--video,
+.Homepage-Hero--banner {
+  opacity: 1;
+  transition: opacity .5s ease;
+  z-index: 1;
+  &.out {
+    opacity: 0;
+    z-index: 0;
+  }
+}
+.Homepage-Hero--video {
+  opacity: 1;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  position: absolute;
+  box-sizing: border-box;
+  transition: opacity 1s ease;
+  > div {
+    width: 100%;
+    height: 710px;
+    max-width: 1262px;
+    position: relative;
+    margin: 0 auto;
+  }
+  iframe {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .close {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    z-index: 100;
+    width: 32px;
+    height: 32px;
+    svg {
+      margin: 8px;
+      fill: white;
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
 .Homepage-Hero--banner {
   position: absolute;
   bottom: 0;
@@ -66,6 +130,11 @@ main.Homepage-Hero {
   background-color: rgba(0,0,0,.6);
   box-sizing: border-box;
   border-top: 1px solid rgba(255, 255, 255, .15);
+  transition: transform .5s ease, opacity .5s ease;
+  &.out {
+    transform: translateY(100%);
+    opacity: 0;
+  }
 
   .alert {
     color: #f2778a;
@@ -99,6 +168,9 @@ main.Homepage-Hero {
   main.Homepage-Hero {
     height: 780px;
   }
+  .Homepage-Hero--video > div {
+    height: 780px;
+  }
   .Homepage-Hero--intro {
     h1 {
       font-size: 24px;
@@ -110,11 +182,17 @@ main.Homepage-Hero {
       line-height: 26px;
     }
     .actions {
-      margin-top: 97px;
+      margin-top: 60px;
       a {
-        margin-right: 0;
+        margin: 0 0 10px;
         display: block;
         width: auto;
+        &.learn-more {
+          display: none;
+        }
+      }
+      span.separator {
+        display: none;
       }
     }
   }
