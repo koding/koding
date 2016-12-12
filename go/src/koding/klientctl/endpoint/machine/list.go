@@ -59,6 +59,16 @@ func List(options *ListOptions) ([]*Info, error) {
 				Value:     m.IP,
 				UpdatedAt: time.Now(),
 			},
+			{
+				Network:   "kite",
+				Value:     m.QueryString,
+				UpdatedAt: time.Now(),
+			},
+			{
+				Network:   "http",
+				Value:     m.RegisterURL,
+				UpdatedAt: time.Now(),
+			},
 		}
 	}
 	kresraw, err := k.Tell("machine.create", mgreq)
@@ -77,14 +87,16 @@ func List(options *ListOptions) ([]*Info, error) {
 	infos := make([]*Info, len(res.Machines))
 	for i, m := range res.Machines {
 		infos[i] = &Info{
-			ID:        m.ID,
-			Alias:     mgres.Aliases[kmachine.ID(m.ID)],
-			Team:      m.Team,
-			Stack:     m.Stack,
-			Provider:  m.Provider,
-			Label:     m.Label,
-			IP:        m.IP,
-			CreatedAt: m.CreatedAt,
+			ID:          m.ID,
+			Alias:       mgres.Aliases[kmachine.ID(m.ID)],
+			Team:        m.Team,
+			Stack:       m.Stack,
+			Provider:    m.Provider,
+			Label:       m.Label,
+			IP:          m.IP,
+			QueryString: m.QueryString,
+			RegisterURL: m.RegisterURL,
+			CreatedAt:   m.CreatedAt,
 			Status: kmachine.MergeStatus(kmachine.Status{
 				State:  fromMachineStateString(m.Status.State),
 				Reason: m.Status.Reason,

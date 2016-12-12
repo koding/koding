@@ -31,8 +31,14 @@ type Info struct {
 	// The IP of the running machine.
 	IP string `json:"ip"`
 
+	// QueryString is string representation of kite protocol query.
+	QueryString string `json:"query_string"`
+
+	// HTTP address to remote machine kite.
+	RegisterURL string `json:"register_url"`
+
 	// CreatedAt tells about machine age.
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt time.Time `json:"created_at"`
 
 	// The machines last known status.
 	Status machine.Status `json:"status"`
