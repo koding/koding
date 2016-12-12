@@ -12,6 +12,11 @@ var (
 	WorkspaceConstructorName = "JWorkspace"
 )
 
+// RemoveWorkspace removes given WS
+func RemoveWorkspace(id bson.ObjectId) error {
+	return RemoveDocument(WorkspaceColl, id)
+}
+
 func GetWorkspaces(accountId bson.ObjectId) ([]*models.Workspace, error) {
 	query := bson.M{"originId": accountId}
 	return get(query)
