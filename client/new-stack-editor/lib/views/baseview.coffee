@@ -13,26 +13,38 @@ module.exports = class BaseView extends kd.View
 
   viewAppended: ->
 
-    wrapper = new kd.View
+    @wrapper = new kd.View
       cssClass: 'wrapper'
 
     if title = @getOption 'title'
-      wrapper.addSubView new kd.CustomHTMLView
+      @setClass 'with-title'
+      @wrapper.addSubView new kd.CustomHTMLView
         cssClass : 'title'
         partial  : title
 
     file = FSHelper.createFileInstance { path: 'localfile:/Untitled.txt' }
-    aceView = new AceView { delegate: this }, file
 
-    wrapper.addSubView aceView
+    @aceView = new AceView {
+      delegate: this
+      createBottomBar: no
+    }, file
 
-    wrapper.addSubView new kd.ButtonView
+    @aceView.ace.ready =>
+      @aceView.ace.editor.renderer.setScrollMargin 0, 15, 0, 0
+
+
+    @wrapper.addSubView @aceView
+
+    @wrapper.addSubView new kd.ButtonView
       cssClass: 'expand'
-      callback: => @emit FlexSplit.EVENT_EXPAND
+      callback: =>
+        @emit FlexSplit.EVENT_EXPAND
 
-    wrapper.addSubView new kd.ButtonView
+    @wrapper.addSubView new kd.ButtonView
       cssClass: 'collapse'
-      callback: => @emit FlexSplit.EVENT_COLLAPSE
+      callback: =>
+        @emit FlexSplit.EVENT_COLLAPSE
 
-    @addSubView wrapper
+    @addSubView @wrapper
+
 

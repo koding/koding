@@ -12,12 +12,6 @@ stackeditor.styl
 
 .new-stack-editor
 
-  .ace_gutter-layer
-    background-color        #232327 !important
-
-  .ace_gutter
-    border-right            1px solid #191919
-
   .flex-split
     background              #232327
     vendor                  transition, all .5s ease
@@ -64,9 +58,27 @@ stackeditor.styl
     min-height              30px !important
 
   .flex-view
+
     background              #232327
     color                   #59595C
     vendor                  transition, all .5s ease
+
+    .ace_gutter-layer
+      background-color      #232327 !important
+
+    .ace_gutter
+      border-right          1px solid #191919
+      .ace_gutter-active-line
+        background          rgba(114, 114, 114, .2) !important
+        z-index             1
+
+    .ace_marker-layer
+      .ace_active-line
+        background          #333339 !important
+
+    &.with-title
+      .editor-main
+        height              calc(100% - 52px)
 
     &.ondrag
       vendor                transition, none
@@ -80,14 +92,18 @@ stackeditor.styl
 
     .wrapper
 
-      .editor-bottom-bar
-        display             none
+      height                inherit
+      abs                   0px, 0px
 
       .title
         padding             15px 20px
         font-size           13px
         font-weight         600
         color               #999
+        position            static
+        z-index             7
+        background          #232327
+        width               100%
 
       borderBox()
 
