@@ -25,12 +25,13 @@ module.exports = class AceView extends JView
 
   constructor: (options = {}, file) ->
 
-    super options, file
 
     options.aceClass                or= Ace
     options.advancedSettings         ?= no
     options.createBottomBar          ?= yes
     options.createFindAndReplaceView ?= yes
+
+    super options, file
 
     @listenWindowResize()
 
@@ -68,6 +69,9 @@ module.exports = class AceView extends JView
     @advancedSettings.hide()  unless options.advancedSettings
 
     @setViewListeners()
+
+
+  getDelegate: -> @delegate ? {}
 
 
   forEachPaneByFile: (path, callback) ->
@@ -234,7 +238,7 @@ module.exports = class AceView extends JView
       file.on 'fs.saveAs.finished', (newFile) =>
 
         { tabView } = @getDelegate()
-        return  if tabView.willClose
+        return  if not tabView or tabView.willClose
 
         @getDelegate().openSavedFile newFile, contents
 
