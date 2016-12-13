@@ -61,10 +61,6 @@ func AuthCreditCard(u *url.URL, h http.Header, req *stripe.ChargeParams, context
 		return response.NewBadRequest(errors.New("does not have session id"))
 	}
 
-	if context.IsLoggedIn() {
-		return response.NewAccessDenied(errors.New("logged out users only"))
-	}
-
 	if req.Email == "" {
 		return http.StatusBadRequest, nil, nil, errors.New("email is not set")
 	}
