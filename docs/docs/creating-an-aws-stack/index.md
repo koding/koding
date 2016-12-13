@@ -13,9 +13,13 @@ parent: /docs/home
 
 ## Step by step guide
 
-1. Click '+' sign to **Create a New Stack**
+1. Click **Stacks**
 
-    ![Create new stack][1]
+    ![Click Stacks][1]
+
+1. Click **New Stack**
+
+    ![Click new stack][16]
 
 2. Choose **Amazon Web Services** and click **Create Stack**
 
@@ -126,7 +130,7 @@ resource:
 
 > See more options and information for creating an AWS instance here [AWS_INSTANCE][15].
 
-[1]: {{ site.url }}/assets/img/guides/create-new-stack.png
+[1]: {{ site.url }}/assets/img/guides/click-stacks.png
 [2]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-provider.png
 [3]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-create-stack.png
 [4]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-readme.png
@@ -141,3 +145,4 @@ resource:
 [13]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-stack-built.png
 [14]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-vm-ready.png
 [15]: {{ site.url }}/docs/terraform/providers/aws/r/instance.html/
+[16]: {{ site.url }}/assets/img/guides/click-new-stack.png

@@ -92,7 +92,7 @@ This is an example stack script with more&nbsp;configuration options that you ca
 [2]: https://www.vagrantup.com/about.html
 [3]: {{ site.url }}/assets/img/guides/vagrant/install-kd.png
 [4]: {{ site.url }}/assets/img/guides/vagrant/kite-query-id.png
-[5]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step001.png
+[5]: {{ site.url }}/assets/img/guides/create-new-stack.png
 [6]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step002.png
 [7]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step003.png
 [8]: {{ site.url }}/assets/img/guides/vagrant/provider-vagrant.png
