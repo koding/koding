@@ -10,10 +10,19 @@ stackeditor.styl
 */
 }
 
+dark-panel-bg               = #2B2B30
+dark-tab-header-bg          = #131315
+dark-active-tab-color       = #9C9C9C
+dark-tab-color              = #5C5C5C
+
+resize-handle-color         = #6EA3E5
+stack-bg-color              = #232327
+stack-fg-color              = #59595C
+
 .new-stack-editor
 
   .flex-split
-    background              #232327
+    background              stack-bg-color
     vendor                  transition, all .5s ease
 
     &.ondrag
@@ -31,17 +40,17 @@ stackeditor.styl
 
     &:hover
     &.ondrag
-      background            #6EA3E5
+      background            resize-handle-color
 
   .toolbar
-    background              #232327
+    background              stack-bg-color
     height                  40px
     min-height              40px !important
     border-bottom           2px solid #000
     borderBox()
 
   .content
-    background              #999
+    background              stack-bg-color
     &.safari-fix
       // just because of a bug in safari
       // https://bugs.webkit.org/show_bug.cgi?id=137730 ~ GG
@@ -59,26 +68,13 @@ stackeditor.styl
 
   .flex-view
 
-    background              #232327
-    color                   #59595C
+    background              stack-bg-color
+    color                   stack-fg-color
     vendor                  transition, all .5s ease
-
-    .ace_gutter-layer
-      background-color      #232327 !important
-
-    .ace_gutter
-      border-right          1px solid #191919
-      .ace_gutter-active-line
-        background          rgba(114, 114, 114, .2) !important
-        z-index             1
-
-    .ace_marker-layer
-      .ace_active-line
-        background          #333339 !important
 
     &.with-title
       .editor
-        height              calc(100% - 52px)
+        height              calc(100% - 42px)
 
     &.ondrag
       vendor                transition, none
@@ -105,7 +101,7 @@ stackeditor.styl
         color               #999
         position            static
         z-index             7
-        background          #232327
+        background          stack-bg-color
         width               100%
         borderBox()
 
@@ -117,7 +113,7 @@ stackeditor.styl
       padding               0
       background            none
       border                none
-      color                 #59595C
+      color                 stack-fg-color
       z-index               10
 
       &.expand
@@ -127,6 +123,59 @@ stackeditor.styl
         fa                  compress
 
       abs                   10px, 10px
+
+
+  .editor-view
+
+    .ace-find-replace-view
+      bottom                0
+      bg                    color, dark-tab-header-bg
+      border-bottom-color   dark-tab-header-bg
+      box-shadow            inset 0 -1px 0 dark-tab-header-bg
+
+      a, input
+        border-color        dark-panel-bg
+
+        &.active
+          border-color      dark-panel-bg !important
+
+      input
+        bg                  color, dark-panel-bg
+        box-shadow          0 1px 0 dark-panel-bg
+        color               dark-active-tab-color
+
+        &:hover
+          bg                color, dark-panel-bg
+          border            1px solid dark-panel-bg
+          box-shadow        0 1px 0 dark-panel-bg
+
+        &:focus
+          bg                color, dark-panel-bg
+          border            1px solid dark-panel-bg
+          box-shadow        0 1px 0 dark-panel-bg
+
+      button
+        bg                  color, dark-panel-bg
+        color               dark-active-tab-color
+        border              1px solid dark-panel-bg
+
+        &:hover
+          bg                color, dark-panel-bg
+          opacity           .8
+
+    .ace_gutter-layer
+      background-color      stack-bg-color !important
+
+    .ace_gutter
+      border-right          1px solid #191919
+      .ace_gutter-active-line
+        background          rgba(114, 114, 114, .2) !important
+        z-index             1
+
+    .ace_marker-layer
+      .ace_active-line
+        background          #333339 !important
+
 
 #intercom-container
   display                   none
