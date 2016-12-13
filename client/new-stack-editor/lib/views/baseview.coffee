@@ -11,6 +11,9 @@ module.exports = class BaseView extends kd.View
     options.cssClass = kd.utils.curry 'flex-view', options.cssClass
     super options, data
 
+    @bindTransitionEnd()
+
+
   viewAppended: ->
 
     @wrapper = new kd.View
@@ -38,6 +41,7 @@ module.exports = class BaseView extends kd.View
     @wrapper.addSubView new kd.ButtonView
       cssClass: 'expand'
       callback: =>
+        @wrapper.setCss 'height', '100vh'
         @emit FlexSplit.EVENT_EXPAND
 
     @wrapper.addSubView new kd.ButtonView
@@ -48,3 +52,8 @@ module.exports = class BaseView extends kd.View
     @addSubView @wrapper
 
 
+  _windowDidResize: ->
+    @aceView?._windowDidResize()
+    @once 'transitionend', =>
+      @wrapper.setCss 'height', '100%'
+      @aceView?._windowDidResize()
