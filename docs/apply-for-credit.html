@@ -1,94 +1,89 @@
 ---
 layout: default
-title: Request a Demo
+title: Apply for $1,000 Koding Credit
 ---
 
 <!-- HEADER -->
-{% include header.html has_sticky_navigation='true' exclude_main_nav='true' %}
-<style>{% include css/micropage.css %}</style>
-<style>{% include css/signup.css %}</style>
+{% include header.html has_sticky_navigation='true' exclude_main_nav='true' background_color='transparent' %}
+<style>{% include css/signup2.css %}</style>
 <style>
-  .Micropage--container h3 {
-    margin: 20px 0;
-  }
-  .error {
-    border-color: #F2778A;
-  }
-  hr {
-    height: 0;
-    border-top: 1px solid #D8D8D8;
-    border-width: 1px 0 0 0;
+  .ApplyForm--header {
+    padding-top: 85px;
+    padding-bottom: 44px;
   }
 </style>
+<main class="ApplyForm">
+  <div class="ApplyForm--header">
+    <div class="ApplyForm--container">
 
-<main class="Micropage">
-  <div class="Micropage--container">
+      <h1>Apply for $1,000 Koding Credit</h1>
 
-    <h1>Apply for $1,000 Koding Credit</h1>
+      <h3>If you sign up your entire team with Koding and write your stack script within a week, you are awesome, we love you and therefore <strong>we will give you $1,000</strong> in free credit.</h3>
 
-    <h3 class="form-success hidden">
-      We just received your request for a 1-on-1 demo. One of our teammates will reach out to you in the next 48 hours to get it scheduled.
-      <br><br>
-      <a href="{{ site.url }}">Go back to homepage</a>
-    </h3>
-    <h3 class="form-duplicate-entry hidden">
-      We <strong>previously received</strong> your request for a demo. One of our teammates will reach out to you soon to get it scheduled.
-      <br><br>
-      <a href="{{ site.url }}">Go back to homepage</a>
-    </h3>
+      <hr />
 
-    <form id="SignupForm" novalidate data-persist="garlic" data-domain="true">
+      <p><strong>Note: </strong>This promotion is for teams only and does not apply to personal use of Koding. If you are just 1 person for now, and willing to invite team members later, it's OK. We will still issue the credit to your account. Just make sure we can see what you are working on via your landing page.</p>
+
+      <h3 class="form-success hidden">
+        We just received your request for a 1-on-1 demo. One of our teammates will reach out to you in the next 48 hours to get it scheduled.
+        <br><br>
+        <a href="{{ site.url }}">Go back to homepage</a>
+      </h3>
+      <h3 class="form-duplicate-entry hidden">
+        We <strong>previously received</strong> your request for a demo. One of our teammates will reach out to you soon to get it scheduled.
+        <br><br>
+        <a href="{{ site.url }}">Go back to homepage</a>
+      </h3>
+    </div>
+  </div>
+  <div class="ApplyForm--body">
+
+    <form id="SignupForm" novalidate data-persist="garlic" data-domain="true" class="ApplyForm--container">
 
       <div class="SignupFieldset">
-        <h3>If you sign up your entire team with Koding and write your stack script within a week, you are awesome, we love you and therefore we will give you $1,000 in free credit.  This promotion is for teams only and does not apply to personal use of Koding. If you are just 1 person for now, and willing to invite team members later, it's OK. We will still issue the credit to your account. Just make sure we can see what you are working on via your landing page.</h3>
+        <label>Koding Team Name *</label>
+        <input type="text" name="Field1" placeholder="">
+      </div>
+
+      <div class="SignupFieldset">
+        <label>Your Koding User Name</label>
+        <input type="text" name="Field2" placeholder="">
+      </div>
+
+      <div class="SignupFieldset">
+        <label>Your Work Email</label>
+        <input type="text" name="Field3" placeholder="">
+      </div>
+
+      <div class="SignupFieldset">
+        <label>Your Company Web Site (or landing page) *<p>Your email domain should be the same with this website’s domain.</p></label>
+        <input type="text" name="Field4" placeholder="">
+      </div>
+
+      <div class="SignupFieldset">
+        <label>Number of Team Members<p>You must have completed a working stack script (with credentials added) for your team. Tell us which one that is.</p></label>
+        <input type="text" name="Field5" placeholder="">
       </div>
 
       <div class="SignupFieldset">
         <div class="name">
-          <legend></legend>
-          <input type="text" name="Field1" placeholder="Koding Team Name">
+          <label>Stack Script for your Team *<p>If you are working solo on your future company, we understand and we’d love to help. You can tell us how many you are projecting in the next 12 months.</p></label>
+          <input type="text" name="Field6" placeholder="">
         </div>
       </div>
 
-      <div class="SignupFieldset">
-        <div class="name">
-          <legend></legend>
-          <input type="text" name="Field2" placeholder="Your Koding User Name">
-        </div>
-      </div>
+      <h3>While you are at it, would you like to make that <strong>$3,000 instead</strong>?</h3>
 
       <div class="SignupFieldset">
-        <div class="name">
-          <legend></legend>
-          <input type="text" name="Field3" placeholder="Your Work Email">
+        <div class="checkboxRow">
+          <input type="checkbox" name="Field7" placeholder="">
+          <label>I will add a "Made with Koding" badge to my home page for additional $1000 credits</label>
+          <div class="clearfix"></div>
         </div>
-      </div>
-
-      <div class="SignupFieldset">
-        <div class="name">
-          <legend></legend>
-          <input type="text" name="Field4" placeholder="Your Company Web Site (or landing page)">
-        </div>
-      </div>
-
-      <div class="SignupFieldset">
-        <div class="name">
-          <legend></legend>
-          <input type="text" name="Field5" placeholder="Number of Team Members">
-        </div>
-      </div>
-
-      <div class="SignupFieldset">
-        <div class="name">
-          <legend></legend>
-          <input type="text" name="Field6" placeholder="Stack Script for your Team">
-        </div>
-      </div>
-
-      <div class="SignupFieldset">
-        <div class="email">
-          <legend>If you use your work email, your trial may be extended and you may qualify for free credit in your account.</legend>
-          <input type="email" name="Field8" placeholder="Work Email">
+        <div class="checkboxRow clearfix">
+          <input type="checkbox" name="Field8" placeholder="">
+          <label>I will write a 2000+ words Medium blog post about my experience and how Koding helps me for additional $1000 Koding credits</label>
+        <div class="clearfix"></div>
         </div>
       </div>
 

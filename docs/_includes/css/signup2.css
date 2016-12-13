@@ -1,0 +1,122 @@
+body {
+  padding-top: 0;
+}
+
+.ApplyForm--header {
+  background: linear-gradient( #3C3C59 11%, #A8CEFF);
+  padding-top: 108px;
+  padding-bottom: 88px;
+  text-align: center;
+}
+
+.ApplyForm--header strong {
+  font-weight: 600;
+}
+
+.ApplyForm--header h1 {
+  color: #48BA7D;
+  font-size: 30px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.ApplyForm--header h3 {
+  color: #FFFFFF;
+  font-size: 22px;
+  line-height: 26px;
+}
+
+.ApplyForm--header p {
+  text-align: left;
+  color: rgba(255,255,255,0.75);
+  line-height: 20px;
+}
+
+.ApplyForm--header hr {
+  border: 0;
+  border-top: 1px solid rgba(255,255,255,0.2);
+  margin-top: 31px;
+  margin-bottom: 30px;
+}
+.ApplyForm--container {
+  width: 640px;
+  margin: 0 auto;
+}
+
+.ApplyForm--body {
+  margin-top: 68px;
+}
+
+.ApplyForm--body label {
+  color: #989898;
+  font-weight: 300;
+  font-size: 18px;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.ApplyForm--body label p {
+  font-size: 14px;
+  margin-top: 4px;
+  line-height: 16px;
+}
+
+.ApplyForm--body input[type=text] {
+  border: 0;
+  font-size: 17px;
+  font-weight: 500;
+  border-bottom: 1px solid rgba( 0, 0, 0, 0.10);
+  padding: 6px 0 17px;
+  margin-bottom: 17px;
+  width: 100%;
+  outline: none;
+  color: #515151;
+  transition: color 0.5s, border-bottom 0.5s;
+}
+
+.ApplyForm--body .checkboxRow {
+  margin-bottom: 22px;
+}
+
+.ApplyForm--body input[type=checkbox] {
+  float: left;
+  margin-top: 2px;
+}
+
+.ApplyForm--body input[type=checkbox] + label {
+  float: left;
+  font-size: 16px;
+  color: #515151;
+  margin-left: 4px;
+  width: 94%;
+}
+
+.ApplyForm--body input:focus {
+  border-bottom: 1px solid #A8CEFF;
+  color: #000000;
+}
+
+.ApplyForm--body h3 {
+  margin-top: 21px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #515151;
+  margin-bottom: 30px;
+}
+
+.ApplyForm--body h3 strong {
+  color: #F2778A;
+}
+
+.ApplyForm--body button {
+  background-color: #F2778A;
+  font-size: 16px;
+  color: #FFFFFF;
+  font-weight: 700;
+  border: 0;
+  border-radius: 4px;
+  padding: 16px;
+  margin-top: 33px;
+  margin-bottom: 50px;
+  width: 100%;
+}

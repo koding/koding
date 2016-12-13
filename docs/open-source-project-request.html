@@ -1,91 +1,78 @@
 ---
 layout: default
-title: Request a Demo
+title: Koding Open Source Project Request
 ---
 
 <!-- HEADER -->
-{% include header.html has_sticky_navigation='true' exclude_main_nav='true' %}
-<style>{% include css/micropage.css %}</style>
-<style>{% include css/signup.css %}</style>
-<style>
-  .Micropage--container h3 {
-    margin: 20px 0;
-  }
-  .error {
-    border-color: #F2778A;
-  }
-  hr {
-    height: 0;
-    border-top: 1px solid #D8D8D8;
-    border-width: 1px 0 0 0;
-  }
-</style>
+{% include header.html has_sticky_navigation='true' exclude_main_nav='true' background_color='transparent' %}
+<style>{% include css/signup2.css %}</style>
 
-<main class="Micropage">
-  <div class="Micropage--container">
+<main class="ApplyForm">
+  <div class="ApplyForm--header">
+    <div class="ApplyForm--container">
 
-    <h1>Koding Open Source Project Request</h1>
+      <h1>Koding Open Source Project Request</h1>
 
-    <h3 class="form-success hidden">
-      We just received your request for a 1-on-1 demo. One of our teammates will reach out to you in the next 48 hours to get it scheduled.
-      <br><br>
-      <a href="{{ site.url }}">Go back to homepage</a>
-    </h3>
-    <h3 class="form-duplicate-entry hidden">
-      We <strong>previously received</strong> your request for a demo. One of our teammates will reach out to you soon to get it scheduled.
-      <br><br>
-      <a href="{{ site.url }}">Go back to homepage</a>
-    </h3>
+      <h3>If your project is open source, Koding is free to use to develop it.  Please fill out this form so we can properly qualify your request.</h3>
 
-    <form id="SignupForm" novalidate data-persist="garlic" data-domain="true">
+      <h3 class="form-success hidden">
+        We just received your request for a 1-on-1 demo. One of our teammates will reach out to you in the next 48 hours to get it scheduled.
+        <br><br>
+        <a href="{{ site.url }}">Go back to homepage</a>
+      </h3>
+      <h3 class="form-duplicate-entry hidden">
+        We <strong>previously received</strong> your request for a demo. One of our teammates will reach out to you soon to get it scheduled.
+        <br><br>
+        <a href="{{ site.url }}">Go back to homepage</a>
+      </h3>
+
+    </div>
+  </div>
+  <div class="ApplyForm--body">
+
+    <form id="SignupForm" novalidate data-persist="garlic" data-domain="true" class="ApplyForm--container">
 
       <div class="SignupFieldset">
-        <h3>If your project is open source, Koding is free to use to develop it.  Please fill out this form so we can properly qualify your request.</h3>
+          <label>Open Source Project Name *</label>
+          <input type="text" name="Field1">
       </div>
 
       <div class="SignupFieldset">
         <div class="name">
-          <legend></legend>
-          <input type="text" name="Field1" placeholder="Open Source Project Name">
+          <label>Open Source Project Repository *</label>
+          <input type="text" name="Field2">
         </div>
       </div>
 
       <div class="SignupFieldset">
         <div class="name">
-          <legend></legend>
-          <input type="text" name="Field1" placeholder="Open Source Project Repository">
+          <label>Your Username at Repository Host (i.e. GitHub Username) *</label>
+          <input type="text" name="Field3">
         </div>
       </div>
 
       <div class="SignupFieldset">
         <div class="name">
-          <legend></legend>
-          <input type="text" name="Field1" placeholder="Your Username at Repository Host (i.e. Github Username)">
-        </div>
-      </div>
-
-      <div class="SignupFieldset">
-        <div class="name">
-          <legend></legend>
-          <input type="text" name="Field1" placeholder="Your email">
+          <label>Your email *</label>
+          <input type="text" name="Field4">
         </div>
       </div>
 
       <div class="SignupFieldset double">
         <div class="company">
-          <legend></legend>
-          <input type="text" name="Field3" placeholder="Your Koding Username">
+          <label>Your Koding Username *</label>
+          <input type="text" name="Field5">
         </div>
         <div class="phone-number">
-          <legend></legend>
-          <input type="text" name="Field6" placeholder="Your Koding Team">
+          <label>Your Koding Team *</label>
+          <input type="text" name="Field6">
         </div>
       </div>
 
       <div class="SignupFieldset">
         <div class="name">
-          <legend></legend>
-          <input type="text" name="Field1" placeholder="Your Koding Stack for the open source project">
+          <label>Your Koding Stack for the open source project</label>
+          <input type="text" name="Field7">
         </div>
       </div>
 
@@ -96,10 +83,7 @@ title: Request a Demo
       </div>
 
     </form>
-
   </div>
-  <figure class="Micropage--UFO"></figure>
-  <figure class="Micropage--Ground"></figure>
 </main>
 
 <script>{% include js/autosize.min.js %}</script>
@@ -114,7 +98,7 @@ title: Request a Demo
 <script type="text/javascript">
   KODING_UTILS.bindFormSubmission({
     formSelector: '#SignupForm',
-    formHash: 'sfmen9h0e6syoi',
+    formHash: 'x12ibg5p0qpnd8p',
     success: function() {
       $('.Micropage--container > h1').text('Awesome!');
       $('.form-success').removeClass('hidden');
