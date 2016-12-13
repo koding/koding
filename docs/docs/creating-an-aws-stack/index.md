@@ -25,7 +25,7 @@ parent: /docs/home
 
     1.  **Stack template**: configuration file for your development environment
     2.  **Custom variables**: define custom variables to use in your stack template, hidden from Team _members_
-    3.  **Readme**: This text will be shown in a message box when your team starts to build this stack. You can add instructions or notes for your team to read
+    3.  **Readme**: this text will be shown in a message box when your team starts to build this stack. You can add instructions or notes for your team to read
     4.  **Credentials**: add your AWS account credentials here
 
     ![Stack template][3]
@@ -36,7 +36,7 @@ parent: /docs/home
 
     >Click away from any of the tabs to return to your **Stack template editor**.
 
-4.  Edit your **Readme** section to greet your team and provide them with information or instructions
+4.  Edit your **Readme** section to greet your team and provide them with information or instructions. You can use [markdown](https://en.wikipedia.org/wiki/Markdown) format
 
     ![Read Me][4]
 
@@ -70,11 +70,11 @@ parent: /docs/home
 
 8. Click **Initialize** to initialize your stack
 
-    > You can have multiple stacks within a team, click **Make Team Default** to make this stack your team's default stack.
+    > You can have multiple stacks within a team, click **Make Team Default** when you want to make this stack your team's default stack.
 
    ![Initialize Stack][9]
 
-9. The build stack modal will appear, the *Instructions* tab will include the message you wrote in your **Read Me** tab. Click **Next**
+9. The build stack modal will appear, the *Instructions* tab will include the message you wrote in your **Read Me** tab. Click **Next** to continue
 
    ![Build Stack Instructions][10]
 
@@ -84,15 +84,15 @@ parent: /docs/home
 
     ![Build Stack Credentials][11]
 
-    Stack building..
+    Your stack will start building..
 
     ![Stack Building][12]
 
-11. Congratulations, your stack was successfully built, click **Start Coding** to start using your new VM
+11. Your stack was successfully built. Click **Start Coding** to start using your new VM
 
     ![Stack built][13]
 
-    Your new VM terminal is ready :>
+    Congratulations, your new VM terminal is ready
 
     ![VM ready][14]
 
