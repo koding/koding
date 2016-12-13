@@ -27,10 +27,9 @@ parent: /docs/home
 
 3. You will now see the default stack template for AWS. You can give your stack a name by clicking on the **Edit Name** on top beside your stack title. The _three tabs_ represent:
 
-    1.  **Stack template**: configuration file for your development environment
-    2.  **Custom variables**: define custom variables to use in your stack template, hidden from Team _members_
-    3.  **Readme**: this text will be shown in a message box when your team starts to build this stack. You can add instructions or notes for your team to read
-    4.  **Credentials**: add your AWS account credentials here
+    1.  **Custom variables**: define custom variables to use in your stack template, hidden from Team _members_
+    2.  **Readme**: this text will be shown in a message box when your team starts to build this stack. You can add instructions or notes for your team to read
+    3.  **Credentials**: add your AWS account credentials here
 
     ![Stack template][3]
 
@@ -44,7 +43,7 @@ parent: /docs/home
 
     ![Read Me][4]
 
-5.  Go to the **Credentials** tab and click **Add New Credentials**
+5.  Go to the **Credentials** tab and click **Add A New Credentials**
 
     ![Credentials][5]
 
