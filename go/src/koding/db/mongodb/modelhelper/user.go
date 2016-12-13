@@ -52,6 +52,26 @@ func GetUser(username string) (*models.User, error) {
 	return user, nil
 }
 
+var userOnlyID = bson.M{
+	"_id": 1,
+}
+
+func GetUserID(username string) (bson.ObjectId, error) {
+	var id struct {
+		ID bson.ObjectId `bson:"_id"`
+	}
+
+	fn := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"username": username}).Select(userOnlyID).One(&id)
+	}
+
+	if err := Mongo.Run(UserColl, fn); err != nil {
+		return "", err
+	}
+
+	return id.ID, nil
+}
+
 func GetUsersById(ids ...bson.ObjectId) ([]*models.User, error) {
 	var users []*models.User
 	if err := Mongo.Run("jUsers", func(c *mgo.Collection) error {

@@ -52,6 +52,15 @@ func TestBlockUser(t *testing.T) {
 	if user.BlockedUntil.IsZero() {
 		t.Errorf("User blocked until date is not set")
 	}
+
+	id, err := modelhelper.GetUserID(user.Name)
+	if err != nil {
+		t.Fatalf("GetUserID()=%s", err)
+	}
+
+	if id != user.ObjectId {
+		t.Fatalf("got %q, want %q", id.Hex(), user.ObjectId.Hex())
+	}
 }
 
 func TestRemoveUser(t *testing.T) {
