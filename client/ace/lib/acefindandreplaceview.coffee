@@ -38,6 +38,8 @@ module.exports = class AceFindAndReplaceView extends JView
 
   close: (fireEvent = yes) ->
 
+    $(window).off 'keydown.acefindview'
+
     @hide()
     @findInput.setValue    ''
     @replaceInput.setValue ''
@@ -47,6 +49,9 @@ module.exports = class AceFindAndReplaceView extends JView
   show: (withReplace) ->
 
     super
+
+    $(window).on 'keydown.acefindview', (event) =>
+      @close()  if event.which is 27
 
     cssName = 'with-replace-view'
     method  = if withReplace then 'setClass' else 'unsetClass'
