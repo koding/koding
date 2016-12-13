@@ -33,10 +33,12 @@ module.exports = class FlexSplit extends kd.View
     super options, data
 
     @resizer = null
-    @type    = @getOption 'type'
+    { @type, @name, storage } = @getOptions()
     @setClass @type.name
 
     @setupViews()
+
+    storage?.addView this, @name
 
 
   createResizer: (view, size) ->

@@ -30,10 +30,10 @@ module.exports = class StackEditor extends kd.View
       title: 'Logs'
 
     leftColumn = new FlexSplit
+      name     : 'leftColumn'
       views    : [editor, logs]
       sizes    : [90, 10]
-
-    layoutStorage.addView leftColumn, 'leftColumn'
+      storage  : layoutStorage
 
     variables = new BaseView
       cssClass: 'variables'
@@ -44,20 +44,20 @@ module.exports = class StackEditor extends kd.View
       title: 'Readme'
 
     rightColumn = new FlexSplit
+      name     : 'rightColumn'
       sizes    : [50, 50]
       views    : [variables, readme]
-
-    layoutStorage.addView rightColumn, 'rightColumn'
+      storage  : layoutStorage
 
     contentView = new FlexSplit
       cssClass : 'content'
+      name     : 'contentView'
       views    : [leftColumn, rightColumn]
       sizes    : [55, 45]
       type     : FlexSplit.VERTICAL
+      storage  : layoutStorage
 
     contentView.setClass 'safari-fix'  if bowser.safari
-
-    layoutStorage.addView contentView, 'contentView'
 
     statusbar = new kd.View
       cssClass: 'statusbar'
