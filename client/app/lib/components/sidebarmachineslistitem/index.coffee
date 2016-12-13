@@ -28,11 +28,11 @@ module.exports = class SidebarMachinesListItem extends React.Component
     stack                        : null
     showInSidebar                : yes
     bindWorkspacesTitleClick     : yes
-    activeLeavingSharedMachineId : null
 
 
   getDataBindings: ->
     activeMachine : EnvironmentFlux.getters.activeMachine
+    activeLeavingMachine : EnvironmentFlux.getters.activeLeavingSharedMachineId
 
 
   constructor: (props) ->
@@ -168,6 +168,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
     return null  if @machine('type') is 'own' or @machine 'hasOldOwner'
     return null  if @state.activeMachine isnt @machine('_id')
     return null  unless @machine 'isApproved'
+    return null  unless @state.activeLeavingMachine
 
     <LeaveSharedMachineWidget
       coordinates={@state.coordinates}
@@ -196,8 +197,8 @@ module.exports = class SidebarMachinesListItem extends React.Component
       sidebarListItem = ReactDOM.findDOMNode @refs.sidebarMachinesListItem
       clientRect      = sidebarListItem.getBoundingClientRect()
       coordinates     =
-        top           : clientRect.top - 15
-        left          : clientRect.width + clientRect.left + 15
+        top           : clientRect.top
+        left          : clientRect.width + clientRect.left
 
       @setState { coordinates: coordinates}
 
