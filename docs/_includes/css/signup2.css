@@ -26,6 +26,11 @@ body {
   line-height: 26px;
 }
 
+.ApplyForm--header h3 a {
+  font-weight: bold;
+  color: #ffffff;
+}
+
 .ApplyForm--header p {
   text-align: left;
   color: rgba(255,255,255,0.75);
@@ -73,24 +78,32 @@ body {
   color: #515151;
   transition: color 0.5s, border-bottom 0.5s;
 }
+.ApplyForm--body input[type=text].error {
+  border-bottom-color: #F2778A;
+}
 
 .ApplyForm--body .checkboxRow {
   margin-bottom: 22px;
 }
-
+.ApplyForm--body .checkboxRow:last-child {
+  margin-bottom: 60px;
+}
 .ApplyForm--body input[type=checkbox] {
   float: left;
   margin-top: 2px;
 }
-
-.ApplyForm--body input[type=checkbox] + label {
+.ApplyForm--body input[type=radio] {
+  float: left;
+  margin-top: 0;
+}
+.ApplyForm--body input[type=checkbox] + label,
+.ApplyForm--body input[type=radio] + label {
   float: left;
   font-size: 16px;
   color: #515151;
   margin-left: 4px;
   width: 94%;
 }
-
 .ApplyForm--body input:focus {
   border-bottom: 1px solid #A8CEFF;
   color: #000000;
@@ -119,4 +132,37 @@ body {
   margin-top: 33px;
   margin-bottom: 50px;
   width: 100%;
+  cursor: pointer;
+}
+
+.SignupFieldset {
+  position:relative;
+}
+
+.SignupFieldset .errorTooltip {
+  background-color: #f2778a;
+  box-shadow: none;
+  padding: 10px 15px;
+  min-height: auto;
+  min-width: auto;
+  border-radius: 4px;
+  color: #ffffff;
+  position: absolute;
+  bottom: 30px;
+  right: 0;
+}
+
+.SignupFieldset .errorTooltip:after {
+  top: 100%;
+  right: 10px;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  border-color: rgba(136, 183, 213, 0);
+  border-top-color: #f2778a;
+  border-width: 5px;
+  margin-left: -5px;
 }
