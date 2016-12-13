@@ -1045,7 +1045,7 @@ module.exports = class ComputeController extends KDController
     stacks.forEach (stack) =>
       @fetchBaseStackTemplate stack, (err, template) =>
         unless err
-          if stackTemplate.template.sum isnt template.template.sum
+          if stackTemplate.config.clonedSum isnt template.template.sum
             config = stack.config ?= {}
             config.needUpdate = yes
             @updateStackConfig stack, config
