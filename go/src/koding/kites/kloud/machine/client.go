@@ -10,9 +10,9 @@ type Machine struct {
 	Provider    string    `json:"provider"`
 	Label       string    `json:"label"`
 	IP          string    `json:"ip"`
-	QueryString string    `json:"query_string"`
-	RegisterURL string    `json:"register_url"`
-	CreatedAt   time.Time `json:"created_at"`
+	QueryString string    `json:"queryString"`
+	RegisterURL string    `json:"registerUrl"`
+	CreatedAt   time.Time `json:"createdAt"`
 	Status      Status    `json:"status"`
 	Users       []User    `json:"users"`
 }
@@ -21,7 +21,7 @@ type Machine struct {
 type Status struct {
 	State      string    `json:"state"`
 	Reason     string    `json:"reason"`
-	ModifiedAt time.Time `json:"modified_at"`
+	ModifiedAt time.Time `json:"modifiedAt"`
 }
 
 // User represents a single user of described machine.

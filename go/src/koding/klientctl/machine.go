@@ -46,9 +46,9 @@ func tabFormatter(w io.Writer, infos []*machine.Info) {
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
 			info.ID,
 			info.Alias,
-			unknownIfEmpty(info.Team),
-			unknownIfEmpty(info.Stack),
-			unknownIfEmpty(info.Provider),
+			dashIfEmpty(info.Team),
+			dashIfEmpty(info.Stack),
+			dashIfEmpty(info.Provider),
 			info.Label,
 			info.Owner,
 			machine.ShortDuration(info.CreatedAt, now),
@@ -59,9 +59,9 @@ func tabFormatter(w io.Writer, infos []*machine.Info) {
 	tw.Flush()
 }
 
-func unknownIfEmpty(val string) string {
+func dashIfEmpty(val string) string {
 	if val == "" {
-		return "<unknown>"
+		return "-"
 	}
 
 	return val
