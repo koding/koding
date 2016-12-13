@@ -1,10 +1,9 @@
 kd = require 'kd'
-AceView = require 'ace/aceview'
-FSHelper = require 'app/util/fs/fshelper'
 FlexSplit = require './flexsplit'
 
 
 module.exports = class BaseView extends kd.View
+
 
   constructor: (options = {}, data) ->
 
@@ -25,24 +24,13 @@ module.exports = class BaseView extends kd.View
         cssClass : 'title'
         partial  : title
 
-    file = FSHelper.createFileInstance { path: 'localfile:/Untitled.txt' }
-
-    @aceView = new AceView {
-      delegate: this
-      createBottomBar: no
-    }, file
-
-    @aceView.ace.ready =>
-      @aceView.ace.editor.renderer.setScrollMargin 0, 15, 0, 0
-
-
-    @wrapper.addSubView @aceView
-
     @wrapper.addSubView new kd.ButtonView
       cssClass: 'expand'
       callback: =>
-        @wrapper.setCss 'height', '100vh'
+        @wrapper.setClass 'expanding'
         @emit FlexSplit.EVENT_EXPAND
+        @once 'transitionend', =>
+          @wrapper.unsetClass 'expanding'
 
     @wrapper.addSubView new kd.ButtonView
       cssClass: 'collapse'
@@ -51,9 +39,3 @@ module.exports = class BaseView extends kd.View
 
     @addSubView @wrapper
 
-
-  _windowDidResize: ->
-    @aceView?._windowDidResize()
-    @once 'transitionend', =>
-      @wrapper.setCss 'height', '100%'
-      @aceView?._windowDidResize()

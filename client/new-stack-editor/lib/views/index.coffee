@@ -1,6 +1,6 @@
 kd = require 'kd'
 bowser = require 'bowser'
-BaseView = require './baseview'
+EditorView = require './editorview'
 FlexSplit = require './flexsplit'
 FlexSplitStorage = require './flexsplit/storage'
 AppStorageAdapter = require './appstorageadapter'
@@ -22,10 +22,10 @@ module.exports = class StackEditor extends kd.View
     toolbar = new kd.View
       cssClass: 'toolbar'
 
-    editor = new BaseView
+    editor = new EditorView
       cssClass: 'editor'
 
-    logs = new BaseView
+    logs = new EditorView
       cssClass: 'logs'
       title: 'Logs'
 
@@ -35,11 +35,11 @@ module.exports = class StackEditor extends kd.View
       sizes    : [90, 10]
       storage  : layoutStorage
 
-    variables = new BaseView
+    variables = new EditorView
       cssClass: 'variables'
       title: 'Custom Variables'
 
-    readme = new BaseView
+    readme = new EditorView
       cssClass: 'readme'
       title: 'Readme'
 
