@@ -13,6 +13,7 @@ withNamespace = reduxHelper.makeNamespace 'koding', 'payment', 'creditcard'
 
 REMOVE = reduxHelper.expandActionType withNamespace 'REMOVE'
 HAS_CARD = reduxHelper.expandActionType withNamespace 'HAS_CARD'
+AUTHORIZE = reduxHelper.expandActionType withNamespace 'AUTHORIZE'
 
 reducer = (state = null, action) ->
 
@@ -61,6 +62,12 @@ hasCreditCard = ->
     payment: (service) -> service.hasCreditCard()
   }
 
+authorize = ({ source, email }) ->
+  return {
+    types: [ AUTHORIZE.BEGIN, AUTHORIZE.SUCCESS, AUTHORIZE.FAIL ]
+    payment: (service) -> service.authorize { source, email }
+  }
+
 
 creditCard = (state) -> state.creditCard
 
@@ -71,7 +78,7 @@ module.exports = {
 
   creditCard
 
-  remove, hasCreditCard
-  REMOVE, HAS_CARD
+  remove, hasCreditCard, authorize
+  REMOVE, HAS_CARD, AUTHORIZE
 }
 

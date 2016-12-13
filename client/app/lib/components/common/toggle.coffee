@@ -1,15 +1,14 @@
 kd          = require 'kd'
 React       = require 'app/react'
-ReactToggle = require 'react-toggle'
+ReactToggle = require('react-toggle').default
 
 require './styl/toggle.styl'
 require './styl/popover.styl'
 
 module.exports = class Toggle extends React.Component
 
-  @defualtProps =
+  @defaultProps =
     size            : 'small'
-    defaultChecked  : no
     callback        : kd.noop
 
 
@@ -22,7 +21,7 @@ module.exports = class Toggle extends React.Component
 
     className = "#{kd.utils.curry('ReactToggle', @props.className)} #{@props.size}"
 
-    props = _.omit @props, ['callback']
+    props = _.omit @props, ['callback', 'className', 'size']
 
     props.checked or= no
     <div className={className}>

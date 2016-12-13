@@ -17,6 +17,7 @@ module.exports =
     UNKNOWN: 'unknown'
 
   Plan:
+    FREE: 'p_free'
     FREE_FOREVER: 'p_free_forever'
     UP_TO_10_USERS: 'p_up_to_10'
     UP_TO_50_USERS: 'p_up_to_50'

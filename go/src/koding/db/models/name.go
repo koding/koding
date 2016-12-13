@@ -1,11 +1,13 @@
 package models
 
+import "gopkg.in/mgo.v2/bson"
+
 // import "gopkg.in/mgo.v2/bson"
 
 type Name struct {
-	// Id    bson.ObjectId `bson:"_id"`
-	Name  string `bson:"name"`
-	Slugs []Slug `bson:"slugs"`
+	ID    bson.ObjectId `bson:"_id"`
+	Name  string        `bson:"name"`
+	Slugs []Slug        `bson:"slugs"`
 }
 
 type Slug struct {
