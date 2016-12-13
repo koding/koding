@@ -45,7 +45,7 @@ stackeditor.styl
     &.safari-fix
       // just because of a bug in safari
       // https://bugs.webkit.org/show_bug.cgi?id=137730 ~ GG
-      height                calc(100% \- 68px)
+      height                calc(100% \- 70px)
 
   .mainview
     border-left             2px solid #000
@@ -77,7 +77,7 @@ stackeditor.styl
         background          #333339 !important
 
     &.with-title
-      .editor-main
+      .editor
         height              calc(100% - 52px)
 
     &.ondrag
@@ -95,6 +95,9 @@ stackeditor.styl
       height                inherit
       abs                   0px, 0px
 
+      &.expanding
+        height              100vh
+
       .title
         padding             15px 20px
         font-size           13px
@@ -104,10 +107,12 @@ stackeditor.styl
         z-index             7
         background          #232327
         width               100%
+        borderBox()
 
       borderBox()
 
-    .kdbutton
+    .kdbutton.expand
+    .kdbutton.collapse
       margin                0
       padding               0
       background            none

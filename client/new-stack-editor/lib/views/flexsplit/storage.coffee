@@ -28,7 +28,8 @@ module.exports = class FlexSplitStorage extends kd.Object
 
     if options.keepExpandStatus
       view.on [
-        FlexSplit.EVENT_EXPANDED, FlexSplit.EVENT_COLLAPSED
+        FlexSplit.EVENT_EXPANDED
+        FlexSplit.EVENT_COLLAPSED
       ], (fractions) =>
 
         @eventCount++
@@ -46,16 +47,8 @@ module.exports = class FlexSplitStorage extends kd.Object
       fractions ?= sizes
 
       if options.restore and fractions
-
         view.setFractions fractions
-
-        if FlexSplit.MAX in fractions
-          for i in [0..1] when fractions[i] is FlexSplit.MAX
-            view.resizer.views[i].setClass 'expanded'
-          view.setFractions sizes, set = no
-          @set identifier, sizes
-        else
-          @set identifier, fractions
+        @set identifier, fractions
 
 
   get: (identifier, callback) ->

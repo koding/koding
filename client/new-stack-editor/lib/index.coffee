@@ -29,6 +29,7 @@ module.exports = class StackEditorAppController extends AppController
 
     @mainView.addSubView new StackEditor
 
+
   openEditor: (stackTemplateId) ->
 
     console.trace()
