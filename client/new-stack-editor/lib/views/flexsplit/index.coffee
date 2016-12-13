@@ -49,9 +49,9 @@ module.exports = class FlexSplit extends kd.View
     @resizer = @addSubView new FlexSplitResizer { @type, view }
 
     @forwardEvents @resizer, [
-      FlexSplit.EVENT_COLLAPSED
-      FlexSplit.EVENT_RESIZED
       FlexSplit.EVENT_EXPANDED
+      FlexSplit.EVENT_RESIZED
+      FlexSplit.EVENT_COLLAPSED
     ]
 
     @resizer.on FlexSplit.EVENT_EXPAND, ->
@@ -85,5 +85,5 @@ module.exports = class FlexSplit extends kd.View
           @createResizer view, size
 
 
-  setFractions: (fractions) ->
-    @resizer?.setFractions fractions
+  setFractions: (fractions, set = yes) ->
+    @resizer?.setFractions fractions, set

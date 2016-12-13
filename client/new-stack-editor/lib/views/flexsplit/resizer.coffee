@@ -1,6 +1,7 @@
 kd = require 'kd'
 FlexSplit = require './index'
 
+
 module.exports = class FlexSplitResizer extends kd.View
 
   constructor: (options = {}, data) ->
@@ -43,9 +44,10 @@ module.exports = class FlexSplitResizer extends kd.View
       viewIndex = @_getViewIndex view
       for i in [0..1]
         fractions.push if i is viewIndex then FlexSplit.MAX else FlexSplit.MIN
-        @_setViewFraction i, fractions[i]
+        @_setViewFraction @views[i], fractions[i]
 
       @emit FlexSplit.EVENT_EXPANDED, fractions
+      view._windowDidResize?()
 
 
     view.on FlexSplit.EVENT_COLLAPSE, =>
@@ -56,10 +58,11 @@ module.exports = class FlexSplitResizer extends kd.View
       viewIndex = @_getViewIndex view
       for i in [0..1]
         fractions.push @_fractions[i] ? 50
-        @_setViewFraction i, fractions[i]
+        @_setViewFraction @views[i], fractions[i]
         @views[i].unsetClass 'expanded'
 
       @emit FlexSplit.EVENT_COLLAPSED, fractions
+      view._windowDidResize?()
 
 
   _updateViewSizes: ->
@@ -79,7 +82,7 @@ module.exports = class FlexSplitResizer extends kd.View
     for i in [0..1]
       change = -change  if i is 1
       @_fractions[i] = limited ((change + @sizes[i]) / @totalSize) * FlexSplit.MAX
-      @_setViewFraction i, @_fractions[i]  if set
+      @_setViewFraction @views[i], @_fractions[i]  if set
 
 
   drag: (event, delta) ->
@@ -88,9 +91,11 @@ module.exports = class FlexSplitResizer extends kd.View
 
   dragFinished: (event, dragState) ->
 
-    view.unsetClass 'ondrag'  for view in @views
     @unsetClass 'ondrag'
     @emit FlexSplit.EVENT_RESIZED, @_fractions
+    for view in @views
+      view.unsetClass 'ondrag'
+      view._windowDidResize?()
 
 
   dragStarted: (event, dragState) ->
@@ -104,12 +109,14 @@ module.exports = class FlexSplitResizer extends kd.View
     @_updateViewSizes()
 
 
-  setFractions: (fractions) ->
+  setFractions: (fractions, set = yes) ->
 
     @_fractions = [fractions[0], fractions[1]]
-    @_setViewFraction 0, fractions[0]
-    @_setViewFraction 1, fractions[1]
+    return  unless set
+    @_setViewFraction @views[0], fractions[0]
+    @_setViewFraction @views[1], fractions[1]
 
 
-  _setViewFraction: (viewIndex, fraction) ->
-    @views[viewIndex].setCss 'flex-basis', "#{fraction}%"
+  _setViewFraction: (view, fraction) ->
+    view.setCss 'flex-basis', "#{fraction}%"
+    view._windowDidResize?()
