@@ -28,7 +28,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
     stack                        : null
     showInSidebar                : yes
     bindWorkspacesTitleClick     : yes
-    activeLeavingSharedMachineId : null
 
 
   getDataBindings: ->
@@ -198,8 +197,8 @@ module.exports = class SidebarMachinesListItem extends React.Component
       sidebarListItem = ReactDOM.findDOMNode @refs.sidebarMachinesListItem
       clientRect      = sidebarListItem.getBoundingClientRect()
       coordinates     =
-        top           : clientRect.top - 15
-        left          : clientRect.width + clientRect.left + 15
+        top           : clientRect.top
+        left          : clientRect.width + clientRect.left
 
       @setState { coordinates: coordinates}
 
