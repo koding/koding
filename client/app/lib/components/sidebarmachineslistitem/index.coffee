@@ -33,6 +33,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
   getDataBindings: ->
     activeMachine : EnvironmentFlux.getters.activeMachine
+    activeLeavingMachine : EnvironmentFlux.getters.activeLeavingSharedMachineId
 
 
   constructor: (props) ->
@@ -168,6 +169,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
     return null  if @machine('type') is 'own' or @machine 'hasOldOwner'
     return null  if @state.activeMachine isnt @machine('_id')
     return null  unless @machine 'isApproved'
+    return null  unless @state.activeLeavingMachine
 
     <LeaveSharedMachineWidget
       coordinates={@state.coordinates}
