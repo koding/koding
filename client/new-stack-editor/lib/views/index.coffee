@@ -13,60 +13,73 @@ module.exports = class StackEditor extends kd.View
 
     super options, data
 
+    # Storage
+    @layoutStorage = new FlexSplitStorage
+      adapter: AppStorageAdapter
 
-  viewAppended: ->
-
-    layoutStorage = new FlexSplitStorage
-      adapter     : AppStorageAdapter
-
-    toolbar = new kd.View
+    # Toolbar
+    @toolbar = new kd.View
       cssClass: 'toolbar'
 
-    editor = new EditorView
+    # Status bar
+    @statusbar = new kd.View
+      cssClass: 'statusbar'
+
+    # Editor views
+    @editor = new EditorView
       cssClass: 'editor'
 
-    logs = new EditorView
+    @logs = new EditorView
       cssClass: 'logs'
       title: 'Logs'
 
-    leftColumn = new FlexSplit
-      name     : 'leftColumn'
-      views    : [editor, logs]
-      sizes    : [90, 10]
-      storage  : layoutStorage
-
-    variables = new EditorView
+    @variables = new EditorView
       cssClass: 'variables'
       title: 'Custom Variables'
 
-    readme = new EditorView
+    @readme = new EditorView
       cssClass: 'readme'
       title: 'Readme'
 
-    rightColumn = new FlexSplit
-      name     : 'rightColumn'
-      sizes    : [50, 50]
-      views    : [variables, readme]
-      storage  : layoutStorage
+    @emit 'ready'
 
-    contentView = new FlexSplit
-      cssClass : 'content'
-      name     : 'contentView'
-      views    : [leftColumn, rightColumn]
-      sizes    : [55, 45]
-      type     : FlexSplit.VERTICAL
-      storage  : layoutStorage
+
+  setData: (@data) ->
+
+
+
+
+  viewAppended: ->
+
+    # Layout
+    @addSubView new FlexSplit
+      cssClass            : 'mainview'
+      resizable           : no
+      views               : [
+        @toolbar          # Toolbar on top, fixed height
+        new FlexSplit
+          resizable       : no
+          views           : [
+            contentView   = new FlexSplit
+              name        : 'contentView'
+              cssClass    : 'content'
+              views       : [
+                new FlexSplit
+                  name    : 'leftColumn'
+                  views   : [@editor, @logs]
+                  sizes   : [90, 10]
+                  storage : @layoutStorage
+                new FlexSplit
+                  name    : 'rightColumn'
+                  sizes   : [50, 50]
+                  views   : [@variables, @readme]
+                  storage : @layoutStorage
+              ]
+              sizes       : [55, 45]
+              type        : FlexSplit.VERTICAL
+              storage     : @layoutStorage
+            @statusbar    # Statusbar on bottom, fixed height
+          ]
+      ]
 
     contentView.setClass 'safari-fix'  if bowser.safari
-
-    statusbar = new kd.View
-      cssClass: 'statusbar'
-
-    mainsplit   = new FlexSplit
-      views     : [contentView, statusbar]
-      resizable : no
-
-    @addSubView mainView = new FlexSplit
-      cssClass  : 'mainview'
-      views     : [toolbar, mainsplit]
-      resizable : no
