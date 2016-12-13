@@ -3,19 +3,21 @@ bowser = require 'bowser'
 BaseView = require './baseview'
 FlexSplit = require './flexsplit'
 FlexSplitStorage = require './flexsplit/storage'
-LocalStorageAdapter = require './localstorageadapter'
+AppStorageAdapter = require './appstorageadapter'
 
 
 module.exports = class StackEditor extends kd.View
+
 
   constructor: (options = {}, data) ->
 
     super options, data
 
+
   viewAppended: ->
 
     layoutStorage = new FlexSplitStorage
-      adapter     : LocalStorageAdapter
+      adapter     : AppStorageAdapter
 
     toolbar = new kd.View
       cssClass: 'toolbar'

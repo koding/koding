@@ -1,9 +1,7 @@
 kd           = require 'kd'
 AppStorage   = require './appstorage'
 
-module.exports =
-
-class AppStorageController extends kd.Controller
+module.exports = class AppStorageController extends kd.Controller
 
   constructor: ->
 
