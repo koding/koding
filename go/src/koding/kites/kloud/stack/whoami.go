@@ -1,7 +1,6 @@
 package stack
 
 import (
-	"errors"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 
@@ -24,13 +23,14 @@ type WhoamiResponse struct {
 
 // TestWhoami is a kite handler for a "team.whoami" kite method.
 func (k *Kloud) TeamWhoami(r *kite.Request) (interface{}, error) {
-	// TODO(rjeczalik): disable until:
-	//
-	//   https://github.com/koding/koding/pull/9870#discussion_r91266706
-	//
-	return nil, errors.New("no team information currently available")
+	opts := &modelhelper.LookupGroupOptions{
+		Username:    r.Username,
+		KiteID:      r.Client.ID,
+		ClientURL:   r.Client.URL,
+		Environment: r.Client.Environment,
+	}
 
-	group, err := modelhelper.GetGroupForKite(r.Client.ID)
+	group, err := modelhelper.LookupGroup(opts)
 	if err != nil {
 		return nil, models.ResError(err, "jGroup")
 	}

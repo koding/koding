@@ -1,13 +1,17 @@
 package modelhelper_test
 
 import (
+	"net/url"
 	"testing"
 	"time"
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/db/mongodb/modelhelper/modeltesthelper"
+	"koding/tools/utils"
 
+	"github.com/koding/kite/protocol"
+	uuid "github.com/satori/go.uuid"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -15,18 +19,21 @@ func createMachine(t *testing.T) *models.Machine {
 	m := &models.Machine{
 		ObjectId:    bson.NewObjectId(),
 		Uid:         bson.NewObjectId().Hex(),
-		QueryString: "",
-		IpAddress:   "",
-		Domain:      "",
-		Provider:    "koding",
-		Label:       "",
-		Slug:        "",
+		QueryString: (&protocol.Kite{ID: uuid.NewV4().String()}).String(),
+		IpAddress:   utils.RandomString(),
+		RegisterURL: (&url.URL{
+			Scheme: "http",
+			Host:   utils.RandomString() + ":56789",
+			Path:   "/kite",
+		}).String(),
+		Provider: "koding",
 		Users: []models.MachineUser{
 			// real owner
 			{
-				Id:    bson.NewObjectId(),
-				Sudo:  true,
-				Owner: true,
+				Id:       bson.NewObjectId(),
+				Sudo:     true,
+				Owner:    true,
+				Username: "rafal",
 			},
 			// secondary owner
 			{
@@ -58,10 +65,20 @@ func createMachine(t *testing.T) *models.Machine {
 
 	err := modelhelper.CreateMachine(m)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("createMachine()=%s", err)
 	}
 
 	return m
+}
+
+func createMachines(n int, t *testing.T) ([]*models.Machine, error) {
+	machines := make([]*models.Machine, n)
+
+	for i := range machines {
+		machines[i] = createMachine(t)
+	}
+
+	return machines, nil
 }
 
 func TestUnshareMachine(t *testing.T) {
