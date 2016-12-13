@@ -13,46 +13,48 @@ parent: /docs/home
 
 ## Step by step guide
 
-1. Click **STACKS**
+1. Click '+' sign to **Create a New Stack**
 
-    ![step001.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step001.png)
+    ![Create new stack][1]
 
-2. Click **New Stack** button
+2. Choose **Amazon Web Services** and click **Create Stack**
 
-    ![step002.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step002.png)
+    ![Choose AWS provider][2]
 
-3. Click **amazon web services** and click **Next**
+3. You will now see the default stack template for AWS. You can give your stack a name by clicking on the **Edit Name** on top beside your stack title. The _three tabs_ represent:
 
-    ![step004.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step004.png)
+    1.  **Stack template**: configuration file for your development environment
+    2.  **Custom variables**: define custom variables to use in your stack template, hidden from Team _members_
+    3.  **Readme**: This text will be shown in a message box when your team starts to build this stack. You can add instructions or notes for your team to read
+    4.  **Credentials**: add your AWS account credentials here
 
-4.  You can give your stack a name by clicking on the **Stack Name**. In this modal you will find _four tabs_:
+    ![Stack template][3]
 
-    1.  **Stack template**: configuration file for your VMs
-    2.  **Custom variables** to define custom variables to be used in your stack template
-    3.  **Readme** This text will be shown in a message box when your team uses this stack
-    4.  **Credentials** add your AWS credentials here
+    Review the **Stack Template** file to add/modify/remove any of your VM configurations
 
-5.  Review the **Stack Template** (see point 6.1) file to add/modify/remove any of your VM configurations
+    >You can add commands to run once your VM starts under the **user_data** section. For example you can choose to install services/packages once a VM starts. Commands under the **user_data** section will run as `root` when the VM boots.
 
-    ![step008.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step008.png)
+    >Click away from any of the tabs to return to your **Stack template editor**.
 
-    >We added commands to install services/packages once the machine starts. You can add any commands you want to run when the VM boots under the `user_data` section. These commands will run as `root`.
+4.  Edit your **Readme** section to greet your team and provide them with information or instructions
 
-6.  Edit your **Readme** (see point 4.3) file to greet your team and provide them with information about this particular stack
+    ![Read Me][4]
 
-    ![step009.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step009.png "step_readme.png")
+7.  Go to the **Credentials** tab and click **Add New Credentials**
 
-7.  Go to the **Credentials** tab and click **Create New**
-
-    ![step010.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step010.png "step7.png")
+    ![Credentials][5]
 
 8.  For this step you will need to have your Amazon AWS **Access Key ID** & **Secret Access Key**. You can generate and acquire yours from your AWS account.
 
-    > If you do not have an AWS account yet, please create one on Amazon AWS here [aws.amazon.com](http://aws.amazon.com), login and make sure you subscribe to EC2 service on AWS console, click **Services** (top left) **-> EC2**. 
-    > Then _follow first 5 steps_ at the bottom of this [AWS guide ](http://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html)to generate your keys.
+    > If you do not have an AWS account yet, please create one on Amazon AWS here [aws.amazon.com](http://aws.amazon.com).
+    >
+    > After you login:
+    > - Make sure you subscribe to EC2 service on AWS **Console**
+    > - Click **Services** _(top left)_ **-> EC2** 
+    > - To generate your Credentials keys _follow first **5 steps**_ at the bottom of this [AWS guide][6] .
 
     ## Add your AWS Credentials
-    > If you followed AWS recommended tip on creating an IAM user rather than using your AWS root user account to generate the crednetials, you need to make sure your new IAM user has enough privileges to create EC2's. Please follow our [Setup AWS IAM user](/docs/setup-aws-iam-user) guide to know which roles should be assigned for this user in order to use the credentials to build your stack successfully.
+    > If you followed AWS recommended tip on creating an IAM user rather than using your AWS root user account to generate the crednetials, you need to make sure your new IAM user has enough privileges to create EC2's. Please follow our [Setup AWS IAM user](/docs/setup-aws-iam-user) guide to know which roles should be assigned for this user in order to use the credentials and build your stack successfully.
 
     - **Title**: add a name to your key pairs, _the title is a name for your reference it can be any name you want make it something easy to remember your credentials with._ 
     - **Access Key ID**: your AWS access key id
@@ -112,3 +114,10 @@ resource:
 
 > **Tip**
 > See more options and information for creating an AWS instance here [AWS_INSTANCE](/docs/aws_instance).
+
+[1]: {{ site.url }}/assets/img/guides/create-new-stack.png
+[2]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-provider.png
+[3]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-create-stack.png
+[4]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-readme.png
+[5]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-credentials.png
+[6]: http://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html

@@ -169,8 +169,6 @@ Monitor your instances for performance and uptime without resorting to third-par
 
 Microsoft Azure is a growing collection of integrated cloud services—analytics, computing, database, mobile, networking, storage, and web—for moving faster, achieving more, and saving money.
 
-**Images**
-
 [1]: {{ site.url }}/docs/creating-an-aws-stack
 [2]: {{ site.url }}/docs/terraform/providers/aws/
 [3]: https://aws.amazon.com/
