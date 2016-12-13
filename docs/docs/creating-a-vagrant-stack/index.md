@@ -95,6 +95,14 @@ It is recommended that you choose the Vagrant stack if you have access to a phys
 
     ![Stack Building][16]
 
+14. Your stack was successfully built. Click **Start Coding** to start using your new VM
+
+    ![Stack built][17]
+
+    Congratulations, your new VM terminal is ready
+
+    ![VM ready][18]
+
 ## Advanced notes regarding Vagrant Stack template
 
 This is an example stack script with more&nbsp;configuration options that you can use with your Vagrant Stack
@@ -140,5 +148,6 @@ This is an example stack script with more&nbsp;configuration options that you ca
 [13]: {{ site.url }}/assets/img/guides/vagrant/vagrant-save-stack.png
 [14]: {{ site.url }}/assets/img/guides/vagrant/vagrant-build-stack-1.png
 [15]: {{ site.url }}/assets/img/guides/vagrant/vagrant-build-stack-2.png
-[16]: {{ site.url }}/assets/img/guides/vagrant/vagrant.png
-[17]: {{ site.url }}/assets/img/guides/vagrant/vagrant.png
+[16]: {{ site.url }}/assets/img/guides/vagrant/vagrant-stack-building.png
+[17]: {{ site.url }}/assets/img/guides/vagrant/vagrant-stack-built.png
+[18]: {{ site.url }}/assets/img/guides/vagrant/vagrant-vm-ready.png
