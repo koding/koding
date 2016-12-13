@@ -24,6 +24,7 @@
   m-sprite                  app, jcb
 .brand-maestro
   m-sprite                  app, maestro
+.brand-mastercard
 .brand-master-card
   m-sprite                  app, mastercard
 .brand-visa

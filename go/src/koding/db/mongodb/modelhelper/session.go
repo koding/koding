@@ -48,6 +48,35 @@ func GetSessionsByUsername(username string) ([]*models.Session, error) {
 	return sessions, nil
 }
 
+// Sessions is a helper type for a slice of sessions,
+// that allows for filtering, sorting etc.
+type Sessions []*models.Session
+
+func (s Sessions) LastAccessed() *models.Session {
+	if len(s) == 0 {
+		return nil
+	}
+
+	lastAccessed := s[0]
+
+	for _, session := range s[1:] {
+		if session.LastAccess.After(lastAccessed.LastAccess) {
+			lastAccessed = session
+		}
+	}
+
+	return lastAccessed
+}
+
+func GetMostRecentSession(username string) (*models.Session, error) {
+	sessions, err := GetSessionsByUsername(username)
+	if err != nil {
+		return nil, err
+	}
+
+	return Sessions(sessions).LastAccessed(), nil
+}
+
 func GetSessionFromToken(token string) (*models.Session, error) {
 	session := new(models.Session)
 

@@ -213,7 +213,7 @@ module.exports.create = (KONFIG, environment)->
   #{if inDevEnvironment then '' else 'pid /var/run/nginx.pid;'}
 
   events {
-    worker_connections  1024;
+    worker_connections 20000;
     multi_accept on;
     #{event_mechanism}
   }

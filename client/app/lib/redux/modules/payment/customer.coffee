@@ -67,7 +67,7 @@ freeCredit = (state) ->
   # negative account balance means user has credits.
   if state.customer?.account_balance < 0
   # the amount is in cents, we want dollars.
-  then ((state.customer.account_balance * -1) / 100).toFixed 2
+  then (state.customer.account_balance * -1) / 100
   # if the balance is greater than 0 that means 0
   # free credit.
   else 0
