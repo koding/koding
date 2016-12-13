@@ -40,15 +40,14 @@ parent: /docs/home
 
     ![Read Me][4]
 
-7.  Go to the **Credentials** tab and click **Add New Credentials**
+5.  Go to the **Credentials** tab and click **Add New Credentials**
 
     ![Credentials][5]
 
-8.  For this step you will need to have your Amazon AWS **Access Key ID** & **Secret Access Key**. You can generate and acquire yours from your AWS account.
+6.  For this step you will need to have your Amazon AWS **Access Key ID** & **Secret Access Key**. You can generate and acquire yours from your AWS account
 
-    > If you do not have an AWS account yet, please create one on Amazon AWS here [aws.amazon.com](http://aws.amazon.com).
+    > If you do not have an AWS account yet, please create one on Amazon AWS here [aws.amazon.com](http://aws.amazon.com). After you login:
     >
-    > After you login:
     > - Make sure you subscribe to EC2 service on AWS **Console**
     > - Click **Services** _(top left)_ **-> EC2** 
     > - To generate your Credentials keys _follow first **5 steps**_ at the bottom of this [AWS guide][6] .
@@ -59,31 +58,44 @@ parent: /docs/home
     - **Title**: add a name to your key pairs, _the title is a name for your reference it can be any name you want make it something easy to remember your credentials with._ 
     - **Access Key ID**: your AWS access key id
     - **Secret Access Key**: your AWS secret access key id
-    - **Region**: the physical location where you want your VMs to be created.
+    - **Region**: the data center location where you want your VMs to be created in
 
-    When you are done please click **Save**.
+    When you are done please click **Save This & Continue**.
 
-    ![step011.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step011.png)
+    ![Credentials details][7]
 
-9. Click **USE THIS & CONTINUE** to use your AWS keys, you should see your key highlighted with "**IN USE**" if all went well. You can also **show** and **delete** your AWS keys when you hover your mouse over your AWS key.
+7. Your AWS credentials will be **verified** and you will be directed back to the Stack Template editor. Also the red exclamation mark that used to appear beside your **Credentials** tab should disappear. Click **SAVE** to save your stack and test your stack template file, it should save successfully
 
-    ![step012_2.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step012_2.png "step8.png")
+    ![Save Stack][8]
 
-10. You will be directed to the Stack Template section. Click **SAVE** to save your stack and test your stack configuration file
+8. Click **Initialize** to initialize your stack
 
-    ![step013.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step013.png "step9_success.png")
+    > You can have multiple stacks within a team, click **Make Team Default** to make this stack your team's default stack.
 
-11. Click on **Build Stack** and your new Stack will start building..
+   ![Initialize Stack][9]
 
-    ![step014.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step014.png "step12_buildstackready.png")
+9. The build stack modal will appear, the *Instructions* tab will include the message you wrote in your **Read Me** tab. Click **Next**
+
+   ![Build Stack Instructions][10]
+
+10. Click on **Build Stack** to start building your Stack
+
+    > You can have multiple saved credentials to use within a team, the Credentials tab in your Build stack modal allows you to chose the one you want to use with this stack template.
+
+    ![Build Stack Credentials][11]
 
     Stack building..
 
-    ![step014_2.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step014_2.png)
+    ![Stack Building][12]
 
-12. Congratulations, your Stack was successfully built and you can now use your new VM
+11. Congratulations, your stack was successfully built, click **Start Coding** to start using your new VM
 
-    ![step015.png]({{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step015.png)
+    ![Stack built][13]
+
+    Your new VM terminal is ready :>
+
+    ![VM ready][14]
+
 
 ## Advanced notes for creating an AWS Stack
 
@@ -112,8 +124,7 @@ resource:
         df -h
 ```
 
-> **Tip**
-> See more options and information for creating an AWS instance here [AWS_INSTANCE](/docs/aws_instance).
+> See more options and information for creating an AWS instance here [AWS_INSTANCE][15].
 
 [1]: {{ site.url }}/assets/img/guides/create-new-stack.png
 [2]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-provider.png
@@ -121,3 +132,12 @@ resource:
 [4]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-readme.png
 [5]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-credentials.png
 [6]: http://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html
+[7]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-credentials-add-new.png
+[8]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-credentials-added.png
+[9]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-save-stack.png
+[10]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-build-stack-1.png
+[11]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-build-stack-2.png
+[12]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-stack-building.png
+[13]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-stack-built.png
+[14]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-vm-ready.png
+[15]: {{ site.url }}/docs/terraform/providers/aws/r/instance.html/
