@@ -134,7 +134,7 @@ func TestPresenceDailyFetchActiveAccounts(t *testing.T) {
 					c1, err := (&PresenceDaily{}).FetchActiveAccounts(query)
 					So(err, ShouldNotBeNil)
 					So(err, ShouldEqual, bongo.RecordNotFound)
-					So(c1, ShouldBeEmpty)
+					So(c1, ShouldBeNil)
 
 					Convey("Pagination limit should work properly", func() {
 						query := request.NewQuery().SetDefaults()
@@ -143,7 +143,7 @@ func TestPresenceDailyFetchActiveAccounts(t *testing.T) {
 						c1, err := (&PresenceDaily{}).FetchActiveAccounts(query)
 						So(err, ShouldBeNil)
 						So(c1, ShouldNotBeNil)
-						So(len(c1), ShouldEqual, 4)
+						So(len(c1.Accounts), ShouldEqual, 4)
 					})
 				})
 			})

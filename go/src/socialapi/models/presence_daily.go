@@ -36,6 +36,11 @@ type accountRes struct {
 	AccountId int64
 }
 
+type ActiveAccountResponse struct {
+	Accounts            []mongomodels.Account
+	DeletedAccountCount int
+}
+
 // CountDistinctByGroupName counts distinct account ids
 func (a *PresenceDaily) CountDistinctByGroupName(groupName string) (int, error) {
 	return a.countDistinctByGroupNameAndStatus(groupName, false)
@@ -65,13 +70,14 @@ func (a *PresenceDaily) ProcessByGroupName(groupName string) error {
 }
 
 // FetchActiveAccounts fetches active acounts that are not processed yet
-func (a *PresenceDaily) FetchActiveAccounts(query *request.Query) ([]mongomodels.Account, error) {
+func (a *PresenceDaily) FetchActiveAccounts(query *request.Query) (*ActiveAccountResponse, error) {
 	res := make([]accountRes, 0)
 	err := bongo.B.DB.
 		Table(a.BongoName()).
 		Model(&PresenceDaily{}).
 		Where("group_name = ? and is_processed = ?", query.GroupName, false).
-		Select("distinct account_id").
+		Order("created_at", true).
+		Select("distinct account_id, created_at").
 		Limit(query.Limit).
 		Offset(query.Skip).
 		Scan(&res).Error
@@ -85,5 +91,13 @@ func (a *PresenceDaily) FetchActiveAccounts(query *request.Query) ([]mongomodels
 		ids[i] = strconv.FormatInt(id.AccountId, 10)
 	}
 
-	return modelhelper.GetAccountBySocialApiIds(ids...)
+	acc, err := modelhelper.GetAccountBySocialApiIds(ids...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ActiveAccountResponse{
+		Accounts:            acc,
+		DeletedAccountCount: len(ids) - len(acc),
+	}, nil
 }
