@@ -45,7 +45,7 @@ func GetAccountBySocialApiId(socialApiId int64) (*models.Account, error) {
 }
 
 // GetAccountBySocialApiIds fetches the accounts by their socialApiIds
-func GetAccountBySocialApiIds(socialApiIds ...int64) ([]models.Account, error) {
+func GetAccountBySocialApiIds(socialApiIds ...string) ([]models.Account, error) {
 	accounts := make([]models.Account, 0)
 	query := func(c *mgo.Collection) error {
 		return c.Find(bson.M{"socialApiId": bson.M{"$in": socialApiIds}}).All(&accounts)
