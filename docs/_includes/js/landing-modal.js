@@ -43,8 +43,8 @@
                 options.onDestroy();
               }
 
-              overlay.remove();
-              modal.remove();
+              $(overlay).remove();
+              $(modal).remove();
             }, 500);
 
           })
