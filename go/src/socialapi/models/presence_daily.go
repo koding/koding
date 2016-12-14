@@ -1,6 +1,13 @@
 package models
 
-import "time"
+import (
+	mongomodels "koding/db/models"
+	"koding/db/mongodb/modelhelper"
+	"socialapi/request"
+	"time"
+
+	"github.com/koding/bongo"
+)
 
 // PresenceDaily holds presence info on day granuality
 type PresenceDaily struct {
@@ -54,4 +61,28 @@ func (a *PresenceDaily) ProcessByGroupName(groupName string) error {
 	// i have tried to use it ORM way but gorm has bugs that does not update multiple values at once
 	sql := "UPDATE " + a.BongoName() + " SET is_processed=true WHERE group_name = ? and is_processed = false"
 	return bongo.B.DB.Exec(sql, groupName).Error
+}
+
+// FetchActiveAccounts fetches active acounts that are not processed yet
+func (a *PresenceDaily) FetchActiveAccounts(query *request.Query) ([]mongomodels.Account, error) {
+	res := make([]accountRes, 0)
+	err := bongo.B.DB.
+		Table(a.BongoName()).
+		Model(&PresenceDaily{}).
+		Where("group_name = ? and is_processed = ?", query.GroupName, false).
+		Select("distinct account_id").
+		Limit(query.Limit).
+		Offset(query.Skip).
+		Scan(res).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	ids := make([]int64, 0, len(res))
+	for i, id := range res {
+		ids[i] = id.AccountId
+	}
+
+	return modelhelper.GetAccountBySocialApiIds(ids...)
 }
