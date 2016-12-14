@@ -1,0 +1,55 @@
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+main.Homepage-Hero {
+  display: block;
+}
+.Homepage-Hero--video {
+  display: block;
+}
+.Homepage-Hero--video.out {
+  display: none;
+}
+.Homepage--container {
+  overflow: auto;
+}
+.Homepage-ContentWithVideo--content {
+  float: left;
+  width: 56%;
+}
+.Homepage-ContentWithVideo--visual {
+  float: right;
+}
+.Homepage-Column {
+  display: inline-block;
+}
+
+.Homepage-half--container {
+  overflow: auto;
+  min-height: 700px;
+}
+.Homepage-half--container:first-child {
+  float: left;
+}
+.Homepage-half--container:last-child {
+  float: right;
+}
+.Homepage-video-column {
+  display: inline-block;
+  vertical-align: top;
+  margin: 90px 10px;
+}
+.Homepage-References .heads figure {
+  display: inline-block;
+}
+.Homepage-use-cases {
+  background: #62476B;
+}
+.Homepage-use-cases .cases>div {
+  display: inline-block;
+  vertical-align: top;
+}
+.Homepage-Footer .Footer--col {
+  display: inline-block;
+  vertical-align: top;
+  width: 16%;
+}
+}
