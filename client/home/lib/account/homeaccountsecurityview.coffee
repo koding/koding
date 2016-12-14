@@ -51,11 +51,9 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
         { key, qrcode } = authInfo
         @_activeKey     = key
 
-        instructionsView = @getInstructionsView()
-        instructionsView.addSubView
         @addSubView @getFormView()
         @enableForm.addSubView @getQrCodeView qrcode
-        @addSubView instructionsView
+        @addSubView @getInstructionsView()
 
 
   getEnabledView: ->
@@ -187,8 +185,6 @@ module.exports = class HomeAccountSecurityView extends kd.CustomHTMLView
           if authInfo
             @_activeKey = authInfo.key
             @imageView.setAttribute 'src', authInfo.qrcode
-
-          kd.utils.defer button.bound 'hideLoader'
 
 
   getLoaderView: ->

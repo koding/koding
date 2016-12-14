@@ -1493,13 +1493,13 @@ module.exports = class ComputeController extends KDController
         buttons :
           cancel      :
             title     : 'Cancel'
-            cssClass  : 'kdbutton solid medium'
+            cssClass  : 'solid medium'
             callback  : ->
               modal.destroy()
               callback { status : no }
           ok          :
             title     : 'Yes'
-            cssClass  : 'kdbutton solid medium'
+            cssClass  : 'solid medium'
             callback  : -> callback { status : yes, modal }
 
       modal.setAttribute 'testpath', 'RemoveStackModal'

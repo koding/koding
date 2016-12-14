@@ -25,13 +25,14 @@ module.exports = class KodingListView extends kd.ListView
       content : "<h2>#{description}</h2>"
       buttons :
         cancel      :
+          cssClass  : 'solid medium'
           title     : 'Cancel'
           callback  : ->
             modal.destroy()
             callback { status : no }
         ok          :
           title     : 'Yes'
-          cssClass  : 'solid red medium'
+          cssClass  : 'solid medium'
           callback  : ->
             callback { status : yes, modal }
 
