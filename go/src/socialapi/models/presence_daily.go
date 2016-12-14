@@ -99,7 +99,7 @@ func (a *PresenceDaily) FetchActiveAccounts(query *request.Query) (*ActiveAccoun
 	}
 
 	return &ActiveAccountResponse{
-		Accounts:            acc,
-		DeletedAccountCount: len(ids) - len(acc),
+		Accounts:     acc,
+		DeletedCount: len(ids) - len(acc),
 	}, nil
 }
