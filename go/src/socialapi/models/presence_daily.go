@@ -36,9 +36,11 @@ type accountRes struct {
 	AccountId int64
 }
 
+// ActiveAccountResponse holds the active accounts and deleted account count
+// if account in postgres doesn't exist in mongo, then that account will be counted as deleted account
 type ActiveAccountResponse struct {
-	Accounts            []mongomodels.Account
-	DeletedAccountCount int
+	Accounts     []mongomodels.Account `json:"accounts"`
+	DeletedCount int                   `json:"deletedCount"`
 }
 
 // CountDistinctByGroupName counts distinct account ids
