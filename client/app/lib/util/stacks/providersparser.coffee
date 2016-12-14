@@ -17,6 +17,9 @@ module.exports = providersParser = (content) ->
       provider in supportedProviders and
       provider not in ['koding', 'custom']
 
+  if not providers.length or (providers.length is 1 and providers[0] is 'userInput')
+    for provider in supportedProviders
+      providers.push provider  if ///#{provider}\_///g.test content
 
   # Return list of providers
   return providers
