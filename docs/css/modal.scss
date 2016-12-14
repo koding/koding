@@ -31,7 +31,7 @@ $shakespeare: #56A2D3;
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 2;
+  z-index: 10;
 }
 
 .Modal {
@@ -42,7 +42,7 @@ $shakespeare: #56A2D3;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 2;
+  z-index: 11;
 
   .u-icon.u-modalClose {
     position: absolute;
