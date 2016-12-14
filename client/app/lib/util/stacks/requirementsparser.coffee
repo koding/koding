@@ -6,8 +6,9 @@ module.exports = requirementsParser = (content) ->
     user       : ['username', 'email'] # JUser
     account    : ['profile']           # JAccount
     group      : ['title', 'slug']     # JGroup
-    stack      : ['id']                # JComputeStack
-    template   : ['id']                # JStackTemplate
+  # Following injected by Kloud ~ GG
+  # stack      : ['id']                # JComputeStack
+  # template   : ['id']                # JStackTemplate
 
   # Custom variables in Stack Templates
   #
