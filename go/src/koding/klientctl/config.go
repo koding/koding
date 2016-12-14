@@ -7,9 +7,11 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"text/tabwriter"
 	"time"
 
 	konfig "koding/kites/config"
+	"koding/kites/config/configstore"
 	"koding/kites/kloud/utils/object"
 	"koding/klient/storage"
 	"koding/klientctl/config"
@@ -119,6 +121,51 @@ func ConfigUnset(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	return 0, nil
 }
 
+func ConfigList(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	konfigs := configstore.List()
+
+	if c.Bool("json") {
+		p, err := json.MarshalIndent(konfigs, "", "\t")
+		if err != nil {
+			return 1, err
+		}
+
+		fmt.Printf("%s\n", p)
+
+		return 0, nil
+	}
+
+	printKonfigs(konfigs.Slice())
+
+	return 0, nil
+}
+
+func ConfigUse(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	if len(c.Args()) != 1 {
+		cli.ShowCommandHelp(c, "use")
+		return 1, nil
+	}
+
+	// TODO(rjeczalik): add support for initializing configuration via
+	// fetching it from kloud url passed as argument
+
+	k, ok := configstore.List()[c.Args().Get(0)]
+	if !ok {
+		fmt.Fprintf(os.Stderr, "Configuration %q was not found. Please use \"kd config list\""+
+			" to list available configurations.\n", c.Args().Get(0))
+		return 1, nil
+	}
+
+	if err := configstore.Use(k); err != nil {
+		fmt.Fprintln(os.Stderr, "Error switching configuration:", err)
+		return 1, err
+	}
+
+	fmt.Printf("Switched to %s.\n", k.Endpoints.Koding.Public)
+
+	return 0, nil
+}
+
 func setFlatKeyValue(m map[string]interface{}, key, value string) error {
 	keys := strings.Split(key, ".")
 	it := m
@@ -146,6 +193,7 @@ func setFlatKeyValue(m map[string]interface{}, key, value string) error {
 	return nil
 }
 
+// TODO(rjeczalik): move to kites/config/configstore
 func updateKonfigCache(key, value string) error {
 	db := konfig.NewCache(konfig.KonfigCache)
 	defer db.Close()
@@ -160,7 +208,7 @@ func updateKonfigCache(key, value string) error {
 		return fmt.Errorf("failed to update %s=%s: %s", key, value, err)
 	}
 
-	if err := db.SetValue("konfig", cfg); err != nil {
+	if err := db.SetValue("konfig", &cfg); err != nil {
 		return fmt.Errorf("failed to update %s=%s: %s", key, value, err)
 	}
 
@@ -192,4 +240,15 @@ func setKonfig(cfg *konfig.Konfig, key, value string) error {
 	}
 
 	return json.Unmarshal(p, cfg)
+}
+
+func printKonfigs(konfigs []*konfig.Konfig) {
+	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
+	defer w.Flush()
+
+	fmt.Fprintln(w, "ID\tKODING URL")
+
+	for _, konfig := range konfigs {
+		fmt.Fprintf(w, "%s\t%s\n", konfig.ID(), konfig.Endpoints.Koding.Public)
+	}
 }
