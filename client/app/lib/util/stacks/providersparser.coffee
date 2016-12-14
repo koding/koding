@@ -10,15 +10,12 @@ module.exports = providersParser = (content) ->
     providers[match[1]] = null
     match = regex.exec content
 
-  knownProviders = globals.config.providers
+  supportedProviders = globals.config.providers._getSupportedProviders()
   providers = (Object.keys providers)
     .filter (provider) ->
-      provider isnt 'koding'
-    .map (provider) ->
-      (Object.keys knownProviders).forEach (_provider) ->
-        if knownProviders[_provider].slug is provider
-          provider = _provider
-      provider
+      provider is 'userInput' or
+      provider in supportedProviders and
+      provider not in ['koding', 'custom']
 
 
   # Return list of providers
