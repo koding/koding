@@ -50,10 +50,9 @@ module.exports = class StackEditorView extends kd.View
     @stackTemplate = stackTemplate
 
     if stackTemplate
-      unless selectedProvider = stackTemplate.selectedProvider
-        for selectedProvider in stackTemplate.config.requiredProviders when selectedProvider isnt 'koding'
-          break
-      selectedProvider ?= (Object.keys stackTemplate.credentials ? { aws: yes }).first
+      sp = stackTemplate.config.requiredProviders?.filter (provider) ->
+        provider not in ['koding', 'userInput', 'custom']
+      selectedProvider = sp?.first ? (Object.keys stackTemplate.credentials ? { aws: yes }).first
 
     options.selectedProvider = selectedProvider ?= 'aws'
 
@@ -864,9 +863,6 @@ module.exports = class StackEditorView extends kd.View
     @outputView.add 'Parsing template for credential requirements...'
 
     requiredProviders = providersParser templateContent
-
-    if selectedProvider is 'vagrant'
-      requiredProviders.push 'vagrant'
 
     @outputView
       .add 'Following credentials are required:'
