@@ -1,3 +1,4 @@
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
 main.Homepage-Hero {
   display: block;
 }
@@ -50,4 +51,5 @@ main.Homepage-Hero {
   display: inline-block;
   vertical-align: top;
   width: 16%;
+}
 }
