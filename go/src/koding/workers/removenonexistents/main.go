@@ -24,6 +24,9 @@ var (
 	flagDry     = flag.Bool("dry", false, "dry run")
 	flagColls   = flag.String("colls", "jUsers,jAccounts,jWorkspaces,jNames,jComputeStacks,jCombinedAppStorages,relationships", "collections to clean up")
 
+	deletedGroupBySlug  = cache.NewLRU(10000)
+	existingGroupBySlug = cache.NewLRU(10000)
+
 	deletedAccountByID    = cache.NewLRU(10000)
 	existingAccountByID   = cache.NewLRU(10000)
 	existingAccountByNick = cache.NewLRU(10000)
@@ -69,6 +72,18 @@ func main() {
 			Func:     deleteAccount,
 			Filter:   filter(),
 			Res:      &models.Account{},
+		},
+		{ // delete all groups that does not have any members JAccount
+			CollName: "jGroups",
+			Func:     deleteGroups,
+			Filter:   filter(),
+			Res:      &models.Group{},
+		},
+		{ // delete koding provided jMachines
+			CollName: "jMachines",
+			Func:     deleteMachines,
+			Filter:   filter(),
+			Res:      &models.Machine{},
 		},
 		{ // delete JWorkspaces that does not have JMachine.
 			CollName: "jWorkspaces",
@@ -165,16 +180,16 @@ func deleteAccount(res interface{}) error {
 func deleteWorkspaces(res interface{}) error {
 	ws := res.(*models.Workspace)
 
-	_, err := helper.GetWorkspacesForMachine(&models.Machine{Uid: ws.MachineUID})
+	_, err := helper.GetMachineByUid(ws.MachineUID)
 	if err == mgo.ErrNotFound {
-		fmt.Printf("deleting WS with UID (corresponding machine does not exist) %q\n", ws.MachineUID)
+		fmt.Printf("deleting WS with UID (corresponding machine does not exist) %q\n", ws.OriginId.Hex())
 		if !*flagDry {
 			return helper.RemoveWorkspace(ws.ObjectId)
 		}
 	}
 
-	if !getAccountByID(ws.Owner) {
-		fmt.Printf("deleting WS with owner %q (corresponding acc does not exist)\n", ws.Owner)
+	if !getAccountByID(ws.OriginId.Hex()) {
+		fmt.Printf("deleting WS with owner (corresponding acc does not exist) %q\n", ws.OriginId.Hex())
 		if !*flagDry {
 			return helper.RemoveWorkspace(ws.ObjectId)
 		}
@@ -213,13 +228,57 @@ func deleteNames(res interface{}) error {
 func deleteComputeStacks(res interface{}) error {
 	cs := res.(*models.ComputeStack)
 
-	if getAccountByID(cs.OriginId.Hex()) && cs.Group != "koding" {
+	if getAccountByID(cs.OriginId.Hex()) && getGroupBySlug(cs.Group) {
 		return nil
 	}
 
 	fmt.Printf("deleting jComputeStack %q\n", cs.Id.Hex())
 	if !*flagDry {
 		return helper.DeleteComputeStack(cs.Id.Hex())
+	}
+
+	return nil
+}
+
+func deleteGroups(res interface{}) error {
+	g := res.(*models.Group)
+	if isIn(g.Slug, "koding", "guests", "team") {
+		return nil
+	}
+
+	admins, err := helper.FetchAdminAccounts(g.Slug)
+	// if we have any admin, no need to delete
+	if len(admins) > 0 {
+		existingGroupBySlug.Set(g.Slug, struct{}{})
+		return nil
+	}
+
+	// if we have error other than not found, it is better not to delete
+	if err != mgo.ErrNotFound {
+		return nil
+	}
+
+	fmt.Printf("deleting jGroup %q\n", g.Slug)
+	if !*flagDry {
+		return helper.RemoveGroup(g.Id)
+	}
+
+	return nil
+}
+
+func deleteMachines(res interface{}) error {
+	m := res.(*models.Machine)
+	if m.Provider != "koding" {
+		return nil
+	}
+
+	if len(m.Groups) > 1 {
+		return nil
+	}
+
+	fmt.Printf("deleting jMachine %q\n", m.ObjectId.Hex())
+	if !*flagDry {
+		return helper.DeleteMachine(m.ObjectId)
 	}
 
 	return nil
@@ -243,20 +302,29 @@ func deleteRels(res interface{}) error {
 	r := res.(*models.Relationship)
 
 	var data interface{}
-	targetCollectionName := helper.GetCollectionName(r.TargetName)
-	if err := helper.Mongo.One(targetCollectionName, r.TargetId.Hex(), &data); err != nil {
-		fmt.Printf("deleted because of target: id %q from %q name %q\n", r.TargetId.Hex(), targetCollectionName, r.TargetName)
-		if !*flagDry {
-			return helper.DeleteRelationship(r.Id)
+
+	if r.TargetId.Valid() {
+		targetCollectionName := helper.GetCollectionName(r.TargetName)
+		if err := helper.Mongo.One(targetCollectionName, r.TargetId.Hex(), &data); err != nil {
+			fmt.Printf("deleted because of target: id %q from %q name %q\n", r.TargetId.Hex(), targetCollectionName, r.TargetName)
+			if !*flagDry {
+				return helper.DeleteRelationship(r.Id)
+			}
 		}
+	} else {
+		fmt.Printf("could not delete rel because target id is not valid: %q \n", r)
 	}
 
-	sourceCollectionName := helper.GetCollectionName(r.SourceName)
-	if err := helper.Mongo.One(sourceCollectionName, r.SourceId.Hex(), &data); err != nil {
-		fmt.Printf("deleting because of source: id %q from %q name %q\n", r.SourceId.Hex(), sourceCollectionName, r.SourceName)
-		if !*flagDry {
-			return helper.DeleteRelationship(r.Id)
+	if r.SourceId.Valid() {
+		sourceCollectionName := helper.GetCollectionName(r.SourceName)
+		if err := helper.Mongo.One(sourceCollectionName, r.SourceId.Hex(), &data); err != nil {
+			fmt.Printf("deleting because of source: id %q from %q name %q\n", r.SourceId.Hex(), sourceCollectionName, r.SourceName)
+			if !*flagDry {
+				return helper.DeleteRelationship(r.Id)
+			}
 		}
+	} else {
+		fmt.Printf("could not delete rel because source id is not valid: %q \n", r)
 	}
 
 	return nil
@@ -358,6 +426,36 @@ func getAccountByID(id string) bool {
 
 	existingAccountByID.Set(id, struct{}{})
 	existingAccountByNick.Set(acc.Profile.Nickname, id)
+
+	return true
+}
+
+func getGroupBySlug(slug string) bool {
+	if isIn(slug, "koding", "guests", "team") {
+		return true
+	}
+
+	if _, err := existingGroupBySlug.Get(slug); err == nil {
+		return true
+	}
+
+	if _, err := deletedGroupBySlug.Get(slug); err == nil {
+		return false
+	}
+
+	_, err := helper.GetGroup(slug)
+	if err == mgo.ErrNotFound {
+		deletedGroupBySlug.Set(slug, struct{}{})
+		return false
+	}
+
+	// treat them as existing on random errors
+	if err != nil {
+		fmt.Printf("err while getting group by slug %q, %s\n", slug, err.Error())
+		return true
+	}
+
+	existingGroupBySlug.Set(slug, struct{}{})
 
 	return true
 }
