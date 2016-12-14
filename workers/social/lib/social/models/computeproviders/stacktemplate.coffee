@@ -435,7 +435,15 @@ module.exports = class JStackTemplate extends Module
 
             data['meta.modifiedAt'] = new Date
 
-            next()
+            originalId = data.config?.clonedFrom
+            return next()  unless originalId
+
+            # update clonedSum information in the template, if it is exists
+            JStackTemplate.one$ client, { _id: originalId }, (err, template) ->
+              if template and not err
+                if template.template.sum is data.template.sum
+                  data.config.clonedSum = template.template.sum
+              next()
         (next) =>
           query = { $set: data }
 

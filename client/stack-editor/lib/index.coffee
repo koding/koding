@@ -66,9 +66,9 @@ module.exports = class StackEditorAppController extends AppController
           if originalTemplate
             editor.addClonedFrom originalTemplate
             originalTemplate.on 'update', ->
-              if stackTemplate.template.sum isnt originalTemplate.template.sum
+              if stackTemplate.config.clonedSum isnt originalTemplate.template.sum
                 return editor.addCloneUpdateView originalTemplate
-            if stackTemplate.template.sum isnt originalTemplate.template.sum
+            if stackTemplate.config.clonedSum isnt originalTemplate.template.sum
               editor.addCloneUpdateView originalTemplate
 
     else
