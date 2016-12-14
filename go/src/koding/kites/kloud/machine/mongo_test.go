@@ -25,6 +25,15 @@ var (
 	blasterStack = bson.NewObjectId()
 )
 
+// Machine IDs.
+var (
+	boberAws0   = bson.NewObjectId()
+	boberAws1   = bson.NewObjectId()
+	johnGoogle0 = bson.NewObjectId()
+	blasterAws0 = bson.NewObjectId()
+	allKoding0  = bson.NewObjectId()
+)
+
 func prepareMongoMachines() error {
 	userIDs := map[string]bson.ObjectId{}
 	for _, u := range []string{bober, john, blaster} {
@@ -37,7 +46,7 @@ func prepareMongoMachines() error {
 
 	machines := []*models.Machine{
 		&models.Machine{
-			ObjectId:  bson.NewObjectId(),
+			ObjectId:  boberAws0,
 			IpAddress: "127.0.0.1",
 			Provider:  "aws",
 			Label:     "bober-aws-0",
@@ -58,7 +67,7 @@ func prepareMongoMachines() error {
 			},
 		},
 		&models.Machine{
-			ObjectId: bson.NewObjectId(),
+			ObjectId: boberAws1,
 			Label:    "bober-aws-1",
 			Users: []models.MachineUser{
 				{
@@ -83,7 +92,7 @@ func prepareMongoMachines() error {
 			},
 		},
 		&models.Machine{
-			ObjectId: bson.NewObjectId(),
+			ObjectId: johnGoogle0,
 			Label:    "john-google-0",
 			Users: []models.MachineUser{
 				{
@@ -107,7 +116,7 @@ func prepareMongoMachines() error {
 			},
 		},
 		&models.Machine{
-			ObjectId: bson.NewObjectId(),
+			ObjectId: blasterAws0,
 			Label:    "blaster-aws-0",
 			Users: []models.MachineUser{
 				{
@@ -122,7 +131,7 @@ func prepareMongoMachines() error {
 			},
 		},
 		&models.Machine{
-			ObjectId: bson.NewObjectId(),
+			ObjectId: allKoding0,
 			Provider: modelhelper.MachineProviderKoding,
 			Users: []models.MachineUser{
 				{
@@ -192,6 +201,7 @@ func TestMongoDatabase(t *testing.T) {
 			IsValid: true,
 			Machines: []*Machine{
 				&Machine{
+					ID:       boberAws0.Hex(),
 					Team:     "orange",
 					Stack:    "boberStack",
 					Provider: "aws",
@@ -210,6 +220,7 @@ func TestMongoDatabase(t *testing.T) {
 					},
 				},
 				&Machine{
+					ID:    boberAws1.Hex(),
 					Team:  "orange",
 					Stack: "boberStack",
 					Label: "bober-aws-1",
@@ -222,6 +233,7 @@ func TestMongoDatabase(t *testing.T) {
 					},
 				},
 				&Machine{
+					ID:    johnGoogle0.Hex(),
 					Team:  "orange",
 					Stack: "johnStack",
 					Label: "john-google-0",
@@ -249,6 +261,7 @@ func TestMongoDatabase(t *testing.T) {
 			IsValid: true,
 			Machines: []*Machine{
 				&Machine{
+					ID:    boberAws1.Hex(),
 					Team:  "orange",
 					Stack: "boberStack",
 					Label: "bober-aws-1",
@@ -265,6 +278,7 @@ func TestMongoDatabase(t *testing.T) {
 					},
 				},
 				&Machine{
+					ID:    johnGoogle0.Hex(),
 					Team:  "orange",
 					Stack: "johnStack",
 					Label: "john-google-0",
@@ -288,6 +302,7 @@ func TestMongoDatabase(t *testing.T) {
 			IsValid: true,
 			Machines: []*Machine{
 				&Machine{
+					ID:    boberAws1.Hex(),
 					Team:  "orange",
 					Stack: "boberStack",
 					Label: "bober-aws-1",
@@ -304,6 +319,7 @@ func TestMongoDatabase(t *testing.T) {
 					},
 				},
 				&Machine{
+					ID:    blasterAws0.Hex(),
 					Team:  "orange",
 					Stack: "blasterStack",
 					Label: "blaster-aws-0",
