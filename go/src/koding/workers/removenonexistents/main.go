@@ -228,7 +228,7 @@ func deleteNames(res interface{}) error {
 func deleteComputeStacks(res interface{}) error {
 	cs := res.(*models.ComputeStack)
 
-	if getAccountByID(cs.OriginId.Hex()) && getGroupBySlug(cs.Group) {
+	if cs.Group != "koding" && getAccountByID(cs.OriginId.Hex()) && getGroupBySlug(cs.Group) {
 		return nil
 	}
 
