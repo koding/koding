@@ -182,14 +182,14 @@ func deleteWorkspaces(res interface{}) error {
 
 	_, err := helper.GetMachineByUid(ws.MachineUID)
 	if err == mgo.ErrNotFound {
-		fmt.Printf("deleting WS with UID (corresponding machine does not exist) %q\n", ws.OriginId.Hex())
+		fmt.Printf("deleting WS with UID (corresponding machine does not exist) %q\n", ws.ObjectId.Hex())
 		if !*flagDry {
 			return helper.RemoveWorkspace(ws.ObjectId)
 		}
 	}
 
 	if !getAccountByID(ws.OriginId.Hex()) {
-		fmt.Printf("deleting WS with owner (corresponding acc does not exist) %q\n", ws.OriginId.Hex())
+		fmt.Printf("deleting WS with owner (corresponding acc does not exist) %q\n", ws.ObjectId.Hex())
 		if !*flagDry {
 			return helper.RemoveWorkspace(ws.ObjectId)
 		}
@@ -451,7 +451,7 @@ func getGroupBySlug(slug string) bool {
 
 	// treat them as existing on random errors
 	if err != nil {
-		fmt.Printf("err while getting group by slug %q, %s\n", slug, err.Error())
+		fmt.Printf("err while getting group by slug %q, %s\n", slug, err)
 		return true
 	}
 
