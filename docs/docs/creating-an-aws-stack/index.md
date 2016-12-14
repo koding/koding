@@ -83,7 +83,7 @@ parent: /docs/home
 
 10. Click on **Build Stack** to start building your Stack
 
-    > You can have multiple saved credentials to use within a team, the Credentials tab in your Build stack modal allows you to chose the one you want to use with this stack template.
+    > You can have multiple saved credentials to use within a team, the Credentials tab in your Build stack modal allows you to choose the one you want to use with this stack template.
 
     ![Build Stack Credentials][11]
 
