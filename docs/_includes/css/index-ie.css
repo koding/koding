@@ -1,4 +1,3 @@
-@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
 main.Homepage-Hero {
   display: block;
 }
@@ -22,6 +21,9 @@ main.Homepage-Hero {
   display: inline-block;
 }
 
+.Homepage-halves {
+  overflow: auto;
+}
 .Homepage-half--container {
   overflow: auto;
   min-height: 700px;
@@ -52,4 +54,48 @@ main.Homepage-Hero {
   vertical-align: top;
   width: 16%;
 }
+
+.Homepage-Header a {
+  display: inline-block;
+  padding-top: 18px;
+  padding-bottom: 18px;
+  vertical-align: top;
+}
+
+.Homepage-Header a.logo {
+  display: inline;
+  vertical-align: bottom;
+}
+
+.FeatureServices-cols > * {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.FeatureContent-Cols>div {
+  display: inline-block;
+  width: 30%;
+  vertical-align: top;
+}
+
+.Homepage-LogoBar--logos {
+  text-align: center;
+}
+
+.Feature3Cols>div {
+  width: 29%;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.Feature3Cols>div p {
+  min-height: 81px;
+}
+
+.Homepage-Footer .Footer--col.large form {
+  width: 330px;
+}
+
+.Homepage-Footer .Footer--col.large form > input, .Homepage-Footer .Footer--col.large form > button {
+  display: inline-block;
 }
