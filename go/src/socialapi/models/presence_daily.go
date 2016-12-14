@@ -4,6 +4,7 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/request"
+	"strconv"
 	"time"
 
 	"github.com/koding/bongo"
@@ -73,15 +74,15 @@ func (a *PresenceDaily) FetchActiveAccounts(query *request.Query) ([]mongomodels
 		Select("distinct account_id").
 		Limit(query.Limit).
 		Offset(query.Skip).
-		Scan(res).Error
+		Scan(&res).Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	ids := make([]int64, 0, len(res))
+	ids := make([]string, len(res))
 	for i, id := range res {
-		ids[i] = id.AccountId
+		ids[i] = strconv.FormatInt(id.AccountId, 10)
 	}
 
 	return modelhelper.GetAccountBySocialApiIds(ids...)
