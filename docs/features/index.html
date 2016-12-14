@@ -11,7 +11,7 @@ permalink: /features
 
 <style>{% include css/about-hero.css %}</style>
 <div class="aboutus-hero features-hero">
-  <div class="aboutus-gradient"  style="background: linear-gradient(to bottom,  #F2778A 0%, #F8BBC4 100%);">
+  <div class="aboutus-gradient"  style="background-color: #F2778A; background:linear-gradient(to bottom,  #F2778A 0%, #F8BBC4 100%);">
     <h1>Flawlessly configure dev environments in one click</h1>
     <p>No matter how complex your project is, Koding for teams makes it easy to share your entire development stack with anyone, anywhere.</p>
   </div>
@@ -61,13 +61,15 @@ permalink: /features
    title3="No sliced-up hosts  means no restrictions"
    column3="We don’t slice up hosting resources like LXC or Docker, so your environment will never be compromised." %}
 
+<link rel="stylesheet" href="https://www.koding.com/css/logobar.css">
 {% include home-logobar.html
-   logo1_src="/assets/img/landing/company-logos/logo_aws.svg"
-   logo2_src="/assets/img/landing/company-logos/logo_openstack.svg"
-   logo3_src="/assets/img/landing/company-logos/logo_docker.svg"
-   logo4_src="/assets/img/landing/company-logos/logo_digitalocean.svg"
-   logo5_src="/assets/img/landing/company-logos/logo_github.svg"
-   logo6_src="/assets/img/landing/company-logos/logo_gitlab.svg"
+   path="/assets/img/landing/company-logos/"
+   logos="Amazon AWS--logo_aws.svg--140-53||
+          Openstack--logo_openstack.svg--155-28||
+          Docker--logo_docker.svg--180-43||
+          Digital Ocean--logo_digitalocean.svg--100-75||
+          GitHub--logo_github.svg--140-53||
+          GitLab--logo_gitlab.svg--140-53"
    title="Seamless support for <strong>your favorite cloud providers</strong>"
    cssClass="features" %}
 
@@ -187,3 +189,4 @@ permalink: /features
 
 <!-- FOOTER -->
 {% include footer.html %}
+<style>{% include css/index-ie.css %}</style>
