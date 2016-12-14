@@ -301,30 +301,35 @@ func deleteCombinedAppStorages(res interface{}) error {
 func deleteRels(res interface{}) error {
 	r := res.(*models.Relationship)
 
-	var data interface{}
-
-	if r.TargetId.Valid() {
-		targetCollectionName := helper.GetCollectionName(r.TargetName)
-		if err := helper.Mongo.One(targetCollectionName, r.TargetId.Hex(), &data); err != nil {
-			fmt.Printf("deleted because of target: id %q from %q name %q\n", r.TargetId.Hex(), targetCollectionName, r.TargetName)
-			if !*flagDry {
-				return helper.DeleteRelationship(r.Id)
-			}
-		}
-	} else {
-		fmt.Printf("could not delete rel because target id is not valid: %q \n", r)
+	if !r.Id.Valid() {
+		fmt.Printf("could not delete rel because id is not valid: %q \n", r)
+		return nil
 	}
 
-	if r.SourceId.Valid() {
-		sourceCollectionName := helper.GetCollectionName(r.SourceName)
-		if err := helper.Mongo.One(sourceCollectionName, r.SourceId.Hex(), &data); err != nil {
-			fmt.Printf("deleting because of source: id %q from %q name %q\n", r.SourceId.Hex(), sourceCollectionName, r.SourceName)
-			if !*flagDry {
-				return helper.DeleteRelationship(r.Id)
-			}
+	if !r.TargetId.Valid() || !r.SourceId.Valid() {
+		fmt.Printf("deleted because of target id or source id is not valid: id: %q target: %q source: %q\n", r.Id.Hex(), r.TargetId, r.SourceId)
+		if !*flagDry {
+			return helper.DeleteRelationship(r.Id)
 		}
-	} else {
-		fmt.Printf("could not delete rel because source id is not valid: %q \n", r)
+		return nil
+	}
+
+	var data interface{}
+	targetCollectionName := helper.GetCollectionName(r.TargetName)
+	if err := helper.Mongo.One(targetCollectionName, r.TargetId.Hex(), &data); err != nil {
+		fmt.Printf("deleted because of target: id %q from %q name %q\n", r.TargetId.Hex(), targetCollectionName, r.TargetName)
+		if !*flagDry {
+			return helper.DeleteRelationship(r.Id)
+		}
+		return nil
+	}
+
+	sourceCollectionName := helper.GetCollectionName(r.SourceName)
+	if err := helper.Mongo.One(sourceCollectionName, r.SourceId.Hex(), &data); err != nil {
+		fmt.Printf("deleting because of source: id %q from %q name %q\n", r.SourceId.Hex(), sourceCollectionName, r.SourceName)
+		if !*flagDry {
+			return helper.DeleteRelationship(r.Id)
+		}
 	}
 
 	return nil
