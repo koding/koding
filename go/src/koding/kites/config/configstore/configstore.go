@@ -2,6 +2,9 @@ package configstore
 
 import (
 	"encoding/json"
+	"errors"
+	"log"
+	"os"
 	"path/filepath"
 	"sync"
 	"time"
@@ -9,6 +12,7 @@ import (
 	"koding/kites/config"
 	"koding/kites/kloud/utils/object"
 	"koding/klient/storage"
+	"koding/tools/util"
 
 	"github.com/boltdb/bolt"
 )
@@ -88,6 +92,80 @@ func (c *Client) Use(k *config.Konfig) error {
 			cache.SetValue("konfigs.used", &usedKonfig{ID: id}),
 		)
 	})
+}
+
+func (c *Client) Used() (*config.Konfig, error) {
+	c.init()
+
+	var konfig *config.Konfig
+
+	err := c.commit(func(cache *config.Cache) error {
+		var used usedKonfig
+
+		if err := cache.GetValue("konfigs.used", &used); err != nil {
+			return err
+		}
+
+		var konfigs config.Konfigs
+
+		if err := cache.GetValue("konfigs", &konfigs); err != nil {
+			return err
+		}
+
+		if k, ok := konfigs[used.ID]; ok {
+			konfig = k
+			return nil
+		}
+
+		return errors.New("config not found - use one that exists")
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return konfig, nil
+}
+
+func (c *Client) boltFile(app string) string {
+	if used, err := c.Used(); err == nil {
+		return filepath.Join(config.KodingHome(), app+"."+used.ID()+".bolt")
+	}
+	return filepath.Join(config.KodingHome(), app+".bolt")
+}
+
+func (c *Client) CacheOptions(app string) *config.CacheOptions {
+	c.init()
+
+	oldFile := filepath.Join(config.KodingHome(), app+".bolt")
+	file := c.boltFile(app)
+
+	if _, err := os.Stat(file); oldFile != file && os.IsNotExist(err) {
+		if _, err := os.Stat(oldFile); err == nil {
+			// Bolt file exists in old location but not in the new one,
+			// most likely we just migrated from old config version.
+			if err := os.Rename(oldFile, file); err != nil {
+				// If it's not possible to move - symlink.
+				if e := os.Symlink(oldFile, file); e != nil {
+					log.Printf("unable to move old bolt file to new location %q: %s, %s", file, err, e)
+				}
+			}
+		}
+	}
+
+	dir := filepath.Dir(file)
+
+	// Best-effort attempts, ignore errors.
+	_ = os.MkdirAll(dir, 0755)
+	_ = util.Chown(dir, config.CurrentUser.User)
+
+	return &config.CacheOptions{
+		File: file,
+		BoltDB: &bolt.Options{
+			Timeout: 5 * time.Second,
+		},
+		Bucket: []byte(app),
+	}
 }
 
 func (c *Client) init() {
@@ -175,6 +253,8 @@ func nonil(err ...error) error {
 	return nil
 }
 
-func List() config.Konfigs                       { return DefaultClient.List() }
-func Read(e *config.Environments) *config.Konfig { return DefaultClient.Read(e) }
-func Use(k *config.Konfig) error                 { return DefaultClient.Use(k) }
+func List() config.Konfigs                         { return DefaultClient.List() }
+func Read(e *config.Environments) *config.Konfig   { return DefaultClient.Read(e) }
+func Use(k *config.Konfig) error                   { return DefaultClient.Use(k) }
+func Used() (*config.Konfig, error)                { return DefaultClient.Used() }
+func CacheOptions(app string) *config.CacheOptions { return DefaultClient.CacheOptions(app) }

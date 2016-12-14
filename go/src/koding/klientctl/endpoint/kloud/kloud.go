@@ -1,27 +1,20 @@
 package kloud
 
 import (
-	"path/filepath"
 	"time"
 
 	cfg "koding/kites/config"
+	"koding/kites/config/configstore"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
 
-	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
 	kitecfg "github.com/koding/kite/config"
 	"github.com/koding/kite/protocol"
 	"github.com/koding/logging"
 )
 
-var kdCacheOpts = &cfg.CacheOptions{
-	File: filepath.Join(cfg.KodingHome(), "kd.bolt"),
-	BoltDB: &bolt.Options{
-		Timeout: 5 * time.Second,
-	},
-	Bucket: []byte("kd"),
-}
+var kdCacheOpts = configstore.CacheOptions("kd")
 
 // Transport is an interface that abstracts underlying
 // RPC round trip.
