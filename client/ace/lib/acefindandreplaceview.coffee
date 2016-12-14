@@ -5,6 +5,7 @@ KDHitEnterInputView = kd.HitEnterInputView
 KDMultipleChoice    = kd.MultipleChoice
 JView               = require 'app/jview'
 _                   = require 'lodash'
+$                   = require 'jquery'
 keycode             = require 'keycode'
 
 module.exports = class AceFindAndReplaceView extends JView
