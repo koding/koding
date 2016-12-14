@@ -1,5 +1,7 @@
 module.exports = requirementsParser = (content) ->
 
+  content = content.replace /#.+/igm, ''
+
   allowedProps =
     user       : ['username', 'email'] # JUser
     account    : ['profile']           # JAccount

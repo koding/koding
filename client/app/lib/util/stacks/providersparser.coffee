@@ -2,6 +2,7 @@ globals = require 'globals'
 
 module.exports = providersParser = (content) ->
 
+  content   = content.replace /#.+/igm, ''
   regex     = /\$\{var\.(\w+?)\_/g
   providers = {}
   match     = regex.exec content
