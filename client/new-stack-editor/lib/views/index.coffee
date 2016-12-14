@@ -1,5 +1,6 @@
 kd = require 'kd'
 bowser = require 'bowser'
+Encoder = require 'htmlencode'
 EditorView = require './editorview'
 FlexSplit = require './flexsplit'
 FlexSplitStorage = require './flexsplit/storage'
@@ -46,6 +47,13 @@ module.exports = class StackEditor extends kd.View
 
   setData: (@data) ->
 
+
+    { description, template } = @getData()
+
+    @editor.setContent Encoder.htmlDecode template.rawContent
+    @readme.setContent description
+
+    @logs.setContent 'Stack template loaded'
 
 
 

@@ -17,7 +17,7 @@ module.exports = class EditorView extends BaseView
 
     super
 
-    file = FSHelper.createFileInstance { path: 'localfile:/Untitled.txt' }
+    file = FSHelper.createFileInstance { path: 'localfile:/Untitled.yaml' }
 
     @aceView = new AceView {
       cssClass: 'editor'
@@ -49,7 +49,6 @@ module.exports = class EditorView extends BaseView
 
   setContent: (content, type = 'text') -> @ready =>
     @aceView.ace.setContent content
-
 
   _windowDidResize: ->
 
