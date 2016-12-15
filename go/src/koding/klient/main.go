@@ -111,6 +111,9 @@ func realMain() int {
 			log.Fatalf("failed to parse -kontrol-url: %s", err)
 		}
 
+		// TODO(rjeczalik): rework client to display KODING_URL instead of KONTROLURL
+		u.Path = ""
+
 		// Create new konfig.bolt with variables used during registration.
 		kfg := &config.Konfig{
 			KiteKeyFile: filepath.Join(kiteHome, "kite.key"),
