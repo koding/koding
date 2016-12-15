@@ -59,7 +59,10 @@ module.exports = class FlexSplitStorage extends kd.Object
 
   set: (identifier, fractions, callback = kd.noop) ->
     @storage[identifier] = fractions
+    callback null, @storage
 
 
   store: (callback = kd.noop) ->
-    @adapter?.store @storage, callback
+    if @adapter?.store?
+    then @adapter.store @storage, callback
+    else callback null
