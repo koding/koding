@@ -24,7 +24,6 @@ export COMMANDS=(
 	koding/kites/cmd/tunnelserver
 	koding/workers/cmd/tunnelproxymanager
 	koding/workers/removenonexistents
-	koding/workers/janitor
 	koding/kites/kloud/cleaners/cmd/cleaner
 	koding/kites/kloud/scripts/userdebug
 	koding/kites/kloud/scripts/sl
