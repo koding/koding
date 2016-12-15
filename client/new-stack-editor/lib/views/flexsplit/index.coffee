@@ -18,6 +18,7 @@ module.exports = class FlexSplit extends kd.View
 
     super options, data
 
+    @_type = Flex.INSTANCE_TYPE
 
     @resizer = null
     { @type, @name, storage } = @getOptions()
@@ -39,11 +40,11 @@ module.exports = class FlexSplit extends kd.View
     ]
 
     @resizer.on Flex.EVENT_EXPAND, ->
-      if view.parent instanceof FlexSplit
+      if FlexSplit.isInstance view.parent
         view.parent.emit Flex.EVENT_EXPAND
 
     @resizer.on Flex.EVENT_COLLAPSE, ->
-      if view.parent instanceof FlexSplit
+      if FlexSplit.isInstance view.parent
         view.parent.emit Flex.EVENT_COLLAPSE
 
 
@@ -71,3 +72,6 @@ module.exports = class FlexSplit extends kd.View
 
   setFractions: (fractions, set = yes) ->
     @resizer?.setFractions fractions, set
+
+  @isInstance = (instance) ->
+    instance?._type is Flex.INSTANCE_TYPE

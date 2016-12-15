@@ -1,4 +1,7 @@
 module.exports =
+
+  INSTANCE_TYPE   : 'FlexSplit'
+
   EVENT_EXPAND    : 'FlexSplit.EXPAND'
   EVENT_COLLAPSE  : 'FlexSplit.COLLAPSE'
 
