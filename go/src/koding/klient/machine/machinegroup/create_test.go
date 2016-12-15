@@ -9,7 +9,7 @@ import (
 	"koding/klient/machine/machinetest"
 )
 
-func TestClients(t *testing.T) {
+func TestCreate(t *testing.T) {
 	var (
 		builder = machinetest.NewNilBuilder()
 
