@@ -90,4 +90,4 @@ module.exports = class StackEditor extends kd.View
           ]
       ]
 
-    contentView.setClass 'safari-fix'  if bowser.safari
+    contentView.setClass 'safari-flex-fix'  if bowser.safari
