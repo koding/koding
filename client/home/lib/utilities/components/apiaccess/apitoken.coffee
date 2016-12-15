@@ -27,9 +27,11 @@ module.exports = class ApiToken extends React.Component
       buttons :
         Cancel :
           title : 'Cancel'
+          cssClass  : 'solid medium'
           callback  : -> modal.destroy()
         Yes :
           title : 'Yes'
+          cssClass  : 'solid medium'
           callback  : =>
             apiToken = remote.revive @props.apiToken.toJS()
             apiToken.remove (err) =>

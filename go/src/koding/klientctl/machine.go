@@ -1,13 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"text/tabwriter"
 	"time"
 
-	"koding/klientctl/machine"
+	"koding/klientctl/endpoint/machine"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
@@ -25,6 +26,13 @@ func MachineListCommand(c *cli.Context, log logging.Logger, _ string) (int, erro
 		return 1, err
 	}
 
+	if c.Bool("json") {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "\t")
+		enc.Encode(infos)
+		return 0, nil
+	}
+
 	tabFormatter(os.Stdout, infos)
 	return 0, nil
 }
@@ -33,33 +41,28 @@ func tabFormatter(w io.Writer, infos []*machine.Info) {
 	now := time.Now()
 	tw := tabwriter.NewWriter(w, 2, 0, 2, ' ', 0)
 
-	fmt.Fprintf(tw, "TEAM\tSTACK\tPROVIDER\tLABEL\tOWNER\tAGE\tIP\tSTATUS\n")
+	fmt.Fprintf(tw, "ID\tALIAS\tTEAM\tSTACK\tPROVIDER\tLABEL\tOWNER\tAGE\tIP\tSTATUS\n")
 	for _, info := range infos {
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
-			info.Team,
-			info.Stack,
-			info.Provider,
+		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+			info.ID,
+			info.Alias,
+			dashIfEmpty(info.Team),
+			dashIfEmpty(info.Stack),
+			dashIfEmpty(info.Provider),
 			info.Label,
 			info.Owner,
-			timeToAgo(info.CreatedAt, now),
+			machine.ShortDuration(info.CreatedAt, now),
 			info.IP,
-			prettyStatus(info.Status),
+			machine.PrettyStatus(info.Status, now),
 		)
 	}
 	tw.Flush()
 }
 
-func prettyStatus(status machine.Status) string {
-	now := time.Now()
-
-	if status.State == machine.StateOnline {
-		return fmt.Sprintf("%-9s (%s)", status.State, timeToAgo(status.ModifiedAt, now))
+func dashIfEmpty(val string) string {
+	if val == "" {
+		return "-"
 	}
 
-	timeReasonFmt := timeToAgo(status.ModifiedAt, now)
-	if status.Reason != "" {
-		timeReasonFmt += ": " + status.Reason
-	}
-
-	return fmt.Sprintf("%-9s (%s)", status.State, timeReasonFmt)
+	return val
 }

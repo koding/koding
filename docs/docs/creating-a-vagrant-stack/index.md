@@ -22,41 +22,86 @@ It is recommended that you choose the Vagrant stack if you have access to a phys
 
 ## Step by Step guide
 
-1. **Install KD** by copying the KD CLI command and pasting in your _local terminal_. Click **Stacks -&gt; Koding Utilities** to find the KD CLI command.
+1. **Install KD** by copying the KD CLI command and pasting in your _local terminal_. Click **Stacks -&gt; Koding Utilities** to find the KD CLI command
 
     > If you already have **KD** installed make sure you have the latest version by running **sudo kd update** in your local terminal.
 
     ![install-kd.png][3]
 
-2. After the installation is successful on your **local terminal** , copy the **Kite Query ID**.
+2. After the installation is successful on your **local terminal** , copy the **Kite Query ID**
 
     > If you already have the latest **KD** installed, you can run **kd version** on your local terminal to obtain your **Kite Query ID**.
 
     ![kite-query-id.png][4]
 
-3. It's time to create your Vagrant stack, go to Koding again and click **STACKS**.
+3. It's time to create your Vagrant stack, go to Koding again and click **STACKS**
 
-    ![step001.png][5]
+    ![Create a new stack][5]
 
-4. Click **New Stack** button.
+4. Click **New Stack**
 
-    ![step002.png][6]
+    ![Click new stack][6]
 
-5. Choose **Vagrant** as the provider.
+5. Choose **Vagrant** as the provider and click **Create Stack**
 
-    ![provider-vagrant.png][8]
+    ![Vagrant provider][7]
 
-6. Rename your Stack to something you remember, we named ours **Vagrant Stack**.
+6. You will now see the default stack template for Vagrant. You can give your stack a name by clicking on the **Edit Name** on top beside your stack title. The _three tabs_ represent:
 
-    ![rename-stack.png][9]
+    1.  **Custom variables**: define custom variables to use in your stack template, hidden from Team _members_
+    2.  **Readme**: this text will be shown in a message box when your team starts to build this stack. You can add instructions or notes for your team to read
+    3.  **Credentials**: add your Vagrant credentials here
 
-7. Move to the **Credentials** tab and give any **Title** to your credential, and paste the **Kite Query ID**&nbsp;you copied in step 2 into **Kite ID**. Then click **SAVE THIS &amp; CONTINUE**.
+    ![Stack template][8]
+    Review the **Stack Template** file to add/modify/remove any of your VM configurations
 
-    ![credentials.png][10]
+    >You can add commands to run once your VM starts under the **user_data** section. For example you can choose to install services/packages once a VM starts. Commands under the **user_data** section will run as `root` when the VM boots.
 
-8. Click **Save**, then **Initialize** and follow the stack building wizard to build your Vagrant Stack. Once you are done, you will be able to use your Vagrant VM on Koding.
+    >Click away from any of the tabs to return to your **Stack template editor**.
 
-    ![vagrant-stack-started.png][11]
+7.  Edit your **Readme** section to greet your team and provide them with information or instructions. You can use [markdown](https://en.wikipedia.org/wiki/Markdown) format
+
+    ![Read Me][9]
+
+8.  Go to the **Credentials** tab and click **Add A New Credentials**
+
+    ![Credentials][10]
+
+9. Give a **Title** to your Vagrant credentials, and paste the **Kite Query ID**&nbsp;you copied in step 2 into **Kite ID**. Then click **SAVE THIS &amp; CONTINUE**.
+
+    ![Credentials details][11]
+
+10. Your Vagrant credentials will be **verified** and you will be directed back to the Stack Template editor. Also the red exclamation mark that used to appear beside your **Credentials** tab should disappear. Click **SAVE** to save your stack and test your stack template file, it should save successfully
+
+    ![Credentials Added][12]
+
+11. Click **Initialize** to initialize your stack
+
+    > You can have multiple stacks within a team, click **Make Team Default** when you want to make this stack your team's default stack.
+
+    ![Initialize Stack][13]
+
+12. The build stack modal will appear, the *Instructions* tab will include the message you wrote in your **Read Me** tab. Click **Next** to continue
+
+    ![Build Stack Instructions][14]
+
+13. Click on **Build Stack** to start building your Stack
+
+    > You can have multiple saved credentials to use within a team, the Credentials tab in your Build stack modal allows you to chose the one you want to use with this stack template.
+
+    ![Build Stack Credentials][15]
+
+    Your stack will start building..
+
+    ![Stack Building][16]
+
+14. Your stack was successfully built. Click **Start Coding** to start using your new VM
+
+    ![Stack built][17]
+
+    Congratulations, your new VM terminal is ready
+
+    ![VM ready][18]
 
 ## Advanced notes regarding Vagrant Stack template
 
@@ -92,10 +137,17 @@ This is an example stack script with more&nbsp;configuration options that you ca
 [2]: https://www.vagrantup.com/about.html
 [3]: {{ site.url }}/assets/img/guides/vagrant/install-kd.png
 [4]: {{ site.url }}/assets/img/guides/vagrant/kite-query-id.png
-[5]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step001.png
-[6]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step002.png
-[7]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/step003.png
-[8]: {{ site.url }}/assets/img/guides/vagrant/provider-vagrant.png
-[9]: {{ site.url }}/assets/img/guides/vagrant/rename-stack.png
-[10]: {{ site.url }}/assets/img/guides/vagrant/credentials.png
-[11]: {{ site.url }}/assets/img/guides/vagrant/vagrant-stack-started.png
+[5]: {{ site.url }}/assets/img/guides/click-stacks.png
+[6]: {{ site.url }}/assets/img/guides/click-new-stack.png
+[7]: {{ site.url }}/assets/img/guides/vagrant/vagrant-provider.png
+[8]: {{ site.url }}/assets/img/guides/vagrant/vagrant-create-stack.png
+[9]: {{ site.url }}/assets/img/guides/vagrant/vagrant-readme.png
+[10]: {{ site.url }}/assets/img/guides/vagrant/vagrant-credentials.png
+[11]: {{ site.url }}/assets/img/guides/vagrant/vagrant-credentials-add-new.png
+[12]: {{ site.url }}/assets/img/guides/vagrant/vagrant-credentials-added.png
+[13]: {{ site.url }}/assets/img/guides/vagrant/vagrant-save-stack.png
+[14]: {{ site.url }}/assets/img/guides/vagrant/vagrant-build-stack-1.png
+[15]: {{ site.url }}/assets/img/guides/vagrant/vagrant-build-stack-2.png
+[16]: {{ site.url }}/assets/img/guides/vagrant/vagrant-stack-building.png
+[17]: {{ site.url }}/assets/img/guides/vagrant/vagrant-stack-built.png
+[18]: {{ site.url }}/assets/img/guides/vagrant/vagrant-vm-ready.png

@@ -19,7 +19,7 @@ requirementsParser = require 'app/util/stacks/requirementsparser'
 generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 Tracker = require 'app/util/tracker'
 $ = require 'jquery'
-
+canCreateStacks = require 'app/util/canCreateStacks'
 _eventsCache = { machine: {}, stack: no }
 
 _bindMachineEvents = (environmentData) ->
@@ -819,6 +819,9 @@ setLabel = (machineUId, label) ->
         resolve newLabel
 
 cloneStackTemplate = (template) ->
+
+  unless canCreateStacks()
+    return new kd.NotificationView { title: 'You are not allowed to create/edit stacks!' }
 
   new kd.NotificationView { title:'Cloning Stack Template' }
 

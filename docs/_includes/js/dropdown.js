@@ -1,11 +1,11 @@
 (function() {
-  var dropdown        = document.querySelectorAll('.Dropdown'),
-      dropdownOptions = document.querySelectorAll('.Dropdown .Dropdown-options a');
+  var dropdown        = $('.Dropdown'),
+      dropdownOptions = $('.Dropdown .Dropdown-options a');
 
   var initialize = function() {
 
     document.addEventListener('click', function(evt) {
-      if (!evt.target.closest('.Dropdown') && document.querySelector('.is-shown')) {
+      if (!$(evt.target).closest('.Dropdown') && document.find('.is-shown')) {
         [].forEach.call( dropdown, function(el) {
           if (el.classList.contains('is-shown')) {
             el.classList.remove('is-shown');
@@ -39,7 +39,7 @@
           return false;
         }
 
-        var dropdownLabel = evt.target.closest('.Dropdown').querySelector('.Dropdown-selection');
+        var dropdownLabel = $(evt.target).closest('.Dropdown').find('.Dropdown-selection')[0];
 
         dropdownLabel.innerHTML = this.innerHTML;
       }, false)

@@ -4,14 +4,17 @@ import "time"
 
 // Machine represents a single machine.
 type Machine struct {
-	Team      string    `json:"team"`
-	Stack     string    `json:"stack"`
-	Provider  string    `json:"provider"`
-	Label     string    `json:"label"`
-	IP        string    `json:"ip"`
-	CreatedAt time.Time `json:"createdAt"`
-	Status    Status    `json:"status"`
-	Users     []User    `json:"users"`
+	ID          string    `json:"id"`
+	Team        string    `json:"team"`
+	Stack       string    `json:"stack"`
+	Provider    string    `json:"provider"`
+	Label       string    `json:"label"`
+	IP          string    `json:"ip"`
+	QueryString string    `json:"queryString"`
+	RegisterURL string    `json:"registerUrl"`
+	CreatedAt   time.Time `json:"createdAt"`
+	Status      Status    `json:"status"`
+	Users       []User    `json:"users"`
 }
 
 // Status represents the current status of machine.

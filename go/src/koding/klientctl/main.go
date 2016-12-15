@@ -523,12 +523,18 @@ func run(args []string) {
 			},
 			cli.Command{
 				Name:  "machine",
-				Usage: "Manage remote machines",
+				Usage: "Manage remote machines.",
 				Subcommands: []cli.Command{{
 					Name:      "list",
 					ShortName: "ls",
-					Usage:     "List available machines",
+					Usage:     "List available machines.",
 					Action:    ctlcli.ExitErrAction(MachineListCommand, log, "list"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+					},
 				}},
 			},
 			cli.Command{
