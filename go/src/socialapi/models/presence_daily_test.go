@@ -1,11 +1,14 @@
 package models
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/tests"
 	"testing"
 	"time"
+
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/koding/bongo"
 	"github.com/koding/runner"
@@ -93,12 +96,21 @@ func TestPresenceDailyFetchActiveAccounts(t *testing.T) {
 	tests.WithRunner(t, func(r *runner.Runner) {
 		Convey("With given presence data", t, func() {
 			acc1, _, groupName := models.CreateRandomGroupDataWithChecks()
+
+			gr, err := modelhelper.GetGroup(groupName)
+			tests.ResultedWithNoErrorCheck(gr, err)
+			err = modelhelper.MakeAdmin(bson.ObjectIdHex(acc1.OldId), gr.Id)
+			So(err, ShouldBeNil)
+
 			p1 := &PresenceDaily{
 				AccountId: acc1.Id,
 				GroupName: groupName,
 				CreatedAt: time.Now().UTC(),
 			}
 			So(p1.Create(), ShouldBeNil)
+			ses, err := modelhelper.FetchOrCreateSession(acc1.Nick, groupName)
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
 
 			for i := 0; i < 5; i++ {
 				// create accounts
