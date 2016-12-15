@@ -5,6 +5,9 @@ FlexSplitResizer = require './resizer'
 
 module.exports = class FlexSplit extends kd.View
 
+  # Keep copy of constants on FlexSplit for external uses
+  for own key, value of Flex
+    FlexSplit[key] = value
 
   constructor: (options = {}, data) ->
 
