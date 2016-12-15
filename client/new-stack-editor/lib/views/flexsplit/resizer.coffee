@@ -109,10 +109,10 @@ module.exports = class FlexSplitResizer extends kd.View
     @_updateViewSizes()
 
 
-  setFractions: (fractions, set = yes) ->
+  setFractions: (fractions, updateViews = yes) ->
 
     @_fractions = [fractions[0], fractions[1]]
-    return  unless set
+    return  unless updateViews
     @_setViewFraction @views[0], fractions[0]
     @_setViewFraction @views[1], fractions[1]
 
