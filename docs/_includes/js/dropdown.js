@@ -18,14 +18,14 @@
       el.addEventListener('click', function(evt) {
         evt.preventDefault();
 
-        if (evt.target.classList.contains('disabled')) {
+        if ($(evt.target).hasClass('disabled')) {
           return false;
         }
 
-        if (this.classList.contains('is-shown')) {
-          this.classList.remove('is-shown');
+        if ($(this).hasClass('is-shown')) {
+          $(this).removeClass('is-shown');
         } else {
-          this.classList.add('is-shown');
+          $(this).addClass('is-shown');
         }
 
       });
@@ -35,7 +35,7 @@
       el.addEventListener('click', function(evt) {
         evt.preventDefault();
 
-        if (evt.target.classList.contains('disabled')) {
+        if ($(evt.target).hasClass('disabled')) {
           return false;
         }
 

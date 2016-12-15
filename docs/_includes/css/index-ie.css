@@ -99,3 +99,40 @@ main.Homepage-Hero {
 .Homepage-Footer .Footer--col.large form > input, .Homepage-Footer .Footer--col.large form > button {
   display: inline-block;
 }
+
+.Pricing-SupportPlans--support div {
+  display: inline-block;
+  width: 32%;
+}
+.Pricing-SupportPlans--quotes blockquote {
+  width: 49%;
+  display: inline-block;
+}
+
+.m-content-placement__item {
+  text-align: center;
+  width: 28%;
+  display: inline-block;
+  vertical-align: top;
+  margin: 0 20px;
+}
+
+.aboutus-col {
+  display: inline-block;
+  width: 30%;
+  vertical-align: top;
+}
+
+.AboutUs-TeamMemberWrapper {
+  text-align: center;
+}
+
+.AboutUs-TeamMember {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.AboutUs-Contact--numbers div {
+  display: inline-block;
+  vertical-align: top;
+}
