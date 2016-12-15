@@ -1,12 +1,12 @@
 kd = require 'kd'
-FlexSplit = require './index'
+Flex = require './constants'
 
 
 module.exports = class FlexSplitResizer extends kd.View
 
   constructor: (options = {}, data) ->
 
-    options.type     ?= FlexSplit.HORIZONTAL
+    options.type     ?= Flex.HORIZONTAL
     options.cssClass  = 'flex-resizer'
     options.draggable = { axis: options.type.axis }
 
@@ -30,12 +30,12 @@ module.exports = class FlexSplitResizer extends kd.View
 
     @views.push view
 
-    view.on FlexSplit.EVENT_EXPAND, =>
+    view.on Flex.EVENT_EXPAND, =>
 
       return  if view.hasClass 'expanded'
       view.setClass 'expanded'
 
-      @emit FlexSplit.EVENT_EXPAND
+      @emit Flex.EVENT_EXPAND
 
       @_updateViewSizes()
       @_updateFractions 0, set = no
@@ -43,16 +43,16 @@ module.exports = class FlexSplitResizer extends kd.View
       fractions = []
       viewIndex = @_getViewIndex view
       for i in [0..1]
-        fractions.push if i is viewIndex then FlexSplit.MAX else FlexSplit.MIN
+        fractions.push if i is viewIndex then Flex.MAX else Flex.MIN
         @_setViewFraction @views[i], fractions[i]
 
-      @emit FlexSplit.EVENT_EXPANDED, fractions
+      @emit Flex.EVENT_EXPANDED, fractions
       view._windowDidResize?()
 
 
-    view.on FlexSplit.EVENT_COLLAPSE, =>
+    view.on Flex.EVENT_COLLAPSE, =>
 
-      @emit FlexSplit.EVENT_COLLAPSE
+      @emit Flex.EVENT_COLLAPSE
 
       fractions = []
       viewIndex = @_getViewIndex view
@@ -61,7 +61,7 @@ module.exports = class FlexSplitResizer extends kd.View
         @_setViewFraction @views[i], fractions[i]
         @views[i].unsetClass 'expanded'
 
-      @emit FlexSplit.EVENT_COLLAPSED, fractions
+      @emit Flex.EVENT_COLLAPSED, fractions
       view._windowDidResize?()
 
 
@@ -74,14 +74,14 @@ module.exports = class FlexSplitResizer extends kd.View
 
 
   limited = (num) ->
-    Math.min FlexSplit.MAX, Math.max FlexSplit.MIN, num
+    Math.min Flex.MAX, Math.max Flex.MIN, num
 
 
   _updateFractions: (change = 0, set = yes) ->
 
     for i in [0..1]
       change = -change  if i is 1
-      @_fractions[i] = limited ((change + @sizes[i]) / @totalSize) * FlexSplit.MAX
+      @_fractions[i] = limited ((change + @sizes[i]) / @totalSize) * Flex.MAX
       @_setViewFraction @views[i], @_fractions[i]  if set
 
 
@@ -92,7 +92,7 @@ module.exports = class FlexSplitResizer extends kd.View
   dragFinished: (event, dragState) ->
 
     @unsetClass 'ondrag'
-    @emit FlexSplit.EVENT_RESIZED, @_fractions
+    @emit Flex.EVENT_RESIZED, @_fractions
     for view in @views
       view.unsetClass 'ondrag'
       view._windowDidResize?()

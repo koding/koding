@@ -1,36 +1,19 @@
 kd = require 'kd'
+Flex = require './constants'
+
 
 module.exports = class FlexSplit extends kd.View
-
-  @EVENT_EXPAND    = 'FlexSplit.EXPAND'
-  @EVENT_COLLAPSE  = 'FlexSplit.COLLAPSE'
-
-  @EVENT_RESIZED   = 'FlexSplit.RESIZED'
-  @EVENT_EXPANDED  = 'FlexSplit.EXPANDED'
-  @EVENT_COLLAPSED = 'FlexSplit.COLLAPSED'
-
-  @MAX = 100
-  @MIN = 0.0001
-
-  @HORIZONTAL =
-    name      : 'horizontal'
-    axis      : 'y'
-    getter    : 'getHeight'
-
-  @VERTICAL   =
-    name      : 'vertical'
-    axis      : 'x'
-    getter    : 'getWidth'
 
 
   constructor: (options = {}, data) ->
 
     options.cssClass   = kd.utils.curry 'flex-split', options.cssClass
     options.sizes     ?= []
-    options.type      ?= FlexSplit.HORIZONTAL
+    options.type      ?= Flex.HORIZONTAL
     options.resizable ?= yes
 
     super options, data
+
 
     @resizer = null
     { @type, @name, storage } = @getOptions()
@@ -49,18 +32,18 @@ module.exports = class FlexSplit extends kd.View
     @resizer = @addSubView new FlexSplitResizer { @type, view }
 
     @forwardEvents @resizer, [
-      FlexSplit.EVENT_EXPANDED
-      FlexSplit.EVENT_RESIZED
-      FlexSplit.EVENT_COLLAPSED
+      Flex.EVENT_EXPANDED
+      Flex.EVENT_RESIZED
+      Flex.EVENT_COLLAPSED
     ]
 
-    @resizer.on FlexSplit.EVENT_EXPAND, ->
+    @resizer.on Flex.EVENT_EXPAND, ->
       if view.parent instanceof FlexSplit
-        view.parent.emit FlexSplit.EVENT_EXPAND
+        view.parent.emit Flex.EVENT_EXPAND
 
-    @resizer.on FlexSplit.EVENT_COLLAPSE, ->
+    @resizer.on Flex.EVENT_COLLAPSE, ->
       if view.parent instanceof FlexSplit
-        view.parent.emit FlexSplit.EVENT_COLLAPSE
+        view.parent.emit Flex.EVENT_COLLAPSE
 
 
   setupViews: ->

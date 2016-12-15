@@ -1,5 +1,5 @@
 kd = require 'kd'
-FlexSplit = require './index'
+Flex = require './constants'
 
 
 module.exports = class FlexSplitStorage extends kd.Object
@@ -22,14 +22,14 @@ module.exports = class FlexSplitStorage extends kd.Object
     options.restore          ?= yes
     options.keepExpandStatus ?= no # Experimental
 
-    view.on FlexSplit.EVENT_RESIZED, (fractions) =>
+    view.on Flex.EVENT_RESIZED, (fractions) =>
       @set identifier, fractions
       @store()
 
     if options.keepExpandStatus
       view.on [
-        FlexSplit.EVENT_EXPANDED
-        FlexSplit.EVENT_COLLAPSED
+        Flex.EVENT_EXPANDED
+        Flex.EVENT_COLLAPSED
       ], (fractions) =>
 
         @eventCount++
