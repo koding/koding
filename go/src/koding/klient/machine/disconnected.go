@@ -17,6 +17,16 @@ var _ Client = (*DisconnectedClient)(nil)
 // machine and always returns
 type DisconnectedClient struct{}
 
+// CurrentUser always returns ErrDisconnected error.
+func (DisconnectedClient) CurrentUser() (string, error) {
+	return "", ErrDisconnected
+}
+
+// SSHAddKeys always returns ErrDisconnected error.
+func (DisconnectedClient) SSHAddKeys(_ string, _ ...string) error {
+	return ErrDisconnected
+}
+
 var _ ClientBuilder = (*DisconnectedClientBuilder)(nil)
 
 // DisconnectedClientBuilder satisfies ClientBuilder. It produces disconnected

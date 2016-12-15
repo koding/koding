@@ -6,8 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
+
+	"koding/klient/sshkeys"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/protocol"
@@ -78,17 +81,17 @@ func (k *KlientPool) Get(queryString string) (*Klient, error) {
 			return nil, err
 		}
 
-		k.log.Info("creating new klient connection to %s", queryString)
+		k.log.Info("Creating new klient connection to %s", queryString)
 		k.klients[queryString] = klient
 
 		// remove from the pool if we loose the connection
 		klient.Client.OnDisconnect(func() {
-			k.log.Info("klient %s disconnected. removing from the pool", queryString)
+			k.log.Info("Klient %s disconnected. removing from the pool", queryString)
 			k.Delete(queryString)
 			klient.Close()
 		})
 	} else {
-		k.log.Debug("fetching already connected klient (%s) from pool", queryString)
+		k.log.Debug("Fetching already connected klient (%s) from pool", queryString)
 	}
 
 	return klient, nil
@@ -189,7 +192,7 @@ func NewWithTimeout(k *kite.Kite, queryString string, t time.Duration) (klient *
 
 			return klient, err
 		default:
-			k.Log.Debug("trying to connect to klient: %s", queryString)
+			k.Log.Debug("Trying to connect to klient: %s", queryString)
 
 			if klient, err = ConnectTimeout(k, queryString, DefaultInterval); err == nil {
 				return klient, nil
@@ -297,4 +300,41 @@ func (k *Klient) RemoveUser(username string) error {
 	}
 
 	return fmt.Errorf("wrong response %s", out)
+}
+
+// Username returns remote machine current username.
+func (k *Klient) CurrentUser() (string, error) {
+	resp, err := k.Client.TellWithTimeout("os.currentUsername", k.timeout())
+	if err != nil {
+		return "", err
+	}
+
+	var username string
+	if err := resp.Unmarshal(&username); err != nil {
+		return "", err
+	}
+
+	return username, nil
+}
+
+// SSHAddKeys adds SSH public keys to user's authorized_keys file.
+func (k *Klient) SSHAddKeys(username string, keys ...string) error {
+	addopts := sshkeys.AddOptions{
+		Username: username,
+		Keys:     keys,
+	}
+
+	_, err := k.Client.TellWithTimeout("sshkeys.add", k.timeout(), addopts)
+	if err != nil {
+		// Ignore errors about duplicate keys since we're adding on each run.
+		if strings.Contains(err.Error(), "cannot add duplicate ssh key") {
+			return nil
+		}
+
+		return err
+	}
+
+	// TODO(ppknap): currently sshkeys.add method can return either nil or true
+	// as its response. Add proper support for this.
+	return nil
 }
