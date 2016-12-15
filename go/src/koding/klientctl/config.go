@@ -2,11 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"text/tabwriter"
 	"time"
 
@@ -99,7 +97,7 @@ func ConfigSet(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, nil
 	}
 
-	if err := updateKonfigCache(c.Args().Get(0), c.Args().Get(1)); err != nil {
+	if err := configstore.Set(c.Args().Get(0), c.Args().Get(1)); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1, err
 	}
@@ -113,7 +111,7 @@ func ConfigUnset(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, nil
 	}
 
-	if err := updateKonfigCache(c.Args().Get(0), ""); err != nil {
+	if err := configstore.Set(c.Args().Get(0), ""); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1, err
 	}
@@ -164,82 +162,6 @@ func ConfigUse(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	fmt.Printf("Switched to %s.\n", k.Endpoints.Koding.Public)
 
 	return 0, nil
-}
-
-func setFlatKeyValue(m map[string]interface{}, key, value string) error {
-	keys := strings.Split(key, ".")
-	it := m
-	last := len(keys) - 1
-
-	for _, key := range keys[:last] {
-		switch v := it[key].(type) {
-		case map[string]interface{}:
-			it = v
-		case nil:
-			newV := make(map[string]interface{})
-			it[key] = newV
-			it = newV
-		default:
-			return errors.New("key is not an object")
-		}
-	}
-
-	if value == "" {
-		delete(it, keys[last])
-	} else {
-		it[keys[last]] = value
-	}
-
-	return nil
-}
-
-// TODO(rjeczalik): move to kites/config/configstore
-func updateKonfigCache(key, value string) error {
-	db := konfig.NewCache(konfig.KonfigCache)
-	defer db.Close()
-
-	var cfg konfig.Konfig
-
-	if err := db.GetValue("konfig", &cfg); err != nil && err != storage.ErrKeyNotFound {
-		return fmt.Errorf("failed to update %s=%s: %s", key, value, err)
-	}
-
-	if err := setKonfig(&cfg, key, value); err != nil {
-		return fmt.Errorf("failed to update %s=%s: %s", key, value, err)
-	}
-
-	if err := db.SetValue("konfig", &cfg); err != nil {
-		return fmt.Errorf("failed to update %s=%s: %s", key, value, err)
-	}
-
-	return nil
-}
-
-func setKonfig(cfg *konfig.Konfig, key, value string) error {
-	m := make(map[string]interface{})
-
-	p, err := json.Marshal(cfg)
-	if err != nil {
-		return err
-	}
-
-	if err := json.Unmarshal(p, &m); err != nil {
-		return err
-	}
-
-	if err := setFlatKeyValue(m, key, value); err != nil {
-		return err
-	}
-
-	if p, err = json.Marshal(m); err != nil {
-		return err
-	}
-
-	if value == "" {
-		*cfg = konfig.Konfig{}
-	}
-
-	return json.Unmarshal(p, cfg)
 }
 
 func printKonfigs(konfigs []*konfig.Konfig) {

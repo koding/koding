@@ -3,9 +3,11 @@ package configstore
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -127,13 +129,6 @@ func (c *Client) Used() (*config.Konfig, error) {
 	return konfig, nil
 }
 
-func (c *Client) boltFile(app string) string {
-	if used, err := c.Used(); err == nil {
-		return filepath.Join(config.KodingHome(), app+"."+used.ID()+".bolt")
-	}
-	return filepath.Join(config.KodingHome(), app+".bolt")
-}
-
 func (c *Client) CacheOptions(app string) *config.CacheOptions {
 	c.init()
 
@@ -166,6 +161,32 @@ func (c *Client) CacheOptions(app string) *config.CacheOptions {
 		},
 		Bucket: []byte(app),
 	}
+}
+
+func (c *Client) Set(key, value string) error {
+	return c.commit(func(cache *config.Cache) error {
+		var used usedKonfig
+		var konfigs = make(config.Konfigs)
+
+		if err := cache.GetValue("konfigs.used", &used); err != nil {
+			return err
+		}
+
+		if err := cache.GetValue("konfigs", &konfigs); err != nil {
+			return err
+		}
+
+		k, ok := konfigs[used.ID]
+		if !ok {
+			return storage.ErrKeyNotFound
+		}
+
+		if err := setKonfig(k, key, value); err != nil {
+			return fmt.Errorf("failed to update %s=%s: %s", key, value, err)
+		}
+
+		return cache.SetValue("konfigs", konfigs)
+	})
 }
 
 func (c *Client) init() {
@@ -219,6 +240,13 @@ func (c *Client) initClient() {
 	})
 }
 
+func (c *Client) boltFile(app string) string {
+	if used, err := c.Used(); err == nil {
+		return filepath.Join(config.KodingHome(), app+"."+used.ID()+".bolt")
+	}
+	return filepath.Join(config.KodingHome(), app+".bolt")
+}
+
 func (c *Client) cacheOpts() *config.CacheOptions {
 	if c.CacheOpts != nil {
 		return c.CacheOpts
@@ -244,6 +272,60 @@ func mergeIn(kfg, mixin *config.Konfig) error {
 	return json.Unmarshal(p, kfg)
 }
 
+func setFlatKeyValue(m map[string]interface{}, key, value string) error {
+	keys := strings.Split(key, ".")
+	it := m
+	last := len(keys) - 1
+
+	for _, key := range keys[:last] {
+		switch v := it[key].(type) {
+		case map[string]interface{}:
+			it = v
+		case nil:
+			newV := make(map[string]interface{})
+			it[key] = newV
+			it = newV
+		default:
+			return errors.New("key is not an object")
+		}
+	}
+
+	if value == "" {
+		delete(it, keys[last])
+	} else {
+		it[keys[last]] = value
+	}
+
+	return nil
+}
+
+func setKonfig(cfg *config.Konfig, key, value string) error {
+	m := make(map[string]interface{})
+
+	p, err := json.Marshal(cfg)
+	if err != nil {
+		return err
+	}
+
+	if err := json.Unmarshal(p, &m); err != nil {
+		return err
+	}
+
+	if err := setFlatKeyValue(m, key, value); err != nil {
+		return err
+	}
+
+	if p, err = json.Marshal(m); err != nil {
+		return err
+	}
+
+	if value == "" {
+		*cfg = config.Konfig{}
+	}
+
+	return json.Unmarshal(p, cfg)
+}
+
 func nonil(err ...error) error {
 	for _, e := range err {
 		if e != nil {
@@ -253,8 +335,9 @@ func nonil(err ...error) error {
 	return nil
 }
 
+func CacheOptions(app string) *config.CacheOptions { return DefaultClient.CacheOptions(app) }
 func List() config.Konfigs                         { return DefaultClient.List() }
 func Read(e *config.Environments) *config.Konfig   { return DefaultClient.Read(e) }
+func Set(key, value string) error                  { return DefaultClient.Set(key, value) }
 func Use(k *config.Konfig) error                   { return DefaultClient.Use(k) }
 func Used() (*config.Konfig, error)                { return DefaultClient.Used() }
-func CacheOptions(app string) *config.CacheOptions { return DefaultClient.CacheOptions(app) }
