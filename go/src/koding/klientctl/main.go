@@ -554,6 +554,17 @@ func run(args []string) {
 							Usage: "Output in JSON format.",
 						},
 					},
+				}, {
+					Name:      "ssh",
+					ShortName: "s",
+					Usage:     "SSH into provided remote machine.",
+					Action:    ctlcli.ExitErrAction(MachineSSHCommand, log, "ssh"),
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "username",
+							Usage: "Remote machine username.",
+						},
+					},
 				}},
 			},
 			cli.Command{
@@ -591,34 +602,32 @@ func run(args []string) {
 			cli.Command{
 				Name:  "team",
 				Usage: "List available teams and set team context.",
-				Subcommands: []cli.Command{
-					{
-						Name:   "show",
-						Usage:  "Shows your currently used team.",
-						Action: ctlcli.ExitErrAction(TeamShow, log, "show"),
-						Flags: []cli.Flag{
-							cli.BoolFlag{
-								Name:  "json",
-								Usage: "Output in JSON format.",
-							},
+				Subcommands: []cli.Command{{
+					Name:   "show",
+					Usage:  "Shows your currently used team.",
+					Action: ctlcli.ExitErrAction(TeamShow, log, "show"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
 						},
 					},
-					{
-						Name:   "list",
-						Usage:  "Lists user's teams.",
-						Action: ctlcli.ExitErrAction(TeamList, log, "list"),
-						Flags: []cli.Flag{
-							cli.StringFlag{
-								Name:  "slug",
-								Value: "",
-								Usage: "Limits the output to the specified team slug",
-							},
-							cli.BoolFlag{
-								Name:  "json",
-								Usage: "Output in JSON format.",
-							},
+				}, {
+					Name:   "list",
+					Usage:  "Lists user's teams.",
+					Action: ctlcli.ExitErrAction(TeamList, log, "list"),
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "slug",
+							Value: "",
+							Usage: "Limits the output to the specified team slug",
+						},
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
 						},
 					},
+				},
 				},
 			},
 		)
