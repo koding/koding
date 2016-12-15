@@ -8,6 +8,10 @@ permalink: /
     display: flex;
   }
 </style>
+
+<!-- ie 10/11 style fixes -->
+<style>@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) { {% include css/index-ie.css %} }</style>
+
 {% include home/svgs.html %}
 <!-- HEADER -->
 {% include header.html
@@ -159,6 +163,7 @@ permalink: /
 <!-- FOOTER -->
 {% include footer.html %}
 
+<!-- ie 8/9 style fixes -->
 <!--[if lte IE 9]>
   <style>{% include css/index-ie.css %}</style>
 <![endif]-->
