@@ -887,7 +887,7 @@ module.exports = CollaborationController =
 
     modal.container.addSubView new kd.CustomHTMLView
       tagName  : 'p'
-      partial  : "<span class='icon'></span> Joining to collaboration session..."
+      partial  : "<span class='icon'></span> Joining collaboration session..."
       cssClass : 'state-label running'
 
     modal.container.addSubView modal.progressBar = new kd.ProgressBarView { initial: 10 }

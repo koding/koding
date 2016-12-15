@@ -744,33 +744,34 @@ $borderColor                = #E3E3E3
     display                 initial
     font-size               12px
 
-  .kdinput.text
+  .input-title-wrapper
     flex                    0 1 auto
-    font-size               15px
-    display                 block
-    size                    auto 16px
-    padding                 0 10px
-    border                  1px solid transparent
-    rounded                 3px
-    color                   #424242
-    bg                      color transparent
     max-width               50%
-    font-weight             400
-    outline                 none
-    shadow                  none
-    pointer-events          none
-    contentBox()
+    .kdinput.text
+      font-size               15px
+      size                    auto 16px
+      display                 block
+      padding                 0 10px
+      color                   #424242
+      bg                      color transparent
+      font-weight             400
+      border                  1px solid transparent
+      rounded                 3px
+      outline                 none
+      shadow                  none
+      pointer-events          none
+      contentBox()
 
-    &:hover
-      border                1px solid transparent
+      &:hover
+        border                1px solid transparent
 
-    &:focus
-      pointer-events        auto
-      padding               6px 10px 5px
-      margin                -6px 0 0
-      outline               inherit
-      bg                    color #FFFFFF
-      border                1px solid $borderColor
+      &:focus
+        pointer-events        auto
+        padding               6px 10px 5px
+        margin                -6px 0 0
+        outline               inherit
+        bg                    color #FFFFFF
+        border                1px solid $borderColor
 
 .StackEditorView--header-subHeader.readonly
   div.buttons

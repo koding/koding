@@ -16,7 +16,7 @@ module.exports = class AccountSessionListItem extends KDListItemView
     listView = @getDelegate()
 
     deleteButtonOptions =
-      title    : 'Terminate'
+      title    : 'Log Out'
       cssClass : 'solid compact delete'
       callback : =>
         listView.emit 'ItemAction',

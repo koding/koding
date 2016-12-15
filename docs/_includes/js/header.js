@@ -3,12 +3,14 @@ document.addEventListener('scroll', function(event){
   var header = document.querySelectorAll('header.Homepage-Header').item(0);
   if (!header) return null;
 
-  if (window.scrollY < 100) {
+  var scrollTop = window.scrollY || $('html, body').scrollTop();
+
+  if (scrollTop < 100) {
     if (!document.body.classList.contains('StickyHeader')) {
       return null;
     }
     document.body.classList.remove('StickyHeader');
-  } else if (window.scrollY < 710) {
+  } else if (scrollTop < 710) {
     if (!document.body.classList.contains('StickyHeader')) {
       return null;
     }

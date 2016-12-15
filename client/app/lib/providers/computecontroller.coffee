@@ -37,7 +37,7 @@ require './config'
 module.exports = class ComputeController extends KDController
 
 
-  @providers = globals.config.providers
+  @providers = globals.config.providers._getSupportedProviders()
   @Error     = {
     'TimeoutError', 'KiteError', 'NotSupported'
     Pending: '107', NotVerified: '500'
@@ -161,9 +161,9 @@ module.exports = class ComputeController extends KDController
     if method?
       switch method
         when 'reinit'
-          return NotSupported  if provider in ['aws', 'vagrant']
+          return NotSupported
         when 'createSnapshot'
-          return NotSupported  if provider in ['aws', 'softlayer', 'vagrant']
+          return NotSupported
 
 
 
@@ -1300,11 +1300,10 @@ module.exports = class ComputeController extends KDController
 
   shareCredentials: (credentials, requiredProviders, callback) ->
 
-    for selectedProvider in requiredProviders
-      break  if selectedProvider in ['aws', 'vagrant']
-
+    selectedProvider = null
+    for provider in requiredProviders when provider in @providers
+      selectedProvider = provider
     selectedProvider ?= (Object.keys credentials ? { aws: yes }).first
-    selectedProvider ?= 'aws'
 
     creds = Object.keys credentials
     { groupsController } = kd.singletons
@@ -1494,13 +1493,13 @@ module.exports = class ComputeController extends KDController
         buttons :
           cancel      :
             title     : 'Cancel'
-            cssClass  : 'kdbutton solid medium'
+            cssClass  : 'solid medium'
             callback  : ->
               modal.destroy()
               callback { status : no }
           ok          :
             title     : 'Yes'
-            cssClass  : 'kdbutton solid medium'
+            cssClass  : 'solid medium'
             callback  : -> callback { status : yes, modal }
 
       modal.setAttribute 'testpath', 'RemoveStackModal'

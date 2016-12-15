@@ -247,9 +247,12 @@ module.exports = class CredentialsController extends kd.Controller
 
       { requiredProviders } = stack.config
 
-      for provider in requiredProviders
-        break  if provider in ['aws', 'vagrant']
-      provider ?= (Object.keys stack.credentials ? { aws : yes }).first
+      enabledProviders = globals.config.providers._getSupportedProviders()
+      selectedProvider = null
+      for provider in requiredProviders when provider in enabledProviders
+        selectedProvider = provider
+      selectedProvider ?= (Object.keys stack.credentials ? { aws: yes }).first
+      provider = selectedProvider
 
       helpers._loadCredentials { provider }, (err, items) ->
         return callback err  if err
