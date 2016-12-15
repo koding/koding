@@ -1,0 +1,30 @@
+.flex-split
+
+  overflow                  auto
+  dFlex()
+
+  &.vertical
+    flex-flow               row nowrap
+    > .flex-resizer
+      width                 4px
+      cursor                ew-resize
+    .flex-view
+      min-width             0
+
+  &.horizontal
+    flex-flow               column nowrap
+    > .flex-resizer
+      height                4px
+      cursor                ns-resize
+    .flex-view
+      min-height            0
+
+  .flex-resizer
+    flex                    none
+    z-index                 100
+    dFlex()
+
+  .flex-view
+    overflow                auto
+    borderBox()
+

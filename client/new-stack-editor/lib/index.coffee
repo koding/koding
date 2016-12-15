@@ -1,6 +1,7 @@
 kd = require 'kd'
 { markAsLoaded, log } = require './helpers'
 AppController = require 'app/appcontroller'
+StackEditor = require './views'
 
 do require './routehandler'
 
@@ -16,6 +17,7 @@ module.exports = class StackEditorAppController extends AppController
 
   @options     =
     name       : 'Stackeditor'
+    customName : 'new-stack-editor'
     behavior   : 'application'
 
   constructor: (options = {}, data) ->
@@ -25,6 +27,7 @@ module.exports = class StackEditorAppController extends AppController
 
     super options, data
 
+    @mainView.addSubView new StackEditor
 
   openEditor: (stackTemplateId) ->
 

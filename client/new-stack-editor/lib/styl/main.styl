@@ -1,3 +1,8 @@
+
+// FontAwesome
+$fa-font-path = "http://netdna.bootstrapcdn.com/font-awesome/4.7.0/fonts"
+@import "../../../node_modules/font-awesome-stylus/stylus"
+
 @css {
 /*
 New Stack Editor stylesheet
@@ -5,3 +10,102 @@ stackeditor.styl
 */
 }
 
+.new-stack-editor
+
+  .ace_gutter-layer
+    background-color        #232327 !important
+
+  .ace_gutter
+    border-right            1px solid #191919
+
+  .flex-split
+    background              #232327
+    vendor                  transition, all .5s ease
+
+    &.ondrag
+      vendor                transition, none
+
+    &.vertical
+      > .flex-resizer
+        width               2px
+    &.horizontal
+      > .flex-resizer
+        height              2px
+
+  .flex-resizer
+    background              #000
+
+    &:hover
+    &.ondrag
+      background            #6EA3E5
+
+  .toolbar
+    background              #232327
+    height                  40px
+    min-height              40px !important
+    border-bottom           2px solid #000
+    borderBox()
+
+  .content-view
+    background              #999
+    &.safari-fix
+      // just because of a bug in safari
+      // https://bugs.webkit.org/show_bug.cgi?id=137730 ~ GG
+      height                calc(100% \- 68px)
+
+  .main-view
+    border-left             2px solid #000
+    border-right            2px solid #000
+    borderBox()
+
+  .statusbar
+    background              #000 !important
+    height                  30px
+    min-height              30px !important
+
+  .flex-view
+    background              #232327
+    vendor                  transition, all .5s ease
+    color                   #59595C
+
+    &.ondrag
+      vendor                transition, none
+
+    &.expanded
+      > .wrapper > .kdbutton
+        &.expand
+          visibility        hidden
+        &.collapse
+          visibility        visible
+
+    .wrapper
+
+      .editor-bottom-bar
+        display             none
+
+      .title
+        padding             15px 20px
+        font-size           13px
+        font-weight         600
+        color               #999
+
+      borderBox()
+
+    .kdbutton
+      margin                0
+      padding               0
+      background            none
+      border                none
+      color                 #59595C
+      z-index               10
+
+      &.expand
+        fa                  expand
+      &.collapse
+        visibility          hidden
+        fa                  compress
+
+      abs                   10px, 10px
+
+#intercom-container
+  display                   none

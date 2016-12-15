@@ -27,8 +27,8 @@ module.exports = class MainViewController extends KDViewController
       @mainTabPaneChanged mainView, pane
 
     appManager.on 'AppIsBeingShown', (controller) =>
-      @setBodyClass kd.utils.slugify controller.getOption 'name'
-
+      { customName, name } = controller.getOptions()
+      @setBodyClass kd.utils.slugify customName ? name
 
     display?.on 'ContentDisplayWantsToBeShown', do =>
       type = null

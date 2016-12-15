@@ -9,7 +9,7 @@ module.exports = -> lazyrouter.bind 'stackeditor', (type, info, state, path, ctx
     new kd.NotificationView { title: 'You are not allowed to create/edit stacks!' }
     return kd.singletons.router.back()
 
-  if type in ['home', 'new']
+  if type is 'new'
     kd.singletons.appManager.tell 'Stackeditor', 'openStackWizard'
   else
     kd.singletons.appManager.open 'Stackeditor', (app) ->
