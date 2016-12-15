@@ -4,6 +4,7 @@ Flex = require './constants'
 
 module.exports = class FlexSplitResizer extends kd.View
 
+
   constructor: (options = {}, data) ->
 
     options.type     ?= Flex.HORIZONTAL
@@ -30,11 +31,17 @@ module.exports = class FlexSplitResizer extends kd.View
 
     @views.push view
 
+    # This will handle expand request of the view, it will set fraction
+    # as Flex.MAX for requested view and will do Flex.MIN for other view
+    # it will also fire the same event which will cause a chain reaction
+    # on parent resizers to do same. It will allow us to expand nested
+    # views up to the parent one ~ GG
     view.on Flex.EVENT_EXPAND, =>
 
       return  if view.hasClass 'expanded'
       view.setClass 'expanded'
 
+      # This will start chain reaction for expanding parent views
       @emit Flex.EVENT_EXPAND
 
       @_updateViewSizes()
@@ -49,9 +56,14 @@ module.exports = class FlexSplitResizer extends kd.View
       @emit Flex.EVENT_EXPANDED, fractions
       view._windowDidResize?()
 
-
+    # This will handle collapse request of the view, it will set fraction
+    # as Flex.MIN for requested view and will do Flex.MAX for other view
+    # it will also fire the same event which will cause a chain reaction
+    # on parent resizers to do same. It will allow us to collapse nested
+    # views up to the parent one ~ GG
     view.on Flex.EVENT_COLLAPSE, =>
 
+      # This will start chain reaction for collapsing parent views
       @emit Flex.EVENT_COLLAPSE
 
       fractions = []
@@ -66,10 +78,19 @@ module.exports = class FlexSplitResizer extends kd.View
 
 
   _updateViewSizes: ->
+    # This will get height or width of given views. This height or width
+    # depends on the type of this FlexSplitResizer. For example; if we've
+    # a horizontal resizer then getter will be `getHeight` look constants.
     @sizes = [
       @views[0][@type.getter]()
       @views[1][@type.getter]()
     ]
+
+    # We need to know totalSize of the view including resizer's width or height
+    # Since we are not defining resizer handle size in code but in style we
+    # need to calculate that size dynamically as well
+    #
+    # This totalSize will become total width or total height of the FlexSplit
     @totalSize = @sizes[0] + @sizes[1] + @[@type.getter]()
 
 
@@ -78,7 +99,11 @@ module.exports = class FlexSplitResizer extends kd.View
 
 
   _updateFractions: (change = 0, set = yes) ->
-
+    # This will calculate fractions for each view and will leave enough space
+    # for the resizer itself as well. For example on a 100px wide FlexSplit
+    # if you have a 4px wide resizer 96px will be distributed on the views.
+    # If they splitted even on the screen then their fractions will become
+    # 48% and 48%, remaining 4% is used by the resizer itself. ~ GG
     for i in [0..1]
       change = -change  if i is 1
       @_fractions[i] = limited ((change + @sizes[i]) / @totalSize) * Flex.MAX
@@ -86,6 +111,8 @@ module.exports = class FlexSplitResizer extends kd.View
 
 
   drag: (event, delta) ->
+    # on drag we are getting the delta based on the axis of this type
+    # of resizer x for VERTICAL, y for HORIZONTAL ptl. constants.
     @_updateFractions delta[@type.axis]
 
 
