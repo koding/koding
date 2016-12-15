@@ -1,5 +1,6 @@
 kd = require 'kd'
 Flex = require './constants'
+FlexSplitResizer = require './resizer'
 
 
 module.exports = class FlexSplit extends kd.View
@@ -25,9 +26,6 @@ module.exports = class FlexSplit extends kd.View
 
 
   createResizer: (view, size) ->
-
-    # This needs to be here to prevent circular dependency ~ GG
-    FlexSplitResizer = require './resizer'
 
     @resizer = @addSubView new FlexSplitResizer { @type, view }
 
