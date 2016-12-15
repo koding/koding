@@ -2,7 +2,7 @@ package machine
 
 import (
 	"fmt"
-	"math"
+	"strconv"
 	"time"
 
 	"koding/klient/machine"
@@ -108,23 +108,32 @@ func PrettyStatus(status machine.Status, now time.Time) string {
 
 // ShortDuration prints time.Duration between tow time points in very short
 // format.
-func ShortDuration(t, now time.Time) string {
+func ShortDuration(t, now time.Time) (out string) {
+	if t.IsZero() {
+		return "-"
+	}
+
 	dur := now.Sub(t)
-
-	if dur.Seconds() < 60.0 {
-		return fmt.Sprintf("%ds", int64(dur.Seconds()))
+	tokens, added := 0, false
+	periods := []time.Duration{
+		24 * time.Hour,
+		time.Hour,
+		time.Minute,
+		time.Second,
 	}
 
-	if dur.Minutes() < 60.0 {
-		secs := math.Mod(dur.Seconds(), 60)
-		return fmt.Sprintf("%dm %ds", int64(dur.Minutes()), int64(secs))
+	for i, suffix := range "dhms" {
+		if tokens >= 2 && added {
+			return out
+		}
+
+		if n := int(dur / periods[i]); n > 0 {
+			out += strconv.Itoa(n) + string(suffix)
+			dur -= time.Duration(n) * periods[i]
+			added = true
+			tokens++
+		}
 	}
 
-	if dur.Hours() < 24.0 {
-		mins := math.Mod(dur.Minutes(), 60)
-		return fmt.Sprintf("%dh %dm", int64(dur.Hours()), int64(mins))
-	}
-
-	hours := math.Mod(dur.Hours(), 24)
-	return fmt.Sprintf("%dd %dh", int64(dur.Hours()/24), int64(hours))
+	return out
 }
