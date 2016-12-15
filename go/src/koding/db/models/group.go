@@ -7,13 +7,23 @@ import (
 const (
 	// KDIOGroupName holds the team name of the kd.io service.
 	KDIOGroupName = "kd-io"
-
-	// PaymentStatusActive holds active payment status
-	PaymentStatusActive = "active"
-
-	// PaymentStatusTrailing holds trailing payment status
-	PaymentStatusTrailing = "trialing"
 )
+
+// SubStatus stores the current status of subscription.
+type SubStatus string
+
+const (
+	SubStatusTrailing SubStatus = "trialing"
+	SubStatusActive   SubStatus = "active"
+	SubStatusPastDue  SubStatus = "past_due"
+	SubStatusCanceled SubStatus = "canceled"
+	SubStatusUnpaid   SubStatus = "unpaid"
+)
+
+// Active returns true when subscription is considered to be active.
+func (s SubStatus) Active() bool {
+	return s == SubStatusActive || s == SubStatusTrailing
+}
 
 type Group struct {
 	Id                             bson.ObjectId            `bson:"_id" json:"-"`
@@ -46,8 +56,8 @@ type Payment struct {
 // Subscription holds customer-plan subscription related info
 type Subscription struct {
 	// Allowed values are "trialing", "active", "past_due", "canceled", "unpaid".
-	Status string `bson:"status" json:"status"`
-	ID     string `bson:"id" json:"id"`
+	Status SubStatus `bson:"status" json:"status"`
+	ID     string    `bson:"id" json:"id"`
 }
 
 // Customer is the group's customer info from payment provider
@@ -60,10 +70,5 @@ type Customer struct {
 
 // IsSubActive checks if subscription is in valid state for operation
 func (g *Group) IsSubActive() bool {
-	switch g.Payment.Subscription.Status {
-	case PaymentStatusActive, PaymentStatusTrailing:
-		return true
-	default:
-		return false
-	}
+	return g.Payment.Subscription.Status.Active()
 }
