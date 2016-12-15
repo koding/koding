@@ -30,7 +30,7 @@ func StopCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	err = WaitUntilStopped(config.Konfig.KlientURL, CommandAttempts, CommandWaitTime)
+	err = WaitUntilStopped(config.Konfig.Endpoints.Klient.Private.String(), CommandAttempts, CommandWaitTime)
 	if err != nil {
 		log.Error(
 			"Timed out while waiting for Klient to start. attempts:%d, err:%s",

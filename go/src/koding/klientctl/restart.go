@@ -27,7 +27,7 @@ func RestartCommand(c *cli.Context, log logging.Logger, _ string) int {
 
 	fmt.Printf("Restarting the %s, this may take a moment...\n", config.KlientName)
 
-	klientWasRunning := IsKlientRunning(config.Konfig.KlientURL)
+	klientWasRunning := IsKlientRunning(config.Konfig.Endpoints.Klient.Private.String())
 
 	if klientWasRunning {
 		// If klient is running, stop it, and tell the user if we fail
@@ -42,7 +42,7 @@ func RestartCommand(c *cli.Context, log logging.Logger, _ string) int {
 		s.Stop()
 	}
 
-	err = WaitUntilStopped(config.Konfig.KlientURL, CommandAttempts, CommandWaitTime)
+	err = WaitUntilStopped(config.Konfig.Endpoints.Klient.Private.String(), CommandAttempts, CommandWaitTime)
 	if err != nil {
 		log.Error(
 			"Timed out while waiting for Klient to start. attempts:%d, err:%s",

@@ -1,7 +1,6 @@
 package remoteapi
 
 import (
-	"net/url"
 	"sync"
 
 	"koding/api"
@@ -34,10 +33,7 @@ func (c *Client) init() {
 func (c *Client) initClient() {
 	c.c = &remoteapi.Client{
 		Transport: endpoint.Transport(c.kloud()),
-	}
-
-	if u, err := url.Parse(config.Konfig.RemoteURL); err == nil {
-		c.c.Endpoint = u
+		Endpoint:  config.Konfig.Endpoints.Remote().Public.URL,
 	}
 }
 

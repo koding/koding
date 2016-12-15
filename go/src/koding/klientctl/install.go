@@ -204,7 +204,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 
 	fmt.Println("Downloading...")
 
-	version, err := latestVersion(config.Konfig.KlientLatestURL)
+	version, err := latestVersion(config.Konfig.Endpoints.KlientLatest.Public.String())
 	if err != nil {
 		fmt.Printf(FailedDownloadingKlient)
 		return 1, fmt.Errorf("error getting latest klient version: %s", err)
@@ -299,7 +299,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 	}
 
 	fmt.Println("Verifying installation...")
-	err = WaitUntilStarted(config.Konfig.KlientURL, CommandAttempts, CommandWaitTime)
+	err = WaitUntilStarted(config.Konfig.Endpoints.Klient.Private.String(), CommandAttempts, CommandWaitTime)
 
 	// After X times, if err != nil we failed to connect to klient.
 	// Inform the user.

@@ -121,10 +121,7 @@ func (kt *KiteTransport) kite() *kite.Kite {
 	}
 
 	kt.k = kite.New(config.Name, config.KiteVersion)
-	kt.k.Config = config.Konfig.KiteConfig()
-	kt.k.Config.KontrolURL = config.Konfig.KontrolURL
-	kt.k.Config.Environment = config.Environment
-	kt.k.Config.Transport = kitecfg.XHRPolling
+	kt.k.Config = kt.kiteConfig()
 	kt.k.Log = kt.Log
 
 	return kt.k
@@ -136,7 +133,7 @@ func (kt *KiteTransport) kiteConfig() *kitecfg.Config {
 	}
 
 	kt.kCfg = config.Konfig.KiteConfig()
-	kt.kCfg.KontrolURL = config.Konfig.KontrolURL
+	kt.kCfg.KontrolURL = config.Konfig.Endpoints.Kontrol().Public.String()
 	kt.kCfg.Environment = config.Environment
 	kt.kCfg.Transport = kitecfg.XHRPolling
 
@@ -148,7 +145,7 @@ func (kt *KiteTransport) kloud() (*kite.Client, error) {
 		return kt.kKloud, nil
 	}
 
-	kloud := kt.kite().NewClient(config.Konfig.KloudURL)
+	kloud := kt.kite().NewClient(config.Konfig.Endpoints.Kloud().Public.String())
 
 	if err := kloud.DialTimeout(kt.DialTimeout); err != nil {
 		query := &protocol.KontrolQuery{

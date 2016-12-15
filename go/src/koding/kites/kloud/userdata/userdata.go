@@ -49,7 +49,7 @@ type CloudInitConfig struct {
 	KiteKey string
 
 	LatestKlientURL string // URL of the latest version of the Klient package
-	KontrolURL      string // kontrol kite URL
+	KodingURL       string // koding base URL
 	TunnelURL       string // tunnelserver kite URL
 
 	// DisableEC2Metadata adds a nul route to AWS's metadata service so it
@@ -112,8 +112,14 @@ write_files:
     content: |-
       {
           "konfig": {
-              "kontrolURL": "{{.KontrolURL}}",
-              "tunnelURL": "{{.TunnelURL}}"
+              "endpoints": {
+                  "koding": {
+                      "public": "{{.KodingURL}}"
+                  },
+                  "tunnel": {
+                      "public": "{{.TunnelURL}}"
+                  }
+              }
           }
       }
 
@@ -195,8 +201,12 @@ func (u *Userdata) Create(c *CloudInitConfig) ([]byte, error) {
 
 	c.UserSSHKeys = validatedKeys
 
-	if c.KontrolURL == "" {
-		c.KontrolURL = u.Keycreator.KontrolURL
+	if c.KodingURL == "" {
+		if u, err := url.Parse(u.Keycreator.KontrolURL); err == nil {
+			// TODO(rjeczalik): rework kloud to use koding/kites/config package
+			u.Path = ""
+			c.KodingURL = u.String()
+		}
 	}
 
 	if c.TunnelURL == "" {
