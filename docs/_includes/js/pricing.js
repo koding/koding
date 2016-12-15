@@ -7,7 +7,7 @@ var ready = function($) {
 
   var $more = $("#Pricing-PriceSegments--more");
   var $hide = $("#Pricing-PriceSegments--close");
-  var $show = $("#Pricing-PriceSegments--showMore");
+  var $show = $(".Pricing-PriceSegments--showMore");
   var $main = $("#Pricing-PriceSegments--devTeams");
   var dropdownOptions = $('.Dropdown .Dropdown-options a');
 
