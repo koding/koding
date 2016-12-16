@@ -1,8 +1,15 @@
 kd = require 'kd'
 { markAsLoaded, log } = require './helpers'
 AppController = require 'app/appcontroller'
+showErrorNotification = require 'app/util/showErrorNotification'
+StackEditor = require './views'
 
 do require './routehandler'
+
+Errors      =
+  NotExists :
+    name    : 'NOT_EXISTS'
+    message : 'Resource not found'
 
 # Set cookie to enable new stack editor:
 #
@@ -16,6 +23,7 @@ module.exports = class StackEditorAppController extends AppController
 
   @options     =
     name       : 'Stackeditor'
+    customName : 'new-stack-editor'
     behavior   : 'application'
 
   constructor: (options = {}, data) ->
@@ -25,11 +33,18 @@ module.exports = class StackEditorAppController extends AppController
 
     super options, data
 
+    @templates = {}
+    @mainView.addSubView @editor = new StackEditor
+
 
   openEditor: (stackTemplateId) ->
 
     console.trace()
     log '::openEditor', stackTemplateId
+
+    @fetchStackTemplate stackTemplateId, (err, template) =>
+      return showErrorNotification err  if err
+      @editor.setData template
 
     markAsLoaded stackTemplateId
 
@@ -47,3 +62,15 @@ module.exports = class StackEditorAppController extends AppController
     console.trace()
     log '::reloadEditor', templateId, skipDataUpdate
 
+
+  fetchStackTemplate: (templateId, callback) ->
+
+    if template = @templates[templateId]
+      return callback null, template
+
+    cc = kd.singletons.computeController
+    cc.fetchStackTemplate templateId, (err, template) =>
+      return callback err  if err
+      return callback Errors.NotExists  unless template
+
+      callback null, @templates[templateId] = template
