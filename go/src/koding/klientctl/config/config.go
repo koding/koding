@@ -96,7 +96,7 @@ func VersionNum() int {
 }
 
 func S3Klient(version int, env string) string {
-	s3dir := dirURL(Konfig.KlientLatestURL, kd2klient(env))
+	s3dir := dirURL(Konfig.Endpoints.KlientLatest.Public.String(), kd2klient(env))
 
 	// TODO(rjeczalik): klient uses a URL without $GOOS_$GOARCH suffix for
 	// auto-updates. Remove the special case when a redirect is deployed
@@ -110,7 +110,7 @@ func S3Klient(version int, env string) string {
 }
 
 func S3Klientctl(version int, env string) string {
-	return fmt.Sprintf("%s/kd-0.1.%d.%s_%s.gz", dirURL(Konfig.KDLatestURL, env),
+	return fmt.Sprintf("%s/kd-0.1.%d.%s_%s.gz", dirURL(Konfig.Endpoints.KDLatest.Public.String(), env),
 		version, runtime.GOOS, runtime.GOARCH,
 	)
 }

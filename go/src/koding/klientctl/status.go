@@ -52,10 +52,10 @@ func NewDefaultHealthChecker(l kodinglogging.Logger) *HealthChecker {
 	return &HealthChecker{
 		Log:                  l.New("HealthChecker"),
 		HTTPClient:           defaultClient,
-		LocalKlientAddress:   config.Konfig.KlientURL,
-		KontrolAddress:       config.Konfig.KontrolURL,
-		InternetCheckAddress: config.Konfig.KlientLatestURL,
-		TunnelKiteAddress:    config.Konfig.TunnelURL,
+		LocalKlientAddress:   config.Konfig.Endpoints.Klient.Private.String(),
+		KontrolAddress:       config.Konfig.Endpoints.Kontrol().Public.String(),
+		InternetCheckAddress: config.Konfig.Endpoints.KlientLatest.Public.String(),
+		TunnelKiteAddress:    config.Konfig.Endpoints.Tunnel.Public.String(),
 	}
 }
 

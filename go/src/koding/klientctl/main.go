@@ -444,6 +444,10 @@ func run(args []string) {
 							Name:  "defaults",
 							Usage: "Show also default configuration",
 						},
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
 					},
 				}, {
 					Name:   "set",

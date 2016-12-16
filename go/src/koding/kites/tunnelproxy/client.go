@@ -92,7 +92,7 @@ func (opts *ClientOptions) tunnelKiteURL() string {
 		return opts.TunnelKiteURL
 	}
 
-	return cfg.Builtin.Endpoints.TunnelServer
+	return cfg.Builtin.Endpoints.TunnelServer.Public.String()
 }
 
 func (opts *ClientOptions) maxRegisterRetry() int {
