@@ -1,5 +1,5 @@
 nick = require './nick'
-pokemon = require 'pokemon-random-name'
+getPokemonName = require './getPokemonName'
 
 module.exports = generateStackTemplateTitle = (provider) ->
 
@@ -7,4 +7,4 @@ module.exports = generateStackTemplateTitle = (provider) ->
   then " #{provider.capitalize()} "
   else ' '
 
-  "#{(pokemon() ? nick()).capitalize()}#{provider}Stack"
+  "#{(getPokemonName() ? nick()).capitalize()}#{provider}Stack"
