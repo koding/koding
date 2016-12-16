@@ -297,9 +297,11 @@ func migrateKiteKey(cache *config.Cache) error {
 		return nil
 	}
 
+	defaultKitekey := config.NewKonfig(&config.Environments{Env: konfig.Environment}).KiteKeyFile
 	kitekey := konfig.KiteKeyFile
+
 	if kitekey == "" {
-		kitekey = config.NewKonfig(&config.Environments{Env: konfig.Environment}).KiteKeyFile
+		kitekey = defaultKitekey
 	}
 
 	if _, err := os.Stat(kitekey); err != nil {
@@ -311,6 +313,10 @@ func migrateKiteKey(cache *config.Cache) error {
 	p, err := ioutil.ReadFile(kitekey)
 	if err != nil {
 		return err
+	}
+
+	if konfig.KiteKeyFile == defaultKitekey {
+		konfig.KiteKeyFile = ""
 	}
 
 	konfig.KiteKey = string(p)

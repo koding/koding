@@ -450,9 +450,10 @@ func run(args []string) {
 						},
 					},
 				}, {
-					Name:   "list",
-					Usage:  "List all available configurations.",
-					Action: ctlcli.ExitErrAction(ConfigList, log, "list"),
+					Name:      "list",
+					ShortName: "ls",
+					Usage:     "List all available configurations.",
+					Action:    ctlcli.ExitErrAction(ConfigList, log, "list"),
 					Flags: []cli.Flag{
 						cli.BoolFlag{
 							Name:  "json",
