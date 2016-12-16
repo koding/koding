@@ -32,6 +32,8 @@ var DefaultClient = &Client{}
 
 type Client struct {
 	CacheOpts *config.CacheOptions
+	Home      string       // uses config.KodingHome by default
+	Owner     *config.User // uses config.CurrentUser by default
 
 	once sync.Once // for c.init()
 }
@@ -95,7 +97,7 @@ func (c *Client) Used() (*config.Konfig, error) {
 func (c *Client) CacheOptions(app string) *config.CacheOptions {
 	c.init()
 
-	oldFile := filepath.Join(config.KodingHome(), app+".bolt")
+	oldFile := filepath.Join(c.home(), app+".bolt")
 	file := c.boltFile(app)
 
 	if _, err := os.Stat(file); oldFile != file && os.IsNotExist(err) {
@@ -115,7 +117,7 @@ func (c *Client) CacheOptions(app string) *config.CacheOptions {
 
 	// Best-effort attempts, ignore errors.
 	_ = os.MkdirAll(dir, 0755)
-	_ = util.Chown(dir, config.CurrentUser.User)
+	_ = util.Chown(dir, c.owner().User)
 
 	return &config.CacheOptions{
 		File: file,
@@ -199,6 +201,20 @@ func (c *Client) commit(fn func(*config.Cache) error) error {
 	return nonil(fn(cache), cache.Close())
 }
 
+func (c *Client) home() string {
+	if c.Home != "" {
+		return c.Home
+	}
+	return config.KodingHome()
+}
+
+func (c *Client) owner() *config.User {
+	if c.Owner != nil {
+		return c.Owner
+	}
+	return config.CurrentUser
+}
+
 func makeUsedFunc(konfig *config.Konfig) func(cache *config.Cache) error {
 	return func(cache *config.Cache) error {
 		var used usedKonfig
@@ -224,20 +240,15 @@ func makeUsedFunc(konfig *config.Konfig) func(cache *config.Cache) error {
 
 func makeUseFunc(konfig *config.Konfig) func(cache *config.Cache) error {
 	return func(cache *config.Cache) error {
-		id := konfig.ID()
-
 		konfigs := make(config.Konfigs)
 
 		if err := cache.GetValue("konfigs", &konfigs); isFatal(err) {
 			return err
 		}
 
-		konfigs[id] = konfig
+		konfigs[konfig.ID()] = konfig
 
-		return nonil(
-			cache.SetValue("konfigs", konfigs),
-			cache.SetValue("konfigs.used", &usedKonfig{ID: id}),
-		)
+		return cache.SetValue("konfigs", konfigs)
 	}
 }
 

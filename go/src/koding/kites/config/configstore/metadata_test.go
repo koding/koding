@@ -1,46 +1,42 @@
-package config_test
+package configstore_test
 
 import (
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"reflect"
-	"strings"
 	"testing"
-	"time"
 
 	"koding/kites/config"
-
-	"github.com/boltdb/bolt"
+	"koding/kites/config/configstore"
 )
 
 func TestDumpToBolt(t *testing.T) {
 	cases := map[string]struct {
-		want, got config.Metadata
+		want, got configstore.Metadata
 	}{
 		"simple kite.key config": {
-			config.Metadata{
+			configstore.Metadata{
 				"konfig": &config.Konfig{
 					KiteKeyFile: "/tmp/kite.key",
 				},
 			},
-			config.Metadata{
+			configstore.Metadata{
 				"konfig": &config.Konfig{},
 			},
 		},
 		"generic value": {
-			config.Metadata{
+			configstore.Metadata{
 				"klient.tunnel.services": map[string]interface{}{
 					"service 1": "ssh",
 					"service 2": "kite",
 				},
 			},
-			config.Metadata{
+			configstore.Metadata{
 				"klient.tunnel.services": nil,
 			},
 		},
 		"multiple databases": {
-			config.Metadata{
+			configstore.Metadata{
 				"database1.bucket.key": map[string]interface{}{
 					"config #1": "value #1",
 					"config #2": "value #2",
@@ -50,13 +46,13 @@ func TestDumpToBolt(t *testing.T) {
 					"config #4": "value #4",
 				},
 			},
-			config.Metadata{
+			configstore.Metadata{
 				"database1.bucket.key": nil,
 				"database2.bucket.key": nil,
 			},
 		},
 		"multiple databases with multiple buckets": {
-			config.Metadata{
+			configstore.Metadata{
 				"database1.bucket1.key": map[string]interface{}{
 					"config": "value",
 				},
@@ -70,7 +66,7 @@ func TestDumpToBolt(t *testing.T) {
 					"config": "value",
 				},
 			},
-			config.Metadata{
+			configstore.Metadata{
 				"database1.bucket1.key": nil,
 				"database1.bucket2.key": nil,
 				"database2.bucket1.key": nil,
@@ -85,18 +81,22 @@ func TestDumpToBolt(t *testing.T) {
 	}
 	defer os.RemoveAll(dir)
 
+	c := &configstore.Client{
+		Home: dir,
+	}
+
 	for name, cas := range cases {
 		t.Run(name, func(t *testing.T) {
-			err := config.DumpToBolt(dir, cas.want, nil)
+			err := c.WriteMetadata(cas.want)
 
 			if err != nil {
-				t.Fatalf("DumpToBolt()=%s", err)
+				t.Fatalf("WriteMetadata()=%s", err)
 			}
 
-			err = ReadFromBolt(dir, cas.got)
+			err = c.ReadMetadata(cas.got)
 
 			if err != nil {
-				t.Fatalf("ReadFromBolt()=%s", err)
+				t.Fatalf("ReadMetadata()=%s", err)
 			}
 
 			if !reflect.DeepEqual(cas.got, cas.want) {
@@ -104,74 +104,4 @@ func TestDumpToBolt(t *testing.T) {
 			}
 		})
 	}
-}
-
-// TODO(rjeczalik): merge with DumpToBult - create BoltMetadata struct.
-func ReadFromBolt(home string, m config.Metadata) error {
-	var de config.DumpError
-
-	if home == "" {
-		home = config.KodingHome()
-	}
-
-	for key, value := range m {
-		var file, bucket, keyValue string
-
-		switch s := strings.SplitN(key, ".", 3); len(s) {
-		case 1:
-			file = s[0]
-			bucket = s[0]
-			keyValue = s[0]
-		case 2:
-			file = s[0]
-			bucket = s[1]
-			keyValue = s[1]
-		case 3:
-			file = s[0]
-			bucket = s[1]
-			keyValue = s[2]
-		}
-
-		db, err := config.NewBoltCache(&config.CacheOptions{
-			File: filepath.Join(home, file+".bolt"),
-			BoltDB: &bolt.Options{
-				Timeout: 5 * time.Second,
-			},
-			Bucket: []byte(bucket),
-		})
-
-		if err != nil {
-			de.Errs = append(de.Errs, &config.MetadataError{
-				Key: key,
-				Err: err,
-			})
-			continue
-		}
-
-		if value == nil {
-			v := make(map[string]interface{})
-			value = &v
-			m[key] = v
-		}
-
-		err = db.GetValue(keyValue, value)
-
-		if e := db.Close(); e != nil && err == nil {
-			err = e
-		}
-
-		if err != nil {
-			de.Errs = append(de.Errs, &config.MetadataError{
-				Key: key,
-				Err: err,
-			})
-			continue
-		}
-	}
-
-	if len(de.Errs) == 0 {
-		return nil
-	}
-
-	return &de
 }
