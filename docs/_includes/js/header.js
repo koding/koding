@@ -6,26 +6,26 @@ document.addEventListener('scroll', function(event){
   var scrollTop = window.scrollY || $('html, body').scrollTop();
 
   if (scrollTop < 100) {
-    if (!document.body.classList.contains('StickyHeader')) {
+    if (!$(document.body).hasClass('StickyHeader')) {
       return null;
     }
-    document.body.classList.remove('StickyHeader');
+    $(document.body).removeClass('StickyHeader');
   } else if (scrollTop < 710) {
-    if (!document.body.classList.contains('StickyHeader')) {
+    if (!$(document.body).hasClass('StickyHeader')) {
       return null;
     }
-    document.body.classList.remove('in');
+    $(document.body).removeClass('in');
     setTimeout(function(){
-      document.body.classList.remove('StickyHeader');
+      $(document.body).removeClass('StickyHeader');
     }, 400);
   } else {
 
-    if (document.body.classList.contains('StickyHeader')) {
+    if ($(document.body).hasClass('StickyHeader')) {
       return null;
     }
-    document.body.classList.add('StickyHeader');
+    $(document.body).addClass('StickyHeader');
     setTimeout(function(){
-      document.body.classList.add('in');
+      $(document.body).addClass('in');
     }, 400);
   }
 

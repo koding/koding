@@ -8,6 +8,10 @@ permalink: /
     display: flex;
   }
 </style>
+
+<!-- ie 10/11 style fixes -->
+<style>@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) { {% include css/index-ie.css %} }</style>
+
 {% include home/svgs.html %}
 <!-- HEADER -->
 {% include header.html
@@ -23,8 +27,8 @@ permalink: /
 {% include home/content-with-video.html
    img_src="/assets/img/landing/home/how-koding-works-placeholder.png"
    img2x_src="/assets/img/landing/home/how-koding-works-placeholder@2x.png"
-   video_id="dlFs8qPOOWA"
-   video_title="Koding Introduction"
+   video_id="POI7Mtlv94k"
+   video_title="What is Koding?"
    heading="KODING SOLUTION"
    title="Dev Environments as Code, Powerful Collaboration and Analytics"
    description="Koding provides an interface for developers and team managers to streamline dev workflows in the cloud without slowing down freedom and creativity. Spend less time configuring and more time building!"
@@ -150,7 +154,7 @@ permalink: /
 
 <div class='Homepage-outro Homepage--containerOffset'>
   <h4 class="title center">WE LOVE TO GIVE BACK</h4>
-  <h3 class="title center">Koding is Free for Open Source, Education and small teams</h3>
+  <h3 class="title center">Koding is Free for Open Source, Education and Startups</h3>
   <a class="cta" target="_blank" href="https://docs.google.com/a/koding.com/forms/d/e/1FAIpQLSfW8ccPQBpeHyDBmiyDdDtwjjQLSv4iPWToVhvpZ_jbh4t-cA/viewform?c=0&w=1">Request Form</a>
 </div>
 
@@ -159,7 +163,10 @@ permalink: /
 <!-- FOOTER -->
 {% include footer.html %}
 
-<style>{% include css/index-ie.css %}</style>
+<!-- ie 8/9 style fixes -->
+<!--[if lte IE 9]>
+  <style>{% include css/index-ie.css %}</style>
+<![endif]-->
 
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
