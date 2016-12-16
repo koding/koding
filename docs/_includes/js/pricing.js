@@ -9,6 +9,7 @@ var ready = function($) {
   var $hide = $("#Pricing-PriceSegments--close");
   var $show = $(".Pricing-PriceSegments--showMore");
   var $main = $("#Pricing-PriceSegments--devTeams");
+  var $footnotes = $("#footnotes");
   var dropdownOptions = $('.Dropdown .Dropdown-options a');
 
   $hide.click(function(event){
@@ -48,6 +49,15 @@ var ready = function($) {
     var $price = $self.closest('.Pricing-PriceSegments--priceSection').find('.first-line');
     $price.html(userCounts[val]);
   });
+
+  $footnotes.find('h3').click(function() {
+    var $self = $(this);
+    $self.next().toggle();
+  });
+
+  if (/footnotes/.test(document.location.hash)) {
+    $footnotes.find('h3').next().show();
+  }
 
 }
 

@@ -1176,6 +1176,46 @@ a:hover {
   height: 48px;
 }
 
+.Pricing-Footnotes {
+  background-color: #F9F9FB;
+  border-top: 1px solid #EBEBEB;
+  text-align: left;
+}
+.Pricing-Footnotes h2 {
+  font-weight: 300;
+  font-size: 28px;
+  color: #7F7E9E;
+  letter-spacing: -0.34px;
+  line-height: 46px;
+}
+.Pricing-Footnotes h3 {
+  font-weight: 300;
+  font-size: 18px;
+  color: #727272;
+  letter-spacing: 0.06px;
+  line-height: 24px;
+  margin: 20px 0 0;
+  cursor: pointer;
+}
+.Pricing-Footnotes ul {
+  display: none;
+  padding-left: 20px;
+  box-sizing: border-box;
+  margin-top: 20px;
+}
+.Pricing-Footnotes ul li {
+  font-size: 14px;
+  color: rgba(127,126,157,0.70);
+  letter-spacing: -0.17px;
+  line-height: 20px;
+  margin-bottom: 20px;
+}
+.Pricing-Footnotes ul li a,
+.Pricing-Footnotes ul li a:visited {
+  color: #67A2EE;
+}
+
+
 @media
 (-webkit-min-device-pixel-ratio: 2),
 (min-resolution: 192dpi) {
