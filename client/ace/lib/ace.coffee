@@ -580,7 +580,13 @@ module.exports = class Ace extends kd.View
 
   setEnableEmmet: (value, save = yes) ->
 
+    if value
+      window.emmet ?= require 'emmet'
+      require 'brace/ext/emmet'
+      ace.acequire 'ace/ext/emmet'
 
+    @editor.setOption 'enableEmmet', value
+    @appStorage.setValue 'enableEmmet', value  if save
 
 
   setEnableSnippets: (value, save = yes) ->
