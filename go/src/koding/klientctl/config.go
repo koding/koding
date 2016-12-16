@@ -171,6 +171,6 @@ func printKonfigs(konfigs []*konfig.Konfig) {
 	fmt.Fprintln(w, "ID\tKODING URL")
 
 	for _, konfig := range konfigs {
-		fmt.Fprintf(w, "%s\t%s\n", konfig.ID(), konfig.Endpoints.Koding.Public)
+		fmt.Fprintf(w, "%s\t%s\n", konfig.ID(), konfig.KodingPublic())
 	}
 }

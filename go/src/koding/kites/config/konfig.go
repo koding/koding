@@ -58,6 +58,8 @@ func (e *Endpoints) Social() *Endpoint {
 type Konfig struct {
 	Endpoints *Endpoints `json:"endpoints,omitempty"`
 
+	KontrolURL string `json:"kontrolURL,omitempty"` // deprecated / read-only
+
 	// Kite configuration.
 	Environment string `json:"environment,omitempty"`
 	KiteKeyFile string `json:"kiteKeyFile,omitempty"`
@@ -94,6 +96,11 @@ func (k *Konfig) KlientGzURL() string {
 }
 
 func (k *Konfig) Valid() error {
+	// TODO(rjeczalik): remove when KontrolURL is gone
+	if _, err := url.Parse(k.KontrolURL); err == nil && k.KontrolURL != "" {
+		return nil
+	}
+
 	if k.Endpoints == nil {
 		return errors.New("endpoints are nil")
 	}
@@ -107,8 +114,29 @@ func (k *Konfig) Valid() error {
 }
 
 func (k *Konfig) ID() string {
-	hash := sha1.Sum([]byte(k.Endpoints.Koding.Public.String()))
+	hash := sha1.Sum([]byte(k.KodingPublic().String()))
 	return hex.EncodeToString(hash[:4])
+}
+
+// KodingPublic is here for backward-compatibility purposes.
+//
+// Old klient and kd deployments may not have .Endpoints configuration
+// on a first run, this is why we fallback to old KontrolURL field.
+//
+// Which we should eventually get rid of.
+//
+// Deprecated: Use k.Endpoints.Koding.Public instead.
+func (k *Konfig) KodingPublic() *url.URL {
+	if e := k.Endpoints; e != nil && e.Koding != nil && e.Koding.Public != nil {
+		return e.Koding.Public.URL
+	}
+
+	if u, err := url.Parse(k.KontrolURL); err == nil {
+		u.Path = "/"
+		return u
+	}
+
+	return nil
 }
 
 func (k *Konfig) buildKiteConfig() *konfig.Config {
