@@ -189,8 +189,8 @@ body.ace
           background        #f7f7f7
 
 .ace_editor.ace_autocomplete
-  border-radius  3px
-  border-color   #383838
+  border                    none !important
+  background                #000 !important
 
   .ace_text-layer
     padding      0
@@ -214,6 +214,22 @@ body.ace
 
     .ace_completion-highlight
       color      lightblue
+
+
+.ace_doc-tooltip
+  background                #222        !important
+  color                     #999        !important
+  font-size                 11px        !important
+  word-wrap                 break-word  !important
+  max-width                 500px       !important
+  white-space               pre-wrap    !important
+  word-break                break-all   !important
+  hr
+    border                  1px solid
+    border-bottom           none
+  b
+    font-weight             bold
+
 
 .ace-find-replace-view
   display                   block
