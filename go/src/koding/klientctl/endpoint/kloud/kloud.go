@@ -65,6 +65,13 @@ func (c *Client) Cache() *cfg.Cache {
 	return c.cache
 }
 
+func (c *Client) Username() string {
+	if kt, ok := c.Transport.(*KiteTransport); ok {
+		return kt.kiteConfig().Username
+	}
+	return cfg.CurrentUser.Username
+}
+
 func (c *Client) Call(method string, arg, reply interface{}) error {
 	return c.Transport.Call(method, arg, reply)
 }
@@ -179,7 +186,7 @@ func (kt *KiteTransport) Valid() error {
 }
 
 func Cache() *cfg.Cache { return DefaultClient.Cache() }
-
+func Username() string  { return DefaultClient.Username() }
 func Call(method string, arg, reply interface{}) error {
 	return DefaultClient.Call(method, arg, reply)
 }

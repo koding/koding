@@ -8,7 +8,7 @@ module.exports = paymentMiddleware = (service) -> (store) -> (next) -> (action) 
 
   next
     types: types or generateTypes type
-    promise: -> payment(service, { getState: store.getState })
+    promise: -> payment(service, store)
 
 
 generateTypes = (type) -> [

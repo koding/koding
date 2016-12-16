@@ -251,6 +251,14 @@ func (s *Stacker) BaseStack(ctx context.Context) (*BaseStack, error) {
 
 	bs.Builder = NewBuilder(builderOpts)
 
+	if err := bs.Builder.BuildTeam(req.GroupName); err != nil {
+		return nil, err
+	}
+
+	if !bs.Builder.Team.IsSubActive() {
+		return nil, stack.NewError(stack.ErrTeamSubIsNotActive)
+	}
+
 	return bs, nil
 }
 

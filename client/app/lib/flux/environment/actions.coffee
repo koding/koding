@@ -19,7 +19,7 @@ requirementsParser = require 'app/util/stacks/requirementsparser'
 generateStackTemplateTitle = require 'app/util/generateStackTemplateTitle'
 Tracker = require 'app/util/tracker'
 $ = require 'jquery'
-
+canCreateStacks = require 'app/util/canCreateStacks'
 _eventsCache = { machine: {}, stack: no }
 
 _bindMachineEvents = (environmentData) ->
@@ -81,12 +81,12 @@ _bindStackEvents = ->
 
 _bindTemplateEvents = (stackTemplate) ->
 
-  { reactor } = kd.singletons
+  { reactor, computeController } = kd.singletons
 
   { _id: id } = stackTemplate
 
   stackTemplate.on 'update', ->
-    reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
+    computeController.checkRevisionFromOriginalStackTemplate stackTemplate
   stackTemplate.on 'deleteInstance', ->
     reactor.dispatch actions.REMOVE_STACK_TEMPLATE_SUCCESS, { id }
 
@@ -818,12 +818,14 @@ setLabel = (machineUId, label) ->
         return reject err  if err
         resolve newLabel
 
-cloneStackTemplate = (template, revive) ->
+cloneStackTemplate = (template) ->
+
+  unless canCreateStacks()
+    return new kd.NotificationView { title: 'You are not allowed to create/edit stacks!' }
 
   new kd.NotificationView { title:'Cloning Stack Template' }
 
   { reactor } = kd.singletons
-  template = remote.revive template  if revive
 
   template.clone (err, stackTemplate) ->
     if err

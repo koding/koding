@@ -120,7 +120,7 @@ Login with an admin/master GitHub user account. Use the account to login to Gith
 
 - Using the admin/master user [create SSH key](https://help.github.com/articles/generating-a-new-ssh-key/)
 - Add the PUBLIC KEY to the admin GitHub account, for steps [click here](https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/)
-- Create a [personal access token](https://github.com/settings/tokens/new), and check scopes **`repo, admin:org, admin:public_key, user`**
+- Create a [personal access token](https://github.com/settings/tokens/new), and check scopes **`repo, admin:public_key, user`**
 
 ### Step 3 - Create the stack:
 
@@ -231,7 +231,7 @@ Edit the Readme message to educate your developers and save even more time. Let 
 >
 >- Enter your Github username
 >- Enter your Github Key [click here to generate one](https://github.com/settings/tokens/)
->- Select these in the token while generating key: [repo, admin:org, admin:public_key, user](http://take.ms/)
+>- Select these in the token while generating key: [repo, admin:public_key, user](http://take.ms/)
 >- Enter your private and public ssh key
 
 Happy Koding!

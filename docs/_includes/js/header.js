@@ -1,14 +1,16 @@
 document.addEventListener('scroll', function(event){
 
-  header = document.querySelectorAll('header.Homepage-Header').item(0);
+  var header = document.querySelectorAll('header.Homepage-Header').item(0);
   if (!header) return null;
 
-  if (document.body.scrollTop < 100) {
+  var scrollTop = window.scrollY || $('html, body').scrollTop();
+
+  if (scrollTop < 100) {
     if (!document.body.classList.contains('StickyHeader')) {
       return null;
     }
     document.body.classList.remove('StickyHeader');
-  } else if (document.body.scrollTop < 780) {
+  } else if (scrollTop < 710) {
     if (!document.body.classList.contains('StickyHeader')) {
       return null;
     }

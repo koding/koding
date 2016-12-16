@@ -8,6 +8,7 @@
     {% assign icon = row[0] | strip | prepend: 'icon-' %}
     {% assign title = row[1] | strip %}
     {% assign desc = row[2] | strip %}
+
     <div class='Homepage-Column'>
       <svg xmlns="http://www.w3.org/2000/svg"><use xlink:href="#{{ icon }}"></use></svg>
       <h4 class="title">{{ title }}</h4>

@@ -19,6 +19,12 @@ import (
 	"sync"
 	"time"
 
+	"koding/api"
+	"koding/api/apiutil"
+	"koding/api/presence"
+	"koding/httputil"
+	cfg "koding/kites/config"
+	"koding/kites/kloud/stack"
 	"koding/klient/client"
 	"koding/klient/collaboration"
 	"koding/klient/command"
@@ -28,6 +34,8 @@ import (
 	"koding/klient/info"
 	"koding/klient/info/publicip"
 	"koding/klient/logfetcher"
+	"koding/klient/machine"
+	"koding/klient/machine/machinegroup"
 	kos "koding/klient/os"
 	"koding/klient/remote"
 	"koding/klient/sshkeys"
@@ -42,6 +50,7 @@ import (
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/kitekey"
+	"github.com/koding/kite/kontrol/onceevery"
 	kiteproto "github.com/koding/kite/protocol"
 	"github.com/koding/kite/sockjsclient"
 )
@@ -106,6 +115,11 @@ type Klient struct {
 	// and is responsible for Klient's `remote.*` methods.
 	remote *remote.Remote
 
+	// machines manages a group of machines that can be seen or used by Klient.
+	//
+	// TODO(ppknap): this field is going to store all machine operations.
+	machines *machinegroup.Group
+
 	// updater polls s3://latest-version.txt with config.UpdateInterval
 	// and updates current binary if version is never than config.Version.
 	updater *Updater
@@ -116,6 +130,12 @@ type Klient struct {
 
 	// publicIP is a cached public IP address of the klient.
 	publicIP net.IP
+
+	presence      *presence.Client
+	presenceEvery *onceevery.OnceEvery
+	kloud         *apiutil.LazyKite
+	teamMu        sync.Mutex
+	team          *stack.Team
 }
 
 // KlientConfig defines a Klient's config
@@ -295,6 +315,41 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		// EventSub: mountEvents,
 	}
 
+	machinesOpts := &machinegroup.GroupOpts{
+		Storage:         storage.NewEncodingStorage(db, []byte("machines")),
+		Builder:         machine.DisconnectedClientBuilder{},
+		DynAddrInterval: 2 * time.Second,
+		PingInterval:    15 * time.Second,
+	}
+
+	machines, err := machinegroup.New(machinesOpts)
+	if err != nil {
+		k.Log.Fatal("Cannot initialize machine group: %s", err)
+	}
+
+	c := k.NewClient(konfig.Konfig.KloudURL)
+	c.Auth = &kite.Auth{
+		Type: "kiteKey",
+		Key:  k.Config.KiteKey,
+	}
+
+	kloud := &apiutil.LazyKite{
+		Client: c,
+	}
+
+	restClient := httputil.DefaultRestClient(konfig.Konfig.Debug)
+	restClient.Transport = &api.Transport{
+		RoundTripper: restClient.Transport,
+		AuthFunc: (&apiutil.KloudAuth{
+			Kite: kloud,
+			Storage: &apiutil.Storage{
+				&cfg.Cache{
+					EncodingStorage: storage.NewEncodingStorage(db, []byte("klient")),
+				},
+			},
+		}).Auth,
+	}
+
 	kl := &Klient{
 		kite:    k,
 		collab:  collaboration.New(db), // nil is ok, fallbacks to in memory storage
@@ -308,6 +363,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		config:   conf,
 		remote:   remote.NewRemote(remoteOpts),
 		uploader: up,
+		machines: machines,
 		updater: &Updater{
 			Endpoint:       conf.UpdateURL,
 			Interval:       conf.UpdateInterval,
@@ -317,6 +373,12 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 			Log: k.Log,
 		},
 		logUploadDelay: 3 * time.Minute,
+		presence: &presence.Client{
+			Endpoint: konfig.Konfig.SocialAPI.Public.WithPath("presence"),
+			Client:   restClient,
+		},
+		presenceEvery: onceevery.New(1 * time.Hour),
+		kloud:         kloud,
 	}
 
 	kl.kite.OnRegister(kl.updateKiteKey)
@@ -372,7 +434,7 @@ func klientXHRClientFunc(opts *sockjsclient.DialOptions) *http.Client {
 	}
 }
 
-// Kite retursn the underlying Kite instance
+// Kite returns the underlying Kite instance.
 func (k *Klient) Kite() *kite.Kite {
 	return k.kite
 }
@@ -442,6 +504,9 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("fs.copy", fs.Copy)
 	k.kite.HandleFunc("fs.getDiskInfo", fs.GetDiskInfo)
 	k.kite.HandleFunc("fs.getPathSize", fs.GetPathSize)
+
+	// Machine group handlers.
+	k.kite.HandleFunc("machine.create", machinegroup.KiteCreateHandler(k.machines))
 
 	// Vagrant
 	k.kite.HandleFunc("vagrant.create", k.vagrant.Create)
@@ -588,6 +653,45 @@ func (k *Klient) tunnelOptions() (*tunnel.Options, error) {
 	}
 
 	return opts, nil
+}
+
+func (k *Klient) Team() (*stack.Team, error) {
+	var resp stack.WhoamiResponse
+
+	if err := k.kloud.Call("team.whoami", nil, &resp); err != nil {
+		return nil, err
+	}
+
+	return resp.Team, nil
+}
+
+func (k *Klient) cacheTeam() (*stack.Team, error) {
+	k.teamMu.Lock()
+	defer k.teamMu.Unlock()
+
+	if k.team != nil {
+		return k.team, nil
+	}
+
+	team, err := k.Team()
+	if err != nil {
+		return nil, err
+	}
+
+	k.log.Info("Kite belongs to %q team", team.Name)
+
+	k.team = team
+
+	return k.team, nil
+}
+
+func (k *Klient) ping() error {
+	team, err := k.cacheTeam()
+	if err != nil {
+		return err
+	}
+
+	return k.presence.Ping(k.kite.Config.Username, team.Name)
 }
 
 // Run registers klient to Kontrol and starts the kite server. It also runs any

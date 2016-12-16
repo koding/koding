@@ -107,6 +107,9 @@ build:
         name: test providers
         code: scripts/wercker/run-command ./run exec go test -v -race koding/kites/kloud/provider/...
     - script:
+        name: test koding/api
+        code: scripts/wercker/run-command ./run exec go test -v -race koding/api/...
+    - script:
         name: build backend finished
         code: scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build backend finished" "building" 40
     - script:

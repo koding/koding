@@ -1,13 +1,105 @@
-<main class="Homepage-Hero Homepage--containerOffset">
-  <div class="Homepage--container Homepage-Hero--container">
+<main class="Homepage-Hero">
+  <div class="Homepage-Hero--video out">
+    <div>
+      <iframe id="koding-vision" width="1262px" height="710px" src="https://www.youtube.com/embed/2COxlWQ0J1U?autoplay=0&modestbranding=1&rel=0&showinfo=0&enablejsapi=1" frameborder="0" allowfullscreen></iframe>
+      <a class="close" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><use xlink:href="#icon-video-close"></use></svg></a>
+    </div>
+  </div>
+  <div class="Homepage--container Homepage-Hero--container Homepage--containerOffset">
     <div class="Homepage-Hero--intro">
       <h1>{{ include.h1 }}</h1>
       <h2>{{ include.h2 }}</h2>
       <div class="actions">
-        <a class="cta secondary" href="{{ site.url }}/demo">Request a Demo</a>
-        <a class="cta" href="{{ site.url }}/teams/create">Sign Up</a>
+        <a class="cta vision" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><use xlink:href="#video-play-button"></use></svg>Koding’s Vision</a>
+        <span class="separator"></span>
+        <a class="cta learn-more" href="#">Learn more…</a>
       </div>
     </div>
   </div>
+  <div class="Homepage-Hero--banner Homepage--containerOffset">
+    <span class="alert">Latest Blog Post:</span> <span class="bold">Koding is NOT an online IDE.</span> We are providing a modern dev environment for teams. <a href="https://blog.koding.com/koding-is-not-an-online-ide-e2693f740ce8#.6z3ny6fsb" target="_blank">Read more.</a>
+  </div>
 </main>
 <a class='Homepage--mobile-cta' href='{{ site.url }}/demo'>REQUEST A DEMO</a>
+<script>
+var onYouTubeIframeAPIReady;
+(function(){
+  var $items = $('header, .Homepage-Hero--intro, .Homepage-Hero--banner'),
+      $wrapper = $('.Homepage-Hero--video'),
+      $trigger = $('a.vision'),
+      $more = $('a.learn-more'),
+      $close = $('.Homepage-Hero--video a.close'),
+      player, timer;
+
+  onYouTubeIframeAPIReady = function() {
+    player = new YT.Player('koding-vision', {
+      events: {
+        onStateChange: function(event) {
+          var UNSTARTED = -1, // (unstarted)
+              ENDED     = 0,  // (ended)
+              PLAYING   = 1,  // (playing)
+              PAUSED    = 2,  // (paused)
+              BUFFERING = 3,  // (buffering)
+              VIDEOCUED = 5;  // (video cued)
+          if (event.data == ENDED) {
+            hideVideo();
+          }
+          if (event.data == PAUSED) {
+            if (timer) {
+              clearTimeout(timer);
+            }
+            timer = setTimeout(hideVideo, 10000);
+          }
+          if (event.data == PLAYING) {
+            if (timer) {
+              clearTimeout(timer);
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function showVideo(event) {
+    event.preventDefault();
+    $items.addClass('out');
+    $wrapper.removeClass('out');
+    if (player && player.playVideo) {
+      player.playVideo();
+    }
+    return false;
+  }
+
+  function hideVideo(pause, event) {
+    if (player && player.pauseVideo && pause) {
+      player.pauseVideo();
+      if (timer) {
+        clearTimeout(timer);
+      }
+    }
+    if (event && event.preventDefault) {
+      event.preventDefault();
+    }
+    $items.removeClass('out');
+    $wrapper.addClass('out');
+    return false;
+  }
+
+  $trigger.click(showVideo);
+  $close.click(hideVideo.bind(this, true));
+
+  $more.click(function(event) {
+    event.preventDefault();
+    var top = $('.Homepage-ContentWithVideo').position().top;
+    $('body, html').animate({'scrollTop': top}, 500);
+    return false;
+  });
+
+  $(window).scroll(function(){
+    if (window.scrollY > 780){
+      hideVideo(true);
+    }
+  });
+})();
+
+</script>

@@ -1,3 +1,4 @@
+kd = require 'kd'
 _ = require 'lodash'
 immutable = require 'app/util/immutable'
 
@@ -12,6 +13,7 @@ withNamespace = reduxHelper.makeNamespace 'koding', 'payment', 'creditcard'
 
 REMOVE = reduxHelper.expandActionType withNamespace 'REMOVE'
 HAS_CARD = reduxHelper.expandActionType withNamespace 'HAS_CARD'
+AUTHORIZE = reduxHelper.expandActionType withNamespace 'AUTHORIZE'
 
 reducer = (state = null, action) ->
 
@@ -48,29 +50,6 @@ reducer = (state = null, action) ->
   return state
 
 
-valueSelector = (state) -> (key, fn = _.identity) -> fn state.creditCard[key]
-
-values = (state) ->
-
-  return null  unless state.creditCard
-
-  selector = valueSelector(state)
-
-  brand = selector 'brand', (brand) -> brand.toLowerCase()
-  number = selector 'last4', (last4) ->
-    if brand is 'amex'
-    then "•••• •••••• •#{last4}"
-    else "•••• •••• •••• #{last4}"
-
-  return immutable {
-    brand: brand
-    number: number
-    name: selector 'name'
-    exp_month: selector 'exp_month'
-    exp_year: selector 'exp_year'
-  }
-
-
 remove = ->
   return {
     types: [ REMOVE.BEGIN, REMOVE.SUCCESS, REMOVE.FAIL ]
@@ -83,6 +62,12 @@ hasCreditCard = ->
     payment: (service) -> service.hasCreditCard()
   }
 
+authorize = ({ source, email }) ->
+  return {
+    types: [ AUTHORIZE.BEGIN, AUTHORIZE.SUCCESS, AUTHORIZE.FAIL ]
+    payment: (service) -> service.authorize { source, email }
+  }
+
 
 creditCard = (state) -> state.creditCard
 
@@ -91,9 +76,9 @@ module.exports = {
   namespace: withNamespace()
   reducer
 
-  values, creditCard
+  creditCard
 
-  remove, hasCreditCard
-  REMOVE, HAS_CARD
+  remove, hasCreditCard, authorize
+  REMOVE, HAS_CARD, AUTHORIZE
 }
 

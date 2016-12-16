@@ -32,6 +32,9 @@ Is that page closed? Do you see '_Aws Stack' title? Do you see 'Instructions', '
 Click on the 'NEXT' button and then click on the BUILD STACK button below and wait for a few minutes for process to be completed
 Do you see 'Success! Your stack has been built.' text? Do you see 'View The Logs', 'Connect Your Local Machine' and 'Invite to Collaborate' sections? Do you see START CODING button on the bottom? Do you see '_Aws Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'aws-instance-1' label?
 
+Click to red 'START _' button at th bottom right corner
+Did it close 'Success! Your stack has been built.' screen?
+
 Click 'aws-instance' labels on the left
 Do you see file 'testfile{{random.number}}.txt' with a note icon in the file tree?
 

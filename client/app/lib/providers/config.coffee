@@ -340,3 +340,7 @@ module.exports = globals.config.providers =
                             unwanted results while building your stacks.
                             '''
     credentialFields       : {}
+
+  _getSupportedProviders   : ->
+    (Object.keys this).filter (provider) =>
+      this[provider].supported
