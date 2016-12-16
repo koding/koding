@@ -5,7 +5,6 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/api/realtimehelper"
-	notificationmodels "socialapi/workers/notification/models"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
@@ -541,43 +540,6 @@ func (f *Controller) ChannelDeletedEvent(c *models.Channel) error {
 
 func (f *Controller) ChannelUpdatedEvent(c *models.Channel) error {
 	return f.publishToChannel(c.Id, ChannelUpdatedEventName, &models.ChannelContainer{Channel: c})
-}
-
-func (f *Controller) NotifyUser(notification *notificationmodels.Notification) error {
-	activity, nc, err := notification.FetchLastActivity()
-	if err != nil {
-		return err
-	}
-
-	// do not notify actor for her own action
-	if activity.ActorId == notification.AccountId {
-		return nil
-	}
-
-	// do not notify user when notification is not yet activated,
-	// or it is already glanced (subscription case)
-	if notification.ActivatedAt.IsZero() || notification.Glanced {
-		return nil
-	}
-
-	content := NotificationContent{
-		TargetId:     nc.TargetId,
-		TypeConstant: nc.TypeConstant,
-	}
-
-	actor, err := models.Cache.Account.ById(activity.ActorId)
-	if err != nil {
-		return err
-	}
-	content.ActorId = actor.OldId
-
-	c, err := models.Cache.Channel.ById(notification.ContextChannelId)
-	if err != nil {
-		f.log.New("channelId", notification.ContextChannelId).Error("Couldnt fetch from cache")
-		return nil
-	}
-
-	return f.sendNotification(notification.AccountId, c.GroupName, NotificationEventName, content)
 }
 
 func (f *Controller) sendInstanceEvent(cm *models.ChannelMessage, body interface{}, eventName string) error {

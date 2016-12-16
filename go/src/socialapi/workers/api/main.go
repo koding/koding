@@ -20,7 +20,6 @@ import (
 	emailapi "socialapi/workers/email/api"
 	mailapi "socialapi/workers/email/mailparse/api"
 	"socialapi/workers/helper"
-	notificationapi "socialapi/workers/notification/api"
 	"socialapi/workers/payment"
 	paymentapi "socialapi/workers/payment/api"
 	presenceapi "socialapi/workers/presence/api"
@@ -55,7 +54,6 @@ func main() {
 	handlers.AddHandlers(m)
 	collaboration.AddHandlers(m)
 	paymentapi.AddHandlers(m)
-	notificationapi.AddHandlers(m)
 	mailapi.AddHandlers(m)
 	algoliaapi.AddHandlers(m, r.Log)
 
