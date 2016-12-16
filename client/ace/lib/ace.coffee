@@ -1,10 +1,13 @@
 kd       = require 'kd'
 _        = require 'lodash'
 $        = require 'jquery'
+ace      = require 'brace'
 globals  = require 'globals'
 FSHelper = require 'app/util/fs/fshelper'
 settings = require './settings'
 
+require 'brace/ext/language_tools'
+ace.acequire 'ace/ext/language_tools'
 
 module.exports = class Ace extends kd.View
 
@@ -85,6 +88,7 @@ module.exports = class Ace extends kd.View
       return  unless element
 
       @editor = ace.edit element
+      @editor.$blockScrolling = Infinity
 
       # remove default white theme to avoid flashing
       element.classList.remove 'ace-tm'
@@ -107,9 +111,11 @@ module.exports = class Ace extends kd.View
       kd.utils.defer @lazyBound 'emit', 'ready'
 
     @ready =>
-      LineWidgets = ace.require('ace/line_widgets').LineWidgets
-      @Range      = ace.require('ace/range').Range
-      @Anchor     = ace.require('ace/anchor').Anchor
+
+      LineWidgets      = ace.acequire('ace/line_widgets').LineWidgets
+      @Range           = ace.acequire('ace/range').Range
+      @Anchor          = ace.acequire('ace/anchor').Anchor
+      @SnippetsManager = ace.acequire('ace/snippets').snippetManager
 
       @lineWidgetManager = new LineWidgets @editor.session
       @lineWidgetManager.attach @editor
@@ -460,6 +466,10 @@ module.exports = class Ace extends kd.View
       syntaxChoice = @appStorage.getValue "syntax_#{ext}"
       mode = syntaxChoice or mode or 'text'
 
+    # Require mode
+    require "brace/mode/#{mode}"
+    require "brace/snippets/#{mode}"
+
     @editor.getSession().setMode "ace/mode/#{mode}"
     @syntaxMode = mode
 
@@ -467,6 +477,9 @@ module.exports = class Ace extends kd.View
   setTheme: (themeName, save = yes) ->
 
     themeName or= @appStorage.getValue('theme') or 'base16'
+
+    # Require theme
+    require "brace/theme/#{themeName}"
 
     @editor.setTheme "ace/theme/#{themeName}"
     return  unless save
@@ -513,7 +526,11 @@ module.exports = class Ace extends kd.View
 
   setKeyboardHandler: (name = 'default', save = yes) ->
 
-    handler = if name isnt 'default' then "ace/keyboard/#{name}" else null
+    handler = null
+    if name and name isnt 'default'
+      handler = "ace/keyboard/#{name}"
+      require "brace/keybinding/#{name}"
+
     @editor.setKeyboardHandler handler
     @appStorage.setValue 'keyboardHandler', name  if save
 

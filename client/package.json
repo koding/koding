@@ -12,6 +12,7 @@
     "backoff": "2.4.1",
     "bluebird": "2.8.2",
     "bowser": "1.0.0",
+    "brace": "koding/brace#koding",
     "broker-client": "koding/broker-client#v0.3.2",
     "card-validator": "2.3.0",
     "classnames": "2.1.3",
