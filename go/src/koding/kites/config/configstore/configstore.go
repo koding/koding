@@ -2,13 +2,19 @@ package configstore
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
+	"log"
+	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
 	"koding/kites/config"
 	"koding/kites/kloud/utils/object"
 	"koding/klient/storage"
+	"koding/tools/util"
 
 	"github.com/boltdb/bolt"
 )
@@ -90,6 +96,99 @@ func (c *Client) Use(k *config.Konfig) error {
 	})
 }
 
+func (c *Client) Used() (*config.Konfig, error) {
+	c.init()
+
+	var konfig *config.Konfig
+
+	err := c.commit(func(cache *config.Cache) error {
+		var used usedKonfig
+
+		if err := cache.GetValue("konfigs.used", &used); err != nil {
+			return err
+		}
+
+		var konfigs config.Konfigs
+
+		if err := cache.GetValue("konfigs", &konfigs); err != nil {
+			return err
+		}
+
+		if k, ok := konfigs[used.ID]; ok {
+			konfig = k
+			return nil
+		}
+
+		return errors.New("config not found - use one that exists")
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return konfig, nil
+}
+
+func (c *Client) CacheOptions(app string) *config.CacheOptions {
+	c.init()
+
+	oldFile := filepath.Join(config.KodingHome(), app+".bolt")
+	file := c.boltFile(app)
+
+	if _, err := os.Stat(file); oldFile != file && os.IsNotExist(err) {
+		if _, err := os.Stat(oldFile); err == nil {
+			// Bolt file exists in old location but not in the new one,
+			// most likely we just migrated from old config version.
+			if err := os.Rename(oldFile, file); err != nil {
+				// If it's not possible to move - symlink.
+				if e := os.Symlink(oldFile, file); e != nil {
+					log.Printf("unable to move old bolt file to new location %q: %s, %s", file, err, e)
+				}
+			}
+		}
+	}
+
+	dir := filepath.Dir(file)
+
+	// Best-effort attempts, ignore errors.
+	_ = os.MkdirAll(dir, 0755)
+	_ = util.Chown(dir, config.CurrentUser.User)
+
+	return &config.CacheOptions{
+		File: file,
+		BoltDB: &bolt.Options{
+			Timeout: 5 * time.Second,
+		},
+		Bucket: []byte(app),
+	}
+}
+
+func (c *Client) Set(key, value string) error {
+	return c.commit(func(cache *config.Cache) error {
+		var used usedKonfig
+		var konfigs = make(config.Konfigs)
+
+		if err := cache.GetValue("konfigs.used", &used); err != nil {
+			return err
+		}
+
+		if err := cache.GetValue("konfigs", &konfigs); err != nil {
+			return err
+		}
+
+		k, ok := konfigs[used.ID]
+		if !ok {
+			return storage.ErrKeyNotFound
+		}
+
+		if err := setKonfig(k, key, value); err != nil {
+			return fmt.Errorf("failed to update %s=%s: %s", key, value, err)
+		}
+
+		return cache.SetValue("konfigs", konfigs)
+	})
+}
+
 func (c *Client) init() {
 	c.once.Do(c.initClient)
 }
@@ -141,6 +240,13 @@ func (c *Client) initClient() {
 	})
 }
 
+func (c *Client) boltFile(app string) string {
+	if used, err := c.Used(); err == nil {
+		return filepath.Join(config.KodingHome(), app+"."+used.ID()+".bolt")
+	}
+	return filepath.Join(config.KodingHome(), app+".bolt")
+}
+
 func (c *Client) cacheOpts() *config.CacheOptions {
 	if c.CacheOpts != nil {
 		return c.CacheOpts
@@ -166,6 +272,60 @@ func mergeIn(kfg, mixin *config.Konfig) error {
 	return json.Unmarshal(p, kfg)
 }
 
+func setFlatKeyValue(m map[string]interface{}, key, value string) error {
+	keys := strings.Split(key, ".")
+	it := m
+	last := len(keys) - 1
+
+	for _, key := range keys[:last] {
+		switch v := it[key].(type) {
+		case map[string]interface{}:
+			it = v
+		case nil:
+			newV := make(map[string]interface{})
+			it[key] = newV
+			it = newV
+		default:
+			return errors.New("key is not an object")
+		}
+	}
+
+	if value == "" {
+		delete(it, keys[last])
+	} else {
+		it[keys[last]] = value
+	}
+
+	return nil
+}
+
+func setKonfig(cfg *config.Konfig, key, value string) error {
+	m := make(map[string]interface{})
+
+	p, err := json.Marshal(cfg)
+	if err != nil {
+		return err
+	}
+
+	if err := json.Unmarshal(p, &m); err != nil {
+		return err
+	}
+
+	if err := setFlatKeyValue(m, key, value); err != nil {
+		return err
+	}
+
+	if p, err = json.Marshal(m); err != nil {
+		return err
+	}
+
+	if value == "" {
+		*cfg = config.Konfig{}
+	}
+
+	return json.Unmarshal(p, cfg)
+}
+
 func nonil(err ...error) error {
 	for _, e := range err {
 		if e != nil {
@@ -175,6 +335,9 @@ func nonil(err ...error) error {
 	return nil
 }
 
-func List() config.Konfigs                       { return DefaultClient.List() }
-func Read(e *config.Environments) *config.Konfig { return DefaultClient.Read(e) }
-func Use(k *config.Konfig) error                 { return DefaultClient.Use(k) }
+func CacheOptions(app string) *config.CacheOptions { return DefaultClient.CacheOptions(app) }
+func List() config.Konfigs                         { return DefaultClient.List() }
+func Read(e *config.Environments) *config.Konfig   { return DefaultClient.Read(e) }
+func Set(key, value string) error                  { return DefaultClient.Set(key, value) }
+func Use(k *config.Konfig) error                   { return DefaultClient.Use(k) }
+func Used() (*config.Konfig, error)                { return DefaultClient.Used() }

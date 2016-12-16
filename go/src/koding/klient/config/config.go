@@ -26,6 +26,7 @@ var envs = &konfig.Environments{
 // Konfig represents a klient configuration.
 var Konfig = ReadKonfig()
 
+// Builtin represents a builtin configuration.
 var Builtin = konfig.NewKonfig(envs)
 
 // ReadKonfig reads klient configuration.
