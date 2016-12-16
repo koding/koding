@@ -1,39 +1,14 @@
-$                    = require 'jquery'
-_                    = require 'lodash'
-getscript            = require '@koding/getscript'
-kd                   = require 'kd'
-KDButtonView         = kd.ButtonView
-KDModalViewWithForms = kd.ModalViewWithForms
-KDNotificationView   = kd.NotificationView
-KDView               = kd.View
-globals              = require 'globals'
-FSHelper             = require 'app/util/fs/fshelper'
-settings             = require './settings'
-
-prependWithOrigin = (path) -> [location.origin, path].join '/'
-
-module.exports = class Ace extends KDView
-
-  ACE_READY = no
-
-  EmmetLoadState =
-    PENDING: no
-    READY  : no
+kd       = require 'kd'
+_        = require 'lodash'
+$        = require 'jquery'
+globals  = require 'globals'
+FSHelper = require 'app/util/fs/fshelper'
+settings = require './settings'
 
 
-  emmetLoadListeners = {}
+module.exports = class Ace extends kd.View
 
   @registerStaticEmitter()
-
-  getscript prependWithOrigin(globals.acePath), (err) ->
-    throw err  if err
-
-    for k, v of globals.aceConfig
-      ace.config.set k, prependWithOrigin(v)
-
-    ACE_READY = yes
-    Ace.emit 'ScriptLoaded'
-
 
   toBindKey = (binding) ->
 
@@ -72,16 +47,23 @@ module.exports = class Ace extends KDView
 
   constructor: (options, file) ->
 
+    options.useStorage               ?= yes
+    options.createFindAndReplaceView ?= yes
+
     super options, file
 
-    @lastSavedContents       = ''
-    { appStorageController } = kd.singletons
-    @appStorage              = appStorageController.storage 'Ace', '1.0.1'
+    @lastSavedContents = ''
+
+    @appStorage = kd.singletons.appStorageController.storage 'Ace', '1.0.1'
 
 
   setDomElement: (cssClass) ->
 
-    @domElement = $ "<figure class='kdview'><div id='editor#{@getId()}' class='code-wrapper'></div></figure>"
+    @domElement = $ """
+      <figure class='kdview'>
+        <div id='editor#{@getId()}' class='code-wrapper'></div>
+      </figure>
+    """
 
 
   viewAppended: ->
@@ -90,10 +72,7 @@ module.exports = class Ace extends KDView
 
     @hide()
 
-    @appStorage.fetchStorage =>
-      if ACE_READY
-      then @scriptLoaded()
-      else Ace.once 'ScriptLoaded', @bound 'scriptLoaded'
+    @appStorage.fetchStorage @bound 'scriptLoaded'
 
 
   scriptLoaded: ->
@@ -107,7 +86,8 @@ module.exports = class Ace extends KDView
 
       @editor = ace.edit element
 
-      element.classList.remove 'ace-tm' # remove default white theme to avoid flashing
+      # remove default white theme to avoid flashing
+      element.classList.remove 'ace-tm'
 
       if contents
         @setContents contents
@@ -148,7 +128,6 @@ module.exports = class Ace extends KDView
 
     { shortcuts } = kd.singletons
     shortcuts.removeListener 'change', @bound 'handleShortcutChange'
-    emmetLoadListeners[@id] = null  unless _.isNull emmetLoadListeners
 
     @_commandFns = null
 
@@ -161,6 +140,8 @@ module.exports = class Ace extends KDView
     @setSyntax()
     @setEditorListeners()
     @setShortcuts yes
+
+    return  unless @getOption 'useStorage'
 
     @appStorage.fetchStorage (storage) =>
       @setTheme null, no
@@ -178,7 +159,7 @@ module.exports = class Ace extends KDView
       @setEnableSnippets      @appStorage.getValue('enableSnippets')      ? yes       , no
       @setEnableEmmet         @appStorage.getValue('enableEmmet')         ? no        , no
 
-      @isTrimWhiteSpacesEnabled = if @appStorage.getValue('trimTrailingWhitespaces') then yes else no
+      @isTrimWhiteSpacesEnabled = !!@appStorage.getValue('trimTrailingWhitespaces')
 
       @emit 'SettingsApplied'
 
@@ -433,6 +414,7 @@ module.exports = class Ace extends KDView
   getEnableEmmet: ->
     @appStorage.getValue('enableEmmet') ? no
 
+
   getEnableBraceCompletion: ->
     @appStorage.getValue('enableBraceCompletion') ? yes
 
@@ -488,7 +470,7 @@ module.exports = class Ace extends KDView
 
     @editor.setTheme "ace/theme/#{themeName}"
     return  unless save
-    @appStorage.setValue 'theme', themeName, -> # do what is necessary here if any - SY
+    @appStorage.setValue 'theme', themeName
 
 
   setUseSoftTabs: (value, save = yes) ->
@@ -579,34 +561,9 @@ module.exports = class Ace extends KDView
   setReadOnly: (value) -> @editor.setReadOnly value
 
 
-  loadEmmet: (cb) ->
-
-    return cb null  if EmmetLoadState.READY
-
-    emmetLoadListeners[@id] = cb
-
-    if not EmmetLoadState.PENDING
-      EmmetLoadState.PENDING = yes
-      emmetPath = globals.acePath.split('/').slice(0, -1)
-        .concat(['_ext-emmet.js']).join('/')
-
-      getscript prependWithOrigin(emmetPath), (err) ->
-        cb err for key, cb of emmetLoadListeners when typeof cb is 'function'
-        EmmetLoadState.READY = yes
-        emmetLoadListeners = null
-
-
   setEnableEmmet: (value, save = yes) ->
 
-    next = (err) =>
-      throw err  if err
-      @editor.setOption 'enableEmmet', value  if value
-      @appStorage.setValue 'enableEmmet', value  if save
 
-    if value is yes and not EmmetLoadState.READY
-      @loadEmmet next
-    else
-      next null
 
 
   setEnableSnippets: (value, save = yes) ->
@@ -639,7 +596,7 @@ module.exports = class Ace extends KDView
 
     style or= 'error' if details
 
-    notification = new KDNotificationView
+    notification = new kd.NotificationView
       title     : msg or 'Something went wrong'
       type      : 'mini'
       cssClass  : "#{style}"
@@ -647,7 +604,7 @@ module.exports = class Ace extends KDView
       details   : details
       click     : ->
         if notification.getOptions().details
-          details = new KDNotificationView
+          details = new kd.NotificationView
             title     : 'Error details'
             content   : notification.getOptions().details
             type      : 'growl'
@@ -687,7 +644,7 @@ module.exports = class Ace extends KDView
 
     unless @gotoLineModal
 
-      @gotoLineModal = new KDModalViewWithForms
+      @gotoLineModal = new kd.ModalViewWithForms
         cssClass                : 'goto'
         width                   : 180
         height                  : 'auto'
@@ -706,7 +663,7 @@ module.exports = class Ace extends KDView
                   placeholder   : 'Goto line'
                   nextElement   :
                     Go              :
-                      itemClass     : KDButtonView
+                      itemClass     : kd.ButtonView
                       title         : 'Go'
                       style         : 'GenericButton'
                       type          : 'submit'
