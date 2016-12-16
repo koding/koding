@@ -42,35 +42,3 @@ func (a *PresenceDaily) Create() error {
 func (a *PresenceDaily) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(a, data, q)
 }
-
-type countRes struct {
-	Count int
-}
-
-// CountDistinctByGroupName counts distinct account ids
-func (a *PresenceDaily) CountDistinctByGroupName(groupName string) (int, error) {
-	return a.countDistinctByGroupNameAndStatus(groupName, false)
-}
-
-// CountDistinctProcessedByGroupName counts processed distinct account ids
-func (a *PresenceDaily) CountDistinctProcessedByGroupName(groupName string) (int, error) {
-	return a.countDistinctByGroupNameAndStatus(groupName, true)
-}
-
-// countDistinctByGroupName counts distinct account ids
-func (a *PresenceDaily) countDistinctByGroupNameAndStatus(groupName string, status bool) (int, error) {
-	res := &countRes{}
-	return res.Count, bongo.B.DB.
-		Table(a.BongoName()).
-		Model(&PresenceDaily{}).
-		Where("group_name = ? and is_processed = ?", groupName, status).
-		Select("count(distinct account_id)").
-		Scan(res).Error
-}
-
-// ProcessByGroupName deletes items by their group's name from db
-func (a *PresenceDaily) ProcessByGroupName(groupName string) error {
-	// i have tried to use it ORM way but gorm has bugs that does not update multiple values at once
-	sql := "UPDATE " + a.BongoName() + " SET is_processed=true WHERE group_name = ? and is_processed = false"
-	return bongo.B.DB.Exec(sql, groupName).Error
-}
