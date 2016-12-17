@@ -14,6 +14,7 @@ import (
 	"strconv"
 
 	konfig "koding/kites/config"
+	"koding/kites/config/configstore"
 	"koding/klient/uploader"
 	"koding/klientctl/config"
 
@@ -208,7 +209,7 @@ func UpdateCommand(c *cli.Context, log logging.Logger, _ string) int {
 
 	// Best-effort attempts at fixinig permissions and ownership, ignore any errors.
 	_ = uploader.FixPerms()
-	_ = konfig.FixOwner("", nil)
+	_ = configstore.FixOwner()
 
 	fmt.Printf("Successfully updated to latest version of %s.\n", config.Name)
 	return 0

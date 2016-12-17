@@ -159,7 +159,7 @@ func ConfigUse(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, err
 	}
 
-	fmt.Printf("Switched to %s.\n", k.Endpoints.Koding.Public)
+	fmt.Printf("Switched to %s.\n", k.KodingPublic())
 
 	return 0, nil
 }
