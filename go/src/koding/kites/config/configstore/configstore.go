@@ -246,9 +246,14 @@ func makeUseFunc(konfig *config.Konfig) func(cache *config.Cache) error {
 			return err
 		}
 
-		konfigs[konfig.ID()] = konfig
+		id := konfig.ID()
 
-		return cache.SetValue("konfigs", konfigs)
+		konfigs[id] = konfig
+
+		return nonil(
+			cache.SetValue("konfigs", konfigs),
+			cache.SetValue("konfigs.used", &usedKonfig{ID: id}),
+		)
 	}
 }
 
