@@ -16,9 +16,21 @@
     letter-spacing: normal;
   }
 }
-.Homepage-ContentWithVideo--visual {
+.Homepage-ContentWithVideo--visualContainer {
   flex: 0 0 auto;
   width: 40%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.Homepage-ContentWithVideo--visualCaption {
+  margin-top: 20px;
+  cursor: pointer;
+  color: #67A2EE;
+  font-weight: 600;
+}
+.Homepage-ContentWithVideo--visual {
+  flex: 0 0 auto;
   height: auto;
   position: relative;
   cursor: pointer;
