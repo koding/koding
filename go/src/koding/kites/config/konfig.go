@@ -212,7 +212,6 @@ func (e *Environments) kdEnv() string {
 func NewKonfig(e *Environments) *Konfig {
 	return &Konfig{
 		Environment: e.Env,
-		KiteKeyFile: "/etc/kite/kite.key",
 		Endpoints: &Endpoints{
 			Koding:       Builtin.Endpoints.KodingBase,
 			Tunnel:       Builtin.Endpoints.TunnelServer,
