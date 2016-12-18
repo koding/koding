@@ -25,7 +25,7 @@ func NewCached(st storage.ValueInterface) (*Cached, error) {
 		aliases: New(),
 	}
 
-	if err := c.st.GetValue(storageKey, &c.aliases.m); err != nil {
+	if err := c.st.GetValue(storageKey, &c.aliases.m); err != nil && err != storage.ErrKeyNotFound {
 		return nil, err
 	}
 
@@ -83,6 +83,6 @@ func (c *Cached) MachineID(alias string) (machine.ID, error) {
 }
 
 // Registered returns all machines that are stored in this object.
-func (c *Cached) Registered() []machine.ID {
+func (c *Cached) Registered() machine.IDSlice {
 	return c.aliases.Registered()
 }

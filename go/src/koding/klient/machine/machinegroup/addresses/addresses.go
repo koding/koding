@@ -74,11 +74,11 @@ func (a *Addresses) MachineID(addr machine.Addr) (machine.ID, error) {
 }
 
 // Registered returns all machines that are stored in this object.
-func (a *Addresses) Registered() []machine.ID {
+func (a *Addresses) Registered() machine.IDSlice {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
-	registered := make([]machine.ID, 0, len(a.m))
+	registered := make(machine.IDSlice, 0, len(a.m))
 	for id := range a.m {
 		registered = append(registered, id)
 	}

@@ -66,10 +66,3 @@ func (g *Group) Create(req *CreateRequest) (*CreateResponse, error) {
 
 	return res, nil
 }
-
-// dynamicAddr creates dynamic address functor for the given machine.
-func (g *Group) dynamicAddr(id machine.ID) machine.DynamicAddrFunc {
-	return func(network string) (machine.Addr, error) {
-		return g.address.Latest(id, network)
-	}
-}

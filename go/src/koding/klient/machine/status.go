@@ -63,7 +63,7 @@ func (s *Status) String() string {
 		toks = append(toks, "reason: "+s.Reason)
 	}
 
-	if !s.Since.IsZero() {
+	if s.Since.IsZero() {
 		toks = append(toks, "since: <unknown>")
 	} else {
 		toks = append(toks, "since: "+s.Since.Format(time.RFC822))
