@@ -65,7 +65,7 @@ func (a *Addresses) MachineID(addr machine.Addr) (machine.ID, error) {
 	defer a.mu.RUnlock()
 
 	for id, ab := range a.m {
-		if _, err := ab.Updated(addr); err != nil {
+		if _, err := ab.Updated(addr); err == nil {
 			return id, nil
 		}
 	}
