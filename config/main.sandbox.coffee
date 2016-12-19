@@ -13,7 +13,7 @@ Configuration = (options = {}) ->
     main: 'sandbox.koding.com'
     port: '80'
 
-  options.serviceHost = "10.0.0.23"
+  options.serviceHost or= "10.0.0.23"
   options.publicPort = "80"
   options.hostname = "sandbox.koding.com#{if options.publicPort is "80" then "" else ":"+options.publicPort}"
   options.protocol = "https:"
