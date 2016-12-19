@@ -591,10 +591,6 @@ generateDev = (KONFIG, options) ->
     elif [ "$1" == "help" ]; then
       printHelp
 
-    elif [ "$1" == "janitortests" ]; then
-      pushd $KONFIG_PROJECTROOT/go/src/koding/workers/janitor
-      ./test.sh
-
     elif [ "$1" == "socialworkertests" ]; then
       $KONFIG_PROJECTROOT/scripts/node-testing/mocha-runner "$KONFIG_PROJECTROOT/workers/social"
 
