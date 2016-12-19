@@ -13,6 +13,7 @@ import (
 	"koding/kites/kloud/utils/object"
 	"koding/klient/storage"
 	"koding/klientctl/config"
+	cfg "koding/klientctl/endpoint/config"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
@@ -68,23 +69,22 @@ var b = &object.Builder{
 }
 
 func ConfigShow(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	cfg := config.Konfig
+	used := config.Konfig
 
 	if !c.Bool("defaults") {
-		cfg = &konfig.Konfig{}
-
-		db := konfig.NewCache(konfig.KonfigCache)
-		defer db.Close()
-
-		if err := db.GetValue("konfig", cfg); err != nil && err != storage.ErrKeyNotFound {
+		k, err := cfg.Used()
+		if err != nil && err != storage.ErrKeyNotFound {
 			return 1, err
+		}
+		if err == nil {
+			used = k
 		}
 	}
 
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "\t")
 
-	if err := enc.Encode(cfg); err != nil {
+	if err := enc.Encode(used); err != nil {
 		return 1, err
 	}
 
@@ -144,13 +144,12 @@ func ConfigUse(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, nil
 	}
 
-	// TODO(rjeczalik): add support for initializing configuration via
-	// fetching it from kloud url passed as argument
+	arg := c.Args().Get(0)
 
-	k, ok := configstore.List()[c.Args().Get(0)]
+	k, ok := configstore.List()[arg]
 	if !ok {
-		fmt.Fprintf(os.Stderr, "Configuration %q was not found. Please use \"kd config list\""+
-			" to list available configurations.\n", c.Args().Get(0))
+		fmt.Fprintf(os.Stderr, "Configuration %q was not found. Please use \"kd config list"+
+			"\" to list available configurations.\n", arg)
 		return 1, nil
 	}
 
@@ -160,6 +159,17 @@ func ConfigUse(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	}
 
 	fmt.Printf("Switched to %s.\n", k.KodingPublic())
+
+	return 0, nil
+}
+
+func ConfigReset(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	if err := cfg.Reset(); err != nil {
+		fmt.Fprintln(os.Stderr, "Error resetting configuration:", err)
+		return 1, err
+	}
+
+	fmt.Printf("Reset %s.\n", config.Konfig.KodingPublic())
 
 	return 0, nil
 }

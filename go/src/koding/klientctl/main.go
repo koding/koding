@@ -472,6 +472,10 @@ func run(args []string) {
 					Name:   "unset",
 					Usage:  "Unset the given key, restoring the defaut value.",
 					Action: ctlcli.ExitErrAction(ConfigUnset, log, "set"),
+				}, {
+					Name:   "reset",
+					Usage:  "Resets configuration to the default value fetched from Koding.",
+					Action: ctlcli.ExitErrAction(ConfigReset, log, "set"),
 				}},
 			},
 			cli.Command{

@@ -31,9 +31,10 @@ var defaultCacheOpts = &config.CacheOptions{
 var DefaultClient = &Client{}
 
 type Client struct {
-	CacheOpts *config.CacheOptions
-	Home      string       // uses config.KodingHome by default
-	Owner     *config.User // uses config.CurrentUser by default
+	Cache     *config.Cache        // if nil, a new db will be opened during each operation
+	CacheOpts *config.CacheOptions // if nil, defaultCacheOpts are going to be used
+	Home      string               // uses config.KodingHome by default
+	Owner     *config.User         // uses config.CurrentUser by default
 
 	once sync.Once // for c.init()
 }
@@ -58,10 +59,19 @@ func (c *Client) Read(e *config.Environments) *config.Konfig {
 	k := config.NewKonfig(e)
 
 	_ = c.commit(func(cache *config.Cache) error {
-		var mixin config.Konfig
+		var used usedKonfig
+		var konfigs = make(config.Konfigs)
 
-		if err := cache.GetValue("konfig", &mixin); err == nil {
-			if err := mergeIn(k, &mixin); err != nil {
+		if err := cache.GetValue("konfigs.used", &used); err != nil {
+			return err
+		}
+
+		if err := cache.GetValue("konfigs", &konfigs); err != nil {
+			return err
+		}
+
+		if mixin, ok := konfigs[used.ID]; ok {
+			if err := mergeIn(k, mixin); err != nil {
 				return err
 			}
 		}
@@ -183,7 +193,7 @@ func (c *Client) initClient() {
 }
 
 func (c *Client) boltFile(app string) string {
-	if used, err := c.Used(); err == nil {
+	if used, err := c.Used(); err == nil && app != "konfig" {
 		return filepath.Join(config.KodingHome(), app+"."+used.ID()+".bolt")
 	}
 	return filepath.Join(config.KodingHome(), app+".bolt")
@@ -197,6 +207,10 @@ func (c *Client) cacheOpts() *config.CacheOptions {
 }
 
 func (c *Client) commit(fn func(*config.Cache) error) error {
+	if c.Cache != nil {
+		return fn(c.Cache)
+	}
+
 	cache := config.NewCache(c.cacheOpts())
 	return nonil(fn(cache), cache.Close())
 }
