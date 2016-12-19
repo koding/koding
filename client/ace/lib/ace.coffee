@@ -163,7 +163,7 @@ module.exports = class Ace extends kd.View
       @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? yes       , no
       @setEnableAutocomplete  @appStorage.getValue('enableAutocomplete')  ? yes       , no
       @setEnableSnippets      @appStorage.getValue('enableSnippets')      ? yes       , no
-      @setEnableEmmet         @appStorage.getValue('enableEmmet')         ? no        , no
+      @setEnableEmmet         yes, no  if @appStorage.getValue 'enableEmmet'
 
       @isTrimWhiteSpacesEnabled = !!@appStorage.getValue('trimTrailingWhitespaces')
 
