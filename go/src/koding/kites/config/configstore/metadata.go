@@ -211,7 +211,6 @@ func (c *Client) commitMetadata(m Metadata, fn metadataCommitFunc) error {
 				Key: key,
 				Err: err,
 			})
-			continue
 		}
 	}
 
