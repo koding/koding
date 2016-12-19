@@ -74,7 +74,7 @@ func (de *WriteMetadataError) Error() string {
 	buf.WriteString("Failure dumping keys:\n\n")
 
 	for _, me := range de.Errs {
-		fmt.Fprintf(&buf, "\t* %s\n", me.Error())
+		fmt.Fprintf(&buf, "\t* %s\n", me)
 	}
 
 	return buf.String()
