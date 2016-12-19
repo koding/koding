@@ -1,7 +1,10 @@
 package stack
 
 import (
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/team"
+	"strconv"
 
 	"github.com/koding/kite"
 )
@@ -38,4 +41,36 @@ func (k *Kloud) TeamList(r *kite.Request) (interface{}, error) {
 	}
 
 	return TeamListResponse{Teams: teams}, nil
+}
+
+// WhoamiResponse represents a response value for a "team.whoami" kite method.
+type WhoamiResponse struct {
+	Team *team.Team `json:"team"`
+}
+
+// TestWhoami is a kite handler for a "team.whoami" kite method.
+func (k *Kloud) TeamWhoami(r *kite.Request) (interface{}, error) {
+	opts := &modelhelper.LookupGroupOptions{
+		Username:    r.Username,
+		KiteID:      r.Client.ID,
+		ClientURL:   r.Client.URL,
+		Environment: r.Client.Environment,
+	}
+
+	group, err := modelhelper.LookupGroup(opts)
+	if err != nil {
+		return nil, models.ResError(err, "jGroup")
+	}
+
+	members, _ := group.Counts["members"].(int)
+
+	return &WhoamiResponse{
+		Team: &team.Team{
+			Name:         group.Title,
+			Slug:         group.Slug,
+			Members:      strconv.Itoa(members),
+			Privacy:      group.Privacy,
+			Subscription: group.Payment.Subscription.Status,
+		},
+	}, nil
 }

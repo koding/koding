@@ -26,6 +26,7 @@ import (
 	cfg "koding/kites/config"
 	"koding/kites/config/configstore"
 	"koding/kites/kloud/stack"
+	"koding/kites/kloud/team"
 	"koding/klient/client"
 	"koding/klient/collaboration"
 	"koding/klient/command"
@@ -136,7 +137,7 @@ type Klient struct {
 	presenceEvery *onceevery.OnceEvery
 	kloud         *apiutil.LazyKite
 	teamMu        sync.Mutex
-	team          *stack.Team
+	team          *team.Team
 }
 
 // KlientConfig defines a Klient's config
@@ -659,7 +660,7 @@ func (k *Klient) tunnelOptions() (*tunnel.Options, error) {
 	return opts, nil
 }
 
-func (k *Klient) Team() (*stack.Team, error) {
+func (k *Klient) Team() (*team.Team, error) {
 	var resp stack.WhoamiResponse
 
 	if err := k.kloud.Call("team.whoami", nil, &resp); err != nil {
@@ -669,7 +670,7 @@ func (k *Klient) Team() (*stack.Team, error) {
 	return resp.Team, nil
 }
 
-func (k *Klient) cacheTeam() (*stack.Team, error) {
+func (k *Klient) cacheTeam() (*team.Team, error) {
 	k.teamMu.Lock()
 	defer k.teamMu.Unlock()
 
