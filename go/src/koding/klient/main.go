@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"koding/kites/config"
+	"koding/kites/config/configstore"
 	"koding/klient/app"
 	konfig "koding/klient/config"
 	"koding/klient/klientsvc"
@@ -123,7 +124,7 @@ func realMain() int {
 			PublicBucketRegion: *flagLogBucketRegion,
 		}
 
-		if err := config.DumpToBolt("", config.Metadata{"konfig": kfg}, nil); err != nil {
+		if err := configstore.WriteMetadata(configstore.Metadata{"konfig": kfg}); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return 1
 		}
@@ -248,13 +249,13 @@ func handleMetadata(conf *app.KlientConfig) error {
 	}
 
 	if conf.Metadata != "" {
-		var m config.Metadata
+		var m configstore.Metadata
 
 		if err := json.Unmarshal([]byte(conf.Metadata), &m); err != nil {
 			return errors.New("failed to decode Koding metadata: " + err.Error())
 		}
 
-		if err := config.DumpToBolt("", m, nil); err != nil {
+		if err := configstore.WriteMetadata(m); err != nil {
 			return errors.New("failed to write Koding metadata: " + err.Error())
 		}
 

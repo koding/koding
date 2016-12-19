@@ -159,7 +159,7 @@ func ConfigUse(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, err
 	}
 
-	fmt.Printf("Switched to %s.\n", k.Endpoints.Koding.Public)
+	fmt.Printf("Switched to %s.\n", k.KodingPublic())
 
 	return 0, nil
 }
@@ -171,6 +171,6 @@ func printKonfigs(konfigs []*konfig.Konfig) {
 	fmt.Fprintln(w, "ID\tKODING URL")
 
 	for _, konfig := range konfigs {
-		fmt.Fprintf(w, "%s\t%s\n", konfig.ID(), konfig.Endpoints.Koding.Public)
+		fmt.Fprintf(w, "%s\t%s\n", konfig.ID(), konfig.KodingPublic())
 	}
 }
