@@ -42,13 +42,14 @@ module.exports = class StackEditor extends kd.View
       cssClass: 'readme'
       title: 'Readme'
 
+    @setTemplateData()
     @emit 'ready'
 
 
-  setData: (@data) ->
-
+  setTemplateData: ->
 
     { description, template } = @getData()
+    return  unless description or template
 
     @editor.setContent Encoder.htmlDecode template.rawContent
     @readme.setContent description
