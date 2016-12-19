@@ -22,47 +22,49 @@ import (
 	"koding/klient/registration"
 )
 
-// TODO(rjeczalik): replace with multiconfig
+// TODO: workaround for #10057
+var f = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+
 var (
-	flagIP          = flag.String("ip", "", "Change public ip")
-	flagPort        = flag.Int("port", 56789, "Change running port")
-	flagVersion     = flag.Bool("version", false, "Show version and exit")
-	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
-	flagDebug       = flag.Bool("debug", false, "Debug mode")
-	flagScreenrc    = flag.String("screenrc", "/opt/koding/etc/screenrc", "Default screenrc path")
+	flagIP          = f.String("ip", "", "Change public ip")
+	flagPort        = f.Int("port", 56789, "Change running port")
+	flagVersion     = f.Bool("version", false, "Show version and exit")
+	flagRegisterURL = f.String("register-url", "", "Change register URL to kontrol")
+	flagDebug       = f.Bool("debug", false, "Debug mode")
+	flagScreenrc    = f.String("screenrc", "/opt/koding/etc/screenrc", "Default screenrc path")
 
 	// Registration flags
-	flagKiteHome   = flag.String("kite-home", "", "Change kite home path")
-	flagUsername   = flag.String("username", "", "Username to be registered to Kontrol")
-	flagToken      = flag.String("token", "", "Token to be passed to Kontrol to register")
-	flagRegister   = flag.Bool("register", false, "Register to Kontrol with your Koding Password")
-	flagKontrolURL = flag.String("kontrol-url", "", "Change kontrol URL to be used for registration")
+	flagKiteHome   = f.String("kite-home", "", "Change kite home path")
+	flagUsername   = f.String("username", "", "Username to be registered to Kontrol")
+	flagToken      = f.String("token", "", "Token to be passed to Kontrol to register")
+	flagRegister   = f.Bool("register", false, "Register to Kontrol with your Koding Password")
+	flagKontrolURL = f.String("kontrol-url", "", "Change kontrol URL to be used for registration")
 
 	// Update parameters
-	flagUpdateInterval = flag.Duration("update-interval", time.Minute*5,
+	flagUpdateInterval = f.Duration("update-interval", time.Minute*5,
 		"Change interval for checking for new updates")
-	flagUpdateURL = flag.String("update-url",
+	flagUpdateURL = f.String("update-url",
 		"",
 		"Change update endpoint for latest version")
 
 	// Vagrant flags
-	flagVagrantHome = flag.String("vagrant-home", "", "Change Vagrant home path")
+	flagVagrantHome = f.String("vagrant-home", "", "Change Vagrant home path")
 
 	// Tunnel flags
-	flagTunnelName    = flag.String("tunnel-name", "", "Enable tunneling by setting non-empty tunnel name")
-	flagTunnelKiteURL = flag.String("tunnel-kite-url", "", "Change default tunnel server kite URL")
-	flagNoTunnel      = flag.Bool("no-tunnel", defaultNoTunnel(), "Force tunnel connection off")
-	flagNoProxy       = flag.Bool("no-proxy", false, "Force TLS proxy for tunneled connection off")
-	flagAutoupdate    = flag.Bool("autoupdate", false, "Force turn automatic updates on")
+	flagTunnelName    = f.String("tunnel-name", "", "Enable tunneling by setting non-empty tunnel name")
+	flagTunnelKiteURL = f.String("tunnel-kite-url", "", "Change default tunnel server kite URL")
+	flagNoTunnel      = f.Bool("no-tunnel", defaultNoTunnel(), "Force tunnel connection off")
+	flagNoProxy       = f.Bool("no-proxy", false, "Force TLS proxy for tunneled connection off")
+	flagAutoupdate    = f.Bool("autoupdate", false, "Force turn automatic updates on")
 
 	// Upload log flags
-	flagLogBucketRegion   = flag.String("log-bucket-region", "", "Change bucket region to upload logs")
-	flagLogBucketName     = flag.String("log-bucket-name", "", "Change bucket name to upload logs")
-	flagLogUploadInterval = flag.Duration("log-upload-interval", 90*time.Minute, "Change interval of upload logs")
+	flagLogBucketRegion   = f.String("log-bucket-region", "", "Change bucket region to upload logs")
+	flagLogBucketName     = f.String("log-bucket-name", "", "Change bucket name to upload logs")
+	flagLogUploadInterval = f.Duration("log-upload-interval", 90*time.Minute, "Change interval of upload logs")
 
 	// Metadata flags.
-	flagMetadata     = flag.String("metadata", "", "Base64-encoded Koding metadata")
-	flagMetadataFile = flag.String("metadata-file", "", "Koding metadata file")
+	flagMetadata     = f.String("metadata", "", "Base64-encoded Koding metadata")
+	flagMetadataFile = f.String("metadata-file", "", "Koding metadata file")
 )
 
 func defaultNoTunnel() bool {
@@ -77,7 +79,7 @@ func main() {
 }
 
 func realMain() int {
-	flag.Parse()
+	f.Parse(os.Args[1:])
 
 	// For forward-compatibility with go1.5+, where GOMAXPROCS is
 	// always set to a number of available cores.
