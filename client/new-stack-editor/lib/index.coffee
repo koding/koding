@@ -44,7 +44,7 @@ module.exports = class StackEditorAppController extends AppController
 
     @fetchStackTemplate stackTemplateId, (err, template) =>
       return showErrorNotification err  if err
-      @editor.setData template
+      @editor.setTemplateData template
 
     markAsLoaded stackTemplateId
 

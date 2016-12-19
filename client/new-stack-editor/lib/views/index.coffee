@@ -10,7 +10,7 @@ AppStorageAdapter = require './appstorageadapter'
 module.exports = class StackEditor extends kd.View
 
 
-  constructor: (options = {}, data) ->
+  constructor: (options = {}, data = {}) ->
 
     super options, data
 
@@ -46,7 +46,9 @@ module.exports = class StackEditor extends kd.View
     @emit 'ready'
 
 
-  setTemplateData: ->
+  setTemplateData: (data) ->
+
+    @setData data  if data
 
     { description, template } = @getData()
     return  unless description or template
