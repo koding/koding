@@ -2,7 +2,6 @@ package idset
 
 import (
 	"reflect"
-	"strings"
 	"testing"
 
 	"koding/klient/machine"
@@ -13,34 +12,34 @@ func TestUnion(t *testing.T) {
 		A, B, Expected []machine.ID
 	}{
 		"simple union": {
-			A:        genIDs("x1, x2, x3, x4"),
-			B:        genIDs("x3, x4, x5"),
-			Expected: genIDs("x1, x2, x3, x4, x5"),
+			A:        []machine.ID{"x1", "x2", "x3", "x4"},
+			B:        []machine.ID{"x3", "x4", "x5"},
+			Expected: []machine.ID{"x1", "x2", "x3", "x4", "x5"},
 		},
 		"empty A": {
-			A:        genIDs(""),
-			B:        genIDs("x1, x2, x3"),
-			Expected: genIDs("x1, x2, x3"),
+			A:        []machine.ID{},
+			B:        []machine.ID{"x1", "x2", "x3"},
+			Expected: []machine.ID{"x1", "x2", "x3"},
 		},
 		"empty B": {
-			A:        genIDs("x1, x2, x3"),
-			B:        genIDs(""),
-			Expected: genIDs("x1, x2, x3"),
+			A:        []machine.ID{"x1", "x2", "x3"},
+			B:        []machine.ID{},
+			Expected: []machine.ID{"x1", "x2", "x3"},
 		},
 		"union of zero slices": {
-			A:        genIDs(""),
-			B:        genIDs(""),
-			Expected: genIDs(""),
+			A:        []machine.ID{},
+			B:        []machine.ID{},
+			Expected: []machine.ID{},
 		},
 		"unordered elements": {
-			A:        genIDs("x5, x4, x3, x2, x1"),
-			B:        genIDs("x3, x4, x6, x5"),
-			Expected: genIDs("x5, x4, x3, x2, x1, x6"),
+			A:        []machine.ID{"x5", "x4", "x3", "x2", "x1"},
+			B:        []machine.ID{"x3", "x4", "x6", "x5"},
+			Expected: []machine.ID{"x5", "x4", "x3", "x2", "x1", "x6"},
 		},
 		"duplicated elements": {
-			A:        genIDs("x5, x3, x3, x3, x1"),
-			B:        genIDs("x3, x4"),
-			Expected: genIDs("x5, x3, x3, x3, x1, x4"),
+			A:        []machine.ID{"x5", "x3", "x3", "x3", "x1"},
+			B:        []machine.ID{"x3", "x4"},
+			Expected: []machine.ID{"x5", "x3", "x3", "x3", "x1", "x4"},
 		},
 	}
 
@@ -59,34 +58,34 @@ func TestIntersection(t *testing.T) {
 		A, B, Expected []machine.ID
 	}{
 		"simple intersection": {
-			A:        genIDs("x1, x2, x3, x4"),
-			B:        genIDs("x3, x4, x5"),
-			Expected: genIDs("x3, x4"),
+			A:        []machine.ID{"x1", "x2", "x3", "x4"},
+			B:        []machine.ID{"x3", "x4", "x5"},
+			Expected: []machine.ID{"x3", "x4"},
 		},
 		"empty A": {
-			A:        genIDs(""),
-			B:        genIDs("x1, x2, x3"),
-			Expected: genIDs(""),
+			A:        []machine.ID{},
+			B:        []machine.ID{"x1", "x2", "x3"},
+			Expected: []machine.ID{},
 		},
 		"empty B": {
-			A:        genIDs("x1, x2, x3"),
-			B:        genIDs(""),
-			Expected: genIDs(""),
+			A:        []machine.ID{"x1", "x2", "x3"},
+			B:        []machine.ID{},
+			Expected: []machine.ID{},
 		},
 		"intersection to zero slice": {
-			A:        genIDs("x1, x2, x3"),
-			B:        genIDs("x4, x5, x6"),
-			Expected: genIDs(""),
+			A:        []machine.ID{"x1", "x2", "x3"},
+			B:        []machine.ID{"x4", "x5", "x6"},
+			Expected: []machine.ID{},
 		},
 		"unordered elements": {
-			A:        genIDs("x5, x4, x3, x2, x1"),
-			B:        genIDs("x3, x4, x6, x5"),
-			Expected: genIDs("x3, x4, x5"),
+			A:        []machine.ID{"x5", "x4", "x3", "x2", "x1"},
+			B:        []machine.ID{"x3", "x4", "x6", "x5"},
+			Expected: []machine.ID{"x3", "x4", "x5"},
 		},
 		"duplicated elements": {
-			A:        genIDs("x5, x3, x3, x3, x1"),
-			B:        genIDs("x3, x4"),
-			Expected: genIDs("x3"),
+			A:        []machine.ID{"x5", "x3", "x3", "x3", "x1"},
+			B:        []machine.ID{"x3", "x4"},
+			Expected: []machine.ID{"x3"},
 		},
 	}
 
@@ -105,34 +104,34 @@ func TestDiff(t *testing.T) {
 		A, B, Expected []machine.ID
 	}{
 		"simple diff": {
-			A:        genIDs("x1, x2, x3, x4"),
-			B:        genIDs("x3, x4, x5"),
-			Expected: genIDs("x1, x2"),
+			A:        []machine.ID{"x1", "x2", "x3", "x4"},
+			B:        []machine.ID{"x3", "x4", "x5"},
+			Expected: []machine.ID{"x1", "x2"},
 		},
 		"empty A": {
-			A:        genIDs(""),
-			B:        genIDs("x1, x2, x3"),
-			Expected: genIDs(""),
+			A:        []machine.ID{},
+			B:        []machine.ID{"x1", "x2", "x3"},
+			Expected: []machine.ID{},
 		},
 		"empty B": {
-			A:        genIDs("x1, x2, x3"),
-			B:        genIDs(""),
-			Expected: genIDs("x1, x2, x3"),
+			A:        []machine.ID{"x1", "x2", "x3"},
+			B:        []machine.ID{},
+			Expected: []machine.ID{"x1", "x2", "x3"},
 		},
 		"diff to zero slice": {
-			A:        genIDs("x1, x2, x3"),
-			B:        genIDs("x1, x2, x3, x4"),
-			Expected: genIDs(""),
+			A:        []machine.ID{"x1", "x2", "x3"},
+			B:        []machine.ID{"x1", "x2", "x3", "x4"},
+			Expected: []machine.ID{},
 		},
 		"unordered elements": {
-			A:        genIDs("x5, x4, x3, x2, x1"),
-			B:        genIDs("x3, x4, x5"),
-			Expected: genIDs("x2, x1"),
+			A:        []machine.ID{"x5", "x4", "x3", "x2", "x1"},
+			B:        []machine.ID{"x3", "x4", "x5"},
+			Expected: []machine.ID{"x2", "x1"},
 		},
 		"duplicated elements": {
-			A:        genIDs("x5, x3, x3, x3, x1"),
-			B:        genIDs("x3, x4"),
-			Expected: genIDs("x5, x1"),
+			A:        []machine.ID{"x5", "x3", "x3", "x3", "x1"},
+			B:        []machine.ID{"x3", "x4"},
+			Expected: []machine.ID{"x5", "x1"},
 		},
 	}
 
@@ -144,16 +143,4 @@ func TestDiff(t *testing.T) {
 			}
 		})
 	}
-}
-
-func genIDs(ids string) (res []machine.ID) {
-	if ids == "" {
-		return []machine.ID{}
-	}
-
-	for _, id := range strings.Split(ids, ",") {
-		res = append(res, machine.ID(strings.TrimSpace(id)))
-	}
-
-	return res
 }
