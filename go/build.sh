@@ -32,7 +32,6 @@ export COMMANDS=(
 	koding/scripts/multiec2ssh
 
 	socialapi/workers/api
-	socialapi/workers/cmd/notification
 	socialapi/workers/cmd/realtime
 	socialapi/workers/cmd/realtime/gatekeeper
 	socialapi/workers/cmd/realtime/dispatcher

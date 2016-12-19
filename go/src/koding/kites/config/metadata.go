@@ -3,9 +3,8 @@ package config
 import (
 	"bytes"
 	"fmt"
-	"os"
+	"koding/tools/util"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -125,7 +124,7 @@ func DumpToBolt(home string, m Metadata, owner *User) error {
 			continue
 		}
 
-		err = nonil(db.SetValue(keyValue, value), db.Close(), chown(opts.File, owner))
+		err = nonil(db.SetValue(keyValue, value), db.Close(), util.Chown(opts.File, owner.User))
 
 		if err != nil {
 			de.Errs = append(de.Errs, &MetadataError{
@@ -141,34 +140,6 @@ func DumpToBolt(home string, m Metadata, owner *User) error {
 	}
 
 	return &de
-}
-
-func chown(file string, u *User) error {
-	if u == nil {
-		return nil
-	}
-
-	uid, err := strconv.Atoi(u.Uid)
-	if err != nil {
-		return err
-	}
-
-	gid, err := strconv.Atoi(u.Gid)
-	if err != nil {
-		return err
-	}
-
-	return os.Chown(file, uid, gid)
-}
-
-func chownAll(dir string, u *User) error {
-	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		return chown(dir, u)
-	})
 }
 
 // FixOwner changes ownership of files and directories rooted
@@ -191,7 +162,7 @@ func FixOwner(home string, owner *User) error {
 		return nil
 	}
 
-	return chownAll(home, owner)
+	return util.ChownAll(home, owner.User)
 }
 
 func nonil(err ...error) error {

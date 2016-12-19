@@ -2,14 +2,14 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
+	"text/tabwriter"
 	"time"
 
 	konfig "koding/kites/config"
+	"koding/kites/config/configstore"
 	"koding/kites/kloud/utils/object"
 	"koding/klient/storage"
 	"koding/klientctl/config"
@@ -97,7 +97,7 @@ func ConfigSet(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, nil
 	}
 
-	if err := updateKonfigCache(c.Args().Get(0), c.Args().Get(1)); err != nil {
+	if err := configstore.Set(c.Args().Get(0), c.Args().Get(1)); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1, err
 	}
@@ -111,7 +111,7 @@ func ConfigUnset(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, nil
 	}
 
-	if err := updateKonfigCache(c.Args().Get(0), ""); err != nil {
+	if err := configstore.Set(c.Args().Get(0), ""); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1, err
 	}
@@ -119,77 +119,58 @@ func ConfigUnset(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	return 0, nil
 }
 
-func setFlatKeyValue(m map[string]interface{}, key, value string) error {
-	keys := strings.Split(key, ".")
-	it := m
-	last := len(keys) - 1
+func ConfigList(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	konfigs := configstore.List()
 
-	for _, key := range keys[:last] {
-		switch v := it[key].(type) {
-		case map[string]interface{}:
-			it = v
-		case nil:
-			newV := make(map[string]interface{})
-			it[key] = newV
-			it = newV
-		default:
-			return errors.New("key is not an object")
+	if c.Bool("json") {
+		p, err := json.MarshalIndent(konfigs, "", "\t")
+		if err != nil {
+			return 1, err
 		}
+
+		fmt.Printf("%s\n", p)
+
+		return 0, nil
 	}
 
-	if value == "" {
-		delete(it, keys[last])
-	} else {
-		it[keys[last]] = value
-	}
+	printKonfigs(konfigs.Slice())
 
-	return nil
+	return 0, nil
 }
 
-func updateKonfigCache(key, value string) error {
-	db := konfig.NewCache(konfig.KonfigCache)
-	defer db.Close()
-
-	var cfg konfig.Konfig
-
-	if err := db.GetValue("konfig", &cfg); err != nil && err != storage.ErrKeyNotFound {
-		return fmt.Errorf("failed to update %s=%s: %s", key, value, err)
+func ConfigUse(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	if len(c.Args()) != 1 {
+		cli.ShowCommandHelp(c, "use")
+		return 1, nil
 	}
 
-	if err := setKonfig(&cfg, key, value); err != nil {
-		return fmt.Errorf("failed to update %s=%s: %s", key, value, err)
+	// TODO(rjeczalik): add support for initializing configuration via
+	// fetching it from kloud url passed as argument
+
+	k, ok := configstore.List()[c.Args().Get(0)]
+	if !ok {
+		fmt.Fprintf(os.Stderr, "Configuration %q was not found. Please use \"kd config list\""+
+			" to list available configurations.\n", c.Args().Get(0))
+		return 1, nil
 	}
 
-	if err := db.SetValue("konfig", cfg); err != nil {
-		return fmt.Errorf("failed to update %s=%s: %s", key, value, err)
+	if err := configstore.Use(k); err != nil {
+		fmt.Fprintln(os.Stderr, "Error switching configuration:", err)
+		return 1, err
 	}
 
-	return nil
+	fmt.Printf("Switched to %s.\n", k.Endpoints.Koding.Public)
+
+	return 0, nil
 }
 
-func setKonfig(cfg *konfig.Konfig, key, value string) error {
-	m := make(map[string]interface{})
+func printKonfigs(konfigs []*konfig.Konfig) {
+	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
+	defer w.Flush()
 
-	p, err := json.Marshal(cfg)
-	if err != nil {
-		return err
+	fmt.Fprintln(w, "ID\tKODING URL")
+
+	for _, konfig := range konfigs {
+		fmt.Fprintf(w, "%s\t%s\n", konfig.ID(), konfig.Endpoints.Koding.Public)
 	}
-
-	if err := json.Unmarshal(p, &m); err != nil {
-		return err
-	}
-
-	if err := setFlatKeyValue(m, key, value); err != nil {
-		return err
-	}
-
-	if p, err = json.Marshal(m); err != nil {
-		return err
-	}
-
-	if value == "" {
-		*cfg = konfig.Konfig{}
-	}
-
-	return json.Unmarshal(p, cfg)
 }

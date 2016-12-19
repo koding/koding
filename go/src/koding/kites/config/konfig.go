@@ -1,13 +1,14 @@
 package config
 
 import (
-	"encoding/json"
+	"crypto/sha1"
+	"encoding/hex"
+	"errors"
 	"net/url"
 	"path"
 	"path/filepath"
+	"sort"
 	"time"
-
-	"koding/kites/kloud/utils/object"
 
 	"github.com/boltdb/bolt"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -92,6 +93,24 @@ func (k *Konfig) KlientGzURL() string {
 	return u.String()
 }
 
+func (k *Konfig) Valid() error {
+	if k.Endpoints == nil {
+		return errors.New("endpoints are nil")
+	}
+	if k.Endpoints.Koding == nil {
+		return errors.New("koding base endpoint is nil")
+	}
+	if k.Endpoints.Koding.Public == nil {
+		return errors.New("public URL for koding base endpoint is nil")
+	}
+	return nil
+}
+
+func (k *Konfig) ID() string {
+	hash := sha1.Sum([]byte(k.Endpoints.Koding.Public.String()))
+	return hex.EncodeToString(hash[:4])
+}
+
 func (k *Konfig) buildKiteConfig() *konfig.Config {
 	if k.KiteKey != "" {
 		tok, err := jwt.ParseWithClaims(k.KiteKey, &kitekey.KiteClaims{}, kitekey.GetKontrolKey)
@@ -115,6 +134,22 @@ func (k *Konfig) buildKiteConfig() *konfig.Config {
 	}
 
 	return konfig.New()
+}
+
+type Konfigs map[string]*Konfig
+
+func (kfg Konfigs) Slice() []*Konfig {
+	keys := make([]string, 0, len(kfg))
+	for k := range kfg {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	slice := make([]*Konfig, 0, len(kfg))
+	for _, key := range keys {
+		slice = append(slice, kfg[key])
+	}
+	return slice
 }
 
 // Enviroment is a hacky workaround for kd <-> klient environments.
@@ -169,33 +204,4 @@ func NewKonfig(e *Environments) *Konfig {
 		PublicBucketRegion: Builtin.Buckets.PublicLogs.Region,
 		Debug:              false,
 	}
-}
-
-func ReadKonfig(e *Environments) *Konfig {
-	c := NewCache(KonfigCache)
-	defer c.Close()
-
-	return ReadKonfigFromCache(e, c)
-}
-
-func ReadKonfigFromCache(e *Environments, c *Cache) *Konfig {
-	var override Konfig
-	var builtin = NewKonfig(e)
-
-	if err := c.GetValue("konfig", &override); err == nil {
-		if err := mergeIn(builtin, &override); err != nil {
-			panic("unexpected failure reading konfig: " + err.Error())
-		}
-	}
-
-	return builtin
-}
-
-func mergeIn(kfg, mixin *Konfig) error {
-	p, err := json.Marshal(object.Inline(mixin, kfg))
-	if err != nil {
-		return err
-	}
-
-	return json.Unmarshal(p, kfg)
 }

@@ -6,7 +6,6 @@ import (
 	mongomodels "koding/db/models"
 	"socialapi/config"
 	"socialapi/models"
-	notymodels "socialapi/workers/notification/models"
 	"strings"
 
 	"koding/db/mongodb/modelhelper"
@@ -299,11 +298,5 @@ func (c *Controller) handleParticipantRemove(cp *models.ChannelParticipant) erro
 			return err
 		}
 	}
-	nt := notymodels.NewNotification()
-	err = nt.RemoveAllContentsRelatedWithNotification(cp.AccountId, channel.Id)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }

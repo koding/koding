@@ -24,6 +24,7 @@ import (
 	"koding/api/presence"
 	"koding/httputil"
 	cfg "koding/kites/config"
+	"koding/kites/config/configstore"
 	"koding/kites/kloud/stack"
 	"koding/klient/client"
 	"koding/klient/collaboration"
@@ -152,7 +153,6 @@ type KlientConfig struct {
 	Debug       bool
 
 	ScreenrcPath string
-	DBPath       string
 
 	UpdateInterval time.Duration
 	UpdateURL      string
@@ -267,7 +267,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 	term := terminal.New(k.Log, conf.ScreenrcPath)
 	term.InputHook = usg.Reset
 
-	db, err := openBoltDb(conf.DBPath)
+	db, err := openBoltDB(configstore.CacheOptions("klient"))
 	if err != nil {
 		k.Log.Warning("Couldn't open BoltDB: %s", err)
 	}
@@ -914,17 +914,8 @@ func (k *Klient) writeKiteKey(content string) error {
 	return nil
 }
 
-func openBoltDb(dbpath string) (*bolt.DB, error) {
-	if dbpath == "" {
-		return nil, errors.New("DB path is empty")
-	}
-
-	// create if it doesn't exists
-	if err := os.MkdirAll(filepath.Dir(dbpath), 0755); err != nil {
-		return nil, err
-	}
-
-	return bolt.Open(dbpath, 0644, &bolt.Options{Timeout: 5 * time.Second})
+func openBoltDB(opts *cfg.CacheOptions) (*bolt.DB, error) {
+	return bolt.Open(opts.File, 0644, opts.BoltDB)
 }
 
 // userIn checks whether the given user exists in the users list or not. It

@@ -141,6 +141,11 @@ func (dc *DynamicClient) Context() context.Context {
 	return dc.ctx
 }
 
+// Addr uses dynamic address function binded to client to obtain addresses.
+func (dc *DynamicClient) Addr(network string) (Addr, error) {
+	return dc.opts.AddrFunc(network)
+}
+
 // Close stops the dynamic client. After this function is called, client is
 // in disconnected state and each contexts returned by it are closed.
 func (dc *DynamicClient) Close() {

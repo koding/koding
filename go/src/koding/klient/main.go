@@ -29,7 +29,6 @@ var (
 	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
 	flagDebug       = flag.Bool("debug", false, "Debug mode")
 	flagScreenrc    = flag.String("screenrc", "/opt/koding/etc/screenrc", "Default screenrc path")
-	flagDBPath      = flag.String("dbpath", "", "Bolt DB database path. Must be absolute)")
 
 	// Registration flags
 	flagKiteHome   = flag.String("kite-home", "", "Change kite home path")
@@ -132,12 +131,7 @@ func realMain() int {
 		return 0
 	}
 
-	dbPath := filepath.Join(config.CurrentUser.HomeDir, filepath.FromSlash(".config/koding/klient.bolt"))
 	vagrantHome := filepath.Join(config.CurrentUser.HomeDir, ".vagrant.d")
-
-	if *flagDBPath != "" {
-		dbPath = *flagDBPath
-	}
 
 	if *flagVagrantHome != "" {
 		vagrantHome = *flagVagrantHome
@@ -150,7 +144,6 @@ func realMain() int {
 		Environment:       konfig.Environment,
 		Region:            konfig.Region,
 		Version:           konfig.Version,
-		DBPath:            dbPath,
 		IP:                *flagIP,
 		Port:              *flagPort,
 		RegisterURL:       *flagRegisterURL,
