@@ -31,6 +31,7 @@ import (
 	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
 	"koding/remoteapi"
+	"koding/tools/util"
 	"socialapi/workers/presence/client"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -167,6 +168,8 @@ func New(conf *Config) (*Kloud, error) {
 	}
 
 	e := newEndpoints(conf)
+
+	sess.Log.Debug("Konfig.Endpoints: %s", util.LazyJSON(e))
 
 	authUsers := map[string]string{
 		"kloudctl": conf.KloudSecretKey,
