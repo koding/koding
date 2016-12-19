@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"koding/klient/storage"
+	"koding/tools/util"
 
 	"github.com/boltdb/bolt"
 )
@@ -74,8 +75,10 @@ func NewBoltCache(options *CacheOptions) (*Cache, error) {
 
 func newBoltDB(o *CacheOptions) (*bolt.DB, error) {
 	dir := filepath.Dir(o.File)
-	os.MkdirAll(dir, 0755)
-	chown(dir, o.owner())
+
+	// Best-effort attempts, ignore errors.
+	_ = os.MkdirAll(dir, 0755)
+	_ = util.Chown(dir, o.owner().User)
 
 	return bolt.Open(o.File, 0644, o.BoltDB)
 }

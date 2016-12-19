@@ -444,7 +444,25 @@ func run(args []string) {
 							Name:  "defaults",
 							Usage: "Show also default configuration",
 						},
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
 					},
+				}, {
+					Name:   "list",
+					Usage:  "List all available configurations.",
+					Action: ctlcli.ExitErrAction(ConfigList, log, "list"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+					},
+				}, {
+					Name:   "use",
+					Usage:  "Change active configuration.",
+					Action: ctlcli.ExitErrAction(ConfigUse, log, "use"),
 				}, {
 					Name:   "set",
 					Usage:  "Set a value for the given key, overwriting default one.",

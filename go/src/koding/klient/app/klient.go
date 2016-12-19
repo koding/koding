@@ -24,6 +24,7 @@ import (
 	"koding/api/presence"
 	"koding/httputil"
 	cfg "koding/kites/config"
+	"koding/kites/config/configstore"
 	"koding/kites/kloud/stack"
 	"koding/klient/client"
 	"koding/klient/collaboration"
@@ -152,7 +153,6 @@ type KlientConfig struct {
 	Debug       bool
 
 	ScreenrcPath string
-	DBPath       string
 
 	UpdateInterval time.Duration
 	UpdateURL      string
@@ -170,19 +170,10 @@ type KlientConfig struct {
 
 	LogBucketRegion   string
 	LogBucketName     string
-	LogKeygenURL      string
 	LogUploadInterval time.Duration
 
 	Metadata     string
 	MetadataFile string
-}
-
-func (conf *KlientConfig) logKeygenURL() string {
-	if conf.LogKeygenURL != "" {
-		return conf.LogKeygenURL
-	}
-
-	return konfig.Konfig.KloudURL
 }
 
 func (conf *KlientConfig) logBucketName() string {
@@ -247,31 +238,42 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 	// ensure flags are stored alongside konfig and do not
 	// overwrite konfig here.
 	if conf.KontrolURL != "" {
-		konfig.Konfig.KontrolURL = conf.KontrolURL
+		u, err := url.Parse(conf.KontrolURL)
+		if err != nil {
+			return nil, err
+		}
+		u.Path = ""
+
+		konfig.Konfig.Endpoints.Koding.Public.URL = u
 	}
 
 	if conf.TunnelKiteURL != "" {
-		konfig.Konfig.TunnelURL = conf.TunnelKiteURL
+		u, err := url.Parse(conf.TunnelKiteURL)
+		if err != nil {
+			return nil, err
+		}
+
+		konfig.Konfig.Endpoints.Tunnel.Public.URL = u
 	}
 
 	k := newKite(conf)
 	k.Config.VerifyAudienceFunc = verifyAudience
 
 	if k.Config.KontrolURL == "" || k.Config.KontrolURL == "http://127.0.0.1:3000/kite" ||
-		konfig.Konfig.KontrolURL != konfig.Builtin.KontrolURL {
-		k.Config.KontrolURL = konfig.Konfig.KontrolURL
+		!konfig.Konfig.Endpoints.Kontrol().Equal(konfig.Builtin.Endpoints.Kontrol()) {
+		k.Config.KontrolURL = konfig.Konfig.Endpoints.Kontrol().Public.String()
 	}
 
 	term := terminal.New(k.Log, conf.ScreenrcPath)
 	term.InputHook = usg.Reset
 
-	db, err := openBoltDb(conf.DBPath)
+	db, err := openBoltDB(configstore.CacheOptions("klient"))
 	if err != nil {
 		k.Log.Warning("Couldn't open BoltDB: %s", err)
 	}
 
 	up := uploader.New(&uploader.Options{
-		KeygenURL: conf.logKeygenURL(),
+		KeygenURL: konfig.Konfig.Endpoints.Kloud().Public.String(),
 		Kite:      k,
 		Bucket:    conf.logBucketName(),
 		Region:    conf.logBucketRegion(),
@@ -292,7 +294,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		Log:           k.Log,
 		Kite:          k,
 		NoProxy:       conf.NoProxy,
-		TunnelKiteURL: konfig.Konfig.TunnelURL,
+		TunnelKiteURL: konfig.Konfig.Endpoints.Tunnel.Public.String(),
 	}
 
 	t, err := tunnel.New(tunOpts)
@@ -327,7 +329,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		k.Log.Fatal("Cannot initialize machine group: %s", err)
 	}
 
-	c := k.NewClient(konfig.Konfig.KloudURL)
+	c := k.NewClient(konfig.Konfig.Endpoints.Kloud().Public.String())
 	c.Auth = &kite.Auth{
 		Type: "kiteKey",
 		Key:  k.Config.KiteKey,
@@ -374,7 +376,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		},
 		logUploadDelay: 3 * time.Minute,
 		presence: &presence.Client{
-			Endpoint: konfig.Konfig.SocialAPI.Public.WithPath("presence"),
+			Endpoint: konfig.Konfig.Endpoints.Social().Public.WithPath("presence").URL,
 			Client:   restClient,
 		},
 		presenceEvery: onceevery.New(1 * time.Hour),
@@ -912,17 +914,8 @@ func (k *Klient) writeKiteKey(content string) error {
 	return nil
 }
 
-func openBoltDb(dbpath string) (*bolt.DB, error) {
-	if dbpath == "" {
-		return nil, errors.New("DB path is empty")
-	}
-
-	// create if it doesn't exists
-	if err := os.MkdirAll(filepath.Dir(dbpath), 0755); err != nil {
-		return nil, err
-	}
-
-	return bolt.Open(dbpath, 0644, &bolt.Options{Timeout: 5 * time.Second})
+func openBoltDB(opts *cfg.CacheOptions) (*bolt.DB, error) {
+	return bolt.Open(opts.File, 0644, opts.BoltDB)
 }
 
 // userIn checks whether the given user exists in the users list or not. It

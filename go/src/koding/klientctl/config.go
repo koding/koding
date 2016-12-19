@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"text/tabwriter"
 	"time"
 
 	konfig "koding/kites/config"
+	"koding/kites/config/configstore"
 	"koding/kites/kloud/utils/object"
 	"koding/klient/storage"
 	"koding/klientctl/config"
@@ -95,7 +97,7 @@ func ConfigSet(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, nil
 	}
 
-	if err := updateKonfigCache(c.Args().Get(0), c.Args().Get(1)); err != nil {
+	if err := configstore.Set(c.Args().Get(0), c.Args().Get(1)); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1, err
 	}
@@ -109,7 +111,7 @@ func ConfigUnset(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, nil
 	}
 
-	if err := updateKonfigCache(c.Args().Get(0), nil); err != nil {
+	if err := configstore.Set(c.Args().Get(0), ""); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return 1, err
 	}
@@ -117,49 +119,58 @@ func ConfigUnset(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	return 0, nil
 }
 
-func updateKonfigCache(key string, value interface{}) error {
-	db := konfig.NewCache(konfig.KonfigCache)
-	defer db.Close()
+func ConfigList(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	konfigs := configstore.List()
 
-	var cfg konfig.Konfig
-
-	if err := db.GetValue("konfig", &cfg); err != nil && err != storage.ErrKeyNotFound {
-		return fmt.Errorf("failed to update %s=%v: %s", key, value, err)
-	}
-
-	if err := b.Set(&cfg, key, value); err != nil {
-		if s, ok := value.(string); ok && s != "" {
-			err = mergeIn(&cfg, key, s)
-		}
+	if c.Bool("json") {
+		p, err := json.MarshalIndent(konfigs, "", "\t")
 		if err != nil {
-			return fmt.Errorf("failed to update %s=%v: %s", key, value, err)
+			return 1, err
 		}
+
+		fmt.Printf("%s\n", p)
+
+		return 0, nil
 	}
 
-	if err := db.SetValue("konfig", &cfg); err != nil {
-		return fmt.Errorf("failed to update %s=%v: %s", key, value, err)
-	}
+	printKonfigs(konfigs.Slice())
 
-	return nil
+	return 0, nil
 }
 
-// TODO(rjeczalik): a workaround for b.Set missing a patch feature,
-// so it's able to partially update e.g. a struct.
-func mergeIn(cfg *konfig.Konfig, key, raw string) error {
-	var v interface{}
-
-	if err := json.Unmarshal([]byte(raw), &v); err != nil {
-		return err
+func ConfigUse(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	if len(c.Args()) != 1 {
+		cli.ShowCommandHelp(c, "use")
+		return 1, nil
 	}
 
-	v = map[string]interface{}{
-		key: v,
+	// TODO(rjeczalik): add support for initializing configuration via
+	// fetching it from kloud url passed as argument
+
+	k, ok := configstore.List()[c.Args().Get(0)]
+	if !ok {
+		fmt.Fprintf(os.Stderr, "Configuration %q was not found. Please use \"kd config list\""+
+			" to list available configurations.\n", c.Args().Get(0))
+		return 1, nil
 	}
 
-	p, err := json.Marshal(object.Inline(v, cfg))
-	if err != nil {
-		return err
+	if err := configstore.Use(k); err != nil {
+		fmt.Fprintln(os.Stderr, "Error switching configuration:", err)
+		return 1, err
 	}
 
-	return json.Unmarshal(p, cfg)
+	fmt.Printf("Switched to %s.\n", k.Endpoints.Koding.Public)
+
+	return 0, nil
+}
+
+func printKonfigs(konfigs []*konfig.Konfig) {
+	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
+	defer w.Flush()
+
+	fmt.Fprintln(w, "ID\tKODING URL")
+
+	for _, konfig := range konfigs {
+		fmt.Fprintf(w, "%s\t%s\n", konfig.ID(), konfig.Endpoints.Koding.Public)
+	}
 }

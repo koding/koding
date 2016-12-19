@@ -77,7 +77,7 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
       partial : '''<strong>We ask your credit card purely for verification purposes.</strong>
                    Your credit card will not be charged unless you buy a
                    plan after your trial period ends.
-                   Read more on our <a href="https://www.koding.com/pricing" target="_blank">Pricing</a> page.'''
+                   Read more on our <a href="https://www.koding.com/pricing#footnotes" target="_blank">Pricing</a> page.'''
 
     @button = new kd.ButtonView
       title: 'NEXT'

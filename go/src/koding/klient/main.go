@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -28,7 +29,6 @@ var (
 	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
 	flagDebug       = flag.Bool("debug", false, "Debug mode")
 	flagScreenrc    = flag.String("screenrc", "/opt/koding/etc/screenrc", "Default screenrc path")
-	flagDBPath      = flag.String("dbpath", "", "Bolt DB database path. Must be absolute)")
 
 	// Registration flags
 	flagKiteHome   = flag.String("kite-home", "", "Change kite home path")
@@ -57,7 +57,6 @@ var (
 	// Upload log flags
 	flagLogBucketRegion   = flag.String("log-bucket-region", "", "Change bucket region to upload logs")
 	flagLogBucketName     = flag.String("log-bucket-name", "", "Change bucket name to upload logs")
-	flagKeygenURL         = flag.String("log-keygen-url", "", "Change keygen endpoint URL for bucket authorization")
 	flagLogUploadInterval = flag.Duration("log-upload-interval", 90*time.Minute, "Change interval of upload logs")
 
 	// Metadata flags.
@@ -93,7 +92,7 @@ func realMain() int {
 	if *flagRegister {
 		kontrolURL := *flagKontrolURL
 		if kontrolURL == "" {
-			kontrolURL = konfig.Konfig.KontrolURL
+			kontrolURL = konfig.Konfig.Endpoints.Kontrol().Public.String()
 		}
 
 		kiteHome := *flagKiteHome
@@ -101,22 +100,25 @@ func realMain() int {
 			kiteHome = konfig.Konfig.KiteHome()
 		}
 
-		kloudURL := *flagKeygenURL
-		if kloudURL == "" {
-			kloudURL = konfig.Konfig.KloudURL
-		}
-
 		if err := registration.Register(kontrolURL, kiteHome, *flagUsername, *flagToken, debug); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return 1
 		}
 
+		u, err := url.Parse(kontrolURL)
+		if err != nil {
+			log.Fatalf("failed to parse -kontrol-url: %s", err)
+		}
+
+		// TODO(rjeczalik): rework client to display KODING_URL instead of KONTROLURL
+		u.Path = ""
+
 		// Create new konfig.bolt with variables used during registration.
 		kfg := &config.Konfig{
-			KiteKeyFile:        filepath.Join(kiteHome, "kite.key"),
-			KontrolURL:         kontrolURL,
-			TunnelURL:          *flagTunnelName,
-			KloudURL:           kloudURL,
+			KiteKeyFile: filepath.Join(kiteHome, "kite.key"),
+			Endpoints: &config.Endpoints{
+				Koding: config.NewEndpointURL(u),
+			},
 			PublicBucketName:   *flagLogBucketName,
 			PublicBucketRegion: *flagLogBucketRegion,
 		}
@@ -129,12 +131,7 @@ func realMain() int {
 		return 0
 	}
 
-	dbPath := filepath.Join(config.CurrentUser.HomeDir, filepath.FromSlash(".config/koding/klient.bolt"))
 	vagrantHome := filepath.Join(config.CurrentUser.HomeDir, ".vagrant.d")
-
-	if *flagDBPath != "" {
-		dbPath = *flagDBPath
-	}
 
 	if *flagVagrantHome != "" {
 		vagrantHome = *flagVagrantHome
@@ -147,7 +144,6 @@ func realMain() int {
 		Environment:       konfig.Environment,
 		Region:            konfig.Region,
 		Version:           konfig.Version,
-		DBPath:            dbPath,
 		IP:                *flagIP,
 		Port:              *flagPort,
 		RegisterURL:       *flagRegisterURL,
@@ -164,7 +160,6 @@ func realMain() int {
 		Autoupdate:        *flagAutoupdate,
 		LogBucketRegion:   *flagLogBucketRegion,
 		LogBucketName:     *flagLogBucketName,
-		LogKeygenURL:      *flagKeygenURL,
 		LogUploadInterval: *flagLogUploadInterval,
 		Metadata:          *flagMetadata,
 		MetadataFile:      *flagMetadataFile,

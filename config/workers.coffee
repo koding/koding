@@ -155,14 +155,6 @@ module.exports = (KONFIG, options, credentials) ->
             proxyPass   : "http://socialapi/channel/by/$1$is_args$args"
           }
           {
-            location    : "~ /api/social/channel/(.*)/notificationsetting"
-            proxyPass   : "http://socialapi/channel/$1/notificationsetting$is_args$args"
-          }
-          {
-            location    : "~ /api/social/notificationsetting/(.*)"
-            proxyPass   : "http://socialapi/notificationsetting/$1$is_args$args"
-          }
-          {
             location    : "~ /api/social/collaboration/ping"
             proxyPass   : "http://socialapi/collaboration/ping$1$is_args$args"
           }
@@ -196,11 +188,6 @@ module.exports = (KONFIG, options, credentials) ->
             proxyPass   : "http://socialapi/$1$is_args$args"
             internalOnly: yes
           }
-          {
-            location    : "~ /sitemap(.*).xml"
-            proxyPass   : "http://socialapi/sitemap$1.xml"
-          }
-
         ]
 
     algoliaconnector    :
@@ -209,14 +196,6 @@ module.exports = (KONFIG, options, credentials) ->
         command         :
           run           : "#{GOBIN}/algoliaconnector"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/algoliaconnector -watch socialapi/workers/algoliaconnector"
-
-    notification        :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/notification"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/notification -watch socialapi/workers/notification"
-
 
     realtime            :
       group             : "socialapi"

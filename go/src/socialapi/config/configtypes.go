@@ -73,7 +73,6 @@ type (
 		ForcedRecipientUsername string `env:"key=KONFIG_SOCIALAPI_EMAIL_FORCEDRECIPIENTUSERNAME"`
 		Username                string `env:"key=KONFIG_SOCIALAPI_EMAIL_USERNAME                 required"`
 		Password                string `env:"key=KONFIG_SOCIALAPI_EMAIL_PASSWORD                 required"`
-		TemplateRoot            string `env:"key=KONFIG_SOCIALAPI_EMAIL_TEMPLATEROOT 	        default=workers/sitemap/files/"`
 	}
 
 	// Algolia holds Algolia service credentials

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"net"
 	"socialapi/config"
 	"socialapi/request"
@@ -77,6 +78,26 @@ func (c *Context) IsAdmin() bool {
 
 	superAdmins := config.MustGet().DummyAdmins
 	return IsIn(c.Client.Account.Nick, superAdmins...)
+}
+
+// IsGroupAdmin checks if the current context is the admin of the context's
+// group.
+// mongo connection is required.
+func (c *Context) IsGroupAdmin() error {
+	if !c.IsLoggedIn() {
+		return ErrNotLoggedIn
+	}
+
+	isAdmin, err := modelhelper.IsAdmin(c.Client.Account.Nick, c.GroupName)
+	if err != nil {
+		return err
+	}
+
+	if !isAdmin {
+		return ErrNotAdmin
+	}
+
+	return nil
 }
 
 // MustGetLogger gets the logger from context, otherwise panics
