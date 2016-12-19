@@ -23,7 +23,7 @@ func TestMachineGroupFreshStart(t *testing.T) {
 	}
 	defer stop()
 
-	builder := machinetest.NewNilBuilder()
+	builder := machinetest.NewClientBuilder(nil)
 	g, err := New(testOptionsStorage(builder, st))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
@@ -69,7 +69,7 @@ func TestMachineGroupNoAliases(t *testing.T) {
 		t.Errorf("want one registered machine; got %v", address.Registered())
 	}
 
-	builder := machinetest.NewNilBuilder()
+	builder := machinetest.NewClientBuilder(nil)
 	g, err := New(testOptionsStorage(builder, st))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)

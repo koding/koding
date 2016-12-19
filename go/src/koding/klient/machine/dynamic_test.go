@@ -14,7 +14,7 @@ import (
 func TestDynamicClientOnOff(t *testing.T) {
 	var (
 		serv    = &machinetest.Server{}
-		builder = machinetest.NewNilBuilder()
+		builder = machinetest.NewClientBuilder(nil)
 	)
 
 	dc, err := machine.NewDynamicClient(machinetest.DynamicClientOpts(serv, builder))
@@ -56,7 +56,7 @@ func TestDynamicClientOnOff(t *testing.T) {
 func TestDynamicClientContext(t *testing.T) {
 	var (
 		serv    = &machinetest.Server{}
-		builder = machinetest.NewNilBuilder()
+		builder = machinetest.NewClientBuilder(nil)
 	)
 
 	dc, err := machine.NewDynamicClient(machinetest.DynamicClientOpts(serv, builder))
