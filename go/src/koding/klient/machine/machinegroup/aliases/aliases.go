@@ -4,9 +4,15 @@ import (
 	"math/rand"
 	"strconv"
 	"sync"
+	"time"
 
 	"koding/klient/machine"
 )
+
+func init() {
+	// initialize pseudo random number generator.
+	rand.Seed(time.Now().UnixNano())
+}
 
 // colors defines the available colors for aliases. The first letter of each
 // color name must be unique across the slice.
