@@ -3,7 +3,6 @@ package stack
 import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/config"
 
 	mgo "gopkg.in/mgo.v2"
 
@@ -21,11 +20,6 @@ type LoginRequest struct {
 
 	// Metadata whether
 	Metadata bool `json:"metadata,omitempty"`
-}
-
-// Metadata represents Koding configuration.
-type Metadata struct {
-	Endpoints *config.Endpoints `json:"endpoints"` // Koding endpoints
 }
 
 // LoginResponse represents a response model for "auth.login"

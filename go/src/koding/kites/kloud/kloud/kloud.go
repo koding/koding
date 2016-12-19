@@ -309,6 +309,9 @@ func New(conf *Config) (*Kloud, error) {
 	// Authorization handling.
 	k.HandleFunc("auth.login", kloud.Stack.AuthLogin)
 
+	// Configuration handling.
+	k.HandleFunc("config.metadata", kloud.Stack.ConfigMetadata)
+
 	// Team handling.
 	k.HandleFunc("team.list", kloud.Stack.TeamList)
 	k.HandleFunc("team.whoami", kloud.Stack.TeamWhoami)
