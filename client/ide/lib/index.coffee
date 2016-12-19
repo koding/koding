@@ -95,12 +95,12 @@ class IDEAppController extends AppController
     @layoutManager = new IDELayoutManager { delegate : this }
 
     @workspace.once 'ready', => @getView().addSubView @workspace.getView()
-    @bindListeners()
 
     appManager.on 'AppIsBeingShown', (app) =>
 
       return  unless app is this
 
+      @bindListeners()
       @setActivePaneFocus on, yes
 
       # Temporary fix for IDE is not shown after
@@ -115,6 +115,9 @@ class IDEAppController extends AppController
 
 
   bindListeners: ->
+
+    return  if @_listenersBound
+    @_listenersBound = yes
 
     @on 'CloseFullScreen', =>
       [ideView] = @ideViews.filter (ideView) -> ideView.isFullScreen
