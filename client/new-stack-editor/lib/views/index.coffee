@@ -6,6 +6,7 @@ FlexSplit = require './flexsplit'
 FlexSplitStorage = require './flexsplit/storage'
 AppStorageAdapter = require './appstorageadapter'
 
+Toolbar = require './toolbar'
 Editor = require './editorview'
 
 
@@ -21,8 +22,7 @@ module.exports = class StackEditor extends kd.View
       adapter: AppStorageAdapter
 
     # Toolbar
-    @toolbar = new kd.View
-      cssClass: 'toolbar'
+    @toolbar = new Toolbar
 
     # Status bar
     @statusbar = new kd.View
@@ -44,13 +44,14 @@ module.exports = class StackEditor extends kd.View
       cssClass: 'readme'
       title: 'Readme'
 
-    @setTemplateData()
     @emit 'ready'
 
 
   setTemplateData: (data) ->
 
-    @setData data  if data
+    if data
+      @setData data
+      @toolbar.setData data
 
     { description, template } = @getData()
     return  unless description or template
