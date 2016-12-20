@@ -4,10 +4,10 @@ Encoder = require 'htmlencode'
 
 FlexSplit = require './flexsplit'
 FlexSplitStorage = require './flexsplit/storage'
-AppStorageAdapter = require './appstorageadapter'
+AppStorageAdapter = require './adapters/appstorageadapter'
 
 Toolbar = require './toolbar'
-Editor = require './editorview'
+Editor = require './editor'
 
 
 module.exports = class StackEditor extends kd.View
