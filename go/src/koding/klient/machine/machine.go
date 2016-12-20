@@ -16,7 +16,7 @@ var (
 
 // DefaultLogger is a logger which can be used in machine related objects as
 // a fallback logger when Log option is not provided.
-var DefaultLogger = logging.NewCustom("machine", config.Konfig.Debug)
+var DefaultLogger = logging.NewCustom("machine", bool(config.Konfig.Debug))
 
 // ID is a unique identifier of the machine.
 type ID string

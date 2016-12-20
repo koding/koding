@@ -75,7 +75,7 @@ type Konfig struct {
 	PublicBucketName   string `json:"publicBucketName,omitempty"`
 	PublicBucketRegion string `json:"publicBucketRegion,omitempty"`
 
-	Debug bool `json:"debug,omitempty"`
+	Debug StringOrBool `json:"debug,omitempty"`
 
 	// Metadata keeps per-app configuration.
 	Metadata map[string]interface{} `json:"metadata,omitempty"`

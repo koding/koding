@@ -26,7 +26,7 @@ func SSHCommandFactory(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	opts := ssh.SSHCommandOpts{
-		Debug:          c.Bool("debug") || config.Konfig.Debug,
+		Debug:          c.Bool("debug") || bool(config.Konfig.Debug),
 		RemoteUsername: c.String("username"),
 		Ask:            true,
 	}

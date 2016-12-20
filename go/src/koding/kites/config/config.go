@@ -104,6 +104,36 @@ func (u *URL) WithPath(paths ...string) *URL {
 	return &URL{URL: &ur}
 }
 
+// StringOrBool implements json.Unmarshaler, which can parse
+// either boolean type or converts string to bool.
+type StringOrBool bool
+
+var _ json.Unmarshaler = (*StringOrBool)(nil)
+
+func (b *StringOrBool) UnmarshalJSON(p []byte) error {
+	var v bool
+
+	if err := json.Unmarshal(p, &v); err == nil {
+		*b = StringOrBool(v)
+		return nil
+	}
+
+	var s string
+
+	if err := json.Unmarshal(p, &s); err != nil {
+		return err
+	}
+
+	v, err := strconv.ParseBool(s)
+	if err != nil {
+		return err
+	}
+
+	*b = StringOrBool(v)
+
+	return nil
+}
+
 // Endpoint represents a single endpoint.
 type Endpoint struct {
 	Public  *URL `json:"public,omitempty"`
