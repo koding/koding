@@ -28,6 +28,7 @@ module.exports = class StackEditor extends kd.View
 
     # Toolbar
     @toolbar = new Toolbar
+    @forwardEvent @toolbar, 'InitializeRequested'
 
     # Status bar
     @statusbar = new Statusbar

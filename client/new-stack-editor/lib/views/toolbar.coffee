@@ -12,7 +12,17 @@ module.exports = class Toolbar extends JView
 
     super options, data
 
+    @actionButton = new kd.ButtonView
+      cssClass : 'action-button solid green compact'
+      title    : 'Initialize'
+      icon     : yes
+      callback : => @emit 'InitializeRequested', @getData()
+
+    @expandButton = new kd.ButtonView
+      cssClass: 'expand'
+      callback: ->
+        kd.singletons.mainView.toggleSidebar()
+
 
   pistachio: ->
-    '{h3{#(title)}}'
-
+    '{h3{#(title)}} {{> @expandButton}} {{> @actionButton}}'

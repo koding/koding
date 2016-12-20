@@ -50,7 +50,25 @@ $stack-border-color         = #000000
     height                  40px
     min-height              40px !important
     border-bottom           2px solid $stack-border-color
+    padding                 14px
+    font-size               13px
+    color                   $stack-fg-color-bright
     borderBox()
+
+    .action-button
+      height                26px
+      padding-left          12px
+      abs                   6px, 6px
+      .icon
+        margin              8px 8px 0 0
+        padding             0
+        color               white
+        fa                  play
+
+    .kdbutton.expand
+      top                   13px    !important
+      right                 120px   !important
+
 
   .content
     background              $stack-bg-color
@@ -87,8 +105,12 @@ $stack-border-color         = #000000
   .flex-view
 
     background              $stack-bg-color
-    color                   $stack-fg-color
     vendor                  transition, all .5s ease
+
+    &:hover
+      .kdbutton.expand
+        visibility          visible
+        color               $stack-fg-color-bright
 
     &.with-title
       .editor

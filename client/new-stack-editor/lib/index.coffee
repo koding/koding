@@ -28,23 +28,19 @@ module.exports = class StackEditorAppController extends AppController
 
   constructor: (options = {}, data) ->
 
-    console.trace()
-    log '::init', options, data
-
     super options, data
 
     @templates = {}
-    @mainView.addSubView @editor = new StackEditor
+    @mainView.addSubView @stackEditor = new StackEditor
+
+    @stackEditor.on 'InitializeRequested', @bound 'initializeStack'
 
 
   openEditor: (templateId) ->
 
-    console.trace()
-    log '::openEditor', templateId
-
     @fetchStackTemplate templateId, (err, template) =>
       return showErrorNotification err  if err
-      @editor.setTemplateData template
+      @stackEditor.setTemplateData template
 
     markAsLoaded templateId
 
@@ -74,3 +70,9 @@ module.exports = class StackEditorAppController extends AppController
       return callback Errors.NotExists  unless template
 
       callback null, @templates[templateId] = template
+
+
+  initializeStack: (template) ->
+
+    console.trace()
+    log '::initializeStack', template
