@@ -21,6 +21,7 @@ module.exports = class EditorView extends BaseView
 
     @aceView = new AceView {
       cssClass: 'editor'
+      useStorage: no
       createBottomBar: no
     }, file
 
@@ -49,6 +50,7 @@ module.exports = class EditorView extends BaseView
 
   setContent: (content, type = 'text') -> @ready =>
     @aceView.ace.setContent content
+
 
   _windowDidResize: ->
 

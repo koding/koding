@@ -129,6 +129,7 @@ module.exports = class AppStorage extends kd.Object
 
     if storage = _globals.combinedStorage
       @_storageData = storage
+      @_setReady()
 
 
   zip: (key, group, value) ->

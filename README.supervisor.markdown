@@ -49,7 +49,6 @@ By default, `supervisorctl` prints output of `status` command.
 Example output during startup:
 
 ```
-environment:janitor                   STARTING
 environment:kloud                     STARTING
 environment:kontrol                   STARTING
 environment:terraformer               STARTING
@@ -74,7 +73,6 @@ Same command executed through command line options.
 
 ```
 $ supervisorctl status
-environment:janitor                   RUNNING   pid 3638, uptime 0:00:11
 environment:kloud                     RUNNING   pid 3276, uptime 0:00:15
 environment:kontrol                   RUNNING   pid 3271, uptime 0:00:15
 environment:terraformer               RUNNING   pid 3274, uptime 0:00:15

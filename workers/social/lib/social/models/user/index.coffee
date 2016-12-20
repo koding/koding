@@ -141,9 +141,6 @@ module.exports = class JUser extends jraphical.Module
         type        : Date
         default     : -> new Date
 
-      # store fields for janitor worker. see go/src/koding/db/models/user.go for more details.
-      inactive      : Object
-
       # stores user preference for how often email should be sent.
       # see go/src/koding/db/models/user.go for more details.
       emailFrequency: Object

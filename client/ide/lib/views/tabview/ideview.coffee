@@ -77,8 +77,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     @tabView.on 'PaneDidShow', =>
       { frontApp } = kd.singletons.appManager
       @updateStatusBar()
-      frontApp.writeSnapshot()
-      @focusTab()  if frontApp.isTabViewFocused @tabView
+      frontApp?.writeSnapshot?()
+      @focusTab()  if frontApp?.isTabViewFocused @tabView
 
     @tabView.on 'PaneAdded', (pane) =>
       pane.tabHandle.setClass 'focus'
