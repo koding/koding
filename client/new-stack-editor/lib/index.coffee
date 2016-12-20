@@ -37,16 +37,16 @@ module.exports = class StackEditorAppController extends AppController
     @mainView.addSubView @editor = new StackEditor
 
 
-  openEditor: (stackTemplateId) ->
+  openEditor: (templateId) ->
 
     console.trace()
-    log '::openEditor', stackTemplateId
+    log '::openEditor', templateId
 
-    @fetchStackTemplate stackTemplateId, (err, template) =>
+    @fetchStackTemplate templateId, (err, template) =>
       return showErrorNotification err  if err
       @editor.setTemplateData template
 
-    markAsLoaded stackTemplateId
+    markAsLoaded templateId
 
 
   openStackWizard: (handleRoute = yes) ->

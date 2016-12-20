@@ -3,7 +3,8 @@ AceView = require 'ace/aceview'
 FSHelper = require 'app/util/fs/fshelper'
 BaseView = require './baseview'
 
-module.exports = class EditorView extends BaseView
+
+module.exports = class Editor extends BaseView
 
 
   constructor: (options = {}, data) ->
@@ -38,7 +39,7 @@ module.exports = class EditorView extends BaseView
       ace.lastSavedContents = ace.getContents()
 
       ace.editor.renderer.setScrollMargin 0, 15, 0, 0
-      ace.editor.getSession().setScrollTop 0
+      @_getSession().setScrollTop 0
 
       ace.off 'ace.requests.save'
       ace.off 'ace.requests.saveAs'
@@ -49,7 +50,7 @@ module.exports = class EditorView extends BaseView
 
 
   setContent: (content, type = 'text') -> @ready =>
-    @aceView.ace.setContent content
+    @_getSession().setValue content
 
 
   _windowDidResize: ->
@@ -57,3 +58,5 @@ module.exports = class EditorView extends BaseView
     @aceView?._windowDidResize()
     @once 'transitionend', =>
       kd.utils.defer => @aceView?._windowDidResize()
+  _getSession: -> @aceView.ace.editor.getSession()
+
