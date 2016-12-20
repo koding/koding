@@ -43,7 +43,6 @@ export COMMANDS=(
 	socialapi/workers/cmd/team
 	socialapi/workers/algoliaconnector/tagmigrator
 	socialapi/workers/algoliaconnector/contentmigrator
-	socialapi/workers/cmd/integration/eventsender
 
 	vendor/github.com/koding/kite/kitectl
 	vendor/github.com/canthefason/go-watcher
