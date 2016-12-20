@@ -1,10 +1,12 @@
 kd = require 'kd'
 bowser = require 'bowser'
 Encoder = require 'htmlencode'
-EditorView = require './editorview'
+
 FlexSplit = require './flexsplit'
 FlexSplitStorage = require './flexsplit/storage'
 AppStorageAdapter = require './appstorageadapter'
+
+Editor = require './editorview'
 
 
 module.exports = class StackEditor extends kd.View
@@ -27,18 +29,18 @@ module.exports = class StackEditor extends kd.View
       cssClass: 'statusbar'
 
     # Editor views
-    @editor = new EditorView
+    @editor = new Editor
       cssClass: 'editor'
 
-    @logs = new EditorView
+    @logs = new Editor
       cssClass: 'logs'
       title: 'Logs'
 
-    @variables = new EditorView
+    @variables = new Editor
       cssClass: 'variables'
       title: 'Custom Variables'
 
-    @readme = new EditorView
+    @readme = new Editor
       cssClass: 'readme'
       title: 'Readme'
 
