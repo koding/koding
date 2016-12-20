@@ -5,13 +5,13 @@ import (
 )
 
 // Union returns a set of all elements in A and B sets.
-func Union(a, b []machine.ID) []machine.ID {
+func Union(a, b machine.IDSlice) machine.IDSlice {
 	aset := make(map[machine.ID]struct{})
 	for i := range a {
 		aset[a[i]] = struct{}{}
 	}
 
-	res := make([]machine.ID, len(a))
+	res := make(machine.IDSlice, len(a))
 	copy(res, a)
 
 	for i := range b {
@@ -25,13 +25,13 @@ func Union(a, b []machine.ID) []machine.ID {
 
 // Intersection returns a set that contains all elements of A that also belong
 // to B, but no other elements.
-func Intersection(a, b []machine.ID) []machine.ID {
+func Intersection(a, b machine.IDSlice) machine.IDSlice {
 	aset := make(map[machine.ID]bool)
 	for i := range a {
 		aset[a[i]] = true
 	}
 
-	res := make([]machine.ID, 0, len(a))
+	res := make(machine.IDSlice, 0, len(a))
 	for i := range b {
 		if aset[b[i]] {
 			res = append(res, b[i])
@@ -43,7 +43,7 @@ func Intersection(a, b []machine.ID) []machine.ID {
 
 // Diff returns a relative complement of B in A. This means that the result
 // contains elements present in A but not in B.
-func Diff(a, b []machine.ID) []machine.ID {
+func Diff(a, b machine.IDSlice) machine.IDSlice {
 	aset := make(map[machine.ID]struct{})
 	for i := range a {
 		aset[a[i]] = struct{}{}
@@ -55,7 +55,7 @@ func Diff(a, b []machine.ID) []machine.ID {
 		}
 	}
 
-	res := make([]machine.ID, 0, len(a))
+	res := make(machine.IDSlice, 0, len(a))
 	for i := range a {
 		if _, ok := aset[a[i]]; ok {
 			res = append(res, a[i])

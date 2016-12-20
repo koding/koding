@@ -11,22 +11,6 @@ var (
 	ErrDisconnected = errors.New("machine disconnected")
 )
 
-var _ Client = (*DisconnectedClient)(nil)
-
-// DisconnectedClient satisfies Client interface. It indicates disconnected
-// machine and always returns
-type DisconnectedClient struct{}
-
-// CurrentUser always returns ErrDisconnected error.
-func (DisconnectedClient) CurrentUser() (string, error) {
-	return "", ErrDisconnected
-}
-
-// SSHAddKeys always returns ErrDisconnected error.
-func (DisconnectedClient) SSHAddKeys(_ string, _ ...string) error {
-	return ErrDisconnected
-}
-
 var _ ClientBuilder = (*DisconnectedClientBuilder)(nil)
 
 // DisconnectedClientBuilder satisfies ClientBuilder. It produces disconnected
@@ -42,4 +26,20 @@ func (DisconnectedClientBuilder) Ping(_ DynamicAddrFunc) (Status, Addr, error) {
 // Build always returns disconnected client.
 func (DisconnectedClientBuilder) Build(_ context.Context, _ Addr) Client {
 	return DisconnectedClient{}
+}
+
+var _ Client = (*DisconnectedClient)(nil)
+
+// DisconnectedClient satisfies Client interface. It indicates disconnected
+// machine and always returns
+type DisconnectedClient struct{}
+
+// CurrentUser always returns ErrDisconnected error.
+func (DisconnectedClient) CurrentUser() (string, error) {
+	return "", ErrDisconnected
+}
+
+// SSHAddKeys always returns ErrDisconnected error.
+func (DisconnectedClient) SSHAddKeys(_ string, _ ...string) error {
+	return ErrDisconnected
 }
