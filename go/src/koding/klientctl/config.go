@@ -63,9 +63,10 @@ func createFolderAtHome(cf ...string) (string, error) {
 }
 
 var b = &object.Builder{
-	Tag:       "json",
-	Sep:       ".",
-	Recursive: true,
+	Tag:           "json",
+	Sep:           ".",
+	Recursive:     true,
+	FlatStringers: true,
 }
 
 func ConfigShow(c *cli.Context, log logging.Logger, _ string) (int, error) {
@@ -81,12 +82,15 @@ func ConfigShow(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		}
 	}
 
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetIndent("", "\t")
+	if c.Bool("json") {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "\t")
+		enc.Encode(used)
 
-	if err := enc.Encode(used); err != nil {
-		return 1, err
+		return 0, nil
 	}
+
+	printKonfig(used)
 
 	return 0, nil
 }
@@ -182,5 +186,22 @@ func printKonfigs(konfigs []*konfig.Konfig) {
 
 	for _, konfig := range konfigs {
 		fmt.Fprintf(w, "%s\t%s\n", konfig.ID(), konfig.KodingPublic())
+	}
+}
+
+func printKonfig(konfig *konfig.Konfig) {
+	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
+	defer w.Flush()
+
+	fmt.Fprintln(w, "KEY\tVALUE")
+
+	obj := b.Build(konfig, "kiteKey")
+
+	for _, key := range obj.Keys() {
+		value := obj[key]
+		if value == nil || fmt.Sprintf("%v", value) == "" {
+			value = "-"
+		}
+		fmt.Fprintf(w, "%s\t%v\n", key, value)
 	}
 }
