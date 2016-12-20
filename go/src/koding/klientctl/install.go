@@ -61,13 +61,6 @@ fi
 
 ulimit -n 5000
 
-# ensure /etc/kite is user-writeable to enable key updates
-#
-# TODO(rjeczalik): this should be gone after koding/koding@8414
-
-find /etc/kite -type d -exec chmod -R 777 {} \;
-find /etc/kite -type f -exec chmod -R 666 {} \;
-
 # start klient
 
 export USERNAME=${USERNAME:-{{.User}}}

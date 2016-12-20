@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -13,7 +11,6 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -51,7 +48,6 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
-	"github.com/koding/kite/kitekey"
 	"github.com/koding/kite/kontrol/onceevery"
 	kiteproto "github.com/koding/kite/protocol"
 	"github.com/koding/kite/sockjsclient"
@@ -884,38 +880,14 @@ func (k *Klient) updateKiteKey(reg *kiteproto.RegisterResult) {
 }
 
 func (k *Klient) writeKiteKey(content string) error {
-	kiteHome, err := kitekey.KiteHome()
+	konfig, err := configstore.Used()
 	if err != nil {
 		return err
 	}
 
-	f, err := ioutil.TempFile(kiteHome, "kite.key")
-	if err != nil {
-		return err
-	}
+	konfig.KiteKey = strings.TrimSpace(content)
 
-	origPath := filepath.Join(kiteHome, "kite.key")
-
-	_, err = io.Copy(f, strings.NewReader(content))
-	errClose := f.Close()
-	if err == nil {
-		err = errClose
-	}
-
-	if err != nil {
-		os.Remove(f.Name())
-		return err
-	}
-
-	os.Remove(origPath)
-
-	if err := os.Rename(f.Name(), origPath); err != nil {
-		return err
-	}
-
-	k.kite.Log.Info("auth update: written new %q", origPath)
-
-	return nil
+	return configstore.Use(konfig)
 }
 
 func openBoltDB(opts *cfg.CacheOptions) (*bolt.DB, error) {
