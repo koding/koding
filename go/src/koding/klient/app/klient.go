@@ -239,13 +239,14 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 	// ensure flags are stored alongside konfig and do not
 	// overwrite konfig here.
 	if conf.KontrolURL != "" {
-		u, err := url.Parse(conf.KontrolURL)
-		if err != nil {
-			return nil, err
-		}
-		u.Path = ""
+		konfig.Konfig.KontrolURL = conf.KontrolURL
+	}
 
-		konfig.Konfig.Endpoints.Koding.Public.URL = u
+	// NOTE(rjeczalik): For backward-compatibility with old klient,
+	// remove once not needed.
+	if u, err := url.Parse(konfig.Konfig.KontrolURL); err == nil && konfig.Konfig.KontrolURL != "" {
+		u.Path = ""
+		konfig.Konfig.Endpoints.Koding = cfg.NewEndpointURL(u)
 	}
 
 	if conf.TunnelKiteURL != "" {
