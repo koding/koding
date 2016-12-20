@@ -15,22 +15,19 @@ title: Apply for $1,000 Koding Credit
 <main class="ApplyForm">
   <div class="ApplyForm--header">
     <div class="ApplyForm--container">
+      <div class="form-instructions">
 
-      <h1>Apply for $1,000 Koding Credit</h1>
+        <h1>Apply for $1,000 Koding Credit</h1>
 
-      <h3>If you sign up your entire team with Koding and write your stack script within a week, you are awesome, we love you and therefore <strong>we will give you $1,000</strong> in free credit.</h3>
+        <h3>If you sign up your entire team with Koding and write your stack script within a week, you are awesome, we love you and therefore <strong>we will give you $1,000</strong> in free credit.</h3>
 
-      <hr />
+        <hr />
 
-      <p><strong>Note: </strong>This promotion is for teams only and does not apply to personal use of Koding. If you are just 1 person for now, and willing to invite team members later, it's OK. We will still issue the credit to your account. Just make sure we can see what you are working on via your landing page.</p>
+        <p><strong>Note: </strong>This promotion is for teams only and does not apply to personal use of Koding. If you are just 1 person for now, and willing to invite team members later, it's OK. We will still issue the credit to your account. Just make sure we can see what you are working on via your landing page.</p>
 
+      </div>
       <h3 class="form-success hidden">
-        We just received your request for a 1-on-1 demo. One of our teammates will reach out to you in the next 48 hours to get it scheduled.
-        <br><br>
-        <a href="{{ site.url }}">Go back to homepage</a>
-      </h3>
-      <h3 class="form-duplicate-entry hidden">
-        We <strong>previously received</strong> your request for a demo. One of our teammates will reach out to you soon to get it scheduled.
+        Thank you. Your response has been recorded!
         <br><br>
         <a href="{{ site.url }}">Go back to homepage</a>
       </h3>
@@ -43,32 +40,38 @@ title: Apply for $1,000 Koding Credit
       <div class="SignupFieldset">
         <label>Koding Team Name *</label>
         <input type="text" name="Field1">
+        <div class="errorTooltip fadeOut">Required</div>
       </div>
 
       <div class="SignupFieldset">
         <label>Your Koding User Name *</label>
         <input type="text" name="Field2">
+        <div class="errorTooltip fadeOut">Required</div>
       </div>
 
       <div class="SignupFieldset">
         <label>Your Work Email *</label>
         <input type="text" name="Field3">
+        <div class="errorTooltip fadeOut">Required</div>
       </div>
 
       <div class="SignupFieldset">
         <label>Your Company Web Site (or landing page) *<p>Your email domain should be the same with this website’s domain.</p></label>
         <input type="text" name="Field4">
+        <div class="errorTooltip fadeOut">Required</div>
       </div>
 
       <div class="SignupFieldset">
         <label>Number of Team Members *<p>You must have completed a working stack script (with credentials added) for your team. Tell us which one that is.</p></label>
         <input type="text" name="Field5">
+        <div class="errorTooltip fadeOut">Required</div>
       </div>
 
       <div class="SignupFieldset">
         <div class="name">
           <label>Stack Script for your Team *<p>If you are working solo on your future company, we understand and we’d love to help. You can tell us how many you are projecting in the next 12 months.</p></label>
           <input type="text" name="Field6">
+        <div class="errorTooltip fadeOut">Required</div>
         </div>
       </div>
 
@@ -76,14 +79,14 @@ title: Apply for $1,000 Koding Credit
 
       <div class="SignupFieldset">
         <div class="checkboxRow">
-          <input type="checkbox" name="Field7">
-          <label>I will add a "Made with Koding" badge to my home page for additional $1000 credits</label>
+          <input type="checkbox" value="badge" name="Field7">
+          <label>I will add a "Made with Koding" badge to my home page for additional $1,000 credits</label>
           <div class="clearfix"></div>
         </div>
         <div class="checkboxRow clearfix">
-          <input type="checkbox" name="Field8">
-          <label>I will write a 2000+ words Medium blog post about my experience and how Koding helps me for additional $1000 Koding credits</label>
-        <div class="clearfix"></div>
+          <input type="checkbox" value="blogpost" name="Field8">
+          <label>I will write a 2,000+ words Medium blog post about my experience and how Koding helps me for additional $1,000 Koding credits</label>
+          <div class="clearfix"></div>
         </div>
       </div>
 
@@ -115,6 +118,7 @@ title: Apply for $1,000 Koding Credit
     formHash: 'k5a8n2o0ioahhk',
     success: function() {
       $('.Micropage--container > h1').text('Awesome!');
+      $('.form-instructions').addClass('hidden');
       $('.form-success').removeClass('hidden');
       $('#SignupForm').hide();
     },
@@ -130,14 +134,13 @@ title: Apply for $1,000 Koding Credit
       if (responseText) {
         FieldErrors = responseText.FieldErrors;
         results = [];
+        $("input[type=text]").removeClass('error');
+        $(".errorTooltip").addClass('fadeOut');
         for (i = 0, len = FieldErrors.length; i < len; i++) {
           err = FieldErrors[i];
-          results.push($("input[name=" + err.ID + "]").addClass('error'));
-          if (err.ID == 'Field8' && /unique\sentry/.test(err.ErrorText)){
-            $('#SignupForm').hide();
-            $('.Micropage--container > h1').text('Demo Pending!');
-            $('.form-duplicate-entry').removeClass('hidden');
-          }
+          var inputField = $("input[name=" + err.ID + "]")
+          results.push(inputField.addClass('error'));
+          inputField.siblings('.errorTooltip').removeClass('fadeOut');
         }
         return results;
       }

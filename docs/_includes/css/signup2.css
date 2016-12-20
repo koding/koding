@@ -150,6 +150,13 @@ body {
   position: absolute;
   bottom: 30px;
   right: 0;
+  transition: opacity .5s;
+  display: block;
+  opacity: 1;
+}
+
+.SignupFieldset .errorTooltip.fadeOut {
+  opacity: 0;
 }
 
 .SignupFieldset .errorTooltip:after {

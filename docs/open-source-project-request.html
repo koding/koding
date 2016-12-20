@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Koding Open Source Project Request
+title: Apply for Koding Credits
 ---
 
 <!-- HEADER -->
@@ -10,22 +10,17 @@ title: Koding Open Source Project Request
 <main class="ApplyForm">
   <div class="ApplyForm--header">
     <div class="ApplyForm--container">
+      <div class="form-instructions">
+        <h1>Apply for Koding Credits</h1>
 
-      <h1>Koding Open Source Project Request</h1>
+        <h3>If your project is open source, Koding is free to use. If you are a fledgeling startup or a CS class, we'd love to help! Please fill out this form, so we can properly qualify your request.</h3>
 
-      <h3>If your project is open source, Koding is free to use. If you are a fledgeling startup or a CS class, we'd love to help! Please fill out this form, so we can properly qualify your request.</h3>
+        <hr />
 
-      <hr />
-
-      <h3>You can find the Koding badge <a href="https://assets.brandfolder.com/odxjy2-1vxsm0-4mqaom/original/Koding_Logo_Color.png">here</a>. You can make the logo smaller, but keep the proportions intact.</h3>
-
+        <h3>You can find the Koding badge <a href="https://assets.brandfolder.com/odxjy2-1vxsm0-4mqaom/original/Koding_Logo_Color.png">here</a>. You can make the logo smaller, but keep the proportions intact.</h3>
+      </div>
       <h3 class="form-success hidden">
-        We just received your request for a 1-on-1 demo. One of our teammates will reach out to you in the next 48 hours to get it scheduled.
-        <br><br>
-        <a href="{{ site.url }}">Go back to homepage</a>
-      </h3>
-      <h3 class="form-duplicate-entry hidden">
-        We <strong>previously received</strong> your request for a demo. One of our teammates will reach out to you soon to get it scheduled.
+        Thank you. Your response has been recorded!
         <br><br>
         <a href="{{ site.url }}">Go back to homepage</a>
       </h3>
@@ -59,34 +54,34 @@ title: Koding Open Source Project Request
       <div class="SignupFieldset">
         <label>If Open Source, project repository URL with Koding badge *</label>
         <input type="text" name="Field1">
-        <div class="errorTooltip">Error</div>
       </div>
 
       <div class="SignupFieldset">
         <label>If Startup, company landing page URL with Koding badge *</label>
         <input type="text" name="Field2">
-        <div class="errorTooltip">Error</div>
       </div>
 
       <div class="SignupFieldset">
         <label>If Education, your school and class *</label>
         <input type="text" name="Field3">
-        <div class="errorTooltip">Error</div>
       </div>
 
       <div class="SignupFieldset">
         <label>Your email *</label>
         <input type="text" name="Field4">
+        <div class="errorTooltip fadeOut">Required</div>
       </div>
 
       <div class="SignupFieldset">
         <label>Your Koding Username *</label>
         <input type="text" name="Field5">
+        <div class="errorTooltip fadeOut">Required</div>
       </div>
 
       <div class="SignupFieldset">
         <label>Your Koding Team *</label>
         <input type="text" name="Field6">
+        <div class="errorTooltip fadeOut">Required</div>
       </div>
 
       <div class="SignupFieldset">
@@ -139,6 +134,7 @@ title: Koding Open Source Project Request
     formHash: 'x12ibg5p0qpnd8p',
     success: function() {
       $('.Micropage--container > h1').text('Awesome!');
+      $('.form-instructions').addClass('hidden');
       $('.form-success').removeClass('hidden');
       $('#SignupForm').hide();
     },
@@ -157,11 +153,6 @@ title: Koding Open Source Project Request
         for (i = 0, len = FieldErrors.length; i < len; i++) {
           err = FieldErrors[i];
           results.push($("input[name=" + err.ID + "]").addClass('error'));
-          if (err.ID == 'Field8' && /unique\sentry/.test(err.ErrorText)){
-            $('#SignupForm').hide();
-            $('.Micropage--container > h1').text('Demo Pending!');
-            $('.form-duplicate-entry').removeClass('hidden');
-          }
         }
         return results;
       }
