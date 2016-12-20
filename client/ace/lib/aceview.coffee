@@ -30,18 +30,24 @@ module.exports = class AceView extends JView
     options.advancedSettings         ?= no
     options.createBottomBar          ?= yes
     options.createFindAndReplaceView ?= yes
+    options.useStorage               ?= yes
 
     super options, file
 
     @listenWindowResize()
 
-    aceOptions =
-      delegate: options.delegate or this
-      createFindAndReplaceView: options.createFindAndReplaceView
+    aceOptions = {
+      createFindAndReplaceView
+      advancedSettings
+      useStorage
+      delegate
+    } = @getOptions()
+
+    aceOptions.delegate ?= delegate ?= this
 
     @ace = new options.aceClass aceOptions, file
 
-    if options.createFindAndReplaceView
+    if createFindAndReplaceView
       @findAndReplaceView = new AceFindAndReplaceView { delegate: this }
       @findAndReplaceView.hide()
     else
@@ -59,14 +65,13 @@ module.exports = class AceView extends JView
       iconOnly        : yes
       iconClass       : 'cog'
       type            : 'contextmenu'
-      delegate        : options.delegate or this
+      delegate        : delegate
       itemClass       : AceSettingsView
       click           : (pubInst, event) -> @contextMenu event
       menu            : @getAdvancedSettingsMenuItems.bind this
 
     @advancedSettings.disable()
-
-    @advancedSettings.hide()  unless options.advancedSettings
+    @advancedSettings.hide()  unless advancedSettings
 
     @setViewListeners()
 

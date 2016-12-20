@@ -255,14 +255,6 @@ module.exports = (KONFIG, options, credentials) ->
           run           : "#{GOBIN}/team"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/team -watch socialapi/workers/team"
 
-    janitor             :
-      group             : "environment"
-      instances         : 1
-      supervisord       :
-        command         : "#{GOBIN}/janitor -kite-init=true"
-      healthCheckURL    : "http://localhost:#{KONFIG.socialapi.janitor.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.socialapi.janitor.port}/version"
-
     eventsender         :
       group             : "socialapi"
       supervisord       :

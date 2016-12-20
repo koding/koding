@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"koding/kites/tunnelproxy/discover"
 	"koding/klient/machine"
 	"koding/klient/machine/machinegroup/addresses"
 	"koding/klient/machine/machinegroup/aliases"
@@ -15,6 +16,10 @@ import (
 
 // GroupOpts are the options used to configure machine group.
 type GroupOpts struct {
+	// Discover is used to resolve address if klient connection is tunneled. If
+	// nil, default discover client will be used.
+	Discover *discover.Client
+
 	// Storage defines the storage where machine group can save its state. If
 	// nil, no storage will be used.
 	Storage storage.ValueInterface
@@ -59,6 +64,8 @@ type Group struct {
 	client  *clients.Clients
 	address addresses.Addresser
 	alias   aliases.Aliaser
+
+	discover *discover.Client
 }
 
 // New creates a new Group object.
@@ -74,6 +81,13 @@ func New(opts *GroupOpts) (*Group, error) {
 		g.log = opts.Log.New("machines")
 	} else {
 		g.log = machine.DefaultLogger.New("machines")
+	}
+
+	// Use default discover client when not set.
+	if opts.Discover != nil {
+		g.discover = opts.Discover
+	} else {
+		g.discover = discover.NewClient()
 	}
 
 	// Create dynamic clients.

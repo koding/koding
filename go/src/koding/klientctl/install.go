@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	konfig "koding/kites/config"
+	"koding/kites/config/configstore"
 	"koding/klient/uploader"
 	"koding/klientctl/config"
 	"koding/klientctl/metrics"
@@ -310,7 +311,7 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 
 	// Best-effort attempts at fixinig permissions and ownership, ignore any errors.
 	_ = uploader.FixPerms()
-	_ = konfig.FixOwner("", nil)
+	_ = configstore.FixOwner()
 
 	// track metrics
 	metrics.TrackInstall(config.VersionNum())

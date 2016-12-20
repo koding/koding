@@ -146,7 +146,6 @@ module.exports = (options, credentials) ->
     credentialEndPoint: "#{socialApiProxyUrl}/credential"
     socialProxyURL: "#{socialApiProxyUrl}"
 
-    janitorSecretKey: credentials.janitor.secretKey
     terraformerSecretKey: credentials.terraformer.secretKey
 
 
@@ -164,7 +163,6 @@ module.exports = (options, credentials) ->
     stripe                 : credentials.stripe
     github                 : credentials.github
     gitlab                 : gitlab
-    janitor                : credentials.janitor
     postgres               : credentials.postgres
     mq                     : credentials.rabbitmq
     redis                  : credentials.redis

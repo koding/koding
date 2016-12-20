@@ -1,6 +1,8 @@
 package machinegroup
 
 import (
+	"errors"
+
 	"koding/klient/machine"
 )
 
@@ -24,6 +26,10 @@ type CreateResponse struct {
 // Create updates internal state of machine group. It gets the current
 // information about user machines so it can add new ones to group.
 func (g *Group) Create(req *CreateRequest) (*CreateResponse, error) {
+	if req == nil {
+		return nil, errors.New("invalid nil request")
+	}
+
 	res := &CreateResponse{
 		Statuses: make(map[machine.ID]machine.Status),
 		Aliases:  make(map[machine.ID]string),

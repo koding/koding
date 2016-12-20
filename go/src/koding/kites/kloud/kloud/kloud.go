@@ -134,7 +134,6 @@ type Config struct {
 	AWSAccessKeyId     string
 	AWSSecretAccessKey string
 
-	JanitorSecretKey     string
 	KloudSecretKey       string
 	TerraformerSecretKey string
 
@@ -177,7 +176,6 @@ func New(conf *Config) (*Kloud, error) {
 
 	authUsers := map[string]string{
 		"kloudctl": conf.KloudSecretKey,
-		"janitor":  conf.JanitorSecretKey,
 	}
 
 	var credURL *url.URL
