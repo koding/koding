@@ -17,6 +17,10 @@ module.exports = class StackEditor extends kd.View
 
     super options, data
 
+    # In-Memory Snapshot Storage
+    @_snapshots = {}
+    @_current = null
+
     # Storage
     @layoutStorage = new FlexSplitStorage
       adapter: AppStorageAdapter
@@ -53,14 +57,41 @@ module.exports = class StackEditor extends kd.View
       @setData data
       @toolbar.setData data
 
-    { description, template } = @getData()
-    return  unless description or template
+    { _id: id, description, template } = @getData()
+    unless id or description or template
+      throw { message: 'A valid JStackTemplate is required!' }
 
-    @editor.setContent Encoder.htmlDecode template.rawContent
-    @readme.setContent description
+    @_saveSnapshot @_current  if @_current
 
-    @logs.setContent 'Stack template loaded'
+    unless @_loadSnapshot id
 
+      @editor.setContent Encoder.htmlDecode template.rawContent
+      @readme.setContent description
+      @logs.setContent 'Stack template loaded'
+
+      @_saveSnapshot id
+      @_current = id
+
+
+  _loadSnapshot: (id) ->
+
+    return no  unless id
+    return no  unless snapshot = @_snapshots[id]
+
+    for view in ['editor', 'readme', 'logs']
+      @[view]._restore snapshot[view]
+    @_current = id
+
+    return yes
+
+
+  _saveSnapshot: (id) ->
+
+    return  unless id
+
+    @_snapshots[id] ?= {}
+    for view in ['editor', 'readme', 'logs']
+      @_snapshots[id][view] = @[view]._dump()
 
 
   viewAppended: ->
