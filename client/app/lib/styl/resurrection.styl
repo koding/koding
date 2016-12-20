@@ -185,8 +185,8 @@ pre
           hidden()
 
       #main-panel-wrapper
-        width               calc(100% - 50px)
-        margin-left         50px
+        width               calc(100% - 41px)
+        margin-left         41px
 
     &.hover
       #main-sidebar
@@ -199,6 +199,9 @@ pre
       #main-sidebar
         .Sidebar-logo-wrapper
           hidden()
+
+        .activity-sidebar
+          padding           1px 12px
 
         &.team
           .logo-wrapper.group
@@ -221,13 +224,19 @@ pre
         .sidebar-close-handle
           display           none !important
 
-        .SidebarSection-header
         .Workspaces-section
         .MachineSettings
         .SidebarListItem-title
         .SidebarListItem-progressbar
         .sidebar-title
           opacity           0
+
+        .SidebarSection-header
+          h4 a:before
+            size            12px, 12px
+            left            2px
+            top             2px
+            margin-right    120px
 
         .sidebar-machine-box
           width             20px
