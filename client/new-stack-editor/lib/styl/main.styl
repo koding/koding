@@ -154,13 +154,16 @@ $stack-border-color         = #000000
       background            none
       border                none
       color                 $stack-fg-color
+      font-size             13px !important
       z-index               10
+      visibility            hidden
 
       &.expand
         fa                  expand
       &.collapse
-        visibility          hidden
         fa                  compress
+      &:focus
+        box-shadow          none
 
       abs                   10px, 10px
 
@@ -219,3 +222,8 @@ $stack-border-color         = #000000
 
 #intercom-container
   display                   none
+
+#kdmaincontainer.hover
+#kdmaincontainer.collapsed
+  .toolbar .kdbutton.expand
+    fa                      compress
