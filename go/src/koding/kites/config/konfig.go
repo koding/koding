@@ -164,6 +164,14 @@ func (k *Konfig) buildKiteConfig() *konfig.Config {
 	return konfig.New()
 }
 
+func NewKonfigURL(koding *url.URL) *Konfig {
+	return &Konfig{
+		Endpoints: &Endpoints{
+			Koding: NewEndpointURL(koding),
+		},
+	}
+}
+
 type Konfigs map[string]*Konfig
 
 func (kfg Konfigs) Slice() []*Konfig {

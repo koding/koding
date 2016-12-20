@@ -98,36 +98,16 @@ func realMain() int {
 			kontrolURL = konfig.Konfig.Endpoints.Kontrol().Public.String()
 		}
 
-		kiteHome := *flagKiteHome
-		if kiteHome == "" {
-			kiteHome = konfig.Konfig.KiteHome()
-		}
-
-		if err := registration.Register(kontrolURL, kiteHome, *flagUsername, *flagToken, debug); err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			return 1
-		}
-
-		u, err := url.Parse(kontrolURL)
+		koding, err := url.Parse(kontrolURL)
 		if err != nil {
 			log.Fatalf("failed to parse -kontrol-url: %s", err)
 		}
 
 		// TODO(rjeczalik): rework client to display KODING_URL instead of KONTROLURL
-		u.Path = ""
+		koding.Path = ""
 
-		// Create new konfig.bolt with variables used during registration.
-		kfg := &config.Konfig{
-			KiteKeyFile: filepath.Join(kiteHome, "kite.key"),
-			Endpoints: &config.Endpoints{
-				Koding: config.NewEndpointURL(u),
-			},
-			PublicBucketName:   *flagLogBucketName,
-			PublicBucketRegion: *flagLogBucketRegion,
-		}
-
-		if err := configstore.WriteMetadata(configstore.Metadata{"konfig": kfg}); err != nil {
-			fmt.Fprintln(os.Stderr, err)
+		if err := registration.Register(koding, *flagUsername, *flagToken, debug); err != nil {
+			fmt.Fprintln(os.Stderr, "registration failed:", err)
 			return 1
 		}
 
