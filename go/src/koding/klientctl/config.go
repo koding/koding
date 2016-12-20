@@ -162,7 +162,7 @@ func ConfigUse(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, err
 	}
 
-	fmt.Printf("Switched to %s.\n", k.KodingPublic())
+	fmt.Printf("Switched to %s.\n\nPlease run \"sudo kd restart\" for the new configuration to take effect.\n", k.KodingPublic())
 
 	return 0, nil
 }
@@ -173,7 +173,7 @@ func ConfigReset(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, err
 	}
 
-	fmt.Printf("Reset %s.\n", config.Konfig.KodingPublic())
+	fmt.Printf("Reset %s.\n\nPlease run \"sudo kd restart\" for the new configuration to take effect.\n", config.Konfig.KodingPublic())
 
 	return 0, nil
 }
