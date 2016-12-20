@@ -8,6 +8,7 @@ AppStorageAdapter = require './adapters/appstorageadapter'
 
 Toolbar = require './toolbar'
 Editor = require './editor'
+Statusbar = require './statusbar'
 
 
 module.exports = class StackEditor extends kd.View
@@ -29,24 +30,31 @@ module.exports = class StackEditor extends kd.View
     @toolbar = new Toolbar
 
     # Status bar
-    @statusbar = new kd.View
-      cssClass: 'statusbar'
+    @statusbar = new Statusbar
 
     # Editor views
-    @editor = new Editor
+    @editor = new Editor {
       cssClass: 'editor'
+      @statusbar
+    }
 
-    @logs = new Editor
+    @logs = new Editor {
       cssClass: 'logs'
       title: 'Logs'
+      @statusbar
+    }
 
-    @variables = new Editor
+    @variables = new Editor {
       cssClass: 'variables'
       title: 'Custom Variables'
+      @statusbar
+    }
 
-    @readme = new Editor
+    @readme = new Editor {
       cssClass: 'readme'
       title: 'Readme'
+      @statusbar
+    }
 
     @emit 'ready'
 
@@ -57,11 +65,12 @@ module.exports = class StackEditor extends kd.View
       @setData data
       @toolbar.setData data
 
-    { _id: id, description, template } = @getData()
+    { _id: id, title, description, template } = @getData()
     unless id or description or template
       throw { message: 'A valid JStackTemplate is required!' }
 
     @_saveSnapshot @_current  if @_current
+    @editor.setOption 'title', title
 
     unless @_loadSnapshot id
 

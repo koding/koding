@@ -14,6 +14,10 @@ module.exports = class Editor extends BaseView
     super options, data
 
 
+  setContent: (content, type = 'text') -> @ready =>
+    @_getSession().setValue content
+
+
   viewAppended: ->
 
     super
@@ -44,13 +48,13 @@ module.exports = class Editor extends BaseView
       ace.off 'ace.requests.save'
       ace.off 'ace.requests.saveAs'
 
+      if @getOption 'statusbar'
+        ace.editor.on 'focus', @bound '_updateStatusBar'
+        @_notifyStatusbar()
+
       @emit 'ready'
 
     @wrapper.addSubView @aceView
-
-
-  setContent: (content, type = 'text') -> @ready =>
-    @_getSession().setValue content
 
 
   _windowDidResize: ->
@@ -58,6 +62,25 @@ module.exports = class Editor extends BaseView
     @aceView?._windowDidResize()
     @once 'transitionend', =>
       kd.utils.defer => @aceView?._windowDidResize()
+
+
+  _updateStatusBar: ->
+
+    { statusbar, title } = @getOptions()
+    cursor = @_getSession().selection.getCursor()
+    statusbar.setData {
+      row    : ++cursor.row
+      column : ++cursor.column
+      title  : @getOption 'title'
+    }
+
+
+  _notifyStatusbar: ->
+
+    return  unless @getOption 'statusbar'
+
+    session = @_getSession()
+    session.selection.on 'changeCursor', @bound '_updateStatusBar'
 
 
   # restore/dump functionality referenced from following example ~ GG
@@ -96,4 +119,5 @@ module.exports = class Editor extends BaseView
     session.setScrollLeft dump.scrollLeft
 
     @aceView.ace.editor.setSession session
-
+    @_notifyStatusbar()
+    @_updateStatusBar()
