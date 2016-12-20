@@ -243,6 +243,9 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 		return 1, err
 	}
 
+	// Best-effort attempts at fixinig permissions and ownership, ignore any errors.
+	_ = configstore.FixOwner()
+
 	opts := &ServiceOptions{
 		Username: klientSh.User,
 	}
@@ -288,7 +291,6 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 
 	// Best-effort attempts at fixinig permissions and ownership, ignore any errors.
 	_ = uploader.FixPerms()
-	_ = configstore.FixOwner()
 
 	// track metrics
 	metrics.TrackInstall(config.VersionNum())
