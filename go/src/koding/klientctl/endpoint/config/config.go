@@ -56,6 +56,8 @@ func (c *Client) Close() (err error) {
 }
 
 func (c *Client) Defaults() (*config.Konfig, error) {
+	c.init()
+
 	used, err := c.store.Used()
 	if err != nil {
 		return nil, err
@@ -84,6 +86,8 @@ func (c *Client) Defaults() (*config.Konfig, error) {
 }
 
 func (c *Client) Reset() error {
+	c.init()
+
 	used, err := c.store.Used()
 	if err != nil {
 		return err
