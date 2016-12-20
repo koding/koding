@@ -98,7 +98,7 @@ func ExitErrAction(f ExitingErrCommand, log logging.Logger, cmdName string) func
 		if err != nil {
 			log.Error("ExitErrAction encountered error. err:%s", err)
 			// Print error message to the user.
-			fmt.Fprintf(os.Stderr, "fatal: %s\n", err)
+			fmt.Fprintf(os.Stderr, "error executing %q command: %s\n", cmdName, err)
 		}
 
 		Close()
@@ -120,7 +120,7 @@ func FactoryAction(factory CommandFactory, log logging.Logger, cmdName string) f
 				cmdName, exit, err,
 			)
 			// Print error message to the user.
-			fmt.Fprintf(os.Stderr, "fatal: %s\n", err)
+			fmt.Fprintf(os.Stderr, "error executing %q command: %s\n", cmdName, err)
 		}
 
 		Close()
