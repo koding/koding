@@ -243,29 +243,6 @@ func InstallCommandFactory(c *cli.Context, log logging.Logger, _ string) (exit i
 		return 1, err
 	}
 
-	fmt.Println("Created ", config.Konfig.KiteKeyFile)
-
-	// Klient is setting the wrong file permissions when installed by ctl,
-	// so since this is just ctl problem, we'll just fix the permission
-	// here for now.
-	if err := os.Chmod(config.Konfig.KiteHome(), 0755); err != nil {
-		err = fmt.Errorf(
-			"error chmodding KiteHome %q: %s",
-			config.Konfig.KiteHome(), err,
-		)
-		fmt.Println(FailedInstallingKlient)
-		return 1, err
-	}
-
-	if err := os.Chmod(config.Konfig.KiteKeyFile, 0644); err != nil {
-		err = fmt.Errorf(
-			"error chmodding kite.key %q: %s",
-			config.Konfig.KiteKeyFile, err,
-		)
-		fmt.Println(FailedInstallingKlient)
-		return 1, err
-	}
-
 	opts := &ServiceOptions{
 		Username: klientSh.User,
 	}
