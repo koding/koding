@@ -1179,6 +1179,11 @@ a:hover {
 .Pricing-Footnotes {
   background-color: #F9F9FB;
   border-top: 1px solid #EBEBEB;
+  padding: 60px 0 80px;
+}
+.Pricing-Footnotes section {
+  max-width: 1176px;
+  margin: 0 auto;
   text-align: left;
 }
 .Pricing-Footnotes h2 {
@@ -1208,7 +1213,6 @@ a:hover {
   color: rgba(127,126,157,0.70);
   letter-spacing: -0.17px;
   line-height: 20px;
-  margin-bottom: 20px;
 }
 .Pricing-Footnotes ul li a,
 .Pricing-Footnotes ul li a:visited {
@@ -1232,7 +1236,8 @@ a:hover {
 
 @media screen and (max-width: 1200px) {
   .Pricing-SupportPlans--support,
-  .Pricing-PriceSegments section {
+  .Pricing-PriceSegments section,
+  .Pricing-Footnotes section {
     max-width: 90%;
     min-width: 734px;
   }
@@ -1317,7 +1322,8 @@ a:hover {
 @media screen and (max-width: 768px) {
   .Pricing-SupportPlans--support,
   .Pricing-SupportPlans--quotes,
-  .Pricing-PriceSegments section {
+  .Pricing-PriceSegments section,
+  .Pricing-Footnotes section {
     min-width: 325px;
     max-width: 90%;
     float: none;
