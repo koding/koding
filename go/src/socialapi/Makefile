@@ -66,12 +66,6 @@ testpresence:
 	@./client.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm ./client.test
 
-testeventsender:
-	@echo "$(OK_COLOR)--> eventsender tests... $(NO_COLOR)"
-	@`which go` test -c workers/integration/eventsender/*.go
-	@./eventsender.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm  ./eventsender.test
-
 testteam: testteamunit testteamintegration
 
 testteamunit:

@@ -255,24 +255,6 @@ module.exports = (KONFIG, options, credentials) ->
           run           : "#{GOBIN}/team"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/team -watch socialapi/workers/team"
 
-    eventsender         :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/eventsender"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/eventsender -watch socialapi/workers/eventsender"
-
-    contentrotator      :
-      group             : "webserver"
-      nginx             :
-        locations       : [
-          {
-            location    : "~ /-/content-rotator/(.*)"
-            proxyPass   : "#{KONFIG.contentRotatorUrl}/content-rotator/$1"
-            extraParams : [ "resolver 8.8.8.8;" ]
-          }
-        ]
-
     tunnelproxymanager  :
       group             : "proxy"
       supervisord       :
