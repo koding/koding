@@ -58,5 +58,42 @@ module.exports = class Editor extends BaseView
     @aceView?._windowDidResize()
     @once 'transitionend', =>
       kd.utils.defer => @aceView?._windowDidResize()
+
+
+  # restore/dump functionality referenced from following example ~ GG
+  # http://stackoverflow.com/questions/28257566/ace-editor-save-send-session-on-server-via-post
+
+  filterHistory = (deltas) ->
+    deltas.filter (d) -> d.group isnt 'fold'
+
+
   _getSession: -> @aceView.ace.editor.getSession()
+
+
+  _dump: ->
+
+    session   = @_getSession()
+    selection : session.selection.toJSON()
+    value     : session.getValue()
+    history   :
+      undo    : session.$undoManager.$undoStack.map filterHistory
+      redo    : session.$undoManager.$redoStack.map filterHistory
+    scrollTop : session.getScrollTop()
+    scrollLeft: session.getScrollLeft()
+    options   : session.getOptions()
+
+
+  _restore: (dump) ->
+
+    session = (require 'brace').createEditSession dump.value
+
+    session.$undoManager.$doc = session # workaround for a bug in ace
+    session.setOptions dump.options
+    session.$undoManager.$undoStack = dump.history.undo
+    session.$undoManager.$redoStack = dump.history.redo
+    session.selection.fromJSON dump.selection
+    session.setScrollTop dump.scrollTop
+    session.setScrollLeft dump.scrollLeft
+
+    @aceView.ace.editor.setSession session
 
