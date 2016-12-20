@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -293,6 +294,19 @@ func migrateKonfigBolt(cache *config.Cache) error {
 		id := oldKonfig.ID()
 
 		if _, ok := konfigs[id]; !ok {
+			if oldKonfig.Endpoints == nil {
+				oldKonfig.Endpoints = &config.Endpoints{}
+			}
+
+			if u, err := url.Parse(oldKonfig.KontrolURL); err == nil && oldKonfig.KontrolURL != "" {
+				u.Path = ""
+				oldKonfig.Endpoints.Koding = config.NewEndpointURL(u)
+			}
+
+			if oldKonfig.TunnelURL != "" {
+				oldKonfig.Endpoints.Tunnel = config.NewEndpoint(oldKonfig.TunnelURL)
+			}
+
 			konfigs[id] = &oldKonfig
 
 			_ = cache.SetValue("konfigs", konfigs)

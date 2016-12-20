@@ -59,6 +59,7 @@ type Konfig struct {
 	Endpoints *Endpoints `json:"endpoints,omitempty"`
 
 	KontrolURL string `json:"kontrolURL,omitempty"` // deprecated / read-only
+	TunnelURL  string `json:"tunnelURL,omitempty"`  // deprecated / read-only
 
 	// Kite configuration.
 	Environment string `json:"environment,omitempty"`

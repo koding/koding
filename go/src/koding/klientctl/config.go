@@ -195,7 +195,7 @@ func printKonfig(konfig *konfig.Konfig) {
 
 	fmt.Fprintln(w, "KEY\tVALUE")
 
-	obj := b.Build(konfig, "kiteKey")
+	obj := b.Build(konfig, "kiteKey", "kontrolURL", "tunnelURL")
 
 	for _, key := range obj.Keys() {
 		value := obj[key]
