@@ -18,6 +18,10 @@ module.exports = class Editor extends BaseView
     @_getSession().setValue content
 
 
+  focus: -> @ready =>
+    @aceView.ace.focus()
+
+
   viewAppended: ->
 
     super
@@ -55,6 +59,7 @@ module.exports = class Editor extends BaseView
       @emit 'ready'
 
     @wrapper.addSubView @aceView
+    @on 'GotFocus', @bound 'focus'
 
 
   _windowDidResize: ->

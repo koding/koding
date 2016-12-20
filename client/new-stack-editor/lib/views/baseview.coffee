@@ -23,6 +23,7 @@ module.exports = class BaseView extends kd.View
       @wrapper.addSubView new kd.CustomHTMLView
         cssClass : 'title'
         partial  : title
+        click    : @lazyBound 'emit', 'GotFocus'
 
     @wrapper.addSubView new kd.ButtonView
       cssClass: 'expand'
@@ -31,11 +32,13 @@ module.exports = class BaseView extends kd.View
         @emit FlexSplit.EVENT_EXPAND
         @once 'transitionend', =>
           @wrapper.unsetClass 'expanding'
+          @emit 'GotFocus'
 
     @wrapper.addSubView new kd.ButtonView
       cssClass: 'collapse'
       callback: =>
         @emit FlexSplit.EVENT_COLLAPSE
+        @emit 'GotFocus'
 
     @addSubView @wrapper
 

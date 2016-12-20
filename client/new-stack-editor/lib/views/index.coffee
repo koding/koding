@@ -82,6 +82,8 @@ module.exports = class StackEditor extends kd.View
       @_saveSnapshot id
       @_current = id
 
+    kd.utils.defer @editor.bound 'focus'
+
 
   _loadSnapshot: (id) ->
 
