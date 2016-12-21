@@ -224,6 +224,7 @@ else if __PROD__
     new webpack.optimize.OccurrenceOrderPlugin()
     new webpack.optimize.DedupePlugin()
     new webpack.optimize.UglifyJsPlugin
+      sourceMap: no
       mangle:
         keep_fnames: yes
       compress:
@@ -241,4 +242,3 @@ webpackConfig.stylus =
 
 
 module.exports = webpackConfig
-
