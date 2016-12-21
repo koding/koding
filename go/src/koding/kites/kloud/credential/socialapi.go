@@ -148,7 +148,7 @@ func (s *socialStore) do(req *socialRequest) error {
 			return fmt.Errorf("%q: unable to encode: %s", req.ident, err)
 		}
 
-		s.Log.Debug("socialStore: body: %s", util.PrettyJSON(p))
+		s.Log.Debug("socialStore: body: %s", util.LazyJSON(p))
 
 		body = bytes.NewReader(p)
 	}

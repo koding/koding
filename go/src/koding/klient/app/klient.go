@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -13,7 +11,6 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -26,6 +23,7 @@ import (
 	cfg "koding/kites/config"
 	"koding/kites/config/configstore"
 	"koding/kites/kloud/stack"
+	"koding/kites/kloud/team"
 	"koding/klient/client"
 	"koding/klient/collaboration"
 	"koding/klient/command"
@@ -50,7 +48,6 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
-	"github.com/koding/kite/kitekey"
 	"github.com/koding/kite/kontrol/onceevery"
 	kiteproto "github.com/koding/kite/protocol"
 	"github.com/koding/kite/sockjsclient"
@@ -136,7 +133,7 @@ type Klient struct {
 	presenceEvery *onceevery.OnceEvery
 	kloud         *apiutil.LazyKite
 	teamMu        sync.Mutex
-	team          *stack.Team
+	team          *team.Team
 }
 
 // KlientConfig defines a Klient's config
@@ -238,13 +235,14 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 	// ensure flags are stored alongside konfig and do not
 	// overwrite konfig here.
 	if conf.KontrolURL != "" {
-		u, err := url.Parse(conf.KontrolURL)
-		if err != nil {
-			return nil, err
-		}
-		u.Path = ""
+		konfig.Konfig.KontrolURL = conf.KontrolURL
+	}
 
-		konfig.Konfig.Endpoints.Koding.Public.URL = u
+	// NOTE(rjeczalik): For backward-compatibility with old klient,
+	// remove once not needed.
+	if u, err := url.Parse(konfig.Konfig.KontrolURL); err == nil && konfig.Konfig.KontrolURL != "" {
+		u.Path = ""
+		konfig.Konfig.Endpoints.Koding = cfg.NewEndpointURL(u)
 	}
 
 	if conf.TunnelKiteURL != "" {
@@ -659,7 +657,7 @@ func (k *Klient) tunnelOptions() (*tunnel.Options, error) {
 	return opts, nil
 }
 
-func (k *Klient) Team() (*stack.Team, error) {
+func (k *Klient) Team() (*team.Team, error) {
 	var resp stack.WhoamiResponse
 
 	if err := k.kloud.Call("team.whoami", nil, &resp); err != nil {
@@ -669,7 +667,7 @@ func (k *Klient) Team() (*stack.Team, error) {
 	return resp.Team, nil
 }
 
-func (k *Klient) cacheTeam() (*stack.Team, error) {
+func (k *Klient) cacheTeam() (*team.Team, error) {
 	k.teamMu.Lock()
 	defer k.teamMu.Unlock()
 
@@ -882,38 +880,14 @@ func (k *Klient) updateKiteKey(reg *kiteproto.RegisterResult) {
 }
 
 func (k *Klient) writeKiteKey(content string) error {
-	kiteHome, err := kitekey.KiteHome()
+	konfig, err := configstore.Used()
 	if err != nil {
 		return err
 	}
 
-	f, err := ioutil.TempFile(kiteHome, "kite.key")
-	if err != nil {
-		return err
-	}
+	konfig.KiteKey = strings.TrimSpace(content)
 
-	origPath := filepath.Join(kiteHome, "kite.key")
-
-	_, err = io.Copy(f, strings.NewReader(content))
-	errClose := f.Close()
-	if err == nil {
-		err = errClose
-	}
-
-	if err != nil {
-		os.Remove(f.Name())
-		return err
-	}
-
-	os.Remove(origPath)
-
-	if err := os.Rename(f.Name(), origPath); err != nil {
-		return err
-	}
-
-	k.kite.Log.Info("auth update: written new %q", origPath)
-
-	return nil
+	return configstore.Use(konfig)
 }
 
 func openBoltDB(opts *cfg.CacheOptions) (*bolt.DB, error) {

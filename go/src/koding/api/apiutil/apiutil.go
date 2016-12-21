@@ -119,10 +119,8 @@ func (ka *KloudAuth) rpcAuth(opts *api.AuthOptions) (*api.Session, error) {
 
 	return &api.Session{
 		ClientID: resp.ClientID,
-		// TODO(rjeczalik): add Username field to stack.LoginResponse
-		// Username: resp.Username,
 		User: &api.User{
-			Username: opts.User.Username,
+			Username: resp.Username,
 			Team:     resp.GroupName,
 		},
 	}, nil

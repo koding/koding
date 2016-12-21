@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -28,6 +29,7 @@ func (o Object) Keys() []string {
 	for k := range o {
 		keys = append(keys, k)
 	}
+	sort.Strings(keys)
 	return keys
 }
 
@@ -47,6 +49,10 @@ type Builder struct {
 
 	// Recursive tells when struct fields should be processed as well.
 	Recursive bool
+
+	// FlagStringers, if true, makes builder do not traverse a type
+	// if it implements fmt.Stringer interface.
+	FlatStringers bool
 
 	// FieldFunc is used to format struct's field name.
 	//
@@ -244,6 +250,13 @@ func (b *Builder) buildStruct(v interface{}, obj Object, ignored ...string) {
 
 		if !b.Recursive {
 			b.set(obj, key, field.Value(), ignored...)
+			continue
+		}
+
+		if s, ok := field.Value().(fmt.Stringer); ok && b.FlatStringers {
+			if !reflect.ValueOf(s).IsNil() {
+				b.set(obj, key, s.String(), ignored...)
+			}
 			continue
 		}
 
