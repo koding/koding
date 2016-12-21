@@ -183,7 +183,6 @@ module.exports = (options, credentials) ->
     customDomain           : options.customDomain
     email                  : email
 
-    sitemap                : { redisDB: 0, updateInterval: "1m" }
     limits                 : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 30 }
     kloud                  : { secretKey: kloud.kloudSecretKey, address: kloud.address }
     geoipdbpath            : "$KONFIG_PROJECTROOT/go/data/geoipdb"
