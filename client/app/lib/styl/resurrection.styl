@@ -232,11 +232,13 @@ pre
           opacity           0
 
         .SidebarSection-header
-          h4 a:before
-            size            12px, 12px
-            left            2px
-            top             2px
-            margin-right    120px
+          h4 > a
+            color           transparent !important
+            &:before
+              size          12px, 12px
+              left          2px
+              top           2px
+              color         inherit !important
 
         .sidebar-machine-box
           width             20px
