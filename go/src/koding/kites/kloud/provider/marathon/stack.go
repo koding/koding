@@ -388,7 +388,7 @@ func (s *Stack) injectMetadata(app map[string]interface{}, name string) error {
 			Endpoints: stack.Konfig.Endpoints,
 			TunnelID:  tunnelID,
 			KiteKey:   kiteKey,
-			Debug:     config.StringOrBool(s.Debug),
+			Debug:     s.Debug,
 		}
 
 		p, err := json.Marshal(map[string]interface{}{"konfig": konfig})

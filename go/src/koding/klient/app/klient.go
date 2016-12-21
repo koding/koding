@@ -337,7 +337,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		Client: c,
 	}
 
-	restClient := httputil.DefaultRestClient(bool(konfig.Konfig.Debug))
+	restClient := httputil.DefaultRestClient(konfig.Konfig.Debug)
 	restClient.Transport = &api.Transport{
 		RoundTripper: restClient.Transport,
 		AuthFunc: (&apiutil.KloudAuth{
@@ -632,7 +632,7 @@ func (k *Klient) debug() bool {
 		return true
 	}
 
-	return bool(konfig.Konfig.Debug)
+	return konfig.Konfig.Debug
 }
 
 func (k *Klient) tunnelOptions() (*tunnel.Options, error) {

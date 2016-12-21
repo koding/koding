@@ -90,7 +90,7 @@ func realMain() int {
 		return 0
 	}
 
-	debug := *flagDebug || bool(konfig.Konfig.Debug)
+	debug := *flagDebug || konfig.Konfig.Debug
 
 	if *flagRegister {
 		kontrolURL := *flagKontrolURL
