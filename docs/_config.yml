@@ -8,7 +8,7 @@ keywords: >
   cloud development environment, cloud editor, virtual dev environment,
   web based ide, test environment, docker, aws, vagrant, azure, rackspace
 baseurl: ""
-url: "https://www.koding.com"
+url: "https://usirin.github.io/koding"
 permalink: /blog/:year/:month/:title/
 paginate_path: "/blog/page/:num"
 paginate: 5
