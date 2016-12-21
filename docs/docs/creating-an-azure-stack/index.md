@@ -124,8 +124,8 @@ Your new team members will be able to use your stack to build their VMs environm
 [1]: https://azure.microsoft.com
 [2]: https://azure.microsoft.com/en-us/services/virtual-machines/
 [3]: https://azure.microsoft.com/en-us/pricing/
-[4]: {{ site.url }}/assets/img/guides/click-stacks.png
-[5]: {{ site.url }}/assets/img/guides/click-new-stack.png
+[4]: {{ site.url }}/assets/img/guides/azure/click-stacks.png
+[5]: {{ site.url }}/assets/img/guides/azure/click-new-stack.png
 [55]: {{ site.url }}/assets/img/guides/azure/azure-provider.png
 [6]: {{ site.url }}/assets/img/guides/azure/azure-default-stack.png
 [7]: {{ site.url }}/assets/img/guides/azure/azure-readme.png
