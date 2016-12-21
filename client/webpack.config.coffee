@@ -8,6 +8,7 @@ glob = require 'glob'
 CopyWebpackPlugin = require 'copy-webpack-plugin'
 ProgressBarPlugin = require 'progress-bar-webpack-plugin'
 WebpackNotifierPlugin = require 'webpack-notifier'
+HappyPack = require 'happypack'
 
 # this config is being generated `./configure` in koding root.
 { rev: version } = require './.config.json'
@@ -128,54 +129,36 @@ pushLoader [
     # globals has its own loader
     require.resolve './globals.coffee'
   ]
-  loaders: ['pistachio', 'coffee', 'cjsx']
+  loaders: ['happypack/loader?id=coffee']
 ,
   test: /\.json$/
   loader: 'json'
   include: CLIENT_PATH
 ]
-
-
 # Style loaders configuration
 pushLoader [
   test: /\.stylus$/
   include: CLIENT_PATH
-  loaders: [
-    'style'
-    'css?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]'
-    'stylus'
-  ]
+  loaders: ['happypack/loader?id=styl-modules']
 ,
   test: /\.styl$/
   include: CLIENT_PATH
-  loaders: [
-    'style'
-    'css'
-    'stylus'
-  ]
+  loaders: ['happypack/loader?id=styl-global']
 ,
   test: /\.css$/
   include: CLIENT_PATH
   exclude: /flexboxgrid/,
-  loaders: [
-    'style'
-    'css'
-  ]
+  loaders: ['happypack/loader?id=css-global']
 ,
   test: /\.css$/,
-  loader: 'style!css?modules',
   include: /flexboxgrid/,
+  loaders: ['happypack/loader?id=css-modules']
 ]
 
 # File & Url loaders
 pushLoader [
   test: /\.(png|jpg|gif|woff|otf)/
-  loader: 'url'
-  query:
-    limit: 8192
-    # this name will be appended to webpackConfig.output.publicPath
-    # if file size is greater than 8kb.
-    name: '[path][name].[ext]'
+  loaders: ['happypack/loader?id=url']
 ,
   test: /\.ttf$/
   loader: 'file'
@@ -200,6 +183,31 @@ webpackConfig.plugins = [
   ]
   new ProgressBarPlugin { format: ' client: [:bar] :percent ', width: 1024 }
 ]
+
+webpackConfig.plugins.push(
+  new HappyPack {
+    id: 'coffee', threads: 4, loaders: ['pistachio', 'coffee', 'cjsx']
+  }
+  new HappyPack {
+    id: 'styl-modules', threads: 4, loaders: [
+      'style'
+      'css?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]'
+      'stylus'
+    ]
+  }
+  new HappyPack {
+    id: 'styl-global', threads: 4, loaders: [ 'style', 'css', 'stylus' ]
+  }
+  new HappyPack {
+    id: 'css-global', threads: 4, loaders: [ 'style', 'css' ]
+  }
+  new HappyPack {
+    id: 'css-modules', threads: 4, loaders: [ 'style', 'css?modules' ]
+  }
+  new HappyPack {
+    id: 'url', threads: 4, loaders: ['url?limit=8192&name=[path][name].[ext]']
+  }
+)
 
 # development environment specific plugins.
 if __DEV__
