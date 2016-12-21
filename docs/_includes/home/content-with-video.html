@@ -1,7 +1,6 @@
 {% assign src = include.video_src %}
 {% assign img = include.img_src %}
 {% assign img2x = include.img2x_src %}
-{% assign caption = include.video_caption %}
 
 <div class='Homepage-ContentWithVideo Homepage--containerOffset'>
   <div class='Homepage--container'>
@@ -11,15 +10,12 @@
       <p>{{ include.description }}</p>
       <span>{{ include.footnote }}</span>
     </div>
-    <div class="Homepage-ContentWithVideo--visualContainer">
-      <div class='Homepage-ContentWithVideo--visual showModal' data-youtube-id="{{ include.video_id}}">
-        <img src="{{ site.url }}{{ img }}" srcset="{{ site.url }}{{ img }} 1x, {{ site.url }}{{ img2x }} 2x" />
-        <h4 class="tight title">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><use xlink:href="#video-play-button"></use></svg>
-          {{ include.video_title }}
-        </h4>
-      </div>
+    <div class='Homepage-ContentWithVideo--visual showModal' data-youtube-id="{{ include.video_id}}">
+      <img src="{{ site.url }}{{ img }}" srcset="{{ site.url }}{{ img }} 1x, {{ site.url }}{{ img2x }} 2x" />
+      <h4 class="title">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><use xlink:href="#video-play-button"></use></svg>
+        {{ include.video_title }}
+      </h4>
     </div>
   </div>
 </div>
-<!-- <iframe width="560" height="315" src="{{ src }}?modestbranding=1&showinfo=0&controls=2&color=white" frameborder="0" allowfullscreen></iframe> -->
