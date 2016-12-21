@@ -29,6 +29,13 @@ func NewCached(st storage.ValueInterface) (*Cached, error) {
 		return nil, err
 	}
 
+	// Drop inconsistent data.
+	for id, ab := range c.addresses.m {
+		if ab == nil {
+			delete(c.addresses.m, id)
+		}
+	}
+
 	return c, nil
 }
 
