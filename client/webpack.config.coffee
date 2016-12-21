@@ -158,7 +158,7 @@ pushLoader [
 # File & Url loaders
 pushLoader [
   test: /\.(png|jpg|gif|woff|otf)/
-  loaders: ['happypack/loader?id=url']
+  loaders: ['url?limit=8192&name=[path][name].[ext]']
 ,
   test: /\.ttf$/
   loader: 'file'
@@ -182,9 +182,7 @@ webpackConfig.plugins = [
     to: path.join BUILD_PATH, '..', 'thirdparty'
   ]
   new ProgressBarPlugin { format: ' client: [:bar] :percent ', width: 1024 }
-]
 
-webpackConfig.plugins.push(
   new HappyPack {
     id: 'coffee', threads: 4, loaders: ['pistachio', 'coffee', 'cjsx']
   }
@@ -204,10 +202,7 @@ webpackConfig.plugins.push(
   new HappyPack {
     id: 'css-modules', threads: 4, loaders: [ 'style', 'css?modules' ]
   }
-  new HappyPack {
-    id: 'url', threads: 4, loaders: ['url?limit=8192&name=[path][name].[ext]']
-  }
-)
+]
 
 # development environment specific plugins.
 if __DEV__
