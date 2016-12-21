@@ -125,6 +125,7 @@
     "express": "4.12.3",
     "file-loader": "0.9.0",
     "glob": "7.0.5",
+    "happypack": "3.0.1",
     "imports-loader": "0.6.5",
     "inject-loader": "2.0.1",
     "json-loader": "0.5.4",
