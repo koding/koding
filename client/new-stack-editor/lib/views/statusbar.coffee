@@ -14,5 +14,5 @@ module.exports = class Statusbar extends JView
 
 
   pistachio: ->
-    '{h3{#(title)}} <caret>{{#(row)}}:{{#(column)}}</caret>'
+    '{h3{#(title)}} <span>{{#(row)}}:{{#(column)}}</span>'
 
