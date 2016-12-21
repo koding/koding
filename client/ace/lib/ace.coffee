@@ -88,7 +88,6 @@ module.exports = class Ace extends kd.View
       return  unless element
 
       @editor = ace.edit element
-      @editor.$blockScrolling = Infinity
 
       # remove default white theme to avoid flashing
       element.classList.remove 'ace-tm'
@@ -585,7 +584,9 @@ module.exports = class Ace extends kd.View
       require 'brace/ext/emmet'
       ace.acequire 'ace/ext/emmet'
 
-    @editor.setOption 'enableEmmet', value
+    if window.emmet
+      @editor.setOption 'enableEmmet', value
+
     @appStorage.setValue 'enableEmmet', value  if save
 
 

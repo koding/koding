@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": "true",
   "dependencies": {
-    "@koding/bongo-client": "koding/bongo-client#v0.2.9",
+    "@koding/bongo-client": "koding/bongo-client#v0.3.0",
     "@koding/getscript": "0.1.0",
     "@koding/inherits-underscore": "0.2.0",
     "accounting": "0.4.1",

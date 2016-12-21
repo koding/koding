@@ -1,7 +1,7 @@
 
 // FontAwesome
-$fa-font-path = "http://netdna.bootstrapcdn.com/font-awesome/4.7.0/fonts"
-@import "../../../node_modules/font-awesome-stylus/stylus"
+$fa-font-path = 'https://netdna.bootstrapcdn.com/font-awesome/4.7.0/fonts'
+@import '../../../node_modules/font-awesome-stylus/stylus'
 
 @css {
 /*
@@ -18,6 +18,9 @@ $dark-tab-color             = #5C5C5C
 $resize-handle-color        = #6EA3E5
 $stack-bg-color             = #232327
 $stack-fg-color             = #59595C
+$stack-fg-color-bright      = #DDDDDD
+$stack-fg-color-yellow      = #FCC34E
+$stack-border-color         = #000000
 
 .new-stack-editor
 
@@ -36,7 +39,7 @@ $stack-fg-color             = #59595C
         height              2px
 
   .flex-resizer
-    background              #000
+    background              $stack-border-color
 
     &:hover
     &.ondrag
@@ -46,8 +49,26 @@ $stack-fg-color             = #59595C
     background              $stack-bg-color
     height                  40px
     min-height              40px !important
-    border-bottom           2px solid #000
+    border-bottom           2px solid $stack-border-color
+    padding                 14px
+    font-size               13px
+    color                   $stack-fg-color-bright
     borderBox()
+
+    .action-button
+      height                26px
+      padding-left          12px
+      abs                   6px, 6px
+      .icon
+        margin              8px 8px 0 0
+        padding             0
+        color               white
+        fa                  play
+
+    .kdbutton.expand
+      top                   13px    !important
+      right                 120px   !important
+
 
   .content
     background              $stack-bg-color
@@ -57,20 +78,38 @@ $stack-fg-color             = #59595C
       height                calc(100% \- 70px)
 
   .mainview
-    border-left             2px solid #000
-    border-right            2px solid #000
+    border-left             2px solid $stack-border-color
+    border-right            2px solid $stack-border-color
     borderBox()
 
   .statusbar
-    background              #000 !important
+    background              $stack-border-color !important
     height                  30px
     min-height              30px !important
+    padding                 9px
+    font-size               12px
+    color                   $stack-fg-color
+
+    h3
+      margin-right          12px
+
+    h3
+      fl()
+
+  .logs
+    .title
+      color                 $stack-fg-color-yellow !important
+
 
   .flex-view
 
     background              $stack-bg-color
-    color                   $stack-fg-color
     vendor                  transition, all .5s ease
+
+    &:hover
+      .kdbutton.expand
+        visibility          visible
+        color               $stack-fg-color-bright
 
     &.with-title
       .editor
@@ -114,13 +153,16 @@ $stack-fg-color             = #59595C
       background            none
       border                none
       color                 $stack-fg-color
+      font-size             13px !important
       z-index               10
+      visibility            hidden
 
       &.expand
         fa                  expand
       &.collapse
-        visibility          hidden
         fa                  compress
+      &:focus
+        box-shadow          none
 
       abs                   10px, 10px
 
@@ -179,3 +221,8 @@ $stack-fg-color             = #59595C
 
 #intercom-container
   display                   none
+
+#kdmaincontainer.hover
+#kdmaincontainer.collapsed
+  .toolbar .kdbutton.expand
+    fa                      compress
