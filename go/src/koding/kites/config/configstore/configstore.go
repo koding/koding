@@ -344,6 +344,10 @@ func migrateKiteKey(cache *config.Cache) error {
 	}
 
 	defaultKitekey := config.NewKonfig(&config.Environments{Env: konfig.Environment}).KiteKeyFile
+	if defaultKitekey == "" {
+		defaultKitekey = filepath.FromSlash("/etc/kite/kite.key")
+	}
+
 	kitekey := konfig.KiteKeyFile
 
 	if kitekey == "" {
