@@ -92,12 +92,22 @@ func (r *MemoryTTL) StopGC() {
 // and valid for the time being
 func (r *MemoryTTL) Get(key string) (interface{}, error) {
 	r.RLock()
-	defer r.RUnlock()
 
-	if !r.isValid(key) {
-		r.delete(key)
-		return nil, ErrNotFound
+	for !r.isValid(key) {
+		r.RUnlock()
+		// Need write lock to delete key, so need to unlock, relock and recheck
+		r.Lock()
+		if !r.isValid(key) {
+			r.delete(key)
+			r.Unlock()
+			return nil, ErrNotFound
+		}
+		r.Unlock()
+		// Could become invalid again in this window
+		r.RLock()
 	}
+
+	defer r.RUnlock()
 
 	value, err := r.cache.Get(key)
 	if err != nil {
