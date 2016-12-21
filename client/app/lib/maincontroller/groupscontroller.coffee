@@ -129,7 +129,7 @@ module.exports = class GroupsController extends kd.Controller
           @setGroup groupName
           @currentGroupData.setGroup group
           callback null, groupName, group
-          @openGroupChannel getGroup()
+        #   @openGroupChannel getGroup()
           @openSocialGroupChannel getGroup()
           @emit 'ready'
 

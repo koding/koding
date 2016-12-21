@@ -21,6 +21,7 @@ module.exports = class ActivityController extends KDObject
     { groupsController, appManager, router } = kd.singletons
 
     groupsController.ready =>
+      return
       groupChannel.close().off()  if groupChannel?
       groupChannel = groupsController.groupChannel
       groupChannel.on 'feed-new', (activities) =>

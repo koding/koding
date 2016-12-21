@@ -73,7 +73,7 @@ createInstance = ->
       console.log 'connecting to:' + globals.config.broker.uri
 
       new broker.Broker "#{globals.config.broker.uri}", options
-
+      return null
 
   bongoInstance.once 'ready', ->
     globals.combinedStorage = bongoInstance.revive globals.combinedStorage
