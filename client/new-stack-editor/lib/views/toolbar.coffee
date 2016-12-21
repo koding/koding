@@ -8,7 +8,7 @@ module.exports = class Toolbar extends JView
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'toolbar', options.cssClass
-    data ?= { title: '...' }
+    data ?= { title: 'Loading...' }
 
     super options, data
 

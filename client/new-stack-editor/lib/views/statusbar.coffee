@@ -8,7 +8,7 @@ module.exports = class Statusbar extends JView
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'statusbar', options.cssClass
-    data ?= { row: 1, column: 1, title: '...' }
+    data ?= { row: 1, column: 1, title: 'Loading...' }
 
     super options, data
 
