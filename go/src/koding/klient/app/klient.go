@@ -319,7 +319,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 
 	machinesOpts := &machinegroup.GroupOpts{
 		Storage:         storage.NewEncodingStorage(db, []byte("machines")),
-		Builder:         machine.DisconnectedClientBuilder{},
+		Builder:         machine.NewKiteBuilder(k),
 		DynAddrInterval: 2 * time.Second,
 		PingInterval:    15 * time.Second,
 	}
@@ -509,6 +509,8 @@ func (k *Klient) RegisterMethods() {
 
 	// Machine group handlers.
 	k.kite.HandleFunc("machine.create", machinegroup.KiteHandlerCreate(k.machines))
+	k.kite.HandleFunc("machine.id", machinegroup.KiteHandlerID(k.machines))
+	k.kite.HandleFunc("machine.ssh", machinegroup.KiteHandlerSSH(k.machines))
 
 	// Vagrant
 	k.kite.HandleFunc("vagrant.create", k.vagrant.Create)
