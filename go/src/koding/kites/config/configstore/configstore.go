@@ -307,6 +307,8 @@ func migrateKonfigBolt(cache *config.Cache) error {
 				oldKonfig.Endpoints.Tunnel = config.NewEndpoint(oldKonfig.TunnelURL)
 			}
 
+			// TODO(rjeczalik): reset?
+
 			konfigs[id] = &oldKonfig
 
 			_ = cache.SetValue("konfigs", konfigs)
