@@ -26,6 +26,7 @@ import (
 	realtimeapi "socialapi/workers/realtime/api"
 	slackapi "socialapi/workers/slack/api"
 
+	"github.com/koding/cache"
 	"github.com/koding/runner"
 )
 
@@ -46,13 +47,20 @@ func main() {
 	mc.Debug = r.Conf.Debug
 	m := mux.New(mc, r.Log, r.Metrics)
 
+	// init mongo cache with ensured index
+	mgoCache := cache.NewMongoCacheWithTTL(modelhelper.Mongo.Session,
+		cache.StartGC(),
+		cache.MustEnsureIndexExpireAt(),
+	)
+	defer mgoCache.StopGC()
+
 	// init redis
 	redisConn := r.Bongo.MustGetRedisConn()
 
 	m.SetRedis(redisConn)
 
 	handlers.AddHandlers(m)
-	collaboration.AddHandlers(m)
+	collaboration.AddHandlers(m, mgoCache)
 	paymentapi.AddHandlers(m)
 	mailapi.AddHandlers(m)
 	algoliaapi.AddHandlers(m, r.Log)
