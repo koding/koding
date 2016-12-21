@@ -381,7 +381,7 @@ func mergeIn(kfg, mixin *config.Konfig) error {
 	return json.Unmarshal(p, kfg)
 }
 
-func setFlatKeyValue(m map[string]interface{}, key, value string) error {
+func SetFlatKeyValue(m map[string]interface{}, key, value string) error {
 	keys := strings.Split(key, ".")
 	it := m
 	last := len(keys) - 1
@@ -420,7 +420,7 @@ func setKonfig(cfg *config.Konfig, key, value string) error {
 		return err
 	}
 
-	if err := setFlatKeyValue(m, key, value); err != nil {
+	if err := SetFlatKeyValue(m, key, value); err != nil {
 		return err
 	}
 
