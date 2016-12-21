@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"koding/klient/machine"
+	"koding/klient/machine/machinegroup/idset"
 )
 
 // CreateRequest defines machine group create request.
@@ -61,7 +62,9 @@ func (g *Group) Create(req *CreateRequest) (*CreateResponse, error) {
 	}
 
 	// Get machine statuses.
+	ids := make(machine.IDSlice, 0, len(req.Addresses))
 	for id := range req.Addresses {
+		ids = append(ids, id)
 		stat, err := g.client.Status(id)
 		if err != nil {
 			g.log.Critical("Status for %s is not available: %s", id, err)
@@ -70,5 +73,46 @@ func (g *Group) Create(req *CreateRequest) (*CreateResponse, error) {
 		res.Statuses[id] = stat
 	}
 
+	// Update and clean up stale machines. No need to block here.
+	go g.balance(ids)
+
 	return res, nil
+}
+
+// balance ensures that stale clients and other resources will be closed and
+// removed.
+func (g *Group) balance(ids machine.IDSlice) {
+	var (
+		regAlias   = g.alias.Registered()
+		regAddress = g.address.Registered()
+		regClient  = g.client.Registered()
+	)
+
+	union := idset.Union(idset.Union(regAlias, regAddress), regClient)
+
+	for _, id := range idset.Diff(union, ids) {
+		var errored = false
+
+		// Drop machine alias.
+		if err := g.alias.Drop(id); err != nil {
+			errored = true
+			g.log.Warning("Alias of machine %s cannot be removed: %v", id, err)
+		}
+
+		// Drop machine client.
+		if err := g.client.Drop(id); err != nil {
+			errored = true
+			g.log.Warning("Client for machine %s cannot be deleted: %v", id, err)
+		}
+
+		// Drop all machine addresses.
+		if err := g.address.Drop(id); err != nil {
+			errored = true
+			g.log.Warning("Addresses of %s machine cannot be removed: %v", id, err)
+		}
+
+		if !errored {
+			g.log.Info("Machine with ID: %s was removed.", id)
+		}
+	}
 }
