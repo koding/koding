@@ -100,7 +100,6 @@ class IDEAppController extends AppController
 
       return  unless app is this
 
-      @bindListeners()
       @setActivePaneFocus on, yes
 
       # Temporary fix for IDE is not shown after
@@ -114,7 +113,7 @@ class IDEAppController extends AppController
         @layoutManager.restoreSnapshot()
 
 
-  bindListeners: ->
+  appIsShown: ->
 
     return  if @_listenersBound
     @_listenersBound = yes
