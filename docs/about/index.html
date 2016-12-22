@@ -7,7 +7,31 @@ permalink: /about
 <!-- HEADER -->
 {% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#358BB0' %}
 
-<style>{% include css/about-hero.css %}</style>
+<style>
+{% include css/about-hero.css %}
+
+.Homepage-LogoBar--logos {
+  max-width: 1200px !important;
+  margin: 0 auto;
+}
+
+@media (max-width: 1200px) {
+  .Homepage-LogoBar--logos img {
+    margin: 0 30px 30px !important;
+    width: inherit !important;
+  }
+}
+@media (max-width: 660px) {
+  .Homepage-LogoBar--logos {
+    display: block !important;
+  }
+  .Homepage-LogoBar--logos img {
+    margin: 0 auto 30px !important;
+    display: block !important;
+  }
+}
+</style>
+<link rel="stylesheet" href="{{ site.url }}/css/logobar.css">
 
 <div class="aboutus-hero">
   <div class="aboutus-gradient"  style="background: #F7FAFC;">
@@ -39,13 +63,14 @@ permalink: /about
 </div>
 
 {% include home-logobar.html
-   logo1_src="/assets/img/landing/investor-logos/rtp.png"
-   logo2_src="/assets/img/landing/investor-logos/greycroft.png"
-   logo3_src="/assets/img/landing/investor-logos/matrix_partners.png"
-   logo4_src="/assets/img/landing/investor-logos/khosla_ventures.png"
-   logo5_src="/assets/img/landing/investor-logos/500_startups.png"
+   title="Our Investors"
+   path="/assets/img/landing/investor-logos/"
    cssClass="Homepage-LogoBar-Gray"
-   title="Our Investors" %}
+   logos="rtp--rtp.png--92--40||
+          greycroft--greycroft.png--157--40||
+          matrix_partners--matrix_partners.png--100--40||
+          khosla_ventures--khosla_ventures.png--339--40||
+          500_startups--500_startups.png--92--40" %}
 
 <div class="Homepage--container AboutUs-Team">
   <style>{% include css/about-heads.css %}</style>
@@ -54,8 +79,12 @@ permalink: /about
     <p>Since 2011, Koding has grown from a creative partnership between two brothers into an international team of engineers, designers and marketers spanning 6 countries and 3 continents.</p>
   </div>
   <div>
-  {% for member in site.data.members %}
-    <div class="AboutUs-TeamMember {{ member.cssClass }}">
+  <style>{% include css/about-newmember.css %}</style>
+  {% for department in site.data.members %}
+    <h3 class="DepartmentTitle"><span>{{ department.title }}</span></h3>
+    <div class="AboutUs-TeamMemberWrapper">
+    {% for member in department.members %}
+      <div class="AboutUs-TeamMember {{ member.cssClass }}">
         <img class="profile" src="{{ site.url }}/{% if member.img %}{{ member.img }}{% else %}assets/img/landing/team/{{ member.name | downcase | replace: ' ', '_'}}.png{% endif %}" alt="{{ member.name }}">
         <h3 class="team-member-name">{{ member.name }}</h3>
         <p>
@@ -74,21 +103,21 @@ permalink: /about
             <a href="http://github.com/{{ member.github }}"><img src="{{ site.url }}/assets/img/landing/misc/soc-github.png" width="24" /></a>
             {% endif %}
         </p>
+      </div>
+    {% endfor %}
+    {% if department.positions %}
+      <div class="AboutUs-TeamMember AboutUs-NewTeamMember">
+        <div class="AboutUs-NewTeamMember--Number">{{ department.positions.count }}</div>
+        <img class="profile" src="{{ site.url }}/assets/img/landing/misc/Bitmap.png">
+        <h3 class="team-member-name">You</h3>
+        <p>Awesome Person</p>
+        <a href="{{ department.positions.link }}" class="AboutUs-NewTeamMember--Button">SEE OPEN POSITION{% if department.positions.count > 1 %}S{% endif %}</a>
+      </div>
+    {% endif %}
     </div>
   {% endfor %}
-  <style>{% include css/about-newmember.css %}</style>
-  <div class="clearfix"></div>
-  <div class="AboutUs-NewTeamMember--Box">
-    <div class="AboutUs-TeamMember AboutUs-NewTeamMember">
-      <div class="AboutUs-NewTeamMember--Number">3</div>
-      <img class="profile" src="{{ site.url }}/assets/img/landing/misc/Bitmap.png">
-      <h3 class="team-member-name">You</h3>
-      <p>Awesome Person</p>
-      <a href="http://jobs.lever.co/koding" class="AboutUs-NewTeamMember--Button">SEE OPEN POSITIONS</a>
-    </div>
   </div>
   <div class="clearfix"></div>
-  </div>
 </div>
 
 <style>{% include css/about-contact.css %}</style>
@@ -135,3 +164,7 @@ permalink: /about
 
 <!-- FOOTER -->
 {% include footer.html %}
+
+<!--[if lte IE 9]>
+  <style>{% include css/index-ie.css %}</style>
+<![endif]-->

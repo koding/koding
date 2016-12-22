@@ -45,8 +45,6 @@ type (
 
 		DisabledFeatures DisabledFeatures
 
-		Janitor Janitor
-
 		Github Github
 
 		Slack Slack
@@ -73,7 +71,6 @@ type (
 		ForcedRecipientUsername string `env:"key=KONFIG_SOCIALAPI_EMAIL_FORCEDRECIPIENTUSERNAME"`
 		Username                string `env:"key=KONFIG_SOCIALAPI_EMAIL_USERNAME                 required"`
 		Password                string `env:"key=KONFIG_SOCIALAPI_EMAIL_PASSWORD                 required"`
-		TemplateRoot            string `env:"key=KONFIG_SOCIALAPI_EMAIL_TEMPLATEROOT 	        default=workers/sitemap/files/"`
 	}
 
 	// Algolia holds Algolia service credentials
@@ -136,11 +133,6 @@ type (
 
 	DisabledFeatures struct {
 		BotChannel bool
-	}
-
-	Janitor struct {
-		Port      string `env:"key=KONFIG_SOCIALAPI_JANITOR_PORT"`
-		SecretKey string `env:"key=KONFIG_SOCIALAPI_JANITOR_SECRETKEY"`
 	}
 
 	Github struct {

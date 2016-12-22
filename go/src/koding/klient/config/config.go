@@ -4,7 +4,10 @@
 // the -ldflags feature.
 package config
 
-import konfig "koding/kites/config"
+import (
+	konfig "koding/kites/config"
+	"koding/kites/config/configstore"
+)
 
 var (
 	Version     string
@@ -23,9 +26,10 @@ var envs = &konfig.Environments{
 // Konfig represents a klient configuration.
 var Konfig = ReadKonfig()
 
+// Builtin represents a builtin configuration.
 var Builtin = konfig.NewKonfig(envs)
 
 // ReadKonfig reads klient configuration.
 func ReadKonfig() *konfig.Konfig {
-	return konfig.ReadKonfig(envs)
+	return configstore.Read(envs)
 }

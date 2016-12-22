@@ -14,7 +14,7 @@
         }
     });
 
-    document.querySelector('#Modal').classList.add('Modal--withVideo');
+   $('#Modal').addClass('Modal--withVideo');
   }
 
   modalOptions.onDestroy = function() {

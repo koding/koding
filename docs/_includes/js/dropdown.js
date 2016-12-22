@@ -1,11 +1,11 @@
 (function() {
-  var dropdown        = document.querySelectorAll('.Dropdown'),
-      dropdownOptions = document.querySelectorAll('.Dropdown .Dropdown-options a');
+  var dropdown        = $('.Dropdown'),
+      dropdownOptions = $('.Dropdown .Dropdown-options a');
 
   var initialize = function() {
 
     document.addEventListener('click', function(evt) {
-      if (!evt.target.closest('.Dropdown') && document.querySelector('.is-shown')) {
+      if (!$(evt.target).closest('.Dropdown') && document.find('.is-shown')) {
         [].forEach.call( dropdown, function(el) {
           if (el.classList.contains('is-shown')) {
             el.classList.remove('is-shown');
@@ -18,14 +18,14 @@
       el.addEventListener('click', function(evt) {
         evt.preventDefault();
 
-        if (evt.target.classList.contains('disabled')) {
+        if ($(evt.target).hasClass('disabled')) {
           return false;
         }
 
-        if (this.classList.contains('is-shown')) {
-          this.classList.remove('is-shown');
+        if ($(this).hasClass('is-shown')) {
+          $(this).removeClass('is-shown');
         } else {
-          this.classList.add('is-shown');
+          $(this).addClass('is-shown');
         }
 
       });
@@ -35,11 +35,11 @@
       el.addEventListener('click', function(evt) {
         evt.preventDefault();
 
-        if (evt.target.classList.contains('disabled')) {
+        if ($(evt.target).hasClass('disabled')) {
           return false;
         }
 
-        var dropdownLabel = evt.target.closest('.Dropdown').querySelector('.Dropdown-selection');
+        var dropdownLabel = $(evt.target).closest('.Dropdown').find('.Dropdown-selection')[0];
 
         dropdownLabel.innerHTML = this.innerHTML;
       }, false)

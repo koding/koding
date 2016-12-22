@@ -49,14 +49,12 @@ By default, `supervisorctl` prints output of `status` command.
 Example output during startup:
 
 ```
-environment:janitor                   STARTING
 environment:kloud                     STARTING
 environment:kontrol                   STARTING
 environment:terraformer               STARTING
 socialapi:algoliaconnector            STARTING
 socialapi:collaboration               STARTING
 socialapi:dispatcher                  STARTING
-socialapi:eventsender                 STARTING
 socialapi:gatekeeper                  STARTING
 socialapi:mailsender                  STARTING
 socialapi:realtime                    STARTING
@@ -74,14 +72,12 @@ Same command executed through command line options.
 
 ```
 $ supervisorctl status
-environment:janitor                   RUNNING   pid 3638, uptime 0:00:11
 environment:kloud                     RUNNING   pid 3276, uptime 0:00:15
 environment:kontrol                   RUNNING   pid 3271, uptime 0:00:15
 environment:terraformer               RUNNING   pid 3274, uptime 0:00:15
 socialapi:algoliaconnector            RUNNING   pid 3327, uptime 0:00:15
 socialapi:collaboration               RUNNING   pid 3382, uptime 0:00:15
 socialapi:dispatcher                  RUNNING   pid 3391, uptime 0:00:15
-socialapi:eventsender                 RUNNING   pid 3362, uptime 0:00:15
 socialapi:gatekeeper                  RUNNING   pid 3277, uptime 0:00:15
 socialapi:mailsender                  RUNNING   pid 3292, uptime 0:00:15
 socialapi:realtime                    RUNNING   pid 3312, uptime 0:00:15

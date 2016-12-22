@@ -11,6 +11,11 @@ const (
 	CombinedAppStorageColl = "jCombinedAppStorages"
 )
 
+// RemoveCombinedAppStorage removes given cas
+func RemoveCombinedAppStorage(id bson.ObjectId) error {
+	return RemoveDocument(CombinedAppStorageColl, id)
+}
+
 func GetCombinedAppStorageByAccountId(accountId bson.ObjectId) (*models.CombinedAppStorage, error) {
 	appStorage := &models.CombinedAppStorage{}
 

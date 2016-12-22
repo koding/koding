@@ -28,6 +28,7 @@ ContentModal         = require 'app/components/contentModal'
 runMiddlewares       = require 'app/util/runMiddlewares'
 TestMachineMiddleware = require './middlewares/testmachine'
 
+whoami = require 'app/util/whoami'
 
 { actions : HomeActions } = require 'home/flux'
 require './config'
@@ -36,7 +37,7 @@ require './config'
 module.exports = class ComputeController extends KDController
 
 
-  @providers = globals.config.providers
+  @providers = globals.config.providers._getSupportedProviders()
   @Error     = {
     'TimeoutError', 'KiteError', 'NotSupported'
     Pending: '107', NotVerified: '500'
@@ -71,6 +72,7 @@ module.exports = class ComputeController extends KDController
 
       groupsController.on 'StackTemplateChanged', @bound 'checkGroupStacks'
       groupsController.on 'StackAdminMessageCreated', @bound 'handleStackAdminMessageCreated'
+      groupsController.on 'SharedStackTemplateAccessLevel', @bound 'sharedStackTemplateAccessLevel'
 
       @fetchStacks =>
 
@@ -159,9 +161,9 @@ module.exports = class ComputeController extends KDController
     if method?
       switch method
         when 'reinit'
-          return NotSupported  if provider in ['aws', 'vagrant']
+          return NotSupported
         when 'createSnapshot'
-          return NotSupported  if provider in ['aws', 'softlayer', 'vagrant']
+          return NotSupported
 
 
 
@@ -997,6 +999,66 @@ module.exports = class ComputeController extends KDController
           @emit 'StacksInconsistent', stack
 
 
+  setStackTemplateAccessLevel: (template, type) ->
+    template.setAccess type
+
+
+  sharedStackTemplateAccessLevel: (params) ->
+    { reactor } = kd.singletons
+    { contents: { id: _id, change: { $set: { accessLevel } } } } = params
+
+    remote.api.JStackTemplate.one { _id }, (err, stackTemplate) =>
+
+      return kd.NotificationView { title: 'Error occurred' }  if err
+
+      reactor.dispatch 'REMOVE_STACK_TEMPLATE_SUCCESS', { id: _id }
+
+      if accessLevel is 'group'
+        new kd.NotificationView { title : 'Stack Template is Shared With Team' }
+        @checkRevisionFromOriginalStackTemplate stackTemplate
+      else
+        @removeRevisonFromUnSharedStackTemplate _id
+        new kd.NotificationView { title : 'Stack Template is Unshared With Team' }
+
+
+  removeRevisonFromUnSharedStackTemplate: (id) ->
+
+    { reactor } = kd.singletons
+    stacks = @stacks.filter (stack) -> stack.config?.clonedFrom is id
+
+    stacks.forEach (stack) =>
+      config = stack.config ?= {}
+      config.needUpdate = no
+      @updateStackConfig stack, config
+
+
+  checkRevisionFromOriginalStackTemplate: (stackTemplate) ->
+
+    { reactor } = kd.singletons
+
+    reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
+
+    stacks = @stacks.filter (stack) ->
+      stack.config?.clonedFrom is stackTemplate._id
+
+    return  unless stacks.length
+    stacks.forEach (stack) =>
+      @fetchBaseStackTemplate stack, (err, template) =>
+        unless err
+          if stackTemplate.config.clonedSum isnt template.template.sum
+            config = stack.config ?= {}
+            config.needUpdate = yes
+            @updateStackConfig stack, config
+
+
+  updateStackConfig: (stack, config) ->
+    { reactor } = kd.singletons
+    stack.modify { config }, (err) ->
+      stack.config = config
+      reactor.dispatch 'STACK_UPDATED', stack
+
+
+
   checkGroupStacks: ->
 
     @checkStackRevisions()
@@ -1218,8 +1280,6 @@ module.exports = class ComputeController extends KDController
 
   makeTeamDefault: (stackTemplate, revive) ->
 
-    if revive
-      stackTemplate = remote.revive stackTemplate
     { credentials, config: { requiredProviders } } = stackTemplate
 
     { groupsController, reactor } = kd.singletons
@@ -1240,11 +1300,10 @@ module.exports = class ComputeController extends KDController
 
   shareCredentials: (credentials, requiredProviders, callback) ->
 
-    for selectedProvider in requiredProviders
-      break  if selectedProvider in ['aws', 'vagrant']
-
+    selectedProvider = null
+    for provider in requiredProviders when provider in @providers
+      selectedProvider = provider
     selectedProvider ?= (Object.keys credentials ? { aws: yes }).first
-    selectedProvider ?= 'aws'
 
     creds = Object.keys credentials
     { groupsController } = kd.singletons
@@ -1256,6 +1315,33 @@ module.exports = class ComputeController extends KDController
           showError 'Failed to share credential'  if err
           callback()
     else showError 'Failed to share credential'
+
+
+  removeClonedFromAttr: (stackTemplate, callback = kd.noop) ->
+
+    @ui.askFor 'dontWarnMe', {}, (status) =>
+
+      return callback yes  unless status.confirmed
+
+      { reactor } = kd.singletons
+
+      stack = @findStackFromTemplateId stackTemplate._id
+      { config } = stack
+
+      delete config.clonedFrom
+      delete config.needUpdate
+
+      stack.modify { config }, (err) ->
+        reactor.dispatch 'STACK_UPDATED', stack
+
+      { config } = stackTemplate
+
+      delete config.clonedFrom
+      delete config.needUpdate
+
+      stackTemplate.update { config }, (err) ->
+        reactor.dispatch 'UPDATE_STACK_TEMPLATE_SUCCESS', { stackTemplate }
+        callback no
 
 
   ###*
@@ -1363,9 +1449,8 @@ module.exports = class ComputeController extends KDController
       kd.warn err  if err
       callback null, @_soloMachines
 
-  deleteStackTemplate: (template, revive = no) ->
 
-    template = remote.revive template  if revive
+  deleteStackTemplate: (template) ->
 
     { groupsController, computeController, router, reactor }  = kd.singletons
     currentGroup  = groupsController.getCurrentGroup()
@@ -1408,13 +1493,18 @@ module.exports = class ComputeController extends KDController
         buttons :
           cancel      :
             title     : 'Cancel'
-            cssClass  : 'kdbutton solid medium'
+            cssClass  : 'solid medium'
             callback  : ->
               modal.destroy()
               callback { status : no }
           ok          :
             title     : 'Yes'
-            cssClass  : 'kdbutton solid medium'
+            cssClass  : 'solid medium'
             callback  : -> callback { status : yes, modal }
 
       modal.setAttribute 'testpath', 'RemoveStackModal'
+
+
+  infoTest: (machine) ->
+    ComputeHelpers = require './computehelpers'
+    ComputeHelpers.infoTest machine

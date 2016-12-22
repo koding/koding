@@ -314,7 +314,6 @@ module.exports = class JStackTemplate extends Module
 
 
   setAccess: permit
-
     advanced: [
       { permission: 'update own stack template', validateWith: Validators.own }
       { permission: 'update stack template' }
@@ -330,14 +329,20 @@ module.exports = class JStackTemplate extends Module
 
       { group } = client.r
       query = { $set: { accessLevel } }
+      id = @getId()
 
-      notifyOptions =
-        account : client.r.account
-        group   : group.slug
-        target  : if accessLevel is 'group' then 'group' else 'account'
+      @update query, (err) =>
 
-      @updateAndNotify notifyOptions, query, (err) =>
-        callback err, this
+        return callback err  if err
+        return  unless group.slug
+
+        JGroup = require '../group'
+        JGroup.one { slug : group.slug }, (err, group_) =>
+          return callback err, this  if err or not group_
+
+          opts = { id, group: group.slug, change: query, timestamp: Date.now() }
+          group_.sendNotification 'SharedStackTemplateAccessLevel', opts
+          callback err, this
 
 
   generateStack: permit
@@ -430,7 +435,15 @@ module.exports = class JStackTemplate extends Module
 
             data['meta.modifiedAt'] = new Date
 
-            next()
+            originalId = data.config?.clonedFrom
+            return next()  unless originalId
+
+            # update clonedSum information in the template, if it is exists
+            JStackTemplate.one$ client, { _id: originalId }, (err, template) ->
+              if template and not err
+                if template.template.sum is data.template.sum
+                  data.config.clonedSum = template.template.sum
+              next()
         (next) =>
           query = { $set: data }
 
@@ -487,6 +500,7 @@ module.exports = class JStackTemplate extends Module
 
       cloneData.config           ?= {}
       cloneData.config.clonedFrom = @getId()
+      cloneData.config.clonedSum = @getAt 'template.sum'
 
       { custom } = cloneData.credentials or {}
       custom    ?= []

@@ -1,0 +1,74 @@
+.Homepage-References {
+  padding: 27px 0;
+  text-align: center;
+  .heads {
+    margin: 38px auto 42px;
+    display: flex;
+    justify-content: space-between;
+    width: 410px;
+    figure {
+      flex: 0 0 auto;
+      width: 80px;
+      height: 80px;
+      opacity: .5;
+      transition: transform .2s ease, opacity .2s ease;
+      background-image: url('/assets/img/landing/references/default_user.svg');
+      background-size: cover;
+      cursor: pointer;
+      border-radius: 50% 50%;
+      &.active,
+      &:hover {
+        opacity: 1;
+        transform: scale(1.25);
+      }
+    }
+  }
+  h5 {
+    font-weight: 600;
+    font-size: 22px;
+    color: #3B495B;
+    margin-top: 31px;
+  }
+  blockquote {
+    margin: 52px auto 0;
+    font-style: italic;
+    font-size: 22px;
+    color: #3B495A;
+    line-height: 32px;
+    max-width: 750px;
+  }
+  .quote {
+    display: none;
+    &.active {
+      display: block;
+    }
+  }
+}
+
+@media (max-width: 880px) {
+  .Homepage-References {
+    .heads {
+      margin: 25px auto 25px;
+      max-width: 100%;
+    }
+    h5 {
+      margin-top: 26px;
+      font-size: 18px;
+    }
+    blockquote {
+      font-size: 18px;
+      margin: 37px auto 0;
+    }
+  }
+}
+
+@media (max-width: 550px) {
+  .Homepage-References {
+    .heads {
+      figure {
+        width: 60px;
+        height: 60px;
+      }
+    }
+  } 
+}

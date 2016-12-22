@@ -84,6 +84,7 @@ module.exports = class GitLabContainer extends React.Component
 
 
   onRemoveSuccess: ->
+
     @setState { isRemoving: yes, enabled: false }
 
     options = _.pick @state, 'url', 'applicationId', 'applicationSecret'
@@ -92,7 +93,10 @@ module.exports = class GitLabContainer extends React.Component
     saveGitlabConfig options, (err) =>
       if err
       then @setState { enabled: yes }
-      else @setState @makeInitialState()
+      else
+        @setState @makeInitialState()
+        delete getGroup().config.gitlab
+        kd.singletons.mainController.emit 'IntegrationsUpdated'
 
 
   onSave: ->
@@ -108,16 +112,18 @@ module.exports = class GitLabContainer extends React.Component
       # save it to the config
       saveGitlabConfig options, (err, config) =>
 
-        newState = {}
-        newState.err = err  if err
         newState = _.pick options, 'applicationId', 'applicationSecret'
+        newState.err = err
 
         # JGroup.setOAuth will return updated url (aka cleaned url)
         # on successful save request, we need to update it on UI as well
         newState.url = config?.url ? options.url
 
-        newState.err = err
         newState.isSaving = no
+
+        unless err
+          getGroup().config.gitlab = { enabled: yes }
+          kd.singletons.mainController.emit 'IntegrationsUpdated'
 
         @setState newState
 

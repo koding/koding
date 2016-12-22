@@ -1,0 +1,13 @@
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+  .Homepage--containerOffset {
+    padding-right: 25px;
+    padding-left: 25px;
+  }
+  .Homepage--mobile-cta {
+    display: block;
+  }
+
+}

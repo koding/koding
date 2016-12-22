@@ -23,7 +23,7 @@ export COMMANDS=(
 	koding/kites/cmd/terraformer
 	koding/kites/cmd/tunnelserver
 	koding/workers/cmd/tunnelproxymanager
-	koding/workers/janitor
+	koding/workers/removenonexistents
 	koding/kites/kloud/cleaners/cmd/cleaner
 	koding/kites/kloud/scripts/userdebug
 	koding/kites/kloud/scripts/sl
@@ -31,7 +31,6 @@ export COMMANDS=(
 	koding/scripts/multiec2ssh
 
 	socialapi/workers/api
-	socialapi/workers/cmd/notification
 	socialapi/workers/cmd/realtime
 	socialapi/workers/cmd/realtime/gatekeeper
 	socialapi/workers/cmd/realtime/dispatcher
@@ -44,7 +43,6 @@ export COMMANDS=(
 	socialapi/workers/cmd/team
 	socialapi/workers/algoliaconnector/tagmigrator
 	socialapi/workers/algoliaconnector/contentmigrator
-	socialapi/workers/cmd/integration/eventsender
 
 	vendor/github.com/koding/kite/kitectl
 	vendor/github.com/canthefason/go-watcher

@@ -1,9 +1,7 @@
 kd           = require 'kd'
 AppStorage   = require './appstorage'
 
-module.exports =
-
-class AppStorageController extends kd.Controller
+module.exports = class AppStorageController extends kd.Controller
 
   constructor: ->
 
@@ -27,6 +25,5 @@ class AppStorageController extends kd.Controller
     key = "#{opts.name}-#{opts.version}"
 
     storage = @appStorages[key] or= new AppStorage opts.name, opts.version
-    storage.fetchStorage()  unless opts.fetch is false
 
     return storage

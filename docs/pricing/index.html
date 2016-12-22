@@ -40,7 +40,7 @@ permalink: /pricing
       <span class="title-super">FOR SOFTWARE DEVELOPMENT TEAMS</span>
       <h2 class="Pricing-PriceSegments--sectionTitle" itemprop="name">Dev Environment Automation</h2>
       <p itemprop="description">Enjoy a simpler development process. Automate your team&apos;s environments. Bring your developers to the cloud and synchronize your environments seamlessly.</p>
-      <span class="footprint prominent">Always free for open source teams.</span>
+      <span class="footprint prominent">Always free for open source teams. <a href="#" class="Pricing-PriceSegments--showMore">Learn more…</a></span>
     </div>
     <div class="Pricing-PriceSegments--featureSection features">
       <h3 class="Pricing-PriceSegments--featuresTitle">Features</h3>
@@ -63,7 +63,7 @@ permalink: /pricing
             <a href="#" attr-value="1-10">1-10 Monthly Active Developers</a>
             <a href="#" attr-value="11-50">11-50 Monthly Active Developers</a>
             <a href="#" attr-value="51-100">51-100 Monthly Active Developers</a>
-            <a href="#" class="disabled">for 100+ Please contact us...</a>
+            <a href="#" class="disabled">for 100+ Please contact us…</a>
           </div>
         </div>
         <div class="Pricing-PriceSegment--price single">
@@ -74,7 +74,7 @@ permalink: /pricing
         <a href="{{ site.url }}/teams/create" class="GenericButton">GET STARTED FOR FREE</a>
       </form>
       <p class="outro">
-        <a href="#" id="Pricing-PriceSegments--showMore">You may be eligible for 30 Day Free Trial or free credits. Learn more...</a>
+        <a href="#" class="Pricing-PriceSegments--showMore">You may be eligible for 30 Day Free Trial or free credits. Learn more…</a>
       </p>
     </aside>
   </section>
@@ -89,7 +89,7 @@ permalink: /pricing
       <p>If you are from a company and <strong>enter your work email</strong>, your trial will be extended to 30 days.</p>
     </div>
     <aside class="Pricing-PriceSegments--priceSection">
-      <h3>Get <strong>$1,000 Free Credit</strong></h3>
+      <h3>Up to <strong>$3,000 Free Credit</strong></h3>
       <p>If you write your stack script and <strong>invite all your team members</strong> in 7 days, you get $1000 credit.</p>
     </aside>
   </section>
@@ -120,7 +120,7 @@ permalink: /pricing
             <a href="#" attr-value="1-10">1-10 Monthly Evaluations</a>
             <a href="#" attr-value="11-50">11-50 Monthly Evaluations</a>
             <a href="#" attr-value="51-100">51-100 Monthly Evaluations</a>
-            <a href="#" class="disabled">for 100+ Please contact us...</a>
+            <a href="#" class="disabled">for 100+ Please contact us…</a>
           </div>
         </div>
         <div class="Pricing-PriceSegment--price">
@@ -174,7 +174,7 @@ permalink: /pricing
             <a href="#" attr-value="1-10">1-10 Monthly Active Trainees</a>
             <a href="#" attr-value="11-50">11-50 Monthly Active Trainees</a>
             <a href="#" attr-value="51-100">51-100 Monthly Active Trainees</a>
-            <a href="#" class="disabled">for 100+ Please contact us...</a>
+            <a href="#" class="disabled">for 100+ Please contact us…</a>
           </div>
         </div>
         <div class="Pricing-PriceSegment--price">
@@ -310,6 +310,52 @@ permalink: /pricing
   <a href="{{ site.url }}/teams/create" class="GenericButton bottom">GET STARTED FOR FREE</a>
 </section>
 
+<div id="footnotes" class="Pricing-Footnotes">
+  <section>
+    <h2>Billing FAQ</h2>
+
+    <h3><strong>‣</strong> Why do we collect credit card details at signup?</h3>
+    <ul>
+      <li>We are required to identify the owner of the team in case of unlawful or abusive usage of Koding. Please see our TOS for details. </li>
+    </ul>
+
+    <h3><strong>‣</strong> Do you store my credit card? </h3>
+    <ul>
+      <li>No. Your credit card information goes directly to Stripe servers via a secure channel.</li>
+    </ul>
+
+    <h3><strong>‣</strong> I am charged 50cents upon signup, why?</h3>
+    <ul>
+      <li>Stripe requires that amount to be authorized (not charged, it should show as pending) to make sure that your credit card is valid, and that amount is automatically refunded back to your credit card within 7 days.</li>
+    </ul>
+
+    <h3><strong>‣</strong> How does your trial work?</h3>
+    <ul>
+      <li>After successful authorization you will be given a 30 days free trial. You can cancel within 30 days at no charge, if you cancel after the trial period ends, then you will be charged the partial amount.</li>
+    </ul>
+
+    <h3><strong>‣</strong> Fair billing policy: We won't bill you for inactive members.</h3>
+    <ul>
+      <li>After your trial period ends you will be automatically subscribed to a plan based on your usage of your team ie. active user count of your last pay period. You can always see what your next bill amount on your dashboard. If a member of your team does not login to Koding or does not use Koding command line tools, within a pay period, you won't be charged for that member.</li>
+    </ul>
+
+    <h3><strong>‣</strong> What is a pay period?</h3>
+    <ul>
+      <li>It’s monthly, it starts the day after your trial ends.</li>
+    </ul>
+
+    <h3><strong>‣</strong> How do you calculate the usage?</h3>
+    <ul>
+      <li>It is calculated by your unique user count that has logged in at least once, or used any tool that is provided by Koding to reach Koding services (e.g. Koding connectors, Koding command line tools, or any other tools/systems that we might provide in the future)</li>
+    </ul>
+    <h3><strong>‣</strong> What happens when you cancel your subscription?</h3>
+    <ul>
+      <li>Upon cancellation, current active user count is billed to your credit card, and account is terminated immediately to avoid further charges to the account.</li>
+    </ul>
+
+  </section>
+</div>
+
 <script>
   {% include js/dropdown.js %}
   {% include js/pricing.js %}
@@ -317,3 +363,7 @@ permalink: /pricing
 
 <!-- FOOTER -->
 {% include footer.html %}
+
+<!--[if lte IE 9]>
+  <style>{% include css/index-ie.css %}</style>
+<![endif]-->

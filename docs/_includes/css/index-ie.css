@@ -1,0 +1,138 @@
+main.Homepage-Hero {
+  display: block;
+}
+.Homepage-Hero--video {
+  display: block;
+}
+.Homepage-Hero--video.out {
+  display: none;
+}
+.Homepage--container {
+  overflow: auto;
+}
+.Homepage-ContentWithVideo--content {
+  float: left;
+  width: 56%;
+}
+.Homepage-ContentWithVideo--visual {
+  float: right;
+}
+.Homepage-Column {
+  display: inline-block;
+}
+
+.Homepage-halves {
+  overflow: auto;
+}
+.Homepage-half--container {
+  overflow: auto;
+  min-height: 700px;
+}
+.Homepage-half--container:first-child {
+  float: left;
+}
+.Homepage-half--container:last-child {
+  float: right;
+}
+.Homepage-video-column {
+  display: inline-block;
+  vertical-align: top;
+  margin: 90px 10px;
+}
+.Homepage-References .heads figure {
+  display: inline-block;
+}
+.Homepage-use-cases {
+  background: #62476B;
+}
+.Homepage-use-cases .cases>div {
+  display: inline-block;
+  vertical-align: top;
+}
+.Homepage-Footer .Footer--col {
+  display: inline-block;
+  vertical-align: top;
+  width: 16%;
+}
+
+.Homepage-Header a {
+  display: inline-block;
+  padding-top: 18px;
+  padding-bottom: 18px;
+  vertical-align: top;
+}
+
+.Homepage-Header a.logo {
+  display: inline;
+  vertical-align: bottom;
+}
+
+.FeatureServices-cols > * {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.FeatureContent-Cols>div {
+  display: inline-block;
+  width: 30%;
+  vertical-align: top;
+}
+
+.Homepage-LogoBar--logos {
+  text-align: center;
+}
+
+.Feature3Cols>div {
+  width: 29%;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.Feature3Cols>div p {
+  min-height: 81px;
+}
+
+.Homepage-Footer .Footer--col.large form {
+  width: 330px;
+}
+
+.Homepage-Footer .Footer--col.large form > input, .Homepage-Footer .Footer--col.large form > button {
+  display: inline-block;
+}
+
+.Pricing-SupportPlans--support div {
+  display: inline-block;
+  width: 32%;
+}
+.Pricing-SupportPlans--quotes blockquote {
+  width: 49%;
+  display: inline-block;
+}
+
+.m-content-placement__item {
+  text-align: center;
+  width: 28%;
+  display: inline-block;
+  vertical-align: top;
+  margin: 0 20px;
+}
+
+.aboutus-col {
+  display: inline-block;
+  width: 30%;
+  vertical-align: top;
+}
+
+.AboutUs-TeamMemberWrapper {
+  text-align: center;
+}
+
+.AboutUs-TeamMember {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.AboutUs-Contact--numbers div {
+  display: inline-block;
+  vertical-align: top;
+}

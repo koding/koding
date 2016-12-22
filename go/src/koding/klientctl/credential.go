@@ -1,23 +1,21 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"strconv"
-	"strings"
 	"text/tabwriter"
 	"time"
 
 	"koding/kites/config"
 	"koding/kites/kloud/stack"
-	"koding/klientctl/kloud/credential"
+	"koding/klientctl/endpoint/credential"
+	"koding/klientctl/helper"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 func CredentialList(c *cli.Context, log logging.Logger, _ string) (int, error) {
@@ -32,8 +30,7 @@ func CredentialList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	}
 
 	if len(creds) == 0 {
-		fmt.Fprintln(os.Stderr, "You have no matching credentials attached to your Koding account.")
-		return 0, nil
+		return 0, fmt.Errorf("you have no matching credentials attached to your Koding account")
 	}
 
 	if c.Bool("json") {
@@ -52,25 +49,6 @@ func CredentialList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	return 0, nil
 }
 
-func ask(format string, args ...interface{}) (string, error) {
-	fmt.Printf(format, args...)
-	s, err := bufio.NewReader(os.Stdin).ReadString('\n')
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(s), nil
-}
-
-func askSecret(format string, args ...interface{}) (string, error) {
-	fmt.Printf(format, args...)
-	p, err := terminal.ReadPassword(int(os.Stdin.Fd()))
-	fmt.Println()
-	if err != nil {
-		return "", err
-	}
-	return string(p), nil
-}
-
 func AskCredentialCreate(c *cli.Context) (*credential.CreateOptions, error) {
 	descs, err := credential.Describe()
 	if err != nil {
@@ -84,7 +62,7 @@ func AskCredentialCreate(c *cli.Context) (*credential.CreateOptions, error) {
 	}
 
 	if opts.Provider == "" {
-		opts.Provider, err = ask("Provider type []: ")
+		opts.Provider, err = helper.Ask("Provider type []: ")
 		if err != nil {
 			return nil, err
 		}
@@ -92,7 +70,7 @@ func AskCredentialCreate(c *cli.Context) (*credential.CreateOptions, error) {
 
 	if opts.Title == "" {
 		opts.Title = config.CurrentUser.Username + " " + time.Now().Format(time.ANSIC)
-		opts.Title, err = ask("Title [%s]: ", opts.Title)
+		opts.Title, err = helper.Ask("Title [%s]: ", opts.Title)
 		if err != nil {
 			return nil, err
 		}
@@ -115,7 +93,7 @@ func AskCredentialCreate(c *cli.Context) (*credential.CreateOptions, error) {
 		var value string
 
 		if field.Secret {
-			value, err = askSecret("%s [***]: ", field.Label)
+			value, err = helper.AskSecret("%s [***]: ", field.Label)
 		} else {
 			var defaultValue string
 
@@ -130,7 +108,7 @@ func AskCredentialCreate(c *cli.Context) (*credential.CreateOptions, error) {
 				defaultValue = "0"
 			}
 
-			value, err = ask("%s [%s]: ", field.Label, defaultValue)
+			value, err = helper.Ask("%s [%s]: ", field.Label, defaultValue)
 
 			if value == "" {
 				value = defaultValue
@@ -169,7 +147,7 @@ func AskCredentialCreate(c *cli.Context) (*credential.CreateOptions, error) {
 
 	// TODO(rjeczalik): remove when support for generic team is implemented
 	if opts.Team == "" {
-		opts.Team, err = ask("Team name []: ")
+		opts.Team, err = helper.Ask("Team name []: ")
 		if err != nil {
 			return nil, err
 		}
@@ -194,8 +172,7 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 	case "":
 		opts, err = AskCredentialCreate(c)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "Error building credential data:", err)
-			return 1, err
+			return 1, fmt.Errorf("error building credential data: %v", err)
 		}
 	case "-":
 		p, err = ioutil.ReadAll(os.Stdin)
@@ -204,8 +181,7 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 	}
 
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error reading credential file:", err)
-		return 1, err
+		return 1, fmt.Errorf("error reading credential file: %v", err)
 	}
 
 	fmt.Fprintln(os.Stderr, "Creating credential... ")
@@ -221,8 +197,7 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 
 	cred, err := credential.Create(opts)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error creating credential:", err)
-		return 1, err
+		return 1, fmt.Errorf("error creating credential: %v", err)
 	}
 
 	if c.Bool("json") {
@@ -244,15 +219,13 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 func CredentialDescribe(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	descs, err := credential.Describe()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error requesting credential description:", err)
-		return 1, err
+		return 1, fmt.Errorf("error requesting credential description: %v", err)
 	}
 
 	if p := c.String("provider"); p != "" {
 		desc, ok := descs[p]
 		if !ok {
-			fmt.Fprintf(os.Stderr, "No description found for %q provider.\n", p)
-			return 1, err
+			return 1, fmt.Errorf("no description found for %q provider", p)
 		}
 
 		descs = stack.Descriptions{p: desc}

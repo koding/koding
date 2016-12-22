@@ -73,6 +73,8 @@ Your new team members will be able to use your stack to build their VMs environm
 
         ![GCE Enable Billing][14]
 
+        > Google Cloud applies resources quotas based on your usage, you may need to request quota increase, for both global and regional limit. See [more information here](https://cloud.google.com/compute/docs/resource-quotas)
+
     8. Once you are done with adding your billing information, go to your project **Credentials** menu and click **Create credentials**
 
         ![GCE Credentials][15]
@@ -108,19 +110,15 @@ Your new team members will be able to use your stack to build their VMs environm
 
     ![GCE Init Stack][23]
 
-9. Click **Initialize** to start your stack
+9. Now let's start building our stack
 
-    ![GCE Init Stack][23]
-
-10. Now let's start building our stack
-
-    > You will notice that the first page in the building stack contains the message we wrote in our Read Me tab in our stack. This is the same message your team will see when they build their stack. It is a good practice to include information about your project or stack for your teammates.
+    > You will notice that the first page in the building stack window contains the message we wrote in our Read Me tab in our stack. This is the same message your team will see when they build their stack. It is a good practice to include information about your project or stack for your teammates.
 
     Click **Next**
 
     ![GCE Init Stack][24]
 
-11. Make sure the correct credentials are selected (you can save multiple credentials) and click **Build Stack**
+10. Make sure the correct credentials are selected (you can save multiple credentials) and click **Build Stack**
 
     ![GCE build stack][25]
 
@@ -128,7 +126,7 @@ Your new team members will be able to use your stack to build their VMs environm
 
     ![GCE stack building][26]
 
-12. Congratulations, your stack was built successfully, click **Start Coding**
+11. Congratulations, your stack was built successfully, click **Start Coding**
 
     ![GCE stack built successfully][27]
 
@@ -144,7 +142,7 @@ Your new team members will be able to use your stack to build their VMs environm
 [1]: https://cloud.google.com/
 [2]: https://cloud.google.com/compute/
 [3]: https://cloud.google.com/compute/pricing
-[4]: {{ site.url }}/assets/img/guides/digitalocean/create-new-stack.png
+[4]: {{ site.url }}/assets/img/guides/azure/create-new-stack.png
 [5]: {{ site.url }}/assets/img/guides/gce/provider-gce.png
 [6]: {{ site.url }}/assets/img/guides/gce/gce-default-stack.png
 [7]: {{ site.url }}/assets/img/guides/gce/gce-readme.png

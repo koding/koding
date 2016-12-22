@@ -1,6 +1,7 @@
 package main
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/rest"
 	"socialapi/workers/common/tests"
@@ -19,7 +20,7 @@ func TestStoreGetDeleteCredentials(t *testing.T) {
 			Convey("after create  account requirements", func() {
 				ownerAccount, _, groupName := models.CreateRandomGroupDataWithChecks()
 
-				ownerSes, err := models.FetchOrCreateSession(ownerAccount.Nick, groupName)
+				ownerSes, err := modelhelper.FetchOrCreateSession(ownerAccount.Nick, groupName)
 				So(err, ShouldBeNil)
 				So(ownerSes, ShouldNotBeNil)
 

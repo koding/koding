@@ -1,3 +1,32 @@
+.AboutUs-Team {
+  padding-bottom: 140px;
+}
+.AboutUs-Team h3.DepartmentTitle {
+  font-size: 24px;
+  clear: both;
+  margin: 40px 0;
+  text-align: center;
+  color: #358BB0;
+  position: relative;
+  z-index: 1;
+}
+.AboutUs-Team h3.DepartmentTitle span {
+  background: white;
+  z-index: 1;
+  position: relative;
+  padding: 0 30px;
+}
+.AboutUs-Team h3.DepartmentTitle:after {
+  content: '';
+  height: 1px;
+  width: 100%;
+  background: #e8ecee;
+  position: absolute;
+  top: 11px;
+  left: 0;
+  z-index: 0;
+}
+
 .AboutUs-TeamHeader {
   text-align: center;
 }
@@ -19,10 +48,14 @@
   color: #515151;
   margin-bottom: 100px;
 }
+.AboutUs-TeamMemberWrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
 .AboutUs-TeamMember {
   text-align: center;
   width: calc(33% - 50px);
-  float: left;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0);
   border-radius: 6px;
   padding-top: 40px;
@@ -30,7 +63,7 @@
   margin-left: 25px;
   margin-right: 25px;
   transition: .4s box-shadow;
-
+  flex: 0 0 auto;
 }
 .AboutUs-TeamMember:hover {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);

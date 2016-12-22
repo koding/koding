@@ -1,0 +1,20 @@
+{% assign path = include.path | append: '/' %}
+{% assign cols = include.columns | split: "$$" %}
+
+<div class='Homepage-Columns Homepage--containerOffset'>
+  <div class='Homepage--container'>
+  {% for col in cols %}
+    {% assign row = col | split: "||" %}
+    {% assign icon = row[0] | strip | prepend: 'icon-' %}
+    {% assign title = row[1] | strip %}
+    {% assign desc = row[2] | strip %}
+
+    <div class='Homepage-Column'>
+      <svg xmlns="http://www.w3.org/2000/svg"><use xlink:href="#{{ icon }}"></use></svg>
+      <h4 class="title">{{ title }}</h4>
+      <p>{{ desc }}</p>
+    </div>
+  {% endfor %}
+  </div>
+</div>
+

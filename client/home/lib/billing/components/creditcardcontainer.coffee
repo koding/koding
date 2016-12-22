@@ -1,82 +1,52 @@
-_ = require 'lodash'
-{ reduxForm, formValueSelector, SubmissionError, isDirty } = require 'redux-form'
+{ reduxForm, SubmissionError, reset: resetForm } = require 'redux-form'
 { connect } = require 'react-redux'
-{ createSelector } = require 'reselect'
-validator = require 'card-validator'
-whoami = require 'app/util/whoami'
 
-stripe = require 'app/redux/modules/stripe'
-bongo = require 'app/redux/modules/bongo'
-customer = require 'app/redux/modules/payment/customer'
-creditCard = require 'app/redux/modules/payment/creditcard'
+{ updateCard } = require 'app/redux/modules/payment'
 
 CreateCreditCardForm = require 'lab/CreateCreditCardForm'
 
-FORM_NAME = 'create-credit-card'
-formValue = formValueSelector(FORM_NAME)
+{ select, FORM_NAME, mapErrors } = require './helpers'
 
-realNumber = (state) -> formValue(state, 'number')?.replace /\D/g, ''
 
-slugify = (word) -> if word then word.split(' ').join '-' else ''
+# handleSubmit: redux-form `onSubmit` handler for credit card form.
+# it handles errors in a way that redux-form can make sense.
+#
+# @param {object} values - form values
+# @param {function} dispatch - Redux dispatch function
+# @return {Promise}
+handleSubmit = (values, dispatch) ->
 
-cardBrand = createSelector(
-  realNumber
-  (number) ->
-    brand = if number then validator.number(number).card?.type else ''
+  Promise.resolve()
+    .then -> dispatch(updateCard values)
+    .then -> dispatch(resetForm FORM_NAME)
+    .catch (errors) ->
+      console.error 'errors in card submission', errors
+      throw new SubmissionError mapErrors errors
 
-    return slugify brand
-)
 
-initialValues = (state) ->
-  return  unless state.customer
-  return creditCard.values(state)
+# first we connect reduxForm to ensure
+# form values are stored in store and onSubmit is
+# called when submit event is fired.
+CreateCreditCardForm = reduxForm(
+  form: FORM_NAME
+  enableReinitialize: yes
+  onSubmit: handleSubmit
+)(CreateCreditCardForm)
 
 
 mapStateToProps = (state) ->
-
-  number = if realNumber(state) then formValue(state, 'number') else ''
-
-  props =
-    isDirty: isDirty(FORM_NAME)(state)
-    formValues:
-      number: number
-      exp_year: formValue state, 'exp_year'
-      exp_month: formValue state, 'exp_month'
-      brand: cardBrand state
-      realNumber: realNumber(state)
-
-  # first time we passed down an initialValues prop to the redux form it will
-  # use that as **real** initialValues, and after that if you pass down a
-  # different initialValues prop, it will use the values and it will mark the
-  # form dirty. But since the initial loads trigger state updates, and email is
-  # being loaded after form is initialized, it causes problems.
-  if initials = initialValues(state)
-    props.initialValues = initials
-
-  return props
+  return {
+    isDirty: select.dirty(state)
+    # if form is not dirty credit card figure will use this data
+    # tho show existing credit card.
+    placeholders: select.placeholders(state)
+    # if form is dirty, credit card figure will use this data to show
+    # a preview for the card user is entering.
+    formValues: select.values(state)
+  }
 
 
-mapErrorsToValues = (errors) ->
-  errors.reduce (res, { error }) ->
-    res[error.param] = error.message
-    return res
-  , {}
-
-
-addCardToCustomer = (values, dispatch) ->
-
-  dispatch(stripe.createToken values)
-    .then (token) -> dispatch(customer.update { source: { token } })
-    .catch (errors) -> throw new SubmissionError mapErrorsToValues errors
-
-
-formOptions =
-  form: FORM_NAME
-  enableReinitialize: yes
-  onSubmit: addCardToCustomer
-
-
-CreateCreditCardForm = reduxForm(formOptions)(CreateCreditCardForm)
+# then we connect our own state mapper to implement our custom logic.
 CreateCreditCardForm = connect(
   mapStateToProps
   null

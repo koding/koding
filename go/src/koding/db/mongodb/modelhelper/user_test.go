@@ -52,6 +52,15 @@ func TestBlockUser(t *testing.T) {
 	if user.BlockedUntil.IsZero() {
 		t.Errorf("User blocked until date is not set")
 	}
+
+	id, err := modelhelper.GetUserID(user.Name)
+	if err != nil {
+		t.Fatalf("GetUserID()=%s", err)
+	}
+
+	if id != user.ObjectId {
+		t.Fatalf("got %q, want %q", id.Hex(), user.ObjectId.Hex())
+	}
 }
 
 func TestRemoveUser(t *testing.T) {
@@ -142,5 +151,113 @@ func TestGetAnyUserTokenFromGroup(t *testing.T) {
 	err = modelhelper.RemoveUser(username)
 	if err != nil {
 		t.Error(err)
+	}
+}
+
+func TestUserLogin(t *testing.T) {
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
+
+	acc1 := createTestAccount(t)
+	defer modelhelper.RemoveAccount(acc1.Id)
+
+	acc2 := createTestAccount(t)
+	defer modelhelper.RemoveAccount(acc2.Id)
+
+	group, err := createGroup()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if err := modelhelper.AddRelationship(&models.Relationship{
+		Id:         bson.NewObjectId(),
+		TargetId:   acc1.Id,
+		TargetName: "JAccount",
+		SourceId:   group.Id,
+		SourceName: "JGroup",
+		As:         "member",
+	}); err != nil {
+		t.Error(err)
+	}
+
+	ses, err := modelhelper.CreateSessionForAccount(acc1.Profile.Nickname, group.Slug)
+	if err != nil {
+		t.Error(err)
+	}
+
+	tests := []struct {
+		Title    string
+		Nick     string
+		Slug     string
+		ClientID string
+		Err      error
+	}{
+		{
+			Title:    "Member account",
+			Nick:     acc1.Profile.Nickname,
+			Slug:     group.Slug,
+			ClientID: ses.ClientId,
+			Err:      nil,
+		},
+		{
+			Title:    "Re-testing with Member account",
+			Nick:     acc1.Profile.Nickname,
+			Slug:     group.Slug,
+			ClientID: ses.ClientId,
+			Err:      nil,
+		},
+		{
+			Title:    "Non-member account",
+			Nick:     acc2.Profile.Nickname,
+			Slug:     group.Slug,
+			ClientID: "",
+			Err:      modelhelper.ErrNotParticipant,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Title, func(t *testing.T) {
+			ses, err := modelhelper.UserLogin(test.Nick, test.Slug)
+			if err != test.Err {
+				t.Errorf("expected Err equal to %q, but got %q!", test.Err, err)
+			}
+
+			if ses != nil && ses.ClientId != test.ClientID {
+				t.Errorf("expected ClientID equal to %q, but got %q!", test.ClientID, ses.ClientId)
+			}
+		})
+	}
+}
+
+func TestUserLoginSessionCreation(t *testing.T) {
+	db := modeltesthelper.NewMongoDB(t)
+	defer db.Close()
+
+	acc2 := createTestAccount(t)
+	defer modelhelper.RemoveAccount(acc2.Id)
+
+	group, err := createGroup()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if err := modelhelper.AddRelationship(&models.Relationship{
+		Id:         bson.NewObjectId(),
+		TargetId:   acc2.Id,
+		TargetName: "JAccount",
+		SourceId:   group.Id,
+		SourceName: "JGroup",
+		As:         "member",
+	}); err != nil {
+		t.Error(err)
+	}
+
+	ses, err := modelhelper.UserLogin(acc2.Profile.Nickname, group.Slug)
+	if err != nil {
+		t.Errorf("expected nil error, but got %q!", err)
+	}
+
+	if ses == nil || ses.ClientId == "" {
+		t.Error("expected ses.ClientId to be set, but got empty!")
 	}
 }

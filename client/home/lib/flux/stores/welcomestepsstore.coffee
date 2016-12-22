@@ -109,6 +109,15 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
           isDone: no
           order: 21
           skippable: yes
+        githubIntegration :
+          path: '/Home/my-account#integrations'
+          title: 'Connect GitHub'
+          actionTitle: 'Setup'
+          videoLink: ''
+          description: 'Start working with existing projects with your GitHub integration'
+          isDone: no
+          order: 22
+          skippable: yes
 
 
   initialize: ->

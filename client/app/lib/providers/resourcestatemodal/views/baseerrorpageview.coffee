@@ -44,7 +44,7 @@ module.exports = class BaseErrorPageView extends JView
   # Defer is required here since onPageDidShow is getting called in
   # the same call stack before it's ready in the DOM and it causes
   # issues in the following call ~ GG
-  onPageDidShow: -> kd.utils.defer ->
+  onPageDidShow: -> kd.utils.defer =>
     # it needs to update container height if it can't be set fixed in css.
     # otherwise, custom scroll doesn't work properly
     container = @getDomElement().find '.main'

@@ -1,0 +1,69 @@
+.Homepage-Columns {
+  padding-top: 28px;
+  padding-top: 74px;
+}
+.Homepage-Columns .Homepage--container {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+// nested styles doesn't work
+// if svg has a parent here
+svg {
+  .opacity {
+    opacity: 0.2;
+    isolation: isolate;
+  }
+  .emphasis{
+    fill: #f2778a;
+  }
+}
+
+.Homepage-Column {
+  flex: 0 1 auto;
+  width: 30%;
+  box-sizing: border-box;
+  padding-left: 48px;
+  position: relative;
+  margin-bottom: 94px;
+  svg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    max-width: 40px;
+    fill: #aab2b9;
+  }
+  h4 {
+    font-weight: 500;
+    font-size: 20px;
+    color: $title-color;
+    letter-spacing: 0;
+    margin-bottom: 13px;
+  }
+  p {
+    line-height: 26px;
+  }
+
+  a {
+    color: rgba(53,139,176,0.8);
+    text-decoration: none;
+    font-size: 15px;
+    padding-top: 10px;
+    display: inline-block;
+  }
+}
+
+@media (max-width: 880px) {
+  .Homepage-Column {
+    width: 47%;
+    margin-bottom: 75px;
+  }
+}
+
+@media (max-width: 600px) {
+  .Homepage-Column {
+    width: 100%;
+    margin-bottom: 42px;
+  }
+}

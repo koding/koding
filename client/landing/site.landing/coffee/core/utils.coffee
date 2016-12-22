@@ -125,6 +125,16 @@ module.exports = utils = {
           labels.splice -6, 6 # 'A.B.C.D.xip.io'.length
           return labels.pop()
       }
+
+      # <team-domain>.<IPv4>.nip.io
+      # IPV4: A.B.C.D
+      {
+        predict: 'nip\.io'
+        labelFn: (hostname) ->
+          labels = hostname.split('.')
+          labels.splice -6, 6 # 'A.B.C.D.nip.io'.length
+          return labels.pop()
+      }
     ]
 
     for pattern in predefinedPatterns
@@ -235,7 +245,9 @@ module.exports = utils = {
       return _.assign {}, data, { payment: { stripeToken } }
 
     if team = kd.team
-      if token = getPayment()?.token
+      token = getPayment()?.token
+      isDefaultEnv = kd.config.environment is 'default'
+      if not isDefaultEnv and token
         team = attachPayment kd.team, token
       return team
 
@@ -273,10 +285,10 @@ module.exports = utils = {
 
   createTeam: (callbacks = {}) ->
 
-    # this part should never run actually because the signup flow in
-    # TeamAppController takes care of this. But i'll leave this here just in
-    # case.
-    unless token = utils.getPayment()?.token
+    isDefaultEnv = kd.config.environment is 'default'
+    token = utils.getPayment()?.token
+
+    if not isDefaultEnv and not token
       new kd.NotificationView { title : 'You need to enter your credit card!' }
       return kd.singletons.router.handleRoute '/Team/Payment'
 

@@ -70,6 +70,11 @@ const (
 	ErrMachineNotImplemented  = 412
 	ErrStackNotImplemented    = 413
 	ErrCredentialIsMissing    = 414
+	ErrBadRequest             = 415
+	ErrNotAuthorized          = 416
+	ErrInternalServer         = 417
+
+	ErrTeamSubIsNotActive = 420
 
 	ErrUserNotConfirmed = 500
 )
@@ -109,6 +114,12 @@ var kloudErrors = map[int]string{
 	ErrProviderIsWrong:        "Provider doesn't match the internal name",
 	ErrProviderIsDisabled:     "Provider is disabled",
 	ErrCredentialIsMissing:    "Credential is missing",
+	ErrBadRequest:             "Bad request",
+	ErrNotAuthorized:          "Not Authorized",
+	ErrInternalServer:         "Internal server error",
+
+	// Team errors
+	ErrTeamSubIsNotActive: "Team subsription is no longer active",
 
 	// User errors
 	ErrUserNotConfirmed: "User account is not confirmed",

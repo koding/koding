@@ -16,7 +16,11 @@ module.exports = class TeamUsernameTabForm extends TeamJoinBySignupForm
 
     super options, data
 
-    @backLink = @getButtonLink 'BACK', '/Team/Payment'
+    backRoute = if kd.config.environment is 'default'
+    then '/Team/Domain'
+    else '/Team/Payment'
+
+    @backLink = @getButtonLink 'BACK', backRoute
 
 
   pistachio: ->

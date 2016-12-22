@@ -138,13 +138,11 @@ module.exports = (options, credentials) ->
     address: "http://localhost:#{kloudPort}/kite"
 
     kontrolUrl: kontrol.url
+    kodingUrl:  "#{options.customDomain.public}"
     registerUrl: "#{options.customDomain.public}/kloud/kite"
     tunnelUrl: "#{options.tunnelUrl}"
     klientUrl: "https://s3.amazonaws.com/koding-klient/development/latest/klient.deb"
 
-    credentialEndPoint: "#{socialApiProxyUrl}/credential"
-
-    janitorSecretKey: credentials.janitor.secretKey
     terraformerSecretKey: credentials.terraformer.secretKey
 
 
@@ -162,7 +160,6 @@ module.exports = (options, credentials) ->
     stripe                 : credentials.stripe
     github                 : credentials.github
     gitlab                 : gitlab
-    janitor                : credentials.janitor
     postgres               : credentials.postgres
     mq                     : credentials.rabbitmq
     redis                  : credentials.redis
@@ -183,7 +180,6 @@ module.exports = (options, credentials) ->
     customDomain           : options.customDomain
     email                  : email
 
-    sitemap                : { redisDB: 0, updateInterval: "1m" }
     limits                 : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 30 }
     kloud                  : { secretKey: kloud.kloudSecretKey, address: kloud.address }
     geoipdbpath            : "$KONFIG_PROJECTROOT/go/data/geoipdb"
@@ -203,13 +199,19 @@ module.exports = (options, credentials) ->
         name           : options.publicLogsS3BucketName
         region         : 'us-east-1'
     endpoints          :
-      ip               : "https://#{options.proxySubdomain}.koding.com/-/ip"
-      ipCheck          : "https://#{options.proxySubdomain}.koding.com/-/ipcheck"
-      kdLatest         : "https://koding-kd.s3.amazonaws.com/#{options.environment}/latest-version.txt"
-      klientLatest     : "https://koding-klient.s3.amazonaws.com/#{options.environment}/latest-version.txt"
-      kloud            : "#{options.publicHostname}/kloud/kite",
-      kontrol          : "#{options.publicHostname}/kontrol/kite",
-      tunnelServer     : "#{options.tunnelUrl}/kite"
+      ip               :
+        public         : "https://#{options.proxySubdomain}.koding.com/-/ip"
+      ipCheck          :
+        public         : "https://#{options.proxySubdomain}.koding.com/-/ipcheck"
+      kdLatest         :
+        public         : "https://koding-kd.s3.amazonaws.com/#{options.environment}/latest-version.txt"
+      klientLatest     :
+        public         : "https://koding-klient.s3.amazonaws.com/#{options.environment}/latest-version.txt"
+      kodingBase       :
+        public         : "#{options.publicHostname}"
+        private        : "#{options.customDomain.local}"
+      tunnelServer     :
+        public         : "#{options.tunnelUrl}/kite"
     routes             :
       'dev.koding.com' : '127.0.0.1'
 

@@ -3,6 +3,7 @@ kd = require 'kd'
 { Grid, Row, Col } = require 'react-flexbox-grid'
 
 SubscriptionHeader = require 'lab/SubscriptionHeader'
+SubscriptionNoCardWarning = require 'lab/SubscriptionNoCardWarning'
 TrialChargeInfo = require 'lab/TrialChargeInfo'
 VerifyEmailWarning = require 'lab/VerifyEmailWarning'
 Survey = require 'lab/Survey'
@@ -47,9 +48,12 @@ module.exports = class Subscription extends Component
 
   renderExtras: ->
 
-    { isEmailVerified, isSurveyTaken, onClickTakeSurvey, email } = @props
+    { isEmailVerified, isSurveyTaken,
+      onClickTakeSurvey, email, hasCreditCard } = @props
 
-    if not isEmailVerified
+    if not hasCreditCard
+      <SubscriptionNoCardWarning />
+    else if not isEmailVerified
       <VerifyEmailWarning email={email} />
     else if not isSurveyTaken
       <Survey onClick={onClickTakeSurvey} />

@@ -27,9 +27,6 @@ var mailSender = emailsender.Send
 type StripeHandler func([]byte) error
 
 var stripeActions = map[string]StripeHandler{
-	"charge.succeeded": chargeSucceededHandler,
-	"charge.failed":    chargeFailedHandler,
-
 	"customer.subscription.created":        customerSubscriptionCreatedHandler,
 	"customer.subscription.deleted":        customerSubscriptionDeletedHandler,
 	"customer.subscription.updated":        customerSubscriptionUpdatedHandler,
@@ -52,27 +49,6 @@ func GetHandler(name string) (StripeHandler, error) {
 	return action, nil
 }
 
-func chargeSucceededHandler(raw []byte) error {
-	return chargeHandler(raw, "succeeded")
-}
-
-func chargeFailedHandler(raw []byte) error {
-	return chargeHandler(raw, "failed")
-}
-
-func chargeHandler(raw []byte, op string) error {
-	var charge *stripe.Charge
-	err := json.Unmarshal(raw, &charge)
-	if err != nil {
-		return err
-	}
-
-	opts := getAmountOpts(string(charge.Currency), int64(charge.Amount))
-	eventName := "charge " + op
-
-	return sendEventForCustomer(charge.Customer.ID, eventName, opts)
-}
-
 func getAmountOpts(currency string, amount int64) map[string]interface{} {
 	formatted := formatCurrency(currency, amount)
 	return map[string]interface{}{"amount": formatted}
@@ -93,7 +69,7 @@ var oneDayTrialDur int64 = 24 * 60 * 60
 var sevenDayTrialDur = 7 * oneDayTrialDur
 
 func customerSubscriptionCreatedHandler(raw []byte) error {
-	var req *stripe.Sub
+	var req stripe.Sub
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
@@ -126,7 +102,7 @@ func customerSubscriptionCreatedHandler(raw []byte) error {
 }
 
 func customerSubscriptionDeletedHandler(raw []byte) error {
-	var req *stripe.Sub
+	var req stripe.Sub
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
@@ -142,7 +118,7 @@ func customerSubscriptionDeletedHandler(raw []byte) error {
 }
 
 func customerSubscriptionUpdatedHandler(raw []byte) error {
-	var req *stripe.Sub
+	var req stripe.Sub
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
@@ -159,7 +135,7 @@ func customerSubscriptionUpdatedHandler(raw []byte) error {
 }
 
 func customerSubscriptionTrialWillEndHandler(raw []byte) error {
-	var req *stripe.Sub
+	var req stripe.Sub
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
@@ -175,7 +151,7 @@ func customerSubscriptionTrialWillEndHandler(raw []byte) error {
 }
 
 func customerSourceCreatedHandler(raw []byte) error {
-	var req *stripe.Card
+	var req stripe.Card
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
@@ -187,7 +163,7 @@ func customerSourceCreatedHandler(raw []byte) error {
 }
 
 func customerSourceDeletedHandler(raw []byte) error {
-	var req *stripe.Card
+	var req stripe.Card
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
 		return err
@@ -199,7 +175,7 @@ func customerSourceDeletedHandler(raw []byte) error {
 }
 
 func invoiceCreatedHandler(raw []byte) error {
-	var invoice *stripe.Invoice
+	var invoice stripe.Invoice
 	err := json.Unmarshal(raw, &invoice)
 	if err != nil {
 		return err
@@ -314,15 +290,15 @@ func invoicePaymentSucceededHandler(raw []byte) error {
 }
 
 func invoicePaymentHandler(raw []byte, eventName string) error {
-	var invoice *stripe.Invoice
+	var invoice stripe.Invoice
 	err := json.Unmarshal(raw, &invoice)
 	if err != nil {
 		return err
 	}
 
-	go sendInvoiceEvent(invoice, eventName)
+	go sendInvoiceEvent(&invoice, eventName)
 
-	return handleInvoiceStateChange(invoice)
+	return handleInvoiceStateChange(&invoice)
 }
 
 func handleInvoiceStateChange(invoice *stripe.Invoice) error {
@@ -349,7 +325,7 @@ func handleInvoiceStateChange(invoice *stripe.Invoice) error {
 	status := group.Payment.Subscription.Status
 
 	// if sub is in cancelled state within 2 months send an event
-	if status == string(SubStatusCanceled) {
+	if stripe.SubStatus(status) == SubStatusCanceled {
 		// if group has been created in last 2 months (1 month trial + 1 month free)
 		totalTrialTime := time.Now().UTC().Add(-time.Hour * 24 * 60)
 		if group.Id.Time().After(totalTrialTime) {
@@ -363,7 +339,7 @@ func handleInvoiceStateChange(invoice *stripe.Invoice) error {
 		group.Slug,
 		"payment_status_changed",
 		map[string]string{
-			"oldStatus": group.Payment.Subscription.Status,
+			"oldStatus": string(group.Payment.Subscription.Status),
 			"newStatus": string(status),
 		},
 	)

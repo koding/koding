@@ -203,11 +203,16 @@ func makeSureMembership(groupChannel *models.Channel, accountId int64) error {
 // getClientID gets client id from cookie, if fails, returns empty string.
 func getClientID(r *http.Request) string {
 	cookie, err := r.Cookie("clientId")
-	if err != nil {
-		return ""
+	if err == nil {
+		return cookie.Value
 	}
 
-	return cookie.Value
+	auth := r.Header.Get("Authorization")
+	if strings.HasPrefix(auth, "Bearer ") {
+		return auth[len("Bearer "):]
+	}
+
+	return ""
 }
 
 // getGroupName tries to get the group name from JSession, if fails to do so,

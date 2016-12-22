@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
@@ -24,7 +25,7 @@ func TestChannelHistory(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(account, ShouldNotBeNil)
 
-				ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+				ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 				So(err, ShouldBeNil)
 				So(ses, ShouldNotBeNil)
 

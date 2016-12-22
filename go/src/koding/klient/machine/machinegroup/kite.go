@@ -1,0 +1,80 @@
+package machinegroup
+
+import (
+	"github.com/koding/kite"
+)
+
+// KiteHandlerCreate creates a kite handler function that, when called, invokes
+// machine group Create method.
+func KiteHandlerCreate(g *Group) kite.HandlerFunc {
+	return func(r *kite.Request) (interface{}, error) {
+		req := &CreateRequest{}
+
+		if r.Args != nil {
+			if err := r.Args.One().Unmarshal(req); err != nil {
+				return nil, err
+			}
+		}
+
+		res, err := g.Create(req)
+		if err != nil {
+			// TODO(ppknap): create errors file similar to kloud/stack/errors.
+			return nil, &kite.Error{
+				Type:    "machinesError",
+				Message: err.Error(),
+			}
+		}
+
+		return res, nil
+	}
+}
+
+// KiteHandlerID creates a kite handler function that, when called, invokes
+// machine group ID method.
+func KiteHandlerID(g *Group) kite.HandlerFunc {
+	return func(r *kite.Request) (interface{}, error) {
+		req := &IDRequest{}
+
+		if r.Args != nil {
+			if err := r.Args.One().Unmarshal(req); err != nil {
+				return nil, err
+			}
+		}
+
+		res, err := g.ID(req)
+		if err != nil {
+			// TODO(ppknap): create errors file similar to kloud/stack/errors.
+			return nil, &kite.Error{
+				Type:    "machinesError",
+				Message: err.Error(),
+			}
+		}
+
+		return res, nil
+	}
+}
+
+// KiteHandlerSSH creates a kite handler function that, when called, invokes
+// machine group SSH method.
+func KiteHandlerSSH(g *Group) kite.HandlerFunc {
+	return func(r *kite.Request) (interface{}, error) {
+		req := &SSHRequest{}
+
+		if r.Args != nil {
+			if err := r.Args.One().Unmarshal(req); err != nil {
+				return nil, err
+			}
+		}
+
+		res, err := g.SSH(req)
+		if err != nil {
+			// TODO(ppknap): create errors file similar to kloud/stack/errors.
+			return nil, &kite.Error{
+				Type:    "machinesError",
+				Message: err.Error(),
+			}
+		}
+
+		return res, nil
+	}
+}

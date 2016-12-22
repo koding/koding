@@ -129,7 +129,9 @@ createLocations = (KONFIG) ->
       else
         auth = options.nginx.auth
 
-      if location.cors
+      if KONFIG.configName is 'dev'
+        cors = "add_header 'Access-Control-Allow-Origin' '*' always;"
+      else if location.cors
         cors = """
         if ($http_origin ~* (.*\.)*#{_.escapeRegExp KONFIG.domains.main}) {
                 add_header Access-Control-Allow-Origin $http_origin always;
@@ -211,7 +213,7 @@ module.exports.create = (KONFIG, environment)->
   #{if inDevEnvironment then '' else 'pid /var/run/nginx.pid;'}
 
   events {
-    worker_connections  1024;
+    worker_connections 20000;
     multi_accept on;
     #{event_mechanism}
   }
@@ -456,7 +458,7 @@ createHealthcheck = (KONFIG) ->
           proxy_next_upstream   error timeout   invalid_header http_500;
           proxy_connect_timeout 1;
 
-          # in need of a fallback, uncomment followings 
+          # in need of a fallback, uncomment followings
           #return 200;
           #access_log off;
         }

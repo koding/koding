@@ -1,12 +1,14 @@
 package config
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
+	"errors"
 	"net/url"
 	"path"
 	"path/filepath"
+	"sort"
 	"time"
-
-	"koding/kites/kloud/utils/object"
 
 	"github.com/boltdb/bolt"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -22,20 +24,47 @@ var KonfigCache = &CacheOptions{
 	Bucket: []byte("konfig"),
 }
 
+type Endpoints struct {
+	// Koding base endpoint.
+	Koding *Endpoint `json:"koding,omitempty"`
+
+	// Tunnel / proxy environment endpoints.
+	Tunnel  *Endpoint `json:"tunnel,omitempty"`
+	IP      *Endpoint `json:"ip,omitempty"`
+	IPCheck *Endpoint `json:"ipCheck,omitempty"`
+
+	// Klient / KD endpoints.
+	KlientLatest *Endpoint `json:"klientLatest,omitempty"`
+	KDLatest     *Endpoint `json:"kdLatest,omitempty"`
+	Klient       *Endpoint `json:"klient,omitempty"`
+}
+
+func (e *Endpoints) Kloud() *Endpoint {
+	return e.Koding.WithPath("/kloud/kite")
+}
+
+func (e *Endpoints) Kontrol() *Endpoint {
+	return e.Koding.WithPath("/kontrol/kite")
+}
+
+func (e *Endpoints) Remote() *Endpoint {
+	return e.Koding.WithPath("/remote.api")
+}
+
+func (e *Endpoints) Social() *Endpoint {
+	return e.Koding.WithPath("/api/social")
+}
+
 type Konfig struct {
-	Environment string `json:"environment,omitempty"`
+	Endpoints *Endpoints `json:"endpoints,omitempty"`
+
+	KontrolURL string `json:"kontrolURL,omitempty"` // deprecated / read-only
+	TunnelURL  string `json:"tunnelURL,omitempty"`  // deprecated / read-only
 
 	// Kite configuration.
+	Environment string `json:"environment,omitempty"`
 	KiteKeyFile string `json:"kiteKeyFile,omitempty"`
 	KiteKey     string `json:"kiteKey,omitempty"`
-
-	// Koding endpoints configuration.
-	KontrolURL string `json:"kontrolURL,omitempty"`
-	KlientURL  string `json:"klientURL,omitempty"`
-	KloudURL   string `json:"kloudURL,omitempty"`
-	TunnelURL  string `json:"tunnelURL,omitempty"`
-	IPURL      string `json:"ipURL,omitempty"`
-	IPCheckURL string `json:"ipCheckURL,omitempty"`
 
 	// Koding networking configuration.
 	//
@@ -43,15 +72,14 @@ type Konfig struct {
 	// per Koding executable (KD / Klient).
 	TunnelID string `json:"tunnelID,omitempty"`
 
-	// Klient / KD auto-update endpoints.
-	KlientLatestURL string `json:"klientLatestURL,omitempty"`
-	KDLatestURL     string `json:"kdLatestURL,omitempty"`
-
 	// Public S3 bucket for writing logs.
 	PublicBucketName   string `json:"publicBucketName,omitempty"`
 	PublicBucketRegion string `json:"publicBucketRegion,omitempty"`
 
-	Debug bool `json:"debug,omitempty"`
+	Debug bool `json:"debug,string,omitempty"`
+
+	// Metadata keeps per-app configuration.
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
 }
 
 func (k *Konfig) KiteHome() string {
@@ -63,14 +91,53 @@ func (k *Konfig) KiteConfig() *konfig.Config {
 }
 
 func (k *Konfig) KlientGzURL() string {
-	u, err := url.Parse(k.KlientLatestURL)
-	if err != nil {
-		return ""
+	u := *k.Endpoints.KlientLatest.Public.URL
+	u.Path = path.Join(path.Dir(u.Path), "latest", "klient.gz")
+	return u.String()
+}
+
+func (k *Konfig) Valid() error {
+	// TODO(rjeczalik): remove when KontrolURL is gone
+	if _, err := url.Parse(k.KontrolURL); err == nil && k.KontrolURL != "" {
+		return nil
 	}
 
-	u.Path = path.Join(path.Dir(u.Path), "latest", "klient.gz")
+	if k.Endpoints == nil {
+		return errors.New("endpoints are nil")
+	}
+	if k.Endpoints.Koding == nil {
+		return errors.New("koding base endpoint is nil")
+	}
+	if k.Endpoints.Koding.Public == nil {
+		return errors.New("public URL for koding base endpoint is nil")
+	}
+	return nil
+}
 
-	return u.String()
+func (k *Konfig) ID() string {
+	hash := sha1.Sum([]byte(k.KodingPublic().String()))
+	return hex.EncodeToString(hash[:4])
+}
+
+// KodingPublic is here for backward-compatibility purposes.
+//
+// Old klient and kd deployments may not have .Endpoints configuration
+// on a first run, this is why we fallback to old KontrolURL field.
+//
+// Which we should eventually get rid of.
+//
+// Deprecated: Use k.Endpoints.Koding.Public instead.
+func (k *Konfig) KodingPublic() *url.URL {
+	if e := k.Endpoints; e != nil && e.Koding != nil && e.Koding.Public != nil {
+		return e.Koding.Public.URL
+	}
+
+	if u, err := url.Parse(k.KontrolURL); err == nil {
+		u.Path = "/"
+		return u
+	}
+
+	return nil
 }
 
 func (k *Konfig) buildKiteConfig() *konfig.Config {
@@ -96,6 +163,30 @@ func (k *Konfig) buildKiteConfig() *konfig.Config {
 	}
 
 	return konfig.New()
+}
+
+func NewKonfigURL(koding *url.URL) *Konfig {
+	return &Konfig{
+		Endpoints: &Endpoints{
+			Koding: NewEndpointURL(koding),
+		},
+	}
+}
+
+type Konfigs map[string]*Konfig
+
+func (kfg Konfigs) Slice() []*Konfig {
+	keys := make([]string, 0, len(kfg))
+	for k := range kfg {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	slice := make([]*Konfig, 0, len(kfg))
+	for _, key := range keys {
+		slice = append(slice, kfg[key])
+	}
+	return slice
 }
 
 // Enviroment is a hacky workaround for kd <-> klient environments.
@@ -129,36 +220,24 @@ func (e *Environments) kdEnv() string {
 
 func NewKonfig(e *Environments) *Konfig {
 	return &Konfig{
-		Environment:        e.Env,
-		KiteKeyFile:        "/etc/kite/kite.key",
-		KlientURL:          "http://127.0.0.1:56789/kite",
-		KontrolURL:         Builtin.Endpoints.Kontrol,
-		KloudURL:           Builtin.Endpoints.Kloud,
-		TunnelURL:          Builtin.Endpoints.TunnelServer,
-		IPURL:              Builtin.Endpoints.IP,
-		IPCheckURL:         Builtin.Endpoints.IPCheck,
-		KlientLatestURL:    ReplaceEnv(Builtin.Endpoints.KlientLatest, e.klientEnv()),
-		KDLatestURL:        ReplaceEnv(Builtin.Endpoints.KDLatest, RmManaged(e.kdEnv())),
+		Environment: e.Env,
+		Endpoints: &Endpoints{
+			Koding:       Builtin.Endpoints.KodingBase,
+			Tunnel:       Builtin.Endpoints.TunnelServer,
+			IP:           Builtin.Endpoints.IP,
+			IPCheck:      Builtin.Endpoints.IPCheck,
+			KlientLatest: ReplaceEnv(Builtin.Endpoints.KlientLatest, e.klientEnv()),
+			KDLatest:     ReplaceEnv(Builtin.Endpoints.KDLatest, RmManaged(e.kdEnv())),
+			Klient: &Endpoint{
+				Private: &URL{&url.URL{
+					Scheme: "http",
+					Host:   "127.0.0.1:56789",
+					Path:   "/kite",
+				}},
+			},
+		},
 		PublicBucketName:   Builtin.Buckets.PublicLogs.Name,
 		PublicBucketRegion: Builtin.Buckets.PublicLogs.Region,
 		Debug:              false,
 	}
-}
-
-func ReadKonfig(e *Environments) *Konfig {
-	c := NewCache(KonfigCache)
-	defer c.Close()
-
-	return ReadKonfigFromCache(e, c)
-}
-
-func ReadKonfigFromCache(e *Environments, c *Cache) *Konfig {
-	var override Konfig
-	var builtin = NewKonfig(e)
-
-	if err := c.GetValue("konfig", &override); err == nil {
-		object.Merge(builtin, &override)
-	}
-
-	return builtin
 }

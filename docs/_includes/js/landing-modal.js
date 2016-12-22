@@ -34,13 +34,19 @@
 
         [].forEach.call([close, overlay], function(el) {
           el.addEventListener('click', function(e) {
-            
-            if (options.onDestroy) {
-              options.onDestroy();
-            }
 
-            overlay.remove();
-            modal.remove();
+            overlay.classList.add('out');
+            modal.classList.add('out');
+
+            setTimeout(function() {
+              if (options.onDestroy) {
+                options.onDestroy();
+              }
+
+              $(overlay).remove();
+              $(modal).remove();
+            }, 500);
+
           })
         });
       });

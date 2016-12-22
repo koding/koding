@@ -79,7 +79,7 @@ pre
   &.with-sidebar
     #main-panel-wrapper
       fr()
-      vendor                transition, margin-left .3s ease
+      vendor                transition, width .3s ease
       margin-left           sidebarWidth + 1
       width                 calc(100% - 258px)
 
@@ -92,18 +92,25 @@ pre
         rel()
 
       .logo-wrapper
+
         .team-logo-wrapper
-          size              40px, 40px
-          display           flex
-          align-content     center
-          justify-content   center
-          abs               0px 0 0 0px
           .team-logo
-            max-width       100%
-            max-height      100%
-            height          auto
-            flex            0 0 auto
-            align-self      center
+            size                    40px, 40px
+            dFlex()
+            -webkit-align-content   center
+            align-content           center
+            -webkit-justify-content center
+            justify-content         center
+            img
+              max-width             100%
+              max-height            100%
+              height                auto
+              flex                  0 0 auto
+              rounded               4px
+
+
+          .default
+            r-sprite              app, team_logo
 
         .nickname
           abs()
@@ -111,23 +118,19 @@ pre
           left              46px
           font-size         13px
           color             #989898
-          &.no-logo
-            left            16px
 
         .team-name
           abs()
-          left              47px
-          height            16px
+          padding-left      43px
+          height            30px
           color             #b3b3b3
           margin-top        10px
           font-size         13px
           text-transform    capitalize
-          width             calc(100% - 70px)
+          width             calc(100% - 80px)
           background        none
           cursor            pointer
-          &.no-logo
-            left            18px
-
+          z-index           10
           noTextDeco()
           ellipsis()
           dIBlock()
@@ -182,8 +185,8 @@ pre
           hidden()
 
       #main-panel-wrapper
-        width               calc(100% - 50px)
-        margin-left         50px
+        width               calc(100% - 41px)
+        margin-left         41px
 
     &.hover
       #main-sidebar
@@ -196,6 +199,9 @@ pre
       #main-sidebar
         .Sidebar-logo-wrapper
           hidden()
+
+        .activity-sidebar
+          padding           1px 12px
 
         &.team
           .logo-wrapper.group
@@ -218,13 +224,21 @@ pre
         .sidebar-close-handle
           display           none !important
 
-        .SidebarSection-header
         .Workspaces-section
         .MachineSettings
         .SidebarListItem-title
         .SidebarListItem-progressbar
         .sidebar-title
           opacity           0
+
+        .SidebarSection-header
+          h4 > a
+            color           transparent !important
+            &:before
+              size          12px, 12px
+              left          2px
+              top           2px
+              color         inherit !important
 
         .sidebar-machine-box
           width             20px

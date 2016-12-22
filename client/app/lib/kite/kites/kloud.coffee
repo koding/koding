@@ -7,10 +7,7 @@ globals = require 'globals'
 
 module.exports = class KodingKiteKloudKite extends require('../kodingkite')
 
-  SUPPORTED_PROVIDERS = do ->
-    { providers } = globals.config
-    (Object.keys providers).filter (provider) ->
-      providers[provider].supported
+  SUPPORTED_PROVIDERS = globals.config.providers._getSupportedProviders()
 
   debugEnabled = ->
     kd.singletons.computeController._kloudDebug

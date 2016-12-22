@@ -23,9 +23,7 @@ var mongoEnvs = []string{
 
 // NewMongoDB looks up environment variables for mongo configuration URL. If
 // configuration is found, this function creates a new session and replaces
-// modeltesthelper Mongo singleton.
-//
-// When configuration is missing this function will skip the test.
+// modeltesthelper Mongo singleton. If not, fails the test.
 //
 // Test will Fatal if connection to database is broken.
 func NewMongoDB(t *testing.T) *MongoDB {
@@ -37,7 +35,7 @@ func NewMongoDB(t *testing.T) *MongoDB {
 	}
 
 	if mongoURL == "" {
-		t.Skip("mongodb: one of env variables must be set:", strings.Join(mongoEnvs, ", "))
+		t.Fatalf("mongodb: one of env variables must be set: %s", strings.Join(mongoEnvs, ", "))
 	}
 
 	modelhelper.Initialize(mongoURL)

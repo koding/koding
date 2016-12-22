@@ -1,3 +1,5 @@
+# coffeelint: disable=duplicate_key
+
 KONFIG         = require 'koding-config-manager'
 async          = require 'async'
 { Module }     = require 'jraphical'
@@ -134,6 +136,8 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
         ]
         modify:
+          (signature Object, Function)
+        modifyData:
           (signature Object, Function)
         fetchPermissions: [
           (signature Function)
@@ -1049,6 +1053,49 @@ module.exports = class JGroup extends Module
     else
       kallback()
 
+
+  # modifies JGroupData related with the JGroup instance
+  #
+  # @param {Object} data
+  #   data to modify, only 'github.organizationToken' is allowed for now
+  #   set data to `null` to unset this if needed, requires admin privileges
+  #
+  # @option data [String] "github.organizationToken" github oauth token
+  #
+  # @example api
+  #
+  #   {
+  #     "github.organizationToken": "foobarbaz"
+  #   }
+  #
+  # @return [Error] includes error if something went wrong
+  #
+  modifyData : ->
+  modifyData : permit
+    advanced : [
+      { permission: 'edit own groups', validateWith : Validators.group.admin }
+      { permission: 'edit groups',     superadmin   : yes }
+    ]
+    success  : (client, _data, callback) ->
+
+      # it's only allowed to change followings
+      whitelist  = ['github.organizationToken']
+
+      # handle $set and $unset cases in one
+      operation  = { $set: {}, $unset: {} }
+      for item in whitelist
+        key = "data.#{item}"
+        if _data[item]?
+        then operation.$set[key]   = _data[item]
+        else operation.$unset[key] = _data[item]
+
+      @fetchData (err, data) ->
+        return callback err  if err
+
+        data.update operation, (err) ->
+          callback err
+
+
   modify     : permit
     advanced : [
       { permission: 'edit own groups', validateWith : Validators.group.admin }
@@ -1134,7 +1181,7 @@ module.exports = class JGroup extends Module
     ]
     success: (client, options, callback) ->
 
-      { enabled, provider, url, applicationId, applicationSecret } = options
+      { enabled, provider, url, applicationId, applicationSecret, scope } = options
 
       OAuth = require '../oauth'
       group = client?.context?.group
@@ -1154,16 +1201,18 @@ module.exports = class JGroup extends Module
         @disableOAuth provider, callback
         return
 
-      validateOptions = { url, applicationId, applicationSecret }
+      validateOptions = { url, applicationId, applicationSecret, scope }
 
-      OAuth.validateOAuth provider, validateOptions, (err, data) =>
+      OAuth.validateOAuth provider, validateOptions, (err, data = {}) =>
         return callback err  if err
 
-        url = data.url  if data.url
+        url   = data.url    if data.url
+        scope = data.scope  if data.scope
 
         dataToUpdate["config.#{provider}"] = {
           enabled: yes
           applicationId
+          scope
           url
         }
 
@@ -1178,7 +1227,7 @@ module.exports = class JGroup extends Module
             data.update { $set: dataToSet }, (err) ->
               return callback err  if err
 
-              callback null, { url }
+              callback null, { url, scope }
 
 
   toggleFeature: permit

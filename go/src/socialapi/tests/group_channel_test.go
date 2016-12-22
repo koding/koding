@@ -1,6 +1,7 @@
 package main
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"socialapi/models"
 	"socialapi/request"
@@ -22,7 +23,7 @@ func TestGroupChannel(t *testing.T) {
 			account, err := models.CreateAccountInBothDbs()
 			So(err, ShouldBeNil)
 
-			ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+			ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
@@ -56,7 +57,7 @@ func TestGroupChannel(t *testing.T) {
 				account, err := models.CreateAccountInBothDbs()
 				So(err, ShouldBeNil)
 
-				ses, err := models.FetchOrCreateSession(account.Nick, groupName)
+				ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
 				So(err, ShouldBeNil)
 				So(ses, ShouldNotBeNil)
 
@@ -121,7 +122,7 @@ func TestGroupChannel(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(account, ShouldNotBeNil)
 
-				ses, err := models.FetchOrCreateSession(anotherAccount.Nick, groupName)
+				ses, err := modelhelper.FetchOrCreateSession(anotherAccount.Nick, groupName)
 				So(err, ShouldBeNil)
 				So(ses, ShouldNotBeNil)
 
@@ -172,7 +173,7 @@ func TestGroupChannelFirstCreation(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				groupName := models.RandomGroupName()
-				ses, err := models.FetchOrCreateSession(acc.Nick, groupName)
+				ses, err := modelhelper.FetchOrCreateSession(acc.Nick, groupName)
 				So(err, ShouldBeNil)
 				So(ses, ShouldNotBeNil)
 

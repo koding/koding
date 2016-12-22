@@ -18,14 +18,14 @@ import (
 	"os"
 	"runtime"
 
+	"koding/klientctl/auth"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
-	"koding/klientctl/kloud"
+	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/util"
 
-	"github.com/koding/logging"
-
 	"github.com/codegangsta/cli"
+	"github.com/koding/logging"
 )
 
 // ExitingWithMessageCommand is a function which prints the given message to
@@ -52,7 +52,7 @@ var log logging.Logger
 
 var (
 	debug        = os.Getenv("KD_DEBUG") == "1"
-	experimental = os.Getenv("KD_EXPERIMENTAL") == "1"
+	experimental = os.Getenv("KD_EXPERIMENTAL") == "1" || config.Konfig.Environment == "development"
 )
 
 func main() {
@@ -410,6 +410,29 @@ func run(args []string) {
 	if experimental {
 		app.Commands = append(app.Commands,
 			cli.Command{
+				Name:  "auth",
+				Usage: "User authorization.",
+				Subcommands: []cli.Command{
+					{
+						Name:   "login",
+						Usage:  "Log in to your kd.io or koding.com account.",
+						Action: ctlcli.ExitErrAction(AuthLogin, log, "login"),
+						Flags: []cli.Flag{
+							cli.BoolFlag{
+								Name:  "json",
+								Usage: "Output in JSON format.",
+							},
+							cli.StringFlag{
+								Name:  "team, t",
+								Usage: "Specify a koding.com team to log in. Leaving empty logs in to kd.io by default.",
+							},
+						},
+					},
+					// command: kd auth register
+					auth.NewRegisterSubCommand(log),
+				},
+			},
+			cli.Command{
 				Name:  "config",
 				Usage: "Manage tool configuration.",
 				Subcommands: []cli.Command{{
@@ -421,7 +444,26 @@ func run(args []string) {
 							Name:  "defaults",
 							Usage: "Show also default configuration",
 						},
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
 					},
+				}, {
+					Name:      "list",
+					ShortName: "ls",
+					Usage:     "List all available configurations.",
+					Action:    ctlcli.ExitErrAction(ConfigList, log, "list"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+					},
+				}, {
+					Name:   "use",
+					Usage:  "Change active configuration.",
+					Action: ctlcli.ExitErrAction(ConfigUse, log, "use"),
 				}, {
 					Name:   "set",
 					Usage:  "Set a value for the given key, overwriting default one.",
@@ -430,6 +472,10 @@ func run(args []string) {
 					Name:   "unset",
 					Usage:  "Unset the given key, restoring the defaut value.",
 					Action: ctlcli.ExitErrAction(ConfigUnset, log, "set"),
+				}, {
+					Name:   "reset",
+					Usage:  "Resets configuration to the default value fetched from Koding.",
+					Action: ctlcli.ExitErrAction(ConfigReset, log, "set"),
 				}},
 			},
 			cli.Command{
@@ -500,12 +546,29 @@ func run(args []string) {
 			},
 			cli.Command{
 				Name:  "machine",
-				Usage: "Manage remote machines",
+				Usage: "Manage remote machines.",
 				Subcommands: []cli.Command{{
 					Name:      "list",
 					ShortName: "ls",
-					Usage:     "List available machines",
+					Usage:     "List available machines.",
 					Action:    ctlcli.ExitErrAction(MachineListCommand, log, "list"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+					},
+				}, {
+					Name:      "ssh",
+					ShortName: "s",
+					Usage:     "SSH into provided remote machine.",
+					Action:    ctlcli.ExitErrAction(MachineSSHCommand, log, "ssh"),
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "username",
+							Usage: "Remote machine username.",
+						},
+					},
 				}},
 			},
 			cli.Command{
@@ -539,6 +602,37 @@ func run(args []string) {
 						},
 					},
 				}},
+			},
+			cli.Command{
+				Name:  "team",
+				Usage: "List available teams and set team context.",
+				Subcommands: []cli.Command{{
+					Name:   "show",
+					Usage:  "Shows your currently used team.",
+					Action: ctlcli.ExitErrAction(TeamShow, log, "show"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+					},
+				}, {
+					Name:   "list",
+					Usage:  "Lists user's teams.",
+					Action: ctlcli.ExitErrAction(TeamList, log, "list"),
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "slug",
+							Value: "",
+							Usage: "Limits the output to the specified team slug",
+						},
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+					},
+				},
+				},
 			},
 		)
 	}

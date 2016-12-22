@@ -1,54 +1,232 @@
 ---
-layout: default
+layout: home
 title: Modern Dev Environment Delivered · Koding
 permalink: /
 ---
+<style>
+  .StickyHeader header.Homepage-Header a.signup {
+    display: flex;
+  }
+</style>
 
+<!-- ie 10/11 style fixes -->
+<style>@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) { {% include css/index-ie.css %} }</style>
+
+{% include home/svgs.html %}
 <!-- HEADER -->
-{% include header.html with_signup_form='true' has_sticky_navigation='true' %}
+{% include header.html
+   with_signup_form='true'
+   has_sticky_navigation='true'
+   background_color='transparent'
+   background_color_mobile='rgba(0,0,0,.85)' %}
 
 <!-- CONTENT SECTION -->
-{% include home-hero.html %}
+{% include home/hero.html
+   h1="Modern Development Environment Delivered."
+   h2="Koding lets your organization create and share fully automated dev environments on any infrastructure for modern distributed applications, micro-services and containers." %}
 
-{% include home-threethings.html %}
+{% include home/content-with-video.html
+   img_src="/assets/img/landing/home/how-koding-works-placeholder.png"
+   img2x_src="/assets/img/landing/home/how-koding-works-placeholder@2x.png"
+   video_id="NDI1H9o-TUM"
+   video_title="What is Koding?"
+   heading="KODING SOLUTION"
+   title="Dev Environments as Code, Powerful Collaboration and Analytics"
+   description="Koding provides an interface for developers and team managers to streamline dev workflows in the cloud without slowing down freedom and creativity. Spend less time configuring and more time building!"
+   footnote="In other words,<br>Koding saves <strong>1000 people organization $30M</strong> and gives back quarter of their year." %}
 
-{% include home-contentwithvisual.html
-   image_src="/assets/img/landing/misc/koding_terraform"
-   icon_src="/assets/img/landing/misc/icon_stacks.svg"
-   image_ext="png"
-   title="Create stack templates that let you boot, build, test and share virtual machines in the cloud"
-   description="Developers get everything they need to spin up full-stack, project-specific environments in seconds. Share them, update them, and manage infrastructure from a simple interface." %}
 
-{% include home-logobar.html
-   logo1_src="/assets/img/landing/company-logos/logo_aws.svg"
-   logo2_src="/assets/img/landing/company-logos/logo_openstack.svg"
-   logo3_src="/assets/img/landing/company-logos/logo_docker.svg"
-   logo4_src="/assets/img/landing/company-logos/logo_digitalocean.svg"
-   logo5_src="/assets/img/landing/company-logos/logo_github.svg"
-   logo6_src="/assets/img/landing/company-logos/logo_gitlab.svg"
-   title="Use these services and more in your Koding Stack Templates" %}
+{% include home/columns.html
+   columns="dev-env||Consistent Dev Environments||Your entire team can share and collaborate on not only on your code, but also your dev environment.$$
+            collaboration||Sync or Async Dev Collaboration||No more screen sharing. You can share dev environments in real-time, or leave it open for the whole team.$$
+            analytics||Dev Environment Analytics||For the first time, your team can locate the inefficiencies in their workflow, so that they can prioritize and fix them.$$
+            teams||Made For Large Teams||A company with 1000s of developers waste at least a quarter of their year on configuring dev environments. Koding gives the time back to you.$$
+            own-tools||No Online IDE!||No more online IDE! Use your own IDE, code editor and terminal. Koding’s CLI tool allows volume mounting and ssh’ing into their VMs.$$
+            on-prem||Open-Source & On-Prem||You can try either cloud hosted or on-prem version of Koding; use your private cloud to provision dev environments.<br><a href=\"https://github.com/koding/koding\" target=\"_blank\">Check it out on GitHub!</a>" %}
 
-{% include home-contentwithvisual.html
-   image_src="/assets/img/landing/misc/koding_code"
-   icon_src="/assets/img/landing/misc/icon_spheres.svg"
-   image_ext="png"
-   title="Code collaboratively & integrate slack for team communication"
-   description="Koding‘s powerful collaboration tools allow developers to share their VM and code together in Koding’s browser-based IDE without having to resort to time-consuming meetings & conference calls." %}
+<div class='Homepage-halves'>
+  <div class='Homepage-half--container'>
+    <div class='Homepage-half analytics'>
+      <svg xmlns="http://www.w3.org/2000/svg"><use xlink:href="#icon-chart"></use></svg>
+      <h4 class="title">Analytics for CTOs</h4>
+      <p>Easily understand where your process has bottlenecks and locate holes in productivity. Koding analytics will give you most critical information about the performance and efficiency in your organization.</p>
+      <a class="cta secondary" href="{{ site.url }}/demo">Request a Demo</a>
+    </div>
+  </div>
+  <div class='Homepage-half--container'>
+    <div class='Homepage-half freedom'>
+      <svg xmlns="http://www.w3.org/2000/svg"><use xlink:href="#icon-freedom"></use></svg>
+      <h4 class="title">Freedom for Developers</h4>
+      <p>Engineers are no longer limited by the gatekeepers who create their dev environments, they are working together to create the best environments using Terraform, supporting more than 70 providers.</p>
+      <a class="cta red" href="{{ site.url }}/docs/home">Explore Stack Scripts</a>
+    </div>
+  </div>
+</div>
 
-{% include home-logobar.html
-   logo1_src="/assets/img/landing/company-logos/logo_uber.svg"
-   logo2_src="/assets/img/landing/company-logos/logo_ibm.svg"
-   logo3_src="/assets/img/landing/company-logos/logo_hp.svg"
-   logo4_src="/assets/img/landing/company-logos/logo_mit.svg"
-   logo5_src="/assets/img/landing/company-logos/logo_berkeley.svg"
-   title="Over one million developers use Koding at a variety of different companies including:" %}
+{% assign playButton = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><use xlink:href="#video-play-button"></use></svg>' %}
+<div class='Homepage-video-columns Homepage--containerOffset'>
+  <h3 class="title center">Take the step towards a modern tech company.</h3>
+  <div class='Homepage--container'>
+    <div class='Homepage-video-column'>
+      <figure class="vision showModal" data-youtube-id="2COxlWQ0J1U">{{ playButton }}</figure>
+      <div>
+        <h5 class="title">Koding Vision</h5>
+        <h4 class="title">Empower Engineers</h4>
+        <p>We believe Cloud is the next frontier in our next advance as humans.</p>
+      </div>
+    </div>
+    <div class='Homepage-video-column'>
+      <figure class="ibm showModal" data-youtube-id="Jf0m7SeURyI">{{ playButton }}</figure>
+      <div>
+        <h5 class="title">IBM OpenCloud</h5>
+        <h4 class="title">Future of Devops</h4>
+        <p>Jonas Jacobi, Vice President, Cloud and Mobile Technology Strategy at IBM and Devrim, CEO of Koding talk about the future.</p>
+      </div>
+    </div>
+    <div class='Homepage-video-column'>
+      <figure class="gitlab showModal" data-youtube-id="T59sN8Bsqxs">{{ playButton }}</figure>
+      <div>
+        <h5 class="title">Koding + Gitlab</h5>
+        <h4 class="title">CEO of Gitlab & Koding</h4>
+        <p>Sytse and Devrim explain why it is important to get to a development environment in one click</p>
+      </div>
+    </div>
+  </div>
+</div>
 
-{% include home-contentwithvisual.html
-   image_src="/assets/img/landing/misc/koding_kd"
-   icon_src="/assets/img/landing/misc/icon_code.svg"
-   image_ext="png"
-   title="The convenience of coding locally with the advantages of hosting in the cloud"
-   description="Koding for Teams uses a blazing-fast FUSE-based file system to sync your cloud environment file system on your local machine.<br><br>Your development workflow stays local and familiar while you develop entirely in the cloud" %}
+
+<div class='Homepage-trust Homepage--containerOffset'>
+  <h3 class="title center">Koding can provision dev environments on your favorite cloud providers.</h3>
+  <div class='Homepage--container'>
+    {% include home-logobar.html
+       path="/assets/img/landing/company-logos/"
+       logos="Amazon AWS--logo_aws.svg--140--53||
+              Digital Ocean--logo_do.svg--100--75||
+              Softlayer--logo_softlayer.svg--180--15||
+              Vagrant--logo_vagrant.svg--180--46||
+              Microsoft Azure--logo_azure.svg--190--26||
+              Google Cloud Platform--logo_gcp.svg--300--33||
+              Docker--logo_docker.svg--180--43||
+              Mesosphere--logo_mesos.svg--240--34||
+              Openstack--logo_openstack1.svg--155--28" %}
+    <hr>
+    <h4>WHAT PEOPLE ARE SAYING ABOUT KODING</h4>
+    {% include home/references.html
+       path="/assets/img/landing/references/"
+       people="Michael Girouard--michael_girouard.jpg--Senior Engineer--CloudFlare--Koding provides every developer with access to information and data on the best practices used by your entire team.||
+               Collin Donahue-Oponski--collin_donahue-oponski.jpg--UX Lead, Platform UI/UX Team--DigitalGlobe--Using Koding helps developers get up-to-speed in a matter of minutes so they can focus on their code. As for our customers, I'm personally trying to guide us through a redesign of our platform experience which would hopefully alleviate the need for complicated dev environments, We are evaluating Koding to bridge the gap between local development and production environments.||
+               Arkadi Shishlov--arkadi_shishlov.png--Software Engineer--Accenture--We are doing internal training at Accenture, when I setup my classes on Koding, no one needs to do any setup anymore.||
+               Sid Sijbrandij--sid_sijbrandij.jpg--Co-founder, CEO--GitLab--GitLab+Koding means you can ship code faster, and contribute to more projects in a collaborative environment."
+    %}
+  </div>
+</div>
+
+<div class='Homepage-use-cases Homepage--containerOffset'>
+  <h4 class="title center">YOUR <span>CUSTOMERS</span> BENEFIT FROM KODING TOO</h4>
+  <h3 class="title center">Solving your software's sales and training issues</h3>
+  <div class='Homepage--container'>
+    <h6>You have a "Download" link that everyone clicks, yet vital customers are lost through your setup instructions. Let's help you engage with them!</h6>
+    <div class="cases-title">You can use Koding for:</div>
+    <div class="cases">
+      <div>
+        <h3>Pre-Sales Automation</h3>
+        <p>Turn your website's "Download" button into a "Try now" button, so you can engage with your customers. <a href="{{ site.url }}/verticals/trial">Learn more…</a></p>
+      </div>
+      <div>
+        <h3>Platform for Training</h3>
+        <p>Why should any trainer spend hours trying to configure environments instead of getting straight to training? <a href="{{ site.url }}/verticals/training">Learn more…</a></p>
+      </div>
+      <div>
+        <h3>Hackathons</h3>
+        <p>If you'd like to extend your ecosystem and build more apps for your organization, we can set you up! <a href="javascript:Intercom('show');">Contact us.</a></p>
+      </div>
+      <div>
+        <h3>Virtual Classrooms</h3>
+        <p>One solution might work well for an app and fail in yours. It’s not a one-size-fits-all thing. <a href="javascript:Intercom('show');">Contact us.</a></p>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="cta" href="{{ site.url }}/teams/create">Start Free Trial</a>
+      <a class="cta secondary" href="{{ site.url }}/demo">Request a Demo</a>
+    </div>
+  </div>
+</div>
+
+
+<div class='Homepage-outro Homepage--containerOffset'>
+  <h4 class="title center">WE LOVE TO GIVE BACK</h4>
+  <h3 class="title center">Koding is Free for Open Source, Education and Startups</h3>
+  <a class="cta" target="_blank" href="https://docs.google.com/a/koding.com/forms/d/e/1FAIpQLSfW8ccPQBpeHyDBmiyDdDtwjjQLSv4iPWToVhvpZ_jbh4t-cA/viewform?c=0&w=1">Request Form</a>
+</div>
+
+
 
 <!-- FOOTER -->
 {% include footer.html %}
+
+<!-- ie 8/9 style fixes -->
+<!--[if lte IE 9]>
+  <style>{% include css/index-ie.css %}</style>
+<![endif]-->
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+  {% include js/landing-modal.js %}
+  (function() {
+
+    var modalOptions = {}, player;
+
+    var onPlayerReady = function(event) {
+      event.target.playVideo();
+    }
+
+    var onStateChange = function(event) {
+      var UNSTARTED = -1, // (unstarted)
+          ENDED     = 0,  // (ended)
+          PLAYING   = 1,  // (playing)
+          PAUSED    = 2,  // (paused)
+          BUFFERING = 3,  // (buffering)
+          VIDEOCUED = 5;  // (video cued)
+
+      if (event.data == ENDED) {
+        $('#Modal').addClass('out');
+        $('.Overlay').addClass('out');
+
+        setTimeout(function() {
+          player.destroy();
+          $('#Modal').remove();
+          $('.Overlay').remove();
+        }, 500);
+      }
+    }
+
+    modalOptions.onLoaded = function(clickEvent) {
+      var youtube_id = clickEvent.currentTarget.getAttribute('data-youtube-id');
+
+      player = new YT.Player('ModalBody', {
+        width: 853,
+        height: 480,
+        videoId: youtube_id,
+        playerVars: {
+          controls: 2,
+          showinfo: 0,
+          rel: 0,
+          modestbranding: true
+        },
+        events: {
+          onReady: onPlayerReady,
+          onStateChange: onStateChange
+        }
+      });
+
+      document.querySelector('#Modal').classList.add('Modal--withVideo');
+    }
+
+    modalOptions.onDestroy = function() {
+      player.destroy();
+    }
+
+    var modal = LANDING_UTILS.modal(modalOptions);
+
+  })();
+</script>

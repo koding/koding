@@ -41,6 +41,7 @@ checkIntegrationSteps = ->
   return  unless hasIntegration 'gitlab'
   whoami().fetchOAuthInfo (err, oauth) ->
     markAsDone 'gitlabIntegration'  if oauth?.gitlab?
+    markAsDone 'githubIntegration'  if oauth?.github?
 
 
 checkCredentialSteps = ->
@@ -55,15 +56,14 @@ checkFinishedSteps = ->
     reactor, mainController, computeController } = kd.singletons
 
   appStorage = appStorageController.storage "WelcomeSteps-#{globals.currentGroup.slug}"
-
   welcomeSteps = reactor.evaluate(HomeGetters.welcomeSteps).toJS()
+  finishedSteps = appStorage.getValue('finishedSteps') ? {}
 
-  appStorage.fetchValue 'finishedSteps', (finishedSteps = {}) ->
-    Object.keys(welcomeSteps).forEach (step) ->
-      markAsDone step  if finishedSteps[step]
+  Object.keys(welcomeSteps).forEach (step) ->
+    markAsDone step  if finishedSteps[step]
 
-    if Object.keys(welcomeSteps).length > Object.keys(finishedSteps).length
-      mainController.emit 'AllWelcomeStepsNotDoneYet'
+  if Object.keys(welcomeSteps).length > Object.keys(finishedSteps).length
+    mainController.emit 'AllWelcomeStepsNotDoneYet'
 
   if groupsController.getCurrentGroup().counts?.members > 1
     markAsDone 'inviteTeam'

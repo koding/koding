@@ -193,15 +193,6 @@ func CreateMessageWithTest() *ChannelMessage {
 	return cm
 }
 
-func FetchOrCreateSession(nick, groupName string) (*kodingmodels.Session, error) {
-	session, err := modelhelper.GetOneSessionForAccount(nick, groupName)
-	if err == nil {
-		return session, nil
-	}
-
-	return modelhelper.CreateSessionForAccount(nick, groupName)
-}
-
 func CreateAccountInBothDbs() (*Account, error) {
 	return CreateAccountInBothDbsWithNick(bson.NewObjectId().Hex())
 }

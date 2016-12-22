@@ -7,9 +7,9 @@
     <div class="Footer--col">
       <h3>For Teams</h3>
       <ul>
-        <li><a href="{{ site.url }}/verticals/training">Software Training</a></li>
+        <li><a href="{{ site.url }}/verticals/training">Platform for Training</a></li>
         <!-- <li><a href="{{ site.url }}/verticals/hackathons">Hackathons</a></li> -->
-        <li><a href="{{ site.url }}/verticals/trial">Trial Software</a></li>
+        <li><a href="{{ site.url }}/verticals/trial">Pre-Sales Automation</a></li>
         <!-- <li><a href="{{ site.url }}/verticals/digital-agency">Digital Agency</a></li> -->
         <!-- <li><a href="{{ site.url }}/verticals/classrooms">Classrooms</a></li> -->
         <!-- <li><a href="{{ site.url }}/verticals/api-sdk">API integrations</a></li> -->
@@ -28,6 +28,7 @@
       <ul>
         <li><a href="{{ site.url }}/about">About Us</a></li>
         <li><a href="https://jobs.lever.co/koding" target='_blank'>Careers</a></li>
+        <li><a href="https://github.com/koding" target='_blank'>Open Source</a></li>
       </ul>
     </div>
     <div class="Footer--col">
@@ -61,6 +62,13 @@
     formSelector: '#subscribe-to-newsletter',
     resultSelector: 'ul.subscribe-to-newsletter-success',
     formHash: 'z5z2m7x0ln3g44'
+  });
+  // footer mobile menu expand/collaps
+  $('.Footer--col h3').on('click', function(){
+    var wasActive = $(this).parent().hasClass('active');
+    $('.Footer--col').removeClass('active');
+    if(!wasActive)
+      $(this).parent().addClass('active');
   });
 </script>
 

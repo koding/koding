@@ -64,24 +64,12 @@ function enhanceGlobals(globals, manifests, configFile, schemaFile) {
     }
   })
 
-  // since we are including ace editor in a custom way, we need to provide its
-  // config through runtime globals object.
-  var aceBasePath = 'a/p/p/thirdparty/ace'
-  var aceConfig = {
-    basePath   : aceBasePath,
-    themePath  : aceBasePath,
-    modePath   : aceBasePath,
-    workerPath : aceBasePath,
-  }
-
   return [
     globals,
     'var g = global._globals || {}',
     'Object.keys(g).forEach(function(k) {',
     '  globals[k] = g[k];',
     '})',
-    'globals["acePath"] = "' + aceBasePath + '/_ace.js";',
-    'globals["aceConfig"] = ' + JSON.stringify(aceConfig) + ';',
     'globals["config"]["version"] = ' + JSON.stringify(configFile.rev) + ';',
     'globals["REMOTE_API"] = ' + JSON.stringify(schemaFile) + ';',
     'globals["modules"] = ' + JSON.stringify(modules) + ';',

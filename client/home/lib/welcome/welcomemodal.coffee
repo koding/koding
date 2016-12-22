@@ -31,12 +31,11 @@ module.exports = class WelcomeModal extends kd.ModalView
   showCongratulationModal: ->
 
     { appStorageController } = kd.singletons
-    appStorage = appStorageController.storage "WelcomeSteps-#{globals.currentGroup.slug}"
-    buckets = appStorage.storage.bucket
-    welcomeStepsStore = buckets["WelcomeSteps-#{globals.currentGroup.slug}"]
-    isShown = welcomeStepsStore.data.OnboardingSuccessModalShown
 
-    return  if isShown
+    appStorage  = appStorageController.storage "WelcomeSteps-#{globals.currentGroup.slug}"
+    shownBefore = appStorage.getValue 'OnboardingSuccessModalShown'
+
+    return  if shownBefore
 
     appStorage.setValue 'OnboardingSuccessModalShown', yes
 
@@ -46,10 +45,8 @@ module.exports = class WelcomeModal extends kd.ModalView
       cssClass : 'Congratulation-modal'
       content : "<p class='description'>Congratulations. You have completed all items on your onboarding list.</p>"
 
-
     kd.View::addSubView.call modal, new kd.CustomHTMLView
       cssClass : 'alien'
-
 
     modal.addSubView new kd.CustomHTMLView
       cssClass : 'image-wrapper'

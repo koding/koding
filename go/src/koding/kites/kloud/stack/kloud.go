@@ -7,6 +7,7 @@ import (
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/config"
 	"koding/kites/keygen"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/credential"
@@ -15,6 +16,9 @@ import (
 	"koding/kites/kloud/machine"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/pkg/idlock"
+	"koding/kites/kloud/team"
+	"koding/remoteapi"
+	presence "socialapi/workers/presence/client"
 
 	"github.com/koding/cache"
 	"github.com/koding/logging"
@@ -69,6 +73,9 @@ type Kloud struct {
 	// publicKey's on the fly and generates the privateKey themself.
 	PublicKeys *publickeys.Keys
 
+	// Endpoints represents Koding endpoints configuration.
+	Endpoints *config.Endpoints
+
 	// DescribeFunc is used to obtain provider types description.
 	//
 	// TODO(rjeczalik): It wraps provider.Desc function to avoid circular
@@ -82,6 +89,15 @@ type Kloud struct {
 
 	// MachineClient handles machine.* methods.
 	MachineClient *machine.Client
+
+	// TeamClient handles team.* methods.
+	TeamClient *team.Client
+
+	// PresenceClient handles ping requests.
+	PresenceClient *presence.Client
+
+	// RemoteClient handles requests to "remote.api" endpoint.
+	RemoteClient *remoteapi.Client
 
 	Metrics *metrics.DogStatsD
 

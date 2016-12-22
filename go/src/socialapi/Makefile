@@ -57,12 +57,14 @@ testpresence:
 	@`which go` test -race -c workers/presence/*.go
 	@./presence.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm ./presence.test
-
-testeventsender:
-	@echo "$(OK_COLOR)--> eventsender tests... $(NO_COLOR)"
-	@`which go` test -c workers/integration/eventsender/*.go
-	@./eventsender.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm  ./eventsender.test
+	@echo "$(OK_COLOR)--> presence api tests... $(NO_COLOR)"
+	@`which go` test -race -c workers/presence/api/*.go
+	@./api.test $(DBG) $(EXTRAS) -c $(CONFIG)
+	@rm ./api.test
+	@echo "$(OK_COLOR)--> presence client tests... $(NO_COLOR)"
+	@`which go` test -race -c workers/presence/client/*.go
+	@./client.test $(DBG) $(EXTRAS) -c $(CONFIG)
+	@rm ./client.test
 
 testteam: testteamunit testteamintegration
 
@@ -118,20 +120,6 @@ testmail:
 	@./tests.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm ./tests.test
 
-testnotification: testnotificationunit testnotificationintegration
-
-testnotificationintegration:
-	@echo "$(OK_COLOR)--> notification tests... $(NO_COLOR)"
-	@`which go` test -c workers/notification/tests/*.go
-	@./main.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./main.test
-
-testnotificationunit:
-	@echo "$(OK_COLOR)--> notification tests... $(NO_COLOR)"
-	@`which go` test -c workers/notification/*.go
-	@./notification.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./notification.test
-
 testpayment:
 	@echo "$(OK_COLOR)--> payment tests... $(NO_COLOR)"
 	./workers/payment/tests.sh
@@ -155,7 +143,6 @@ testrealtime:
 
 
 testapi: testcollaboration testmailsender testmail testmodels \
-	testnotification \
 	testteam testintegration testrealtime testpresence \
 	testpayment
 

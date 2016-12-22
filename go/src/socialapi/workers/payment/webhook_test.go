@@ -27,7 +27,7 @@ func withStubData(f func(username string, groupName string, sessionID string)) {
 	err = modelhelper.MakeAdmin(bson.ObjectIdHex(acc.OldId), group.Id)
 	So(err, ShouldBeNil)
 
-	ses, err := models.FetchOrCreateSession(acc.Nick, groupName)
+	ses, err := modelhelper.FetchOrCreateSession(acc.Nick, groupName)
 	tests.ResultedWithNoErrorCheck(ses, err)
 
 	cus, err := EnsureCustomerForGroup(acc.Nick, groupName, &stripe.CustomerParams{})
@@ -37,104 +37,6 @@ func withStubData(f func(username string, groupName string, sessionID string)) {
 
 	err = DeleteCustomerForGroup(groupName)
 	So(err, ShouldBeNil)
-}
-
-func TestChargeSuccededHandler(t *testing.T) {
-	testData := `
-{
-    "id": "ch_00000000000000",
-    "object": "charge",
-    "amount": 100,
-    "currency": "usd",
-    "customer": "%s",
-    "description": "My First Test Charge (created for API docs)",
-    "livemode": false,
-    "paid": true,
-    "status": "succeeded"
-}`
-	tests.WithConfiguration(t, func(c *config.Config) {
-		stripe.Key = c.Stripe.SecretToken
-
-		Convey("Given stub data", t, func() {
-			withStubData(func(username, groupName, sessionID string) {
-				Convey("Then Group should have customer id", func() {
-					group, err := modelhelper.GetGroup(groupName)
-					tests.ResultedWithNoErrorCheck(group, err)
-
-					So(group.Payment.Customer.ID, ShouldNotBeBlank)
-
-					Convey("When charge.succeeded is triggered", func() {
-
-						raw := []byte(fmt.Sprintf(testData, group.Payment.Customer.ID))
-
-						var capturedMail *emailsender.Mail
-
-						realMailSender := mailSender
-						mailSender = func(m *emailsender.Mail) error {
-							capturedMail = m
-							return nil
-						}
-						chargeSucceededHandler(raw)
-						mailSender = realMailSender
-
-						Convey("properties of event should be set accordingly", func() {
-							So(capturedMail, ShouldNotBeNil)
-							So(capturedMail.Subject, ShouldEqual, "charge succeeded")
-							So(capturedMail.Properties.Options["amount"], ShouldEqual, "$1")
-						})
-					})
-				})
-			})
-		})
-	})
-}
-
-func TestChargeFailedHandler(t *testing.T) {
-	testData := `
-{
-    "id": "ch_00000000000000",
-    "object": "charge",
-    "amount": 1000,
-    "currency": "usd",
-    "customer": "%s",
-    "description": "My First Test Charge (created for API docs)",
-    "livemode": false,
-    "paid": false,
-    "status": "succeeded"
-}`
-	tests.WithConfiguration(t, func(c *config.Config) {
-		stripe.Key = c.Stripe.SecretToken
-
-		Convey("Given stub data", t, func() {
-			withStubData(func(username, groupName, sessionID string) {
-				Convey("Then Group should have customer id", func() {
-					group, err := modelhelper.GetGroup(groupName)
-					tests.ResultedWithNoErrorCheck(group, err)
-
-					So(group.Payment.Customer.ID, ShouldNotBeBlank)
-
-					Convey("When charge.succeeded is triggered", func() {
-						raw := []byte(fmt.Sprintf(testData, group.Payment.Customer.ID))
-
-						var capturedMail *emailsender.Mail
-
-						realMailSender := mailSender
-						mailSender = func(m *emailsender.Mail) error {
-							capturedMail = m
-							return nil
-						}
-						chargeFailedHandler(raw)
-						mailSender = realMailSender
-						Convey("properties of event should be set accordingly", func() {
-							So(capturedMail, ShouldNotBeNil)
-							So(capturedMail.Subject, ShouldEqual, "charge failed")
-							So(capturedMail.Properties.Options["amount"], ShouldEqual, "$10")
-						})
-					})
-				})
-			})
-		})
-	})
 }
 
 func TestInvoiceCreatedHandlerStayInTheSamePlan(t *testing.T) {

@@ -63,7 +63,8 @@ build:
         code: scripts/wercker/run-command scripts/lint-coffeescript.sh
     - script:
         name: launch test hosts
-        code: scripts/wercker/run-command scripts/wercker/launch-test-hosts | tee INSTANCE_DATA
+        code: |
+          scripts/wercker/run-command scripts/wercker/launch-test-hosts | tee INSTANCE_DATA
     - script:
         name: check configs
         code: |
@@ -105,6 +106,9 @@ build:
         name: test providers
         code: scripts/wercker/run-command ./run exec go test -v -race koding/kites/kloud/provider/...
     - script:
+        name: test koding/api
+        code: scripts/wercker/run-command ./run exec go test -v -race koding/api/...
+    - script:
         name: build backend finished
         code: scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build backend finished" "building" 40
     - script:
@@ -126,9 +130,6 @@ build:
         name: test social api
         code: scripts/wercker/run-command scripts/wercker/test-social-api
     - script:
-        name: test janitor
-        code: scripts/wercker/run-command ./run janitortests
-    - script:
         name: test koding mongo models
         code: scripts/wercker/run-command ./run exec go test koding/db/mongodb/modelhelper
     - script:
@@ -144,7 +145,8 @@ build:
           [ "$CONFIG" != "prod" ] && scripts/delete-deployment-credentials.sh
     - script:
         name: check connectivity
-        code: scripts/wercker/run-command scripts/wercker/check-connectivity INSTANCE_DATA
+        code: |
+          scripts/wercker/run-command scripts/wercker/check-connectivity INSTANCE_DATA
     - script:
         name: test nodejs
         code: scripts/wercker/run-command scripts/node-testing/run-tests INSTANCE_DATA

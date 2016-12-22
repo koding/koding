@@ -16,7 +16,7 @@ func DeleteCustomer(u *url.URL, h http.Header, _ interface{}, context *models.Co
 	// do not allow customer deletion, causes losing track of transactions.
 	return http.StatusForbidden, nil, nil, nil
 
-	if err := checkContext(context); err != nil {
+	if err := context.IsGroupAdmin(); err != nil {
 		return response.NewBadRequest(err)
 	}
 
@@ -29,7 +29,7 @@ func DeleteCustomer(u *url.URL, h http.Header, _ interface{}, context *models.Co
 
 // UpdateCustomer updates customer of a group
 func UpdateCustomer(u *url.URL, h http.Header, params *stripe.CustomerParams, context *models.Context) (int, http.Header, interface{}, error) {
-	if err := checkContext(context); err != nil {
+	if err := context.IsGroupAdmin(); err != nil {
 		return response.NewBadRequest(err)
 	}
 
@@ -44,7 +44,7 @@ func UpdateCustomer(u *url.URL, h http.Header, params *stripe.CustomerParams, co
 
 // GetCustomer returns the customer info of a group
 func GetCustomer(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
-	if err := checkContext(context); err != nil {
+	if err := context.IsGroupAdmin(); err != nil {
 		return response.NewBadRequest(err)
 	}
 
@@ -55,7 +55,7 @@ func GetCustomer(u *url.URL, h http.Header, _ interface{}, context *models.Conte
 
 // CreateCustomer creates the customer for a group
 func CreateCustomer(u *url.URL, h http.Header, req *stripe.CustomerParams, context *models.Context) (int, http.Header, interface{}, error) {
-	if err := checkContext(context); err != nil {
+	if err := context.IsGroupAdmin(); err != nil {
 		return response.NewBadRequest(err)
 	}
 
@@ -70,7 +70,7 @@ func CreateCustomer(u *url.URL, h http.Header, req *stripe.CustomerParams, conte
 
 // Info return usage info for a group
 func Info(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
-	if err := checkContext(context); err != nil {
+	if err := context.IsGroupAdmin(); err != nil {
 		return response.NewBadRequest(err)
 	}
 

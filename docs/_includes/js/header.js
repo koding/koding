@@ -1,29 +1,31 @@
 document.addEventListener('scroll', function(event){
 
-  header = document.querySelectorAll('header.Homepage-Header').item(0);
+  var header = document.querySelectorAll('header.Homepage-Header').item(0);
   if (!header) return null;
 
-  if (document.body.scrollTop < 100) {
-    if (!document.body.classList.contains('StickyHeader')) {
+  var scrollTop = window.scrollY || $('html, body').scrollTop();
+
+  if (scrollTop < 100) {
+    if (!$(document.body).hasClass('StickyHeader')) {
       return null;
     }
-    document.body.classList.remove('StickyHeader');
-  } else if (document.body.scrollTop < 780) {
-    if (!document.body.classList.contains('StickyHeader')) {
+    $(document.body).removeClass('StickyHeader');
+  } else if (scrollTop < 710) {
+    if (!$(document.body).hasClass('StickyHeader')) {
       return null;
     }
-    document.body.classList.remove('in');
+    $(document.body).removeClass('in');
     setTimeout(function(){
-      document.body.classList.remove('StickyHeader');
+      $(document.body).removeClass('StickyHeader');
     }, 400);
   } else {
 
-    if (document.body.classList.contains('StickyHeader')) {
+    if ($(document.body).hasClass('StickyHeader')) {
       return null;
     }
-    document.body.classList.add('StickyHeader');
+    $(document.body).addClass('StickyHeader');
     setTimeout(function(){
-      document.body.classList.add('in');
+      $(document.body).addClass('in');
     }, 400);
   }
 

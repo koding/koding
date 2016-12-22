@@ -155,14 +155,6 @@ module.exports = (KONFIG, options, credentials) ->
             proxyPass   : "http://socialapi/channel/by/$1$is_args$args"
           }
           {
-            location    : "~ /api/social/channel/(.*)/notificationsetting"
-            proxyPass   : "http://socialapi/channel/$1/notificationsetting$is_args$args"
-          }
-          {
-            location    : "~ /api/social/notificationsetting/(.*)"
-            proxyPass   : "http://socialapi/notificationsetting/$1$is_args$args"
-          }
-          {
             location    : "~ /api/social/collaboration/ping"
             proxyPass   : "http://socialapi/collaboration/ping$1$is_args$args"
           }
@@ -196,11 +188,6 @@ module.exports = (KONFIG, options, credentials) ->
             proxyPass   : "http://socialapi/$1$is_args$args"
             internalOnly: yes
           }
-          {
-            location    : "~ /sitemap(.*).xml"
-            proxyPass   : "http://socialapi/sitemap$1.xml"
-          }
-
         ]
 
     algoliaconnector    :
@@ -209,14 +196,6 @@ module.exports = (KONFIG, options, credentials) ->
         command         :
           run           : "#{GOBIN}/algoliaconnector"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/algoliaconnector -watch socialapi/workers/algoliaconnector"
-
-    notification        :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/notification"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/notification -watch socialapi/workers/notification"
-
 
     realtime            :
       group             : "socialapi"
@@ -275,32 +254,6 @@ module.exports = (KONFIG, options, credentials) ->
         command         :
           run           : "#{GOBIN}/team"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/team -watch socialapi/workers/team"
-
-    janitor             :
-      group             : "environment"
-      instances         : 1
-      supervisord       :
-        command         : "#{GOBIN}/janitor -kite-init=true"
-      healthCheckURL    : "http://localhost:#{KONFIG.socialapi.janitor.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.socialapi.janitor.port}/version"
-
-    eventsender         :
-      group             : "socialapi"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/eventsender"
-          watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/eventsender -watch socialapi/workers/eventsender"
-
-    contentrotator      :
-      group             : "webserver"
-      nginx             :
-        locations       : [
-          {
-            location    : "~ /-/content-rotator/(.*)"
-            proxyPass   : "#{KONFIG.contentRotatorUrl}/content-rotator/$1"
-            extraParams : [ "resolver 8.8.8.8;" ]
-          }
-        ]
 
     tunnelproxymanager  :
       group             : "proxy"

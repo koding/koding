@@ -1,0 +1,202 @@
+main.Homepage-Hero {
+  height: 710px;
+  background-color: #000;
+  position: relative;
+  background: #000 url('/assets/img/landing/home/hero-main.png') no-repeat 50% 0;
+  background-size: cover;
+  overflow: hidden;
+}
+.Homepage-Hero--container {
+  padding-top: 215px;
+  position: relative;
+  height: 100%;
+  box-sizing: border-box;
+}
+.Homepage-Hero--intro {
+  max-width: 850px;
+  margin: 0 auto;
+  text-align: center;
+  h1 {
+    font-family: $title-font-family;
+    font-size: 36px;
+    color: #FFFFFF;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+  h2 {
+    font-size: 22.11px;
+    color: rgba(255,255,255,0.8);
+    margin-top: 26px;
+    line-height: 1.4em;
+    letter-spacing: -.1px;
+    font-weight: 400;
+  }
+  .actions {
+    margin-top: 40px;
+    position: relative;
+    span.separator {
+      display: inline-block;
+      width: 1px;
+      height: 50px;
+      background: white;
+      vertical-align: top;
+    }
+  }
+  a {
+    transition: transform .1s ease;
+    &:hover {
+      transform: scale(1.05);
+    }
+    &.cta {
+      background-color: transparent;
+      padding-left: 0;
+      padding-right: 0;
+      font-weight: 400;
+    }
+    &.learn-more {
+      margin: 0 0 0 30px;
+    }
+    &.vision {
+      margin: 0 30px 0 -68px;
+      svg {
+        margin-right: 10px;
+        margin-top: 1px;
+        width: 24px;
+        height: 24px;
+        vertical-align: top;
+        fill: white;
+      }
+    }
+    strong {
+      font-weight: 600;
+    }
+  }
+}
+
+.Homepage-Hero--intro,
+.Homepage-Hero--video,
+.Homepage-Hero--banner {
+  opacity: 1;
+  transition: opacity .5s ease;
+  z-index: 1;
+  &.out {
+    opacity: 0;
+    z-index: 0;
+  }
+}
+.Homepage-Hero--video {
+  opacity: 1;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  position: absolute;
+  box-sizing: border-box;
+  transition: opacity 1s ease;
+  > div {
+    width: 100%;
+    height: 710px;
+    max-width: 1262px;
+    position: relative;
+    margin: 0 auto;
+  }
+  iframe {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .close {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    z-index: 100;
+    width: 32px;
+    height: 32px;
+    svg {
+      margin: 8px;
+      fill: white;
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+.Homepage-Hero--banner {
+  position: absolute;
+  bottom: 0;
+  color: #ffffff;
+  min-height: 80px;
+  width: 100%;
+  text-align: center;
+  padding: 30px;
+  background-color: rgba(0,0,0,.6);
+  box-sizing: border-box;
+  border-top: 1px solid rgba(255, 255, 255, .15);
+  transition: transform .5s ease, opacity .5s ease;
+  &.out {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+
+  .alert {
+    color: #f2778a;
+    font-weight: 700;
+  }
+
+  .bold {
+    font-weight: 700;
+  }
+
+  a {
+    font-weight: 700;
+    color: #ffffff;
+    text-decoration: none;
+  }
+}
+
+@media (max-width: 880px) {
+  .Homepage-Hero--container {
+    padding-top: 145px;
+  }
+  .Homepage-Hero--intro {
+    h1 {
+      font-size: 32px;
+      line-height: 45px;
+    }
+  }
+}
+
+@media (max-width: 660px) {
+  main.Homepage-Hero {
+    height: 780px;
+  }
+  .Homepage-Hero--video > div {
+    height: 780px;
+  }
+  .Homepage-Hero--intro {
+    h1 {
+      font-size: 24px;
+      line-height: 34px;
+    }
+    h2 {
+      font-size: 18px;
+      margin-top: 16px;
+      line-height: 26px;
+    }
+    .actions {
+      margin-top: 60px;
+      a {
+        margin: 0 0 10px;
+        display: block;
+        width: auto;
+        &.learn-more {
+          display: none;
+        }
+      }
+      span.separator {
+        display: none;
+      }
+    }
+  }
+  .Homepage-Hero--container {
+    padding-top: 115px;
+  }
+}

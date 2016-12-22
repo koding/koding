@@ -79,7 +79,7 @@ type KlientOptions struct {
 // NewKlientOptions returns KlientOptions initialized to default values.
 func NewKlientOptions() KlientOptions {
 	return KlientOptions{
-		Address:     config.Konfig.KlientURL,
+		Address:     config.Konfig.Endpoints.Klient.Private.String(),
 		KiteKeyPath: config.Konfig.KiteKeyFile,
 		KiteKey:     config.Konfig.KiteKey,
 		Name:        config.Name,

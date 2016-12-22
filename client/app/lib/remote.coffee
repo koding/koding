@@ -76,6 +76,7 @@ createInstance = ->
 
 
   bongoInstance.once 'ready', ->
+    globals.combinedStorage = bongoInstance.revive globals.combinedStorage
     remote_extensions.initialize bongoInstance
 
   return bongoInstance

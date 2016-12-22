@@ -1,93 +1,113 @@
-- name: Devrim Yasar
-  title: Co-founder
-  role: CEO
-  github: devrim
-  twitter: devrimyasar
-  linkedin: dyasar
+- title: Founders
+  members:
+    - name: Devrim Yasar
+      title: Co-founder
+      role: CEO
+      github: devrim
+      twitter: devrimyasar
+      linkedin: dyasar
 
-- name: Sinan Yasar
-  title: Co-founder
-  role: Chief Product Architect
-  github: sinan
-  twitter: sinanyasar
-  linkedin: sinanyasar
+    - name: Sinan Yasar
+      title: Co-founder
+      role: Chief Product Architect
+      github: sinan
+      twitter: sinanyasar
+      linkedin: sinanyasar
 
-- name: Michael Jeter
-  title: Brand Director
-  twitter: thewellarmed
-  linkedin: michaeljeter
+- title: Business Team
+  positions:
+    count: 1
+    link: https://jobs.lever.co/koding/4ee5df76-953e-4922-b8fb-dfb82d2fe5a9
+  members:
 
-- name: George Sibble
-  title: VP Operations
-  twitter: georgesibble
-  linkedin: georgesibble
-  github: sibblegp
+    - name: Gabriel Padva
+      title: BD & Partnerships
+      linkedin: gabrielpadva
 
-- name: Gokmen Goksel
-  title: Engineering Lead
-  twitter: gokmen
-  linkedin: gokmen
-  github: gokmen
+    - name: Merrill Freund
+      title: Public Relations
+      linkedin: merrillfreund
 
-- name: Cihangir Savas
-  title: Engineering Lead
-  twitter: cihangirsavas
-  linkedin: cihangirsavas
-  github: cihangir
+- title: Engineering
+  positions:
+    count: 5
+    link: https://jobs.lever.co/koding
+  members:
+    - name: Gokmen Goksel
+      title: Engineering Lead
+      twitter: gokmen
+      linkedin: gokmen
+      github: gokmen
 
-- name: Sonmez Kartal
-  title: Engineer
-  role: DevOps
-  twitter: sonmezkartal
-  linkedin: sonmezkartal
-  github: szkl
+    - name: Cihangir Savas
+      title: Engineering Lead
+      twitter: cihangirsavas
+      linkedin: cihangirsavas
+      github: cihangir
 
-- name: Alex Ionochkin
-  title: Engineer
-  linkedin: alexander-ionochkin-71050a28
-  github: alex-ionochkin
+    - name: Sonmez Kartal
+      title: Engineer
+      role: DevOps
+      twitter: sonmezkartal
+      linkedin: sonmezkartal
+      github: szkl
 
-- name: Mehmet Ali Savas
-  title: Engineer
-  linkedin: mehmet-ali-savas-511596105
-  github: mehmetalisavas
+    - name: Alex Ionochkin
+      title: Engineer
+      linkedin: alexander-ionochkin-71050a28
+      github: alex-ionochkin
 
-- name: Rafal Jeczalik
-  title: Engineer
-  github: rjeczalik
+    - name: Mehmet Ali Savas
+      title: Engineer
+      linkedin: mehmet-ali-savas-511596105
+      github: mehmetalisavas
 
-- name: Hakan Karadis
-  title: Engineer
-  twitter: hkaradi1
-  linkedin: hakankaradis
-  github: hakankaradis
+    - name: Rafal Jeczalik
+      title: Engineer
+      github: rjeczalik
 
-- name: Khaled Wagdy
-  title: Support Engineer
-  github: kwagdy
+    - name: Hakan Karadis
+      title: Engineer
+      twitter: hkaradi1
+      linkedin: hakankaradis
+      github: hakankaradis
 
-- name: Fahrettin Tasdelen
-  title: Product Design Lead
-  twitter: ftasdelen
-  linkedin: ftasdelen
+    - name: Can Sirin
+      title: Frontend Developer
+      github: cansirin
 
-# - cssClass: 'invisible' # this is a spacer if needed
-- name: Hector Caceres
-  title: Support Engineer
+    - name: Andrew J Casal
+      title: Frontend Developer
+      github: andrewjcasal
 
-- name: Arsal Asal
-  title: Creative Producer
-  linkedin: arsal-asal-1a963210b
+    - name: Paweł Knap
+      title: Engineer
+      github: ppknap
 
-- name: Can Sirin
-  title: Frontend Developer
-  github: cansirin
+- title: Creative
+  positions:
+    count: 1
+    link: https://jobs.lever.co/koding/930587d8-6c62-4d62-b827-ee9b83614e33
+  members:
 
-- name: Andrew J Casal
-  title: Frontend Developer
-  github: andrewjcasal
+    - name: Fahrettin Tasdelen
+      title: Product Design Lead
+      twitter: ftasdelen
+      linkedin: ftasdelen
+    # - cssClass: 'invisible' # this is a spacer if needed
+    - name: Arsal Asal
+      title: Creative Producer
+      linkedin: arsal-asal-1a963210b
 
-- name: Paweł Knap
-  title: Engineer
-  github: ppknap
+- title: QA / Support
+  positions:
+    count: 2
+    link: https://jobs.lever.co/koding
+  members:
+    - name: Khaled Wagdy
+      title: Support Engineer
+      github: kwagdy
 
+    - name: Hector Caceres
+      title: Support Engineer
+      github: hectork01

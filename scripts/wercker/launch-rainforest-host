@@ -1,0 +1,11 @@
+#!/bin/bash
+
+SCRIPTS_DIR=$WERCKER_ROOT/scripts
+
+set -o errexit
+
+BRANCH_NAME=${BRANCH_NAME:-$WERCKER_GIT_BRANCH}
+
+OPTIONS=$($SCRIPTS_DIR/test-instance/get-options)
+OPTIONS="--branch-name $BRANCH_NAME $OPTIONS"
+$SCRIPTS_DIR/test-instance/launch $OPTIONS

@@ -4,6 +4,14 @@
     {% assign c = include.background_color %}
     background-color: {% if c %}{{ c }}{% else %}#3C3D58{% endif %};
   }
+  {% assign c1 = include.background_color_mobile %}
+  {% if c1 %}
+  @media (max-width: 768px) {
+    .Homepage-Header {
+      background-color: {{ c1 }};
+    }
+  }
+  {% endif %}
 </style>
 
 <header class="Homepage-Header {{ include.cssClass }}">
@@ -50,15 +58,15 @@
   </a>
   <script>
     document.querySelector('.burger').onclick = function () {
-      if (document.body.classList.contains('burgerToggle')) {
-        document.body.classList.remove('burgerToggle');
+      if ($(document.body).hasClass('burgerToggle')) {
+        $(document.body).removeClass('burgerToggle');
       } else {
-        document.body.classList.add('burgerToggle');
+        $(document.body).addClass('burgerToggle');
       }
     }
     document.body.addEventListener('click', function (event) {
-      if (!$(event.target).closest('header').length && document.body.classList.contains('burgerToggle')){
-        document.body.classList.remove('burgerToggle');
+      if (!$(event.target).closest('header').length && $(document.body).hasClass('burgerToggle')){
+        $(document.body).removeClass('burgerToggle');
       }
     });
   </script>

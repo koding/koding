@@ -289,7 +289,6 @@ generateDev = (KONFIG, options) ->
       command -v pg_isready    >/dev/null 2>&1 || { echo >&2 "I require pg_isready but it's not installed. (brew install postgresql maybe?)  Aborting."; exit 1; }
       command -v node          >/dev/null 2>&1 || { echo >&2 "I require node but it's not installed.  Aborting."; exit 1; }
       command -v npm           >/dev/null 2>&1 || { echo >&2 "I require npm but it's not installed.  Aborting."; exit 1; }
-      command -v gulp          >/dev/null 2>&1 || { echo >&2 "I require gulp but it's not installed. (npm i gulp -g)  Aborting."; exit 1; }
       command -v coffee        >/dev/null 2>&1 || { echo >&2 "I require coffee-script but it's not installed. (npm i coffee-script -g)  Aborting."; exit 1; }
       check_psql
 
@@ -591,10 +590,6 @@ generateDev = (KONFIG, options) ->
 
     elif [ "$1" == "help" ]; then
       printHelp
-
-    elif [ "$1" == "janitortests" ]; then
-      pushd $KONFIG_PROJECTROOT/go/src/koding/workers/janitor
-      ./test.sh
 
     elif [ "$1" == "socialworkertests" ]; then
       $KONFIG_PROJECTROOT/scripts/node-testing/mocha-runner "$KONFIG_PROJECTROOT/workers/social"

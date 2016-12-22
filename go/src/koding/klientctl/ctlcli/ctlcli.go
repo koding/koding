@@ -6,6 +6,7 @@
 package ctlcli
 
 import (
+	"fmt"
 	"io"
 	"os"
 
@@ -24,8 +25,8 @@ func CloseOnExit(c io.Closer) {
 // Close is a hack to close program-lifetime-bound resources,
 // like log file or BoltDB database.
 func Close() {
-	for _, c := range closers {
-		c.Close()
+	for i := len(closers) - 1; i >= 0; i-- {
+		closers[i].Close()
 	}
 }
 
@@ -96,6 +97,8 @@ func ExitErrAction(f ExitingErrCommand, log logging.Logger, cmdName string) func
 		exit, err := f(c, log, cmdName)
 		if err != nil {
 			log.Error("ExitErrAction encountered error. err:%s", err)
+			// Print error message to the user.
+			fmt.Fprintf(os.Stderr, "error executing %q command: %s\n", cmdName, err)
 		}
 
 		Close()
@@ -116,6 +119,8 @@ func FactoryAction(factory CommandFactory, log logging.Logger, cmdName string) f
 				"Command encountered error. command:%s, exit:%d, err:%s",
 				cmdName, exit, err,
 			)
+			// Print error message to the user.
+			fmt.Fprintf(os.Stderr, "error executing %q command: %s\n", cmdName, err)
 		}
 
 		Close()

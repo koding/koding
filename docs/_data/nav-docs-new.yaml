@@ -1,0 +1,64 @@
+- title: Videos
+  items:
+  - id: product-walkthrough
+    title: Product walkthrough
+- title: Getting started
+  items:
+  - id: what-is-a-stack
+    title: What is a Stack
+  - id: choose-provider
+    title: Choosing a Provider
+  - id: creating-an-aws-stack
+    title: Create AWS stack
+  - id: creating-a-vagrant-stack
+    title: Create Vagrant stack
+  - id: creating-a-digitalocean-stack
+    title: Create Digital Ocean stack
+  - id: creating-a-gce-stack
+    title: Create Google Compute Engine stack
+  - id: creating-an-azure-stack
+    title: Create Azure stack
+- title: Getting more from Koding
+  items:
+  - id: kd
+    title: KD
+  - id: use-your-own-ide
+    title: Use your own IDE
+  - id: connect-your-own-machine-to-koding
+    title: Connect your own machine
+  - id: how-to-share-your-vm-with-someone
+    title: How to share your VM with someone
+  - id: koding-stacks-variables
+    title: Koding Stacks Variables
+  - id: using-custom-variables
+    title: Using Custom Variables
+  - id: user-input
+    title: User Input
+  - id: koding-button
+    title: Try on Koding button
+  - id: slackapp
+    title: Inviting with Slack
+  - id: terraform-to-koding
+    title: TERRAFORM to KODING
+  - id: faq
+    title: FAQ
+- title: Stacks Examples
+  items:
+  - id: two-vm-setup-apachephp-server-db-server
+    title: Simple two VM setup
+  - id: database-vm-schema-setup
+    title: Advanced stack editing
+  - id: using-amis
+    title: Using AMIs
+  - id: create-elastic-ip-for-your-instance
+    title: Assign Elastic IP
+  - id: create-an-aws-vpc
+    title: AWS non-default VPC
+  - id: setup-aws-iam-user
+    title: Setup AWS IAM user
+  - id: assigning-domain-names-with-route53
+    title: Assign domain names with Route53
+  - id: using-github-in-stacks
+    title: Using Github
+  - id: stack-for-docker
+    title: Using Docker
