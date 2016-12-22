@@ -10,4 +10,3 @@ module.exports = class HomeAddOnKodingButton extends ReactView
 
 
   renderReact: -> <BusinessAddOnKodingButton.Container />
-

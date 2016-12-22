@@ -9,6 +9,6 @@ module.exports = BusinessAddOnSectionOverlay = ({onClick}) ->
   <div className={styles.overlay}>
     <div className={styles.activationBox}>
       <Label>Requires Business Add-On</Label>
-      <Button type="primary-1" size="medium" onClick={onClick}>ACTIVATE NOW</Button>
+      <Button type='primary-1' size='medium' onClick={onClick}>ACTIVATE NOW</Button>
     </div>
   </div>

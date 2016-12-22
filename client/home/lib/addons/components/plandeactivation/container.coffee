@@ -3,10 +3,10 @@ View = require './view'
 
 module.exports = class PlanDeactivationContainer extends React.Component
 
-
   handleDeactivation: ->
 
     @props.onDeactivation()
+
 
   render: ->
 

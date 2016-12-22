@@ -9,16 +9,16 @@ module.exports = class BusinessAddOnSupportPlansBanner extends ReactView
   renderReact: ->
 
     <Banner
-      type="success">
+      type='success'>
       <Container>
         <Header
-          heading="Would you like to explore our"
-          target="Powerful Support Plans?"/>
+          heading='Would you like to explore our'
+          target='Powerful Support Plans?'/>
         <Message>
           Fusce dapibus, tellus ac cursus commodo, tortor mauriscondimentum nibh.
         </Message>
       </Container>
-      <Actions className="Actions">
-        <a href="/Home/add-ons/support-plans"><Button type="primary-1" size="medium" auto>EXPLORE</Button></a>
+      <Actions className='Actions'>
+        <a href='/Home/add-ons/support-plans'><Button type='primary-1' size='medium' auto>EXPLORE</Button></a>
       </Actions>
     </Banner>

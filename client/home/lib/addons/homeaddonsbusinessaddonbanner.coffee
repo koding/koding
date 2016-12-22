@@ -10,4 +10,3 @@ module.exports = class HomeAddOnBusinessAddOnBanner extends ReactView
 
 
   renderReact: -> <BusinessAddOnBanner.Container />
-

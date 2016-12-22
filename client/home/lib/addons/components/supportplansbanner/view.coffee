@@ -9,18 +9,18 @@ module.exports = class SupportPlansBanner extends ReactView
   renderReact: ->
 
     <Banner
-      type="success"
-      image="banner_for_support_plans"
-      className="Banner">
+      type='success'
+      image='banner_for_support_plans'
+      className='Banner'>
       <Container>
         <Header
-          heading="We Are Ready to Help."
-          target="Choose Your Support Plan"/>
+          heading='We Are Ready to Help.'
+          target='Choose Your Support Plan'/>
         <Message>
           Fusce dapibus, tellus ac cursus commodo, tortor mauriscondimentum nibh, ut fermentum massa justo sit amet risus.
         </Message>
         <Footer>
-          <a href="/Home/add-ons/support-plans">Explore available plans below</a>
+          <a href='/Home/add-ons/support-plans'>Explore available plans below</a>
         </Footer>
       </Container>
     </Banner>

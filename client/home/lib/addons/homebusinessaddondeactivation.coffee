@@ -12,5 +12,8 @@ module.exports = class HomeBusinessAddOnDeactivation extends ReactView
 
     console.log('Business Add-On deactivation')
 
-  renderReact: -> <PlanDeactivation.Container target="BUSINESS ADD-ON" onDeactivation={@bound 'deactivateBusinessAddOn'}/>
-
+  renderReact: ->
+    
+    <PlanDeactivation.Container
+      target='BUSINESS ADD-ON'
+      onDeactivation={@bound 'deactivateBusinessAddOn'} />
