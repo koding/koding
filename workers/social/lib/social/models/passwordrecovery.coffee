@@ -103,7 +103,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
         return callback null # pretend like everything went fine.
 
       options.resetPassword = yes
-      options.verb = if group and group isnt 'koding' then 'Team/Reset' else 'Reset'
+      options.verb = 'Team/Reset'
       options.queryParams = { mode }  if mode
       @create options, callback
 
