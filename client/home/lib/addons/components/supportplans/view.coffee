@@ -8,11 +8,11 @@ module.exports = class SupportPlansList extends React.Component
 
     super props
 
-    @state = 
+    @state =
       activationModalOpen : no
       selectedSupportPlan : {}
       activePlan : @getActivePlan()
-    
+
     @plans = @props.plans
 
 
@@ -73,7 +73,7 @@ module.exports = class SupportPlansList extends React.Component
 
     plans = @plans.map (plan, index) =>
 
-      <div className="SupportPlanSection" key={index}>
+      <div className='SupportPlanSection' key={index}>
         <SupportPlan
           name={plan.name}
           price={plan.price}
@@ -82,17 +82,16 @@ module.exports = class SupportPlansList extends React.Component
           features={plan.features}
           onActivationButtonClick={() => @handleActivationButtonClick plan} />
       </div>
-    
+
     <div>
       {plans}
       <SupportPlanActivationModal
         isOpen={@state.activationModalOpen}
-        title="Support Plan"
-        image="support_plan_activation"
+        title='Support Plan'
+        image='support_plan_activation'
         label="#{@state.selectedSupportPlan.name} Support Plan"
         price={@state.selectedSupportPlan.price}
         shouldCloseOnOverlayClick={yes}
         onCancel={@bound 'hideActivationModal'}
         onActivateSupportPlanClick={@bound 'activateSupportPlan'} />
     </div>
-

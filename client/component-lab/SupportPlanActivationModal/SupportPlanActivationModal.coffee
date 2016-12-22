@@ -6,7 +6,7 @@ styles = require './SupportPlanActivationModal.stylus'
 
 module.exports = SupportPlanActivationModal = (props) ->
 
-  { label, price, image, isOpen, onActivateSupportPlanClick, 
+  { label, price, image, isOpen, onActivateSupportPlanClick,
     shouldCloseOnOverlayClick, onCancel, title } = props
 
   modalProps =
@@ -21,8 +21,8 @@ module.exports = SupportPlanActivationModal = (props) ->
     <Content>
       <figure className={styles[image]} />
       <div>
-        <Label size="large"><p className={styles.contentTitle}>You are about to activate {label}</p></Label>
-        <Label size="medium" type="info">
+        <Label size='large'><p className={styles.contentTitle}>You are about to activate {label}</p></Label>
+        <Label size='medium' type='info'>
           When you activate, you will get superior support. Your team will be
 charged monthly flat fee of <span className={styles.price}>${price}</span> on each billing cycle in addition to
 total cost. You can cancel anytime you want.
@@ -31,7 +31,7 @@ total cost. You can cancel anytime you want.
     </Content>
     <Footer
       className={styles.footer}
-      size="medium"
+      size='medium'
       primaryButtonTitle='Activate'
       onPrimaryButtonClick={onActivateSupportPlanClick}
       secondaryButtonTitle='Cancel'

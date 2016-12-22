@@ -16,5 +16,8 @@ module.exports = class HomeSupportPlanDeactivation extends ReactView
 
     console.log('Support Plan deactivation')
 
-  renderReact: -> <PlanDeactivation.Container target="#{@getActivePlan()} SUPPORT PLAN" onDeactivation={@bound 'deactivateSupportPlan'}/>
+  renderReact: ->
 
+    <PlanDeactivation.Container
+      target="#{@getActivePlan()} SUPPORT PLAN"
+      onDeactivation={@bound 'deactivateSupportPlan'} />

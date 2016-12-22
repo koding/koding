@@ -88,11 +88,11 @@ Banner.Actions = ({className, children}) ->
 
 
 Banner.PriceSegment = ({price, onClick, link}) ->
-  <Box type="default" className={styles.priceSegment}>
+  <Box type='default' className={styles.priceSegment}>
     <span className={styles.price}>${price}</span>
     <span className={styles.period}>monthly flat fee</span>
-    <Button type="primary-1" size="medium" auto onClick={onClick}>ACTIVATE</Button>
-    <a href={link}><Button type="secondary" size="medium" auto>EXPLORE</Button></a>
+    <Button type='primary-1' size='medium' auto onClick={onClick}>ACTIVATE</Button>
+    <a href={link}><Button type='secondary' size='medium' auto>EXPLORE</Button></a>
   </Box>
 
 

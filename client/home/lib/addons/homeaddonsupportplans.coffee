@@ -9,5 +9,6 @@ module.exports = class HomeAddOnSupportPlans extends ReactView
     super options, data
 
 
-  renderReact: -> <SupportPlans.Container />
+  renderReact: ->
 
+    <SupportPlans.Container />

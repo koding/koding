@@ -8,7 +8,7 @@ module.exports = class SupportPlan extends React.Component
 
   render: ->
 
-    { name, price, period, type, features, 
+    { name, price, period, type, features,
       onActivationButtonClick, contactUsLink, className } = @props
 
     className = generateClassName [
@@ -22,7 +22,7 @@ module.exports = class SupportPlan extends React.Component
     else 'default'
 
     <Box type={boxType} border={1} className={className}>
-      <Info 
+      <Info
         name={name}
         price={price}
         period={period} />
@@ -76,12 +76,12 @@ Action = (options) ->
   {type, price, contactUsLink, onClick} = options
   action = switch type
     when 'active' then <span className={styles.planActive}>ACTIVE</span>
-    when 'activation' then <ActivationButton 
-                              price={price} 
-                              contactUsLink={contactUsLink} 
+    when 'activation' then <ActivationButton
+                              price={price}
+                              contactUsLink={contactUsLink}
                               onClick={onClick}/>
     when 'switch' then <SwitchableAction contactUsLink={contactUsLink} />
-    else <a href={contactUsLink}><Button type="primary-1" size="medium" auto>CONTACT US</Button></a>
+    else <a href={contactUsLink}><Button type='primary-1' size='medium' auto>CONTACT US</Button></a>
 
   className = generateClassName [
     styles.action
@@ -97,9 +97,10 @@ ActivationButton = (options) ->
 
   {price, onClick, contactUsLink} = options
   activationButton = if price
-  then <Button type="primary-1" size="medium" auto onClick={onClick}>ACTIVATE</Button>
-  else <a href={contactUsLink}><Button type="primary-1" size="medium" auto>CONTACT US</Button></a>
+  then <Button type='primary-1' size='medium' auto onClick={onClick}>ACTIVATE</Button>
+  else <a href={contactUsLink}><Button type='primary-1' size='medium' auto>CONTACT US</Button></a>
   return activationButton
+
 
 SwitchableAction = ({contactUsLink}) ->
 
@@ -107,4 +108,3 @@ SwitchableAction = ({contactUsLink}) ->
     <span className={styles.switchableActionHeader}>CONTACT US</span>
     <p>Please <a href={contactUsLink}>contact us</a> to switch to this plan.</p>
   </div>
-

@@ -12,5 +12,5 @@ module.exports = class PlanDeactivation extends React.Component
   render: ->
 
     <div className={styles.deactivation}>
-      <a href="#" onClick={@bound 'handleDeactivationButtonClick'}>DEACTIVATE {@props.target}</a>
+      <a href='#' onClick={@bound 'handleDeactivationButtonClick'}>DEACTIVATE {@props.target}</a>
     </div>

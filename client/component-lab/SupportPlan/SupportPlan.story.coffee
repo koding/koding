@@ -20,12 +20,12 @@ storiesOf 'SupportPlan', module
       ]
     }
     <SupportPlan
-          name={plan.name}
-          price={plan.price}
-          period={plan.period}
-          type={'activation'}
-          features={plan.features}
-          onActivationButtonClick={action 'Basic activate clicked'} />
+      name={plan.name}
+      price={plan.price}
+      period={plan.period}
+      type={'activation'}
+      features={plan.features}
+      onActivationButtonClick={action 'Basic activate clicked'} />
 
   .add 'Business Switch', ->
 
@@ -62,12 +62,12 @@ storiesOf 'SupportPlan', module
       ]
     }
     <SupportPlan
-          name={plan.name}
-          price={plan.price}
-          period={plan.period}
-          type={'activation'}
-          features={plan.features}
-          onActivationButtonClick={action 'Enterprise activate clicked'} />
+      name={plan.name}
+      price={plan.price}
+      period={plan.period}
+      type={'activation'}
+      features={plan.features}
+      onActivationButtonClick={action 'Enterprise activate clicked'} />
 
   .add 'Enterprise Active', ->
 
@@ -83,9 +83,9 @@ storiesOf 'SupportPlan', module
       ]
     }
     <SupportPlan
-          name={plan.name}
-          price={plan.price}
-          period={plan.period}
-          type={'active'}
-          features={plan.features}
-          onActivationButtonClick={action 'Enterprise activate clicked'} />
+      name={plan.name}
+      price={plan.price}
+      period={plan.period}
+      type={'active'}
+      features={plan.features}
+      onActivationButtonClick={action 'Enterprise activate clicked'} />

@@ -1,18 +1,18 @@
 .BusinessAddOnBanner
   margin-bottom                     30px
-  padding					  		48px
-  
+  padding					  		            48px
+
 .PriceSegment
-  display 							block
-  
+  display 							            block
+
   span
-  	display 						block
+  	display 						            block
   .Price
-  	margin-bottom 					5px
-  	font-size 						32px
-  	font-weight 					500
-  	color 							#858585
+  	margin-bottom 					        5px
+  	font-size 						          32px
+  	font-weight 					          500
+  	color 							            #858585
   .Period
-  	margin-bottom 					25px
-  	font-weight 					100
-  	color 							#a8a8a8
+  	margin-bottom 					        25px
+  	font-weight 					          100
+  	color 							            #a8a8a8
