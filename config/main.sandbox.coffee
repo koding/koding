@@ -106,11 +106,6 @@ Configuration = (options = {}) ->
       supervisord       :
         command         : "node %(ENV_KONFIG_PROJECTROOT)s/workers/social/index.js -p #{KONFIG.social.port} --kite-port=#{KONFIG.social.kitePort}"
 
-    authworker          :
-      group             : "webserver"
-      supervisord       :
-        command         : "node %(ENV_KONFIG_PROJECTROOT)s/workers/auth/index.js"
-
     sourcemaps          :
       supervisord       :
         command         : "node %(ENV_KONFIG_PROJECTROOT)s/servers/sourcemaps/index.js"
