@@ -10,87 +10,49 @@ import (
 )
 
 var (
-	defSes = &mgo.Session{}
 	// session is the default session with default options
 	session = initMongo()
-
-	// config options for MongoCache
-	ttl = func(m *MongoCache) {
-		m.TTL = 2 * time.Minute
-	}
-
-	collection = func(m *MongoCache) {
-		m.CollectionName = "TestCollectionName"
-	}
-
-	gcInterval = func(m *MongoCache) {
-		m.GCInterval = 2 * time.Minute
-	}
-
-	startGC = func(m *MongoCache) {
-		m.GCStart = true
-	}
 )
-
-func TestMongoCacheConfig(t *testing.T) {
-	mgoCache := NewMongoCacheWithTTL(session)
-	if mgoCache == nil {
-		t.Fatal("config should not be nil")
-	}
-	configTTL := NewMongoCacheWithTTL(session, ttl)
-	if configTTL == nil {
-		t.Fatal("ttl config should not be nil")
-	}
-	if configTTL.TTL != time.Minute*2 {
-		t.Fatal("config ttl time should equal 2 minutes")
-	}
-	config := NewMongoCacheWithTTL(session, collection, startGC)
-	if config == nil {
-		t.Fatal("config should not be nil")
-	}
-	if config.CollectionName != "TestCollectionName" {
-		t.Fatal("config collection name should equal 'TestCollectionName'")
-	}
-	if config.GCStart != true {
-		t.Fatal("config StartGC option should not be true")
-	}
-}
 
 func TestMongoCacheSetOptionFuncs(t *testing.T) {
 	mgoCache := NewMongoCacheWithTTL(session)
+	defer mgoCache.StopGC()
 	if mgoCache == nil {
 		t.Fatal("config should not be nil")
 	}
 
 	duration := time.Minute * 3
-	configTTL := NewMongoCacheWithTTL(session, SetTTL(duration))
-	if configTTL == nil {
+	cacheTTL := NewMongoCacheWithTTL(session, SetTTL(duration))
+	defer mgoCache.StopGC()
+	if cacheTTL == nil {
 		t.Fatal("ttl config should not be nil")
 	}
-	if configTTL.TTL != duration {
-		t.Fatal("config ttl time should equal 2 minutes")
+	if cacheTTL.TTL != duration {
+		t.Fatalf("config ttl time should equal to %v", duration)
 	}
 
 	// check multiple options
 	collName := "testingCollectionName"
-	config := NewMongoCacheWithTTL(session, SetCollectionName(collName), SetGCInterval(duration), StartGC())
-	if config == nil {
-		t.Fatal("config should not be nil")
+	cache := NewMongoCacheWithTTL(session, SetCollectionName(collName), SetGCInterval(duration), StartGC())
+	defer mgoCache.StopGC()
+	if cache == nil {
+		t.Fatal("cache should not be nil")
 	}
-	if config.CollectionName != collName {
-		t.Fatal("config collection name should equal 'TestCollectionName'")
+	if cache.CollectionName != collName {
+		t.Fatalf("cache collection name should equal %s", collName)
 	}
-	if config.GCStart != true {
-		t.Fatal("config StartGC option should not be true")
+	if cache.GCStart != true {
+		t.Fatal("cache StartGC option should not be true")
 	}
 
-	if config.GCInterval != duration {
-		t.Fatalf("config GCInterval option should equal %v", duration)
+	if cache.GCInterval != duration {
+		t.Fatalf("cache GCInterval option should equal %v", duration)
 	}
 }
 
 func TestMongoCacheGet(t *testing.T) {
 	mgoCache := NewMongoCacheWithTTL(session)
+	defer mgoCache.StopGC()
 	if mgoCache == nil {
 		t.Fatal("config should not be nil")
 	}
@@ -101,6 +63,7 @@ func TestMongoCacheGet(t *testing.T) {
 
 func TestMongoCacheSet(t *testing.T) {
 	mgoCache := NewMongoCacheWithTTL(session)
+	defer mgoCache.StopGC()
 	if mgoCache == nil {
 		t.Fatal("config should not be nil")
 	}
@@ -125,6 +88,7 @@ func TestMongoCacheSet(t *testing.T) {
 
 func TestMongoCacheSetEx(t *testing.T) {
 	mgoCache := NewMongoCacheWithTTL(session)
+	defer mgoCache.StopGC()
 	if mgoCache == nil {
 		t.Fatal("config should not be nil")
 	}
@@ -147,13 +111,14 @@ func TestMongoCacheSetEx(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !time.Now().Add(duration).After(document.ExpireAt) {
-		t.Fatalf("expireAt should less than %v", duration)
+		t.Fatalf("expireAt should be greater than now + %v", duration)
 	}
 
 }
 
 func TestMongoCacheDelete(t *testing.T) {
 	mgoCache := NewMongoCacheWithTTL(session)
+	defer mgoCache.StopGC()
 	if mgoCache == nil {
 		t.Fatal("config should not be nil")
 	}
@@ -167,9 +132,6 @@ func TestMongoCacheDelete(t *testing.T) {
 	data, err := mgoCache.Get(key)
 	if err != nil {
 		t.Fatalf("error should be nil: %q", err)
-	}
-	if data == nil {
-		t.Fatal("data should not be nil")
 	}
 	if data != value {
 		t.Fatalf("data should equal to %v, but got: %v", value, data)
@@ -190,6 +152,7 @@ func TestMongoCacheTTL(t *testing.T) {
 	duration := time.Millisecond * 100
 
 	mgoCache := NewMongoCacheWithTTL(session, SetTTL(duration))
+	defer mgoCache.StopGC()
 	if mgoCache == nil {
 		t.Fatal("config should not be nil")
 	}
@@ -222,6 +185,7 @@ func TestMongoCacheGC(t *testing.T) {
 	duration := time.Millisecond * 100
 
 	mgoCache := NewMongoCacheWithTTL(session, SetTTL(duration/2), SetGCInterval(duration), StartGC())
+	defer mgoCache.StopGC()
 	if mgoCache == nil {
 		t.Fatal("config should not be nil")
 	}
@@ -292,7 +256,6 @@ func initMongo() *mgo.Session {
 	}
 
 	ses.SetSafe(&mgo.Safe{})
-	ses.SetMode(mgo.Strong, true)
 
 	return ses
 }
