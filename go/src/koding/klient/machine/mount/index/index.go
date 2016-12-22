@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+// Entry represents a single file registered to index.
 type Entry struct {
 	Name  string      // The relative name of the file.
 	CTime int64       // Metadata change time since EPOCH.
@@ -19,13 +20,23 @@ type Entry struct {
 	SHA1  []byte      // SHA-1 hash of file content.
 }
 
-func NewEntryFile(root, path string, info os.FileInfo) (*Entry, error) {
-	sum, err := readSHA1(path)
+// NewEntryFile creates new Entry from a file stored under path argument.
+// Info is optional and, if given, should store LStat result on the given file.
+func NewEntryFile(root, path string, info os.FileInfo) (e *Entry, err error) {
+	if info == nil {
+		if info, err = os.Lstat(path); err != nil {
+			return nil, err
+		}
+	}
+
+	// Get relative file name.
+	name, err := filepath.Rel(root, path)
 	if err != nil {
 		return nil, err
 	}
 
-	name, err := filepath.Rel(root, path)
+	// Compute file's SHA-1 sum.
+	sum, err := readSHA1(path)
 	if err != nil {
 		return nil, err
 	}
@@ -41,6 +52,8 @@ func NewEntryFile(root, path string, info os.FileInfo) (*Entry, error) {
 	}, nil
 }
 
+// safeTruncate converts signed integer to unsigned one returning 0 for negative
+// values of provided argument.
 func safeTruncate(n int64) uint32 {
 	if n < 0 {
 		return 0
@@ -49,6 +62,7 @@ func safeTruncate(n int64) uint32 {
 	return uint32(n)
 }
 
+// readSHA1 computes SHA-1 sum from a given file content.
 func readSHA1(path string) ([]byte, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -64,32 +78,39 @@ func readSHA1(path string) ([]byte, error) {
 	return hash.Sum(nil), nil
 }
 
-type Change uint32
+// ChangeMeta indicates what change has been done on a given file.
+type ChangeMeta uint32
 
 const (
-	ChangeUpdate Change = 1 << iota // File was updated.
-	ChangeRemove                    // File was removed.
-	ChangeAdded                     // File was added.
+	ChangeMetaUpdate ChangeMeta = 1 << iota // File was updated.
+	ChangeMetaRemove                        // File was removed.
+	ChangeMetaAdded                         // File was added.
 )
 
-type ChangeInfo struct {
-	Name      string // The relative name of the file.
-	Size      uint32 // Size of the file truncated to 32 bits.
-	Type      Change // The type of operation made on file entry.
-	CreatedAt int64  // Change creation time since EPOCH.
+// Change describes single file change.
+type Change struct {
+	Name      string     // The relative name of the file.
+	Size      uint32     // Size of the file truncated to 32 bits.
+	Meta      ChangeMeta // The type of operation made on file entry.
+	CreatedAt int64      // Change creation time since EPOCH.
 }
 
+// Index stores a virtual working tree state. It recursively records objects in
+// a given root path and allows to efficiently detect changes on it.
 type Index struct {
 	mu      sync.RWMutex
 	entries map[string]*Entry
 }
 
+// NewIndex creates the empty index object.
 func NewIndex() *Index {
 	return &Index{
 		entries: make(map[string]*Entry, 0),
 	}
 }
 
+// NewIndexFiles walks the given file tree roted at root and records file
+// states to resulting Index object.
 func NewIndexFiles(root string) (*Index, error) {
 	idx := NewIndex()
 
@@ -115,7 +136,10 @@ func NewIndexFiles(root string) (*Index, error) {
 	return idx, nil
 }
 
-func (idx *Index) Compare(root string) (cis []ChangeInfo) {
+// Compare rereads the given file tree roted at root and compares its entries
+// to previous state of the index. All detected changes will be stored in
+// returned Change slice.
+func (idx *Index) Compare(root string) (cs []Change) {
 	visited := make(map[string]struct{})
 
 	// Walk over current root path and check it files.
@@ -136,10 +160,10 @@ func (idx *Index) Compare(root string) (cis []ChangeInfo) {
 
 		// Not found in current index - file was added.
 		if !ok {
-			cis = append(cis, ChangeInfo{
+			cs = append(cs, Change{
 				Name:      name,
 				Size:      safeTruncate(info.Size()),
-				Type:      ChangeAdded,
+				Meta:      ChangeMetaAdded,
 				CreatedAt: time.Now().UnixNano(),
 			})
 			return nil
@@ -150,10 +174,10 @@ func (idx *Index) Compare(root string) (cis []ChangeInfo) {
 		if entry.MTime != info.ModTime().UnixNano() ||
 			entry.CTime != ctimeFromSys(info) ||
 			entry.Size != uint32(info.Size()) {
-			cis = append(cis, ChangeInfo{
+			cs = append(cs, Change{
 				Name:      name,
 				Size:      safeTruncate(info.Size()),
-				Type:      ChangeUpdate,
+				Meta:      ChangeMetaUpdate,
 				CreatedAt: time.Now().UnixNano(),
 			})
 		}
@@ -171,9 +195,9 @@ func (idx *Index) Compare(root string) (cis []ChangeInfo) {
 		if _, ok := visited[name]; !ok {
 			path := filepath.Join(root, filepath.FromSlash(name))
 			if _, err := os.Lstat(path); os.IsNotExist(err) {
-				cis = append(cis, ChangeInfo{
+				cs = append(cs, Change{
 					Name:      name,
-					Type:      ChangeRemove,
+					Meta:      ChangeMetaRemove,
 					CreatedAt: time.Now().UnixNano(),
 				})
 			}
@@ -181,28 +205,31 @@ func (idx *Index) Compare(root string) (cis []ChangeInfo) {
 	}
 	idx.mu.RUnlock()
 
-	return cis
+	return cs
 }
 
-func (idx *Index) Apply(root string, cis []ChangeInfo) {
-	for i := range cis {
-		switch cis[i].Type {
-		case ChangeUpdate, ChangeAdded:
+// Apply modifies index according to provided changes. This function doesn't
+// guarantee that changes from Compare function applied to the index will
+// result in actual directory state.
+func (idx *Index) Apply(root string, cs []Change) {
+	for i := range cs {
+		switch {
+		case cs[i].Meta&(ChangeMetaUpdate|ChangeMetaAdded) != 0:
 			idx.mu.RLock()
-			entry, ok := idx.entries[cis[i].Name]
+			entry, ok := idx.entries[cs[i].Name]
 			idx.mu.RUnlock()
 
 			// Entry was updated/added after the event was created.
-			if ok && entry.MTime > cis[i].CreatedAt {
+			if ok && entry.MTime > cs[i].CreatedAt {
 				continue
 			}
 			fallthrough
-		case ChangeRemove:
-			path := filepath.Join(root, filepath.FromSlash(cis[i].Name))
+		case cs[i].Meta&ChangeMetaRemove != 0:
+			path := filepath.Join(root, filepath.FromSlash(cs[i].Name))
 			info, err := os.Lstat(path)
 			if os.IsNotExist(err) {
 				idx.mu.Lock()
-				delete(idx.entries, cis[i].Name)
+				delete(idx.entries, cs[i].Name)
 				idx.mu.Unlock()
 				continue
 			}
