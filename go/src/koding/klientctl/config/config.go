@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strconv"
 
-	konfig "koding/kites/config"
+	"koding/kites/config"
 	"koding/kites/config/configstore"
 )
 
@@ -67,7 +67,7 @@ var (
 	SegmentKey = ""
 )
 
-var Konfig = configstore.Read(&konfig.Environments{
+var Konfig = configstore.Read(&config.Environments{
 	Env:       Environment,
 	KlientEnv: kd2klient(Environment),
 })

@@ -55,7 +55,6 @@ environment:terraformer               STARTING
 socialapi:algoliaconnector            STARTING
 socialapi:collaboration               STARTING
 socialapi:dispatcher                  STARTING
-socialapi:eventsender                 STARTING
 socialapi:gatekeeper                  STARTING
 socialapi:mailsender                  STARTING
 socialapi:realtime                    STARTING
@@ -79,7 +78,6 @@ environment:terraformer               RUNNING   pid 3274, uptime 0:00:15
 socialapi:algoliaconnector            RUNNING   pid 3327, uptime 0:00:15
 socialapi:collaboration               RUNNING   pid 3382, uptime 0:00:15
 socialapi:dispatcher                  RUNNING   pid 3391, uptime 0:00:15
-socialapi:eventsender                 RUNNING   pid 3362, uptime 0:00:15
 socialapi:gatekeeper                  RUNNING   pid 3277, uptime 0:00:15
 socialapi:mailsender                  RUNNING   pid 3292, uptime 0:00:15
 socialapi:realtime                    RUNNING   pid 3312, uptime 0:00:15

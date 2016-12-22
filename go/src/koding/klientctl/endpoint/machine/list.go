@@ -25,12 +25,12 @@ type ListOptions struct {
 // List retrieves user's machines from kloud.
 func List(options *ListOptions) ([]*Info, error) {
 	var (
-		req = stack.MachineListRequest{}
-		res = stack.MachineListResponse{}
+		listReq = stack.MachineListRequest{}
+		listRes = stack.MachineListResponse{}
 	)
 
 	// Get info from kloud.
-	if err := kloud.Call("machine.list", &req, &res); err != nil {
+	if err := kloud.Call("machine.list", &listReq, &listRes); err != nil {
 		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
 		return nil, err
 	}
@@ -49,11 +49,11 @@ func List(options *ListOptions) ([]*Info, error) {
 		return nil, err
 	}
 
-	mgreq := machinegroup.CreateRequest{
+	createReq := machinegroup.CreateRequest{
 		Addresses: make(map[kmachine.ID][]kmachine.Addr),
 	}
-	for _, m := range res.Machines {
-		mgreq.Addresses[kmachine.ID(m.ID)] = []kmachine.Addr{
+	for _, m := range listRes.Machines {
+		createReq.Addresses[kmachine.ID(m.ID)] = []kmachine.Addr{
 			{
 				Network:   "ip",
 				Value:     m.IP,
@@ -71,24 +71,21 @@ func List(options *ListOptions) ([]*Info, error) {
 			},
 		}
 	}
-	kresraw, err := k.Tell("machine.create", mgreq)
+	createRaw, err := k.Tell("machine.create", createReq)
 	if err != nil {
 		return nil, err
 	}
 
-	mgres := machinegroup.CreateResponse{
-		Statuses: make(map[kmachine.ID]kmachine.Status),
-		Aliases:  make(map[kmachine.ID]string),
-	}
-	if err := kresraw.Unmarshal(&mgres); err != nil {
+	createRes := machinegroup.CreateResponse{}
+	if err := createRaw.Unmarshal(&createRes); err != nil {
 		return nil, err
 	}
 
-	infos := make([]*Info, len(res.Machines))
-	for i, m := range res.Machines {
+	infos := make([]*Info, len(listRes.Machines))
+	for i, m := range listRes.Machines {
 		infos[i] = &Info{
 			ID:          m.ID,
-			Alias:       mgres.Aliases[kmachine.ID(m.ID)],
+			Alias:       createRes.Aliases[kmachine.ID(m.ID)],
 			Team:        m.Team,
 			Stack:       m.Stack,
 			Provider:    m.Provider,
@@ -101,7 +98,7 @@ func List(options *ListOptions) ([]*Info, error) {
 				State:  fromMachineStateString(m.Status.State),
 				Reason: m.Status.Reason,
 				Since:  m.Status.ModifiedAt,
-			}, mgres.Statuses[kmachine.ID(m.ID)]),
+			}, createRes.Statuses[kmachine.ID(m.ID)]),
 			Username: machineUserFromUsers(m.Users),
 			Owner:    ownerFromUsers(m.Users),
 		}

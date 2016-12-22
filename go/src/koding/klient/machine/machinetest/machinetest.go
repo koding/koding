@@ -11,7 +11,7 @@ import (
 )
 
 // DynamicClientOpts creates test-friendly options for dynamic client.
-func DynamicClientOpts(s *Server, b *NilBuilder) machine.DynamicClientOpts {
+func DynamicClientOpts(s *Server, b *ClientBuilder) machine.DynamicClientOpts {
 	return machine.DynamicClientOpts{
 		AddrFunc:        s.AddrFunc(),
 		Builder:         b,
@@ -90,21 +90,28 @@ func (s *Server) ChangeAddr() {
 	s.addr.Value += "0"
 }
 
-// NilBuilder uses Server logic to build nil clients.
-type NilBuilder struct {
+// ClientBuilder uses Server logic to build test clients.
+type ClientBuilder struct {
+	c       *Client
 	buildsN int64
 	ch      chan struct{}
 }
 
-// NewNilBuilder creates a new NilBuilder object.
-func NewNilBuilder() *NilBuilder {
-	return &NilBuilder{
+// NewClientBuilder creates a new ClientBuilder object that uses provided test
+// client. If test client is nil, the default one will be created.
+func NewClientBuilder(c *Client) *ClientBuilder {
+	if c == nil {
+		c = NewClient()
+	}
+
+	return &ClientBuilder{
+		c:  c,
 		ch: make(chan struct{}),
 	}
 }
 
 // Ping returns machine statuses based on Server response.
-func (*NilBuilder) Ping(dynAddr machine.DynamicAddrFunc) (machine.Status, machine.Addr, error) {
+func (*ClientBuilder) Ping(dynAddr machine.DynamicAddrFunc) (machine.Status, machine.Addr, error) {
 	if dynAddr == nil {
 		panic("nil dynamic function generator")
 	}
@@ -124,18 +131,19 @@ func (*NilBuilder) Ping(dynAddr machine.DynamicAddrFunc) (machine.Status, machin
 }
 
 // Build creates a nil client and increases builds counter.
-func (n *NilBuilder) Build(_ context.Context, _ machine.Addr) machine.Client {
+func (n *ClientBuilder) Build(ctx context.Context, _ machine.Addr) machine.Client {
 	go func() {
 		atomic.AddInt64(&n.buildsN, 1)
 		n.ch <- struct{}{}
 	}()
 
-	return nil
+	n.c.SetContext(ctx)
+	return n.c
 }
 
 // WaitForBuild waits for invocation of Build method. It times out after
 // specified duration.
-func (n *NilBuilder) WaitForBuild(timeout time.Duration) error {
+func (n *ClientBuilder) WaitForBuild(timeout time.Duration) error {
 	select {
 	case <-n.ch:
 		return nil
@@ -145,6 +153,17 @@ func (n *NilBuilder) WaitForBuild(timeout time.Duration) error {
 }
 
 // BuildsCount returns how many times Build method was invoked.
-func (n *NilBuilder) BuildsCount() int {
+func (n *ClientBuilder) BuildsCount() int {
 	return int(atomic.LoadInt64(&n.buildsN))
+}
+
+// WaitForContextClose waits until context is done. It times out after specified
+// duration.
+func WaitForContextClose(ctx context.Context, timeout time.Duration) error {
+	select {
+	case <-ctx.Done():
+		return nil
+	case <-time.After(timeout):
+		return fmt.Errorf("timed out after %s", timeout)
+	}
 }

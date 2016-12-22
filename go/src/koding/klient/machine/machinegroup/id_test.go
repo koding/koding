@@ -17,7 +17,7 @@ func TestID(t *testing.T) {
 		ipB = machine.Addr{Network: "ip", Value: "10.0.1.16", UpdatedAt: time.Now()}
 	)
 
-	g, err := New(testOptions(machinetest.NewNilBuilder()))
+	g, err := New(testOptions(machinetest.NewClientBuilder(nil)))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}

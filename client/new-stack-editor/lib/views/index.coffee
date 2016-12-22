@@ -1,60 +1,109 @@
 kd = require 'kd'
 bowser = require 'bowser'
 Encoder = require 'htmlencode'
-EditorView = require './editorview'
+
 FlexSplit = require './flexsplit'
 FlexSplitStorage = require './flexsplit/storage'
-AppStorageAdapter = require './appstorageadapter'
+AppStorageAdapter = require './adapters/appstorageadapter'
+
+Toolbar = require './toolbar'
+Editor = require './editor'
+Statusbar = require './statusbar'
 
 
 module.exports = class StackEditor extends kd.View
 
 
-  constructor: (options = {}, data) ->
+  constructor: (options = {}, data = {}) ->
 
     super options, data
+
+    # In-Memory Snapshot Storage
+    @_snapshots = {}
+    @_current = null
 
     # Storage
     @layoutStorage = new FlexSplitStorage
       adapter: AppStorageAdapter
 
     # Toolbar
-    @toolbar = new kd.View
-      cssClass: 'toolbar'
+    @toolbar = new Toolbar
+    @forwardEvent @toolbar, 'InitializeRequested'
 
     # Status bar
-    @statusbar = new kd.View
-      cssClass: 'statusbar'
+    @statusbar = new Statusbar
 
     # Editor views
-    @editor = new EditorView
+    @editor = new Editor {
       cssClass: 'editor'
+      @statusbar
+    }
 
-    @logs = new EditorView
+    @logs = new Editor {
       cssClass: 'logs'
       title: 'Logs'
+      @statusbar
+    }
 
-    @variables = new EditorView
+    @variables = new Editor {
       cssClass: 'variables'
       title: 'Custom Variables'
+      @statusbar
+    }
 
-    @readme = new EditorView
+    @readme = new Editor {
       cssClass: 'readme'
       title: 'Readme'
+      @statusbar
+    }
 
     @emit 'ready'
 
 
-  setData: (@data) ->
+  setTemplateData: (data) ->
+
+    if data
+      @setData data
+      @toolbar.setData data
+
+    { _id: id, title, description, template } = @getData()
+    unless id or description or template
+      throw { message: 'A valid JStackTemplate is required!' }
+
+    @_saveSnapshot @_current  if @_current
+    @editor.setOption 'title', title
+
+    unless @_loadSnapshot id
+
+      @editor.setContent Encoder.htmlDecode template.rawContent
+      @readme.setContent description
+      @logs.setContent 'Stack template loaded'
+
+      @_saveSnapshot id
+      @_current = id
+
+    kd.utils.defer @editor.bound 'focus'
 
 
-    { description, template } = @getData()
+  _loadSnapshot: (id) ->
 
-    @editor.setContent Encoder.htmlDecode template.rawContent
-    @readme.setContent description
+    return no  unless id
+    return no  unless snapshot = @_snapshots[id]
 
-    @logs.setContent 'Stack template loaded'
+    for view in ['editor', 'readme', 'logs']
+      @[view]._restore snapshot[view]
+    @_current = id
 
+    return yes
+
+
+  _saveSnapshot: (id) ->
+
+    return  unless id
+
+    @_snapshots[id] ?= {}
+    for view in ['editor', 'readme', 'logs']
+      @_snapshots[id][view] = @[view]._dump()
 
 
   viewAppended: ->

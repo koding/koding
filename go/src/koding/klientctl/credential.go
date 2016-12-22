@@ -30,8 +30,7 @@ func CredentialList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	}
 
 	if len(creds) == 0 {
-		fmt.Fprintln(os.Stderr, "You have no matching credentials attached to your Koding account.")
-		return 0, nil
+		return 0, fmt.Errorf("you have no matching credentials attached to your Koding account")
 	}
 
 	if c.Bool("json") {
@@ -173,8 +172,7 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 	case "":
 		opts, err = AskCredentialCreate(c)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "Error building credential data:", err)
-			return 1, err
+			return 1, fmt.Errorf("error building credential data: %v", err)
 		}
 	case "-":
 		p, err = ioutil.ReadAll(os.Stdin)
@@ -183,8 +181,7 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 	}
 
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error reading credential file:", err)
-		return 1, err
+		return 1, fmt.Errorf("error reading credential file: %v", err)
 	}
 
 	fmt.Fprintln(os.Stderr, "Creating credential... ")
@@ -200,8 +197,7 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 
 	cred, err := credential.Create(opts)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error creating credential:", err)
-		return 1, err
+		return 1, fmt.Errorf("error creating credential: %v", err)
 	}
 
 	if c.Bool("json") {
@@ -223,15 +219,13 @@ func CredentialCreate(c *cli.Context, log logging.Logger, _ string) (int, error)
 func CredentialDescribe(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	descs, err := credential.Describe()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error requesting credential description:", err)
-		return 1, err
+		return 1, fmt.Errorf("error requesting credential description: %v", err)
 	}
 
 	if p := c.String("provider"); p != "" {
 		desc, ok := descs[p]
 		if !ok {
-			fmt.Fprintf(os.Stderr, "No description found for %q provider.\n", p)
-			return 1, err
+			return 1, fmt.Errorf("no description found for %q provider", p)
 		}
 
 		descs = stack.Descriptions{p: desc}

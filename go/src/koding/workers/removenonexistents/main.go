@@ -316,7 +316,7 @@ func deleteRels(res interface{}) error {
 
 	var data interface{}
 	targetCollectionName := helper.GetCollectionName(r.TargetName)
-	if err := helper.Mongo.One(targetCollectionName, r.TargetId.Hex(), &data); err != nil {
+	if err := helper.Mongo.One(targetCollectionName, r.TargetId.Hex(), &data); err == mgo.ErrNotFound {
 		fmt.Printf("deleted because of target: id: %q from: %q name: %q\n", r.Id.Hex(), targetCollectionName, r.TargetName)
 		if !*flagDry {
 			return helper.DeleteRelationship(r.Id)
@@ -325,7 +325,7 @@ func deleteRels(res interface{}) error {
 	}
 
 	sourceCollectionName := helper.GetCollectionName(r.SourceName)
-	if err := helper.Mongo.One(sourceCollectionName, r.SourceId.Hex(), &data); err != nil {
+	if err := helper.Mongo.One(sourceCollectionName, r.SourceId.Hex(), &data); err == mgo.ErrNotFound {
 		fmt.Printf("deleting because of source: id: %q from: %q name: %q\n", r.Id.Hex(), sourceCollectionName, r.SourceName)
 		if !*flagDry {
 			return helper.DeleteRelationship(r.Id)

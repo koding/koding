@@ -22,7 +22,7 @@ func testOptions(b machine.ClientBuilder) *clients.ClientsOpts {
 
 func TestClients(t *testing.T) {
 	var (
-		builder = machinetest.NewNilBuilder()
+		builder = machinetest.NewClientBuilder(nil)
 
 		idA = machine.ID("servA")
 		idB = machine.ID("servB")

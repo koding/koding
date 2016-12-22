@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"koding/klientctl/config"
+	configcli "koding/klientctl/endpoint/config"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
@@ -101,6 +102,12 @@ func (u *Uninstall) Uninstall() (string, int) {
 		u.log.Warning("Service errored on stop. err:%s", err)
 		u.addWarning(FailedStopKlientWarn)
 	}
+
+	// Ensure /etc/kite/kite.key is migrated to konfig.bolt before
+	// old klient gets uninstalled. The endpoint/config package
+	// performs lazy migrations, so it's enough to call any of
+	// its methods and disregard the result.
+	_ = configcli.List()
 
 	if err := u.ServiceUninstaller.Uninstall(); err != nil {
 		u.log.Warning("Service errored on uninstall. err:%s", err)

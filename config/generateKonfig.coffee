@@ -138,13 +138,10 @@ module.exports = (options, credentials) ->
     address: "http://localhost:#{kloudPort}/kite"
 
     kontrolUrl: kontrol.url
+    kodingUrl:  "#{options.customDomain.public}"
     registerUrl: "#{options.customDomain.public}/kloud/kite"
-    remoteApiUrl: "#{options.customDomain.local}/remote.api"
     tunnelUrl: "#{options.tunnelUrl}"
     klientUrl: "https://s3.amazonaws.com/koding-klient/development/latest/klient.deb"
-
-    credentialEndPoint: "#{socialApiProxyUrl}/credential"
-    socialProxyURL: "#{socialApiProxyUrl}"
 
     terraformerSecretKey: credentials.terraformer.secretKey
 
@@ -183,7 +180,6 @@ module.exports = (options, credentials) ->
     customDomain           : options.customDomain
     email                  : email
 
-    sitemap                : { redisDB: 0, updateInterval: "1m" }
     limits                 : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 30 }
     kloud                  : { secretKey: kloud.kloudSecretKey, address: kloud.address }
     geoipdbpath            : "$KONFIG_PROJECTROOT/go/data/geoipdb"
