@@ -10,7 +10,7 @@ getSessionToken = -> kookies.get 'clientId'
 createInstance = ->
 
   bongoInstance = new Bongo
-    debug: yes
+    debug: no
     apiEndpoint    : globals.config.socialApiUri
     apiDescriptor  : globals.REMOTE_API
     resourceName   : globals.config.resourceName ? 'koding-social'
