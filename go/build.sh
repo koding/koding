@@ -15,8 +15,6 @@ koding-go-install() {
 }
 
 export COMMANDS=(
-	koding/broker
-	koding/rerouting
 	koding/kites/kontrol
 	koding/kites/kloud
 	koding/kites/kloud/kloudctl
@@ -79,9 +77,6 @@ go generate koding/kites/config koding/kites/kloud/kloud
 koding-go-install ${COMMANDS[@]} ${TERRAFORM_COMMANDS[@]}
 rm -rf $GOBIN/provider-github
 koding-go-install ${TERRAFORM_CUSTOM_COMMANDS[@]}
-
-mkdir -p $GOPATH/build/broker
-cp -f $GOBIN/broker $GOPATH/build/broker/broker
 
 for cmd in $GOBIN/provider-* $GOBIN/provisioner-*; do
 	NAME=$(echo $cmd | rev | cut -d/ -f1 | rev)

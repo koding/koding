@@ -4,8 +4,8 @@ import (
 	"errors"
 	"koding/db/mongodb"
 	"koding/db/mongodb/modelhelper"
-	"koding/tools/logger"
 
+	"github.com/koding/logging"
 	"gopkg.in/mgo.v2"
 )
 
@@ -34,8 +34,8 @@ type iterOptions struct {
 	// Data object itself for marshalling the result
 	Result interface{}
 
-	// logger for iteration
-	Log logger.Log
+	// logging for iteration
+	Log logging.Logger
 }
 
 // NewIterOptions Sets the default values for iterOptions
@@ -45,7 +45,7 @@ func NewIterOptions() *iterOptions {
 		Limit:      1000,
 		Filter:     modelhelper.Selector{},
 		RetryCount: 50,
-		Log:        logger.New("Iter"),
+		Log:        logging.NewCustom("Iter", false),
 	}
 }
 
