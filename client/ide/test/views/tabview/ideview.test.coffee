@@ -24,7 +24,6 @@ revertShowErrorNotification = null
 initSpies = ->
 
   expect.spyOn IDEView.prototype, 'updateStatusBar'
-  expect.spyOn IDEView.prototype, 'bindListeners'
   expect.spyOn IDEView.prototype, 'trimUntitledFileName'
   handlePaneRemovedSpy = expect.spyOn IDEView.prototype, 'handlePaneRemoved'
 
@@ -92,7 +91,6 @@ describe 'IDEView', ->
     it 'should have default options set and invoke required methods', ->
 
       expect.spyOn IDEView.prototype, 'setHash'
-      expect.spyOn IDEView.prototype, 'bindListeners'
 
       ideView = new IDEView
       options = ideView.getOptions()
@@ -104,7 +102,6 @@ describe 'IDEView', ->
 
       expect(ideView.openFiles).toEqual []
       expect(ideView.setHash).toHaveBeenCalled()
-      expect(ideView.bindListeners).toHaveBeenCalled()
 
 
   describe '::createPane_', ->

@@ -13,6 +13,7 @@ import (
 	"koding/kites/kloud/utils/object"
 	"koding/klient/storage"
 	"koding/klientctl/config"
+	cfg "koding/klientctl/endpoint/config"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
@@ -62,31 +63,34 @@ func createFolderAtHome(cf ...string) (string, error) {
 }
 
 var b = &object.Builder{
-	Tag:       "json",
-	Sep:       ".",
-	Recursive: true,
+	Tag:           "json",
+	Sep:           ".",
+	Recursive:     true,
+	FlatStringers: true,
 }
 
 func ConfigShow(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	cfg := config.Konfig
+	used := config.Konfig
 
 	if !c.Bool("defaults") {
-		cfg = &konfig.Konfig{}
-
-		db := konfig.NewCache(konfig.KonfigCache)
-		defer db.Close()
-
-		if err := db.GetValue("konfig", cfg); err != nil && err != storage.ErrKeyNotFound {
+		k, err := cfg.Used()
+		if err != nil && err != storage.ErrKeyNotFound {
 			return 1, err
+		}
+		if err == nil {
+			used = k
 		}
 	}
 
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetIndent("", "\t")
+	if c.Bool("json") {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "\t")
+		enc.Encode(used)
 
-	if err := enc.Encode(cfg); err != nil {
-		return 1, err
+		return 0, nil
 	}
+
+	printKonfig(used)
 
 	return 0, nil
 }
@@ -144,13 +148,12 @@ func ConfigUse(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, nil
 	}
 
-	// TODO(rjeczalik): add support for initializing configuration via
-	// fetching it from kloud url passed as argument
+	arg := c.Args().Get(0)
 
-	k, ok := configstore.List()[c.Args().Get(0)]
+	k, ok := configstore.List()[arg]
 	if !ok {
-		fmt.Fprintf(os.Stderr, "Configuration %q was not found. Please use \"kd config list\""+
-			" to list available configurations.\n", c.Args().Get(0))
+		fmt.Fprintf(os.Stderr, "Configuration %q was not found. Please use \"kd config list"+
+			"\" to list available configurations.\n", arg)
 		return 1, nil
 	}
 
@@ -159,7 +162,18 @@ func ConfigUse(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, err
 	}
 
-	fmt.Printf("Switched to %s.\n", k.KodingPublic())
+	fmt.Printf("Switched to %s.\n\nPlease run \"sudo kd restart\" for the new configuration to take effect.\n", k.KodingPublic())
+
+	return 0, nil
+}
+
+func ConfigReset(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	if err := cfg.Reset(); err != nil {
+		fmt.Fprintln(os.Stderr, "Error resetting configuration:", err)
+		return 1, err
+	}
+
+	fmt.Printf("Reset %s.\n\nPlease run \"sudo kd restart\" for the new configuration to take effect.\n", config.Konfig.KodingPublic())
 
 	return 0, nil
 }
@@ -172,5 +186,22 @@ func printKonfigs(konfigs []*konfig.Konfig) {
 
 	for _, konfig := range konfigs {
 		fmt.Fprintf(w, "%s\t%s\n", konfig.ID(), konfig.KodingPublic())
+	}
+}
+
+func printKonfig(konfig *konfig.Konfig) {
+	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
+	defer w.Flush()
+
+	fmt.Fprintln(w, "KEY\tVALUE")
+
+	obj := b.Build(konfig, "kiteKey", "kontrolURL", "tunnelURL")
+
+	for _, key := range obj.Keys() {
+		value := obj[key]
+		if value == nil || fmt.Sprintf("%v", value) == "" {
+			value = "-"
+		}
+		fmt.Fprintf(w, "%s\t%v\n", key, value)
 	}
 }

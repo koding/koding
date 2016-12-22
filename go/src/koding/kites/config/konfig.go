@@ -59,6 +59,7 @@ type Konfig struct {
 	Endpoints *Endpoints `json:"endpoints,omitempty"`
 
 	KontrolURL string `json:"kontrolURL,omitempty"` // deprecated / read-only
+	TunnelURL  string `json:"tunnelURL,omitempty"`  // deprecated / read-only
 
 	// Kite configuration.
 	Environment string `json:"environment,omitempty"`
@@ -75,7 +76,7 @@ type Konfig struct {
 	PublicBucketName   string `json:"publicBucketName,omitempty"`
 	PublicBucketRegion string `json:"publicBucketRegion,omitempty"`
 
-	Debug bool `json:"debug,omitempty"`
+	Debug bool `json:"debug,string,omitempty"`
 
 	// Metadata keeps per-app configuration.
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
@@ -162,6 +163,14 @@ func (k *Konfig) buildKiteConfig() *konfig.Config {
 	}
 
 	return konfig.New()
+}
+
+func NewKonfigURL(koding *url.URL) *Konfig {
+	return &Konfig{
+		Endpoints: &Endpoints{
+			Koding: NewEndpointURL(koding),
+		},
+	}
 }
 
 type Konfigs map[string]*Konfig

@@ -5,22 +5,35 @@ import (
 	"fmt"
 )
 
-// PrettyJSON is a wrapper for a JSON-encoded slice
-// of bytes that implements fmt.Stringer, which
-// pretty-prints the json.
-type PrettyJSON []byte
+// LazyJSON gives a wrapper for an arbitrary value
+// that implements fmt.Stringer, which pretty-prints
+// the JSON-encoded representation of the value.
+func LazyJSON(v interface{}) fmt.Stringer {
+	return lazyJSON{v: v}
+}
+
+type lazyJSON struct {
+	v interface{}
+}
 
 // String implements the fmt.Stringer interface.
-func (p PrettyJSON) String() string {
-	var v interface{}
+func (l lazyJSON) String() string {
+	vv := l.v
 
-	if err := json.Unmarshal([]byte(p), &v); err != nil {
-		return fmt.Sprintf("!JSON(%s)", []byte(p))
+	switch v := l.v.(type) {
+	case string:
+		if err := json.Unmarshal([]byte(v), &vv); err != nil {
+			return fmt.Sprintf("!JSON(%v)", l.v)
+		}
+	case []byte:
+		if err := json.Unmarshal(v, &vv); err != nil {
+			return fmt.Sprintf("!JSON(%v)", l.v)
+		}
 	}
 
-	p, err := json.MarshalIndent(v, "", "\t")
+	p, err := json.MarshalIndent(vv, "", "\t")
 	if err != nil {
-		return fmt.Sprintf("!JSON(%s)", []byte(p))
+		return fmt.Sprintf("!JSON(%v)", l.v)
 	}
 
 	return string(p)

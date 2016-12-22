@@ -28,8 +28,7 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 		session, err := auth.Login(opts)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "Error logging in to your Koding account:", err)
-			return 1, err
+			return 1, fmt.Errorf("error logging into your Koding account: %v", err)
 		}
 
 		team.Use(&team.Team{Name: session.Team})

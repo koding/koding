@@ -138,13 +138,10 @@ module.exports = (options, credentials) ->
     address: "http://localhost:#{kloudPort}/kite"
 
     kontrolUrl: kontrol.url
+    kodingUrl:  "#{options.customDomain.public}"
     registerUrl: "#{options.customDomain.public}/kloud/kite"
-    remoteApiUrl: "#{options.customDomain.local}/remote.api"
     tunnelUrl: "#{options.tunnelUrl}"
     klientUrl: "https://s3.amazonaws.com/koding-klient/development/latest/klient.deb"
-
-    credentialEndPoint: "#{socialApiProxyUrl}/credential"
-    socialProxyURL: "#{socialApiProxyUrl}"
 
     terraformerSecretKey: credentials.terraformer.secretKey
 

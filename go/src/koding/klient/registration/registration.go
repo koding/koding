@@ -4,15 +4,16 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"net/url"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"strings"
 	"time"
 
+	cfg "koding/kites/config"
 	konfig "koding/klient/config"
 	"koding/klient/tunnel/tlsproxy"
+	configcli "koding/klientctl/endpoint/config"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
@@ -20,7 +21,7 @@ import (
 
 // Register registers with the username to the given kontrolURL via the users
 // password or the given token.
-func Register(kontrolURL, kiteHome, username, token string, debug bool) error {
+func Register(koding *url.URL, username, token string, debug bool) error {
 	var err error
 
 	// Open up a prompt if the username is not passed via a flag and it's not a
@@ -50,9 +51,10 @@ func Register(kontrolURL, kiteHome, username, token string, debug bool) error {
 	k.Config.Transport = config.XHRPolling
 
 	// Give a warning if an existing kite.key exists
-	kiteKeyPath := kiteHome + "/kite.key"
-	if _, err := readKey(kiteKeyPath); err == nil {
-		result, err := ask(fmt.Sprintf("An existing %s detected. Type 'yes' to override and continue:", kiteKeyPath))
+	newKonfig := cfg.NewKonfigURL(koding)
+
+	if konfig := configcli.List()[newKonfig.ID()]; konfig != nil && konfig.KiteKey != "" {
+		result, err := ask(fmt.Sprintf("An existing kite.key for %s detected. Type 'yes' to override and continue:", konfig.KodingPublic()))
 		if err != nil {
 			return err
 		}
@@ -62,7 +64,7 @@ func Register(kontrolURL, kiteHome, username, token string, debug bool) error {
 		}
 	}
 
-	kontrol := k.NewClient(kontrolURL)
+	kontrol := k.NewClient(newKonfig.Endpoints.Kontrol().Public.String())
 	if err := kontrol.DialTimeout(30 * time.Second); err != nil {
 		return err
 	}
@@ -101,9 +103,9 @@ func Register(kontrolURL, kiteHome, username, token string, debug bool) error {
 		return err
 	}
 
-	// If the token is correct a valid and signed `kite.key` is returned
-	// back. We go and create/override the ~/.kite/kite.key with this content.
-	if err := writeKey(result.MustString(), kiteKeyPath); err != nil {
+	newKonfig.KiteKey = result.MustString()
+
+	if err := configcli.Use(newKonfig); err != nil {
 		return err
 	}
 
@@ -113,28 +115,8 @@ func Register(kontrolURL, kiteHome, username, token string, debug bool) error {
 	// registration is potentially confusing to the end user (since
 	// they are already registered to koding.com.. etc)
 	fmt.Println("Authenticated successfully")
+
 	return nil
-}
-
-func writeKey(kiteKey, filename string) error {
-	err := os.MkdirAll(filepath.Dir(filename), 0700)
-	if err != nil {
-		return err
-	}
-
-	// Need to remove the previous key first because we can't write over
-	// when previos file's mode is 0400.
-	os.Remove(filename)
-
-	return ioutil.WriteFile(filename, []byte(kiteKey), 0400)
-}
-
-func readKey(filename string) (string, error) {
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(data)), nil
 }
 
 // ask asks for an input from standard input and returns the result back. It is

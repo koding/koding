@@ -26,14 +26,14 @@ func Union(a, b machine.IDSlice) machine.IDSlice {
 // Intersection returns a set that contains all elements of A that also belong
 // to B, but no other elements.
 func Intersection(a, b machine.IDSlice) machine.IDSlice {
-	aset := make(map[machine.ID]bool)
+	aset := make(map[machine.ID]struct{})
 	for i := range a {
-		aset[a[i]] = true
+		aset[a[i]] = struct{}{}
 	}
 
 	res := make(machine.IDSlice, 0, len(a))
 	for i := range b {
-		if aset[b[i]] {
+		if _, ok := aset[b[i]]; ok {
 			res = append(res, b[i])
 		}
 	}

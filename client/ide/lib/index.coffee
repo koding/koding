@@ -95,7 +95,6 @@ class IDEAppController extends AppController
     @layoutManager = new IDELayoutManager { delegate : this }
 
     @workspace.once 'ready', => @getView().addSubView @workspace.getView()
-    @bindListeners()
 
     appManager.on 'AppIsBeingShown', (app) =>
 
@@ -114,7 +113,10 @@ class IDEAppController extends AppController
         @layoutManager.restoreSnapshot()
 
 
-  bindListeners: ->
+  appIsShown: ->
+
+    return  if @_listenersBound
+    @_listenersBound = yes
 
     @on 'CloseFullScreen', =>
       [ideView] = @ideViews.filter (ideView) -> ideView.isFullScreen
