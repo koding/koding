@@ -13,7 +13,6 @@ import (
 	"github.com/koding/cache"
 
 	"socialapi/workers/collaboration/models"
-	"strconv"
 	"sync"
 	"time"
 
@@ -178,14 +177,9 @@ func (c *Controller) checkIfKeyIsValid(ping *models.Ping) (err error) {
 		return errSessionInvalid // key is not there
 	}
 
-	pt := fmt.Sprint(pingTime)
-	unixSec, err := strconv.ParseInt(pt, 10, 64)
-	if err != nil {
-		c.log.Debug("couldn't parse the time", pt)
-
-		// discard this case, if the time is invalid, we should not try
-		// to process it again
-		return errSessionInvalid // key is not valid
+	unixSec, ok := pingTime.(int64)
+	if !ok {
+		return errSessionInvalid
 	}
 
 	lastPingTime := time.Unix(unixSec, 0).UTC()
