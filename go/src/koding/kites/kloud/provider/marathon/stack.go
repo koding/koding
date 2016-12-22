@@ -391,7 +391,16 @@ func (s *Stack) injectMetadata(app map[string]interface{}, name string) error {
 			Debug:     s.Debug,
 		}
 
-		p, err := json.Marshal(map[string]interface{}{"konfig": konfig})
+		metadata := map[string]interface{}{
+			"konfig.konfig.konfigs": map[string]interface{}{
+				konfig.ID(): konfig,
+			},
+			"konfig.konfig.konfigs.used": map[string]interface{}{
+				"id": konfig.ID(),
+			},
+		}
+
+		p, err := json.Marshal(metadata)
 		if err != nil {
 			return err
 		}
