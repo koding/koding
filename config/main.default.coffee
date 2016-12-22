@@ -87,7 +87,7 @@ Configuration = (options = {}) ->
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
   # Disable Sneaker for kloud.
-  KONFIG.kloud.credentialEndPoint = ''
+  KONFIG.kloud.noSneaker = true
 
   options.requirementCommands = [
     "$KONFIG_PROJECTROOT/scripts/generate-kite-keys.sh"

@@ -142,6 +142,7 @@ func NewEndpoint(u string) *Endpoint {
 // The u argument is expected to be non-nil.
 func NewEndpointURL(u *url.URL) *Endpoint {
 	uPriv := *u
+	uPriv.Scheme = "http"
 	uPriv.Host = "127.0.0.1"
 
 	if _, port, err := net.SplitHostPort(u.Host); err == nil {
