@@ -200,7 +200,7 @@ func syncGroupWithCustomerID(cusID string) error {
 
 	// if subID and subStatus are same, update not needed
 	if group.Payment.Subscription.ID == subID &&
-		group.Payment.Subscription.Status == string(subStatus) {
+		stripe.SubStatus(group.Payment.Subscription.Status) == subStatus {
 		return nil
 	}
 
