@@ -10,6 +10,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/boltdb/bolt"
 )
@@ -172,7 +173,10 @@ func main() {
 		die(err)
 	}
 
-	db, err := bolt.Open(file, 0, nil)
+	db, err := bolt.Open(file, 0, &bolt.Options{
+		Timeout:  2 * time.Second,
+		ReadOnly: flag.Arg(0) == "get",
+	})
 	if err != nil {
 		die(err)
 	}
