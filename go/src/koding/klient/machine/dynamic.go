@@ -126,19 +126,23 @@ func (dc *DynamicClient) Client() Client {
 }
 
 // Context returns current client's context. If client change, returned context
-// will be canceled. If there is no clients available in dynamic client. Already
-// canceled context is returned.
-func (dc *DynamicClient) Context() context.Context {
+// will be canceled. If there is no clients available in dynamic client. New
+// context will be created and will block until client is set.
+func (dc *DynamicClient) Context() (ctx context.Context) {
 	dc.mu.RLock()
-	defer dc.mu.RUnlock()
+	ctx = dc.ctx
+	dc.mu.RUnlock()
 
-	if dc.ctx == nil {
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-		return ctx
+	if ctx == nil {
+		dc.mu.Lock()
+		if dc.ctx == nil {
+			dc.ctx, dc.cancel = context.WithCancel(context.Background())
+		}
+		ctx = dc.ctx
+		dc.mu.Unlock()
 	}
 
-	return dc.ctx
+	return ctx
 }
 
 // Addr uses dynamic address function binded to client to obtain addresses.
