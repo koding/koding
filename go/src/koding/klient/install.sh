@@ -421,14 +421,7 @@ EOF
 	fi
 
 
-	if sudo [ ! -f /etc/kite/kite.key ]; then
-		echo "Error: Critical component missing. Aborting installation."
-		exit -1
-	fi
-
-	sudo chmod 755 /etc/kite
 	sudo chmod 755 /etc/init.d/klient >/dev/null 2>&1 || true
-	sudo chmod 644 /etc/kite/kite.key
 
 	cat << EOF
 Starting the Koding Service Connector...
