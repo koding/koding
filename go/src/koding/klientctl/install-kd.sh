@@ -305,13 +305,6 @@ if ! which curl &>/dev/null; then
 fi
 
 
-# Stop kd.
-# TODO: remove this
-if which kd &>/dev/null; then
-  sudo kd stop      > /dev/null 2>&1
-  sudo kd uninstall > /dev/null 2>&1
-fi
-
 case "$PLATFORM" in
   darwin|linux)
     installDir="/usr/local/bin"
@@ -345,9 +338,14 @@ EOF
       exit 1
     fi
 
-    sudo mv "$kdFile" "${installDir}/kd"
-    sudo chmod +x "${installDir}/kd"
-    sudo rm -f "$kdFile"
+    sudo chmod +x $kdFile
+
+    # TODO(rjeczalik): revisit if we really need to uninstall
+    # or whether install should handle overwrite instead
+    sudo $kdFile stop > /dev/null 2>&1
+    sudo $kdFile uninstall > /dev/null 2>&1
+
+    sudo mv $kdFile "${installDir}/kd"
 
     echo "Created ${installDir}/kd"
 
@@ -379,7 +377,6 @@ EOF
     exit 2
     ;;
 esac
-
 
 kontrolFlag=""
 if [ -n "$KONTROLURL" ]; then
