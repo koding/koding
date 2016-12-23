@@ -160,8 +160,8 @@ func (dc *DynamicClient) cron() {
 		pingTick    = time.NewTicker(dc.opts.PingInterval)
 	)
 
-	curr := Addr{}
-	dc.tryUpdate(&curr)
+	curr, islog := Addr{}, true
+	dc.tryUpdate(&curr, &islog)
 	for {
 		select {
 		case <-dynAddrTick.C:
@@ -172,10 +172,10 @@ func (dc *DynamicClient) cron() {
 			if err != nil || (a.Network == curr.Network && a.Value == curr.Value) {
 				break
 			}
-			dc.tryUpdate(&curr)
+			dc.tryUpdate(&curr, &islog)
 		case <-pingTick.C:
 			// Ping remote machine directly in order to check its status.
-			dc.tryUpdate(&curr)
+			dc.tryUpdate(&curr, &islog)
 		case <-dc.stop:
 			// Client was closed.
 			dc.mu.Lock()
@@ -192,10 +192,14 @@ func (dc *DynamicClient) cron() {
 
 // tryUpdate uses client builder to ping the machine and updates dynamic client
 // if machine address changes.
-func (dc *DynamicClient) tryUpdate(addr *Addr) {
+func (dc *DynamicClient) tryUpdate(addr *Addr, islog *bool) {
 	stat, a, err := dc.opts.Builder.Ping(dc.opts.AddrFunc)
 	if err != nil {
-		dc.log.Warning("Machine ping error: %s", err)
+		if *islog {
+			// Log only once in order to not spam log files.
+			dc.log.Warning("Machine ping error: %s", err)
+			*islog = false
+		}
 		return
 	}
 
@@ -205,6 +209,7 @@ func (dc *DynamicClient) tryUpdate(addr *Addr) {
 	}
 
 	// Create new client.
+	*islog = true
 	dc.log.Info("Reinitializing client with %s address: %s", a.Network, a.Value)
 	ctx, cancel := context.WithCancel(context.Background())
 	c := dc.opts.Builder.Build(ctx, a)
