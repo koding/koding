@@ -160,22 +160,57 @@ func (dc *DynamicClient) cron() {
 		pingTick    = time.NewTicker(dc.opts.PingInterval)
 	)
 
-	curr, islog := Addr{}, true
-	dc.tryUpdate(&curr, &islog)
+	addr, err := Addr{}, error(nil)
+
+	// tryUpdate uses client builder to ping the machine and updates dynamic
+	// client if machine address changes.
+	tryUpdate := func() {
+		stat, a, e := dc.opts.Builder.Ping(dc.opts.AddrFunc)
+		if e != nil {
+			if err == nil {
+				dc.log.Warning("Machine ping error: %s", e)
+			}
+			err = e
+			return
+		}
+		err = nil
+
+		if a.Network == addr.Network && a.Value == addr.Value {
+			// Client address did not change.
+			return
+		}
+
+		// Create new client.
+		dc.log.Info("Reinitializing client with %s address: %s", a.Network, a.Value)
+		ctx, cancel := context.WithCancel(context.Background())
+		c := dc.opts.Builder.Build(ctx, a)
+
+		// Update current address.
+		addr = a
+
+		dc.mu.Lock()
+		if dc.cancel != nil {
+			dc.cancel()
+		}
+		dc.c, dc.stat, dc.ctx, dc.cancel = c, stat, ctx, cancel
+		dc.mu.Unlock()
+	}
+
+	tryUpdate()
 	for {
 		select {
 		case <-dynAddrTick.C:
 			// Look address cache for new addresses. This does not require
 			// pinging remote machines because it only checks current address
 			// book state. Thus, it may be run more frequently than ping.
-			a, err := dc.opts.AddrFunc(curr.Network)
-			if err != nil || (a.Network == curr.Network && a.Value == curr.Value) {
+			a, err := dc.opts.AddrFunc(addr.Network)
+			if err != nil || (a.Network == addr.Network && a.Value == addr.Value) {
 				break
 			}
-			dc.tryUpdate(&curr, &islog)
+			tryUpdate()
 		case <-pingTick.C:
 			// Ping remote machine directly in order to check its status.
-			dc.tryUpdate(&curr, &islog)
+			tryUpdate()
 		case <-dc.stop:
 			// Client was closed.
 			dc.mu.Lock()
@@ -188,41 +223,6 @@ func (dc *DynamicClient) cron() {
 			return
 		}
 	}
-}
-
-// tryUpdate uses client builder to ping the machine and updates dynamic client
-// if machine address changes.
-func (dc *DynamicClient) tryUpdate(addr *Addr, islog *bool) {
-	stat, a, err := dc.opts.Builder.Ping(dc.opts.AddrFunc)
-	if err != nil {
-		if *islog {
-			// Log only once in order to not spam log files.
-			dc.log.Warning("Machine ping error: %s", err)
-			*islog = false
-		}
-		return
-	}
-
-	if a.Network == addr.Network && a.Value == addr.Value {
-		// Client address did not change.
-		return
-	}
-
-	// Create new client.
-	*islog = true
-	dc.log.Info("Reinitializing client with %s address: %s", a.Network, a.Value)
-	ctx, cancel := context.WithCancel(context.Background())
-	c := dc.opts.Builder.Build(ctx, a)
-
-	// Update current address.
-	*addr = a
-
-	dc.mu.Lock()
-	if dc.cancel != nil {
-		dc.cancel()
-	}
-	dc.c, dc.stat, dc.ctx, dc.cancel = c, stat, ctx, cancel
-	dc.mu.Unlock()
 }
 
 // disconnected sets disconnected client.
