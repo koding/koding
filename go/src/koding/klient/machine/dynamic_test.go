@@ -41,12 +41,19 @@ func TestDynamicClientOnOff(t *testing.T) {
 	}
 
 	// Stop server.
+	ctx := dc.Context()
 	serv.TurnOff()
 	if err := builder.WaitForBuild(time.Second); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	if n := builder.BuildsCount(); n != 2 {
 		t.Fatalf("want builds count = 2; got %d", n)
+	}
+	if err := machinetest.WaitForContextClose(ctx, time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	if status := dc.Status(); status.State != machine.StateOffline {
+		t.Fatalf("want state = %s; got %s", machine.StateOffline, status.State)
 	}
 }
 
