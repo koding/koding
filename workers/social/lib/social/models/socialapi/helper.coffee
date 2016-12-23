@@ -73,10 +73,6 @@ bareRequest = (funcName, options, callback) ->
   requests = require './requests'
   requests[funcName] options, callback
 
-paymentRequest = (funcName, options, callback) ->
-  requests = require './payment_requests'
-  requests[funcName] options, callback
-
 module.exports = {
   ensureGroupChannel
   permittedRequest

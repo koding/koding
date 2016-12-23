@@ -24,7 +24,6 @@ module.exports = class JUser extends jraphical.Module
   JLog                 = require '../log'
   ComputeProvider      = require '../computeproviders/computeprovider'
   Tracker              = require '../tracker'
-  Payment              = require '../payment'
 
   @bannedUserList = ['abrt', 'amykhailov', 'apache', 'about', 'visa', 'shared-',
                      'cthorn', 'daemon', 'dbus', 'dyasar', 'ec2-user', 'http',
@@ -773,17 +772,8 @@ module.exports = class JUser extends jraphical.Module
             }
 
             user.unlinkOAuths ->
-
-              Payment = require '../payment'
-
-              deletedClient = { connection: { delegate: account } }
-
-              Payment.deleteAccount deletedClient, (err) ->
-
-                account.leaveFromAllGroups client, ->
-
-                  JUser.logout deletedClient, callback
-
+              account.leaveFromAllGroups client, ->
+                JUser.logout deletedClient, callback
 
   validateConvertInput = (userFormData, client) ->
 
@@ -1635,10 +1625,6 @@ module.exports = class JUser extends jraphical.Module
       group = client.context.group
       args  = { user, group, pin, firstName, lastName }
       trackUserOnRegister disableCaptcha, args
-
-      SiftScience = require '../siftscience'
-      SiftScience.createAccount client, referrer, ->
-
 
   identifyUserOnRegister = (disableCaptcha, args) ->
 

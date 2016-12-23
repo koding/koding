@@ -18,7 +18,6 @@ module.exports = class JAccount extends jraphical.Module
 
   JTag                = require './tag'
   JName               = require './name'
-  JKite               = require './kite'
   JCombinedAppStorage = require './combinedappstorage'
 
   @getFlagRole            = 'content'
@@ -209,10 +208,6 @@ module.exports = class JAccount extends jraphical.Module
         invitation    :
           as          : 'owner'
           targetType  : 'JInvitation'
-
-        kite          :
-          as          : 'owner'
-          targetType  : JKite
 
         credential    :
           as          : ['owner', 'user']
