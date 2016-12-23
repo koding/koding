@@ -16,17 +16,8 @@ module.exports = class ActivityController extends KDObject
 
     @newItemsCount   = 0
     @flags           = {}
-    groupChannel     = null
 
     { groupsController, appManager, router } = kd.singletons
-
-    groupsController.ready =>
-      groupChannel.close().off()  if groupChannel?
-      groupChannel = groupsController.groupChannel
-      groupChannel.on 'feed-new', (activities) =>
-        remote.revive activity for activity in activities
-        isOnActivityPage  = router.getCurrentPath() is '/Activity'
-        ++@newItemsCount  unless isOnActivityPage
 
     @on 'ActivityItemBlockUserClicked',         @bound 'openBlockUserModal'
     @on 'ActivityItemMarkUserAsTrollClicked',   @bound 'markUserAsTroll'
