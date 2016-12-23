@@ -103,12 +103,6 @@ func (u *Uninstall) Uninstall() (string, int) {
 		u.addWarning(FailedStopKlientWarn)
 	}
 
-	// Ensure /etc/kite/kite.key is migrated to konfig.bolt before
-	// old klient gets uninstalled. The endpoint/config package
-	// performs lazy migrations, so it's enough to call any of
-	// its methods and disregard the result.
-	_ = configcli.List()
-
 	if err := u.ServiceUninstaller.Uninstall(); err != nil {
 		u.log.Warning("Service errored on uninstall. err:%s", err)
 		u.addWarning(FailedUninstallingKlientWarn)
@@ -157,6 +151,12 @@ func (u *Uninstall) Uninstall() (string, int) {
 // TODO: remove all artifacts, ie bolt db, ssh keys, kd etc.
 func UninstallCommand(c *cli.Context, log logging.Logger, _ string) (string, int) {
 	warnings := []string{}
+
+	// Ensure /etc/kite/kite.key is migrated to konfig.bolt before
+	// old klient gets uninstalled. The endpoint/config package
+	// performs lazy migrations, so it's enough to call any of
+	// its methods and disregard the result.
+	_ = configcli.List()
 
 	s, err := newService(nil)
 	if err != nil {

@@ -12,9 +12,13 @@ import (
 	"net/url"
 	"strings"
 	"sync"
+
+	"github.com/koding/logging"
 )
 
 const maxBodyLen = 2 << 20 // 2 MiB
+
+var defaultLog = logging.NewCustom("api-transport", false)
 
 // contextKey is a value for use with context.WithValue.
 type contextKey struct {
@@ -130,11 +134,12 @@ var _ io.ReadSeeker = nopCloser{bytes.NewReader(nil)}
 // Transport is a signing transport that
 // authorizes each request with jSession.clientId.
 type Transport struct {
-	http.RoundTripper          // a transport to use; optional, by default http.DefaultClient.Transport
-	AuthFunc          AuthFunc // clientID authorisation to use; required
-	UserFunc          UserFunc // used to get a user from request to authenticate for; by default looked up with UserContextKey
-	Host              string   // original Host name, overwrites req.Host; optional
-	RetryNum          int      // number of retries in case of temporary failures; optional, by default 3
+	http.RoundTripper                // a transport to use; optional, by default http.DefaultClient.Transport
+	AuthFunc          AuthFunc       // clientID authorisation to use; required
+	UserFunc          UserFunc       // used to get a user from request to authenticate for; by default looked up with UserContextKey
+	Host              string         // original Host name, overwrites req.Host; optional
+	RetryNum          int            // number of retries in case of temporary failures; optional, by default 3
+	Log               logging.Logger // logger to use
 
 	// request mapping implementation stolen from:
 	//
@@ -202,6 +207,9 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		}
 
 		s, err := t.AuthFunc(opts)
+
+		t.log().Debug("AuthFunc(%+v): session=%+v, error=%v", opts, s, err)
+
 		if err != nil {
 			return nil, err // non-retryable
 		}
@@ -292,6 +300,13 @@ func (t *Transport) retryNum() int {
 		return t.RetryNum
 	}
 	return 3
+}
+
+func (t *Transport) log() logging.Logger {
+	if t.Log != nil {
+		return t.Log
+	}
+	return defaultLog
 }
 
 func (t *Transport) setModReq(orig, mod *http.Request) {

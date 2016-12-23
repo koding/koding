@@ -15,7 +15,7 @@ type ShardedTTL struct {
 	// cache holds the cache data
 	cache ShardedCache
 
-	// setAts holds the time that related item's set at, indexed by tenantId
+	// setAts holds the time that related item's set at, indexed by tenantID
 	setAts map[string]map[string]time.Time
 
 	// ttl is a duration for a cache key to expire
@@ -43,18 +43,16 @@ func NewShardedWithTTL(ttl time.Duration) *ShardedTTL {
 	return NewShardedCacheWithTTL(ttl, NewMemNoTSCache)
 }
 
-
-
 // StartGC starts the garbage collection process in a go routine
 func (r *ShardedTTL) StartGC(gcInterval time.Duration) {
 	r.gcInterval = gcInterval
 	go func() {
 		for _ = range time.Tick(gcInterval) {
 			r.Lock()
-			for tenantId := range r.setAts {
-				for key := range r.setAts[tenantId] {
-					if !r.isValid(tenantId, key) {
-						r.delete(tenantId, key)
+			for tenantID := range r.setAts {
+				for key := range r.setAts[tenantID] {
+					if !r.isValid(tenantID, key) {
+						r.delete(tenantID, key)
 					}
 				}
 			}
@@ -65,16 +63,16 @@ func (r *ShardedTTL) StartGC(gcInterval time.Duration) {
 
 // Get returns a value of a given key if it exists
 // and valid for the time being
-func (r *ShardedTTL) Get(tenantId, key string) (interface{}, error) {
+func (r *ShardedTTL) Get(tenantID, key string) (interface{}, error) {
 	r.Lock()
 	defer r.Unlock()
 
-	if !r.isValid(tenantId, key) {
-		r.delete(tenantId, key)
+	if !r.isValid(tenantID, key) {
+		r.delete(tenantID, key)
 		return nil, ErrNotFound
 	}
 
-	value, err := r.cache.Get(tenantId, key)
+	value, err := r.cache.Get(tenantID, key)
 	if err != nil {
 		return nil, err
 	}
@@ -84,47 +82,47 @@ func (r *ShardedTTL) Get(tenantId, key string) (interface{}, error) {
 
 // Set will persist a value to the cache or
 // override existing one with the new one
-func (r *ShardedTTL) Set(tenantId, key string, value interface{}) error {
+func (r *ShardedTTL) Set(tenantID, key string, value interface{}) error {
 	r.Lock()
 	defer r.Unlock()
 
-	r.cache.Set(tenantId, key, value)
-	_, ok := r.setAts[tenantId]
+	r.cache.Set(tenantID, key, value)
+	_, ok := r.setAts[tenantID]
 	if !ok {
-		r.setAts[tenantId] = make(map[string]time.Time)
+		r.setAts[tenantID] = make(map[string]time.Time)
 	}
-	r.setAts[tenantId][key] = time.Now()
+	r.setAts[tenantID][key] = time.Now()
 	return nil
 }
 
 // Delete deletes a given key if exists
-func (r *ShardedTTL) Delete(tenantId, key string) error {
+func (r *ShardedTTL) Delete(tenantID, key string) error {
 	r.Lock()
 	defer r.Unlock()
 
-	r.delete(tenantId, key)
+	r.delete(tenantID, key)
 	return nil
 }
 
-func (r *ShardedTTL) delete(tenantId, key string) {
-	_, ok := r.setAts[tenantId]
+func (r *ShardedTTL) delete(tenantID, key string) {
+	_, ok := r.setAts[tenantID]
 	if !ok {
 		return
 	}
-	r.cache.Delete(tenantId, key)
-	delete(r.setAts[tenantId], key)
-	if len(r.setAts[tenantId]) == 0 {
-		delete(r.setAts, tenantId)
+	r.cache.Delete(tenantID, key)
+	delete(r.setAts[tenantID], key)
+	if len(r.setAts[tenantID]) == 0 {
+		delete(r.setAts, tenantID)
 	}
 }
 
-func (r *ShardedTTL) isValid(tenantId, key string) bool {
+func (r *ShardedTTL) isValid(tenantID, key string) bool {
 
-	_, ok := r.setAts[tenantId]
+	_, ok := r.setAts[tenantID]
 	if !ok {
 		return false
 	}
-	setAt, ok := r.setAts[tenantId][key]
+	setAt, ok := r.setAts[tenantID][key]
 	if !ok {
 		return false
 	}
@@ -135,14 +133,15 @@ func (r *ShardedTTL) isValid(tenantId, key string) bool {
 	return setAt.Add(r.ttl).After(time.Now())
 }
 
-func (r *ShardedTTL) DeleteShard(tenantId string) error {
+// DeleteShard deletes with given tenantID without key
+func (r *ShardedTTL) DeleteShard(tenantID string) error {
 	r.Lock()
 	defer r.Unlock()
 
-	_, ok := r.setAts[tenantId]
+	_, ok := r.setAts[tenantID]
 	if ok {
-		for key := range r.setAts[tenantId] {
-			r.delete(tenantId, key)
+		for key := range r.setAts[tenantID] {
+			r.delete(tenantID, key)
 		}
 	}
 	return nil
