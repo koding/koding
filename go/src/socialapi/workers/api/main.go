@@ -47,17 +47,16 @@ func main() {
 	mc.Debug = r.Conf.Debug
 	m := mux.New(mc, r.Log, r.Metrics)
 
+	// init mongo connection
+	modelhelper.Initialize(c.Mongo)
+	defer modelhelper.Close()
+
 	// init mongo cache with ensured index
 	mgoCache := cache.NewMongoCacheWithTTL(modelhelper.Mongo.Session,
 		cache.StartGC(),
 		cache.MustEnsureIndexExpireAt(),
 	)
 	defer mgoCache.StopGC()
-
-	// init redis
-	redisConn := r.Bongo.MustGetRedisConn()
-
-	m.SetRedis(redisConn)
 
 	handlers.AddHandlers(m)
 	collaboration.AddHandlers(m, mgoCache)
@@ -78,10 +77,6 @@ func main() {
 	slackapi.AddHandlers(m, c)
 	credential.AddHandlers(m, r.Log, c)
 	emailapi.AddHandlers(m)
-
-	// init mongo connection
-	modelhelper.Initialize(c.Mongo)
-	defer modelhelper.Close()
 
 	mmdb, err := helper.ReadGeoIPDB(c)
 	if err != nil {
