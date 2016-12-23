@@ -6,7 +6,6 @@ import (
 	"koding/db/models"
 	helper "koding/db/mongodb/modelhelper"
 	"koding/helpers"
-	"koding/tools/config"
 	"os"
 	"strings"
 	"time"
@@ -17,12 +16,11 @@ import (
 )
 
 var (
-	conf        *config.Config
-	flagProfile = flag.String("c", "prod", "Configuration profile from file")
-	flagSkip    = flag.Int("s", 0, "Configuration profile from file")
-	flagLimit   = flag.Int("l", 1000, "Configuration profile from file")
-	flagDry     = flag.Bool("dry", false, "dry run")
-	flagColls   = flag.String("colls", "jUsers,jAccounts,jWorkspaces,jNames,jComputeStacks,jCombinedAppStorages,relationships", "collections to clean up")
+	flagMongoConn = flag.String("mongo", "", "mongo connection string")
+	flagSkip      = flag.Int("s", 0, "Configuration profile from file")
+	flagLimit     = flag.Int("l", 1000, "Configuration profile from file")
+	flagDry       = flag.Bool("dry", false, "dry run")
+	flagColls     = flag.String("colls", "jUsers,jAccounts,jWorkspaces,jNames,jComputeStacks,jCombinedAppStorages,relationships", "collections to clean up")
 
 	deletedGroupBySlug  = cache.NewLRU(10000)
 	existingGroupBySlug = cache.NewLRU(10000)
@@ -41,13 +39,12 @@ var (
 
 func initialize() {
 	flag.Parse()
-	if *flagProfile == "" {
-		fmt.Printf("Please specify profile via -c. Aborting.")
+	if *flagMongoConn == "" {
+		fmt.Printf("Please specify mongo conn string.")
 		os.Exit(1)
 	}
 
-	conf = config.MustConfig(*flagProfile)
-	helper.Initialize(conf.Mongo)
+	helper.Initialize(*flagMongoConn)
 }
 
 func main() {
