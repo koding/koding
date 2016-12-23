@@ -132,10 +132,6 @@ These two are separated. (See `globals` and `app/util`)
 
 It was a module under `node_modules_koding` now it is in its separate package at github.com/koding/bongo-client
 
-## broker-client
-
-It was a module under `node_modules_koding` now it is in its separate package at github.com/koding/broker-client
-
 ## sinkrow (daisy, dash)
 
 It was a module under `node_modules_koding` now it is in its separate package at github.com/koding/sinkrow , we didn't name this, this was already there and used by `Bongo` and we just separated it since it is not wise to require bongo to only use `dash` or `daisy` methods.
@@ -263,4 +259,3 @@ We use `lodash` as underscore, because we mapped it in `package.json` where you 
 ## registerSingleton
 
 (TODO)
-

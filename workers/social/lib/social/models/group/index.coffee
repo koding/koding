@@ -529,14 +529,6 @@ module.exports = class JGroup extends Module
   @byRelevance$ = secure (client, seed, options, callback) ->
     @byRelevance client, seed, options, callback
 
-  @fetchSecretChannelName = (groupSlug, callback) ->
-    JName = require '../name'
-    JName.fetchSecretName groupSlug, (err, secretName, oldSecretName) ->
-      if err then callback err
-      else callback null, "group.secret.#{secretName}",
-        if oldSecretName then "group.secret.#{oldSecretName}"
-
-
   fetchData: (callback) ->
 
     slug = @getAt 'slug'
