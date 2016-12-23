@@ -48,9 +48,6 @@ func TestDynamicClientOnOff(t *testing.T) {
 	if n := builder.BuildsCount(); n != 2 {
 		t.Fatalf("want builds count = 2; got %d", n)
 	}
-	if status := dc.Status(); status.State != machine.StateOffline {
-		t.Fatalf("want state = %s; got %s", machine.StateOffline, status.State)
-	}
 }
 
 func TestDynamicClientContext(t *testing.T) {
