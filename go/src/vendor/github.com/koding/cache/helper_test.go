@@ -52,7 +52,7 @@ func testCacheNilValue(t *testing.T, cache Cache) {
 		t.Fatal("should not give err while deleting item")
 	}
 
-	data, err = cache.Get("test_key")
+	_, err = cache.Get("test_key")
 	if err == nil {
 		t.Fatal("test_key should not be in the cache")
 	}
@@ -146,7 +146,7 @@ func testShardedCacheNilValue(t *testing.T, cache ShardedCache) {
 		t.Fatal("should not give err while deleting item")
 	}
 
-	data, err = cache.Get("user1", "test_key")
+	_, err = cache.Get("user1", "test_key")
 	if err == nil {
 		t.Fatal("test_key should not be in the cache")
 	}
@@ -204,7 +204,7 @@ func testDeleteShard(t *testing.T, cache ShardedCache) {
 		t.Fatal("data should be nil")
 	}
 
-	data, err = cache.Get("user2", "test_key")
+	_, err = cache.Get("user2", "test_key")
 	if err == ErrNotFound {
 		t.Fatal("test_key for user2 should still be in cache")
 	}

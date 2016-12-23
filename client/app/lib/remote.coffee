@@ -2,7 +2,6 @@ globals           = require 'globals'
 kd                = require 'kd'
 kookies           = require 'kookies'
 Bongo             = require '@koding/bongo-client'
-broker            = require 'broker-client'
 async             = require 'async'
 remote_extensions = require './remote-extensions'
 
@@ -11,6 +10,7 @@ getSessionToken = -> kookies.get 'clientId'
 createInstance = ->
 
   bongoInstance = new Bongo
+    debug: no
     apiEndpoint    : globals.config.socialApiUri
     apiDescriptor  : globals.REMOTE_API
     resourceName   : globals.config.resourceName ? 'koding-social'
@@ -59,21 +59,7 @@ createInstance = ->
             @emit 'modelsReady'
             cache[nameStr] = models
             callback err, models, name
-
-    mq: do ->
-
-      { authExchange } = globals.config
-
-      options = {
-        authExchange
-        autoReconnect: yes
-        getSessionToken
-      }
-
-      console.log 'connecting to:' + globals.config.broker.uri
-
-      new broker.Broker "#{globals.config.broker.uri}", options
-
+    mq: null
 
   bongoInstance.once 'ready', ->
     globals.combinedStorage = bongoInstance.revive globals.combinedStorage
@@ -83,4 +69,3 @@ createInstance = ->
 
 
 module.exports = createInstance()
-

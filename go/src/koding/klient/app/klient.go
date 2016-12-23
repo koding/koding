@@ -51,6 +51,7 @@ import (
 	"github.com/koding/kite/kontrol/onceevery"
 	kiteproto "github.com/koding/kite/protocol"
 	"github.com/koding/kite/sockjsclient"
+	"github.com/koding/logging"
 )
 
 const (
@@ -352,6 +353,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 				},
 			},
 		}).Auth,
+		Log: k.Log.(logging.Logger),
 	}
 
 	kl := &Klient{
