@@ -132,8 +132,12 @@ type Klient struct {
 	presence      *presence.Client
 	presenceEvery *onceevery.OnceEvery
 	kloud         *apiutil.LazyKite
+
+	// Team related fields.
+	// TODO(ppknap): move this to separate package.
 	teamMu        sync.Mutex
 	team          *team.Team
+	teamUpdatedAt time.Time
 }
 
 // KlientConfig defines a Klient's config
@@ -461,11 +465,11 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("klient.usage", k.usage.Current)
 
 	// klient os method(s)
-	k.kite.HandleFunc("os.home", kos.Home)
-	k.kite.HandleFunc("os.currentUsername", kos.CurrentUsername)
+	k.handleWithSub("os.home", kos.Home)
+	k.handleWithSub("os.currentUsername", kos.CurrentUsername)
 
 	// Klient Info method(s)
-	k.kite.HandleFunc("klient.info", info.Info)
+	k.handleWithSub("klient.info", info.Info)
 
 	// Collaboration, is used by our Koding.com browser client.
 	k.kite.HandleFunc("klient.disable", control.Disable)
@@ -477,9 +481,9 @@ func (k *Klient) RegisterMethods() {
 	k.addRemoteHandlers()
 
 	// SSH keys
-	k.kite.HandleFunc("sshkeys.list", sshkeys.List)
-	k.kite.HandleFunc("sshkeys.add", sshkeys.Add)
-	k.kite.HandleFunc("sshkeys.delete", sshkeys.Delete)
+	k.handleWithSub("sshkeys.list", sshkeys.List)
+	k.handleWithSub("sshkeys.add", sshkeys.Add)
+	k.handleWithSub("sshkeys.delete", sshkeys.Delete)
 
 	// Storage
 	k.kite.HandleFunc("storage.set", k.storage.SetValue)
@@ -490,20 +494,20 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("log.tail", logfetcher.Tail)
 
 	// Filesystem
-	k.kite.HandleFunc("fs.readDirectory", fs.ReadDirectory)
-	k.kite.HandleFunc("fs.glob", fs.Glob)
-	k.kite.HandleFunc("fs.readFile", fs.ReadFile)
-	k.kite.HandleFunc("fs.writeFile", fs.WriteFile)
-	k.kite.HandleFunc("fs.uniquePath", fs.UniquePath)
-	k.kite.HandleFunc("fs.getInfo", fs.GetInfo)
-	k.kite.HandleFunc("fs.setPermissions", fs.SetPermissions)
-	k.kite.HandleFunc("fs.remove", fs.Remove)
-	k.kite.HandleFunc("fs.rename", fs.Rename)
-	k.kite.HandleFunc("fs.createDirectory", fs.CreateDirectory)
-	k.kite.HandleFunc("fs.move", fs.Move)
-	k.kite.HandleFunc("fs.copy", fs.Copy)
-	k.kite.HandleFunc("fs.getDiskInfo", fs.GetDiskInfo)
-	k.kite.HandleFunc("fs.getPathSize", fs.GetPathSize)
+	k.handleWithSub("fs.readDirectory", fs.ReadDirectory)
+	k.handleWithSub("fs.glob", fs.Glob)
+	k.handleWithSub("fs.readFile", fs.ReadFile)
+	k.handleWithSub("fs.writeFile", fs.WriteFile)
+	k.handleWithSub("fs.uniquePath", fs.UniquePath)
+	k.handleWithSub("fs.getInfo", fs.GetInfo)
+	k.handleWithSub("fs.setPermissions", fs.SetPermissions)
+	k.handleWithSub("fs.remove", fs.Remove)
+	k.handleWithSub("fs.rename", fs.Rename)
+	k.handleWithSub("fs.createDirectory", fs.CreateDirectory)
+	k.handleWithSub("fs.move", fs.Move)
+	k.handleWithSub("fs.copy", fs.Copy)
+	k.handleWithSub("fs.getDiskInfo", fs.GetDiskInfo)
+	k.handleWithSub("fs.getPathSize", fs.GetPathSize)
 
 	// Machine group handlers.
 	k.kite.HandleFunc("machine.create", machinegroup.KiteHandlerCreate(k.machines))
@@ -539,11 +543,11 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("exec", command.Exec)
 
 	// Terminal
-	k.kite.HandleFunc("webterm.getSessions", k.terminal.GetSessions)
-	k.kite.HandleFunc("webterm.connect", k.terminal.Connect)
-	k.kite.HandleFunc("webterm.killSession", k.terminal.KillSession)
-	k.kite.HandleFunc("webterm.killSessions", k.terminal.KillSessions)
-	k.kite.HandleFunc("webterm.rename", k.terminal.RenameSession)
+	k.handleWithSub("webterm.getSessions", k.terminal.GetSessions)
+	k.handleWithSub("webterm.connect", k.terminal.Connect)
+	k.handleWithSub("webterm.killSession", k.terminal.KillSession)
+	k.handleWithSub("webterm.killSessions", k.terminal.KillSessions)
+	k.handleWithSub("webterm.rename", k.terminal.RenameSession)
 
 	// VM -> Client methods
 	ps := client.NewPubSub(k.log)
@@ -578,6 +582,26 @@ func (k *Klient) RegisterMethods() {
 
 		k.log.Info("Start disconnection timer with 1 minute delay.")
 		k.collabCloser.Start()
+	})
+}
+
+// handleWithSub is a middle-ware function that checks team payment status
+// before invoking fn function. It will fail if team is blocked due to unpaid
+// subscription.
+func (k *Klient) handleWithSub(method string, fn kite.HandlerFunc) {
+	k.kite.HandleFunc(method, func(r *kite.Request) (interface{}, error) {
+		team, err := k.cacheTeam()
+		if err != nil {
+			k.log.Error("Cannot find Klient's team: %s", err)
+			return nil, err
+		}
+
+		if !team.SubStatus.Active() {
+			k.log.Error("Method %q is blocked due to unpaid subscription for %s team.", method, team.Name)
+			return nil, errors.New("method is blocked")
+		}
+
+		return fn(r)
 	})
 }
 
@@ -671,7 +695,7 @@ func (k *Klient) cacheTeam() (*team.Team, error) {
 	k.teamMu.Lock()
 	defer k.teamMu.Unlock()
 
-	if k.team != nil {
+	if k.team != nil && !k.teamUpdatedAt.IsZero() && time.Since(k.teamUpdatedAt) < time.Hour {
 		return k.team, nil
 	}
 
@@ -683,6 +707,7 @@ func (k *Klient) cacheTeam() (*team.Team, error) {
 	k.log.Info("Kite belongs to %q team", team.Name)
 
 	k.team = team
+	k.teamUpdatedAt = time.Now()
 
 	return k.team, nil
 }

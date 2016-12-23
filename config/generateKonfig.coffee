@@ -136,6 +136,7 @@ module.exports = (options, credentials) ->
     keygenBucket: credentials.kloud.keygenBucket
 
     address: "http://localhost:#{kloudPort}/kite"
+    noSneaker: false
 
     kontrolUrl: kontrol.url
     kodingUrl:  "#{options.customDomain.public}"
