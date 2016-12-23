@@ -7,7 +7,6 @@ import (
 	"socialapi/request"
 
 	"github.com/koding/logging"
-	"github.com/koding/redis"
 )
 
 // Client holds the contextual requester/client info
@@ -26,15 +25,13 @@ type Client struct {
 type Context struct {
 	GroupName string
 	Client    *Client
-	redis     *redis.RedisSession
 	log       logging.Logger
 }
 
 // NewContext creates a new context
-func NewContext(redis *redis.RedisSession, log logging.Logger) *Context {
+func NewContext(log logging.Logger) *Context {
 	return &Context{
-		redis: redis,
-		log:   log,
+		log: log,
 	}
 }
 
@@ -107,13 +104,4 @@ func (c *Context) MustGetLogger() logging.Logger {
 	}
 
 	return c.log
-}
-
-// MustGetRedisConn gets the logger from context, otherwise panics
-func (c *Context) MustGetRedisConn() *redis.RedisSession {
-	if c.redis == nil {
-		panic(ErrRedisNotExist)
-	}
-
-	return c.redis
 }
