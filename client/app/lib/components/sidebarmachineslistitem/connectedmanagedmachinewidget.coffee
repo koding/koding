@@ -47,11 +47,6 @@ module.exports = class ConnectedManagedMachineWidget extends React.Component
     router.handleRoute newPath  unless newPath is currentPath
 
 
-  componentWillMount: ->
-
-    kd.singletons.router.handleRoute "/IDE/#{@props.machine.get('slug')}"
-
-
   render: ->
 
     connectedMachine = @state.connectedManagedMachine.get @props.machine.get('_id')
