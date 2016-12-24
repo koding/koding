@@ -79,29 +79,21 @@ You can configure the number of VMs and applications installed on each VM instan
 
 10. Make sure the correct credentials are selected (you can save multiple credentials) and click **Build Stack**
 
-    ![SoftLayer build stack][11]
-
-    Your stack will start building..
-
-    ![SoftLayer stack building][12]
-
-11. Click on **Build Stack** to start building your Stack
-
     > You can have multiple saved credentials to use within a team, the Credentials tab in your Build stack modal allows you to choose the one you want to use with this stack template.
 
-    ![Build Stack Credentials][13]
+    ![Build Stack Credentials][11]
 
     Your stack will start building..
 
-    ![Stack Building][14]
+    ![Stack building][12]
 
-12. Your stack was successfully built. Click **Start Coding** to start using your new VM
+11. Your stack was successfully built. Click **Start Coding** to start using your new VM
 
-    ![Stack built][15]
+    ![Stack built][13]
 
     Congratulations, your new VM terminal is ready
 
-    ![VM ready][16]
+    ![VM ready][14]
 
 > See more options and information for creating a SoftLayer instance here [SOFTLAYER_INSTANCE][15].
 
