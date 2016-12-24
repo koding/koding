@@ -36,6 +36,8 @@
     title: How to share your VM with someone
   - id: create-elastic-ip-for-your-instance
     title: Assign Elastic IP
+  - id: vms-communication
+    title: VMs Communication
   - id: create-an-aws-vpc
     title: AWS non-default VPC
   - id: setup-aws-iam-user
