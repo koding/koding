@@ -1,7 +1,7 @@
 ---
 layout: doc
-title: Create an AWS stack
-permalink: /docs/creating-an-aws-stack
+title: Create a SoftLayer stack
+permalink: /docs/creating-a-softlayer-stack
 parent: /docs/home
 ---
 
@@ -9,9 +9,6 @@ parent: /docs/home
 
 ## Introduction
 
-This guide will help you build an AWS stack. [Amazon Web Services (AWS)](aws.amazon.com) offers a suite of cloud-computing services that make up an on-demand computing platform in several geographically distributed data centers.
-
-You can configure the number of VMs and applications installed on each VM instance. Along with configuring VM size and region. Your new team members will be able to use your stack to build their VMs environment and start working from day one.
 
 ## Step by step guide
 
