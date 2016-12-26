@@ -38,7 +38,7 @@ func (k *Klient) handleRemoteFunc(method string, fn kite.HandlerFunc) {
 
 		k.presenceEvery.Do(func() {
 			if err := k.ping(); err != nil {
-				k.log.Error("failed to ping: %s", err)
+				k.log.Error("Failed to ping: %s", err)
 			}
 		})
 

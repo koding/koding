@@ -76,6 +76,13 @@ Configuration = (options = {}) ->
 
   KONFIG.workers = require('./workers')(KONFIG, options, credentials)
 
+  KONFIG.workers.emailer =
+    group       : "webserver"
+    supervisord :
+      command   :
+        run     : "node %(ENV_KONFIG_PROJECTROOT)s/workers/emailer"
+
+
   options.disabledWorkers = [
     "algoliaconnector"
     "gatekeeper"
@@ -87,7 +94,7 @@ Configuration = (options = {}) ->
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
   # Disable Sneaker for kloud.
-  KONFIG.kloud.credentialEndPoint = ''
+  KONFIG.kloud.noSneaker = true
 
   options.requirementCommands = [
     "$KONFIG_PROJECTROOT/scripts/generate-kite-keys.sh"

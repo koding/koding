@@ -63,10 +63,10 @@ func (k *Kloud) TeamWhoami(r *kite.Request) (interface{}, error) {
 
 	return &WhoamiResponse{
 		Team: &team.Team{
-			Name:         group.Title,
-			Slug:         group.Slug,
-			Privacy:      group.Privacy,
-			Subscription: group.Payment.Subscription.Status,
+			Name:      group.Title,
+			Slug:      group.Slug,
+			Privacy:   group.Privacy,
+			SubStatus: group.Payment.Subscription.Status,
 		},
 	}, nil
 }

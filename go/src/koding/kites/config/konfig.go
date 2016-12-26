@@ -133,7 +133,7 @@ func (k *Konfig) KodingPublic() *url.URL {
 	}
 
 	if u, err := url.Parse(k.KontrolURL); err == nil {
-		u.Path = "/"
+		u.Path = ""
 		return u
 	}
 

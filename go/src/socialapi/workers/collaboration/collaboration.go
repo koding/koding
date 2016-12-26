@@ -10,16 +10,15 @@ import (
 	socialapimodels "socialapi/models"
 
 	"github.com/koding/bongo"
+	"github.com/koding/cache"
 
 	"socialapi/workers/collaboration/models"
-	"strconv"
 	"sync"
 	"time"
 
 	"github.com/cenkalti/backoff"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
-	"github.com/koding/redis"
 	"github.com/streadway/amqp"
 )
 
@@ -60,24 +59,24 @@ var (
 
 // Controller holds the basic context data for handlers
 type Controller struct {
-	log   logging.Logger
-	redis *redis.RedisSession
-	conf  *config.Config
-	kite  *kite.Kite
+	log        logging.Logger
+	mongoCache *cache.MongoCache
+	conf       *config.Config
+	kite       *kite.Kite
 }
 
 // New creates a controller
 func New(
 	log logging.Logger,
-	redis *redis.RedisSession,
+	mongoCache *cache.MongoCache,
 	conf *config.Config,
 	kite *kite.Kite,
 ) *Controller {
 	return &Controller{
-		log:   log,
-		redis: redis,
-		conf:  conf,
-		kite:  kite,
+		log:        log,
+		mongoCache: mongoCache,
+		conf:       conf,
+		kite:       kite,
 	}
 }
 
@@ -169,30 +168,25 @@ func (c *Controller) checkIfKeyIsValid(ping *models.Ping) (err error) {
 
 	// check the redis key if it doesnt exist
 	key := PrepareFileKey(ping.FileId)
-	pingTime, err := c.redis.Get(key)
-	if err != nil && err != redis.ErrNil {
+	pingTime, err := c.mongoCache.Get(key)
+	if err != nil && err != cache.ErrNotFound {
 		return err
 	}
-
-	if err == redis.ErrNil {
-		c.log.Debug("redis key not found %+v", ping)
+	if err == cache.ErrNotFound {
+		c.log.Debug("key is not found %+v", ping)
 		return errSessionInvalid // key is not there
 	}
 
-	unixSec, err := strconv.ParseInt(pingTime, 10, 64)
-	if err != nil {
-		c.log.Debug("couldn't parse the time", pingTime)
-
-		// discard this case, if the time is invalid, we should not try
-		// to process it again
-		return errSessionInvalid // key is not valid
+	unixSec, ok := pingTime.(int64)
+	if !ok {
+		return errSessionInvalid
 	}
 
-	lastPingTimeOnRedis := time.Unix(unixSec, 0).UTC()
+	lastPingTime := time.Unix(unixSec, 0).UTC()
 
 	now := time.Now().UTC()
 
-	if now.Add(-terminateSessionDuration).After(lastPingTimeOnRedis) {
+	if now.Add(-terminateSessionDuration).After(lastPingTime) {
 		return errSessionInvalid
 	}
 

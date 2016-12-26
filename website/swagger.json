@@ -171,10 +171,6 @@
       "name": "S3"
     },
     {
-      "description": "Model JSecretName",
-      "name": "JSecretName"
-    },
-    {
       "description": "Model JSession",
       "name": "JSession"
     },
@@ -1326,20 +1322,6 @@
         "createdAt": {
           "type": "string",
           "format": "date"
-        }
-      }
-    },
-    "JSecretName": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "secretName": {
-          "type": "string"
-        },
-        "oldSecretName": {
-          "type": "string"
         }
       }
     },

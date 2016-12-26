@@ -135,6 +135,7 @@ type Config struct {
 	TerraformerSecretKey string
 
 	KodingURL *config.URL // Koding base URL
+	NoSneaker bool        // use Mongo for reading credentials, instead of /social/credential endpoint
 }
 
 // New gives new, registered kloud kite.
@@ -180,9 +181,14 @@ func New(conf *Config) (*Kloud, error) {
 	storeOpts := &credential.Options{
 		MongoDB: sess.DB,
 		Log:     sess.Log.New("stackcred"),
-		CredURL: e.Social().WithPath("/credential").Private.URL,
 		Client:  restClient,
 	}
+
+	if !conf.NoSneaker {
+		storeOpts.CredURL = e.Social().WithPath("/credential").Private.URL
+	}
+
+	sess.Log.Debug("storeOpts: %+v", storeOpts)
 
 	userPrivateKey, userPublicKey := userMachinesKeys(conf.UserPublicKey, conf.UserPrivateKey)
 
