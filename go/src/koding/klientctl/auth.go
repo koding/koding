@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"koding/kites/kloud/stack"
 	"koding/klientctl/endpoint/auth"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/team"
@@ -17,7 +18,7 @@ import (
 func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	// If we already own a valid kite.key, it means we were already
 	// authenticated and we just call kloud using kite.key authentication.
-	err := kloud.DefaultClient.Transport.Valid()
+	err := kloud.DefaultClient.Transport.(stack.Validator).Valid()
 
 	log.Debug("auth: transport test: %s", err)
 

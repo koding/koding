@@ -91,7 +91,7 @@ func (c *Client) SetSession(team string, s Session) error {
 	return nil
 }
 
-func (c *Client) GetSession(team string) *Session {
+func (c *Client) Session(team string) *Session {
 	c.init()
 
 	v, ok := c.sessions[team]

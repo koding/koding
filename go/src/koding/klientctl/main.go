@@ -107,11 +107,7 @@ func run(args []string) {
 		os.Exit(10)
 	}
 
-	kloud.DefaultClient.Log = log
-	if kt, ok := kloud.DefaultClient.Transport.(*kloud.KiteTransport); ok {
-		kt.Log = log
-	}
-
+	kloud.DefaultLog = log
 	defer ctlcli.Close()
 
 	// TODO(leeola): deprecate this default, instead passing it as a dependency
@@ -424,7 +420,12 @@ func run(args []string) {
 							},
 							cli.StringFlag{
 								Name:  "team, t",
-								Usage: "Specify a koding.com team to log in. Leaving empty logs in to kd.io by default.",
+								Usage: "Specify a Koding team to log in. Leaving empty logs in to kd.io by default.",
+							},
+							cli.StringFlag{
+								Name:  "koding",
+								Usage: "Specify a Koding endpoint to log in.",
+								Value: config.Konfig.Endpoints.Koding.Public.String(),
 							},
 						},
 					},
