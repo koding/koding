@@ -427,7 +427,10 @@ func newEndpoints(cfg *Config) *config.Endpoints {
 	}
 
 	if cfg.TunnelURL != "" {
-		e.Tunnel = config.NewEndpoint(cfg.TunnelURL)
+		if u, err := url.Parse(cfg.TunnelURL); err == nil {
+			u.Path = "/kite"
+			e.Tunnel = config.NewEndpoint(u.String())
+		}
 	}
 
 	return e
