@@ -476,6 +476,57 @@ func getGroupBySlug(slug string) bool {
 	return true
 }
 
+func mergeCombinedAppStorageData(storages []models.CombinedAppStorage) models.CombinedAppStorage {
+	var updatedAppStorage models.CombinedAppStorage
+	// init CombinedAppStorage bucket
+	updatedAppStorage.Bucket = make(map[string]map[string]map[string]interface{})
+
+	for _, storage := range storages {
+		for appName, bucket := range storage.Bucket {
+			// if app does not have any data, remove it by ignoring.
+			if _, ok := bucket["data"]; !ok || len(bucket["data"]) == 0 {
+				continue
+			}
+
+			// if we dont have the app in the new app storage, assign it.
+			if _, ok := updatedAppStorage.Bucket[appName]; !ok {
+				updatedAppStorage.Bucket[appName] = bucket
+				continue
+			}
+
+			// if we have the app in the merged one, only fill non-existing keys.
+			for key, value := range bucket["data"] {
+				if _, ok := updatedAppStorage.Bucket[appName]["data"][key]; !ok {
+					updatedAppStorage.Bucket[appName]["data"][key] = value
+				}
+			}
+		}
+	}
+
+	return updatedAppStorage
+}
+
+// combineWithDeletion updates the first CombinedAppStorage with new merged
+// bucket and deletes other CombinedAppStorages
+func combineWithDeletion(mergedStorage models.CombinedAppStorage, storages []models.CombinedAppStorage) (*models.CombinedAppStorage, error) {
+	for i := 0; i < len(storages); i++ {
+		if i == 0 {
+			// UPDATE CombinedAppStorage with its new Bucket data
+			storages[i].Bucket = mergedStorage.Bucket
+			if err := helper.UpdateCombinedAppStorage(&storages[i]); err != nil {
+				return nil, err
+			}
+		} else {
+			// DELETE CombinedAppStorages in this block
+			if err := helper.RemoveCombinedAppStorage(storages[i].Id); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return &storages[0], nil
+}
+
 func isIn(s string, ts ...string) bool {
 	for _, t := range ts {
 		if t == s {
