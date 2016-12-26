@@ -773,6 +773,7 @@ module.exports = class JUser extends jraphical.Module
 
             user.unlinkOAuths ->
               account.leaveFromAllGroups client, ->
+                deletedClient = { connection: { delegate: account } }
                 JUser.logout deletedClient, callback
 
   validateConvertInput = (userFormData, client) ->
