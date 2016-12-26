@@ -8,6 +8,7 @@ import (
 	"path"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -115,7 +116,20 @@ func (k *Konfig) Valid() error {
 }
 
 func (k *Konfig) ID() string {
-	hash := sha1.Sum([]byte(k.KodingPublic().String()))
+	return ID(k.KodingPublic().String())
+}
+
+func ID(kodingURL string) string {
+	if kodingURL == "" {
+		return ""
+	}
+	if u, err := url.Parse(kodingURL); err == nil {
+		// Since id is input sensitive we clean the path so "example.com/koding"
+		// "example.com/koding/" are effecitvely the same urls.
+		u.Path = strings.TrimRight(path.Clean(u.Path), "/")
+		kodingURL = u.String()
+	}
+	hash := sha1.Sum([]byte(kodingURL))
 	return hex.EncodeToString(hash[:4])
 }
 
