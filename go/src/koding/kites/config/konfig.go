@@ -172,10 +172,6 @@ func (k *Konfig) buildKiteConfig() *konfig.Config {
 		}
 	}
 
-	if cfg, err := konfig.Get(); err == nil {
-		return cfg
-	}
-
 	return konfig.New()
 }
 

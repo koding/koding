@@ -24,8 +24,8 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, fmt.Errorf("%q is not a valid URL value: %s\n", c.String("koding"), err)
 	}
 
-	k, existing := configstore.List()[config.ID(kodingURL.String())]
-	if !existing {
+	k, ok := configstore.List()[config.ID(kodingURL.String())]
+	if !ok {
 		k = &config.Konfig{
 			Endpoints: &config.Endpoints{
 				Koding: config.NewEndpointURL(kodingURL),
@@ -70,24 +70,27 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 		resp, err = authClient.Login(opts)
 	} else {
-		user, err := helper.Ask("Username [%s]: ", config.CurrentUser.Username)
-		if err != nil {
-			return 1, err
-		}
-
-		if user == "" {
-			user = config.CurrentUser.Username
-		}
-
-		pass, err := helper.AskSecret("Password [***]: ")
-		if err != nil {
-			return 1, err
-		}
-
 		opts := &auth.LoginOptions{
-			Team:     c.String("team"),
-			Username: user,
-			Password: pass,
+			Team: c.String("team"),
+		}
+
+		opts.Username, err = helper.Ask("Username [%s]: ", config.CurrentUser.Username)
+		if err != nil {
+			return 1, err
+		}
+
+		if opts.Username == "" {
+			opts.Username = config.CurrentUser.Username
+		}
+
+		for {
+			opts.Password, err = helper.AskSecret("Password [***]: ")
+			if err != nil {
+				return 1, err
+			}
+			if opts.Password != "" {
+				break
+			}
 		}
 
 		resp, err = authClient.Login(opts)
