@@ -110,6 +110,6 @@ You can configure the number of VMs and applications installed on each VM instan
 [11]: {{ site.url }}/assets/img/guides/softlayer/sl-stack-build-2.png
 [12]: {{ site.url }}/assets/img/guides/softlayer/sl-stack-building.png
 
-[13]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-stack-built.png
-[14]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-vm-ready.png
+[13]: {{ site.url }}/assets/img/guides/softlayer/sl-stack-built.png
+[14]: {{ site.url }}/assets/img/guides/softlayer/sl-vm-ready.png
 [15]: {{ site.url }}/docs/terraform/providers/softlayer/index.html/
