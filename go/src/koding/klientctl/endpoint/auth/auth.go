@@ -14,7 +14,6 @@ var DefaultClient = &Client{}
 type Session struct {
 	ClientID string `json:"clientID"`
 	Team     string `json:"team"`
-	KiteKey  string `json:"kiteKey,omitempty"`
 }
 
 type Sessions map[string]*Session
@@ -50,13 +49,15 @@ type Client struct {
 	sessions Sessions
 }
 
-func (c *Client) Login(opts *LoginOptions) (*Session, error) {
+func (c *Client) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error) {
 	c.init()
 
 	req := &stack.LoginRequest{
 		GroupName: opts.Team,
+		Metadata:  true,
 	}
-	var session *Session
+
+	resp, err := stack.PasswordLoginResponse{}, error(nil)
 
 	// We ignore any cached session for the given login request,
 	// as it might be already invalid from a different client.
@@ -66,33 +67,24 @@ func (c *Client) Login(opts *LoginOptions) (*Session, error) {
 			Username:     opts.Username,
 			Password:     opts.Password,
 		}
-		var resp stack.PasswordLoginResponse
 
-		if err := c.kloud().Call("auth.passwordLogin", req, &resp); err != nil {
-			return nil, err
-		}
-
-		session = &Session{
-			ClientID: resp.LoginResponse.ClientID,
-			Team:     resp.LoginResponse.GroupName,
-			KiteKey:  resp.KiteKey,
-		}
+		err = c.kloud().Call("auth.passwordLogin", req, &resp)
 	} else {
-		var resp stack.LoginResponse
+		err = c.kloud().Call("auth.login", req, &resp.LoginResponse)
+	}
 
-		if err := c.kloud().Call("auth.login", req, &resp); err != nil {
-			return nil, err
-		}
+	if err != nil {
+		return nil, err
+	}
 
-		session = &Session{
-			ClientID: resp.ClientID,
-			Team:     resp.GroupName,
-		}
+	session := &Session{
+		ClientID: resp.LoginResponse.ClientID,
+		Team:     resp.LoginResponse.GroupName,
 	}
 
 	c.sessions[session.Team] = session
 
-	return session, nil
+	return &resp, nil
 }
 
 func (c *Client) Sessions() Sessions {
@@ -137,5 +129,5 @@ func (c *Client) kloud() *kloud.Client {
 	return kloud.DefaultClient
 }
 
-func Login(opts *LoginOptions) (*Session, error) { return DefaultClient.Login(opts) }
-func Use(s *Session)                             { DefaultClient.Use(s) }
+func Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error) { return DefaultClient.Login(opts) }
+func Use(s *Session)                                                 { DefaultClient.Use(s) }

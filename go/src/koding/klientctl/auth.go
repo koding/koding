@@ -61,14 +61,14 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 	log.Debug("auth: transport test: %s", err)
 
-	var session *auth.Session
+	var resp *stack.PasswordLoginResponse
 
 	if err == nil {
 		opts := &auth.LoginOptions{
 			Team: c.String("team"),
 		}
 
-		session, err = authClient.Login(opts)
+		resp, err = authClient.Login(opts)
 	} else {
 		user, err := helper.Ask("Username [%s]: ", config.CurrentUser.Username)
 		if err != nil {
@@ -90,29 +90,30 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 			Password: pass,
 		}
 
-		session, err = authClient.Login(opts)
+		resp, err = authClient.Login(opts)
 	}
 
 	if err != nil {
 		return 1, fmt.Errorf("error logging into your Koding account: %v", err)
 	}
 
-	if session.KiteKey != "" {
-		k.KiteKey = session.KiteKey
+	if resp.KiteKey != "" {
+		k.KiteKey = resp.KiteKey
+		k.Endpoints = resp.Metadata.Endpoints
 
 		if err := configstore.Use(k); err != nil {
 			return 1, err
 		}
 	}
 
-	teamClient.Use(&team.Team{Name: session.Team})
+	teamClient.Use(&team.Team{Name: resp.GroupName})
 
 	if c.Bool("json") {
 		enc := json.NewEncoder(os.Stdout)
 		enc.SetIndent("", "\t")
-		enc.Encode(session)
+		enc.Encode(resp)
 	} else {
-		fmt.Fprintf(os.Stderr, "Successfully logged in to %q team.\n", session.Team)
+		fmt.Fprintf(os.Stderr, "Successfully logged in to %q team.\n", resp.GroupName)
 	}
 
 	return 0, nil
