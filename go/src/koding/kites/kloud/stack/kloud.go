@@ -17,6 +17,7 @@ import (
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/pkg/idlock"
 	"koding/kites/kloud/team"
+	"koding/kites/kloud/userdata"
 	"koding/remoteapi"
 	presence "socialapi/workers/presence/client"
 
@@ -75,6 +76,9 @@ type Kloud struct {
 
 	// Endpoints represents Koding endpoints configuration.
 	Endpoints *config.Endpoints
+
+	// Userdata is used to generate new kite.keys.
+	Userdata *userdata.Userdata
 
 	// DescribeFunc is used to obtain provider types description.
 	//
