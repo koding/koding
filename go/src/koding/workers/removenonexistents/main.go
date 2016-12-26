@@ -288,6 +288,17 @@ func deleteCombinedAppStorages(res interface{}) error {
 	cs := res.(*models.CombinedAppStorage)
 
 	if getAccountByID(cs.AccountId.Hex()) {
+		storages, err := helper.GetAllCombinedAppStorageByAccountId(cs.AccountId)
+		if err != nil {
+			return err
+		}
+		if len(storages) > 1 {
+			mergedStorage := mergeCombinedAppStorageData(storages)
+			_, err := combineWithDeletion(mergedStorage, storages)
+			if err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 
