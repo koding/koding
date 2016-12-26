@@ -76,6 +76,13 @@ Configuration = (options = {}) ->
 
   KONFIG.workers = require('./workers')(KONFIG, options, credentials)
 
+  KONFIG.workers.emailer =
+    group       : "webserver"
+    supervisord :
+      command   :
+        run     : "node %(ENV_KONFIG_PROJECTROOT)s/workers/emailer"
+
+
   options.disabledWorkers = [
     "algoliaconnector"
     "gatekeeper"

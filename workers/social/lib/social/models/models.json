@@ -38,7 +38,6 @@
   "JReward": "/rewards/index.coffee",
   "JRewardCampaign": "/rewards/rewardcampaign.coffee",
   "S3": "/s3.coffee",
-  "JSecretName": "/secretname.coffee",
   "JSession": "/session.coffee",
   "SharedMachine": "/sharedmachine.coffee",
   "Sidebar": "/sidebar.coffee",

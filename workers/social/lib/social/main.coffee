@@ -19,7 +19,6 @@ process.on 'uncaughtException', (err) ->
   process.exit 1
 
 Bongo = require 'bongo'
-Broker = require 'broker'
 
 KONFIG = require 'koding-config-manager'
 Object.defineProperty global, 'KONFIG', { value: KONFIG }
@@ -33,11 +32,6 @@ redisClient = require('redis').createClient(
 
 mongo = "mongodb://#{KONFIG.mongo}"  if 'string' is typeof KONFIG.mongo
 
-mqOptions = extend {}, mq
-mqOptions.login = social.login if social?.login?
-
-broker = new Broker mqOptions
-
 mqConfig = { host: mq.host, port: mq.port, login: mq.login, password: mq.password, vhost: mq.vhost }
 
 # TODO exchange version must be injected here, when we have that support
@@ -50,7 +44,6 @@ koding = new Bongo {
   mongo       : mongoReplSet or mongo
   models      : './models'
   resourceName: social.queueName
-  mq          : broker
   mqConfig    : mqConfig
   metrics     : datadog
   redisClient : redisClient
