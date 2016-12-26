@@ -15,8 +15,6 @@ import (
 	"github.com/koding/logging"
 )
 
-var kdCacheOpts = configstore.CacheOptions("kd")
-
 // Transport is an interface that abstracts underlying
 // RPC round trip.
 //
@@ -51,7 +49,7 @@ func (c *Client) Cache() *cfg.Cache {
 		return c.cache
 	}
 
-	c.cache = cfg.NewCache(kdCacheOpts)
+	c.cache = cfg.NewCache(configstore.CacheOptions("kd"))
 	ctlcli.CloseOnExit(c.cache)
 
 	return c.cache
@@ -74,21 +72,10 @@ func (c *Client) Call(method string, arg, reply interface{}) error {
 // Zero value of KiteTransport tries to connect to Kloud and Kontrol
 // endpoints defined in config.Konfig (read from konfig.bolt).
 type KiteTransport struct {
-	// KiteName is a name of kite we're connecting to.
+	// Konfig is a Koding configuration to use when calling endpoints.
 	//
-	// If empty, "kloud" is going to be used instead.
-	KiteName string
-
-	// KiteURL is a URL of an endpoint we're going to connect to.
-	//
-	// If empty, public Kloud endpoint is going to be used instead.
-	KiteURL string
-
-	// KontrolURL is a URL of kontrol endpoint we're going to use
-	// for GetKites if necessary.
-	//
-	// If empty, public Kontrol endpoint is going to be used instead.
-	KontrolURL string
+	// If nil, global config.Konfig is going to be used instead.
+	Konfig *cfg.Konfig
 
 	// DialTimeout is a maximum time external kite is
 	// going to be dialed for.
@@ -150,8 +137,8 @@ func (kt *KiteTransport) kiteConfig() *kitecfg.Config {
 		return kt.kCfg
 	}
 
-	kt.kCfg = config.Konfig.KiteConfig()
-	kt.kCfg.KontrolURL = kt.kontrolURL()
+	kt.kCfg = kt.konfig().KiteConfig()
+	kt.kCfg.KontrolURL = kt.konfig().Endpoints.Kontrol().Public.String()
 	kt.kCfg.Environment = config.Environment
 	kt.kCfg.Transport = kitecfg.XHRPolling
 
@@ -163,11 +150,11 @@ func (kt *KiteTransport) kloud() (*kite.Client, error) {
 		return kt.kKloud, nil
 	}
 
-	kloud := kt.kite().NewClient(kt.kiteURL())
+	kloud := kt.kite().NewClient(kt.konfig().Endpoints.Kloud().Public.String())
 
 	if err := kloud.DialTimeout(kt.dialTimeout()); err != nil {
 		query := &protocol.KontrolQuery{
-			Name:        kt.kiteName(),
+			Name:        "kloud",
 			Environment: kt.kiteConfig().Environment,
 		}
 
@@ -216,25 +203,11 @@ func (kt *KiteTransport) log() logging.Logger {
 	return DefaultLog
 }
 
-func (kt *KiteTransport) kiteURL() string {
-	if kt.KiteURL != "" {
-		return kt.KiteURL
+func (kt *KiteTransport) konfig() *cfg.Konfig {
+	if kt.Konfig != nil {
+		return kt.Konfig
 	}
-	return config.Konfig.Endpoints.Kloud().Public.String()
-}
-
-func (kt *KiteTransport) kontrolURL() string {
-	if kt.KontrolURL != "" {
-		return kt.KontrolURL
-	}
-	return config.Konfig.Endpoints.Kontrol().Public.String()
-}
-
-func (kt *KiteTransport) kiteName() string {
-	if kt.KiteName != "" {
-		return kt.KiteName
-	}
-	return "kloud"
+	return config.Konfig
 }
 
 func (kt *KiteTransport) Valid() error {
