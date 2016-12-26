@@ -16,6 +16,8 @@
     title: Create Digital Ocean stack
   - id: creating-a-gce-stack
     title: Create Google Compute Engine stack
+  - id: creating-a-softlayer-stack
+    title: Create SoftLayer stack  
   - id: creating-a-vagrant-stack
     title: Create Vagrant stack
 - title: Getting more from Koding
