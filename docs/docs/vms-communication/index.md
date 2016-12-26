@@ -48,13 +48,13 @@ The first instance **web server** we run two commands under the `user_data` sect
 
     `echo "Pinging DB server at ${aws_instance.db-server.public_ip}"`
 
-    We again make use of the `public_ip` to display the second instance `db-server` IP address.
+    We make use of the `public_ip` attribute to display the second instance `db-server` IP address.
 
 2. Ping the other instance
 
     `ping ${aws_instance.db-server.public_ip}`
 
-    This is the actual ping command, we ping the second instance here.
+    This is the actual ping command, we ping the second instance here using the same attribute.
 
 #### Result
 
