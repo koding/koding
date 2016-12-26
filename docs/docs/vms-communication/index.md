@@ -54,11 +54,13 @@ The first instance **web server** we run two commands under the `user_data` sect
 
     `ping ${aws_instance.db-server.public_ip}`
 
-    This is the actual ping command, we ping the second instance here using the same attribute.
+    This is the actual ping command, we ping the second instance here using the same `public_ip` attribute.
 
 #### Result
 
 After building our stack, we can check **web-server** instance building logs to see the results of our `user_data` commands. As you can see the ping command ran successfully using the **db-server** IP as intended.
+
+> If you can not see the **building logs** of an instance, you can always click on VM settings (the three dots beside the VM name) and click on **Show Logs**
 
 ![Ping command][1]
 
