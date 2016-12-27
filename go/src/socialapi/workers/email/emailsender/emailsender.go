@@ -56,20 +56,16 @@ func Send(m *Mail) error {
 // and sends the message according to the mail adress
 // its a helper method to send message
 func (c *Controller) Process(m *Mail) error {
-	var to = m.To
-
-	if c.forcedRecipientEmail != "" {
-		to = c.forcedRecipientEmail
-	}
-
-	user := &eventexporter.User{Email: to}
 	if m.Properties == nil {
 		m.Properties = NewProperties()
 	}
 
-	user.Username = m.Properties.Username
-	if c.forcedRecipientUsername != "" {
-		user.Username = c.forcedRecipientUsername
+	user, err := c.getUserInfo(m)
+	if err != nil {
+		if err == mgo.ErrNotFound {
+			c.log.Error("could not determine the user info for %+v, skipping this event", m)
+		}
+		return err
 	}
 
 	m.SetOption("subject", m.Subject)
@@ -77,8 +73,6 @@ func (c *Controller) Process(m *Mail) error {
 	// set default properties
 	m.SetOption("env", c.env)
 	m.SetOption("host", c.host)
-
-	var err error
 
 	escapedBody := template.HTMLEscapeString(m.HTML)
 
