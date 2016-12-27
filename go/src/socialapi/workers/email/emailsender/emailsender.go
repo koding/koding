@@ -2,8 +2,11 @@
 package emailsender
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"text/template"
+
+	mgo "gopkg.in/mgo.v2"
 
 	"github.com/koding/bongo"
 	"github.com/koding/eventexporter"
@@ -89,6 +92,30 @@ func (c *Controller) Process(m *Mail) error {
 	}
 
 	return err
+}
+
+func (c *Controller) getUserInfo(m *Mail) (*eventexporter.User, error) {
+	if m.To == "" {
+		u, err := modelhelper.GetUser(m.Properties.Username)
+		if err != nil {
+			return nil, err
+		}
+
+		m.To = u.Email
+	}
+
+	user := &eventexporter.User{Email: m.To}
+
+	if c.forcedRecipientEmail != "" {
+		m.To = c.forcedRecipientEmail
+	}
+
+	user.Username = m.Properties.Username
+	if c.forcedRecipientUsername != "" {
+		user.Username = c.forcedRecipientUsername
+	}
+
+	return user, nil
 }
 
 func (c *Controller) Close() {
