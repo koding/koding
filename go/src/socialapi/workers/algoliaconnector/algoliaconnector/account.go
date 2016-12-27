@@ -151,6 +151,7 @@ func (f *Controller) DeleteNicksWithQuery(queryName string) error {
 	if err != nil {
 		return err
 	}
+
 	var nbHit float64
 	var pages float64
 
@@ -191,11 +192,14 @@ func (f *Controller) DeleteNicksWithQuery(queryName string) error {
 				for _, v := range hinter {
 					val, k := v.(map[string]interface{})
 					if k {
-						value := val["nick"].(string)
+						// value := val["nick"].(string)
 						object := val["objectID"].(string)
-						if strings.HasPrefix(value, queryName) {
-							_, err = index.DeleteObject(object)
-							if err != nil {
+						_, err := modelhelper.GetAccountById(object)
+						if err != nil && err != modelhelper.ErrNotFound {
+							return err
+						}
+						if err == modelhelper.ErrNotFound {
+							if _, err = index.DeleteObject(object); err != nil {
 								return nil
 							}
 						}
