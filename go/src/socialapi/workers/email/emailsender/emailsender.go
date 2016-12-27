@@ -67,6 +67,7 @@ func (c *Controller) Process(m *Mail) error {
 	if err != nil {
 		if err == mgo.ErrNotFound {
 			c.log.Error("could not determine the user info for %+v, skipping this event", m)
+			return nil
 		}
 		return err
 	}
@@ -107,7 +108,7 @@ func (c *Controller) getUserInfo(m *Mail) (*eventexporter.User, error) {
 	user := &eventexporter.User{Email: m.To}
 
 	if c.forcedRecipientEmail != "" {
-		m.To = c.forcedRecipientEmail
+		user.Email = c.forcedRecipientEmail
 	}
 
 	user.Username = m.Properties.Username
