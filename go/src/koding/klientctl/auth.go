@@ -61,19 +61,11 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 	log.Debug("auth: transport test: %s", err)
 
-	var resp *stack.PasswordLoginResponse
+	opts := &auth.LoginOptions{
+		Team: c.String("team"),
+	}
 
-	if err == nil {
-		opts := &auth.LoginOptions{
-			Team: c.String("team"),
-		}
-
-		resp, err = authClient.Login(opts)
-	} else {
-		opts := &auth.LoginOptions{
-			Team: c.String("team"),
-		}
-
+	if err != nil {
 		opts.Username, err = helper.Ask("Username [%s]: ", config.CurrentUser.Username)
 		if err != nil {
 			return 1, err
@@ -92,10 +84,9 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 				break
 			}
 		}
-
-		resp, err = authClient.Login(opts)
 	}
 
+	resp, err := authClient.Login(opts)
 	if err != nil {
 		return 1, fmt.Errorf("error logging into your Koding account: %v", err)
 	}
@@ -116,7 +107,7 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		enc.SetIndent("", "\t")
 		enc.Encode(resp)
 	} else {
-		fmt.Fprintf(os.Stderr, "Successfully logged in to %q team.\n", resp.GroupName)
+		fmt.Fprintf(os.Stdout, "Successfully logged in to %q team.\n", resp.GroupName)
 	}
 
 	return 0, nil
