@@ -2,8 +2,11 @@
 package emailsender
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"text/template"
+
+	mgo "gopkg.in/mgo.v2"
 
 	"github.com/koding/bongo"
 	"github.com/koding/eventexporter"
@@ -56,20 +59,17 @@ func Send(m *Mail) error {
 // and sends the message according to the mail adress
 // its a helper method to send message
 func (c *Controller) Process(m *Mail) error {
-	var to = m.To
-
-	if c.forcedRecipientEmail != "" {
-		to = c.forcedRecipientEmail
-	}
-
-	user := &eventexporter.User{Email: to}
 	if m.Properties == nil {
 		m.Properties = NewProperties()
 	}
 
-	user.Username = m.Properties.Username
-	if c.forcedRecipientUsername != "" {
-		user.Username = c.forcedRecipientUsername
+	user, err := c.getUserInfo(m)
+	if err != nil {
+		if err == mgo.ErrNotFound {
+			c.log.Error("could not determine the user info for %+v, skipping this event", m)
+			return nil
+		}
+		return err
 	}
 
 	m.SetOption("subject", m.Subject)
@@ -77,8 +77,6 @@ func (c *Controller) Process(m *Mail) error {
 	// set default properties
 	m.SetOption("env", c.env)
 	m.SetOption("host", c.host)
-
-	var err error
 
 	escapedBody := template.HTMLEscapeString(m.HTML)
 
@@ -95,6 +93,30 @@ func (c *Controller) Process(m *Mail) error {
 	}
 
 	return err
+}
+
+func (c *Controller) getUserInfo(m *Mail) (*eventexporter.User, error) {
+	if m.To == "" {
+		u, err := modelhelper.GetUser(m.Properties.Username)
+		if err != nil {
+			return nil, err
+		}
+
+		m.To = u.Email
+	}
+
+	user := &eventexporter.User{Email: m.To}
+
+	if c.forcedRecipientEmail != "" {
+		user.Email = c.forcedRecipientEmail
+	}
+
+	user.Username = m.Properties.Username
+	if c.forcedRecipientUsername != "" {
+		user.Username = c.forcedRecipientUsername
+	}
+
+	return user, nil
 }
 
 func (c *Controller) Close() {
