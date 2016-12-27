@@ -423,7 +423,7 @@ func run(args []string) {
 								Usage: "Specify a Koding team to log in. Leaving empty logs in to kd.io by default.",
 							},
 							cli.StringFlag{
-								Name:  "koding",
+								Name:  "baseurl",
 								Usage: "Specify a Koding endpoint to log in.",
 								Value: config.Konfig.Endpoints.Koding.Public.String(),
 							},

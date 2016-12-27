@@ -19,7 +19,7 @@ import (
 )
 
 func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	kodingURL, err := url.Parse(c.String("koding"))
+	kodingURL, err := url.Parse(c.String("baseurl"))
 	if err != nil {
 		return 1, fmt.Errorf("%q is not a valid URL value: %s\n", c.String("koding"), err)
 	}
