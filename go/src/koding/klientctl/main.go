@@ -108,6 +108,7 @@ func run(args []string) {
 	}
 
 	kloud.DefaultLog = log
+	testKloudHook(kloud.DefaultClient)
 	defer ctlcli.Close()
 
 	// TODO(leeola): deprecate this default, instead passing it as a dependency

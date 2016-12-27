@@ -75,7 +75,7 @@ func (req *PasswordLoginRequest) Valid() error {
 type PasswordLoginResponse struct {
 	LoginResponse
 
-	KiteKey string `json:"kiteKey"`
+	KiteKey string `json:"kiteKey,omitempty"`
 }
 
 // AuthLogin creates a jSession for the given username and team.

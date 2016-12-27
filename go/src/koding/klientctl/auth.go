@@ -18,6 +18,10 @@ import (
 	"github.com/koding/logging"
 )
 
+var testKloudHook = nop
+
+func nop(*kloud.Client) {}
+
 func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	kodingURL, err := url.Parse(c.String("baseurl"))
 	if err != nil {
@@ -46,6 +50,8 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 			Log:    log,
 		},
 	}
+
+	testKloudHook(kloudClient)
 
 	authClient := &auth.Client{
 		Kloud: kloudClient,
