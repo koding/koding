@@ -17,7 +17,7 @@
   - id: creating-a-gce-stack
     title: Create Google Compute Engine stack
   - id: creating-a-softlayer-stack
-    title: Create SoftLayer stack  
+    title: Create SoftLayer stack
   - id: creating-a-vagrant-stack
     title: Create Vagrant stack
 - title: Getting more from Koding
@@ -38,8 +38,8 @@
     title: How to share your VM with someone
   - id: create-elastic-ip-for-your-instance
     title: Assign Elastic IP
-  - id: vms-communication
-    title: VMs Communication
+  - id: inter-vm-communication
+    title: Inter-VM Communication
   - id: create-an-aws-vpc
     title: AWS non-default VPC
   - id: setup-aws-iam-user

@@ -1,7 +1,7 @@
 ---
 layout: doc
-title: VMs Communication
-permalink: /docs/vms-communication
+title: Inter-VM Communication
+permalink: /docs/inter-vm-communication
 parent: /docs/home
 ---
 
