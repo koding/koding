@@ -25,6 +25,15 @@ func GetCombinedAppStorageByAccountId(accountId bson.ObjectId) (*models.Combined
 
 	return appStorage, Mongo.Run(CombinedAppStorageColl, query)
 }
+func GetAllCombinedAppStorageByAccountId(accountId bson.ObjectId) ([]models.CombinedAppStorage, error) {
+	appStorages := make([]models.CombinedAppStorage, 0)
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"accountId": accountId}).All(&appStorages)
+	}
+
+	return appStorages, Mongo.Run(CombinedAppStorageColl, query)
+}
 
 func CreateCombinedAppStorage(a *models.CombinedAppStorage) error {
 	query := insertQuery(a)
