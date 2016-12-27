@@ -75,7 +75,7 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
     @whyTip = new kd.CustomHTMLView
       cssClass : 'TeamsModal-ccwarning'
       partial : '''<strong>We ask your credit card purely for verification purposes.</strong>
-                   Your credit card will be charged 50 cents for authentication, and it will be 
+                   Your credit card will be charged 50 cents for authentication, and it will be
                    automatically refunded within 1-7 days. You will receive an email to confirm
                    before your trial ends.
                    '''
