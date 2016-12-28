@@ -202,10 +202,10 @@ func (meta *Cred) Valid() error {
 		return errors.New("aws: secret key is empty")
 	}
 	if !reAccessKey.MatchString(meta.AccessKey) {
-		return errors.New("aws: access key is ill-formed")
+		return errors.New("aws: access key is invalid")
 	}
 	if !reSecretKey.MatchString(meta.SecretKey) {
-		return errors.New("aws: secret key is ill-formed")
+		return errors.New("aws: secret key is invalid")
 	}
 	return nil
 }

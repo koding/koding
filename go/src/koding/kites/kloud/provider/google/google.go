@@ -91,7 +91,7 @@ func (c *Cred) Valid() error {
 	}{}
 
 	if err := json.Unmarshal([]byte(c.Credentials), &acckey); err != nil {
-		return fmt.Errorf("credentials are ill-formed: %s", err)
+		return fmt.Errorf("credentials are invalid: %s", err)
 	}
 
 	if acckey.Typ != "service_account" {
