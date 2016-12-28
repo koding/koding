@@ -209,7 +209,7 @@ module.exports = (options, credentials) ->
       klientLatest     :
         public         : "https://koding-klient.s3.amazonaws.com/#{options.environment}/latest-version.txt"
       kodingBase       :
-        public         : "#{options.publicHostname}"
+        public         : "#{options.customDomain.public}"
         private        : "#{options.customDomain.local}"
       tunnelServer     :
         public         : "#{options.tunnelUrl}/kite"

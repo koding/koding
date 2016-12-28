@@ -421,7 +421,7 @@ func newEndpoints(cfg *Config) *config.Endpoints {
 	e := config.NewKonfig(&config.Environments{Env: cfg.Environment}).Endpoints
 
 	if cfg.KodingURL != nil {
-		e.Koding = config.NewEndpointURL(cfg.KodingURL.URL)
+		e.Koding.Public = cfg.KodingURL
 	}
 
 	if cfg.TunnelURL != "" {
