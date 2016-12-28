@@ -61,7 +61,9 @@ module.exports = class SubscriptionHeader extends Component
 
   renderNextBillingAmount: ->
 
-    { nextBillingAmount } = @props
+    { nextBillingAmount, isTrial } = @props
+
+    return null  if isTrial
 
     <Col xs={4} className={textStyles.right}>
       <Label size="small" type="info">
@@ -96,4 +98,3 @@ SubscriptionHeader.defaultProps =
   nextBillingAmount: 0
   isTrial: no
   endsAt: Date.now()
-

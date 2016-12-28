@@ -36,12 +36,6 @@ type Uninstall struct {
 	// The public facing klient name (not filename).
 	KlientctlName string
 
-	// Kite key directory to remove, if empty
-	KiteKeyDirectory string
-
-	// The kite.key filename to remove within the KiteHome
-	KiteKeyFilename string
-
 	// The full path of the klientctl binary to be removed. Note that the directory
 	// is not removed, as it is often a PATH complaint directory and should likely
 	// be left intact.
@@ -168,10 +162,7 @@ func UninstallCommand(c *cli.Context, log logging.Logger, _ string) (string, int
 		ServiceUninstaller: s,
 		KlientName:         config.KlientName,
 		KlientctlName:      config.Name,
-		KiteKeyDirectory:   config.Konfig.KiteHome(),
-		// TODO: Store the kite.key path somewhere
-		KiteKeyFilename: "kite.key",
-		KlientctlPath:   filepath.Join(KlientctlDirectory, KlientctlBinName),
+		KlientctlPath:      filepath.Join(KlientctlDirectory, KlientctlBinName),
 		// TODO: Store the klient directory structure(s) somewhere
 		KlientParentDirectory: "/opt",
 		KlientDirectory:       "kite/klient",
@@ -187,28 +178,12 @@ func UninstallCommand(c *cli.Context, log logging.Logger, _ string) (string, int
 
 // RemoveKiteKey removes the kite key and kitekeydirectory
 func (u *Uninstall) RemoveKiteKey() error {
-	// Remove the kitekey
-	if u.KiteKeyDirectory == "" {
-		return errors.New("KiteKeyDirectory cannot be empty")
-	}
-
-	if u.KiteKeyFilename == "" {
-		return errors.New("KiteKeyFilename cannot be empty")
-	}
-
-	p := filepath.Join(u.KiteKeyDirectory, u.KiteKeyFilename)
-	if err := u.remover(p); err != nil {
+	konfig, err := configcli.Used()
+	if err != nil {
 		return err
 	}
-
-	// Remove kiteHome, if empty. Do not return failed folder removals for a good ux.
-	//
-	// As with most file operations, checking the state and then acting is an
-	// error prone and non-atomic endevour. As such, we're just removing the
-	// directory here, and if it is non-empty this operation will fail.
-	u.remover(u.KiteKeyDirectory)
-
-	return nil
+	konfig.KiteKey = ""
+	return configcli.Use(konfig)
 }
 
 // RemoveKlientFiles removes the klient bin, klient.sh, but not the klient

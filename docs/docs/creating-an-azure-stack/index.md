@@ -84,15 +84,17 @@ Your new team members will be able to use your stack to build their VMs environm
 
         Once you are done click **Save this & continue** to verify your credentials
 
-7. Once your credentials are saved & verified you will be directed back to your Stack template. Click **Save** on the top right
+8. Once your credentials are saved & verified you will be directed back to your Stack template. Click **Save** on the top right
 
     ![Azure Save Stack][15]
 
-8. Click **Initialize** to start your stack
+9. Click **Initialize** to start your stack
+
+    > You can have multiple stacks within a team, click **Make Team Default** when you want to make this stack your team's default stack.
 
     ![Azure Init Stack][16]
 
-9. Now let's start building our stack
+10. Now let's start building our stack
 
     > You will notice that the first page in the building stack window contains the message we wrote in our Read Me tab in our stack. This is the same message your team will see when they build their stack. It is a good practice to include information about your project or stack for your teammates.
 
@@ -100,7 +102,7 @@ Your new team members will be able to use your stack to build their VMs environm
 
     ![Azure Init Stack][17]
 
-10. Make sure the correct credentials are selected (you can save multiple credentials) and click **Build Stack**
+11. Make sure the correct credentials are selected (you can save multiple credentials) and click **Build Stack**
 
     ![Azure build stack][18]
 
@@ -108,7 +110,7 @@ Your new team members will be able to use your stack to build their VMs environm
 
     ![Azure stack building][19]
 
-11. Your stack was built successfully, click **Start Coding**
+12. Your stack was built successfully, click **Start Coding**
 
     ![Azure stack built successfully][20]
 
