@@ -1,6 +1,4 @@
 KONFIG        = require 'koding-config-manager'
-redis         = require 'redis'
-REDIS_KEY     = 'social:disposable-email-addresses'
 DOMAINS       = require 'disposable-email-domains'
 
 LOW_QUALITY_DOMAINS = [
@@ -14,7 +12,6 @@ LOW_QUALITY_DOMAINS = [
   'yahoo.com.ph'
   'yahoo.com.vn'
 
-  # -- latest redis entries
   # -- ongoing discussion here: https://github.com/ivolo/disposable-email-domains/pull/22
   '10mail.org'
   '10minutemail.co.za'
@@ -194,38 +191,15 @@ DOMAINS = DOMAINS.concat LOW_QUALITY_DOMAINS
 endsWith = (str, suffix) ->
   str.toLowerCase().indexOf(suffix.toLowerCase(), str.length - suffix.length) isnt -1
 
-redisClient = null
-
 check = (email) ->
   for domain in DOMAINS
     return no  if endsWith email, "@#{domain}"
   return yes
-
-syncWithRedis = (callback) ->
-
-  unless redisClient
-    redisClient = redis.createClient(
-      KONFIG.redis.port
-      KONFIG.redis.host
-      {}
-    )
-
-  redisClient.smembers REDIS_KEY, (err, domains) ->
-
-    console.warn err  if err?
-    domains ?= []
-
-    DOMAINS.push domain for domain in domains when domain not in DOMAINS
-
-    callback null
-
 
 module.exports = emailchecker = (email, callback = -> ) ->
 
   unless email
     callback no
     return no
-
-  syncWithRedis -> callback check email
 
   return check email
