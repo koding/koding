@@ -1,6 +1,7 @@
 package index
 
 import (
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -22,6 +23,7 @@ var filetree = map[string]int64{
 	"d/":           0,
 	"d/da.txt":     5 * 1024,
 	"d/db.txt":     256,
+	"d/dc/":        0,
 	"d/dc/dca.txt": 3 * 1024,
 	"d/dc/dcb.txt": 1024,
 }
@@ -162,6 +164,72 @@ func TestIndex(t *testing.T) {
 				t.Errorf("want no changes after apply; got %#v", cs)
 			}
 		})
+	}
+}
+
+func TestIndexCount(t *testing.T) {
+	tests := map[string]struct {
+		MaxSize  int64
+		Expected int
+	}{
+		"all items": {
+			MaxSize:  -1,
+			Expected: 11,
+		},
+		"less than 100kiB": {
+			MaxSize:  100 * 1024,
+			Expected: 9,
+		},
+		"zero": {
+			MaxSize:  0,
+			Expected: 0,
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			root, clean, err := generateTree()
+			if err != nil {
+				t.Fatalf("want err = nil; got %v", err)
+			}
+			defer clean()
+
+			idx, err := NewIndexFiles(root)
+			if err != nil {
+				t.Fatalf("want err = nil; got %v", err)
+			}
+
+			if count := idx.Count(test.MaxSize); count != test.Expected {
+				t.Errorf("want count = %d; got %d", test.Expected, count)
+			}
+		})
+	}
+}
+
+func TestIndexJSON(t *testing.T) {
+	root, clean, err := generateTree()
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	defer clean()
+
+	idx, err := NewIndexFiles(root)
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+
+	data, err := json.Marshal(idx)
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+
+	idx = NewIndex()
+	if err := json.Unmarshal(data, idx); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+
+	if cs := idx.Compare(root); len(cs) != 0 {
+		t.Errorf("want no changes after apply; got %#v", cs)
 	}
 }
 

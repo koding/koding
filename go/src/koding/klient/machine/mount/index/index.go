@@ -2,6 +2,7 @@ package index
 
 import (
 	"crypto/sha1"
+	"encoding/json"
 	"io"
 	"os"
 	"path/filepath"
@@ -11,12 +12,12 @@ import (
 
 // Entry represents a single file registered to index.
 type Entry struct {
-	Name  string      // The relative name of the file.
-	CTime int64       // Metadata change time since EPOCH.
-	MTime int64       // File data change time since EPOCH.
-	Mode  os.FileMode // File mode and permission bits.
-	Size  uint32      // Size of the file truncated to 32 bits.
-	SHA1  []byte      // SHA-1 hash of file content.
+	Name  string      `json:"name"`  // The relative name of the file.
+	CTime int64       `json:"ctime"` // Metadata change time since EPOCH.
+	MTime int64       `json:"mtime"` // File data change time since EPOCH.
+	Mode  os.FileMode `json:"mode"`  // File mode and permission bits.
+	Size  int64       `json:"size"`  // Size of the file.
+	SHA1  []byte      `json:"sha1"`  // SHA-1 hash of file content.
 }
 
 // NewEntryFile creates new Entry from a file stored under path argument.
@@ -47,19 +48,9 @@ func NewEntryFile(root, path string, info os.FileInfo) (e *Entry, err error) {
 		CTime: ctimeFromSys(info),
 		MTime: info.ModTime().UnixNano(),
 		Mode:  info.Mode(),
-		Size:  safeTruncate(info.Size()),
+		Size:  info.Size(),
 		SHA1:  sum,
 	}, nil
-}
-
-// safeTruncate converts signed integer to unsigned one returning 0 for negative
-// values of provided argument.
-func safeTruncate(n int64) uint32 {
-	if n < 0 {
-		return 0
-	}
-
-	return uint32(n)
 }
 
 // readSHA1 computes SHA-1 sum from a given file content.
@@ -85,14 +76,16 @@ const (
 	ChangeMetaUpdate ChangeMeta = 1 << iota // File was updated.
 	ChangeMetaRemove                        // File was removed.
 	ChangeMetaAdd                           // File was added.
+
+	ChangeMetaLarge ChangeMeta = 1 << (8 + iota) // File size is above 4GB.
 )
 
 // Change describes single file change.
 type Change struct {
-	Name      string     // The relative name of the file.
-	Size      uint32     // Size of the file truncated to 32 bits.
-	Meta      ChangeMeta // The type of operation made on file entry.
-	CreatedAt int64      // Change creation time since EPOCH.
+	Name      string     `json:"name"`      // The relative name of the file.
+	Size      uint32     `json:"size"`      // Size of the file truncated to 32 bits.
+	Meta      ChangeMeta `json:"meta"`      // The type of operation made on file entry.
+	CreatedAt int64      `json:"createdAt"` // Change creation time since EPOCH.
 }
 
 // ChangeSlice stores multiple changes.
@@ -148,12 +141,46 @@ func NewIndexFiles(root string) (*Index, error) {
 	return idx, nil
 }
 
-// Size returns the number of elements sored in index.
-func (idx *Index) Size() int {
+// Count returns the number of entries stored in index. Only items which size is
+// below provided value are counted. If provided argument is negative, this
+// function will return the number of all entries.
+func (idx *Index) Count(maxsize int64) (count int) {
 	idx.mu.RLock()
-	idx.mu.RUnlock()
+	defer idx.mu.RUnlock()
 
-	return len(idx.entries)
+	if maxsize < 0 {
+		return len(idx.entries)
+	} else if maxsize == 0 {
+		return 0
+	}
+
+	for _, entry := range idx.entries {
+		if entry != nil && entry.Size <= maxsize {
+			count++
+		}
+	}
+
+	return count
+}
+
+// DiskSize tells how much disk space would be used by entries stored in index.
+// Only items which size is below provided value are counted. If provided
+// argument is negative, this function will count disk size of all items.
+func (idx *Index) DiskSize(maxsize int64) (size int64) {
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
+
+	if maxsize == 0 {
+		return 0
+	}
+
+	for _, entry := range idx.entries {
+		if entry != nil && (maxsize < 0 || entry.Size <= maxsize) {
+			size += entry.Size
+		}
+	}
+
+	return size
 }
 
 // Compare rereads the given file tree roted at root and compares its entries
@@ -183,7 +210,7 @@ func (idx *Index) Compare(root string) (cs ChangeSlice) {
 			cs = append(cs, Change{
 				Name:      name,
 				Size:      safeTruncate(info.Size()),
-				Meta:      ChangeMetaAdd,
+				Meta:      ChangeMetaAdd | markLargeMeta(info.Size()),
 				CreatedAt: time.Now().UnixNano(),
 			})
 			return nil
@@ -193,11 +220,11 @@ func (idx *Index) Compare(root string) (cs ChangeSlice) {
 		visited[name] = struct{}{}
 		if entry.MTime != info.ModTime().UnixNano() ||
 			entry.CTime != ctimeFromSys(info) ||
-			entry.Size != uint32(info.Size()) {
+			entry.Size != info.Size() {
 			cs = append(cs, Change{
 				Name:      name,
 				Size:      safeTruncate(info.Size()),
-				Meta:      ChangeMetaUpdate,
+				Meta:      ChangeMetaUpdate | markLargeMeta(info.Size()),
 				CreatedAt: time.Now().UnixNano(),
 			})
 		}
@@ -217,7 +244,7 @@ func (idx *Index) Compare(root string) (cs ChangeSlice) {
 			if _, err := os.Lstat(path); os.IsNotExist(err) {
 				cs = append(cs, Change{
 					Name:      name,
-					Meta:      ChangeMetaRemove,
+					Meta:      ChangeMetaRemove | markLargeMeta(idx.entries[name].Size),
 					CreatedAt: time.Now().UnixNano(),
 				})
 			}
@@ -226,6 +253,25 @@ func (idx *Index) Compare(root string) (cs ChangeSlice) {
 	idx.mu.RUnlock()
 
 	return cs
+}
+
+// safeTruncate converts signed integer to unsigned one returning 0 for negative
+// values of provided argument.
+func safeTruncate(n int64) uint32 {
+	if n < 0 {
+		return 0
+	}
+
+	return uint32(n)
+}
+
+// markLargeMeta adds large file flag for files which size is over 4GiB.
+func markLargeMeta(n int64) ChangeMeta {
+	if n < 0 || (n>>32) == 0 {
+		return 0
+	}
+
+	return ChangeMetaLarge
 }
 
 // Apply modifies index according to provided changes. This function doesn't
@@ -264,4 +310,19 @@ func (idx *Index) Apply(root string, cs ChangeSlice) {
 			idx.mu.Unlock()
 		}
 	}
+}
+
+// MarshalJSON satisfies json.Marshaler interface. It safely marshals index
+// private data to JSON format.
+func (idx *Index) MarshalJSON() ([]byte, error) {
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
+
+	return json.Marshal(idx.entries)
+}
+
+// UnmarshalJSON satisfies json.Unmarshaler interface. It is used to unmarshal
+// data into private index fields.
+func (idx *Index) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &idx.entries)
 }
