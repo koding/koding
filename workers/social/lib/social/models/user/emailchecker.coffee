@@ -197,9 +197,6 @@ check = (email) ->
   return yes
 
 module.exports = emailchecker = (email, callback = -> ) ->
-
-  unless email
-    callback no
-    return no
+  return no  unless email
 
   return check email
