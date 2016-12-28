@@ -107,19 +107,10 @@ func (m *MongoDatabase) Machines(f *Filter) ([]*Machine, error) {
 		groupTitles[st.Id] = [2]string{st.Group, st.Title}
 	}
 
-	var team, stack string
 	machines := make([]*Machine, len(machinesDB))
 	for i, mdb := range machinesDB {
-		team, stack = "", ""
-		if mdb.GeneratedFrom != nil {
-			team = groupTitles[mdb.GeneratedFrom.TemplateId][0]
-			stack = groupTitles[mdb.GeneratedFrom.TemplateId][1]
-		}
-
 		machines[i] = &Machine{
 			ID:          mdb.ObjectId.Hex(),
-			Team:        team,
-			Stack:       stack,
 			Provider:    mdb.Provider,
 			Label:       mdb.Label,
 			IP:          hostOnly(mdb.IpAddress),
@@ -132,6 +123,11 @@ func (m *MongoDatabase) Machines(f *Filter) ([]*Machine, error) {
 				ModifiedAt: mdb.Status.ModifiedAt,
 			},
 			Users: filterUsers(mdb.Users, f),
+		}
+
+		if mdb.GeneratedFrom != nil {
+			machines[i].Team = groupTitles[mdb.GeneratedFrom.TemplateId][0]
+			machines[i].Stack = groupTitles[mdb.GeneratedFrom.TemplateId][1]
 		}
 	}
 
