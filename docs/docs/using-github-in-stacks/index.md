@@ -148,7 +148,7 @@ provider:
       access_key: '${var.aws_access_key}'
       secret_key: '${var.aws_secret_key}'
   github:
-    organizationKey : ${var.userInput_github_org_key}
+    organizationKey : ${var.custom_github_org_key}
     userKey         : ${var.userInput_github_userkey}
 ```
 
@@ -231,22 +231,19 @@ Edit the Readme message to educate your developers and save even more time. Let 
 >
 >- Enter your Github username
 >- Enter your Github Key [click here to generate one](https://github.com/settings/tokens/)
->- Select these in the token while generating key: [repo, admin:public_key, user](http://take.ms/)
+>- Select these in the token while generating key: **repo, admin:public_key, user**
 >- Enter your private and public ssh key
 
-Happy Koding!
-
-![github_readme.png][2]
+![Input GitHub parameters][2]
 
 ### Step 5 - Invite your developers:
 
 Invite your developers to your Koding for teams group and ask them to login and build their stack. Once they login and build the stack they will be prompted to enter their GitHub username then their VM will continue to build successfully with the code base pulled and ready for commits. On the admin GitHub account, he should be able to see the developers accounts created successfully.
 
-![github-stack-user-input.png][3]
+![Success01.png][3]
 
-![Success01.png][4]
+Happy Koding!
 
 [1]: {{ site.url }}/assets/img/guides/github/koding_github2.png
-[2]: {{ site.url }}/assets/img/guides/github/github_readme.png
-[3]: {{ site.url }}/assets/img/guides/github/github-stack-user-input.png
-[4]: {{ site.url }}/assets/img/guides/github/Success01.png
+[2]: {{ site.url }}/assets/img/guides/github/input_variables.png
+[3]: {{ site.url }}/assets/img/guides/github/github-success.png
