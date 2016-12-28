@@ -43,5 +43,10 @@ module.exports = class BaseView extends kd.View
         @emit FlexSplit.EVENT_COLLAPSE
         @emit 'GotFocus'
 
+    @controls.addSubView new kd.LoaderView
+      size           : { width: 14 }
+      showLoader     : yes
+      loaderOptions  :
+        color        : '#a4a4a4'
 
     @addSubView @wrapper
