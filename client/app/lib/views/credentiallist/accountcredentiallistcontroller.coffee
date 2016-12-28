@@ -19,7 +19,7 @@ remote                      = require 'app/remote'
 globals                     = require 'globals'
 showError                   = require 'app/util/showError'
 Tracker                     = require 'app/util/tracker'
-
+whoami                      = require 'app/util/whoami'
 
 module.exports = class AccountCredentialListController extends KodingListController
 
@@ -48,6 +48,15 @@ module.exports = class AccountCredentialListController extends KodingListControl
       { provider }  = credential
 
       switch action
+
+        when 'UnShareItem'
+          credential.setAccessLevel 'private', (err) ->
+            # not implemented
+
+
+        when 'ShareItem'
+          credential.shareWith { user: yes, owner: yes, target: 'user1', accessLevel: 'write' }, (err, relation) ->
+            #not implemented
 
         when 'ShowItem'
           credential.fetchData (err, data) ->

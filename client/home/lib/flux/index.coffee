@@ -14,3 +14,6 @@ module.exports =
 
     VirtualMachinesSearchFlux = require '../virtualmachines/flux/search'
     VirtualMachinesSearchFlux.register reactor
+
+    HomeCredentialFlux = require '../account/credentials/flux'
+    HomeCredentialFlux.register reactor

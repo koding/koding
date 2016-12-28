@@ -56,6 +56,8 @@ module.exports = class JCredential extends jraphical.Module
           (signature Function)
         shareWith     :
           (signature Object, Function)
+        setAccessLevel:
+          (signature String, Function)
         fetchUsers    :
           (signature Function)
         fetchData     :
@@ -358,8 +360,27 @@ module.exports = class JCredential extends jraphical.Module
           else
             callback null, []
 
+  setAccessLevel: (client, accessLevel, callback) ->
 
-  setPermissionFor: (target, { user, owner, accessLevel }, callback) ->
+    { group } = client.context
+    query = { $set: { accessLevel } }
+    id = @getId()
+    @update query, (err) =>
+
+      return callback err  if err
+      return  unless group
+
+      JGroup.one { slug: group }, (err, group_) =>
+
+        return callback err, this  if err or not group_
+
+        opts = { id, group, change: query, timestamp: Date.now() }
+
+        group_.sendNotification 'SetCredentialAccessLevel', opts
+        callback err, this
+
+
+  setPermissionFor: (target, { user, owner, accessLevel, client }, callback) ->
 
     Relationship.remove
       targetId : @getId()
@@ -369,8 +390,11 @@ module.exports = class JCredential extends jraphical.Module
       if user
         options = { as: if owner then 'owner' else 'user' }
         if accessLevel
-          @update { $set: { accessLevel } }, (err) =>
+          @setAccessLevel client, accessLevel, (err) =>
+
             return callback err  if err?
+          # @update { $set: { accessLevel } }, (err) =>
+            # return callback err  if err?
             target.addCredential this, options, callback
         else
           target.addCredential this, options, callback
@@ -401,10 +425,10 @@ module.exports = class JCredential extends jraphical.Module
         target.fetchOwnAccount (err, account) =>
           if err or not account
             return callback new KodingError 'Failed to fetch account.'
-          @setPermissionFor account, { user, owner }, callback
+          @setPermissionFor account, { user, owner, accessLevel, client }, callback
 
       else if target instanceof JGroup
-        @setPermissionFor target, { user, owner, accessLevel }, callback
+        @setPermissionFor target, { user, owner:yes, accessLevel: 'read', client }, callback
 
       else
         callback new KodingError 'Target does not support credentials.'
@@ -427,6 +451,19 @@ module.exports = class JCredential extends jraphical.Module
     ]
 
     success: JCredential::shareWith
+
+  setAccessLevel$: permit
+
+    advanced: [
+      { permission   : 'update credential', validateWith: Validators.own }
+      {
+        permission   : 'modify credential'
+        validateWith : accessValidator ACCESSLEVEL.READ
+      }
+      { permission   : 'modify credential', superadmin: yes }
+    ]
+
+    success: JCredential::setAccessLevel
 
 
   delete: permit 'delete credential',
