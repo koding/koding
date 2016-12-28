@@ -225,7 +225,6 @@ module.exports = (options, credentials) ->
     sneakerS3                     : credentials.sneakerS3
     embedly                       : credentials.embedly
     googleapiServiceAccount       : credentials.googleapiServiceAccount
-    siftScience                   : credentials.siftScience
     jwt                           : credentials.jwt
     papertrail                    : credentials.papertrail
     mailgun                       : credentials.mailgun
@@ -260,7 +259,6 @@ module.exports = (options, credentials) ->
     sourcemaps                    : { port: 3526 }
     sessionCookie                 : { maxAge: 1000 * 60 * 60 * 24 * 14, secure: options.secureCookie }
     troubleshoot                  : { recipientEmail: "can@koding.com" }
-    contentRotatorUrl             : 'http://koding.github.io'
     collaboration                 : { timeout: 1 * 60 * 1000 }
     client                        : { watch: yes, version: options.version, includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{options.customDomain.public}:#{options.customDomain.port}" }
 
