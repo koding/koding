@@ -1,10 +1,14 @@
 package algoliaconnector
 
 import (
+	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"os"
+	"os/signal"
 	"socialapi/models"
 	"strconv"
 	"strings"
+	"sync"
 
 	mgo "gopkg.in/mgo.v2"
 )
