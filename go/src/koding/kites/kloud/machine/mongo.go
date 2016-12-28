@@ -86,7 +86,9 @@ func (m *MongoDatabase) Machines(f *Filter) ([]*Machine, error) {
 	// remove duplicated values.
 	stackTmplIDs := make(map[bson.ObjectId]struct{})
 	for i := range machinesDB {
-		stackTmplIDs[machinesDB[i].GeneratedFrom.TemplateId] = struct{}{}
+		if machinesDB[i].GeneratedFrom != nil {
+			stackTmplIDs[machinesDB[i].GeneratedFrom.TemplateId] = struct{}{}
+		}
 	}
 
 	// We don't need to search in jGroups collection in order to find team name
@@ -105,12 +107,19 @@ func (m *MongoDatabase) Machines(f *Filter) ([]*Machine, error) {
 		groupTitles[st.Id] = [2]string{st.Group, st.Title}
 	}
 
+	var team, stack string
 	machines := make([]*Machine, len(machinesDB))
 	for i, mdb := range machinesDB {
+		team, stack = "", ""
+		if mdb.GeneratedFrom != nil {
+			team = groupTitles[mdb.GeneratedFrom.TemplateId][0]
+			stack = groupTitles[mdb.GeneratedFrom.TemplateId][1]
+		}
+
 		machines[i] = &Machine{
 			ID:          mdb.ObjectId.Hex(),
-			Team:        groupTitles[mdb.GeneratedFrom.TemplateId][0],
-			Stack:       groupTitles[mdb.GeneratedFrom.TemplateId][1],
+			Team:        team,
+			Stack:       stack,
 			Provider:    mdb.Provider,
 			Label:       mdb.Label,
 			IP:          hostOnly(mdb.IpAddress),

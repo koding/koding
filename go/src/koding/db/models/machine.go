@@ -38,25 +38,25 @@ type MachineGeneratedFrom struct {
 }
 
 type Machine struct {
-	ObjectId      bson.ObjectId        `bson:"_id" json:"_id"`
-	Uid           string               `bson:"uid" json:"uid"`
-	QueryString   string               `bson:"queryString,omitempty" json:"queryString"`
-	IpAddress     string               `bson:"ipAddress" json:"ipAddress"`
-	RegisterURL   string               `bson:"registerUrl" json:"registerUrl"`
-	Domain        string               `bson:"domain" json:"domain"`
-	Provider      string               `bson:"provider" json:"provider"`
-	Label         string               `bson:"label" json:"label"`
-	Slug          string               `bson:"slug" json:"slug"`
-	Provisoners   []bson.ObjectId      `bson:"provisoners" json:"provisoners"`
-	Credential    string               `bson:"credential" json:"credential"`
-	Users         []MachineUser        `bson:"users" json:"users"`
-	Groups        []MachineGroup       `bson:"groups" json:"groups"`
-	CreatedAt     time.Time            `bson:"createdAt" json:"createdAt" `
-	Status        MachineStatus        `bson:"status" json:"status"`
-	Meta          bson.M               `bson:"meta" json:"meta"`
-	Assignee      MachineAssignee      `bson:"assignee" json:"assignee"`
-	UserDeleted   bool                 `bson:"userDeleted" json:"userDeleted"`
-	GeneratedFrom MachineGeneratedFrom `bson:"generatedFrom,omitempty" json:"generatedFrom,omitempty"`
+	ObjectId      bson.ObjectId         `bson:"_id" json:"_id"`
+	Uid           string                `bson:"uid" json:"uid"`
+	QueryString   string                `bson:"queryString,omitempty" json:"queryString"`
+	IpAddress     string                `bson:"ipAddress" json:"ipAddress"`
+	RegisterURL   string                `bson:"registerUrl" json:"registerUrl"`
+	Domain        string                `bson:"domain" json:"domain"`
+	Provider      string                `bson:"provider" json:"provider"`
+	Label         string                `bson:"label" json:"label"`
+	Slug          string                `bson:"slug" json:"slug"`
+	Provisoners   []bson.ObjectId       `bson:"provisoners" json:"provisoners"`
+	Credential    string                `bson:"credential" json:"credential"`
+	Users         []MachineUser         `bson:"users" json:"users"`
+	Groups        []MachineGroup        `bson:"groups" json:"groups"`
+	CreatedAt     time.Time             `bson:"createdAt" json:"createdAt" `
+	Status        MachineStatus         `bson:"status" json:"status"`
+	Meta          bson.M                `bson:"meta" json:"meta"`
+	Assignee      MachineAssignee       `bson:"assignee" json:"assignee"`
+	UserDeleted   bool                  `bson:"userDeleted" json:"userDeleted"`
+	GeneratedFrom *MachineGeneratedFrom `bson:"generatedFrom,omitempty" json:"generatedFrom,omitempty"`
 }
 
 // Owner returns the owner of a machine
