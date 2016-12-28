@@ -66,8 +66,7 @@ $stack-border-color         = #000000
         fa                  play
 
     .kdbutton.expand
-      top                   13px    !important
-      right                 120px   !important
+      abs                   13px, 120px !important
 
 
   .content
@@ -108,7 +107,7 @@ $stack-border-color         = #000000
 
     &:hover
       .kdbutton.expand
-        visibility          visible
+        display             block !important
         color               $stack-fg-color-bright
 
     &.with-title
@@ -119,16 +118,18 @@ $stack-border-color         = #000000
       vendor                transition, none
 
     &.expanded
-      > .wrapper > .kdbutton
+      .kdbutton
         &.expand
-          visibility        hidden
+          display           none  !important
         &.collapse
-          visibility        visible
+          display           block !important
+
 
     .wrapper
 
-      height                inherit
       abs                   0px, 0px
+      height                inherit
+      borderBox()
 
       &.expanding
         height              100vh
@@ -144,18 +145,25 @@ $stack-border-color         = #000000
         width               100%
         borderBox()
 
-      borderBox()
+      .controls
+        abs                 10px, 10px
+        z-index             10
+        width               50%
+        height              auto
+        display             flex
+        flex-direction      row-reverse
+
 
     .kdbutton.expand
     .kdbutton.collapse
       margin                0
+      margin-left           5px
       padding               0
       background            none
       border                none
       color                 $stack-fg-color
       font-size             13px !important
-      z-index               10
-      visibility            hidden
+      display               none !important
 
       &.expand
         fa                  expand
@@ -163,8 +171,6 @@ $stack-border-color         = #000000
         fa                  compress
       &:focus
         box-shadow          none
-
-      abs                   10px, 10px
 
 
   .editor-view
