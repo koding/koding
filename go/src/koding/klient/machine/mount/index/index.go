@@ -3,7 +3,6 @@ package index
 import (
 	"crypto/sha1"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -36,12 +35,13 @@ func NewEntryFile(root, path string, info os.FileInfo) (e *Entry, err error) {
 	}
 
 	// Compute file's SHA-1 sum.
-	sum, err := readSHA1(path)
-	if err != nil {
-		return nil, err
+	var sum []byte
+	if !info.IsDir() {
+		if sum, err = readSHA1(path); err != nil {
+			return nil, err
+		}
 	}
 
-	log.Printf("Name: %s: % x", path, sum)
 	return &Entry{
 		Name:  filepath.ToSlash(name),
 		CTime: ctimeFromSys(info),
@@ -84,7 +84,7 @@ type ChangeMeta uint32
 const (
 	ChangeMetaUpdate ChangeMeta = 1 << iota // File was updated.
 	ChangeMetaRemove                        // File was removed.
-	ChangeMetaAdded                         // File was added.
+	ChangeMetaAdd                           // File was added.
 )
 
 // Change describes single file change.
@@ -94,6 +94,13 @@ type Change struct {
 	Meta      ChangeMeta // The type of operation made on file entry.
 	CreatedAt int64      // Change creation time since EPOCH.
 }
+
+// ChangeSlice stores multiple changes.
+type ChangeSlice []Change
+
+func (cs ChangeSlice) Len() int           { return len(cs) }
+func (cs ChangeSlice) Swap(i, j int)      { cs[i], cs[j] = cs[j], cs[i] }
+func (cs ChangeSlice) Less(i, j int) bool { return cs[i].Name < cs[j].Name }
 
 // Index stores a virtual working tree state. It recursively records objects in
 // a given root path and allows to efficiently detect changes on it.
@@ -120,6 +127,11 @@ func NewIndexFiles(root string) (*Index, error) {
 			return nil
 		}
 
+		// Skip root path.
+		if name, err := filepath.Rel(root, path); err != nil || name == "." {
+			return nil
+		}
+
 		entry, err := NewEntryFile(root, path, info)
 		if err != nil {
 			return nil
@@ -136,10 +148,18 @@ func NewIndexFiles(root string) (*Index, error) {
 	return idx, nil
 }
 
+// Size returns the number of elements sored in index.
+func (idx *Index) Size() int {
+	idx.mu.RLock()
+	idx.mu.RUnlock()
+
+	return len(idx.entries)
+}
+
 // Compare rereads the given file tree roted at root and compares its entries
 // to previous state of the index. All detected changes will be stored in
 // returned Change slice.
-func (idx *Index) Compare(root string) (cs []Change) {
+func (idx *Index) Compare(root string) (cs ChangeSlice) {
 	visited := make(map[string]struct{})
 
 	// Walk over current root path and check it files.
@@ -149,7 +169,7 @@ func (idx *Index) Compare(root string) (cs []Change) {
 		}
 
 		name, err := filepath.Rel(root, path)
-		if err != nil {
+		if err != nil || name == "." {
 			return nil
 		}
 		name = filepath.ToSlash(name)
@@ -163,7 +183,7 @@ func (idx *Index) Compare(root string) (cs []Change) {
 			cs = append(cs, Change{
 				Name:      name,
 				Size:      safeTruncate(info.Size()),
-				Meta:      ChangeMetaAdded,
+				Meta:      ChangeMetaAdd,
 				CreatedAt: time.Now().UnixNano(),
 			})
 			return nil
@@ -211,10 +231,10 @@ func (idx *Index) Compare(root string) (cs []Change) {
 // Apply modifies index according to provided changes. This function doesn't
 // guarantee that changes from Compare function applied to the index will
 // result in actual directory state.
-func (idx *Index) Apply(root string, cs []Change) {
+func (idx *Index) Apply(root string, cs ChangeSlice) {
 	for i := range cs {
 		switch {
-		case cs[i].Meta&(ChangeMetaUpdate|ChangeMetaAdded) != 0:
+		case cs[i].Meta&(ChangeMetaUpdate|ChangeMetaAdd) != 0:
 			idx.mu.RLock()
 			entry, ok := idx.entries[cs[i].Name]
 			idx.mu.RUnlock()
