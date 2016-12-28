@@ -1,23 +1,19 @@
 package stack
 
 import (
+	"bytes"
 	"context"
-	"crypto/sha1"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"koding/db/models"
-	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/machinestate"
-	"koding/tools/utils"
 	"strings"
-	"time"
 
-	"gopkg.in/mgo.v2/bson"
-	yaml "gopkg.in/yaml.v2"
+	"koding/api"
+	stacktemplate "koding/remoteapi/client/j_stack_template"
+	"koding/remoteapi/models"
 
 	"github.com/koding/kite"
+	yaml "gopkg.in/yaml.v2"
 )
 
 // ImportRequest represents a request struct for "stack.import"
@@ -62,7 +58,6 @@ type ImportResponse struct {
 	EventID    string `json:"eventId"`
 }
 
-// Import
 func (k *Kloud) Import(r *kite.Request) (interface{}, error) {
 	var req ImportRequest
 
@@ -72,10 +67,6 @@ func (k *Kloud) Import(r *kite.Request) (interface{}, error) {
 
 	if err := req.Valid(); err != nil {
 		return nil, err
-	}
-
-	if req.Title == "" {
-		req.Title = fmt.Sprintf("%s's Stack", strings.ToTitle(r.Username))
 	}
 
 	// TODO(rjeczalik): Refactor stack/provider/apply to make it possible to build
@@ -94,9 +85,8 @@ func (k *Kloud) Import(r *kite.Request) (interface{}, error) {
 		}
 	}
 
-	c, ok := req.Credentials[req.Provider]
-	if !ok || len(c) == 0 {
-		return nil, fmt.Errorf("no credential for %q provider", req.Provider)
+	if req.Title == "" {
+		req.Title = fmt.Sprintf("%s %s Stack", Pokemon(), strings.ToTitle(req.Provider))
 	}
 
 	p, ok := k.providers[req.Provider]
@@ -104,39 +94,36 @@ func (k *Kloud) Import(r *kite.Request) (interface{}, error) {
 		return nil, NewError(ErrProviderNotFound)
 	}
 
-	account, err := modelhelper.GetAccount(r.Username)
-	if err != nil {
-		return nil, models.ResError(err, "jAccount")
+	c := k.RemoteClient.New(&api.User{
+		Username: r.Username,
+		Team:     req.Team,
+	})
+
+	tmplParams := &stacktemplate.PostRemoteAPIJStackTemplateCreateParams{
+		Body: stacktemplate.PostRemoteAPIJStackTemplateCreateBody{
+			Template:    pstring(req.Template),
+			Title:       &req.Title,
+			Credentials: req.Credentials,
+		},
 	}
 
-	user, err := modelhelper.GetUser(r.Username)
+	tmplParams.SetTimeout(k.RemoteClient.Timeout())
+
+	tmplResp, err := c.JStackTemplate.PostRemoteAPIJStackTemplateCreate(tmplParams)
 	if err != nil {
-		return nil, models.ResError(err, "jUser")
+		return nil, errors.New("JStackTemplate.create failure: " + err.Error())
 	}
 
-	team, err := modelhelper.GetGroup(req.Team)
-	if err != nil {
-		return nil, models.ResError(err, "jGroup")
+	k.Log.Debug("JStackTemplate.create response: %#v", tmplResp)
+
+	// TODO(rjeczalik): generated model does not have an ID field.
+	// var tmpl models.JStackTemplate
+	var tmpl struct {
+		ID string `json:"_id"`
 	}
 
-	sum := sha1.Sum(req.Template)
-	raw, err := yamlReencode(req.Template)
-	if err != nil {
-		return nil, fmt.Errorf("failed to YAML-encode stack template: %s", err)
-	}
-
-	tmpl := models.NewStackTemplate(req.Provider, "")
-	tmpl.Credentials = req.Credentials
-	tmpl.OriginID = account.Id
-	tmpl.Template.Details = bson.M{"lastUpdaterId": account.Id}
-	tmpl.Group = req.Team
-	tmpl.Template.Content = string(req.Template)
-	tmpl.Template.RawContent = string(raw)
-	tmpl.Template.Sum = hex.EncodeToString(sum[:])
-	tmpl.Title = req.Title
-
-	if err := modelhelper.CreateStackTemplate(tmpl); err != nil {
-		return nil, fmt.Errorf("error creating jStackTemplate: %s", err)
+	if err := response(tmplResp.Payload, &tmpl); err != nil {
+		return nil, errors.New("JStackTemplate.create failure: " + err.Error())
 	}
 
 	teamReq := &TeamRequest{
@@ -152,7 +139,7 @@ func (k *Kloud) Import(r *kite.Request) (interface{}, error) {
 
 	planReq := &PlanRequest{
 		Provider:        req.Provider,
-		StackTemplateID: tmpl.Id.Hex(),
+		StackTemplateID: tmpl.ID,
 		GroupName:       req.Team,
 	}
 
@@ -178,96 +165,47 @@ func (k *Kloud) Import(r *kite.Request) (interface{}, error) {
 		}
 	}
 
-	if len(machines) == 0 {
-		return nil, fmt.Errorf("stack contains no machines to build")
-	}
-
-	tmpl.Machines = make([]bson.M, len(machines))
-
-	for i, machine := range machines {
-		tmpl.Machines[i] = bson.M{
-			"provider": req.Provider,
-			"label":    machine.Label,
-		}
-	}
-
-	now := time.Now().UTC()
-	m := make([]*models.Machine, len(machines))
-
-	for i, machine := range machines {
-		uid := fmt.Sprintf("u%c%c%c%s", r.Username[0], req.Team[0],
-			req.Provider[0], utils.StringN(8))
-
-		m[i] = &models.Machine{
-			ObjectId:   bson.NewObjectId(),
-			Provider:   machine.Provider,
-			Slug:       machine.Label,
-			Label:      machine.Label,
-			Credential: r.Username,
-			Uid:        uid,
-			Status: models.MachineStatus{
-				State:      machinestate.Building.String(),
-				Reason:     "Building by Kloud",
-				ModifiedAt: now,
+	tmplUpdateParams := &stacktemplate.PostRemoteAPIJStackTemplateUpdateIDParams{
+		ID: tmpl.ID,
+		Body: map[string]interface{}{
+			"config": map[string]interface{}{
+				"verified": true,
 			},
-			Users: []models.MachineUser{{
-				Id:       user.ObjectId,
-				Username: r.Username,
-				Sudo:     true,
-				Owner:    true,
-			}},
-			Groups: []models.MachineGroup{{
-				Id: team.Id,
-			}},
-			Meta: bson.M{
-				"alwaysOn":     false,
-				"storage_size": 0,
-				"type":         req.Provider,
-			},
-		}
-	}
-
-	if err := modelhelper.CreateMachines(m...); err != nil {
-		return nil, models.ResError(err, "jMachine")
-	}
-
-	stack := &models.ComputeStack{
-		Id:          bson.NewObjectId(),
-		BaseStackId: tmpl.Id,
-		OriginId:    account.Id,
-		Credentials: tmpl.Credentials,
-		Group:       req.Team,
-		Revision:    tmpl.Template.Sum,
-		Title:       req.Title,
-		Machines:    make([]bson.ObjectId, 0, len(m)),
-		Config: bson.M{
-			"groupStack": false,
-			"requiredData": bson.M{
-				"group": []interface{}{"slug"},
-				"user":  []interface{}{"username"},
-			},
-			"requiredProviders": []interface{}{req.Provider, "koding"},
-			"verified":          true,
-		},
-		Meta: bson.M{
-			"createdAt":  now,
-			"modifiedAt": now,
-			"tags":       nil,
-			"views":      nil,
-			"votes":      nil,
-			"likes":      0,
+			"machines": machines,
 		},
 	}
 
-	stack.Status.State = machinestate.NotInitialized.String()
+	tmplUpdateParams.SetTimeout(k.RemoteClient.Timeout())
 
-	for i := range m {
-		stack.Machines = append(stack.Machines, m[i].ObjectId)
+	tmplUpdateResp, err := c.JStackTemplate.PostRemoteAPIJStackTemplateUpdateID(tmplUpdateParams)
+	if err != nil {
+		return nil, fmt.Errorf("JStackTemplate.update failure: " + err.Error())
 	}
 
-	if err := modelhelper.CreateComputeStack(stack); err != nil {
-		return nil, models.ResError(err, "jComputeStack")
+	k.Log.Debug("JStackTemplate.update response: %#v", tmplUpdateResp)
+
+	stackParams := &stacktemplate.PostRemoteAPIJStackTemplateGenerateStackIDParams{
+		ID: tmpl.ID,
 	}
+
+	stackParams.SetTimeout(k.RemoteClient.Timeout())
+
+	stackResp, err := c.JStackTemplate.PostRemoteAPIJStackTemplateGenerateStackID(stackParams)
+	if err != nil {
+		return nil, errors.New("JStackTemplate.generateStack failure: " + err.Error())
+	}
+
+	var resp struct {
+		Stack struct {
+			ID string `json:"_id"`
+		} `json:"stack"`
+	}
+
+	if err := response(&stackResp.Payload.DefaultResponse, &resp); err != nil {
+		return nil, errors.New("JStackTemplate.generateStack failure: " + err.Error())
+	}
+
+	k.Log.Debug("JStackTemplate.generateStack response: %#v", stackResp)
 
 	kiteReq = &kite.Request{
 		Method:   "apply",
@@ -276,7 +214,7 @@ func (k *Kloud) Import(r *kite.Request) (interface{}, error) {
 
 	applyReq := &ApplyRequest{
 		Provider:  req.Provider,
-		StackID:   stack.Id.Hex(),
+		StackID:   resp.Stack.ID,
 		GroupName: req.Team,
 	}
 
@@ -289,15 +227,57 @@ func (k *Kloud) Import(r *kite.Request) (interface{}, error) {
 
 	v, err = applyStack.HandleApply(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error creating plan: %s", err)
+		return nil, fmt.Errorf("error building stack: %s", err)
 	}
 
 	return &ImportResponse{
-		TemplateID: tmpl.Id.Hex(),
-		StackID:    stack.Id.Hex(),
+		TemplateID: tmpl.ID,
+		StackID:    resp.Stack.ID,
 		Title:      req.Title,
 		EventID:    v.(*ControlResult).EventId,
 	}, nil
+}
+
+func response(resp *models.DefaultResponse, v interface{}) error {
+	if resp.Error != nil {
+		if err, ok := resp.Error.(map[string]interface{}); ok {
+			msg, _ := err["message"].(string)
+			typ, _ := err["name"].(string)
+
+			if msg != "" && typ != "" {
+				return &kite.Error{
+					Type:    typ,
+					Message: msg,
+				}
+			}
+		}
+
+		return fmt.Errorf("%v", resp.Error)
+	}
+
+	if v == nil {
+		return nil
+	}
+
+	p, err := jsonMarshal(resp.Data)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(p, v)
+}
+
+func jsonMarshal(v interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+
+	if err := enc.Encode(v); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }
 
 func yamlReencode(template []byte) ([]byte, error) {
@@ -313,4 +293,13 @@ func yamlReencode(template []byte) ([]byte, error) {
 	}
 
 	return p, nil
+}
+
+func pstring(p []byte) *string {
+	if len(p) == 0 {
+		return nil
+	}
+
+	s := string(p)
+	return &s
 }
