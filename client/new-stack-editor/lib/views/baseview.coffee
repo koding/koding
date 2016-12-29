@@ -25,7 +25,10 @@ module.exports = class BaseView extends kd.View
         partial  : title
         click    : @lazyBound 'emit', 'GotFocus'
 
-    @wrapper.addSubView new kd.ButtonView
+    @wrapper.addSubView @controls = new kd.CustomHTMLView
+      cssClass: 'controls'
+
+    @controls.addSubView new kd.ButtonView
       cssClass: 'expand'
       callback: =>
         @wrapper.setClass 'expanding'
@@ -34,11 +37,28 @@ module.exports = class BaseView extends kd.View
           @wrapper.unsetClass 'expanding'
           @emit 'GotFocus'
 
-    @wrapper.addSubView new kd.ButtonView
+    @controls.addSubView new kd.ButtonView
       cssClass: 'collapse'
       callback: =>
         @emit FlexSplit.EVENT_COLLAPSE
         @emit 'GotFocus'
 
-    @addSubView @wrapper
+    if help = @getOption 'help'
 
+      @controls.addSubView new kd.ButtonView
+        cssClass: 'help'
+        callback: =>
+          @toggleClass 'help-mode'
+          @emit 'GotFocus'
+
+      @wrapper.addSubView new kd.View
+        cssClass: 'help-content has-markdown'
+        partial: help
+
+    @controls.addSubView new kd.LoaderView
+      size           : { width: 14 }
+      showLoader     : yes
+      loaderOptions  :
+        color        : '#a4a4a4'
+
+    @addSubView @wrapper
