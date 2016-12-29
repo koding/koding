@@ -99,7 +99,7 @@ testcollaboration:
 
 testmodels:
 	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
-	@`which go` test -c models/*.go
+	@`which go` test -race -coverprofile=profile.out -covermode=atomic -c models/*.go
 	@./models.test $(DBG) $(EXTRAS) -c $(CONFIG)
 	@rm ./models.test
 
