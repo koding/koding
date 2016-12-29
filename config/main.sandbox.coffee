@@ -40,7 +40,6 @@ Configuration = (options = {}) ->
   options.sendEventsToSegment = yes
   options.scheme = 'https'
   options.suppressLogs = no
-  options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
   options.vaultPath or= path.join __dirname, "../vault/" # use same directory with our application
   options.credentialPath or= path.join options.vaultPath, "./config/credentials.#{options.environment}.coffee"
   options.clientUploadS3BucketName = 'kodingdev-client'

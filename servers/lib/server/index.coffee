@@ -14,7 +14,6 @@ express               = require 'express'
 helmet                = require 'helmet'
 bodyParser            = require 'body-parser'
 metrics               = require '../../datadog'
-usertracker           = require '../../../workers/usertracker'
 app                   = express()
 webPort               = argv.p ? webserver.port
 { error_500 }         = require './helpers'
@@ -145,9 +144,6 @@ koding.once 'dbClientReady', ->
   # start webserver
   app.listen webPort
   console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"
-
-  # start user tracking
-  usertracker.start koding.redisClient
 
   if KONFIG.environment is 'production'
     { NodejsProfiler } = require 'koding-datadog'
