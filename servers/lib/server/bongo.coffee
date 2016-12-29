@@ -4,12 +4,6 @@ Bongo      = require 'bongo'
 KONFIG = require 'koding-config-manager'
 { projectRoot, webserver, mongoReplSet } = KONFIG
 
-redisClient = require('redis').createClient(
-  KONFIG.monitoringRedis.port
-  KONFIG.monitoringRedis.host
-  {}
-)
-
 mongo = "mongodb://#{KONFIG.mongo}"
 
 module.exports = koding = new Bongo
@@ -17,7 +11,6 @@ module.exports = koding = new Bongo
   mongo       : mongoReplSet or mongo
   root        : projectRoot
   models      : 'workers/social/lib/social/models'
-  redisClient : redisClient
   fetchClient : (sessionToken, context, callback) ->
 
     { JUser, JAccount } = koding.models
