@@ -34,7 +34,13 @@ func TestMainHelper(t *testing.T) {
 	}
 
 	if ft := NewFakeTransport(os.Getenv("TEST_MAIN_HELPER_FAKETRANSPORT")); ft != nil {
-		kloud.DefaultClient.Transport = ft
+		testKloudHook = func(client *kloud.Client) {
+			client.Transport = ft
+		}
+
+		defer func() {
+			testKloudHook = nop
+		}()
 	}
 
 	run(append(os.Args[:1], args...))

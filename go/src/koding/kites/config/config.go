@@ -201,7 +201,7 @@ type Config struct {
 		KlientLatest *Endpoint `json:"klientLatest" required:"true"`
 		KodingBase   *Endpoint `json:"kodingBase" required:"true"`
 		TunnelServer *Endpoint `json:"tunnelServer" required:"true"`
-	}
+	} `json:"endpoints"`
 	Routes map[string]string `json:"routes"`
 }
 
