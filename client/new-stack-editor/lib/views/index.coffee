@@ -11,7 +11,7 @@ Editor = require './editor'
 Statusbar = require './statusbar'
 
 VariablesController = require '../controllers/variables'
-
+Help = require './help'
 
 module.exports = class StackEditor extends kd.View
 
@@ -39,6 +39,7 @@ module.exports = class StackEditor extends kd.View
     # Editor views
     @editor = new Editor {
       cssClass: 'editor'
+      help: Help.stack
       @statusbar
     }
 
@@ -51,6 +52,7 @@ module.exports = class StackEditor extends kd.View
     @variables = new Editor {
       cssClass: 'variables'
       title: 'Custom Variables'
+      help: Help.variables
       @statusbar
     }
 
@@ -60,6 +62,7 @@ module.exports = class StackEditor extends kd.View
     @readme = new Editor {
       cssClass: 'readme'
       title: 'Readme'
+      help: Help.readme
       @statusbar
     }
 

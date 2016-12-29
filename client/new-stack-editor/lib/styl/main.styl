@@ -105,29 +105,40 @@ $stack-border-color         = #000000
     background              $stack-bg-color
     vendor                  transition, all .5s ease
 
-    &:hover
-      .kdbutton.expand
-        display             block !important
-        color               $stack-fg-color-bright
-
     &.with-title
-      .editor
-        height              calc(100% - 42px)
+      .wrapper
+        .editor, .help-content
+          height            calc(100% - 42px)
+        .help-content
+          padding           0px 20px
 
     &.ondrag
       vendor                transition, none
 
+    &:hover
+      .controls .kdbutton
+        &.expand, &.help
+          display           block
+
     &.expanded
-      .kdbutton
+      .controls .kdbutton
         &.expand
-          display           none  !important
+          display           none
         &.collapse
-          display           block !important
+          display           block
+          color             $stack-fg-color-bright
 
     &.loading
-      .controls
-        .kdloader
-          display           block !important
+      .wrapper .controls .kdloader
+        display             block
+
+    &.help-mode
+      .wrapper .help-content
+        display             block
+
+      .controls .kdbutton.help
+        display             block
+        color               $stack-fg-color-yellow
 
     .wrapper
 
@@ -150,35 +161,57 @@ $stack-border-color         = #000000
         borderBox()
 
       .controls
-        abs                 10px, 10px
+        abs                 10px, 15px
         z-index             10
         width               50%
-        height              auto
+        height              20px
         display             flex
         flex-direction      row-reverse
 
         .kdloader
-          width             16px
+          width             14px
           display           none
+          top               4px
 
+      .help-content
+        height              100%
+        color               #999
+        padding             20px
+        display             none
+        font-size           14px
+        line-height         17px
+        overflow            auto
+        borderBox()
 
-    .kdbutton.expand
-    .kdbutton.collapse
+        code
+          border            none !important
+
+    .controls .kdbutton
       margin                0
-      margin-left           5px
+      margin-left           10px
       padding               0
       background            none
       border                none
       color                 $stack-fg-color
       font-size             13px !important
-      display               none !important
+
+      &:focus
+        box-shadow          none
+
+      &:hover
+        color               $stack-fg-color-bright
 
       &.expand
         fa                  expand
+        display             none
+
       &.collapse
         fa                  compress
-      &:focus
-        box-shadow          none
+        display             none
+
+      &.help
+        fa                  question-circle
+        display             none
 
 
   .editor-view

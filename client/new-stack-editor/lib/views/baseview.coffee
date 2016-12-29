@@ -43,6 +43,18 @@ module.exports = class BaseView extends kd.View
         @emit FlexSplit.EVENT_COLLAPSE
         @emit 'GotFocus'
 
+    if help = @getOption 'help'
+
+      @controls.addSubView new kd.ButtonView
+        cssClass: 'help'
+        callback: =>
+          @toggleClass 'help-mode'
+          @emit 'GotFocus'
+
+      @wrapper.addSubView new kd.View
+        cssClass: 'help-content has-markdown'
+        partial: help
+
     @controls.addSubView new kd.LoaderView
       size           : { width: 14 }
       showLoader     : yes
