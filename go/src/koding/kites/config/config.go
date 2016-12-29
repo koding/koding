@@ -104,6 +104,28 @@ func (u *URL) WithPath(paths ...string) *URL {
 	return &URL{URL: &ur}
 }
 
+// Copy returns a copy of the u.
+func (u *URL) Copy() *URL {
+	if u.IsNil() {
+		return nil
+	}
+
+	uCopy := *u.URL
+	if u.URL.User != nil {
+		userCopy := *u.URL.User
+		uCopy.User = &userCopy
+	}
+
+	return &URL{
+		URL: &uCopy,
+	}
+}
+
+// IsNil returns true if either u or the underlying url is nil.
+func (u *URL) IsNil() bool {
+	return u == nil || u.URL == nil
+}
+
 // Endpoint represents a single endpoint.
 type Endpoint struct {
 	Public  *URL `json:"public,omitempty"`
@@ -186,6 +208,22 @@ func (e *Endpoint) WithPath(path string) *Endpoint {
 	}
 
 	return ePath
+}
+
+// Copy returns a copy of the e.
+func (e *Endpoint) Copy() *Endpoint {
+	if e.IsNil() {
+		return nil
+	}
+	return &Endpoint{
+		Public:  e.Public.Copy(),
+		Private: e.Private.Copy(),
+	}
+}
+
+// IsNil returns true if either e or both of the public and private urls are nil.
+func (e *Endpoint) IsNil() bool {
+	return e == nil || (e.Public.IsNil() && e.Private.IsNil())
 }
 
 // Config stores all static configuration data generated during ./configure phase.
