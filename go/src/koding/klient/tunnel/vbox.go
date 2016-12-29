@@ -191,7 +191,7 @@ func (t *Tunnel) buildServices() map[string]*tunnelproxy.Tunnel {
 
 	_, kitePort, err := parseHostPort(t.opts.LocalAddr)
 	if err != nil {
-		t.opts.Log.Error("ill-formed local address: %s", err)
+		t.opts.Log.Error("invalid local address: %s", err)
 
 		return nil
 	}
