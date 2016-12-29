@@ -232,10 +232,10 @@ func NewKonfig(e *Environments) *Konfig {
 	return &Konfig{
 		Environment: e.Env,
 		Endpoints: &Endpoints{
-			Koding:       Builtin.Endpoints.KodingBase,
-			Tunnel:       Builtin.Endpoints.TunnelServer,
-			IP:           Builtin.Endpoints.IP,
-			IPCheck:      Builtin.Endpoints.IPCheck,
+			Koding:       Builtin.Endpoints.KodingBase.Copy(),
+			Tunnel:       Builtin.Endpoints.TunnelServer.Copy(),
+			IP:           Builtin.Endpoints.IP.Copy(),
+			IPCheck:      Builtin.Endpoints.IPCheck.Copy(),
 			KlientLatest: ReplaceEnv(Builtin.Endpoints.KlientLatest, e.klientEnv()),
 			KDLatest:     ReplaceEnv(Builtin.Endpoints.KDLatest, RmManaged(e.kdEnv())),
 			Klient: &Endpoint{

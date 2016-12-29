@@ -2,7 +2,11 @@ package config
 
 import (
 	"fmt"
+	"net/url"
+	"reflect"
 	"testing"
+
+	"koding/tools/utils"
 )
 
 func TestReplaceEnv(t *testing.T) {
@@ -198,5 +202,92 @@ func TestEndpointEqual(t *testing.T) {
 				t.Fatalf("got %t, want %t", ok, cas.ok)
 			}
 		})
+	}
+}
+
+func TestURLCopy(t *testing.T) {
+	cases := map[string]*URL{
+		"nil url":            nil,
+		"nil underlying url": {URL: nil},
+		"simple url":         {URL: &url.URL{Scheme: "http", Host: "example.com"}},
+		"url with user":      {URL: &url.URL{Scheme: "http", Host: "example.com", User: url.UserPassword("user", "pass")}},
+	}
+
+	for name, u := range cases {
+		t.Run(name, func(t *testing.T) {
+			uCopy := u.Copy()
+
+			if u.IsNil() {
+				if uCopy != nil {
+					t.Errorf("want uCopy to be nil; got %#v", uCopy)
+				}
+
+				return
+			}
+
+			modifyURL(uCopy)
+
+			if reflect.DeepEqual(uCopy, u) {
+				t.Errorf("want %#v != %#v", uCopy, u)
+			}
+		})
+	}
+}
+
+func modifyURL(u *URL) {
+	if u.IsNil() {
+		return
+	}
+
+	u.URL.Host = utils.RandomString()
+
+	if u.URL.User != nil {
+		u.URL.User = url.UserPassword(utils.RandomString(), "")
+	}
+}
+
+func TestEndpointCopy(t *testing.T) {
+	url := &URL{URL: &url.URL{Scheme: "http", Host: "example.com", User: url.UserPassword("user", "pass")}}
+
+	cases := map[string]*Endpoint{
+		"nil endpoint":          nil,
+		"nil underlying urls":   {Private: nil, Public: nil},
+		"private-only endpoint": {Private: url},
+		"public-only endpoint":  {Public: url},
+		"endpoint":              {Private: url, Public: url},
+	}
+
+	for name, e := range cases {
+		t.Run(name, func(t *testing.T) {
+			eCopy := e.Copy()
+
+			if e.IsNil() {
+				if eCopy != nil {
+					t.Errorf("want eCopy to be nil; got %#v", eCopy)
+				}
+
+				return
+			}
+
+			modifyEndpoint(eCopy)
+
+			if reflect.DeepEqual(eCopy, e) {
+				t.Errorf("want %#v != %#v", eCopy, e)
+			}
+		})
+	}
+}
+
+func modifyEndpoint(e *Endpoint) {
+	if e.IsNil() {
+		return
+	}
+
+	if !e.Public.IsNil() {
+		modifyURL(e.Public)
+	}
+
+	if !e.Private.IsNil() {
+		modifyURL(e.Private)
 	}
 }
