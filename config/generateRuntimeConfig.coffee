@@ -13,7 +13,6 @@ module.exports = (KONFIG, credentials, options) ->
     collaboration        : KONFIG.collaboration
     socialApiUri         : '/xhr'
     apiUri               : '/'
-    sourceMapsUri        : '/sourcemaps'
     mainUri              : '/'
     fileFetchTimeout     : 1000 * 15
     userIdleMs           : 1000 * 60 * 5
