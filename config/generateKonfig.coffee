@@ -256,7 +256,6 @@ module.exports = (options, credentials) ->
     webserver                     : { port: 8080, useCacheHeader: no }
     social                        : { port: 3030, login: "#{credentials.rabbitmq.login}", queueName: options.socialQueueName, kitePort: 8760, kiteKey: "#{credentials.kiteHome}/kite.key" }
     boxproxy                      : { port: parseInt(options.publicPort, 10) }
-    sourcemaps                    : { port: 3526 }
     sessionCookie                 : { maxAge: 1000 * 60 * 60 * 24 * 14, secure: options.secureCookie }
     troubleshoot                  : { recipientEmail: "can@koding.com" }
     collaboration                 : { timeout: 1 * 60 * 1000 }
