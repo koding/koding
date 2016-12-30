@@ -55,13 +55,13 @@ build:
 
 testpresence:
 	@echo "$(OK_COLOR)--> presence tests... $(NO_COLOR)"
-	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/presence "-c=./go/src/socialapi/config/dev.toml"
+	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/presence
 
 	@echo "$(OK_COLOR)--> presence api tests... $(NO_COLOR)"
-	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/presence/api "-c=./go/src/socialapi/config/dev.toml"
+	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/presence/api
 
 	@echo "$(OK_COLOR)--> presence client tests... $(NO_COLOR)"
-	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/presence/client "-c=./go/src/socialapi/config/dev.toml"
+	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/presence/client
 
 testteam: testteamunit testteamintegration
 
