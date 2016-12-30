@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+
+	"github.com/djherbis/times"
 )
 
 // Entry represents a single file registered to index.
@@ -45,7 +47,7 @@ func NewEntryFile(root, path string, info os.FileInfo) (e *Entry, err error) {
 
 	return &Entry{
 		Name:  filepath.ToSlash(name),
-		CTime: ctimeFromSys(info),
+		CTime: ctime(info),
 		MTime: info.ModTime().UnixNano(),
 		Mode:  info.Mode(),
 		Size:  info.Size(),
@@ -101,6 +103,11 @@ type Index struct {
 	mu      sync.RWMutex
 	entries map[string]*Entry
 }
+
+var (
+	_ json.Marshaler   = (*Index)(nil)
+	_ json.Unmarshaler = (*Index)(nil)
+)
 
 // NewIndex creates the empty index object.
 func NewIndex() *Index {
@@ -219,7 +226,7 @@ func (idx *Index) Compare(root string) (cs ChangeSlice) {
 		// Entry is read only-now. Check for changes.
 		visited[name] = struct{}{}
 		if entry.MTime != info.ModTime().UnixNano() ||
-			entry.CTime != ctimeFromSys(info) ||
+			entry.CTime != ctime(info) ||
 			entry.Size != info.Size() {
 			cs = append(cs, Change{
 				Name:      name,
@@ -274,6 +281,15 @@ func markLargeMeta(n int64) ChangeMeta {
 	return ChangeMetaLarge
 }
 
+// ctime gets file's change time in UNIX Nano format.
+func ctime(fi os.FileInfo) int64 {
+	if tspec := times.Get(fi); tspec.HasChangeTime() {
+		return tspec.ChangeTime().UnixNano()
+	}
+
+	return 0
+}
+
 // Apply modifies index according to provided changes. This function doesn't
 // guarantee that changes from Compare function applied to the index will
 // result in actual directory state.
@@ -281,6 +297,8 @@ func (idx *Index) Apply(root string, cs ChangeSlice) {
 	for i := range cs {
 		switch {
 		case cs[i].Meta&(ChangeMetaUpdate|ChangeMetaAdd) != 0:
+			// Check if the event is still valid or if it was replaced by newer
+			// change.
 			idx.mu.RLock()
 			entry, ok := idx.entries[cs[i].Name]
 			idx.mu.RUnlock()
@@ -291,6 +309,9 @@ func (idx *Index) Apply(root string, cs ChangeSlice) {
 			}
 			fallthrough
 		case cs[i].Meta&ChangeMetaRemove != 0:
+			// Check if the file still exists, since it could be removed before
+			// Apply was called. If the file exists, create new entry from it
+			// and replace its value inside index map.
 			path := filepath.Join(root, filepath.FromSlash(cs[i].Name))
 			info, err := os.Lstat(path)
 			if os.IsNotExist(err) {
@@ -324,5 +345,8 @@ func (idx *Index) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON satisfies json.Unmarshaler interface. It is used to unmarshal
 // data into private index fields.
 func (idx *Index) UnmarshalJSON(data []byte) error {
+	idx.mu.Lock()
+	defer idx.mu.Unlock()
+
 	return json.Unmarshal(data, &idx.entries)
 }
