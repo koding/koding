@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"socialapi/workers/presence"
-	"socialapi/workers/presence/api"
 	"strings"
 	"testing"
 )
@@ -16,8 +15,8 @@ func TestInternalValid(t *testing.T) {
 		if r.Method != "POST" {
 			t.Fatal("Method should be POST")
 		}
-		if r.URL.Path != api.EndpointPresencePingPrivate {
-			t.Fatalf("Expected url to be %s, got %s", api.EndpointPresencePingPrivate, r.URL.Path)
+		if r.URL.Path != presence.EndpointPresencePingPrivate {
+			t.Fatalf("Expected url to be %s, got %s", presence.EndpointPresencePingPrivate, r.URL.Path)
 		}
 		d := &presence.PrivatePing{}
 		if err := json.NewDecoder(r.Body).Decode(d); err != nil {
