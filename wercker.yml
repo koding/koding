@@ -140,6 +140,9 @@ build:
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend finished" "building" 45
     - script:
+        name: send test coverages
+        code: bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -X gcov -X fix
+    - script:
         name: delete deployment credentials
         code: |
           [ "$CONFIG" != "prod" ] && scripts/delete-deployment-credentials.sh
