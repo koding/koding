@@ -47,15 +47,6 @@ module.exports = (KONFIG, options, credentials) ->
       healthCheckURL    : "http://localhost:#{KONFIG.terraformer.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.terraformer.port}/version"
 
-    sourcemaps          :
-      group             : "webserver"
-      ports             :
-        incoming        : "#{KONFIG.sourcemaps.port}"
-      nginx             :
-        locations       : [ { location : "/sourcemaps" } ]
-      supervisord       :
-        command         : "./watch-node %(ENV_KONFIG_PROJECTROOT)s/servers/sourcemaps/index.js"
-
     webserver           :
       group             : "webserver"
       ports             :

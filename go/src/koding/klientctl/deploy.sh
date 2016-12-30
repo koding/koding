@@ -35,6 +35,12 @@ echo "# uploading files to s3://${BUCKET}/${CHANNEL}/"
 s3cp "kd-0.1.${VERSION}.linux_amd64.gz" "s3://${BUCKET}/${CHANNEL}/"
 s3cp "kd-0.1.${VERSION}.darwin_amd64.gz" "s3://${BUCKET}/${CHANNEL}/"
 
+s3rm "s3://${BUCKET}/${CHANNEL}/kd.linux_amd64.gz"
+s3cp "s3://${BUCKET}/${CHANNEL}/kd-0.1.${VERSION}.linux_amd64.gz" "s3://${BUCKET}/${CHANNEL}/kd.linux_amd64.gz"
+
+s3rm "s3://${BUCKET}/${CHANNEL}/kd.darwin_amd64.gz"
+s3cp "s3://${BUCKET}/${CHANNEL}/kd-0.1.${VERSION}.darwin_amd64.gz" "s3://${BUCKET}/${CHANNEL}/kd.darwin_amd64.gz"
+
 cp -f go/src/koding/klientctl/install-kd.sh install-kd.sh
 sed -i "" -e "s|\%RELEASE_CHANNEL\%|${CHANNEL}|g" install-kd.sh
 s3rm "s3://${BUCKET}/${CHANNEL}/install-kd.sh"

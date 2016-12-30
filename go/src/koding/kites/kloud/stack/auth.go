@@ -1,12 +1,14 @@
 package stack
 
 import (
+	"errors"
+
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 
-	mgo "gopkg.in/mgo.v2"
-
 	"github.com/koding/kite"
+	uuid "github.com/satori/go.uuid"
+	mgo "gopkg.in/mgo.v2"
 )
 
 // LoginRequest represents a request model for "auth.login"
@@ -20,6 +22,15 @@ type LoginRequest struct {
 
 	// Metadata whether
 	Metadata bool `json:"metadata,omitempty"`
+}
+
+var _ Validator = (*LoginRequest)(nil)
+
+func (req *LoginRequest) Valid() error {
+	if req.GroupName == "" {
+		req.GroupName = models.KDIOGroupName
+	}
+	return nil
 }
 
 // LoginResponse represents a response model for "auth.login"
@@ -42,6 +53,31 @@ type LoginResponse struct {
 	Metadata *Metadata `json:"metadata,omitempty"`
 }
 
+type PasswordLoginRequest struct {
+	LoginRequest
+
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+var _ Validator = (*PasswordLoginRequest)(nil)
+
+func (req *PasswordLoginRequest) Valid() error {
+	if req.Username == "" {
+		return errors.New("invalid empty username")
+	}
+	if req.Password == "" {
+		return errors.New("invalid empty password")
+	}
+	return req.LoginRequest.Valid()
+}
+
+type PasswordLoginResponse struct {
+	LoginResponse
+
+	KiteKey string `json:"kiteKey,omitempty"`
+}
+
 // AuthLogin creates a jSession for the given username and team.
 //
 // If a session already exists, the method is a nop and returns
@@ -52,12 +88,17 @@ type LoginResponse struct {
 func (k *Kloud) AuthLogin(r *kite.Request) (interface{}, error) {
 	k.Log.Debug("AuthLogin called by %q with %q", r.Username, r.Args.Raw)
 
-	req, err := getLoginReq(r)
-	if err != nil {
+	var req LoginRequest
+
+	if err := getReq(r, &req); err != nil {
 		return nil, err
 	}
 
-	ses, err := modelhelper.UserLogin(r.Username, req.GroupName)
+	return k.authLogin(r.Username, &req)
+}
+
+func (k *Kloud) authLogin(username string, req *LoginRequest) (*LoginResponse, error) {
+	ses, err := modelhelper.UserLogin(username, req.GroupName)
 	switch err {
 	case nil:
 	case mgo.ErrNotFound:
@@ -65,19 +106,19 @@ func (k *Kloud) AuthLogin(r *kite.Request) (interface{}, error) {
 	case modelhelper.ErrNotParticipant:
 		return nil, NewError(ErrNotAuthorized)
 	default:
-		k.Log.Debug("Got generic error for UserLogin, username: %q, err: %q, args: %q", r.Username, err.Error(), r.Args.Raw)
+		k.Log.Debug("Got generic error for UserLogin, username: %q, err: %q", username, err)
 		return nil, NewError(ErrInternalServer)
 	}
 
-	if err := k.PresenceClient.Ping(r.Username, req.GroupName); err != nil {
+	if err := k.PresenceClient.Ping(username, req.GroupName); err != nil {
 		// we dont need to block user login if there is something wrong with socialapi.
-		k.Log.Error("Ping failed with %q for user %q", err.Error(), r.Username)
+		k.Log.Error("ping for user %q failed: %s", username, err)
 	}
 
 	resp := &LoginResponse{
 		ClientID:  ses.ClientId,
 		GroupName: req.GroupName,
-		Username:  r.Username,
+		Username:  username,
 	}
 
 	if req.Metadata {
@@ -89,19 +130,45 @@ func (k *Kloud) AuthLogin(r *kite.Request) (interface{}, error) {
 	return resp, nil
 }
 
-func getLoginReq(r *kite.Request) (*LoginRequest, error) {
+func (k *Kloud) AuthPasswordLogin(r *kite.Request) (interface{}, error) {
+	var req PasswordLoginRequest
+
+	if err := getReq(r, &req); err != nil {
+		return nil, err
+	}
+
+	if _, err := modelhelper.CheckAndGetUser(req.Username, req.Password); err != nil {
+		return nil, errors.New("username and/or password does not match")
+	}
+
+	resp, err := k.authLogin(req.Username, &req.LoginRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	kiteKey, err := k.Userdata.Keycreator.Create(req.Username, uuid.NewV4().String())
+	if err != nil {
+		return nil, err
+	}
+
+	return &PasswordLoginResponse{
+		LoginResponse: *resp,
+		KiteKey:       kiteKey,
+	}, nil
+}
+
+func getReq(r *kite.Request, req interface{}) error {
 	if r.Args == nil {
-		return nil, NewError(ErrNoArguments)
+		return NewError(ErrNoArguments)
 	}
 
-	var req LoginRequest
-	if err := r.Args.One().Unmarshal(&req); err != nil {
-		return nil, NewError(ErrBadRequest)
+	if err := r.Args.One().Unmarshal(req); err != nil {
+		return NewError(ErrBadRequest)
 	}
 
-	if req.GroupName == "" {
-		req.GroupName = models.KDIOGroupName
+	if v, ok := req.(Validator); ok {
+		return v.Valid()
 	}
 
-	return &req, nil
+	return nil
 }
