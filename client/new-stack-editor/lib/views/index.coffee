@@ -10,8 +10,11 @@ Toolbar = require './toolbar'
 Editor = require './editor'
 Statusbar = require './statusbar'
 
+LogsController = require '../controllers/logs'
 VariablesController = require '../controllers/variables'
+
 Help = require './help'
+
 
 module.exports = class StackEditor extends kd.View
 
@@ -53,6 +56,9 @@ module.exports = class StackEditor extends kd.View
       @statusbar
     }
 
+    @logsController = new LogsController
+      editor: @logs
+
     @variables = new Editor {
       cssClass: 'variables'
       title: 'Custom Variables'
@@ -63,6 +69,7 @@ module.exports = class StackEditor extends kd.View
 
     @variablesController = new VariablesController
       editor: @variables
+    @variablesController.on 'Log', @logsController.bound 'add'
 
     @readme = new Editor {
       cssClass: 'readme'
@@ -92,8 +99,8 @@ module.exports = class StackEditor extends kd.View
       @editor.setContent Encoder.htmlDecode template.rawContent
       @readme.setContent description
       @variables.setContent ''
+      @logsController.set 'stack template loaded'
       @variablesController.setData data
-      @logs.setContent 'Stack template loaded'
 
       @_saveSnapshot id
       @_current = id
