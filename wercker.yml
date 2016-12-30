@@ -89,7 +89,7 @@ build:
         code: go/build.sh
     - script:
         name: test go koding config
-        code: scripts/wercker/run-command ./run exec go test -v --race koding/kites/config
+        code: scripts/wercker/run-command ./run exec go test -v --race -coverprofile=profile.out -covermode=atomic koding/kites/config
     - script:
         name: ensure JSON and generated files in go/src/koding are not stale
         code: scripts/check-generated-files.sh
@@ -104,10 +104,10 @@ build:
         code: scripts/wercker/run-command go/src/koding/kites/e2etest/e2etest.sh
     - script:
         name: test providers
-        code: scripts/wercker/run-command ./run exec go test -v -race koding/kites/kloud/provider/...
+        code: scripts/wercker/run-command ./run exec ./scripts/gocover.sh koding/kites/kloud/provider/...
     - script:
         name: test koding/api
-        code: scripts/wercker/run-command ./run exec go test -v -race koding/api/...
+        code: scripts/wercker/run-command ./run exec ./scripts/gocover.sh koding/api/...
     - script:
         name: build backend finished
         code: scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build backend finished" "building" 40
