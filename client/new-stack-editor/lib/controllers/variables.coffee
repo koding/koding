@@ -1,18 +1,12 @@
 kd = require 'kd'
 remote = require 'app/remote'
 
+BaseController = require './base'
 { unescape } = require 'lodash'
 { yamlToJson, jsonToYaml } = require 'app/util/stacks/yamlutils'
 
 
-module.exports = class VariablesController extends kd.Object
-
-
-  constructor: (options = {}, data) ->
-
-    super options, data
-
-    @editor = @getOption 'editor'
+module.exports = class VariablesController extends BaseController
 
 
   setData: (data) ->
@@ -21,6 +15,7 @@ module.exports = class VariablesController extends kd.Object
 
     if cred = @getData()?.credentials?.custom?.first
       @editor.setClass 'loading'
+      @emit 'Log', 'loading custom variables'
       @reviveCredential cred
 
 
@@ -36,6 +31,8 @@ module.exports = class VariablesController extends kd.Object
         if err
           console.warn "You don't have access to custom variables"
           return kd.warn err
+
+        @emit 'Log', 'custom variables loaded'
 
         { meta } = data
         if (Object.keys meta).length
