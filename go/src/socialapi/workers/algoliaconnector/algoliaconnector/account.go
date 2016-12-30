@@ -1,10 +1,14 @@
 package algoliaconnector
 
 import (
+	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"os"
+	"os/signal"
 	"socialapi/models"
 	"strconv"
 	"strings"
+	"sync"
 
 	mgo "gopkg.in/mgo.v2"
 )
@@ -151,6 +155,7 @@ func (f *Controller) DeleteNicksWithQuery(queryName string) error {
 	if err != nil {
 		return err
 	}
+
 	var nbHit float64
 	var pages float64
 
@@ -191,11 +196,14 @@ func (f *Controller) DeleteNicksWithQuery(queryName string) error {
 				for _, v := range hinter {
 					val, k := v.(map[string]interface{})
 					if k {
-						value := val["nick"].(string)
+						// value := val["nick"].(string)
 						object := val["objectID"].(string)
-						if strings.HasPrefix(value, queryName) {
-							_, err = index.DeleteObject(object)
-							if err != nil {
+						_, err := modelhelper.GetAccountById(object)
+						if err != nil && err != modelhelper.ErrNotFound {
+							return err
+						}
+						if err == modelhelper.ErrNotFound {
+							if _, err = index.DeleteObject(object); err != nil {
 								return nil
 							}
 						}
@@ -248,4 +256,80 @@ func (f *Controller) deleteAllGuestNicks(indexName string, objectIDs []string) e
 	}
 
 	return nil
+}
+
+func (f *Controller) DeleteNicksWithQueryBrowseAll(queryName string) error {
+	index, err := f.indexes.GetIndex(IndexAccounts)
+	params := map[string]interface{}{
+		"restrictSearchableAttributes": "nick",
+	}
+	record, err := index.Search(queryName, params)
+	if err != nil {
+		return err
+	}
+
+	workChan := make(chan string, 30)
+	var wg sync.WaitGroup
+
+	go func() {
+		signals := make(chan os.Signal, 1)
+		signal.Notify(signals)
+		for {
+			<-signals
+			close(workChan)
+		}
+	}()
+
+	worker := func(objectID string) {
+		_, err := modelhelper.GetAccountById(objectID)
+		if err != nil && err != modelhelper.ErrNotFound {
+			fmt.Println("err.Error() for objectID-->", err.Error(), objectID)
+		}
+		if err == modelhelper.ErrNotFound {
+			fmt.Println("deleting object", objectID)
+			if _, err = index.DeleteObject(objectID); err != nil {
+				fmt.Println("deleting err.Error() for objectID-->", err.Error(), objectID)
+			}
+		}
+	}
+
+	for i := 0; i < 20; i++ {
+		wg.Add(1)
+		go func(i int) {
+			for id := range workChan {
+				worker(id)
+			}
+			wg.Done()
+		}(i)
+	}
+
+	params = map[string]interface{}{
+		"restrictSearchableAttributes": "nick",
+		"page":        3000,
+		"hitsPerPage": 50,
+	}
+
+	counter := 0
+	recordBrowse, err := index.BrowseAll(params)
+	for {
+		record, err = recordBrowse.Next()
+		if err != nil {
+			fmt.Println("ERROR:", err)
+			return nil
+		}
+		counter++
+
+		object, ok := record.(map[string]interface{})
+		if ok {
+			objectID := object["objectID"].(string)
+			fmt.Println("counter, objectID-->", counter, objectID)
+			workChan <- objectID
+		}
+	}
+	fmt.Println("waiting for workers-->")
+
+	wg.Wait()
+
+	return nil
+
 }

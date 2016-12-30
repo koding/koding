@@ -10,9 +10,12 @@ Toolbar = require './toolbar'
 Editor = require './editor'
 Statusbar = require './statusbar'
 
+VariablesController = require '../controllers/variables'
+Help = require './help'
 
 module.exports = class StackEditor extends kd.View
 
+  EDITORS = ['editor', 'readme', 'variables', 'logs']
 
   constructor: (options = {}, data = {}) ->
 
@@ -36,6 +39,7 @@ module.exports = class StackEditor extends kd.View
     # Editor views
     @editor = new Editor {
       cssClass: 'editor'
+      help: Help.stack
       @statusbar
     }
 
@@ -48,12 +52,17 @@ module.exports = class StackEditor extends kd.View
     @variables = new Editor {
       cssClass: 'variables'
       title: 'Custom Variables'
+      help: Help.variables
       @statusbar
     }
+
+    @variablesController = new VariablesController
+      editor: @variables
 
     @readme = new Editor {
       cssClass: 'readme'
       title: 'Readme'
+      help: Help.readme
       @statusbar
     }
 
@@ -62,9 +71,8 @@ module.exports = class StackEditor extends kd.View
 
   setTemplateData: (data) ->
 
-    if data
-      @setData data
-      @toolbar.setData data
+    @setData data
+    @toolbar.setData data
 
     { _id: id, title, description, template } = @getData()
     unless id or description or template
@@ -77,6 +85,8 @@ module.exports = class StackEditor extends kd.View
 
       @editor.setContent Encoder.htmlDecode template.rawContent
       @readme.setContent description
+      @variables.setContent ''
+      @variablesController.setData data
       @logs.setContent 'Stack template loaded'
 
       @_saveSnapshot id
@@ -90,7 +100,7 @@ module.exports = class StackEditor extends kd.View
     return no  unless id
     return no  unless snapshot = @_snapshots[id]
 
-    for view in ['editor', 'readme', 'logs']
+    for view in EDITORS
       @[view]._restore snapshot[view]
     @_current = id
 
@@ -102,7 +112,7 @@ module.exports = class StackEditor extends kd.View
     return  unless id
 
     @_snapshots[id] ?= {}
-    for view in ['editor', 'readme', 'logs']
+    for view in EDITORS
       @_snapshots[id][view] = @[view]._dump()
 
 

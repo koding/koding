@@ -147,6 +147,15 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
+func (c *Controller) InitAndDeleteIndex(name string) (interface{}, error) {
+	index := c.client.InitIndex(name)
+	return index.Delete()
+}
+func (c *Controller) ListIndexes() (interface{}, error) {
+	return c.client.ListIndexes()
+
+}
+
 func (f *Controller) Init() error {
 	var wg sync.WaitGroup
 	for name, index := range *(f.indexes) {
