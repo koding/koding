@@ -271,6 +271,7 @@ import:
   - codec
 - package: github.com/digitalocean/godo
 - package: github.com/google/go-querystring/query
+- package: github.com/djherbis/times
 - package: github.com/tent/http-link-go
 - package: github.com/Azure/azure-sdk-for-go
 - package: github.com/Banno/terraform-provider-marathon
