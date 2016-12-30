@@ -40,18 +40,23 @@ module.exports = class StackEditor extends kd.View
     @editor = new Editor {
       cssClass: 'editor'
       help: Help.stack
+      filename: 'template.yaml'
       @statusbar
     }
 
     @logs = new Editor {
       cssClass: 'logs'
       title: 'Logs'
+      filename: 'logs.sh'
+      showgutter: no
+      readonly: yes
       @statusbar
     }
 
     @variables = new Editor {
       cssClass: 'variables'
       title: 'Custom Variables'
+      filename: 'variables.yaml'
       help: Help.variables
       @statusbar
     }
@@ -62,6 +67,7 @@ module.exports = class StackEditor extends kd.View
     @readme = new Editor {
       cssClass: 'readme'
       title: 'Readme'
+      filename: 'readme.md'
       help: Help.readme
       @statusbar
     }

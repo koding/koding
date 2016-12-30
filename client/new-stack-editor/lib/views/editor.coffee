@@ -9,7 +9,10 @@ module.exports = class Editor extends BaseView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry 'editor-view', options.cssClass
+    options.cssClass    = kd.utils.curry 'editor-view', options.cssClass
+    options.filename   ?= 'untitled.yaml'
+    options.showgutter ?= yes
+    options.readonly   ?= no
 
     super options, data
 
@@ -22,11 +25,16 @@ module.exports = class Editor extends BaseView
     @aceView.ace.focus()
 
 
+  setReadOnly: (state) -> @ready =>
+
+    @aceView.ace.setReadOnly state, no
   viewAppended: ->
 
     super
 
-    file = FSHelper.createFileInstance { path: 'localfile:/Untitled.yaml' }
+    { filename, showgutter, readonly } = @getOptions()
+
+    file = FSHelper.createFileInstance { path: "localfile:/#{filename}" }
 
     @aceView = new AceView {
       cssClass: 'editor'
@@ -38,9 +46,12 @@ module.exports = class Editor extends BaseView
 
     ace.ready =>
 
+      @setReadOnly readonly
+
       ace.setTheme 'base16', no
       ace.setTabSize 2, no
       ace.setShowPrintMargin no, no
+      ace.setShowGutter showgutter, no
       ace.setUseSoftTabs yes, no
       ace.setScrollPastEnd no, no
       ace.contentChanged = no
