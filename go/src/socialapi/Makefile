@@ -2,6 +2,7 @@
 NO_COLOR=\033[0m
 OK_COLOR=\033[0;32m
 GODIR=$(CURDIR)/../../../go
+KODINGDIR=$(GODIR)/..
 GOBINDIR=$(GODIR)/bin
 GOPATH := $(realpath $(GODIR))
 GOBIN := $(realpath $(GOBINDIR))
@@ -99,9 +100,7 @@ testcollaboration:
 
 testmodels:
 	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
-	@`which go` test -race -coverprofile=profile.out -covermode=atomic -c models/*.go
-	@./models.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./models.test
+	$(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/models
 
 testmailsender:
 	@echo "$(OK_COLOR)--> Mailsender tests... $(NO_COLOR)"
