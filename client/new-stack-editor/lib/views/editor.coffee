@@ -21,6 +21,22 @@ module.exports = class Editor extends BaseView
     @_getSession().setValue content
 
 
+  addContent: (content) -> @ready =>
+
+    session = @_getSession()
+    [ row, column ] = [ session.getLength(), 0 ]
+    session.insert { row, column }, "#{content}\n"
+    @scrollToBottom()
+
+
+  scrollToBottom: -> @ready =>
+
+    { editor } = @aceView.ace
+    line = @_getSession().getLength()
+    editor.scrollToLine line, yes, yes, kd.noop
+    editor.gotoLine line, 0, yes
+
+
   focus: -> @ready =>
     @aceView.ace.focus()
 
@@ -28,6 +44,10 @@ module.exports = class Editor extends BaseView
   setReadOnly: (state) -> @ready =>
 
     @aceView.ace.setReadOnly state, no
+    state = if state then 'none' else 'block'
+    @aceView.ace.editor.renderer.$cursorLayer.element.style.display = state
+
+
   viewAppended: ->
 
     super
