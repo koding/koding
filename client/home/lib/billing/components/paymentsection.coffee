@@ -7,6 +7,7 @@ Button = require 'lab/Button'
 CreateCreditCardForm = require './creditcardcontainer'
 SubscriptionSuccessModal = require 'lab/SubscriptionSuccessModal'
 CardRemoveConfirmModal = require 'lab/CardRemoveConfirmModal'
+CardInfo = require 'lab/CreditCard/CardInfo'
 
 Icon = require 'lab/Icon'
 
@@ -47,18 +48,23 @@ module.exports = class PaymentSection extends React.Component
     @props.onInviteMembers()
 
 
+  onToggleForm: ->
+    @setState { formVisible: not @state.formVisible }
+
+
   render: ->
 
-    { message, onMessageClose, isDirty, onResetForm
-      hasCard, submitting, loading, operation, onRemoveCard } = @props
+    { message, placeholders, operation
+      isDirty, hasCard, submitting, loading
+      onResetForm, onRemoveCard
+      onMessageClose, onPaymentHistory } = @props
 
-    { hasSuccessModal, hasRemoveModal } = @state
+    { hasSuccessModal, hasRemoveModal, formVisible } = @state
 
     buttonTitle = switch
-      when submitting and operation is 'create' then 'SAVING...'
-      when submitting and operation is 'change' then 'CHANGING...'
+      when submitting then 'SAVING...'
       when operation is 'create' then 'SAVE'
-      when operation is 'change' then 'CHANGE'
+      when operation is 'change' then 'SAVE NEW CARD'
 
     secondaryButtonProps = switch
       when isDirty then { title: 'CANCEL', onClick: onResetForm }
@@ -80,7 +86,18 @@ module.exports = class PaymentSection extends React.Component
         onCancel={=> @onRemoveCancel()}
         onRemove={=> @onRemoveSuccess()} />
 
-      <CreateCreditCardForm loading={loading} ref={(f) => @_form = f} />
+      {hasCard and
+        <CardInfo
+          loading={loading}
+          number={placeholders.number}
+          brand={placeholders.brand}
+          year={placeholders.exp_year}
+          month={placeholders.exp_month}
+          formVisible={formVisible}
+          onToggleForm={=> @onToggleForm()} />}
+
+      {formVisible and
+        <CreateCreditCardForm loading={loading} ref={(f) => @_form = f} />}
 
       <Footer border>
         <Row style={{margin: '0'}} between='xs'>
@@ -95,6 +112,12 @@ module.exports = class PaymentSection extends React.Component
                 size='small'
                 onClick={secondaryButtonProps.onClick}
                 type='secondary'>{secondaryButtonProps.title}</Button>}
+          </Col>
+          <Col>
+            <Button
+              size='small'
+              type='link-primary-6'
+              onClick={onPaymentHistory}>PAYMENT HISTORY</Button>
           </Col>
         </Row>
       </Footer>
