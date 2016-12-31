@@ -46,8 +46,21 @@
   justify-content           space-between
   align-items               center
 
+.title
+  font-size                 13px
+  color                     $additional-6-dark
+
 .name
   ellipsis()
 
+.info-row
+  display                   flex
+  align-items               center
+  height                    40px
 
+.link
+  color                     $primary-6
+  text-decoration           none
 
+  &:hover
+    text-decoration         underline
