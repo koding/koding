@@ -6,6 +6,7 @@ textStyles = require './Text.stylus'
 
 Label = ({ size, type, children, monospaced }) ->
   className = generateClassName [
+    'Label'
     textStyles['Label']
     textStyles[size]
     type and textStyles[type]
