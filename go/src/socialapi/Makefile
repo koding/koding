@@ -128,4 +128,4 @@ testapi: testcollaboration testmailsender testmail testmodels \
 	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
 
 	@echo "$(OK_COLOR)--> handler tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotest_socialapi.sh socialapiworkers/common/handler
+	$(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/common/handler
