@@ -1,8 +1,11 @@
 kd = require 'kd'
-{ markAsLoaded, log } = require './helpers'
 AppController = require 'app/appcontroller'
 showErrorNotification = require 'app/util/showErrorNotification'
+
 StackEditor = require './views'
+StackWizardModal = require './views/wizard/stackwizardmodal'
+
+{ markAsLoaded, log } = require './helpers'
 
 do require './routehandler'
 
@@ -51,10 +54,8 @@ module.exports = class StackEditorAppController extends AppController
 
   openStackWizard: (handleRoute = yes) ->
 
-    console.trace()
-    log '::openStackWizard', handleRoute
-
-    markAsLoaded null
+    new StackWizardModal { handleRoute }
+    markAsLoaded()
 
 
   reloadEditor: (templateId) ->

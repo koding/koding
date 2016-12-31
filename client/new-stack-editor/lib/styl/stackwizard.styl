@@ -1,0 +1,181 @@
+$accentColor                = #F2778A
+
+.stack-wizard-modal
+
+  overflow                  hidden
+  rounded                   6px
+  border                    none
+
+  &.kdmodal
+    .kdmodal-inner
+    .kdmodal-content
+      margin                0
+
+    .kdmodal-inner .close-icon
+      r-sprite              app modal_close
+      margin                20px 20px 0 0
+      background-position   0 !important
+
+  header
+    height                  84px
+    border-bottom           1px solid #DEDBDB
+    bg                      color #fff
+    text-align              center
+
+    h1
+      color                 #BABABA
+      font-size             20px
+      font-weight           300
+      line-height           20px
+      margin                31px 0
+      display               inline-block
+
+  main
+    text-align              center
+
+    > h2
+      color                 #585858
+      margin                91px 0 12px
+      font-size             27px
+      font-weight           300
+      line-height           27px
+
+
+    > p
+      margin                0 140px
+      width                 auto
+      font-size             17px
+      font-weight           300
+      line-height           27px
+      color                 #A59999
+      letter-spacing        .2px
+
+
+  footer
+    height                  75px
+    border-top              1px solid #DEDBDB
+    bg                      color #fff
+    rel()
+
+
+  button.next
+  button.back
+  button.cancel
+    outlineButton           #BEBEBE
+    height                  42px
+    padding                 0 37px
+
+    span.button-title
+      font-size             14px
+      letter-spacing        .2px
+      text-transform        uppercase
+      line-height           42px
+
+
+  button.back
+    abs                     15px 0 0 26px
+
+  button.next
+    colorizeOutlineButton   $accentColor
+    abs                     17px 17px
+
+  .cancel
+    left                    17px
+    abs                     17px
+
+
+// stack wizard styling
+.stack-wizard
+
+  .kdbutton
+    &.green
+      background            #00B057
+
+    &.medium
+      height                50px
+      padding               0 35px
+
+  .footer
+    text-align              center
+    margin-left             42px
+
+    .kdbutton
+      width                 120px
+
+    .outline
+      border                1px solid #A8A1A1
+
+      &.back
+        margin-right        8px
+
+      span
+        color               #A8A1A1
+
+  .box-wrapper
+    width                   572px
+    margin                  46px auto
+
+  .box
+    size                    256px, 112px
+    width                   276px !important
+    height                  90px !important
+    rounded                 4px
+    border                  1px solid #E7E7E7
+    background              #fff
+    background-position     center
+    background-repeat       no-repeat
+    borderBox()
+    pointer()
+    fl()
+
+    &:nth-child(2n -1)
+      margin-right          15px
+
+    &.aws
+      r-sprite              'stack-editor' 'aws'
+    &.digitalocean
+      r-sprite              'stack-editor' 'digitalocean'
+    &.google
+      r-sprite              'stack-editor' 'googlecloud'
+    &.vagrant
+      r-sprite              'stack-editor' 'vagrant'
+    &.azure
+      r-sprite              'stack-editor' 'azure'
+    &.rackspace
+      r-sprite              'stack-editor' 'rackspace'
+    &.softlayer
+      r-sprite              'stack-editor' 'softlayer'
+    &.marathon
+      r-sprite              'stack-editor' 'marathon'
+
+  .beta:before
+  .coming-soon:before
+    content                 attr(data-before-content)
+    font-size               10px
+    background              #A8CEFD
+    color                   white
+    line-height             18px
+    height                  18px
+    padding                 0 7px
+    abs                     0px, 0px
+
+  .coming-soon
+    cursor                  not-allowed
+    opacity                 .4
+
+  .coming-soon:before
+    background              #a9a6a6
+
+  .box.selected
+    shadow                  0 0 0 3px $accentColor
+
+  .provider-selection
+    height                  auto
+
+    .provider
+      margin-top            15px
+      rel()
+
+      &:first-child
+      &:nth-child(2)
+        margin-top            0
