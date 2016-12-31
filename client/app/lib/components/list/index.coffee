@@ -1,6 +1,6 @@
 kd = require 'kd'
-React = require 'app/react'
-{ Component, PropTypes } = React
+{ Component, PropTypes } = React = require 'app/react'
+classnames = require 'classnames'
 
 minimumNumberFn = -> 1
 minimumRenderFn = -> null
@@ -96,22 +96,27 @@ module.exports = class List extends React.Component
   renderChildren: ->
 
     # this is intentionally left here for further improvements. ~Umut
+    # I don't remember what my **intentions** were.
     dataSource = this
 
-    [0...dataSource.numberOfSections()].map (sectionIndex) =>
-      <section
-        key="section_#{sectionIndex}"
-        className="ListView-section #{@props.sectionClassName}">
-        {dataSource.renderSectionHeaderAtIndex sectionIndex}
-        {[0...dataSource.numberOfRowsInSection sectionIndex].map (rowIndex) =>
-          <div
-            key="section_#{sectionIndex}-row_#{rowIndex}"
-            className="ListView-row #{@props.rowClassName}">
-            {dataSource.renderRowAtIndex sectionIndex, rowIndex}
-          </div>
-        }
+    sectionCount = dataSource.numberOfSections()
+
+    { sectionClassName, rowClassName } = @props
+
+    [0...sectionCount].map (sectionIndex) ->
+      <Section key="s#{sectionIndex}" className={sectionClassName}>
+
+        <Header source={dataSource} index={sectionIndex} />
+
+        {[0...dataSource.numberOfRowsInSection sectionIndex].map (rowIndex) ->
+          <Row
+            key="s#{sectionIndex}-r#{rowIndex}"
+            source={dataSource}
+            className={rowClassName}
+            sectionIndex={sectionIndex}
+            rowIndex={rowIndex} />}
         {dataSource.renderEmptySectionAtIndex sectionIndex}
-      </section>
+      </Section>
 
 
   render: ->
@@ -119,3 +124,21 @@ module.exports = class List extends React.Component
     <div className={kd.utils.curry 'ListView', @props.className} onScroll={@props.onScroll}>
       {@renderChildren()}
     </div>
+
+
+Section = ({ className, children }) ->
+  <div className={classnames 'ListView-section', className}>
+    {children}
+  </div>
+
+
+Row = ({ source, className, sectionIndex, rowIndex }) ->
+  <div className={classnames 'ListView-row', className}>
+    {source.renderRowAtIndex sectionIndex, rowIndex}
+  </div>
+
+
+Header = ({ source, index }) ->
+  <div className={classnames 'ListView-SectionHeader'}>
+    {source.renderSectionHeaderAtIndex index}
+  </div>
