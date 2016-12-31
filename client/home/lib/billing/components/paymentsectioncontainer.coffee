@@ -11,6 +11,7 @@ creditCard = require 'app/redux/modules/payment/creditcard'
 { Status } = require 'app/redux/modules/payment/constants'
 
 PaymentSection = require './paymentsection'
+{ select, FORM_NAME } = require './helpers'
 
 formMessages = {}
 formMessages[CREATE_TOKEN.SUCCESS] =
@@ -49,8 +50,8 @@ hasSuccessModal = createSelector(
 mapStateToProps = (state) ->
   return {
     hasCard: !!state.creditCard
-    submitting: submitting('create-credit-card')(state)
-    isDirty: isDirty('create-credit-card')(state)
+    submitting: submitting(FORM_NAME)(state)
+    isDirty: isDirty(FORM_NAME)(state)
     message: formMessage state
     operation: if state.creditCard then 'change' else 'create'
     hasSuccessModal: hasSuccessModal(state)
@@ -68,7 +69,7 @@ mapDispatchToProps = (dispatch) ->
       dispatch(stripe.resetLastAction())
     onResetForm: ->
       dispatch(stripe.resetLastAction())
-      dispatch(resetForm('create-credit-card'))
+      dispatch(resetForm(FORM_NAME))
     onRemoveCard: ->
       dispatch(stripe.resetLastAction())
       dispatch(creditCard.remove())
