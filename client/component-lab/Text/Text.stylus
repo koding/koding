@@ -13,8 +13,6 @@ $fw-bolder = 900
 
 .Label
   font-family               mainFontFamily
-  font-weight               $fw-thin
-  color                     $additional-4
   letter-spacing            0.15px
   line-height               $fs-medium
 
@@ -33,6 +31,10 @@ $fw-bolder = 900
   font-size                 $fs-large
 .xlarge
   font-size                 $fs-xlarge
+
+.Label
+.default
+  color                     $additional-4
 
 .danger
   color                     $primary-1
