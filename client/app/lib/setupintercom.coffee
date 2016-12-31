@@ -35,3 +35,8 @@ module.exports = setupIntercom = ->
           name    : getFullnameFromAccount account
           email   : email
           user_id : account._id
+
+        setTimeout ->
+          i = d.getElementById 'intercom-container'
+          i.classList = 'small'
+        , 1000
