@@ -6,6 +6,10 @@ StackEditor = require './views'
 
 do require './routehandler'
 
+require 'new-stack-editor/styl'
+# It will be moved to kd.js once it's ready ~ GG
+require 'new-stack-editor/views/flexsplit/styl'
+
 Errors      =
   NotExists :
     name    : 'NOT_EXISTS'
