@@ -12,12 +12,17 @@ Label = ({ size, type, children, monospaced }) ->
     monospaced and textStyles.monospaced
   ]
 
+  style = if 'number' is typeof size then { fontSize: size } else {}
+
   return (
     <span className={className}>{children}</span>
   )
 
 Label.propTypes =
-  size: PropTypes.string
+  size: PropTypes.oneOfType [
+      PropTypes.string
+      PropTypes.number
+    ]
   type: PropTypes.string
 
 Label.defaultProps =
