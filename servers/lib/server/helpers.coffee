@@ -1,5 +1,4 @@
 koding = require './bongo'
-JName = require '../../models/name'
 KONFIG  = require 'koding-config-manager'
 request = require 'request'
 url     = require 'url'
@@ -152,29 +151,13 @@ serveHome = (req, res, next) ->
 
 
 isLoggedIn = (req, res, callback) ->
-
-  { JName } = koding.models
-
   findUsernameFromSession req, res, (err, username) ->
+    return callback null, no, null  unless username
 
-    return callback null, no, {}  unless username
-
-    JName.fetchModels username, (err, result) ->
-
-      return callback null, no, {}  unless result?
-
-      { models } = result
-
-      return callback null, no, {}  if err or not models?.first
-
-      user = models.last
-      user.fetchAccount 'koding', (err, account) ->
-
-        if err or not account or account.type is 'unregistered'
-
-          return callback err, no, account
-
-        return callback null, yes, account
+    koding.models.JAccount.one { 'profile.nickname' : username }, (err, account) ->
+      if err or not account or account.type is 'unregistered'
+        return callback err, no, account
+      return callback null, yes, account
 
 
 saveOauthToSession = (oauthInfo, clientId, provider, callback) ->

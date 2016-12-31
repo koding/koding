@@ -1889,17 +1889,6 @@ module.exports = class JUser extends jraphical.Module
 
             Tracker.identify @username, { email }
 
-
-  fetchHomepageView: (options, callback) ->
-
-    { account, bongoModels } = options
-
-    @fetchAccount 'koding', (err, account) ->
-      return callback err  if err
-      return callback new KodingError 'Account not found'  unless account
-      account.fetchHomepageView options, callback
-
-
   confirmEmail: (callback) ->
 
     status   = @getAt 'status'

@@ -452,21 +452,6 @@ module.exports = class JAccount extends jraphical.Module
             JName.remove { name: oldUsername }, (err) ->
               console.warn '[JAccount.changeUsername]', err  if err?
 
-
-  @renderHomepage: require '../render/profile.coffee'
-
-
-  fetchHomepageView:(options, callback) ->
-    { account } = options
-
-    homePageOptions = extend options, {
-      renderedAccount : account
-      account         : this
-      isLoggedIn      : account.type is 'unregistered'
-    }
-
-    JAccount.renderHomepage homePageOptions, callback
-
   fetchGroups: secure (client, options, callback) ->
     [callback, options] = [options, callback]  unless callback
     options       ?= {}
