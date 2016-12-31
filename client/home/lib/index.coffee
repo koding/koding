@@ -10,6 +10,7 @@ HomeStacks          = require './stacks'
 HomeIntegrations    = require './integrations'
 
 do require './routehandler'
+require 'home/styl'
 
 module.exports = class HomeAppController extends AppController
 
