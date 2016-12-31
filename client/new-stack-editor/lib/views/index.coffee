@@ -82,7 +82,7 @@ module.exports = class StackEditor extends kd.View
     @emit 'ready'
 
 
-  setTemplateData: (data) ->
+  setTemplateData: (data, reset = no) ->
 
     @setData data
     @toolbar.setData data
@@ -92,6 +92,8 @@ module.exports = class StackEditor extends kd.View
       throw { message: 'A valid JStackTemplate is required!' }
 
     @_saveSnapshot @_current  if @_current
+    @_deleteSnapshot id  if reset
+
     @editor.setOption 'title', title
 
     unless @_loadSnapshot id
@@ -127,6 +129,9 @@ module.exports = class StackEditor extends kd.View
     @_snapshots[id] ?= {}
     for view in EDITORS
       @_snapshots[id][view] = @[view]._dump()
+
+
+  _deleteSnapshot: (id) -> delete @_snapshots[id]
 
 
   viewAppended: ->

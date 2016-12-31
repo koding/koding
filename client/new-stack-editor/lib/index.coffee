@@ -40,11 +40,11 @@ module.exports = class StackEditorAppController extends AppController
     @stackEditor.on 'InitializeRequested', @bound 'initializeStack'
 
 
-  openEditor: (templateId) ->
+  openEditor: (templateId, reset = no) ->
 
     @fetchStackTemplate templateId, (err, template) =>
       return showErrorNotification err  if err
-      @stackEditor.setTemplateData template
+      @stackEditor.setTemplateData template, reset
 
     markAsLoaded templateId
 
@@ -57,10 +57,10 @@ module.exports = class StackEditorAppController extends AppController
     markAsLoaded null
 
 
-  reloadEditor: (templateId, skipDataUpdate) ->
+  reloadEditor: (templateId) ->
 
-    console.trace()
-    log '::reloadEditor', templateId, skipDataUpdate
+    delete @templates[templateId]
+    @openEditor templateId, reset = yes
 
 
   fetchStackTemplate: (templateId, callback) ->
