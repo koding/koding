@@ -36,7 +36,7 @@ module.exports = {
   reducer
 
   all
-  
+
   load
   LOAD
 }

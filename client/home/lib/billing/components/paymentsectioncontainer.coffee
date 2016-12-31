@@ -1,3 +1,4 @@
+kd = require 'kd'
 { isDirty, reset: resetForm } = require 'redux-form'
 { connect } = require 'react-redux'
 { createSelector } = require 'reselect'
@@ -55,6 +56,7 @@ mapStateToProps = (state) ->
     message: formMessage state
     operation: if state.creditCard then 'change' else 'create'
     hasSuccessModal: hasSuccessModal(state)
+    placeholders: select.placeholders(state)
   }
 
 mapDispatchToProps = (dispatch) ->
@@ -73,10 +75,12 @@ mapDispatchToProps = (dispatch) ->
     onRemoveCard: ->
       dispatch(stripe.resetLastAction())
       dispatch(creditCard.remove())
+    onPaymentHistory: ->
+      dispatch(stripe.resetLastAction())
+      kd.singletons.router.handleRoute '/Home/payment-history'
   }
 
 module.exports = connect(
   mapStateToProps
   mapDispatchToProps
 )(PaymentSection)
-
