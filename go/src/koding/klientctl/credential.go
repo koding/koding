@@ -12,6 +12,7 @@ import (
 	"koding/kites/config"
 	"koding/kites/kloud/stack"
 	"koding/klientctl/endpoint/credential"
+	"koding/klientctl/endpoint/team"
 	"koding/klientctl/helper"
 
 	"github.com/codegangsta/cli"
@@ -147,9 +148,13 @@ func AskCredentialCreate(c *cli.Context) (*credential.CreateOptions, error) {
 
 	// TODO(rjeczalik): remove when support for generic team is implemented
 	if opts.Team == "" {
-		opts.Team, err = helper.Ask("Team name []: ")
+		opts.Team, err = helper.Ask("Team name [%s]: ", team.Used().Name)
 		if err != nil {
 			return nil, err
+		}
+
+		if opts.Team == "" {
+			opts.Team = team.Used().Name
 		}
 	}
 
