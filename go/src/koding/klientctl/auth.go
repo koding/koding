@@ -92,6 +92,8 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		}
 	}
 
+	fmt.Fprintln(os.Stderr, "Logging to", kodingURL, "...")
+
 	resp, err := authClient.Login(opts)
 	if err != nil {
 		return 1, fmt.Errorf("error logging into your Koding account: %v", err)
@@ -113,7 +115,7 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		enc.SetIndent("", "\t")
 		enc.Encode(resp)
 	} else {
-		fmt.Fprintf(os.Stdout, "Successfully logged in to %q team.\n", resp.GroupName)
+		fmt.Fprintf(os.Stdout, "Successfully logged in to the following team: %s.\n", resp.GroupName)
 	}
 
 	return 0, nil
