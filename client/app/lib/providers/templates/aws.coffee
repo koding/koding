@@ -12,7 +12,7 @@ module.exports =
   },
   "resource": {
     "aws_instance": {
-      "aws-instance": {
+      "my-vm": {
         "tags": {
           "Name": "${var.koding_user_username}-${var.koding_group_slug}"
         },
