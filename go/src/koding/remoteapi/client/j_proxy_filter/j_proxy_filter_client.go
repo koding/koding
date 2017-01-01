@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJProxyFilterCreate(params *PostRemoteAPIJProxyFilt
 		Params:             params,
 		Reader:             &PostRemoteAPIJProxyFilterCreateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJProxyFilterRemoveID(params *PostRemoteAPIJProxyFi
 		Params:             params,
 		Reader:             &PostRemoteAPIJProxyFilterRemoveIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIJProxyFilterSome(params *PostRemoteAPIJProxyFilter
 		Params:             params,
 		Reader:             &PostRemoteAPIJProxyFilterSomeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPIJProxyFilterUpdateID(params *PostRemoteAPIJProxyFi
 		Params:             params,
 		Reader:             &PostRemoteAPIJProxyFilterUpdateIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

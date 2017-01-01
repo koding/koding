@@ -4,6 +4,7 @@ package sidebar
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"net/http"
 	"time"
 
 	"golang.org/x/net/context"
@@ -49,8 +50,9 @@ func NewPostRemoteAPISidebarFetchEnvironmentParamsWithContext(ctx context.Contex
 for the post remote API sidebar fetch environment operation typically these are written to a http.Request
 */
 type PostRemoteAPISidebarFetchEnvironmentParams struct {
-	timeout time.Duration
-	Context context.Context
+	timeout    time.Duration
+	Context    context.Context
+	HTTPClient *http.Client
 }
 
 // WithTimeout adds the timeout to the post remote API sidebar fetch environment params

@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPISharedMachineAdd(params *PostRemoteAPISharedMachin
 		Params:             params,
 		Reader:             &PostRemoteAPISharedMachineAddReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPISharedMachineKick(params *PostRemoteAPISharedMachi
 		Params:             params,
 		Reader:             &PostRemoteAPISharedMachineKickReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

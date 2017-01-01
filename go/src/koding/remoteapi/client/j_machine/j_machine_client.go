@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJMachineApproveID(params *PostRemoteAPIJMachineApp
 		Params:             params,
 		Reader:             &PostRemoteAPIJMachineApproveIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJMachineDenyID(params *PostRemoteAPIJMachineDenyID
 		Params:             params,
 		Reader:             &PostRemoteAPIJMachineDenyIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIJMachineOne(params *PostRemoteAPIJMachineOneParams
 		Params:             params,
 		Reader:             &PostRemoteAPIJMachineOneReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPIJMachineReviveUsersID(params *PostRemoteAPIJMachin
 		Params:             params,
 		Reader:             &PostRemoteAPIJMachineReviveUsersIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -149,6 +153,7 @@ func (a *Client) PostRemoteAPIJMachineSetLabelID(params *PostRemoteAPIJMachineSe
 		Params:             params,
 		Reader:             &PostRemoteAPIJMachineSetLabelIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -176,6 +181,7 @@ func (a *Client) PostRemoteAPIJMachineSetProvisionerID(params *PostRemoteAPIJMac
 		Params:             params,
 		Reader:             &PostRemoteAPIJMachineSetProvisionerIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -203,6 +209,7 @@ func (a *Client) PostRemoteAPIJMachineShareID(params *PostRemoteAPIJMachineShare
 		Params:             params,
 		Reader:             &PostRemoteAPIJMachineShareIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -230,6 +237,7 @@ func (a *Client) PostRemoteAPIJMachineShareWithID(params *PostRemoteAPIJMachineS
 		Params:             params,
 		Reader:             &PostRemoteAPIJMachineShareWithIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -257,6 +265,7 @@ func (a *Client) PostRemoteAPIJMachineSome(params *PostRemoteAPIJMachineSomePara
 		Params:             params,
 		Reader:             &PostRemoteAPIJMachineSomeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -284,6 +293,7 @@ func (a *Client) PostRemoteAPIJMachineUnshareID(params *PostRemoteAPIJMachineUns
 		Params:             params,
 		Reader:             &PostRemoteAPIJMachineUnshareIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

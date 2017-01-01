@@ -67,5 +67,9 @@ func (m *JProxyFilter) validateRules(formats strfmt.Registry) error {
 		return nil
 	}
 
+	for i := 0; i < len(m.Rules); i++ {
+
+	}
+
 	return nil
 }
