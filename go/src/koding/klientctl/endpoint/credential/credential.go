@@ -54,7 +54,7 @@ type Client struct {
 func (c *Client) List(opts *ListOptions) (stack.Credentials, error) {
 	c.init()
 
-	var req *stack.CredentialListRequest
+	var req = &stack.CredentialListRequest{}
 	var resp stack.CredentialListResponse
 
 	if opts != nil {

@@ -531,6 +531,10 @@ func run(args []string) {
 						},
 					},
 				}, {
+					Name:   "use",
+					Usage:  "Change default credential per provider.",
+					Action: ctlcli.ExitErrAction(CredentialUse, log, "use"),
+				}, {
 					Name:   "describe",
 					Usage:  "Describe credential documents.",
 					Action: ctlcli.ExitErrAction(CredentialDescribe, log, "describe"),
