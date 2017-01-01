@@ -127,7 +127,7 @@ func (kt *KiteTransport) kite() *kite.Kite {
 
 	kt.k = kite.New(config.Name, config.KiteVersion)
 	kt.k.Config = kt.kiteConfig()
-	kt.k.Log = kt.Log
+	kt.k.Log = kt.log()
 
 	return kt.k
 }
