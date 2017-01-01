@@ -9,6 +9,7 @@ import (
 	"koding/kites/kloud/stack"
 	"koding/klientctl/endpoint/credential"
 	"koding/klientctl/endpoint/kloud"
+	"koding/klientctl/endpoint/team"
 
 	"github.com/hashicorp/hcl"
 	yaml "gopkg.in/yaml.v2"
@@ -69,6 +70,10 @@ func (c *Client) Create(opts *CreateOptions) (*stack.ImportResponse, error) {
 		Team:        opts.Team,
 		Title:       opts.Title,
 		Credentials: make(map[string][]string),
+	}
+
+	if req.Team == "" {
+		req.Team = team.Used().Name
 	}
 
 	var resp stack.ImportResponse

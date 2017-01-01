@@ -71,7 +71,7 @@ func TeamShow(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		enc.SetIndent("", "\t")
 		enc.Encode(t)
 	} else {
-		fmt.Fprintf(os.Stderr, "You are currently logged in to a %q team.", t.Name)
+		fmt.Fprintln(os.Stderr, "You are currently logged in to the following team:", t.Name)
 	}
 
 	return 0, nil

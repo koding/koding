@@ -115,7 +115,7 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		enc.SetIndent("", "\t")
 		enc.Encode(resp)
 	} else {
-		fmt.Fprintf(os.Stdout, "Successfully logged in to the following team: %s.\n", resp.GroupName)
+		fmt.Fprintln(os.Stdout, "Successfully logged in to the following team:", resp.GroupName)
 	}
 
 	return 0, nil
