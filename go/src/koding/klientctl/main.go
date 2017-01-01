@@ -595,7 +595,7 @@ func run(args []string) {
 						},
 						cli.StringFlag{
 							Name:  "file, f",
-							Value: "",
+							Value: "kd.yml",
 							Usage: "Read stack template from a file.",
 						},
 						cli.BoolFlag{

@@ -18,9 +18,7 @@ func StackCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 	switch file := c.String("file"); file {
 	case "":
-		// TODO(rjeczalik): remove once interactive mode is implemented
-		fmt.Fprintln(os.Stderr, "No credential file was provided.")
-		return 1, errors.New("no credential file was provided")
+		return 1, errors.New("no template file was provided")
 	case "-":
 		p, err = ioutil.ReadAll(os.Stdin)
 	default:
@@ -28,8 +26,7 @@ func StackCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	}
 
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error reading credential file: ", err)
-		return 1, err
+		return 1, errors.New("error reading template file: " + err.Error())
 	}
 
 	fmt.Println("Creating stack... ")
@@ -43,8 +40,7 @@ func StackCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 	resp, err := stack.Create(opts)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error creating stack:", err)
-		return 1, err
+		return 1, errors.New("error creating stack: " + err.Error())
 	}
 
 	fmt.Fprintf(os.Stderr, "Creatad %q stack with %s ID.\n", resp.Title, resp.StackID)
