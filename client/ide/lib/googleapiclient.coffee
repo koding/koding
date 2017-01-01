@@ -4,6 +4,9 @@ KodingAppsController = require 'app/kodingappscontroller'
 IDEMetrics = require './idemetrics'
 $ = require 'jquery'
 
+GOOGLE_OATH_SCOPES = 'email, https://www.googleapis.com/auth/drive.metadata.readonly'
+
+
 module.exports = class GoogleApiClient extends KDObject
 
   { noop } = kd
@@ -58,7 +61,7 @@ module.exports = class GoogleApiClient extends KDObject
 
     $.ajax { url, dataType, success, error }
 
-
+  
   @metric = (name, state, count = 1, callback = noop) ->
 
     name = if name

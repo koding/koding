@@ -8,7 +8,7 @@ getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
 showError                     = require 'app/util/showError'
 isTeamReactSide               = require 'app/util/isTeamReactSide'
 whoami                        = require 'app/util/whoami'
-RealtimeManager               = require './realtimemanager'
+RealtimeManagerFactory        = require './realtimemanagerfactory'
 IDEMetrics                    = require './idemetrics'
 doXhrRequest                  = require 'app/util/doXhrRequest'
 realtimeHelpers               = require './collaboration/helpers/realtime'
@@ -496,7 +496,7 @@ module.exports = CollaborationController =
 
     title = @getRealtimeFileName id
 
-    @rtm or= new RealtimeManager
+    @rtm or= RealtimeManagerFactory.get('GOOGLE_DRIVE')
     @rtm.ready => realtimeHelpers.isSessionActive @rtm, title, callback
 
 
@@ -1128,8 +1128,8 @@ module.exports = CollaborationController =
 
   prepareCollaboration: ->
 
-    @rtm = new RealtimeManager
-
+    @rtmfactory = new RealtimeManagerFactory
+    @rtm = @rtmfactory.get({ type: 'FIREBASE' })
     @rtm.ready @bound 'initCollaborationStateMachine'
 
 
