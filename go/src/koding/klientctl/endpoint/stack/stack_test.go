@@ -102,6 +102,64 @@ func TestFixHCL(t *testing.T) {
 	}
 }
 
+func TestFixYAML(t *testing.T) {
+	cases := map[string]struct {
+		yaml interface{}
+		want interface{}
+	}{
+		"fix map": {
+			map[interface{}]interface{}{
+				"abc": 1,
+			},
+			map[string]interface{}{
+				"abc": 1,
+			},
+		},
+		"fix slice of maps": {
+			[]interface{}{
+				"abc",
+				map[interface{}]interface{}{
+					"abc": 1,
+				},
+				1,
+			},
+			[]interface{}{
+				"abc",
+				map[string]interface{}{
+					"abc": 1,
+				},
+				1,
+			},
+		},
+		"fix nested maps": {
+			map[interface{}]interface{}{
+				"abc": map[interface{}]interface{}{
+					"abc": map[interface{}]interface{}{
+						"abc": 1,
+					},
+				},
+			},
+			map[string]interface{}{
+				"abc": map[string]interface{}{
+					"abc": map[string]interface{}{
+						"abc": 1,
+					},
+				},
+			},
+		},
+	}
+
+	for name, cas := range cases {
+		t.Run(name, func(t *testing.T) {
+			got := stack.FixYAML(cas.yaml)
+
+			if !reflect.DeepEqual(got, cas.want) {
+				t.Fatalf("got %#v, want %#v", got, cas.want)
+			}
+		})
+	}
+}
+
 func mustJSON(v interface{}) []byte {
 	p, err := json.MarshalIndent(v, "", "\t")
 	if err != nil {
