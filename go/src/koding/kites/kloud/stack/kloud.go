@@ -171,7 +171,7 @@ func ReadProviders(template []byte) ([]string, error) {
 		return nil, err
 	}
 
-	providers := make([]string, len(v.Provider))
+	providers := make([]string, 0, len(v.Provider))
 
 	for p := range v.Provider {
 		providers = append(providers, p)
