@@ -10,8 +10,11 @@ Toolbar = require './toolbar'
 Editor = require './editor'
 Statusbar = require './statusbar'
 
+LogsController = require '../controllers/logs'
 VariablesController = require '../controllers/variables'
+
 Help = require './help'
+
 
 module.exports = class StackEditor extends kd.View
 
@@ -40,28 +43,38 @@ module.exports = class StackEditor extends kd.View
     @editor = new Editor {
       cssClass: 'editor'
       help: Help.stack
+      filename: 'template.yaml'
       @statusbar
     }
 
     @logs = new Editor {
       cssClass: 'logs'
       title: 'Logs'
+      filename: 'logs.sh'
+      showgutter: no
+      readonly: yes
       @statusbar
     }
+
+    @logsController = new LogsController
+      editor: @logs
 
     @variables = new Editor {
       cssClass: 'variables'
       title: 'Custom Variables'
+      filename: 'variables.yaml'
       help: Help.variables
       @statusbar
     }
 
     @variablesController = new VariablesController
       editor: @variables
+    @variablesController.on 'Log', @logsController.bound 'add'
 
     @readme = new Editor {
       cssClass: 'readme'
       title: 'Readme'
+      filename: 'readme.md'
       help: Help.readme
       @statusbar
     }
@@ -69,7 +82,7 @@ module.exports = class StackEditor extends kd.View
     @emit 'ready'
 
 
-  setTemplateData: (data) ->
+  setTemplateData: (data, reset = no) ->
 
     @setData data
     @toolbar.setData data
@@ -79,6 +92,8 @@ module.exports = class StackEditor extends kd.View
       throw { message: 'A valid JStackTemplate is required!' }
 
     @_saveSnapshot @_current  if @_current
+    @_deleteSnapshot id  if reset
+
     @editor.setOption 'title', title
 
     unless @_loadSnapshot id
@@ -86,8 +101,8 @@ module.exports = class StackEditor extends kd.View
       @editor.setContent Encoder.htmlDecode template.rawContent
       @readme.setContent description
       @variables.setContent ''
+      @logsController.set 'stack template loaded'
       @variablesController.setData data
-      @logs.setContent 'Stack template loaded'
 
       @_saveSnapshot id
       @_current = id
@@ -114,6 +129,9 @@ module.exports = class StackEditor extends kd.View
     @_snapshots[id] ?= {}
     for view in EDITORS
       @_snapshots[id][view] = @[view]._dump()
+
+
+  _deleteSnapshot: (id) -> delete @_snapshots[id]
 
 
   viewAppended: ->

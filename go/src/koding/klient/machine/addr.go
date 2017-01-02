@@ -151,5 +151,8 @@ func (ab *AddrBook) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON satisfies json.Unmarshaler interface. It is used to unmarshal
 // data into private address book fields.
 func (ab *AddrBook) UnmarshalJSON(data []byte) error {
+	ab.mu.Lock()
+	defer ab.mu.Unlock()
+
 	return json.Unmarshal(data, &ab.addrs)
 }

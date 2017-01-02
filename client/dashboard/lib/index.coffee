@@ -12,7 +12,9 @@ GroupsMemberPermissionsView = require './views/groupsmemberpermissionsview'
 OnboardingDashboardView = require './views/onboarding/onboardingdashboardview'
 AppController = require 'app/appcontroller'
 Encoder = require 'htmlencode'
+
 require('./routehandler')()
+require 'dashboard/styl'
 
 
 module.exports = class DashboardAppController extends AppController

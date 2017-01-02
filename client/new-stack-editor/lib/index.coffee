@@ -1,10 +1,17 @@
 kd = require 'kd'
-{ markAsLoaded, log } = require './helpers'
 AppController = require 'app/appcontroller'
 showErrorNotification = require 'app/util/showErrorNotification'
+
 StackEditor = require './views'
+StackWizardModal = require './views/wizard/stackwizardmodal'
+
+{ markAsLoaded, log } = require './helpers'
 
 do require './routehandler'
+
+require 'new-stack-editor/styl'
+# It will be moved to kd.js once it's ready ~ GG
+require 'new-stack-editor/views/flexsplit/styl'
 
 Errors      =
   NotExists :
@@ -36,27 +43,25 @@ module.exports = class StackEditorAppController extends AppController
     @stackEditor.on 'InitializeRequested', @bound 'initializeStack'
 
 
-  openEditor: (templateId) ->
+  openEditor: (templateId, reset = no) ->
 
     @fetchStackTemplate templateId, (err, template) =>
       return showErrorNotification err  if err
-      @stackEditor.setTemplateData template
+      @stackEditor.setTemplateData template, reset
 
     markAsLoaded templateId
 
 
   openStackWizard: (handleRoute = yes) ->
 
-    console.trace()
-    log '::openStackWizard', handleRoute
-
-    markAsLoaded null
+    new StackWizardModal { handleRoute }
+    markAsLoaded()
 
 
-  reloadEditor: (templateId, skipDataUpdate) ->
+  reloadEditor: (templateId) ->
 
-    console.trace()
-    log '::reloadEditor', templateId, skipDataUpdate
+    delete @templates[templateId]
+    @openEditor templateId, reset = yes
 
 
   fetchStackTemplate: (templateId, callback) ->

@@ -387,12 +387,10 @@ module.exports = class JGroup extends Module
   @render        :
     loggedIn     :
       kodingHome : require '../../render/loggedin/kodinghome'
-      groupHome  : require '../../render/loggedin/grouphome'
-      subPage    : require '../../render/loggedin/subpage'
+      groupHome  : require '../../render/loggedin/kodinghome'
     loggedOut    :
-      groupHome  : require '../../render/loggedout/grouphome'
+      groupHome  : require '../../render/loggedout/kodinghome'
       kodingHome : require '../../render/loggedout/kodinghome'
-      subPage    : require '../../render/loggedout/subpage'
 
 
   prepareNewlyAddedMember: (member, callback) ->
@@ -1021,29 +1019,6 @@ module.exports = class JGroup extends Module
         options.targetOptions = { options, selector }
 
         @fetchMembers {}, options, callback
-
-
-  fetchHomepageView: (options, callback) ->
-    { account, section } = options
-    kallback = =>
-      homePageOptions = extend options, {
-        @slug
-        @title
-        @avatar
-        @body
-        @counts
-        @customize
-      }
-      prefix = if account?.type is 'unregistered' then 'loggedOut' else 'loggedIn'
-      JGroup.render[prefix].groupHome homePageOptions, callback
-
-    if @visibility is 'hidden' and section isnt 'Invitation'
-      @isMember account, (err, isMember) ->
-        return callback err if err
-        if isMember then kallback()
-        else do callback
-    else
-      kallback()
 
 
   # modifies JGroupData related with the JGroup instance
