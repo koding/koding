@@ -59,8 +59,7 @@ module.exports = class AdministrationView extends KDTabViewWithForms
               callback      : =>
                 accounts = @userController.getSelectedItemData()
                 if accounts.length > 0
-                  activityController = kd.getSingleton('activityController')
-                  activityController.emit 'ActivityItemBlockUserClicked', accounts[0].profile.nickname
+                  console.warning 'block account not implemented'
                 else
                   new KDNotificationView { title: 'Please select an account!' }
             VerifyEmail     :
