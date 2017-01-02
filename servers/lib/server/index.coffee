@@ -108,7 +108,6 @@ app.get  '/-/version'                            , (req, res) -> res.jsonp { ver
 app.get  '/-/jobs'                               , require './handlers/jobs'
 app.post '/recaptcha'                            , require './handlers/recaptcha'
 app.get  '/-/presence/:service'                  , (req, res) -> res.status(200).end()
-app.get  '/-/api/user/:username/flags/:flag'     , require './handlers/flaguser'
 app.post '/-/api/user/create'                    , require './handlers/api/createuser'
 app.post '/-/api/ssotoken/create'                , require './handlers/api/createssotoken'
 app.get  '/-/api/ssotoken/login'                 , require './handlers/api/ssotokenlogin'
