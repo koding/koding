@@ -7,6 +7,17 @@ error_messages =
   404: 'Page not found'
   500: 'Something wrong.'
 
+{
+  fetchSession
+  findUsernameFromSession
+  isLoggedIn
+  addReferralCode
+  handleClientIdNotFound
+  getClientId
+  setSessionCookie
+  checkAuthorizationBearerHeader
+} = require './session'
+
 validateEmail = (email) ->
   re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
   return re.test email
@@ -39,27 +50,9 @@ authenticationFailed = (res, err) ->
   res.status(403).send "forbidden! (reason: #{err?.message or "no session!"})"
 
 
-errSessionNotFound = new Error "session not found"
-
-fetchSession = (req, res, callback) ->
-
-  { clientId } = req.cookies
-
-  return callback errSessionNotFound unless clientId?
-
-  koding.models.JSession.fetchSession { clientId }, (err, result) ->
-    return callback err if err
-    return callback errSessionNotFound  unless result?.session?
-    return callback null, result.session
-
-
-findUsernameFromSession = (req, res, callback) ->
-
-  fetchSession req, res, (err, session) ->
-    callback err, session?.username
-
 serve = (content, res) ->
   res.header 'Content-type', 'text/html'
+
   res.send content
 
 # www.regextester.com/22
@@ -141,16 +134,6 @@ serveHome = (req, res, next) ->
 
 
 
-isLoggedIn = (req, res, callback) ->
-  findUsernameFromSession req, res, (err, username) ->
-    return callback err  unless username
-
-    koding.models.JAccount.one { 'profile.nickname' : username }, (err, account) ->
-      if err or not account or account.type isnt 'registered'
-        return callback err, no, account
-      return callback null, yes, account
-
-
 saveOauthToSession = (oauthInfo, clientId, provider, callback) ->
   { JSession } = koding.models
 
@@ -209,19 +192,6 @@ getAlias = do ->
       alias = "#{url.charAt(0).toUpperCase()}#{url.slice 1}"
     if alias and rooted then "/#{alias}" else alias
 
-# adds referral code into cookie if exists
-addReferralCode = (req, res) ->
-  match = req.path.match(/\/R\/(.*)/)
-  if match and refCode = match[1]
-    res.cookie 'referrer', refCode, { maxAge: 900000, secure: true }
-
-handleClientIdNotFound = (res, req) ->
-  err = { message: 'clientId is not set' }
-  console.error JSON.stringify { req: req.body, err }
-  return res.status(500).send err
-
-getClientId = (req, res) ->
-  return req.cookies.clientId or req.pendingCookies.clientId
 
 isInAppRoute = (name) ->
   [firstLetter] = name
@@ -248,31 +218,6 @@ isMainDomain = (req) ->
 
   return host in mainDomains
 
-
-{ sessionCookie } = KONFIG
-
-setSessionCookie = (res, sessionId, options = {}) ->
-
-  options.path    = '/'
-  options.secure  = sessionCookie.secure
-  options.expires = new Date(Date.now() + sessionCookie.maxAge)
-
-  # somehow we are sending two clientId cookies in some cases, last writer wins.
-  res.clearCookie 'clientId', options
-  res.cookie 'clientId', sessionId, options
-
-
-checkAuthorizationBearerHeader = (req) ->
-
-  return null  unless req.headers?.authorization
-  parts = req.headers.authorization.split ' '
-
-  return null  unless parts.length is 2 and parts[0] is 'Bearer'
-  token = parts[1]
-
-  return null  unless typeof token is 'string' and token.length > 0
-
-  return token
 
 fetchGroupMembersAndInvitations = (client, data, callback) ->
 
@@ -477,25 +422,27 @@ module.exports = {
   error_500
   authTemplate
   authenticationFailed
-  fetchSession
-  findUsernameFromSession
   serve
   serveHome
-  isLoggedIn
   getAlias
   fetchGroupOAuthSettings
   fetchUserOAuthInfo
   failedReq
-  addReferralCode
   saveOauthToSession
   redirectOauth
-  handleClientIdNotFound
-  getClientId
   isInAppRoute
   isMainDomain
-  setSessionCookie
-  checkAuthorizationBearerHeader
   isTeamPage
   analyzedInvitationResults
   fetchGroupMembersAndInvitations
+
+  # exports from session
+  fetchSession
+  findUsernameFromSession
+  isLoggedIn
+  addReferralCode
+  handleClientIdNotFound
+  getClientId
+  setSessionCookie
+  checkAuthorizationBearerHeader
 }
