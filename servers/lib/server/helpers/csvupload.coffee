@@ -1,6 +1,7 @@
 koding = require '../bongo'
 KONFIG  = require 'koding-config-manager'
 async = require 'async'
+{ validateEmail } = require './checkers'
 
 fetchGroupMembersAndInvitations = (client, data, callback) ->
 
