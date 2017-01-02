@@ -1,4 +1,4 @@
-koding = require './bongo'
+koding = require '../bongo'
 KONFIG  = require 'koding-config-manager'
 request = require 'request'
 url     = require 'url'
@@ -13,7 +13,7 @@ validateEmail = (email) ->
 
 error_ = (code, message) ->
   # Refactor this to use pistachio instead of underscore template engine - FKA
-  staticpages  = require './staticpages'
+  staticpages  = require '../staticpages'
   { template } = require 'underscore'
   messageHTML  = message.split('\n')
     .map((line) -> "<p>#{line}</p>")
@@ -31,7 +31,7 @@ error_500 = ->
   error_ 500, 'Something wrong with the Koding servers.'
 
 authTemplate = (msg) ->
-  { authRegisterTemplate } = require './staticpages'
+  { authRegisterTemplate } = require '../staticpages'
   { template }             = require 'underscore'
   template authRegisterTemplate, { msg }
 
@@ -39,24 +39,18 @@ authenticationFailed = (res, err) ->
   res.status(403).send "forbidden! (reason: #{err?.message or "no session!"})"
 
 
+errSessionNotFound = new Error "session not found"
+
 fetchSession = (req, res, callback) ->
 
   { clientId } = req.cookies
 
-  unless clientId?
-    return process.nextTick -> callback null
+  return callback errSessionNotFound unless clientId?
 
   koding.models.JSession.fetchSession { clientId }, (err, result) ->
-
-    if err
-      return callback err
-    else unless result?
-      return callback null
-
-    { session } = result
-    unless session?
-    then callback null
-    else callback null, session
+    return callback err if err
+    return callback errSessionNotFound  unless result?.session?
+    return callback null, result.session
 
 
 findUsernameFromSession = (req, res, callback) ->
@@ -103,12 +97,10 @@ isTeamPage = (req) ->
 
 serveHome = (req, res, next) ->
   { JGroup } = bongoModels = koding.models
-  { generateFakeClient }   = require './client'
-
+  { generateFakeClient }   = require '../client'
   generateFakeClient req, res, (err, client, session) ->
-    if err or not client
-      console.error err
-      return next()
+    return next() if err or not client
+
     isLoggedIn req, res, (err, isLoggedIn, account) ->
       if err
         res.status(500).send error_500()
@@ -126,8 +118,7 @@ serveHome = (req, res, next) ->
           return next()  if err
           return serve subPage, res
 
-      if req.path isnt '/'
-        return serveKodingHome()
+      return serveKodingHome() if req.path isnt '/'
 
       # main path has a special case where all users should be redirected to
       # hubspot
