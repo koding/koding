@@ -23,16 +23,14 @@ module.exports = class SubscriptionSection extends React.Component
         <Row style={{margin: '0'}} end='xs'>
           <Col>
             <Button
-              size='small'
+              size='medium'
               type='link-secondary'
               onClick={onClickPricingDetails}>PRICING DETAILS</Button>
             <Button
-              size='small'
+              size='medium'
               type='link-primary-6'
               onClick={onClickViewMembers}>VIEW MEMBERS</Button>
           </Col>
         </Row>
       </Footer>
     </DashboardSection>
-
-
