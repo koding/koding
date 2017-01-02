@@ -8,6 +8,7 @@ getGroupStatus = require 'app/util/getGroupStatus'
 
 { CREATE_TOKEN } = stripe = require 'app/redux/modules/stripe'
 creditCard = require 'app/redux/modules/payment/creditcard'
+subscription = require 'app/redux/modules/payment/subscription'
 
 { Status } = require 'app/redux/modules/payment/constants'
 
@@ -62,19 +63,19 @@ mapStateToProps = (state) ->
 mapDispatchToProps = (dispatch) ->
   return {
     onSuccessModalClose: ->
-      dispatch(stripe.resetLastAction())
       location.reload()
     onInviteMembers: ->
-      dispatch(stripe.resetLastAction())
       location.replace '/Home/my-team#send-invites'
     onMessageClose: ->
       dispatch(stripe.resetLastAction())
     onResetForm: ->
       dispatch(stripe.resetLastAction())
       dispatch(resetForm(FORM_NAME))
-    onRemoveCard: ->
+    onCancelSubscription: ->
       dispatch(stripe.resetLastAction())
-      dispatch(creditCard.remove())
+      dispatch(subscription.remove()).then ->
+        dispatch(creditCard.remove()).then ->
+          location.reload()
     onPaymentHistory: ->
       dispatch(stripe.resetLastAction())
       kd.singletons.router.handleRoute '/Home/payment-history'

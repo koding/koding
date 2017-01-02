@@ -6,7 +6,7 @@ React = require 'react'
 Button = require 'lab/Button'
 CreateCreditCardForm = require './creditcardcontainer'
 SubscriptionSuccessModal = require 'lab/SubscriptionSuccessModal'
-CardRemoveConfirmModal = require 'lab/CardRemoveConfirmModal'
+CancelSubscriptionModal = require 'lab/CancelSubscriptionModal'
 CardInfo = require 'lab/CreditCard/CardInfo'
 
 Icon = require 'lab/Icon'
@@ -17,7 +17,7 @@ module.exports = class PaymentSection extends React.Component
     super props
 
     @state =
-      hasRemoveModal: no
+      hasCancelSubModal: no
 
 
   onSubmit: -> @_form.getWrappedInstance().submit()
@@ -31,17 +31,17 @@ module.exports = class PaymentSection extends React.Component
     @props.onSuccessModalClose()
 
 
-  onRemoveBegin: ->
-    @setState { hasRemoveModal: yes }
+  onCancelSubBegin: ->
+    @setState { hasCancelSubModal: yes }
 
 
-  onRemoveCancel: ->
-    @setState { hasRemoveModal: no }
+  onCancelSubCancel: ->
+    @setState { hasCancelSubModal: no }
 
 
-  onRemoveSuccess: ->
-    @setState { hasRemoveModal: no }
-    @props.onRemoveCard()
+  onCancelSubSuccess: ->
+    @setState { hasCancelSubModal: no }
+    @props.onCancelSubscription()
 
 
   onInviteMembers: ->
@@ -56,10 +56,10 @@ module.exports = class PaymentSection extends React.Component
 
     { message, placeholders, operation
       isDirty, hasCard, submitting, loading
-      onResetForm, onRemoveCard
+      onResetForm, onCancelSubscription
       onMessageClose, onPaymentHistory } = @props
 
-    { hasSuccessModal, hasRemoveModal, formVisible } = @state
+    { hasSuccessModal, hasCancelSubModal, formVisible } = @state
 
     buttonTitle = switch
       when submitting then 'SAVING...'
@@ -68,60 +68,71 @@ module.exports = class PaymentSection extends React.Component
 
     secondaryButtonProps = switch
       when isDirty then { title: 'CANCEL', onClick: onResetForm }
-      # when hasCard then { title: 'REMOVE CARD', onClick: => @onRemoveBegin() }
+      # when hasCard then { title: 'REMOVE CARD', onClick: => @onCancelSubBegin() }
       else null
 
-    <DashboardSection title='Payment Information'>
+    <div>
+      <DashboardSection title='Payment Information'>
 
-      {message and
-        <PaymentSectionMessage {...message} onCloseClick={onMessageClose} />}
+        {message and
+          <PaymentSectionMessage {...message} onCloseClick={onMessageClose} />}
 
-      <SubscriptionSuccessModal
-        isOpen={hasSuccessModal}
-        onCancel={=> @onSuccessModalClose()}
-        onInviteMembersClick={=> @onInviteMembers()} />
+        <SubscriptionSuccessModal
+          isOpen={hasSuccessModal}
+          onCancel={=> @onSuccessModalClose()}
+          onInviteMembersClick={=> @onInviteMembers()} />
 
-      <CardRemoveConfirmModal
-        isOpen={hasRemoveModal}
-        onCancel={=> @onRemoveCancel()}
-        onRemove={=> @onRemoveSuccess()} />
+        <CancelSubscriptionModal
+          isOpen={hasCancelSubModal}
+          onCancel={=> @onCancelSubCancel()}
+          onConfirm={=> @onCancelSubSuccess()} />
 
-      {hasCard and
-        <CardInfo
-          loading={loading}
-          number={placeholders.number}
-          brand={placeholders.brand}
-          year={placeholders.exp_year}
-          month={placeholders.exp_month}
-          formVisible={formVisible}
-          onToggleForm={=> @onToggleForm()} />}
+        {hasCard and
+          <CardInfo
+            loading={loading}
+            number={placeholders.number}
+            brand={placeholders.brand}
+            year={placeholders.exp_year}
+            month={placeholders.exp_month}
+            formVisible={formVisible}
+            onToggleForm={=> @onToggleForm()} />}
 
-      {formVisible and
-        <CreateCreditCardForm loading={loading} ref={(f) => @_form = f} />}
+        {(not hasCard or formVisible) and
+          <CreateCreditCardForm loading={loading} ref={(f) => @_form = f} />}
 
-      <Footer border>
-        <Row style={{margin: '0'}} between='xs'>
-          <Col>
-            <Button
-              size='small'
-              disabled={not isDirty or submitting}
-              onClick={@onSubmit.bind this}>{buttonTitle}</Button>
+        <Footer border>
+          <Row style={{margin: '0'}} between='xs'>
+            <Col>
+              {(not hasCard or formVisible) and
+                <Button
+                  size='medium'
+                  disabled={not isDirty or submitting}
+                  onClick={@onSubmit.bind this}>{buttonTitle}</Button> }
 
-            {secondaryButtonProps and
+              {secondaryButtonProps and
+                <Button
+                  size='medium'
+                  onClick={secondaryButtonProps.onClick}
+                  type='secondary'>{secondaryButtonProps.title}</Button>}
+            </Col>
+            <Col>
               <Button
-                size='small'
-                onClick={secondaryButtonProps.onClick}
-                type='secondary'>{secondaryButtonProps.title}</Button>}
-          </Col>
-          <Col>
-            <Button
-              size='small'
-              type='link-primary-6'
-              onClick={onPaymentHistory}>PAYMENT HISTORY</Button>
-          </Col>
-        </Row>
-      </Footer>
-    </DashboardSection>
+                size='medium'
+                type='link-primary-6'
+                onClick={onPaymentHistory}>PAYMENT HISTORY</Button>
+            </Col>
+          </Row>
+        </Footer>
+      </DashboardSection>
+      {hasCard and
+        <div style={marginTop: 20}>
+          <Button
+            size='medium'
+            type='link-primary-6'
+            onClick={@onCancelSubBegin.bind this}>CANCEL SUBSCRIPTION</Button>
+        </div>
+      }
+    </div>
 
 
 PaymentSectionMessage = ({ type, title, description, onCloseClick }) ->
