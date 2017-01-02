@@ -11,7 +11,6 @@ isLoggedIn                     = require './util/isLoggedIn'
 whoami                         = require './util/whoami'
 checkFlag                      = require './util/checkFlag'
 expireClientId                 = require './util/expireClientId'
-ActivityController             = require './activitycontroller'
 AppStorageController           = require './appstoragecontroller'
 ApplicationManager             = require './applicationmanager'
 ComputeController              = require './providers/computecontroller'
@@ -96,7 +95,6 @@ module.exports = class MainController extends KDController
     kd.registerSingleton 'localStorageController',    new LocalStorageController
     kd.registerSingleton 'oauthController',           new OAuthController
     kd.registerSingleton 'groupsController',          new GroupsController
-    kd.registerSingleton 'activityController',        new ActivityController
     kd.registerSingleton 'paymentController',         new PaymentController
     kd.registerSingleton 'computeController',         new ComputeController
     kd.registerSingleton 'locationController',        new LocationController
