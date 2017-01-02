@@ -100,6 +100,9 @@ module.exports = class PaymentSection extends React.Component
             formVisible={formVisible}
             onToggleForm={=> @onToggleForm()} />}
 
+        {hasCard and formVisible and
+          <hr className='divider' /> }
+
         {(not hasCard or formVisible) and
           <CreateCreditCardForm loading={loading} ref={(f) => @_form = f} />}
 
