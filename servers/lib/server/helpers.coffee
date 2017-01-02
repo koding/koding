@@ -152,10 +152,10 @@ serveHome = (req, res, next) ->
 
 isLoggedIn = (req, res, callback) ->
   findUsernameFromSession req, res, (err, username) ->
-    return callback null, no, null  unless username
+    return callback err  unless username
 
     koding.models.JAccount.one { 'profile.nickname' : username }, (err, account) ->
-      if err or not account or account.type is 'unregistered'
+      if err or not account or account.type isnt 'registered'
         return callback err, no, account
       return callback null, yes, account
 
