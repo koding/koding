@@ -37,7 +37,7 @@ require './config'
 module.exports = class ComputeController extends KDController
 
 
-  @providers = globals.config.providers._getSupportedProviders()
+  PROVIDERS  = globals.config.providers._getSupportedProviders()
   @Error     = {
     'TimeoutError', 'KiteError', 'NotSupported'
     Pending: '107', NotVerified: '500'
@@ -1301,7 +1301,7 @@ module.exports = class ComputeController extends KDController
   shareCredentials: (credentials, requiredProviders, callback) ->
 
     selectedProvider = null
-    for provider in requiredProviders when provider in @providers
+    for provider in requiredProviders when provider in PROVIDERS
       selectedProvider = provider
     selectedProvider ?= (Object.keys credentials ? { aws: yes }).first
 
