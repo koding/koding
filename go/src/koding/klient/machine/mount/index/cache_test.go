@@ -29,11 +29,11 @@ func TestCachedIndexCreate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if count != idx.Count(-1) {
-		t.Errorf("want %d entries, got %d", idx.Count(-1), count)
+	if n := idx.Count(-1); count != n {
+		t.Errorf("want %d entries, got %d", n, count)
 	}
-	if diskSize != idx.DiskSize(-1) {
-		t.Errorf("want size = %d bytes, got %d", idx.DiskSize(-1), diskSize)
+	if n := idx.DiskSize(-1); diskSize != n {
+		t.Errorf("want size = %d bytes, got %d", n, diskSize)
 	}
 
 	// Cache should reuse existing index.
@@ -75,11 +75,11 @@ func TestCahcedIndexUpdated(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if count := idx.Count(-1) + 1; count != idx2.Count(-1) {
-		t.Errorf("want %d entries; got %d", count, idx2.Count(-1))
+	if count, n := idx.Count(-1)+1, idx2.Count(-1); count != n {
+		t.Errorf("want %d entries; got %d", count, n)
 	}
-	if diskSize := idx.DiskSize(-1) + 1024; diskSize > idx2.DiskSize(-1) {
-		t.Errorf("want at least %d B of disk size; got %d B", diskSize, idx2.DiskSize(-1))
+	if diskSize, n := idx.DiskSize(-1)+1024, idx2.DiskSize(-1); diskSize > n {
+		t.Errorf("want at least %d B of disk size; got %d B", diskSize, n)
 	}
 
 	// Cache should reuse existing index.

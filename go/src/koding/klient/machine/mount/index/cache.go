@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -166,7 +165,6 @@ func indexTempDirs(n int) []string {
 
 // hashSHA1 converts a string to hex representation of its SHA-1 checksum.
 func hashSHA1(val string) string {
-	h := sha1.New()
-	io.WriteString(h, val)
-	return hex.EncodeToString(h.Sum(nil))
+	h := sha1.Sum([]byte(val))
+	return hex.EncodeToString(h[:])
 }
