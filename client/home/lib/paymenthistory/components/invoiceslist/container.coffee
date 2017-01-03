@@ -1,22 +1,13 @@
-kd = require 'kd'
-React = require 'app/react'
-KDReactorMixin = require 'app/flux/base/reactormixin'
-PaymentFlux = require 'app/flux/payment'
-InvoicesList = require './view'
+{ connect } = require 'react-redux'
+{ all: allInvoices } = require 'app/redux/modules/payment/invoices'
 
+View = require './view'
 
-module.exports = class InvoicesListContainer extends React.Component
+mapState = (state) ->
+  return {
+    invoices: allInvoices(state)
+  }
 
-  getDataBindings: ->
-    return {
-      paymentValues: PaymentFlux.getters.paymentValues
-    }
-
-
-  render: ->
-    invoices = @state.paymentValues.get 'groupInvoices'
-
-    <InvoicesList invoices={invoices} />
-
-
-InvoicesListContainer.include [KDReactorMixin]
+module.exports = connect(
+  mapState
+)(View)

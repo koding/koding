@@ -28,11 +28,15 @@ exports.load = load = ->
   }
 
 
+all = (state) -> state.invoices?.invoices
+
+
 module.exports = {
   namespace: withNamespace()
   reducer
 
+  all
+
   load
   LOAD
 }
-

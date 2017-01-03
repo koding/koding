@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJStackTemplateCloneID(params *PostRemoteAPIJStackT
 		Params:             params,
 		Reader:             &PostRemoteAPIJStackTemplateCloneIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -50,7 +51,7 @@ func (a *Client) PostRemoteAPIJStackTemplateCloneID(params *PostRemoteAPIJStackT
 }
 
 /*
-PostRemoteAPIJStackTemplateCreate post remote API j stack template create API
+PostRemoteAPIJStackTemplateCreate creates a JStackTemplate with requested content
 */
 func (a *Client) PostRemoteAPIJStackTemplateCreate(params *PostRemoteAPIJStackTemplateCreateParams) (*PostRemoteAPIJStackTemplateCreateOK, error) {
 	// TODO: Validate the params before sending
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJStackTemplateCreate(params *PostRemoteAPIJStackTe
 		Params:             params,
 		Reader:             &PostRemoteAPIJStackTemplateCreateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIJStackTemplateDeleteID(params *PostRemoteAPIJStack
 		Params:             params,
 		Reader:             &PostRemoteAPIJStackTemplateDeleteIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPIJStackTemplateForceStacksToReinitID(params *PostRe
 		Params:             params,
 		Reader:             &PostRemoteAPIJStackTemplateForceStacksToReinitIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -149,6 +153,7 @@ func (a *Client) PostRemoteAPIJStackTemplateGenerateStackID(params *PostRemoteAP
 		Params:             params,
 		Reader:             &PostRemoteAPIJStackTemplateGenerateStackIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -176,6 +181,7 @@ func (a *Client) PostRemoteAPIJStackTemplateHasStacksID(params *PostRemoteAPIJSt
 		Params:             params,
 		Reader:             &PostRemoteAPIJStackTemplateHasStacksIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -203,6 +209,7 @@ func (a *Client) PostRemoteAPIJStackTemplateOne(params *PostRemoteAPIJStackTempl
 		Params:             params,
 		Reader:             &PostRemoteAPIJStackTemplateOneReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -230,6 +237,7 @@ func (a *Client) PostRemoteAPIJStackTemplateSetAccessID(params *PostRemoteAPIJSt
 		Params:             params,
 		Reader:             &PostRemoteAPIJStackTemplateSetAccessIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -257,6 +265,7 @@ func (a *Client) PostRemoteAPIJStackTemplateSome(params *PostRemoteAPIJStackTemp
 		Params:             params,
 		Reader:             &PostRemoteAPIJStackTemplateSomeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -284,6 +293,7 @@ func (a *Client) PostRemoteAPIJStackTemplateUpdateID(params *PostRemoteAPIJStack
 		Params:             params,
 		Reader:             &PostRemoteAPIJStackTemplateUpdateIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

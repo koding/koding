@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJProposedDomainActivateDomainID(params *PostRemote
 		Params:             params,
 		Reader:             &PostRemoteAPIJProposedDomainActivateDomainIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJProposedDomainBindMachineID(params *PostRemoteAPI
 		Params:             params,
 		Reader:             &PostRemoteAPIJProposedDomainBindMachineIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIJProposedDomainCreateDomain(params *PostRemoteAPIJ
 		Params:             params,
 		Reader:             &PostRemoteAPIJProposedDomainCreateDomainReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPIJProposedDomainDeactivateDomainID(params *PostRemo
 		Params:             params,
 		Reader:             &PostRemoteAPIJProposedDomainDeactivateDomainIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -149,6 +153,7 @@ func (a *Client) PostRemoteAPIJProposedDomainFetchDomains(params *PostRemoteAPIJ
 		Params:             params,
 		Reader:             &PostRemoteAPIJProposedDomainFetchDomainsReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -176,6 +181,7 @@ func (a *Client) PostRemoteAPIJProposedDomainOne(params *PostRemoteAPIJProposedD
 		Params:             params,
 		Reader:             &PostRemoteAPIJProposedDomainOneReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -203,6 +209,7 @@ func (a *Client) PostRemoteAPIJProposedDomainRemoveID(params *PostRemoteAPIJProp
 		Params:             params,
 		Reader:             &PostRemoteAPIJProposedDomainRemoveIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -230,6 +237,7 @@ func (a *Client) PostRemoteAPIJProposedDomainUnbindMachineID(params *PostRemoteA
 		Params:             params,
 		Reader:             &PostRemoteAPIJProposedDomainUnbindMachineIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

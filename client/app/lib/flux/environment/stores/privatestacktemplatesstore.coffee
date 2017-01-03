@@ -18,6 +18,7 @@ module.exports = class PrivateStackTemplatesStore extends KodingFluxStore
     @on actions.REMOVE_STACK_TEMPLATE_SUCCESS, @remove
     @on actions.REMOVE_PRIVATE_STACK_TEMPLATE_SUCCESS, @remove
     @on actions.UPDATE_STACK_TEMPLATE_SUCCESS, @updateSingle
+    @on actions.UPDATE_PRIVATE_STACK_TEMPLATE_SUCCESS, @updateSingle
 
 
   load: (stackTemplates, { templates }) ->

@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPICollaborationAdd(params *PostRemoteAPICollaboratio
 		Params:             params,
 		Reader:             &PostRemoteAPICollaborationAddReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPICollaborationKick(params *PostRemoteAPICollaborati
 		Params:             params,
 		Reader:             &PostRemoteAPICollaborationKickReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPICollaborationStop(params *PostRemoteAPICollaborati
 		Params:             params,
 		Reader:             &PostRemoteAPICollaborationStopReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

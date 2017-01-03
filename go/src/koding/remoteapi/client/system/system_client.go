@@ -41,6 +41,7 @@ func (a *Client) GetVersion(params *GetVersionParams) (*GetVersionOK, error) {
 		Params:             params,
 		Reader:             &GetVersionReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

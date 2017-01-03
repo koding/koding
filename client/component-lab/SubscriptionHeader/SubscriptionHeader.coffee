@@ -48,9 +48,12 @@ module.exports = class SubscriptionHeader extends Component
         isDanger = daysLeft < 4
         "You have #{daysLeft} days left in your trial."
 
-      else
+      when endsAt and daysLeft
         billingDate = moment(Number @props.endsAt).format 'MMM Do, YYYY'
         "Your next billing date is #{billingDate}."
+
+      else
+        'Enter a credit card to re-activate subscription.'
 
     <Col xs={8}>
       <Label size="small" type={if isDanger then 'danger' else 'info'}>

@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPISidebarFetchEnvironment(params *PostRemoteAPISideb
 		Params:             params,
 		Reader:             &PostRemoteAPISidebarFetchEnvironmentReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

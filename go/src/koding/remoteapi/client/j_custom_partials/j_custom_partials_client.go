@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJCustomPartialsCreate(params *PostRemoteAPIJCustom
 		Params:             params,
 		Reader:             &PostRemoteAPIJCustomPartialsCreateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJCustomPartialsRemoveID(params *PostRemoteAPIJCust
 		Params:             params,
 		Reader:             &PostRemoteAPIJCustomPartialsRemoveIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIJCustomPartialsSome(params *PostRemoteAPIJCustomPa
 		Params:             params,
 		Reader:             &PostRemoteAPIJCustomPartialsSomeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPIJCustomPartialsUpdateID(params *PostRemoteAPIJCust
 		Params:             params,
 		Reader:             &PostRemoteAPIJCustomPartialsUpdateIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

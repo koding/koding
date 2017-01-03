@@ -42,5 +42,9 @@ func (m *JPermissionSet) validatePermissions(formats strfmt.Registry) error {
 		return nil
 	}
 
+	for i := 0; i < len(m.Permissions); i++ {
+
+	}
+
 	return nil
 }

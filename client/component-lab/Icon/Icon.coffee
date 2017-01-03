@@ -10,12 +10,16 @@ React = require 'react'
 
 module.exports = Icon = (props) ->
 
+  { height, width } = props
+
   one = props['1x']
   two = props['2x']
 
   imgOne = new Image
   imgOne.src = one
-  { naturalHeight: height, naturalWidth: width } = imgOne
+
+  height ?= imgOne.naturalHeight
+  width ?= imgOne.naturalWidth
 
   src = if global.devicePixelRatio >= 2 then two else one
 

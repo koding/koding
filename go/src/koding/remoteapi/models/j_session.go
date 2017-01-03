@@ -20,6 +20,9 @@ type JSession struct {
 	// client Id
 	ClientID string `json:"clientId,omitempty"`
 
+	// data
+	Data interface{} `json:"data,omitempty"`
+
 	// foreign auth
 	ForeignAuth *JSessionForeignAuth `json:"foreignAuth,omitempty"`
 

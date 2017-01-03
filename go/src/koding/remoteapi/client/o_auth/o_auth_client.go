@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIOAuthGetURL(params *PostRemoteAPIOAuthGetURLParams
 		Params:             params,
 		Reader:             &PostRemoteAPIOAuthGetURLReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

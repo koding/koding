@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJGroupAddSubscriptionID(params *PostRemoteAPIJGrou
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupAddSubscriptionIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJGroupByRelevance(params *PostRemoteAPIJGroupByRel
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupByRelevanceReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIJGroupCanEditGroupID(params *PostRemoteAPIJGroupCa
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupCanEditGroupIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPIJGroupChangeMemberRolesID(params *PostRemoteAPIJGr
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupChangeMemberRolesIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -149,6 +153,7 @@ func (a *Client) PostRemoteAPIJGroupCount(params *PostRemoteAPIJGroupCountParams
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupCountReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -176,6 +181,7 @@ func (a *Client) PostRemoteAPIJGroupCreate(params *PostRemoteAPIJGroupCreatePara
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupCreateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -203,6 +209,7 @@ func (a *Client) PostRemoteAPIJGroupDestroyID(params *PostRemoteAPIJGroupDestroy
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupDestroyIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -230,6 +237,7 @@ func (a *Client) PostRemoteAPIJGroupEach(params *PostRemoteAPIJGroupEachParams) 
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupEachReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -257,6 +265,7 @@ func (a *Client) PostRemoteAPIJGroupFetchAPITokensID(params *PostRemoteAPIJGroup
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupFetchAPITokensIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -284,6 +293,7 @@ func (a *Client) PostRemoteAPIJGroupFetchAdminsID(params *PostRemoteAPIJGroupFet
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupFetchAdminsIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -311,6 +321,7 @@ func (a *Client) PostRemoteAPIJGroupFetchAdminsWithEmailID(params *PostRemoteAPI
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupFetchAdminsWithEmailIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -338,6 +349,7 @@ func (a *Client) PostRemoteAPIJGroupFetchBlockedAccountsID(params *PostRemoteAPI
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupFetchBlockedAccountsIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -365,6 +377,7 @@ func (a *Client) PostRemoteAPIJGroupFetchBlockedAccountsWithEmailID(params *Post
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupFetchBlockedAccountsWithEmailIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -392,6 +405,7 @@ func (a *Client) PostRemoteAPIJGroupFetchDataAtID(params *PostRemoteAPIJGroupFet
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupFetchDataAtIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -419,6 +433,7 @@ func (a *Client) PostRemoteAPIJGroupFetchMembersID(params *PostRemoteAPIJGroupFe
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupFetchMembersIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -446,6 +461,7 @@ func (a *Client) PostRemoteAPIJGroupFetchMembersWithEmailID(params *PostRemoteAP
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupFetchMembersWithEmailIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -473,6 +489,7 @@ func (a *Client) PostRemoteAPIJGroupFetchModeratorsID(params *PostRemoteAPIJGrou
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupFetchModeratorsIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -500,6 +517,7 @@ func (a *Client) PostRemoteAPIJGroupFetchModeratorsWithEmailID(params *PostRemot
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupFetchModeratorsWithEmailIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -527,6 +545,7 @@ func (a *Client) PostRemoteAPIJGroupFetchMyMemberships(params *PostRemoteAPIJGro
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupFetchMyMembershipsReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -554,6 +573,7 @@ func (a *Client) PostRemoteAPIJGroupFetchMyRolesID(params *PostRemoteAPIJGroupFe
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupFetchMyRolesIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -581,6 +601,7 @@ func (a *Client) PostRemoteAPIJGroupFetchPermissionSetOrDefaultID(params *PostRe
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupFetchPermissionSetOrDefaultIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -608,6 +629,7 @@ func (a *Client) PostRemoteAPIJGroupFetchPermissionsID(params *PostRemoteAPIJGro
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupFetchPermissionsIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -635,6 +657,7 @@ func (a *Client) PostRemoteAPIJGroupFetchResourcesID(params *PostRemoteAPIJGroup
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupFetchResourcesIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -662,6 +685,7 @@ func (a *Client) PostRemoteAPIJGroupFetchRolesID(params *PostRemoteAPIJGroupFetc
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupFetchRolesIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -689,6 +713,7 @@ func (a *Client) PostRemoteAPIJGroupFetchSubscriptionID(params *PostRemoteAPIJGr
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupFetchSubscriptionIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -716,6 +741,7 @@ func (a *Client) PostRemoteAPIJGroupFetchUserRolesID(params *PostRemoteAPIJGroup
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupFetchUserRolesIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -743,6 +769,7 @@ func (a *Client) PostRemoteAPIJGroupFetchUserStatusID(params *PostRemoteAPIJGrou
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupFetchUserStatusIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -770,6 +797,7 @@ func (a *Client) PostRemoteAPIJGroupIsMemberID(params *PostRemoteAPIJGroupIsMemb
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupIsMemberIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -797,6 +825,7 @@ func (a *Client) PostRemoteAPIJGroupJoinID(params *PostRemoteAPIJGroupJoinIDPara
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupJoinIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -824,6 +853,7 @@ func (a *Client) PostRemoteAPIJGroupKickMemberID(params *PostRemoteAPIJGroupKick
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupKickMemberIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -851,11 +881,40 @@ func (a *Client) PostRemoteAPIJGroupLeaveID(params *PostRemoteAPIJGroupLeaveIDPa
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupLeaveIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
 	}
 	return result.(*PostRemoteAPIJGroupLeaveIDOK), nil
+
+}
+
+/*
+PostRemoteAPIJGroupModifyDataID modifies JGroupData related with the JGroup instance
+*/
+func (a *Client) PostRemoteAPIJGroupModifyDataID(params *PostRemoteAPIJGroupModifyDataIDParams) (*PostRemoteAPIJGroupModifyDataIDOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewPostRemoteAPIJGroupModifyDataIDParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "PostRemoteAPIJGroupModifyDataID",
+		Method:             "POST",
+		PathPattern:        "/remote.api/JGroup.modifyData/{id}",
+		ProducesMediaTypes: []string{""},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &PostRemoteAPIJGroupModifyDataIDReader{formats: a.formats},
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.(*PostRemoteAPIJGroupModifyDataIDOK), nil
 
 }
 
@@ -878,6 +937,7 @@ func (a *Client) PostRemoteAPIJGroupModifyID(params *PostRemoteAPIJGroupModifyID
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupModifyIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -905,6 +965,7 @@ func (a *Client) PostRemoteAPIJGroupOne(params *PostRemoteAPIJGroupOneParams) (*
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupOneReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -932,6 +993,7 @@ func (a *Client) PostRemoteAPIJGroupSearchMembersID(params *PostRemoteAPIJGroupS
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupSearchMembersIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -959,6 +1021,7 @@ func (a *Client) PostRemoteAPIJGroupSendNotificationID(params *PostRemoteAPIJGro
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupSendNotificationIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -986,6 +1049,7 @@ func (a *Client) PostRemoteAPIJGroupSetLimitID(params *PostRemoteAPIJGroupSetLim
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupSetLimitIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -1013,6 +1077,7 @@ func (a *Client) PostRemoteAPIJGroupSetOAuthID(params *PostRemoteAPIJGroupSetOAu
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupSetOAuthIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -1040,6 +1105,7 @@ func (a *Client) PostRemoteAPIJGroupSomeWithRelationship(params *PostRemoteAPIJG
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupSomeWithRelationshipReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -1067,6 +1133,7 @@ func (a *Client) PostRemoteAPIJGroupSuggestUniqueSlug(params *PostRemoteAPIJGrou
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupSuggestUniqueSlugReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -1094,6 +1161,7 @@ func (a *Client) PostRemoteAPIJGroupToggleFeatureID(params *PostRemoteAPIJGroupT
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupToggleFeatureIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -1121,6 +1189,7 @@ func (a *Client) PostRemoteAPIJGroupTransferOwnershipID(params *PostRemoteAPIJGr
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupTransferOwnershipIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -1148,6 +1217,7 @@ func (a *Client) PostRemoteAPIJGroupUnblockMemberID(params *PostRemoteAPIJGroupU
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupUnblockMemberIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -1175,6 +1245,7 @@ func (a *Client) PostRemoteAPIJGroupUpdatePermissionsID(params *PostRemoteAPIJGr
 		Params:             params,
 		Reader:             &PostRemoteAPIJGroupUpdatePermissionsIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

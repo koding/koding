@@ -1,6 +1,6 @@
 kd = require 'kd'
 HomeTeamInvoicesList = require './hometeaminvoiceslist'
-PaymentFlux = require 'app/flux/payment'
+{ load: loadInvoices } = require 'app/redux/modules/payment/invoices'
 
 SECTIONS =
   'Payment History': HomeTeamInvoicesList
@@ -20,10 +20,10 @@ module.exports = class HomePaymentHistory extends kd.CustomScrollView
 
     super options, data
 
-    { mainController, reactor } = kd.singletons
+    { mainController, store } = kd.singletons
 
     mainController.ready =>
-      PaymentFlux(reactor).actions.loadGroupInvoices()
+      store.dispatch(loadInvoices())
 
       @wrapper.addSubView header = header()
 

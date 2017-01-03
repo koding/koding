@@ -99,6 +99,10 @@ func (m *JStackTemplate) validateMachines(formats strfmt.Registry) error {
 		return nil
 	}
 
+	for i := 0; i < len(m.Machines); i++ {
+
+	}
+
 	return nil
 }
 

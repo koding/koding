@@ -48,5 +48,9 @@ func (m *JName) validateSlugs(formats strfmt.Registry) error {
 		return nil
 	}
 
+	for i := 0; i < len(m.Slugs); i++ {
+
+	}
+
 	return nil
 }

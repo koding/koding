@@ -162,6 +162,26 @@ module.exports = class JStackTemplate extends Module
     ComputeProvider.validateTemplateContent template, limitConfig, callback
 
 
+  # creates a JStackTemplate with requested content
+  #
+  # @param {Object} data
+  #   data object describes new JStackTemplate
+  #
+  # @option data [String] template template's content as stringified JSON
+  #
+  # @option data [String] title template's title
+  #
+  # @option data [Object] credentials template's credentials
+  #
+  # @example api
+  #
+  #   {
+  #     "template": "{\"provider\": {\"aws\": {}}}",
+  #     "title": "My AWS template",
+  #     "credentials": {}
+  #   }
+  #
+  @create = ->
   @create = permit 'create stack template',
 
     success: revive
