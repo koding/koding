@@ -17,10 +17,18 @@ module.exports = class ButtonWithMenu extends React.Component
     menuClassName:''
 
 
+  constructor: (props) ->
+
+    super props
+
+    @state = { isMenuOpen : null }
+
+
   renderListMenu: ->
 
     onClick = (item) => (event) =>
       item.onClick event
+      @setState { isMenuOpen: false }
 
     @props.items.map (item) ->
       <li onClick={onClick item} key={item.key}>{item.title}</li>
