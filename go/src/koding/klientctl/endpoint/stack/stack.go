@@ -1,6 +1,7 @@
 package stack
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -130,7 +131,7 @@ func (c *Client) jsonReencode(data []byte) ([]byte, error) {
 	var ymlv interface{}
 
 	if err := yaml.Unmarshal(data, &ymlv); err == nil {
-		return json.Marshal(fixYAML(ymlv))
+		return jsonMarshal(fixYAML(ymlv))
 	}
 
 	var hclv interface{}
@@ -138,7 +139,7 @@ func (c *Client) jsonReencode(data []byte) ([]byte, error) {
 	if err := hcl.Unmarshal(data, &hclv); err == nil {
 		fixHCL(hclv)
 
-		return json.Marshal(hclv)
+		return jsonMarshal(hclv)
 	}
 
 	return nil, errors.New("unknown encoding")
@@ -167,6 +168,19 @@ func (c *Client) readProviders(data []byte) ([]string, error) {
 // Create
 func Create(opts *CreateOptions) (*stack.ImportResponse, error) {
 	return DefaultClient.Create(opts)
+}
+
+func jsonMarshal(v interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+
+	if err := enc.Encode(v); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }
 
 // fixYAML is a best-effort of fixing representation of
