@@ -15,6 +15,9 @@
     "install": "./.npm-install.sh",
     "postinstall": "./.npm-postinstall.sh"
   },
+  "engines": {
+    "node": "6"
+  },
   "dependencies": {
     "amqp": "0.2.4",
     "analytics-node": "1.2.2",
@@ -119,8 +122,5 @@
     "mongodb-migrate": "2.0.1",
     "which": "1.0.5"
   },
-  "optionalDependencies": {},
-  "engines": {
-    "node": "0.10.20"
-  }
+  "optionalDependencies": {}
 }
