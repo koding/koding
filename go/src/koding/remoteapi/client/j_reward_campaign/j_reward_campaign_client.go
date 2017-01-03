@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJRewardCampaignCreate(params *PostRemoteAPIJReward
 		Params:             params,
 		Reader:             &PostRemoteAPIJRewardCampaignCreateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJRewardCampaignIsValid(params *PostRemoteAPIJRewar
 		Params:             params,
 		Reader:             &PostRemoteAPIJRewardCampaignIsValidReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIJRewardCampaignOne(params *PostRemoteAPIJRewardCam
 		Params:             params,
 		Reader:             &PostRemoteAPIJRewardCampaignOneReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPIJRewardCampaignRemoveID(params *PostRemoteAPIJRewa
 		Params:             params,
 		Reader:             &PostRemoteAPIJRewardCampaignRemoveIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -149,6 +153,7 @@ func (a *Client) PostRemoteAPIJRewardCampaignSome(params *PostRemoteAPIJRewardCa
 		Params:             params,
 		Reader:             &PostRemoteAPIJRewardCampaignSomeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -176,6 +181,7 @@ func (a *Client) PostRemoteAPIJRewardCampaignUpdateID(params *PostRemoteAPIJRewa
 		Params:             params,
 		Reader:             &PostRemoteAPIJRewardCampaignUpdateIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJInvitationAcceptID(params *PostRemoteAPIJInvitati
 		Params:             params,
 		Reader:             &PostRemoteAPIJInvitationAcceptIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJInvitationByCode(params *PostRemoteAPIJInvitation
 		Params:             params,
 		Reader:             &PostRemoteAPIJInvitationByCodeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIJInvitationCreate(params *PostRemoteAPIJInvitation
 		Params:             params,
 		Reader:             &PostRemoteAPIJInvitationCreateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPIJInvitationRemoveID(params *PostRemoteAPIJInvitati
 		Params:             params,
 		Reader:             &PostRemoteAPIJInvitationRemoveIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -149,6 +153,7 @@ func (a *Client) PostRemoteAPIJInvitationRevokeInvitation(params *PostRemoteAPIJ
 		Params:             params,
 		Reader:             &PostRemoteAPIJInvitationRevokeInvitationReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -176,6 +181,7 @@ func (a *Client) PostRemoteAPIJInvitationSearch(params *PostRemoteAPIJInvitation
 		Params:             params,
 		Reader:             &PostRemoteAPIJInvitationSearchReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -203,6 +209,7 @@ func (a *Client) PostRemoteAPIJInvitationSendInvitationByCode(params *PostRemote
 		Params:             params,
 		Reader:             &PostRemoteAPIJInvitationSendInvitationByCodeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -230,6 +237,7 @@ func (a *Client) PostRemoteAPIJInvitationSome(params *PostRemoteAPIJInvitationSo
 		Params:             params,
 		Reader:             &PostRemoteAPIJInvitationSomeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

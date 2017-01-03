@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIS3GeneratePolicy(params *PostRemoteAPIS3GeneratePo
 		Params:             params,
 		Reader:             &PostRemoteAPIS3GeneratePolicyReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJURLAliasCreate(params *PostRemoteAPIJURLAliasCrea
 		Params:             params,
 		Reader:             &PostRemoteAPIJURLAliasCreateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJURLAliasResolve(params *PostRemoteAPIJURLAliasRes
 		Params:             params,
 		Reader:             &PostRemoteAPIJURLAliasResolveReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

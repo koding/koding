@@ -50,8 +50,13 @@ isEmailVerified = createSelector(
 
 
 mapStateToProps = (state) ->
+
+  title = if globals.hasCreditCard
+  then subscriptionTitle(state)
+  else 'Cancelled Subscription'
+
   return {
-    title: subscriptionTitle(state)
+    title: title
     pricePerSeat: subscription.pricePerSeat(state)
     teamSize: info.userCount(state)
     endsAt: info.endsAt(state)
@@ -73,4 +78,3 @@ mapDispatchToProps = (dispatch) ->
 
 
 module.exports = connect(mapStateToProps, mapDispatchToProps)(SubscriptionSection)
-

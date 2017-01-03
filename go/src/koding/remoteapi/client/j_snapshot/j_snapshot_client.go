@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJSnapshotOne(params *PostRemoteAPIJSnapshotOnePara
 		Params:             params,
 		Reader:             &PostRemoteAPIJSnapshotOneReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJSnapshotRenameID(params *PostRemoteAPIJSnapshotRe
 		Params:             params,
 		Reader:             &PostRemoteAPIJSnapshotRenameIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIJSnapshotSome(params *PostRemoteAPIJSnapshotSomePa
 		Params:             params,
 		Reader:             &PostRemoteAPIJSnapshotSomeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

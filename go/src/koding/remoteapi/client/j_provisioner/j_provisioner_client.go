@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJProvisionerCreate(params *PostRemoteAPIJProvision
 		Params:             params,
 		Reader:             &PostRemoteAPIJProvisionerCreateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJProvisionerDeleteID(params *PostRemoteAPIJProvisi
 		Params:             params,
 		Reader:             &PostRemoteAPIJProvisionerDeleteIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIJProvisionerOne(params *PostRemoteAPIJProvisionerO
 		Params:             params,
 		Reader:             &PostRemoteAPIJProvisionerOneReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPIJProvisionerSetAccessID(params *PostRemoteAPIJProv
 		Params:             params,
 		Reader:             &PostRemoteAPIJProvisionerSetAccessIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -149,6 +153,7 @@ func (a *Client) PostRemoteAPIJProvisionerSome(params *PostRemoteAPIJProvisioner
 		Params:             params,
 		Reader:             &PostRemoteAPIJProvisionerSomeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -176,6 +181,7 @@ func (a *Client) PostRemoteAPIJProvisionerUpdateID(params *PostRemoteAPIJProvisi
 		Params:             params,
 		Reader:             &PostRemoteAPIJProvisionerUpdateIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

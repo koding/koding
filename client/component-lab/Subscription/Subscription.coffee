@@ -16,12 +16,13 @@ module.exports = class Subscription extends Component
 
   renderHeader: ->
 
-    { loading, teamSize, pricePerSeat, daysLeft
+    { loading, teamSize, pricePerSeat, daysLeft, hasCreditCard
       isTrial, freeCredit, endsAt, title } = @props
 
     nextAmount = Number(teamSize) * Number(pricePerSeat)
 
     <SubscriptionHeader
+      hasCreditCard={hasCreditCard}
       loading={loading}
       isTrial={isTrial}
       title={title}
@@ -51,9 +52,7 @@ module.exports = class Subscription extends Component
     { isEmailVerified, isSurveyTaken,
       onClickTakeSurvey, email, hasCreditCard } = @props
 
-    if not hasCreditCard
-      <SubscriptionNoCardWarning />
-    else if not isEmailVerified
+    if not isEmailVerified
       <VerifyEmailWarning email={email} />
     else if not isSurveyTaken
       <Survey onClick={onClickTakeSurvey} />
@@ -90,4 +89,3 @@ Subscription.defaultProps =
   isEmailVerified: no
   isTrial: no
   onClickTakeSurvey: kd.noop
-

@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIGithubAPI(params *PostRemoteAPIGithubAPIParams) (*
 		Params:             params,
 		Reader:             &PostRemoteAPIGithubAPIReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

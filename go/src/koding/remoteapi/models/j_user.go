@@ -26,9 +26,6 @@ type JUser struct {
 	// email frequency
 	EmailFrequency interface{} `json:"emailFrequency,omitempty"`
 
-	// inactive
-	Inactive interface{} `json:"inactive,omitempty"`
-
 	// last login date
 	LastLoginDate strfmt.Date `json:"lastLoginDate,omitempty"`
 

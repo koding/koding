@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJWorkspaceCreate(params *PostRemoteAPIJWorkspaceCr
 		Params:             params,
 		Reader:             &PostRemoteAPIJWorkspaceCreateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJWorkspaceCreateDefault(params *PostRemoteAPIJWork
 		Params:             params,
 		Reader:             &PostRemoteAPIJWorkspaceCreateDefaultReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIJWorkspaceDeleteByID(params *PostRemoteAPIJWorkspa
 		Params:             params,
 		Reader:             &PostRemoteAPIJWorkspaceDeleteByIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPIJWorkspaceDeleteByUID(params *PostRemoteAPIJWorksp
 		Params:             params,
 		Reader:             &PostRemoteAPIJWorkspaceDeleteByUIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -149,6 +153,7 @@ func (a *Client) PostRemoteAPIJWorkspaceDeleteID(params *PostRemoteAPIJWorkspace
 		Params:             params,
 		Reader:             &PostRemoteAPIJWorkspaceDeleteIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -176,6 +181,7 @@ func (a *Client) PostRemoteAPIJWorkspaceFetchByMachines(params *PostRemoteAPIJWo
 		Params:             params,
 		Reader:             &PostRemoteAPIJWorkspaceFetchByMachinesReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -203,6 +209,7 @@ func (a *Client) PostRemoteAPIJWorkspaceUpdate(params *PostRemoteAPIJWorkspaceUp
 		Params:             params,
 		Reader:             &PostRemoteAPIJWorkspaceUpdateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

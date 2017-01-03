@@ -3937,10 +3937,30 @@
         ],
         "parameters": [
           {
-            "$ref": "#/parameters/bodyParam"
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "template": {
+                  "type": "string",
+                  "default": "{\"provider\": {\"aws\": {}}}"
+                },
+                "title": {
+                  "type": "string",
+                  "default": "My AWS template"
+                },
+                "credentials": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            },
+            "required": true,
+            "description": "body of the request"
           }
         ],
-        "description": "",
+        "description": "creates a JStackTemplate with requested content",
         "responses": {
           "200": {
             "description": "Request processed succesfully",

@@ -11,6 +11,10 @@ textStyles = require '../Text/Text.stylus'
 { Brand, Placeholder, NumberPattern } = require './constants'
 helpers = require './helpers'
 
+CardNumber = require './CardNumber'
+CardIcon = require './CardIcon'
+CardDate = require './CardDate'
+
 ensureProps = (props) ->
   return {
     name: props.name or Placeholder.NAME
@@ -25,9 +29,9 @@ module.exports = CreditCard = (props) ->
   { brand, number, name, exp_year, exp_month } = ensureProps props
 
   <Box className={styles.main}>
-    <Row className={styles.header}>
-      <Col xs={6}><CardIcon brand={brand} /></Col>
-      <Col xs={6}><CardChip /></Col>
+    <Row between='xs'>
+      <Col xs><CardIcon brand={brand} style={padding: 0} /></Col>
+      <Col xs><CardChip /></Col>
     </Row>
     <Row>
       <Col xs={12}>
@@ -68,30 +72,8 @@ CreditCard.propTypes =
   ]
 
 
-CardIcon = ({ brand }) -> <div className={styles["brand-#{brand}"]} />
-
-
 CardChip = -> <div className={styles.chip} />
-
-
-CardNumber = ({ number, brand, reverse }) ->
-
-  blocks = helpers.getNumberBlocks number, brand
-
-  children = blocks.map (block, index) ->
-    <Label key={index} monospaced size='medium' type='secondary'>{block}</Label>
-
-  <div className={styles.number}>{children}</div>
 
 
 CardName = ({ name }) ->
   <Label monospaced size='small' type='secondary'>{name}</Label>
-
-
-CardDate = ({ month, year }) ->
-  year = String year
-  <Label size='small' type='secondary'>
-    {month}/{year.substr year.length - 2}
-  </Label>
-
-
