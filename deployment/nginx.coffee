@@ -399,39 +399,9 @@ module.exports.create = (KONFIG, environment)->
         return 302 https://$1.s3.amazonaws.com/$2;
       }
 
-      # Hackathon2014 is the old hackathon page and served via webserver
-      # todo(cihangir) remove after hubspot integration
-      location = /Hackathon2014 {
-        proxy_set_header      Host            $host;
-        proxy_set_header      X-Host          $host; # for customisation
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-
-        resolver 8.8.8.8;
-        proxy_connect_timeout 10;
-        proxy_pass http://webserver;
-      }
-
       location ~ ^/(blog|docs)(.*) {
         return 301 https://www.koding.com/$1$2$is_args$args;
       }
-
-      # mac and windows are case insensitive, redirect lowercased hackathon to
-      # Uppercase Hackathon
-      location ~ "(?-i)/hackathon" {
-        return 301 /Hackathon ;
-      }
-
-      # proxy all Hackathon subpages to hubspot
-      location ~^/Hackathon(.*) {
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-
-        resolver 8.8.8.8;
-        proxy_connect_timeout 10;
-        proxy_pass https://teams-koding.hs-sites.com/Hackathon$1$is_args$args;
-      }
-
 
       #{createRootLocation(KONFIG)}
       #{createLocations(KONFIG)}
