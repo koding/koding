@@ -385,6 +385,10 @@ generateDev = (KONFIG, options) ->
       scripts/api-generator.coffee --check
     }
 
+    function gotest() {
+        echo "mehmetalisavas"
+    }
+
     function runMongoDocker () {
         docker run -d -p 27017:27017 --name=mongo mongo:2.4 --nojournal --noprealloc --smallfiles
         check_connectivity mongo
@@ -505,6 +509,10 @@ generateDev = (KONFIG, options) ->
 
     elif [ "$1" == "is_ready" ]; then
       is_ready
+
+    elif [ "$1" == "gotest" ]; then
+      shift
+      gotest $@
 
     elif [ "$1" == "docker-compose" ]; then
       shift
