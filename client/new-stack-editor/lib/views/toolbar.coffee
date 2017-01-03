@@ -1,6 +1,8 @@
 kd = require 'kd'
 JView = require 'app/jview'
 
+Events = require '../events'
+
 
 module.exports = class Toolbar extends JView
 
@@ -16,7 +18,7 @@ module.exports = class Toolbar extends JView
       cssClass : 'action-button solid green compact'
       title    : 'Initialize'
       icon     : yes
-      callback : => @emit 'InitializeRequested', @getData()
+      callback : => @emit Events.InitializeRequested, @getData()
 
     @expandButton = new kd.ButtonView
       cssClass: 'expand'

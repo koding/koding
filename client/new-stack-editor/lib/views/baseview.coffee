@@ -1,6 +1,6 @@
 kd = require 'kd'
 FlexSplit = require './flexsplit'
-
+Events = require '../events'
 
 module.exports = class BaseView extends kd.View
 
@@ -23,7 +23,7 @@ module.exports = class BaseView extends kd.View
       @wrapper.addSubView new kd.CustomHTMLView
         cssClass : 'title'
         partial  : title
-        click    : @lazyBound 'emit', 'GotFocus'
+        click    : @lazyBound 'emit', Events.GotFocus
 
     @wrapper.addSubView @controls = new kd.CustomHTMLView
       cssClass: 'controls'
@@ -35,13 +35,13 @@ module.exports = class BaseView extends kd.View
         @emit FlexSplit.EVENT_EXPAND
         @once 'transitionend', =>
           @wrapper.unsetClass 'expanding'
-          @emit 'GotFocus'
+          @emit Events.GotFocus
 
     @controls.addSubView new kd.ButtonView
       cssClass: 'collapse'
       callback: =>
         @emit FlexSplit.EVENT_COLLAPSE
-        @emit 'GotFocus'
+        @emit Events.GotFocus
 
     if help = @getOption 'help'
 
@@ -49,7 +49,7 @@ module.exports = class BaseView extends kd.View
         cssClass: 'help'
         callback: =>
           @toggleClass 'help-mode'
-          @emit 'GotFocus'
+          @emit Events.GotFocus
 
       @wrapper.addSubView new kd.View
         cssClass: 'help-content has-markdown'

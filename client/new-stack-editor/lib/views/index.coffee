@@ -2,6 +2,8 @@ kd = require 'kd'
 bowser = require 'bowser'
 Encoder = require 'htmlencode'
 
+Events = require '../events'
+
 FlexSplit = require './flexsplit'
 FlexSplitStorage = require './flexsplit/storage'
 AppStorageAdapter = require './adapters/appstorageadapter'
@@ -34,7 +36,7 @@ module.exports = class StackEditor extends kd.View
 
     # Toolbar
     @toolbar = new Toolbar
-    @forwardEvent @toolbar, 'InitializeRequested'
+    @forwardEvent @toolbar, Events.InitializeRequested
 
     # Status bar
     @statusbar = new Statusbar
@@ -69,7 +71,7 @@ module.exports = class StackEditor extends kd.View
 
     @variablesController = new VariablesController
       editor: @variables
-    @variablesController.on 'Log', @logsController.bound 'add'
+    @variablesController.on Events.Log, @logsController.bound 'add'
 
     @readme = new Editor {
       cssClass: 'readme'

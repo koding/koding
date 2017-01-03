@@ -2,8 +2,10 @@ kd = require 'kd'
 AppController = require 'app/appcontroller'
 showErrorNotification = require 'app/util/showErrorNotification'
 
+Events = require './events'
 StackEditor = require './views'
 StackWizardModal = require './views/wizard/stackwizardmodal'
+
 
 { markAsLoaded, log } = require './helpers'
 
@@ -40,7 +42,7 @@ module.exports = class StackEditorAppController extends AppController
     @templates = {}
     @mainView.addSubView @stackEditor = new StackEditor
 
-    @stackEditor.on 'InitializeRequested', @bound 'initializeStack'
+    @stackEditor.on Events.InitializeRequested, @bound 'initializeStack'
 
 
   openEditor: (templateId, reset = no) ->

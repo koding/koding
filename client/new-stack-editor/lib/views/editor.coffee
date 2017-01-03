@@ -1,6 +1,8 @@
 kd = require 'kd'
 AceView = require 'ace/aceview'
 FSHelper = require 'app/util/fs/fshelper'
+
+Events = require '../events'
 BaseView = require './baseview'
 
 
@@ -90,7 +92,7 @@ module.exports = class Editor extends BaseView
       @emit 'ready'
 
     @wrapper.addSubView @aceView
-    @on 'GotFocus', @bound 'focus'
+    @on Events.GotFocus, @bound 'focus'
 
 
   _windowDidResize: ->

@@ -1,6 +1,7 @@
 kd = require 'kd'
 EnvironmentFlux = require 'app/flux/environment'
 
+Events = require '../../events'
 StackWizard = require './stackwizard'
 
 
@@ -20,11 +21,11 @@ module.exports = class StackWizardModal extends kd.ModalView
 
     wizard = new StackWizard
 
-    wizard.once 'ProviderSelected', (selectedProvider) =>
       @createStackTemplate selectedProvider
+    wizard.once Events.ProviderSelected, (selectedProvider) =>
       @destroy()
 
-    wizard.on 'StackWizardCancelled', @bound 'destroy'
+    wizard.on Events.StackWizardCancelled, @bound 'destroy'
 
     if @getOption 'handleRoute'
       @on 'KDObjectWillBeDestroyed', -> kd.singletons.router.back()

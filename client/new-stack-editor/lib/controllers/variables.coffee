@@ -1,6 +1,7 @@
 kd = require 'kd'
 remote = require 'app/remote'
 
+Events = require '../events'
 BaseController = require './base'
 { unescape } = require 'lodash'
 { yamlToJson, jsonToYaml } = require 'app/util/stacks/yamlutils'
@@ -15,7 +16,7 @@ module.exports = class VariablesController extends BaseController
 
     if cred = @getData()?.credentials?.custom?.first
       @editor.setClass 'loading'
-      @emit 'Log', 'loading custom variables'
+      @emit Events.Log, 'loading custom variables'
       @reviveCredential cred
 
 
@@ -32,7 +33,7 @@ module.exports = class VariablesController extends BaseController
           console.warn "You don't have access to custom variables"
           return kd.warn err
 
-        @emit 'Log', 'custom variables loaded'
+        @emit Events.Log, 'custom variables loaded'
 
         { meta } = data
         if (Object.keys meta).length
