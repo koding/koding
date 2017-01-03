@@ -58,11 +58,9 @@ module.exports = dispatchInitialActions = (store) ->
     .then -> loadGroup(store)
     .then -> loadUserDetails(store)
     .then -> ensureGroupPayment()
-    .then -> loadPaymentDetails(store)
     .then -> ensureCreditCard(store)
+    .then -> loadPaymentDetails(store)
 
   promise
     .then (args...) -> console.log 'finished dispatching initial actions'
     .catch (err) -> console.info 'error when dispatching initial actions', err
-
-

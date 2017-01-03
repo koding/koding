@@ -5,11 +5,11 @@ Box = require 'lab/Box'
 Label = require 'lab/Text/Label'
 { Grid, Row, Col } = require 'react-flexbox-grid'
 
-module.exports = class VerifyEmailWarning extends React.Component
+module.exports = class SubscriptionNoCardWarning extends React.Component
 
   render: ->
 
-    className = kd.utils.curry 'VerifyEmailWarning', @props.className
+    className = kd.utils.curry 'SubscriptionNoCardWarning', @props.className
 
     <Box type="danger" border={1}>
       <Row>
@@ -26,4 +26,3 @@ module.exports = class VerifyEmailWarning extends React.Component
         </Col>
       </Row>
     </Box>
-

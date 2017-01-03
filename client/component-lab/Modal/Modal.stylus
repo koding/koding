@@ -31,6 +31,8 @@ $modal-z-index              = 20000
   right                     auto
   transform                 translateX(-50%)
 
+.xlarge
+  width                     640px
 .large
   width                     600px
 .medium
@@ -62,10 +64,6 @@ $modal-z-index              = 20000
   justify-content           center
   border-radius             6px 6px 0 0
 
-  > span
-    font-size               18px
-    margin-bottom           0
-
 .footer
   border-top                1px solid #ebebeb
   border-radius             0 0 6px 6px
@@ -83,11 +81,11 @@ $modal-z-index              = 20000
   flex                      0 70px
 
 .footer
-  justify-content           flex-end
+  justify-content           center
 
 .content
   flex                      1 auto
-  justify-content           center
+  justify-content           space-around
   flex-direction            column
   background-color          transparent
   padding                   40px
@@ -97,8 +95,10 @@ $modal-z-index              = 20000
     margin                  30px 0
     line-height             22px
 
+
+
 .footerContainer
   button
     margin-right            15px
-
-
+  button:last-child
+    margin-right            0
