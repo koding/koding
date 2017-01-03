@@ -47,8 +47,9 @@ module.exports = class ButtonWithMenu extends React.Component
   render: ->
 
     button = <button ref='button'></button>
+
     <div className="ButtonWithMenuWrapper">
-      <Portal openByClickOn={button} closeOnOutsideClick closeOnEsc>
+      <Portal openByClickOn={button} closeOnOutsideClick closeOnEsc isOpened={@state.isMenuOpen}>
         <div className={@props.menuClassName}>
           <ul ref={@bound 'listDidMount'} className={kd.utils.curry "ButtonWithMenuItemsList", @props.listClass}>
             {@renderListMenu()}
