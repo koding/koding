@@ -13,7 +13,6 @@ module.exports = class ButtonWithMenu extends React.Component
 
   @defaultProps =
     items: []
-    isMenuOpen: no
     listClass:''
     menuClassName:''
 
@@ -30,7 +29,6 @@ module.exports = class ButtonWithMenu extends React.Component
   listDidMount: (_list) ->
 
     button = ReactDOM.findDOMNode @refs.button
-    return @setState isMenuOpen: no  unless button
     list = ReactDOM.findDOMNode _list
     buttonRect = button.getBoundingClientRect()
 
