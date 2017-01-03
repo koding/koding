@@ -166,7 +166,6 @@ func (c *Client) readProviders(data []byte) ([]string, error) {
 	return providers, nil
 }
 
-// Create
 func Create(opts *CreateOptions) (*stack.ImportResponse, error) {
 	return DefaultClient.Create(opts)
 }
