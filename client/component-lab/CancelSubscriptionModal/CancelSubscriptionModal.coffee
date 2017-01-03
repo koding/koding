@@ -30,8 +30,8 @@ module.exports = CancelSubscriptionModal = (props) ->
       <div style={lineHeight: '20px'}>
         <Label size="medium">
           If you proceed, <strong>your subscription will be suspended
-          immediately</strong> and you and your team will NOT be able to use Koding until
-          you renew your subscription. Are you sure to cancel subscription?
+          immediately</strong>; you and your team will <strong>NOT</strong> be able to use Koding until
+          you renew your subscription. Are you sure to cancel your subscription?
         </Label>
       </div>
     </Content>
