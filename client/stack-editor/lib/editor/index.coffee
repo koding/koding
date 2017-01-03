@@ -267,7 +267,7 @@ module.exports = class StackEditorView extends kd.View
 
     @readMeActionWrapper.addSubView new kd.ButtonView
       cssClass: 'upload-file-button'
-      partial : 'Attach image files by dragging & dropping or <span>selecing them</span>.'
+      partial : 'Attach image files by dragging & dropping or <span>selecting them</span>.'
       callback: => @readmeView.emit 'openFileInputCallback'
 
     @readMeActionWrapper.addSubView new kd.ButtonView
