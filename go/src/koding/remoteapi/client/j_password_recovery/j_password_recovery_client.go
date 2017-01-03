@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJPasswordRecoveryFetchRegistrationDetails(params *
 		Params:             params,
 		Reader:             &PostRemoteAPIJPasswordRecoveryFetchRegistrationDetailsReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJPasswordRecoveryRecoverPassword(params *PostRemot
 		Params:             params,
 		Reader:             &PostRemoteAPIJPasswordRecoveryRecoverPasswordReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIJPasswordRecoveryResendVerification(params *PostRe
 		Params:             params,
 		Reader:             &PostRemoteAPIJPasswordRecoveryResendVerificationReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPIJPasswordRecoveryResetPassword(params *PostRemoteA
 		Params:             params,
 		Reader:             &PostRemoteAPIJPasswordRecoveryResetPasswordReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -149,6 +153,7 @@ func (a *Client) PostRemoteAPIJPasswordRecoveryValidate(params *PostRemoteAPIJPa
 		Params:             params,
 		Reader:             &PostRemoteAPIJPasswordRecoveryValidateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

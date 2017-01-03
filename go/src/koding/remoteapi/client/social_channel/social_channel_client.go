@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPISocialChannelAcceptInvite(params *PostRemoteAPISoc
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelAcceptInviteReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPISocialChannelAddParticipants(params *PostRemoteAPI
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelAddParticipantsReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPISocialChannelByID(params *PostRemoteAPISocialChann
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelByIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPISocialChannelByName(params *PostRemoteAPISocialCha
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelByNameReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -149,6 +153,7 @@ func (a *Client) PostRemoteAPISocialChannelCreate(params *PostRemoteAPISocialCha
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelCreateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -176,6 +181,7 @@ func (a *Client) PostRemoteAPISocialChannelCreateChannelWithParticipants(params 
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelCreateChannelWithParticipantsReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -203,6 +209,7 @@ func (a *Client) PostRemoteAPISocialChannelDelete(params *PostRemoteAPISocialCha
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelDeleteReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -230,6 +237,7 @@ func (a *Client) PostRemoteAPISocialChannelFetchActivities(params *PostRemoteAPI
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelFetchActivitiesReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -257,6 +265,7 @@ func (a *Client) PostRemoteAPISocialChannelFetchActivityCount(params *PostRemote
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelFetchActivityCountReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -284,6 +293,7 @@ func (a *Client) PostRemoteAPISocialChannelFetchChannels(params *PostRemoteAPISo
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelFetchChannelsReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -311,6 +321,7 @@ func (a *Client) PostRemoteAPISocialChannelFetchFollowedChannelCount(params *Pos
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelFetchFollowedChannelCountReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -338,6 +349,7 @@ func (a *Client) PostRemoteAPISocialChannelFetchFollowedChannels(params *PostRem
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelFetchFollowedChannelsReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -365,6 +377,7 @@ func (a *Client) PostRemoteAPISocialChannelFetchParticipants(params *PostRemoteA
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelFetchParticipantsReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -392,6 +405,7 @@ func (a *Client) PostRemoteAPISocialChannelFetchPinnedMessages(params *PostRemot
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelFetchPinnedMessagesReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -419,6 +433,7 @@ func (a *Client) PostRemoteAPISocialChannelFetchPopularPosts(params *PostRemoteA
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelFetchPopularPostsReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -446,6 +461,7 @@ func (a *Client) PostRemoteAPISocialChannelFetchPopularTopics(params *PostRemote
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelFetchPopularTopicsReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -473,6 +489,7 @@ func (a *Client) PostRemoteAPISocialChannelFetchProfileFeed(params *PostRemoteAP
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelFetchProfileFeedReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -500,6 +517,7 @@ func (a *Client) PostRemoteAPISocialChannelFetchProfileFeedCount(params *PostRem
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelFetchProfileFeedCountReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -527,6 +545,7 @@ func (a *Client) PostRemoteAPISocialChannelGlancePinnedPost(params *PostRemoteAP
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelGlancePinnedPostReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -554,6 +573,7 @@ func (a *Client) PostRemoteAPISocialChannelLeave(params *PostRemoteAPISocialChan
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelLeaveReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -581,6 +601,7 @@ func (a *Client) PostRemoteAPISocialChannelListParticipants(params *PostRemoteAP
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelListParticipantsReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -608,6 +629,7 @@ func (a *Client) PostRemoteAPISocialChannelPinMessage(params *PostRemoteAPISocia
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelPinMessageReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -635,6 +657,7 @@ func (a *Client) PostRemoteAPISocialChannelRejectInvite(params *PostRemoteAPISoc
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelRejectInviteReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -662,6 +685,7 @@ func (a *Client) PostRemoteAPISocialChannelRemoveParticipants(params *PostRemote
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelRemoveParticipantsReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -689,6 +713,7 @@ func (a *Client) PostRemoteAPISocialChannelSearchTopics(params *PostRemoteAPISoc
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelSearchTopicsReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -716,6 +741,7 @@ func (a *Client) PostRemoteAPISocialChannelUnpinMessage(params *PostRemoteAPISoc
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelUnpinMessageReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -743,6 +769,7 @@ func (a *Client) PostRemoteAPISocialChannelUpdate(params *PostRemoteAPISocialCha
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelUpdateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -770,6 +797,7 @@ func (a *Client) PostRemoteAPISocialChannelUpdateLastSeenTime(params *PostRemote
 		Params:             params,
 		Reader:             &PostRemoteAPISocialChannelUpdateLastSeenTimeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

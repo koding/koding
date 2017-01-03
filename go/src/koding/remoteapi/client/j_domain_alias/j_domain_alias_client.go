@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJDomainAliasOne(params *PostRemoteAPIJDomainAliasO
 		Params:             params,
 		Reader:             &PostRemoteAPIJDomainAliasOneReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJDomainAliasSome(params *PostRemoteAPIJDomainAlias
 		Params:             params,
 		Reader:             &PostRemoteAPIJDomainAliasSomeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

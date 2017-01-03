@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIDataDogSendEvent(params *PostRemoteAPIDataDogSendE
 		Params:             params,
 		Reader:             &PostRemoteAPIDataDogSendEventReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIDataDogSendMetrics(params *PostRemoteAPIDataDogSen
 		Params:             params,
 		Reader:             &PostRemoteAPIDataDogSendMetricsReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

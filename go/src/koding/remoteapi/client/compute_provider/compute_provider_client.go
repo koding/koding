@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIComputeProviderCreate(params *PostRemoteAPICompute
 		Params:             params,
 		Reader:             &PostRemoteAPIComputeProviderCreateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIComputeProviderCreateGroupStack(params *PostRemote
 		Params:             params,
 		Reader:             &PostRemoteAPIComputeProviderCreateGroupStackReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIComputeProviderFetchAvailable(params *PostRemoteAP
 		Params:             params,
 		Reader:             &PostRemoteAPIComputeProviderFetchAvailableReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPIComputeProviderFetchProviders(params *PostRemoteAP
 		Params:             params,
 		Reader:             &PostRemoteAPIComputeProviderFetchProvidersReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -149,6 +153,7 @@ func (a *Client) PostRemoteAPIComputeProviderFetchSoloMachines(params *PostRemot
 		Params:             params,
 		Reader:             &PostRemoteAPIComputeProviderFetchSoloMachinesReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -176,6 +181,7 @@ func (a *Client) PostRemoteAPIComputeProviderFetchUsage(params *PostRemoteAPICom
 		Params:             params,
 		Reader:             &PostRemoteAPIComputeProviderFetchUsageReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -203,6 +209,7 @@ func (a *Client) PostRemoteAPIComputeProviderPing(params *PostRemoteAPIComputePr
 		Params:             params,
 		Reader:             &PostRemoteAPIComputeProviderPingReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -230,6 +237,7 @@ func (a *Client) PostRemoteAPIComputeProviderRemove(params *PostRemoteAPICompute
 		Params:             params,
 		Reader:             &PostRemoteAPIComputeProviderRemoveReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -257,6 +265,7 @@ func (a *Client) PostRemoteAPIComputeProviderUpdate(params *PostRemoteAPICompute
 		Params:             params,
 		Reader:             &PostRemoteAPIComputeProviderUpdateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -284,6 +293,7 @@ func (a *Client) PostRemoteAPIComputeProviderUpdateTeamCounters(params *PostRemo
 		Params:             params,
 		Reader:             &PostRemoteAPIComputeProviderUpdateTeamCountersReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

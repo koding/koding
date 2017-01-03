@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJSessionActiveSession(params *PostRemoteAPIJSessio
 		Params:             params,
 		Reader:             &PostRemoteAPIJSessionActiveSessionReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJSessionRemoveID(params *PostRemoteAPIJSessionRemo
 		Params:             params,
 		Reader:             &PostRemoteAPIJSessionRemoveIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJComputeStackCheckRevisionID(params *PostRemoteAPI
 		Params:             params,
 		Reader:             &PostRemoteAPIJComputeStackCheckRevisionIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJComputeStackCreate(params *PostRemoteAPIJComputeS
 		Params:             params,
 		Reader:             &PostRemoteAPIJComputeStackCreateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIJComputeStackCreateAdminMessageID(params *PostRemo
 		Params:             params,
 		Reader:             &PostRemoteAPIJComputeStackCreateAdminMessageIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPIJComputeStackDeleteAdminMessageID(params *PostRemo
 		Params:             params,
 		Reader:             &PostRemoteAPIJComputeStackDeleteAdminMessageIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -149,6 +153,7 @@ func (a *Client) PostRemoteAPIJComputeStackDeleteID(params *PostRemoteAPIJComput
 		Params:             params,
 		Reader:             &PostRemoteAPIJComputeStackDeleteIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -176,6 +181,7 @@ func (a *Client) PostRemoteAPIJComputeStackDestroyID(params *PostRemoteAPIJCompu
 		Params:             params,
 		Reader:             &PostRemoteAPIJComputeStackDestroyIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -203,6 +209,7 @@ func (a *Client) PostRemoteAPIJComputeStackMaintenanceID(params *PostRemoteAPIJC
 		Params:             params,
 		Reader:             &PostRemoteAPIJComputeStackMaintenanceIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -230,6 +237,7 @@ func (a *Client) PostRemoteAPIJComputeStackModifyID(params *PostRemoteAPIJComput
 		Params:             params,
 		Reader:             &PostRemoteAPIJComputeStackModifyIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -257,6 +265,7 @@ func (a *Client) PostRemoteAPIJComputeStackOne(params *PostRemoteAPIJComputeStac
 		Params:             params,
 		Reader:             &PostRemoteAPIJComputeStackOneReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -284,6 +293,7 @@ func (a *Client) PostRemoteAPIJComputeStackSome(params *PostRemoteAPIJComputeSta
 		Params:             params,
 		Reader:             &PostRemoteAPIJComputeStackSomeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
