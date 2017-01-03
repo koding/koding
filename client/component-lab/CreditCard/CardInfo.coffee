@@ -11,7 +11,7 @@ CardDate = require './CardDate'
 
 module.exports = CardInfo = ({ number, brand, month, year, onToggleForm, formVisible }) ->
 
-  buttonTitle = if formVisible then 'Hide' else 'Change Card'
+  buttonTitle = if formVisible then 'Cancel' else 'Change Card'
 
   <div className='CardInfo'>
     <Row className={styles['info-row']}>
