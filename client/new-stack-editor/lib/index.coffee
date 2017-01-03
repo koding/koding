@@ -2,6 +2,8 @@ kd = require 'kd'
 AppController = require 'app/appcontroller'
 showErrorNotification = require 'app/util/showErrorNotification'
 
+EnvironmentFlux = require 'app/flux/environment'
+
 Events = require './events'
 StackEditor = require './views'
 StackWizardModal = require './views/wizard/stackwizardmodal'
@@ -83,3 +85,13 @@ module.exports = class StackEditorAppController extends AppController
 
     console.trace()
     log '::initializeStack', template
+
+
+  createStackTemplate: (provider) ->
+
+    unless provider
+      return console.warn 'Provider is required!'
+
+    EnvironmentFlux.actions.createStackTemplateWithDefaults provider
+      .then ({ stackTemplate }) ->
+        kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"
