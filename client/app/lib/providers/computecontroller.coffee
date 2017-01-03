@@ -1017,13 +1017,16 @@ module.exports = class ComputeController extends KDController
         new kd.NotificationView { title : 'Stack Template is Shared With Team' }
         @checkRevisionFromOriginalStackTemplate stackTemplate
       else
-        @removeRevisonFromUnSharedStackTemplate _id
+        @removeRevisonFromUnSharedStackTemplate _id, stackTemplate
         new kd.NotificationView { title : 'Stack Template is Unshared With Team' }
 
 
-  removeRevisonFromUnSharedStackTemplate: (id) ->
+  removeRevisonFromUnSharedStackTemplate: (id, stackTemplate) ->
 
     { reactor } = kd.singletons
+
+    if stackTemplate
+      reactor.dispatch 'UPDATE_PRIVATE_STACK_TEMPLATE_SUCCESS', { stackTemplate }
     stacks = @stacks.filter (stack) -> stack.config?.clonedFrom is id
 
     stacks.forEach (stack) =>
