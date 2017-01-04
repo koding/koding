@@ -2,7 +2,11 @@ package config
 
 import (
 	"fmt"
+	"net/url"
+	"reflect"
 	"testing"
+
+	"koding/tools/utils"
 )
 
 func TestReplaceEnv(t *testing.T) {
@@ -73,6 +77,10 @@ func TestReplaceEnv(t *testing.T) {
 
 	for i, test := range tests {
 		t.Run(fmt.Sprintf("test_no_%d", i), func(t *testing.T) {
+			provVariable := NewEndpoint(test.ProvVariable)
+			exp := NewEndpoint(test.Exp)
+			expNoManaged := NewEndpoint(test.ExpNoManaged)
+
 			// Temporarily replace buildin environment. This also means that you
 			// should not run these test in parallel!
 			var envcopy = environment
@@ -81,13 +89,205 @@ func TestReplaceEnv(t *testing.T) {
 				environment = envcopy
 			}()
 
-			if s := ReplaceEnv(test.ProvVariable, test.ProvEnv); s != test.Exp {
-				t.Fatalf("want string = %#v; got %#v", test.Exp, s)
+			if e := ReplaceEnv(provVariable, test.ProvEnv); !e.Equal(exp) {
+				t.Fatalf("want string = %#v; got %#v", test.Exp, e)
 			}
 
-			if s := ReplaceEnv(test.ProvVariable, RmManaged(test.ProvEnv)); s != test.ExpNoManaged {
-				t.Fatalf("want string = %#v; got %#v", test.Exp, s)
+			if e := ReplaceEnv(provVariable, RmManaged(test.ProvEnv)); !e.Equal(expNoManaged) {
+				t.Fatalf("want string = %#v; got %#v", test.Exp, e)
 			}
 		})
+	}
+}
+
+func TestEndpointEqual(t *testing.T) {
+	good := mustURL("http://127.0.0.1:56789/kite")
+	bad := mustURL("http://127.0.0.1")
+
+	cases := map[string]struct {
+		lhs *Endpoint
+		rhs *Endpoint
+		ok  bool
+	}{
+		"empty endpoints": {
+			&Endpoint{},
+			&Endpoint{},
+			true,
+		},
+		"public private match": {
+			&Endpoint{
+				Public:  good,
+				Private: good,
+			},
+			&Endpoint{
+				Public:  good,
+				Private: good,
+			},
+			true,
+		},
+		"public match": {
+			&Endpoint{
+				Public: good,
+			},
+			&Endpoint{
+				Public: good,
+			},
+			true,
+		},
+		"private match": {
+			&Endpoint{
+				Private: good,
+			},
+			&Endpoint{
+				Private: good,
+			},
+			true,
+		},
+		"public private no match": {
+			&Endpoint{
+				Public:  good,
+				Private: bad,
+			},
+			&Endpoint{
+				Public:  bad,
+				Private: good,
+			},
+			false,
+		},
+		"public no match": {
+			&Endpoint{
+				Public: good,
+			},
+			&Endpoint{
+				Public: bad,
+			},
+			false,
+		},
+		"private no match": {
+			&Endpoint{
+				Private: good,
+			},
+			&Endpoint{
+				Private: bad,
+			},
+			false,
+		},
+		"public no match private match": {
+			&Endpoint{
+				Public:  good,
+				Private: good,
+			},
+			&Endpoint{
+				Public:  bad,
+				Private: good,
+			},
+			false,
+		},
+		"private no match public match": {
+			&Endpoint{
+				Public:  good,
+				Private: good,
+			},
+			&Endpoint{
+				Public:  bad,
+				Private: good,
+			},
+			false,
+		},
+	}
+
+	for name, cas := range cases {
+		t.Run(name, func(t *testing.T) {
+			if ok := cas.lhs.Equal(cas.rhs); ok != cas.ok {
+				t.Fatalf("got %t, want %t", ok, cas.ok)
+			}
+		})
+	}
+}
+
+func TestURLCopy(t *testing.T) {
+	cases := map[string]*URL{
+		"nil url":            nil,
+		"nil underlying url": {URL: nil},
+		"simple url":         {URL: &url.URL{Scheme: "http", Host: "example.com"}},
+		"url with user":      {URL: &url.URL{Scheme: "http", Host: "example.com", User: url.UserPassword("user", "pass")}},
+	}
+
+	for name, u := range cases {
+		t.Run(name, func(t *testing.T) {
+			uCopy := u.Copy()
+
+			if u.IsNil() {
+				if uCopy != nil {
+					t.Errorf("want uCopy to be nil; got %#v", uCopy)
+				}
+
+				return
+			}
+
+			modifyURL(uCopy)
+
+			if reflect.DeepEqual(uCopy, u) {
+				t.Errorf("want %#v != %#v", uCopy, u)
+			}
+		})
+	}
+}
+
+func modifyURL(u *URL) {
+	if u.IsNil() {
+		return
+	}
+
+	u.URL.Host = utils.RandomString()
+
+	if u.URL.User != nil {
+		u.URL.User = url.UserPassword(utils.RandomString(), "")
+	}
+}
+
+func TestEndpointCopy(t *testing.T) {
+	url := &URL{URL: &url.URL{Scheme: "http", Host: "example.com", User: url.UserPassword("user", "pass")}}
+
+	cases := map[string]*Endpoint{
+		"nil endpoint":          nil,
+		"nil underlying urls":   {Private: nil, Public: nil},
+		"private-only endpoint": {Private: url},
+		"public-only endpoint":  {Public: url},
+		"endpoint":              {Private: url, Public: url},
+	}
+
+	for name, e := range cases {
+		t.Run(name, func(t *testing.T) {
+			eCopy := e.Copy()
+
+			if e.IsNil() {
+				if eCopy != nil {
+					t.Errorf("want eCopy to be nil; got %#v", eCopy)
+				}
+
+				return
+			}
+
+			modifyEndpoint(eCopy)
+
+			if reflect.DeepEqual(eCopy, e) {
+				t.Errorf("want %#v != %#v", eCopy, e)
+			}
+		})
+	}
+}
+
+func modifyEndpoint(e *Endpoint) {
+	if e.IsNil() {
+		return
+	}
+
+	if !e.Public.IsNil() {
+		modifyURL(e.Public)
+	}
+
+	if !e.Private.IsNil() {
+		modifyURL(e.Private)
 	}
 }

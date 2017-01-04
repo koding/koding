@@ -7,13 +7,12 @@ import (
 	"koding/klientctl/config"
 
 	"github.com/codegangsta/cli"
-	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/logging"
 )
 
 // VersionCommand displays version information like Environment or Kite Query ID.
 func VersionCommand(c *cli.Context, log logging.Logger, _ string) int {
-	latest, err := latestVersion(config.Konfig.KDLatestURL)
+	latest, err := latestVersion(config.Konfig.Endpoints.KDLatest.Public.String())
 
 	fmt.Printf("Installed Version: %s\n", getReadableVersion(config.Version))
 
@@ -22,10 +21,7 @@ func VersionCommand(c *cli.Context, log logging.Logger, _ string) int {
 	}
 
 	fmt.Println("Environment:", config.Environment)
-
-	if c, err := kiteconfig.NewFromKiteKey(config.Konfig.KiteKeyFile); err == nil && c.Id != "" {
-		fmt.Println("Kite Query ID:", c.Id)
-	}
+	fmt.Println("Kite Query ID:", config.Konfig.KiteConfig().Id)
 
 	return 0
 }

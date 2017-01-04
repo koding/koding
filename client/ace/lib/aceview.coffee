@@ -25,22 +25,29 @@ module.exports = class AceView extends JView
 
   constructor: (options = {}, file) ->
 
-    super options, file
 
     options.aceClass                or= Ace
     options.advancedSettings         ?= no
     options.createBottomBar          ?= yes
     options.createFindAndReplaceView ?= yes
+    options.useStorage               ?= yes
+
+    super options, file
 
     @listenWindowResize()
 
-    aceOptions =
-      delegate: options.delegate or this
-      createFindAndReplaceView: options.createFindAndReplaceView
+    aceOptions = {
+      createFindAndReplaceView
+      advancedSettings
+      useStorage
+      delegate
+    } = @getOptions()
+
+    aceOptions.delegate ?= delegate ?= this
 
     @ace = new options.aceClass aceOptions, file
 
-    if options.createFindAndReplaceView
+    if createFindAndReplaceView
       @findAndReplaceView = new AceFindAndReplaceView { delegate: this }
       @findAndReplaceView.hide()
     else
@@ -58,16 +65,18 @@ module.exports = class AceView extends JView
       iconOnly        : yes
       iconClass       : 'cog'
       type            : 'contextmenu'
-      delegate        : options.delegate or this
+      delegate        : delegate
       itemClass       : AceSettingsView
       click           : (pubInst, event) -> @contextMenu event
       menu            : @getAdvancedSettingsMenuItems.bind this
 
     @advancedSettings.disable()
-
-    @advancedSettings.hide()  unless options.advancedSettings
+    @advancedSettings.hide()  unless advancedSettings
 
     @setViewListeners()
+
+
+  getDelegate: -> @delegate ? {}
 
 
   forEachPaneByFile: (path, callback) ->
@@ -234,17 +243,14 @@ module.exports = class AceView extends JView
       file.on 'fs.saveAs.finished', (newFile) =>
 
         { tabView } = @getDelegate()
-        return  if tabView.willClose
+        return  if not tabView or tabView.willClose
 
         @getDelegate().openSavedFile newFile, contents
 
     , { inputDefaultValue: file.name, machine: file.machine }
 
   _windowDidResize: ->
-    height = @getHeight()
-    bottomBarHeight = @$('.editor-bottom-bar').height()
-    newHeight = height - bottomBarHeight
-    @ace.setHeight newHeight unless newHeight is 0
+    @ace?.editor?.resize()
 
   viewAppended: ->
     super

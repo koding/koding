@@ -13,7 +13,7 @@ Configuration = (options = {}) ->
     main: 'sandbox.koding.com'
     port: '80'
 
-  options.serviceHost = "10.0.0.23"
+  options.serviceHost or= "10.0.0.23"
   options.publicPort = "80"
   options.hostname = "sandbox.koding.com#{if options.publicPort is "80" then "" else ":"+options.publicPort}"
   options.protocol = "https:"
@@ -40,7 +40,6 @@ Configuration = (options = {}) ->
   options.sendEventsToSegment = yes
   options.scheme = 'https'
   options.suppressLogs = no
-  options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
   options.vaultPath or= path.join __dirname, "../vault/" # use same directory with our application
   options.credentialPath or= path.join options.vaultPath, "./config/credentials.#{options.environment}.coffee"
   options.clientUploadS3BucketName = 'kodingdev-client'
@@ -105,15 +104,6 @@ Configuration = (options = {}) ->
       instances         : 4
       supervisord       :
         command         : "node %(ENV_KONFIG_PROJECTROOT)s/workers/social/index.js -p #{KONFIG.social.port} --kite-port=#{KONFIG.social.kitePort}"
-
-    authworker          :
-      group             : "webserver"
-      supervisord       :
-        command         : "node %(ENV_KONFIG_PROJECTROOT)s/workers/auth/index.js"
-
-    sourcemaps          :
-      supervisord       :
-        command         : "node %(ENV_KONFIG_PROJECTROOT)s/servers/sourcemaps/index.js"
 
     socialapi           :
       instances         : 2

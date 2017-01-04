@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -13,7 +11,6 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -24,7 +21,9 @@ import (
 	"koding/api/presence"
 	"koding/httputil"
 	cfg "koding/kites/config"
+	"koding/kites/config/configstore"
 	"koding/kites/kloud/stack"
+	"koding/kites/kloud/team"
 	"koding/klient/client"
 	"koding/klient/collaboration"
 	"koding/klient/command"
@@ -49,10 +48,10 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
-	"github.com/koding/kite/kitekey"
 	"github.com/koding/kite/kontrol/onceevery"
 	kiteproto "github.com/koding/kite/protocol"
 	"github.com/koding/kite/sockjsclient"
+	"github.com/koding/logging"
 )
 
 const (
@@ -134,8 +133,12 @@ type Klient struct {
 	presence      *presence.Client
 	presenceEvery *onceevery.OnceEvery
 	kloud         *apiutil.LazyKite
+
+	// Team related fields.
+	// TODO(ppknap): move this to separate package.
 	teamMu        sync.Mutex
-	team          *stack.Team
+	team          *team.Team
+	teamUpdatedAt time.Time
 }
 
 // KlientConfig defines a Klient's config
@@ -152,7 +155,6 @@ type KlientConfig struct {
 	Debug       bool
 
 	ScreenrcPath string
-	DBPath       string
 
 	UpdateInterval time.Duration
 	UpdateURL      string
@@ -170,19 +172,10 @@ type KlientConfig struct {
 
 	LogBucketRegion   string
 	LogBucketName     string
-	LogKeygenURL      string
 	LogUploadInterval time.Duration
 
 	Metadata     string
 	MetadataFile string
-}
-
-func (conf *KlientConfig) logKeygenURL() string {
-	if conf.LogKeygenURL != "" {
-		return conf.LogKeygenURL
-	}
-
-	return konfig.Konfig.KloudURL
 }
 
 func (conf *KlientConfig) logBucketName() string {
@@ -250,28 +243,40 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		konfig.Konfig.KontrolURL = conf.KontrolURL
 	}
 
+	// NOTE(rjeczalik): For backward-compatibility with old klient,
+	// remove once not needed.
+	if u, err := url.Parse(konfig.Konfig.KontrolURL); err == nil && konfig.Konfig.KontrolURL != "" {
+		u.Path = ""
+		konfig.Konfig.Endpoints.Koding = cfg.NewEndpointURL(u)
+	}
+
 	if conf.TunnelKiteURL != "" {
-		konfig.Konfig.TunnelURL = conf.TunnelKiteURL
+		u, err := url.Parse(conf.TunnelKiteURL)
+		if err != nil {
+			return nil, err
+		}
+
+		konfig.Konfig.Endpoints.Tunnel.Public.URL = u
 	}
 
 	k := newKite(conf)
 	k.Config.VerifyAudienceFunc = verifyAudience
 
 	if k.Config.KontrolURL == "" || k.Config.KontrolURL == "http://127.0.0.1:3000/kite" ||
-		konfig.Konfig.KontrolURL != konfig.Builtin.KontrolURL {
-		k.Config.KontrolURL = konfig.Konfig.KontrolURL
+		!konfig.Konfig.Endpoints.Kontrol().Equal(konfig.Builtin.Endpoints.Kontrol()) {
+		k.Config.KontrolURL = konfig.Konfig.Endpoints.Kontrol().Public.String()
 	}
 
 	term := terminal.New(k.Log, conf.ScreenrcPath)
 	term.InputHook = usg.Reset
 
-	db, err := openBoltDb(conf.DBPath)
+	db, err := openBoltDB(configstore.CacheOptions("klient"))
 	if err != nil {
 		k.Log.Warning("Couldn't open BoltDB: %s", err)
 	}
 
 	up := uploader.New(&uploader.Options{
-		KeygenURL: conf.logKeygenURL(),
+		KeygenURL: konfig.Konfig.Endpoints.Kloud().Public.String(),
 		Kite:      k,
 		Bucket:    conf.logBucketName(),
 		Region:    conf.logBucketRegion(),
@@ -292,7 +297,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		Log:           k.Log,
 		Kite:          k,
 		NoProxy:       conf.NoProxy,
-		TunnelKiteURL: konfig.Konfig.TunnelURL,
+		TunnelKiteURL: konfig.Konfig.Endpoints.Tunnel.Public.String(),
 	}
 
 	t, err := tunnel.New(tunOpts)
@@ -317,7 +322,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 
 	machinesOpts := &machinegroup.GroupOpts{
 		Storage:         storage.NewEncodingStorage(db, []byte("machines")),
-		Builder:         machine.DisconnectedClientBuilder{},
+		Builder:         machine.NewKiteBuilder(k),
 		DynAddrInterval: 2 * time.Second,
 		PingInterval:    15 * time.Second,
 	}
@@ -327,7 +332,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		k.Log.Fatal("Cannot initialize machine group: %s", err)
 	}
 
-	c := k.NewClient(konfig.Konfig.KloudURL)
+	c := k.NewClient(konfig.Konfig.Endpoints.Kloud().Public.String())
 	c.Auth = &kite.Auth{
 		Type: "kiteKey",
 		Key:  k.Config.KiteKey,
@@ -348,6 +353,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 				},
 			},
 		}).Auth,
+		Log: k.Log.(logging.Logger),
 	}
 
 	kl := &Klient{
@@ -374,7 +380,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		},
 		logUploadDelay: 3 * time.Minute,
 		presence: &presence.Client{
-			Endpoint: konfig.Konfig.SocialAPI.Public.WithPath("presence"),
+			Endpoint: konfig.Konfig.Endpoints.Social().Public.WithPath("presence").URL,
 			Client:   restClient,
 		},
 		presenceEvery: onceevery.New(1 * time.Hour),
@@ -461,11 +467,11 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("klient.usage", k.usage.Current)
 
 	// klient os method(s)
-	k.kite.HandleFunc("os.home", kos.Home)
-	k.kite.HandleFunc("os.currentUsername", kos.CurrentUsername)
+	k.handleWithSub("os.home", kos.Home)
+	k.handleWithSub("os.currentUsername", kos.CurrentUsername)
 
 	// Klient Info method(s)
-	k.kite.HandleFunc("klient.info", info.Info)
+	k.handleWithSub("klient.info", info.Info)
 
 	// Collaboration, is used by our Koding.com browser client.
 	k.kite.HandleFunc("klient.disable", control.Disable)
@@ -477,9 +483,9 @@ func (k *Klient) RegisterMethods() {
 	k.addRemoteHandlers()
 
 	// SSH keys
-	k.kite.HandleFunc("sshkeys.list", sshkeys.List)
-	k.kite.HandleFunc("sshkeys.add", sshkeys.Add)
-	k.kite.HandleFunc("sshkeys.delete", sshkeys.Delete)
+	k.handleWithSub("sshkeys.list", sshkeys.List)
+	k.handleWithSub("sshkeys.add", sshkeys.Add)
+	k.handleWithSub("sshkeys.delete", sshkeys.Delete)
 
 	// Storage
 	k.kite.HandleFunc("storage.set", k.storage.SetValue)
@@ -490,23 +496,25 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("log.tail", logfetcher.Tail)
 
 	// Filesystem
-	k.kite.HandleFunc("fs.readDirectory", fs.ReadDirectory)
-	k.kite.HandleFunc("fs.glob", fs.Glob)
-	k.kite.HandleFunc("fs.readFile", fs.ReadFile)
-	k.kite.HandleFunc("fs.writeFile", fs.WriteFile)
-	k.kite.HandleFunc("fs.uniquePath", fs.UniquePath)
-	k.kite.HandleFunc("fs.getInfo", fs.GetInfo)
-	k.kite.HandleFunc("fs.setPermissions", fs.SetPermissions)
-	k.kite.HandleFunc("fs.remove", fs.Remove)
-	k.kite.HandleFunc("fs.rename", fs.Rename)
-	k.kite.HandleFunc("fs.createDirectory", fs.CreateDirectory)
-	k.kite.HandleFunc("fs.move", fs.Move)
-	k.kite.HandleFunc("fs.copy", fs.Copy)
-	k.kite.HandleFunc("fs.getDiskInfo", fs.GetDiskInfo)
-	k.kite.HandleFunc("fs.getPathSize", fs.GetPathSize)
+	k.handleWithSub("fs.readDirectory", fs.ReadDirectory)
+	k.handleWithSub("fs.glob", fs.Glob)
+	k.handleWithSub("fs.readFile", fs.ReadFile)
+	k.handleWithSub("fs.writeFile", fs.WriteFile)
+	k.handleWithSub("fs.uniquePath", fs.UniquePath)
+	k.handleWithSub("fs.getInfo", fs.GetInfo)
+	k.handleWithSub("fs.setPermissions", fs.SetPermissions)
+	k.handleWithSub("fs.remove", fs.Remove)
+	k.handleWithSub("fs.rename", fs.Rename)
+	k.handleWithSub("fs.createDirectory", fs.CreateDirectory)
+	k.handleWithSub("fs.move", fs.Move)
+	k.handleWithSub("fs.copy", fs.Copy)
+	k.handleWithSub("fs.getDiskInfo", fs.GetDiskInfo)
+	k.handleWithSub("fs.getPathSize", fs.GetPathSize)
 
 	// Machine group handlers.
-	k.kite.HandleFunc("machine.create", machinegroup.KiteCreateHandler(k.machines))
+	k.kite.HandleFunc("machine.create", machinegroup.KiteHandlerCreate(k.machines))
+	k.kite.HandleFunc("machine.id", machinegroup.KiteHandlerID(k.machines))
+	k.kite.HandleFunc("machine.ssh", machinegroup.KiteHandlerSSH(k.machines))
 
 	// Vagrant
 	k.kite.HandleFunc("vagrant.create", k.vagrant.Create)
@@ -537,11 +545,11 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("exec", command.Exec)
 
 	// Terminal
-	k.kite.HandleFunc("webterm.getSessions", k.terminal.GetSessions)
-	k.kite.HandleFunc("webterm.connect", k.terminal.Connect)
-	k.kite.HandleFunc("webterm.killSession", k.terminal.KillSession)
-	k.kite.HandleFunc("webterm.killSessions", k.terminal.KillSessions)
-	k.kite.HandleFunc("webterm.rename", k.terminal.RenameSession)
+	k.handleWithSub("webterm.getSessions", k.terminal.GetSessions)
+	k.handleWithSub("webterm.connect", k.terminal.Connect)
+	k.handleWithSub("webterm.killSession", k.terminal.KillSession)
+	k.handleWithSub("webterm.killSessions", k.terminal.KillSessions)
+	k.handleWithSub("webterm.rename", k.terminal.RenameSession)
 
 	// VM -> Client methods
 	ps := client.NewPubSub(k.log)
@@ -576,6 +584,26 @@ func (k *Klient) RegisterMethods() {
 
 		k.log.Info("Start disconnection timer with 1 minute delay.")
 		k.collabCloser.Start()
+	})
+}
+
+// handleWithSub is a middle-ware function that checks team payment status
+// before invoking fn function. It will fail if team is blocked due to unpaid
+// subscription.
+func (k *Klient) handleWithSub(method string, fn kite.HandlerFunc) {
+	k.kite.HandleFunc(method, func(r *kite.Request) (interface{}, error) {
+		team, err := k.cacheTeam()
+		if err != nil {
+			k.log.Error("Cannot find Klient's team: %s", err)
+			return nil, err
+		}
+
+		if !team.SubStatus.Active() {
+			k.log.Error("Method %q is blocked due to unpaid subscription for %s team.", method, team.Name)
+			return nil, errors.New("method is blocked")
+		}
+
+		return fn(r)
 	})
 }
 
@@ -655,7 +683,7 @@ func (k *Klient) tunnelOptions() (*tunnel.Options, error) {
 	return opts, nil
 }
 
-func (k *Klient) Team() (*stack.Team, error) {
+func (k *Klient) Team() (*team.Team, error) {
 	var resp stack.WhoamiResponse
 
 	if err := k.kloud.Call("team.whoami", nil, &resp); err != nil {
@@ -665,11 +693,11 @@ func (k *Klient) Team() (*stack.Team, error) {
 	return resp.Team, nil
 }
 
-func (k *Klient) cacheTeam() (*stack.Team, error) {
+func (k *Klient) cacheTeam() (*team.Team, error) {
 	k.teamMu.Lock()
 	defer k.teamMu.Unlock()
 
-	if k.team != nil {
+	if k.team != nil && !k.teamUpdatedAt.IsZero() && time.Since(k.teamUpdatedAt) < time.Hour {
 		return k.team, nil
 	}
 
@@ -681,6 +709,7 @@ func (k *Klient) cacheTeam() (*stack.Team, error) {
 	k.log.Info("Kite belongs to %q team", team.Name)
 
 	k.team = team
+	k.teamUpdatedAt = time.Now()
 
 	return k.team, nil
 }
@@ -878,51 +907,18 @@ func (k *Klient) updateKiteKey(reg *kiteproto.RegisterResult) {
 }
 
 func (k *Klient) writeKiteKey(content string) error {
-	kiteHome, err := kitekey.KiteHome()
+	konfig, err := configstore.Used()
 	if err != nil {
 		return err
 	}
 
-	f, err := ioutil.TempFile(kiteHome, "kite.key")
-	if err != nil {
-		return err
-	}
+	konfig.KiteKey = strings.TrimSpace(content)
 
-	origPath := filepath.Join(kiteHome, "kite.key")
-
-	_, err = io.Copy(f, strings.NewReader(content))
-	errClose := f.Close()
-	if err == nil {
-		err = errClose
-	}
-
-	if err != nil {
-		os.Remove(f.Name())
-		return err
-	}
-
-	os.Remove(origPath)
-
-	if err := os.Rename(f.Name(), origPath); err != nil {
-		return err
-	}
-
-	k.kite.Log.Info("auth update: written new %q", origPath)
-
-	return nil
+	return configstore.Use(konfig)
 }
 
-func openBoltDb(dbpath string) (*bolt.DB, error) {
-	if dbpath == "" {
-		return nil, errors.New("DB path is empty")
-	}
-
-	// create if it doesn't exists
-	if err := os.MkdirAll(filepath.Dir(dbpath), 0755); err != nil {
-		return nil, err
-	}
-
-	return bolt.Open(dbpath, 0644, &bolt.Options{Timeout: 5 * time.Second})
+func openBoltDB(opts *cfg.CacheOptions) (*bolt.DB, error) {
+	return bolt.Open(opts.File, 0644, opts.BoltDB)
 }
 
 // userIn checks whether the given user exists in the users list or not. It

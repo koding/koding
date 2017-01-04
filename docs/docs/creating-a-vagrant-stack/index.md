@@ -7,7 +7,7 @@ parent: /docs/home
 
 # {{ page.title }}
 
-# Vagrant Stack
+## Introduction
 
 This guide will help you create a Vagrant stack. A Vagrant stack will use your local machine to host your VM. Vagrant works by using [virtual box][1] on your local or remote machine to create VMs. [Learn more about Vagrant here][2].
 

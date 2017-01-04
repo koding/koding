@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJAccountAcceptInvitationID(params *PostRemoteAPIJA
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountAcceptInvitationIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJAccountBlockUserID(params *PostRemoteAPIJAccountB
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountBlockUserIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIJAccountByRelevance(params *PostRemoteAPIJAccountB
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountByRelevanceReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPIJAccountCancelRequestID(params *PostRemoteAPIJAcco
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountCancelRequestIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -149,6 +153,7 @@ func (a *Client) PostRemoteAPIJAccountCheckGroupMembershipID(params *PostRemoteA
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountCheckGroupMembershipIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -176,6 +181,7 @@ func (a *Client) PostRemoteAPIJAccountCount(params *PostRemoteAPIJAccountCountPa
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountCountReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -203,6 +209,7 @@ func (a *Client) PostRemoteAPIJAccountExpireSubscriptionID(params *PostRemoteAPI
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountExpireSubscriptionIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -230,6 +237,7 @@ func (a *Client) PostRemoteAPIJAccountFetchAppStorageID(params *PostRemoteAPIJAc
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountFetchAppStorageIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -257,6 +265,7 @@ func (a *Client) PostRemoteAPIJAccountFetchBlockedUsers(params *PostRemoteAPIJAc
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountFetchBlockedUsersReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -284,6 +293,7 @@ func (a *Client) PostRemoteAPIJAccountFetchEmailAndStatusID(params *PostRemoteAP
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountFetchEmailAndStatusIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -311,6 +321,7 @@ func (a *Client) PostRemoteAPIJAccountFetchEmailFrequencyID(params *PostRemoteAP
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountFetchEmailFrequencyIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -338,6 +349,7 @@ func (a *Client) PostRemoteAPIJAccountFetchEmailID(params *PostRemoteAPIJAccount
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountFetchEmailIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -365,6 +377,7 @@ func (a *Client) PostRemoteAPIJAccountFetchEmailsByUsername(params *PostRemoteAP
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountFetchEmailsByUsernameReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -392,6 +405,7 @@ func (a *Client) PostRemoteAPIJAccountFetchFromUserID(params *PostRemoteAPIJAcco
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountFetchFromUserIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -419,6 +433,7 @@ func (a *Client) PostRemoteAPIJAccountFetchGroupsID(params *PostRemoteAPIJAccoun
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountFetchGroupsIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -446,6 +461,7 @@ func (a *Client) PostRemoteAPIJAccountFetchKitesID(params *PostRemoteAPIJAccount
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountFetchKitesIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -473,6 +489,7 @@ func (a *Client) PostRemoteAPIJAccountFetchMetaInformationID(params *PostRemoteA
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountFetchMetaInformationIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -500,6 +517,7 @@ func (a *Client) PostRemoteAPIJAccountFetchMyPermissionsAndRolesID(params *PostR
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountFetchMyPermissionsAndRolesIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -527,6 +545,7 @@ func (a *Client) PostRemoteAPIJAccountFetchMyPermissionsID(params *PostRemoteAPI
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountFetchMyPermissionsIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -554,6 +573,7 @@ func (a *Client) PostRemoteAPIJAccountFetchMySessionsID(params *PostRemoteAPIJAc
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountFetchMySessionsIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -581,6 +601,7 @@ func (a *Client) PostRemoteAPIJAccountFetchOAuthInfoID(params *PostRemoteAPIJAcc
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountFetchOAuthInfoIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -608,6 +629,7 @@ func (a *Client) PostRemoteAPIJAccountFetchOtaTokenID(params *PostRemoteAPIJAcco
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountFetchOtaTokenIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -635,6 +657,7 @@ func (a *Client) PostRemoteAPIJAccountFetchPaymentMethodsID(params *PostRemoteAP
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountFetchPaymentMethodsIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -662,6 +685,7 @@ func (a *Client) PostRemoteAPIJAccountFetchRelativeGroupsID(params *PostRemoteAP
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountFetchRelativeGroupsIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -689,6 +713,7 @@ func (a *Client) PostRemoteAPIJAccountFetchRoleID(params *PostRemoteAPIJAccountF
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountFetchRoleIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -716,6 +741,7 @@ func (a *Client) PostRemoteAPIJAccountFetchSubscriptionsID(params *PostRemoteAPI
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountFetchSubscriptionsIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -743,6 +769,7 @@ func (a *Client) PostRemoteAPIJAccountGenerate2FactorAuthKeyID(params *PostRemot
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountGenerate2FactorAuthKeyIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -770,6 +797,7 @@ func (a *Client) PostRemoteAPIJAccountIgnoreInvitationID(params *PostRemoteAPIJA
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountIgnoreInvitationIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -797,6 +825,7 @@ func (a *Client) PostRemoteAPIJAccountIsEmailVerifiedID(params *PostRemoteAPIJAc
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountIsEmailVerifiedIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -824,6 +853,7 @@ func (a *Client) PostRemoteAPIJAccountIsFollowingID(params *PostRemoteAPIJAccoun
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountIsFollowingIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -851,6 +881,7 @@ func (a *Client) PostRemoteAPIJAccountMarkUserAsExemptID(params *PostRemoteAPIJA
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountMarkUserAsExemptIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -878,6 +909,7 @@ func (a *Client) PostRemoteAPIJAccountModifyID(params *PostRemoteAPIJAccountModi
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountModifyIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -905,6 +937,7 @@ func (a *Client) PostRemoteAPIJAccountOne(params *PostRemoteAPIJAccountOneParams
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountOneReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -932,6 +965,7 @@ func (a *Client) PostRemoteAPIJAccountPushNotificationID(params *PostRemoteAPIJA
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountPushNotificationIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -959,6 +993,7 @@ func (a *Client) PostRemoteAPIJAccountSetEmailPreferencesID(params *PostRemoteAP
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountSetEmailPreferencesIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -986,6 +1021,7 @@ func (a *Client) PostRemoteAPIJAccountSetup2FactorAuthID(params *PostRemoteAPIJA
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountSetup2FactorAuthIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -1013,6 +1049,7 @@ func (a *Client) PostRemoteAPIJAccountSome(params *PostRemoteAPIJAccountSomePara
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountSomeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -1040,6 +1077,7 @@ func (a *Client) PostRemoteAPIJAccountSomeWithRelationship(params *PostRemoteAPI
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountSomeWithRelationshipReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -1067,6 +1105,7 @@ func (a *Client) PostRemoteAPIJAccountUnblockUserID(params *PostRemoteAPIJAccoun
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountUnblockUserIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -1094,6 +1133,7 @@ func (a *Client) PostRemoteAPIJAccountUnlinkOauthID(params *PostRemoteAPIJAccoun
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountUnlinkOauthIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -1121,6 +1161,7 @@ func (a *Client) PostRemoteAPIJAccountUpdateFlagsID(params *PostRemoteAPIJAccoun
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountUpdateFlagsIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -1148,6 +1189,7 @@ func (a *Client) PostRemoteAPIJAccountVerifyEmailByUsername(params *PostRemoteAP
 		Params:             params,
 		Reader:             &PostRemoteAPIJAccountVerifyEmailByUsernameReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

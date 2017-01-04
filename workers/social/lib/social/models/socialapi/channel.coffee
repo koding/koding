@@ -103,17 +103,6 @@ module.exports = class SocialChannel extends Base
     type-#{apiChannelType}-\
     name-#{apiChannelName}"
 
-  @fetchSecretChannelName = (options, callback) ->
-    { groupSlug, apiChannelType, apiChannelName } = options
-    name = @generateChannelName options
-    JName = require '../name'
-    JName.fetchSecretName name, (err, secretName, oldSecretName) ->
-      # just to know, how many parameters does this function return
-      # callback err, secretName, oldSecretName
-      if err then callback err
-      else callback null, "socialapi.channelsecret.#{secretName}",
-        if oldSecretName then "socialapi.channelsecret.#{oldSecretName}"
-
   @checkChannelParticipation = secureRequest
     fnName   : 'checkChannelParticipation'
     validate : ['name', 'type']

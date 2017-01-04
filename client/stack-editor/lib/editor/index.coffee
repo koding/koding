@@ -254,7 +254,7 @@ module.exports = class StackEditorView extends kd.View
       title    : 'PREVIEW'
       cssClass : 'HomeAppView--button secondary template-preview-button'
       tooltip  :
-        title  : 'Generates a preview of this template with your own account information.'
+        title  : 'Preview this template with ${var.koding_...} variables filled in. '
       callback : => @stackTemplateView.emit 'ShowTemplatePreview'
 
     @stackTemplateActionWrapper.addSubView new kd.ButtonView
@@ -267,7 +267,7 @@ module.exports = class StackEditorView extends kd.View
 
     @readMeActionWrapper.addSubView new kd.ButtonView
       cssClass: 'upload-file-button'
-      partial : 'Attach image files by dragging & dropping or <span>selecing them</span>.'
+      partial : 'Attach image files by dragging & dropping or <span>selecting them</span>.'
       callback: => @readmeView.emit 'openFileInputCallback'
 
     @readMeActionWrapper.addSubView new kd.ButtonView
@@ -464,7 +464,7 @@ module.exports = class StackEditorView extends kd.View
 
     @stackTemplateUpdateWarningView.addSubView new kd.CustomHTMLView
       cssClass: 'close-update-view'
-      partial:"<span class='tooltiptext'> Do not warn me for updates anymore!"
+      partial:"<span class='tooltiptext'> Do not warn me for updates anymore."
       click: (event) =>
         if event.target?.className is 'close-update-view'
           computeController.removeClonedFromAttr @stackTemplate, (err) =>
@@ -641,24 +641,24 @@ module.exports = class StackEditorView extends kd.View
       when 'initialize'
         @generateStackButton.show()
         @outputView.add '''
-          Your stack script has been successfully saved.
-          You can now close the stack editor or continue editing your stack.
+          Your stack script is saved successfully.
+          You can now close the stack editor or continue editing.
         '''
       when 'reinit'
         @reinitButton.show()
         @outputView.add '''
-          Your stack script has been successfully saved.
-          You can now close the stack editor or continue editing your stack.
+          Your stack script is saved successfully.
+          You can now close the stack editor or continue editing.
         '''
       when 'maketeamdefault'
         @setAsDefaultButton.show()
         @outputView.add '''
-          Your stack script has been successfully saved.
+          Your stack script is saved successfully.
 
           If you want to auto-initialize this template when new users join your team,
           you need to click "Make Team Default" after you save it.
 
-          You can now close the stack editor or continue editing your stack.
+          You can now close the stack editor or continue editing.
         '''
 
 
@@ -695,12 +695,12 @@ module.exports = class StackEditorView extends kd.View
           if stackTemplate.isDefault
             @_handleSetDefaultTemplate =>
               @outputView.add '''
-                Your stack script has been successfully saved and all your new team
+                Your stack script is saved successfully and all your new team
                 members now will see this stack by default. Existing users
                 of the previous default-stack will be notified that default-stack has
                 changed.
 
-                You can now close this window or continue working with your stack.
+                You can now close this window or continue working on your stack.
               '''
           # admin is editing a private stack
           else
@@ -721,7 +721,7 @@ module.exports = class StackEditorView extends kd.View
           else
             @handleSetDefaultTemplate =>
               @outputView.add '''
-                Your stack script has been successfully saved and all your new team
+                Your stack script is saved successfully and all your new team
                 members now will see this stack by default. Existing users
                 of the previous default-stack will be notified that default-stack has
                 changed.
@@ -781,7 +781,7 @@ module.exports = class StackEditorView extends kd.View
 
       else
 
-        @outputView.add 'Bootstrap required, initiating to bootstrap...'
+        @outputView.add 'Bootstrap required, initiating...'
 
         provider              = credential.provider
         identifiers           = [credential.identifier]
@@ -878,12 +878,12 @@ module.exports = class StackEditorView extends kd.View
 
     if requiredData.userInput?
       @outputView
-        .add 'Following extra information will be requested from members:'
+        .add 'Additional information will be requested from members:'
         .add requiredData.userInput
 
     if requiredData.custom?
       @outputView
-        .add 'Following information will be fetched from variables section:'
+        .add 'These will be fetched from variables section:'
         .add requiredData.custom
 
     if stackTemplate?.config?
@@ -918,7 +918,7 @@ module.exports = class StackEditorView extends kd.View
       convertedDoc = yamlToJson templateContent
 
       if convertedDoc.err
-        return callback 'Failed to convert YAML to JSON, fix document and try again.'
+        return callback 'Failed to convert YAML to JSON, fix the document and try again.'
 
       { contentObject } = convertedDoc
       addUserInputOptions contentObject, requiredData
@@ -1056,7 +1056,7 @@ module.exports = class StackEditorView extends kd.View
 
       return  if @outputView.handleError err
 
-      @outputView.add 'Stack generated successfully. You can now build it.'
+      @outputView.add 'Stack is generated successfully. You can now build it.'
 
       computeController.reset yes, ->
         kd.singletons.router.handleRoute "/IDE/#{result.results.machines[0].obj.slug}"
@@ -1080,7 +1080,7 @@ module.exports = class StackEditorView extends kd.View
     { stackTemplate }    = @getData()
     { groupsController, reactor } = kd.singletons
 
-    @outputView.add 'Setting this as default team stack template...'
+    @outputView.add 'Setting this as the default team stack template...'
 
     # TMS-1919: This should only add the stacktemplate to the list of
     # available stacktemplates, we can also provide set one of the template
@@ -1116,7 +1116,7 @@ module.exports = class StackEditorView extends kd.View
     [ credential ] = @credentialStatusView.credentialsData
     { slug } = kd.singletons.groupsController.getCurrentGroup()
     credential.shareWith { target: slug }, (err) ->
-      console.warn 'Failed to share credential:', err  if err
+      console.warn 'Failed to share the credential:', err  if err
       callback()
 
 

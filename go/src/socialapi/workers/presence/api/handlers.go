@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/models"
+	"socialapi/request"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
 	"socialapi/workers/common/response"
@@ -18,6 +19,8 @@ import (
 const (
 	// EndpointPresencePing provides ping endpoint
 	EndpointPresencePing = "/presence/ping"
+
+	EndpointPresenceListMembers = "/presence/listmembers"
 
 	// EndpointPresencePingPrivate provides private ping endpoint
 	EndpointPresencePingPrivate = "/private/presence/ping"
@@ -38,6 +41,15 @@ func AddHandlers(m *mux.Mux) {
 	)
 	m.AddHandler(
 		handler.Request{
+			Handler:   ListMembers,
+			Name:      "presence-listmembers",
+			Type:      handler.GetRequest,
+			Endpoint:  EndpointPresenceListMembers,
+			Ratelimit: httpRateLimiter,
+		},
+	)
+	m.AddHandler(
+		handler.Request{
 			Handler:   HandlePrivatePing,
 			Name:      "presence-ping-private",
 			Type:      handler.PostRequest,
@@ -47,11 +59,23 @@ func AddHandlers(m *mux.Mux) {
 	)
 }
 
+// ListMembers lists the members of group
+func ListMembers(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
+	if err := context.IsGroupAdmin(); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	query := request.GetQuery(u)
+	query = context.OverrideQuery(query)
+	p := &models.PresenceDaily{}
+	return response.HandleResultAndError(p.FetchActiveAccounts(query))
+}
+
 // Ping handles the pings coming from client side
 func Ping(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	// only logged in users can send a ping
 	if !context.IsLoggedIn() {
-		return response.NewBadRequest(errors.New("not logged in"))
+		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
 	req := &presence.Ping{

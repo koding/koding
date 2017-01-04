@@ -14,7 +14,7 @@ Configuration = (options = {}) ->
     port: '8090'
 
   options.boot2dockerbox or= if os.type() is "Darwin" then "192.168.59.103" else "localhost"
-  options.serviceHost = options.boot2dockerbox
+  options.serviceHost or= options.boot2dockerbox
   options.publicPort or= "8090"
   options.hostname or= "dev.koding.com"
   options.protocol or= "http:"
@@ -41,7 +41,6 @@ Configuration = (options = {}) ->
   options.sendEventsToSegment = yes
   options.scheme = 'http'
   options.suppressLogs = no
-  options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
   options.vaultPath or= path.join __dirname, "../vault/" # use same directory with our application
   options.credentialPath or= path.join options.vaultPath, "./config/credentials.#{options.config}.coffee"
   options.clientUploadS3BucketName = 'kodingdev-client'

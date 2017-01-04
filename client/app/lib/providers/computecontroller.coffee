@@ -37,7 +37,7 @@ require './config'
 module.exports = class ComputeController extends KDController
 
 
-  @providers = globals.config.providers._getSupportedProviders()
+  PROVIDERS  = globals.config.providers._getSupportedProviders()
   @Error     = {
     'TimeoutError', 'KiteError', 'NotSupported'
     Pending: '107', NotVerified: '500'
@@ -1017,13 +1017,18 @@ module.exports = class ComputeController extends KDController
         new kd.NotificationView { title : 'Stack Template is Shared With Team' }
         @checkRevisionFromOriginalStackTemplate stackTemplate
       else
-        @removeRevisonFromUnSharedStackTemplate _id
+        @removeRevisonFromUnSharedStackTemplate _id, stackTemplate
         new kd.NotificationView { title : 'Stack Template is Unshared With Team' }
 
 
-  removeRevisonFromUnSharedStackTemplate: (id) ->
+  removeRevisonFromUnSharedStackTemplate: (id, stackTemplate) ->
 
     { reactor } = kd.singletons
+
+    if stackTemplate
+      reactor.dispatch 'UPDATE_PRIVATE_STACK_TEMPLATE_SUCCESS', { stackTemplate }
+      reactor.dispatch 'MAKE_SIDEBAR_ITEM_VISIBLE_SUCCESS', { type: 'draft', id }
+
     stacks = @stacks.filter (stack) -> stack.config?.clonedFrom is id
 
     stacks.forEach (stack) =>
@@ -1037,6 +1042,7 @@ module.exports = class ComputeController extends KDController
     { reactor } = kd.singletons
 
     reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
+    reactor.dispatch 'MAKE_SIDEBAR_ITEM_VISIBLE_SUCCESS', { type: 'draft', id: stackTemplate._id }
 
     stacks = @stacks.filter (stack) ->
       stack.config?.clonedFrom is stackTemplate._id
@@ -1301,7 +1307,7 @@ module.exports = class ComputeController extends KDController
   shareCredentials: (credentials, requiredProviders, callback) ->
 
     selectedProvider = null
-    for provider in requiredProviders when provider in @providers
+    for provider in requiredProviders when provider in PROVIDERS
       selectedProvider = provider
     selectedProvider ?= (Object.keys credentials ? { aws: yes }).first
 

@@ -8,61 +8,63 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
 	"time"
 
 	"koding/kites/config"
+	"koding/kites/config/configstore"
 	"koding/klient/app"
 	konfig "koding/klient/config"
 	"koding/klient/klientsvc"
 	"koding/klient/registration"
 )
 
-// TODO(rjeczalik): replace with multiconfig
+// TODO: workaround for #10057
+var f = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+
 var (
-	flagIP          = flag.String("ip", "", "Change public ip")
-	flagPort        = flag.Int("port", 56789, "Change running port")
-	flagVersion     = flag.Bool("version", false, "Show version and exit")
-	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
-	flagDebug       = flag.Bool("debug", false, "Debug mode")
-	flagScreenrc    = flag.String("screenrc", "/opt/koding/etc/screenrc", "Default screenrc path")
-	flagDBPath      = flag.String("dbpath", "", "Bolt DB database path. Must be absolute)")
+	flagIP          = f.String("ip", "", "Change public ip")
+	flagPort        = f.Int("port", 56789, "Change running port")
+	flagVersion     = f.Bool("version", false, "Show version and exit")
+	flagRegisterURL = f.String("register-url", "", "Change register URL to kontrol")
+	flagDebug       = f.Bool("debug", false, "Debug mode")
+	flagScreenrc    = f.String("screenrc", "/opt/koding/etc/screenrc", "Default screenrc path")
 
 	// Registration flags
-	flagKiteHome   = flag.String("kite-home", "", "Change kite home path")
-	flagUsername   = flag.String("username", "", "Username to be registered to Kontrol")
-	flagToken      = flag.String("token", "", "Token to be passed to Kontrol to register")
-	flagRegister   = flag.Bool("register", false, "Register to Kontrol with your Koding Password")
-	flagKontrolURL = flag.String("kontrol-url", "", "Change kontrol URL to be used for registration")
+	flagKiteHome   = f.String("kite-home", "", "Change kite home path")
+	flagUsername   = f.String("username", "", "Username to be registered to Kontrol")
+	flagToken      = f.String("token", "", "Token to be passed to Kontrol to register")
+	flagRegister   = f.Bool("register", false, "Register to Kontrol with your Koding Password")
+	flagKontrolURL = f.String("kontrol-url", "", "Change kontrol URL to be used for registration")
 
 	// Update parameters
-	flagUpdateInterval = flag.Duration("update-interval", time.Minute*5,
+	flagUpdateInterval = f.Duration("update-interval", time.Minute*5,
 		"Change interval for checking for new updates")
-	flagUpdateURL = flag.String("update-url",
+	flagUpdateURL = f.String("update-url",
 		"",
 		"Change update endpoint for latest version")
 
 	// Vagrant flags
-	flagVagrantHome = flag.String("vagrant-home", "", "Change Vagrant home path")
+	flagVagrantHome = f.String("vagrant-home", "", "Change Vagrant home path")
 
 	// Tunnel flags
-	flagTunnelName    = flag.String("tunnel-name", "", "Enable tunneling by setting non-empty tunnel name")
-	flagTunnelKiteURL = flag.String("tunnel-kite-url", "", "Change default tunnel server kite URL")
-	flagNoTunnel      = flag.Bool("no-tunnel", defaultNoTunnel(), "Force tunnel connection off")
-	flagNoProxy       = flag.Bool("no-proxy", false, "Force TLS proxy for tunneled connection off")
-	flagAutoupdate    = flag.Bool("autoupdate", false, "Force turn automatic updates on")
+	flagTunnelName    = f.String("tunnel-name", "", "Enable tunneling by setting non-empty tunnel name")
+	flagTunnelKiteURL = f.String("tunnel-kite-url", "", "Change default tunnel server kite URL")
+	flagNoTunnel      = f.Bool("no-tunnel", defaultNoTunnel(), "Force tunnel connection off")
+	flagNoProxy       = f.Bool("no-proxy", false, "Force TLS proxy for tunneled connection off")
+	flagAutoupdate    = f.Bool("autoupdate", false, "Force turn automatic updates on")
 
 	// Upload log flags
-	flagLogBucketRegion   = flag.String("log-bucket-region", "", "Change bucket region to upload logs")
-	flagLogBucketName     = flag.String("log-bucket-name", "", "Change bucket name to upload logs")
-	flagKeygenURL         = flag.String("log-keygen-url", "", "Change keygen endpoint URL for bucket authorization")
-	flagLogUploadInterval = flag.Duration("log-upload-interval", 90*time.Minute, "Change interval of upload logs")
+	flagLogBucketRegion   = f.String("log-bucket-region", "", "Change bucket region to upload logs")
+	flagLogBucketName     = f.String("log-bucket-name", "", "Change bucket name to upload logs")
+	flagLogUploadInterval = f.Duration("log-upload-interval", 90*time.Minute, "Change interval of upload logs")
 
 	// Metadata flags.
-	flagMetadata     = flag.String("metadata", "", "Base64-encoded Koding metadata")
-	flagMetadataFile = flag.String("metadata-file", "", "Koding metadata file")
+	flagMetadata     = f.String("metadata", "", "Base64-encoded Koding metadata")
+	flagMetadataFile = f.String("metadata-file", "", "Koding metadata file")
 )
 
 func defaultNoTunnel() bool {
@@ -77,7 +79,7 @@ func main() {
 }
 
 func realMain() int {
-	flag.Parse()
+	f.Parse(os.Args[1:])
 
 	// For forward-compatibility with go1.5+, where GOMAXPROCS is
 	// always set to a number of available cores.
@@ -93,48 +95,26 @@ func realMain() int {
 	if *flagRegister {
 		kontrolURL := *flagKontrolURL
 		if kontrolURL == "" {
-			kontrolURL = konfig.Konfig.KontrolURL
+			kontrolURL = konfig.Konfig.Endpoints.Kontrol().Public.String()
 		}
 
-		kiteHome := *flagKiteHome
-		if kiteHome == "" {
-			kiteHome = konfig.Konfig.KiteHome()
+		koding, err := url.Parse(kontrolURL)
+		if err != nil {
+			log.Fatalf("failed to parse -kontrol-url: %s", err)
 		}
 
-		kloudURL := *flagKeygenURL
-		if kloudURL == "" {
-			kloudURL = konfig.Konfig.KloudURL
-		}
+		// TODO(rjeczalik): rework client to display KODING_URL instead of KONTROLURL
+		koding.Path = ""
 
-		if err := registration.Register(kontrolURL, kiteHome, *flagUsername, *flagToken, debug); err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			return 1
-		}
-
-		// Create new konfig.bolt with variables used during registration.
-		kfg := &config.Konfig{
-			KiteKeyFile:        filepath.Join(kiteHome, "kite.key"),
-			KontrolURL:         kontrolURL,
-			TunnelURL:          *flagTunnelName,
-			KloudURL:           kloudURL,
-			PublicBucketName:   *flagLogBucketName,
-			PublicBucketRegion: *flagLogBucketRegion,
-		}
-
-		if err := config.DumpToBolt("", config.Metadata{"konfig": kfg}, nil); err != nil {
-			fmt.Fprintln(os.Stderr, err)
+		if err := registration.Register(koding, *flagUsername, *flagToken, debug); err != nil {
+			fmt.Fprintln(os.Stderr, "registration failed:", err)
 			return 1
 		}
 
 		return 0
 	}
 
-	dbPath := filepath.Join(config.CurrentUser.HomeDir, filepath.FromSlash(".config/koding/klient.bolt"))
 	vagrantHome := filepath.Join(config.CurrentUser.HomeDir, ".vagrant.d")
-
-	if *flagDBPath != "" {
-		dbPath = *flagDBPath
-	}
 
 	if *flagVagrantHome != "" {
 		vagrantHome = *flagVagrantHome
@@ -147,7 +127,6 @@ func realMain() int {
 		Environment:       konfig.Environment,
 		Region:            konfig.Region,
 		Version:           konfig.Version,
-		DBPath:            dbPath,
 		IP:                *flagIP,
 		Port:              *flagPort,
 		RegisterURL:       *flagRegisterURL,
@@ -164,7 +143,6 @@ func realMain() int {
 		Autoupdate:        *flagAutoupdate,
 		LogBucketRegion:   *flagLogBucketRegion,
 		LogBucketName:     *flagLogBucketName,
-		LogKeygenURL:      *flagKeygenURL,
 		LogUploadInterval: *flagLogUploadInterval,
 		Metadata:          *flagMetadata,
 		MetadataFile:      *flagMetadataFile,
@@ -253,13 +231,13 @@ func handleMetadata(conf *app.KlientConfig) error {
 	}
 
 	if conf.Metadata != "" {
-		var m config.Metadata
+		var m configstore.Metadata
 
 		if err := json.Unmarshal([]byte(conf.Metadata), &m); err != nil {
 			return errors.New("failed to decode Koding metadata: " + err.Error())
 		}
 
-		if err := config.DumpToBolt("", m, nil); err != nil {
+		if err := configstore.WriteMetadata(m); err != nil {
 			return errors.New("failed to write Koding metadata: " + err.Error())
 		}
 

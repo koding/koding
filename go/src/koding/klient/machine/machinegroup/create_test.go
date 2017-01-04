@@ -9,9 +9,9 @@ import (
 	"koding/klient/machine/machinetest"
 )
 
-func TestClients(t *testing.T) {
+func TestCreate(t *testing.T) {
 	var (
-		builder = machinetest.NewNilBuilder()
+		builder = machinetest.NewClientBuilder(nil)
 
 		idA = machine.ID("servA")
 		idB = machine.ID("servB")
@@ -79,5 +79,43 @@ func TestClients(t *testing.T) {
 	}
 	if !reflect.DeepEqual(statuses, res.Statuses) {
 		t.Fatalf("want statuses = %#v; got %#v", statuses, res.Statuses)
+	}
+}
+
+func TestCreateBalance(t *testing.T) {
+	var (
+		client  = machinetest.NewClient()
+		builder = machinetest.NewClientBuilder(client)
+		id      = machine.ID("serv")
+	)
+
+	g, err := New(testOptions(builder))
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	defer g.Close()
+
+	req := &CreateRequest{
+		Addresses: map[machine.ID][]machine.Addr{
+			id: {machinetest.TurnOffAddr()},
+		},
+	}
+
+	if _, err := g.Create(req); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+
+	if err := builder.WaitForBuild(time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+
+	// Create with empty addresses should remove previously added machine.
+	if _, err := g.Create(&CreateRequest{}); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+
+	// Client context should be closed.
+	if err := machinetest.WaitForContextClose(client.Context(), time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
 	}
 }

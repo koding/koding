@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+	"time"
 
 	"koding/klient/machine"
 )
@@ -66,5 +67,55 @@ func testInfo(alias string, state machine.State) *Info {
 		Status: machine.Status{
 			State: state,
 		},
+	}
+}
+
+func TestShortDuration(t *testing.T) {
+	now := time.Now()
+	tests := map[string]struct {
+		Time     time.Time
+		Expected string
+	}{
+		"zero value": {
+			Time:     time.Time{},
+			Expected: "-",
+		},
+		"seconds only": {
+			Time:     now.Add(-40 * time.Second),
+			Expected: "40s",
+		},
+		"one minute": {
+			Time:     now.Add(-time.Minute),
+			Expected: "1m",
+		},
+		"one minute fifteen sec": {
+			Time:     now.Add(-75 * time.Second),
+			Expected: "1m15s",
+		},
+		"one hour": {
+			Time:     now.Add(-time.Hour),
+			Expected: "1h",
+		},
+		"one hour five minutes": {
+			Time:     now.Add(-65 * time.Minute),
+			Expected: "1h5m",
+		},
+		"one day": {
+			Time:     now.Add(-24 * time.Hour),
+			Expected: "1d",
+		},
+		"one day two hours": {
+			Time:     now.Add(-26 * time.Hour),
+			Expected: "1d2h",
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			got := ShortDuration(test.Time, now)
+			if got != test.Expected {
+				t.Fatalf("want formatted time = %v; got %v", test.Expected, got)
+			}
+		})
 	}
 }

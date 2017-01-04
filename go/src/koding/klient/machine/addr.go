@@ -3,6 +3,7 @@ package machine
 import (
 	"encoding/json"
 	"errors"
+	"net"
 	"sync"
 	"time"
 )
@@ -26,7 +27,7 @@ type Addr struct {
 }
 
 // String return a string form of stored address.
-func (a *Addr) String() string { return a.Network + " address " + a.Value }
+func (a Addr) String() string { return a.Network + " address " + a.Value }
 
 // AddrBook stores and manages multiple machine addresses. Each machine can
 // can change its end point address over time. This can store all of these
@@ -37,8 +38,45 @@ type AddrBook struct {
 }
 
 // Add adds new address to address book. If provided address already exists, its
-// updated time will be updated.
+// updated time will be updated. Empty addresses will not be added.
+//
+// Moreover, if provided IP address doesn't match IPv4 or IPv6 schema, its
+// network will be changed to `tunnel`. If provided address contains port part
+// and has IP network, there will be two addresses added - one with `ip` network
+// and one with `tcp` network.
 func (ab *AddrBook) Add(a Addr) {
+	var isIP = func(val string) bool {
+		return net.ParseIP(val) != nil // ParseIP returns nil if IP is invalid.
+	}
+
+	if a.Network == "" || a.Value == "" {
+		return
+	}
+
+	if a.Network != "ip" || isIP(a.Value) {
+		ab.add(a)
+		return
+	}
+
+	if host, _, err := net.SplitHostPort(a.Value); err == nil && isIP(host) {
+		ab.add(Addr{
+			Network: "ip",
+			Value:   host,
+		})
+		ab.add(Addr{
+			Network: "tcp",
+			Value:   a.Value,
+		})
+		return
+	}
+
+	ab.add(Addr{
+		Network: "tunnel",
+		Value:   a.Value,
+	})
+}
+
+func (ab *AddrBook) add(a Addr) {
 	ab.mu.Lock()
 	defer ab.mu.Unlock()
 
@@ -52,18 +90,31 @@ func (ab *AddrBook) Add(a Addr) {
 	ab.addrs = append(ab.addrs, a)
 }
 
-// Has reports whether provided address is stored in address book or not.
-func (ab *AddrBook) Has(a Addr) bool {
+// Updated reports when provided address was updated. It returns ErrAddrNotFound
+// when address is not found.
+func (ab *AddrBook) Updated(a Addr) (time.Time, error) {
 	ab.mu.RLock()
 	defer ab.mu.RUnlock()
 
 	for i := range ab.addrs {
 		if ab.addrs[i].Network == a.Network && ab.addrs[i].Value == a.Value {
-			return true
+			return ab.addrs[i].UpdatedAt, nil
 		}
 	}
 
-	return false
+	return time.Time{}, ErrAddrNotFound
+}
+
+// All returns copy of all addresses stored in Address book.
+func (ab *AddrBook) All() (cp []Addr) {
+	ab.mu.RLock()
+	defer ab.mu.RUnlock()
+
+	for i := range ab.addrs {
+		cp = append(cp, ab.addrs[i])
+	}
+
+	return cp
 }
 
 // Latest returns the latest known address for a given network. If no address
@@ -100,5 +151,8 @@ func (ab *AddrBook) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON satisfies json.Unmarshaler interface. It is used to unmarshal
 // data into private address book fields.
 func (ab *AddrBook) UnmarshalJSON(data []byte) error {
+	ab.mu.Lock()
+	defer ab.mu.Unlock()
+
 	return json.Unmarshal(data, &ab.addrs)
 }

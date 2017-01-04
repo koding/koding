@@ -8,11 +8,8 @@ import (
 	"log"
 	_ "net/http/pprof"
 	"net/url"
-	"socialapi/workers/presence/client"
 	"strings"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"koding/api"
 	"koding/artifact"
@@ -34,11 +31,14 @@ import (
 	"koding/kites/kloud/terraformer"
 	"koding/kites/kloud/userdata"
 	"koding/remoteapi"
+	"koding/tools/util"
+	"socialapi/workers/presence/client"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/logging"
+	"golang.org/x/net/context"
 )
 
 //go:generate go run genimport.go -o import.go
@@ -71,9 +71,6 @@ type Config struct {
 
 	// Connect to Koding mongodb
 	MongoURL string `required:"true"`
-
-	// CredentialEndpoint is an API for managing stack credentials.
-	CredentialEndpoint string
 
 	// --- DEVELOPMENT CONFIG ---
 	// Show version and exit if enabled
@@ -134,15 +131,11 @@ type Config struct {
 	AWSAccessKeyId     string
 	AWSSecretAccessKey string
 
-	JanitorSecretKey     string
 	KloudSecretKey       string
 	TerraformerSecretKey string
 
-	// RemoteAPIURL configures the endpoint URL for remote.api.
-	RemoteAPIURL *config.URL `required:"true"`
-
-	// SocialProxyURL configures the endpoint URL for internal socialapi proxy host.
-	SocialProxyURL string
+	KodingURL *config.URL // Koding base URL
+	NoSneaker bool        // use Mongo for reading credentials, instead of /social/credential endpoint
 }
 
 // New gives new, registered kloud kite.
@@ -175,34 +168,27 @@ func New(conf *Config) (*Kloud, error) {
 		return nil, err
 	}
 
+	e := newEndpoints(conf)
+
+	sess.Log.Debug("Konfig.Endpoints: %s", util.LazyJSON(e))
+
 	authUsers := map[string]string{
 		"kloudctl": conf.KloudSecretKey,
-		"janitor":  conf.JanitorSecretKey,
-	}
-
-	var credURL *url.URL
-
-	if conf.CredentialEndpoint != "" {
-		if u, err := url.Parse(conf.CredentialEndpoint); err == nil {
-			credURL = u
-		}
-	}
-
-	if credURL == nil {
-		sess.Log.Warning(`disabling "Sneaker" for storing stack credential data`)
 	}
 
 	restClient := httputil.DefaultRestClient(conf.DebugMode)
 
-	pinger := client.NewInternal(conf.SocialProxyURL)
-	pinger.HTTPClient = restClient
-
 	storeOpts := &credential.Options{
 		MongoDB: sess.DB,
 		Log:     sess.Log.New("stackcred"),
-		CredURL: credURL,
 		Client:  restClient,
 	}
+
+	if !conf.NoSneaker {
+		storeOpts.CredURL = e.Social().WithPath("/credential").Private.URL
+	}
+
+	sess.Log.Debug("storeOpts: %+v", storeOpts)
 
 	userPrivateKey, userPublicKey := userMachinesKeys(conf.UserPublicKey, conf.UserPrivateKey)
 
@@ -255,14 +241,18 @@ func New(conf *Config) (*Kloud, error) {
 		AuthFunc:     api.NewCache(authFn).Auth,
 	}
 
+	kloud.Stack.Endpoints = e
+	kloud.Stack.Userdata = sess.Userdata
 	kloud.Stack.DescribeFunc = provider.Desc
 	kloud.Stack.CredClient = credential.NewClient(storeOpts)
 	kloud.Stack.MachineClient = machine.NewClient(machine.NewMongoDatabase())
 	kloud.Stack.TeamClient = team.NewClient(team.NewMongoDatabase())
+	kloud.Stack.PresenceClient = client.NewInternal(e.Social().Private.String())
+	kloud.Stack.PresenceClient.HTTPClient = restClient
 	kloud.Stack.RemoteClient = &remoteapi.Client{
 		Client:    storeOpts.Client,
 		Transport: transport,
-		Endpoint:  conf.RemoteAPIURL.URL,
+		Endpoint:  e.Remote().Private.URL,
 	}
 
 	kloud.Stack.ContextCreator = func(ctx context.Context) context.Context {
@@ -324,7 +314,11 @@ func New(conf *Config) (*Kloud, error) {
 	k.HandleFunc("credential.add", kloud.Stack.CredentialAdd)
 
 	// Authorization handling.
-	k.HandleFunc("auth.login", kloud.Stack.AuthLogin(pinger))
+	k.HandleFunc("auth.login", kloud.Stack.AuthLogin)
+	k.HandleFunc("auth.passwordLogin", kloud.Stack.AuthPasswordLogin).DisableAuthentication()
+
+	// Configuration handling.
+	k.HandleFunc("config.metadata", kloud.Stack.ConfigMetadata)
 
 	// Team handling.
 	k.HandleFunc("team.list", kloud.Stack.TeamList)
@@ -423,6 +417,23 @@ func newSession(conf *Config, k *kite.Kite) (*session.Session, error) {
 	sess.DNSStorage = dnsstorage.NewMongodbStorage(sess.DB)
 
 	return sess, nil
+}
+
+func newEndpoints(cfg *Config) *config.Endpoints {
+	e := config.NewKonfig(&config.Environments{Env: cfg.Environment}).Endpoints
+
+	if cfg.KodingURL != nil {
+		e.Koding.Public = cfg.KodingURL
+	}
+
+	if cfg.TunnelURL != "" {
+		if u, err := url.Parse(cfg.TunnelURL); err == nil {
+			u.Path = "/kite"
+			e.Tunnel = config.NewEndpoint(u.String())
+		}
+	}
+
+	return e
 }
 
 func userMachinesKeys(publicPath, privatePath string) (string, string) {

@@ -66,8 +66,8 @@ func TestTeeFetcher(t *testing.T) {
 	p := Creds{}
 
 	s := credential.TeeFetcher{
-		credential.Fetcher: f,
-		credential.Fetcher: p,
+		Fetcher: f,
+		Putter:  p,
 	}
 
 	got := map[string]interface{}{

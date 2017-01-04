@@ -2,6 +2,7 @@ package addresses
 
 import (
 	"sync"
+	"time"
 
 	"koding/klient/machine"
 )
@@ -58,27 +59,37 @@ func (a *Addresses) Latest(id machine.ID, network string) (machine.Addr, error) 
 }
 
 // MachineID checks if there is a machine ID that is binded to provided address
-// If yes, the machine ID is returned. machine.ErrMachineNotFound is returned
-// if there is no machine that has provided address.
+// If yes, the machine ID is returned. If there are more machines with the same
+// address, machine with the newest address will be provided. ErrMachineNotFound
+// is returned if there is no machine that has provided address.
 func (a *Addresses) MachineID(addr machine.Addr) (machine.ID, error) {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
+	var (
+		ret     machine.ID
+		updated time.Time
+	)
+
 	for id, ab := range a.m {
-		if ab.Has(addr) {
-			return id, nil
+		if u, err := ab.Updated(addr); err == nil && u.After(updated) {
+			ret, updated = id, u
 		}
+	}
+
+	if ret != "" {
+		return ret, nil
 	}
 
 	return "", machine.ErrMachineNotFound
 }
 
 // Registered returns all machines that are stored in this object.
-func (a *Addresses) Registered() []machine.ID {
+func (a *Addresses) Registered() machine.IDSlice {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
 
-	registered := make([]machine.ID, 0, len(a.m))
+	registered := make(machine.IDSlice, 0, len(a.m))
 	for id := range a.m {
 		registered = append(registered, id)
 	}

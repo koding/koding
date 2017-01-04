@@ -54,7 +54,7 @@ func printTeams(teams []*team.Team) {
 	fmt.Fprintln(w, "NAME\tSLUG\tPRIVACY\tMEMBERS\tSUBSCRIPTION")
 
 	for _, t := range teams {
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", t.Name, t.Slug, t.Privacy, t.Members, t.Subscription)
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", t.Name, t.Slug, t.Privacy, t.Members, t.SubStatus)
 	}
 }
 

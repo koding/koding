@@ -1,9 +1,7 @@
 React = require 'react'
 { storiesOf, action } = require '@kadira/storybook'
 
-VerifyEmailWarning = require './VerifyEmailWarning'
+SubscriptionNoCardWarning = require './SubscriptionNoCardWarning'
 
-storiesOf 'VerifyEmailWarning', module
-  .add 'default', -> <VerifyEmailWarning />
-
-
+storiesOf 'SubscriptionNoCardWarning', module
+  .add 'default', -> <SubscriptionNoCardWarning />

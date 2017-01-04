@@ -6,7 +6,105 @@ import (
 	"time"
 )
 
-func TestAddrBookAddHas(t *testing.T) {
+func TestAddrBookAdd(t *testing.T) {
+	tests := map[string]struct {
+		Arg      Addr
+		Expected []Addr
+	}{
+		"zero value": {
+			Arg: Addr{
+				Network: "",
+				Value:   "127.0.0.1",
+			},
+			Expected: nil,
+		},
+		"zero value of network": {
+			Arg: Addr{
+				Network: "",
+				Value:   "127.0.0.1",
+			},
+			Expected: nil,
+		},
+		"zero value of value": {
+			Arg: Addr{
+				Network: "",
+				Value:   "127.0.0.1",
+			},
+			Expected: nil,
+		},
+		"tcp address": {
+			Arg: Addr{
+				Network: "tcp",
+				Value:   "127.0.0.1:8080",
+			},
+			Expected: []Addr{
+				{
+					Network: "tcp",
+					Value:   "127.0.0.1:8080",
+				},
+			},
+		},
+		"ip valid address": {
+			Arg: Addr{
+				Network: "ip",
+				Value:   "127.0.0.1",
+			},
+			Expected: []Addr{
+				{
+					Network: "ip",
+					Value:   "127.0.0.1",
+				},
+			},
+		},
+		"ip address with port": {
+			Arg: Addr{
+				Network: "ip",
+				Value:   "127.0.0.1:56789",
+			},
+			Expected: []Addr{
+				{
+					Network: "ip",
+					Value:   "127.0.0.1",
+				},
+				{
+					Network: "tcp",
+					Value:   "127.0.0.1:56789",
+				},
+			},
+		},
+		"tunnel address": {
+			Arg: Addr{
+				Network: "ip",
+				Value:   "urjn784c4563.ppknap.1d54476f2.dev.koding.me",
+			},
+			Expected: []Addr{
+				{
+					Network: "tunnel",
+					Value:   "urjn784c4563.ppknap.1d54476f2.dev.koding.me",
+				},
+			},
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			ab := &AddrBook{}
+			ab.Add(test.Arg)
+
+			if len(ab.All()) != len(test.Expected) {
+				t.Fatalf("want len(ab) = %d; got %d", len(test.Expected), len(ab.All()))
+			}
+
+			for _, addr := range test.Expected {
+				if _, err := ab.Updated(addr); err != nil {
+					t.Fatalf("want addr: %v to be in address book; it is not", addr)
+				}
+			}
+		})
+	}
+}
+
+func TestAddrBookAddUpdated(t *testing.T) {
 	tests := map[string]struct {
 		Has  bool
 		Addr Addr
@@ -57,8 +155,13 @@ func TestAddrBookAddHas(t *testing.T) {
 		test := test // capture range variable.
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			if has := ab.Has(test.Addr); has != test.Has {
-				t.Fatalf("want has = %t; got %t", test.Has, has)
+			updated, err := ab.Updated(test.Addr)
+			if (err == nil) != test.Has {
+				t.Fatalf("want err = nil to be %t; got %v", !test.Has, err)
+			}
+
+			if test.Has && !updated.Equal(test.Addr.UpdatedAt) {
+				t.Fatalf("want updated = %v; got %v", test.Addr.UpdatedAt, updated)
 			}
 		})
 	}

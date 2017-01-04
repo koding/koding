@@ -209,7 +209,7 @@ func (t *Tunnel) updateOptions(reg *tunnelproxy.RegisterResult) {
 	t.restoreServices()
 	t.mu.Unlock()
 
-	if err := t.db.SetOptions(t.opts); err != nil {
+	if err := t.db.SetOptions(t.opts); err != nil && err != storage.ErrKeyNotFound {
 		t.opts.Log.Warning("tunnel: unable to update options: %s", err)
 	}
 

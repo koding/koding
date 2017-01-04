@@ -17,5 +17,5 @@ type Aliaser interface {
 	MachineID(string) (machine.ID, error)
 
 	// Registered returns all machines that are managed by aliaser.
-	Registered() []machine.ID
+	Registered() machine.IDSlice
 }

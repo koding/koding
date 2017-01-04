@@ -58,15 +58,15 @@
   </a>
   <script>
     document.querySelector('.burger').onclick = function () {
-      if (document.body.classList.contains('burgerToggle')) {
-        document.body.classList.remove('burgerToggle');
+      if ($(document.body).hasClass('burgerToggle')) {
+        $(document.body).removeClass('burgerToggle');
       } else {
-        document.body.classList.add('burgerToggle');
+        $(document.body).addClass('burgerToggle');
       }
     }
     document.body.addEventListener('click', function (event) {
-      if (!$(event.target).closest('header').length && document.body.classList.contains('burgerToggle')){
-        document.body.classList.remove('burgerToggle');
+      if (!$(event.target).closest('header').length && $(document.body).hasClass('burgerToggle')){
+        $(document.body).removeClass('burgerToggle');
       }
     });
   </script>

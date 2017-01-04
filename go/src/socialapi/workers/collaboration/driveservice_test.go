@@ -14,6 +14,7 @@ import (
 
 	"code.google.com/p/google-api-go-client/drive/v2"
 
+	"github.com/koding/cache"
 	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -34,10 +35,11 @@ func TestCollaborationDriveService(t *testing.T) {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
-	redisConn := runner.MustInitRedisConn(r.Conf)
-	defer redisConn.Close()
+	// init with defaults
+	mongoCache := cache.NewMongoCacheWithTTL(modelhelper.Mongo.Session)
+	defer mongoCache.StopGC()
 
-	handler := New(r.Log, redisConn, appConfig, r.Kite)
+	handler := New(r.Log, mongoCache, appConfig, r.Kite)
 
 	SkipConvey("while pinging collaboration", t, func() {
 		// owner

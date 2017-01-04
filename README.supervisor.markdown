@@ -49,24 +49,18 @@ By default, `supervisorctl` prints output of `status` command.
 Example output during startup:
 
 ```
-environment:janitor                   STARTING
 environment:kloud                     STARTING
 environment:kontrol                   STARTING
 environment:terraformer               STARTING
 socialapi:algoliaconnector            STARTING
 socialapi:collaboration               STARTING
 socialapi:dispatcher                  STARTING
-socialapi:eventsender                 STARTING
 socialapi:gatekeeper                  STARTING
 socialapi:mailsender                  STARTING
 socialapi:realtime                    STARTING
 socialapi                             STARTING
 socialapi:team                        STARTING
-webserver:authworker                  STARTING
-webserver:broker                      STARTING
-webserver:rerouting                   STARTING
 webserver:socialworker                STARTING
-webserver:sourcemaps                  STARTING
 webserver                             STARTING
 ```
 
@@ -74,24 +68,18 @@ Same command executed through command line options.
 
 ```
 $ supervisorctl status
-environment:janitor                   RUNNING   pid 3638, uptime 0:00:11
 environment:kloud                     RUNNING   pid 3276, uptime 0:00:15
 environment:kontrol                   RUNNING   pid 3271, uptime 0:00:15
 environment:terraformer               RUNNING   pid 3274, uptime 0:00:15
 socialapi:algoliaconnector            RUNNING   pid 3327, uptime 0:00:15
 socialapi:collaboration               RUNNING   pid 3382, uptime 0:00:15
 socialapi:dispatcher                  RUNNING   pid 3391, uptime 0:00:15
-socialapi:eventsender                 RUNNING   pid 3362, uptime 0:00:15
 socialapi:gatekeeper                  RUNNING   pid 3277, uptime 0:00:15
 socialapi:mailsender                  RUNNING   pid 3292, uptime 0:00:15
 socialapi:realtime                    RUNNING   pid 3312, uptime 0:00:15
 socialapi                             RUNNING   pid 3280, uptime 0:00:15
 socialapi:team                        RUNNING   pid 3417, uptime 0:00:15
-webserver:authworker                  RUNNING   pid 3446, uptime 0:00:15
-webserver:broker                      RUNNING   pid 3448, uptime 0:00:15
-webserver:rerouting                   RUNNING   pid 3418, uptime 0:00:15
 webserver:socialworker                RUNNING   pid 3482, uptime 0:00:15
-webserver:sourcemaps                  RUNNING   pid 3419, uptime 0:00:15
 webserver                             RUNNING   pid 3449, uptime 0:00:15
 ```
 

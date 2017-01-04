@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPISocialNotificationFetch(params *PostRemoteAPISocia
 		Params:             params,
 		Reader:             &PostRemoteAPISocialNotificationFetchReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPISocialNotificationGlance(params *PostRemoteAPISoci
 		Params:             params,
 		Reader:             &PostRemoteAPISocialNotificationGlanceReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

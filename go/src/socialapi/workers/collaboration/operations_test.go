@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/koding/bongo"
+	"github.com/koding/cache"
 	"github.com/koding/runner"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -33,10 +34,11 @@ func TestCollaborationOperationsDeleteDriveDoc(t *testing.T) {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
-	redisConn := runner.MustInitRedisConn(r.Conf)
-	defer redisConn.Close()
+	// init with defaults
+	mongoCache := cache.NewMongoCacheWithTTL(modelhelper.Mongo.Session)
+	defer mongoCache.StopGC()
 
-	handler := New(r.Log, redisConn, appConfig, r.Kite)
+	handler := New(r.Log, mongoCache, appConfig, r.Kite)
 
 	Convey("while testing DeleteDriveDoc", t, func() {
 		req := &models.Ping{
@@ -76,10 +78,11 @@ func TestCollaborationOperationsEndPrivateMessage(t *testing.T) {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
-	redisConn := runner.MustInitRedisConn(r.Conf)
-	defer redisConn.Close()
+	// init with defaults
+	mongoCache := cache.NewMongoCacheWithTTL(modelhelper.Mongo.Session)
+	defer mongoCache.StopGC()
 
-	handler := New(r.Log, redisConn, appConfig, r.Kite)
+	handler := New(r.Log, mongoCache, appConfig, r.Kite)
 
 	Convey("while testing EndPrivateMessage", t, func() {
 		req := &models.Ping{
@@ -169,10 +172,11 @@ func TestCollaborationOperationsUnshareVM(t *testing.T) {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
-	redisConn := runner.MustInitRedisConn(r.Conf)
-	defer redisConn.Close()
+	// init with defaults
+	mongoCache := cache.NewMongoCacheWithTTL(modelhelper.Mongo.Session)
+	defer mongoCache.StopGC()
 
-	handler := New(r.Log, redisConn, appConfig, r.Kite)
+	handler := New(r.Log, mongoCache, appConfig, r.Kite)
 
 	Convey("while testing UnshareVM", t, func() {
 

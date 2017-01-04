@@ -65,7 +65,6 @@ build:
         name: launch test hosts
         code: |
           scripts/wercker/run-command scripts/wercker/launch-test-hosts | tee INSTANCE_DATA
-          scripts/wercker/run-command scripts/wercker/launch-rainforest-host | tee RAINFOREST_HOST
     - script:
         name: check configs
         code: |
@@ -131,9 +130,6 @@ build:
         name: test social api
         code: scripts/wercker/run-command scripts/wercker/test-social-api
     - script:
-        name: test janitor
-        code: scripts/wercker/run-command ./run janitortests
-    - script:
         name: test koding mongo models
         code: scripts/wercker/run-command ./run exec go test koding/db/mongodb/modelhelper
     - script:
@@ -151,10 +147,6 @@ build:
         name: check connectivity
         code: |
           scripts/wercker/run-command scripts/wercker/check-connectivity INSTANCE_DATA
-          scripts/wercker/run-command scripts/wercker/check-connectivity-rainforest RAINFOREST_HOST
-    - script:
-        name: run rainforest
-        code: scripts/wercker/run-command scripts/wercker/run-rainforest RAINFOREST_HOST
     - script:
         name: test nodejs
         code: scripts/wercker/run-command scripts/node-testing/run-tests INSTANCE_DATA

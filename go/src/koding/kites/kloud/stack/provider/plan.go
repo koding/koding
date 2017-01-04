@@ -43,7 +43,7 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 
 	contentID := bs.Req.Username + "-" + arg.StackTemplateID
 
-	bs.Log.Debug("Stack template before plan: %s", contentID, util.PrettyJSON(bs.Builder.StackTemplate.Template.Content))
+	bs.Log.Debug("Stack template before plan: %s", contentID, util.LazyJSON(bs.Builder.StackTemplate.Template.Content))
 
 	if err := bs.Builder.BuildTemplate(bs.Builder.StackTemplate.Template.Content, contentID); err != nil {
 		return nil, err

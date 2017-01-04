@@ -1,12 +1,12 @@
 package models
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"net"
 	"socialapi/config"
 	"socialapi/request"
 
 	"github.com/koding/logging"
-	"github.com/koding/redis"
 )
 
 // Client holds the contextual requester/client info
@@ -25,15 +25,13 @@ type Client struct {
 type Context struct {
 	GroupName string
 	Client    *Client
-	redis     *redis.RedisSession
 	log       logging.Logger
 }
 
 // NewContext creates a new context
-func NewContext(redis *redis.RedisSession, log logging.Logger) *Context {
+func NewContext(log logging.Logger) *Context {
 	return &Context{
-		redis: redis,
-		log:   log,
+		log: log,
 	}
 }
 
@@ -79,6 +77,26 @@ func (c *Context) IsAdmin() bool {
 	return IsIn(c.Client.Account.Nick, superAdmins...)
 }
 
+// IsGroupAdmin checks if the current context is the admin of the context's
+// group.
+// mongo connection is required.
+func (c *Context) IsGroupAdmin() error {
+	if !c.IsLoggedIn() {
+		return ErrNotLoggedIn
+	}
+
+	isAdmin, err := modelhelper.IsAdmin(c.Client.Account.Nick, c.GroupName)
+	if err != nil {
+		return err
+	}
+
+	if !isAdmin {
+		return ErrNotAdmin
+	}
+
+	return nil
+}
+
 // MustGetLogger gets the logger from context, otherwise panics
 func (c *Context) MustGetLogger() logging.Logger {
 	if c.log == nil {
@@ -86,13 +104,4 @@ func (c *Context) MustGetLogger() logging.Logger {
 	}
 
 	return c.log
-}
-
-// MustGetRedisConn gets the logger from context, otherwise panics
-func (c *Context) MustGetRedisConn() *redis.RedisSession {
-	if c.redis == nil {
-		panic(ErrRedisNotExist)
-	}
-
-	return c.redis
 }

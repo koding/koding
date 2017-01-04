@@ -28,12 +28,6 @@ module.exports = (options) ->
     worker_sneakerS3 : kodingdev_master
 
   mongo = "#{options.serviceHost}:27017/koding"
-  redis =
-    host: "#{options.serviceHost}"
-    port: "6379"
-    db: 0
-    url : "#{options.serviceHost}:6379"
-  monitoringRedis = redis
   rabbitmq =
     host: "#{options.serviceHost}"
     port: 5672
@@ -135,8 +129,6 @@ module.exports = (options) ->
     app_key: ''
   embedly =
     apiKey: ''
-  siftScience = ''
-  siftSciencePublic = ''
   jwt =
     secret: 'somesecretkeyhere'
     confirmExpiresInMinutes: 10080
@@ -159,9 +151,6 @@ module.exports = (options) ->
   recaptcha =
     secret: ''
     public: ''
-  janitor =
-    port: '6700'
-    secretKey: ''
   segment = ''
   kontrol =
     publicKey: "$KONFIG_PROJECTROOT/generated/private_keys/kontrol/kontrol.pub"
@@ -170,7 +159,6 @@ module.exports = (options) ->
     publicKey: kontrol.publicKey
     privateKey: kontrol.privateKey
     secretKey: ''
-    janitorSecretKey: janitor.secretKey
     terraformerSecretKey: terraformer.secretKey
     userPublicKey: "$KONFIG_PROJECTROOT/generated/private_keys/kloud/kloud.pub"
     userPrivateKey: "$KONFIG_PROJECTROOT/generated/private_keys/kloud/kloud.pem"
@@ -186,8 +174,6 @@ module.exports = (options) ->
     kiteHome
     awsKeys
     mongo
-    redis
-    monitoringRedis
     rabbitmq
     algolia
     postgres
@@ -205,15 +191,12 @@ module.exports = (options) ->
     linkedin
     datadog
     embedly
-    siftScience
-    siftSciencePublic
     jwt
     papertrail
     helpscout
     sneakerS3
     stripe
     recaptcha
-    janitor
     segment
     kontrol
     kloud

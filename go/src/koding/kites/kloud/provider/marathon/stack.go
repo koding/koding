@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"koding/kites/config"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/stack"
 	"koding/kites/kloud/stack/provider"
@@ -383,19 +384,23 @@ func (s *Stack) injectMetadata(app map[string]interface{}, name string) error {
 			tunnelID = m.Uid
 		}
 
-		konfig := map[string]interface{}{
-			"kiteKey":    kiteKey,
-			"kontrolURL": stack.Konfig.KontrolURL,
-			"kloudURL":   stack.Konfig.KloudURL,
-			"tunnelURL":  stack.Konfig.TunnelURL,
-			"tunnelID":   tunnelID,
+		konfig := &config.Konfig{
+			Endpoints: stack.Konfig.Endpoints,
+			TunnelID:  tunnelID,
+			KiteKey:   kiteKey,
+			Debug:     s.Debug,
 		}
 
-		if s.Debug {
-			konfig["debug"] = true
+		metadata := map[string]interface{}{
+			"konfig.konfig.konfigs": map[string]interface{}{
+				konfig.ID(): konfig,
+			},
+			"konfig.konfig.konfigs.used": map[string]interface{}{
+				"id": konfig.ID(),
+			},
 		}
 
-		p, err := json.Marshal(map[string]interface{}{"konfig": konfig})
+		p, err := json.Marshal(metadata)
 		if err != nil {
 			return err
 		}

@@ -95,7 +95,7 @@ func RegisterCommand(c *cli.Context, log logging.Logger, _ string) int {
 		return 1
 	}
 
-	host := config.Konfig.KodingBaseURL
+	host := config.Konfig.Endpoints.Koding.Public.String()
 
 	client := httputil.DefaultRestClient(false)
 
@@ -119,16 +119,13 @@ func RegisterCommand(c *cli.Context, log logging.Logger, _ string) int {
 	// team cannot be empty (because of required while registering)
 	// otherwise it return error while registering user
 	// store groupName or slug as "team" inside the cache
-	teamname := c.String("team")
-	session := endpointauth.Session{
+	session := &endpointauth.Session{
 		ClientID: clientID,
-		Team:     teamname,
+		Team:     r.Slug,
 	}
+
 	// Set clientId and teamname into the kd.bolt
-	if err := endpointauth.DefaultClient.SetSession(teamname, session); err != nil {
-		log.Error("error while caching team")
-		return 1
-	}
+	endpointauth.Use(session)
 
 	return 0
 }

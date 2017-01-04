@@ -29,19 +29,6 @@ module.exports = (options, credentials) ->
     aws: "aws"
     premium: "vagrant"
 
-  broker =
-    name: "broker"
-    serviceGenericName: "broker"
-    ip: ""
-    webProtocol: options.protocol
-    host: "#{options.customDomain.public}"
-    port: 8008
-    certFile: ""
-    keyFile: ""
-    authExchange: "auth"
-    authAllExchange: "authAll"
-    failoverUri: "#{options.customDomain.public}"
-
   tunnelproxymanager =
     ebEnvName: options.ebEnvName
 
@@ -77,16 +64,6 @@ module.exports = (options, credentials) ->
     host: "localhost"
     port: "7200"
     pubnub: credentials.pubnub
-
-  integration =
-    host: "localhost"
-    port: "7300"
-    url: "#{options.customDomain.public}/api/integration"
-
-  webhookMiddleware =
-    host: "localhost"
-    port: "7350"
-    url: "#{options.customDomain.public}/api/webhook"
 
   recaptcha =
     enabled: options.recaptchaEnabled
@@ -136,17 +113,14 @@ module.exports = (options, credentials) ->
     keygenBucket: credentials.kloud.keygenBucket
 
     address: "http://localhost:#{kloudPort}/kite"
+    noSneaker: false
 
     kontrolUrl: kontrol.url
+    kodingUrl:  "#{options.customDomain.public}"
     registerUrl: "#{options.customDomain.public}/kloud/kite"
-    remoteApiUrl: "#{options.customDomain.local}/remote.api"
     tunnelUrl: "#{options.tunnelUrl}"
     klientUrl: "https://s3.amazonaws.com/koding-klient/development/latest/klient.deb"
 
-    credentialEndPoint: "#{socialApiProxyUrl}/credential"
-    socialProxyURL: "#{socialApiProxyUrl}"
-
-    janitorSecretKey: credentials.janitor.secretKey
     terraformerSecretKey: credentials.terraformer.secretKey
 
 
@@ -163,11 +137,8 @@ module.exports = (options, credentials) ->
 
     stripe                 : credentials.stripe
     github                 : credentials.github
-    gitlab                 : gitlab
-    janitor                : credentials.janitor
     postgres               : credentials.postgres
     mq                     : credentials.rabbitmq
-    redis                  : credentials.redis
     mongo                  : credentials.mongo
     googleapiServiceAccount: credentials.googleapiServiceAccount
     slack                  : credentials.slack
@@ -180,12 +151,9 @@ module.exports = (options, credentials) ->
 
     algolia                : algoliaSecret
     gatekeeper             : gatekeeper
-    integration            : integration
-    webhookMiddleware      : webhookMiddleware
     customDomain           : options.customDomain
     email                  : email
 
-    sitemap                : { redisDB: 0, updateInterval: "1m" }
     limits                 : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 30 }
     kloud                  : { secretKey: kloud.kloudSecretKey, address: kloud.address }
     geoipdbpath            : "$KONFIG_PROJECTROOT/go/data/geoipdb"
@@ -205,20 +173,19 @@ module.exports = (options, credentials) ->
         name           : options.publicLogsS3BucketName
         region         : 'us-east-1'
     endpoints          :
-      ip               : "https://#{options.proxySubdomain}.koding.com/-/ip"
-      ipCheck          : "https://#{options.proxySubdomain}.koding.com/-/ipcheck"
-      kdLatest         : "https://koding-kd.s3.amazonaws.com/#{options.environment}/latest-version.txt"
-      klientLatest     : "https://koding-klient.s3.amazonaws.com/#{options.environment}/latest-version.txt"
-      kloud            : "#{options.publicHostname}/kloud/kite",
-      kontrol          : "#{options.publicHostname}/kontrol/kite",
-      kodingBase       : "#{options.publicHostname}",
-      remoteAPI        :
-        public         : "#{options.customDomain.public}/remote.api"
-        private        : "#{options.customDomain.local}/remote.api"
-      tunnelServer     : "#{options.tunnelUrl}/kite"
-      socialAPI        :
-        public         : "#{options.customDomain.public}/api/social"
-        private        : "#{options.customDomain.local}/api/social"
+      ip               :
+        public         : "https://#{options.proxySubdomain}.koding.com/-/ip"
+      ipCheck          :
+        public         : "https://#{options.proxySubdomain}.koding.com/-/ipcheck"
+      kdLatest         :
+        public         : "https://koding-kd.s3.amazonaws.com/#{options.environment}/latest-version.txt"
+      klientLatest     :
+        public         : "https://koding-klient.s3.amazonaws.com/#{options.environment}/latest-version.txt"
+      kodingBase       :
+        public         : "#{options.customDomain.public}"
+        private        : "#{options.customDomain.local}"
+      tunnelServer     :
+        public         : "#{options.tunnelUrl}/kite"
     routes             :
       'dev.koding.com' : '127.0.0.1'
 
@@ -242,8 +209,6 @@ module.exports = (options, credentials) ->
     clientUploadS3BucketName      : options.clientUploadS3BucketName
 
     kiteHome                      : credentials.kiteHome
-    redis                         : credentials.redis
-    monitoringRedis               : credentials.monitoringRedis
     mongo                         : credentials.mongo
     postgres                      : credentials.postgres
     mq                            : credentials.rabbitmq
@@ -259,9 +224,7 @@ module.exports = (options, credentials) ->
     slack                         : credentials.slack
     sneakerS3                     : credentials.sneakerS3
     embedly                       : credentials.embedly
-    integration                   : credentials.integration
     googleapiServiceAccount       : credentials.googleapiServiceAccount
-    siftScience                   : credentials.siftScience
     jwt                           : credentials.jwt
     papertrail                    : credentials.papertrail
     mailgun                       : credentials.mailgun
@@ -274,7 +237,6 @@ module.exports = (options, credentials) ->
     wufoo                         : credentials.wufoo
 
     regions                       : regions
-    broker                        : broker
     tunnelproxymanager            : tunnelproxymanager
     tunnelserver                  : tunnelserver
     marketingPagesURL             : marketingPagesURL
@@ -285,7 +247,6 @@ module.exports = (options, credentials) ->
     kloud                         : kloud
     kontrol                       : kontrol
     gatekeeper                    : gatekeeper
-    integration                   : integration
     recaptcha                     : recaptcha
     uri                           : { address: options.customDomain.public }
     misc                          : { claimGlobalNamesForUsers: no , debugConnectionErrors: yes, updateAllSlugs: false }
@@ -293,16 +254,11 @@ module.exports = (options, credentials) ->
     nodejsRateLimiter             : { enabled: no,  guestRules: [{ interval: 3600, limit: 5000 }], userRules: [{ interval: 3600, limit: 10000 }] } # limit: request limit per rate limit window, interval: rate limit window duration in seconds
     nodejsRateLimiterForApi       : { enabled: yes, guestRules: [{ interval: 60,   limit: 10 }],   userRules: [{ interval: 60,   limit: 300 }] }   # limit: request limit per rate limit window, interval: rate limit window duration in seconds
     webserver                     : { port: 8080, useCacheHeader: no }
-    authWorker                    : { login: credentials.rabbitmq.login, queueName: options.socialQueueName + 'auth', authExchange: "auth", authAllExchange: "authAll", port : 9530 }
     social                        : { port: 3030, login: "#{credentials.rabbitmq.login}", queueName: options.socialQueueName, kitePort: 8760, kiteKey: "#{credentials.kiteHome}/kite.key" }
     boxproxy                      : { port: parseInt(options.publicPort, 10) }
-    sourcemaps                    : { port: 3526 }
-    rerouting                     : { port: 9500 }
     sessionCookie                 : { maxAge: 1000 * 60 * 60 * 24 * 14, secure: options.secureCookie }
     troubleshoot                  : { recipientEmail: "can@koding.com" }
-    contentRotatorUrl             : 'http://koding.github.io'
     collaboration                 : { timeout: 1 * 60 * 1000 }
     client                        : { watch: yes, version: options.version, includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{options.customDomain.public}:#{options.customDomain.port}" }
-    contentRotatorUrl              : 'http://koding.github.io'
 
   return KONFIG

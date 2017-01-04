@@ -20,13 +20,13 @@ import (
 	emailapi "socialapi/workers/email/api"
 	mailapi "socialapi/workers/email/mailparse/api"
 	"socialapi/workers/helper"
-	notificationapi "socialapi/workers/notification/api"
 	"socialapi/workers/payment"
 	paymentapi "socialapi/workers/payment/api"
 	presenceapi "socialapi/workers/presence/api"
 	realtimeapi "socialapi/workers/realtime/api"
 	slackapi "socialapi/workers/slack/api"
 
+	"github.com/koding/cache"
 	"github.com/koding/runner"
 )
 
@@ -47,15 +47,20 @@ func main() {
 	mc.Debug = r.Conf.Debug
 	m := mux.New(mc, r.Log, r.Metrics)
 
-	// init redis
-	redisConn := r.Bongo.MustGetRedisConn()
+	// init mongo connection
+	modelhelper.Initialize(c.Mongo)
+	defer modelhelper.Close()
 
-	m.SetRedis(redisConn)
+	// init mongo cache with ensured index
+	mgoCache := cache.NewMongoCacheWithTTL(modelhelper.Mongo.Session,
+		cache.StartGC(),
+		cache.MustEnsureIndexExpireAt(),
+	)
+	defer mgoCache.StopGC()
 
 	handlers.AddHandlers(m)
-	collaboration.AddHandlers(m)
+	collaboration.AddHandlers(m, mgoCache)
 	paymentapi.AddHandlers(m)
-	notificationapi.AddHandlers(m)
 	mailapi.AddHandlers(m)
 	algoliaapi.AddHandlers(m, r.Log)
 
@@ -72,10 +77,6 @@ func main() {
 	slackapi.AddHandlers(m, c)
 	credential.AddHandlers(m, r.Log, c)
 	emailapi.AddHandlers(m)
-
-	// init mongo connection
-	modelhelper.Initialize(c.Mongo)
-	defer modelhelper.Close()
 
 	mmdb, err := helper.ReadGeoIPDB(c)
 	if err != nil {

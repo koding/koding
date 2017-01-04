@@ -6,7 +6,6 @@ import (
 	"koding/db/models"
 	helper "koding/db/mongodb/modelhelper"
 	"koding/helpers"
-	"koding/tools/config"
 	"os"
 	"strings"
 	"time"
@@ -17,12 +16,11 @@ import (
 )
 
 var (
-	conf        *config.Config
-	flagProfile = flag.String("c", "prod", "Configuration profile from file")
-	flagSkip    = flag.Int("s", 0, "Configuration profile from file")
-	flagLimit   = flag.Int("l", 1000, "Configuration profile from file")
-	flagDry     = flag.Bool("dry", false, "dry run")
-	flagColls   = flag.String("colls", "jUsers,jAccounts,jWorkspaces,jNames,jComputeStacks,jCombinedAppStorages,relationships", "collections to clean up")
+	flagMongoConn = flag.String("mongo", "", "mongo connection string")
+	flagSkip      = flag.Int("s", 0, "Configuration profile from file")
+	flagLimit     = flag.Int("l", 1000, "Configuration profile from file")
+	flagDry       = flag.Bool("dry", false, "dry run")
+	flagColls     = flag.String("colls", "jUsers,jAccounts,jWorkspaces,jNames,jComputeStacks,jCombinedAppStorages,relationships", "collections to clean up")
 
 	deletedGroupBySlug  = cache.NewLRU(10000)
 	existingGroupBySlug = cache.NewLRU(10000)
@@ -41,13 +39,12 @@ var (
 
 func initialize() {
 	flag.Parse()
-	if *flagProfile == "" {
-		fmt.Printf("Please specify profile via -c. Aborting.")
+	if *flagMongoConn == "" {
+		fmt.Printf("Please specify mongo conn string.")
 		os.Exit(1)
 	}
 
-	conf = config.MustConfig(*flagProfile)
-	helper.Initialize(conf.Mongo)
+	helper.Initialize(*flagMongoConn)
 }
 
 func main() {
@@ -288,6 +285,17 @@ func deleteCombinedAppStorages(res interface{}) error {
 	cs := res.(*models.CombinedAppStorage)
 
 	if getAccountByID(cs.AccountId.Hex()) {
+		storages, err := helper.GetAllCombinedAppStorageByAccountId(cs.AccountId)
+		if err != nil {
+			return err
+		}
+		if len(storages) > 1 {
+			mergedStorage := mergeCombinedAppStorageData(storages)
+			_, err := combineWithDeletion(mergedStorage, storages)
+			if err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 
@@ -316,7 +324,7 @@ func deleteRels(res interface{}) error {
 
 	var data interface{}
 	targetCollectionName := helper.GetCollectionName(r.TargetName)
-	if err := helper.Mongo.One(targetCollectionName, r.TargetId.Hex(), &data); err != nil {
+	if err := helper.Mongo.One(targetCollectionName, r.TargetId.Hex(), &data); err == mgo.ErrNotFound {
 		fmt.Printf("deleted because of target: id: %q from: %q name: %q\n", r.Id.Hex(), targetCollectionName, r.TargetName)
 		if !*flagDry {
 			return helper.DeleteRelationship(r.Id)
@@ -325,7 +333,7 @@ func deleteRels(res interface{}) error {
 	}
 
 	sourceCollectionName := helper.GetCollectionName(r.SourceName)
-	if err := helper.Mongo.One(sourceCollectionName, r.SourceId.Hex(), &data); err != nil {
+	if err := helper.Mongo.One(sourceCollectionName, r.SourceId.Hex(), &data); err == mgo.ErrNotFound {
 		fmt.Printf("deleting because of source: id: %q from: %q name: %q\n", r.Id.Hex(), sourceCollectionName, r.SourceName)
 		if !*flagDry {
 			return helper.DeleteRelationship(r.Id)
@@ -463,6 +471,57 @@ func getGroupBySlug(slug string) bool {
 	existingGroupBySlug.Set(slug, struct{}{})
 
 	return true
+}
+
+func mergeCombinedAppStorageData(storages []models.CombinedAppStorage) models.CombinedAppStorage {
+	var updatedAppStorage models.CombinedAppStorage
+	// init CombinedAppStorage bucket
+	updatedAppStorage.Bucket = make(map[string]map[string]map[string]interface{})
+
+	for _, storage := range storages {
+		for appName, bucket := range storage.Bucket {
+			// if app does not have any data, remove it by ignoring.
+			if _, ok := bucket["data"]; !ok || len(bucket["data"]) == 0 {
+				continue
+			}
+
+			// if we dont have the app in the new app storage, assign it.
+			if _, ok := updatedAppStorage.Bucket[appName]; !ok {
+				updatedAppStorage.Bucket[appName] = bucket
+				continue
+			}
+
+			// if we have the app in the merged one, only fill non-existing keys.
+			for key, value := range bucket["data"] {
+				if _, ok := updatedAppStorage.Bucket[appName]["data"][key]; !ok {
+					updatedAppStorage.Bucket[appName]["data"][key] = value
+				}
+			}
+		}
+	}
+
+	return updatedAppStorage
+}
+
+// combineWithDeletion updates the first CombinedAppStorage with new merged
+// bucket and deletes other CombinedAppStorages
+func combineWithDeletion(mergedStorage models.CombinedAppStorage, storages []models.CombinedAppStorage) (*models.CombinedAppStorage, error) {
+	for i := 0; i < len(storages); i++ {
+		if i == 0 {
+			// UPDATE CombinedAppStorage with its new Bucket data
+			storages[i].Bucket = mergedStorage.Bucket
+			if err := helper.UpdateCombinedAppStorage(&storages[i]); err != nil {
+				return nil, err
+			}
+		} else {
+			// DELETE CombinedAppStorages in this block
+			if err := helper.RemoveCombinedAppStorage(storages[i].Id); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return &storages[0], nil
 }
 
 func isIn(s string, ts ...string) bool {

@@ -5,7 +5,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"socialapi/models"
-	notificationmodels "socialapi/workers/notification/models"
 	"socialapi/workers/realtime/realtime"
 
 	"github.com/koding/runner"
@@ -39,8 +38,6 @@ func main() {
 	r.Register(models.ChannelParticipant{}).OnUpdate().Handle((*realtime.Controller).ChannelParticipantUpdatedEvent)
 	r.Register(models.Channel{}).OnDelete().Handle((*realtime.Controller).ChannelDeletedEvent)
 	r.Register(models.Channel{}).OnUpdate().Handle((*realtime.Controller).ChannelUpdatedEvent)
-	r.Register(notificationmodels.Notification{}).OnCreate().Handle((*realtime.Controller).NotifyUser)
-	r.Register(notificationmodels.Notification{}).OnUpdate().Handle((*realtime.Controller).NotifyUser)
 	r.Listen()
 	r.Wait()
 }

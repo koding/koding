@@ -184,11 +184,11 @@ func (c *Clients) Context(id machine.ID) (context.Context, error) {
 }
 
 // Registered returns all machines that are stored in this object.
-func (c *Clients) Registered() []machine.ID {
+func (c *Clients) Registered() machine.IDSlice {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	registered := make([]machine.ID, 0, len(c.m))
+	registered := make(machine.IDSlice, 0, len(c.m))
 	for id := range c.m {
 		registered = append(registered, id)
 	}

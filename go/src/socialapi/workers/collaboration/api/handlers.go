@@ -10,24 +10,28 @@ import (
 	"socialapi/workers/common/response"
 	"time"
 
+	"github.com/koding/cache"
+
 	"github.com/koding/bongo"
 )
+
+// CacheStore holds the mongo cache struct as embedded for Ping & End functions
+type CacheStore struct {
+	*cache.MongoCache
+}
 
 // Ping handles the pings coming from client side
 //
 // TOOD add throttling here
-func Ping(u *url.URL, h http.Header, req *models.Ping, context *apimodels.Context) (int, http.Header, interface{}, error) {
+func (mgoCache *CacheStore) Ping(u *url.URL, h http.Header, req *models.Ping, context *apimodels.Context) (int, http.Header, interface{}, error) {
 	if err := validateOperation(req, context); err != nil {
 		return response.NewBadRequest(err)
 	}
 
 	// set the last seen at time
 	key := collaboration.PrepareFileKey(req.FileId)
-	if err := context.MustGetRedisConn().Setex(
-		key,
-		collaboration.ExpireSessionKeyDuration, // expire the key after this period
-		req.CreatedAt.Unix(),                   // value - unix time
-	); err != nil {
+
+	if err := mgoCache.SetEx(key, collaboration.ExpireSessionKeyDuration, req.CreatedAt.Unix()); err != nil {
 		return response.NewBadRequest(err)
 	}
 
@@ -41,14 +45,15 @@ func Ping(u *url.URL, h http.Header, req *models.Ping, context *apimodels.Contex
 }
 
 // End handles the terminate signals coming from client side
-func End(u *url.URL, h http.Header, req *models.Ping, context *apimodels.Context) (int, http.Header, interface{}, error) {
+func (mgoCache *CacheStore) End(u *url.URL, h http.Header, req *models.Ping, context *apimodels.Context) (int, http.Header, interface{}, error) {
 	if err := validateOperation(req, context); err != nil {
 		return response.NewBadRequest(err)
 	}
 
 	key := collaboration.PrepareFileKey(req.FileId)
+
 	// when key is deleted, with the first ping received, collab will be ended
-	if _, err := context.MustGetRedisConn().Del(key); err != nil {
+	if err := mgoCache.Delete(key); err != nil {
 		return response.NewBadRequest(err)
 	}
 

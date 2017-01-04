@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
+	"fmt"
+	"net"
 	"net/url"
 	"path"
 	"strconv"
@@ -96,16 +98,132 @@ func (u *URL) MarshalJSON() ([]byte, error) {
 }
 
 // WithPath gives new URL with append paths to its Path field.
-func (u *URL) WithPath(paths ...string) *url.URL {
+func (u *URL) WithPath(paths ...string) *URL {
 	ur := *u.URL
 	ur.Path = path.Join(ur.Path, path.Join(paths...))
-	return &ur
+	return &URL{URL: &ur}
+}
+
+// Copy returns a copy of the u.
+func (u *URL) Copy() *URL {
+	if u.IsNil() {
+		return nil
+	}
+
+	uCopy := *u.URL
+	if u.URL.User != nil {
+		userCopy := *u.URL.User
+		uCopy.User = &userCopy
+	}
+
+	return &URL{
+		URL: &uCopy,
+	}
+}
+
+// IsNil returns true if either u or the underlying url is nil.
+func (u *URL) IsNil() bool {
+	return u == nil || u.URL == nil
 }
 
 // Endpoint represents a single endpoint.
 type Endpoint struct {
 	Public  *URL `json:"public,omitempty"`
 	Private *URL `json:"private,omitempty"`
+}
+
+// NewEndpoint gives new endpoint with public field set to u.
+//
+// The u is expected to parse as url.URL, otherwise the function
+// panics.
+//
+// If u is empty, NewEndpoint returns zero value for an Endpoint
+// type with all pointer fields initialized.
+func NewEndpoint(u string) *Endpoint {
+	e := &Endpoint{
+		Public: &URL{URL: &url.URL{}},
+	}
+
+	if u != "" {
+		var err error
+		e.Public.URL, err = url.Parse(u)
+		if err != nil {
+			panic(fmt.Errorf("NewEndpoint(%q): %s", u, err))
+		}
+	}
+
+	return e
+}
+
+// NewEndpointURL gives new endpoint with:
+//
+//   - public field set to u
+//   - private field set to 127.0.0.1:<port>, where
+//     port is port part of u.Hostname
+//
+// The u argument is expected to be non-nil.
+func NewEndpointURL(u *url.URL) *Endpoint {
+	uPriv := *u
+	uPriv.Scheme = "http"
+	uPriv.Host = "127.0.0.1"
+
+	if _, port, err := net.SplitHostPort(u.Host); err == nil {
+		uPriv.Host = net.JoinHostPort(uPriv.Host, port)
+	}
+
+	return &Endpoint{
+		Public:  &URL{URL: u},
+		Private: &URL{URL: &uPriv},
+	}
+}
+
+// Equal gives true when e and rhs endpoints match.
+func (e *Endpoint) Equal(rhs *Endpoint) bool {
+	if (e.Public != nil) != (rhs.Public != nil) {
+		return false
+	}
+
+	if e.Public != nil && e.Public.String() != rhs.Public.String() {
+		return false
+	}
+
+	if (e.Private != nil) != (rhs.Private != nil) {
+		return false
+	}
+
+	return e.Private == nil || e.Private.String() == rhs.Private.String()
+}
+
+// WithPath gives new Endpoint with path appended to both
+// Public and Private URLs.
+func (e *Endpoint) WithPath(path string) *Endpoint {
+	ePath := &Endpoint{}
+
+	if e.Public != nil {
+		ePath.Public = e.Public.WithPath(path)
+	}
+
+	if e.Private != nil {
+		ePath.Private = e.Private.WithPath(path)
+	}
+
+	return ePath
+}
+
+// Copy returns a copy of the e.
+func (e *Endpoint) Copy() *Endpoint {
+	if e.IsNil() {
+		return nil
+	}
+	return &Endpoint{
+		Public:  e.Public.Copy(),
+		Private: e.Private.Copy(),
+	}
+}
+
+// IsNil returns true if either e or both of the public and private urls are nil.
+func (e *Endpoint) IsNil() bool {
+	return e == nil || (e.Public.IsNil() && e.Private.IsNil())
 }
 
 // Config stores all static configuration data generated during ./configure phase.
@@ -115,18 +233,21 @@ type Config struct {
 		PublicLogs Bucket `json:"publicLogs" required:"true"`
 	} `json:"buckets" required:"true"`
 	Endpoints struct {
-		IP           string    `json:"ip" required:"true"`
-		IPCheck      string    `json:"ipCheck" required:"true"`
-		KDLatest     string    `json:"kdLatest" required:"true"`
-		KlientLatest string    `json:"klientLatest" required:"true"`
-		Kloud        string    `json:"kloud" required:"true"`
-		KodingBase   string    `json:"kodingBase" required:"true"`
-		Kontrol      string    `json:"kontrol" required:"true"`
-		RemoteAPI    *Endpoint `json:"remoteAPI" requied:"true"`
-		TunnelServer string    `json:"tunnelServer" required:"true"`
-		SocialAPI    *Endpoint `json:"socialAPI" requied:"true"`
-	}
+		IP           *Endpoint `json:"ip" required:"true"`
+		IPCheck      *Endpoint `json:"ipCheck" required:"true"`
+		KDLatest     *Endpoint `json:"kdLatest" required:"true"`
+		KlientLatest *Endpoint `json:"klientLatest" required:"true"`
+		KodingBase   *Endpoint `json:"kodingBase" required:"true"`
+		TunnelServer *Endpoint `json:"tunnelServer" required:"true"`
+	} `json:"endpoints"`
 	Routes map[string]string `json:"routes"`
+}
+
+// KontrolPublic gives new public endpoint for the given URL.
+func (c *Config) KontrolPublic() *url.URL {
+	u := *c.Endpoints.KodingBase.Public.URL
+	u.Path = "/kontrol/kite"
+	return &u
 }
 
 // Bucket represents a S3 storage bucket. It stores bucket name and the physical
@@ -136,12 +257,31 @@ type Bucket struct {
 	Region string `json:"region" required:"true"`
 }
 
+func mustURL(s string) *URL {
+	u, err := url.Parse(s)
+	if err != nil {
+		panic(`url.Parse("` + s + `"): ` + err.Error())
+	}
+
+	return &URL{URL: u}
+}
+
 // ReplaceEnv should be used in case when caller environment is different than
 // the build in one. This function should be removed when service environments
 // are unified/cleaned.
-func ReplaceEnv(variable, env string) string {
+func ReplaceEnv(e *Endpoint, env string) *Endpoint {
 	// This is a workaround when caller's env doesn't match build in one.
-	return strings.Replace(variable, environment, RmAlias(env), -1)
+	eReplaced := &Endpoint{}
+
+	if e.Public != nil {
+		eReplaced.Public = mustURL(strings.Replace(e.Public.String(), environment, RmAlias(env), -1))
+	}
+
+	if e.Private != nil {
+		eReplaced.Private = mustURL(strings.Replace(e.Private.String(), environment, RmAlias(env), -1))
+	}
+
+	return eReplaced
 }
 
 var defaultAliases = aliases{

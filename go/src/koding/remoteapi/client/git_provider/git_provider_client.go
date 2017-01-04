@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIGitProviderCreateImportedStackTemplate(params *Pos
 		Params:             params,
 		Reader:             &PostRemoteAPIGitProviderCreateImportedStackTemplateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIGitProviderFetchConfig(params *PostRemoteAPIGitPro
 		Params:             params,
 		Reader:             &PostRemoteAPIGitProviderFetchConfigReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIGitProviderImportStackTemplateData(params *PostRem
 		Params:             params,
 		Reader:             &PostRemoteAPIGitProviderImportStackTemplateDataReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

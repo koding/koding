@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJTeamInvitationByCode(params *PostRemoteAPIJTeamIn
 		Params:             params,
 		Reader:             &PostRemoteAPIJTeamInvitationByCodeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJTeamInvitationCreate(params *PostRemoteAPIJTeamIn
 		Params:             params,
 		Reader:             &PostRemoteAPIJTeamInvitationCreateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIJTeamInvitationRemoveID(params *PostRemoteAPIJTeam
 		Params:             params,
 		Reader:             &PostRemoteAPIJTeamInvitationRemoveIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPIJTeamInvitationSendInvitationEmails(params *PostRe
 		Params:             params,
 		Reader:             &PostRemoteAPIJTeamInvitationSendInvitationEmailsReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

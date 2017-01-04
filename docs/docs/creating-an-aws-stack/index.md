@@ -9,7 +9,9 @@ parent: /docs/home
 
 ## Introduction
 
-**Stacks** allows you to configure the number of servers and applications to install on each of the VMs. Your new team members will be able to use your stack to build their Koding VMs and start working from day one.
+This guide will help you build an AWS stack. [Amazon Web Services (AWS)](aws.amazon.com) offers a suite of cloud-computing services that make up an on-demand computing platform in several geographically distributed data centers.
+
+You can configure the number of VMs and applications installed on each VM instance. Along with configuring VM size and region. Your new team members will be able to use your stack to build their VMs environment and start working from day one.
 
 ## Step by step guide
 

@@ -4,6 +4,7 @@ package j_name
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"net/http"
 	"time"
 
 	"golang.org/x/net/context"
@@ -49,8 +50,9 @@ func NewPostRemoteAPIJNameClaimNamesParamsWithContext(ctx context.Context) *Post
 for the post remote API j name claim names operation typically these are written to a http.Request
 */
 type PostRemoteAPIJNameClaimNamesParams struct {
-	timeout time.Duration
-	Context context.Context
+	timeout    time.Duration
+	Context    context.Context
+	HTTPClient *http.Client
 }
 
 // WithTimeout adds the timeout to the post remote API j name claim names params

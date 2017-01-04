@@ -154,6 +154,10 @@ func (m *JMachine) validateGroups(formats strfmt.Registry) error {
 		return nil
 	}
 
+	for i := 0; i < len(m.Groups); i++ {
+
+	}
+
 	return nil
 }
 
@@ -204,6 +208,10 @@ func (m *JMachine) validateUsers(formats strfmt.Registry) error {
 
 	if swag.IsZero(m.Users) { // not required
 		return nil
+	}
+
+	for i := 0; i < len(m.Users); i++ {
+
 	}
 
 	return nil

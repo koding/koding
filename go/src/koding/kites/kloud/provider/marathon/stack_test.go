@@ -21,7 +21,13 @@ import (
 )
 
 func init() {
-	stack.Konfig = &config.Konfig{}
+	stack.Konfig = &config.Konfig{
+		Endpoints: &config.Endpoints{
+			Koding:       config.NewEndpoint(""),
+			Tunnel:       config.NewEndpoint(""),
+			KlientLatest: config.NewEndpoint(""),
+		},
+	}
 }
 
 // stripNondeterministicResources sets the following fields to "...",

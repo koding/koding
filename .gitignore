@@ -77,6 +77,7 @@ website/a/sprites/*.sprite.png
 website/a/out
 website/a/p
 
+client/.happypack
 client/.sprites
 client/.tmp
 client/node_modules

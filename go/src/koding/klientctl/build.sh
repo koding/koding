@@ -51,9 +51,6 @@ if [[ "$(uname)" == "Linux" ]]; then
 
 	kd_build
 
-	# validate kd version
-	[[ "$(./kd -version)" == "kd version 0.1.${VERSION}" ]]
-
 	gzip -9 -N -f kd
 	mv kd.gz "${PREFIX}.linux_amd64.gz"
 

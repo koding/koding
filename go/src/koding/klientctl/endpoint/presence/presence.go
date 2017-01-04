@@ -1,7 +1,6 @@
 package presence
 
 import (
-	"path"
 	"sync"
 
 	"koding/api/presence"
@@ -47,11 +46,8 @@ func (c *Client) init() {
 }
 
 func (c *Client) initClient() {
-	presenceURL := *config.Konfig.SocialAPI.Public.URL
-	presenceURL.Path = path.Join(presenceURL.Path, "presence")
-
 	c.c = &presence.Client{
-		Endpoint: &presenceURL,
+		Endpoint: config.Konfig.Endpoints.Social().Public.WithPath("presence").URL,
 	}
 }
 

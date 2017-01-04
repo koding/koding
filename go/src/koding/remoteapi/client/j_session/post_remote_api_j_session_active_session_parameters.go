@@ -4,6 +4,7 @@ package j_session
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"net/http"
 	"time"
 
 	"golang.org/x/net/context"
@@ -49,8 +50,9 @@ func NewPostRemoteAPIJSessionActiveSessionParamsWithContext(ctx context.Context)
 for the post remote API j session active session operation typically these are written to a http.Request
 */
 type PostRemoteAPIJSessionActiveSessionParams struct {
-	timeout time.Duration
-	Context context.Context
+	timeout    time.Duration
+	Context    context.Context
+	HTTPClient *http.Client
 }
 
 // WithTimeout adds the timeout to the post remote API j session active session params

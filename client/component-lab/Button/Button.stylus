@@ -6,7 +6,7 @@ $padding-large = 13px 40px 14px
 $padding-xlarge = 17px 50px
 
 $fs-small = 14px
-$fs-medium = 17px
+$fs-medium = 16px
 $fs-large = 20px
 $fs-xlarge = 22px
 
@@ -115,20 +115,19 @@ createLinkClass(type, name = type)
   $lightest = lighten($color, 95%)
 
   .link-{name}
-    border                  1px solid transparent
+    border                  none
     background-color        transparent
     color                   $color
+    padding-right           0
+    padding-left            0
     borderBox()
 
     &:focus
       outline               none
 
     &:hover
-      background-color      $lightest
-      border-color          $light
+      text-decoration       underline
 
-    &:active
-      background-color      $lighter
 
 createLinkClass('primary-1')
 createLinkClass('primary-2')
@@ -138,5 +137,3 @@ createLinkClass('primary-5')
 createLinkClass('primary-6')
 createLinkClass('primary-1', 'primary')
 createLinkClass('additional-6', 'secondary')
-
-

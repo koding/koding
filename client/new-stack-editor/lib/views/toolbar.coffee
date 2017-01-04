@@ -1,0 +1,28 @@
+kd = require 'kd'
+JView = require 'app/jview'
+
+
+module.exports = class Toolbar extends JView
+
+
+  constructor: (options = {}, data) ->
+
+    options.cssClass = kd.utils.curry 'toolbar', options.cssClass
+    data ?= { title: 'Loading...' }
+
+    super options, data
+
+    @actionButton = new kd.ButtonView
+      cssClass : 'action-button solid green compact'
+      title    : 'Initialize'
+      icon     : yes
+      callback : => @emit 'InitializeRequested', @getData()
+
+    @expandButton = new kd.ButtonView
+      cssClass: 'expand'
+      callback: ->
+        kd.singletons.mainView.toggleSidebar()
+
+
+  pistachio: ->
+    '{h3{#(title)}} {div.controls{> @expandButton}} {{> @actionButton}}'

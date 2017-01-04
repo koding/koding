@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-# TODO: missing -race support: https://koding.atlassian.net/browse/TMS-2158
+# TODO: missing -race support: https://github.com/koding/koding/issues/9128
 
 go test -v koding/klient/client     \
 	       koding/klient/fs         \
@@ -10,3 +10,5 @@ go test -v koding/klient/client     \
 		   koding/klient/logfetcher \
 		   koding/klient/sshkeys    \
 		   koding/klient/storage
+
+go test -v --race koding/klient/machine/...

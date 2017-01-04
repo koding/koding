@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJAPITokenCreate(params *PostRemoteAPIJAPITokenCrea
 		Params:             params,
 		Reader:             &PostRemoteAPIJAPITokenCreateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJAPITokenRemoveID(params *PostRemoteAPIJAPITokenRe
 		Params:             params,
 		Reader:             &PostRemoteAPIJAPITokenRemoveIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

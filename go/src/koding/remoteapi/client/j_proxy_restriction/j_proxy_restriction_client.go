@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJProxyRestrictionClear(params *PostRemoteAPIJProxy
 		Params:             params,
 		Reader:             &PostRemoteAPIJProxyRestrictionClearReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJProxyRestrictionCreate(params *PostRemoteAPIJProx
 		Params:             params,
 		Reader:             &PostRemoteAPIJProxyRestrictionCreateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIJProxyRestrictionRemove(params *PostRemoteAPIJProx
 		Params:             params,
 		Reader:             &PostRemoteAPIJProxyRestrictionRemoveReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPIJProxyRestrictionSome(params *PostRemoteAPIJProxyR
 		Params:             params,
 		Reader:             &PostRemoteAPIJProxyRestrictionSomeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

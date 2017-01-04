@@ -9,9 +9,20 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/user"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
+
+func nonil(err ...error) error {
+	for _, e := range err {
+		if e != nil {
+			return e
+		}
+	}
+	return nil
+}
 
 // got it from http://golang.org/misc/dist/bindist.go?m=text and removed go
 // related stuff, works perfect. It creates a tar.gz container from the given
@@ -206,6 +217,52 @@ func ExistsOk(file string) (bool, error) {
 	}
 
 	return false, err
+}
+
+func userIDs(u *user.User) (uid, gid int, err error) {
+	if u == nil {
+		return 0, 0, errors.New("no user provided")
+	}
+
+	if uid, err = strconv.Atoi(u.Uid); err != nil {
+		return
+	}
+
+	if gid, err = strconv.Atoi(u.Gid); err != nil {
+		return
+	}
+
+	return uid, gid, nil
+}
+
+// Chown changes a file's ownership to the u user.
+func Chown(file string, u *user.User) error {
+	uid, gid, err := userIDs(u)
+	if err != nil {
+		return err
+	}
+
+	return os.Chown(file, uid, gid)
+}
+
+// ChownAll chown recursively all files rooted at dir.
+//
+// If chowning a single dir / file fails, it keeps going to try
+// to chown as much as possible.
+//
+// It returns first encountered error or none if all went successful.
+func ChownAll(dir string, u *user.User) error {
+	uid, gid, err := userIDs(u)
+	if err != nil {
+		return err
+	}
+
+	e := filepath.Walk(dir, func(path string, info os.FileInfo, e error) error {
+		err = nonil(err, e, os.Chown(path, uid, gid))
+		return nil
+	})
+
+	return nonil(e, err)
 }
 
 // Use Copy() instead of copyFile(), it handles directories and recursive

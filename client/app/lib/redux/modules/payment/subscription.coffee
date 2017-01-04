@@ -84,17 +84,10 @@ makePlanAmount = (userCount) ->
 plan = (state) -> state.subscription?.plan
 
 
-isTrialing = (state) -> state.subscription?.status is 'trialing'
+isTrial = (state) -> state.subscription?.status is 'trialing'
 
 
 hasNoCard = (state) -> not state.creditCard
-
-
-isTrial = createSelector(
-  isTrialing
-  hasNoCard
-  (trialing, noCard) -> noCard and trialing
-)
 
 
 endsAt = (state) ->
@@ -136,5 +129,3 @@ module.exports = {
   # Selectors
   plan, isTrial, endsAt, pricePerSeat, trialDays, daysLeft
 }
-
-
