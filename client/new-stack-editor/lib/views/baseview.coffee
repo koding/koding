@@ -32,7 +32,8 @@ module.exports = class BaseView extends kd.View
 
       @controls.addSubView new kd.ButtonView
         cssClass: 'close'
-        callback: => @hide()
+        callback: =>
+          @emit FlexSplit.EVENT_HIDE
 
     @controls.addSubView new kd.ButtonView
       cssClass: 'expand'

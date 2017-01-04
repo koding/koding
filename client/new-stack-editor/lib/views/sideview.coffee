@@ -17,3 +17,4 @@ module.exports = class SideView extends BaseView
 
     @on FlexSplit.EVENT_EXPAND,   @lazyBound 'setClass',   'expanded'
     @on FlexSplit.EVENT_COLLAPSE, @lazyBound 'unsetClass', 'expanded'
+    @on FlexSplit.EVENT_HIDE,     @bound 'hide'

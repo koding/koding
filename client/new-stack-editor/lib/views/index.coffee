@@ -59,6 +59,7 @@ module.exports = class StackEditor extends kd.View
       filename: 'logs.sh'
       showgutter: no
       readonly: yes
+      closable: yes
       @statusbar
     }
 
