@@ -13,13 +13,12 @@ toBeDeleted = [
   # 'ajs_group_id'     # font?
   # 'ajs_user_id'      # font?
   # 'koding-teams'     # set by koding client, should be moved to session storage.
-
 ]
 
 hostname = location.host
-subDomain = hostname.substring(hostname.indexOf("."), hostname.length)
+subDomain = hostname.substring(hostname.indexOf('.'), hostname.length)
 dotlessSubDomain = subDomain.substring(1, subDomain.length)
-subSubDomain = dotlessSubDomain.substring(dotlessSubDomain.indexOf("."), dotlessSubDomain.length)
+subSubDomain = dotlessSubDomain.substring(dotlessSubDomain.indexOf('.'), dotlessSubDomain.length)
 dotlessSubSubDomain = subSubDomain.substring(1, subSubDomain.length)
 
 perms =
