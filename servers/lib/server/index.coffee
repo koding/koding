@@ -23,7 +23,6 @@ setCrsfToken          = require './setcsrftoken'
 
 do ->
   cookieParser = require 'cookie-parser'
-  session      = require 'express-session'
   compression  = require 'compression'
 
   app.set 'case sensitive routing', on
@@ -34,10 +33,6 @@ do ->
 
   app.use express.static "#{projectRoot}/website/", headers
   app.use cookieParser()
-  app.use session
-    secret            : 'foo'
-    resave            : yes
-    saveUninitialized : true
   app.use bodyParser.urlencoded { extended : yes }
   app.use compression()
   # helmet:
