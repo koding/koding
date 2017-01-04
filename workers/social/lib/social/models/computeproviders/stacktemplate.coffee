@@ -168,10 +168,10 @@ module.exports = class JStackTemplate extends Module
   #   data object describes new JStackTemplate
   #
   # @option data [String] template template's content as stringified JSON
-  #
   # @option data [String] title template's title
-  #
   # @option data [Object] credentials template's credentials
+  #
+  # @return {JStackTemplate} created JStackTemplate instance
   #
   # @example api
   #
