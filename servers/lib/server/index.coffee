@@ -25,12 +25,7 @@ do ->
   cookieParser = require 'cookie-parser'
   app.set 'case sensitive routing', on
 
-  headers = {}
-  if webserver?.useCacheHeader
-    headers.maxAge = 1000 * 60 * 60 * 24 # 1 day
-
-  app.use express.static "#{projectRoot}/website/", headers
-  app.use cookieParser()
+  app.use cookieParser() # used by req.cookies.blah
   app.use bodyParser.urlencoded { extended : yes }
   # helmet:
   app.use helmet.xframe('sameorigin')
