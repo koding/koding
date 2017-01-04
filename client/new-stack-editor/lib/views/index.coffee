@@ -14,6 +14,7 @@ Statusbar = require './statusbar'
 
 LogsController = require '../controllers/logs'
 VariablesController = require '../controllers/variables'
+CredentialsController = require '../controllers/credentials'
 
 Help = require './help'
 
@@ -37,6 +38,8 @@ module.exports = class StackEditor extends kd.View
     # Toolbar
     @toolbar = new Toolbar
     @forwardEvent @toolbar, Events.InitializeRequested
+
+    @credentialsController = new CredentialsController
 
     # Status bar
     @statusbar = new Statusbar
@@ -105,6 +108,7 @@ module.exports = class StackEditor extends kd.View
       @variables.setContent ''
       @logsController.set 'stack template loaded'
       @variablesController.setData data
+      @credentialsController.setData data
 
       @_saveSnapshot id
       @_current = id
