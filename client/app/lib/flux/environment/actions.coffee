@@ -565,7 +565,6 @@ createStackTemplateWithDefaults = (selectedProvider) ->
   { json: template, yaml: rawContent } = provider.defaultTemplate
 
   requiredProviders = providersParser template
-  requiredProviders.push selectedProvider
   requiredData      = requirementsParser template
 
   stackData = {
