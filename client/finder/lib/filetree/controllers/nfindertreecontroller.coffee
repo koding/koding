@@ -300,6 +300,8 @@ module.exports = class NFinderTreeController extends JTreeViewController
 
       nodeData.rename newValue, (err) =>
         if err then @notify null, null, err
+
+        nodeData.emit 'FilePathChanged', newValue
         Tracker.track Tracker.FILETREE_RENAME_FILE_FOLDER
 
       @beingEdited = null
