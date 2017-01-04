@@ -4,10 +4,16 @@ kookies = require 'kookies'
 toBeDeleted = [
   'clientIPAddress' # an old cookie set by koding backend.
   'connect.sid'     # express cookie - infact this is session cookie, here for just in case.
-  # 'koding-teams'  # set by koding client, should be moved to session storage.
   'pnctest'         # set by PubNub for testing.
-  '__cfduid'
-  '__ssid'
+  'hubspotutk'      # hubspot
+  'hsfirstvisit'    # hubspot
+  '__ssid'          # google map
+
+  # 'ajs_anonymous_id' # font?
+  # 'ajs_group_id'     # font?
+  # 'ajs_user_id'      # font?
+  # 'koding-teams'     # set by koding client, should be moved to session storage.
+
 ]
 
 hostname = location.host
