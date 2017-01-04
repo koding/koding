@@ -55,9 +55,9 @@ func TestMountBook(t *testing.T) {
 	}
 
 	mb := NewMountBook()
-	for id, mount := range mounts {
-		if err := mb.Add(id, mount); err != nil {
-			t.Fatalf("want err = nil; got %v", err)
+	for i, id := range []ID{idA, idB, idC} {
+		if err := mb.Add(id, mounts[id]); err != nil {
+			t.Fatalf("want err = nil; got %v (i:%d)", err, i)
 		}
 	}
 
