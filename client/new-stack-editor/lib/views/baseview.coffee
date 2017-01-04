@@ -28,6 +28,12 @@ module.exports = class BaseView extends kd.View
     @wrapper.addSubView @controls = new kd.CustomHTMLView
       cssClass: 'controls'
 
+    if @getOption 'closable'
+
+      @controls.addSubView new kd.ButtonView
+        cssClass: 'close'
+        callback: => @hide()
+
     @controls.addSubView new kd.ButtonView
       cssClass: 'expand'
       callback: =>
@@ -54,6 +60,14 @@ module.exports = class BaseView extends kd.View
       @wrapper.addSubView new kd.View
         cssClass: 'help-content has-markdown'
         partial: help
+
+    if @getOption 'pinnable'
+
+      @controls.addSubView new kd.ButtonView
+        cssClass: 'pin'
+        callback: =>
+          @toggleClass 'pinned'
+          @emit Events.GotFocus
 
     @controls.addSubView new kd.LoaderView
       size           : { width: 14 }

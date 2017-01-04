@@ -117,7 +117,7 @@ $stack-border-color         = #000000
 
     &:hover
       .controls .kdbutton
-        &.expand, &.help
+        &.expand, &.help, &.pin, &.close
           display           block
 
     &.expanded
@@ -209,6 +209,14 @@ $stack-border-color         = #000000
         fa                  compress
         display             none
 
+      &.pin
+        fa                  thumb-tack
+        display             none
+
+      &.close
+        fa                  times
+        display             none
+
       &.help
         fa                  question-circle
         display             none
@@ -264,6 +272,35 @@ $stack-border-color         = #000000
     .ace_marker-layer
       .ace_active-line
         background          #333339 !important
+
+  .side-view
+    background              $stack-bg-color
+    width                   420px
+    min-width               420px
+    abs                     0px, 0px
+    z-index                 100
+    box-shadow              0 0 30px -5px
+    vendor                  transition, all 400ms ease-in
+    visibility              visible
+
+    &.hidden
+      display               block !important
+      visibility            hidden
+      width                 0px
+      min-width             0px
+
+    &.expanded
+      width                 100%
+      min-width             100%
+
+    &.pinned
+      position              inherit
+      box-shadow            none
+      border-left           2px solid $stack-fg-color
+
+      .controls .kdbutton.pin
+        display             block
+        color               $stack-fg-color-yellow
 
 
 #intercom-container

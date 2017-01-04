@@ -11,6 +11,7 @@ AppStorageAdapter = require './adapters/appstorageadapter'
 Toolbar = require './toolbar'
 Editor = require './editor'
 Statusbar = require './statusbar'
+SideView = require './sideview'
 
 LogsController = require '../controllers/logs'
 VariablesController = require '../controllers/variables'
@@ -174,3 +175,4 @@ module.exports = class StackEditor extends kd.View
       ]
 
     contentView.setClass 'safari-flex-fix'  if bowser.safari
+    contentView.addSubView @sideView = new SideView { title: 'Help' }
