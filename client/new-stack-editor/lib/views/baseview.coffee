@@ -20,7 +20,7 @@ module.exports = class BaseView extends kd.View
 
     if title = @getOption 'title'
       @setClass 'with-title'
-      @wrapper.addSubView new kd.CustomHTMLView
+      @wrapper.addSubView @title = new kd.CustomHTMLView
         cssClass : 'title'
         partial  : title
         click    : @lazyBound 'emit', Events.GotFocus
