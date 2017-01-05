@@ -57,7 +57,7 @@ type PostRemoteAPIJUserAuthenticateWithOauthParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJUserAuthenticateWithOauthParams) SetContext(ctx context.C
 }
 
 // WithBody adds the body to the post remote API j user authenticate with oauth params
-func (o *PostRemoteAPIJUserAuthenticateWithOauthParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJUserAuthenticateWithOauthParams {
+func (o *PostRemoteAPIJUserAuthenticateWithOauthParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJUserAuthenticateWithOauthParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j user authenticate with oauth params
-func (o *PostRemoteAPIJUserAuthenticateWithOauthParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJUserAuthenticateWithOauthParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJUserAuthenticateWithOauthParams) WriteToRequest(r runtime
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

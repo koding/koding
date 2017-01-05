@@ -57,7 +57,7 @@ type PostRemoteAPIJTagCreateParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJTagCreateParams) SetContext(ctx context.Context) {
 }
 
 // WithBody adds the body to the post remote API j tag create params
-func (o *PostRemoteAPIJTagCreateParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJTagCreateParams {
+func (o *PostRemoteAPIJTagCreateParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJTagCreateParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j tag create params
-func (o *PostRemoteAPIJTagCreateParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJTagCreateParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJTagCreateParams) WriteToRequest(r runtime.ClientRequest, 
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

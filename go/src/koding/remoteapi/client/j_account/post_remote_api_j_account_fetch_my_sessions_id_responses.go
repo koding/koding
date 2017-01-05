@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJAccountFetchMySessionsIDOK() *PostRemoteAPIJAccountFetchMy
 OK
 */
 type PostRemoteAPIJAccountFetchMySessionsIDOK struct {
-	Payload *models.JAccount
+	Payload PostRemoteAPIJAccountFetchMySessionsIDOKBody
 }
 
 func (o *PostRemoteAPIJAccountFetchMySessionsIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJAccountFetchMySessionsIDOK) Error() string {
 
 func (o *PostRemoteAPIJAccountFetchMySessionsIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JAccount)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJAccountFetchMySessionsIDOKBody post remote API j account fetch my sessions ID o k body
+swagger:model PostRemoteAPIJAccountFetchMySessionsIDOKBody
+*/
+type PostRemoteAPIJAccountFetchMySessionsIDOKBody struct {
+	models.JAccount
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJAccountFetchMySessionsIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJAccountFetchMySessionsIDOKBodyAO0 models.JAccount
+	if err := swag.ReadJSON(raw, &postRemoteAPIJAccountFetchMySessionsIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JAccount = postRemoteAPIJAccountFetchMySessionsIDOKBodyAO0
+
+	var postRemoteAPIJAccountFetchMySessionsIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJAccountFetchMySessionsIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJAccountFetchMySessionsIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJAccountFetchMySessionsIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJAccountFetchMySessionsIDOKBodyAO0, err := swag.WriteJSON(o.JAccount)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJAccountFetchMySessionsIDOKBodyAO0)
+
+	postRemoteAPIJAccountFetchMySessionsIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJAccountFetchMySessionsIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j account fetch my sessions ID o k body
+func (o *PostRemoteAPIJAccountFetchMySessionsIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JAccount.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

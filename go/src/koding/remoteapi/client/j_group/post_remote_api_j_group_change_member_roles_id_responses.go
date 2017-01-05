@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJGroupChangeMemberRolesIDOK() *PostRemoteAPIJGroupChangeMem
 OK
 */
 type PostRemoteAPIJGroupChangeMemberRolesIDOK struct {
-	Payload *models.JGroup
+	Payload PostRemoteAPIJGroupChangeMemberRolesIDOKBody
 }
 
 func (o *PostRemoteAPIJGroupChangeMemberRolesIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJGroupChangeMemberRolesIDOK) Error() string {
 
 func (o *PostRemoteAPIJGroupChangeMemberRolesIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JGroup)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJGroupChangeMemberRolesIDOKBody post remote API j group change member roles ID o k body
+swagger:model PostRemoteAPIJGroupChangeMemberRolesIDOKBody
+*/
+type PostRemoteAPIJGroupChangeMemberRolesIDOKBody struct {
+	models.JGroup
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJGroupChangeMemberRolesIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJGroupChangeMemberRolesIDOKBodyAO0 models.JGroup
+	if err := swag.ReadJSON(raw, &postRemoteAPIJGroupChangeMemberRolesIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JGroup = postRemoteAPIJGroupChangeMemberRolesIDOKBodyAO0
+
+	var postRemoteAPIJGroupChangeMemberRolesIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJGroupChangeMemberRolesIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJGroupChangeMemberRolesIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJGroupChangeMemberRolesIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJGroupChangeMemberRolesIDOKBodyAO0, err := swag.WriteJSON(o.JGroup)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJGroupChangeMemberRolesIDOKBodyAO0)
+
+	postRemoteAPIJGroupChangeMemberRolesIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJGroupChangeMemberRolesIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j group change member roles ID o k body
+func (o *PostRemoteAPIJGroupChangeMemberRolesIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JGroup.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

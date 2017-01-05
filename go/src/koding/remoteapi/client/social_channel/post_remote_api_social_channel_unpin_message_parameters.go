@@ -57,7 +57,7 @@ type PostRemoteAPISocialChannelUnpinMessageParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPISocialChannelUnpinMessageParams) SetContext(ctx context.Co
 }
 
 // WithBody adds the body to the post remote API social channel unpin message params
-func (o *PostRemoteAPISocialChannelUnpinMessageParams) WithBody(body *models.DefaultSelector) *PostRemoteAPISocialChannelUnpinMessageParams {
+func (o *PostRemoteAPISocialChannelUnpinMessageParams) WithBody(body models.DefaultSelector) *PostRemoteAPISocialChannelUnpinMessageParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API social channel unpin message params
-func (o *PostRemoteAPISocialChannelUnpinMessageParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPISocialChannelUnpinMessageParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPISocialChannelUnpinMessageParams) WriteToRequest(r runtime.
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

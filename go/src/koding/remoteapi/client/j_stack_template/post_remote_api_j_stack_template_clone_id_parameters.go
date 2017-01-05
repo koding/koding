@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJStackTemplateCloneIDParams creates a new PostRemoteAPIJStackTemplateCloneIDParams object
@@ -51,6 +53,11 @@ for the post remote API j stack template clone ID operation typically these are 
 */
 type PostRemoteAPIJStackTemplateCloneIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJStackTemplateCloneIDParams) SetContext(ctx context.Contex
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j stack template clone ID params
+func (o *PostRemoteAPIJStackTemplateCloneIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJStackTemplateCloneIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j stack template clone ID params
+func (o *PostRemoteAPIJStackTemplateCloneIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j stack template clone ID params
 func (o *PostRemoteAPIJStackTemplateCloneIDParams) WithID(id string) *PostRemoteAPIJStackTemplateCloneIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJStackTemplateCloneIDParams) WriteToRequest(r runtime.Clie
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

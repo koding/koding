@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJCredentialUpdateIDOK() *PostRemoteAPIJCredentialUpdateIDOK
 OK
 */
 type PostRemoteAPIJCredentialUpdateIDOK struct {
-	Payload *models.JCredential
+	Payload PostRemoteAPIJCredentialUpdateIDOKBody
 }
 
 func (o *PostRemoteAPIJCredentialUpdateIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJCredentialUpdateIDOK) Error() string {
 
 func (o *PostRemoteAPIJCredentialUpdateIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JCredential)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJCredentialUpdateIDOKBody post remote API j credential update ID o k body
+swagger:model PostRemoteAPIJCredentialUpdateIDOKBody
+*/
+type PostRemoteAPIJCredentialUpdateIDOKBody struct {
+	models.JCredential
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJCredentialUpdateIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJCredentialUpdateIDOKBodyAO0 models.JCredential
+	if err := swag.ReadJSON(raw, &postRemoteAPIJCredentialUpdateIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JCredential = postRemoteAPIJCredentialUpdateIDOKBodyAO0
+
+	var postRemoteAPIJCredentialUpdateIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJCredentialUpdateIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJCredentialUpdateIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJCredentialUpdateIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJCredentialUpdateIDOKBodyAO0, err := swag.WriteJSON(o.JCredential)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJCredentialUpdateIDOKBodyAO0)
+
+	postRemoteAPIJCredentialUpdateIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJCredentialUpdateIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j credential update ID o k body
+func (o *PostRemoteAPIJCredentialUpdateIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JCredential.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

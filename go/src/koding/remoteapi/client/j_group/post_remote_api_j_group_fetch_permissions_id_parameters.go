@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJGroupFetchPermissionsIDParams creates a new PostRemoteAPIJGroupFetchPermissionsIDParams object
@@ -51,6 +53,11 @@ for the post remote API j group fetch permissions ID operation typically these a
 */
 type PostRemoteAPIJGroupFetchPermissionsIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJGroupFetchPermissionsIDParams) SetContext(ctx context.Con
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j group fetch permissions ID params
+func (o *PostRemoteAPIJGroupFetchPermissionsIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJGroupFetchPermissionsIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j group fetch permissions ID params
+func (o *PostRemoteAPIJGroupFetchPermissionsIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j group fetch permissions ID params
 func (o *PostRemoteAPIJGroupFetchPermissionsIDParams) WithID(id string) *PostRemoteAPIJGroupFetchPermissionsIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJGroupFetchPermissionsIDParams) WriteToRequest(r runtime.C
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

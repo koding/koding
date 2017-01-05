@@ -57,7 +57,7 @@ type PostRemoteAPIJUserConvertParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJUserConvertParams) SetContext(ctx context.Context) {
 }
 
 // WithBody adds the body to the post remote API j user convert params
-func (o *PostRemoteAPIJUserConvertParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJUserConvertParams {
+func (o *PostRemoteAPIJUserConvertParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJUserConvertParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j user convert params
-func (o *PostRemoteAPIJUserConvertParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJUserConvertParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJUserConvertParams) WriteToRequest(r runtime.ClientRequest
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

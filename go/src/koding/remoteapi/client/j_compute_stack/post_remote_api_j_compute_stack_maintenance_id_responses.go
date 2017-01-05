@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJComputeStackMaintenanceIDOK() *PostRemoteAPIJComputeStackM
 OK
 */
 type PostRemoteAPIJComputeStackMaintenanceIDOK struct {
-	Payload *models.JComputeStack
+	Payload PostRemoteAPIJComputeStackMaintenanceIDOKBody
 }
 
 func (o *PostRemoteAPIJComputeStackMaintenanceIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJComputeStackMaintenanceIDOK) Error() string {
 
 func (o *PostRemoteAPIJComputeStackMaintenanceIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JComputeStack)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJComputeStackMaintenanceIDOKBody post remote API j compute stack maintenance ID o k body
+swagger:model PostRemoteAPIJComputeStackMaintenanceIDOKBody
+*/
+type PostRemoteAPIJComputeStackMaintenanceIDOKBody struct {
+	models.JComputeStack
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJComputeStackMaintenanceIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJComputeStackMaintenanceIDOKBodyAO0 models.JComputeStack
+	if err := swag.ReadJSON(raw, &postRemoteAPIJComputeStackMaintenanceIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JComputeStack = postRemoteAPIJComputeStackMaintenanceIDOKBodyAO0
+
+	var postRemoteAPIJComputeStackMaintenanceIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJComputeStackMaintenanceIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJComputeStackMaintenanceIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJComputeStackMaintenanceIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJComputeStackMaintenanceIDOKBodyAO0, err := swag.WriteJSON(o.JComputeStack)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJComputeStackMaintenanceIDOKBodyAO0)
+
+	postRemoteAPIJComputeStackMaintenanceIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJComputeStackMaintenanceIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j compute stack maintenance ID o k body
+func (o *PostRemoteAPIJComputeStackMaintenanceIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JComputeStack.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

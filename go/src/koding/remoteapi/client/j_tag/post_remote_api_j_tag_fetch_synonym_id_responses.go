@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJTagFetchSynonymIDOK() *PostRemoteAPIJTagFetchSynonymIDOK {
 OK
 */
 type PostRemoteAPIJTagFetchSynonymIDOK struct {
-	Payload *models.JTag
+	Payload PostRemoteAPIJTagFetchSynonymIDOKBody
 }
 
 func (o *PostRemoteAPIJTagFetchSynonymIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJTagFetchSynonymIDOK) Error() string {
 
 func (o *PostRemoteAPIJTagFetchSynonymIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JTag)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJTagFetchSynonymIDOKBody post remote API j tag fetch synonym ID o k body
+swagger:model PostRemoteAPIJTagFetchSynonymIDOKBody
+*/
+type PostRemoteAPIJTagFetchSynonymIDOKBody struct {
+	models.JTag
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJTagFetchSynonymIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJTagFetchSynonymIDOKBodyAO0 models.JTag
+	if err := swag.ReadJSON(raw, &postRemoteAPIJTagFetchSynonymIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JTag = postRemoteAPIJTagFetchSynonymIDOKBodyAO0
+
+	var postRemoteAPIJTagFetchSynonymIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJTagFetchSynonymIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJTagFetchSynonymIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJTagFetchSynonymIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJTagFetchSynonymIDOKBodyAO0, err := swag.WriteJSON(o.JTag)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJTagFetchSynonymIDOKBodyAO0)
+
+	postRemoteAPIJTagFetchSynonymIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJTagFetchSynonymIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j tag fetch synonym ID o k body
+func (o *PostRemoteAPIJTagFetchSynonymIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JTag.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

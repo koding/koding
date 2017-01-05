@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJAccountFetchPaymentMethodsIDParams creates a new PostRemoteAPIJAccountFetchPaymentMethodsIDParams object
@@ -51,6 +53,11 @@ for the post remote API j account fetch payment methods ID operation typically t
 */
 type PostRemoteAPIJAccountFetchPaymentMethodsIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJAccountFetchPaymentMethodsIDParams) SetContext(ctx contex
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j account fetch payment methods ID params
+func (o *PostRemoteAPIJAccountFetchPaymentMethodsIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJAccountFetchPaymentMethodsIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j account fetch payment methods ID params
+func (o *PostRemoteAPIJAccountFetchPaymentMethodsIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j account fetch payment methods ID params
 func (o *PostRemoteAPIJAccountFetchPaymentMethodsIDParams) WithID(id string) *PostRemoteAPIJAccountFetchPaymentMethodsIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJAccountFetchPaymentMethodsIDParams) WriteToRequest(r runt
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

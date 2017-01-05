@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJCredentialShareWithIDParams creates a new PostRemoteAPIJCredentialShareWithIDParams object
@@ -51,6 +53,11 @@ for the post remote API j credential share with ID operation typically these are
 */
 type PostRemoteAPIJCredentialShareWithIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJCredentialShareWithIDParams) SetContext(ctx context.Conte
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j credential share with ID params
+func (o *PostRemoteAPIJCredentialShareWithIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJCredentialShareWithIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j credential share with ID params
+func (o *PostRemoteAPIJCredentialShareWithIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j credential share with ID params
 func (o *PostRemoteAPIJCredentialShareWithIDParams) WithID(id string) *PostRemoteAPIJCredentialShareWithIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJCredentialShareWithIDParams) WriteToRequest(r runtime.Cli
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

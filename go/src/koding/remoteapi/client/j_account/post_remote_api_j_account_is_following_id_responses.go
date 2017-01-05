@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJAccountIsFollowingIDOK() *PostRemoteAPIJAccountIsFollowing
 OK
 */
 type PostRemoteAPIJAccountIsFollowingIDOK struct {
-	Payload *models.JAccount
+	Payload PostRemoteAPIJAccountIsFollowingIDOKBody
 }
 
 func (o *PostRemoteAPIJAccountIsFollowingIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJAccountIsFollowingIDOK) Error() string {
 
 func (o *PostRemoteAPIJAccountIsFollowingIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JAccount)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJAccountIsFollowingIDOKBody post remote API j account is following ID o k body
+swagger:model PostRemoteAPIJAccountIsFollowingIDOKBody
+*/
+type PostRemoteAPIJAccountIsFollowingIDOKBody struct {
+	models.JAccount
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJAccountIsFollowingIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJAccountIsFollowingIDOKBodyAO0 models.JAccount
+	if err := swag.ReadJSON(raw, &postRemoteAPIJAccountIsFollowingIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JAccount = postRemoteAPIJAccountIsFollowingIDOKBodyAO0
+
+	var postRemoteAPIJAccountIsFollowingIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJAccountIsFollowingIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJAccountIsFollowingIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJAccountIsFollowingIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJAccountIsFollowingIDOKBodyAO0, err := swag.WriteJSON(o.JAccount)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJAccountIsFollowingIDOKBodyAO0)
+
+	postRemoteAPIJAccountIsFollowingIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJAccountIsFollowingIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j account is following ID o k body
+func (o *PostRemoteAPIJAccountIsFollowingIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JAccount.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

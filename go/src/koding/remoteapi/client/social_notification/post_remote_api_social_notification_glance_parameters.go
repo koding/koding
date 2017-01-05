@@ -57,7 +57,7 @@ type PostRemoteAPISocialNotificationGlanceParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPISocialNotificationGlanceParams) SetContext(ctx context.Con
 }
 
 // WithBody adds the body to the post remote API social notification glance params
-func (o *PostRemoteAPISocialNotificationGlanceParams) WithBody(body *models.DefaultSelector) *PostRemoteAPISocialNotificationGlanceParams {
+func (o *PostRemoteAPISocialNotificationGlanceParams) WithBody(body models.DefaultSelector) *PostRemoteAPISocialNotificationGlanceParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API social notification glance params
-func (o *PostRemoteAPISocialNotificationGlanceParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPISocialNotificationGlanceParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPISocialNotificationGlanceParams) WriteToRequest(r runtime.C
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

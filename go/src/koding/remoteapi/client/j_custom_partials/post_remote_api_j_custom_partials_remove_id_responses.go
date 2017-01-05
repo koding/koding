@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJCustomPartialsRemoveIDOK() *PostRemoteAPIJCustomPartialsRe
 OK
 */
 type PostRemoteAPIJCustomPartialsRemoveIDOK struct {
-	Payload *models.JCustomPartials
+	Payload PostRemoteAPIJCustomPartialsRemoveIDOKBody
 }
 
 func (o *PostRemoteAPIJCustomPartialsRemoveIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJCustomPartialsRemoveIDOK) Error() string {
 
 func (o *PostRemoteAPIJCustomPartialsRemoveIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JCustomPartials)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJCustomPartialsRemoveIDOKBody post remote API j custom partials remove ID o k body
+swagger:model PostRemoteAPIJCustomPartialsRemoveIDOKBody
+*/
+type PostRemoteAPIJCustomPartialsRemoveIDOKBody struct {
+	models.JCustomPartials
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJCustomPartialsRemoveIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJCustomPartialsRemoveIDOKBodyAO0 models.JCustomPartials
+	if err := swag.ReadJSON(raw, &postRemoteAPIJCustomPartialsRemoveIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JCustomPartials = postRemoteAPIJCustomPartialsRemoveIDOKBodyAO0
+
+	var postRemoteAPIJCustomPartialsRemoveIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJCustomPartialsRemoveIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJCustomPartialsRemoveIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJCustomPartialsRemoveIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJCustomPartialsRemoveIDOKBodyAO0, err := swag.WriteJSON(o.JCustomPartials)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJCustomPartialsRemoveIDOKBodyAO0)
+
+	postRemoteAPIJCustomPartialsRemoveIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJCustomPartialsRemoveIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j custom partials remove ID o k body
+func (o *PostRemoteAPIJCustomPartialsRemoveIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JCustomPartials.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

@@ -77,6 +77,9 @@ func (m *JGroupLimit) validateRestrictions(formats strfmt.Registry) error {
 	if m.Restrictions != nil {
 
 		if err := m.Restrictions.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("restrictions")
+			}
 			return err
 		}
 	}

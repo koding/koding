@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJSessionRemoveIDOK() *PostRemoteAPIJSessionRemoveIDOK {
 OK
 */
 type PostRemoteAPIJSessionRemoveIDOK struct {
-	Payload *models.JSession
+	Payload PostRemoteAPIJSessionRemoveIDOKBody
 }
 
 func (o *PostRemoteAPIJSessionRemoveIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJSessionRemoveIDOK) Error() string {
 
 func (o *PostRemoteAPIJSessionRemoveIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JSession)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJSessionRemoveIDOKBody post remote API j session remove ID o k body
+swagger:model PostRemoteAPIJSessionRemoveIDOKBody
+*/
+type PostRemoteAPIJSessionRemoveIDOKBody struct {
+	models.JSession
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJSessionRemoveIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJSessionRemoveIDOKBodyAO0 models.JSession
+	if err := swag.ReadJSON(raw, &postRemoteAPIJSessionRemoveIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JSession = postRemoteAPIJSessionRemoveIDOKBodyAO0
+
+	var postRemoteAPIJSessionRemoveIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJSessionRemoveIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJSessionRemoveIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJSessionRemoveIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJSessionRemoveIDOKBodyAO0, err := swag.WriteJSON(o.JSession)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJSessionRemoveIDOKBodyAO0)
+
+	postRemoteAPIJSessionRemoveIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJSessionRemoveIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j session remove ID o k body
+func (o *PostRemoteAPIJSessionRemoveIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JSession.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

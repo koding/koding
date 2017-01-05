@@ -57,7 +57,7 @@ type PostRemoteAPIJGroupFetchMyMembershipsParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJGroupFetchMyMembershipsParams) SetContext(ctx context.Con
 }
 
 // WithBody adds the body to the post remote API j group fetch my memberships params
-func (o *PostRemoteAPIJGroupFetchMyMembershipsParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJGroupFetchMyMembershipsParams {
+func (o *PostRemoteAPIJGroupFetchMyMembershipsParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJGroupFetchMyMembershipsParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j group fetch my memberships params
-func (o *PostRemoteAPIJGroupFetchMyMembershipsParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJGroupFetchMyMembershipsParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJGroupFetchMyMembershipsParams) WriteToRequest(r runtime.C
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

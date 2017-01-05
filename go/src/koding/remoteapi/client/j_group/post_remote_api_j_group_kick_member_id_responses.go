@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJGroupKickMemberIDOK() *PostRemoteAPIJGroupKickMemberIDOK {
 OK
 */
 type PostRemoteAPIJGroupKickMemberIDOK struct {
-	Payload *models.JGroup
+	Payload PostRemoteAPIJGroupKickMemberIDOKBody
 }
 
 func (o *PostRemoteAPIJGroupKickMemberIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJGroupKickMemberIDOK) Error() string {
 
 func (o *PostRemoteAPIJGroupKickMemberIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JGroup)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJGroupKickMemberIDOKBody post remote API j group kick member ID o k body
+swagger:model PostRemoteAPIJGroupKickMemberIDOKBody
+*/
+type PostRemoteAPIJGroupKickMemberIDOKBody struct {
+	models.JGroup
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJGroupKickMemberIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJGroupKickMemberIDOKBodyAO0 models.JGroup
+	if err := swag.ReadJSON(raw, &postRemoteAPIJGroupKickMemberIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JGroup = postRemoteAPIJGroupKickMemberIDOKBodyAO0
+
+	var postRemoteAPIJGroupKickMemberIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJGroupKickMemberIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJGroupKickMemberIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJGroupKickMemberIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJGroupKickMemberIDOKBodyAO0, err := swag.WriteJSON(o.JGroup)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJGroupKickMemberIDOKBodyAO0)
+
+	postRemoteAPIJGroupKickMemberIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJGroupKickMemberIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j group kick member ID o k body
+func (o *PostRemoteAPIJGroupKickMemberIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JGroup.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }
