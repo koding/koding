@@ -36,8 +36,8 @@ if [ "$1" == "socialapi" ]; then
 
 elif  [ "$1" == "kites" ]; then
     shift
-
     export COMPILE_FLAGS=${COMPILE_FLAGS:-"-race"}
+    
     compile  $@
     runWithCD $@
     clean $@

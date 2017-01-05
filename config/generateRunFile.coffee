@@ -385,22 +385,6 @@ generateDev = (KONFIG, options) ->
       scripts/api-generator.coffee --check
     }
 
-    function gotest() {
-        action="sh -c"
-        # action="echo"
-        # COMPILE_FLAGS=$KONFIG_SOCIALAPI_CONFIGFILEPATH
-        echo $RUN_FLAGS
-
-        echo $1
-        echo $2
-
-        go list -f '{{if len .TestGoFiles}}"go test -v -cover -o={{.Dir}}/{{.Name}}.test -c {{.ImportPath}} "{{end}}' $1 | grep -v vendor | xargs -L 1 -I{} $action {}$COMPILE_FLAGS
-        # pushd is required for test folders/paths
-        go list -f '{{if len .TestGoFiles}}"cd {{.Dir}} && ./{{.Name}}.test -test.coverprofile={{.Dir}}/coverage.txt "{{end}}' $1 | xargs -L 1 -I{} $action {}$RUN_FLAGS
-        go list -f '{{if len .TestGoFiles}}"rm {{.Dir}}/{{.Name}}.test "{{end}}' $1 | xargs -L 1 $action
-
-    }
-
     function runMongoDocker () {
         docker run -d -p 27017:27017 --name=mongo mongo:2.4 --nojournal --noprealloc --smallfiles
         check_connectivity mongo
@@ -522,25 +506,9 @@ generateDev = (KONFIG, options) ->
     elif [ "$1" == "is_ready" ]; then
       is_ready
 
-    elif [ "$1" == "gotest" ]; then
-      shift
-      gotest $@
-
     elif [ "$1" == "docker-compose" ]; then
       shift
       docker_compose
-
-    elif [ "$1" == "gotest_social" ]; then
-      shift
-      export COMPILE_FLAGS=${COMPILE_FLAGS:-""}
-      export RUN_FLAGS="-c=$KONFIG_SOCIALAPI_CONFIGFILEPATH"
-      gotest $@
-      unset COMPILE_FLAGS
-
-    elif [ "$1" == "gotest" ]; then
-      export COMPILE_FLAGS=${COMPILE_FLAGS:-""}
-      shift
-      gotest $@
 
     elif [ "$1" == "exec" ]; then
       shift
