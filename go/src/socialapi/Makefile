@@ -55,49 +55,49 @@ build:
 
 testpresence:
 	@echo "$(OK_COLOR)--> presence tests... $(NO_COLOR)"
-	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/presence
+	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/presence
 
 	@echo "$(OK_COLOR)--> presence api tests... $(NO_COLOR)"
-	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/presence/api
+	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/presence/api
 
 	@echo "$(OK_COLOR)--> presence client tests... $(NO_COLOR)"
-	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/presence/client
+	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/presence/client
 
 testteam: testteamunit testteamintegration
 
 testteamunit:
 	@echo "$(OK_COLOR)--> team unit tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/team
+	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/team
 
 testteamintegration:
 	@echo "$(OK_COLOR)--> team integration tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/team/tests
+	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/team/tests
 
 testalgolia:
 	@echo "$(OK_COLOR)--> algoliaconnector unit tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/algoliaconnector/algoliaconnector
+	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/algoliaconnector/algoliaconnector
 
 # testcollaboration runs the unit and integration tests of collaboration worker
 testcollaboration:
 	@echo "$(OK_COLOR)--> collaboration tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/collaboration/tests
+	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/collaboration/tests
 
-	$(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/collaboration "-kite-init -c=./go/src/socialapi/config/dev.toml"
+	env RUN_FLAGS="-kite-init -c=./go/src/socialapi/config/dev.toml" $(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/collaboration
 
 testmodels:
 	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/models
+	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/models
 
 testmailsender:
 	@echo "$(OK_COLOR)--> Mailsender tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/email/emailsender
+	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/email/emailsender
 
 testmail:
 	@echo "$(OK_COLOR)--> mail tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/email/mailparse/models
+	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/email/mailparse/models
 
 	@echo "$(OK_COLOR)--> mail integration tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/email/mailparse/tests
+	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/email/mailparse/tests
 
 testpayment:
 	@echo "$(OK_COLOR)--> payment tests... $(NO_COLOR)"
@@ -105,14 +105,14 @@ testpayment:
 
 testintegration:
 	@echo "$(OK_COLOR)--> api integration tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/tests
+	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/tests
 
 testrealtime:
 	@echo "$(OK_COLOR)--> realtime tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/realtime/realtime
+	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/realtime/realtime
 
 	@echo "$(OK_COLOR)--> realtime model tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/realtime/models
+	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/realtime/models
 
 
 testapi: testcollaboration testmailsender testmail testmodels \
@@ -128,4 +128,4 @@ testapi: testcollaboration testmailsender testmail testmodels \
 	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
 
 	@echo "$(OK_COLOR)--> handler tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotest_socialapi.sh socialapi/workers/common/handler
+	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/common/handler
