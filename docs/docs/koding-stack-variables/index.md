@@ -47,7 +47,10 @@ resource:
         echo "group slug ${var.koding_group_slug}"
 ```
 
-Once we build our VM we can check the logs to see the output
+Once we build our VM we can check the build logs to see the output of our commands
+
+> If you don't see the build logs opened by default, click on VM settings from the side panel and click on "Show Build Logs"
+
 ![Koding vars][1]
 
 [1]: {{ site.url}}/assets/img/guides/koding-vars/echooutput.png
