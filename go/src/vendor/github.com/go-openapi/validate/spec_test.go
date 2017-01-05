@@ -33,6 +33,19 @@ func init() {
 	loads.AddLoader(fmts.YAMLMatcher, fmts.YAMLDoc)
 }
 
+func TestExpandResponseLocalFile(t *testing.T) {
+	fp := filepath.Join("fixtures", "local_expansion", "spec.yaml")
+	doc, err := loads.Spec(fp)
+	if assert.NoError(t, err) {
+		if assert.NotNil(t, doc) {
+			validator := NewSpecValidator(doc.Schema(), strfmt.Default)
+			res, _ := validator.Validate(doc)
+			assert.True(t, res.IsValid())
+			assert.Empty(t, res.Errors)
+		}
+	}
+}
+
 func TestIssue52(t *testing.T) {
 	fp := filepath.Join("fixtures", "bugs", "52", "swagger.json")
 	jstext, _ := ioutil.ReadFile(fp)
@@ -148,8 +161,35 @@ func TestIssue123(t *testing.T) {
 	}
 }
 
-func init() {
-	loads.AddLoader(fmts.YAMLMatcher, fmts.YAMLDoc)
+func TestIssue6(t *testing.T) {
+	files, _ := filepath.Glob(filepath.Join("fixtures", "bugs", "6", "*.json"))
+	for _, path := range files {
+		doc, err := loads.Spec(path)
+		if assert.NoError(t, err) {
+			validator := NewSpecValidator(doc.Schema(), strfmt.Default)
+			res, _ := validator.Validate(doc)
+			for _, e := range res.Errors {
+				log.Println(e)
+			}
+			assert.False(t, res.IsValid())
+		}
+	}
+}
+
+// check if invalid patterns are indeed invalidated
+func TestIssue18(t *testing.T) {
+	files, _ := filepath.Glob(filepath.Join("fixtures", "bugs", "18", "*.json"))
+	for _, path := range files {
+		doc, err := loads.Spec(path)
+		if assert.NoError(t, err) {
+			validator := NewSpecValidator(doc.Schema(), strfmt.Default)
+			res, _ := validator.Validate(doc)
+			for _, e := range res.Errors {
+				log.Println(e)
+			}
+			assert.False(t, res.IsValid())
+		}
+	}
 }
 
 func TestValidateDuplicatePropertyNames(t *testing.T) {
