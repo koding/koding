@@ -80,7 +80,6 @@ module.exports = class MainController extends kd.Controller
     kd.registerSingleton 'appManager',   appManager = new ApplicationManager
     kd.registerSingleton 'store',             store = createStore()
     kd.registerSingleton 'notificationController',    new NotificationController
-    kd.registerSingleton 'notificationViewController',new NotificationViewController
     kd.registerSingleton 'linkController',            new LinkController
     kd.registerSingleton 'router',           router = new KodingRouter
     kd.registerSingleton 'localStorageController',    new LocalStorageController
@@ -99,6 +98,8 @@ module.exports = class MainController extends kd.Controller
     kd.registerSingleton 'onboarding',                new OnboardingController
     kd.registerSingleton 'machineShareManager',       new MachineShareManager
     kd.registerSingleton 'reactor',                   new KodingFluxReactor
+
+    kd.registerSingleton 'notificationViewController', new NotificationViewController
 
     @registerFluxModules()
 
