@@ -40,7 +40,14 @@ module.exports = class StackEditor extends kd.View
     @toolbar = new Toolbar
     @forwardEvent @toolbar, Events.InitializeRequested
 
+    # SideView for Search and Credentials
     @credentialsController = new CredentialsController
+    @sideView       = new SideView
+      title         : yes
+      views         :
+        credentials :
+          title     : 'Credentials'
+          view      : @credentialsController.listView
 
     # Status bar
     @statusbar = new Statusbar
@@ -176,4 +183,4 @@ module.exports = class StackEditor extends kd.View
       ]
 
     contentView.setClass 'safari-flex-fix'  if bowser.safari
-    contentView.addSubView @sideView = new SideView { title: 'Help' }
+    contentView.addSubView @sideView

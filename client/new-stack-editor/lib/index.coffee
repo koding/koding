@@ -86,6 +86,10 @@ module.exports = class StackEditorAppController extends AppController
     console.trace()
     log '::initializeStack', template
 
+    if @stackEditor.sideView.hasClass 'hidden'
+    then @stackEditor.sideView.show 'credentials'
+    else @stackEditor.sideView.hide()
+
 
   createStackTemplate: (provider) ->
 
