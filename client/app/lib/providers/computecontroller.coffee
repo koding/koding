@@ -26,9 +26,11 @@ createShareModal     = require 'stack-editor/editor/createShareModal'
 isGroupDisabled      = require 'app/util/isGroupDisabled'
 ContentModal         = require 'app/components/contentModal'
 runMiddlewares       = require 'app/util/runMiddlewares'
+SidebarFlux          = require 'app/flux/sidebar'
+whoami               = require 'app/util/whoami'
+
 TestMachineMiddleware = require './middlewares/testmachine'
 
-whoami = require 'app/util/whoami'
 
 { actions : HomeActions } = require 'home/flux'
 require './config'
@@ -1027,7 +1029,7 @@ module.exports = class ComputeController extends KDController
 
     if stackTemplate
       reactor.dispatch 'UPDATE_PRIVATE_STACK_TEMPLATE_SUCCESS', { stackTemplate }
-      reactor.dispatch 'MAKE_SIDEBAR_ITEM_VISIBLE_SUCCESS', { type: 'draft', id }
+      SidebarFlux.actions.makeVisible 'draft', id
 
     stacks = @stacks.filter (stack) -> stack.config?.clonedFrom is id
 
@@ -1042,7 +1044,8 @@ module.exports = class ComputeController extends KDController
     { reactor } = kd.singletons
 
     reactor.dispatch 'UPDATE_TEAM_STACK_TEMPLATE_SUCCESS', { stackTemplate }
-    reactor.dispatch 'MAKE_SIDEBAR_ITEM_VISIBLE_SUCCESS', { type: 'draft', id: stackTemplate._id }
+    if whoami()._id is stackTemplate.originId
+      SidebarFlux.actions.makeVisible 'draft', stackTemplate._id
 
     stacks = @stacks.filter (stack) ->
       stack.config?.clonedFrom is stackTemplate._id
