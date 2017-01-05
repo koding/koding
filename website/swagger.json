@@ -1851,6 +1851,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -1875,6 +1878,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -1899,6 +1905,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -1923,6 +1932,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -1947,6 +1959,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -1971,6 +1986,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -1995,6 +2013,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2019,6 +2040,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2043,6 +2067,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2067,6 +2094,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2091,6 +2121,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2115,6 +2148,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2139,6 +2175,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2163,6 +2202,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2187,6 +2229,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2211,6 +2256,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2235,6 +2283,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2259,6 +2310,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2283,6 +2337,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2307,6 +2364,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2331,6 +2391,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2355,6 +2418,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2379,6 +2445,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2403,6 +2472,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2427,6 +2499,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2451,6 +2526,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2475,6 +2553,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2499,6 +2580,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2523,6 +2607,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2547,6 +2634,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2571,6 +2661,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2595,6 +2688,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2619,6 +2715,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2643,6 +2742,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2693,6 +2795,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -2807,6 +2912,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -3266,6 +3374,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -3290,6 +3401,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -3314,6 +3428,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -3338,6 +3455,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -3362,6 +3482,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -3386,6 +3509,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -3410,6 +3536,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -3494,6 +3623,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -3518,6 +3650,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -3542,6 +3677,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -3566,6 +3704,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -3590,6 +3731,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -3614,6 +3758,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -3638,6 +3785,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -3662,6 +3812,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -3776,6 +3929,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -3800,6 +3956,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -3824,6 +3983,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -3908,6 +4070,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -4042,6 +4207,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -4066,6 +4234,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -4090,6 +4261,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -4114,6 +4288,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -4138,6 +4315,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -4162,6 +4342,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -4186,6 +4369,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -4270,6 +4456,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -4294,6 +4483,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -4464,6 +4656,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -4488,6 +4683,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -4512,6 +4710,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -4536,6 +4737,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -4560,6 +4764,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5004,6 +5211,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5028,6 +5238,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5052,6 +5265,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5076,6 +5292,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           },
           {
             "in": "body",
@@ -5115,6 +5334,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5139,6 +5361,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5163,6 +5388,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5187,6 +5415,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5211,6 +5442,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5235,6 +5469,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5259,6 +5496,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5283,6 +5523,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5307,6 +5550,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5331,6 +5577,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5355,6 +5604,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5379,6 +5631,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5403,6 +5658,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5427,6 +5685,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5451,6 +5712,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5475,6 +5739,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5499,6 +5766,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5523,6 +5793,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5547,6 +5820,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5571,6 +5847,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5595,6 +5874,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5619,6 +5901,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5643,6 +5928,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5667,6 +5955,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5691,6 +5982,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5715,6 +6009,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5739,6 +6036,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5763,6 +6063,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5787,6 +6090,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5811,6 +6117,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5835,6 +6144,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -5859,6 +6171,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -6063,6 +6378,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -6087,6 +6405,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -6407,6 +6728,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -6431,6 +6755,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -6815,6 +7142,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -6839,6 +7169,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -6915,6 +7248,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -8555,6 +8891,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -8579,6 +8918,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -8603,6 +8945,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -8627,6 +8972,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -8651,6 +8999,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -8675,6 +9026,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -8699,6 +9053,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -9169,6 +9526,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -9193,6 +9553,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -9217,6 +9580,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -9241,6 +9607,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -9265,6 +9634,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -9289,6 +9661,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -9313,6 +9688,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -9337,6 +9715,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -9361,6 +9742,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -9385,6 +9769,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -9409,6 +9796,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -9523,6 +9913,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
@@ -10247,6 +10640,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
