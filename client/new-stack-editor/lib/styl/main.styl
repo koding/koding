@@ -308,6 +308,38 @@ $stack-border-width         = 2px
         color               $stack-fg-color-yellow
 
 
+  .credential-list
+    min-width               $stack-sideview-width
+
+    .kdlistitemview.credential
+      font-size             14px
+      padding               10px 15px 10px 20px
+      color                 $stack-fg-color-bright
+      border-bottom         1px solid #333
+      borderBox()
+
+      &:hover
+        background          $stack-bg-color-bright
+
+      button
+        margin              0
+        margin-left         8px
+        padding             0
+        background          none
+        border              none
+        color               $stack-fg-color
+        fr()
+
+        &.show
+          fa                eye
+
+        &.edit
+          fa                pencil
+
+        &.delete
+          fa                trash
+
+
 #intercom-container
   &.small
     .intercom-launcher-frame
