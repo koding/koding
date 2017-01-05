@@ -3,22 +3,44 @@
 #  make relative paths work.
 cd $(dirname $0)/..
 
-export COMPILE_FLAGS=${COMPILE_FLAGS:-""}
+action="sh -c"
+# action="echo"
 
-if [ "$1" == "test_socialapi" ]; then
+function compile () {
+    go list -f '{{if len .TestGoFiles}}"go test -v -cover -c {{.ImportPath}} -o={{.Dir}}/{{.Name}}.test "{{end}}' $1 | grep -v vendor | xargs -L 1 -I{} $action "{}$COMPILE_FLAGS"
+}
+
+function run() {
+    go list -f '{{if len .TestGoFiles}}"{{.Dir}}/{{.Name}}.test -test.coverprofile={{.Dir}}/coverage.txt "{{end}}' $1 | grep -v vendor | xargs -L 1 -I{} $action "{}$RUN_FLAGS"
+}
+
+function runWithCD() {
+    go list -f '{{if len .TestGoFiles}}"cd {{.Dir}} && ./{{.Name}}.test -test.coverprofile={{.Dir}}/coverage.txt "{{end}}' $1 | grep -v vendor | xargs -L 1 -I{} $action "{}$RUN_FLAGS"
+}
+
+function clean() {
+    go list -f '{{if len .TestGoFiles}}"rm {{.Dir}}/{{.Name}}.test "{{end}}' $1 | xargs -L 1 $action
+}
+
+function test() {
+    compile $@
+    run $@
+    clean $@
+}
+
+if [ "$1" == "socialapi" ]; then
   shift
-  confPath="-c="$(pwd)"/go/src/socialapi/config/dev.toml"
-  # export RUN_FLAGS="$RUN_FLAGS $confPath"
-  # TODO
-  # If there is more than 1 argument for run flag config file + another flag
-  # then there is an error in bash script
-  export RUN_FLAGS="$confPath"
-  echo $RUN_FLAGS
 
-  ./scripts/gotest.sh $@
-  unset COMPILE_FLAGS
+  export RUN_FLAGS=${RUN_FLAGS:-"-c=./go/src/socialapi/config/dev.toml"}
+  test $@
 
-elif [ "$1" == "gotest" ]; then
-  shift
-  ./scripts/gotest.sh $@
+elif  [ "$1" == "kites" ]; then
+    shift
+
+    export COMPILE_FLAGS=${COMPILE_FLAGS:-"-race"}
+    compile  $@
+    runWithCD $@
+    clean $@
+else
+  test $@
 fi
