@@ -9,6 +9,7 @@ module.exports =
     require './stores/teaminvitationinputvaluesstore'
     require './stores/teaminvitationstore'
     require './stores/teamsearchinputvaluestore'
+    require './stores/teamrolefilterkeystore'
     require './stores/teamdisabledmembersstore'
     require './stores/teamallmembersloadedstore'
     require './stores/teamapitokensstore'

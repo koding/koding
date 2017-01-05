@@ -26,7 +26,7 @@ module.exports = class HomeTeamTeamMatesContainer extends React.Component
   componentWillMount: ->
 
     options =
-      limit : 10
+      limit : 20
       sort  : { timestamp: -1 } # timestamp is at relationship collection
       skip  : 0
 
@@ -35,9 +35,9 @@ module.exports = class HomeTeamTeamMatesContainer extends React.Component
 
   handleLoadMore: ->
 
-    @skip += 10
+    @skip += 20
     options =
-      limit : 10 + @skip
+      limit : 20 + @skip
       sort  : { timestamp: -1 } # timestamp is at relationship collection
       skip  : @skip
 

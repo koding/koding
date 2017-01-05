@@ -109,4 +109,57 @@ hometeammates.styl
         borderBox()
 
 
+.HomeAppView--section.teammates
+  clear                     both
 
+.HomeAppView--custom .sectionHeader
+  margin                    0 48px 30px
+  
+  .HomeTeamTeammatesTitle
+    float                   left
+    
+    a
+      font-size             14px
+      line-height           19px
+      color                 #747474
+      noTextDeco()
+    
+    .anchor
+      display               inline-block
+      margin-left           -22px
+      margin-top            2px
+      visibility            hidden
+      abs()
+
+    &:hover
+      .anchor
+        visibility          visible
+
+    &:active
+      .anchor
+        visibility          hidden
+        
+  .HomeTeamTeammatesDropdown
+    float                   right
+
+    .role
+      display               inline-block
+      color                 #747474
+      cursor                text
+      margin-right          15px
+      font-size             14px
+      letter-spacing        .3px
+      &.showPointer
+        cursor              pointer
+
+    .ButtonWithMenuWrapper
+      cursor                pointer
+      display               inline-block
+      &:before
+        content             ''
+        background          none
+        border              5px solid transparent
+        border-top-color    rgb(183,183,183)
+        width               10px
+        abs                 8px
+        borderBox()

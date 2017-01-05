@@ -43,7 +43,7 @@ module.exports = class HomeTeamTeamMatesView extends React.Component
 
     loadMoreClassName = 'load-more'
 
-    if @props.members.size < 10 or @props.allUsersLoaded
+    if @props.members.size < 20 or @props.allUsersLoaded
       loadMoreClassName = 'load-more hidden'
 
     <div>

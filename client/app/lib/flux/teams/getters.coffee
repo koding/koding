@@ -9,6 +9,7 @@ TeamMembersIdStore = ['TeamMembersIdStore']
 UsersStore = ['UsersStore']
 TeamMembersRoleStore = ['TeamMembersRoleStore']
 searchInputValue = ['TeamSearchInputValueStore']
+roleFilterKey = ['TeamRoleFilterKeyStore']
 invitationInputValues = ['TeamInvitationInputValuesStore']
 loggedInUserEmail = ['LoggedInUserEmailStore']
 teamInvitations = ['TeamInvitationStore']
@@ -58,6 +59,12 @@ membersWithPendingInvitations = [
     pendingMembers.toArray().forEach (invitation) ->
       members = members.set invitation.get('_id'), invitation
 
+    members.forEach (member) ->
+      if member
+        member = member.set 'status', 'member' if !member.get('status') or member.get('status') is not 'pending'
+        member = member.set 'status', 'owner' if member.get('role') is 'owner'
+        members = members.set member.get('_id'), member
+
     return members
 ]
 
@@ -71,10 +78,12 @@ sortedMembersWithPendingInvitations = [
           member.get('firstName')  if member.get 'firstname'
           member.get('lastName')  if member.get 'lastName'
           member.get('email')
+          member.get('status')
         else
           member.getIn(['profile', 'firstName'])  if member.getIn(['profile', 'firstName'])
           member.getIn(['profile', 'lastName'])  if member.getIn(['profile', 'lastName'])
           member.getIn(['profile', 'email'])
+          member.get('status')
 ]
 
 
@@ -87,8 +96,29 @@ filteredMembersWithRole = [
 ]
 
 
-filteredMembersWithRoleAndDisabledUsers = [
+isMemberIncluded = (member, value) ->
+  if value is 'invited'
+    member.get('status') is 'pending'
+  else if member.get('status') is 'pending'
+    if value is 'member'
+      false
+    else
+      member.get('role') is value
+  else
+    member.get('role') is value
+
+
+filteredMembersByKey = [
   filteredMembersWithRole
+  roleFilterKey
+  (members, value) ->
+    return members  if value is 'all' or value is ''
+    members.filter (member) -> isMemberIncluded member, value
+]
+
+
+filteredMembersWithRoleAndDisabledUsers = [
+  filteredMembersByKey
   disabledUsers
   (users, disabledUsers) ->
     users.withMutations (users) ->
@@ -174,7 +204,9 @@ module.exports = {
   TeamMembersIdStore
   invitationInputValues
   searchInputValue
+  roleFilterKey
   filteredMembersWithRole
+  filteredMembersByKey
   adminInvitations
   allInvitations
   newInvitations
