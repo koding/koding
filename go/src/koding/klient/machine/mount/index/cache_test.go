@@ -1,6 +1,7 @@
 package index
 
 import (
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -8,10 +9,11 @@ import (
 )
 
 func TestCachedIndexCreate(t *testing.T) {
-	if err := cleanTempDirs(); err != nil {
+	tempDir, cleanTempDir, err := makeTempDir()
+	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	defer cleanTempDirs()
+	defer cleanTempDir()
 
 	root, clean, err := generateTree()
 	if err != nil {
@@ -19,13 +21,14 @@ func TestCachedIndexCreate(t *testing.T) {
 	}
 	defer clean()
 
-	idx, err := GetCachedIndex(root)
+	c := &Cached{TempDir: tempDir}
+	idx, err := c.GetCachedIndex(root)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
 	// Check index integrity.
-	count, diskSize, err := HeadCachedIndex(root)
+	count, diskSize, err := c.HeadCachedIndex(root)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -37,7 +40,7 @@ func TestCachedIndexCreate(t *testing.T) {
 	}
 
 	// Cache should reuse existing index.
-	dirnames, idxs, err := tmpDirInfo()
+	dirnames, idxs, err := tmpDirInfo(tempDir())
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -50,10 +53,11 @@ func TestCachedIndexCreate(t *testing.T) {
 }
 
 func TestCahcedIndexUpdated(t *testing.T) {
-	if err := cleanTempDirs(); err != nil {
+	tempDir, cleanTempDir, err := makeTempDir()
+	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	defer cleanTempDirs()
+	defer cleanTempDir()
 
 	root, clean, err := generateTree()
 	if err != nil {
@@ -61,7 +65,8 @@ func TestCahcedIndexUpdated(t *testing.T) {
 	}
 	defer clean()
 
-	idx, err := GetCachedIndex(root)
+	c := &Cached{TempDir: tempDir}
+	idx, err := c.GetCachedIndex(root)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -71,7 +76,7 @@ func TestCahcedIndexUpdated(t *testing.T) {
 	}
 
 	// Should update and return new index.
-	idx2, err := GetCachedIndex(root)
+	idx2, err := c.GetCachedIndex(root)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -83,7 +88,7 @@ func TestCahcedIndexUpdated(t *testing.T) {
 	}
 
 	// Cache should reuse existing index.
-	dirnames, idxs, err := tmpDirInfo()
+	dirnames, idxs, err := tmpDirInfo(tempDir())
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -95,22 +100,19 @@ func TestCahcedIndexUpdated(t *testing.T) {
 	}
 }
 
-func cleanTempDirs() error {
-	dirnames, _, err := tmpDirInfo()
+func makeTempDir() (tempDir func() string, clean func(), err error) {
+	dirname, err := ioutil.TempDir("", "mount.cache")
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
-	for _, dirname := range dirnames {
-		if e := os.RemoveAll(dirname); e != nil && err == nil {
-			err = e
-		}
-	}
+	clean = func() { os.RemoveAll(dirname) }
+	tempDir = func() string { return dirname }
 
-	return err
+	return
 }
 
-func tmpDirInfo() (dirnames, idxs []string, err error) {
+func tmpDirInfo(tempDir string) (dirnames, idxs []string, err error) {
 	walkFn := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return nil
@@ -122,7 +124,7 @@ func tmpDirInfo() (dirnames, idxs []string, err error) {
 		}
 
 		if strings.HasPrefix(filepath.Base(dir), tempIndexDirPrefix) {
-			if filepath.Join(os.TempDir(), filepath.Base(dir), file) != path {
+			if filepath.Join(tempDir, filepath.Base(dir), file) != path {
 				return nil
 			}
 
@@ -132,7 +134,7 @@ func tmpDirInfo() (dirnames, idxs []string, err error) {
 		return nil
 	}
 
-	if err := filepath.Walk(os.TempDir(), walkFn); err != nil {
+	if err := filepath.Walk(tempDir, walkFn); err != nil {
 		return nil, nil, err
 	}
 

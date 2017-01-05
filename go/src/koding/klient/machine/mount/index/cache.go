@@ -13,14 +13,21 @@ import (
 
 const tempIndexDirPrefix = "koding_index_"
 
+// Cached allows to cache and reuse previously created index.
+type Cached struct {
+	// Function used to retrieve temporary directory. If nil, os.TempDir will be
+	// used.
+	TempDir func() string
+}
+
 // GetCachedIndex returns index that describes the current directory state. This
 // function stores the resulting index in temporary file in order to not
 // recompute it each time when the index is requested.
-func GetCachedIndex(root string) (*Index, error) {
+func (c *Cached) GetCachedIndex(root string) (*Index, error) {
 	var cs ChangeSlice
 
 	// Load or create index.
-	idx, path, err := getCachedIndex(root)
+	idx, path, err := c.getCachedIndex(root)
 	if err != nil {
 		// Generate new index.
 		if idx, err = NewIndexFiles(root); err != nil {
@@ -35,12 +42,12 @@ func GetCachedIndex(root string) (*Index, error) {
 	// If index changed or was generated, save it.
 	if path == "" || len(cs) != 0 {
 		if path == "" {
-			if path, err = createTempPath(root); err != nil {
+			if path, err = c.createTempPath(root); err != nil {
 				return nil, err
 			}
 		}
 
-		if err = cacheIndex(idx, path); err != nil {
+		if err = c.cacheIndex(idx, path); err != nil {
 			return nil, err
 		}
 	}
@@ -50,8 +57,8 @@ func GetCachedIndex(root string) (*Index, error) {
 
 // HeadCachedIndex gets cached index or creates a new one and returns the number
 // and the overall size of stored files.
-func HeadCachedIndex(root string) (count int, diskSize int64, err error) {
-	idx, err := GetCachedIndex(root)
+func (c *Cached) HeadCachedIndex(root string) (count int, diskSize int64, err error) {
+	idx, err := c.GetCachedIndex(root)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -61,10 +68,10 @@ func HeadCachedIndex(root string) (count int, diskSize int64, err error) {
 
 // getCachedIndex looks up for index stored in one of temporary directories.
 // If provided index is found, it will be loaded to memory and returned.
-func getCachedIndex(root string) (idx *Index, path string, err error) {
+func (c *Cached) getCachedIndex(root string) (idx *Index, path string, err error) {
 	name := hashSHA1(root)
 	// Find index in temporary directories.
-	for _, tempdir := range indexTempDirs(-1) {
+	for _, tempdir := range c.indexTempDirs(-1) {
 		path = filepath.Join(tempdir, name)
 		if _, err = os.Stat(path); err == nil {
 			break
@@ -93,7 +100,7 @@ func getCachedIndex(root string) (idx *Index, path string, err error) {
 // cacheIndex atomically saves the provided index under a given path. If the
 // path is empty, this function will create or use existing index temporary
 // directory.
-func cacheIndex(idx *Index, path string) (err error) {
+func (c *Cached) cacheIndex(idx *Index, path string) (err error) {
 	dir, name := filepath.Split(path)
 	f, err := ioutil.TempFile(dir, name+"_")
 	if err != nil {
@@ -120,11 +127,11 @@ func cacheIndex(idx *Index, path string) (err error) {
 }
 
 // createTempPath creates a valid path to index file.
-func createTempPath(root string) (path string, err error) {
-	if dirs := indexTempDirs(1); len(dirs) > 0 {
+func (c *Cached) createTempPath(root string) (path string, err error) {
+	if dirs := c.indexTempDirs(1); len(dirs) > 0 {
 		path = dirs[0]
 	} else {
-		if path, err = ioutil.TempDir("", tempIndexDirPrefix); err != nil {
+		if path, err = ioutil.TempDir(c.tempDir(), tempIndexDirPrefix); err != nil {
 			return "", err
 		}
 	}
@@ -133,8 +140,8 @@ func createTempPath(root string) (path string, err error) {
 }
 
 // indexTempDirs reads all directory names that could be created by index cache.
-func indexTempDirs(n int) []string {
-	d, err := os.Open(os.TempDir())
+func (c *Cached) indexTempDirs(n int) []string {
+	d, err := os.Open(c.tempDir())
 	if err != nil {
 		return nil
 	}
@@ -146,12 +153,13 @@ func indexTempDirs(n int) []string {
 
 	var dirs []string
 	for len(dirs) != n {
-		// Limit the number of read directories.
+		// Limit the number of read directories. If no more directories are
+		// left to read, err is io.EOF.
 		names, err := d.Readdirnames(100)
 
 		for i := range names {
 			if strings.HasPrefix(names[i], tempIndexDirPrefix) {
-				dirs = append(dirs, filepath.Join(os.TempDir(), names[i]))
+				dirs = append(dirs, filepath.Join(c.tempDir(), names[i]))
 			}
 		}
 
@@ -161,6 +169,14 @@ func indexTempDirs(n int) []string {
 	}
 
 	return dirs
+}
+
+// tmpDir returns a file path to system's temporary directory.
+func (c *Cached) tempDir() string {
+	if c.TempDir == nil {
+		return os.TempDir()
+	}
+	return c.TempDir()
 }
 
 // hashSHA1 converts a string to hex representation of its SHA-1 checksum.
