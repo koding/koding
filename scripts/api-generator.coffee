@@ -154,7 +154,7 @@ generateMethodPaths = (model, definitions, paths, docs) ->
   methods = model.getSharedMethods()
 
   schema = if definitions[name]
-  then { $ref: "#/definitions/#{name}" }
+  then { allOf: [ { $ref: "#/definitions/#{name}" }, { $ref: '#/definitions/DefaultResponse' } ] }
   else { $ref: '#/definitions/DefaultResponse' }
 
   for method, signatures of methods.statik
