@@ -104,10 +104,10 @@ build:
         code: scripts/wercker/run-command go/src/koding/kites/e2etest/e2etest.sh
     - script:
         name: test providers
-        code: env COMPILE_FLAGS="-race" scripts/wercker/run-command ./scripts/gotests.sh gotest koding/kites/kloud/provider/...
+        code: scripts/wercker/run-command ./scripts/gotests.sh kites koding/kites/kloud/provider/...
     - script:
         name: test koding/api
-        code: env COMPILE_FLAGS="-race" scripts/wercker/run-command ./scripts/gotests.sh gotest koding/api/...
+        code: env COMPILE_FLAGS="-race" scripts/wercker/run-command ./scripts/gotests.sh koding/api/...
     - script:
         name: build backend finished
         code: scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build backend finished" "building" 40
@@ -134,7 +134,7 @@ build:
         code: scripts/wercker/run-command ./run exec go test koding/db/mongodb/modelhelper
     - script:
         name: test kontrol
-        code: scripts/wercker/run-command ./run exec go test koding/kites/kontrol/kontrol -v
+        code: scripts/wercker/run-command ./scripts/gotests.sh koding/kites/kontrol/kontrol
     - script:
         name: testing backend finished
         code: |
