@@ -5,8 +5,8 @@ set -o errexit
 #  make relative paths work.
 cd $(dirname $0)/..
 
-# action="sh -c"
-action="echo"
+action="sh -c"
+# action="echo"
 
 go list -f '{{if len .TestGoFiles}}"go test -v -cover -o={{.Dir}}/{{.Name}}.test -c {{.ImportPath}} "{{end}}' $1 | grep -v vendor | xargs -L 1 -I{} $action {}$COMPILE_FLAGS
 # pushd is required for test folders/paths
