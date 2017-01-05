@@ -26,10 +26,12 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
   constructor: (options = {}, data) ->
 
-    options.limit            or= 30
-    options.noItemFoundText   ?= "You don't have any credentials"
-    options.model             ?= remote.api.JCredential
+    options.limit              or= 30
+    options.lazyLoadThreshold  or= options.limit
+    options.model               ?= remote.api.JCredential
+    options.noItemFoundText     ?= "You don't have any credentials"
     options.showCredentialMenu  ?= yes
+    options.useCustomScrollView ?= yes
 
     super options, data
 

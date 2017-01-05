@@ -26,7 +26,7 @@ module.exports = class HomeAccountCredentialsView extends kd.CustomHTMLView
       wrapper                 : no
       scrollView              : no
       useCustomScrollView     : no
-      showCredentialMenu: no
+      showCredentialMenu      : no
 
     @addSubView @listController.getView()
 
