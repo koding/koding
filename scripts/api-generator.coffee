@@ -43,11 +43,6 @@ swagger =
           example: 'KodingError'
     DefaultSelector:
       type: 'object'
-      properties:
-        _id:
-          type: 'string'
-          description: 'Mongo Object ID'
-          example: '582c21d43bf248161538450b'
     DefaultResponse:
       type: 'object'
       properties:
