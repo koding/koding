@@ -29,6 +29,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
     options.limit            or= 30
     options.noItemFoundText   ?= "You don't have any credentials"
     options.model             ?= remote.api.JCredential
+    options.showCredentialMenu  ?= yes
 
     super options, data
 
@@ -185,12 +186,12 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
     super mainView
 
-    { provider, requiredFields, dontShowCredentialMenu } = @getOptions()
+    { provider, requiredFields, showCredentialMenu } = @getOptions()
 
     if provider
       @createAddDataButton()
     else
-      @createAddCredentialMenu()  unless dontShowCredentialMenu
+      @createAddCredentialMenu()  if showCredentialMenu
 
 
   createAddDataButton: ->
