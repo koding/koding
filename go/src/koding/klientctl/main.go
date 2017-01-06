@@ -585,6 +585,12 @@ func run(args []string) {
 							Usage: "Remote machine username.",
 						},
 					},
+				}, {
+					Name:      "mount",
+					ShortName: "m",
+					Usage:     "Mount remote folder to local directory.",
+					Action:    ctlcli.ExitErrAction(MachineMountCommand, log, "mount"),
+					Flags:     []cli.Flag{},
 				}},
 			},
 			cli.Command{
