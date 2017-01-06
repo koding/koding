@@ -15,6 +15,9 @@ module.exports = class CredentialListItem extends kd.ListItemView
     handle = (action) => =>
       @getDelegate().emit 'ItemAction', { action, item: this }
 
+    @checkBox = new kd.CustomCheckBox
+      defaultValue : off
+
     @preview = new kd.ButtonView
       cssClass: 'show'
       callback: handle 'ShowItem'
@@ -27,10 +30,15 @@ module.exports = class CredentialListItem extends kd.ListItemView
       cssClass: 'edit'
       callback: handle 'EditItem'
 
+    @on 'click', (event) =>
+      unless 'checkbox' in event.target.classList
+        @checkBox.setValue not !!@checkBox.getValue()
+        kd.utils.stopDOMEvent event
+
 
   pistachio: ->
 
     '''
-    {span.title{ #(title)}}
+    {{> @checkBox}} {span.title{ #(title)}}
     {{> @edit}} {{> @delete}} {{> @preview}}
     '''

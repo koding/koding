@@ -287,6 +287,7 @@ $stack-border-width         = 2px
     vendor                  transition, all 400ms ease-in
     border-left             $stack-border-width solid $stack-bg-color
     visibility              visible
+    borderBox()
 
     &.hidden
       display               block !important
@@ -309,17 +310,27 @@ $stack-border-width         = 2px
 
 
   .credential-list
-    min-width               $stack-sideview-width
+    min-width               $stack-sideview-width - $stack-border-width
 
     .kdlistitemview.credential
       font-size             14px
       padding               10px 15px 10px 20px
       color                 $stack-fg-color-bright
       border-bottom         1px solid #333
+      cursor                default
       borderBox()
 
       &:hover
         background          $stack-bg-color-bright
+
+      .kdcustomcheckbox
+        margin              -4px 5px -3px -3px
+        transform           scale(.7)
+        fl()
+
+        label
+          border-color      #333333
+          background-color  #2b2b30
 
       button
         margin              0
