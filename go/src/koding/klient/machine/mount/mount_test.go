@@ -3,6 +3,7 @@ package mount
 import (
 	"encoding/json"
 	"reflect"
+	"sort"
 	"testing"
 )
 
@@ -32,19 +33,19 @@ func TestMountBook(t *testing.T) {
 		Path          string
 		PathID        ID
 		RemotePath    string
-		RemotePathIDs []ID
+		RemotePathIDs IDSlice
 	}{
 		"paths from mount A": {
 			Path:          "/home/koding/a",
 			PathID:        idA,
 			RemotePath:    "/home/koding/remote/a",
-			RemotePathIDs: []ID{idA},
+			RemotePathIDs: IDSlice{idA},
 		},
 		"shared remote path": {
 			Path:          "/home/koding/b",
 			PathID:        idB,
 			RemotePath:    "/home/koding/remote/shared",
-			RemotePathIDs: []ID{idB, idC},
+			RemotePathIDs: IDSlice{idB, idC},
 		},
 		"unknown paths": {
 			Path:          "/home/koding/unknown",
@@ -63,7 +64,7 @@ func TestMountBook(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-
+			sort.Sort(test.RemotePathIDs)
 			id, err := mb.Path(test.Path)
 			if test.PathID == "" && err == nil {
 				t.Errorf("want err != nil, got nil")
@@ -76,6 +77,7 @@ func TestMountBook(t *testing.T) {
 			}
 
 			ids, err := mb.RemotePath(test.RemotePath)
+			sort.Sort(ids)
 			if test.RemotePathIDs == nil && err == nil {
 				t.Errorf("want err != nil, got nil")
 			}

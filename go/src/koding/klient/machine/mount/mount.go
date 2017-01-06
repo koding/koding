@@ -23,6 +23,13 @@ func MakeID() ID {
 	return ID(uuid.NewV4().String())
 }
 
+// IDSlice stores multiple mount IDs.
+type IDSlice []ID
+
+func (ids IDSlice) Len() int           { return len(ids) }
+func (ids IDSlice) Swap(i, j int)      { ids[i], ids[j] = ids[j], ids[i] }
+func (ids IDSlice) Less(i, j int) bool { return ids[i] < ids[j] }
+
 // Mount stores information about a single local to remote machine mount.
 type Mount struct {
 	Path       string `json:"path"`       // Mount point.
@@ -97,7 +104,7 @@ func (mb *MountBook) Path(path string) (ID, error) {
 // remote directory to different local paths. This function returns
 // ErrMountNotFound if neither of stored mounts uses the given path. Provided
 // path must be in its absolute and cleaned representation.
-func (mb *MountBook) RemotePath(path string) (ids []ID, err error) {
+func (mb *MountBook) RemotePath(path string) (ids IDSlice, err error) {
 	if !filepath.IsAbs(path) {
 		return nil, fmt.Errorf("path %q is not absolute", path)
 	}

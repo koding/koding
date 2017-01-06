@@ -12,6 +12,9 @@ import (
 	"github.com/djherbis/times"
 )
 
+// Version stores current version of index.
+const Version = 1
+
 // Entry represents a single file registered to index.
 type Entry struct {
 	Name  string      `json:"name"`  // The relative name of the file.

@@ -140,6 +140,9 @@ func TestIndex(t *testing.T) {
 				t.Fatalf("want err = nil; got %v", err)
 			}
 
+			// Synchronize underlying file-system.
+			Sync()
+
 			cs := idx.Compare(root)
 			sort.Sort(cs)
 			if len(cs) != len(test.Changes) {
@@ -256,6 +259,8 @@ func generateTree() (root string, clean func(), err error) {
 
 func addDir(file string) func(string) error {
 	return func(root string) error {
+		defer Sync()
+
 		dir := filepath.Join(root, filepath.FromSlash(file))
 		if filepath.Ext(dir) != "" {
 			dir = filepath.Dir(dir)
@@ -267,6 +272,8 @@ func addDir(file string) func(string) error {
 
 func writeFile(file string, size int64) func(string) error {
 	return func(root string) error {
+		defer Sync()
+
 		if filepath.Ext(file) == "" {
 			return nil
 		}
@@ -284,22 +291,29 @@ func writeFile(file string, size int64) func(string) error {
 
 func rmAllFile(file string) func(string) error {
 	return func(root string) error {
+		defer Sync()
+
 		return os.RemoveAll(filepath.Join(root, filepath.FromSlash(file)))
 	}
 }
 
 func mvFile(oldpath, newpath string) func(string) error {
 	return func(root string) error {
+		defer Sync()
+
 		var (
 			oldpath = filepath.Join(root, filepath.FromSlash(oldpath))
 			newpath = filepath.Join(root, filepath.FromSlash(newpath))
 		)
+
 		return os.Rename(oldpath, newpath)
 	}
 }
 
 func chmodFile(file string, mode os.FileMode) func(string) error {
 	return func(root string) error {
+		defer Sync()
+
 		return os.Chmod(filepath.Join(root, filepath.FromSlash(file)), mode)
 	}
 }
