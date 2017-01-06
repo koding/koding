@@ -273,7 +273,13 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 			return nil, err // non-retryable
 		}
 
-		if resp.StatusCode == http.StatusUnauthorized {
+		switch resp.StatusCode {
+		case http.StatusInternalServerError:
+			// TODO(rjeczalik): remove, this is a temporary workaround
+			// for remote.api, that return 500 when session could not
+			// be validated.
+			fallthrough
+		case http.StatusUnauthorized:
 			resp.Body.Close()
 			lastErr = errors.New(http.StatusText(resp.StatusCode))
 			refresh = true
