@@ -170,6 +170,7 @@ module.exports = class JStackTemplate extends Module
   # @option data [String] template template's content as stringified JSON
   # @option data [String] title template's title
   # @option data [Object] credentials template's credentials
+  # @option data [Object] config template's config
   #
   # @return {JStackTemplate} created JStackTemplate instance
   #
@@ -178,7 +179,8 @@ module.exports = class JStackTemplate extends Module
   #   {
   #     "template": "{\"provider\": {\"aws\": {}}}",
   #     "title": "My AWS template",
-  #     "credentials": {}
+  #     "credentials": {},
+  #     "config": {}
   #   }
   #
   @create = ->
