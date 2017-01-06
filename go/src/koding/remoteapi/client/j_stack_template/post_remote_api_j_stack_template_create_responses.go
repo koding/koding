@@ -105,6 +105,10 @@ swagger:model PostRemoteAPIJStackTemplateCreateBody
 */
 type PostRemoteAPIJStackTemplateCreateBody struct {
 
+	// config
+	// Required: true
+	Config interface{} `json:"config"`
+
 	// credentials
 	// Required: true
 	Credentials interface{} `json:"credentials"`
