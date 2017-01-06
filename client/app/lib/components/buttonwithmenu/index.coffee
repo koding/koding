@@ -13,15 +13,22 @@ module.exports = class ButtonWithMenu extends React.Component
 
   @defaultProps =
     items: []
-    isMenuOpen: no
     listClass:''
     menuClassName:''
+
+
+  constructor: (props) ->
+
+    super props
+
+    @state = { isMenuOpen : null }
 
 
   renderListMenu: ->
 
     onClick = (item) => (event) =>
       item.onClick event
+      @setState { isMenuOpen: false }
 
     @props.items.map (item) ->
       <li onClick={onClick item} key={item.key}>{item.title}</li>
@@ -30,7 +37,6 @@ module.exports = class ButtonWithMenu extends React.Component
   listDidMount: (_list) ->
 
     button = ReactDOM.findDOMNode @refs.button
-    return @setState isMenuOpen: no  unless button
     list = ReactDOM.findDOMNode _list
     buttonRect = button.getBoundingClientRect()
 
@@ -49,8 +55,9 @@ module.exports = class ButtonWithMenu extends React.Component
   render: ->
 
     button = <button ref='button'></button>
+
     <div className="ButtonWithMenuWrapper">
-      <Portal openByClickOn={button} closeOnOutsideClick closeOnEsc>
+      <Portal openByClickOn={button} closeOnOutsideClick closeOnEsc isOpened={@state.isMenuOpen}>
         <div className={@props.menuClassName}>
           <ul ref={@bound 'listDidMount'} className={kd.utils.curry "ButtonWithMenuItemsList", @props.listClass}>
             {@renderListMenu()}

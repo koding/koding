@@ -244,14 +244,7 @@
       }
     },
     "DefaultSelector": {
-      "type": "object",
-      "properties": {
-        "_id": {
-          "type": "string",
-          "description": "Mongo Object ID",
-          "example": "582c21d43bf248161538450b"
-        }
-      }
+      "type": "object"
     },
     "DefaultResponse": {
       "type": "object",
@@ -1858,13 +1851,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -1882,13 +1885,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -1906,13 +1919,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -1930,13 +1953,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -1954,13 +1987,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -1978,13 +2021,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2002,13 +2055,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2026,13 +2089,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2050,13 +2123,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2074,13 +2157,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2098,13 +2191,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2122,13 +2225,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2146,13 +2259,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2170,13 +2293,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2194,13 +2327,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2218,13 +2361,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2242,13 +2395,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2266,13 +2429,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2290,13 +2463,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2314,13 +2497,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2338,13 +2531,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2362,13 +2565,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2386,13 +2599,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2410,13 +2633,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2434,13 +2667,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2458,13 +2701,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2482,13 +2735,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2506,13 +2769,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2530,13 +2803,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2554,13 +2837,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2578,13 +2871,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2602,13 +2905,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2626,13 +2939,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2650,13 +2973,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JAccount"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2700,13 +3033,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JApiToken"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JApiToken"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -2814,13 +3157,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JCombinedAppStorage"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JCombinedAppStorage"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -3273,13 +3626,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JCredential"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JCredential"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -3297,13 +3660,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JCredential"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JCredential"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -3321,13 +3694,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JCredential"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JCredential"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -3345,13 +3728,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JCredential"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JCredential"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -3369,13 +3762,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JCredential"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JCredential"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -3393,13 +3796,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JCredential"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JCredential"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -3417,13 +3830,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JCredential"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JCredential"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -3501,13 +3924,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JMachine"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JMachine"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -3525,13 +3958,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JMachine"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JMachine"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -3549,13 +3992,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JMachine"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JMachine"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -3573,13 +4026,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JMachine"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JMachine"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -3597,13 +4060,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JMachine"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JMachine"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -3621,13 +4094,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JMachine"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JMachine"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -3645,13 +4128,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JMachine"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JMachine"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -3669,13 +4162,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JMachine"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JMachine"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -3783,13 +4286,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JProvisioner"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JProvisioner"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -3807,13 +4320,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JProvisioner"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JProvisioner"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -3831,13 +4354,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JProvisioner"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JProvisioner"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -3915,13 +4448,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JSnapshot"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JSnapshot"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -4049,13 +4592,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JStackTemplate"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JStackTemplate"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -4073,13 +4626,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JStackTemplate"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JStackTemplate"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -4097,13 +4660,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JStackTemplate"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JStackTemplate"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -4121,13 +4694,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JStackTemplate"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JStackTemplate"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -4145,13 +4728,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JStackTemplate"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JStackTemplate"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -4169,13 +4762,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JStackTemplate"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JStackTemplate"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -4193,13 +4796,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JStackTemplate"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JStackTemplate"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -4277,13 +4890,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JCustomPartials"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JCustomPartials"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -4301,13 +4924,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JCustomPartials"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JCustomPartials"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -4471,13 +5104,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JProposedDomain"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JProposedDomain"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -4495,13 +5138,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JProposedDomain"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JProposedDomain"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -4519,13 +5172,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JProposedDomain"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JProposedDomain"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -4543,13 +5206,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JProposedDomain"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JProposedDomain"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -4567,13 +5240,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JProposedDomain"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JProposedDomain"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5011,13 +5694,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5035,13 +5728,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5059,13 +5762,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5083,6 +5796,9 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           },
           {
             "in": "body",
@@ -5122,13 +5838,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5146,13 +5872,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5170,13 +5906,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5194,13 +5940,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5218,13 +5974,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5242,13 +6008,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5266,13 +6042,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5290,13 +6076,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5314,13 +6110,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5338,13 +6144,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5362,13 +6178,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5386,13 +6212,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5410,13 +6246,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5434,13 +6280,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5458,13 +6314,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5482,13 +6348,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5506,13 +6382,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5530,13 +6416,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5554,13 +6450,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5578,13 +6484,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5602,13 +6518,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5626,13 +6552,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5650,13 +6586,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5674,13 +6620,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5698,13 +6654,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5722,13 +6688,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5746,13 +6722,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5770,13 +6756,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5794,13 +6790,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5818,13 +6824,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5842,13 +6858,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -5866,13 +6892,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JGroup"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JGroup"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -6070,13 +7106,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JInvitation"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JInvitation"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -6094,13 +7140,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JInvitation"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JInvitation"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -6414,13 +7470,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JProxyFilter"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JProxyFilter"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -6438,13 +7504,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JProxyFilter"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JProxyFilter"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -6822,13 +7898,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JRewardCampaign"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JRewardCampaign"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -6846,13 +7932,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JRewardCampaign"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JRewardCampaign"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -6922,13 +8018,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JSession"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JSession"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -8562,13 +9668,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JComputeStack"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JComputeStack"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -8586,13 +9702,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JComputeStack"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JComputeStack"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -8610,13 +9736,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JComputeStack"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JComputeStack"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -8634,13 +9770,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JComputeStack"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JComputeStack"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -8658,13 +9804,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JComputeStack"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JComputeStack"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -8682,13 +9838,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JComputeStack"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JComputeStack"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -8706,13 +9872,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JComputeStack"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JComputeStack"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -9176,13 +10352,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JTag"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -9200,13 +10386,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JTag"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -9224,13 +10420,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JTag"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -9248,13 +10454,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JTag"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -9272,13 +10488,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JTag"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -9296,13 +10522,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JTag"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -9320,13 +10556,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JTag"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -9344,13 +10590,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JTag"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -9368,13 +10624,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JTag"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -9392,13 +10658,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JTag"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -9416,13 +10692,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JTag"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JTag"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -9530,13 +10816,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JTeamInvitation"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JTeamInvitation"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }
@@ -10254,13 +11550,23 @@
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
           }
         ],
         "responses": {
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/JWorkspace"
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JWorkspace"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
             }
           }
         }

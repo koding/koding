@@ -98,7 +98,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
           tabHandle.on 'RenamingRequested', (newTitle) =>
             pane.view.file.rename newTitle, (err) =>
               if err then @notify null, null, err
-              @emit 'NodeRenamed', pane.view.file, newTitle
 
               pane.view.file.emit 'FilePathChanged', newTitle
           tabHandle.makeEditable()
