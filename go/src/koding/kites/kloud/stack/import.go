@@ -58,6 +58,11 @@ type ImportResponse struct {
 	EventID    string `json:"eventId"`
 }
 
+var requiredData = map[string]interface{}{
+	"group": []interface{}{"slug"},
+	"user":  []interface{}{"username"},
+}
+
 func (k *Kloud) Import(r *kite.Request) (interface{}, error) {
 	var req ImportRequest
 
@@ -104,6 +109,11 @@ func (k *Kloud) Import(r *kite.Request) (interface{}, error) {
 			Template:    pstring(req.Template),
 			Title:       &req.Title,
 			Credentials: req.Credentials,
+			Config: map[string]interface{}{
+				"groupStack":        false,
+				"requiredProviders": []interface{}{req.Provider},
+				"requiredData":      requiredData,
+			},
 		},
 	}
 
@@ -168,10 +178,8 @@ func (k *Kloud) Import(r *kite.Request) (interface{}, error) {
 	tmplUpdateParams := &stacktemplate.PostRemoteAPIJStackTemplateUpdateIDParams{
 		ID: tmpl.ID,
 		Body: map[string]interface{}{
-			"config": map[string]interface{}{
-				"verified": true,
-			},
-			"machines": machines,
+			"config.verified": true,
+			"machines":        machines,
 		},
 	}
 
