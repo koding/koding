@@ -89,7 +89,7 @@ build:
         code: go/build.sh
     - script:
         name: test go koding config
-        code: scripts/wercker/run-command ./run exec go test -v --race -coverprofile=profile.out -covermode=atomic koding/kites/config
+        code: scripts/wercker/run-command ./run exec ./scripts/gotests.sh kites koding/kites/config
     - script:
         name: ensure JSON and generated files in go/src/koding are not stale
         code: scripts/check-generated-files.sh
