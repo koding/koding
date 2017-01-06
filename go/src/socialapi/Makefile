@@ -61,52 +61,55 @@ testteam: testteamunit testteamintegration
 
 testteamunit:
 	@echo "$(OK_COLOR)--> team unit tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/team
+	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/team
 
 testteamintegration:
 	@echo "$(OK_COLOR)--> team integration tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/team/tests
+	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/team/tests
 
+# TODO
+# fix configpath issue
 testalgolia:
 	@echo "$(OK_COLOR)--> algoliaconnector unit tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/algoliaconnector/algoliaconnector
+	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/algoliaconnector/algoliaconnector
 
 # testcollaboration runs the unit and integration tests of collaboration worker
 testcollaboration:
 	@echo "$(OK_COLOR)--> collaboration tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/collaboration/tests
+	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/collaboration/tests
 
 	env RUN_FLAGS="-kite-init -c=./go/src/socialapi/config/dev.toml" $(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/collaboration
 
 testmodels:
 	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/models
+	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotests.sh socialapi socialapi/models
 
 testmailsender:
 	@echo "$(OK_COLOR)--> Mailsender tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/email/emailsender
+	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/email/emailsender
 
 testmail:
 	@echo "$(OK_COLOR)--> mail tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/email/mailparse/models
+	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/email/mailparse/models
 
 	@echo "$(OK_COLOR)--> mail integration tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/email/mailparse/tests
+	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/email/mailparse/tests
 
+# testpayments includes -race & -v flags
 testpayment:
 	@echo "$(OK_COLOR)--> payment tests... $(NO_COLOR)"
 	./workers/payment/tests.sh
 
 testintegration:
 	@echo "$(OK_COLOR)--> api integration tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/tests
+	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotests.sh socialapi socialapi/tests
 
 testrealtime:
 	@echo "$(OK_COLOR)--> realtime tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/realtime/realtime
+	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/realtime/realtime
 
 	@echo "$(OK_COLOR)--> realtime model tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/realtime/models
+	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/realtime/models
 
 
 testapi: testcollaboration testmailsender testmail testmodels \
@@ -122,4 +125,4 @@ testapi: testcollaboration testmailsender testmail testmodels \
 	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
 
 	@echo "$(OK_COLOR)--> handler tests... $(NO_COLOR)"
-	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/common/handler
+	@env COMPILE_FLAGS="-race" $(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/common/handler
