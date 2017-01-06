@@ -15,18 +15,23 @@ module.exports = class VariablesController extends BaseController
     super data
 
     if cred = @getData()?.credentials?.custom?.first
-      @editor.setClass 'loading'
-      @emit Events.Log, 'loading custom variables'
-      @reviveCredential cred
+    then @reviveCredential cred, @getData()._id
+    else @editor.unsetClass 'loading'
 
 
-  reviveCredential: (identifier) ->
+  reviveCredential: (identifier, templateId) ->
+
+    @editor.setClass 'loading'
+    @emit Events.Log, 'loading custom variables'
 
     remote.api.JCredential.one identifier, (err, credential) =>
       return kd.warn err  if err
       return  unless credential
 
       credential.fetchData (err, data) =>
+
+        return  if templateId isnt @getData()._id
+
         @editor.unsetClass 'loading'
 
         if err

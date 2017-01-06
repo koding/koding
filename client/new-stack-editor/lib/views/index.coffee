@@ -98,12 +98,14 @@ module.exports = class StackEditor extends kd.View
 
   setTemplateData: (data, reset = no) ->
 
-    @setData data
-    @toolbar.setData data
-
-    { _id: id, title, description, template } = @getData()
+    { _id: id, title, description, template } = data
     unless id or description or template
       throw { message: 'A valid JStackTemplate is required!' }
+
+    @setData data
+    @toolbar.setData data
+    @variablesController.setData data
+    @credentialsController.setData data
 
     @_saveSnapshot @_current  if @_current
     @_deleteSnapshot id  if reset
@@ -116,8 +118,6 @@ module.exports = class StackEditor extends kd.View
       @readme.setContent description
       @variables.setContent ''
       @logsController.set 'stack template loaded'
-      @variablesController.setData data
-      @credentialsController.setData data
 
       @_saveSnapshot id
       @_current = id
