@@ -36,6 +36,14 @@ module.exports = class CredentialListItem extends kd.ListItemView
         kd.utils.stopDOMEvent event
 
 
+  select: (state = yes) ->
+    @checkBox.setValue state
+
+
+  isSelected: ->
+    @checkBox.getValue()
+
+
   pistachio: ->
 
     '''

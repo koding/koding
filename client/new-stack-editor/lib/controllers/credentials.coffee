@@ -24,8 +24,10 @@ module.exports = class CredentialsController extends BaseController
     @listView = @listController.getView()
 
 
-  setData: (data) ->
+  setData: (stackTemplate) ->
 
-    super data
+    super stackTemplate
 
-    @list.setOption 'stackTemplate', data
+    identifiers = stackTemplate.getCredentialIdentifiers()
+    @list.items.forEach (item) ->
+      item.select item.getData().identifier in identifiers
