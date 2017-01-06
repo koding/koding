@@ -57,7 +57,7 @@ type PostRemoteAPISocialChannelFetchFollowedChannelCountParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPISocialChannelFetchFollowedChannelCountParams) SetContext(c
 }
 
 // WithBody adds the body to the post remote API social channel fetch followed channel count params
-func (o *PostRemoteAPISocialChannelFetchFollowedChannelCountParams) WithBody(body *models.DefaultSelector) *PostRemoteAPISocialChannelFetchFollowedChannelCountParams {
+func (o *PostRemoteAPISocialChannelFetchFollowedChannelCountParams) WithBody(body models.DefaultSelector) *PostRemoteAPISocialChannelFetchFollowedChannelCountParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API social channel fetch followed channel count params
-func (o *PostRemoteAPISocialChannelFetchFollowedChannelCountParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPISocialChannelFetchFollowedChannelCountParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPISocialChannelFetchFollowedChannelCountParams) WriteToReque
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

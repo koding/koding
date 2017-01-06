@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJTagCreateSynonymIDParams creates a new PostRemoteAPIJTagCreateSynonymIDParams object
@@ -51,6 +53,11 @@ for the post remote API j tag create synonym ID operation typically these are wr
 */
 type PostRemoteAPIJTagCreateSynonymIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJTagCreateSynonymIDParams) SetContext(ctx context.Context)
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j tag create synonym ID params
+func (o *PostRemoteAPIJTagCreateSynonymIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJTagCreateSynonymIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j tag create synonym ID params
+func (o *PostRemoteAPIJTagCreateSynonymIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j tag create synonym ID params
 func (o *PostRemoteAPIJTagCreateSynonymIDParams) WithID(id string) *PostRemoteAPIJTagCreateSynonymIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJTagCreateSynonymIDParams) WriteToRequest(r runtime.Client
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

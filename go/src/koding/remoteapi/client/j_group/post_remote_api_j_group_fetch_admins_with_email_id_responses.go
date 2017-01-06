@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJGroupFetchAdminsWithEmailIDOK() *PostRemoteAPIJGroupFetchA
 OK
 */
 type PostRemoteAPIJGroupFetchAdminsWithEmailIDOK struct {
-	Payload *models.JGroup
+	Payload PostRemoteAPIJGroupFetchAdminsWithEmailIDOKBody
 }
 
 func (o *PostRemoteAPIJGroupFetchAdminsWithEmailIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJGroupFetchAdminsWithEmailIDOK) Error() string {
 
 func (o *PostRemoteAPIJGroupFetchAdminsWithEmailIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JGroup)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJGroupFetchAdminsWithEmailIDOKBody post remote API j group fetch admins with email ID o k body
+swagger:model PostRemoteAPIJGroupFetchAdminsWithEmailIDOKBody
+*/
+type PostRemoteAPIJGroupFetchAdminsWithEmailIDOKBody struct {
+	models.JGroup
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJGroupFetchAdminsWithEmailIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJGroupFetchAdminsWithEmailIDOKBodyAO0 models.JGroup
+	if err := swag.ReadJSON(raw, &postRemoteAPIJGroupFetchAdminsWithEmailIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JGroup = postRemoteAPIJGroupFetchAdminsWithEmailIDOKBodyAO0
+
+	var postRemoteAPIJGroupFetchAdminsWithEmailIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJGroupFetchAdminsWithEmailIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJGroupFetchAdminsWithEmailIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJGroupFetchAdminsWithEmailIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJGroupFetchAdminsWithEmailIDOKBodyAO0, err := swag.WriteJSON(o.JGroup)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJGroupFetchAdminsWithEmailIDOKBodyAO0)
+
+	postRemoteAPIJGroupFetchAdminsWithEmailIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJGroupFetchAdminsWithEmailIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j group fetch admins with email ID o k body
+func (o *PostRemoteAPIJGroupFetchAdminsWithEmailIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JGroup.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJProposedDomainDeactivateDomainIDOK() *PostRemoteAPIJPropos
 OK
 */
 type PostRemoteAPIJProposedDomainDeactivateDomainIDOK struct {
-	Payload *models.JProposedDomain
+	Payload PostRemoteAPIJProposedDomainDeactivateDomainIDOKBody
 }
 
 func (o *PostRemoteAPIJProposedDomainDeactivateDomainIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJProposedDomainDeactivateDomainIDOK) Error() string {
 
 func (o *PostRemoteAPIJProposedDomainDeactivateDomainIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JProposedDomain)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJProposedDomainDeactivateDomainIDOKBody post remote API j proposed domain deactivate domain ID o k body
+swagger:model PostRemoteAPIJProposedDomainDeactivateDomainIDOKBody
+*/
+type PostRemoteAPIJProposedDomainDeactivateDomainIDOKBody struct {
+	models.JProposedDomain
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJProposedDomainDeactivateDomainIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJProposedDomainDeactivateDomainIDOKBodyAO0 models.JProposedDomain
+	if err := swag.ReadJSON(raw, &postRemoteAPIJProposedDomainDeactivateDomainIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JProposedDomain = postRemoteAPIJProposedDomainDeactivateDomainIDOKBodyAO0
+
+	var postRemoteAPIJProposedDomainDeactivateDomainIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJProposedDomainDeactivateDomainIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJProposedDomainDeactivateDomainIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJProposedDomainDeactivateDomainIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJProposedDomainDeactivateDomainIDOKBodyAO0, err := swag.WriteJSON(o.JProposedDomain)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJProposedDomainDeactivateDomainIDOKBodyAO0)
+
+	postRemoteAPIJProposedDomainDeactivateDomainIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJProposedDomainDeactivateDomainIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j proposed domain deactivate domain ID o k body
+func (o *PostRemoteAPIJProposedDomainDeactivateDomainIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JProposedDomain.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

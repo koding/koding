@@ -57,7 +57,7 @@ type PostRemoteAPIJPasswordRecoveryRecoverPasswordParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJPasswordRecoveryRecoverPasswordParams) SetContext(ctx con
 }
 
 // WithBody adds the body to the post remote API j password recovery recover password params
-func (o *PostRemoteAPIJPasswordRecoveryRecoverPasswordParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJPasswordRecoveryRecoverPasswordParams {
+func (o *PostRemoteAPIJPasswordRecoveryRecoverPasswordParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJPasswordRecoveryRecoverPasswordParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j password recovery recover password params
-func (o *PostRemoteAPIJPasswordRecoveryRecoverPasswordParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJPasswordRecoveryRecoverPasswordParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJPasswordRecoveryRecoverPasswordParams) WriteToRequest(r r
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

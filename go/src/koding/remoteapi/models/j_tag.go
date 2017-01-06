@@ -78,6 +78,9 @@ func (m *JTag) validateCounts(formats strfmt.Registry) error {
 	if m.Counts != nil {
 
 		if err := m.Counts.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("counts")
+			}
 			return err
 		}
 	}

@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJAccountGenerate2FactorAuthKeyIDParams creates a new PostRemoteAPIJAccountGenerate2FactorAuthKeyIDParams object
@@ -51,6 +53,11 @@ for the post remote API j account generate2 factor auth key ID operation typical
 */
 type PostRemoteAPIJAccountGenerate2FactorAuthKeyIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJAccountGenerate2FactorAuthKeyIDParams) SetContext(ctx con
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j account generate2 factor auth key ID params
+func (o *PostRemoteAPIJAccountGenerate2FactorAuthKeyIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJAccountGenerate2FactorAuthKeyIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j account generate2 factor auth key ID params
+func (o *PostRemoteAPIJAccountGenerate2FactorAuthKeyIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j account generate2 factor auth key ID params
 func (o *PostRemoteAPIJAccountGenerate2FactorAuthKeyIDParams) WithID(id string) *PostRemoteAPIJAccountGenerate2FactorAuthKeyIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJAccountGenerate2FactorAuthKeyIDParams) WriteToRequest(r r
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

@@ -57,7 +57,7 @@ type PostRemoteAPIJComputeStackCreateParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJComputeStackCreateParams) SetContext(ctx context.Context)
 }
 
 // WithBody adds the body to the post remote API j compute stack create params
-func (o *PostRemoteAPIJComputeStackCreateParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJComputeStackCreateParams {
+func (o *PostRemoteAPIJComputeStackCreateParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJComputeStackCreateParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j compute stack create params
-func (o *PostRemoteAPIJComputeStackCreateParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJComputeStackCreateParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJComputeStackCreateParams) WriteToRequest(r runtime.Client
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

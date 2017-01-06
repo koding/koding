@@ -57,7 +57,7 @@ type PostRemoteAPIJTagFetchSkillTagsParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJTagFetchSkillTagsParams) SetContext(ctx context.Context) 
 }
 
 // WithBody adds the body to the post remote API j tag fetch skill tags params
-func (o *PostRemoteAPIJTagFetchSkillTagsParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJTagFetchSkillTagsParams {
+func (o *PostRemoteAPIJTagFetchSkillTagsParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJTagFetchSkillTagsParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j tag fetch skill tags params
-func (o *PostRemoteAPIJTagFetchSkillTagsParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJTagFetchSkillTagsParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJTagFetchSkillTagsParams) WriteToRequest(r runtime.ClientR
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

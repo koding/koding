@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJAccountFetchRelativeGroupsIDParams creates a new PostRemoteAPIJAccountFetchRelativeGroupsIDParams object
@@ -51,6 +53,11 @@ for the post remote API j account fetch relative groups ID operation typically t
 */
 type PostRemoteAPIJAccountFetchRelativeGroupsIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJAccountFetchRelativeGroupsIDParams) SetContext(ctx contex
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j account fetch relative groups ID params
+func (o *PostRemoteAPIJAccountFetchRelativeGroupsIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJAccountFetchRelativeGroupsIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j account fetch relative groups ID params
+func (o *PostRemoteAPIJAccountFetchRelativeGroupsIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j account fetch relative groups ID params
 func (o *PostRemoteAPIJAccountFetchRelativeGroupsIDParams) WithID(id string) *PostRemoteAPIJAccountFetchRelativeGroupsIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJAccountFetchRelativeGroupsIDParams) WriteToRequest(r runt
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

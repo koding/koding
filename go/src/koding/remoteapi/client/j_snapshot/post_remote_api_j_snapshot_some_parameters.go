@@ -57,7 +57,7 @@ type PostRemoteAPIJSnapshotSomeParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJSnapshotSomeParams) SetContext(ctx context.Context) {
 }
 
 // WithBody adds the body to the post remote API j snapshot some params
-func (o *PostRemoteAPIJSnapshotSomeParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJSnapshotSomeParams {
+func (o *PostRemoteAPIJSnapshotSomeParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJSnapshotSomeParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j snapshot some params
-func (o *PostRemoteAPIJSnapshotSomeParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJSnapshotSomeParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJSnapshotSomeParams) WriteToRequest(r runtime.ClientReques
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

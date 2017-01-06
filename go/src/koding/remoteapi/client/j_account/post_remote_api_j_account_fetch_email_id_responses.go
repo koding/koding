@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJAccountFetchEmailIDOK() *PostRemoteAPIJAccountFetchEmailID
 OK
 */
 type PostRemoteAPIJAccountFetchEmailIDOK struct {
-	Payload *models.JAccount
+	Payload PostRemoteAPIJAccountFetchEmailIDOKBody
 }
 
 func (o *PostRemoteAPIJAccountFetchEmailIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJAccountFetchEmailIDOK) Error() string {
 
 func (o *PostRemoteAPIJAccountFetchEmailIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JAccount)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJAccountFetchEmailIDOKBody post remote API j account fetch email ID o k body
+swagger:model PostRemoteAPIJAccountFetchEmailIDOKBody
+*/
+type PostRemoteAPIJAccountFetchEmailIDOKBody struct {
+	models.JAccount
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJAccountFetchEmailIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJAccountFetchEmailIDOKBodyAO0 models.JAccount
+	if err := swag.ReadJSON(raw, &postRemoteAPIJAccountFetchEmailIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JAccount = postRemoteAPIJAccountFetchEmailIDOKBodyAO0
+
+	var postRemoteAPIJAccountFetchEmailIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJAccountFetchEmailIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJAccountFetchEmailIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJAccountFetchEmailIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJAccountFetchEmailIDOKBodyAO0, err := swag.WriteJSON(o.JAccount)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJAccountFetchEmailIDOKBodyAO0)
+
+	postRemoteAPIJAccountFetchEmailIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJAccountFetchEmailIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j account fetch email ID o k body
+func (o *PostRemoteAPIJAccountFetchEmailIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JAccount.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

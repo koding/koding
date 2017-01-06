@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJAccountFetchMySessionsIDParams creates a new PostRemoteAPIJAccountFetchMySessionsIDParams object
@@ -51,6 +53,11 @@ for the post remote API j account fetch my sessions ID operation typically these
 */
 type PostRemoteAPIJAccountFetchMySessionsIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJAccountFetchMySessionsIDParams) SetContext(ctx context.Co
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j account fetch my sessions ID params
+func (o *PostRemoteAPIJAccountFetchMySessionsIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJAccountFetchMySessionsIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j account fetch my sessions ID params
+func (o *PostRemoteAPIJAccountFetchMySessionsIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j account fetch my sessions ID params
 func (o *PostRemoteAPIJAccountFetchMySessionsIDParams) WithID(id string) *PostRemoteAPIJAccountFetchMySessionsIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJAccountFetchMySessionsIDParams) WriteToRequest(r runtime.
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

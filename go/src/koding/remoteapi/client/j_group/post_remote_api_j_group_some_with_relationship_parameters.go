@@ -57,7 +57,7 @@ type PostRemoteAPIJGroupSomeWithRelationshipParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJGroupSomeWithRelationshipParams) SetContext(ctx context.C
 }
 
 // WithBody adds the body to the post remote API j group some with relationship params
-func (o *PostRemoteAPIJGroupSomeWithRelationshipParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJGroupSomeWithRelationshipParams {
+func (o *PostRemoteAPIJGroupSomeWithRelationshipParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJGroupSomeWithRelationshipParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j group some with relationship params
-func (o *PostRemoteAPIJGroupSomeWithRelationshipParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJGroupSomeWithRelationshipParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJGroupSomeWithRelationshipParams) WriteToRequest(r runtime
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

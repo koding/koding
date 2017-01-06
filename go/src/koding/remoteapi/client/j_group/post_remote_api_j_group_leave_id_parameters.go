@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJGroupLeaveIDParams creates a new PostRemoteAPIJGroupLeaveIDParams object
@@ -51,6 +53,11 @@ for the post remote API j group leave ID operation typically these are written t
 */
 type PostRemoteAPIJGroupLeaveIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJGroupLeaveIDParams) SetContext(ctx context.Context) {
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j group leave ID params
+func (o *PostRemoteAPIJGroupLeaveIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJGroupLeaveIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j group leave ID params
+func (o *PostRemoteAPIJGroupLeaveIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j group leave ID params
 func (o *PostRemoteAPIJGroupLeaveIDParams) WithID(id string) *PostRemoteAPIJGroupLeaveIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJGroupLeaveIDParams) WriteToRequest(r runtime.ClientReques
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

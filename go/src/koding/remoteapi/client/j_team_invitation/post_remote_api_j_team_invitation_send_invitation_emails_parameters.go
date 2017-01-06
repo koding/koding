@@ -57,7 +57,7 @@ type PostRemoteAPIJTeamInvitationSendInvitationEmailsParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJTeamInvitationSendInvitationEmailsParams) SetContext(ctx 
 }
 
 // WithBody adds the body to the post remote API j team invitation send invitation emails params
-func (o *PostRemoteAPIJTeamInvitationSendInvitationEmailsParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJTeamInvitationSendInvitationEmailsParams {
+func (o *PostRemoteAPIJTeamInvitationSendInvitationEmailsParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJTeamInvitationSendInvitationEmailsParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j team invitation send invitation emails params
-func (o *PostRemoteAPIJTeamInvitationSendInvitationEmailsParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJTeamInvitationSendInvitationEmailsParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJTeamInvitationSendInvitationEmailsParams) WriteToRequest(
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

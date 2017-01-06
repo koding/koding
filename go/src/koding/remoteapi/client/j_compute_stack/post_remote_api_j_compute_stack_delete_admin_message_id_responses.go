@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJComputeStackDeleteAdminMessageIDOK() *PostRemoteAPIJComput
 OK
 */
 type PostRemoteAPIJComputeStackDeleteAdminMessageIDOK struct {
-	Payload *models.JComputeStack
+	Payload PostRemoteAPIJComputeStackDeleteAdminMessageIDOKBody
 }
 
 func (o *PostRemoteAPIJComputeStackDeleteAdminMessageIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJComputeStackDeleteAdminMessageIDOK) Error() string {
 
 func (o *PostRemoteAPIJComputeStackDeleteAdminMessageIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JComputeStack)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJComputeStackDeleteAdminMessageIDOKBody post remote API j compute stack delete admin message ID o k body
+swagger:model PostRemoteAPIJComputeStackDeleteAdminMessageIDOKBody
+*/
+type PostRemoteAPIJComputeStackDeleteAdminMessageIDOKBody struct {
+	models.JComputeStack
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJComputeStackDeleteAdminMessageIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJComputeStackDeleteAdminMessageIDOKBodyAO0 models.JComputeStack
+	if err := swag.ReadJSON(raw, &postRemoteAPIJComputeStackDeleteAdminMessageIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JComputeStack = postRemoteAPIJComputeStackDeleteAdminMessageIDOKBodyAO0
+
+	var postRemoteAPIJComputeStackDeleteAdminMessageIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJComputeStackDeleteAdminMessageIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJComputeStackDeleteAdminMessageIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJComputeStackDeleteAdminMessageIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJComputeStackDeleteAdminMessageIDOKBodyAO0, err := swag.WriteJSON(o.JComputeStack)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJComputeStackDeleteAdminMessageIDOKBodyAO0)
+
+	postRemoteAPIJComputeStackDeleteAdminMessageIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJComputeStackDeleteAdminMessageIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j compute stack delete admin message ID o k body
+func (o *PostRemoteAPIJComputeStackDeleteAdminMessageIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JComputeStack.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

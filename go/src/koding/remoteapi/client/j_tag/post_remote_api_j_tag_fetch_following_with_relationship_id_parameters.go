@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJTagFetchFollowingWithRelationshipIDParams creates a new PostRemoteAPIJTagFetchFollowingWithRelationshipIDParams object
@@ -51,6 +53,11 @@ for the post remote API j tag fetch following with relationship ID operation typ
 */
 type PostRemoteAPIJTagFetchFollowingWithRelationshipIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJTagFetchFollowingWithRelationshipIDParams) SetContext(ctx
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j tag fetch following with relationship ID params
+func (o *PostRemoteAPIJTagFetchFollowingWithRelationshipIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJTagFetchFollowingWithRelationshipIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j tag fetch following with relationship ID params
+func (o *PostRemoteAPIJTagFetchFollowingWithRelationshipIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j tag fetch following with relationship ID params
 func (o *PostRemoteAPIJTagFetchFollowingWithRelationshipIDParams) WithID(id string) *PostRemoteAPIJTagFetchFollowingWithRelationshipIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJTagFetchFollowingWithRelationshipIDParams) WriteToRequest
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

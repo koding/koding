@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJComputeStackDeleteAdminMessageIDParams creates a new PostRemoteAPIJComputeStackDeleteAdminMessageIDParams object
@@ -51,6 +53,11 @@ for the post remote API j compute stack delete admin message ID operation typica
 */
 type PostRemoteAPIJComputeStackDeleteAdminMessageIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJComputeStackDeleteAdminMessageIDParams) SetContext(ctx co
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j compute stack delete admin message ID params
+func (o *PostRemoteAPIJComputeStackDeleteAdminMessageIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJComputeStackDeleteAdminMessageIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j compute stack delete admin message ID params
+func (o *PostRemoteAPIJComputeStackDeleteAdminMessageIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j compute stack delete admin message ID params
 func (o *PostRemoteAPIJComputeStackDeleteAdminMessageIDParams) WithID(id string) *PostRemoteAPIJComputeStackDeleteAdminMessageIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJComputeStackDeleteAdminMessageIDParams) WriteToRequest(r 
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

@@ -57,7 +57,7 @@ type PostRemoteAPISocialChannelGlancePinnedPostParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPISocialChannelGlancePinnedPostParams) SetContext(ctx contex
 }
 
 // WithBody adds the body to the post remote API social channel glance pinned post params
-func (o *PostRemoteAPISocialChannelGlancePinnedPostParams) WithBody(body *models.DefaultSelector) *PostRemoteAPISocialChannelGlancePinnedPostParams {
+func (o *PostRemoteAPISocialChannelGlancePinnedPostParams) WithBody(body models.DefaultSelector) *PostRemoteAPISocialChannelGlancePinnedPostParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API social channel glance pinned post params
-func (o *PostRemoteAPISocialChannelGlancePinnedPostParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPISocialChannelGlancePinnedPostParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPISocialChannelGlancePinnedPostParams) WriteToRequest(r runt
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

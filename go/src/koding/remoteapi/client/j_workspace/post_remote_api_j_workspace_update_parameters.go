@@ -57,7 +57,7 @@ type PostRemoteAPIJWorkspaceUpdateParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJWorkspaceUpdateParams) SetContext(ctx context.Context) {
 }
 
 // WithBody adds the body to the post remote API j workspace update params
-func (o *PostRemoteAPIJWorkspaceUpdateParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJWorkspaceUpdateParams {
+func (o *PostRemoteAPIJWorkspaceUpdateParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJWorkspaceUpdateParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j workspace update params
-func (o *PostRemoteAPIJWorkspaceUpdateParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJWorkspaceUpdateParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJWorkspaceUpdateParams) WriteToRequest(r runtime.ClientReq
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

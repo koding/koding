@@ -47,6 +47,23 @@ type task struct {
 	ID int64 `json:"id" xml:"id"`
 }
 
+func TestRuntime_TLSAuthConfig(t *testing.T) {
+	var opts TLSClientOptions
+	opts.CA = "../fixtures/certs/myCA.crt"
+	opts.Key = "../fixtures/certs/myclient.key"
+	opts.Certificate = "../fixtures/certs/myclient.crt"
+	opts.ServerName = "somewhere"
+
+	cfg, err := TLSClientAuth(opts)
+	if assert.NoError(t, err) {
+		if assert.NotNil(t, cfg) {
+			assert.Len(t, cfg.Certificates, 1)
+			assert.NotNil(t, cfg.RootCAs)
+			assert.Equal(t, "somewhere", cfg.ServerName)
+		}
+	}
+}
+
 func TestRuntime_Concurrent(t *testing.T) {
 	// test that it can make a simple request
 	// and get the response for it.

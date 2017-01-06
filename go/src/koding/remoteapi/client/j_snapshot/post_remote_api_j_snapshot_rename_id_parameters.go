@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJSnapshotRenameIDParams creates a new PostRemoteAPIJSnapshotRenameIDParams object
@@ -51,6 +53,11 @@ for the post remote API j snapshot rename ID operation typically these are writt
 */
 type PostRemoteAPIJSnapshotRenameIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJSnapshotRenameIDParams) SetContext(ctx context.Context) {
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j snapshot rename ID params
+func (o *PostRemoteAPIJSnapshotRenameIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJSnapshotRenameIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j snapshot rename ID params
+func (o *PostRemoteAPIJSnapshotRenameIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j snapshot rename ID params
 func (o *PostRemoteAPIJSnapshotRenameIDParams) WithID(id string) *PostRemoteAPIJSnapshotRenameIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJSnapshotRenameIDParams) WriteToRequest(r runtime.ClientRe
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

@@ -57,7 +57,7 @@ type PostRemoteAPISocialMessageFetchPrivateMessagesParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPISocialMessageFetchPrivateMessagesParams) SetContext(ctx co
 }
 
 // WithBody adds the body to the post remote API social message fetch private messages params
-func (o *PostRemoteAPISocialMessageFetchPrivateMessagesParams) WithBody(body *models.DefaultSelector) *PostRemoteAPISocialMessageFetchPrivateMessagesParams {
+func (o *PostRemoteAPISocialMessageFetchPrivateMessagesParams) WithBody(body models.DefaultSelector) *PostRemoteAPISocialMessageFetchPrivateMessagesParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API social message fetch private messages params
-func (o *PostRemoteAPISocialMessageFetchPrivateMessagesParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPISocialMessageFetchPrivateMessagesParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPISocialMessageFetchPrivateMessagesParams) WriteToRequest(r 
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

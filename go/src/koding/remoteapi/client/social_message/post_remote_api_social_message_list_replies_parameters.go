@@ -57,7 +57,7 @@ type PostRemoteAPISocialMessageListRepliesParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPISocialMessageListRepliesParams) SetContext(ctx context.Con
 }
 
 // WithBody adds the body to the post remote API social message list replies params
-func (o *PostRemoteAPISocialMessageListRepliesParams) WithBody(body *models.DefaultSelector) *PostRemoteAPISocialMessageListRepliesParams {
+func (o *PostRemoteAPISocialMessageListRepliesParams) WithBody(body models.DefaultSelector) *PostRemoteAPISocialMessageListRepliesParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API social message list replies params
-func (o *PostRemoteAPISocialMessageListRepliesParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPISocialMessageListRepliesParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPISocialMessageListRepliesParams) WriteToRequest(r runtime.C
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err
