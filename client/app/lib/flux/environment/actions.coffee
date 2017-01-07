@@ -564,9 +564,6 @@ createStackTemplateWithDefaults = (selectedProvider) ->
 
   { json: template, yaml: rawContent } = provider.defaultTemplate
 
-  requiredProviders = providersParser template
-  requiredData      = requirementsParser template
-
   stackData = {
     template
     rawContent
@@ -579,7 +576,6 @@ createStackTemplateWithDefaults = (selectedProvider) ->
       You can use markdown within the readme content.
 
     '''
-    config: { requiredData, requiredProviders }
     credentials: {}
     templateDetails: null
   }
