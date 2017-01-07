@@ -3,11 +3,13 @@ Encoder             = require 'htmlencode'
 Constants           = require './constants'
 GitHubProvider      = require './githubprovider'
 GitLabProvider      = require './gitlabprovider'
-requirementsParser  = require './utils/requirementsParser'
-providersParser     = require './utils/providersParser'
 addUserInputOptions = require './utils/addUserInputOptions'
 { yamlToJson }      = require './utils/yamlutils'
 KodingError         = require '../../error'
+clientRequire       = require '../../clientrequire'
+
+providersParser     = clientRequire 'app/lib/util/stacks/providersparser'
+requirementsParser  = clientRequire 'app/lib/util/stacks/requirementsparser'
 
 PROVIDERS =
   gitlab  : GitLabProvider
@@ -31,7 +33,8 @@ module.exports = class GitProvider extends Base
 
   @trait __dirname, '../../traits/protected'
 
-  { revive } = require '../computeproviders/computeutils'
+  ComputeUtils = require '../computeproviders/computeutils'
+  { revive, PROVIDERS: ComputeProviders } = ComputeUtils
   { permit } = require '../group/permissionset'
 
   @share()
@@ -103,8 +106,9 @@ module.exports = class GitProvider extends Base
         if not err and stacktemplate
           return callback null, stacktemplate
 
-        requiredProviders = providersParser template.content
+        requiredProviders = providersParser template.content, ComputeProviders
         requiredData      = requirementsParser template.content
+
         config            = {
           remoteDetails   : importData
           requiredProviders
