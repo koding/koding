@@ -40,12 +40,10 @@ func SSH(options *SSHOptions) error {
 	idReq := machinegroup.IDRequest{
 		Identifier: options.Identifier,
 	}
-
 	idRaw, err := k.Tell("machine.id", idReq)
 	if err != nil {
 		return err
 	}
-
 	idRes := machinegroup.IDResponse{}
 	if err := idRaw.Unmarshal(&idRes); err != nil {
 		return err
@@ -80,12 +78,10 @@ func SSH(options *SSHOptions) error {
 		Username:  options.Username,
 		PublicKey: pubkey,
 	}
-
 	sshRaw, err := k.Tell("machine.ssh", sshReq)
 	if err != nil {
 		return err
 	}
-
 	sshRes := machinegroup.SSHResponse{}
 	if err := sshRaw.Unmarshal(&sshRes); err != nil {
 		return err

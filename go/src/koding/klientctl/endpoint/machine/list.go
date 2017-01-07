@@ -74,7 +74,6 @@ func List(options *ListOptions) ([]*Info, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	createRes := machinegroup.CreateResponse{}
 	if err := createRaw.Unmarshal(&createRes); err != nil {
 		return nil, err

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"text/tabwriter"
 	"time"
@@ -71,6 +72,32 @@ func MachineSSHCommand(c *cli.Context, log logging.Logger, _ string) (int, error
 	return 0, nil
 }
 
+// MachineMountCommand allows to create mount between remote and local machines.
+func MachineMountCommand(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	// Mount command has two identifiers - remote machine:path and local path.
+	idents, err := getIdentifiers(c)
+	if err != nil {
+		return 1, err
+	}
+	ident, remotePath, path, err := mountAddress(idents)
+	if err != nil {
+		return 1, err
+	}
+
+	opts := &machine.MountOptions{
+		Identifier: idents,
+		Path:       path,
+		RemotePath: remotePath,
+		Log:        log.New("machine:ssh"),
+	}
+
+	if err := machine.Mount(opts); err != nil {
+		return 1, err
+	}
+
+	return 0, nil
+}
+
 // getIdentifiers extracts identifiers and validate provided arguments.
 // TODO(ppknap): other CLI libraries like Cobra have this out of the box.
 func getIdentifiers(c *cli.Context) (idents []string, err error) {
@@ -110,6 +137,28 @@ func identifiersLimit(idents []string, min, max int) error {
 	}
 
 	return nil
+}
+
+// mountAddress checks if provided identifiers are valid from the mount
+// perspective. The identifiers should satisfy the following format:
+//
+//  [ID|Alias|IP]:remote_directory/path local_directory/path
+//
+func mountAddress(idents []string) (ident, remotePath, path string, err error) {
+	if len(idents) != 2 {
+		return "", "", "", fmt.Errorf("invalid number of arguments: %s", strings.Join(idents, ", "))
+	}
+
+	remote := strings.Split(idents[0], ":")
+	if len(remote) != 2 {
+		return "", "", "", fmt.Errorf("invalid remote address format: %s", idents[0])
+	}
+
+	if path, err = filepath.Abs(idents[1]); err != nil {
+		return "", "", "", fmt.Errorf("invalid format of local path %q: %s", idents[1], err)
+	}
+
+	return remote[0], remote[1], path, nil
 }
 
 func tabFormatter(w io.Writer, infos []*machine.Info) {
