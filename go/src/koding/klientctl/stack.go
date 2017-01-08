@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -41,6 +42,14 @@ func StackCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	resp, err := stack.Create(opts)
 	if err != nil {
 		return 1, errors.New("error creating stack: " + err.Error())
+	}
+
+	if c.Bool("json") {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "\t")
+		enc.Encode(res)
+
+		return 0, nil
 	}
 
 	fmt.Fprintf(os.Stderr, "Creatad %q stack with %s ID.\n", resp.Title, resp.StackID)
