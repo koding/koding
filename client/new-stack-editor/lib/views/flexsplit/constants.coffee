@@ -2,9 +2,11 @@ module.exports =
 
   INSTANCE_TYPE   : 'FlexSplit'
 
+  EVENT_HIDE      : 'FlexSplit.HIDE'
   EVENT_EXPAND    : 'FlexSplit.EXPAND'
   EVENT_COLLAPSE  : 'FlexSplit.COLLAPSE'
 
+  EVENT_HIDDEN    : 'FlexSplit.HIDDEN'
   EVENT_RESIZED   : 'FlexSplit.RESIZED'
   EVENT_EXPANDED  : 'FlexSplit.EXPANDED'
   EVENT_COLLAPSED : 'FlexSplit.COLLAPSED'

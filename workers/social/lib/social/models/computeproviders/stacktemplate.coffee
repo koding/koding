@@ -3,7 +3,7 @@
 KodingError              = require '../../error'
 helpers                  = require './helpers'
 async                    = require 'async'
-
+clientRequire            = require '../../clientrequire'
 
 module.exports = class JStackTemplate extends Module
 
@@ -153,6 +153,19 @@ module.exports = class JStackTemplate extends Module
     }
 
 
+  updateConfigForTemplate = (config, template) ->
+
+    supportedProviders = Object.keys (require './computeprovider').providers
+
+    providersParser    = clientRequire 'app/lib/util/stacks/providersparser'
+    requirementsParser = clientRequire 'app/lib/util/stacks/requirementsparser'
+
+    config.requiredData      = requirementsParser template
+    config.requiredProviders = providersParser template, supportedProviders
+
+    return config
+
+
   validateTemplate = (template, group, callback) ->
 
     limitConfig = helpers.getLimitConfig group
@@ -217,6 +230,9 @@ module.exports = class JStackTemplate extends Module
           template    : generateTemplateObject \
             data.template, data.rawContent, data.templateDetails
           credentials : data.credentials
+
+        stackTemplate.config = updateConfigForTemplate \
+          stackTemplate.config, stackTemplate.template.rawContent
 
         stackTemplate.save (err) ->
           if err
@@ -433,17 +449,24 @@ module.exports = class JStackTemplate extends Module
       delete data.group
 
       # Update template sum if template update requested
-      { template, templateDetails, rawContent } = data
+      { config, template, templateDetails, rawContent } = data
+      config ?= {}
 
       async.series [
+
         (next) =>
           return next()  unless template?
 
           validateTemplate template, group, (err) =>
             return next err  if err
 
+            # update template object, sum, rawContent etc.
             data.template = generateTemplateObject \
               template, rawContent, templateDetails
+
+            # add required providers/fields on to config from template
+            data.config = updateConfigForTemplate \
+              config, data.template.rawContent
 
             # Keep the existing template details if not provided
             if not templateDetails?
@@ -466,6 +489,7 @@ module.exports = class JStackTemplate extends Module
                 if template.template.sum is data.template.sum
                   data.config.clonedSum = template.template.sum
               next()
+
         (next) =>
           query = { $set: data }
 
@@ -475,6 +499,7 @@ module.exports = class JStackTemplate extends Module
             target  : if @accessLevel is 'group' then 'group' else 'account'
 
           @updateAndNotify notifyOptions, query, next
+
       ], (err, results) => callback err, this
 
 
@@ -522,7 +547,10 @@ module.exports = class JStackTemplate extends Module
 
       cloneData.config           ?= {}
       cloneData.config.clonedFrom = @getId()
-      cloneData.config.clonedSum = @getAt 'template.sum'
+      cloneData.config.clonedSum  = @getAt 'template.sum'
+
+      cloneData.config = updateConfigForTemplate \
+        cloneData.config, cloneData.rawContent
 
       { custom } = cloneData.credentials or {}
       custom    ?= []
