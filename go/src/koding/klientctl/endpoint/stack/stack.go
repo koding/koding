@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"sort"
 
 	"koding/kites/kloud/stack"
@@ -47,7 +48,9 @@ func (c *Client) Create(opts *CreateOptions) (*stack.ImportResponse, error) {
 		return nil, err
 	}
 
+	log.Println("BEFORE RE-ENCODE")
 	data, err := c.jsonReencode(opts.Template)
+	log.Println("AFTER RE-ENCODE")
 	if err != nil {
 		return nil, fmt.Errorf("stack: template encoding error: %s", err)
 	}
@@ -122,16 +125,10 @@ func (c *Client) credential() *credential.Client {
 }
 
 func (c *Client) jsonReencode(data []byte) ([]byte, error) {
-	var raw json.RawMessage
+	var jsonv interface{}
 
-	if err := json.Unmarshal(data, &raw); err == nil {
-		return data, nil
-	}
-
-	var ymlv interface{}
-
-	if err := yaml.Unmarshal(data, &ymlv); err == nil {
-		return jsonMarshal(fixYAML(ymlv))
+	if err := json.Unmarshal(data, &jsonv); err == nil {
+		return jsonMarshal(jsonv)
 	}
 
 	var hclv interface{}
@@ -140,6 +137,12 @@ func (c *Client) jsonReencode(data []byte) ([]byte, error) {
 		fixHCL(hclv)
 
 		return jsonMarshal(hclv)
+	}
+
+	var ymlv interface{}
+
+	if err := yaml.Unmarshal(data, &ymlv); err == nil {
+		return jsonMarshal(fixYAML(ymlv))
 	}
 
 	return nil, errors.New("unknown encoding")
@@ -154,7 +157,7 @@ func (c *Client) readProviders(data []byte) ([]string, error) {
 		return nil, err
 	}
 
-	providers := make([]string, len(v.Provider))
+	providers := make([]string, 0, len(v.Provider))
 
 	for p := range v.Provider {
 		providers = append(providers, p)

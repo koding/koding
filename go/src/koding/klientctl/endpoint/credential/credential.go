@@ -10,16 +10,13 @@ import (
 	"koding/klientctl/endpoint/kloud"
 )
 
-// DefaultClient
 var DefaultClient = &Client{}
 
-// ListOptions
 type ListOptions struct {
 	Team     string
 	Provider string
 }
 
-// CreateOptions
 type CreateOptions struct {
 	Team     string
 	Provider string
@@ -40,7 +37,6 @@ func (opts *CreateOptions) Valid() error {
 	return nil
 }
 
-// Client
 type Client struct {
 	Kloud *kloud.Client
 
@@ -50,7 +46,6 @@ type Client struct {
 	describe map[string]*stack.Description
 }
 
-// List
 func (c *Client) List(opts *ListOptions) (stack.Credentials, error) {
 	c.init()
 
@@ -73,7 +68,6 @@ func (c *Client) List(opts *ListOptions) (stack.Credentials, error) {
 	return resp.Credentials, nil
 }
 
-// Create
 func (c *Client) Create(opts *CreateOptions) (*stack.CredentialItem, error) {
 	c.init()
 
@@ -94,6 +88,13 @@ func (c *Client) Create(opts *CreateOptions) (*stack.CredentialItem, error) {
 		return nil, err
 	}
 
+	c.cached[opts.Provider] = append(c.cached[opts.Provider], stack.CredentialItem{
+		Identifier: resp.Identifier,
+		Title:      resp.Title,
+		Team:       opts.Team,
+		Provider:   opts.Provider,
+	})
+
 	return &stack.CredentialItem{
 		Title:      resp.Title,
 		Team:       req.Team,
@@ -101,7 +102,6 @@ func (c *Client) Create(opts *CreateOptions) (*stack.CredentialItem, error) {
 	}, nil
 }
 
-// Use
 func (c *Client) Use(identifier string) error {
 	c.init()
 
@@ -115,14 +115,12 @@ func (c *Client) Use(identifier string) error {
 	return nil
 }
 
-// User
 func (c *Client) Used() map[string]string {
 	c.init()
 
 	return c.used
 }
 
-// Provider
 func (c *Client) Provider(identifier string) (provider string, err error) {
 	c.init()
 
@@ -159,7 +157,6 @@ func (c *Client) Describe() (stack.Descriptions, error) {
 	return c.describe, nil
 }
 
-// Close
 func (c *Client) Close() (err error) {
 	if len(c.cached) != 0 {
 		err = c.kloud().Cache().SetValue("credential", c.cached)

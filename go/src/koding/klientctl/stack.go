@@ -30,7 +30,7 @@ func StackCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, errors.New("error reading template file: " + err.Error())
 	}
 
-	fmt.Println("Creating stack... ")
+	fmt.Fprintln(os.Stderr, "Creating stack... ")
 
 	opts := &stack.CreateOptions{
 		Team:        c.String("team"),
@@ -47,7 +47,7 @@ func StackCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	if c.Bool("json") {
 		enc := json.NewEncoder(os.Stdout)
 		enc.SetIndent("", "\t")
-		enc.Encode(res)
+		enc.Encode(resp)
 
 		return 0, nil
 	}

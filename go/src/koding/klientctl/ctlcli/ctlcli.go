@@ -16,6 +16,12 @@ import (
 
 var closers []io.Closer
 
+// ExitFunc is called upon command exit, it sets exit code.
+//
+// It is overwritten during testing, as calling os.Exit
+// prevents saving coverage profile.
+var ExitFunc = os.Exit
+
 // CloseOnExit is a hack to close program-lifetime-bound resources,
 // like log file or BoltDB database.
 func CloseOnExit(c io.Closer) {
@@ -87,7 +93,7 @@ func ExitAction(f ExitingCommand, log logging.Logger, cmdName string) func(*cli.
 	return func(c *cli.Context) {
 		exit := f(c, log, cmdName)
 		Close()
-		os.Exit(exit)
+		ExitFunc(exit)
 	}
 }
 
@@ -102,7 +108,7 @@ func ExitErrAction(f ExitingErrCommand, log logging.Logger, cmdName string) func
 		}
 
 		Close()
-		os.Exit(exit)
+		ExitFunc(exit)
 	}
 }
 
@@ -124,7 +130,7 @@ func FactoryAction(factory CommandFactory, log logging.Logger, cmdName string) f
 		}
 
 		Close()
-		os.Exit(exit)
+		ExitFunc(exit)
 	}
 }
 
