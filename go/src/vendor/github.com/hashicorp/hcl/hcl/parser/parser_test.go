@@ -63,10 +63,6 @@ func TestListType(t *testing.T) {
 			[]token.Type{},
 		},
 		{
-			`foo = ["123", 123]`,
-			[]token.Type{token.STRING, token.NUMBER},
-		},
-		{
 			`foo = [1,
 "string",
 <<EOF
@@ -506,6 +502,10 @@ func TestParse(t *testing.T) {
 		},
 		{
 			"object_key_assign_without_value3.hcl",
+			true,
+		},
+		{
+			"git_crypt.hcl",
 			true,
 		},
 	}
