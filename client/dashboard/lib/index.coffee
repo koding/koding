@@ -3,7 +3,6 @@ AdministrationView = require './views/administrationview'
 CustomViewsManager = require './views/customviews/customviewsmanager'
 DashboardAppView = require './dashboardappview'
 GroupGeneralSettingsView = require './views/groupgeneralsettingsview'
-GroupPaymentController = require './controllers/grouppaymentcontroller'
 GroupPermissionsView = require './views/grouppermissionsview'
 GroupProductSettingsView = require './views/groupproductsettingsview'
 GroupProductsController = require './controllers/groupproductscontroller'
@@ -119,9 +118,6 @@ module.exports = class DashboardAppController extends AppController
       @getView().tabs.showPaneByName title
 
   policyViewAdded: (pane, view) ->
-
-  paymentViewAdded: (pane, view) ->
-    new GroupPaymentController { view }
 
   productViewAdded: (pane, view) ->
     new GroupProductsController { view }
