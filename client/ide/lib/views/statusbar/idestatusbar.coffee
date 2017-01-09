@@ -4,16 +4,14 @@ nick                      = require 'app/util/nick'
 CustomLinkView            = require 'app/customlinkview'
 HelpSupportModal          = require 'app/commonviews/helpsupportmodal'
 IDEStatusBarAvatarView    = require './idestatusbaravatarview'
-isSoloProductLite         = require 'app/util/issoloproductlite'
-isPlanFree                = require 'app/util/isPlanFree'
 ButtonViewWithProgressBar = require 'app/commonviews/buttonviewwithprogressbar'
 
-PROGRESS_DELAYS             = [
-    { delay : 500,  progress : 15 }
-    { delay : 1500, progress : 30 }
-    { delay : 2500, progress : 75 }
-    { delay : 3250, progress : 90 }
-  ]
+PROGRESS_DELAYS = [
+  { delay : 500,  progress : 15 }
+  { delay : 1500, progress : 30 }
+  { delay : 2500, progress : 75 }
+  { delay : 3250, progress : 90 }
+]
 
 module.exports = class IDEStatusBar extends kd.View
 
@@ -107,14 +105,6 @@ module.exports = class IDEStatusBar extends kd.View
         title         : 'Loading'
         cssClass      : 'start-session transparent'
         callback      : @bound 'handleShareButtonClick'
-
-    if isSoloProductLite()
-      isPlanFree (err, isFree) =>
-        return  if err
-        return  unless isFree
-
-        @share.destroy()
-        @share = null
 
     @addSubView @video = new CustomLinkView
       href       : '#'

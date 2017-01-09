@@ -13,7 +13,6 @@ IntroVideoView          = require 'app/introvideoview'
 cdnize                  = require 'app/util/cdnize'
 isTeamReactSide         = require 'app/util/isTeamReactSide'
 getGroup                = require 'app/util/getGroup'
-isSoloProductLite       = require 'app/util/issoloproductlite'
 TeamName                = require './activity/sidebar/teamname'
 BannerNotificationView  = require 'app/commonviews/bannernotificationview'
 doXhrRequest            = require 'app/util/doXhrRequest'
@@ -188,29 +187,6 @@ module.exports = class MainView extends kd.View
           cssClass : 'success'
 
         @updateBanner.once 'KDObjectWillBeDestroyed', => @updateBanner = null
-
-
-  showRegistrationsClosedWarning: ->
-
-    return  unless isSoloProductLite()
-
-    { appStorageController } = kd.singletons
-    appStorage = appStorageController.storage 'Activity', '2.0'
-
-    appStorage.fetchValue 'registrationsClosedDismissed', (isDismissed) ->
-
-      return  if isDismissed
-
-      notification = new BannerNotificationView
-        timer   : 10
-        title   : 'UPDATE:'
-        content : 'We launched Koding for Teams and there are some important
-                    updates to the solo product.
-                    <a href="https://koding.com/blog/goodbye-koding-solo-welcome-koding-for-teams"
-                    target="_blank">Read more...</a></p>'
-
-      notification.once 'KDObjectWillBeDestroyed', ->
-        appStorage.setValue 'registrationsClosedDismissed', yes
 
 
   createMainTabView: ->
