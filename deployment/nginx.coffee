@@ -186,6 +186,16 @@ createRootLocation = (KONFIG) ->
       }
       """
 
+createAsset = (inDevEnvironment) ->
+  return "" if inDevEnvironment
+  return """
+expires 1M; # 1 month
+\t\tadd_header Cache-Control \"public\";
+\t\tlocation ~* \.(map)$ {
+\t\t  return 404;
+\t\t  access_log off;
+\t\t}"""
+
 module.exports.create = (KONFIG, environment)->
   workers = KONFIG.workers
 
@@ -266,6 +276,10 @@ module.exports.create = (KONFIG, environment)->
 
     #{createHealthcheck(KONFIG)}
 
+    # this keys are used for internal caching purposes.
+    proxy_cache_path /tmp/nginx levels=1:2 keys_zone=asset_cache:10m max_size=10g inactive=60m;
+    proxy_cache_key "$scheme$request_method$host$request_uri";
+
     # start server
     server {
       # we should not timeout on proxy connections
@@ -296,10 +310,29 @@ module.exports.create = (KONFIG, environment)->
       }
 
       location @assets {
+        proxy_cache asset_cache;
+        proxy_cache_revalidate on;
+        proxy_cache_lock on;
+        proxy_cache_valid  200 302  60m;
+        proxy_cache_valid  404	  1m;
+        proxy_cache_use_stale error timeout http_500 http_502 http_503 http_504;
+
         proxy_pass            http://s3.amazonaws.com/koding-assets$uri;
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_connect_timeout 1;
+
+        # unset headers
+        proxy_hide_header x-amz-id-2;
+        proxy_hide_header x-amz-request-id;
+        proxy_hide_header x-amz-expiration;
+        proxy_hide_header x-amz-meta-s3cmd-attrs;
+
+        # ignore possible future headers that might break caching
+        proxy_ignore_headers X-Accel-Expires Expires Cache-Control;
+
+        # finally add status
+        add_header X-K-Proxy-Cache $upstream_cache_status;
 
         resolver 8.8.8.8;
       }
@@ -307,13 +340,7 @@ module.exports.create = (KONFIG, environment)->
       # no need to send static file serving requests to webserver
       # serve static content from nginx
       location /a/ {
-
-        #{if inDevEnvironment then '' else "
-          location ~* \.(map)$ {
-            return 404;
-            access_log off;
-          }"}
-
+        #{createAsset(inDevEnvironment)}
         root #{KONFIG.projectRoot}/website/;
         try_files $uri @assets;
         # no need to send those requests to nginx access_log
