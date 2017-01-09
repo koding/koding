@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"sort"
 
 	"koding/kites/kloud/stack"
@@ -48,9 +47,7 @@ func (c *Client) Create(opts *CreateOptions) (*stack.ImportResponse, error) {
 		return nil, err
 	}
 
-	log.Println("BEFORE RE-ENCODE")
 	data, err := c.jsonReencode(opts.Template)
-	log.Println("AFTER RE-ENCODE")
 	if err != nil {
 		return nil, fmt.Errorf("stack: template encoding error: %s", err)
 	}
