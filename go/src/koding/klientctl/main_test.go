@@ -12,6 +12,7 @@ import (
 	"sync"
 	"testing"
 
+	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/kloud"
 )
 
@@ -20,9 +21,15 @@ func TestMainHelper(t *testing.T) {
 		return
 	}
 
-	// run() is callig os.Exit explicitly,  by defer call it
-	// again just in case to not run rest of the tests.
-	defer os.Exit(0)
+	// Close stdout as soon as command finishes, so Go's testing command
+	// does not pollute it.
+	defer os.Stdout.Close()
+
+	ctlcli.ExitFunc = func(code int) {
+		if code != 0 {
+			os.Exit(code)
+		}
+	}
 
 	var args []string
 
@@ -50,11 +57,12 @@ type MainCmd struct {
 	Stdin  io.Reader
 	Stdout io.Writer
 	Stderr io.Writer
+	Home   string
 
 	FT FakeTransport
 
-	once sync.Once // for mc.init()
-	home string
+	once   sync.Once // for mc.init()
+	rmHome bool
 }
 
 func (mc *MainCmd) Run(args ...string) error {
@@ -71,7 +79,7 @@ func (mc *MainCmd) Run(args ...string) error {
 	// Do not share konfig.bolt between test runs.
 	cmd.Env = append(os.Environ(),
 		"TEST_MAIN_HELPER=1",
-		"KODING_HOME="+mc.home,
+		"KODING_HOME="+mc.Home,
 		"KD_EXPERIMENTAL=1",
 	)
 
@@ -82,9 +90,17 @@ func (mc *MainCmd) Run(args ...string) error {
 	return cmd.Run()
 }
 
+func (mc *MainCmd) New() *MainCmd {
+	mc.init()
+
+	return &MainCmd{
+		Home: mc.Home,
+	}
+}
+
 func (mc *MainCmd) Close() (err error) {
-	if mc.home != "" {
-		err = os.RemoveAll(mc.home)
+	if mc.Home != "" && mc.rmHome {
+		err = os.RemoveAll(mc.Home)
 	}
 	return err
 }
@@ -94,11 +110,14 @@ func (mc *MainCmd) init() {
 }
 
 func (mc *MainCmd) initHome() {
-	dir, err := ioutil.TempDir("", "maincmd")
-	if err != nil {
-		panic("unable to create temp directory: " + err.Error())
+	if mc.Home == "" {
+		dir, err := ioutil.TempDir("", "maincmd")
+		if err != nil {
+			panic("unable to create temp directory: " + err.Error())
+		}
+		mc.Home = dir
+		mc.rmHome = true
 	}
-	mc.home = dir
 }
 
 type FakeTransport struct {
@@ -179,3 +198,12 @@ func (ft *FakeTransport) Call(method string, arg, reply interface{}) error {
 }
 
 func (*FakeTransport) Valid() (_ error) { return }
+
+func nonil(err ...error) error {
+	for _, e := range err {
+		if e != nil {
+			return e
+		}
+	}
+	return nil
+}
