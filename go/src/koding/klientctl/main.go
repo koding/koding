@@ -640,6 +640,49 @@ func run(args []string) {
 				},
 				},
 			},
+			cli.Command{
+				Name:  "template",
+				Usage: "Manage stack templates.",
+				Subcommands: []cli.Command{{
+					Name:   "list",
+					Usage:  "List all stack templates.",
+					Action: ctlcli.ExitErrAction(TemplateList, log, "list"),
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+						cli.StringFlag{
+							Name:  "provider, p",
+							Usage: "Limit to templates of a given provider.",
+						},
+					},
+				}, {
+					Name:   "show",
+					Usage:  "Show details of a stack template.",
+					Action: ctlcli.ExitErrAction(TemplateShow, log, "list"),
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+						cli.StringFlag{
+							Name:  "hcl",
+							Usage: "Output in HCL format.",
+						},
+					},
+				}, {
+					Name:   "delete",
+					Usage:  "Delete a stack templates.",
+					Action: ctlcli.ExitErrAction(TemplateDelete, log, "list"),
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "force",
+							Usage: "Do not ask form confirmation.",
+						},
+					},
+				}},
+			},
 		)
 	}
 

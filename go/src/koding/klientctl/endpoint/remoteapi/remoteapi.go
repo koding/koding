@@ -7,6 +7,7 @@ import (
 	"koding/klientctl/config"
 	"koding/klientctl/endpoint"
 	"koding/klientctl/endpoint/kloud"
+	"koding/klientctl/endpoint/team"
 	"koding/remoteapi"
 	"koding/remoteapi/client"
 )
@@ -15,15 +16,17 @@ var DefaultClient = &Client{}
 
 type Client struct {
 	Kloud *kloud.Client
+	Team  *team.Client
 
-	once sync.Once // for c.init()
-	c    *remoteapi.Client
+	once   sync.Once // for c.init()
+	api    *remoteapi.Client
+	client *client.Koding
 }
 
 func (c *Client) New(user *api.User) *client.Koding {
 	c.init()
 
-	return c.c.New(user)
+	return c.api.New(user)
 }
 
 func (c *Client) init() {
@@ -31,10 +34,14 @@ func (c *Client) init() {
 }
 
 func (c *Client) initClient() {
-	c.c = &remoteapi.Client{
+	c.api = &remoteapi.Client{
 		Transport: endpoint.Transport(c.kloud()),
 		Endpoint:  config.Konfig.Endpoints.Remote().Public.URL,
 	}
+	c.client = c.api.New(&api.User{
+		Username: c.kloud().Username(),
+		Team:     c.team().Used().Name,
+	})
 }
 
 func (c *Client) kloud() *kloud.Client {
@@ -44,4 +51,9 @@ func (c *Client) kloud() *kloud.Client {
 	return kloud.DefaultClient
 }
 
-func New(user *api.User) *client.Koding { return DefaultClient.New(user) }
+func (c *Client) team() *team.Client {
+	if c.Team != nil {
+		return c.Team
+	}
+	return team.DefaultClient
+}
