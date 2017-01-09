@@ -402,6 +402,9 @@
           "type": "array",
           "items": {
             "type": "string"
+          },
+          "default": {
+            "type": "default"
           }
         },
         "verified": {
@@ -598,6 +601,9 @@
           "type": "array",
           "items": {
             "type": "object"
+          },
+          "default": {
+            "type": "default"
           }
         },
         "title": {
@@ -710,6 +716,9 @@
           "type": "array",
           "items": {
             "type": "object"
+          },
+          "default": {
+            "type": "default"
           }
         },
         "proxy": {
@@ -898,6 +907,9 @@
             },
             "chatlioId": {
               "type": "string"
+            },
+            "default": {
+              "type": "default"
             }
           }
         },
@@ -943,6 +955,9 @@
           "type": "array",
           "items": {
             "type": "object"
+          },
+          "default": {
+            "type": "default"
           }
         }
       }

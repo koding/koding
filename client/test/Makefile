@@ -12,7 +12,7 @@ build: clean compile configure
 compile: $(TARGETS)
 
 configure: globals.js
-	@bin/cmd.coffee browser $(TEST_EXTRAS)
+	@bin/cmd.coffee $(TEST_EXTRAS)
 
 globals.js:
 	@coffee -c globals.coffee

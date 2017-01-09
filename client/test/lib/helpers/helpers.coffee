@@ -71,7 +71,7 @@ module.exports =
 
   getFakeText: ->
 
-    return faker.Lorem.paragraph().replace /(?:\r\n|\r|\n)/g, ''
+    return faker.lorem.paragraph().replace /(?:\r\n|\r|\n)/g, ''
 
 
   ###*
