@@ -87,11 +87,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         if @stack.status?.state is 'Building'
           computeController.eventListener.addListener 'apply', @stack._id
 
-      kd.singletons.paymentController.subscriptions (err, subscription) =>
-        kd.warn err  if err?
-        if subscription?.state is 'expired'
-        then @buildExpiredView subscription
-        else @buildInitial()
+      @buildInitial()
 
     @on 'MachineTurnOnStarted', (machine) ->
       sendDataDogEvent 'MachineTurnedOn', { tags: { label: machine.label } }
@@ -324,80 +320,6 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
     @container.addSubView @codeEntryView
     @container.addSubView @button
-
-
-  buildExpiredView: (subscription, nextState) ->
-
-    plan = if subscription? then "(<b>#{subscription.planTitle}</b>)" else ''
-
-    @container.destroySubViews()
-
-    if nextState is 'downgrade'
-
-      @showBusy 'Downgrading...'
-      @downgradePlan (err) =>
-
-        if err?
-          kd.utils.wait 10000, =>
-            @buildExpiredView subscription, 'downgrade'
-        else
-          ComputeHelpers.handleNewMachineRequest { provider: 'koding' }, (err) ->
-            global.location.reload yes
-
-      return
-
-    destroyVMs = nextState is 'destroy-vms'
-
-    @upgradeButton = new KDButtonView
-      title    : 'Make Payment'
-      cssClass : 'solid green medium plan-change-button'
-      callback : -> kd.singletons.router.handleRoute '/Pricing'
-
-    actionTitle = if destroyVMs then 'Delete All VMs' else 'Downgrade to Free'
-
-    @actionButton = new KDButtonView
-      title    : actionTitle
-      cssClass : 'solid green medium plan-change-button downgrade'
-      callback : =>
-
-        if destroyVMs
-
-          @showBusy 'Deleting your VM(s)...'
-          ComputeHelpers.destroyExistingResources yes, (err) =>
-            @buildExpiredView subscription, 'downgrade'
-
-        else
-
-          @showBusy 'Downgrading...'
-          @downgradePlan (err) =>
-            if err?
-              @buildExpiredView subscription, 'destroy-vms'
-            else
-              @_busy = no
-              @buildInitial()
-
-    @container.addSubView new KDCustomHTMLView
-      cssClass : 'expired-message'
-      partial  : if destroyVMs then "
-        <h1>Delete all existing VMs</h1>
-        <p>To be able to downgrade your current plan #{plan} to the
-        <b>Free</b> plan, you need to delete all your existing VMs. This
-        action will <b>destroy all your VMs, (including YOUR FILES) and
-        cannot be UNDONE!</b> Are you sure you want to continue?</p>
-      " else '
-        <h1>Your Koding Paid Plan Has Expired</h1>
-        <p>This happens when we cannot collect a payment. As a result,
-        access to your VM is restricted.</p>
-        <p>To continue, you can either make a payment to lift the
-        restriction or downgrade to a free account. Downgrading will delete
-        your existing VM(s) (and all the data inside them)
-        and give you a new default VM.</p>
-      '
-
-    unless destroyVMs
-      @container.addSubView @upgradeButton
-
-    @container.addSubView @actionButton
 
 
   buildViews: (response) ->
@@ -796,17 +718,6 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
       else
         kd.utils.defer @bound 'buildInitial'
-
-
-  downgradePlan: (callback) ->
-
-    me = whoami()
-    me.fetchEmail (err, email) ->
-
-      kd.singletons.paymentController
-        .subscribe 'token', 'free', 'month', { email }, (err, resp) ->
-          return callback err  if err?
-          callback null
 
 
   initReadmeView: ->

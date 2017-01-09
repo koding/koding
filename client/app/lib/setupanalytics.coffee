@@ -23,16 +23,12 @@ identifyUser = (account) ->
   remote.api.JUser.fetchUser (err, user) ->
     return  if err or not user
 
-    { email } = user
+    env = globals.config.environment
+    { userAgent } = window.navigator
 
-    kd.singletons.paymentController.subscriptions (err, subscription) ->
+    traits = { email: user.email, env, userAgent }
 
-      env = globals.config.environment
-      { userAgent } = window.navigator
-
-      traits = { email, subscription, env, userAgent }
-
-      analytics?.identify nickname, traits
+    analytics?.identify nickname, traits
 
 setupPageAnalyticsEvent = ->
 

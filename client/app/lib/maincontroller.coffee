@@ -32,7 +32,6 @@ MainViewController             = require './mainviewcontroller'
 NotificationController         = require './notificationcontroller'
 OAuthController                = require './oauthcontroller'
 OnboardingController           = require './onboarding/onboardingcontroller'
-PaymentController              = require './payment/paymentcontroller'
 RealtimeController             = require './realtimecontroller'
 SearchController               = require './searchcontroller'
 SocialApiController            = require './socialapicontroller'
@@ -95,7 +94,6 @@ module.exports = class MainController extends KDController
     kd.registerSingleton 'localStorageController',    new LocalStorageController
     kd.registerSingleton 'oauthController',           new OAuthController
     kd.registerSingleton 'groupsController',          new GroupsController
-    kd.registerSingleton 'paymentController',         new PaymentController
     kd.registerSingleton 'computeController',         new ComputeController
     kd.registerSingleton 'locationController',        new LocationController
     kd.registerSingleton 'helpController',            new HelpController
