@@ -6,7 +6,6 @@ KDView                           = kd.View
 Machine                          = require 'app/providers/machine'
 UserItem                         = require 'app/useritem'
 KDCustomHTMLView                 = kd.CustomHTMLView
-ComputeErrorUsageModal           = require './computeerrorusagemodal'
 KDAutoCompleteController         = kd.AutoCompleteController
 MachineSettingsCommonView        = require './machinesettingscommonview'
 ActivityAutoCompleteUserItemView = require 'app/activity/activityautocompleteuseritemview'

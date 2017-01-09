@@ -374,9 +374,6 @@ module.exports = class ComputeController extends KDController
     remote.api.ComputeProvider.fetchUsage options, callback
 
 
-  fetchUserPlan: (callback = kd.noop) -> callback 'free'
-
-
   fetchRewards: (options, callback) ->
 
     { unit } = options
