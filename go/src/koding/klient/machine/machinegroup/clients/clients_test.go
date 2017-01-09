@@ -59,7 +59,7 @@ func TestClients(t *testing.T) {
 		t.Fatalf("want clients count = 2; got %d", len(regs))
 	}
 
-	if _, err := cs.Context(idA); err != nil {
+	if _, err := cs.Client(idA); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
@@ -67,7 +67,7 @@ func TestClients(t *testing.T) {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	if _, err := cs.Context(idA); err != machine.ErrMachineNotFound {
+	if _, err := cs.Client(idA); err != machine.ErrMachineNotFound {
 		t.Fatalf("want machine not found; got %v", err)
 	}
 

@@ -1,7 +1,6 @@
 package clients
 
 import (
-	"context"
 	"errors"
 	"sync"
 	"time"
@@ -166,21 +165,6 @@ func (c *Clients) Client(id machine.ID) (machine.Client, error) {
 	}
 
 	return dc.Client(), nil
-}
-
-// Context returns the current context of provided machine's dynamic client.
-// machine.ErrMachineNotFound is returned when there are no clients for a given
-// machine ID.
-func (c *Clients) Context(id machine.ID) (context.Context, error) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-
-	dc, ok := c.m[id]
-	if !ok {
-		return nil, machine.ErrMachineNotFound
-	}
-
-	return dc.Context(), nil
 }
 
 // Registered returns all machines that are stored in this object.

@@ -26,32 +26,46 @@ func (DisconnectedClientBuilder) Ping(_ DynamicAddrFunc) (Status, Addr, error) {
 }
 
 // Build always returns disconnected client.
-func (DisconnectedClientBuilder) Build(_ context.Context, _ Addr) Client {
-	return DisconnectedClient{}
+func (DisconnectedClientBuilder) Build(ctx context.Context, _ Addr) Client {
+	return NewDisconnectedClient(ctx)
 }
 
 var _ Client = (*DisconnectedClient)(nil)
 
 // DisconnectedClient satisfies Client interface. It indicates disconnected
 // machine and always returns
-type DisconnectedClient struct{}
+type DisconnectedClient struct {
+	ctx context.Context
+}
+
+// NewDisconnectedClient creates a new disconnected client with given context.
+func NewDisconnectedClient(ctx context.Context) *DisconnectedClient {
+	return &DisconnectedClient{
+		ctx: ctx,
+	}
+}
 
 // CurrentUser always returns ErrDisconnected error.
-func (DisconnectedClient) CurrentUser() (string, error) {
+func (*DisconnectedClient) CurrentUser() (string, error) {
 	return "", ErrDisconnected
 }
 
 // SSHAddKeys always returns ErrDisconnected error.
-func (DisconnectedClient) SSHAddKeys(_ string, _ ...string) error {
+func (*DisconnectedClient) SSHAddKeys(_ string, _ ...string) error {
 	return ErrDisconnected
 }
 
 // MountHeadIndex always returns ErrDisconnected error.
-func (DisconnectedClient) MountHeadIndex(_ string) (string, int, int64, error) {
+func (*DisconnectedClient) MountHeadIndex(_ string) (string, int, int64, error) {
 	return "", 0, 0, ErrDisconnected
 }
 
 // MountGetIndex always returns ErrDisconnected error.
-func (DisconnectedClient) MountGetIndex(_ string) (*index.Index, error) {
+func (*DisconnectedClient) MountGetIndex(_ string) (*index.Index, error) {
 	return nil, ErrDisconnected
+}
+
+// Context returns disconnected client's context.
+func (d *DisconnectedClient) Context() context.Context {
+	return d.ctx
 }

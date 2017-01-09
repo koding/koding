@@ -3,6 +3,7 @@
 package klient
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/url"
@@ -43,6 +44,9 @@ type Klient struct {
 	kite     *kite.Kite
 	Username string
 	Timeout  time.Duration
+
+	mu  sync.Mutex
+	ctx context.Context
 }
 
 func (k *Klient) timeout() time.Duration {
@@ -382,4 +386,20 @@ func (k *Klient) MountGetIndex(path string) (*index.Index, error) {
 	}
 
 	return getRes.Index, nil
+}
+
+// SetContext sets provided context to Klient.
+func (k *Klient) SetContext(ctx context.Context) {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+
+	k.ctx = ctx
+}
+
+// Context returns Klient's context.
+func (k *Klient) Context() context.Context {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+
+	return k.ctx
 }

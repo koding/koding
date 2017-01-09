@@ -29,7 +29,7 @@ func TestDynamicClientOnOff(t *testing.T) {
 	}
 
 	// Server starts responding.
-	ctx := dc.Context()
+	ctx := dc.Client().Context()
 	serv.TurnOn()
 	if err := builder.WaitForBuild(time.Second); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
@@ -45,7 +45,7 @@ func TestDynamicClientOnOff(t *testing.T) {
 	}
 
 	// Stop server.
-	ctx = dc.Context()
+	ctx = dc.Client().Context()
 	serv.TurnOff()
 	if err := builder.WaitForBuild(time.Second); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
@@ -73,7 +73,7 @@ func TestDynamicClientContext(t *testing.T) {
 	}
 	defer dc.Close()
 
-	ctx := dc.Context()
+	ctx := dc.Client().Context()
 	serv.TurnOn()
 	if err := machinetest.WaitForContextClose(ctx, time.Second); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
@@ -85,7 +85,7 @@ func TestDynamicClientContext(t *testing.T) {
 	for i := 0; i < ContextWorkers; i++ {
 		g.Go(func() error {
 			select {
-			case <-dc.Context().Done():
+			case <-dc.Client().Context().Done():
 				return errors.New("context closed unexpectedly")
 			case <-time.After(50 * time.Millisecond):
 				return nil
@@ -97,7 +97,7 @@ func TestDynamicClientContext(t *testing.T) {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	ctx = dc.Context()
+	ctx = dc.Client().Context()
 	serv.TurnOff()
 	for i := 0; i < ContextWorkers; i++ {
 		g.Go(func() error {

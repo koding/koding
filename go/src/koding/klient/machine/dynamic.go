@@ -76,7 +76,6 @@ type DynamicClient struct {
 	mu     sync.RWMutex
 	c      Client             // current client.
 	stat   Status             // current connection status.
-	ctx    context.Context    // context used in current client.
 	cancel context.CancelFunc // function that can close current context.
 }
 
@@ -123,26 +122,6 @@ func (dc *DynamicClient) Client() Client {
 	dc.mu.RUnlock()
 
 	return c
-}
-
-// Context returns current client's context. If client change, returned context
-// will be canceled. If there is no clients available in dynamic client. New
-// context will be created and will block until client is set.
-func (dc *DynamicClient) Context() (ctx context.Context) {
-	dc.mu.RLock()
-	ctx = dc.ctx
-	dc.mu.RUnlock()
-
-	if ctx == nil {
-		dc.mu.Lock()
-		if dc.ctx == nil {
-			dc.ctx, dc.cancel = context.WithCancel(context.Background())
-		}
-		ctx = dc.ctx
-		dc.mu.Unlock()
-	}
-
-	return ctx
 }
 
 // Addr uses dynamic address function binded to client to obtain addresses.
@@ -196,7 +175,7 @@ func (dc *DynamicClient) cron() {
 		if dc.cancel != nil {
 			dc.cancel()
 		}
-		dc.c, dc.stat, dc.ctx, dc.cancel = c, stat, ctx, cancel
+		dc.c, dc.stat, dc.cancel = c, stat, cancel
 		dc.mu.Unlock()
 	}
 
@@ -235,8 +214,8 @@ func (dc *DynamicClient) disconnected() {
 		dc.cancel()
 	}
 
-	dc.c = DisconnectedClient{}
+	ctx, cancel := context.WithCancel(context.Background())
+	dc.cancel = cancel
+	dc.c = NewDisconnectedClient(ctx)
 	dc.stat = Status{}
-	dc.ctx = nil
-	dc.cancel = nil
 }

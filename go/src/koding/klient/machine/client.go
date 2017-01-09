@@ -1,6 +1,10 @@
 package machine
 
-import "koding/klient/machine/mount/index"
+import (
+	"context"
+
+	"koding/klient/machine/mount/index"
+)
 
 // Client describes the operations that can be made on remote machine.
 type Client interface {
@@ -17,4 +21,7 @@ type Client interface {
 	// MountGetIndex returns an index that describes the current state of remote
 	// directory.
 	MountGetIndex(string) (*index.Index, error)
+
+	// Context returns client's Context.
+	Context() context.Context
 }

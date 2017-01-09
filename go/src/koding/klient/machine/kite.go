@@ -41,11 +41,12 @@ func (kb *KiteBuilder) Ping(dynAddr DynamicAddrFunc) (Status, Addr, error) {
 
 // Build builds new kite client that will connect to machine using provided
 // address.
-func (kb *KiteBuilder) Build(_ context.Context, addr Addr) Client {
+func (kb *KiteBuilder) Build(ctx context.Context, addr Addr) Client {
 	k, err := kb.pool.Get(addr.Value)
 	if err != nil {
-		return DisconnectedClient{}
+		return NewDisconnectedClient(ctx)
 	}
 
+	k.SetContext(ctx)
 	return k
 }
