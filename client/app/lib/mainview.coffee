@@ -12,6 +12,7 @@ MainTabView             = require './maintabview'
 TopNavigation           = require './topnavigation'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 IntroVideoView          = require 'app/introvideoview'
+cdnize                  = require 'app/util/cdnize'
 isTeamReactSide         = require 'app/util/isTeamReactSide'
 getGroup                = require 'app/util/getGroup'
 isSoloProductLite       = require 'app/util/issoloproductlite'
@@ -192,7 +193,7 @@ module.exports = class MainView extends kd.View
     { groupsController } = kd.singletons
     team = groupsController.getCurrentGroup()
 
-    logo = team.customize?.logo
+    logo = cdnize team.customize?.logo
     @teamLogoWrapper.addSubView teamLogo = new kd.CustomHTMLView
       cssClass: 'team-logo'
     teamLogo.setPartial "<img src=#{logo} />"  if logo
@@ -204,7 +205,7 @@ module.exports = class MainView extends kd.View
         teamLogo.setClass 'default'
       else
         teamLogo.unsetClass 'default'
-        teamLogo.updatePartial "<img src=#{newLogo} />"
+        teamLogo.updatePartial "<img src=#{cdnize newLogo} />"
 
 
   createMiniWelcomeSteps: ->
