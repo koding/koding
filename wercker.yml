@@ -231,8 +231,6 @@ deploy:
 
           ./configure --without-envvars --config $CONFIG --projectRoot /opt/koding --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
 
-          ./scripts/install-npm.sh -d client -u
-
           make -C client dist
     - script:
         name: zip
