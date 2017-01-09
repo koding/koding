@@ -3,16 +3,62 @@ kookies = require 'kookies'
 
 toBeDeleted = [
   'clientIPAddress' # an old cookie set by koding backend.
+  'kdproxy-preferred-domain' # old koding cookie
   'connect.sid'     # express cookie - infact this is session cookie, here for just in case.
   'pnctest'         # set by PubNub for testing.
-  'hubspotutk'      # hubspot
-  'hsfirstvisit'    # hubspot
   '__ssid'          # google map
+  'gsScrollPos'     # session cookie, wont be cleaned, not necessary
 
-  # 'ajs_anonymous_id' # font?
-  # 'ajs_group_id'     # font?
-  # 'ajs_user_id'      # font?
   # 'koding-teams'     # set by koding client, should be moved to session storage.
+
+  # hubspot
+  '__hstc'
+  '__hssrc'
+  '__hssc'
+  'hsPagesViewedThisSession'
+  'hubspotutk'
+  'hubspot.hub.id'
+  'hsfirstvisit'
+  'hubspotauth'
+  'hubspotauthcms'
+  'hubspotauthremember'
+  'hubspotutktzo'
+  '_hs_opt_out'
+  '__hluid'
+
+  # kissmetrics
+  'km_ai'
+  'km_lv'
+  'km_ni'
+  'km_uq'
+  'km_vs'
+  'kvcd'
+
+  # font?
+  'ajs_anonymous_id'
+  'ajs_group_id'
+  'ajs_user_id'
+
+  # olark
+  'hblid'
+  'wcsid'
+  'olfsk'
+  '_okbk'
+  '_ok'
+  '_oklv'
+  '_okla'
+  '_okgid'
+  '_okac'
+  '_okck'
+
+  'olsfk'  # unknown origin
+  'hbild'  # unknown origin
+]
+
+startsWith = [
+  '_hp2_id'         # heap analytics - we dont use anymore.
+  '_hp2_ses_props'  # heap analytics - we dont use anymore.
+  '_ob_pub'  # unknow origin
 ]
 
 hostname = location.host
