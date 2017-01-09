@@ -1,6 +1,4 @@
 kd                             = require 'kd'
-KDController                   = kd.Controller
-KDNotificationView             = kd.NotificationView
 kookies                        = require 'kookies'
 globals                        = require 'globals'
 remote                         = require('./remote')
@@ -14,7 +12,6 @@ expireClientId                 = require './util/expireClientId'
 AppStorageController           = require './appstoragecontroller'
 ApplicationManager             = require './applicationmanager'
 ComputeController              = require './providers/computecontroller'
-ContentDisplayController       = require './contentdisplay/contentdisplaycontroller'
 GroupsController               = require './maincontroller/groupscontroller'
 HelpController                 = require './maincontroller/helpcontroller'
 IdleUserDetector               = require './idleuserdetector'
@@ -46,7 +43,7 @@ fetchChatlioKey                = require 'app/util/fetchChatlioKey'
 createStore = require './redux/createStore'
 dispatchInitialActions = require './redux/dispatchInitialActions'
 
-module.exports = class MainController extends KDController
+module.exports = class MainController extends kd.Controller
 
   ###
 
@@ -89,7 +86,6 @@ module.exports = class MainController extends KDController
     kd.registerSingleton 'notificationController',    new NotificationController
     kd.registerSingleton 'desktopNotifications',      new DesktopNotificationsController
     kd.registerSingleton 'linkController',            new LinkController
-    kd.registerSingleton 'display',                   new ContentDisplayController
     kd.registerSingleton 'router',           router = new KodingRouter
     kd.registerSingleton 'localStorageController',    new LocalStorageController
     kd.registerSingleton 'oauthController',           new OAuthController
@@ -286,7 +282,7 @@ module.exports = class MainController extends KDController
     notification = null
     fail  = ->
 
-      notification = new KDNotificationView
+      notification = new kd.NotificationView
         title         : "Couldn't connect to backend!"
         cssClass      : 'disconnected'
         type          : 'tray'
@@ -298,7 +294,7 @@ module.exports = class MainController extends KDController
 
     useChrome = ->
 
-      notification = new KDNotificationView
+      notification = new kd.NotificationView
         title         : 'Please use Google Chrome'
         type          : 'tray'
         closeManually : no

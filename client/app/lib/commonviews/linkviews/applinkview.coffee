@@ -26,8 +26,3 @@ module.exports = class AppLinkView extends LinkView
   pistachio: ->
 
     super '{{#(title)}}'
-
-  click: ->
-
-    app = @getData()
-    kd.getSingleton('appManager').tell 'Apps', 'createContentDisplay', app
