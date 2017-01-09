@@ -40,7 +40,7 @@ Please note that the below is required for successful installation of **KD**:
 
 ## Installing KD
 
-  Click on **STACKS** from the left side bar, and go to **Koding Utilities**
+  Click on **STACKS** from the left side bar to open your **Dashboard**, and go to **Koding Utilities**
 
 ![kd-install-command.png][1]
 

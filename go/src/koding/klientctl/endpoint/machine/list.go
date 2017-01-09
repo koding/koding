@@ -31,7 +31,6 @@ func List(options *ListOptions) ([]*Info, error) {
 
 	// Get info from kloud.
 	if err := kloud.Call("machine.list", &listReq, &listRes); err != nil {
-		fmt.Fprintln(os.Stderr, "Error communicating with Koding:", err)
 		return nil, err
 	}
 

@@ -1,6 +1,8 @@
 kd = require 'kd'
 AceView = require 'ace/aceview'
 FSHelper = require 'app/util/fs/fshelper'
+
+Events = require '../events'
 BaseView = require './baseview'
 
 
@@ -9,7 +11,10 @@ module.exports = class Editor extends BaseView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = kd.utils.curry 'editor-view', options.cssClass
+    options.cssClass    = kd.utils.curry 'editor-view', options.cssClass
+    options.filename   ?= 'untitled.yaml'
+    options.showgutter ?= yes
+    options.readonly   ?= no
 
     super options, data
 
@@ -18,15 +23,40 @@ module.exports = class Editor extends BaseView
     @_getSession().setValue content
 
 
+  addContent: (content) -> @ready =>
+
+    session = @_getSession()
+    [ row, column ] = [ session.getLength(), 0 ]
+    session.insert { row, column }, "#{content}\n"
+    @scrollToBottom()
+
+
+  scrollToBottom: -> @ready =>
+
+    { editor } = @aceView.ace
+    line = @_getSession().getLength()
+    editor.scrollToLine line, yes, yes, kd.noop
+    editor.gotoLine line, 0, yes
+
+
   focus: -> @ready =>
     @aceView.ace.focus()
+
+
+  setReadOnly: (state) -> @ready =>
+
+    @aceView.ace.setReadOnly state, no
+    state = if state then 'none' else 'block'
+    @aceView.ace.editor.renderer.$cursorLayer.element.style.display = state
 
 
   viewAppended: ->
 
     super
 
-    file = FSHelper.createFileInstance { path: 'localfile:/Untitled.yaml' }
+    { filename, showgutter, readonly } = @getOptions()
+
+    file = FSHelper.createFileInstance { path: "localfile:/#{filename}" }
 
     @aceView = new AceView {
       cssClass: 'editor'
@@ -38,9 +68,12 @@ module.exports = class Editor extends BaseView
 
     ace.ready =>
 
+      @setReadOnly readonly
+
       ace.setTheme 'base16', no
       ace.setTabSize 2, no
       ace.setShowPrintMargin no, no
+      ace.setShowGutter showgutter, no
       ace.setUseSoftTabs yes, no
       ace.setScrollPastEnd no, no
       ace.contentChanged = no
@@ -59,7 +92,7 @@ module.exports = class Editor extends BaseView
       @emit 'ready'
 
     @wrapper.addSubView @aceView
-    @on 'GotFocus', @bound 'focus'
+    @on Events.GotFocus, @bound 'focus'
 
 
   _windowDidResize: ->

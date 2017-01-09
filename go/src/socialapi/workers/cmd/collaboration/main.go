@@ -8,10 +8,12 @@ import (
 	"socialapi/workers/collaboration/models"
 
 	"github.com/koding/broker"
+	"github.com/koding/cache"
 	"github.com/koding/runner"
 )
 
 var (
+	// Name specifies runner name for collaboration
 	Name = "Collaboration"
 )
 
@@ -30,16 +32,17 @@ func main() {
 		r.Log.Fatal("couldnt remove the QOS %# v", err)
 	}
 
-	redisConn := runner.MustInitRedisConn(r.Conf)
-	defer redisConn.Close()
-
 	appConfig := config.MustRead(r.Conf.Path)
 
 	// init mongo connection
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
-	handler := collaboration.New(r.Log, redisConn, appConfig, r.Kite)
+	// init with defaults & ensure expireAt index
+	mongoCache := cache.NewMongoCacheWithTTL(modelhelper.Mongo.Session, cache.StartGC(), cache.MustEnsureIndexExpireAt())
+	defer mongoCache.StopGC()
+
+	handler := collaboration.New(r.Log, mongoCache, appConfig, r.Kite)
 	r.SetContext(handler)
 	// only listen and operate on collaboration ping messages that are fired by the handler
 	r.Register(models.Ping{}).On(collaboration.FireEventName).Handle((*collaboration.Controller).Ping)

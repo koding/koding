@@ -383,7 +383,7 @@ module.exports = class ComputeControllerUI
           button  : 'Yes, remove'
         dontWarnMe:
           title   : 'Are you sure?'
-          message : '<h2>By clicking Yes, You will not recieve anymore update for this stack.</h2>'
+          message : '<h2>By clicking Yes, You will not receive anymore update for this stack.</h2>'
           button  : 'Yes'
         enableTeamOAuth :
           title   : 'Do you want to setup as organization token?'

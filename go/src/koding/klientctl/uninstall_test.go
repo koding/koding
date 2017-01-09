@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/koding/logging"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -27,47 +28,7 @@ func (u *testableService) Stop() error {
 	return nil
 }
 
-func TestRemoveKiteKey(t *testing.T) {
-	Convey("Given the KiteKeyDirectory is empty", t, func() {
-		Convey("Then return an error", func() {
-			var removed []string
-			u := &Uninstall{
-				KiteKeyFilename: "bar.key",
-				remover:         testableRemover(&removed),
-			}
-			So(u.RemoveKiteKey(), ShouldNotBeNil)
-			So(removed, ShouldBeNil)
-		})
-	})
-
-	Convey("Given the KiteKeyFilename is empty", t, func() {
-		Convey("Then return an error", func() {
-			var removed []string
-			u := &Uninstall{
-				KiteKeyDirectory: "foo",
-				remover:          testableRemover(&removed),
-			}
-			So(u.RemoveKiteKey(), ShouldNotBeNil)
-			So(removed, ShouldBeNil)
-		})
-	})
-
-	Convey("Given that everything is configured properly", t, func() {
-		Convey("Then remove the expected files", func() {
-			var removed []string
-			u := &Uninstall{
-				KiteKeyDirectory: "foo",
-				KiteKeyFilename:  "bar.key",
-				remover:          testableRemover(&removed),
-			}
-			So(u.RemoveKiteKey(), ShouldBeNil)
-			So(removed, ShouldResemble, []string{
-				"foo/bar.key",
-				"foo",
-			})
-		})
-	})
-}
+var testLog = logging.NewCustom("test-uninstall", true)
 
 func TestRemoveKlientFiles(t *testing.T) {
 	Convey("Given the KlientDirectory is empty", t, func() {
@@ -78,6 +39,7 @@ func TestRemoveKlientFiles(t *testing.T) {
 				KlientFilename:        "baz",
 				KlientshFilename:      "baz.sh",
 				remover:               testableRemover(&removed),
+				log:                   testLog,
 			}
 			So(u.RemoveKlientFiles(), ShouldNotBeNil)
 			So(removed, ShouldBeNil)
@@ -92,6 +54,7 @@ func TestRemoveKlientFiles(t *testing.T) {
 				KlientFilename:   "baz",
 				KlientshFilename: "baz.sh",
 				remover:          testableRemover(&removed),
+				log:              testLog,
 			}
 			So(u.RemoveKlientFiles(), ShouldNotBeNil)
 			So(removed, ShouldBeNil)
@@ -106,6 +69,7 @@ func TestRemoveKlientFiles(t *testing.T) {
 				KlientDirectory:       "bar",
 				KlientshFilename:      "baz.sh",
 				remover:               testableRemover(&removed),
+				log:                   testLog,
 			}
 			So(u.RemoveKlientFiles(), ShouldNotBeNil)
 			So(removed, ShouldBeNil)
@@ -120,6 +84,7 @@ func TestRemoveKlientFiles(t *testing.T) {
 				KlientDirectory:       "bar",
 				KlientFilename:        "baz",
 				remover:               testableRemover(&removed),
+				log:                   testLog,
 			}
 			So(u.RemoveKlientFiles(), ShouldNotBeNil)
 			So(removed, ShouldBeNil)
@@ -135,6 +100,7 @@ func TestRemoveKlientFiles(t *testing.T) {
 				KlientFilename:        "baz",
 				KlientshFilename:      "baz.sh",
 				remover:               testableRemover(&removed),
+				log:                   testLog,
 			}
 			So(u.RemoveKlientFiles(), ShouldBeNil)
 			So(removed, ShouldResemble, []string{
@@ -152,6 +118,7 @@ func TestRemoveKlientDirectories(t *testing.T) {
 			u := &Uninstall{
 				KlientParentDirectory: "foo",
 				remover:               testableRemover(&removed),
+				log:                   testLog,
 			}
 			So(u.RemoveKlientDirectories(), ShouldNotBeNil)
 			So(removed, ShouldBeNil)
@@ -164,6 +131,7 @@ func TestRemoveKlientDirectories(t *testing.T) {
 			u := &Uninstall{
 				KlientDirectory: "foo",
 				remover:         testableRemover(&removed),
+				log:             testLog,
 			}
 			So(u.RemoveKlientDirectories(), ShouldNotBeNil)
 			So(removed, ShouldBeNil)
@@ -177,6 +145,7 @@ func TestRemoveKlientDirectories(t *testing.T) {
 				KlientParentDirectory: "foo",
 				KlientDirectory:       "/bar",
 				remover:               testableRemover(&removed),
+				log:                   testLog,
 			}
 			So(u.RemoveKlientDirectories(), ShouldNotBeNil)
 			So(removed, ShouldBeNil)
@@ -190,6 +159,7 @@ func TestRemoveKlientDirectories(t *testing.T) {
 				KlientParentDirectory: "foo",
 				KlientDirectory:       "bar/baz",
 				remover:               testableRemover(&removed),
+				log:                   testLog,
 			}
 			So(u.RemoveKlientDirectories(), ShouldBeNil)
 			So(removed, ShouldResemble, []string{
@@ -212,6 +182,7 @@ func TestRemoveKlientDirectories(t *testing.T) {
 						removed = append(removed, p)
 						return nil
 					},
+					log: testLog,
 				}
 				So(u.RemoveKlientDirectories(), ShouldNotBeNil)
 				So(removed, ShouldResemble, []string{
@@ -229,6 +200,7 @@ func TestRemoveKlientctl(t *testing.T) {
 			var removed []string
 			u := &Uninstall{
 				remover: testableRemover(&removed),
+				log:     testLog,
 			}
 			So(u.RemoveKlientctl(), ShouldNotBeNil)
 			So(removed, ShouldBeNil)
@@ -241,6 +213,7 @@ func TestRemoveKlientctl(t *testing.T) {
 			u := &Uninstall{
 				KlientctlPath: "foo",
 				remover:       testableRemover(&removed),
+				log:           testLog,
 			}
 			So(u.RemoveKlientctl(), ShouldBeNil)
 			So(removed, ShouldResemble, []string{
@@ -257,15 +230,14 @@ func TestUninstall(t *testing.T) {
 			service = &testableService{}
 		)
 		u := &Uninstall{
-			remover:               testableRemover(&removed),
 			ServiceUninstaller:    service,
-			KiteKeyDirectory:      "/etc/kite",
-			KiteKeyFilename:       "kite.key",
 			KlientctlPath:         "/usr/local/bin/kd",
 			KlientParentDirectory: "/opt",
 			KlientDirectory:       "kite/klient",
 			KlientFilename:        "klient",
 			KlientshFilename:      "klient.sh",
+			remover:               testableRemover(&removed),
+			log:                   testLog,
 		}
 
 		Convey("Then remove the expected files", func() {
@@ -276,8 +248,6 @@ func TestUninstall(t *testing.T) {
 			// is important since files need to go before dirs, and etc. Therefor
 			// some brittleness is acceptable, i think.
 			So(removed, ShouldResemble, []string{
-				"/etc/kite/kite.key",
-				"/etc/kite",
 				"/opt/kite/klient/klient",
 				"/opt/kite/klient/klient.sh",
 				"/opt/kite/klient",

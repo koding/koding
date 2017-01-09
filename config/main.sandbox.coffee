@@ -40,7 +40,6 @@ Configuration = (options = {}) ->
   options.sendEventsToSegment = yes
   options.scheme = 'https'
   options.suppressLogs = no
-  options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
   options.vaultPath or= path.join __dirname, "../vault/" # use same directory with our application
   options.credentialPath or= path.join options.vaultPath, "./config/credentials.#{options.environment}.coffee"
   options.clientUploadS3BucketName = 'kodingdev-client'
@@ -105,15 +104,6 @@ Configuration = (options = {}) ->
       instances         : 4
       supervisord       :
         command         : "node %(ENV_KONFIG_PROJECTROOT)s/workers/social/index.js -p #{KONFIG.social.port} --kite-port=#{KONFIG.social.kitePort}"
-
-    authworker          :
-      group             : "webserver"
-      supervisord       :
-        command         : "node %(ENV_KONFIG_PROJECTROOT)s/workers/auth/index.js"
-
-    sourcemaps          :
-      supervisord       :
-        command         : "node %(ENV_KONFIG_PROJECTROOT)s/servers/sourcemaps/index.js"
 
     socialapi           :
       instances         : 2

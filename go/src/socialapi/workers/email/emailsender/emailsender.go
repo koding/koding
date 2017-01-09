@@ -1,7 +1,8 @@
-// Package sender provides an API for mail sending operations
+// Package emailsender provides an API for mail sending operations
 package emailsender
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	"text/template"
 
@@ -56,21 +57,11 @@ func Send(m *Mail) error {
 // and sends the message according to the mail adress
 // its a helper method to send message
 func (c *Controller) Process(m *Mail) error {
-	var to = m.To
-
-	if c.forcedRecipientEmail != "" {
-		to = c.forcedRecipientEmail
-	}
-
-	user := &eventexporter.User{Email: to}
 	if m.Properties == nil {
 		m.Properties = NewProperties()
 	}
 
-	user.Username = m.Properties.Username
-	if c.forcedRecipientUsername != "" {
-		user.Username = c.forcedRecipientUsername
-	}
+	user := c.getUserInfo(m)
 
 	m.SetOption("subject", m.Subject)
 
@@ -78,25 +69,44 @@ func (c *Controller) Process(m *Mail) error {
 	m.SetOption("env", c.env)
 	m.SetOption("host", c.host)
 
-	var err error
-
-	escapedBody := template.HTMLEscapeString(m.HTML)
-
-	if m.Properties.Options["subject"] != keyInvitedCreateTeam {
-		event := &eventexporter.Event{
-			Name:       m.Subject,
-			User:       user,
-			Body:       &eventexporter.Body{Content: escapedBody},
-			Properties: m.Properties.Options,
-		}
-		err = c.emailer.Send(event)
-	} else {
-		err = c.mailgun.SendMailgunEmail(m)
+	if m.Properties.Options["subject"] == keyInvitedCreateTeam {
+		return c.mailgun.SendMailgunEmail(m)
 	}
 
-	return err
+	event := &eventexporter.Event{
+		Name: m.Subject,
+		User: user,
+		Body: &eventexporter.Body{
+			Content: template.HTMLEscapeString(m.HTML),
+		},
+		Properties: m.Properties.Options,
+	}
+	return c.emailer.Send(event)
 }
 
+func (c *Controller) getUserInfo(m *Mail) *eventexporter.User {
+	if m.To == "" {
+		u, err := modelhelper.GetUser(m.Properties.Username)
+		if err == nil {
+			m.To = u.Email
+		}
+	}
+
+	user := &eventexporter.User{Email: m.To}
+
+	if c.forcedRecipientEmail != "" {
+		user.Email = c.forcedRecipientEmail
+	}
+
+	user.Username = m.Properties.Username
+	if c.forcedRecipientUsername != "" {
+		user.Username = c.forcedRecipientUsername
+	}
+
+	return user
+}
+
+// Close closes the emailer
 func (c *Controller) Close() {
 	if err := c.emailer.Close(); err != nil {
 		c.log.Error("Could not close emailer successfully: %s", err)

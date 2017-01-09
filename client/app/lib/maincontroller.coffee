@@ -7,7 +7,6 @@ remote                         = require('./remote')
 checkGuestUser                 = require './util/checkGuestUser'
 getGroup                       = require './util/getGroup'
 setPreferredDomain             = require './util/setPreferredDomain'
-logToExternalWithTime          = require './util/logToExternalWithTime'
 isLoggedIn                     = require './util/isLoggedIn'
 whoami                         = require './util/whoami'
 checkFlag                      = require './util/checkFlag'
@@ -313,8 +312,6 @@ module.exports = class MainController extends KDController
 
     checkConnectionState = ->
       unless connectedState.connected
-        logToExternalWithTime 'Connect to backend'
-
         if bowser.safari
         then useChrome()
         else fail()

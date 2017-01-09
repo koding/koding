@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJUserAuthenticateWithOauth(params *PostRemoteAPIJU
 		Params:             params,
 		Reader:             &PostRemoteAPIJUserAuthenticateWithOauthReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJUserChangeEmail(params *PostRemoteAPIJUserChangeE
 		Params:             params,
 		Reader:             &PostRemoteAPIJUserChangeEmailReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIJUserChangePassword(params *PostRemoteAPIJUserChan
 		Params:             params,
 		Reader:             &PostRemoteAPIJUserChangePasswordReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPIJUserConvert(params *PostRemoteAPIJUserConvertPara
 		Params:             params,
 		Reader:             &PostRemoteAPIJUserConvertReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -149,6 +153,7 @@ func (a *Client) PostRemoteAPIJUserEmailAvailable(params *PostRemoteAPIJUserEmai
 		Params:             params,
 		Reader:             &PostRemoteAPIJUserEmailAvailableReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -176,6 +181,7 @@ func (a *Client) PostRemoteAPIJUserFetchUser(params *PostRemoteAPIJUserFetchUser
 		Params:             params,
 		Reader:             &PostRemoteAPIJUserFetchUserReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -203,6 +209,7 @@ func (a *Client) PostRemoteAPIJUserGetSSHKeys(params *PostRemoteAPIJUserGetSSHKe
 		Params:             params,
 		Reader:             &PostRemoteAPIJUserGetSSHKeysReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -230,6 +237,7 @@ func (a *Client) PostRemoteAPIJUserLogin(params *PostRemoteAPIJUserLoginParams) 
 		Params:             params,
 		Reader:             &PostRemoteAPIJUserLoginReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -257,6 +265,7 @@ func (a *Client) PostRemoteAPIJUserLogout(params *PostRemoteAPIJUserLogoutParams
 		Params:             params,
 		Reader:             &PostRemoteAPIJUserLogoutReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -284,6 +293,7 @@ func (a *Client) PostRemoteAPIJUserSetSSHKeys(params *PostRemoteAPIJUserSetSSHKe
 		Params:             params,
 		Reader:             &PostRemoteAPIJUserSetSSHKeysReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -311,6 +321,7 @@ func (a *Client) PostRemoteAPIJUserUnregister(params *PostRemoteAPIJUserUnregist
 		Params:             params,
 		Reader:             &PostRemoteAPIJUserUnregisterReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -338,6 +349,7 @@ func (a *Client) PostRemoteAPIJUserUsernameAvailable(params *PostRemoteAPIJUserU
 		Params:             params,
 		Reader:             &PostRemoteAPIJUserUsernameAvailableReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -365,6 +377,7 @@ func (a *Client) PostRemoteAPIJUserVerifyByPin(params *PostRemoteAPIJUserVerifyB
 		Params:             params,
 		Reader:             &PostRemoteAPIJUserVerifyByPinReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -392,6 +405,7 @@ func (a *Client) PostRemoteAPIJUserVerifyPassword(params *PostRemoteAPIJUserVeri
 		Params:             params,
 		Reader:             &PostRemoteAPIJUserVerifyPasswordReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -421,6 +435,7 @@ func (a *Client) PostRemoteAPIJUserWhoami(params *PostRemoteAPIJUserWhoamiParams
 		Params:             params,
 		Reader:             &PostRemoteAPIJUserWhoamiReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

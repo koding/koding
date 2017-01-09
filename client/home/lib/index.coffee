@@ -11,6 +11,7 @@ HomeIntegrations    = require './integrations'
 HomeAddons          = require './addons'
 
 do require './routehandler'
+require 'home/styl'
 
 module.exports = class HomeAppController extends AppController
 
@@ -23,7 +24,7 @@ module.exports = class HomeAppController extends AppController
     { title : 'My Team', viewClass : HomeMyTeam, role: 'member' }
     { title : 'Team Integrations', viewClass : HomeIntegrations }
     { title : 'Team Billing', viewClass : HomeTeamBilling, showOnDisabled: yes, hideOnDefault: yes }
-    # { title : 'Payment History', viewClass : HomePaymentHistory }
+    { title : 'Payment History', viewClass : HomePaymentHistory }
     { title : 'Koding Utilities', viewClass : HomeUtilities, role: 'member' }
     { title : 'My Account', viewClass : HomeAccount, role: 'member' }
     { title : 'Add-ons', viewClass : HomeAddons }

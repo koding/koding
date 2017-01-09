@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/koding/redis"
+	"github.com/koding/cache"
 	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -37,10 +37,11 @@ func TestCollaboration(t *testing.T) {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
-	redisConn := runner.MustInitRedisConn(r.Conf)
-	defer redisConn.Close()
+	// init with defaults
+	mongoCache := cache.NewMongoCacheWithTTL(modelhelper.Mongo.Session)
+	defer mongoCache.StopGC()
 
-	handler := New(r.Log, redisConn, appConfig, r.Kite)
+	handler := New(r.Log, mongoCache, appConfig, r.Kite)
 
 	Convey("while pinging collaboration", t, func() {
 		// owner
@@ -65,19 +66,19 @@ func TestCollaboration(t *testing.T) {
 
 		Convey("while testing Ping", func() {
 			Convey("reponse should be success with valid ping", func() {
-				err := handler.Ping(req)
+				err = handler.Ping(req)
 				So(err, ShouldBeNil)
 			})
 
 			Convey("reponse should be success with invalid FileId", func() {
 				req.FileId = ""
-				err := handler.Ping(req)
+				err = handler.Ping(req)
 				So(err, ShouldBeNil)
 			})
 
 			Convey("reponse should be success with invalid AccountId", func() {
 				req.AccountId = 0
-				err := handler.Ping(req)
+				err = handler.Ping(req)
 				So(err, ShouldBeNil)
 			})
 
@@ -85,11 +86,8 @@ func TestCollaboration(t *testing.T) {
 				req := req
 				// prepare an invalid session here
 				req.CreatedAt = time.Now().UTC()
-				err := redisConn.Setex(
-					PrepareFileKey(req.FileId),
-					ExpireSessionKeyDuration, // expire the key after this period
-					req.CreatedAt.Add(-terminateSessionDuration),
-				)
+
+				err = mongoCache.SetEx(PrepareFileKey(req.FileId), ExpireSessionKeyDuration, req.CreatedAt.Add(-terminateSessionDuration))
 
 				err = handler.Ping(req)
 				So(err, ShouldBeNil)
@@ -113,11 +111,10 @@ func TestCollaboration(t *testing.T) {
 
 					req.CreatedAt = time.Now().UTC()
 					// prepare a valid key
-					err := redisConn.Setex(
+					err = mongoCache.SetEx(
 						PrepareFileKey(req.FileId),
 						terminateSessionDuration, // expire the key after this period
-						req.CreatedAt.Unix(),     // value - unix time
-					)
+						req.CreatedAt.Unix())
 
 					// while sleeping here, redis key should be removed
 					// and we can understand that the Collab session is expired
@@ -154,7 +151,7 @@ func TestCollaboration(t *testing.T) {
 			req.CreatedAt = time.Now().UTC()
 
 			// prepare a valid key
-			err := redisConn.Setex(
+			err := mongoCache.SetEx(
 				PrepareFileKey(req.FileId),
 				ExpireSessionKeyDuration, // expire the key after this period
 				req.CreatedAt.Unix(),     // value - unix time
@@ -163,7 +160,7 @@ func TestCollaboration(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			Convey("valid key should return nil", func() {
-				err := handler.checkIfKeyIsValid(req)
+				err = handler.checkIfKeyIsValid(req)
 				So(err, ShouldBeNil)
 			})
 
@@ -171,27 +168,28 @@ func TestCollaboration(t *testing.T) {
 				req := req
 				// override fileId
 				req.FileId = fmt.Sprintf("%d", rand.Int63())
-				err := handler.checkIfKeyIsValid(req)
+				err = handler.checkIfKeyIsValid(req)
 				So(err, ShouldEqual, errSessionInvalid)
 			})
 
 			Convey("invalid (non-timestamp) value should return errSessionInvalid", func() {
 				req := req
 				req.CreatedAt = time.Now().UTC()
-				err := redisConn.Setex(
+				err = mongoCache.SetEx(
 					PrepareFileKey(req.FileId),
 					ExpireSessionKeyDuration, // expire the key after this period
 					"req.CreatedAt.Unix()",   // replace timestamp with unix time
 				)
 
 				err = handler.checkIfKeyIsValid(req)
+
 				So(err, ShouldEqual, errSessionInvalid)
 			})
 
 			Convey("old ping time should return errSessionInvalid", func() {
 				req := req
 				req.CreatedAt = time.Now().UTC()
-				err := redisConn.Setex(
+				err = mongoCache.SetEx(
 					PrepareFileKey(req.FileId),
 					ExpireSessionKeyDuration, // expire the key after this period
 					req.CreatedAt.Add(-terminateSessionDuration).Unix(),
@@ -203,32 +201,32 @@ func TestCollaboration(t *testing.T) {
 
 			Convey("previous ping time is in safe area", func() {
 				req := req
-				testPingTimes(req, -1, redisConn, handler, nil)
+				testPingTimes(req, -1, mongoCache, handler, nil)
 			})
 
 			Convey("0 ping time is in safe area", func() {
 				req := req
-				testPingTimes(req, 0, redisConn, handler, nil)
+				testPingTimes(req, 0, mongoCache, handler, nil)
 			})
 
 			Convey("2 ping time is in safe area", func() {
 				req := req
-				testPingTimes(req, 2, redisConn, handler, nil)
+				testPingTimes(req, 2, mongoCache, handler, nil)
 			})
 
 			Convey("3 ping time is in safe area", func() {
 				req := req
-				testPingTimes(req, 3, redisConn, handler, nil)
+				testPingTimes(req, 3, mongoCache, handler, nil)
 			})
 
 			Convey("4 ping time is not in safe area - because we already reverted the time ", func() {
 				req := req
-				testPingTimes(req, 4, redisConn, handler, errSessionInvalid)
+				testPingTimes(req, 4, mongoCache, handler, errSessionInvalid)
 			})
 
 			Convey("5 ping time is not in safe area ", func() {
 				req := req
-				testPingTimes(req, 5, redisConn, handler, errSessionInvalid)
+				testPingTimes(req, 5, mongoCache, handler, errSessionInvalid)
 			})
 		})
 	})
@@ -237,7 +235,7 @@ func TestCollaboration(t *testing.T) {
 func testPingTimes(
 	req *models.Ping,
 	pingCount int,
-	redis *redis.RedisSession,
+	mongoCache *cache.MongoCache,
 	handler *Controller,
 	expectedErr error,
 ) {
@@ -247,7 +245,7 @@ func testPingTimes(
 		UTC().
 		Add(-pingDuration * time.Duration(pingCount))
 
-	err := redis.Setex(
+	err := mongoCache.SetEx(
 		PrepareFileKey(req.FileId),
 		ExpireSessionKeyDuration, // expire the key after this period
 		req.CreatedAt.Unix(),

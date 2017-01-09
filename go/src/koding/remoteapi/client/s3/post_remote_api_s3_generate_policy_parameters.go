@@ -4,6 +4,7 @@ package s3
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"net/http"
 	"time"
 
 	"golang.org/x/net/context"
@@ -49,8 +50,9 @@ func NewPostRemoteAPIS3GeneratePolicyParamsWithContext(ctx context.Context) *Pos
 for the post remote API s3 generate policy operation typically these are written to a http.Request
 */
 type PostRemoteAPIS3GeneratePolicyParams struct {
-	timeout time.Duration
-	Context context.Context
+	timeout    time.Duration
+	Context    context.Context
+	HTTPClient *http.Client
 }
 
 // WithTimeout adds the timeout to the post remote API s3 generate policy params

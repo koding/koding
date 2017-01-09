@@ -5,6 +5,8 @@ KDView = kd.View
 NFinderController = require './filetree/controllers/nfindercontroller'
 DNDUploader = require 'app/commonviews/dnduploader'
 
+require 'finder/styl'
+
 
 module.exports = class FinderController extends KDController
 

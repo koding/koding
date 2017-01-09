@@ -4,6 +4,7 @@ package j_credential
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"net/http"
 	"time"
 
 	"golang.org/x/net/context"
@@ -56,10 +57,11 @@ type PostRemoteAPIJCredentialCreateParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
-	timeout time.Duration
-	Context context.Context
+	timeout    time.Duration
+	Context    context.Context
+	HTTPClient *http.Client
 }
 
 // WithTimeout adds the timeout to the post remote API j credential create params
@@ -85,13 +87,13 @@ func (o *PostRemoteAPIJCredentialCreateParams) SetContext(ctx context.Context) {
 }
 
 // WithBody adds the body to the post remote API j credential create params
-func (o *PostRemoteAPIJCredentialCreateParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJCredentialCreateParams {
+func (o *PostRemoteAPIJCredentialCreateParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJCredentialCreateParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j credential create params
-func (o *PostRemoteAPIJCredentialCreateParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJCredentialCreateParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -100,10 +102,6 @@ func (o *PostRemoteAPIJCredentialCreateParams) WriteToRequest(r runtime.ClientRe
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

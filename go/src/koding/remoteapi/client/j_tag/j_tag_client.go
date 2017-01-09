@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJTagByRelevance(params *PostRemoteAPIJTagByRelevan
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagByRelevanceReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJTagByRelevanceForSkills(params *PostRemoteAPIJTag
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagByRelevanceForSkillsReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIJTagCount(params *PostRemoteAPIJTagCountParams) (*
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagCountReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPIJTagCreate(params *PostRemoteAPIJTagCreateParams) 
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagCreateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -149,6 +153,7 @@ func (a *Client) PostRemoteAPIJTagCreateSynonymID(params *PostRemoteAPIJTagCreat
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagCreateSynonymIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -176,6 +181,7 @@ func (a *Client) PostRemoteAPIJTagCreateSystemTag(params *PostRemoteAPIJTagCreat
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagCreateSystemTagReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -203,6 +209,7 @@ func (a *Client) PostRemoteAPIJTagCursor(params *PostRemoteAPIJTagCursorParams) 
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagCursorReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -230,6 +237,7 @@ func (a *Client) PostRemoteAPIJTagCursorWithRelationship(params *PostRemoteAPIJT
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagCursorWithRelationshipReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -257,6 +265,7 @@ func (a *Client) PostRemoteAPIJTagDeleteID(params *PostRemoteAPIJTagDeleteIDPara
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagDeleteIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -284,6 +293,7 @@ func (a *Client) PostRemoteAPIJTagEach(params *PostRemoteAPIJTagEachParams) (*Po
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagEachReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -311,6 +321,7 @@ func (a *Client) PostRemoteAPIJTagFetchContentTeasersID(params *PostRemoteAPIJTa
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagFetchContentTeasersIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -338,6 +349,7 @@ func (a *Client) PostRemoteAPIJTagFetchContentsID(params *PostRemoteAPIJTagFetch
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagFetchContentsIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -365,6 +377,7 @@ func (a *Client) PostRemoteAPIJTagFetchCount(params *PostRemoteAPIJTagFetchCount
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagFetchCountReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -392,6 +405,7 @@ func (a *Client) PostRemoteAPIJTagFetchFollowersWithRelationshipID(params *PostR
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagFetchFollowersWithRelationshipIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -419,6 +433,7 @@ func (a *Client) PostRemoteAPIJTagFetchFollowingWithRelationshipID(params *PostR
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagFetchFollowingWithRelationshipIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -446,6 +461,7 @@ func (a *Client) PostRemoteAPIJTagFetchLastInteractorsID(params *PostRemoteAPIJT
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagFetchLastInteractorsIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -473,6 +489,7 @@ func (a *Client) PostRemoteAPIJTagFetchMyFollowees(params *PostRemoteAPIJTagFetc
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagFetchMyFolloweesReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -500,6 +517,7 @@ func (a *Client) PostRemoteAPIJTagFetchSkillTags(params *PostRemoteAPIJTagFetchS
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagFetchSkillTagsReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -527,6 +545,7 @@ func (a *Client) PostRemoteAPIJTagFetchSynonymID(params *PostRemoteAPIJTagFetchS
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagFetchSynonymIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -554,6 +573,7 @@ func (a *Client) PostRemoteAPIJTagFetchSystemTags(params *PostRemoteAPIJTagFetch
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagFetchSystemTagsReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -581,6 +601,7 @@ func (a *Client) PostRemoteAPIJTagFollowID(params *PostRemoteAPIJTagFollowIDPara
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagFollowIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -608,6 +629,7 @@ func (a *Client) PostRemoteAPIJTagModifyID(params *PostRemoteAPIJTagModifyIDPara
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagModifyIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -635,6 +657,7 @@ func (a *Client) PostRemoteAPIJTagOn(params *PostRemoteAPIJTagOnParams) (*PostRe
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagOnReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -662,6 +685,7 @@ func (a *Client) PostRemoteAPIJTagOne(params *PostRemoteAPIJTagOneParams) (*Post
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagOneReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -689,6 +713,7 @@ func (a *Client) PostRemoteAPIJTagSome(params *PostRemoteAPIJTagSomeParams) (*Po
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagSomeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -716,6 +741,7 @@ func (a *Client) PostRemoteAPIJTagUnfollowID(params *PostRemoteAPIJTagUnfollowID
 		Params:             params,
 		Reader:             &PostRemoteAPIJTagUnfollowIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

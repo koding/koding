@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPISocialMessageByID(params *PostRemoteAPISocialMessa
 		Params:             params,
 		Reader:             &PostRemoteAPISocialMessageByIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPISocialMessageBySlug(params *PostRemoteAPISocialMes
 		Params:             params,
 		Reader:             &PostRemoteAPISocialMessageBySlugReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPISocialMessageDelete(params *PostRemoteAPISocialMes
 		Params:             params,
 		Reader:             &PostRemoteAPISocialMessageDeleteReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPISocialMessageEdit(params *PostRemoteAPISocialMessa
 		Params:             params,
 		Reader:             &PostRemoteAPISocialMessageEditReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -149,6 +153,7 @@ func (a *Client) PostRemoteAPISocialMessageFetch(params *PostRemoteAPISocialMess
 		Params:             params,
 		Reader:             &PostRemoteAPISocialMessageFetchReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -176,6 +181,7 @@ func (a *Client) PostRemoteAPISocialMessageFetchDataFromEmbedly(params *PostRemo
 		Params:             params,
 		Reader:             &PostRemoteAPISocialMessageFetchDataFromEmbedlyReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -203,6 +209,7 @@ func (a *Client) PostRemoteAPISocialMessageFetchPrivateMessageCount(params *Post
 		Params:             params,
 		Reader:             &PostRemoteAPISocialMessageFetchPrivateMessageCountReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -230,6 +237,7 @@ func (a *Client) PostRemoteAPISocialMessageFetchPrivateMessages(params *PostRemo
 		Params:             params,
 		Reader:             &PostRemoteAPISocialMessageFetchPrivateMessagesReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -257,6 +265,7 @@ func (a *Client) PostRemoteAPISocialMessageInitPrivateMessage(params *PostRemote
 		Params:             params,
 		Reader:             &PostRemoteAPISocialMessageInitPrivateMessageReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -284,6 +293,7 @@ func (a *Client) PostRemoteAPISocialMessageLike(params *PostRemoteAPISocialMessa
 		Params:             params,
 		Reader:             &PostRemoteAPISocialMessageLikeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -311,6 +321,7 @@ func (a *Client) PostRemoteAPISocialMessageListLikers(params *PostRemoteAPISocia
 		Params:             params,
 		Reader:             &PostRemoteAPISocialMessageListLikersReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -338,6 +349,7 @@ func (a *Client) PostRemoteAPISocialMessageListReplies(params *PostRemoteAPISoci
 		Params:             params,
 		Reader:             &PostRemoteAPISocialMessageListRepliesReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -365,6 +377,7 @@ func (a *Client) PostRemoteAPISocialMessagePaymentSubscribe(params *PostRemoteAP
 		Params:             params,
 		Reader:             &PostRemoteAPISocialMessagePaymentSubscribeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -392,6 +405,7 @@ func (a *Client) PostRemoteAPISocialMessagePost(params *PostRemoteAPISocialMessa
 		Params:             params,
 		Reader:             &PostRemoteAPISocialMessagePostReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -419,6 +433,7 @@ func (a *Client) PostRemoteAPISocialMessageReply(params *PostRemoteAPISocialMess
 		Params:             params,
 		Reader:             &PostRemoteAPISocialMessageReplyReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -446,6 +461,7 @@ func (a *Client) PostRemoteAPISocialMessageSearch(params *PostRemoteAPISocialMes
 		Params:             params,
 		Reader:             &PostRemoteAPISocialMessageSearchReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -473,6 +489,7 @@ func (a *Client) PostRemoteAPISocialMessageSendPrivateMessage(params *PostRemote
 		Params:             params,
 		Reader:             &PostRemoteAPISocialMessageSendPrivateMessageReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -500,6 +517,7 @@ func (a *Client) PostRemoteAPISocialMessageUnlike(params *PostRemoteAPISocialMes
 		Params:             params,
 		Reader:             &PostRemoteAPISocialMessageUnlikeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

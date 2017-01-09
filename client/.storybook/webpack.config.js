@@ -11,14 +11,8 @@ var clientConfig = require('../webpack.config')
 var customConfig = _.pick(clientConfig, [
   'module',
   'resolve',
-  'stylus'
+  'stylus',
+  'plugins'
 ])
-
-customConfig = _.assign({}, customConfig, {
-  plugins: [
-    new ProgressBarPlugin({ format: ' client: [:bar] :percent ', width: 1024 }),
-    new WebpackNotifierPlugin({ title: 'Component lab' })
-  ]
-})
 
 module.exports = customConfig

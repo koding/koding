@@ -4,6 +4,7 @@ package j_account
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"net/http"
 	"time"
 
 	"golang.org/x/net/context"
@@ -13,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJAccountIsFollowingIDParams creates a new PostRemoteAPIJAccountIsFollowingIDParams object
@@ -50,14 +53,20 @@ for the post remote API j account is following ID operation typically these are 
 */
 type PostRemoteAPIJAccountIsFollowingIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
 	*/
 	ID string
 
-	timeout time.Duration
-	Context context.Context
+	timeout    time.Duration
+	Context    context.Context
+	HTTPClient *http.Client
 }
 
 // WithTimeout adds the timeout to the post remote API j account is following ID params
@@ -82,6 +91,17 @@ func (o *PostRemoteAPIJAccountIsFollowingIDParams) SetContext(ctx context.Contex
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j account is following ID params
+func (o *PostRemoteAPIJAccountIsFollowingIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJAccountIsFollowingIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j account is following ID params
+func (o *PostRemoteAPIJAccountIsFollowingIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j account is following ID params
 func (o *PostRemoteAPIJAccountIsFollowingIDParams) WithID(id string) *PostRemoteAPIJAccountIsFollowingIDParams {
 	o.SetID(id)
@@ -98,6 +118,10 @@ func (o *PostRemoteAPIJAccountIsFollowingIDParams) WriteToRequest(r runtime.Clie
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

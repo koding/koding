@@ -1,4 +1,5 @@
 { Component, PropTypes } = React = require 'react'
+classnames = require 'classnames'
 
 Label = require 'lab/Text/Label'
 Button = require 'lab/Button'
@@ -16,7 +17,7 @@ module.exports = class Modal extends Component
     { isOpen, onAfterOpen, onRequestClose, children,
       shouldCloseOnOverlayClick, width, height, showAlien, className } = @props
 
-    className = [
+    className = classnames [
       styles.modal
       styles[width]
       styles[height]
@@ -47,7 +48,6 @@ exports.Header = Modal.Header = ({ title, className }) ->
     styles.header
     className
   ].join ' '
-
   <div className={className}>
     <Label type="info">{title}</Label>
   </div>
@@ -74,14 +74,16 @@ exports.Footer = Modal.Footer = (props) ->
       <Button type={primaryButtonType} size={'small' if not size} onClick={onPrimaryButtonClick}>
         {primaryButtonTitle}
       </Button>
+
     </div>
   </div>
 
 Modal.Footer.defaultProps =
   primaryButtonType: 'primary-1'
   secondaryButtonType: 'secondary'
+  primaryButtonSize: 'small'
+  secondaryButtonSize: 'small'
   primaryButtonTitle: 'Primary'
   secondaryButtonTitle: 'Secondary'
   onPrimaryButtonClick: noop
   onSecondaryButtonClick: noop
-

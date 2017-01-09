@@ -99,3 +99,25 @@ func (o *PostRemoteAPIJStackTemplateCreateUnauthorized) readResponse(response ru
 
 	return nil
 }
+
+/*PostRemoteAPIJStackTemplateCreateBody post remote API j stack template create body
+swagger:model PostRemoteAPIJStackTemplateCreateBody
+*/
+type PostRemoteAPIJStackTemplateCreateBody struct {
+
+	// config
+	// Required: true
+	Config interface{} `json:"config"`
+
+	// credentials
+	// Required: true
+	Credentials interface{} `json:"credentials"`
+
+	// template
+	// Required: true
+	Template *string `json:"template"`
+
+	// title
+	// Required: true
+	Title *string `json:"title"`
+}

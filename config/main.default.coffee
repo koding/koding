@@ -41,7 +41,6 @@ Configuration = (options = {}) ->
   options.sendEventsToSegment = yes
   options.scheme = 'http'
   options.suppressLogs = no
-  options.paymentBlockDuration = 2 * 60 * 1000 # 2 minutes
   options.credentialPath or= "$KONFIG_PROJECTROOT/config/credentials.#{options.environment}.coffee"
   options.clientUploadS3BucketName or= 'kodingdev-client'
   options.publicLogsS3BucketName or= 'kodingdev-publiclogs'
@@ -76,6 +75,13 @@ Configuration = (options = {}) ->
 
   KONFIG.workers = require('./workers')(KONFIG, options, credentials)
 
+  KONFIG.workers.emailer =
+    group       : "webserver"
+    supervisord :
+      command   :
+        run     : "node %(ENV_KONFIG_PROJECTROOT)s/workers/emailer"
+
+
   options.disabledWorkers = [
     "algoliaconnector"
     "gatekeeper"
@@ -87,7 +93,7 @@ Configuration = (options = {}) ->
   KONFIG.client.runtimeOptions = require('./generateRuntimeConfig')(KONFIG, credentials, options)
 
   # Disable Sneaker for kloud.
-  KONFIG.kloud.credentialEndPoint = ''
+  KONFIG.kloud.noSneaker = true
 
   options.requirementCommands = [
     "$KONFIG_PROJECTROOT/scripts/generate-kite-keys.sh"

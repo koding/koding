@@ -18,14 +18,10 @@
 .footer
   padding                   25px 0 0
 
-  button
-    padding                 7px 20px 5px
-
   button:not(:last-child)
-    margin-right            10px
+    margin-right            30px
 
 
 .border
   margin-top                25px
   border-top                1px solid $additional-4-faded
-

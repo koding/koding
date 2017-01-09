@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJRewardCampaignUpdateIDOK() *PostRemoteAPIJRewardCampaignUp
 OK
 */
 type PostRemoteAPIJRewardCampaignUpdateIDOK struct {
-	Payload *models.JRewardCampaign
+	Payload PostRemoteAPIJRewardCampaignUpdateIDOKBody
 }
 
 func (o *PostRemoteAPIJRewardCampaignUpdateIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJRewardCampaignUpdateIDOK) Error() string {
 
 func (o *PostRemoteAPIJRewardCampaignUpdateIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JRewardCampaign)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJRewardCampaignUpdateIDOKBody post remote API j reward campaign update ID o k body
+swagger:model PostRemoteAPIJRewardCampaignUpdateIDOKBody
+*/
+type PostRemoteAPIJRewardCampaignUpdateIDOKBody struct {
+	models.JRewardCampaign
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJRewardCampaignUpdateIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJRewardCampaignUpdateIDOKBodyAO0 models.JRewardCampaign
+	if err := swag.ReadJSON(raw, &postRemoteAPIJRewardCampaignUpdateIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JRewardCampaign = postRemoteAPIJRewardCampaignUpdateIDOKBodyAO0
+
+	var postRemoteAPIJRewardCampaignUpdateIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJRewardCampaignUpdateIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJRewardCampaignUpdateIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJRewardCampaignUpdateIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJRewardCampaignUpdateIDOKBodyAO0, err := swag.WriteJSON(o.JRewardCampaign)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJRewardCampaignUpdateIDOKBodyAO0)
+
+	postRemoteAPIJRewardCampaignUpdateIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJRewardCampaignUpdateIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j reward campaign update ID o k body
+func (o *PostRemoteAPIJRewardCampaignUpdateIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JRewardCampaign.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

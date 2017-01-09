@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJProxyFilterRemoveIDOK() *PostRemoteAPIJProxyFilterRemoveID
 OK
 */
 type PostRemoteAPIJProxyFilterRemoveIDOK struct {
-	Payload *models.JProxyFilter
+	Payload PostRemoteAPIJProxyFilterRemoveIDOKBody
 }
 
 func (o *PostRemoteAPIJProxyFilterRemoveIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJProxyFilterRemoveIDOK) Error() string {
 
 func (o *PostRemoteAPIJProxyFilterRemoveIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JProxyFilter)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJProxyFilterRemoveIDOKBody post remote API j proxy filter remove ID o k body
+swagger:model PostRemoteAPIJProxyFilterRemoveIDOKBody
+*/
+type PostRemoteAPIJProxyFilterRemoveIDOKBody struct {
+	models.JProxyFilter
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJProxyFilterRemoveIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJProxyFilterRemoveIDOKBodyAO0 models.JProxyFilter
+	if err := swag.ReadJSON(raw, &postRemoteAPIJProxyFilterRemoveIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JProxyFilter = postRemoteAPIJProxyFilterRemoveIDOKBodyAO0
+
+	var postRemoteAPIJProxyFilterRemoveIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJProxyFilterRemoveIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJProxyFilterRemoveIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJProxyFilterRemoveIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJProxyFilterRemoveIDOKBodyAO0, err := swag.WriteJSON(o.JProxyFilter)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJProxyFilterRemoveIDOKBodyAO0)
+
+	postRemoteAPIJProxyFilterRemoveIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJProxyFilterRemoveIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j proxy filter remove ID o k body
+func (o *PostRemoteAPIJProxyFilterRemoveIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JProxyFilter.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

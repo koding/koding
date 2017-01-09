@@ -20,7 +20,7 @@ Please note that to install **kd**:
 
 ## Step 1: Get the _**kd**_ install command
 
-Click on **STACKS** from the left side bar, and go to **Koding Utilities**
+Click on **STACKS** from the left side bar to open your **Dashboard**, and go to **Koding Utilities**
 
 ![kd-install-command.png][1]
 

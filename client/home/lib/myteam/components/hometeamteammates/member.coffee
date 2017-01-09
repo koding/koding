@@ -11,22 +11,6 @@ module.exports = class Member extends React.Component
 
     super props
 
-    @state =
-      isMenuOpen: no
-
-
-  onClickMemberRole: (role, event) ->
-
-    kd.utils.stopDOMEvent event
-    @setState { isMenuOpen: yes }
-
-
-  componentWillReceiveProps: (nextProps) ->
-
-    { isMenuOpen } = nextProps
-
-    @setState { isMenuOpen }
-
 
   getMenuItems: (role) ->
 
@@ -91,30 +75,29 @@ module.exports = class Member extends React.Component
         items={@getMenuItems role}
         admins={@props.admins}
         canEdit={canEdit}
-        onClick={@onClickMemberRole.bind(this, role)}
-        isMenuOpen={@state.isMenuOpen}
         member={@props.member} />
     </div>
 
 
-MemberRoleWithDropDownMenu = ({ canEdit, role, onClick, items, isMenuOpen, admins, member }) ->
+MemberRoleWithDropDownMenu = ({ canEdit, role, items, admins, member }) ->
 
   showButtonWithMenu = role is 'owner' and admins.size is 0
-
   unless canEdit and not showButtonWithMenu
     <div className='dropdown'>
       <MemberRole role={role} canEdit={canEdit}  />
-      {<ButtonWithMenu menuClassName='menu-class' items={items} isMenuOpen={isMenuOpen} />  if member.get('inviterId') is whoami()._id}
+      {<ButtonWithMenu menuClassName='menu-class' items={items} />  if member.get('inviterId') is whoami()._id}
     </div>
   else
-    <div className='dropdown' onClick={onClick}>
+    <div className='dropdown'>
       <MemberRole role={role} canEdit={canEdit} showPointer={yes} />
-      <ButtonWithMenu menuClassName='menu-class' items={items} isMenuOpen={isMenuOpen} />
+      <ButtonWithMenu menuClassName='menu-class' items={items} />
     </div>
+
 
 Badge = ({ role }) ->
   role = 'member'  unless role
   <div className={"badge #{role}"} title={role}></div>
+
 
 NickName = ({ nickname }) ->
 
@@ -122,9 +105,11 @@ NickName = ({ nickname }) ->
   then <span className='nickname'>@{nickname}</span>
   else <i></i>
 
+
 Email = ({ email }) ->
 
   <span className='email-js email' title={email}>{email}</span>
+
 
 AvatarView = ({ member, role }) ->
 

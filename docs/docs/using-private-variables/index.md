@@ -16,7 +16,7 @@ In this guide we will use the custom variables section to save the credentials r
 
 We add our credentials in key value pairs format to the custom variables section
 
-![custom_vars.png][1]
+![Custom variables][1]
 
 ```yaml
   ftp_user: <your-ftp-user-name>
@@ -68,7 +68,7 @@ resource:
 
 Other developers would be able to build stack and view stack, but will not be able to view your custom variables
 
-![Stack_viewer.png][2]
+![Stack][2]
 
 [1]: {{ site.url }}/assets/img/guides/custom-vars/custom-vars.png
-[2]: {{ site.url }}/assets/img/guides/custom-vars/Stack_viewer.png
+[2]: {{ site.url }}/assets/img/guides/custom-vars/stack-viewer.png

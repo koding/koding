@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJCredentialFetchUsersIDOK() *PostRemoteAPIJCredentialFetchU
 OK
 */
 type PostRemoteAPIJCredentialFetchUsersIDOK struct {
-	Payload *models.JCredential
+	Payload PostRemoteAPIJCredentialFetchUsersIDOKBody
 }
 
 func (o *PostRemoteAPIJCredentialFetchUsersIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJCredentialFetchUsersIDOK) Error() string {
 
 func (o *PostRemoteAPIJCredentialFetchUsersIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JCredential)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJCredentialFetchUsersIDOKBody post remote API j credential fetch users ID o k body
+swagger:model PostRemoteAPIJCredentialFetchUsersIDOKBody
+*/
+type PostRemoteAPIJCredentialFetchUsersIDOKBody struct {
+	models.JCredential
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJCredentialFetchUsersIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJCredentialFetchUsersIDOKBodyAO0 models.JCredential
+	if err := swag.ReadJSON(raw, &postRemoteAPIJCredentialFetchUsersIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JCredential = postRemoteAPIJCredentialFetchUsersIDOKBodyAO0
+
+	var postRemoteAPIJCredentialFetchUsersIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJCredentialFetchUsersIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJCredentialFetchUsersIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJCredentialFetchUsersIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJCredentialFetchUsersIDOKBodyAO0, err := swag.WriteJSON(o.JCredential)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJCredentialFetchUsersIDOKBodyAO0)
+
+	postRemoteAPIJCredentialFetchUsersIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJCredentialFetchUsersIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j credential fetch users ID o k body
+func (o *PostRemoteAPIJCredentialFetchUsersIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JCredential.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

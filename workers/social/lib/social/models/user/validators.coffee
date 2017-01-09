@@ -50,13 +50,11 @@ module.exports = class Validators
 
   email: ({ email }, callback) ->
 
-    isEmailValid email, (valid) ->
-
-      callback \
-        unless valid
-          createKodingError 'Email is not valid.'
-        else
-          null
+    callback \
+      unless isEmailValid email
+        createKodingError 'Email is not valid.'
+      else
+        null
 
 
   username: ({ username }, callback) ->

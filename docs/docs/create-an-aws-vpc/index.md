@@ -199,15 +199,13 @@ Along the next sections, we will write our stack template section by section sho
 ### Creating a stack
 
 1. Click&nbsp;**Stacks**
-2. Click** Group&nbsp;Stack templates**
-3. Click **Create new Stack**
-4. Choose **Amazon** -&gt; Click **Next**
-5. Click **Next** in the "What do you want installed" screen
-6. Click **Next** in the "Where is your code" screen
-7. Set your AWS credentials in the **Credentials** tab
-8. **Note 1** for detailed steps on how to create a stack you can refer to [Create New Stack][5] guide
-9. **Note 2** We have created our AWS keys in region **EU Ireland (eu-west-1)**, which means our Availability Zones will be relevant to this region. _Learn more about [AWS availability zones
-][3]_
+2. Click **New Stack**
+3. Choose **Amazon** -&gt; Click **Next**
+4. Set your AWS credentials in the **Credentials** tab
+
+> For detailed steps on how to create an AWS stack you can refer to [Create AWS Stack][5] guide
+
+> We created our AWS keys in region **EU Ireland (eu-west-1)**, which means our Availability Zones will be relevant to this region. _Learn more about [AWS availability zones][3]_
 
 ![regions_01-1.jpg][6]
 
@@ -215,12 +213,11 @@ Along the next sections, we will write our stack template section by section sho
 
 ### Edit your stack name
 
-It is a good practice to name your Stack, specially if you plan to have multiple stacks.
+A stack name is auto generated when you create a new stack, however if you plan on having multiple stacks, it is a good practice to name your Stack to something you can remember in a glance.
 
 ![the-stack-name.png][7]
 
 * * *
-
 
 ### Provider
 
@@ -608,13 +605,13 @@ Let's now start to build our stack to test our stack template file
 
 Click **Save**, your stack should build successfully. If there are any errors you will need to attend to them before building your stack.
 
-![VPC-success2.png][16]
+![VPC success2][16]
 
 #### Build Stack
 
 Click **Initialize**&nbsp;and close your stack template, follow the step by step modal to build your Stack.&nbsp;
 
-![all-building.png][17]
+![Stack building][17]
 
 #### Successful&nbsp;build!
 

@@ -1,6 +1,10 @@
 @import '~lab/Colors/Colors.stylus'
 
 .main
+  height                    150px
+  display                   flex
+  flex-direction            column
+  justify-content           space-between
   background-color          $additional-2
   color                     $additional-3-faded
   border-radius             8px
@@ -13,22 +17,25 @@
   span
     font-size               13px
 
+.brand-wrapper
+  display                   flex
+  align-items               center
+  border-radius             4px
+  borderBox()
+  padding                   0 10px
 
-.brand-american-express
-  m-sprite                  app, amex
-.brand-diners-club
-  m-sprite                  app, dinersclub
-.brand-discover
-  m-sprite                  app, discover
-.brand-jcb
-  m-sprite                  app, jcb
-.brand-maestro
-  m-sprite                  app, maestro
-.brand-mastercard
-.brand-master-card
-  m-sprite                  app, mastercard
-.brand-visa
-  m-sprite                  app, visa
+  &.small
+    border-radius           3px
+    padding                 0 5px
+
+.brand-default.small
+  width                     30px
+  height                    9px
+
+.brand-default
+.brand-default.regular
+  width                     60px
+  height                    18px
 
 .chip
   m-sprite                  app, Chip
@@ -36,11 +43,24 @@
 
 .number
   display                   flex
-  height                    30px
   justify-content           space-between
+  align-items               center
+
+.title
+  font-size                 13px
+  color                     $additional-6-dark
 
 .name
   ellipsis()
 
+.info-row
+  display                   flex
+  align-items               center
+  height                    40px
 
+.link
+  color                     $primary-6
+  text-decoration           none
 
+  &:hover
+    text-decoration         underline

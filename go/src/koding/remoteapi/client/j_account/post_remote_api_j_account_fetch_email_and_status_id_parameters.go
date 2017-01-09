@@ -4,6 +4,7 @@ package j_account
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"net/http"
 	"time"
 
 	"golang.org/x/net/context"
@@ -13,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJAccountFetchEmailAndStatusIDParams creates a new PostRemoteAPIJAccountFetchEmailAndStatusIDParams object
@@ -50,14 +53,20 @@ for the post remote API j account fetch email and status ID operation typically 
 */
 type PostRemoteAPIJAccountFetchEmailAndStatusIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
 	*/
 	ID string
 
-	timeout time.Duration
-	Context context.Context
+	timeout    time.Duration
+	Context    context.Context
+	HTTPClient *http.Client
 }
 
 // WithTimeout adds the timeout to the post remote API j account fetch email and status ID params
@@ -82,6 +91,17 @@ func (o *PostRemoteAPIJAccountFetchEmailAndStatusIDParams) SetContext(ctx contex
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j account fetch email and status ID params
+func (o *PostRemoteAPIJAccountFetchEmailAndStatusIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJAccountFetchEmailAndStatusIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j account fetch email and status ID params
+func (o *PostRemoteAPIJAccountFetchEmailAndStatusIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j account fetch email and status ID params
 func (o *PostRemoteAPIJAccountFetchEmailAndStatusIDParams) WithID(id string) *PostRemoteAPIJAccountFetchEmailAndStatusIDParams {
 	o.SetID(id)
@@ -98,6 +118,10 @@ func (o *PostRemoteAPIJAccountFetchEmailAndStatusIDParams) WriteToRequest(r runt
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

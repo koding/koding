@@ -106,10 +106,10 @@ func TestYAMLToJSON(t *testing.T) {
 	// _, err := yamlToJSON(failJSONMarhal{})
 	// assert.Error(t, err)
 
-	_, err = bytesToYAMLDoc([]byte("- name: hello\n"))
+	_, err = BytesToYAMLDoc([]byte("- name: hello\n"))
 	assert.Error(t, err)
 
-	dd, err := bytesToYAMLDoc([]byte("description: 'object created'\n"))
+	dd, err := BytesToYAMLDoc([]byte("description: 'object created'\n"))
 	assert.NoError(t, err)
 
 	d, err = YAMLToJSON(dd)
@@ -152,11 +152,11 @@ var yamlPestoreServer = func(rw http.ResponseWriter, r *http.Request) {
 }
 
 func TestWithYKey(t *testing.T) {
-	doc, err := bytesToYAMLDoc([]byte(withYKey))
+	doc, err := BytesToYAMLDoc([]byte(withYKey))
 	if assert.NoError(t, err) {
 		_, err := YAMLToJSON(doc)
 		if assert.Error(t, err) {
-			doc, err := bytesToYAMLDoc([]byte(withQuotedYKey))
+			doc, err := BytesToYAMLDoc([]byte(withQuotedYKey))
 			if assert.NoError(t, err) {
 				jsond, err := YAMLToJSON(doc)
 				if assert.NoError(t, err) {

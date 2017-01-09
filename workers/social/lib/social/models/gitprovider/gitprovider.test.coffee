@@ -59,7 +59,6 @@ runTests = -> describe 'workers.social.models.gitprovider', ->
             expect(_template.description)                      .to.be.equal readme.content
             expect(_template.config.requiredData)              .to.deep.equal { user: [ 'username' ], group: [ 'slug' ] }
             expect(_template.config.requiredProviders[0])      .to.equal 'aws'
-            expect(_template.config.requiredProviders[1])      .to.equal 'koding'
             expect(_template.config.remoteDetails.originalUrl) .to.be.equal originalUrl
             expect(_template.template.rawContent)              .to.be.equal template.content
             done()

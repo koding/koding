@@ -25,6 +25,7 @@ module.exports = class JCredential extends jraphical.Module
   }
 
   @trait __dirname, '../../traits/protected'
+  @trait __dirname, '../../traits/notifiable'
 
   @share()
 
@@ -556,6 +557,7 @@ module.exports = class JCredential extends jraphical.Module
 
     success: (client, options, callback) ->
 
+      { context: { group }, connection: { delegate: account } } = client
       { title, meta } = options
 
       unless title or meta
@@ -566,11 +568,16 @@ module.exports = class JCredential extends jraphical.Module
       if @provider in ['custom', 'userInput']
         fields = if meta then (Object.keys meta) else []
 
-      @update { $set : { title, fields } }, (err) =>
+      notifyOptions =
+        account : account
+        group   : group
+        target  : 'account'
+
+      @updateAndNotify notifyOptions, { $set : { title, fields } }, (err) =>
         return callback err  if err?
 
         if meta?
-          CredentialStore.update client, { @identifier, meta } , callback
+          CredentialStore.update client, { @identifier, meta }, callback
         else
           callback null
 

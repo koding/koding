@@ -10,7 +10,7 @@ log = -> console.log arguments...
 { extend }         = require 'underscore'
 { join: joinPath } = require 'path'
 
-usertracker = require '../../../usertracker'
+
 datadog     = require '../../../datadog'
 apiErrors   = require './apierrors'
 
@@ -19,24 +19,12 @@ process.on 'uncaughtException', (err) ->
   process.exit 1
 
 Bongo = require 'bongo'
-Broker = require 'broker'
 
 KONFIG = require 'koding-config-manager'
 Object.defineProperty global, 'KONFIG', { value: KONFIG }
 { mq, email, social, mongoReplSet, socialapi } = KONFIG
 
-redisClient = require('redis').createClient(
-  KONFIG.monitoringRedis.port
-  KONFIG.monitoringRedis.host
-  {}
-)
-
 mongo = "mongodb://#{KONFIG.mongo}"  if 'string' is typeof KONFIG.mongo
-
-mqOptions = extend {}, mq
-mqOptions.login = social.login if social?.login?
-
-broker = new Broker mqOptions
 
 mqConfig = { host: mq.host, port: mq.port, login: mq.login, password: mq.password, vhost: mq.vhost }
 
@@ -50,12 +38,8 @@ koding = new Bongo {
   mongo       : mongoReplSet or mongo
   models      : './models'
   resourceName: social.queueName
-  mq          : broker
   mqConfig    : mqConfig
   metrics     : datadog
-  redisClient : redisClient
-
-
   kite          :
     name        : 'social'
     environment : argv.environment or KONFIG.environment
@@ -97,8 +81,6 @@ koding = new Bongo {
 
       else if account instanceof JAccount
 
-        usertracker.track account.profile.nickname
-
         { clientIP, clientId: sessionToken, username } = session
 
         callback {
@@ -135,8 +117,6 @@ helmet = require 'helmet'
 app = express()
 
 do ->
-  usertracker.start redisClient
-
   if KONFIG.environment is 'production'
     { NodejsProfiler } = require 'koding-datadog'
     # start monitoring nodejs metrics (memory, gc, cpu etc...)

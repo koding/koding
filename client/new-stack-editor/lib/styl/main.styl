@@ -17,10 +17,14 @@ $dark-tab-color             = #5C5C5C
 
 $resize-handle-color        = #6EA3E5
 $stack-bg-color             = #232327
+$stack-bg-color-bright      = #29292D
 $stack-fg-color             = #59595C
 $stack-fg-color-bright      = #DDDDDD
 $stack-fg-color-yellow      = #FCC34E
 $stack-border-color         = #000000
+
+$stack-sideview-width       = 420px
+$stack-border-width         = 2px
 
 .new-stack-editor
 
@@ -33,10 +37,10 @@ $stack-border-color         = #000000
 
     &.vertical
       > .flex-resizer
-        width               2px
+        width               $stack-border-width
     &.horizontal
       > .flex-resizer
-        height              2px
+        height              $stack-border-width
 
   .flex-resizer
     background              $stack-border-color
@@ -49,7 +53,7 @@ $stack-border-color         = #000000
     background              $stack-bg-color
     height                  40px
     min-height              40px !important
-    border-bottom           2px solid $stack-border-color
+    border-bottom           $stack-border-width solid $stack-border-color
     padding                 14px
     font-size               13px
     color                   $stack-fg-color-bright
@@ -66,8 +70,7 @@ $stack-border-color         = #000000
         fa                  play
 
     .kdbutton.expand
-      top                   13px    !important
-      right                 120px   !important
+      abs                   13px, 120px !important
 
 
   .content
@@ -78,8 +81,8 @@ $stack-border-color         = #000000
       height                calc(100% \- 70px)
 
   .mainview
-    border-left             2px solid $stack-border-color
-    border-right            2px solid $stack-border-color
+    border-left             $stack-border-width solid $stack-border-color
+    border-right            $stack-border-width solid $stack-border-color
     borderBox()
 
   .statusbar
@@ -106,34 +109,51 @@ $stack-border-color         = #000000
     background              $stack-bg-color
     vendor                  transition, all .5s ease
 
-    &:hover
-      .kdbutton.expand
-        visibility          visible
-        color               $stack-fg-color-bright
-
     &.with-title
-      .editor
-        height              calc(100% - 42px)
+      .wrapper
+        .editor, .help-content
+          height            calc(100% - 42px)
+        .help-content
+          padding           0px 20px
 
     &.ondrag
       vendor                transition, none
 
+    &:hover
+      .controls .kdbutton
+        &.expand, &.help, &.pin, &.close
+          display           block
+
     &.expanded
-      > .wrapper > .kdbutton
+      .controls .kdbutton
         &.expand
-          visibility        hidden
+          display           none
         &.collapse
-          visibility        visible
+          display           block
+          color             $stack-fg-color-bright
+
+    &.loading
+      .wrapper .controls .kdloader
+        display             block
+
+    &.help-mode
+      .wrapper .help-content
+        display             block
+
+      .controls .kdbutton.help
+        display             block
+        color               $stack-fg-color-yellow
 
     .wrapper
 
-      height                inherit
       abs                   0px, 0px
+      height                inherit
+      borderBox()
 
       &.expanding
         height              100vh
 
-      .title
+      > .title
         padding             15px 20px
         font-size           13px
         font-weight         600
@@ -144,27 +164,66 @@ $stack-border-color         = #000000
         width               100%
         borderBox()
 
-      borderBox()
+      .controls
+        abs                 10px, 15px
+        z-index             10
+        width               50%
+        height              20px
+        display             flex
+        flex-direction      row-reverse
 
-    .kdbutton.expand
-    .kdbutton.collapse
+        .kdloader
+          width             14px
+          display           none
+          top               4px
+
+      .help-content
+        height              100%
+        color               #999
+        padding             20px
+        display             none
+        font-size           14px
+        line-height         17px
+        overflow            auto
+        borderBox()
+
+        code
+          border            none !important
+
+    .controls .kdbutton
       margin                0
+      margin-left           10px
       padding               0
       background            none
       border                none
       color                 $stack-fg-color
       font-size             13px !important
-      z-index               10
-      visibility            hidden
 
-      &.expand
-        fa                  expand
-      &.collapse
-        fa                  compress
       &:focus
         box-shadow          none
 
-      abs                   10px, 10px
+      &:hover
+        color               $stack-fg-color-bright
+
+      &.expand
+        fa                  expand
+        display             none
+
+      &.collapse
+        fa                  compress
+        display             none
+
+      &.pin
+        fa                  thumb-tack
+        display             none
+
+      &.close
+        fa                  times
+        display             none
+
+      &.help
+        fa                  question-circle
+        display             none
 
 
   .editor-view
@@ -218,9 +277,86 @@ $stack-border-color         = #000000
       .ace_active-line
         background          #333339 !important
 
+  .side-view
+    background              $stack-bg-color
+    width                   $stack-sideview-width
+    min-width               $stack-sideview-width
+    abs                     0px, 0px
+    z-index                 100
+    box-shadow              0 0 30px -5px
+    vendor                  transition, all 400ms ease-in
+    border-left             $stack-border-width solid $stack-bg-color
+    visibility              visible
+    borderBox()
+
+    &.hidden
+      display               block !important
+      visibility            hidden
+      width                 0px
+      min-width             0px
+
+    &.expanded
+      width                 100%
+      min-width             100%
+
+    &.pinned
+      position              inherit
+      box-shadow            none
+      border-color          $stack-fg-color
+
+      .controls .kdbutton.pin
+        display             block
+        color               $stack-fg-color-yellow
+
+
+  .credential-list
+    min-width               $stack-sideview-width - $stack-border-width
+
+    .kdlistitemview.credential
+      font-size             14px
+      padding               10px 15px 10px 20px
+      color                 $stack-fg-color-bright
+      border-bottom         1px solid #333
+      cursor                default
+      borderBox()
+
+      &:hover
+        background          $stack-bg-color-bright
+
+      .kdcustomcheckbox
+        margin              -4px 5px -3px -3px
+        transform           scale(.7)
+        fl()
+
+        label
+          border-color      #333333
+          background-color  #2b2b30
+
+      button
+        margin              0
+        margin-left         8px
+        padding             0
+        background          none
+        border              none
+        color               $stack-fg-color
+        fr()
+
+        &.show
+          fa                eye
+
+        &.edit
+          fa                pencil
+
+        &.delete
+          fa                trash
+
 
 #intercom-container
-  display                   none
+  &.small
+    .intercom-launcher-frame
+      vendor                transition, all 1s 1s ease !important
+      vendor                transform, scale(.5)
+      vendor                transform-origin, 80px 80px
 
 #kdmaincontainer.hover
 #kdmaincontainer.collapsed
