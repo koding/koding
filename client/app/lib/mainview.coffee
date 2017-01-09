@@ -5,7 +5,6 @@ remote                  = require('./remote')
 isLoggedIn              = require './util/isLoggedIn'
 whoami                  = require './util/whoami'
 isKoding                = require './util/isKoding'
-AvatarArea              = require './avatararea/avatararea'
 CustomLinkView          = require './customlinkview'
 GlobalNotificationView  = require './globalnotificationview'
 MainTabView             = require './maintabview'
@@ -52,11 +51,8 @@ module.exports = class MainView extends kd.View
     @createMainTabView()
 
     kd.singletons.mainController.ready =>
-      unless isKoding()
-        @createTeamLogo()
-        @createMiniWelcomeSteps()
-      else
-        @createAccountArea()
+      @createTeamLogo()
+      @createMiniWelcomeSteps()
 
       @emit 'ready'
 
@@ -211,18 +207,6 @@ module.exports = class MainView extends kd.View
   createMiniWelcomeSteps: ->
 
     @logoWrapper.addSubView new HomeWelcomeSteps { mini : yes }
-
-
-  createAccountArea: ->
-
-    @accountArea = new kd.CustomHTMLView { cssClass: 'account-area' }
-
-    if isKoding()
-    then @aside.addSubView @accountArea
-    else @logoWrapper.addSubView @accountArea
-
-    @accountArea.destroySubViews()
-    @accountArea.addSubView @avatarArea  = new AvatarArea {}, whoami()
 
 
   checkVersion: ->
