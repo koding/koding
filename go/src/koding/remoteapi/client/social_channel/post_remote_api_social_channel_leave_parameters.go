@@ -57,7 +57,7 @@ type PostRemoteAPISocialChannelLeaveParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPISocialChannelLeaveParams) SetContext(ctx context.Context) 
 }
 
 // WithBody adds the body to the post remote API social channel leave params
-func (o *PostRemoteAPISocialChannelLeaveParams) WithBody(body *models.DefaultSelector) *PostRemoteAPISocialChannelLeaveParams {
+func (o *PostRemoteAPISocialChannelLeaveParams) WithBody(body models.DefaultSelector) *PostRemoteAPISocialChannelLeaveParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API social channel leave params
-func (o *PostRemoteAPISocialChannelLeaveParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPISocialChannelLeaveParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPISocialChannelLeaveParams) WriteToRequest(r runtime.ClientR
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJAccountExpireSubscriptionIDOK() *PostRemoteAPIJAccountExpi
 OK
 */
 type PostRemoteAPIJAccountExpireSubscriptionIDOK struct {
-	Payload *models.JAccount
+	Payload PostRemoteAPIJAccountExpireSubscriptionIDOKBody
 }
 
 func (o *PostRemoteAPIJAccountExpireSubscriptionIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJAccountExpireSubscriptionIDOK) Error() string {
 
 func (o *PostRemoteAPIJAccountExpireSubscriptionIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JAccount)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJAccountExpireSubscriptionIDOKBody post remote API j account expire subscription ID o k body
+swagger:model PostRemoteAPIJAccountExpireSubscriptionIDOKBody
+*/
+type PostRemoteAPIJAccountExpireSubscriptionIDOKBody struct {
+	models.JAccount
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJAccountExpireSubscriptionIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJAccountExpireSubscriptionIDOKBodyAO0 models.JAccount
+	if err := swag.ReadJSON(raw, &postRemoteAPIJAccountExpireSubscriptionIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JAccount = postRemoteAPIJAccountExpireSubscriptionIDOKBodyAO0
+
+	var postRemoteAPIJAccountExpireSubscriptionIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJAccountExpireSubscriptionIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJAccountExpireSubscriptionIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJAccountExpireSubscriptionIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJAccountExpireSubscriptionIDOKBodyAO0, err := swag.WriteJSON(o.JAccount)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJAccountExpireSubscriptionIDOKBodyAO0)
+
+	postRemoteAPIJAccountExpireSubscriptionIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJAccountExpireSubscriptionIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j account expire subscription ID o k body
+func (o *PostRemoteAPIJAccountExpireSubscriptionIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JAccount.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

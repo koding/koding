@@ -2,6 +2,8 @@ kd = require 'kd'
 bowser = require 'bowser'
 Encoder = require 'htmlencode'
 
+Events = require '../events'
+
 FlexSplit = require './flexsplit'
 FlexSplitStorage = require './flexsplit/storage'
 AppStorageAdapter = require './adapters/appstorageadapter'
@@ -9,9 +11,11 @@ AppStorageAdapter = require './adapters/appstorageadapter'
 Toolbar = require './toolbar'
 Editor = require './editor'
 Statusbar = require './statusbar'
+SideView = require './sideview'
 
 LogsController = require '../controllers/logs'
 VariablesController = require '../controllers/variables'
+CredentialsController = require '../controllers/credentials'
 
 Help = require './help'
 
@@ -34,7 +38,16 @@ module.exports = class StackEditor extends kd.View
 
     # Toolbar
     @toolbar = new Toolbar
-    @forwardEvent @toolbar, 'InitializeRequested'
+    @forwardEvent @toolbar, Events.InitializeRequested
+
+    # SideView for Search and Credentials
+    @credentialsController = new CredentialsController
+    @sideView       = new SideView
+      title         : yes
+      views         :
+        credentials :
+          title     : 'Credentials'
+          view      : @credentialsController.listView
 
     # Status bar
     @statusbar = new Statusbar
@@ -53,6 +66,7 @@ module.exports = class StackEditor extends kd.View
       filename: 'logs.sh'
       showgutter: no
       readonly: yes
+      closable: yes
       @statusbar
     }
 
@@ -69,7 +83,7 @@ module.exports = class StackEditor extends kd.View
 
     @variablesController = new VariablesController
       editor: @variables
-    @variablesController.on 'Log', @logsController.bound 'add'
+    @variablesController.on Events.Log, @logsController.bound 'add'
 
     @readme = new Editor {
       cssClass: 'readme'
@@ -84,12 +98,14 @@ module.exports = class StackEditor extends kd.View
 
   setTemplateData: (data, reset = no) ->
 
-    @setData data
-    @toolbar.setData data
-
-    { _id: id, title, description, template } = @getData()
+    { _id: id, title, description, template } = data
     unless id or description or template
       throw { message: 'A valid JStackTemplate is required!' }
+
+    @setData data
+    @toolbar.setData data
+    @variablesController.setData data
+    @credentialsController.setData data
 
     @_saveSnapshot @_current  if @_current
     @_deleteSnapshot id  if reset
@@ -102,7 +118,6 @@ module.exports = class StackEditor extends kd.View
       @readme.setContent description
       @variables.setContent ''
       @logsController.set 'stack template loaded'
-      @variablesController.setData data
 
       @_saveSnapshot id
       @_current = id
@@ -168,3 +183,4 @@ module.exports = class StackEditor extends kd.View
       ]
 
     contentView.setClass 'safari-flex-fix'  if bowser.safari
+    contentView.addSubView @sideView

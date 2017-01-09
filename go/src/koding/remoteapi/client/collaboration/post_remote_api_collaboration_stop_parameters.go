@@ -57,7 +57,7 @@ type PostRemoteAPICollaborationStopParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPICollaborationStopParams) SetContext(ctx context.Context) {
 }
 
 // WithBody adds the body to the post remote API collaboration stop params
-func (o *PostRemoteAPICollaborationStopParams) WithBody(body *models.DefaultSelector) *PostRemoteAPICollaborationStopParams {
+func (o *PostRemoteAPICollaborationStopParams) WithBody(body models.DefaultSelector) *PostRemoteAPICollaborationStopParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API collaboration stop params
-func (o *PostRemoteAPICollaborationStopParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPICollaborationStopParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPICollaborationStopParams) WriteToRequest(r runtime.ClientRe
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

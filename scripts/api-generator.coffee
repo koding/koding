@@ -43,11 +43,6 @@ swagger =
           example: 'KodingError'
     DefaultSelector:
       type: 'object'
-      properties:
-        _id:
-          type: 'string'
-          description: 'Mongo Object ID'
-          example: '582c21d43bf248161538450b'
     DefaultResponse:
       type: 'object'
       properties:
@@ -159,7 +154,7 @@ generateMethodPaths = (model, definitions, paths, docs) ->
   methods = model.getSharedMethods()
 
   schema = if definitions[name]
-  then { $ref: "#/definitions/#{name}" }
+  then { allOf: [ { $ref: "#/definitions/#{name}" }, { $ref: '#/definitions/DefaultResponse' } ] }
   else { $ref: '#/definitions/DefaultResponse' }
 
   for method, signatures of methods.statik
@@ -199,7 +194,7 @@ generateMethodPaths = (model, definitions, paths, docs) ->
 
   for method, signatures of methods.instance
 
-    parameters = [ { $ref: '#/parameters/instanceParam' } ]
+    parameters = [ { $ref: '#/parameters/instanceParam' }, { $ref: '#/parameters/bodyParam' } ]
     response = { description: 'OK', schema }
     if returns = docs[name]['instance'][method]?.returns
       if Object.keys(returns).length and swagger.definitions[returns.type]

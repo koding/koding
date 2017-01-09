@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJGroupToggleFeatureIDOK() *PostRemoteAPIJGroupToggleFeature
 OK
 */
 type PostRemoteAPIJGroupToggleFeatureIDOK struct {
-	Payload *models.JGroup
+	Payload PostRemoteAPIJGroupToggleFeatureIDOKBody
 }
 
 func (o *PostRemoteAPIJGroupToggleFeatureIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJGroupToggleFeatureIDOK) Error() string {
 
 func (o *PostRemoteAPIJGroupToggleFeatureIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JGroup)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJGroupToggleFeatureIDOKBody post remote API j group toggle feature ID o k body
+swagger:model PostRemoteAPIJGroupToggleFeatureIDOKBody
+*/
+type PostRemoteAPIJGroupToggleFeatureIDOKBody struct {
+	models.JGroup
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJGroupToggleFeatureIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJGroupToggleFeatureIDOKBodyAO0 models.JGroup
+	if err := swag.ReadJSON(raw, &postRemoteAPIJGroupToggleFeatureIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JGroup = postRemoteAPIJGroupToggleFeatureIDOKBodyAO0
+
+	var postRemoteAPIJGroupToggleFeatureIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJGroupToggleFeatureIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJGroupToggleFeatureIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJGroupToggleFeatureIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJGroupToggleFeatureIDOKBodyAO0, err := swag.WriteJSON(o.JGroup)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJGroupToggleFeatureIDOKBodyAO0)
+
+	postRemoteAPIJGroupToggleFeatureIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJGroupToggleFeatureIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j group toggle feature ID o k body
+func (o *PostRemoteAPIJGroupToggleFeatureIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JGroup.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

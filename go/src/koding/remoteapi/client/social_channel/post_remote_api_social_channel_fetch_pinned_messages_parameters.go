@@ -57,7 +57,7 @@ type PostRemoteAPISocialChannelFetchPinnedMessagesParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPISocialChannelFetchPinnedMessagesParams) SetContext(ctx con
 }
 
 // WithBody adds the body to the post remote API social channel fetch pinned messages params
-func (o *PostRemoteAPISocialChannelFetchPinnedMessagesParams) WithBody(body *models.DefaultSelector) *PostRemoteAPISocialChannelFetchPinnedMessagesParams {
+func (o *PostRemoteAPISocialChannelFetchPinnedMessagesParams) WithBody(body models.DefaultSelector) *PostRemoteAPISocialChannelFetchPinnedMessagesParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API social channel fetch pinned messages params
-func (o *PostRemoteAPISocialChannelFetchPinnedMessagesParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPISocialChannelFetchPinnedMessagesParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPISocialChannelFetchPinnedMessagesParams) WriteToRequest(r r
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

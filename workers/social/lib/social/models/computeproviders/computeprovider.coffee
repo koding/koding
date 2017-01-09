@@ -110,6 +110,8 @@ module.exports = class ComputeProvider extends Base
   #
   # @option options [String] provider provider slug
   #
+  # @return {JMachine} created JMachine instance
+  #
   # @example api
   #
   #   {

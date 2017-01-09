@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJComputeStackDeleteIDOK() *PostRemoteAPIJComputeStackDelete
 OK
 */
 type PostRemoteAPIJComputeStackDeleteIDOK struct {
-	Payload *models.JComputeStack
+	Payload PostRemoteAPIJComputeStackDeleteIDOKBody
 }
 
 func (o *PostRemoteAPIJComputeStackDeleteIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJComputeStackDeleteIDOK) Error() string {
 
 func (o *PostRemoteAPIJComputeStackDeleteIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JComputeStack)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJComputeStackDeleteIDOKBody post remote API j compute stack delete ID o k body
+swagger:model PostRemoteAPIJComputeStackDeleteIDOKBody
+*/
+type PostRemoteAPIJComputeStackDeleteIDOKBody struct {
+	models.JComputeStack
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJComputeStackDeleteIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJComputeStackDeleteIDOKBodyAO0 models.JComputeStack
+	if err := swag.ReadJSON(raw, &postRemoteAPIJComputeStackDeleteIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JComputeStack = postRemoteAPIJComputeStackDeleteIDOKBodyAO0
+
+	var postRemoteAPIJComputeStackDeleteIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJComputeStackDeleteIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJComputeStackDeleteIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJComputeStackDeleteIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJComputeStackDeleteIDOKBodyAO0, err := swag.WriteJSON(o.JComputeStack)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJComputeStackDeleteIDOKBodyAO0)
+
+	postRemoteAPIJComputeStackDeleteIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJComputeStackDeleteIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j compute stack delete ID o k body
+func (o *PostRemoteAPIJComputeStackDeleteIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JComputeStack.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

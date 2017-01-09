@@ -559,7 +559,7 @@ imports:
   - helpers
   - services
 - name: github.com/koding/kite
-  version: 077dc6df5fcfc0419e399f68445dc633f8cfc853
+  version: 4e1bc06aecf5e401757e07aef8eb8fa723e6ab7d
   subpackages:
   - config
   - dnode
@@ -1030,27 +1030,27 @@ imports:
 - name: github.com/donovanhide/eventsource
   version: fd1de70867126402be23c306e1ce32828455d85b
 - name: github.com/go-openapi/runtime
-  version: 14b161b40ece9dac8e244ab2fde2d209e108c6f5
+  version: 75dade37acfd95d51485114793cdc443991ef328
 - name: github.com/go-openapi/validate
-  version: 027696d4b54399770f1cdcc6c6daa56975f9e14e
+  version: b11dbf889b64cf815a7e2667412df313f4a3f17b
 - name: github.com/go-openapi/swag
-  version: 3b6d86cd965820f968760d5d419cb4add096bdd7
+  version: 96d7b9ebd181a1735a1c9ac87914f2b32fbf56c9
 - name: github.com/go-openapi/strfmt
-  version: 34fc3ba7c0f5fb615fda47a2b4fbd4c641b215f2
+  version: 505012778ef0246e2c9dddcc5a2eaa2ce44add27
 - name: github.com/go-openapi/errors
-  version: 49fe8b3a0e0d32a617d8d50c67f856ad6e45b28b
+  version: fc3f73a224499b047eda7191e5d22e1e9631e86f
 - name: github.com/mailru/easyjson
   version: 159cdb893c982e3d1bc6450322fedd514f9c9de3
 - name: github.com/go-openapi/loads
-  version: 315567415dfd74b651f7a62cabfc82a57ed7b9ad
+  version: bf98340e04734f11563fd3008e87be4c1d4ffc08
 - name: github.com/go-openapi/jsonpointer
-  version: 8d96a2dc61536b690bd36b2e9df0b3c0b62825b2
+  version: 779f45308c19820f1a69e9a4cd965f496e0da10f
 - name: github.com/go-openapi/analysis
-  version: 7222828b8ce19afee3c595aef6643b9e42150120
+  version: d5a75b7d751ca3f11ad5d93cfe97405f2c3f6a47
 - name: github.com/asaskevich/govalidator
   version: 7b3beb6df3c42abd3509abfc3bcacc0fbfb7c877
 - name: github.com/go-openapi/spec
-  version: f7ae86df5bc115a2744343016c789a89f065a4bd
+  version: 3a0434164aa36744c7ba29b822d36894a1e5ec96
 - name: github.com/go-openapi/jsonreference
   version: 36d33bfe519efae5632669801b180bf1a245da3b
 - name: github.com/PuerkitoBio/purell

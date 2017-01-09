@@ -57,7 +57,7 @@ type PostRemoteAPIOAuthGetURLParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIOAuthGetURLParams) SetContext(ctx context.Context) {
 }
 
 // WithBody adds the body to the post remote API o auth get URL params
-func (o *PostRemoteAPIOAuthGetURLParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIOAuthGetURLParams {
+func (o *PostRemoteAPIOAuthGetURLParams) WithBody(body models.DefaultSelector) *PostRemoteAPIOAuthGetURLParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API o auth get URL params
-func (o *PostRemoteAPIOAuthGetURLParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIOAuthGetURLParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIOAuthGetURLParams) WriteToRequest(r runtime.ClientRequest,
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

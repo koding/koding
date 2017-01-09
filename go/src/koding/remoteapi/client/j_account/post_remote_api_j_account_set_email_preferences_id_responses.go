@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJAccountSetEmailPreferencesIDOK() *PostRemoteAPIJAccountSet
 OK
 */
 type PostRemoteAPIJAccountSetEmailPreferencesIDOK struct {
-	Payload *models.JAccount
+	Payload PostRemoteAPIJAccountSetEmailPreferencesIDOKBody
 }
 
 func (o *PostRemoteAPIJAccountSetEmailPreferencesIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJAccountSetEmailPreferencesIDOK) Error() string {
 
 func (o *PostRemoteAPIJAccountSetEmailPreferencesIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JAccount)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJAccountSetEmailPreferencesIDOKBody post remote API j account set email preferences ID o k body
+swagger:model PostRemoteAPIJAccountSetEmailPreferencesIDOKBody
+*/
+type PostRemoteAPIJAccountSetEmailPreferencesIDOKBody struct {
+	models.JAccount
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJAccountSetEmailPreferencesIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJAccountSetEmailPreferencesIDOKBodyAO0 models.JAccount
+	if err := swag.ReadJSON(raw, &postRemoteAPIJAccountSetEmailPreferencesIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JAccount = postRemoteAPIJAccountSetEmailPreferencesIDOKBodyAO0
+
+	var postRemoteAPIJAccountSetEmailPreferencesIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJAccountSetEmailPreferencesIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJAccountSetEmailPreferencesIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJAccountSetEmailPreferencesIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJAccountSetEmailPreferencesIDOKBodyAO0, err := swag.WriteJSON(o.JAccount)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJAccountSetEmailPreferencesIDOKBodyAO0)
+
+	postRemoteAPIJAccountSetEmailPreferencesIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJAccountSetEmailPreferencesIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j account set email preferences ID o k body
+func (o *PostRemoteAPIJAccountSetEmailPreferencesIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JAccount.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

@@ -57,7 +57,7 @@ type PostRemoteAPIGitProviderCreateImportedStackTemplateParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIGitProviderCreateImportedStackTemplateParams) SetContext(c
 }
 
 // WithBody adds the body to the post remote API git provider create imported stack template params
-func (o *PostRemoteAPIGitProviderCreateImportedStackTemplateParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIGitProviderCreateImportedStackTemplateParams {
+func (o *PostRemoteAPIGitProviderCreateImportedStackTemplateParams) WithBody(body models.DefaultSelector) *PostRemoteAPIGitProviderCreateImportedStackTemplateParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API git provider create imported stack template params
-func (o *PostRemoteAPIGitProviderCreateImportedStackTemplateParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIGitProviderCreateImportedStackTemplateParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIGitProviderCreateImportedStackTemplateParams) WriteToReque
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

@@ -97,7 +97,7 @@ You can configure the number of VMs and applications installed on each VM instan
 
     ![Stack built][13]
 
-    Congratulations, your new VM terminal is ready
+    Congratulations, you can now start working on your new VM
 
     ![VM ready][14]
 
@@ -131,9 +131,10 @@ resource:
 
 > See more options and information for creating an AWS instance here [AWS_INSTANCE][15].
 
-[1]: {{ site.url }}/assets/img/guides/click-stacks.png
+[1]: {{ site.url }}/assets/img/guides/azure/click-stacks.png
+[16]: {{ site.url }}/assets/img/guides/azure/click-new-stack.png
 [2]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-provider.png
-[3]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-create-stack.png
+[3]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-default-stack.png
 [4]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-readme.png
 [5]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-credentials.png
 [6]: http://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html
@@ -146,4 +147,3 @@ resource:
 [13]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-stack-built.png
 [14]: {{ site.url }}/assets/img/guides/stack-aws/0-create-aws-stack/aws-vm-ready.png
 [15]: {{ site.url }}/docs/terraform/providers/aws/r/instance.html/
-[16]: {{ site.url }}/assets/img/guides/click-new-stack.png

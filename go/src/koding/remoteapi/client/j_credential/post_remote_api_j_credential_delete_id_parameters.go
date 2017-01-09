@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJCredentialDeleteIDParams creates a new PostRemoteAPIJCredentialDeleteIDParams object
@@ -51,6 +53,11 @@ for the post remote API j credential delete ID operation typically these are wri
 */
 type PostRemoteAPIJCredentialDeleteIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJCredentialDeleteIDParams) SetContext(ctx context.Context)
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j credential delete ID params
+func (o *PostRemoteAPIJCredentialDeleteIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJCredentialDeleteIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j credential delete ID params
+func (o *PostRemoteAPIJCredentialDeleteIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j credential delete ID params
 func (o *PostRemoteAPIJCredentialDeleteIDParams) WithID(id string) *PostRemoteAPIJCredentialDeleteIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJCredentialDeleteIDParams) WriteToRequest(r runtime.Client
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

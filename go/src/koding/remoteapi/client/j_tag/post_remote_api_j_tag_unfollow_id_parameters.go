@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJTagUnfollowIDParams creates a new PostRemoteAPIJTagUnfollowIDParams object
@@ -51,6 +53,11 @@ for the post remote API j tag unfollow ID operation typically these are written 
 */
 type PostRemoteAPIJTagUnfollowIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJTagUnfollowIDParams) SetContext(ctx context.Context) {
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j tag unfollow ID params
+func (o *PostRemoteAPIJTagUnfollowIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJTagUnfollowIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j tag unfollow ID params
+func (o *PostRemoteAPIJTagUnfollowIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j tag unfollow ID params
 func (o *PostRemoteAPIJTagUnfollowIDParams) WithID(id string) *PostRemoteAPIJTagUnfollowIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJTagUnfollowIDParams) WriteToRequest(r runtime.ClientReque
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

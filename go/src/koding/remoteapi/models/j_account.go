@@ -80,6 +80,9 @@ func (m *JAccount) validateProfile(formats strfmt.Registry) error {
 	if m.Profile != nil {
 
 		if err := m.Profile.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("profile")
+			}
 			return err
 		}
 	}

@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJAccountFetchOtaTokenIDParams creates a new PostRemoteAPIJAccountFetchOtaTokenIDParams object
@@ -51,6 +53,11 @@ for the post remote API j account fetch ota token ID operation typically these a
 */
 type PostRemoteAPIJAccountFetchOtaTokenIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJAccountFetchOtaTokenIDParams) SetContext(ctx context.Cont
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j account fetch ota token ID params
+func (o *PostRemoteAPIJAccountFetchOtaTokenIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJAccountFetchOtaTokenIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j account fetch ota token ID params
+func (o *PostRemoteAPIJAccountFetchOtaTokenIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j account fetch ota token ID params
 func (o *PostRemoteAPIJAccountFetchOtaTokenIDParams) WithID(id string) *PostRemoteAPIJAccountFetchOtaTokenIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJAccountFetchOtaTokenIDParams) WriteToRequest(r runtime.Cl
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

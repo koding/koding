@@ -57,7 +57,7 @@ type PostRemoteAPISocialChannelFetchPopularPostsParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPISocialChannelFetchPopularPostsParams) SetContext(ctx conte
 }
 
 // WithBody adds the body to the post remote API social channel fetch popular posts params
-func (o *PostRemoteAPISocialChannelFetchPopularPostsParams) WithBody(body *models.DefaultSelector) *PostRemoteAPISocialChannelFetchPopularPostsParams {
+func (o *PostRemoteAPISocialChannelFetchPopularPostsParams) WithBody(body models.DefaultSelector) *PostRemoteAPISocialChannelFetchPopularPostsParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API social channel fetch popular posts params
-func (o *PostRemoteAPISocialChannelFetchPopularPostsParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPISocialChannelFetchPopularPostsParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPISocialChannelFetchPopularPostsParams) WriteToRequest(r run
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

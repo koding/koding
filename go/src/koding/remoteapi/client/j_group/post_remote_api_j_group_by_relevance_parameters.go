@@ -57,7 +57,7 @@ type PostRemoteAPIJGroupByRelevanceParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJGroupByRelevanceParams) SetContext(ctx context.Context) {
 }
 
 // WithBody adds the body to the post remote API j group by relevance params
-func (o *PostRemoteAPIJGroupByRelevanceParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJGroupByRelevanceParams {
+func (o *PostRemoteAPIJGroupByRelevanceParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJGroupByRelevanceParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j group by relevance params
-func (o *PostRemoteAPIJGroupByRelevanceParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJGroupByRelevanceParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJGroupByRelevanceParams) WriteToRequest(r runtime.ClientRe
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

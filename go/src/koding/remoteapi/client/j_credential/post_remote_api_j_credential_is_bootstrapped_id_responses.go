@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJCredentialIsBootstrappedIDOK() *PostRemoteAPIJCredentialIs
 OK
 */
 type PostRemoteAPIJCredentialIsBootstrappedIDOK struct {
-	Payload *models.JCredential
+	Payload PostRemoteAPIJCredentialIsBootstrappedIDOKBody
 }
 
 func (o *PostRemoteAPIJCredentialIsBootstrappedIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJCredentialIsBootstrappedIDOK) Error() string {
 
 func (o *PostRemoteAPIJCredentialIsBootstrappedIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JCredential)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJCredentialIsBootstrappedIDOKBody post remote API j credential is bootstrapped ID o k body
+swagger:model PostRemoteAPIJCredentialIsBootstrappedIDOKBody
+*/
+type PostRemoteAPIJCredentialIsBootstrappedIDOKBody struct {
+	models.JCredential
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJCredentialIsBootstrappedIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJCredentialIsBootstrappedIDOKBodyAO0 models.JCredential
+	if err := swag.ReadJSON(raw, &postRemoteAPIJCredentialIsBootstrappedIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JCredential = postRemoteAPIJCredentialIsBootstrappedIDOKBodyAO0
+
+	var postRemoteAPIJCredentialIsBootstrappedIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJCredentialIsBootstrappedIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJCredentialIsBootstrappedIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJCredentialIsBootstrappedIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJCredentialIsBootstrappedIDOKBodyAO0, err := swag.WriteJSON(o.JCredential)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJCredentialIsBootstrappedIDOKBodyAO0)
+
+	postRemoteAPIJCredentialIsBootstrappedIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJCredentialIsBootstrappedIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j credential is bootstrapped ID o k body
+func (o *PostRemoteAPIJCredentialIsBootstrappedIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JCredential.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

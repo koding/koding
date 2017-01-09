@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJMachineApproveIDOK() *PostRemoteAPIJMachineApproveIDOK {
 OK
 */
 type PostRemoteAPIJMachineApproveIDOK struct {
-	Payload *models.JMachine
+	Payload PostRemoteAPIJMachineApproveIDOKBody
 }
 
 func (o *PostRemoteAPIJMachineApproveIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJMachineApproveIDOK) Error() string {
 
 func (o *PostRemoteAPIJMachineApproveIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JMachine)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJMachineApproveIDOKBody post remote API j machine approve ID o k body
+swagger:model PostRemoteAPIJMachineApproveIDOKBody
+*/
+type PostRemoteAPIJMachineApproveIDOKBody struct {
+	models.JMachine
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJMachineApproveIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJMachineApproveIDOKBodyAO0 models.JMachine
+	if err := swag.ReadJSON(raw, &postRemoteAPIJMachineApproveIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JMachine = postRemoteAPIJMachineApproveIDOKBodyAO0
+
+	var postRemoteAPIJMachineApproveIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJMachineApproveIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJMachineApproveIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJMachineApproveIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJMachineApproveIDOKBodyAO0, err := swag.WriteJSON(o.JMachine)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJMachineApproveIDOKBodyAO0)
+
+	postRemoteAPIJMachineApproveIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJMachineApproveIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j machine approve ID o k body
+func (o *PostRemoteAPIJMachineApproveIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JMachine.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

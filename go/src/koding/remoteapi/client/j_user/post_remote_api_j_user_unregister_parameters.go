@@ -57,7 +57,7 @@ type PostRemoteAPIJUserUnregisterParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJUserUnregisterParams) SetContext(ctx context.Context) {
 }
 
 // WithBody adds the body to the post remote API j user unregister params
-func (o *PostRemoteAPIJUserUnregisterParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJUserUnregisterParams {
+func (o *PostRemoteAPIJUserUnregisterParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJUserUnregisterParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j user unregister params
-func (o *PostRemoteAPIJUserUnregisterParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJUserUnregisterParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJUserUnregisterParams) WriteToRequest(r runtime.ClientRequ
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

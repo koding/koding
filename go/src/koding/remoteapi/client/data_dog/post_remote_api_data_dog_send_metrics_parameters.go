@@ -57,7 +57,7 @@ type PostRemoteAPIDataDogSendMetricsParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIDataDogSendMetricsParams) SetContext(ctx context.Context) 
 }
 
 // WithBody adds the body to the post remote API data dog send metrics params
-func (o *PostRemoteAPIDataDogSendMetricsParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIDataDogSendMetricsParams {
+func (o *PostRemoteAPIDataDogSendMetricsParams) WithBody(body models.DefaultSelector) *PostRemoteAPIDataDogSendMetricsParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API data dog send metrics params
-func (o *PostRemoteAPIDataDogSendMetricsParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIDataDogSendMetricsParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIDataDogSendMetricsParams) WriteToRequest(r runtime.ClientR
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

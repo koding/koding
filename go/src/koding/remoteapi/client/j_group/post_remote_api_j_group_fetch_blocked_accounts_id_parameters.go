@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJGroupFetchBlockedAccountsIDParams creates a new PostRemoteAPIJGroupFetchBlockedAccountsIDParams object
@@ -51,6 +53,11 @@ for the post remote API j group fetch blocked accounts ID operation typically th
 */
 type PostRemoteAPIJGroupFetchBlockedAccountsIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJGroupFetchBlockedAccountsIDParams) SetContext(ctx context
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j group fetch blocked accounts ID params
+func (o *PostRemoteAPIJGroupFetchBlockedAccountsIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJGroupFetchBlockedAccountsIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j group fetch blocked accounts ID params
+func (o *PostRemoteAPIJGroupFetchBlockedAccountsIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j group fetch blocked accounts ID params
 func (o *PostRemoteAPIJGroupFetchBlockedAccountsIDParams) WithID(id string) *PostRemoteAPIJGroupFetchBlockedAccountsIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJGroupFetchBlockedAccountsIDParams) WriteToRequest(r runti
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

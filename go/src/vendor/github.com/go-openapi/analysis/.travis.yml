@@ -1,12 +1,13 @@
 language: go
 go:
-- 1.7.1
+- 1.7
 install:
 - go get -u github.com/stretchr/testify/assert
 - go get -u gopkg.in/yaml.v2
 - go get -u github.com/go-openapi/swag
 - go get -u github.com/go-openapi/jsonpointer
 - go get -u github.com/go-openapi/spec
+- go get -u github.com/go-openapi/strfmt
 - go get -u github.com/go-openapi/loads/fmts
 script:
 - go test -v -race -cover -coverprofile=coverage.txt -covermode=atomic ./...

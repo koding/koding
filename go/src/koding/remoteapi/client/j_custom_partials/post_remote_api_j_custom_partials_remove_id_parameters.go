@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJCustomPartialsRemoveIDParams creates a new PostRemoteAPIJCustomPartialsRemoveIDParams object
@@ -51,6 +53,11 @@ for the post remote API j custom partials remove ID operation typically these ar
 */
 type PostRemoteAPIJCustomPartialsRemoveIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJCustomPartialsRemoveIDParams) SetContext(ctx context.Cont
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j custom partials remove ID params
+func (o *PostRemoteAPIJCustomPartialsRemoveIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJCustomPartialsRemoveIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j custom partials remove ID params
+func (o *PostRemoteAPIJCustomPartialsRemoveIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j custom partials remove ID params
 func (o *PostRemoteAPIJCustomPartialsRemoveIDParams) WithID(id string) *PostRemoteAPIJCustomPartialsRemoveIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJCustomPartialsRemoveIDParams) WriteToRequest(r runtime.Cl
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

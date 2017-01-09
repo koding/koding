@@ -1,6 +1,7 @@
 kd = require 'kd'
 JView = require 'app/jview'
 
+Events = require '../../events'
 ProviderSelectionView = require './providerselectionview'
 
 
@@ -15,7 +16,7 @@ module.exports = class StackWizard extends JView
 
     @providerSelectionView = new ProviderSelectionView
 
-    @providerSelectionView.on 'SelectedProviderChanged', (isSelected) =>
+    @providerSelectionView.on Events.SelectedProviderChanged, (isSelected) =>
       if isSelected
       then @createButton.enable()
       else @createButton.disable()
@@ -23,7 +24,7 @@ module.exports = class StackWizard extends JView
     @cancelButton = new kd.ButtonView
       cssClass : 'cancel'
       title    : 'CANCEL'
-      callback : => @emit 'StackWizardCancelled'
+      callback : => @emit Events.StackWizardCancelled
 
     @createButton = new kd.ButtonView
       cssClass  : 'outline next'
@@ -37,15 +38,15 @@ module.exports = class StackWizard extends JView
     kd.utils.defer @bound 'destroy'
 
     selectedProvider = @providerSelectionView.selected?.getOption 'provider'
-    @emit 'ProviderSelected', selectedProvider
+    @emit Events.ProviderSelected, selectedProvider
 
 
   pistachio: ->
 
     '''
-      {{> @providerSelectionView}}
-      <footer>
-        {{> @createButton}}
-        {{> @cancelButton}}
-      </footer>
+    {{> @providerSelectionView}}
+    <footer>
+      {{> @createButton}}
+      {{> @cancelButton}}
+    </footer>
     '''

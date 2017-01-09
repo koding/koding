@@ -125,6 +125,9 @@ func (m *JMachine) validateAssignee(formats strfmt.Registry) error {
 	if m.Assignee != nil {
 
 		if err := m.Assignee.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("assignee")
+			}
 			return err
 		}
 	}
@@ -141,6 +144,9 @@ func (m *JMachine) validateGeneratedFrom(formats strfmt.Registry) error {
 	if m.GeneratedFrom != nil {
 
 		if err := m.GeneratedFrom.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("generatedFrom")
+			}
 			return err
 		}
 	}
@@ -188,6 +194,9 @@ func (m *JMachine) validateStatus(formats strfmt.Registry) error {
 	if m.Status != nil {
 
 		if err := m.Status.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("status")
+			}
 			return err
 		}
 	}

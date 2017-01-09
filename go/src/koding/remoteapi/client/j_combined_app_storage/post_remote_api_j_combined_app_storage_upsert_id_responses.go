@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJCombinedAppStorageUpsertIDOK() *PostRemoteAPIJCombinedAppS
 OK
 */
 type PostRemoteAPIJCombinedAppStorageUpsertIDOK struct {
-	Payload *models.JCombinedAppStorage
+	Payload PostRemoteAPIJCombinedAppStorageUpsertIDOKBody
 }
 
 func (o *PostRemoteAPIJCombinedAppStorageUpsertIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJCombinedAppStorageUpsertIDOK) Error() string {
 
 func (o *PostRemoteAPIJCombinedAppStorageUpsertIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JCombinedAppStorage)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJCombinedAppStorageUpsertIDOKBody post remote API j combined app storage upsert ID o k body
+swagger:model PostRemoteAPIJCombinedAppStorageUpsertIDOKBody
+*/
+type PostRemoteAPIJCombinedAppStorageUpsertIDOKBody struct {
+	models.JCombinedAppStorage
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJCombinedAppStorageUpsertIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJCombinedAppStorageUpsertIDOKBodyAO0 models.JCombinedAppStorage
+	if err := swag.ReadJSON(raw, &postRemoteAPIJCombinedAppStorageUpsertIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JCombinedAppStorage = postRemoteAPIJCombinedAppStorageUpsertIDOKBodyAO0
+
+	var postRemoteAPIJCombinedAppStorageUpsertIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJCombinedAppStorageUpsertIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJCombinedAppStorageUpsertIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJCombinedAppStorageUpsertIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJCombinedAppStorageUpsertIDOKBodyAO0, err := swag.WriteJSON(o.JCombinedAppStorage)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJCombinedAppStorageUpsertIDOKBodyAO0)
+
+	postRemoteAPIJCombinedAppStorageUpsertIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJCombinedAppStorageUpsertIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j combined app storage upsert ID o k body
+func (o *PostRemoteAPIJCombinedAppStorageUpsertIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JCombinedAppStorage.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

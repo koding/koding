@@ -886,13 +886,7 @@ module.exports = class StackEditorView extends kd.View
         .add 'These will be fetched from variables section:'
         .add requiredData.custom
 
-    if stackTemplate?.config?
-      config = stackTemplate.config
-      config.requiredData = requiredData
-      config.requiredProviders = requiredProviders
-    else
-      # Generate config data from parsed values
-      config = { requiredData, requiredProviders }
+    config = stackTemplate?.config ? {}
 
     # Keep clone info if exists
     if clonedFrom = @stackTemplate?.config?.clonedFrom
@@ -988,9 +982,7 @@ module.exports = class StackEditorView extends kd.View
     errors        = {}
     warnings      = {}
 
-    fetchUserData = (callback) ->
-
-    generatePreview = =>
+    generatePreview = ->
 
       for type, data of requiredData
 
@@ -1010,13 +1002,10 @@ module.exports = class StackEditorView extends kd.View
             errors[type] ?= []
             errors[type].push field
 
-
       new StackTemplatePreviewModal
         width : 600
         overlay : yes
       , { errors, warnings, template }
-
-      # @previewButton.hideLoader()
 
 
     if requiredData.user?

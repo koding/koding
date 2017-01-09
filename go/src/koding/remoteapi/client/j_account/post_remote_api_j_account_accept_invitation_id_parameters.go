@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJAccountAcceptInvitationIDParams creates a new PostRemoteAPIJAccountAcceptInvitationIDParams object
@@ -51,6 +53,11 @@ for the post remote API j account accept invitation ID operation typically these
 */
 type PostRemoteAPIJAccountAcceptInvitationIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJAccountAcceptInvitationIDParams) SetContext(ctx context.C
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j account accept invitation ID params
+func (o *PostRemoteAPIJAccountAcceptInvitationIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJAccountAcceptInvitationIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j account accept invitation ID params
+func (o *PostRemoteAPIJAccountAcceptInvitationIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j account accept invitation ID params
 func (o *PostRemoteAPIJAccountAcceptInvitationIDParams) WithID(id string) *PostRemoteAPIJAccountAcceptInvitationIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJAccountAcceptInvitationIDParams) WriteToRequest(r runtime
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

@@ -36,6 +36,7 @@ module.exports = class FlexSplit extends kd.View
     @forwardEvents @resizer, [
       Flex.EVENT_EXPANDED
       Flex.EVENT_RESIZED
+      Flex.EVENT_HIDDEN
       Flex.EVENT_COLLAPSED
     ]
 
