@@ -8,7 +8,7 @@ cdnPath = '/cdn'
 
 module.exports = (url) ->
   return url unless url
-  
+
   for key, location of cdns
     if url.startsWith location
       return "#{cdnPath}/#{key}/#{url.substring(location.length, url.length)}"
