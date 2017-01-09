@@ -6,7 +6,6 @@ FSFile                        = require 'app/util/fs/fsfile'
 nick                          = require 'app/util/nick'
 getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
 showError                     = require 'app/util/showError'
-isTeamReactSide               = require 'app/util/isTeamReactSide'
 whoami                        = require 'app/util/whoami'
 RealtimeManager               = require './realtimemanager'
 IDEMetrics                    = require './idemetrics'
@@ -40,8 +39,6 @@ module.exports = CollaborationController =
   setSocialChannel: (channel) ->
     @socialChannel = channel
     @bindSocialChannelEvents()
-
-    return  unless isTeamReactSide()
 
     { reactor } = kd.singletons
 
@@ -1092,18 +1089,16 @@ module.exports = CollaborationController =
 
     { reactor } = kd.singletons
 
-    if isTeamReactSide() # Remove the machine from sidebar.
-      reactor.dispatch actionTypes.COLLABORATION_INVITATION_REJECTED, @mountedMachine._id
-      reactor.dispatch actionTypes.WORKSPACE_DELETED, {
-        workspaceId : @workspaceData._id
-        machineId   : @mountedMachine._id
-      }
+    reactor.dispatch actionTypes.COLLABORATION_INVITATION_REJECTED, @mountedMachine._id
+    reactor.dispatch actionTypes.WORKSPACE_DELETED, {
+      workspaceId : @workspaceData._id
+      machineId   : @mountedMachine._id
+    }
 
     # TODO: fix implicit emit.
     @rtm.once 'RealtimeManagerWillDispose', =>
       @statusBar.emit 'CollaborationEnded'
       @removeParticipant nick()
-      @removeMachineNode()  if not @mountedMachine.isPermanent() and not isTeamReactSide()
 
     @rtm.once 'RealtimeManagerDidDispose', =>
       method = switch

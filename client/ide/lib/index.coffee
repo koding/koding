@@ -18,7 +18,6 @@ AppController                 = require 'app/appcontroller'
 IDEEditorPane                 = require './workspace/panes/ideeditorpane'
 IDEFileFinder                 = require './views/filefinder/idefilefinder'
 splashMarkups                 = require './util/splashmarkups'
-isTeamReactSide               = require 'app/util/isTeamReactSide'
 IDEFilesTabView               = require './views/tabview/idefilestabview'
 IDETerminalPane               = require './workspace/panes/ideterminalpane'
 IDEStatusBarMenu              = require './views/statusbar/idestatusbarmenu'
@@ -716,7 +715,7 @@ module.exports = class IDEAppController extends AppController
 
     if @machineStateModal
 
-      if isTeamReactSide() and event.status is Stopping
+      if event.status is Stopping
         event.percentage = 100 - event.percentage
         @machineStateModal.unsetClass 'full'
 
@@ -1300,10 +1299,7 @@ module.exports = class IDEAppController extends AppController
       { mainView }  = kd.singletons
       data          = { machine, workspace: @workspaceData }
 
-      if isTeamReactSide()
-        actions.setSelectedWorkspaceId @workspaceData._id
-      else
-        mainView.activitySidebar.selectWorkspace data
+      actions.setSelectedWorkspaceId @workspaceData._id
 
       if initial
         computeController.showBuildLogs machine, INITIAL_BUILD_LOGS_TAIL_OFFSET
@@ -1819,9 +1815,8 @@ module.exports = class IDEAppController extends AppController
           title    : 'OK'
           callback : =>
 
-            if isTeamReactSide()
-              { reactor } = kd.singletons
-              reactor.dispatch actionTypes.SHARED_VM_INVITATION_REJECTED, @mountedMachine._id
+            { reactor } = kd.singletons
+            reactor.dispatch actionTypes.SHARED_VM_INVITATION_REJECTED, @mountedMachine._id
 
             @modal.destroy()
             @quit()
