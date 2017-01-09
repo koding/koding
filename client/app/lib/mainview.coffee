@@ -103,44 +103,10 @@ module.exports = class MainView extends kd.View
 
     @aside.addSubView @logoWrapper
 
-    unless isKoding()
-      @logoWrapper.addSubView @teamLogoWrapper = new kd.CustomHTMLView
-        cssClass : 'team-logo-wrapper'
-      SidebarView = require './components/sidebar/view'
-      @aside.addSubView @sidebar = new SidebarView
-      return
-
-    @aside.addSubView @sidebar = new kd.CustomScrollView
-      offscreenIndicatorClassName: 'unread'
-      # FW should be checked
-      # this works weird somehow - SY
-      # offscreenIndicatorClassName: if isKoding() then 'unread' else 'SidebarListItem-unreadCount'
-
-    @sidebar.addSubView moreItemsAbove = new kd.View
-      cssClass  : 'more-items above hidden'
-      partial   : 'Unread items'
-
-    @sidebar.addSubView moreItemsBelow = new kd.View
-      cssClass  : 'more-items below hidden'
-      partial   : 'Unread items'
-
-    @sidebar.on 'OffscreenItemsAbove', -> moreItemsAbove.show()
-    @sidebar.on 'NoOffscreenItemsAbove', -> moreItemsAbove.hide()
-    @sidebar.on 'OffscreenItemsBelow', -> moreItemsBelow.show()
-    @sidebar.on 'NoOffscreenItemsBelow', -> moreItemsBelow.hide()
-    kd.singletons.notificationController.on 'ParticipantUpdated', =>
-      @sidebar.updateOffscreenIndicators()
-
-    ActivitySidebar = require './activity/sidebar/activitysidebar'
-    @sidebar.wrapper.addSubView @activitySidebar = new ActivitySidebar
-
-    @activitySidebar.on 'MachinesUpdated', =>
-      hasRunning = environmentDataProvider.getRunningMachines().length > 0
-      if hasRunning
-      then @aside.setClass 'has-runningMachine'
-      else @aside.unsetClass 'has-runningMachine'
-
-    @sidebar.on 'ShowCloseHandle', => @aside.setClass 'has-runningMachine'
+    @logoWrapper.addSubView @teamLogoWrapper = new kd.CustomHTMLView
+      cssClass : 'team-logo-wrapper'
+    SidebarView = require './components/sidebar/view'
+    @aside.addSubView @sidebar = new SidebarView
 
 
   createPanelWrapper: ->
