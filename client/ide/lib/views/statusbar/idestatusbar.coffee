@@ -6,7 +6,6 @@ HelpSupportModal          = require 'app/commonviews/helpsupportmodal'
 IDEStatusBarAvatarView    = require './idestatusbaravatarview'
 isSoloProductLite         = require 'app/util/issoloproductlite'
 isPlanFree                = require 'app/util/isPlanFree'
-isKoding                  = require 'app/util/isKoding'
 ButtonViewWithProgressBar = require 'app/commonviews/buttonviewwithprogressbar'
 
 PROGRESS_DELAYS             = [
@@ -109,7 +108,7 @@ module.exports = class IDEStatusBar extends kd.View
         cssClass      : 'start-session transparent'
         callback      : @bound 'handleShareButtonClick'
 
-    if isKoding() and isSoloProductLite()
+    if isSoloProductLite()
       isPlanFree (err, isFree) =>
         return  if err
         return  unless isFree

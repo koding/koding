@@ -1,3 +1,1 @@
-isKoding = require './isKoding'
-
-module.exports = -> not isKoding()
+module.exports = -> yes

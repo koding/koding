@@ -2,7 +2,6 @@ kd               = require 'kd'
 JView            = require 'app/jview'
 JCustomHTMLView  = require 'app/jcustomhtmlview'
 AvatarStaticView = require 'app/commonviews/avatarviews/avatarstaticview'
-isKoding         = require 'app/util/isKoding'
 whoami           = require 'app/util/whoami'
 
 # AccountPopup     = require './accountpopup'

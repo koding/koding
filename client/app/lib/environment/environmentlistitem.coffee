@@ -1,7 +1,6 @@
 kd                        = require 'kd'
 JView                     = require 'app/jview'
 
-isKoding                  = require 'app/util/isKoding'
 checkFlag                 = require 'app/util/checkFlag'
 showNotification          = require 'app/util/showNotification'
 isManagedVMStack          = require 'app/util/isManagedVMStack'
@@ -51,7 +50,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
 
     { title } = stack = @getData()
 
-    unless isKoding() or title is 'Managed VMs'
+    unless title is 'Managed VMs'
       @reinitButton = new kd.ButtonView
         cssClass    : 'solid compact red'
         title       : 'RE-INIT STACK'
@@ -65,19 +64,6 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
           title    : 'Delete Stack'
           loader   : yes
           callback : @bound 'handleStackDelete'
-
-    if isKoding()
-      @addVMButton = new kd.ButtonView
-        title     : 'Add a Koding VM'
-        loader    : { diameter : 20 }
-        cssClass  : 'add-vm-button solid green compact'
-        callback  : => @handleMachineRequest 'koding'
-
-      if checkFlag 'softlayer'
-        @addSoftlayerVMButton = new kd.ButtonView
-          title      : 'Add a Softlayer VM'
-          cssClass   : 'add-vm-button solid green compact'
-          callback   : => @handleMachineRequest 'softlayer'
 
     if hasManagedVMStack()
       if isManagedVMStack stack
@@ -169,7 +155,7 @@ module.exports = class EnvironmentListItem extends kd.ListItemView
     @stackStateToggle = new kd.CustomHTMLView
       cssClass : 'stack-state-toggle'
 
-    if isKoding() or /^Managed\ VMs/.test title
+    if /^Managed\ VMs/.test title
       @infoIcon = new kd.CustomHTMLView
     else
       @createInfoIcon()

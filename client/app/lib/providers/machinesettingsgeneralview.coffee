@@ -2,7 +2,6 @@ kd                        = require 'kd'
 KDView                    = kd.View
 Encoder                   = require 'htmlencode'
 Machine                   = require './machine'
-isKoding                  = require 'app/util/isKoding'
 showError                 = require 'app/util/showError'
 selectText                = require 'app/util/selectText'
 KodingSwitch              = require '../commonviews/kodingswitch'
@@ -256,7 +255,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
           partial       : logsMessage
         stackInfo       :
           label         : 'Stack information'
-          cssClass      : if isKoding() then 'hidden' else 'custom-link-view stack-information'
+          cssClass      : 'custom-link-view stack-information'
           itemClass     : KDView
           partial       : """
             <span class="link-view template">show template</span>

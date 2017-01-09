@@ -20,7 +20,6 @@ HelpSupportModal        = require '../commonviews/helpsupportmodal'
 ReadmeView              = require './environmentsmachinereadmeview'
 
 whoami                  = require 'app/util/whoami'
-isKoding                = require 'app/util/isKoding'
 showError               = require 'app/util/showError'
 applyMarkdown           = require 'app/util/applyMarkdown'
 isTeamReactSide         = require 'app/util/isTeamReactSide'
@@ -430,11 +429,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
     else if @state is Terminated
       @label.destroy?()
-      @createStateLabel if isKoding() then "
-        The VM <strong>#{@machineName or ''}</strong> was
-        successfully deleted. Please select a new VM to operate on from
-        the VMs list or create a new one.
-      " else "
+      @createStateLabel "
         The VM <strong>#{@machineName or ''}</strong> was terminated.
         Please re-initalize your stack to rebuild the VM again.
       "
@@ -498,7 +493,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
     stackText = stateTexts[@state]
 
-    if not isKoding() and @stack
+    if @stack
       stackText = stackBasedStates[@state] or stateTexts[@state]
 
     stateText = "<strong>#{@machineName or ''}</strong> #{stackText}"
@@ -536,7 +531,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
         </p>
       "
 
-    if customState is 'NotFound' and not isKoding()
+    if customState is 'NotFound'
       { groupsController } = kd.singletons
       customState = 'NoTemplate'  unless groupsController.currentGroupHasStack()
 
@@ -560,15 +555,12 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     if @state in [Terminated, 'NotFound']
       callback = 'requestNewMachine'
 
-      if isKoding()
-        title  = 'Create a new VM'
-      else
-        title  = 'Show Stacks'
+      title  = 'Show Stacks'
 
-        { groupsController } = kd.singletons
-        return  unless groupsController.currentGroupHasStack()
+      { groupsController } = kd.singletons
+      return  unless groupsController.currentGroupHasStack()
 
-    else if not isKoding() and @stack and @state is NotInitialized
+    else if @stack and @state is NotInitialized
       title    = 'Build Stack'
       callback = 'turnOnMachine'
     else
@@ -664,7 +656,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
     sendDataDogEvent 'MachineStateFailed'
 
-    if not isKoding() and typeof @lastKnownError is 'string'
+    if typeof @lastKnownError is 'string'
       @showErrorDetails @lastKnownError
       errorLink = ", <span class='error-details'>show details</span>"
     else
@@ -709,10 +701,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
 
   requestNewMachine: ->
 
-    route = if isKoding() then '/My-Machines' else '/Home/stacks'
-
-    kd.singletons.appManager.getFrontApp().quit()  if isKoding()
-    kd.singletons.router.handleRoute route
+    kd.singletons.router.handleRoute '/Home/stacks'
 
 
   turnOnMachine: ->
@@ -720,7 +709,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
     computeController = kd.getSingleton 'computeController'
     target            = @machine
 
-    if not isKoding() and @stack
+    if @stack
 
       if @state is NotInitialized
         action = 'buildStack'
@@ -812,7 +801,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
   initReadmeView: ->
 
     # Show only for custom teams and only for NotInitalized state
-    if isKoding() or not @stack or @state not in [NotInitialized, Building]
+    if not @stack or @state not in [NotInitialized, Building]
       @readmeView.hide()
       return
 
