@@ -55,10 +55,11 @@ toBeDeleted = [
   'hbild'  # unknown origin
 ]
 
-startsWith = [
-  '_hp2_id'         # heap analytics - we dont use anymore.
-  '_hp2_ses_props'  # heap analytics - we dont use anymore.
-  '_ob_pub'  # unknow origin
+regexWith = [
+  '^_hp2_id'         # heap analytics - we dont use anymore.
+  '^_hp2_ses_props'  # heap analytics - we dont use anymore.
+  '^_ob_pub'         # unknow origin
+  '_mixpanel$'       # mixpanel
 ]
 
 hostname = location.host
@@ -83,4 +84,10 @@ module.exports = ->
   for key in toBeDeleted
     for option in options
       if kookies.expire key, option
+        console.log "#{key} deleted"
+
+  for exp in regexWith
+    rexp = ///exp///
+    for key in kookies.keys()
+      if rexp.test(key) and kookies.expire key, option
         console.log "#{key} deleted"
