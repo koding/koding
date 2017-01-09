@@ -1,7 +1,6 @@
 globals                = require 'globals'
 kookies                = require 'kookies'
 kd                     = require 'kd'
-socketConnected        = require './util/socketConnected'
 enableLogs             = require './util/enableLogs'
 cleanup                = require './util/cleanup'
 ConnectionChecker      = require './connectionchecker'
@@ -78,13 +77,9 @@ bootup = ->
   ###
 
   status.on 'bongoConnected', (account) ->
-    socketConnected()
+    globals.backendIsConnected = yes
     mainController.accountChanged account, firstLoad
     firstLoad = no
-
-  # status.on 'sessionTokenChanged', (token)->
-    # this is disabled for now to test user log-out problem.
-    # $.cookie 'clientId', token
 
   status.on 'connected', ->
     ConnectionChecker.globalNotification.hide()
