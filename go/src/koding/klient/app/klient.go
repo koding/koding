@@ -35,6 +35,7 @@ import (
 	"koding/klient/logfetcher"
 	"koding/klient/machine"
 	"koding/klient/machine/machinegroup"
+	"koding/klient/machine/mount/index"
 	kos "koding/klient/os"
 	"koding/klient/remote"
 	"koding/klient/sshkeys"
@@ -515,6 +516,10 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("machine.create", machinegroup.KiteHandlerCreate(k.machines))
 	k.kite.HandleFunc("machine.id", machinegroup.KiteHandlerID(k.machines))
 	k.kite.HandleFunc("machine.ssh", machinegroup.KiteHandlerSSH(k.machines))
+
+	// Machine mount index handlers.
+	k.handleWithSub("machine.mount.index.head", index.KiteHandlerHead())
+	k.handleWithSub("machine.mount.index.get", index.KiteHandlerGet())
 
 	// Vagrant
 	k.kite.HandleFunc("vagrant.create", k.vagrant.Create)
