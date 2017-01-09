@@ -1,6 +1,5 @@
 kd                        = require 'kd'
 whoami                    = require 'app/util/whoami'
-isKoding                  = require 'app/util/isKoding'
 showError                 = require 'app/util/showError'
 checkFlag                 = require 'app/util/checkFlag'
 StacksModal               = require 'app/stacks/stacksmodal'
@@ -22,16 +21,6 @@ module.exports = class YourStacksView extends KDCustomScrollView
     controller  = new EnvironmentListController { selected : options.selected }
     listView    = controller.getListView()
 
-    if checkFlag 'super-admin' and isKoding()
-
-      advancedButton = new kd.ButtonView
-        title    : 'ADVANCED'
-        cssClass : 'compact solid green advanced'
-        callback : -> new StacksModal
-
-      # Hack to add button outside of modal container
-      @addSubView advancedButton, '.kdmodal-inner'
-
     @wrapper.addSubView controller.getView()
 
     listView.on 'ModalDestroyRequested', @bound 'destroyModal'
@@ -43,8 +32,6 @@ module.exports = class YourStacksView extends KDCustomScrollView
 
 
   destroyModal: (goBack = yes, dontChangeRoute = no) ->
-
-    return @emit 'DestroyParent', goBack  if isKoding()
 
     if modal = @getDelegate().parent
       modal.dontChangeRoute = dontChangeRoute

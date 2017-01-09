@@ -6,7 +6,6 @@ kd                   = require 'kd'
 KDController         = kd.Controller
 
 nick                 = require 'app/util/nick'
-isKoding             = require 'app/util/isKoding'
 FSHelper             = require 'app/util/fs/fshelper'
 showError            = require 'app/util/showError'
 isLoggedIn           = require 'app/util/isLoggedIn'
@@ -978,8 +977,6 @@ module.exports = class ComputeController extends KDController
 
   checkStackRevisions: ->
 
-    return  if isKoding()
-
     # TMS-1919: This is already written for multiple stacks, code change
     # might be required if existing flow changes ~ GG
 
@@ -1091,7 +1088,6 @@ module.exports = class ComputeController extends KDController
 
   checkGroupStackRevisions: ->
 
-    return  if isKoding()
     return  if not @stacks?.length
 
     { groupsController } = kd.singletons
@@ -1231,9 +1227,6 @@ module.exports = class ComputeController extends KDController
 
   showBuildLogs: (machine, tailOffset) ->
 
-    # Not supported for Koding Group
-    return  if isKoding()
-
     # Path of cloud-init-output log
     path = '/var/log/cloud-init-output.log'
     file = FSHelper.createFileInstance { path, machine }
@@ -1255,7 +1248,6 @@ module.exports = class ComputeController extends KDController
   ###
   getGroupStack: ->
 
-    return null  if isKoding() # we may need this for Koding group as well ~ GG
     return null  if not @stacks?.length
 
     { groupsController } = kd.singletons

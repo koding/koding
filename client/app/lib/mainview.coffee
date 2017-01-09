@@ -4,7 +4,6 @@ globals                 = require 'globals'
 remote                  = require('./remote')
 isLoggedIn              = require './util/isLoggedIn'
 whoami                  = require './util/whoami'
-isKoding                = require './util/isKoding'
 CustomLinkView          = require './customlinkview'
 GlobalNotificationView  = require './globalnotificationview'
 MainTabView             = require './maintabview'
@@ -44,8 +43,6 @@ module.exports = class MainView extends kd.View
 
     @createSidebar()
     @createPanelWrapper()
-    # @checkForIntroVideo()  unless isKoding()
-    @showRegistrationsClosedWarning()  if isSoloProductLite() and isKoding()
     @checkVersion()
     kd.utils.repeat (5 * 60 * 1000), @bound 'checkVersion'
     @createMainTabView()
@@ -65,7 +62,7 @@ module.exports = class MainView extends kd.View
     @addSubView @aside = new kd.CustomHTMLView
       bind       : 'mouseenter mouseleave'
       tagName    : 'aside'
-      cssClass   : unless isKoding() then 'team' else ''
+      cssClass   : 'team'
       domId      : 'main-sidebar'
       attributes :
         testpath : 'main-sidebar'
@@ -79,20 +76,13 @@ module.exports = class MainView extends kd.View
     entryPoint = globals.config.entryPoint
 
     @logoWrapper = new kd.CustomHTMLView
-      cssClass  : unless isKoding() then 'logo-wrapper group' else 'logo-wrapper'
+      cssClass  : 'logo-wrapper group'
 
-    if isKoding()
-      @logoWrapper.addSubView new kd.CustomHTMLView
-        tagName    : 'a'
-        attributes : { href : '/' } # so that it shows base url on status bar of browser
-        partial    : '<figure></figure>'
-        click      : (event) -> kd.utils.stopDOMEvent event
-    else
-      { nickname } = whoami().profile
-      @logoWrapper.addSubView @teamname = new TeamName {}, getGroup()
-      @logoWrapper.addSubView @nickname = new kd.CustomHTMLView
-        cssClass : 'nickname'
-        partial : "@#{nickname}"
+    { nickname } = whoami().profile
+    @logoWrapper.addSubView @teamname = new TeamName {}, getGroup()
+    @logoWrapper.addSubView @nickname = new kd.CustomHTMLView
+      cssClass : 'nickname'
+      partial : "@#{nickname}"
 
     @logoWrapper.addSubView closeHandle = new kd.CustomHTMLView
       cssClass : 'sidebar-close-handle'

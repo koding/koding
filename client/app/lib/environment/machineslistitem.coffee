@@ -1,7 +1,6 @@
 kd                     = require 'kd'
 JView                  = require 'app/jview'
 actions                = require 'app/flux/environment/actions'
-isKoding               = require 'app/util/isKoding'
 showError              = require 'app/util/showError'
 KodingSwitch           = require 'app/commonviews/kodingswitch'
 isTeamReactSide        = require 'app/util/isTeamReactSide'
@@ -56,8 +55,6 @@ module.exports = class MachinesListItem extends kd.ListItemView
 
 
   createSidebarToggle: ->
-
-    return  if isKoding()
 
     machine = @getData()
 
@@ -124,24 +121,24 @@ module.exports = class MachinesListItem extends kd.ListItemView
     logoImg = "<a href='#{url}' target='_blank'>#{logoImg}</a>"  if url
 
     """
-      <div>
-        {{> @labelLink}}
-      </div>
-      <div>
-        #{logoImg}
-      </div>
-      <div>
-        <span>VM{{> @settingsLink}}</span>
-        <span>#{@vminfo.instance_type}</span>
-      </div>
-      <div>
-        <span>UBUNTU</span>
-        <span>14.2</span>
-      </div>
-      <div>
-        {{> @alwaysOnToggle}}
-      </div>
-      #{unless isKoding() then '<div>{{> @sidebarToggle}}</div>' else ''}
+    <div>
+      {{> @labelLink}}
+    </div>
+    <div>
+      #{logoImg}
+    </div>
+    <div>
+      <span>VM{{> @settingsLink}}</span>
+      <span>#{@vminfo.instance_type}</span>
+    </div>
+    <div>
+      <span>UBUNTU</span>
+      <span>14.2</span>
+    </div>
+    <div>
+      {{> @alwaysOnToggle}}
+    </div>
+    <div>{{> @sidebarToggle}}</div>
     """
 
   PROVIDERS         =

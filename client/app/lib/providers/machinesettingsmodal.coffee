@@ -4,7 +4,6 @@ KDTabPaneView        = kd.TabPaneView
 KDTabHandleContainer = kd.TabHandleContainer
 
 Machine                      = require 'app/providers/machine'
-isKoding                     = require 'app/util/isKoding'
 isSoloProductLite            = require 'app/util/issoloproductlite'
 MachineSettingsSpecsView     = require './machinesettingsspecsview'
 MachineSettingsGuidesView    = require './machinesettingsguidesview'
@@ -87,7 +86,7 @@ module.exports = class MachineSettingsModal extends KDModalView
 
       subView    = new item.viewClass item.viewOptions, machine
       isDisabled = not isMachineRunning and disabledTabsForNotRunningVM.indexOf(item.title) > -1
-      isDisabled = disabledTabsForTeams.indexOf(item.title) > -1  unless isKoding()
+      isDisabled = disabledTabsForTeams.indexOf(item.title) > -1
 
       if machine.isManaged()
         disabledTabs = disabledTabsForProviders[machine.provider]

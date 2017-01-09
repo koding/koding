@@ -4,7 +4,6 @@ nick                             = require 'app/util/nick'
 remote                           = require 'app/remote'
 KDView                           = kd.View
 Machine                          = require 'app/providers/machine'
-isKoding                         = require 'app/util/isKoding'
 UserItem                         = require 'app/useritem'
 KDCustomHTMLView                 = kd.CustomHTMLView
 KDAutoCompleteController         = kd.AutoCompleteController

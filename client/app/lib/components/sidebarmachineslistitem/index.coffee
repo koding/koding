@@ -5,7 +5,6 @@ ReactDOM                       = require 'react-dom'
 remote                         = require 'app/remote'
 actions                        = require 'app/flux/environment/actions'
 Machine                        = require 'app/providers/machine'
-isKoding                       = require 'app/util/isKoding'
 getMachineLink                 = require 'app/util/getMachineLink'
 KDReactorMixin                 = require 'app/flux/base/reactormixin'
 EnvironmentFlux                = require 'app/flux/environment'
@@ -40,10 +39,8 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     status = @machine ['status', 'state']
 
-    collapsed = if isKoding() then status isnt Machine.State.Running else yes
-
     @state = {
-      collapsed
+      collapsed: yes
       showLeaveSharedMachineWidget : no
     }
 
@@ -109,12 +106,9 @@ module.exports = class SidebarMachinesListItem extends React.Component
       actions.setActiveInvitationMachineId { machine: @props.machine }
       actions.setActiveLeavingSharedMachineId null
 
-    @setState { collapsed : not @state.collapsed }  if isKoding()
-
     return  unless @props.machine.get 'isApproved'
 
-    if not isMachineRunning(@props.machine) or not isKoding()
-      kd.singletons.router.handleRoute getMachineLink @props.machine
+    kd.singletons.router.handleRoute getMachineLink @props.machine
 
 
   renderProgressbar: ->
