@@ -9,6 +9,7 @@ import (
 	"koding/api"
 	"koding/kites/config"
 	"koding/kites/kloud/stack"
+	"koding/klient/storage"
 )
 
 // Kite is an interface for kite.Kite, that is used
@@ -137,7 +138,11 @@ var _ api.Storage = (*Storage)(nil)
 func (st *Storage) Get(u *api.User) (*api.Session, error) {
 	var sessions map[string]api.Session
 
-	if err := st.Cache.GetValue("auth.sessions", &sessions); err != nil {
+	err := st.Cache.GetValue("auth.sessions", &sessions)
+	if err == storage.ErrKeyNotFound {
+		return nil, api.ErrSessionNotFound
+	}
+	if err != nil {
 		return nil, err
 	}
 

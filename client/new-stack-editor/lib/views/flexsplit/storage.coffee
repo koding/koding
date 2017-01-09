@@ -22,7 +22,7 @@ module.exports = class FlexSplitStorage extends kd.Object
     options.restore          ?= yes
     options.keepExpandStatus ?= no # Experimental
 
-    view.on Flex.EVENT_RESIZED, (fractions) =>
+    view.on [ Flex.EVENT_RESIZED, Flex.EVENT_HIDDEN ], (fractions) =>
       @set identifier, fractions
       @store()
 

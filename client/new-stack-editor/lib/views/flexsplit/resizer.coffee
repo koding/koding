@@ -77,6 +77,19 @@ module.exports = class FlexSplitResizer extends kd.View
       view._windowDidResize?()
 
 
+    view.on Flex.EVENT_HIDE, =>
+
+      fractions = [Flex.MAX, Flex.MAX]
+      viewIndex = @_getViewIndex view
+      fractions[viewIndex] = Flex.MIN
+
+      for i in [0..1]
+        @_setViewFraction @views[i], fractions[i]
+
+      @emit Flex.EVENT_HIDDEN, fractions
+      view._windowDidResize?()
+
+
   _updateViewSizes: ->
     # This will get height or width of given views. This height or width
     # depends on the type of this FlexSplitResizer. For example; if we've

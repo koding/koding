@@ -37,10 +37,10 @@ ContentModal = require 'app/components/contentModal'
 NoStackFoundView = require 'app/nostackfoundview'
 
 require('./routes').init()
+require 'ide/styl'
 
-module.exports =
 
-class IDEAppController extends AppController
+module.exports = class IDEAppController extends AppController
 
   _.extend @prototype, CollaborationController
 

@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJTagFollowIDOK() *PostRemoteAPIJTagFollowIDOK {
 OK
 */
 type PostRemoteAPIJTagFollowIDOK struct {
-	Payload *models.JTag
+	Payload PostRemoteAPIJTagFollowIDOKBody
 }
 
 func (o *PostRemoteAPIJTagFollowIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJTagFollowIDOK) Error() string {
 
 func (o *PostRemoteAPIJTagFollowIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JTag)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJTagFollowIDOKBody post remote API j tag follow ID o k body
+swagger:model PostRemoteAPIJTagFollowIDOKBody
+*/
+type PostRemoteAPIJTagFollowIDOKBody struct {
+	models.JTag
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJTagFollowIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJTagFollowIDOKBodyAO0 models.JTag
+	if err := swag.ReadJSON(raw, &postRemoteAPIJTagFollowIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JTag = postRemoteAPIJTagFollowIDOKBodyAO0
+
+	var postRemoteAPIJTagFollowIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJTagFollowIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJTagFollowIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJTagFollowIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJTagFollowIDOKBodyAO0, err := swag.WriteJSON(o.JTag)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJTagFollowIDOKBodyAO0)
+
+	postRemoteAPIJTagFollowIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJTagFollowIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j tag follow ID o k body
+func (o *PostRemoteAPIJTagFollowIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JTag.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

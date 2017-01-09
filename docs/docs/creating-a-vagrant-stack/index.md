@@ -7,7 +7,7 @@ parent: /docs/home
 
 # {{ page.title }}
 
-# Vagrant Stack
+## Introduction
 
 This guide will help you create a Vagrant stack. A Vagrant stack will use your local machine to host your VM. Vagrant works by using [virtual box][1] on your local or remote machine to create VMs. [Learn more about Vagrant here][2].
 
@@ -137,8 +137,8 @@ This is an example stack script with more&nbsp;configuration options that you ca
 [2]: https://www.vagrantup.com/about.html
 [3]: {{ site.url }}/assets/img/guides/vagrant/install-kd.png
 [4]: {{ site.url }}/assets/img/guides/vagrant/kite-query-id.png
-[5]: {{ site.url }}/assets/img/guides/click-stacks.png
-[6]: {{ site.url }}/assets/img/guides/click-new-stack.png
+[5]: {{ site.url }}/assets/img/guides/azure/click-stacks.png
+[6]: {{ site.url }}/assets/img/guides/azure/click-new-stack.png
 [7]: {{ site.url }}/assets/img/guides/vagrant/vagrant-provider.png
 [8]: {{ site.url }}/assets/img/guides/vagrant/vagrant-create-stack.png
 [9]: {{ site.url }}/assets/img/guides/vagrant/vagrant-readme.png

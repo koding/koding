@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJGroupFetchUserStatusIDOK() *PostRemoteAPIJGroupFetchUserSt
 OK
 */
 type PostRemoteAPIJGroupFetchUserStatusIDOK struct {
-	Payload *models.JGroup
+	Payload PostRemoteAPIJGroupFetchUserStatusIDOKBody
 }
 
 func (o *PostRemoteAPIJGroupFetchUserStatusIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJGroupFetchUserStatusIDOK) Error() string {
 
 func (o *PostRemoteAPIJGroupFetchUserStatusIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JGroup)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJGroupFetchUserStatusIDOKBody post remote API j group fetch user status ID o k body
+swagger:model PostRemoteAPIJGroupFetchUserStatusIDOKBody
+*/
+type PostRemoteAPIJGroupFetchUserStatusIDOKBody struct {
+	models.JGroup
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJGroupFetchUserStatusIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJGroupFetchUserStatusIDOKBodyAO0 models.JGroup
+	if err := swag.ReadJSON(raw, &postRemoteAPIJGroupFetchUserStatusIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JGroup = postRemoteAPIJGroupFetchUserStatusIDOKBodyAO0
+
+	var postRemoteAPIJGroupFetchUserStatusIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJGroupFetchUserStatusIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJGroupFetchUserStatusIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJGroupFetchUserStatusIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJGroupFetchUserStatusIDOKBodyAO0, err := swag.WriteJSON(o.JGroup)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJGroupFetchUserStatusIDOKBodyAO0)
+
+	postRemoteAPIJGroupFetchUserStatusIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJGroupFetchUserStatusIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j group fetch user status ID o k body
+func (o *PostRemoteAPIJGroupFetchUserStatusIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JGroup.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

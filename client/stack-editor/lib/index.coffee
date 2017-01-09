@@ -9,6 +9,7 @@ ContentModal = require 'app/components/contentModal'
 isClonedTemplate = require 'app/util/isclonedtemplate'
 
 do require './routehandler'
+require 'stack-editor/styl'
 
 module.exports = class StackEditorAppController extends AppController
 

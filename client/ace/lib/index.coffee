@@ -1,7 +1,9 @@
 isLoggedIn    = require 'app/util/isLoggedIn'
 AppController = require 'app/appcontroller'
 AceAppView    = require './aceappview'
+
 require('./routehandler')()
+require 'ace/styl'
 
 
 module.exports = class AceAppController extends AppController

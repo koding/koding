@@ -4,6 +4,7 @@ package collaboration
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"net/http"
 	"time"
 
 	"golang.org/x/net/context"
@@ -56,10 +57,11 @@ type PostRemoteAPICollaborationKickParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
-	timeout time.Duration
-	Context context.Context
+	timeout    time.Duration
+	Context    context.Context
+	HTTPClient *http.Client
 }
 
 // WithTimeout adds the timeout to the post remote API collaboration kick params
@@ -85,13 +87,13 @@ func (o *PostRemoteAPICollaborationKickParams) SetContext(ctx context.Context) {
 }
 
 // WithBody adds the body to the post remote API collaboration kick params
-func (o *PostRemoteAPICollaborationKickParams) WithBody(body *models.DefaultSelector) *PostRemoteAPICollaborationKickParams {
+func (o *PostRemoteAPICollaborationKickParams) WithBody(body models.DefaultSelector) *PostRemoteAPICollaborationKickParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API collaboration kick params
-func (o *PostRemoteAPICollaborationKickParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPICollaborationKickParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -100,10 +102,6 @@ func (o *PostRemoteAPICollaborationKickParams) WriteToRequest(r runtime.ClientRe
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

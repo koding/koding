@@ -60,11 +60,7 @@ socialapi:mailsender                  STARTING
 socialapi:realtime                    STARTING
 socialapi                             STARTING
 socialapi:team                        STARTING
-webserver:authworker                  STARTING
-webserver:broker                      STARTING
-webserver:rerouting                   STARTING
 webserver:socialworker                STARTING
-webserver:sourcemaps                  STARTING
 webserver                             STARTING
 ```
 
@@ -83,11 +79,7 @@ socialapi:mailsender                  RUNNING   pid 3292, uptime 0:00:15
 socialapi:realtime                    RUNNING   pid 3312, uptime 0:00:15
 socialapi                             RUNNING   pid 3280, uptime 0:00:15
 socialapi:team                        RUNNING   pid 3417, uptime 0:00:15
-webserver:authworker                  RUNNING   pid 3446, uptime 0:00:15
-webserver:broker                      RUNNING   pid 3448, uptime 0:00:15
-webserver:rerouting                   RUNNING   pid 3418, uptime 0:00:15
 webserver:socialworker                RUNNING   pid 3482, uptime 0:00:15
-webserver:sourcemaps                  RUNNING   pid 3419, uptime 0:00:15
 webserver                             RUNNING   pid 3449, uptime 0:00:15
 ```
 

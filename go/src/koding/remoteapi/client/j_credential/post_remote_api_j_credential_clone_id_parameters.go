@@ -4,6 +4,7 @@ package j_credential
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"net/http"
 	"time"
 
 	"golang.org/x/net/context"
@@ -13,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJCredentialCloneIDParams creates a new PostRemoteAPIJCredentialCloneIDParams object
@@ -50,14 +53,20 @@ for the post remote API j credential clone ID operation typically these are writ
 */
 type PostRemoteAPIJCredentialCloneIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
 	*/
 	ID string
 
-	timeout time.Duration
-	Context context.Context
+	timeout    time.Duration
+	Context    context.Context
+	HTTPClient *http.Client
 }
 
 // WithTimeout adds the timeout to the post remote API j credential clone ID params
@@ -82,6 +91,17 @@ func (o *PostRemoteAPIJCredentialCloneIDParams) SetContext(ctx context.Context) 
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j credential clone ID params
+func (o *PostRemoteAPIJCredentialCloneIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJCredentialCloneIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j credential clone ID params
+func (o *PostRemoteAPIJCredentialCloneIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j credential clone ID params
 func (o *PostRemoteAPIJCredentialCloneIDParams) WithID(id string) *PostRemoteAPIJCredentialCloneIDParams {
 	o.SetID(id)
@@ -98,6 +118,10 @@ func (o *PostRemoteAPIJCredentialCloneIDParams) WriteToRequest(r runtime.ClientR
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

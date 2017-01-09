@@ -135,6 +135,7 @@ type Config struct {
 	TerraformerSecretKey string
 
 	KodingURL *config.URL // Koding base URL
+	NoSneaker bool        // use Mongo for reading credentials, instead of /social/credential endpoint
 }
 
 // New gives new, registered kloud kite.
@@ -180,9 +181,14 @@ func New(conf *Config) (*Kloud, error) {
 	storeOpts := &credential.Options{
 		MongoDB: sess.DB,
 		Log:     sess.Log.New("stackcred"),
-		CredURL: e.Social().WithPath("/credential").Private.URL,
 		Client:  restClient,
 	}
+
+	if !conf.NoSneaker {
+		storeOpts.CredURL = e.Social().WithPath("/credential").Private.URL
+	}
+
+	sess.Log.Debug("storeOpts: %+v", storeOpts)
 
 	userPrivateKey, userPublicKey := userMachinesKeys(conf.UserPublicKey, conf.UserPrivateKey)
 
@@ -236,6 +242,7 @@ func New(conf *Config) (*Kloud, error) {
 	}
 
 	kloud.Stack.Endpoints = e
+	kloud.Stack.Userdata = sess.Userdata
 	kloud.Stack.DescribeFunc = provider.Desc
 	kloud.Stack.CredClient = credential.NewClient(storeOpts)
 	kloud.Stack.MachineClient = machine.NewClient(machine.NewMongoDatabase())
@@ -308,6 +315,7 @@ func New(conf *Config) (*Kloud, error) {
 
 	// Authorization handling.
 	k.HandleFunc("auth.login", kloud.Stack.AuthLogin)
+	k.HandleFunc("auth.passwordLogin", kloud.Stack.AuthPasswordLogin).DisableAuthentication()
 
 	// Configuration handling.
 	k.HandleFunc("config.metadata", kloud.Stack.ConfigMetadata)
@@ -415,11 +423,14 @@ func newEndpoints(cfg *Config) *config.Endpoints {
 	e := config.NewKonfig(&config.Environments{Env: cfg.Environment}).Endpoints
 
 	if cfg.KodingURL != nil {
-		e.Koding = config.NewEndpointURL(cfg.KodingURL.URL)
+		e.Koding.Public = cfg.KodingURL
 	}
 
 	if cfg.TunnelURL != "" {
-		e.Tunnel = config.NewEndpoint(cfg.TunnelURL)
+		if u, err := url.Parse(cfg.TunnelURL); err == nil {
+			u.Path = "/kite"
+			e.Tunnel = config.NewEndpoint(u.String())
+		}
 	}
 
 	return e

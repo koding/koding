@@ -1,6 +1,7 @@
 kd = require 'kd'
 React = require 'app/react'
 ReactView = require 'app/react/reactview'
+{ Provider } = require 'react-redux'
 
 InvoicesList = require './components/invoiceslist'
 
@@ -13,7 +14,7 @@ module.exports = class HomeTeamInvoicesList extends ReactView
     super options, data
 
 
-  renderReact: -> <InvoicesList.Container />
-
-
-
+  renderReact: ->
+    <Provider store={kd.singletons.store}>
+      <InvoicesList.Container />
+    </Provider>

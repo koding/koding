@@ -4,6 +4,7 @@ package social_message
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"net/http"
 	"time"
 
 	"golang.org/x/net/context"
@@ -56,10 +57,11 @@ type PostRemoteAPISocialMessageFetchDataFromEmbedlyParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
-	timeout time.Duration
-	Context context.Context
+	timeout    time.Duration
+	Context    context.Context
+	HTTPClient *http.Client
 }
 
 // WithTimeout adds the timeout to the post remote API social message fetch data from embedly params
@@ -85,13 +87,13 @@ func (o *PostRemoteAPISocialMessageFetchDataFromEmbedlyParams) SetContext(ctx co
 }
 
 // WithBody adds the body to the post remote API social message fetch data from embedly params
-func (o *PostRemoteAPISocialMessageFetchDataFromEmbedlyParams) WithBody(body *models.DefaultSelector) *PostRemoteAPISocialMessageFetchDataFromEmbedlyParams {
+func (o *PostRemoteAPISocialMessageFetchDataFromEmbedlyParams) WithBody(body models.DefaultSelector) *PostRemoteAPISocialMessageFetchDataFromEmbedlyParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API social message fetch data from embedly params
-func (o *PostRemoteAPISocialMessageFetchDataFromEmbedlyParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPISocialMessageFetchDataFromEmbedlyParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -100,10 +102,6 @@ func (o *PostRemoteAPISocialMessageFetchDataFromEmbedlyParams) WriteToRequest(r 
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

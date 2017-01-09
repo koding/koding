@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPITrackerTrack(params *PostRemoteAPITrackerTrackPara
 		Params:             params,
 		Reader:             &PostRemoteAPITrackerTrackReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

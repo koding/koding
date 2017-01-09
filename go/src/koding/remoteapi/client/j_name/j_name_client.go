@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJNameClaimNames(params *PostRemoteAPIJNameClaimNam
 		Params:             params,
 		Reader:             &PostRemoteAPIJNameClaimNamesReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJNameOne(params *PostRemoteAPIJNameOneParams) (*Po
 		Params:             params,
 		Reader:             &PostRemoteAPIJNameOneReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

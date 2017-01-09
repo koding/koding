@@ -67,6 +67,11 @@ $borderColor                = rgba(151, 151, 151, .52)
 .ListView-section.HomeAppViewStackSection
   .ListView-row
     borderizeListItems      25px, 1px solid $borderColor
+  .ListView-row
+    padding-top             0px !important
+  .ListView-row ~ .ListView-row
+    padding-top             25px !important
+
 
 .HomeAppView--scroller.stacks
 .HomeAppView--scroller.add-ons

@@ -4,6 +4,7 @@ package j_group
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"net/http"
 	"time"
 
 	"golang.org/x/net/context"
@@ -13,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJGroupSearchMembersIDParams creates a new PostRemoteAPIJGroupSearchMembersIDParams object
@@ -50,14 +53,20 @@ for the post remote API j group search members ID operation typically these are 
 */
 type PostRemoteAPIJGroupSearchMembersIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
 	*/
 	ID string
 
-	timeout time.Duration
-	Context context.Context
+	timeout    time.Duration
+	Context    context.Context
+	HTTPClient *http.Client
 }
 
 // WithTimeout adds the timeout to the post remote API j group search members ID params
@@ -82,6 +91,17 @@ func (o *PostRemoteAPIJGroupSearchMembersIDParams) SetContext(ctx context.Contex
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j group search members ID params
+func (o *PostRemoteAPIJGroupSearchMembersIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJGroupSearchMembersIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j group search members ID params
+func (o *PostRemoteAPIJGroupSearchMembersIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j group search members ID params
 func (o *PostRemoteAPIJGroupSearchMembersIDParams) WithID(id string) *PostRemoteAPIJGroupSearchMembersIDParams {
 	o.SetID(id)
@@ -98,6 +118,10 @@ func (o *PostRemoteAPIJGroupSearchMembersIDParams) WriteToRequest(r runtime.Clie
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

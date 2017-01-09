@@ -4,6 +4,7 @@ package j_stack_template
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"net/http"
 	"time"
 
 	"golang.org/x/net/context"
@@ -13,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJStackTemplateSetAccessIDParams creates a new PostRemoteAPIJStackTemplateSetAccessIDParams object
@@ -50,14 +53,20 @@ for the post remote API j stack template set access ID operation typically these
 */
 type PostRemoteAPIJStackTemplateSetAccessIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
 	*/
 	ID string
 
-	timeout time.Duration
-	Context context.Context
+	timeout    time.Duration
+	Context    context.Context
+	HTTPClient *http.Client
 }
 
 // WithTimeout adds the timeout to the post remote API j stack template set access ID params
@@ -82,6 +91,17 @@ func (o *PostRemoteAPIJStackTemplateSetAccessIDParams) SetContext(ctx context.Co
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j stack template set access ID params
+func (o *PostRemoteAPIJStackTemplateSetAccessIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJStackTemplateSetAccessIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j stack template set access ID params
+func (o *PostRemoteAPIJStackTemplateSetAccessIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j stack template set access ID params
 func (o *PostRemoteAPIJStackTemplateSetAccessIDParams) WithID(id string) *PostRemoteAPIJStackTemplateSetAccessIDParams {
 	o.SetID(id)
@@ -98,6 +118,10 @@ func (o *PostRemoteAPIJStackTemplateSetAccessIDParams) WriteToRequest(r runtime.
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

@@ -4,6 +4,7 @@ package system
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"net/http"
 	"time"
 
 	"golang.org/x/net/context"
@@ -49,8 +50,9 @@ func NewGetVersionParamsWithContext(ctx context.Context) *GetVersionParams {
 for the get version operation typically these are written to a http.Request
 */
 type GetVersionParams struct {
-	timeout time.Duration
-	Context context.Context
+	timeout    time.Duration
+	Context    context.Context
+	HTTPClient *http.Client
 }
 
 // WithTimeout adds the timeout to the get version params

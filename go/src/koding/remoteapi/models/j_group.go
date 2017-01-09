@@ -129,6 +129,9 @@ func (m *JGroup) validateCounts(formats strfmt.Registry) error {
 	if m.Counts != nil {
 
 		if err := m.Counts.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("counts")
+			}
 			return err
 		}
 	}
@@ -145,6 +148,9 @@ func (m *JGroup) validateCustomize(formats strfmt.Registry) error {
 	if m.Customize != nil {
 
 		if err := m.Customize.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("customize")
+			}
 			return err
 		}
 	}

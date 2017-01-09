@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJTagFetchLastInteractorsIDOK() *PostRemoteAPIJTagFetchLastI
 OK
 */
 type PostRemoteAPIJTagFetchLastInteractorsIDOK struct {
-	Payload *models.JTag
+	Payload PostRemoteAPIJTagFetchLastInteractorsIDOKBody
 }
 
 func (o *PostRemoteAPIJTagFetchLastInteractorsIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJTagFetchLastInteractorsIDOK) Error() string {
 
 func (o *PostRemoteAPIJTagFetchLastInteractorsIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JTag)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJTagFetchLastInteractorsIDOKBody post remote API j tag fetch last interactors ID o k body
+swagger:model PostRemoteAPIJTagFetchLastInteractorsIDOKBody
+*/
+type PostRemoteAPIJTagFetchLastInteractorsIDOKBody struct {
+	models.JTag
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJTagFetchLastInteractorsIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJTagFetchLastInteractorsIDOKBodyAO0 models.JTag
+	if err := swag.ReadJSON(raw, &postRemoteAPIJTagFetchLastInteractorsIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JTag = postRemoteAPIJTagFetchLastInteractorsIDOKBodyAO0
+
+	var postRemoteAPIJTagFetchLastInteractorsIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJTagFetchLastInteractorsIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJTagFetchLastInteractorsIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJTagFetchLastInteractorsIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJTagFetchLastInteractorsIDOKBodyAO0, err := swag.WriteJSON(o.JTag)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJTagFetchLastInteractorsIDOKBodyAO0)
+
+	postRemoteAPIJTagFetchLastInteractorsIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJTagFetchLastInteractorsIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j tag fetch last interactors ID o k body
+func (o *PostRemoteAPIJTagFetchLastInteractorsIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JTag.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

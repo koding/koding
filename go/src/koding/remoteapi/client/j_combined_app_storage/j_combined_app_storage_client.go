@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJCombinedAppStorageUpsertID(params *PostRemoteAPIJ
 		Params:             params,
 		Reader:             &PostRemoteAPIJCombinedAppStorageUpsertIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

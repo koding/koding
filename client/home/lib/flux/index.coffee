@@ -9,8 +9,5 @@ module.exports =
   register: (reactor) ->
     reactor.registerStores @stores
 
-    HomeBillingFlux = require '../billing/flux'
-    HomeBillingFlux.register reactor
-
     VirtualMachinesSearchFlux = require '../virtualmachines/flux/search'
     VirtualMachinesSearchFlux.register reactor

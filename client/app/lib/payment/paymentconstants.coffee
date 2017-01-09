@@ -48,12 +48,12 @@ module.exports =
     PRICING             :
       LIMIT             : 3
       KEY               : 'BlockForTooManyAttempts'
-      DURATION          : globals.config.paymentBlockDuration
+      DURATION          : 24 * 60 * 60 * 1000 # 24 hours
 
     UPDATE_CREDIT_CARD  :
       LIMIT             : 3
       KEY               : 'BlockForTooManyAttempts'
-      DURATION          : globals.config.paymentBlockDuration
+      DURATION          : 24 * 60 * 60 * 1000 # 24 hours
 
   error:
     ERR_USER_NOT_CONFIRMED: 'Sorry, you need to confirm your email address first.'

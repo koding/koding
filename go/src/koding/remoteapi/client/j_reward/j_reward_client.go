@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJRewardAddCustomReward(params *PostRemoteAPIJRewar
 		Params:             params,
 		Reader:             &PostRemoteAPIJRewardAddCustomRewardReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJRewardFetchCustomData(params *PostRemoteAPIJRewar
 		Params:             params,
 		Reader:             &PostRemoteAPIJRewardFetchCustomDataReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIJRewardFetchEarnedAmount(params *PostRemoteAPIJRew
 		Params:             params,
 		Reader:             &PostRemoteAPIJRewardFetchEarnedAmountReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPIJRewardSome(params *PostRemoteAPIJRewardSomeParams
 		Params:             params,
 		Reader:             &PostRemoteAPIJRewardSomeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

@@ -175,21 +175,10 @@ func (c *Client) initClient() {
 	// continue to work. When we're sure it's no longer needed, this
 	// code should be removed.
 	_ = c.commit(func(cache *config.Cache) error {
-		return nonil(
-			// Best-effort attempt to ensure data in klient.bolt is consistent.
-			// Ignore any error, as there's no recovery from corrupted
-			// configuration, other than reinstalling kd / klient.
-			//
-			// This migration must be executed before kite.key one.
-			migrateKonfigBolt(cache),
-
-			// Best-effort attemp to ensure /etc/kite/kite.key is stored
-			// in ~/.config/koding/konfig.bolt, so it is possible to
-			// use kd / konfig with koding deployments that sign with
-			// different kontrol keys, e.g. production <-> sandbox or
-			// production <-> self-hosted opensource version.
-			migrateKiteKey(cache),
-		)
+		// Best-effort attempt to ensure data in klient.bolt is consistent.
+		// Ignore any error, as there's no recovery from corrupted
+		// configuration, other than reinstalling kd / klient.
+		return migrateKonfigBolt(cache)
 	})
 }
 
@@ -307,6 +296,13 @@ func migrateKonfigBolt(cache *config.Cache) error {
 				oldKonfig.Endpoints.Tunnel = config.NewEndpoint(oldKonfig.TunnelURL)
 			}
 
+			// Best-effort attemp to ensure /etc/kite/kite.key is stored
+			// in ~/.config/koding/konfig.bolt, so it is possible to
+			// use kd / konfig with koding deployments that sign with
+			// different kontrol keys, e.g. production <-> sandbox or
+			// production <-> self-hosted opensource version.
+			_ = migrateKiteKey(&oldKonfig)
+
 			konfigs[id] = &oldKonfig
 
 			_ = cache.SetValue("konfigs", konfigs)
@@ -327,13 +323,7 @@ func migrateKonfigBolt(cache *config.Cache) error {
 	return nil
 }
 
-func migrateKiteKey(cache *config.Cache) error {
-	var konfig config.Konfig
-
-	if err := makeUsedFunc(&konfig)(cache); err != nil {
-		return err
-	}
-
+func migrateKiteKey(konfig *config.Konfig) error {
 	// KiteKey already exists in the DB - we don't care
 	// whether it's our one or user overriden it explictely
 	// as long as it's there.
@@ -342,6 +332,10 @@ func migrateKiteKey(cache *config.Cache) error {
 	}
 
 	defaultKitekey := config.NewKonfig(&config.Environments{Env: konfig.Environment}).KiteKeyFile
+	if defaultKitekey == "" {
+		defaultKitekey = filepath.FromSlash("/etc/kite/kite.key")
+	}
+
 	kitekey := konfig.KiteKeyFile
 
 	if kitekey == "" {
@@ -365,7 +359,7 @@ func migrateKiteKey(cache *config.Cache) error {
 
 	konfig.KiteKey = string(p)
 
-	return makeUseFunc(&konfig)(cache)
+	return nil
 }
 
 func isFatal(err error) bool {
@@ -381,7 +375,7 @@ func mergeIn(kfg, mixin *config.Konfig) error {
 	return json.Unmarshal(p, kfg)
 }
 
-func setFlatKeyValue(m map[string]interface{}, key, value string) error {
+func SetFlatKeyValue(m map[string]interface{}, key, value string) error {
 	keys := strings.Split(key, ".")
 	it := m
 	last := len(keys) - 1
@@ -420,7 +414,7 @@ func setKonfig(cfg *config.Konfig, key, value string) error {
 		return err
 	}
 
-	if err := setFlatKeyValue(m, key, value); err != nil {
+	if err := SetFlatKeyValue(m, key, value); err != nil {
 		return err
 	}
 

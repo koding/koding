@@ -47,48 +47,6 @@ module.exports = (KONFIG, options, credentials) ->
       healthCheckURL    : "http://localhost:#{KONFIG.terraformer.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.terraformer.port}/version"
 
-    broker              :
-      group             : "webserver"
-      ports             :
-        incoming        : "#{KONFIG.broker.port}"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/broker"
-          watch         : "#{GOBIN}/watcher -run koding/broker"
-      nginx             :
-        websocket       : yes
-        locations       : [
-          { location    : "/websocket" }
-          { location    : "~^/subscribe/.*" }
-        ]
-      healthCheckURL    : "http://localhost:#{KONFIG.broker.port}/info"
-      versionURL        : "http://localhost:#{KONFIG.broker.port}/version"
-
-    rerouting           :
-      group             : "webserver"
-      supervisord       :
-        command         :
-          run           : "#{GOBIN}/rerouting"
-          watch         : "#{GOBIN}/watcher -run koding/rerouting"
-      healthCheckURL    : "http://localhost:#{KONFIG.rerouting.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.rerouting.port}/version"
-
-    authworker          :
-      group             : "webserver"
-      supervisord       :
-        command         : "./watch-node %(ENV_KONFIG_PROJECTROOT)s/workers/auth/index.js"
-      healthCheckURL    : "http://localhost:#{KONFIG.authWorker.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.authWorker.port}/version"
-
-    sourcemaps          :
-      group             : "webserver"
-      ports             :
-        incoming        : "#{KONFIG.sourcemaps.port}"
-      nginx             :
-        locations       : [ { location : "/sourcemaps" } ]
-      supervisord       :
-        command         : "./watch-node %(ENV_KONFIG_PROJECTROOT)s/servers/sourcemaps/index.js"
-
     webserver           :
       group             : "webserver"
       ports             :

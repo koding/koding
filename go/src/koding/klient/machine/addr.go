@@ -37,6 +37,11 @@ type AddrBook struct {
 	addrs []Addr
 }
 
+var (
+	_ json.Marshaler   = (*AddrBook)(nil)
+	_ json.Unmarshaler = (*AddrBook)(nil)
+)
+
 // Add adds new address to address book. If provided address already exists, its
 // updated time will be updated. Empty addresses will not be added.
 //
@@ -105,7 +110,7 @@ func (ab *AddrBook) Updated(a Addr) (time.Time, error) {
 	return time.Time{}, ErrAddrNotFound
 }
 
-// All returns copy of all addresses stored in Address book.
+// All returns a copy of all addresses stored in Address book.
 func (ab *AddrBook) All() (cp []Addr) {
 	ab.mu.RLock()
 	defer ab.mu.RUnlock()
@@ -151,5 +156,8 @@ func (ab *AddrBook) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON satisfies json.Unmarshaler interface. It is used to unmarshal
 // data into private address book fields.
 func (ab *AddrBook) UnmarshalJSON(data []byte) error {
+	ab.mu.Lock()
+	defer ab.mu.Unlock()
+
 	return json.Unmarshal(data, &ab.addrs)
 }

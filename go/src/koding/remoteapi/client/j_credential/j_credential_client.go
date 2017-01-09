@@ -41,6 +41,7 @@ func (a *Client) PostRemoteAPIJCredentialCloneID(params *PostRemoteAPIJCredentia
 		Params:             params,
 		Reader:             &PostRemoteAPIJCredentialCloneIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -68,6 +69,7 @@ func (a *Client) PostRemoteAPIJCredentialCreate(params *PostRemoteAPIJCredential
 		Params:             params,
 		Reader:             &PostRemoteAPIJCredentialCreateReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -95,6 +97,7 @@ func (a *Client) PostRemoteAPIJCredentialDeleteID(params *PostRemoteAPIJCredenti
 		Params:             params,
 		Reader:             &PostRemoteAPIJCredentialDeleteIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -122,6 +125,7 @@ func (a *Client) PostRemoteAPIJCredentialFetchDataID(params *PostRemoteAPIJCrede
 		Params:             params,
 		Reader:             &PostRemoteAPIJCredentialFetchDataIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -149,6 +153,7 @@ func (a *Client) PostRemoteAPIJCredentialFetchUsersID(params *PostRemoteAPIJCred
 		Params:             params,
 		Reader:             &PostRemoteAPIJCredentialFetchUsersIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -176,6 +181,7 @@ func (a *Client) PostRemoteAPIJCredentialIsBootstrappedID(params *PostRemoteAPIJ
 		Params:             params,
 		Reader:             &PostRemoteAPIJCredentialIsBootstrappedIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -203,6 +209,7 @@ func (a *Client) PostRemoteAPIJCredentialOne(params *PostRemoteAPIJCredentialOne
 		Params:             params,
 		Reader:             &PostRemoteAPIJCredentialOneReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -230,6 +237,7 @@ func (a *Client) PostRemoteAPIJCredentialShareWithID(params *PostRemoteAPIJCrede
 		Params:             params,
 		Reader:             &PostRemoteAPIJCredentialShareWithIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -257,6 +265,7 @@ func (a *Client) PostRemoteAPIJCredentialSome(params *PostRemoteAPIJCredentialSo
 		Params:             params,
 		Reader:             &PostRemoteAPIJCredentialSomeReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -284,6 +293,7 @@ func (a *Client) PostRemoteAPIJCredentialUpdateID(params *PostRemoteAPIJCredenti
 		Params:             params,
 		Reader:             &PostRemoteAPIJCredentialUpdateIDReader{formats: a.formats},
 		Context:            params.Context,
+		Client:             params.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

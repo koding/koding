@@ -25,7 +25,6 @@ import (
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	kmetrics "github.com/koding/metrics"
-	"github.com/koding/redis"
 	"github.com/koding/runner"
 	gometrics "github.com/rcrowley/go-metrics"
 	tigertonic "github.com/rcrowley/go-tigertonic"
@@ -279,11 +278,11 @@ func buildHandlerWithTimeTracking(handler http.Handler, r Request) http.Handler 
 	)
 }
 
-func BuildHandlerWithContext(handler http.Handler, redis *redis.RedisSession, log logging.Logger) http.Handler {
+func BuildHandlerWithContext(handler http.Handler, log logging.Logger) http.Handler {
 	// add context
 	return tigertonic.If(
 		func(r *http.Request) (http.Header, error) {
-			context := models.NewContext(redis, log)
+			context := models.NewContext(log)
 			context.GroupName = getGroupName(r)
 			context.Client = &models.Client{
 				Account:   getAccount(r, context.GroupName),

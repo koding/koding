@@ -74,22 +74,20 @@ module.exports = class EmailerWorker
 
   sendMail: (message) ->
 
+    to = message.Properties.Options.username = message.Properties.Username
     type = getEmailType message.Subject
+    template = (TEMPLATES message.Properties.Options)[type]
 
-    message.Properties.Options.username = message.Properties.Username
-    mail = (TEMPLATES message.Properties.Options)[type]
+    mail =
+      from    : KONFIG.email.defaultFromMail
+      to      : to
+      subject : template.subject
+      content : template.content
 
-    @log "sending #{type} mail to #{message.To}..."
+    @log "sending #{type} mail to #{to}..."
 
-    sendmail
-
-      from    : 'hello@koding.com'
-      to      : message.To
-      subject : mail.subject
-      content : mail.content
-
-    , (err) =>
+    sendmail mail, (err) =>
 
       if err
-      then @error "failed to send #{type} mail to #{message.To}", err
-      else @log "successfully sent #{type} mail to #{message.To}"
+      then @error "failed to send #{type} mail to #{to}"
+      else @log "successfully sent #{type} mail to #{to}"

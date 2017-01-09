@@ -1,4 +1,5 @@
 { Component, PropTypes } = React = require 'react'
+classnames = require 'classnames'
 
 Label = require 'lab/Text/Label'
 Button = require 'lab/Button'
@@ -16,12 +17,13 @@ module.exports = class Modal extends Component
     { isOpen, onAfterOpen, onRequestClose, children,
       shouldCloseOnOverlayClick, width, height, showAlien, className } = @props
 
-    className = [
+    className = classnames [
       styles.modal
       styles[width]
       styles[height]
       className
-    ].join ' '
+    ]
+
     <ReactModal
       className={className}
       overlayClassName={styles.overlay}
@@ -43,13 +45,13 @@ Modal.defaultProps =
 
 
 exports.Header = Modal.Header = ({ title, className }) ->
-  className = [
+  className = classnames [
     styles.header
     className
-  ].join ' '
+  ]
 
   <div className={className}>
-    <Label type="info">{title}</Label>
+    <Label size='xlarge' type="info">{title}</Label>
   </div>
 
 
@@ -60,28 +62,39 @@ exports.Content = Modal.Content = ({ children }) ->
 
 
 exports.Footer = Modal.Footer = (props) ->
-  { primaryButtonType, primaryButtonTitle, onPrimaryButtonClick,
-    secondaryButtonType, secondaryButtonTitle, onSecondaryButtonClick, className, size } = props
-  className = [
+  { primaryButtonType, primaryButtonSize
+    primaryButtonTitle, onPrimaryButtonClick } = props
+
+  { secondaryButtonType, secondaryButtonSize
+    secondaryButtonTitle, onSecondaryButtonClick } = props
+
+  { className } = props
+
+  className = classnames [
     styles.footer
     className
-  ].join ' '
+  ]
+
   <div className={className}>
     <div className={styles.footerContainer}>
-      <Button type={secondaryButtonType} size={'small' if not size} onClick={onSecondaryButtonClick}>
+
+      <Button type={secondaryButtonType} size={primaryButtonSize} onClick={onSecondaryButtonClick}>
         {secondaryButtonTitle}
       </Button>
-      <Button type={primaryButtonType} size={'small' if not size} onClick={onPrimaryButtonClick}>
+
+      <Button type={primaryButtonType} size={secondaryButtonSize} onClick={onPrimaryButtonClick}>
         {primaryButtonTitle}
       </Button>
+
     </div>
   </div>
 
 Modal.Footer.defaultProps =
   primaryButtonType: 'primary-1'
   secondaryButtonType: 'secondary'
+  primaryButtonSize: 'small'
+  secondaryButtonSize: 'small'
   primaryButtonTitle: 'Primary'
   secondaryButtonTitle: 'Secondary'
   onPrimaryButtonClick: noop
   onSecondaryButtonClick: noop
-

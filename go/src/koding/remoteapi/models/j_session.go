@@ -20,6 +20,9 @@ type JSession struct {
 	// client Id
 	ClientID string `json:"clientId,omitempty"`
 
+	// data
+	Data interface{} `json:"data,omitempty"`
+
 	// foreign auth
 	ForeignAuth *JSessionForeignAuth `json:"foreignAuth,omitempty"`
 
@@ -81,6 +84,9 @@ func (m *JSession) validateForeignAuth(formats strfmt.Registry) error {
 	if m.ForeignAuth != nil {
 
 		if err := m.ForeignAuth.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("foreignAuth")
+			}
 			return err
 		}
 	}
