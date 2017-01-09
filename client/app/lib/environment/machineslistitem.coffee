@@ -3,7 +3,6 @@ JView                  = require 'app/jview'
 actions                = require 'app/flux/environment/actions'
 showError              = require 'app/util/showError'
 KodingSwitch           = require 'app/commonviews/kodingswitch'
-isTeamReactSide        = require 'app/util/isTeamReactSide'
 ComputeErrorUsageModal = require '../providers/computeerrorusagemodal'
 
 
@@ -105,7 +104,7 @@ module.exports = class MachinesListItem extends kd.ListItemView
 
     stack.modify { config }
 
-    actions.loadStacks yes  if isTeamReactSide()
+    actions.loadStacks yes
 
 
   pistachio: ->

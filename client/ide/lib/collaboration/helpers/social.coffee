@@ -2,7 +2,6 @@ kd                            = require 'kd'
 remote                        = require 'app/remote'
 getNick                       = require 'app/util/nick'
 actionTypes                   = require 'app/flux/socialapi/actions/actiontypes'
-isTeamReactSide               = require 'app/util/isTeamReactSide'
 getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
 
 
@@ -55,7 +54,7 @@ fetchChannel = (id, callback) ->
   kd.singletons.socialapi.cacheable 'channel', id, (err, channel) ->
     callback err, channel
 
-    if isTeamReactSide() and channel
+    if channel
       kd.singletons.reactor.dispatch actionTypes.LOAD_CHANNEL_SUCCESS, {
         channelId : id,
         channel

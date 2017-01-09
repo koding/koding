@@ -22,7 +22,6 @@ ReadmeView              = require './environmentsmachinereadmeview'
 whoami                  = require 'app/util/whoami'
 showError               = require 'app/util/showError'
 applyMarkdown           = require 'app/util/applyMarkdown'
-isTeamReactSide         = require 'app/util/isTeamReactSide'
 sendDataDogEvent        = require 'app/util/sendDataDogEvent'
 trackInitialTurnOn      = require 'app/util/trackInitialTurnOn'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
@@ -422,7 +421,7 @@ module.exports = class EnvironmentsMachineStateModal extends BaseModalView
                         Terminating, Updating, Rebooting ]
 
       percentage = response?.percentage
-      percentage = 100  if isTeamReactSide() and @state is Stopping
+      percentage = 100  if @state is Stopping
 
       @createProgressBar percentage
       @triggerEventTimer percentage
