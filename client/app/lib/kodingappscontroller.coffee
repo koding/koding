@@ -15,7 +15,6 @@ AppClasses =
   finder: require 'finder'
   home: require 'home'
   ide: require 'ide'
-  kites: require 'kites'
   'stack-editor': do ->
     if Cookies.get 'use-nse'
     then require 'new-stack-editor'
