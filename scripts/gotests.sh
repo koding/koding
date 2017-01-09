@@ -14,6 +14,19 @@ function compile () {
     go list -f '{{if len .TestGoFiles}}"go test -v -cover -c {{.ImportPath}} -o={{.Dir}}/{{.Name}}.test "{{end}}' $1 | grep -v vendor | xargs -L 1 -I{} $action "{}$COMPILE_FLAGS"
 }
 
+
+# compileWithCoverPkg uses -coverpkg flag to test with coverage
+# this satisfies to cover the subpackages of tests
+function compileWithCoverPkg () {
+    # list the packages
+    export PKGS=$(go list $1 | /usr/bin/grep -v /vendor/)
+
+    # make comma-separated
+    export PKGS_DELIM=$(echo "$PKGS" | paste -sd "," -)
+
+    go list -f '{{if len .TestGoFiles}}"go test -v -cover -c {{.ImportPath}} -o={{.Dir}}/{{.Name}}.test -coverpkg='$PKGS_DELIM' "{{end}}' $PKGS | grep -v vendor | xargs -L 1 -I{} $action "{}$COMPILE_FLAGS"
+}
+
 # run runs the binary file that created before (with compile function)
 # this function runs the binary with given RUN_FLAGS
 # RUN_FLAGS values might be config file or any value if required like
@@ -28,7 +41,7 @@ function runWithCD () {
     go list -f '{{if len .TestGoFiles}}"cd {{.Dir}} && ./{{.Name}}.test -test.coverprofile={{.Dir}}/coverage.txt "{{end}}' $1 | grep -v vendor | xargs -L 1 -I{} $action "{}$RUN_FLAGS"
 }
 
-# clean removes the .tests files after creation 
+# clean removes the .tests files after creation
 function clean () {
     go list -f '{{if len .TestGoFiles}}"rm {{.Dir}}/{{.Name}}.test "{{end}}' $1 | xargs -L 1 $action
 }
@@ -52,6 +65,16 @@ elif  [ "$1" == "kites" ]; then
     compile  $@
     runWithCD $@
     clean $@
+
+elif  [ "$1" == "cover" ]; then
+    shift
+    export RUN_FLAGS=${RUN_FLAGS:-"-c=./go/src/socialapi/config/dev.toml"}
+    export COMPILE_FLAGS=${COMPILE_FLAGS:-"-race"}
+
+    compileWithCoverPkg $@
+    run $@
+    clean $@
+
 else
   runAll $@
 fi
