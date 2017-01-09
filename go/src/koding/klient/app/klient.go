@@ -517,9 +517,9 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("machine.id", machinegroup.KiteHandlerID(k.machines))
 	k.kite.HandleFunc("machine.ssh", machinegroup.KiteHandlerSSH(k.machines))
 
-	// Machine mount index handlers.
-	k.handleWithSub("machine.mount.index.head", index.KiteHandlerHead())
-	k.handleWithSub("machine.mount.index.get", index.KiteHandlerGet())
+	// Machine index handlers.
+	k.handleWithSub("machine.index.head", index.KiteHandlerHead())
+	k.handleWithSub("machine.index.get", index.KiteHandlerGet())
 
 	// Vagrant
 	k.kite.HandleFunc("vagrant.create", k.vagrant.Create)

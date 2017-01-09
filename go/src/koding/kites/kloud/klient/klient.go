@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"koding/klient/machine/mount/index"
 	"koding/klient/sshkeys"
 
 	"github.com/koding/kite"
@@ -337,4 +338,48 @@ func (k *Klient) SSHAddKeys(username string, keys ...string) error {
 	// TODO(ppknap): currently sshkeys.add method can return either nil or true
 	// as its response. Add proper support for this.
 	return nil
+}
+
+// MountHeadIndex returns the number and the overall size of files in a given
+// remote directory.
+func (k *Klient) MountHeadIndex(path string) (absPath string, count int, diskSize int64, err error) {
+	headReq := index.Request{
+		Path: path,
+	}
+
+	headRaw, err := k.Client.TellWithTimeout("machine.index.head", k.timeout(), headReq)
+	if err != nil {
+		return "", 0, 0, err
+	}
+
+	headRes := index.HeadResponse{}
+	if err := headRaw.Unmarshal(&headRes); err != nil {
+		return "", 0, 0, err
+	}
+
+	return headRes.AbsPath, headRes.Count, headRes.DiskSize, nil
+}
+
+// MountGetIndex returns an index that describes the current state of remote
+// directory.
+func (k *Klient) MountGetIndex(path string) (*index.Index, error) {
+	getReq := index.Request{
+		Path: path,
+	}
+
+	getRaw, err := k.Client.TellWithTimeout("machine.index.get", k.timeout(), getReq)
+	if err != nil {
+		return nil, err
+	}
+
+	getRes := index.GetResponse{}
+	if err := getRaw.Unmarshal(&getRes); err != nil {
+		return nil, err
+	}
+
+	if getRes.Index == nil {
+		return nil, errors.New("retrieved index is nil")
+	}
+
+	return getRes.Index, nil
 }

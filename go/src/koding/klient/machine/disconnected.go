@@ -3,6 +3,8 @@ package machine
 import (
 	"context"
 	"errors"
+
+	"koding/klient/machine/mount/index"
 )
 
 var (
@@ -42,4 +44,14 @@ func (DisconnectedClient) CurrentUser() (string, error) {
 // SSHAddKeys always returns ErrDisconnected error.
 func (DisconnectedClient) SSHAddKeys(_ string, _ ...string) error {
 	return ErrDisconnected
+}
+
+// MountHeadIndex always returns ErrDisconnected error.
+func (DisconnectedClient) MountHeadIndex(_ string) (string, int, int64, error) {
+	return "", 0, 0, ErrDisconnected
+}
+
+// MountGetIndex always returns ErrDisconnected error.
+func (DisconnectedClient) MountGetIndex(_ string) (*index.Index, error) {
+	return nil, ErrDisconnected
 }
