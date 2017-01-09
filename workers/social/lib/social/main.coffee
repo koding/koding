@@ -123,10 +123,8 @@ do ->
     nodejsProfiler = new NodejsProfiler 'socialWorker'
     nodejsProfiler.startMonitoring()
 
-  compression = require 'compression'
   bodyParser = require 'body-parser'
 
-  app.use compression()
   app.use bodyParser.json { limit: '2mb' }
 
   helmet.defaults app

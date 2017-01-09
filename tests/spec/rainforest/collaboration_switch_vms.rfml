@@ -3,6 +3,7 @@
 # start_uri: /
 # tags: automated
 
+# ide_switch_vms is embedded
 - a8cdb653-6e46-4e0f-885a-e921684a22f7
 
 # redirect: false

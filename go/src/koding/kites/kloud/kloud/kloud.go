@@ -239,6 +239,11 @@ func New(conf *Config) (*Kloud, error) {
 	transport := &api.Transport{
 		RoundTripper: storeOpts.Client.Transport,
 		AuthFunc:     api.NewCache(authFn).Auth,
+		Debug:        conf.DebugMode,
+	}
+
+	if conf.DebugMode {
+		transport.Log = sess.Log
 	}
 
 	kloud.Stack.Endpoints = e

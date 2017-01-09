@@ -89,7 +89,7 @@ build:
         code: go/build.sh
     - script:
         name: test go koding config
-        code: scripts/wercker/run-command ./run exec go test -v --race koding/kites/config
+        code: scripts/wercker/run-command ./run exec ./scripts/gotests.sh kites koding/kites/config
     - script:
         name: ensure JSON and generated files in go/src/koding are not stale
         code: scripts/check-generated-files.sh
@@ -104,10 +104,10 @@ build:
         code: scripts/wercker/run-command go/src/koding/kites/e2etest/e2etest.sh
     - script:
         name: test providers
-        code: scripts/wercker/run-command ./run exec go test -v -race koding/kites/kloud/provider/...
+        code: scripts/wercker/run-command ./scripts/gotests.sh kites koding/kites/kloud/provider/...
     - script:
         name: test koding/api
-        code: scripts/wercker/run-command ./run exec go test -v -race koding/api/...
+        code: env COMPILE_FLAGS="-race" scripts/wercker/run-command ./scripts/gotests.sh koding/api/...
     - script:
         name: build backend finished
         code: scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build backend finished" "building" 40
@@ -134,11 +134,14 @@ build:
         code: scripts/wercker/run-command ./run exec go test koding/db/mongodb/modelhelper
     - script:
         name: test kontrol
-        code: scripts/wercker/run-command ./run exec go test koding/kites/kontrol/kontrol -v
+        code: scripts/wercker/run-command ./scripts/gotests.sh koding/kites/kontrol/kontrol
     - script:
         name: testing backend finished
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend finished" "building" 45
+    - script:
+        name: send test coverages
+        code: bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -X gcov -X fix
     - script:
         name: delete deployment credentials
         code: |
@@ -227,8 +230,6 @@ deploy:
           cd $WERCKER_ROOT
 
           ./configure --without-envvars --config $CONFIG --projectRoot /opt/koding --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
-
-          ./scripts/install-npm.sh -d client -u
 
           make -C client dist
     - script:

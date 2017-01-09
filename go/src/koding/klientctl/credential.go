@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"koding/kites/config"
 	"koding/kites/kloud/stack"
 	"koding/klientctl/endpoint/credential"
+	"koding/klientctl/endpoint/team"
 	"koding/klientctl/helper"
 
 	"github.com/codegangsta/cli"
@@ -147,9 +149,13 @@ func AskCredentialCreate(c *cli.Context) (*credential.CreateOptions, error) {
 
 	// TODO(rjeczalik): remove when support for generic team is implemented
 	if opts.Team == "" {
-		opts.Team, err = helper.Ask("Team name []: ")
+		opts.Team, err = helper.Ask("Team name [%s]: ", team.Used().Name)
 		if err != nil {
 			return nil, err
+		}
+
+		if opts.Team == "" {
+			opts.Team = team.Used().Name
 		}
 	}
 
@@ -247,14 +253,37 @@ func CredentialDescribe(c *cli.Context, log logging.Logger, _ string) (int, erro
 	return 0, nil
 }
 
+func CredentialUse(c *cli.Context, _ logging.Logger, _ string) (int, error) {
+	if c.NArg() != 1 {
+		cli.ShowCommandHelp(c, "use")
+		return 1, errors.New("missing argument")
+	}
+
+	arg := c.Args().Get(0)
+
+	if err := credential.Use(arg); err != nil {
+		return 1, errors.New("error changing default credential: " + err.Error())
+	}
+
+	return 0, nil
+}
+
 func printCreds(creds []stack.CredentialItem) {
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
 	defer w.Flush()
 
-	fmt.Fprintln(w, "ID\tTITLE\tTEAM\tPROVIDER")
+	used := credential.Used()
+
+	fmt.Fprintln(w, "ID\tTITLE\tTEAM\tPROVIDER\tUSED")
 
 	for _, cred := range creds {
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", cred.Identifier, cred.Title, cred.Team, cred.Provider)
+		isused := "-"
+
+		if ident, ok := used[cred.Provider]; ok && cred.Identifier == ident {
+			isused = "default"
+		}
+
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", cred.Identifier, cred.Title, cred.Team, cred.Provider, isused)
 	}
 }
 

@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"strings"
 	"sync"
@@ -140,6 +141,7 @@ type Transport struct {
 	Host              string         // original Host name, overwrites req.Host; optional
 	RetryNum          int            // number of retries in case of temporary failures; optional, by default 3
 	Log               logging.Logger // logger to use
+	Debug             bool           // whether to dump HTTP request/response
 
 	// request mapping implementation stolen from:
 	//
@@ -163,6 +165,8 @@ func (t *Transport) NewSingleUser(u *User) http.RoundTripper {
 		UserFunc:     func(*http.Request) *User { return u },
 		Host:         t.Host,
 		RetryNum:     t.RetryNum,
+		Log:          t.Log,
+		Debug:        t.Debug,
 	}
 }
 
@@ -227,7 +231,18 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 			reqCopy.Host = t.Host
 		}
 
+		if t.Debug {
+			p, err := httputil.DumpRequestOut(reqCopy, true)
+			t.log().Debug("[request] %s (err=%v)", p, err)
+		}
+
 		resp, err := t.roundTripper().RoundTrip(reqCopy)
+
+		if t.Debug {
+			p, err := httputil.DumpResponse(resp, true)
+			t.log().Debug("[response] %s (err=%v)", p, err)
+		}
+
 		if e, ok := err.(net.Error); ok && (e.Temporary() || e.Timeout()) {
 			lastErr = err
 			continue // retry

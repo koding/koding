@@ -6,9 +6,16 @@ import (
 
 	"koding/kites/terraformer"
 
+	"github.com/hashicorp/terraform/config"
 	"github.com/koding/logging"
 	"github.com/koding/multiconfig"
 )
+
+func init() {
+	if _, ok := config.Funcs()["file"]; ok {
+		panic("file interpolation function exists")
+	}
+}
 
 func main() {
 	conf := &terraformer.Config{}
