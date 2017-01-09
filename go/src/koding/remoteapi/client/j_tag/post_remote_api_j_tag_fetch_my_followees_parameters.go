@@ -57,7 +57,7 @@ type PostRemoteAPIJTagFetchMyFolloweesParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJTagFetchMyFolloweesParams) SetContext(ctx context.Context
 }
 
 // WithBody adds the body to the post remote API j tag fetch my followees params
-func (o *PostRemoteAPIJTagFetchMyFolloweesParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJTagFetchMyFolloweesParams {
+func (o *PostRemoteAPIJTagFetchMyFolloweesParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJTagFetchMyFolloweesParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j tag fetch my followees params
-func (o *PostRemoteAPIJTagFetchMyFolloweesParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJTagFetchMyFolloweesParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJTagFetchMyFolloweesParams) WriteToRequest(r runtime.Clien
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJCombinedAppStorageUpsertIDParams creates a new PostRemoteAPIJCombinedAppStorageUpsertIDParams object
@@ -51,6 +53,11 @@ for the post remote API j combined app storage upsert ID operation typically the
 */
 type PostRemoteAPIJCombinedAppStorageUpsertIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJCombinedAppStorageUpsertIDParams) SetContext(ctx context.
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j combined app storage upsert ID params
+func (o *PostRemoteAPIJCombinedAppStorageUpsertIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJCombinedAppStorageUpsertIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j combined app storage upsert ID params
+func (o *PostRemoteAPIJCombinedAppStorageUpsertIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j combined app storage upsert ID params
 func (o *PostRemoteAPIJCombinedAppStorageUpsertIDParams) WithID(id string) *PostRemoteAPIJCombinedAppStorageUpsertIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJCombinedAppStorageUpsertIDParams) WriteToRequest(r runtim
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

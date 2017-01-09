@@ -2,8 +2,12 @@ kd = require 'kd'
 AppController = require 'app/appcontroller'
 showErrorNotification = require 'app/util/showErrorNotification'
 
+EnvironmentFlux = require 'app/flux/environment'
+
+Events = require './events'
 StackEditor = require './views'
 StackWizardModal = require './views/wizard/stackwizardmodal'
+
 
 { markAsLoaded, log } = require './helpers'
 
@@ -40,7 +44,7 @@ module.exports = class StackEditorAppController extends AppController
     @templates = {}
     @mainView.addSubView @stackEditor = new StackEditor
 
-    @stackEditor.on 'InitializeRequested', @bound 'initializeStack'
+    @stackEditor.on Events.InitializeRequested, @bound 'initializeStack'
 
 
   openEditor: (templateId, reset = no) ->
@@ -81,3 +85,17 @@ module.exports = class StackEditorAppController extends AppController
 
     console.trace()
     log '::initializeStack', template
+
+    if @stackEditor.sideView.hasClass 'hidden'
+    then @stackEditor.sideView.show 'credentials'
+    else @stackEditor.sideView.hide()
+
+
+  createStackTemplate: (provider) ->
+
+    unless provider
+      return console.warn 'Provider is required!'
+
+    EnvironmentFlux.actions.createStackTemplateWithDefaults provider
+      .then ({ stackTemplate }) ->
+        kd.singletons.router.handleRoute "/Stack-Editor/#{stackTemplate._id}"

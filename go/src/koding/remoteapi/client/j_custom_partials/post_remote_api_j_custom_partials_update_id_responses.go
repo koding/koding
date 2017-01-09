@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJCustomPartialsUpdateIDOK() *PostRemoteAPIJCustomPartialsUp
 OK
 */
 type PostRemoteAPIJCustomPartialsUpdateIDOK struct {
-	Payload *models.JCustomPartials
+	Payload PostRemoteAPIJCustomPartialsUpdateIDOKBody
 }
 
 func (o *PostRemoteAPIJCustomPartialsUpdateIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJCustomPartialsUpdateIDOK) Error() string {
 
 func (o *PostRemoteAPIJCustomPartialsUpdateIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JCustomPartials)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJCustomPartialsUpdateIDOKBody post remote API j custom partials update ID o k body
+swagger:model PostRemoteAPIJCustomPartialsUpdateIDOKBody
+*/
+type PostRemoteAPIJCustomPartialsUpdateIDOKBody struct {
+	models.JCustomPartials
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJCustomPartialsUpdateIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJCustomPartialsUpdateIDOKBodyAO0 models.JCustomPartials
+	if err := swag.ReadJSON(raw, &postRemoteAPIJCustomPartialsUpdateIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JCustomPartials = postRemoteAPIJCustomPartialsUpdateIDOKBodyAO0
+
+	var postRemoteAPIJCustomPartialsUpdateIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJCustomPartialsUpdateIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJCustomPartialsUpdateIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJCustomPartialsUpdateIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJCustomPartialsUpdateIDOKBodyAO0, err := swag.WriteJSON(o.JCustomPartials)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJCustomPartialsUpdateIDOKBodyAO0)
+
+	postRemoteAPIJCustomPartialsUpdateIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJCustomPartialsUpdateIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j custom partials update ID o k body
+func (o *PostRemoteAPIJCustomPartialsUpdateIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JCustomPartials.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

@@ -57,7 +57,7 @@ type PostRemoteAPIJInvitationSearchParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJInvitationSearchParams) SetContext(ctx context.Context) {
 }
 
 // WithBody adds the body to the post remote API j invitation search params
-func (o *PostRemoteAPIJInvitationSearchParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJInvitationSearchParams {
+func (o *PostRemoteAPIJInvitationSearchParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJInvitationSearchParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j invitation search params
-func (o *PostRemoteAPIJInvitationSearchParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJInvitationSearchParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJInvitationSearchParams) WriteToRequest(r runtime.ClientRe
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

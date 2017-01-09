@@ -124,6 +124,9 @@ func (m *JStackTemplate) validateTemplate(formats strfmt.Registry) error {
 	if m.Template != nil {
 
 		if err := m.Template.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("template")
+			}
 			return err
 		}
 	}

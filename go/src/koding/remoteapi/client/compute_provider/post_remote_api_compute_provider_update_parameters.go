@@ -57,7 +57,7 @@ type PostRemoteAPIComputeProviderUpdateParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIComputeProviderUpdateParams) SetContext(ctx context.Contex
 }
 
 // WithBody adds the body to the post remote API compute provider update params
-func (o *PostRemoteAPIComputeProviderUpdateParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIComputeProviderUpdateParams {
+func (o *PostRemoteAPIComputeProviderUpdateParams) WithBody(body models.DefaultSelector) *PostRemoteAPIComputeProviderUpdateParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API compute provider update params
-func (o *PostRemoteAPIComputeProviderUpdateParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIComputeProviderUpdateParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIComputeProviderUpdateParams) WriteToRequest(r runtime.Clie
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJGroupFetchSubscriptionIDOK() *PostRemoteAPIJGroupFetchSubs
 OK
 */
 type PostRemoteAPIJGroupFetchSubscriptionIDOK struct {
-	Payload *models.JGroup
+	Payload PostRemoteAPIJGroupFetchSubscriptionIDOKBody
 }
 
 func (o *PostRemoteAPIJGroupFetchSubscriptionIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJGroupFetchSubscriptionIDOK) Error() string {
 
 func (o *PostRemoteAPIJGroupFetchSubscriptionIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JGroup)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJGroupFetchSubscriptionIDOKBody post remote API j group fetch subscription ID o k body
+swagger:model PostRemoteAPIJGroupFetchSubscriptionIDOKBody
+*/
+type PostRemoteAPIJGroupFetchSubscriptionIDOKBody struct {
+	models.JGroup
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJGroupFetchSubscriptionIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJGroupFetchSubscriptionIDOKBodyAO0 models.JGroup
+	if err := swag.ReadJSON(raw, &postRemoteAPIJGroupFetchSubscriptionIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JGroup = postRemoteAPIJGroupFetchSubscriptionIDOKBodyAO0
+
+	var postRemoteAPIJGroupFetchSubscriptionIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJGroupFetchSubscriptionIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJGroupFetchSubscriptionIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJGroupFetchSubscriptionIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJGroupFetchSubscriptionIDOKBodyAO0, err := swag.WriteJSON(o.JGroup)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJGroupFetchSubscriptionIDOKBodyAO0)
+
+	postRemoteAPIJGroupFetchSubscriptionIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJGroupFetchSubscriptionIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j group fetch subscription ID o k body
+func (o *PostRemoteAPIJGroupFetchSubscriptionIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JGroup.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

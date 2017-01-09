@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJProposedDomainBindMachineIDParams creates a new PostRemoteAPIJProposedDomainBindMachineIDParams object
@@ -51,6 +53,11 @@ for the post remote API j proposed domain bind machine ID operation typically th
 */
 type PostRemoteAPIJProposedDomainBindMachineIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJProposedDomainBindMachineIDParams) SetContext(ctx context
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j proposed domain bind machine ID params
+func (o *PostRemoteAPIJProposedDomainBindMachineIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJProposedDomainBindMachineIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j proposed domain bind machine ID params
+func (o *PostRemoteAPIJProposedDomainBindMachineIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j proposed domain bind machine ID params
 func (o *PostRemoteAPIJProposedDomainBindMachineIDParams) WithID(id string) *PostRemoteAPIJProposedDomainBindMachineIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJProposedDomainBindMachineIDParams) WriteToRequest(r runti
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJProvisionerUpdateIDOK() *PostRemoteAPIJProvisionerUpdateID
 OK
 */
 type PostRemoteAPIJProvisionerUpdateIDOK struct {
-	Payload *models.JProvisioner
+	Payload PostRemoteAPIJProvisionerUpdateIDOKBody
 }
 
 func (o *PostRemoteAPIJProvisionerUpdateIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJProvisionerUpdateIDOK) Error() string {
 
 func (o *PostRemoteAPIJProvisionerUpdateIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JProvisioner)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJProvisionerUpdateIDOKBody post remote API j provisioner update ID o k body
+swagger:model PostRemoteAPIJProvisionerUpdateIDOKBody
+*/
+type PostRemoteAPIJProvisionerUpdateIDOKBody struct {
+	models.JProvisioner
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJProvisionerUpdateIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJProvisionerUpdateIDOKBodyAO0 models.JProvisioner
+	if err := swag.ReadJSON(raw, &postRemoteAPIJProvisionerUpdateIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JProvisioner = postRemoteAPIJProvisionerUpdateIDOKBodyAO0
+
+	var postRemoteAPIJProvisionerUpdateIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJProvisionerUpdateIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJProvisionerUpdateIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJProvisionerUpdateIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJProvisionerUpdateIDOKBodyAO0, err := swag.WriteJSON(o.JProvisioner)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJProvisionerUpdateIDOKBodyAO0)
+
+	postRemoteAPIJProvisionerUpdateIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJProvisionerUpdateIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j provisioner update ID o k body
+func (o *PostRemoteAPIJProvisionerUpdateIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JProvisioner.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

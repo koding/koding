@@ -41,6 +41,25 @@ func TestExpandsKnownRef(t *testing.T) {
 	}
 }
 
+func TestExpandResponseSchema(t *testing.T) {
+	fp := "./fixtures/local_expansion/spec.json"
+	b, err := jsonDoc(fp)
+	if assert.NoError(t, err) {
+		var spec Swagger
+		if err := json.Unmarshal(b, &spec); assert.NoError(t, err) {
+			err := ExpandSpec(&spec, &ExpandOptions{RelativeBase: fp})
+			if assert.NoError(t, err) {
+				sch := spec.Paths.Paths["/item"].Get.Responses.StatusCodeResponses[200].Schema
+				if assert.NotNil(t, sch) {
+					assert.Empty(t, sch.Ref.String())
+					assert.Contains(t, sch.Type, "object")
+					assert.Len(t, sch.Properties, 2)
+				}
+			}
+		}
+	}
+}
+
 func TestSpecExpansion(t *testing.T) {
 	spec := new(Swagger)
 	// resolver, err := defaultSchemaLoader(spec, nil, nil)
@@ -516,7 +535,7 @@ func resolutionContextServer() *httptest.Server {
 			b, _ := json.Marshal(map[string]interface{}{
 				"type": "boolean",
 			})
-			rw.Write(b)
+			_, _ = rw.Write(b)
 			return
 		}
 
@@ -568,7 +587,7 @@ func TestResolveRemoteRef_RootSame(t *testing.T) {
 		var result_1 Swagger
 		ref_1, _ := NewRef("./refed.json")
 		resolver_1, _ := defaultSchemaLoader(rootDoc, nil, &ExpandOptions{
-			RelativeBase: ("./fixtures/specs"),
+			RelativeBase: (specs),
 		}, nil)
 		if assert.NoError(t, resolver_1.Resolve(&ref_1, &result_1)) {
 			assertSpecs(t, result_1, *rootDoc)

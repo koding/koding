@@ -57,7 +57,7 @@ type PostRemoteAPISocialMessageSendPrivateMessageParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPISocialMessageSendPrivateMessageParams) SetContext(ctx cont
 }
 
 // WithBody adds the body to the post remote API social message send private message params
-func (o *PostRemoteAPISocialMessageSendPrivateMessageParams) WithBody(body *models.DefaultSelector) *PostRemoteAPISocialMessageSendPrivateMessageParams {
+func (o *PostRemoteAPISocialMessageSendPrivateMessageParams) WithBody(body models.DefaultSelector) *PostRemoteAPISocialMessageSendPrivateMessageParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API social message send private message params
-func (o *PostRemoteAPISocialMessageSendPrivateMessageParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPISocialMessageSendPrivateMessageParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPISocialMessageSendPrivateMessageParams) WriteToRequest(r ru
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

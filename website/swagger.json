@@ -4496,6 +4496,10 @@
                 "credentials": {
                   "type": "object",
                   "properties": {}
+                },
+                "config": {
+                  "type": "object",
+                  "properties": {}
                 }
               }
             },

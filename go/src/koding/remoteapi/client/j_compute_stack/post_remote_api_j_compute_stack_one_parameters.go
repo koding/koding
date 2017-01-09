@@ -57,7 +57,7 @@ type PostRemoteAPIJComputeStackOneParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJComputeStackOneParams) SetContext(ctx context.Context) {
 }
 
 // WithBody adds the body to the post remote API j compute stack one params
-func (o *PostRemoteAPIJComputeStackOneParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJComputeStackOneParams {
+func (o *PostRemoteAPIJComputeStackOneParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJComputeStackOneParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j compute stack one params
-func (o *PostRemoteAPIJComputeStackOneParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJComputeStackOneParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJComputeStackOneParams) WriteToRequest(r runtime.ClientReq
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

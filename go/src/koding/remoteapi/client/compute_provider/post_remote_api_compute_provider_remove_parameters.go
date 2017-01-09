@@ -57,7 +57,7 @@ type PostRemoteAPIComputeProviderRemoveParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIComputeProviderRemoveParams) SetContext(ctx context.Contex
 }
 
 // WithBody adds the body to the post remote API compute provider remove params
-func (o *PostRemoteAPIComputeProviderRemoveParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIComputeProviderRemoveParams {
+func (o *PostRemoteAPIComputeProviderRemoveParams) WithBody(body models.DefaultSelector) *PostRemoteAPIComputeProviderRemoveParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API compute provider remove params
-func (o *PostRemoteAPIComputeProviderRemoveParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIComputeProviderRemoveParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIComputeProviderRemoveParams) WriteToRequest(r runtime.Clie
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

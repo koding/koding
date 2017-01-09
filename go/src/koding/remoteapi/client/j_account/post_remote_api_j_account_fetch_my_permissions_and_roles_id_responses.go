@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJAccountFetchMyPermissionsAndRolesIDOK() *PostRemoteAPIJAcc
 OK
 */
 type PostRemoteAPIJAccountFetchMyPermissionsAndRolesIDOK struct {
-	Payload *models.JAccount
+	Payload PostRemoteAPIJAccountFetchMyPermissionsAndRolesIDOKBody
 }
 
 func (o *PostRemoteAPIJAccountFetchMyPermissionsAndRolesIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJAccountFetchMyPermissionsAndRolesIDOK) Error() string {
 
 func (o *PostRemoteAPIJAccountFetchMyPermissionsAndRolesIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JAccount)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJAccountFetchMyPermissionsAndRolesIDOKBody post remote API j account fetch my permissions and roles ID o k body
+swagger:model PostRemoteAPIJAccountFetchMyPermissionsAndRolesIDOKBody
+*/
+type PostRemoteAPIJAccountFetchMyPermissionsAndRolesIDOKBody struct {
+	models.JAccount
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJAccountFetchMyPermissionsAndRolesIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJAccountFetchMyPermissionsAndRolesIDOKBodyAO0 models.JAccount
+	if err := swag.ReadJSON(raw, &postRemoteAPIJAccountFetchMyPermissionsAndRolesIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JAccount = postRemoteAPIJAccountFetchMyPermissionsAndRolesIDOKBodyAO0
+
+	var postRemoteAPIJAccountFetchMyPermissionsAndRolesIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJAccountFetchMyPermissionsAndRolesIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJAccountFetchMyPermissionsAndRolesIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJAccountFetchMyPermissionsAndRolesIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJAccountFetchMyPermissionsAndRolesIDOKBodyAO0, err := swag.WriteJSON(o.JAccount)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJAccountFetchMyPermissionsAndRolesIDOKBodyAO0)
+
+	postRemoteAPIJAccountFetchMyPermissionsAndRolesIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJAccountFetchMyPermissionsAndRolesIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j account fetch my permissions and roles ID o k body
+func (o *PostRemoteAPIJAccountFetchMyPermissionsAndRolesIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JAccount.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

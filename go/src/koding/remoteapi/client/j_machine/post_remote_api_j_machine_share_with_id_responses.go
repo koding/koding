@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJMachineShareWithIDOK() *PostRemoteAPIJMachineShareWithIDOK
 OK
 */
 type PostRemoteAPIJMachineShareWithIDOK struct {
-	Payload *models.JMachine
+	Payload PostRemoteAPIJMachineShareWithIDOKBody
 }
 
 func (o *PostRemoteAPIJMachineShareWithIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJMachineShareWithIDOK) Error() string {
 
 func (o *PostRemoteAPIJMachineShareWithIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JMachine)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJMachineShareWithIDOKBody post remote API j machine share with ID o k body
+swagger:model PostRemoteAPIJMachineShareWithIDOKBody
+*/
+type PostRemoteAPIJMachineShareWithIDOKBody struct {
+	models.JMachine
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJMachineShareWithIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJMachineShareWithIDOKBodyAO0 models.JMachine
+	if err := swag.ReadJSON(raw, &postRemoteAPIJMachineShareWithIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JMachine = postRemoteAPIJMachineShareWithIDOKBodyAO0
+
+	var postRemoteAPIJMachineShareWithIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJMachineShareWithIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJMachineShareWithIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJMachineShareWithIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJMachineShareWithIDOKBodyAO0, err := swag.WriteJSON(o.JMachine)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJMachineShareWithIDOKBodyAO0)
+
+	postRemoteAPIJMachineShareWithIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJMachineShareWithIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j machine share with ID o k body
+func (o *PostRemoteAPIJMachineShareWithIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JMachine.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

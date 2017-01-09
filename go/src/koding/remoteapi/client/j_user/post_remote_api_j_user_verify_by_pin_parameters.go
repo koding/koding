@@ -57,7 +57,7 @@ type PostRemoteAPIJUserVerifyByPinParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJUserVerifyByPinParams) SetContext(ctx context.Context) {
 }
 
 // WithBody adds the body to the post remote API j user verify by pin params
-func (o *PostRemoteAPIJUserVerifyByPinParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJUserVerifyByPinParams {
+func (o *PostRemoteAPIJUserVerifyByPinParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJUserVerifyByPinParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j user verify by pin params
-func (o *PostRemoteAPIJUserVerifyByPinParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJUserVerifyByPinParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJUserVerifyByPinParams) WriteToRequest(r runtime.ClientReq
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

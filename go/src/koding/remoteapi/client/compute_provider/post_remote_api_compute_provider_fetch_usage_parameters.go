@@ -57,7 +57,7 @@ type PostRemoteAPIComputeProviderFetchUsageParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIComputeProviderFetchUsageParams) SetContext(ctx context.Co
 }
 
 // WithBody adds the body to the post remote API compute provider fetch usage params
-func (o *PostRemoteAPIComputeProviderFetchUsageParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIComputeProviderFetchUsageParams {
+func (o *PostRemoteAPIComputeProviderFetchUsageParams) WithBody(body models.DefaultSelector) *PostRemoteAPIComputeProviderFetchUsageParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API compute provider fetch usage params
-func (o *PostRemoteAPIComputeProviderFetchUsageParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIComputeProviderFetchUsageParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIComputeProviderFetchUsageParams) WriteToRequest(r runtime.
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

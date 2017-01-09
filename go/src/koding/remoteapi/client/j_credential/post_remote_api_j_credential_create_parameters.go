@@ -57,7 +57,7 @@ type PostRemoteAPIJCredentialCreateParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJCredentialCreateParams) SetContext(ctx context.Context) {
 }
 
 // WithBody adds the body to the post remote API j credential create params
-func (o *PostRemoteAPIJCredentialCreateParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJCredentialCreateParams {
+func (o *PostRemoteAPIJCredentialCreateParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJCredentialCreateParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j credential create params
-func (o *PostRemoteAPIJCredentialCreateParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJCredentialCreateParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJCredentialCreateParams) WriteToRequest(r runtime.ClientRe
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

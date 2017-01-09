@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJCredentialDeleteIDOK() *PostRemoteAPIJCredentialDeleteIDOK
 OK
 */
 type PostRemoteAPIJCredentialDeleteIDOK struct {
-	Payload *models.JCredential
+	Payload PostRemoteAPIJCredentialDeleteIDOKBody
 }
 
 func (o *PostRemoteAPIJCredentialDeleteIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJCredentialDeleteIDOK) Error() string {
 
 func (o *PostRemoteAPIJCredentialDeleteIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JCredential)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJCredentialDeleteIDOKBody post remote API j credential delete ID o k body
+swagger:model PostRemoteAPIJCredentialDeleteIDOKBody
+*/
+type PostRemoteAPIJCredentialDeleteIDOKBody struct {
+	models.JCredential
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJCredentialDeleteIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJCredentialDeleteIDOKBodyAO0 models.JCredential
+	if err := swag.ReadJSON(raw, &postRemoteAPIJCredentialDeleteIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JCredential = postRemoteAPIJCredentialDeleteIDOKBodyAO0
+
+	var postRemoteAPIJCredentialDeleteIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJCredentialDeleteIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJCredentialDeleteIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJCredentialDeleteIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJCredentialDeleteIDOKBodyAO0, err := swag.WriteJSON(o.JCredential)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJCredentialDeleteIDOKBodyAO0)
+
+	postRemoteAPIJCredentialDeleteIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJCredentialDeleteIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j credential delete ID o k body
+func (o *PostRemoteAPIJCredentialDeleteIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JCredential.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

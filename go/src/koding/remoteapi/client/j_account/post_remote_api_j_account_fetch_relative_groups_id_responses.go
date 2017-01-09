@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJAccountFetchRelativeGroupsIDOK() *PostRemoteAPIJAccountFet
 OK
 */
 type PostRemoteAPIJAccountFetchRelativeGroupsIDOK struct {
-	Payload *models.JAccount
+	Payload PostRemoteAPIJAccountFetchRelativeGroupsIDOKBody
 }
 
 func (o *PostRemoteAPIJAccountFetchRelativeGroupsIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJAccountFetchRelativeGroupsIDOK) Error() string {
 
 func (o *PostRemoteAPIJAccountFetchRelativeGroupsIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JAccount)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJAccountFetchRelativeGroupsIDOKBody post remote API j account fetch relative groups ID o k body
+swagger:model PostRemoteAPIJAccountFetchRelativeGroupsIDOKBody
+*/
+type PostRemoteAPIJAccountFetchRelativeGroupsIDOKBody struct {
+	models.JAccount
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJAccountFetchRelativeGroupsIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJAccountFetchRelativeGroupsIDOKBodyAO0 models.JAccount
+	if err := swag.ReadJSON(raw, &postRemoteAPIJAccountFetchRelativeGroupsIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JAccount = postRemoteAPIJAccountFetchRelativeGroupsIDOKBodyAO0
+
+	var postRemoteAPIJAccountFetchRelativeGroupsIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJAccountFetchRelativeGroupsIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJAccountFetchRelativeGroupsIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJAccountFetchRelativeGroupsIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJAccountFetchRelativeGroupsIDOKBodyAO0, err := swag.WriteJSON(o.JAccount)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJAccountFetchRelativeGroupsIDOKBodyAO0)
+
+	postRemoteAPIJAccountFetchRelativeGroupsIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJAccountFetchRelativeGroupsIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j account fetch relative groups ID o k body
+func (o *PostRemoteAPIJAccountFetchRelativeGroupsIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JAccount.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

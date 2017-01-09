@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJAccountUnblockUserIDParams creates a new PostRemoteAPIJAccountUnblockUserIDParams object
@@ -51,6 +53,11 @@ for the post remote API j account unblock user ID operation typically these are 
 */
 type PostRemoteAPIJAccountUnblockUserIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJAccountUnblockUserIDParams) SetContext(ctx context.Contex
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j account unblock user ID params
+func (o *PostRemoteAPIJAccountUnblockUserIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJAccountUnblockUserIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j account unblock user ID params
+func (o *PostRemoteAPIJAccountUnblockUserIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j account unblock user ID params
 func (o *PostRemoteAPIJAccountUnblockUserIDParams) WithID(id string) *PostRemoteAPIJAccountUnblockUserIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJAccountUnblockUserIDParams) WriteToRequest(r runtime.Clie
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

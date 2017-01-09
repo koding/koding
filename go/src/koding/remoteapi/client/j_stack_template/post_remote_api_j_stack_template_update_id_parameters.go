@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJStackTemplateUpdateIDParams creates a new PostRemoteAPIJStackTemplateUpdateIDParams object
@@ -51,6 +53,11 @@ for the post remote API j stack template update ID operation typically these are
 */
 type PostRemoteAPIJStackTemplateUpdateIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJStackTemplateUpdateIDParams) SetContext(ctx context.Conte
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j stack template update ID params
+func (o *PostRemoteAPIJStackTemplateUpdateIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJStackTemplateUpdateIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j stack template update ID params
+func (o *PostRemoteAPIJStackTemplateUpdateIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j stack template update ID params
 func (o *PostRemoteAPIJStackTemplateUpdateIDParams) WithID(id string) *PostRemoteAPIJStackTemplateUpdateIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJStackTemplateUpdateIDParams) WriteToRequest(r runtime.Cli
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

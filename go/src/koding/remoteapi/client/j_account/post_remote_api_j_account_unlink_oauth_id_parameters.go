@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJAccountUnlinkOauthIDParams creates a new PostRemoteAPIJAccountUnlinkOauthIDParams object
@@ -51,6 +53,11 @@ for the post remote API j account unlink oauth ID operation typically these are 
 */
 type PostRemoteAPIJAccountUnlinkOauthIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJAccountUnlinkOauthIDParams) SetContext(ctx context.Contex
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j account unlink oauth ID params
+func (o *PostRemoteAPIJAccountUnlinkOauthIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJAccountUnlinkOauthIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j account unlink oauth ID params
+func (o *PostRemoteAPIJAccountUnlinkOauthIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j account unlink oauth ID params
 func (o *PostRemoteAPIJAccountUnlinkOauthIDParams) WithID(id string) *PostRemoteAPIJAccountUnlinkOauthIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJAccountUnlinkOauthIDParams) WriteToRequest(r runtime.Clie
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

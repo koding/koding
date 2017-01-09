@@ -7,4 +7,5 @@ module.exports = class BaseController extends kd.Object
 
     super options, data
 
-    @editor = @getOption 'editor'
+    if editor = @getOption 'editor'
+      @editor = editor
