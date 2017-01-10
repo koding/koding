@@ -1,4 +1,4 @@
-package api_test
+package apitest
 
 import (
 	"bytes"
@@ -13,11 +13,31 @@ import (
 	"koding/kites/kloud/utils"
 )
 
+// HTTPTransport exports httpTransport for test purposes.
+type HTTPTransport interface {
+	http.RoundTripper
+	HTTPRequestCanceler
+	HTTPIdleConnectionsCloser
+}
+
+// HTTPRequestCanceler exports httpRequestCanceler for test purposes.
+type HTTPRequestCanceler interface {
+	CancelRequest(*http.Request)
+}
+
+// HTTPIdleConnectionsCloser exports httpIdleConnectionsCloser for
+// tests purposes.
+type HTTPIdleConnectionsCloser interface {
+	CloseIdleConnections()
+}
+
 type FakeAuth struct {
 	Sessions map[string]*api.Session
 
 	mu sync.RWMutex
 }
+
+var _ http.Handler = http.HandlerFunc((&FakeAuth{}).GetSession)
 
 func NewFakeAuth() *FakeAuth {
 	return &FakeAuth{
@@ -60,9 +80,6 @@ func (fa *FakeAuth) GetSession(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	fa.mu.RUnlock()
-
-	p, err := ioutil.ReadAll(r.Body)
-	api.Log.Info("FakeAuth.GetSession: read body: p=%q, err=%v", p, err)
 
 	if session == nil {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -203,7 +220,7 @@ type FakeTransport struct {
 	http.RoundTripper
 }
 
-var _ api.HTTPTransport = (*FakeTransport)(nil)
+var _ HTTPTransport = (*FakeTransport)(nil)
 
 func (ft FakeTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	errs, ok := req.Context().Value(ErrorContextKey).(*[]error)
@@ -222,13 +239,13 @@ func (ft FakeTransport) RoundTrip(req *http.Request) (resp *http.Response, err e
 }
 
 func (ft FakeTransport) CancelRequest(req *http.Request) {
-	if rc, ok := ft.RoundTripper.(api.HTTPRequestCanceler); ok {
+	if rc, ok := ft.RoundTripper.(HTTPRequestCanceler); ok {
 		rc.CancelRequest(req)
 	}
 }
 
 func (ft FakeTransport) CloseIdleConnections() {
-	if icl, ok := ft.RoundTripper.(api.HTTPIdleConnectionsCloser); ok {
+	if icl, ok := ft.RoundTripper.(HTTPIdleConnectionsCloser); ok {
 		icl.CloseIdleConnections()
 	}
 }
