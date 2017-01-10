@@ -257,10 +257,6 @@ module.exports = class JGroup extends Module
           'hidden'
         ]]
       # parent        : ObjectRef
-      counts        :
-        members     :
-          type      : Number
-          default   : -> 1
       customize     :
         coverPhoto  : String
         logo        : String
@@ -1229,10 +1225,13 @@ module.exports = class JGroup extends Module
       if err then callback err
       else callback null, (if count is 0 then no else yes)
 
+
   countMembers: (callback) ->
     selector =
-      sourceId  : @getId()
-      as        : 'member'
+      as         : 'member'
+      targetName : 'JAccount'
+      sourceId   : @getId()
+      sourceName : 'JGroup'
     Relationship.count selector, callback
 
 
@@ -1246,7 +1245,6 @@ module.exports = class JGroup extends Module
 
       kallback = =>
         callback()
-        @updateCounts()
         @emit 'MemberAdded', member  if 'member' in roles
 
       queue = roles.map (role) => (fin) =>
@@ -1275,21 +1273,6 @@ module.exports = class JGroup extends Module
           if err then callback err
           else unless request? then callback null, ['guest']
           else callback null, ["invitation-#{request.status}"]
-
-
-  updateCounts: ->
-    # remove this guest shit if required
-    if @getId().toString() is '51f41f195f07655e560001c1'
-      return
-
-    Relationship.count
-      as         : 'member'
-      targetName : 'JAccount'
-      sourceId   : @getId()
-      sourceName : 'JGroup'
-    , (err, count) =>
-      @update ({ $set: { 'counts.members': count } }), ->
-
 
   leave$: secure (client, options, callback) ->
 
@@ -1323,7 +1306,6 @@ module.exports = class JGroup extends Module
       Joinable = require '../../traits/joinable'
 
       kallback = (err) =>
-        @updateCounts()
 
         { profile: { nickname } } = client.connection.delegate
 
@@ -1382,7 +1364,6 @@ module.exports = class JGroup extends Module
           queue = roles.map (role) => (fin) =>
             @removeMember account, role, (err) =>
               return fin err  if err
-              @updateCounts()
               fin()
 
           # add current user into blocked accounts
@@ -1450,7 +1431,6 @@ module.exports = class JGroup extends Module
             return callback err if err
 
             kallback = (err) =>
-              @updateCounts()
               callback err
 
             # give rights to new owner

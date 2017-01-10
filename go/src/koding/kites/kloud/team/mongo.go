@@ -87,11 +87,9 @@ func groups2teams(groups ...*models.Group) []*Team {
 			continue
 		}
 
-		members, _ := group.Counts["members"].(int)
 		teams = append(teams, &Team{
 			Name:      group.Title,
 			Slug:      group.Slug,
-			Members:   strconv.Itoa(members),
 			Privacy:   group.Privacy,
 			SubStatus: group.Payment.Subscription.Status,
 		})

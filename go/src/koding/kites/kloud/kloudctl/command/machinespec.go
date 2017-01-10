@@ -172,12 +172,7 @@ func (spec *MachineSpec) BuildMachine(createUser bool) error {
 			if err = modelhelper.CreateUser(&spec.User); err != nil {
 				return err
 			}
-
-			_, err = modelhelper.UpdateGroupAddMembers(spec.Machine.Groups[0].Id, 1)
-			if err != nil {
-				return err
-			}
-
+			
 			user = &spec.User
 		}
 
