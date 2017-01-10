@@ -79,20 +79,6 @@ module.exports = class JGroup extends Module
       'delete own channel'      : ['member']
       'delete channel'          : ['member', 'moderator']
 
-      # JTag related permissions
-      'read tags'               : ['member', 'moderator']
-      'create tags'             : ['member', 'moderator']
-      'freetag content'         : ['member', 'moderator']
-      'browse content by tag'   : ['member', 'moderator']
-      'edit tags'               : ['moderator']
-      'delete tags'             : ['moderator']
-      'edit own tags'           : ['moderator']
-      'delete own tags'         : ['moderator']
-      'assign system tag'       : ['moderator']
-      'fetch system tag'        : ['moderator']
-      'create system tag'       : ['moderator']
-      'remove system tag'       : ['moderator']
-      'create synonym tags'     : ['moderator']
     indexes         :
       slug          : 'unique'
     sharedEvents    :
@@ -305,7 +291,7 @@ module.exports = class JGroup extends Module
 
     broadcastableRelationships : [
       'member', 'moderator', 'admin'
-      'owner', 'tag', 'role'
+      'owner', 'role'
     ]
     relationships : ->
       JAccount    = require '../account'
@@ -1570,11 +1556,6 @@ module.exports = class JGroup extends Module
           JInvitation = require '../invitation'
           JInvitation.remove { groupName: @slug }, (err) ->
             next err
-
-        (next) =>
-          @fetchTags (err, tags) ->
-            JTag = require '../tag'
-            removeHelperMany JTag, tags, err, next
 
         (next) =>
           ComputeProvider = require '../computeproviders/computeprovider'

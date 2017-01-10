@@ -16,7 +16,6 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../traits/notifiable'
   @trait __dirname, '../traits/flaggable'
 
-  JTag                = require './tag'
   JName               = require './name'
   JCombinedAppStorage = require './combinedappstorage'
 
@@ -38,8 +37,6 @@ module.exports = class JAccount extends jraphical.Module
   @set
     softDelete          : yes
     emitFollowingActivities : yes # create buckets for follower / followees
-    tagRole             : 'skill'
-    taggedContentRole   : 'developer'
     indexes:
       'profile.nickname' : 'unique'
       isExempt           : 'ascending'
@@ -197,10 +194,6 @@ module.exports = class JAccount extends jraphical.Module
       JStackTemplate   = require './computeproviders/stacktemplate'
 
       return {
-        tag:
-          as          : 'skill'
-          targetType  : 'JTag'
-
         domain        :
           as          : 'owner'
           targetType  : 'JProposedDomain'
@@ -737,7 +730,6 @@ module.exports = class JAccount extends jraphical.Module
       'profile.avatar'
       'profile.experience'
       'profile.experiencePoints'
-      'skillTags'
       'locationTags'
       'shareLocation'
     ]
