@@ -628,19 +628,19 @@ module.exports = class JGroup extends Module
               next()
 
           (next) ->
-            notifyAccountOnRoleChange client, targetId, roles, next
-
+            notifyGroupOnRoleChange client, targetId, roles, next
         ]
 
         async.series queue, callback
 
-  notifyAccountOnRoleChange = (client, id, roles, callback) ->
-    JAccount.one { _id: id }, (err, account) ->
-      return callback err  if err or not account
+  notifyGroupOnRoleChange = (client, id, roles, callback) ->
+
+    JGroup.one { slug : client.context.group }, (err, group_) ->
+      return callback err  if err or not group_
 
       role = if roles?.length > 0 then roles[0] else 'member'
-      contents = { role, group: client.context.group, adminNick: client.connection.delegate.profile.nickname }
-      account.sendNotification 'MembershipRoleChanged', contents
+      contents = { role, id, group: client.context.group, adminNick: client.connection.delegate.profile.nickname }
+      group_.sendNotification 'MembershipRoleChanged', contents
       callback null
 
 
