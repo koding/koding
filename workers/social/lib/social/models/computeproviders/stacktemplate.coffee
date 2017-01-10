@@ -179,6 +179,14 @@ module.exports = class JStackTemplate extends Module
     ComputeProvider.validateTemplateContent template, limitConfig, callback
 
 
+  generateTemplateTitle = (provider) ->
+
+    { capitalize } = require 'lodash'
+    getPokemonName = clientRequire 'app/lib/util/getPokemonName'
+
+    return "#{getPokemonName()} #{capitalize provider} Stack"
+
+
   # creates a JStackTemplate with requested content
   #
   # @param {Object} data
@@ -223,7 +231,6 @@ module.exports = class JStackTemplate extends Module
         stackTemplate = new JStackTemplate
           originId    : delegate.getId()
           group       : client.context.group
-          title       : data.title
           config      : data.config      ? {}
           description : data.description ? ''
           machines    : data.machines    ? []
@@ -234,6 +241,9 @@ module.exports = class JStackTemplate extends Module
 
         stackTemplate.config = updateConfigForTemplate \
           stackTemplate.config, stackTemplate.template.rawContent
+
+        stackTemplate.title = data.title ? \
+          generateTemplateTitle stackTemplate.config.requiredProviders[0]
 
         stackTemplate.save (err) ->
           if err

@@ -27,4 +27,4 @@ pokemons = [
   'Dragonair', 'Dragonite', 'Mewtwo', 'Mew'
 ]
 
-module.exports = -> _.sample pokemons
+module.exports = -> sample pokemons
