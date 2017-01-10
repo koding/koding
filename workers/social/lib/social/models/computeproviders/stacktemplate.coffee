@@ -166,9 +166,13 @@ module.exports = class JStackTemplate extends Module
     return config
 
 
-  validateTemplate = (template, group, callback) ->
+  validateTemplate = (templateData, group, callback) ->
 
-    limitConfig = helpers.getLimitConfig group
+    unless templateData
+      return callback new KodingError 'Template data is required!'
+
+    { template } = templateData
+    limitConfig  = helpers.getLimitConfig group
     return callback null  unless limitConfig.limit # No limit, no pain.
 
     ComputeProvider = require './computeprovider'
@@ -210,15 +214,7 @@ module.exports = class JStackTemplate extends Module
       { group }    = client.r # we have revived JGroup and JUser here ~ GG
       { delegate } = client.connection
 
-      # TODO(rjeczalik): move app/util/getPokemonName.coffee here
-      # and refactor JStackTemplate.create to not require title;
-      # if title is missing or empty, generate pokemon name as
-      # it's done currently on client side; this way we do not
-      # need to reimplement pokemon naming in kloud as well.
-      unless data?.title
-        return callback new KodingError 'Title required.'
-
-      validateTemplate data.template, group, (err) ->
+     validateTemplate data, group, (err) ->
         return callback err  if err
 
         if data.config?
