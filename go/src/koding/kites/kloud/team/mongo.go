@@ -2,7 +2,6 @@ package team
 
 import (
 	"fmt"
-	"strconv"
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
@@ -41,9 +40,8 @@ func (m *MongoDatabase) Teams(f *Filter) ([]*Team, error) {
 
 	if f.Slug != "" {
 		return m.fetchOne(f.Username, f.Slug)
-	} else {
-		return m.fetchAll(f.Username)
 	}
+	return m.fetchAll(f.Username)
 }
 
 // fetchOne returns only specified team.
