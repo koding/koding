@@ -18,8 +18,8 @@ type Builder struct {
 	ch      chan struct{}
 }
 
-// NewBuilder creates a new ClientBuilder object that uses provided test
-// client. If test client is nil, the default one will be created.
+// NewBuilder creates a new Builder object that uses provided test client. If
+// test client is nil, the default one will be created.
 func NewBuilder(c *Client) *Builder {
 	if c == nil {
 		c = NewClient()
