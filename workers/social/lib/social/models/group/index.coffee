@@ -260,6 +260,7 @@ module.exports = class JGroup extends Module
         type        : String
         validate    : require('../name').validateName
         set         : (value) -> value.toLowerCase()
+        cacheable   : yes
       privacy       :
         type        : String
         enum        : ['invalid privacy type', [
