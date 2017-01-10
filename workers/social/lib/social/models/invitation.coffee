@@ -113,6 +113,7 @@ module.exports = class JInvitation extends jraphical.Module
 
         { _id } = account
         { roles } = permissionAndRoles
+        groupName = client.context.group or 'koding'
 
         hasPermisson = 'admin' in roles or 'owner' in roles
         { inviterId, email, groupName } = invite
@@ -123,8 +124,27 @@ module.exports = class JInvitation extends jraphical.Module
         if not hasPermisson and _id.toString() isnt inviterId
           return callback new KodingError 'You don\'t have permission'
 
-        JInvitation.remove { email, groupName }, (err) ->
-          return callback err
+        queue = [
+          (next) ->
+            JInvitation.remove { email, groupName }, next
+
+          (next) ->
+            data = { id: invite._id, type: 'remove' }
+            notifyGroupOnInvitationChange groupName, data, next
+        ]
+
+        async.series queue, callback
+
+
+  notifyGroupOnInvitationChange = (slug, data, callback) ->
+
+    JGroup    = require './group'
+    JGroup.one { slug }, (err, group_) ->
+
+      return callback err  if err or not group_
+
+      group_.sendNotification 'InvitationChanged', data
+      callback()
 
 
   accept$: permit 'send invitations',
