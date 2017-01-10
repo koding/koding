@@ -106,6 +106,8 @@ module.exports = class KodingKite extends kd.Object
 
             )
 
+            return args
+
           .catch (err) =>
 
             KiteLogger.failed name, rpcMethod, err
