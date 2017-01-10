@@ -199,6 +199,7 @@ module.exports = class KodingKiteKlientKite extends require('../kodingkite')
             locked = no
             consume()
             resolve res
+            return res
 
           .catch (err) ->
             locked = no
