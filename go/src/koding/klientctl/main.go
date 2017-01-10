@@ -653,6 +653,10 @@ func run(args []string) {
 							Usage: "Output in JSON format.",
 						},
 						cli.StringFlag{
+							Name:  "id",
+							Usage: "Limit to a template that matches the ID.",
+						},
+						cli.StringFlag{
 							Name:  "provider, p",
 							Usage: "Limit to templates of a given provider.",
 						},
@@ -665,6 +669,10 @@ func run(args []string) {
 						cli.StringFlag{
 							Name:  "json",
 							Usage: "Output in JSON format.",
+						},
+						cli.StringFlag{
+							Name:  "id",
+							Usage: "Limit to a template that matches the ID.",
 						},
 						cli.StringFlag{
 							Name:  "hcl",
