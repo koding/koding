@@ -886,13 +886,6 @@
         "visibility": {
           "type": "string"
         },
-        "counts": {
-          "properties": {
-            "members": {
-              "type": "number"
-            }
-          }
-        },
         "customize": {
           "properties": {
             "coverPhoto": {
