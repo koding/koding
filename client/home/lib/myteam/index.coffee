@@ -14,6 +14,7 @@ camelizeString = require 'app/util/camelizeString'
 toImmutable = require 'app/util/toImmutable'
 canSeeMembers = require 'app/util/canSeeMembers'
 isAdmin = require 'app/util/isAdmin'
+MembershipRoleChangedModal =  require 'app/components/membershiprolechangedmodal'
 
 SECTIONS =
   'Invite Using Slack' : HomeTeamConnectSlack
@@ -64,6 +65,9 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
 
       { contents: { role, id, adminNick } } = data
       reactor.dispatch 'UPDATE_TEAM_MEMBER_WITH_ID', { id, role }
+
+      new MembershipRoleChangedModal { role, adminNick }  if id is whoami()._id
+
     groupsController.on 'GroupJoined', (data) ->
 
       return console.warm 'We couldn\'t fetch neccessary information'  unless data.contents.member
