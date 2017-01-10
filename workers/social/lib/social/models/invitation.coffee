@@ -238,7 +238,12 @@ module.exports = class JInvitation extends jraphical.Module
 
           async.parallel queue, (err, codes) ->
             return callback err  if err
-            return callback()  unless returnCodes
+
+            unless returnCodes
+              data = { type: 'create', invitations: codes }
+
+              return notifyGroupOnInvitationChange groupName, data, callback
+
             return callback null, codes
 
         # check if requester tries to create an invite with admin role
