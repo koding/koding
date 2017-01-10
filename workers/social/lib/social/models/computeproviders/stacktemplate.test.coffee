@@ -65,6 +65,23 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
             expect(template.title.split(' ')[1])  .to.be.equal 'Aws'
             done()
 
+      it 'should generate config automatically from template content', (done) ->
+
+        withConvertedUser ({ client }) ->
+
+          stackTemplateData = generateStackTemplateData client
+          delete stackTemplateData.config
+
+          StackTemplate.create client, stackTemplateData, (err, template) ->
+            expect(err?.message)                      .not.exist
+            expect(template.config)                   .to.exist
+            expect(template.config.groupStack)        .to.be.equal no
+            expect(template.config.requiredData)      .to.be.deep.equal {
+              user: [ 'username' ], group: [ 'slug' ]
+            }
+            expect(template.config.requiredProviders) .to.be.deep.equal ['aws']
+            done()
+
 
   describe '#some$()', ->
 

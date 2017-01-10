@@ -160,6 +160,7 @@ module.exports = class JStackTemplate extends Module
     providersParser    = clientRequire 'app/lib/util/stacks/providersparser'
     requirementsParser = clientRequire 'app/lib/util/stacks/requirementsparser'
 
+    config.groupStack       ?= no
     config.requiredData      = requirementsParser template
     config.requiredProviders = providersParser template, supportedProviders
 
