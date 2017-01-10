@@ -60,6 +60,10 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
     TeamFlux.actions.loadDisabledUsers()
     AppFlux.actions.user.loadLoggedInUserEmail()
 
+    groupsController.on 'MembershipRoleChanged', (data) ->
+
+      { contents: { role, id, adminNick } } = data
+      reactor.dispatch 'UPDATE_TEAM_MEMBER_WITH_ID', { id, role }
     groupsController.on 'GroupJoined', (data) ->
 
       return console.warm 'We couldn\'t fetch neccessary information'  unless data.contents.member
