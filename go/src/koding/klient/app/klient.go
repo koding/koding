@@ -33,9 +33,9 @@ import (
 	"koding/klient/info"
 	"koding/klient/info/publicip"
 	"koding/klient/logfetcher"
-	"koding/klient/machine"
+	mclient "koding/klient/machine/client"
+	"koding/klient/machine/index"
 	"koding/klient/machine/machinegroup"
-	"koding/klient/machine/mount/index"
 	kos "koding/klient/os"
 	"koding/klient/remote"
 	"koding/klient/sshkeys"
@@ -323,7 +323,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 
 	machinesOpts := &machinegroup.GroupOpts{
 		Storage:         storage.NewEncodingStorage(db, []byte("machines")),
-		Builder:         machine.NewKiteBuilder(k),
+		Builder:         mclient.NewKiteBuilder(k),
 		DynAddrInterval: 2 * time.Second,
 		PingInterval:    15 * time.Second,
 	}

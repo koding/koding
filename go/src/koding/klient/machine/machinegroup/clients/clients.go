@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"koding/klient/machine"
+	"koding/klient/machine/client"
 
 	"github.com/koding/logging"
 )
@@ -13,7 +14,7 @@ import (
 // ClientsOpts are the options used to configure set of dynamic clients.
 type ClientsOpts struct {
 	// Builder is a factory used to build clients.
-	Builder machine.ClientBuilder
+	Builder client.Builder
 
 	// DynAddrInterval indicates how often dynamic client should pull address
 	// function looking for new addresses.
@@ -47,14 +48,14 @@ func (opts *ClientsOpts) Valid() error {
 
 // Clients is a set of dynamic clients binded to unique machine ID.
 type Clients struct {
-	builder         machine.ClientBuilder
+	builder         client.Builder
 	dynAddrInterval time.Duration
 	pingInterval    time.Duration
 
 	log logging.Logger
 
 	mu sync.RWMutex
-	m  map[machine.ID]*machine.DynamicClient
+	m  map[machine.ID]*client.Dynamic
 }
 
 // New creates a new Clients object.
@@ -68,7 +69,7 @@ func New(opts *ClientsOpts) (*Clients, error) {
 		dynAddrInterval: opts.DynAddrInterval,
 		pingInterval:    opts.PingInterval,
 		log:             opts.Log,
-		m:               make(map[machine.ID]*machine.DynamicClient),
+		m:               make(map[machine.ID]*client.Dynamic),
 	}
 
 	if c.log == nil {
@@ -80,7 +81,7 @@ func New(opts *ClientsOpts) (*Clients, error) {
 
 // Create generates a new dynamic client for a given machine. If machine client
 // already exists, this function is no-op.
-func (c *Clients) Create(id machine.ID, dynAddr machine.DynamicAddrFunc) error {
+func (c *Clients) Create(id machine.ID, dynAddr client.DynamicAddrFunc) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -88,7 +89,7 @@ func (c *Clients) Create(id machine.ID, dynAddr machine.DynamicAddrFunc) error {
 		return nil
 	}
 
-	dc, err := machine.NewDynamicClient(machine.DynamicClientOpts{
+	dc, err := client.NewDynamic(client.DynamicOpts{
 		AddrFunc:        dynAddr,
 		Builder:         c.builder,
 		DynAddrInterval: c.dynAddrInterval,
@@ -155,7 +156,7 @@ func (c *Clients) Status(id machine.ID) (machine.Status, error) {
 // Client returns the current clients of provided machine.
 // machine.ErrMachineNotFound is returned when there are no clients for a given
 // machine ID.
-func (c *Clients) Client(id machine.ID) (machine.Client, error) {
+func (c *Clients) Client(id machine.ID) (client.Client, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 

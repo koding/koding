@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"koding/klient/machine"
-	"koding/klient/machine/machinetest"
+	"koding/klient/machine/client/testutil"
 )
 
 func TestID(t *testing.T) {
@@ -17,7 +17,7 @@ func TestID(t *testing.T) {
 		ipB = machine.Addr{Network: "ip", Value: "10.0.1.16", UpdatedAt: time.Now()}
 	)
 
-	g, err := New(testOptions(machinetest.NewClientBuilder(nil)))
+	g, err := New(testOptions(testutil.NewBuilder(nil)))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
