@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -18,9 +19,7 @@ func StackCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 	switch file := c.String("file"); file {
 	case "":
-		// TODO(rjeczalik): remove once interactive mode is implemented
-		fmt.Fprintln(os.Stderr, "No credential file was provided.")
-		return 1, errors.New("no credential file was provided")
+		return 1, errors.New("no template file was provided")
 	case "-":
 		p, err = ioutil.ReadAll(os.Stdin)
 	default:
@@ -28,11 +27,10 @@ func StackCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	}
 
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error reading credential file: ", err)
-		return 1, err
+		return 1, errors.New("error reading template file: " + err.Error())
 	}
 
-	fmt.Println("Creating stack... ")
+	fmt.Fprintln(os.Stderr, "Creating stack... ")
 
 	opts := &stack.CreateOptions{
 		Team:        c.String("team"),
@@ -43,8 +41,15 @@ func StackCreate(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 	resp, err := stack.Create(opts)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error creating stack:", err)
-		return 1, err
+		return 1, errors.New("error creating stack: " + err.Error())
+	}
+
+	if c.Bool("json") {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "\t")
+		enc.Encode(resp)
+
+		return 0, nil
 	}
 
 	fmt.Fprintf(os.Stderr, "Creatad %q stack with %s ID.\n", resp.Title, resp.StackID)

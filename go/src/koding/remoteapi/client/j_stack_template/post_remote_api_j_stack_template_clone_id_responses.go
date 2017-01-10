@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJStackTemplateCloneIDOK() *PostRemoteAPIJStackTemplateClone
 OK
 */
 type PostRemoteAPIJStackTemplateCloneIDOK struct {
-	Payload *models.JStackTemplate
+	Payload PostRemoteAPIJStackTemplateCloneIDOKBody
 }
 
 func (o *PostRemoteAPIJStackTemplateCloneIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJStackTemplateCloneIDOK) Error() string {
 
 func (o *PostRemoteAPIJStackTemplateCloneIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JStackTemplate)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJStackTemplateCloneIDOKBody post remote API j stack template clone ID o k body
+swagger:model PostRemoteAPIJStackTemplateCloneIDOKBody
+*/
+type PostRemoteAPIJStackTemplateCloneIDOKBody struct {
+	models.JStackTemplate
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJStackTemplateCloneIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJStackTemplateCloneIDOKBodyAO0 models.JStackTemplate
+	if err := swag.ReadJSON(raw, &postRemoteAPIJStackTemplateCloneIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JStackTemplate = postRemoteAPIJStackTemplateCloneIDOKBodyAO0
+
+	var postRemoteAPIJStackTemplateCloneIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJStackTemplateCloneIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJStackTemplateCloneIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJStackTemplateCloneIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJStackTemplateCloneIDOKBodyAO0, err := swag.WriteJSON(o.JStackTemplate)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJStackTemplateCloneIDOKBodyAO0)
+
+	postRemoteAPIJStackTemplateCloneIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJStackTemplateCloneIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j stack template clone ID o k body
+func (o *PostRemoteAPIJStackTemplateCloneIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JStackTemplate.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

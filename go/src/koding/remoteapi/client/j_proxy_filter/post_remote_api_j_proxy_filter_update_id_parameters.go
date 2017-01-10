@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJProxyFilterUpdateIDParams creates a new PostRemoteAPIJProxyFilterUpdateIDParams object
@@ -51,6 +53,11 @@ for the post remote API j proxy filter update ID operation typically these are w
 */
 type PostRemoteAPIJProxyFilterUpdateIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJProxyFilterUpdateIDParams) SetContext(ctx context.Context
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j proxy filter update ID params
+func (o *PostRemoteAPIJProxyFilterUpdateIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJProxyFilterUpdateIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j proxy filter update ID params
+func (o *PostRemoteAPIJProxyFilterUpdateIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j proxy filter update ID params
 func (o *PostRemoteAPIJProxyFilterUpdateIDParams) WithID(id string) *PostRemoteAPIJProxyFilterUpdateIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJProxyFilterUpdateIDParams) WriteToRequest(r runtime.Clien
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

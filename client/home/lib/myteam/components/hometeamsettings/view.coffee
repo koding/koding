@@ -1,6 +1,7 @@
 kd              = require 'kd'
 React           = require 'app/react'
 List            = require 'app/components/list'
+cdnize          = require 'app/util/cdnize'
 Encoder         = require 'htmlencode'
 DEFAULT_SPINNER_PATH = '/a/images/logos/loader.svg'
 
@@ -126,6 +127,8 @@ TeamLogo = ({ team, canEdit, loading, callback }) ->
 
   src = team.getIn(['customize', 'logo'])
   src = DEFAULT_SPINNER_PATH  if loading
+  src = cdnize src
+  
   unless src
     styles = {}
   else

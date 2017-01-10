@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJComputeStackCreateAdminMessageIDOK() *PostRemoteAPIJComput
 OK
 */
 type PostRemoteAPIJComputeStackCreateAdminMessageIDOK struct {
-	Payload *models.JComputeStack
+	Payload PostRemoteAPIJComputeStackCreateAdminMessageIDOKBody
 }
 
 func (o *PostRemoteAPIJComputeStackCreateAdminMessageIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJComputeStackCreateAdminMessageIDOK) Error() string {
 
 func (o *PostRemoteAPIJComputeStackCreateAdminMessageIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JComputeStack)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJComputeStackCreateAdminMessageIDOKBody post remote API j compute stack create admin message ID o k body
+swagger:model PostRemoteAPIJComputeStackCreateAdminMessageIDOKBody
+*/
+type PostRemoteAPIJComputeStackCreateAdminMessageIDOKBody struct {
+	models.JComputeStack
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJComputeStackCreateAdminMessageIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJComputeStackCreateAdminMessageIDOKBodyAO0 models.JComputeStack
+	if err := swag.ReadJSON(raw, &postRemoteAPIJComputeStackCreateAdminMessageIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JComputeStack = postRemoteAPIJComputeStackCreateAdminMessageIDOKBodyAO0
+
+	var postRemoteAPIJComputeStackCreateAdminMessageIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJComputeStackCreateAdminMessageIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJComputeStackCreateAdminMessageIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJComputeStackCreateAdminMessageIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJComputeStackCreateAdminMessageIDOKBodyAO0, err := swag.WriteJSON(o.JComputeStack)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJComputeStackCreateAdminMessageIDOKBodyAO0)
+
+	postRemoteAPIJComputeStackCreateAdminMessageIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJComputeStackCreateAdminMessageIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j compute stack create admin message ID o k body
+func (o *PostRemoteAPIJComputeStackCreateAdminMessageIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JComputeStack.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

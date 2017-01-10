@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJAccountAcceptInvitationIDOK() *PostRemoteAPIJAccountAccept
 OK
 */
 type PostRemoteAPIJAccountAcceptInvitationIDOK struct {
-	Payload *models.JAccount
+	Payload PostRemoteAPIJAccountAcceptInvitationIDOKBody
 }
 
 func (o *PostRemoteAPIJAccountAcceptInvitationIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJAccountAcceptInvitationIDOK) Error() string {
 
 func (o *PostRemoteAPIJAccountAcceptInvitationIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JAccount)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJAccountAcceptInvitationIDOKBody post remote API j account accept invitation ID o k body
+swagger:model PostRemoteAPIJAccountAcceptInvitationIDOKBody
+*/
+type PostRemoteAPIJAccountAcceptInvitationIDOKBody struct {
+	models.JAccount
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJAccountAcceptInvitationIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJAccountAcceptInvitationIDOKBodyAO0 models.JAccount
+	if err := swag.ReadJSON(raw, &postRemoteAPIJAccountAcceptInvitationIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JAccount = postRemoteAPIJAccountAcceptInvitationIDOKBodyAO0
+
+	var postRemoteAPIJAccountAcceptInvitationIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJAccountAcceptInvitationIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJAccountAcceptInvitationIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJAccountAcceptInvitationIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJAccountAcceptInvitationIDOKBodyAO0, err := swag.WriteJSON(o.JAccount)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJAccountAcceptInvitationIDOKBodyAO0)
+
+	postRemoteAPIJAccountAcceptInvitationIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJAccountAcceptInvitationIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j account accept invitation ID o k body
+func (o *PostRemoteAPIJAccountAcceptInvitationIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JAccount.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJTagFetchContentTeasersIDOK() *PostRemoteAPIJTagFetchConten
 OK
 */
 type PostRemoteAPIJTagFetchContentTeasersIDOK struct {
-	Payload *models.JTag
+	Payload PostRemoteAPIJTagFetchContentTeasersIDOKBody
 }
 
 func (o *PostRemoteAPIJTagFetchContentTeasersIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJTagFetchContentTeasersIDOK) Error() string {
 
 func (o *PostRemoteAPIJTagFetchContentTeasersIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JTag)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJTagFetchContentTeasersIDOKBody post remote API j tag fetch content teasers ID o k body
+swagger:model PostRemoteAPIJTagFetchContentTeasersIDOKBody
+*/
+type PostRemoteAPIJTagFetchContentTeasersIDOKBody struct {
+	models.JTag
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJTagFetchContentTeasersIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJTagFetchContentTeasersIDOKBodyAO0 models.JTag
+	if err := swag.ReadJSON(raw, &postRemoteAPIJTagFetchContentTeasersIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JTag = postRemoteAPIJTagFetchContentTeasersIDOKBodyAO0
+
+	var postRemoteAPIJTagFetchContentTeasersIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJTagFetchContentTeasersIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJTagFetchContentTeasersIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJTagFetchContentTeasersIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJTagFetchContentTeasersIDOKBodyAO0, err := swag.WriteJSON(o.JTag)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJTagFetchContentTeasersIDOKBodyAO0)
+
+	postRemoteAPIJTagFetchContentTeasersIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJTagFetchContentTeasersIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j tag fetch content teasers ID o k body
+func (o *PostRemoteAPIJTagFetchContentTeasersIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JTag.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

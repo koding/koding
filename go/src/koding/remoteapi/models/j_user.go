@@ -87,6 +87,9 @@ func (m *JUser) validateRegisteredFrom(formats strfmt.Registry) error {
 	if m.RegisteredFrom != nil {
 
 		if err := m.RegisteredFrom.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("registeredFrom")
+			}
 			return err
 		}
 	}

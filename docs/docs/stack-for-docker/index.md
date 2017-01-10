@@ -24,7 +24,7 @@ resource:
         curl -fsSL https://get.docker.com/ | sh
         docker run docker/whalesay cowsay boo
 ```
-On building the VM you will need to wait for a couple of minutes until Docker is installed and you should be able to see a whale saying 'boo'!
+On building the VM you will need to wait for a few minutes until Docker is installed and you should be able to see a whale saying 'boo'!
 
 ### ![boo][1]
 

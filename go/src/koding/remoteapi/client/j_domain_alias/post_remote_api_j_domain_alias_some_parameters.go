@@ -57,7 +57,7 @@ type PostRemoteAPIJDomainAliasSomeParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJDomainAliasSomeParams) SetContext(ctx context.Context) {
 }
 
 // WithBody adds the body to the post remote API j domain alias some params
-func (o *PostRemoteAPIJDomainAliasSomeParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJDomainAliasSomeParams {
+func (o *PostRemoteAPIJDomainAliasSomeParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJDomainAliasSomeParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j domain alias some params
-func (o *PostRemoteAPIJDomainAliasSomeParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJDomainAliasSomeParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJDomainAliasSomeParams) WriteToRequest(r runtime.ClientReq
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

@@ -2,7 +2,6 @@ package models
 
 import (
 	"koding/db/mongodb/modelhelper"
-	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/tests"
 	"testing"
@@ -95,7 +94,7 @@ func TestPresenceDailyOperations(t *testing.T) {
 func TestPresenceDailyFetchActiveAccounts(t *testing.T) {
 	tests.WithRunner(t, func(r *runner.Runner) {
 		Convey("With given presence data", t, func() {
-			acc1, _, groupName := models.CreateRandomGroupDataWithChecks()
+			acc1, _, groupName := CreateRandomGroupDataWithChecks()
 
 			gr, err := modelhelper.GetGroup(groupName)
 			tests.ResultedWithNoErrorCheck(gr, err)
@@ -114,7 +113,7 @@ func TestPresenceDailyFetchActiveAccounts(t *testing.T) {
 
 			for i := 0; i < 5; i++ {
 				// create accounts
-				acc2 := models.CreateAccountInBothDbsWithCheck()
+				acc2 := CreateAccountInBothDbsWithCheck()
 
 				// add them to presence
 				p1 := &PresenceDaily{

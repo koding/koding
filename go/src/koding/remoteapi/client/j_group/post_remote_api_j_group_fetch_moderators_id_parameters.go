@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJGroupFetchModeratorsIDParams creates a new PostRemoteAPIJGroupFetchModeratorsIDParams object
@@ -51,6 +53,11 @@ for the post remote API j group fetch moderators ID operation typically these ar
 */
 type PostRemoteAPIJGroupFetchModeratorsIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJGroupFetchModeratorsIDParams) SetContext(ctx context.Cont
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j group fetch moderators ID params
+func (o *PostRemoteAPIJGroupFetchModeratorsIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJGroupFetchModeratorsIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j group fetch moderators ID params
+func (o *PostRemoteAPIJGroupFetchModeratorsIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j group fetch moderators ID params
 func (o *PostRemoteAPIJGroupFetchModeratorsIDParams) WithID(id string) *PostRemoteAPIJGroupFetchModeratorsIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJGroupFetchModeratorsIDParams) WriteToRequest(r runtime.Cl
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

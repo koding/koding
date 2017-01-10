@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJAccountPushNotificationIDOK() *PostRemoteAPIJAccountPushNo
 OK
 */
 type PostRemoteAPIJAccountPushNotificationIDOK struct {
-	Payload *models.JAccount
+	Payload PostRemoteAPIJAccountPushNotificationIDOKBody
 }
 
 func (o *PostRemoteAPIJAccountPushNotificationIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJAccountPushNotificationIDOK) Error() string {
 
 func (o *PostRemoteAPIJAccountPushNotificationIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JAccount)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJAccountPushNotificationIDOKBody post remote API j account push notification ID o k body
+swagger:model PostRemoteAPIJAccountPushNotificationIDOKBody
+*/
+type PostRemoteAPIJAccountPushNotificationIDOKBody struct {
+	models.JAccount
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJAccountPushNotificationIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJAccountPushNotificationIDOKBodyAO0 models.JAccount
+	if err := swag.ReadJSON(raw, &postRemoteAPIJAccountPushNotificationIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JAccount = postRemoteAPIJAccountPushNotificationIDOKBodyAO0
+
+	var postRemoteAPIJAccountPushNotificationIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJAccountPushNotificationIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJAccountPushNotificationIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJAccountPushNotificationIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJAccountPushNotificationIDOKBodyAO0, err := swag.WriteJSON(o.JAccount)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJAccountPushNotificationIDOKBodyAO0)
+
+	postRemoteAPIJAccountPushNotificationIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJAccountPushNotificationIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j account push notification ID o k body
+func (o *PostRemoteAPIJAccountPushNotificationIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JAccount.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

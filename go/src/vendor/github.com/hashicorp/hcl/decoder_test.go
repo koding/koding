@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/hcl/hcl/ast"
@@ -64,7 +65,7 @@ func TestDecode_interface(t *testing.T) {
 				"qux":          "back\\slash",
 				"bar":          "new\nline",
 				"qax":          `slash\:colon`,
-				"nested":       `${HH\:mm\:ss}`,
+				"nested":       `${HH\\:mm\\:ss}`,
 				"nestedquotes": `${"\"stringwrappedinquotes\""}`,
 			},
 		},
@@ -82,9 +83,14 @@ func TestDecode_interface(t *testing.T) {
 		},
 		{
 			"multiline_literal.hcl",
+			true,
+			nil,
+		},
+		{
+			"multiline_literal_with_hil.hcl",
 			false,
-			map[string]interface{}{"multiline_literal": testhelper.Unix2dos(`hello
-  world`)},
+			map[string]interface{}{"multiline_literal_with_hil": testhelper.Unix2dos(`${hello
+  world}`)},
 		},
 		{
 			"multiline_no_marker.hcl",
@@ -362,6 +368,26 @@ func TestDecode_interface(t *testing.T) {
 
 		{
 			"block_assign.hcl",
+			true,
+			nil,
+		},
+
+		{
+			"escape_backslash.hcl",
+			false,
+			map[string]interface{}{
+				"output": []map[string]interface{}{
+					map[string]interface{}{
+						"one":  `${replace(var.sub_domain, ".", "\\.")}`,
+						"two":  `${replace(var.sub_domain, ".", "\\\\.")}`,
+						"many": `${replace(var.sub_domain, ".", "\\\\\\\\.")}`,
+					},
+				},
+			},
+		},
+
+		{
+			"git_crypt.hcl",
 			true,
 			nil,
 		},
@@ -752,6 +778,21 @@ func TestDecode_intString(t *testing.T) {
 	}
 
 	if value.Count != 3 {
+		t.Fatalf("bad: %#v", value.Count)
+	}
+}
+
+func TestDecode_intStringAliased(t *testing.T) {
+	var value struct {
+		Count time.Duration
+	}
+
+	err := Decode(&value, testReadFile(t, "basic_int_string.hcl"))
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	if value.Count != time.Duration(3) {
 		t.Fatalf("bad: %#v", value.Count)
 	}
 }

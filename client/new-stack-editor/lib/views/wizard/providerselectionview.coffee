@@ -1,7 +1,10 @@
 kd = require 'kd'
-JView = require 'app/jview'
 globals = require 'globals'
+
+JView = require 'app/jview'
 Tracker = require 'app/util/tracker'
+
+Events = require '../../events'
 
 
 module.exports = class ProviderSelectionView extends JView
@@ -52,7 +55,7 @@ module.exports = class ProviderSelectionView extends JView
           @selected?.unsetClass 'selected'
 
           @selected = if @selected is providerView then null else providerView
-          @emit 'SelectedProviderChanged', @selected
+          @emit Events.SelectedProviderChanged, @selected
 
 
   pistachio: ->

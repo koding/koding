@@ -8,7 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"socialapi/workers/presence/api"
+	"socialapi/workers/presence"
 	"time"
 )
 
@@ -30,7 +30,7 @@ type Client struct {
 
 // NewInternal creates a new client for internal ping requests.
 func NewInternal(host string) *Client {
-	fullURL := host + api.EndpointPresencePingPrivate
+	fullURL := host + presence.EndpointPresencePingPrivate
 	if _, err := url.ParseRequestURI(fullURL); err != nil {
 		panic("url is not valid")
 	}
@@ -45,7 +45,7 @@ func NewInternal(host string) *Client {
 
 // NewPublic creates a new client for public ping requests.
 func NewPublic(host string) *Client {
-	fullURL := host + api.EndpointPresencePing
+	fullURL := host + presence.EndpointPresencePing
 	if _, err := url.ParseRequestURI(fullURL); err != nil {
 		panic("url is not valid")
 	}

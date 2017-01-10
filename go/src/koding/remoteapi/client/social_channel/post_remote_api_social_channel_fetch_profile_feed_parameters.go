@@ -57,7 +57,7 @@ type PostRemoteAPISocialChannelFetchProfileFeedParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPISocialChannelFetchProfileFeedParams) SetContext(ctx contex
 }
 
 // WithBody adds the body to the post remote API social channel fetch profile feed params
-func (o *PostRemoteAPISocialChannelFetchProfileFeedParams) WithBody(body *models.DefaultSelector) *PostRemoteAPISocialChannelFetchProfileFeedParams {
+func (o *PostRemoteAPISocialChannelFetchProfileFeedParams) WithBody(body models.DefaultSelector) *PostRemoteAPISocialChannelFetchProfileFeedParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API social channel fetch profile feed params
-func (o *PostRemoteAPISocialChannelFetchProfileFeedParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPISocialChannelFetchProfileFeedParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPISocialChannelFetchProfileFeedParams) WriteToRequest(r runt
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

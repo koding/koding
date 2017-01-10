@@ -14,6 +14,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	"koding/remoteapi/models"
 )
 
 // NewPostRemoteAPIJWorkspaceDeleteIDParams creates a new PostRemoteAPIJWorkspaceDeleteIDParams object
@@ -51,6 +53,11 @@ for the post remote API j workspace delete ID operation typically these are writ
 */
 type PostRemoteAPIJWorkspaceDeleteIDParams struct {
 
+	/*Body
+	  body of the request
+
+	*/
+	Body models.DefaultSelector
 	/*ID
 	  Mongo ID of target instance
 
@@ -84,6 +91,17 @@ func (o *PostRemoteAPIJWorkspaceDeleteIDParams) SetContext(ctx context.Context) 
 	o.Context = ctx
 }
 
+// WithBody adds the body to the post remote API j workspace delete ID params
+func (o *PostRemoteAPIJWorkspaceDeleteIDParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJWorkspaceDeleteIDParams {
+	o.SetBody(body)
+	return o
+}
+
+// SetBody adds the body to the post remote API j workspace delete ID params
+func (o *PostRemoteAPIJWorkspaceDeleteIDParams) SetBody(body models.DefaultSelector) {
+	o.Body = body
+}
+
 // WithID adds the id to the post remote API j workspace delete ID params
 func (o *PostRemoteAPIJWorkspaceDeleteIDParams) WithID(id string) *PostRemoteAPIJWorkspaceDeleteIDParams {
 	o.SetID(id)
@@ -100,6 +118,10 @@ func (o *PostRemoteAPIJWorkspaceDeleteIDParams) WriteToRequest(r runtime.ClientR
 
 	r.SetTimeout(o.timeout)
 	var res []error
+
+	if err := r.SetBodyParam(o.Body); err != nil {
+		return err
+	}
 
 	// path param id
 	if err := r.SetPathParam("id", o.ID); err != nil {

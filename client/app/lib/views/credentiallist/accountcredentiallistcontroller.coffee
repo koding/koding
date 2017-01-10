@@ -26,9 +26,12 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
   constructor: (options = {}, data) ->
 
-    options.limit            or= 30
-    options.noItemFoundText   ?= "You don't have any credentials"
-    options.model             ?= remote.api.JCredential
+    options.limit              or= 30
+    options.lazyLoadThreshold  or= options.limit
+    options.model               ?= remote.api.JCredential
+    options.noItemFoundText     ?= "You don't have any credentials"
+    options.showCredentialMenu  ?= yes
+    options.useCustomScrollView ?= yes
 
     super options, data
 
@@ -185,12 +188,12 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
     super mainView
 
-    { provider, requiredFields, dontShowCredentialMenu } = @getOptions()
+    { provider, requiredFields, showCredentialMenu } = @getOptions()
 
     if provider
       @createAddDataButton()
     else
-      @createAddCredentialMenu()  unless dontShowCredentialMenu
+      @createAddCredentialMenu()  if showCredentialMenu
 
 
   createAddDataButton: ->
@@ -204,10 +207,15 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
   createAddCredentialMenu: ->
 
+    @getView().parent.prepend @_createAddCredentialMenuButton()
+
+
+  _createAddCredentialMenuButton: (options = {}) ->
+
     Providers    = globals.config.providers
     providerList = {}
 
-    Object.keys(Providers).forEach (provider) =>
+    Providers._getSupportedProviders().forEach (provider) =>
 
       return  if provider is 'custom'
       return  if Object.keys(Providers[provider].credentialFields).length is 0
@@ -217,9 +225,9 @@ module.exports = class AccountCredentialListController extends KodingListControl
           @_addButtonMenu.destroy()
           @showAddCredentialFormFor provider
 
-    @getView().parent.prepend addButton = new KDButtonView
-      cssClass  : 'add-big-btn'
-      title     : 'Add new credentials'
+    addButton = new KDButtonView
+      cssClass  : options.cssClass ? 'add-big-btn'
+      title     : options.title ? 'Add new credentials'
       icon      : yes
       callback  : =>
         @_addButtonMenu = new KDContextMenu
@@ -230,6 +238,8 @@ module.exports = class AccountCredentialListController extends KodingListControl
         , providerList
 
         @_addButtonMenu.setCss { 'z-index': 10002 }
+
+    return addButton
 
 
   helper =

@@ -52,7 +52,7 @@ export COMMANDS=(
 
 export TERRAFORM_COMMANDS=(
 	vendor/github.com/hashicorp/terraform
-	vendor/github.com/hashicorp/terraform/builtin/bins/...
+	$(go list vendor/github.com/hashicorp/terraform/builtin/bins/... | grep -v -E 'provisioner|provider-github')
 )
 
 export TERRAFORM_CUSTOM_COMMANDS=(
@@ -72,13 +72,18 @@ for provider in $KODING_REPO/go/src/koding/kites/kloud/provider/*; do
 	fi
 done
 
+fileToBeCleaned=$GOPATH/src/vendor/github.com/hashicorp/terraform/config/interpolate_funcs.go
+grep "interpolationFuncFile()," $fileToBeCleaned && sed -i.bak '/interpolationFuncFile(),/d' $fileToBeCleaned
+
 go generate koding/kites/config koding/kites/kloud/kloud
 
 koding-go-install ${COMMANDS[@]} ${TERRAFORM_COMMANDS[@]}
-rm -rf $GOBIN/provider-github
 koding-go-install ${TERRAFORM_CUSTOM_COMMANDS[@]}
 
-for cmd in $GOBIN/provider-* $GOBIN/provisioner-*; do
+# clean up unused resources in any case
+rm -rf $GOBIN/terraform-provisioner-*
+
+for cmd in $GOBIN/provider-*; do
 	NAME=$(echo $cmd | rev | cut -d/ -f1 | rev)
 
 	ln -sf $GOBIN/$NAME $GOBIN/terraform-$NAME

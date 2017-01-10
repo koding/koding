@@ -57,7 +57,7 @@ type PostRemoteAPIJUserChangeEmailParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJUserChangeEmailParams) SetContext(ctx context.Context) {
 }
 
 // WithBody adds the body to the post remote API j user change email params
-func (o *PostRemoteAPIJUserChangeEmailParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJUserChangeEmailParams {
+func (o *PostRemoteAPIJUserChangeEmailParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJUserChangeEmailParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j user change email params
-func (o *PostRemoteAPIJUserChangeEmailParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJUserChangeEmailParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJUserChangeEmailParams) WriteToRequest(r runtime.ClientReq
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

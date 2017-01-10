@@ -4,6 +4,7 @@ kookies                = require 'kookies'
 kd                     = require 'kd'
 socketConnected        = require './util/socketConnected'
 enableLogs             = require './util/enableLogs'
+cleanup                = require './util/cleanup'
 ConnectionChecker      = require './connectionchecker'
 lazyrouter             = require './lazyrouter'
 setupAnalytics         = require './setupanalytics'
@@ -128,7 +129,7 @@ initialize = (defaults, next) ->
 
   logsEnabled = (kookies.get 'enableLogs') or not globals.config?.suppressLogs
   enableLogs logsEnabled
-
+  cleanup()
   next()
 
 run()

@@ -16,7 +16,6 @@ package runtime
 
 import (
 	"net/http"
-	"os"
 	"testing"
 	"time"
 
@@ -43,7 +42,7 @@ func (t *trw) SetFormParam(_ string, _ ...string) error { return nil }
 
 func (t *trw) SetPathParam(_ string, _ string) error { return nil }
 
-func (t *trw) SetFileParam(_ string, _ *os.File) error { return nil }
+func (t *trw) SetFileParam(_ string, _ NamedReadCloser) error { return nil }
 
 func (t *trw) SetBodyParam(body interface{}) error {
 	t.Body = body

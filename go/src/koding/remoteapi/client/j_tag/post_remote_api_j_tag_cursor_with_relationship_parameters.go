@@ -57,7 +57,7 @@ type PostRemoteAPIJTagCursorWithRelationshipParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJTagCursorWithRelationshipParams) SetContext(ctx context.C
 }
 
 // WithBody adds the body to the post remote API j tag cursor with relationship params
-func (o *PostRemoteAPIJTagCursorWithRelationshipParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJTagCursorWithRelationshipParams {
+func (o *PostRemoteAPIJTagCursorWithRelationshipParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJTagCursorWithRelationshipParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j tag cursor with relationship params
-func (o *PostRemoteAPIJTagCursorWithRelationshipParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJTagCursorWithRelationshipParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJTagCursorWithRelationshipParams) WriteToRequest(r runtime
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

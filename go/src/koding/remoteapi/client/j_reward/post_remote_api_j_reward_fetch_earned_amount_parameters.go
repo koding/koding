@@ -57,7 +57,7 @@ type PostRemoteAPIJRewardFetchEarnedAmountParams struct {
 	  body of the request
 
 	*/
-	Body *models.DefaultSelector
+	Body models.DefaultSelector
 
 	timeout    time.Duration
 	Context    context.Context
@@ -87,13 +87,13 @@ func (o *PostRemoteAPIJRewardFetchEarnedAmountParams) SetContext(ctx context.Con
 }
 
 // WithBody adds the body to the post remote API j reward fetch earned amount params
-func (o *PostRemoteAPIJRewardFetchEarnedAmountParams) WithBody(body *models.DefaultSelector) *PostRemoteAPIJRewardFetchEarnedAmountParams {
+func (o *PostRemoteAPIJRewardFetchEarnedAmountParams) WithBody(body models.DefaultSelector) *PostRemoteAPIJRewardFetchEarnedAmountParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the post remote API j reward fetch earned amount params
-func (o *PostRemoteAPIJRewardFetchEarnedAmountParams) SetBody(body *models.DefaultSelector) {
+func (o *PostRemoteAPIJRewardFetchEarnedAmountParams) SetBody(body models.DefaultSelector) {
 	o.Body = body
 }
 
@@ -102,10 +102,6 @@ func (o *PostRemoteAPIJRewardFetchEarnedAmountParams) WriteToRequest(r runtime.C
 
 	r.SetTimeout(o.timeout)
 	var res []error
-
-	if o.Body == nil {
-		o.Body = new(models.DefaultSelector)
-	}
 
 	if err := r.SetBodyParam(o.Body); err != nil {
 		return err

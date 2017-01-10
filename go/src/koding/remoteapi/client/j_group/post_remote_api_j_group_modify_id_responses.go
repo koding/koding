@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJGroupModifyIDOK() *PostRemoteAPIJGroupModifyIDOK {
 OK
 */
 type PostRemoteAPIJGroupModifyIDOK struct {
-	Payload *models.JGroup
+	Payload PostRemoteAPIJGroupModifyIDOKBody
 }
 
 func (o *PostRemoteAPIJGroupModifyIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJGroupModifyIDOK) Error() string {
 
 func (o *PostRemoteAPIJGroupModifyIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JGroup)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJGroupModifyIDOKBody post remote API j group modify ID o k body
+swagger:model PostRemoteAPIJGroupModifyIDOKBody
+*/
+type PostRemoteAPIJGroupModifyIDOKBody struct {
+	models.JGroup
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJGroupModifyIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJGroupModifyIDOKBodyAO0 models.JGroup
+	if err := swag.ReadJSON(raw, &postRemoteAPIJGroupModifyIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JGroup = postRemoteAPIJGroupModifyIDOKBodyAO0
+
+	var postRemoteAPIJGroupModifyIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJGroupModifyIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJGroupModifyIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJGroupModifyIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJGroupModifyIDOKBodyAO0, err := swag.WriteJSON(o.JGroup)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJGroupModifyIDOKBodyAO0)
+
+	postRemoteAPIJGroupModifyIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJGroupModifyIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j group modify ID o k body
+func (o *PostRemoteAPIJGroupModifyIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JGroup.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

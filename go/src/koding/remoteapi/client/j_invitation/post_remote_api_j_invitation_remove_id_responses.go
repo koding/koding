@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/swag"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -45,7 +47,7 @@ func NewPostRemoteAPIJInvitationRemoveIDOK() *PostRemoteAPIJInvitationRemoveIDOK
 OK
 */
 type PostRemoteAPIJInvitationRemoveIDOK struct {
-	Payload *models.JInvitation
+	Payload PostRemoteAPIJInvitationRemoveIDOKBody
 }
 
 func (o *PostRemoteAPIJInvitationRemoveIDOK) Error() string {
@@ -54,12 +56,74 @@ func (o *PostRemoteAPIJInvitationRemoveIDOK) Error() string {
 
 func (o *PostRemoteAPIJInvitationRemoveIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.JInvitation)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
+	return nil
+}
+
+/*PostRemoteAPIJInvitationRemoveIDOKBody post remote API j invitation remove ID o k body
+swagger:model PostRemoteAPIJInvitationRemoveIDOKBody
+*/
+type PostRemoteAPIJInvitationRemoveIDOKBody struct {
+	models.JInvitation
+
+	models.DefaultResponse
+}
+
+// UnmarshalJSON unmarshals this object from a JSON structure
+func (o *PostRemoteAPIJInvitationRemoveIDOKBody) UnmarshalJSON(raw []byte) error {
+
+	var postRemoteAPIJInvitationRemoveIDOKBodyAO0 models.JInvitation
+	if err := swag.ReadJSON(raw, &postRemoteAPIJInvitationRemoveIDOKBodyAO0); err != nil {
+		return err
+	}
+	o.JInvitation = postRemoteAPIJInvitationRemoveIDOKBodyAO0
+
+	var postRemoteAPIJInvitationRemoveIDOKBodyAO1 models.DefaultResponse
+	if err := swag.ReadJSON(raw, &postRemoteAPIJInvitationRemoveIDOKBodyAO1); err != nil {
+		return err
+	}
+	o.DefaultResponse = postRemoteAPIJInvitationRemoveIDOKBodyAO1
+
+	return nil
+}
+
+// MarshalJSON marshals this object to a JSON structure
+func (o PostRemoteAPIJInvitationRemoveIDOKBody) MarshalJSON() ([]byte, error) {
+	var _parts [][]byte
+
+	postRemoteAPIJInvitationRemoveIDOKBodyAO0, err := swag.WriteJSON(o.JInvitation)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJInvitationRemoveIDOKBodyAO0)
+
+	postRemoteAPIJInvitationRemoveIDOKBodyAO1, err := swag.WriteJSON(o.DefaultResponse)
+	if err != nil {
+		return nil, err
+	}
+	_parts = append(_parts, postRemoteAPIJInvitationRemoveIDOKBodyAO1)
+
+	return swag.ConcatJSON(_parts...), nil
+}
+
+// Validate validates this post remote API j invitation remove ID o k body
+func (o *PostRemoteAPIJInvitationRemoveIDOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.JInvitation.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.DefaultResponse.Validate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }
