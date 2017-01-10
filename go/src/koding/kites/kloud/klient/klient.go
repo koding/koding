@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"koding/klient/machine/mount/index"
+	"koding/klient/machine/index"
 	"koding/klient/sshkeys"
 
 	"github.com/koding/kite"

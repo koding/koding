@@ -3,7 +3,7 @@ package machine
 import (
 	"context"
 
-	"koding/klient/machine/mount/index"
+	"koding/klient/machine/index"
 )
 
 // Client describes the operations that can be made on remote machine.

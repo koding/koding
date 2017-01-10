@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"koding/klient/machine/mount/index"
+	"koding/klient/machine/index"
 )
 
 var (
