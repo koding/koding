@@ -9,9 +9,7 @@ KONFIG      = require 'koding-config-manager'
 
 module.exports = class JAccount extends jraphical.Module
 
-  @trait __dirname, '../traits/followable'
   @trait __dirname, '../traits/filterable'
-  @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/notifying'
   @trait __dirname, '../traits/notifiable'
   @trait __dirname, '../traits/flaggable'
@@ -116,10 +114,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
         fetchPaymentMethods:
           (signature Function)
-        fetchSubscriptions: [
-          (signature Function)
-          (signature Object, Function)
-        ]
         fetchEmailAndStatus:
           (signature Function)
         fetchEmailFrequency:
@@ -1052,29 +1046,6 @@ module.exports = class JAccount extends jraphical.Module
           profile, registeredAt, lastLoginDate, email, status
           globalFlags, referrerUsername, referralUsed, plan, machines
         }
-
-
-  fetchSubscriptions$: secure ({ connection:{ delegate } }, options, callback) ->
-    return callback { message: 'Access denied!' }  unless @equals delegate
-
-    [callback, options] = [options, callback]  unless callback
-
-    options ?= {}
-    { tags, status } = options
-
-    selector = {}
-    queryOptions = { targetOptions: { selector } }
-
-    selector.tags = { $in: tags }  if tags
-
-    selector.status = status ? { $in: [
-      'active'
-      'past_due'
-      'future'
-    ] }
-
-    @fetchSubscriptions {}, queryOptions, callback
-
 
   fetchEmailAndStatus: secure (client, callback) ->
     @fetchFromUser client, ['email', 'status'], callback

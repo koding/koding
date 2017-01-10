@@ -31,8 +31,6 @@ module.exports = class JGroup extends Module
   @API_TOKEN_LIMIT = 5
 
   @trait __dirname, '../../traits/filterable'
-  @trait __dirname, '../../traits/followable'
-  @trait __dirname, '../../traits/taggable'
   @trait __dirname, '../../traits/protected'
   @trait __dirname, '../../traits/joinable'
   @trait __dirname, '../../traits/slugifiable'
@@ -481,18 +479,8 @@ module.exports = class JGroup extends Module
 
   @create$ = secure (client, formData, callback) ->
     { delegate } = client.connection
-
-    # subOptions = targetOptions: selector: tags: "custom-plan"
-    # delegate.fetchSubscription null, subOptions, (err, subscription) =>
-    #   return callback err  if err
-    #   return callback new KodingError "Subscription is not found"  unless subscription
-    #   subscription.debitPack tag: "group", (err) =>
-    #     return callback err  if err
     @create client, formData, delegate, (err, group) ->
-      return callback err if err
-      # group.addSubscription subscription, (err) ->
-      #   return callback err  if err
-      callback null, { group }
+      return callback err, group
 
   @findSuggestions = (client, seed, options, callback) ->
     { limit, blacklist, skip }  = options
