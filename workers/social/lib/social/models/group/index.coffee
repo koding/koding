@@ -1229,6 +1229,12 @@ module.exports = class JGroup extends Module
       if err then callback err
       else callback null, (if count is 0 then no else yes)
 
+  countMembers: (callback) ->
+    selector =
+      sourceId  : @getId()
+      as        : 'member'
+    Relationship.count selector, callback
+
 
   approveMember:(member, roles, callback) ->
     [callback, roles] = [roles, callback]  unless callback
