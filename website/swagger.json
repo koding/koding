@@ -31,7 +31,7 @@
       "name": "JCombinedAppStorage"
     },
     {
-      "description": "Base class for compute related operations",
+      "description": "Model ComputeProvider",
       "name": "ComputeProvider"
     },
     {
@@ -187,11 +187,11 @@
       "name": "SocialNotification"
     },
     {
-      "description": "SocialAccount",
+      "description": "Model SocialAccount",
       "name": "SocialAccount"
     },
     {
-      "description": "JComputeStack keeps stack data\nincluding machines and credential references",
+      "description": "Model JComputeStack",
       "name": "JComputeStack"
     },
     {
