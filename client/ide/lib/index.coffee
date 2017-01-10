@@ -1868,14 +1868,20 @@ module.exports = class IDEAppController extends AppController
 
       .then (data) =>
 
-        return callback data  if data
+        if data
+          callback data
+          return data
 
         # Backward compatibility plug
-        return callback null  unless @mountedMachine.isMine()
+        unless @mountedMachine.isMine()
+          callback null
+          return null
 
         fetch()
           .then callback
           .catch handleError
+
+        return data
 
       .catch handleError
 
