@@ -68,6 +68,16 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
 
       new MembershipRoleChangedModal { role, adminNick }  if id is whoami()._id
 
+    groupsController.on 'InvitationChanged', (data) ->
+
+      { contents: { type, invitations, id } } = data
+
+      switch type
+        when 'remove'
+          reactor.dispatch 'REMOVE_PENDING_INVITATION_BY_ID', { id }
+        when 'create'
+          reactor.dispatch 'LOAD_PENDING_INVITATION_SUCCESS', { invitations }
+
     groupsController.on 'GroupJoined', (data) ->
 
       return console.warm 'We couldn\'t fetch neccessary information'  unless data.contents.member
