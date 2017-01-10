@@ -8,7 +8,7 @@ start = (browser) ->
   browser.url(testUrl)
 
 getText = ->
-  return faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
+  return faker.lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
 
 register = (browser) ->
   user = utils.getUser(yes)

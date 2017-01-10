@@ -5,7 +5,7 @@ whoami = require './util/whoami'
 kd = require 'kd'
 KDObject = kd.Object
 Encoder = require 'htmlencode'
-MongoOp = require '@koding/bongo-client/node_modules/mongoop'
+MongoOp = require 'mongoop'
 
 module.exports = class MessageEventManager extends KDObject
 

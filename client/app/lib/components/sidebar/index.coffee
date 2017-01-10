@@ -41,6 +41,8 @@ module.exports = class Sidebar extends React.Component
     return {
       stacks                       : SidebarFlux.getters.sidebarStacks
       drafts                       : SidebarFlux.getters.sidebarDrafts
+      teamStackTemplates           : EnvironmentFlux.getters.teamStackTemplates
+      privateStackTemplates        : EnvironmentFlux.getters.privateStackTemplates
       sharedMachines               : EnvironmentFlux.getters.sharedMachines
       collaborationMachines        : EnvironmentFlux.getters.collaborationMachines
       sharedMachineListItems       : EnvironmentFlux.getters.sharedMachineListItems
@@ -252,7 +254,9 @@ module.exports = class Sidebar extends React.Component
     else if @state.isLoading
       <div/>
     else
-      <SidebarNoStacks />
+      <SidebarNoStacks
+        teamStacks={@state.teamStackTemplates.size}
+        privateStacks={@state.privateStackTemplates.size} />
 
 
   renderDifferentStackResources: ->
