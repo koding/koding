@@ -88,6 +88,7 @@ module.exports = class GroupsController extends kd.Controller
           'InstanceDeleted'
           'GroupDestroyed'
           'GroupJoined'
+          'MembershipRoleChanged'
           'GroupLeft'
           'StackAdminMessageCreated'
           'SharedStackTemplateAccessLevel'
