@@ -52,6 +52,19 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
             expect(template.template.sum)     .to.exist
             done()
 
+      it 'should generate a title if title is not provided', (done) ->
+
+        withConvertedUser ({ client }) ->
+
+          stackTemplateData = generateStackTemplateData client
+          delete stackTemplateData.title
+
+          StackTemplate.create client, stackTemplateData, (err, template) ->
+            expect(err?.message)                  .not.exist
+            expect(template.title)                .to.exist
+            expect(template.title.split(' ')[1])  .to.be.equal 'Aws'
+            done()
+
 
   describe '#some$()', ->
 
