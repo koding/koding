@@ -13,6 +13,7 @@ StackTemplate   = require './stacktemplate'
   withConvertedUserAndStackTemplate } = require \
   '../../../../testhelper/models/computeproviders/stacktemplatehelper'
 
+{ slugify } = require '../../traits/slugifiable'
 
 # this function will be called once before running any test
 beforeTests = -> before (done) ->
@@ -42,6 +43,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
           StackTemplate.create client, stackTemplateData, (err, template) ->
             expect(err?.message)              .not.exist
             expect(template.title)            .to.be.equal stackTemplateData.title
+            expect(template.slug)             .to.be.equal slugify stackTemplateData.title
             expect(template.config)           .to.be.deep.equal stackTemplateData.config
             expect(template.credentials)      .to.be.equal stackTemplateData.credentials
             expect(template.machines.length)  .to.be.equal stackTemplateData.machines.length
@@ -52,17 +54,20 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
             expect(template.template.sum)     .to.exist
             done()
 
-      it 'should generate a title if title is not provided', (done) ->
+      it 'should generate a title/slug if not provided', (done) ->
 
         withConvertedUser ({ client }) ->
 
           stackTemplateData = generateStackTemplateData client
+
+          delete stackTemplateData.slug
           delete stackTemplateData.title
 
           StackTemplate.create client, stackTemplateData, (err, template) ->
             expect(err?.message)                  .not.exist
             expect(template.title)                .to.exist
             expect(template.title.split(' ')[1])  .to.be.equal 'Aws'
+            expect(template.slug)                 .to.be.equal slugify template.title
             done()
 
       it 'should generate config automatically from template content', (done) ->

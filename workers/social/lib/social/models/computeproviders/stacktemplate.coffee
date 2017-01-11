@@ -7,6 +7,7 @@ clientRequire            = require '../../clientrequire'
 
 module.exports = class JStackTemplate extends Module
 
+  { slugify }  = require '../../traits/slugifiable'
   { permit }   = require '../group/permissionset'
   Validators   = require '../group/validators'
   { revive, checkTemplateUsage } = require './computeutils'
@@ -82,6 +83,11 @@ module.exports = class JStackTemplate extends Module
         type          : String
         required      : yes
         _description  : 'Title of this stack template'
+
+      slug            :
+        type          : String
+        required      : yes
+        _description  : 'Unique slug of stack template'
 
       description     :
         type          : String
@@ -214,8 +220,8 @@ module.exports = class JStackTemplate extends Module
 
     success: revive
 
-      shouldReviveClient   : yes
-      shouldReviveProvider : no
+      shouldReviveClient    : yes
+      shouldReviveProvider  : no
       shouldFetchGroupLimit : yes
 
     , (client, data, callback) ->
@@ -245,6 +251,8 @@ module.exports = class JStackTemplate extends Module
 
         stackTemplate.title = data.title ? \
           generateTemplateTitle stackTemplate.config.requiredProviders[0]
+
+        stackTemplate.slug = slugify data.slug ? stackTemplate.title
 
         stackTemplate.save (err) ->
           if err
