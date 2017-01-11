@@ -17,7 +17,6 @@ import (
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
-	yaml "gopkg.in/yaml.v2"
 )
 
 // ImportRequest represents a request struct for "stack.import"
@@ -369,28 +368,4 @@ func jsonMarshal(v interface{}) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
-}
-
-func yamlReencode(template []byte) ([]byte, error) {
-	var m map[string]interface{}
-
-	if err := json.Unmarshal(template, &m); err != nil {
-		return nil, err
-	}
-
-	p, err := yaml.Marshal(m)
-	if err != nil {
-		return nil, err
-	}
-
-	return p, nil
-}
-
-func pstring(p []byte) *string {
-	if len(p) == 0 {
-		return nil
-	}
-
-	s := string(p)
-	return &s
 }
