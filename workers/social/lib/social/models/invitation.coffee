@@ -6,7 +6,7 @@ Tracker     = require './tracker'
 KodingError = require '../error'
 { extend }  = require 'underscore'
 async       = require 'async'
-
+_           = require 'lodash'
 { protocol, hostname } = KONFIG
 { secure, signature } = Bongo
 
@@ -242,7 +242,8 @@ module.exports = class JInvitation extends jraphical.Module
             return callback err  if err
 
             unless returnCodes
-              data = { type: 'create', invitations: codes }
+
+              data = { type: 'create', invitations: prepareInvitationCodes codes }
 
               return notifyGroupOnInvitationChange groupName, data, callback
 
@@ -262,6 +263,12 @@ module.exports = class JInvitation extends jraphical.Module
 
         else
           createInvites hasAdminRights = no
+
+
+  prepareInvitationCodes = (codes) ->
+
+    extractData = ['_id', 'inviterId', 'groupName', 'email', 'role', 'firstName', 'lastName', 'status', 'code']
+    codes.map (code) ->  _.pick code, extractData
 
 
   @canFetchInvitationsAsSuperAdmin: permit
