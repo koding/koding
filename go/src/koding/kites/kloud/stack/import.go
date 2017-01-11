@@ -67,6 +67,15 @@ var requiredData = map[string]interface{}{
 	"user":  []interface{}{"username"},
 }
 
+// Import creates a stack from the received stack template. Upon request it:
+//
+//  - creates a JStackTemplate
+//  - updates JStackTemplate with machines obtained via terraformer plan command
+//  - generates a JComputeStack
+//  - builds a JComputeStack
+//
+// The method expects the received credentials to be already verified
+// and bootstrapped.
 func (k *Kloud) Import(r *kite.Request) (interface{}, error) {
 	var req ImportRequest
 
