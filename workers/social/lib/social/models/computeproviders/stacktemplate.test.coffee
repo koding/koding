@@ -44,7 +44,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
             expect(err?.message)              .not.exist
             expect(template.title)            .to.be.equal stackTemplateData.title
             expect(template.slug)             .to.be.equal slugify stackTemplateData.title
-            expect(template.config)           .to.be.deep.equal stackTemplateData.config
+            expect(template.config)           .to.exist
             expect(template.credentials)      .to.be.equal stackTemplateData.credentials
             expect(template.machines.length)  .to.be.equal stackTemplateData.machines.length
             expect(template.accessLevel)      .to.be.equal stackTemplateData.accessLevel

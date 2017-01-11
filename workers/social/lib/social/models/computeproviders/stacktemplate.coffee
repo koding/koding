@@ -180,17 +180,30 @@ module.exports = class JStackTemplate extends Module
     return config
 
 
-  validateTemplate = (templateData, group, callback) ->
+  validateTemplateData = (data, group, callback) ->
 
-    unless templateData
+    unless data
       return callback new KodingError 'Template data is required!'
 
-    { template } = templateData
+    { config = {}, slug, title, template, rawContent, templateDetails } = data
+
+    if not template or not rawContent
+      return callback new KodingError 'Template content is required!'
+
+    template = generateTemplateObject template, rawContent, templateDetails
+    config   = updateConfigForTemplate config, template.rawContent
+    title   ?= generateTemplateTitle config.requiredProviders[0]
+    slug     = slugify slug ? title
+
+    replacements = { template, config, title, slug }
+
     limitConfig  = helpers.getLimitConfig group
-    return callback null  unless limitConfig.limit # No limit, no pain.
+    unless limitConfig.limit # No limit, no pain.
+      return callback null, replacements
 
     ComputeProvider = require './computeprovider'
-    ComputeProvider.validateTemplateContent template, limitConfig, callback
+    ComputeProvider.validateTemplateContent data.template, limitConfig, (err) ->
+      callback err, replacements
 
 
   generateTemplateTitle = (provider) ->
@@ -236,30 +249,22 @@ module.exports = class JStackTemplate extends Module
       { group }    = client.r # we have revived JGroup and JUser here ~ GG
       { delegate } = client.connection
 
-     validateTemplate data, group, (err) ->
+      validateTemplateData data, group, (err, replacements) ->
         return callback err  if err
-
-        if data.config?
-          data.config.groupStack = no
 
         stackTemplate = new JStackTemplate
           originId    : delegate.getId()
           group       : client.context.group
-          config      : data.config      ? {}
           description : data.description ? ''
           machines    : data.machines    ? []
           accessLevel : data.accessLevel ? 'private'
-          template    : generateTemplateObject \
-            data.template, data.rawContent, data.templateDetails
-          credentials : data.credentials
+          credentials : data.credentials ? {}
 
-        stackTemplate.config = updateConfigForTemplate \
-          stackTemplate.config, stackTemplate.template.rawContent
+        stackTemplate.slug     = replacements.slug
+        stackTemplate.title    = replacements.title
 
-        stackTemplate.title = data.title ? \
-          generateTemplateTitle stackTemplate.config.requiredProviders[0]
-
-        stackTemplate.slug = slugify data.slug ? stackTemplate.title
+        stackTemplate.config   = replacements.config
+        stackTemplate.template = replacements.template
 
         stackTemplate.save (err) ->
           if err
@@ -479,34 +484,34 @@ module.exports = class JStackTemplate extends Module
       delete data.group
 
       # Update template sum if template update requested
-      { config, template, templateDetails, rawContent } = data
-      config ?= {}
+      { config, slug, template, templateDetails, rawContent } = data
 
       async.series [
 
         (next) =>
           return next()  unless template?
 
-          validateTemplate template, group, (err) =>
+          validateTemplateData data, group, (err, replacements) =>
             return next err  if err
 
             # update template object, sum, rawContent etc.
-            data.template = generateTemplateObject \
-              template, rawContent, templateDetails
-
-            # add required providers/fields on to config from template
-            data.config = updateConfigForTemplate \
-              config, data.template.rawContent
+            data.template = replacements.template
 
             # Keep the existing template details if not provided
             if not templateDetails?
               data.template.details = @getAt 'template.details'
 
-            delete data.templateDetails
-            delete data.rawContent
-
             # Keep last updater info in the template details
             data.template.details.lastUpdaterId = delegate.getId()
+
+            # add required providers/fields on to config from template
+            data.config = replacements.config
+
+            # update slug
+            data.slug = replacements.slug  if slug
+
+            delete data.templateDetails
+            delete data.rawContent
 
             data['meta.modifiedAt'] = new Date
 
@@ -564,6 +569,7 @@ module.exports = class JStackTemplate extends Module
     success: (client, callback) ->
 
       cloneData         =
+        slug            : @getAt 'slug'
         title           : "#{@getAt 'title'} - clone"
         description     : @getAt 'description'
 
