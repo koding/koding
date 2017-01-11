@@ -132,7 +132,7 @@ generateDefinition = (model) ->
 
   schema = model.describeSchema()
   def    = { type: 'object' }
-  props  = {}
+  props  = { _id: { type: 'string' } }
 
   for field, prop of schema
 

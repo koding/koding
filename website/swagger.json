@@ -288,6 +288,9 @@
     "JAccount": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "socialApiId": {
           "type": "string"
         },
@@ -344,6 +347,9 @@
         "originId"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "code": {
           "type": "string"
         },
@@ -362,6 +368,9 @@
     "JCombinedAppStorage": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "accountId": {
           "type": "string"
         },
@@ -379,6 +388,9 @@
         "originId"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "provider": {
           "type": "string"
         },
@@ -398,9 +410,6 @@
           "type": "array",
           "items": {
             "type": "string"
-          },
-          "default": {
-            "type": "default"
           }
         },
         "verified": {
@@ -418,6 +427,9 @@
         "originId"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "identifier": {
           "type": "string"
         },
@@ -436,6 +448,9 @@
         "provider"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "uid": {
           "type": "string"
         },
@@ -529,6 +544,9 @@
         "originId"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "slug": {
           "type": "string"
         },
@@ -561,6 +579,9 @@
     "JSnapshot": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "originId": {
           "type": "string"
         },
@@ -593,13 +614,13 @@
         "group"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "machines": {
           "type": "array",
           "items": {
             "type": "object"
-          },
-          "default": {
-            "type": "default"
           }
         },
         "title": {
@@ -657,6 +678,9 @@
         "namespace"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "namespace": {
           "type": "string"
         },
@@ -671,6 +695,9 @@
     "JCustomPartials": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
@@ -705,6 +732,9 @@
     "JProposedDomain": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "domain": {
           "type": "string"
         },
@@ -712,9 +742,6 @@
           "type": "array",
           "items": {
             "type": "object"
-          },
-          "default": {
-            "type": "default"
           }
         },
         "proxy": {
@@ -747,6 +774,9 @@
     "JDomainAlias": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "domain": {
           "type": "string"
         },
@@ -771,6 +801,9 @@
         "foreignId"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "username": {
           "type": "string"
         },
@@ -791,6 +824,9 @@
     "JGroupData": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "slug": {
           "type": "string"
         },
@@ -802,6 +838,9 @@
     "JGroupLimit": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
@@ -859,6 +898,9 @@
         "title"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "title": {
           "type": "string"
         },
@@ -896,9 +938,6 @@
             },
             "chatlioId": {
               "type": "string"
-            },
-            "default": {
-              "type": "default"
             }
           }
         },
@@ -937,6 +976,9 @@
     "JPermissionSet": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "isCustom": {
           "type": "boolean"
         },
@@ -944,9 +986,6 @@
           "type": "array",
           "items": {
             "type": "object"
-          },
-          "default": {
-            "type": "default"
           }
         }
       }
@@ -954,6 +993,9 @@
     "JGroupRole": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "title": {
           "type": "string"
         },
@@ -977,6 +1019,9 @@
         "groupName"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "code": {
           "type": "string"
         },
@@ -1022,6 +1067,9 @@
         "username"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "type": {
           "type": "string"
         },
@@ -1049,6 +1097,9 @@
     "JName": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
@@ -1069,6 +1120,9 @@
     "JPasswordRecovery": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "email": {
           "type": "string"
         },
@@ -1104,6 +1158,9 @@
         "name"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
@@ -1129,6 +1186,9 @@
     "JProxyRestriction": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "domainName": {
           "type": "string"
         },
@@ -1157,6 +1217,9 @@
         "originId"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "originId": {
           "type": "string"
         },
@@ -1177,6 +1240,9 @@
         "originId"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "type": {
           "type": "string"
         },
@@ -1210,6 +1276,9 @@
         "name"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
@@ -1254,6 +1323,9 @@
     "JSession": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "clientId": {
           "type": "string"
         },
@@ -1325,6 +1397,9 @@
         "group"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "title": {
           "type": "string"
         },
@@ -1375,6 +1450,9 @@
         "email"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "code": {
           "type": "string"
         },
@@ -1396,6 +1474,9 @@
     "JUrlAlias": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "alias": {
           "type": "string"
         },
@@ -1407,6 +1488,9 @@
     "JUser": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "username": {
           "type": "string"
         },
@@ -1473,6 +1557,9 @@
     "JVerificationToken": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "username": {
           "type": "string"
         },
@@ -1494,6 +1581,9 @@
     "JWorkspace": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
