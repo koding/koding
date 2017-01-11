@@ -7,11 +7,12 @@ isAdmin = require 'app/util/isAdmin'
 { create: createCustomer } = require 'app/redux/modules/payment/customer'
 { load: loadPaymentInfo } = require 'app/redux/modules/payment/info'
 { load: loadInvoices } = require 'app/redux/modules/payment/invoices'
-
 {
-  load: loadSubscription
-  create: createSubscription
+load: loadSubscription
+create: createSubscription
 } = require 'app/redux/modules/payment/subscription'
+{ load: loadBusinessAddon } = require 'app/redux/modules/payment/addon'
+{ load: loadSupportPlan} = require 'app/redux/modules/payment/supportplans'
 
 loadAccount = ({ dispatch, getState }) ->
   dispatch {
@@ -46,7 +47,7 @@ ensureCreditCard = ({ dispatch }) ->
 loadPaymentDetails = ({ dispatch }) ->
 
   if isAdmin()
-  then dispatch(loadPaymentInfo()).then -> dispatch(loadInvoices())
+  then dispatch(loadPaymentInfo()).then -> dispatch(loadInvoices()).then -> dispatch(loadBusinessAddon()).then -> dispatch(loadSupportPlan())
   else dispatch(loadSubscription())
 
 

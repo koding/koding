@@ -77,9 +77,37 @@ exports.authorize = (params = {}) ->
 
   client.post Endpoints.CreditCardAuth, { source, email }
 
+exports.fetchBusinessAddon = fetchBusinessAddon = pickData ->
+
+  # get status of Business Add-on
+
+exports.activateBusinessAddOn = activateBusinessAddOn = pickData (params = {}) ->
+
+  # activate Business Add-on
+
+exports.deactivateBusinessAddOn = deactivateBusinessAddOn = pickData (params = {}) ->
+
+  # deactivate Business Add-on
+
+exports.fetchSupportPlan = fetchSupportPlan = pickData ->
+
+  # get Support Plan
+
+exports.activateSupportPlan = activateSupportPlan = pickData (params = {}) ->
+
+  # activate Support Plan
+
+exports.updateSupportPlan = updateSupportPlan = pickData (params = {}) ->
+
+  # update Support Plan
+
+exports.deactivateSupportPlan = deactivateSupportPlan = pickData (params = {}) ->
+
+  # deactivate Support Plan
+
+
 getTimestamp = (date) ->
 
   thirtyDaysInMs = (30 * 24 * 60 * 60 * 1000)
 
   Math.round (date.getTime() + thirtyDaysInMs) / 1000
-

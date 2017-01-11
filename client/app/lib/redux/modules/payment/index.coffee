@@ -110,4 +110,3 @@ updateCard = (values) ->
 module.exports = {
   updateCard
 }
-
