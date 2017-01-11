@@ -113,7 +113,9 @@ module.exports = class JInvitation extends jraphical.Module
 
         { _id } = account
         { roles } = permissionAndRoles
-        groupName = client.context.group or 'koding'
+        groupName = client.context.group
+
+        return callback null, this  unless groupName
 
         hasPermisson = 'admin' in roles or 'owner' in roles
         { inviterId, email, groupName } = invite
