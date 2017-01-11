@@ -379,6 +379,10 @@ func (sh *StubHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var v interface{}
 	v, *sh = (*sh)[0], (*sh)[1:]
 
+	if v == nil {
+		v = make(map[string]interface{}) // return empty object instead
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 
 	if err := json.NewEncoder(w).Encode(v); err != nil {
