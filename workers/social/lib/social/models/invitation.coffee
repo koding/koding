@@ -139,11 +139,11 @@ module.exports = class JInvitation extends jraphical.Module
   notifyGroupOnInvitationChange = (slug, data, callback) ->
 
     JGroup    = require './group'
-    JGroup.one { slug }, (err, group_) ->
+    JGroup.one { slug }, (err, group) ->
 
-      return callback err  if err or not group_
+      return callback err  if err or not group
 
-      group_.sendNotification 'InvitationChanged', data
+      group.sendNotification 'InvitationChanged', data
       callback()
 
 

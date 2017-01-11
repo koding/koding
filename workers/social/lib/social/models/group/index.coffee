@@ -635,12 +635,12 @@ module.exports = class JGroup extends Module
 
   notifyGroupOnRoleChange = (client, id, roles, callback) ->
 
-    JGroup.one { slug : client.context.group }, (err, group_) ->
-      return callback err  if err or not group_
+    JGroup.one { slug : client.context.group }, (err, group) ->
+      return callback err  if err or not group
 
       role = if roles?.length > 0 then roles[0] else 'member'
       contents = { role, id, group: client.context.group, adminNick: client.connection.delegate.profile.nickname }
-      group_.sendNotification 'MembershipRoleChanged', contents
+      group.sendNotification 'MembershipRoleChanged', contents
       callback null
 
 
