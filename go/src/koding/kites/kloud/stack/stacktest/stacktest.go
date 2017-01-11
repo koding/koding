@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"testing"
 
 	"koding/api"
 	"koding/kites/kloud/stack"
@@ -27,7 +26,7 @@ import (
 // and enable testing of the kloud server.
 
 // DefaultLog is a default logger used in FakeKloud.
-var DefaultLog = logging.NewCustom("stacktest", testing.Verbose())
+var DefaultLog = logging.NewCustom("stacktest", true)
 
 // NewRequest mocks new kite.Request for the following arguments.
 func NewRequest(method, username string, arg interface{}) *kite.Request {
