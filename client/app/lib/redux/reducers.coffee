@@ -11,6 +11,8 @@ exports.make = make = (reducers = {}) ->
     subscription: require('./modules/payment/subscription').reducer
     customer: require('./modules/payment/customer').reducer
     paymentInfo: require('./modules/payment/info').reducer
+    addon: require('./modules/payment/addon').reducer
+    supportplans: require('./modules/payment/supportplans').reducer
     form: require('redux-form').reducer
   }
 
