@@ -3,6 +3,7 @@ package stack
 import (
 	"errors"
 	"koding/kites/config"
+
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/eventer"
@@ -82,12 +83,7 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 		args.GroupName = "koding"
 	}
 
-	p, ok := k.providers[args.Provider].(Provider)
-	if !ok {
-		return nil, NewError(ErrProviderNotFound)
-	}
-
-	s, ctx, err := k.NewStack(p, r, &args)
+	s, ctx, err := k.NewStack(r, &args)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +118,15 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 	return resp, err
 }
 
-func (k *Kloud) NewStack(p Provider, r *kite.Request, req *TeamRequest) (Stacker, context.Context, error) {
+func (k *Kloud) newStack(r *kite.Request, req *TeamRequest) (Stacker, context.Context, error) {
+	if k.NewStack != nil {
+		return k.NewStack(r, req)
+	}
+
+	p, ok := k.providers[req.Provider]
+	if !ok {
+		return nil, nil, NewError(ErrProviderNotFound)
+	}
 	// Build context value.
 	ctx := request.NewContext(context.Background(), r)
 	ctx = context.WithValue(ctx, TeamRequestKey, req)

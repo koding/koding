@@ -176,7 +176,7 @@ func (k *Kloud) doPlan(r *kite.Request, p Provider, teamReq *TeamRequest, req *P
 		Username: r.Username,
 	}
 
-	stack, ctx, err := k.NewStack(p, kiteReq, teamReq)
+	stack, ctx, err := k.newStack(kiteReq, teamReq)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +207,7 @@ func (k *Kloud) doApply(r *kite.Request, p Provider, teamReq *TeamRequest, req *
 		Username: r.Username,
 	}
 
-	stack, ctx, err := k.NewStack(p, kiteReq, teamReq)
+	stack, ctx, err := k.newStack(kiteReq, teamReq)
 	if err != nil {
 		return "", err
 	}
