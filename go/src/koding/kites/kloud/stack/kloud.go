@@ -24,6 +24,7 @@ import (
 	presence "socialapi/workers/presence/client"
 
 	"github.com/koding/cache"
+	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
 	"github.com/satori/go.uuid"
@@ -89,6 +90,12 @@ type Kloud struct {
 	// package to kloud one in order to solve this and improve the
 	// import structure.
 	DescribeFunc func(providers ...string) map[string]*Description
+
+	// NewStack is used to create new Stacker value out of the given
+	// kite and team requests.
+	//
+	// If nil, default implementation is used.
+	NewStack func(*kite.Request, *TeamRequest) (Stacker, context.Context, error)
 
 	// CredClient handles credential.* methods.
 	CredClient *credential.Client
