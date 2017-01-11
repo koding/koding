@@ -1,12 +1,13 @@
+_  = require 'lodash'
 articlize = require 'indefinite-article'
 ContentModal = require 'app/components/contentModal'
 
 
 module.exports = class MembershipRoleChangedModal extends ContentModal
 
-  constructor: ({ role, adminNick }) ->
+  constructor: (options, { role, adminNick }) ->
 
-    options =
+    options = _.assign {}, options,
       title : 'Your team role has been changed!'
       overlay : yes
       width : 500
@@ -22,8 +23,6 @@ module.exports = class MembershipRoleChangedModal extends ContentModal
         'Reload page' :
           title : 'Reload Page'
           style : 'solid medium'
-          callback : (event) =>
-            @destroy()
-            global.location.reload yes
+          callback : -> options.success()
 
     super options

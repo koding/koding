@@ -66,7 +66,12 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
       { contents: { role, id, adminNick } } = data
       reactor.dispatch 'UPDATE_TEAM_MEMBER_WITH_ID', { id, role }
 
-      new MembershipRoleChangedModal { role, adminNick }  if id is whoami()._id
+      if id is whoami()._id
+        modal = new MembershipRoleChangedModal
+          success: ->
+            modal.destroy()
+            global.location.reload yes
+        , { role, adminNick }
 
     groupsController.on 'InvitationChanged', (data) ->
 
