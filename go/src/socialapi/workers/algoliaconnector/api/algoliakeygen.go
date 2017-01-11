@@ -37,13 +37,9 @@ func (h *Handler) GenerateKey(u *url.URL, header http.Header, _ interface{}, con
 
 func (h *Handler) generateSearchOnlyKey(c *models.Channel, accountId int64) (string, error) {
 	tagFilter := generateTagFilters(c, accountId)
-	// return h.client.GenerateSecuredApiKey(h.searchOnlyKey, tagFilter)
+
 	return algoliasearch.GenerateSecuredAPIKey(h.searchOnlyKey, tagFilter)
 }
-
-// func generateTagFilters(c *models.Channel, accountId int64) string {
-// 	return fmt.Sprintf("(%d,%s)", c.Id, generateUserToken(accountId))
-// }
 func generateTagFilters(c *models.Channel, accountId int64) algoliasearch.Map {
 	result := make(map[string]interface{}, 0)
 	id := fmt.Sprintf("%d", c.Id)

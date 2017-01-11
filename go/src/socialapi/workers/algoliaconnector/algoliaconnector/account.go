@@ -160,8 +160,6 @@ func (f *Controller) DeleteNicksWithQuery(queryName string) error {
 		record, err := index.Search(queryName, params)
 		hist := record.Hits
 
-		// nbHits := record.NbHits
-		// nbPages := record.NbPages
 		pages = record.NbPages
 		nbHit = record.NbHits
 
@@ -177,7 +175,6 @@ func (f *Controller) DeleteNicksWithQuery(queryName string) error {
 
 		hist = record.Hits
 		for _, val := range hist {
-			// value := val["nick"].(string)
 			object := val["objectID"].(string)
 			_, err := modelhelper.GetAccountById(object)
 			if err != nil && err != modelhelper.ErrNotFound {
