@@ -38,6 +38,13 @@ module.exports = class JStackTemplate extends Module
       'check own stack usage'     : ['member']
       'check stack usage'         : []
 
+    # we need a compound index here
+    # since bongo is not supporting them
+    # we need to manually define following:
+    #
+    #   - originId, group, slug (unique)
+    #
+
     sharedMethods     :
 
       static          :
