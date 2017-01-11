@@ -5,6 +5,14 @@ intercom.styl
 */
 }
 
-#intercom-container .intercom-launcher
-  bottom                    10px !important
-  right                     10px !important
+body #intercom-container.small
+
+  .intercom-launcher-frame
+    vendor                  transition, all 1s 1s ease !important
+    vendor                  transform-origin, 80px 90px
+    vendor                  transform, scale(.5)
+
+  .intercom-app-launcher-enabled
+    .intercom-messenger-frame
+      bottom                50px !important
+      right                 10px !important
