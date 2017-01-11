@@ -8,7 +8,6 @@ import (
 	"koding/api"
 	"koding/kites/kloud/stack"
 	"koding/remoteapi"
-	"koding/tools/utils"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
@@ -77,7 +76,7 @@ func (ss *SpyStacker) HandleApply(ctx context.Context) (interface{}, error) {
 	}
 
 	return &stack.ControlResult{
-		EventId: utils.StringN(12),
+		EventId: "mocked-event-id",
 	}, nil
 }
 
