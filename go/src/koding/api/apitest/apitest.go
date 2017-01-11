@@ -10,10 +10,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"sync"
 
 	"koding/api"
 	"koding/kites/kloud/utils"
+	"koding/kites/tunnelproxy/discover/discovertest"
 )
 
 // HTTPTransport exports httpTransport for test purposes.
@@ -360,4 +362,38 @@ func WithResponseCodes(req *http.Request, codes ...int) *http.Request {
 	}
 
 	return WithResponses(req, resps...)
+}
+
+// StubHandler implememts a http.Handler, that pops first
+// element from the slice, JSON-encodes it and responds
+// with 200 status code.
+type StubHandler []interface{}
+
+// ServeHTTP implements the http.Handler interface.
+func (sh *StubHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if len(*sh) == 0 {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	var v interface{}
+	v, *sh = (*sh)[0], (*sh)[1:]
+
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := json.NewEncoder(w).Encode(v); err != nil {
+		panic("unexpected failure writing response: " + err.Error())
+	}
+}
+
+// Serve starts a test server with the given handler.
+//
+// The function does not return until a listener, which is used
+// by the server for accepting connections, is ready.
+func Serve(h http.Handler) *httptest.Server {
+	s, err := discovertest.NewServer(h)
+	if err != nil {
+		panic("unexpected error creating test server: " + err.Error())
+	}
+	return s
 }
