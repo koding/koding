@@ -12,18 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package buffer
+// +build amd64 arm64 ppc64 ppc64le
+// +build go1.8
 
-import "unsafe"
-
-//go:noescape
-
-// Zero the n bytes starting at p.
+// Assembly code isn't subject to visibility restrictions, so we can jump
+// directly into package runtime.
 //
-// REQUIRES: the region does not contain any Go pointers.
-func memclr(p unsafe.Pointer, n uintptr)
+// Technique copied from here:
+//     https://github.com/golang/go/blob/d8c6dac/src/os/signal/sig.s
 
-//go:noescape
+#include "textflag.h"
 
-// Copy from src to dst, allowing overlap.
-func memmove(dst unsafe.Pointer, src unsafe.Pointer, n uintptr)
+#ifdef GOARCH_ppc64
+#define JMP BR
+#endif
+#ifdef GOARCH_ppc64le
+#define JMP BR
+#endif
+
+TEXT ·memclr(SB),NOSPLIT,$0-16
+	JMP runtime·memclrNoHeapPointers(SB)
+
+TEXT ·memmove(SB),NOSPLIT,$0-24
+	JMP runtime·memmove(SB)
