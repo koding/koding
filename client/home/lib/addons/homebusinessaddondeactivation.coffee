@@ -1,6 +1,8 @@
 React = require 'app/react'
 ReactView = require 'app/react/reactview'
-PlanDeactivation = require './components/plandeactivation'
+kd = require 'kd'
+{ Provider } = require 'react-redux'
+AddOnDeactivation = require './components/addondeactivation'
 
 module.exports = class HomeBusinessAddOnDeactivation extends ReactView
 
@@ -8,12 +10,9 @@ module.exports = class HomeBusinessAddOnDeactivation extends ReactView
 
     super options, data
 
-  deactivateBusinessAddOn: () ->
-
-    console.log('Business Add-On deactivation')
 
   renderReact: ->
-    
-    <PlanDeactivation.Container
-      target='BUSINESS ADD-ON'
-      onDeactivation={@bound 'deactivateBusinessAddOn'} />
+
+    <Provider store={kd.singletons.store}>
+      <AddOnDeactivation />
+    </Provider>

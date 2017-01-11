@@ -10,4 +10,3 @@ module.exports = class HomeAddOnChatlio extends ReactView
 
 
   renderReact: -> <BusinessAddOnChatlio.Container />
-

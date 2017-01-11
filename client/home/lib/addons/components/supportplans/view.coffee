@@ -1,8 +1,10 @@
 React = require 'app/react'
 SupportPlan = require 'lab/SupportPlan'
 SupportPlanActivationModal = require 'lab/SupportPlanActivationModal'
+{ connect } = require 'react-redux'
+supportplans = require 'app/redux/modules/payment/supportplans'
 
-module.exports = class SupportPlansList extends React.Component
+class SupportPlansList extends React.Component
 
   constructor: (props) ->
 
@@ -11,7 +13,6 @@ module.exports = class SupportPlansList extends React.Component
     @state =
       activationModalOpen : no
       selectedSupportPlan : {}
-      activePlan : @getActivePlan()
 
     @plans = @props.plans
 
@@ -44,7 +45,9 @@ module.exports = class SupportPlansList extends React.Component
 
   activateSupportPlan: ->
 
-    @setState { activePlan : @state.selectedSupportPlan.name }
+    if @props.supportPlan
+    then @props.onActivateSupportPlan(@state.selectedSupportPlan.name)
+    else @props.onUpdateSupportPlan(@state.selectedSupportPlan.name)
     @hideActivationModal()
 
 
@@ -54,7 +57,7 @@ module.exports = class SupportPlansList extends React.Component
   #   switch
   getActionType: (plan) ->
 
-    activePlan = @state.activePlan
+    activePlan = @props.supportPlan
 
     return 'activation'  unless activePlan
     return 'active'  if plan is activePlan
@@ -95,3 +98,26 @@ module.exports = class SupportPlansList extends React.Component
         onCancel={@bound 'hideActivationModal'}
         onActivateSupportPlanClick={@bound 'activateSupportPlan'} />
     </div>
+
+
+  mapStateToProps = (state) ->
+
+    return {
+      supportPlan: supportplans.getSupportPlan state
+    }
+
+
+  mapDispatchToProps = (dispatch) ->
+
+    return {
+      onActivateSupportPlan: (plan) ->
+        dispatch(supportplans.create plan)
+      onUpdateSupportPlan: (plan) ->
+        dispatch(supportplans.update plan)
+    }
+
+
+  module.exports = connect(
+    mapStateToProps
+    mapDispatchToProps
+  )(SupportPlansList)
