@@ -190,6 +190,7 @@ module.exports = (options, credentials) ->
       'dev.koding.com' : '127.0.0.1'
 
   KONFIG =
+    serviceHost                   : options.serviceHost
     configName                    : options.configName
     environment                   : options.environment
     ebEnvName                     : options.ebEnvName
