@@ -14,6 +14,9 @@ import (
 // swagger:model JLog
 type JLog struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// created at
 	CreatedAt strfmt.Date `json:"createdAt,omitempty"`
 

@@ -14,6 +14,9 @@ import (
 // swagger:model JReward
 type JReward struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// amount
 	Amount float64 `json:"amount,omitempty"`
 

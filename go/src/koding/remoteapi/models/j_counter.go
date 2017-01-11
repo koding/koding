@@ -14,6 +14,9 @@ import (
 // swagger:model JCounter
 type JCounter struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// current
 	Current float64 `json:"current,omitempty"`
 

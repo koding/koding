@@ -13,6 +13,9 @@ import (
 // swagger:model JGroupData
 type JGroupData struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// data
 	Data interface{} `json:"data,omitempty"`
 
