@@ -6,6 +6,65 @@ module.exports = (KONFIG, options, credentials) ->
   GOPATH = "%(ENV_KONFIG_PROJECTROOT)s/go"
 
   workers =
+    bucketproxies       :
+      group             : "bucket"
+      nginx             :
+        s3bucket        : yes
+        locations       : [
+          {
+            location    : '@assets'
+            proxyPass   : 'http://s3.amazonaws.com/koding-assets$uri'
+          }
+          {
+            location    : '~^/cdn/(koding-client|koding-assets|kodingdev-client|kodingdev-assets)/(.*)'
+            proxyPass   : 'http://s3.amazonaws.com/$1/$2'
+          }
+          { # redirect /d/* to koding-dl S3 bucket; used to distributed kd/klient installers
+            location    : '~^/d/(.*)$'
+            proxyPass   : 'https://s3.amazonaws.com/koding-dl/$1'
+          }
+          { # redirect /d/kd to KD installer for development channel
+            location    : '/c/d/kd'
+            proxyPass   : 'https://s3.amazonaws.com/koding-kd/development/install-kd.sh'
+          }
+          { # redirect /p/kd to KD installer for production channel
+            location    : '/c/p/kd'
+            proxyPass   : 'https://s3.amazonaws.com/koding-kd/production/install-kd.sh'
+          }
+        ]
+
+    assets              :
+      group             : "static"
+      nginx             :
+        static          : yes
+        locations       : [
+          {
+            location      : '/a/'
+            proxyPass     : '$uri @assets'
+            relativePath  : '/website/'
+            expires       : '1M' # set -1 to disable.
+            extraParamsStr: 'location ~* \.(map)$ { return 404; access_log off; }'
+          }
+          {
+            location    : '/apidocs'
+            proxyPass   : '$uri $uri/ /$uri $uri/index.html /$uri/index.html @assets'
+            relativePath: '/website'
+            expires     : '-1'
+          }
+          {
+            location    : '~ ^/apidocs(.*)'
+            proxyPass   : '$1 $1/ /$1 $1/index.html /$1/index.html $uri $uri/ /$uri $uri/index.html @assets'
+            relativePath: '/website'
+            expires     : '-1'
+          }
+          {
+            location    : '/swagger.json'
+            proxyPass   : '$uri @assets'
+            relativePath: '/website/'
+            expires     : '-1'
+          }
+        ]
+
     kontrol             :
       group             : "environment"
       ports             :
