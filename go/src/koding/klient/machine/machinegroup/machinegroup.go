@@ -6,6 +6,7 @@ import (
 
 	"koding/kites/tunnelproxy/discover"
 	"koding/klient/machine"
+	"koding/klient/machine/client"
 	"koding/klient/machine/machinegroup/addresses"
 	"koding/klient/machine/machinegroup/aliases"
 	"koding/klient/machine/machinegroup/clients"
@@ -26,7 +27,7 @@ type GroupOpts struct {
 	Storage storage.ValueInterface
 
 	// Builder is a factory used to build clients.
-	Builder machine.ClientBuilder
+	Builder client.Builder
 
 	// DynAddrInterval indicates how often dynamic client should look for new
 	// machine addresses.
@@ -170,7 +171,7 @@ func (g *Group) bootstrap() {
 }
 
 // dynamicAddr creates dynamic address functor for the given machine.
-func (g *Group) dynamicAddr(id machine.ID) machine.DynamicAddrFunc {
+func (g *Group) dynamicAddr(id machine.ID) client.DynamicAddrFunc {
 	return func(network string) (machine.Addr, error) {
 		return g.address.Latest(id, network)
 	}

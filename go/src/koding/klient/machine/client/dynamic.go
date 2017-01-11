@@ -1,4 +1,4 @@
-package machine
+package client
 
 import (
 	"context"
@@ -6,32 +6,34 @@ import (
 	"sync"
 	"time"
 
+	"koding/klient/machine"
+
 	"github.com/koding/logging"
 )
 
 // DynamicAddrFunc is an adapter that allows to dynamically provide addresses
 // from a given network. Error should be of ErrAddrNotFound type when provided
 // network has no addresses.
-type DynamicAddrFunc func(string) (Addr, error)
+type DynamicAddrFunc func(string) (machine.Addr, error)
 
-// ClientBuilder is an interface used to dynamically build remote machine clients.
-type ClientBuilder interface {
+// Builder is an interface used to dynamically build remote machine clients.
+type Builder interface {
 	// Ping uses dynamic address provider to ping the machine. If error is nil,
 	// this method should return address which was used to ping the machine.
-	Ping(dynAddr DynamicAddrFunc) (Status, Addr, error)
+	Ping(dynAddr DynamicAddrFunc) (machine.Status, machine.Addr, error)
 
 	// Build builds new client which will connect to machine using provided
 	// address.
-	Build(ctx context.Context, addr Addr) Client
+	Build(ctx context.Context, addr machine.Addr) Client
 }
 
-// DynamicClientOpts are the options used to configure dynamic client.
-type DynamicClientOpts struct {
+// DynamicOpts are the options used to configure dynamic client.
+type DynamicOpts struct {
 	// AddrFunc is a factory for dynamic machine addresses.
 	AddrFunc DynamicAddrFunc
 
 	// Builder is a factory used to build clients.
-	Builder ClientBuilder
+	Builder Builder
 
 	// DynAddrInterval indicates how often dynamic client should pull address
 	// function looking for new addresses.
@@ -46,7 +48,7 @@ type DynamicClientOpts struct {
 }
 
 // Valid checks if provided options are correct.
-func (opts *DynamicClientOpts) Valid() error {
+func (opts *DynamicOpts) Valid() error {
 	if opts.AddrFunc == nil {
 		return errors.New("nil dynamic address function")
 	}
@@ -63,11 +65,10 @@ func (opts *DynamicClientOpts) Valid() error {
 	return nil
 }
 
-// DynamicClient is a client that may change it's endpoint address depending
-// on client builder ping function status. It is safe to use this structure
-// concurrently.
-type DynamicClient struct {
-	opts DynamicClientOpts
+// Dynamic is a client that may change it's endpoint address depending on client
+// builder ping function status. It is safe to use this structure concurrently.
+type Dynamic struct {
+	opts DynamicOpts
 	log  logging.Logger
 
 	once sync.Once
@@ -75,21 +76,20 @@ type DynamicClient struct {
 
 	mu     sync.RWMutex
 	c      Client             // current client.
-	stat   Status             // current connection status.
-	ctx    context.Context    // context used in current client.
+	stat   machine.Status     // current connection status.
 	cancel context.CancelFunc // function that can close current context.
 }
 
-// NewDynamicClient starts and returns a new DynamicClient instance. The caller
-// should call Close when finished, in order to shut it down.
-func NewDynamicClient(opts DynamicClientOpts) (*DynamicClient, error) {
+// NewDynamic starts and returns a new DynamicClient instance. The caller should
+// call Close when finished, in order to shut it down.
+func NewDynamic(opts DynamicOpts) (*Dynamic, error) {
 	if err := opts.Valid(); err != nil {
 		return nil, err
 	}
 
 	stop := make(chan struct{}, 1) // make Close function unblocked.
 
-	dc := &DynamicClient{
+	dc := &Dynamic{
 		opts: opts,
 		stop: stop,
 	}
@@ -97,7 +97,7 @@ func NewDynamicClient(opts DynamicClientOpts) (*DynamicClient, error) {
 	if opts.Log != nil {
 		dc.log = opts.Log.New("monitor")
 	} else {
-		dc.log = DefaultLogger.New("monitor")
+		dc.log = machine.DefaultLogger.New("monitor")
 	}
 
 	dc.disconnected() // set disconnected client.
@@ -108,7 +108,7 @@ func NewDynamicClient(opts DynamicClientOpts) (*DynamicClient, error) {
 
 // Status gets current client status. It may return zero value when client is
 // disconnected.
-func (dc *DynamicClient) Status() Status {
+func (dc *Dynamic) Status() machine.Status {
 	dc.mu.RLock()
 	stat := dc.stat
 	dc.mu.RUnlock()
@@ -117,7 +117,7 @@ func (dc *DynamicClient) Status() Status {
 }
 
 // Client returns current client.
-func (dc *DynamicClient) Client() Client {
+func (dc *Dynamic) Client() Client {
 	dc.mu.RLock()
 	c := dc.c
 	dc.mu.RUnlock()
@@ -125,46 +125,26 @@ func (dc *DynamicClient) Client() Client {
 	return c
 }
 
-// Context returns current client's context. If client change, returned context
-// will be canceled. If there is no clients available in dynamic client. New
-// context will be created and will block until client is set.
-func (dc *DynamicClient) Context() (ctx context.Context) {
-	dc.mu.RLock()
-	ctx = dc.ctx
-	dc.mu.RUnlock()
-
-	if ctx == nil {
-		dc.mu.Lock()
-		if dc.ctx == nil {
-			dc.ctx, dc.cancel = context.WithCancel(context.Background())
-		}
-		ctx = dc.ctx
-		dc.mu.Unlock()
-	}
-
-	return ctx
-}
-
 // Addr uses dynamic address function binded to client to obtain addresses.
-func (dc *DynamicClient) Addr(network string) (Addr, error) {
+func (dc *Dynamic) Addr(network string) (machine.Addr, error) {
 	return dc.opts.AddrFunc(network)
 }
 
 // Close stops the dynamic client. After this function is called, client is
 // in disconnected state and each contexts returned by it are closed.
-func (dc *DynamicClient) Close() {
+func (dc *Dynamic) Close() {
 	dc.once.Do(func() {
 		close(dc.stop)
 	})
 }
 
-func (dc *DynamicClient) cron() {
+func (dc *Dynamic) cron() {
 	var (
 		dynAddrTick = time.NewTicker(dc.opts.DynAddrInterval)
 		pingTick    = time.NewTicker(dc.opts.PingInterval)
 	)
 
-	addr, err := Addr{}, error(nil)
+	addr, err := machine.Addr{}, error(nil)
 
 	// tryUpdate uses client builder to ping the machine and updates dynamic
 	// client if machine address changes.
@@ -196,7 +176,7 @@ func (dc *DynamicClient) cron() {
 		if dc.cancel != nil {
 			dc.cancel()
 		}
-		dc.c, dc.stat, dc.ctx, dc.cancel = c, stat, ctx, cancel
+		dc.c, dc.stat, dc.cancel = c, stat, cancel
 		dc.mu.Unlock()
 	}
 
@@ -230,13 +210,13 @@ func (dc *DynamicClient) cron() {
 }
 
 // disconnected sets disconnected client.
-func (dc *DynamicClient) disconnected() {
+func (dc *Dynamic) disconnected() {
 	if dc.cancel != nil {
 		dc.cancel()
 	}
 
-	dc.c = DisconnectedClient{}
-	dc.stat = Status{}
-	dc.ctx = nil
-	dc.cancel = nil
+	ctx, cancel := context.WithCancel(context.Background())
+	dc.cancel = cancel
+	dc.c = NewDisconnected(ctx)
+	dc.stat = machine.Status{}
 }
