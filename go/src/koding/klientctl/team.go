@@ -51,10 +51,10 @@ func printTeams(teams []*team.Team) {
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
 	defer w.Flush()
 
-	fmt.Fprintln(w, "NAME\tSLUG\tPRIVACY\tMEMBERS\tSUBSCRIPTION")
+	fmt.Fprintln(w, "NAME\tSLUG\tPRIVACY\tSUBSCRIPTION")
 
 	for _, t := range teams {
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", t.Name, t.Slug, t.Privacy, t.Members, t.SubStatus)
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", t.Name, t.Slug, t.Privacy, t.SubStatus)
 	}
 }
 
