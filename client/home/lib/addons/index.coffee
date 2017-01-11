@@ -70,21 +70,9 @@ module.exports = class AddOns extends kd.CustomScrollView
       break
 
 
-  getActivePlan: ->
-
-    # Do it with Redux/Flux
-    return null
-
-
-  getBusinessAddOnState: ->
-
-    # Do it with Redux/Flux
-    return no
-
-
   createBusinessAddonViews: ->
 
-    @addOn.addSubView sectionize 'Business Add On Banner', HomeAddOnBusinessAddOnBanner  unless @getBusinessAddOnState()
+    @addOn.addSubView sectionize 'Business Add On Banner', HomeAddOnBusinessAddOnBanner
 
     if '*' in @allowedDomains or @canEdit
       @addOn.addSubView headerize  'Koding Button'
@@ -98,15 +86,15 @@ module.exports = class AddOns extends kd.CustomScrollView
 
     @addOn.addSubView sectionize 'Business Add On Support Plans Banner', BusinessAddOnSupportPlansBanner
 
-    @addOn.addSubView sectionize 'Business Add On Deactivation', HomeBusinessAddOnDeactivation  unless @getBusinessAddOnState()
+    @addOn.addSubView sectionize 'Business Add On Deactivation', HomeBusinessAddOnDeactivation
 
 
   createSupportPlansViews: ->
-    
-    @plans.addSubView sectionize 'Support Plans Banner', SupportPlansBanner  unless @getActivePlan()
+
+    @plans.addSubView sectionize 'Support Plans Banner', SupportPlansBanner
 
     @plans.addSubView headerize 'Available Plans'
     @plans.addSubView sectionize 'Support Plans Section', HomeAddOnSupportPlans
 
     @plans.addSubView sectionize 'Support Plans Business Add On Banner', SupportPlansBusinessAddOnBanner
-    @plans.addSubView sectionize 'Support Plan Deactivation', HomeSupportPlanDeactivation  unless @getActivePlan()
+    @plans.addSubView sectionize 'Support Plan Deactivation', HomeSupportPlanDeactivation

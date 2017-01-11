@@ -1,7 +1,12 @@
-React           = require 'app/react'
-View            = require './view'
+React = require 'app/react'
+View = require './view'
+kd = require 'kd'
+{ Provider } = require 'react-redux'
 
 module.exports = class BusinessAddOnBannerContainer extends React.Component
 
   render: ->
-    <View />
+
+    <Provider store={kd.singletons.store}>
+      <View />
+    </Provider>

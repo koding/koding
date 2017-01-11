@@ -1,23 +1,42 @@
 React = require 'app/react'
 TryOnKoding = require '../../../utilities/components/tryonkoding'
 BusinessAddOnSectionOverlay = require 'lab/BusinessAddOnSectionOverlay'
+{ connect } = require 'react-redux'
+addon = require 'app/redux/modules/payment/addon'
 
-module.exports = class BusinessAddOnKodingButton extends React.Component
-
-  getBusinessAddOnState: ->
-
-    # Do it with Redux/Flux
-    return no
-
+class BusinessAddOnKodingButton extends React.Component
 
   handleActivationButtonClick: ->
 
-    # It will set state to show Activation Modal with Redux/Flux
-    console.log('show activation modal')
+    @props.toggleModal()
 
 
   render: ->
+
     <div>
       <TryOnKoding.Container />
-      { <BusinessAddOnSectionOverlay onClick={@bound 'handleActivationButtonClick'} /> if not @getBusinessAddOnState() }
+      { <BusinessAddOnSectionOverlay onClick={@bound 'handleActivationButtonClick'} /> unless @props.addonStatus }
     </div>
+
+
+  mapStateToProps = (state) ->
+
+    return {
+      addonStatus: addon.isActivated state
+    }
+
+
+  mapDispatchToProps = (dispatch) ->
+
+    return {
+      onActivateBusinessAddOn: ->
+        dispatch(addon.create())
+      toggleModal: ->
+        dispatch(addon.toggleModal())
+    }
+
+
+  module.exports = connect(
+    mapStateToProps
+    mapDispatchToProps
+  )(BusinessAddOnKodingButton)

@@ -1,8 +1,10 @@
 React = require 'app/react'
 SupportPlansList = require './view'
+kd = require 'kd'
+{ Provider } = require 'react-redux'
 
 module.exports = class SupportPlansContainer extends React.Component
-  
+
   getSupportPlans: ->
 
     return plans = [
@@ -44,6 +46,7 @@ module.exports = class SupportPlansContainer extends React.Component
 
   render: ->
 
-    <SupportPlansList 
-      plans={@getSupportPlans()} />
-
+    <Provider store={kd.singletons.store}>
+      <SupportPlansList
+        plans={@getSupportPlans()} />
+    </Provider>

@@ -1,6 +1,8 @@
 React = require 'app/react'
 ReactView = require 'app/react/reactview'
-PlanDeactivation = require './components/plandeactivation'
+kd = require 'kd'
+{ Provider } = require 'react-redux'
+SupportPlanDeactivation = require './components/supportplandeactivation'
 
 module.exports = class HomeSupportPlanDeactivation extends ReactView
 
@@ -8,16 +10,9 @@ module.exports = class HomeSupportPlanDeactivation extends ReactView
 
     super options, data
 
-  getActivePlan: ->
-
-    return 'basic'
-
-  deactivateSupportPlan: () ->
-
-    console.log('Support Plan deactivation')
 
   renderReact: ->
 
-    <PlanDeactivation.Container
-      target="#{@getActivePlan()} SUPPORT PLAN"
-      onDeactivation={@bound 'deactivateSupportPlan'} />
+    <Provider store={kd.singletons.store}>
+      <SupportPlanDeactivation />
+    </Provider>
