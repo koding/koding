@@ -14,6 +14,9 @@ import (
 // swagger:model JUser
 type JUser struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// blocked reason
 	BlockedReason string `json:"blockedReason,omitempty"`
 

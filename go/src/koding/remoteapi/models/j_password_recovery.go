@@ -13,6 +13,9 @@ import (
 // swagger:model JPasswordRecovery
 type JPasswordRecovery struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// email
 	Email string `json:"email,omitempty"`
 

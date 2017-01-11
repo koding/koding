@@ -13,6 +13,9 @@ import (
 // swagger:model JCombinedAppStorage
 type JCombinedAppStorage struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// account Id
 	AccountID string `json:"accountId,omitempty"`
 

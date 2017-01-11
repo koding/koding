@@ -13,6 +13,9 @@ import (
 // swagger:model JSnapshot
 type JSnapshot struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// created at
 	CreatedAt strfmt.Date `json:"createdAt,omitempty"`
 

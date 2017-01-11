@@ -14,6 +14,9 @@ import (
 // swagger:model JProvisioner
 type JProvisioner struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// access level
 	AccessLevel string `json:"accessLevel,omitempty"`
 

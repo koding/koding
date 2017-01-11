@@ -14,6 +14,9 @@ import (
 // swagger:model JForeignAuth
 type JForeignAuth struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// foreign data
 	ForeignData interface{} `json:"foreignData,omitempty"`
 

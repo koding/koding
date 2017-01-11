@@ -14,6 +14,9 @@ import (
 // swagger:model JGroupLimit
 type JGroupLimit struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// allowed instances
 	AllowedInstances []string `json:"allowedInstances"`
 
