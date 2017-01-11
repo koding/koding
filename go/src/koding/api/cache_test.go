@@ -7,11 +7,12 @@ import (
 	"testing"
 
 	"koding/api"
+	"koding/api/apitest"
 )
 
 func TestSessionCache(t *testing.T) {
-	var storage TrxStorage
-	var auth = NewFakeAuth()
+	var storage apitest.TrxStorage
+	var auth = apitest.NewFakeAuth()
 
 	users := []*api.Session{
 		{User: &api.User{Username: "user1", Team: "foobar"}},
@@ -28,13 +29,13 @@ func TestSessionCache(t *testing.T) {
 	cases := []struct {
 		name string
 		opts *api.AuthOptions // client
-		trxs []Trx            // underlying cache operations
+		trxs []apitest.Trx    // underlying cache operations
 	}{{
 		"new user1",
 		&api.AuthOptions{
 			User: users[0].User,
 		},
-		[]Trx{
+		[]apitest.Trx{
 			{Type: "get", Session: users[0]},
 			{Type: "set", Session: users[0]},
 		},
@@ -43,7 +44,7 @@ func TestSessionCache(t *testing.T) {
 		&api.AuthOptions{
 			User: users[0].User,
 		},
-		[]Trx{
+		[]apitest.Trx{
 			{Type: "get", Session: users[0]},
 		},
 	}, {
@@ -52,7 +53,7 @@ func TestSessionCache(t *testing.T) {
 			User:    users[0].User,
 			Refresh: true,
 		},
-		[]Trx{
+		[]apitest.Trx{
 			{Type: "delete", Session: users[0]},
 			{Type: "set", Session: users[0]},
 		},
@@ -61,7 +62,7 @@ func TestSessionCache(t *testing.T) {
 		&api.AuthOptions{
 			User: users[1].User,
 		},
-		[]Trx{
+		[]apitest.Trx{
 			{Type: "get", Session: users[1]},
 			{Type: "set", Session: users[1]},
 		},
@@ -70,7 +71,7 @@ func TestSessionCache(t *testing.T) {
 		&api.AuthOptions{
 			User: users[2].User,
 		},
-		[]Trx{
+		[]apitest.Trx{
 			{Type: "get", Session: users[2]},
 			{Type: "set", Session: users[2]},
 		},
@@ -79,7 +80,7 @@ func TestSessionCache(t *testing.T) {
 		&api.AuthOptions{
 			User: users[3].User,
 		},
-		[]Trx{
+		[]apitest.Trx{
 			{Type: "get", Session: users[3]},
 			{Type: "set", Session: users[3]},
 		},
@@ -119,8 +120,8 @@ func TestSessionCache(t *testing.T) {
 }
 
 func TestSessionCacheParallel(t *testing.T) {
-	var storage TrxStorage
-	var auth = NewFakeAuth()
+	var storage apitest.TrxStorage
+	var auth = apitest.NewFakeAuth()
 
 	cache := api.NewCache(auth.Auth)
 	cache.Storage = &storage
