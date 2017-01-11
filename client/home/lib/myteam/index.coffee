@@ -80,8 +80,8 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
       switch type
         when 'remove'
           reactor.dispatch 'REMOVE_PENDING_INVITATION_BY_ID', { id }
-        when 'create'
-          reactor.dispatch 'LOAD_PENDING_INVITATION_SUCCESS', { invitations }
+        when 'new_invitations'
+          TeamFlux.actions.loadPendingInvitations()
 
     groupsController.on 'GroupJoined', (data) ->
 

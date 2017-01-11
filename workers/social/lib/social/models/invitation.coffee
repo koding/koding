@@ -243,7 +243,7 @@ module.exports = class JInvitation extends jraphical.Module
 
             unless returnCodes
 
-              data = { type: 'create', invitations: prepareInvitationCodes codes }
+              data = { type: 'new_invitations' }
 
               return notifyGroupOnInvitationChange groupName, data, callback
 
@@ -263,12 +263,6 @@ module.exports = class JInvitation extends jraphical.Module
 
         else
           createInvites hasAdminRights = no
-
-
-  prepareInvitationCodes = (codes) ->
-
-    extractData = ['_id', 'inviterId', 'groupName', 'email', 'role', 'firstName', 'lastName', 'status', 'code']
-    codes.map (code) ->  _.pick code, extractData
 
 
   @canFetchInvitationsAsSuperAdmin: permit
