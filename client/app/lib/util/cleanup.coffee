@@ -26,14 +26,6 @@ toBeDeleted = [
   '_hs_opt_out'
   '__hluid'
 
-  # kissmetrics
-  'km_ai'
-  'km_lv'
-  'km_ni'
-  'km_uq'
-  'km_vs'
-  'kvcd'
-
   # font?
   'ajs_anonymous_id'
   'ajs_group_id'
