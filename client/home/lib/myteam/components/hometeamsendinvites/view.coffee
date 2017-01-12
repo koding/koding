@@ -2,16 +2,9 @@ kd = require 'kd'
 React = require 'app/react'
 List = require 'app/components/list'
 CheckBox = require 'app/components/common/checkbox'
-isEmailValid = require 'app/util/isEmailValid'
 
 
 module.exports = class HomeTeamSendInvitesView extends React.Component
-
-  constructor: (props) ->
-
-    super props
-
-    @state = { filledInputCount : {} }
 
   numberOfSections: -> 1
 
@@ -32,7 +25,7 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
     userEmailClassName = 'kdinput text user-email'
 
     <div className='kdview invite-inputs'>
-      <input type='text' className={userEmailClassName} placeholder='mail@example.com' value={inviteInput.get 'email'} onChange={@onInputChange.bind(this, rowIndex, 'email')} />
+      <input type='text' className={userEmailClassName} placeholder='mail@example.com' value={inviteInput.get 'email'} onChange={@props.onInputChange.bind(this, rowIndex, 'email')} />
       <input type='text' className='kdinput text firstname' placeholder='Optional' value={inviteInput.get 'firstName'} onChange={@props.onInputChange.bind(this, rowIndex, 'firstName')}/>
       <input type='text' className='kdinput text lastname' placeholder='Optional' value={inviteInput.get 'lastName'} onChange={@props.onInputChange.bind(this, rowIndex, 'lastName')}/>
       <CheckBoxOrEmpty
@@ -42,16 +35,11 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
         onClick={@props.onInputChange.bind(null, rowIndex, 'canEdit', { target: { value: not checked}})}/>
     </div>
 
-  onInputChange: (rowIndex, fieldName, evt) ->
-    @state.filledInputCount[rowIndex] = if isEmailValid evt.target.value then 1 else 0
-
-    @props.onInputChange(rowIndex, 'email', evt)
-
   renderEmptySectionAtIndex: -> <div> No data found</div>
 
 
   render: ->
-    count = _.sum @state.filledInputCount
+    count = _.sum @props.filledInputsObj
     if count > 0
       buttonTitle = "Send #{count} Invite#{if count > 1 then 's' else ''}"
       buttonEnabled = yes
