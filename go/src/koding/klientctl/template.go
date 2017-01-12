@@ -7,7 +7,9 @@ import (
 	"os"
 	"text/tabwriter"
 
+	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/remoteapi"
+	"koding/klientctl/helper"
 	"koding/remoteapi/models"
 
 	"github.com/codegangsta/cli"
@@ -17,15 +19,13 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-// TODO(rjeczalik): set active team basing on a slug - after #10269
-
 func TemplateList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	tf := &remoteapi.TemplateFilter{
-		Provider: c.String("provider"),
+		Slug: c.String("template"),
 	}
 
-	if c.NArg() == 1 {
-		tf.Slug = c.Args().Get(0)
+	if tf.Slug == "" {
+		tf.Slug = kloud.Username() + "/"
 	}
 
 	tmpls, err := remoteapi.ListTemplates(tf)
@@ -49,11 +49,8 @@ func TemplateList(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 func TemplateShow(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	tf := &remoteapi.TemplateFilter{
-		ID: c.String("id"),
-	}
-
-	if c.NArg() == 1 {
-		tf.Slug = c.Args().Get(0)
+		ID:   c.String("id"),
+		Slug: c.String("template"),
 	}
 
 	if tf.ID == "" && tf.Slug == "" {
@@ -91,6 +88,7 @@ func TemplateShow(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		}
 
 		printer.Fprint(os.Stdout, tree)
+		fmt.Println()
 	default:
 		p, err := yaml.Marshal(v)
 		if err != nil {
@@ -105,11 +103,8 @@ func TemplateShow(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 func TemplateDelete(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	tf := &remoteapi.TemplateFilter{
-		ID: c.String("id"),
-	}
-
-	if c.NArg() == 1 {
-		tf.Slug = c.Args().Get(0)
+		ID:   c.String("id"),
+		Slug: c.String("template"),
 	}
 
 	if tf.ID == "" && tf.Slug == "" {
@@ -129,6 +124,17 @@ func TemplateDelete(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		tf.ID = tmpls[0].ID
 	}
 
+	if !c.Bool("force") {
+		s, err := helper.Ask(`Please type "yes" to confirm you want to delete the resource []: `)
+		if err != nil {
+			return 1, err
+		}
+
+		if s != "yes" {
+			return 1, errors.New("confirmation failed, aborting")
+		}
+	}
+
 	if err := remoteapi.DeleteTemplate(tf.ID); err != nil {
 		return 1, err
 	}
@@ -142,9 +148,16 @@ func printTemplates(templates []*models.JStackTemplate) {
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
 	defer w.Flush()
 
-	fmt.Println(w, "TITLE\tDESCRIPTION\tTEAM\tMACHINES")
+	fmt.Fprintln(w, "ID\tTITLE\tOWNER\tTEAM\tACCESS\tMACHINES")
 
 	for _, tmpl := range templates {
-		fmt.Fprintf(w, "%s\t%s\t%v\t%d\n", tmpl.Title, tmpl.Description, tmpl.Group, len(tmpl.Machines))
+		owner := *tmpl.OriginID
+		if owner != "" {
+			if account, err := remoteapi.Account(&models.JAccount{ID: owner}); err == nil {
+				owner = account.Profile.Nickname
+			}
+		}
+
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%d\n", tmpl.ID, *tmpl.Title, owner, *tmpl.Group, tmpl.AccessLevel, len(tmpl.Machines))
 	}
 }

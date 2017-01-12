@@ -420,7 +420,7 @@ func run(args []string) {
 								Usage: "Output in JSON format.",
 							},
 							cli.StringFlag{
-								Name:  "team, t",
+								Name:  "team",
 								Usage: "Specify a Koding team to log in. Leaving empty logs in to kd.io by default.",
 							},
 							cli.StringFlag{
@@ -499,7 +499,7 @@ func run(args []string) {
 							Usage: "Specify credential provider.",
 						},
 						cli.StringFlag{
-							Name:  "team, t",
+							Name:  "team",
 							Usage: "Specify team which the credential belongs to.",
 						},
 					},
@@ -522,7 +522,7 @@ func run(args []string) {
 							Usage: "Read credential from a file.",
 						},
 						cli.StringFlag{
-							Name:  "team, t",
+							Name:  "team",
 							Usage: "Specify team which the credential belongs to.",
 						},
 						cli.StringFlag{
@@ -594,7 +594,7 @@ func run(args []string) {
 							Usage: "Specify stack credentials.",
 						},
 						cli.StringFlag{
-							Name:  "team, t",
+							Name:  "team",
 							Usage: "Specify team which the stack belongs to.",
 						},
 						cli.StringFlag{
@@ -609,6 +609,73 @@ func run(args []string) {
 					},
 				}},
 			},
+			cli.Command{
+				Name:  "template",
+				Usage: "Manage stack templates.",
+				Subcommands: []cli.Command{{
+					Name:      "list",
+					ShortName: "ls",
+					Usage:     "List all stack templates.",
+					Action:    ctlcli.ExitErrAction(TemplateList, log, "list"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+						cli.StringFlag{
+							Name:  "template, t",
+							Usage: "Limit to templates with a given name.",
+						},
+					},
+				}, {
+					Name:   "show",
+					Usage:  "Show details of a stack template.",
+					Action: ctlcli.ExitErrAction(TemplateShow, log, "show"),
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "template, t",
+							Usage: "Show template with a given name.",
+						},
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+						cli.StringFlag{
+							Name:  "id",
+							Usage: "Limit to a template that matches the ID.",
+						},
+						cli.BoolFlag{
+							Name:  "hcl",
+							Usage: "Output in HCL format.",
+						},
+					},
+				}, {
+					Name:   "delete",
+					Usage:  "Delete a stack template.",
+					Action: ctlcli.ExitErrAction(TemplateDelete, log, "delete"),
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "template, t",
+							Usage: "Show template with a given name.",
+						},
+						cli.StringFlag{
+							Name:  "id",
+							Usage: "Limit to a template that matches the ID.",
+						},
+					},
+				}, {
+					Name:   "delete",
+					Usage:  "Delete a stack templates.",
+					Action: ctlcli.ExitErrAction(TemplateDelete, log, "delete"),
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "force",
+							Usage: "Do not ask form confirmation.",
+						},
+					},
+				}},
+			},
+
 			cli.Command{
 				Name:  "team",
 				Usage: "List available teams and set team context.",
@@ -635,58 +702,6 @@ func run(args []string) {
 						cli.BoolFlag{
 							Name:  "json",
 							Usage: "Output in JSON format.",
-						},
-					},
-				},
-				},
-			},
-			cli.Command{
-				Name:  "template",
-				Usage: "Manage stack templates.",
-				Subcommands: []cli.Command{{
-					Name:   "list",
-					Usage:  "List all stack templates.",
-					Action: ctlcli.ExitErrAction(TemplateList, log, "list"),
-					Flags: []cli.Flag{
-						cli.StringFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-						cli.StringFlag{
-							Name:  "id",
-							Usage: "Limit to a template that matches the ID.",
-						},
-						cli.StringFlag{
-							Name:  "provider, p",
-							Usage: "Limit to templates of a given provider.",
-						},
-					},
-				}, {
-					Name:   "show",
-					Usage:  "Show details of a stack template.",
-					Action: ctlcli.ExitErrAction(TemplateShow, log, "list"),
-					Flags: []cli.Flag{
-						cli.StringFlag{
-							Name:  "json",
-							Usage: "Output in JSON format.",
-						},
-						cli.StringFlag{
-							Name:  "id",
-							Usage: "Limit to a template that matches the ID.",
-						},
-						cli.StringFlag{
-							Name:  "hcl",
-							Usage: "Output in HCL format.",
-						},
-					},
-				}, {
-					Name:   "delete",
-					Usage:  "Delete a stack templates.",
-					Action: ctlcli.ExitErrAction(TemplateDelete, log, "list"),
-					Flags: []cli.Flag{
-						cli.StringFlag{
-							Name:  "force",
-							Usage: "Do not ask form confirmation.",
 						},
 					},
 				}},

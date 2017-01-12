@@ -1,9 +1,12 @@
 package remoteapi
 
 import (
+	"errors"
+	"fmt"
 	"koding/remoteapi"
 	stacktemplate "koding/remoteapi/client/j_stack_template"
 	"koding/remoteapi/models"
+	"strings"
 )
 
 // TemplateFilter is used to request some of the templates,
@@ -20,13 +23,21 @@ type TemplateFilter struct {
 	ID       string `json:"_id,omitempty"`
 	Slug     string `json:"slug,omitempty"`
 	Provider string `json:"provider,omitempty"`
+	Team     string `json:"group,omitempty"`
+	OriginID string `json:"originId,omitempty"`
 }
 
 // ListTemplates gives all templates filtered with use of the given filter.
 func (c *Client) ListTemplates(tf *TemplateFilter) ([]*models.JStackTemplate, error) {
+	c.init()
+
 	params := &stacktemplate.PostRemoteAPIJStackTemplateSomeParams{}
 
 	if tf != nil {
+		if err := c.buildTF(tf); err != nil {
+			return nil, err
+		}
+
 		params.Body = tf
 	}
 
@@ -52,6 +63,8 @@ func (c *Client) ListTemplates(tf *TemplateFilter) ([]*models.JStackTemplate, er
 
 // DeleteTemplate deletes a tempalte given by the id.
 func (c *Client) DeleteTemplate(id string) error {
+	c.init()
+
 	params := &stacktemplate.PostRemoteAPIJStackTemplateDeleteIDParams{
 		ID: id,
 	}
@@ -62,6 +75,28 @@ func (c *Client) DeleteTemplate(id string) error {
 	}
 
 	return remoteapi.Unmarshal(&resp.Payload.DefaultResponse, nil)
+}
+
+func (c *Client) buildTF(tf *TemplateFilter) error {
+	if tf.Slug != "" {
+		fields := strings.Split(tf.Slug, "/")
+		if len(fields) != 2 {
+			return errors.New(`invalid slug format - expected "user/template"`)
+		}
+
+		if fields[0] != "" {
+			account, err := c.AccountByUsername(fields[0])
+			if err != nil {
+				return fmt.Errorf("unable to look up user %q: %s", fields[0], err)
+			}
+
+			tf.OriginID = account.ID
+		}
+
+		tf.Slug = fields[1]
+	}
+
+	return nil
 }
 
 // ListTemplates gives all templates filtered with use of the given filter.
