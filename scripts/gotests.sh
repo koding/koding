@@ -6,20 +6,11 @@ cd $(dirname $0)/..
 action="sh -c"
 # action="echo"
 
-# compile gets the directory as an argument and gets COMPILE_FLAGS env variable
-# if needed COMPILE_FLAGS might be '-race' etc..
-# this function creates a binary file for tests with tests coverage and specific
-# test file with package name
-function compile () {
-    go list -f '{{if len .TestGoFiles}}"go test -v -cover -c {{.ImportPath}} -o={{.Dir}}/{{.Name}}.test "{{end}}' $1 | grep -v vendor | xargs -L 1 -I{} $action "{}$COMPILE_FLAGS"
-}
-
-
-# compileWithCoverPkg uses -coverpkg flag to test with coverage
+# compile uses -coverpkg flag to test with coverage
 # this satisfies to cover the subpackages of tests
-function compileWithCoverPkg () {
+function compile () {
     # list the packages
-    export PKGS=$(go list $1 | /usr/bin/grep -v /vendor/)
+    export PKGS=$(go list $1 | grep -v /vendor/)
 
     # make comma-separated
     export PKGS_DELIM=$(echo "$PKGS" | paste -sd "," -)
@@ -52,13 +43,8 @@ function runAll () {
     clean $@
 }
 
-if [ "$1" == "socialapi" ]; then
-  shift
-  export RUN_FLAGS=${RUN_FLAGS:-"-c=./go/src/socialapi/config/dev.toml"}
 
-  runAll $@
-
-elif  [ "$1" == "kites" ]; then
+if  [ "$1" == "kites" ]; then
     shift
     export COMPILE_FLAGS=${COMPILE_FLAGS:-"-race"}
 
@@ -66,15 +52,12 @@ elif  [ "$1" == "kites" ]; then
     runWithCD $@
     clean $@
 
-elif  [ "$1" == "cover" ]; then
+elif [ "$1" == "socialapi" ]; then
     shift
     export RUN_FLAGS=${RUN_FLAGS:-"-c=./go/src/socialapi/config/dev.toml"}
-    export COMPILE_FLAGS=${COMPILE_FLAGS:-"-race"}
 
-    compileWithCoverPkg $@
-    run $@
-    clean $@
+    runAll $@
 
 else
-  runAll $@
+    runAll $@
 fi
