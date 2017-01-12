@@ -120,8 +120,6 @@ sendInvitations = ->
 
       Tracker.track Tracker.TEAMS_SENT_INVITATION  for invite in invitations
 
-      loadPendingInvitations()
-
       reactor.dispatch actions.RESET_TEAM_INVITES
       resolve { title }
 
