@@ -22,6 +22,8 @@ groupToEnv =
   "socialapi"   : envs
   "proxy"       : proxies
   "default"     : [ 'default' ]
+  "bucket"      : envs
+  "static"      : envs
 
 module.exports.isAllowed = (group, env)->
   # if group name is not in groupToEnv
