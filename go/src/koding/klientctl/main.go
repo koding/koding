@@ -648,13 +648,15 @@ func run(args []string) {
 
 // ExitWithMessage takes a ExitingWithMessageCommand type and returns a
 // codegansta/cli friendly command Action.
-func ExitWithMessage(f ExitingWithMessageCommand, log logging.Logger, cmd string) func(*cli.Context) {
-	return func(c *cli.Context) {
+func ExitWithMessage(f ExitingWithMessageCommand, log logging.Logger, cmd string) cli.ActionFunc {
+	return func(c *cli.Context) error {
 		s, e := f(c, log, cmd)
 		if s != "" {
 			fmt.Println(s)
 		}
 		ctlcli.Close()
 		os.Exit(e)
+
+		return nil
 	}
 }
