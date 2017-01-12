@@ -316,6 +316,10 @@ module.exports = class JStackTemplate extends Module
       unless typeof selector is 'object'
         return callback new KodingError 'Invalid query'
 
+      # By default return stack templates that requester owns
+      if (Object.keys selector).length is 0
+        selector = { originId: delegate.getId() }
+
       selector.$and ?= []
       selector.$and.push
         $or : [
