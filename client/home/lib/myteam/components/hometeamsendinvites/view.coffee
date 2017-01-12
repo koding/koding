@@ -43,10 +43,7 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
     </div>
 
   onInputChange: (rowIndex, fieldName, evt) ->
-    if isEmailValid evt.target.value
-      @state.filledInputCount[rowIndex] = 1
-    else
-      @state.filledInputCount[rowIndex] = 0
+    @state.filledInputCount[rowIndex] = if isEmailValid evt.target.value then 1 else 0
 
     @props.onInputChange(rowIndex, 'email', evt)
 
