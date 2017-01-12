@@ -2,9 +2,16 @@ kd = require 'kd'
 React = require 'app/react'
 List = require 'app/components/list'
 CheckBox = require 'app/components/common/checkbox'
+isEmailValid = require 'app/util/isEmailValid'
 
 
 module.exports = class HomeTeamSendInvitesView extends React.Component
+
+  constructor: (props) ->
+
+    super props
+
+    @state = { filledInputCount : {} }
 
   numberOfSections: -> 1
 
@@ -25,7 +32,7 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
     userEmailClassName = 'kdinput text user-email'
 
     <div className='kdview invite-inputs'>
-      <input type='text' className={userEmailClassName} placeholder='mail@example.com' value={inviteInput.get 'email'} onChange={@props.onInputChange.bind(this, rowIndex, 'email')} />
+      <input type='text' className={userEmailClassName} placeholder='mail@example.com' value={inviteInput.get 'email'} onChange={@onInputChange.bind(this, rowIndex, 'email')} />
       <input type='text' className='kdinput text firstname' placeholder='Optional' value={inviteInput.get 'firstName'} onChange={@props.onInputChange.bind(this, rowIndex, 'firstName')}/>
       <input type='text' className='kdinput text lastname' placeholder='Optional' value={inviteInput.get 'lastName'} onChange={@props.onInputChange.bind(this, rowIndex, 'lastName')}/>
       <CheckBoxOrEmpty
@@ -35,11 +42,25 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
         onClick={@props.onInputChange.bind(null, rowIndex, 'canEdit', { target: { value: not checked}})}/>
     </div>
 
+  onInputChange: (rowIndex, fieldName, evt) ->
+    if isEmailValid evt.target.value
+      @state.filledInputCount[rowIndex] = 1
+    else
+      @state.filledInputCount[rowIndex] = 0
+
+    @props.onInputChange(rowIndex, 'email', evt)
 
   renderEmptySectionAtIndex: -> <div> No data found</div>
 
 
   render: ->
+    count = _.sum @state.filledInputCount
+    if count > 0
+      buttonTitle = "Send #{count} Invite#{if count > 1 then 's' else ''}"
+      buttonEnabled = yes
+    else
+      buttonTitle = "Send Invites"
+      buttonEnabled = no
 
     <div>
       <InformationLabel canEdit={@props.canEdit} />
@@ -54,12 +75,14 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
       </div>
       <fieldset className='HomeAppView--ActionBar'>
         <GenericButton
-          title='SEND INVITES'
-          className={'custom-link-view HomeAppView--button primary fr'}
+          title=buttonTitle
+          className={"custom-link-view HomeAppView--button primary #{unless buttonEnabled then 'inactive' else ''} fr"}
+          spanClass='title GenericButton'
           callback={@props.onSendInvites}/>
         <GenericButton
           title='UPLOAD CSV'
           className={'custom-link-view HomeAppView--button ft'}
+          spanClass='title'
           callback={@props.onUploadCSV} />
       </fieldset>
     </div>
@@ -95,8 +118,8 @@ AdminLabel = ({ canEdit }) ->
   else <span></span>
 
 
-GenericButton = ({ className, title, callback }) ->
+GenericButton = ({ className, spanClass, title, callback }) ->
 
   <a className={className} href='#' onClick={callback}>
-    <span className='title'>{title}</span>
+    <span className={spanClass}>{title}</span>
   </a>
