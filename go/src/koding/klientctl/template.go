@@ -148,7 +148,7 @@ func printTemplates(templates []*models.JStackTemplate) {
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
 	defer w.Flush()
 
-	fmt.Fprintln(w, "ID\tTITLE\tOWNER\tTEAM\tACCESS\tMACHINES")
+	fmt.Fprintln(w, "ID\tTITLE\tSLUG\tOWNER\tTEAM\tACCESS\tMACHINES")
 
 	for _, tmpl := range templates {
 		owner := *tmpl.OriginID
@@ -158,6 +158,6 @@ func printTemplates(templates []*models.JStackTemplate) {
 			}
 		}
 
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%d\n", tmpl.ID, *tmpl.Title, owner, *tmpl.Group, tmpl.AccessLevel, len(tmpl.Machines))
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\t%d\n", tmpl.ID, *tmpl.Title, *tmpl.Slug, owner, *tmpl.Group, tmpl.AccessLevel, len(tmpl.Machines))
 	}
 }
