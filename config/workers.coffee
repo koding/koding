@@ -47,14 +47,8 @@ module.exports = (KONFIG, options, credentials) ->
           }
           {
             location    : '/apidocs'
-            proxyPass   : '$uri $uri/ /$uri $uri/index.html /$uri/index.html @assets'
-            relativePath: '/website'
-            expires     : '-1'
-          }
-          {
-            location    : '~ ^/apidocs(.*)'
-            proxyPass   : '$1 $1/ /$1 $1/index.html /$1/index.html $uri $uri/ /$uri $uri/index.html @assets'
-            relativePath: '/website'
+            proxyPass   : '$uri $uri/ =404'
+            relativePath: '/website/'
             expires     : '-1'
           }
           {
