@@ -28,6 +28,7 @@ describe 'middleware utils', ->
         create: (options, callback) ->
           callback null, assign {}, options, { finished: this }
 
+
       instance = new Foo
 
       runMiddlewares instance, 'create', { foo: instance }, (err, result) ->
@@ -66,6 +67,7 @@ describe 'middleware utils', ->
       class Foo
         @getMiddlewares = -> [SyncBar, SyncBaz]
         create: (options) -> assign {}, options, { finished: this }
+
 
       instance = new Foo
 

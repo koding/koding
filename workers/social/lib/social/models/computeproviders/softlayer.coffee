@@ -26,12 +26,13 @@ module.exports = class Softlayer extends ProviderInterface
 
     { credential, region, image, label } = options
 
-    meta =
+    meta = {
       type          : @providerSlug
       assignedLabel : label
       region        : region ? 'dal09'
       instance_type : 'virtual_guest'
       storage_size  : 10
       image         : image ? 'UBUNTU_14_64'
+    }
 
     callback null, { meta, credential }

@@ -7,9 +7,6 @@ module.exports = class SelectedTemplateIdStore extends KodingFluxStore
 
   getInitialState: -> null
 
-  initialize: ->
-
-    @on actions.SET_SELECTED_TEMPLATE_ID, @set
-
+  initialize: -> @on actions.SET_SELECTED_TEMPLATE_ID, @set
 
   set: (oldSelectedId, { id }) -> id
