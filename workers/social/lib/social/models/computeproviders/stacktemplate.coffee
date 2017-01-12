@@ -510,64 +510,66 @@ module.exports = class JStackTemplate extends Module
 
       { group }    = client.r
       { delegate } = client.connection
+      originId     = delegate.getId()
+      options      = { originId, group }
+
+      notifyOptions =
+        account : delegate
+        group   : group.slug
+        target  : if @accessLevel is 'group' then 'group' else 'account'
+
+      updateAndNotify = (query) =>
+        @updateAndNotify notifyOptions, query, (err, results) =>
+          callback err, this
 
       # It's not allowed to change a stack template group or owner
       delete data.originId
       delete data.group
 
+      delete data.title  if data.title is @getAt 'title'
+
       # Update template sum if template update requested
-      { config, slug, template, templateDetails, rawContent } = data
+      { config, title, template, templateDetails, rawContent } = data
 
-      async.series [
+      validateTemplateData data, options, (err, replacements) =>
+        return callback err  if err
 
-        (next) =>
-          return next()  unless template?
+        if template
+          # update template object, sum, rawContent etc.
+          data.template = replacements.template
 
-          validateTemplateData data, group, (err, replacements) =>
-            return next err  if err
+          # Keep the existing template details if not provided
+          if not templateDetails?
+            data.template.details = @getAt 'template.details'
 
-            # update template object, sum, rawContent etc.
-            data.template = replacements.template
+          # Keep last updater info in the template details
+          data.template.details.lastUpdaterId = delegate.getId()
 
-            # Keep the existing template details if not provided
-            if not templateDetails?
-              data.template.details = @getAt 'template.details'
+        if config
+          # add required providers/fields on to config from template
+          data.config = replacements.config
 
-            # Keep last updater info in the template details
-            data.template.details.lastUpdaterId = delegate.getId()
+        delete data.templateDetails
+        delete data.rawContent
+        delete data.slug
 
-            # add required providers/fields on to config from template
-            data.config = replacements.config
+        if title
+          data.title = replacements.title
+          data.slug  = replacements.slug
 
-            # update slug
-            data.slug = replacements.slug  if slug
+        data['meta.modifiedAt'] = new Date
 
-            delete data.templateDetails
-            delete data.rawContent
+        if originalId = data.config?.clonedFrom
 
-            data['meta.modifiedAt'] = new Date
+          # update clonedSum information in the template, if it is exists
+          JStackTemplate.one$ client, { _id: originalId }, (err, template) ->
+            if template and not err
+              if template.template.sum is data.template.sum
+                data.config.clonedSum = template.template.sum
+            updateAndNotify { $set: data }
 
-            originalId = data.config?.clonedFrom
-            return next()  unless originalId
-
-            # update clonedSum information in the template, if it is exists
-            JStackTemplate.one$ client, { _id: originalId }, (err, template) ->
-              if template and not err
-                if template.template.sum is data.template.sum
-                  data.config.clonedSum = template.template.sum
-              next()
-
-        (next) =>
-          query = { $set: data }
-
-          notifyOptions =
-            account : delegate
-            group   : group.slug
-            target  : if @accessLevel is 'group' then 'group' else 'account'
-
-          @updateAndNotify notifyOptions, query, next
-
-      ], (err, results) => callback err, this
+        else
+          updateAndNotify { $set: data }
 
 
   cloneCustomCredentials = (client, credentials, callback) ->
