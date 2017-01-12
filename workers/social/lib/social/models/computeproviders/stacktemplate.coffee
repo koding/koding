@@ -275,12 +275,17 @@ module.exports = class JStackTemplate extends Module
 
       { group }    = client.r # we have revived JGroup and JUser here ~ GG
       { delegate } = client.connection
+      originId     = delegate.getId()
+      options      = { group, originId }
 
-      validateTemplateData data, group, (err, replacements) ->
+      if not data.template or not data.rawContent
+        return callback new KodingError 'Template content is required!'
+
+      validateTemplateData data, options, (err, replacements) ->
         return callback err  if err
 
         stackTemplate = new JStackTemplate
-          originId    : delegate.getId()
+          originId    : originId
           group       : client.context.group
           description : data.description ? ''
           machines    : data.machines    ? []
