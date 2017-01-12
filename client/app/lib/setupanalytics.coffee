@@ -25,14 +25,12 @@ identifyUser = (account) ->
 
     { email } = user
 
-    kd.singletons.paymentController.subscriptions (err, subscription) ->
+    env = globals.config.environment
+    { userAgent } = window.navigator
 
-      env = globals.config.environment
-      { userAgent } = window.navigator
+    traits = { email, env, userAgent }
 
-      traits = { email, subscription, env, userAgent }
-
-      analytics?.identify nickname, traits
+    analytics?.identify nickname, traits
 
 setupPageAnalyticsEvent = ->
 
@@ -41,7 +39,7 @@ setupPageAnalyticsEvent = ->
     return  unless path
 
     title = getFirstPartOfpath(path)
-    analytics?.page(title, { title:document.title, path })
+    analytics?.page(title, { title: document.title, path })
 
 getFirstPartOfpath = (path) -> return path.split('/')[1] or path
 
@@ -53,7 +51,7 @@ setupRollbar = ->
       guess_uncaught_frames: true
       code_version:          globals.config.version } }
 
-module.exports = ->
+module.exports = setupAnalytics = ->
 
   if globals.config.sendEventsToSegment
     setupIdentify()

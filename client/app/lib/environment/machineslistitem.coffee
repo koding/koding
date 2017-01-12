@@ -1,11 +1,8 @@
 kd                     = require 'kd'
 JView                  = require 'app/jview'
 actions                = require 'app/flux/environment/actions'
-isKoding               = require 'app/util/isKoding'
 showError              = require 'app/util/showError'
 KodingSwitch           = require 'app/commonviews/kodingswitch'
-isTeamReactSide        = require 'app/util/isTeamReactSide'
-ComputeErrorUsageModal = require '../providers/computeerrorusagemodal'
 
 
 module.exports = class MachinesListItem extends kd.ListItemView
@@ -58,8 +55,6 @@ module.exports = class MachinesListItem extends kd.ListItemView
 
   createSidebarToggle: ->
 
-    return  if isKoding()
-
     machine = @getData()
 
     { computeController } = kd.singletons
@@ -80,18 +75,13 @@ module.exports = class MachinesListItem extends kd.ListItemView
 
     machine = @getData()
 
-    computeController.fetchUserPlan (plan) =>
+    computeController.setAlwaysOn machine, state, (err) =>
 
-      computeController.setAlwaysOn machine, state, (err) =>
+      return  unless err
 
-        return  unless err
+      showError err
 
-        if err.name is 'UsageLimitReached' and plan isnt 'hobbyist'
-          kd.utils.defer -> new ComputeErrorUsageModal { plan }
-        else
-          showError err
-
-        @alwaysOnToggle.setOff no
+      @alwaysOnToggle.setOff no
 
 
   updateSidebarVisibility: (state) ->
@@ -108,7 +98,7 @@ module.exports = class MachinesListItem extends kd.ListItemView
 
     stack.modify { config }
 
-    actions.loadStacks yes  if isTeamReactSide()
+    actions.loadStacks yes
 
 
   pistachio: ->
@@ -130,24 +120,24 @@ module.exports = class MachinesListItem extends kd.ListItemView
     logoImg = "<a href='#{url}' target='_blank'>#{logoImg}</a>"  if url
 
     """
-      <div>
-        {{> @labelLink}}
-      </div>
-      <div>
-        #{logoImg}
-      </div>
-      <div>
-        <span>VM{{> @settingsLink}}</span>
-        <span>#{@vminfo.instance_type}</span>
-      </div>
-      <div>
-        <span>UBUNTU</span>
-        <span>14.2</span>
-      </div>
-      <div>
-        {{> @alwaysOnToggle}}
-      </div>
-      #{unless isKoding() then '<div>{{> @sidebarToggle}}</div>' else ''}
+    <div>
+      {{> @labelLink}}
+    </div>
+    <div>
+      #{logoImg}
+    </div>
+    <div>
+      <span>VM{{> @settingsLink}}</span>
+      <span>#{@vminfo.instance_type}</span>
+    </div>
+    <div>
+      <span>UBUNTU</span>
+      <span>14.2</span>
+    </div>
+    <div>
+      {{> @alwaysOnToggle}}
+    </div>
+    <div>{{> @sidebarToggle}}</div>
     """
 
   PROVIDERS         =

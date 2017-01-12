@@ -27,9 +27,5 @@ class AppController extends KDViewController
     @ready => @feedController?.handleQuery? query
 
 
-  createContentDisplay: (models, callback) ->
-    console.warn @id + '#createContentDisplay not implemented'
-
-
   handleShortcut: (e) ->
     console.warn @id + '#handleShortcut not implemented'

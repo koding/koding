@@ -5,7 +5,6 @@ remote         = require('./remote')
 globals        = require 'globals'
 
 lazyrouter     = require './lazyrouter'
-isKoding       = require './util/isKoding'
 whoami         = require './util/whoami'
 nick           = require './util/nick'
 showError      = require 'app/util/showError'
@@ -38,30 +37,9 @@ createSectionHandler = (sec) ->
       router.openSection slug or sec, name, query
 
 
-createContentDisplayHandler = (section, passOptions = no) ->
-
-  ({ params:{ name, slug }, query }, models, route) ->
-
-    { router } = kd.singletons
-
-    # don't render profile pages on team contexts.
-    return router.handleNotFound()  unless isKoding()
-
-    route = name unless route
-
-    if models?
-      router.openContent name, section, models, route, query, passOptions
-    else
-      router.loadContent name, section, slug, route, query, passOptions
-
-
 module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
 
   switch type
-    when 'members'
-      { params, query } = info
-      (createContentDisplayHandler 'Members') info, state, path
-
     when 'logout'
       kd.singletons.mainController.doLogout()
 
@@ -90,8 +68,6 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
     when 'name'
       open = (routeInfo, model) ->
         switch model?.bongo_?.constructorName
-          when 'JAccount'
-            (createContentDisplayHandler 'Members') routeInfo, [model]
           when 'JGroup'
             (createSectionHandler 'Activity') routeInfo, model
           else

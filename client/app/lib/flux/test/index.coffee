@@ -17,5 +17,3 @@ require './stores/environment/sharedmachinesstore'
 require './stores/environment/machinesstore'
 require './stores/environment/machinesworkspacesstore'
 require './stores/environment/connectedmanagedmachinestore'
-
-require '../payment/test'
