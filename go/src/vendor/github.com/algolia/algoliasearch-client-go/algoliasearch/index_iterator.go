@@ -1,52 +1,72 @@
 package algoliasearch
 
-import (
-	"errors"
-)
+import "errors"
 
-// IndexIterator is used to iterate over indices when using `Browse`-like
-// functions.
-type IndexIterator struct {
-	answer interface{}
-	params interface{}
+type indexIterator struct {
+	cursor string
+	index  Index
+	page   BrowseRes
+	params Map
 	pos    int
-	index  *Index
 }
 
-// Next iterates to the next result and move the cursor.
-func (it *IndexIterator) Next() (interface{}, error) {
-	var err error
-	for err == nil {
-		hits := it.answer.(map[string]interface{})["hits"].([]interface{})
-		if it.pos < len(hits) {
-			it.pos++
-			return hits[it.pos-1], nil
-		}
-		if cursor, ok := it.GetCursor(); ok && len(cursor) > 0 {
+// newIndexIterator instantiates a IndexIterator on the `index` and according
+// to the given `params`. It is also trying to load the first page of results
+// and return an error if something goes wrong.
+func newIndexIterator(index Index, params Map) (it *indexIterator, err error) {
+	it = &indexIterator{
+		cursor: "",
+		index:  index,
+		params: duplicateMap(params),
+		pos:    0,
+	}
+	err = it.loadNextPage()
+	return
+}
+
+func (it *indexIterator) Next() (res Map, err error) {
+	// Abort if the user call `Next()` on a IndexIterator that has been
+	// initialized without being able to load the first page.
+	if len(it.page.Hits) == 0 {
+		err = errors.New("No more hits")
+		return
+	}
+
+	// If the last element of the page has been reached, the next one is loaded
+	// or returned an error if the last element of the last page has already
+	// been returned.
+	if it.pos == len(it.page.Hits) {
+		if it.cursor == "" {
+			err = errors.New("No more hits")
+		} else {
 			err = it.loadNextPage()
-			continue
 		}
-		return nil, errors.New("End of the index reached")
+
+		if err != nil {
+			return
+		}
 	}
-	return nil, err
+
+	res = it.page.Hits[it.pos]
+	it.pos++
+
+	return
 }
 
-// GetCursor returns the current underlying cursor. The returned boolean is set
-// to `false` if the end of the index has been reached.
-func (it *IndexIterator) GetCursor() (string, bool) {
-	cursor, ok := it.answer.(map[string]interface{})["cursor"]
-	cursorStr := ""
-	if cursor != nil {
-		cursorStr = cursor.(string)
+// loadNextPage is used internally to load the next page of results, using the
+// underlying Browse cursor.
+func (it *indexIterator) loadNextPage() (err error) {
+	if it.page, err = it.index.Browse(it.params, it.cursor); err != nil {
+		return
 	}
-	return cursorStr, ok
-}
 
-// loadNextPage loads the next page of results and resets the cursor position.
-func (it *IndexIterator) loadNextPage() error {
+	// Return an error if the newly loaded pages contains no results
+	if len(it.page.Hits) == 0 {
+		err = errors.New("No more hits")
+		return
+	}
+
+	it.cursor = it.page.Cursor
 	it.pos = 0
-	cursor, _ := it.GetCursor()
-	answer, err := it.index.BrowseFrom(it.params, cursor)
-	it.answer = answer
-	return err
+	return
 }

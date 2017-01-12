@@ -10,12 +10,12 @@ import (
 )
 
 type Handler struct {
-	client        *algoliasearch.Client
+	client        algoliasearch.Client
 	logger        logging.Logger
 	searchOnlyKey string
 }
 
-func NewHandler(c *algoliasearch.Client, l logging.Logger, searchOnlyKey string) *Handler {
+func NewHandler(c algoliasearch.Client, l logging.Logger, searchOnlyKey string) *Handler {
 	return &Handler{
 		client:        c,
 		logger:        l,

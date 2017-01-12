@@ -137,11 +137,8 @@ func (f *Controller) RemoveGuestAccounts() error {
 		return err
 	}
 
-	res, err := index.DeleteByQuery("guest-", map[string]interface{}{})
-	if err != nil {
-		if res != nil {
-			f.log.Error("Could not remove guest accounts from algolia: %+v \n", res)
-		}
+	if err := index.DeleteByQuery("guest-", map[string]interface{}{}); err != nil {
+		f.log.Error("Could not remove guest accounts from algolia:\n")
 		return err
 	}
 
@@ -151,32 +148,20 @@ func (f *Controller) RemoveGuestAccounts() error {
 func (f *Controller) DeleteNicksWithQuery(queryName string) error {
 	index, err := f.indexes.GetIndex(IndexAccounts)
 	params := map[string]interface{}{"restrictSearchableAttributes": "nick"}
-	record, err := index.Search(queryName, params)
+	_, err = index.Search(queryName, params)
 	if err != nil {
 		return err
 	}
 
-	var nbHit float64
-	var pages float64
-
-	nbHits, ok := record.(map[string]interface{})["nbHits"]
-	if ok {
-		nbHit = nbHits.(float64)
-	}
-
-	nbPages, ok := record.(map[string]interface{})["nbPages"]
-	if ok {
-		pages = nbPages.(float64)
-	}
+	var nbHit int
+	var pages int
 
 	for pages > 0 && nbHit != 0 {
 		record, err := index.Search(queryName, params)
-		hist, ok := record.(map[string]interface{})["hits"]
+		hist := record.Hits
 
-		nbHits, _ := record.(map[string]interface{})["nbHits"]
-		nbPages, _ := record.(map[string]interface{})["nbPages"]
-		pages = nbPages.(float64)
-		nbHit = nbHits.(float64)
+		pages = record.NbPages
+		nbHit = record.NbHits
 
 		index, err := f.indexes.GetIndex(IndexAccounts)
 		if err != nil {
@@ -188,37 +173,24 @@ func (f *Controller) DeleteNicksWithQuery(queryName string) error {
 			return err
 		}
 
-		hist, ok = record.(map[string]interface{})["hits"]
-
-		if ok {
-			hinter, ok := hist.([]interface{})
-			if ok {
-				for _, v := range hinter {
-					val, k := v.(map[string]interface{})
-					if k {
-						// value := val["nick"].(string)
-						object := val["objectID"].(string)
-						_, err := modelhelper.GetAccountById(object)
-						if err != nil && err != modelhelper.ErrNotFound {
-							return err
-						}
-						if err == modelhelper.ErrNotFound {
-							if _, err = index.DeleteObject(object); err != nil {
-								return nil
-							}
-						}
-					}
+		hist = record.Hits
+		for _, val := range hist {
+			object := val["objectID"].(string)
+			_, err := modelhelper.GetAccountById(object)
+			if err != nil && err != modelhelper.ErrNotFound {
+				return err
+			}
+			if err == modelhelper.ErrNotFound {
+				if _, err = index.DeleteObject(object); err != nil {
+					return nil
 				}
 			}
 		}
 	}
-
 	return nil
-
 }
 
 func (f *Controller) FetchIdOfNicksWithQuery(queryName string) ([]string, error) {
-
 	index, err := f.indexes.GetIndex(IndexAccounts)
 	if err != nil {
 		return nil, err
@@ -226,25 +198,18 @@ func (f *Controller) FetchIdOfNicksWithQuery(queryName string) ([]string, error)
 	params := map[string]interface{}{"restrictSearchableAttributes": "nick"}
 	record, _ := index.Search(queryName, params)
 
-	hist, ok := record.(map[string]interface{})["hits"]
+	hist := record.Hits
 
 	objects := make([]string, 0)
-	if ok {
 
-		hinter, ok := hist.([]interface{})
-		if ok {
-			for _, v := range hinter {
-				val, k := v.(map[string]interface{})
-				if k {
-					value := val["nick"].(string)
-					object := val["objectID"].(string)
-					if strings.HasPrefix(value, queryName) {
-						objects = append(objects, object)
-					}
-				}
-			}
+	for _, val := range hist {
+		value := val["nick"].(string)
+		object := val["objectID"].(string)
+		if strings.HasPrefix(value, queryName) {
+			objects = append(objects, object)
 		}
 	}
+
 	return objects, nil
 }
 
@@ -263,7 +228,7 @@ func (f *Controller) DeleteNicksWithQueryBrowseAll(queryName string) error {
 	params := map[string]interface{}{
 		"restrictSearchableAttributes": "nick",
 	}
-	record, err := index.Search(queryName, params)
+	_, err = index.Search(queryName, params)
 	if err != nil {
 		return err
 	}
@@ -312,20 +277,20 @@ func (f *Controller) DeleteNicksWithQueryBrowseAll(queryName string) error {
 	counter := 0
 	recordBrowse, err := index.BrowseAll(params)
 	for {
-		record, err = recordBrowse.Next()
+		record, err := recordBrowse.Next()
 		if err != nil {
 			fmt.Println("ERROR:", err)
 			return nil
 		}
 		counter++
 
-		object, ok := record.(map[string]interface{})
-		if ok {
-			objectID := object["objectID"].(string)
+		if len(record) != 0 {
+			objectID := record["objectID"].(string)
 			fmt.Println("counter, objectID-->", counter, objectID)
 			workChan <- objectID
 		}
 	}
+
 	fmt.Println("waiting for workers-->")
 
 	wg.Wait()
