@@ -69,6 +69,8 @@ func (c *Client) DeleteTemplate(id string) error {
 		ID: id,
 	}
 
+	params.SetTimeout(c.timeout())
+
 	resp, err := c.client().JStackTemplate.PostRemoteAPIJStackTemplateDeleteID(params)
 	if err != nil {
 		return err
