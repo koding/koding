@@ -58,8 +58,6 @@ createWebLocation = ({name, locationConf, cors}) ->
         # try again with another upstream if there is an error
         proxy_next_upstream   error timeout   invalid_header http_500;
 
-        proxy_set_header      X-name #{name};
-
         # proxy should connect in 1 second
         proxy_connect_timeout 5;
 
@@ -83,9 +81,6 @@ createWebsocketLocation = ({name, locationConf, proxyPass}) ->
         proxy_http_version    1.1;
         proxy_set_header      Upgrade         $http_upgrade;
         proxy_set_header      Connection      $connection_upgrade;
-
-        proxy_set_header      X-name #{name};
-
         proxy_set_header      Host            #{host};
         proxy_set_header      X-Host          $host; # for customisation
         proxy_set_header      X-Real-IP       $remote_addr;
@@ -120,7 +115,6 @@ createBucketLocation = ({name, locationConf, proxyPass}) ->
         proxy_pass            #{proxyPass};
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header      X-name #{name};
         proxy_connect_timeout 5;
 
         # unset headers
@@ -209,32 +203,6 @@ createStubLocation = (env)->
 
   return stub
 
-createRootLocation = (KONFIG) ->
-  return "" if isProxy KONFIG.ebEnvName
-
-  proxy = KONFIG.marketingPagesURL
-  if KONFIG.environment in ["dev", "default", "sandbox"]
-    proxy = "http://webserver"
-
-  return """
-      location ~*(^(\/(Pricing|About|Legal|Features|Blog|Docs))) {
-          proxy_set_header      Host            $host;
-          proxy_set_header      X-Host          $host; # for customisation
-          proxy_set_header      X-Real-IP       $remote_addr;
-          proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-          proxy_next_upstream   error timeout   invalid_header http_500;
-          proxy_connect_timeout 30;
-
-          if ($host !~* ^(dev|default|sandbox|latest|www)) {
-             return 302 /;
-          }
-
-        proxy_set_header      X-name "olmamis";
-
-          proxy_pass #{proxy};
-      }
-      """
-
 createAssetLocation = ({locationConf, KONFIG}) ->
   { expires, relativePath, proxyPass,
     location, extraParamsStr } = locationConf
@@ -252,13 +220,12 @@ createAssetLocation = ({locationConf, KONFIG}) ->
           expires #{expires};
           add_header Cache-Control \"public\";
           # no need to send those requests to nginx access_log
-        #   access_log off;
-
-        proxy_set_header      X-name "asse";
+          access_log off;
 
           #{extraParamsStr}
       }
-      """
+  \n"""
+
 
 module.exports.create = (KONFIG, environment)->
   workers = KONFIG.workers
@@ -280,14 +247,14 @@ module.exports.create = (KONFIG, environment)->
   master_process #{if inDevEnvironment then "off" else "on"};
 
 
-  error_log  logs/error.log;
-  error_log  logs/error.log  notice;
-  error_log  logs/error.log  info;
+  #error_log  logs/error.log;
+  #error_log  logs/error.log  notice;
+  #error_log  logs/error.log  info;
 
   #{if inDevEnvironment then '' else 'pid /var/run/nginx.pid;'}
 
   events {
-    worker_connections 20;
+    worker_connections 20000;
     multi_accept on;
     #{event_mechanism}
   }
@@ -385,7 +352,6 @@ module.exports.create = (KONFIG, environment)->
       }
 
       #{createLocations(KONFIG)}
-      #{createRootLocation(KONFIG)}
 
     # close server
     }
