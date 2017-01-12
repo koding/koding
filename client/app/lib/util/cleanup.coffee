@@ -26,11 +26,6 @@ toBeDeleted = [
   '_hs_opt_out'
   '__hluid'
 
-  # font?
-  'ajs_anonymous_id'
-  'ajs_group_id'
-  'ajs_user_id'
-
   # olark
   'hblid'
   'wcsid'
