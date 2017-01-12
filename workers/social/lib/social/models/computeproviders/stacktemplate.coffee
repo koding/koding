@@ -180,30 +180,57 @@ module.exports = class JStackTemplate extends Module
     return config
 
 
-  validateTemplateData = (data, group, callback) ->
+  generateSlugFromTitle = ({ originId, group, title, index }, callback) ->
+
+    unless title
+      return callback null
+
+    slug = _title = if index? then "#{title} #{index}" else title
+    slug = slugify slug
+
+    JStackTemplate.count { originId, group, slug }, (err, count) ->
+      return callback err  if err?
+
+      if count is 0
+        callback null, { slug, title: _title }
+      else
+        index ?= 0
+        index += 1
+        generateSlugFromTitle { originId, group, title, index }, callback
+
+
+  validateTemplateData = (data, options, callback) ->
 
     unless data
       return callback new KodingError 'Template data is required!'
 
-    { config = {}, slug, title, template, rawContent, templateDetails } = data
+    { config = {}, title, template, rawContent, templateDetails } = data
 
-    if not template or not rawContent
-      return callback new KodingError 'Template content is required!'
+    if template and rawContent
+      template = generateTemplateObject template, rawContent, templateDetails
+      if config
+        config = updateConfigForTemplate config, template.rawContent
+        title ?= generateTemplateTitle config.requiredProviders[0]
 
-    template = generateTemplateObject template, rawContent, templateDetails
-    config   = updateConfigForTemplate config, template.rawContent
-    title   ?= generateTemplateTitle config.requiredProviders[0]
-    slug     = slugify slug ? title
+    { originId, group } = options
+    limitConfig = helpers.getLimitConfig group
+    group       = group.slug
 
-    replacements = { template, config, title, slug }
+    generateSlugFromTitle { group, originId, title }, (err, res = {}) ->
 
-    limitConfig  = helpers.getLimitConfig group
-    unless limitConfig.limit # No limit, no pain.
-      return callback null, replacements
+      return callback err  if err
 
-    ComputeProvider = require './computeprovider'
-    ComputeProvider.validateTemplateContent data.template, limitConfig, (err) ->
-      callback err, replacements
+      { slug, title } = res
+      replacements = { template, config, title, slug }
+
+      if not data.template     or \
+         not limitConfig.limit or \
+             limitConfig.limit is 'unlimited' # No limit, no pain.
+        return callback null, replacements
+
+      ComputeProvider = require './computeprovider'
+      ComputeProvider.validateTemplateContent \
+        data.template, limitConfig, (err) -> callback err, replacements
 
 
   generateTemplateTitle = (provider) ->

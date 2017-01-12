@@ -295,8 +295,9 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
             (next) ->
               config = { verified: yes }
-              stackTemplate.update$ client, { config }, (err) ->
+              stackTemplate.update$ client, { config }, (err, template) ->
                 expect(err).to.not.exist
+                expect(template.config.verified).to.be.equal yes
                 next()
 
             (next) ->
