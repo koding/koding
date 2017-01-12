@@ -662,12 +662,6 @@ func run(args []string) {
 							Name:  "id",
 							Usage: "Limit to a template that matches the ID.",
 						},
-					},
-				}, {
-					Name:   "delete",
-					Usage:  "Delete a stack templates.",
-					Action: ctlcli.ExitErrAction(TemplateDelete, log, "delete"),
-					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "force",
 							Usage: "Do not ask form confirmation.",
