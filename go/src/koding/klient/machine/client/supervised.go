@@ -12,7 +12,7 @@ type DynamicClientFunc func() (Client, error)
 
 // Supervised is a decorator type for Clients which will wait for valid client
 // if the current client is Disconnected. This type is meant to handle temporary
-// network issues or cases when underlaying client is not set up yet. Eg. when
+// network issues or cases when underlying client is not set up yet. Eg. when
 // program started but haven't made connection to remote machine yet.
 type Supervised struct {
 	dcf     DynamicClientFunc
@@ -109,7 +109,7 @@ func (s *Supervised) call(f func(Client) error) error {
 		timer := time.NewTimer(s.timeout)
 		select {
 		case <-ctx.Done():
-			// Client changed. Use new client.
+			// Client changed. Use a new one.
 			timer.Stop()
 			c, err = s.dcf()
 			if err != nil {
