@@ -61,7 +61,7 @@ koding.once 'dbClientReady', ->
 
     JAccount.one {_id}, (err, account)->
       return cb err  if err
-      return cb {message: "no account found"}  unless account
+      return cb {message: 'no account found'}  unless account
       userCache[_id] = {account}
       cb null, userCache[_id]
 

@@ -33,7 +33,7 @@ createUsers = (users)->
 
       JUser.count username: u.username, (err, count)->
 
-        if err then return console.error "Failed to query count:", err
+        if err then return console.error 'Failed to query count:', err
 
         if count > 0
           console.log "  User #{u.username} already exists, passing."
@@ -45,7 +45,7 @@ createUsers = (users)->
 
             console.log "Failed to create #{u.username}: ", err
             if err.errors?
-              console.log "VALIDATION ERRORS: ", err.errors
+              console.log 'VALIDATION ERRORS: ', err.errors
 
             return next()
 
@@ -60,7 +60,7 @@ createUsers = (users)->
               return next()
 
             console.log "  User #{user.username} created."
-            console.log "\n   - Verifying email ..."
+            console.log '\n   - Verifying email ...'
 
             user.confirmEmail (err)->
 
@@ -68,15 +68,15 @@ createUsers = (users)->
                 # RabbitMQ client is required to be initialized to send emails;
                 # however send welcome emails is not reuqired here, so we silence it.
                 if !/RabbitMQ client not found in Email/.test err
-                  console.log "     Failed to verify: ", err
+                  console.log '     Failed to verify: ', err
               else
-                console.log "     Email verified."
+                console.log '     Email verified.'
 
               console.log "\n   - Adding to group #{u.group} ..."
 
               JUser.addToGroup account, u.group, u.email, null, (err)->
 
-                if err then console.log "     Failed to add: ", err
+                if err then console.log '     Failed to add: ', err
                 else        console.log "     Joined to group #{u.group}."
 
                 client =
@@ -85,7 +85,7 @@ createUsers = (users)->
 
                 ComputeProvider.createGroupStack client, (err)->
 
-                  if err then console.log "     Failed to create stack: ", err
+                  if err then console.log '     Failed to create stack: ', err
                   else        console.log "     Default stack created for #{u.group}."
 
                   next()
@@ -110,7 +110,7 @@ createUsers = (users)->
       else
 
         setTimeout ->
-          console.log "\nALL DONE."
+          console.log '\nALL DONE.'
           process.exit 0
         , 10000
 
@@ -132,7 +132,7 @@ try
       return  if member.length isnt header.length
 
       item = {
-        passwordStatus : "valid"
+        passwordStatus : 'valid'
         foreignAuth    : null
         silence        : no
       }
@@ -148,5 +148,5 @@ try
 
 catch e
 
-  console.log "Failed to parse team.csv", e
+  console.log 'Failed to parse team.csv', e
   process.exit 0

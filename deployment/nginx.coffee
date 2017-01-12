@@ -5,14 +5,14 @@ _ = require 'lodash'
 
 createUpstreams = (KONFIG) ->
 
-  upstreams = "# add global upstreams\n"
+  upstreams = '# add global upstreams\n'
   for name, options of KONFIG.workers when options.ports?.incoming?
 
-    servers = ""
+    servers = ''
     { incoming: port } = options.ports
     options.instances or= 1
     for index in [0...options.instances]
-      servers += "\n" if servers isnt ""
+      servers += '\n' if servers isnt ''
       port = parseInt(port, 10)
 
       servers += "\tserver 127.0.0.1:#{port + index} max_fails=3 fail_timeout=10s;"
@@ -25,26 +25,26 @@ createUpstreams = (KONFIG) ->
   return upstreams
 
 
-basicAuth = """
+basicAuth = '''
 satisfy any;
       allow   127.0.0.1/32;
       deny    all;
 
       auth_basic            "Restricted";
-      auth_basic_user_file  /etc/nginx/conf.d/.htpasswd;"""
+      auth_basic_user_file  /etc/nginx/conf.d/.htpasswd;'''
 
-allowInternal = """
+allowInternal = '''
   allow                 127.0.0.0/8;
         allow                 192.168.0.0/16;
         allow                 172.16.0.0/12;
         deny                  all;
-"""
+'''
 
 createWebLocation = ({name, locationConf, cors}) ->
   { location, proxyPass, internalOnly, auth, extraParams } = locationConf
     # 3 tabs are just for style
-  extraParamsStr = extraParams?.join("\n\t\t\t") or ""
-  host = locationConf.host or "$host"
+  extraParamsStr = extraParams?.join('\n\t\t\t') or ''
+  host = locationConf.host or '$host'
 
   return """\n
       location #{location} {
@@ -71,8 +71,8 @@ createWebLocation = ({name, locationConf, cors}) ->
 createWebsocketLocation = ({name, locationConf, proxyPass}) ->
   {location, proxyPass} = locationConf
   # 3 tabs are just for style
-  extraParamsStr = locationConf.extraParams?.join("\n\t\t\t") or ""
-  host = locationConf.host or "$host"
+  extraParamsStr = locationConf.extraParams?.join('\n\t\t\t') or ''
+  host = locationConf.host or '$host'
   return """\n
       location #{location} {
         proxy_pass            #{proxyPass};
@@ -101,8 +101,8 @@ createWebsocketLocation = ({name, locationConf, proxyPass}) ->
 createBucketLocation = ({name, locationConf, proxyPass}) ->
   {location, proxyPass} = locationConf
   # 3 tabs are just for style
-  extraParamsStr = locationConf.extraParams?.join("\n\t\t\t") or ""
-  host = locationConf.host or "$host"
+  extraParamsStr = locationConf.extraParams?.join('\n\t\t\t') or ''
+  host = locationConf.host or '$host'
   return """\n
       location #{location} {
         proxy_cache asset_cache;
@@ -139,7 +139,7 @@ createBucketLocation = ({name, locationConf, proxyPass}) ->
 createLocations = (KONFIG) ->
   workers = KONFIG.workers
 
-  locations = ""
+  locations = ''
   for name, options of workers
     # don't add those who whish not to be generated, probably because those are
     # using manually written locations
@@ -165,13 +165,13 @@ createLocations = (KONFIG) ->
         createWebLocation
 
       auth = no
-      if KONFIG.configName in ["load", "prod"]
+      if KONFIG.configName in ['load', 'prod']
         auth = no
       else
         auth = options.nginx.auth
 
       if KONFIG.configName is 'dev'
-        cors = "add_header 'Access-Control-Allow-Origin' '*' always;"
+        cors = 'add_header 'Access-Control-Allow-Origin' '*' always;'
       else if location.cors
         cors = """
         if ($http_origin ~* (.*\.)*#{_.escapeRegExp KONFIG.domains.main}) {
@@ -186,7 +186,7 @@ createLocations = (KONFIG) ->
   return locations
 
 createStubLocation = (env)->
-  stub = """\n
+  stub = '''\n
       # nginx status location, it retuns info about connections and requests
       location /nginx_status {
           # Turn on nginx status page
@@ -196,10 +196,10 @@ createStubLocation = (env)->
           # Deny the rest of the connections
           deny all;
       }
-  \n"""
+  \n'''
 
-  if env in ["dev", "default"]
-    stub = ""
+  if env in ['dev', 'default']
+    stub = ''
 
   return stub
 
@@ -210,7 +210,7 @@ createAssetLocation = ({locationConf, KONFIG}) ->
   expires or= '1M'
   relativePath or= '/website/'
   proxyPass or= '$uri @assets'
-  return throw new Error "location required"  unless location
+  return throw new Error 'location required'  unless location
   extraParamsStr or= ''
 
   return """\n
@@ -244,7 +244,7 @@ module.exports.create = (KONFIG, environment)->
 
   config = """
   worker_processes #{if inDevEnvironment then 1 else 16};
-  master_process #{if inDevEnvironment then "off" else "on"};
+  master_process #{if inDevEnvironment then 'off' else 'on'};
 
 
   #error_log  logs/error.log;
@@ -314,7 +314,7 @@ module.exports.create = (KONFIG, environment)->
     # start server
     server {
       # we should not timeout on proxy connections
-      #{if isProxy KONFIG.ebEnvName then "" else "
+      #{if isProxy KONFIG.ebEnvName then '' else "
       # close alive connections after 20 seconds
       # http://nginx.org/en/docs/http/ngx_http_core_module.html#keepalive_timeout\n
       \t\tkeepalive_timeout 20s;
@@ -365,9 +365,9 @@ module.exports.create = (KONFIG, environment)->
 
 
 createRedirections = (KONFIG) ->
-  return "" if isProxy KONFIG.ebEnvName
+  return '' if isProxy KONFIG.ebEnvName
 
-  return """
+  return '''
   \t\t\t
     # redirect www to non-www
     server {
@@ -379,12 +379,12 @@ createRedirections = (KONFIG) ->
     server {
        server_name "~^old.koding.com" ;
        return 301 $scheme://koding.com$request_uri ;
-    }"""
+    }'''
 
 createHealthcheck = (KONFIG) ->
-  return "" if not isProxy KONFIG.ebEnvName
+  return '' if not isProxy KONFIG.ebEnvName
 
-  return """
+  return '''
     # ELB healthcheck with proxy_protocol disabled
     server {
         listen 78;
@@ -407,12 +407,12 @@ createHealthcheck = (KONFIG) ->
           #access_log off;
         }
     }
-  """
+  '''
 
 createIPRoutes = (KONFIG) ->
-  return "" if not isProxy KONFIG.ebEnvName
+  return '' if not isProxy KONFIG.ebEnvName
 
-  return """
+  return '''
     location ~^/-/ip$ {
       return 200 $remote_addr;
     }
@@ -424,19 +424,19 @@ createIPRoutes = (KONFIG) ->
       proxy_send_timeout 5s;
       proxy_next_upstream error timeout invalid_header;
     }
-   """
+   '''
 
 createListenDirective = (KONFIG, env) ->
   return "listen #{KONFIG.publicPort};" if not isProxy KONFIG.ebEnvName
 
-  return """
+  return '''
     listen 79 proxy_protocol;
     real_ip_header proxy_protocol;
     set_real_ip_from 10.0.0.0/16;
-  """
+  '''
 
 createHttpsRedirector = (KONFIG) ->
-  return "" if isProxy KONFIG.ebEnvName
+  return '' if isProxy KONFIG.ebEnvName
 
   return """
   \t\t\t

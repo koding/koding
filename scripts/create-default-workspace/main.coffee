@@ -44,7 +44,7 @@ koding.once 'dbClientReady', ->
         JWorkspace.one query, (err, workspace_) ->
           return console.error err  if err
 
-          process.stdout.write ': ' + (if workspace_ then 'found' else 'not found') + "\n"
+          process.stdout.write ': ' + (if workspace_ then 'found' else 'not found') + '\n'
 
           workspace = workspace_
           next()
@@ -59,7 +59,7 @@ koding.once 'dbClientReady', ->
         fetchAccount username, (err, account_) ->
           return console.error err  if err
 
-          process.stdout.write ': ' + (if account_ then 'found' else 'not found') + "\n"
+          process.stdout.write ': ' + (if account_ then 'found' else 'not found') + '\n'
 
           account = account_
           next()
@@ -102,7 +102,7 @@ koding.once 'dbClientReady', ->
         if machine
           console.log 'Machine:', machine.uid
           createDefaultWorkspace machine, ->
-            process.stdout.write "\n"
+            process.stdout.write '\n'
             iterate()
         else
           console.log 'Done'

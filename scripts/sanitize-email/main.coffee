@@ -82,8 +82,8 @@ printReport = ->
   for entry in list
     {email, count, usernames} = entry
     report += "#{count} #{email}\n"
-    report += usernames.join "\n"
-    report += "\n\n"
+    report += usernames.join '\n'
+    report += '\n\n'
 
   fs.writeFileSync 'ABUSE_REPORT', report
 

@@ -2,12 +2,12 @@ traverse              = require 'traverse'
 os                    = require 'os'
 
 module.exports = (KONFIG, options, credentials) ->
-  GOBIN = "%(ENV_KONFIG_PROJECTROOT)s/go/bin"
-  GOPATH = "%(ENV_KONFIG_PROJECTROOT)s/go"
+  GOBIN = '%(ENV_KONFIG_PROJECTROOT)s/go/bin'
+  GOPATH = '%(ENV_KONFIG_PROJECTROOT)s/go'
 
   workers =
     bucketproxies       :
-      group             : "bucket"
+      group             : 'bucket'
       nginx             :
         s3bucket        : yes
         locations       : [
@@ -34,7 +34,7 @@ module.exports = (KONFIG, options, credentials) ->
         ]
 
     assets              :
-      group             : "static"
+      group             : 'static'
       nginx             :
         static          : yes
         locations       : [
@@ -60,7 +60,7 @@ module.exports = (KONFIG, options, credentials) ->
         ]
 
     kontrol             :
-      group             : "environment"
+      group             : 'environment'
       ports             :
         incoming        : "#{KONFIG.kontrol.port}"
       supervisord       :
@@ -69,15 +69,15 @@ module.exports = (KONFIG, options, credentials) ->
         websocket       : yes
         locations       : [
           {
-            location    : "~^/kontrol/(.*)"
-            proxyPass   : "http://kontrol/$1$is_args$args"
+            location    : '~^/kontrol/(.*)'
+            proxyPass   : 'http://kontrol/$1$is_args$args'
           }
         ]
       healthCheckURLs   : [ "http://localhost:#{KONFIG.kontrol.port}/healthCheck" ]
       versionURL        : "http://localhost:#{KONFIG.kontrol.port}/version"
 
     kloud               :
-      group             : "environment"
+      group             : 'environment'
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
@@ -86,27 +86,27 @@ module.exports = (KONFIG, options, credentials) ->
         websocket       : yes
         locations       : [
           {
-            location    : "~^/kloud/(.*)"
-            proxyPass   : "http://kloud/$1$is_args$args"
+            location    : '~^/kloud/(.*)'
+            proxyPass   : 'http://kloud/$1$is_args$args'
           }
         ]
       healthCheckURLs   : [ "http://localhost:#{KONFIG.kloud.port}/healthCheck" ]
       versionURL        : "http://localhost:#{KONFIG.kloud.port}/version"
 
     terraformer         :
-      group             : "environment"
+      group             : 'environment'
       supervisord       :
         command         : "#{GOBIN}/terraformer"
       healthCheckURLs   : [ "http://localhost:#{KONFIG.terraformer.port}/healthCheck" ]
       versionURL        : "http://localhost:#{KONFIG.terraformer.port}/version"
 
     webserver           :
-      group             : "webserver"
+      group             : 'webserver'
       ports             :
         incoming        : "#{KONFIG.webserver.port}"
         outgoing        : "#{KONFIG.webserver.kitePort}"
       supervisord       :
-        command         : "./watch-node %(ENV_KONFIG_PROJECTROOT)s/servers/index.js"
+        command         : './watch-node %(ENV_KONFIG_PROJECTROOT)s/servers/index.js'
       healthCheckURLs   : [
           "http://localhost:#{options.publicPort}/swagger.json"
           "http://localhost:#{options.publicPort}/apidocs"
@@ -114,47 +114,47 @@ module.exports = (KONFIG, options, credentials) ->
       nginx             :
         locations       : [
           {
-            location    : "/-/healthCheck"
+            location    : '/-/healthCheck'
           }
           {
-            location    : "~*(^(\/(Pricing|About|Legal|Features|Blog|Docs)))"
-            extraParams : [ "if ($host !~* ^(dev|default|sandbox|latest|www)) { return 301 /; }" ]
+            location    : '~*(^(\/(Pricing|About|Legal|Features|Blog|Docs)))'
+            extraParams : [ 'if ($host !~* ^(dev|default|sandbox|latest|www)) { return 301 /; }' ]
           }
           {
-            location    : "~ /-/api/(.*)"
-            proxyPass   : "http://webserver/-/api/$1$is_args$args"
+            location    : '~ /-/api/(.*)'
+            proxyPass   : 'http://webserver/-/api/$1$is_args$args'
           }
           {
-            location    : "/"
+            location    : '/'
             cors        : on
             auth        : if options.environment is 'sandbox' then yes else no
           }
         ]
 
     socialworker        :
-      group             : "webserver"
+      group             : 'webserver'
       ports             :
         incoming        : "#{KONFIG.social.port}"
         outgoing        : "#{KONFIG.social.kitePort}"
       supervisord       :
-        command         : "./watch-node %(ENV_KONFIG_PROJECTROOT)s/workers/social/index.js"
+        command         : './watch-node %(ENV_KONFIG_PROJECTROOT)s/workers/social/index.js'
       nginx             :
         locations       : [
-          { location: "/xhr"  }
-          { location: "/remote.api" }
+          { location: '/xhr'  }
+          { location: '/remote.api' }
         ]
       healthCheckURLs   : [ "http://localhost:#{KONFIG.social.port}/healthCheck" ]
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
     socialapi:
-      group             : "socialapi"
+      group             : 'socialapi'
       instances         : 1
       ports             :
         incoming        : "#{KONFIG.socialapi.port}"
       supervisord       :
         command         :
           run           : "#{GOBIN}/api -port=#{KONFIG.socialapi.port}"
-          watch         : "make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi apidev"
+          watch         : 'make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi apidev'
       healthCheckURLs   : [ "#{KONFIG.socialapi.proxyUrl}/healthCheck" ]
       versionURL        : "#{KONFIG.socialapi.proxyUrl}/version"
       nginx             :
@@ -163,146 +163,146 @@ module.exports = (KONFIG, options, credentials) ->
           # add something new, thoroughly test it in sandbox. Most of the problems are not occuring
           # in dev environment
           {
-            location    : "~ /api/social/channel/(.*)/history/count"
-            proxyPass   : "http://socialapi/channel/$1/history/count$is_args$args"
+            location    : '~ /api/social/channel/(.*)/history/count'
+            proxyPass   : 'http://socialapi/channel/$1/history/count$is_args$args'
           }
           {
-            location    : "~ /api/social/channel/(.*)/history"
-            proxyPass   : "http://socialapi/channel/$1/history$is_args$args"
+            location    : '~ /api/social/channel/(.*)/history'
+            proxyPass   : 'http://socialapi/channel/$1/history$is_args$args'
           }
           {
-            location    : "~ /api/social/channel/(.*)/list"
-            proxyPass   : "http://socialapi/channel/$1/list$is_args$args"
+            location    : '~ /api/social/channel/(.*)/list'
+            proxyPass   : 'http://socialapi/channel/$1/list$is_args$args'
           }
           {
-            location    : "~ /api/social/channel/by/(.*)"
-            proxyPass   : "http://socialapi/channel/by/$1$is_args$args"
+            location    : '~ /api/social/channel/by/(.*)'
+            proxyPass   : 'http://socialapi/channel/by/$1$is_args$args'
           }
           {
-            location    : "~ /api/social/collaboration/ping"
-            proxyPass   : "http://socialapi/collaboration/ping$1$is_args$args"
+            location    : '~ /api/social/collaboration/ping'
+            proxyPass   : 'http://socialapi/collaboration/ping$1$is_args$args'
           }
           {
-            location    : "~ /api/social/search-key"
-            proxyPass   : "http://socialapi/search-key$1$is_args$args"
+            location    : '~ /api/social/search-key'
+            proxyPass   : 'http://socialapi/search-key$1$is_args$args'
           }
           {
-            location    : "~ /api/social/sshkey"
-            proxyPass   : "http://socialapi/sshkey$1$is_args$args"
+            location    : '~ /api/social/sshkey'
+            proxyPass   : 'http://socialapi/sshkey$1$is_args$args'
           }
           {
-            location    : "~ /api/social/account/channels"
-            proxyPass   : "http://socialapi/account/channels$is_args$args"
+            location    : '~ /api/social/account/channels'
+            proxyPass   : 'http://socialapi/account/channels$is_args$args'
           }
           {
-            location    : "~ /api/social/payment/(.*)"
-            proxyPass   : "http://socialapi/payment/$1$is_args$args"
+            location    : '~ /api/social/payment/(.*)'
+            proxyPass   : 'http://socialapi/payment/$1$is_args$args'
           }
           {
-            location    : "~ /api/social/presence/(.*)"
-            proxyPass   : "http://socialapi/presence/$1$is_args$args"
+            location    : '~ /api/social/presence/(.*)'
+            proxyPass   : 'http://socialapi/presence/$1$is_args$args'
           }
           {
-            location    : "~* ^/api/social/slack/(.*)"
-            proxyPass   : "http://socialapi/slack/$1$is_args$args"
-            extraParams : [ "proxy_buffering off;" ] # appearently slack sends a big header
+            location    : '~* ^/api/social/slack/(.*)'
+            proxyPass   : 'http://socialapi/slack/$1$is_args$args'
+            extraParams : [ 'proxy_buffering off;' ] # appearently slack sends a big header
           }
           {
-            location    : "~ /api/social/(.*)"
-            proxyPass   : "http://socialapi/$1$is_args$args"
+            location    : '~ /api/social/(.*)'
+            proxyPass   : 'http://socialapi/$1$is_args$args'
             internalOnly: yes
           }
         ]
 
     algoliaconnector    :
-      group             : "socialapi"
+      group             : 'socialapi'
       supervisord       :
         command         :
           run           : "#{GOBIN}/algoliaconnector"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/algoliaconnector -watch socialapi/workers/algoliaconnector"
 
     realtime            :
-      group             : "socialapi"
+      group             : 'socialapi'
       supervisord       :
         command         :
           run           : "#{GOBIN}/realtime"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/realtime -watch socialapi/workers/realtime"
 
     presence            :
-      group             : "socialapi"
+      group             : 'socialapi'
       supervisord       :
         command         :
           run           : "#{GOBIN}/presence"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/presence -watch socialapi/workers/presence"
 
     collaboration       :
-      group             : "socialapi"
+      group             : 'socialapi'
       supervisord       :
         command         :
           run           : "#{GOBIN}/collaboration -kite-init=true"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/collaboration -watch socialapi/workers/collaboration -kite-init=true"
 
     gatekeeper          :
-      group             : "socialapi"
+      group             : 'socialapi'
       ports             :
         incoming        : "#{KONFIG.gatekeeper.port}"
       supervisord       :
         command         :
           run           : "#{GOBIN}/gatekeeper"
-          watch         : "make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi gatekeeperdev"
+          watch         : 'make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi gatekeeperdev'
       healthCheckURLs   : [ "#{options.customDomain.local}/api/gatekeeper/healthCheck" ]
       versionURL        : "#{options.customDomain.local}/api/gatekeeper/version"
       nginx             :
         locations       : [
-          location      : "~ /api/gatekeeper/(.*)"
-          proxyPass     : "http://gatekeeper/$1$is_args$args"
+          location      : '~ /api/gatekeeper/(.*)'
+          proxyPass     : 'http://gatekeeper/$1$is_args$args'
         ]
 
     dispatcher          :
-      group             : "socialapi"
+      group             : 'socialapi'
       supervisord       :
         command         :
           run           : "#{GOBIN}/dispatcher"
-          watch         : "make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi dispatcherdev"
+          watch         : 'make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi dispatcherdev'
 
     mailsender          :
-      group             : "socialapi"
+      group             : 'socialapi'
       supervisord       :
         command         :
           run           : "#{GOBIN}/emailsender"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/emailsender -watch socialapi/workers/emailsender"
 
     team                :
-      group             : "socialapi"
+      group             : 'socialapi'
       supervisord       :
         command         :
           run           : "#{GOBIN}/team"
           watch         : "#{GOBIN}/watcher -run socialapi/workers/cmd/team -watch socialapi/workers/team"
 
     tunnelproxymanager  :
-      group             : "proxy"
+      group             : 'proxy'
       supervisord       :
         command         : "#{GOBIN}/tunnelproxymanager"
 
     tunnelserver        :
-      group             : "proxy"
+      group             : 'proxy'
       supervisord       :
         command         : "#{GOBIN}/tunnelserver"
       ports             :
         incoming        : "#{KONFIG.tunnelserver.port}"
-      healthCheckURLs   : [ "http://tunnelserver/healthCheck" ]
-      versionURL        : "http://tunnelserver/version"
+      healthCheckURLs   : [ 'http://tunnelserver/healthCheck' ]
+      versionURL        : 'http://tunnelserver/version'
       nginx             :
         websocket       : yes
         locations       : [
           {
-            location    : "~ /tunnelserver/(.*)"
-            proxyPass   : "http://tunnelserver/$1"
+            location    : '~ /tunnelserver/(.*)'
+            proxyPass   : 'http://tunnelserver/$1'
           }
         ]
 
     userproxies         :
-      group             : "proxy"
+      group             : 'proxy'
       nginx             :
         websocket       : yes
         locations       : [

@@ -165,9 +165,9 @@ done = ->
   if Object.keys(missingFromDatabase).length
     read
       prompt:
-        """
+        '''
         Would you like to update the database with the indexes from the code?
-        """
+        '''
           .cyan
           .bold
       default: 'y'
