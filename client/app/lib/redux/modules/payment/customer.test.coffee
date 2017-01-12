@@ -188,5 +188,3 @@ describe 'redux/modules/customer#actions', ->
         actions = store.getActions()
         expect(actions[0].type).toBe customer.REMOVE.BEGIN
         expect(actions[1].type).toBe customer.REMOVE.FAIL
-
-

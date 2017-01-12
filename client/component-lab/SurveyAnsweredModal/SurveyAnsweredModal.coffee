@@ -19,5 +19,3 @@ module.exports = SurveyAnsweredModal = ({ isOpen, onButtonClick }) ->
     buttonTitle='CLOSE'
     onButtonClick={onButtonClick}
   />
-
-

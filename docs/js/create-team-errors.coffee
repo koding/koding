@@ -41,4 +41,3 @@ do ->
     getPasswordError
     getEmailError
   }
-

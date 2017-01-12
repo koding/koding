@@ -157,6 +157,3 @@ wrapFile = (path, fullPath, length) -> Promise.resolve
 
 
 wrapFileInstance = (content) -> Promise.resolve { content: btoa content }
-
-
-

@@ -8,4 +8,3 @@ module.exports = getChannelTypeByName = (name) ->
     when 'public' then 'group'
     when 'changelog' then 'announcement'
     else 'topic'
-

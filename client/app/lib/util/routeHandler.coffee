@@ -92,4 +92,3 @@ handleDisabled = do (modalContainer = new ModalContainer) -> (role, status) ->
   if role is 'Admin'
   then modalContainer.show new DisabledAdminModal { status }
   else modalContainer.show new DisabledMemberModal { status }
-

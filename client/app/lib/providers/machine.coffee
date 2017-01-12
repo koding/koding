@@ -204,4 +204,3 @@ module.exports = class Machine extends KDObject
   isStopped   : -> @status?.state is Machine.State.Stopped
   isUsable    : -> @isRunning() or @isStopped()
   getOldOwner : -> @jMachine.meta.oldOwner
-

@@ -20,4 +20,3 @@ module.exports = CreditSuccessModal = ({ isOpen, onButtonClick }) ->
     buttonTitle='OK, GOT IT'
     onButtonClick={onButtonClick}
   />
-

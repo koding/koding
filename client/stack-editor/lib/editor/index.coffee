@@ -1107,6 +1107,3 @@ module.exports = class StackEditorView extends kd.View
     credential.shareWith { target: slug }, (err) ->
       console.warn 'Failed to share the credential:', err  if err
       callback()
-
-
-

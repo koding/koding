@@ -97,4 +97,3 @@ describe 'middleware utils', ->
       result = instance.create result
 
       expect(result.finished).toBe instance, 'finished should be original'
-

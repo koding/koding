@@ -29,5 +29,3 @@ module.exports = class DisabledAdminModal extends ReactView
 
       else
         <span />
-
-

@@ -32,5 +32,3 @@ class BillingReactView extends ReactView
     <Provider store={kd.singletons.store}>
       <BillingPane />
     </Provider>
-
-

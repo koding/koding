@@ -31,4 +31,3 @@ storiesOf 'SubscriptionHeader', module
       isTrial={yes}
       title={TRIAL_TITLE}
       endsAt={TWO_DAYS_EARLIER} />
-

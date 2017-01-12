@@ -71,6 +71,3 @@ module.exports = class MemoryFsKlient extends KodingKite
 
 
   clientSubscribe: (options) -> @transport?.clientSubscribe options
-
-
-

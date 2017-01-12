@@ -13,5 +13,3 @@ module.exports = class SelectedTemplateIdStore extends KodingFluxStore
 
 
   set: (oldSelectedId, { id }) -> id
-
-

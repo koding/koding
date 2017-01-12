@@ -8,5 +8,3 @@ storiesOf 'TrialEndingNotifySuccessModal', module
     <TrialEndingNotifySuccessModal
       isOpen={yes}
       onButtonClick={action 'button clicked'} />
-
-

@@ -39,4 +39,3 @@ module.exports =
 
   after: (browser) ->
     browser.end()
-

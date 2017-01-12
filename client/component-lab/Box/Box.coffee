@@ -29,4 +29,3 @@ Box.defaultProps =
   radius: yes
 
 module.exports = Box
-

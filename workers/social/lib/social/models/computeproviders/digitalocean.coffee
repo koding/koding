@@ -27,4 +27,3 @@ module.exports = class DigitalOcean extends ProviderInterface
       image         : image ? 'ubuntu-14-04-x64'
 
     callback null, { meta, credential }
-

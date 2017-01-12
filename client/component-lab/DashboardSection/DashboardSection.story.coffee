@@ -56,5 +56,3 @@ DashboardMessage = ->
     type='danger'
     title='Credit Card Error'
     description={description} />
-
-

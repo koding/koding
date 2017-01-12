@@ -44,5 +44,3 @@ module.exports = TestMachineMiddleware =
       if @_testMachine and not (@_testMachine in data.own)
       then assign {}, data, { own: data.own.concat [@_testMachine] }
       else data
-
-

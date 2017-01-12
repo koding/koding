@@ -19,4 +19,3 @@ module.exports = (initialState = {}) ->
     initialState
     applyMiddleware(middlewares...)
   )
-

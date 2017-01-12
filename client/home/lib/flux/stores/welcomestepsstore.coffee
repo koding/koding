@@ -132,6 +132,3 @@ module.exports = class WelcomeStepsStore extends KodingFluxStore
       steps = steps.setIn [ role, step, 'isDone' ], yes
 
     return steps
-
-
-

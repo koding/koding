@@ -48,5 +48,3 @@ DangerIcon = ->
   two = require 'app/sprites/2x/danger.png'
 
   <Icon 1x={one} 2x={two} />
-
-

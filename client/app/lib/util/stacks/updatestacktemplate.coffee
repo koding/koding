@@ -32,4 +32,3 @@ module.exports = updateStackTemplate = (data, callback) ->
     }).then ({ stackTemplate }) ->
       callback null, stackTemplate
     .catch (err) -> callback err
-

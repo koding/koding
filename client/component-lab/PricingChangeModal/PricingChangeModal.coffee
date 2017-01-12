@@ -35,4 +35,3 @@ PricingLink = ->
       location.reload()
 
   <a {...props}>Pricing Page</a>
-

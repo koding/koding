@@ -61,4 +61,3 @@ Primary = ({ className }) ->
     <strong>Enable “Try On Koding” Button</strong>
     Allow access to team stack catalogue for visitors
   </p>
-

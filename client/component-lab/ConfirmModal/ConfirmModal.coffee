@@ -31,4 +31,3 @@ ConfirmModal.propTypes =
   cancelTitle: PropTypes.string.isRequired
   confirmTitle: PropTypes.string.isRequired
   isOpen: PropTypes.bool.isRequired
-

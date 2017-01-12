@@ -35,4 +35,3 @@ module.exports = class Softlayer extends ProviderInterface
       image         : image ? 'UBUNTU_14_64'
 
     callback null, { meta, credential }
-

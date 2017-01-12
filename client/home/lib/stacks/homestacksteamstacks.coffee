@@ -12,5 +12,3 @@ module.exports = class HomeStacksTeamStacks extends ReactView
 
   renderReact: ->
     <TeamStackList.Container onOpenItem={@bound 'onOpenItem'} />
-
-
