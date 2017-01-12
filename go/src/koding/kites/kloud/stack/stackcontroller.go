@@ -83,7 +83,7 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 		args.GroupName = "koding"
 	}
 
-	s, ctx, err := k.NewStack(r, &args)
+	s, ctx, err := k.newStack(r, &args)
 	if err != nil {
 		return nil, err
 	}
