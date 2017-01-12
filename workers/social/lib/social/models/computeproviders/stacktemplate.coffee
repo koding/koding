@@ -368,11 +368,14 @@ module.exports = class JStackTemplate extends Module
       { group } = client.r
       query = { $set: { accessLevel } }
       id = @getId()
+      currentAccessLevel = @getAt 'accessLevel'
 
       @update query, (err) =>
 
         return callback err  if err
-        return  unless group.slug
+
+        if currentAccessLevel is accessLevel or not group.slug
+          return callback null, this
 
         JGroup = require '../group'
         JGroup.one { slug : group.slug }, (err, group_) =>

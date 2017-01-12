@@ -14,6 +14,9 @@ import (
 // swagger:model JCredentialData
 type JCredentialData struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// identifier
 	Identifier string `json:"identifier,omitempty"`
 

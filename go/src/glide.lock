@@ -486,7 +486,7 @@ imports:
   - models
   - pkg/escape
 - name: github.com/jacobsa/fuse
-  version: 3b8b4e55df5483817cd361a28d0a830d5acd962b
+  version: dc1be2d5b8abc34991a649f7499f9f673e36bb46
   subpackages:
   - fuseops
   - fuseutil

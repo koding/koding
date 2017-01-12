@@ -15,6 +15,9 @@ import (
 // swagger:model JGroup
 type JGroup struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// allowed domains
 	AllowedDomains []string `json:"allowedDomains"`
 
@@ -26,9 +29,6 @@ type JGroup struct {
 
 	// config
 	Config interface{} `json:"config,omitempty"`
-
-	// counts
-	Counts *JGroupCounts `json:"counts,omitempty"`
 
 	// customize
 	Customize *JGroupCustomize `json:"customize,omitempty"`
@@ -80,11 +80,6 @@ func (m *JGroup) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateCounts(formats); err != nil {
-		// prop
-		res = append(res, err)
-	}
-
 	if err := m.validateCustomize(formats); err != nil {
 		// prop
 		res = append(res, err)
@@ -115,25 +110,6 @@ func (m *JGroup) validateAllowedDomains(formats strfmt.Registry) error {
 
 	if swag.IsZero(m.AllowedDomains) { // not required
 		return nil
-	}
-
-	return nil
-}
-
-func (m *JGroup) validateCounts(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Counts) { // not required
-		return nil
-	}
-
-	if m.Counts != nil {
-
-		if err := m.Counts.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("counts")
-			}
-			return err
-		}
 	}
 
 	return nil
@@ -182,24 +158,6 @@ func (m *JGroup) validateTitle(formats strfmt.Registry) error {
 		return err
 	}
 
-	return nil
-}
-
-// JGroupCounts j group counts
-// swagger:model JGroupCounts
-type JGroupCounts struct {
-
-	// members
-	Members float64 `json:"members,omitempty"`
-}
-
-// Validate validates this j group counts
-func (m *JGroupCounts) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
 	return nil
 }
 

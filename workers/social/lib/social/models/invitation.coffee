@@ -6,7 +6,7 @@ Tracker     = require './tracker'
 KodingError = require '../error'
 { extend }  = require 'underscore'
 async       = require 'async'
-
+_           = require 'lodash'
 { protocol, hostname } = KONFIG
 { secure, signature } = Bongo
 
@@ -113,6 +113,9 @@ module.exports = class JInvitation extends jraphical.Module
 
         { _id } = account
         { roles } = permissionAndRoles
+        groupName = client.context.group
+
+        return callback null, this  unless groupName
 
         hasPermisson = 'admin' in roles or 'owner' in roles
         { inviterId, email, groupName } = invite
@@ -123,8 +126,27 @@ module.exports = class JInvitation extends jraphical.Module
         if not hasPermisson and _id.toString() isnt inviterId
           return callback new KodingError 'You don\'t have permission'
 
-        JInvitation.remove { email, groupName }, (err) ->
-          return callback err
+        queue = [
+          (next) ->
+            JInvitation.remove { email, groupName }, next
+
+          (next) ->
+            data = { id: invite._id, type: 'remove' }
+            notifyGroupOnInvitationChange groupName, data, next
+        ]
+
+        async.series queue, callback
+
+
+  notifyGroupOnInvitationChange = (slug, data, callback) ->
+
+    JGroup    = require './group'
+    JGroup.one { slug }, (err, group) ->
+
+      return callback err  if err or not group
+
+      group.sendNotification 'InvitationChanged', data
+      callback()
 
 
   accept$: permit 'send invitations',
@@ -218,7 +240,13 @@ module.exports = class JInvitation extends jraphical.Module
 
           async.parallel queue, (err, codes) ->
             return callback err  if err
-            return callback()  unless returnCodes
+
+            unless returnCodes
+
+              data = { type: 'new_invitations' }
+
+              return notifyGroupOnInvitationChange groupName, data, callback
+
             return callback null, codes
 
         # check if requester tries to create an invite with admin role

@@ -16,6 +16,12 @@ module.exports = class TeamInvitationStore extends KodingFluxStore
     @on actions.LOAD_PENDING_INVITATION_SUCCESS, @load
     @on actions.DELETE_PENDING_INVITATION_SUCCESS, @deleteInvitation
     @on actions.REMOVE_PENDING_INVITATION, @removePendingInvitation
+    @on actions.REMOVE_PENDING_INVITATION_BY_ID, @removePendingInvitationById
+
+
+  removePendingInvitationById: (invitations, { id }) ->
+
+    invitations.delete id
 
 
   removePendingInvitation: (invitations, { email }) ->

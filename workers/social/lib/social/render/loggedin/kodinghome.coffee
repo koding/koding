@@ -8,27 +8,12 @@ module.exports = (options, callback) ->
 
   options.entryPoint = { slug : 'koding', type: 'group' }
 
-  prepareHTML = (scripts, socialApiData) ->
-    if socialApiData?.navigated?
-      { navigated } = socialApiData
-
-      { slug, data } = navigated
-
-      if message = data?.message
-        { body } = message
-        summary  = body.slice(0, 80)
-        title    = "#{summary} | Koding Community"
-
-      { uri, domains } = KONFIG
-      url = if uri?.address then uri.address else "https://#{domains.base}/"
-      shareUrl = "#{url}/#{slug}"
+  prepareHTML = (scripts) ->
 
     """
     <!doctype html>
     <html lang="en">
     <head>
-      #{getTitle { title: title } }
-      #{getGraphMeta { shareUrl: shareUrl, body: body }}
       #{getStyles()}
     </head>
     <body class='logged-in'>
@@ -41,5 +26,5 @@ module.exports = (options, callback) ->
     </html>
     """
 
-  fetchScripts options, (err, scripts, socialApiData) ->
-    callback null, prepareHTML scripts, socialApiData
+  fetchScripts options, (err, scripts) ->
+    callback null, prepareHTML scripts

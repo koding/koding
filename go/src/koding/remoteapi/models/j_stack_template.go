@@ -15,6 +15,9 @@ import (
 // swagger:model JStackTemplate
 type JStackTemplate struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// access level
 	AccessLevel string `json:"accessLevel,omitempty"`
 

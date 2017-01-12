@@ -16,6 +16,7 @@ module.exports = class TeamMembersRoleStore extends KodingFluxStore
     @on actions.FETCH_TEAM_MEMBERS_ROLES_SUCCESS, @load
     @on actions.UPDATE_TEAM_MEMBER, @updateTeamMember
     @on actions.DELETE_TEAM_MEMBER, @deleteTeamMember
+    @on actions.UPDATE_TEAM_MEMBER_WITH_ID, @updateTeamMemberRoleWithId
 
 
   load: (memberRoles, roles) ->
@@ -42,6 +43,11 @@ module.exports = class TeamMembersRoleStore extends KodingFluxStore
 
     roles = if hasOwner then 'owner' else if hasAdmin then 'admin' else 'member'
     memberRoles.set id, roles
+
+
+  updateTeamMemberRoleWithId: (memberRoles, { id, role }) ->
+
+    memberRoles.set id, role
 
 
   deleteTeamMember: (memberRoles, memberId) ->

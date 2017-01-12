@@ -13,6 +13,9 @@ import (
 // swagger:model JVerificationToken
 type JVerificationToken struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// action
 	Action string `json:"action,omitempty"`
 

@@ -48,7 +48,7 @@ module.exports = createSsoToken = (req, res, next) ->
 
     (next) ->
       data    = { username, group : apiToken.group }
-      options = { expiresInMinutes : 60 }
+      options = { expiresIn: '1 hour' }
       token   = JUser.createJWT data, options
 
       protocol   = req.protocol

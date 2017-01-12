@@ -14,6 +14,9 @@ import (
 // swagger:model JApiToken
 type JAPIToken struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// code
 	// Required: true
 	Code *string `json:"code"`

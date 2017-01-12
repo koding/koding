@@ -14,8 +14,8 @@ module.exports =
 
     for [1..10]
 
-      name     = faker.Name.findName()
-      username = faker.Helpers.slugify(faker.Internet.userName()).toLowerCase().replace(/\./g, '').replace(/_/g, '')
+      name     = faker.name.findName()
+      username = faker.helpers.slugify(faker.internet.userName()).toLowerCase().replace(/\./g, '').replace(/_/g, '')
       username = username.substring(0, 7) + Date.now()
       password = @getPassword()
       teamSlug = name.toLowerCase().replace(/\s/g, '-').replace(/'/g, '').replace('.', '')
@@ -26,17 +26,17 @@ module.exports =
 
       users.push { name, email, username, password, teamSlug, fakeText }
 
-    fs.writeFileSync 'users.json', formatter users, 'utf-8'
+    fs.writeFileSync 'users.json', formatter(users)
 
     return users
 
 
   getPassword: ->
 
-    password = faker.Helpers.slugify(faker.Internet.userName())
+    password = faker.helpers.slugify(faker.internet.userName())
 
     while password.length < 12
-      password = faker.Helpers.slugify(faker.Internet.userName())
+      password = faker.helpers.slugify(faker.internet.userName())
 
     return password
 

@@ -7,7 +7,14 @@ isAdmin = require 'app/util/isAdmin'
 module.exports = class SidebarNoStacks extends React.Component
 
   renderMessage: ->
-    if canCreateStacks()
+
+    { teamStacks, privateStacks } = @props
+
+    if teamStacks or privateStacks
+      <p>
+        Open your dashboard and add your stacks to sidebar to continue
+      </p>
+    else if canCreateStacks()
       <p>
         Your stacks has not been
         fully configured yet, please
