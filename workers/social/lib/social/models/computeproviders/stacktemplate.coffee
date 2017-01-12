@@ -210,6 +210,11 @@ module.exports = class JStackTemplate extends Module
       { group }    = client.r # we have revived JGroup and JUser here ~ GG
       { delegate } = client.connection
 
+      # TODO(rjeczalik): move app/util/getPokemonName.coffee here
+      # and refactor JStackTemplate.create to not require title;
+      # if title is missing or empty, generate pokemon name as
+      # it's done currently on client side; this way we do not
+      # need to reimplement pokemon naming in kloud as well.
       unless data?.title
         return callback new KodingError 'Title required.'
 

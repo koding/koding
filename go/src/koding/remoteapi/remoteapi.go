@@ -3,6 +3,7 @@ package remoteapi
 import (
 	"net/http"
 	"net/url"
+	"time"
 
 	"koding/api"
 	"koding/remoteapi/client"
@@ -54,6 +55,13 @@ func (c *Client) New(user *api.User) *client.Koding {
 	return client.New(newRuntime(c.endpoint(), httpClient), strfmt.Default)
 }
 
+func (c *Client) Timeout() time.Duration {
+	if c.Client != nil && c.Client.Timeout != 0 {
+		return c.Client.Timeout
+	}
+	return 30 * time.Second
+}
+
 func (c *Client) endpoint() *url.URL {
 	if c.Endpoint != nil {
 		return c.Endpoint
@@ -61,7 +69,7 @@ func (c *Client) endpoint() *url.URL {
 	return &url.URL{
 		Scheme: "http",
 		Host:   "127.0.0.1",
-		Path:   "/remote.api",
+		Path:   "/",
 	}
 }
 

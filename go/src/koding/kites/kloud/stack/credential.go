@@ -389,7 +389,7 @@ func (k *Kloud) CredentialAdd(r *kite.Request) (interface{}, error) {
 		Username: r.Username,
 	}
 
-	s, ctx, err := k.NewStack(p, kiteReq, teamReq)
+	s, ctx, err := k.newStack(kiteReq, teamReq)
 	if err != nil {
 		return nil, err
 	}
