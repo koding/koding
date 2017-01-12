@@ -42,7 +42,7 @@ module.exports = (KONFIG, options, credentials) ->
             location      : '/a/'
             proxyPass     : '$uri @assets'
             relativePath  : '/website/'
-            expires       : '1M' # set -1 to disable.
+            expires       : if options.environment in ['default', 'dev'] then '-1' else '1M' # set -1 to disable.
             extraParamsStr: 'location ~* \.(map)$ { return 404; access_log off; }'
           }
           {
