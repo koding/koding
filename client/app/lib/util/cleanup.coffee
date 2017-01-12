@@ -7,7 +7,6 @@ toBeDeleted = [
   'connect.sid'     # express cookie - infact this is session cookie, here for just in case.
   # 'pnctest'       # set by PubNub for testing. it is set on every load, so not necessary to remove.
   '__ssid'          # google map
-  'gsScrollPos'     # session cookie, wont be cleaned, not necessary
 
   # 'koding-teams'     # set by koding client, should be moved to session storage.
 
