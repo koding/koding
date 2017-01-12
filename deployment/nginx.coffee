@@ -280,10 +280,9 @@ module.exports.create = (KONFIG, environment)->
   master_process #{if inDevEnvironment then "off" else "on"};
 
 
-  error_log  /Users/siesta/Documents/koding/koding/error.log;
-  error_log  /Users/siesta/Documents/koding/koding/error.log  notice;
-  error_log  /Users/siesta/Documents/koding/koding/error.log  info;
-  error_log  /Users/siesta/Documents/koding/koding/error.log  debug;
+  error_log  logs/error.log;
+  error_log  logs/error.log  notice;
+  error_log  logs/error.log  info;
 
   #{if inDevEnvironment then '' else 'pid /var/run/nginx.pid;'}
 
@@ -296,13 +295,11 @@ module.exports.create = (KONFIG, environment)->
   # start http
   http {
 
-    access_log on;
+    access_log off;
 
     # log how long requests take
     log_format timed_combined 'RA: $remote_addr H: $host R: "$request" S: $status RS: $body_bytes_sent R: "$http_referer" UA: "$http_user_agent" RT: $request_time URT: $upstream_response_time';
     #{if inDevEnvironment then '' else 'access_log /var/log/nginx/access.log timed_combined;'}
-
-    access_log /Users/siesta/Documents/koding/koding/error.log timed_combined;
 
     proxy_buffer_size  128k; # default 8k;
     proxy_buffers   4 256k; # default 8 8k;
