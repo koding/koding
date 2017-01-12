@@ -72,14 +72,34 @@ func (s *Session) Valid() error {
 	return nil
 }
 
-func (s *Session) writeTo(req *http.Request) {
+// WriteTo writes the s session to the given requeest.
+func (s *Session) WriteTo(req *http.Request) {
 	req.Header.Set("Authorization", "Bearer "+s.ClientID)
 }
 
-func (s *Session) readFrom(req *http.Request) {
+// ReadFrom initializes the s session by reading it from
+// the given request.
+//
+// If no session can be read from req, the method is a nop.
+func (s *Session) ReadFrom(req *http.Request) {
 	if auth := req.Header.Get("Authorization"); strings.HasPrefix(auth, "Bearer ") {
 		s.ClientID = auth[len("Bearer "):]
 	}
+}
+
+// Match tests whether the other session matches the s one.
+//
+// Since ClientID is typically auto-generated, we match all the other fields.
+func (s *Session) Match(other *Session) error {
+	if s.User.Username != other.User.Username {
+		return fmt.Errorf("username is  %q, the other one is %q", s.User.Username, other.User.Username)
+	}
+
+	if s.User.Team != other.User.Team {
+		return fmt.Errorf("team is  %q, the other one is %q", s.User.Team, other.User.Team)
+	}
+
+	return nil
 }
 
 // AuthFunc is used to fetch session information.
@@ -225,7 +245,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		session = s
 		refresh = false
 
-		session.writeTo(reqCopy)
+		session.WriteTo(reqCopy)
 
 		if t.Host != "" {
 			reqCopy.Host = t.Host

@@ -14,6 +14,9 @@ import (
 // swagger:model JPermissionSet
 type JPermissionSet struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// is custom
 	IsCustom bool `json:"isCustom,omitempty"`
 

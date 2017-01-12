@@ -14,6 +14,9 @@ import (
 // swagger:model JInvitation
 type JInvitation struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// code
 	// Required: true
 	Code *string `json:"code"`

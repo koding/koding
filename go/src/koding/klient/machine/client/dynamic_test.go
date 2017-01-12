@@ -1,4 +1,4 @@
-package machine_test
+package client_test
 
 import (
 	"errors"
@@ -6,18 +6,19 @@ import (
 	"time"
 
 	"koding/klient/machine"
-	"koding/klient/machine/machinetest"
+	"koding/klient/machine/client"
+	"koding/klient/machine/client/testutil"
 
 	"golang.org/x/sync/errgroup"
 )
 
 func TestDynamicClientOnOff(t *testing.T) {
 	var (
-		serv    = &machinetest.Server{}
-		builder = machinetest.NewClientBuilder(nil)
+		serv    = &testutil.Server{}
+		builder = testutil.NewBuilder(nil)
 	)
 
-	dc, err := machine.NewDynamicClient(machinetest.DynamicClientOpts(serv, builder))
+	dc, err := client.NewDynamic(testutil.DynamicOpts(serv, builder))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -29,7 +30,7 @@ func TestDynamicClientOnOff(t *testing.T) {
 	}
 
 	// Server starts responding.
-	ctx := dc.Context()
+	ctx := dc.Client().Context()
 	serv.TurnOn()
 	if err := builder.WaitForBuild(time.Second); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
@@ -37,7 +38,7 @@ func TestDynamicClientOnOff(t *testing.T) {
 	if n := builder.BuildsCount(); n != 1 {
 		t.Fatalf("want builds count = 1; got %d", n)
 	}
-	if err := machinetest.WaitForContextClose(ctx, time.Second); err != nil {
+	if err := testutil.WaitForContextClose(ctx, time.Second); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	if status := dc.Status(); status.State != machine.StateOnline {
@@ -45,7 +46,7 @@ func TestDynamicClientOnOff(t *testing.T) {
 	}
 
 	// Stop server.
-	ctx = dc.Context()
+	ctx = dc.Client().Context()
 	serv.TurnOff()
 	if err := builder.WaitForBuild(time.Second); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
@@ -53,7 +54,7 @@ func TestDynamicClientOnOff(t *testing.T) {
 	if n := builder.BuildsCount(); n != 2 {
 		t.Fatalf("want builds count = 2; got %d", n)
 	}
-	if err := machinetest.WaitForContextClose(ctx, time.Second); err != nil {
+	if err := testutil.WaitForContextClose(ctx, time.Second); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	if status := dc.Status(); status.State != machine.StateOffline {
@@ -63,19 +64,19 @@ func TestDynamicClientOnOff(t *testing.T) {
 
 func TestDynamicClientContext(t *testing.T) {
 	var (
-		serv    = &machinetest.Server{}
-		builder = machinetest.NewClientBuilder(nil)
+		serv    = &testutil.Server{}
+		builder = testutil.NewBuilder(nil)
 	)
 
-	dc, err := machine.NewDynamicClient(machinetest.DynamicClientOpts(serv, builder))
+	dc, err := client.NewDynamic(testutil.DynamicOpts(serv, builder))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	defer dc.Close()
 
-	ctx := dc.Context()
+	ctx := dc.Client().Context()
 	serv.TurnOn()
-	if err := machinetest.WaitForContextClose(ctx, time.Second); err != nil {
+	if err := testutil.WaitForContextClose(ctx, time.Second); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
@@ -85,7 +86,7 @@ func TestDynamicClientContext(t *testing.T) {
 	for i := 0; i < ContextWorkers; i++ {
 		g.Go(func() error {
 			select {
-			case <-dc.Context().Done():
+			case <-dc.Client().Context().Done():
 				return errors.New("context closed unexpectedly")
 			case <-time.After(50 * time.Millisecond):
 				return nil
@@ -97,7 +98,7 @@ func TestDynamicClientContext(t *testing.T) {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	ctx = dc.Context()
+	ctx = dc.Client().Context()
 	serv.TurnOff()
 	for i := 0; i < ContextWorkers; i++ {
 		g.Go(func() error {

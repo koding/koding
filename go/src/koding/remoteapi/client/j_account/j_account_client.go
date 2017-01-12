@@ -723,34 +723,6 @@ func (a *Client) PostRemoteAPIJAccountFetchRoleID(params *PostRemoteAPIJAccountF
 }
 
 /*
-PostRemoteAPIJAccountFetchSubscriptionsID post remote API j account fetch subscriptions ID API
-*/
-func (a *Client) PostRemoteAPIJAccountFetchSubscriptionsID(params *PostRemoteAPIJAccountFetchSubscriptionsIDParams) (*PostRemoteAPIJAccountFetchSubscriptionsIDOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewPostRemoteAPIJAccountFetchSubscriptionsIDParams()
-	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "PostRemoteAPIJAccountFetchSubscriptionsID",
-		Method:             "POST",
-		PathPattern:        "/remote.api/JAccount.fetchSubscriptions/{id}",
-		ProducesMediaTypes: []string{""},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http", "https"},
-		Params:             params,
-		Reader:             &PostRemoteAPIJAccountFetchSubscriptionsIDReader{formats: a.formats},
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return result.(*PostRemoteAPIJAccountFetchSubscriptionsIDOK), nil
-
-}
-
-/*
 PostRemoteAPIJAccountGenerate2FactorAuthKeyID post remote API j account generate2 factor auth key ID API
 */
 func (a *Client) PostRemoteAPIJAccountGenerate2FactorAuthKeyID(params *PostRemoteAPIJAccountGenerate2FactorAuthKeyIDParams) (*PostRemoteAPIJAccountGenerate2FactorAuthKeyIDOK, error) {

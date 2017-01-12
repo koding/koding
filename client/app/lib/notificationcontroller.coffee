@@ -185,30 +185,6 @@ module.exports = class NotificationController extends KDObject
       global.location.href = '/Banned'
 
 
-    @on 'MembershipRoleChanged', ({ role, group, adminNick }) ->
-      # check if the notification is sent for current group
-      return  unless group is getGroup().slug
-
-      modal = new ContentModal
-        title : 'Your team role has been changed!'
-        overlay : yes
-        width : 500
-        cssClass : 'content-modal'
-        content :
-          """
-          <p>
-            @#{adminNick} made you #{articlize role} <strong font-weight="bold">#{role}</strong>, please refresh your browser for changes to take effect.
-          </p>
-          """
-        buttons :
-          'Reload page' :
-            title : 'Reload Page'
-            style : 'solid medium'
-            callback : (event) ->
-              modal.destroy()
-              global.location.reload yes
-
-
     @on 'InstanceChanged', (data) ->
       remote_extensions.updateInstance data
 

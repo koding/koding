@@ -13,7 +13,7 @@ Configuration = (options = {}) ->
     main: options.host ? 'dev.koding.com'
     port: '8090'
 
-  options.boot2dockerbox or= if os.type() is "Darwin" then "192.168.59.103" else "localhost"
+  options.boot2dockerbox or= if os.type() is "Darwin" then "192.168.59.103" else "127.0.0.1"
   options.serviceHost or= options.boot2dockerbox
   options.publicPort or= "8090"
   options.hostname or= "dev.koding.com"

@@ -15,6 +15,9 @@ import (
 // swagger:model JProxyFilter
 type JProxyFilter struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// created at
 	CreatedAt strfmt.Date `json:"createdAt,omitempty"`
 
