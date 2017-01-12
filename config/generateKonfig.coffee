@@ -39,8 +39,8 @@ module.exports = (options, credentials) ->
     route53SecretAccessKey: credentials.awsKeys.worker_tunnelproxymanager_route53.secretAccessKey
 
     hostedZone:
-        name: options.tunnelHostedZoneName
-        callerReference: options.tunnelHostedZoneCallerRef
+      name: options.tunnelHostedZoneName
+      callerReference: options.tunnelHostedZoneCallerRef
 
   tunnelserver =
     port: 80
