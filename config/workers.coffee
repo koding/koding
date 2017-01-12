@@ -110,6 +110,10 @@ module.exports = (KONFIG, options, credentials) ->
       nginx             :
         locations       : [
           {
+            location    : "~*(^(\/(Pricing|About|Legal|Features|Blog|Docs)))"
+            extraParams : [ "if ($host !~* ^(dev|default|sandbox|latest|www)) { return 301 /; }" ]
+          }
+          {
             location    : "~ /-/api/(.*)"
             proxyPass   : "http://webserver/-/api/$1$is_args$args"
           }
