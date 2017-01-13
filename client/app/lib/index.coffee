@@ -1,4 +1,3 @@
-# Make sure none of these modules are calling remote#getInstance before this file. -og
 globals                = require 'globals'
 kookies                = require 'kookies'
 kd                     = require 'kd'
@@ -57,15 +56,6 @@ bootup = ->
 
   MainController = require './maincontroller'
   Status = require './status'
-
-  # Dear sir, madam, or dolphin,
-  # `Status` & `MainController` have these `registerSingleton` calls.
-  # Since (at the moment) there is no easy way to track what singletons
-  # we have defined or undefined; we should try to keep those calls
-  # within a single space, preferably in entry point (this file).
-  # That is to say, if you have registered a singleton in somewhere else,
-  # and that file is not a direct dependency of this file, you are most
-  # probably causing harm to sea lions and sea turtles. -og
 
   status         = new Status
   mainController = new MainController

@@ -5,7 +5,6 @@ isKoding               = require 'app/util/isKoding'
 showError              = require 'app/util/showError'
 KodingSwitch           = require 'app/commonviews/kodingswitch'
 isTeamReactSide        = require 'app/util/isTeamReactSide'
-ComputeErrorUsageModal = require '../providers/computeerrorusagemodal'
 
 
 module.exports = class MachinesListItem extends kd.ListItemView
@@ -80,18 +79,13 @@ module.exports = class MachinesListItem extends kd.ListItemView
 
     machine = @getData()
 
-    computeController.fetchUserPlan (plan) =>
+    computeController.setAlwaysOn machine, state, (err) =>
 
-      computeController.setAlwaysOn machine, state, (err) =>
+      return  unless err
 
-        return  unless err
+      showError err
 
-        if err.name is 'UsageLimitReached' and plan isnt 'hobbyist'
-          kd.utils.defer -> new ComputeErrorUsageModal { plan }
-        else
-          showError err
-
-        @alwaysOnToggle.setOff no
+      @alwaysOnToggle.setOff no
 
 
   updateSidebarVisibility: (state) ->

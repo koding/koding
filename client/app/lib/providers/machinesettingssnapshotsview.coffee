@@ -3,7 +3,6 @@ remote                             = require 'app/remote'
 snapshotHelpers                    = require './snapshothelpers'
 openIdeByMachine                   = require '../util/openIdeByMachine'
 JView                              = require '../jview'
-ComputeErrorUsageModal             = require './computeerrorusagemodal'
 MachineSettingsCommonView          = require './machinesettingscommonview'
 MachineSettingsSnapshotsController = require './controllers/machinesettingssnapshotscontroller'
 
