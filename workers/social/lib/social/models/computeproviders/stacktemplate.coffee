@@ -188,6 +188,10 @@ module.exports = class JStackTemplate extends Module
     slug = _title = if index? then "#{title} #{index}" else title
     slug = slugify slug
 
+    if index >= 20
+      return callback new KodingError \
+        'Too many occurrences, please provide a different title'
+
     JStackTemplate.count { originId, group, slug }, (err, count) ->
       return callback err  if err?
 
