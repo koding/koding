@@ -88,14 +88,13 @@ func (s *Supervised) MountGetIndex(path string) (idx *index.Index, err error) {
 // canceled context.
 func (s *Supervised) Context() context.Context {
 	c, err := s.dcf()
-	if err == nil {
-		return c.Context()
+	if err != nil {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		return ctx
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	return ctx
+	return c.Context()
 }
 
 func (s *Supervised) call(f func(Client) error) error {
@@ -105,22 +104,24 @@ func (s *Supervised) call(f func(Client) error) error {
 	}
 
 	ctx := c.Context()
-	if err = f(c); err == ErrDisconnected {
-		timer := time.NewTimer(s.timeout)
-		select {
-		case <-ctx.Done():
-			// Client changed. Use a new one.
-			timer.Stop()
-			c, err = s.dcf()
-			if err != nil {
-				return err
-			}
-			return f(c)
-		case <-timer.C:
-			// Client is still disconnected. Return it as is.
-			return nil
-		}
+	if err = f(c); err != ErrDisconnected {
+		return err
 	}
 
-	return err
+	// Wait for new client.
+	ctx, cancel := context.WithTimeout(ctx, s.timeout)
+	defer cancel()
+
+	if _ = <-ctx.Done(); ctx.Err() == context.DeadlineExceeded {
+		// Client is still disconnected. Return it as is.
+		return nil
+	}
+
+	// Previous context was canceled. This means that the client changed.
+	c, err = s.dcf()
+	if err != nil {
+		return err
+	}
+
+	return f(c)
 }
