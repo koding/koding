@@ -1,7 +1,1 @@
-kd = require 'kd'
-
-module.exports = isPlanFree = (callback) ->
-
-  kd.singletons.paymentController.subscriptions (err, subscription) ->
-    return callback err  if err
-    callback null, subscription.planTitle is 'free'
+module.exports = isPlanFree = (callback) -> callback null, no

@@ -21,7 +21,6 @@ module.exports = class MainViewController extends KDViewController
 
     mainView             = @getView()
     appManager           = kd.singleton 'appManager'
-    display              = kd.singleton 'display'
 
     mainView.on 'MainTabPaneShown', (pane) =>
       @mainTabPaneChanged mainView, pane
@@ -29,10 +28,6 @@ module.exports = class MainViewController extends KDViewController
     appManager.on 'AppIsBeingShown', (controller) =>
       { customName, name } = controller.getOptions()
       @setBodyClass kd.utils.slugify customName ? name
-
-    display?.on 'ContentDisplayWantsToBeShown', do =>
-      type = null
-      (view) => @setBodyClass type  if type = view.getOption 'type'
 
     if globals.config?.environment isnt 'production'
       global.addEventListener 'click', (event) ->
@@ -68,10 +63,6 @@ module.exports = class MainViewController extends KDViewController
     appManager      = kd.getSingleton 'appManager'
     { mainTabView } = mainView
 
-    # warn 'set active nav item by route change, not by maintabpane change'
-    # kd.singleton('display').emit "ContentDisplaysShouldBeHidden"
-    # temp fix
-    # until fixing the original issue w/ the dnd this should be kept here
     if pane
     then @setViewState pane.getOptions()
     else mainTabView.getActivePane().show()

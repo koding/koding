@@ -1,6 +1,4 @@
 kd                             = require 'kd'
-KDController                   = kd.Controller
-KDNotificationView             = kd.NotificationView
 kookies                        = require 'kookies'
 globals                        = require 'globals'
 remote                         = require('./remote')
@@ -11,11 +9,9 @@ isLoggedIn                     = require './util/isLoggedIn'
 whoami                         = require './util/whoami'
 checkFlag                      = require './util/checkFlag'
 expireClientId                 = require './util/expireClientId'
-ActivityController             = require './activitycontroller'
 AppStorageController           = require './appstoragecontroller'
 ApplicationManager             = require './applicationmanager'
 ComputeController              = require './providers/computecontroller'
-ContentDisplayController       = require './contentdisplay/contentdisplaycontroller'
 GroupsController               = require './maincontroller/groupscontroller'
 HelpController                 = require './maincontroller/helpcontroller'
 IdleUserDetector               = require './idleuserdetector'
@@ -33,7 +29,6 @@ MainViewController             = require './mainviewcontroller'
 NotificationController         = require './notificationcontroller'
 OAuthController                = require './oauthcontroller'
 OnboardingController           = require './onboarding/onboardingcontroller'
-PaymentController              = require './payment/paymentcontroller'
 RealtimeController             = require './realtimecontroller'
 SearchController               = require './searchcontroller'
 SocialApiController            = require './socialapicontroller'
@@ -48,7 +43,7 @@ fetchChatlioKey                = require 'app/util/fetchChatlioKey'
 createStore = require './redux/createStore'
 dispatchInitialActions = require './redux/dispatchInitialActions'
 
-module.exports = class MainController extends KDController
+module.exports = class MainController extends kd.Controller
 
   ###
 
@@ -91,13 +86,10 @@ module.exports = class MainController extends KDController
     kd.registerSingleton 'notificationController',    new NotificationController
     kd.registerSingleton 'desktopNotifications',      new DesktopNotificationsController
     kd.registerSingleton 'linkController',            new LinkController
-    kd.registerSingleton 'display',                   new ContentDisplayController
     kd.registerSingleton 'router',           router = new KodingRouter
     kd.registerSingleton 'localStorageController',    new LocalStorageController
     kd.registerSingleton 'oauthController',           new OAuthController
     kd.registerSingleton 'groupsController',          new GroupsController
-    kd.registerSingleton 'activityController',        new ActivityController
-    kd.registerSingleton 'paymentController',         new PaymentController
     kd.registerSingleton 'computeController',         new ComputeController
     kd.registerSingleton 'locationController',        new LocationController
     kd.registerSingleton 'helpController',            new HelpController
@@ -290,7 +282,7 @@ module.exports = class MainController extends KDController
     notification = null
     fail  = ->
 
-      notification = new KDNotificationView
+      notification = new kd.NotificationView
         title         : "Couldn't connect to backend!"
         cssClass      : 'disconnected'
         type          : 'tray'
@@ -302,7 +294,7 @@ module.exports = class MainController extends KDController
 
     useChrome = ->
 
-      notification = new KDNotificationView
+      notification = new kd.NotificationView
         title         : 'Please use Google Chrome'
         type          : 'tray'
         closeManually : no
