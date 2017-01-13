@@ -88,18 +88,7 @@ Configuration = (options = {}) ->
       instances         : 2
       supervisord       :
         command         : "node %(ENV_KONFIG_PROJECTROOT)s/servers/index.js -p #{KONFIG.webserver.port} --kite-port=#{KONFIG.webserver.kitePort}"
-      nginx             :
-        locations       : [
-          {
-            location    : "~ /-/api/(.*)"
-            proxyPass   : "http://webserver/-/api/$1$is_args$args"
-          }
-          {
-            location    : "/"
-            auth        : yes
-            cors        : on
-          }
-        ]
+
     socialworker        :
       instances         : 4
       supervisord       :

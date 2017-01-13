@@ -110,6 +110,9 @@ module.exports = (KONFIG, options, credentials) ->
       nginx             :
         locations       : [
           {
+            location    : "/-/healthCheck"
+          }
+          {
             location    : "~*(^(\/(Pricing|About|Legal|Features|Blog|Docs)))"
             extraParams : [ "if ($host !~* ^(dev|default|sandbox|latest|www)) { return 301 /; }" ]
           }
@@ -119,6 +122,8 @@ module.exports = (KONFIG, options, credentials) ->
           }
           {
             location    : "/"
+            cors        : on
+            auth        : if options.environment is 'sandbox' then yes else no
           }
         ]
 
