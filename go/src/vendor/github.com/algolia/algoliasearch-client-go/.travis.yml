@@ -1,31 +1,15 @@
 language: go
-
 go:
-  - 1.3
-  - 1.4
-  - 1.5
-  - 1.6
-  - tip
-
+- 1.5
+- 1.6
+- 1.7
 os:
-  - linux
-  - osx
-
+- linux
 install:
-  - go get code.google.com/p/go.tools/cmd/cover || go get golang.org/x/tools/cmd/cover
-  - go get github.com/hailiang/goveralls
-  - make install
-
+- make install
 script:
-  - cd algoliasearch
-  - go test -covermode=count -coverprofile=profile.cov
-
-after_script:
- - export PATH=$PATH:$HOME/gopath/bin/
- - cd algoliasearch
- - goveralls -coverprofile=profile.cov -service=travis-ci
-
+- make test
 env:
   global:
-    - secure: AEx3yI/ilyxnTHRlucdk+tmGeiRN4khKqdWzK9BUtUBb4tI/V7GJmXah9ua5tAa1Tsus0LQYtH3W6YQIf2K6D/Qoer2Hyg/uuYKNfMKpU9D8kxGOUwe5UaeOsevmPALqvc3xblmFmff1VzCsuuktxa5d/DuM/N+bOd5e5OB0kjM=
-    - secure: fHMFoC/7J8A39IPnr0sJ0r3GQ9Ow7afffZafBBsBGP2NbFRXR6nnqBNAJpNPodixHPU2wu/oP/bpMUWSTdV86ZDcYKk6GsGiJFXPox9kfqJgAO6DpBELbSmTDaw/TIXEtJCu1NyQWT6dCz1ovTGg/QCqrsLNHqx0dsJkcRbx5b8=
+  - secure: "d2aDJoNrk31w2JUZoD++vKOLM4fzEqMYVArgDB37ab6tECMAYtIJ/+UgPbUFc/QdGhXuGZzKMKYFjp2q5ip4YIlK7CIuSNgoU8pFJEC5EcmdVQ2I5Zgksf+5Fb7OulG0IB/Gn7N7BdPrrOO5S/nO/GQsPKep0ARENb99CsZkQkQ="
+  - secure: "RHnww0V58Ifk6PrGvvnj+5F11FlCwoDry3s6A9Ag9p97iw2hS/L1iI8SHNP2QngSV9Hi1gtGREgisOZe0y/xUpVP+LXSDiBgSwGLa7FiEaM1jHX0mGiJaDXiaTl2TBlCA/BKxUUQtd0pduqqb3YrAjaM6YJvXWilRogSsxbleoY="

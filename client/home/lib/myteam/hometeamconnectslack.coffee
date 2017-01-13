@@ -35,6 +35,12 @@ module.exports = class HomeTeamConnectSlack extends kd.CustomHTMLView
 
     super options, data
 
+    @addSubView @loader = new kd.LoaderView
+      showLoader : yes
+      size       :
+        width    : 30
+        height   : 30
+
     $.ajax
       method  : 'GET'
       url     : CHANNELS_URL
@@ -43,6 +49,7 @@ module.exports = class HomeTeamConnectSlack extends kd.CustomHTMLView
 
 
   createInformationView : ->
+    @loader.hide()
 
     @addSubView info = new kd.CustomHTMLView
       tagName  : 'p'
@@ -65,6 +72,7 @@ module.exports = class HomeTeamConnectSlack extends kd.CustomHTMLView
 
 
   createInviterViews: ->
+    @loader.hide()
 
     @addSubView @mainSection = new kd.CustomHTMLView
     @createChangerView()
