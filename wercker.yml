@@ -38,7 +38,9 @@ build:
     - script:
         name: node modules
         code: |
+          scripts/wercker/install-node-modules koding
           npm install
+          scripts/wercker/update-node-modules
     - script:
         name: notify cebeci
         code: |
@@ -98,8 +100,8 @@ build:
         name: test kites
         code: scripts/wercker/run-command go/src/koding/kites/e2etest/e2etest.sh
     - script:
-        name: test providers
-        code: scripts/wercker/run-command ./scripts/gotests.sh kites koding/kites/kloud/provider/...
+        name: test kloud
+        code: scripts/wercker/run-command ./scripts/gotests.sh kites koding/kites/kloud/provider/... koding/kites/kloud/credential/... koding/kites/kloud/stack/... koding/kites/kloud/kloud/...
     - script:
         name: test koding/api
         code: env COMPILE_FLAGS="-race" scripts/wercker/run-command ./scripts/gotests.sh koding/api/...

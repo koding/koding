@@ -6,6 +6,59 @@ module.exports = (KONFIG, options, credentials) ->
   GOPATH = "%(ENV_KONFIG_PROJECTROOT)s/go"
 
   workers =
+    bucketproxies       :
+      group             : "bucket"
+      nginx             :
+        s3bucket        : yes
+        locations       : [
+          {
+            location    : '@assets'
+            proxyPass   : 'http://s3.amazonaws.com/koding-assets$uri'
+          }
+          {
+            location    : '~^/cdn/(koding-client|koding-assets|kodingdev-client|kodingdev-assets)/(.*)'
+            proxyPass   : 'http://s3.amazonaws.com/$1/$2'
+          }
+          { # redirect /d/* to koding-dl S3 bucket; used to distributed kd/klient installers
+            location    : '~^/d/(.*)$'
+            proxyPass   : 'https://s3.amazonaws.com/koding-dl/$1'
+          }
+          { # redirect /d/kd to KD installer for development channel
+            location    : '/c/d/kd'
+            proxyPass   : 'https://s3.amazonaws.com/koding-kd/development/install-kd.sh'
+          }
+          { # redirect /p/kd to KD installer for production channel
+            location    : '/c/p/kd'
+            proxyPass   : 'https://s3.amazonaws.com/koding-kd/production/install-kd.sh'
+          }
+        ]
+
+    assets              :
+      group             : "static"
+      nginx             :
+        static          : yes
+        locations       : [
+          {
+            location      : '/a/'
+            proxyPass     : '$uri @assets'
+            relativePath  : '/website/'
+            expires       : if options.environment in ['default', 'dev'] then '-1' else '1M' # set -1 to disable.
+            extraParamsStr: 'location ~* \.(map)$ { return 404; access_log off; }'
+          }
+          {
+            location    : '/apidocs'
+            proxyPass   : '$uri $uri/ =404'
+            relativePath: '/website/'
+            expires     : '-1'
+          }
+          {
+            location    : '/swagger.json'
+            proxyPass   : '$uri @assets'
+            relativePath: '/website/'
+            expires     : '-1'
+          }
+        ]
+
     kontrol             :
       group             : "environment"
       ports             :
@@ -57,11 +110,20 @@ module.exports = (KONFIG, options, credentials) ->
       nginx             :
         locations       : [
           {
+            location    : "/-/healthCheck"
+          }
+          {
+            location    : "~*(^(\/(Pricing|About|Legal|Features|Blog|Docs)))"
+            extraParams : [ "if ($host !~* ^(dev|default|sandbox|latest|www)) { return 301 /; }" ]
+          }
+          {
             location    : "~ /-/api/(.*)"
             proxyPass   : "http://webserver/-/api/$1$is_args$args"
           }
           {
             location    : "/"
+            cors        : on
+            auth        : if options.environment is 'sandbox' then yes else no
           }
         ]
 

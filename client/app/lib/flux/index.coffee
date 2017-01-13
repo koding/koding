@@ -9,12 +9,8 @@ module.exports =
   register: (reactor) ->
     reactor.registerStores @stores
 
-    PaymentFlux = require 'app/flux/payment'
-    PaymentFlux(reactor)
-
     SidebarFlux = require 'app/flux/sidebar'
     SidebarFlux.register reactor
 
     SocialApiFlux = require 'app/flux/socialapi'
     SocialApiFlux.register reactor
-

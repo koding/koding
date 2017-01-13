@@ -3,8 +3,8 @@ package utils
 import (
 	"bytes"
 	cryptorand "crypto/rand"
-	"encoding/base64"
 	"encoding/binary"
+	"encoding/hex"
 	"io"
 	"net"
 	"sort"
@@ -16,9 +16,13 @@ const MaxInt = int(^uint(0) >> 1)
 const RandomStringLength = 24 // 144 bit base64 encoded
 
 func RandomString() string {
-	r := make([]byte, RandomStringLength*6/8)
-	cryptorand.Read(r)
-	return base64.URLEncoding.EncodeToString(r)
+	return StringN(RandomStringLength)
+}
+
+func StringN(n int) string {
+	p := make([]byte, n/2+1)
+	cryptorand.Read(p)
+	return hex.EncodeToString(p)[:n]
 }
 
 var (

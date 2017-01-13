@@ -36,7 +36,7 @@ type StackTemplate struct {
 }
 
 func NewStackTemplate(provider, identifier string) *StackTemplate {
-	now := time.Now()
+	now := time.Now().UTC()
 
 	return &StackTemplate{
 		Id:          bson.NewObjectId(),

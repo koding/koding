@@ -1,7 +1,6 @@
 checkFlag = require '../../util/checkFlag'
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
-AvatarTooltipView = require '../avatarviews/avatartooltipview'
 JView = require '../../jview'
 LinkView = require './linkview'
 isKoding = require 'app/util/isKoding'
@@ -13,15 +12,6 @@ module.exports = class ProfileLinkView extends LinkView
 
   constructor: (options = {}, data) ->
     options.noTooltip ?= yes
-
-    # this needs to be pre-super
-    unless options.noTooltip
-      @avatarPreview =
-        constructorName : AvatarTooltipView
-        options         :
-          delegate      : this
-          origin        : options.origin
-        data            : data
 
     if @avatarPreview then options.tooltip or=
       view             : unless options.noTooltip then @avatarPreview else null

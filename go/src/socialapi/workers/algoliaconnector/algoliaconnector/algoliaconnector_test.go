@@ -31,15 +31,12 @@ func TestIndexSettingsDefaults(t *testing.T) {
 			indexSet, err := handler.indexes.Get(IndexAccounts)
 			So(err, ShouldBeNil)
 
-			settingsinter, err := indexSet.Index.GetSettings()
+			settings, err := indexSet.Index.GetSettings()
 			So(err, ShouldBeNil)
 
-			settings, ok := settingsinter.(map[string]interface{})[UnretrievableAttributes]
-			So(ok, ShouldBeTrue)
-
 			found := false
-			for _, item := range settings.([]interface{}) {
-				if item.(string) == "email" {
+			for _, item := range settings.UnretrievableAttributes {
+				if item == "email" {
 					found = true
 				}
 
@@ -63,31 +60,6 @@ func getTestHandler() (*runner.Runner, *Controller) {
 	// create message handler
 	return r, New(r.Log, algolia, ".test")
 
-}
-
-// makeSureSynonyms checks if the given index's synonyms request returns the
-// desired err, it will re-try every 100ms until deadline of 15 seconds reached.
-// Algolia doesnt index the records right away, so try to go to a desired state
-func makeSureSynonyms(handler *Controller, indexName string, f func([][]string, error) bool) error {
-	deadLine := time.After(TestTimeout)
-	tick := time.Tick(time.Millisecond * 100)
-	for {
-		select {
-		case <-tick:
-			synonyms, err := handler.getSynonyms(indexName)
-			if err != nil {
-				return err
-			}
-
-			if f(synonyms, err) {
-				return nil
-			}
-		case <-deadLine:
-			handler.log.Critical("deadline reached on making sure sysnonyms but not returning an error")
-			// return errDeadline
-			return nil
-		}
-	}
 }
 
 func createChannelMessageList(channelId, messageId int64) *models.ChannelMessageList {

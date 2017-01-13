@@ -1,862 +1,423 @@
 package algoliasearch
 
-import "syscall"
-import "strconv"
-import "testing"
-import "time"
+import (
+	"sync"
+	"testing"
+	"time"
+)
 
-func safeName(name string) string {
-	travis, haveTravis := syscall.Getenv("TRAVIS")
-	buildId, haveBuildId := syscall.Getenv("TRAVIS_JOB_NUMBER")
-	if !haveTravis || !haveBuildId || travis != "true" {
-		return name
+func TestClientOperations(t *testing.T) {
+	t.Parallel()
+	c, i := initClientAndIndex(t, "TestClientOperations")
+
+	objectID := addOneObject(t, c, i)
+
+	t.Log("TestClientOperations: Test CopyIndex")
+	{
+		res, err := c.CopyIndex("TestClientOperations", "TestClientOperations_copy")
+		if err != nil {
+			t.Fatalf("TestClientOperations: Cannot copy the index: %s", err)
+		}
+
+		waitTask(t, i, res.TaskID)
 	}
 
-	return name + "_travis-" + buildId
-}
+	t.Log("TestClientOperations: Test MoveIndex")
+	i = c.InitIndex("TestClientOperations_copy")
+	{
+		res, err := c.MoveIndex("TestClientOperations_copy", "TestClientOperations_move")
+		if err != nil {
+			t.Fatalf("TestClientOperations: Cannot move the index: %s", err)
+		}
 
-func initTest(t *testing.T) (*Client, *Index) {
-	appID, haveAppID := syscall.Getenv("ALGOLIA_APPLICATION_ID")
-	apiKey, haveApiKey := syscall.Getenv("ALGOLIA_API_KEY")
-	if !haveApiKey || !haveAppID {
-		t.Fatalf("Need ALGOLIA_APPLICATION_ID and ALGOLIA_API_KEY")
+		waitTask(t, i, res.TaskID)
 	}
-	client := NewClient(appID, apiKey)
-	client.SetTimeout(1000, 10000)
-	hosts := make([]string, 3)
-	hosts[0] = appID + "-1.algolia.net"
-	hosts[1] = appID + "-2.algolia.net"
-	hosts[2] = appID + "-3.algolia.net"
-	client = NewClientWithHosts(appID, apiKey, hosts)
-	index := client.InitIndex(safeName("àlgol?à-go"))
 
-	return client, index
-}
+	t.Log("TestClientOperations: Test ClearIndex")
+	i = c.InitIndex("TestClientOperations_move")
+	{
+		res, err := c.ClearIndex("TestClientOperations_move")
+		if err != nil {
+			t.Fatalf("TestClear: Cannot clear the index: %s, err")
+		}
 
-func shouldHave(json interface{}, attr, msg string, t *testing.T) {
-	_, ok := json.(map[string]interface{})[attr]
-	if !ok {
-		t.Fatalf(msg + ", expected attribute: " + attr)
+		waitTask(t, i, res.TaskID)
+
+		_, err = i.GetObject(objectID, nil)
+		if err == nil || err.Error() != "{\"message\":\"ObjectID does not exist\",\"status\":404}\n" {
+			t.Fatalf("TestClientOperations: Object %s should be deleted after clear: %s", objectID, err)
+		}
 	}
-}
 
-func shouldNotHave(json interface{}, attr, msg string, t *testing.T) {
-	_, ok := json.(map[string]interface{})[attr]
-	if ok {
-		t.Fatalf(msg + ", unexpected attribute: " + attr)
-	}
-}
-
-func shouldStr(json interface{}, attr, value, msg string, t *testing.T) {
-	resp, ok := json.(map[string]interface{})[attr]
-	if !ok || value != resp.(string) {
-		t.Fatalf(msg + ", expected: " + value + " have: " + resp.(string))
-	}
-}
-
-func shouldFloat(json interface{}, attr string, value float64, msg string, t *testing.T) {
-	resp, ok := json.(map[string]interface{})[attr]
-	if !ok || value != resp.(float64) {
-		t.Fatalf(msg + ", expected: " + strconv.FormatFloat(value, 'f', -1, 64) + " have: " + strconv.FormatFloat(resp.(float64), 'f', -1, 64))
+	t.Log("TestClientOperations: Test DeleteIndex")
+	{
+		_, err := c.DeleteIndex("TestClientOperations_move")
+		if err != nil {
+			t.Fatalf("TestClientOperations: Cannot delete the moved index: %s", err)
+		}
 	}
 }
 
-func shouldContainString(json interface{}, attr string, value string, msg string, t *testing.T) {
-	array := json.([]interface{})
-	for i := range array {
-		val, ok := array[i].(map[string]interface{})[attr]
-		if ok && value == val.(string) {
+// deleteClientKey deletes the key for the given client.
+func deleteClientKey(t *testing.T, c Client, key string) {
+	_, err := c.DeleteUserKey(key)
+	if err != nil {
+		t.Fatalf("deleteClientKey: Cannot delete key: %s", err)
+	}
+}
+
+// waitClientKey waits until the key has been properly added to the given
+// client and if the given function, if not `nil`, returns `true`.
+func waitClientKey(t *testing.T, c Client, keyID string, f func(k Key) bool) {
+	retries := 120
+
+	for r := 0; r < retries; r++ {
+		key, err := c.GetUserKey(keyID)
+
+		if err == nil && (f == nil || f(key)) {
 			return
 		}
+		time.Sleep(1 * time.Second)
 	}
-	t.Fatalf(msg + ", expected: " + value + " in the array.")
+
+	t.Fatalf("waitClientKey: Key not found or function call failed")
 }
 
-func shouldNotContainString(json interface{}, attr string, value string, msg string, t *testing.T) {
-	array := json.([]interface{})
-	for i := range array {
-		val, ok := array[i].(map[string]interface{})[attr]
-		if ok && value == val.(string) {
-			t.Fatalf(msg + ", expected: " + value + " in the array.")
+// waitClientKeysAsync waits until all the keys have been properly added to the
+// given client and if the given function, if not `nil`, returns `true` for
+// every key.
+func waitClientKeysAsync(t *testing.T, c Client, keyIDs []string, f func(k Key) bool) {
+	var wg sync.WaitGroup
+
+	for _, keyID := range keyIDs {
+		wg.Add(1)
+
+		go func(keyID string) {
+			defer wg.Done()
+			waitClientKey(t, c, keyID, f)
+		}(keyID)
+	}
+
+	wg.Wait()
+}
+
+// deleteAllClientKeys properly deletes all previous keys associated to the
+// application.
+func deleteAllClientKeys(t *testing.T, c Client) {
+	keys, err := c.ListKeys()
+
+	if err != nil {
+		t.Fatalf("deleteAllKeys: Cannot list the keys: %s", err)
+	}
+
+	for _, key := range keys {
+		_, err = c.DeleteUserKey(key.Value)
+		if err != nil {
+			t.Fatalf("deleteAllKeys: Cannot delete a key: %s", err)
 		}
 	}
-}
 
-func TestClear(t *testing.T) {
-	_, index := initTest(t)
-	object := make(map[string]interface{})
-	object["name"] = "John Snow"
-	resp, err := index.AddObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	resp, err = index.WaitTask(resp)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	resp, err = index.Clear()
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	index.WaitTask(resp)
-	results, err := index.Search("", nil)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldFloat(results, "nbHits", 0, "Unable to clear the index", t)
-	index.Delete()
-}
+	for len(keys) != 0 {
+		keys, err = c.ListKeys()
 
-func TestAddObject(t *testing.T) {
-	_, index := initTest(t)
-	object := make(map[string]interface{})
-	object["name"] = "John Snow"
-	_, err := index.AddObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	object["name"] = "John Snow"
-	object["objectID"] = "àlgol?à"
-	resp, err := index.AddObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(resp)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	results, err := index.Search("", nil)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldFloat(results, "nbHits", 2, "Unable to clear the index", t)
-	index.Delete()
-}
+		if err != nil {
+			t.Fatalf("deleteAllKeys: Cannot list the keys: %s", err)
+		}
 
-func TestUpdateObject(t *testing.T) {
-	_, index := initTest(t)
-	object := make(map[string]interface{})
-	object["name"] = "John Snow"
-	object["objectID"] = "àlgol?à"
-	_, err := index.AddObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	object["name"] = "Roger"
-	resp, err := index.UpdateObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(resp)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	results, err := index.Search("", nil)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	hits := results.(map[string]interface{})["hits"]
-	shouldStr(hits.([]interface{})[0], "name", "Roger", "Unable to update an object", t)
-	shouldNotHave(hits.([]interface{})[0], "job", "Unable to update an object", t)
-	index.Delete()
-}
-
-func TestPartialUpdateObject(t *testing.T) {
-	_, index := initTest(t)
-	object := make(map[string]interface{})
-	object["name"] = "John Snow"
-	object["job"] = "Knight"
-	object["objectID"] = "àlgol?à"
-	_, err := index.AddObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	delete(object, "job")
-	object["name"] = "Roger"
-	resp, err := index.PartialUpdateObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(resp)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	results, err := index.Search("", nil)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	hits := results.(map[string]interface{})["hits"]
-	shouldStr(hits.([]interface{})[0], "name", "Roger", "Unable to update an object", t)
-	index.Delete()
-}
-
-func TestGetObject(t *testing.T) {
-	_, index := initTest(t)
-	object := make(map[string]interface{})
-	object["name"] = "John Snow"
-	object["objectID"] = "àlgol?à"
-	resp, err := index.AddObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(resp)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	resp, err = index.AddObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	obj, err := index.GetObject("àlgol?à")
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldStr(obj, "name", "John Snow", "Unable to update an object", t)
-	obj, err = index.GetObject("àlgol?à", "name")
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldStr(obj, "name", "John Snow", "Unable to update an object", t)
-	index.Delete()
-}
-
-func TestGetObjectError(t *testing.T) {
-	_, index := initTest(t)
-	_, err := index.GetObject("", "test", "test")
-	if err == nil {
-		t.Fatalf("GetObject variadic args checking failed")
+		time.Sleep(1 * time.Second)
 	}
 }
 
-func TestGetObjects(t *testing.T) {
-	_, index := initTest(t)
-	object := make(map[string]interface{})
-	object["name"] = "Los Angeles"
-	object["objectID"] = "1"
-	resp, err := index.AddObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	object = make(map[string]interface{})
-	object["name"] = "San Francisco"
-	object["objectID"] = "2"
-	resp, err = index.AddObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(resp)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	res, err := index.GetObjects("1", "2")
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldStr(res.(map[string]interface{})["results"].([]interface{})[0], "name", "Los Angeles", "Unable to get objects", t)
-	shouldStr(res.(map[string]interface{})["results"].([]interface{})[1], "name", "San Francisco", "Unable to get objects", t)
+func TestClientKeys(t *testing.T) {
+	t.Parallel()
+	c := initClient(t)
 
-	index.Delete()
+	deleteAllClientKeys(t, c)
+
+	var searchKey, allRightsKey string
+
+	t.Log("TestClientKeys: Add a search key with parameters")
+	{
+		params := Map{
+			"description":            "",
+			"maxQueriesPerIPPerHour": 1000,
+			"referers":               []string{},
+			"queryParameters":        "typoTolerance=strict",
+			"validity":               600,
+			"maxHitsPerQuery":        1,
+		}
+
+		res, err := c.AddUserKey([]string{"search"}, params)
+		if err != nil {
+			t.Fatalf("TestClientKeys: Cannot create the search key: %s", err)
+		}
+
+		searchKey = res.Key
+	}
+	defer deleteClientKey(t, c, searchKey)
+
+	t.Log("TestClientKeys: Add an all-permissions key")
+	{
+		acl := []string{
+			"search",
+			"browse",
+			"addObject",
+			"deleteObject",
+			"deleteIndex",
+			"settings",
+			"editSettings",
+			"analytics",
+			"listIndexes",
+		}
+
+		res, err := c.AddUserKey(acl, nil)
+		if err != nil {
+			t.Fatalf("TestClientKeys: Cannot create the all-rights key: %s", err)
+		}
+
+		allRightsKey = res.Key
+	}
+	defer deleteClientKey(t, c, allRightsKey)
+
+	waitClientKeysAsync(t, c, []string{searchKey, allRightsKey}, nil)
+
+	t.Log("TestClientKeys: Update search key description")
+	{
+		params := Map{"description": "Search-Only Key"}
+
+		_, err := c.UpdateUserKey(searchKey, params)
+		if err != nil {
+			t.Fatalf("TestClientKeys: Cannot update search only key's description: %s", err)
+		}
+
+		waitClientKey(t, c, searchKey, func(k Key) bool { return k.Description == "Search-Only Key" })
+	}
 }
 
-func TestDeleteObject(t *testing.T) {
-	_, index := initTest(t)
-	object := make(map[string]interface{})
-	object["name"] = "John Snow"
-	object["objectID"] = "àlgol?à"
-	resp, err := index.AddObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(resp)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	resp, err = index.DeleteObject("àlgol?à")
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(resp)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	results, err := index.Search("", nil)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldFloat(results, "nbHits", 0, "Unable to clear the index", t)
-	index.Delete()
-}
+func TestLogs(t *testing.T) {
+	t.Parallel()
+	c := initClient(t)
 
-func TestSetSettings(t *testing.T) {
-	_, index := initTest(t)
-	settings := make(map[string]interface{})
-	settings["hitsPerPage"] = 30
-	resp, err := index.SetSettings(settings)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(resp)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	settingsChanged, err := index.GetSettings()
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldFloat(settingsChanged, "hitsPerPage", 30, "Unable to change setting", t)
-	index.Delete()
-}
-
-func TestGetLogs(t *testing.T) {
-	client, _ := initTest(t)
-	logs, err := client.GetLogs(0, 100, "all")
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldHave(logs, "logs", "Unable to get logs", t)
-}
-
-func TestBrowse(t *testing.T) {
-	_, index := initTest(t)
-	object := make(map[string]interface{})
-	object["name"] = "John Snow"
-	object["objectID"] = "àlgol?à"
-	resp, err := index.AddObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(resp)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	items, err := index.Browse(1, 1)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldHave(items, "hits", "Unable to browse index", t)
-	index.Delete()
-}
-
-func TestBrowseWithCursor(t *testing.T) {
-	_, index := initTest(t)
-	object := make(map[string]interface{})
-	object["name"] = "John Snow"
-	object["objectID"] = "àlgol?à"
-	resp, err := index.AddObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(resp)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	items, err := index.BrowseAll(map[string]interface{}{"query": ""})
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	hit, err := items.Next()
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldStr(hit, "name", "John Snow", "Unable to browse index with cursor", t)
-	hit, err = items.Next()
-	if err == nil {
-		t.Fatalf("Should contains only one elt")
-	}
-	index.Delete()
-}
-
-func TestQuery(t *testing.T) {
-	_, index := initTest(t)
-	object := make(map[string]interface{})
-	object["name"] = "John Snow"
-	object["objectID"] = "àlgol?à"
-	resp, err := index.AddObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(resp)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	params := make(map[string]interface{})
-	params["attributesToRetrieve"] = "*"
-	params["getRankingInfo"] = 1
-	results, err := index.Search("", params)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldFloat(results, "nbHits", 1, "Unable to query an index", t)
-}
-
-func TestIndexCopy(t *testing.T) {
-	client, index := initTest(t)
-	object := make(map[string]interface{})
-	object["name"] = "John Snow"
-	object["objectID"] = "àlgol?à"
-	_, err := index.AddObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	resp, err := index.Copy(safeName("àlgo?à2-go"))
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(resp)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	indexCopy := client.InitIndex(safeName("àlgo?à2-go"))
-	results, err := indexCopy.Search("", nil)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldFloat(results, "nbHits", 1, "Unable to copy an index", t)
-	index.Delete()
-	indexCopy.Delete()
-}
-
-func TestCopy(t *testing.T) {
-	client, index := initTest(t)
-	object := make(map[string]interface{})
-	object["name"] = "John Snow"
-	object["objectID"] = "àlgol?à"
-	_, err := index.AddObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	resp, err := client.CopyIndex(safeName("àlgol?à-go"), safeName("àlgo?à2-go"))
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(resp)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	indexCopy := client.InitIndex(safeName("àlgo?à2-go"))
-	results, err := indexCopy.Search("", nil)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldFloat(results, "nbHits", 1, "Unable to copy an index", t)
-	index.Delete()
-	indexCopy.Delete()
-}
-
-func TestIndexMove(t *testing.T) {
-	client, index := initTest(t)
-	object := make(map[string]interface{})
-	object["name"] = "John Snow"
-	object["objectID"] = "àlgol?à"
-	task, err := index.AddObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(task)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	resp, err := index.Move(safeName("àlgo?à2-go"))
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(resp)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	indexMove := client.InitIndex(safeName("àlgo?à2-go"))
-	results, err := indexMove.Search("", nil)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldFloat(results, "nbHits", 1, "Unable to move an index", t)
-	indexMove.Delete()
-}
-
-func TestMove(t *testing.T) {
-	client, index := initTest(t)
-	object := make(map[string]interface{})
-	object["name"] = "John Snow"
-	object["objectID"] = "àlgol?à"
-	_, err := index.AddObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	resp, err := client.MoveIndex(safeName("àlgol?à-go"), safeName("àlgo?à2-go"))
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(resp)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	indexCopy := client.InitIndex(safeName("àlgo?à2-go"))
-	results, err := indexCopy.Search("", nil)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldFloat(results, "nbHits", 1, "Unable to copy an index", t)
-	index.Delete()
-	indexCopy.Delete()
-}
-
-func TestAddIndexKey(t *testing.T) {
-	_, index := initTest(t)
-	object := make(map[string]interface{})
-	object["name"] = "John Snow"
-	resp, err := index.AddObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	resp, err = index.WaitTask(resp)
-	if err != nil {
-		t.Fatalf(err.Error())
+	params := Map{
+		"length": 10,
+		"offset": 0,
+		"type":   "all",
 	}
 
-	acl := []string{"search"}
-	newKey, err := index.AddKey(acl, 300, 100, 100)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	time.Sleep(5000 * time.Millisecond)
-	key, err := index.GetKey(newKey.(map[string]interface{})["key"].(string))
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldStr(key, "value", newKey.(map[string]interface{})["key"].(string), "Unable to get a key", t)
-	list, err := index.ListKeys()
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldContainString(list.(map[string]interface{})["keys"], "value", newKey.(map[string]interface{})["key"].(string), "Unable to add a key", t)
+	t.Log("TestLogs: Get the last 10 logs")
+	logs, err := c.GetLogs(params)
 
-	_, err = index.UpdateKey(newKey.(map[string]interface{})["key"].(string), []string{"addObject"}, 300, 100, 100)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatalf("TestLogs: Cannot retrieve the logs: %s", err)
 	}
-	time.Sleep(5000 * time.Millisecond)
-	list, err = index.ListKeys()
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldContainString(list.(map[string]interface{})["keys"], "value", newKey.(map[string]interface{})["key"].(string), "Unable to add a key", t)
 
-	_, err = index.DeleteKey(newKey.(map[string]interface{})["key"].(string))
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	time.Sleep(5000 * time.Millisecond)
-	list, err = index.ListKeys()
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldNotContainString(list.(map[string]interface{})["keys"], "value", newKey.(map[string]interface{})["key"].(string), "Unable to add a key", t)
-	index.Delete()
-}
-
-func TestAddKey(t *testing.T) {
-	client, index := initTest(t)
-	acl := []string{"search"}
-	indexes := []string{index.name}
-	newKey, err := client.AddKey(acl, indexes, 300, 100, 100)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	time.Sleep(5000 * time.Millisecond)
-	key, err := client.GetKey(newKey.(map[string]interface{})["key"].(string))
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldStr(key, "value", newKey.(map[string]interface{})["key"].(string), "Unable to get a key", t)
-
-	_, err = client.UpdateKey(newKey.(map[string]interface{})["key"].(string), []string{"addObject"}, indexes, 300, 100, 100)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	time.Sleep(5000 * time.Millisecond)
-
-	list, err := client.ListKeys()
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldContainString(list.(map[string]interface{})["keys"], "value", newKey.(map[string]interface{})["key"].(string), "Unable to add a key", t)
-	_, err = client.DeleteKey(newKey.(map[string]interface{})["key"].(string))
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	time.Sleep(5000 * time.Millisecond)
-	list, err = client.ListKeys()
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldNotContainString(list.(map[string]interface{})["keys"], "value", newKey.(map[string]interface{})["key"].(string), "Unable to add a key", t)
-}
-
-func TestAddObjects(t *testing.T) {
-	_, index := initTest(t)
-	objects := make([]interface{}, 2)
-
-	object := make(map[string]interface{})
-	object["name"] = "John"
-	object["city"] = "San Francisco"
-	objects[0] = object
-
-	object = make(map[string]interface{})
-	object["name"] = "Roger"
-	object["city"] = "New York"
-	objects[1] = object
-	task, err := index.AddObjects(objects)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	index.WaitTask(task)
-	results, err := index.Search("", nil)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldFloat(results, "nbHits", 2, "Unable to add objects", t)
-	index.Delete()
-}
-
-func TestUpdateObjects(t *testing.T) {
-	_, index := initTest(t)
-	objects := make([]interface{}, 2)
-
-	object := make(map[string]interface{})
-	object["name"] = "John"
-	object["city"] = "San Francisco"
-	object["objectID"] = "àlgo?à-1"
-	objects[0] = object
-
-	object = make(map[string]interface{})
-	object["name"] = "Roger"
-	object["city"] = "New York"
-	object["objectID"] = "àlgo?à-2"
-	objects[1] = object
-	task, err := index.UpdateObjects(objects)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(task)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	results, err := index.Search("", nil)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldFloat(results, "nbHits", 2, "Unable to update objects", t)
-	index.Delete()
-}
-
-func TestPartialUpdateObjects(t *testing.T) {
-	_, index := initTest(t)
-	objects := make([]interface{}, 2)
-
-	object := make(map[string]interface{})
-	object["name"] = "John"
-	object["objectID"] = "àlgo?à-1"
-	objects[0] = object
-
-	object = make(map[string]interface{})
-	object["name"] = "Roger"
-	object["objectID"] = "àlgo?à-2"
-	objects[1] = object
-	task, err := index.PartialUpdateObjects(objects)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(task)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	results, err := index.Search("", nil)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldFloat(results, "nbHits", 2, "Unable to partial update objects", t)
-	index.Delete()
-}
-
-func TestDeleteObjects(t *testing.T) {
-	_, index := initTest(t)
-	objects := make([]interface{}, 2)
-
-	object := make(map[string]interface{})
-	object["name"] = "John"
-	object["objectID"] = "àlgo?à-1"
-	objects[0] = object
-
-	object = make(map[string]interface{})
-	object["name"] = "Roger"
-	object["objectID"] = "àlgo?à-2"
-	objects[1] = object
-	task, err := index.PartialUpdateObjects(objects)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(task)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	objectIDs := []string{"àlgo?à-1", "àlgo?à-2"}
-	task, err = index.DeleteObjects(objectIDs)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(task)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	results, err := index.Search("", nil)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldFloat(results, "nbHits", 0, "Unable to partial update objects", t)
-	index.Delete()
-}
-
-func TestDeleteByQuery(t *testing.T) {
-	_, index := initTest(t)
-	objects := make([]interface{}, 3)
-
-	object := make(map[string]interface{})
-	object["name"] = "San Jose"
-	objects[0] = object
-
-	object = make(map[string]interface{})
-	object["name"] = "Washington"
-	objects[1] = object
-
-	object = make(map[string]interface{})
-	object["name"] = "San Francisco"
-	objects[2] = object
-	task, err := index.AddObjects(objects)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(task)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.DeleteByQuery("San", nil)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	results, err := index.Search("", nil)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	shouldFloat(results, "nbHits", 1, "Unable to delete by query", t)
-	index.Delete()
-}
-
-/*
-func TestKeepAlive(t *testing.T) {
-  _, index := initTest(t)
-  object := make(map[string]interface{})
-  object["name"] = "John Snow"
-  object["objectID"] = "àlgol?à"
-  _, err := index.addObject(object)
-  if err != nil {
-    t.Fatalf(err.Error())
-  }
-  query := make(map[string]interface{})
-  for i := 0; i < 100; i++ {
-    index.query(query)
-  }
-}*/
-
-func TestGenerateNewSecuredApiKey(t *testing.T) {
-	client, _ := initTest(t)
-	key, _ := client.GenerateSecuredApiKey("182634d8894831d5dbce3b3185c50881", "(public,user1)")
-	expected := "MDZkNWNjNDY4M2MzMDA0NmUyNmNkZjY5OTMzYjVlNmVlMTk1NTEwMGNmNTVjZmJhMmIwOTIzYjdjMTk2NTFiMnRhZ0ZpbHRlcnM9JTI4cHVibGljJTJDdXNlcjElMjk="
-	if expected != key {
-		t.Fatalf("Invalid key: " + key + " != " + expected)
-	}
-	key, _ = client.GenerateSecuredApiKey("182634d8894831d5dbce3b3185c50881", "tagFilters=%28public%2Cuser1%29")
-	expected = "MDZkNWNjNDY4M2MzMDA0NmUyNmNkZjY5OTMzYjVlNmVlMTk1NTEwMGNmNTVjZmJhMmIwOTIzYjdjMTk2NTFiMnRhZ0ZpbHRlcnM9JTI4cHVibGljJTJDdXNlcjElMjk="
-	if expected != key {
-		t.Fatalf("Invalid key: " + key + " != " + expected)
-	}
-	key, _ = client.GenerateSecuredApiKey("182634d8894831d5dbce3b3185c50881", map[string]interface{}{"tagFilters": "(public,user1)"})
-	expected = "MDZkNWNjNDY4M2MzMDA0NmUyNmNkZjY5OTMzYjVlNmVlMTk1NTEwMGNmNTVjZmJhMmIwOTIzYjdjMTk2NTFiMnRhZ0ZpbHRlcnM9JTI4cHVibGljJTJDdXNlcjElMjk="
-	if expected != key {
-		t.Fatalf("Invalid key: " + key + " != " + expected)
-	}
-	key, _ = client.GenerateSecuredApiKey("182634d8894831d5dbce3b3185c50881", map[string]interface{}{"tagFilters": "(public,user1)", "userToken": "42"})
-	expected = "OGYwN2NlNTdlOGM2ZmM4MjA5NGM0ZmYwNTk3MDBkNzMzZjQ0MDI3MWZjNTNjM2Y3YTAzMWM4NTBkMzRiNTM5YnRhZ0ZpbHRlcnM9JTI4cHVibGljJTJDdXNlcjElMjkmdXNlclRva2VuPTQy"
-	if expected != key {
-		t.Fatalf("Invalid key: " + key + " != " + expected)
-	}
-	key, _ = client.GenerateSecuredApiKey("182634d8894831d5dbce3b3185c50881", map[string]interface{}{"tagFilters": "(public,user1)"}, "42")
-	expected = "OGYwN2NlNTdlOGM2ZmM4MjA5NGM0ZmYwNTk3MDBkNzMzZjQ0MDI3MWZjNTNjM2Y3YTAzMWM4NTBkMzRiNTM5YnRhZ0ZpbHRlcnM9JTI4cHVibGljJTJDdXNlcjElMjkmdXNlclRva2VuPTQy"
-	if expected != key {
-		t.Fatalf("Invalid key: " + key + " != " + expected)
+	if len(logs) != 10 {
+		t.Fatalf("TestLogs: Should return 10 logs instead of %d", len(logs))
 	}
 }
 
 func TestMultipleQueries(t *testing.T) {
-	client, index := initTest(t)
-	object := make(map[string]interface{})
-	object["name"] = "John Snow"
-	resp, err := index.AddObject(object)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	resp, err = index.WaitTask(resp)
-	if err != nil {
-		t.Fatalf(err.Error())
+	t.Parallel()
+	c := initClient(t)
+	defer c.DeleteIndex("TestMultipleQueries_categories")
+	defer c.DeleteIndex("TestMultipleQueries_products")
+
+	var tasks []int
+
+	t.Log("TestMultipleQueries: Set the `categories` index settings")
+	i := c.InitIndex("TestMultipleQueries_categories")
+	{
+		res, err := i.SetSettings(Map{
+			"searchableAttributes": []string{"name"},
+		})
+
+		if err != nil {
+			t.Fatalf("TestMultipleQueries: Cannot set `categories` index settings: %s", err)
+		}
+		tasks = append(tasks, res.TaskID)
 	}
 
-	query := make(map[string]interface{})
-	query["indexName"] = safeName("àlgol?à-go")
-	query["query"] = ""
-	queries := make([]interface{}, 1)
-	queries[0] = query
-	res, err := client.MultipleQueries(queries)
-	if err != nil {
-		t.Fatalf(err.Error())
+	t.Log("TestMultipleQueries: Add an object to the `categories` index")
+	{
+		res, err := i.AddObject(Object{
+			"name": "computer 1",
+		})
+
+		if err != nil {
+			t.Fatalf("TestMultipleQueries: Cannot add object to `categories` index: %s", err)
+		}
+
+		tasks = append(tasks, res.TaskID)
 	}
-	shouldFloat(res.(map[string]interface{})["results"].([]interface{})[0], "nbHits", 1, "Unable to query multiple indexes", t)
-	index.Delete()
+
+	waitTasksAsync(t, i, tasks)
+	tasks = []int{}
+
+	t.Log("TestMultipleQueries: Set the `products` index settings")
+	i = c.InitIndex("TestMultipleQueries_products")
+	{
+		res, err := i.SetSettings(Map{
+			"searchableAttributes": []string{"name"},
+		})
+
+		if err != nil {
+			t.Fatalf("TestMultipleQueries: Cannot set `products` index settings: %s", err)
+		}
+
+		tasks = append(tasks, res.TaskID)
+	}
+
+	t.Log("TestMultipleQueries: Add an object to the `products` index")
+	{
+		res, err := i.AddObjects([]Object{
+			{"name": "computer 1"},
+			{"name": "computer 2", "_tags": "promotion"},
+			{"name": "computer 3", "_tags": "promotion"},
+		})
+
+		if err != nil {
+			t.Fatalf("TestMultipleQueries: Cannot add objects to `products` index: %s", err)
+		}
+
+		tasks = append(tasks, res.TaskID)
+	}
+
+	waitTasksAsync(t, i, tasks)
+
+	queries := []IndexedQuery{
+		{
+			IndexName: "TestMultipleQueries_categories",
+			Params:    Map{"query": "computer", "hitsPerPage": 2},
+		},
+		{
+			IndexName: "TestMultipleQueries_products",
+			Params:    Map{"query": "computer", "hitsPerPage": 3, "filters": "_tags:promotion"},
+		},
+		{
+			IndexName: "TestMultipleQueries_products",
+			Params:    Map{"query": "computer", "hitsPerPage": 4},
+		},
+	}
+
+	res, err := c.MultipleQueries(queries, "")
+
+	if err != nil {
+		t.Fatalf("TestMultipleQueries: Cannot send multiple queries: %s", err)
+	}
+
+	if len(res) != 3 {
+		t.Fatalf("TestMultipleQueries: Should return 3 MultipleQueryRes instead of %d", len(res))
+	}
+
+	if len(res[0].Hits) != 1 {
+		t.Fatalf("TestMultipleQueries: First query should return 1 record instead of %d", len(res[0].Hits))
+	}
+
+	if len(res[1].Hits) != 2 {
+		t.Fatalf("TestMultipleQueries: Second query should return 2 records instead of %d", len(res[1].Hits))
+	}
+
+	if len(res[2].Hits) != 3 {
+		t.Fatalf("TestMultipleQueries: Third query should return 3 records instead of %d", len(res[2].Hits))
+	}
 }
 
-func TestFacets(t *testing.T) {
-	_, index := initTest(t)
+func TestBatch(t *testing.T) {
+	t.Parallel()
+	c := initClient(t)
+	defer c.DeleteIndex("TestBatch_dev")
+	defer c.DeleteIndex("TestBatch_prod")
 
-	settings := map[string]interface{}{"attributesForFacetting": []string{"f", "g"}}
-	_, err := index.SetSettings(settings)
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-
-	_, err = index.AddObject(map[string]interface{}{"f": "f1", "g": "g1"})
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.AddObject(map[string]interface{}{"f": "f1", "g": "g2"})
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.AddObject(map[string]interface{}{"f": "f2", "g": "g2"})
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	task, err := index.AddObject(map[string]interface{}{"f": "f3", "g": "g2"})
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
-	_, err = index.WaitTask(task)
-	if err != nil {
-		t.Fatalf(err.Error())
+	person := Map{
+		"firstname": "Jimmie",
+		"lastname":  "Barninger",
 	}
 
-	res, err := index.Search("", map[string]interface{}{"facets": "f", "facetFilters": []string{"f:f1"}})
-	if err != nil {
-		t.Fatalf(err.Error())
+	operation := BatchOperation{
+		Action: "addObject",
+		Body:   person,
 	}
-	shouldFloat(res, "nbHits", 2, "Unable to filter facets", t)
 
-	index.Delete()
+	operations := []BatchOperationIndexed{
+		{IndexName: "TestBatch_dev", BatchOperation: operation},
+		{IndexName: "TestBatch_prod", BatchOperation: operation},
+	}
+
+	_, err := c.Batch(operations)
+
+	if err != nil {
+		t.Fatalf("TestBatch: Cannot batch operations: %s", err)
+	}
+}
+
+func TestSlaveReplica(t *testing.T) {
+	t.Parallel()
+	c, i := initClientAndIndex(t, "TestSlaveReplica")
+
+	defer c.DeleteIndex("TestSlaveReplica_slave")
+	defer c.DeleteIndex("TestSlaveReplica_replica")
+
+	t.Log("TestSlaveReplica: Set the `slaves` settings")
+	slaves := []string{"TestSlaveReplica_slave"}
+	expectedSettings := Map{"slaves": slaves}
+
+	res, err := i.SetSettings(expectedSettings)
+	if err != nil {
+		t.Fatalf("TestSlaveReplica: Cannot set the `slaves` settings: %s", err)
+	}
+	if err = i.WaitTask(res.TaskID); err != nil {
+		t.Fatalf("TestSlaveReplica: SetSettings of `slaves` task didn't finished properly: %s", err)
+	}
+
+	t.Log("TestSlaveReplica: Check that the `slaves` settings is properly set")
+	settings, err := i.GetSettings()
+	if err != nil {
+		t.Fatalf("TestSlaveReplica: Cannot get the settings: %s", err)
+	}
+
+	if len(settings.Slaves) != 1 || settings.Slaves[0] != slaves[0] {
+		t.Fatalf("TestSlaveReplica: Slaves settings are not the same:\nExpected:%s\nGot:%s", slaves, settings.Slaves)
+	}
+
+	t.Log("TestSlaveReplica: Set the `replicas` settings")
+	replicas := []string{"TestSlaveReplica_replica"}
+	expectedSettings = Map{"replicas": replicas}
+
+	res, err = i.SetSettings(expectedSettings)
+	if err != nil {
+		t.Fatalf("TestSlaveReplica: Cannot set the `replicas` settings: %s", err)
+	}
+	if err = i.WaitTask(res.TaskID); err != nil {
+		t.Fatalf("TestSlaveReplica: SetSettings of `replicas` task didn't finished properly: %s", err)
+	}
+
+	t.Log("TestSlaveReplica: Check that the `replicas` settings is properly set and override the `slaves` settings")
+	settings, err = i.GetSettings()
+	if err != nil {
+		t.Fatalf("TestSlaveReplica: Cannot get the settings: %s", err)
+	}
+
+	if len(settings.Slaves) != 0 {
+		t.Fatalf("TestSlaveReplica: Slaves settings has not been overriden: %s", settings.Slaves)
+	}
+
+	if len(settings.Replicas) != 1 || settings.Replicas[0] != replicas[0] {
+		t.Fatalf("TestSlaveReplica: Replicas settings are not the same:\nExpected:%s\nGot:%s", replicas, settings.Replicas)
+	}
+}
+
+func TestDnsTimeout(t *testing.T) {
+	t.Parallel()
+
+	client := initClientWithTimeoutHosts(t)
+
+	start := time.Now()
+	for i := 0; i < 10; i++ {
+		client.ListIndexes()
+	}
+	delta := time.Now().Sub(start)
+
+	if delta > 5*time.Second {
+		t.Fatalf("TestDnsTimeout: Spent %d seconds instead of <5s to perform the 10 retries", int(delta.Seconds()))
+	}
 }

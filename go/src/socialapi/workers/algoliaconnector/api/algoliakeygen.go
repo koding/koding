@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"socialapi/models"
 	"socialapi/workers/common/response"
+
+	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 )
 
 type Response struct {
@@ -35,11 +37,14 @@ func (h *Handler) GenerateKey(u *url.URL, header http.Header, _ interface{}, con
 
 func (h *Handler) generateSearchOnlyKey(c *models.Channel, accountId int64) (string, error) {
 	tagFilter := generateTagFilters(c, accountId)
-	return h.client.GenerateSecuredApiKey(h.searchOnlyKey, tagFilter)
-}
 
-func generateTagFilters(c *models.Channel, accountId int64) string {
-	return fmt.Sprintf("(%d,%s)", c.Id, generateUserToken(accountId))
+	return algoliasearch.GenerateSecuredAPIKey(h.searchOnlyKey, tagFilter)
+}
+func generateTagFilters(c *models.Channel, accountId int64) algoliasearch.Map {
+	result := make(map[string]interface{}, 0)
+	id := fmt.Sprintf("%d", c.Id)
+	result[id] = generateUserToken(accountId)
+	return result
 }
 
 func generateUserToken(accountId int64) string {
