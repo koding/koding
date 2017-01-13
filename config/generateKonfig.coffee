@@ -210,6 +210,7 @@ module.exports = (options, credentials) ->
     clientUploadS3BucketName      : options.clientUploadS3BucketName
 
     kiteHome                      : credentials.kiteHome
+    redis                         : credentials.redis
     mongo                         : credentials.mongo
     postgres                      : credentials.postgres
     mq                            : credentials.rabbitmq
