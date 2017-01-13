@@ -15,13 +15,6 @@ module.exports = class AccountPopup extends AvatarPopup
 
     { groupsController } = kd.singletons
 
-    unless isSoloProductLite()
-      @avatarPopupContent.addSubView @paymentActionLabel = new CustomLinkView
-        title      : 'Upgrade plan'
-        href       : '/Pricing'
-        cssClass   : 'bottom-separator'
-        click      : @bound 'goToPricing'
-
     @avatarPopupContent.addSubView new CustomLinkView
       title      : 'Koding University'
       href       : 'https://koding.com/docs'
@@ -58,45 +51,10 @@ module.exports = class AccountPopup extends AvatarPopup
 
     # FIXME:
     groupsController.ready =>
-      group = groupsController.getCurrentGroup()
-      if group.slug isnt 'koding' and not isSoloProductLite()
-        @paymentActionLabel.hide()
-
       group.canEditGroup (err, success) ->
         return  unless success
         dashboardLink.show()  if group.slug is 'koding'
         adminLink.show()
-
-
-  viewAppended: ->
-
-    @updatePaymentTitle()
-
-    { paymentController } = kd.singletons
-
-    paymentFinishedEvents = [
-      'UserPlanUpdated'
-      'PaypalRequestFinished'
-    ]
-
-    paymentController.on paymentFinishedEvents, @bound 'updatePaymentTitle'
-
-
-  updatePaymentTitle: ->
-
-    return  if isSoloProductLite()
-
-    { paymentController } = kd.singletons
-
-    paymentController.subscriptions (err, subscription) =>
-      title = if err or not subscription
-      then 'Upgrade plan'
-      else
-        if subscription.planTitle is 'free'
-        then 'Upgrade plan'
-        else 'Change plan'
-
-      @paymentActionLabel.updatePartial title
 
 
   hide: ->
@@ -104,13 +62,6 @@ module.exports = class AccountPopup extends AvatarPopup
     super
 
     @emit 'AvatarPopupShouldBeHidden'
-
-
-  goToPricing: (event) ->
-
-    kd.utils.stopDOMEvent event
-    kd.singletons.router.handleRoute '/Pricing'
-    @hide()
 
 
   goToSupport: (event) ->
