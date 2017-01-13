@@ -40,7 +40,7 @@ module.exports = class Sidebar extends bongo.Base
       'users.id'  : user.getId()
       'groups.id' : group.getId()
 
-    JMachine.some query, {}, (err, machines) ->
+    JMachine.some query, { sort: { _id: -1 } }, (err, machines) ->
       return callback new KodingError err  if err
 
       machineUIds = machines.map (machine) -> machine.uid

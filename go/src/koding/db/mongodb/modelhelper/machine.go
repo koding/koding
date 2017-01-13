@@ -92,7 +92,7 @@ func GetMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 	machines := []*models.Machine{}
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"users.id": userId}).All(&machines)
+		return c.Find(bson.M{"users.id": userId}).Sort("-_id").All(&machines)
 	}
 
 	err := Mongo.Run(MachinesColl, query)
@@ -395,7 +395,7 @@ func findMachineFields(query bson.M, fields []string) ([]*models.Machine, error)
 	machines := []*models.Machine{}
 
 	queryFn := func(c *mgo.Collection) error {
-		q := c.Find(query)
+		q := c.Find(query).Sort("-_id")
 
 		if fields != nil {
 			selects := bson.M{}

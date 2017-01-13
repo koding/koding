@@ -517,7 +517,7 @@ module.exports = class JMachine extends Module
       selector['users.id']  = user.getId()
       selector['groups.id'] = group.getId()
 
-      JMachine.some selector, { limit: 30 }, (err, machines) ->
+      JMachine.some selector, { limit: 30, sort: { _id: -1 } }, (err, machines) ->
         callback err, machines
 
 
