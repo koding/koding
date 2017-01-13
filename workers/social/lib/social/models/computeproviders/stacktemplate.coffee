@@ -234,7 +234,9 @@ module.exports = class JStackTemplate extends Module
 
       ComputeProvider = require './computeprovider'
       ComputeProvider.validateTemplateContent \
-        data.template, limitConfig, (err) -> callback err, replacements
+        data.template, limitConfig, (err) ->
+          return callback err  if err
+          callback null, replacements
 
 
   generateTemplateTitle = (provider) ->
