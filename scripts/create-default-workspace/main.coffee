@@ -1,6 +1,6 @@
 async          = require 'async'
 Bongo          = require 'bongo'
-{Relationship} = require 'jraphical'
+{ Relationship } = require 'jraphical'
 
 
 { join: joinPath } = require 'path'

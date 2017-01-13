@@ -22,14 +22,14 @@ emailsanitize = rekuire 'user/emailsanitize'
 
 sanitizeEmail = (user, callback) ->
 
-  {_id, email, sanitizedEmail} =  user
+  { _id, email, sanitizedEmail } =  user
 
   unless sanitizedEmail
     sanitizedEmail = emailsanitize email, excludeDots: yes, excludePlus: yes
     user.sanitizedEmail = sanitizedEmail
 
-  query   = {_id}
-  update  = $set: {sanitizedEmail}
+  query   = { _id }
+  update  = $set: { sanitizedEmail }
   options = {}
 
   JUser.update query, update, options, callback
@@ -39,7 +39,7 @@ abuseMap = {}
 
 handleAbuse = (user) ->
 
-  {_id, username, email, sanitizedEmail} = user
+  { _id, username, email, sanitizedEmail } = user
 
   entry = abuseMap[sanitizedEmail] ?=
     count     : 0
@@ -63,7 +63,7 @@ handleError = (user, err) ->
 
 getFailover = (user) ->
 
-  {email, sanitizedEmail} = user
+  { email, sanitizedEmail } = user
 
   [local, host] = email.split '@'
   [sanitizedLocal] = sanitizedEmail.split '@'
@@ -80,7 +80,7 @@ printReport = ->
 
   report = ''
   for entry in list
-    {email, count, usernames} = entry
+    { email, count, usernames } = entry
     report += "#{count} #{email}\n"
     report += usernames.join '\n'
     report += '\n\n'
@@ -98,7 +98,7 @@ koding.once 'dbClientReady', ->
 
     migrate = (user, fallback, callback) ->
 
-      {username, email, sanitizedEmail} = user
+      { username, email, sanitizedEmail } = user
 
       sanitizeEmail user, (err) ->
         return callback()  unless err

@@ -140,7 +140,7 @@ module.exports = (KONFIG, options, credentials) ->
         command         : './watch-node %(ENV_KONFIG_PROJECTROOT)s/workers/social/index.js'
       nginx             :
         locations       : [
-          { location: '/xhr'  }
+          { location: '/xhr' }
           { location: '/remote.api' }
         ]
       healthCheckURLs   : [ "http://localhost:#{KONFIG.social.port}/healthCheck" ]

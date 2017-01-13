@@ -40,7 +40,7 @@ allowInternal = '''
         deny                  all;
 '''
 
-createWebLocation = ({name, locationConf, cors}) ->
+createWebLocation = ({ name, locationConf, cors }) ->
   { location, proxyPass, internalOnly, auth, extraParams } = locationConf
     # 3 tabs are just for style
   extraParamsStr = extraParams?.join('\n\t\t\t') or ''
@@ -68,8 +68,8 @@ createWebLocation = ({name, locationConf, cors}) ->
       }
   \n"""
 
-createWebsocketLocation = ({name, locationConf, proxyPass}) ->
-  {location, proxyPass} = locationConf
+createWebsocketLocation = ({ name, locationConf, proxyPass }) ->
+  { location, proxyPass } = locationConf
   # 3 tabs are just for style
   extraParamsStr = locationConf.extraParams?.join('\n\t\t\t') or ''
   host = locationConf.host or '$host'
@@ -98,8 +98,8 @@ createWebsocketLocation = ({name, locationConf, proxyPass}) ->
       }
   \n"""
 
-createBucketLocation = ({name, locationConf, proxyPass}) ->
-  {location, proxyPass} = locationConf
+createBucketLocation = ({ name, locationConf, proxyPass }) ->
+  { location, proxyPass } = locationConf
   # 3 tabs are just for style
   extraParamsStr = locationConf.extraParams?.join('\n\t\t\t') or ''
   host = locationConf.host or '$host'
@@ -181,7 +181,7 @@ createLocations = (KONFIG) ->
       else
         cors = ''
 
-      locations += fn {name, locationConf: location, auth, cors, KONFIG}
+      locations += fn { name, locationConf: location, auth, cors, KONFIG }
 
   return locations
 
@@ -203,7 +203,7 @@ createStubLocation = (env)->
 
   return stub
 
-createAssetLocation = ({locationConf, KONFIG}) ->
+createAssetLocation = ({ locationConf, KONFIG }) ->
   { expires, relativePath, proxyPass,
     location, extraParamsStr } = locationConf
 
