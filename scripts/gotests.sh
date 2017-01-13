@@ -51,8 +51,9 @@ if [ "$1" == "socialapi" ]; then
 
   runAll $@
 
-if  [ "$1" == "kites" ]; then
+elif  [ "$1" == "kites" ]; then
     shift
+
     compile  $@
     runWithCD $@
     clean $@
