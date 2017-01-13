@@ -112,7 +112,7 @@ func (s *Supervised) call(f func(Client) error) error {
 	ctx, cancel := context.WithTimeout(ctx, s.timeout)
 	defer cancel()
 
-	if _ = <-ctx.Done(); ctx.Err() == context.DeadlineExceeded {
+	if <-ctx.Done(); ctx.Err() == context.DeadlineExceeded {
 		// Client is still disconnected. Return it as is.
 		return nil
 	}
