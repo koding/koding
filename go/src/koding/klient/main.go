@@ -152,8 +152,8 @@ func realMain() int {
 		log.Fatalf("error writing Koding metadata: %s", err)
 	}
 
-	if len(flag.Args()) != 0 {
-		if err := handleInternalCommand(flag.Arg(0)); err != nil {
+	if len(f.Args()) != 0 {
+		if err := handleInternalCommand(f.Arg(0)); err != nil {
 			log.Fatal(err)
 		}
 
