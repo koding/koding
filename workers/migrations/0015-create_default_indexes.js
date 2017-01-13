@@ -78,15 +78,6 @@ var indexes = {
       "_id": 1
     },
     "ns": "koding.jStackTemplates"
-  }, {
-    "name": "groupName_originId_slug",
-    "key": {
-      "slug": 1,
-      "group": 1,
-      "originId": 1
-    },
-    "ns": "koding.jStackTemplates",
-    "unique": true
   }],
   "jSecretNames": [{
     "name": "_id_",
