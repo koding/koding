@@ -47,14 +47,13 @@ function runAll () {
 
 if [ "$1" == "socialapi" ]; then
   shift
-  # export COMPILE_FLAGS=${COMPILE_FLAGS:-"-race"}
   export RUN_FLAGS=${RUN_FLAGS:-"-c=./go/src/socialapi/config/dev.toml"}
 
   runAll $@
 
 if  [ "$1" == "kites" ]; then
     shift
-    export COMPILE_FLAGS=${COMPILE_FLAGS:-"-race"}
+    # export COMPILE_FLAGS=${COMPILE_FLAGS:-"-race"}
 
     compile  $@
     runWithCD $@
