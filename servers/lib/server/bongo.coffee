@@ -12,8 +12,15 @@ options =
 
 cache = require('lru-cache')(options)
 
+redisClient = require('redis').createClient(
+  KONFIG.redis.port
+  KONFIG.redis.host
+  {}
+)
+
 module.exports = koding = new Bongo
   cache       : cache
+  redisClient : redisClient
   mongo       : mongoReplSet or mongo
   root        : projectRoot
   models      : 'workers/social/lib/social/models'
