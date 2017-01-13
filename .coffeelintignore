@@ -54,4 +54,5 @@ client/mocks
 client/stack-editor/lib/components
 client/stack-editor/lib/editor/index.coffee
 client/stack-editor/lib/editor/stackscriptsearchview.coffee
+docs
 node_modules
