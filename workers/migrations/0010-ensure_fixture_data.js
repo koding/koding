@@ -1423,6 +1423,11 @@ var data = {
 }
 
 exports.up = function(db, next){
+  var env = process.env.KONFIG_ENVIRONMENT;
+  if (env !== "dev" && env !== "default") {
+    return next();
+  }
+
   async.eachOfSeries(data, function (items, collName, cb) {
       coll = db.collection(collName);
       async.eachOfLimit(items, 4, function (item, i, callback) {
