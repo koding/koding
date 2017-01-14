@@ -1,7 +1,6 @@
 kd                = require 'kd'
 remote            = require('./remote')
 { htmlDecode }    = require 'htmlencode'
-isKoding          = require 'app/util/isKoding'
 KDObject          = kd.Object
 isMyNotification  = require 'app/util/isMyNotification'
 
@@ -68,7 +67,7 @@ module.exports = class PageTitleController extends KDObject
     { groupsController } = kd.singletons
 
     groupsController.ready ->
-      if ((group = groupsController.getCurrentGroup()) and not isKoding())
+      if group = groupsController.getCurrentGroup()
         title = "#{htmlDecode group.title} - Koding | #{title}"
 
       global.document.title = "#{title}"

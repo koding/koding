@@ -7,7 +7,6 @@ remote = require('./remote')
 checkFlag = require './util/checkFlag'
 whoami = require './util/whoami'
 kd = require 'kd'
-isKoding = require './util/isKoding'
 KDController = kd.Controller
 MessageEventManager = require './messageeventmanager'
 
@@ -139,12 +138,9 @@ module.exports = class SocialApiController extends KDController
 
     m = new remote.api.SocialMessage plain
 
-    m.account = if isKoding()
-      mapAccounts(accountOldId)[0]
-    else
-      if isIntegrationMessage m
-      then mapIntegration m
-      else mapAccounts(accountOldId)[0]
+    if isIntegrationMessage m
+    then mapIntegration m
+    else mapAccounts(accountOldId)[0]
 
     # since node.js(realtime) and golang(regular fetch) is returning different
     # timestamps, these are to unify all timestamp values. ~Umut
@@ -303,7 +299,7 @@ module.exports = class SocialApiController extends KDController
     # we only allow name, purpose and payload to be updated
     item.payload             = data.payload or {}
 
-    if not isKoding() and item.typeConstant in ['privatemessage', 'bot']
+    if item.typeConstant in ['privatemessage', 'bot']
       # if cache founded this is an update operation so we have to change purpose
       # with data payload description value. Otherwise this is a create private message
       # operation and we have to set item name with purpose value of data and

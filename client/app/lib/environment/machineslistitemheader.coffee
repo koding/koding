@@ -1,6 +1,5 @@
 kd           = require 'kd'
 JView        = require 'app/jview'
-isKoding     = require 'app/util/isKoding'
 
 
 module.exports = class MachinesListItemHeader extends kd.ListItemView
@@ -21,5 +20,5 @@ module.exports = class MachinesListItemHeader extends kd.ListItemView
       <div>TYPE</div>
       <div>OS</div>
       <div class='input-title'>ALWAYS ON</div>
-      #{unless isKoding() then '<div class="input-title">SHOW IN SIDEBAR</div>' else ''}
+      <div class="input-title">SHOW IN SIDEBAR</div>
     """
