@@ -21,13 +21,6 @@ require './onboardingcongratmodal.styl'
 require '../components/common/styl/toggle.styl'
 require '../components/sidebarlist/styl/sidebarlistitem.styl'
 
-# include app styles
-require './reactivity/brandcolors.styl'
-require './reactivity/buttons.styl'
-require './reactivity/mediaobject.styl'
-require './reactivity/modal.styl'
-require './reactivity/utilities.styl'
-
 # include terminal styles
 require './terminal/black-on-white.styl'
 require './terminal/gray-on-black.styl'
