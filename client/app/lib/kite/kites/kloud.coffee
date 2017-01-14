@@ -208,7 +208,7 @@ module.exports = class KodingKiteKloudKite extends require('../kodingkite')
             kontrol.kites.kloud.singleton?.reconnect?()
             @_reconnectedOnce = yes
 
-          KiteLogger.failed 'kloud', 'info'
+          KiteLogger.failed 'kloud', 'info', payload
 
         # If kite somehow unregistered from Kontrol and Kloud is failing
         # to find it in Kontrol registry we are getting this `not found`
@@ -218,7 +218,7 @@ module.exports = class KodingKiteKloudKite extends require('../kodingkite')
         else if err.message is 'not found' and currentState is Machine.State.Running
 
           @resolveRequestingInfos machineId, { State: Machine.State.Stopped }
-          KiteLogger.failed 'kloud', 'info'
+          KiteLogger.failed 'kloud', 'info', payload
 
           kd.warn '[kloud:info] failed, Kite not found in Kontrol registry!', err
 
