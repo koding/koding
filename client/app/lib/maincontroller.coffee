@@ -21,7 +21,6 @@ LinkController                 = require './linkcontroller'
 LocalStorage                   = require './localstorage'
 LocalStorageController         = require './localstoragecontroller'
 LocalSyncController            = require './localsynccontroller'
-LocationController             = require './locationcontroller'
 MainView                       = require './mainview'
 MainViewController             = require './mainviewcontroller'
 NotificationController         = require './notificationcontroller'
@@ -88,7 +87,6 @@ module.exports = class MainController extends kd.Controller
     kd.registerSingleton 'oauthController',           new OAuthController
     kd.registerSingleton 'groupsController',          new GroupsController
     kd.registerSingleton 'computeController',         new ComputeController
-    kd.registerSingleton 'locationController',        new LocationController
     kd.registerSingleton 'appStorageController',      new AppStorageController
     kd.registerSingleton 'localSync',                 new LocalSyncController
     kd.registerSingleton 'mainView',             mv = new MainView
