@@ -14,7 +14,6 @@ ApplicationManager             = require './applicationmanager'
 ComputeController              = require './providers/computecontroller'
 GroupsController               = require './maincontroller/groupscontroller'
 HelpController                 = require './maincontroller/helpcontroller'
-IdleUserDetector               = require './idleuserdetector'
 KiteCache                      = require './kite/kitecache'
 KodingAppsController           = require './kodingappscontroller'
 KodingKontrol                  = require './kite/kodingkontrol'
@@ -71,7 +70,6 @@ module.exports = class MainController extends kd.Controller
     @setFailTimer()
     @attachListeners()
 
-    @detectIdleUser()
     @setTeamCookie()
 
     @setElektronHandlers()
@@ -311,11 +309,6 @@ module.exports = class MainController extends kd.Controller
     return ->
       kd.utils.wait @getOptions().failWait, checkConnectionState
       @on 'AccountChanged', -> notification.destroy()  if notification
-
-
-  detectIdleUser: (threshold = globals.config.userIdleMs) ->
-    idleDetector = new IdleUserDetector { threshold }
-    @forwardEvents idleDetector, ['userIdle', 'userBack']
 
 
   prepareSupportShortcuts: ->
