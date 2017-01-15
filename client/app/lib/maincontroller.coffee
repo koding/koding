@@ -29,7 +29,6 @@ OnboardingController           = require './onboarding/onboardingcontroller'
 RealtimeController             = require './realtimecontroller'
 SearchController               = require './searchcontroller'
 SocialApiController            = require './socialapicontroller'
-WidgetController               = require './widgetcontroller'
 PageTitleController            = require './pagetitlecontroller'
 ShortcutsController            = require './shortcutscontroller'
 MachineShareManager            = require './machinesharemanager'
@@ -112,7 +111,6 @@ module.exports = class MainController extends kd.Controller
 
     @ready =>
       kd.registerSingleton 'search',                  new SearchController
-      kd.registerSingleton 'widgetController',        new WidgetController
 
       @emit 'AppIsReady'
 
