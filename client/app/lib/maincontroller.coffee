@@ -1,12 +1,11 @@
 kd                             = require 'kd'
 kookies                        = require 'kookies'
 globals                        = require 'globals'
-remote                         = require('./remote')
+remote                         = require './remote'
 checkGuestUser                 = require './util/checkGuestUser'
 getGroup                       = require './util/getGroup'
 setPreferredDomain             = require './util/setPreferredDomain'
 isLoggedIn                     = require './util/isLoggedIn'
-whoami                         = require './util/whoami'
 checkFlag                      = require './util/checkFlag'
 expireClientId                 = require './util/expireClientId'
 AppStorageController           = require './appstoragecontroller'
@@ -311,7 +310,7 @@ module.exports = class MainController extends kd.Controller
 
     kd.impersonate = require './util/impersonate'
     kd.remote      = remote
-    kd.whoami      = whoami
+    kd.whoami      = require './util/whoami'
 
 
   tellChatlioWidget: (method, options, callback = kd.noop) ->
