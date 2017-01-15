@@ -1,9 +1,8 @@
 kd = require 'kd'
-KDController = kd.Controller
-remote = require('./remote')
+remote = require './remote'
 
 # Responsible for emitting connection related events.
-module.exports = class Status extends KDController
+module.exports = class Status extends kd.Controller
   [NOTSTARTED, CONNECTED, RECONNECTED, DISCONNECTED] = [1..4]
   [NOTSTARTED, UP, DOWN] = [1..3]
 
