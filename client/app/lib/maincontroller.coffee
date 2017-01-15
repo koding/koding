@@ -13,7 +13,6 @@ AppStorageController           = require './appstoragecontroller'
 ApplicationManager             = require './applicationmanager'
 ComputeController              = require './providers/computecontroller'
 GroupsController               = require './maincontroller/groupscontroller'
-HelpController                 = require './maincontroller/helpcontroller'
 KiteCache                      = require './kite/kitecache'
 KodingAppsController           = require './kodingappscontroller'
 KodingKontrol                  = require './kite/kodingkontrol'
@@ -90,7 +89,6 @@ module.exports = class MainController extends kd.Controller
     kd.registerSingleton 'groupsController',          new GroupsController
     kd.registerSingleton 'computeController',         new ComputeController
     kd.registerSingleton 'locationController',        new LocationController
-    kd.registerSingleton 'helpController',            new HelpController
     kd.registerSingleton 'appStorageController',      new AppStorageController
     kd.registerSingleton 'localSync',                 new LocalSyncController
     kd.registerSingleton 'mainView',             mv = new MainView
