@@ -478,6 +478,7 @@ func run(args []string) {
 					Name:   "reset",
 					Usage:  "Resets configuration to the default value fetched from Koding.",
 					Action: ctlcli.ExitErrAction(ConfigReset, log, "set"),
+					Flags:  []cli.Flag{},
 				}},
 			},
 			cli.Command{
