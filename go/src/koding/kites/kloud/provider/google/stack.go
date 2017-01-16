@@ -16,6 +16,9 @@ import (
 //go:generate $GOPATH/bin/go-bindata -mode 420 -modtime 1475345133 -pkg google -o bootstrap.json.tmpl.go bootstrap.json.tmpl
 //go:generate go fmt bootstrap.json.tmpl.go
 
+//go:generate $GOPATH/bin/go-bindata -mode 420 -modtime 1475345133 -pkg google -o default.json.go default.json
+//go:generate go fmt default.json.go
+
 const (
 	defaultMachineType  = "n1-standard-1"   // 1vCPU, 3.75GB memory.
 	defaultMachineImage = "ubuntu-1404-lts" // From image family, size: 10GB.

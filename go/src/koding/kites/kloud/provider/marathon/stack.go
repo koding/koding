@@ -16,6 +16,9 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+//go:generate $GOPATH/bin/go-bindata -mode 420 -modtime 1475345133 -pkg marathon -o default.json.go default.json
+//go:generate go fmt default.json.go
+
 var klientPort = map[string]interface{}{
 	"container_port": 56789,
 	"host_port":      0,
