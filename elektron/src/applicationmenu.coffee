@@ -33,12 +33,12 @@ module.exports = class ApplicationMenu
       ,
         label: 'Toggle Full Screen'
         accelerator: do ->
-          if (process.platform == 'darwin')
+          if (process.platform is 'darwin')
             return 'Ctrl+Command+F'
           else
             return 'F11'
         click: (item, focusedWindow) ->
-          focusedWindow.setFullScreen !focusedWindow.isFullScreen()  if focusedWindow
+          focusedWindow.setFullScreen not focusedWindow.isFullScreen()  if focusedWindow
       ,
         label: 'Toggle Developer Tools'
         accelerator: do ->

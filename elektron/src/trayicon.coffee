@@ -89,11 +89,11 @@ module.exports = class KodingTray
       label   : 'Restart kd...'
       click   : handleOpen 'sudo kd restart', 'terminal'
       visible : @_isKdRunning
-      enabled : !@_inProgress
+      enabled : not @_inProgress
     ,
       label   : 'Refresh'
       click   : => @checkKdStatus yes
-      enabled : !@_inProgress
+      enabled : not @_inProgress
     ,
       type    : 'separator'
     ,

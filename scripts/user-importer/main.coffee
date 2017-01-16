@@ -67,7 +67,7 @@ createUsers = (users) ->
               if err
                 # RabbitMQ client is required to be initialized to send emails;
                 # however send welcome emails is not reuqired here, so we silence it.
-                if !/RabbitMQ client not found in Email/.test err
+                if not /RabbitMQ client not found in Email/.test err
                   console.log '     Failed to verify: ', err
               else
                 console.log '     Email verified.'
