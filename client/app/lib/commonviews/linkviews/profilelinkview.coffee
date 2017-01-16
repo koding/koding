@@ -3,8 +3,6 @@ kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 JView = require '../../jview'
 LinkView = require './linkview'
-isKoding = require 'app/util/isKoding'
-isSoloProductLite = require 'app/util/issoloproductlite'
 
 module.exports = class ProfileLinkView extends LinkView
 
@@ -39,10 +37,8 @@ module.exports = class ProfileLinkView extends LinkView
 
     href = if payload?.channelIntegrationId
       "/Admin/Integrations/Configure/#{payload.channelIntegrationId}"
-    else if isSoloProductLite() or not nickname or not isKoding()
-      '/#'
     else
-      "/#{nickname}"
+      '/#'
 
     @setAttribute 'href', href  if href
 

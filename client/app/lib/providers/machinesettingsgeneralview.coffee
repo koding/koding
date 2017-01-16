@@ -2,7 +2,6 @@ kd                        = require 'kd'
 KDView                    = kd.View
 Encoder                   = require 'htmlencode'
 Machine                   = require './machine'
-isKoding                  = require 'app/util/isKoding'
 showError                 = require 'app/util/showError'
 selectText                = require 'app/util/selectText'
 KodingSwitch              = require '../commonviews/kodingswitch'
@@ -11,7 +10,6 @@ CustomLinkView            = require '../customlinkview'
 CopyTooltipView           = require 'app/components/common/copytooltipview'
 KDHitEnterInputView       = kd.HitEnterInputView
 KDFormViewWithFields      = kd.FormViewWithFields
-ComputeErrorUsageModal    = require './computeerrorusagemodal'
 
 StackTemplateReadmeModal  = require 'app/stacks/stacktemplatereadmemodal'
 StackTemplateContentModal = require 'app/stacks/stacktemplatecontentmodal'
@@ -47,19 +45,13 @@ module.exports = class MachineSettingsGeneralView extends KDView
     { alwaysOn } = @form.inputs
     { computeController } = kd.singletons
 
-    computeController.fetchUserPlan (plan) =>
+    computeController.setAlwaysOn @machine, state, (err) =>
 
-      computeController.setAlwaysOn @machine, state, (err) =>
+      return  unless err
 
-        return  unless err
+      showError err
 
-        if err.name is 'UsageLimitReached' and plan isnt 'hobbyist'
-          @emit 'ModalDestroyRequested'
-          kd.utils.defer -> new ComputeErrorUsageModal { plan }
-        else
-          showError err
-
-        alwaysOn.setOff no
+      alwaysOn.setOff no
 
 
   handleNicknameUpdate: ->
@@ -256,7 +248,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
           partial       : logsMessage
         stackInfo       :
           label         : 'Stack information'
-          cssClass      : if isKoding() then 'hidden' else 'custom-link-view stack-information'
+          cssClass      : 'custom-link-view stack-information'
           itemClass     : KDView
           partial       : """
             <span class="link-view template">show template</span>

@@ -4,8 +4,6 @@ KDTabPaneView        = kd.TabPaneView
 KDTabHandleContainer = kd.TabHandleContainer
 
 Machine                      = require 'app/providers/machine'
-isKoding                     = require 'app/util/isKoding'
-isSoloProductLite            = require 'app/util/issoloproductlite'
 MachineSettingsSpecsView     = require './machinesettingsspecsview'
 MachineSettingsGuidesView    = require './machinesettingsguidesview'
 MachineSettingsGeneralView   = require './machinesettingsgeneralview'
@@ -79,15 +77,11 @@ module.exports = class MachineSettingsModal extends KDModalView
     disabledTabsForProviders    =
       managed                   : [ 'Specs', 'Domains', 'Snapshots' ]
 
-    if isSoloProductLite()
-      for item in hiddenTabsForSolo
-        PANE_CONFIG = PANE_CONFIG.filter (item) -> item.title not in hiddenTabsForSolo
-
     for item in PANE_CONFIG when item.title and item.viewClass
 
       subView    = new item.viewClass item.viewOptions, machine
       isDisabled = not isMachineRunning and disabledTabsForNotRunningVM.indexOf(item.title) > -1
-      isDisabled = disabledTabsForTeams.indexOf(item.title) > -1  unless isKoding()
+      isDisabled = disabledTabsForTeams.indexOf(item.title) > -1
 
       if machine.isManaged()
         disabledTabs = disabledTabsForProviders[machine.provider]

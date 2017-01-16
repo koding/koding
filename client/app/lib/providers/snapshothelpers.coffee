@@ -69,8 +69,6 @@ newVmFromSnapshot = (snapshot, machine, callback = kd.noop) ->
   unless snapshotId
     return kd.error 'newVmFromSnapshot: snapshot.snapshotId is required'
 
-  computeController = kd.getSingleton 'computeController'
-  
   handleNewMachineRequest
     provider   : 'koding'
     region     : region

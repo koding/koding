@@ -1,4 +1,3 @@
-isKoding                     = require 'app/util/isKoding'
 NFinderContextMenuController = require 'finder/filetree/controllers/nfindercontextmenucontroller'
 NSetPermissionsView          = require 'finder/filetree/itemsubviews/nsetpermissionsview'
 
@@ -22,8 +21,6 @@ module.exports = class IDEFinderContextMenuController extends NFinderContextMenu
         children                  : @getTopFolderItems fileView
       'Make this the top folder'  :
         action                    : 'makeTopFolder'
-      'Workspace from here'       :
-        action                    : 'createWorkspace'
       'Terminal from here'        :
         action                    : 'createTerminal'
         separator                 : yes
@@ -55,8 +52,5 @@ module.exports = class IDEFinderContextMenuController extends NFinderContextMenu
       delete items.Expand
     else
       delete items.Collapse
-
-    if not fileData.machine.isMine() or not isKoding()
-      delete items['Workspace from here']
 
     return items

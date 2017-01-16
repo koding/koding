@@ -5,7 +5,6 @@ KDCustomHTMLView = kd.CustomHTMLView
 ErrorlessImageView = require '../../errorlessimageview'
 JView = require '../../jview'
 LinkView = require '../linkviews/linkview'
-isKoding = require '../../util/isKoding'
 TeamFlux = require 'app/flux/teams'
 globals = require 'globals'
 
@@ -24,29 +23,6 @@ module.exports = class AvatarView extends LinkView
     options.detailed        ?= no
     options.showStatus     or= no
     options.statusDiameter or= 5
-
-    # XXX: commented out due to circular conflict
-    # Avatarview -> AvatarTooltipView -> AvatarStaticView -> AvatarView
-    # -og
-    #
-    # this needs to be pre-super
-    #if options.detailed
-      #@detailedAvatar   =
-        #constructorName : AvatarTooltipView
-        #options         :
-          #delegate      : this
-          #origin        : options.origin
-        #data            : data
-
-      #options.tooltip or= {}
-      #options.tooltip.view         or= if options.detailed
-      #then @detailedAvatar
-      #else null
-
-      #options.tooltip.cssClass     or= 'avatar-tooltip'
-      #options.tooltip.animate       ?= yes
-      #options.tooltip.placement    or= 'top'
-      #options.tooltip.direction    or= 'right'
 
     @dpr              = global.devicePixelRatio ? 1
     { width, height } = options.size
@@ -161,28 +137,25 @@ module.exports = class AvatarView extends LinkView
 
       return  unless account = @getData()
 
-      unless isKoding()
-        return  if account.fake
+      return  if account.fake
 
-        roles =  globals.userRoles
-        hasOwner = 'owner' in roles
-        hasAdmin = 'admin' in roles
-        userRole = if hasOwner then 'owner' else if hasAdmin then 'admin' else 'member'
+      roles =  globals.userRoles
+      hasOwner = 'owner' in roles
+      hasAdmin = 'admin' in roles
+      userRole = if hasOwner then 'owner' else if hasAdmin then 'admin' else 'member'
 
-        return  if userRole is 'member'
+      return  if userRole is 'member'
 
-        @badge.clear()
-        @badge.setClass userRole
-        @badge.setAttribute 'title', userRole
-        @badge.setPartial userRole.capitalize()
-        @badge.show()
+      @badge.clear()
+      @badge.setClass userRole
+      @badge.setAttribute 'title', userRole
+      @badge.setPartial userRole.capitalize()
+      @badge.show()
 
       href = if payload?.channelIntegrationId
         "/Admin/Integrations/Configure/#{payload.channelIntegrationId}"
       else
-        if isKoding() and nickname = account.profile
-        then "/#{nickname}"
-        else '/#'
+        '/#'
 
       @setAttribute 'href', href
 

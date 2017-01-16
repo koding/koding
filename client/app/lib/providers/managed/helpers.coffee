@@ -3,7 +3,6 @@ remote   = require 'app/remote'
 globals  = require 'globals'
 
 nick     = require 'app/util/nick'
-isKoding = require 'app/util/isKoding'
 
 # Not exported
 getIp = (url) ->
@@ -45,9 +44,6 @@ queryKites = ->
 ensureManagedStack = (callback) ->
 
   { computeController } = kd.singletons
-
-  if isKoding()
-    return callback null, computeController.stacks.first
 
   title = 'Managed VMs'
 
