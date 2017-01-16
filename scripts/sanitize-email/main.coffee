@@ -25,11 +25,11 @@ sanitizeEmail = (user, callback) ->
   { _id, email, sanitizedEmail } =  user
 
   unless sanitizedEmail
-    sanitizedEmail = emailsanitize email, excludeDots: yes, excludePlus: yes
+    sanitizedEmail = emailsanitize email, { excludeDots: yes, excludePlus: yes }
     user.sanitizedEmail = sanitizedEmail
 
   query   = { _id }
-  update  = $set: { sanitizedEmail }
+  update  = { $set: { sanitizedEmail } }
   options = {}
 
   JUser.update query, update, options, callback
@@ -90,7 +90,7 @@ printReport = ->
 
 koding.once 'dbClientReady', ->
 
-  fields = _id: 1, username: 1, email: 1, sanitizedEmail: 1
+  fields = { _id: 1, username: 1, email: 1, sanitizedEmail: 1 }
 
   JUser.someData {}, fields, {}, (err, cursor) ->
 

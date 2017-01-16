@@ -31,7 +31,7 @@ createUsers = (users) ->
 
       console.log "\nCreating #{u.username} ... "
 
-      JUser.count username: u.username, (err, count) ->
+      JUser.count { username: u.username }, (err, count) ->
 
         if err then return console.error 'Failed to query count:', err
 
@@ -79,9 +79,10 @@ createUsers = (users) ->
                 if err then console.log '     Failed to add: ', err
                 else        console.log "     Joined to group #{u.group}."
 
-                client =
-                  connection : delegate : account
-                  context    : group    : u.group
+                client = {
+                  connection : { delegate : account }
+                  context    : { group    : u.group }
+                }
 
                 ComputeProvider.createGroupStack client, (err) ->
 

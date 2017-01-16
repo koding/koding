@@ -80,7 +80,7 @@ module.exports = class KodingTray
   setMenu: (menu = [], show = no) ->
 
     if typeof menu is 'string'
-      menu = [ label: menu, enabled: no ]
+      menu = [ { label: menu, enabled: no } ]
 
     menuItems = [
       type    : 'separator'
@@ -202,7 +202,7 @@ module.exports = class KodingTray
           out = JSON.parse stdout
           callback null, out
         catch e
-          callback message: 'Failed to parse:', err: e
+          callback { message: 'Failed to parse:', err: e }
       else
         callback null, stdout
 

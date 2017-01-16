@@ -39,7 +39,7 @@ module.exports = ->
   new IPCReporter mainWindow
 
   # Prepare AppStorage
-  storage = new Storage template : STORAGE_TEMPLATE
+  storage = new Storage { template : STORAGE_TEMPLATE }
 
   syncStorage = (callback = (->)) ->
 

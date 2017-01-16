@@ -25,7 +25,7 @@ koding.once 'dbClientReady', ->
 
   fetchAccount = (username, callback) ->
 
-    JAccount.one 'profile.nickname': username, callback
+    JAccount.one { 'profile.nickname': username }, callback
 
 
   createDefaultWorkspace = (machine, callback) ->
@@ -68,7 +68,7 @@ koding.once 'dbClientReady', ->
         return next()  if workspace
         return next()  unless account
 
-        client = connection: delegate: account
+        client = { connection: { delegate: account } }
 
         process.stdout.write 'Creating default workspace'
 
@@ -84,7 +84,7 @@ koding.once 'dbClientReady', ->
     async.series queue, callback
 
 
-  fields = _id: 1, uid: 1, credential: 1, label: 1
+  fields = { _id: 1, uid: 1, credential: 1, label: 1 }
 
   JMachine.someData {}, fields, {}, (err, cursor) ->
 
