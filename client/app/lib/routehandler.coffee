@@ -9,7 +9,6 @@ whoami         = require './util/whoami'
 nick           = require './util/nick'
 showError      = require 'app/util/showError'
 
-EnvironmentsModal       = require 'app/environment/environmentsmodal'
 MachineSettingsModal    = require 'app/providers/machinesettingsmodal'
 ShortcutsModal = require 'app/shortcuts/shortcutsmodalview'
 
@@ -86,10 +85,6 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
       recoverPath.clear()
       kd.singletons.mainController.doLogout()
       global.location.href = path
-
-     when 'my-machines'
-      { stackId } = info.params
-      new EnvironmentsModal { selected: stackId }
 
     when 'request-collaboration'
       { nickname, channelId } = info.params
