@@ -1,0 +1,26 @@
+{
+  "provider": {
+    "marathon": {
+      "basic_auth_password": "${var.marathon_basic_auth_password}",
+      "basic_auth_user": "${var.marathon_basic_auth_user}",
+      "url": "${var.marathon_url}"
+    }
+  },
+  "resource": {
+    "marathon_app": {
+      "app": {
+        "container": {
+          "docker": [
+            {
+              "image": "${var.userInput_image}",
+              "network": "BRIDGE"
+            }
+          ]
+        },
+        "cpus": "${var.userInput_cpus}",
+        "instances": 1,
+        "mem": "${var.userInput_mem}"
+      }
+    }
+  }
+}
