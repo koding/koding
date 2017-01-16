@@ -171,7 +171,7 @@ createLocations = (KONFIG) ->
         auth = options.nginx.auth
 
       if KONFIG.configName is 'dev'
-        cors = 'add_header 'Access-Control-Allow-Origin' '*' always;'
+        cors = "add_header 'Access-Control-Allow-Origin' '*' always;"
       else if location.cors
         cors = """
         if ($http_origin ~* (.*\.)*#{_.escapeRegExp KONFIG.domains.main}) {
