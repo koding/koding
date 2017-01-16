@@ -59,7 +59,7 @@ func TestSupervisedWait(t *testing.T) {
 	select {
 	case <-hitC:
 		if err == client.ErrDisconnected {
-			t.Fatalf("want err != %[1]v; got %[1]v", client.ErrDisconnected)
+			t.Fatal("want err != client.ErrDisconnected")
 		}
 	case <-time.After(time.Second):
 		t.Fatalf("test timed out after 1s")
