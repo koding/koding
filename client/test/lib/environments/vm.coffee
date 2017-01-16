@@ -96,7 +96,7 @@ module.exports =
       environmentHelpers.openResizeVmModal(browser)
       browser.waitForElementVisible confirmSelector, 20000
 
-      browser.getAttribute confirmSelector, "disabled", (res)->
+      browser.getAttribute confirmSelector, "disabled", (res) ->
         if res.value
 
           browser.click upgradeSelector

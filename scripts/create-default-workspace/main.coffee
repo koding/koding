@@ -9,7 +9,7 @@ KONFIG    = require 'koding-config-manager'
 mongo     = "mongodb://#{ KONFIG.mongo }"
 
 modelPath = '../../workers/social/lib/social/models'
-rekuire   = (p)-> require joinPath modelPath, p
+rekuire   = (p) -> require joinPath modelPath, p
 
 koding = new Bongo
   root   : __dirname

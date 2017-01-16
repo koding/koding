@@ -17,7 +17,7 @@ WebTermView = require '../terminal/webtermview'
 #             cssClass: "solid light-gray medium"
 #             callback: -> modal.showTerminal()
 #
-# modal.on "terminal.event", (data)->
+# modal.on "terminal.event", (data) ->
 #     alert data
 #
 # modal.on "terminal.terminated", ->

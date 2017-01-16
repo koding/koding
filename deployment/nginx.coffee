@@ -185,7 +185,7 @@ createLocations = (KONFIG) ->
 
   return locations
 
-createStubLocation = (env)->
+createStubLocation = (env) ->
   stub = '''\n
       # nginx status location, it retuns info about connections and requests
       location /nginx_status {
@@ -227,7 +227,7 @@ createAssetLocation = ({ locationConf, KONFIG }) ->
   \n"""
 
 
-module.exports.create = (KONFIG, environment)->
+module.exports.create = (KONFIG, environment) ->
   workers = KONFIG.workers
 
   event_mechanism = switch process.platform

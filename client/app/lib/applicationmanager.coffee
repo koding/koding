@@ -392,7 +392,7 @@ class ApplicationManager extends KDObject
       else optionSet.lastActiveIndex = index
 
 
-  # setGroup:-> console.log 'setGroup', arguments
+  # setGroup: -> console.log 'setGroup', arguments
 
 
   # temp

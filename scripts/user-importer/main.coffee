@@ -1,5 +1,5 @@
 
-createUsers = (users)->
+createUsers = (users) ->
 
   Bongo     = require 'bongo'
 
@@ -13,7 +13,7 @@ createUsers = (users)->
     mongo = process.env.MONGO_URL
 
   modelPath = '../../workers/social/lib/social/models'
-  rekuire   = (p)-> require joinPath modelPath, p
+  rekuire   = (p) -> require joinPath modelPath, p
 
   koding = new Bongo
     root   : __dirname
@@ -27,11 +27,11 @@ createUsers = (users)->
     ComputeProvider      = rekuire 'computeproviders/computeprovider.coffee'
     JUser                = rekuire 'user/index.coffee'
 
-    createUser = (u, next)->
+    createUser = (u, next) ->
 
       console.log "\nCreating #{u.username} ... "
 
-      JUser.count username: u.username, (err, count)->
+      JUser.count username: u.username, (err, count) ->
 
         if err then return console.error 'Failed to query count:', err
 
@@ -39,7 +39,7 @@ createUsers = (users)->
           console.log "  User #{u.username} already exists, passing."
           return next()
 
-        JUser.createUser u, (err, user, account)->
+        JUser.createUser u, (err, user, account) ->
 
           if err
 
@@ -53,7 +53,7 @@ createUsers = (users)->
             $set          :
               type        : 'registered'
               globalFlags : ['super-admin']
-          }, (err)->
+          }, (err) ->
 
             if err?
               console.log "  Failed to activate #{u.username}:", err
@@ -62,7 +62,7 @@ createUsers = (users)->
             console.log "  User #{user.username} created."
             console.log '\n   - Verifying email ...'
 
-            user.confirmEmail (err)->
+            user.confirmEmail (err) ->
 
               if err
                 # RabbitMQ client is required to be initialized to send emails;
@@ -74,7 +74,7 @@ createUsers = (users)->
 
               console.log "\n   - Adding to group #{u.group} ..."
 
-              JUser.addToGroup account, u.group, u.email, null, (err)->
+              JUser.addToGroup account, u.group, u.email, null, (err) ->
 
                 if err then console.log '     Failed to add: ', err
                 else        console.log "     Joined to group #{u.group}."
@@ -83,7 +83,7 @@ createUsers = (users)->
                   connection : delegate : account
                   context    : group    : u.group
 
-                ComputeProvider.createGroupStack client, (err)->
+                ComputeProvider.createGroupStack client, (err) ->
 
                   if err then console.log '     Failed to create stack: ', err
                   else        console.log "     Default stack created for #{u.group}."

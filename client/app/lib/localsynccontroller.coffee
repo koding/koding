@@ -15,7 +15,7 @@ module.exports = class LocalSyncController extends KDController
     @openedFiles = @storage.getValue('openedFiles') or []
 
     # if @filesToSave.length > 0
-    #   @syncLocalContentIfDiffExists (res)-> log "Synced"
+    #   @syncLocalContentIfDiffExists (res) -> log "Synced"
 
     @initializeListeners()
 
@@ -23,7 +23,7 @@ module.exports = class LocalSyncController extends KDController
     remote.on 'reconnected', =>
       return  if @synStarted
       @synStarted = yes
-      # @syncLocalContentIfDiffExists (err)=>
+      # @syncLocalContentIfDiffExists (err) =>
       #   @synStarted = no
       #   showError err if err
 

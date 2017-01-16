@@ -25,7 +25,7 @@ groupToEnv =
   'bucket'      : envs
   'static'      : envs
 
-module.exports.isAllowed = (group, env)->
+module.exports.isAllowed = (group, env) ->
   # if group name is not in groupToEnv
   unless groupToEnv[group]
     console.error "#{group} is not defined in groupToEnv map"
@@ -34,4 +34,4 @@ module.exports.isAllowed = (group, env)->
   return env in groupToEnv[group]
 
 # isProxy returns true if given env is in proxies
-module.exports.isProxy = (env)-> return env in proxies
+module.exports.isProxy = (env) -> return env in proxies
