@@ -1,3 +1,5 @@
+# coffeelint: disable=cyclomatic_complexity
+
 Bongo                   = require 'bongo'
 async                   = require 'async'
 { join: joinPath }      = require 'path'

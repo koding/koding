@@ -1,4 +1,5 @@
 #!/usr/bin/env coffee
+# coffeelint: disable=cyclomatic_complexity
 
 require 'coffee-cache'
 
