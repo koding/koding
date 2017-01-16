@@ -5,7 +5,6 @@ actions         = require 'app/flux/environment/actions'
 Machine         = require 'app/providers/machine'
 lazyrouter      = require 'app/lazyrouter'
 dataProvider    = require 'app/userenvironmentdataprovider'
-isTeamReactSide = require 'app/util/isTeamReactSide'
 
 
 selectWorkspaceOnSidebar = (data) ->
@@ -16,10 +15,7 @@ selectWorkspaceOnSidebar = (data) ->
 
   return no if not machine or not workspace
 
-  if isTeamReactSide()
-    actions.setSelectedWorkspaceId workspace._id
-  else
-    kd.getSingleton('mainView').activitySidebar.selectWorkspace data
+  actions.setSelectedWorkspaceId workspace._id
 
   storage = kd.singletons.localStorageController.storage 'IDE'
 

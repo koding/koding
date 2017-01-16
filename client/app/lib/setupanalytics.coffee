@@ -37,7 +37,7 @@ setupPageAnalyticsEvent = ->
     return  unless path
 
     title = getFirstPartOfpath(path)
-    analytics?.page(title, { title:document.title, path })
+    analytics?.page(title, { title: document.title, path })
 
 getFirstPartOfpath = (path) -> return path.split('/')[1] or path
 
@@ -49,7 +49,7 @@ setupRollbar = ->
       guess_uncaught_frames: true
       code_version:          globals.config.version } }
 
-module.exports = ->
+module.exports = setupAnalytics = ->
 
   if globals.config.sendEventsToSegment
     setupIdentify()

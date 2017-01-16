@@ -73,7 +73,7 @@ module.exports = (KONFIG, options, credentials) ->
             proxyPass   : "http://kontrol/$1$is_args$args"
           }
         ]
-      healthCheckURL    : "http://localhost:#{KONFIG.kontrol.port}/healthCheck"
+      healthCheckURLs   : [ "http://localhost:#{KONFIG.kontrol.port}/healthCheck" ]
       versionURL        : "http://localhost:#{KONFIG.kontrol.port}/version"
 
     kloud               :
@@ -90,14 +90,14 @@ module.exports = (KONFIG, options, credentials) ->
             proxyPass   : "http://kloud/$1$is_args$args"
           }
         ]
-      healthCheckURL    : "http://localhost:#{KONFIG.kloud.port}/healthCheck"
+      healthCheckURLs   : [ "http://localhost:#{KONFIG.kloud.port}/healthCheck" ]
       versionURL        : "http://localhost:#{KONFIG.kloud.port}/version"
 
     terraformer         :
       group             : "environment"
       supervisord       :
         command         : "#{GOBIN}/terraformer"
-      healthCheckURL    : "http://localhost:#{KONFIG.terraformer.port}/healthCheck"
+      healthCheckURLs   : [ "http://localhost:#{KONFIG.terraformer.port}/healthCheck" ]
       versionURL        : "http://localhost:#{KONFIG.terraformer.port}/version"
 
     webserver           :
@@ -107,6 +107,10 @@ module.exports = (KONFIG, options, credentials) ->
         outgoing        : "#{KONFIG.webserver.kitePort}"
       supervisord       :
         command         : "./watch-node %(ENV_KONFIG_PROJECTROOT)s/servers/index.js"
+      healthCheckURLs   : [
+          "http://localhost:#{options.publicPort}/swagger.json"
+          "http://localhost:#{options.publicPort}/apidocs"
+      ]
       nginx             :
         locations       : [
           {
@@ -139,7 +143,7 @@ module.exports = (KONFIG, options, credentials) ->
           { location: "/xhr"  }
           { location: "/remote.api" }
         ]
-      healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
+      healthCheckURLs   : [ "http://localhost:#{KONFIG.social.port}/healthCheck" ]
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
     socialapi:
@@ -151,7 +155,7 @@ module.exports = (KONFIG, options, credentials) ->
         command         :
           run           : "#{GOBIN}/api -port=#{KONFIG.socialapi.port}"
           watch         : "make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi apidev"
-      healthCheckURL    : "#{KONFIG.socialapi.proxyUrl}/healthCheck"
+      healthCheckURLs   : [ "#{KONFIG.socialapi.proxyUrl}/healthCheck" ]
       versionURL        : "#{KONFIG.socialapi.proxyUrl}/version"
       nginx             :
         locations       : [
@@ -246,7 +250,7 @@ module.exports = (KONFIG, options, credentials) ->
         command         :
           run           : "#{GOBIN}/gatekeeper"
           watch         : "make -C %(ENV_KONFIG_PROJECTROOT)s/go/src/socialapi gatekeeperdev"
-      healthCheckURL    : "#{options.customDomain.local}/api/gatekeeper/healthCheck"
+      healthCheckURLs   : [ "#{options.customDomain.local}/api/gatekeeper/healthCheck" ]
       versionURL        : "#{options.customDomain.local}/api/gatekeeper/version"
       nginx             :
         locations       : [
@@ -286,7 +290,7 @@ module.exports = (KONFIG, options, credentials) ->
         command         : "#{GOBIN}/tunnelserver"
       ports             :
         incoming        : "#{KONFIG.tunnelserver.port}"
-      healthCheckURL    : "http://tunnelserver/healthCheck"
+      healthCheckURLs   : [ "http://tunnelserver/healthCheck" ]
       versionURL        : "http://tunnelserver/version"
       nginx             :
         websocket       : yes

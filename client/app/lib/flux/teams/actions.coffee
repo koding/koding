@@ -9,7 +9,6 @@ getters     = require './getters'
 Promise     = require 'bluebird'
 immutable   = require 'immutable'
 Tracker     = require 'app/util/tracker'
-isKoding    = require 'app/util/isKoding'
 isEmailValid = require 'app/util/isEmailValid'
 s3upload = require 'app/util/s3upload'
 kookies = require 'kookies'
@@ -214,8 +213,6 @@ handleKickMember = (member) ->
 
   { groupsController, reactor } = kd.singletons
   team = groupsController.getCurrentGroup()
-
-  return  if isKoding team
 
   memberId = member.get '_id'
 

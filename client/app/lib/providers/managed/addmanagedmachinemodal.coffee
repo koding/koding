@@ -3,7 +3,6 @@ whoami          = require 'app/util/whoami'
 globals         = require 'globals'
 actions         = require 'app/flux/environment/actions'
 KodingKontrol   = require 'app/kite/kodingkontrol'
-isTeamReactSide = require 'app/util/isTeamReactSide'
 CopyTooltipView = require 'app/components/common/copytooltipview'
 ContentModal = require 'app/components/contentModal'
 copyToClipboard = require 'app/util/copyToClipboard'
@@ -57,10 +56,7 @@ module.exports = class AddManagedMachineModal extends ContentModal
 
   machineFoundCallback: (info, machine) ->
 
-    if isTeamReactSide()
-      actions.showManagedMachineAddedModal info, machine._id
-    else
-      kd.singletons.mainView.activitySidebar.showManagedMachineAddedModal info, machine
+    actions.showManagedMachineAddedModal info, machine._id
 
     @destroy()
 
@@ -150,4 +146,3 @@ module.exports = class AddManagedMachineModal extends ContentModal
 
     cc = kd.singletons.computeController
     cc.managedKiteChecker.removeListener @bound 'machineFoundCallback'
-    kd.singletons.router.back()  unless isTeamReactSide()

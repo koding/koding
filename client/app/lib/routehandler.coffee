@@ -5,7 +5,6 @@ remote         = require('./remote')
 globals        = require 'globals'
 
 lazyrouter     = require './lazyrouter'
-isKoding       = require './util/isKoding'
 whoami         = require './util/whoami'
 nick           = require './util/nick'
 showError      = require 'app/util/showError'
