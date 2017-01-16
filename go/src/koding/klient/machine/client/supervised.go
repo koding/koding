@@ -31,13 +31,12 @@ func NewSupervised(dcf DynamicClientFunc, timeout time.Duration) *Supervised {
 // result if it's not produced by Disconnected client. If it is, this function
 // will wait until valid client is available or timeout is reached.
 func (s *Supervised) CurrentUser() (user string, err error) {
-	if e := s.call(func(c Client) error {
+	fn := func(c Client) error {
 		user, err = c.CurrentUser()
 		return err
-	}); e != nil {
-		return "", e
 	}
 
+	err = s.call(fn)
 	return
 }
 
@@ -45,27 +44,23 @@ func (s *Supervised) CurrentUser() (user string, err error) {
 // if it's not produced by Disconnected client. If it is, this function will
 // wait until valid client is available or timeout is reached.
 func (s *Supervised) SSHAddKeys(username string, keys ...string) (err error) {
-	if e := s.call(func(c Client) error {
-		err = c.SSHAddKeys(username, keys...)
-		return err
-	}); e != nil {
-		return e
+	fn := func(c Client) error {
+		return c.SSHAddKeys(username, keys...)
 	}
 
-	return
+	return s.call(fn)
 }
 
 // MountHeadIndex calls registered Client's MountHeadIndex method and returns
 // its result if it's not produced by Disconnected client. If it is, this
 // function will wait until valid client is available or timeout is reached.
 func (s *Supervised) MountHeadIndex(path string) (absPath string, count int, diskSize int64, err error) {
-	if e := s.call(func(c Client) error {
+	fn := func(c Client) error {
 		absPath, count, diskSize, err = c.MountHeadIndex(path)
 		return err
-	}); e != nil {
-		return "", 0, 0, e
 	}
 
+	err = s.call(fn)
 	return
 }
 
@@ -73,13 +68,12 @@ func (s *Supervised) MountHeadIndex(path string) (absPath string, count int, dis
 // result if it's not produced by Disconnected client. If it is, this function
 // will wait until valid client is available or timeout is reached.
 func (s *Supervised) MountGetIndex(path string) (idx *index.Index, err error) {
-	if e := s.call(func(c Client) error {
+	fn := func(c Client) error {
 		idx, err = c.MountGetIndex(path)
 		return err
-	}); e != nil {
-		return nil, e
 	}
 
+	err = s.call(fn)
 	return
 }
 
@@ -114,7 +108,7 @@ func (s *Supervised) call(f func(Client) error) error {
 
 	if <-ctx.Done(); ctx.Err() == context.DeadlineExceeded {
 		// Client is still disconnected. Return it as is.
-		return nil
+		return ErrDisconnected
 	}
 
 	// Previous context was canceled. This means that the client changed.
