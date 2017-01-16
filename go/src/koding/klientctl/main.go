@@ -477,8 +477,13 @@ func run(args []string) {
 				}, {
 					Name:   "reset",
 					Usage:  "Resets configuration to the default value fetched from Koding.",
-					Action: ctlcli.ExitErrAction(ConfigReset, log, "set"),
-					Flags:  []cli.Flag{},
+					Action: ctlcli.ExitErrAction(ConfigReset, log, "reset"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "force",
+							Usage: "Force retrieving configuration from Koding.",
+						},
+					},
 				}},
 			},
 			cli.Command{

@@ -173,7 +173,6 @@ func ConfigReset(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	}
 
 	if err := cfg.Reset(opts); err != nil {
-		fmt.Fprintln(os.Stderr, "Error resetting configuration:", err)
 		return 1, err
 	}
 
