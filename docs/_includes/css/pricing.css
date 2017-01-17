@@ -805,6 +805,11 @@ a:hover {
 .Pricing-PriceSegment--price span.first-line cite {
   font-size: 24px;
 }
+.Pricing-PriceSegment--price span.first-line i {
+  font-size: 24px;
+  font-weight: 300;
+  opacity: .5;
+}
 
 .Pricing-PriceSegment--price span.second-line {
   font-weight: 300;
