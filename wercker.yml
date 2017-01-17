@@ -60,7 +60,7 @@ build:
         code: touch INSTANCE_DATA
     - script:
         name: run coffeelint
-        code: scripts/wercker/run-command scripts/lint-coffeescript.sh
+        code: scripts/wercker/run-command node_modules/coffeelint/bin/coffeelint --quiet .
     - script:
         name: launch test hosts
         code: |
