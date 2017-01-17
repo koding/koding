@@ -13,9 +13,9 @@ module.exports =
     "digitalocean_droplet": {
       "do-instance": {
         "name": "koding-${var.koding_group_slug}-${var.koding_stack_id}-${count.index+1}",
-        "size": "512mb",
-        "region": "nyc2",
-        "image": "ubuntu-14-04-x64",
+        "size": "${var.userInput_size}",
+        "region": "${var.userInput_region}",
+        "image": "${var.userInput_image}",
         "user_data": "\\necho \\\"hello world!\\\" >> /helloworld.txt\\n"
       }
     }
@@ -40,11 +40,11 @@ resource:
       # and this is its identifier (required)
       name: 'koding-${var.koding_group_slug}-${var.koding_stack_id}-${count.index+1}'
       # select your instance_type here: eg. 512mb
-      size: 512mb
+      size: '${var.userInput_size}'
       # select your instance zone which must be in provided region: eg. nyc2
-      region: nyc2
+      region: '${var.userInput_region}'
       # base image for your droplet
-      image: ubuntu-14-04-x64
+      image: '${var.userInput_image}'
       # on user_data section we will write bash and configure our VM
       user_data: |-
         # let's create a file on your root folder:
@@ -57,3 +57,9 @@ resource:
         # for more information please use the search box above
 
     '''
+
+  # Defaults for userInputs
+  user_inputs:
+    size: '512mb'
+    image: 'ubuntu-14-04-x64'
+    region: 'nyc2'
