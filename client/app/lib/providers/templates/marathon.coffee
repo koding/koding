@@ -39,9 +39,9 @@ module.exports =
 
 provider:
   marathon:
-    url: "${var.marathon_url}"
-    basic_auth_user: "${var.marathon_basic_auth_user}"
-    basic_auth_password: "${var.marathon_basic_auth_password}"
+    url: '${var.marathon_url}'
+    basic_auth_user: '${var.marathon_basic_auth_user}'
+    basic_auth_password: '${var.marathon_basic_auth_password}'
 
 resource:
   marathon_app:
