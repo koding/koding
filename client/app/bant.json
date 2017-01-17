@@ -13,7 +13,6 @@
     "/:slug/:name": "members",
     "/member/:username": "member",
     "/Unsubscribe/:email/:opt?": "unsubscribe",
-    "/:name": "name",
     "/Reset/:token": "reset",
     "/Shortcuts": "shortcuts",
     "/Collaboration/:nickname/:channelId": "request-collaboration"
