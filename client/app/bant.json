@@ -4,15 +4,11 @@
   "routes": {
     "": "home",
     "/": "home",
-    "/R/:username": "referrer",
     "/Teams/:token?": "teams",
     "/Login": "login",
     "/Register": "register",
     "/Logout": "logout",
     "/logout": "logout",
-    "/:slug/:name": "members",
-    "/member/:username": "member",
-    "/Unsubscribe/:email/:opt?": "unsubscribe",
     "/Reset/:token": "reset",
     "/Shortcuts": "shortcuts",
     "/Collaboration/:nickname/:channelId": "request-collaboration"

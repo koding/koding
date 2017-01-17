@@ -1,7 +1,7 @@
 kd             = require 'kd'
 KDRouter       = kd.Router
 
-remote         = require('./remote')
+remote         = require './remote'
 globals        = require 'globals'
 
 lazyrouter     = require './lazyrouter'
@@ -48,11 +48,6 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
         kd.singletons.router.handleRoute redirectTo
       else handleRoot()
 
-    when 'referrer'
-      { params:{ username } } = info
-      # give a notification to tell that this is a referral link here - SY
-      handleRoot()
-
     when 'home' then handleRoot()
 
     when 'teams'
@@ -71,11 +66,6 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
 
     when 'shortcuts'
       new ShortcutsModal
-
-    when 'unsubscribe'
-      { opt } = info.params
-      { router } = kd.singletons
-      router.handleRoute "/Account/Email?unsubscribe=#{opt}"
 
 
 requestCollaboration = ({ nickname, channelId }) ->
