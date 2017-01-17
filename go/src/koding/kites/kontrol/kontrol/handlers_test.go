@@ -143,7 +143,7 @@ func TestFilterResult(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			t.Parallel()
+			// t.Parallel()
 			filterRes := filterResult(test.getKodingKitesResult, test.groups, test.kitesByGroupID)
 			if len(test.response.Kites) != len(filterRes.Kites) {
 				t.Fatalf("len expected %d, got %d", len(test.response.Kites), len(filterRes.Kites))
