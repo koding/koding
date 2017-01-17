@@ -1305,7 +1305,7 @@ module.exports = class SocialApiController extends KDController
         endPoint :  "/Impersonate/#{username}?_csrf=#{csrfToken}"
         async    : yes
       , callback
-      
+
     fetchChannels        : (callback) ->
 
       doXhrRequest

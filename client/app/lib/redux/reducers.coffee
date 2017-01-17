@@ -25,5 +25,3 @@ exports.inject = inject = (store, { key, reducer }) ->
 
   store.reducers[key] = reducer
   store.replaceReducer(make store.reducers)
-
-

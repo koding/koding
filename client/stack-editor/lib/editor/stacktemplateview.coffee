@@ -59,4 +59,3 @@ module.exports = class StackTemplateView extends kd.View
   setReadOnly: ->
     @setClass 'readonly'
     @editorView.aceView.ace.editor.setReadOnly yes
-

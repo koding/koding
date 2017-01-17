@@ -24,5 +24,3 @@ module.exports = SuspendedMemberModal = (props) ->
     secondaryButtonTitle='Logout'
     onSecondaryButtonClick={onSecondaryButtonClick}
   />
-
-

@@ -60,4 +60,3 @@ module.exports = class TeamInvitationInputValuesStore extends KodingFluxStore
     return state  if empties.size
 
     return state.set(state.size, createRecord no, 'member')
-

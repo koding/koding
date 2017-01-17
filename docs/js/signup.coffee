@@ -129,4 +129,3 @@ do ->
         .catch -> setButtonLoading $submitButton, false
 
       return false
-

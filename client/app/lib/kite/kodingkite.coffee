@@ -201,4 +201,3 @@ module.exports = class KodingKite extends kd.Object
 
         resolve @waitingCalls[cid]
         delete  @waitingCalls[cid]
-

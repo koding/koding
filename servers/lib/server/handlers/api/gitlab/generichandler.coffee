@@ -38,4 +38,3 @@ module.exports = class GenericHandler
       else
 
         { error: apiErrors.notImplementedError }
-

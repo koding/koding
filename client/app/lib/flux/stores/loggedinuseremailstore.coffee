@@ -13,4 +13,5 @@ module.exports = class LoggedInUserEmailStore extends KodingFluxStore
     @on actions.LOAD_LOGGED_IN_USER_EMAIL_SUCCESS, @load
 
 
-  load: (oldEmail, { email }) -> toImmutable email
+  load: (oldEmail, { email }) ->
+    toImmutable email

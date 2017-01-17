@@ -67,4 +67,3 @@ do ->
   $('li a[href="#"]').on 'click', (event) ->
     event.preventDefault()
     $(this).parent().find('> ul').show()
-

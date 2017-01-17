@@ -85,5 +85,3 @@ makeValidators = (isAmex) ->
     exp_month: fieldValidator 'expirationMonth'
     exp_year: fieldValidator 'expirationYear'
   }
-
-

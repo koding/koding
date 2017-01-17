@@ -36,4 +36,3 @@ module.exports = class VerifyEmailWarning extends React.Component
         </Col>
       </Row>
     </Box>
-

@@ -146,4 +146,3 @@ module.exports = connect(
 
 
 assign = (args...) -> _.assign {}, args...
-

@@ -127,7 +127,8 @@ module.exports = class MemoryFsKite extends kd.Object
     then this[method].call this, args, callback
     else Promise.reject(new Error "not implemented: #{rpcMethod}")
 
-    return promise.catch (e) -> console.warn 'failing silently', e
+    return promise.catch (e) ->
+      console.warn 'failing silently', e
 
 
 wrapDir = (path, fullPath = '') -> Promise.resolve
@@ -157,6 +158,3 @@ wrapFile = (path, fullPath, length) -> Promise.resolve
 
 
 wrapFileInstance = (content) -> Promise.resolve { content: btoa content }
-
-
-

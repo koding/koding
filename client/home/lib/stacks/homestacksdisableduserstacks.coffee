@@ -12,6 +12,3 @@ module.exports = class HomeStacksDisabledUsers extends ReactView
 
   renderReact: ->
     <DisabledUsersStacksList.Container onOpenItem={@bound 'onOpenItem'} />
-
-
-

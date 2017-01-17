@@ -5,4 +5,3 @@ module.exports =
   actions  : require './actions'
   getters  : require './getters'
   register : (reactor) -> reactor.registerStores @stores
-

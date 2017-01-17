@@ -7,7 +7,7 @@ module.exports =
 {
   "provider": {
     "softlayer": {
-      "username": "softlayer_username",
+      "username": "${var.softlayer_username}",
       "api_key": "${var.softlayer_api_key}"
     }
   },

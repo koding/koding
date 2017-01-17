@@ -65,4 +65,3 @@ Input.defaultProps =
   type: 'text'
   auto: on
   disabled: off
-

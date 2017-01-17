@@ -91,9 +91,10 @@ participantHandler = (funcName, data) ->
         member.createSocialApiId (err, socialApiId) ->
           return console.error 'couldnt create socialapi id', err  if err
 
-          options =
+          options = {
             channelId  : socialApiChannelId
             accountIds : [ socialApiId ]
+          }
 
           SocialChannel[funcName] client, options, (err, participants) ->
 
@@ -102,9 +103,10 @@ participantHandler = (funcName, data) ->
             # only add koding's members to announcement channel
             return if group.slug isnt 'koding'
 
-            options =
+            options = {
               channelId  : socialApiAnnouncementChannelId
               accountIds : [ socialApiId ]
+            }
 
             SocialChannel[funcName] client, options, (err) ->
               return console.error "couldnt #{funcName} user into group socialapi chan", err, options  if err

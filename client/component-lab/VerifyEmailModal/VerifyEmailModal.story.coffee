@@ -8,4 +8,3 @@ storiesOf 'VerifyEmailModal', module
     <VerifyEmailModal
       isOpen={yes}
       onButtonClick={action 'button clicked'} />
-

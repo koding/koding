@@ -49,4 +49,3 @@ storiesOf 'Modal', module
         </Modal.Content>
       </Modal>
     </ModalContainer>
-

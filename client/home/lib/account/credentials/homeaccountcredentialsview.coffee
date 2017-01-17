@@ -84,4 +84,3 @@ module.exports = class HomeAccountCredentialsView extends kd.CustomHTMLView
     filter = {}
     filter.provider = value  if value
     @listController.filterByProvider filter
-

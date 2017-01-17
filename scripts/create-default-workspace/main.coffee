@@ -1,6 +1,6 @@
 async          = require 'async'
 Bongo          = require 'bongo'
-{Relationship} = require 'jraphical'
+{ Relationship } = require 'jraphical'
 
 
 { join: joinPath } = require 'path'
@@ -9,7 +9,7 @@ KONFIG    = require 'koding-config-manager'
 mongo     = "mongodb://#{ KONFIG.mongo }"
 
 modelPath = '../../workers/social/lib/social/models'
-rekuire   = (p)-> require joinPath modelPath, p
+rekuire   = (p) -> require joinPath modelPath, p
 
 koding = new Bongo
   root   : __dirname
@@ -25,7 +25,7 @@ koding.once 'dbClientReady', ->
 
   fetchAccount = (username, callback) ->
 
-    JAccount.one 'profile.nickname': username, callback
+    JAccount.one { 'profile.nickname': username }, callback
 
 
   createDefaultWorkspace = (machine, callback) ->
@@ -44,7 +44,7 @@ koding.once 'dbClientReady', ->
         JWorkspace.one query, (err, workspace_) ->
           return console.error err  if err
 
-          process.stdout.write ': ' + (if workspace_ then 'found' else 'not found') + "\n"
+          process.stdout.write ': ' + (if workspace_ then 'found' else 'not found') + '\n'
 
           workspace = workspace_
           next()
@@ -59,7 +59,7 @@ koding.once 'dbClientReady', ->
         fetchAccount username, (err, account_) ->
           return console.error err  if err
 
-          process.stdout.write ': ' + (if account_ then 'found' else 'not found') + "\n"
+          process.stdout.write ': ' + (if account_ then 'found' else 'not found') + '\n'
 
           account = account_
           next()
@@ -68,7 +68,7 @@ koding.once 'dbClientReady', ->
         return next()  if workspace
         return next()  unless account
 
-        client = connection: delegate: account
+        client = { connection: { delegate: account } }
 
         process.stdout.write 'Creating default workspace'
 
@@ -84,7 +84,7 @@ koding.once 'dbClientReady', ->
     async.series queue, callback
 
 
-  fields = _id: 1, uid: 1, credential: 1, label: 1
+  fields = { _id: 1, uid: 1, credential: 1, label: 1 }
 
   JMachine.someData {}, fields, {}, (err, cursor) ->
 
@@ -102,7 +102,7 @@ koding.once 'dbClientReady', ->
         if machine
           console.log 'Machine:', machine.uid
           createDefaultWorkspace machine, ->
-            process.stdout.write "\n"
+            process.stdout.write '\n'
             iterate()
         else
           console.log 'Done'

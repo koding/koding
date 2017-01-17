@@ -10,11 +10,12 @@ module.exports = class Rackspace extends ProviderInterface
 
     { imageId, credential, instanceType, region } = options
 
-    meta =
+    meta = {
       type     : 'rackspace'
       imageId  : imageId      ? 'bb02b1a3-bc77-4d17-ab5b-421d89850fca'
       flavorId : instanceType ? '2'
       region   : region       ? 'IAD'
+    }
 
     callback null, { meta, credential }
 

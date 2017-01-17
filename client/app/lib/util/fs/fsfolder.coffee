@@ -39,7 +39,7 @@ module.exports = class FSFolder extends FSFile
       @emit 'fs.job.finished'
 
 
-  # save:(callback)->
+  # save:(callback) ->
 
   #   @emit "fs.save.started"
 

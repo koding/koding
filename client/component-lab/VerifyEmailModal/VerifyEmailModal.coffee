@@ -23,5 +23,3 @@ module.exports = VerifyEmailModal = ({ isOpen, onButtonClick, email }) ->
 
 VerifyEmailModal.defaultProps =
   email: 'xxxxx@xxxxxx.com'
-
-

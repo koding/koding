@@ -33,4 +33,3 @@ module.exports = class PrivateStacksListContainer extends React.Component
     />
 
 PrivateStacksListContainer.include [KDReactorMixin]
-

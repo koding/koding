@@ -150,4 +150,3 @@ runTests = -> describe 'workers.social.models.computeproviders.teamutils', (done
 beforeTests()
 
 runTests()
-

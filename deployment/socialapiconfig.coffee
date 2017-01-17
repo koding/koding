@@ -1,7 +1,7 @@
 fs = require 'fs'
-toml = require('toml-js');
+toml = require('toml-js')
 
-module.exports.create = (KONFIG)->
+module.exports.create = (KONFIG) ->
 
   tomlConfig = toml.dump KONFIG.socialapi
 

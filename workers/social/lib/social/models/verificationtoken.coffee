@@ -4,11 +4,15 @@ KodingError = require '../error'
 emailsanitize = require './user/emailsanitize'
 
 class PINExistsError extends Error
+
   constructor:(message) ->
+
     return new PINExistsError(message) unless this instanceof PINExistsError
+
     Error.call this
     @message = message
     @name = 'PINExistsError'
+
 
 module.exports = class JVerificationToken extends Module
 

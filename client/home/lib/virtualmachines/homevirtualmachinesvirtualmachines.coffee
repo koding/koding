@@ -8,5 +8,3 @@ module.exports = class HomeVirtualMachinesVirtualMachines extends ReactView
 
   renderReact: ->
     <VirtualMachinesList.Container />
-
-

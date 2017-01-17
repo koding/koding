@@ -12,5 +12,3 @@ storiesOf 'TrialChargeInfo', module
   .add 'default', -> <TrialChargeInfo endsAt={NEXT_MONTH} />
   .add 'expiring trial', -> <TrialChargeInfo endsAt={TWO_DAYS_LATER} />
   .add 'expired trial', -><TrialChargeInfo endsAt={TWO_DAYS_EARLIER} />
-
-

@@ -13,5 +13,3 @@ storiesOf 'Box', module
   .add 'success with border', -> <Box type="success" border={1} />
   .add 'info with border', -> <Box type="info" border={1} />
   .add 'secondary with border', -> <Box type="secondary" border={1} />
-
-

@@ -55,4 +55,3 @@ CreateCreditCardForm = connect(
 )(CreateCreditCardForm)
 
 module.exports = CreateCreditCardForm
-

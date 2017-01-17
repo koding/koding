@@ -124,9 +124,10 @@ module.exports = class KodingLogger
       console.trace 'KodingLogger.search requires callback'
       return
 
-    withQuery   =
+    withQuery   = {
       q         : query
       group_id  : DEFAULT_GROUP_ID
+    }
 
     withQuery.min_id = from  if from?
 
