@@ -9,7 +9,6 @@ whoami         = require './util/whoami'
 nick           = require './util/nick'
 showError      = require 'app/util/showError'
 
-MachineSettingsModal    = require 'app/providers/machinesettingsmodal'
 ShortcutsModal = require 'app/shortcuts/shortcutsmodalview'
 
 getAction = (formName) -> switch formName
@@ -92,21 +91,6 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
 
     when 'shortcuts'
       new ShortcutsModal
-
-    when 'machine-settings'
-      { uid, state } = info.params
-      { computeController, router } = kd.singletons
-
-      computeController.ready ->
-        machine = computeController.findMachineFromMachineUId uid
-        unless machine
-          new kd.NotificationView { title: 'No machine found' }
-          return router.handleRoute '/IDE'
-
-        modal = new MachineSettingsModal {}, machine
-
-        # if there is a state, it's the name of the tab of modal. Switch to that.
-        modal.tabView.showPaneByName state  if state
 
     when 'unsubscribe'
       { opt } = info.params

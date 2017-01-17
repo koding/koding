@@ -16,7 +16,6 @@
     "/:name": "name",
     "/Reset/:token": "reset",
     "/Shortcuts": "shortcuts",
-    "/Machines/:uid/:state?": "machine-settings",
     "/Collaboration/:nickname/:channelId": "request-collaboration"
   },
   "sprites": [
