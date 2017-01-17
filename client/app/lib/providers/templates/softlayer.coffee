@@ -80,7 +80,7 @@ resource:
 
   # Defaults for userInputs
   user_inputs:
-    region: "dal09"
-    image: "UBUNTU_14_64"
+    region: 'dal09'
+    image: 'UBUNTU_14_64'
     cpu: 1
     ram: 1024
