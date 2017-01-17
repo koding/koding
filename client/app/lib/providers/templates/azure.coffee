@@ -14,8 +14,8 @@ module.exports =
     "azure_instance": {
       "azure-instance": {
         "name": "koding-${var.koding_group_slug}-${var.koding_stack_id}-${count.index+1}",
-        "size": "Basic_A1",
-        "image": "Ubuntu Server 14.04 LTS",
+        "size": "${var.userInput_size}",
+        "image": "${var.userInput_image}",
         "custom_data": "\\necho \\\"hello world!\\\" >> /helloworld.txt\\n"
       }
     }
@@ -40,9 +40,9 @@ resource:
     azure-instance:
       name: 'koding-${var.koding_group_slug}-${var.koding_stack_id}-${count.index+1}'
       # select your instance size here: eg. Basic_A1
-      size: Basic_A1
+      size: '${var.userInput_size}'
       # base image for your instance
-      image: 'Ubuntu Server 14.04 LTS'
+      image: '${var.userInput_image}'
       # on custom_data section we will write bash and configure our VM
       custom_data: |-
         # let's create a file on your root folder:
@@ -55,3 +55,8 @@ resource:
         # for more information please use the search box above
 
     '''
+
+  # Defaults for userInputs
+  user_inputs:
+    size: 'Basic_A1'
+    image: 'Ubuntu Server 14.04 LTS'
