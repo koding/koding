@@ -24,5 +24,3 @@ do ->
     getPermission
     createTeam
   }
-
-

@@ -182,6 +182,3 @@ describe 'redux/modules/subscription#actions', ->
         actions = store.getActions()
         expect(actions[0].type).toBe subscription.REMOVE.BEGIN
         expect(actions[1].type).toBe subscription.REMOVE.FAIL
-
-
-

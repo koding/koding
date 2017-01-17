@@ -53,4 +53,3 @@ module.exports = class Vagrant extends ProviderInterface
 
     JWorkspace = require '../workspace'
     JWorkspace.createDefault client, machine.uid, callback
-

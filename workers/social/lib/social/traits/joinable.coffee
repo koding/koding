@@ -24,9 +24,10 @@ module.exports = class Joinable
   addToPrivateGroup_ = (client, { as, inviteCode }, callback) ->
     { delegate } = client.connection
     JInvitation  = require '../models/invitation'
-    selector     =
+    selector     = {
       code      : inviteCode
       groupName : @slug
+    }
 
     JInvitation.one selector, (err, invite) =>
 

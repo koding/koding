@@ -109,5 +109,3 @@ describe 'redux/modules/creditcard#actions', ->
         actions = store.getActions()
         expect(actions[0].type).toBe creditcard.REMOVE.BEGIN
         expect(actions[1].type).toBe creditcard.REMOVE.FAIL
-
-

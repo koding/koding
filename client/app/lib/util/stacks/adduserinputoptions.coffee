@@ -13,4 +13,3 @@ module.exports = addUserInputOptions = (template, requiredData) ->
       return { name: item, type, values }
     else
       return item
-

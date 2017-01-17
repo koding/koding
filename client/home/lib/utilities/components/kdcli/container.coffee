@@ -42,4 +42,3 @@ module.exports = class KDCliContainer extends React.Component
       onCMDClick={@bound 'onCMDClick'} />
 
 KDCliContainer.include [KDReactorMixin]
-

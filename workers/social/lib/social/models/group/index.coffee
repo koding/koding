@@ -1363,7 +1363,7 @@ module.exports = class JGroup extends Module
             }, (err) -> callback err
 
           queue = roles.map (role) => (fin) =>
-            @removeMember account, role, (err) =>
+            @removeMember account, role, (err) ->
               return fin err  if err
               fin()
 
@@ -1431,7 +1431,7 @@ module.exports = class JGroup extends Module
           @fetchRolesByAccount account, (err, newOwnersRoles) =>
             return callback err if err
 
-            kallback = (err) =>
+            kallback = (err) ->
               callback err
 
             # give rights to new owner

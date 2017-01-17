@@ -55,5 +55,3 @@ module.exports = class PrivateStackTemplatesStore extends KodingFluxStore
     return stackTemplates  if stackTemplate.accessLevel isnt 'private'
 
     return stackTemplates.set stackTemplate._id, toImmutable stackTemplate
-
-

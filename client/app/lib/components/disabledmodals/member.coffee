@@ -58,4 +58,3 @@ module.exports = class DisabledMemberModal extends ReactView
 
       else
         <span />
-

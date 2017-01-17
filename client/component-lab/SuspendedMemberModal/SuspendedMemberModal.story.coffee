@@ -8,5 +8,3 @@ storiesOf 'SuspendedMemberModal', module
     <SuspendedMemberModal
       isOpen={yes}
       onButtonClick={action 'button clicked'} />
-
-

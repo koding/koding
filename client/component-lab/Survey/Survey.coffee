@@ -43,5 +43,3 @@ module.exports = class Survey extends React.Component
         </div>
       </div>
     </Box>
-
-

@@ -118,4 +118,3 @@ GuideButton = ->
   <a className={className} href={href}>
     <span className="title">VIEW GUIDE</span>
   </a>
-

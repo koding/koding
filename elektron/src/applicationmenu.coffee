@@ -13,15 +13,15 @@ module.exports = class ApplicationMenu
   getMenu: ->
 
     applicationMenu = [
-      label: "Edit"
+      label: 'Edit'
       submenu: [
-        { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" }
-        { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" }
-        { type: "separator" }
-        { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" }
-        { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" }
-        { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" }
-        { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
+        { label: 'Undo', accelerator: 'CmdOrCtrl+Z', selector: 'undo:' }
+        { label: 'Redo', accelerator: 'Shift+CmdOrCtrl+Z', selector: 'redo:' }
+        { type: 'separator' }
+        { label: 'Cut', accelerator: 'CmdOrCtrl+X', selector: 'cut:' }
+        { label: 'Copy', accelerator: 'CmdOrCtrl+C', selector: 'copy:' }
+        { label: 'Paste', accelerator: 'CmdOrCtrl+V', selector: 'paste:' }
+        { label: 'Select All', accelerator: 'CmdOrCtrl+A', selector: 'selectAll:' }
       ]
     ,
       label: 'View'
@@ -33,12 +33,12 @@ module.exports = class ApplicationMenu
       ,
         label: 'Toggle Full Screen'
         accelerator: do ->
-          if (process.platform == 'darwin')
-            return 'Ctrl+Command+F';
+          if (process.platform is 'darwin')
+            return 'Ctrl+Command+F'
           else
-            return 'F11';
+            return 'F11'
         click: (item, focusedWindow) ->
-          focusedWindow.setFullScreen !focusedWindow.isFullScreen()  if focusedWindow
+          focusedWindow.setFullScreen not focusedWindow.isFullScreen()  if focusedWindow
       ,
         label: 'Toggle Developer Tools'
         accelerator: do ->
@@ -64,7 +64,7 @@ module.exports = class ApplicationMenu
     applicationMenu.unshift
       label: 'Koding'
       submenu: [
-        label: "About Koding"
+        label: 'About Koding'
         role: 'about'
       ,
         type: 'separator'
@@ -75,11 +75,11 @@ module.exports = class ApplicationMenu
       ,
         type: 'separator'
       ,
-        label: "Minimize Koding"
+        label: 'Minimize Koding'
         accelerator: 'Command+M'
         role: 'minimize'
       ,
-        label: "Hide Koding"
+        label: 'Hide Koding'
         accelerator: 'Command+H'
         role: 'hide'
       ,

@@ -13,24 +13,24 @@ Configuration = (options = {}) ->
     main: options.host ? 'dev.koding.com'
     port: '8090'
 
-  options.boot2dockerbox or= if os.type() is "Darwin" then "192.168.59.103" else "127.0.0.1"
+  options.boot2dockerbox or= if os.type() is 'Darwin' then '192.168.59.103' else '127.0.0.1'
   options.serviceHost or= options.boot2dockerbox
-  options.publicPort or= "8090"
-  options.hostname or= "dev.koding.com"
-  options.protocol or= "http:"
+  options.publicPort or= '8090'
+  options.hostname or= 'dev.koding.com'
+  options.protocol or= 'http:'
   options.publicHostname or= "#{options.protocol}//#{options.hostname}"
-  options.region or= "default"
-  options.configName or= "default"
-  options.environment or= "default"
+  options.region or= 'default'
+  options.configName or= 'default'
+  options.environment or= 'default'
   options.projectRoot or= path.join __dirname, '/..'
-  options.version or= "2.0" # TBD
-  options.build or= "1111"
-  options.tunnelHostedZoneName = "dev-t.koding.com"
-  options.tunnelHostedZoneCallerRef = "devtunnelproxy_hosted_zone_v0"
-  options.tunnelserverHostedZone or= "dev.koding.me"
-  options.tunnelserverBasevirtualHost or= "dev.koding.me"
+  options.version or= '2.0' # TBD
+  options.build or= '1111'
+  options.tunnelHostedZoneName = 'dev-t.koding.com'
+  options.tunnelHostedZoneCallerRef = 'devtunnelproxy_hosted_zone_v0'
+  options.tunnelserverHostedZone or= 'dev.koding.me'
+  options.tunnelserverBasevirtualHost or= 'dev.koding.me'
   options.tunnelUrl or= "http://#{options.tunnelHostedZoneName}"
-  options.userSitesDomain or= "dev.koding.io"
+  options.userSitesDomain or= 'dev.koding.io'
   options.defaultEmail or= "hello@#{options.domains.mail}"
   options.recaptchaEnabled or= no
   options.debugGithubAPI or= yes
@@ -76,15 +76,15 @@ Configuration = (options = {}) ->
   KONFIG.workers = require('./workers')(KONFIG, options, credentials)
 
   KONFIG.workers.emailer =
-    group       : "webserver"
+    group       : 'webserver'
     supervisord :
       command   :
-        run     : "node %(ENV_KONFIG_PROJECTROOT)s/workers/emailer"
+        run     : 'node %(ENV_KONFIG_PROJECTROOT)s/workers/emailer'
 
 
   options.disabledWorkers = [
-    "algoliaconnector"
-    "gatekeeper"
+    'algoliaconnector'
+    'gatekeeper'
   ]
 
   for worker in options.disabledWorkers
@@ -96,12 +96,12 @@ Configuration = (options = {}) ->
   KONFIG.kloud.noSneaker = true
 
   options.requirementCommands = [
-    "$KONFIG_PROJECTROOT/scripts/generate-kite-keys.sh"
+    '$KONFIG_PROJECTROOT/scripts/generate-kite-keys.sh'
   ]
 
   KONFIG.supervisord =
-    logdir   : "$KONFIG_PROJECTROOT/.logs"
-    rundir   : "$KONFIG_PROJECTROOT/.supervisor"
+    logdir   : '$KONFIG_PROJECTROOT/.logs'
+    rundir   : '$KONFIG_PROJECTROOT/.supervisor'
     minfds   : 1024
     minprocs : 200
 

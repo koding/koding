@@ -13,4 +13,3 @@ storiesOf 'CreditCardInput', module
       title='Credit Card Number' brand='american-express' />
 
 onChange = (e) -> action 'onChange', e.target.value
-

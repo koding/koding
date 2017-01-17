@@ -40,4 +40,3 @@ module.exports = class DesktopAppView extends React.Component
         {@renderDownloadButton()}
       </div>
     </div>
-

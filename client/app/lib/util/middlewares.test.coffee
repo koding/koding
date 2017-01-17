@@ -28,6 +28,7 @@ describe 'middleware utils', ->
         create: (options, callback) ->
           callback null, assign {}, options, { finished: this }
 
+
       instance = new Foo
 
       runMiddlewares instance, 'create', { foo: instance }, (err, result) ->
@@ -67,6 +68,7 @@ describe 'middleware utils', ->
         @getMiddlewares = -> [SyncBar, SyncBaz]
         create: (options) -> assign {}, options, { finished: this }
 
+
       instance = new Foo
 
       result = runMiddlewares.sync instance, 'create', { foo: instance }
@@ -97,4 +99,3 @@ describe 'middleware utils', ->
       result = instance.create result
 
       expect(result.finished).toBe instance, 'finished should be original'
-

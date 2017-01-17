@@ -128,4 +128,3 @@ module.exports = RemoteExtensions =
     instances.forEach (instance) -> instance.emit 'deleteInstance'
 
     @setInstances instanceId, null
-

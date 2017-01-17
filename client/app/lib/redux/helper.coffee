@@ -148,4 +148,3 @@ exports.defineSchema = (name, definitions) ->
   return if isArray
   then new normalizr.schema.Array rootSchema
   else rootSchema
-

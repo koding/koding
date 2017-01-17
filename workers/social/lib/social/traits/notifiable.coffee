@@ -61,5 +61,3 @@ module.exports = class Notifiable
 
           opts = { id, group, timestamp: Date.now() }
           account.sendNotification 'InstanceDeleted', opts
-
-

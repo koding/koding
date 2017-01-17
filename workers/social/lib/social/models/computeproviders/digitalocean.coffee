@@ -18,13 +18,13 @@ module.exports = class DigitalOcean extends ProviderInterface
 
     { credential, instance_type, region, image, storage_size, label } = options
 
-    meta =
+    meta = {
       type          : @providerSlug
       assignedLabel : label
       region        : region ? 'nyc2'
       instance_type : instance_type ? '512mb'
       storage_size  : storage_size ? 20
       image         : image ? 'ubuntu-14-04-x64'
+    }
 
     callback null, { meta, credential }
-

@@ -7,5 +7,3 @@ module.exports = dateDiffInDays = (a, b) ->
   b = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate())
 
   return Math.floor((a - b) / MILLISECONDS_PER_DAY)
-
-

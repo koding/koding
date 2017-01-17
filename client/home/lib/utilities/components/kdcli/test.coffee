@@ -31,4 +31,3 @@ describe 'HomeUtilitiesKD', ->
       guideButton = findRenderedDOMComponentWithClass kdcli,'HomeAppView--button primary'
 
       expect(guideButton.innerHTML).toEqual 'VIEW GUIDE'
-

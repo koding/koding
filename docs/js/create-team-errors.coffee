@@ -14,14 +14,14 @@ do ->
     """
 
   getTeamNameNotAvailableError = ->
-    makeError """
+    makeError '''
       Team name is not available. Please try with another one.
-    """
+    ''
 
   getTeamNameUserNameError = ->
-    makeError """
+    makeError '''
       Your username and team name cannot be the same.
-    """
+    '''
 
   getPasswordError = ->
     makeError [
@@ -30,9 +30,9 @@ do ->
     ]
 
   getEmailError = ->
-    makeError """
+    makeError '''
       Email is taken. Please try another one.
-    """
+    '''
 
   utils.errors = {
     getSuggestedTeamNameError
@@ -41,4 +41,3 @@ do ->
     getPasswordError
     getEmailError
   }
-

@@ -32,10 +32,11 @@ Errors      =
 #
 module.exports = class StackEditorAppController extends AppController
 
-  @options     =
+  @options     = {
     name       : 'Stackeditor'
     customName : 'new-stack-editor'
     behavior   : 'application'
+  }
 
   constructor: (options = {}, data) ->
 

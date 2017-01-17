@@ -81,4 +81,3 @@ module.exports = {
   remove, hasCreditCard, authorize
   REMOVE, HAS_CARD, AUTHORIZE
 }
-

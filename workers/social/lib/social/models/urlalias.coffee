@@ -29,8 +29,8 @@ module.exports = class JUrlAlias extends Model
       if err then callback err
       else callback err, unless err then aliasModel
 
-  # createRe =(alias)->
-  #   ///^#{alias.split('/').map((edge)-> "(?:#{edge}|(\w+)").join('/')}$///
+  # createRe =(alias) ->
+  #   ///^#{alias.split('/').map((edge) -> "(?:#{edge}|(\w+)").join('/')}$///
 
   @resolve = (alias, callback) ->
     @someData { alias }, { target:1 }, (err, cursor) ->

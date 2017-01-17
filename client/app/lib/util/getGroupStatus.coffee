@@ -25,4 +25,3 @@ module.exports = getGroupStatus = (group) ->
 
     # happy path. use info from group.
     else group.payment.subscription.status
-
