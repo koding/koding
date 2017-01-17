@@ -21,12 +21,12 @@ Move your mouse over 'USE THIS & CONTINUE' button (next to 'rainforestqa99's AWS
 Have 'PREVIEW' and 'DELETE' texts appeared?
 
 Click on 'PREVIEW'
-Do you see 'rainforestqa99's AWS keys Preview' title on a pop-up displayed? Do you see 'access_key', 'region', 'secret_key' and 'identifier' sections? 
+Do you see 'rainforestqa99's AWS keys Preview' title on a pop-up displayed? Do you see 'access_key', 'region', 'secret_key' and 'identifier' sections?
 
 Close that modal by clicking (x) from top right corner and click on 'USE THIS & CONTINUE' button (next to 'rainforestqa99's AWS keys') and wait for a second for process to be completed
 Have you seen 'Verifying Credentials...' message displayed? Are you switched back to the first tab('_Aws Stack')? (If you're not switched and you got 'Failed to verify: operation timed out' error, click on the same button again)
 
-Click on 'Edit Name' link 
+Click on 'Edit Name' link
 Is '_Aws Stack' converted to a textbox?
 
 Delete the text and write "Team Stack" instead of it and hit enter
@@ -70,7 +70,7 @@ Wait for a few minutes for process to be completed
 Do you see 'Success! Your stack has been built.' text? Do you see 'View The Logs', 'Connect your Local Machine' and 'Invite to Collaborate' sections? Do you see START CODING button on the bottom?
 
 Click on START CODING button
-Do you see 'Team Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'aws-instance' label? Do you see '/home/rainforestqa99' label on top of a file list? Do you see 'cloud-init-o_' file on top and 'Terminal' tab on the bottom pane? 
+Do you see 'Team Stack' under 'STACKS' title in the left sidebar? Do you see a green square next to 'aws-instance' label? Do you see '/home/rainforestqa99' label on top of a file list? Do you see 'cloud-init-o_' file on top and 'Terminal' tab on the bottom pane?
 
 Click on the tab where it says 'Terminal', type "ls /" and hit enter
 Do you see the green colored 'helloworld.txt', 'qa_test' and '{{ random.first_name }}' files in the list?
