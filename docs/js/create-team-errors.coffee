@@ -16,7 +16,7 @@ do ->
   getTeamNameNotAvailableError = ->
     makeError '''
       Team name is not available. Please try with another one.
-    ''
+    '''
 
   getTeamNameUserNameError = ->
     makeError '''
