@@ -158,27 +158,28 @@ func hashSHA1(val string) string {
 
 // SaveIndex atomically saves the provided index under a given path.
 func SaveIndex(idx *Index, path string) (err error) {
-	dir, name := filepath.Split(path)
-	f, err := ioutil.TempFile(dir, name+"_")
+	f, err := ioutil.TempFile(filepath.Split(path))
 	if err != nil {
 		return err
 	}
 
-	if err := json.NewEncoder(f).Encode(idx); err == nil {
-		err = f.Sync()
+	defer func() {
+		if err != nil {
+			os.Remove(f.Name())
+		}
+	}()
+
+	if err = json.NewEncoder(f).Encode(idx); err != nil {
+		return err
 	}
 
-	if cerr := f.Close(); cerr != nil && err == nil {
-		err = cerr
+	if err = f.Sync(); err != nil {
+		return err
 	}
 
-	if err == nil {
-		err = os.Rename(f.Name(), path)
+	if err = f.Close(); err != nil {
+		return err
 	}
 
-	if err != nil {
-		os.Remove(f.Name())
-	}
-
-	return err
+	return os.Rename(f.Name(), path)
 }
