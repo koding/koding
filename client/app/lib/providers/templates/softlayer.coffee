@@ -20,7 +20,7 @@ module.exports =
         "region": "${var.userInput_region}",
         "image": "${var.userInput_image}",
         "cpu": "${var.userInput_cpu}",
-        "ram": "${var.userInput_mem}",
+        "ram": "${var.userInput_ram}",
         "local_disk": true,
         "public_network_speed": 10,
         "hourly_billing": true,
@@ -59,7 +59,7 @@ resource:
       image: '${var.userInput_image}'
 
       cpu: '${var.userInput_cpu}'
-      ram: '${var.userInput_mem}'
+      ram: '${var.userInput_ram}'
       local_disk: true
       public_network_speed: 10
 
