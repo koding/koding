@@ -16,8 +16,6 @@ import (
 
 const GroupsCollectionName = "jGroups"
 
-var AllRoles = []string{"owner", "admin", "member"}
-
 func GetGroupById(id string) (*models.Group, error) {
 	var group models.Group
 
@@ -200,18 +198,6 @@ func GetGroup(slugName string) (*models.Group, error) {
 	return group, Mongo.Run(GroupsCollectionName, query)
 }
 
-func GetGroupID(slugName string) (bson.ObjectId, error) {
-	var group struct {
-		ID bson.ObjectId `bson:"_id"`
-	}
-
-	query := func(c *mgo.Collection) error {
-		return c.Find(Selector{"slug": slugName}).One(&group)
-	}
-
-	return group.ID, Mongo.Run(GroupsCollectionName, query)
-}
-
 func GetGroupOwner(group *models.Group) (*models.Account, error) {
 	if !group.Id.Valid() {
 		return nil, errors.New("group id is not valid")
@@ -227,32 +213,6 @@ func GetGroupOwner(group *models.Group) (*models.Account, error) {
 	}
 
 	return GetAccountById(rel.TargetId.Hex())
-}
-
-// Belongs returns non-nil error if either:
-//
-//   - the group does not exist
-//   - the user does not exist
-//   - the user does not belong to the group
-//
-func BelongsToGroup(group, username string) error {
-	userID, err := GetAccountID(username)
-	if err != nil {
-		return err
-	}
-
-	groupID, err := GetGroupID(group)
-	if err != nil {
-		return err
-	}
-
-	_, err = GetRelationship(Selector{
-		"sourceId": groupID,
-		"targetId": userID,
-		"as":       bson.M{"$in": AllRoles},
-	})
-
-	return err
 }
 
 func RemoveGroup(id bson.ObjectId) error {
