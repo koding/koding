@@ -50,6 +50,7 @@ module.exports = class MemoryFsKlient extends KodingKite
     # webtermKillSession { session }
     webtermKillSession  : 'webterm.killSession'
 
+
   @createApiMapping @api
 
 
@@ -71,6 +72,3 @@ module.exports = class MemoryFsKlient extends KodingKite
 
 
   clientSubscribe: (options) -> @transport?.clientSubscribe options
-
-
-

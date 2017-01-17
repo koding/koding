@@ -5,5 +5,3 @@ VerifyEmailWarning = require './VerifyEmailWarning'
 
 storiesOf 'VerifyEmailWarning', module
   .add 'default', -> <VerifyEmailWarning />
-
-

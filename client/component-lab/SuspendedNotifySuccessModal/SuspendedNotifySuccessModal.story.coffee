@@ -8,5 +8,3 @@ storiesOf 'SuspendedNotifySuccessModal', module
     <SuspendedNotifySuccessModal
       isOpen={yes}
       onButtonClick={action 'link clicked'} />
-
-

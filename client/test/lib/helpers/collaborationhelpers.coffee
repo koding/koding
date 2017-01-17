@@ -397,4 +397,3 @@ module.exports =
       .click videoChat, (result) ->
         if result.state is 'success'
           helpers.switchBrowser browser, '/appear.in/koding'
-

@@ -28,4 +28,3 @@ Brand =
 module.exports = {
   Placeholder, NumberPattern, Brand, DOT
 }
-

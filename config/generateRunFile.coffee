@@ -621,7 +621,7 @@ generateDev = (KONFIG, options) ->
   return run
 
 generateSandbox =   generateRunFile = (KONFIG) ->
-  return """
+  return '''
     #!/bin/bash
     export HOME=/home/ec2-user
 
@@ -640,5 +640,5 @@ generateSandbox =   generateRunFile = (KONFIG) ->
       exec) exec "$@";;
     esac
 
-    """
+    '''
 module.exports = { dev: generateDev, default: generateDev, sandbox: generateSandbox, prod: generateSandbox }

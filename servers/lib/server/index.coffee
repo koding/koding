@@ -28,7 +28,7 @@ do ->
   app.use cookieParser() # used by req.cookies.blah
   app.use bodyParser.urlencoded { extended : yes }
   # helmet:
-  app.use helmet.frameguard action: 'sameorigin'
+  app.use helmet.frameguard { action: 'sameorigin' }
   app.use helmet.xssFilter()
   app.use helmet.ieNoOpen()
   app.use helmet.hidePoweredBy()

@@ -24,5 +24,3 @@ module.exports = TrialEndedMemberModal = (props) ->
     secondaryButtonTitle='Logout'
     onSecondaryButtonClick={onSecondaryButtonClick}
   />
-
-

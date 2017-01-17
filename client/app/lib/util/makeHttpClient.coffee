@@ -47,4 +47,3 @@ makeHttpClient.helpers =
         # set an initial resolver which will resolve only the data for
         # concurrent resolvers.
         .then (response) -> response.data
-

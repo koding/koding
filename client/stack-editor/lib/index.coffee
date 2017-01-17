@@ -13,9 +13,10 @@ require 'stack-editor/styl'
 
 module.exports = class StackEditorAppController extends AppController
 
-  @options     =
+  @options     = {
     name       : 'Stackeditor'
     behavior   : 'application'
+  }
 
   constructor: (options = {}, data) ->
 

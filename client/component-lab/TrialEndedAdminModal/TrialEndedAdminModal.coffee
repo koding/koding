@@ -19,5 +19,3 @@ module.exports = TrialEndedAdminModal = ({ isOpen, onButtonClick }) ->
     buttonTitle='ENTER A CREDIT CARD'
     onButtonClick={onButtonClick}
   />
-
-

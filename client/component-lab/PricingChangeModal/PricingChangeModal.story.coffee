@@ -9,6 +9,3 @@ storiesOf 'PricingChangeModal', module
       isOpen={yes}
       onButtonClick={action 'button clicked'}
       onSecondaryButtonClick={action 'secondary clicked'} />
-
-
-

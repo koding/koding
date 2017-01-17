@@ -80,7 +80,7 @@ module.exports = class KodingTray
   setMenu: (menu = [], show = no) ->
 
     if typeof menu is 'string'
-      menu = [ label: menu, enabled: no ]
+      menu = [ { label: menu, enabled: no } ]
 
     menuItems = [
       type    : 'separator'
@@ -89,11 +89,11 @@ module.exports = class KodingTray
       label   : 'Restart kd...'
       click   : handleOpen 'sudo kd restart', 'terminal'
       visible : @_isKdRunning
-      enabled : !@_inProgress
+      enabled : not @_inProgress
     ,
       label   : 'Refresh'
       click   : => @checkKdStatus yes
-      enabled : !@_inProgress
+      enabled : not @_inProgress
     ,
       type    : 'separator'
     ,
@@ -129,8 +129,8 @@ module.exports = class KodingTray
 
       submenu = submenu.concat [
         { type: 'separator', visible: !!submenu.length }
-        { label: 'Login to Another Team', click: -> @_mainWindow.loadURL "https://koding.com/Teams" }
-        { label: 'Create a Team', click: -> @_mainWindow.loadURL "https://koding.com/Teams/Create" }
+        { label: 'Login to Another Team', click: -> @_mainWindow.loadURL 'https://koding.com/Teams' }
+        { label: 'Create a Team', click: -> @_mainWindow.loadURL 'https://koding.com/Teams/Create' }
       ]
 
       menu.unshift { label: 'Your Teams', submenu }
@@ -169,7 +169,7 @@ module.exports = class KodingTray
         @loadMachineMenu()
         do handleOpen mountTo
 
-      console.log "Mount:", err, res
+      console.log 'Mount:', err, res
 
 
   handleUnmount: (machine) -> =>
@@ -184,7 +184,7 @@ module.exports = class KodingTray
       else
         @loadMachineMenu()
 
-      console.log "Unmount:", err, res
+      console.log 'Unmount:', err, res
 
 
   kd: (command, callback) ->
@@ -202,7 +202,7 @@ module.exports = class KodingTray
           out = JSON.parse stdout
           callback null, out
         catch e
-          callback message: 'Failed to parse:', err: e
+          callback { message: 'Failed to parse:', err: e }
       else
         callback null, stdout
 

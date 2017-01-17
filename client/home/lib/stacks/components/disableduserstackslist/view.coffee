@@ -53,5 +53,3 @@ module.exports = class DisabledUsersStacksListView extends React.Component
       sectionClassName='HomeAppViewStackSection'
       rowClassName='stack-type'
     />
-
-

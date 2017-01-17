@@ -64,10 +64,11 @@ module.exports = class Managed extends ProviderInterface
       updateCounter { client, provider, change: 'increment' }, (err) ->
         return callback err  if err?
 
-        meta =
+        meta = {
           type          : Managed.providerSlug
           storage_size  : 0 # sky is the limit.
           alwaysOn      : no
+        }
 
         callback null, {
           meta, label, credential: client.r.user.username

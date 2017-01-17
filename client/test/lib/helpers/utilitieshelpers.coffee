@@ -174,4 +174,3 @@ module.exports =
           .url utilitiesLink
         teamsHelpers.loginToTeam browser, user , no, '', ->
           browser.waitForElementVisible sectionSelector, 60000, done
-

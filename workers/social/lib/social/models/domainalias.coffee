@@ -90,7 +90,7 @@ module.exports = class JDomainAlias extends Module
 
         # If we decide to update existing top domain to route
         # new machine, we can use following
-        # domain.update $set : { machineId }, (err)-> callback err
+        # domain.update $set : { machineId }, (err) -> callback err
 
         callback null
 

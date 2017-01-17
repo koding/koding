@@ -45,7 +45,7 @@ module.exports = class MachineSettingsGeneralView extends KDView
     { alwaysOn } = @form.inputs
     { computeController } = kd.singletons
 
-    computeController.setAlwaysOn @machine, state, (err) =>
+    computeController.setAlwaysOn @machine, state, (err) ->
 
       return  unless err
 

@@ -114,4 +114,3 @@ describe 'redux/modules/stripe#actions', ->
           { type: stripe.CREATE_TOKEN.BEGIN }
           { type: stripe.CREATE_TOKEN.FAIL, error: createTokenErrors }
         ]
-

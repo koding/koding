@@ -27,5 +27,3 @@ module.exports = class Toggle extends React.Component
     <div className={className}>
       <ReactToggle {...props} onChange={@bound 'onChange'} />
     </div>
-
-

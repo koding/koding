@@ -26,12 +26,13 @@ module.exports = class Marathon extends ProviderInterface
 
     { credential, label } = options
 
-    meta =
+    meta = {
       type          : @providerSlug
       assignedLabel : label
       region        : 'n/a'
       instance_type : 'n/a'
       storage_size  : 'n/a'
       image         : 'n/a'
+    }
 
     callback null, { meta, credential }

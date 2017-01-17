@@ -26,4 +26,3 @@ module.exports = createTestMachine = -> new Promise (resolve, reject) ->
         _machine = machine
         _workspaces = workspaces
         resolve { machine, workspaces }
-

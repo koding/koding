@@ -32,5 +32,3 @@ ToggleButton = ({ checked, callback }) ->
   checked ?= no
 
   <Toggle checked={checked} className='OnOffButton' callback={callback} />
-
-

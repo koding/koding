@@ -38,7 +38,7 @@ module.exports = class WelcomeStepsMiniView extends React.Component
     kdParent.once 'ReceivedClickElsewhere', => @closeDropdown yes
 
 
-  closeDropdown: (elseWhere = no)->
+  closeDropdown: (elseWhere = no) ->
 
     { dropdown } = @refs
     { kdParent } = @props

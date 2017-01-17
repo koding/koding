@@ -86,4 +86,3 @@ module.exports = class IDEStatusBarMenu extends KDContextMenu
     ideShortcuts = ideShortcuts.concat ['Rename', 'showRenameTerminalView']  unless dummy
 
     return ideShortcuts
-

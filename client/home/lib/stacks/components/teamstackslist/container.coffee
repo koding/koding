@@ -33,4 +33,3 @@ module.exports = class TeamStacksListContainer extends React.Component
     />
 
 TeamStacksListContainer.include [KDReactorMixin]
-

@@ -14,9 +14,10 @@ require 'home/styl'
 
 module.exports = class HomeAppController extends AppController
 
-  @options     =
+  @options     = {
     name       : 'Home'
     background : yes
+  }
 
   TABS = [
     { title : 'Stacks', viewClass : HomeStacks, role: 'member' }

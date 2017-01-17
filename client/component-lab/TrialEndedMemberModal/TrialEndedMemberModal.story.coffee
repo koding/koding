@@ -8,5 +8,3 @@ storiesOf 'TrialEndedMemberModal', module
     <TrialEndedMemberModal
       isOpen={yes}
       onButtonClick={action 'button clicked'} />
-
-

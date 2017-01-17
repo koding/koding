@@ -68,4 +68,3 @@ Action = ({ type, onClick, title }) ->
     </Button>
 
   <div className={styles.action}>{action}</div>
-
