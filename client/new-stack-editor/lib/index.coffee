@@ -49,6 +49,10 @@ module.exports = class StackEditorAppController extends AppController
 
   openEditor: (templateId, reset = no) ->
 
+    unless templateId
+      do @openStackWizard
+      return
+
     @fetchStackTemplate templateId, (err, template) =>
       return showErrorNotification err  if err
       @stackEditor.setTemplateData template, reset
@@ -63,6 +67,8 @@ module.exports = class StackEditorAppController extends AppController
 
 
   reloadEditor: (templateId) ->
+
+    return  unless @templates[templateId]
 
     delete @templates[templateId]
     @openEditor templateId, reset = yes
