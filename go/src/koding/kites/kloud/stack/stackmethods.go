@@ -195,6 +195,9 @@ type ApplyRequest struct {
 	// jComputeStack.
 	Credentials map[string][]string `json:"credentials,omitempty"`
 
+	// Variables are used to directly inject variables into jStackTemplate.
+	Variables map[string]string
+
 	// Destroy, when true, destroys the terraform tempalte associated with the
 	// given StackId.
 	Destroy bool
