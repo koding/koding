@@ -3299,9 +3299,9 @@
         "description": "creates a JMachine for requested provider with the provided options",
         "responses": {
           "200": {
-            "description": "Request processed succesfully",
+            "description": "created JMachine instance",
             "schema": {
-              "$ref": "#/definitions/DefaultResponse"
+              "$ref": "#/definitions/JMachine"
             }
           },
           "401": {
@@ -4527,9 +4527,9 @@
         "description": "creates a JStackTemplate with requested content",
         "responses": {
           "200": {
-            "description": "Request processed succesfully",
+            "description": "created JStackTemplate instance",
             "schema": {
-              "$ref": "#/definitions/DefaultResponse"
+              "$ref": "#/definitions/JStackTemplate"
             }
           },
           "401": {
@@ -9603,9 +9603,9 @@
         "description": "JComputeStack::create",
         "responses": {
           "200": {
-            "description": "Request processed succesfully",
+            "description": "created JComputeStack instance",
             "schema": {
-              "$ref": "#/definitions/DefaultResponse"
+              "$ref": "#/definitions/JComputeStack"
             }
           },
           "401": {

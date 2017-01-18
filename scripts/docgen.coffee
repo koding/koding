@@ -59,7 +59,7 @@ generateSchema = (sample, required = no) ->
 
 compileApiExamples = (examples, methodOptions) ->
 
-  for example, index in examples when example.title is 'api'
+  for example, index in examples when example.title in ['api', 'return']
     try
       example.schema = generateSchema (JSON.parse example.code)
     catch e
