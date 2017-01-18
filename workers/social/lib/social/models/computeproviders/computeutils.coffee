@@ -3,13 +3,13 @@ KodingError    = require '../../error'
 
 PROVIDERS      =
   aws          : require './aws'
-  koding       : require './koding'
-  softlayer    : require './softlayer' # remove this line to disable softlayer ~ GG
-  rackspace    : require './rackspace'
+  koding       : require './koding'    # TODO: stacks not supported, remove this ~ GG
+  softlayer    : require './softlayer'
+  rackspace    : require './rackspace' # TODO: stacks not supported, remove or update this ~ GG
   digitalocean : require './digitalocean'
   azure        : require './azure'
   google       : require './google'
-  managed      : require './managed'
+  managed      : require './managed'   # stacks not supported ~ GG
   vagrant      : require './vagrant'
   marathon     : require './marathon'
 

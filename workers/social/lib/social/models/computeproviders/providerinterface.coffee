@@ -43,6 +43,7 @@ module.exports = class ProviderInterface
 
   @fetchAvailable = NOT_IMPLEMENTED
 
+  @supportsStacks = yes
   @postCreate     = PASS_THROUGH
 
   @_requireTemplate = ->

@@ -2,7 +2,7 @@
 
 KONFIG       = require 'koding-config-manager'
 async        = require 'async'
-_            = require 'underscore'
+_            = require 'lodash'
 konstraints  = require 'konstraints'
 
 teamutils    = require './teamutils'
@@ -73,7 +73,7 @@ module.exports = class ComputeProvider extends Base
 
 
   @fetchProviders = secure (client, callback) ->
-    callback null, Object.keys PROVIDERS
+    callback null, Object.keys _.pickBy PROVIDERS, (x) -> x.supportsStacks
 
 
   # pings to requested provider implementation
