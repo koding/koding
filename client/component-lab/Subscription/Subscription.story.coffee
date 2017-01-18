@@ -66,4 +66,3 @@ storiesOf 'Subscription', module
       isEmailVerified={yes}
       isSurveyTaken={yes}
       endsAt={TWO_DAYS_EARLIER} />
-

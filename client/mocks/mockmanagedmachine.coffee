@@ -127,4 +127,3 @@ module.exports = mockManagedMachine = -> {
     "_id": 'test-workspace'
   }]
 }
-

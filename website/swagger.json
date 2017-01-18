@@ -610,6 +610,7 @@
       "type": "object",
       "required": [
         "title",
+        "slug",
         "originId",
         "group"
       ],
@@ -626,6 +627,10 @@
         "title": {
           "type": "string",
           "description": "Title of this stack template"
+        },
+        "slug": {
+          "type": "string",
+          "description": "Unique slug of stack template"
         },
         "description": {
           "type": "string",

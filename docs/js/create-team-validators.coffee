@@ -75,4 +75,3 @@ do ->
     validateEmail
     validateTeamName
   }
-

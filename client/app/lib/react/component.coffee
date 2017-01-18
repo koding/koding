@@ -32,5 +32,4 @@ module.exports = class KDReactComponent extends ReactComponent
   ###*
    * Bind instance context to instance method with given method name and given arguments
   ###
-  lazyBound: (methodName, args...)-> this[methodName].bind this, args...
-
+  lazyBound: (methodName, args...) -> this[methodName].bind this, args...

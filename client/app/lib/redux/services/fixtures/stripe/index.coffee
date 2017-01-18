@@ -6,4 +6,3 @@ module.exports =
     month: require './create-token-error-month'
     year: require './create-token-error-year'
     email: require './create-token-error-email'
-

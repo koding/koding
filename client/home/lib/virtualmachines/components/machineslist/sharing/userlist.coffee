@@ -57,4 +57,3 @@ module.exports = class SharingUserList extends React.Component
       sectionClassName='UserList'
       rowClassName='UserListItem'
     />
-

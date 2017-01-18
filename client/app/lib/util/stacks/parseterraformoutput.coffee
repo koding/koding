@@ -41,4 +41,3 @@ module.exports = parseTerraformOutput = (response) ->
   console.info '[parseTerraformOutput]', out.machines
 
   return out.machines
-

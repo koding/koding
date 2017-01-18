@@ -10,7 +10,7 @@ options =
   max   : 1000 # max 1K item
   maxAge: 1000 * 60 * 60 # 1 hour
 
-cache = require("lru-cache")(options)
+cache = require('lru-cache')(options)
 
 module.exports = koding = new Bongo
   cache       : cache

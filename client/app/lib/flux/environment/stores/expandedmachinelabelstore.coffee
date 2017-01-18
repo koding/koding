@@ -16,4 +16,6 @@ module.exports = class ExpandedMachineLabelStore extends KodingFluxStore
     @on actions.LOAD_EXPANDED_MACHINE_LABEL_SUCCESS, @load
 
 
-  load: (oldLabel, { label }) -> return label
+  load: (oldLabel, { label }) ->
+
+    return label

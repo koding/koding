@@ -177,4 +177,3 @@ module.exports = class StripePaymentTabForm extends LoginViewInlineForm
     {{> @button}}
     {{> @backLink}}
     """
-

@@ -43,5 +43,3 @@ module.exports = class VirtualMachinesListContainer extends React.Component
 
 
 VirtualMachinesListContainer.include [KDReactorMixin]
-
-

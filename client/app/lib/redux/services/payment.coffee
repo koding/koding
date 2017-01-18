@@ -82,4 +82,3 @@ getTimestamp = (date) ->
   thirtyDaysInMs = (30 * 24 * 60 * 60 * 1000)
 
   Math.round (date.getTime() + thirtyDaysInMs) / 1000
-

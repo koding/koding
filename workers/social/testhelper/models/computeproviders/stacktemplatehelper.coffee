@@ -62,9 +62,11 @@ generateStackTemplateData = (client, data) ->
   '''
 
 
+  title = generateRandomString()
   stackTemplate =
     group           : client.context.group
-    title           : generateRandomString()
+    title           : title
+    slug            : title
     config          : {}
     originId        : delegate.getId()
     machines        : []

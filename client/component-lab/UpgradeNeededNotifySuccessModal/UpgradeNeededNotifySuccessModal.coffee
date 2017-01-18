@@ -23,5 +23,3 @@ module.exports = UpgradeNeededNotifySuccessModal = (props) ->
     buttonTitle='Have another issue? Contact us.'
     onButtonClick={onButtonClick}
   />
-
-

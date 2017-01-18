@@ -89,4 +89,3 @@ storiesOf 'Button', module
       <div style={{marginBottom: '5px'}}><Button type="link-primary" auto disabled>Next</Button></div>
       <div style={{marginBottom: '5px'}}><Button type="link-secondary" auto disabled>Next</Button></div>
     </div>
-

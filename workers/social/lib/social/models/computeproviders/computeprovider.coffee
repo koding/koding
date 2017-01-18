@@ -29,9 +29,10 @@ module.exports = class ComputeProvider extends Base
   JMachine       = require './machine'
   JWorkspace     = require '../workspace'
 
-  @COUNTER_TYPE  =
+  @COUNTER_TYPE  = {
     stacks       : 'member_stacks'
     instances    : 'member_instances'
+  }
 
   @share()
 

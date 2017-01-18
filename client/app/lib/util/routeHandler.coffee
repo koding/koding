@@ -84,6 +84,7 @@ class ModalContainer
     @modal = modal
     @container.addSubView @modal  if @modal
 
+
 handleDisabled = do (modalContainer = new ModalContainer) -> (role, status) ->
 
   DisabledAdminModal = require 'app/components/disabledmodals/admin'
@@ -92,4 +93,3 @@ handleDisabled = do (modalContainer = new ModalContainer) -> (role, status) ->
   if role is 'Admin'
   then modalContainer.show new DisabledAdminModal { status }
   else modalContainer.show new DisabledMemberModal { status }
-

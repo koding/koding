@@ -11,5 +11,3 @@ module.exports = class HomeStacksDrafts extends ReactView
 
   renderReact: ->
     <DraftsList.Container onOpenItem={@bound 'onOpenItem'} />
-
-

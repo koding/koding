@@ -30,4 +30,3 @@ module.exports = class SidebarItemVisibilityStore extends KodingFluxStore
   makeVisible: (filters, { type, id }) -> filters.setIn [type, id], 'visible'
 
   makeHidden: (filters, { type, id }) -> filters.setIn [type, id], 'hidden'
-

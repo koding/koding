@@ -132,4 +132,3 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
 
       @wrapper.addSubView headerize 'Teammates'
       @wrapper.addSubView @teammates = section 'Teammates'
-

@@ -14,4 +14,6 @@ module.exports = class TeamAPIAccessStateStore extends KodingFluxStore
     @on actions.SET_API_ACCESS_STATE, @set
 
 
-  set: (oldState, { state }) -> state
+  set: (oldState, { state }) ->
+
+    return state

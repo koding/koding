@@ -1,3 +1,5 @@
+# coffeelint: disable=cyclomatic_complexity
+
 Bongo                   = require 'bongo'
 async                   = require 'async'
 { join: joinPath }      = require 'path'
@@ -17,7 +19,7 @@ koding = new Bongo
   models : modelPath
 
 done = ->
-  console.log "Finished!"
+  console.log 'Finished!'
   process.exit 1
 
 inRoles = (role, roles) ->
@@ -59,7 +61,7 @@ koding.once 'dbClientReady', ->
 
       return
 
-    console.log "BEFORE", permissionSet.permissions
+    console.log 'BEFORE', permissionSet.permissions
 
     seen = {}
     missing = []
@@ -110,7 +112,7 @@ koding.once 'dbClientReady', ->
     for own _, missingSet of pushes
       permissionSet.permissions.push missingSet
 
-    console.log "AFTER", permissionSet.permissions
+    console.log 'AFTER', permissionSet.permissions
 
     if argv.hard
       workQueue.push (fin) -> permissionSet.save -> fin()

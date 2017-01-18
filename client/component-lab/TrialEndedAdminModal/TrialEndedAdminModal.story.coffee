@@ -8,5 +8,3 @@ storiesOf 'TrialEndedAdminModal', module
     <TrialEndedAdminModal
       isOpen={yes}
       onButtonClick={action 'button clicked'} />
-
-

@@ -83,5 +83,3 @@ track = (action, properties = {}) ->
   properties.category = 'TeamSignup'
   properties.label    = 'PaymentTab'
   utils.analytics.track action, properties
-
-
