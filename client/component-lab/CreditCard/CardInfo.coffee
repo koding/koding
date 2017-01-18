@@ -15,10 +15,10 @@ module.exports = CardInfo = ({ number, brand, month, year, onToggleForm, formVis
 
   <div className='CardInfo'>
     <Row className={styles['info-row']}>
-      <Col xs={7}>
+      <Col xs={6}>
         <div className={styles.title}>Credit Card Number</div>
       </Col>
-      <Col xs={5}>
+      <Col xs={6}>
         <div className={styles.title}>Expiration</div>
       </Col>
     </Row>
@@ -30,7 +30,7 @@ module.exports = CardInfo = ({ number, brand, month, year, onToggleForm, formVis
           style={background: '#989898'} />
       </Col>
 
-      <Col xs={5}>
+      <Col xs={4}>
         <CardNumber
           size={18}
           type='default'
@@ -40,7 +40,7 @@ module.exports = CardInfo = ({ number, brand, month, year, onToggleForm, formVis
 
       <Col xs />
 
-      <Col xs={2}>
+      <Col xs={3}>
         <CardDate
           size={18}
           type='default'
