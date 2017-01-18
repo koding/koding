@@ -376,7 +376,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
               expect(sample).to.exist
               expect(sample.yaml).to.exist
               expect(sample.json).to.exist
-              expect(sample.user_inputs).to.exist
+              expect(sample.defaults).to.exist
               next()
 
           async.series queue, done

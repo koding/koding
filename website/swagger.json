@@ -4573,7 +4573,7 @@
         "description": "returns sample stack template for given provider",
         "responses": {
           "200": {
-            "description": "stacktemplate sample in json and yaml format with default user_inputs",
+            "description": "stacktemplate sample in json and yaml format with default values",
             "schema": {
               "type": "object",
               "properties": {
@@ -4585,9 +4585,14 @@
                   "type": "string",
                   "default": "--"
                 },
-                "user_inputs": {
+                "defaults": {
                   "type": "object",
-                  "properties": {}
+                  "properties": {
+                    "userInputs": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  }
                 }
               }
             }

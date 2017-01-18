@@ -322,7 +322,7 @@ module.exports = class JStackTemplate extends Module
   # @option options [String] provider provider name for fetching sample
   # @option options [Boolean] useDefaults if it's true templates will be provided with default values
   #
-  # @return {Object} stacktemplate sample in json and yaml format with default user_inputs
+  # @return {Object} stacktemplate sample in json and yaml format with default values
   #
   # @example api
   #
@@ -336,7 +336,9 @@ module.exports = class JStackTemplate extends Module
   #   {
   #     "json": "{}",
   #     "yaml": "--",
-  #     "user_inputs": {}
+  #     "defaults": {
+  #       "userInputs": {}
+  #     }
   #   }
   #
   @samples = ->

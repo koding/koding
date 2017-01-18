@@ -61,8 +61,9 @@ resource:
       mem: '${var.userInput_mem}'
 '''
 
-  # Defaults for userInputs
-  user_inputs:
-    image: 'ubuntu:14.04'
-    cpus: 1.0
-    mem: 256
+  # Defaults
+  defaults:
+    userInputs:
+      image: 'ubuntu:14.04'
+      cpus: 1.0
+      mem: 256

@@ -59,9 +59,10 @@ resource:
 
     '''
 
-  # Defaults for userInputs
-  user_inputs:
-    instance_type: 't2.nano'
+  # Defaults
+  defaults:
+    userInputs:
+      instance_type: 't2.nano'
 
 
 ### Full YAML Example

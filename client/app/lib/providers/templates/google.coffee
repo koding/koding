@@ -68,8 +68,9 @@ resource:
 
     '''
 
-  # Defaults for userInputs
-  user_inputs:
-    zone: 'us-central1-a'
-    image: 'ubuntu-1404-lts'
-    machine_type: 'f1-micro'
+  # Defaults
+  defaults:
+    userInputs:
+      zone: 'us-central1-a'
+      image: 'ubuntu-1404-lts'
+      machine_type: 'f1-micro'

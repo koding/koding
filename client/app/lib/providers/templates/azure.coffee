@@ -56,7 +56,8 @@ resource:
 
     '''
 
-  # Defaults for userInputs
-  user_inputs:
-    size: 'Basic_A1'
-    image: 'Ubuntu Server 14.04 LTS'
+  # Defaults
+  defaults:
+    userInputs:
+      size: 'Basic_A1'
+      image: 'Ubuntu Server 14.04 LTS'

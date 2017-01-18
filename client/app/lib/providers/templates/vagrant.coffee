@@ -44,8 +44,9 @@ resource:
 
     '''
 
-  # Defaults for userInputs
-  user_inputs:
-    memory: 2048
-    cpus: 2
-    box: 'ubuntu/trusty64'
+  # Defaults
+  defaults:
+    userInputs:
+      memory: 2048
+      cpus: 2
+      box: 'ubuntu/trusty64'

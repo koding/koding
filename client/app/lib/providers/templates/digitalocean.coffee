@@ -58,8 +58,9 @@ resource:
 
     '''
 
-  # Defaults for userInputs
-  user_inputs:
-    size: '512mb'
-    image: 'ubuntu-14-04-x64'
-    region: 'nyc2'
+  # Defaults
+  defaults:
+    userInputs:
+      size: '512mb'
+      image: 'ubuntu-14-04-x64'
+      region: 'nyc2'
