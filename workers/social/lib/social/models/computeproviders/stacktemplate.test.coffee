@@ -1,4 +1,4 @@
-StackTemplate   = require './stacktemplate'
+JStackTemplate = require './stacktemplate'
 
 { async
   expect
@@ -30,7 +30,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
       it 'should fail to create stack template', (done) ->
 
-        expectAccessDenied StackTemplate, 'create', {}, done
+        expectAccessDenied JStackTemplate, 'create', {}, done
 
 
     describe 'when user has the permission', ->
@@ -40,7 +40,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
         withConvertedUser ({ client }) ->
 
           stackTemplateData = generateStackTemplateData client
-          StackTemplate.create client, stackTemplateData, (err, template) ->
+          JStackTemplate.create client, stackTemplateData, (err, template) ->
             expect(err?.message)              .not.exist
             expect(template.title)            .to.be.equal stackTemplateData.title
             expect(template.slug)             .to.be.equal slugify stackTemplateData.title
@@ -63,7 +63,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
           delete stackTemplateData.slug
           delete stackTemplateData.title
 
-          StackTemplate.create client, stackTemplateData, (err, template) ->
+          JStackTemplate.create client, stackTemplateData, (err, template) ->
             expect(err?.message)                  .not.exist
             expect(template.title)                .to.exist
             expect(template.title.split(' ')[1])  .to.be.equal 'Aws'
@@ -77,7 +77,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
           stackTemplateData = generateStackTemplateData client
           delete stackTemplateData.config
 
-          StackTemplate.create client, stackTemplateData, (err, template) ->
+          JStackTemplate.create client, stackTemplateData, (err, template) ->
             expect(err?.message)                      .not.exist
             expect(template.config)                   .to.exist
             expect(template.config.groupStack)        .to.be.equal no
@@ -94,7 +94,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
       it 'should fail to fetch stack templates', (done) ->
 
-        expectAccessDenied StackTemplate, 'some$', {}, done
+        expectAccessDenied JStackTemplate, 'some$', {}, done
 
 
     describe 'when user has the permission', ->
@@ -105,7 +105,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
           { client, stackTemplate, stackTemplateData } = data
           selector = { _id : stackTemplate._id }
 
-          StackTemplate.some$ client, selector, (err, templates) ->
+          JStackTemplate.some$ client, selector, (err, templates) ->
             expect(err?.message).to.not.exist
             expect(templates[0].title).to.be.equal stackTemplateData.title
             expect(templates[0].template.content).to.be.deep.equal stackTemplateData.template
@@ -118,7 +118,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
       it 'should fail to fetch stack templates', (done) ->
 
-        expectAccessDenied StackTemplate, 'one$', {}, {}, done
+        expectAccessDenied JStackTemplate, 'one$', {}, {}, done
 
 
     describe 'when user has the permission', ->
@@ -129,7 +129,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
           { client, stackTemplate, stackTemplateData } = data
           selector = { _id : stackTemplate._id }
 
-          StackTemplate.one$ client, selector, null, (err, template) ->
+          JStackTemplate.one$ client, selector, null, (err, template) ->
             expect(err?.message).to.not.exist
             expect(template.title).to.be.equal stackTemplateData.title
             expect(template.template.content).to.be.deep.equal stackTemplateData.template
@@ -160,7 +160,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
                 next()
 
             (next) ->
-              StackTemplate.one { _id : stackTemplate._id }, (err, stackTemplate_) ->
+              JStackTemplate.one { _id : stackTemplate._id }, (err, stackTemplate_) ->
                 expect(err).to.not.exist
                 expect(stackTemplate_).to.not.exist
                 next()
