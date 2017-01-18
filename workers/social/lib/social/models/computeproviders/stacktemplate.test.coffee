@@ -360,6 +360,46 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
           async.series queue, done
 
 
+      it 'should be able to update a cloned stacktemplate', (done) ->
+
+        withConvertedUserAndStackTemplate (data) ->
+          { client, stackTemplate, stackTemplateData } = data
+
+          stackTemplate.clone client, (err, clonedTemplate) ->
+            expect(err).to.not.exist
+
+            queue = [
+
+              (next) ->
+                params = { title: 'title should be updated' }
+                clonedTemplate.update$ client, params, (err) ->
+                  expect(err).to.not.exist
+                  expect(clonedTemplate.title).to.be.equal params.title
+                  next()
+
+              (next) ->
+                params = { template: '{}', rawContent: '--' }
+                clonedTemplate.update$ client, params, (err, clonedTemplate) ->
+                  expect(err)                                .to.not.exist
+                  expect(clonedTemplate.template.content)    .to.be.equal params.template
+                  expect(clonedTemplate.template.rawContent) .to.be.equal params.rawContent
+                  expect(clonedTemplate.template.sum)        .to.be.equal 'bf21a9e8fbc5a3846fb05b4fa0859e0917b2202f' # sum of "{}"
+                  next()
+
+              (next) ->
+                params = { config: { groupStack: yes } }
+                clonedTemplate.update$ client, params, (err, clonedTemplate) ->
+                  expect(err).to.not.exist
+                  expect(clonedTemplate.config.groupStack)   .to.be.equal yes
+                  # sum needs to stay same
+                  expect(clonedTemplate.template.sum)        .to.be.equal 'bf21a9e8fbc5a3846fb05b4fa0859e0917b2202f'
+                  next()
+
+            ]
+
+            async.series queue, done
+
+
   describe '#samples()', ->
 
     it 'should return sample templates for all stack supported providers', (done) ->
@@ -380,6 +420,32 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
               next()
 
           async.series queue, done
+
+
+  describe 'clone()', ->
+
+    describe 'when user doesnt have the permission', ->
+
+      it 'should fail to clone a stacktemplate', (done) ->
+
+        withConvertedUserAndStackTemplate ({ stackTemplate }) ->
+          expectAccessDenied stackTemplate, 'clone', done
+
+
+    describe 'when user has the permission', ->
+
+      it 'should be able to clone a stacktemplate', (done) ->
+
+        withConvertedUserAndStackTemplate (data) ->
+          { client, stackTemplate, stackTemplateData } = data
+
+          stackTemplate.clone client, (err, clonedTemplate) ->
+            expect(err)                              .to.not.exist
+            expect(clonedTemplate)                   .to.exist
+            expect(clonedTemplate.title)             .to.be.equal "#{stackTemplate.title} - clone"
+            expect(clonedTemplate.config.clonedFrom) .to.be.equal stackTemplate._id
+            expect(clonedTemplate.config.clonedSum)  .to.be.equal stackTemplate.template.sum
+            done()
 
 beforeTests()
 
