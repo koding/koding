@@ -1,7 +1,6 @@
-package mount
+package sync
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -9,18 +8,20 @@ import (
 
 	"koding/klient/machine/client"
 	"koding/klient/machine/client/testutil"
+	"koding/klient/machine/mount"
+	"koding/klient/machine/mount/mounttest"
 )
 
 func TestSyncAdd(t *testing.T) {
-	wd, remotePath, clean, err := testMountDirs()
+	wd, m, clean, err := mounttest.MountDirs()
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	defer clean()
 
 	// Add new mount.
-	mountID := MakeID()
-	s, m, err := testSyncWithMount(mountID, wd, remotePath)
+	mountID := mount.MakeID()
+	s, err := testSyncWithMount(wd, mountID, m)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -63,15 +64,15 @@ func TestSyncAdd(t *testing.T) {
 	}
 
 	// Add files to remote and cache paths.
-	if _, err := tempFile(remotePath); err != nil {
+	if _, err := mounttest.TempFile(m.RemotePath); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if _, err := tempFile(filepath.Join(mountWD, "data")); err != nil {
+	if _, err := mounttest.TempFile(filepath.Join(mountWD, "data")); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
 	// New add of existing mount.
-	if s, _, err = testSyncWithMount(mountID, wd, remotePath); err != nil {
+	if s, err = testSyncWithMount(wd, mountID, m); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
@@ -91,15 +92,15 @@ func TestSyncAdd(t *testing.T) {
 }
 
 func TestSyncDrop(t *testing.T) {
-	wd, remotePath, clean, err := testMountDirs()
+	wd, m, clean, err := mounttest.MountDirs()
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	defer clean()
 
 	// Add new mount.
-	mountID := MakeID()
-	s, _, err := testSyncWithMount(mountID, wd, remotePath)
+	mountID := mount.MakeID()
+	s, err := testSyncWithMount(wd, mountID, m)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -120,9 +121,9 @@ func TestSyncDrop(t *testing.T) {
 	}
 }
 
-func testSyncWithMount(mountID ID, wd, remotePath string) (s *Sync, m Mount, err error) {
+func testSyncWithMount(wd string, mountID mount.ID, m mount.Mount) (s *Sync, err error) {
 	opts := SyncOpts{
-		ClientFunc: func(ID) (client.Client, error) {
+		ClientFunc: func(mount.ID) (client.Client, error) {
 			return testutil.NewClient(), nil
 		},
 		WorkDir: wd,
@@ -130,64 +131,8 @@ func testSyncWithMount(mountID ID, wd, remotePath string) (s *Sync, m Mount, err
 
 	s, err = NewSync(opts)
 	if err != nil {
-		return nil, Mount{}, err
+		return nil, err
 	}
 
-	// Add new mount.
-	m = Mount{
-		Path:       "some/path",
-		RemotePath: remotePath,
-	}
-
-	return s, m, s.Add(mountID, m)
-}
-
-func testMountDirs() (wd, remotePath string, clean func(), err error) {
-	// Create path to be mounted.
-	remotePath, rpClean, err := tempDir()
-	if err != nil {
-		return "", "", nil, err
-	}
-
-	// Put a sample file into remote directory.
-	if _, err := tempFile(remotePath); err != nil {
-		rpClean()
-		return "", "", nil, err
-	}
-
-	wd, wdClean, err := tempDir()
-	if err != nil {
-		rpClean()
-		return "", "", nil, err
-	}
-
-	clean = func() {
-		rpClean()
-		wdClean()
-	}
-
-	return wd, remotePath, clean, nil
-}
-
-func tempDir() (root string, clean func(), err error) {
-	root, err = ioutil.TempDir("", "mount.sync")
-	if err != nil {
-		return "", nil, err
-	}
-
-	return root, func() { os.RemoveAll(root) }, nil
-}
-
-func tempFile(root string) (string, error) {
-	f, err := ioutil.TempFile(root, "sync")
-	if err != nil {
-		return "", nil
-	}
-	defer f.Close()
-
-	if _, err := f.WriteString("sample content"); err != nil {
-		return "", err
-	}
-
-	return f.Name(), nil
+	return s, s.Add(mountID, m)
 }
