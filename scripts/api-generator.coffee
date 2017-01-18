@@ -165,6 +165,11 @@ generateMethodPaths = (model, definitions, paths, docs) ->
 
   for method, signatures of methods.statik
 
+    response      =
+      description : 'Request processed succesfully'
+      schema      :
+        $ref      : '#/definitions/DefaultResponse'
+
     if hasParams = signatures.length > 1 or signatures[0].split(',').length > 1
       parameters = [{ $ref: '#/parameters/bodyParam' }]
       examples = docs[name]['static'][method]?.examples ? []
@@ -178,6 +183,11 @@ generateMethodPaths = (model, definitions, paths, docs) ->
             description: 'body of the request'
           }
         ]
+      if (returns = docs[name]['static'][method]?.returns) and Object.keys(returns).length
+        response =
+          description: returns.description
+          schema: { $ref: "#/definitions/#{returns.type}" }
+
     else
       parameters = null
 
@@ -189,9 +199,8 @@ generateMethodPaths = (model, definitions, paths, docs) ->
         description: docs[name]['static'][method]?.description ? ''
         responses:
           '200':
-            description: 'Request processed succesfully'
-            schema:
-              $ref: '#/definitions/DefaultResponse'
+            description: response.description
+            schema: response.schema
           '401':
             description: 'Unauthorized request'
             schema:
