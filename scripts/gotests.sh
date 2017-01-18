@@ -48,12 +48,10 @@ function runAll () {
 if [ "$1" == "socialapi" ]; then
   shift
   export RUN_FLAGS=${RUN_FLAGS:-"-c=./go/src/socialapi/config/dev.toml"}
-
   runAll $@
 
 elif  [ "$1" == "kites" ]; then
     shift
-
     compile  $@
     runWithCD $@
     clean $@

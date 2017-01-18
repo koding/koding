@@ -67,8 +67,6 @@ testteamintegration:
 	@echo "$(OK_COLOR)--> team integration tests... $(NO_COLOR)"
 	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/team/tests
 
-# TODO
-# fix configpath issue
 testalgolia:
 	@echo "$(OK_COLOR)--> algoliaconnector unit tests... $(NO_COLOR)"
 	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/algoliaconnector/algoliaconnector
