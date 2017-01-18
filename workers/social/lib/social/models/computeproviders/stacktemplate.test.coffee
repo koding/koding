@@ -1,3 +1,4 @@
+ComputeProvider = require './computeprovider'
 JStackTemplate = require './stacktemplate'
 
 { async
@@ -12,6 +13,8 @@ JStackTemplate = require './stacktemplate'
   generateStackTemplateData
   withConvertedUserAndStackTemplate } = require \
   '../../../../testhelper/models/computeproviders/stacktemplatehelper'
+
+{ PROVIDERS } = require './computeutils'
 
 { slugify } = require '../../traits/slugifiable'
 
@@ -356,6 +359,27 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
           async.series queue, done
 
+
+  describe '#samples()', ->
+
+    it 'should return sample templates for all stack supported providers', (done) ->
+
+      withConvertedUser ({ client }) ->
+
+        ComputeProvider.fetchProviders client, (err, providers) ->
+          expect(err).to.not.exist
+
+          queue = providers.map (provider) -> (next) ->
+
+            JStackTemplate.samples client, { provider }, (err, sample) ->
+              expect(err).to.not.exist
+              expect(sample).to.exist
+              expect(sample.yaml).to.exist
+              expect(sample.json).to.exist
+              expect(sample.user_inputs).to.exist
+              next()
+
+          async.series queue, done
 
 beforeTests()
 

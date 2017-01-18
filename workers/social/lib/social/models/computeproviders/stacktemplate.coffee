@@ -26,8 +26,6 @@ module.exports = class JStackTemplate extends Module
 
     permissions       :
 
-      'list defaults'             : ['guest']
-
       'create stack template'     : ['member', 'moderator']
       'list stack templates'      : ['member', 'moderator']
 
@@ -342,7 +340,7 @@ module.exports = class JStackTemplate extends Module
   #   }
   #
   @samples = ->
-  @samples = permit 'list defaults',
+  @samples = permit 'list stack templates',
 
     success: revive
 
