@@ -9,6 +9,9 @@ ICONS =
   'american-express':
     '1x': require 'app/sprites/1x/amex.png'
     '2x': require 'app/sprites/2x/amex.png'
+  'american-express-light':
+    '1x': require 'app/sprites/1x/amex-light.png'
+    '2x': require 'app/sprites/2x/amex-light.png'
   'diners-club':
     '1x': require 'app/sprites/1x/dinersclub.png'
     '2x': require 'app/sprites/2x/dinersclub.png'
@@ -35,7 +38,7 @@ ICON_HEIGHT =
   regular: 18
   big: 27
 
-module.exports = CardIcon = ({ brand, size, style }) ->
+module.exports = CardIcon = ({ brand, size, style, light }) ->
 
   wrapperClassName = classnames [
     styles['brand-wrapper']
@@ -43,24 +46,26 @@ module.exports = CardIcon = ({ brand, size, style }) ->
   ]
 
   <div className={wrapperClassName} style={style}>
-    <BrandImage brand={brand} size={size} />
+    <BrandImage brand={brand} size={size} light={light} />
   </div>
 
 
-BrandImage = ({ brand, size }) ->
+BrandImage = ({ brand, size, light }) ->
 
   if brand is Brand.DEFAULT
     return (
       <span className={classnames(size, styles['brand-default'])} />
     )
 
-  <Icon
-    width='auto'
-    height={ICON_HEIGHT[size]}
-    1x={ICONS[brand]['1x']}
-    2x={ICONS[brand]['2x']}
-  />
+  icons = if light and ICONS["#{brand}-light"]
+  then ICONS["#{brand}-light"]
+  else ICONS[brand]
+
+  height = ICON_HEIGHT[size]
+
+  <Icon width='auto' height={height} 1x={icons['1x']} 2x={icons['2x']} />
 
 CardIcon.defaultProps =
+  light: no
   size: 'regular'
   brand: Brand.DEFAULT
