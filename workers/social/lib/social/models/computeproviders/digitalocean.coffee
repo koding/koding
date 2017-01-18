@@ -8,11 +8,9 @@ module.exports = class DigitalOcean extends ProviderInterface
 
   @secretKeys    = ['access_token']
 
-
   @ping = (client, options, callback) ->
 
     callback null, "DigitalOcean is better #{ client.r.account.profile.nickname }!"
-
 
   @create = (client, options, callback) ->
 
@@ -28,3 +26,5 @@ module.exports = class DigitalOcean extends ProviderInterface
     }
 
     callback null, { meta, credential }
+
+  do @_requireTemplate
