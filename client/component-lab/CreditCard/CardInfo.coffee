@@ -25,6 +25,7 @@ module.exports = CardInfo = ({ number, brand, month, year, onToggleForm, formVis
     <Row className={styles['info-row']}>
       <Col style={padding: '0 0 0 .5rem', minWidth: '30px'}>
         <CardIcon
+          light
           size='small'
           brand={brand}
           style={background: '#bbb'} />
