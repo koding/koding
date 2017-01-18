@@ -68,7 +68,7 @@ module.exports = class SubscriptionHeader extends Component
 
     return null  if isTrial
 
-    <Col xs={4} className={textStyles.right}>
+    <Col xs={4} className={textStyles.right + ' hidden'}>
       <Label size="small" type="info">
         Next Bill Amount: <strong>${formatNumber(nextBillingAmount, 2) or 0}</strong>
       </Label>
