@@ -1,6 +1,7 @@
 { ObjectId, signature } = require 'bongo'
 { Module, Relationship } = require 'jraphical'
 
+_ = require 'lodash'
 async = require 'async'
 helpers = require './helpers'
 KodingError = require '../../error'
@@ -579,6 +580,9 @@ module.exports = class JStackTemplate extends Module
       updateAndNotify = (query) =>
         @updateAndNotify notifyOptions, query, (err, results) =>
           callback err, this
+
+      # Create a clone of provided data to work on it around
+      data = _.clone data
 
       # It's not allowed to change a stack template group or owner
       delete data.originId
