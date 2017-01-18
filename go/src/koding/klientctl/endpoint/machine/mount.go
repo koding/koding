@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"koding/klient/machine/machinegroup"
+	"koding/klient/machine/mount"
 	"koding/klientctl/klient"
 
 	"github.com/koding/logging"
@@ -34,8 +35,6 @@ func Mount(options *MountOptions) (err error) {
 		}
 	}()
 
-	// Translate identifier to machine ID.
-	//
 	// TODO(ppknap): this is copied from klientctl old list and will be reworked.
 	k, err := klient.CreateKlientWithDefaultOpts()
 	if err != nil {
@@ -48,6 +47,7 @@ func Mount(options *MountOptions) (err error) {
 		return err
 	}
 
+	// Translate identifier to machine ID.
 	idReq := machinegroup.IDRequest{
 		Identifier: options.Identifier,
 	}
@@ -60,20 +60,83 @@ func Mount(options *MountOptions) (err error) {
 		return err
 	}
 
+	fmt.Fprintln(os.Stdout, "Mounting to %s directory.\nChecking remote path...", options.Path)
+
+	m := mount.Mount{
+		Path:       options.Path,
+		RemotePath: options.RemotePath,
+	}
+	// First head the remote machine directory in order to get basic mount info.
+	headMountReq := machinegroup.HeadMountRequest{
+		machinegroup.MountRequest{
+			ID:    idRes.ID,
+			Mount: m,
+		},
+	}
+	headMountRaw, err := k.Tell("machine.mount.head", headMountReq)
+	if err != nil {
+		return err
+	}
+	headMountRes := machinegroup.HeadMountResponse{}
+	if err := headMountRaw.Unmarshal(&headMountRes); err != nil {
+		return err
+	}
+
+	// Remote directory is already mounted to this machine.
+	//
+	// TODO: ask user if she wants to create another mount or stop the process.
+	if headMountRes.ExistMountID != "" {
+		fmt.Fprintln(os.Stdout, "Remote directory %s is already mounted by: %s",
+			headMountRes.AbsRemotePath, headMountRes.ExistMountID)
+
+		clean()
+		return nil
+	}
+
+	// TODO: go-humanize.
+	fmt.Fprintln(os.Stdout, "Mounted remote directory %s has %d file(s) of total size %s",
+		headMountRes.AbsRemotePath, headMountRes.AllCount, headMountRes.AllDiskSize)
+
+	// TODO: ask user if she wants to continue.
+
+	m.RemotePath = headMountRes.AbsRemotePath
+	fmt.Fprintln(os.Stdout, "Initializing mount %s...", m)
+
+	// Create mount.
+	addMountReq := machinegroup.AddMountRequest{
+		machinegroup.MountRequest{
+			ID:    idRes.ID,
+			Mount: m,
+		},
+	}
+	addMountRaw, err := k.Tell("machine.mount.add", addMountReq)
+	if err != nil {
+		return err
+	}
+	addMountRes := machinegroup.AddMountResponse{}
+	if err := addMountRaw.Unmarshal(&addMountRes); err != nil {
+		return err
+	}
+
+	fmt.Fprintln(os.Stdout, "Created mount with ID: %s", addMountRes.MountID)
 	return nil
 }
 
 // mountPointDirectory checks and prepares local directory for mounting.
 // Returned clean function can be used to remove resources in case of other
 // mounting errors.
+//
+// NOTE: This logic will be moved to klient.
 func mountPointDirectory(path string) (clean func(), err error) {
 	switch info, err := os.Stat(path); {
-	case os.IsNotExist(path):
-		// Create a new directory. In case of errors clean will remove it.
+	case os.IsNotExist(err):
+		// Create a new directory.
 		if err := os.MkdirAll(path, 0755); err != nil {
 			return nil, fmt.Errorf("cannot create destination directory: %s", err)
 		}
-		return func() { os.RemoveAll(path) }, nil
+		return func() {
+			os.RemoveAll(path)
+		}, nil
 	case err != nil:
 		return nil, fmt.Errorf("cannot stat destination directory: %s", err)
 	case !info.IsDir():
@@ -95,13 +158,15 @@ func mountPointDirectory(path string) (clean func(), err error) {
 	default:
 		return nil, fmt.Errorf("destination directory error: %s", err)
 	}
-	clean = func() { removeContent(path) }
+	clean = func() {
+		removeContent(path)
+	}
 
 	return clean, nil
 
 }
 
-// removeContent removes all files inside provided path but not path itself.
+// removeContent removes all files inside provided path but not the path itself.
 func removeContent(path string) error {
 	f, err := os.Open(path)
 	if err != nil {

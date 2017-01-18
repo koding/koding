@@ -23,8 +23,6 @@ type SSHOptions struct {
 
 // SSH connects to remote machine using SSH protocol.
 func SSH(options *SSHOptions) error {
-	// Translate identifier to machine ID.
-	//
 	// TODO(ppknap): this is copied from klientctl old list and will be reworked.
 	k, err := klient.CreateKlientWithDefaultOpts()
 	if err != nil {
@@ -37,6 +35,7 @@ func SSH(options *SSHOptions) error {
 		return err
 	}
 
+	// Translate identifier to machine ID.
 	idReq := machinegroup.IDRequest{
 		Identifier: options.Identifier,
 	}

@@ -591,6 +591,24 @@ func run(args []string) {
 					Usage:     "Mount remote folder to local directory.",
 					Action:    ctlcli.ExitErrAction(MachineMountCommand, log, "mount"),
 					Flags:     []cli.Flag{},
+					Subcommands: []cli.Command{{
+						Name:      "list",
+						ShortName: "ls",
+						Usage:     "List available mounts.",
+						Action:    ctlcli.ExitErrAction(MachineMountListCommand, log, "mount list"),
+						Flags: []cli.Flag{
+							cli.BoolFlag{
+								Name:  "json",
+								Usage: "Output in JSON format.",
+							},
+						},
+					}},
+				}, {
+					Name:      "umount",
+					ShortName: "u",
+					Usage:     "Unmount remote directory.",
+					Action:    ctlcli.ExitErrAction(MachineUmountCommand, log, "umount"),
+					Flags:     []cli.Flag{},
 				}},
 			},
 			cli.Command{

@@ -34,8 +34,6 @@ func List(options *ListOptions) ([]*Info, error) {
 		return nil, err
 	}
 
-	// Register machines to klient and get aliases.
-	//
 	// TODO(ppknap): this is copied from klientctl old list and will be reworked.
 	k, err := klient.CreateKlientWithDefaultOpts()
 	if err != nil {
@@ -48,6 +46,7 @@ func List(options *ListOptions) ([]*Info, error) {
 		return nil, err
 	}
 
+	// Register machines to klient and get aliases.
 	createReq := machinegroup.CreateRequest{
 		Addresses: make(map[kmachine.ID][]kmachine.Addr),
 	}
