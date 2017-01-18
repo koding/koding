@@ -27,6 +27,7 @@
   &.small
     border-radius           3px
     padding                 0 5px
+    justify-content         center
 
 .brand-default.small
   width                     30px
