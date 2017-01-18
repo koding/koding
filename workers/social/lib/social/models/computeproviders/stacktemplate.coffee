@@ -569,7 +569,7 @@ module.exports = class JStackTemplate extends Module
 
         data['meta.modifiedAt'] = new Date
 
-        if originalId = data.config?.clonedFrom
+        if template and originalId = data.config?.clonedFrom
 
           # update clonedSum information in the template, if it is exists
           JStackTemplate.one$ client, { _id: originalId }, (err, template) ->

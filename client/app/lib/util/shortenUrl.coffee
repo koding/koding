@@ -18,6 +18,6 @@ module.exports = shortenUrl = (longUrl, callback) ->
   request.done (data) ->
     callback data?.id or longUrl, data
 
-  request.error ({ status, statusText, responseText }) ->
+  request.fail ({ status, statusText, responseText }) ->
     console.error 'URL shortener error', status, statusText, responseText
     callback longUrl

@@ -57,7 +57,7 @@ It is recommended that you choose the Vagrant stack if you have access to a phys
 
     >You can add commands to run once your VM starts under the **user_data** section. For example you can choose to install services/packages once a VM starts. Commands under the **user_data** section will run as `root` when the VM boots.
 
-    >Click away from any of the tabs to return to your **Stack template editor**.
+    >Click on the stack name to return to your **Stack template editor**.
 
 7.  Edit your **Readme** section to greet your team and provide them with information or instructions. You can use [markdown](https://en.wikipedia.org/wiki/Markdown) format
 

@@ -19,7 +19,7 @@ TrialChargeInfo = ({ teamSize, pricePerSeat, daysLeft }) ->
           Team Size: <strong>{pluralize 'Developer', teamSize, yes}</strong>
         </Label>
       </Col>
-      <Col xs={7} className={textStyles.right}>
+      <Col xs={7} className={textStyles.right + ' hidden'}>
         <Label size="small">
           Monthly charge after trial:&nbsp;
           <strong>${formatNumber pricePerSeat, 2}</strong> per user
