@@ -1,9 +1,11 @@
-{ ObjectId, signature }  = require 'bongo'
+{ ObjectId, signature } = require 'bongo'
 { Module, Relationship } = require 'jraphical'
-KodingError              = require '../../error'
-helpers                  = require './helpers'
-async                    = require 'async'
-clientRequire            = require '../../clientrequire'
+
+async = require 'async'
+helpers = require './helpers'
+KodingError = require '../../error'
+clientRequire = require '../../clientrequire'
+
 
 module.exports = class JStackTemplate extends Module
 
@@ -23,6 +25,8 @@ module.exports = class JStackTemplate extends Module
     softDelete        : yes
 
     permissions       :
+
+      'list defaults'             : ['guest']
 
       'create stack template'     : ['member', 'moderator']
       'list stack templates'      : ['member', 'moderator']
@@ -49,6 +53,8 @@ module.exports = class JStackTemplate extends Module
 
       static          :
         create        :
+          (signature Object, Function)
+        samples       :
           (signature Object, Function)
         one           : [
           (signature Object, Function)
@@ -308,6 +314,22 @@ module.exports = class JStackTemplate extends Module
           if err
           then callback new KodingError 'Failed to save stack template', err
           else callback null, stackTemplate
+
+
+  @samples = permit 'list defaults',
+
+    success: revive
+
+      shouldReviveClient    : no
+      shouldReviveProvider  : yes
+
+    , (client, options, callback) ->
+
+      { provider, useDefaults = no } = options
+
+      if useDefaults
+      then callback null, provider.templateWithDefaults
+      else callback null, provider.template
 
 
   @some$: permit 'list stack templates',
