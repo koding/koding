@@ -316,6 +316,32 @@ module.exports = class JStackTemplate extends Module
           else callback null, stackTemplate
 
 
+  # returns sample stack template for given provider
+  #
+  # @param {Object} options
+  #   options for fetching sample template
+  #
+  # @option options [String] provider provider name for fetching sample
+  # @option options [Boolean] useDefaults if it's true templates will be provided with default values
+  #
+  # @return {Object} stacktemplate sample in json and yaml format with default user_inputs
+  #
+  # @example api
+  #
+  #   {
+  #     "provider": "aws",
+  #     "useDefaults": true
+  #   }
+  #
+  # @example return
+  #
+  #   {
+  #     "json": "{}",
+  #     "yaml": "--",
+  #     "user_inputs": {}
+  #   }
+  #
+  @samples = ->
   @samples = permit 'list defaults',
 
     success: revive

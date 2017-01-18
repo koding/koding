@@ -4541,6 +4541,66 @@
         }
       }
     },
+    "/remote.api/JStackTemplate.samples": {
+      "post": {
+        "tags": [
+          "JStackTemplate"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "provider": {
+                  "type": "string",
+                  "default": "aws"
+                },
+                "useDefaults": {
+                  "type": "boolean",
+                  "default": true
+                }
+              }
+            },
+            "required": true,
+            "description": "body of the request"
+          }
+        ],
+        "description": "returns sample stack template for given provider",
+        "responses": {
+          "200": {
+            "description": "stacktemplate sample in json and yaml format with default user_inputs",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "json": {
+                  "type": "string",
+                  "default": "{}"
+                },
+                "yaml": {
+                  "type": "string",
+                  "default": "--"
+                },
+                "user_inputs": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
+            }
+          }
+        }
+      }
+    },
     "/remote.api/JStackTemplate.one": {
       "post": {
         "tags": [
