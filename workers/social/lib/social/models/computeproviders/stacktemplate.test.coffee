@@ -327,6 +327,8 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
         withConvertedUserAndStackTemplate (data) ->
           { client, stackTemplate, stackTemplateData } = data
 
+          { originId, group } = stackTemplate
+
           queue = [
 
             (next) ->
@@ -336,18 +338,19 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
                 expect(stackTemplate.title).to.be.equal params.title
                 next()
 
-            # FIXME: ~GG
-            # (next) ->
-            #   params = { group : 'group should be immutable' }
-            #   stackTemplate.update$ client, params, (err) ->
-            #     expect(err).to.exist
-            #     next()
+            (next) ->
+              params = { group : 'group should be immutable' }
+              stackTemplate.update$ client, params, (err, stackTemplate) ->
+                expect(err).to.not.exist
+                expect(stackTemplate.group).to.be.equal group
+                next()
 
-            # (next) ->
-            #   params = { originId : 'originId should be immutable' }
-            #   stackTemplate.update$ client, params, (err) ->
-            #     expect(err).to.exist
-            #     next()
+            (next) ->
+              params = { originId : 'originId should be immutable' }
+              stackTemplate.update$ client, params, (err, stackTemplate) ->
+                expect(err).to.not.exist
+                expect(stackTemplate.originId).to.be.equal originId
+                next()
 
           ]
 
