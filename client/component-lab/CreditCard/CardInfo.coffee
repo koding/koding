@@ -23,11 +23,11 @@ module.exports = CardInfo = ({ number, brand, month, year, onToggleForm, formVis
       </Col>
     </Row>
     <Row className={styles['info-row']}>
-      <Col style={padding: '0 .5rem'}>
+      <Col style={padding: '0 0 0 .5rem', minWidth: '30px'}>
         <CardIcon
           size='small'
           brand={brand}
-          style={background: '#989898'} />
+          style={background: '#bbb'} />
       </Col>
 
       <Col xs={4}>
