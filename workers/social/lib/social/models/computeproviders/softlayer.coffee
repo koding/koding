@@ -15,12 +15,10 @@ module.exports = class Softlayer extends ProviderInterface
 
   @secretKeys    = ['api_key']
 
-
   @ping = (client, options, callback) ->
 
     { nickname } = client.r.account.profile
     callback null, "#{ @providerSlug } is the best #{ nickname }!"
-
 
   @create = (client, options, callback) ->
 
@@ -36,3 +34,5 @@ module.exports = class Softlayer extends ProviderInterface
     }
 
     callback null, { meta, credential }
+
+  do @_requireTemplate

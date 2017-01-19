@@ -2,7 +2,7 @@ htmlencode = require 'htmlencode'
 $ = require 'jquery'
 kd = require 'kd'
 remote = require('../remote')
-uuid = require 'node-uuid'
+uuid = require 'uuid'
 
 module.exports = s3upload = (options, callback = kd.noop) ->
 

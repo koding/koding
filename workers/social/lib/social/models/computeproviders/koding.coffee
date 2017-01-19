@@ -15,6 +15,8 @@ module.exports = class Koding extends ProviderInterface
 
   @providerSlug = 'koding'
 
+  @supportsStacks = no
+
   @ping = (client, options, callback) ->
 
     { nickname } = client.r.account.profile

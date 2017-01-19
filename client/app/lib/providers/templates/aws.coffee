@@ -16,7 +16,7 @@ module.exports =
         "tags": {
           "Name": "${var.koding_user_username}-${var.koding_group_slug}"
         },
-        "instance_type": "t2.nano",
+        "instance_type": "${var.userInput_instance_type}",
         "ami": "",
         "user_data": "\\necho \\\"hello world!\\\" >> /helloworld.txt\\n"
       }
@@ -40,7 +40,7 @@ resource:
     # this is the name of your VM
     aws-instance:
       # select your instance_type here: eg. c3.xlarge
-      instance_type: t2.nano
+      instance_type: '${var.userInput_instance_type}'
       # select your ami (optional) eg. ami-xxxxx (it should be based on ubuntu 14.04)
       ami: ''
       # we will tag the instance here so you can identify it when you login to your AWS console
@@ -58,6 +58,11 @@ resource:
         # for more information please use the search box above
 
     '''
+
+  # Defaults
+  defaults:
+    userInputs:
+      instance_type: 't2.nano'
 
 
 ### Full YAML Example

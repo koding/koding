@@ -27,11 +27,32 @@ func GetAccountsByIds(ids []bson.ObjectId) ([]models.Account, error) {
 }
 
 func GetAccount(username string) (*models.Account, error) {
-	account := new(models.Account)
-	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"profile.nickname": username}).One(&account)
+	var account models.Account
+
+	if err := getAccount(username, &account); err != nil {
+		return nil, err
 	}
-	return account, Mongo.Run(AccountsColl, query)
+
+	return &account, nil
+}
+
+func GetAccountID(username string) (bson.ObjectId, error) {
+	var account struct {
+		ID bson.ObjectId `bson:"_id"`
+	}
+
+	if err := getAccount(username, &account); err != nil {
+		return "", err
+	}
+
+	return account.ID, nil
+}
+
+func getAccount(username string, out interface{}) error {
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"profile.nickname": username}).One(out)
+	}
+	return Mongo.Run(AccountsColl, query)
 }
 
 func GetAccountBySocialApiId(socialApiId int64) (*models.Account, error) {

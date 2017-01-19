@@ -553,7 +553,7 @@ createStackTemplateWithDefaults = (selectedProvider) ->
   provider  = Providers[selectedProvider]
 
   unless provider?.defaultTemplate
-    throw 'Provider doesn\'t have stack template!'
+    throw { message: 'Provider doesn\'t have stack template!' }
 
   { json: template, yaml: rawContent } = provider.defaultTemplate
 

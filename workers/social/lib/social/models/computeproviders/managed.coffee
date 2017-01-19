@@ -41,6 +41,8 @@ module.exports = class Managed extends ProviderInterface
 
   @providerSlug = 'managed'
 
+  @supportsStacks = no
+
   @ping = (client, options, callback) ->
 
     { nickname } = client.r.account.profile

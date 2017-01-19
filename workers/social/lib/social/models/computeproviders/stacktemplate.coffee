@@ -1,9 +1,12 @@
-{ ObjectId, signature }  = require 'bongo'
+{ ObjectId, signature } = require 'bongo'
 { Module, Relationship } = require 'jraphical'
-KodingError              = require '../../error'
-helpers                  = require './helpers'
-async                    = require 'async'
-clientRequire            = require '../../clientrequire'
+
+_ = require 'lodash'
+async = require 'async'
+helpers = require './helpers'
+KodingError = require '../../error'
+clientRequire = require '../../clientrequire'
+
 
 module.exports = class JStackTemplate extends Module
 
@@ -49,6 +52,8 @@ module.exports = class JStackTemplate extends Module
 
       static          :
         create        :
+          (signature Object, Function)
+        samples       :
           (signature Object, Function)
         one           : [
           (signature Object, Function)
@@ -310,6 +315,50 @@ module.exports = class JStackTemplate extends Module
           else callback null, stackTemplate
 
 
+  # returns sample stack template for given provider
+  #
+  # @param {Object} options
+  #   options for fetching sample template
+  #
+  # @option options [String] provider provider name for fetching sample
+  # @option options [Boolean] useDefaults if it's true templates will be provided with default values
+  #
+  # @return {Object} stacktemplate sample in json and yaml format with default values
+  #
+  # @example api
+  #
+  #   {
+  #     "provider": "aws",
+  #     "useDefaults": true
+  #   }
+  #
+  # @example return
+  #
+  #   {
+  #     "json": "{}",
+  #     "yaml": "--",
+  #     "defaults": {
+  #       "userInputs": {}
+  #     }
+  #   }
+  #
+  @samples = ->
+  @samples = permit 'list stack templates',
+
+    success: revive
+
+      shouldReviveClient    : no
+      shouldReviveProvider  : yes
+
+    , (client, options, callback) ->
+
+      { provider, useDefaults = no } = options
+
+      if useDefaults
+      then callback null, provider.templateWithDefaults
+      else callback null, provider.template
+
+
   @some$: permit 'list stack templates',
 
     success: (client, selector, options, callback) ->
@@ -532,6 +581,9 @@ module.exports = class JStackTemplate extends Module
         @updateAndNotify notifyOptions, query, (err, results) =>
           callback err, this
 
+      # Create a clone of provided data to work on it around
+      data = _.clone data
+
       # It's not allowed to change a stack template group or owner
       delete data.originId
       delete data.group
@@ -569,7 +621,7 @@ module.exports = class JStackTemplate extends Module
 
         data['meta.modifiedAt'] = new Date
 
-        if originalId = data.config?.clonedFrom
+        if template and originalId = data.config?.clonedFrom
 
           # update clonedSum information in the template, if it is exists
           JStackTemplate.one$ client, { _id: originalId }, (err, template) ->

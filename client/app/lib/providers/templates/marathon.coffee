@@ -17,14 +17,14 @@ module.exports =
         "container": {
           "docker": [
             {
-              "image": "ubuntu:14.04",
+              "image": "${var.userInput_image}",
               "network": "BRIDGE"
             }
           ]
         },
         "instances": 1,
-        "cpus": 1.0,
-        "mem": 256
+        "cpus": "${var.userInput_cpus}",
+        "mem": "${var.userInput_mem}"
       }
     }
   }
@@ -39,9 +39,9 @@ module.exports =
 
 provider:
   marathon:
-    url: "${var.marathon_url}"
-    basic_auth_user: "${var.marathon_basic_auth_user}"
-    basic_auth_password: "${var.marathon_basic_auth_password}"
+    url: '${var.marathon_url}'
+    basic_auth_user: '${var.marathon_basic_auth_user}'
+    basic_auth_password: '${var.marathon_basic_auth_password}'
 
 resource:
   marathon_app:
@@ -50,13 +50,20 @@ resource:
       # this is a list of containers running within your app
       container:
         docker:
-        - image: ubuntu:14.04
+        - image: '${var.userInput_image}'
           network: BRIDGE
 
       # number of my-app instances
       instances: 1
 
       # define your container specs here, 1.0 cpus, 256MB of memory etc.
+      cpus: '${var.userInput_cpus}'
+      mem: '${var.userInput_mem}'
+'''
+
+  # Defaults
+  defaults:
+    userInputs:
+      image: 'ubuntu:14.04'
       cpus: 1.0
       mem: 256
-'''

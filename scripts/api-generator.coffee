@@ -165,19 +165,33 @@ generateMethodPaths = (model, definitions, paths, docs) ->
 
   for method, signatures of methods.statik
 
+    response      =
+      description : 'Request processed succesfully'
+      schema      :
+        $ref      : '#/definitions/DefaultResponse'
+
     if hasParams = signatures.length > 1 or signatures[0].split(',').length > 1
       parameters = [{ $ref: '#/parameters/bodyParam' }]
       examples = docs[name]['static'][method]?.examples ? []
-      for example in examples when example.title is 'api'
-        parameters = [
-          {
-            in: 'body'
-            name: 'body'
-            schema: example.schema
-            required: true
-            description: 'body of the request'
-          }
-        ]
+      if (returns = docs[name]['static'][method]?.returns) and Object.keys(returns).length
+        response =
+          description: returns.description
+          schema: { $ref: "#/definitions/#{returns.type}" }
+
+      for example in examples
+        if example.title is 'api'
+          parameters = [
+            {
+              in: 'body'
+              name: 'body'
+              schema: example.schema
+              required: true
+              description: 'body of the request'
+            }
+          ]
+        else if example.title is 'return'
+          response.schema = example.schema
+
     else
       parameters = null
 
@@ -189,9 +203,8 @@ generateMethodPaths = (model, definitions, paths, docs) ->
         description: docs[name]['static'][method]?.description ? ''
         responses:
           '200':
-            description: 'Request processed succesfully'
-            schema:
-              $ref: '#/definitions/DefaultResponse'
+            description: response.description
+            schema: response.schema
           '401':
             description: 'Unauthorized request'
             schema:
@@ -210,14 +223,17 @@ generateMethodPaths = (model, definitions, paths, docs) ->
 
     if hasParams = signatures.length > 1 or signatures[0].split(',').length > 1
       examples = docs[name]['instance'][method]?.examples ? []
-      for example in examples when example.title is 'api'
-        parameters.push {
-          in: 'body'
-          name: 'body'
-          schema: example.schema
-          required: true
-          description: 'body of the request'
-        }
+      for example in examples
+        if example.title is 'api'
+          parameters.push {
+            in: 'body'
+            name: 'body'
+            schema: example.schema
+            required: true
+            description: 'body of the request'
+          }
+        else if example.title is 'return'
+          response.schema = example.schema
 
     paths["/remote.api/#{name}.#{method}/{id}"] =
       post:
