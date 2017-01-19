@@ -11,7 +11,6 @@ import (
 
 	"github.com/koding/kite"
 	kitecfg "github.com/koding/kite/config"
-	"github.com/koding/kite/protocol"
 	"github.com/koding/logging"
 )
 
@@ -153,21 +152,7 @@ func (kt *KiteTransport) kloud() (*kite.Client, error) {
 	kloud := kt.kite().NewClient(kt.konfig().Endpoints.Kloud().Public.String())
 
 	if err := kloud.DialTimeout(kt.dialTimeout()); err != nil {
-		query := &protocol.KontrolQuery{
-			Name:        "kloud",
-			Environment: kt.kiteConfig().Environment,
-		}
-
-		clients, err := kt.kite().GetKites(query)
-		if err != nil {
-			return nil, err
-		}
-
-		kloud = kt.kite().NewClient(clients[0].URL)
-
-		if err := kloud.DialTimeout(kt.DialTimeout); err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	kt.kKloud = kloud
