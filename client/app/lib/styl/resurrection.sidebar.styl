@@ -111,9 +111,6 @@ sidebarTextShadow()
     overflow          visible
     margin            0 0 22px 0
 
-    &:hover h3.sidebar-title a
-      opacity       1
-
     .lazy-loader
       margin          0
       top             -28px
@@ -143,10 +140,6 @@ sidebarTextShadow()
           text-decoration   underline
 
   .messages
-
-    h3.sidebar-title
-      padding-bottom    16px
-      padding-top       18px
 
     .nothing
       hidden()
@@ -186,35 +179,6 @@ sidebarTextShadow()
       &~a
         margin-left         12px
 
-
-
-h3.sidebar-title
-  antialiased()
-  font-weight               400
-  size                      auto 1em
-  line-height               16px
-  font-size                 14px
-  color                     sidebarSectionHeaderColor
-  text-transform            uppercase
-  word-spacing              .2em
-  letter-spacing            .05em
-  padding                   14px 20px 16px 0
-  pointer()
-  position                  relative
-  white-space               nowrap
-  ellipsis()
-
-  a
-    font-size               10px
-    font-weight             600
-    color                   #7F7F80
-    margin                  0 5px 0 0
-    opacity                 0
-    vendor                  transition, opacity .1s .1s ease
-    fr()
-
-  cite.count
-    top                     11px
 
 // refactored, moved to outer scope
 
