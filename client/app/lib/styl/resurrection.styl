@@ -325,36 +325,6 @@ pre
       r-sprite        app '16_close_white'
 
 
-#koding-logo
-  size              57px 55px
-  bg                color, logoBg
-  z-index           11
-  top               0
-  left              0
-  abs()
-
-  &.staging
-    bg              color #ff9200 // old koding orange
-
-  &.sandbox
-    bg              color #0099cc
-
-  &.vagrant
-    bg              color purple
-
-  &.custom
-    bg              color transparent
-    bg              position, center center
-    bg              repeat, no-repeat
-    cite
-      hidden()
-
-  cite
-    r-sprite        app 'nav_logo'
-    margin          0 0 0 1px
-    display         block
-
-
 #kdmaincontainer.logout-tv
   vendor                  animation, logoutTv .5s 1 forwards ease
   abs                     0px 0 0 0px
