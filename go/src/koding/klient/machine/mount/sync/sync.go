@@ -70,10 +70,6 @@ func (opts *SyncOpts) Valid() error {
 		return errors.New("working directory is not set")
 	}
 
-	if _, err := os.Stat(opts.WorkDir); err != nil {
-		return fmt.Errorf("invalid working directory %q: %s", opts.WorkDir, err)
-	}
-
 	return nil
 }
 
@@ -91,6 +87,10 @@ type Sync struct {
 // New creates a new Sync instance from the given options.
 func New(opts SyncOpts) (*Sync, error) {
 	if err := opts.Valid(); err != nil {
+		return nil, err
+	}
+
+	if err := mktree(opts.WorkDir); err != nil {
 		return nil, err
 	}
 
@@ -192,7 +192,7 @@ func newSynced(id mount.ID, m mount.Mount, opts *SyncOpts) (*synced, error) {
 	}
 
 	// Create directory structure if it doesn't exist.
-	if err := s.mktree(); err != nil {
+	if err := mktree(filepath.Join(s.wd, "data")); err != nil {
 		return nil, err
 	}
 
@@ -213,24 +213,6 @@ func newSynced(id mount.ID, m mount.Mount, opts *SyncOpts) (*synced, error) {
 	}
 
 	return s, nil
-}
-
-// mktree ensures that synced working directory is created.
-func (s *synced) mktree() error {
-	dataPath := filepath.Join(s.wd, "data")
-	info, err := os.Stat(dataPath)
-	if os.IsNotExist(err) {
-		return os.MkdirAll(dataPath, 0755)
-	}
-	if err != nil {
-		return err
-	}
-
-	if !info.IsDir() {
-		return fmt.Errorf("file %s is not a directory", s.wd)
-	}
-
-	return nil
 }
 
 // loadIdx reads named index from synced working directory. If index file does
@@ -299,4 +281,21 @@ func (s *synced) info() *Info {
 // Drop closes synced mount and cleans up all resources acquired by it.
 func (s *synced) drop() error {
 	return os.RemoveAll(s.wd)
+}
+
+// mktree ensures that provided directory is created.
+func mktree(dir string) error {
+	info, err := os.Stat(dir)
+	if os.IsNotExist(err) {
+		return os.MkdirAll(dir, 0755)
+	}
+	if err != nil {
+		return err
+	}
+
+	if !info.IsDir() {
+		return fmt.Errorf("file %s is not a directory", dir)
+	}
+
+	return nil
 }

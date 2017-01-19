@@ -18,7 +18,7 @@ import (
 )
 
 var KonfigCache = &CacheOptions{
-	File: filepath.Join(KodingHome(), "konfig.bolt"),
+	File: filepath.Join(KodingConfigHome(), "konfig.bolt"),
 	BoltDB: &bolt.Options{
 		Timeout: 5 * time.Second,
 	},
