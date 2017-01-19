@@ -124,6 +124,10 @@ func (s *Sync) Add(id ID, m Mount) error {
 	}
 
 	s.mu.Lock()
+	if _, ok := s.syncs[id]; ok {
+		s.mu.Unlock()
+		return fmt.Errorf("mount with ID %s added twice", id)
+	}
 	s.syncs[id] = sd
 	s.mu.Unlock()
 
