@@ -1,12 +1,11 @@
 React = require 'react'
-ReactView = require 'app/react/reactview'
 Box = require 'lab/Box'
 Button = require 'lab/Button'
-{Container, Header, Message, Divider, List, Footer} = Banner = require 'lab/Banner'
+{Container, Header, Message, Actions, Footer} = Banner = require 'lab/Banner'
 
-module.exports = class SupportPlansBanner extends ReactView
+module.exports = class SupportPlansBanner extends React.Component
 
-  renderReact: ->
+  render: ->
 
     <Banner
       type='success'
