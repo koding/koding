@@ -1102,15 +1102,15 @@ module.exports = class JAccount extends jraphical.Module
 
     return errorCallback()  unless sessionToken
 
-    JSession         = require './session'
-    { v4: createId } = require 'node-uuid'
+    JSession = require './session'
+    uuid = require 'uuid'
 
     JSession.one { clientId: sessionToken }, (err, session) ->
 
       if err or not session
         return errorCallback()
 
-      [otaToken] = createId().split '-'
+      [otaToken] = uuid.v4().split '-'
       session.update { $set: { otaToken } }, (err) ->
         if err then errorCallback()
         else callback null, otaToken

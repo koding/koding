@@ -8,10 +8,8 @@ module.exports = class Google extends ProviderInterface
 
   @secretKeys    = ['credentials']
 
-
   @ping = (client, callback) ->
     callback null, "Google. #{ client.connection.delegate.profile.nickname }!"
-
 
   @create = (client, options, callback) ->
 
@@ -27,3 +25,5 @@ module.exports = class Google extends ProviderInterface
     }
 
     callback null, { meta }
+
+  do @_requireTemplate

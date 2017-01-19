@@ -3,12 +3,14 @@ package testutil
 import (
 	"context"
 	"fmt"
+	"os/user"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"koding/klient/machine"
 	"koding/klient/machine/client"
+	"koding/klient/machine/index"
 )
 
 // Builder uses Server logic to build test clients.
@@ -81,8 +83,6 @@ func (n *Builder) BuildsCount() int {
 // Client satisfies machine.Client interface. It mimics real client and should
 // be used for testing purposes.
 type Client struct {
-	client.Disconnected
-
 	mu  sync.Mutex
 	ctx context.Context
 }
@@ -92,6 +92,37 @@ func NewClient() *Client {
 	return &Client{
 		ctx: context.Background(),
 	}
+}
+
+// CurrentUser returns the current user of local machine.
+func (c *Client) CurrentUser() (string, error) {
+	u, err := user.Current()
+	if err != nil {
+		return "", err
+	}
+
+	return u.Username, nil
+}
+
+// SSHAddKeys is a no-op method and always returns nil.
+func (c *Client) SSHAddKeys(_ string, _ ...string) error {
+	return nil
+}
+
+// MountHeadIndex gets basic info about the index generated from local path.
+func (c *Client) MountHeadIndex(path string) (string, int, int64, error) {
+	idx, err := c.MountGetIndex(path)
+	if err != nil {
+		return "", 0, 0, err
+	}
+
+	return path, idx.Count(-1), idx.DiskSize(-1), nil
+}
+
+// MountGetIndex creates an index from provided local path. Generated index is
+// not cached.
+func (c *Client) MountGetIndex(path string) (*index.Index, error) {
+	return index.NewIndexFiles(path)
 }
 
 // SetContext sets provided context to test client.

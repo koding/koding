@@ -195,6 +195,9 @@ type ApplyRequest struct {
 	// jComputeStack.
 	Credentials map[string][]string `json:"credentials,omitempty"`
 
+	// Variables are used to directly inject variables into jStackTemplate.
+	Variables map[string]string `json:"variables,omitempty"`
+
 	// Destroy, when true, destroys the terraform tempalte associated with the
 	// given StackId.
 	Destroy bool
@@ -287,9 +290,10 @@ func (k *Kloud) Bootstrap(r *kite.Request) (interface{}, error) {
 
 // PlanRequest represents an argument of the plan kite method.
 type PlanRequest struct {
-	Provider        string `json:"provider"`
-	StackTemplateID string `json:"stackTemplateId"`
-	GroupName       string `json:"groupName"`
+	Provider        string            `json:"provider"`
+	StackTemplateID string            `json:"stackTemplateId"`
+	GroupName       string            `json:"groupName"`
+	Variables       map[string]string `json:"variables,omitempty"`
 }
 
 // PlanResponse represents a reponse type of the plan kite method.

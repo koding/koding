@@ -9,10 +9,8 @@ module.exports = class Aws extends ProviderInterface
 
   @secretKeys = ['access_key', 'secret_key']
 
-
   @ping = (client, options, callback) ->
     callback null, "#{ @providerSlug } rulez #{ client.r.account.profile.nickname }!"
-
 
   @create = (client, options, callback) ->
 
@@ -28,3 +26,5 @@ module.exports = class Aws extends ProviderInterface
     }
 
     callback null, { meta, credential }
+
+  do @_requireTemplate

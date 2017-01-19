@@ -1,6 +1,7 @@
 globals = require 'globals'
 isProd  = globals.config.environment is 'production'
 baseURL = globals.config.domains.base
+replaceUserInputs = require 'app/util/stacks/replaceuserinputs'
 
 module.exports = globals.config.providers =
 
@@ -31,7 +32,7 @@ module.exports = globals.config.providers =
     color                  : '#F9A900'
     description            : 'Amazon Web Services'
     instanceTypes          : require './instance-types/aws'
-    defaultTemplate        : require './templates/aws'
+    defaultTemplate        : replaceUserInputs require './templates/aws'
     advancedFields         : [
                               'subnet', 'sg', 'vpc',
                               'ami', 'acl', 'cidr_block',
@@ -76,7 +77,7 @@ module.exports = globals.config.providers =
     color                  : '#B52025'
     supported              : yes
     enabled                : 'beta'
-    defaultTemplate        : require './templates/vagrant'
+    defaultTemplate        : replaceUserInputs require './templates/vagrant'
     instanceTypes          : require './instance-types/vagrant'
     description            : 'Local provisioning with Vagrant'
     credentialFields       :
@@ -110,7 +111,7 @@ module.exports = globals.config.providers =
     color                  : '#357e99' # dunno
     supported              : yes
     enabled                : 'beta'
-    defaultTemplate        : require './templates/google'
+    defaultTemplate        : replaceUserInputs require './templates/google'
     description            : 'Google compute engine'
     instanceTypes          : require './instance-types/gce'
     advancedFields         : []
@@ -149,7 +150,7 @@ module.exports = globals.config.providers =
     supported              : yes
     slug                   : 'do'
     enabled                : 'beta'
-    defaultTemplate        : require './templates/digitalocean'
+    defaultTemplate        : replaceUserInputs require './templates/digitalocean'
     instanceTypes          : require './instance-types/do'
     description            : 'Digital Ocean droplets'
     attributeMapping       :
@@ -170,7 +171,7 @@ module.exports = globals.config.providers =
     color                  : '#ec06be'
     supported              : yes
     enabled                : 'beta'
-    defaultTemplate        : require './templates/azure'
+    defaultTemplate        : replaceUserInputs require './templates/azure'
     description            : 'Azure'
     instanceTypes          : require './instance-types/azure'
     advancedFields         : ['password', 'ssh_key_thumbprint']
@@ -259,7 +260,7 @@ module.exports = globals.config.providers =
     color                  : '#B52025'
     supported              : yes
     enabled                : 'beta'
-    defaultTemplate        : require './templates/marathon'
+    defaultTemplate        : replaceUserInputs require './templates/marathon'
     description            : 'A container orchestration platform for Mesos and DC/OS'
     advancedFields         : [
       'request_timeout',
@@ -292,7 +293,7 @@ module.exports = globals.config.providers =
     color                  : '#B52025'
     supported              : yes
     enabled                : 'beta'
-    defaultTemplate        : require './templates/softlayer'
+    defaultTemplate        : replaceUserInputs require './templates/softlayer'
     instanceTypes          : require './instance-types/softlayer'
     description            : 'Softlayer Virtual Guest'
     attributeMapping       :

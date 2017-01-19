@@ -1,9 +1,8 @@
+uuid = require 'uuid'
 KodingError = require '../error'
 { Model, secure, signature } = require 'bongo'
 
 module.exports = class JSession extends Model
-
-  { v4: createId } = require 'node-uuid'
 
   @share()
 
@@ -76,7 +75,7 @@ module.exports = class JSession extends Model
     group    ?= 'koding'
 
     JUser    = require './user'
-    clientId = createId()
+    clientId = uuid.v4()
 
     JUser.fetchGuestUser (err, resp) =>
 
@@ -104,7 +103,7 @@ module.exports = class JSession extends Model
 
   @createNewSession = (data, callback) ->
 
-    data.clientId = createId()
+    data.clientId = uuid.v4()
 
     session = new JSession data
     session.save (err) ->

@@ -39,6 +39,10 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
+	if err := bs.Builder.Authorize(bs.Req.Username); err != nil {
+		return nil, err
+	}
+
 	bs.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", bs.Builder.Koding, bs.Builder.Template)
 
 	contentID := bs.Req.Username + "-" + arg.StackTemplateID
@@ -66,6 +70,12 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 	// to dummy values to make the template pass terraform parsing.
 	if err := bs.Builder.Template.FillVariables("userInput_"); err != nil {
 		return nil, err
+	}
+
+	if len(arg.Variables) != 0 {
+		if err := bs.Builder.Template.InjectVariables("", arg.Variables); err != nil {
+			return nil, err
+		}
 	}
 
 	machines, err := bs.plan()

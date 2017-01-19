@@ -78,7 +78,7 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
         submit.setCallback @bound 'destroy'
         submit.setTitle 'CLOSE'
 
-      request.error =>
+      request.fail =>
         new KDNotificationView { title: 'Sorry, could not process your request, please try again.' }
         submit.hideLoader()
         @ticketRequested = no
