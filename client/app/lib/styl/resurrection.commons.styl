@@ -697,33 +697,6 @@ aside.app-sidebar
     text-align    center
     color         #EEE
 
-.animated-modalview
-
-  z-index                       10001
-  background                    white
-  overflow                      hidden
-
-  size                          640px, 480px
-  top                           0
-  left                          0
-
-  abs()
-
-  vendor                transform-style, preserve-3d
-  vendor                transform, translate3d(0, 0, 0)
-
-  -webkit-transition    -webkit-transform .4s ease
-  -moz-transition       -moz-transform    .4s ease
-  transition            transform         .4s ease
-
-  &.inresize
-    noAnim()
-
-  .close-icon
-    r-sprite            app, "modal_close_icon"
-    top                 14px
-    right               14px
-
 .kdhelp-modal
 
   text-align                    center
