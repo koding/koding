@@ -14,6 +14,9 @@ import (
 // swagger:model JSession
 type JSession struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// client IP
 	ClientIP string `json:"clientIP,omitempty"`
 

@@ -257,7 +257,7 @@ func New(conf *Config) (*Kloud, error) {
 	kloud.Stack.RemoteClient = &remoteapi.Client{
 		Client:    storeOpts.Client,
 		Transport: transport,
-		Endpoint:  e.Remote().Private.URL,
+		Endpoint:  e.Koding.Private.URL,
 	}
 
 	kloud.Stack.ContextCreator = func(ctx context.Context) context.Context {

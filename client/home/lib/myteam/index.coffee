@@ -14,6 +14,7 @@ camelizeString = require 'app/util/camelizeString'
 toImmutable = require 'app/util/toImmutable'
 canSeeMembers = require 'app/util/canSeeMembers'
 isAdmin = require 'app/util/isAdmin'
+MembershipRoleChangedModal =  require 'app/components/membershiprolechangedmodal'
 
 SECTIONS =
   'Invite Using Slack' : HomeTeamConnectSlack
@@ -59,6 +60,28 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
     TeamFlux.actions.loadPendingInvitations()
     TeamFlux.actions.loadDisabledUsers()
     AppFlux.actions.user.loadLoggedInUserEmail()
+
+    groupsController.on 'MembershipRoleChanged', (data) ->
+
+      { contents: { role, id, adminNick } } = data
+      reactor.dispatch 'UPDATE_TEAM_MEMBER_WITH_ID', { id, role }
+
+      if id is whoami()._id
+        modal = new MembershipRoleChangedModal
+          success: ->
+            modal.destroy()
+            global.location.reload yes
+        , { role, adminNick }
+
+    groupsController.on 'InvitationChanged', (data) ->
+
+      { contents: { type, invitations, id } } = data
+
+      switch type
+        when 'remove'
+          reactor.dispatch 'REMOVE_PENDING_INVITATION_BY_ID', { id }
+        when 'new_invitations'
+          TeamFlux.actions.loadPendingInvitations()
 
     groupsController.on 'GroupJoined', (data) ->
 
@@ -109,4 +132,3 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
 
       @wrapper.addSubView headerize 'Teammates'
       @wrapper.addSubView @teammates = section 'Teammates'
-

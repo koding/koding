@@ -23,4 +23,3 @@ module.exports = class JGroupLimit extends Module
         provider         : [String]
         resource         : [String]
         custom           : Object
-

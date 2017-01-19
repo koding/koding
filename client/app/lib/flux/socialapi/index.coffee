@@ -28,4 +28,3 @@ module.exports =
     realtimeActionCreators = require './actions/realtime/actioncreators'
     realtimeActionCreators.bindNotificationEvents()
     realtimeActionCreators.bindAppBadgeNotifiers()
-

@@ -7,9 +7,6 @@ argv = require 'yargs'
   .alias 'help', 'h'
   .describe 'help', 'show this message'
 
-  .command 'browser', 'configure browser tests'
-  .demand 1
-
   .describe 'url', 'specify a url that koding webserver is running on'
   .string 'url'
   .default 'url', 'http://localhost:8090'

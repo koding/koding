@@ -11,5 +11,3 @@ module.exports = class HomeStacksPrivateStacks extends ReactView
 
   renderReact: ->
     <PrivateStacksList.Container onOpenItem={@bound 'onOpenItem'} />
-
-

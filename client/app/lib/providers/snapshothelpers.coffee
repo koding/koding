@@ -69,24 +69,11 @@ newVmFromSnapshot = (snapshot, machine, callback = kd.noop) ->
   unless snapshotId
     return kd.error 'newVmFromSnapshot: snapshot.snapshotId is required'
 
-  computeController = kd.getSingleton 'computeController'
-  paymentController = kd.getSingleton 'paymentController'
-
-  paymentController.subscriptions (err, subscription) ->
-    return kd.error  if err
-    { planTitle } = subscription
-
-    # If the plan is hobbyist, we want to reinit with the
-    # snapshotId, not create a new machine.
-    if planTitle is 'hobbyist'
-      computeController.reinit machine, snapshotId
-      callback()
-    else
-      handleNewMachineRequest
-        provider   : 'koding'
-        region     : region
-        snapshotId : snapshotId
-        callback
+  handleNewMachineRequest
+    provider   : 'koding'
+    region     : region
+    snapshotId : snapshotId
+    callback
 
 
 ###*

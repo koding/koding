@@ -14,6 +14,9 @@ import (
 // swagger:model JProposedDomain
 type JProposedDomain struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// domain
 	Domain string `json:"domain,omitempty"`
 

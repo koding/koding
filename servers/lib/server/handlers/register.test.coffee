@@ -145,10 +145,23 @@ runTests = -> describe 'server.handlers.register', ->
 
     registerParams = generateRegisterRequestParams { body: { email } }
 
-    request.post registerParams, (err, res, body) ->
-      expect(err).to.not.exist
-      expect(res.statusCode).to.be.equal 400
-      done()
+    queue = [
+
+      (next) ->
+        request.post registerParams, (err, res, body) ->
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 200
+          next()
+
+      (next) ->
+        request.post registerParams, (err, res, body) ->
+          expect(err).to.not.exist
+          expect(res.statusCode).to.be.equal 400
+          next()
+
+    ]
+
+    async.series queue, done
 
 
   it 'should send HTTP 400 if agree is set as off', (done) ->

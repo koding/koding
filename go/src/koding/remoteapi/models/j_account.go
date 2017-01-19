@@ -14,6 +14,9 @@ import (
 // swagger:model JAccount
 type JAccount struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// environment is created
 	EnvironmentIsCreated bool `json:"environmentIsCreated,omitempty"`
 

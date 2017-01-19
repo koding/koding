@@ -28,5 +28,3 @@ module.exports = SidebarGroupDisabled = ->
       </div>
     </section>
   </div>
-
-

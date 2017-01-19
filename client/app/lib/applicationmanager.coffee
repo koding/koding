@@ -392,7 +392,7 @@ class ApplicationManager extends KDObject
       else optionSet.lastActiveIndex = index
 
 
-  # setGroup:-> console.log 'setGroup', arguments
+  # setGroup: -> console.log 'setGroup', arguments
 
 
   # temp
@@ -421,7 +421,7 @@ class ApplicationManager extends KDObject
 
   # fetchStorage: (appId, version, callback) ->
   #   # warn "System still trying to access application storage for #{appId}"
-  #   KD.whoami().fetchAppStorage {appId, version}, (error, storage) =>
+  #   KD.whoami().fetchAppStorage { appId, version }, (error, storage) =>
   #     unless storage
-  #       storage = {appId,version,bucket:{}} # creating a fake storage
+  #       storage = { appId,version,bucket:{} } # creating a fake storage
   #     callback error, storage

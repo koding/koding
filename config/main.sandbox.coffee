@@ -13,34 +13,34 @@ Configuration = (options = {}) ->
     main: 'sandbox.koding.com'
     port: '80'
 
-  options.serviceHost or= "10.0.0.23"
-  options.publicPort = "80"
-  options.hostname = "sandbox.koding.com#{if options.publicPort is "80" then "" else ":"+options.publicPort}"
-  options.protocol = "https:"
+  options.serviceHost or= '10.0.0.23'
+  options.publicPort = '80'
+  options.hostname = "sandbox.koding.com#{if options.publicPort is '80' then '' else ':'+options.publicPort}"
+  options.protocol = 'https:'
   options.publicHostname = "#{options.protocol}//#{options.hostname}"
-  options.region = "aws"
-  options.configName = "sandbox"
-  options.environment = "sandbox"
-  options.projectRoot = "/opt/koding"
+  options.region = 'aws'
+  options.configName = 'sandbox'
+  options.environment = 'sandbox'
+  options.projectRoot = '/opt/koding'
   options.version or= options.tag
-  options.build or= "1111"
-  options.tunnelHostedZoneName = "dev-t.koding.com"
-  options.tunnelHostedZoneCallerRef = "devtunnelproxy_hosted_zone_v0"
-  options.tunnelserverHostedZone or= "dev.koding.me"
-  options.tunnelserverBasevirtualHost or= "dev.koding.me"
+  options.build or= '1111'
+  options.tunnelHostedZoneName = 'dev-t.koding.com'
+  options.tunnelHostedZoneCallerRef = 'devtunnelproxy_hosted_zone_v0'
+  options.tunnelserverHostedZone or= 'dev.koding.me'
+  options.tunnelserverBasevirtualHost or= 'dev.koding.me'
   options.tunnelUrl or= "http://#{options.tunnelHostedZoneName}"
-  options.userSitesDomain or= "sandbox.koding.io"
+  options.userSitesDomain or= 'sandbox.koding.io'
   options.defaultEmail or= "hello@#{options.domains.mail}"
   options.recaptchaEnabled or= yes
   options.debugGithubAPI or= no
   options.autoConfirmAccounts or= no
   options.secureCookie = yes
-  options.algoliaIndexSuffix = ".sandbox"
+  options.algoliaIndexSuffix = '.sandbox'
   options.socialQueueName = "koding-social-#{options.configName}"
   options.sendEventsToSegment = yes
   options.scheme = 'https'
   options.suppressLogs = no
-  options.vaultPath or= path.join __dirname, "../vault/" # use same directory with our application
+  options.vaultPath or= path.join __dirname, '../vault/' # use same directory with our application
   options.credentialPath or= path.join options.vaultPath, "./config/credentials.#{options.environment}.coffee"
   options.clientUploadS3BucketName = 'kodingdev-client'
   options.publicLogsS3BucketName or= 'kodingdev-publiclogs'
@@ -60,8 +60,8 @@ Configuration = (options = {}) ->
   options.customDomain =
     public  : "#{options.scheme}://#{options.host}"
     public_ : options.host
-    local   : "http://127.0.0.1#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
-    local_  : "127.0.0.1#{if options.publicPort is "80" then "" else ":" + options.publicPort}"
+    local   : "http://127.0.0.1#{if options.publicPort is '80' then '' else ':' + options.publicPort}"
+    local_  : "127.0.0.1#{if options.publicPort is '80' then '' else ':' + options.publicPort}"
     port    : parseInt(options.publicPort, 10)
 
   credentials = require(options.credentialPath)(options)
@@ -88,18 +88,7 @@ Configuration = (options = {}) ->
       instances         : 2
       supervisord       :
         command         : "node %(ENV_KONFIG_PROJECTROOT)s/servers/index.js -p #{KONFIG.webserver.port} --kite-port=#{KONFIG.webserver.kitePort}"
-      nginx             :
-        locations       : [
-          {
-            location    : "~ /-/api/(.*)"
-            proxyPass   : "http://webserver/-/api/$1$is_args$args"
-          }
-          {
-            location    : "/"
-            auth        : yes
-            cors        : on
-          }
-        ]
+
     socialworker        :
       instances         : 4
       supervisord       :
@@ -133,10 +122,10 @@ Configuration = (options = {}) ->
     sh: (require './generateShellEnv').create KONFIG, options
     json: JSON.stringify KONFIG, null, 2
 
-  KONFIG.supervisorConf = (require "../deployment/supervisord.coffee").create KONFIG
-  KONFIG.nginxConf = (require "../deployment/nginx.coffee").create KONFIG, options.environment
+  KONFIG.supervisorConf = (require '../deployment/supervisord.coffee').create KONFIG
+  KONFIG.nginxConf = (require '../deployment/nginx.coffee').create KONFIG, options.environment
   KONFIG.runFile = (require './generateRunFile').sandbox KONFIG, options
-  KONFIG.configCheckExempt = ["command", "output_path"]
+  KONFIG.configCheckExempt = ['command', 'output_path']
 
   KONFIG.envFiles = envFiles
 

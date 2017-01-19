@@ -1,5 +1,5 @@
 
-createUsers = (users)->
+createUsers = (users) ->
 
   Bongo     = require 'bongo'
 
@@ -13,7 +13,7 @@ createUsers = (users)->
     mongo = process.env.MONGO_URL
 
   modelPath = '../../workers/social/lib/social/models'
-  rekuire   = (p)-> require joinPath modelPath, p
+  rekuire   = (p) -> require joinPath modelPath, p
 
   koding = new Bongo
     root   : __dirname
@@ -27,25 +27,25 @@ createUsers = (users)->
     ComputeProvider      = rekuire 'computeproviders/computeprovider.coffee'
     JUser                = rekuire 'user/index.coffee'
 
-    createUser = (u, next)->
+    createUser = (u, next) ->
 
       console.log "\nCreating #{u.username} ... "
 
-      JUser.count username: u.username, (err, count)->
+      JUser.count { username: u.username }, (err, count) ->
 
-        if err then return console.error "Failed to query count:", err
+        if err then return console.error 'Failed to query count:', err
 
         if count > 0
           console.log "  User #{u.username} already exists, passing."
           return next()
 
-        JUser.createUser u, (err, user, account)->
+        JUser.createUser u, (err, user, account) ->
 
           if err
 
             console.log "Failed to create #{u.username}: ", err
             if err.errors?
-              console.log "VALIDATION ERRORS: ", err.errors
+              console.log 'VALIDATION ERRORS: ', err.errors
 
             return next()
 
@@ -53,39 +53,40 @@ createUsers = (users)->
             $set          :
               type        : 'registered'
               globalFlags : ['super-admin']
-          }, (err)->
+          }, (err) ->
 
             if err?
               console.log "  Failed to activate #{u.username}:", err
               return next()
 
             console.log "  User #{user.username} created."
-            console.log "\n   - Verifying email ..."
+            console.log '\n   - Verifying email ...'
 
-            user.confirmEmail (err)->
+            user.confirmEmail (err) ->
 
               if err
                 # RabbitMQ client is required to be initialized to send emails;
                 # however send welcome emails is not reuqired here, so we silence it.
-                if !/RabbitMQ client not found in Email/.test err
-                  console.log "     Failed to verify: ", err
+                if not /RabbitMQ client not found in Email/.test err
+                  console.log '     Failed to verify: ', err
               else
-                console.log "     Email verified."
+                console.log '     Email verified.'
 
               console.log "\n   - Adding to group #{u.group} ..."
 
-              JUser.addToGroup account, u.group, u.email, null, (err)->
+              JUser.addToGroup account, u.group, u.email, null, (err) ->
 
-                if err then console.log "     Failed to add: ", err
+                if err then console.log '     Failed to add: ', err
                 else        console.log "     Joined to group #{u.group}."
 
-                client =
-                  connection : delegate : account
-                  context    : group    : u.group
+                client = {
+                  connection : { delegate : account }
+                  context    : { group    : u.group }
+                }
 
-                ComputeProvider.createGroupStack client, (err)->
+                ComputeProvider.createGroupStack client, (err) ->
 
-                  if err then console.log "     Failed to create stack: ", err
+                  if err then console.log '     Failed to create stack: ', err
                   else        console.log "     Default stack created for #{u.group}."
 
                   next()
@@ -110,42 +111,43 @@ createUsers = (users)->
       else
 
         setTimeout ->
-          console.log "\nALL DONE."
+          console.log '\nALL DONE.'
           process.exit 0
         , 10000
 
 
+fs  = require 'fs'
 csv = require 'csv'
 
 try
 
-  console.log "Reading ./scripts/user-importer/team.csv ..."
-  csv()
+  data = fs.readFileSync './scripts/user-importer/team.csv'
 
-    .from.options trim: yes
-    .from './scripts/user-importer/team.csv'
-    .to.array (team)->
+  csv.parse data, { trim: yes }, (err, members) ->
 
-      header = team.shift()
-      users  = []
+    header = members.shift()
+    users  = []
 
-      team.forEach (member)->
+    members.forEach (member) ->
 
-        item = {
-          passwordStatus : "valid"
-          silence        : no
-        }
+      return  if member.length isnt header.length
 
-        for column, i in header
-          item[column] = member[i]
+      item = {
+        passwordStatus : 'valid'
+        foreignAuth    : null
+        silence        : no
+      }
 
-        users.push item
+      for column, i in header
+        item[column] = member[i]
 
-      console.log "Read completed, #{users.length} item found."
-      createUsers users
-      console.log 'User import completed'
+      users.push item
+
+    console.log "Read completed, #{users.length} item found."
+    createUsers users
+    console.log 'User import completed'
 
 catch e
 
-  console.log "Failed to parse team.csv", e
+  console.log 'Failed to parse team.csv', e
   process.exit 0

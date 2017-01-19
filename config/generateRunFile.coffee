@@ -386,22 +386,22 @@ generateDev = (KONFIG, options) ->
     }
 
     function runMongoDocker () {
-        docker run -d -p 27017:27017 --name=mongo mongo:2.4 --nojournal --noprealloc --smallfiles
+        docker run -d -p $KONFIG_SERVICEHOST:27017:27017 --name=mongo mongo:2.4 --nojournal --noprealloc --smallfiles
         check_connectivity mongo
     }
 
     function runPostgresqlDocker () {
-        docker run -d -p 5432:5432 --name=postgres koding/postgres
+        docker run -d -p $KONFIG_SERVICEHOST:5432:5432 --name=postgres koding/postgres
         check_connectivity postgres
     }
 
     function runRabbitMQDocker () {
-        docker run -d -p 5672:5672 -p 15672:15672 --name=rabbitmq rabbitmq:3-management
+        docker run -d -p $KONFIG_SERVICEHOST:5672:5672 -p 15672:15672 --name=rabbitmq rabbitmq:3-management
         check_connectivity rabbitmq
     }
 
     function runRedisDocker () {
-        docker run -d -p 6379:6379 --name=redis redis
+        docker run -d -p $KONFIG_SERVICEHOST:6379:6379 --name=redis redis
     }
 
     function runImplyDocker () {
@@ -621,7 +621,7 @@ generateDev = (KONFIG, options) ->
   return run
 
 generateSandbox =   generateRunFile = (KONFIG) ->
-  return """
+  return '''
     #!/bin/bash
     export HOME=/home/ec2-user
 
@@ -640,5 +640,5 @@ generateSandbox =   generateRunFile = (KONFIG) ->
       exec) exec "$@";;
     esac
 
-    """
+    '''
 module.exports = { dev: generateDev, default: generateDev, sandbox: generateSandbox, prod: generateSandbox }

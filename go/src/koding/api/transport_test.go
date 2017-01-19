@@ -8,11 +8,12 @@ import (
 	"testing"
 
 	"koding/api"
+	"koding/api/apitest"
 	"koding/kites/tunnelproxy/discover/discovertest"
 )
 
 func TestTransport(t *testing.T) {
-	var auth = NewFakeAuth()
+	var auth = apitest.NewFakeAuth()
 
 	s, err := discovertest.NewServer(http.HandlerFunc(auth.GetSession))
 	if err != nil {
@@ -57,13 +58,13 @@ func TestTransport(t *testing.T) {
 		[]error{&net.DNSError{IsTemporary: true}}, []int{401, 401}, nil,
 	}}
 
-	rec := &AuthRecorder{
+	rec := &apitest.AuthRecorder{
 		AuthFunc: cache.Auth,
 	}
 
 	client := http.Client{
 		Transport: &api.Transport{
-			RoundTripper: &FakeTransport{},
+			RoundTripper: &apitest.FakeTransport{},
 			AuthFunc:     rec.Auth,
 		},
 	}
@@ -80,11 +81,11 @@ func TestTransport(t *testing.T) {
 			req = cas.sess.User.WithRequest(req)
 
 			if len(cas.errs) != 0 {
-				req = WithErrors(req, cas.errs...)
+				req = apitest.WithErrors(req, cas.errs...)
 			}
 
 			if len(cas.codes) != 0 {
-				req = WithResponseCodes(req, cas.codes...)
+				req = apitest.WithResponseCodes(req, cas.codes...)
 			}
 
 			resp, err := client.Do(req)

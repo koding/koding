@@ -72,4 +72,3 @@ describe 'redux/modules/invoices#actions', ->
         actions = store.getActions()
         expect(actions[0].type).toBe invoices.LOAD.BEGIN
         expect(actions[1].type).toBe invoices.LOAD.FAIL
-

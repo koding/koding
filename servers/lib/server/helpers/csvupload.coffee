@@ -14,19 +14,13 @@ fetchGroupMembersAndInvitations = (client, data, callback) ->
       JGroup.one { slug }, (err, group) ->
 
         return next err  if err
-        #TODO: this has been removed from code base, fix with fetching member count directly.
-        return next 'There are more than 100 members', null  if group.count.members > 100
-
-        group.fetchMembersWithEmail client, {}, (err, users) ->
-
+        group.countMembers (err, count) ->
           return next err  if err
+          return next 'There are more than 100 members', null  if count > 100
 
-          userEmails = []
-          users.map (user) ->
-            { profile: { email } } = user
-            userEmails.push email
-
-          next null, userEmails
+          group.fetchMembersWithEmail client, {}, (err, accounts) ->
+            return next err  if err
+            next null, accounts.map (account) -> account?.profile?.email
 
     (next) ->
       account.fetchEmail (err, email) ->

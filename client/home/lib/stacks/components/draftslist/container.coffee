@@ -41,4 +41,3 @@ module.exports = class DraftsListContainer extends React.Component
 
 
 DraftsListContainer.include [KDReactorMixin]
-

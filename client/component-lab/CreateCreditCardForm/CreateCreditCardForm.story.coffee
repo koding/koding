@@ -57,4 +57,3 @@ storiesOf 'CreateCreditCardForm', module
 #         onInputChange={@onInputChange.bind this}
 #         values={@state} />
 #     </div>
-

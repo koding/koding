@@ -26,6 +26,9 @@ module.exports = class ContentModal extends kd.ModalView
     @createBody()
     @createFooter()
 
+  # commented function in kd.ModalView class
+  keyup: (e) ->
+    @cancel() if e.which is 27
 
   createHeader: ->
 

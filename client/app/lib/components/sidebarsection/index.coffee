@@ -1,7 +1,6 @@
 kd                 = require 'kd'
 Link               = require 'app/components/common/link'
 React              = require 'app/react'
-isKoding           = require 'app/util/isKoding'
 classnames         = require 'classnames'
 UnreadCount        = require 'app/components/sidebarmachineslistitem/unreadcount'
 

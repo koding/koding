@@ -14,6 +14,9 @@ import (
 // swagger:model JName
 type JName struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// constructor name
 	ConstructorName string `json:"constructorName,omitempty"`
 

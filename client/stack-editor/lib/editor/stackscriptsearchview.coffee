@@ -8,4 +8,3 @@ module.exports = class StackScriptSearchView extends ReactView
 
   renderReact: ->
     <StackscriptSearchBox.Container />
-

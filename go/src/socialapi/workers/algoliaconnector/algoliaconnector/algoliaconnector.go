@@ -36,7 +36,7 @@ type Settings struct {
 }
 
 type IndexSetItem struct {
-	Index    *algoliasearch.Index
+	Index    algoliasearch.Index
 	Settings *Settings
 }
 
@@ -44,12 +44,12 @@ type IndexSet map[string]*IndexSetItem
 
 type Controller struct {
 	log             logging.Logger
-	client          *algoliasearch.Client
+	client          algoliasearch.Client
 	indexes         *IndexSet
 	kodingChannelId string
 }
 
-func New(log logging.Logger, client *algoliasearch.Client, indexSuffix string) *Controller {
+func New(log logging.Logger, client algoliasearch.Client, indexSuffix string) *Controller {
 	// TODO later on listen channel_participant_added event and remove this koding channel fetch
 	c := models.NewChannel()
 	q := request.NewQuery()
@@ -121,7 +121,7 @@ func (i *IndexSetItem) MakeSureSettings(newSettings map[string]interface{}) erro
 	done := make(chan struct{})
 	go func() {
 		// make sure setting is propogated
-		_, err = i.Index.WaitTask(task)
+		err = i.Index.WaitTask(task.TaskID)
 		close(done)
 	}()
 
@@ -133,7 +133,7 @@ func (i *IndexSetItem) MakeSureSettings(newSettings map[string]interface{}) erro
 	}
 }
 
-func (i *IndexSet) GetIndex(name string) (*algoliasearch.Index, error) {
+func (i *IndexSet) GetIndex(name string) (algoliasearch.Index, error) {
 	indexItem, ok := (*i)[name]
 	if !ok {
 		return nil, fmt.Errorf("Unknown indexItem: '%s'", name)
@@ -185,31 +185,24 @@ func (f *Controller) makeSureStringSliceSettings(indexName string, settingName s
 		return err
 	}
 
-	settingsinter, err := indexSet.Index.GetSettings()
+	settings, err := indexSet.Index.GetSettings()
 	if err != nil {
 		return err
 	}
 
-	settings, ok := settingsinter.(map[string]interface{})
-	if !ok {
-		settings = make(map[string]interface{})
-	}
-
-	indexSettings, ok := settings[settingName]
-	if !ok {
-		indexSettings = make([]interface{}, 0)
-	}
-
-	indexSettingsIntSlices, ok := indexSettings.([]interface{})
-	if !ok {
-		indexSettingsIntSlices = make([]interface{}, 0)
+	var indexSettings []string
+	switch settingName {
+	case AttributesToIndex:
+		indexSettings = settings.AttributesToIndex
+	case UnretrievableAttributes:
+		indexSettings = settings.UnretrievableAttributes
 	}
 
 	isSame := true
 	for _, attributeToIndex := range newSettings {
 		contains := false
-		for _, currentAttribute := range indexSettingsIntSlices {
-			if attributeToIndex == currentAttribute.(string) {
+		for _, currentAttribute := range indexSettings {
+			if attributeToIndex == currentAttribute {
 				contains = true
 			}
 		}
@@ -220,7 +213,7 @@ func (f *Controller) makeSureStringSliceSettings(indexName string, settingName s
 		}
 	}
 
-	if len(indexSettingsIntSlices) != len(newSettings) {
+	if len(indexSettings) != len(newSettings) {
 		isSame = false
 	}
 
@@ -230,14 +223,15 @@ func (f *Controller) makeSureStringSliceSettings(indexName string, settingName s
 
 	f.log.Info(
 		"Previous (%+v) and Current (%+v) Setings of %s are not same for index %s, updating..",
-		indexSettingsIntSlices,
+		indexSettings,
 		newSettings,
 		settingName,
 		indexName,
 	)
 
-	settings[settingName] = newSettings
-	return indexSet.MakeSureSettings(settings)
+	var setting algoliasearch.Map = make(map[string]interface{}, 0)
+	setting[settingName] = newSettings
+	return indexSet.MakeSureSettings(setting)
 }
 
 func (f *Controller) makeSureIndexSettings(settings map[string]interface{}, indexSet *IndexSetItem) error {
@@ -249,7 +243,7 @@ func (f *Controller) makeSureIndexSettings(settings map[string]interface{}, inde
 	done := make(chan struct{})
 	go func() {
 		// make sure setting is propogated
-		_, err = indexSet.Index.WaitTask(task)
+		err = indexSet.Index.WaitTask(task.TaskID)
 		close(done)
 	}()
 

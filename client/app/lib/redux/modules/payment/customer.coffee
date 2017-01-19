@@ -82,4 +82,3 @@ module.exports = {
   load, create, update, remove
   LOAD, CREATE, UPDATE, REMOVE
 }
-

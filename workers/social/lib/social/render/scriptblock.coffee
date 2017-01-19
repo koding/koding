@@ -14,7 +14,6 @@ module.exports = (options = {}, callback) ->
 
 
   prefetchedFeeds     = null
-  socialapidata       = null
   currentGroup        = null
   userMachines        = null
   userWorkspaces      = null
@@ -38,7 +37,6 @@ module.exports = (options = {}, callback) ->
     userRoles            = JSON.stringify roles, replacer
     userPermissions      = JSON.stringify permissions, replacer
 
-    encodedSocialApiData = JSON.stringify socialapidata, replacer
     currentGroup         = JSON.stringify currentGroup, replacer
     userAccount          = JSON.stringify delegate, replacer
     combinedStorage      = JSON.stringify combinedStorage, replacer
@@ -70,7 +68,6 @@ module.exports = (options = {}, callback) ->
         currentGroup: #{currentGroup},
         hasCreditCard: #{hasCard},
         isLoggedInOnLoad: true,
-        socialApiData: #{encodedSocialApiData},
         userEnvironmentData: #{userEnvironmentData}
       };
     </script>
@@ -94,13 +91,7 @@ module.exports = (options = {}, callback) ->
   queue = [
 
     (fin) ->
-      socialApiCacheFn = require '../cache/socialapi'
-      socialApiCacheFn options, (err, data) ->
-        console.error 'could not get prefetched data', err  if err
-        socialapidata = data
-        fin()
 
-    (fin) ->
       groupName = session?.groupName or 'koding'
 
       # due to some reason, I suspect JSON.stringify somewhere, undefined
@@ -169,4 +160,4 @@ module.exports = (options = {}, callback) ->
 
   ]
 
-  async.parallel queue, -> callback null, createHTML(), socialapidata
+  async.parallel queue, -> callback null, createHTML()

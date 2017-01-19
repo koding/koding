@@ -5,14 +5,14 @@ _ = require 'lodash'
 
 createUpstreams = (KONFIG) ->
 
-  upstreams = "# add global upstreams\n"
+  upstreams = '# add global upstreams\n'
   for name, options of KONFIG.workers when options.ports?.incoming?
 
-    servers = ""
+    servers = ''
     { incoming: port } = options.ports
     options.instances or= 1
     for index in [0...options.instances]
-      servers += "\n" if servers isnt ""
+      servers += '\n' if servers isnt ''
       port = parseInt(port, 10)
 
       servers += "\tserver 127.0.0.1:#{port + index} max_fails=3 fail_timeout=10s;"
@@ -25,26 +25,26 @@ createUpstreams = (KONFIG) ->
   return upstreams
 
 
-basicAuth = """
+basicAuth = '''
 satisfy any;
       allow   127.0.0.1/32;
       deny    all;
 
       auth_basic            "Restricted";
-      auth_basic_user_file  /etc/nginx/conf.d/.htpasswd;"""
+      auth_basic_user_file  /etc/nginx/conf.d/.htpasswd;'''
 
-allowInternal = """
+allowInternal = '''
   allow                 127.0.0.0/8;
         allow                 192.168.0.0/16;
         allow                 172.16.0.0/12;
         deny                  all;
-"""
+'''
 
-createWebLocation = ({name, locationConf, cors}) ->
+createWebLocation = ({ name, locationConf, cors }) ->
   { location, proxyPass, internalOnly, auth, extraParams } = locationConf
     # 3 tabs are just for style
-  extraParamsStr = extraParams?.join("\n\t\t\t") or ""
-  host = locationConf.host or "$host"
+  extraParamsStr = extraParams?.join('\n\t\t\t') or ''
+  host = locationConf.host or '$host'
 
   return """\n
       location #{location} {
@@ -59,7 +59,7 @@ createWebLocation = ({name, locationConf, cors}) ->
         proxy_next_upstream   error timeout   invalid_header http_500;
 
         # proxy should connect in 1 second
-        proxy_connect_timeout 1;
+        proxy_connect_timeout 5;
 
         #{if cors then cors else ''}
         #{if internalOnly then allowInternal else ''}
@@ -68,11 +68,11 @@ createWebLocation = ({name, locationConf, cors}) ->
       }
   \n"""
 
-createWebsocketLocation = ({name, locationConf, proxyPass}) ->
-  {location, proxyPass} = locationConf
+createWebsocketLocation = ({ name, locationConf, proxyPass }) ->
+  { location, proxyPass } = locationConf
   # 3 tabs are just for style
-  extraParamsStr = locationConf.extraParams?.join("\n\t\t\t") or ""
-  host = locationConf.host or "$host"
+  extraParamsStr = locationConf.extraParams?.join('\n\t\t\t') or ''
+  host = locationConf.host or '$host'
   return """\n
       location #{location} {
         proxy_pass            #{proxyPass};
@@ -81,7 +81,6 @@ createWebsocketLocation = ({name, locationConf, proxyPass}) ->
         proxy_http_version    1.1;
         proxy_set_header      Upgrade         $http_upgrade;
         proxy_set_header      Connection      $connection_upgrade;
-
         proxy_set_header      Host            #{host};
         proxy_set_header      X-Host          $host; # for customisation
         proxy_set_header      X-Real-IP       $remote_addr;
@@ -99,10 +98,48 @@ createWebsocketLocation = ({name, locationConf, proxyPass}) ->
       }
   \n"""
 
+createBucketLocation = ({ name, locationConf, proxyPass }) ->
+  { location, proxyPass } = locationConf
+  # 3 tabs are just for style
+  extraParamsStr = locationConf.extraParams?.join('\n\t\t\t') or ''
+  host = locationConf.host or '$host'
+  return """\n
+      location #{location} {
+        proxy_cache asset_cache;
+        proxy_cache_revalidate on;
+        proxy_cache_lock on;
+        proxy_cache_valid  200 302  60m;
+        proxy_cache_valid  404	  1m;
+        proxy_cache_use_stale error timeout http_500 http_502 http_503 http_504;
+
+        proxy_pass            #{proxyPass};
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_connect_timeout 5;
+
+        # unset headers
+        proxy_hide_header x-amz-id-2;
+        proxy_hide_header x-amz-request-id;
+        proxy_hide_header x-amz-expiration;
+        proxy_hide_header x-amz-meta-s3cmd-attrs;
+
+        # ignore possible future headers that might break caching
+        proxy_ignore_headers X-Accel-Expires Expires Cache-Control;
+
+        # finally add status
+        add_header X-K-Proxy-Cache $upstream_cache_status;
+
+        resolver 8.8.8.8;
+
+        #{extraParamsStr}
+
+      }
+  \n"""
+
 createLocations = (KONFIG) ->
   workers = KONFIG.workers
 
-  locations = ""
+  locations = ''
   for name, options of workers
     # don't add those who whish not to be generated, probably because those are
     # using manually written locations
@@ -120,11 +157,15 @@ createLocations = (KONFIG) ->
       # if this is a websocket proxy, add required configs
       fn = if options.nginx.websocket
         createWebsocketLocation
+      else if options.nginx.s3bucket
+        createBucketLocation
+      else if options.nginx.static
+        createAssetLocation
       else
         createWebLocation
 
       auth = no
-      if KONFIG.configName in ["load", "prod"]
+      if KONFIG.configName in ['load', 'prod']
         auth = no
       else
         auth = options.nginx.auth
@@ -140,12 +181,12 @@ createLocations = (KONFIG) ->
       else
         cors = ''
 
-      locations += fn {name, locationConf: location, auth, cors}
+      locations += fn { name, locationConf: location, auth, cors, KONFIG }
 
   return locations
 
-createStubLocation = (env)->
-  stub = """\n
+createStubLocation = (env) ->
+  stub = '''\n
       # nginx status location, it retuns info about connections and requests
       location /nginx_status {
           # Turn on nginx status page
@@ -155,48 +196,38 @@ createStubLocation = (env)->
           # Deny the rest of the connections
           deny all;
       }
-  \n"""
+  \n'''
 
-  if env in ["dev", "default"]
-    stub = ""
+  if env in ['dev', 'default']
+    stub = ''
 
   return stub
 
-createRootLocation = (KONFIG) ->
-  return "" if isProxy KONFIG.ebEnvName
+createAssetLocation = ({ locationConf, KONFIG }) ->
+  { expires, relativePath, proxyPass,
+    location, extraParamsStr } = locationConf
 
-  proxy = KONFIG.marketingPagesURL
-  if KONFIG.environment in ["dev", "default", "sandbox"]
-    proxy = "http://webserver"
+  expires or= '1M'
+  relativePath or= '/website/'
+  proxyPass or= '$uri @assets'
+  return throw new Error 'location required'  unless location
+  extraParamsStr or= ''
 
-  return """
-      location ~*(^(\/(Pricing|About|Legal|Features|Blog|Docs))) {
-          proxy_set_header      Host            $host;
-          proxy_set_header      X-Host          $host; # for customisation
-          proxy_set_header      X-Real-IP       $remote_addr;
-          proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-          proxy_next_upstream   error timeout   invalid_header http_500;
-          proxy_connect_timeout 30;
+  return """\n
+      location #{location} {
+          root #{KONFIG.projectRoot}#{relativePath};
+          try_files #{proxyPass};
+          expires #{expires};
+          add_header Cache-Control \"public\";
+          # no need to send those requests to nginx access_log
+          access_log off;
 
-          if ($host !~* ^(dev|default|sandbox|latest|www)) {
-             return 301 /;
-          }
-
-          proxy_pass #{proxy};
+          #{extraParamsStr}
       }
-      """
+  \n"""
 
-createAsset = (inDevEnvironment) ->
-  return "" if inDevEnvironment
-  return """
-expires 1M; # 1 month
-\t\tadd_header Cache-Control \"public\";
-\t\tlocation ~* \.(map)$ {
-\t\t  return 404;
-\t\t  access_log off;
-\t\t}"""
 
-module.exports.create = (KONFIG, environment)->
+module.exports.create = (KONFIG, environment) ->
   workers = KONFIG.workers
 
   event_mechanism = switch process.platform
@@ -213,7 +244,7 @@ module.exports.create = (KONFIG, environment)->
 
   config = """
   worker_processes #{if inDevEnvironment then 1 else 16};
-  master_process #{if inDevEnvironment then "off" else "on"};
+  master_process #{if inDevEnvironment then 'off' else 'on'};
 
 
   #error_log  logs/error.log;
@@ -283,7 +314,7 @@ module.exports.create = (KONFIG, environment)->
     # start server
     server {
       # we should not timeout on proxy connections
-      #{if isProxy KONFIG.ebEnvName then "" else "
+      #{if isProxy KONFIG.ebEnvName then '' else "
       # close alive connections after 20 seconds
       # http://nginx.org/en/docs/http/ngx_http_core_module.html#keepalive_timeout\n
       \t\tkeepalive_timeout 20s;
@@ -309,118 +340,7 @@ module.exports.create = (KONFIG, environment)->
         access_log off;
       }
 
-      location @assets {
-        proxy_cache asset_cache;
-        proxy_cache_revalidate on;
-        proxy_cache_lock on;
-        proxy_cache_valid  200 302  60m;
-        proxy_cache_valid  404	  1m;
-        proxy_cache_use_stale error timeout http_500 http_502 http_503 http_504;
-
-        proxy_pass            http://s3.amazonaws.com/koding-assets$uri;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_connect_timeout 1;
-
-        # unset headers
-        proxy_hide_header x-amz-id-2;
-        proxy_hide_header x-amz-request-id;
-        proxy_hide_header x-amz-expiration;
-        proxy_hide_header x-amz-meta-s3cmd-attrs;
-
-        # ignore possible future headers that might break caching
-        proxy_ignore_headers X-Accel-Expires Expires Cache-Control;
-
-        # finally add status
-        add_header X-K-Proxy-Cache $upstream_cache_status;
-
-        resolver 8.8.8.8;
-      }
-
-      location ~^/cdn/(koding-client|koding-assets|kodingdev-client|kodingdev-assets)/(.*) {
-        proxy_cache asset_cache;
-        proxy_cache_revalidate on;
-        proxy_cache_lock on;
-        proxy_cache_valid  200 302  60m;
-        proxy_cache_valid  404	  1m;
-        proxy_cache_use_stale error timeout http_500 http_502 http_503 http_504;
-
-        proxy_pass            http://s3.amazonaws.com/$1/$2;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_connect_timeout 1;
-
-        # unset headers
-        proxy_hide_header x-amz-id-2;
-        proxy_hide_header x-amz-request-id;
-        proxy_hide_header x-amz-expiration;
-        proxy_hide_header x-amz-meta-s3cmd-attrs;
-
-        # ignore possible future headers that might break caching
-        proxy_ignore_headers X-Accel-Expires Expires Cache-Control;
-
-        # finally add status
-        add_header X-K-Proxy-Cache $upstream_cache_status;
-
-        resolver 8.8.8.8;
-      }
-
-      # no need to send static file serving requests to webserver
-      # serve static content from nginx
-      location /a/ {
-        #{createAsset(inDevEnvironment)}
-        root #{KONFIG.projectRoot}/website/;
-        try_files $uri @assets;
-        # no need to send those requests to nginx access_log
-        access_log off;
-      }
-
       #{createStubLocation(environment)}
-
-      # special case for ELB here, for now
-      location /-/healthCheck {
-        proxy_pass            http://webserver;
-        proxy_set_header      Host            $host;
-        proxy_set_header      X-Host          $host; # for customisation
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout   invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
-
-      # redirect /d/* to koding-dl S3 bucket; used to distributed
-      # // kd/klient installers
-      location ~^/d/(.*)$ {
-        proxy_pass            "https://s3.amazonaws.com/koding-dl/$1";
-        proxy_set_header      X-Host          $host; # for customisation
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_connect_timeout 1;
-
-        resolver 8.8.8.8;
-      }
-
-      # redirect /d/kd to KD installer for development channel
-      location /c/d/kd {
-        proxy_pass            "https://s3.amazonaws.com/koding-kd/development/install-kd.sh";
-        proxy_set_header      X-Host          $host;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_connect_timeout 1;
-
-        resolver 8.8.8.8;
-      }
-
-      # redirect /p/kd to KD installer for production channel
-      location /c/p/kd {
-        proxy_pass            "https://s3.amazonaws.com/koding-kd/production/install-kd.sh";
-        proxy_set_header      X-Host          $host;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_connect_timeout 1;
-
-        resolver 8.8.8.8;
-      }
 
       # redirect /s3/:bucket/:key to :bucket.s3.amazonaws.com/:key
       location ~^/s3/([^/]*)/(.*)$ {
@@ -431,7 +351,6 @@ module.exports.create = (KONFIG, environment)->
         return 301 https://www.koding.com/$1$2$is_args$args;
       }
 
-      #{createRootLocation(KONFIG)}
       #{createLocations(KONFIG)}
 
     # close server
@@ -446,9 +365,9 @@ module.exports.create = (KONFIG, environment)->
 
 
 createRedirections = (KONFIG) ->
-  return "" if isProxy KONFIG.ebEnvName
+  return '' if isProxy KONFIG.ebEnvName
 
-  return """
+  return '''
   \t\t\t
     # redirect www to non-www
     server {
@@ -460,12 +379,12 @@ createRedirections = (KONFIG) ->
     server {
        server_name "~^old.koding.com" ;
        return 301 $scheme://koding.com$request_uri ;
-    }"""
+    }'''
 
 createHealthcheck = (KONFIG) ->
-  return "" if not isProxy KONFIG.ebEnvName
+  return '' if not isProxy KONFIG.ebEnvName
 
-  return """
+  return '''
     # ELB healthcheck with proxy_protocol disabled
     server {
         listen 78;
@@ -488,12 +407,12 @@ createHealthcheck = (KONFIG) ->
           #access_log off;
         }
     }
-  """
+  '''
 
 createIPRoutes = (KONFIG) ->
-  return "" if not isProxy KONFIG.ebEnvName
+  return '' if not isProxy KONFIG.ebEnvName
 
-  return """
+  return '''
     location ~^/-/ip$ {
       return 200 $remote_addr;
     }
@@ -505,19 +424,19 @@ createIPRoutes = (KONFIG) ->
       proxy_send_timeout 5s;
       proxy_next_upstream error timeout invalid_header;
     }
-   """
+   '''
 
 createListenDirective = (KONFIG, env) ->
   return "listen #{KONFIG.publicPort};" if not isProxy KONFIG.ebEnvName
 
-  return """
+  return '''
     listen 79 proxy_protocol;
     real_ip_header proxy_protocol;
     set_real_ip_from 10.0.0.0/16;
-  """
+  '''
 
 createHttpsRedirector = (KONFIG) ->
-  return "" if isProxy KONFIG.ebEnvName
+  return '' if isProxy KONFIG.ebEnvName
 
   return """
   \t\t\t

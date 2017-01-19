@@ -15,7 +15,8 @@ module.exports = (req, res) ->
     unless isAllowed worker.group, ebEnvName
       continue
 
-    urls.push worker.healthCheckURL  if worker.healthCheckURL
+    if worker.healthCheckURLs?.length
+      urls.push url for url in worker.healthCheckURLs
 
   urls.push("http://localhost:#{publicPort}/-/versionCheck")
 

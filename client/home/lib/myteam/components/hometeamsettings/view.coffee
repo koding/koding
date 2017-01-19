@@ -128,7 +128,7 @@ TeamLogo = ({ team, canEdit, loading, callback }) ->
   src = team.getIn(['customize', 'logo'])
   src = DEFAULT_SPINNER_PATH  if loading
   src = cdnize src
-  
+
   unless src
     styles = {}
   else

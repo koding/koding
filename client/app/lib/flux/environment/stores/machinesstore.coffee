@@ -88,4 +88,3 @@ module.exports = class MachinesStore extends KodingFluxStore
     machines.setIn [id, 'sharedUsers'], toImmutable users
 
   set: (machines, machine) -> machines.set machine._id, toImmutable machine
-

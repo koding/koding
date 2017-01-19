@@ -103,6 +103,8 @@ module.exports = class ComputeStateChecker extends KDObject
           kd.info "csc: machine (#{machineId}) state changed: ", response.State
           computeController.triggerReviveFor machineId
 
+        return response
+
       .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
       .catch (err) ->

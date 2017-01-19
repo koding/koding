@@ -141,12 +141,10 @@ exports.defineSchema = (name, definitions) ->
 
   [definitions] = definitions  if isArray
 
-  rootSchema = new normalizr.Schema name
+  rootSchema = new normalizr.schema.Entity name
 
   rootSchema.define definitions  if definitions
 
   return if isArray
-  then normalizr.arrayOf rootSchema
+  then new normalizr.schema.Array rootSchema
   else rootSchema
-
-

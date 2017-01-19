@@ -35,4 +35,3 @@ module.exports = class KodingListView extends kd.ListView
           cssClass  : 'solid medium'
           callback  : ->
             callback { status : yes, modal }
-

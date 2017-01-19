@@ -127,7 +127,7 @@ do ->
 
   app.use bodyParser.json { limit: '2mb' }
 
-  helmet.defaults app
+  app.use helmet()
   app.use cors()
 
   options = { rateLimitOptions : KONFIG.nodejsRateLimiter }

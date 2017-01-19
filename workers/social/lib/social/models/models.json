@@ -44,7 +44,6 @@
   "SocialNotification": "/socialapi/notification.coffee",
   "SocialAccount": "/socialapi/socialaccount.coffee",
   "JComputeStack": "/stack.coffee",
-  "JTag": "/tag.coffee",
   "JTeamInvitation": "/teaminvitation.coffee",
   "Tracker": "/tracker.coffee",
   "JUrlAlias": "/urlalias.coffee",

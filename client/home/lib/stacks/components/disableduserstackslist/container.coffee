@@ -32,5 +32,3 @@ module.exports = class DisabledUserStacksListContainer extends React.Component
     />
 
 DisabledUserStacksListContainer.include [KDReactorMixin]
-
-

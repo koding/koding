@@ -104,5 +104,3 @@ module.exports = class MainControllerLoggedOut extends kd.Controller
 
     ipcRenderer.on 'get-previous-teams', (event) ->
       ipcRenderer.send 'answer-previous-teams', utils.getPreviousTeams()
-
-

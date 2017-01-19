@@ -23,5 +23,3 @@ module.exports = TrialEndingNotifySuccessModal = ({ isOpen, onButtonClick, daysL
 
 TrialEndingNotifySuccessModal.defaultProps =
   daysLeft: '{daysLeft}'
-
-

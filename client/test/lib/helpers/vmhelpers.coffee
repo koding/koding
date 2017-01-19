@@ -248,4 +248,3 @@ module.exports =
       .waitForElementVisible removeSharedMachineMember, 20000
       .click removeSharedMachineMember, ->
         browser.pause 3000, callback
-

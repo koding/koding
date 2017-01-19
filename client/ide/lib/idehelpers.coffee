@@ -5,7 +5,6 @@ FSHelper               = require 'app/util/fs/fshelper'
 showError              = require 'app/util/showError'
 actiontypes            = require 'app/flux/environment/actiontypes'
 dataProvider           = require 'app/userenvironmentdataprovider'
-isTeamReactSide        = require 'app/util/isTeamReactSide'
 FilePermissionsModal   = require './views/modals/filepermissionsmodal'
 BannerNotificationView = require 'app/commonviews/bannernotificationview'
 
@@ -95,9 +94,8 @@ module.exports = helpers =
 
               eventObj.emit 'WorkspaceCreated', workspace
 
-              if isTeamReactSide()
-                actions.createWorkspace machine, workspace
-                actions.hideAddWorkspaceView machine._id
+              actions.createWorkspace machine, workspace
+              actions.hideAddWorkspaceView machine._id
 
               dataProvider.fetch ->
                 handleRoute(machine, workspace)
@@ -107,9 +105,8 @@ module.exports = helpers =
 
     eventObj.emit 'WorkspaceCreateFailed', error
 
-    if isTeamReactSide()
-      { reactor } = kd.singletons
-      reactor.dispatch actiontypes.WORKSPACE_COULD_NOT_CREATE, error
+    { reactor } = kd.singletons
+    reactor.dispatch actiontypes.WORKSPACE_COULD_NOT_CREATE, error
 
     showError "Couldn't create your new workspace."
     kd.warn error

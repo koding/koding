@@ -56,4 +56,3 @@ module.exports = class PrivateStacksListView extends React.Component
       sectionClassName='HomeAppViewStackSection'
       rowClassName='stack-type'
     />
-

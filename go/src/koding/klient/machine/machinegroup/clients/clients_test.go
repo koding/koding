@@ -5,14 +5,15 @@ import (
 	"time"
 
 	"koding/klient/machine"
+	"koding/klient/machine/client"
+	"koding/klient/machine/client/testutil"
 	"koding/klient/machine/machinegroup/clients"
-	"koding/klient/machine/machinetest"
 
 	"golang.org/x/sync/errgroup"
 )
 
 // testOptions returns default Clients options used for testing purposes.
-func testOptions(b machine.ClientBuilder) *clients.ClientsOpts {
+func testOptions(b client.Builder) *clients.ClientsOpts {
 	return &clients.ClientsOpts{
 		Builder:         b,
 		DynAddrInterval: 10 * time.Millisecond,
@@ -22,13 +23,13 @@ func testOptions(b machine.ClientBuilder) *clients.ClientsOpts {
 
 func TestClients(t *testing.T) {
 	var (
-		builder = machinetest.NewClientBuilder(nil)
+		builder = testutil.NewBuilder(nil)
 
 		idA = machine.ID("servA")
 		idB = machine.ID("servB")
 
-		servA = &machinetest.Server{}
-		servB = &machinetest.Server{}
+		servA = &testutil.Server{}
+		servB = &testutil.Server{}
 	)
 
 	cs, err := clients.New(testOptions(builder))
@@ -38,7 +39,7 @@ func TestClients(t *testing.T) {
 	defer cs.Close()
 
 	var g errgroup.Group
-	create := map[machine.ID]machine.DynamicAddrFunc{
+	create := map[machine.ID]client.DynamicAddrFunc{
 		idA: servA.AddrFunc(),
 		idB: servB.AddrFunc(),
 		idA: servA.AddrFunc(), // duplicate.
@@ -59,7 +60,7 @@ func TestClients(t *testing.T) {
 		t.Fatalf("want clients count = 2; got %d", len(regs))
 	}
 
-	if _, err := cs.Context(idA); err != nil {
+	if _, err := cs.Client(idA); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
@@ -67,7 +68,7 @@ func TestClients(t *testing.T) {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	if _, err := cs.Context(idA); err != machine.ErrMachineNotFound {
+	if _, err := cs.Client(idA); err != machine.ErrMachineNotFound {
 		t.Fatalf("want machine not found; got %v", err)
 	}
 

@@ -7,5 +7,3 @@ module.exports = class BaseModalView extends kd.BlockingModalView
     options.cssClass = kd.utils.curry 'BaseModalView', options.cssClass
 
     super options, data
-
-

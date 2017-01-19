@@ -72,14 +72,34 @@ func (s *Session) Valid() error {
 	return nil
 }
 
-func (s *Session) writeTo(req *http.Request) {
+// WriteTo writes the s session to the given requeest.
+func (s *Session) WriteTo(req *http.Request) {
 	req.Header.Set("Authorization", "Bearer "+s.ClientID)
 }
 
-func (s *Session) readFrom(req *http.Request) {
+// ReadFrom initializes the s session by reading it from
+// the given request.
+//
+// If no session can be read from req, the method is a nop.
+func (s *Session) ReadFrom(req *http.Request) {
 	if auth := req.Header.Get("Authorization"); strings.HasPrefix(auth, "Bearer ") {
 		s.ClientID = auth[len("Bearer "):]
 	}
+}
+
+// Match tests whether the other session matches the s one.
+//
+// Since ClientID is typically auto-generated, we match all the other fields.
+func (s *Session) Match(other *Session) error {
+	if s.User.Username != other.User.Username {
+		return fmt.Errorf("username is  %q, the other one is %q", s.User.Username, other.User.Username)
+	}
+
+	if s.User.Team != other.User.Team {
+		return fmt.Errorf("team is  %q, the other one is %q", s.User.Team, other.User.Team)
+	}
+
+	return nil
 }
 
 // AuthFunc is used to fetch session information.
@@ -172,6 +192,11 @@ func (t *Transport) NewSingleUser(u *User) http.RoundTripper {
 
 // RoundTrip implements the http.RoundTripper interface.
 func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
+	type body interface {
+		io.ReadSeeker
+		io.Closer
+	}
+
 	user := t.user(req)
 	if user == nil {
 		return t.roundTripper().RoundTrip(req)
@@ -180,16 +205,19 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	reqCopy := copyRequest(req) // per RoundTripper contract
 	t.setModReq(req, reqCopy)
 
-	switch reqCopy.Body.(type) {
+	var save body
+
+	switch b := reqCopy.Body.(type) {
 	case nil:
-	case io.ReadSeeker:
+	case body:
+		save = b
 	default:
 		p, err := ioutil.ReadAll(io.LimitReader(reqCopy.Body, maxBodyLen))
 		if err != nil {
 			return nil, err // non-retryable
 		}
 
-		reqCopy.Body = nopCloser{bytes.NewReader(p)}
+		save = nopCloser{bytes.NewReader(p)}
 	}
 
 	var refresh bool
@@ -198,9 +226,17 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 	for attempts := t.retryNum(); attempts >= 0; attempts-- {
 		if reqCopy.Body != nil {
-			if _, err := reqCopy.Body.(io.ReadSeeker).Seek(0, io.SeekStart); err != nil {
+			rewind := save
+
+			if b, ok := reqCopy.Body.(body); ok {
+				rewind = b
+			}
+
+			if _, err := rewind.Seek(0, io.SeekStart); err != nil {
 				return nil, err // non-retryable
 			}
+
+			reqCopy.Body = rewind
 		}
 
 		opts := &AuthOptions{
@@ -225,7 +261,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		session = s
 		refresh = false
 
-		session.writeTo(reqCopy)
+		session.WriteTo(reqCopy)
 
 		if t.Host != "" {
 			reqCopy.Host = t.Host
@@ -253,7 +289,13 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 			return nil, err // non-retryable
 		}
 
-		if resp.StatusCode == http.StatusUnauthorized {
+		switch resp.StatusCode {
+		case http.StatusInternalServerError:
+			// TODO(rjeczalik): remove, this is a temporary workaround
+			// for remote.api, that return 500 when session could not
+			// be validated.
+			fallthrough
+		case http.StatusUnauthorized:
 			resp.Body.Close()
 			lastErr = errors.New(http.StatusText(resp.StatusCode))
 			refresh = true

@@ -8,9 +8,10 @@ import (
 	"time"
 
 	"koding/klient/machine"
+	"koding/klient/machine/client"
+	"koding/klient/machine/client/testutil"
 	"koding/klient/machine/machinegroup/addresses"
 	"koding/klient/machine/machinegroup/aliases"
-	"koding/klient/machine/machinetest"
 	"koding/klient/storage"
 
 	"github.com/boltdb/bolt"
@@ -23,7 +24,7 @@ func TestMachineGroupFreshStart(t *testing.T) {
 	}
 	defer stop()
 
-	builder := machinetest.NewClientBuilder(nil)
+	builder := testutil.NewBuilder(nil)
 	g, err := New(testOptionsStorage(builder, st))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
@@ -62,14 +63,14 @@ func TestMachineGroupNoAliases(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if err := address.Add(id, machinetest.TurnOnAddr()); err != nil {
+	if err := address.Add(id, testutil.TurnOnAddr()); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	if len(address.Registered()) != 1 {
 		t.Errorf("want one registered machine; got %v", address.Registered())
 	}
 
-	builder := machinetest.NewClientBuilder(nil)
+	builder := testutil.NewBuilder(nil)
 	g, err := New(testOptionsStorage(builder, st))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
@@ -95,13 +96,13 @@ func TestMachineGroupNoAliases(t *testing.T) {
 }
 
 // testOptions returns default Group options used for testing purposes.
-func testOptions(b machine.ClientBuilder) *GroupOpts {
+func testOptions(b client.Builder) *GroupOpts {
 	return testOptionsStorage(b, nil)
 }
 
 // testOptionsStorage returns default Group options used for testing purposes.
 // This function allows to specify custom storage.
-func testOptionsStorage(b machine.ClientBuilder, st storage.ValueInterface) *GroupOpts {
+func testOptionsStorage(b client.Builder, st storage.ValueInterface) *GroupOpts {
 	return &GroupOpts{
 		Storage:         st,
 		Builder:         b,

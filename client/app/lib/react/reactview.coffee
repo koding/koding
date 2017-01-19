@@ -30,4 +30,3 @@ module.exports = class ReactView extends kd.CustomHTMLView
         @renderReact()
         @getElement()
       )
-

@@ -1,4 +1,5 @@
 #!/usr/bin/env coffee
+# coffeelint: disable=cyclomatic_complexity
 
 require 'coffee-cache'
 
@@ -120,6 +121,9 @@ getProps = (prop, def, field) ->
     console.log 'Failed on field:', field
     throw e
 
+  if prop.default? and prop.default?.type is 'default'
+    delete prop.default
+
   if prop.required
     def.required ?= []
     def.required.push field
@@ -132,13 +136,15 @@ generateDefinition = (model) ->
 
   schema = model.describeSchema()
   def    = { type: 'object' }
-  props  = {}
+  props  = { _id: { type: 'string' } }
 
   for field, prop of schema
+    continue if field is 'default' and prop.type is 'default'
 
     if 'type' not in Object.keys prop
       props[field] = { properties: {} }
       for subfield, subprop of prop
+        continue if subfield is 'default' and subprop.type is 'default'
         props[field].properties[subfield] = getProps subprop, def, field
     else
       props[field] = getProps prop, def, field

@@ -19,12 +19,13 @@ module.exports = class Azure extends ProviderInterface
 
     { credential, instance_type, region, image, storage_size, label } = options
 
-    meta =
+    meta = {
       type          : @providerSlug
       assignedLabel : label
       region        : region ? 'East US 2'
       instance_type : instance_type ? 'Basic_A1'
       storage_size  : storage_size
       image         : image
+    }
 
     callback null, { meta, credential }

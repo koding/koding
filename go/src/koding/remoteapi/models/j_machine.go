@@ -15,6 +15,9 @@ import (
 // swagger:model JMachine
 type JMachine struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// assignee
 	Assignee *JMachineAssignee `json:"assignee,omitempty"`
 

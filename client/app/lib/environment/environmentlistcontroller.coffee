@@ -1,9 +1,7 @@
 kd                    = require 'kd'
-isKoding              = require 'app/util/isKoding'
 showError             = require 'app/util/showError'
 sortStacks            = require 'app/util/sortEnvironmentStacks'
 ComputeHelpers        = require '../providers/computehelpers'
-KDNotificationView    = kd.NotificationView
 EnvironmentListItem   = require './environmentlistitem'
 KodingListController  = require 'app/kodinglist/kodinglistcontroller'
 Tracker               = require 'app/util/tracker'
@@ -18,7 +16,7 @@ module.exports = class EnvironmentListController extends KodingListController
     options.wrapper         ?= no
     options.itemClass       ?= EnvironmentListItem
     options.scrollView      ?= no
-    options.noItemFoundText ?= "You don't have any #{if isKoding() then 'machines' else 'stacks'}."
+    options.noItemFoundText ?= "You don't have any stacks"
 
     options.fetcherMethod    = (query, options, callback) ->
       kd.singletons.computeController.fetchStacks (err, stacks) -> callback err, stacks
@@ -59,7 +57,7 @@ module.exports = class EnvironmentListController extends KodingListController
     computeController.destroyStack stack, (err) ->
       return  if showError err
 
-      new KDNotificationView { title : 'Stack deleted' }
+      new kd.NotificationView { title : 'Stack deleted' }
 
       computeController.reset yes, -> router.handleRoute '/IDE'
 

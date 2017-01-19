@@ -9,7 +9,6 @@ getters     = require './getters'
 Promise     = require 'bluebird'
 immutable   = require 'immutable'
 Tracker     = require 'app/util/tracker'
-isKoding    = require 'app/util/isKoding'
 isEmailValid = require 'app/util/isEmailValid'
 s3upload = require 'app/util/s3upload'
 kookies = require 'kookies'
@@ -120,8 +119,6 @@ sendInvitations = ->
 
       Tracker.track Tracker.TEAMS_SENT_INVITATION  for invite in invitations
 
-      loadPendingInvitations()
-
       reactor.dispatch actions.RESET_TEAM_INVITES
       resolve { title }
 
@@ -216,8 +213,6 @@ handleKickMember = (member) ->
 
   { groupsController, reactor } = kd.singletons
   team = groupsController.getCurrentGroup()
-
-  return  if isKoding team
 
   memberId = member.get '_id'
 

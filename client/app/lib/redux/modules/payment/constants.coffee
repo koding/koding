@@ -24,5 +24,3 @@ module.exports =
     OVER_50_USERS: 'p_over_50'
   Trial:
     ALMOST_EXPIRED_DAYS_LEFT: 4
-
-

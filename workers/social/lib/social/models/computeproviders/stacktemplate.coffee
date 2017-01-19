@@ -7,6 +7,7 @@ clientRequire            = require '../../clientrequire'
 
 module.exports = class JStackTemplate extends Module
 
+  { slugify }  = require '../../traits/slugifiable'
   { permit }   = require '../group/permissionset'
   Validators   = require '../group/validators'
   { revive, checkTemplateUsage } = require './computeutils'
@@ -36,6 +37,13 @@ module.exports = class JStackTemplate extends Module
 
       'check own stack usage'     : ['member']
       'check stack usage'         : []
+
+    # we need a compound index here
+    # since bongo is not supporting them
+    # we need to manually define following:
+    #
+    #   - originId, group, slug (unique)
+    #
 
     sharedMethods     :
 
@@ -82,6 +90,11 @@ module.exports = class JStackTemplate extends Module
         type          : String
         required      : yes
         _description  : 'Title of this stack template'
+
+      slug            :
+        type          : String
+        required      : yes
+        _description  : 'Unique slug of stack template'
 
       description     :
         type          : String
@@ -160,19 +173,78 @@ module.exports = class JStackTemplate extends Module
     providersParser    = clientRequire 'app/lib/util/stacks/providersparser'
     requirementsParser = clientRequire 'app/lib/util/stacks/requirementsparser'
 
+    config.groupStack       ?= no
     config.requiredData      = requirementsParser template
     config.requiredProviders = providersParser template, supportedProviders
 
     return config
 
 
-  validateTemplate = (template, group, callback) ->
+  generateSlugFromTitle = ({ originId, group, title, index }, callback) ->
 
+    unless title
+      return callback null
+
+    slug = _title = if index? then "#{title} #{index}" else title
+    slug = slugify slug
+
+    if index >= 20
+      return callback new KodingError \
+        'Too many occurrences, please provide a different title'
+
+    JStackTemplate.count { originId, group, slug }, (err, count) ->
+      return callback err  if err?
+
+      if count is 0
+        callback null, { slug, title: _title }
+      else
+        index ?= 0
+        index += 1
+        generateSlugFromTitle { originId, group, title, index }, callback
+
+
+  validateTemplateData = (data, options, callback) ->
+
+    unless data
+      return callback new KodingError 'Template data is required!'
+
+    { config = {}, title, template, rawContent, templateDetails } = data
+
+    if template and rawContent
+      template = generateTemplateObject template, rawContent, templateDetails
+      if config
+        config = updateConfigForTemplate config, template.rawContent
+        title ?= generateTemplateTitle config.requiredProviders[0]
+
+    { originId, group } = options
     limitConfig = helpers.getLimitConfig group
-    return callback null  unless limitConfig.limit # No limit, no pain.
+    group       = group.slug
 
-    ComputeProvider = require './computeprovider'
-    ComputeProvider.validateTemplateContent template, limitConfig, callback
+    generateSlugFromTitle { group, originId, title }, (err, res = {}) ->
+
+      return callback err  if err
+
+      { slug, title } = res
+      replacements = { template, config, title, slug }
+
+      if not data.template     or \
+         not limitConfig.limit or \
+             limitConfig.limit is 'unlimited' # No limit, no pain.
+        return callback null, replacements
+
+      ComputeProvider = require './computeprovider'
+      ComputeProvider.validateTemplateContent \
+        data.template, limitConfig, (err) ->
+          return callback err  if err
+          callback null, replacements
+
+
+  generateTemplateTitle = (provider) ->
+
+    { capitalize } = require 'lodash'
+    getPokemonName = clientRequire 'app/lib/util/getPokemonName'
+
+    return "#{getPokemonName()} #{capitalize provider} Stack"
 
 
   # creates a JStackTemplate with requested content
@@ -201,38 +273,36 @@ module.exports = class JStackTemplate extends Module
 
     success: revive
 
-      shouldReviveClient   : yes
-      shouldReviveProvider : no
+      shouldReviveClient    : yes
+      shouldReviveProvider  : no
       shouldFetchGroupLimit : yes
 
     , (client, data, callback) ->
 
       { group }    = client.r # we have revived JGroup and JUser here ~ GG
       { delegate } = client.connection
+      originId     = delegate.getId()
+      options      = { group, originId }
 
-      unless data?.title
-        return callback new KodingError 'Title required.'
+      if not data.template or not data.rawContent
+        return callback new KodingError 'Template content is required!'
 
-      validateTemplate data.template, group, (err) ->
+      validateTemplateData data, options, (err, replacements) ->
         return callback err  if err
 
-        if data.config?
-          data.config.groupStack = no
-
         stackTemplate = new JStackTemplate
-          originId    : delegate.getId()
+          originId    : originId
           group       : client.context.group
-          title       : data.title
-          config      : data.config      ? {}
           description : data.description ? ''
           machines    : data.machines    ? []
           accessLevel : data.accessLevel ? 'private'
-          template    : generateTemplateObject \
-            data.template, data.rawContent, data.templateDetails
-          credentials : data.credentials
+          credentials : data.credentials ? {}
 
-        stackTemplate.config = updateConfigForTemplate \
-          stackTemplate.config, stackTemplate.template.rawContent
+        stackTemplate.slug     = replacements.slug
+        stackTemplate.title    = replacements.title
+
+        stackTemplate.config   = replacements.config
+        stackTemplate.template = replacements.template
 
         stackTemplate.save (err) ->
           if err
@@ -251,6 +321,10 @@ module.exports = class JStackTemplate extends Module
 
       unless typeof selector is 'object'
         return callback new KodingError 'Invalid query'
+
+      # By default return stack templates that requester owns
+      if (Object.keys selector).length is 0
+        selector = { originId: delegate.getId() }
 
       selector.$and ?= []
       selector.$and.push
@@ -368,11 +442,14 @@ module.exports = class JStackTemplate extends Module
       { group } = client.r
       query = { $set: { accessLevel } }
       id = @getId()
+      currentAccessLevel = @getAt 'accessLevel'
 
       @update query, (err) =>
 
         return callback err  if err
-        return  unless group.slug
+
+        if currentAccessLevel is accessLevel or not group.slug
+          return callback null, this
 
         JGroup = require '../group'
         JGroup.one { slug : group.slug }, (err, group_) =>
@@ -443,64 +520,66 @@ module.exports = class JStackTemplate extends Module
 
       { group }    = client.r
       { delegate } = client.connection
+      originId     = delegate.getId()
+      options      = { originId, group }
+
+      notifyOptions =
+        account : delegate
+        group   : group.slug
+        target  : if @accessLevel is 'group' then 'group' else 'account'
+
+      updateAndNotify = (query) =>
+        @updateAndNotify notifyOptions, query, (err, results) =>
+          callback err, this
 
       # It's not allowed to change a stack template group or owner
       delete data.originId
       delete data.group
 
+      delete data.title  if data.title is @getAt 'title'
+
       # Update template sum if template update requested
-      { config, template, templateDetails, rawContent } = data
-      config ?= {}
+      { config, title, template, templateDetails, rawContent } = data
 
-      async.series [
+      validateTemplateData data, options, (err, replacements) =>
+        return callback err  if err
 
-        (next) =>
-          return next()  unless template?
+        if template
+          # update template object, sum, rawContent etc.
+          data.template = replacements.template
 
-          validateTemplate template, group, (err) =>
-            return next err  if err
+          # Keep the existing template details if not provided
+          if not templateDetails?
+            data.template.details = @getAt 'template.details'
 
-            # update template object, sum, rawContent etc.
-            data.template = generateTemplateObject \
-              template, rawContent, templateDetails
+          # Keep last updater info in the template details
+          data.template.details.lastUpdaterId = delegate.getId()
 
-            # add required providers/fields on to config from template
-            data.config = updateConfigForTemplate \
-              config, data.template.rawContent
+        if config
+          # add required providers/fields on to config from template
+          data.config = replacements.config
 
-            # Keep the existing template details if not provided
-            if not templateDetails?
-              data.template.details = @getAt 'template.details'
+        delete data.templateDetails
+        delete data.rawContent
+        delete data.slug
 
-            delete data.templateDetails
-            delete data.rawContent
+        if title
+          data.title = replacements.title
+          data.slug  = replacements.slug
 
-            # Keep last updater info in the template details
-            data.template.details.lastUpdaterId = delegate.getId()
+        data['meta.modifiedAt'] = new Date
 
-            data['meta.modifiedAt'] = new Date
+        if template and originalId = data.config?.clonedFrom
 
-            originalId = data.config?.clonedFrom
-            return next()  unless originalId
+          # update clonedSum information in the template, if it is exists
+          JStackTemplate.one$ client, { _id: originalId }, (err, template) ->
+            if template and not err
+              if template.template.sum is data.template.sum
+                data.config.clonedSum = template.template.sum
+            updateAndNotify { $set: data }
 
-            # update clonedSum information in the template, if it is exists
-            JStackTemplate.one$ client, { _id: originalId }, (err, template) ->
-              if template and not err
-                if template.template.sum is data.template.sum
-                  data.config.clonedSum = template.template.sum
-              next()
-
-        (next) =>
-          query = { $set: data }
-
-          notifyOptions =
-            account : delegate
-            group   : group.slug
-            target  : if @accessLevel is 'group' then 'group' else 'account'
-
-          @updateAndNotify notifyOptions, query, next
-
-      ], (err, results) => callback err, this
+        else
+          updateAndNotify { $set: data }
 
 
   cloneCustomCredentials = (client, credentials, callback) ->
@@ -534,6 +613,7 @@ module.exports = class JStackTemplate extends Module
     success: (client, callback) ->
 
       cloneData         =
+        slug            : @getAt 'slug'
         title           : "#{@getAt 'title'} - clone"
         description     : @getAt 'description'
 
