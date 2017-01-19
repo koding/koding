@@ -4,6 +4,7 @@ set -o errexit
 
 #  make relative paths work.
 cd $(dirname $0)/..
+COVMERGE="./go/bin/gocovmerge"
 
 action="sh -c"
 # action="echo"
@@ -28,6 +29,42 @@ function run () {
     go list -f '{{if len .TestGoFiles}}"{{.Dir}}/{{.Name}}.test -test.coverprofile={{.Dir}}/coverage.txt "{{end}}' $1 | grep -v vendor | xargs -L 1 -I{} $action "{}$RUN_FLAGS"
 }
 
+function merge () {
+    echo "TESTING THE MERGING HERE"
+
+    go list -f '{{if len .TestGoFiles}}"{{.Dir}}/coverage.txt "{{end}}' $1 | grep -v vendor | xargs -L 1 -I{} echo "ARRAY="{}
+
+    exit 0
+    # IFS=',' read -r -a array <<< "$PKGS_DELIM"
+    IFS=' ' read -r -a array <<< $(go list -f '{{if len .TestGoFiles}}"{{.Dir}}/coverage.txt "{{end}}' $1 | grep -v vendor | xargs -L 1 -I{} echo {})
+
+    echo "${array[@]}"
+
+    exit 0
+
+    declare -a arr
+    for element in "${array[@]}"
+    do
+        # echo "element is"
+        # echo "$element"
+        arr[${#arr[*]}]="$element/coverage.txt"
+    done
+
+    echo "pwd"
+    echo $(pwd)
+    $COVMERGE ${arr[@]}
+
+    # for i in "${PKGS}"
+    # do
+    #     echo "i is"
+    #     echo $i
+    # done
+
+    echo "ARRAY HERE"
+    echo ${arr[@]}
+    echo "ARRAY ENDS"
+}
+
 # runWithCD runs like run function.
 # But this function changes the directory while running.
 function runWithCD () {
@@ -42,6 +79,7 @@ function clean () {
 function runAll () {
     compile $@
     run $@
+    merge $@
     clean $@
 }
 
