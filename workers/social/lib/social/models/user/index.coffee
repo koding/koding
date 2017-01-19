@@ -1,3 +1,4 @@
+uuid             = require 'uuid'
 async            = require 'async'
 jraphical        = require 'jraphical'
 Regions          = require 'koding-regions'
@@ -12,7 +13,6 @@ emailsanitize    = require './emailsanitize'
 
 module.exports = class JUser extends jraphical.Module
 
-  { v4: createId }      = require 'node-uuid'
   { Relationship }      = jraphical
   { secure, signature } = require 'bongo'
 
@@ -842,7 +842,7 @@ module.exports = class JUser extends jraphical.Module
         # updating user passwordStatus if necessary
         updateUserPasswordStatus user, (err) ->
           return next err  if err
-          replacementToken = createId()
+          replacementToken = uuid.v4()
           next()
 
       (next) ->
@@ -1024,7 +1024,7 @@ module.exports = class JUser extends jraphical.Module
     account.profile = { nickname: username }
     account.type = 'unregistered'
 
-    callback null, { account, replacementToken: createId() }
+    callback null, { account, replacementToken: uuid.v4() }
 
 
   @createUser = (userInfo, callback) ->
@@ -1214,7 +1214,7 @@ module.exports = class JUser extends jraphical.Module
     account.changeUsername { username, isRegistration }, (err) ->
       return callback err   if err?
       return callback null  unless clientId?
-      newToken = createId()
+      newToken = uuid.v4()
       JSession.one { clientId }, (err, session) ->
         if err?
           return callback new KodingError 'Could not update your session'

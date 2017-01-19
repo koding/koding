@@ -4,7 +4,6 @@ createUsers = (users) ->
   Bongo     = require 'bongo'
 
   { join: joinPath } = require 'path'
-  { v4: createId }   = require 'node-uuid'
 
   KONFIG = require 'koding-config-manager'
   mongo  = "mongodb://#{KONFIG.mongo}"
