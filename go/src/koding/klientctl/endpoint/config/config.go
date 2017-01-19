@@ -113,6 +113,12 @@ func (c *Client) Reset(opts *ResetOpts) error {
 	return c.store.Use(used)
 }
 
+func (c *Client) Cache() *config.Cache {
+	c.init()
+
+	return c.cache
+}
+
 func (c *Client) init() {
 	c.once.Do(c.initClient)
 }
@@ -149,6 +155,7 @@ func nonil(err ...error) error {
 }
 
 func List() config.Konfigs              { return DefaultClient.List() }
+func Cache() *config.Cache              { return DefaultClient.Cache() }
 func Set(key, value string) error       { return DefaultClient.Set(key, value) }
 func Use(k *config.Konfig) error        { return DefaultClient.Use(k) }
 func Used() (*config.Konfig, error)     { return DefaultClient.Used() }
