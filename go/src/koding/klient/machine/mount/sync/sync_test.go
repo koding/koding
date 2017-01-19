@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"koding/klient/machine/client"
-	"koding/klient/machine/client/testutil"
+	"koding/klient/machine/client/clienttest"
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/mounttest"
 )
@@ -124,7 +124,7 @@ func TestSyncDrop(t *testing.T) {
 func testSyncWithMount(wd string, mountID mount.ID, m mount.Mount) (s *Sync, err error) {
 	opts := SyncOpts{
 		ClientFunc: func(mount.ID) (client.Client, error) {
-			return testutil.NewClient(), nil
+			return clienttest.NewClient(), nil
 		},
 		WorkDir: wd,
 	}

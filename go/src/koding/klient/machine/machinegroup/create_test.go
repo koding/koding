@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"koding/klient/machine"
-	"koding/klient/machine/client/testutil"
+	"koding/klient/machine/client/clienttest"
 )
 
 func TestCreate(t *testing.T) {
 	var (
-		builder = testutil.NewBuilder(nil)
+		builder = clienttest.NewBuilder(nil)
 
 		idA = machine.ID("servA")
 		idB = machine.ID("servB")
@@ -34,8 +34,8 @@ func TestCreate(t *testing.T) {
 	const AddedServersCount = 2
 	req := &CreateRequest{
 		Addresses: map[machine.ID][]machine.Addr{
-			idA: {testutil.TurnOffAddr()},
-			idB: {testutil.TurnOnAddr()},
+			idA: {clienttest.TurnOffAddr()},
+			idB: {clienttest.TurnOnAddr()},
 		},
 	}
 
@@ -92,8 +92,8 @@ func TestCreate(t *testing.T) {
 
 func TestCreateBalance(t *testing.T) {
 	var (
-		client  = testutil.NewClient()
-		builder = testutil.NewBuilder(client)
+		client  = clienttest.NewClient()
+		builder = clienttest.NewBuilder(client)
 		id      = machine.ID("serv")
 	)
 
@@ -111,7 +111,7 @@ func TestCreateBalance(t *testing.T) {
 
 	req := &CreateRequest{
 		Addresses: map[machine.ID][]machine.Addr{
-			id: {testutil.TurnOffAddr()},
+			id: {clienttest.TurnOffAddr()},
 		},
 	}
 
@@ -129,7 +129,7 @@ func TestCreateBalance(t *testing.T) {
 	}
 
 	// Client context should be closed.
-	if err := testutil.WaitForContextClose(client.Context(), time.Second); err != nil {
+	if err := clienttest.WaitForContextClose(client.Context(), time.Second); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 }

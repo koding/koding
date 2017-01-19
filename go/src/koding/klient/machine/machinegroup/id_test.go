@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"koding/klient/machine"
-	"koding/klient/machine/client/testutil"
+	"koding/klient/machine/client/clienttest"
 )
 
 func TestID(t *testing.T) {
@@ -25,7 +25,7 @@ func TestID(t *testing.T) {
 	}
 	defer os.RemoveAll(wd)
 
-	g, err := New(testOptions(wd, testutil.NewBuilder(nil)))
+	g, err := New(testOptions(wd, clienttest.NewBuilder(nil)))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}

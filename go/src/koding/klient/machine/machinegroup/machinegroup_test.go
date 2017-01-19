@@ -9,7 +9,7 @@ import (
 
 	"koding/klient/machine"
 	"koding/klient/machine/client"
-	"koding/klient/machine/client/testutil"
+	"koding/klient/machine/client/clienttest"
 	"koding/klient/machine/machinegroup/addresses"
 	"koding/klient/machine/machinegroup/aliases"
 	"koding/klient/machine/machinegroup/mounts"
@@ -33,7 +33,7 @@ func TestMachineGroupFreshStart(t *testing.T) {
 	}
 	defer os.RemoveAll(wd)
 
-	builder := testutil.NewBuilder(nil)
+	builder := clienttest.NewBuilder(nil)
 	g, err := New(testOptionsStorage(wd, builder, st))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
@@ -81,7 +81,7 @@ func TestMachineGroupNoAliases(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if err := address.Add(id, testutil.TurnOnAddr()); err != nil {
+	if err := address.Add(id, clienttest.TurnOnAddr()); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	if len(address.Registered()) != 1 {
@@ -94,7 +94,7 @@ func TestMachineGroupNoAliases(t *testing.T) {
 	}
 	defer os.RemoveAll(wd)
 
-	builder := testutil.NewBuilder(nil)
+	builder := clienttest.NewBuilder(nil)
 	g, err := New(testOptionsStorage(wd, builder, st))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
@@ -138,7 +138,7 @@ func TestMachineGroupMount(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if err := address.Add(id, testutil.TurnOnAddr()); err != nil {
+	if err := address.Add(id, clienttest.TurnOnAddr()); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
@@ -162,7 +162,7 @@ func TestMachineGroupMount(t *testing.T) {
 		t.Errorf("want one registered mount; got %v", allm)
 	}
 
-	builder := testutil.NewBuilder(nil)
+	builder := clienttest.NewBuilder(nil)
 	g, err := New(testOptionsStorage(wd, builder, st))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
