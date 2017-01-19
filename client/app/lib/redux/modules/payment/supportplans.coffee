@@ -4,6 +4,7 @@ immutable = require 'app/util/immutable'
 
 reduxHelper = require 'app/redux/helper'
 schemas = require './schemas'
+{ SupportPlans } = require './constants'
 
 withNamespace = reduxHelper.makeNamespace 'koding', 'payment', 'supportplans'
 
@@ -16,7 +17,7 @@ CREATE = withNamespace 'CREATE'
 UPDATE = withNamespace 'UPDATE'
 REMOVE = withNamespace 'REMOVE'
 
-initialState = immutable { plan: null }
+initialState = immutable { plans: SupportPlans, plan: null }
 
 reducer = (state = initialState, action) ->
 
@@ -77,7 +78,9 @@ remove = ->
   }
 
 
-getSupportPlan = (state) -> state.supportplans?.plan
+getActiveSupportPlan = (state) -> state.supportplans?.plan
+
+getAllSupportPlans = (state) -> state.supportplans?.plans
 
 
 module.exports = {
@@ -87,5 +90,5 @@ module.exports = {
   LOAD, CREATE, UPDATE, REMOVE
 
   # Selectors
-  getSupportPlan
+  getActiveSupportPlan, getAllSupportPlans
 }

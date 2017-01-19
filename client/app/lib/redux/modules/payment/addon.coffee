@@ -4,6 +4,7 @@ immutable = require 'app/util/immutable'
 
 reduxHelper = require 'app/redux/helper'
 schemas = require './schemas'
+{AddOns} = require './constants'
 
 withNamespace = reduxHelper.makeNamespace 'koding', 'payment', 'addon'
 
@@ -13,12 +14,10 @@ withNamespace = reduxHelper.makeNamespace 'koding', 'payment', 'addon'
 LOAD = withNamespace 'LOAD'
 CREATE = withNamespace 'CREATE'
 REMOVE = withNamespace 'REMOVE'
-TOGGLE_MODAL = withNamespace 'TOGGLE_MODAL'
 
-initialState = immutable { status: no, modalOpen: no }
+initialState = immutable {status: no, addonsPrice: AddOns.price}
 
 reducer = (state = initialState, action) ->
-
   { normalize } = reduxHelper
 
   switch action.type
@@ -35,11 +34,9 @@ reducer = (state = initialState, action) ->
     when REMOVE
       return state.set 'status', no
 
-    when TOGGLE_MODAL
-      return state.set 'modalOpen', not state.modalOpen
-
     else
       return state
+
 
 load = ->
   return {
@@ -65,24 +62,18 @@ remove = ->
   }
 
 
-toggleModal = ->
-  return {
-    type: TOGGLE_MODAL
-  }
-
-
 isActivated = (state) -> state.addon?.status
 
 
-modalOpen = (state) -> state.addon?.modalOpen
+getAddonPrice = (state) -> state.addon?.addonsPrice
 
 
 module.exports = {
   namespace: withNamespace()
   reducer
-  load, create, remove, toggleModal
-  LOAD, CREATE, REMOVE, TOGGLE_MODAL
+  load, create, remove
+  LOAD, CREATE, REMOVE
 
   # Selectors
-  isActivated, modalOpen
+  isActivated, getAddonPrice
 }
