@@ -25,4 +25,42 @@ module.exports =
   Trial:
     ALMOST_EXPIRED_DAYS_LEFT: 4
 
+  AddOns:
+    price: 5000
 
+  SupportPlans:
+    [
+      {
+        name : 'Basic'
+        price : 1000
+        period : 'month'
+        features : [
+          '4 Hours dedicated support'
+          'Stack script support'
+          '24 Hours response time'
+          'General Troubleshooting'
+        ]
+      }
+      {
+        name : 'Business'
+        price : 5000
+        period : 'month'
+        features : [
+          '25 Hours dedicated support'
+          'Stack script support'
+          '4 Hours response time'
+          'General Troubleshooting'
+        ]
+      }
+      {
+        name : 'Enterprise'
+        price : null
+        period : null
+        features : [
+          'On-premise installation'
+          'On-site support'
+          'Phone support'
+          '24/7 Coverage'
+        ]
+      }
+    ]
