@@ -1,18 +1,7 @@
 kd = require 'kd'
-sectionize = require '../commons/sectionize'
-headerize = require '../commons/headerize'
-TeamFlux = require 'app/flux/teams'
 HomeAddonsTabHandle = require './addonstabhandle'
-HomeAddOnBusinessAddOnBanner = require './homeaddonsbusinessaddonbanner'
-BusinessAddOnSupportPlansBanner = require './components/businessaddonsupportplansbanner'
-SupportPlansBanner = require './components/supportplansbanner'
-SupportPlansBusinessAddOnBanner = require './components/supportplansbusinessaddonbanner'
-HomeAddOnSupportPlans = require './homeaddonsupportplans'
-HomeBusinessAddOnDeactivation = require './homebusinessaddondeactivation'
-HomeSupportPlanDeactivation = require './homesupportplandeactivation'
-HomeAddOnKodingButton = require './homeaddonkodingbutton'
-HomeAddOnIntercom = require './homeaddonintercom'
-HomeAddOnChatlio = require './homeaddonchatlio'
+BusinessAddOnsContainer = require './businessaddons'
+SupportPlansContainer = require './supportplans'
 
 module.exports = class AddOns extends kd.CustomScrollView
 
@@ -21,11 +10,6 @@ module.exports = class AddOns extends kd.CustomScrollView
     options.cssClass = kd.utils.curry 'HomeAppView--scroller', options.cssClass
 
     super options, data
-
-    TeamFlux.actions.loadTeam()
-    team = kd.singletons.groupsController.getCurrentGroup()
-    @canEdit = kd.singletons.groupsController.canEditGroup()
-    @allowedDomains = team.allowedDomains
 
     @addSubView @topNav  = new kd.TabHandleContainer
 
@@ -72,29 +56,9 @@ module.exports = class AddOns extends kd.CustomScrollView
 
   createBusinessAddonViews: ->
 
-    @addOn.addSubView sectionize 'Business Add On Banner', HomeAddOnBusinessAddOnBanner
-
-    if '*' in @allowedDomains or @canEdit
-      @addOn.addSubView headerize  'Koding Button'
-      @addOn.addSubView sectionize 'Koding Button', HomeAddOnKodingButton
-
-    @addOn.addSubView headerize 'Intercom'
-    @addOn.addSubView sectionize 'Intercom Integration', HomeAddOnIntercom
-
-    @addOn.addSubView headerize 'Chatlio'
-    @addOn.addSubView sectionize 'Customer Feedback', HomeAddOnChatlio
-
-    @addOn.addSubView sectionize 'Business Add On Support Plans Banner', BusinessAddOnSupportPlansBanner
-
-    @addOn.addSubView sectionize 'Business Add On Deactivation', HomeBusinessAddOnDeactivation
+    @addOn.addSubView new BusinessAddOnsContainer
 
 
   createSupportPlansViews: ->
 
-    @plans.addSubView sectionize 'Support Plans Banner', SupportPlansBanner
-
-    @plans.addSubView headerize 'Available Plans'
-    @plans.addSubView sectionize 'Support Plans Section', HomeAddOnSupportPlans
-
-    @plans.addSubView sectionize 'Support Plans Business Add On Banner', SupportPlansBusinessAddOnBanner
-    @plans.addSubView sectionize 'Support Plan Deactivation', HomeSupportPlanDeactivation
+    @plans.addSubView new SupportPlansContainer

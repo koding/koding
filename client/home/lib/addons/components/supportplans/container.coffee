@@ -1,52 +1,22 @@
-React = require 'app/react'
-SupportPlansList = require './view'
-kd = require 'kd'
-{ Provider } = require 'react-redux'
+React = require 'react'
+{ connect } = require 'react-redux'
+supportplans = require 'app/redux/modules/payment/supportplans'
+SupportPlans = require './view'
 
-module.exports = class SupportPlansContainer extends React.Component
+mapStateToProps = (state) ->
+  return {
+    plans: supportplans.getAllSupportPlans state
+    activeSupportPlan: supportplans.getActiveSupportPlan state
+  }
 
-  getSupportPlans: ->
+mapDispatchToProps = (dispatch) ->
+  return {
+    onActivateSupportPlan: (plan) -> dispatch(supportplans.create plan)
+    onUpdateSupportPlan: (plan) -> dispatch(supportplans.update plan)
+    onDeactivateSupportPlan: -> dispatch(supportplans.remove())
+  }
 
-    return plans = [
-      {
-        name : 'Basic'
-        price : '1,000'
-        period : 'month'
-        features : [
-          '4 Hours dedicated support'
-          'Stack script support'
-          '24 Hours response time'
-          'General Troubleshooting'
-        ]
-      }
-      {
-        name : 'Business'
-        price : '5,000'
-        period : 'month'
-        features : [
-          '25 Hours dedicated support'
-          'Stack script support'
-          '4 Hours response time'
-          'General Troubleshooting'
-        ]
-      }
-      {
-        name : 'Enterprise'
-        price : null
-        period : null
-        features : [
-          'On-premise installation'
-          'On-site support'
-          'Phone support'
-          '24/7 Coverage'
-        ]
-      }
-    ]
-
-
-  render: ->
-
-    <Provider store={kd.singletons.store}>
-      <SupportPlansList
-        plans={@getSupportPlans()} />
-    </Provider>
+module.exports = connect(
+  mapStateToProps
+  mapDispatchToProps
+)(SupportPlans)
