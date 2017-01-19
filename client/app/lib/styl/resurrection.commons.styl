@@ -839,58 +839,6 @@ account, group dashboard and payment pages.
     r-sprite                'app', 'plus_10'
 
 
-@css {
-/*
-Activity stylesheet
-resurrection.commons.styl
-FOOTER VIEW
-*/
-}
-
-
-footer.main-footer
-  padding                   31px 0
-  font-weight               400
-  height                    auto
-
-  .inner-container
-    max-width               1170px
-    padding                 0px 36px
-    margin                  0 auto
-    display                 block
-    position                relative
-    borderBox()
-
-  .footer-block
-    font-size               0
-    borderBox()
-    fl()
-
-    &:first-child
-      a
-        font-weight         600
-        color               #32435c
-        font-size           14px
-
-    &:last-child
-      text-align            right
-      fr()
-
-      a
-        margin              0 18px
-        color               #32435c
-        opacity             .5
-
-    a
-      vertical-align        middle
-      font-size             14px
-      line-height           22px
-      color                 #747474
-      display               inline
-      margin-right          12px
-      noTextDeco()
-
-
 // new private message and topics modal common styles
 // Moved to commons because Vm modals use these too [BC]
 .kdmodal.activity-modal
@@ -981,16 +929,6 @@ footer.main-footer
     color                   #a3a3a3
     text-align              center
 
-
-
-@media only screen and (min-width : 320px) and (max-width : 568px)
-  footer.main-footer
-    .footer-block
-      margin-top            0
-
-      &:last-child
-        a
-          margin            0 5px
 
 
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi)
