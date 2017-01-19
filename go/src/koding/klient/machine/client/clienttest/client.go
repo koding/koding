@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os/user"
+	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -111,12 +112,17 @@ func (c *Client) SSHAddKeys(_ string, _ ...string) error {
 
 // MountHeadIndex gets basic info about the index generated from local path.
 func (c *Client) MountHeadIndex(path string) (string, int, int64, error) {
-	idx, err := c.MountGetIndex(path)
+	absPath, err := filepath.Abs(path)
 	if err != nil {
 		return "", 0, 0, err
 	}
 
-	return path, idx.Count(-1), idx.DiskSize(-1), nil
+	idx, err := c.MountGetIndex(absPath)
+	if err != nil {
+		return "", 0, 0, err
+	}
+
+	return absPath, idx.Count(-1), idx.DiskSize(-1), nil
 }
 
 // MountGetIndex creates an index from provided local path. Generated index is
