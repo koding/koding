@@ -17,7 +17,7 @@ module.exports = class Subscription extends Component
   renderHeader: ->
 
     { loading, teamSize, pricePerSeat, daysLeft, hasCreditCard
-      isTrial, freeCredit, endsAt, title } = @props
+      isTrial, freeCredit, endsAt, title, addons, addonsPrice, supportPlan } = @props
 
     nextAmount = Number(teamSize) * Number(pricePerSeat)
 
@@ -25,6 +25,9 @@ module.exports = class Subscription extends Component
       hasCreditCard={hasCreditCard}
       loading={loading}
       isTrial={isTrial}
+      addons={addons}
+      addonsPrice={addonsPrice}
+      supportPlan={supportPlan}
       title={title}
       teamSize={teamSize}
       freeCredit={freeCredit}
