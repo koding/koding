@@ -64,40 +64,12 @@ sidebarTextShadow()
       top                   -1px
 
 
-#sidebar-toggle
-  bg              color #262626
-  size            18px 18px
-  margin-top      -9px
-  margin-left     -9px
-  display         none
-  z-index         11
-  rounded         9px
-  cursor          pointer
-  top             50%
-  fix()
-  // hidden()
-  &:after
-    abs()
-    top           4px
-    left          5px
-    display       block
-    content       ' '
-    r-sprite      app sidebar_toggle
-
-
 #kdmaincontainer
 
   &.collapsed
     &.with-sidebar
       #main-sidebar
         width               41px
-
-
-    #sidebar-toggle:after
-      left               7px
-      -moz-transform     scaleX(-1)
-      -webkit-transform  scaleX(-1)
-      transform          scaleX(-1)
 
     .activity-sidebar
 

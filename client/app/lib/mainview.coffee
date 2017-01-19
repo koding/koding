@@ -103,11 +103,6 @@ module.exports = class MainView extends kd.View
 
     @panelWrapper.addSubView new HeaderMessageView
 
-    @panelWrapper.addSubView new kd.CustomHTMLView
-      tagName  : 'cite'
-      domId    : 'sidebar-toggle'
-      click    : @bound 'toggleSidebar'
-
 
   toggleSidebar: ->
 
