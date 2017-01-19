@@ -2,6 +2,7 @@ React = require 'app/react'
 Box = require 'lab/Box'
 Button = require 'lab/Button'
 generateClassName = require 'classnames'
+formatMoney = require 'app/util/formatMoney'
 styles = require './SupportPlan.stylus'
 
 module.exports = class SupportPlan extends React.Component
@@ -39,7 +40,7 @@ Info = (options) ->
 
   {name, price, period} = options
   priceView =  if price
-  then <span className={styles.price}>${price}</span>
+  then <span className={styles.price}>{formatMoney price}</span>
   else <span className={styles.special}>Contact Us</span>
 
   <section className={styles.info}>
@@ -77,7 +78,7 @@ Action = (options) ->
   action = switch type
     when 'active' then <span className={styles.planActive}>ACTIVE</span>
     when 'activation' then <ActivationButton
-                              price={price}
+                              price={formatMoney price}
                               contactUsLink={contactUsLink}
                               onClick={onClick}/>
     when 'switch' then <SwitchableAction contactUsLink={contactUsLink} />

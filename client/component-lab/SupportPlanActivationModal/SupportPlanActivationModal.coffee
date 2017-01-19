@@ -1,6 +1,7 @@
 React = require 'react'
 { Header, Content, Footer } = Modal = require 'lab/Modal'
 Label = require 'lab/Text/Label'
+formatMoney = require 'app/util/formatMoney'
 
 styles = require './SupportPlanActivationModal.stylus'
 
@@ -24,7 +25,7 @@ module.exports = SupportPlanActivationModal = (props) ->
         <Label size='large'><p className={styles.contentTitle}>You are about to activate {label}</p></Label>
         <Label size='medium' type='info'>
           When you activate, you will get superior support. Your team will be
-charged monthly flat fee of <span className={styles.price}>${price}</span> on each billing cycle in addition to
+charged monthly flat fee of <span className={styles.price}>{formatMoney price}</span> on each billing cycle in addition to
 total cost. You can cancel anytime you want.
         </Label>
       </div>
