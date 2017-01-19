@@ -1,7 +1,7 @@
 { argv }         = require 'optimist'
 KONFIG           = require 'koding-config-manager'
 bongo            = require './bongo'
-{ v4: createId } = require 'node-uuid'
+uuid             = require 'uuid'
 
 { setSessionCookie } = require './helpers'
 
@@ -26,7 +26,7 @@ updateCookie = (req, res, session) ->
 
   unless req?.cookies?._csrf
 
-    csrfToken = createId()
+    csrfToken = uuid.v4()
       # set cookie as pending cookie
     req.pendingCookies or= {}
     req.pendingCookies._csrf = csrfToken

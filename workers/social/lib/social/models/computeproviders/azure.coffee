@@ -10,10 +10,8 @@ module.exports = class Azure extends ProviderInterface
 
   @sensitiveKeys = ProviderInterface.sensitiveKeys.concat ['ssh_key_thumbprint']
 
-
   @ping = (client, callback) ->
     callback null, "Azure is cool #{ client.connection.delegate.profile.nickname }!"
-
 
   @create = (client, options, callback) ->
 
@@ -29,3 +27,5 @@ module.exports = class Azure extends ProviderInterface
     }
 
     callback null, { meta, credential }
+
+  do @_requireTemplate

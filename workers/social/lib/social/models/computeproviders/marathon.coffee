@@ -21,7 +21,6 @@ module.exports = class Marathon extends ProviderInterface
     { nickname } = client.r.account.profile
     callback null, "#{ @providerSlug } is the best #{ nickname }!"
 
-
   @create = (client, options, callback) ->
 
     { credential, label } = options
@@ -36,3 +35,5 @@ module.exports = class Marathon extends ProviderInterface
     }
 
     callback null, { meta, credential }
+
+  do @_requireTemplate

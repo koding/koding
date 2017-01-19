@@ -269,6 +269,12 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 		return err
 	}
 
+	if len(req.Variables) != 0 {
+		if err := bs.Builder.Template.InjectVariables("", req.Variables); err != nil {
+			return err
+		}
+	}
+
 	bs.Log.Debug("Stack template before injecting Koding data: %s", bs.Builder.Template)
 
 	t, err := bs.stack.ApplyTemplate(cred)

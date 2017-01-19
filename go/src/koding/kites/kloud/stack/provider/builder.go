@@ -217,6 +217,20 @@ func (b *Builder) BuildStackTemplate(templateID string) error {
 	return nil
 }
 
+// Authorize verifies whether user is allowed to access b.StackTemplate.
+//
+// Prior calling to this method it is required to build the stack
+// template first.
+//
+// If the stack template was not built, the method is a nop.
+func (b *Builder) Authorize(username string) error {
+	if b.StackTemplate == nil {
+		return nil // nop
+	}
+
+	return modelhelper.HasTemplateAccess(b.StackTemplate, username)
+}
+
 // FindMachine looks for a jMachine document in b.Machines which meta.assignedLabel
 // matches the given paramter.
 //

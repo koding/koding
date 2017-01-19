@@ -7,9 +7,9 @@ module.exports =
   "resource": {
     "vagrant_instance": {
       "vagrant-instance": {
-        "cpus": 2,
-        "memory": 2048,
-        "box": "ubuntu/trusty64",
+        "cpus": "${var.userInput_cpus}",
+        "memory": "${var.userInput_memory}",
+        "box": "${var.userInput_box}",
         "user_data": "\\necho \\\"hello world!\\\" >> /helloworld.txt\\n"
       }
     }
@@ -28,10 +28,10 @@ resource:
     # this is the name of your VM
     vagrant-instance:
       # define your vm specs here, 2 cpus, 2GB of memory etc.
-      cpus: 2
-      memory: 2048
+      cpus: '${var.userInput_cpus}'
+      memory: '${var.userInput_memory}'
       # select your image (optional) eg. ubuntu/trusty64 (it should be based on ubuntu 14.04)
-      box: ubuntu/trusty64
+      box: '${var.userInput_box}'
       user_data: |-
         # let's create a file on your root folder:
         echo "hello world!" >> /helloworld.txt
@@ -43,3 +43,10 @@ resource:
         # for more information please use the search box above
 
     '''
+
+  # Defaults
+  defaults:
+    userInputs:
+      memory: 2048
+      cpus: 2
+      box: 'ubuntu/trusty64'
