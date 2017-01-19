@@ -142,99 +142,6 @@ sidebarTextShadow()
           color             #929292
           text-decoration   underline
 
-  .kdlistitemview-sidebar-item
-    antialiased()
-    size                    auto 16px
-    padding                 0px 15px
-    margin-bottom           8px
-    rounded                 4px
-    font-size               14px
-    font-weight             400
-    overflow                visible
-    position                relative
-    display                 block
-    color                   sidebarGray
-    vendor                  transition, margin-top .2s ease-out\,\
-                                  transform .2s ease-out
-
-    // .purpose
-    // .profile
-    // .ttag
-    //   sidebarTextShadow()
-
-    &.selected
-      color                 sidebarActive
-
-      .ttag:before
-        color               sidebarActive
-
-      .ttag
-        color               sidebarActive
-
-
-    borderBox()
-    &:hover
-      bg              color rgba(0,0,0,.01)
-      color           sidebarActive
-      pointer()
-
-    &.activity
-      font-size       14px
-      padding-left    30px
-      margin-top      13px
-      line-height     18px
-      span.icon
-        display       block
-        width         16px
-        height        16px
-        bg            color #222
-        abs           7px 0 0 7px
-        r-sprite      app new_nav_activity
-
-    &.out
-      margin-top      -28px
-      vendor          transform, translateX(-300px)
-
-    .ttag
-      display               block
-      line-height           16px
-      font-size             16px
-      margin-left           6px
-      color                 #b3b3b3
-
-      em
-        rel()
-        top                 -2px
-
-      &:before
-        display             block
-        content             '#'
-        font-size           20px
-        color               #808080
-        top                 -2px
-        left                0
-        text-shadow         none
-        abs()
-
-    .profile
-      ellipsis()
-
-    .topic-follow-btn
-      size           24px 16px
-      abs            0px 1px 0 0
-
-      &.following
-        right        6px
-        hidden()
-
-  .kdlistitemview-sidebar-item.selected
-    color               sidebarActive
-
-    .topic-follow-btn
-      border-color      #e9e9e9
-      border            1px solid #b1b1b1
-      right             0px
-
   .messages
 
     h3.sidebar-title
@@ -243,78 +150,6 @@ sidebarTextShadow()
 
     .nothing
       hidden()
-
-    .kdlistitemview-sidebar-item
-      height        16px
-      min-height    0
-      borderBox()
-
-      cite.count
-        abs         0px 0px 0 0
-
-      > .user-numbers
-        padding     0 0 0 36px
-        margin      -1px 0 0
-        width       auto
-        font-size   12px
-        color       #919297
-        font-weight 600
-        overflow    hidden
-        text-overflow ellipsis
-        display     block
-        line-height 18px
-        white-space nowrap
-        borderBox()
-
-        span
-          font-weight inherit
-          color       inherit
-
-      &.unread
-        > .profile
-          color       #F9F7F3
-
-        > .user-numbers
-          color       #C9C9CC
-
-      &.selected
-
-        .sidebar-message-text
-          > .purpose
-          > .user-numbers
-          > .profile
-          > .profile > .profile
-            color       sidebarActive
-
-          &:before
-            bg        color, sidebarActive
-
-      .sidebar-message-text
-        > .purpose
-        > .profile
-          display           block
-          float             none
-          line-height       18px
-          font-size         16px
-          size              170px 19px
-          margin-left       4px
-          rel()
-          top               -2px
-          borderBox()
-          ellipsis()
-          color             #b3b3b3
-
-        &:before
-          content       ''
-          display       block
-          size          10px, 10px
-          bg            color, #808080
-          border-radius 100%
-          abs           2px 0 0 -14px
-
-      .avatarview
-        size            24px 24px
-        top             5px
 
 
   .sidebar-join
@@ -351,10 +186,6 @@ sidebarTextShadow()
       &~a
         margin-left         12px
 
-
-  a.kdlistitemview-sidebar-item
-
-    noTextDeco()
 
 .account-area
   bottom                    0
