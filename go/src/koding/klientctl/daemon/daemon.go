@@ -4,10 +4,10 @@ import (
 	"io"
 	"os"
 
-	logging "github.com/op/go-logging"
-
 	"koding/kites/config"
 	"koding/klientctl/endpoint/kloud"
+
+	"github.com/koding/logging"
 )
 
 var DefaultClient = &Client{}
@@ -21,7 +21,7 @@ type Client struct {
 }
 
 type InstallOpts struct {
-	ForceYes bool
+	Force bool
 }
 
 func (c *Client) Install(opts *InstallOpts) error {
@@ -29,10 +29,18 @@ func (c *Client) Install(opts *InstallOpts) error {
 }
 
 type UninstallOpts struct {
-	ForceYes bool
+	Force bool
 }
 
 func (c *Client) Uninstall(opts *UninstallOpts) error {
+	return nil
+}
+
+type UpdateOpts struct {
+	Force bool
+}
+
+func (c *Client) Update(opts *UpdateOpts) error {
 	return nil
 }
 
@@ -82,6 +90,7 @@ func (c *Client) cache() *config.Cache {
 
 func Install(opts *InstallOpts) error     { return DefaultClient.Install(opts) }
 func Uninstall(opts *UninstallOpts) error { return DefaultClient.Uninstall(opts) }
+func Update(opts *UpdateOpts) error       { return DefaultClient.Update(opts) }
 func Start() error                        { return DefaultClient.Start() }
 func Restart() error                      { return DefaultClient.Restart() }
 func Stop() error                         { return DefaultClient.Stop() }

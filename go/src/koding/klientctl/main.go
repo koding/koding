@@ -583,10 +583,32 @@ func run(args []string) {
 					Name:   "install",
 					Usage:  "Install the daemon and dependencies.",
 					Action: ctlcli.ExitErrAction(DaemonInstall, log, "install"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "force, y",
+							Usage: "Forces a yes answer to all interactive questions.",
+						},
+					},
 				}, {
 					Name:   "uninstall",
 					Usage:  "Uninstall the daemon and dependencies.",
 					Action: ctlcli.ExitErrAction(DaemonUninstall, log, "uninstall"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "force, y",
+							Usage: "Forces a yes answer to all interactive questions.",
+						},
+					},
+				}, {
+					Name:   "update",
+					Usage:  "Health check the local installation status.",
+					Action: ctlcli.ExitErrAction(DaemonUpdate, log, "Status"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "force",
+							Usage: "Force retrieving configuration from Koding.",
+						},
+					},
 				}, {
 					Name:   "start",
 					Usage:  "Start the daemon service.",
