@@ -25,47 +25,6 @@ body.environments
 
 validationRed = rgba(217, 58, 55, 0.65)
 
-.kdbutton.topic-follow-btn
-.kdbutton.leave-channel
-  size                    24px 20px
-  background              transparent
-  shadow                  none
-  outline                 none
-  rounded                 3px
-  border                  none
-  margin                  0
-  padding                 0
-  borderBox()
-
-  &:hover
-    border          none
-    .icon
-      r-sprite      'app' 'check_gray'
-
-  .icon
-    r-sprite        'app' 'check_gray'
-    margin          0 6px 0 0
-    padding         0
-    fr()
-
-  .button-title
-    hidden()
-
-  &.following
-    bg              color transparent
-    border-color    transparent
-
-    .icon
-      r-sprite      'app' 'check_green'
-
-    &:hover
-      border        1px solid #b1b1b1
-
-      .icon
-        r-sprite    'app' 'check_green'
-        opacity     .6
-
-
 .avatarview
   background-size           100% 100%
   background-repeat         no-repeat
