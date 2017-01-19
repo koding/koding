@@ -13,6 +13,12 @@ type StackTemplateConfig struct {
 	Verified          bool                `bson:"verified"`
 }
 
+const (
+	AccessPrivate = "private"
+	AccessGroup   = "group"
+	AccessPublic  = "public"
+)
+
 // StackTemplate is a document from jStackTemplates collection
 type StackTemplate struct {
 	Id          bson.ObjectId `bson:"_id" json:"-"`

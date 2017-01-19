@@ -39,6 +39,10 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
+	if err := bs.Builder.Authorize(bs.Req.Username); err != nil {
+		return nil, err
+	}
+
 	bs.Log.Debug("Fetched terraform data: koding=%+v, template=%+v", bs.Builder.Koding, bs.Builder.Template)
 
 	contentID := bs.Req.Username + "-" + arg.StackTemplateID
