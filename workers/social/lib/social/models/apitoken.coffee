@@ -14,6 +14,8 @@ module.exports = class JApiToken extends jraphical.Module
 
   Validators = require './group/validators'
 
+  @API_TOKEN_LIMIT = 5
+
   PERMISSION_EDIT_GROUPS = [
     { permission: 'edit groups',     superadmin: yes }
     { permission: 'edit own groups', validateWith: Validators.group.admin }
@@ -78,10 +80,10 @@ module.exports = class JApiToken extends jraphical.Module
           next()
 
       (next) ->
-        limitError = "You can't have more than #{JGroup.API_TOKEN_LIMIT} API tokens"
+        limitError = "You can't have more than #{JApiToken.API_TOKEN_LIMIT} API tokens"
         JApiToken.count { group : groupObj.slug }, (err, count) ->
           return next err                         if err
-          return next new KodingError limitError  if count >= JGroup.API_TOKEN_LIMIT
+          return next new KodingError limitError  if count >= JApiToken.API_TOKEN_LIMIT
           next()
 
       (next) ->

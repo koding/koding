@@ -114,7 +114,7 @@ runTests = -> describe 'workers.social.apitoken', ->
           data  = { group, account }
           queue = []
 
-          for i in [0...JGroup.API_TOKEN_LIMIT]
+          for i in [0...JApiToken.API_TOKEN_LIMIT]
             queue.push (next) ->
               JApiToken.create data, (err, token) ->
                 expect(err).to.not.exist
@@ -122,7 +122,7 @@ runTests = -> describe 'workers.social.apitoken', ->
                 next()
 
           queue.push (next) ->
-            expectedError = "You can't have more than #{JGroup.API_TOKEN_LIMIT} API tokens"
+            expectedError = "You can't have more than #{JApiToken.API_TOKEN_LIMIT} API tokens"
             JApiToken.create data, (err, token) ->
               expect(err?.message).to.be.equal expectedError
               expect(token).to.not.exist
