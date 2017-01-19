@@ -39,7 +39,15 @@ runTests = -> describe 'workers.social.models.computeproviders.computeprovider',
 
       ComputeProvider.fetchProviders client, (err, providers) ->
         expect(err).to.not.exist
-        expect(providers).to.deep.equal Object.keys PROVIDERS
+        expect(providers).to.deep.equal [
+          'aws'
+          'softlayer'
+          'digitalocean'
+          'azure'
+          'google'
+          'vagrant'
+          'marathon'
+        ]
         done()
 
 

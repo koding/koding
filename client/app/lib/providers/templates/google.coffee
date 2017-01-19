@@ -15,11 +15,11 @@ module.exports =
     "google_compute_instance": {
       "google-instance": {
         "name": "koding-${var.koding_group_slug}-${var.koding_stack_id}-${count.index+1}",
-        "machine_type": "f1-micro",
+        "machine_type": "${var.userInput_machine_type}",
         "disk": {
-          "image": "ubuntu-1404-lts"
+          "image": "${var.userInput_image}"
         },
-        "zone": "us-central1-a",
+        "zone": "${var.userInput_zone}",
         "metadata": {
           "user-data": "\\necho \\\"hello world!\\\" >> /helloworld.txt\\n"
         }
@@ -48,12 +48,12 @@ resource:
       # and this is its identifier (required)
       name: 'koding-${var.koding_group_slug}-${var.koding_stack_id}-${count.index+1}'
       # select your instance_type here: eg. n1-standard-1
-      machine_type: f1-micro
+      machine_type: '${var.userInput_machine_type}'
       # base image for your instance
       disk:
-        image: ubuntu-1404-lts
+        image: '${var.userInput_image}'
       # select your instance zone which must be in provided region: eg. us-central1-a
-      zone: us-central1-a
+      zone: '${var.userInput_zone}'
       metadata:
         # on user_data section we will write bash and configure our VM
         user-data: |-
@@ -67,3 +67,10 @@ resource:
           # for more information please use the search box above
 
     '''
+
+  # Defaults
+  defaults:
+    userInputs:
+      zone: 'us-central1-a'
+      image: 'ubuntu-1404-lts'
+      machine_type: 'f1-micro'
