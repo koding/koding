@@ -588,6 +588,10 @@ func run(args []string) {
 							Name:  "force, y",
 							Usage: "Forces a yes answer to all interactive questions.",
 						},
+						cli.StringSliceFlag{
+							Name:  "skip",
+							Usage: "List steps to skip during installation.",
+						},
 					},
 				}, {
 					Name:   "uninstall",

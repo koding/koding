@@ -11,6 +11,7 @@ import (
 func DaemonInstall(c *cli.Context, _ logging.Logger, _ string) (int, error) {
 	opts := &daemon.InstallOpts{
 		Force: c.Bool("force"),
+		Skip:  c.StringSlice("skip"),
 	}
 
 	if err := daemon.Install(opts); err != nil {
