@@ -88,8 +88,8 @@ type Sync struct {
 	syncs map[mount.ID]*synced
 }
 
-// NewSync creates a new Sync instance from the given options.
-func NewSync(opts SyncOpts) (*Sync, error) {
+// New creates a new Sync instance from the given options.
+func New(opts SyncOpts) (*Sync, error) {
 	if err := opts.Valid(); err != nil {
 		return nil, err
 	}

@@ -3,6 +3,7 @@ package mounttest
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"koding/klient/machine/mount"
 )
@@ -65,6 +66,12 @@ func MountDirs() (wd string, m mount.Mount, clean func(), err error) {
 	}
 
 	return wd, m, clean, nil
+}
+
+// StatCacheDir returns true only if mount cache directory is created and valid.
+func StatCacheDir(wd string, id mount.ID) error {
+	_, err := os.Stat(filepath.Join(wd, "mount-"+string(id)))
+	return err
 }
 
 // TempDir creates a temporary directory with `mount` prefix.

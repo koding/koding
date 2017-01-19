@@ -1,6 +1,8 @@
 package machinegroup
 
 import (
+	"io/ioutil"
+	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -17,7 +19,13 @@ func TestCreate(t *testing.T) {
 		idB = machine.ID("servB")
 	)
 
-	g, err := New(testOptions(builder))
+	wd, err := ioutil.TempDir("", "create")
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	defer os.RemoveAll(wd)
+
+	g, err := New(testOptions(wd, builder))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -89,7 +97,13 @@ func TestCreateBalance(t *testing.T) {
 		id      = machine.ID("serv")
 	)
 
-	g, err := New(testOptions(builder))
+	wd, err := ioutil.TempDir("", "create")
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	defer os.RemoveAll(wd)
+
+	g, err := New(testOptions(wd, builder))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}

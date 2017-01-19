@@ -2,6 +2,8 @@ package machinegroup
 
 import (
 	"errors"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"koding/kites/tunnelproxy/discover"
@@ -11,6 +13,9 @@ import (
 	"koding/klient/machine/machinegroup/aliases"
 	"koding/klient/machine/machinegroup/clients"
 	"koding/klient/machine/machinegroup/idset"
+	"koding/klient/machine/machinegroup/mounts"
+	"koding/klient/machine/mount"
+	mountsync "koding/klient/machine/mount/sync"
 	"koding/klient/storage"
 
 	"github.com/koding/logging"
@@ -37,6 +42,9 @@ type GroupOpts struct {
 	// machine.
 	PingInterval time.Duration
 
+	// WorkDir is a working directory that will be used by mount syncs object.
+	WorkDir string
+
 	// Log is used for logging. If nil, default logger will be created.
 	Log logging.Logger
 }
@@ -55,6 +63,9 @@ func (opts *GroupOpts) Valid() error {
 	if opts.PingInterval == 0 {
 		return errors.New("ping interval is not set")
 	}
+	if opts.WorkDir == "" {
+		return errors.New("working directory cannot be empty")
+	}
 
 	return nil
 }
@@ -66,7 +77,9 @@ type Group struct {
 	client  *clients.Clients
 	address addresses.Addresser
 	alias   aliases.Aliaser
+	mount   mounts.Mounter
 
+	sync     *mountsync.Sync
 	discover *discover.Client
 }
 
@@ -108,6 +121,7 @@ func New(opts *GroupOpts) (*Group, error) {
 	// Add default components.
 	g.address = addresses.New()
 	g.alias = aliases.New()
+	g.mount = mounts.New()
 	if opts.Storage == nil {
 		return g, nil
 	}
@@ -124,6 +138,25 @@ func New(opts *GroupOpts) (*Group, error) {
 		g.log.Warning("Cannot load aliases cache: %s", err)
 	} else {
 		g.alias = alias
+	}
+
+	// Try to add storage for Mounts
+	if mount, err := mounts.NewCached(opts.Storage); err != nil {
+		g.log.Warning("Cannot load mounts cache: %s", err)
+	} else {
+		g.mount = mount
+	}
+
+	// Create sync object for synced mounts.
+	syncOpts := mountsync.SyncOpts{
+		ClientFunc: g.dynamicClient(),
+		WorkDir:    opts.WorkDir,
+		Log:        g.log,
+	}
+	g.sync, err = mountsync.New(syncOpts)
+	if err != nil {
+		g.log.Critical("Cannot create mount synchronizer: %s", err)
+		return nil, err
 	}
 
 	// Start memory workers.
@@ -143,36 +176,87 @@ func (g *Group) bootstrap() {
 	var (
 		aliasIDs   = g.alias.Registered()
 		addressIDs = g.address.Registered()
+		mountsIDs  = g.mount.Registered()
 	)
 
 	// Report and generate missing aliases.
-	if noAliases := idset.Diff(addressIDs, aliasIDs); len(noAliases) != 0 {
-		g.log.Warning("Missing aliases for %v, regenerating...", noAliases)
+	noAliases := idset.Union(
+		idset.Diff(addressIDs, aliasIDs), // missing aliases for addresses.
+		idset.Diff(mountsIDs, aliasIDs),  // missing aliases for mounts.
+	)
 
-		for _, id := range noAliases {
-			alias, err := g.alias.Create(id)
-			if err != nil {
-				g.log.Error("Cannot create alias for %s: %s", id, err)
-			}
-
-			g.log.Info("Created alias for %s, %s", id, alias)
+	for _, id := range noAliases {
+		g.log.Warning("Missing alias for %v, regenerating...", id)
+		alias, err := g.alias.Create(id)
+		if err != nil {
+			g.log.Error("Cannot create alias for %s: %s", id, err)
 		}
+
+		g.log.Info("Created alias for %s, %s", id, alias)
 	}
 
-	// Start clients for stored IDs.
-	for _, id := range addressIDs {
+	// Start clients for all available addresses and for mounts even if they
+	// may have no address, they will need disconnected client.
+	for _, id := range idset.Union(addressIDs, mountsIDs) {
 		if err := g.client.Create(id, g.dynamicAddr(id)); err != nil {
 			g.log.Error("Cannot create client for %s: %s", id, err)
 		}
 	}
 
-	n := len(idset.Union(aliasIDs, addressIDs))
-	g.log.Info("Detected %d machines, started %d clients.", n, len(g.client.Registered()))
+	clientsIDs := g.client.Registered()
+	allIds := idset.Union(idset.Union(aliasIDs, addressIDs), mountsIDs)
+
+	g.log.Info("Detected %d machines, started %d clients.", len(allIds), len(clientsIDs))
+
+	// Start synchronization of all mounts even if some of them have invalid
+	// clients.
+	g.mountSync(mountsIDs)
+}
+
+// mountsSync tries to add all available mounts to mount sync.
+func (g *Group) mountSync(ids machine.IDSlice) {
+	mountsN, errN := 0, int64(0)
+	var wg sync.WaitGroup
+	for _, id := range ids {
+		mountMap, err := g.mount.All(id)
+		if err != nil {
+			g.log.Warning("Cannot get mounts form machine %s: %s", id, err)
+			continue
+		}
+
+		mountsN += len(mountMap)
+		wg.Add(len(mountMap))
+		for mountID, m := range mountMap {
+			go func() {
+				defer wg.Done()
+				if err := g.sync.Add(mountID, m); err != nil {
+					atomic.AddInt64(&errN, 1)
+					g.log.Error("Cannot start synchronization for mount %s: %s", mountID, err)
+				}
+			}()
+		}
+	}
+
+	wg.Wait()
+	g.log.Info("Syncing %d mounts of %d machines. Failed %d", mountsN-int(errN), len(ids), errN)
 }
 
 // dynamicAddr creates dynamic address functor for the given machine.
 func (g *Group) dynamicAddr(id machine.ID) client.DynamicAddrFunc {
 	return func(network string) (machine.Addr, error) {
 		return g.address.Latest(id, network)
+	}
+}
+
+// dynamicClient creates dynamic client functor that is used for mount sync
+// connections.
+func (g *Group) dynamicClient() mountsync.DynamicClientFunc {
+	return func(mountID mount.ID) (client.Client, error) {
+		id, err := g.mount.MachineID(mountID)
+		if err != nil {
+			return nil, err
+		}
+
+		return g.client.Client(id)
 	}
 }

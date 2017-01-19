@@ -129,7 +129,7 @@ func testSyncWithMount(wd string, mountID mount.ID, m mount.Mount) (s *Sync, err
 		WorkDir: wd,
 	}
 
-	s, err = NewSync(opts)
+	s, err = New(opts)
 	if err != nil {
 		return nil, err
 	}
