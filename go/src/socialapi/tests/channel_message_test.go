@@ -103,54 +103,6 @@ func TestChannelMessage(t *testing.T) {
 			Convey("message can be deleted by an admin", nil)
 			Convey("message can not be edited by non-owner", nil)
 
-			Convey("owner can post reply to message", func() {
-				post, err := rest.CreatePost(groupChannel.Id, ses.ClientId)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
-
-				reply, err := rest.AddReply(post.Id, groupChannel.Id, ses.ClientId)
-				So(err, ShouldBeNil)
-				So(reply, ShouldNotBeNil)
-
-				So(reply.AccountId, ShouldEqual, post.AccountId)
-
-				cmc, err := rest.GetPostWithRelatedData(
-					post.Id,
-					&request.Query{
-						AccountId: post.AccountId,
-						GroupName: groupName,
-					},
-					ses.ClientId,
-				)
-
-				So(err, ShouldBeNil)
-				So(cmc, ShouldNotBeNil)
-
-				So(len(cmc.Replies), ShouldEqual, 1)
-
-				So(cmc.Replies[0].Message.AccountId, ShouldEqual, post.AccountId)
-
-			})
-
-			Convey("we should be able to get only replies", func() {
-				post, err := rest.CreatePost(groupChannel.Id, ses.ClientId)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
-
-				reply, err := rest.AddReply(post.Id, groupChannel.Id, ses.ClientId)
-				So(err, ShouldBeNil)
-				So(reply, ShouldNotBeNil)
-
-				reply, err = rest.AddReply(post.Id, groupChannel.Id, ses.ClientId)
-				So(err, ShouldBeNil)
-				So(reply, ShouldNotBeNil)
-
-				replies, err := rest.GetReplies(post.Id, post.AccountId, groupName)
-				So(err, ShouldBeNil)
-				So(len(replies), ShouldEqual, 2)
-
-			})
-
 			Convey("we should be able to get replies with \"from\" query param", nil)
 
 			Convey("non-owner can post reply to message", func() {
