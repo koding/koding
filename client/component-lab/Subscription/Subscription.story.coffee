@@ -11,7 +11,19 @@ NEXT_WEEK = moment(new Date).add(1, 'week').format 'x'
 NEXT_MONTH = moment(new Date).add(1, 'month').format 'x'
 TWO_DAYS_LATER = moment(new Date).add(2, 'day').format 'x'
 TWO_DAYS_EARLIER = moment(new Date).subtract(2, 'day').format 'x'
+SUPPORT_PLAN = {
+  name : 'Basic'
+  price : 1000
+  period : 'month'
+  features : [
+    '4 Hours dedicated support'
+    'Stack script support'
+    '24 Hours response time'
+    'General Troubleshooting'
+  ]
+}
 
+ADDONS_PRICE = 5000
 PRICE_PER_SEAT = 49.97
 
 
@@ -67,3 +79,14 @@ storiesOf 'Subscription', module
       isSurveyTaken={yes}
       endsAt={TWO_DAYS_EARLIER} />
 
+  .add 'with addons activated and support plan', ->
+    <Subscription
+      title={CUSTOMER_TITLE}
+      pricePerSeat={PRICE_PER_SEAT}
+      endsAt={NEXT_MONTH}
+      isEmailVerified={yes}
+      isSurveyTaken={yes}
+      addons={yes}
+      addonsPrice={ADDONS_PRICE}
+      supportPlan={SUPPORT_PLAN}
+      teamSize={5} />
