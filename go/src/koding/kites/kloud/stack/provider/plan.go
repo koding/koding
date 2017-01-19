@@ -68,6 +68,12 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
+	if len(arg.Variables) != 0 {
+		if err := bs.Builder.Template.InjectVariables("", arg.Variables); err != nil {
+			return nil, err
+		}
+	}
+
 	machines, err := bs.plan()
 	if err != nil {
 		return nil, err
