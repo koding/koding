@@ -83,7 +83,7 @@ func newBoltDB(o *CacheOptions) (*bolt.DB, error) {
 	return bolt.Open(o.File, 0644, o.BoltDB)
 }
 
-func KodingConfigHome() string {
+func KodingHome() string {
 	home := os.Getenv("KODING_HOME")
 
 	if _, err := os.Stat(home); err != nil {
@@ -94,7 +94,7 @@ func KodingConfigHome() string {
 }
 
 func KodingCacheHome() string {
-	cache := os.Getenv("KODING_CACHE")
+	cache := os.Getenv("KODING_CACHE_HOME")
 
 	if _, err := os.Stat(cache); err != nil {
 		cache = filepath.Join(CurrentUser.HomeDir, ".cache", "koding")

@@ -22,7 +22,7 @@ import (
 )
 
 var defaultCacheOpts = &config.CacheOptions{
-	File: filepath.Join(config.KodingConfigHome(), "konfig.bolt"),
+	File: filepath.Join(config.KodingHome(), "konfig.bolt"),
 	BoltDB: &bolt.Options{
 		Timeout: 5 * time.Second,
 	},
@@ -34,7 +34,7 @@ var DefaultClient = &Client{}
 type Client struct {
 	Cache     *config.Cache        // if nil, a new db will be opened during each operation
 	CacheOpts *config.CacheOptions // if nil, defaultCacheOpts are going to be used
-	Home      string               // uses config.KodingConfigHome by default
+	Home      string               // uses config.KodingHome by default
 	Owner     *config.User         // uses config.CurrentUser by default
 
 	once sync.Once // for c.init()
@@ -184,9 +184,9 @@ func (c *Client) initClient() {
 
 func (c *Client) boltFile(app string) string {
 	if used, err := c.Used(); err == nil && app != "konfig" {
-		return filepath.Join(config.KodingConfigHome(), app+"."+used.ID()+".bolt")
+		return filepath.Join(config.KodingHome(), app+"."+used.ID()+".bolt")
 	}
-	return filepath.Join(config.KodingConfigHome(), app+".bolt")
+	return filepath.Join(config.KodingHome(), app+".bolt")
 }
 
 func (c *Client) cacheOpts() *config.CacheOptions {
@@ -209,7 +209,7 @@ func (c *Client) home() string {
 	if c.Home != "" {
 		return c.Home
 	}
-	return config.KodingConfigHome()
+	return config.KodingHome()
 }
 
 func (c *Client) owner() *config.User {

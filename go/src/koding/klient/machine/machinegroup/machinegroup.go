@@ -186,7 +186,7 @@ func (g *Group) bootstrap() {
 	)
 
 	for _, id := range noAliases {
-		g.log.Warning("Missing alias for %v, regenerating...", id)
+		g.log.Warning("Missing alias for %s, regenerating...", id)
 		alias, err := g.alias.Create(id)
 		if err != nil {
 			g.log.Error("Cannot create alias for %s: %s", id, err)
