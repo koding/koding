@@ -9,10 +9,12 @@
     <div class="Homepage-Hero--intro">
       <h1>{{ include.h1 }}</h1>
       <h2>{{ include.h2 }}</h2>
+      <a class="cta signup" href="{{ site.url }}/teams/create">Sign up!</a>
       <div class="actions">
-        <a class="cta vision" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><use xlink:href="#video-play-button"></use></svg>Koding’s Vision</a>
+        <a class="cta vision VisionVideo" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><use xlink:href="#video-play-button"></use></svg>Koding’s Vision</a>
         <span class="separator"></span>
-        <a class="cta learn-more" href="#">Learn more…</a>
+        <a class="cta vision showModal"  data-youtube-id="NDI1H9o-TUM" href="#"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><use xlink:href="#video-play-button"></use></svg>What is Koding?</a>
+        <!-- <a class="cta learn-more" href="#">Learn more…</a> -->
       </div>
     </div>
   </div>
@@ -26,7 +28,7 @@ var onYouTubeIframeAPIReady;
 (function(){
   var $items = $('header, .Homepage-Hero--intro, .Homepage-Hero--banner'),
       $wrapper = $('.Homepage-Hero--video'),
-      $trigger = $('a.vision'),
+      $trigger = $('a.VisionVideo'),
       $more = $('a.learn-more'),
       $close = $('.Homepage-Hero--video a.close'),
       player, timer;
