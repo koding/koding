@@ -1,0 +1,65 @@
+---
+layout: default
+title: Badges
+---
+
+<!-- HEADER -->
+{% include header.html has_sticky_navigation='true' exclude_main_nav='true' background_color='transparent' %}
+<style>{% include css/applyforms.css %}</style>
+<style>
+  .ApplyForm--header {
+    padding-top: 85px;
+    padding-bottom: 44px;
+  }
+</style>
+<main class="ApplyForm">
+  <div class="ApplyForm--header BadgeForm--header">
+    <div class="ApplyForm--container">
+      <div class="form-instructions">
+
+        <h1>"Made with Koding" Badges</h1>
+
+        <h3>Why not show the world that you build your project with Koding? Add "Made with Koding" badges to your website</h3>
+
+      </div>
+    </div>
+  </div>
+  <div class="BadgeBody">
+    <p>We’ve prepared these badges that you can overlay on your site by simply copying and pasting the appropriate snippet into your site’s HTML. Make sure to change the URL in the link to contain your username instead of “you”. Also, please do not change the size or proportions of the badges.</p>
+    <hr />
+
+    <h2>Square Badges</h2>
+    {% include badges.html badgeImg="/MadewithKodingBadgeSquareColor" badgeId="square1" badgeCode="<a href=“https://koding.com/you”><img style=“position: absolute; top: 0; left: 0; border: 0;” src=“https://camo.koding.com/badges/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67” alt=“Made with Koding” data-canonical-src=“https://s3.amazonaws.com/koding/badges/square_color.png”></a>" %}
+    {% include badges.html badgeImg="/MadewithKodingBadgeSquareDark" badgeId="square2" badgeCode="<a href=“https://koding.com/you”><img style=“position: absolute; top: 0; left: 0; border: 0;” src=“https://camo.koding.com/badges/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67” alt=“Made with Koding” data-canonical-src=“https://s3.amazonaws.com/koding/badges/square_color.png”></a>" %}
+    {% include badges.html badgeImg="/MadewithKodingBadgeSquareLight" badgeId="square3" badgeCode="<a href=“https://koding.com/you”><img style=“position: absolute; top: 0; left: 0; border: 0;” src=“https://camo.koding.com/badges/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67” alt=“Made with Koding” data-canonical-src=“https://s3.amazonaws.com/koding/badges/square_color.png”></a>" %}
+
+    <h2>Round Badges</h2>
+    {% include badges.html badgeImg="/MadewithKodingBadgeRoundColor" badgeId="round1" badgeCode="<a href=“https://koding.com/you”><img style=“position: absolute; top: 0; left: 0; border: 0;” src=“https://camo.koding.com/badges/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67” alt=“Made with Koding” data-canonical-src=“https://s3.amazonaws.com/koding/badges/square_color.png”></a>" %}
+    {% include badges.html badgeImg="/MadewithKodingBadgeRoundDark" badgeId="round2" badgeCode="<a href=“https://koding.com/you”><img style=“position: absolute; top: 0; left: 0; border: 0;” src=“https://camo.koding.com/badges/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67” alt=“Made with Koding” data-canonical-src=“https://s3.amazonaws.com/koding/badges/square_color.png”></a>" %}
+    {% include badges.html badgeImg="/MadewithKodingBadgeRoundLight" badgeId="round3" badgeCode="<a href=“https://koding.com/you”><img style=“position: absolute; top: 0; left: 0; border: 0;” src=“https://camo.koding.com/badges/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67” alt=“Made with Koding” data-canonical-src=“https://s3.amazonaws.com/koding/badges/square_color.png”></a>" %}
+
+    <h2>Rectangle Badges</h2>
+    {% include badges.html badgeImg="/MadewithKodingBadgeRectangleColor" badgeId="rect1" badgeCode="<a href=“https://koding.com/you”><img style=“position: absolute; top: 0; left: 0; border: 0;” src=“https://camo.koding.com/badges/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67” alt=“Made with Koding” data-canonical-src=“https://s3.amazonaws.com/koding/badges/square_color.png”></a>" %}
+    {% include badges.html badgeImg="/MadewithKodingBadgeRectangleDark" badgeId="rect2" badgeCode="<a href=“https://koding.com/you”><img style=“position: absolute; top: 0; left: 0; border: 0;” src=“https://camo.koding.com/badges/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67” alt=“Made with Koding” data-canonical-src=“https://s3.amazonaws.com/koding/badges/square_color.png”></a>" %}
+    {% include badges.html badgeImg="/MadewithKodingBadgeRectangleLight" badgeId="rect3" badgeCode="<a href=“https://koding.com/you”><img style=“position: absolute; top: 0; left: 0; border: 0;” src=“https://camo.koding.com/badges/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67” alt=“Made with Koding” data-canonical-src=“https://s3.amazonaws.com/koding/badges/square_color.png”></a>" %}
+
+    <h2>Hive Badges</h2>
+    {% include badges.html badgeImg="/MadewithKodingBadgeHiveColor" badgeId="hive1" badgeCode="<a href=“https://koding.com/you”><img style=“position: absolute; top: 0; left: 0; border: 0;” src=“https://camo.koding.com/badges/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67” alt=“Made with Koding” data-canonical-src=“https://s3.amazonaws.com/koding/badges/square_color.png”></a>" %}
+    {% include badges.html badgeImg="/MadewithKodingBadgeHiveDark" badgeId="hive2" badgeCode="<a href=“https://koding.com/you”><img style=“position: absolute; top: 0; left: 0; border: 0;” src=“https://camo.koding.com/badges/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67” alt=“Made with Koding” data-canonical-src=“https://s3.amazonaws.com/koding/badges/square_color.png”></a>" %}
+    {% include badges.html badgeImg="/MadewithKodingBadgeHiveLight" badgeId="hive3" badgeCode="<a href=“https://koding.com/you”><img style=“position: absolute; top: 0; left: 0; border: 0;” src=“https://camo.koding.com/badges/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67” alt=“Made with Koding” data-canonical-src=“https://s3.amazonaws.com/koding/badges/square_color.png”></a>" %}
+
+    <h2>Readme.md Badges</h2>
+    {% include badges.html badgeImg="/MadewithKodingBadgeReadmeDark" badgeId="read2" badgeCode="<a href=“https://koding.com/you”><img style=“position: absolute; top: 0; left: 0; border: 0;” src=“https://camo.koding.com/badges/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67” alt=“Made with Koding” data-canonical-src=“https://s3.amazonaws.com/koding/badges/square_color.png”></a>" %}
+    {% include badges.html badgeImg="/MadewithKodingBadgeReadmeLight" badgeId="read3" badgeCode="<a href=“https://koding.com/you”><img style=“position: absolute; top: 0; left: 0; border: 0;” src=“https://camo.koding.com/badges/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67” alt=“Made with Koding” data-canonical-src=“https://s3.amazonaws.com/koding/badges/square_color.png”></a>" %}
+
+  </div>
+  <figure class="Micropage--UFO"></figure>
+  <figure class="Micropage--Ground"></figure>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.5.16/clipboard.min.js"></script>
+<script type="text/javascript">
+new Clipboard('.BadgeRow--copyClipboard');
+</script>
+
+{% include analytics.html %}

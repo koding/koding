@@ -43,6 +43,16 @@ body {
   margin-top: 31px;
   margin-bottom: 30px;
 }
+.ApplyForm--header.BadgeForm--header {
+  padding-bottom: 91px;
+}
+.ApplyForm--header.BadgeForm--header h1{
+  color: #ffffff;
+  margin-bottom: 14px;
+}
+.ApplyForm--header.BadgeForm--header h3{
+  margin: 0 auto;
+}
 .ApplyForm--container {
   width: 640px;
   margin: 0 auto;
@@ -53,9 +63,9 @@ body {
 }
 
 .ApplyForm--body label {
-  color: #989898;
-  font-weight: 300;
-  font-size: 18px;
+  color: #515151;
+  font-weight: 400;
+  font-size: 16px;
   display: block;
   margin-bottom: 2px;
 }
@@ -64,6 +74,7 @@ body {
   font-size: 14px;
   margin-top: 4px;
   line-height: 16px;
+  color: #6C6C6C;
 }
 
 .ApplyForm--body input[type=text] {
@@ -71,8 +82,8 @@ body {
   font-size: 17px;
   font-weight: 500;
   border-bottom: 1px solid rgba( 0, 0, 0, 0.10);
-  padding: 6px 0 17px;
-  margin-bottom: 17px;
+  padding: 2px 0 11px;
+  margin-bottom: 18px;
   width: 100%;
   outline: none;
   color: #515151;
@@ -105,7 +116,7 @@ body {
   width: 94%;
 }
 .ApplyForm--body input:focus {
-  border-bottom: 1px solid #A8CEFF;
+  border-bottom: 1px solid #67A2EE;
   color: #000000;
 }
 
@@ -133,6 +144,93 @@ body {
   margin-bottom: 50px;
   width: 100%;
   cursor: pointer;
+}
+
+.BadgeBody h2 {
+  font-size: 23px;
+  padding: 29px 0 39px;
+  text-align: center;
+}
+
+.BadgeBody p {
+  padding-top: 56px;
+  width: 900px;
+  line-height: 20px;
+  text-align: center;
+  margin: 0 auto;
+  padding-bottom: 66px;
+  color: #515151;
+}
+
+.BadgeBody hr {
+  border-top: 1px;
+  width: 900px;
+}
+
+.BadgeRow {
+  width: 901px;
+  margin: 0 auto 10px;
+}
+
+.BadgeRow > div {
+  background-color: #F7F7F7;
+  height: 170px;
+  display: inline-block;
+  box-sizing: border-box;
+  vertical-align: top;
+  border-radius: 3px;
+}
+
+.BadgeRow--badge {
+  width: 150px;
+  margin-right: 10px;
+  text-align: center;
+}
+
+.BadgeRow--badge .helper {
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.BadgeRow--badge img {
+  vertical-align: middle;
+}
+
+.BadgeRow--codeBlock {
+  padding: 20px;
+  width: 741px;
+  word-wrap: break-word;
+  font-family: Monaco;
+  font-size: 11px;
+  line-height: 21px;
+  color: #515151;
+  position: relative;
+  border: 1px solid transparent;
+  transition: border 0.25s;
+}
+
+.BadgeRow--codeBlock .BadgeRow--copyClipboard {
+  position: absolute;
+  top: 19px;
+  right: 15px;
+  border-radius: 4px;
+  border: 1px solid #D0D0D0;
+  background-color: #fff;
+  padding: 5px 0 6px;
+  color: #727272;
+  width: 75px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: none;
+}
+
+.BadgeRow:hover .BadgeRow--codeBlock {
+  border-color: #E0E6EB;
+}
+.BadgeRow:hover .BadgeRow--codeBlock .BadgeRow--copyClipboard {
+  display: block;
 }
 
 .SignupFieldset {
@@ -172,4 +270,43 @@ body {
   border-top-color: #f2778a;
   border-width: 5px;
   margin-left: -5px;
+}
+
+@media screen and (max-width: 990px) {
+  .BadgeBody p, .BadgeBody hr, .BadgeRow {
+    width: 693px;
+  }
+
+  .BadgeRow--codeBlock {
+    width: 533px;
+  }
+
+}
+@media screen and (max-width: 690px) {
+  .ApplyForm--header.BadgeForm--header h3,
+  .ApplyForm--header.BadgeForm--header .ApplyForm--container,
+  .BadgeBody p, .BadgeBody hr, .BadgeRow {
+    width: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+    box-sizing: border-box;
+  }
+
+  .BadgeRow {
+    margin-bottom: 20px;
+  }
+
+  .BadgeRow > div {
+    margin: 0 auto 10px;
+    display: block;
+    overflow: auto;
+  }
+
+  .BadgeRow--badge {
+    width: 100%;
+  }
+
+  .BadgeRow--codeBlock {
+    width: 100%;
+  }
 }
