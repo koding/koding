@@ -90,6 +90,7 @@ function createFolder() {
     name=$(generateFolderName $1)
     mkdir -p "$KD/go/src/coverages"
     mkdir -p "$KD/go/src/coverages/$name"
+    touch "$KD/go/src/coverages/$name/coverage.txt"
     folder="$KD/go/src/coverages/$name/coverage.txt"
     echo $folder
 }
@@ -108,6 +109,10 @@ elif [ "$1" == "socialapi" ]; then
 
     runAll $@
 
+elif [ "$1" == "generate" ]; then
+    shift
+
+    generateFolderName $@
 else
     runAll $@
 fi
