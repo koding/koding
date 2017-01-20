@@ -4,4 +4,6 @@ set -o errexit
 
 scripts/patch-node-modules.sh
 
-scripts/install-npm.sh -d client
+pushd client
+npm install
+popd
