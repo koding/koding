@@ -43,8 +43,10 @@ func TestHeadMount(t *testing.T) {
 
 	// Head testing mount.
 	headMountReq := &HeadMountRequest{
-		ID:    id,
-		Mount: m,
+		MountRequest{
+			ID:    id,
+			Mount: m,
+		},
 	}
 	headMountRes, err := g.HeadMount(headMountReq)
 	if err != nil {

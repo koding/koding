@@ -8,13 +8,18 @@ import (
 	"koding/klient/machine/mount"
 )
 
-// HeadMountRequest defines machine group head mount request.
-type HeadMountRequest struct {
+// MountRequest defines machine group mount request.
+type MountRequest struct {
 	// ID is a unique identifier for the remote machine.
 	ID machine.ID `json:"id"`
 
 	// Mount describes the mount to be headed.
 	Mount mount.Mount `json:"mount"`
+}
+
+// HeadMountRequest defines machine group head mount request.
+type HeadMountRequest struct {
+	MountRequest
 }
 
 // HeadMountResponse defines machine group head mount response.
@@ -89,4 +94,50 @@ func (g *Group) HeadMount(req *HeadMountRequest) (*HeadMountResponse, error) {
 	}
 
 	return res, nil
+}
+
+// AddMountRequest defines machine group add mount request.
+type AddMountRequest struct {
+	MountRequest
+}
+
+// AddMountResponse defines machine group add mount response.
+type AddMountResponse struct {
+	// MountID is a unique identifier of created mount.
+	MountID mount.ID `json:"mountID"`
+}
+
+// AddMount fetches remote index, prepares mount cache, and runs mount sync in
+// the background. If this function returns nil, one have to call Unmount method
+// in order to remove created mount.
+func (g *Group) AddMount(req *AddMountRequest) (res *AddMountResponse, err error) {
+	if req == nil {
+		return nil, errors.New("invalid nil request")
+	}
+
+	// Immediately add mount to group, this prevents subtle data races when
+	// mounts are added concurrently.
+	mountID := mount.MakeID()
+	if err = g.mount.Add(req.ID, mountID, req.Mount); err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err != nil {
+			if e := g.mount.Remove(mountID); e != nil {
+				g.log.Error("Cannot clean up mount data for %s", mountID)
+			}
+		}
+	}()
+
+	// Start mount synchronization.
+	if err = g.sync.Add(mountID, req.Mount); err != nil {
+		g.log.Error("Synchronization of %s mount failed: %s", mountID, err)
+		return nil, err
+	}
+
+	g.log.Info("Successfully created mount %s for %s", mountID, req.Mount)
+
+	return &AddMountResponse{
+		MountID: mountID,
+	}, nil
 }
