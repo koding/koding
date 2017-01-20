@@ -73,11 +73,6 @@ func TestMountsRemotePath(t *testing.T) {
 			MountIDs:   mount.IDSlice{"mountAA", "mountBA"},
 			Valid:      true,
 		},
-		"non absolute path": {
-			RemotePath: "../.",
-			MountIDs:   nil,
-			Valid:      false,
-		},
 		"unknown path": {
 			RemotePath: "/home/koding/unknown",
 			MountIDs:   nil,
