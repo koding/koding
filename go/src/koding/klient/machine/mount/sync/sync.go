@@ -90,7 +90,7 @@ func New(opts SyncOpts) (*Sync, error) {
 		return nil, err
 	}
 
-	if err := mktree(opts.WorkDir); err != nil {
+	if err := os.MkdirAll(opts.WorkDir, 0755); err != nil {
 		return nil, err
 	}
 
@@ -192,7 +192,7 @@ func newSynced(id mount.ID, m mount.Mount, opts *SyncOpts) (*synced, error) {
 	}
 
 	// Create directory structure if it doesn't exist.
-	if err := mktree(filepath.Join(s.wd, "data")); err != nil {
+	if err := os.MkdirAll(filepath.Join(s.wd, "data"), 0755); err != nil {
 		return nil, err
 	}
 
@@ -281,21 +281,4 @@ func (s *synced) info() *Info {
 // Drop closes synced mount and cleans up all resources acquired by it.
 func (s *synced) drop() error {
 	return os.RemoveAll(s.wd)
-}
-
-// mktree ensures that provided directory is created.
-func mktree(dir string) error {
-	info, err := os.Stat(dir)
-	if os.IsNotExist(err) {
-		return os.MkdirAll(dir, 0755)
-	}
-	if err != nil {
-		return err
-	}
-
-	if !info.IsDir() {
-		return fmt.Errorf("file %s is not a directory", dir)
-	}
-
-	return nil
 }

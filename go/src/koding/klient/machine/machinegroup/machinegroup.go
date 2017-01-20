@@ -227,6 +227,7 @@ func (g *Group) mountSync(ids machine.IDSlice) {
 		mountsN += len(mountMap)
 		wg.Add(len(mountMap))
 		for mountID, m := range mountMap {
+			mountID, m := mountID, m // Capture range variable.
 			go func() {
 				defer wg.Done()
 				if err := g.sync.Add(mountID, m); err != nil {
