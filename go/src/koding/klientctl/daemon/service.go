@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"path/filepath"
 	"text/template"
 
 	konfig "koding/kites/config"
@@ -44,8 +43,8 @@ ulimit -n 5000
 # start klient
 
 export USERNAME=${USERNAME:-{{.User}}}
-{{if .KlientBinPath}}
-export KLIENT_BIN=${KLIENT_BIN:-{{.KlientBinPath}}}
+{{if .KlientPath}}
+export KLIENT_BIN=${KLIENT_BIN:-{{.KlientPath}}}
 {{else}}
 export KLIENT_BIN=${KLIENT_BIN:-/opt/kite/klient/klient}
 {{end}}
@@ -55,27 +54,15 @@ export PATH=$PATH:/usr/local/bin
 sudo -E -u "${USERNAME}" ${KLIENT_BIN}
 `))
 
-type ServiceOptions struct {
-	Username string
-}
-
-var defaultServiceOpts = &ServiceOptions{
-	Username: konfig.CurrentUser.Username,
-}
-
-// newService provides a preconfigured (based on klientctl's config)
+// service provides a preconfigured (based on klientctl's config)
 // service object to install, uninstall, start and stop Klient.
-func (c *Client) newService(opts *ServiceOptions) (service.Service, error) {
-	if opts == nil {
-		opts = defaultServiceOpts
-	}
-
+func (d *Details) service() (service.Service, error) {
 	// TODO: Add hosts's username
 	svcConfig := &service.Config{
 		Name:        "klient",
 		DisplayName: "klient",
 		Description: "Koding Service Connector",
-		Executable:  filepath.Join(c.details.KlientHome, "klient.sh"),
+		Executable:  d.Files["klient.sh"],
 		Option: map[string]interface{}{
 			"LogStderr":     true,
 			"LogStdout":     true,
@@ -83,7 +70,7 @@ func (c *Client) newService(opts *ServiceOptions) (service.Service, error) {
 			"RequiredStart": "$network",
 			"LogFile":       true,
 			"Environment": map[string]string{
-				"USERNAME": opts.Username,
+				"USERNAME": konfig.CurrentUser.Username,
 			},
 		},
 	}
@@ -93,33 +80,25 @@ func (c *Client) newService(opts *ServiceOptions) (service.Service, error) {
 
 // klientSh implements methods for creating the klient.sh file.
 type klientSh struct {
-	// The username that the sudo command will run under.
-	User string
+	// Username that the sudo command will run under.
+	Username string
 
-	// The klient bin location, which will be the actual bin run from the klient.sh file
-	KlientBinPath string
+	// KlientPath is the path of klient executable.
+	KlientPath string
+
+	// KlientShPath is the path of klient helper script.
+	KlientShPath string
 }
 
-// Format returns the klient.sh struct formatted for the actual file.
-func (k klientSh) Format() (string, error) {
+// Create writes the content of klientSh to a file.
+func (k *klientSh) Create() error {
 	var buf bytes.Buffer
 
 	if err := klientShTmpl.Execute(&buf, &k); err != nil {
-		return "", nil
-	}
-
-	return buf.String(), nil
-}
-
-// Create writes the result of Format() to the given path.
-func (k klientSh) Create(file string) error {
-	p, err := k.Format()
-	if err != nil {
 		return err
 	}
 
-	// perm -rwr-xr-x, same as klient
-	return ioutil.WriteFile(file, []byte(p), 0755)
+	return ioutil.WriteFile(k.KlientShPath, buf.Bytes(), 0755)
 }
 
 type serviceProgram struct{}

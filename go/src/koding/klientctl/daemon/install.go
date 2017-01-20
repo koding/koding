@@ -3,24 +3,21 @@ package daemon
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
+	"os"
+	"runtime"
+	"strconv"
 	"strings"
 
 	conf "koding/kites/config"
+	"koding/kites/config/configstore"
+	"koding/klient/tunnel/tlsproxy"
+	"koding/klient/uploader"
+	"koding/klientctl/config"
+	"koding/klientctl/ctlcli"
+	"koding/tools/util"
+
+	"github.com/koding/logging"
 )
-
-type Details struct {
-	Username     string          `json:"username"`
-	KlientHome   string          `json:"klientHome"`
-	Installation []InstallResult `json:"status,omitempty"`
-}
-
-func newDetails() *Details {
-	return &Details{
-		Username:   conf.CurrentUser.Username,
-		KlientHome: filepath.FromSlash("/opt/kite/klient"),
-	}
-}
 
 var ErrSkipInstall = errors.New("skip installation step")
 
@@ -32,21 +29,26 @@ type InstallResult struct {
 
 type InstallStep struct {
 	Name        string
-	Install     func(*Client, *InstallOpts) (string, error)
-	Uninstall   func(*Client, *UninstallOpts) error
+	Install     func(*Client, *Opts) (string, error)
+	Uninstall   func(*Client, *Opts) error
 	RunOnUpdate bool
 }
 
-type InstallOpts struct {
-	Force bool
-	Token string
-	Skip  []string
+type Opts struct {
+	Force  bool
+	Token  string
+	Prefix string
+	Skip   []string
 }
 
-func (c *Client) Install(opts *InstallOpts) error {
+func (c *Client) Install(opts *Opts) error {
 	c.init()
 
-	start := len(c.details.Installation)
+	if opts.Prefix != "" {
+		c.d.setPrefix(opts.Prefix)
+	}
+
+	start := len(c.d.Installation)
 
 	switch start {
 	case 0:
@@ -83,7 +85,7 @@ func (c *Client) Install(opts *InstallOpts) error {
 			}
 		}
 
-		c.details.Installation = append(c.details.Installation, result)
+		c.d.Installation = append(c.d.Installation, result)
 	}
 
 	// TODO(rjeczalik): ensure client is running
@@ -91,14 +93,10 @@ func (c *Client) Install(opts *InstallOpts) error {
 	return nil
 }
 
-type UninstallOpts struct {
-	Force bool
-}
-
-func (c *Client) Uninstall(opts *UninstallOpts) error {
+func (c *Client) Uninstall(opts *Opts) error {
 	c.init()
 
-	start := min(len(c.details.Installation), len(c.script()))
+	start := min(len(c.d.Installation), len(c.script()))
 
 	switch start {
 	case 0:
@@ -122,25 +120,17 @@ func (c *Client) Uninstall(opts *UninstallOpts) error {
 			}
 		}
 
-		c.details.Installation = c.details.Installation[:i]
+		c.d.Installation = c.d.Installation[:i]
 	}
 
 	return nil
 }
 
-type UpdateOpts struct {
-	Force bool
-}
-
-func (c *Client) Update(opts *UpdateOpts) error {
+func (c *Client) Update(opts *Opts) error {
 	c.init()
 
-	if len(c.details.Installation) != len(c.script()) {
+	if len(c.d.Installation) != len(c.script()) {
 		return errors.New(`KD is not yet installed. Please run "sudo kd daemon install".`)
-	}
-
-	installOpts := &InstallOpts{
-		Force: opts.Force,
 	}
 
 	for i, step := range c.script() {
@@ -148,9 +138,9 @@ func (c *Client) Update(opts *UpdateOpts) error {
 			continue
 		}
 
-		switch version, err := step.Install(c, installOpts); err {
+		switch version, err := step.Install(c, opts); err {
 		case nil:
-			c.details.Installation[i].Version = version
+			c.d.Installation[i].Version = version
 		case ErrSkipInstall:
 		default:
 			return fmt.Errorf("error uninstalling %q: %s", step.Name, err)
@@ -164,65 +154,195 @@ func (c *Client) Update(opts *UpdateOpts) error {
 
 var script = []InstallStep{{
 	Name: "log files",
-	Install: func(c *Client, opts *InstallOpts) (string, error) {
+	Install: func(c *Client, opts *Opts) (string, error) {
+		uid, gid, err := util.UserIDs(conf.CurrentUser.User)
+		if err != nil {
+			return "", err
+		}
+
+		path := c.d.LogFiles[runtime.GOOS]
+
+		f, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+		if err != nil {
+			return "", err
+		}
+
+		ctlcli.CloseOnExit(f)
+
+		if err := f.Chown(uid, gid); err != nil {
+			return "", err
+		}
+
+		c.log().SetHandler(logging.NewWriterHandler(f))
+		fmt.Fprintf(c.stderr(), "Created log file: %s\n", path)
+
 		return "", nil
 	},
 }, {
 	Name: "directory structure",
-	Install: func(c *Client, opts *InstallOpts) (string, error) {
-		return "", nil
+	Install: func(c *Client, opts *Opts) (string, error) {
+		return "", os.MkdirAll(c.d.KlientHome, 0755)
 	},
-}, {
-	Name: "osxfuse",
-	Install: func(c *Client, opts *InstallOpts) (string, error) {
-		return "", nil
+}, (map[string]InstallStep{
+	"darwin": {
+		Name: "osxfuse",
+		Install: func(c *Client, opts *Opts) (string, error) {
+			return "", nil
+		},
+		Uninstall: func(c *Client, opts *Opts) error {
+			return nil
+		},
 	},
-	Uninstall: func(c *Client, opts *UninstallOpts) error {
-		return nil
+	"linux": {
+		Name: "osxfuse",
+		Install: func(c *Client, opts *Opts) (string, error) {
+			return "", nil
+		},
+		Uninstall: func(c *Client, opts *Opts) error {
+			return nil
+		},
 	},
-}, {
-	Name: "Vagrant",
-	Install: func(c *Client, opts *InstallOpts) (string, error) {
-		return "", nil
+})[runtime.GOOS], (map[string]InstallStep{
+	"darwin": {
+		Name: "Vagrant",
+		Install: func(c *Client, opts *Opts) (string, error) {
+			return "", nil
+		},
+		Uninstall: func(c *Client, opts *Opts) error {
+			return nil
+		},
 	},
-	Uninstall: func(c *Client, opts *UninstallOpts) error {
-		return nil
+	"linux": {
+		Name: "Vagrant",
+		Install: func(c *Client, opts *Opts) (string, error) {
+			return "", nil
+		},
+		Uninstall: func(c *Client, opts *Opts) error {
+			return nil
+		},
 	},
-}, {
-	Name: "VirtualBox",
-	Install: func(c *Client, opts *InstallOpts) (string, error) {
-		return "", nil
+})[runtime.GOOS], (map[string]InstallStep{
+	"darwin": {
+		Name: "VirtualBox",
+		Install: func(c *Client, opts *Opts) (string, error) {
+			return "", nil
+		},
+		Uninstall: func(c *Client, opts *Opts) error {
+			return nil
+		},
 	},
-	Uninstall: func(c *Client, opts *UninstallOpts) error {
-		return nil
+	"linux": {
+		Name: "VirtualBox",
+		Install: func(c *Client, opts *Opts) (string, error) {
+			return "", nil
+		},
+		Uninstall: func(c *Client, opts *Opts) error {
+			return nil
+		},
 	},
+})[runtime.GOOS], {
+	Name: "KD Daemon",
+	Install: func(c *Client, opts *Opts) (string, error) {
+		var version, newVersion int
+
+		if n, err := parseVersion(c.d.Files["klient"]); err == nil {
+			version = n
+		}
+
+		if err := curl(c.klientLatest(), "%d", &newVersion); err != nil {
+			return "", err
+		}
+
+		if version != 0 && newVersion <= version {
+			return strconv.Itoa(version), nil
+		}
+
+		svc, err := c.d.service()
+		if err != nil {
+			return "", err
+		}
+
+		// Best-effort attempt at stopping the running klient, if any.
+		_ = svc.Stop()
+
+		if err := wget(c.klient(newVersion), c.d.Files["klient"]); err != nil {
+			return "", err
+		}
+
+		if err := c.d.helper().Create(); err != nil {
+			return "", err
+		}
+
+		// Best-effort attempt at uninstalling klient service, if any.
+		_ = svc.Uninstall()
+
+		if err := svc.Install(); err != nil {
+			return "", err
+		}
+
+		// Best-effort attempts at fixinig permissions and ownership, ignore any errors.
+		_ = configstore.FixOwner()
+		_ = uploader.FixPerms()
+		_ = tlsproxy.Init()
+
+		if err := svc.Start(); err != nil {
+			return "", err
+		}
+
+		if n, err := parseVersion(c.d.Files["klient"]); err == nil {
+			version = n
+		}
+
+		return strconv.Itoa(version), nil
+	},
+	Uninstall: func(c *Client, opts *Opts) error {
+		svc, err := c.d.service()
+		if err != nil {
+			return err
+		}
+
+		_ = svc.Stop() // ignore failue, klient may be already stopped
+
+		if err = svc.Uninstall(); err != nil {
+			return err
+		}
+
+		return nonil(os.Remove(c.d.Files["klient.sh"]), os.Remove(c.d.Files["klient"]))
+	},
+	RunOnUpdate: true,
 }, {
 	Name: "KD",
-	Install: func(c *Client, opts *InstallOpts) (string, error) {
-		return "", nil
+	Install: func(c *Client, opts *Opts) (string, error) {
+		var newVersion int
+
+		if err := curl(c.kdLatest(), "%d", &newVersion); err != nil {
+			return "", err
+		}
+
+		if newVersion <= config.VersionNum() {
+			return config.Version, nil
+		}
+
+		if err := wget(c.kd(newVersion), c.d.Files["kd"]); err != nil {
+			return "", err
+		}
+
+		return strconv.Itoa(newVersion), nil
 	},
-	Uninstall: func(c *Client, opts *UninstallOpts) error {
-		return nil
-	},
-	RunOnUpdate: true,
-}, {
-	Name: "KD Daemon",
-	Install: func(c *Client, opts *InstallOpts) (string, error) {
-		return "", nil
-	},
-	Uninstall: func(c *Client, opts *UninstallOpts) error {
-		return nil
-	},
-	RunOnUpdate: true,
-}, {
-	Name: "Koding account",
-	Install: func(c *Client, opts *InstallOpts) (string, error) {
-		return "", nil
-	},
-}, {
-	Name: "Start KD Deamon",
-	Install: func(c *Client, opts *InstallOpts) (string, error) {
-		return "", nil
+	Uninstall: func(c *Client, opts *Opts) error {
+		return os.Remove(c.d.Files["kd"])
 	},
 	RunOnUpdate: true,
-}}
+},
+	{
+		Name: "Koding account",
+		Install: func(c *Client, opts *Opts) (string, error) {
+			return "", nil
+		},
+	}, {
+		Name: "Start KD Deamon",
+		Install: func(c *Client, opts *Opts) (string, error) {
+			return "", nil
+		},
+		RunOnUpdate: true,
+	}}

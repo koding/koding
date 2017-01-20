@@ -9,9 +9,10 @@ import (
 
 // DaemonInstall provides a cli wrapper from daemon.Install function.
 func DaemonInstall(c *cli.Context, _ logging.Logger, _ string) (int, error) {
-	opts := &daemon.InstallOpts{
-		Force: c.Bool("force"),
-		Skip:  c.StringSlice("skip"),
+	opts := &daemon.Opts{
+		Force:  c.Bool("force"),
+		Prefix: c.String("prefix"),
+		Skip:   c.StringSlice("skip"),
 	}
 
 	if err := daemon.Install(opts); err != nil {
@@ -23,7 +24,7 @@ func DaemonInstall(c *cli.Context, _ logging.Logger, _ string) (int, error) {
 
 // DaemonInstall provides a cli wrapper from daemon.Install function.
 func DaemonUninstall(c *cli.Context, _ logging.Logger, _ string) (int, error) {
-	opts := &daemon.UninstallOpts{
+	opts := &daemon.Opts{
 		Force: c.Bool("force"),
 	}
 
@@ -72,7 +73,7 @@ func DaemonStatus(c *cli.Context, _ logging.Logger, _ string) (int, error) {
 
 // DaemonUpdate provides a cli wrapper for daemon.Update function.
 func DaemonUpdate(c *cli.Context, _ logging.Logger, _ string) (int, error) {
-	opts := &daemon.UpdateOpts{
+	opts := &daemon.Opts{
 		Force: c.Bool("force"),
 	}
 
