@@ -9,6 +9,7 @@ import (
 
 	"koding/klient/machine"
 	"koding/klient/machine/client/clienttest"
+	"koding/klient/machine/mount/mounttest"
 )
 
 func TestCreate(t *testing.T) {
@@ -131,5 +132,62 @@ func TestCreateBalance(t *testing.T) {
 	// Client context should be closed.
 	if err := clienttest.WaitForContextClose(client.Context(), time.Second); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
+	}
+}
+
+func TestCreateBalanceStaleMount(t *testing.T) {
+	var (
+		client  = clienttest.NewClient()
+		builder = clienttest.NewBuilder(client)
+		id      = machine.ID("serv")
+	)
+
+	wd, m, clean, err := mounttest.MountDirs()
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	defer clean()
+
+	g, err := New(testOptions(wd, builder))
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	defer g.Close()
+
+	// Add connected remote machine.
+	req := &CreateRequest{
+		Addresses: map[machine.ID][]machine.Addr{
+			id: {clienttest.TurnOnAddr()},
+		},
+	}
+
+	if _, err := g.Create(req); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+
+	if err := builder.WaitForBuild(time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+
+	// Add testing mount.
+	addMountReq := &AddMountRequest{
+		MountRequest{
+			ID:    id,
+			Mount: m,
+		},
+	}
+	if _, err = g.AddMount(addMountReq); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+
+	// Create with empty addresses should not remove previously added machine
+	// because of mount existence.
+	if _, err := g.Create(&CreateRequest{}); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+
+	// Client context should not be closed.
+	if err := clienttest.WaitForContextClose(client.Context(), 50*time.Millisecond); err == nil {
+		t.Fatalf("want err != nil; got nil")
 	}
 }
