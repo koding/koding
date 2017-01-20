@@ -1,9 +1,9 @@
 globals = require 'globals'
 checkFlag = require './util/checkFlag'
 kd = require 'kd'
-KDView = kd.View
-KDViewController = kd.ViewController
-module.exports = class MainViewController extends KDViewController
+
+
+module.exports = class MainViewController extends kd.ViewController
 
   logViewByElement = (el) ->
 
@@ -42,8 +42,8 @@ module.exports = class MainViewController extends KDViewController
 
       { body } = global.document
       if checkFlag 'super-admin'
-      then KDView.setElementClass body, 'add', 'super'
-      else KDView.setElementClass body, 'remove', 'super'
+      then kd.View.setElementClass body, 'add', 'super'
+      else kd.View.setElementClass body, 'remove', 'super'
 
 
   setBodyClass: do ->
@@ -53,8 +53,8 @@ module.exports = class MainViewController extends KDViewController
     (name) ->
 
       { body } = global.document
-      KDView.setElementClass body, 'remove', previousClass  if previousClass
-      KDView.setElementClass body, 'add', name
+      kd.View.setElementClass body, 'remove', previousClass  if previousClass
+      kd.View.setElementClass body, 'add', name
       previousClass = name
 
 
@@ -79,8 +79,8 @@ module.exports = class MainViewController extends KDViewController
     appsWithSidebar = [ 'content-display', 'Dashboard', 'Stackeditor' ]
 
     if (isApp = behavior is 'application') or (name in fullSizeApps)
-    then KDView.setElementClass html, 'add', 'app'
-    else KDView.setElementClass html, 'remove', 'app'
+    then kd.View.setElementClass html, 'add', 'app'
+    else kd.View.setElementClass html, 'remove', 'app'
 
     if isApp or name in appsWithSidebar
     then mainView.setClass 'with-sidebar'

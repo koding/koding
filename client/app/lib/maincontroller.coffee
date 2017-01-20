@@ -1,46 +1,40 @@
-kd                             = require 'kd'
-kookies                        = require 'kookies'
-globals                        = require 'globals'
-remote                         = require('./remote')
-checkGuestUser                 = require './util/checkGuestUser'
-getGroup                       = require './util/getGroup'
-setPreferredDomain             = require './util/setPreferredDomain'
-isLoggedIn                     = require './util/isLoggedIn'
-whoami                         = require './util/whoami'
-checkFlag                      = require './util/checkFlag'
-expireClientId                 = require './util/expireClientId'
-AppStorageController           = require './appstoragecontroller'
-ApplicationManager             = require './applicationmanager'
-ComputeController              = require './providers/computecontroller'
-GroupsController               = require './maincontroller/groupscontroller'
-HelpController                 = require './maincontroller/helpcontroller'
-IdleUserDetector               = require './idleuserdetector'
-KiteCache                      = require './kite/kitecache'
-KodingAppsController           = require './kodingappscontroller'
-KodingKontrol                  = require './kite/kodingkontrol'
-KodingRouter                   = require './kodingrouter'
-LinkController                 = require './linkcontroller'
-LocalStorage                   = require './localstorage'
-LocalStorageController         = require './localstoragecontroller'
-LocalSyncController            = require './localsynccontroller'
-LocationController             = require './locationcontroller'
-MainView                       = require './mainview'
-MainViewController             = require './mainviewcontroller'
-NotificationController         = require './notificationcontroller'
-OAuthController                = require './oauthcontroller'
-OnboardingController           = require './onboarding/onboardingcontroller'
-RealtimeController             = require './realtimecontroller'
-SearchController               = require './searchcontroller'
-SocialApiController            = require './socialapicontroller'
-WidgetController               = require './widgetcontroller'
-PageTitleController            = require './pagetitlecontroller'
-ShortcutsController            = require './shortcutscontroller'
-MachineShareManager            = require './machinesharemanager'
-KodingFluxReactor              = require './flux/base/reactor'
-DesktopNotificationsController = require './desktopnotificationscontroller'
-bowser                         = require 'bowser'
-fetchChatlioKey                = require 'app/util/fetchChatlioKey'
-createStore = require './redux/createStore'
+kd                     = require 'kd'
+kookies                = require 'kookies'
+globals                = require 'globals'
+remote                 = require './remote'
+checkGuestUser         = require './util/checkGuestUser'
+getGroup               = require './util/getGroup'
+setPreferredDomain     = require './util/setPreferredDomain'
+isLoggedIn             = require './util/isLoggedIn'
+checkFlag              = require './util/checkFlag'
+expireClientId         = require './util/expireClientId'
+AppStorageController   = require './appstoragecontroller'
+ApplicationManager     = require './applicationmanager'
+ComputeController      = require './providers/computecontroller'
+GroupsController       = require './maincontroller/groupscontroller'
+KiteCache              = require './kite/kitecache'
+KodingAppsController   = require './kodingappscontroller'
+KodingKontrol          = require './kite/kodingkontrol'
+KodingRouter           = require './kodingrouter'
+LinkController         = require './linkcontroller'
+LocalStorage           = require './localstorage'
+LocalStorageController = require './localstoragecontroller'
+LocalSyncController    = require './localsynccontroller'
+MainView               = require './mainview'
+MainViewController     = require './mainviewcontroller'
+NotificationController = require './notificationcontroller'
+OAuthController        = require './oauthcontroller'
+OnboardingController   = require './onboarding/onboardingcontroller'
+RealtimeController     = require './realtimecontroller'
+SearchController       = require './searchcontroller'
+SocialApiController    = require './socialapicontroller'
+PageTitleController    = require './pagetitlecontroller'
+ShortcutsController    = require './shortcutscontroller'
+MachineShareManager    = require './machinesharemanager'
+KodingFluxReactor      = require './flux/base/reactor'
+bowser                 = require 'bowser'
+fetchChatlioKey        = require 'app/util/fetchChatlioKey'
+createStore            = require './redux/createStore'
 dispatchInitialActions = require './redux/dispatchInitialActions'
 
 module.exports = class MainController extends kd.Controller
@@ -71,7 +65,6 @@ module.exports = class MainController extends kd.Controller
     @setFailTimer()
     @attachListeners()
 
-    @detectIdleUser()
     @setTeamCookie()
 
     @setElektronHandlers()
@@ -82,17 +75,14 @@ module.exports = class MainController extends kd.Controller
     kd.registerSingleton 'mainController',            this
     kd.registerSingleton 'kontrol',                   new KodingKontrol
     kd.registerSingleton 'appManager',   appManager = new ApplicationManager
-    kd.registerSingleton 'store',                     store = createStore()
+    kd.registerSingleton 'store',             store = createStore()
     kd.registerSingleton 'notificationController',    new NotificationController
-    kd.registerSingleton 'desktopNotifications',      new DesktopNotificationsController
     kd.registerSingleton 'linkController',            new LinkController
     kd.registerSingleton 'router',           router = new KodingRouter
     kd.registerSingleton 'localStorageController',    new LocalStorageController
     kd.registerSingleton 'oauthController',           new OAuthController
     kd.registerSingleton 'groupsController',          new GroupsController
     kd.registerSingleton 'computeController',         new ComputeController
-    kd.registerSingleton 'locationController',        new LocationController
-    kd.registerSingleton 'helpController',            new HelpController
     kd.registerSingleton 'appStorageController',      new AppStorageController
     kd.registerSingleton 'localSync',                 new LocalSyncController
     kd.registerSingleton 'mainView',             mv = new MainView
@@ -118,7 +108,6 @@ module.exports = class MainController extends kd.Controller
 
     @ready =>
       kd.registerSingleton 'search',                  new SearchController
-      kd.registerSingleton 'widgetController',        new WidgetController
 
       @emit 'AppIsReady'
 
@@ -313,18 +302,13 @@ module.exports = class MainController extends kd.Controller
       @on 'AccountChanged', -> notification.destroy()  if notification
 
 
-  detectIdleUser: (threshold = globals.config.userIdleMs) ->
-    idleDetector = new IdleUserDetector { threshold }
-    @forwardEvents idleDetector, ['userIdle', 'userBack']
-
-
   prepareSupportShortcuts: ->
 
     return  unless checkFlag ['super-admin']
 
     kd.impersonate = require './util/impersonate'
     kd.remote      = remote
-    kd.whoami      = whoami
+    kd.whoami      = require './util/whoami'
 
 
   tellChatlioWidget: (method, options, callback = kd.noop) ->

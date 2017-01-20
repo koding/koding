@@ -7,9 +7,7 @@ whoami                  = require './util/whoami'
 CustomLinkView          = require './customlinkview'
 GlobalNotificationView  = require './globalnotificationview'
 MainTabView             = require './maintabview'
-TopNavigation           = require './topnavigation'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
-IntroVideoView          = require 'app/introvideoview'
 cdnize                  = require 'app/util/cdnize'
 getGroup                = require 'app/util/getGroup'
 TeamName                = require './activity/sidebar/teamname'
@@ -105,11 +103,6 @@ module.exports = class MainView extends kd.View
 
     @panelWrapper.addSubView new HeaderMessageView
 
-    @panelWrapper.addSubView new kd.CustomHTMLView
-      tagName  : 'cite'
-      domId    : 'sidebar-toggle'
-      click    : @bound 'toggleSidebar'
-
 
   toggleSidebar: ->
 
@@ -203,37 +196,6 @@ module.exports = class MainView extends kd.View
       kd.getSingleton('router').handleRoute '/Activity'
 
     @panelWrapper.addSubView @mainTabView
-
-
-  checkForIntroVideo: ->
-
-    { appStorageController } = kd.singletons
-    appStorage = appStorageController.storage "WelcomeSteps-#{globals.currentGroup.slug}"
-
-    appStorage.fetchValue 'finishedSteps', (finishedSteps = {}) =>
-
-      return  if finishedSteps.watchVideo
-
-      @showIntroVideo()
-
-
-  showIntroVideo: ->
-
-    return  if @introVideo
-
-    @addSubView @introVideo = new IntroVideoView
-    @introVideoViewIsShown = yes
-    @emit 'IntroVideoViewIsShown'
-
-
-  hideIntroVideo: ->
-
-    return  unless @introVideo
-
-    @introVideo.destroy()
-    @introVideo = null
-    @introVideoViewIsShown = no
-    @emit 'IntroVideoViewIsHidden'
 
 
   hideAllNotifications: ->
