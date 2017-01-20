@@ -59,7 +59,12 @@ function runAll () {
 # removeCoverProfiles deletes the coverage.txt files after merging all
 # coverages into 1 coverage.txt(merged coverage file won't be deleted)
 function removeCoverProfiles () {
-    folder=$(createFolder $1)
+    # folder=$(createFolder $1)
+    name=$(generateFolderName $1)
+    mkdir -p "$KD/go/src/coverages"
+    mkdir -p "$KD/go/src/coverages/$name"
+    touch "$KD/go/src/coverages/$name/coverage.txt"
+    folder="$KD/go/src/coverages/$name/coverage.txt"
 
     go list -f '{{if len .TestGoFiles}}"{{.Dir}}/coverage.txt"{{end}}' $1 | grep -v vendor | xargs rm
 }
