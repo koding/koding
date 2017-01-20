@@ -30,39 +30,11 @@ function run () {
 }
 
 function merge () {
-    echo "TESTING THE MERGING HERE"
+    # echo "TESTING THE MERGING HERE"
+    #
+    # IFS=' ' read -r -a array <<< $(go list -f '{{if len .TestGoFiles}}"{{.Dir}}/coverage.txt "{{end}}' $1 | grep -v vendor | xargs -L 1 -I{} echo {})
+    go list -f '{{if len .TestGoFiles}}"{{.Dir}}/coverage.txt "{{end}}' $1 | grep -v vendor | xargs $COVMERGE > testcoverage.txt
 
-    go list -f '{{if len .TestGoFiles}}"{{.Dir}}/coverage.txt "{{end}}' $1 | grep -v vendor | xargs -L 1 -I{} echo "ARRAY="{}
-
-    exit 0
-    # IFS=',' read -r -a array <<< "$PKGS_DELIM"
-    IFS=' ' read -r -a array <<< $(go list -f '{{if len .TestGoFiles}}"{{.Dir}}/coverage.txt "{{end}}' $1 | grep -v vendor | xargs -L 1 -I{} echo {})
-
-    echo "${array[@]}"
-
-    exit 0
-
-    declare -a arr
-    for element in "${array[@]}"
-    do
-        # echo "element is"
-        # echo "$element"
-        arr[${#arr[*]}]="$element/coverage.txt"
-    done
-
-    echo "pwd"
-    echo $(pwd)
-    $COVMERGE ${arr[@]}
-
-    # for i in "${PKGS}"
-    # do
-    #     echo "i is"
-    #     echo $i
-    # done
-
-    echo "ARRAY HERE"
-    echo ${arr[@]}
-    echo "ARRAY ENDS"
 }
 
 # runWithCD runs like run function.
