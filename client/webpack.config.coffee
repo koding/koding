@@ -67,8 +67,11 @@ appAliases = manifests.reduce (res, manifest) ->
 
 # module resolvers
 webpackConfig.resolve =
-  root: CLIENT_PATH,
-  extensions: ['', '.coffee', '.js', '.json', '.styl']
+  modules: [
+    CLIENT_PATH
+    'node_modules'
+  ]
+  extensions: ['*', '.coffee', '.js', '.json', '.styl']
   alias: _.assign {}, appAliases,
     kd: 'kd.js'
     pubnub: PUBNUB_PATH
@@ -88,89 +91,100 @@ AMD_MODULES = [
   require.resolve('dateformat')
 ]
 generateAMDModuleLoaders = ->
-  AMD_MODULES.map (testPath) -> { test: testPath, loader: 'imports?define=>false' }
+  AMD_MODULES.map (testPath) -> { test: testPath, loader: 'imports-loader?define=>false' }
 
-# simple helper to push loaders easier.
-pushLoader = (loaders) ->
-  webpackConfig.module.loaders ?= []
-  loaders = [loaders]  unless Array.isArray loaders
-  webpackConfig.module.loaders = webpackConfig.module.loaders.concat loaders
-  return loaders
+# simple helper to add loader rules easier.
+addLoaderRule = (rules) ->
+  webpackConfig.module.rules ?= []
+  rules = [rules]  unless Array.isArray rules
+  webpackConfig.module.rules = webpackConfig.module.rules.concat rules
+  return rules
 
 # imports loader items
-pushLoader generateAMDModuleLoaders()
+addLoaderRule generateAMDModuleLoaders()
 
 # third party libraries which uses script-loader
-thirdPartyLoaders = pushLoader [
+thirdPartyLoaders = addLoaderRule [
   test: require.resolve PUBNUB_PATH
-  loader: 'script'
+  use: [
+    'script-loader'
+  ]
 ]
 
 # special loader for globals
-pushLoader [
+addLoaderRule [
   test: require.resolve './globals.coffee'
   loaders: [
     path.join CLIENT_PATH, "./webpack/web_loaders/globals-loader.js?clientPath=#{CLIENT_PATH}"
-    'coffee'
+    'coffee-loader'
   ]
 ]
 
 # JS, JSON, coffee
-pushLoader [
+addLoaderRule [
   test: /\.js$/
-  loader: 'babel'
-  # this might cause some problems.
+  use: [
+    'babel-loader'
+  ]
   exclude: [/node_modules/].concat thirdPartyLoaders.map (loader) -> loader.test
 ,
   test: /\.coffee$/
   include: CLIENT_PATH
   exclude: [
-    path.join CLIENT_PATH, 'src'
-    # globals has its own loader
     require.resolve './globals.coffee'
   ]
-  loaders: ['happypack/loader?id=coffee']
-,
-  test: /\.json$/
-  loader: 'json'
-  include: CLIENT_PATH
+  use: ['happypack/loader?id=coffee']
 ]
 # Style loaders configuration
-pushLoader [
+addLoaderRule [
   test: /\.stylus$/
   include: CLIENT_PATH
-  loaders: ['happypack/loader?id=styl-modules']
+  use: ['happypack/loader?id=styl-modules']
 ,
   test: /\.styl$/
   include: CLIENT_PATH
-  loaders: ['happypack/loader?id=styl-global']
+  use: ['happypack/loader?id=styl-global']
 ,
   test: /\.css$/
   include: CLIENT_PATH
   exclude: /flexboxgrid/,
-  loaders: ['happypack/loader?id=css-global']
+  use: ['happypack/loader?id=css-global']
 ,
   test: /\.css$/,
   include: /flexboxgrid/,
-  loaders: ['happypack/loader?id=css-modules']
+  use: ['happypack/loader?id=css-modules']
 ]
 
 # File & Url loaders
-pushLoader [
+addLoaderRule [
   test: /\.(png|jpg|gif|woff|otf)/
-  loaders: ['url?limit=8192&name=[path][name].[ext]']
+  use: [
+    loader: 'url-loader'
+    options:
+      limit: 8192
+      name: '[path][name].[ext]'
+  ]
 ,
   test: /\.ttf$/
-  loader: 'file'
-  query: { mimetype: 'application/x-font-ttf' }
+  use: [
+    loader: 'file-loader'
+    options:
+      mimetype: 'application/x-font-ttf'
+  ]
 ,
   test: /\.eot$/
-  loader: 'file'
-  query: { mimetype: 'application/octet-stream' }
+  use: [
+    loader: 'file-loader'
+    options:
+      mimetype: 'application/octet-stream'
+  ]
 ,
   test: /\.svg$/
-  loader: 'file'
-  query: { mimetype: 'image/svg+xml' }
+  use: [
+    loader: 'file-loader'
+    options:
+      mimetype: 'image/svg+xml'
+  ]
 ]
 
 # plugins
@@ -181,26 +195,57 @@ webpackConfig.plugins = [
     from: THIRD_PARTY_PATH
     to: path.join BUILD_PATH, '..', 'thirdparty'
   ]
-  new ProgressBarPlugin { format: ' client: [:bar] :percent ', width: 1024 }
+  new ProgressBarPlugin {
+    width: 1024, format: ' client: [:bar] :percent '
+  }
 
   new HappyPack {
-    id: 'coffee', threads: 4, loaders: ['pistachio', 'coffee', 'cjsx']
-  }
-  new HappyPack {
-    id: 'styl-modules', threads: 4, loaders: [
-      'style'
-      'css?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]'
-      'stylus'
+    id: 'coffee', threads: 4, loaders: [
+      'pistachio-loader'
+      'coffee-loader'
+      'cjsx-loader'
     ]
   }
   new HappyPack {
-    id: 'styl-global', threads: 4, loaders: [ 'style', 'css', 'stylus' ]
+    id: 'styl-modules', threads: 4,
+    loaders: [
+      'style-loader'
+      'css-loader?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]'
+      'stylus-loader'
+    ]
   }
   new HappyPack {
-    id: 'css-global', threads: 4, loaders: [ 'style', 'css' ]
+    id: 'styl-global', threads: 4,
+    loaders: [
+      'style-loader'
+      'css-loader'
+      'stylus-loader'
+    ]
   }
   new HappyPack {
-    id: 'css-modules', threads: 4, loaders: [ 'style', 'css?modules' ]
+    id: 'css-global', threads: 4,
+    loaders: [
+      'style-loader'
+      'css-loader'
+    ]
+  }
+  new HappyPack {
+    id: 'css-modules', threads: 4,
+    loaders: [
+      'style-loader'
+      'css-loader?modules'
+    ]
+  }
+
+  new webpack.LoaderOptionsPlugin {
+    test: /\.(styl|stylus)$/
+    stylus: {
+      default: {
+        use: [require('nib')()]
+        import: [ '~nib/lib/nib/index.styl', COMMON_STYLES_PATH ]
+        define: { assetsPath: '/assets', rootPath: CLIENT_PATH }
+      }
+    }
   }
 ]
 
@@ -216,7 +261,6 @@ else if __PROD__
       'process.env':
         'NODE_ENV': JSON.stringify('production')
 
-    new webpack.optimize.OccurrenceOrderPlugin()
     new webpack.optimize.DedupePlugin()
     new webpack.optimize.UglifyJsPlugin
       sourceMap: no
@@ -227,13 +271,5 @@ else if __PROD__
         dead_code: yes
         warnings: no
   )
-
-# Configure stylus that way we can require styl files and the final bundle
-# will include a css bundle as well.
-webpackConfig.stylus =
-  use: [require('nib')()]
-  import: [ '~nib/lib/nib/index.styl', COMMON_STYLES_PATH ]
-  define: { assetsPath: '/assets', rootPath: CLIENT_PATH }
-
 
 module.exports = webpackConfig
