@@ -1,4 +1,4 @@
-hat           = require 'hat'
+uuid          = require 'uuid'
 async         = require 'async'
 JGroup        = require './group'
 JAccount      = require './account'
@@ -40,7 +40,7 @@ module.exports = class JApiToken extends jraphical.Module
       code             :
         type           : String
         required       : yes
-        default        : hat
+        default        : uuid.v4
       group            :
         type           : String
         required       : yes
@@ -89,7 +89,6 @@ module.exports = class JApiToken extends jraphical.Module
       (next) ->
         # creating token
         token = new JApiToken
-          code     : hat()
           group    : group
           originId : account.getId()
 
