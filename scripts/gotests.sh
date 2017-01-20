@@ -33,11 +33,8 @@ function run () {
 
 function merge () {
     folder=$(createFolder $1)
-    # echo "TESTING THE MERGING HERE"
-    #
-    # IFS=' ' read -r -a array <<< $(go list -f '{{if len .TestGoFiles}}"{{.Dir}}/coverage.txt "{{end}}' $1 | grep -v vendor | xargs -L 1 -I{} echo {})
-    go list -f '{{if len .TestGoFiles}}"{{.Dir}}/coverage.txt"{{end}}' $1 | grep -v vendor | xargs $COVMERGE > "$folder"
 
+    go list -f '{{if len .TestGoFiles}}"{{.Dir}}/coverage.txt"{{end}}' $1 | grep -v vendor | xargs $COVMERGE > "$folder"
 }
 
 # runWithCD runs like run function.
@@ -55,7 +52,16 @@ function runAll () {
     compile $@
     run $@
     merge $@
+    removeCoverProfiles $@
     clean $@
+}
+
+# removeCoverProfiles deletes the coverage.txt files after merging all
+# coverages into 1 coverage.txt(merged coverage file won't be deleted)
+function removeCoverProfiles () {
+    folder=$(createFolder $1)
+
+    go list -f '{{if len .TestGoFiles}}"{{.Dir}}/coverage.txt"{{end}}' $1 | grep -v vendor | xargs rm
 }
 
 # commandExists checks if the given parameter command is exits or not
