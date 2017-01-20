@@ -1,7 +1,7 @@
 kd             = require 'kd'
 KDRouter       = kd.Router
 
-remote         = require('./remote')
+remote         = require './remote'
 globals        = require 'globals'
 
 lazyrouter     = require './lazyrouter'
@@ -9,8 +9,6 @@ whoami         = require './util/whoami'
 nick           = require './util/nick'
 showError      = require 'app/util/showError'
 
-EnvironmentsModal       = require 'app/environment/environmentsmodal'
-MachineSettingsModal    = require 'app/providers/machinesettingsmodal'
 ShortcutsModal = require 'app/shortcuts/shortcutsmodalview'
 
 getAction = (formName) -> switch formName
@@ -50,36 +48,11 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
         kd.singletons.router.handleRoute redirectTo
       else handleRoot()
 
-    when 'referrer'
-      { params:{ username } } = info
-      # give a notification to tell that this is a referral link here - SY
-      handleRoot()
-
     when 'home' then handleRoot()
 
     when 'teams'
       document.cookie = 'clientId=false'
       location.reload()
-
-    # this whole block is probably unnecessary, because we are not supporting
-    # /(teamName|groupName) scheme anymore. We would probably just return a not
-    # found here no matter what, because this block is being hit ONLY IF there
-    # is no other matching route found. ~Umut
-    when 'name'
-      open = (routeInfo, model) ->
-        switch model?.bongo_?.constructorName
-          when 'JGroup'
-            (createSectionHandler 'Activity') routeInfo, model
-          else
-            ctx.handleNotFound routeInfo.params.name
-
-      if state? then open.call this, info, state
-      else if not info?.params?.name then open.call this, info
-      else
-        remote.cacheable info.params.name, (err, models, name) =>
-          if models?
-          then open.call this, info, models.first
-          else ctx.handleNotFound info.params.name
 
     when 'reset'
       recoverPath = ctx
@@ -87,36 +60,12 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
       kd.singletons.mainController.doLogout()
       global.location.href = path
 
-     when 'my-machines'
-      { stackId } = info.params
-      new EnvironmentsModal { selected: stackId }
-
     when 'request-collaboration'
       { nickname, channelId } = info.params
       requestCollaboration { nickname, channelId }
 
     when 'shortcuts'
       new ShortcutsModal
-
-    when 'machine-settings'
-      { uid, state } = info.params
-      { computeController, router } = kd.singletons
-
-      computeController.ready ->
-        machine = computeController.findMachineFromMachineUId uid
-        unless machine
-          new kd.NotificationView { title: 'No machine found' }
-          return router.handleRoute '/IDE'
-
-        modal = new MachineSettingsModal {}, machine
-
-        # if there is a state, it's the name of the tab of modal. Switch to that.
-        modal.tabView.showPaneByName state  if state
-
-    when 'unsubscribe'
-      { opt } = info.params
-      { router } = kd.singletons
-      router.handleRoute "/Account/Email?unsubscribe=#{opt}"
 
 
 requestCollaboration = ({ nickname, channelId }) ->

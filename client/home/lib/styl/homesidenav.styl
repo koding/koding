@@ -1,0 +1,136 @@
+@css {
+/*
+Home Nav styles
+*/
+}
+
+$gray                       = #B0B0B0
+
+.HomeAppView-Nav
+  bg                        color, #FAFAFA
+  size                      245px, 100%
+  padding                   25px
+  border-radius             6px 0 0 6px
+  borderBox()
+  rel()
+  fl()
+
+.HomeAppView-Nav--Item
+  display                   block
+  height                    36px
+  line-height               26px
+  padding                   5px 25px
+  margin-bottom             16px
+  rounded                   18px
+  color                     $gray
+  letter-spacing            .3px
+  font-size                 14px
+  font-weight               300
+  vendor                    transition, transform .099s ease-in
+  vendor                    transform, translateX(0px)
+  borderBox()
+  noTextDeco()
+  pointer()
+  rel()
+
+  span.kdview.close-tab
+    display                 none
+
+  &:after
+    content                 ''
+    vendor                  transition, transform .099s .099s ease-in
+    margin-right            -28px
+    abs                     0px 0px
+    size                    4px 100%
+    bg                      color, $accentColor
+    vendor                  transform, translateX(3px)
+
+  &.active
+    vendor                  transform, translateX(-3px)
+    color                   $accentColor
+    &:after
+      vendor                transform, translateX(0px)
+
+  // &.my-account
+  &.payment-history
+  &.welcome
+    hidden()
+
+
+.HomeAppView-Nav--Title
+  color                     $accentColor
+  line-height               25px
+  font-size                 17px
+  font-weight               400
+  margin                    31px 0 13px 2px
+  letter-spacing            .7px
+  display                   block
+
+
+.HomeAppView-Nav--AvatarArea
+  width                     100%
+  min-height                64px
+  max-height                auto
+  border-bottom             1px solid #D9D9D9
+  display                   block
+  noTextDeco()
+  rel()
+
+
+.HomeAppView-Nav--fullname
+.HomeAppView-Nav--teamName
+  display                   block
+  letter-spacing            .6px
+
+.HomeAppView-Nav--teamName
+  color                     #6B6B6B
+  font-size                 15px
+  letter-spacing            .8px
+  line-height               22px
+  width                     150px
+  ellipsis()
+
+.HomeAppView-Nav--fullname
+  color                     #769ECC
+  font-weight               300
+  font-size                 14px
+  line-height               23px
+  word-wrap                 break-word
+
+.HomeAppView-Nav--avatar
+  overflow                  visible
+
+
+.HomeAppView-Nav--avatar
+.HomeAppView--section .avatarview
+  abs                       3px 0px
+  rounded                   50%
+  // bg                        color #CACACA
+  size                      40px 40px
+  padding                   1px
+  borderBox()
+
+  > img
+    rounded                 50%
+
+.HomeAppView-Nav--avatar
+  .badge
+    abs                     0 -2px 2px 0
+    margin                  0
+    color                   white
+    line-height             12px
+    size                    17px, 17px
+    rounded                 8px
+    font-size               0
+    &::before
+      content               ''
+      abs                   4px 3px
+    &.owner
+      bg                    color #48BA7D
+      &::before
+        r-sprite            app badge_icon_owner
+    &.admin
+      bg                    color #FFC442
+      &::before
+        left                4px
+        r-sprite            app badge_icon_admin

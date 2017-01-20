@@ -2,7 +2,6 @@ kd                        = require 'kd'
 globals                   = require 'globals'
 nick                      = require 'app/util/nick'
 CustomLinkView            = require 'app/customlinkview'
-HelpSupportModal          = require 'app/commonviews/helpsupportmodal'
 IDEStatusBarAvatarView    = require './idestatusbaravatarview'
 ButtonViewWithProgressBar = require 'app/commonviews/buttonviewwithprogressbar'
 
