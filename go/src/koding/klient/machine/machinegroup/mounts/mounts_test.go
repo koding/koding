@@ -167,8 +167,46 @@ func TestMountsRemove(t *testing.T) {
 	}
 }
 
+func TestMountsAddValidate(t *testing.T) {
+	tests := map[string]struct {
+		ID      machine.ID
+		MountID mount.ID
+		Mount   mount.Mount
+	}{
+		"local path already taken": {
+			ID:      "machineX",
+			MountID: "mountAAX",
+			Mount: mount.Mount{
+				Path:       "/home/koding/a",
+				RemotePath: "/home/koding/remote/a",
+			},
+		},
+		"mount ID already exist": {
+			ID:      "machineX",
+			MountID: "mountAB",
+			Mount: mount.Mount{
+				Path:       "/home/koding/X",
+				RemotePath: "/home/koding/remote/b",
+			},
+		},
+	}
+
+	ms, err := mountsObject()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			if err := ms.Add(test.ID, test.MountID, test.Mount); err == nil {
+				fmt.Errorf("want err != nil; got nil")
+			}
+		})
+	}
+}
+
 func mountsObject() (*Mounts, error) {
-	var data = []struct {
+	data := []struct {
 		ID      machine.ID
 		MountID mount.ID
 		Mount   mount.Mount
