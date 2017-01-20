@@ -4,7 +4,9 @@ set -o errexit
 
 #  make relative paths work.
 cd $(dirname $0)/..
+COVERAGE_FOLDER="./go/src"
 COVMERGE="./go/bin/gocovmerge"
+KD=$(pwd)
 
 action="sh -c"
 # action="echo"
