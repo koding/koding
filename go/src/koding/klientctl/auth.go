@@ -57,7 +57,8 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	authClient := &auth.Client{
 		Kloud: kloudClient,
 		Kontrol: &kontrol.Client{
-			Kloud: kloudClient,
+			Kloud:  kloudClient,
+			Konfig: k,
 		},
 	}
 
