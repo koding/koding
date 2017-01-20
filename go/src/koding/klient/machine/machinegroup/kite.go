@@ -79,8 +79,8 @@ func KiteHandlerSSH(g *Group) kite.HandlerFunc {
 	}
 }
 
-// KiteHandlerSSH creates a kite handler function that, when called, invokes
-// machine group HeadMount method.
+// KiteHandlerHeadMount creates a kite handler function that, when called,
+// invokes machine group HeadMount method.
 func KiteHandlerHeadMount(g *Group) kite.HandlerFunc {
 	return func(r *kite.Request) (interface{}, error) {
 		req := &HeadMountRequest{}
