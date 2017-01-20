@@ -96,6 +96,10 @@ func (c *Client) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 		c.sessions[session.Team] = session
 	}
 
+	if resp.GroupName == "" {
+		resp.GroupName = opts.Team
+	}
+
 	return &resp, nil
 }
 
