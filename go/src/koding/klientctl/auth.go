@@ -107,7 +107,9 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 	if resp.KiteKey != "" {
 		k.KiteKey = resp.KiteKey
-		k.Endpoints = resp.Metadata.Endpoints
+		if resp.Metadata != nil {
+			k.Endpoints = resp.Metadata.Endpoints
+		}
 
 		if err := configstore.Use(k); err != nil {
 			return 1, err
