@@ -11,7 +11,7 @@ import (
 	"koding/kites/kloud/stack"
 	"koding/klientctl/endpoint/auth"
 	"koding/klientctl/endpoint/kloud"
-	_ "koding/klientctl/endpoint/kontrol"
+	"koding/klientctl/endpoint/kontrol"
 	"koding/klientctl/endpoint/team"
 	"koding/klientctl/helper"
 

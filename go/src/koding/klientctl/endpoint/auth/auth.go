@@ -7,7 +7,7 @@ import (
 	"koding/kites/kloud/stack"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/kloud"
-	_ "koding/klientctl/endpoint/kontrol"
+	"koding/klientctl/endpoint/kontrol"
 )
 
 var DefaultClient = &Client{}
