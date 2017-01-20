@@ -126,11 +126,18 @@ func TestMachineGroupMount(t *testing.T) {
 	}
 	defer stop()
 
-	wd, m, clean, err := mounttest.MountDirs()
+	// Create testing mounts.
+	wd, mA, cleanA, err := mounttest.MountDirs("")
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	defer clean()
+	defer cleanA()
+
+	_, mB, cleanB, err := mounttest.MountDirs(wd)
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	defer cleanB()
 
 	// Add machine address in order to trigger valid server and not reach timeout.
 	id := machine.ID("servA")
@@ -142,13 +149,16 @@ func TestMachineGroupMount(t *testing.T) {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	// Add single mount.
-	mountID := mount.MakeID()
+	// Add two mounts.
+	mountIDA, mountIDB := mount.MakeID(), mount.MakeID()
 	mgMount, err := mounts.NewCached(st)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if err := mgMount.Add(id, mountID, m); err != nil {
+	if err := mgMount.Add(id, mountIDA, mA); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	if err := mgMount.Add(id, mountIDB, mB); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	if len(mgMount.Registered()) != 1 {
@@ -158,8 +168,8 @@ func TestMachineGroupMount(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if len(allm) != 1 {
-		t.Errorf("want one registered mount; got %v", allm)
+	if len(allm) != 2 {
+		t.Errorf("want two registered mounts; got %v", allm)
 	}
 
 	builder := clienttest.NewBuilder(nil)
@@ -186,8 +196,11 @@ func TestMachineGroupMount(t *testing.T) {
 		t.Errorf("want dynamic builds number = 1; got %d", builder.BuildsCount())
 	}
 
-	// Mount cache directory should be created.
-	if err := mounttest.StatCacheDir(wd, mountID); err != nil {
+	// Mount cache directories should be created.
+	if err := mounttest.StatCacheDir(wd, mountIDA); err != nil {
+		t.Errorf("want err = nil; got %v", err)
+	}
+	if err := mounttest.StatCacheDir(wd, mountIDB); err != nil {
 		t.Errorf("want err = nil; got %v", err)
 	}
 }
