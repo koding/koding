@@ -11,6 +11,7 @@ import (
 	"koding/kites/kloud/stack"
 	"koding/klientctl/endpoint/auth"
 	"koding/klientctl/endpoint/kloud"
+	_ "koding/klientctl/endpoint/kontrol"
 	"koding/klientctl/endpoint/team"
 	"koding/klientctl/helper"
 
@@ -55,6 +56,9 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 	authClient := &auth.Client{
 		Kloud: kloudClient,
+		Kontrol: &kontrol.Client{
+			Kloud: kloudClient,
+		},
 	}
 
 	teamClient := &team.Client{
@@ -68,10 +72,11 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	log.Debug("auth: transport test: %s", err)
 
 	opts := &auth.LoginOptions{
-		Team: c.String("team"),
+		Team:  c.String("team"),
+		Token: c.String("token"),
 	}
 
-	if err != nil {
+	if err != nil && opts.Token == "" {
 		opts.Username, err = helper.Ask("Username [%s]: ", config.CurrentUser.Username)
 		if err != nil {
 			return 1, err
