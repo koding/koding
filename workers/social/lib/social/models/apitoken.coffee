@@ -12,6 +12,7 @@ module.exports = class JApiToken extends jraphical.Module
 
   JGroup     = require './group'
   JAccount   = require './account'
+  JSession   = require './session'
   Validators = require './group/validators'
 
   @API_TOKEN_LIMIT = 5
@@ -126,3 +127,52 @@ module.exports = class JApiToken extends jraphical.Module
     advanced: PERMISSION_EDIT_GROUPS
     success: (client, callback) ->
       @remove callback
+
+  @createSessionByToken = (token, callback) ->
+
+    group    = null
+    account  = null
+    session  = null
+    apiToken = null
+
+    queue    = [
+
+      (next) ->
+        JApiToken.one { code: token }, (err, tokenObj) ->
+          return next err  if err
+          return next new KodingError 'Invalid API Token'  unless tokenObj
+          apiToken = tokenObj
+          next()
+
+      (next) ->
+        JApiToken.fetchGroup apiToken.group, (err, groupObj) ->
+          return next err  if err
+          group = groupObj
+          next()
+
+      (next) ->
+        JAccount.one { _id: apiToken.originId }, (err, accountObj) ->
+          return next err  if err
+          return next new KodingError 'Invalid Account'  unless accountObj
+          account = accountObj
+          next()
+
+      (next) ->
+        sessionData =
+          clientId  : token
+          username  : account.getAt 'profile.nickname'
+          groupName : group.getAt 'slug'
+          data      : { apiSession: yes }
+
+        JSession.createNewSession sessionData, (err, sessionObj) ->
+          # TODO add duplicate check here ~ GG
+          return next err  if err
+          return next new KodingError 'Failed to create session!'  unless sessionObj
+          session = sessionObj
+          next()
+
+    ]
+
+    async.series queue, (err) ->
+      return callback err  if err
+      callback null, session
