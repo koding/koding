@@ -1,7 +1,7 @@
 {% assign path = "http://koding-cdn.s3.amazonaws.com/badges/made-with-koding/v1/koding_badge_" %}
 
 
-{% capture derp %}
+{% capture badgeHtml %}
   <a href="https://koding.com/">
     <img src="{{path}}{{include.badgeId}}.png" srcset="{{path}}{{include.badgeId}}.png 1x, {{path}}{{include.badgeId}}@2x.png 2x" alt="Made with Koding" />
   </a>
@@ -12,7 +12,7 @@
     <span class="helper"></span>
     <img src="{{path}}{{include.badgeId}}.png" srcset="{{path}}{{include.badgeId}}.png 1x, {{path}}{{include.badgeId}}@2x.png 2x" />
   </div><div class="BadgeRow--codeBlock">
-    <div id="{{include.badgeId}}">{{ derp | xml_escape | textilize }}</div>
+    <div id="{{include.badgeId}}">{{ badgeHtml | xml_escape | textilize }}</div>
     <button class="BadgeRow--copyClipboard" data-clipboard-target="#{{include.badgeId}}">Copy</button>
   </div>
 </div>
