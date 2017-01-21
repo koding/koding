@@ -126,7 +126,10 @@ module.exports = class JApiToken extends jraphical.Module
   remove$: permit
     advanced: PERMISSION_EDIT_GROUPS
     success: (client, callback) ->
-      @remove callback
+      JSession.remove { clientId: @getAt 'code' }, (err) =>
+        return callback err  if err
+        @remove callback
+
 
   @createSessionByToken = (token, callback) ->
 
