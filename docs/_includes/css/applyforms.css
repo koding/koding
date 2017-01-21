@@ -208,6 +208,7 @@ body {
   position: relative;
   border: 1px solid transparent;
   transition: border 0.25s;
+  padding-right: 100px;
 }
 
 .BadgeRow--codeBlock .BadgeRow--copyClipboard {
@@ -280,6 +281,11 @@ body {
   .BadgeRow--codeBlock {
     width: 533px;
   }
+  .BadgeRow--codeBlock {
+    width: 100%;
+    padding-right: 20px;
+    overflow: auto;
+  }
 
 }
 @media screen and (max-width: 690px) {
@@ -303,10 +309,6 @@ body {
   }
 
   .BadgeRow--badge {
-    width: 100%;
-  }
-
-  .BadgeRow--codeBlock {
     width: 100%;
   }
 }

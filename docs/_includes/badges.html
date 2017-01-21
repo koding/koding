@@ -1,11 +1,18 @@
-{% assign path = site.url | append: '/assets/img/landing/badges' %}
+{% assign path = "http://koding-cdn.s3.amazonaws.com/badges/made-with-koding/v1/koding_badge_" %}
+
+
+{% capture derp %}
+  <a href="https://koding.com/">
+    <img src="{{path}}{{include.badgeId}}.png" srcset="{{path}}{{include.badgeId}}.png 1x, {{path}}{{include.badgeId}}@2x.png 2x" alt="Made with Koding" />
+  </a>
+{% endcapture %}
 
 <div class="BadgeRow">
   <div class="BadgeRow--badge">
     <span class="helper"></span>
-    <img src="{{path}}{{include.badgeImg}}.png" srcset="{{path}}{{include.badgeImg}}.png 1x, {{path}}{{include.badgeImg}}@2x.png 2x" />
+    <img src="{{path}}{{include.badgeId}}.png" srcset="{{path}}{{include.badgeId}}.png 1x, {{path}}{{include.badgeId}}@2x.png 2x" />
   </div><div class="BadgeRow--codeBlock">
-    <div id="{{include.badgeId}}">{{ include.badgeCode | xml_escape | textilize }}</div>
+    <div id="{{include.badgeId}}">{{ derp | xml_escape | textilize }}</div>
     <button class="BadgeRow--copyClipboard" data-clipboard-target="#{{include.badgeId}}">Copy</button>
   </div>
 </div>
