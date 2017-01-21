@@ -2,7 +2,7 @@ kd = require 'kd'
 React = require 'app/react'
 List = require 'app/components/list'
 CheckBox = require 'app/components/common/checkbox'
-
+isEmailValid = require 'app/util/isEmailValid'
 
 module.exports = class HomeTeamSendInvitesView extends React.Component
 
@@ -35,11 +35,14 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
         onClick={@props.onInputChange.bind(null, rowIndex, 'canEdit', { target: { value: not checked}})}/>
     </div>
 
+
   renderEmptySectionAtIndex: -> <div> No data found</div>
 
 
   render: ->
-    count = _.sum @props.filledInputsObj
+    count = _.sum this.props.inputValues.toList().toArray().map (inputRow) ->
+       if isEmailValid inputRow.get 'email' then 1 else 0
+
     if count > 0
       buttonTitle = "Send #{count} Invite#{if count > 1 then 's' else ''}"
       buttonEnabled = yes

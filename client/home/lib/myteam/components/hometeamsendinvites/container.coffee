@@ -19,12 +19,6 @@ UploadCSVModalSuccess = require './uploadcsvsuccessmodal'
 
 module.exports = class HomeTeamSendInvitesContainer extends React.Component
 
-  constructor: (props) ->
-
-    super props
-
-    @state = { filledInputsObj : {} }
-
   getDataBindings: ->
 
     return {
@@ -67,11 +61,8 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
 
     value = event.target.value
 
-    switch inputName
-      when 'canEdit'
-        value = if value then yes else no
-      when'email'
-        @state.filledInputsObj[index] = if isEmailValid value then 1 else 0
+    if inputName is 'canEdit'
+      value = if value then yes else no
 
     TeamFlux.actions.updateInvitationInputValue index, inputName, value
 
@@ -235,8 +226,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
       inputValues={@state.inputValues}
       onUploadCSV={@bound 'onUploadCSV'}
       onInputChange={@bound 'onInputChange'}
-      onSendInvites={@bound 'onSendInvites'}
-      filledInputsObj={@state.filledInputsObj} />
+      onSendInvites={@bound 'onSendInvites'} />
 
 
 HomeTeamSendInvitesContainer.include [KDReactorMixin]
