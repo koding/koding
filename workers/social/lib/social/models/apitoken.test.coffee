@@ -58,7 +58,7 @@ runTests = -> describe 'workers.social.apitoken', ->
           (next) ->
             data = { group : generateRandomString(), account }
             JApiToken.create data, (err, token) ->
-              expect(err?.message).to.be.equal 'group not found!'
+              expect(err?.message).to.be.equal 'No such team!'
               expect(token).to.not.exist
               next()
 
