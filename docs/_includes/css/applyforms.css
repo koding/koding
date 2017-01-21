@@ -146,6 +146,10 @@ body {
   cursor: pointer;
 }
 
+.BadgeBody {
+  padding-bottom: 80px;
+}
+
 .BadgeBody h2 {
   font-size: 23px;
   padding: 29px 0 39px;
