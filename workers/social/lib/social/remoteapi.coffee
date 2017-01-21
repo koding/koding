@@ -14,6 +14,12 @@ getConstructorName = (name, Models) ->
     return model  if model.toLowerCase() is name.toLowerCase()
 
 
+getContextFromSession = (session) ->
+
+  { clientId: sessionToken, groupName: group } = session
+  return { userArea: { group }, sessionToken }
+
+
 sendApiError = (res, error) ->
 
   return res.status(error.status ? 403).send error
@@ -85,17 +91,39 @@ parseRequest = (req, res) ->
   return { model, id, method, token }
 
 
+updateSessionTimestamp = (session, callback) ->
 
-verifySession = (Models, sessionToken, callback) ->
+  session.lastAccess = lastAccess = new Date
+  session.update { $set: { lastAccess } }, (err) ->
+    return callback apiErrors.unauthorizedRequest  if err
+    callback null, session
 
-  Models.JSession.one { clientId: sessionToken }, (err, session) ->
 
-    if err or not session
+fetchSession = (Models, token, callback) ->
+
+  Models.JSession.one { clientId: token }, (err, session) ->
+
+    if err
       return callback apiErrors.unauthorizedRequest
 
-    { groupName: group } = session
+    if session
 
-    callback null, { userArea: { group }, sessionToken }
+      if session.getAt 'data.apiSession'
+        Models.JApiToken.fetchGroup (session.getAt 'groupName'), (err) ->
+          return callback err  if err
+          updateSessionTimestamp session, callback
+
+      else
+        updateSessionTimestamp session, callback
+
+      return
+
+    Models.JApiToken.createSessionByToken token, (err, session) ->
+
+      if err or not session
+        return callback apiErrors.unauthorizedRequest
+
+      updateSessionTimestamp session, callback
 
 
 sendSignatureErr = (signatures, method, res) ->
@@ -134,15 +162,15 @@ module.exports = RemoteHandler = (koding) ->
   return (req, res) ->
 
     return  unless parsedRequest = parseRequest req, res
+    { model, id, method, token } = parsedRequest
 
-    { model, id, method, sessionToken } = parsedRequest
-
-    verifySession Models, sessionToken, (err, context) ->
+    fetchSession Models, token, (err, session) ->
 
       if err
         sendApiError res, err
         return
 
+      context         = getContextFromSession session
       constructorName = getConstructorName model, Models
 
       unless constructorName
