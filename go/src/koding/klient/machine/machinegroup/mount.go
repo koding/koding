@@ -6,6 +6,7 @@ import (
 
 	"koding/klient/machine"
 	"koding/klient/machine/mount"
+	"koding/klient/machine/mount/sync"
 )
 
 // MountRequest defines machine group mount request.
@@ -140,4 +141,119 @@ func (g *Group) AddMount(req *AddMountRequest) (res *AddMountResponse, err error
 	return &AddMountResponse{
 		MountID: mountID,
 	}, nil
+}
+
+// ListMountRequest defines machine group mount list request.
+type ListMountRequest struct {
+	// ID is an optional identifier for the remote machine. If set, only
+	// mounts related to this machine will be returned.
+	ID machine.ID `json:"id"`
+
+	// MountID is an optional identifier of a mount which is meant to be listed.
+	MountID mount.ID `json:"mountID"`
+}
+
+// ListMountResponse defines machine group mount list response.
+type ListMountResponse struct {
+	// Mounts is a map that contains machine aliases as keys and created mount
+	// infos which store the current synchronization status of mount.
+	Mounts map[string][]sync.Info `json:"mounts"`
+}
+
+// ListMount checks the status of mounts and returns their infos. This function
+// guarantees that if returned error is nil, response Mounts field is always
+// non-nil. It doesn't fail if provided filters contain incorrect values.
+func (g *Group) ListMount(req *ListMountRequest) (*ListMountResponse, error) {
+	if req == nil {
+		return nil, errors.New("invalid nil request")
+	}
+
+	res := &ListMountResponse{
+		Mounts: make(map[string][]sync.Info),
+	}
+
+	type mountsMachine struct {
+		m  mount.Mount
+		id machine.ID
+	}
+
+	// Get list of requested mounts with machine ID filter.
+	var mms = make(map[mount.ID]mountsMachine)
+	if req.ID != "" {
+		mounts, err := g.mount.All(req.ID)
+		if err != nil {
+			return res, nil
+		}
+
+		for mountID, m := range mounts {
+			mms[mountID] = mountsMachine{m: m, id: req.ID}
+		}
+	}
+
+	// Get requested mount with mount ID filter.
+	if req.MountID != "" {
+		id, err := g.mount.MachineID(req.MountID)
+		if err != nil || (req.ID != "" && id != req.ID) {
+			return res, nil
+		}
+
+		m := mount.Mount{}
+		if mounts, err := g.mount.All(req.ID); err == nil {
+			m = mounts[req.MountID]
+		}
+
+		mms = map[mount.ID]mountsMachine{
+			req.MountID: mountsMachine{m: m, id: id},
+		}
+	}
+
+	// Get all mounts when filters are not set.
+	if req.ID == "" && req.MountID == "" {
+		for _, id := range g.mount.Registered() {
+			mounts, err := g.mount.All(id)
+			if err != nil {
+				continue
+			}
+
+			for mountID, m := range mounts {
+				mms[mountID] = mountsMachine{m: m, id: id}
+			}
+		}
+	}
+
+	// Get machine aliases.
+	var id2alias = make(map[machine.ID]string)
+	for _, mm := range mms {
+		if _, ok := id2alias[mm.id]; ok {
+			continue
+		}
+
+		// Create does not generate new alias if it already exists.
+		alias, err := g.alias.Create(mm.id)
+		if err != nil {
+			// Instead of failing here, use machine ID directly.
+			id2alias[mm.id] = string(mm.id)
+		} else {
+			id2alias[mm.id] = alias
+		}
+	}
+
+	// Get mount infos.
+	for mountID, mm := range mms {
+		info, err := g.sync.Info(mountID)
+		alias := id2alias[mm.id]
+		if err != nil {
+			// Add mount to the list but log not synchronized mount.
+			res.Mounts[alias] = append(res.Mounts[alias], sync.Info{
+				ID:    mountID,
+				Mount: mm.m,
+			})
+			g.log.Warning("Mount %s for %s is not synchronized: %s", mountID, mm.m, err)
+			continue
+		}
+
+		res.Mounts[alias] = append(res.Mounts[alias], *info)
+	}
+
+	return res, nil
 }
