@@ -1,7 +1,5 @@
 uuid          = require 'uuid'
 async         = require 'async'
-JGroup        = require './group'
-JAccount      = require './account'
 jraphical     = require 'jraphical'
 KodingError   = require '../error'
 { permit }    = require './group/permissionset'
@@ -12,6 +10,8 @@ KodingError   = require '../error'
 
 module.exports = class JApiToken extends jraphical.Module
 
+  JGroup     = require './group'
+  JAccount   = require './account'
   Validators = require './group/validators'
 
   @API_TOKEN_LIMIT = 5
@@ -30,11 +30,11 @@ module.exports = class JApiToken extends jraphical.Module
     indexes            :
       code             : 'unique'
     sharedMethods      :
-      static:
-        create:
+      static           :
+        create         :
           (signature Function)
-      instance:
-        remove:
+      instance         :
+        remove         :
           (signature Function)
     schema             :
       code             :
@@ -52,7 +52,19 @@ module.exports = class JApiToken extends jraphical.Module
         default        : -> new Date
 
 
-  @create: (data, callback) ->
+  @fetchGroup = (group, callback) ->
+
+    JGroup.one { slug: group }, (err, group) ->
+      return callback err  if err
+      return callback new KodingError 'No such team!'  unless group
+
+      if not !!group.getAt 'isApiEnabled'
+        callback new KodingError 'API usage is not enabled for this team.'
+      else
+        callback null, group
+
+
+  @create = (data, callback) ->
 
     { account, group } = data
 
@@ -68,22 +80,14 @@ module.exports = class JApiToken extends jraphical.Module
         # validating data params
         unless account instanceof JAccount
           return next new KodingError 'account is not an instance of Jaccount!'
-
-        JGroup.one { slug : group }, (err, group_) ->
-          return next err                                 if err
-          return next new KodingError 'group not found!'  unless group_
-
-          unless !!group_.getAt 'isApiEnabled'
-            return next new KodingError 'API usage is not enabled for this group.'
-
-          groupObj = group_
-          next()
+        JApiToken.fetchGroup group, next
 
       (next) ->
         limitError = "You can't have more than #{JApiToken.API_TOKEN_LIMIT} API tokens"
-        JApiToken.count { group : groupObj.slug }, (err, count) ->
-          return next err                         if err
-          return next new KodingError limitError  if count >= JApiToken.API_TOKEN_LIMIT
+        JApiToken.count { group }, (err, count) ->
+          return next err  if err
+          if count >= JApiToken.API_TOKEN_LIMIT
+            return next new KodingError limitError
           next()
 
       (next) ->
@@ -104,7 +108,7 @@ module.exports = class JApiToken extends jraphical.Module
       callback null, token
 
 
-  @create$: permit
+  @create$ = permit
     advanced: PERMISSION_EDIT_GROUPS
     success: (client, callback) ->
 

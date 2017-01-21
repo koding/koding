@@ -72,7 +72,7 @@ runTests = -> describe 'workers.social.apitoken', ->
       group         = generateRandomString()
       groupData     = {}
       options       = { context : { group }, createGroup : yes, groupData }
-      expectedError = 'API usage is not enabled for this group.'
+      expectedError = 'API usage is not enabled for this team.'
 
       withConvertedUser options, ({ client, account }) ->
 
