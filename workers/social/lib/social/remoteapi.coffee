@@ -1,6 +1,7 @@
 KONFIG    = require 'koding-config-manager'
 apiErrors = require './apierrors'
 { clone } = require 'underscore'
+isUUID    = require 'uuid-validate'
 
 purify = (data) ->
 
@@ -61,7 +62,11 @@ getToken = (req) ->
 
 parseRequest = (req, res) ->
 
-  { model, id } = req.params
+  { token, model, id } = req.params
+
+  if token and not id and not isUUID token
+    [ model, id ] = [token, model]
+    token = undefined
 
   unless model
     sendApiError res, apiErrors.invalidInput
@@ -73,11 +78,12 @@ parseRequest = (req, res) ->
     sendApiError res, apiErrors.invalidInput
     return
 
-  unless sessionToken = getToken req
+  if not token and not token = getToken req
     sendApiError res, apiErrors.unauthorizedRequest
     return
 
-  return { model, id, method, sessionToken }
+  return { model, id, method, token }
+
 
 
 verifySession = (Models, sessionToken, callback) ->
