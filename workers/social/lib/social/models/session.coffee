@@ -103,7 +103,7 @@ module.exports = class JSession extends Model
 
   @createNewSession = (data, callback) ->
 
-    data.clientId = uuid.v4()
+    data.clientId ?= uuid.v4()
 
     session = new JSession data
     session.save (err) ->
