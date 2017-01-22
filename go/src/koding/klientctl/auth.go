@@ -8,6 +8,8 @@ import (
 
 	"koding/klientctl/endpoint/auth"
 	"koding/klientctl/endpoint/kloud"
+	"koding/klientctl/endpoint/kontrol"
+	"koding/klientctl/endpoint/team"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
@@ -41,7 +43,15 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		Token: c.String("token"),
 	}
 
-	resp, err := f.Login(opts)
+	if err != nil && opts.Token == "" {
+		if err = opts.AskUserPass(); err != nil {
+			return 1, err
+		}
+	}
+
+	fmt.Fprintln(os.Stderr, "Logging to", kodingURL, "...")
+
+	resp, err := authClient.Login(opts)
 	if err != nil {
 		return 1, fmt.Errorf("error logging into your Koding account: %v", err)
 	}

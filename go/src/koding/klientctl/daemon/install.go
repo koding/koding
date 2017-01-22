@@ -170,7 +170,7 @@ func (c *Client) Update(opts *Opts) error {
 
 var script = []InstallStep{{
 	Name: "log files",
-	Install: func(c *Client, opts *Opts) (string, error) {
+	Install: func(c *Client, _ *Opts) (string, error) {
 		uid, gid, err := util.UserIDs(conf.CurrentUser.User)
 		if err != nil {
 			return "", err
@@ -198,7 +198,7 @@ var script = []InstallStep{{
 
 		return "", err
 	},
-	Uninstall: func(c *Client, opts *Opts) (err error) {
+	Uninstall: func(c *Client, _ *Opts) (err error) {
 		for _, file := range c.d.LogFiles {
 			err = nonil(err, os.Remove(file[runtime.GOOS]))
 		}
@@ -206,69 +206,69 @@ var script = []InstallStep{{
 	},
 }, {
 	Name: "directory structure",
-	Install: func(c *Client, opts *Opts) (string, error) {
+	Install: func(c *Client, _ *Opts) (string, error) {
 		return "", os.MkdirAll(c.d.KlientHome, 0755)
 	},
 }, (map[string]InstallStep{
 	"darwin": {
 		Name: "osxfuse",
-		Install: func(c *Client, opts *Opts) (string, error) {
+		Install: func(c *Client, _ *Opts) (string, error) {
 			return "", nil
 		},
-		Uninstall: func(c *Client, opts *Opts) error {
+		Uninstall: func(c *Client, _ *Opts) error {
 			return nil
 		},
 	},
 	"linux": {
 		Name: "osxfuse",
-		Install: func(c *Client, opts *Opts) (string, error) {
+		Install: func(c *Client, _ *Opts) (string, error) {
 			return "", nil
 		},
-		Uninstall: func(c *Client, opts *Opts) error {
+		Uninstall: func(c *Client, _ *Opts) error {
 			return nil
 		},
 	},
 })[runtime.GOOS], (map[string]InstallStep{
 	"darwin": {
 		Name: "Vagrant",
-		Install: func(c *Client, opts *Opts) (string, error) {
+		Install: func(c *Client, _ *Opts) (string, error) {
 			return "", nil
 		},
-		Uninstall: func(c *Client, opts *Opts) error {
+		Uninstall: func(c *Client, _ *Opts) error {
 			return nil
 		},
 	},
 	"linux": {
 		Name: "Vagrant",
-		Install: func(c *Client, opts *Opts) (string, error) {
+		Install: func(c *Client, _ *Opts) (string, error) {
 			return "", nil
 		},
-		Uninstall: func(c *Client, opts *Opts) error {
+		Uninstall: func(c *Client, _ *Opts) error {
 			return nil
 		},
 	},
 })[runtime.GOOS], (map[string]InstallStep{
 	"darwin": {
 		Name: "VirtualBox",
-		Install: func(c *Client, opts *Opts) (string, error) {
+		Install: func(c *Client, _ *Opts) (string, error) {
 			return "", nil
 		},
-		Uninstall: func(c *Client, opts *Opts) error {
+		Uninstall: func(c *Client, _ *Opts) error {
 			return nil
 		},
 	},
 	"linux": {
 		Name: "VirtualBox",
-		Install: func(c *Client, opts *Opts) (string, error) {
+		Install: func(c *Client, _ *Opts) (string, error) {
 			return "", nil
 		},
-		Uninstall: func(c *Client, opts *Opts) error {
+		Uninstall: func(c *Client, _ *Opts) error {
 			return nil
 		},
 	},
 })[runtime.GOOS], {
 	Name: "KD Daemon",
-	Install: func(c *Client, opts *Opts) (string, error) {
+	Install: func(c *Client, _ *Opts) (string, error) {
 		var version, newVersion int
 
 		if n, err := parseVersion(c.d.Files["klient"]); err == nil {
@@ -321,7 +321,7 @@ var script = []InstallStep{{
 
 		return strconv.Itoa(version), nil
 	},
-	Uninstall: func(c *Client, opts *Opts) error {
+	Uninstall: func(c *Client, _ *Opts) error {
 		svc, err := c.d.service()
 		if err != nil {
 			return err
@@ -338,7 +338,7 @@ var script = []InstallStep{{
 	RunOnUpdate: true,
 }, {
 	Name: "KD",
-	Install: func(c *Client, opts *Opts) (string, error) {
+	Install: func(c *Client, _ *Opts) (string, error) {
 		var newVersion int
 
 		if err := curl(c.kdLatest(), "%d", &newVersion); err != nil {
@@ -355,18 +355,18 @@ var script = []InstallStep{{
 
 		return strconv.Itoa(newVersion), nil
 	},
-	Uninstall: func(c *Client, opts *Opts) error {
+	Uninstall: func(c *Client, _ *Opts) error {
 		return os.Remove(c.d.Files["kd"])
 	},
 	RunOnUpdate: true,
 }, {
 	Name: "Koding account",
-	Install: func(c *Client, opts *Opts) (string, error) {
+	Install: func(c *Client, _ *Opts) (string, error) {
 		return "", nil
 	},
 }, {
 	Name: "Start KD Deamon",
-	Install: func(c *Client, opts *Opts) (string, error) {
+	Install: func(c *Client, _ *Opts) (string, error) {
 		return "", nil
 	},
 	RunOnUpdate: true,
