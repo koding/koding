@@ -391,7 +391,12 @@ var script = []InstallStep{{
 }, {
 	Name: "Start KD Deamon",
 	Install: func(c *Client, _ *Opts) (string, error) {
-		return "", nil
+		svc, err := c.d.service()
+		if err != nil {
+			return "", err
+		}
+
+		return "", svc.Start()
 	},
 	RunOnUpdate: true,
 }}

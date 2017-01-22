@@ -42,7 +42,7 @@ ulimit -n 5000
 
 # start klient
 
-export USERNAME=${USERNAME:-{{.User}}}
+export USERNAME=${USERNAME:-{{.Username}}}
 {{if .KlientPath}}
 export KLIENT_BIN=${KLIENT_BIN:-{{.KlientPath}}}
 {{else}}
@@ -94,7 +94,7 @@ type klientSh struct {
 func (k *klientSh) Create() error {
 	var buf bytes.Buffer
 
-	if err := klientShTmpl.Execute(&buf, &k); err != nil {
+	if err := klientShTmpl.Execute(&buf, k); err != nil {
 		return err
 	}
 

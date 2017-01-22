@@ -42,6 +42,7 @@ var sudoRequiredFor = []string{
 	"stop",
 	"restart",
 	"update",
+	"daemon",
 }
 
 var signals = []os.Signal{
