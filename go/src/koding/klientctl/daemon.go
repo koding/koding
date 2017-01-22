@@ -13,6 +13,8 @@ func DaemonInstall(c *cli.Context, _ logging.Logger, _ string) (int, error) {
 		Force:   c.Bool("force"),
 		Prefix:  c.String("prefix"),
 		Baseurl: c.String("baseurl"),
+		Token:   c.String("token"),
+		Team:    c.String("team"),
 		Skip:    c.StringSlice("skip"),
 	}
 

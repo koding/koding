@@ -596,6 +596,14 @@ func run(args []string) {
 							Name:  "baseurl",
 							Usage: "Specify a Koding endpoint to log in.",
 						},
+						cli.StringFlag{
+							Name:  "token",
+							Usage: "Temporary token to logging in into your Koding account.",
+						},
+						cli.StringFlag{
+							Name:  "team",
+							Usage: "Provide explicit Koding team to log into.",
+						},
 						cli.StringSliceFlag{
 							Name:  "skip",
 							Usage: "List steps to skip during installation.",

@@ -3,6 +3,7 @@ package daemon
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"runtime"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 	"koding/klient/uploader"
 	"koding/klientctl/config"
 	"koding/klientctl/ctlcli"
+	"koding/klientctl/endpoint/auth"
 	"koding/tools/util"
 
 	multierror "github.com/hashicorp/go-multierror"
@@ -40,6 +42,7 @@ type Opts struct {
 	Token   string
 	Prefix  string
 	Baseurl string
+	Team    string
 	Skip    []string
 }
 
@@ -361,7 +364,28 @@ var script = []InstallStep{{
 	RunOnUpdate: true,
 }, {
 	Name: "Koding account",
-	Install: func(c *Client, _ *Opts) (string, error) {
+	Install: func(c *Client, opts *Opts) (string, error) {
+		base, err := url.Parse(opts.Baseurl)
+		if err != nil {
+			return "", err
+		}
+
+		f := auth.NewFacade(&auth.FacadeOpts{
+			Base: base,
+			Log:  c.log(),
+		})
+
+		resp, err := f.Login(&auth.LoginOptions{
+			Team:  opts.Team,
+			Token: opts.Token,
+		})
+
+		if err != nil {
+			return "", err
+		}
+
+		_ = resp
+
 		return "", nil
 	},
 }, {
