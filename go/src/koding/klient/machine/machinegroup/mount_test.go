@@ -3,7 +3,6 @@ package machinegroup
 import (
 	"reflect"
 	"testing"
-	"time"
 
 	"koding/klient/machine"
 	"koding/klient/machine/client/clienttest"
@@ -32,15 +31,7 @@ func TestHeadMount(t *testing.T) {
 	defer g.Close()
 
 	// Add connected remote machine.
-	createReq := &CreateRequest{
-		Addresses: map[machine.ID][]machine.Addr{
-			id: {clienttest.TurnOnAddr()},
-		},
-	}
-	if _, err := g.Create(createReq); err != nil {
-		t.Fatalf("want err = nil; got %v", err)
-	}
-	if err := builder.WaitForBuild(time.Second); err != nil {
+	if _, err := testCreateOn(g, builder, id); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
@@ -96,15 +87,7 @@ func TestAddMount(t *testing.T) {
 	defer g.Close()
 
 	// Add connected remote machine.
-	createReq := &CreateRequest{
-		Addresses: map[machine.ID][]machine.Addr{
-			id: {clienttest.TurnOnAddr()},
-		},
-	}
-	if _, err := g.Create(createReq); err != nil {
-		t.Fatalf("want err = nil; got %v", err)
-	}
-	if err := builder.WaitForBuild(time.Second); err != nil {
+	if _, err := testCreateOn(g, builder, id); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
@@ -158,20 +141,9 @@ func TestListMount(t *testing.T) {
 	defer g.Close()
 
 	// Add two connected remote machines.
-	createReq := &CreateRequest{
-		Addresses: map[machine.ID][]machine.Addr{
-			idA: {clienttest.TurnOnAddr()},
-			idB: {clienttest.TurnOnAddr()},
-		},
-	}
-	createRes, err := g.Create(createReq)
+	aliases, err := testCreateOn(g, builder, idA, idB)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
-	}
-	for i := 0; i < len(createReq.Addresses); i++ {
-		if err := builder.WaitForBuild(time.Second); err != nil {
-			t.Fatalf("want err = nil; got %v", err)
-		}
 	}
 
 	// Add testing mounts to A machine.
@@ -197,11 +169,11 @@ func TestListMount(t *testing.T) {
 	}{
 		"all mounts": {
 			ConcatIDsInfo: map[string]sync.Info{
-				createRes.Aliases[idA] + string(mountIDs[0]): {
+				aliases[idA] + string(mountIDs[0]): {
 					ID:    mountIDs[0],
 					Mount: mA,
 				},
-				createRes.Aliases[idA] + string(mountIDs[1]): {
+				aliases[idA] + string(mountIDs[1]): {
 					ID:    mountIDs[1],
 					Mount: mB,
 				},
@@ -212,11 +184,11 @@ func TestListMount(t *testing.T) {
 				ID: idA,
 			},
 			ConcatIDsInfo: map[string]sync.Info{
-				createRes.Aliases[idA] + string(mountIDs[0]): {
+				aliases[idA] + string(mountIDs[0]): {
 					ID:    mountIDs[0],
 					Mount: mA,
 				},
-				createRes.Aliases[idA] + string(mountIDs[1]): {
+				aliases[idA] + string(mountIDs[1]): {
 					ID:    mountIDs[1],
 					Mount: mB,
 				},
@@ -233,7 +205,7 @@ func TestListMount(t *testing.T) {
 				MountID: mountIDs[1],
 			},
 			ConcatIDsInfo: map[string]sync.Info{
-				createRes.Aliases[idA] + string(mountIDs[1]): {
+				aliases[idA] + string(mountIDs[1]): {
 					ID:    mountIDs[1],
 					Mount: mB,
 				},
@@ -245,7 +217,7 @@ func TestListMount(t *testing.T) {
 				MountID: mountIDs[0],
 			},
 			ConcatIDsInfo: map[string]sync.Info{
-				createRes.Aliases[idA] + string(mountIDs[0]): {
+				aliases[idA] + string(mountIDs[0]): {
 					ID:    mountIDs[0],
 					Mount: mA,
 				},

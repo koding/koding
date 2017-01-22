@@ -110,17 +110,8 @@ func TestCreateBalance(t *testing.T) {
 	}
 	defer g.Close()
 
-	req := &CreateRequest{
-		Addresses: map[machine.ID][]machine.Addr{
-			id: {clienttest.TurnOffAddr()},
-		},
-	}
-
-	if _, err := g.Create(req); err != nil {
-		t.Fatalf("want err = nil; got %v", err)
-	}
-
-	if err := builder.WaitForBuild(time.Second); err != nil {
+	// Add connected remote machine.
+	if _, err := testCreateOn(g, builder, id); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
@@ -155,17 +146,7 @@ func TestCreateBalanceStaleMount(t *testing.T) {
 	defer g.Close()
 
 	// Add connected remote machine.
-	req := &CreateRequest{
-		Addresses: map[machine.ID][]machine.Addr{
-			id: {clienttest.TurnOnAddr()},
-		},
-	}
-
-	if _, err := g.Create(req); err != nil {
-		t.Fatalf("want err = nil; got %v", err)
-	}
-
-	if err := builder.WaitForBuild(time.Second); err != nil {
+	if _, err := testCreateOn(g, builder, id); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
@@ -190,4 +171,29 @@ func TestCreateBalanceStaleMount(t *testing.T) {
 	if err := clienttest.WaitForContextClose(client.Context(), 50*time.Millisecond); err == nil {
 		t.Fatalf("want err != nil; got nil")
 	}
+}
+
+func testCreateOn(g *Group, builder *clienttest.Builder, ids ...machine.ID) (aliases map[machine.ID]string, err error) {
+	req := &CreateRequest{
+		Addresses: make(map[machine.ID][]machine.Addr),
+	}
+
+	for _, id := range ids {
+		req.Addresses[id] = []machine.Addr{
+			clienttest.TurnOnAddr(),
+		}
+	}
+
+	res, err := g.Create(req)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := 0; i < len(req.Addresses); i++ {
+		if err := builder.WaitForBuild(time.Second); err != nil {
+			return nil, err
+		}
+	}
+
+	return res.Aliases, nil
 }
