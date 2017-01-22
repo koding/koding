@@ -19,7 +19,7 @@ func TestHeadMount(t *testing.T) {
 		id      = machine.ID("serv")
 	)
 
-	wd, m, clean, err := mounttest.MountDirs("")
+	wd, m, clean, err := mounttest.MountDirs()
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -75,7 +75,7 @@ func TestAddMount(t *testing.T) {
 		id      = machine.ID("serv")
 	)
 
-	wd, m, clean, err := mounttest.MountDirs("")
+	wd, m, clean, err := mounttest.MountDirs()
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -123,17 +123,11 @@ func TestListMount(t *testing.T) {
 	)
 
 	// There will be two mounts using by machine with idA.
-	wd, mA, cleanA, err := mounttest.MountDirs("")
+	wd, ms, clean, err := mounttest.MultiMountDirs(2)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	defer cleanA()
-
-	_, mB, cleanB, err := mounttest.MountDirs(wd)
-	if err != nil {
-		t.Fatalf("want err = nil; got %v", err)
-	}
-	defer cleanB()
+	defer clean()
 
 	g, err := New(testOptions(wd, builder))
 	if err != nil {
@@ -148,7 +142,7 @@ func TestListMount(t *testing.T) {
 	}
 
 	// Add testing mounts to A machine.
-	mountIDs, err := testAddMount(g, idA, mA, mB)
+	mountIDs, err := testAddMount(g, idA, ms...)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -161,11 +155,11 @@ func TestListMount(t *testing.T) {
 			ConcatIDsInfo: map[string]sync.Info{
 				aliases[idA] + string(mountIDs[0]): {
 					ID:    mountIDs[0],
-					Mount: mA,
+					Mount: ms[0],
 				},
 				aliases[idA] + string(mountIDs[1]): {
 					ID:    mountIDs[1],
-					Mount: mB,
+					Mount: ms[1],
 				},
 			},
 		},
@@ -176,11 +170,11 @@ func TestListMount(t *testing.T) {
 			ConcatIDsInfo: map[string]sync.Info{
 				aliases[idA] + string(mountIDs[0]): {
 					ID:    mountIDs[0],
-					Mount: mA,
+					Mount: ms[0],
 				},
 				aliases[idA] + string(mountIDs[1]): {
 					ID:    mountIDs[1],
-					Mount: mB,
+					Mount: ms[1],
 				},
 			},
 		},
@@ -197,7 +191,7 @@ func TestListMount(t *testing.T) {
 			ConcatIDsInfo: map[string]sync.Info{
 				aliases[idA] + string(mountIDs[1]): {
 					ID:    mountIDs[1],
-					Mount: mB,
+					Mount: ms[1],
 				},
 			},
 		},
@@ -209,7 +203,7 @@ func TestListMount(t *testing.T) {
 			ConcatIDsInfo: map[string]sync.Info{
 				aliases[idA] + string(mountIDs[0]): {
 					ID:    mountIDs[0],
-					Mount: mA,
+					Mount: ms[0],
 				},
 			},
 		},
