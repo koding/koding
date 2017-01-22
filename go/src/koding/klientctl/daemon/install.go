@@ -105,10 +105,10 @@ func (c *Client) Install(opts *Opts) error {
 func (c *Client) Uninstall(opts *Opts) error {
 	c.init()
 
-	start := min(len(c.d.Installation), len(c.script()))
+	start := min(len(c.d.Installation), len(c.script())) - 1
 
 	switch start {
-	case 0:
+	case -1:
 		return errors.New(`Already uninstalled. To install again, run "sudo kd daemon install".`)
 	case len(script):
 		fmt.Fprintln(os.Stderr, "Performing full uninstallation ...")
@@ -275,6 +275,32 @@ var script = []InstallStep{{
 		},
 	},
 })[runtime.GOOS], {
+	Name: "Koding account",
+	Install: func(c *Client, opts *Opts) (string, error) {
+		base, err := url.Parse(opts.Baseurl)
+		if err != nil {
+			return "", err
+		}
+
+		f := auth.NewFacade(&auth.FacadeOpts{
+			Base: base,
+			Log:  c.log(),
+		})
+
+		resp, err := f.Login(&auth.LoginOptions{
+			Team:  opts.Team,
+			Token: opts.Token,
+		})
+
+		if err != nil {
+			return "", err
+		}
+
+		_ = resp
+
+		return "", nil
+	},
+}, {
 	Name: "KD Daemon",
 	Install: func(c *Client, _ *Opts) (string, error) {
 		var version, newVersion int
@@ -336,10 +362,7 @@ var script = []InstallStep{{
 		}
 
 		_ = svc.Stop() // ignore failue, klient may be already stopped
-
-		if err = svc.Uninstall(); err != nil {
-			return err
-		}
+		_ = svc.Uninstall()
 
 		return nonil(os.Remove(c.d.Files["klient.sh"]), os.Remove(c.d.Files["klient"]))
 	},
@@ -353,43 +376,19 @@ var script = []InstallStep{{
 			return "", err
 		}
 
-		if newVersion <= config.VersionNum() {
+		kd := c.d.Files["kd"]
+
+		if _, err := os.Stat(kd); err == nil && newVersion <= config.VersionNum() {
 			return config.Version, nil
 		}
 
-		if err := wget(c.kd(newVersion), c.d.Files["kd"]); err != nil {
+		if err := wget(c.kd(newVersion), kd); err != nil {
 			return "", err
 		}
 
 		return strconv.Itoa(newVersion), nil
 	},
 	RunOnUpdate: true,
-}, {
-	Name: "Koding account",
-	Install: func(c *Client, opts *Opts) (string, error) {
-		base, err := url.Parse(opts.Baseurl)
-		if err != nil {
-			return "", err
-		}
-
-		f := auth.NewFacade(&auth.FacadeOpts{
-			Base: base,
-			Log:  c.log(),
-		})
-
-		resp, err := f.Login(&auth.LoginOptions{
-			Team:  opts.Team,
-			Token: opts.Token,
-		})
-
-		if err != nil {
-			return "", err
-		}
-
-		_ = resp
-
-		return "", nil
-	},
 }, {
 	Name: "Start KD Deamon",
 	Install: func(c *Client, _ *Opts) (string, error) {

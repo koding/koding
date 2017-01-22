@@ -25,10 +25,7 @@ type Details struct {
 }
 
 func newDetails() *Details {
-	kd := "/usr/loca/bin/kd"
-	if s, err := filepath.Abs(os.Args[0]); err == nil {
-		kd = s
-	}
+	kd := "/usr/local/bin/kd"
 
 	klientHome := "/opt/kite/klient"
 	if s := os.Getenv("KLIENT_HOME"); s != "" {
