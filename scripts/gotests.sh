@@ -106,11 +106,6 @@ elif [ "$1" == "socialapi" ]; then
     export RUN_FLAGS=${RUN_FLAGS:-"-c=./go/src/socialapi/config/dev.toml"}
 
     runAll $@
-
-elif [ "$1" == "generate" ]; then
-    shift
-
-    generateFolderName $@
 else
     runAll $@
 fi
