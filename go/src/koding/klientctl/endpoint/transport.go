@@ -3,6 +3,7 @@ package endpoint
 import (
 	"koding/api"
 	"koding/api/apiutil"
+	"koding/klientctl/config"
 	"koding/klientctl/endpoint/kloud"
 )
 
@@ -22,5 +23,7 @@ func Transport(client *kloud.Client) *api.Transport {
 				Cache: client.Cache(),
 			},
 		}).Auth,
+		Debug: config.Konfig.Debug,
+		Log:   kloud.DefaultLog,
 	}
 }

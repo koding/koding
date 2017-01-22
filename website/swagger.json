@@ -643,6 +643,9 @@
         "accessLevel": {
           "type": "string"
         },
+        "slug": {
+          "type": "string"
+        },
         "originId": {
           "type": "string"
         },

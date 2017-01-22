@@ -274,7 +274,7 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 		resp, err := t.roundTripper().RoundTrip(reqCopy)
 
-		if t.Debug {
+		if t.Debug && err == nil {
 			p, err := httputil.DumpResponse(resp, true)
 			t.log().Debug("[response] %s (err=%v)", p, err)
 		}

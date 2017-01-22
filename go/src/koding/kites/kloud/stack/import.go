@@ -1,7 +1,6 @@
 package stack
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -11,9 +10,9 @@ import (
 	"time"
 
 	"koding/api"
+	"koding/remoteapi"
 	"koding/remoteapi/client"
 	stacktemplate "koding/remoteapi/client/j_stack_template"
-	"koding/remoteapi/models"
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
@@ -259,7 +258,7 @@ func (sb *stackBuilder) buildTemplate() error {
 		ID string `json:"_id"`
 	}
 
-	if err := response(resp.Payload, &tmpl); err != nil {
+	if err := remoteapi.Unmarshal(resp.Payload, &tmpl); err != nil {
 		return err
 	}
 
@@ -291,7 +290,7 @@ func (sb *stackBuilder) setVerified(machines []*Machine) error {
 
 	sb.log.Debug("JStackTemplate.update response: %#v", resp)
 
-	return response(&resp.Payload.DefaultResponse, nil)
+	return remoteapi.Unmarshal(&resp.Payload.DefaultResponse, nil)
 }
 
 func (sb *stackBuilder) buildStack() error {
@@ -312,7 +311,7 @@ func (sb *stackBuilder) buildStack() error {
 		} `json:"stack"`
 	}
 
-	if err := response(&resp.Payload.DefaultResponse, &payload); err != nil {
+	if err := remoteapi.Unmarshal(&resp.Payload.DefaultResponse, &payload); err != nil {
 		return err
 	}
 
@@ -326,46 +325,4 @@ func (sb *stackBuilder) buildStack() error {
 func (sb *stackBuilder) reqTemplate() *string {
 	s := string(sb.req.Template)
 	return &s
-}
-
-func response(resp *models.DefaultResponse, v interface{}) error {
-	if resp.Error != nil {
-		if err, ok := resp.Error.(map[string]interface{}); ok {
-			msg, _ := err["message"].(string)
-			typ, _ := err["name"].(string)
-
-			if msg != "" && typ != "" {
-				return &kite.Error{
-					Type:    typ,
-					Message: msg,
-				}
-			}
-		}
-
-		return fmt.Errorf("%v", resp.Error)
-	}
-
-	if v == nil {
-		return nil
-	}
-
-	p, err := jsonMarshal(resp.Data)
-	if err != nil {
-		return err
-	}
-
-	return json.Unmarshal(p, v)
-}
-
-func jsonMarshal(v interface{}) ([]byte, error) {
-	var buf bytes.Buffer
-
-	enc := json.NewEncoder(&buf)
-	enc.SetEscapeHTML(false)
-
-	if err := enc.Encode(v); err != nil {
-		return nil, err
-	}
-
-	return buf.Bytes(), nil
 }
