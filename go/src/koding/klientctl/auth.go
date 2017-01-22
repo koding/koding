@@ -6,10 +6,9 @@ import (
 	"net/url"
 	"os"
 
+	"koding/kites/kloud/stack"
 	"koding/klientctl/endpoint/auth"
 	"koding/klientctl/endpoint/kloud"
-	"koding/klientctl/endpoint/kontrol"
-	"koding/klientctl/endpoint/team"
 
 	"github.com/codegangsta/cli"
 	"github.com/koding/logging"
@@ -25,16 +24,16 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, fmt.Errorf("%q is not a valid URL value: %s\n", c.String("koding"), err)
 	}
 
-	f, err := auth.NewFacade(&auth.FacadeOpts{
+	f := auth.NewFacade(&auth.FacadeOpts{
 		Base: kodingURL,
 		Log:  log,
 	})
 
-	if err != nil {
-		return 1, err
-	}
-
 	testKloudHook(f.Kloud)
+
+	// If we already own a valid kite.key, it means we were already
+	// authenticated and we just call kloud using kite.key authentication.
+	err = f.Kloud.Transport.(stack.Validator).Valid()
 
 	fmt.Fprintln(os.Stderr, "Logging to", kodingURL, "...")
 
@@ -51,7 +50,7 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 	fmt.Fprintln(os.Stderr, "Logging to", kodingURL, "...")
 
-	resp, err := authClient.Login(opts)
+	resp, err := f.Login(opts)
 	if err != nil {
 		return 1, fmt.Errorf("error logging into your Koding account: %v", err)
 	}
