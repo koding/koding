@@ -1,6 +1,7 @@
 package machinegroup
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -147,20 +148,9 @@ func TestListMount(t *testing.T) {
 	}
 
 	// Add testing mounts to A machine.
-	var mountIDs []mount.ID
-	for _, m := range []mount.Mount{mA, mB} {
-		addMountReq := &AddMountRequest{
-			MountRequest{
-				ID:    idA,
-				Mount: m,
-			},
-		}
-		addMountRes, err := g.AddMount(addMountReq)
-		if err != nil {
-			t.Fatalf("want err = nil; got %v", err)
-		}
-
-		mountIDs = append(mountIDs, addMountRes.MountID)
+	mountIDs, err := testAddMount(g, idA, mA, mB)
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
 	}
 
 	tests := map[string]struct {
@@ -281,4 +271,27 @@ func TestListMount(t *testing.T) {
 			}
 		})
 	}
+}
+
+func testAddMount(g *Group, id machine.ID, ms ...mount.Mount) (mountIDs mount.IDSlice, err error) {
+	for _, m := range ms {
+		req := &AddMountRequest{
+			MountRequest{
+				ID:    id,
+				Mount: m,
+			},
+		}
+		res, err := g.AddMount(req)
+		if err != nil {
+			return nil, err
+		}
+
+		mountIDs = append(mountIDs, res.MountID)
+	}
+
+	if len(mountIDs) == 0 {
+		return nil, errors.New("no mounts added")
+	}
+
+	return mountIDs, nil
 }

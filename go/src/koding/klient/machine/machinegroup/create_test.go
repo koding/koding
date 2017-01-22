@@ -151,13 +151,7 @@ func TestCreateBalanceStaleMount(t *testing.T) {
 	}
 
 	// Add testing mount.
-	addMountReq := &AddMountRequest{
-		MountRequest{
-			ID:    id,
-			Mount: m,
-		},
-	}
-	if _, err = g.AddMount(addMountReq); err != nil {
+	if _, err := testAddMount(g, id, m); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
