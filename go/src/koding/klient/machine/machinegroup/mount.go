@@ -299,6 +299,7 @@ func (g *Group) Umount(req *UmountRequest) (res *UmountResponse, err error) {
 	if err != nil {
 		absPath, e := filepath.Abs(req.Identifier)
 		if mountID, err = g.mount.Path(absPath); e != nil || err != nil {
+			g.log.Error("Cannot found mount with identifier: %s", req.Identifier)
 			return nil, fmt.Errorf("unknown mount: %q", req.Identifier)
 		}
 	}
@@ -307,12 +308,6 @@ func (g *Group) Umount(req *UmountRequest) (res *UmountResponse, err error) {
 	if err := g.sync.Drop(mountID); err != nil {
 		g.log.Error("Cannot remove synced mount %s: %s", mountID, err)
 		return nil, err
-	}
-
-	// Remove mount from cache. If this operation fails, sync process does not
-	// to be restarted.
-	if err := g.mount.Remove(mountID); err != nil {
-		g.log.Error("Cannot clear mount cache for %s: %s", mountID, err)
 	}
 
 	// Get mount machine.
@@ -325,6 +320,12 @@ func (g *Group) Umount(req *UmountRequest) (res *UmountResponse, err error) {
 	// Get mount object. Ignore errors since mount is only for logging purposes.
 	if mounts, err := g.mount.All(id); err == nil {
 		m = mounts[mountID]
+	}
+
+	// Remove mount from cache. If this operation fails, sync process does not
+	// to be restarted.
+	if err := g.mount.Remove(mountID); err != nil {
+		g.log.Error("Cannot clear mount cache for %s: %s", mountID, err)
 	}
 
 	g.log.Info("Successfully removed mount %s for %s", mountID, m)
