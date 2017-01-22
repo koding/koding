@@ -176,7 +176,7 @@ var script = []InstallStep{{
 			return "", err
 		}
 
-		path := c.d.LogFiles[runtime.GOOS]
+		path := c.d.LogFiles["kd"][runtime.GOOS]
 
 		f, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
 		if err != nil {
@@ -192,7 +192,17 @@ var script = []InstallStep{{
 		c.log().SetHandler(logging.NewWriterHandler(f))
 		fmt.Fprintf(c.stderr(), "Created log file: %s\n", path)
 
-		return "", nil
+		if f, err := os.Create(c.d.LogFiles["klient"][runtime.GOOS]); err == nil {
+			err = nonil(f.Chown(uid, gid), f.Close())
+		}
+
+		return "", err
+	},
+	Uninstall: func(c *Client, opts *Opts) (err error) {
+		for _, file := range c.d.LogFiles {
+			err = nonil(err, os.Remove(file[runtime.GOOS]))
+		}
+		return err
 	},
 }, {
 	Name: "directory structure",
@@ -349,16 +359,15 @@ var script = []InstallStep{{
 		return os.Remove(c.d.Files["kd"])
 	},
 	RunOnUpdate: true,
-},
-	{
-		Name: "Koding account",
-		Install: func(c *Client, opts *Opts) (string, error) {
-			return "", nil
-		},
-	}, {
-		Name: "Start KD Deamon",
-		Install: func(c *Client, opts *Opts) (string, error) {
-			return "", nil
-		},
-		RunOnUpdate: true,
-	}}
+}, {
+	Name: "Koding account",
+	Install: func(c *Client, opts *Opts) (string, error) {
+		return "", nil
+	},
+}, {
+	Name: "Start KD Deamon",
+	Install: func(c *Client, opts *Opts) (string, error) {
+		return "", nil
+	},
+	RunOnUpdate: true,
+}}

@@ -16,11 +16,11 @@ import (
 )
 
 type Details struct {
-	Username     string            `json:"username"`
-	KlientHome   string            `json:"klientHome"`
-	Files        map[string]string `json:"files"`
-	LogFiles     map[string]string `json:"logFiles"`
-	Installation []InstallResult   `json:"status,omitempty"`
+	Username     string                       `json:"username"`
+	KlientHome   string                       `json:"klientHome"`
+	Files        map[string]string            `json:"files"`
+	LogFiles     map[string]map[string]string `json:"logFiles"`
+	Installation []InstallResult              `json:"status,omitempty"`
 }
 
 func newDetails() *Details {
@@ -42,9 +42,15 @@ func newDetails() *Details {
 			"klient.sh": filepath.Join(klientHome, "klient.sh"),
 			"kd":        kd,
 		},
-		LogFiles: map[string]string{
-			"darwin": "/Library/Logs/kd.log",
-			"linux":  "/var/log/kd.log",
+		LogFiles: map[string]map[string]string{
+			"kd": {
+				"darwin": "/Library/Logs/kd.log",
+				"linux":  "/var/log/kd.log",
+			},
+			"klient": {
+				"darwin": "/Library/Logs/klient.log",
+				"linux":  "/var/log/klient.log",
+			},
 		},
 	}
 }
