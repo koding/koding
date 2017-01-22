@@ -17,6 +17,7 @@ import (
 
 type Details struct {
 	Username     string                       `json:"username"`
+	KodingHome   string                       `json:"kodingHome"`
 	KlientHome   string                       `json:"klientHome"`
 	Files        map[string]string            `json:"files"`
 	LogFiles     map[string]map[string]string `json:"logFiles"`
@@ -36,6 +37,7 @@ func newDetails() *Details {
 
 	return &Details{
 		Username:   config.CurrentUser.Username,
+		KodingHome: config.KodingHome(),
 		KlientHome: klientHome,
 		Files: map[string]string{
 			"klient":    filepath.Join(klientHome, "klient"),

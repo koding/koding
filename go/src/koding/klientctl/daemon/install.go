@@ -57,11 +57,11 @@ func (c *Client) Install(opts *Opts) error {
 
 	switch start {
 	case 0:
-		fmt.Fprintln(c.stderr(), "Performing fresh installation ...")
+		fmt.Fprintln(os.Stderr, "Performing fresh installation ...")
 	case len(script):
 		return errors.New(`Already installed. To reinstall, run "sudo kd daemon uninstall" first.`)
 	default:
-		fmt.Fprintf(c.stderr(), "Resuming installation at %q step ...\n", script[start].Name)
+		fmt.Fprintf(os.Stderr, "Resuming installation at %q step ...\n", script[start].Name)
 	}
 
 	skip := make(map[string]struct{}, len(opts.Skip))
@@ -71,7 +71,7 @@ func (c *Client) Install(opts *Opts) error {
 
 	var err, merr error
 	for _, step := range c.script()[start:] {
-		fmt.Fprintf(c.stderr(), "Installing %q ...\n", step.Name)
+		fmt.Fprintf(os.Stderr, "Installing %q ...\n", step.Name)
 
 		result := InstallResult{
 			Name: step.Name,
@@ -111,16 +111,16 @@ func (c *Client) Uninstall(opts *Opts) error {
 	case 0:
 		return errors.New(`Already uninstalled. To install again, run "sudo kd daemon install".`)
 	case len(script):
-		fmt.Fprintln(c.stderr(), "Performing full uninstallation ...")
+		fmt.Fprintln(os.Stderr, "Performing full uninstallation ...")
 	default:
-		fmt.Fprintf(c.stderr(), "Performing partial uninstallation at %q step ...\n", c.script()[start].Name)
+		fmt.Fprintf(os.Stderr, "Performing partial uninstallation at %q step ...\n", c.script()[start].Name)
 	}
 
 	var merr error
 	for i := start; i >= 0; i-- {
 		step := c.script()[i]
 
-		fmt.Fprintf(c.stderr(), "Uninstalling %q ...\n", step.Name)
+		fmt.Fprintf(os.Stderr, "Uninstalling %q ...\n", step.Name)
 
 		if step.Uninstall != nil {
 			switch err := step.Uninstall(c, opts); err {
@@ -179,9 +179,10 @@ var script = []InstallStep{{
 			return "", err
 		}
 
-		path := c.d.LogFiles["kd"][runtime.GOOS]
+		kd := c.d.LogFiles["kd"][runtime.GOOS]
+		klient := c.d.LogFiles["klient"][runtime.GOOS]
 
-		f, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+		f, err := os.OpenFile(kd, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
 		if err != nil {
 			return "", err
 		}
@@ -193,10 +194,11 @@ var script = []InstallStep{{
 		}
 
 		c.log().SetHandler(logging.NewWriterHandler(f))
-		fmt.Fprintf(c.stderr(), "Created log file: %s\n", path)
+		fmt.Fprintf(os.Stderr, "Created log file: %s\n", kd)
 
-		if f, err := os.Create(c.d.LogFiles["klient"][runtime.GOOS]); err == nil {
+		if f, err := os.Create(klient); err == nil {
 			err = nonil(f.Chown(uid, gid), f.Close())
+			fmt.Fprintf(os.Stderr, "Created log file: %s\n", klient)
 		}
 
 		return "", err
@@ -210,7 +212,10 @@ var script = []InstallStep{{
 }, {
 	Name: "directory structure",
 	Install: func(c *Client, _ *Opts) (string, error) {
-		return "", os.MkdirAll(c.d.KlientHome, 0755)
+		return "", nonil(os.MkdirAll(c.d.KlientHome, 0755), os.MkdirAll(c.d.KodingHome, 0755))
+	},
+	Uninstall: func(c *Client, _ *Opts) error {
+		return os.RemoveAll(c.d.KodingHome)
 	},
 }, (map[string]InstallStep{
 	"darwin": {
@@ -357,9 +362,6 @@ var script = []InstallStep{{
 		}
 
 		return strconv.Itoa(newVersion), nil
-	},
-	Uninstall: func(c *Client, _ *Opts) error {
-		return os.Remove(c.d.Files["kd"])
 	},
 	RunOnUpdate: true,
 }, {

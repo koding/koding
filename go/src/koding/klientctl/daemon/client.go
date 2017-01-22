@@ -1,8 +1,6 @@
 package daemon
 
 import (
-	"io"
-	"os"
 	"sync"
 
 	"koding/kites/config"
@@ -17,9 +15,6 @@ import (
 var DefaultClient = &Client{}
 
 type Client struct {
-	Stdin       io.Reader
-	Stdout      io.Writer
-	Stderr      io.Writer
 	Konfig      *config.Konfig
 	KonfigCache *config.Cache
 	Log         logging.Logger
@@ -62,27 +57,6 @@ func (c *Client) readCache() {
 	if c == DefaultClient {
 		ctlcli.CloseOnExit(c)
 	}
-}
-
-func (c *Client) stdin() io.Reader {
-	if c.Stdin != nil {
-		return c.Stdin
-	}
-	return os.Stdin
-}
-
-func (c *Client) stdout() io.Writer {
-	if c.Stdout != nil {
-		return c.Stdout
-	}
-	return os.Stdout
-}
-
-func (c *Client) stderr() io.Writer {
-	if c.Stderr != nil {
-		return c.Stderr
-	}
-	return os.Stderr
 }
 
 func (c *Client) konfig() *config.Konfig {

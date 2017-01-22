@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"os"
 
-	"koding/kites/kloud/stack"
 	"koding/klientctl/endpoint/auth"
 	"koding/klientctl/endpoint/kloud"
 
@@ -31,24 +30,12 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 	testKloudHook(f.Kloud)
 
-	// If we already own a valid kite.key, it means we were already
-	// authenticated and we just call kloud using kite.key authentication.
-	err = f.Kloud.Transport.(stack.Validator).Valid()
-
 	fmt.Fprintln(os.Stderr, "Logging to", kodingURL, "...")
 
 	opts := &auth.LoginOptions{
 		Team:  c.String("team"),
 		Token: c.String("token"),
 	}
-
-	if err != nil && opts.Token == "" {
-		if err = opts.AskUserPass(); err != nil {
-			return 1, err
-		}
-	}
-
-	fmt.Fprintln(os.Stderr, "Logging to", kodingURL, "...")
 
 	resp, err := f.Login(opts)
 	if err != nil {
