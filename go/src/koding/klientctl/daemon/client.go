@@ -4,9 +4,9 @@ import (
 	"sync"
 
 	"koding/kites/config"
+	"koding/kites/config/configstore"
 	conf "koding/klientctl/config"
 	"koding/klientctl/ctlcli"
-	konfig "koding/klientctl/endpoint/config"
 	"koding/klientctl/endpoint/kloud"
 
 	"github.com/koding/logging"
@@ -15,10 +15,10 @@ import (
 var DefaultClient = &Client{}
 
 type Client struct {
-	Konfig      *config.Konfig
-	KonfigCache *config.Cache
-	Log         logging.Logger
-	Script      []InstallStep
+	Konfig *config.Konfig
+	Store  *configstore.Client
+	Log    logging.Logger
+	Script []InstallStep
 
 	once sync.Once
 	d    *Details
@@ -38,7 +38,9 @@ func (c *Client) Stop() error {
 
 func (c *Client) Close() (err error) {
 	if c.d != nil {
-		err = c.konfigCache().SetValue("daemon.details", c.d)
+		err = c.store().Commit(func(cache *config.Cache) error {
+			return cache.SetValue("daemon.details", c.d)
+		})
 	}
 	return err
 }
@@ -52,7 +54,9 @@ func (c *Client) readCache() {
 
 	// Ignoring read error, if it's non-nil then empty cache is going to
 	// be used instead.
-	_ = c.konfigCache().GetValue("daemon.details", c.d)
+	_ = c.store().Commit(func(cache *config.Cache) error {
+		return cache.GetValue("daemon.details", c.d)
+	})
 
 	if c == DefaultClient {
 		ctlcli.CloseOnExit(c)
@@ -66,11 +70,11 @@ func (c *Client) konfig() *config.Konfig {
 	return conf.Konfig
 }
 
-func (c *Client) konfigCache() *config.Cache {
-	if c.KonfigCache != nil {
-		return c.KonfigCache
+func (c *Client) store() *configstore.Client {
+	if c.Store != nil {
+		return c.Store
 	}
-	return konfig.Cache()
+	return configstore.DefaultClient
 }
 
 func (c *Client) kd(version int) string {

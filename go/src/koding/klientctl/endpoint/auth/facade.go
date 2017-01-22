@@ -29,8 +29,11 @@ type FacadeOpts struct {
 	Log  logging.Logger
 }
 
-func NewFacade(opts *FacadeOpts) *Facade {
-	k := newKonfig(opts.Base)
+func NewFacade(opts *FacadeOpts) (*Facade, error) {
+	k, err := newKonfig(opts.Base)
+	if err != nil {
+		return nil, err
+	}
 
 	kloud := &kloud.Client{
 		Transport: &kloud.KiteTransport{
@@ -53,7 +56,7 @@ func NewFacade(opts *FacadeOpts) *Facade {
 			Kloud: kloud,
 		},
 		Log: opts.Log,
-	}
+	}, nil
 }
 
 func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error) {
@@ -108,7 +111,7 @@ func (f *Facade) log() logging.Logger {
 	return kloud.DefaultLog
 }
 
-func newKonfig(base *url.URL) *config.Konfig {
+func newKonfig(base *url.URL) (*config.Konfig, error) {
 	k, ok := configstore.List()[config.ID(base.String())]
 	if !ok {
 		k = &config.Konfig{
@@ -119,7 +122,11 @@ func newKonfig(base *url.URL) *config.Konfig {
 		}
 	}
 
-	return k
+	if err := configstore.Use(k); err != nil {
+		return nil, err
+	}
+
+	return k, nil
 }
 
 // fixKlientEndpoint fixes klient latest endpoint - kloud always installs

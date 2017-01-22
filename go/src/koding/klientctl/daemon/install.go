@@ -282,10 +282,14 @@ var script = []InstallStep{{
 			return "", err
 		}
 
-		f := auth.NewFacade(&auth.FacadeOpts{
+		f, err := auth.NewFacade(&auth.FacadeOpts{
 			Base: base,
 			Log:  c.log(),
 		})
+
+		if err != nil {
+			return "", err
+		}
 
 		resp, err := f.Login(&auth.LoginOptions{
 			Team:  opts.Team,

@@ -23,10 +23,14 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		return 1, fmt.Errorf("%q is not a valid URL value: %s\n", c.String("koding"), err)
 	}
 
-	f := auth.NewFacade(&auth.FacadeOpts{
+	f, err := auth.NewFacade(&auth.FacadeOpts{
 		Base: kodingURL,
 		Log:  log,
 	})
+
+	if err != nil {
+		return 1, err
+	}
 
 	testKloudHook(f.Kloud)
 
