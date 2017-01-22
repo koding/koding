@@ -41,10 +41,6 @@ func (c *Client) Stop() error {
 	return nil
 }
 
-func (c *Client) Status() error {
-	return nil
-}
-
 func (c *Client) Close() (err error) {
 	if c.d != nil {
 		err = c.konfigCache().SetValue("daemon.details", c.d)
@@ -146,4 +142,3 @@ func Update(opts *Opts) error    { return DefaultClient.Update(opts) }
 func Start() error               { return DefaultClient.Start() }
 func Restart() error             { return DefaultClient.Restart() }
 func Stop() error                { return DefaultClient.Stop() }
-func Status() error              { return DefaultClient.Status() }

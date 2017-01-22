@@ -588,6 +588,14 @@ func run(args []string) {
 							Name:  "force, y",
 							Usage: "Forces a yes answer to all interactive questions.",
 						},
+						cli.StringFlag{
+							Name:  "prefix",
+							Usage: "Overwrite installation directory.",
+						},
+						cli.StringFlag{
+							Name:  "baseurl",
+							Usage: "Specify a Koding endpoint to log in.",
+						},
 						cli.StringSliceFlag{
 							Name:  "skip",
 							Usage: "List steps to skip during installation.",
@@ -625,10 +633,6 @@ func run(args []string) {
 					Name:   "stop",
 					Usage:  "Stop the daemon service.",
 					Action: ctlcli.ExitErrAction(DaemonStop, log, "stop"),
-				}, {
-					Name:   "status",
-					Usage:  "Health check the local installation status.",
-					Action: ctlcli.ExitErrAction(DaemonStatus, log, "Status"),
 				}},
 			},
 			cli.Command{

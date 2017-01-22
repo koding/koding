@@ -36,10 +36,11 @@ type InstallStep struct {
 }
 
 type Opts struct {
-	Force  bool
-	Token  string
-	Prefix string
-	Skip   []string
+	Force   bool
+	Token   string
+	Prefix  string
+	Baseurl string
+	Skip    []string
 }
 
 func (c *Client) Install(opts *Opts) error {
