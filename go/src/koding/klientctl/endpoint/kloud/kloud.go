@@ -134,6 +134,15 @@ func (kt *KiteTransport) Connect(url string) (Transport, error) {
 	return &ktCopy, nil
 }
 
+func (kt *KiteTransport) SetKiteKey(kiteKey string) {
+	if kt.kClient != nil {
+		kt.kClient.Auth = &kite.Auth{
+			Type: "kiteKey",
+			Key:  kiteKey,
+		}
+	}
+}
+
 func (kt *KiteTransport) kite() *kite.Kite {
 	if kt.k != nil {
 		return kt.k
