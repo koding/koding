@@ -116,9 +116,6 @@ module.exports = class JStackTemplate extends Module
         ]
         default       : 'private'
 
-      slug            :
-        type          : String
-
       originId        :
         type          : ObjectId
         required      : yes
