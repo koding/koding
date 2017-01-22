@@ -16,6 +16,7 @@ import (
 	"koding/klientctl/ctlcli"
 	"koding/tools/util"
 
+	multierror "github.com/hashicorp/go-multierror"
 	"github.com/koding/logging"
 )
 
@@ -64,7 +65,7 @@ func (c *Client) Install(opts *Opts) error {
 		skip[strings.ToLower(s)] = struct{}{}
 	}
 
-	var err error
+	var err, merr error
 	for _, step := range c.script()[start:] {
 		fmt.Fprintf(c.stderr(), "Installing %q ...\n", step.Name)
 
@@ -81,7 +82,11 @@ func (c *Client) Install(opts *Opts) error {
 				result.Skipped = true
 			case nil:
 			default:
-				return fmt.Errorf("error installing %q: %s", step.Name, err)
+				if !opts.Force {
+					return fmt.Errorf("error installing %q: %s", step.Name, err)
+				}
+
+				merr = multierror.Append(merr, err)
 			}
 		}
 
@@ -90,7 +95,7 @@ func (c *Client) Install(opts *Opts) error {
 
 	// TODO(rjeczalik): ensure client is running
 
-	return nil
+	return merr
 }
 
 func (c *Client) Uninstall(opts *Opts) error {
@@ -107,6 +112,7 @@ func (c *Client) Uninstall(opts *Opts) error {
 		fmt.Fprintf(c.stderr(), "Performing partial uninstallation at %q step ...\n", c.script()[start].Name)
 	}
 
+	var merr error
 	for i := start; i >= 0; i-- {
 		step := c.script()[i]
 
@@ -116,14 +122,18 @@ func (c *Client) Uninstall(opts *Opts) error {
 			switch err := step.Uninstall(c, opts); err {
 			case nil, ErrSkipInstall:
 			default:
-				return fmt.Errorf("error uninstalling %q: %s", step.Name, err)
+				if !opts.Force {
+					return fmt.Errorf("error uninstalling %q: %s", step.Name, err)
+				}
+
+				merr = multierror.Append(merr, err)
 			}
 		}
 
 		c.d.Installation = c.d.Installation[:i]
 	}
 
-	return nil
+	return merr
 }
 
 func (c *Client) Update(opts *Opts) error {
@@ -133,6 +143,7 @@ func (c *Client) Update(opts *Opts) error {
 		return errors.New(`KD is not yet installed. Please run "sudo kd daemon install".`)
 	}
 
+	var merr error
 	for i, step := range c.script() {
 		if !step.RunOnUpdate || c.Install == nil {
 			continue
@@ -143,13 +154,17 @@ func (c *Client) Update(opts *Opts) error {
 			c.d.Installation[i].Version = version
 		case ErrSkipInstall:
 		default:
-			return fmt.Errorf("error uninstalling %q: %s", step.Name, err)
+			if !opts.Force {
+				return fmt.Errorf("error uninstalling %q: %s", step.Name, err)
+			}
+
+			merr = multierror.Append(merr, err)
 		}
 	}
 
 	// TODO(rjeczalik): ensure klient is running
 
-	return nil
+	return merr
 }
 
 var script = []InstallStep{{
