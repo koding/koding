@@ -1,12 +1,17 @@
 package daemon
 
 import (
+	"errors"
+	"fmt"
+	"net/http"
 	"sync"
+	"time"
 
 	"koding/kites/config"
 	"koding/kites/config/configstore"
 	conf "koding/klientctl/config"
 	"koding/klientctl/ctlcli"
+	"koding/klientctl/endpoint/auth"
 	"koding/klientctl/endpoint/kloud"
 
 	"github.com/koding/logging"
@@ -15,10 +20,11 @@ import (
 var DefaultClient = &Client{}
 
 type Client struct {
-	Konfig *config.Konfig
-	Store  *configstore.Client
-	Log    logging.Logger
-	Script []InstallStep
+	Konfig  *config.Konfig
+	Store   *configstore.Client
+	Log     logging.Logger
+	Script  []InstallStep
+	Timeout time.Duration
 
 	once sync.Once
 	d    *Details
@@ -34,6 +40,38 @@ func (c *Client) Restart() error {
 
 func (c *Client) Stop() error {
 	return nil
+}
+
+func (c *Client) Ping() error {
+	timeout := time.NewTimer(c.timeout())
+	defer timeout.Stop()
+
+	tick := time.NewTicker(time.Second)
+	defer tick.Stop()
+
+	var err error
+	for {
+		select {
+		case <-tick.C:
+			var resp *http.Response
+			resp, err = http.Get(c.konfig().Endpoints.Klient.Private.String())
+			if err != nil {
+				c.log().Warning("ping: requesting /kite failed: %s", err)
+				continue
+			}
+			resp.Body.Close() // ignore body
+
+			switch resp.StatusCode {
+			case http.StatusOK, http.StatusNoContent:
+				return nil
+			default:
+				err = errors.New(http.StatusText(resp.StatusCode))
+				c.log().Warning("ping: /kite request failed: %s", err)
+			}
+		case <-timeout.C:
+			return fmt.Errorf("waiting for KD Daemon to become available timed out after %s", c.timeout())
+		}
+	}
 }
 
 func (c *Client) Close() (err error) {
@@ -61,6 +99,13 @@ func (c *Client) readCache() {
 	if c == DefaultClient {
 		ctlcli.CloseOnExit(c)
 	}
+}
+
+func (c *Client) newFacade() (*auth.Facade, error) {
+	return auth.NewFacade(&auth.FacadeOpts{
+		Base: c.d.base(),
+		Log:  c.log(),
+	})
 }
 
 func (c *Client) konfig() *config.Konfig {
@@ -105,6 +150,13 @@ func (c *Client) log() logging.Logger {
 		return c.Log
 	}
 	return kloud.DefaultLog
+}
+
+func (c *Client) timeout() time.Duration {
+	if c.Timeout != 0 {
+		return c.Timeout
+	}
+	return 30 * time.Second
 }
 
 func min(i, j int) int {

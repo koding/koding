@@ -7,16 +7,29 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
 
 	"koding/kites/config"
+	conf "koding/klientctl/config"
 )
+
+// TODO:
+//
+//   - kd daemon start/stop
+//   - ping klient after install/update
+//   - kd/daemon: add more logs
+//   - koding/homebrew-kd
+//   - add osxfuse/vagrant/virtualbox install steps
+//   - remove old code
+//
 
 type Details struct {
 	Username     string                       `json:"username"`
+	Base         *config.URL                  `json:"baseURL"`
 	KodingHome   string                       `json:"kodingHome"`
 	KlientHome   string                       `json:"klientHome"`
 	Files        map[string]string            `json:"files"`
@@ -69,6 +82,13 @@ func (d *Details) helper() *klientSh {
 		KlientPath:   d.Files["klient"],
 		KlientShPath: d.Files["klient.sh"],
 	}
+}
+
+func (d *Details) base() *url.URL {
+	if d.Base != nil && d.Base.URL != nil {
+		return d.Base.URL
+	}
+	return conf.Konfig.Endpoints.Koding.Public.URL
 }
 
 func parseVersion(bin string) (int, error) {

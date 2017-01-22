@@ -49,6 +49,15 @@ type Opts struct {
 func (c *Client) Install(opts *Opts) error {
 	c.init()
 
+	if opts.Baseurl == "" {
+		return errors.New("invalid empty -baseurl value")
+	}
+
+	base, err := url.Parse(opts.Baseurl)
+	if err != nil {
+		return err
+	}
+
 	if opts.Prefix != "" {
 		c.d.setPrefix(opts.Prefix)
 	}
@@ -64,12 +73,16 @@ func (c *Client) Install(opts *Opts) error {
 		fmt.Fprintf(os.Stderr, "Resuming installation at %q step ...\n", script[start].Name)
 	}
 
+	c.d.Base = &conf.URL{
+		URL: base,
+	}
+
 	skip := make(map[string]struct{}, len(opts.Skip))
 	for _, s := range opts.Skip {
 		skip[strings.ToLower(s)] = struct{}{}
 	}
 
-	var err, merr error
+	var merr error
 	for _, step := range c.script()[start:] {
 		fmt.Fprintf(os.Stderr, "Installing %q ...\n", step.Name)
 
@@ -97,7 +110,13 @@ func (c *Client) Install(opts *Opts) error {
 		c.d.Installation = append(c.d.Installation, result)
 	}
 
-	// TODO(rjeczalik): ensure client is running
+	if err = c.Ping(); err != nil {
+		if merr == nil {
+			return err
+		}
+
+		merr = multierror.Append(merr, err)
+	}
 
 	return merr
 }
@@ -110,7 +129,7 @@ func (c *Client) Uninstall(opts *Opts) error {
 	switch start {
 	case -1:
 		return errors.New(`Already uninstalled. To install again, run "sudo kd daemon install".`)
-	case len(script):
+	case len(script) - 1:
 		fmt.Fprintln(os.Stderr, "Performing full uninstallation ...")
 	default:
 		fmt.Fprintf(os.Stderr, "Performing partial uninstallation at %q step ...\n", c.script()[start].Name)
@@ -166,7 +185,13 @@ func (c *Client) Update(opts *Opts) error {
 		}
 	}
 
-	// TODO(rjeczalik): ensure klient is running
+	if err := c.Ping(); err != nil {
+		if merr == nil {
+			return err
+		}
+
+		merr = multierror.Append(merr, err)
+	}
 
 	return merr
 }
@@ -277,16 +302,7 @@ var script = []InstallStep{{
 })[runtime.GOOS], {
 	Name: "Koding account",
 	Install: func(c *Client, opts *Opts) (string, error) {
-		base, err := url.Parse(opts.Baseurl)
-		if err != nil {
-			return "", err
-		}
-
-		f, err := auth.NewFacade(&auth.FacadeOpts{
-			Base: base,
-			Log:  c.log(),
-		})
-
+		f, err := c.newFacade()
 		if err != nil {
 			return "", err
 		}
