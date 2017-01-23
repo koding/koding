@@ -144,7 +144,10 @@ func TestFamily2Image(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(test.Name, func(t *testing.T) {
+			t.Parallel()
 			f2i := Family2Image{
 				GetFromFamily: getFromFamilyTestFunc,
 			}

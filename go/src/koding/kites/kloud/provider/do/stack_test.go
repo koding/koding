@@ -153,7 +153,11 @@ func TestStack_ApplyTemplate(t *testing.T) {
 	}
 
 	for name, cas := range cases {
+		// capture range variable here
+		cas := cas
+		name := name
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			content, err := ioutil.ReadFile(cas.stackFile)
 			if err != nil {
 				t.Fatalf("ReadFile(%s)=%s", cas.stackFile, err)

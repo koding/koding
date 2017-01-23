@@ -70,7 +70,11 @@ func TestVariables(t *testing.T) {
 	}
 
 	for name, cas := range cases {
+		// capture range variable here
+		cas := cas
+		name := name
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			vars := provider.ReadVariables(cas.s)
 
 			if !reflect.DeepEqual(vars, cas.vars) {
