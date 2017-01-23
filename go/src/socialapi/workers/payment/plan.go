@@ -2,6 +2,7 @@ package payment
 
 import (
 	"socialapi/config"
+	"sync"
 
 	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/currency"
@@ -27,8 +28,10 @@ const (
 	Over50Users = "p_over_50"
 )
 
-// Plans holds koding provided plans on stripe
-var Plans = map[string]*stripe.PlanParams{
+var planMu sync.RWMutex
+
+// plans holds koding provided plans on stripe
+var plans = map[string]*stripe.PlanParams{
 	// Forever free koding
 	Free: {
 		Amount:        0,
@@ -75,25 +78,36 @@ var Plans = map[string]*stripe.PlanParams{
 	},
 }
 
+// GetPlan returns the plan by its name. User should check for existance.
+func GetPlan(name string) *stripe.PlanParams {
+	planMu.RLock()
+	defer planMu.RUnlock()
+
+	return plans[name]
+}
+
 // GetPlanID returns id of the plan according to the give user count
 func GetPlanID(userCount int) string {
 	switch {
 	case userCount == 0:
-		return Plans[Free].ID
+		return GetPlan(Free).ID
 	case userCount < 10:
-		return Plans[UpTo10Users].ID
+		return GetPlan(UpTo10Users).ID
 	case userCount < 50:
-		return Plans[UpTo50Users].ID
+		return GetPlan(UpTo50Users).ID
 	default:
-		return Plans[Over50Users].ID
+		return GetPlan(Over50Users).ID
 	}
 }
 
 // CreateDefaultPlans creates predefined default plans. This is meant to be run
 // when the worker starts to be sure the plans are there.
 func CreateDefaultPlans() error {
-	for key := range Plans {
-		if err := EnsurePlan(Plans[key]); err != nil {
+	planMu.RLock()
+	defer planMu.RUnlock()
+
+	for key := range plans {
+		if err := EnsurePlan(plans[key]); err != nil {
 			return err
 		}
 	}

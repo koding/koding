@@ -99,7 +99,7 @@ func GetSubscriptionForGroup(groupName string) (*stripe.Sub, error) {
 func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*stripe.Sub, error) {
 	if params == nil {
 		params = &stripe.SubParams{
-			Plan: Plans[UpTo10Users].ID,
+			Plan: UpTo10Users,
 		}
 	}
 
