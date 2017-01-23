@@ -20,7 +20,7 @@ type HeadMountRequest struct {
 // HeadMountResponse defines machine group head mount response.
 type HeadMountResponse struct {
 	// ExistMountID is not empty when mount to a given remote folder already exists.
-	ExistMountID mount.ID `json:"existMountID"`
+	ExistMountID mount.ID `json:"existMountID,omitempty"`
 
 	// AbsRemotePath stores absolute representation of remote path.
 	AbsRemotePath string `json:"absRemotePath"`
@@ -32,9 +32,9 @@ type HeadMountResponse struct {
 	AllDiskSize int64 `json:"allDiskSize"`
 }
 
-// HeadMount retrieves information on existing mount or prepares remote machine
-// for mounting. It can tell in advance if remote directory exists and if it is
-// possible to mount it. This function does not create any mount data.
+// HeadMount retrieves information about existing mount or prepares remote
+// machine for mounting. It can tell in advance if remote directory exists and
+// if it is possible to mount it. This function does not create any mount data.
 func (g *Group) HeadMount(req *HeadMountRequest) (*HeadMountResponse, error) {
 	if req == nil {
 		return nil, errors.New("invalid nil request")
