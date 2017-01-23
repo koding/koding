@@ -2,6 +2,7 @@ package auth
 
 import (
 	"net/url"
+	"os"
 
 	"koding/kites/config"
 	"koding/kites/config/configstore"
@@ -19,6 +20,7 @@ type Facade struct {
 	Konfig *config.Konfig
 	Kloud  *kloud.Client
 	Team   *team.Client
+	Log    logging.Logger
 }
 
 type FacadeOpts struct {
@@ -26,8 +28,11 @@ type FacadeOpts struct {
 	Log  logging.Logger
 }
 
-func NewFacade(opts *FacadeOpts) *Facade {
-	k := newKonfig(opts.Base)
+func NewFacade(opts *FacadeOpts) (*Facade, error) {
+	k, err := newKonfig(opts.Base)
+	if err != nil {
+		return nil, err
+	}
 
 	kloud := &kloud.Client{
 		Transport: &kloud.KiteTransport{
@@ -49,11 +54,23 @@ func NewFacade(opts *FacadeOpts) *Facade {
 		Team: &team.Client{
 			Kloud: kloud,
 		},
-	}
-
+		Log: opts.Log,
+	}, nil
 }
 
 func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error) {
+	// If we already own a valid kite.key, it means we were already
+	// authenticated and we just call kloud using kite.key authentication.
+	err := f.Kloud.Transport.(stack.Validator).Valid()
+
+	f.log().Debug("auth: transport test: %s", err)
+
+	if err != nil && opts.Token == "" {
+		if err = opts.AskUserPass(); err != nil {
+			return nil, err
+		}
+	}
+
 	resp, err := f.Client.Login(opts)
 	if err != nil {
 		return nil, err
@@ -82,15 +99,27 @@ func (f *Facade) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 
 }
 
-func newKonfig(base *url.URL) *config.Konfig {
+func (f *Facade) log() logging.Logger {
+	if f.Log != nil {
+		return f.Log
+	}
+	return kloud.DefaultLog
+}
+
+func newKonfig(base *url.URL) (*config.Konfig, error) {
 	k, ok := configstore.List()[config.ID(base.String())]
 	if !ok {
 		k = &config.Konfig{
 			Endpoints: &config.Endpoints{
 				Koding: config.NewEndpointURL(base),
 			},
+			Debug: os.Getenv("KD_DEBUG") == "1",
 		}
 	}
 
-	return k
+	if err := configstore.Use(k); err != nil {
+		return nil, err
+	}
+
+	return k, nil
 }

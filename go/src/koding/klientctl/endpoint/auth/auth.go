@@ -4,10 +4,12 @@ import (
 	"sort"
 	"sync"
 
+	"koding/kites/config"
 	"koding/kites/kloud/stack"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/kloud"
 	"koding/klientctl/endpoint/kontrol"
+	"koding/klientctl/helper"
 )
 
 var DefaultClient = &Client{}
@@ -42,6 +44,29 @@ type LoginOptions struct {
 	Token    string
 	Username string
 	Password string
+}
+
+func (opts *LoginOptions) AskUserPass() (err error) {
+	opts.Username, err = helper.Ask("Username [%s]: ", config.CurrentUser.Username)
+	if err != nil {
+		return err
+	}
+
+	if opts.Username == "" {
+		opts.Username = config.CurrentUser.Username
+	}
+
+	for {
+		opts.Password, err = helper.AskSecret("Password [***]: ")
+		if err != nil {
+			return err
+		}
+		if opts.Password != "" {
+			break
+		}
+	}
+
+	return nil
 }
 
 type Client struct {
