@@ -9,7 +9,7 @@ _ = require 'lodash'
 KONFIG        = require 'koding-config-manager'
 { socialapi } = KONFIG
 exchangeName  = "#{socialapi.eventExchangeName}:0"
-exchangeOpts  = { autoDelete: no, durable:yes, type :'fanout', confirm: true }
+exchangeOpts  = { autoDelete: no, durable: yes, type: 'fanout', confirm: true }
 
 try
   Analytics = require('analytics-node')
@@ -30,27 +30,7 @@ module.exports = class Tracker extends bongo.Base
 
   EVENT_TYPE = 'api.mail_send'
 
-  @types =
-    START_REGISTER            : 'started to register'
-    FINISH_REGISTER           : 'finished register'
-    LOGGED_IN                 : 'logged in'
-    CONFIRM_USING_TOKEN       : 'confirmed & logged in using token'
-    REQUEST_NEW_PASSWORD      : 'requested a new password'
-    CHANGED_PASSWORD          : 'changed their password'
-    REQUEST_EMAIL_CHANGE      : 'requested pin to change email'
-    CHANGED_EMAIL             : 'changed their email'
-    INVITED_TEAM              : 'was invited to a team'
-    INVITED_CREATE_TEAM       : 'was invited to create a team'
-    SENT_FEEDBACK             : 'sent feedback'
-    TEAMS_JOINED_TEAM         : 'joined team'
-    USER_ENABLED_2FA          : 'enabled 2-factor auth'
-    USER_DISABLED_2FA         : 'disabled 2-factor auth'
-    STACKS_START_BUILD        : 'started stack build'
-    STACKS_BUILD_SUCCESSFULLY : 'stack build successfully'
-    STACKS_BUILD_FAILED       : 'stack build failed'
-    STACKS_REINIT             : 'reinitialized stack'
-    STACKS_DELETE             : 'deleted stack'
-    REQUESTED_TEAM_LIST       : 'requested team list'
+  @types = require './trackingtypes'
 
   @properties = {}
 
