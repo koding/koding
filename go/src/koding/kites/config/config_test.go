@@ -76,7 +76,11 @@ func TestReplaceEnv(t *testing.T) {
 	}
 
 	for i, test := range tests {
+		// capture range variable here
+		test := test
+		i := i
 		t.Run(fmt.Sprintf("test_no_%d", i), func(t *testing.T) {
+			t.Parallel()
 			provVariable := NewEndpoint(test.ProvVariable)
 			exp := NewEndpoint(test.Exp)
 			expNoManaged := NewEndpoint(test.ExpNoManaged)
@@ -197,7 +201,11 @@ func TestEndpointEqual(t *testing.T) {
 	}
 
 	for name, cas := range cases {
+		// capture range variable here
+		cas := cas
+		name := name
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			if ok := cas.lhs.Equal(cas.rhs); ok != cas.ok {
 				t.Fatalf("got %t, want %t", ok, cas.ok)
 			}
@@ -214,7 +222,11 @@ func TestURLCopy(t *testing.T) {
 	}
 
 	for name, u := range cases {
+		// capture range variable here
+		u := u
+		name := name
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			uCopy := u.Copy()
 
 			if u.IsNil() {
@@ -258,7 +270,11 @@ func TestEndpointCopy(t *testing.T) {
 	}
 
 	for name, e := range cases {
+		// capture range variable here
+		e := e
+		name := name
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			eCopy := e.Copy()
 
 			if e.IsNil() {
