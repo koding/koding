@@ -76,11 +76,7 @@ func TestReplaceEnv(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		// capture range variable here
-		test := test
-		i := i
 		t.Run(fmt.Sprintf("test_no_%d", i), func(t *testing.T) {
-			t.Parallel()
 			provVariable := NewEndpoint(test.ProvVariable)
 			exp := NewEndpoint(test.Exp)
 			expNoManaged := NewEndpoint(test.ExpNoManaged)
