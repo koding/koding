@@ -4,20 +4,13 @@
   "routes": {
     "": "home",
     "/": "home",
-    "/R/:username": "referrer",
     "/Teams/:token?": "teams",
     "/Login": "login",
     "/Register": "register",
     "/Logout": "logout",
     "/logout": "logout",
-    "/:slug/:name": "members",
-    "/member/:username": "member",
-    "/Unsubscribe/:email/:opt?": "unsubscribe",
-    "/:name": "name",
     "/Reset/:token": "reset",
     "/Shortcuts": "shortcuts",
-    "/Machines/:uid/:state?": "machine-settings",
-    "/My-Machines/:stackId?": "my-machines",
     "/Collaboration/:nickname/:channelId": "request-collaboration"
   },
   "sprites": [

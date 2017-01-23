@@ -9,8 +9,6 @@ nick                   = require 'app/util/nick'
 showError              = require 'app/util/showError'
 
 Machine                = require './machine'
-ComputePlansModalPaid  = require './computeplansmodalpaid'
-ComputePlansModalFree  = require './computeplansmodalfree'
 AddManagedMachineModal = require './managed/addmanagedmachinemodal'
 
 

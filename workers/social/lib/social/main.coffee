@@ -31,10 +31,16 @@ mqConfig = { host: mq.host, port: mq.port, login: mq.login, password: mq.passwor
 # TODO exchange version must be injected here, when we have that support
 mqConfig.exchangeName = "#{socialapi.eventExchangeName}:0"
 
+redisClient = require('redis').createClient(
+  KONFIG.redis.port
+  KONFIG.redis.host
+  {}
+)
 
 koding = new Bongo {
   verbose     : social.verbose
   root        : __dirname
+  redisClient : redisClient
   mongo       : mongoReplSet or mongo
   models      : './models'
   resourceName: social.queueName

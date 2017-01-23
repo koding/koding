@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"sort"
 
 	"koding/kites/kloud/stack"
 	kloudstack "koding/kites/kloud/stack"
@@ -144,26 +143,6 @@ func (c *Client) jsonReencode(data []byte) ([]byte, error) {
 	}
 
 	return nil, errors.New("unknown encoding")
-}
-
-func (c *Client) readProviders(data []byte) ([]string, error) {
-	var v struct {
-		Provider map[string]struct{} `json:"provider"`
-	}
-
-	if err := json.Unmarshal(data, &v); err != nil {
-		return nil, err
-	}
-
-	providers := make([]string, 0, len(v.Provider))
-
-	for p := range v.Provider {
-		providers = append(providers, p)
-	}
-
-	sort.Strings(providers)
-
-	return providers, nil
 }
 
 func Create(opts *CreateOptions) (*stack.ImportResponse, error) {

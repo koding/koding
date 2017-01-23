@@ -47,7 +47,7 @@ func (c *Cached) GetCachedIndex(root string) (*Index, error) {
 			}
 		}
 
-		if err = c.cacheIndex(idx, path); err != nil {
+		if err = SaveIndex(idx, path); err != nil {
 			return nil, err
 		}
 	}
@@ -95,35 +95,6 @@ func (c *Cached) getCachedIndex(root string) (idx *Index, path string, err error
 	}
 
 	return idx, path, nil
-}
-
-// cacheIndex atomically saves the provided index under a given path. If the
-// path is empty, this function will create or use existing index temporary
-// directory.
-func (c *Cached) cacheIndex(idx *Index, path string) (err error) {
-	dir, name := filepath.Split(path)
-	f, err := ioutil.TempFile(dir, name+"_")
-	if err != nil {
-		return err
-	}
-
-	if err := json.NewEncoder(f).Encode(idx); err == nil {
-		err = f.Sync()
-	}
-
-	if cerr := f.Close(); cerr != nil && err == nil {
-		err = cerr
-	}
-
-	if err == nil {
-		err = os.Rename(f.Name(), path)
-	}
-
-	if err != nil {
-		os.Remove(f.Name())
-	}
-
-	return err
 }
 
 // createTempPath creates a valid path to index file.
@@ -183,4 +154,32 @@ func (c *Cached) tempDir() string {
 func hashSHA1(val string) string {
 	h := sha1.Sum([]byte(val))
 	return hex.EncodeToString(h[:])
+}
+
+// SaveIndex atomically saves the provided index under a given path.
+func SaveIndex(idx *Index, path string) (err error) {
+	f, err := ioutil.TempFile(filepath.Split(path))
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			os.Remove(f.Name())
+		}
+	}()
+
+	if err = json.NewEncoder(f).Encode(idx); err != nil {
+		return err
+	}
+
+	if err = f.Sync(); err != nil {
+		return err
+	}
+
+	if err = f.Close(); err != nil {
+		return err
+	}
+
+	return os.Rename(f.Name(), path)
 }

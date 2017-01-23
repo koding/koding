@@ -1,0 +1,63 @@
+---
+layout: default
+title: Badges
+---
+
+<!-- HEADER -->
+{% include header.html has_sticky_navigation='true' exclude_main_nav='true' background_color='transparent' %}
+<style>{% include css/applyforms.css %}</style>
+<style>
+  .ApplyForm--header {
+    padding-top: 85px;
+    padding-bottom: 44px;
+  }
+</style>
+<main class="ApplyForm">
+  <div class="ApplyForm--header BadgeForm--header">
+    <div class="ApplyForm--container">
+      <div class="form-instructions">
+
+        <h1>"Made with Koding" Badges</h1>
+
+        <h3>Why not show the world that you build your project with Koding? Add "Made with Koding" badges to your website</h3>
+
+      </div>
+    </div>
+  </div>
+  <div class="BadgeBody">
+    <p>We’ve prepared these badges that you can overlay on your site by simply copying and pasting the appropriate snippet into your site’s HTML. Make sure to change the URL in the link to contain your username instead of “you”. Also, please do not change the size or proportions of the badges.</p>
+    <hr />
+
+    <h2>Square Badges</h2>
+    {% include badges.html badgeId="SquareColor" %}
+    {% include badges.html badgeId="SquareDark" %}
+    {% include badges.html badgeId="SquareLight" %}
+
+    <h2>Round Badges</h2>
+    {% include badges.html badgeId="RoundColor" %}
+    {% include badges.html badgeId="RoundDark" %}
+    {% include badges.html badgeId="RoundLight" %}
+
+    <h2>Rectangle Badges</h2>
+    {% include badges.html badgeId="RectangleColor" %}
+    {% include badges.html badgeId="RectangleDark" %}
+    {% include badges.html badgeId="RectangleLight" %}
+
+    <h2>Hive Badges</h2>
+    {% include badges.html badgeId="HiveColor" %}
+    {% include badges.html badgeId="HiveDark" %}
+    {% include badges.html badgeId="HiveLight" %}
+
+    <h2>Readme.md Badges</h2>
+    {% include badges.html badgeId="ReadmeDark" %}
+    {% include badges.html badgeId="ReadmeLight" %}
+
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.5.16/clipboard.min.js"></script>
+<script type="text/javascript">
+new Clipboard('.BadgeRow--copyClipboard');
+</script>
+
+{% include analytics.html %}

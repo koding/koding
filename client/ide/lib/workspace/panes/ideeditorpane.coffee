@@ -395,7 +395,6 @@ module.exports = class IDEEditorPane extends IDEPane
       row        : row
       rowCount   : 0
       fixedWidth : yes
-      editor     : @getEditor()
       html       : lineWidgetHTML
 
     widgetManager.addLineWidget lineWidgetOptions
