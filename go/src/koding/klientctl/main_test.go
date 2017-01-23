@@ -197,6 +197,8 @@ func (ft *FakeTransport) Call(method string, arg, reply interface{}) error {
 	return nil
 }
 
+func (ft *FakeTransport) Connect(string) (kloud.Transport, error) { return ft, nil }
+
 func (*FakeTransport) Valid() (_ error) { return }
 
 func nonil(err ...error) error {

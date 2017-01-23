@@ -11,6 +11,7 @@ import (
 	"koding/kites/kloud/stack"
 	"koding/klientctl/endpoint/auth"
 	"koding/klientctl/endpoint/kloud"
+	"koding/klientctl/endpoint/kontrol"
 	"koding/klientctl/endpoint/team"
 	"koding/klientctl/helper"
 
@@ -55,6 +56,10 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 	authClient := &auth.Client{
 		Kloud: kloudClient,
+		Kontrol: &kontrol.Client{
+			Kloud:  kloudClient,
+			Konfig: k,
+		},
 	}
 
 	teamClient := &team.Client{
@@ -68,10 +73,11 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 	log.Debug("auth: transport test: %s", err)
 
 	opts := &auth.LoginOptions{
-		Team: c.String("team"),
+		Team:  c.String("team"),
+		Token: c.String("token"),
 	}
 
-	if err != nil {
+	if err != nil && opts.Token == "" {
 		opts.Username, err = helper.Ask("Username [%s]: ", config.CurrentUser.Username)
 		if err != nil {
 			return 1, err
@@ -101,7 +107,9 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 
 	if resp.KiteKey != "" {
 		k.KiteKey = resp.KiteKey
-		k.Endpoints = resp.Metadata.Endpoints
+		if resp.Metadata != nil {
+			k.Endpoints = resp.Metadata.Endpoints
+		}
 
 		if err := configstore.Use(k); err != nil {
 			return 1, err
@@ -114,8 +122,11 @@ func AuthLogin(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		enc := json.NewEncoder(os.Stdout)
 		enc.SetIndent("", "\t")
 		enc.Encode(resp)
-	} else {
+	} else if resp.GroupName != "" {
 		fmt.Fprintln(os.Stdout, "Successfully logged in to the following team:", resp.GroupName)
+	} else {
+		fmt.Fprintf(os.Stdout, "Successfully authenticated to Koding.\n\nPlease run \"kd auth login "+
+			"[--team myteam]\" in order to login to your team.\n")
 	}
 
 	return 0, nil
