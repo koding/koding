@@ -31,15 +31,34 @@ type Client struct {
 }
 
 func (c *Client) Start() error {
-	return nil
+	svc, err := c.d.service()
+	if err != nil {
+		return err
+	}
+	if err = svc.Start(); err != nil {
+		return err
+	}
+	return c.Ping()
 }
 
 func (c *Client) Restart() error {
-	return nil
+	svc, err := c.d.service()
+	if err != nil {
+		return err
+	}
+	_ = svc.Stop()
+	if err = svc.Start(); err != nil {
+		return err
+	}
+	return c.Ping()
 }
 
 func (c *Client) Stop() error {
-	return nil
+	svc, err := c.d.service()
+	if err != nil {
+		return err
+	}
+	return svc.Stop()
 }
 
 func (c *Client) Ping() error {
