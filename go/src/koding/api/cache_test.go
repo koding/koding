@@ -90,7 +90,10 @@ func TestSessionCache(t *testing.T) {
 	cache.Storage = &storage
 
 	for _, cas := range cases {
+		// capture range variable here
+		cas := cas
 		t.Run(cas.name, func(t *testing.T) {
+			t.Parallel()
 			trxID := len(storage.Trxs)
 
 			_, err := cache.Auth(cas.opts)
