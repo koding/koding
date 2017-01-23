@@ -60,7 +60,10 @@ func addBody(event *Event) *Event {
 		event.Properties = map[string]interface{}{}
 	}
 
-	event.Properties["email"] = event.User.Email
+	if event.Properties["email"] == nil {
+		event.Properties["email"] = event.User.Email
+	}
+
 	event.Properties["currentDate"] = time.Now().UTC().Format(DateLayout)
 
 	if event.Body != nil {
