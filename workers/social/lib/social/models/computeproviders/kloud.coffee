@@ -1,14 +1,8 @@
 { Base, secure, signature } = require 'bongo'
 
-KONFIG       = require 'koding-config-manager'
-async        = require 'async'
-_            = require 'underscore'
-
-KodingError  = require '../../error'
-KodingLogger = require '../kodinglogger'
-
-{ Kite }     = require 'kite.js'
-SockJs       = require 'node-sockjs-client'
+{ Kite } = require 'kite.js'
+SockJs   = require 'node-sockjs-client'
+KONFIG   = require 'koding-config-manager'
 
 # Kloud wrapper on social backend
 #
