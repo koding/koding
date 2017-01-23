@@ -28,6 +28,11 @@ module.exports = (options) ->
     worker_sneakerS3 : kodingdev_master
 
   mongo = "#{options.serviceHost}:27017/koding"
+  redis =
+    host: options.serviceHost
+    port: '6379'
+    db: 0
+    url : "#{options.serviceHost}:6379"
   rabbitmq =
     host: "#{options.serviceHost}"
     port: 5672
@@ -174,6 +179,7 @@ module.exports = (options) ->
     kiteHome
     awsKeys
     mongo
+    redis
     rabbitmq
     algolia
     postgres
