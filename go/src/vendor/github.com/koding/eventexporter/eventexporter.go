@@ -19,6 +19,7 @@ type Event struct {
 	User       *User                  // user who did event
 	Body       *Body                  // body of event; text or html
 	Properties map[string]interface{} // any additional properties
+	Context    map[string]interface{} // any additional context
 }
 
 type BodyType int
