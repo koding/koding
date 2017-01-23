@@ -138,8 +138,10 @@ module.exports = class JSession extends Model
   #
   # i dont like this function name but following the same principle with
   # fetchSession ~ CS
-  @fetchSessionByData = (data, callback) ->
-    @one data, (err, session) =>
+  @fetchSessionByData = (query, data, callback) ->
+    [callback, data] = [data, callback]  unless callback
+    data = query  unless data
+    @one query, (err, session) =>
       return callback err  if err
       return callback null, session  if session?
       @createNewSession data, callback

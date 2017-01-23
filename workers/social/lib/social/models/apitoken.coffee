@@ -167,8 +167,7 @@ module.exports = class JApiToken extends jraphical.Module
           groupName : group.getAt 'slug'
           data      : { apiSession: yes }
 
-        JSession.createNewSession sessionData, (err, sessionObj) ->
-          # TODO add duplicate check here ~ GG
+        JSession.fetchSessionByData { clientId: token }, sessionData, (err, sessionObj) ->
           return next err  if err
           return next new KodingError 'Failed to create session!'  unless sessionObj
           session = sessionObj
