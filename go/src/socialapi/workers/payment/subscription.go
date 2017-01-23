@@ -122,18 +122,7 @@ func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 
 	now := time.Now().UTC()
 	thirtyDaysLater := now.Add(30 * 24 * time.Hour).Unix()
-	sevenDaysLater := now.Add(7 * 24 * time.Hour).Unix()
-
-	if params.TrialEnd != 0 {
-		// we only allow 0, 7 and 30 day trials
-		if params.TrialEnd < sevenDaysLater {
-			params.TrialEnd = sevenDaysLater
-		}
-
-		if params.TrialEnd > sevenDaysLater {
-			params.TrialEnd = thirtyDaysLater
-		}
-	}
+	params.TrialEnd = thirtyDaysLater
 
 	// override quantity and plan in case we did not charge the user previously
 	// due to failed payment and the subscription is deleted by stripe, create
@@ -143,6 +132,17 @@ func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 	if activeCount != 0 {
 		quantity = uint64(activeCount)
 		params.Plan = GetPlanID(activeCount)
+		params.TrialEnd = 0
+	}
+
+	// if group is not created within last ten minutes, subtract its duration from the trial end date
+	groupCreatedAt := group.Id.Time().UTC()
+
+	if !groupCreatedAt.Add(time.Minute * 5).After(now) {
+		params.TrialEnd = params.TrialEnd - (now.Unix() - groupCreatedAt.Unix())
+	}
+
+	if params.TrialEnd < 0 {
 		params.TrialEnd = 0
 	}
 
