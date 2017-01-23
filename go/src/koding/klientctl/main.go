@@ -623,8 +623,8 @@ func run(args []string) {
 					},
 				}, {
 					Name:   "update",
-					Usage:  "Health check the local installation status.",
-					Action: ctlcli.ExitErrAction(DaemonUpdate, log, "Status"),
+					Usage:  "Update KD and KD Daemon to the latest versions.",
+					Action: ctlcli.ExitErrAction(DaemonUpdate, log, "update"),
 					Flags: []cli.Flag{
 						cli.BoolFlag{
 							Name:  "force",

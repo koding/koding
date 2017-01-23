@@ -31,6 +31,8 @@ type Client struct {
 }
 
 func (c *Client) Start() error {
+	c.init()
+
 	svc, err := c.d.service()
 	if err != nil {
 		return err
@@ -42,6 +44,8 @@ func (c *Client) Start() error {
 }
 
 func (c *Client) Restart() error {
+	c.init()
+
 	svc, err := c.d.service()
 	if err != nil {
 		return err
@@ -54,6 +58,8 @@ func (c *Client) Restart() error {
 }
 
 func (c *Client) Stop() error {
+	c.init()
+
 	svc, err := c.d.service()
 	if err != nil {
 		return err
@@ -88,7 +94,7 @@ func (c *Client) Ping() error {
 				c.log().Warning("ping: /kite request failed: %s", err)
 			}
 		case <-timeout.C:
-			return fmt.Errorf("waiting for KD Daemon to become available timed out after %s", c.timeout())
+			return fmt.Errorf("waiting for KD Daemon to become available timed out after %s: %s", c.timeout(), err)
 		}
 	}
 }
@@ -142,11 +148,11 @@ func (c *Client) store() *configstore.Client {
 }
 
 func (c *Client) kd(version int) string {
-	return conf.S3Klientctl(version, c.konfig().Environment)
+	return conf.S3Klientctl(version, conf.Environments.KDEnv)
 }
 
 func (c *Client) klient(version int) string {
-	return conf.S3Klient(version, c.konfig().Environment)
+	return conf.S3Klient(version, conf.Environments.KlientEnv)
 }
 
 func (c *Client) kdLatest() string {
@@ -154,7 +160,7 @@ func (c *Client) kdLatest() string {
 }
 
 func (c *Client) klientLatest() string {
-	return c.konfig().Endpoints.KlientLatest.Public.String()
+	return config.ReplaceCustomEnv(c.konfig().Endpoints.KlientLatest, conf.Environments.Env, conf.Environments.KlientEnv).Public.String()
 }
 
 func (c *Client) script() []InstallStep {
@@ -175,7 +181,7 @@ func (c *Client) timeout() time.Duration {
 	if c.Timeout != 0 {
 		return c.Timeout
 	}
-	return 30 * time.Second
+	return 20 * time.Second
 }
 
 func min(i, j int) int {

@@ -19,8 +19,6 @@ import (
 
 // TODO:
 //
-//   - kd daemon start/stop
-//   - ping klient after install/update
 //   - kd/daemon: add more logs
 //   - koding/homebrew-kd
 //   - add osxfuse/vagrant/virtualbox install steps
