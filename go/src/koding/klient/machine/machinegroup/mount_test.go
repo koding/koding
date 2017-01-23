@@ -80,7 +80,7 @@ func TestAddMount(t *testing.T) {
 		id      = machine.ID("serv")
 	)
 
-	wd, m, clean, err := mounttest.MountDirs()
+	wd, m, clean, err := mounttest.MountDirs("")
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
