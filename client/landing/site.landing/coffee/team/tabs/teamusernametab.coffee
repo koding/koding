@@ -84,7 +84,14 @@ module.exports = class TeamUsernameTab extends TeamJoinTab
       utils.storeNewTeamData 'username', formData
       utils.createTeam
         success : (data) ->
-          track 'succeeded to create a team'
+          props = {
+            email: teamData.signup?.email
+            team: "https://#{teamData.domain.slug}.koding.com"
+            company: teamData.signup?.companyName
+            phone: teamData.signup?.phone
+            username: teamData.profile?.nickname
+          }
+          track 'succeeded to create a team', props
           utils.clearTeamData()
           { protocol, host } = location
           location.href      = "#{protocol}//#{slug}.#{host}/-/confirm?token=#{data.token}"
