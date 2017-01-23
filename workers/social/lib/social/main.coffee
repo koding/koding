@@ -138,7 +138,7 @@ do ->
 
   options = { rateLimitOptions : KONFIG.nodejsRateLimiter }
 
-  app.post '/remote.api/:model/:id?', (require './remoteapi') koding
+  app.post '/remote.api/:token?/:model/:id?', (require './remoteapi') koding
 
   app.get  '/remote.api', (req, res) ->
     res.send 'REST API is OK'

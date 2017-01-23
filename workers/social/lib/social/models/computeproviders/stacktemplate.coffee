@@ -518,8 +518,8 @@ module.exports = class JStackTemplate extends Module
 
     success: revive
 
-      shouldReviveClient   : yes
-      shouldReviveProvider : no
+      shouldReviveClient    : yes
+      shouldReviveProvider  : no
       shouldFetchGroupLimit : yes
 
     , (client, callback) ->

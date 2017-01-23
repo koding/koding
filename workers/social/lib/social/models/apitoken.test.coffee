@@ -58,7 +58,7 @@ runTests = -> describe 'workers.social.apitoken', ->
           (next) ->
             data = { group : generateRandomString(), account }
             JApiToken.create data, (err, token) ->
-              expect(err?.message).to.be.equal 'group not found!'
+              expect(err?.message).to.be.equal 'No such team!'
               expect(token).to.not.exist
               next()
 
@@ -72,7 +72,7 @@ runTests = -> describe 'workers.social.apitoken', ->
       group         = generateRandomString()
       groupData     = {}
       options       = { context : { group }, createGroup : yes, groupData }
-      expectedError = 'API usage is not enabled for this group.'
+      expectedError = 'API usage is not enabled for this team.'
 
       withConvertedUser options, ({ client, account }) ->
 
@@ -114,7 +114,7 @@ runTests = -> describe 'workers.social.apitoken', ->
           data  = { group, account }
           queue = []
 
-          for i in [0...JGroup.API_TOKEN_LIMIT]
+          for i in [0...JApiToken.API_TOKEN_LIMIT]
             queue.push (next) ->
               JApiToken.create data, (err, token) ->
                 expect(err).to.not.exist
@@ -122,7 +122,7 @@ runTests = -> describe 'workers.social.apitoken', ->
                 next()
 
           queue.push (next) ->
-            expectedError = "You can't have more than #{JGroup.API_TOKEN_LIMIT} API tokens"
+            expectedError = "You can't have more than #{JApiToken.API_TOKEN_LIMIT} API tokens"
             JApiToken.create data, (err, token) ->
               expect(err?.message).to.be.equal expectedError
               expect(token).to.not.exist

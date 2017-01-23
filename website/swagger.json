@@ -43,6 +43,10 @@
       "name": "JCredentialData"
     },
     {
+      "description": "Model Kloud",
+      "name": "Kloud"
+    },
+    {
       "description": "Model JMachine",
       "name": "JMachine"
     },
@@ -3864,6 +3868,32 @@
                   "$ref": "#/definitions/DefaultResponse"
                 }
               ]
+            }
+          }
+        }
+      }
+    },
+    "/remote.api/Kloud.ping": {
+      "post": {
+        "tags": [
+          "Kloud"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [],
+        "description": "calls kite.ping on Kloud on behalf of loggedin user",
+        "responses": {
+          "200": {
+            "description": "Request processed succesfully",
+            "schema": {
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }

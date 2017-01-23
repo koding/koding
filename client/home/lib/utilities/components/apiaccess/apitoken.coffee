@@ -36,28 +36,30 @@ module.exports = class ApiToken extends React.Component
             apiToken = remote.revive @props.apiToken.toJS()
             apiToken.remove (err) =>
               return showError err  if err
-              TeamFlux.actions.deleteApiToken @props.apiToken.get 'code'
+              TeamFlux.actions.deleteApiToken @props.apiToken.get '_id'
               modal.destroy()
-
 
   render: ->
 
     { code, createdAt, username } = @props.apiToken.toJS()
-    createdAt = timeago createdAt
 
+    _code = code
+    _code = '********-****-****-****-************'  if code is '*'
+
+    createdAt = timeago createdAt
     className = 'HomeApp-ApiToken--api-wrapper'
     className = "#{className}--disabled"  unless @props.toggleState
 
     <div>
       <div className={className}>
         <div ref='token' className='HomeApp-ApiToken--api-token'>
-          {code}
+          {_code}
         </div>
         <div className='HomeApp-ApiToken--api-token-detail'>
           {createdAt} by {username}
         </div>
       </div>
-      <CopyButton callback={@bound 'copyApiToken'} />
+      <CopyButton code={code} callback={@bound 'copyApiToken'} />
       <DeleteButton callback={@bound 'deleteApiToken'}/>
     </div>
 
@@ -65,5 +67,6 @@ module.exports = class ApiToken extends React.Component
 DeleteButton = ({ callback }) ->
   <a className='HomeApp-ApiToken--custom-link-view delete-api-token fr' onClick={callback}>DELETE</a>
 
-CopyButton = ({ callback }) ->
+CopyButton = ({ code, callback }) ->
+  return null  if code is '*'
   <a className='HomeApp-ApiToken--custom-link-view copy-api-token' onClick={callback}>COPY</a>

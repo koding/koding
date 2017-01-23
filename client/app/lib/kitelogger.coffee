@@ -8,15 +8,14 @@ module.exports = class KiteLogger
 
   @buffer = kd.utils.dict()
 
-  @log = (kiteName, rpcCall, state, err) ->
-
+  @log = (kiteName, rpcCall, state, args, err) ->
 
     # Comment-out following lines if you need extensive logging
     # for all the kite calls from client side ~ GG
     #
-    # key = "#{kiteName}.#{rpcCall}"
-    # kd[_log] "[KITELOGGER][#{state}]", key
-    # kd.error "[KITELOGGER][#{state}]", err  if err
+    key = "#{kiteName}.#{rpcCall}"
+    kd.info  "[KITELOGGER][#{state}]", key, args
+    kd.error "[KITELOGGER][#{state}]", err  if err
 
     key = "#{kiteName}.#{rpcCall}:#{state}"
 
@@ -24,8 +23,8 @@ module.exports = class KiteLogger
     @buffer[key]++
 
   ['failed', 'success', 'queued', 'started'].forEach (helper) =>
-    @[helper] = (kiteName, rpcCall, err) ->
-      @log kiteName, rpcCall, helper, err
+    @[helper] = (kiteName, rpcCall, args, err) ->
+      @log kiteName, rpcCall, helper, args, err
 
   @consume = ->
 
