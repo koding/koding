@@ -135,7 +135,10 @@ func TestMergeStatus(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			expected := MergeStatus(test.A, test.B)
 			if !reflect.DeepEqual(expected, test.Expected) {
 				t.Fatalf("want status: %s; got %s", test.Expected, expected)

@@ -63,7 +63,10 @@ func TestMountBook(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			sort.Sort(test.RemotePathIDs)
 			id, err := mb.Path(test.Path)
 			if test.PathID == "" && err == nil {
