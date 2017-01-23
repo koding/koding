@@ -51,13 +51,16 @@ module.exports = class Kloud extends Base
 
   do ->
 
-    options          =
-      url            : "http://localhost:#{KONFIG.kloud.port}/kite"
-      autoConnect    : yes
-      autoReconnect  : yes
-      transportClass : SockJs
-      auth           :
-        type         : 'kloudctl'
-        key          : KONFIG.kloud.secretKey
+    options               =
+      url                 : "http://localhost:#{KONFIG.publicPort}/kloud/kite"
+      autoConnect         : yes
+      autoReconnect       : yes
+      transportClass      : SockJs
+      auth                :
+        key               : KONFIG.kloud.secretKey
+        type              : 'kloudSecret'
+      heartbeatTimeout    : 30 * 1000 # 30 seconds
+      # Force XHR for all kind of kite connection
+      protocols_whitelist : ['xhr-polling']
 
     Kloud.transport = new Kite options
