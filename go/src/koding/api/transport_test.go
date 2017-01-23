@@ -70,10 +70,7 @@ func TestTransport(t *testing.T) {
 	}
 
 	for _, cas := range cases {
-		// capture range variable here
-		cas := cas
 		t.Run(cas.name, func(t *testing.T) {
-			t.Parallel()
 			rec.Reset()
 
 			req, err := http.NewRequest("POST", s.URL, strings.NewReader(cas.name))
