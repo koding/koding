@@ -326,6 +326,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 		Builder:         mclient.NewKiteBuilder(k),
 		DynAddrInterval: 2 * time.Second,
 		PingInterval:    15 * time.Second,
+		WorkDir:         cfg.KodingCacheHome(),
 	}
 
 	machines, err := machinegroup.New(machinesOpts)

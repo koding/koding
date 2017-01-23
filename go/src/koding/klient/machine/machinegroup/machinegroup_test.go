@@ -9,9 +9,12 @@ import (
 
 	"koding/klient/machine"
 	"koding/klient/machine/client"
-	"koding/klient/machine/client/testutil"
+	"koding/klient/machine/client/clienttest"
 	"koding/klient/machine/machinegroup/addresses"
 	"koding/klient/machine/machinegroup/aliases"
+	"koding/klient/machine/machinegroup/mounts"
+	"koding/klient/machine/mount"
+	"koding/klient/machine/mount/mounttest"
 	"koding/klient/storage"
 
 	"github.com/boltdb/bolt"
@@ -24,8 +27,14 @@ func TestMachineGroupFreshStart(t *testing.T) {
 	}
 	defer stop()
 
-	builder := testutil.NewBuilder(nil)
-	g, err := New(testOptionsStorage(builder, st))
+	wd, err := ioutil.TempDir("", "machinegroup")
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	defer os.RemoveAll(wd)
+
+	builder := clienttest.NewBuilder(nil)
+	g, err := New(testOptionsStorage(wd, builder, st))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -48,6 +57,15 @@ func TestMachineGroupFreshStart(t *testing.T) {
 	if len(alias.Registered()) != 0 {
 		t.Errorf("want no registered machines; got %v", alias.Registered())
 	}
+
+	// Nothing should be added to mounts storage.
+	mount, err := mounts.NewCached(st)
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	if len(mount.Registered()) != 0 {
+		t.Errorf("want no registered machines; got %v", mount.Registered())
+	}
 }
 
 func TestMachineGroupNoAliases(t *testing.T) {
@@ -63,15 +81,21 @@ func TestMachineGroupNoAliases(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if err := address.Add(id, testutil.TurnOnAddr()); err != nil {
+	if err := address.Add(id, clienttest.TurnOnAddr()); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	if len(address.Registered()) != 1 {
 		t.Errorf("want one registered machine; got %v", address.Registered())
 	}
 
-	builder := testutil.NewBuilder(nil)
-	g, err := New(testOptionsStorage(builder, st))
+	wd, err := ioutil.TempDir("", "machinegroup")
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	defer os.RemoveAll(wd)
+
+	builder := clienttest.NewBuilder(nil)
+	g, err := New(testOptionsStorage(wd, builder, st))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -83,7 +107,7 @@ func TestMachineGroupNoAliases(t *testing.T) {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	if len(alias.Registered()) != 1 {
-		t.Errorf("want one registered machine; got %v", address.Registered())
+		t.Errorf("want one registered machine; got %v", alias.Registered())
 	}
 
 	// Dynamic client should be started.
@@ -95,19 +119,106 @@ func TestMachineGroupNoAliases(t *testing.T) {
 	}
 }
 
+func TestMachineGroupMount(t *testing.T) {
+	st, stop, err := testBoltStorage()
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	defer stop()
+
+	// Create testing mounts.
+	wd, mA, cleanA, err := mounttest.MountDirs("")
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	defer cleanA()
+
+	_, mB, cleanB, err := mounttest.MountDirs(wd)
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	defer cleanB()
+
+	// Add machine address in order to trigger valid server and not reach timeout.
+	id := machine.ID("servA")
+	address, err := addresses.NewCached(st)
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	if err := address.Add(id, clienttest.TurnOnAddr()); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+
+	// Add two mounts.
+	mountIDA, mountIDB := mount.MakeID(), mount.MakeID()
+	mgMount, err := mounts.NewCached(st)
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	if err := mgMount.Add(id, mountIDA, mA); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	if err := mgMount.Add(id, mountIDB, mB); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	if len(mgMount.Registered()) != 1 {
+		t.Errorf("want one registered machine; got %v", mgMount.Registered())
+	}
+	allm, err := mgMount.All(id)
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	if len(allm) != 2 {
+		t.Errorf("want two registered mounts; got %v", allm)
+	}
+
+	builder := clienttest.NewBuilder(nil)
+	g, err := New(testOptionsStorage(wd, builder, st))
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	defer g.Close()
+
+	// Machine group should add alias for missing ID pointed by mount.
+	alias, err := aliases.NewCached(st)
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	if len(alias.Registered()) != 1 {
+		t.Errorf("want one registered machine; got %v", alias.Registered())
+	}
+
+	// Dynamic client should be started for added mount.
+	if err := builder.WaitForBuild(time.Second); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	if builder.BuildsCount() != 1 {
+		t.Errorf("want dynamic builds number = 1; got %d", builder.BuildsCount())
+	}
+
+	// Mount cache directories should be created.
+	if err := mounttest.StatCacheDir(wd, mountIDA); err != nil {
+		t.Errorf("want err = nil; got %v", err)
+	}
+	if err := mounttest.StatCacheDir(wd, mountIDB); err != nil {
+		t.Errorf("want err = nil; got %v", err)
+	}
+}
+
 // testOptions returns default Group options used for testing purposes.
-func testOptions(b client.Builder) *GroupOpts {
-	return testOptionsStorage(b, nil)
+func testOptions(wd string, b client.Builder) *GroupOpts {
+	return testOptionsStorage(wd, b, nil)
 }
 
 // testOptionsStorage returns default Group options used for testing purposes.
 // This function allows to specify custom storage.
-func testOptionsStorage(b client.Builder, st storage.ValueInterface) *GroupOpts {
+func testOptionsStorage(wd string, b client.Builder, st storage.ValueInterface) *GroupOpts {
 	return &GroupOpts{
 		Storage:         st,
 		Builder:         b,
 		DynAddrInterval: 10 * time.Millisecond,
 		PingInterval:    50 * time.Millisecond,
+		WorkDir:         wd,
 	}
 }
 

@@ -7,18 +7,18 @@ import (
 
 	"koding/klient/machine"
 	"koding/klient/machine/client"
-	"koding/klient/machine/client/testutil"
+	"koding/klient/machine/client/clienttest"
 
 	"golang.org/x/sync/errgroup"
 )
 
 func TestDynamicClientOnOff(t *testing.T) {
 	var (
-		serv    = &testutil.Server{}
-		builder = testutil.NewBuilder(nil)
+		serv    = &clienttest.Server{}
+		builder = clienttest.NewBuilder(nil)
 	)
 
-	dc, err := client.NewDynamic(testutil.DynamicOpts(serv, builder))
+	dc, err := client.NewDynamic(clienttest.DynamicOpts(serv, builder))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -38,7 +38,7 @@ func TestDynamicClientOnOff(t *testing.T) {
 	if n := builder.BuildsCount(); n != 1 {
 		t.Fatalf("want builds count = 1; got %d", n)
 	}
-	if err := testutil.WaitForContextClose(ctx, time.Second); err != nil {
+	if err := clienttest.WaitForContextClose(ctx, time.Second); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	if status := dc.Status(); status.State != machine.StateOnline {
@@ -54,7 +54,7 @@ func TestDynamicClientOnOff(t *testing.T) {
 	if n := builder.BuildsCount(); n != 2 {
 		t.Fatalf("want builds count = 2; got %d", n)
 	}
-	if err := testutil.WaitForContextClose(ctx, time.Second); err != nil {
+	if err := clienttest.WaitForContextClose(ctx, time.Second); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	if status := dc.Status(); status.State != machine.StateOffline {
@@ -64,11 +64,11 @@ func TestDynamicClientOnOff(t *testing.T) {
 
 func TestDynamicClientContext(t *testing.T) {
 	var (
-		serv    = &testutil.Server{}
-		builder = testutil.NewBuilder(nil)
+		serv    = &clienttest.Server{}
+		builder = clienttest.NewBuilder(nil)
 	)
 
-	dc, err := client.NewDynamic(testutil.DynamicOpts(serv, builder))
+	dc, err := client.NewDynamic(clienttest.DynamicOpts(serv, builder))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -76,7 +76,7 @@ func TestDynamicClientContext(t *testing.T) {
 
 	ctx := dc.Client().Context()
 	serv.TurnOn()
-	if err := testutil.WaitForContextClose(ctx, time.Second); err != nil {
+	if err := clienttest.WaitForContextClose(ctx, time.Second); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 

@@ -6,7 +6,7 @@ import (
 
 	"koding/klient/machine"
 	"koding/klient/machine/client"
-	"koding/klient/machine/client/testutil"
+	"koding/klient/machine/client/clienttest"
 	"koding/klient/machine/machinegroup/clients"
 
 	"golang.org/x/sync/errgroup"
@@ -23,13 +23,13 @@ func testOptions(b client.Builder) *clients.ClientsOpts {
 
 func TestClients(t *testing.T) {
 	var (
-		builder = testutil.NewBuilder(nil)
+		builder = clienttest.NewBuilder(nil)
 
 		idA = machine.ID("servA")
 		idB = machine.ID("servB")
 
-		servA = &testutil.Server{}
-		servB = &testutil.Server{}
+		servA = &clienttest.Server{}
+		servB = &clienttest.Server{}
 	)
 
 	cs, err := clients.New(testOptions(builder))

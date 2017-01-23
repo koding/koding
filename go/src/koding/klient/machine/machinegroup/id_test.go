@@ -1,11 +1,13 @@
 package machinegroup
 
 import (
+	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
 	"koding/klient/machine"
-	"koding/klient/machine/client/testutil"
+	"koding/klient/machine/client/clienttest"
 )
 
 func TestID(t *testing.T) {
@@ -17,7 +19,13 @@ func TestID(t *testing.T) {
 		ipB = machine.Addr{Network: "ip", Value: "10.0.1.16", UpdatedAt: time.Now()}
 	)
 
-	g, err := New(testOptions(testutil.NewBuilder(nil)))
+	wd, err := ioutil.TempDir("", "id")
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	defer os.RemoveAll(wd)
+
+	g, err := New(testOptions(wd, clienttest.NewBuilder(nil)))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
