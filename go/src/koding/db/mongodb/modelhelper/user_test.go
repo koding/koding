@@ -216,7 +216,10 @@ func TestUserLogin(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(test.Title, func(t *testing.T) {
+			t.Parallel()
 			ses, err := modelhelper.UserLogin(test.Nick, test.Slug)
 			if err != test.Err {
 				t.Errorf("expected Err equal to %q, but got %q!", test.Err, err)
