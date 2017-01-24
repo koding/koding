@@ -68,10 +68,7 @@ module.exports = class NotificationView extends React.Component
       if transitionEvent
         element.addEventListener transitionEvent, @onTransitionEnd
         if @autoDismissible notification
-          @notificationTimer = new Helpers.Timer =>
-            @hideNotification()
-            return
-          , notification.duration
+          @notificationTimer = new Helpers.Timer(@hideNotification(), notification.duration)
 
 
     handleMouseEnter: ->
