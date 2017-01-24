@@ -411,9 +411,22 @@ fetchUsage = (client, options, callback) ->
       callback null, { total, alwaysOn, storage, snapshots }
 
 
+# Signature generator for given apiMap like in
+# client/app/lib/kite/kites/kiteapimap ~ GG
+generateSignatures = (apiMap) ->
+
+  { signature } = require 'bongo'
+
+  signatures = {}
+  for own method, rpcMethod of apiMap
+    signatures[method] = (signature Object, Function)
+
+  return signatures
+
+
 module.exports = {
   fetchUserPlan, fetchGroupStackTemplate, fetchUsage
   PLANS, PROVIDERS, guessNextLabel, checkUsage
   revive, reviveClient, reviveCredential, reviveGroupLimits
-  checkTemplateUsage
+  checkTemplateUsage, generateSignatures
 }

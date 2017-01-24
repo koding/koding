@@ -1,8 +1,13 @@
-{ Base, secure, signature } = require 'bongo'
+{ Base, secure } = require 'bongo'
 
 { Kite } = require 'kite.js'
 SockJs   = require 'node-sockjs-client'
 KONFIG   = require 'koding-config-manager'
+
+clientRequire = require '../../clientrequire'
+KiteAPIMap = clientRequire 'app/lib/kite/kites/kiteapimap'
+{ generateSignatures } = require './computeutils'
+
 
 # Kloud wrapper on social backend
 #
@@ -15,10 +20,9 @@ module.exports = class Kloud extends Base
 
   @set
     permissions    :
-      'kite ping'  : ['member']
+      'kite access': ['member']
     sharedMethods  :
-      static       :
-        ping       : (signature Function)
+      static       : generateSignatures KiteAPIMap.kloud
 
 
   TIMEOUT = 15000
