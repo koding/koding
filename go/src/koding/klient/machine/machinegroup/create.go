@@ -80,17 +80,20 @@ func (g *Group) Create(req *CreateRequest) (*CreateResponse, error) {
 }
 
 // balance ensures that stale clients and other resources will be closed and
-// removed.
+// removed. Mounted machines are not deleted.
 func (g *Group) balance(ids machine.IDSlice) {
 	var (
 		regAlias   = g.alias.Registered()
 		regAddress = g.address.Registered()
 		regClient  = g.client.Registered()
+		regMount   = g.mount.Registered()
 	)
 
 	union := idset.Union(idset.Union(regAlias, regAddress), regClient)
 
-	for _, id := range idset.Diff(union, ids) {
+	// Remove machines that are no longer available. Leave these with mounts
+	// untouched.
+	for _, id := range idset.Diff(idset.Diff(union, regMount), ids) {
 		var errored = false
 
 		// Drop machine alias.
@@ -113,6 +116,19 @@ func (g *Group) balance(ids machine.IDSlice) {
 
 		if !errored {
 			g.log.Info("Machine with ID: %s was removed.", id)
+		}
+	}
+
+	// Log machines that have stale mounts.
+	for _, id := range idset.Diff(regMount, ids) {
+		mounts, err := g.mount.All(id)
+		if err != nil {
+			g.log.Error("Cannot retrieve stale mounts for %s machine: %s", id, err)
+			continue
+		}
+
+		for mountID, m := range mounts {
+			g.log.Info("Stale mount %s (%s) for machine with ID: %s", mountID, m, id)
 		}
 	}
 }
