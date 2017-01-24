@@ -1,5 +1,7 @@
 # Koding
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/koding/koding.svg)](https://greenkeeper.io/)
+
 [![Slack Status](http://cebeci.koding.com/slackin/badge.svg)](https://cebeci.koding.com/slackin/)
 [![Docker Pulls](https://img.shields.io/docker/pulls/koding/koding.svg?maxAge=2592000)](https://hub.docker.com/r/koding/koding/)
 
