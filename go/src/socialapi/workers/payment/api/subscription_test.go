@@ -349,6 +349,7 @@ func TestResubscribingBeforeTrialEndsSubstractsPreviousUsage(t *testing.T) {
 					oldID := group.Id
 					newID := bson.NewObjectIdWithTime(group.Id.Time().Add(-time.Hour * 24 * 2))
 
+					// change team's creation time by changing it's mongo id.
 					So(modelhelper.RemoveGroup(group.Id), ShouldBeNil)
 					group.Id = newID
 					So(modelhelper.CreateGroup(group), ShouldBeNil)
