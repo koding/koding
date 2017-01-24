@@ -99,7 +99,7 @@ func TestInvoiceCreatedHandlerStayInTheSamePlan(t *testing.T) {
 					// create test plan
 					id := "p_" + bson.NewObjectId().Hex()
 					pp := &stripe.PlanParams{
-						Amount:        GetPlan(UpTo10Users).Amount,
+						Amount:        GetPlan(General).Amount,
 						Interval:      plan.Month,
 						IntervalCount: 1,
 						TrialPeriod:   0,
@@ -131,8 +131,8 @@ func TestInvoiceCreatedHandlerStayInTheSamePlan(t *testing.T) {
 							testData,
 							group.Payment.Customer.ID,
 							sub.ID,
-							GetPlan(UpTo10Users).Amount*totalMembers,
-							GetPlan(UpTo10Users).Amount*totalMembers,
+							GetPlan(General).Amount*totalMembers,
+							GetPlan(General).Amount*totalMembers,
 						))
 
 						err := invoiceCreatedHandler(raw)
@@ -182,7 +182,7 @@ func TestInvoiceCreatedHandlerCustomPlan(t *testing.T) {
 				// create custom test plan
 				id := "p_c_" + bson.NewObjectId().Hex()
 				pp := &stripe.PlanParams{
-					Amount:        GetPlan(UpTo10Users).Amount,
+					Amount:        GetPlan(General).Amount,
 					Interval:      plan.Month,
 					IntervalCount: 1,
 					TrialPeriod:   1,
@@ -344,7 +344,7 @@ func TestInvoiceCreatedHandlerWithCouponAndAccountBalance(t *testing.T) {
 						// create test plan
 						id := "p_" + bson.NewObjectId().Hex()
 						pp := &stripe.PlanParams{
-							Amount:        GetPlan(UpTo10Users).Amount,
+							Amount:        GetPlan(General).Amount,
 							Interval:      plan.Month,
 							IntervalCount: 1,
 							TrialPeriod:   0,
@@ -379,8 +379,8 @@ func TestInvoiceCreatedHandlerWithCouponAndAccountBalance(t *testing.T) {
 								offAmount,
 								-offBalance,
 								sub.ID,
-								GetPlan(UpTo10Users).Amount*totalMembers,
-								(GetPlan(UpTo10Users).Amount*totalMembers)-(totalDiscount),
+								GetPlan(General).Amount*totalMembers,
+								(GetPlan(General).Amount*totalMembers)-(totalDiscount),
 							))
 							var capturedMails []*emailsender.Mail
 							realMailSender := mailSender
@@ -474,13 +474,13 @@ func TestInvoiceCreatedHandlerUpgradePlan(t *testing.T) {
 					c, err := UpdateCustomerForGroup(username, groupName, cp)
 					tests.ResultedWithNoErrorCheck(c, err)
 
-					const totalMembers = 9
+					const totalMembers = 1
 					generateAndAddMembersToGroup(group.Slug, totalMembers)
 
 					// create test plan
 					id := "p_" + bson.NewObjectId().Hex()
 					pp := &stripe.PlanParams{
-						Amount:        GetPlan(UpTo10Users).Amount,
+						Amount:        GetPlan(Solo).Amount,
 						Interval:      plan.Month,
 						IntervalCount: 1,
 						TrialPeriod:   0,
@@ -515,8 +515,8 @@ func TestInvoiceCreatedHandlerUpgradePlan(t *testing.T) {
 							testData,
 							group.Payment.Customer.ID,
 							sub.ID,
-							GetPlan(UpTo10Users).Amount*totalMembers,
-							GetPlan(UpTo10Users).Amount*totalMembers,
+							GetPlan(General).Amount*totalMembers,
+							GetPlan(General).Amount*totalMembers,
 						))
 
 						var capturedMails []*emailsender.Mail
@@ -548,7 +548,7 @@ func TestInvoiceCreatedHandlerUpgradePlan(t *testing.T) {
 							sub, err := GetSubscriptionForGroup(groupName)
 							tests.ResultedWithNoErrorCheck(sub, err)
 
-							So(sub.Plan.ID, ShouldEqual, UpTo50Users)
+							So(sub.Plan.ID, ShouldEqual, General)
 
 							count, err := (&models.PresenceDaily{}).CountDistinctByGroupName(group.Slug)
 							So(err, ShouldBeNil)
@@ -628,7 +628,7 @@ func TestInvoiceCreatedHandlerDowngradePlan(t *testing.T) {
 					// create test plan
 					id := "p_" + bson.NewObjectId().Hex()
 					pp := &stripe.PlanParams{
-						Amount:        GetPlan(UpTo50Users).Amount,
+						Amount:        GetPlan(General).Amount,
 						Interval:      plan.Month,
 						IntervalCount: 1,
 						TrialPeriod:   0,
@@ -661,8 +661,8 @@ func TestInvoiceCreatedHandlerDowngradePlan(t *testing.T) {
 							testData,
 							group.Payment.Customer.ID,
 							sub.ID,
-							GetPlan(UpTo10Users).Amount*extraneousCount,
-							GetPlan(UpTo10Users).Amount*extraneousCount,
+							GetPlan(General).Amount*extraneousCount,
+							GetPlan(General).Amount*extraneousCount,
 						))
 
 						So(invoiceCreatedHandler(raw), ShouldBeNil)
@@ -677,7 +677,7 @@ func TestInvoiceCreatedHandlerDowngradePlan(t *testing.T) {
 							sub, err := GetSubscriptionForGroup(groupName)
 							tests.ResultedWithNoErrorCheck(sub, err)
 
-							So(sub.Plan.ID, ShouldEqual, UpTo10Users)
+							So(sub.Plan.ID, ShouldEqual, General)
 
 							count, err := (&models.PresenceDaily{}).CountDistinctByGroupName(group.Slug)
 							So(err, ShouldBeNil)
@@ -909,8 +909,8 @@ func TestInvoiceCreatedHandlerWithZeroUser(t *testing.T) {
 								testData,
 								group.Payment.Customer.ID,
 								sub.ID,
-								GetPlan(UpTo10Users).Amount*totalMembers,
-								GetPlan(UpTo10Users).Amount*totalMembers,
+								GetPlan(General).Amount*totalMembers,
+								GetPlan(General).Amount*totalMembers,
 							))
 
 							So(invoiceCreatedHandler(raw), ShouldBeNil)

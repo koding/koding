@@ -18,9 +18,7 @@ module.exports =
 
   Plan:
     FREE: 'p_free'
-    FREE_FOREVER: 'p_free_forever'
-    UP_TO_10_USERS: 'p_up_to_10'
-    UP_TO_50_USERS: 'p_up_to_50'
-    OVER_50_USERS: 'p_over_50'
+    SOLO: 'p_solo'
+    GENERAL: 'p_general'
   Trial:
     ALMOST_EXPIRED_DAYS_LEFT: 4
