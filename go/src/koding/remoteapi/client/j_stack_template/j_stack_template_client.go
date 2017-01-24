@@ -219,6 +219,34 @@ func (a *Client) PostRemoteAPIJStackTemplateOne(params *PostRemoteAPIJStackTempl
 }
 
 /*
+PostRemoteAPIJStackTemplateSamples returns sample stack template for given provider
+*/
+func (a *Client) PostRemoteAPIJStackTemplateSamples(params *PostRemoteAPIJStackTemplateSamplesParams) (*PostRemoteAPIJStackTemplateSamplesOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewPostRemoteAPIJStackTemplateSamplesParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "PostRemoteAPIJStackTemplateSamples",
+		Method:             "POST",
+		PathPattern:        "/remote.api/JStackTemplate.samples",
+		ProducesMediaTypes: []string{""},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &PostRemoteAPIJStackTemplateSamplesReader{formats: a.formats},
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.(*PostRemoteAPIJStackTemplateSamplesOK), nil
+
+}
+
+/*
 PostRemoteAPIJStackTemplateSetAccessID post remote API j stack template set access ID API
 */
 func (a *Client) PostRemoteAPIJStackTemplateSetAccessID(params *PostRemoteAPIJStackTemplateSetAccessIDParams) (*PostRemoteAPIJStackTemplateSetAccessIDOK, error) {

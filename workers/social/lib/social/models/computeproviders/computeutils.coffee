@@ -3,13 +3,13 @@ KodingError    = require '../../error'
 
 PROVIDERS      =
   aws          : require './aws'
-  koding       : require './koding'
-  softlayer    : require './softlayer' # remove this line to disable softlayer ~ GG
-  rackspace    : require './rackspace'
+  koding       : require './koding'    # TODO: stacks not supported, remove this ~ GG
+  softlayer    : require './softlayer'
+  rackspace    : require './rackspace' # TODO: stacks not supported, remove or update this ~ GG
   digitalocean : require './digitalocean'
   azure        : require './azure'
   google       : require './google'
-  managed      : require './managed'
+  managed      : require './managed'   # stacks not supported ~ GG
   vagrant      : require './vagrant'
   marathon     : require './marathon'
 
@@ -150,95 +150,95 @@ revive = do -> (
     hasOptions
   }, fn) ->
 
-  (client, options, _callback) ->
+    (client, options, _callback) ->
 
-    hasOptions ?= yes
+      hasOptions ?= yes
 
-    unless hasOptions
-      [options, _callback] = [_callback, options]
-      options = {}
+      unless hasOptions
+        [options, _callback] = [_callback, options]
+        options = {}
 
-    unless typeof _callback is 'function'
-      _callback = (err) ->
-        console.error 'Unhandled error:', err?.message or err
+      unless typeof _callback is 'function'
+        _callback = (err) ->
+          console.error 'Unhandled error:', err?.message or err
 
-    if shouldLockProcess
+      if shouldLockProcess
 
-      unless lockProcess client
-        return _callback new KodingError \
-          'There is a process on-going, try again later.', 'Busy'
+        unless lockProcess client
+          return _callback new KodingError \
+            'There is a process on-going, try again later.', 'Busy'
 
-      callback = (rest...) ->
-        unlockProcess client
-        _callback rest...
+        callback = (rest...) ->
+          unlockProcess client
+          _callback rest...
 
-    else
-
-      callback = _callback
-
-    shouldReviveProvider ?= yes
-
-    { provider, credential, provisioners } = options
-
-    if shouldReviveProvider
-      if not provider or not provider_ = PROVIDERS[provider]
-        return callback new KodingError 'No such provider.', 'ProviderNotFound'
       else
-        provider_.slug   = provider
-        options.provider = provider_
 
-    reviveClient client, (err, revivedClient) =>
+        callback = _callback
 
-      return callback err       if err
-      client.r = revivedClient  if revivedClient?
+      shouldReviveProvider ?= yes
 
-      # OAUTH Check
+      { provider, credential, provisioners } = options
 
-      if shouldReviveOAuth
-
-        unless options.provider
+      if shouldReviveProvider
+        if not provider or not provider_ = PROVIDERS[provider]
           return callback new KodingError 'No such provider.', 'ProviderNotFound'
-
-        reviveOauth client, options.provider, (err, oauth) =>
-          return callback err     if err
-          client.r.oauth = oauth  if oauth?
-
-          if hasOptions
-          then fn.call this, client, options, callback
-          else fn.call this, client, callback
-
-        return
-
-      # This is Koding only which doesn't need a valid credential
-      # since the user session is enough for koding provider for now.
-
-      if shouldPassCredential and not credential?
-        unless provider in PROVIDERS_WITHOUT_CREDS
-          return callback new KodingError \
-            'Credential is required.', 'MissingCredential'
-
-      reviveCredential client, credential, (err, cred) =>
-
-        if err then return callback err
-
-        if shouldPassCredential and not cred?
-          unless provider in PROVIDERS_WITHOUT_CREDS
-            return callback \
-              new KodingError 'Credential failed.', 'AccessDenied'
         else
-          options.credential = cred.identifier  if cred?.identifier
+          provider_.slug   = provider
+          options.provider = provider_
 
-        reviveProvisioners client, provisioners, (err, provisioners) =>
+      reviveClient client, (err, revivedClient) =>
 
-          options.provisioners = provisioners  if provisioners?
+        return callback err       if err
+        client.r = revivedClient  if revivedClient?
 
-          if hasOptions
-          then fn.call this, client, options, callback
-          else fn.call this, client, callback
+        # OAUTH Check
 
-        , shouldReviveProvisioners
+        if shouldReviveOAuth
 
-    , { shouldReviveClient, shouldFetchGroupLimit }
+          unless options.provider
+            return callback new KodingError 'No such provider.', 'ProviderNotFound'
+
+          reviveOauth client, options.provider, (err, oauth) =>
+            return callback err     if err
+            client.r.oauth = oauth  if oauth?
+
+            if hasOptions
+            then fn.call this, client, options, callback
+            else fn.call this, client, callback
+
+          return
+
+        # This is Koding only which doesn't need a valid credential
+        # since the user session is enough for koding provider for now.
+
+        if shouldPassCredential and not credential?
+          unless provider in PROVIDERS_WITHOUT_CREDS
+            return callback new KodingError \
+              'Credential is required.', 'MissingCredential'
+
+        reviveCredential client, credential, (err, cred) =>
+
+          if err then return callback err
+
+          if shouldPassCredential and not cred?
+            unless provider in PROVIDERS_WITHOUT_CREDS
+              return callback \
+                new KodingError 'Credential failed.', 'AccessDenied'
+          else
+            options.credential = cred.identifier  if cred?.identifier
+
+          reviveProvisioners client, provisioners, (err, provisioners) =>
+
+            options.provisioners = provisioners  if provisioners?
+
+            if hasOptions
+            then fn.call this, client, options, callback
+            else fn.call this, client, callback
+
+          , shouldReviveProvisioners
+
+      , { shouldReviveClient, shouldFetchGroupLimit }
 
 
 checkTemplateUsage = (template, account, callback) ->

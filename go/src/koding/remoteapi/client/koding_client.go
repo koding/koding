@@ -35,7 +35,6 @@ import (
 	"koding/remoteapi/client/j_session"
 	"koding/remoteapi/client/j_snapshot"
 	"koding/remoteapi/client/j_stack_template"
-	"koding/remoteapi/client/j_tag"
 	"koding/remoteapi/client/j_team_invitation"
 	"koding/remoteapi/client/j_url_alias"
 	"koding/remoteapi/client/j_user"
@@ -120,8 +119,6 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *Koding {
 
 	cli.JStackTemplate = j_stack_template.New(transport, formats)
 
-	cli.JTag = j_tag.New(transport, formats)
-
 	cli.JTeamInvitation = j_team_invitation.New(transport, formats)
 
 	cli.JURLAlias = j_url_alias.New(transport, formats)
@@ -204,8 +201,6 @@ type Koding struct {
 	JSnapshot *j_snapshot.Client
 
 	JStackTemplate *j_stack_template.Client
-
-	JTag *j_tag.Client
 
 	JTeamInvitation *j_team_invitation.Client
 
@@ -291,8 +286,6 @@ func (c *Koding) SetTransport(transport runtime.ClientTransport) {
 	c.JSnapshot.SetTransport(transport)
 
 	c.JStackTemplate.SetTransport(transport)
-
-	c.JTag.SetTransport(transport)
 
 	c.JTeamInvitation.SetTransport(transport)
 

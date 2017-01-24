@@ -39,5 +39,3 @@ storiesOf 'Message', module
       type='danger'
       title='Credit Card Error'
       description={description} />
-
-

@@ -23,8 +23,8 @@ func TestPing(t *testing.T) {
 		withTestServer(t, func(endpoint string) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
 				Convey("We should be able to send the ping request to", func() {
-					externalURL := endpoint + EndpointPresencePing
-					privateURL := endpoint + EndpointPresencePingPrivate
+					externalURL := endpoint + presence.EndpointPresencePing
+					privateURL := endpoint + presence.EndpointPresencePingPrivate
 
 					acc := &models.Account{}
 					err := acc.ByNick(username)

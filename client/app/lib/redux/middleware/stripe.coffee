@@ -17,4 +17,3 @@ generateTypes = (type) -> [
   "#{type}_SUCCESS"
   "#{type}_FAIL"
 ]
-

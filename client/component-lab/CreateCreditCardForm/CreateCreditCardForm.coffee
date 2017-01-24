@@ -71,5 +71,3 @@ module.exports = CreateCreditCardForm = (props) ->
       </Col>
     </Row>
   </form>
-
-

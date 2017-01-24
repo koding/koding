@@ -36,7 +36,6 @@ func Funcs() map[string]ast.Function {
 		"compact":      interpolationFuncCompact(),
 		"concat":       interpolationFuncConcat(),
 		"element":      interpolationFuncElement(),
-		"file":         interpolationFuncFile(),
 		"format":       interpolationFuncFormat(),
 		"formatlist":   interpolationFuncFormatList(),
 		"index":        interpolationFuncIndex(),

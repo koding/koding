@@ -420,13 +420,17 @@ func run(args []string) {
 								Usage: "Output in JSON format.",
 							},
 							cli.StringFlag{
-								Name:  "team, t",
+								Name:  "team",
 								Usage: "Specify a Koding team to log in. Leaving empty logs in to kd.io by default.",
 							},
 							cli.StringFlag{
 								Name:  "baseurl",
 								Usage: "Specify a Koding endpoint to log in.",
 								Value: config.Konfig.Endpoints.Koding.Public.String(),
+							},
+							cli.StringFlag{
+								Name:  "token",
+								Usage: "Use temporary token to authenticate to your Koding account.",
 							},
 						},
 					},
@@ -477,7 +481,13 @@ func run(args []string) {
 				}, {
 					Name:   "reset",
 					Usage:  "Resets configuration to the default value fetched from Koding.",
-					Action: ctlcli.ExitErrAction(ConfigReset, log, "set"),
+					Action: ctlcli.ExitErrAction(ConfigReset, log, "reset"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "force",
+							Usage: "Force retrieving configuration from Koding.",
+						},
+					},
 				}},
 			},
 			cli.Command{
@@ -499,7 +509,7 @@ func run(args []string) {
 							Usage: "Specify credential provider.",
 						},
 						cli.StringFlag{
-							Name:  "team, t",
+							Name:  "team",
 							Usage: "Specify team which the credential belongs to.",
 						},
 					},
@@ -522,7 +532,7 @@ func run(args []string) {
 							Usage: "Read credential from a file.",
 						},
 						cli.StringFlag{
-							Name:  "team, t",
+							Name:  "team",
 							Usage: "Specify team which the credential belongs to.",
 						},
 						cli.StringFlag{
@@ -530,6 +540,10 @@ func run(args []string) {
 							Usage: "Specify credential title.",
 						},
 					},
+				}, {
+					Name:   "use",
+					Usage:  "Change default credential per provider.",
+					Action: ctlcli.ExitErrAction(CredentialUse, log, "use"),
 				}, {
 					Name:   "describe",
 					Usage:  "Describe credential documents.",
@@ -590,12 +604,12 @@ func run(args []string) {
 							Usage: "Specify stack credentials.",
 						},
 						cli.StringFlag{
-							Name:  "team, t",
+							Name:  "team",
 							Usage: "Specify team which the stack belongs to.",
 						},
 						cli.StringFlag{
 							Name:  "file, f",
-							Value: "",
+							Value: "kd.yml",
 							Usage: "Read stack template from a file.",
 						},
 						cli.BoolFlag{
@@ -605,6 +619,67 @@ func run(args []string) {
 					},
 				}},
 			},
+			cli.Command{
+				Name:  "template",
+				Usage: "Manage stack templates.",
+				Subcommands: []cli.Command{{
+					Name:      "list",
+					ShortName: "ls",
+					Usage:     "List all stack templates.",
+					Action:    ctlcli.ExitErrAction(TemplateList, log, "list"),
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+						cli.StringFlag{
+							Name:  "template, t",
+							Usage: "Limit to templates with a given name.",
+						},
+					},
+				}, {
+					Name:   "show",
+					Usage:  "Show details of a stack template.",
+					Action: ctlcli.ExitErrAction(TemplateShow, log, "show"),
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "template, t",
+							Usage: "Show template with a given name.",
+						},
+						cli.BoolFlag{
+							Name:  "json",
+							Usage: "Output in JSON format.",
+						},
+						cli.StringFlag{
+							Name:  "id",
+							Usage: "Limit to a template that matches the ID.",
+						},
+						cli.BoolFlag{
+							Name:  "hcl",
+							Usage: "Output in HCL format.",
+						},
+					},
+				}, {
+					Name:   "delete",
+					Usage:  "Delete a stack template.",
+					Action: ctlcli.ExitErrAction(TemplateDelete, log, "delete"),
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "template, t",
+							Usage: "Show template with a given name.",
+						},
+						cli.StringFlag{
+							Name:  "id",
+							Usage: "Limit to a template that matches the ID.",
+						},
+						cli.StringFlag{
+							Name:  "force",
+							Usage: "Do not ask form confirmation.",
+						},
+					},
+				}},
+			},
+
 			cli.Command{
 				Name:  "team",
 				Usage: "List available teams and set team context.",
@@ -633,8 +708,7 @@ func run(args []string) {
 							Usage: "Output in JSON format.",
 						},
 					},
-				},
-				},
+				}},
 			},
 		)
 	}
@@ -644,13 +718,15 @@ func run(args []string) {
 
 // ExitWithMessage takes a ExitingWithMessageCommand type and returns a
 // codegansta/cli friendly command Action.
-func ExitWithMessage(f ExitingWithMessageCommand, log logging.Logger, cmd string) func(*cli.Context) {
-	return func(c *cli.Context) {
+func ExitWithMessage(f ExitingWithMessageCommand, log logging.Logger, cmd string) cli.ActionFunc {
+	return func(c *cli.Context) error {
 		s, e := f(c, log, cmd)
 		if s != "" {
 			fmt.Println(s)
 		}
 		ctlcli.Close()
 		os.Exit(e)
+
+		return nil
 	}
 }

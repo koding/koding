@@ -29,17 +29,12 @@ func (f *Controller) get(indexName string, objectId string) (map[string]interfac
 		return nil, err
 	}
 
-	record, err := index.GetObject(objectId)
+	record, err := index.GetObject(objectId, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	castRecord, ok := record.(map[string]interface{})
-	if !ok {
-		return nil, ErrDataNotValid
-	}
-
-	return castRecord, nil
+	return record, nil
 }
 
 func (f *Controller) partialUpdate(indexName string, record map[string]interface{}) error {

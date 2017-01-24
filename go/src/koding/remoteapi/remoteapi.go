@@ -1,15 +1,53 @@
 package remoteapi
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
 	"koding/api"
 	"koding/remoteapi/client"
+	"koding/remoteapi/models"
 
 	runtime "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
+	"github.com/koding/kite"
 )
+
+// Unmarshal unmarshals resp.Data into v.
+//
+// If resp.Error is non-nil, non-nil error is returned instead.
+func Unmarshal(resp *models.DefaultResponse, v interface{}) error {
+	if resp.Error != nil {
+		if err, ok := resp.Error.(map[string]interface{}); ok {
+			msg, _ := err["message"].(string)
+			typ, _ := err["name"].(string)
+
+			if msg != "" && typ != "" {
+				return &kite.Error{
+					Type:    typ,
+					Message: msg,
+				}
+			}
+		}
+
+		return fmt.Errorf("%v", resp.Error)
+	}
+
+	if v == nil {
+		return nil
+	}
+
+	p, err := jsonMarshal(resp.Data)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(p, v)
+}
 
 //go:generate swagger generate client -f ../../../../website/swagger.json
 
@@ -54,6 +92,13 @@ func (c *Client) New(user *api.User) *client.Koding {
 	return client.New(newRuntime(c.endpoint(), httpClient), strfmt.Default)
 }
 
+func (c *Client) Timeout() time.Duration {
+	if c.Client != nil && c.Client.Timeout != 0 {
+		return c.Client.Timeout
+	}
+	return 30 * time.Second
+}
+
 func (c *Client) endpoint() *url.URL {
 	if c.Endpoint != nil {
 		return c.Endpoint
@@ -61,10 +106,23 @@ func (c *Client) endpoint() *url.URL {
 	return &url.URL{
 		Scheme: "http",
 		Host:   "127.0.0.1",
-		Path:   "/remote.api",
+		Path:   "/",
 	}
 }
 
 func newRuntime(u *url.URL, c *http.Client) *runtime.Runtime {
 	return runtime.NewWithClient(u.Host, u.Path, []string{u.Scheme}, c)
+}
+
+func jsonMarshal(v interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+
+	if err := enc.Encode(v); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }

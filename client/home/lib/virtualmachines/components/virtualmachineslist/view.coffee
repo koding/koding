@@ -100,4 +100,3 @@ module.exports = class VirtualMachinesListView extends React.Component
       sectionClassName='HomeAppViewVMSection'
       rowClassName='stack'
     />
-

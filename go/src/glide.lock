@@ -352,7 +352,7 @@ imports:
   subpackages:
   - simplelru
 - name: github.com/hashicorp/hcl
-  version: 8fa153c5b4e9d1ccecda7075821ffc7c1f6d912b
+  version: 80e628d796135357b3d2e33a985c666b9f35eee1
   subpackages:
   - hcl/ast
   - hcl/fmtcmd
@@ -486,7 +486,7 @@ imports:
   - models
   - pkg/escape
 - name: github.com/jacobsa/fuse
-  version: 3b8b4e55df5483817cd361a28d0a830d5acd962b
+  version: dc1be2d5b8abc34991a649f7499f9f673e36bb46
   subpackages:
   - fuseops
   - fuseutil
@@ -1059,6 +1059,8 @@ imports:
   version: 8a7beacffa3009a9ac66bad506b18ffdd110cf97
 - name: github.com/stretchr/testify
   version: 18a02ba4a312f95da08ff4cfc0055750ce50ae9e
+- name: github.com/dustin/go-humanize
+  version: 7a41df006ff9af79a29f0ffa9c5f21fbe6314a2d
 - name: github.com/PuerkitoBio/urlesc
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
 testImports:

@@ -39,4 +39,3 @@ storiesOf 'CreditCard', module
 
   .add 'amex card', ->
     <CreditCard title='Credit Card Number' brand='amex' />
-

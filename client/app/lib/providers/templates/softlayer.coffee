@@ -7,7 +7,7 @@ module.exports =
 {
   "provider": {
     "softlayer": {
-      "username": "softlayer_username",
+      "username": "${var.softlayer_username}",
       "api_key": "${var.softlayer_api_key}"
     }
   },
@@ -17,10 +17,10 @@ module.exports =
       "softlayer-instance": {
         "name": "softlayer-instance",
         "domain": "koding.com",
-        "region": "dal09",
-        "image": "UBUNTU_14_64",
-        "cpu": 1,
-        "ram": 1024,
+        "region": "${var.userInput_region}",
+        "image": "${var.userInput_image}",
+        "cpu": "${var.userInput_cpu}",
+        "ram": "${var.userInput_ram}",
         "local_disk": true,
         "public_network_speed": 10,
         "hourly_billing": true,
@@ -53,13 +53,13 @@ resource:
       #  - 123456
 
       # One of available SoftLayer regions
-      region: dal09
+      region: '${var.userInput_region}'
 
       # Default image is Ubuntu 14.04 LTS x64
-      image: UBUNTU_14_64
+      image: '${var.userInput_image}'
 
-      cpu: 1
-      ram: 1024
+      cpu: '${var.userInput_cpu}'
+      ram: '${var.userInput_ram}'
       local_disk: true
       public_network_speed: 10
 
@@ -77,3 +77,11 @@ resource:
         # for more information please use the search box above
 
   '''
+
+  # Defaults
+  defaults:
+    userInputs:
+      region: 'dal09'
+      image: 'UBUNTU_14_64'
+      cpu: 1
+      ram: 1024

@@ -52,4 +52,3 @@ module.exports = class HomeUtilities extends kd.CustomScrollView
   handleSection: (action) ->
 
     @kdCliSection.unsetClass 'show-code-border'
-

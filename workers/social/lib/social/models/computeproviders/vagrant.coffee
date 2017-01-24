@@ -10,6 +10,7 @@ KodingError       = require '../../error'
 module.exports = class Vagrant extends ProviderInterface
 
   @providerSlug  = 'vagrant'
+
   @bootstrapKeys = ['queryString']
 
   @ping = (client, options, callback) ->
@@ -17,10 +18,6 @@ module.exports = class Vagrant extends ProviderInterface
     { nickname } = client.r.account.profile
     callback null, "#{ @providerSlug } is the best #{ nickname }!"
 
-
-  ###*
-   * @param {Object} options
-  ###
   @create = (client, options, callback) ->
 
     { label, hostQueryString, credential } = options
@@ -45,7 +42,6 @@ module.exports = class Vagrant extends ProviderInterface
 
       callback null, { meta, label, credential }
 
-
   @postCreate = (client, options, callback) ->
 
     { r: { account } } = client
@@ -54,3 +50,4 @@ module.exports = class Vagrant extends ProviderInterface
     JWorkspace = require '../workspace'
     JWorkspace.createDefault client, machine.uid, callback
 
+  do @_requireTemplate

@@ -141,7 +141,6 @@ module.exports = class MessageThreadsStore extends KodingFluxStore
    * @return {IMThreadCollection} nextState
   ###
   handleCreateMessageBegin: (threads, { clientRequestId }) ->
-
     return threads.set clientRequestId, createThread clientRequestId
 
 

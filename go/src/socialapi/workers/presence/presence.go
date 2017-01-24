@@ -24,6 +24,16 @@ func init() {
 }
 
 const (
+	// EndpointPresencePing provides ping endpoint
+	EndpointPresencePing = "/presence/ping"
+
+	EndpointPresenceListMembers = "/presence/listmembers"
+
+	// EndpointPresencePingPrivate provides private ping endpoint
+	EndpointPresencePingPrivate = "/private/presence/ping"
+)
+
+const (
 	// EventName holds presence event name
 	EventName = "presence_ping"
 )

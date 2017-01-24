@@ -5,12 +5,10 @@ module.exports = (name = '', options = {}) ->
   helmet       = require 'helmet'
   app          = express()
 
-  compression = require 'compression'
   bodyParser = require 'body-parser'
 
-  app.use compression()
   app.use bodyParser.json()
-  helmet.defaults app
+  app.use helmet()
   app.use cors()
 
   KONFIG = require 'koding-config-manager'

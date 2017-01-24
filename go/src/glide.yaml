@@ -292,6 +292,7 @@ import:
 - package: github.com/PuerkitoBio/purell
 - package: github.com/docker/go-units
 - package: github.com/stretchr/testify
+- package: github.com/dustin/go-humanize
 - package: github.com/PuerkitoBio/urlesc
 ignore:
 - koding/tools/logger

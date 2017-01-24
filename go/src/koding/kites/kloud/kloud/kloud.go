@@ -173,7 +173,7 @@ func New(conf *Config) (*Kloud, error) {
 	sess.Log.Debug("Konfig.Endpoints: %s", util.LazyJSON(e))
 
 	authUsers := map[string]string{
-		"kloudctl": conf.KloudSecretKey,
+		"kloudSecret": conf.KloudSecretKey,
 	}
 
 	restClient := httputil.DefaultRestClient(conf.DebugMode)
@@ -239,6 +239,11 @@ func New(conf *Config) (*Kloud, error) {
 	transport := &api.Transport{
 		RoundTripper: storeOpts.Client.Transport,
 		AuthFunc:     api.NewCache(authFn).Auth,
+		Debug:        conf.DebugMode,
+	}
+
+	if conf.DebugMode {
+		transport.Log = sess.Log
 	}
 
 	kloud.Stack.Endpoints = e
@@ -252,7 +257,7 @@ func New(conf *Config) (*Kloud, error) {
 	kloud.Stack.RemoteClient = &remoteapi.Client{
 		Client:    storeOpts.Client,
 		Transport: transport,
-		Endpoint:  e.Remote().Private.URL,
+		Endpoint:  e.Koding.Private.URL,
 	}
 
 	kloud.Stack.ContextCreator = func(ctx context.Context) context.Context {

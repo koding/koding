@@ -44,6 +44,12 @@ ulimit -n 96000
 
 RETVAL=0
 
+# source default env vars
+
+if [ -f /etc/default/supervisord ]; then
+  . /etc/default/supervisord
+fi
+
 # source koding env vars
 if [ ! -f /etc/sysconfig/supervisord ]; then
     exit 6

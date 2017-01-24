@@ -21,14 +21,13 @@ trialTitles =
 
 
 subscriptionTitle = createSelector(
-  subscription.pricePerSeat
   subscription.isTrial
   subscription.trialDays
   info.userCount
-  (pricePerSeat, isTrial, trialDays, userCount) ->
+  (isTrial, trialDays, userCount) ->
     if isTrial
     then trialTitles[trialDays]
-    else "$#{pricePerSeat} per Developer (#{pluralize 'Developer', userCount, yes})"
+    else pluralize 'Developer', userCount, yes
 )
 
 

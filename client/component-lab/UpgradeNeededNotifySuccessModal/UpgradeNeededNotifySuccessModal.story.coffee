@@ -8,5 +8,3 @@ storiesOf 'UpgradeNeededNotifySuccessModal', module
     <UpgradeNeededNotifySuccessModal
       isOpen={yes}
       onButtonClick={action 'link clicked'} />
-
-

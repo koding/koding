@@ -1,20 +1,21 @@
 package stack
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"sort"
 
 	"koding/kites/kloud/stack"
+	kloudstack "koding/kites/kloud/stack"
 	"koding/klientctl/endpoint/credential"
 	"koding/klientctl/endpoint/kloud"
+	"koding/klientctl/endpoint/team"
 
 	"github.com/hashicorp/hcl"
 	yaml "gopkg.in/yaml.v2"
 )
 
-// CreateOptions
 type CreateOptions struct {
 	Team        string
 	Title       string
@@ -22,7 +23,6 @@ type CreateOptions struct {
 	Template    []byte
 }
 
-// Valid
 func (opts *CreateOptions) Valid() error {
 	if opts == nil {
 		return errors.New("stack: arguments are missing")
@@ -35,16 +35,13 @@ func (opts *CreateOptions) Valid() error {
 	return nil
 }
 
-// DefaultClient
-var DefaultClient Client
+var DefaultClient = &Client{}
 
-// Client
 type Client struct {
 	Kloud      *kloud.Client
 	Credential *credential.Client
 }
 
-// Create
 func (c *Client) Create(opts *CreateOptions) (*stack.ImportResponse, error) {
 	if err := opts.Valid(); err != nil {
 		return nil, err
@@ -55,7 +52,7 @@ func (c *Client) Create(opts *CreateOptions) (*stack.ImportResponse, error) {
 		return nil, fmt.Errorf("stack: template encoding error: %s", err)
 	}
 
-	providers, err := c.readProviders(data)
+	providers, err := kloudstack.ReadProviders(data)
 	if err != nil {
 		return nil, fmt.Errorf("stack: unable to read providers: %s", err)
 	}
@@ -69,6 +66,10 @@ func (c *Client) Create(opts *CreateOptions) (*stack.ImportResponse, error) {
 		Team:        opts.Team,
 		Title:       opts.Title,
 		Credentials: make(map[string][]string),
+	}
+
+	if req.Team == "" {
+		req.Team = team.Used().Name
 	}
 
 	var resp stack.ImportResponse
@@ -121,16 +122,10 @@ func (c *Client) credential() *credential.Client {
 }
 
 func (c *Client) jsonReencode(data []byte) ([]byte, error) {
-	var raw json.RawMessage
+	var jsonv interface{}
 
-	if err := json.Unmarshal(data, &raw); err == nil {
-		return data, nil
-	}
-
-	var ymlv interface{}
-
-	if err := yaml.Unmarshal(data, &ymlv); err == nil {
-		return json.Marshal(ymlv)
+	if err := json.Unmarshal(data, &jsonv); err == nil {
+		return jsonMarshal(jsonv)
 	}
 
 	var hclv interface{}
@@ -138,35 +133,66 @@ func (c *Client) jsonReencode(data []byte) ([]byte, error) {
 	if err := hcl.Unmarshal(data, &hclv); err == nil {
 		fixHCL(hclv)
 
-		return json.Marshal(hclv)
+		return jsonMarshal(hclv)
+	}
+
+	var ymlv interface{}
+
+	if err := yaml.Unmarshal(data, &ymlv); err == nil {
+		return jsonMarshal(fixYAML(ymlv))
 	}
 
 	return nil, errors.New("unknown encoding")
 }
 
-func (c *Client) readProviders(data []byte) ([]string, error) {
-	var v struct {
-		Provider map[string]struct{} `json:"provider"`
-	}
+func Create(opts *CreateOptions) (*stack.ImportResponse, error) {
+	return DefaultClient.Create(opts)
+}
 
-	if err := json.Unmarshal(data, &v); err != nil {
+func jsonMarshal(v interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false)
+
+	if err := enc.Encode(v); err != nil {
 		return nil, err
 	}
 
-	providers := make([]string, len(v.Provider))
-
-	for p := range v.Provider {
-		providers = append(providers, p)
-	}
-
-	sort.Strings(providers)
-
-	return providers, nil
+	return buf.Bytes(), nil
 }
 
-// Create
-func Create(opts *CreateOptions) (*stack.ImportResponse, error) {
-	return DefaultClient.Create(opts)
+// fixYAML is a best-effort of fixing representation of
+// YAML-encoded value, so it can be marshaled to a valid JSON.
+//
+// YAML creates types like map[interface{}]interface{}, which are
+// not a valid JSON types.
+//
+// Related issue:
+//
+//   https://github.com/go-yaml/yaml/issues/139
+//
+func fixYAML(v interface{}) interface{} {
+	switch v := v.(type) {
+	case map[interface{}]interface{}:
+		fixedV := make(map[string]interface{}, len(v))
+
+		for k, v := range v {
+			fixedV[fmt.Sprintf("%v", k)] = fixYAML(v)
+		}
+
+		return fixedV
+	case []interface{}:
+		fixedV := make([]interface{}, len(v))
+
+		for i := range v {
+			fixedV[i] = fixYAML(v[i])
+		}
+
+		return fixedV
+	default:
+		return v
+	}
 }
 
 // fixHCL is a best-effort method to "fix" value representation of

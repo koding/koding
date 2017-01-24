@@ -31,7 +31,7 @@
       "name": "JCombinedAppStorage"
     },
     {
-      "description": "Base class for compute related operations",
+      "description": "Model ComputeProvider",
       "name": "ComputeProvider"
     },
     {
@@ -41,6 +41,10 @@
     {
       "description": "Model JCredentialData",
       "name": "JCredentialData"
+    },
+    {
+      "description": "Model Kloud",
+      "name": "Kloud"
     },
     {
       "description": "Model JMachine",
@@ -187,16 +191,12 @@
       "name": "SocialNotification"
     },
     {
-      "description": "SocialAccount",
+      "description": "Model SocialAccount",
       "name": "SocialAccount"
     },
     {
-      "description": "JComputeStack keeps stack data\nincluding machines and credential references",
+      "description": "Model JComputeStack",
       "name": "JComputeStack"
-    },
-    {
-      "description": "Model JTag",
-      "name": "JTag"
     },
     {
       "description": "Model JTeamInvitation",
@@ -292,6 +292,9 @@
     "JAccount": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "socialApiId": {
           "type": "string"
         },
@@ -348,6 +351,9 @@
         "originId"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "code": {
           "type": "string"
         },
@@ -366,6 +372,9 @@
     "JCombinedAppStorage": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "accountId": {
           "type": "string"
         },
@@ -383,6 +392,9 @@
         "originId"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "provider": {
           "type": "string"
         },
@@ -419,6 +431,9 @@
         "originId"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "identifier": {
           "type": "string"
         },
@@ -437,6 +452,9 @@
         "provider"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "uid": {
           "type": "string"
         },
@@ -530,6 +548,9 @@
         "originId"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "slug": {
           "type": "string"
         },
@@ -562,6 +583,9 @@
     "JSnapshot": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "originId": {
           "type": "string"
         },
@@ -590,10 +614,14 @@
       "type": "object",
       "required": [
         "title",
+        "slug",
         "originId",
         "group"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "machines": {
           "type": "array",
           "items": {
@@ -603,6 +631,10 @@
         "title": {
           "type": "string",
           "description": "Title of this stack template"
+        },
+        "slug": {
+          "type": "string",
+          "description": "Unique slug of stack template"
         },
         "description": {
           "type": "string",
@@ -655,6 +687,9 @@
         "namespace"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "namespace": {
           "type": "string"
         },
@@ -669,6 +704,9 @@
     "JCustomPartials": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
@@ -703,6 +741,9 @@
     "JProposedDomain": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "domain": {
           "type": "string"
         },
@@ -742,6 +783,9 @@
     "JDomainAlias": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "domain": {
           "type": "string"
         },
@@ -766,6 +810,9 @@
         "foreignId"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "username": {
           "type": "string"
         },
@@ -786,6 +833,9 @@
     "JGroupData": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "slug": {
           "type": "string"
         },
@@ -797,6 +847,9 @@
     "JGroupLimit": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
@@ -854,6 +907,9 @@
         "title"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "title": {
           "type": "string"
         },
@@ -880,13 +936,6 @@
         },
         "visibility": {
           "type": "string"
-        },
-        "counts": {
-          "properties": {
-            "members": {
-              "type": "number"
-            }
-          }
         },
         "customize": {
           "properties": {
@@ -936,6 +985,9 @@
     "JPermissionSet": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "isCustom": {
           "type": "boolean"
         },
@@ -950,6 +1002,9 @@
     "JGroupRole": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "title": {
           "type": "string"
         },
@@ -973,6 +1028,9 @@
         "groupName"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "code": {
           "type": "string"
         },
@@ -1018,6 +1076,9 @@
         "username"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "type": {
           "type": "string"
         },
@@ -1045,6 +1106,9 @@
     "JName": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
@@ -1065,6 +1129,9 @@
     "JPasswordRecovery": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "email": {
           "type": "string"
         },
@@ -1100,6 +1167,9 @@
         "name"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
@@ -1125,6 +1195,9 @@
     "JProxyRestriction": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "domainName": {
           "type": "string"
         },
@@ -1153,6 +1226,9 @@
         "originId"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "originId": {
           "type": "string"
         },
@@ -1173,6 +1249,9 @@
         "originId"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "type": {
           "type": "string"
         },
@@ -1206,6 +1285,9 @@
         "name"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
@@ -1250,6 +1332,9 @@
     "JSession": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "clientId": {
           "type": "string"
         },
@@ -1321,6 +1406,9 @@
         "group"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "title": {
           "type": "string"
         },
@@ -1364,54 +1452,6 @@
         }
       }
     },
-    "JTag": {
-      "type": "object",
-      "required": [
-        "title"
-      ],
-      "properties": {
-        "title": {
-          "type": "string"
-        },
-        "slug": {
-          "type": "string"
-        },
-        "body": {
-          "type": "string"
-        },
-        "counts": {
-          "properties": {
-            "followers": {
-              "type": "number"
-            },
-            "following": {
-              "type": "number"
-            },
-            "tagged": {
-              "type": "number"
-            }
-          }
-        },
-        "meta": {
-          "type": "object"
-        },
-        "synonyms": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "group": {
-          "type": "string"
-        },
-        "status": {
-          "type": "string"
-        },
-        "category": {
-          "type": "string"
-        }
-      }
-    },
     "JTeamInvitation": {
       "type": "object",
       "required": [
@@ -1419,6 +1459,9 @@
         "email"
       ],
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "code": {
           "type": "string"
         },
@@ -1440,6 +1483,9 @@
     "JUrlAlias": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "alias": {
           "type": "string"
         },
@@ -1451,6 +1497,9 @@
     "JUser": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "username": {
           "type": "string"
         },
@@ -1517,6 +1566,9 @@
     "JVerificationToken": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "username": {
           "type": "string"
         },
@@ -1538,6 +1590,9 @@
     "JWorkspace": {
       "type": "object",
       "properties": {
+        "_id": {
+          "type": "string"
+        },
         "name": {
           "type": "string"
         },
@@ -2553,40 +2608,6 @@
         }
       }
     },
-    "/remote.api/JAccount.fetchSubscriptions/{id}": {
-      "post": {
-        "tags": [
-          "JAccount"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "$ref": "#/parameters/instanceParam"
-          },
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JAccount"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
     "/remote.api/JAccount.fetchEmailAndStatus/{id}": {
       "post": {
         "tags": [
@@ -3282,9 +3303,9 @@
         "description": "creates a JMachine for requested provider with the provided options",
         "responses": {
           "200": {
-            "description": "Request processed succesfully",
+            "description": "created JMachine instance",
             "schema": {
-              "$ref": "#/definitions/DefaultResponse"
+              "$ref": "#/definitions/JMachine"
             }
           },
           "401": {
@@ -3847,6 +3868,32 @@
                   "$ref": "#/definitions/DefaultResponse"
                 }
               ]
+            }
+          }
+        }
+      }
+    },
+    "/remote.api/Kloud.ping": {
+      "post": {
+        "tags": [
+          "Kloud"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [],
+        "description": "calls kite.ping on Kloud on behalf of loggedin user",
+        "responses": {
+          "200": {
+            "description": "Request processed succesfully",
+            "schema": {
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
@@ -4510,9 +4557,74 @@
         "description": "creates a JStackTemplate with requested content",
         "responses": {
           "200": {
-            "description": "Request processed succesfully",
+            "description": "created JStackTemplate instance",
             "schema": {
-              "$ref": "#/definitions/DefaultResponse"
+              "$ref": "#/definitions/JStackTemplate"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
+            }
+          }
+        }
+      }
+    },
+    "/remote.api/JStackTemplate.samples": {
+      "post": {
+        "tags": [
+          "JStackTemplate"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "provider": {
+                  "type": "string",
+                  "default": "aws"
+                },
+                "useDefaults": {
+                  "type": "boolean",
+                  "default": true
+                }
+              }
+            },
+            "required": true,
+            "description": "body of the request"
+          }
+        ],
+        "description": "returns sample stack template for given provider",
+        "responses": {
+          "200": {
+            "description": "stacktemplate sample in json and yaml format with default values",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "json": {
+                  "type": "string",
+                  "default": "{}"
+                },
+                "yaml": {
+                  "type": "string",
+                  "default": "--"
+                },
+                "defaults": {
+                  "type": "object",
+                  "properties": {
+                    "userInputs": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  }
+                }
+              }
             }
           },
           "401": {
@@ -9586,9 +9698,9 @@
         "description": "JComputeStack::create",
         "responses": {
           "200": {
-            "description": "Request processed succesfully",
+            "description": "created JComputeStack instance",
             "schema": {
-              "$ref": "#/definitions/DefaultResponse"
+              "$ref": "#/definitions/JComputeStack"
             }
           },
           "401": {
@@ -9888,826 +10000,6 @@
               "allOf": [
                 {
                   "$ref": "#/definitions/JComputeStack"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.one": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed succesfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.on": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed succesfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.some": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed succesfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.create": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed succesfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.count": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed succesfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.fetchCount": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed succesfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.byRelevance": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed succesfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.cursor": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed succesfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.cursorWithRelationship": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed succesfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.fetchMyFollowees": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed succesfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.each": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed succesfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.fetchSkillTags": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "Method JTag.fetchSkillTags",
-        "responses": {
-          "200": {
-            "description": "Request processed succesfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.byRelevanceForSkills": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed succesfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.fetchSystemTags": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed succesfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.createSystemTag": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "description": "",
-        "responses": {
-          "200": {
-            "description": "Request processed succesfully",
-            "schema": {
-              "$ref": "#/definitions/DefaultResponse"
-            }
-          },
-          "401": {
-            "description": "Unauthorized request",
-            "schema": {
-              "$ref": "#/definitions/UnauthorizedRequest"
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.modify/{id}": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "$ref": "#/parameters/instanceParam"
-          },
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JTag"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.follow/{id}": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "$ref": "#/parameters/instanceParam"
-          },
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JTag"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.unfollow/{id}": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "$ref": "#/parameters/instanceParam"
-          },
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JTag"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.fetchFollowersWithRelationship/{id}": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "$ref": "#/parameters/instanceParam"
-          },
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JTag"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.fetchFollowingWithRelationship/{id}": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "$ref": "#/parameters/instanceParam"
-          },
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JTag"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.fetchContents/{id}": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "$ref": "#/parameters/instanceParam"
-          },
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JTag"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.fetchContentTeasers/{id}": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "description": "Method JTag.fetchContentTeasers",
-        "parameters": [
-          {
-            "$ref": "#/parameters/instanceParam"
-          },
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JTag"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.fetchSynonym/{id}": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "$ref": "#/parameters/instanceParam"
-          },
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JTag"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.delete/{id}": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "$ref": "#/parameters/instanceParam"
-          },
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JTag"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.fetchLastInteractors/{id}": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "$ref": "#/parameters/instanceParam"
-          },
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JTag"
-                },
-                {
-                  "$ref": "#/definitions/DefaultResponse"
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
-    "/remote.api/JTag.createSynonym/{id}": {
-      "post": {
-        "tags": [
-          "JTag"
-        ],
-        "consumes": [
-          "application/json"
-        ],
-        "description": "",
-        "parameters": [
-          {
-            "$ref": "#/parameters/instanceParam"
-          },
-          {
-            "$ref": "#/parameters/bodyParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/JTag"
                 },
                 {
                   "$ref": "#/definitions/DefaultResponse"

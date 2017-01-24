@@ -177,18 +177,18 @@ module.exports = class FSHelper
     modal = new ContentModal { title, cssClass, content, overlay, buttons }
 
 
-  # @exists = (path, vmName, callback=noop)->
-  #   @getInfo path, vmName, (err, res)->
+  # @exists = (path, vmName, callback=noop) ->
+  #   @getInfo path, vmName, (err, res) ->
   #     callback err, res?
 
-  # @getInfo = (path, vmName, callback=noop)->
+  # @getInfo = (path, vmName, callback=noop) ->
   #   KD.getSingleton('vmController').run
   #     method   : "fs.getInfo"
   #     vmName   : vmName
   #     withArgs : {path, vmName}
   #   , callback
 
-  # @glob = (pattern, vmName, callback)->
+  # @glob = (pattern, vmName, callback) ->
   #   [vmName, callback] = [callback, vmName]  if typeof vmName is "function"
   #   KD.getSingleton('vmController').run
   #     method   : "fs.glob"

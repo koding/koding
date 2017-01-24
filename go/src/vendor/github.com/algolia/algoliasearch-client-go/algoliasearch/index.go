@@ -1,364 +1,496 @@
 package algoliasearch
 
 import (
-	"errors"
+	"encoding/json"
+	"fmt"
 	"net/url"
-	"reflect"
-	"strconv"
+	"strings"
 	"time"
 )
 
-// Index is the structure used to manipulate an Algolia index.
-type Index struct {
-	name        string
-	nameEncoded string
-	client      *Client
+type index struct {
+	client *client
+	name   string
+	route  string
 }
 
-// NewIndex instantiates a new Index. The `name` parameter corresponds to the
-// Algolia index's name while the `client` is used to connect to the Algolia
-// API.
-func NewIndex(name string, client *Client) *Index {
-	index := new(Index)
-	index.name = name
-	index.client = client
-	index.nameEncoded = client.transport.urlEncode(name)
-	return index
-}
-
-// Delete deletes the Algolia index.
-func (i *Index) Delete() (interface{}, error) {
-	return i.client.transport.request("DELETE", "/1/indexes/"+i.nameEncoded, nil, write)
-}
-
-// Clear removes every record from the Algolia index.
-func (i *Index) Clear() (interface{}, error) {
-	return i.client.transport.request("POST", "/1/indexes/"+i.nameEncoded+"/clear", nil, write)
-}
-
-// GetObject retrieves the object as an interface representing the JSON-encoded
-// object. The `objectID` is used to uniquely identify the object in the index
-// while the `attribute` (optional) is a string containing comma-separated
-// attributes that you want to retrieve. If this parameter is omitted, all the
-// attributes are returned.
-func (i *Index) GetObject(objectID string, attribute ...string) (interface{}, error) {
-	v := url.Values{}
-	if len(attribute) > 1 {
-		return nil, errors.New("Too many parametter")
+// NewIndex instantiates a new `Index`. The `name` parameter corresponds to the
+// Algolia index name while the `client` is used to connect to the Algolia API.
+func NewIndex(name string, client *client) Index {
+	return &index{
+		client: client,
+		name:   name,
+		route:  "/1/indexes/" + url.QueryEscape(name),
 	}
-	if len(attribute) > 0 {
-		v.Add("attribute", attribute[0])
-	}
-	return i.client.transport.request("GET", "/1/indexes/"+i.nameEncoded+"/"+i.client.transport.urlEncode(objectID)+"?"+v.Encode(), nil, read)
 }
 
-// GetObjects retrieves the objects identified by the given `objectIDs`.
-func (i *Index) GetObjects(objectIDs ...string) (interface{}, error) {
-	requests := make([]interface{}, len(objectIDs))
-	for it := range objectIDs {
-		object := make(map[string]interface{})
-		object["indexName"] = i.name
-		object["objectID"] = objectIDs[it]
-		requests[it] = object
-	}
-	body := make(map[string]interface{})
-	body["requests"] = requests
-	return i.client.transport.request("POST", "/1/indexes/*/objects", body, read)
+func (i *index) Delete() (res DeleteTaskRes, err error) {
+	path := i.route
+	err = i.client.request(&res, "DELETE", path, nil, write)
+	return
 }
 
-// DeleteObject deletes an object from the index that is uniquely identified by
-// its `objectID`.
-func (i *Index) DeleteObject(objectID string) (interface{}, error) {
-	return i.client.transport.request("DELETE", "/1/indexes/"+i.nameEncoded+"/"+i.client.transport.urlEncode(objectID), nil, write)
+func (i *index) Clear() (res UpdateTaskRes, err error) {
+	path := i.route + "/clear"
+	err = i.client.request(&res, "POST", path, nil, write)
+	return
 }
 
-// GetSettings retrieves the index settings.
-func (i *Index) GetSettings() (interface{}, error) {
-	return i.client.transport.request("GET", "/1/indexes/"+i.nameEncoded+"/settings", nil, read)
-}
-
-// SetSettings changes the index settings.
-func (i *Index) SetSettings(settings interface{}) (interface{}, error) {
-	return i.client.transport.request("PUT", "/1/indexes/"+i.nameEncoded+"/settings", settings, write)
-}
-
-// getStatus returns the status of a task given its ID `taskID`. The returned
-// interface is the JSON-encoded answered from the API server. The error is
-// non-nil if the REST API has returned an error.
-func (i *Index) getStatus(taskID float64) (interface{}, error) {
-	return i.client.transport.request("GET", "/1/indexes/"+i.nameEncoded+"/task/"+strconv.FormatFloat(taskID, 'f', -1, 64), nil, read)
-}
-
-// WaitTask waits for the given task to be completed. The interface given is
-// typically the returned value of a call to `AddObject`.
-func (i *Index) WaitTask(task interface{}) (interface{}, error) {
-	if reflect.TypeOf(task).Name() == "float64" {
-		return i.WaitTaskWithInit(task.(float64), 100)
-	}
-	return i.WaitTaskWithInit(task.(map[string]interface{})["taskID"].(float64), 100)
-}
-
-// WaitTaskWithInit waits for the task with the `taskID` to be completed. The
-// `timeToWait` parameter controls the first duration, in ms, to use between
-// each retry (it will be exponentiated up to 10s).
-func (i *Index) WaitTaskWithInit(taskID float64, timeToWait float64) (interface{}, error) {
-	for true {
-		status, err := i.getStatus(taskID)
+func (i *index) GetObject(objectID string, attributes []string) (object Object, err error) {
+	var params Map
+	if attributes != nil {
+		var attrBytes []byte
+		attrBytes, err = json.Marshal(attributes)
 		if err != nil {
-			return nil, err
+			return
 		}
-		if status.(map[string]interface{})["status"] == "published" {
-			return status, nil
-		}
-		time.Sleep(time.Duration(timeToWait) * time.Millisecond)
-		timeToWait = timeToWait * 2
-		if timeToWait > 10000 {
-			timeToWait = 10000
+		params = Map{
+			"attributes": attrBytes,
 		}
 	}
-	return nil, errors.New("Code not reachable")
+
+	path := i.route + "/" + url.QueryEscape(objectID) + "?" + encodeMap(params)
+	err = i.client.request(&object, "GET", path, nil, read)
+	return
 }
 
-// ListKeys lists all the keys that can access the index.
-func (i *Index) ListKeys() (interface{}, error) {
-	return i.client.transport.request("GET", "/1/indexes/"+i.nameEncoded+"/keys", nil, read)
-}
+func (i *index) getObjects(objectIDs, attributesToRetrieve []string) (objs []Object, err error) {
+	attrs := url.QueryEscape(strings.Join(attributesToRetrieve, ","))
 
-// GetKey returns the ACL and the validity of the given `key` API key for the
-// current index.
-func (i *Index) GetKey(key string) (interface{}, error) {
-	return i.client.transport.request("GET", "/1/indexes/"+i.nameEncoded+"/keys/"+key, nil, read)
-}
-
-// DeleteKey deletes the `key` API key of the current index.
-func (i *Index) DeleteKey(key string) (interface{}, error) {
-	return i.client.transport.request("DELETE", "/1/indexes/"+i.nameEncoded+"/keys/"+key, nil, write)
-}
-
-// AddObject adds a new object to the index.
-func (i *Index) AddObject(object interface{}) (interface{}, error) {
-	method := "POST"
-	path := "/1/indexes/" + i.nameEncoded
-	return i.client.transport.request(method, path, object, write)
-}
-
-// UpdateObject modifies the record in the Algolia index matching the one given
-// in parameter, according to its `objectID` value.
-func (i *Index) UpdateObject(object interface{}) (interface{}, error) {
-	id := object.(map[string]interface{})["objectID"]
-	path := "/1/indexes/" + i.nameEncoded + "/" + i.client.transport.urlEncode(id.(string))
-	return i.client.transport.request("PUT", path, object, write)
-}
-
-// PartialUpdateObject modifies the record in the Algolia index matching the
-// one given in parameter, according to its `objectID` value. However, the
-// record is only partially updated i.e. only the specified attributes will be
-// updated.
-func (i *Index) PartialUpdateObject(object interface{}) (interface{}, error) {
-	id := object.(map[string]interface{})["objectID"]
-	path := "/1/indexes/" + i.nameEncoded + "/" + i.client.transport.urlEncode(id.(string)) + "/partial"
-	return i.client.transport.request("POST", path, object, write)
-}
-
-// AddObject adds several objects to the index.
-func (i *Index) AddObjects(objects interface{}) (interface{}, error) {
-	return i.sameBatch(objects, "addObject")
-}
-
-// UpdateObjects adds or updates several objects at the same time, according to
-// their respective `objectID` attribute.
-func (i *Index) UpdateObjects(objects interface{}) (interface{}, error) {
-	return i.sameBatch(objects, "updateObject")
-}
-
-// PartialUpdateObjects partially updates several objects at the same time,
-// according to their respective `objectID` attribute.
-func (i *Index) PartialUpdateObjects(objects interface{}) (interface{}, error) {
-	return i.sameBatch(objects, "partialUpdateObject")
-}
-
-// DeleteObjects deletes several objects at the same time, according to their
-// respective `objectID` attribute.
-func (i *Index) DeleteObjects(objectIDs []string) (interface{}, error) {
-	objects := make([]interface{}, len(objectIDs))
-	for i := range objectIDs {
-		object := make(map[string]interface{})
-		object["objectID"] = objectIDs[i]
-		objects[i] = object
-	}
-	return i.sameBatch(objects, "deleteObject")
-}
-
-// DeleteByQuery deletes all the records that are found after performing the
-// `query` search query, following the `params` parameters.
-func (i *Index) DeleteByQuery(query string, params map[string]interface{}) (interface{}, error) {
-	if params == nil {
-		params = make(map[string]interface{})
-	}
-	params["attributesToRetrieve"] = "[\"objectID\"]"
-	params["hitsPerPage"] = 1000
-	params["distinct"] = false
-
-	results, error := i.Search(query, params)
-	if error != nil {
-		return results, error
-	}
-	for results.(map[string]interface{})["nbHits"].(float64) != 0 {
-		objectIDs := make([]string, len(results.(map[string]interface{})["hits"].([]interface{})))
-		for i := range results.(map[string]interface{})["hits"].([]interface{}) {
-			hits := results.(map[string]interface{})["hits"].([]interface{})[i].(map[string]interface{})
-			objectIDs[i] = hits["objectID"].(string)
+	requests := make([]map[string]string, len(objectIDs))
+	for j, id := range objectIDs {
+		requests[j] = map[string]string{
+			"indexName": i.name,
+			"objectID":  url.QueryEscape(id),
 		}
-		task, error := i.DeleteObjects(objectIDs)
-		if error != nil {
-			return task, error
-		}
-
-		_, error = i.WaitTask(task)
-		if error != nil {
-			return nil, error
-		}
-		results, error = i.Search(query, params)
-		if error != nil {
-			return results, error
+		if attributesToRetrieve != nil {
+			requests[j]["attributesToRetrieve"] = attrs
 		}
 	}
-	return nil, nil
-}
 
-// sameBatch performs the `action` command on all the objects specified in the
-// `objects` parameter.
-func (i *Index) sameBatch(objects interface{}, action string) (interface{}, error) {
-	length := len(objects.([]interface{}))
-	method := make([]string, length)
-	for i := range method {
-		method[i] = action
+	body := Map{
+		"requests": requests,
 	}
-	return i.Batch(objects, method)
+
+	var res objects
+	path := "/1/indexes/*/objects"
+	err = i.client.request(&res, "POST", path, body, read)
+	objs = res.Results
+	return
 }
 
-// Batch performs each action contained in the `actions` parameter to their
-// respective object from the `objects` parameter.
-func (i *Index) Batch(objects interface{}, actions []string) (interface{}, error) {
-	array := objects.([]interface{})
-	queries := make([]map[string]interface{}, len(array))
-	for i := range array {
-		queries[i] = make(map[string]interface{})
-		queries[i]["action"] = actions[i]
-		queries[i]["body"] = array[i]
+func (i *index) GetObjects(objectIDs []string) (objs []Object, err error) {
+	return i.getObjects(objectIDs, nil)
+}
+
+func (i *index) GetObjectsAttrs(objectIDs, attrs []string) (objs []Object, err error) {
+	return i.getObjects(objectIDs, attrs)
+}
+
+func (i *index) DeleteObject(objectID string) (res DeleteTaskRes, err error) {
+	path := i.route + "/" + url.QueryEscape(objectID)
+	err = i.client.request(&res, "DELETE", path, nil, write)
+	return
+}
+
+func (i *index) GetSettings() (settings Settings, err error) {
+	path := i.route + "/settings?getVersion=2"
+	err = i.client.request(&settings, "GET", path, nil, read)
+	settings.clean()
+	return
+}
+
+func (i *index) SetSettings(settings Map) (res UpdateTaskRes, err error) {
+	if err = checkSettings(settings); err != nil {
+		return
 	}
-	return i.CustomBatch(queries)
-}
 
-// CustomBatch actually performs the batch request of all `queries`.
-func (i *Index) CustomBatch(queries interface{}) (interface{}, error) {
-	request := make(map[string]interface{})
-	request["requests"] = queries
-	return i.client.transport.request("POST", "/1/indexes/"+i.nameEncoded+"/batch", request, write)
-}
-
-// Browse returns `hitsPerPage` results from the `page` page.
-// Deprecated: Use `BrowseFrom` or `BrowseAll` instead.
-func (i *Index) Browse(page, hitsPerPage int) (interface{}, error) {
-	return i.client.transport.request("GET", "/1/indexes/"+i.nameEncoded+"/browse?page="+strconv.Itoa(page)+"&hitsPerPage="+strconv.Itoa(hitsPerPage), nil, read)
-}
-
-// makeIndexIterator instantiates an new IndexIterator given the `params`
-// parameters. It also initializes it to the first page of results.
-func (i *Index) makeIndexIterator(params interface{}, cursor string) (*IndexIterator, error) {
-	it := new(IndexIterator)
-	it.answer = map[string]interface{}{"cursor": cursor}
-	it.params = params
-	it.pos = 0
-	it.index = i
-	ok := it.loadNextPage()
-	return it, ok
-}
-
-// BrowseFrom browses the results according to the given `params` parameters at
-// the position defined by the `cursor` parameter.
-func (i *Index) BrowseFrom(params interface{}, cursor string) (interface{}, error) {
-	if len(cursor) != 0 {
-		cursor = "&cursor=" + i.client.transport.urlEncode(cursor)
-	} else {
-		cursor = ""
+	// Handle forwardToReplicas separately
+	forwardToReplicas, ok := settings["forwardToReplicas"]
+	if !ok {
+		forwardToReplicas = false
 	}
-	return i.client.transport.request("GET", "/1/indexes/"+i.nameEncoded+"/browse?"+i.client.transport.EncodeParams(params)+cursor, nil, read)
+	delete(settings, "forwardToReplicas")
+
+	path := i.route + "/settings?forwardToReplicas=" + fmt.Sprintf("%t", forwardToReplicas)
+	err = i.client.request(&res, "PUT", path, settings, write)
+	return
 }
 
-// BrowseAll browses the results according to the given `params` parameter
-// starting at the first results. It returns an `IndexIterator` that is used to
-// iterate over the results.
-func (i *Index) BrowseAll(params interface{}) (*IndexIterator, error) {
-	return i.makeIndexIterator(params, "")
-}
+func (i *index) WaitTask(taskID int) error {
+	var res TaskStatusRes
+	var err error
 
-// Search performs a search query according to the `query` search query and the
-// given `params` parameters.
-func (i *Index) Search(query string, params interface{}) (interface{}, error) {
-	if params == nil {
-		params = make(map[string]interface{})
+	var maxDuration time.Duration = time.Second
+	var sleepDuration time.Duration
+
+	for {
+		if res, err = i.GetStatus(taskID); err != nil {
+			return err
+		}
+
+		if res.Status == "published" {
+			return nil
+		}
+
+		sleepDuration = randDuration(maxDuration)
+		time.Sleep(sleepDuration)
+
+		// Increase the upper boundary used to generate the sleep
+		// duration
+		if maxDuration < 10*time.Minute {
+			maxDuration *= 2
+		}
 	}
-	params.(map[string]interface{})["query"] = query
-	body := make(map[string]interface{})
-	body["params"] = i.client.transport.EncodeParams(params)
-	return i.client.transport.request("POST", "/1/indexes/"+i.nameEncoded+"/query", body, search)
+
+	return nil
 }
 
-// operation performs the `op` operation on the underlying index and names the
-// resulting new index `name`. The `op` operation can be either `copy` or
-// `move`.
-func (i *Index) operation(name, op string) (interface{}, error) {
-	body := make(map[string]interface{})
-	body["operation"] = op
-	body["destination"] = name
-	return i.client.transport.request("POST", "/1/indexes/"+i.nameEncoded+"/operation", body, write)
+func (i *index) ListKeys() (keys []Key, err error) {
+	var res listKeysRes
+
+	path := i.route + "/keys"
+	if err = i.client.request(&res, "GET", path, nil, read); err != nil {
+		return
+	}
+
+	keys = res.Keys
+	return
 }
 
-// Copy copies the index into a new one called `name`.
-func (i *Index) Copy(name string) (interface{}, error) {
+func (i *index) AddUserKey(ACL []string, params Map) (res AddKeyRes, err error) {
+	req := duplicateMap(params)
+	req["acl"] = ACL
+
+	if err = checkKey(req); err != nil {
+		return
+	}
+
+	path := i.route + "/keys"
+	err = i.client.request(&res, "POST", path, req, read)
+	return
+}
+
+func (i *index) UpdateUserKey(key string, params Map) (res UpdateKeyRes, err error) {
+	if err = checkKey(params); err != nil {
+		return
+	}
+
+	path := i.route + "/keys/" + url.QueryEscape(key)
+	err = i.client.request(&res, "PUT", path, params, read)
+	return
+}
+
+func (i *index) GetUserKey(value string) (key Key, err error) {
+	path := i.route + "/keys/" + url.QueryEscape(value)
+	err = i.client.request(&key, "GET", path, nil, read)
+	return
+}
+
+func (i *index) DeleteUserKey(value string) (res DeleteRes, err error) {
+	path := i.route + "/keys/" + value
+	err = i.client.request(&res, "DELETE", path, nil, write)
+	return
+}
+
+func (i *index) AddObject(object Object) (res CreateObjectRes, err error) {
+	path := i.route
+	err = i.client.request(&res, "POST", path, object, write)
+	return
+}
+
+func (i *index) UpdateObject(object Object) (res UpdateObjectRes, err error) {
+	objectID, err := object.ObjectID()
+	if err != nil {
+		return
+	}
+
+	path := i.route + "/" + url.QueryEscape(objectID)
+	err = i.client.request(&res, "PUT", path, object, write)
+	return
+}
+
+func (i *index) partialUpdateObject(object Object, createIfNotExists bool) (res UpdateTaskRes, err error) {
+	objectID, err := object.ObjectID()
+	if err != nil {
+		return
+	}
+
+	path := i.route + "/" + url.QueryEscape(objectID) + "/partial"
+	if !createIfNotExists {
+		path += "?createIfNotExists=false"
+	}
+	err = i.client.request(&res, "POST", path, object, write)
+	return
+}
+
+func (i *index) PartialUpdateObject(object Object) (res UpdateTaskRes, err error) {
+	return i.partialUpdateObject(object, true)
+}
+
+func (i *index) PartialUpdateObjectNoCreate(object Object) (res UpdateTaskRes, err error) {
+	return i.partialUpdateObject(object, false)
+}
+
+func (i *index) AddObjects(objects []Object) (res BatchRes, err error) {
+	var operations []BatchOperation
+
+	if operations, err = newBatchOperations(objects, "addObject"); err == nil {
+		res, err = i.Batch(operations)
+	}
+
+	return
+}
+
+func (i *index) UpdateObjects(objects []Object) (res BatchRes, err error) {
+	var operations []BatchOperation
+
+	if operations, err = newBatchOperations(objects, "updateObject"); err == nil {
+		res, err = i.Batch(operations)
+	}
+
+	return
+}
+
+func (i *index) partialUpdateObjects(objects []Object, action string) (res BatchRes, err error) {
+	var operations []BatchOperation
+
+	if operations, err = newBatchOperations(objects, action); err == nil {
+		res, err = i.Batch(operations)
+	}
+
+	return
+}
+
+func (i *index) PartialUpdateObjects(objects []Object) (res BatchRes, err error) {
+	return i.partialUpdateObjects(objects, "partialUpdateObject")
+}
+
+func (i *index) PartialUpdateObjectsNoCreate(objects []Object) (res BatchRes, err error) {
+	return i.partialUpdateObjects(objects, "partialUpdateObjectNoCreate")
+}
+
+func (i *index) DeleteObjects(objectIDs []string) (res BatchRes, err error) {
+	objects := make([]Object, len(objectIDs))
+
+	for j, id := range objectIDs {
+		objects[j] = Object{
+			"objectID": id,
+		}
+	}
+
+	var operations []BatchOperation
+	if operations, err = newBatchOperations(objects, "deleteObject"); err == nil {
+		res, err = i.Batch(operations)
+	}
+
+	return
+}
+
+func (i *index) Batch(operations []BatchOperation) (res BatchRes, err error) {
+	body := map[string][]BatchOperation{
+		"requests": operations,
+	}
+
+	path := i.route + "/batch"
+	err = i.client.request(&res, "POST", path, body, write)
+	return
+}
+
+func (i *index) Copy(name string) (UpdateTaskRes, error) {
 	return i.operation(name, "copy")
 }
 
-// Move renames the index into `name`.
-func (i *Index) Move(name string) (interface{}, error) {
+func (i *index) Move(name string) (UpdateTaskRes, error) {
 	return i.operation(name, "move")
 }
 
-// AddKey registers a new API key for the index. The `acl` parameter controls
-// which permissions are given, `validity` is the validity duration in seconds
-// (0 for unlimited), `maxQueriesPerIPPerHour` is the maximum number of calls
-// authorized per hour and `maxHitsPerQuery` controls the number of results
-// that each query could return at most.
-func (i *Index) AddKey(acl []string, validity int, maxQueriesPerIPPerHour int, maxHitsPerQuery int) (interface{}, error) {
-	body := make(map[string]interface{})
-	body["acl"] = acl
-	body["maxHitsPerQuery"] = maxHitsPerQuery
-	body["maxQueriesPerIPPerHour"] = maxQueriesPerIPPerHour
-	body["validity"] = validity
-	return i.AddKeyWithParam(body)
+func (i *index) operation(dst, op string) (res UpdateTaskRes, err error) {
+	o := IndexOperation{
+		Destination: dst,
+		Operation:   op,
+	}
+
+	path := i.route + "/operation"
+	err = i.client.request(&res, "POST", path, o, write)
+	return
 }
 
-// AddKeyWithParam registers a new API for the index. The `params` parameter is
-// a `map[string]interface{}` of all the parameters given to the `AddKey`
-// function.
-func (i *Index) AddKeyWithParam(params interface{}) (interface{}, error) {
-	return i.client.transport.request("POST", "/1/indexes/"+i.nameEncoded+"/keys", params, write)
+func (i *index) GetStatus(taskID int) (res TaskStatusRes, err error) {
+	path := i.route + fmt.Sprintf("/task/%d", taskID)
+	err = i.client.request(&res, "GET", path, nil, read)
+	return
 }
 
-// UpdateKey updates the `key` API key according to the other given parameters.
-func (i *Index) UpdateKey(key string, acl []string, validity int, maxQueriesPerIPPerHour int, maxHitsPerQuery int) (interface{}, error) {
-	body := make(map[string]interface{})
-	body["acl"] = acl
-	body["maxHitsPerQuery"] = maxHitsPerQuery
-	body["maxQueriesPerIPPerHour"] = maxQueriesPerIPPerHour
-	body["validity"] = validity
-	return i.UpdateKeyWithParam(key, body)
+func (i *index) SearchSynonyms(query string, types []string, page, hitsPerPage int) (synonyms []Synonym, err error) {
+	body := Map{
+		"query":       query,
+		"type":        strings.Join(types, ","),
+		"page":        page,
+		"hitsPerPage": hitsPerPage,
+	}
+
+	path := i.route + "/synonyms/search"
+	var res SearchSynonymsRes
+	err = i.client.request(&res, "POST", path, body, search)
+
+	if err == nil {
+		synonyms = res.Hits
+	}
+
+	return
 }
 
-// UpdateKeyWithParam updates the `key` API key according to the `params`
-// parameters which is a `map[string]interface{}` of all the parameters given
-// to the `UpdateKey` function.
-func (i *Index) UpdateKeyWithParam(key string, params interface{}) (interface{}, error) {
-	return i.client.transport.request("PUT", "/1/indexes/"+i.nameEncoded+"/keys/"+key, params, write)
+func (i *index) GetSynonym(objectID string) (s Synonym, err error) {
+	path := i.route + "/synonyms/" + url.QueryEscape(objectID)
+	err = i.client.request(&s, "GET", path, nil, read)
+	return
+}
+
+func (i *index) AddSynonym(synonym Synonym, forwardToReplicas bool) (res UpdateTaskRes, err error) {
+	params := Map{
+		"forwardToReplicas": forwardToReplicas,
+	}
+
+	path := i.route + "/synonyms/" + url.QueryEscape(synonym.ObjectID) + "?" + encodeMap(params)
+	err = i.client.request(&res, "PUT", path, synonym, write)
+	return
+}
+
+func (i *index) DeleteSynonym(objectID string, forwardToReplicas bool) (res DeleteTaskRes, err error) {
+	params := Map{
+		"forwardToReplicas": forwardToReplicas,
+	}
+
+	path := i.route + "/synonyms/" + url.QueryEscape(objectID) + "?" + encodeMap(params)
+	err = i.client.request(&res, "DELETE", path, nil, write)
+	return
+}
+
+func (i *index) ClearSynonyms(forwardToReplicas bool) (res UpdateTaskRes, err error) {
+	params := Map{
+		"forwardToReplicas": forwardToReplicas,
+	}
+
+	path := i.route + "/synonyms/clear?" + encodeMap(params)
+	err = i.client.request(&res, "POST", path, nil, write)
+	return
+}
+
+func (i *index) BatchSynonyms(synonyms []Synonym, replaceExistingSynonyms, forwardToReplicas bool) (res UpdateTaskRes, err error) {
+	params := Map{
+		"replaceExistingSynonyms": replaceExistingSynonyms,
+		"forwardToReplicas":       forwardToReplicas,
+	}
+
+	path := i.route + "/synonyms/batch?" + encodeMap(params)
+	err = i.client.request(&res, "POST", path, synonyms, write)
+	return
+}
+
+func (i *index) Browse(params Map, cursor string) (res BrowseRes, err error) {
+	copy := duplicateMap(params)
+	if err = checkQuery(copy); err != nil {
+		return
+	}
+
+	if cursor != "" {
+		copy["cursor"] = cursor
+	}
+
+	req := Map{
+		"params": encodeMap(copy),
+	}
+
+	path := i.route + "/browse"
+	err = i.client.request(&res, "POST", path, req, read)
+	return
+}
+
+func (i *index) BrowseAll(params Map) (it IndexIterator, err error) {
+	if err = checkQuery(params); err != nil {
+		return
+	}
+
+	it, err = newIndexIterator(i, params)
+	return
+}
+
+func (i *index) Search(query string, params Map) (res QueryRes, err error) {
+	copy := duplicateMap(params)
+	copy["query"] = query
+
+	if err = checkQuery(copy); err != nil {
+		return
+	}
+
+	req := Map{
+		"params": encodeMap(copy),
+	}
+
+	path := i.route + "/query"
+	err = i.client.request(&res, "POST", path, req, search)
+	return
+}
+
+func (i *index) DeleteByQuery(query string, params Map) (err error) {
+	copy := duplicateMap(params)
+	copy["attributesToRetrieve"] = []string{"objectID"}
+	copy["hitsPerPage"] = 1000
+	copy["query"] = query
+	copy["distinct"] = 0
+
+	var browseRes BrowseRes
+	var batchRes BatchRes
+
+	for {
+		// Start browsing the content
+		if browseRes, err = i.Browse(copy, ""); err != nil {
+			return
+		}
+
+		// Break if there's no more matching records
+		if len(browseRes.Hits) == 0 {
+			break
+		}
+
+		// Collect all objectIDs
+		var objectIDs []string
+		for _, hit := range browseRes.Hits {
+			objectIDs = append(objectIDs, hit["objectID"].(string))
+		}
+
+		// Delete all the objects
+		if batchRes, err = i.DeleteObjects(objectIDs); err != nil {
+			return
+		}
+
+		// Wait until DeleteObjects completion
+		if err := i.WaitTask(batchRes.TaskID); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (i *index) SearchForFacetValues(facet, query string, params Map) (res SearchFacetRes, err error) {
+	copy := duplicateMap(params)
+	if err = checkQuery(copy); err != nil {
+		return
+	}
+
+	copy["facetQuery"] = query
+
+	req := Map{
+		"params": encodeMap(copy),
+	}
+
+	path := i.route + "/facets/" + facet + "/query"
+	err = i.client.request(&res, "POST", path, req, search)
+	return
+}
+
+func (i *index) SearchFacet(facet, query string, params Map) (res SearchFacetRes, err error) {
+	return i.SearchForFacetValues(facet, query, params)
 }

@@ -44,7 +44,8 @@ module.exports  = class JCounter extends Module
       else
         callback err
     else
-      callback null, counter.current
+      { current } = counter.value
+      callback null, current
 
   update = (options, amount, callback) ->
 

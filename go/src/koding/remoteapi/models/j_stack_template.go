@@ -15,6 +15,9 @@ import (
 // swagger:model JStackTemplate
 type JStackTemplate struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// access level
 	AccessLevel string `json:"accessLevel,omitempty"`
 
@@ -41,6 +44,10 @@ type JStackTemplate struct {
 	// Required: true
 	OriginID *string `json:"originId"`
 
+	// Unique slug of stack template
+	// Required: true
+	Slug *string `json:"slug"`
+
 	// template
 	Template *JStackTemplateTemplate `json:"template,omitempty"`
 
@@ -64,6 +71,11 @@ func (m *JStackTemplate) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateOriginID(formats); err != nil {
+		// prop
+		res = append(res, err)
+	}
+
+	if err := m.validateSlug(formats); err != nil {
 		// prop
 		res = append(res, err)
 	}
@@ -109,6 +121,15 @@ func (m *JStackTemplate) validateMachines(formats strfmt.Registry) error {
 func (m *JStackTemplate) validateOriginID(formats strfmt.Registry) error {
 
 	if err := validate.Required("originId", "body", m.OriginID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *JStackTemplate) validateSlug(formats strfmt.Registry) error {
+
+	if err := validate.Required("slug", "body", m.Slug); err != nil {
 		return err
 	}
 

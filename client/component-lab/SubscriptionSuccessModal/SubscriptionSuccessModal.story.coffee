@@ -8,5 +8,3 @@ storiesOf 'SubscriptionSuccessModal', module
     <SubscriptionSuccessModal
       isOpen={yes}
       onInviteMembersClick={action 'invite members clicked'} />
-
-

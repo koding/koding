@@ -10,138 +10,138 @@ dark-tab-header-bg          = #131313
 dark-tab-color              = #5C5C5C
 
 .IDE-StatusBar
-  bottom                  0
-  width                   100%
-  height                  40px
-  line-height             40px
-  color                   dark-tab-color
-  background              dark-tab-header-bg
-  font-size               13px
+  bottom                    0
+  width                     100%
+  height                    40px
+  line-height               40px
+  color                     dark-tab-color
+  background                dark-tab-header-bg
+  font-size                 13px
   abs()
 
   .status
-    margin-left           12px
+    margin-left             12px
     fl()
     ellipsis()
-    max-width             45%
+    max-width               45%
 
     p
-      display             inline-block
+      display               inline-block
 
       &.line
-        width             50px
+        width               50px
 
   .collaboration-link-container
-    padding-left          12px
+    padding-left            12px
     pointer()
     fl()
 
   .collaboration-link::selection
-    color                 white
+    color                   white
   .collaboration-link::-moz-selection
-    color                 white
+    color                   white
 
   .share
-    height                24px
-    margin-top            8px
-    margin-right          6px
+    height                  24px
+    margin-top              8px
+    margin-right            6px
     rel()
 
     &.not-started:not(.loading)
-      width               160px
+      width                 160px
       button.kdbutton
-        width             160px
+        width               160px
       .progressbar-container
         visible()
 
     &.red button.kdbutton:hover
-      color               #fff
-      background          #e14a35
+      color                 #fff
+      background            #e14a35
 
   .share button.kdbutton
-    color                 #b9b9b9
-    rounded               3px
+    color                   #b9b9b9
+    rounded                 3px
     noTextDeco()
 
     &:hover
     &:active
     &:focus
-      border              none
-      color               #fff
-      background          #24b444
+      border                none
+      color                 #fff
+      background            #24b444
 
     &[disabled]
     &[disabled]:active
     &[disabled]:hover
-      color               #b9b9b9
-      background          transparent
+      color                 #b9b9b9
+      background            transparent
 
   .share button.kdbutton
   .progressbar-container span
-    padding               3px 8px
-    font-size             12px
-    line-height           20px
-    font-weight           600
-    text-shadow           none
-    text-transform        uppercase
+    padding                 3px 8px
+    font-size               12px
+    line-height             20px
+    font-weight             600
+    text-shadow             none
+    text-transform          uppercase
     borderBox()
 
   .progressbar-container
     hidden()
-    size                  140px, 3px
-    border                none
-    background            #C4C4C4
-    z-index               10
-    abs                   23px 0 0 10px
+    size                    140px, 3px
+    border                  none
+    background              #C4C4C4
+    z-index                 10
+    abs                     23px 0 0 10px
 
     .bar
-      background          #24b444
-      z-index             1
-      shadow              none
+      background            #24b444
+      z-index               1
+      shadow                none
 
     span
-      text-align          center
-      color               #FFF
-      z-index             1
+      text-align            center
+      color                 #FFF
+      z-index               1
 
     .kdloader
-      left                80px
-      top                 -3px
-      z-index             2
+      left                  80px
+      top                   -3px
+      z-index               2
 
   .appear-in-button
-    background            transparent url('/a/images/vendors/appearin-logo.svg') no-repeat center center
-    bg                    size, 26px 22px
-    width                 36px
+    background              transparent url('/a/images/vendors/appearin-logo.svg') no-repeat center center
+    bg                      size, 26px 22px
+    width                   36px
 
   .icon
-    size                  auto 37px
-    padding               0
-    margin-top            3px
-    margin-right          72px
+    size                    auto 37px
+    padding                 0
+    margin-top              3px
+    margin-right            52px
     pointer()
     fr()
 
     &:before
       dBlock()
-      content             ''
+      content               ''
 
     &.shortcuts:before
-      r-sprite            'ide', 'keyboard'
+      r-sprite              'ide', 'keyboard'
 
     &.github cite
-      r-sprite            'ide', 'github'
+      r-sprite              'ide', 'github'
 
     &.help:before
-      margin-top          -1px
-      r-sprite            'ide', 'help'
+      margin-top            -1px
+      r-sprite              'ide', 'help'
 
   .shortcut
-    color                 #999 !important
-    letter-spacing        .1em
-    font-size             11px
+    color                   #999 !important
+    letter-spacing          .1em
+    font-size               11px
+    right                   10px
     abs()
-    right                 10px
 
   .avatarview.waiting
     opacity                 .5
@@ -191,37 +191,37 @@ dark-tab-color              = #5C5C5C
         borderBox()
 
       .badge
-        display           none
+        display             none
 
 
 .IDE-StatusBarMenu
   &.editor-context-menu
-    width                 220px!important
+    width                   220px!important
 
     span.shortcut
       float                 right
 
   &.terminal-context-menu
-    width                 130px!important
+    width                   130px!important
 
   ul
-    bg                    color, dark-tab-header-bg !important
-    padding               2px !important
-    rounded               0 !important
+    bg                      color, dark-tab-header-bg !important
+    padding                 2px !important
+    rounded                 0 !important
 
   li
-    color                 #E6E1DC !important
-    rounded               0 !important
+    color                   #E6E1DC !important
+    rounded                 0 !important
 
     &:hover
-      bg                  color, dark-panel-bg !important
+      bg                    color, dark-panel-bg !important
 
     &.selected
-      bg                  color, dark-panel-bg !important
+      bg                    color, dark-panel-bg !important
 
     &.separator
-      border-bottom       1px solid dark-panel-bg !important
-      margin              14px !important
+      border-bottom         1px solid dark-panel-bg !important
+      margin                14px !important
 
 
 .IDE-StatusBarContextMenu.kdcontextmenu

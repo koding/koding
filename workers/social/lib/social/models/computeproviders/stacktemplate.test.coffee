@@ -1,4 +1,5 @@
-StackTemplate   = require './stacktemplate'
+ComputeProvider = require './computeprovider'
+JStackTemplate = require './stacktemplate'
 
 { async
   expect
@@ -13,6 +14,9 @@ StackTemplate   = require './stacktemplate'
   withConvertedUserAndStackTemplate } = require \
   '../../../../testhelper/models/computeproviders/stacktemplatehelper'
 
+{ PROVIDERS } = require './computeutils'
+
+{ slugify } = require '../../traits/slugifiable'
 
 # this function will be called once before running any test
 beforeTests = -> before (done) ->
@@ -29,7 +33,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
       it 'should fail to create stack template', (done) ->
 
-        expectAccessDenied StackTemplate, 'create', {}, done
+        expectAccessDenied JStackTemplate, 'create', {}, done
 
 
     describe 'when user has the permission', ->
@@ -39,10 +43,11 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
         withConvertedUser ({ client }) ->
 
           stackTemplateData = generateStackTemplateData client
-          StackTemplate.create client, stackTemplateData, (err, template) ->
+          JStackTemplate.create client, stackTemplateData, (err, template) ->
             expect(err?.message)              .not.exist
             expect(template.title)            .to.be.equal stackTemplateData.title
-            expect(template.config)           .to.be.deep.equal stackTemplateData.config
+            expect(template.slug)             .to.be.equal slugify stackTemplateData.title
+            expect(template.config)           .to.exist
             expect(template.credentials)      .to.be.equal stackTemplateData.credentials
             expect(template.machines.length)  .to.be.equal stackTemplateData.machines.length
             expect(template.accessLevel)      .to.be.equal stackTemplateData.accessLevel
@@ -52,6 +57,39 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
             expect(template.template.sum)     .to.exist
             done()
 
+      it 'should generate a title/slug if not provided', (done) ->
+
+        withConvertedUser ({ client }) ->
+
+          stackTemplateData = generateStackTemplateData client
+
+          delete stackTemplateData.slug
+          delete stackTemplateData.title
+
+          JStackTemplate.create client, stackTemplateData, (err, template) ->
+            expect(err?.message)                  .not.exist
+            expect(template.title)                .to.exist
+            expect(template.title.split(' ')[1])  .to.be.equal 'Aws'
+            expect(template.slug)                 .to.be.equal slugify template.title
+            done()
+
+      it 'should generate config automatically from template content', (done) ->
+
+        withConvertedUser ({ client }) ->
+
+          stackTemplateData = generateStackTemplateData client
+          delete stackTemplateData.config
+
+          JStackTemplate.create client, stackTemplateData, (err, template) ->
+            expect(err?.message)                      .not.exist
+            expect(template.config)                   .to.exist
+            expect(template.config.groupStack)        .to.be.equal no
+            expect(template.config.requiredData)      .to.be.deep.equal {
+              user: [ 'username' ], group: [ 'slug' ]
+            }
+            expect(template.config.requiredProviders) .to.be.deep.equal ['aws']
+            done()
+
 
   describe '#some$()', ->
 
@@ -59,7 +97,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
       it 'should fail to fetch stack templates', (done) ->
 
-        expectAccessDenied StackTemplate, 'some$', {}, done
+        expectAccessDenied JStackTemplate, 'some$', {}, done
 
 
     describe 'when user has the permission', ->
@@ -70,7 +108,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
           { client, stackTemplate, stackTemplateData } = data
           selector = { _id : stackTemplate._id }
 
-          StackTemplate.some$ client, selector, (err, templates) ->
+          JStackTemplate.some$ client, selector, (err, templates) ->
             expect(err?.message).to.not.exist
             expect(templates[0].title).to.be.equal stackTemplateData.title
             expect(templates[0].template.content).to.be.deep.equal stackTemplateData.template
@@ -83,7 +121,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
       it 'should fail to fetch stack templates', (done) ->
 
-        expectAccessDenied StackTemplate, 'one$', {}, {}, done
+        expectAccessDenied JStackTemplate, 'one$', {}, {}, done
 
 
     describe 'when user has the permission', ->
@@ -94,7 +132,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
           { client, stackTemplate, stackTemplateData } = data
           selector = { _id : stackTemplate._id }
 
-          StackTemplate.one$ client, selector, null, (err, template) ->
+          JStackTemplate.one$ client, selector, null, (err, template) ->
             expect(err?.message).to.not.exist
             expect(template.title).to.be.equal stackTemplateData.title
             expect(template.template.content).to.be.deep.equal stackTemplateData.template
@@ -125,7 +163,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
                 next()
 
             (next) ->
-              StackTemplate.one { _id : stackTemplate._id }, (err, stackTemplate_) ->
+              JStackTemplate.one { _id : stackTemplate._id }, (err, stackTemplate_) ->
                 expect(err).to.not.exist
                 expect(stackTemplate_).to.not.exist
                 next()
@@ -260,8 +298,9 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
 
             (next) ->
               config = { verified: yes }
-              stackTemplate.update$ client, { config }, (err) ->
+              stackTemplate.update$ client, { config }, (err, template) ->
                 expect(err).to.not.exist
+                expect(template.config.verified).to.be.equal yes
                 next()
 
             (next) ->
@@ -291,6 +330,8 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
         withConvertedUserAndStackTemplate (data) ->
           { client, stackTemplate, stackTemplateData } = data
 
+          { originId, group } = stackTemplate
+
           queue = [
 
             (next) ->
@@ -300,23 +341,111 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
                 expect(stackTemplate.title).to.be.equal params.title
                 next()
 
-            # FIXME: ~GG
-            # (next) ->
-            #   params = { group : 'group should be immutable' }
-            #   stackTemplate.update$ client, params, (err) ->
-            #     expect(err).to.exist
-            #     next()
+            (next) ->
+              params = { group : 'group should be immutable' }
+              stackTemplate.update$ client, params, (err, stackTemplate) ->
+                expect(err).to.not.exist
+                expect(stackTemplate.group).to.be.equal group
+                next()
 
-            # (next) ->
-            #   params = { originId : 'originId should be immutable' }
-            #   stackTemplate.update$ client, params, (err) ->
-            #     expect(err).to.exist
-            #     next()
+            (next) ->
+              params = { originId : 'originId should be immutable' }
+              stackTemplate.update$ client, params, (err, stackTemplate) ->
+                expect(err).to.not.exist
+                expect(stackTemplate.originId).to.be.equal originId
+                next()
 
           ]
 
           async.series queue, done
 
+
+      it 'should be able to update a cloned stacktemplate', (done) ->
+
+        withConvertedUserAndStackTemplate (data) ->
+          { client, stackTemplate, stackTemplateData } = data
+
+          stackTemplate.clone client, (err, clonedTemplate) ->
+            expect(err).to.not.exist
+
+            queue = [
+
+              (next) ->
+                params = { title: 'title should be updated' }
+                clonedTemplate.update$ client, params, (err) ->
+                  expect(err).to.not.exist
+                  expect(clonedTemplate.title).to.be.equal params.title
+                  next()
+
+              (next) ->
+                params = { template: '{}', rawContent: '--' }
+                clonedTemplate.update$ client, params, (err, clonedTemplate) ->
+                  expect(err)                                .to.not.exist
+                  expect(clonedTemplate.template.content)    .to.be.equal params.template
+                  expect(clonedTemplate.template.rawContent) .to.be.equal params.rawContent
+                  expect(clonedTemplate.template.sum)        .to.be.equal 'bf21a9e8fbc5a3846fb05b4fa0859e0917b2202f' # sum of "{}"
+                  next()
+
+              (next) ->
+                params = { config: { groupStack: yes } }
+                clonedTemplate.update$ client, params, (err, clonedTemplate) ->
+                  expect(err).to.not.exist
+                  expect(clonedTemplate.config.groupStack)   .to.be.equal yes
+                  # sum needs to stay same
+                  expect(clonedTemplate.template.sum)        .to.be.equal 'bf21a9e8fbc5a3846fb05b4fa0859e0917b2202f'
+                  next()
+
+            ]
+
+            async.series queue, done
+
+
+  describe '#samples()', ->
+
+    it 'should return sample templates for all stack supported providers', (done) ->
+
+      withConvertedUser ({ client }) ->
+
+        ComputeProvider.fetchProviders client, (err, providers) ->
+          expect(err).to.not.exist
+
+          queue = providers.map (provider) -> (next) ->
+
+            JStackTemplate.samples client, { provider }, (err, sample) ->
+              expect(err).to.not.exist
+              expect(sample).to.exist
+              expect(sample.yaml).to.exist
+              expect(sample.json).to.exist
+              expect(sample.defaults).to.exist
+              next()
+
+          async.series queue, done
+
+
+  describe 'clone()', ->
+
+    describe 'when user doesnt have the permission', ->
+
+      it 'should fail to clone a stacktemplate', (done) ->
+
+        withConvertedUserAndStackTemplate ({ stackTemplate }) ->
+          expectAccessDenied stackTemplate, 'clone', done
+
+
+    describe 'when user has the permission', ->
+
+      it 'should be able to clone a stacktemplate', (done) ->
+
+        withConvertedUserAndStackTemplate (data) ->
+          { client, stackTemplate, stackTemplateData } = data
+
+          stackTemplate.clone client, (err, clonedTemplate) ->
+            expect(err)                              .to.not.exist
+            expect(clonedTemplate)                   .to.exist
+            expect(clonedTemplate.title)             .to.be.equal "#{stackTemplate.title} - clone"
+            expect(clonedTemplate.config.clonedFrom) .to.be.equal stackTemplate._id
+            expect(clonedTemplate.config.clonedSum)  .to.be.equal stackTemplate.template.sum
+            done()
 
 beforeTests()
 

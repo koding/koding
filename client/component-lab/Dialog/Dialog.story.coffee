@@ -15,4 +15,3 @@ storiesOf 'Dialog', module
       type='danger'
       isOpen={yes}
       onButtonClick={action 'button clicked'} />
-

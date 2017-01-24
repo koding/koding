@@ -32,10 +32,11 @@ Errors      =
 #
 module.exports = class StackEditorAppController extends AppController
 
-  @options     =
+  @options     = {
     name       : 'Stackeditor'
     customName : 'new-stack-editor'
     behavior   : 'application'
+  }
 
   constructor: (options = {}, data) ->
 
@@ -48,6 +49,10 @@ module.exports = class StackEditorAppController extends AppController
 
 
   openEditor: (templateId, reset = no) ->
+
+    unless templateId
+      do @openStackWizard
+      return
 
     @fetchStackTemplate templateId, (err, template) =>
       return showErrorNotification err  if err
@@ -63,6 +68,8 @@ module.exports = class StackEditorAppController extends AppController
 
 
   reloadEditor: (templateId) ->
+
+    return  unless @templates[templateId]
 
     delete @templates[templateId]
     @openEditor templateId, reset = yes

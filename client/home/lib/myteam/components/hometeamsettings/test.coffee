@@ -86,7 +86,3 @@ describe 'HomeTeamSettings', ->
 
       teamLogo = findRenderedDOMComponentWithClass teamSettings, 'teamLogo'
       expect(teamLogo.src).toContain 'team_logo_path'
-
-
-
-

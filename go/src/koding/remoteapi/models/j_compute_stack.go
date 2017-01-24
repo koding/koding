@@ -15,6 +15,9 @@ import (
 // swagger:model JComputeStack
 type JComputeStack struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// base stack Id
 	BaseStackID string `json:"baseStackId,omitempty"`
 

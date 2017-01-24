@@ -513,7 +513,7 @@ module.exports = class Ace extends kd.View
     @appStorage.setValue 'highlightActiveLine', value
 
 
-  # setHighlightSelectedWord:(value)-> @editor.setHighlightActiveLine value
+  # setHighlightSelectedWord:(value) -> @editor.setHighlightActiveLine value
 
 
   setShowInvisibles: (value, save = yes) ->

@@ -7,7 +7,7 @@ JUser       = require '../user'
 async       = require 'async'
 KONFIG      = require 'koding-config-manager'
 
-module.exports = class JReward extends jraphical.Message
+module.exports = class JReward extends jraphical.Module
 
   { Relationship } = jraphical
 

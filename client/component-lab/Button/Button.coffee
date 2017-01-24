@@ -40,4 +40,3 @@ Button.defaultProps =
   onClick: noop
 
 noop = ->
-

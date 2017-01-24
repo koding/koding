@@ -15,6 +15,8 @@ module.exports = class Koding extends ProviderInterface
 
   @providerSlug = 'koding'
 
+  @supportsStacks = no
+
   @ping = (client, options, callback) ->
 
     { nickname } = client.r.account.profile
@@ -59,13 +61,14 @@ module.exports = class Koding extends ProviderInterface
           region  = null  unless region in SUPPORTED_REGIONS
           region ?= (Regions.findRegion userIp, SUPPORTED_REGIONS).regions[0]
 
-          meta =
+          meta = {
             type          : 'aws'
             region        : region ? SUPPORTED_REGIONS[0]
             source_ami    : '' # Kloud is updating this field after a successfull build
             instance_type : 't2.nano'
             storage_size  : storage
             alwaysOn      : no
+          }
 
           if 't2.micro' in userPlan.allowedInstances
             meta.instance_type = 't2.micro'

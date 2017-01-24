@@ -24,10 +24,10 @@ module.exports = (options, credentials) ->
 
   regions =
     kodingme: "#{options.configName}"
-    vagrant: "vagrant"
-    sj: "sj"
-    aws: "aws"
-    premium: "vagrant"
+    vagrant: 'vagrant'
+    sj: 'sj'
+    aws: 'aws'
+    premium: 'vagrant'
 
   tunnelproxymanager =
     ebEnvName: options.ebEnvName
@@ -39,8 +39,8 @@ module.exports = (options, credentials) ->
     route53SecretAccessKey: credentials.awsKeys.worker_tunnelproxymanager_route53.secretAccessKey
 
     hostedZone:
-        name: options.tunnelHostedZoneName
-        callerReference: options.tunnelHostedZoneCallerRef
+      name: options.tunnelHostedZoneName
+      callerReference: options.tunnelHostedZoneCallerRef
 
   tunnelserver =
     port: 80
@@ -61,14 +61,14 @@ module.exports = (options, credentials) ->
     apiSearchOnlyKey: credentials.algolia.apiSearchOnlyKey
 
   gatekeeper =
-    host: "localhost"
-    port: "7200"
+    host: 'localhost'
+    port: '7200'
     pubnub: credentials.pubnub
 
   recaptcha =
     enabled: options.recaptchaEnabled
     secret: credentials.recaptcha.secret
-    url: "https://www.google.com/recaptcha/api/siteverify"
+    url: 'https://www.google.com/recaptcha/api/siteverify'
 
   kontrol =
     port: 3000
@@ -83,8 +83,8 @@ module.exports = (options, credentials) ->
     url: "#{options.customDomain.public}/kontrol/kite"
 
     useTLS: no
-    tlsCertFile: ""
-    tlsKeyFile: ""
+    tlsCertFile: ''
+    tlsKeyFile: ''
 
     publicKey: credentials.kontrol.publicKey
     privateKey: credentials.kontrol.privateKey
@@ -119,12 +119,12 @@ module.exports = (options, credentials) ->
     kodingUrl:  "#{options.customDomain.public}"
     registerUrl: "#{options.customDomain.public}/kloud/kite"
     tunnelUrl: "#{options.tunnelUrl}"
-    klientUrl: "https://s3.amazonaws.com/koding-klient/development/latest/klient.deb"
+    klientUrl: 'https://s3.amazonaws.com/koding-klient/development/latest/klient.deb'
 
     terraformerSecretKey: credentials.terraformer.secretKey
 
 
-  marketingPagesURL = "http://www.koding.com"
+  marketingPagesURL = 'http://www.koding.com'
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
@@ -154,12 +154,12 @@ module.exports = (options, credentials) ->
     customDomain           : options.customDomain
     email                  : email
 
-    limits                 : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 30 }
+    limits                 : { messageBodyMinLen: 1, postThrottleDuration: '15s', postThrottleCount: 30 }
     kloud                  : { secretKey: kloud.kloudSecretKey, address: kloud.address }
-    geoipdbpath            : "$KONFIG_PROJECTROOT/go/data/geoipdb"
-    eventExchangeName      : "BrokerMessageBus"
+    geoipdbpath            : '$KONFIG_PROJECTROOT/go/data/geoipdb'
+    eventExchangeName      : 'BrokerMessageBus'
     proxyUrl               : socialApiProxyUrl
-    port                   : "7000"
+    port                   : '7000'
     configFilePath         : "$KONFIG_PROJECTROOT/go/src/socialapi/config/#{options.configName}.toml"
     disableCaching         : no
     debug                  : no
@@ -190,6 +190,7 @@ module.exports = (options, credentials) ->
       'dev.koding.com' : '127.0.0.1'
 
   KONFIG =
+    serviceHost                   : options.serviceHost
     configName                    : options.configName
     environment                   : options.environment
     ebEnvName                     : options.ebEnvName
@@ -209,6 +210,7 @@ module.exports = (options, credentials) ->
     clientUploadS3BucketName      : options.clientUploadS3BucketName
 
     kiteHome                      : credentials.kiteHome
+    redis                         : credentials.redis
     mongo                         : credentials.mongo
     postgres                      : credentials.postgres
     mq                            : credentials.rabbitmq
@@ -249,16 +251,15 @@ module.exports = (options, credentials) ->
     gatekeeper                    : gatekeeper
     recaptcha                     : recaptcha
     uri                           : { address: options.customDomain.public }
-    misc                          : { claimGlobalNamesForUsers: no , debugConnectionErrors: yes, updateAllSlugs: false }
     # TODO: average request count per hour for a user should be measured and a reasonable limit should be set
     nodejsRateLimiter             : { enabled: no, guestRules: [{ interval: 3600, limit: 5000 }], userRules: [{ interval: 3600, limit: 10000 }] } # limit: request limit per rate limit window, interval: rate limit window duration in seconds
-    nodejsRateLimiterForApi       : { enabled: no, guestRules: [{ interval: 60,   limit: 10 }],   userRules: [{ interval: 60,   limit: 300 }] }   # limit: request limit per rate limit window, interval: rate limit window duration in seconds
-    webserver                     : { port: 8080, useCacheHeader: no }
+    nodejsRateLimiterForApi       : { enabled: yes, guestRules: [{ interval: 60,   limit: 10 }],   userRules: [{ interval: 60,   limit: 300 }] }   # limit: request limit per rate limit window, interval: rate limit window duration in seconds
+    webserver                     : { port: 8080 }
     social                        : { port: 3030, login: "#{credentials.rabbitmq.login}", queueName: options.socialQueueName, kitePort: 8760, kiteKey: "#{credentials.kiteHome}/kite.key" }
     boxproxy                      : { port: parseInt(options.publicPort, 10) }
     sessionCookie                 : { maxAge: 1000 * 60 * 60 * 24 * 14, secure: options.secureCookie }
-    troubleshoot                  : { recipientEmail: "can@koding.com" }
+    troubleshoot                  : { recipientEmail: 'can@koding.com' }
     collaboration                 : { timeout: 1 * 60 * 1000 }
-    client                        : { watch: yes, version: options.version, includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{options.customDomain.public}:#{options.customDomain.port}" }
+    client                        : { watch: yes, version: options.version, includesPath:'client' , indexMaster: 'index-master.html' , index: 'default.html' , useStaticFileServer: no , staticFilesBaseUrl: "#{options.customDomain.public}:#{options.customDomain.port}" }
 
   return KONFIG

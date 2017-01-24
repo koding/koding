@@ -16,6 +16,12 @@ import (
 
 var closers []io.Closer
 
+// ExitFunc is called upon command exit, it sets exit code.
+//
+// It is overwritten during testing, as calling os.Exit
+// prevents saving coverage profile.
+var ExitFunc = os.Exit
+
 // CloseOnExit is a hack to close program-lifetime-bound resources,
 // like log file or BoltDB database.
 func CloseOnExit(c io.Closer) {
@@ -83,17 +89,19 @@ func CommandHelper(ctx *cli.Context, cmd string) Helper {
 }
 
 // ExitAction implements a cli.Command's Action field for an ExitingCommand type.
-func ExitAction(f ExitingCommand, log logging.Logger, cmdName string) func(*cli.Context) {
-	return func(c *cli.Context) {
+func ExitAction(f ExitingCommand, log logging.Logger, cmdName string) cli.ActionFunc {
+	return func(c *cli.Context) error {
 		exit := f(c, log, cmdName)
 		Close()
-		os.Exit(exit)
+		ExitFunc(exit)
+
+		return nil
 	}
 }
 
 // ExitErrAction implements a cli.Command's Action field for an ExitingErrCommand
-func ExitErrAction(f ExitingErrCommand, log logging.Logger, cmdName string) func(*cli.Context) {
-	return func(c *cli.Context) {
+func ExitErrAction(f ExitingErrCommand, log logging.Logger, cmdName string) cli.ActionFunc {
+	return func(c *cli.Context) error {
 		exit, err := f(c, log, cmdName)
 		if err != nil {
 			log.Error("ExitErrAction encountered error. err:%s", err)
@@ -102,13 +110,15 @@ func ExitErrAction(f ExitingErrCommand, log logging.Logger, cmdName string) func
 		}
 
 		Close()
-		os.Exit(exit)
+		ExitFunc(exit)
+
+		return nil
 	}
 }
 
 // FactoryAction implements a cli.Command's Action field.
-func FactoryAction(factory CommandFactory, log logging.Logger, cmdName string) func(*cli.Context) {
-	return func(c *cli.Context) {
+func FactoryAction(factory CommandFactory, log logging.Logger, cmdName string) cli.ActionFunc {
+	return func(c *cli.Context) error {
 		cmd := factory(c, log, cmdName)
 		exit, err := cmd.Run()
 
@@ -124,12 +134,14 @@ func FactoryAction(factory CommandFactory, log logging.Logger, cmdName string) f
 		}
 
 		Close()
-		os.Exit(exit)
+		ExitFunc(exit)
+
+		return nil
 	}
 }
 
 // FactoryCompletion implements codeganstas cli.Command's bash completion field
-func FactoryCompletion(factory CommandFactory, log logging.Logger, cmdName string) func(*cli.Context) {
+func FactoryCompletion(factory CommandFactory, log logging.Logger, cmdName string) cli.BashCompleteFunc {
 	return func(c *cli.Context) {
 		cmd := factory(c, log, cmdName)
 

@@ -34,7 +34,7 @@ module.exports = class AccountSessionListItem extends KDListItemView
 
   pistachio: ->
 
-    { groupName, lastAccess, lastLoginDate, clientId } = @getData()
+    { groupName, lastAccess, lastLoginDate, clientId, _conf } = @getData()
 
     hostname = globals.config.domains.main
 
@@ -47,6 +47,14 @@ module.exports = class AccountSessionListItem extends KDListItemView
 
     if kookies.get('clientId') is clientId
       cssClass = 'active'
+
+    # There is an issue on this field, I'll take a look it after
+    # when we have a field called `data` on a given Bongo Model
+    # we won't able to reach that data under `data` field from instance
+    # but somehow this `_conf` field keeps the raw data ~ GG
+    if _conf?.data?.apiSession
+      cssClass = 'api'
+
     @session = new kd.CustomHTMLView
       cssClass: 'group-name'
       partial: group

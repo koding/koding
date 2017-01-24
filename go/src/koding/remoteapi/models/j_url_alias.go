@@ -13,6 +13,9 @@ import (
 // swagger:model JUrlAlias
 type JURLAlias struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// alias
 	Alias string `json:"alias,omitempty"`
 

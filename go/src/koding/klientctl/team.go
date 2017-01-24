@@ -51,10 +51,10 @@ func printTeams(teams []*team.Team) {
 	w := tabwriter.NewWriter(os.Stdout, 2, 0, 2, ' ', 0)
 	defer w.Flush()
 
-	fmt.Fprintln(w, "NAME\tSLUG\tPRIVACY\tMEMBERS\tSUBSCRIPTION")
+	fmt.Fprintln(w, "NAME\tSLUG\tPRIVACY\tSUBSCRIPTION")
 
 	for _, t := range teams {
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", t.Name, t.Slug, t.Privacy, t.Members, t.SubStatus)
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", t.Name, t.Slug, t.Privacy, t.SubStatus)
 	}
 }
 
@@ -71,7 +71,7 @@ func TeamShow(c *cli.Context, log logging.Logger, _ string) (int, error) {
 		enc.SetIndent("", "\t")
 		enc.Encode(t)
 	} else {
-		fmt.Fprintf(os.Stderr, "You are currently logged in to a %q team.", t.Name)
+		fmt.Fprintln(os.Stderr, "You are currently logged in to the following team:", t.Name)
 	}
 
 	return 0, nil

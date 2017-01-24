@@ -93,6 +93,16 @@ func KodingHome() string {
 	return home
 }
 
+func KodingCacheHome() string {
+	cache := os.Getenv("KODING_CACHE_HOME")
+
+	if _, err := os.Stat(cache); err != nil {
+		cache = filepath.Join(CurrentUser.HomeDir, ".cache", "koding")
+	}
+
+	return cache
+}
+
 type User struct {
 	*user.User
 	Groups []*user.Group

@@ -5,13 +5,11 @@ ReactDOM                       = require 'react-dom'
 remote                         = require 'app/remote'
 actions                        = require 'app/flux/environment/actions'
 Machine                        = require 'app/providers/machine'
-isKoding                       = require 'app/util/isKoding'
 getMachineLink                 = require 'app/util/getMachineLink'
 KDReactorMixin                 = require 'app/flux/base/reactormixin'
 EnvironmentFlux                = require 'app/flux/environment'
 AddWorkspaceView               = require './addworkspaceview'
 isMachineRunning               = require 'app/util/isMachineRunning'
-MoreWorkspacesModal            = require 'app/activity/sidebar/moreworkspacesmodal'
 getBoundingClientReact         = require 'app/util/getBoundingClientReact'
 LeaveSharedMachineWidget       = require './leavesharedmachinewidget'
 SidebarWorkspacesListItem      = require './sidebarworkspaceslistitem'
@@ -41,10 +39,8 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     status = @machine ['status', 'state']
 
-    collapsed = if isKoding() then status isnt Machine.State.Running else yes
-
     @state = {
-      collapsed
+      collapsed: yes
       showLeaveSharedMachineWidget : no
     }
 
@@ -110,12 +106,9 @@ module.exports = class SidebarMachinesListItem extends React.Component
       actions.setActiveInvitationMachineId { machine: @props.machine }
       actions.setActiveLeavingSharedMachineId null
 
-    @setState { collapsed : not @state.collapsed }  if isKoding()
-
     return  unless @props.machine.get 'isApproved'
 
-    if not isMachineRunning(@props.machine) or not isKoding()
-      kd.singletons.router.handleRoute getMachineLink @props.machine
+    kd.singletons.router.handleRoute getMachineLink @props.machine
 
 
   renderProgressbar: ->
@@ -142,25 +135,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
         workspace={workspace}
         />
 
-
-  renderWorkspaceSection: ->
-
-    return null  unless isKoding()
-    return null  if @state.collapsed
-    return null  unless @machine 'isApproved'
-    return null  unless isMachineRunning @props.machine
-
-    <section className='Workspaces-section'>
-      <h3 onClick={@bound 'handleWorkspacesTitleClick'}>WORKSPACES</h3>
-      {@renderWorkspaces()}
-      {@renderAddWorkspaceView()}
-    </section>
-
-
-  renderAddWorkspaceView: ->
-    <AddWorkspaceView
-      machine={@props.machine}
-      />
 
 
   renderLeaveSharedMachine: ->
@@ -219,14 +193,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
     return "#{@machine 'label'}#{owner}"
 
 
-  createAddWorkspaceView: ->
-
-    id = @machine '_id'
-
-    actions.hideAddWorkspaceView id # Before hide it if it's visible
-    actions.showAddWorkspaceView id # After show it
-
-
   renderConnectedManagedMachineWidget: ->
 
     return null  unless @machine('provider') is 'managed'
@@ -259,35 +225,9 @@ module.exports = class SidebarMachinesListItem extends React.Component
         {@renderProgressbar()}
         {@renderMachineSettingsIcon()}
       </Link>
-      {@renderWorkspaceSection()}
       {@renderLeaveSharedMachine()}
       {@renderConnectedManagedMachineWidget()}
     </div>
 
 
-  #
-  # LEGACY METHODS
-  #
-
-  handleWorkspacesTitleClick: (event) ->
-
-    return null  unless @machine('type') is 'own'
-
-    { computeController } = kd.singletons
-
-    return  unless @isOwner()
-
-    status = @machine ['status', 'state']
-    return  unless status is Machine.State.Running
-
-    workspaces = []
-    @props.machine.get('workspaces').map (ws) ->
-      workspaces.push remote.revive ws.toJS()
-    modal = new MoreWorkspacesModal {}, workspaces
-
-    # TODO: handle new workspace creation
-    modal.once 'NewWorkspaceRequested', @bound 'createAddWorkspaceView'
-
 React.Component.include.call SidebarMachinesListItem, [KDReactorMixin]
-
-

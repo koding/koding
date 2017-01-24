@@ -8,5 +8,3 @@ storiesOf 'SurveyAnsweredModal', module
     <SurveyAnsweredModal
       isOpen={yes}
       onButtonClick={action 'button clicked'} />
-
-

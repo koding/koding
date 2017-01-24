@@ -89,3 +89,51 @@ func TestAuthLogin(t *testing.T) {
 		})
 	}
 }
+
+func TestAuthLoginToken(t *testing.T) {
+	cases := map[string]*stack.PasswordLoginResponse{
+		"without team": {
+			KiteKey: "abc",
+		},
+		"with team": {
+			LoginResponse: stack.LoginResponse{
+				GroupName: "foobar",
+			},
+			KiteKey: "123",
+		},
+	}
+
+	for name, cas := range cases {
+		t.Run(name, func(t *testing.T) {
+			var buf bytes.Buffer
+
+			cmd := &MainCmd{
+				Stdout: &buf,
+				Stderr: os.Stderr,
+			}
+
+			cmd.FT.Add("kite.print", nil)
+			cmd.FT.Add("registerMachine", cas.KiteKey)
+
+			err := cmd.Run("auth", "login",
+				"--team", cas.GroupName,
+				"--token", "test-token",
+				"--json",
+			)
+
+			if err != nil {
+				t.Fatalf("Run()=%s", err)
+			}
+
+			var got stack.PasswordLoginResponse
+
+			if err := json.Unmarshal(buf.Bytes(), &got); err != nil {
+				t.Fatalf("Unmarshal()=%s", err)
+			}
+
+			if !reflect.DeepEqual(&got, cas) {
+				t.Fatalf("got %#v, want %#v", &got, cas)
+			}
+		})
+	}
+}

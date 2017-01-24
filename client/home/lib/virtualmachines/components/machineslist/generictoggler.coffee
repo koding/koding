@@ -59,5 +59,3 @@ module.exports = class GenericToggler extends React.Component
         {@props.children}
       </div>
     </div>
-
-

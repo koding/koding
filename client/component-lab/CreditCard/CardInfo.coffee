@@ -15,22 +15,23 @@ module.exports = CardInfo = ({ number, brand, month, year, onToggleForm, formVis
 
   <div className='CardInfo'>
     <Row className={styles['info-row']}>
-      <Col xs={7}>
+      <Col xs={6}>
         <div className={styles.title}>Credit Card Number</div>
       </Col>
-      <Col xs={5}>
+      <Col xs={6}>
         <div className={styles.title}>Expiration</div>
       </Col>
     </Row>
     <Row className={styles['info-row']}>
-      <Col style={padding: '0 .5rem'}>
+      <Col style={padding: '0 0 0 .5rem', minWidth: '30px'}>
         <CardIcon
+          light
           size='small'
           brand={brand}
-          style={background: '#989898'} />
+          style={background: '#bbb'} />
       </Col>
 
-      <Col xs={5}>
+      <Col xs={4}>
         <CardNumber
           size={18}
           type='default'
@@ -40,7 +41,7 @@ module.exports = CardInfo = ({ number, brand, month, year, onToggleForm, formVis
 
       <Col xs />
 
-      <Col xs={2}>
+      <Col xs={3}>
         <CardDate
           size={18}
           type='default'

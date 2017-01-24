@@ -36,7 +36,8 @@ module.exports = setupIntercom = ->
           email   : email
           user_id : account._id
 
-        setTimeout ->
-          i = d.getElementById 'intercom-container'
-          i.classList = 'small'
-        , 1000
+        do setSmall = -> setTimeout ->
+          if i = d.getElementById 'intercom-container'
+          then setTimeout (-> i.classList = 'small'), 1000
+          else setSmall()
+        , 500

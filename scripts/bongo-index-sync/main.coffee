@@ -134,7 +134,7 @@ convertToMongoIndex = (field, bongoIndex) ->
       when 'dropDups'
         memo.options.dropDups = true
     memo
-  , field: {}, options: { background: true }
+  , { field: {}, options: { background: true } }
 
 quit = ->
   console.log 'Finished!'.bold.green
@@ -165,9 +165,9 @@ done = ->
   if Object.keys(missingFromDatabase).length
     read
       prompt:
-        """
+        '''
         Would you like to update the database with the indexes from the code?
-        """
+        '''
           .cyan
           .bold
       default: 'y'

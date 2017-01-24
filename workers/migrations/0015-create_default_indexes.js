@@ -244,6 +244,11 @@ var indexes = {
 }
 
 exports.up = function(db, next){
+  var env = process.env.KONFIG_ENVIRONMENT;
+  if (env !== "dev" && env !== "default") {
+    return next();
+  }
+
   async.eachOfSeries(indexes, function (items, collName, cb) {
       async.eachOfLimit(items, 4, function (item, i, callback) {
           var keys = item.key;

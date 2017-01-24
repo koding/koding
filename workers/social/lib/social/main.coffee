@@ -31,10 +31,16 @@ mqConfig = { host: mq.host, port: mq.port, login: mq.login, password: mq.passwor
 # TODO exchange version must be injected here, when we have that support
 mqConfig.exchangeName = "#{socialapi.eventExchangeName}:0"
 
+redisClient = require('redis').createClient(
+  KONFIG.redis.port
+  KONFIG.redis.host
+  {}
+)
 
 koding = new Bongo {
   verbose     : social.verbose
   root        : __dirname
+  redisClient : redisClient
   mongo       : mongoReplSet or mongo
   models      : './models'
   resourceName: social.queueName
@@ -123,18 +129,16 @@ do ->
     nodejsProfiler = new NodejsProfiler 'socialWorker'
     nodejsProfiler.startMonitoring()
 
-  compression = require 'compression'
   bodyParser = require 'body-parser'
 
-  app.use compression()
   app.use bodyParser.json { limit: '2mb' }
 
-  helmet.defaults app
+  app.use helmet()
   app.use cors()
 
   options = { rateLimitOptions : KONFIG.nodejsRateLimiter }
 
-  app.post '/remote.api/:model/:id?', (require './remoteapi') koding
+  app.post '/remote.api/:token?/:model/:id?', (require './remoteapi') koding
 
   app.get  '/remote.api', (req, res) ->
     res.send 'REST API is OK'

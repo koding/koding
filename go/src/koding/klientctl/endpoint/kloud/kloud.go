@@ -11,7 +11,6 @@ import (
 
 	"github.com/koding/kite"
 	kitecfg "github.com/koding/kite/config"
-	"github.com/koding/kite/protocol"
 	"github.com/koding/logging"
 )
 
@@ -22,6 +21,7 @@ import (
 // a kiteTransport, but plain net/rpc can also be
 // used.
 type Transport interface {
+	Connect(url string) (Transport, error)
 	Call(method string, arg, reply interface{}) error
 }
 
@@ -94,13 +94,15 @@ type KiteTransport struct {
 	// If nil, DefaultLog is going to be used instead.
 	Log logging.Logger
 
-	k      *kite.Kite
-	kCfg   *kitecfg.Config
-	kKloud *kite.Client
+	k       *kite.Kite
+	kCfg    *kitecfg.Config
+	kClient *kite.Client
 }
 
-var _ Transport = (*KiteTransport)(nil)
-var _ stack.Validator = (*KiteTransport)(nil)
+var (
+	_ Transport       = (*KiteTransport)(nil)
+	_ stack.Validator = (*KiteTransport)(nil)
+)
 
 func (kt *KiteTransport) Call(method string, arg, reply interface{}) error {
 	k, err := kt.kloud()
@@ -120,6 +122,27 @@ func (kt *KiteTransport) Call(method string, arg, reply interface{}) error {
 	return nil
 }
 
+func (kt *KiteTransport) Connect(url string) (Transport, error) {
+	k, err := kt.newClient(url)
+	if err != nil {
+		return nil, err
+	}
+
+	ktCopy := *kt
+	ktCopy.kClient = k
+
+	return &ktCopy, nil
+}
+
+func (kt *KiteTransport) SetKiteKey(kiteKey string) {
+	if kt.kClient != nil {
+		kt.kClient.Auth = &kite.Auth{
+			Type: "kiteKey",
+			Key:  kiteKey,
+		}
+	}
+}
+
 func (kt *KiteTransport) kite() *kite.Kite {
 	if kt.k != nil {
 		return kt.k
@@ -127,7 +150,7 @@ func (kt *KiteTransport) kite() *kite.Kite {
 
 	kt.k = kite.New(config.Name, config.KiteVersion)
 	kt.k.Config = kt.kiteConfig()
-	kt.k.Log = kt.Log
+	kt.k.Log = kt.log()
 
 	return kt.k
 }
@@ -146,40 +169,35 @@ func (kt *KiteTransport) kiteConfig() *kitecfg.Config {
 }
 
 func (kt *KiteTransport) kloud() (*kite.Client, error) {
-	if kt.kKloud != nil {
-		return kt.kKloud, nil
+	if kt.kClient != nil {
+		return kt.kClient, nil
 	}
 
-	kloud := kt.kite().NewClient(kt.konfig().Endpoints.Kloud().Public.String())
-
-	if err := kloud.DialTimeout(kt.dialTimeout()); err != nil {
-		query := &protocol.KontrolQuery{
-			Name:        "kloud",
-			Environment: kt.kiteConfig().Environment,
-		}
-
-		clients, err := kt.kite().GetKites(query)
-		if err != nil {
-			return nil, err
-		}
-
-		kloud = kt.kite().NewClient(clients[0].URL)
-
-		if err := kloud.DialTimeout(kt.DialTimeout); err != nil {
-			return nil, err
-		}
+	kloud, err := kt.newClient(kt.konfig().Endpoints.Kloud().Public.String())
+	if err != nil {
+		return nil, err
 	}
 
-	kt.kKloud = kloud
+	kt.kClient = kloud
+
+	return kt.kClient, nil
+}
+
+func (kt *KiteTransport) newClient(url string) (*kite.Client, error) {
+	k := kt.kite().NewClient(url)
+
+	if err := k.DialTimeout(kt.dialTimeout()); err != nil {
+		return nil, err
+	}
 
 	if kitekey := kt.kiteConfig().KiteKey; kitekey != "" {
-		kt.kKloud.Auth = &kite.Auth{
+		k.Auth = &kite.Auth{
 			Type: "kiteKey",
 			Key:  kitekey,
 		}
 	}
 
-	return kt.kKloud, nil
+	return k, nil
 }
 
 func (kt *KiteTransport) dialTimeout() time.Duration {

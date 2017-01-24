@@ -2,6 +2,7 @@
 NO_COLOR=\033[0m
 OK_COLOR=\033[0;32m
 GODIR=$(CURDIR)/../../../go
+KODINGDIR=$(GODIR)/..
 GOBINDIR=$(GODIR)/bin
 GOPATH := $(realpath $(GODIR))
 GOBIN := $(realpath $(GOBINDIR))
@@ -54,92 +55,59 @@ build:
 
 testpresence:
 	@echo "$(OK_COLOR)--> presence tests... $(NO_COLOR)"
-	@`which go` test -race -c workers/presence/*.go
-	@./presence.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./presence.test
-	@echo "$(OK_COLOR)--> presence api tests... $(NO_COLOR)"
-	@`which go` test -race -c workers/presence/api/*.go
-	@./api.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./api.test
-	@echo "$(OK_COLOR)--> presence client tests... $(NO_COLOR)"
-	@`which go` test -race -c workers/presence/client/*.go
-	@./client.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./client.test
+	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/presence/...
 
 testteam: testteamunit testteamintegration
 
 testteamunit:
 	@echo "$(OK_COLOR)--> team unit tests... $(NO_COLOR)"
-	@`which go` test -c workers/team/*.go
-	@./team.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./team.test
+	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/team
 
 testteamintegration:
 	@echo "$(OK_COLOR)--> team integration tests... $(NO_COLOR)"
-	@`which go` test -c workers/team/tests/*.go
-	@./tests.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./tests.test
+	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/team/tests
 
 testalgolia:
 	@echo "$(OK_COLOR)--> algoliaconnector unit tests... $(NO_COLOR)"
-	@`which go` test -c workers/algoliaconnector/algoliaconnector/*.go
-	@./algoliaconnector.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./algoliaconnector.test
+	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/algoliaconnector/algoliaconnector
 
 # testcollaboration runs the unit and integration tests of collaboration worker
 testcollaboration:
 	@echo "$(OK_COLOR)--> collaboration tests... $(NO_COLOR)"
-	@`which go` test -c workers/collaboration/tests/*.go
-	@./collaboration.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm  ./collaboration.test
+	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/collaboration/tests
 
-	@`which go` test -c workers/collaboration/*.go
-	@./collaboration.test -kite-init $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm  ./collaboration.test
+	env RUN_FLAGS="-kite-init -c=./go/src/socialapi/config/dev.toml" $(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/collaboration
 
 testmodels:
 	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
-	@`which go` test -c models/*.go
-	@./models.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./models.test
+	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/models
 
 testmailsender:
 	@echo "$(OK_COLOR)--> Mailsender tests... $(NO_COLOR)"
-	@`which go` test -c workers/email/emailsender/*.go
-	@./emailsender.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm  ./emailsender.test
+	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/email/emailsender
 
 testmail:
 	@echo "$(OK_COLOR)--> mail tests... $(NO_COLOR)"
-	@`which go` test -c workers/email/mailparse/models/*.go
-	@./models.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./models.test
+	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/email/mailparse/models
 
 	@echo "$(OK_COLOR)--> mail integration tests... $(NO_COLOR)"
-	@`which go` test -c workers/email/mailparse/tests/*.go
-	@./tests.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./tests.test
+	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/email/mailparse/tests
 
+# testpayments includes -race & -v flags
 testpayment:
 	@echo "$(OK_COLOR)--> payment tests... $(NO_COLOR)"
 	./workers/payment/tests.sh
 
 testintegration:
 	@echo "$(OK_COLOR)--> api integration tests... $(NO_COLOR)"
-	@`which go` test -c tests/*.go
-	@./main.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./main.test
+	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/tests
 
 testrealtime:
 	@echo "$(OK_COLOR)--> realtime tests... $(NO_COLOR)"
-	@`which go` test -c workers/realtime/realtime/*.go
-	@./realtime.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./realtime.test
+	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/realtime/realtime
 
 	@echo "$(OK_COLOR)--> realtime model tests... $(NO_COLOR)"
-	@`which go` test -c workers/realtime/models/*.go
-	@./models.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./models.test
+	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/realtime/models
 
 
 testapi: testcollaboration testmailsender testmail testmodels \
@@ -155,6 +123,4 @@ testapi: testcollaboration testmailsender testmail testmodels \
 	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
 
 	@echo "$(OK_COLOR)--> handler tests... $(NO_COLOR)"
-	@`which go` test -c workers/common/handler/*.go
-	@./handler.test $(DBG) $(EXTRAS) -c $(CONFIG)
-	@rm ./handler.test
+	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/common/handler

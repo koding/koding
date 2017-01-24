@@ -12,5 +12,3 @@ module.exports = class HeaderMessageView extends ReactView
     <Provider store={kd.singletons.store}>
       <HeaderMessageContainer />
     </Provider>
-
-

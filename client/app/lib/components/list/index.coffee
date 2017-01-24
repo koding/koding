@@ -139,6 +139,10 @@ Row = ({ source, className, sectionIndex, rowIndex }) ->
 
 
 Header = ({ source, index }) ->
+
+  unless headerAtIndex = source.renderSectionHeaderAtIndex index
+    return null
+
   <div className={classnames 'ListView-SectionHeader'}>
-    {source.renderSectionHeaderAtIndex index}
+    {headerAtIndex}
   </div>

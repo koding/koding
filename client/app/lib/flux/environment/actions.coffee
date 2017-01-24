@@ -501,20 +501,13 @@ setMachineAlwaysOn = (machineId, state) ->
 
   reactor.dispatch actions.SET_MACHINE_ALWAYS_ON_BEGIN, { id : machineId, state }
 
-  computeController.fetchUserPlan (plan) ->
+  computeController.setAlwaysOn machine, state, (err) ->
 
-    computeController.setAlwaysOn machine, state, (err) ->
+    unless err
+      return reactor.dispatch actions.SET_MACHINE_ALWAYS_ON_SUCCESS, { id : machineId }
 
-      unless err
-        return reactor.dispatch actions.SET_MACHINE_ALWAYS_ON_SUCCESS, { id : machineId }
-
-      if err.name is 'UsageLimitReached' and plan isnt 'hobbyist'
-        ComputeErrorUsageModal = require 'app/providers/computeerrorusagemodal'
-        kd.utils.defer -> new ComputeErrorUsageModal { plan }
-      else
-        showError err
-
-      reactor.dispatch actions.SET_MACHINE_ALWAYS_ON_FAIL, { id : machineId }
+    showError err
+    reactor.dispatch actions.SET_MACHINE_ALWAYS_ON_FAIL, { id : machineId }
 
 
 setMachinePowerStatus = (machineId, shouldStart) ->
@@ -560,7 +553,7 @@ createStackTemplateWithDefaults = (selectedProvider) ->
   provider  = Providers[selectedProvider]
 
   unless provider?.defaultTemplate
-    throw 'Provider doesn\'t have stack template!'
+    throw { message: 'Provider doesn\'t have stack template!' }
 
   { json: template, yaml: rawContent } = provider.defaultTemplate
 

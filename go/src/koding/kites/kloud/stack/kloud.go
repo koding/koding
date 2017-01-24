@@ -1,7 +1,9 @@
 package stack
 
 import (
+	"encoding/json"
 	"errors"
+	"sort"
 	"sync"
 	"time"
 
@@ -22,6 +24,7 @@ import (
 	presence "socialapi/workers/presence/client"
 
 	"github.com/koding/cache"
+	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
 	"github.com/satori/go.uuid"
@@ -87,6 +90,12 @@ type Kloud struct {
 	// package to kloud one in order to solve this and improve the
 	// import structure.
 	DescribeFunc func(providers ...string) map[string]*Description
+
+	// NewStack is used to create new Stacker value out of the given
+	// kite and team requests.
+	//
+	// If nil, default implementation is used.
+	NewStack func(*kite.Request, *TeamRequest) (Stacker, context.Context, error)
 
 	// CredClient handles credential.* methods.
 	CredClient *credential.Client
@@ -157,4 +166,25 @@ func (k *Kloud) ValidateUser(req *keygen.AuthRequest) error {
 	default:
 		return errors.New("user is not active")
 	}
+}
+
+// ReadProviders reads all providers used in the given stack template.
+func ReadProviders(template []byte) ([]string, error) {
+	var v struct {
+		Provider map[string]struct{} `json:"provider"`
+	}
+
+	if err := json.Unmarshal(template, &v); err != nil {
+		return nil, err
+	}
+
+	providers := make([]string, 0, len(v.Provider))
+
+	for p := range v.Provider {
+		providers = append(providers, p)
+	}
+
+	sort.Strings(providers)
+
+	return providers, nil
 }

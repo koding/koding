@@ -5,5 +5,3 @@ Survey = require './Survey'
 
 storiesOf 'Survey', module
   .add 'default', -> <Survey />
-
-

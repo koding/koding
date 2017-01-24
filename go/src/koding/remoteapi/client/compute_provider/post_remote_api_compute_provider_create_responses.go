@@ -49,10 +49,10 @@ func NewPostRemoteAPIComputeProviderCreateOK() *PostRemoteAPIComputeProviderCrea
 
 /*PostRemoteAPIComputeProviderCreateOK handles this case with default header values.
 
-Request processed succesfully
+created JMachine instance
 */
 type PostRemoteAPIComputeProviderCreateOK struct {
-	Payload *models.DefaultResponse
+	Payload *models.JMachine
 }
 
 func (o *PostRemoteAPIComputeProviderCreateOK) Error() string {
@@ -61,7 +61,7 @@ func (o *PostRemoteAPIComputeProviderCreateOK) Error() string {
 
 func (o *PostRemoteAPIComputeProviderCreateOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.DefaultResponse)
+	o.Payload = new(models.JMachine)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

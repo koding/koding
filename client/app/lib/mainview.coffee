@@ -4,17 +4,12 @@ globals                 = require 'globals'
 remote                  = require('./remote')
 isLoggedIn              = require './util/isLoggedIn'
 whoami                  = require './util/whoami'
-isKoding                = require './util/isKoding'
-AvatarArea              = require './avatararea/avatararea'
 CustomLinkView          = require './customlinkview'
 GlobalNotificationView  = require './globalnotificationview'
 MainTabView             = require './maintabview'
-TopNavigation           = require './topnavigation'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
-IntroVideoView          = require 'app/introvideoview'
-isTeamReactSide         = require 'app/util/isTeamReactSide'
+cdnize                  = require 'app/util/cdnize'
 getGroup                = require 'app/util/getGroup'
-isSoloProductLite       = require 'app/util/issoloproductlite'
 TeamName                = require './activity/sidebar/teamname'
 BannerNotificationView  = require 'app/commonviews/bannernotificationview'
 doXhrRequest            = require 'app/util/doXhrRequest'
@@ -44,18 +39,13 @@ module.exports = class MainView extends kd.View
 
     @createSidebar()
     @createPanelWrapper()
-    # @checkForIntroVideo()  unless isKoding()
-    @showRegistrationsClosedWarning()  if isSoloProductLite() and isKoding()
     @checkVersion()
     kd.utils.repeat (5 * 60 * 1000), @bound 'checkVersion'
     @createMainTabView()
 
     kd.singletons.mainController.ready =>
-      unless isKoding()
-        @createTeamLogo()
-        @createMiniWelcomeSteps()
-      else
-        @createAccountArea()
+      @createTeamLogo()
+      @createMiniWelcomeSteps()
 
       @emit 'ready'
 
@@ -68,7 +58,7 @@ module.exports = class MainView extends kd.View
     @addSubView @aside = new kd.CustomHTMLView
       bind       : 'mouseenter mouseleave'
       tagName    : 'aside'
-      cssClass   : unless isKoding() then 'team' else ''
+      cssClass   : 'team'
       domId      : 'main-sidebar'
       attributes :
         testpath : 'main-sidebar'
@@ -82,20 +72,13 @@ module.exports = class MainView extends kd.View
     entryPoint = globals.config.entryPoint
 
     @logoWrapper = new kd.CustomHTMLView
-      cssClass  : unless isKoding() then 'logo-wrapper group' else 'logo-wrapper'
+      cssClass  : 'logo-wrapper group'
 
-    if isKoding()
-      @logoWrapper.addSubView new kd.CustomHTMLView
-        tagName    : 'a'
-        attributes : { href : '/' } # so that it shows base url on status bar of browser
-        partial    : '<figure></figure>'
-        click      : (event) -> kd.utils.stopDOMEvent event
-    else
-      { nickname } = whoami().profile
-      @logoWrapper.addSubView @teamname = new TeamName {}, getGroup()
-      @logoWrapper.addSubView @nickname = new kd.CustomHTMLView
-        cssClass : 'nickname'
-        partial : "@#{nickname}"
+    { nickname } = whoami().profile
+    @logoWrapper.addSubView @teamname = new TeamName {}, getGroup()
+    @logoWrapper.addSubView @nickname = new kd.CustomHTMLView
+      cssClass : 'nickname'
+      partial : "@#{nickname}"
 
     @logoWrapper.addSubView closeHandle = new kd.CustomHTMLView
       cssClass : 'sidebar-close-handle'
@@ -106,44 +89,10 @@ module.exports = class MainView extends kd.View
 
     @aside.addSubView @logoWrapper
 
-    unless isKoding()
-      @logoWrapper.addSubView @teamLogoWrapper = new kd.CustomHTMLView
-        cssClass : 'team-logo-wrapper'
-      SidebarView = require './components/sidebar/view'
-      @aside.addSubView @sidebar = new SidebarView
-      return
-
-    @aside.addSubView @sidebar = new kd.CustomScrollView
-      offscreenIndicatorClassName: 'unread'
-      # FW should be checked
-      # this works weird somehow - SY
-      # offscreenIndicatorClassName: if isKoding() then 'unread' else 'SidebarListItem-unreadCount'
-
-    @sidebar.addSubView moreItemsAbove = new kd.View
-      cssClass  : 'more-items above hidden'
-      partial   : 'Unread items'
-
-    @sidebar.addSubView moreItemsBelow = new kd.View
-      cssClass  : 'more-items below hidden'
-      partial   : 'Unread items'
-
-    @sidebar.on 'OffscreenItemsAbove', -> moreItemsAbove.show()
-    @sidebar.on 'NoOffscreenItemsAbove', -> moreItemsAbove.hide()
-    @sidebar.on 'OffscreenItemsBelow', -> moreItemsBelow.show()
-    @sidebar.on 'NoOffscreenItemsBelow', -> moreItemsBelow.hide()
-    kd.singletons.notificationController.on 'ParticipantUpdated', =>
-      @sidebar.updateOffscreenIndicators()
-
-    ActivitySidebar = require './activity/sidebar/activitysidebar'
-    @sidebar.wrapper.addSubView @activitySidebar = new ActivitySidebar
-
-    @activitySidebar.on 'MachinesUpdated', =>
-      hasRunning = environmentDataProvider.getRunningMachines().length > 0
-      if hasRunning
-      then @aside.setClass 'has-runningMachine'
-      else @aside.unsetClass 'has-runningMachine'
-
-    @sidebar.on 'ShowCloseHandle', => @aside.setClass 'has-runningMachine'
+    @logoWrapper.addSubView @teamLogoWrapper = new kd.CustomHTMLView
+      cssClass : 'team-logo-wrapper'
+    SidebarView = require './components/sidebar/view'
+    @aside.addSubView @sidebar = new SidebarView
 
 
   createPanelWrapper: ->
@@ -153,11 +102,6 @@ module.exports = class MainView extends kd.View
       domId    : 'main-panel-wrapper'
 
     @panelWrapper.addSubView new HeaderMessageView
-
-    @panelWrapper.addSubView new kd.CustomHTMLView
-      tagName  : 'cite'
-      domId    : 'sidebar-toggle'
-      click    : @bound 'toggleSidebar'
 
 
   toggleSidebar: ->
@@ -192,7 +136,7 @@ module.exports = class MainView extends kd.View
     { groupsController } = kd.singletons
     team = groupsController.getCurrentGroup()
 
-    logo = team.customize?.logo
+    logo = cdnize team.customize?.logo
     @teamLogoWrapper.addSubView teamLogo = new kd.CustomHTMLView
       cssClass: 'team-logo'
     teamLogo.setPartial "<img src=#{logo} />"  if logo
@@ -204,24 +148,12 @@ module.exports = class MainView extends kd.View
         teamLogo.setClass 'default'
       else
         teamLogo.unsetClass 'default'
-        teamLogo.updatePartial "<img src=#{newLogo} />"
+        teamLogo.updatePartial "<img src=#{cdnize newLogo} />"
 
 
   createMiniWelcomeSteps: ->
 
     @logoWrapper.addSubView new HomeWelcomeSteps { mini : yes }
-
-
-  createAccountArea: ->
-
-    @accountArea = new kd.CustomHTMLView { cssClass: 'account-area' }
-
-    if isKoding()
-    then @aside.addSubView @accountArea
-    else @logoWrapper.addSubView @accountArea
-
-    @accountArea.destroySubViews()
-    @accountArea.addSubView @avatarArea  = new AvatarArea {}, whoami()
 
 
   checkVersion: ->
@@ -249,29 +181,6 @@ module.exports = class MainView extends kd.View
         @updateBanner.once 'KDObjectWillBeDestroyed', => @updateBanner = null
 
 
-  showRegistrationsClosedWarning: ->
-
-    return  unless isSoloProductLite()
-
-    { appStorageController } = kd.singletons
-    appStorage = appStorageController.storage 'Activity', '2.0'
-
-    appStorage.fetchValue 'registrationsClosedDismissed', (isDismissed) ->
-
-      return  if isDismissed
-
-      notification = new BannerNotificationView
-        timer   : 10
-        title   : 'UPDATE:'
-        content : 'We launched Koding for Teams and there are some important
-                    updates to the solo product.
-                    <a href="https://koding.com/blog/goodbye-koding-solo-welcome-koding-for-teams"
-                    target="_blank">Read more...</a></p>'
-
-      notification.once 'KDObjectWillBeDestroyed', ->
-        appStorage.setValue 'registrationsClosedDismissed', yes
-
-
   createMainTabView: ->
 
     @mainTabView = new MainTabView
@@ -287,37 +196,6 @@ module.exports = class MainView extends kd.View
       kd.getSingleton('router').handleRoute '/Activity'
 
     @panelWrapper.addSubView @mainTabView
-
-
-  checkForIntroVideo: ->
-
-    { appStorageController } = kd.singletons
-    appStorage = appStorageController.storage "WelcomeSteps-#{globals.currentGroup.slug}"
-
-    appStorage.fetchValue 'finishedSteps', (finishedSteps = {}) =>
-
-      return  if finishedSteps.watchVideo
-
-      @showIntroVideo()
-
-
-  showIntroVideo: ->
-
-    return  if @introVideo
-
-    @addSubView @introVideo = new IntroVideoView
-    @introVideoViewIsShown = yes
-    @emit 'IntroVideoViewIsShown'
-
-
-  hideIntroVideo: ->
-
-    return  unless @introVideo
-
-    @introVideo.destroy()
-    @introVideo = null
-    @introVideoViewIsShown = no
-    @emit 'IntroVideoViewIsHidden'
 
 
   hideAllNotifications: ->

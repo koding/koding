@@ -1,5 +1,9 @@
+{ clone } = require 'underscore'
 { updateMachine } = require './helpers'
 KodingError = require '../../error'
+
+clientRequire = require '../../clientrequire'
+replaceUserInputs = clientRequire 'app/lib/util/stacks/replaceuserinputs'
 
 NOT_IMPLEMENTED_MESSAGE = 'Not implemented yet.'
 
@@ -39,7 +43,13 @@ module.exports = class ProviderInterface
 
   @fetchAvailable = NOT_IMPLEMENTED
 
+  @supportsStacks = yes
   @postCreate     = PASS_THROUGH
+
+  @_requireTemplate = ->
+    @template = clientRequire \
+      "app/lib/providers/templates/#{@providerSlug}.coffee"
+    @templateWithDefaults = replaceUserInputs clone @template
 
   # Generic fetcher for JCredential's data on this provider
   #

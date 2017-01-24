@@ -13,6 +13,12 @@ type StackTemplateConfig struct {
 	Verified          bool                `bson:"verified"`
 }
 
+const (
+	AccessPrivate = "private"
+	AccessGroup   = "group"
+	AccessPublic  = "public"
+)
+
 // StackTemplate is a document from jStackTemplates collection
 type StackTemplate struct {
 	Id          bson.ObjectId `bson:"_id" json:"-"`
@@ -36,7 +42,7 @@ type StackTemplate struct {
 }
 
 func NewStackTemplate(provider, identifier string) *StackTemplate {
-	now := time.Now()
+	now := time.Now().UTC()
 
 	return &StackTemplate{
 		Id:          bson.NewObjectId(),

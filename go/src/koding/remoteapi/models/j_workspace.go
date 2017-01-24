@@ -13,6 +13,9 @@ import (
 // swagger:model JWorkspace
 type JWorkspace struct {
 
+	// id
+	ID string `json:"_id,omitempty"`
+
 	// channel Id
 	ChannelID string `json:"channelId,omitempty"`
 

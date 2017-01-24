@@ -21,5 +21,3 @@ module.exports = TrialEndedNotifySuccessModal = ({ isOpen, onButtonClick, daysLe
     buttonTitle='Have another issue? Contact us.'
     onButtonClick={onButtonClick}
   />
-
-

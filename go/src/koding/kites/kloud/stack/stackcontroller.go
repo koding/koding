@@ -3,6 +3,7 @@ package stack
 import (
 	"errors"
 	"koding/kites/config"
+
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/eventer"
@@ -49,8 +50,8 @@ func TeamRequestFromContext(ctx context.Context) (*TeamRequest, bool) {
 // StackFunc handles execution of a single team method.
 type StackFunc func(Stacker, context.Context) (interface{}, error)
 
-func IsKloudctlAuth(r *kite.Request, key string) bool {
-	return key != "" && r.Auth != nil && r.Auth.Type == "kloudctl" && r.Auth.Key == key
+func IsKloudSecretAuth(r *kite.Request, key string) bool {
+	return key != "" && r.Auth != nil && r.Auth.Type == "kloudSecret" && r.Auth.Key == key
 }
 
 // stackMethod routes the team method call to a requested provider.
@@ -71,7 +72,7 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 		args.Provider = "aws"
 	}
 
-	if IsKloudctlAuth(r, k.SecretKey) {
+	if IsKloudSecretAuth(r, k.SecretKey) {
 		// kloudctl is not authenticated with username, let it overwrite it
 		r.Username = args.Impersonate
 	}
@@ -82,12 +83,7 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 		args.GroupName = "koding"
 	}
 
-	p, ok := k.providers[args.Provider].(Provider)
-	if !ok {
-		return nil, NewError(ErrProviderNotFound)
-	}
-
-	s, ctx, err := k.NewStack(p, r, &args)
+	s, ctx, err := k.newStack(r, &args)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +118,15 @@ func (k *Kloud) stackMethod(r *kite.Request, fn StackFunc) (interface{}, error) 
 	return resp, err
 }
 
-func (k *Kloud) NewStack(p Provider, r *kite.Request, req *TeamRequest) (Stacker, context.Context, error) {
+func (k *Kloud) newStack(r *kite.Request, req *TeamRequest) (Stacker, context.Context, error) {
+	if k.NewStack != nil {
+		return k.NewStack(r, req)
+	}
+
+	p, ok := k.providers[req.Provider]
+	if !ok {
+		return nil, nil, NewError(ErrProviderNotFound)
+	}
 	// Build context value.
 	ctx := request.NewContext(context.Background(), r)
 	ctx = context.WithValue(ctx, TeamRequestKey, req)

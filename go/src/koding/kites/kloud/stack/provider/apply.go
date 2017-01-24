@@ -77,7 +77,7 @@ func (bs *BaseStack) HandleApply(ctx context.Context) (interface{}, error) {
 		return nil, err
 	}
 
-	return stack.ControlResult{
+	return &stack.ControlResult{
 		EventId: bs.Eventer.ID(),
 	}, nil
 }
@@ -267,6 +267,12 @@ func (bs *BaseStack) applyAsync(ctx context.Context, req *stack.ApplyRequest) er
 
 	if err := bs.Builder.BuildTemplate(bs.Builder.Stack.Template, defaultContentID); err != nil {
 		return err
+	}
+
+	if len(req.Variables) != 0 {
+		if err := bs.Builder.Template.InjectVariables("", req.Variables); err != nil {
+			return err
+		}
 	}
 
 	bs.Log.Debug("Stack template before injecting Koding data: %s", bs.Builder.Template)

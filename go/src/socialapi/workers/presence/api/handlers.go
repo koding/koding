@@ -16,16 +16,6 @@ import (
 	"github.com/koding/bongo"
 )
 
-const (
-	// EndpointPresencePing provides ping endpoint
-	EndpointPresencePing = "/presence/ping"
-
-	EndpointPresenceListMembers = "/presence/listmembers"
-
-	// EndpointPresencePingPrivate provides private ping endpoint
-	EndpointPresencePingPrivate = "/private/presence/ping"
-)
-
 // AddHandlers added the internal handlers to the given Muxer
 func AddHandlers(m *mux.Mux) {
 	httpRateLimiter := helper.NewDefaultRateLimiter()
@@ -35,7 +25,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:   Ping,
 			Name:      "presence-ping",
 			Type:      handler.GetRequest,
-			Endpoint:  EndpointPresencePing,
+			Endpoint:  presence.EndpointPresencePing,
 			Ratelimit: httpRateLimiter,
 		},
 	)
@@ -44,7 +34,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:   ListMembers,
 			Name:      "presence-listmembers",
 			Type:      handler.GetRequest,
-			Endpoint:  EndpointPresenceListMembers,
+			Endpoint:  presence.EndpointPresenceListMembers,
 			Ratelimit: httpRateLimiter,
 		},
 	)
@@ -53,7 +43,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:   HandlePrivatePing,
 			Name:      "presence-ping-private",
 			Type:      handler.PostRequest,
-			Endpoint:  EndpointPresencePingPrivate,
+			Endpoint:  presence.EndpointPresencePingPrivate,
 			Ratelimit: httpRateLimiter,
 		},
 	)

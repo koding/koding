@@ -21,4 +21,6 @@ module.exports = class OwnMachinesStore extends KodingFluxStore
         machines.set machine._id, machine._id
 
 
-  set: (machines, machine) -> machines.set machine._id, machine._id
+  set: (machines, machine) ->
+
+    machines.set machine._id, machine._id

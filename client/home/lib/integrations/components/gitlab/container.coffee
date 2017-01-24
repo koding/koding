@@ -148,4 +148,3 @@ module.exports = class GitLabContainer extends React.Component
       onRemoveCancel={@bound 'onRemoveCancel'}
       onSave={@bound 'onSave'}
       onInputChange={@bound 'onInputChange'} />
-

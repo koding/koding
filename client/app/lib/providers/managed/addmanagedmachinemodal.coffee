@@ -3,7 +3,6 @@ whoami          = require 'app/util/whoami'
 globals         = require 'globals'
 actions         = require 'app/flux/environment/actions'
 KodingKontrol   = require 'app/kite/kodingkontrol'
-isTeamReactSide = require 'app/util/isTeamReactSide'
 CopyTooltipView = require 'app/components/common/copytooltipview'
 ContentModal = require 'app/components/contentModal'
 copyToClipboard = require 'app/util/copyToClipboard'
@@ -57,10 +56,7 @@ module.exports = class AddManagedMachineModal extends ContentModal
 
   machineFoundCallback: (info, machine) ->
 
-    if isTeamReactSide()
-      actions.showManagedMachineAddedModal info, machine._id
-    else
-      kd.singletons.mainView.activitySidebar.showManagedMachineAddedModal info, machine
+    actions.showManagedMachineAddedModal info, machine._id
 
     @destroy()
 
@@ -144,41 +140,9 @@ module.exports = class AddManagedMachineModal extends ContentModal
     return @code.updatePartial 'Failed to fetch one time access token.'
 
 
-  handleUsageLimit: ->
-
-    @code.destroy()
-    @content.updatePartial '''
-      <h>
-        'Uh oh! You already have a managed machine!'
-      </h>
-      <p>
-        Free Koding accounts are limited to adding one external machine and
-        you already have one connected. Paid accounts are allowed to add unlimited external machines.
-      </p>
-    '''
-
-    @content.addSubView new kd.CustomHTMLView
-      tagName : 'p'
-      partial : 'Please <a href="/Pricing">upgrade</a> to be able to add more.'
-      click   : (event) =>
-        return  unless event.target.tagName is 'A'
-
-        # Don't require 'ComputeHelpers' on top. If you do that,
-        # you will get a circular dependency error from browserify.
-        ComputeHelpers  = require '../computehelpers'
-
-        kd.singletons.paymentController.once 'PaymentWorkflowFinishedSuccessfully', ->
-          ComputeHelpers.handleNewMachineRequest { provider: 'managed' }
-
-        @destroy()
-
-    @setClass 'error'
-
-
   destroy: ->
 
     super
 
     cc = kd.singletons.computeController
     cc.managedKiteChecker.removeListener @bound 'machineFoundCallback'
-    kd.singletons.router.back()  unless isTeamReactSide()

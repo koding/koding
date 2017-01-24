@@ -7,8 +7,6 @@ module.exports = class JName extends Model
 
   { secure, JsPath:{ getAt }, signature } = require 'bongo'
 
-  { v4: createId } = require 'node-uuid'
-
   @share()
 
   @set
@@ -106,11 +104,10 @@ module.exports = class JName extends Model
 
     isEmailValid = require './user/emailchecker'
     sanitize     = require './user/emailsanitize'
-    { check }    = require 'validator'
+    validator    = require 'validator'
+    candidate    = sanitize candidate
 
-    candidate = sanitize candidate
-
-    return check(candidate).isEmail() and isEmailValid candidate
+    return validator.isEmail(candidate) and isEmailValid candidate
 
 
   @claimNames = secure (client, callback = -> ) ->

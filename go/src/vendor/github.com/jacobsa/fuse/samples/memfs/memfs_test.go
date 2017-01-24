@@ -1567,30 +1567,21 @@ func (t *MemFSTest) RenameOverExistingDirectory() {
 	err = os.Mkdir(newPath, 0600)
 	AssertEq(nil, err)
 
-	// Renaming over the non-empty one shouldn't work.
+	// Renaming over the non-empty directory shouldn't work.
 	err = os.Rename(newPath, oldPath)
-	ExpectThat(err, Error(HasSubstr("not empty")))
+	ExpectThat(err, Error(MatchesRegexp("not empty|file exists")))
 
-	// But the other way around should.
-	err = os.Rename(oldPath, newPath)
-	AssertEq(nil, err)
+	// As of Go 1.8 this shouldn't work the other way around either (see
+	// https://github.com/golang/go/commit/321c312).
+	if atLeastGo18 {
+		err = os.Rename(oldPath, newPath)
+		ExpectThat(err, Error(HasSubstr("file exists")))
 
-	// Check the parent listing.
-	entries, err := fusetesting.ReadDirPicky(t.Dir)
-	AssertEq(nil, err)
-	AssertEq(1, len(entries))
-	fi := entries[0]
-
-	ExpectEq(path.Base(newPath), fi.Name())
-	ExpectEq(os.FileMode(0700)|os.ModeDir, fi.Mode())
-
-	// And the directory itself.
-	entries, err = fusetesting.ReadDirPicky(newPath)
-	AssertEq(nil, err)
-	AssertEq(1, len(entries))
-	fi = entries[0]
-
-	ExpectEq("child", fi.Name())
+		// Both should still be present in the parent listing.
+		entries, err := fusetesting.ReadDirPicky(t.Dir)
+		AssertEq(nil, err)
+		ExpectEq(2, len(entries))
+	}
 }
 
 func (t *MemFSTest) RenameOverExisting_WrongType() {
@@ -1605,9 +1596,9 @@ func (t *MemFSTest) RenameOverExisting_WrongType() {
 	err = os.Mkdir(dirPath, 0700)
 	AssertEq(nil, err)
 
-	// Renaming one over the other shouldn't work.
+	// Renaming either over the other shouldn't work.
 	err = os.Rename(filePath, dirPath)
-	ExpectThat(err, Error(HasSubstr("is a directory")))
+	ExpectThat(err, Error(MatchesRegexp("is a directory|file exists")))
 
 	err = os.Rename(dirPath, filePath)
 	ExpectThat(err, Error(HasSubstr("not a directory")))

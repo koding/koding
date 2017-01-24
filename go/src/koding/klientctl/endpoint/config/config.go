@@ -58,6 +58,10 @@ func (c *Client) Close() (err error) {
 func (c *Client) Defaults() (*config.Konfig, error) {
 	c.init()
 
+	return c.fetchDefaults(false)
+}
+
+func (c *Client) fetchDefaults(force bool) (*config.Konfig, error) {
 	used, err := c.store.Used()
 	if err != nil {
 		return nil, err
@@ -65,8 +69,10 @@ func (c *Client) Defaults() (*config.Konfig, error) {
 
 	id := used.ID()
 
-	if defaults, ok := c.defaults[id]; ok {
-		return defaults, nil
+	if !force {
+		if defaults, ok := c.defaults[id]; ok {
+			return defaults, nil
+		}
 	}
 
 	var req = &stack.ConfigMetadataRequest{}
@@ -85,7 +91,11 @@ func (c *Client) Defaults() (*config.Konfig, error) {
 	return defaults, nil
 }
 
-func (c *Client) Reset() error {
+type ResetOpts struct {
+	Force bool
+}
+
+func (c *Client) Reset(opts *ResetOpts) error {
 	c.init()
 
 	used, err := c.store.Used()
@@ -93,7 +103,7 @@ func (c *Client) Reset() error {
 		return err
 	}
 
-	defaults, err := c.Defaults()
+	defaults, err := c.fetchDefaults(opts.Force)
 	if err != nil {
 		return err
 	}
@@ -143,4 +153,4 @@ func Set(key, value string) error       { return DefaultClient.Set(key, value) }
 func Use(k *config.Konfig) error        { return DefaultClient.Use(k) }
 func Used() (*config.Konfig, error)     { return DefaultClient.Used() }
 func Defaults() (*config.Konfig, error) { return DefaultClient.Defaults() }
-func Reset() error                      { return DefaultClient.Reset() }
+func Reset(opts *ResetOpts) error       { return DefaultClient.Reset(opts) }

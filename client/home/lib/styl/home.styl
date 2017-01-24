@@ -202,3 +202,27 @@ $subtleColor                = #A59999
     margin-left             40px
 
 
+.HomeAppView--button
+  font-size                 14px
+  font-weight               100
+  padding-right             2px
+  color                     #ABABAB
+  noTextDeco()
+  dIBlock()
+
+  &.primary
+    color                   #769ECC
+
+  &.danger
+    color                   #e14a35
+    &.readonly
+      pointer-events        none
+
+
+.HomeAppView--link
+  bg                        color, transparent
+  color                     #9f9f9f
+  noTextDeco()
+
+  &.primary
+    color                   #769ecc !important

@@ -1,4 +1,5 @@
 #!/usr/bin/env coffee
+# coffeelint: disable=cyclomatic_complexity
 
 require 'coffee-cache'
 
@@ -120,6 +121,9 @@ getProps = (prop, def, field) ->
     console.log 'Failed on field:', field
     throw e
 
+  if prop.default? and prop.default?.type is 'default'
+    delete prop.default
+
   if prop.required
     def.required ?= []
     def.required.push field
@@ -132,13 +136,15 @@ generateDefinition = (model) ->
 
   schema = model.describeSchema()
   def    = { type: 'object' }
-  props  = {}
+  props  = { _id: { type: 'string' } }
 
   for field, prop of schema
+    continue if field is 'default' and prop.type is 'default'
 
     if 'type' not in Object.keys prop
       props[field] = { properties: {} }
       for subfield, subprop of prop
+        continue if subfield is 'default' and subprop.type is 'default'
         props[field].properties[subfield] = getProps subprop, def, field
     else
       props[field] = getProps prop, def, field
@@ -159,19 +165,33 @@ generateMethodPaths = (model, definitions, paths, docs) ->
 
   for method, signatures of methods.statik
 
+    response      =
+      description : 'Request processed succesfully'
+      schema      :
+        $ref      : '#/definitions/DefaultResponse'
+
     if hasParams = signatures.length > 1 or signatures[0].split(',').length > 1
       parameters = [{ $ref: '#/parameters/bodyParam' }]
       examples = docs[name]['static'][method]?.examples ? []
-      for example in examples when example.title is 'api'
-        parameters = [
-          {
-            in: 'body'
-            name: 'body'
-            schema: example.schema
-            required: true
-            description: 'body of the request'
-          }
-        ]
+      if (returns = docs[name]['static'][method]?.returns) and Object.keys(returns).length
+        response =
+          description: returns.description
+          schema: { $ref: "#/definitions/#{returns.type}" }
+
+      for example in examples
+        if example.title is 'api'
+          parameters = [
+            {
+              in: 'body'
+              name: 'body'
+              schema: example.schema
+              required: true
+              description: 'body of the request'
+            }
+          ]
+        else if example.title is 'return'
+          response.schema = example.schema
+
     else
       parameters = null
 
@@ -183,9 +203,8 @@ generateMethodPaths = (model, definitions, paths, docs) ->
         description: docs[name]['static'][method]?.description ? ''
         responses:
           '200':
-            description: 'Request processed succesfully'
-            schema:
-              $ref: '#/definitions/DefaultResponse'
+            description: response.description
+            schema: response.schema
           '401':
             description: 'Unauthorized request'
             schema:
@@ -204,14 +223,17 @@ generateMethodPaths = (model, definitions, paths, docs) ->
 
     if hasParams = signatures.length > 1 or signatures[0].split(',').length > 1
       examples = docs[name]['instance'][method]?.examples ? []
-      for example in examples when example.title is 'api'
-        parameters.push {
-          in: 'body'
-          name: 'body'
-          schema: example.schema
-          required: true
-          description: 'body of the request'
-        }
+      for example in examples
+        if example.title is 'api'
+          parameters.push {
+            in: 'body'
+            name: 'body'
+            schema: example.schema
+            required: true
+            description: 'body of the request'
+          }
+        else if example.title is 'return'
+          response.schema = example.schema
 
     paths["/remote.api/#{name}.#{method}/{id}"] =
       post:

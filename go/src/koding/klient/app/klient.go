@@ -33,7 +33,8 @@ import (
 	"koding/klient/info"
 	"koding/klient/info/publicip"
 	"koding/klient/logfetcher"
-	"koding/klient/machine"
+	mclient "koding/klient/machine/client"
+	"koding/klient/machine/index"
 	"koding/klient/machine/machinegroup"
 	kos "koding/klient/os"
 	"koding/klient/remote"
@@ -322,9 +323,10 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 
 	machinesOpts := &machinegroup.GroupOpts{
 		Storage:         storage.NewEncodingStorage(db, []byte("machines")),
-		Builder:         machine.NewKiteBuilder(k),
+		Builder:         mclient.NewKiteBuilder(k),
 		DynAddrInterval: 2 * time.Second,
 		PingInterval:    15 * time.Second,
+		WorkDir:         cfg.KodingCacheHome(),
 	}
 
 	machines, err := machinegroup.New(machinesOpts)
@@ -515,6 +517,12 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("machine.create", machinegroup.KiteHandlerCreate(k.machines))
 	k.kite.HandleFunc("machine.id", machinegroup.KiteHandlerID(k.machines))
 	k.kite.HandleFunc("machine.ssh", machinegroup.KiteHandlerSSH(k.machines))
+	k.kite.HandleFunc("machine.mount.head", machinegroup.KiteHandlerHeadMount(k.machines))
+	k.kite.HandleFunc("machine.mount.add", machinegroup.KiteHandlerAddMount(k.machines))
+
+	// Machine index handlers.
+	k.handleWithSub("machine.index.head", index.KiteHandlerHead())
+	k.handleWithSub("machine.index.get", index.KiteHandlerGet())
 
 	// Vagrant
 	k.kite.HandleFunc("vagrant.create", k.vagrant.Create)

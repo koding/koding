@@ -344,9 +344,10 @@ Home My Account styles
 
   &.sessions
     .session-info
-      fl()
       display               block
       margin                10px 0 0 0px
+      fl()
+
       .last-access
         text-align          left
         font-size           14px
@@ -363,7 +364,7 @@ Home My Account styles
         color               #929292
         ellipsis()
 
-
+      .api:after
       .active:after
         content             'Active'
         font-size           12px
@@ -378,6 +379,14 @@ Home My Account styles
         margin-top          3px
         display             inline-block
         vertical-align      top
+
+      .active:after
+        content             'Active'
+
+      .api:after
+        content             'API Session'
+        width               68px
+        background-color    #999
 
     .delete-button
       fr()

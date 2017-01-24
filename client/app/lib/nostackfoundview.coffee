@@ -73,5 +73,3 @@ module.exports = class NoStackFoundView extends ReactView
           <button className='GenericButton' onClick={@bound 'onClick'}>CREATE A PERSONAL STACK</button>
         </div>
       </div>
-
-

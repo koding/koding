@@ -21,5 +21,3 @@ module.exports = SuspendedNotifySuccess = ({ isOpen, onButtonClick, daysLeft }) 
     buttonTitle='Have another issue? Contact us.'
     onButtonClick={onButtonClick}
   />
-
-
