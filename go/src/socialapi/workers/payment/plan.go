@@ -9,10 +9,6 @@ import (
 	stripeplan "github.com/stripe/stripe-go/plan"
 )
 
-// Up to 10 users:  $49.97 per developer per month
-// Up to 50 users:  $39.97 per developer per month
-// Over 50 users:  $34.97 per developer per month
-
 // TrialPeriod: Specifies a trial period in (an integer number of) days. If you
 // include a trial period, the customer won’t be billed for the first time until
 // the trial period ends. If the customer cancels before the trial period is
@@ -22,10 +18,9 @@ const (
 	// planPrefix       = "p_"
 	customPlanPrefix = "p_c_"
 
-	Free        = "p_free"
-	UpTo10Users = "p_up_to_10"
-	UpTo50Users = "p_up_to_50"
-	Over50Users = "p_over_50"
+	Free    = "p_free"
+	Solo    = "p_solo"
+	General = "p_general"
 )
 
 var planMu sync.RWMutex
@@ -44,37 +39,26 @@ var plans = map[string]*stripe.PlanParams{
 		Statement:     "FREE",
 	},
 
-	UpTo10Users: {
-		Amount:        4997,
+	Solo: {
+		Amount:        100, // 1$
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
-		TrialPeriod:   7,
-		Name:          "Up to 10 users",
+		TrialPeriod:   30,
+		Name:          "Solo User",
 		Currency:      currency.USD,
-		ID:            UpTo10Users,
-		Statement:     "UP TO 10 USERS",
+		ID:            Solo,
+		Statement:     "SOLO",
 	},
 
-	UpTo50Users: {
-		Amount:        3982,
+	General: {
+		Amount:        990, // 9.9$
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
-		TrialPeriod:   7,
-		Name:          "Up to 50 users",
+		TrialPeriod:   30,
+		Name:          "Solo User",
 		Currency:      currency.USD,
-		ID:            UpTo50Users,
-		Statement:     "UP TO 50 USERS",
-	},
-
-	Over50Users: {
-		Amount:        3493,
-		Interval:      stripeplan.Month,
-		IntervalCount: 1,
-		TrialPeriod:   7,
-		Name:          "Over 50 users",
-		Currency:      currency.USD,
-		ID:            Over50Users,
-		Statement:     "OVER 50 USERS",
+		ID:            General,
+		Statement:     "GENERAL",
 	},
 }
 
@@ -91,12 +75,10 @@ func GetPlanID(userCount int) string {
 	switch {
 	case userCount == 0:
 		return GetPlan(Free).ID
-	case userCount < 10:
-		return GetPlan(UpTo10Users).ID
-	case userCount < 50:
-		return GetPlan(UpTo50Users).ID
+	case userCount == 1:
+		return GetPlan(Solo).ID
 	default:
-		return GetPlan(Over50Users).ID
+		return GetPlan(General).ID
 	}
 }
 
