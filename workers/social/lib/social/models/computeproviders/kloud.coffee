@@ -20,8 +20,8 @@ module.exports = class Kloud extends Base
       static       :
         ping       : (signature Function)
 
-  TIMEOUT = 10000
 
+  TIMEOUT = 15000
 
   getPayload = (client, args) ->
 
