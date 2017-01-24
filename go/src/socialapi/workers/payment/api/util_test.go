@@ -51,24 +51,11 @@ func withTestPlan(f func(planID string)) {
 }
 
 func withTrialTestPlan(f func(planID string)) {
-	pp := &stripe.PlanParams{
-		Amount:        10,
-		Interval:      plan.Month,
-		IntervalCount: 1,
-		TrialPeriod:   1,
-		Name:          "Trailing 10",
-		Currency:      currency.USD,
-		ID:            fmt.Sprintf("p_%s", bson.NewObjectId().Hex()),
-		Statement:     "Trailing 10",
-	}
-
-	_, err := plan.New(pp)
+	p := payment.GetPlan(payment.General)
+	err := payment.EnsurePlan(p)
 	So(err, ShouldBeNil)
 
-	f(pp.ID)
-
-	_, err = plan.Del(pp.ID)
-	So(err, ShouldBeNil)
+	f(p.ID)
 }
 
 func withNonFreeTestPlan(f func(planID string)) {
