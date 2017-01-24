@@ -98,6 +98,8 @@ if  [ "$1" == "kites" ]; then
 
     compile  $@
     runWithCD $@
+    merge$@
+    removeCoverProfiles $@
     clean $@
 
 elif [ "$1" == "socialapi" ]; then
