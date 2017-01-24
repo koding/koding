@@ -19,12 +19,14 @@ module.exports = class NotificationView extends React.Component
     constructor: (props) ->
 
       super props
-      @style = { zIndex: 100 + @props.index }
       @notificationTimer = null
       @mounted = no
       @removeCount = 0
       @state =
         removed : no
+
+    @defaultProps  =
+      style : { zIndex: 100 + @props.index }
 
 
     hideNotification: ->
@@ -125,7 +127,7 @@ module.exports = class NotificationView extends React.Component
       message = notification.content
       <div
         className={className}
-        style={@style}
+        style={@props.style}
         onMouseEnter={@bound 'handleMouseEnter'}
         onMouseLeave={@bound 'handleMouseLeave'}>
         {
