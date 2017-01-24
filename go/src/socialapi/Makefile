@@ -95,7 +95,7 @@ testmail:
 
 testpayment:
 	@echo "$(OK_COLOR)--> payment tests... $(NO_COLOR)"
-	./workers/payment/tests.sh
+	$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/payment/...
 
 testintegration:
 	@echo "$(OK_COLOR)--> api integration tests... $(NO_COLOR)"
