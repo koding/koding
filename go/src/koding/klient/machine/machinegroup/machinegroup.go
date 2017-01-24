@@ -118,6 +118,18 @@ func New(opts *GroupOpts) (*Group, error) {
 		return nil, err
 	}
 
+	// Create sync object for synced mounts.
+	syncOpts := mountsync.SyncOpts{
+		ClientFunc: g.dynamicClient(),
+		WorkDir:    opts.WorkDir,
+		Log:        g.log,
+	}
+	g.sync, err = mountsync.New(syncOpts)
+	if err != nil {
+		g.log.Critical("Cannot create mount synchronizer: %s", err)
+		return nil, err
+	}
+
 	// Add default components.
 	g.address = addresses.New()
 	g.alias = aliases.New()
@@ -145,18 +157,6 @@ func New(opts *GroupOpts) (*Group, error) {
 		g.log.Warning("Cannot load mounts cache: %s", err)
 	} else {
 		g.mount = mount
-	}
-
-	// Create sync object for synced mounts.
-	syncOpts := mountsync.SyncOpts{
-		ClientFunc: g.dynamicClient(),
-		WorkDir:    opts.WorkDir,
-		Log:        g.log,
-	}
-	g.sync, err = mountsync.New(syncOpts)
-	if err != nil {
-		g.log.Critical("Cannot create mount synchronizer: %s", err)
-		return nil, err
 	}
 
 	// Start memory workers.
