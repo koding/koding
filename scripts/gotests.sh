@@ -28,7 +28,7 @@ function compile () {
 # RUN_FLAGS values might be config file or any value if required like
 # ...('-kite-init' required for collaboration tests)
 function run () {
-    go list -f '{{if len .TestGoFiles}}"{{.Dir}}/{{.Name}}.test -test.coverprofile={{.Dir}}/coverage.txt "{{end}}' $1 | grep -v vendor | xargs -L 1 -I{} $action "{}$RUN_FLAGS"
+    go list -f '{{if or (len .TestGoFiles) (len .XTestGoFiles)}}"{{.Dir}}/{{.Name}}.test -test.coverprofile={{.Dir}}/coverage.txt "{{end}}' $1 | grep -v vendor | xargs -L 1 -I{} $action "{}$RUN_FLAGS"
 }
 
 function merge () {
@@ -40,12 +40,12 @@ function merge () {
 # runWithCD runs like run function.
 # But this function changes the directory while running.
 function runWithCD () {
-    go list -f '{{if len .TestGoFiles}}"cd {{.Dir}} && ./{{.Name}}.test -test.coverprofile={{.Dir}}/coverage.txt "{{end}}' $1 | grep -v vendor | xargs -L 1 -I{} $action "{}$RUN_FLAGS"
+    go list -f '{{if or (len .TestGoFiles) (len .XTestGoFiles)}}"cd {{.Dir}} && ./{{.Name}}.test -test.coverprofile={{.Dir}}/coverage.txt "{{end}}' $1 | grep -v vendor | xargs -L 1 -I{} $action "{}$RUN_FLAGS"
 }
 
 # clean removes the .tests files after creation
 function clean () {
-    go list -f '{{if len .TestGoFiles}}"rm {{.Dir}}/{{.Name}}.test "{{end}}' $1 | xargs -L 1 $action
+    go list -f '{{if or (len .TestGoFiles) (len .XTestGoFiles)}}"rm {{.Dir}}/{{.Name}}.test "{{end}}' $1 | xargs -L 1 $action
 }
 
 function runAll () {
