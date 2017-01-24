@@ -1,4 +1,4 @@
-{ ObjectId, signature } = require 'bongo'
+{ ObjectId, signature, secure } = require 'bongo'
 { Module, Relationship } = require 'jraphical'
 
 _ = require 'lodash'
@@ -10,9 +10,9 @@ clientRequire = require '../../clientrequire'
 
 module.exports = class JStackTemplate extends Module
 
-  { slugify }  = require '../../traits/slugifiable'
-  { permit }   = require '../group/permissionset'
-  Validators   = require '../group/validators'
+  { slugify } = require '../../traits/slugifiable'
+  { permit }  = require '../group/permissionset'
+  Validators  = require '../group/validators'
   { revive, checkTemplateUsage } = require './computeutils'
 
   @trait __dirname, '../../traits/protected'
@@ -70,6 +70,8 @@ module.exports = class JStackTemplate extends Module
         setAccess     :
           (signature String, Function)
         update        :
+          (signature Object, Function)
+        build         :
           (signature Object, Function)
         clone         :
           (signature Function)
@@ -694,6 +696,29 @@ module.exports = class JStackTemplate extends Module
           JStackTemplate.create client, cloneData, callback
       else
         JStackTemplate.create client, cloneData, callback
+
+
+  build: secure (client, options, callback) ->
+
+    unless @getAt 'config.verified'
+      return callback new KodingError 'Stack needs to be verified first'
+
+    @clone client, (err, clonedTemplate) ->
+      return callback err  if err
+      unless clonedTemplate
+        return callback new KodingError 'Failed to clone template'
+
+      clonedTemplate.generateStack client, (err, res) ->
+        return callback err  if err
+        unless res.stack
+          return callback new KodingError 'Failed to generate stack'
+
+        { stack: generatedStack } = res
+        stackId = generatedStack.getId()
+        provider = (generatedStack.getAt 'config.requiredProviders')[0]
+
+        Kloud = require './kloud'
+        Kloud.tell client, 'apply', [{ stackId, provider }], callback
 
 
   forceStacksToReinit: permit 'force stacks to reinit',
