@@ -346,6 +346,7 @@ func TestResubscribingBeforeTrialEndsSubstractsPreviousUsage(t *testing.T) {
 					group, err := modelhelper.GetGroup(groupName)
 					tests.ResultedWithNoErrorCheck(group, err)
 
+					oldID := group.Id
 					newID := bson.NewObjectIdWithTime(group.Id.Time().Add(-time.Hour * 24 * 2))
 
 					So(modelhelper.RemoveGroup(group.Id), ShouldBeNil)
@@ -354,6 +355,14 @@ func TestResubscribingBeforeTrialEndsSubstractsPreviousUsage(t *testing.T) {
 					group, err = modelhelper.GetGroup(groupName)
 					tests.ResultedWithNoErrorCheck(group, err)
 					So(newID.Hex(), ShouldEqual, group.Id.Hex())
+
+					// all relationships should be updated.
+					So(modelhelper.UpdateRelationships(
+						modelhelper.Selector{
+							"sourceId": oldID,
+						}, modelhelper.Selector{
+							"$set": modelhelper.Selector{"sourceId": newID}},
+					), ShouldBeNil)
 
 					withSubscription(endpoint, groupName, sessionID, planID, func(subscriptionID string) {
 						sub, err := stripesub.Get(subscriptionID, nil)
