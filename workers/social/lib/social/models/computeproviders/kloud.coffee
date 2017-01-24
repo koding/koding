@@ -57,7 +57,7 @@ module.exports = class Kloud extends Base
       autoReconnect       : yes
       transportClass      : SockJs
       auth                :
-        key               : KONFIG.kloud.secretKey
+        key               : KONFIG.kloud.kloudSecretKey
         type              : 'kloudSecret'
       heartbeatTimeout    : 30 * 1000 # 30 seconds
       # Force XHR for all kind of kite connection
