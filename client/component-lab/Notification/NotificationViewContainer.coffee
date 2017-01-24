@@ -65,7 +65,7 @@ module.exports = class NotificationViewContainer extends ReactView
     then ''
     else 'hidden'
 
-    className = generateClassName [
+    className = classnames [
       styles.kd_notification_list
       stateClass
     ]
