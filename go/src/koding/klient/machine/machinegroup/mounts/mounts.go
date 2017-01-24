@@ -27,6 +27,18 @@ func (ms *Mounts) Add(id machine.ID, mountID mount.ID, m mount.Mount) error {
 	ms.mu.Lock()
 	defer ms.mu.Unlock()
 
+	// Check if mount with given ID already exist.
+	if _, err := ms.machineID(mountID); err == nil {
+		return fmt.Errorf("mount with ID %s already exists", mountID)
+	}
+
+	// Check if mount to local directory already exist.
+	if exMountID, err := ms.path(m.Path); err == nil {
+		return fmt.Errorf("local directory is already used by mount %s", exMountID)
+	} else if err != mount.ErrMountNotFound {
+		return err
+	}
+
 	mb, ok := ms.m[id]
 	if !ok {
 		mb = mount.NewMountBook()
@@ -69,14 +81,19 @@ func (ms *Mounts) Drop(id machine.ID) error {
 }
 
 // Path returns mount ID which mount's local path is equal to provided
-// argument.
+// argument. Path must be absolute and cleaned. mount.ErrMountNotFound is
+// returned if there is no mount with provided ID.
 func (ms *Mounts) Path(path string) (mount.ID, error) {
+	ms.mu.RLock()
+	defer ms.mu.RUnlock()
+
+	return ms.path(path)
+}
+
+func (ms *Mounts) path(path string) (mount.ID, error) {
 	if !filepath.IsAbs(path) {
 		return "", fmt.Errorf("path %q is not absolute", path)
 	}
-
-	ms.mu.RLock()
-	defer ms.mu.RUnlock()
 
 	for _, mb := range ms.m {
 		if mountID, err := mb.Path(path); err == nil {
@@ -88,13 +105,9 @@ func (ms *Mounts) Path(path string) (mount.ID, error) {
 }
 
 // RemotePath returns all mount IDs which RemotePath field matches provided
-// argument. Path must be absolute and cleaned. mount.ErrMountNotFound is
-// returned if there is no mount with provided ID.
+// argument. mount.ErrMountNotFound is returned if there is no mount with
+// provided ID.
 func (ms *Mounts) RemotePath(path string) (ids mount.IDSlice, err error) {
-	if !filepath.IsAbs(path) {
-		return nil, fmt.Errorf("path %q is not absolute", path)
-	}
-
 	ms.mu.RLock()
 	defer ms.mu.RUnlock()
 
@@ -117,6 +130,10 @@ func (ms *Mounts) MachineID(mountID mount.ID) (machine.ID, error) {
 	ms.mu.RLock()
 	defer ms.mu.RUnlock()
 
+	return ms.machineID(mountID)
+}
+
+func (ms *Mounts) machineID(mountID mount.ID) (machine.ID, error) {
 	for id, mb := range ms.m {
 		for storedID := range mb.All() {
 			if mountID == storedID {
