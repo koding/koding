@@ -28,6 +28,20 @@ module.exports = class Kloud extends Base
   TIMEOUT = 15000
 
 
+  # Helper to create methods dynamically for KiteAPIMap definition ~ GG
+  #
+  @createMethod = (ctx, { method, rpcMethod }) ->
+
+    ctx[method] = (client, payload, callback) ->
+      @tell client, rpcMethod, payload, callback
+
+  # Create methods for both fe and be versions
+  # all uses same single permission for fe requests ~ GG
+  #
+  for own method, rpcMethod of KiteAPIMap.kloud
+    @[method] = @createMethod this, { method, rpcMethod }
+    @["#{method}$"] = permit 'kite access', { success: @[method] }
+
 
   preparePayload = (client, payload) ->
 
@@ -42,14 +56,6 @@ module.exports = class Kloud extends Base
       return [ new KodingError 'Provider is required' ]
 
     return [ null, [ payload ] ]
-
-
-  # calls kite.ping on Kloud on behalf of loggedin user
-  #
-  @ping  = (client, callback) ->
-    @tell client, 'kite.ping', [], callback
-
-  @ping$ = permit 'kite ping', { success: @ping }
 
 
   @tell = (client, method, payload, callback) ->
