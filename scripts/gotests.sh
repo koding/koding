@@ -98,7 +98,7 @@ if  [ "$1" == "kites" ]; then
 
     compile  $@
     runWithCD $@
-    merge$@
+    merge $@
     removeCoverProfiles $@
     clean $@
 
