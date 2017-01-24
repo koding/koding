@@ -1,5 +1,3 @@
-_ = require 'lodash'
-
 module.exports = getVendorTransition = ->
 
   el = document.createElement('fakeelement')
@@ -9,6 +7,6 @@ module.exports = getVendorTransition = ->
     OTransition : 'oTransitionEnd'
     MozTransition : 'transitionend'
     WebkitTransition : 'webkitTransitionEnd'
-  _.keys(transitions).forEach (transitionKey) ->
+  Object.keys(transitions).forEach (transitionKey) ->
     transition = transitions[transitionKey] unless el.style[transitionKey]
   return transition
