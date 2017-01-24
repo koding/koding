@@ -199,7 +199,6 @@ func TestEndpointEqual(t *testing.T) {
 	for name, cas := range cases {
 		// capture range variable here
 		cas := cas
-		name := name
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			if ok := cas.lhs.Equal(cas.rhs); ok != cas.ok {
@@ -220,7 +219,6 @@ func TestURLCopy(t *testing.T) {
 	for name, u := range cases {
 		// capture range variable here
 		u := u
-		name := name
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			uCopy := u.Copy()
@@ -268,7 +266,6 @@ func TestEndpointCopy(t *testing.T) {
 	for name, e := range cases {
 		// capture range variable here
 		e := e
-		name := name
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			eCopy := e.Copy()

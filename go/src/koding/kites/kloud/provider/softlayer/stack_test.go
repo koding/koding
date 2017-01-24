@@ -153,7 +153,6 @@ func TestApplyTemplate(t *testing.T) {
 	for name, cas := range cases {
 		// capture range variable here
 		cas := cas
-		name := name
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			pStack, err := ioutil.ReadFile(cas.stack)

@@ -61,7 +61,6 @@ func TestAddPublicKey(t *testing.T) {
 	for name, test := range tests {
 		// capture range variable here
 		test := test
-		name := name
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			metadata := addPublicKey(test.Metadata, test.User, test.PublicKey)
@@ -154,7 +153,6 @@ func TestFlatten(t *testing.T) {
 	for name, test := range tests {
 		// capture range variable here
 		test := test
-		name := name
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			flattened := flatten(test.Data)

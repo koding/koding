@@ -89,7 +89,6 @@ func TestAddrBookAdd(t *testing.T) {
 	for name, test := range tests {
 		// capture range variable here
 		test := test
-		name := name
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			ab := &AddrBook{}
