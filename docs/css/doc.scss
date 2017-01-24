@@ -3,12 +3,14 @@
 
 main {
   display: flex;
+  flex-flow: row;
+  flex-wrap: wrap;
   max-width: 1600px;
   min-height: calc(100vh - 358px - 70px);
   box-sizing: border-box;
 
   > aside {
-    flex: 0 0 auto;
+    flex: 1;
     width: 360px;
     padding: 32px 0;
 
@@ -56,10 +58,9 @@ main {
   }
 
   > section {
-    flex: 1 0 auto;
+    flex: 3;
     width: calc(100% - 360px);
-    min-width: 600px;
-    padding: 32px 32px 32px 0;
+    padding: 32px 32px 32px 32px;
     box-sizing: border-box;
     p.citation {
       font-style: italic;
@@ -102,5 +103,33 @@ main {
         }
       }
     }
+  }
+}
+
+@media screen and (min-width: 700px) {
+  main>aside {
+    order: 1;
+  }
+
+  main>section {
+    order: 2;
+  }
+}
+
+@media screen and (max-width: 699px) {
+  main>aside {
+    width: 290px;
+
+    ul {
+      text-align: center;
+
+      li ul {
+        padding-left: 0
+      }
+    }
+  }
+
+  main>aside, main>section {
+    flex: 1 100%;
   }
 }
