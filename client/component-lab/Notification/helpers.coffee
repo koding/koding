@@ -1,5 +1,3 @@
-_ = require 'lodash'
-
 Timer = (callback, delay) ->
 
   timerId = undefined
@@ -30,7 +28,7 @@ validateProps = (notification, types) ->
 
   if not notification.type
     throw new Error('Notification type is required.')
-  if _.keys(types).indexOf(notification.type) is -1
+  if Object.keys(types).indexOf(notification.type) is -1
     throw new Error("\"#{notification.type} \" is not a valid type.")
   if isNaN(notification.duration)
     throw new Error('\"duration\" must be a number.')
