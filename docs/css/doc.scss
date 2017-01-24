@@ -132,4 +132,8 @@ main {
   main>aside, main>section {
     flex: 1 100%;
   }
+
+  iframe {
+    width: 100%;
+  }
 }
