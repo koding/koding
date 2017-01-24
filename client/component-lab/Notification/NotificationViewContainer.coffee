@@ -4,7 +4,7 @@ ReactView = require 'app/react/reactview'
 NotificationView = require './NotificationView'
 FlipMove = require 'react-flip-move'
 
-generateClassName = require 'classnames'
+classnames = require 'classnames'
 styles = require './Notification.stylus'
 
 module.exports = class NotificationViewContainer extends ReactView

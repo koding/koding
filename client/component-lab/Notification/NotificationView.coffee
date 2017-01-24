@@ -8,6 +8,7 @@ getVendorTransition = require 'app/util/getVendorTransition'
 Button = require 'lab/Button'
 Box = require 'lab/Box'
 
+classnames  = require 'classnames'
 styles = require './Notification.stylus'
 Helpers = require './helpers'
 Constants = require './constants'
@@ -112,28 +113,25 @@ module.exports = class NotificationView extends React.Component
     render: ->
 
       notification = @props.notification
-      className = [
+      className = classnames [
         styles.kd_notification
         styles["kd_notification_#{notification.type}"]
+        styles.kd_notification_dismissible : notification.dismissible and not notification.primaryButtonTitle and not notification.secondaryButtonTitle
       ]
-      iconClass = [
+      iconClass = classnames [
         styles.kd_notification_icon
         styles["kd_notification_icon_#{notification.type}"]
       ]
       message = notification.content
-      if notification.dismissible
-        className.push styles.kd_notification_dismissible
-      if notification.primaryButtonTitle or notification.secondaryButtonTitle
-        className = className.filter (word) -> word isnt styles.kd_notification_dismissible
       <div
-        className={className.join ' '}
+        className={className}
         style={@style}
         onMouseEnter={@bound 'handleMouseEnter'}
         onMouseLeave={@bound 'handleMouseLeave'}>
         {
           if notification.type isnt 'default'
             <Box className={styles.kd_notification_level}>
-              <i className={iconClass.join ' '}></i>
+              <i className={iconClass}></i>
             </Box>
         }
         <div className={styles.kd_notification_content}>
