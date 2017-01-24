@@ -57,15 +57,9 @@ testpresence:
 	@echo "$(OK_COLOR)--> presence tests... $(NO_COLOR)"
 	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/presence/...
 
-testteam: testteamunit testteamintegration
-
-testteamunit:
-	@echo "$(OK_COLOR)--> team unit tests... $(NO_COLOR)"
-	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/team
-
-testteamintegration:
+testteam:
 	@echo "$(OK_COLOR)--> team integration tests... $(NO_COLOR)"
-	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/team/tests
+	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/team/...
 
 testalgolia:
 	@echo "$(OK_COLOR)--> algoliaconnector unit tests... $(NO_COLOR)"
@@ -82,16 +76,9 @@ testmodels:
 	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
 	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/models
 
-testmailsender:
-	@echo "$(OK_COLOR)--> Mailsender tests... $(NO_COLOR)"
-	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/email/emailsender
-
-testmail:
+testemail:
 	@echo "$(OK_COLOR)--> mail tests... $(NO_COLOR)"
-	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/email/mailparse/models
-
-	@echo "$(OK_COLOR)--> mail integration tests... $(NO_COLOR)"
-	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/email/mailparse/tests
+	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/email/...
 
 # testpayments includes -race & -v flags
 testpayment:
@@ -104,13 +91,10 @@ testintegration:
 
 testrealtime:
 	@echo "$(OK_COLOR)--> realtime tests... $(NO_COLOR)"
-	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/realtime/realtime
-
-	@echo "$(OK_COLOR)--> realtime model tests... $(NO_COLOR)"
-	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/realtime/models
+	@$(KODINGDIR)/scripts/gotests.sh socialapi socialapi/workers/realtime/...
 
 
-testapi: testcollaboration testmailsender testmail testmodels \
+testapi: testcollaboration testemail testmodels \
 	testteam testintegration testrealtime testpresence \
 	testpayment
 
