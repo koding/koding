@@ -131,16 +131,25 @@ func MachineMountListCommand(c *cli.Context, log logging.Logger, _ string) (int,
 
 // MachineUmountCommand removes the mount.
 func MachineUmountCommand(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	// // Umount command needs exactly one identifier. Either mount ID or
-	// // mount local path.
-	// idents, err := getIdentifiers(c)
-	// if err != nil {
-	// 	return 1, err
-	// }
-	// if err := identifiersLimit(idents, "mount", 1, 1); err != nil {
-	// 	return 1, err
-	// }
-	// // TODO
+	// Umount command needs exactly one identifier. Either mount ID or
+	// mount local path.
+	idents, err := getIdentifiers(c)
+	if err != nil {
+		return 1, err
+	}
+	if err := identifiersLimit(idents, "mount", 1, 1); err != nil {
+		return 1, err
+	}
+
+	opts := &machine.UmountOptions{
+		Identifier: idents[0],
+		Log:        log.New("machine:umount"),
+	}
+
+	if err := machine.Umount(opts); err != nil {
+		return 1, err
+	}
+
 	return 0, nil
 }
 

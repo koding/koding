@@ -1,6 +1,7 @@
 package machine
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -23,6 +24,10 @@ type SSHOptions struct {
 
 // SSH connects to remote machine using SSH protocol.
 func SSH(options *SSHOptions) error {
+	if options == nil {
+		return errors.New("invalid nil options")
+	}
+
 	// TODO(ppknap): this is copied from klientctl old list and will be reworked.
 	k, err := klient.CreateKlientWithDefaultOpts()
 	if err != nil {

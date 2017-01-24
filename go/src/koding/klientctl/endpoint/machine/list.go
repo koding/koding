@@ -1,6 +1,7 @@
 package machine
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -24,6 +25,10 @@ type ListOptions struct {
 
 // List retrieves user's machines from kloud.
 func List(options *ListOptions) ([]*Info, error) {
+	if options == nil {
+		return nil, errors.New("invalid nil options")
+	}
+
 	var (
 		listReq = stack.MachineListRequest{}
 		listRes = stack.MachineListResponse{}

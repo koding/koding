@@ -22,8 +22,12 @@ type MountOptions struct {
 	Log        logging.Logger
 }
 
-// Mount creates synchronized directory between remote and local machines.
+// Mount synchronizes directories between remote and local machines.
 func Mount(options *MountOptions) (err error) {
+	if options == nil {
+		return errors.New("invalid nil options")
+	}
+
 	// Create and check mount point directory.
 	clean, err := mountPointDirectory(options.Path)
 	if err != nil {
@@ -119,6 +123,52 @@ func Mount(options *MountOptions) (err error) {
 	}
 
 	fmt.Fprintln(os.Stdout, "Created mount with ID: %s", addMountRes.MountID)
+	return nil
+}
+
+// UmountOptions stores options for `machine umount` call.
+type UmountOptions struct {
+	Identifier string // Mount identifier.
+	Log        logging.Logger
+}
+
+// Umount removes existing mount.
+func Umount(options *UmountOptions) (err error) {
+	if options == nil {
+		return errors.New("invalid nil options")
+	}
+
+	// TODO(ppknap): this is copied from klientctl old list and will be reworked.
+	k, err := klient.CreateKlientWithDefaultOpts()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error creating klient:", err)
+		return err
+	}
+
+	if err := k.Dial(); err != nil {
+		fmt.Fprintln(os.Stderr, "Error dialing klient:", err)
+		return err
+	}
+
+	// TODO: ask - are you sure.
+	fmt.Fprintln(os.Stdout, "Unmounting %s...", options.Identifier)
+
+	// Remove mount.
+	umountReq := machinegroup.UmountRequest{
+		Identifier: options.Identifier,
+	}
+	umountRaw, err := k.Tell("machine.umount", umountReq)
+	if err != nil {
+		return err
+	}
+	umountRes := machinegroup.UmountResponse{}
+	if err := umountRaw.Unmarshal(&umountRes); err != nil {
+		return err
+	}
+
+	fmt.Fprintln(os.Stdout, "Successfully unmounted %s (ID: %s)",
+		umountRes.Mount, umountRes.MountID)
+
 	return nil
 }
 
