@@ -45,7 +45,6 @@ module.exports = class KodingKiteKloudKite extends require('../kodingkite')
           name    : 'NotSupported'
           message : 'Operation is not supported for this VM/Stack'
 
-
       payload.provider = provider
 
     payload.groupName = getGroupName()

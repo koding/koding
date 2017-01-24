@@ -119,7 +119,7 @@ var kloudErrors = map[int]string{
 	ErrInternalServer:         "Internal server error",
 
 	// Team errors
-	ErrTeamSubIsNotActive: "Team subsription is no longer active",
+	ErrTeamSubIsNotActive: "Team subscription is no longer active",
 
 	// User errors
 	ErrUserNotConfirmed: "User account is not confirmed",
