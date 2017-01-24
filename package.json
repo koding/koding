@@ -95,7 +95,7 @@
     "sendmail": "1.1.1",
     "shortid": "2.2.6",
     "simple-recaptcha": "0.0.3",
-    "speakeasy": "2.0.0",
+    "speakeasy": "1.0.3",
     "stripcolorcodes": "0.1.0",
     "stylus": "0.54.5",
     "terraform-yml": "1.0.10",
