@@ -10,6 +10,7 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"koding/klient/machine/mount/sync"
 	"koding/klientctl/endpoint/machine"
 
 	"github.com/codegangsta/cli"
@@ -98,34 +99,36 @@ func MachineMountCommand(c *cli.Context, log logging.Logger, _ string) (int, err
 	return 0, nil
 }
 
-// MachineMountListCommand lists available mounts.
-func MachineMountListCommand(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	// // Mount list command doesn't need identifiers.
-	// idents, err := getIdentifiers(c)
-	// if err != nil {
-	// 	return 1, err
-	// }
-	// if err := identifiersLimit(idents, "mount", 0, 0); err != nil {
-	// 	return 1, err
-	// }
+// MachineListMountCommand lists available mounts.
+func MachineListMountCommand(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	// Mount list command doesn't need identifiers.
+	idents, err := getIdentifiers(c)
+	if err != nil {
+		return 1, err
+	}
+	if err := identifiersLimit(idents, "mount", 0, 0); err != nil {
+		return 1, err
+	}
 
-	// opts := &machine.MountListOptions{
-	// 	Log: log.New("machine:mount:list"),
-	// }
+	opts := &machine.ListMountOptions{
+		ID:      c.String("filter-machine"),
+		MountID: c.String("filter-mount"),
+		Log:     log.New("machine:mount:list"),
+	}
 
-	// infos, err := machine.MountList(opts)
-	// if err != nil {
-	// 	return 1, err
-	// }
+	mounts, err := machine.ListMount(opts)
+	if err != nil {
+		return 1, err
+	}
 
-	// if c.Bool("json") {
-	// 	enc := json.NewEncoder(os.Stdout)
-	// 	enc.SetIndent("", "\t")
-	// 	enc.Encode(infos)
-	// 	return 0, nil
-	// }
+	if c.Bool("json") {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "\t")
+		enc.Encode(mounts)
+		return 0, nil
+	}
 
-	// // TODO.
+	tabListMountFormatter(os.Stdout, mounts)
 	return 0, nil
 }
 
@@ -234,6 +237,27 @@ func tabListFormatter(w io.Writer, infos []*machine.Info) {
 			info.IP,
 			machine.PrettyStatus(info.Status, now),
 		)
+	}
+	tw.Flush()
+}
+
+func tabListMountFormatter(w io.Writer, mounts map[string][]sync.Info) {
+	tw := tabwriter.NewWriter(w, 2, 0, 2, ' ', 0)
+
+	// TODO: keep the mounts list sorted.
+	fmt.Fprintf(tw, "ID\tMACHINE\tMOUNT\tFILES\tSIZE\n")
+	for alias, infos := range mounts {
+		for _, info := range infos {
+			fmt.Fprintf(tw, "%s\t%s\t%s\t%d/%d\t%s/%s\n",
+				info.ID,
+				alias,
+				info.Mount,
+				info.SyncCount,
+				info.AllCount,
+				info.SyncDiskSize, // TODO go-humanize.
+				info.AllDiskSize,  // TODO go-humanize.
+			)
+		}
 	}
 	tw.Flush()
 }

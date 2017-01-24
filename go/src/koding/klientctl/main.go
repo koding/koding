@@ -595,8 +595,16 @@ func run(args []string) {
 						Name:      "list",
 						ShortName: "ls",
 						Usage:     "List available mounts.",
-						Action:    ctlcli.ExitErrAction(MachineMountListCommand, log, "mount list"),
+						Action:    ctlcli.ExitErrAction(MachineListMountCommand, log, "mount list"),
 						Flags: []cli.Flag{
+							cli.StringFlag{
+								Name:  "filter-machine",
+								Usage: "Limits the output to all mounts bound to machine ID.",
+							},
+							cli.StringFlag{
+								Name:  "filter-mount",
+								Usage: "Limits the output to a specific mount ID.",
+							},
 							cli.BoolFlag{
 								Name:  "json",
 								Usage: "Output in JSON format.",

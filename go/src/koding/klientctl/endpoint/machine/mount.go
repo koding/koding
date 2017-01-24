@@ -7,8 +7,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"koding/klient/machine"
 	"koding/klient/machine/machinegroup"
 	"koding/klient/machine/mount"
+	"koding/klient/machine/mount/sync"
 	"koding/klientctl/klient"
 
 	"github.com/koding/logging"
@@ -124,6 +126,48 @@ func Mount(options *MountOptions) (err error) {
 
 	fmt.Fprintln(os.Stdout, "Created mount with ID: %s", addMountRes.MountID)
 	return nil
+}
+
+// UmountOptions stores options for `machine mount list` call.
+type ListMountOptions struct {
+	ID      string // Machine ID - optional.
+	MountID string // Mount ID - optional.
+	Log     logging.Logger
+}
+
+// ListMount removes existing mount.
+func ListMount(options *ListMountOptions) (map[string][]sync.Info, error) {
+	if options == nil {
+		return nil, errors.New("invalid nil options")
+	}
+
+	// TODO(ppknap): this is copied from klientctl old list and will be reworked.
+	k, err := klient.CreateKlientWithDefaultOpts()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error creating klient:", err)
+		return nil, err
+	}
+
+	if err := k.Dial(); err != nil {
+		fmt.Fprintln(os.Stderr, "Error dialing klient:", err)
+		return nil, err
+	}
+
+	// List mounts.
+	listMountReq := machinegroup.ListMountRequest{
+		ID:      machine.ID(options.ID),
+		MountID: mount.ID(options.MountID),
+	}
+	listMountRaw, err := k.Tell("machine.mount.list", listMountReq)
+	if err != nil {
+		return nil, err
+	}
+	listMountRes := machinegroup.ListMountResponse{}
+	if err := listMountRaw.Unmarshal(&listMountRes); err != nil {
+		return nil, err
+	}
+
+	return listMountRes.Mounts, nil
 }
 
 // UmountOptions stores options for `machine umount` call.
