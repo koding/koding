@@ -3,6 +3,7 @@ kd = require 'kd'
 Machine = require '../../providers/machine'
 KiteLogger = require '../../kitelogger'
 globals = require 'globals'
+KiteAPIMap = require './kiteapimap'
 
 
 module.exports = class KodingKiteKloudKite extends require('../kodingkite')
@@ -39,11 +40,13 @@ module.exports = class KodingKiteKloudKite extends require('../kodingkite')
       provider = getStackProvider payload.stackId
 
     if provider
+
       if provider not in SUPPORTED_PROVIDERS
         # machine/stack provider is not supported by kloud
-        return Promise.reject
+        return Promise.reject {
           name    : 'NotSupported'
           message : 'Operation is not supported for this VM/Stack'
+        }
 
       payload.provider = provider
 
@@ -58,39 +61,8 @@ module.exports = class KodingKiteKloudKite extends require('../kodingkite')
     ctx[method] = (payload) ->
       @tell rpcMethod, injectCustomData payload
 
-  @createApiMapping
 
-    # Eventer
-    event           : 'event'
-
-    # Machine related actions, these requires valid machineId
-    stop            : 'stop'
-    start           : 'start'
-    build           : 'build'
-    reinit          : 'reinit'
-    resize          : 'resize'
-    restart         : 'restart'
-    destroy         : 'destroy'
-
-    # Admin helpers
-    addAdmin        : 'admin.add'
-    removeAdmin     : 'admin.remove'
-
-    # Domain managament
-    setDomain       : 'domain.set'
-    addDomain       : 'domain.add'
-    unsetDomain     : 'domain.unset'
-    removeDomain    : 'domain.remove'
-
-    # Snapshots
-    createSnapshot  : 'createSnapshot'
-
-    # Stack, Teams, Credentials related methods
-    migrate         : 'migrate'
-    bootstrap       : 'bootstrap'
-    buildStack      : 'apply'
-    checkTemplate   : 'plan'
-    checkCredential : 'authenticate'
+  @createApiMapping KiteAPIMap.kloud
 
 
   constructor: (options) ->
