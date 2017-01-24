@@ -1,6 +1,7 @@
 KONFIG    = require 'koding-config-manager'
 apiErrors = require './apierrors'
 { clone } = require 'underscore'
+isUUID    = require 'uuid-validate'
 
 purify = (data) ->
 
@@ -11,6 +12,12 @@ getConstructorName = (name, Models) ->
 
   for own model, konstructor of Models
     return model  if model.toLowerCase() is name.toLowerCase()
+
+
+getContextFromSession = (session) ->
+
+  { clientId: sessionToken, groupName: group } = session
+  return { userArea: { group }, sessionToken }
 
 
 sendApiError = (res, error) ->
@@ -61,7 +68,11 @@ getToken = (req) ->
 
 parseRequest = (req, res) ->
 
-  { model, id } = req.params
+  { token, model, id } = req.params
+
+  if token and not id and not isUUID token
+    [ model, id ] = [token, model]
+    token = undefined
 
   unless model
     sendApiError res, apiErrors.invalidInput
@@ -73,23 +84,46 @@ parseRequest = (req, res) ->
     sendApiError res, apiErrors.invalidInput
     return
 
-  unless sessionToken = getToken req
+  if not token and not token = getToken req
     sendApiError res, apiErrors.unauthorizedRequest
     return
 
-  return { model, id, method, sessionToken }
+  return { model, id, method, token }
 
 
-verifySession = (Models, sessionToken, callback) ->
+updateSessionTimestamp = (session, callback) ->
 
-  Models.JSession.one { clientId: sessionToken }, (err, session) ->
+  session.lastAccess = lastAccess = new Date
+  session.update { $set: { lastAccess } }, (err) ->
+    return callback apiErrors.unauthorizedRequest  if err
+    callback null, session
 
-    if err or not session
+
+fetchSession = (Models, token, callback) ->
+
+  Models.JSession.one { clientId: token }, (err, session) ->
+
+    if err
       return callback apiErrors.unauthorizedRequest
 
-    { groupName: group } = session
+    if session
 
-    callback null, { userArea: { group }, sessionToken }
+      if session.getAt 'data.apiSession'
+        Models.JApiToken.fetchGroup (session.getAt 'groupName'), (err) ->
+          return callback err  if err
+          updateSessionTimestamp session, callback
+
+      else
+        updateSessionTimestamp session, callback
+
+      return
+
+    Models.JApiToken.createSessionByToken token, (err, session) ->
+
+      if err or not session
+        return callback apiErrors.unauthorizedRequest
+
+      updateSessionTimestamp session, callback
 
 
 sendSignatureErr = (signatures, method, res) ->
@@ -128,15 +162,15 @@ module.exports = RemoteHandler = (koding) ->
   return (req, res) ->
 
     return  unless parsedRequest = parseRequest req, res
+    { model, id, method, token } = parsedRequest
 
-    { model, id, method, sessionToken } = parsedRequest
-
-    verifySession Models, sessionToken, (err, context) ->
+    fetchSession Models, token, (err, session) ->
 
       if err
         sendApiError res, err
         return
 
+      context         = getContextFromSession session
       constructorName = getConstructorName model, Models
 
       unless constructorName

@@ -140,7 +140,7 @@ runTests = -> describe 'server.handlers.api.createuser', ->
           headers  : { Authorization : "Bearer #{apiToken.code}" }
           body     : { username, email : generateRandomEmail 'yandex.com' }
 
-        expectedBody = 'api token usage is not enabled for this group'
+        expectedBody = 'api token usage is not enabled for this team'
         request.post createUserRequestParams, (err, res, body) ->
           expect(err).to.not.exist
           expect(res.statusCode).to.be.equal 403

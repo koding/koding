@@ -2,7 +2,7 @@ kd = require 'kd'
 React = require 'app/react'
 List = require 'app/components/list'
 CheckBox = require 'app/components/common/checkbox'
-
+isEmailValid = require 'app/util/isEmailValid'
 
 module.exports = class HomeTeamSendInvitesView extends React.Component
 
@@ -40,6 +40,15 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
 
 
   render: ->
+    count = _.sum this.props.inputValues.toList().toArray().map (inputRow) ->
+       if isEmailValid inputRow.get 'email' then 1 else 0
+
+    if count > 0
+      buttonTitle = "Send #{count} Invite#{if count > 1 then 's' else ''}"
+      buttonEnabled = yes
+    else
+      buttonTitle = "Send Invites"
+      buttonEnabled = no
 
     <div>
       <InformationLabel canEdit={@props.canEdit} />
@@ -54,12 +63,14 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
       </div>
       <fieldset className='HomeAppView--ActionBar'>
         <GenericButton
-          title='SEND INVITES'
-          className={'custom-link-view HomeAppView--button primary fr'}
+          title=buttonTitle
+          className={"custom-link-view HomeAppView--button primary #{unless buttonEnabled then 'inactive' else ''} fr"}
+          spanClass='title GenericButton'
           callback={@props.onSendInvites}/>
         <GenericButton
           title='UPLOAD CSV'
           className={'custom-link-view HomeAppView--button ft'}
+          spanClass='title'
           callback={@props.onUploadCSV} />
       </fieldset>
     </div>
@@ -95,8 +106,8 @@ AdminLabel = ({ canEdit }) ->
   else <span></span>
 
 
-GenericButton = ({ className, title, callback }) ->
+GenericButton = ({ className, spanClass, title, callback }) ->
 
   <a className={className} href='#' onClick={callback}>
-    <span className='title'>{title}</span>
+    <span className={spanClass}>{title}</span>
   </a>

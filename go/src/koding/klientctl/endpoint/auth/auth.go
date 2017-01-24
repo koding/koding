@@ -4,9 +4,12 @@ import (
 	"sort"
 	"sync"
 
+	"koding/kites/config"
 	"koding/kites/kloud/stack"
 	"koding/klientctl/ctlcli"
 	"koding/klientctl/endpoint/kloud"
+	"koding/klientctl/endpoint/kontrol"
+	"koding/klientctl/helper"
 )
 
 var DefaultClient = &Client{}
@@ -38,12 +41,37 @@ func (s Sessions) Slice() []*Session {
 
 type LoginOptions struct {
 	Team     string
+	Token    string
 	Username string
 	Password string
 }
 
+func (opts *LoginOptions) AskUserPass() (err error) {
+	opts.Username, err = helper.Ask("Username [%s]: ", config.CurrentUser.Username)
+	if err != nil {
+		return err
+	}
+
+	if opts.Username == "" {
+		opts.Username = config.CurrentUser.Username
+	}
+
+	for {
+		opts.Password, err = helper.AskSecret("Password [***]: ")
+		if err != nil {
+			return err
+		}
+		if opts.Password != "" {
+			break
+		}
+	}
+
+	return nil
+}
+
 type Client struct {
-	Kloud *kloud.Client
+	Kloud   *kloud.Client
+	Kontrol *kontrol.Client
 
 	once     sync.Once // for c.init()
 	sessions Sessions
@@ -61,7 +89,14 @@ func (c *Client) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 
 	// We ignore any cached session for the given login request,
 	// as it might be already invalid from a different client.
-	if opts.Username != "" && opts.Password != "" {
+	if opts.Token != "" {
+		req := &kontrol.RegisterRequest{
+			AuthType: "token",
+			Token:    opts.Token,
+		}
+
+		err = c.kontrol().Call("registerMachine", req, &resp.KiteKey)
+	} else if opts.Username != "" && opts.Password != "" {
 		req := &stack.PasswordLoginRequest{
 			LoginRequest: *req,
 			Username:     opts.Username,
@@ -77,12 +112,18 @@ func (c *Client) Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error)
 		return nil, err
 	}
 
-	session := &Session{
-		ClientID: resp.LoginResponse.ClientID,
-		Team:     resp.LoginResponse.GroupName,
+	if resp.GroupName != "" {
+		session := &Session{
+			ClientID: resp.ClientID,
+			Team:     resp.GroupName,
+		}
+
+		c.sessions[session.Team] = session
 	}
 
-	c.sessions[session.Team] = session
+	if resp.GroupName == "" {
+		resp.GroupName = opts.Team
+	}
 
 	return &resp, nil
 }
@@ -127,6 +168,13 @@ func (c *Client) kloud() *kloud.Client {
 		return c.Kloud
 	}
 	return kloud.DefaultClient
+}
+
+func (c *Client) kontrol() *kontrol.Client {
+	if c.Kontrol != nil {
+		return c.Kontrol
+	}
+	return kontrol.DefaultClient
 }
 
 func Login(opts *LoginOptions) (*stack.PasswordLoginResponse, error) { return DefaultClient.Login(opts) }

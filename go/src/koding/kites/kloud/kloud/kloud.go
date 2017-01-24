@@ -173,7 +173,7 @@ func New(conf *Config) (*Kloud, error) {
 	sess.Log.Debug("Konfig.Endpoints: %s", util.LazyJSON(e))
 
 	authUsers := map[string]string{
-		"kloudctl": conf.KloudSecretKey,
+		"kloudSecret": conf.KloudSecretKey,
 	}
 
 	restClient := httputil.DefaultRestClient(conf.DebugMode)

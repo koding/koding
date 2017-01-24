@@ -5,13 +5,13 @@ import (
 	"time"
 
 	"koding/klient/machine/client"
-	"koding/klient/machine/client/testutil"
+	"koding/klient/machine/client/clienttest"
 )
 
 func TestSupervisedWait(t *testing.T) {
-	serv := &testutil.Server{}
+	serv := &clienttest.Server{}
 
-	dc, err := client.NewDynamic(testutil.DynamicOpts(serv, testutil.NewBuilder(nil)))
+	dc, err := client.NewDynamic(clienttest.DynamicOpts(serv, clienttest.NewBuilder(nil)))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}

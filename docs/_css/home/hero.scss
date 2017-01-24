@@ -33,6 +33,9 @@ main.Homepage-Hero {
   }
   a.cta.signup {
     margin-top: 40px;
+    &:hover {
+      background-color: #E57082;
+    }
   }
   .actions {
     margin-top: 40px;

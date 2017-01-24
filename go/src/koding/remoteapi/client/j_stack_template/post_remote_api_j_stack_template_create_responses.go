@@ -49,7 +49,7 @@ func NewPostRemoteAPIJStackTemplateCreateOK() *PostRemoteAPIJStackTemplateCreate
 
 /*PostRemoteAPIJStackTemplateCreateOK handles this case with default header values.
 
-Request processed succesfully
+created JStackTemplate instance
 */
 type PostRemoteAPIJStackTemplateCreateOK struct {
 	Payload *models.DefaultResponse
