@@ -718,7 +718,7 @@ module.exports = class JStackTemplate extends Module
         provider = (generatedStack.getAt 'config.requiredProviders')[0]
 
         Kloud = require './kloud'
-        Kloud.tell client, 'apply', [{ stackId, provider }], callback
+        Kloud.tell client, 'apply', { stackId, provider }, callback
 
 
   forceStacksToReinit: permit 'force stacks to reinit',

@@ -27,10 +27,11 @@ module.exports = class Kloud extends Base
 
   TIMEOUT = 15000
 
-  getPayload = (client, args) ->
 
-    args   ?= []
-    payload = args[0] ? {}
+
+  preparePayload = (client, payload) ->
+
+    payload ?= {}
 
     payload.impersonate = client.connection.delegate.profile.nickname
     payload.groupName   = client.context.group
@@ -51,18 +52,16 @@ module.exports = class Kloud extends Base
   @ping$ = permit 'kite ping', { success: @ping }
 
 
-  @tell = (client, method, args, callback) ->
+  @tell = (client, method, payload, callback) ->
 
-    [ err, payload ] = getPayload client, args
+    [ err, payload ] = preparePayload client, payload
     return callback err  if err
 
     @transport
       .tell method, payload
-      .then  (res) ->
-        callback null, res
       .timeout TIMEOUT
-      .catch (err) ->
-        callback err
+      .then  (res) -> callback null, res
+      .catch (err) -> callback err
 
 
   do ->
