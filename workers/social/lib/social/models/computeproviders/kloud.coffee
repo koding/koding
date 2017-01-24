@@ -22,11 +22,21 @@ module.exports = class Kloud extends Base
 
   TIMEOUT = 10000
 
-  getArgs = (client, args) ->
 
-    args[0] ?= {}
-    args[0].impersonate = client.connection.delegate.profile.nickname
-    return args
+  getPayload = (client, args) ->
+
+    args   ?= []
+    payload = args[0] ? {}
+
+    payload.impersonate = client.connection.delegate.profile.nickname
+    payload.groupName   = client.context.group
+
+    { provider, machineId, stackId } = payload
+
+    if not provider and (machineId or stackId)
+      return [ new KodingError 'Provider is required' ]
+
+    return [ null, [ payload ] ]
 
 
   # calls kite.ping on Kloud on behalf of loggedin user
@@ -37,13 +47,15 @@ module.exports = class Kloud extends Base
   @ping$ = permit 'kite ping', { success: @ping }
 
 
-  @tell = (client, method, args = [], callback) ->
+  @tell = (client, method, args, callback) ->
+
+    [ err, payload ] = getPayload client, args
+    return callback err  if err
 
     @transport
-      .tell method, getArgs client, args
+      .tell method, payload
       .then  (res) ->
         callback null, res
-        return res
       .timeout TIMEOUT
       .catch (err) ->
         callback err
