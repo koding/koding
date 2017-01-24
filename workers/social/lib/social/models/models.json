@@ -6,6 +6,7 @@
   "ComputeProvider": "/computeproviders/computeprovider.coffee",
   "JCredential": "/computeproviders/credential.coffee",
   "JCredentialData": "/computeproviders/credentialdata.coffee",
+  "Kloud": "/computeproviders/kloud.coffee",
   "JMachine": "/computeproviders/machine.coffee",
   "JProvisioner": "/computeproviders/provisioner.coffee",
   "JSnapshot": "/computeproviders/snapshot.coffee",

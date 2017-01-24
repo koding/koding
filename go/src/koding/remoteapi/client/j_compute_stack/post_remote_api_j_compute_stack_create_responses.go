@@ -49,10 +49,10 @@ func NewPostRemoteAPIJComputeStackCreateOK() *PostRemoteAPIJComputeStackCreateOK
 
 /*PostRemoteAPIJComputeStackCreateOK handles this case with default header values.
 
-Request processed succesfully
+created JComputeStack instance
 */
 type PostRemoteAPIJComputeStackCreateOK struct {
-	Payload *models.DefaultResponse
+	Payload *models.JComputeStack
 }
 
 func (o *PostRemoteAPIJComputeStackCreateOK) Error() string {
@@ -61,7 +61,7 @@ func (o *PostRemoteAPIJComputeStackCreateOK) Error() string {
 
 func (o *PostRemoteAPIJComputeStackCreateOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.DefaultResponse)
+	o.Payload = new(models.JComputeStack)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

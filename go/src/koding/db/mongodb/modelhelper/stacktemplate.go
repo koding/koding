@@ -77,7 +77,7 @@ func HasTemplateAccess(tmpl *models.StackTemplate, username string) error {
 			return ErrNoAccess
 		}
 	case models.AccessGroup:
-		if ok, err := HasAnyRole(username, tmpl.Group, DefaultRoles...); err != nil || !ok {
+		if ok, err := IsParticipant(username, tmpl.Group); err != nil || !ok {
 			return ErrNoAccess
 		}
 	default:

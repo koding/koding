@@ -44,7 +44,7 @@ type JStackTemplate struct {
 	// Required: true
 	OriginID *string `json:"originId"`
 
-	// slug
+	// Unique slug of stack template
 	// Required: true
 	Slug *string `json:"slug"`
 

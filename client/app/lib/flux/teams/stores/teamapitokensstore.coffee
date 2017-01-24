@@ -20,12 +20,12 @@ module.exports = class TeamAPITokensStore extends KodingFluxStore
 
     apiTokenIds.withMutations (apiTokenIds) ->
       apiTokens.forEach (apiToken) ->
-        apiTokenIds.set apiToken.code, toImmutable apiToken
+        apiTokenIds.set apiToken._id, toImmutable apiToken
 
   delete: (apiTokenIds, { apiTokenId }) ->
 
     apiTokenIds.delete apiTokenId
 
-
   add: (apiTokenIds, { apiToken }) ->
-    apiTokenIds.set apiToken.code, toImmutable apiToken
+
+    apiTokenIds.set apiToken._id, toImmutable apiToken

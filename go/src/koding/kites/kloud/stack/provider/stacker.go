@@ -276,7 +276,7 @@ func (s *Stacker) FetchCredData(bm *BaseMachine) error {
 
 func (s *Stacker) ValidateUser(user *models.User, users []models.MachineUser, r *kite.Request) error {
 	// give access to kloudctl immediately
-	if stack.IsKloudctlAuth(r, s.KloudSecretKey) {
+	if stack.IsKloudSecretAuth(r, s.KloudSecretKey) {
 		return nil
 	}
 

@@ -1,4 +1,4 @@
-package mount
+package sync
 
 import (
 	"encoding/json"
@@ -12,6 +12,7 @@ import (
 	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/index"
+	"koding/klient/machine/mount"
 
 	"github.com/koding/logging"
 )
@@ -24,12 +25,12 @@ const (
 // DynamicClientFunc is an adapter that allows to dynamically provide clients
 // from a given mount ID. Error should be of ErrMountNotFound type when it is
 // not possible to find any client based on a given mount.
-type DynamicClientFunc func(ID) (client.Client, error)
+type DynamicClientFunc func(mount.ID) (client.Client, error)
 
 // Info stores information about current mount status.
 type Info struct {
-	ID    ID    // Mount ID.
-	Mount Mount // Mount paths stored in absolute form.
+	ID    mount.ID    // Mount ID.
+	Mount mount.Mount // Mount paths stored in absolute form.
 
 	SyncCount int // Number of synced files.
 	AllCount  int // Number of all files handled by mount.
@@ -69,10 +70,6 @@ func (opts *SyncOpts) Valid() error {
 		return errors.New("working directory is not set")
 	}
 
-	if _, err := os.Stat(opts.WorkDir); err != nil {
-		return fmt.Errorf("invalid working directory %q: %s", opts.WorkDir, err)
-	}
-
 	return nil
 }
 
@@ -84,18 +81,22 @@ type Sync struct {
 	log  logging.Logger
 
 	mu    sync.RWMutex
-	syncs map[ID]*synced
+	syncs map[mount.ID]*synced
 }
 
-// NewSync creates a new Sync instance from the given options.
-func NewSync(opts SyncOpts) (*Sync, error) {
+// New creates a new Sync instance from the given options.
+func New(opts SyncOpts) (*Sync, error) {
 	if err := opts.Valid(); err != nil {
+		return nil, err
+	}
+
+	if err := os.MkdirAll(opts.WorkDir, 0755); err != nil {
 		return nil, err
 	}
 
 	s := &Sync{
 		opts:  opts,
-		syncs: make(map[ID]*synced),
+		syncs: make(map[mount.ID]*synced),
 	}
 
 	if opts.Log != nil {
@@ -109,7 +110,7 @@ func NewSync(opts SyncOpts) (*Sync, error) {
 
 // Add starts synchronization between remote and local directories. It creates
 // all necessary cache files if they are not present.
-func (s *Sync) Add(id ID, m Mount) error {
+func (s *Sync) Add(id mount.ID, m mount.Mount) error {
 	s.mu.RLock()
 	sd, ok := s.syncs[id]
 	s.mu.RUnlock()
@@ -135,20 +136,20 @@ func (s *Sync) Add(id ID, m Mount) error {
 }
 
 // Info returns the current state of mount with provided ID.
-func (s *Sync) Info(id ID) (*Info, error) {
+func (s *Sync) Info(id mount.ID) (*Info, error) {
 	s.mu.RLock()
 	sd, ok := s.syncs[id]
 	s.mu.RUnlock()
 
 	if !ok {
-		return nil, ErrMountNotFound
+		return nil, mount.ErrMountNotFound
 	}
 
 	return sd.info(), nil
 }
 
 // Drop removes the mount and clean ups the resources it uses.
-func (s *Sync) Drop(id ID) (err error) {
+func (s *Sync) Drop(id mount.ID) (err error) {
 	s.mu.Lock()
 	sd, ok := s.syncs[id]
 	delete(s.syncs, id)
@@ -172,9 +173,9 @@ func (s *Sync) Drop(id ID) (err error) {
 // is to make remote and local indexes similar.
 type synced struct {
 	opts *SyncOpts
-	id   ID     // identifier of synced mount.
-	m    Mount  // single mount with absolute paths.
-	wd   string // working directory of the mount.
+	id   mount.ID    // identifier of synced mount.
+	m    mount.Mount // single mount with absolute paths.
+	wd   string      // working directory of the mount.
 
 	ridx *index.Index // known state of remote index.
 	lidx *index.Index // known state of local index.
@@ -182,7 +183,7 @@ type synced struct {
 
 // newSynced creates a new sync instance. It ensures basic mount directory
 // structure. This function is blocking.
-func newSynced(id ID, m Mount, opts *SyncOpts) (*synced, error) {
+func newSynced(id mount.ID, m mount.Mount, opts *SyncOpts) (*synced, error) {
 	s := &synced{
 		opts: opts,
 		id:   id,
@@ -191,7 +192,7 @@ func newSynced(id ID, m Mount, opts *SyncOpts) (*synced, error) {
 	}
 
 	// Create directory structure if it doesn't exist.
-	if err := s.mktree(); err != nil {
+	if err := os.MkdirAll(filepath.Join(s.wd, "data"), 0755); err != nil {
 		return nil, err
 	}
 
@@ -212,24 +213,6 @@ func newSynced(id ID, m Mount, opts *SyncOpts) (*synced, error) {
 	}
 
 	return s, nil
-}
-
-// mktree ensures that synced working directory is created.
-func (s *synced) mktree() error {
-	dataPath := filepath.Join(s.wd, "data")
-	info, err := os.Stat(dataPath)
-	if os.IsNotExist(err) {
-		return os.MkdirAll(dataPath, 0755)
-	}
-	if err != nil {
-		return err
-	}
-
-	if !info.IsDir() {
-		return fmt.Errorf("file %s is not a directory", s.wd)
-	}
-
-	return nil
 }
 
 // loadIdx reads named index from synced working directory. If index file does

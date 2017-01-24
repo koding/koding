@@ -428,6 +428,10 @@ func run(args []string) {
 								Usage: "Specify a Koding endpoint to log in.",
 								Value: config.Konfig.Endpoints.Koding.Public.String(),
 							},
+							cli.StringFlag{
+								Name:  "token",
+								Usage: "Use temporary token to authenticate to your Koding account.",
+							},
 						},
 					},
 					// command: kd auth register
