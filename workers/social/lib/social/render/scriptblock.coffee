@@ -104,6 +104,14 @@ module.exports = (options = {}, callback) ->
 
         currentGroup = group  if group
 
+        if currentGroup?.payment?.customer?.hasCard?
+          hasCard = yes
+          return fin()
+
+        hasCreditCard client, (err) ->
+          hasCard = not err?
+          return fin()
+
         fin()
 
     (fin) ->
@@ -152,11 +160,6 @@ module.exports = (options = {}, callback) ->
         if user then userId = user.getId()
         else console.error '[scriptblock] user not found', err
         fin()
-
-    (fin) ->
-      hasCreditCard client, (err) ->
-        hasCard = not err?
-        return fin()
 
   ]
 
