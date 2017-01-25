@@ -2,7 +2,6 @@ package api
 
 import (
 	"errors"
-	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"net/url"
 
@@ -33,16 +32,7 @@ func HasCreditCard(u *url.URL, h http.Header, _ interface{}, context *models.Con
 		return response.NewBadRequest(models.ErrNotLoggedIn)
 	}
 
-	group, err := modelhelper.GetGroup(context.GroupName)
-	if err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	if group.Payment.Customer.ID == "" {
-		return response.NewNotFound()
-	}
-
-	err = payment.CheckCustomerHasSource(group.Payment.Customer.ID)
+	err := payment.HasCreditCard(context.GroupName)
 	if err == payment.ErrCustomerSourceNotExists {
 		return response.NewNotFound()
 	}
