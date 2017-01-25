@@ -197,15 +197,13 @@ func (g *Group) ListMount(req *ListMountRequest) (*ListMountResponse, error) {
 			return res, nil
 		}
 
-		m := mount.Mount{}
-		if mounts, err := g.mount.All(req.ID); err != nil {
+		mounts, err := g.mount.All(id)
+		if err != nil {
 			return res, nil
-		} else {
-			m = mounts[req.MountID]
 		}
 
 		mms = map[mount.ID]mountsMachine{
-			req.MountID: mountsMachine{m: m, id: id},
+			req.MountID: mountsMachine{m: mounts[req.MountID], id: id},
 		}
 	}
 
