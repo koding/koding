@@ -25,17 +25,13 @@ if [ ! -d './.git' ]; then
   log "there can be misconfigurations in your system, just sayin.."
 fi
 
-# save any existing changes
-git stash save
-
 # get the latest upstream changes
 git fetch
 
 v=$(git diff-tree -r --name-only --no-commit-id HEAD..origin/master 2>&1)
 if [ -z "$v" ]; then
     echo "vault is up-to-date with origin/master!"
-    git stash pop
 fi
 
-git pull --rebase origin master
-git stash pop
+git pull --rebase --autostash origin master
+

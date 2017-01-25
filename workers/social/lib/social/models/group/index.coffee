@@ -28,8 +28,6 @@ module.exports = class JGroup extends Module
     { permission: 'edit own groups', validateWith: Validators.group.admin }
   ]
 
-  @API_TOKEN_LIMIT = 5
-
   @trait __dirname, '../../traits/filterable'
   @trait __dirname, '../../traits/protected'
   @trait __dirname, '../../traits/joinable'
@@ -911,11 +909,11 @@ module.exports = class JGroup extends Module
     advanced: PERMISSION_EDIT_GROUPS
     success: (client, callback) ->
       JApiToken = require '../apitoken'
-      selector  = { group : @getAt 'slug' }
+      selector  = { group: @getAt 'slug' }
 
       JApiToken.some selector, {}, (err, apiTokens) ->
         return callback err, []  if err or not apiTokens
-        JGroup.mergeApiTokensWithUsername apiTokens, callback
+        JGroup.mergeApiTokensWithUsername client, apiTokens, callback
 
 
   baseFetcherOfGroupStaff: (options) ->
@@ -1706,18 +1704,28 @@ module.exports = class JGroup extends Module
       return callback null, accounts
 
 
-  @mergeApiTokensWithUsername: (apiTokens, callback) ->
+  SHADOW_CODE = '*'
 
+  @mergeApiTokensWithUsername: (client, apiTokens, callback) ->
+
+    originId  = client.connection.delegate.getId()
     JAccount  = require '../account'
     originIds = apiTokens.map (apiToken) -> apiToken.originId
 
     JAccount.some { _id: { $in: originIds } }, {}, (err, accounts) ->
       return callback err, []  if err or not accounts
 
-      accounts.forEach (account) ->
-        apiTokens.forEach (apiToken) ->
-          if account._id.toString() is apiToken.originId.toString?()
+      apiTokens = apiTokens.map (apiToken) ->
+
+        if not apiToken.originId.equals originId
+          apiToken.code = SHADOW_CODE
+        accounts.forEach (account) ->
+          if account._id.equals apiToken.originId
             apiToken.username = account.profile.nickname
+        return apiToken
+
+      .sort (apiToken) ->
+        not apiToken.originId.equals originId
 
       return callback null, apiTokens
 

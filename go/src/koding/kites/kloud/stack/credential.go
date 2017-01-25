@@ -289,7 +289,7 @@ func (k *Kloud) CredentialList(r *kite.Request) (interface{}, error) {
 		}
 	}
 
-	if IsKloudctlAuth(r, k.SecretKey) {
+	if IsKloudSecretAuth(r, k.SecretKey) {
 		// kloudctl is not authenticated with username, let it overwrite it
 		r.Username = req.Impersonate
 	}
@@ -340,7 +340,7 @@ func (k *Kloud) CredentialAdd(r *kite.Request) (interface{}, error) {
 		return nil, NewError(ErrCredentialIsMissing)
 	}
 
-	if IsKloudctlAuth(r, k.SecretKey) {
+	if IsKloudSecretAuth(r, k.SecretKey) {
 		r.Username = req.Impersonate
 	}
 

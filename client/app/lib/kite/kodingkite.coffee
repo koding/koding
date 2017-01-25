@@ -79,7 +79,7 @@ module.exports = class KodingKite extends kd.Object
         _resolve = resolve
         _args    = [rpcMethod, [params], callback]
 
-        KiteLogger.queued name, rpcMethod
+        KiteLogger.queued name, rpcMethod, params
 
         @waitForConnection _args
 
@@ -87,13 +87,13 @@ module.exports = class KodingKite extends kd.Object
 
           .then (args) =>
 
-            KiteLogger.started name, rpcMethod
+            KiteLogger.started name, rpcMethod, params
 
             resolve (@transport?.tell args...
 
               .then (res) ->
 
-                KiteLogger.success name, rpcMethod
+                KiteLogger.success name, rpcMethod, params
                 return res
 
               .catch (err) =>
@@ -101,7 +101,7 @@ module.exports = class KodingKite extends kd.Object
                 if _errPromise = @handleKiteError err, args
                   return _errPromise
 
-                KiteLogger.failed name, rpcMethod, err
+                KiteLogger.failed name, rpcMethod, params, err
                 throw err
 
             )
@@ -110,7 +110,7 @@ module.exports = class KodingKite extends kd.Object
 
           .catch (err) =>
 
-            KiteLogger.failed name, rpcMethod, err
+            KiteLogger.failed name, rpcMethod, params, err
             reject @_kiteInvalidError
 
       unless @_state is CONNECTED
@@ -122,7 +122,7 @@ module.exports = class KodingKite extends kd.Object
 
       console.warn '[KITE][INVALID]', this
 
-      KiteLogger.failed name, rpcMethod
+      KiteLogger.failed name, rpcMethod, params
       Promise.reject @_kiteInvalidError
 
 

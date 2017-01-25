@@ -18,7 +18,6 @@ nginx.pid
 .runningpids
 .imagesrc
 .agignore
-.nvmrc
 /.build
 /vault
 /generated

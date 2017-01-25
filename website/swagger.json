@@ -43,6 +43,10 @@
       "name": "JCredentialData"
     },
     {
+      "description": "Model Kloud",
+      "name": "Kloud"
+    },
+    {
       "description": "Model JMachine",
       "name": "JMachine"
     },
@@ -3299,9 +3303,9 @@
         "description": "creates a JMachine for requested provider with the provided options",
         "responses": {
           "200": {
-            "description": "Request processed succesfully",
+            "description": "created JMachine instance",
             "schema": {
-              "$ref": "#/definitions/DefaultResponse"
+              "$ref": "#/definitions/JMachine"
             }
           },
           "401": {
@@ -3864,6 +3868,32 @@
                   "$ref": "#/definitions/DefaultResponse"
                 }
               ]
+            }
+          }
+        }
+      }
+    },
+    "/remote.api/Kloud.ping": {
+      "post": {
+        "tags": [
+          "Kloud"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [],
+        "description": "calls kite.ping on Kloud on behalf of loggedin user",
+        "responses": {
+          "200": {
+            "description": "Request processed succesfully",
+            "schema": {
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
             }
           }
         }
@@ -4527,9 +4557,74 @@
         "description": "creates a JStackTemplate with requested content",
         "responses": {
           "200": {
-            "description": "Request processed succesfully",
+            "description": "created JStackTemplate instance",
             "schema": {
-              "$ref": "#/definitions/DefaultResponse"
+              "$ref": "#/definitions/JStackTemplate"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
+            }
+          }
+        }
+      }
+    },
+    "/remote.api/JStackTemplate.samples": {
+      "post": {
+        "tags": [
+          "JStackTemplate"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "provider": {
+                  "type": "string",
+                  "default": "aws"
+                },
+                "useDefaults": {
+                  "type": "boolean",
+                  "default": true
+                }
+              }
+            },
+            "required": true,
+            "description": "body of the request"
+          }
+        ],
+        "description": "returns sample stack template for given provider",
+        "responses": {
+          "200": {
+            "description": "stacktemplate sample in json and yaml format with default values",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "json": {
+                  "type": "string",
+                  "default": "{}"
+                },
+                "yaml": {
+                  "type": "string",
+                  "default": "--"
+                },
+                "defaults": {
+                  "type": "object",
+                  "properties": {
+                    "userInputs": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  }
+                }
+              }
             }
           },
           "401": {
@@ -9603,9 +9698,9 @@
         "description": "JComputeStack::create",
         "responses": {
           "200": {
-            "description": "Request processed succesfully",
+            "description": "created JComputeStack instance",
             "schema": {
-              "$ref": "#/definitions/DefaultResponse"
+              "$ref": "#/definitions/JComputeStack"
             }
           },
           "401": {

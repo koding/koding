@@ -1,5 +1,5 @@
 KONFIG = require 'koding-config-manager'
-{ v4: createId } = require 'node-uuid'
+uuid   = require 'uuid'
 
 module.exports = setCrsfToken = (req, res, next) ->
 
@@ -10,7 +10,7 @@ module.exports = setCrsfToken = (req, res, next) ->
 
   { maxAge, secure } = KONFIG.sessionCookie
 
-  csrfToken = createId()
+  csrfToken = uuid.v4()
   # set cookie as pending cookie
   req.pendingCookies or= {}
   req.pendingCookies._csrf = csrfToken

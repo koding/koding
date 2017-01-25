@@ -6,6 +6,8 @@ module.exports = class Rackspace extends ProviderInterface
 
     callback null, "Rackspace is cool #{ client.r.account.profile.nickname }!"
 
+  @supportsStacks = no
+
   @create = (client, options, callback) ->
 
     { imageId, credential, instanceType, region } = options

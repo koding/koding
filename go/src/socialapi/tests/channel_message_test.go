@@ -4,7 +4,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"socialapi/models"
-	"socialapi/request"
 	"socialapi/rest"
 	"socialapi/workers/common/tests"
 	"testing"
@@ -21,7 +20,7 @@ func TestChannelMessage(t *testing.T) {
 
 			nonOwnerAccount := models.CreateAccountInBothDbsWithCheck()
 
-			nonOwnerSes, err := modelhelper.FetchOrCreateSession(nonOwnerAccount.Nick, groupName)
+			_, err := modelhelper.FetchOrCreateSession(nonOwnerAccount.Nick, groupName)
 			So(err, ShouldBeNil)
 
 			ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
@@ -52,7 +51,7 @@ func TestChannelMessage(t *testing.T) {
 			})
 
 			Convey("topic messages initialChannelId must be set as owner group channel id", func() {
-				ses, err := modelhelper.FetchOrCreateSession(account.Nick, groupName)
+				ses, err = modelhelper.FetchOrCreateSession(account.Nick, groupName)
 				So(err, ShouldBeNil)
 				So(ses, ShouldNotBeNil)
 
@@ -103,155 +102,7 @@ func TestChannelMessage(t *testing.T) {
 			Convey("message can be deleted by an admin", nil)
 			Convey("message can not be edited by non-owner", nil)
 
-			Convey("owner can post reply to message", func() {
-				post, err := rest.CreatePost(groupChannel.Id, ses.ClientId)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
-
-				reply, err := rest.AddReply(post.Id, groupChannel.Id, ses.ClientId)
-				So(err, ShouldBeNil)
-				So(reply, ShouldNotBeNil)
-
-				So(reply.AccountId, ShouldEqual, post.AccountId)
-
-				cmc, err := rest.GetPostWithRelatedData(
-					post.Id,
-					&request.Query{
-						AccountId: post.AccountId,
-						GroupName: groupName,
-					},
-					ses.ClientId,
-				)
-
-				So(err, ShouldBeNil)
-				So(cmc, ShouldNotBeNil)
-
-				So(len(cmc.Replies), ShouldEqual, 1)
-
-				So(cmc.Replies[0].Message.AccountId, ShouldEqual, post.AccountId)
-
-			})
-
-			Convey("we should be able to get only replies", func() {
-				post, err := rest.CreatePost(groupChannel.Id, ses.ClientId)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
-
-				reply, err := rest.AddReply(post.Id, groupChannel.Id, ses.ClientId)
-				So(err, ShouldBeNil)
-				So(reply, ShouldNotBeNil)
-
-				reply, err = rest.AddReply(post.Id, groupChannel.Id, ses.ClientId)
-				So(err, ShouldBeNil)
-				So(reply, ShouldNotBeNil)
-
-				replies, err := rest.GetReplies(post.Id, post.AccountId, groupName)
-				So(err, ShouldBeNil)
-				So(len(replies), ShouldEqual, 2)
-
-			})
-
 			Convey("we should be able to get replies with \"from\" query param", nil)
-
-			Convey("non-owner can post reply to message", func() {
-				post, err := rest.CreatePost(groupChannel.Id, ses.ClientId)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
-
-				reply, err := rest.AddReply(post.Id, groupChannel.Id, nonOwnerSes.ClientId)
-				So(err, ShouldBeNil)
-				So(reply, ShouldNotBeNil)
-
-				So(reply.AccountId, ShouldEqual, nonOwnerAccount.Id)
-
-				cmc, err := rest.GetPostWithRelatedData(
-					post.Id,
-					&request.Query{
-						AccountId: post.AccountId,
-						GroupName: groupName,
-					},
-					ses.ClientId,
-				)
-
-				So(err, ShouldBeNil)
-				So(cmc, ShouldNotBeNil)
-
-				So(len(cmc.Replies), ShouldEqual, 1)
-
-				So(cmc.Replies[0].Message.AccountId, ShouldEqual, nonOwnerAccount.Id)
-			})
-
-			Convey("reply can be deleted by owner", func() {
-				post, err := rest.CreatePost(groupChannel.Id, ses.ClientId)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
-
-				sesNonOwner, err := modelhelper.FetchOrCreateSession(nonOwnerAccount.Nick, groupName)
-				So(err, ShouldBeNil)
-
-				reply, err := rest.AddReply(post.Id, groupChannel.Id, nonOwnerSes.ClientId)
-				So(err, ShouldBeNil)
-				So(reply, ShouldNotBeNil)
-
-				err = rest.DeletePost(reply.Id, sesNonOwner.ClientId)
-				So(err, ShouldBeNil)
-
-				cmc, err := rest.GetPostWithRelatedData(
-					post.Id,
-					&request.Query{
-						AccountId: account.Id,
-						GroupName: groupName,
-					},
-					ses.ClientId,
-				)
-
-				So(err, ShouldBeNil)
-				So(cmc, ShouldNotBeNil)
-
-				So(len(cmc.Replies), ShouldEqual, 0)
-
-			})
-
-			Convey("while deleting message, also replies should be deleted", func() {
-				post, err := rest.CreatePost(groupChannel.Id, ses.ClientId)
-				So(err, ShouldBeNil)
-				So(post, ShouldNotBeNil)
-
-				reply1, err := rest.AddReply(post.Id, groupChannel.Id, nonOwnerSes.ClientId)
-				So(err, ShouldBeNil)
-				So(reply1, ShouldNotBeNil)
-
-				reply2, err := rest.AddReply(post.Id, groupChannel.Id, nonOwnerSes.ClientId)
-				So(err, ShouldBeNil)
-				So(reply2, ShouldNotBeNil)
-
-				err = rest.DeletePost(post.Id, ses.ClientId)
-				So(err, ShouldBeNil)
-
-				cmc, err := rest.GetPostWithRelatedData(
-					reply1.Id,
-					&request.Query{
-						AccountId: account.Id,
-						GroupName: groupName,
-					},
-					ses.ClientId,
-				)
-				So(err, ShouldNotBeNil)
-				So(cmc, ShouldBeNil)
-
-				cmc, err = rest.GetPostWithRelatedData(
-					reply2.Id,
-					&request.Query{
-						AccountId: account.Id,
-						GroupName: groupName,
-					},
-					ses.ClientId,
-				)
-
-				So(err, ShouldNotBeNil)
-				So(cmc, ShouldBeNil)
-
-			})
 
 			Convey("while deleting messages, they should be removed from all channels", nil)
 

@@ -188,7 +188,7 @@ func (bk *balancedKlients) newRandKlient() (*kite.Client, int) {
 	klient.Reconnect = true
 	klient.ClientFunc = NewClient().Client
 	klient.Auth = &kite.Auth{
-		Type: "kloudctl",
+		Type: "kloudSecret",
 		Key:  os.Getenv("KLOUDCTL_SECRETKEY"),
 	}
 

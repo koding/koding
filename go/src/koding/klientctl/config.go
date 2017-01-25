@@ -168,8 +168,11 @@ func ConfigUse(c *cli.Context, log logging.Logger, _ string) (int, error) {
 }
 
 func ConfigReset(c *cli.Context, log logging.Logger, _ string) (int, error) {
-	if err := cfg.Reset(); err != nil {
-		fmt.Fprintln(os.Stderr, "Error resetting configuration:", err)
+	opts := &cfg.ResetOpts{
+		Force: c.Bool("force"),
+	}
+
+	if err := cfg.Reset(opts); err != nil {
 		return 1, err
 	}
 
