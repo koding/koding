@@ -129,6 +129,7 @@ func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 	// if group is not created within last ten minutes, subtract its duration from the trial end date
 	groupCreatedAt := group.Id.Time().UTC()
 
+	// 5 min is just a guestimate as a grace period.
 	if params.TrialEnd != 0 && !groupCreatedAt.Add(time.Minute*5).After(now) {
 		params.TrialEnd = params.TrialEnd - (now.Unix() - groupCreatedAt.Unix())
 	}
