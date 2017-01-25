@@ -25,9 +25,6 @@ module.exports = class NotificationView extends React.Component
       @state =
         removed : no
 
-    @defaultProps  =
-      style : { zIndex: 100 + @props.index }
-
 
     hideNotification: ->
 
@@ -115,7 +112,7 @@ module.exports = class NotificationView extends React.Component
       className = classnames [
         styles.kd_notification
         styles["kd_notification_#{notification.type}"]
-        styles.kd_notification_dismissible : notification.dismissible and not notification.primaryButtonTitle and not notification.secondaryButtonTitle
+        styles.kd_notification_dismissible if notification.dismissible and not notification.primaryButtonTitle and not notification.secondaryButtonTitle
       ]
       iconClass = classnames [
         styles.kd_notification_icon
@@ -124,7 +121,6 @@ module.exports = class NotificationView extends React.Component
       message = notification.content
       <div
         className={className}
-        style={@props.style}
         onMouseEnter={@bound 'handleMouseEnter'}
         onMouseLeave={@bound 'handleMouseLeave'}>
         {
