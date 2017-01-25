@@ -1,10 +1,12 @@
 package daemon
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"net/url"
 	"os"
+	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
@@ -291,7 +293,37 @@ var script = []InstallStep{{
 	"linux": {
 		Name: "VirtualBox",
 		Install: func(c *Client, _ *Opts) (string, error) {
-			return "", nil
+			if hasVirtualBox() {
+				return "", ErrSkipInstall
+			}
+
+			vbox := c.d.Virtualbox[runtime.GOOS]
+
+			// Best-effort attempt to install dependencies on Debian/Ubuntu.
+			//
+			// TODO(rjeczalik): use distro-specific virtualbox installers
+			if _, err := exec.LookPath("apt-get"); err == nil {
+				kernel, err := exec.Command("uname", "-r").Output()
+				if err != nil {
+					return "", err
+				}
+
+				headers := fmt.Sprintf("linux-headers-%s", bytes.TrimSpace(kernel))
+				_ = cmd("apt-get", "install", "-q", "-y", "dkms", headers, "make", "build-essential").Run()
+
+			}
+
+			run, err := wgetTemp(vbox.String())
+			if err != nil {
+				return "", err
+			}
+			defer os.Remove(run)
+
+			if err := cmd("sh", "-c", run).Run(); err != nil {
+				return "", err
+			}
+
+			return vbox.Version, nil
 		},
 	},
 })[runtime.GOOS], (map[string]InstallStep{
@@ -320,7 +352,26 @@ var script = []InstallStep{{
 	"linux": {
 		Name: "Vagrant",
 		Install: func(c *Client, _ *Opts) (string, error) {
-			return "", nil
+			if hasVagrant() {
+				return "", ErrSkipInstall
+			}
+
+			vagrant := c.d.Vagrant[runtime.GOOS]
+
+			deb, err := wgetTemp(vagrant.String())
+			if err != nil {
+				return "", err
+			}
+			defer os.Remove(deb)
+
+			dpkg := cmd("dpkg", "-i", deb)
+			dpkg.Env = append(os.Environ(), "DEBIAN_FRONTEND=noninteractive")
+
+			if err := dpkg.Run(); err != nil {
+				return "", err
+			}
+
+			return vagrant.Version, nil
 		},
 	},
 })[runtime.GOOS], {
@@ -449,18 +500,18 @@ var script = []InstallStep{{
 func hasVirtualBox() bool {
 	const s = "Oracle VM VirtualBox Headless Interface"
 
-	p, err := cmd("VBoxHeadless", "-h").CombinedOutput()
-	if err != nil {
-		return false
-	}
-
+	// Ignore the following error while running VBoxHeadless under darwin:
+	//
+	//   exit status 2 VBoxHeadless: error: --height: RTGetOpt: Command line option needs argument.
+	//
+	p, _ := exec.Command("VBoxHeadless", "-h").CombinedOutput()
 	return strings.Contains(string(p), s)
 }
 
 func hasVagrant() bool {
 	const s = "Installed Version:"
 
-	cmd := cmd("vagrant", "version")
+	cmd := exec.Command("vagrant", "version")
 	cmd.Env = append(os.Environ(), "VAGRANT_CHECKPOINT_DISABLE=1")
 
 	p, err := cmd.CombinedOutput()
