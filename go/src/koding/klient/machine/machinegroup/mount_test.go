@@ -260,7 +260,7 @@ func TestListMount(t *testing.T) {
 		},
 		"unknown machine ID": {
 			LMReq: ListMountRequest{
-				ID:      idB,
+				ID:      "unknown",
 				MountID: mountIDs[0],
 			},
 			ConcatIDsInfo: map[string]sync.Info{},
@@ -268,7 +268,7 @@ func TestListMount(t *testing.T) {
 		"unknown mount ID": {
 			LMReq: ListMountRequest{
 				ID:      idB,
-				MountID: mountIDs[0],
+				MountID: "unknown",
 			},
 			ConcatIDsInfo: map[string]sync.Info{},
 		},

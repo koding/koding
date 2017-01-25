@@ -147,10 +147,10 @@ func (g *Group) AddMount(req *AddMountRequest) (res *AddMountResponse, err error
 type ListMountRequest struct {
 	// ID is an optional identifier for the remote machine. If set, only
 	// mounts related to this machine will be returned.
-	ID machine.ID `json:"id"`
+	ID machine.ID `json:"id,omitempty"`
 
 	// MountID is an optional identifier of a mount which is meant to be listed.
-	MountID mount.ID `json:"mountID"`
+	MountID mount.ID `json:"mountID,omitempty"`
 }
 
 // ListMountResponse defines machine group mount list response.
@@ -198,7 +198,9 @@ func (g *Group) ListMount(req *ListMountRequest) (*ListMountResponse, error) {
 		}
 
 		m := mount.Mount{}
-		if mounts, err := g.mount.All(req.ID); err == nil {
+		if mounts, err := g.mount.All(req.ID); err != nil {
+			return res, nil
+		} else {
 			m = mounts[req.MountID]
 		}
 
