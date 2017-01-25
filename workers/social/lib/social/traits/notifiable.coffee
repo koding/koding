@@ -19,11 +19,8 @@ module.exports = class Notifiable
           return  unless group
 
           JGroup = require '../models/group'
-          JGroup.one { slug : group }, (err, group_) ->
-            return  if err or not group_
-
-            opts = { id, group, change, timestamp: Date.now() }
-            group_.sendNotification 'InstanceChanged', opts
+          opts   = { id, group, change, timestamp: Date.now() }
+          JGroup.sendNotification group, 'InstanceChanged', opts
 
         when 'account'
 
@@ -49,11 +46,8 @@ module.exports = class Notifiable
           return  unless group
 
           JGroup = require '../models/group'
-          JGroup.one { slug : group }, (err, group_) ->
-            return  if err or not group_
-
-            opts = { id, group, timestamp: Date.now() }
-            group_.sendNotification 'InstanceDeleted', opts
+          opts   = { id, group, timestamp: Date.now() }
+          JGroup.sendNotification group, 'InstanceDeleted', opts
 
         when 'account'
 

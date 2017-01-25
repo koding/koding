@@ -533,13 +533,17 @@ module.exports = class JGroup extends Module
 
 
   sendNotification: (event, contents, callback) ->
+    JGroup.sendNotification @getAt('slug'), event, contents, callback
+
+
+  @sendNotification = (group, event, contents, callback) ->
 
     message = {
-      groupName  : @slug
+      groupName  : group
       eventName  : event
       body       :
         event    : event
-        context  : @slug
+        context  : group
         contents : contents
     }
 
