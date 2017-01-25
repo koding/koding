@@ -1,15 +1,12 @@
 React                    = require 'app/react'
-ReactDOM                 = require 'react-dom'
 actions                  = require 'app/flux/environment/actions'
 SidebarWidget            = require './sidebarwidget'
 InvitationWidgetUserPart = require './invitationwidgetuserpart'
 Tracker                  = require 'app/util/tracker'
 
+
 module.exports = class SharingMachineInvitationWidget extends React.Component
 
-  coordinates:
-    top : 0
-    left: 0
 
   onRejectClicked: ->
 
@@ -25,26 +22,9 @@ module.exports = class SharingMachineInvitationWidget extends React.Component
     Tracker.track Tracker.VM_ACCEPTED_SHARED
 
 
-  componentDidUpdate: -> @setCoordinates()
-
-
-  componentWillMount: -> @setCoordinates()
-
-
-  setCoordinates: ->
-
-    listItemNode = ReactDOM.findDOMNode @props.listItem
-
-    if listItemNode
-      clientRect    = listItemNode.getBoundingClientRect()
-      { top, left, width } = clientRect
-      left = left + width
-      @coordinates = { top, left }
-
-
   render: ->
 
-    coordinates = @coordinates
+    coordinates = @props.coordinates
 
     return null  if not coordinates.top and not coordinates.left
 
