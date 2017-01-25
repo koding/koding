@@ -170,11 +170,7 @@ func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 }
 
 func normalizeTrialEnd(now time.Time, trialEnd int64) int64 {
-	if trialEnd == 0 {
-		return trialEnd
-	}
-
-	if trialEnd < 0 {
+	if trialEnd <= 0 {
 		return 0
 	}
 
