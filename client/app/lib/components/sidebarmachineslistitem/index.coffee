@@ -15,6 +15,8 @@ LeaveSharedMachineWidget       = require './leavesharedmachinewidget'
 SidebarWorkspacesListItem      = require './sidebarworkspaceslistitem'
 isMachineSettingsIconEnabled   = require 'app/util/isMachineSettingsIconEnabled'
 ConnectedManagedMachineWidget  = require './connectedmanagedmachinewidget'
+SharingMachineInvitationWidget = require 'app/components/sidebarmachineslistitem/sharingmachineinvitationwidget'
+
 
 require './styl/sidebarmachineslistItem.styl'
 require './styl/sidebarwidget.styl'
@@ -31,6 +33,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
   getDataBindings: ->
     activeMachine : EnvironmentFlux.getters.activeMachine
     activeLeavingMachine : EnvironmentFlux.getters.activeLeavingSharedMachineId
+    activeInvitationMachineId : EnvironmentFlux.getters.activeInvitationMachineId
 
 
   constructor: (props) ->
@@ -39,10 +42,9 @@ module.exports = class SidebarMachinesListItem extends React.Component
 
     status = @machine ['status', 'state']
 
-    @state = {
+    @state =
       collapsed: yes
       showLeaveSharedMachineWidget : no
-    }
 
     @listenMachineEvents()
 
@@ -136,7 +138,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
         />
 
 
-
   renderLeaveSharedMachine: ->
 
     return null  if @machine('type') is 'own' or @machine 'hasOldOwner'
@@ -158,7 +159,6 @@ module.exports = class SidebarMachinesListItem extends React.Component
       className='MachineSettings'
       onClick={@bound 'handleMachineSettingsClick'}>
     </span>
-
 
 
   handleMachineSettingsClick: (event) ->
@@ -203,6 +203,17 @@ module.exports = class SidebarMachinesListItem extends React.Component
       />
 
 
+  renderInvitationWidget: ->
+
+    return null  unless @state.coordinates
+    return null  unless @props.machine.get('_id') is @state.activeInvitationMachineId
+
+    <SharingMachineInvitationWidget
+      key="InvitationWidget-#{@props.machine.get '_id'}"
+      coordinates={@state.coordinates}
+      machine={@props.machine} />
+
+
   render: ->
 
     return null  unless @props.showInSidebar
@@ -226,6 +237,7 @@ module.exports = class SidebarMachinesListItem extends React.Component
         {@renderMachineSettingsIcon()}
       </Link>
       {@renderLeaveSharedMachine()}
+      {@renderInvitationWidget()}
       {@renderConnectedManagedMachineWidget()}
     </div>
 
