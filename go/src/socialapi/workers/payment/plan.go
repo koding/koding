@@ -2,7 +2,6 @@ package payment
 
 import (
 	"socialapi/config"
-	"sync"
 
 	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/currency"
@@ -22,8 +21,6 @@ const (
 	Solo    = "p_solo"
 	General = "p_general"
 )
-
-var planMu sync.RWMutex
 
 // plans holds koding provided plans on stripe
 var plans = map[string]*stripe.PlanParams{
@@ -64,9 +61,6 @@ var plans = map[string]*stripe.PlanParams{
 
 // GetPlan returns the plan by its name. User should check for existance.
 func GetPlan(name string) *stripe.PlanParams {
-	planMu.RLock()
-	defer planMu.RUnlock()
-
 	return plans[name]
 }
 
@@ -85,11 +79,8 @@ func GetPlanID(userCount int) string {
 // CreateDefaultPlans creates predefined default plans. This is meant to be run
 // when the worker starts to be sure the plans are there.
 func CreateDefaultPlans() error {
-	planMu.RLock()
-	defer planMu.RUnlock()
-
-	for key := range plans {
-		if err := EnsurePlan(plans[key]); err != nil {
+	for _, plan := range plans {
+		if err := EnsurePlan(plan); err != nil {
 			return err
 		}
 	}
