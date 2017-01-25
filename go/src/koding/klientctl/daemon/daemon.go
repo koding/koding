@@ -6,10 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strconv"
 
@@ -21,13 +23,19 @@ import (
 //
 //   - kd/daemon: add more logs
 //   - koding/homebrew-kd
-//   - add osxfuse/vagrant/virtualbox install steps
 //   - remove old code
 //
+type Package struct {
+	*config.URL `json:"url"`
+	Version     string `json:"version"`
+}
 
 type Details struct {
 	Username     string                       `json:"username"`
 	Base         *config.URL                  `json:"baseURL"`
+	Osxfuse      *Package                     `json:"osxfuse"`
+	Virtualbox   map[string]*Package          `json:"virtualbox"`
+	Vagrant      map[string]*Package          `json:"vagrant"`
 	KodingHome   string                       `json:"kodingHome"`
 	KlientHome   string                       `json:"klientHome"`
 	Files        map[string]string            `json:"files"`
@@ -47,6 +55,30 @@ func newDetails() *Details {
 		Username:   config.CurrentUser.Username,
 		KodingHome: config.KodingHome(),
 		KlientHome: klientHome,
+		Osxfuse: &Package{
+			URL:     mustURL("https://s3.amazonaws.com/koding-dl/osxfuse-3.5.2.dmg"),
+			Version: "3.5.2",
+		},
+		Virtualbox: map[string]*Package{
+			"darwin": {
+				URL:     mustURL("http://download.virtualbox.org/virtualbox/5.1.8/VirtualBox-5.1.8-111374-OSX.dmg"),
+				Version: "5.1.8",
+			},
+			"linux": {
+				URL:     mustURL("http://download.virtualbox.org/virtualbox/5.1.8/VirtualBox-5.1.8-111374-Linux_amd64.run"),
+				Version: "5.1.8",
+			},
+		},
+		Vagrant: map[string]*Package{
+			"darwin": {
+				URL:     mustURL("https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.7.dmg"),
+				Version: "1.8.7",
+			},
+			"linux": {
+				URL:     mustURL("https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.7_x86_64.deb"),
+				Version: "1.8.7",
+			},
+		},
 		Files: map[string]string{
 			"klient":    filepath.Join(klientHome, "klient"),
 			"klient.sh": filepath.Join(klientHome, "klient.sh"),
@@ -62,6 +94,16 @@ func newDetails() *Details {
 				"linux":  "/var/log/klient.log",
 			},
 		},
+	}
+}
+
+func mustURL(s string) *config.URL {
+	u, err := url.Parse(s)
+	if err != nil {
+		panic(s + ": " + err.Error())
+	}
+	return &config.URL{
+		URL: u,
 	}
 }
 
@@ -83,10 +125,35 @@ func (d *Details) helper() *klientSh {
 }
 
 func (d *Details) base() *url.URL {
-	if d.Base != nil && d.Base.URL != nil {
+	if !d.Base.IsNil() {
 		return d.Base.URL
 	}
 	return conf.Konfig.Endpoints.Koding.Public.URL
+}
+
+func cmd(name string, args ...string) *exec.Cmd {
+	c := exec.Command(name, args...)
+	c.Stderr = os.Stderr
+	c.Stdout = os.Stderr
+	return c
+}
+
+func dmgInstall(url, volume, pkg string) error {
+	dmg, err := wgetTemp(url)
+	if err != nil {
+		return err
+	}
+	defer os.Remove(dmg)
+
+	if err := cmd("hdiutil", "attach", dmg).Run(); err != nil {
+		return err
+	}
+
+	if err := cmd("installer", "-pkg", pkg, "-target", "/").Run(); err != nil {
+		return err
+	}
+
+	return cmd("diskutil", "unmount", "force", volume).Run()
 }
 
 func parseVersion(bin string) (int, error) {
@@ -146,6 +213,26 @@ func wget(url, output string) error {
 	}
 
 	return f.Close()
+}
+
+func wgetTemp(s string) (string, error) {
+	u, err := url.Parse(s)
+	if err != nil {
+		return "", err
+	}
+
+	dir, err := ioutil.TempDir("", "kd-daemon-install")
+	if err != nil {
+		return "", err
+	}
+
+	tmp := filepath.Join(dir, path.Base(u.Path))
+
+	if err := wget(s, tmp); err != nil {
+		return "", nonil(err, os.RemoveAll(dir))
+	}
+
+	return tmp, nil
 }
 
 func curl(url string, format string, v interface{}) error {

@@ -246,48 +246,46 @@ var script = []InstallStep{{
 	"darwin": {
 		Name: "osxfuse",
 		Install: func(c *Client, _ *Opts) (string, error) {
-			return "", nil
-		},
-		Uninstall: func(c *Client, _ *Opts) error {
-			return nil
+			const volume = "/Volumes/FUSE for macOS"
+			const pkg = volume + "/Extras/FUSE for macOS 3.5.2.pkg"
+
+			if _, err := os.Stat("/Library/Filesystems/osxfuse.fs"); err == nil {
+				return "", ErrSkipInstall
+			}
+
+			dmg := c.d.Osxfuse
+
+			if err := dmgInstall(dmg.String(), volume, pkg); err != nil {
+				return "", err
+			}
+
+			return dmg.Version, nil
 		},
 	},
 	"linux": {
 		Name: "osxfuse",
 		Install: func(c *Client, _ *Opts) (string, error) {
-			return "", nil
-		},
-		Uninstall: func(c *Client, _ *Opts) error {
-			return nil
-		},
-	},
-})[runtime.GOOS], (map[string]InstallStep{
-	"darwin": {
-		Name: "Vagrant",
-		Install: func(c *Client, _ *Opts) (string, error) {
-			return "", nil
-		},
-		Uninstall: func(c *Client, _ *Opts) error {
-			return nil
-		},
-	},
-	"linux": {
-		Name: "Vagrant",
-		Install: func(c *Client, _ *Opts) (string, error) {
-			return "", nil
-		},
-		Uninstall: func(c *Client, _ *Opts) error {
-			return nil
+			return "", ErrSkipInstall
 		},
 	},
 })[runtime.GOOS], (map[string]InstallStep{
 	"darwin": {
 		Name: "VirtualBox",
 		Install: func(c *Client, _ *Opts) (string, error) {
-			return "", nil
-		},
-		Uninstall: func(c *Client, _ *Opts) error {
-			return nil
+			const volume = "/Volumes/VirtualBox"
+			const pkg = volume + "/VirtualBox.pkg"
+
+			if hasVirtualBox() {
+				return "", ErrSkipInstall
+			}
+
+			dmg := c.d.Virtualbox[runtime.GOOS]
+
+			if err := dmgInstall(dmg.String(), volume, pkg); err != nil {
+				return "", err
+			}
+
+			return dmg.Version, nil
 		},
 	},
 	"linux": {
@@ -295,8 +293,34 @@ var script = []InstallStep{{
 		Install: func(c *Client, _ *Opts) (string, error) {
 			return "", nil
 		},
-		Uninstall: func(c *Client, _ *Opts) error {
-			return nil
+	},
+})[runtime.GOOS], (map[string]InstallStep{
+	"darwin": {
+		Name: "Vagrant",
+		Install: func(c *Client, _ *Opts) (string, error) {
+			const volume = "/Volumes/Vagrant"
+			const pkg = volume + "/Vagrant.pkg"
+
+			if hasVagrant() {
+				return "", ErrSkipInstall
+			}
+
+			dmg := c.d.Vagrant[runtime.GOOS]
+
+			if err := dmgInstall(dmg.String(), volume, pkg); err != nil {
+				return "", err
+			}
+
+			// Best-effort workaround for Vagrant 1.8.7, which fails to "box add".
+			_ = os.Remove("/opt/vagrant/embedded/bin/curl")
+
+			return dmg.Version, nil
+		},
+	},
+	"linux": {
+		Name: "Vagrant",
+		Install: func(c *Client, _ *Opts) (string, error) {
+			return "", nil
 		},
 	},
 })[runtime.GOOS], {
@@ -421,3 +445,28 @@ var script = []InstallStep{{
 	},
 	RunOnUpdate: true,
 }}
+
+func hasVirtualBox() bool {
+	const s = "Oracle VM VirtualBox Headless Interface"
+
+	p, err := cmd("VBoxHeadless", "-h").CombinedOutput()
+	if err != nil {
+		return false
+	}
+
+	return strings.Contains(string(p), s)
+}
+
+func hasVagrant() bool {
+	const s = "Installed Version:"
+
+	cmd := cmd("vagrant", "version")
+	cmd.Env = append(os.Environ(), "VAGRANT_CHECKPOINT_DISABLE=1")
+
+	p, err := cmd.CombinedOutput()
+	if err != nil {
+		return false
+	}
+
+	return strings.Contains(string(p), s)
+}
