@@ -12,6 +12,8 @@ client/app/lib/providers/computehelpers.coffee
 client/app/lib/providers/computestatechecker.coffee
 client/app/lib/providers/environmentsmachinestatemodal.coffee
 client/app/lib/react
+client/app/lib/redux/dispatchInitialActions.coffee
+client/app/lib/redux/modules/payment/addon.coffee
 client/app/lib/routehandler.coffee
 client/app/lib/shortcuts/accounteditshortcutsrow.coffee
 client/app/lib/socialapicontroller.coffee
@@ -46,6 +48,9 @@ client/home/lib/welcome/components/welcomesteps/miniview.coffee
 client/home/lib/welcome/components/welcomesteps/view.coffee
 client/home/lib/welcome/homewelcomesteps.coffee
 client/home/lib/welcome/index.coffee
+client/home/lib/addons/businessaddons.coffee
+client/home/lib/addons/components
+client/home/lib/addons/supportplans.coffee
 client/ide/lib/collaborationcontroller.coffee
 client/ide/lib/index.coffee
 client/ide/lib/test/browser/index.coffee
