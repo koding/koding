@@ -117,9 +117,12 @@ daysLeft = createSelector(
 planAmount = (state) ->
   amount = if p = plan(state) then p.amount else 0
 
+  dollars = amount / 100
+
   return {
-    dollars: amount / 100
+    dollars: dollars
     cents: amount
+    toString: -> if dollars % 1 isnt 0 then dollars.toFixed(2) else dollars
   }
 
 
