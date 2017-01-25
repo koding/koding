@@ -76,11 +76,6 @@ remove = ->
 # Selectors
 ##
 
-makePlanAmount = (userCount) ->
-  switch
-    when userCount < 10 then ''
-
-
 plan = (state) -> state.subscription?.plan
 
 
