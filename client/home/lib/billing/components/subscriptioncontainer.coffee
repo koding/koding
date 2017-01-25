@@ -17,11 +17,13 @@ subscriptionTitle = createSelector(
   subscription.planAmount
   info.userCount
   (amount, userCount) ->
-    name = "$#{amount.dollars} Plan"
-    type = if userCount is 1 then 'Solo' else userCount
-    pluralized = pluralize 'Developer', userCount
+    name = "$#{amount.toString()} Plan"
 
-    return "#{name} (#{type} #{pluralized})"
+    type = if userCount is 1 then 'Solo'
+    else if userCount <= 10 then 'Single Cloud'
+    else 'Dev Team'
+
+    return "#{name} (#{type})"
 )
 
 
