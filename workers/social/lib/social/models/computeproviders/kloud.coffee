@@ -25,6 +25,11 @@ module.exports = class Kloud extends Base
       static       : generateSignatures KiteAPIMap.kloud
 
 
+  NOTIFY_ON_CHANGE = [
+    'apply', 'bootstrap', 'destroy', 'info'
+    'stop', 'start', 'build', 'restart'
+  ]
+
   TIMEOUT = 15000
 
 
@@ -58,6 +63,17 @@ module.exports = class Kloud extends Base
     return [ null, [ payload ] ]
 
 
+  notify = (client, data) ->
+
+    { machineId, stackId, provider } = data.payload[0]
+
+    account      = client.connection.delegate
+    data.group   = client.context.group
+    data.payload = { machineId, stackId, provider }
+
+    account.sendNotification 'KloudActionOverAPI', data
+
+
   @tell = (client, method, payload, callback) ->
 
     [ err, payload ] = preparePayload client, payload
@@ -66,7 +82,10 @@ module.exports = class Kloud extends Base
     @transport
       .tell method, payload
       .timeout TIMEOUT
-      .then  (res) -> callback null, res
+      .then  (res) ->
+        if method in NOTIFY_ON_CHANGE
+          notify client, { method, payload, res }
+        callback null, res
       .catch (err) -> callback err
 
 

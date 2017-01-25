@@ -191,3 +191,9 @@ module.exports = class NotificationController extends KDObject
 
     @on 'InstanceDeleted', (data) ->
       remote_extensions.removeInstance data
+
+
+    @on 'KloudActionOverAPI', (data) ->
+      # TODO implement better next to flows here ~ GG
+      console.info '[Kloud:API] Operation', data
+      kd.singletons.computeController.reset yes
