@@ -45,8 +45,6 @@ module.exports = class Sidebar extends React.Component
       privateStackTemplates        : EnvironmentFlux.getters.privateStackTemplates
       sharedMachines               : EnvironmentFlux.getters.sharedMachines
       collaborationMachines        : EnvironmentFlux.getters.collaborationMachines
-      sharedMachineListItems       : EnvironmentFlux.getters.sharedMachineListItems
-      activeInvitationMachineId    : EnvironmentFlux.getters.activeInvitationMachineId
       activeLeavingSharedMachineId : EnvironmentFlux.getters.activeLeavingSharedMachineId
       requiredInvitationMachine    : EnvironmentFlux.getters.requiredInvitationMachine
       differentStackResourcesStore : EnvironmentFlux.getters.differentStackResourcesStore
@@ -54,9 +52,6 @@ module.exports = class Sidebar extends React.Component
       team                         : TeamFlux.getters.team
       selectedTemplateId           : EnvironmentFlux.getters.selectedTemplateId
     }
-
-
-  popoverNeeded: (machine) -> machine.get('_id') is @state.activeInvitationMachineId
 
 
   componentWillMount: ->
@@ -164,22 +159,6 @@ module.exports = class Sidebar extends React.Component
 
     if @state.requiredInvitationMachine
       setActiveInvitationMachineId { machine : @state.requiredInvitationMachine }
-
-
-  renderInvitationWidget: ->
-
-    isRendered = no
-
-    (@state.sharedMachines.concat @state.collaborationMachines).toList().map (machine) =>
-
-      if not isRendered and @popoverNeeded machine
-        isRendered = yes
-        item = @state.sharedMachineListItems.get machine.get '_id'
-
-        <SharingMachineInvitationWidget
-          key="InvitationWidget-#{machine.get '_id'}"
-          listItem={item}
-          machine={machine} />
 
 
   prepareStacks:  ->
@@ -292,7 +271,6 @@ module.exports = class Sidebar extends React.Component
         {@renderDifferentStackResources()}
         {@renderStacks()}
         {@renderSharedMachines()}
-        {@renderInvitationWidget()}
       </div>
       <div className='Sidebar-logo-wrapper'>
         {@renderLogo()}
