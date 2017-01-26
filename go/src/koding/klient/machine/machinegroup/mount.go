@@ -3,6 +3,7 @@ package machinegroup
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 
 	"koding/klient/machine"
 	"koding/klient/machine/mount"
@@ -269,4 +270,68 @@ func (g *Group) getMounts(req *ListMountRequest) (map[mount.ID]mountsMachine, er
 	}
 
 	return mms, nil
+}
+
+// UmountRequest defines machine group umount request.
+type UmountRequest struct {
+	// Identifier is a string that identifiers requested mount. It can be either
+	// mount ID or local path which is going to be unmounted.
+	Identifier string `json:"identifier"`
+}
+
+// UmountResponse defines machine group umount response.
+type UmountResponse struct {
+	// MountID is a unique identifier of removed mount.
+	MountID mount.ID `json:"mountID"`
+
+	// Mount defines the mount which was removed.
+	Mount mount.Mount `json:"mount"`
+}
+
+// Umount removes existing mount. It cleans both bolt and mount cache.
+func (g *Group) Umount(req *UmountRequest) (res *UmountResponse, err error) {
+	if req == nil {
+		return nil, errors.New("invalid nil request")
+	}
+
+	// Get mount ID from identifier.
+	mountID, err := mount.IDFromString(req.Identifier)
+	if err != nil {
+		absPath, e := filepath.Abs(req.Identifier)
+		if mountID, err = g.mount.Path(absPath); e != nil || err != nil {
+			g.log.Error("Cannot found mount with identifier: %s", req.Identifier)
+			return nil, fmt.Errorf("unknown mount: %q", req.Identifier)
+		}
+	}
+
+	// Stop mount synchronization routine.
+	if err := g.sync.Drop(mountID); err != nil {
+		g.log.Error("Cannot remove synced mount %s: %s", mountID, err)
+		return nil, err
+	}
+
+	// Get mount machine.
+	id, err := g.mount.MachineID(mountID)
+	if err != nil {
+		g.log.Error("Could not find machine ID for mount %s: %s", mountID, err)
+	}
+
+	var m mount.Mount
+	// Get mount object. Ignore errors since mount is only for logging purposes.
+	if mounts, err := g.mount.All(id); err == nil {
+		m = mounts[mountID]
+	}
+
+	// Remove mount from cache. If this operation fails, sync process does not
+	// to be restarted.
+	if err := g.mount.Remove(mountID); err != nil {
+		g.log.Error("Cannot clear mount cache for %s: %s", mountID, err)
+	}
+
+	g.log.Info("Successfully removed mount %s for %s", mountID, m)
+
+	return &UmountResponse{
+		MountID: mountID,
+		Mount:   m,
+	}, nil
 }

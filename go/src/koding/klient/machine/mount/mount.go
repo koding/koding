@@ -23,6 +23,20 @@ func MakeID() ID {
 	return ID(uuid.NewV4().String())
 }
 
+// IDFromString parses provided token and converts it to mount ID.
+func IDFromString(tok string) (ID, error) {
+	id, err := uuid.FromString(tok)
+	if err != nil {
+		return "", err
+	}
+
+	if id.Version() != 4 {
+		return "", errors.New("invalid mount ID format")
+	}
+
+	return ID(id.String()), nil
+}
+
 // IDSlice stores multiple mount IDs.
 type IDSlice []ID
 

@@ -126,18 +126,12 @@ func TestMachineGroupMount(t *testing.T) {
 	}
 	defer stop()
 
-	// Create testing mounts.
-	wd, mA, cleanA, err := mounttest.MountDirs("")
+	// Create two testing mounts.
+	wd, ms, clean, err := mounttest.MultiMountDirs(2)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	defer cleanA()
-
-	_, mB, cleanB, err := mounttest.MountDirs(wd)
-	if err != nil {
-		t.Fatalf("want err = nil; got %v", err)
-	}
-	defer cleanB()
+	defer clean()
 
 	// Add machine address in order to trigger valid server and not reach timeout.
 	id := machine.ID("servA")
@@ -155,10 +149,10 @@ func TestMachineGroupMount(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if err := mgMount.Add(id, mountIDA, mA); err != nil {
+	if err := mgMount.Add(id, mountIDA, ms[0]); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if err := mgMount.Add(id, mountIDB, mB); err != nil {
+	if err := mgMount.Add(id, mountIDB, ms[1]); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	if len(mgMount.Registered()) != 1 {

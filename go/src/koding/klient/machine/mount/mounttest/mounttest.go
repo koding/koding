@@ -1,6 +1,7 @@
 package mounttest
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -10,13 +11,16 @@ import (
 
 // MountDirs creates a set of temporary directories that are useful for tests.
 //
-//  - wd: mount working directory where cache and indexes are stored. It is
-//        created only when workDir argument is empty.
+//  - wd: mount working directory where cache and indexes are stored.
 //  - m.Path: directory into which remote data are mounted.
 //  - m.RemotePath: remote directory with one sample temp file.
 //
 // One must run clean function in order to release resources.
-func MountDirs(workDir string) (wd string, m mount.Mount, clean func(), err error) {
+func MountDirs() (wd string, m mount.Mount, clean func(), err error) {
+	return mountDirs("")
+}
+
+func mountDirs(workDir string) (wd string, m mount.Mount, clean func(), err error) {
 	// Create path to be mounted.
 	remotePath, rpClean, err := TempDir()
 	if err != nil {
@@ -77,6 +81,38 @@ func MountDirs(workDir string) (wd string, m mount.Mount, clean func(), err erro
 	}
 
 	return wd, m, clean, nil
+}
+
+// MultiMountDirs acts as MountDirs but creates sets of directories for multiple
+// mounts declared by n parameter. It is guaranteed that returned slice length
+// is equal to n.
+func MultiMountDirs(n int) (wd string, ms []mount.Mount, clean func(), err error) {
+	if n < 1 {
+		return "", nil, nil, errors.New("n argument must be at least 1")
+	}
+
+	var cleans []func()
+	cleanAll := func() {
+		for _, f := range cleans {
+			f()
+		}
+	}
+	defer func() {
+		if err != nil {
+			cleanAll()
+		}
+	}()
+
+	for i := 0; i < n; i++ {
+		wdt, m, clean, errt := mountDirs(wd)
+		if wd, err = wdt, errt; err != nil {
+			return "", nil, nil, err
+		}
+		ms = append(ms, m)
+		cleans = append(cleans, clean)
+	}
+
+	return wd, ms, cleanAll, nil
 }
 
 // StatCacheDir returns true only if mount cache directory is created and valid.
