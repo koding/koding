@@ -13,19 +13,17 @@ bongo = require 'app/redux/modules/bongo'
 SubscriptionSection = require './subscriptionsection'
 
 
-trialTitles =
-  7: "Koding Basic Trial (1 Week)"
-  30: 'Koding Basic Trial (1 Month)'
-
-
 subscriptionTitle = createSelector(
-  subscription.isTrial
-  subscription.trialDays
+  subscription.planAmount
   info.userCount
-  (isTrial, trialDays, userCount) ->
-    if isTrial
-    then trialTitles[trialDays]
-    else pluralize 'Developer', userCount, yes
+  (amount, userCount) ->
+    name = "$#{amount.toString()} Plan"
+
+    type = if userCount is 1 then 'Solo'
+    else if userCount <= 10 then 'Single Cloud'
+    else 'Dev Team'
+
+    return "#{name} (#{type})"
 )
 
 

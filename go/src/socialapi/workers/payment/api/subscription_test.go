@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"gopkg.in/mgo.v2/bson"
+
 	. "github.com/smartystreets/goconvey/convey"
 	stripe "github.com/stripe/stripe-go"
 	currency "github.com/stripe/stripe-go/currency"
@@ -276,65 +278,101 @@ func TestAtTheEndOfTrialPeriodSubscriptionStatusIsStillTrialing(t *testing.T) {
 	Convey("Given stub data", t, func() {
 		withTestServer(t, func(endpoint string) {
 			withStubData(endpoint, func(username, groupName, sessionID string) {
-				withTestCreditCardToken(func(token string) {
-					req, err := json.Marshal(&stripe.CustomerParams{
-						Source: &stripe.SourceParams{
-							Token: token,
-						},
+				addCreditCardToUserWithChecks(endpoint, sessionID)
+
+				createURL := endpoint + EndpointSubscriptionCreate
+				group, err := modelhelper.GetGroup(groupName)
+				tests.ResultedWithNoErrorCheck(group, err)
+
+				pp := &stripe.PlanParams{
+					Amount:        12345,
+					Interval:      stripeplan.Month,
+					IntervalCount: 1,
+					TrialPeriod:   1, // trial for one day
+					Name:          fmt.Sprintf("plan for %s", username),
+					Currency:      currency.USD,
+					ID:            fmt.Sprintf("plan_for_%s", username),
+					Statement:     "NAN-FREE",
+				}
+				plan, err := stripeplan.New(pp)
+				So(err, ShouldBeNil)
+				defer stripeplan.Del(plan.ID)
+
+				req, err := json.Marshal(&stripe.SubParams{
+					Customer: group.Payment.Customer.ID,
+					Plan:     plan.ID,
+				})
+				tests.ResultedWithNoErrorCheck(req, err)
+
+				res, err := rest.DoRequestWithAuth("POST", createURL, req, sessionID)
+				tests.ResultedWithNoErrorCheck(res, err)
+
+				sub := &stripe.Sub{}
+				err = json.Unmarshal(res, sub)
+				So(err, ShouldBeNil)
+
+				subParams := &stripe.SubParams{
+					Customer: group.Payment.Customer.ID,
+					Plan:     plan.ID,
+					TrialEnd: time.Now().UTC().Add(time.Second * 60 * 5).Unix(),
+				}
+				sub, err = stripesub.Update(sub.ID, subParams)
+				tests.ResultedWithNoErrorCheck(sub, err)
+
+				sub, err = stripesub.Get(sub.ID, nil)
+				tests.ResultedWithNoErrorCheck(sub, err)
+
+				So(sub.Status, ShouldEqual, "trialing")
+			})
+		})
+	})
+}
+
+func TestResubscribingBeforeTrialEndsSubstractsPreviousUsage(t *testing.T) {
+	Convey("Given stub data", t, func() {
+		withTestServer(t, func(endpoint string) {
+			withStubData(endpoint, func(username, groupName, sessionID string) {
+				withTrialTestPlan(func(planID string) {
+					addCreditCardToUserWithChecks(endpoint, sessionID)
+
+					var firstSub *stripe.Sub
+					// create and cancel sub, because we will resubscribe again.
+					withSubscription(endpoint, groupName, sessionID, planID, func(subscriptionID string) {
+						sub, err := stripesub.Get(subscriptionID, nil)
+						tests.ResultedWithNoErrorCheck(sub, err)
+						firstSub = sub
 					})
-					tests.ResultedWithNoErrorCheck(req, err)
 
-					res, err := rest.DoRequestWithAuth(
-						"POST",
-						endpoint+EndpointCustomerUpdate,
-						req,
-						sessionID,
-					)
-					tests.ResultedWithNoErrorCheck(res, err)
-
-					createURL := endpoint + EndpointSubscriptionCreate
 					group, err := modelhelper.GetGroup(groupName)
 					tests.ResultedWithNoErrorCheck(group, err)
 
-					pp := &stripe.PlanParams{
-						Amount:        12345,
-						Interval:      stripeplan.Month,
-						IntervalCount: 1,
-						TrialPeriod:   1, // trial for one day
-						Name:          fmt.Sprintf("plan for %s", username),
-						Currency:      currency.USD,
-						ID:            fmt.Sprintf("plan_for_%s", username),
-						Statement:     "NAN-FREE",
-					}
-					plan, err := stripeplan.New(pp)
-					So(err, ShouldBeNil)
-					defer stripeplan.Del(plan.ID)
+					oldID := group.Id
+					newID := bson.NewObjectIdWithTime(group.Id.Time().Add(-time.Hour * 24 * 2))
 
-					req, err = json.Marshal(&stripe.SubParams{
-						Customer: group.Payment.Customer.ID,
-						Plan:     plan.ID,
+					// change team's creation time by changing it's mongo id.
+					So(modelhelper.RemoveGroup(group.Id), ShouldBeNil)
+					group.Id = newID
+					So(modelhelper.CreateGroup(group), ShouldBeNil)
+					group, err = modelhelper.GetGroup(groupName)
+					tests.ResultedWithNoErrorCheck(group, err)
+					So(newID.Hex(), ShouldEqual, group.Id.Hex())
+
+					// all relationships should be updated.
+					So(modelhelper.UpdateRelationships(
+						modelhelper.Selector{
+							"sourceId": oldID,
+						}, modelhelper.Selector{
+							"$set": modelhelper.Selector{"sourceId": newID}},
+					), ShouldBeNil)
+
+					withSubscription(endpoint, groupName, sessionID, planID, func(subscriptionID string) {
+						sub, err := stripesub.Get(subscriptionID, nil)
+						tests.ResultedWithNoErrorCheck(sub, err)
+						So(sub.TrialEnd, ShouldBeLessThan, firstSub.TrialEnd)
+						So(sub.TrialEnd, ShouldBeLessThan, firstSub.TrialEnd+int64(time.Hour*24))
+
+						So(sub.Status, ShouldEqual, "trialing")
 					})
-					tests.ResultedWithNoErrorCheck(req, err)
-
-					res, err = rest.DoRequestWithAuth("POST", createURL, req, sessionID)
-					tests.ResultedWithNoErrorCheck(res, err)
-
-					sub := &stripe.Sub{}
-					err = json.Unmarshal(res, sub)
-					So(err, ShouldBeNil)
-
-					subParams := &stripe.SubParams{
-						Customer: group.Payment.Customer.ID,
-						Plan:     plan.ID,
-						TrialEnd: time.Now().UTC().Add(time.Second * 60 * 5).Unix(),
-					}
-					sub, err = stripesub.Update(sub.ID, subParams)
-					tests.ResultedWithNoErrorCheck(sub, err)
-
-					sub, err = stripesub.Get(sub.ID, nil)
-					tests.ResultedWithNoErrorCheck(sub, err)
-
-					So(sub.Status, ShouldEqual, "trialing")
 				})
 			})
 		})
