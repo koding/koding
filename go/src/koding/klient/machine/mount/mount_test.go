@@ -41,7 +41,10 @@ func TestMakeIDString(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		test := test // Capture range variable.
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			mountID, err := IDFromString(test.Tok)
 			if (err == nil) != test.IsValid {
 				t.Fatalf("want err == nil to be %t; got %v", test.IsValid, err)
