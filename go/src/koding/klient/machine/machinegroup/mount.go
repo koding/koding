@@ -164,61 +164,13 @@ type ListMountResponse struct {
 // guarantees that if returned error is nil, response Mounts field is always
 // non-nil. It doesn't fail if provided filters contain incorrect values.
 func (g *Group) ListMount(req *ListMountRequest) (*ListMountResponse, error) {
-	if req == nil {
-		return nil, errors.New("invalid nil request")
+	mms, err := g.getMounts(req)
+	if err != nil {
+		return nil, err
 	}
 
 	res := &ListMountResponse{
 		Mounts: make(map[string][]sync.Info),
-	}
-
-	type mountsMachine struct {
-		m  mount.Mount
-		id machine.ID
-	}
-
-	// Get list of requested mounts with machine ID filter.
-	var mms = make(map[mount.ID]mountsMachine)
-	if req.ID != "" {
-		mounts, err := g.mount.All(req.ID)
-		if err != nil {
-			return res, nil
-		}
-
-		for mountID, m := range mounts {
-			mms[mountID] = mountsMachine{m: m, id: req.ID}
-		}
-	}
-
-	// Get requested mount with mount ID filter.
-	if req.MountID != "" {
-		id, err := g.mount.MachineID(req.MountID)
-		if err != nil || (req.ID != "" && id != req.ID) {
-			return res, nil
-		}
-
-		mounts, err := g.mount.All(id)
-		if err != nil {
-			return res, nil
-		}
-
-		mms = map[mount.ID]mountsMachine{
-			req.MountID: mountsMachine{m: mounts[req.MountID], id: id},
-		}
-	}
-
-	// Get all mounts when filters are not set.
-	if req.ID == "" && req.MountID == "" {
-		for _, id := range g.mount.Registered() {
-			mounts, err := g.mount.All(id)
-			if err != nil {
-				continue
-			}
-
-			for mountID, m := range mounts {
-				mms[mountID] = mountsMachine{m: m, id: id}
-			}
-		}
 	}
 
 	// Get machine aliases.
@@ -256,4 +208,65 @@ func (g *Group) ListMount(req *ListMountRequest) (*ListMountResponse, error) {
 	}
 
 	return res, nil
+}
+
+// mountsMachine is a helper type that contains mount paths and the machine
+// which serves its remote path.
+type mountsMachine struct {
+	m  mount.Mount
+	id machine.ID
+}
+
+// getRequestedMounts uses filters defined in list mount request to obtain
+// list of requested mounts.
+func (g *Group) getMounts(req *ListMountRequest) (map[mount.ID]mountsMachine, error) {
+	if req == nil {
+		return nil, errors.New("invalid nil request")
+	}
+
+	// Get list of requested mounts with machine ID filter.
+	var mms = make(map[mount.ID]mountsMachine)
+	if req.ID != "" {
+		mounts, err := g.mount.All(req.ID)
+		if err != nil {
+			return mms, nil
+		}
+
+		for mountID, m := range mounts {
+			mms[mountID] = mountsMachine{m: m, id: req.ID}
+		}
+	}
+
+	// Get requested mount with mount ID filter.
+	if req.MountID != "" {
+		mms = map[mount.ID]mountsMachine{} // Clear map.
+
+		id, err := g.mount.MachineID(req.MountID)
+		if err != nil || (req.ID != "" && id != req.ID) {
+			return mms, nil
+		}
+
+		mounts, err := g.mount.All(id)
+		if err != nil {
+			return mms, nil
+		}
+
+		mms[req.MountID] = mountsMachine{m: mounts[req.MountID], id: id}
+	}
+
+	// Get all mounts when filters are not set.
+	if req.ID == "" && req.MountID == "" {
+		for _, id := range g.mount.Registered() {
+			mounts, err := g.mount.All(id)
+			if err != nil {
+				continue
+			}
+
+			for mountID, m := range mounts {
+				mms[mountID] = mountsMachine{m: m, id: id}
+			}
+		}
+	}
+
+	return mms, nil
 }

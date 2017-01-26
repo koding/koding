@@ -275,7 +275,10 @@ func TestListMount(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		test := test // Capture range variable.
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			listMountRes, err := g.ListMount(&test.LMReq)
 			if err != nil {
 				t.Fatalf("want err = nil; got %v", err)
