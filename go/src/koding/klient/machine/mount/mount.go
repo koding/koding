@@ -37,7 +37,18 @@ type Mount struct {
 }
 
 // String return a string form of stored mount.
-func (m Mount) String() string { return m.RemotePath + " -> " + m.Path }
+func (m Mount) String() string {
+	remotePath, path := "<unknown>", "<unknown>"
+
+	if m.RemotePath != "" {
+		remotePath = m.RemotePath
+	}
+	if m.Path != "" {
+		path = m.Path
+	}
+
+	return remotePath + " -> " + path
+}
 
 // MountBook stores and manages multiple mounts. Local machine can have multiple
 // mounts to single remote device. This structure is meant to store all of them.
