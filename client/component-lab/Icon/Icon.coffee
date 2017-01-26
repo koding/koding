@@ -23,4 +23,4 @@ module.exports = Icon = (props) ->
 
   src = if global.devicePixelRatio >= 2 then two else one
 
-  <span><img src={src} style={{height, width}} /></span>
+  <img src={src} style={{height, width}} />
