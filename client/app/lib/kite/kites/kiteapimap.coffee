@@ -15,22 +15,12 @@ module.exports = KiteAPIMap =
     start           : 'start'
     build           : 'build'
     reinit          : 'reinit'
-    resize          : 'resize'
     restart         : 'restart'
     destroy         : 'destroy'
 
     # Admin helpers
     addAdmin        : 'admin.add'
     removeAdmin     : 'admin.remove'
-
-    # Domain managament
-    setDomain       : 'domain.set'
-    addDomain       : 'domain.add'
-    unsetDomain     : 'domain.unset'
-    removeDomain    : 'domain.remove'
-
-    # Snapshots
-    createSnapshot  : 'createSnapshot'
 
     # Stack, Teams, Credentials related methods
     migrate         : 'migrate'
