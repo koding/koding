@@ -359,7 +359,10 @@ func TestMongoDatabase(t *testing.T) {
 
 	mongoDB := NewMongoDatabase()
 	for _, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(test.Name, func(t *testing.T) {
+			t.Parallel()
 			machines, err := mongoDB.Machines(test.Filter)
 			if (err == nil) != test.IsValid {
 				t.Fatalf("want valid test = %t; got err: %v", test.IsValid, err)
