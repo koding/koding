@@ -20,7 +20,7 @@ function compile () {
     # make comma-separated
     export PKGS_DELIM=$(echo "$PKGS" | paste -sd "," -)
 
-    go list -f '{{if len .TestGoFiles}}"go test -race -v -cover -c {{.ImportPath}} -o={{.Dir}}/{{.Name}}.test -coverpkg='$PKGS_DELIM' "{{end}}' $PKGS | grep -v vendor | xargs -L 1 -I{} $action "{}$COMPILE_FLAGS"
+    go list -f '{{if or (len .TestGoFiles) (len .XTestGoFiles)}}"go test -v -cover -c {{.ImportPath}} -o={{.Dir}}/{{.Name}}.test -coverpkg=$PKGS_DELIM"{{end}}' $PKGS | grep -v vendor | xargs -L 1 -I{} $action "{}$COMPILE_FLAGS"
 }
 
 # run runs the binary file that created before (with compile function)
