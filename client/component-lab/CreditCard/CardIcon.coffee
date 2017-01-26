@@ -5,67 +5,85 @@ classnames = require 'classnames'
 { Brand } = require './constants'
 Icon = require 'lab/Icon'
 
-ICONS =
+ICONS_BIG =
   'american-express':
-    '1x': require 'app/sprites/1x/amex.png'
-    '2x': require 'app/sprites/2x/amex.png'
-  'american-express-light':
-    '1x': require 'app/sprites/1x/amex-light.png'
-    '2x': require 'app/sprites/2x/amex-light.png'
+    '1x': require './assets/1x/amex-big.png'
+    '2x': require './assets/2x/amex-big.png'
   'diners-club':
-    '1x': require 'app/sprites/1x/dinersclub.png'
-    '2x': require 'app/sprites/2x/dinersclub.png'
+    '1x': require './assets/1x/dinersclub-big.png'
+    '2x': require './assets/2x/dinersclub-big.png'
   discover:
-    '1x': require 'app/sprites/1x/discover.png'
-    '2x': require 'app/sprites/2x/discover.png'
+    '1x': require './assets/1x/discover-big.png'
+    '2x': require './assets/2x/discover-big.png'
   jcb:
-    '1x': require 'app/sprites/1x/jcb.png'
-    '2x': require 'app/sprites/2x/jcb.png'
+    '1x': require './assets/1x/jcb-big.png'
+    '2x': require './assets/2x/jcb-big.png'
   maestro:
-    '1x': require 'app/sprites/1x/maestro.png'
-    '2x': require 'app/sprites/2x/maestro.png'
+    '1x': require './assets/1x/maestro-big.png'
+    '2x': require './assets/2x/maestro-big.png'
   mastercard:
-    '1x': require 'app/sprites/1x/mastercard.png'
-    '2x': require 'app/sprites/2x/mastercard.png'
+    '1x': require './assets/1x/mastercard-big.png'
+    '2x': require './assets/2x/mastercard-big.png'
   visa:
-    '1x': require 'app/sprites/1x/visa.png'
-    '2x': require 'app/sprites/2x/visa.png'
+    '1x': require './assets/1x/visa-big.png'
+    '2x': require './assets/2x/visa-big.png'
 
-ICONS['master-card'] = ICONS['mastercard']
+ICONS_BIG['master-card'] = ICONS_BIG['mastercard']
 
-ICON_HEIGHT =
-  small: 9
-  regular: 18
-  big: 27
+ICONS_SMALL =
+  'american-express':
+    '1x': require './assets/1x/amex-small.png'
+    '2x': require './assets/2x/amex-small.png'
+  'diners-club':
+    '1x': require './assets/1x/dinersclub-small.png'
+    '2x': require './assets/2x/dinersclub-small.png'
+  discover:
+    '1x': require './assets/1x/discover-small.png'
+    '2x': require './assets/2x/discover-small.png'
+  jcb:
+    '1x': require './assets/1x/jcb-small.png'
+    '2x': require './assets/2x/jcb-small.png'
+  maestro:
+    '1x': require './assets/1x/maestro-small.png'
+    '2x': require './assets/2x/maestro-small.png'
+  mastercard:
+    '1x': require './assets/1x/mastercard-small.png'
+    '2x': require './assets/2x/mastercard-small.png'
+  visa:
+    '1x': require './assets/1x/visa-small.png'
+    '2x': require './assets/2x/visa-small.png'
 
-module.exports = CardIcon = ({ brand, size, style, light }) ->
+ICONS_SMALL['master-card'] = ICONS_SMALL['mastercard']
+
+module.exports = CardIcon = ({ brand, small, style }) ->
 
   wrapperClassName = classnames [
     styles['brand-wrapper']
-    styles[size]
+    small and styles['small']
   ]
 
   <div className={wrapperClassName} style={style}>
-    <BrandImage brand={brand} size={size} light={light} />
+    <BrandImage brand={brand} small={small} />
   </div>
 
 
-BrandImage = ({ brand, size, light }) ->
+BrandImage = ({ brand, small }) ->
 
   if brand is Brand.DEFAULT
+    className = classnames [
+      styles['brand-default']
+      small and styles['small']
+    ]
+    
     return (
-      <span className={classnames(size, styles['brand-default'])} />
+      <span className={className} />
     )
 
-  icons = if light and ICONS["#{brand}-light"]
-  then ICONS["#{brand}-light"]
-  else ICONS[brand]
 
-  height = ICON_HEIGHT[size]
+  icons = if small then ICONS_SMALL[brand] else ICONS_BIG[brand]
 
-  <Icon width='auto' height={height} 1x={icons['1x']} 2x={icons['2x']} />
+  <Icon 1x={icons['1x']} 2x={icons['2x']} />
 
 CardIcon.defaultProps =
-  light: no
-  size: 'regular'
+  small: no
   brand: Brand.DEFAULT
