@@ -115,8 +115,6 @@ func (cs ChangeSlice) Less(i, j int) bool { return cs[i].Name < cs[j].Name }
 // Index stores a virtual working tree state. It recursively records objects in
 // a given root path and allows to efficiently detect changes on it.
 type Index struct {
-	limitC chan struct{}
-
 	mu      sync.RWMutex
 	entries map[string]*Entry
 }
@@ -129,9 +127,13 @@ var (
 // NewIndex creates the empty index object.
 func NewIndex() *Index {
 	return &Index{
-		limitC:  make(chan struct{}, 2*runtime.NumCPU()),
 		entries: make(map[string]*Entry, 0),
 	}
+}
+
+type fileDesc struct {
+	path string      // relative path to the file.
+	info os.FileInfo // file LStat result.
 }
 
 // NewIndexFiles walks the given file tree roted at root and records file
@@ -139,8 +141,19 @@ func NewIndex() *Index {
 func NewIndexFiles(root string) (*Index, error) {
 	idx := NewIndex()
 
-	// In order to get as much entries as we can we ignore errors.
+	// Start worker pool.
 	var wg sync.WaitGroup
+	fC := make(chan *fileDesc)
+	for i := 0; i < 2*runtime.NumCPU(); i++ {
+		wg.Add(1)
+		go idx.addEntryWorker(root, &wg, fC)
+	}
+	defer func() {
+		close(fC)
+		wg.Wait()
+	}()
+
+	// In order to get as much entries as we can we ignore errors.
 	walkFn := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return nil
@@ -151,8 +164,7 @@ func NewIndexFiles(root string) (*Index, error) {
 			return nil
 		}
 
-		wg.Add(1)
-		idx.addEntry(&wg, root, path, info)
+		fC <- &fileDesc{path: path, info: info}
 		return nil
 	}
 
@@ -160,30 +172,23 @@ func NewIndexFiles(root string) (*Index, error) {
 		return nil, err
 	}
 
-	wg.Wait()
 	return idx, nil
 }
 
-// addEntry asynchronously adds new entry to index. This function has limits
-// to a number of started go-routines. Errors are ignored.
-func (idx *Index) addEntry(wg *sync.WaitGroup, root, path string, info os.FileInfo) {
-	idx.limitC <- struct{}{}
+// addEntryWorker asynchronously adds new entry to index. Errors are ignored.
+func (idx *Index) addEntryWorker(root string, wg *sync.WaitGroup, fC <-chan *fileDesc) {
+	defer wg.Done()
 
-	go func() {
-		defer func() {
-			<-idx.limitC
-			wg.Done()
-		}()
-
-		entry, err := NewEntryFile(root, path, info)
+	for f := range fC {
+		entry, err := NewEntryFile(root, f.path, f.info)
 		if err != nil {
-			return
+			continue
 		}
 
 		idx.mu.Lock()
 		idx.entries[entry.Name] = entry
 		idx.mu.Unlock()
-	}()
+	}
 }
 
 // Count returns the number of entries stored in index. Only items which size is
@@ -332,7 +337,13 @@ func ctime(fi os.FileInfo) int64 {
 // guarantee that changes from Compare function applied to the index will
 // result in actual directory state.
 func (idx *Index) Apply(root string, cs ChangeSlice) {
+	// Start worker pool.
 	var wg sync.WaitGroup
+	fC := make(chan *fileDesc)
+	for i := 0; i < naturalMin(2*runtime.NumCPU(), len(cs)); i++ {
+		wg.Add(1)
+		go idx.addEntryWorker(root, &wg, fC)
+	}
 
 	for i := range cs {
 		switch {
@@ -361,12 +372,26 @@ func (idx *Index) Apply(root string, cs ChangeSlice) {
 				continue
 			}
 
-			wg.Add(1)
-			idx.addEntry(&wg, root, path, info)
+			fC <- &fileDesc{path: path, info: info}
 		}
 	}
 
+	close(fC)
 	wg.Wait()
+}
+
+// naturalMin returns the minimal value of provided arguments but not less than
+// one.
+func naturalMin(a, b int) (n int) {
+	if n = b; a < b {
+		n = a
+	}
+
+	if n < 1 {
+		return 1
+	}
+
+	return n
 }
 
 // MarshalJSON satisfies json.Marshaler interface. It safely marshals index
