@@ -59,6 +59,13 @@ func NewEntryFile(root, path string, info os.FileInfo) (e *Entry, err error) {
 	}, nil
 }
 
+var copyBufPool = sync.Pool{
+	New: func() interface{} {
+		b := make([]byte, 64*1024)
+		return &b
+	},
+}
+
 // readCRC32 computes CRC-32 checksum of a given file content.
 func readCRC32(path string) ([]byte, error) {
 	file, err := os.Open(path)
@@ -68,7 +75,11 @@ func readCRC32(path string) ([]byte, error) {
 	defer file.Close()
 
 	hash := crc32.NewIEEE()
-	if _, err := io.Copy(hash, file); err != nil {
+
+	bufp := copyBufPool.Get().(*[]byte)
+	defer copyBufPool.Put(bufp)
+
+	if _, err := io.CopyBuffer(hash, file, *bufp); err != nil {
 		return nil, err
 	}
 
