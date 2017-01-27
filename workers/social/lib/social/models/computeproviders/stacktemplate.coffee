@@ -13,7 +13,12 @@ module.exports = class JStackTemplate extends Module
   { slugify } = require '../../traits/slugifiable'
   { permit }  = require '../group/permissionset'
   Validators  = require '../group/validators'
-  { revive, checkTemplateUsage } = require './computeutils'
+
+  {
+    revive
+    flattenPayload
+    checkTemplateUsage
+  } = require './computeutils'
 
   @trait __dirname, '../../traits/protected'
   @trait __dirname, '../../traits/notifiable'
@@ -698,7 +703,7 @@ module.exports = class JStackTemplate extends Module
         JStackTemplate.create client, cloneData, callback
 
 
-  build: secure (client, options, callback) ->
+  build: secure (client, payload, callback) ->
 
     unless @getAt 'config.verified'
       return callback new KodingError 'Stack needs to be verified first'
@@ -716,9 +721,10 @@ module.exports = class JStackTemplate extends Module
         { stack: generatedStack } = res
         stackId = generatedStack.getId()
         provider = (generatedStack.getAt 'config.requiredProviders')[0]
+        variables = flattenPayload payload
 
         Kloud = require './kloud'
-        Kloud.buildStack client, { stackId, provider }, callback
+        Kloud.buildStack client, { stackId, provider, variables }, callback
 
 
   forceStacksToReinit: permit 'force stacks to reinit',
