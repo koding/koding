@@ -84,6 +84,8 @@ module.exports = class NotificationController extends KDObject
 
   setListeners: ->
 
+    { computeController } = kd.singletons
+
     @on 'GuestTimePeriodHasEnded', deleteUserCookie
 
     @on 'SessionHasEnded', ({ clientId }) ->
@@ -120,7 +122,7 @@ module.exports = class NotificationController extends KDObject
           if (ideInstance = envDataProvider.getIDEFromUId machineUId) and permanent
             ideInstance.showUserRemovedModal()
 
-      kd.singletons.computeController.reset yes
+      computeController.reset yes
 
     @on 'UsernameChanged', ({ username, oldUsername }) ->
       # FIXME: because of this (https://app.asana.com/0/search/6604719544802/6432131515387)
@@ -193,7 +195,5 @@ module.exports = class NotificationController extends KDObject
       remote_extensions.removeInstance data
 
 
-    @on 'KloudActionOverAPI', (data) ->
-      # TODO implement better next to flows here ~ GG
-      console.info '[Kloud:API] Operation', data
-      kd.singletons.computeController.reset yes
+    @on 'KloudActionOverAPI', (change) ->
+      computeController.handleChangesOverAPI change

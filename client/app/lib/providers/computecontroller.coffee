@@ -1506,3 +1506,14 @@ module.exports = class ComputeController extends KDController
   infoTest: (machine) ->
     ComputeHelpers = require './computehelpers'
     ComputeHelpers.infoTest machine
+
+
+  handleChangesOverAPI: (change) -> @reset yes, =>
+
+    # TODO implement better next to flows here ~ GG
+
+    if change.method is 'apply'
+      stack = @findStackFromStackId change.payload.stackId
+      @reloadIDE stack.machines.first.slug
+
+    console.log '[Kloud:API]', change
