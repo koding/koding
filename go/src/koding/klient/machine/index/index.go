@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"time"
 
@@ -103,6 +104,8 @@ func (cs ChangeSlice) Less(i, j int) bool { return cs[i].Name < cs[j].Name }
 // Index stores a virtual working tree state. It recursively records objects in
 // a given root path and allows to efficiently detect changes on it.
 type Index struct {
+	limitC chan struct{}
+
 	mu      sync.RWMutex
 	entries map[string]*Entry
 }
@@ -115,6 +118,7 @@ var (
 // NewIndex creates the empty index object.
 func NewIndex() *Index {
 	return &Index{
+		limitC:  make(chan struct{}, 2*runtime.NumCPU()),
 		entries: make(map[string]*Entry, 0),
 	}
 }
@@ -125,6 +129,7 @@ func NewIndexFiles(root string) (*Index, error) {
 	idx := NewIndex()
 
 	// In order to get as much entries as we can we ignore errors.
+	var wg sync.WaitGroup
 	walkFn := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return nil
@@ -135,12 +140,8 @@ func NewIndexFiles(root string) (*Index, error) {
 			return nil
 		}
 
-		entry, err := NewEntryFile(root, path, info)
-		if err != nil {
-			return nil
-		}
-
-		idx.entries[entry.Name] = entry
+		wg.Add(1)
+		idx.addEntry(&wg, root, path, info)
 		return nil
 	}
 
@@ -148,7 +149,30 @@ func NewIndexFiles(root string) (*Index, error) {
 		return nil, err
 	}
 
+	wg.Wait()
 	return idx, nil
+}
+
+// addEntry asynchronously adds new entry to index. This function has limits
+// to a number of started go-routines. Errors are ignored.
+func (idx *Index) addEntry(wg *sync.WaitGroup, root, path string, info os.FileInfo) {
+	idx.limitC <- struct{}{}
+
+	go func() {
+		defer func() {
+			<-idx.limitC
+			wg.Done()
+		}()
+
+		entry, err := NewEntryFile(root, path, info)
+		if err != nil {
+			return
+		}
+
+		idx.mu.Lock()
+		idx.entries[entry.Name] = entry
+		idx.mu.Unlock()
+	}()
 }
 
 // Count returns the number of entries stored in index. Only items which size is
@@ -297,6 +321,8 @@ func ctime(fi os.FileInfo) int64 {
 // guarantee that changes from Compare function applied to the index will
 // result in actual directory state.
 func (idx *Index) Apply(root string, cs ChangeSlice) {
+	var wg sync.WaitGroup
+
 	for i := range cs {
 		switch {
 		case cs[i].Meta&(ChangeMetaUpdate|ChangeMetaAdd) != 0:
@@ -324,16 +350,12 @@ func (idx *Index) Apply(root string, cs ChangeSlice) {
 				continue
 			}
 
-			entry, err := NewEntryFile(root, path, info)
-			if err != nil {
-				continue
-			}
-
-			idx.mu.Lock()
-			idx.entries[entry.Name] = entry
-			idx.mu.Unlock()
+			wg.Add(1)
+			idx.addEntry(&wg, root, path, info)
 		}
 	}
+
+	wg.Wait()
 }
 
 // MarshalJSON satisfies json.Marshaler interface. It safely marshals index
