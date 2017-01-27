@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -o errexit
+
 #  make relative paths work.
 cd $(dirname $0)/..
 
