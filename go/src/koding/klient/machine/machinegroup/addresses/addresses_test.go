@@ -71,7 +71,10 @@ func TestAddressesMachineID(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			id, err := addrs.MachineID(test.Addr)
 			if (err == nil) != test.Valid {
 				t.Fatalf("want err == nil => %t; got err %v", test.Valid, err)

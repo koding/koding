@@ -131,7 +131,10 @@ func TestSetFlatKeyValue(t *testing.T) {
 	}
 
 	for name, cas := range cases {
+		// capture range variable here
+		cas := cas
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			m := map[string]interface{}{
 				"endpoints": map[string]interface{}{
 					"koding": map[string]interface{}{

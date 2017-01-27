@@ -86,7 +86,10 @@ func TestDumpToBolt(t *testing.T) {
 	}
 
 	for name, cas := range cases {
+		// capture range variable here
+		cas := cas
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			err := c.WriteMetadata(cas.want)
 
 			if err != nil {

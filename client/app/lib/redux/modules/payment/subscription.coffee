@@ -76,11 +76,6 @@ remove = ->
 # Selectors
 ##
 
-makePlanAmount = (userCount) ->
-  switch
-    when userCount < 10 then ''
-
-
 plan = (state) -> state.subscription?.plan
 
 
@@ -119,6 +114,17 @@ daysLeft = createSelector(
   (end) -> dateDiffInDays(new Date(Number end), new Date)
 )
 
+planAmount = (state) ->
+  amount = if p = plan(state) then p.amount else 0
+
+  dollars = amount / 100
+
+  return {
+    dollars: dollars
+    cents: amount
+    toString: -> if dollars % 1 isnt 0 then dollars.toFixed(2) else dollars
+  }
+
 
 module.exports = {
   namespace: withNamespace()
@@ -127,5 +133,6 @@ module.exports = {
   LOAD, CREATE, REMOVE
 
   # Selectors
-  plan, isTrial, endsAt, pricePerSeat, trialDays, daysLeft
+  plan, isTrial, endsAt, pricePerSeat
+  trialDays, daysLeft, planAmount
 }

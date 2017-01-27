@@ -25,8 +25,11 @@
   padding                   0 10px
 
   &.small
+    background-color        $additional-2
+    height                  24px
+    width                   60px
+    padding                 0
     border-radius           3px
-    padding                 0 5px
     justify-content         center
 
 .brand-default.small

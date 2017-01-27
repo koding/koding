@@ -48,6 +48,7 @@ export COMMANDS=(
 	vendor/github.com/alecthomas/gocyclo
 	vendor/github.com/remyoudompheng/go-misc/deadcode
 	vendor/github.com/jteeuwen/go-bindata/go-bindata
+	vendor/github.com/wadey/gocovmerge
 )
 
 export TERRAFORM_COMMANDS=(

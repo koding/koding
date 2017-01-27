@@ -189,7 +189,10 @@ func TestValidators(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			err := test.Validator.Valid()
 
 			if test.IsValid && err != nil {

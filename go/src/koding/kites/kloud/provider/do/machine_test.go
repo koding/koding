@@ -153,7 +153,10 @@ func TestMachineInfo(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
 			dropletID := 12345
 			if test.dropletID != 0 {
 				dropletID = 0

@@ -99,7 +99,7 @@ func GetSubscriptionForGroup(groupName string) (*stripe.Sub, error) {
 func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*stripe.Sub, error) {
 	if params == nil {
 		params = &stripe.SubParams{
-			Plan: Plans[UpTo10Users].ID,
+			Plan: Solo,
 		}
 	}
 
@@ -121,19 +121,20 @@ func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 	}
 
 	now := time.Now().UTC()
-	thirtyDaysLater := now.Add(30 * 24 * time.Hour).Unix()
-	sevenDaysLater := now.Add(7 * 24 * time.Hour).Unix()
-
-	if params.TrialEnd != 0 {
-		// we only allow 0, 7 and 30 day trials
-		if params.TrialEnd < sevenDaysLater {
-			params.TrialEnd = sevenDaysLater
-		}
-
-		if params.TrialEnd > sevenDaysLater {
-			params.TrialEnd = thirtyDaysLater
-		}
+	// apply plan's default trial period
+	if plan := GetPlan(params.Plan); plan != nil && plan.TrialPeriod != 0 {
+		params.TrialEnd = now.Add(time.Duration(plan.TrialPeriod) * 24 * time.Hour).Unix()
 	}
+
+	// if group is not created within last ten minutes, subtract its duration from the trial end date
+	groupCreatedAt := group.Id.Time().UTC()
+
+	// 5 min is just a guestimate as a grace period.
+	if params.TrialEnd != 0 && !groupCreatedAt.Add(time.Minute*5).After(now) {
+		params.TrialEnd = params.TrialEnd - (now.Unix() - groupCreatedAt.Unix())
+	}
+
+	params.TrialEnd = normalizeTrialEnd(now, params.TrialEnd)
 
 	// override quantity and plan in case we did not charge the user previously
 	// due to failed payment and the subscription is deleted by stripe, create
@@ -167,6 +168,23 @@ func EnsureSubscriptionForGroup(groupName string, params *stripe.SubParams) (*st
 	}
 
 	return sub, nil
+}
+
+func normalizeTrialEnd(now time.Time, trialEnd int64) int64 {
+	if trialEnd <= 0 {
+		return 0
+	}
+
+	if now.Unix() > trialEnd {
+		return 0
+	}
+
+	thirtyDaysLater := now.Add(30 * 24 * time.Hour).Unix()
+	if trialEnd > thirtyDaysLater {
+		return thirtyDaysLater
+	}
+
+	return trialEnd
 }
 
 func syncGroupWithCustomerID(cusID string) error {
