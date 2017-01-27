@@ -818,6 +818,11 @@ module.exports = class StackEditorView extends kd.View
     selectedProvider      = @getOption 'selectedProvider'
     req.provider          = selectedProvider
 
+    # This is temporary, will be removed once the issue solved in Kloud side ~ GG
+    { payload }   = requirementsParser @stackTemplateView.editorView.getValue()
+    variables     = {}
+    payload.forEach (v) -> variables["payload_#{v}"] ?= ''
+
     computeController.getKloud()
       .checkTemplate req
       .nodeify (err, response) =>
