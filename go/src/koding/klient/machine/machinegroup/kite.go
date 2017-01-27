@@ -91,6 +91,7 @@ func KiteHandlerHeadMount(g *Group) kite.HandlerFunc {
 			}
 		}
 
+		r.LocalKite.Log.Error("---- %s", req)
 		res, err := g.HeadMount(req)
 		if err != nil {
 			// TODO(ppknap): create errors file similar to kloud/stack/errors.

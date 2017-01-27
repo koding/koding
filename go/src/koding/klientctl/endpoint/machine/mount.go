@@ -66,7 +66,7 @@ func Mount(options *MountOptions) (err error) {
 		return err
 	}
 
-	fmt.Fprintln(os.Stdout, "Mounting to %s directory.\nChecking remote path...", options.Path)
+	fmt.Fprintf(os.Stdout, "Mounting to %s directory.\nChecking remote path...\n", options.Path)
 
 	m := mount.Mount{
 		Path:       options.Path,
@@ -74,7 +74,7 @@ func Mount(options *MountOptions) (err error) {
 	}
 	// First head the remote machine directory in order to get basic mount info.
 	headMountReq := machinegroup.HeadMountRequest{
-		machinegroup.MountRequest{
+		machinegroup.MountRequest: machinegroup.MountRequest{
 			ID:    idRes.ID,
 			Mount: m,
 		},
@@ -92,7 +92,7 @@ func Mount(options *MountOptions) (err error) {
 	//
 	// TODO: ask user if she wants to create another mount or stop the process.
 	if headMountRes.ExistMountID != "" {
-		fmt.Fprintln(os.Stdout, "Remote directory %s is already mounted by: %s",
+		fmt.Fprintf(os.Stdout, "Remote directory %s is already mounted by: %s\n",
 			headMountRes.AbsRemotePath, headMountRes.ExistMountID)
 
 		clean()
@@ -100,17 +100,17 @@ func Mount(options *MountOptions) (err error) {
 	}
 
 	// TODO: go-humanize.
-	fmt.Fprintln(os.Stdout, "Mounted remote directory %s has %d file(s) of total size %s",
+	fmt.Fprintf(os.Stdout, "Mounted remote directory %s has %d file(s) of total size %d\n",
 		headMountRes.AbsRemotePath, headMountRes.AllCount, headMountRes.AllDiskSize)
 
 	// TODO: ask user if she wants to continue.
 
 	m.RemotePath = headMountRes.AbsRemotePath
-	fmt.Fprintln(os.Stdout, "Initializing mount %s...", m)
+	fmt.Fprintf(os.Stdout, "Initializing mount %s...\n", m)
 
 	// Create mount.
 	addMountReq := machinegroup.AddMountRequest{
-		machinegroup.MountRequest{
+		machinegroup.AddMountRequest: machinegroup.MountRequest{
 			ID:    idRes.ID,
 			Mount: m,
 		},
@@ -124,7 +124,7 @@ func Mount(options *MountOptions) (err error) {
 		return err
 	}
 
-	fmt.Fprintln(os.Stdout, "Created mount with ID: %s", addMountRes.MountID)
+	fmt.Fprintf(os.Stdout, "Created mount with ID: %s\n", addMountRes.MountID)
 	return nil
 }
 
@@ -195,7 +195,7 @@ func Umount(options *UmountOptions) (err error) {
 	}
 
 	// TODO: ask - are you sure.
-	fmt.Fprintln(os.Stdout, "Unmounting %s...", options.Identifier)
+	fmt.Fprintf(os.Stdout, "Unmounting %s...\n", options.Identifier)
 
 	// Remove mount.
 	umountReq := machinegroup.UmountRequest{
@@ -210,7 +210,7 @@ func Umount(options *UmountOptions) (err error) {
 		return err
 	}
 
-	fmt.Fprintln(os.Stdout, "Successfully unmounted %s (ID: %s)",
+	fmt.Fprintf(os.Stdout, "Successfully unmounted %s (ID: %s)\n",
 		umountRes.Mount, umountRes.MountID)
 
 	return nil
@@ -278,6 +278,4 @@ func removeContent(path string) error {
 			os.RemoveAll(filepath.Join(path, name)) // Ignore errors.
 		}
 	}
-
-	return nil
 }
