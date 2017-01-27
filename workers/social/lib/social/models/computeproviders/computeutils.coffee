@@ -424,9 +424,21 @@ generateSignatures = (apiMap) ->
   return signatures
 
 
+# Flatten's given object with keys prefixed ~ GG
+flattenPayload = (payload, prefix = 'payload', res = {}) ->
+
+  for own key, value of payload
+    key = "#{prefix}_#{key}"
+    if value and 'object' is typeof value
+    then res = flattenPayload value, key, res
+    else res[key] = value
+
+  return res
+
+
 module.exports = {
   fetchUserPlan, fetchGroupStackTemplate, fetchUsage
   PLANS, PROVIDERS, guessNextLabel, checkUsage
   revive, reviveClient, reviveCredential, reviveGroupLimits
-  checkTemplateUsage, generateSignatures
+  checkTemplateUsage, generateSignatures, flattenPayload
 }
