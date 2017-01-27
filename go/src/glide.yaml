@@ -294,6 +294,13 @@ import:
 - package: github.com/stretchr/testify
 - package: github.com/dustin/go-humanize
 - package: github.com/PuerkitoBio/urlesc
+- package: github.com/jacobsa/oglematchers
+- package: github.com/jacobsa/ogletest
+- package: github.com/jacobsa/syncutil
+- package: github.com/jacobsa/timeutil
+- package: github.com/jacobsa/oglemock
+- package: github.com/jacobsa/reqtrace
+- package: github.com/kylelemons/godebug
 ignore:
 - koding/tools/logger
 - config
