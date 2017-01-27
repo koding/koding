@@ -1,8 +1,8 @@
 package index
 
 import (
-	"crypto/sha1"
 	"encoding/json"
+	"hash/crc32"
 	"io"
 	"os"
 	"path/filepath"
@@ -44,7 +44,7 @@ func NewEntryFile(root, path string, info os.FileInfo) (e *Entry, err error) {
 	// Compute file's SHA-1 sum.
 	var sum []byte
 	if !info.IsDir() {
-		if sum, err = readSHA1(path); err != nil {
+		if sum, err = readCRC32(path); err != nil {
 			return nil, err
 		}
 	}
@@ -59,15 +59,15 @@ func NewEntryFile(root, path string, info os.FileInfo) (e *Entry, err error) {
 	}, nil
 }
 
-// readSHA1 computes SHA-1 sum from a given file content.
-func readSHA1(path string) ([]byte, error) {
+// readCRC32 computes CRC-32 checksum of a given file content.
+func readCRC32(path string) ([]byte, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
-	hash := sha1.New()
+	hash := crc32.NewIEEE()
 	if _, err := io.Copy(hash, file); err != nil {
 		return nil, err
 	}
