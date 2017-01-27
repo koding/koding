@@ -13,6 +13,7 @@ import (
 	"koding/klient/machine/mount/sync"
 	"koding/klientctl/klient"
 
+	"github.com/dustin/go-humanize"
 	"github.com/koding/logging"
 )
 
@@ -74,7 +75,7 @@ func Mount(options *MountOptions) (err error) {
 	}
 	// First head the remote machine directory in order to get basic mount info.
 	headMountReq := machinegroup.HeadMountRequest{
-		machinegroup.MountRequest: machinegroup.MountRequest{
+		MountRequest: machinegroup.MountRequest{
 			ID:    idRes.ID,
 			Mount: m,
 		},
@@ -100,8 +101,8 @@ func Mount(options *MountOptions) (err error) {
 	}
 
 	// TODO: go-humanize.
-	fmt.Fprintf(os.Stdout, "Mounted remote directory %s has %d file(s) of total size %d\n",
-		headMountRes.AbsRemotePath, headMountRes.AllCount, headMountRes.AllDiskSize)
+	fmt.Fprintf(os.Stdout, "Mounted remote directory %s has %d file(s) of total size %s\n",
+		headMountRes.AbsRemotePath, headMountRes.AllCount, humanize.IBytes(uint64(headMountRes.AllDiskSize)))
 
 	// TODO: ask user if she wants to continue.
 
@@ -110,7 +111,7 @@ func Mount(options *MountOptions) (err error) {
 
 	// Create mount.
 	addMountReq := machinegroup.AddMountRequest{
-		machinegroup.AddMountRequest: machinegroup.MountRequest{
+		MountRequest: machinegroup.MountRequest{
 			ID:    idRes.ID,
 			Mount: m,
 		},

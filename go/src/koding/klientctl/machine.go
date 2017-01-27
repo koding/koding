@@ -14,6 +14,7 @@ import (
 	"koding/klientctl/endpoint/machine"
 
 	"github.com/codegangsta/cli"
+	"github.com/dustin/go-humanize"
 	"github.com/koding/logging"
 )
 
@@ -254,8 +255,8 @@ func tabListMountFormatter(w io.Writer, mounts map[string][]sync.Info) {
 				info.Mount,
 				info.SyncCount,
 				info.AllCount,
-				info.SyncDiskSize, // TODO go-humanize.
-				info.AllDiskSize,  // TODO go-humanize.
+				humanize.IBytes(uint64(info.SyncDiskSize)),
+				humanize.IBytes(uint64(info.AllDiskSize)),
 			)
 		}
 	}
