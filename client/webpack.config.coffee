@@ -2,7 +2,8 @@
 
 module.exports =
   context: CLIENT_PATH
-  entry: [ './app/lib/index.coffee' ]
+  entry:
+    main: './app/lib/index.coffee'
   output: require('./webpack/config.output')()
   resolve: require('./webpack/config.resolve')()
   module: require('./webpack/config.module')()

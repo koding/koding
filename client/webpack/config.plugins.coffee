@@ -1,8 +1,10 @@
 path = require 'path'
 webpack = require 'webpack'
-HappyPack = require './util/HappyPack'
 CopyWebpackPlugin = require 'copy-webpack-plugin'
 ProgressBarPlugin = require 'progress-bar-webpack-plugin'
+
+HappyPack = require './util/HappyPack'
+isExternal = require './util/isExternal'
 
 { CLIENT_PATH, THIRD_PARTY_PATH,
   BUILD_PATH, COMMON_STYLES_PATH } = require './constants'
@@ -69,5 +71,9 @@ module.exports = (options) ->
         }
       }
     }
+
+    new webpack.optimize.CommonsChunkPlugin
+      name: 'vendor'
+      minChunks: (mod) -> isExternal mod
 
   ]
