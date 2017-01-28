@@ -431,7 +431,7 @@ flattenPayload = (payload, prefix = 'payload', res = {}) ->
     key = "#{prefix}_#{key}"
     if value and 'object' is typeof value
     then res = flattenPayload value, key, res
-    else res[key] = value
+    else res[key] = "#{value}"
 
   return res
 
