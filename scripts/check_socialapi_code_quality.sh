@@ -8,6 +8,8 @@ cd $(dirname $0)/..
 git diff-tree -r --exit-code --name-only --no-commit-id HEAD \
     go/src/socialapi && exit 0
 
+export GOPATH=${GOPATH:-$(pwd)/go}
+
 echo "checking cyclo complexity (disabled due to go1.6 switch - fixme!)"
 # Due to go1.6 gocyclo check started suddently to work showing
 # a number of complex functions:
