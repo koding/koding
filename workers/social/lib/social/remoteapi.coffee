@@ -36,6 +36,19 @@ sendResponse = (res) -> (err, data) ->
       .end()
 
 
+processHookRequests = (req, res) ->
+
+  # TODO update this to use a dynamically generated list of hook req. ~ GG
+  # this is currently GitHub only, we can remove this step from here
+  # and move it to the Hooks implementation at some point if we need.
+  if /^GitHub-/.test req.get 'user-agent'
+    if req.get('X-GitHub-Event') is 'ping'
+      (sendResponse res) null, { pong: true }
+      return yes
+
+  return no
+
+
 processPayload = (payload, callback) ->
 
   [ error, data ] = payload[0].arguments
@@ -169,6 +182,8 @@ module.exports = RemoteHandler = (koding) ->
       if err
         sendApiError res, err
         return
+
+      return  if processHookRequests req, res
 
       context         = getContextFromSession session
       constructorName = getConstructorName model, Models
