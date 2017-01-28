@@ -19,8 +19,8 @@ ENV_TEST = 'test'
 
 MANIFEST_FILE = 'bant.json'
 APP_MAIN_FOLDER = 'lib'
-CSS_BUNDLE_FILE = 'bundle.css'
 JS_BUNDLE_FILE = 'bundle.[name].js'
+CSS_BUNDLE_FILE = 'bundle.[name].css'
 
 module.exports = {
   VERSION

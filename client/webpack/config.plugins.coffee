@@ -2,12 +2,13 @@ path = require 'path'
 webpack = require 'webpack'
 CopyWebpackPlugin = require 'copy-webpack-plugin'
 ProgressBarPlugin = require 'progress-bar-webpack-plugin'
+ExtractTextPlugin = require 'extract-text-webpack-plugin'
 
 HappyPack = require './util/HappyPack'
 isExternal = require './util/isExternal'
 
 { CLIENT_PATH, THIRD_PARTY_PATH,
-  BUILD_PATH, COMMON_STYLES_PATH } = require './constants'
+  BUILD_PATH, COMMON_STYLES_PATH, CSS_BUNDLE_FILE } = require './constants'
 
 module.exports = (options) ->
 
@@ -23,42 +24,7 @@ module.exports = (options) ->
 
     new HappyPack {
       id: 'coffee'
-      loaders: [
-        'pistachio-loader'
-        'coffee-loader'
-        'cjsx-loader'
-      ]
-    }
-
-    new HappyPack {
-      id: 'styl-modules',
-      loaders: [
-        'style-loader'
-        'css-loader?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]'
-        'stylus-loader'
-      ]
-    }
-    new HappyPack {
-      id: 'styl-global',
-      loaders: [
-        'style-loader'
-        'css-loader'
-        'stylus-loader'
-      ]
-    }
-    new HappyPack {
-      id: 'css-global',
-      loaders: [
-        'style-loader'
-        'css-loader'
-      ]
-    }
-    new HappyPack {
-      id: 'css-modules',
-      loaders: [
-        'style-loader'
-        'css-loader?modules'
-      ]
+      loaders: [ 'pistachio-loader', 'coffee-loader', 'cjsx-loader' ]
     }
 
     new webpack.LoaderOptionsPlugin {
@@ -75,5 +41,9 @@ module.exports = (options) ->
     new webpack.optimize.CommonsChunkPlugin
       name: 'vendor'
       minChunks: (mod) -> isExternal mod
+
+    new ExtractTextPlugin
+      filename: CSS_BUNDLE_FILE
+      allChunks: yes
 
   ]
