@@ -669,12 +669,15 @@ module.exports = class JStackTemplate extends Module
       { permission: 'update stack template' }
     ]
 
-    success: (client, callback) ->
+    success: (client, options, callback) ->
+
+      [ options, callback ] = [ callback, options ]  unless callback
+      options          ?= {}
 
       cloneData         =
         slug            : @getAt 'slug'
-        title           : "#{@getAt 'title'} - clone"
-        description     : @getAt 'description'
+        title           : options.title ? "#{@getAt 'title'} - clone"
+        description     : options.description ? @getAt 'description'
 
         config          : @getAt 'config'
         machines        : @getAt 'machines'
@@ -708,7 +711,16 @@ module.exports = class JStackTemplate extends Module
     unless @getAt 'config.verified'
       return callback new KodingError 'Stack needs to be verified first'
 
-    @clone client, (err, clonedTemplate) ->
+    # TODO: GitHub Payload specific updates, this can be moved some other
+    # place as a middleware ~GG
+    options = {}
+    if payload?.after
+      options.title = "#{@getAt 'title'} - #{payload.after[..10]}"
+      if payload.repository?.url?
+        options.description = \
+          "Auto build for #{payload.repository.url}@#{payload.after}"
+
+    @clone client, options, (err, clonedTemplate) ->
       return callback err  if err
       unless clonedTemplate
         return callback new KodingError 'Failed to clone template'
