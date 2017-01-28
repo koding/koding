@@ -5,11 +5,8 @@ set -o errexit
 #  make relative paths work.
 cd $(dirname $0)/..
 
-v=$(git diff-tree -r --name-only --no-commit-id HEAD ./go/src/socialapi 2>&1)
-if [ -z "$v" ]; then
-    echo "nothing has changed under ./go/src/socialapi"
-    exit 0
-fi
+git diff-tree -r --exit-code --name-only --no-commit-id HEAD \
+    go/src/socialapi && exit 0
 
 echo "checking cyclo complexity (disabled due to go1.6 switch - fixme!)"
 # Due to go1.6 gocyclo check started suddently to work showing
