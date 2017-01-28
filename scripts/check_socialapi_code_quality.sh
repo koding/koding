@@ -3,7 +3,7 @@
 #  make relative paths work.
 cd $(dirname $0)/..
 
-v=$(git diff-tree -r --name-only --no-commit-id `git rev-parse HEAD` ./go/src/socialapi 2>&1)
+v=$(git diff-tree -r --name-only --no-commit-id HEAD ./go/src/socialapi 2>&1)
 if [ -z "$v" ]; then
     echo "nothing has changed under ./go/src/socialapi"
     exit 0

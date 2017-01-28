@@ -5,7 +5,7 @@ cd $(dirname $0)/..
 
 path="./client"
 
-v=$(git diff-tree -r --name-only --no-commit-id `git rev-parse HEAD` $path 2>&1)
+v=$(git diff-tree -r --name-only --no-commit-id HEAD $path 2>&1)
 if [ -z "$v" ]; then
     echo "nothing has changed under $path"
     exit 0
