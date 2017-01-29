@@ -338,7 +338,7 @@ func (s *Server) addClient(ident, name, vhost string, services map[string]*Tunne
 
 		e := s.tunnels.addClientService(ident, tun)
 		if e != nil {
-			e = multierror.Append(e, err)
+			err = multierror.Append(err, e)
 		}
 	}
 
