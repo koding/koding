@@ -23,7 +23,7 @@ type Entry struct {
 	MTime int64       `json:"mtime"` // File data change time since EPOCH.
 	Mode  os.FileMode `json:"mode"`  // File mode and permission bits.
 	Size  int64       `json:"size"`  // Size of the file.
-	SHA1  []byte      `json:"sha1"`  // SHA-1 hash of file content.
+	Hash  []byte      `json:"hash"`  // Hash of file content.
 }
 
 // NewEntryFile creates new Entry from a file stored under path argument.
@@ -41,7 +41,7 @@ func NewEntryFile(root, path string, info os.FileInfo) (e *Entry, err error) {
 		return nil, err
 	}
 
-	// Compute file's SHA-1 sum.
+	// Compute file's hash sum.
 	var sum []byte
 	if !info.IsDir() {
 		if sum, err = readCRC32(path); err != nil {
@@ -55,7 +55,7 @@ func NewEntryFile(root, path string, info os.FileInfo) (e *Entry, err error) {
 		MTime: info.ModTime().UnixNano(),
 		Mode:  info.Mode(),
 		Size:  info.Size(),
-		SHA1:  sum,
+		Hash:  sum,
 	}, nil
 }
 
