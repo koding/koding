@@ -218,10 +218,8 @@ func (m *MultiInstances) String() string {
 	buf := new(bytes.Buffer)
 	w.Init(buf, 0, 8, 0, '\t', 0)
 
-	total := 0
 	for client, instances := range m.m {
 		fmt.Fprintf(w, "[%s]\t total instances: %+v \n", client.Region, len(instances))
-		total += len(instances)
 	}
 
 	fmt.Fprintln(w)

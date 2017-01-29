@@ -140,10 +140,8 @@ func (m *MultiVolumes) String() string {
 	buf := new(bytes.Buffer)
 	w.Init(buf, 0, 8, 0, '\t', 0)
 
-	total := 0
 	for client, volumes := range m.m {
 		fmt.Fprintf(w, "[%s]\t total volumes: %+v \n", client.Region, len(volumes))
-		total += len(volumes)
 	}
 
 	fmt.Fprintln(w)
