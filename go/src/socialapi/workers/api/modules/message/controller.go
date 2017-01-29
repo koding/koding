@@ -255,6 +255,10 @@ func Delete(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, h
 
 		// delete the message here
 		err = cm.DeleteMessageAndDependencies(false)
+		if err != nil {
+			return response.NewBadRequest(err)
+		}
+
 		// then invalidate the cache of the parent message
 		bongo.B.AddToCache(parent)
 
