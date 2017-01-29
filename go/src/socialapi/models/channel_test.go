@@ -658,7 +658,7 @@ func TestChannelAddMessage(t *testing.T) {
 				acc := CreateAccountWithTest()
 				c := CreateChannelWithTest(acc.Id)
 				cm := CreateMessageWithTest()
-				So(cm.Create(), ShouldBeNil)channel_test.go
+				So(cm.Create(), ShouldBeNil)
 
 				ch, err := c.AddMessage(cm)
 				So(err, ShouldBeNil)
