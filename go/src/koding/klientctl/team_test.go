@@ -19,8 +19,8 @@ func TestTeamList(t *testing.T) {
 		"all teams": {
 			nil,
 			[]*team.Team{
-				&team.Team{Name: "teamA", Slug: "teamAS", Privacy: "public", SubStatus: "paid"},
-				&team.Team{Name: "teamB", Slug: "teamBS", Privacy: "private", SubStatus: "trailing"},
+				{Name: "teamA", Slug: "teamAS", Privacy: "public", SubStatus: "paid"},
+				{Name: "teamB", Slug: "teamBS", Privacy: "private", SubStatus: "trailing"},
 			},
 		},
 	}

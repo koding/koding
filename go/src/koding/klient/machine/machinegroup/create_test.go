@@ -83,8 +83,8 @@ func TestCreate(t *testing.T) {
 
 	// Machines were pinged and they clients were build.
 	statuses := map[machine.ID]machine.Status{
-		idA: machine.Status{State: machine.StateOffline},
-		idB: machine.Status{State: machine.StateOnline},
+		idA: {State: machine.StateOffline},
+		idB: {State: machine.StateOnline},
 	}
 	if !reflect.DeepEqual(statuses, res.Statuses) {
 		t.Fatalf("want statuses = %#v; got %#v", statuses, res.Statuses)
