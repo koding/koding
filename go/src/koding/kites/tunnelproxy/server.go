@@ -330,7 +330,7 @@ func (s *Server) addClient(ident, name, vhost string, services map[string]*Tunne
 	s.tunnels.addClient(ident, name, vhost)
 	s.idents[vhost] = ident
 
-	err := new(multierror.Error)
+	var err error
 	for _, tun := range toList(services, vhost) {
 		if tun.Name != "kite" && tun.Name != "kites" {
 			s.opts.Log.Warning("unsupported %q service added during initial registration", tun.Name)
@@ -342,7 +342,7 @@ func (s *Server) addClient(ident, name, vhost string, services map[string]*Tunne
 		}
 	}
 
-	if err := err.ErrorOrNil(); err != nil {
+	if err != nil {
 		s.opts.Log.Error("error registering services for %q: %s", ident, err)
 	}
 
