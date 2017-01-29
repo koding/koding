@@ -157,6 +157,10 @@ func customerSourceCreatedHandler(raw []byte) error {
 		return err
 	}
 
+	if err := syncGroupWithCustomerID(req.Customer.ID); err != nil {
+		return err
+	}
+
 	const eventName = "entered credit card"
 
 	return sendEventForCustomer(req.Customer.ID, eventName, nil)
@@ -166,6 +170,10 @@ func customerSourceDeletedHandler(raw []byte) error {
 	var req stripe.Card
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
+		return err
+	}
+
+	if err := syncGroupWithCustomerID(req.Customer.ID); err != nil {
 		return err
 	}
 
