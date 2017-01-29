@@ -18,7 +18,6 @@ const Version = 1
 
 // Entry represents a single file registered to index.
 type Entry struct {
-	Name  string      `json:"name"`  // The relative name of the file.
 	CTime int64       `json:"ctime"` // Metadata change time since EPOCH.
 	MTime int64       `json:"mtime"` // File data change time since EPOCH.
 	Mode  os.FileMode `json:"mode"`  // File mode and permission bits.
@@ -28,29 +27,28 @@ type Entry struct {
 
 // NewEntryFile creates new Entry from a file stored under path argument.
 // Info is optional and, if given, should store LStat result on the given file.
-func NewEntryFile(root, path string, info os.FileInfo) (e *Entry, err error) {
+func NewEntryFile(root, path string, info os.FileInfo) (name string, e *Entry, err error) {
 	if info == nil {
 		if info, err = os.Lstat(path); err != nil {
-			return nil, err
+			return "", nil, err
 		}
 	}
 
 	// Get relative file name.
-	name, err := filepath.Rel(root, path)
+	name, err = filepath.Rel(root, path)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	// Compute file's hash sum.
 	var sum []byte
 	if !info.IsDir() {
 		if sum, err = readCRC32(path); err != nil {
-			return nil, err
+			return "", nil, err
 		}
 	}
 
-	return &Entry{
-		Name:  filepath.ToSlash(name),
+	return filepath.ToSlash(name), &Entry{
 		CTime: ctime(info),
 		MTime: info.ModTime().UnixNano(),
 		Mode:  info.Mode(),
@@ -180,13 +178,13 @@ func (idx *Index) addEntryWorker(root string, wg *sync.WaitGroup, fC <-chan *fil
 	defer wg.Done()
 
 	for f := range fC {
-		entry, err := NewEntryFile(root, f.path, f.info)
+		name, entry, err := NewEntryFile(root, f.path, f.info)
 		if err != nil {
 			continue
 		}
 
 		idx.mu.Lock()
-		idx.entries[entry.Name] = entry
+		idx.entries[name] = entry
 		idx.mu.Unlock()
 	}
 }
