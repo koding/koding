@@ -5,5 +5,3 @@ set -o errexit
 $GOPATH/src/socialapi/db/sql/definition/create-wercker.sh src/socialapi/db/sql
 $KONFIG_PROJECTROOT/run migrations
 $GOBIN/migrate -url $KONFIG_POSTGRES_URL -path $GOPATH/src/socialapi/db/sql/migrations up
-
-exit 0
