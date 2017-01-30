@@ -92,6 +92,7 @@ var escape = func(v *Variable) string {
 func EscapeDeadVariables(userdata string) string {
 	var buf bytes.Buffer
 
+	eofNL := strings.HasSuffix(userdata, "\n")
 	scanner := bufio.NewScanner(strings.NewReader(userdata))
 
 	for scanner.Scan() {
@@ -107,5 +108,13 @@ func EscapeDeadVariables(userdata string) string {
 		fmt.Fprintln(&buf, ReplaceVariablesFunc(s, ReadVariables(s), escape))
 	}
 
-	return buf.String()
+	// Scanning from strings.Reader is not going to fail, even if, there's
+	// no recovery from the failure.
+	_ = scanner.Err()
+
+	if eofNL {
+		return buf.String()
+	}
+
+	return strings.TrimRight(buf.String(), "\r\n")
 }

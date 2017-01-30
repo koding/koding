@@ -106,6 +106,10 @@ func TestEscapeDeadVariables(t *testing.T) {
 			"# ${var.one}\n#${var.two}\n   #    ${var.three}\n",
 			"# $${var.one}\n#$${var.two}\n   #    $${var.three}\n",
 		},
+		"multiple in multiple lines without eofNL": {
+			"# ${var.one}\n#${var.two}\n   #    ${var.three}",
+			"# $${var.one}\n#$${var.two}\n   #    $${var.three}",
+		},
 	}
 
 	for name, cas := range cases {
