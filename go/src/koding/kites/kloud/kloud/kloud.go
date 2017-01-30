@@ -42,7 +42,7 @@ import (
 )
 
 //go:generate go run genimport.go -o import.go
-//go:generate go fmt import.go
+//go:generate gofmt -l -w -s import.go
 
 // Name holds kite name
 var Name = "kloud"

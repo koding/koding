@@ -20,7 +20,40 @@ func DeleteCreditCardForGroup(groupName string) error {
 		return ErrCustomerNotExists
 	}
 
-	return deleteCreditCard(group.Payment.Customer.ID)
+	if err := deleteCreditCard(group.Payment.Customer.ID); err != nil {
+		return err
+	}
+
+	return syncGroupWithCustomerID(group.Payment.Customer.ID)
+}
+
+// HasCreditCard checks if the given group has a credit card or not.
+func HasCreditCard(groupName string) error {
+	group, err := modelhelper.GetGroup(groupName)
+	if err != nil {
+		return err
+	}
+
+	if group.Payment.Customer.ID == "" {
+		return ErrCustomerNotExists
+	}
+
+	// sync updates the credit card info in the db.
+	if err := syncGroupWithCustomerID(group.Payment.Customer.ID); err != nil {
+		return err
+	}
+
+	// we need to fetch the group again to have the latest info.
+	group, err = modelhelper.GetGroup(groupName)
+	if err != nil {
+		return err
+	}
+
+	if !group.Payment.Customer.HasCard {
+		return ErrCustomerSourceNotExists
+	}
+
+	return nil
 }
 
 func deleteCreditCard(customerID string) error {

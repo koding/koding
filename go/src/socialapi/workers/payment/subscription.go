@@ -216,9 +216,12 @@ func syncGroupWithCustomerID(cusID string) error {
 		subStatus = cus.Subs.Values[0].Status
 	}
 
+	hasCard := checkCustomerHasSourceWithCustomer(cus) == nil
+
 	// if subID and subStatus are same, update not needed
 	if group.Payment.Subscription.ID == subID &&
-		stripe.SubStatus(group.Payment.Subscription.Status) == subStatus {
+		stripe.SubStatus(group.Payment.Subscription.Status) == subStatus &&
+		group.Payment.Customer.HasCard == hasCard {
 		return nil
 	}
 
@@ -228,6 +231,7 @@ func syncGroupWithCustomerID(cusID string) error {
 			"$set": modelhelper.Selector{
 				"payment.subscription.id":     subID,
 				"payment.subscription.status": string(subStatus),
+				"payment.customer.hasCard":    hasCard,
 			},
 		},
 	)

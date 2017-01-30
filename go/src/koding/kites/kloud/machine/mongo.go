@@ -136,7 +136,7 @@ func (m *MongoDatabase) Machines(f *Filter) ([]*Machine, error) {
 
 // toSlice is a helper function that converts bson.ObjectId set to slice.
 func toSlice(set map[bson.ObjectId]struct{}) (s []bson.ObjectId) {
-	for objID, _ := range set {
+	for objID := range set {
 		s = append(s, objID)
 	}
 	return s
