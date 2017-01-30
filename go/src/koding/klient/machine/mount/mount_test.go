@@ -7,6 +7,56 @@ import (
 	"testing"
 )
 
+func TestMakeIDString(t *testing.T) {
+	tests := map[string]struct {
+		Tok     string
+		ID      ID
+		IsValid bool
+	}{
+		"valid UUIDv4": {
+			Tok:     "e2d92c39-bcc6-45c8-86f6-7ca114ec7e06",
+			ID:      ID("e2d92c39-bcc6-45c8-86f6-7ca114ec7e06"),
+			IsValid: true,
+		},
+		"valid with braces": {
+			Tok:     "52560e13-ad72-4cef-a3d7-f52ca197168d",
+			ID:      ID("52560e13-ad72-4cef-a3d7-f52ca197168d"),
+			IsValid: true,
+		},
+		"invalid UUIDv1": {
+			Tok:     "123e4567-e89b-12d3-a456-426655440000",
+			ID:      ID(""),
+			IsValid: false,
+		},
+		"invalid": {
+			Tok:     "invalid",
+			ID:      ID(""),
+			IsValid: false,
+		},
+		"empty token": {
+			Tok:     "",
+			ID:      ID(""),
+			IsValid: false,
+		},
+	}
+
+	for name, test := range tests {
+		test := test // Capture range variable.
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			mountID, err := IDFromString(test.Tok)
+			if (err == nil) != test.IsValid {
+				t.Fatalf("want err == nil to be %t; got %v", test.IsValid, err)
+			}
+
+			if mountID != test.ID {
+				t.Errorf("want mount ID = %s; got %s", test.ID, mountID)
+			}
+		})
+	}
+}
+
 func TestMountBook(t *testing.T) {
 	var (
 		idA = MakeID()
@@ -63,7 +113,10 @@ func TestMountBook(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			sort.Sort(test.RemotePathIDs)
 			id, err := mb.Path(test.Path)
 			if test.PathID == "" && err == nil {

@@ -66,6 +66,8 @@ type Customer struct {
 	// IsMember indicates that created customer on stripe is not an admin in the
 	// group.
 	IsMember string `bson:"isMember" json:"isMember"`
+	// HasCard holds the card info of a team
+	HasCard bool `bson:"hasCard" json:"hasCard"`
 }
 
 // IsSubActive checks if subscription is in valid state for operation

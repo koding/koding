@@ -44,7 +44,10 @@ func TestUnion(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			res := Union(test.A, test.B)
 			if !reflect.DeepEqual(res, test.Expected) {
 				t.Errorf("want result set = %v; got %v", test.Expected, res)
@@ -90,7 +93,10 @@ func TestIntersection(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			res := Intersection(test.A, test.B)
 			if !reflect.DeepEqual(res, test.Expected) {
 				t.Errorf("want result set = %v; got %v", test.Expected, res)
@@ -136,7 +142,10 @@ func TestDiff(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			res := Diff(test.A, test.B)
 			if !reflect.DeepEqual(res, test.Expected) {
 				t.Errorf("want result set = %v; got %v", test.Expected, res)

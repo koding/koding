@@ -59,7 +59,10 @@ func TestAddPublicKey(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			metadata := addPublicKey(test.Metadata, test.User, test.PublicKey)
 			if !reflect.DeepEqual(metadata, test.Expected) {
 				t.Fatalf("want metadata = %#v; got %#v", test.Expected, metadata)
@@ -148,7 +151,10 @@ func TestFlatten(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			flattened := flatten(test.Data)
 			if !reflect.DeepEqual(flattened, test.Expected) {
 				t.Fatalf("want flattened = %#v; got %#v", test.Expected, flattened)

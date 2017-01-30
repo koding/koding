@@ -142,7 +142,10 @@ func TestImage2Size(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(test.Name, func(t *testing.T) {
+			t.Parallel()
 			f2i := Image2Size{
 				GetDiskSize: getDiskSizeFixtureFunc,
 			}

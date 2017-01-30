@@ -153,3 +153,28 @@ func KiteHandlerListMount(g *Group) kite.HandlerFunc {
 		return res, nil
 	}
 }
+
+// KiteHandlerUmount creates a kite handler function that, when called, invokes
+// machine group Umount method.
+func KiteHandlerUmount(g *Group) kite.HandlerFunc {
+	return func(r *kite.Request) (interface{}, error) {
+		req := &UmountRequest{}
+
+		if r.Args != nil {
+			if err := r.Args.One().Unmarshal(req); err != nil {
+				return nil, err
+			}
+		}
+
+		res, err := g.Umount(req)
+		if err != nil {
+			// TODO(ppknap): create errors file similar to kloud/stack/errors.
+			return nil, &kite.Error{
+				Type:    "machinesError",
+				Message: err.Error(),
+			}
+		}
+
+		return res, nil
+	}
+}

@@ -487,12 +487,6 @@ imports:
   - pkg/escape
 - name: github.com/jacobsa/fuse
   version: dc1be2d5b8abc34991a649f7499f9f673e36bb46
-  subpackages:
-  - fuseops
-  - fuseutil
-  - internal/buffer
-  - internal/freelist
-  - internal/fusekernel
 - name: github.com/jehiah/go-strftime
   version: 834e15c05a45371503440cc195bbd05c9a0968d9
 - name: github.com/jen20/riviera
@@ -1063,6 +1057,20 @@ imports:
   version: 7a41df006ff9af79a29f0ffa9c5f21fbe6314a2d
 - name: github.com/PuerkitoBio/urlesc
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
+- name: github.com/jacobsa/oglematchers
+  version: 141901ea67cd4769c6800aa7bfdfc558fa22bda5
+- name: github.com/jacobsa/ogletest
+  version: 2a5b07c33c04a549316a1f6a10a4fe396d1aca89
+- name: g§ithub.com/jacobsa/syncutil
+  version: c39ef5c1aa0b8fae9504e0146ba34c3922d69dc0
+- name: github.com/jacobsa/timeutil
+  version: 7106ba3aceaa475584d7d2a68795027a5e080f2b
+- name: github.com/jacobsa/oglemock
+  version: e94d794d06ffc6de42cb19d0dab3c219efdd6dcf
+- name: github.com/jacobsa/reqtrace
+  version: 245c9e0234cb2ad542483a336324e982f1a22934
+- name: github.com/kylelemons/godebug
+  version: d99083b96f422f8fd5a93bc02040acec769e178f
 testImports:
 - name: github.com/vaughan0/go-ini
   version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1

@@ -3,7 +3,6 @@ var path = require('path')
 var loaderUtils = require('loader-utils')
 
 module.exports = function(globals) {
-  this.cacheable && this.cacheable()
 
   var clientPath = loaderUtils.parseQuery(this.query).clientPath
   throwUnless(
@@ -75,4 +74,3 @@ function enhanceGlobals(globals, manifests, configFile, schemaFile) {
     'globals["modules"] = ' + JSON.stringify(modules) + ';',
   ].join('\n')
 }
-

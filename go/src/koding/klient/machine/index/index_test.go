@@ -124,7 +124,10 @@ func TestIndex(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			root, clean, err := generateTree()
 			if err != nil {
 				t.Fatalf("want err = nil; got %v", err)
@@ -190,7 +193,10 @@ func TestIndexCount(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			root, clean, err := generateTree()
 			if err != nil {
 				t.Fatalf("want err = nil; got %v", err)

@@ -8,10 +8,6 @@ import (
 	stripeplan "github.com/stripe/stripe-go/plan"
 )
 
-// Up to 10 users:  $49.97 per developer per month
-// Up to 50 users:  $39.97 per developer per month
-// Over 50 users:  $34.97 per developer per month
-
 // TrialPeriod: Specifies a trial period in (an integer number of) days. If you
 // include a trial period, the customer won’t be billed for the first time until
 // the trial period ends. If the customer cancels before the trial period is
@@ -21,79 +17,70 @@ const (
 	// planPrefix       = "p_"
 	customPlanPrefix = "p_c_"
 
-	Free        = "p_free"
-	UpTo10Users = "p_up_to_10"
-	UpTo50Users = "p_up_to_50"
-	Over50Users = "p_over_50"
+	Free    = "p_free"
+	Solo    = "p_solo"
+	General = "p_general"
 )
 
-// Plans holds koding provided plans on stripe
-var Plans = map[string]*stripe.PlanParams{
+// plans holds koding provided plans on stripe
+var plans = map[string]*stripe.PlanParams{
 	// Forever free koding
 	Free: {
 		Amount:        0,
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
 		TrialPeriod:   0,
-		Name:          "Free",
+		Name:          "Free User",
 		Currency:      currency.USD,
 		ID:            Free,
 		Statement:     "FREE",
 	},
 
-	UpTo10Users: {
-		Amount:        4997,
+	Solo: {
+		Amount:        100, // 1$
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
-		TrialPeriod:   7,
-		Name:          "Up to 10 users",
+		TrialPeriod:   30,
+		Name:          "Solo User",
 		Currency:      currency.USD,
-		ID:            UpTo10Users,
-		Statement:     "UP TO 10 USERS",
+		ID:            Solo,
+		Statement:     "SOLO",
 	},
 
-	UpTo50Users: {
-		Amount:        3982,
+	General: {
+		Amount:        990, // 9.9$
 		Interval:      stripeplan.Month,
 		IntervalCount: 1,
-		TrialPeriod:   7,
-		Name:          "Up to 50 users",
+		TrialPeriod:   30,
+		Name:          "General User",
 		Currency:      currency.USD,
-		ID:            UpTo50Users,
-		Statement:     "UP TO 50 USERS",
+		ID:            General,
+		Statement:     "GENERAL",
 	},
+}
 
-	Over50Users: {
-		Amount:        3493,
-		Interval:      stripeplan.Month,
-		IntervalCount: 1,
-		TrialPeriod:   7,
-		Name:          "Over 50 users",
-		Currency:      currency.USD,
-		ID:            Over50Users,
-		Statement:     "OVER 50 USERS",
-	},
+// GetPlan returns the plan by its name. User should check for existance.
+func GetPlan(name string) *stripe.PlanParams {
+	return plans[name]
 }
 
 // GetPlanID returns id of the plan according to the give user count
 func GetPlanID(userCount int) string {
 	switch {
 	case userCount == 0:
-		return Plans[Free].ID
-	case userCount < 10:
-		return Plans[UpTo10Users].ID
-	case userCount < 50:
-		return Plans[UpTo50Users].ID
+		return GetPlan(Free).ID
+	case userCount == 1:
+		return GetPlan(Solo).ID
 	default:
-		return Plans[Over50Users].ID
+		return GetPlan(General).ID
 	}
 }
 
 // CreateDefaultPlans creates predefined default plans. This is meant to be run
 // when the worker starts to be sure the plans are there.
 func CreateDefaultPlans() error {
-	for key := range Plans {
-		if err := EnsurePlan(Plans[key]); err != nil {
+	for _, plan := range plans {
+		if err := EnsurePlan(plan); err != nil {
 			return err
 		}
 	}

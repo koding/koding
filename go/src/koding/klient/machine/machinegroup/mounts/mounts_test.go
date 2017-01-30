@@ -44,7 +44,10 @@ func TestMountsPath(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			mountID, err := ms.Path(test.Path)
 			if (err == nil) != test.Valid {
 				t.Fatalf("want err == nil => %t; got err %v", test.Valid, err)
@@ -86,7 +89,10 @@ func TestMountsRemotePath(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			mountIDs, err := ms.RemotePath(test.RemotePath)
 			sort.Sort(mountIDs)
 			if (err == nil) != test.Valid {
@@ -129,7 +135,10 @@ func TestMountsMachineID(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			id, err := ms.MachineID(test.MountID)
 			if (err == nil) != test.Valid {
 				t.Fatalf("want err == nil => %t; got err %v", test.Valid, err)

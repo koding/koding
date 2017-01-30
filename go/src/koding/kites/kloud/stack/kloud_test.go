@@ -35,7 +35,10 @@ func TestReadProviders(t *testing.T) {
 	}
 
 	for name, cas := range cases {
+		// capture range variable here
+		cas := cas
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			providers, err := stack.ReadProviders([]byte(cas.tmpl))
 
 			if cas.err {
