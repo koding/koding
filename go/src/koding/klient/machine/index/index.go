@@ -1,6 +1,9 @@
 package index
 
 import (
+	"bytes"
+	"compress/gzip"
+	"encoding/base64"
 	"encoding/json"
 	"hash/crc32"
 	"io"
@@ -18,11 +21,11 @@ const Version = 1
 
 // Entry represents a single file registered to index.
 type Entry struct {
-	CTime int64       `json:"ctime"` // Metadata change time since EPOCH.
-	MTime int64       `json:"mtime"` // File data change time since EPOCH.
-	Mode  os.FileMode `json:"mode"`  // File mode and permission bits.
-	Size  int64       `json:"size"`  // Size of the file.
-	Hash  []byte      `json:"hash"`  // Hash of file content.
+	CTime int64       `json:"c"` // Metadata change time since EPOCH.
+	MTime int64       `json:"m"` // File data change time since EPOCH.
+	Mode  os.FileMode `json:"o"` // File mode and permission bits.
+	Size  int64       `json:"s"` // Size of the file.
+	Hash  []byte      `json:"h"` // Hash of file content.
 }
 
 // NewEntryFile creates new Entry from a file stored under path argument.
@@ -398,7 +401,15 @@ func (idx *Index) MarshalJSON() ([]byte, error) {
 	idx.mu.RLock()
 	defer idx.mu.RUnlock()
 
-	return json.Marshal(idx.entries)
+	var b bytes.Buffer
+	w := gzip.NewWriter(&b)
+	if err := json.NewEncoder(w).Encode(idx.entries); err != nil {
+		w.Close()
+		return nil, err
+	}
+	w.Close()
+
+	return []byte(`"` + base64.StdEncoding.EncodeToString(b.Bytes()) + `"`), nil
 }
 
 // UnmarshalJSON satisfies json.Unmarshaler interface. It is used to unmarshal
@@ -407,5 +418,17 @@ func (idx *Index) UnmarshalJSON(data []byte) error {
 	idx.mu.Lock()
 	defer idx.mu.Unlock()
 
-	return json.Unmarshal(data, &idx.entries)
+	dst := make([]byte, base64.StdEncoding.DecodedLen(len(data)-2))
+	n, err := base64.StdEncoding.Decode(dst, data[1:len(data)-1])
+	if err != nil {
+		return err
+	}
+
+	r, err := gzip.NewReader(bytes.NewReader(dst[:n]))
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+
+	return json.NewDecoder(r).Decode(&idx.entries)
 }
