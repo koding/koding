@@ -381,7 +381,7 @@ func (bs *BaseStack) UpdateResources(state *terraform.State) error {
 		if cred, e := bs.Builder.CredentialByProvider(machine.Provider); e == nil {
 			machine.Credential = cred
 		} else {
-			err = multierror.Append(e, fmt.Errorf("machine %q: no credential found for %q provider", label, machine.Provider))
+			err = multierror.Append(e, fmt.Errorf("machine %q: no credential found for %q provider: %s", label, machine.Provider, e))
 			machine.Credential = &stack.Credential{}
 		}
 
