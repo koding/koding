@@ -27,7 +27,7 @@ USER root
 
 RUN service postgresql start && \
     /definition/init.sh && \
-    /definition/create.sh
+    su postgres -c /definition/create.sh
 
 EXPOSE 5432
 
