@@ -77,9 +77,8 @@ func readKontrolKey() (*jwt.Token, error) {
 }
 
 func show() (err error) {
-	var tok *jwt.Token
 
-	tok, err = readKontrolKey()
+	tok, err := readKontrolKey()
 
 	if err != nil {
 		return fmt.Errorf("reading %q failed: %s", *file, err)
