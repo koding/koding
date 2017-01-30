@@ -15,12 +15,13 @@ module.exports = class Modal extends Component
   render: ->
 
     { isOpen, onAfterOpen, onRequestClose, children,
-      shouldCloseOnOverlayClick, width, height, showAlien } = @props
+      shouldCloseOnOverlayClick, width, height, showAlien, className } = @props
 
     className = classnames [
       styles.modal
       styles[width]
       styles[height]
+      className
     ]
 
     <ReactModal
@@ -43,8 +44,13 @@ Modal.defaultProps =
   showAlien: no
 
 
-exports.Header = Modal.Header = ({ title }) ->
-  <div className={styles.header}>
+exports.Header = Modal.Header = ({ title, className }) ->
+  className = classnames [
+    styles.header
+    className
+  ]
+
+  <div className={className}>
     <Label size='xlarge' type="info">{title}</Label>
   </div>
 
@@ -62,7 +68,14 @@ exports.Footer = Modal.Footer = (props) ->
   { secondaryButtonType, secondaryButtonSize
     secondaryButtonTitle, onSecondaryButtonClick } = props
 
-  <div className={styles.footer}>
+  { className } = props
+
+  className = classnames [
+    styles.footer
+    className
+  ]
+
+  <div className={className}>
     <div className={styles.footerContainer}>
 
       <Button type={secondaryButtonType} size={primaryButtonSize} onClick={onSecondaryButtonClick}>

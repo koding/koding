@@ -3,6 +3,7 @@ kd = require 'kd'
 { Grid, Row, Col } = require 'react-flexbox-grid'
 moment = require 'moment'
 formatNumber = require 'app/util/formatNumber'
+formatMoney = require 'app/util/formatMoney'
 dateDiffInDays = require 'app/util/dateDiffInDays'
 
 Box = require 'lab/Box'
@@ -74,6 +75,30 @@ module.exports = class SubscriptionHeader extends Component
       </Label>
     </Col>
 
+  renderAddons: ->
+
+    { addons, addonsPrice } = @props
+
+    return null  unless addons
+
+    <Col xs={8}>
+      <Label size="small" type='info'>
+        + {formatMoney addonsPrice} Business Add-On
+      </Label>
+    </Col>
+
+  renderSupportPlan: ->
+
+    { supportPlan } = @props
+
+    return null  unless supportPlan
+
+    <Col xs={8}>
+      <Label size="small" type='info'>
+        + {formatMoney supportPlan.price} {supportPlan.name} Support Plan
+      </Label>
+    </Col>
+
 
   render: ->
 
@@ -82,6 +107,8 @@ module.exports = class SubscriptionHeader extends Component
     <Row>
       {@renderTitle()}
       {@renderFreeCredit()  unless loading}
+      {@renderAddons()}
+      {@renderSupportPlan()}
       {@renderSubtitle()}
       {@renderNextBillingAmount()  unless loading}
     </Row>
@@ -93,6 +120,9 @@ SubscriptionHeader.propTypes =
   freeCredit: PropTypes.number
   nextBillingAmount: PropTypes.number
   endsAt: PropTypes.number
+  supportPlan: PropTypes.object
+  addons: PropTypes.bool
+  addonsPrice: PropTypes.number
 
 
 SubscriptionHeader.defaultProps =
@@ -101,3 +131,6 @@ SubscriptionHeader.defaultProps =
   nextBillingAmount: 0
   isTrial: no
   endsAt: Date.now()
+  supportPlan: null
+  addons: no
+  addonsPrice: 0

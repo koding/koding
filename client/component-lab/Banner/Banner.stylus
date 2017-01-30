@@ -1,0 +1,111 @@
+@import '~lab/Colors/Colors.stylus'
+
+.banner
+  color                                   #636363
+  border-radius                           0
+  position                                relative
+  display                                 flex
+  flex-direction                          row
+  &.image:after
+    content                               ''
+    position                              absolute
+    right                                 0
+    bottom                                0
+    z-index                               0
+  &.image-support_plan_activation:after
+    m-sprite                              'home', 'support_plan_activation'
+  &.image-banner_for_support_plans:after
+    m-sprite                              'home', 'banner_for_support_plans'
+  &.image-banner_for_billing:after
+    m-sprite                              'home', 'banner_for_billing'
+  &.image-banner_business_add_on:after
+    m-sprite                              'home', 'banner_business_add_on'
+  &.success
+   background-color                       $primary-2-faded-light
+  &.primary
+    background-color                      #eaf1f9
+    
+  .container
+    flex                                  1
+    z-index                               1
+    
+    div:last-child
+      margin-bottom                       0
+
+  .header
+    margin-bottom                         25px
+    h3, h4
+      font-size                           24px
+      margin-bottom                       10px
+    h3
+      font-weight                         600
+
+  .message
+    color                                 #868686
+    margin-bottom                         25px
+    letter-spacing                        0.5px
+  a
+    display                               block
+    padding                               10px 0
+    color                                 $primary-6
+    text-decoration                       none
+    &:last-child
+      padding-bottom                      0
+
+  .list
+    color                                 #868686
+    margin-bottom                         25px
+    h3
+      font-size                           20px
+      font-weight                         600
+      margin-bottom                       15px
+    .item
+      display                             block
+      font-size                           16px
+      font-weight                         400
+      padding-left                        15px
+      position                            relative
+      &:before
+        content                           '+'
+        position                          absolute
+        left                              0
+  
+  .footer
+    a
+      font-weight                         400
+
+  .actions
+    min-width                             170px
+    padding-left                          52px
+    padding-right                         4px
+    text-align                            center
+    display                               flex
+    flex-direction                        row
+    align-items                           center
+    justify-content                       center
+    z-index                               1
+    
+    a
+      width                               100%
+    
+  .priceSegment
+
+    .price
+      display                             block
+      margin-bottom                       5px
+      font-size                           28px
+      font-weight                         600
+      color                               #858585
+      
+    .period
+      display                             block
+      margin-bottom                       25px
+      font-weight                         100
+      font-size                           14px
+      color                               #a8a8a8
+
+  .divider
+    width                                 100%
+    height                                2px
+    background-color                      #d0d0d0
+    margin                                25px 0
