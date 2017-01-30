@@ -1,13 +1,3 @@
-# create folders for postgres data
-sudo mkdir -p /data/postgresql/tablespace/social
-sudo mkdir -p /data/postgresql/tablespace/socialbig
-# give ownership to postgres
-sudo chown -R postgres:postgres /data/postgresql/tablespace
-
-
-sudo -u postgres dropdb postgres
-sudo -u postgres createdb postgres
-
 if [ -d "$1" ]; then
   cd $1
 fi
