@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 // Request defines cached index operations that are requested from
 // client to remote machine.
 type Request struct {
-	Path string `json:"remotePath"` // Path to the folder we want to mount.
+	Rescan time.Duration `json:"rescan"`     // Rescan directory if index is older than Rescan.
+	Path   string        `json:"remotePath"` // Path to the folder we want to mount.
 }
 
 // HeadResponse contains the basic info about requested index.
@@ -79,7 +81,7 @@ func preparePath(path string) (string, error) {
 
 	info, err := os.Stat(absPath)
 	if os.IsNotExist(err) {
-		return "", errors.New("remote path does not exist")
+		return "", fmt.Errorf("remote path %s does not exist", absPath)
 	} else if err != nil {
 		return "", fmt.Errorf("cannot stat remote path: %s", err)
 	}
