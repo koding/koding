@@ -1,5 +1,13 @@
 #!/bin/bash
 
+declare psql_prog=$(which psql)
+
+function psql() {
+  local dbname=${KONFIG_POSTGRES_URL:-$1}
+  shift
+  $psql_prog $dbname "$@"
+}
+
 pushd $(dirname $0)/..
 
 # clear database
