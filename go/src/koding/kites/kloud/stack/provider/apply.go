@@ -381,7 +381,7 @@ func (bs *BaseStack) UpdateResources(state *terraform.State) error {
 		if cred, e := bs.Builder.CredentialByProvider(machine.Provider); e == nil {
 			machine.Credential = cred
 		} else {
-			err = multierror.Append(e, fmt.Errorf("machine %q: no credential found for %q provider: %s", label, machine.Provider, e))
+			err = multierror.Append(err, fmt.Errorf("machine %q: no credential found for %q provider: %s", label, machine.Provider, e))
 			machine.Credential = &stack.Credential{}
 		}
 
@@ -393,7 +393,7 @@ func (bs *BaseStack) UpdateResources(state *terraform.State) error {
 
 		e := modelhelper.UpdateMachine(m.ObjectId, bson.M{"$set": bs.buildUpdateObj(machine, state, now)})
 		if e != nil {
-			err = multierror.Append(e, fmt.Errorf("machine %q failed to update: %s", label, err))
+			err = multierror.Append(err, fmt.Errorf("machine %q failed to update: %s", label, e))
 			continue
 		}
 	}
