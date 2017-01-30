@@ -1,8 +1,6 @@
 #!/bin/bash
 
-if [ -d "$1" ]; then
-  cd $1
-fi
+pushd $(dirname $0)/..
 
 # clear database
 sudo -u postgres psql postgres --file definition/000-cleanup.sql
