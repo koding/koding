@@ -95,5 +95,3 @@ psql social --file integration_definition/004-table.sql
 
 # create constraints
 psql social --file integration_definition/005-constraint.sql
-
-# TODO: if you make changes to this file, don't forget `create-wercker.sh`
