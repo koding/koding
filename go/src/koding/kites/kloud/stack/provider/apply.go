@@ -365,12 +365,14 @@ func (bs *BaseStack) UpdateResources(state *terraform.State) error {
 		return err
 	}
 
+	var merr error
+
 	now := time.Now().UTC()
 
 	for label, m := range bs.Builder.Machines {
 		machine, ok := machines[label]
 		if !ok {
-			err = multierror.Append(err, fmt.Errorf("machine %q does not exist in terraform state file", label))
+			merr = multierror.Append(merr, fmt.Errorf("machine %q does not exist in terraform state file", label))
 			continue
 		}
 
@@ -381,24 +383,24 @@ func (bs *BaseStack) UpdateResources(state *terraform.State) error {
 		if cred, err := bs.Builder.CredentialByProvider(machine.Provider); err == nil {
 			machine.Credential = cred
 		} else {
-			err = multierror.Append(err, fmt.Errorf("machine %q: no credential found for %q provider", label, machine.Provider))
+			merr = multierror.Append(merr, fmt.Errorf("machine %q: no credential found for %q provider", label, machine.Provider))
 			machine.Credential = &stack.Credential{}
 		}
 
 		state, ok := bs.Klients[label]
 		if !ok {
-			err = multierror.Append(err, fmt.Errorf("machine %q does not exist in dial state", label))
+			merr = multierror.Append(merr, fmt.Errorf("machine %q does not exist in dial state", label))
 			continue
 		}
 
 		err := modelhelper.UpdateMachine(m.ObjectId, bson.M{"$set": bs.buildUpdateObj(machine, state, now)})
 		if err != nil {
-			err = multierror.Append(err, fmt.Errorf("machine %q failed to update: %s", label, err))
+			merr = multierror.Append(merr, fmt.Errorf("machine %q failed to update: %s", label, err))
 			continue
 		}
 	}
 
-	return err
+	return merr
 }
 
 func (bs *BaseStack) buildUpdateObj(m *stack.Machine, s *DialState, now time.Time) bson.M {
