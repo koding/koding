@@ -346,10 +346,10 @@ func TestPing(t *testing.T) {
 	}
 
 	msSince := time.Since(summaryFromChan.NewStatusTime).Nanoseconds() / 1000000
-	if msSince > 5 {
+	if msSince > 10 {
 		t.Errorf(
 			"Expected the new status time to me from a X ms ago. Wanted %dms, Got %dms",
-			5, msSince,
+			10, msSince,
 		)
 	}
 
