@@ -2,9 +2,8 @@
 
 set -o errexit
 
-cd $WERCKER_ROOT/go
-src/socialapi/db/sql/definition/create-wercker.sh src/socialapi/db/sql
-../run migrations
-bin/migrate -url $KONFIG_POSTGRES_URL -path "src/socialapi/db/sql/migrations" up
+$GOPATH/src/socialapi/db/sql/definition/create-wercker.sh src/socialapi/db/sql
+$KONFIG_PROJECTROOT/run migrations
+$GOBIN/migrate -url $KONFIG_POSTGRES_URL -path $GOPATH/src/socialapi/db/sql/migrations up
 
 exit 0
