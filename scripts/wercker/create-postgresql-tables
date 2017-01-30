@@ -3,8 +3,6 @@
 set -o errexit
 
 cd $WERCKER_ROOT/go
-mkdir -p src/socialapi/db/sql/kontrol
-cp src/vendor/github.com/koding/kite/kontrol/*.sql src/socialapi/db/sql/kontrol/
 src/socialapi/db/sql/definition/create-wercker.sh src/socialapi/db/sql
 ../run migrations
 bin/migrate -url $KONFIG_POSTGRES_URL -path "src/socialapi/db/sql/migrations" up
