@@ -20,7 +20,7 @@ RUN cd /opt && git clone https://github.com/koding/koding.git
 WORKDIR /opt/koding
 
 RUN service postgresql start && \
-    go/src/socialapi/db/sql/definition/create.sh go/src/socialapi/db/sql && \
+    go/src/socialapi/db/sql/definition/create.sh && \
     service postgresql stop
 
 RUN npm install --unsafe-perm && \
