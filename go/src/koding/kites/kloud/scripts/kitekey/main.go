@@ -77,7 +77,6 @@ func readKontrolKey() (*jwt.Token, error) {
 }
 
 func show() (err error) {
-
 	tok, err := readKontrolKey()
 
 	if err != nil {
