@@ -276,6 +276,11 @@ func (f *Controller) DeleteNicksWithQueryBrowseAll(queryName string) error {
 
 	counter := 0
 	recordBrowse, err := index.BrowseAll(params)
+	if err != nil {
+		fmt.Println("ERROR:", err)
+		return nil
+	}
+
 	for {
 		record, err := recordBrowse.Next()
 		if err != nil {
