@@ -424,17 +424,16 @@ module.exports = class JStackTemplate extends Module
       # If there is an error with group fetching, we assume that
       # this stack template is not in use by that group to not prevent
       # removal of non-used stack templates ~ GG
-      return callback no  if err or not group
+      return callback null  if err or not group
 
       templateId = @getId()
 
-      # TMS-1919: This is already written for multiple stacks, just a check
-      # might be required ~ GG
-
       for stackTemplateId in group.stackTemplates ? []
-        return callback yes  if templateId.equals stackTemplateId
+        if templateId.equals stackTemplateId
+          return callback new KodingError \
+            "Stack Template is currently in use by the Team", 'InUseByGroup'
 
-      callback no
+      callback null
 
 
   removeCustomCredentials = (client, credentials, callback) ->
@@ -460,11 +459,8 @@ module.exports = class JStackTemplate extends Module
 
     success: (client, callback) ->
 
-      @checkUsage (stackIsInUse) =>
-
-        if stackIsInUse
-          return callback new KodingError \
-            "It's not allowed to delete in-use stack templates!", 'InUseByGroup'
+      @checkUsage (err) =>
+        return callback err  if err
 
         customCredentials = @getAt('credentials.custom') ? []
         { context: { group }, connection: { delegate: account } } = client
