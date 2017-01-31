@@ -364,7 +364,7 @@ fetchUserPlan = (client, callback) ->
     callback err, planData
 
 
-checkUsage = (usage, plan, storage) ->
+checkLimit = (usage, plan, storage) ->
 
   err = null
   if usage.total + 1 > plan.total
@@ -438,7 +438,7 @@ flattenPayload = (payload, prefix = 'payload', res = {}) ->
 
 module.exports = {
   fetchUserPlan, fetchGroupStackTemplate, fetchUsage
-  PLANS, PROVIDERS, guessNextLabel, checkUsage
+  PLANS, PROVIDERS, guessNextLabel, checkLimit
   revive, reviveClient, reviveCredential, reviveGroupLimits
   checkTemplateUsage, generateSignatures, flattenPayload
 }

@@ -43,7 +43,7 @@ module.exports = class Koding extends ProviderInterface
     userIp   = clientIP or user.registeredFrom?.ip
     provider = @providerSlug
 
-    { guessNextLabel, checkUsage
+    { guessNextLabel, checkLimit
       fetchUserPlan, fetchUsage } = require './computeutils'
 
     guessNextLabel { user, group, label, provider }, (err, label) ->
@@ -55,7 +55,7 @@ module.exports = class Koding extends ProviderInterface
         fetchUsage client, { provider }, (err, usage) ->
           return callback err  if err
 
-          if err = checkUsage usage, userPlan, storage
+          if err = checkLimit usage, userPlan, storage
             return callback err
 
           region  = null  unless region in SUPPORTED_REGIONS

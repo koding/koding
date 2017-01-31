@@ -84,7 +84,7 @@ parseRequest = (req, res) ->
   { token, model, id } = req.params
 
   if token and not id and not isUUID token
-    [ model, id ] = [token, model]
+    [ model, id ] = [ token, model ]
     token = undefined
 
   unless model
