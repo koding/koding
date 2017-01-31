@@ -431,7 +431,7 @@ module.exports = class JStackTemplate extends Module
       for stackTemplateId in group.stackTemplates ? []
         if templateId.equals stackTemplateId
           return callback new KodingError \
-            "Stack Template is currently in use by the Team", 'InUseByGroup'
+            'Stack Template is currently in use by the Team', 'InUseByGroup'
 
       callback null
 

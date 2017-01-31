@@ -4353,6 +4353,36 @@
         }
       }
     },
+    "/remote.api/Kloud.destroyStack": {
+      "post": {
+        "tags": [
+          "Kloud"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Request processed succesfully",
+            "schema": {
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
+            }
+          }
+        }
+      }
+    },
     "/remote.api/JMachine.one": {
       "post": {
         "tags": [

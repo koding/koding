@@ -1,9 +1,11 @@
-{ Base, secure } = require 'bongo'
+{ Base, secure, signature } = require 'bongo'
 
 { Kite } = require 'kite.js'
 SockJs   = require 'node-sockjs-client'
 KONFIG   = require 'koding-config-manager'
 
+
+KodingError = require '../../error'
 clientRequire = require '../../clientrequire'
 KiteAPIMap = clientRequire 'app/lib/kite/kites/kiteapimap'
 { generateSignatures } = require './computeutils'
@@ -18,11 +20,12 @@ module.exports = class Kloud extends Base
 
   @share()
 
-  @set
-    permissions    :
-      'kite access': ['member']
-    sharedMethods  :
-      static       : generateSignatures KiteAPIMap.kloud
+  permissions    = { 'kite access': ['member'] }
+  sharedMethods  =
+    static       : generateSignatures KiteAPIMap.kloud
+  sharedMethods.static.destroyStack = (signature Object, Function)
+
+  @set { sharedMethods, permissions }
 
 
   NOTIFY_ON_CHANGE = [
@@ -87,6 +90,36 @@ module.exports = class Kloud extends Base
           notify client, { method, payload, res }
         callback null, res
       .catch (err) -> callback err
+
+
+  @destroyStack = permit 'kite access',
+
+    success: (client, options, callback) ->
+
+      { stackId, destroyTemplate = no } = options
+
+      JComputeStack = require '../stack'
+      JComputeStack.one$ client, { _id: stackId }, (err, stack) =>
+        return callback err  if err
+        return callback new KodingError 'No such stack found'  unless stack
+
+        options    =
+          stackId  : stack.getId()
+          provider : (stack.getAt 'config.requiredProviders')[0]
+          destroy  : true
+
+        baseStackId = stack.getAt 'baseStackId'
+
+        @buildStack client, options, (err) ->
+          return callback err  if err
+          return callback null  unless destroyTemplate
+
+          JStackTemplate = require './stacktemplate'
+          JStackTemplate.one$ client, { _id: baseStackId }, (err, template) ->
+            return callback err  if err
+            return callback null  unless template
+
+            template.delete client, callback
 
 
   do ->
