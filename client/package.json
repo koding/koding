@@ -155,6 +155,7 @@
     "stylus-loader": "2.4.0",
     "url-loader": "0.5.7",
     "webpack": "2.2.0",
+    "webpack-bundle-analyzer": "2.2.1",
     "webpack-notifier": "1.5.0",
     "yargs": "6.6.0"
   }
