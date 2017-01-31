@@ -25,6 +25,7 @@ type Entry struct {
 	Mode  os.FileMode `json:"o"` // File mode and permission bits.
 	Size  int64       `json:"s"` // Size of the file.
 	Hash  []byte      `json:"h"` // Hash of file content.
+	Aux   uint64      `json:"-"` // Auxiliary data, fuse uses it to store fuseops.InodeID.
 }
 
 // NewEntryFile creates new Entry from a file stored under path argument.
