@@ -80,6 +80,10 @@ func TestAuthLogin(t *testing.T) {
 
 			err = cmd.Run("team", "show", "--json")
 
+			if err != nil {
+				t.Fatalf("Run()=%s", err)
+			}
+
 			var gotTeam team.Team
 
 			if err := json.Unmarshal(buf.Bytes(), &gotTeam); err != nil {
