@@ -5,7 +5,7 @@
   "dependencies": {
     "@koding/bongo-client": "koding/bongo-client#v0.4",
     "@koding/getscript": "0.1.0",
-    "@koding/inherits-underscore": "0.2.0",
+    "@koding/inherits-underscore": "0.3.0",
     "@koding/shortcuts": "0.6.0",
     "accounting": "0.4.1",
     "algoliasearch": "3.20.3",
