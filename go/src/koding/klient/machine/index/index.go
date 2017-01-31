@@ -31,13 +31,12 @@ const (
 
 // Entry represents a single file registered to index.
 type Entry struct {
-	Hash  []byte      `json:"h"`          // Hash of file content.
-	CTime int64       `json:"c"`          // Metadata change time since EPOCH.
-	MTime int64       `json:"m"`          // File data change time since EPOCH.
-	Size  int64       `json:"s"`          // Size of the file.
-	Aux   uint64      `json:"-"`          // Auxiliary data, fuse uses it to store fuseops.InodeID.
-	Mode  os.FileMode `json:"o"`          // File mode and permission bits.
-	Meta  EntryMeta   `json:"t,omitempy"` // Entry metadata.
+	CTime int64       `json:"c"` // Metadata change time since EPOCH.
+	MTime int64       `json:"m"` // File data change time since EPOCH.
+	Mode  os.FileMode `json:"o"` // File mode and permission bits.
+	Size  int64       `json:"s"` // Size of the file.
+	Hash  []byte      `json:"h"` // Hash of file content.
+	Aux   uint64      `json:"-"` // Auxiliary data, fuse uses it to store fuseops.InodeID.
 }
 
 // NewEntryFile creates new Entry from a file stored under path argument.
