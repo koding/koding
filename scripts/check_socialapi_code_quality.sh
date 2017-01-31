@@ -14,9 +14,9 @@ echo "checking deadcode"
 ls --directory $GOPATH/src/socialapi/*/**/**/ | \
   xargs go/bin/deadcode
 
-echo "checking unused variables"
-echo $(cd $GOPATH/src; ls --directory socialapi/*/**/**/) | \
-  xargs $GOPATH/bin/varcheck
+# echo "checking unused variables"
+# echo $(cd $GOPATH/src; ls --directory socialapi/*/**/**/) | \
+#   xargs $GOPATH/bin/varcheck
 
 echo "checking cyclo complexity (disabled due to go1.6 switch - fixme!)"
 # Due to go1.6 gocyclo check started suddently to work showing
