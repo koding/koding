@@ -413,12 +413,15 @@ fetchUsage = (client, options, callback) ->
 
 # Signature generator for given apiMap like in
 # client/app/lib/kite/kites/kiteapimap ~ GG
-generateSignatures = (apiMap) ->
+generateSignatures = (apiMap, extras = []) ->
 
   { signature } = require 'bongo'
 
   signatures = {}
   for own method, rpcMethod of apiMap
+    signatures[method] = (signature Object, Function)
+
+  for method in extras
     signatures[method] = (signature Object, Function)
 
   return signatures

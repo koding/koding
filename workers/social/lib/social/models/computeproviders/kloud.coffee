@@ -20,13 +20,11 @@ module.exports = class Kloud extends Base
 
   @share()
 
-  permissions    = { 'kite access': ['member'] }
-  sharedMethods  =
-    static       : generateSignatures KiteAPIMap.kloud
-  sharedMethods.static.destroyStack = (signature Object, Function)
-
-  @set { sharedMethods, permissions }
-
+  @set
+    permissions    :
+      'kite access': ['member']
+    sharedMethods  :
+      static       : generateSignatures KiteAPIMap.kloud, ['destroyStack']
 
   NOTIFY_ON_CHANGE = [
     'apply', 'bootstrap', 'destroy', 'info'
@@ -96,7 +94,7 @@ module.exports = class Kloud extends Base
 
     success: (client, options, callback) ->
 
-      { stackId, destroyTemplate = no } = options
+      { stackId, destroyTemplate } = options
 
       JComputeStack = require '../stack'
       JComputeStack.one$ client, { _id: stackId }, (err, stack) =>
