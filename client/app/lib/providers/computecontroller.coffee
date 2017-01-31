@@ -74,6 +74,7 @@ module.exports = class ComputeController extends KDController
       groupsController.on 'StackTemplateChanged', @bound 'checkGroupStacks'
       groupsController.on 'StackAdminMessageCreated', @bound 'handleStackAdminMessageCreated'
       groupsController.on 'SharedStackTemplateAccessLevel', @bound 'sharedStackTemplateAccessLevel'
+      groupsController.on 'SetCredentialAccessLevel', @bound 'setCredentialAccessLevel'
 
       @fetchStacks =>
 
@@ -1506,3 +1507,6 @@ module.exports = class ComputeController extends KDController
   infoTest: (machine) ->
     ComputeHelpers = require './computehelpers'
     ComputeHelpers.infoTest machine
+
+  setCredentialAccessLevel: (params) ->
+    # not implemented

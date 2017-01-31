@@ -16,7 +16,10 @@ HomeVirtualMachinesConnectedMachines = require '../virtualmachines/homevirtualma
 HomeVirtualMachinesSharedMachines = require '../virtualmachines/homevirtualmachinessharedmachines'
 
 HomeAccountCredentialsView = require '../account/credentials/homeaccountcredentialsview'
+HomeAccountCredentialsView2 = require '../account/credentials/homeaccountcredentialsview2'
+
 EnvironmentFlux = require 'app/flux/environment'
+HomeCredentialFlux = require 'home/account/credentials/flux'
 
 AddManagedMachineModal = require 'app/providers/managed/addmanagedmachinemodal'
 
@@ -60,6 +63,7 @@ module.exports = class HomeStacks extends kd.CustomScrollView
       @createStacksViews()
       @createVMsViews()
       @createCredentialsViews()
+      @createCredentialsViews2()
 
     computeController.on 'MachineBeingDestroyed', (machine) ->
       stack = computeController.findStackFromMachineId machine._id
@@ -115,6 +119,7 @@ module.exports = class HomeStacks extends kd.CustomScrollView
 
     actions.loadTeamStackTemplates()
     actions.loadPrivateStackTemplates()
+    HomeCredentialFlux.actions.loadCredentials()
 
     if canCreateStacks()
       @stacks.addSubView view = new HomeStacksCreate
@@ -175,3 +180,8 @@ module.exports = class HomeStacks extends kd.CustomScrollView
 
     @credentials.addSubView headerize 'Credentials'
     @credentials.addSubView sectionize 'Credentials', HomeAccountCredentialsView
+
+  createCredentialsViews2: ->
+
+    @credentials.addSubView headerize 'Credentials2'
+    @credentials.addSubView sectionize 'Credentials2', HomeAccountCredentialsView2

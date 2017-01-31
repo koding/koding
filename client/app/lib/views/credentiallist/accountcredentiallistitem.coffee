@@ -3,6 +3,7 @@ JView            = require 'app/jview'
 KDCustomHTMLView = kd.CustomHTMLView
 globals          = require 'globals'
 CustomLinkView   = require 'app/customlinkview'
+whoami           = require 'app/util/whoami'
 
 module.exports = class AccountCredentialListItem extends kd.ListItemView
 
@@ -45,8 +46,22 @@ module.exports = class AccountCredentialListItem extends kd.ListItemView
         title    : 'SHOW'
         item     : this
         cssClass : 'HomeAppView--link primary'
-        click    : => delegate.emit 'ItemAction', { action : 'ShowItem', item : this }
+        click    : =>
+          delegate.emit 'ItemAction', { action : 'ShowItem', item : this }
 
+    if @data.accessLevel is 'private'
+      @credentialLinks.addSubView new CustomLinkView
+        title : 'Share'
+        item : this
+        cssClass : 'HomeAppView--link primary'
+        click    : => delegate.emit 'ItemAction', { action : 'ShareItem', item : this }
+
+    if @data.accessLevel isnt 'private' and whoami()._id is @data.originId
+      @credentialLinks.addSubView new CustomLinkView
+        title    : 'UnShare'
+        item     : this
+        cssClass : 'HomeAppView--link primary'
+        click    : => delegate.emit 'ItemAction', { action : 'UnShareItem', item : this }
 
   pistachio: ->
     '''

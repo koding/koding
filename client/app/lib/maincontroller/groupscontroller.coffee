@@ -93,6 +93,7 @@ module.exports = class GroupsController extends kd.Controller
           'GroupLeft'
           'StackAdminMessageCreated'
           'SharedStackTemplateAccessLevel'
+          'SetCredentialAccessLevel'
         ]
 
         callback null
