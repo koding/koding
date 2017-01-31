@@ -74,7 +74,7 @@ const (
 	ChannelMessage_TYPE_BOT             = "bot"
 	ChannelMessage_TYPE_SYSTEM          = "system"
 
-	ChannelMessagePayloadKeyLocation    = "location"
+	ChannelMessagePayloadKeyLocation = "location"
 )
 
 func (c *ChannelMessage) Location() *string {

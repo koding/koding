@@ -43,7 +43,10 @@ func TestAuthLogin(t *testing.T) {
 	}
 
 	for name, cas := range cases {
+		// capture range variable here
+		cas := cas
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			var buf bytes.Buffer
 
 			cmd := &MainCmd{
@@ -104,7 +107,10 @@ func TestAuthLoginToken(t *testing.T) {
 	}
 
 	for name, cas := range cases {
+		// capture range variable here
+		cas := cas
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			var buf bytes.Buffer
 
 			cmd := &MainCmd{

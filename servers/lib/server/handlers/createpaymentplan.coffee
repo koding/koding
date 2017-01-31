@@ -28,7 +28,7 @@ module.exports = createPaymentPlan = (params = {}, callback) ->
     return callback err  if err
 
     params.customer = customer.id
-    params.plan = Plan.UP_TO_10_USERS
+    params.plan = Plan.SOLO
 
     createSubscription params, (err, subscription) ->
       return callback err  if err

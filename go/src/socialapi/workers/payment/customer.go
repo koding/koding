@@ -140,7 +140,16 @@ func UpdateCustomerForGroup(username, groupName string, params *stripe.CustomerP
 		}
 	}
 
-	return customer.Update(group.Payment.Customer.ID, params)
+	cus, err := customer.Update(group.Payment.Customer.ID, params)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := syncGroupWithCustomerID(group.Payment.Customer.ID); err != nil {
+		return nil, err
+	}
+
+	return cus, err
 }
 
 // GetCustomerForGroup get the registered customer info of a group if exists
@@ -342,6 +351,18 @@ func CheckCustomerHasSource(cusID string) error {
 	cus, err := customer.Get(cusID, nil)
 	if err != nil {
 		return err
+	}
+
+	return checkCustomerHasSourceWithCustomer(cus)
+}
+
+func checkCustomerHasSourceWithCustomer(cus *stripe.Customer) error {
+	if cus == nil {
+		return ErrCustomerNotExists
+	}
+
+	if cus.Sources == nil {
+		return ErrCustomerSourceNotExists
 	}
 
 	count := 0

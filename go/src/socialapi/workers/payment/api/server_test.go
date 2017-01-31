@@ -22,6 +22,10 @@ func withTestServer(t *testing.T, f func(url string)) {
 		t.Fatal(err)
 	}
 
+	if r.Conf.Debug {
+		stripe.LogLevel = 3
+	}
+
 	c := config.MustRead(r.Conf.Path)
 	// init mongo connection
 	modelhelper.Initialize(c.Mongo)
@@ -32,9 +36,6 @@ func withTestServer(t *testing.T, f func(url string)) {
 	port := tests.GetFreePort()
 	mc := mux.NewConfig(workerName, "localhost", port)
 	mc.Debug = r.Conf.Debug
-	if r.Conf.Debug {
-		stripe.LogLevel = 3
-	}
 	m := mux.New(mc, r.Log, r.Metrics)
 
 	AddHandlers(m)

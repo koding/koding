@@ -1,0 +1,67 @@
+.Homepage-referral {
+  background-color: #EFF6FF;
+  padding: 28px 0;
+  text-align: center;
+  font-size: 22px;
+  color: #515151;
+
+  svg {
+    height: 64px;
+    width: 64px;
+    display: inline-block;
+    vertical-align: -24px;
+  }
+
+  span {
+    color: #F2778A;
+    font-weight: 600;
+  }
+
+  p {
+    display: inline-block;
+    margin-left: 26px;
+    text-align: left;
+  }
+
+  a {
+    color: #67A2EE;
+    text-decoration: none;
+  }
+
+  br {
+    display: none;
+  }
+}
+
+@media (max-width: 880px) {
+  .Homepage-referral {
+    p {
+      width: 400px;
+    }
+
+    svg {
+      vertical-align: -7px;
+    }
+  }
+}
+
+@media (max-width: 660px) {
+  .Homepage-referral {
+    padding: 41px 0;
+
+    p {
+      margin: 0;
+      width: 284px;
+      text-align: center;
+    }
+
+    svg {
+      display: block;
+      margin: 0 auto 36px;
+    }
+
+    br {
+      display: block;
+    }
+  }
+}

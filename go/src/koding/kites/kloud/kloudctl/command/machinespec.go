@@ -172,7 +172,7 @@ func (spec *MachineSpec) BuildMachine(createUser bool) error {
 			if err = modelhelper.CreateUser(&spec.User); err != nil {
 				return err
 			}
-			
+
 			user = &spec.User
 		}
 

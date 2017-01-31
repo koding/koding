@@ -14,7 +14,7 @@ import (
 )
 
 //go:generate $GOPATH/bin/go-bindata -mode 420 -modtime 1470666525 -pkg aws -o bootstrap.json.tmpl.go bootstrap.json.tmpl
-//go:generate go fmt bootstrap.json.tmpl.go
+//go:generate gofmt -l -w -s bootstrap.json.tmpl.go
 
 var bootstrap = template.Must(template.New("").Parse(mustAsset("bootstrap.json.tmpl")))
 

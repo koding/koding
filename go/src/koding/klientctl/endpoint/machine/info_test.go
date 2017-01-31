@@ -50,7 +50,10 @@ func TestInfoSliceSort(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			sort.Sort(InfoSlice(test.Provided))
 
 			provided, expected := getNames(test.Provided), getNames(test.Expected)
@@ -111,7 +114,10 @@ func TestShortDuration(t *testing.T) {
 	}
 
 	for name, test := range tests {
+		// capture range variable here
+		test := test
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			got := ShortDuration(test.Time, now)
 			if got != test.Expected {
 				t.Fatalf("want formatted time = %v; got %v", test.Expected, got)

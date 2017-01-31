@@ -48,13 +48,13 @@ module.exports = (options) ->
     apiSecretKey: ''
     apiSearchOnlyKey: ''
   postgres =
-    host: '#{options.serviceHost}'
+    host: "#{options.serviceHost}"
     port: '5432'
     username: 'socialapplication'
     password: 'socialapplication'
     dbname: 'social'
   kontrolPostgres =
-    host: '#{options.serviceHost}'
+    host: "#{options.serviceHost}"
     port: 5432
     username: 'kontrolapplication'
     password: 'kontrolapplication'

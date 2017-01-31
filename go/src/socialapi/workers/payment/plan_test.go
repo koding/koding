@@ -19,7 +19,7 @@ func TestCreateDefaultPlans(t *testing.T) {
 			So(CreateDefaultPlans(), ShouldBeNil)
 
 			Convey("Plans should be in Stripe", func() {
-				for _, plan := range Plans {
+				for _, plan := range plans {
 					_, err := stripePlan.Get(plan.ID, nil)
 					So(err, ShouldBeNil)
 				}

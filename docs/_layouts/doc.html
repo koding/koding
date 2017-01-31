@@ -25,8 +25,6 @@
 
   <main>
 
-    {% include nav-docs.html %}
-
     <section class="markdown-body">
 
       {{ content }}
@@ -37,6 +35,8 @@
       <p class="citation"><cite>See the source of this document at <a href="http://terraform.io/docs/{{ page.url | remove: '/docs/terraform/' | slice: 0, size }}" target="_blank">Terraform.io</a></cite></p>
       {% endif %}
     </section>
+    
+    {% include nav-docs.html %}
 
   </main>
 

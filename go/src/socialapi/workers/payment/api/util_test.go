@@ -43,31 +43,19 @@ func withStubData(endpoint string, f func(username string, groupName string, ses
 }
 
 func withTestPlan(f func(planID string)) {
-	err := payment.EnsurePlan(payment.Plans[payment.Free])
+	p := payment.GetPlan(payment.Free)
+	err := payment.EnsurePlan(p)
 	So(err, ShouldBeNil)
 
-	f(payment.Plans[payment.Free].ID)
+	f(p.ID)
 }
 
 func withTrialTestPlan(f func(planID string)) {
-	pp := &stripe.PlanParams{
-		Amount:        10,
-		Interval:      plan.Month,
-		IntervalCount: 1,
-		TrialPeriod:   1,
-		Name:          "Trailing 10",
-		Currency:      currency.USD,
-		ID:            fmt.Sprintf("p_%s", bson.NewObjectId().Hex()),
-		Statement:     "Trailing 10",
-	}
-
-	_, err := plan.New(pp)
+	p := payment.GetPlan(payment.General)
+	err := payment.EnsurePlan(p)
 	So(err, ShouldBeNil)
 
-	f(pp.ID)
-
-	_, err = plan.Del(pp.ID)
-	So(err, ShouldBeNil)
+	f(p.ID)
 }
 
 func withNonFreeTestPlan(f func(planID string)) {
@@ -151,30 +139,26 @@ func withSubscription(endpoint, groupName, sessionID, planID string, f func(subs
 	group, err := modelhelper.GetGroup(groupName)
 	tests.ResultedWithNoErrorCheck(group, err)
 
-	Convey("We should be able to create a subscription", func() {
-		req, err := json.Marshal(&stripe.SubParams{
-			Customer: group.Payment.Customer.ID,
-			Plan:     planID,
-		})
-		tests.ResultedWithNoErrorCheck(req, err)
-
-		res, err := rest.DoRequestWithAuth("POST", createURL, req, sessionID)
-		tests.ResultedWithNoErrorCheck(res, err)
-
-		v := &stripe.Sub{}
-		err = json.Unmarshal(res, v)
-		So(err, ShouldBeNil)
-
-		f(v.ID)
-
-		Convey("We should be able to cancel the subscription", func() {
-			res, err = rest.DoRequestWithAuth("DELETE", deleteURL, req, sessionID)
-			tests.ResultedWithNoErrorCheck(res, err)
-
-			v = &stripe.Sub{}
-			err = json.Unmarshal(res, v)
-			So(err, ShouldBeNil)
-			So(v.Status, ShouldEqual, "canceled")
-		})
+	req, err := json.Marshal(&stripe.SubParams{
+		Customer: group.Payment.Customer.ID,
+		Plan:     planID,
 	})
+	tests.ResultedWithNoErrorCheck(req, err)
+
+	res, err := rest.DoRequestWithAuth("POST", createURL, req, sessionID)
+	tests.ResultedWithNoErrorCheck(res, err)
+
+	v := &stripe.Sub{}
+	err = json.Unmarshal(res, v)
+	So(err, ShouldBeNil)
+
+	f(v.ID)
+
+	res, err = rest.DoRequestWithAuth("DELETE", deleteURL, req, sessionID)
+	tests.ResultedWithNoErrorCheck(res, err)
+
+	v = &stripe.Sub{}
+	err = json.Unmarshal(res, v)
+	So(err, ShouldBeNil)
+	So(v.Status, ShouldEqual, "canceled")
 }

@@ -14,7 +14,7 @@ import (
 )
 
 //go:generate $GOPATH/bin/go-bindata -mode 420 -modtime 1475345133 -pkg google -o bootstrap.json.tmpl.go bootstrap.json.tmpl
-//go:generate go fmt bootstrap.json.tmpl.go
+//go:generate gofmt -l -w -s bootstrap.json.tmpl.go
 
 const (
 	defaultMachineType  = "n1-standard-1"   // 1vCPU, 3.75GB memory.
