@@ -116,8 +116,8 @@ func (cs ChangeSlice) Less(i, j int) bool { return cs[i].Name < cs[j].Name }
 // Index stores a virtual working tree state. It recursively records objects in
 // a given root path and allows to efficiently detect changes on it.
 type Index struct {
-	mu      sync.RWMutex
-	entries map[string]*Entry
+	mu   sync.RWMutex
+	root *Node
 }
 
 var (
@@ -128,7 +128,7 @@ var (
 // NewIndex creates the empty index object.
 func NewIndex() *Index {
 	return &Index{
-		entries: make(map[string]*Entry, 0),
+		root: newNode(),
 	}
 }
 
@@ -187,7 +187,7 @@ func (idx *Index) addEntryWorker(root string, wg *sync.WaitGroup, fC <-chan *fil
 		}
 
 		idx.mu.Lock()
-		idx.entries[name] = entry
+		idx.root.Add(name, entry)
 		idx.mu.Unlock()
 	}
 }
@@ -195,43 +195,28 @@ func (idx *Index) addEntryWorker(root string, wg *sync.WaitGroup, fC <-chan *fil
 // Count returns the number of entries stored in index. Only items which size is
 // below provided value are counted. If provided argument is negative, this
 // function will return the number of all entries.
-func (idx *Index) Count(maxsize int64) (count int) {
+func (idx *Index) Count(maxsize int64) int {
 	idx.mu.RLock()
 	defer idx.mu.RUnlock()
 
-	if maxsize < 0 {
-		return len(idx.entries)
-	} else if maxsize == 0 {
-		return 0
-	}
-
-	for _, entry := range idx.entries {
-		if entry != nil && entry.Size <= maxsize {
-			count++
-		}
-	}
-
-	return count
+	return idx.root.Count(maxsize)
 }
 
 // DiskSize tells how much disk space would be used by entries stored in index.
 // Only items which size is below provided value are counted. If provided
 // argument is negative, this function will count disk size of all items.
-func (idx *Index) DiskSize(maxsize int64) (size int64) {
+func (idx *Index) DiskSize(maxsize int64) int64 {
 	idx.mu.RLock()
 	defer idx.mu.RUnlock()
 
-	if maxsize == 0 {
-		return 0
-	}
+	return idx.root.DiskSize(maxsize)
+}
 
-	for _, entry := range idx.entries {
-		if entry != nil && (maxsize < 0 || entry.Size <= maxsize) {
-			size += entry.Size
-		}
-	}
+func (idx *Index) Lookup(name string) (*Node, bool) {
+	idx.mu.RLock()
+	defer idx.mu.RUnlock()
 
-	return size
+	return idx.root.Lookup(name)
 }
 
 // Compare rereads the given file tree roted at root and compares its entries
@@ -253,7 +238,7 @@ func (idx *Index) Compare(root string) (cs ChangeSlice) {
 		name = filepath.ToSlash(name)
 
 		idx.mu.RLock()
-		entry, ok := idx.entries[name]
+		nd, ok := idx.root.Lookup(name)
 		idx.mu.RUnlock()
 
 		// Not found in current index - file was added.
@@ -269,9 +254,10 @@ func (idx *Index) Compare(root string) (cs ChangeSlice) {
 
 		// Entry is read only-now. Check for changes.
 		visited[name] = struct{}{}
-		if entry.MTime != info.ModTime().UnixNano() ||
-			entry.CTime != ctime(info) ||
-			entry.Size != info.Size() {
+
+		if nd.Entry.MTime != info.ModTime().UnixNano() ||
+			nd.Entry.CTime != ctime(info) ||
+			nd.Entry.Size != info.Size() {
 			cs = append(cs, Change{
 				Name:      name,
 				Size:      safeTruncate(info.Size()),
@@ -289,18 +275,19 @@ func (idx *Index) Compare(root string) (cs ChangeSlice) {
 
 	// Check for removes.
 	idx.mu.RLock()
-	for name := range idx.entries {
+	idx.root.ForEach(func(name string, entry *Entry) {
 		if _, ok := visited[name]; !ok {
 			path := filepath.Join(root, filepath.FromSlash(name))
+
 			if _, err := os.Lstat(path); os.IsNotExist(err) {
 				cs = append(cs, Change{
 					Name:      name,
-					Meta:      ChangeMetaRemove | markLargeMeta(idx.entries[name].Size),
+					Meta:      ChangeMetaRemove | markLargeMeta(entry.Size),
 					CreatedAt: time.Now().UnixNano(),
 				})
 			}
 		}
-	}
+	})
 	idx.mu.RUnlock()
 
 	return cs
@@ -352,11 +339,11 @@ func (idx *Index) Apply(root string, cs ChangeSlice) {
 			// Check if the event is still valid or if it was replaced by newer
 			// change.
 			idx.mu.RLock()
-			entry, ok := idx.entries[cs[i].Name]
+			nd, ok := idx.root.Lookup(cs[i].Name)
 			idx.mu.RUnlock()
 
 			// Entry was updated/added after the event was created.
-			if ok && entry.MTime > cs[i].CreatedAt {
+			if ok && nd.Entry.MTime > cs[i].CreatedAt {
 				continue
 			}
 			fallthrough
@@ -368,7 +355,7 @@ func (idx *Index) Apply(root string, cs ChangeSlice) {
 			info, err := os.Lstat(path)
 			if os.IsNotExist(err) {
 				idx.mu.Lock()
-				delete(idx.entries, cs[i].Name)
+				idx.root.Del(cs[i].Name)
 				idx.mu.Unlock()
 				continue
 			}
@@ -403,7 +390,7 @@ func (idx *Index) MarshalJSON() ([]byte, error) {
 
 	var b bytes.Buffer
 	w := gzip.NewWriter(&b)
-	if err := json.NewEncoder(w).Encode(idx.entries); err != nil {
+	if err := json.NewEncoder(w).Encode(idx.root); err != nil {
 		w.Close()
 		return nil, err
 	}
@@ -430,5 +417,5 @@ func (idx *Index) UnmarshalJSON(data []byte) error {
 	}
 	defer r.Close()
 
-	return json.NewDecoder(r).Decode(&idx.entries)
+	return json.NewDecoder(r).Decode(&idx.root)
 }
