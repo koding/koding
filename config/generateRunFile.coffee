@@ -386,7 +386,7 @@ generateDev = (KONFIG, options) ->
     }
 
     function runMongoDocker () {
-        docker run -d -p $KONFIG_SERVICEHOST:27017:27017 --name=mongo mongo:3.2.8 --nojournal --noprealloc --smallfiles
+        docker run -d -p $KONFIG_SERVICEHOST:27017:27017 --name=mongo mongo:2.6 --nojournal --noprealloc --smallfiles
         check_connectivity mongo
     }
 
