@@ -1,4 +1,4 @@
-{ ObjectId, signature } = require 'bongo'
+{ ObjectId, signature, secure } = require 'bongo'
 { Module, Relationship } = require 'jraphical'
 
 _ = require 'lodash'
@@ -10,10 +10,15 @@ clientRequire = require '../../clientrequire'
 
 module.exports = class JStackTemplate extends Module
 
-  { slugify }  = require '../../traits/slugifiable'
-  { permit }   = require '../group/permissionset'
-  Validators   = require '../group/validators'
-  { revive, checkTemplateUsage } = require './computeutils'
+  { slugify } = require '../../traits/slugifiable'
+  { permit }  = require '../group/permissionset'
+  Validators  = require '../group/validators'
+
+  {
+    revive
+    flattenPayload
+    checkTemplateUsage
+  } = require './computeutils'
 
   @trait __dirname, '../../traits/protected'
   @trait __dirname, '../../traits/notifiable'
@@ -70,6 +75,8 @@ module.exports = class JStackTemplate extends Module
         setAccess     :
           (signature String, Function)
         update        :
+          (signature Object, Function)
+        build         :
           (signature Object, Function)
         clone         :
           (signature Function)
@@ -417,17 +424,16 @@ module.exports = class JStackTemplate extends Module
       # If there is an error with group fetching, we assume that
       # this stack template is not in use by that group to not prevent
       # removal of non-used stack templates ~ GG
-      return callback no  if err or not group
+      return callback null  if err or not group
 
       templateId = @getId()
 
-      # TMS-1919: This is already written for multiple stacks, just a check
-      # might be required ~ GG
-
       for stackTemplateId in group.stackTemplates ? []
-        return callback yes  if templateId.equals stackTemplateId
+        if templateId.equals stackTemplateId
+          return callback new KodingError \
+            'Stack Template is currently in use by the Team', 'InUseByGroup'
 
-      callback no
+      callback null
 
 
   removeCustomCredentials = (client, credentials, callback) ->
@@ -453,11 +459,8 @@ module.exports = class JStackTemplate extends Module
 
     success: (client, callback) ->
 
-      @checkUsage (stackIsInUse) =>
-
-        if stackIsInUse
-          return callback new KodingError \
-            "It's not allowed to delete in-use stack templates!", 'InUseByGroup'
+      @checkUsage (err) =>
+        return callback err  if err
 
         customCredentials = @getAt('credentials.custom') ? []
         { context: { group }, connection: { delegate: account } } = client
@@ -662,12 +665,15 @@ module.exports = class JStackTemplate extends Module
       { permission: 'update stack template' }
     ]
 
-    success: (client, callback) ->
+    success: (client, options, callback) ->
+
+      [ options, callback ] = [ callback, options ]  unless callback
+      options          ?= {}
 
       cloneData         =
         slug            : @getAt 'slug'
-        title           : "#{@getAt 'title'} - clone"
-        description     : @getAt 'description'
+        title           : options.title ? "#{@getAt 'title'} - clone"
+        description     : options.description ? @getAt 'description'
 
         config          : @getAt 'config'
         machines        : @getAt 'machines'
@@ -694,6 +700,39 @@ module.exports = class JStackTemplate extends Module
           JStackTemplate.create client, cloneData, callback
       else
         JStackTemplate.create client, cloneData, callback
+
+
+  build: secure (client, payload, callback) ->
+
+    unless @getAt 'config.verified'
+      return callback new KodingError 'Stack needs to be verified first'
+
+    # TODO: GitHub Payload specific updates, this can be moved some other
+    # place as a middleware ~GG
+    options = {}
+    if payload?.after
+      options.title = "#{@getAt 'title'} - #{payload.after[..10]}"
+      if payload.repository?.url?
+        options.description = \
+          "Auto build for #{payload.repository.url}@#{payload.after}"
+
+    @clone client, options, (err, clonedTemplate) ->
+      return callback err  if err
+      unless clonedTemplate
+        return callback new KodingError 'Failed to clone template'
+
+      clonedTemplate.generateStack client, (err, res) ->
+        return callback err  if err
+        unless res.stack
+          return callback new KodingError 'Failed to generate stack'
+
+        { stack: generatedStack } = res
+        stackId = generatedStack.getId()
+        provider = (generatedStack.getAt 'config.requiredProviders')[0]
+        variables = flattenPayload payload
+
+        Kloud = require './kloud'
+        Kloud.buildStack client, { stackId, provider, variables }, callback
 
 
   forceStacksToReinit: permit 'force stacks to reinit',

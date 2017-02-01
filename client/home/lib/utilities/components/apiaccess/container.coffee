@@ -15,7 +15,7 @@ module.exports = class ApiAccessContainer extends React.Component
       apiAccessState: TeamFlux.getters.apiAccessState
     }
 
-  componentWillMount: ->
+  componentDidMount: ->
 
     TeamFlux.actions.fetchApiTokens()
     TeamFlux.actions.fetchCurrentStateOfApiAccess()

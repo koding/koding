@@ -364,7 +364,7 @@ fetchUserPlan = (client, callback) ->
     callback err, planData
 
 
-checkUsage = (usage, plan, storage) ->
+checkLimit = (usage, plan, storage) ->
 
   err = null
   if usage.total + 1 > plan.total
@@ -411,9 +411,37 @@ fetchUsage = (client, options, callback) ->
       callback null, { total, alwaysOn, storage, snapshots }
 
 
+# Signature generator for given apiMap like in
+# client/app/lib/kite/kites/kiteapimap ~ GG
+generateSignatures = (apiMap, extras = []) ->
+
+  { signature } = require 'bongo'
+
+  signatures = {}
+  for own method, rpcMethod of apiMap
+    signatures[method] = (signature Object, Function)
+
+  for method in extras
+    signatures[method] = (signature Object, Function)
+
+  return signatures
+
+
+# Flatten's given object with keys prefixed ~ GG
+flattenPayload = (payload, prefix = 'payload', res = {}) ->
+
+  for own key, value of payload
+    key = "#{prefix}_#{key}"
+    if value and 'object' is typeof value
+    then res = flattenPayload value, key, res
+    else res[key] = "#{value}"
+
+  return res
+
+
 module.exports = {
   fetchUserPlan, fetchGroupStackTemplate, fetchUsage
-  PLANS, PROVIDERS, guessNextLabel, checkUsage
+  PLANS, PROVIDERS, guessNextLabel, checkLimit
   revive, reviveClient, reviveCredential, reviveGroupLimits
-  checkTemplateUsage
+  checkTemplateUsage, generateSignatures, flattenPayload
 }

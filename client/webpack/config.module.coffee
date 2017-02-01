@@ -2,6 +2,7 @@ path = require 'path'
 
 { CLIENT_PATH, PUBNUB_PATH } = require './constants'
 generateAMDLoaders = require './util/generateAMDLoaders'
+ExtractTextPlugin = require 'extract-text-webpack-plugin'
 
 thirdPartyLoaders = ->
   return [{
@@ -45,21 +46,30 @@ stylModulesLoader = ->
   return {
     test: /\.stylus$/
     include: CLIENT_PATH
-    use: ['happypack/loader?id=styl-modules']
+    loader: ExtractTextPlugin.extract
+      fallbackLoader: 'style-loader'
+      loader: [
+        'css-loader?modules&importLoaders=1&localIdentName=[name]__[local]___[hash:base64:5]'
+        'stylus-loader'
+      ]
   }
 
 stylGlobalLoader = ->
   return {
     test: /\.styl$/
     include: CLIENT_PATH
-    use: ['happypack/loader?id=styl-global']
+    loader: ExtractTextPlugin.extract
+      fallbackLoader: 'style-loader'
+      loader: [ 'css-loader', 'stylus-loader' ]
   }
 
 cssModulesLoader = ->
   return {
     test: /\.css$/,
     include: /flexboxgrid/,
-    use: ['happypack/loader?id=css-modules']
+    loader: ExtractTextPlugin.extract
+      fallbackLoader: 'style-loader'
+      loader: [ 'css-loader?modules' ]
   }
 
 cssGlobalLoader = ->
@@ -67,7 +77,9 @@ cssGlobalLoader = ->
     test: /\.css$/
     include: CLIENT_PATH
     exclude: /flexboxgrid/,
-    use: ['happypack/loader?id=css-global']
+    loader: ExtractTextPlugin.extract
+      fallbackLoader: 'style-loader'
+      loader: [ 'css-loader' ]
   }
 
 staticAssetLoaders = ->

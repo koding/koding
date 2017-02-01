@@ -1,6 +1,9 @@
 package index
 
 import (
+	"bytes"
+	"compress/gzip"
+	"encoding/base64"
 	"encoding/json"
 	"hash/crc32"
 	"io"
@@ -18,39 +21,37 @@ const Version = 1
 
 // Entry represents a single file registered to index.
 type Entry struct {
-	Name  string      `json:"name"`  // The relative name of the file.
-	CTime int64       `json:"ctime"` // Metadata change time since EPOCH.
-	MTime int64       `json:"mtime"` // File data change time since EPOCH.
-	Mode  os.FileMode `json:"mode"`  // File mode and permission bits.
-	Size  int64       `json:"size"`  // Size of the file.
-	Hash  []byte      `json:"hash"`  // Hash of file content.
+	CTime int64       `json:"c"` // Metadata change time since EPOCH.
+	MTime int64       `json:"m"` // File data change time since EPOCH.
+	Mode  os.FileMode `json:"o"` // File mode and permission bits.
+	Size  int64       `json:"s"` // Size of the file.
+	Hash  []byte      `json:"h"` // Hash of file content.
 }
 
 // NewEntryFile creates new Entry from a file stored under path argument.
 // Info is optional and, if given, should store LStat result on the given file.
-func NewEntryFile(root, path string, info os.FileInfo) (e *Entry, err error) {
+func NewEntryFile(root, path string, info os.FileInfo) (name string, e *Entry, err error) {
 	if info == nil {
 		if info, err = os.Lstat(path); err != nil {
-			return nil, err
+			return "", nil, err
 		}
 	}
 
 	// Get relative file name.
-	name, err := filepath.Rel(root, path)
+	name, err = filepath.Rel(root, path)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	// Compute file's hash sum.
 	var sum []byte
 	if !info.IsDir() {
 		if sum, err = readCRC32(path); err != nil {
-			return nil, err
+			return "", nil, err
 		}
 	}
 
-	return &Entry{
-		Name:  filepath.ToSlash(name),
+	return filepath.ToSlash(name), &Entry{
 		CTime: ctime(info),
 		MTime: info.ModTime().UnixNano(),
 		Mode:  info.Mode(),
@@ -180,13 +181,13 @@ func (idx *Index) addEntryWorker(root string, wg *sync.WaitGroup, fC <-chan *fil
 	defer wg.Done()
 
 	for f := range fC {
-		entry, err := NewEntryFile(root, f.path, f.info)
+		name, entry, err := NewEntryFile(root, f.path, f.info)
 		if err != nil {
 			continue
 		}
 
 		idx.mu.Lock()
-		idx.entries[entry.Name] = entry
+		idx.entries[name] = entry
 		idx.mu.Unlock()
 	}
 }
@@ -400,7 +401,15 @@ func (idx *Index) MarshalJSON() ([]byte, error) {
 	idx.mu.RLock()
 	defer idx.mu.RUnlock()
 
-	return json.Marshal(idx.entries)
+	var b bytes.Buffer
+	w := gzip.NewWriter(&b)
+	if err := json.NewEncoder(w).Encode(idx.entries); err != nil {
+		w.Close()
+		return nil, err
+	}
+	w.Close()
+
+	return []byte(`"` + base64.StdEncoding.EncodeToString(b.Bytes()) + `"`), nil
 }
 
 // UnmarshalJSON satisfies json.Unmarshaler interface. It is used to unmarshal
@@ -409,5 +418,17 @@ func (idx *Index) UnmarshalJSON(data []byte) error {
 	idx.mu.Lock()
 	defer idx.mu.Unlock()
 
-	return json.Unmarshal(data, &idx.entries)
+	dst := make([]byte, base64.StdEncoding.DecodedLen(len(data)-2))
+	n, err := base64.StdEncoding.Decode(dst, data[1:len(data)-1])
+	if err != nil {
+		return err
+	}
+
+	r, err := gzip.NewReader(bytes.NewReader(dst[:n]))
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+
+	return json.NewDecoder(r).Decode(&idx.entries)
 }

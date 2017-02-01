@@ -9,6 +9,11 @@ import (
 	"golang.org/x/net/context"
 )
 
+var escapeVars = []string{
+	"userInput_",
+	"payload_",
+}
+
 func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 	arg, ok := ctx.Value(stack.PlanRequestKey).(*stack.PlanRequest)
 	if !ok {
@@ -68,8 +73,10 @@ func (bs *BaseStack) HandlePlan(ctx context.Context) (interface{}, error) {
 	// Plan request is made right away the template is saved, it may
 	// not have all the credentials provided yet. We set them all to
 	// to dummy values to make the template pass terraform parsing.
-	if err := bs.Builder.Template.FillVariables("userInput_"); err != nil {
-		return nil, err
+	for _, name := range escapeVars {
+		if err := bs.Builder.Template.FillVariables(name); err != nil {
+			return nil, err
+		}
 	}
 
 	if len(arg.Variables) != 0 {

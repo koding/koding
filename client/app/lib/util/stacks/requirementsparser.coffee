@@ -54,6 +54,10 @@ module.exports = requirementsParser = (content) ->
     # This is for custom data which will be asked from the admin
     # These variables needed to provide in custom variables section
     /\$\{var\.(custom)\_(\w+?)\}/g
+
+    # This is for payload data which will be provided with the request
+    # These variables will be posted dynamically, mostly over api calls
+    /\$\{var\.(payload)\_(\w+?)\}/g
   ]
 
   requirements = {}

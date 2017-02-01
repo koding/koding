@@ -72,7 +72,8 @@ module.exports = (options = {}, callback) ->
       };
     </script>
 
-    <script src="/a/p/p/#{KONFIG.version}/bundle.js"></script>
+    <script src="/a/p/p/#{KONFIG.version}/bundle.vendor.js"></script>
+    <script src="/a/p/p/#{KONFIG.version}/bundle.main.js"></script>
 
     #{if argv.t then "<script src=\"/a/js/tests.js\"></script>" else ''}
 
