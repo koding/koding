@@ -45,36 +45,40 @@ func main() {
 	}
 }
 
-func show() (err error) {
-	var tok *jwt.Token
+func readKontrolKey() (*jwt.Token, error) {
 
-	if *pub != "" {
-		key, err := ioutil.ReadFile(*file)
-		if err != nil {
-			return err
-		}
-
-		p, err := ioutil.ReadFile(*pub)
-		if err != nil {
-			return err
-		}
-
-		// try if it's a kite.key, if yes read kontrolKey
-		if tok, err := jwt.Parse(string(p), kitekey.GetKontrolKey); err == nil {
-			p = []byte(tok.Claims.(*kitekey.KiteClaims).KontrolKey)
-		}
-
-		p = bytes.TrimSpace(p)
-
-		pubFn := func(*jwt.Token) (interface{}, error) {
-			return p, nil
-		}
-
-		tok, err = jwt.Parse(string(key), pubFn)
-
-	} else {
-		tok, err = kitekey.ParseFile(*file)
+	//Empty flag
+	if *pub == "" {
+		return kitekey.ParseFile(*file)
 	}
+
+	key, err := ioutil.ReadFile(*file)
+	if err != nil {
+		return nil, err
+	}
+
+	p, err := ioutil.ReadFile(*pub)
+	if err != nil {
+		return nil, err
+	}
+
+	// try if it's a kite.key, if yes read kontrolKey
+	if tok, err := jwt.Parse(string(p), kitekey.GetKontrolKey); err == nil {
+		p = []byte(tok.Claims.(*kitekey.KiteClaims).KontrolKey)
+	}
+
+	p = bytes.TrimSpace(p)
+
+	pubFn := func(*jwt.Token) (interface{}, error) {
+		return p, nil
+	}
+
+	return jwt.Parse(string(key), pubFn)
+}
+
+func show() (err error) {
+	tok, err := readKontrolKey()
+
 	if err != nil {
 		return fmt.Errorf("reading %q failed: %s", *file, err)
 	}
