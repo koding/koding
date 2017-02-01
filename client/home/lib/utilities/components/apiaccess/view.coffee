@@ -41,7 +41,7 @@ module.exports = class View extends React.Component
 
     <div className='HomeApp-ApiToken'>
 
-      <Toggle checked={toggleState} className='HomeApp-ApiToken--swicth-toggle' callback={@bound 'switchToggle'} />
+      <Toggle checked={toggleState} className='HomeApp-ApiToken--swicth-toggle' callback={@props.onSwitchToggle} />
       <Header />
       <div className='HomeApp-ApiToken--label'>Active API Token List</div>
       <List
@@ -56,7 +56,7 @@ module.exports = class View extends React.Component
       <div className='HomeApp-ApiToken--footer'>
         <div className='HomeApp-ApiToken--footer--button-wrapper'>
           <GuideButton />
-          <AddNewApiTokenButton toggleState={toggleState} callback={@bound 'addNewApiToken'}/>
+          <AddNewApiTokenButton toggleState={toggleState} callback={@props.onAddNewApiToken} />
         </div>
       </div>
     </div>
