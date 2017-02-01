@@ -3,16 +3,9 @@ React = require 'app/react'
 ApiToken = require './apitoken'
 List = require 'app/components/list'
 Toggle = require 'app/components/common/toggle'
-remote = require 'app/remote'
-TeamFlux = require 'app/flux/teams'
-showError = require 'app/util/showError'
 
 
 module.exports = class View extends React.Component
-
-  constructor: (props) ->
-
-    super props
 
 
   numberOfSections: -> 1
@@ -42,19 +35,6 @@ module.exports = class View extends React.Component
     <div className='HomeApp-ApiToken--no-token'> No tokens have been created yet. When you create, they will be listed here.</div>
 
 
-  addNewApiToken: ->
-
-    remote.api.JApiToken.create (err, apiToken) ->
-      return showError err  if err
-      TeamFlux.actions.addApiToken apiToken
-
-
-  switchToggle: (state) ->
-
-    TeamFlux.actions.disableApiTokens(state)
-    .catch ({err}) ->
-      showError err
-
   render: ->
 
     toggleState = @props.apiAccessState
@@ -62,7 +42,7 @@ module.exports = class View extends React.Component
     <div className='HomeApp-ApiToken'>
 
       <Toggle checked={toggleState} className='HomeApp-ApiToken--swicth-toggle' callback={@bound 'switchToggle'} />
-      <Header callback={@bound 'addNewApiToken'}/>
+      <Header />
       <div className='HomeApp-ApiToken--label'>Active API Token List</div>
       <List
         numberOfSections={@bound 'numberOfSections'}
@@ -79,10 +59,9 @@ module.exports = class View extends React.Component
           <AddNewApiTokenButton toggleState={toggleState} callback={@bound 'addNewApiToken'}/>
         </div>
       </div>
-
     </div>
 
-Header = ({ callback }) ->
+Header = ->
 
   label = 'Enable API Access'
   description = 'Allow 3rd party services to securely communicate with Koding.'
