@@ -188,6 +188,10 @@ module.exports = class JCredential extends jraphical.Module
         callback new KodingError 'Provider is not supported'
         return
 
+      for field, value of meta
+        meta[field] = value.trim()  if typeof value is 'string'
+        delete meta[field]  if value is ''
+
       CredentialStore.create client, { meta, originId }, (err, identifier) ->
         return  if failed err, callback
 
