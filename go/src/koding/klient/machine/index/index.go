@@ -219,7 +219,6 @@ func (idx *Index) Compare(root string) (cs ChangeSlice) {
 		if !ok {
 			cs = append(cs, Change{
 				Name:      name,
-				Size:      safeTruncate(info.Size()),
 				Meta:      ChangeMetaAdd | markLargeMeta(info.Size()),
 				CreatedAt: time.Now().UnixNano(),
 			})
@@ -234,7 +233,6 @@ func (idx *Index) Compare(root string) (cs ChangeSlice) {
 			nd.Entry.Size != info.Size() {
 			cs = append(cs, Change{
 				Name:      name,
-				Size:      safeTruncate(info.Size()),
 				Meta:      ChangeMetaUpdate | markLargeMeta(info.Size()),
 				CreatedAt: time.Now().UnixNano(),
 			})
@@ -265,16 +263,6 @@ func (idx *Index) Compare(root string) (cs ChangeSlice) {
 	idx.mu.RUnlock()
 
 	return cs
-}
-
-// safeTruncate converts signed integer to unsigned one returning 0 for negative
-// values of provided argument.
-func safeTruncate(n int64) uint32 {
-	if n < 0 {
-		return 0
-	}
-
-	return uint32(n)
 }
 
 // markLargeMeta adds large file flag for files which size is over 4GiB.

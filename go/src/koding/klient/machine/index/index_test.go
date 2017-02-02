@@ -42,7 +42,6 @@ func TestIndex(t *testing.T) {
 				},
 				{
 					Name: "d/test.bin",
-					Size: 40 * 1024,
 					Meta: ChangeMetaAdd,
 				},
 			},
@@ -156,9 +155,6 @@ func TestIndex(t *testing.T) {
 			for i, tc := range test.Changes {
 				if cs[i].Name != tc.Name {
 					t.Errorf("want change name = %q; got %q", tc.Name, cs[i].Name)
-				}
-				if tc.Size != 0 && cs[i].Size != tc.Size {
-					t.Errorf("want change size = %v; got %v", tc.Size, cs[i].Size)
 				}
 				if cs[i].Meta != tc.Meta {
 					t.Errorf("want change meta = %bb; got %bb", tc.Meta, cs[i].Meta)

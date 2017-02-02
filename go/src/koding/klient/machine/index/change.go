@@ -14,7 +14,6 @@ const (
 // Change describes single file change.
 type Change struct {
 	Name      string     `json:"name"`      // The relative name of the file.
-	Size      uint32     `json:"size"`      // Size of the file truncated to 32 bits.
 	Meta      ChangeMeta `json:"meta"`      // The type of operation made on file entry.
 	CreatedAt int64      `json:"createdAt"` // Change creation time since EPOCH.
 }
