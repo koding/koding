@@ -115,6 +115,9 @@ build:
         name: check social api code quality
         code: scripts/wercker/run-command scripts/check_socialapi_code_quality.sh
     - script:
+        name: check go codes with gometalinter
+        code: scripts/wercker/run-command scripts/gometalinter.sh
+    - script:
         name: check client code quality
         code: scripts/wercker/run-command scripts/check_client_code_quality.sh
     - script:
