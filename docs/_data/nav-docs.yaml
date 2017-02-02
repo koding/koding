@@ -4,6 +4,8 @@
     title: Product walkthrough
 - title: Getting started
   items:
+  - id: koding-for-teams
+    title: What is Koding for Teams?
   - id: what-is-a-stack
     title: What is a Stack
   - id: choose-provider
