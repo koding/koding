@@ -285,7 +285,6 @@ generateDev = (KONFIG, options) ->
       command -v go            >/dev/null 2>&1 || { echo >&2 "I require go but it's not installed.  Aborting."; exit 1; }
       command -v docker        >/dev/null 2>&1 || { echo >&2 "I require docker but it's not installed.  Aborting."; exit 1; }
       command -v nginx         >/dev/null 2>&1 || { echo >&2 "I require nginx but it's not installed. (brew install nginx maybe?)  Aborting."; exit 1; }
-      command -v mongo         >/dev/null 2>&1 || { echo >&2 "I require mongo but it's not installed. (brew install mongo maybe?)  Aborting."; exit 1; }
       command -v pg_isready    >/dev/null 2>&1 || { echo >&2 "I require pg_isready but it's not installed. (brew install postgresql maybe?)  Aborting."; exit 1; }
       command -v node          >/dev/null 2>&1 || { echo >&2 "I require node but it's not installed.  Aborting."; exit 1; }
       command -v npm           >/dev/null 2>&1 || { echo >&2 "I require npm but it's not installed.  Aborting."; exit 1; }
@@ -306,6 +305,7 @@ generateDev = (KONFIG, options) ->
       scripts/check-gulp-version.sh
       scripts/check-go-version.sh
       scripts/check-supervisor.sh
+      scripts/check-mongo-version.sh
 
       set +o errexit
     }
