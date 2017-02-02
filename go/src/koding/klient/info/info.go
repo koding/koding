@@ -1,6 +1,7 @@
 package info
 
 import (
+	"runtime"
 	"sort"
 
 	"koding/kites/config"
@@ -16,6 +17,8 @@ type info struct {
 	Username string   `json:"username"`
 	Home     string   `json:"home"`
 	Groups   []string `json:"groups"`
+	OS       string   `json:"os"`
+	Arch     string   `json:"arch"`
 }
 
 // Info implements the klient.info method, returning klient specific
@@ -28,10 +31,12 @@ func Info(r *kite.Request) (interface{}, error) {
 		return info{}, err
 	}
 
-	i := info{
+	i := &info{
 		ProviderName: providerName.String(),
 		Username:     config.CurrentUser.Username,
 		Home:         config.CurrentUser.HomeDir,
+		OS:           runtime.GOOS,
+		Arch:         runtime.GOARCH,
 	}
 
 	for _, group := range config.CurrentUser.Groups {
