@@ -172,7 +172,7 @@ func (f *Controller) DeleteNicksWithQuery(queryName string) error {
 			return err
 		}
 
-		hist = record.Hits
+		hist := record.Hits
 		for _, val := range hist {
 			object := val["objectID"].(string)
 			_, err := modelhelper.GetAccountById(object)
