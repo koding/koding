@@ -3,7 +3,7 @@ package sl
 import "time"
 
 // SubnetDatacenter is a regular Datacenter, but lists less fields which
-// are typicaly not used within subnet context.
+// are typically not used within subnet context.
 type SubnetDatacenter struct {
 	ID       int    `json:"id,omitempty"`
 	Name     string `json:"name,omitempty"`
@@ -63,7 +63,7 @@ func (v *VLAN) Decode() {
 	Instances(v.Instances).Decode()
 }
 
-// VLANs is a conveniance type for a list of VLANs that supports filtering.
+// VLANs is a convenience type for a list of VLANs that supports filtering.
 type VLANs []*VLAN
 
 func (v VLANs) Err() error {

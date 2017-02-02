@@ -22,7 +22,7 @@ type WaitState struct {
 
 // Wait calls the StateFunc with the specified interval and waits until it
 // reached the desired state. It returns nil if the state has been reached
-// successfull.
+// successful.
 func (w *WaitState) Wait() error {
 	if w.Finish == 0 {
 		w.Finish = 100

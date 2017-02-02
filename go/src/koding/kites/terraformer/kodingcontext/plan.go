@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-// Plan plans the operation accoring to the given content
+// Plan plans the operation according to the given content
 func (c *KodingContext) Plan(content io.Reader, destroy bool) (*terraform.Plan, error) {
 	cmd := &command.PlanCommand{
 		Meta: command.Meta{

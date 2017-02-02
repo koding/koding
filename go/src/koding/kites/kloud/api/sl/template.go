@@ -128,7 +128,7 @@ func (t *Template) decode() {
 	}
 }
 
-// Templates is a conveniance type for a list of templates, that supports
+// Templates is a convenience type for a list of templates, that supports
 // filtering.
 type Templates []*Template
 

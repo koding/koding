@@ -118,7 +118,7 @@ func (s *S3) Clone(path string, target Interface) error {
 		MaxKeys: nil,
 	}
 	if path != "" {
-		// If path was an empty string, ListObject would successfuly return nothing.
+		// If path was an empty string, ListObject would successfully return nothing.
 		path = path + "/"
 		params.Prefix = aws.String(path)
 	}

@@ -118,7 +118,7 @@ type Provider struct {
 	Stack func(*BaseStack) (Stack, error)
 
 	// Schema represents data structures which are
-	// used when transferring infromation throughout
+	// used when transferring information throughout
 	// a number parts of the Koding system.
 	//
 	// If nil, DefaultSchema will be used instead.

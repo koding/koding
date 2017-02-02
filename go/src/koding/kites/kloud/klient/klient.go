@@ -159,7 +159,7 @@ func ConnectTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 	err = remoteKite.DialTimeout(t)
 	if err != nil {
 		// If kite exists but dialing failed, we still return the *Klient
-		// value, althought not connected, in order to allow the caller
+		// value, although not connected, in order to allow the caller
 		// inspect the URL and eventually recover.
 		err = ErrDialingFailed
 	}
@@ -229,7 +229,7 @@ func (k *Klient) Usage() (*Usage, error) {
 }
 
 // Ping checks if the given klient response with "pong" to the "ping" we send.
-// A nil error means a successfull pong result.
+// A nil error means a successful pong result.
 func (k *Klient) Ping() error {
 	resp, err := k.Client.TellWithTimeout("kite.ping", 10*time.Second)
 	if err != nil {

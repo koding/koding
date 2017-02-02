@@ -7,30 +7,6 @@ import (
 // Defines a SoftLayer region code
 type Region string
 
-var regions = []Region{
-	"wdc01",
-	"sjc01",
-	"sea01",
-	"dal01",
-	"dal05",
-	"dal06",
-	"dal09",
-	"hou02",
-	"sng01",
-	"lon02",
-	"ams01",
-	"ams03",
-	"hkg02",
-	"tor01",
-	"mel01",
-	"par01",
-	"mex01",
-	"tok02",
-	"fra02",
-	"syd01",
-	"mon01",
-}
-
 // Defines parameters required for provisioning against Softlayer API
 type Credential struct {
 	Username string `json:"username" bson:"username" hcl:"username"`
