@@ -29,7 +29,7 @@ function init_postgresql() {
   chown --recursive postgres:postgres /var/lib/postgresql
   su postgres -c "/usr/lib/postgresql/9.3/bin/initdb --pgdata /var/lib/postgresql/9.3/main"
   service postgresql start
-  go/src/socialapi/db/sql/definition/create.sh go/src/socialapi/db/sql
+  go/src/socialapi/db/sql/definition/create.sh
   ./run migrate up
 }
 
