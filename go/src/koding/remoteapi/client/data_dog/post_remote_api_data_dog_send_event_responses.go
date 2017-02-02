@@ -49,7 +49,7 @@ func NewPostRemoteAPIDataDogSendEventOK() *PostRemoteAPIDataDogSendEventOK {
 
 /*PostRemoteAPIDataDogSendEventOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIDataDogSendEventOK struct {
 	Payload *models.DefaultResponse
