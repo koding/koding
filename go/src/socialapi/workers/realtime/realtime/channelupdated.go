@@ -190,7 +190,7 @@ func (cue *channelUpdatedEvent) sendForParticipant() error {
 	if err != nil {
 		count = 0
 
-		// surpress RecordNotFound errors
+		// suppress RecordNotFound errors
 		if err == bongo.RecordNotFound {
 			if cue.EventType != channelUpdatedEventMessageRemovedFromChannel {
 				cue.Controller.log.Notice("Error happened, setting unread count to 0 %s", err.Error())
@@ -231,7 +231,7 @@ func (cue *channelUpdatedEvent) calculateUnreadItemCount() (int, error) {
 		return 0, fmt.Errorf("not supported channel type for unread count calculation %+v", cue.Channel.TypeConstant)
 	}
 
-	// we need channel participant for their latest appearence in regarding channel
+	// we need channel participant for their latest appearance in regarding channel
 	if cue.ChannelParticipant == nil {
 		return 0, models.ErrChannelParticipantIsNotSet
 	}

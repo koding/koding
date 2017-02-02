@@ -259,7 +259,7 @@ func getAnySlackTokenWithGroup(context *models.Context) (string, error) {
 	return token, models.ErrTokenIsNotFound
 }
 
-// getSlackTokenWithContext fecthes the token of user,
+// getSlackTokenWithContext fetches the token of user,
 // if it doesn't exists, then checks the anyone's token from user's group
 func getSlackTokenWithContext(context *models.Context) (string, error) {
 	token, err := getSlackToken(context)
