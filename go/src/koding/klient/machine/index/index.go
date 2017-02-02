@@ -1,11 +1,15 @@
 package index
 
 import (
-	"crypto/sha1"
+	"bytes"
+	"compress/gzip"
+	"encoding/base64"
 	"encoding/json"
+	"hash/crc32"
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"time"
 
@@ -17,57 +21,66 @@ const Version = 1
 
 // Entry represents a single file registered to index.
 type Entry struct {
-	Name  string      `json:"name"`  // The relative name of the file.
-	CTime int64       `json:"ctime"` // Metadata change time since EPOCH.
-	MTime int64       `json:"mtime"` // File data change time since EPOCH.
-	Mode  os.FileMode `json:"mode"`  // File mode and permission bits.
-	Size  int64       `json:"size"`  // Size of the file.
-	SHA1  []byte      `json:"sha1"`  // SHA-1 hash of file content.
+	CTime int64       `json:"c"` // Metadata change time since EPOCH.
+	MTime int64       `json:"m"` // File data change time since EPOCH.
+	Mode  os.FileMode `json:"o"` // File mode and permission bits.
+	Size  int64       `json:"s"` // Size of the file.
+	Hash  []byte      `json:"h"` // Hash of file content.
 }
 
 // NewEntryFile creates new Entry from a file stored under path argument.
 // Info is optional and, if given, should store LStat result on the given file.
-func NewEntryFile(root, path string, info os.FileInfo) (e *Entry, err error) {
+func NewEntryFile(root, path string, info os.FileInfo) (name string, e *Entry, err error) {
 	if info == nil {
 		if info, err = os.Lstat(path); err != nil {
-			return nil, err
+			return "", nil, err
 		}
 	}
 
 	// Get relative file name.
-	name, err := filepath.Rel(root, path)
+	name, err = filepath.Rel(root, path)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
-	// Compute file's SHA-1 sum.
+	// Compute file's hash sum.
 	var sum []byte
 	if !info.IsDir() {
-		if sum, err = readSHA1(path); err != nil {
-			return nil, err
+		if sum, err = readCRC32(path); err != nil {
+			return "", nil, err
 		}
 	}
 
-	return &Entry{
-		Name:  filepath.ToSlash(name),
+	return filepath.ToSlash(name), &Entry{
 		CTime: ctime(info),
 		MTime: info.ModTime().UnixNano(),
 		Mode:  info.Mode(),
 		Size:  info.Size(),
-		SHA1:  sum,
+		Hash:  sum,
 	}, nil
 }
 
-// readSHA1 computes SHA-1 sum from a given file content.
-func readSHA1(path string) ([]byte, error) {
+var copyBufPool = sync.Pool{
+	New: func() interface{} {
+		b := make([]byte, 64*1024)
+		return &b
+	},
+}
+
+// readCRC32 computes CRC-32 checksum of a given file content.
+func readCRC32(path string) ([]byte, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
-	hash := sha1.New()
-	if _, err := io.Copy(hash, file); err != nil {
+	hash := crc32.NewIEEE()
+
+	bufp := copyBufPool.Get().(*[]byte)
+	defer copyBufPool.Put(bufp)
+
+	if _, err := io.CopyBuffer(hash, file, *bufp); err != nil {
 		return nil, err
 	}
 
@@ -119,10 +132,27 @@ func NewIndex() *Index {
 	}
 }
 
+type fileDesc struct {
+	path string      // relative path to the file.
+	info os.FileInfo // file LStat result.
+}
+
 // NewIndexFiles walks the given file tree roted at root and records file
 // states to resulting Index object.
 func NewIndexFiles(root string) (*Index, error) {
 	idx := NewIndex()
+
+	// Start worker pool.
+	var wg sync.WaitGroup
+	fC := make(chan *fileDesc)
+	for i := 0; i < 2*runtime.NumCPU(); i++ {
+		wg.Add(1)
+		go idx.addEntryWorker(root, &wg, fC)
+	}
+	defer func() {
+		close(fC)
+		wg.Wait()
+	}()
 
 	// In order to get as much entries as we can we ignore errors.
 	walkFn := func(path string, info os.FileInfo, err error) error {
@@ -135,12 +165,7 @@ func NewIndexFiles(root string) (*Index, error) {
 			return nil
 		}
 
-		entry, err := NewEntryFile(root, path, info)
-		if err != nil {
-			return nil
-		}
-
-		idx.entries[entry.Name] = entry
+		fC <- &fileDesc{path: path, info: info}
 		return nil
 	}
 
@@ -149,6 +174,22 @@ func NewIndexFiles(root string) (*Index, error) {
 	}
 
 	return idx, nil
+}
+
+// addEntryWorker asynchronously adds new entry to index. Errors are ignored.
+func (idx *Index) addEntryWorker(root string, wg *sync.WaitGroup, fC <-chan *fileDesc) {
+	defer wg.Done()
+
+	for f := range fC {
+		name, entry, err := NewEntryFile(root, f.path, f.info)
+		if err != nil {
+			continue
+		}
+
+		idx.mu.Lock()
+		idx.entries[name] = entry
+		idx.mu.Unlock()
+	}
 }
 
 // Count returns the number of entries stored in index. Only items which size is
@@ -297,6 +338,14 @@ func ctime(fi os.FileInfo) int64 {
 // guarantee that changes from Compare function applied to the index will
 // result in actual directory state.
 func (idx *Index) Apply(root string, cs ChangeSlice) {
+	// Start worker pool.
+	var wg sync.WaitGroup
+	fC := make(chan *fileDesc)
+	for i := 0; i < naturalMin(2*runtime.NumCPU(), len(cs)); i++ {
+		wg.Add(1)
+		go idx.addEntryWorker(root, &wg, fC)
+	}
+
 	for i := range cs {
 		switch {
 		case cs[i].Meta&(ChangeMetaUpdate|ChangeMetaAdd) != 0:
@@ -324,16 +373,26 @@ func (idx *Index) Apply(root string, cs ChangeSlice) {
 				continue
 			}
 
-			entry, err := NewEntryFile(root, path, info)
-			if err != nil {
-				continue
-			}
-
-			idx.mu.Lock()
-			idx.entries[entry.Name] = entry
-			idx.mu.Unlock()
+			fC <- &fileDesc{path: path, info: info}
 		}
 	}
+
+	close(fC)
+	wg.Wait()
+}
+
+// naturalMin returns the minimal value of provided arguments but not less than
+// one.
+func naturalMin(a, b int) (n int) {
+	if n = b; a < b {
+		n = a
+	}
+
+	if n < 1 {
+		return 1
+	}
+
+	return n
 }
 
 // MarshalJSON satisfies json.Marshaler interface. It safely marshals index
@@ -342,7 +401,15 @@ func (idx *Index) MarshalJSON() ([]byte, error) {
 	idx.mu.RLock()
 	defer idx.mu.RUnlock()
 
-	return json.Marshal(idx.entries)
+	var b bytes.Buffer
+	w := gzip.NewWriter(&b)
+	if err := json.NewEncoder(w).Encode(idx.entries); err != nil {
+		w.Close()
+		return nil, err
+	}
+	w.Close()
+
+	return []byte(`"` + base64.StdEncoding.EncodeToString(b.Bytes()) + `"`), nil
 }
 
 // UnmarshalJSON satisfies json.Unmarshaler interface. It is used to unmarshal
@@ -351,5 +418,17 @@ func (idx *Index) UnmarshalJSON(data []byte) error {
 	idx.mu.Lock()
 	defer idx.mu.Unlock()
 
-	return json.Unmarshal(data, &idx.entries)
+	dst := make([]byte, base64.StdEncoding.DecodedLen(len(data)-2))
+	n, err := base64.StdEncoding.Decode(dst, data[1:len(data)-1])
+	if err != nil {
+		return err
+	}
+
+	r, err := gzip.NewReader(bytes.NewReader(dst[:n]))
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+
+	return json.NewDecoder(r).Decode(&idx.entries)
 }

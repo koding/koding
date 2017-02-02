@@ -82,7 +82,7 @@ func TestRemoveUser(t *testing.T) {
 		t.Error(err)
 	}
 
-	user, err = modelhelper.GetUser(username)
+	_, err = modelhelper.GetUser(username)
 	if err == nil {
 		t.Errorf("User should've been deleted, but wasn't")
 	}

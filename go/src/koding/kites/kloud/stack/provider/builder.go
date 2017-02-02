@@ -603,7 +603,7 @@ func (b *Builder) InterpolateField(resource map[string]interface{}, resourceName
 			res["depends_on"] = []interface{}{}
 		}
 
-		triggers[field] = s
+		triggers[field] = EscapeDeadVariables(s)
 	}
 }
 

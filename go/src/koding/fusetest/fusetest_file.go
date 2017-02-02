@@ -128,6 +128,7 @@ func (f *Fusetest) TestWriteFile() {
 
 			size, err := f.Remote.Size(fileName)
 			So(size, ShouldEqual, 1000*len(newContent))
+			So(err, ShouldBeNil)
 
 			Convey("It should read file in chunks", func() {
 				fi, err := os.OpenFile(f.fullMountPath(fileName), os.O_RDONLY, 0755)

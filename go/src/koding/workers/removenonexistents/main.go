@@ -200,7 +200,9 @@ func deleteNames(res interface{}) error {
 
 	for _, slug := range name.Slugs {
 		if slug.ConstructorName == "JGroup" {
-			continue
+			if getGroupBySlug(slug.Slug) {
+				continue
+			}
 		}
 
 		if slug.ConstructorName == "JUser" {

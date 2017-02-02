@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestCachedIndexCreate(t *testing.T) {
@@ -65,7 +66,10 @@ func TestCahcedIndexUpdated(t *testing.T) {
 	}
 	defer clean()
 
-	c := &Cached{TempDir: tempDir}
+	c := &Cached{
+		Rescan:  30 * time.Second,
+		TempDir: tempDir,
+	}
 	idx, err := c.GetCachedIndex(root)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
@@ -75,8 +79,22 @@ func TestCahcedIndexUpdated(t *testing.T) {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	// Should update and return new index.
+	// Should not update the index due to high rescan time duration.
 	idx2, err := c.GetCachedIndex(root)
+	if err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+	if count, n := idx.Count(-1), idx2.Count(-1); count != n {
+		t.Errorf("want %d entries; got %d", count, n)
+	}
+	if diskSize, n := idx.DiskSize(-1), idx2.DiskSize(-1); diskSize > n {
+		t.Errorf("want at least %d B of disk size; got %d B", diskSize, n)
+	}
+
+	c.Rescan = 0
+
+	// Should update and return new index.
+	idx2, err = c.GetCachedIndex(root)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}

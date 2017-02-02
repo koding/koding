@@ -15,4 +15,6 @@ module.exports = (options = {}) ->
   <link rel="fluid-icon" href="/a/images/logos/fluid512.png" title="Koding" />
   <link href="https://plus.google.com/+KodingInc" rel="publisher" />
   <link href='https://chrome.google.com/webstore/detail/koding/fgbjpbdfegnodokpoejnbhnblcojccal' rel='chrome-webstore-item'>
+  <link rel="stylesheet" type="text/css" href="/a/p/p/#{KONFIG.version}/bundle.vendor.css" />
+  <link rel="stylesheet" type="text/css" href="/a/p/p/#{KONFIG.version}/bundle.main.css" />
   """

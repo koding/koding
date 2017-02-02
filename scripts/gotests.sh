@@ -32,7 +32,7 @@ function run () {
 }
 
 function merge () {
-    folder=$(createFolder $1)
+    local folder=$(createFolder $1)
 
     go list -f '{{if len .TestGoFiles}}"{{.Dir}}/coverage.txt"{{end}}' $1 | grep -v vendor | xargs $COVMERGE > "$folder"
 }
@@ -86,11 +86,10 @@ function generateFolderName() {
 # path will be -> koding/go/src/coverage/$generatedName
 function createFolder() {
     name=$(generateFolderName $1)
-    mkdir -p "$KD/go/src/coverages"
     mkdir -p "$KD/go/src/coverages/$name"
     touch "$KD/go/src/coverages/$name/coverage.txt"
-    folder="$KD/go/src/coverages/$name/coverage.txt"
-    echo $folder
+
+    echo "$KD/go/src/coverages/$name/coverage.txt"
 }
 
 if  [ "$1" == "kites" ]; then
