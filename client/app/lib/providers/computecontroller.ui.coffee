@@ -210,7 +210,7 @@ module.exports = class ComputeControllerUI
         # Remove fields which has no value in it
         # Trim value of fields which has value
         for field, value of data
-          value = value.trim()  if value
+          data[field] = value.trim()  if typeof value is 'string'
           delete data[field]  if value is ''
 
         if callback
