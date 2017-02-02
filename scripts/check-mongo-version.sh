@@ -6,12 +6,10 @@ if ! which mongo; then
   exit 255
 fi
 
-set -o xtrace
-
-version=$(mongo --version | head --lines=1 | awk '{ print $NF; }')
+version=$(mongo --version | head -n1 | awk '{ print $NF; }')
 
 while IFS=".", read major minor revision; do
-  major=$(echo $major | sed --expression 's/^v//')
+  major=$(echo $major | sed -e 's/^v//')
   if [[ $major -ge 3 ]]; then
     exit 0
   elif [[ $major -eq 2 && $minor -ge 4 ]]; then
