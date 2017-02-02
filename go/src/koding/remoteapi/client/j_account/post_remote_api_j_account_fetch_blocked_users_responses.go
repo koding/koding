@@ -49,7 +49,7 @@ func NewPostRemoteAPIJAccountFetchBlockedUsersOK() *PostRemoteAPIJAccountFetchBl
 
 /*PostRemoteAPIJAccountFetchBlockedUsersOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJAccountFetchBlockedUsersOK struct {
 	Payload *models.DefaultResponse

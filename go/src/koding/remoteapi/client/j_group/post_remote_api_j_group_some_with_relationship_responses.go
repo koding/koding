@@ -49,7 +49,7 @@ func NewPostRemoteAPIJGroupSomeWithRelationshipOK() *PostRemoteAPIJGroupSomeWith
 
 /*PostRemoteAPIJGroupSomeWithRelationshipOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJGroupSomeWithRelationshipOK struct {
 	Payload *models.DefaultResponse

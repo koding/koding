@@ -49,7 +49,7 @@ func NewPostRemoteAPIJGroupFetchMyMembershipsOK() *PostRemoteAPIJGroupFetchMyMem
 
 /*PostRemoteAPIJGroupFetchMyMembershipsOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJGroupFetchMyMembershipsOK struct {
 	Payload *models.DefaultResponse
