@@ -95,7 +95,7 @@ func Register(koding *url.URL, username, token string, debug bool) error {
 	// 'kite.getPass' method (builtin method in the Kite library) on our own
 	// local kite (the one we declared above) method bidirectional. So once we
 	// execute this, we immediately get a prompt asking for our password, which
-	// is then transfered back to Kontrol. If we have a token, it will not ask
+	// is then transferred back to Kontrol. If we have a token, it will not ask
 	// for a password and will create retunr the key immediately if the token
 	// is valid for the given username (which is passed via the args).
 	result, err := kontrol.TellWithTimeout("registerMachine", 5*time.Minute, args)

@@ -26,7 +26,7 @@ func NewPermissions() *Permissions {
 	}
 }
 
-// IsAdmin checks whether or not the current user has admin privelages.
+// IsAdmin checks whether or not the current user has admin privileges.
 //
 // On Darwin and Linux, this checks if the `id` process is
 func (p *Permissions) IsAdmin() (bool, error) {

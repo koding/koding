@@ -18,7 +18,7 @@ type RegisterRequest struct {
 // default configuration read from configstore.
 var DefaultClient = &Client{}
 
-// Client is a conveniance wrapper for kite.Client
+// Client is a convenience wrapper for kite.Client
 // that is connected to Kontrol.
 //
 // The wrapper uses kite configuration which is

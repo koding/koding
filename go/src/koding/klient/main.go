@@ -34,7 +34,6 @@ var (
 	flagScreenrc    = f.String("screenrc", "/opt/koding/etc/screenrc", "Default screenrc path")
 
 	// Registration flags
-	flagKiteHome   = f.String("kite-home", "", "Change kite home path")
 	flagUsername   = f.String("username", "", "Username to be registered to Kontrol")
 	flagToken      = f.String("token", "", "Token to be passed to Kontrol to register")
 	flagRegister   = f.Bool("register", false, "Register to Kontrol with your Koding Password")

@@ -32,8 +32,6 @@ import (
 )
 
 var (
-	validPosArgs = []string{"remote-to-local", localToRemote}
-
 	ErrSourceAndDestRemote = errors.New(
 		"Both Source and Destination are Remote Machines.",
 	)
@@ -483,7 +481,7 @@ func (c *Command) AutocompleteRemotePath(machineName, remotePath string) error {
 			// meaning we need to return a potential match including the entire string.
 			//
 			// IMPORTANT: The ending slash causes Fish to not add a space at the end
-			// of the competion, making the UX much better.
+			// of the competition, making the UX much better.
 			c.Stdout.Printlnf("%s:%s/", machineName, f.FullPath)
 		} else {
 			c.Stdout.Printlnf("%s:%s", machineName, f.FullPath)
