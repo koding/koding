@@ -49,7 +49,7 @@ func NewPostRemoteAPICollaborationAddOK() *PostRemoteAPICollaborationAddOK {
 
 /*PostRemoteAPICollaborationAddOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPICollaborationAddOK struct {
 	Payload *models.DefaultResponse
