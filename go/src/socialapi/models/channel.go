@@ -247,7 +247,7 @@ func (c *Channel) AddParticipant(participantId int64) (*ChannelParticipant, erro
 
 	// get participant from db if it is created before
 	err := cp.FetchParticipant()
-	// supress not found error
+	// suppress not found error
 	if err != nil && err != bongo.RecordNotFound {
 		return nil, err
 	}

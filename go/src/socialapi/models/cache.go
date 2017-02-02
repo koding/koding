@@ -5,7 +5,6 @@ import (
 	"fmt"
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"time"
 
 	"socialapi/request"
 	"strconv"
@@ -16,8 +15,6 @@ import (
 var Cache *StaticCache
 
 var cacheSize = 10000
-
-var cacheTTL = 10 * time.Second
 
 // later, this can be lazily init, after database connection established
 func init() {
@@ -344,7 +341,7 @@ func CacheForChannelMessage(id int64) (string, error) {
 	query := request.NewQuery().SetDefaults()
 	// no need to add IsInteracted data into cache
 	query.AddIsInteracted = false
-	cmc, err := BuildChannelMessageContainer(id, query)
+	cmc, _ := BuildChannelMessageContainer(id, query)
 	d, err := json.Marshal(cmc)
 	if err != nil {
 		return "", err
@@ -368,7 +365,7 @@ func BuildChannelContainer(id int64, query *request.Query) (*ChannelContainer, e
 
 func CacheForChannel(id int64) (string, error) {
 	query := request.NewQuery().SetDefaults()
-	cc, err := BuildChannelContainer(id, query)
+	cc, _ := BuildChannelContainer(id, query)
 	d, err := json.Marshal(cc)
 	if err != nil {
 		return "", err
