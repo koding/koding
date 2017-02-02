@@ -21,14 +21,22 @@ module.exports = class ApiAccessContainer extends React.Component
     TeamFlux.actions.fetchCurrentStateOfApiAccess()
 
 
-  constructor: (props) ->
+  onAddNewApiToken: ->
 
-    super props
+    TeamFlux.actions.addApiToken()
+
+
+  onSwitchToggle: (state) ->
+
+    TeamFlux.actions.disableApiTokens state
+
 
   render: ->
 
     <View
       apiTokens={@state.apiTokens}
-      apiAccessState={@state.apiAccessState}/>
+      apiAccessState={@state.apiAccessState}
+      onSwitchToggle={@bound 'onSwitchToggle'}
+      onAddNewApiToken={@bound 'onAddNewApiToken'}  />
 
 ApiAccessContainer.include [KDReactorMixin]
