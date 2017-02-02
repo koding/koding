@@ -25,7 +25,9 @@ ADD kontrol 	            /kontrol
 
 USER root
 
-RUN service postgresql start && bash /definition/create.sh
+RUN service postgresql start && \
+    /definition/init.sh && \
+    su postgres -c /definition/create.sh
 
 EXPOSE 5432
 
