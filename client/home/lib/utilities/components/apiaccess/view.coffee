@@ -32,16 +32,26 @@ module.exports = class View extends React.Component
 
   renderEmptySectionAtIndex: ->
 
-    <div className='HomeApp-ApiToken--no-token'> No tokens have been created yet. When you create, they will be listed here.</div>
+    <div className='HomeApp-ApiToken--no-token'>
+      No tokens have been created yet. When you create, they will be listed here.
+    </div>
 
 
   render: ->
 
     toggleState = @props.apiAccessState
 
-    <div className='HomeApp-ApiToken'>
+    toggleProps =
+      checked: toggleState
+      className: 'HomeApp-ApiToken--swicth-toggle'
+      callback: @props.onSwitchToggle
 
-      <Toggle checked={toggleState} className='HomeApp-ApiToken--swicth-toggle' callback={@props.onSwitchToggle} />
+    buttonProps =
+      toggleState: toggleState
+      callback: @props.onAddNewApiToken
+
+    <div className='HomeApp-ApiToken'>
+      <Toggle {...toggleProps} />
       <Header />
       <div className='HomeApp-ApiToken--label'>Active API Token List</div>
       <List
@@ -56,7 +66,7 @@ module.exports = class View extends React.Component
       <div className='HomeApp-ApiToken--footer'>
         <div className='HomeApp-ApiToken--footer--button-wrapper'>
           <GuideButton />
-          <AddNewApiTokenButton toggleState={toggleState} callback={@props.onAddNewApiToken} />
+          <AddNewApiTokenButton {...buttonProps} />
         </div>
       </div>
     </div>
@@ -74,7 +84,8 @@ Header = ->
 
 GuideButton = ->
 
-  <a className="custom-link-view HomeAppView--button fl" href="https://www.koding.com/docs/api-tokens">
+  <a className="custom-link-view HomeAppView--button fl"
+    href="https://www.koding.com/docs/api-tokens">
     <span className="title">VIEW GUIDE</span>
   </a>
 
