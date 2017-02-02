@@ -64,6 +64,8 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
           title    : title
           provider : provider
 
+        options.meta.foobar = '  trim this white space   '
+
         queue = [
 
           (next) ->
@@ -88,6 +90,7 @@ runTests = -> describe 'workers.social.models.computeproviders.credential', ->
               expect(credentialData).to.exist
               expect(credentialData.meta).to.be.an 'object'
               expect(credentialData.meta).to.be.deep.equal options.meta
+              expect(credentialData.meta.foobar).to.be.equal 'trim this white space'
               next()
 
           (next) ->
