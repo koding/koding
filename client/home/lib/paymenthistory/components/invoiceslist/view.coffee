@@ -41,9 +41,13 @@ SingleInvoice = ({ invoice }) ->
   date = moment(new Date period_end * 1000)
 
   <div className="HomeAppViewListItem SingleInvoice">
-    <div style={flex: 1}>
+    <div style={flex: 4}>
       <Label>Monthly payment for {date.format 'MMMM YYYY'}</Label>
     </div>
-    <Label>{date.format 'MM/DD/YYYY'}</Label>
-    <Label>${total}</Label>
+    <div style={flex: 2, textAlign: 'right'}>
+      <Label>{date.format 'MM/DD/YYYY'}</Label>
+    </div>
+    <div style={flex: 1, textAlign: 'right'}>
+      <Label>${total}</Label>
+    </div>
   </div>
