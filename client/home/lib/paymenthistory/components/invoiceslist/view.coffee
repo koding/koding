@@ -1,7 +1,7 @@
 React = require 'app/react'
 List = require 'app/components/list'
 moment = require 'moment'
-{ sortBy, map } = require 'lodash'
+{ sortBy, map, filter } = require 'lodash'
 
 Label = require 'lab/Text/Label'
 
@@ -11,6 +11,7 @@ module.exports = class InvoicesList extends React.Component
 
     invoices = sortBy @props.invoices, (i) -> -1 * (Number i.period_end)
     invoices = map invoices, (i) -> i.set 'total', (i.total / 100).toFixed 2
+    invoices = filter invoices, (i) -> i.paid
 
   numberOfSections: -> 1
 
