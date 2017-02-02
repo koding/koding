@@ -130,7 +130,7 @@ func (d *Driver) Kite(cfg *keygen.Config, username string) *keygen.Config {
 
 // Server starts gateway server created from the given configuration.
 //
-// It returns a function that can be used to explicitely stop
+// It returns a function that can be used to explicitly stop
 // the kite server.
 func (d *Driver) Server(cfg *keygen.Config) (cancel func()) {
 	kiteCfg := d.Kite(cfg, "keygen")

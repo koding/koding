@@ -27,7 +27,7 @@ type Session struct {
 	Data          *Data         `bson:"data,omitempty" json:"data,omitempty"`
 }
 
-// Data holds arbitary data
+// Data holds arbitrary data
 type Data map[string]interface{}
 
 // GetString returns value as string with given key
