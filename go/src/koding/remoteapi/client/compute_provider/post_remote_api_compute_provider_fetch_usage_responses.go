@@ -49,7 +49,7 @@ func NewPostRemoteAPIComputeProviderFetchUsageOK() *PostRemoteAPIComputeProvider
 
 /*PostRemoteAPIComputeProviderFetchUsageOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIComputeProviderFetchUsageOK struct {
 	Payload *models.DefaultResponse
