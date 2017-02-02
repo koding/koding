@@ -49,7 +49,7 @@ func NewPostRemoteAPIJProposedDomainFetchDomainsOK() *PostRemoteAPIJProposedDoma
 
 /*PostRemoteAPIJProposedDomainFetchDomainsOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJProposedDomainFetchDomainsOK struct {
 	Payload *models.DefaultResponse

@@ -49,7 +49,7 @@ func NewPostRemoteAPISocialChannelDeleteOK() *PostRemoteAPISocialChannelDeleteOK
 
 /*PostRemoteAPISocialChannelDeleteOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPISocialChannelDeleteOK struct {
 	Payload *models.DefaultResponse

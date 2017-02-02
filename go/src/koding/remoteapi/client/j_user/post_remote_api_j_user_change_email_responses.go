@@ -49,7 +49,7 @@ func NewPostRemoteAPIJUserChangeEmailOK() *PostRemoteAPIJUserChangeEmailOK {
 
 /*PostRemoteAPIJUserChangeEmailOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJUserChangeEmailOK struct {
 	Payload *models.DefaultResponse

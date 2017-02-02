@@ -49,7 +49,7 @@ func NewPostRemoteAPIJUserVerifyByPinOK() *PostRemoteAPIJUserVerifyByPinOK {
 
 /*PostRemoteAPIJUserVerifyByPinOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJUserVerifyByPinOK struct {
 	Payload *models.DefaultResponse

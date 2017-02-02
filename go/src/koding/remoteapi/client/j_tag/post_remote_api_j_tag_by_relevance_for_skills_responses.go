@@ -49,7 +49,7 @@ func NewPostRemoteAPIJTagByRelevanceForSkillsOK() *PostRemoteAPIJTagByRelevanceF
 
 /*PostRemoteAPIJTagByRelevanceForSkillsOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJTagByRelevanceForSkillsOK struct {
 	Payload *models.DefaultResponse

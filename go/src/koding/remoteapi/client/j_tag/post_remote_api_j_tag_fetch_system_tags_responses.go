@@ -49,7 +49,7 @@ func NewPostRemoteAPIJTagFetchSystemTagsOK() *PostRemoteAPIJTagFetchSystemTagsOK
 
 /*PostRemoteAPIJTagFetchSystemTagsOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJTagFetchSystemTagsOK struct {
 	Payload *models.DefaultResponse

@@ -49,7 +49,7 @@ func NewPostRemoteAPIJUserSetSSHKeysOK() *PostRemoteAPIJUserSetSSHKeysOK {
 
 /*PostRemoteAPIJUserSetSSHKeysOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJUserSetSSHKeysOK struct {
 	Payload *models.DefaultResponse

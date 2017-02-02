@@ -49,7 +49,7 @@ func NewPostRemoteAPIJUserVerifyPasswordOK() *PostRemoteAPIJUserVerifyPasswordOK
 
 /*PostRemoteAPIJUserVerifyPasswordOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJUserVerifyPasswordOK struct {
 	Payload *models.DefaultResponse

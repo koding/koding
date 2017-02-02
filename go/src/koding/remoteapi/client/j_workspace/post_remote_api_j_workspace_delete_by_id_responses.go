@@ -49,7 +49,7 @@ func NewPostRemoteAPIJWorkspaceDeleteByIDOK() *PostRemoteAPIJWorkspaceDeleteByID
 
 /*PostRemoteAPIJWorkspaceDeleteByIDOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJWorkspaceDeleteByIDOK struct {
 	Payload *models.DefaultResponse

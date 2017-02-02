@@ -49,7 +49,7 @@ func NewPostRemoteAPISocialChannelListParticipantsOK() *PostRemoteAPISocialChann
 
 /*PostRemoteAPISocialChannelListParticipantsOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPISocialChannelListParticipantsOK struct {
 	Payload *models.DefaultResponse
