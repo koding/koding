@@ -105,6 +105,7 @@
   },
   "devDependencies": {
     "@kadira/storybook": "2.35.2",
+    "acorn": "4.0.8",
     "axios-mock-adapter": "1.7.1",
     "babel-core": "6.21.0",
     "babel-loader": "6.2.10",
