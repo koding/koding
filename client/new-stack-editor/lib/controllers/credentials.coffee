@@ -46,13 +46,20 @@ module.exports = class CredentialsController extends BaseController
       AccountCredentialListController::hideLazyLoader.call this
       self.emit Events.LazyLoadFinished
 
+    @listController.addListItems = (items) ->
+      AccountCredentialListController::addListItems.call this, items
+      self.updateCredentialSelections()
+
+
     @list.on Events.CredentialSelectionChanged, =>
+
       if @isSelectionChanged()
       then @list.setClass 'has-change'
       else @list.unsetClass 'has-change'
 
 
-  setData: (stackTemplate) ->
+
+  setData: (stackTemplate, internal = no) ->
 
     super stackTemplate
 
@@ -103,4 +110,4 @@ module.exports = class CredentialsController extends BaseController
       return @logs.handleError err  if err
 
       @logs.add 'Stack template updated successfully!'
-      @setData updatedTemplate
+      @setData updatedTemplate, internal = yes
