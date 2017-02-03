@@ -310,11 +310,6 @@ $stack-border-width         = 2px
 
   .side-view
 
-    .listview-wrapper
-      height                calc(100% \- 42px)
-      .lazy-loader
-        display             none
-
     .kdscrolltrack.vertical
       right                 -10px
 
@@ -329,6 +324,31 @@ $stack-border-width         = 2px
 
     .kdscrollthumb
       background-color      #444
+
+
+  .credentials
+
+    .listview-wrapper
+      height                calc(100% \- 42px)
+
+      .lazy-loader
+        display             none
+
+      .filter-view
+        width               auto
+        height              auto
+        color               #fff
+        font-size           12px
+        padding             8px  15px 5px 20px
+        background          rgba(255, 255, 255, .1)
+
+        b
+          font-weight       600
+
+        cite
+          fa                times
+          cursor            pointer
+          fr()
 
 
   .credential-list

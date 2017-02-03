@@ -1,4 +1,5 @@
 kd = require 'kd'
+JView = require 'app/jview'
 Events = require '../events'
 BaseController = require './base'
 
@@ -37,6 +38,16 @@ module.exports = class CredentialsController extends BaseController
       callback : @bound 'handleRevertChanges'
       title    : 'Revert Changes'
 
+    @filterView  = @listView.addSubView new JView
+      cssClass   : 'filter-view hidden'
+      pistachio  : '''
+        Currently selected provider: <b>{{#(provider)}}</b> <cite />
+      '''
+      click      : (event) =>
+        @list.emit Events.CredentialFilterChanged
+        kd.utils.stopDOMEvent event
+    , { provider : '' }
+
     self = this
     @listController.showLazyLoader = ->
       AccountCredentialListController::showLazyLoader.call this
@@ -58,12 +69,31 @@ module.exports = class CredentialsController extends BaseController
       else @list.unsetClass 'has-change'
 
 
+    @list.on Events.CredentialFilterChanged, (provider) =>
+
+      return  if provider and not @filterView.hasClass 'hidden'
+
+      filter = null
+      filter = { provider }  if provider
+
+      @filterView.setData filter
+
+      if filter
+      then @filterView.show()
+      else @filterView.hide()
+
+      @listController.filterByProvider filter
+
 
   setData: (stackTemplate, internal = no) ->
 
     super stackTemplate
 
-    @updateCredentialSelections()
+    if not internal and not @filterView.hasClass 'hidden'
+      @filterView.hide()
+      @listController.filterByProvider()
+    else
+      @updateCredentialSelections()
 
 
   updateCredentialSelections: ->
