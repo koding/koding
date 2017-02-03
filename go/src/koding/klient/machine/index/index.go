@@ -291,7 +291,7 @@ func (idx *Index) Apply(root string, cs ChangeSlice) {
 			idx.mu.RUnlock()
 
 			// Entry was updated/added after the event was created.
-			if ok && nd.Entry.MTime > cs[i].MadeUnixNano() {
+			if ok && nd.Entry.MTime > cs[i].CreatedAtUnixNano() {
 				continue
 			}
 			fallthrough

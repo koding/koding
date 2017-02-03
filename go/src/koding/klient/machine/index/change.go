@@ -97,31 +97,62 @@ func (cm *ChangeMeta) Coalesce(newer ChangeMeta) {
 
 // Change describes single file change.
 type Change struct {
-	name string     // The relative name of the file.
-	made int64      // Change creation time since EPOCH.
-	meta ChangeMeta // The type of operation made on file entry.
+	name      string     // The relative name of the file.
+	createdAt int64      // Change creation time since EPOCH.
+	meta      ChangeMeta // The type of operation made on file entry.
 }
 
 // NewChange creates a new Change object.
 func NewChange(name string, meta ChangeMeta) *Change {
 	return &Change{
-		name: name,
-		meta: meta,
-		made: time.Now().UTC().UnixNano(),
+		name:      name,
+		meta:      meta,
+		createdAt: time.Now().UTC().UnixNano(),
 	}
 }
 
 // Name returns the relative slashed path to changed file.
 func (c *Change) Name() string { return c.name }
 
-// MadeUnixNano returns creation time since EPOCH in UTC time zone.
-func (c *Change) MadeUnixNano() int64 {
-	return atomic.LoadInt64(&c.made)
+// CreatedAtUnixNano returns creation time since EPOCH in UTC time zone.
+func (c *Change) CreatedAtUnixNano() int64 {
+	return atomic.LoadInt64(&c.createdAt)
 }
 
 // Meta returns meta data information about Change type and direction.
 func (c *Change) Meta() ChangeMeta {
 	return ChangeMeta(atomic.LoadUint64((*uint64)(&c.meta)))
+}
+
+// Coalesce merges two changes with the same name. If change names are different
+// this method panics. Meta data will be updated according to ChangeMeta
+// coalescing rules. Lower creation time is always chosen. This method is thread
+// safe.
+func (c *Change) Coalesce(newer *Change) {
+	if newer == nil {
+		return
+	}
+
+	if c.name != newer.name {
+		panic("coalesce of different changes is prohibited")
+	}
+
+	// Data races between change meta and made time doesn't matter since the
+	// time will end up being the lowest value.
+	c.meta.Coalesce(newer.Meta())
+
+	for {
+		oldt := atomic.LoadInt64(&c.createdAt)
+
+		newt := newer.CreatedAtUnixNano()
+		if newt > oldt {
+			return
+		}
+
+		if atomic.CompareAndSwapInt64(&c.createdAt, oldt, newt) {
+			return
+		}
+	}
 }
 
 // ChangeSlice stores multiple changes.
