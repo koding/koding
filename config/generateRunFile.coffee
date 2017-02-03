@@ -445,6 +445,7 @@ generateDev = (KONFIG, options) ->
       restoredefaultmongodump
       restoreredis
       restorerabbitmq
+      restorecountly
       restoredefaultpostgresdump
 
       echo "#---> CLEARING ALGOLIA INDEXES: <---#"
