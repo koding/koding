@@ -1,8 +1,16 @@
 package index
 
 import (
+	"math/rand"
+	"sync"
 	"testing"
+	"time"
 )
+
+func init() {
+	// initialize pseudo random number generator.
+	rand.Seed(time.Now().UnixNano())
+}
 
 func TestChangeMetaCoalesce(t *testing.T) {
 	tests := map[string]struct {
@@ -143,5 +151,39 @@ func TestChangeMetaCoalesce(t *testing.T) {
 				t.Errorf("want meta = %b; got %b", test.Result, older)
 			}
 		})
+	}
+}
+
+func TestChangeMetaCoalesceConcurrent(t *testing.T) {
+	const workersN = 10
+
+	var wg sync.WaitGroup
+	cmC := make(chan ChangeMeta)
+	cm := ChangeMeta(0)
+
+	wg.Add(workersN)
+	for i := 0; i < workersN; i++ {
+		go func() {
+			defer wg.Done()
+
+			for newer := range cmC {
+				cm.Coalesce(newer)
+			}
+		}()
+	}
+
+	// Initialize array with 99 invalid changes and one valid. This should
+	// always result with valid change after coalescing.
+	var cms = make([]ChangeMeta, 2000)
+	cms[rand.Intn(len(cms))] = ChangeMetaAdd
+	for i := range cms {
+		cmC <- cms[i]
+	}
+
+	close(cmC)
+	wg.Wait()
+
+	if want := ChangeMetaAdd | ChangeMetaLocal; cm != want {
+		t.Errorf("want cm = %b; got %b", want, cm)
 	}
 }
