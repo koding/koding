@@ -187,3 +187,47 @@ func TestChangeMetaCoalesceConcurrent(t *testing.T) {
 		t.Errorf("want cm = %b; got %b", want, cm)
 	}
 }
+
+func TestChangeCoalesceConcurrent(t *testing.T) {
+	const workersN = 10
+
+	// The oldest change in this test.
+	oldest := NewChange("change", 0)
+
+	var wg sync.WaitGroup
+	cC := make(chan *Change)
+	c := NewChange("change", ChangeMetaUpdate)
+
+	wg.Add(workersN)
+	for i := 0; i < workersN; i++ {
+		go func() {
+			defer wg.Done()
+
+			for newer := range cC {
+				c.Coalesce(newer)
+			}
+		}()
+	}
+
+	var cs = make([]*Change, 200)
+	randIdx := rand.Intn(len(cs))
+	newest := NewChange("change", ChangeMetaRemove)
+	for i := range cs {
+		if i == randIdx {
+			cC <- oldest
+		} else {
+			cC <- newest
+		}
+	}
+
+	close(cC)
+	wg.Wait()
+
+	if want, cm := ChangeMetaRemove|ChangeMetaLocal, c.Meta(); cm != want {
+		t.Errorf("want cm = %b; got %b", want, cm)
+	}
+
+	if want, caun := oldest.CreatedAtUnixNano(), c.CreatedAtUnixNano(); caun != want {
+		t.Errorf("want caun = %d; got %d", want, caun)
+	}
+}
