@@ -300,9 +300,6 @@ module.exports = class AccountCredentialListController extends KodingListControl
           else
             return yes
 
-
-
-
     { computeController } = kd.singletons
 
     noCredFound = not listView.items.length

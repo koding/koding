@@ -1,5 +1,6 @@
 kd = require 'kd'
 JView = require 'app/jview'
+Events = require '../events'
 globals = require 'globals'
 
 
@@ -35,12 +36,14 @@ module.exports = class CredentialListItem extends kd.ListItemView
 
     @on 'click', (event) =>
       unless 'checkbox' in event.target.classList
-        @checkBox.setValue not !!@checkBox.getValue()
+        @select not @isSelected(), userAction = yes
         kd.utils.stopDOMEvent event
 
 
-  select: (state = yes) ->
+  select: (state = yes, userAction = no) ->
     @checkBox.setValue state
+    if userAction
+      @getDelegate().emit Events.CredentialSelectionChanged, this, state
 
 
   isSelected: ->
