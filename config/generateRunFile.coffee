@@ -339,9 +339,9 @@ generateDev = (KONFIG, options) ->
 
     function check_connectivity_countly() {
       local HOST=$KONFIG_COUNTLY_HOST:$KONFIG_COUNTLY_APIPORT
-      local RESPONSE_CODE=$(curl --silent --output /dev/null --write-out '%{http_code}' --user $USER http://$HOST)
+      local RESPONSE_CODE=$(curl --silent --output /dev/null --write-out '%{http_code}' http://$HOST)
 
-      if [[ $? != 0 || $RESPONSE_CODE != 200 ]]; then
+      if [[ $? != 0 || $RESPONSE_CODE != 302 ]]; then
         echo "error: countly service check failed on $HOST"
         return 1
       fi
@@ -414,7 +414,7 @@ generateDev = (KONFIG, options) ->
     }
 
     function runCountlyDocker () {
-        docker run -d -p $KONFIG_SERVICEHOST:5672:5672 -p $KONFIG_COUNTLY_APIPORT:80 --name=countly countly/countly-server:16.06
+        docker run -d -p $KONFIG_COUNTLY_APIPORT:80 --name=countly countly/countly-server:16.06
         check_connectivity countly
     }
 
