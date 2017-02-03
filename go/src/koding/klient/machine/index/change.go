@@ -74,8 +74,14 @@ func (cm *ChangeMeta) Coalesce(newer ChangeMeta) {
 	for {
 		older := ChangeMeta(atomic.LoadUint64((*uint64)(cm)))
 
-		partial := udarlMap[(older|newer)&31]
+		// First five changes of change meta creates an index for udarlMap which
+		// stores OR result of two change meta events. We strip other flags here.
+		evIdx := (older | newer) & cmAll
 
+		// Remove all changes and locations from coalesced mask.
+		withoutEvent := (newer | older) &^ cmAll
+
+		partial := udarlMap[evIdx]
 		// There are special cases where OR-ed order of events is different:
 		//   DR+UL=AL or DL+UR=DL,
 		//   DR+AL=AL or DL+AR=DL.
@@ -88,7 +94,7 @@ func (cm *ChangeMeta) Coalesce(newer ChangeMeta) {
 			}
 		}
 
-		updated := uint64((newer|older)&^cmAll | partial)
+		updated := uint64(withoutEvent | partial)
 		if atomic.CompareAndSwapUint64((*uint64)(cm), uint64(older), updated) {
 			return
 		}
