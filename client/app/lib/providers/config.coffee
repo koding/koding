@@ -29,7 +29,7 @@ module.exports = globals.config.providers =
     title                  : 'AWS Credential'
     supported              : yes
     enabled                : yes
-    color                  : '#F9A900'
+    color                  : '#e69d01'
     description            : 'Amazon Web Services'
     instanceTypes          : require './instance-types/aws'
     defaultTemplate        : replaceUserInputs require './templates/aws'
@@ -74,7 +74,7 @@ module.exports = globals.config.providers =
     name                   : 'Vagrant'
     link                   : 'http://www.vagrantup.com'
     title                  : 'KD Host Query ID'
-    color                  : '#B52025'
+    color                  : '#6768a9'
     supported              : yes
     enabled                : 'beta'
     defaultTemplate        : replaceUserInputs require './templates/vagrant'
@@ -146,7 +146,7 @@ module.exports = globals.config.providers =
     name                   : 'Digital Ocean'
     link                   : 'https://digitalocean.com'
     title                  : 'Digital Ocean Credential'
-    color                  : '#7abad7'
+    color                  : '#0080ff'
     supported              : yes
     slug                   : 'do'
     enabled                : 'beta'
@@ -168,7 +168,7 @@ module.exports = globals.config.providers =
     name                   : 'Azure'
     link                   : 'https://azure.microsoft.com/'
     title                  : 'Azure Credential'
-    color                  : '#ec06be'
+    color                  : '#6391a9'
     supported              : yes
     enabled                : 'beta'
     defaultTemplate        : replaceUserInputs require './templates/azure'
@@ -257,7 +257,7 @@ module.exports = globals.config.providers =
     name                   : 'Marathon'
     link                   : 'https://mesosphere.github.io/marathon/'
     title                  : 'Marathon Credential'
-    color                  : '#B52025'
+    color                  : '#03b19e'
     supported              : yes
     enabled                : 'beta'
     defaultTemplate        : replaceUserInputs require './templates/marathon'
