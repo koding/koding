@@ -605,6 +605,8 @@ imports:
   version: 0826b98aaa29c0766956cb40d45cf7482a597671
 - name: github.com/kr/binarydist
   version: 3035450ff8b987ec4373f65c40767f096b35f2d2
+- name: github.com/google/shlex
+  version: 6f45313302b9c56850fc17f99e40caebce98c716
 - name: github.com/kr/fs
   version: 2788f0dbd16903de03cb8186e5c7d97b69ad387b
 - name: github.com/kr/pty
@@ -983,6 +985,10 @@ imports:
   - sockjs
 - name: gopkg.in/inf.v0
   version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
+- name: gopkg.in/alecthomas/kingpin.v2
+  version: e9044be3ab2a8e11d4e1f418d12f0790d57e8d70
+- name: gopkg.in/alecthomas/kingpin.v3-unstable
+  version: cf3c3c40a98621504e3ca4b45af0c037d3e971cb
 - name: gopkg.in/ini.v1
   version: 177219109c97e7920c933e21c9b25f874357b237
 - name: gopkg.in/macaron.v1
