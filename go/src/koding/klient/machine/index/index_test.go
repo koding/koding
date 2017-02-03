@@ -1,4 +1,4 @@
-package index
+package index_test
 
 import (
 	"encoding/json"
@@ -10,6 +10,8 @@ import (
 	"sort"
 	"testing"
 	"time"
+
+	"koding/klient/machine/index"
 )
 
 // filetree defines a simple directory structure that will be created for test
@@ -31,54 +33,54 @@ var filetree = map[string]int64{
 func TestIndex(t *testing.T) {
 	tests := map[string]struct {
 		Op      func(string) error
-		Changes ChangeSlice
+		Changes index.ChangeSlice
 	}{
 		"add file": {
 			Op: writeFile("d/test.bin", 40*1024),
-			Changes: ChangeSlice{
-				NewChange("d", ChangeMetaUpdate),
-				NewChange("d/test.bin", ChangeMetaAdd),
+			Changes: index.ChangeSlice{
+				index.NewChange("d", index.ChangeMetaUpdate),
+				index.NewChange("d/test.bin", index.ChangeMetaAdd),
 			},
 		},
 		"add dir": {
 			Op: addDir("e"),
-			Changes: ChangeSlice{
-				NewChange("e", ChangeMetaAdd),
+			Changes: index.ChangeSlice{
+				index.NewChange("e", index.ChangeMetaAdd),
 			},
 		},
 		"remove file": {
 			Op: rmAllFile("c/cb.bin"),
-			Changes: ChangeSlice{
-				NewChange("c", ChangeMetaUpdate),
-				NewChange("c/cb.bin", ChangeMetaRemove),
+			Changes: index.ChangeSlice{
+				index.NewChange("c", index.ChangeMetaUpdate),
+				index.NewChange("c/cb.bin", index.ChangeMetaRemove),
 			},
 		},
 		"remove dir": {
 			Op: rmAllFile("c"),
-			Changes: ChangeSlice{
-				NewChange("c", ChangeMetaRemove),
-				NewChange("c/ca.txt", ChangeMetaRemove),
-				NewChange("c/cb.bin", ChangeMetaRemove),
+			Changes: index.ChangeSlice{
+				index.NewChange("c", index.ChangeMetaRemove),
+				index.NewChange("c/ca.txt", index.ChangeMetaRemove),
+				index.NewChange("c/cb.bin", index.ChangeMetaRemove),
 			},
 		},
 		"rename file": {
 			Op: mvFile("b.bin", "c/cc.bin"),
-			Changes: ChangeSlice{
-				NewChange("b.bin", ChangeMetaRemove),
-				NewChange("c", ChangeMetaUpdate),
-				NewChange("c/cc.bin", ChangeMetaAdd),
+			Changes: index.ChangeSlice{
+				index.NewChange("b.bin", index.ChangeMetaRemove),
+				index.NewChange("c", index.ChangeMetaUpdate),
+				index.NewChange("c/cc.bin", index.ChangeMetaAdd),
 			},
 		},
 		"write file": {
 			Op: writeFile("b.bin", 1024),
-			Changes: ChangeSlice{
-				NewChange("b.bin", ChangeMetaUpdate),
+			Changes: index.ChangeSlice{
+				index.NewChange("b.bin", index.ChangeMetaUpdate),
 			},
 		},
 		"chmod file": {
 			Op: chmodFile("d/dc/dca.txt", 0766),
-			Changes: ChangeSlice{
-				NewChange("d/dc/dca.txt", ChangeMetaUpdate),
+			Changes: index.ChangeSlice{
+				index.NewChange("d/dc/dca.txt", index.ChangeMetaUpdate),
 			},
 		},
 	}
@@ -94,7 +96,7 @@ func TestIndex(t *testing.T) {
 			}
 			defer clean()
 
-			idx, err := NewIndexFiles(root)
+			idx, err := index.NewIndexFiles(root)
 			if err != nil {
 				t.Fatalf("want err = nil; got %v", err)
 			}
@@ -109,22 +111,22 @@ func TestIndex(t *testing.T) {
 			cs := idx.Compare(root)
 			sort.Sort(cs)
 			if len(cs) != len(test.Changes) {
-				t.Fatalf("want changes count = %d; got %d", len(test.Changes), len(cs))
+				t.Fatalf("want index.Changes count = %d; got %d", len(test.Changes), len(cs))
 			}
 
 			// Copy time from result to tests.
 			for i, tc := range test.Changes {
 				if cs[i].Name() != tc.Name() {
-					t.Errorf("want change name = %q; got %q", tc.Name, cs[i].Name)
+					t.Errorf("want index.Change name = %q; got %q", tc.Name, cs[i].Name)
 				}
 				if cs[i].Meta() != tc.Meta() {
-					t.Errorf("want change meta = %bb; got %bb", tc.Meta, cs[i].Meta)
+					t.Errorf("want index.Change meta = %bb; got %bb", tc.Meta, cs[i].Meta)
 				}
 			}
 
 			idx.Apply(root, cs)
 			if cs = idx.Compare(root); len(cs) != 0 {
-				t.Errorf("want no changes after apply; got %#v", cs)
+				t.Errorf("want no index.Changes after apply; got %#v", cs)
 			}
 		})
 	}
@@ -160,7 +162,7 @@ func TestIndexCount(t *testing.T) {
 			}
 			defer clean()
 
-			idx, err := NewIndexFiles(root)
+			idx, err := index.NewIndexFiles(root)
 			if err != nil {
 				t.Fatalf("want err = nil; got %v", err)
 			}
@@ -179,7 +181,7 @@ func TestIndexJSON(t *testing.T) {
 	}
 	defer clean()
 
-	idx, err := NewIndexFiles(root)
+	idx, err := index.NewIndexFiles(root)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -189,13 +191,13 @@ func TestIndexJSON(t *testing.T) {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	idx = NewIndex()
+	idx = index.NewIndex()
 	if err := json.Unmarshal(data, idx); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
 	if cs := idx.Compare(root); len(cs) != 0 {
-		t.Errorf("want no changes after apply; got %#v", cs)
+		t.Errorf("want no index.Changes after apply; got %#v", cs)
 	}
 }
 

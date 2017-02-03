@@ -1,10 +1,12 @@
-package index
+package index_test
 
 import (
 	"math/rand"
 	"sync"
 	"testing"
 	"time"
+
+	"koding/klient/machine/index"
 )
 
 func init() {
@@ -14,124 +16,124 @@ func init() {
 
 func TestChangeMetaCoalesce(t *testing.T) {
 	tests := map[string]struct {
-		A      ChangeMeta
-		B      ChangeMeta
-		Result ChangeMeta
+		A      index.ChangeMeta
+		B      index.ChangeMeta
+		Result index.ChangeMeta
 	}{
 		"UL_UL_UL": {
-			A:      ChangeMetaUpdate | ChangeMetaLocal,
-			B:      ChangeMetaUpdate | ChangeMetaLocal,
-			Result: ChangeMetaUpdate | ChangeMetaLocal,
+			A:      index.ChangeMetaUpdate | index.ChangeMetaLocal,
+			B:      index.ChangeMetaUpdate | index.ChangeMetaLocal,
+			Result: index.ChangeMetaUpdate | index.ChangeMetaLocal,
 		},
 		"DL_UL_DL": {
-			A:      ChangeMetaRemove | ChangeMetaLocal,
-			B:      ChangeMetaUpdate | ChangeMetaLocal,
-			Result: ChangeMetaRemove | ChangeMetaLocal,
+			A:      index.ChangeMetaRemove | index.ChangeMetaLocal,
+			B:      index.ChangeMetaUpdate | index.ChangeMetaLocal,
+			Result: index.ChangeMetaRemove | index.ChangeMetaLocal,
 		},
 		"DL_DL_DL": {
-			A:      ChangeMetaRemove | ChangeMetaLocal,
-			B:      ChangeMetaRemove | ChangeMetaLocal,
-			Result: ChangeMetaRemove | ChangeMetaLocal,
+			A:      index.ChangeMetaRemove | index.ChangeMetaLocal,
+			B:      index.ChangeMetaRemove | index.ChangeMetaLocal,
+			Result: index.ChangeMetaRemove | index.ChangeMetaLocal,
 		},
 		"AL_UL_AL": {
-			A:      ChangeMetaAdd | ChangeMetaLocal,
-			B:      ChangeMetaUpdate | ChangeMetaLocal,
-			Result: ChangeMetaAdd | ChangeMetaLocal,
+			A:      index.ChangeMetaAdd | index.ChangeMetaLocal,
+			B:      index.ChangeMetaUpdate | index.ChangeMetaLocal,
+			Result: index.ChangeMetaAdd | index.ChangeMetaLocal,
 		},
 		"AL_DL_UL": {
-			A:      ChangeMetaAdd | ChangeMetaLocal,
-			B:      ChangeMetaRemove | ChangeMetaLocal,
-			Result: ChangeMetaUpdate | ChangeMetaLocal,
+			A:      index.ChangeMetaAdd | index.ChangeMetaLocal,
+			B:      index.ChangeMetaRemove | index.ChangeMetaLocal,
+			Result: index.ChangeMetaUpdate | index.ChangeMetaLocal,
 		},
 		"AL_AL_AL": {
-			A:      ChangeMetaAdd | ChangeMetaLocal,
-			B:      ChangeMetaAdd | ChangeMetaLocal,
-			Result: ChangeMetaAdd | ChangeMetaLocal,
+			A:      index.ChangeMetaAdd | index.ChangeMetaLocal,
+			B:      index.ChangeMetaAdd | index.ChangeMetaLocal,
+			Result: index.ChangeMetaAdd | index.ChangeMetaLocal,
 		},
 		"UR_UL_UL": {
-			A:      ChangeMetaUpdate | ChangeMetaRemote,
-			B:      ChangeMetaUpdate | ChangeMetaLocal,
-			Result: ChangeMetaUpdate | ChangeMetaLocal,
+			A:      index.ChangeMetaUpdate | index.ChangeMetaRemote,
+			B:      index.ChangeMetaUpdate | index.ChangeMetaLocal,
+			Result: index.ChangeMetaUpdate | index.ChangeMetaLocal,
 		},
 		"UR_DL_DL": {
-			A:      ChangeMetaUpdate | ChangeMetaRemote,
-			B:      ChangeMetaRemove | ChangeMetaLocal,
-			Result: ChangeMetaRemove | ChangeMetaLocal,
+			A:      index.ChangeMetaUpdate | index.ChangeMetaRemote,
+			B:      index.ChangeMetaRemove | index.ChangeMetaLocal,
+			Result: index.ChangeMetaRemove | index.ChangeMetaLocal,
 		},
 		"UR_AL_UL": {
-			A:      ChangeMetaUpdate | ChangeMetaRemote,
-			B:      ChangeMetaAdd | ChangeMetaLocal,
-			Result: ChangeMetaUpdate | ChangeMetaLocal,
+			A:      index.ChangeMetaUpdate | index.ChangeMetaRemote,
+			B:      index.ChangeMetaAdd | index.ChangeMetaLocal,
+			Result: index.ChangeMetaUpdate | index.ChangeMetaLocal,
 		},
 		"UR_UR_UR": {
-			A:      ChangeMetaUpdate | ChangeMetaRemote,
-			B:      ChangeMetaUpdate | ChangeMetaRemote,
-			Result: ChangeMetaUpdate | ChangeMetaRemote,
+			A:      index.ChangeMetaUpdate | index.ChangeMetaRemote,
+			B:      index.ChangeMetaUpdate | index.ChangeMetaRemote,
+			Result: index.ChangeMetaUpdate | index.ChangeMetaRemote,
 		},
 		"DR_UL_AL": {
-			A:      ChangeMetaRemove | ChangeMetaRemote,
-			B:      ChangeMetaUpdate | ChangeMetaLocal,
-			Result: ChangeMetaAdd | ChangeMetaLocal,
+			A:      index.ChangeMetaRemove | index.ChangeMetaRemote,
+			B:      index.ChangeMetaUpdate | index.ChangeMetaLocal,
+			Result: index.ChangeMetaAdd | index.ChangeMetaLocal,
 		},
 		"DR_DL_DL": {
-			A:      ChangeMetaRemove | ChangeMetaRemote,
-			B:      ChangeMetaRemove | ChangeMetaLocal,
-			Result: ChangeMetaRemove | ChangeMetaLocal,
+			A:      index.ChangeMetaRemove | index.ChangeMetaRemote,
+			B:      index.ChangeMetaRemove | index.ChangeMetaLocal,
+			Result: index.ChangeMetaRemove | index.ChangeMetaLocal,
 		},
 		"DR_AL_AL": {
-			A:      ChangeMetaRemove | ChangeMetaRemote,
-			B:      ChangeMetaAdd | ChangeMetaLocal,
-			Result: ChangeMetaAdd | ChangeMetaLocal,
+			A:      index.ChangeMetaRemove | index.ChangeMetaRemote,
+			B:      index.ChangeMetaAdd | index.ChangeMetaLocal,
+			Result: index.ChangeMetaAdd | index.ChangeMetaLocal,
 		},
 		"DR_UR_DR": {
-			A:      ChangeMetaRemove | ChangeMetaRemote,
-			B:      ChangeMetaUpdate | ChangeMetaRemote,
-			Result: ChangeMetaRemove | ChangeMetaRemote,
+			A:      index.ChangeMetaRemove | index.ChangeMetaRemote,
+			B:      index.ChangeMetaUpdate | index.ChangeMetaRemote,
+			Result: index.ChangeMetaRemove | index.ChangeMetaRemote,
 		},
 		"DR_DR_DR": {
-			A:      ChangeMetaRemove | ChangeMetaRemote,
-			B:      ChangeMetaRemove | ChangeMetaRemote,
-			Result: ChangeMetaRemove | ChangeMetaRemote,
+			A:      index.ChangeMetaRemove | index.ChangeMetaRemote,
+			B:      index.ChangeMetaRemove | index.ChangeMetaRemote,
+			Result: index.ChangeMetaRemove | index.ChangeMetaRemote,
 		},
 		"AR_UL_UL": {
-			A:      ChangeMetaAdd | ChangeMetaRemote,
-			B:      ChangeMetaUpdate | ChangeMetaLocal,
-			Result: ChangeMetaUpdate | ChangeMetaLocal,
+			A:      index.ChangeMetaAdd | index.ChangeMetaRemote,
+			B:      index.ChangeMetaUpdate | index.ChangeMetaLocal,
+			Result: index.ChangeMetaUpdate | index.ChangeMetaLocal,
 		},
 		"AR_DL_DL": {
-			A:      ChangeMetaAdd | ChangeMetaRemote,
-			B:      ChangeMetaRemove | ChangeMetaLocal,
-			Result: ChangeMetaRemove | ChangeMetaLocal,
+			A:      index.ChangeMetaAdd | index.ChangeMetaRemote,
+			B:      index.ChangeMetaRemove | index.ChangeMetaLocal,
+			Result: index.ChangeMetaRemove | index.ChangeMetaLocal,
 		},
 		"AR_AL_UL": {
-			A:      ChangeMetaAdd | ChangeMetaRemote,
-			B:      ChangeMetaAdd | ChangeMetaLocal,
-			Result: ChangeMetaUpdate | ChangeMetaLocal,
+			A:      index.ChangeMetaAdd | index.ChangeMetaRemote,
+			B:      index.ChangeMetaAdd | index.ChangeMetaLocal,
+			Result: index.ChangeMetaUpdate | index.ChangeMetaLocal,
 		},
 		"AR_UR_AR": {
-			A:      ChangeMetaAdd | ChangeMetaRemote,
-			B:      ChangeMetaUpdate | ChangeMetaRemote,
-			Result: ChangeMetaAdd | ChangeMetaRemote,
+			A:      index.ChangeMetaAdd | index.ChangeMetaRemote,
+			B:      index.ChangeMetaUpdate | index.ChangeMetaRemote,
+			Result: index.ChangeMetaAdd | index.ChangeMetaRemote,
 		},
 		"AR_DR_UR": {
-			A:      ChangeMetaAdd | ChangeMetaRemote,
-			B:      ChangeMetaRemove | ChangeMetaRemote,
-			Result: ChangeMetaUpdate | ChangeMetaRemote,
+			A:      index.ChangeMetaAdd | index.ChangeMetaRemote,
+			B:      index.ChangeMetaRemove | index.ChangeMetaRemote,
+			Result: index.ChangeMetaUpdate | index.ChangeMetaRemote,
 		},
 		"AR_AR_AR": {
-			A:      ChangeMetaAdd | ChangeMetaRemote,
-			B:      ChangeMetaAdd | ChangeMetaRemote,
-			Result: ChangeMetaAdd | ChangeMetaRemote,
+			A:      index.ChangeMetaAdd | index.ChangeMetaRemote,
+			B:      index.ChangeMetaAdd | index.ChangeMetaRemote,
+			Result: index.ChangeMetaAdd | index.ChangeMetaRemote,
 		},
 		"INV_A_AL": {
 			A:      0,
-			B:      ChangeMetaAdd,
-			Result: ChangeMetaAdd | ChangeMetaLocal,
+			B:      index.ChangeMetaAdd,
+			Result: index.ChangeMetaAdd | index.ChangeMetaLocal,
 		},
 		"AL_AL_OTHER META": {
-			A:      ChangeMetaAdd | ChangeMetaLocal | ChangeMetaLarge,
-			B:      ChangeMetaAdd | ChangeMetaLocal,
-			Result: ChangeMetaAdd | ChangeMetaLocal | ChangeMetaLarge,
+			A:      index.ChangeMetaAdd | index.ChangeMetaLocal | index.ChangeMetaLarge,
+			B:      index.ChangeMetaAdd | index.ChangeMetaLocal,
+			Result: index.ChangeMetaAdd | index.ChangeMetaLocal | index.ChangeMetaLarge,
 		},
 	}
 
@@ -158,8 +160,8 @@ func TestChangeMetaCoalesceConcurrent(t *testing.T) {
 	const workersN = 10
 
 	var wg sync.WaitGroup
-	cmC := make(chan ChangeMeta)
-	cm := ChangeMeta(0)
+	cmC := make(chan index.ChangeMeta)
+	cm := index.ChangeMeta(0)
 
 	wg.Add(workersN)
 	for i := 0; i < workersN; i++ {
@@ -174,8 +176,8 @@ func TestChangeMetaCoalesceConcurrent(t *testing.T) {
 
 	// Initialize array with 99 invalid changes and one valid. This should
 	// always result with valid change after coalescing.
-	var cms = make([]ChangeMeta, 2000)
-	cms[rand.Intn(len(cms))] = ChangeMetaAdd
+	var cms = make([]index.ChangeMeta, 2000)
+	cms[rand.Intn(len(cms))] = index.ChangeMetaAdd
 	for i := range cms {
 		cmC <- cms[i]
 	}
@@ -183,7 +185,7 @@ func TestChangeMetaCoalesceConcurrent(t *testing.T) {
 	close(cmC)
 	wg.Wait()
 
-	if want := ChangeMetaAdd | ChangeMetaLocal; cm != want {
+	if want := index.ChangeMetaAdd | index.ChangeMetaLocal; cm != want {
 		t.Errorf("want cm = %b; got %b", want, cm)
 	}
 }
@@ -192,11 +194,11 @@ func TestChangeCoalesceConcurrent(t *testing.T) {
 	const workersN = 10
 
 	// The oldest change in this test.
-	oldest := NewChange("change", 0)
+	oldest := index.NewChange("change", 0)
 
 	var wg sync.WaitGroup
-	cC := make(chan *Change)
-	c := NewChange("change", ChangeMetaUpdate)
+	cC := make(chan *index.Change)
+	c := index.NewChange("change", index.ChangeMetaUpdate)
 
 	wg.Add(workersN)
 	for i := 0; i < workersN; i++ {
@@ -209,9 +211,9 @@ func TestChangeCoalesceConcurrent(t *testing.T) {
 		}()
 	}
 
-	var cs = make([]*Change, 200)
+	var cs = make([]*index.Change, 200)
 	randIdx := rand.Intn(len(cs))
-	newest := NewChange("change", ChangeMetaRemove)
+	newest := index.NewChange("change", index.ChangeMetaRemove)
 	for i := range cs {
 		if i == randIdx {
 			cC <- oldest
@@ -223,7 +225,7 @@ func TestChangeCoalesceConcurrent(t *testing.T) {
 	close(cC)
 	wg.Wait()
 
-	if want, cm := ChangeMetaRemove|ChangeMetaLocal, c.Meta(); cm != want {
+	if want, cm := index.ChangeMetaRemove|index.ChangeMetaLocal, c.Meta(); cm != want {
 		t.Errorf("want cm = %b; got %b", want, cm)
 	}
 
