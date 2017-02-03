@@ -93,6 +93,11 @@ module.exports = class StackEditor extends kd.View
       @statusbar
     }
 
+    @credentialsController.on Events.LazyLoadStarted,  \
+      @sideView.lazyBound 'setClass', 'loading'
+    @credentialsController.on Events.LazyLoadFinished, \
+      @sideView.lazyBound 'unsetClass', 'loading'
+
     @emit 'ready'
 
 

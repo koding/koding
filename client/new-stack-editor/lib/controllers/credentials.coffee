@@ -1,4 +1,5 @@
 kd = require 'kd'
+Events = require '../events'
 BaseController = require './base'
 
 CredentialListItem              = require '../views/credentiallistitem'
@@ -23,6 +24,14 @@ module.exports = class CredentialsController extends BaseController
 
     @listView = @listController.getView()
 
+    self = this
+    @listController.showLazyLoader = ->
+      AccountCredentialListController::showLazyLoader.call this
+      self.emit Events.LazyLoadStarted
+
+    @listController.hideLazyLoader = ->
+      AccountCredentialListController::hideLazyLoader.call this
+      self.emit Events.LazyLoadFinished
 
   setData: (stackTemplate) ->
 

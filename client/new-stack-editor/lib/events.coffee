@@ -4,6 +4,8 @@ module.exports = {
   'StackWizardCancelled'
   'InitializeRequested'
   'ProviderSelected'
+  'LazyLoadFinished'
+  'LazyLoadStarted'
   'GotFocus'
   'Log'
 }
