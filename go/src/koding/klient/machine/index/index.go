@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"sync"
-	"time"
 
 	"github.com/djherbis/times"
 )
@@ -217,25 +216,16 @@ func (idx *Index) Compare(root string) (cs ChangeSlice) {
 
 		// Not found in current index - file was added.
 		if !ok {
-			cs = append(cs, Change{
-				Name:      name,
-				Meta:      ChangeMetaAdd | markLargeMeta(info.Size()),
-				CreatedAt: time.Now().UnixNano(),
-			})
+			cs = append(cs, NewChange(name, ChangeMetaAdd|markLargeMeta(info.Size())))
 			return nil
 		}
 
 		// Entry is read only-now. Check for changes.
 		visited[name] = struct{}{}
-
 		if nd.Entry.MTime != info.ModTime().UnixNano() ||
 			nd.Entry.CTime != ctime(info) ||
 			nd.Entry.Size != info.Size() {
-			cs = append(cs, Change{
-				Name:      name,
-				Meta:      ChangeMetaUpdate | markLargeMeta(info.Size()),
-				CreatedAt: time.Now().UnixNano(),
-			})
+			cs = append(cs, NewChange(name, ChangeMetaUpdate|markLargeMeta(info.Size())))
 		}
 
 		return nil
@@ -252,11 +242,7 @@ func (idx *Index) Compare(root string) (cs ChangeSlice) {
 			path := filepath.Join(root, filepath.FromSlash(name))
 
 			if _, err := os.Lstat(path); os.IsNotExist(err) {
-				cs = append(cs, Change{
-					Name:      name,
-					Meta:      ChangeMetaRemove | markLargeMeta(entry.Size),
-					CreatedAt: time.Now().UnixNano(),
-				})
+				cs = append(cs, NewChange(name, ChangeMetaRemove|markLargeMeta(entry.Size)))
 			}
 		}
 	})
@@ -297,27 +283,27 @@ func (idx *Index) Apply(root string, cs ChangeSlice) {
 
 	for i := range cs {
 		switch {
-		case cs[i].Meta&(ChangeMetaUpdate|ChangeMetaAdd) != 0:
+		case cs[i].Meta()&(ChangeMetaUpdate|ChangeMetaAdd) != 0:
 			// Check if the event is still valid or if it was replaced by newer
 			// change.
 			idx.mu.RLock()
-			nd, ok := idx.root.Lookup(cs[i].Name)
+			nd, ok := idx.root.Lookup(cs[i].Name())
 			idx.mu.RUnlock()
 
 			// Entry was updated/added after the event was created.
-			if ok && nd.Entry.MTime > cs[i].CreatedAt {
+			if ok && nd.Entry.MTime > cs[i].MadeUnixNano() {
 				continue
 			}
 			fallthrough
-		case cs[i].Meta&ChangeMetaRemove != 0:
+		case cs[i].Meta()&ChangeMetaRemove != 0:
 			// Check if the file still exists, since it could be removed before
 			// Apply was called. If the file exists, create new entry from it
 			// and replace its value inside index map.
-			path := filepath.Join(root, filepath.FromSlash(cs[i].Name))
+			path := filepath.Join(root, filepath.FromSlash(cs[i].Name()))
 			info, err := os.Lstat(path)
 			if os.IsNotExist(err) {
 				idx.mu.Lock()
-				idx.root.Del(cs[i].Name)
+				idx.root.Del(cs[i].Name())
 				idx.mu.Unlock()
 				continue
 			}

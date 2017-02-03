@@ -31,93 +31,54 @@ var filetree = map[string]int64{
 func TestIndex(t *testing.T) {
 	tests := map[string]struct {
 		Op      func(string) error
-		Changes []Change
+		Changes ChangeSlice
 	}{
 		"add file": {
 			Op: writeFile("d/test.bin", 40*1024),
-			Changes: []Change{
-				{
-					Name: "d",
-					Meta: ChangeMetaUpdate,
-				},
-				{
-					Name: "d/test.bin",
-					Meta: ChangeMetaAdd,
-				},
+			Changes: ChangeSlice{
+				NewChange("d", ChangeMetaUpdate),
+				NewChange("d/test.bin", ChangeMetaAdd),
 			},
 		},
 		"add dir": {
 			Op: addDir("e"),
-			Changes: []Change{
-				{
-					Name: "e",
-					Meta: ChangeMetaAdd,
-				},
+			Changes: ChangeSlice{
+				NewChange("e", ChangeMetaAdd),
 			},
 		},
 		"remove file": {
 			Op: rmAllFile("c/cb.bin"),
-			Changes: []Change{
-				{
-					Name: "c",
-					Meta: ChangeMetaUpdate,
-				},
-				{
-					Name: "c/cb.bin",
-					Meta: ChangeMetaRemove,
-				},
+			Changes: ChangeSlice{
+				NewChange("c", ChangeMetaUpdate),
+				NewChange("c/cb.bin", ChangeMetaRemove),
 			},
 		},
 		"remove dir": {
 			Op: rmAllFile("c"),
-			Changes: []Change{
-				{
-					Name: "c",
-					Meta: ChangeMetaRemove,
-				},
-				{
-					Name: "c/ca.txt",
-					Meta: ChangeMetaRemove,
-				},
-				{
-					Name: "c/cb.bin",
-					Meta: ChangeMetaRemove,
-				},
+			Changes: ChangeSlice{
+				NewChange("c", ChangeMetaRemove),
+				NewChange("c/ca.txt", ChangeMetaRemove),
+				NewChange("c/cb.bin", ChangeMetaRemove),
 			},
 		},
 		"rename file": {
 			Op: mvFile("b.bin", "c/cc.bin"),
-			Changes: []Change{
-				{
-					Name: "b.bin",
-					Meta: ChangeMetaRemove,
-				},
-				{
-					Name: "c",
-					Meta: ChangeMetaUpdate,
-				},
-				{
-					Name: "c/cc.bin",
-					Meta: ChangeMetaAdd,
-				},
+			Changes: ChangeSlice{
+				NewChange("b.bin", ChangeMetaRemove),
+				NewChange("c", ChangeMetaUpdate),
+				NewChange("c/cc.bin", ChangeMetaAdd),
 			},
 		},
 		"write file": {
 			Op: writeFile("b.bin", 1024),
-			Changes: []Change{
-				{
-					Name: "b.bin",
-					Meta: ChangeMetaUpdate,
-				},
+			Changes: ChangeSlice{
+				NewChange("b.bin", ChangeMetaUpdate),
 			},
 		},
 		"chmod file": {
 			Op: chmodFile("d/dc/dca.txt", 0766),
-			Changes: []Change{
-				{
-					Name: "d/dc/dca.txt",
-					Meta: ChangeMetaUpdate,
-				},
+			Changes: ChangeSlice{
+				NewChange("d/dc/dca.txt", ChangeMetaUpdate),
 			},
 		},
 	}
@@ -153,10 +114,10 @@ func TestIndex(t *testing.T) {
 
 			// Copy time from result to tests.
 			for i, tc := range test.Changes {
-				if cs[i].Name != tc.Name {
+				if cs[i].Name() != tc.Name() {
 					t.Errorf("want change name = %q; got %q", tc.Name, cs[i].Name)
 				}
-				if cs[i].Meta != tc.Meta {
+				if cs[i].Meta() != tc.Meta() {
 					t.Errorf("want change meta = %bb; got %bb", tc.Meta, cs[i].Meta)
 				}
 			}
