@@ -30,11 +30,12 @@ generateDev = (KONFIG, options) ->
       check_connectivity postgres
       check_connectivity redis
       check_connectivity rabbitmq
+      check_connectivity countly
     }
 
     mkdir $KONFIG_PROJECTROOT/.logs &>/dev/null
 
-    SERVICES="mongo redis postgres rabbitmq"
+    SERVICES="mongo redis postgres rabbitmq countly"
 
     NGINX_CONF="$KONFIG_PROJECTROOT/nginx.conf"
     NGINX_PID="$KONFIG_PROJECTROOT/nginx.pid"
@@ -336,6 +337,18 @@ generateDev = (KONFIG, options) ->
       return 0
     }
 
+    function check_connectivity_countly() {
+      local HOST=$KONFIG_COUNTLY_HOST:$KONFIG_COUNTLY_APIPORT
+      local RESPONSE_CODE=$(curl --silent --output /dev/null --write-out '%{http_code}' http://$HOST)
+
+      if [[ $? != 0 || $RESPONSE_CODE != 302 ]]; then
+        echo "error: countly service check failed on $HOST"
+        return 1
+      fi
+
+      return 0
+    }
+
 
     function check_connectivity_postgres() {
       pg_isready --host $KONFIG_POSTGRES_HOST \
@@ -400,12 +413,13 @@ generateDev = (KONFIG, options) ->
         check_connectivity rabbitmq
     }
 
-    function runRedisDocker () {
-        docker run -d -p $KONFIG_SERVICEHOST:6379:6379 --name=redis redis
+    function runCountlyDocker () {
+        docker run -d -p $KONFIG_COUNTLY_APIPORT:80 --name=countly countly/countly-server:16.06
+        check_connectivity countly
     }
 
-    function runImplyDocker () {
-        docker run -d -p 18081-18110:8081-8110 -p 18200:8200 -p 19095:9095 --name=imply imply/imply:1.2.1
+    function runRedisDocker () {
+        docker run -d -p $KONFIG_SERVICEHOST:6379:6379 --name=redis redis
     }
 
     function run_docker_wrapper () {
@@ -431,6 +445,7 @@ generateDev = (KONFIG, options) ->
       restoredefaultmongodump
       restoreredis
       restorerabbitmq
+      restorecountly
       restoredefaultpostgresdump
 
       echo "#---> CLEARING ALGOLIA INDEXES: <---#"
@@ -494,9 +509,9 @@ generateDev = (KONFIG, options) ->
       runRabbitMQDocker
     }
 
-    function restoreimply () {
-      removeDockerByName imply
-      runImplyDocker
+    function restorecountly () {
+      removeDockerByName countly
+      runCountlyDocker
     }
 
     if [ "$#" == "0" ]; then
