@@ -332,7 +332,32 @@ $stack-border-width         = 2px
 
 
   .credential-list
-    min-width               $stack-sideview-width - $stack-border-width
+    width                   inherit
+    min-width               $stack-sideview-width - $stack-border-width - 2
+
+    &.has-change
+      padding-bottom        55px
+      .status-view
+        display             block
+
+    .status-view
+      height                55px
+      width                 100%
+      position              fixed
+      bottom                30px
+      background            rgba(0,0,0,0.8)
+      z-index               7
+      display               none
+
+    .save-button
+    .revert-button
+      position              fixed
+      bottom                42px
+      right                 15px
+      z-index               10
+
+    .revert-button
+      right                 150px
 
     .kdlistitemview.credential
       font-size             14px

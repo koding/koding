@@ -38,6 +38,8 @@ module.exports = class SideView extends BaseView
     for _view, item of @getOption 'views'
       if _view is view
         @title.updatePartial item.title
+        @setClass item.cssClass
         item.view.show()
       else
+        @unsetClass item.cssClass
         item.view.hide()
