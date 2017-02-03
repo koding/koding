@@ -174,7 +174,7 @@ func TestChangeMetaCoalesceConcurrent(t *testing.T) {
 		}()
 	}
 
-	// Initialize array with 99 invalid changes and one valid. This should
+	// Initialize array with N >> 1 invalid changes and one valid. This should
 	// always result with valid change after coalescing.
 	var cms = make([]index.ChangeMeta, 2000)
 	cms[rand.Intn(len(cms))] = index.ChangeMetaAdd
