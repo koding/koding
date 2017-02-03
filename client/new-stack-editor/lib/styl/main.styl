@@ -285,7 +285,7 @@ $stack-border-width         = 2px
     z-index                 100
     box-shadow              0 0 30px -5px
     vendor                  transition, all 400ms ease-in
-    border-left             $stack-border-width solid $stack-bg-color
+    border-left             $stack-border-width solid $stack-border-color
     visibility              visible
     borderBox()
 
@@ -302,11 +302,33 @@ $stack-border-width         = 2px
     &.pinned
       position              inherit
       box-shadow            none
-      border-color          $stack-fg-color
 
       .controls .kdbutton.pin
         display             block
         color               $stack-fg-color-yellow
+
+
+  .side-view
+
+    .listview-wrapper
+      height                calc(100% \- 42px)
+      .lazy-loader
+        display             none
+
+    .kdscrolltrack.vertical
+      right                 -10px
+
+    .kdscrolltrack.horizontal
+      bottom                -10px
+
+    .kdcustomscrollview.has-vertical
+      padding-right         0
+
+    .kdcustomscrollview.has-vertical
+      padding-bottom        0
+
+    .kdscrollthumb
+      background-color      #444
 
 
   .credential-list
