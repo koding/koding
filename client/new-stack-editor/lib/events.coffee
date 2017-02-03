@@ -1,5 +1,6 @@
 module.exports = {
   'CredentialSelectionChanged'
+  'CredentialFilterChanged'
   'SelectedProviderChanged'
   'StackWizardCancelled'
   'InitializeRequested'

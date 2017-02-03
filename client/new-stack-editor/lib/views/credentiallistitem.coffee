@@ -14,7 +14,8 @@ module.exports = class CredentialListItem extends kd.ListItemView
 
     super options, data
 
-    @color = globals.config.providers[data.provider]?.color ? '#666666'
+    { provider } = @getData()
+    providerColor = globals.config.providers[provider]?.color ? '#666666'
 
     handle = (action) => =>
       @getDelegate().emit 'ItemAction', { action, item: this }
@@ -34,10 +35,21 @@ module.exports = class CredentialListItem extends kd.ListItemView
       cssClass: 'edit'
       callback: handle 'EditItem'
 
+    @provider    = new kd.CustomHTMLView
+      cssClass   : 'provider'
+      partial    : provider
+      attributes :
+        style    : "background-color: #{providerColor}"
+      click      : (event) =>
+        @getDelegate().emit Events.CredentialFilterChanged, provider
+        kd.utils.stopDOMEvent event
+
+
     @on 'click', (event) =>
       unless 'checkbox' in event.target.classList
         @select not @isSelected(), userAction = yes
         kd.utils.stopDOMEvent event
+
 
 
   select: (state = yes, userAction = no) ->
@@ -52,10 +64,8 @@ module.exports = class CredentialListItem extends kd.ListItemView
 
   pistachio: ->
 
-    """
+    '''
     {{> @checkBox}} {span.title{#(title)}}
     {{> @edit}} {{> @delete}} {{> @preview}}
-    <div class='provider' style="background-color: #{@color}">
-      {{#(provider)}}
-    </div>
-    """
+    {{> @provider}}
+    '''
