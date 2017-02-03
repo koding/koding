@@ -9,14 +9,41 @@ import (
 type ChangeMeta uint64
 
 const (
-	ChangeMetaUpdate ChangeMeta = 1 << iota // File was updated.
-	ChangeMetaRemove                        // File was removed.
+	ChangeMetaLocal  ChangeMeta = 1 << iota // local->remote synchronization.
+	ChangeMetaRemote                        // remote->local synchronization.
 	ChangeMetaAdd                           // File was added.
-
-	ChangeMetaLarge  ChangeMeta = 1 << (8 + iota) // File size is above 4GB.
-	ChangeMetaRemote                              // remote->local synchronization.
-	ChangeMetaLocal                               // local->remote synchronization.
+	ChangeMetaRemove                        // File was removed.
+	ChangeMetaUpdate                        // File was updated.
+	ChangeMetaLarge                         // File size is above 4GB.
 )
+
+// Followed constants are helpers for ChangeMeta.Coalesce method.
+const (
+	cmInv = 0
+	cmEv  = ChangeMetaUpdate | ChangeMetaRemove | ChangeMetaAdd
+	cmAll = cmEv | ChangeMetaRemote | ChangeMetaLocal
+
+	cmUL = ChangeMetaUpdate | ChangeMetaLocal
+	cmDL = ChangeMetaRemove | ChangeMetaLocal
+	cmAL = ChangeMetaAdd | ChangeMetaLocal
+
+	cmUR = ChangeMetaUpdate | ChangeMetaRemote
+	cmDR = ChangeMetaRemove | ChangeMetaRemote
+	cmAR = ChangeMetaAdd | ChangeMetaRemote
+)
+
+// udarlMap is a helper array used to map coalesced changes to new change. It
+// has all((3+2)^5) combinations of UDA events and RL directions.
+var udarlMap = [32]ChangeMeta{
+	cmInv, cmInv, cmInv, cmInv,
+	cmAL, cmAL, cmAR, cmUL,
+	cmDL, cmDL, cmDR, cmDL,
+	cmUL, cmUL, cmUR, cmAll,
+	cmUL, cmUL, cmUR, cmUL,
+	cmAL, cmAL, cmAR, cmUL,
+	cmDL, cmDL, cmDR, cmAll,
+	cmInv, cmInv, cmInv, cmInv,
+}
 
 // Coalesce coalesces two meta-data changes and saves the result to called
 // object. The rules of coalescing are:
@@ -38,9 +65,34 @@ const (
 //                               | AR | AR
 //                               +----+----
 //
+// Example: If add remote change(AR) is merged with update local (UL) change,
+//          the coalesced event will be update local AR+UL=UL. This means that
+//          local updated file should overwrite remotely added one.
+//
 // All other flags are OR-ed. The coalesce matrix must be kept triangular.
 func (cm *ChangeMeta) Coalesce(newer ChangeMeta) {
-	atomic.StoreUint64((*uint64)(cm), uint64(newer))
+	for {
+		older := ChangeMeta(atomic.LoadUint64((*uint64)(cm)))
+
+		partial := udarlMap[(older|newer)&31]
+
+		// There are special cases where OR-ed order of events is different:
+		//   DR+UL=AL or DL+UR=DL,
+		//   DR+AL=AL or DL+AR=DL.
+		// in such case we return cmAll and try to deduce who is holding which event.
+		if partial == cmAll {
+			if older&cmDR == cmDR || newer&cmDR == cmDR {
+				partial = cmAL
+			} else {
+				partial = cmDL
+			}
+		}
+
+		updated := uint64((newer|older)&^cmAll | partial)
+		if atomic.CompareAndSwapUint64((*uint64)(cm), uint64(older), updated) {
+			return
+		}
+	}
 }
 
 // Change describes single file change.

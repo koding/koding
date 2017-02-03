@@ -10,117 +10,117 @@ func TestChangeMetaCoalesce(t *testing.T) {
 		B      ChangeMeta
 		Result ChangeMeta
 	}{
-		"UL+UL=UL": {
+		"UL_UL_UL": {
 			A:      ChangeMetaUpdate | ChangeMetaLocal,
 			B:      ChangeMetaUpdate | ChangeMetaLocal,
 			Result: ChangeMetaUpdate | ChangeMetaLocal,
 		},
-		"DL+UL=DL": {
+		"DL_UL_DL": {
 			A:      ChangeMetaRemove | ChangeMetaLocal,
 			B:      ChangeMetaUpdate | ChangeMetaLocal,
 			Result: ChangeMetaRemove | ChangeMetaLocal,
 		},
-		"DL+DL=DL": {
+		"DL_DL_DL": {
 			A:      ChangeMetaRemove | ChangeMetaLocal,
 			B:      ChangeMetaRemove | ChangeMetaLocal,
 			Result: ChangeMetaRemove | ChangeMetaLocal,
 		},
-		"AL+UL=AL": {
+		"AL_UL_AL": {
 			A:      ChangeMetaAdd | ChangeMetaLocal,
 			B:      ChangeMetaUpdate | ChangeMetaLocal,
 			Result: ChangeMetaAdd | ChangeMetaLocal,
 		},
-		"AL+DL=UL": {
+		"AL_DL_UL": {
 			A:      ChangeMetaAdd | ChangeMetaLocal,
 			B:      ChangeMetaRemove | ChangeMetaLocal,
 			Result: ChangeMetaUpdate | ChangeMetaLocal,
 		},
-		"AL+AL=AL": {
+		"AL_AL_AL": {
 			A:      ChangeMetaAdd | ChangeMetaLocal,
 			B:      ChangeMetaAdd | ChangeMetaLocal,
 			Result: ChangeMetaAdd | ChangeMetaLocal,
 		},
-		"UR+UL=UL": {
+		"UR_UL_UL": {
 			A:      ChangeMetaUpdate | ChangeMetaRemote,
 			B:      ChangeMetaUpdate | ChangeMetaLocal,
 			Result: ChangeMetaUpdate | ChangeMetaLocal,
 		},
-		"UR+DL=DL": {
+		"UR_DL_DL": {
 			A:      ChangeMetaUpdate | ChangeMetaRemote,
 			B:      ChangeMetaRemove | ChangeMetaLocal,
 			Result: ChangeMetaRemove | ChangeMetaLocal,
 		},
-		"UR+AL=UL": {
+		"UR_AL_UL": {
 			A:      ChangeMetaUpdate | ChangeMetaRemote,
 			B:      ChangeMetaAdd | ChangeMetaLocal,
 			Result: ChangeMetaUpdate | ChangeMetaLocal,
 		},
-		"UR+UR=UR": {
+		"UR_UR_UR": {
 			A:      ChangeMetaUpdate | ChangeMetaRemote,
 			B:      ChangeMetaUpdate | ChangeMetaRemote,
 			Result: ChangeMetaUpdate | ChangeMetaRemote,
 		},
-		"DR+UL=AL": {
+		"DR_UL_AL": {
 			A:      ChangeMetaRemove | ChangeMetaRemote,
 			B:      ChangeMetaUpdate | ChangeMetaLocal,
 			Result: ChangeMetaAdd | ChangeMetaLocal,
 		},
-		"DR+DL=DL": {
+		"DR_DL_DL": {
 			A:      ChangeMetaRemove | ChangeMetaRemote,
 			B:      ChangeMetaRemove | ChangeMetaLocal,
 			Result: ChangeMetaRemove | ChangeMetaLocal,
 		},
-		"DR+AL=AL": {
+		"DR_AL_AL": {
 			A:      ChangeMetaRemove | ChangeMetaRemote,
 			B:      ChangeMetaAdd | ChangeMetaLocal,
 			Result: ChangeMetaAdd | ChangeMetaLocal,
 		},
-		"DR+UR=DR": {
+		"DR_UR_DR": {
 			A:      ChangeMetaRemove | ChangeMetaRemote,
 			B:      ChangeMetaUpdate | ChangeMetaRemote,
 			Result: ChangeMetaRemove | ChangeMetaRemote,
 		},
-		"DR+DR=DR": {
+		"DR_DR_DR": {
 			A:      ChangeMetaRemove | ChangeMetaRemote,
 			B:      ChangeMetaRemove | ChangeMetaRemote,
 			Result: ChangeMetaRemove | ChangeMetaRemote,
 		},
-		"AR+UL=UL": {
+		"AR_UL_UL": {
 			A:      ChangeMetaAdd | ChangeMetaRemote,
 			B:      ChangeMetaUpdate | ChangeMetaLocal,
 			Result: ChangeMetaUpdate | ChangeMetaLocal,
 		},
-		"AR+DL=DL": {
+		"AR_DL_DL": {
 			A:      ChangeMetaAdd | ChangeMetaRemote,
 			B:      ChangeMetaRemove | ChangeMetaLocal,
 			Result: ChangeMetaRemove | ChangeMetaLocal,
 		},
-		"AR+AL=UL": {
+		"AR_AL_UL": {
 			A:      ChangeMetaAdd | ChangeMetaRemote,
 			B:      ChangeMetaAdd | ChangeMetaLocal,
 			Result: ChangeMetaUpdate | ChangeMetaLocal,
 		},
-		"AR+UR=AR": {
+		"AR_UR_AR": {
 			A:      ChangeMetaAdd | ChangeMetaRemote,
 			B:      ChangeMetaUpdate | ChangeMetaRemote,
 			Result: ChangeMetaAdd | ChangeMetaRemote,
 		},
-		"AR+DR=UR": {
+		"AR_DR_UR": {
 			A:      ChangeMetaAdd | ChangeMetaRemote,
 			B:      ChangeMetaRemove | ChangeMetaRemote,
 			Result: ChangeMetaUpdate | ChangeMetaRemote,
 		},
-		"AR+AR=AR": {
+		"AR_AR_AR": {
 			A:      ChangeMetaAdd | ChangeMetaRemote,
 			B:      ChangeMetaAdd | ChangeMetaRemote,
 			Result: ChangeMetaAdd | ChangeMetaRemote,
 		},
-		"INV+A=AL": {
+		"INV_A_AL": {
 			A:      0,
 			B:      ChangeMetaAdd,
 			Result: ChangeMetaAdd | ChangeMetaLocal,
 		},
-		"AL+AL+OTHER META": {
+		"AL_AL_OTHER META": {
 			A:      ChangeMetaAdd | ChangeMetaLocal | ChangeMetaLarge,
 			B:      ChangeMetaAdd | ChangeMetaLocal,
 			Result: ChangeMetaAdd | ChangeMetaLocal | ChangeMetaLarge,
