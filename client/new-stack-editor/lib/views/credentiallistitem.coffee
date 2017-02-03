@@ -1,5 +1,6 @@
 kd = require 'kd'
 JView = require 'app/jview'
+globals = require 'globals'
 
 
 module.exports = class CredentialListItem extends kd.ListItemView
@@ -11,6 +12,8 @@ module.exports = class CredentialListItem extends kd.ListItemView
     options.cssClass = kd.utils.curry 'credential', options.cssClass
 
     super options, data
+
+    @color = globals.config.providers[data.provider]?.color ? '#666666'
 
     handle = (action) => =>
       @getDelegate().emit 'ItemAction', { action, item: this }
@@ -46,7 +49,10 @@ module.exports = class CredentialListItem extends kd.ListItemView
 
   pistachio: ->
 
-    '''
-    {{> @checkBox}} {span.title{ #(title)}}
+    """
+    {{> @checkBox}} {span.title{#(title)}}
     {{> @edit}} {{> @delete}} {{> @preview}}
-    '''
+    <div class='provider' style="background-color: #{@color}">
+      {{#(provider)}}
+    </div>
+    """
