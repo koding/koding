@@ -131,6 +131,14 @@ func (c *Client) MountGetIndex(path string) (*index.Index, error) {
 	return index.NewIndexFiles(path)
 }
 
+// DiskBlocks gets faked information about file-system.
+func (c *Client) DiskBlocks(path string) (size, total, free, used uint64, err error) {
+	// TODO(ppknap): replace with non-faked data when we have platform
+	// independent logic for disk stat operation.
+	size, total, free, used = 512, 1e9, 9e8, 1e9-9e8
+	return
+}
+
 // SetContext sets provided context to test client.
 func (c *Client) SetContext(ctx context.Context) {
 	c.mu.Lock()
