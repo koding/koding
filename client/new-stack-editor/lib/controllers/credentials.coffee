@@ -98,6 +98,8 @@ module.exports = class CredentialsController extends BaseController
 
   updateCredentialSelections: ->
 
+    return  unless @getData()
+
     identifiers = @getData().getCredentialIdentifiers()
     @list.items.forEach (item) ->
       item.select item.getData().identifier in identifiers
