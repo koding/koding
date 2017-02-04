@@ -138,6 +138,7 @@ module.exports = class IDEAppController extends AppController
 
     panel     = @workspace.getView()
     appView   = @getView()
+
     ideView   = panel.getPaneByName 'editorPane'
 
     @setActiveTabView ideView.tabView
