@@ -27,23 +27,8 @@ func newNode() *Node {
 	}
 }
 
-func newEntry() *Entry {
-	t := time.Now().UTC().UnixNano()
-
-	return &Entry{
-		CTime: t,
-		MTime: t,
-		Mode:  0700 | os.ModeDir,
-		Size:  10,
-	}
-}
-
-// Add adds the given entry under the given path.
-//
-// Any deleted node, encountered on the tree path that, is going to
-// be undeleted (having the EntryPromiseDel flag removed).
-func (nd *Node) Add(path string, entry *Entry) {
-	if path == "/" || path == "" {
+func (nd *Node) Add(name string, entry *Entry) {
+	if name == "/" {
 		nd.Entry = entry
 		return
 	}
@@ -51,9 +36,7 @@ func (nd *Node) Add(path string, entry *Entry) {
 	var node string
 
 	for {
-		if nd.Deleted() {
-			nd.undelete()
-		}
+		node, name = split(name)
 
 		node, path = split(path)
 
@@ -72,16 +55,11 @@ func (nd *Node) Add(path string, entry *Entry) {
 	}
 }
 
-// Del disconnected a whole subtree rooted at a node given by the path.
-//
-// Del will ignore and do not disconnect nodes which are marked as deleted.
-func (nd *Node) Del(path string) {
+func (nd *Node) Del(name string) {
 	var node string
 
 	for {
-		if nd.Deleted() {
-			return
-		}
+		node, name = split(name)
 
 		node, path = split(path)
 
@@ -265,23 +243,15 @@ func (nd *Node) ForEach(fn func(string, *Entry)) {
 	}
 }
 
-// Lookup looks up a node given by the path ignoring any of the node
-// that is marked as deleted.
-func (nd *Node) Lookup(path string) (*Node, bool) {
-	return nd.lookup(path, false)
-}
-
-func (nd *Node) lookup(path string, deleted bool) (*Node, bool) {
-	if path == "/" || path == "" {
-		return nd.shallowCopy(), true
+func (nd *Node) Lookup(name string) (*Node, bool) {
+	if name == "/" {
+		return nd, true
 	}
 
 	var node string
 
 	for {
-		if nd.Deleted() && !deleted {
-			return nil, false
-		}
+		node, name = split(name)
 
 		node, path = split(path)
 
@@ -296,34 +266,6 @@ func (nd *Node) lookup(path string, deleted bool) (*Node, bool) {
 
 		nd = sub
 	}
-}
-
-// IsDir tells whether a node is a directory.
-func (nd *Node) IsDir() bool {
-	return nd.Entry.Mode&os.ModeDir != 0
-}
-
-// Deleted tells whether node is marked as deleted.
-func (nd *Node) Deleted() bool {
-	return nd.Entry.Has(EntryPromiseDel)
-}
-
-func (nd *Node) undelete() {
-	nd.Entry.Meta = nd.Entry.Meta & (^EntryPromiseDel)
-}
-
-func (nd *Node) shallowCopy() *Node {
-	if len(nd.Sub) != 0 {
-		sub := make(map[string]*Node, len(nd.Sub))
-
-		for k, v := range nd.Sub {
-			sub[k] = v
-		}
-
-		nd.Sub = sub
-	}
-
-	return nd
 }
 
 func split(path string) (string, string) {
