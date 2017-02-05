@@ -1,4 +1,4 @@
-package sync
+package mount_test
 
 import (
 	"os"
@@ -12,45 +12,47 @@ import (
 	"koding/klient/machine/mount/mounttest"
 )
 
-func TestSyncAdd(t *testing.T) {
+func TestSupervisorNew(t *testing.T) {
 	wd, m, clean, err := mounttest.MountDirs()
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	defer clean()
 
-	// Add new mount.
+	// Create new supervisor.
 	mountID := mount.MakeID()
-	s, err := testSyncWithMount(wd, mountID, m)
+	opts := mount.SupervisorOpts{
+		ClientFunc: func() (client.Client, error) {
+			return clienttest.NewClient(), nil
+		},
+		WorkDir: wd,
+	}
+	s, err := mount.NewSupervisor(mountID, m, opts)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if err := s.Add(mountID, m); err == nil {
-		t.Error("want err != nil; got nil")
-	}
 
 	// Check file structure.
-	mountWD := filepath.Join(wd, "mount-"+string(mountID))
-	if _, err := os.Stat(filepath.Join(mountWD, "data")); err != nil {
+	if _, err := os.Stat(filepath.Join(wd, "data")); err != nil {
 		t.Errorf("want err = nil; got %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(mountWD, LocalIndexName)); err != nil {
+	if _, err := os.Stat(filepath.Join(wd, mount.LocalIndexName)); err != nil {
 		t.Errorf("want err = nil; got %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(mountWD, RemoteIndexName)); err != nil {
+	if _, err := os.Stat(filepath.Join(wd, mount.RemoteIndexName)); err != nil {
 		t.Errorf("want err = nil; got %v", err)
 	}
 
 	// Check indexes.
-	info, err := s.Info(mountID)
-	if err != nil {
-		t.Fatalf("want err = nil; got %v", err)
+	info := s.Info()
+	if info == nil {
+		t.Fatalf("want info != nil; got nil")
 	}
 	if info.AllDiskSize == 0 {
 		t.Error("want all disk size > 0")
 	}
 
-	expected := &Info{
+	expected := &mount.Info{
 		ID:           mountID,
 		Mount:        m,
 		SyncCount:    0,
@@ -67,17 +69,17 @@ func TestSyncAdd(t *testing.T) {
 	if _, err := mounttest.TempFile(m.RemotePath); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if _, err := mounttest.TempFile(filepath.Join(mountWD, "data")); err != nil {
+	if _, err := mounttest.TempFile(filepath.Join(wd, "data")); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
 	// New add of existing mount.
-	if s, err = testSyncWithMount(wd, mountID, m); err != nil {
+	if s, err = mount.NewSupervisor(mountID, m, opts); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	if info, err = s.Info(mountID); err != nil {
-		t.Fatalf("want err = nil; got %v", err)
+	if info = s.Info(); info == nil {
+		t.Fatalf("want info != nil; got nil")
 	}
 
 	// TODO: All count should be two, since synced file is not the one from
@@ -91,48 +93,32 @@ func TestSyncAdd(t *testing.T) {
 	}
 }
 
-func TestSyncDrop(t *testing.T) {
+func TestSupervisorDrop(t *testing.T) {
 	wd, m, clean, err := mounttest.MountDirs()
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	defer clean()
 
-	// Add new mount.
+	// Create new supervisor.
 	mountID := mount.MakeID()
-	s, err := testSyncWithMount(wd, mountID, m)
-	if err != nil {
-		t.Fatalf("want err = nil; got %v", err)
-	}
-
-	if err := s.Drop(mountID); err != nil {
-		t.Fatalf("want err = nil; got %v", err)
-	}
-
-	// Working directory should exist.
-	if _, err := os.Stat(wd); err != nil {
-		t.Errorf("want err = nil; got %v", err)
-	}
-
-	// Mount working directory should not exist.
-	mountWD := filepath.Join(wd, "mount-"+string(mountID))
-	if _, err := os.Stat(mountWD); !os.IsNotExist(err) {
-		t.Errorf("want err = os.ErrNotExist; got %v", err)
-	}
-}
-
-func testSyncWithMount(wd string, mountID mount.ID, m mount.Mount) (s *Sync, err error) {
-	opts := SyncOpts{
-		ClientFunc: func(mount.ID) (client.Client, error) {
+	opts := mount.SupervisorOpts{
+		ClientFunc: func() (client.Client, error) {
 			return clienttest.NewClient(), nil
 		},
 		WorkDir: wd,
 	}
-
-	s, err = New(opts)
+	s, err := mount.NewSupervisor(mountID, m, opts)
 	if err != nil {
-		return nil, err
+		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	return s, s.Add(mountID, m)
+	if err := s.Drop(); err != nil {
+		t.Fatalf("want err = nil; got %v", err)
+	}
+
+	// Working directory should not exist.
+	if _, err := os.Stat(wd); !os.IsNotExist(err) {
+		t.Errorf("want err = os.ErrNotExist; got %v", err)
+	}
 }

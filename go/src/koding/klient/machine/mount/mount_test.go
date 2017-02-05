@@ -1,41 +1,43 @@
-package mount
+package mount_test
 
 import (
 	"encoding/json"
 	"reflect"
 	"sort"
 	"testing"
+
+	"koding/klient/machine/mount"
 )
 
 func TestMakeIDString(t *testing.T) {
 	tests := map[string]struct {
 		Tok     string
-		ID      ID
+		ID      mount.ID
 		IsValid bool
 	}{
 		"valid UUIDv4": {
 			Tok:     "e2d92c39-bcc6-45c8-86f6-7ca114ec7e06",
-			ID:      ID("e2d92c39-bcc6-45c8-86f6-7ca114ec7e06"),
+			ID:      mount.ID("e2d92c39-bcc6-45c8-86f6-7ca114ec7e06"),
 			IsValid: true,
 		},
 		"valid with braces": {
 			Tok:     "52560e13-ad72-4cef-a3d7-f52ca197168d",
-			ID:      ID("52560e13-ad72-4cef-a3d7-f52ca197168d"),
+			ID:      mount.ID("52560e13-ad72-4cef-a3d7-f52ca197168d"),
 			IsValid: true,
 		},
 		"invalid UUIDv1": {
 			Tok:     "123e4567-e89b-12d3-a456-426655440000",
-			ID:      ID(""),
+			ID:      mount.ID(""),
 			IsValid: false,
 		},
 		"invalid": {
 			Tok:     "invalid",
-			ID:      ID(""),
+			ID:      mount.ID(""),
 			IsValid: false,
 		},
 		"empty token": {
 			Tok:     "",
-			ID:      ID(""),
+			ID:      mount.ID(""),
 			IsValid: false,
 		},
 	}
@@ -45,7 +47,7 @@ func TestMakeIDString(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			mountID, err := IDFromString(test.Tok)
+			mountID, err := mount.IDFromString(test.Tok)
 			if (err == nil) != test.IsValid {
 				t.Fatalf("want err == nil to be %t; got %v", test.IsValid, err)
 			}
@@ -59,12 +61,12 @@ func TestMakeIDString(t *testing.T) {
 
 func TestMountBook(t *testing.T) {
 	var (
-		idA = MakeID()
-		idB = MakeID()
-		idC = MakeID()
+		idA = mount.MakeID()
+		idB = mount.MakeID()
+		idC = mount.MakeID()
 	)
 
-	mounts := map[ID]Mount{
+	mounts := map[mount.ID]mount.Mount{
 		idA: {
 			Path:       "/home/koding/a",
 			RemotePath: "/home/koding/remote/a",
@@ -81,21 +83,21 @@ func TestMountBook(t *testing.T) {
 
 	tests := map[string]struct {
 		Path          string
-		PathID        ID
+		PathID        mount.ID
 		RemotePath    string
-		RemotePathIDs IDSlice
+		RemotePathIDs mount.IDSlice
 	}{
 		"paths from mount A": {
 			Path:          "/home/koding/a",
 			PathID:        idA,
 			RemotePath:    "/home/koding/remote/a",
-			RemotePathIDs: IDSlice{idA},
+			RemotePathIDs: mount.IDSlice{idA},
 		},
 		"shared remote path": {
 			Path:          "/home/koding/b",
 			PathID:        idB,
 			RemotePath:    "/home/koding/remote/shared",
-			RemotePathIDs: IDSlice{idB, idC},
+			RemotePathIDs: mount.IDSlice{idB, idC},
 		},
 		"unknown paths": {
 			Path:          "/home/koding/unknown",
@@ -105,8 +107,8 @@ func TestMountBook(t *testing.T) {
 		},
 	}
 
-	mb := NewMountBook()
-	for i, id := range []ID{idA, idB, idC} {
+	mb := mount.NewMountBook()
+	for i, id := range []mount.ID{idA, idB, idC} {
 		if err := mb.Add(id, mounts[id]); err != nil {
 			t.Fatalf("want err = nil; got %v (i:%d)", err, i)
 		}
@@ -117,6 +119,7 @@ func TestMountBook(t *testing.T) {
 		test := test
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+
 			sort.Sort(test.RemotePathIDs)
 			id, err := mb.Path(test.Path)
 			if test.PathID == "" && err == nil {
@@ -146,29 +149,29 @@ func TestMountBook(t *testing.T) {
 }
 
 func TestMountBookDuplicatedID(t *testing.T) {
-	mb := NewMountBook()
-	if err := mb.Add("duplicated", Mount{}); err != nil {
+	mb := mount.NewMountBook()
+	if err := mb.Add("duplicated", mount.Mount{}); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	if err := mb.Add("duplicated", Mount{}); err == nil {
+	if err := mb.Add("duplicated", mount.Mount{}); err == nil {
 		t.Fatalf("want err != nil; got nil")
 	}
 }
 
 func TestMountBookJSON(t *testing.T) {
-	mounts := map[ID]Mount{
-		MakeID(): {
+	mounts := map[mount.ID]mount.Mount{
+		mount.MakeID(): {
 			Path:       "/home/koding/a",
 			RemotePath: "/home/koding/remote/a",
 		},
-		MakeID(): {
+		mount.MakeID(): {
 			Path:       "/home/koding/b",
 			RemotePath: "/home/koding/remote/b",
 		},
 	}
 
-	mb := NewMountBook()
+	mb := mount.NewMountBook()
 	for id, mount := range mounts {
 		if err := mb.Add(id, mount); err != nil {
 			t.Fatalf("want err = nil; got %v", err)
@@ -180,7 +183,7 @@ func TestMountBookJSON(t *testing.T) {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 
-	mb = NewMountBook()
+	mb = mount.NewMountBook()
 	if err = json.Unmarshal(data, mb); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}

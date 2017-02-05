@@ -14,8 +14,8 @@ import (
 	"koding/klient/machine/machinegroup/clients"
 	"koding/klient/machine/machinegroup/idset"
 	"koding/klient/machine/machinegroup/mounts"
+	"koding/klient/machine/machinegroup/supervisors"
 	"koding/klient/machine/mount"
-	mountsync "koding/klient/machine/mount/sync"
 	"koding/klient/storage"
 
 	"github.com/koding/logging"
@@ -79,8 +79,8 @@ type Group struct {
 	alias   aliases.Aliaser
 	mount   mounts.Mounter
 
-	sync     *mountsync.Sync
-	discover *discover.Client
+	supervisor *supervisors.Supervisors
+	discover   *discover.Client
 }
 
 // New creates a new Group object.
@@ -118,15 +118,14 @@ func New(opts *GroupOpts) (*Group, error) {
 		return nil, err
 	}
 
-	// Create sync object for synced mounts.
-	syncOpts := mountsync.SyncOpts{
-		ClientFunc: g.dynamicClient(),
-		WorkDir:    opts.WorkDir,
-		Log:        g.log,
+	// Create supervisors object for synced mounts.
+	spvsOpts := supervisors.SupervisorsOpts{
+		WorkDir: opts.WorkDir,
+		Log:     g.log,
 	}
-	g.sync, err = mountsync.New(syncOpts)
+	g.supervisor, err = supervisors.New(spvsOpts)
 	if err != nil {
-		g.log.Critical("Cannot create mount synchronizer: %s", err)
+		g.log.Critical("Cannot create mount supervisors: %s", err)
 		return nil, err
 	}
 
@@ -213,7 +212,7 @@ func (g *Group) bootstrap() {
 	g.mountSync(mountsIDs)
 }
 
-// mountsSync tries to add all available mounts to mount sync.
+// mountsSync tries to add all available mounts to mount supervisor.
 func (g *Group) mountSync(ids machine.IDSlice) {
 	mountsN, errN := 0, int64(0)
 	var wg sync.WaitGroup
@@ -230,7 +229,7 @@ func (g *Group) mountSync(ids machine.IDSlice) {
 			mountID, m := mountID, m // Capture range variable.
 			go func() {
 				defer wg.Done()
-				if err := g.sync.Add(mountID, m); err != nil {
+				if err := g.supervisor.Add(mountID, m, g.dynamicClient(mountID)); err != nil {
 					atomic.AddInt64(&errN, 1)
 					g.log.Error("Cannot start synchronization for mount %s: %s", mountID, err)
 				}
@@ -251,8 +250,8 @@ func (g *Group) dynamicAddr(id machine.ID) client.DynamicAddrFunc {
 
 // dynamicClient creates dynamic client functor that is used for mount sync
 // connections.
-func (g *Group) dynamicClient() mountsync.DynamicClientFunc {
-	return func(mountID mount.ID) (client.Client, error) {
+func (g *Group) dynamicClient(mountID mount.ID) client.DynamicClientFunc {
+	return func() (client.Client, error) {
 		id, err := g.mount.MachineID(mountID)
 		if err != nil {
 			return nil, err
