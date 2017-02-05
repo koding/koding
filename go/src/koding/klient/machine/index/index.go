@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"sync"
-	"time"
 
 	"github.com/djherbis/times"
 )
@@ -86,32 +85,6 @@ func readCRC32(path string) ([]byte, error) {
 
 	return hash.Sum(nil), nil
 }
-
-// ChangeMeta indicates what change has been done on a given file.
-type ChangeMeta uint32
-
-const (
-	ChangeMetaUpdate ChangeMeta = 1 << iota // File was updated.
-	ChangeMetaRemove                        // File was removed.
-	ChangeMetaAdd                           // File was added.
-
-	ChangeMetaLarge ChangeMeta = 1 << (8 + iota) // File size is above 4GB.
-)
-
-// Change describes single file change.
-type Change struct {
-	Name      string     `json:"name"`      // The relative name of the file.
-	Size      uint32     `json:"size"`      // Size of the file truncated to 32 bits.
-	Meta      ChangeMeta `json:"meta"`      // The type of operation made on file entry.
-	CreatedAt int64      `json:"createdAt"` // Change creation time since EPOCH.
-}
-
-// ChangeSlice stores multiple changes.
-type ChangeSlice []Change
-
-func (cs ChangeSlice) Len() int           { return len(cs) }
-func (cs ChangeSlice) Swap(i, j int)      { cs[i], cs[j] = cs[j], cs[i] }
-func (cs ChangeSlice) Less(i, j int) bool { return cs[i].Name < cs[j].Name }
 
 // Index stores a virtual working tree state. It recursively records objects in
 // a given root path and allows to efficiently detect changes on it.
@@ -243,27 +216,16 @@ func (idx *Index) Compare(root string) (cs ChangeSlice) {
 
 		// Not found in current index - file was added.
 		if !ok {
-			cs = append(cs, Change{
-				Name:      name,
-				Size:      safeTruncate(info.Size()),
-				Meta:      ChangeMetaAdd | markLargeMeta(info.Size()),
-				CreatedAt: time.Now().UnixNano(),
-			})
+			cs = append(cs, NewChange(name, ChangeMetaAdd|markLargeMeta(info.Size())))
 			return nil
 		}
 
 		// Entry is read only-now. Check for changes.
 		visited[name] = struct{}{}
-
 		if nd.Entry.MTime != info.ModTime().UnixNano() ||
 			nd.Entry.CTime != ctime(info) ||
 			nd.Entry.Size != info.Size() {
-			cs = append(cs, Change{
-				Name:      name,
-				Size:      safeTruncate(info.Size()),
-				Meta:      ChangeMetaUpdate | markLargeMeta(info.Size()),
-				CreatedAt: time.Now().UnixNano(),
-			})
+			cs = append(cs, NewChange(name, ChangeMetaUpdate|markLargeMeta(info.Size())))
 		}
 
 		return nil
@@ -280,27 +242,13 @@ func (idx *Index) Compare(root string) (cs ChangeSlice) {
 			path := filepath.Join(root, filepath.FromSlash(name))
 
 			if _, err := os.Lstat(path); os.IsNotExist(err) {
-				cs = append(cs, Change{
-					Name:      name,
-					Meta:      ChangeMetaRemove | markLargeMeta(entry.Size),
-					CreatedAt: time.Now().UnixNano(),
-				})
+				cs = append(cs, NewChange(name, ChangeMetaRemove|markLargeMeta(entry.Size)))
 			}
 		}
 	})
 	idx.mu.RUnlock()
 
 	return cs
-}
-
-// safeTruncate converts signed integer to unsigned one returning 0 for negative
-// values of provided argument.
-func safeTruncate(n int64) uint32 {
-	if n < 0 {
-		return 0
-	}
-
-	return uint32(n)
 }
 
 // markLargeMeta adds large file flag for files which size is over 4GiB.
@@ -335,27 +283,27 @@ func (idx *Index) Apply(root string, cs ChangeSlice) {
 
 	for i := range cs {
 		switch {
-		case cs[i].Meta&(ChangeMetaUpdate|ChangeMetaAdd) != 0:
+		case cs[i].Meta()&(ChangeMetaUpdate|ChangeMetaAdd) != 0:
 			// Check if the event is still valid or if it was replaced by newer
 			// change.
 			idx.mu.RLock()
-			nd, ok := idx.root.Lookup(cs[i].Name)
+			nd, ok := idx.root.Lookup(cs[i].Name())
 			idx.mu.RUnlock()
 
 			// Entry was updated/added after the event was created.
-			if ok && nd.Entry.MTime > cs[i].CreatedAt {
+			if ok && nd.Entry.MTime > cs[i].CreatedAtUnixNano() {
 				continue
 			}
 			fallthrough
-		case cs[i].Meta&ChangeMetaRemove != 0:
+		case cs[i].Meta()&ChangeMetaRemove != 0:
 			// Check if the file still exists, since it could be removed before
 			// Apply was called. If the file exists, create new entry from it
 			// and replace its value inside index map.
-			path := filepath.Join(root, filepath.FromSlash(cs[i].Name))
+			path := filepath.Join(root, filepath.FromSlash(cs[i].Name()))
 			info, err := os.Lstat(path)
 			if os.IsNotExist(err) {
 				idx.mu.Lock()
-				idx.root.Del(cs[i].Name)
+				idx.root.Del(cs[i].Name())
 				idx.mu.Unlock()
 				continue
 			}
