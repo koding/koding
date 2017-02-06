@@ -150,7 +150,7 @@ module.exports = (options, credentials) ->
     mailgun                : credentials.mailgun
     segment                : credentials.segment
     dummyAdmins            : credentials.dummyAdmins
-    druid                  : credentials.druid
+    countly                : credentials.countly
     clearbit               : credentials.clearbit
 
     algolia                : algoliaSecret
@@ -242,7 +242,7 @@ module.exports = (options, credentials) ->
     awsKeys                       : credentials.awsKeys
     segment                       : credentials.segment
     dummyAdmins                   : credentials.dummyAdmins
-    druid                         : credentials.druid
+    countly                       : credentials.countly
     clearbit                      : credentials.clearbit
     wufoo                         : credentials.wufoo
 

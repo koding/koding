@@ -12,7 +12,9 @@ import (
 	"time"
 )
 
-const tempIndexDirPrefix = "koding_index_"
+// TempIndexDirPrefix defines the prefix of temporary index file created by
+// Cached structure.
+const TempIndexDirPrefix = "koding_index_"
 
 // Cached allows to cache and reuse previously created index.
 type Cached struct {
@@ -113,7 +115,7 @@ func (c *Cached) createTempPath(root string) (path string, err error) {
 	if dirs := c.indexTempDirs(1); len(dirs) > 0 {
 		path = dirs[0]
 	} else {
-		if path, err = ioutil.TempDir(c.tempDir(), tempIndexDirPrefix); err != nil {
+		if path, err = ioutil.TempDir(c.tempDir(), TempIndexDirPrefix); err != nil {
 			return "", err
 		}
 	}
@@ -140,7 +142,7 @@ func (c *Cached) indexTempDirs(n int) []string {
 		names, err := d.Readdirnames(100)
 
 		for i := range names {
-			if strings.HasPrefix(names[i], tempIndexDirPrefix) {
+			if strings.HasPrefix(names[i], TempIndexDirPrefix) {
 				dirs = append(dirs, filepath.Join(c.tempDir(), names[i]))
 			}
 		}

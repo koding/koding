@@ -1,4 +1,4 @@
-package index
+package index_test
 
 import (
 	"io/ioutil"
@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"koding/klient/machine/index"
 )
 
 func TestCachedIndexCreate(t *testing.T) {
@@ -22,7 +24,7 @@ func TestCachedIndexCreate(t *testing.T) {
 	}
 	defer clean()
 
-	c := &Cached{TempDir: tempDir}
+	c := &index.Cached{TempDir: tempDir}
 	idx, err := c.GetCachedIndex(root)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
@@ -66,7 +68,7 @@ func TestCahcedIndexUpdated(t *testing.T) {
 	}
 	defer clean()
 
-	c := &Cached{
+	c := &index.Cached{
 		Rescan:  30 * time.Second,
 		TempDir: tempDir,
 	}
@@ -137,11 +139,11 @@ func tmpDirInfo(tempDir string) (dirnames, idxs []string, err error) {
 		}
 
 		dir, file := filepath.Split(path)
-		if info.IsDir() && strings.HasPrefix(file, tempIndexDirPrefix) {
+		if info.IsDir() && strings.HasPrefix(file, index.TempIndexDirPrefix) {
 			dirnames = append(dirnames, path)
 		}
 
-		if strings.HasPrefix(filepath.Base(dir), tempIndexDirPrefix) {
+		if strings.HasPrefix(filepath.Base(dir), index.TempIndexDirPrefix) {
 			if filepath.Join(tempDir, filepath.Base(dir), file) != path {
 				return nil
 			}
