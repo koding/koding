@@ -9,7 +9,9 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
+	"time"
 
+	"github.com/cenkalti/backoff"
 	"github.com/koding/bongo"
 	"github.com/koding/runner"
 )
@@ -45,22 +47,51 @@ func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (in
 func AddMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipant, context *models.Context) (int, http.Header, interface{}, error) {
 	query := context.OverrideQuery(request.GetQuery(u))
 
+	bo := backoff.NewExponentialBackOff()
+	bo.InitialInterval = time.Millisecond * 50
+	bo.MaxInterval = time.Millisecond * 100
+	bo.MaxElapsedTime = time.Second * 2
+
+	ticker := backoff.NewTicker(bo)
+	defer ticker.Stop()
+
+	var err error
+	var ch *models.Channel
+	var cps []*models.ChannelParticipant
+	for range ticker.C {
+		ch, cps, err = addMultiFunc(query, participants)
+		if err != nil {
+			continue
+		}
+		break
+	}
+
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	go notifyParticipants(ch, models.ChannelParticipant_Added_To_Channel_Event, cps)
+
+	return response.NewOK(cps)
+}
+
+func addMultiFunc(query *request.Query, participants []*models.ChannelParticipant) (*models.Channel, []*models.ChannelParticipant, error) {
 	if err := checkChannelPrerequisites(
 		query.Id,
 		query.AccountId,
 		participants,
 	); err != nil {
-		return response.NewBadRequest(err)
+		return nil, nil, err
 	}
 
 	ch := models.NewChannel()
 	err := ch.ById(query.Id)
 	if err != nil {
-		return response.NewBadRequest(err)
+		return nil, nil, err
 	}
 
 	if ch.TypeConstant == models.Channel_TYPE_BOT {
-		return response.NewBadRequest(errors.New("can not add participants for bot channel"))
+		return nil, nil, errors.New("can not add participants for bot channel")
 	}
 
 	for i := range participants {
@@ -70,7 +101,7 @@ func AddMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipa
 		// prevent duplicate participant addition
 		isParticipant, err := participant.IsParticipant(participants[i].AccountId)
 		if err != nil {
-			return response.NewBadRequest(err)
+			return nil, nil, err
 		}
 
 		if isParticipant {
@@ -84,20 +115,18 @@ func AddMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipa
 		}
 
 		if err := participant.Create(); err != nil {
-			return response.NewBadRequest(err)
+			return nil, nil, err
 		}
 
 		participants[i] = participant
 
 		if err := addJoinActivity(query.Id, participant, query.AccountId); err != nil {
-			return response.NewBadRequest(err)
+			return nil, nil, err
 		}
 
 	}
 
-	go notifyParticipants(ch, models.ChannelParticipant_Added_To_Channel_Event, participants)
-
-	return response.NewOK(participants)
+	return ch, participants, nil
 }
 
 func notifyParticipants(channel *models.Channel, event string, participants []*models.ChannelParticipant) {
