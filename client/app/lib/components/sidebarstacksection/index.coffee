@@ -124,8 +124,12 @@ module.exports = class SidebarStackSection extends React.Component
 
 
   onMenuItemClickError: (name) ->
+    { notificationViewController: { addNotification } } = kd.singletons
 
-    return new kd.NotificationView { title: "Error occured while #{name} template" }
+    addNotification
+      type: 'caution'
+      content: "Error occured while #{name} template"
+      duration: 5000
 
   onTitleClick: (event) ->
 
