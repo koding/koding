@@ -1,6 +1,7 @@
 ---
 layout: default
 title: Badges
+permalink: /badges
 ---
 
 <!-- HEADER -->
@@ -57,7 +58,11 @@ title: Badges
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.5.16/clipboard.min.js"></script>
 <script type="text/javascript">
-new Clipboard('.BadgeRow--copyClipboard');
+  var clipboard = new Clipboard('.BadgeRow--copyClipboard');
+
+  clipboard.on('success', function(e) {
+    e.trigger.innerHTML = "Copied!"
+  });
 </script>
 
 {% include analytics.html %}
