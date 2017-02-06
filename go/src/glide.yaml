@@ -223,6 +223,8 @@ import:
 - package: github.com/golang/snappy
 - package: github.com/hailocab/go-hostpool
 - package: gopkg.in/inf.v0
+- package: gopkg.in/alecthomas/kingpin.v2
+- package: gopkg.in/alecthomas/kingpin.v3-unstable
 - package: github.com/juju/ratelimit
 - package: github.com/lann/builder
 - package: github.com/ooyala/go-dogstatsd
@@ -255,6 +257,7 @@ import:
 - package: golang.org/x/tools/go/loader
 - package: github.com/kr/binarydist
 - package: github.com/google/go-github/github
+- package: github.com/google/shlex
 - package: github.com/Sirupsen/logrus
 - package: github.com/opencontainers/runc
 - package: github.com/kardianos/osext
