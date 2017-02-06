@@ -22,6 +22,9 @@ type Client interface {
 	// directory.
 	MountGetIndex(string) (*index.Index, error)
 
+	// DiskBlocks gets basic information about volume pointed by provided path.
+	DiskBlocks(string) (uint64, uint64, uint64, uint64, error)
+
 	// Context returns client's Context.
 	Context() context.Context
 }

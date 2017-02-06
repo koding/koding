@@ -11,7 +11,6 @@ import (
 	"koding/klient/machine/index"
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/mounttest"
-	"koding/klient/machine/mount/sync"
 )
 
 func TestHeadMount(t *testing.T) {
@@ -150,10 +149,10 @@ func TestListMount(t *testing.T) {
 
 	tests := map[string]struct {
 		LMReq         ListMountRequest
-		ConcatIDsInfo map[string]sync.Info
+		ConcatIDsInfo map[string]mount.Info
 	}{
 		"all mounts": {
-			ConcatIDsInfo: map[string]sync.Info{
+			ConcatIDsInfo: map[string]mount.Info{
 				aliases[idA] + string(mountIDs[0]): {
 					ID:    mountIDs[0],
 					Mount: ms[0],
@@ -168,7 +167,7 @@ func TestListMount(t *testing.T) {
 			LMReq: ListMountRequest{
 				ID: idA,
 			},
-			ConcatIDsInfo: map[string]sync.Info{
+			ConcatIDsInfo: map[string]mount.Info{
 				aliases[idA] + string(mountIDs[0]): {
 					ID:    mountIDs[0],
 					Mount: ms[0],
@@ -183,13 +182,13 @@ func TestListMount(t *testing.T) {
 			LMReq: ListMountRequest{
 				ID: idB,
 			},
-			ConcatIDsInfo: map[string]sync.Info{},
+			ConcatIDsInfo: map[string]mount.Info{},
 		},
 		"filter by mount ID": {
 			LMReq: ListMountRequest{
 				MountID: mountIDs[1],
 			},
-			ConcatIDsInfo: map[string]sync.Info{
+			ConcatIDsInfo: map[string]mount.Info{
 				aliases[idA] + string(mountIDs[1]): {
 					ID:    mountIDs[1],
 					Mount: ms[1],
@@ -201,7 +200,7 @@ func TestListMount(t *testing.T) {
 				ID:      idA,
 				MountID: mountIDs[0],
 			},
-			ConcatIDsInfo: map[string]sync.Info{
+			ConcatIDsInfo: map[string]mount.Info{
 				aliases[idA] + string(mountIDs[0]): {
 					ID:    mountIDs[0],
 					Mount: ms[0],
@@ -213,21 +212,21 @@ func TestListMount(t *testing.T) {
 				ID:      idB,
 				MountID: mountIDs[0],
 			},
-			ConcatIDsInfo: map[string]sync.Info{},
+			ConcatIDsInfo: map[string]mount.Info{},
 		},
 		"unknown machine ID": {
 			LMReq: ListMountRequest{
 				ID:      "unknown",
 				MountID: mountIDs[0],
 			},
-			ConcatIDsInfo: map[string]sync.Info{},
+			ConcatIDsInfo: map[string]mount.Info{},
 		},
 		"unknown mount ID": {
 			LMReq: ListMountRequest{
 				ID:      idB,
 				MountID: "unknown",
 			},
-			ConcatIDsInfo: map[string]sync.Info{},
+			ConcatIDsInfo: map[string]mount.Info{},
 		},
 	}
 
@@ -246,10 +245,10 @@ func TestListMount(t *testing.T) {
 			}
 
 			// Prepare results.
-			concatIDsRes, n := make(map[string]sync.Info), 0
+			concatIDsRes, n := make(map[string]mount.Info), 0
 			for alias, infos := range listMountRes.Mounts {
 				for _, info := range infos {
-					concatIDsRes[alias+string(info.ID)] = sync.Info{
+					concatIDsRes[alias+string(info.ID)] = mount.Info{
 						ID:    info.ID,
 						Mount: info.Mount,
 					}
