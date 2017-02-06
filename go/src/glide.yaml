@@ -204,6 +204,8 @@ import:
 - package: github.com/mattes/migrate
   version: 9bb037339f0f7d2c7591ef148a5cbf78ff65d9b8
 - package: github.com/alecthomas/gocyclo
+- package: github.com/alecthomas/template
+- package: github.com/alecthomas/units
 - package: github.com/remyoudompheng/go-misc
   subpackages:
   - deadcode
