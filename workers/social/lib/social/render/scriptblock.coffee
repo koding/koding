@@ -170,7 +170,7 @@ module.exports = (options = {}, callback) ->
     # do corrections to data here - if required.
     async.series [
 
-      (next) =>
+      (next) ->
         return next()  unless currentGroup
 
         if currentGroup.socialApiChannelId and currentGroup.socialApiDefaultChannelId
