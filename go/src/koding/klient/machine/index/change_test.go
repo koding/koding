@@ -234,7 +234,7 @@ func TestChangeCoalesceConcurrent(t *testing.T) {
 	}
 }
 
-func TestAreSimilar(t *testing.T) {
+func TestSimilar(t *testing.T) {
 	tests := map[string]struct {
 		A      index.ChangeMeta
 		B      index.ChangeMeta
@@ -282,7 +282,7 @@ func TestAreSimilar(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			if similar := index.AreSimilar(test.A, test.B); similar != test.Result {
+			if similar := index.Similar(test.A, test.B); similar != test.Result {
 				t.Errorf("want similar = %t; got %t", test.Result, similar)
 			}
 		})

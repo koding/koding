@@ -105,7 +105,7 @@ func (cm *ChangeMeta) Coalesce(newer ChangeMeta) ChangeMeta {
 
 // Similar checks if provided meta changes can be considered similar. This means
 // if the same synchronization logic can be applied to provided meta changes.
-func AreSimilar(a, b ChangeMeta) bool {
+func Similar(a, b ChangeMeta) bool {
 	// Default to local change direction when not set.
 	if a&(ChangeMetaRemote|ChangeMetaLocal) == 0 {
 		a |= ChangeMetaLocal
