@@ -628,7 +628,7 @@ fetchAndUpdateStackTemplate = (templateId) ->
 
 generateStack = (stackTemplateId) ->
 
-  { computeController } = kd.singletons
+  { computeController, notificationViewController: { addNotification } } = kd.singletons
 
   new Promise (resolve, reject) ->
     computeController.fetchStackTemplate stackTemplateId, (err, stackTemplate) ->
@@ -640,7 +640,10 @@ generateStack = (stackTemplateId) ->
           [ machine ] = machines
           computeController.reset yes, ->
             computeController.reloadIDE machine.obj.slug
-            new kd.NotificationView { title: 'Stack generated successfully' }
+            addNotification
+              type: 'success'
+              content: 'Stack generated successfully'
+              duration: 5000
             resolve({ stack, template })
         .catch (err) ->
           showError err
@@ -808,17 +811,26 @@ setLabel = (machineUId, label) ->
 
 cloneStackTemplate = (template) ->
 
-  unless canCreateStacks()
-    return new kd.NotificationView { title: 'You are not allowed to create/edit stacks!' }
+  { notificationViewController: { addNotification } } = kd.singletons
 
-  new kd.NotificationView { title:'Cloning Stack Template' }
+  unless canCreateStacks()
+    addNotification
+      type: 'warning'
+      content: 'You are not allowed to create/edit stacks!'
+      duration: 5000
+  addNotification
+    type: 'success'
+    content: 'Cloning Stack Template'
+    duration: 5000
 
   { reactor } = kd.singletons
 
   template.clone (err, stackTemplate) ->
     if err
-      return new kd.NotificationView
-        title: 'Error occured while cloning template'
+      addNotification
+        type: 'warning'
+        content: 'Error occured while cloning template'
+        duration: 5000
 
     Tracker.track Tracker.STACKS_CLONED_TEMPLATE
     reactor.dispatch actions.UPDATE_STACK_TEMPLATE_SUCCESS, { stackTemplate }
