@@ -1000,21 +1000,35 @@ module.exports = class ComputeController extends KDController
 
 
   sharedStackTemplateAccessLevel: (params) ->
-    { reactor } = kd.singletons
+
+    { reactor, notificationViewController: { addNotification }} = kd.singletons
     { contents: { id: _id, change: { $set: { accessLevel } } } } = params
 
     remote.api.JStackTemplate.one { _id }, (err, stackTemplate) =>
 
-      return kd.NotificationView { title: 'Error occurred' }  if err
+      if err
+        return addNotification
+          type : 'caution'
+          content : 'Error occurred'
+          duration: 5000
+
 
       reactor.dispatch 'REMOVE_STACK_TEMPLATE_SUCCESS', { id: _id }
 
       if accessLevel is 'group'
-        new kd.NotificationView { title : 'Stack Template is Shared With Team' }
+
+        addNotification
+          type : 'success'
+          dismissible : yes
+          content : "#{stackTemplate.title} is Shared With Team"
+
         @checkRevisionFromOriginalStackTemplate stackTemplate
       else
         @removeRevisonFromUnSharedStackTemplate _id, stackTemplate
-        new kd.NotificationView { title : 'Stack Template is Unshared With Team' }
+        addNotification
+          type : 'warning'
+          dismissible : yes
+          content : 'Stack Template is Unshared With Team'
 
 
   removeRevisonFromUnSharedStackTemplate: (id, stackTemplate) ->
@@ -1113,7 +1127,7 @@ module.exports = class ComputeController extends KDController
 
   fixMachinePermissions: (machine, dontAskAgain = no) ->
 
-    { groupsController } = kd.singletons
+    { groupsController, notificationViewController: { addNotification } } = kd.singletons
 
     # This is for admins only
     return  unless groupsController.canEditGroup()
@@ -1126,27 +1140,33 @@ module.exports = class ComputeController extends KDController
         ignoredMachines[machine.uid] = yes
 
         @storage.setValue 'ignoredMachines', ignoredMachines
+        addNotification
+          type: 'success'
+          duration: 5000
+          content: '''
+            We won't bother you again for this machine
+            You can fix permissions anytime you want from
+            settings panel of this machine.'''
 
-        new kd.NotificationView
-          title    : "We won't bother you again for this machine"
-          duration : 5000
-          content  : 'You can fix permissions anytime you want from
-                      settings panel of this machine.'
 
         return
 
       return  if not state.confirmed
 
-      notification = new kd.NotificationView
-        title    : 'Fixing permissions...'
-        duration : 15000
+      addNotification
+        type: 'default'
+        duration: 15000
+        content: 'Fixing permissions...'
 
       kloud = @getKloud()
       kloud.addAdmin { machineId: machine._id }
         .finally ->
-          notification.destroy()
+          # notification.destroy()
         .then (shared) ->
-          new kd.NotificationView { title: 'Permissions fixed' }
+          addNotification
+            type:'success'
+            content: 'Permissions fixed'
+            duration: 2000
         .catch (err) ->
           showError err, 'Failed to fix permissions'
 
@@ -1351,14 +1371,16 @@ module.exports = class ComputeController extends KDController
   ###
   reinitStack: (stack, callback = kd.noop) ->
 
+    { notificationViewController: { addNotification } } = kd.singletons
+
     stack ?= @getGroupStack()
 
     if not stack
 
       if @stacks?.length
-        new kd.NotificationView
-          title   : "Couldn't find default stack"
-          content : 'Please re-init manually'
+        addNotification
+          type: 'success'
+          content: "Couldn't find default stack. Please re-init manually"
 
         return kd.singletons.router.handleRoute '/Home/stacks'
 
@@ -1380,9 +1402,10 @@ module.exports = class ComputeController extends KDController
         callback new Error 'Stack is not reinitialized'
         return
 
-      notification = new kd.NotificationView
-        title     : 'Reinitializing stack...'
-        duration  : 5000
+      addNotification
+        type: 'success'
+        content: 'Reinitializing stack...'
+        duration: 5000
 
       @fetchBaseStackTemplate stack, (err, template) =>
 
@@ -1394,20 +1417,23 @@ module.exports = class ComputeController extends KDController
         @destroyStack stack, (err) =>
 
           if err
-            notification.destroy()
+            # notification.destroy()
             callback err
             return showError err
 
           @reset()
 
             .once 'RenderStacks', (stacks = []) ->
-              notification.destroy()
+              # notification.destroy()
               Tracker.track Tracker.STACKS_REINIT, {
                 customEvent :
                   stackId   : stack._id
                   group     : getGroup().slug
               }
-              new kd.NotificationView { title : 'Stack reinitialized' }
+              addNotification
+                type: 'success'
+                content: 'Stack reinitialized'
+                duration: 2000
               callback()
 
           if template and not groupStack
@@ -1469,7 +1495,10 @@ module.exports = class ComputeController extends KDController
           router.handleRoute '/IDE'
           modal.destroy()
         .catch (err) ->
-          new kd.NotificationView { title: 'Something went wrong!' }
+          addNotification
+            type: 'caution'
+            content: 'Something went wrong!'
+            duration: 2000
           modal.destroy()
 
 
