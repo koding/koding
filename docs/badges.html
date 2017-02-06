@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Badges
-permalink: /badges
+permalink: /badges/
 ---
 
 <!-- HEADER -->
@@ -64,6 +64,10 @@ permalink: /badges
 
   clipboard.on('success', function(e) {
     e.trigger.innerHTML = "Copied!"
+
+    setTimeout(function() {
+      e.trigger.innerHTML = "Copy"
+    }, 1000);
   });
 </script>
 
