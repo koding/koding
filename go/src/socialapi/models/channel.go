@@ -138,7 +138,7 @@ func (c *Channel) Create() error {
 
 	// if channel type is not group or following try to create it
 	if c.TypeConstant != Channel_TYPE_GROUP && c.TypeConstant != Channel_TYPE_FOLLOWERS {
-		return bongo.B.Create(c)
+		return idempotentCreate(c)
 	}
 
 	// selectors helps database to create what we need
@@ -176,7 +176,30 @@ func (c *Channel) Create() error {
 	}
 
 	// if we couldnt find the record in the db, then create it
-	return bongo.B.Create(c)
+	return idempotentCreate(c)
+}
+
+func idempotentCreate(c *Channel) error {
+	err := bongo.B.Create(c)
+	if err == nil {
+		return nil
+	}
+
+	if !IsUniqueConstraintError(err) {
+		return err
+	}
+	q := &request.Query{
+		GroupName: c.GroupName,
+		Type:      c.TypeConstant,
+		Name:      c.Name,
+	}
+	ch, er := c.ByName(q)
+	if er != nil {
+		// ignore error for fetch request
+		return err
+	}
+	c = &ch
+	return nil
 }
 
 func (c *Channel) CreateRaw() error {
