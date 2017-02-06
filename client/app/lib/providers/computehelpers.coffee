@@ -132,10 +132,13 @@ module.exports = class ComputeHelpers
 
   @runInitScript = (machine, inTerminal = yes) ->
 
+    { notificationViewController: { addNotification } } = kd.singletons
+
     { status: { state } } = machine
     unless state is Machine.State.Running
-      return new KDNotificationView
-        title : 'Machine is not running.'
+      addNotification
+        type: 'default'
+        content: 'Machine is not running.'
 
     envVariables = ''
     for key, value of machine.stack?.config or {}
@@ -144,11 +147,16 @@ module.exports = class ComputeHelpers
     @reviveProvisioner machine, (err, provisioner) ->
 
       if err
-        return new KDNotificationView
-          title : 'Failed to fetch build script.'
+        return addNotification
+          type: 'warning'
+          content: 'Failed to fetch build script.'
+          duration: 5000
       else if not provisioner
-        return new KDNotificationView
-          title : 'Provision script is not set.'
+        return addNotification
+          type: 'warning'
+          content: 'Failed to fetch build script.'
+          duration: 5000
+
 
       { content: { script } } = provisioner
 
@@ -160,8 +168,11 @@ module.exports = class ComputeHelpers
       machine.fs.create { path }, (err, file) ->
 
         if err or not file
-          return new KDNotificationView
-            title : 'Failed to upload build script.'
+          return addNotification
+            type: 'warning'
+            content: 'Failed to upload build script.'
+            duration: 5000
+
 
         script  = "#{envVariables}\n\n#{script}\n"
         script += "\necho $?|kdevent;rm -f #{path};exit"
@@ -173,22 +184,29 @@ module.exports = class ComputeHelpers
 
           if not inTerminal
 
-            new KDNotificationView
-              title: 'Init script running in background...'
+            return addNotification
+              type: 'default'
+              content: 'Init script running in background...'
+              duration: 2000
 
             machine.getBaseKite().exec { command }
               .then (res) ->
 
-                new KDNotificationView
-                  title: 'Init script executed'
+                addNotification
+                  type: 'default'
+                  content: 'Init script running in background...'
+                  duration: 2000
 
                 kd.info  'Init script executed : ', res.stdout  if res.stdout
                 kd.error 'Init script failed   : ', res.stderr  if res.stderr
 
               .catch (err) ->
 
-                new KDNotificationView
-                  title: 'Init script executed successfully'
+                return addNotification
+                  type: 'default'
+                  content: 'Init script executed successfully'
+                  duration: 2000
+
                 kd.error 'Init script failed:', err
 
             return
