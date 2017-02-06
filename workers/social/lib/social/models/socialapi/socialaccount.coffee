@@ -4,6 +4,12 @@
 # dont want it to be listed first item while searching for account.coffe in
 # sublime ~ CS
 
+removeParticipantHandler = (data) ->
+  participantHandler 'removeParticipants', data
+
+addParticipantHandler = (data) ->
+  participantHandler 'addParticipants', data
+
 # SocialAccount
 module.exports = class SocialAccount extends Base
   JAccount      = require '../account'
@@ -13,6 +19,10 @@ module.exports = class SocialAccount extends Base
   { bareRequest } = require './helper'
 
   @update = (args...) -> bareRequest 'updateAccount', args...
+
+  @removeParticipant = removeParticipantHandler
+
+  @addParticipant = addParticipantHandler
 
   do ->
     JAccount = require '../account'
@@ -52,11 +62,10 @@ module.exports = class SocialAccount extends Base
 
       updateSocialAccount username
 
-    JGroup.on 'MemberRemoved', (data) ->
-      participantHandler 'removeParticipants', data
+    JGroup.on 'MemberRemoved', (data) -> removeParticipantHandler data
+    JGroup.on 'MemberAdded', (data) -> addParticipantHandler  data
 
-    JGroup.on 'MemberAdded', (data) ->
-      participantHandler 'addParticipants', data
+
 
 
 participantHandler = (funcName, data) ->
