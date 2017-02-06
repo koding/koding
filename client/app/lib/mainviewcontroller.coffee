@@ -1,6 +1,8 @@
 globals = require 'globals'
 checkFlag = require './util/checkFlag'
 kd = require 'kd'
+whoami = require './util/whoami'
+MembershipRoleChangedModal =  require 'app/components/membershiprolechangedmodal'
 
 
 module.exports = class MainViewController extends kd.ViewController
@@ -34,6 +36,22 @@ module.exports = class MainViewController extends kd.ViewController
         if event.metaKey and event.altKey
           logViewByElement event.target
       , yes
+
+    { groupsController } = kd.singletons
+
+    groupsController.ready ->
+      groupsController.on 'MembershipRoleChanged', (data) ->
+        { reactor } = kd.singletons
+        { contents: { role, id, adminNick } } = data
+        reactor.dispatch 'UPDATE_TEAM_MEMBER_WITH_ID', { id, role }
+
+        if id is whoami()._id
+          modal = new MembershipRoleChangedModal
+            success: ->
+              modal.destroy()
+              global.location.reload yes
+          , { role, adminNick }
+
 
 
   loadView: (mainView) ->

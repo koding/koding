@@ -113,8 +113,6 @@ module.exports = (options = {}, callback) ->
           hasCard = not err?
           return fin()
 
-        fin()
-
     (fin) ->
       { delegate : account } = client.connection
       account.fetchMyPermissionsAndRoles client, (err, res) ->

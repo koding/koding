@@ -66,6 +66,11 @@ func (*Disconnected) MountGetIndex(_ string) (*index.Index, error) {
 	return nil, ErrDisconnected
 }
 
+// DiskBlocks always returns ErrDisconnected error.
+func (*Disconnected) DiskBlocks(_ string) (_, _, _, _ uint64, _ error) {
+	return 0, 0, 0, 0, ErrDisconnected
+}
+
 // Context returns disconnected client's context.
 func (d *Disconnected) Context() context.Context {
 	return d.ctx
