@@ -6,7 +6,6 @@ HomeTeamSettings     = require './hometeamsettings'
 HomeTeamPermissions  = require './hometeampermissions'
 TeamFlux             = require 'app/flux/teams'
 AppFlux              = require 'app/flux'
-whoami               = require 'app/util/whoami'
 remote               = require 'app/remote'
 headerize = require '../commons/headerize'
 sectionize = require '../commons/sectionize'
@@ -14,7 +13,6 @@ camelizeString = require 'app/util/camelizeString'
 toImmutable = require 'app/util/toImmutable'
 canSeeMembers = require 'app/util/canSeeMembers'
 isAdmin = require 'app/util/isAdmin'
-MembershipRoleChangedModal =  require 'app/components/membershiprolechangedmodal'
 
 SECTIONS =
   'Invite Using Slack' : HomeTeamConnectSlack
@@ -60,18 +58,6 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
     TeamFlux.actions.loadPendingInvitations()
     TeamFlux.actions.loadDisabledUsers()
     AppFlux.actions.user.loadLoggedInUserEmail()
-
-    groupsController.on 'MembershipRoleChanged', (data) ->
-
-      { contents: { role, id, adminNick } } = data
-      reactor.dispatch 'UPDATE_TEAM_MEMBER_WITH_ID', { id, role }
-
-      if id is whoami()._id
-        modal = new MembershipRoleChangedModal
-          success: ->
-            modal.destroy()
-            global.location.reload yes
-        , { role, adminNick }
 
     groupsController.on 'InvitationChanged', (data) ->
 
