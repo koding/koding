@@ -6,7 +6,7 @@ DEPLOYMENT_BRANCHES="sandbox latest production"
 CURRENT_BRANCH=${WERCKER_GIT_BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
 
 for DEPLOYMENT_BRANCH in $DEPLOYMENT_BRANCHES; do
-	[[ "$CURRENT_BRANCH" = "$DEPLOYMENT_BRANCH" ]] && exit 0
+	[[ "$CURRENT_BRANCH" == "$DEPLOYMENT_BRANCH" ]] && exit 0
 done
 
 exit 1

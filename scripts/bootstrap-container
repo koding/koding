@@ -44,7 +44,7 @@ function run() {
 
 if [[ -z "$*" ]]; then
 	run_backend
-elif [[ "${1:0:1}" = '-' ]]; then
+elif [[ "${1:0:1}" == '-' ]]; then
 	configure $*
 	run_backend
 elif [ "$1" = "configure" ]; then

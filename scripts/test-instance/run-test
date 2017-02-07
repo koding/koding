@@ -37,3 +37,4 @@ wait $PID # Wait until child process is exited
 trap - TERM INT
 
 wait $PID # In case an interrupt signal is received
+EOF
