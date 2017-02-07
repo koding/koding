@@ -17,6 +17,7 @@ import (
 	"github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
+	"golang.org/x/net/context"
 )
 
 // TODO(rjeczalik): TTL for items on pending list; if a lot inodes were
@@ -240,9 +241,14 @@ func (fs *Filesystem) delHandle(id fuseops.HandleID) error {
 }
 
 func (fs *Filesystem) yield(ctx stdcontext.Context, path string, meta index.ChangeMeta) error {
-	cx := fs.Cache.Commit(ctx, index.NewChange(path, meta))
-	<-cx.Done()
-	return cx.Err()
+	c := fs.Cache.Commit(index.NewChange(path, meta))
+
+	select {
+	case <-c.Done():
+		return ignore(c.Err())
+	case <-ctx.Done():
+		return ignore(ctx.Err())
+	}
 }
 
 func (fs *Filesystem) attr(entry *index.Entry) fuseops.InodeAttributes {
@@ -434,4 +440,14 @@ func nonil(err ...error) error {
 		}
 	}
 	return nil
+}
+
+// ignore filters out context.Canceled errors.
+func ignore(err error) error {
+	switch err {
+	case context.Canceled, stdcontext.Canceled:
+		return nil
+	default:
+		return err
+	}
 }
