@@ -6,13 +6,13 @@ set -o errexit
 cd $(dirname $0)/..
 
 git diff-tree -r --exit-code --name-only --no-commit-id HEAD \
-    go/src/socialapi && exit 0
+	go/src/socialapi && exit 0
 
 export GOPATH=${GOPATH:-$(pwd)/go}
 
 echo "checking deadcode"
-ls --directory $GOPATH/src/socialapi/*/**/**/ | \
-  xargs go/bin/deadcode
+ls --directory $GOPATH/src/socialapi/*/**/**/ \
+	| xargs go/bin/deadcode
 
 # echo "checking unused variables"
 # echo $(cd $GOPATH/src; ls --directory socialapi/*/**/**/) | \

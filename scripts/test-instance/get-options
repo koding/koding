@@ -7,17 +7,17 @@ OPTIONS=''
 HEADS=$(git branch -r --contains ${REVISION:0:7})
 
 for HEAD in $HEADS; do
-  if [ -n "$(echo $HEAD | grep '/pull/')" ]; then
-    PR_HEAD=$HEAD
-    break
-  fi
+	if [ -n "$(echo $HEAD | grep '/pull/')" ]; then
+		PR_HEAD=$HEAD
+		break
+	fi
 done
 
 if [ -n "$PR_HEAD" ]; then
-  PR_NR=$(echo $PR_HEAD | awk -F '/' '{print $NF}')
-  OPTIONS="--pull-request $PR_NR --commit $REVISION $OPTIONS"
+	PR_NR=$(echo $PR_HEAD | awk -F '/' '{print $NF}')
+	OPTIONS="--pull-request $PR_NR --commit $REVISION $OPTIONS"
 else
-  OPTIONS="--commit $REVISION $OPTIONS"
+	OPTIONS="--commit $REVISION $OPTIONS"
 fi
 
 echo $OPTIONS

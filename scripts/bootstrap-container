@@ -5,64 +5,64 @@ set -o errexit
 pushd $(dirname $0)/..
 
 function configure() {
-  [ ! -d node_modules ] && npm install --unsafe-perm
-  ./configure $*
+	[ ! -d node_modules ] && npm install --unsafe-perm
+	./configure $*
 }
 
 function build() {
-  go/build.sh
-  make -C client dist
+	go/build.sh
+	make -C client dist
 }
 
 function run_backend() {
-  go/build.sh
-  ./run is_ready || exit 255
-  ./run migrations up
-  nginx -c $(pwd)/nginx.conf
-  ./run exec supervisord -c supervisord.conf
-  sleep 2
-  tail --follow --lines +0 --quiet .logs/*.log
+	go/build.sh
+	./run is_ready || exit 255
+	./run migrations up
+	nginx -c $(pwd)/nginx.conf
+	./run exec supervisord -c supervisord.conf
+	sleep 2
+	tail --follow --lines +0 --quiet .logs/*.log
 }
 
 function is_ready() {
-  until [ -x ./run ] && ./run is_ready; do
-    sleep 10
-  done
+	until [ -x ./run ] && ./run is_ready; do
+		sleep 10
+	done
 }
 
 function run() {
-  case "$1" in
-    backend)
-      run_backend
-      ;;
-    *)
-      echo 'error: unknown service'
-      exit 1
-      ;;
-  esac
+	case "$1" in
+		backend)
+			run_backend
+			;;
+		*)
+			echo 'error: unknown service'
+			exit 1
+			;;
+	esac
 }
 
 if [[ -z "$*" ]]; then
-  run_backend
+	run_backend
 elif [[ "${1:0:1}" = '-' ]]; then
-  configure $*
-  run_backend
+	configure $*
+	run_backend
 elif [ "$1" = "configure" ]; then
-  shift
-  configure $*
+	shift
+	configure $*
 elif [ "$1" = "build" ]; then
-  shift
-  configure $*
-  build
-  run_backend
+	shift
+	configure $*
+	build
+	run_backend
 elif [ "$1" = "run" ]; then
-  shift
-  is_ready
-  run $*
+	shift
+	is_ready
+	run $*
 elif [ "$1" = "is_ready" ]; then
-  shift
-  is_ready
-  exec "$@"
+	shift
+	is_ready
+	exec "$@"
 else
-  exec "$@"
+	exec "$@"
 fi
