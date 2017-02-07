@@ -13,6 +13,7 @@ camelizeString = require 'app/util/camelizeString'
 toImmutable = require 'app/util/toImmutable'
 canSeeMembers = require 'app/util/canSeeMembers'
 isAdmin = require 'app/util/isAdmin'
+showError = require 'app/util/showError'
 
 SECTIONS =
   'Invite Using Slack' : HomeTeamConnectSlack
@@ -118,3 +119,17 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
 
       @wrapper.addSubView headerize 'Teammates'
       @wrapper.addSubView @teammates = section 'Teammates'
+
+      @wrapper.addSubView new kd.CustomHTMLView
+        cssClass : 'delete-team'
+        partial : 'DELETE TEAM'
+        click : ->
+          partial = '<p>
+              <strong>CAUTION! </strong>You are going to delete your team. You and your
+              team members will not be able to access this team again.
+              This action <strong>CANNOT</strong> be undone.
+            </p> <br>
+            <p>Please enter <strong>current password</strong> into the field below to continue: </p>'
+
+          TeamFlux.actions.deleteTeam(partial).catch (err) ->
+            showError err
