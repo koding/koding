@@ -8,5 +8,5 @@ import (
 )
 
 type Cache interface {
-	Commit(context.Context, *index.Change) context.Context
+	Commit(*index.Change) context.Context
 }
