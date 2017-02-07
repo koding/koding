@@ -301,6 +301,26 @@ leaveTeam = (partial) ->
             global.location.replace '/'
 
 
+deleteTeam = (partial) ->
+
+  new Promise (resolve, reject) ->
+    new VerifyPasswordModal 'Confirm', partial, (currentPassword) ->
+
+      whoami().fetchEmail (err, email) ->
+        options = { password: currentPassword, email }
+        remote.api.JUser.verifyPassword options, (err, confirmed) ->
+
+          return reject err.message  if err
+          return reject 'Current password cannot be confirmed'  unless confirmed
+
+          { groupsController, reactor } = kd.singletons
+          team = groupsController.getCurrentGroup()
+
+          team.destroy currentPassword, (err) ->
+            reject err  if err
+
+
+
 fetchApiTokens = ->
 
   { groupsController, reactor } = kd.singletons
@@ -365,6 +385,7 @@ loadOtaToken = ->
 module.exports = {
   loadTeam
   leaveTeam
+  deleteTeam
   updateTeam
   updateInvitationInputValue
   fetchMembers
