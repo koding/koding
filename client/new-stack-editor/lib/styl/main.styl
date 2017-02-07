@@ -119,7 +119,7 @@ $stack-border-width         = 2px
     &.ondrag
       vendor                transition, none
 
-    &:hover
+    &:hover, &.show-controls
       .controls .kdbutton
         &.expand, &.help, &.pin, &.close
           display           block
@@ -310,6 +310,7 @@ $stack-border-width         = 2px
     .controls .kdbutton.plus
       fa                    plus
       color                 $stack-fg-color-yellow
+      display               none
 
   .side-view
 
@@ -331,6 +332,9 @@ $stack-border-width         = 2px
 
   .credentials
 
+    .controls .kdbutton.plus
+      display               block
+
     .listview-wrapper
       height                calc(100% \- 42px)
 
@@ -342,7 +346,7 @@ $stack-border-width         = 2px
         height              auto
         color               #fff
         font-size           12px
-        padding             8px  15px 5px 20px
+        padding             8px 15px 5px 20px
         background          rgba(255, 255, 255, .1)
 
         b

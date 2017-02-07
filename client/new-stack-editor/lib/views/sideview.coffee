@@ -19,8 +19,6 @@ module.exports = class SideView extends BaseView
     @on FlexSplit.EVENT_COLLAPSE, @lazyBound 'unsetClass', 'expanded'
     @on FlexSplit.EVENT_HIDE,     @bound 'hide'
 
-    @customControls = {}
-
 
   viewAppended: ->
 
@@ -34,9 +32,7 @@ module.exports = class SideView extends BaseView
       view.on Events.LazyLoadFinished, @lazyBound 'unsetClass', 'loading'
 
       for control, generator of controls when controls
-        @customControls[name] ?= []
-        @customControls[name].push control = @controls.addSubView generator()
-        control.hide()
+        @controls.addSubView generator()
 
       view.hide()
 
@@ -52,10 +48,8 @@ module.exports = class SideView extends BaseView
       if _view is viewName
         @title.updatePartial item.title
         @setClass item.cssClass
-        @customControls[viewName]?.forEach (control) -> control.show()
         item.view.show()
 
       else
         @unsetClass item.cssClass
-        @customControls[viewName]?.forEach (control) -> control.hide()
         item.view.hide()
