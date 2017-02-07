@@ -52,11 +52,11 @@ module.exports = class CredentialsController extends BaseController
     self = this
     @listController.showLazyLoader = ->
       AccountCredentialListController::showLazyLoader.call this
-      self.emit Events.LazyLoadStarted
+      self.listView.emit Events.LazyLoadStarted
 
     @listController.hideLazyLoader = ->
       AccountCredentialListController::hideLazyLoader.call this
-      self.emit Events.LazyLoadFinished
+      self.listView.emit Events.LazyLoadFinished
 
     @listController.addListItems = (items) ->
       AccountCredentialListController::addListItems.call this, items
@@ -144,3 +144,8 @@ module.exports = class CredentialsController extends BaseController
 
       @logs.add 'Stack template updated successfully!'
       @setData updatedTemplate, internal = yes
+
+
+  getCredentialAddButton: ->
+    @listController._createAddCredentialMenuButton
+      cssClass : 'plus'

@@ -19,27 +19,43 @@ module.exports = class SideView extends BaseView
     @on FlexSplit.EVENT_COLLAPSE, @lazyBound 'unsetClass', 'expanded'
     @on FlexSplit.EVENT_HIDE,     @bound 'hide'
 
+    @customControls = {}
+
 
   viewAppended: ->
 
     super
 
-    for view, item of @getOption 'views'
-      @wrapper.addSubView item.view
-      item.view.hide()
+    for name, { view, controls = {} } of @getOption 'views'
+
+      @wrapper.addSubView view
+
+      view.on Events.LazyLoadStarted,  @lazyBound 'setClass',   'loading'
+      view.on Events.LazyLoadFinished, @lazyBound 'unsetClass', 'loading'
+
+      for control, generator of controls when controls
+        @customControls[name] ?= []
+        @customControls[name].push control = @controls.addSubView generator()
+        control.hide()
+
+      view.hide()
 
 
-  show: (view) ->
+  show: (viewName) ->
 
     super
 
-    view ?= @getOption 'defaultView'
+    viewName ?= @getOption 'defaultView'
 
     for _view, item of @getOption 'views'
-      if _view is view
+
+      if _view is viewName
         @title.updatePartial item.title
         @setClass item.cssClass
+        @customControls[viewName]?.forEach (control) -> control.show()
         item.view.show()
+
       else
         @unsetClass item.cssClass
+        @customControls[viewName]?.forEach (control) -> control.hide()
         item.view.hide()

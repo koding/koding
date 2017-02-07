@@ -227,13 +227,13 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
     addButton = new KDButtonView
       cssClass  : options.cssClass ? 'add-big-btn'
-      title     : options.title ? 'Add new credentials'
+      title     : options.title
       icon      : yes
       callback  : =>
         @_addButtonMenu = new KDContextMenu
           delegate    : addButton
-          y           : addButton.getY() + 35
-          x           : addButton.getX() + addButton.getWidth() / 2 - 120
+          y           : addButton.getY()
+          x           : addButton.getX() + addButton.getWidth() / 2 - 100
           width       : 240
         , providerList
 

@@ -93,13 +93,11 @@ module.exports = class StackEditor extends kd.View
       views         :
         credentials :
           title     : 'Credentials'
-          view      : @credentialsController.listView
           cssClass  : 'credentials'
-
-    @credentialsController.on Events.LazyLoadStarted,  \
-      @sideView.lazyBound 'setClass', 'loading'
-    @credentialsController.on Events.LazyLoadFinished, \
-      @sideView.lazyBound 'unsetClass', 'loading'
+          view      : @credentialsController.listView
+          controls  :
+            plus    : =>
+              @credentialsController.getCredentialAddButton()
 
     @emit 'ready'
 
