@@ -1,7 +1,10 @@
 module.exports = {
+  'CredentialChangesRevertRequested'
+  'CredentialChangesSaveRequested'
   'CredentialSelectionChanged'
   'CredentialFilterChanged'
   'SelectedProviderChanged'
+  'CredentialListUpdated'
   'StackWizardCancelled'
   'InitializeRequested'
   'ProviderSelected'

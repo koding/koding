@@ -17,8 +17,7 @@ module.exports = class KodingListController extends KDListViewController
     else
       options.viewOptions           ?= {}
       options.viewOptions.itemClass ?= options.itemClass
-
-      options.view  ?= new KodingListView options.viewOptions
+      options.view ?= new (options.viewClass ? KodingListView) options.viewOptions
 
     options.itemClass              ?= KDListItemView
 

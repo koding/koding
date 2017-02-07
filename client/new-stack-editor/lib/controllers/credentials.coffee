@@ -3,9 +3,7 @@ JView = require 'app/jview'
 Events = require '../events'
 BaseController = require './base'
 
-CredentialListItem              = require '../views/credentiallistitem'
-AccountCredentialList           = require 'app/views/credentiallist/accountcredentiallist'
-AccountCredentialListController = require 'app/views/credentiallist/accountcredentiallistcontroller'
+StackCredentialListController = require './credentialslistcontroller'
 
 
 module.exports = class CredentialsController extends BaseController
@@ -15,54 +13,17 @@ module.exports = class CredentialsController extends BaseController
 
     super options, data
 
-    @list = new AccountCredentialList
-      itemClass: CredentialListItem
+    @listController = new StackCredentialListController
 
-    @listController = new AccountCredentialListController
-      limit      : 15
-      view       : @list
-      baseQuery  :
-        provider : { $ne: 'custom' }
+    @listController.on [
+      Events.CredentialListUpdated
+      Events.CredentialChangesRevertRequested
+    ], @bound 'updateCredentialSelections'
 
-    @listView = @listController.getView()
+    @listController.on Events.CredentialChangesSaveRequested, \
+      @bound 'handleSaveChanges'
 
-    statusView = @list.addSubView new kd.CustomHTMLView
-      cssClass : 'status-view'
-
-    statusView.addSubView new kd.ButtonView
-      cssClass : 'kdbutton action-button solid green compact save-button'
-      callback : @bound 'handleSaveChanges'
-      title    : 'Save Changes'
-
-    statusView.addSubView new kd.ButtonView
-      cssClass : 'kdbutton action-button solid gray compact revert-button'
-      callback : @bound 'handleRevertChanges'
-      title    : 'Revert Changes'
-
-    @filterView  = @listView.addSubView new JView
-      cssClass   : 'filter-view hidden'
-      pistachio  : '''
-        Currently selected provider: <b>{{#(provider)}}</b> <cite />
-      '''
-      click      : (event) =>
-        @list.emit Events.CredentialFilterChanged
-        kd.utils.stopDOMEvent event
-    , { provider : '' }
-
-    self = this
-    @listController.showLazyLoader = ->
-      AccountCredentialListController::showLazyLoader.call this
-      self.listView.emit Events.LazyLoadStarted
-
-    @listController.hideLazyLoader = ->
-      AccountCredentialListController::hideLazyLoader.call this
-      self.listView.emit Events.LazyLoadFinished
-
-    @listController.addListItems = (items) ->
-      AccountCredentialListController::addListItems.call this, items
-      self.updateCredentialSelections()
-
-
+    @list = @listController.getListView()
     @list.on Events.CredentialSelectionChanged, =>
 
       if @isSelectionChanged()
@@ -70,28 +31,15 @@ module.exports = class CredentialsController extends BaseController
       else @list.unsetClass 'has-change'
 
 
-    @list.on Events.CredentialFilterChanged, (provider) =>
-
-      return  if provider and not @filterView.hasClass 'hidden'
-
-      filter = null
-      filter = { provider }  if provider
-
-      @filterView.setData filter
-
-      if filter
-      then @filterView.show()
-      else @filterView.hide()
-
-      @listController.filterByProvider filter
+  getView: -> @listController.getView()
 
 
   setData: (stackTemplate, internal = no) ->
 
     super stackTemplate
 
-    if not internal and not @filterView.hasClass 'hidden'
-      @filterView.hide()
+    if not internal and not @listController.filterView.hasClass 'hidden'
+      @listController.filterView.hide()
       @listController.filterByProvider()
     else
       @updateCredentialSelections()
@@ -131,9 +79,6 @@ module.exports = class CredentialsController extends BaseController
     return credentials
 
 
-  handleRevertChanges: CredentialsController::updateCredentialSelections
-
-
   handleSaveChanges: ->
 
     credentials   = @getSelectedCredentials()
@@ -147,5 +92,6 @@ module.exports = class CredentialsController extends BaseController
 
 
   getCredentialAddButton: ->
+
     @listController._createAddCredentialMenuButton
       cssClass : 'plus'
