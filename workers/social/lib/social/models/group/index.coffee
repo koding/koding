@@ -1552,6 +1552,20 @@ module.exports = class JGroup extends Module
       if err then callback err
       else oldAddOwner.call this, target, options, callback
 
+
+  checkUserPassword: (account, password, callback) ->
+
+    unless account or password
+      return callback 'Error occured while deleting team'
+
+    account.fetchUser (err, user) =>
+      unless err
+        unless user.checkPassword password
+          return callback 'Your password didn\'t match with our records'
+        else
+          callback()
+
+
   destroy    : permit
     advanced : [
       { permission: 'edit own groups', validateWith : Validators.own }
@@ -1560,12 +1574,15 @@ module.exports = class JGroup extends Module
     success  : (client, password, callback) ->
 
       JName = require '../name'
+      account = client?.connection?.delegate
 
       removeHelper = (model, err, next) ->
         return next err  if err
         return next()  unless model
+      @checkUserPassword account, password, (err) =>
 
         model.remove (err) -> next err
+        return callback new KodingError err  if err
 
       removeHelperMany = (klass, models, err, next) ->
         return next err  if err
