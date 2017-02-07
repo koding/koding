@@ -188,18 +188,17 @@ func idempotentCreate(c *Channel) error {
 	if !IsUniqueConstraintError(err) {
 		return err
 	}
+
 	q := &request.Query{
 		GroupName: c.GroupName,
 		Type:      c.TypeConstant,
 		Name:      c.Name,
 	}
-	ch, er := c.ByName(q)
-	if er != nil {
-		// ignore error for fetch request
-		return err
-	}
-	c = &ch
-	return nil
+
+	// ignore error for fetch request. c is modified in ByName, so if we find
+	// the channel in db, c will have it assigned
+	_, _ = c.ByName(q)
+	return err
 }
 
 func (c *Channel) CreateRaw() error {
