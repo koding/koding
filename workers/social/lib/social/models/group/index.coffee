@@ -1558,7 +1558,7 @@ module.exports = class JGroup extends Module
     unless account or password
       return callback 'Error occured while deleting team'
 
-    account.fetchUser (err, user) =>
+    account.fetchUser (err, user) ->
       unless err
         unless user.checkPassword password
           return callback 'Your password didn\'t match with our records'
@@ -1573,61 +1573,70 @@ module.exports = class JGroup extends Module
     ]
     success  : (client, password, callback) ->
 
-      JName = require '../name'
       account = client?.connection?.delegate
 
-      removeHelper = (model, err, next) ->
-        return next err  if err
-        return next()  unless model
       @checkUserPassword account, password, (err) =>
 
-        model.remove (err) -> next err
         return callback new KodingError err  if err
 
-      removeHelperMany = (klass, models, err, next) ->
-        return next err  if err
-        return next()    if not models or models.length < 1
+        slug = @getAt 'slug'
+        JName = require '../name'
 
-        ids = (model._id for model in models)
-        klass.remove ({ _id: { $in: ids } }), (err) -> next err
+        removeHelper = (model, err, next) ->
+          return next err  if err
+          return next()  unless model
 
-      async.series [
+          model.remove (err) -> next err
 
-        (next) =>
-          JName.one { name: @slug }, (err, name) ->
-            removeHelper name, err, next
+        removeHelperMany = (klass, models, err, next) ->
+          return next err  if err
+          return next()    if not models or models.length < 1
 
-        (next) =>
-          @fetchPermissionSet (err, permSet) ->
-            removeHelper permSet, err, next
+          ids = (model._id for model in models)
+          klass.remove ({ _id: { $in: ids } }), (err) -> next err
 
-        (next) =>
-          @fetchDefaultPermissionSet (err, permSet) ->
-            removeHelper permSet, err, next
+        async.series [
 
-        (next) =>
-          JInvitation = require '../invitation'
-          JInvitation.remove { groupName: @slug }, (err) ->
-            next err
+          (next) ->
+            JName.one { name: slug }, (err, name) ->
+              removeHelper name, err, next
 
-        (next) =>
-          ComputeProvider = require '../computeproviders/computeprovider'
-          ComputeProvider.destroyGroupResources this, -> next()
+          (next) =>
+            @fetchPermissionSet (err, permSet) ->
+              removeHelper permSet, err, next
 
-        (next) =>
-          JSession = require '../session'
-          @sendNotification 'GroupDestroyed', @slug, =>
-            JSession.remove { groupName: @slug }, (err) ->
+          (next) =>
+            @fetchDefaultPermissionSet (err, permSet) ->
+              removeHelper permSet, err, next
+
+          (next) ->
+            JInvitation = require '../invitation'
+            JInvitation.remove { groupName: slug }, (err) ->
               next err
 
-        (next) =>
-          @constructor.emit 'GroupDestroyed', this
-          next()
+          (next) =>
+            ComputeProvider = require '../computeproviders/computeprovider'
+            ComputeProvider.destroyGroupResources this, -> next()
 
-        (next) =>
-          @remove (err) -> next err
+          (next) =>
+            JSession = require '../session'
+            @sendNotification 'GroupDestroyed', slug, ->
+              JSession.remove { groupName: slug }, (err) ->
+                next err
 
-      ], callback
+          (next) ->
+            JApiToken = require '../apitoken'
+            JApiToken.remove { group: slug }, (err) ->
+              next err
+
+          (next) =>
+            @constructor.emit 'GroupDestroyed', this
+            next()
+
+          (next) =>
+            @remove (err) -> next err
+
+        ], callback
 
 
   sendNotificationToAdmins: (event, contents) ->
