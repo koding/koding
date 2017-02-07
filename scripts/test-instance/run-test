@@ -6,7 +6,6 @@ This script executes client/test/run.sh script over ssh.
 First option passed to this script is HOST to run test suite. Rest of
 the command line options are passed to test suite runner script on
 HOST.
-
 EOF
 
 set -o errexit
@@ -37,4 +36,3 @@ wait $PID # Wait until child process is exited
 trap - TERM INT
 
 wait $PID # In case an interrupt signal is received
-EOF
