@@ -37,7 +37,7 @@ services:
       - .:/opt/koding
 
   mongo:
-    image: mongo:2.6
+    image: mongo:3.0.2
     command: --nojournal --noprealloc --smallfiles
 
   postgres:
