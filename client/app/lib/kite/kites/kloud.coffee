@@ -112,21 +112,25 @@ module.exports = class KodingKiteKloudKite extends require('../kodingkite')
     { kontrol, computeController } = kd.singletons
     { klient } = kontrol.kites
     machine    = computeController.findMachineFromMachineId machineId
+    deferredCallback = (res) -> kd.utils.defer -> callback res
 
     if not machine or not machineId
-      return callback null
+      return deferredCallback null
 
     managed    = machine.provider is 'managed'
     klientKite = klient?[machine.uid]
 
-    if machine.status.state is Machine.State.Running or managed
+    if machine.status.state is Machine.State.NotInitialized
+      return deferredCallback { State: Machine.State.NotInitialized, via: 'klient' }
+
+    else if machine.status.state is Machine.State.Running or managed
       unless klientKite?
         klientKite = kontrol.getKite
           name            : 'klient'
           queryString     : machine.queryString
           correlationName : machine.uid
     else
-      return callback null
+      return deferredCallback null
 
     klientKite.ping()
 
