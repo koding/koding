@@ -202,7 +202,7 @@ module.exports = class JGroup extends Module
         transferOwnership:
           (signature String, Function)
         destroy:
-          (signature Function)
+          (signature String, Function)
         addSubscription:
           (signature String, Function)
         fetchDataAt:
@@ -1557,7 +1557,7 @@ module.exports = class JGroup extends Module
       { permission: 'edit own groups', validateWith : Validators.own }
       { permission: 'edit groups',     superadmin   : yes }
     ]
-    success  : (client, callback) ->
+    success  : (client, password, callback) ->
 
       JName = require '../name'
 
