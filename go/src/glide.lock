@@ -5,6 +5,10 @@ imports:
   version: cc2954064ec9ea8d93917f0f87456e11d7b881ad
 - name: github.com/alecthomas/gocyclo
   version: aa8f8b160214d8dfccfe3e17e578dd0fcc6fede7
+- name: github.com/alecthomas/template
+  version: a0175ee3bccc567396460bf5acd36800cb10c49c
+- name: github.com/alecthomas/units
+  version: 2efee857e7cfd4f3d0138cc3cbb1b4966962b93a
 - name: github.com/algolia/algoliasearch-client-go
   version: 57109f4eaa904be65be61a5e7c8ab257b95b9321
   subpackages:
