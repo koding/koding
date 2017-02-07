@@ -28,7 +28,7 @@ module.exports = class MachineFlowController extends kd.Controller
 
     { computeController } = kd.singletons
 
-    return @onDataLoaded()  unless @getOption 'initial'
+    return @onDataLoaded()
 
     computeController.getKloud().info { machineId, currentState : @state }
       .then (response) =>
