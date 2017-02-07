@@ -1,6 +1,7 @@
 package fuse
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 
@@ -12,6 +13,9 @@ import (
 	"golang.org/x/net/context"
 )
 
+// StatFS sets filesystem metadata.
+//
+// Required for fuse.FileSystem.
 func (fs *Filesystem) StatFS(ctx context.Context, op *fuseops.StatFSOp) error {
 	if fs.Disk == nil {
 		return fuse.ENOENT
@@ -25,6 +29,10 @@ func (fs *Filesystem) StatFS(ctx context.Context, op *fuseops.StatFSOp) error {
 	return nil
 }
 
+// LookUpInode finds entry in context of specific parent directory and sets
+// its attributes. It assumes parent directory has already been seen.
+//
+// Required for fuse.FileSystem.
 func (fs *Filesystem) LookUpInode(ctx context.Context, op *fuseops.LookUpInodeOp) error {
 	dir, path, err := fs.getDir(op.Parent)
 	if err != nil {
@@ -42,6 +50,9 @@ func (fs *Filesystem) LookUpInode(ctx context.Context, op *fuseops.LookUpInodeOp
 	return nil
 }
 
+// GetInodeAttributes set attributes for a specified Node.
+//
+// Required for fuse.FileSystem.
 func (fs *Filesystem) GetInodeAttributes(ctx context.Context, op *fuseops.GetInodeAttributesOp) error {
 	nd, _, ok := fs.get(op.Inode)
 	if !ok {
@@ -53,6 +64,9 @@ func (fs *Filesystem) GetInodeAttributes(ctx context.Context, op *fuseops.GetIno
 	return nil
 }
 
+// SetInodeAttributes sets specified attributes to file or directory.
+//
+// Required for fuse.FileSystem.
 func (fs *Filesystem) SetInodeAttributes(ctx context.Context, op *fuseops.SetInodeAttributesOp) error {
 	nd, path, ok := fs.get(op.Inode)
 	if !ok {
@@ -103,6 +117,13 @@ func (fs *Filesystem) SetInodeAttributes(ctx context.Context, op *fuseops.SetIno
 	return fs.yield(ctx, path, index.ChangeMetaLocal|index.ChangeMetaUpdate)
 }
 
+// MkDir creates new directory inside specified parent directory. It returns
+// `fuse.EEXIST` if a file or directory already exists with specified name.
+//
+// Note: `mkdir` command checks if directory exists before calling this method,
+// so you won't see the error from here if you're using `mkdir`.
+//
+// Required for fuse.FileSystem.
 func (fs *Filesystem) MkDir(ctx context.Context, op *fuseops.MkDirOp) error {
 	dir, path, err := fs.getDir(op.Parent)
 	if err != nil {
@@ -125,6 +146,11 @@ func (fs *Filesystem) MkDir(ctx context.Context, op *fuseops.MkDirOp) error {
 	return fs.yield(ctx, path, index.ChangeMetaAdd|index.ChangeMetaLocal)
 }
 
+// CreateFile creates an empty file with specified name and mode. It returns an
+// error if specified parent directory doesn't exist. but not if file already
+// exists.
+//
+// Required for fuse.FileSystem.
 func (fs *Filesystem) CreateFile(ctx context.Context, op *fuseops.CreateFileOp) error {
 	dir, path, err := fs.getDir(op.Parent)
 	if err != nil {
@@ -147,6 +173,14 @@ func (fs *Filesystem) CreateFile(ctx context.Context, op *fuseops.CreateFileOp) 
 	return fs.yield(ctx, path, index.ChangeMetaAdd|index.ChangeMetaLocal)
 }
 
+// Rename changes a file or directory from old name and parent to new name and
+// parent.
+//
+// Note if a new name already exists, we still go ahead and rename it. While
+// the old and new entries are the same, we throw out the old one and create
+// new entry for it.
+//
+// Required for fuse.FileSystem.
 func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) error {
 	oldDir, oldPath, err := fs.getDir(op.OldParent)
 	if err != nil {
@@ -180,6 +214,11 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) error {
 	return fs.yield(ctx, newPath, index.ChangeMetaLocal|index.ChangeMetaAdd)
 }
 
+// RmDir deletes a directory from remote and list of live nodes.
+//
+// Note: `rm -r` calls Unlink method on each directory entry.
+//
+// Required for fuse.FileSystem.
 func (fs *Filesystem) RmDir(ctx context.Context, op *fuseops.RmDirOp) error {
 	dir, path, err := fs.getDir(op.Parent)
 	if err != nil {
@@ -204,6 +243,9 @@ func (fs *Filesystem) RmDir(ctx context.Context, op *fuseops.RmDirOp) error {
 	return fs.yield(ctx, path, index.ChangeMetaLocal|index.ChangeMetaRemove)
 }
 
+// Unlink removes entry from specified parent directory.
+//
+// Required for fuse.FileSystem.
 func (fs *Filesystem) Unlink(ctx context.Context, op *fuseops.UnlinkOp) error {
 	dir, path, err := fs.getDir(op.Parent)
 	if err != nil {
@@ -224,11 +266,18 @@ func (fs *Filesystem) Unlink(ctx context.Context, op *fuseops.UnlinkOp) error {
 	return fs.yield(ctx, path, index.ChangeMetaLocal|index.ChangeMetaRemove)
 }
 
+// OpenDir opens a directory, ie. indicates operations are to be done on this
+// directory.
+//
+// Required for fuse.FileSystem.
 func (fs *Filesystem) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) error {
 	_, _, err := fs.getDir(op.Inode)
 	return err
 }
 
+// ReadDir reads entries in a specific directory.
+//
+// Required for fuse.FileSystem.
 func (fs *Filesystem) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error {
 	dir, path, err := fs.getDir(op.Inode)
 	if err != nil {
@@ -258,6 +307,9 @@ func (fs *Filesystem) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error 
 	return nil
 }
 
+// OpenFile opens a File, ie. indicates operations are to be done on this file.
+//
+// Required for fuse.FileSystem.
 func (fs *Filesystem) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) error {
 	_, h, err := fs.openInode(ctx, op.Inode)
 	if err != nil {
@@ -270,6 +322,11 @@ func (fs *Filesystem) OpenFile(ctx context.Context, op *fuseops.OpenFileOp) erro
 	return nil
 }
 
+// ReadFile reads contents of a specified file starting from specified offset.
+// It returns `io.EIO` if specified offset is larger than the length of contents
+// of the file.
+//
+// Required for fuse.FileSystem.
 func (fs *Filesystem) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) error {
 	f, err := fs.openHandle(op.Handle)
 	if err != nil {
@@ -277,9 +334,15 @@ func (fs *Filesystem) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) erro
 	}
 
 	op.BytesRead, err = f.ReadAt(op.Dst, op.Offset)
+	if err == io.EOF {
+		err = nil // ignore io.EOF errors
+	}
 	return err
 }
 
+// WriteFile write specified contents to specified file at specified offset.
+//
+// Required for fuse.FileSystem.
 func (fs *Filesystem) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) error {
 	f, err := fs.openHandle(op.Handle)
 	if err != nil {
@@ -293,6 +356,9 @@ func (fs *Filesystem) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) er
 	return fs.yield(ctx, f.Name(), index.ChangeMetaLocal|index.ChangeMetaUpdate)
 }
 
+// SyncFile sends file contents from local to remote.
+//
+// Required for fuse.FileSystem.
 func (fs *Filesystem) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) error {
 	f, err := fs.openHandle(op.Handle)
 	if err != nil {
@@ -302,6 +368,10 @@ func (fs *Filesystem) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) erro
 	return f.Sync()
 }
 
+// ReleaseFileHandle releases file handle. It does not return errors even if it
+// fails since this op doesn't affect anything.
+//
+// Required for fuse.FileSystem.
 func (fs *Filesystem) ReleaseFileHandle(_ context.Context, op *fuseops.ReleaseFileHandleOp) error {
 	return fs.delHandle(op.Handle)
 }
