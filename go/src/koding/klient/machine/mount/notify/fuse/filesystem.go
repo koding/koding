@@ -23,6 +23,7 @@ import (
 // allocated but none were looked up, pending list will grow indefinitely.
 // Prune pending list after the remote index was updated.
 
+// Opts configures FUSE filesystem.
 type Opts struct {
 	Local    *index.Index // local metadata index (needed?)
 	Remote   *index.Index // remote metadata index
@@ -41,6 +42,11 @@ func (opts *Opts) user() *config.User {
 	return config.CurrentUser
 }
 
+// Filesystem implements fuseutil.FileSystem.
+//
+// List operations are backend by remote index.
+// Write and read operations are backed by cache,
+// which is populated lazily by notify.Cache.
 type Filesystem struct {
 	// NotImplementedFileSystem provides stubs for the following methods:
 	//
@@ -70,6 +76,7 @@ type Filesystem struct {
 
 var _ fuseutil.FileSystem = (*Filesystem)(nil)
 
+// NewFilesystem creates new Filesystem value.
 func NewFilesystem(opts *Opts) (*Filesystem, error) {
 	if err := os.MkdirAll(opts.MountDir, 0755); err != nil {
 		return nil, err
