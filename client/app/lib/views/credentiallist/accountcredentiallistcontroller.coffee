@@ -168,10 +168,10 @@ module.exports = class AccountCredentialListController extends KodingListControl
     super
 
 
-  filterByProvider: (query = {}) ->
+  filterByProvider: (query) ->
 
     @filterStates.skip  = 0
-    @filterStates.query = query
+    @filterStates.query = query ? @getOption('baseQuery') ? {}
 
     @removeAllItems()
     @showLazyLoader no

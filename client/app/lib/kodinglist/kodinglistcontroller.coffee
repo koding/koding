@@ -48,7 +48,7 @@ module.exports = class KodingListController extends KDListViewController
     @filterStates =
       skip        : 0
       busy        : no
-      query       : {}
+      query       : options.baseQuery ? {}
       page        : 0
 
     super options, data

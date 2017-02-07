@@ -22,6 +22,8 @@ module.exports = class CredentialsController extends BaseController
       showCredentialMenu: no
       limit: 15
       view: @list
+      baseQuery  :
+        provider : { $ne: 'custom' }
 
     @listView = @listController.getView()
 
