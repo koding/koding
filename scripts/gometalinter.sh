@@ -8,7 +8,8 @@ cd $(dirname $0)/..
 export GOPATH=${GOPATH:-$(pwd)/go}
 
 echo "checking with gometalinter"
-go/bin/gometalinter.v1 --install --vendor
+go get gopkg.in/alecthomas/gometalinter.v1/...
+# go/bin/gometalinter.v1 --install --vendor
 # go get github.com/alecthomas/gometalinter/...
 # use specific folders like socialapi & koding instead of $GOPATH/src/...
 # otherwise it will check all paths like vendors, github, gopkg etc..
