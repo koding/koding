@@ -50,7 +50,6 @@ export COMMANDS=(
 	vendor/github.com/wadey/gocovmerge
 	vendor/github.com/opennota/check/cmd/varcheck
 	vendor/gopkg.in/alecthomas/gometalinter.v1
-
 )
 
 export TERRAFORM_COMMANDS=(
