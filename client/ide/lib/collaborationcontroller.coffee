@@ -1,10 +1,7 @@
 _                             = require 'lodash'
-sinkrow                       = require 'sinkrow'
 kd                            = require 'kd'
-KDModalView                   = kd.ModalView
 FSFile                        = require 'app/util/fs/fsfile'
 nick                          = require 'app/util/nick'
-getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
 showError                     = require 'app/util/showError'
 whoami                        = require 'app/util/whoami'
 RealtimeManager               = require './realtimemanager'
@@ -16,13 +13,12 @@ envHelpers                    = require './collaboration/helpers/environment'
 CollaborationStateMachine     = require './collaboration/collaborationstatemachine'
 environmentDataProvider       = require 'app/userenvironmentdataprovider'
 IDELayoutManager              = require './workspace/idelayoutmanager'
-IDEView                       = require './views/tabview/ideview'
 BaseModalView                 = require 'app/providers/views/basemodalview'
 actionTypes                   = require 'app/flux/environment/actiontypes'
 generateCollaborationLink     = require 'app/util/generateCollaborationLink'
 Tracker                       = require 'app/util/tracker'
 IDEHelpers                    = require 'ide/idehelpers'
-ContentModal = require 'app/components/contentModal'
+ContentModal                  = require 'app/components/contentModal'
 
 { warn } = kd
 

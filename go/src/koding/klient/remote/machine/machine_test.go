@@ -165,6 +165,9 @@ func TestMachineDialOnce(tt *testing.T) {
 }
 
 func TestWaitUntilOnline(tt *testing.T) {
+	const grace = 20 * time.Millisecond
+	const timeout = 50 * time.Millisecond
+
 	Convey("Give a Machine", tt, func() {
 		m := &Machine{}
 
@@ -178,9 +181,9 @@ func TestWaitUntilOnline(tt *testing.T) {
 				start := time.Now()
 				select {
 				case <-m.WaitUntilOnline():
-				case <-time.After(50 * time.Millisecond):
+				case <-time.After(timeout):
 				}
-				So(time.Now(), ShouldHappenWithin, 10*time.Millisecond, start)
+				So(time.Now(), ShouldHappenWithin, grace, start)
 			})
 		})
 
@@ -194,9 +197,9 @@ func TestWaitUntilOnline(tt *testing.T) {
 				start := time.Now()
 				select {
 				case <-m.WaitUntilOnline():
-				case <-time.After(50 * time.Millisecond):
+				case <-time.After(timeout):
 				}
-				So(time.Now(), ShouldNotHappenWithin, 10*time.Millisecond, start)
+				So(time.Now(), ShouldNotHappenWithin, grace, start)
 			})
 		})
 
@@ -216,7 +219,7 @@ func TestWaitUntilOnline(tt *testing.T) {
 				start := time.Now()
 				select {
 				case <-m.WaitUntilOnline():
-				case <-time.After(50 * time.Millisecond):
+				case <-time.After(timeout):
 				}
 				// It should block for 25ms, with an additional 10ms for runtime to be safe.
 				So(time.Now(), ShouldNotHappenWithin, 35*time.Millisecond, start)

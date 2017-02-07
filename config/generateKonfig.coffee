@@ -89,6 +89,10 @@ module.exports = (options, credentials) ->
     publicKey: credentials.kontrol.publicKey
     privateKey: credentials.kontrol.privateKey
 
+  kontrol.postgres.url = do (postgres = kontrol.postgres) ->
+    { username, password, host, port, dbname } = postgres
+    "postgres://#{username}:#{password}@#{host}:#{port}/#{dbname}"
+
   socialApiProxyUrl = "#{options.customDomain.local}/api/social"
 
   kloud =
@@ -146,7 +150,7 @@ module.exports = (options, credentials) ->
     mailgun                : credentials.mailgun
     segment                : credentials.segment
     dummyAdmins            : credentials.dummyAdmins
-    druid                  : credentials.druid
+    countly                : credentials.countly
     clearbit               : credentials.clearbit
 
     algolia                : algoliaSecret
@@ -163,6 +167,10 @@ module.exports = (options, credentials) ->
     configFilePath         : "$KONFIG_PROJECTROOT/go/src/socialapi/config/#{options.configName}.toml"
     disableCaching         : no
     debug                  : no
+
+  socialapi.postgres.url = do (postgres = socialapi.postgres) ->
+    { username, password, host, port, dbname } = postgres
+    "postgres://#{username}:#{password}@#{host}:#{port}/#{dbname}"
 
   # configuration for Go's back-end part of Koding. Configuration structure is
   # defined in ./go/src/koding/kites/config/config.go
@@ -234,7 +242,7 @@ module.exports = (options, credentials) ->
     awsKeys                       : credentials.awsKeys
     segment                       : credentials.segment
     dummyAdmins                   : credentials.dummyAdmins
-    druid                         : credentials.druid
+    countly                       : credentials.countly
     clearbit                      : credentials.clearbit
     wufoo                         : credentials.wufoo
 

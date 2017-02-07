@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"koding/klient/fs"
 	"koding/klient/machine/index"
 	"koding/klient/sshkeys"
 
@@ -347,45 +348,64 @@ func (k *Klient) SSHAddKeys(username string, keys ...string) error {
 // MountHeadIndex returns the number and the overall size of files in a given
 // remote directory.
 func (k *Klient) MountHeadIndex(path string) (absPath string, count int, diskSize int64, err error) {
-	headReq := index.Request{
+	req := index.Request{
 		Path: path,
 	}
 
-	headRaw, err := k.Client.TellWithTimeout("machine.index.head", k.timeout(), headReq)
+	raw, err := k.Client.TellWithTimeout("machine.index.head", k.timeout(), req)
 	if err != nil {
 		return "", 0, 0, err
 	}
 
-	headRes := index.HeadResponse{}
-	if err := headRaw.Unmarshal(&headRes); err != nil {
+	resp := index.HeadResponse{}
+	if err := raw.Unmarshal(&resp); err != nil {
 		return "", 0, 0, err
 	}
 
-	return headRes.AbsPath, headRes.Count, headRes.DiskSize, nil
+	return resp.AbsPath, resp.Count, resp.DiskSize, nil
 }
 
 // MountGetIndex returns an index that describes the current state of remote
 // directory.
 func (k *Klient) MountGetIndex(path string) (*index.Index, error) {
-	getReq := index.Request{
+	req := index.Request{
 		Path: path,
 	}
 
-	getRaw, err := k.Client.TellWithTimeout("machine.index.get", k.timeout(), getReq)
+	raw, err := k.Client.TellWithTimeout("machine.index.get", k.timeout(), req)
 	if err != nil {
 		return nil, err
 	}
 
-	getRes := index.GetResponse{}
-	if err := getRaw.Unmarshal(&getRes); err != nil {
+	resp := index.GetResponse{}
+	if err := raw.Unmarshal(&resp); err != nil {
 		return nil, err
 	}
 
-	if getRes.Index == nil {
+	if resp.Index == nil {
 		return nil, errors.New("retrieved index is nil")
 	}
 
-	return getRes.Index, nil
+	return resp.Index, nil
+}
+
+// DiskBlocks gets basic information about volume pointed by provided path.
+func (k *Klient) DiskBlocks(path string) (size, total, free, used uint64, err error) {
+	req := fs.GetInfoOptions{
+		Path: path,
+	}
+
+	raw, err := k.Client.TellWithTimeout("fs.getDiskInfo", k.timeout(), req)
+	if err != nil {
+		return
+	}
+
+	resp := fs.DiskInfo{}
+	if err = raw.Unmarshal(&resp); err != nil {
+		return
+	}
+
+	return uint64(resp.BlockSize), resp.BlocksTotal, resp.BlocksFree, resp.BlocksUsed, nil
 }
 
 // SetContext sets provided context to Klient.

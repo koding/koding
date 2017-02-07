@@ -168,9 +168,9 @@ module.exports = (options) ->
     userPublicKey: '$KONFIG_PROJECTROOT/generated/private_keys/kloud/kloud.pub'
     userPrivateKey: '$KONFIG_PROJECTROOT/generated/private_keys/kloud/kloud.pem'
   dummyAdmins = ['superadmin', 'admin', 'koding']
-  druid =
-    host : options.serviceHost
-    port : '8090'
+  countly  =
+    host: "#{options.serviceHost}"
+    apiPort: '32768'
   clearbit = '9d961e7ac862a6bc430f783da5cf9422'
   intercomAppId = ''
   wufoo = ''
@@ -207,7 +207,7 @@ module.exports = (options) ->
     kontrol
     kloud
     dummyAdmins
-    druid
+    countly
     clearbit
     intercomAppId
     wufoo

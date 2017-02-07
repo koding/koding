@@ -1,4 +1,4 @@
-Shortcuts      = require 'shortcuts'
+Shortcuts      = require '@koding/shortcuts'
 _              = require 'lodash'
 kd             = require 'kd'
 globals        = require 'globals'

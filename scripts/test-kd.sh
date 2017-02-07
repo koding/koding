@@ -2,11 +2,7 @@
 
 set -euo pipefail
 
-
-go test -v koding/klient/remote... \
-  koding/klientctl... \
-  koding/mountcli...
-#  koding/fuseklient/transport...
+go test -v koding/klientctl/... koding/mountcli/...
 
 # Manually testing individual functions because Fuse is having issues
 # on wercker currently.

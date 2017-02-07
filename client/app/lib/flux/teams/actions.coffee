@@ -16,6 +16,7 @@ Tracker = require 'app/util/tracker'
 VerifyPasswordModal = require 'app/commonviews/verifypasswordmodal'
 KodingKontrol = require 'app/kite/kodingkontrol'
 globals = require 'globals'
+showError = require 'app/util/showError'
 
 loadTeam = ->
 
@@ -315,21 +316,26 @@ deleteApiToken = (apiTokenId) ->
   reactor.dispatch actions.DELETE_API_TOKEN_SUCCESS, { apiTokenId }
 
 
-addApiToken = (apiToken) ->
+addApiToken = ->
 
   { reactor } = kd.singletons
-  reactor.dispatch actions.ADD_API_TOKEN_SUCCESS, { apiToken }
+  remote.api.JApiToken.create (err, apiToken) ->
+
+    return showError err  if err
+
+    reactor.dispatch actions.ADD_API_TOKEN_SUCCESS, { apiToken }
 
 
 disableApiTokens = (state) ->
 
   { groupsController, reactor } = kd.singletons
   team = groupsController.getCurrentGroup()
-  new Promise (resolve, reject) ->
 
-    team.modify { isApiEnabled : state }, (err) ->
-      return reject { err }  if err
-      reactor.dispatch actions.SET_API_ACCESS_STATE, { state }
+  team.modify { isApiEnabled : state }, (err) ->
+
+    return showError err  if err
+
+    reactor.dispatch actions.SET_API_ACCESS_STATE, { state }
 
 
 fetchCurrentStateOfApiAccess = ->
@@ -338,6 +344,7 @@ fetchCurrentStateOfApiAccess = ->
   team = groupsController.getCurrentGroup()
   state = team.isApiEnabled is yes
   reactor.dispatch actions.SET_API_ACCESS_STATE, { state }
+
 
 loadOtaToken = ->
 

@@ -30,11 +30,12 @@ generateDev = (KONFIG, options) ->
       check_connectivity postgres
       check_connectivity redis
       check_connectivity rabbitmq
+      check_connectivity countly
     }
 
     mkdir $KONFIG_PROJECTROOT/.logs &>/dev/null
 
-    SERVICES="mongo redis postgres rabbitmq"
+    SERVICES="mongo redis postgres rabbitmq countly"
 
     NGINX_CONF="$KONFIG_PROJECTROOT/nginx.conf"
     NGINX_PID="$KONFIG_PROJECTROOT/nginx.pid"
@@ -285,7 +286,6 @@ generateDev = (KONFIG, options) ->
       command -v go            >/dev/null 2>&1 || { echo >&2 "I require go but it's not installed.  Aborting."; exit 1; }
       command -v docker        >/dev/null 2>&1 || { echo >&2 "I require docker but it's not installed.  Aborting."; exit 1; }
       command -v nginx         >/dev/null 2>&1 || { echo >&2 "I require nginx but it's not installed. (brew install nginx maybe?)  Aborting."; exit 1; }
-      command -v mongo         >/dev/null 2>&1 || { echo >&2 "I require mongo but it's not installed. (brew install mongo maybe?)  Aborting."; exit 1; }
       command -v pg_isready    >/dev/null 2>&1 || { echo >&2 "I require pg_isready but it's not installed. (brew install postgresql maybe?)  Aborting."; exit 1; }
       command -v node          >/dev/null 2>&1 || { echo >&2 "I require node but it's not installed.  Aborting."; exit 1; }
       command -v npm           >/dev/null 2>&1 || { echo >&2 "I require npm but it's not installed.  Aborting."; exit 1; }
@@ -306,6 +306,7 @@ generateDev = (KONFIG, options) ->
       scripts/check-gulp-version.sh
       scripts/check-go-version.sh
       scripts/check-supervisor.sh
+      scripts/check-mongo-version.sh
 
       set +o errexit
     }
@@ -330,6 +331,18 @@ generateDev = (KONFIG, options) ->
 
       if [[ $? != 0 || $RESPONSE_CODE != 200 ]]; then
         echo "error: rabbitmq service check failed on $KONFIG_MQ_HOST:$KONFIG_MQ_APIPORT"
+        return 1
+      fi
+
+      return 0
+    }
+
+    function check_connectivity_countly() {
+      local HOST=$KONFIG_COUNTLY_HOST:$KONFIG_COUNTLY_APIPORT
+      local RESPONSE_CODE=$(curl --silent --output /dev/null --write-out '%{http_code}' http://$HOST)
+
+      if [[ $? != 0 || $RESPONSE_CODE != 302 ]]; then
+        echo "error: countly service check failed on $HOST"
         return 1
       fi
 
@@ -386,7 +399,7 @@ generateDev = (KONFIG, options) ->
     }
 
     function runMongoDocker () {
-        docker run -d -p $KONFIG_SERVICEHOST:27017:27017 --name=mongo mongo:2.4 --nojournal --noprealloc --smallfiles
+        docker run -d -p $KONFIG_SERVICEHOST:27017:27017 --name=mongo mongo:2.6 --nojournal --noprealloc --smallfiles
         check_connectivity mongo
     }
 
@@ -400,12 +413,13 @@ generateDev = (KONFIG, options) ->
         check_connectivity rabbitmq
     }
 
-    function runRedisDocker () {
-        docker run -d -p $KONFIG_SERVICEHOST:6379:6379 --name=redis redis
+    function runCountlyDocker () {
+        docker run -d -p $KONFIG_COUNTLY_APIPORT:80 --name=countly countly/countly-server:16.06
+        check_connectivity countly
     }
 
-    function runImplyDocker () {
-        docker run -d -p 18081-18110:8081-8110 -p 18200:8200 -p 19095:9095 --name=imply imply/imply:1.2.1
+    function runRedisDocker () {
+        docker run -d -p $KONFIG_SERVICEHOST:6379:6379 --name=redis redis
     }
 
     function run_docker_wrapper () {
@@ -431,6 +445,7 @@ generateDev = (KONFIG, options) ->
       restoredefaultmongodump
       restoreredis
       restorerabbitmq
+      restorecountly
       restoredefaultpostgresdump
 
       echo "#---> CLEARING ALGOLIA INDEXES: <---#"
@@ -494,9 +509,9 @@ generateDev = (KONFIG, options) ->
       runRabbitMQDocker
     }
 
-    function restoreimply () {
-      removeDockerByName imply
-      runImplyDocker
+    function restorecountly () {
+      removeDockerByName countly
+      runCountlyDocker
     }
 
     if [ "$#" == "0" ]; then

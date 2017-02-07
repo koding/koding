@@ -4,6 +4,7 @@ globals = require 'globals'
 JView   = require 'app/jview'
 Tracker = require 'app/util/tracker'
 CustomLinkView = require 'app/customlinkview'
+sendDataDogEvent = require 'app/util/sendDataDogEvent'
 
 { actions : HomeActions } = require 'home/flux'
 
@@ -73,6 +74,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
     else
       @setClass 'failed'
       Tracker.track Tracker.STACKS_AWS_KEYS_FAILED
+      sendDataDogEvent 'CredentialFailed', { prefix: 'credential-save' }
       @warningView.updatePartial if reason
         "Failed to verify: #{reason}"
       else

@@ -135,10 +135,10 @@ module.exports = class MachineFlowController extends kd.Controller
     { status, error } = event
 
     if status is 'NotInitialized'
-      event.error ?= '''
-        Your VM doesn\'t respond and it looks like it\'s broken. Please try again
+      event.error ?= "
+        Your VM doesn't respond and it looks like it's broken. Please try again
         reloading the page or rebuild your stack.
-      '''
+      "
 
     return event
 

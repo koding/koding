@@ -9,12 +9,20 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
-const tempIndexDirPrefix = "koding_index_"
+// TempIndexDirPrefix defines the prefix of temporary index file created by
+// Cached structure.
+const TempIndexDirPrefix = "koding_index_"
 
 // Cached allows to cache and reuse previously created index.
 type Cached struct {
+	// Rescan is a time duration after which the cached file will be rescanned.
+	// Eg. If cached file is modified at time point A, cache will not try
+	// to update changes when called between A+`Rescan`.
+	Rescan time.Duration
+
 	// Function used to retrieve temporary directory. If nil, os.TempDir will be
 	// used.
 	TempDir func() string
@@ -27,13 +35,13 @@ func (c *Cached) GetCachedIndex(root string) (*Index, error) {
 	var cs ChangeSlice
 
 	// Load or create index.
-	idx, path, err := c.getCachedIndex(root)
+	idx, path, createdAt, err := c.getCachedIndex(root)
 	if err != nil {
 		// Generate new index.
 		if idx, err = NewIndexFiles(root); err != nil {
 			return nil, err
 		}
-	} else {
+	} else if createdAt.IsZero() || time.Since(createdAt) > c.Rescan {
 		// Update loaded index.
 		cs = idx.Compare(root)
 		idx.Apply(root, cs)
@@ -68,7 +76,7 @@ func (c *Cached) HeadCachedIndex(root string) (count int, diskSize int64, err er
 
 // getCachedIndex looks up for index stored in one of temporary directories.
 // If provided index is found, it will be loaded to memory and returned.
-func (c *Cached) getCachedIndex(root string) (idx *Index, path string, err error) {
+func (c *Cached) getCachedIndex(root string) (idx *Index, path string, createdAt time.Time, err error) {
 	name := hashSHA1(root)
 	// Find index in temporary directories.
 	for _, tempdir := range c.indexTempDirs(-1) {
@@ -79,22 +87,27 @@ func (c *Cached) getCachedIndex(root string) (idx *Index, path string, err error
 	}
 
 	if path == "" || err != nil {
-		return nil, "", errors.New("index file not found")
+		return nil, "", time.Time{}, errors.New("index file not found")
 	}
 
 	// Read index content.
 	f, err := os.Open(path)
 	if err != nil {
-		return nil, "", err
+		return nil, "", time.Time{}, err
 	}
 	defer f.Close()
 
 	idx = NewIndex()
 	if err = json.NewDecoder(f).Decode(idx); err != nil {
-		return nil, "", err
+		return nil, "", time.Time{}, err
 	}
 
-	return idx, path, nil
+	// Get file mtime.
+	if info, err := os.Stat(path); err == nil {
+		createdAt = info.ModTime()
+	}
+
+	return idx, path, createdAt, nil
 }
 
 // createTempPath creates a valid path to index file.
@@ -102,7 +115,7 @@ func (c *Cached) createTempPath(root string) (path string, err error) {
 	if dirs := c.indexTempDirs(1); len(dirs) > 0 {
 		path = dirs[0]
 	} else {
-		if path, err = ioutil.TempDir(c.tempDir(), tempIndexDirPrefix); err != nil {
+		if path, err = ioutil.TempDir(c.tempDir(), TempIndexDirPrefix); err != nil {
 			return "", err
 		}
 	}
@@ -129,7 +142,7 @@ func (c *Cached) indexTempDirs(n int) []string {
 		names, err := d.Readdirnames(100)
 
 		for i := range names {
-			if strings.HasPrefix(names[i], tempIndexDirPrefix) {
+			if strings.HasPrefix(names[i], TempIndexDirPrefix) {
 				dirs = append(dirs, filepath.Join(c.tempDir(), names[i]))
 			}
 		}
