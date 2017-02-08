@@ -92,14 +92,28 @@ func (bc *BindCache) commit(c *index.Change, cancel func()) {
 
 func (bc *BindCache) process() {
 	for change := range bc.ch {
-		// Default change direction is: (local) -> (remote)
-		src := filepath.Join(bc.tmp, change.Name()) // cache dir (local)
-		dst := filepath.Join(bc.loc, change.Name()) // bind-mount dir source (remote)
-
 		isRemoteSrc := change.Meta()&index.ChangeMetaRemote != 0
 
+		var src, dst string
+
 		if isRemoteSrc {
-			src, dst = dst, src // (remote) -> (local)
+			base, err := filepath.Rel(bc.loc, change.Name())
+			if err != nil {
+				log.Printf("BindCache: failed to preprare files for sync: %s", err)
+			}
+
+			// bind-mount dir source (remote) -> cache dir (local)
+			src = filepath.Join(bc.loc, base)
+			dst = filepath.Join(bc.tmp, base)
+		} else {
+			base, err := filepath.Rel(bc.tmp, change.Name())
+			if err != nil {
+				log.Printf("BindCache: failed to preprare files for sync: %s", err)
+			}
+
+			// cache dir (local) -> bind-mount dir source (remote)
+			src = filepath.Join(bc.tmp, base)
+			dst = filepath.Join(bc.loc, base)
 		}
 
 		var err error

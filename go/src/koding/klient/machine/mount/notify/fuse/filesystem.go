@@ -2,6 +2,7 @@ package fuse
 
 import (
 	stdcontext "context"
+	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -63,6 +64,11 @@ func (opts *Opts) user() *config.User {
 	return config.CurrentUser
 }
 
+type dir struct {
+	files  []string
+	offset int
+}
+
 // Filesystem implements fuseutil.FileSystem.
 //
 // List operations are backend by remote index.
@@ -73,7 +79,6 @@ type Filesystem struct {
 	//
 	//   - MkNode
 	//   - CreateSymlink
-	//   - ReleaseDirHandle
 	//   - FlushFile
 	//   - ForgetInode
 	//   - ReadSymlink
@@ -86,6 +91,8 @@ type Filesystem struct {
 	inodes    map[fuseops.InodeID]string
 	seqHandle uint64
 	handles   map[fuseops.HandleID]*os.File
+	seqDir    uint64
+	dirs      map[fuseops.HandleID]*dir
 
 	// pending list is used to temporarily cache new inodes,
 	// created by MkDir, MkFile etc. methods until the Inode
@@ -111,6 +118,7 @@ func NewFilesystem(opts *Opts) (*Filesystem, error) {
 		},
 		seqHandle: uint64(fuseops.RootInodeID),
 		handles:   make(map[fuseops.HandleID]*os.File),
+		dirs:      make(map[fuseops.HandleID]*dir),
 		pending:   make(map[string]fuseops.InodeID),
 	}
 
@@ -122,13 +130,21 @@ func (fs *Filesystem) Close() {
 	fs.Destroy()
 }
 
-func (fs *Filesystem) config() *fuse.MountConfig {
+func (fs *Filesystem) Config() *fuse.MountConfig {
+	var logger *log.Logger
+
+	if fs.Debug {
+		logger = log.New(os.Stderr, "fuse", log.LstdFlags|log.Lshortfile)
+	}
+
 	return &fuse.MountConfig{
 		FSName:                  fs.Mount,
 		VolumeName:              filepath.Base(fs.MountDir),
 		DisableWritebackCaching: true,
 		EnableVnodeCaching:      false,
 		Options:                 map[string]string{"allow_other": ""},
+		DebugLogger:             logger,
+		ErrorLogger:             logger,
 	}
 }
 
@@ -164,6 +180,32 @@ func (fs *Filesystem) addHandle(f *os.File) (id fuseops.HandleID) {
 	}
 
 	return id
+}
+
+func (fs *Filesystem) addDirHandle(nd *index.Node) (id fuseops.HandleID) {
+	d := &dir{
+		files: make([]string, 0, len(nd.Sub)),
+	}
+
+	for file := range nd.Sub {
+		d.files = append(d.files, file)
+	}
+
+	sort.Strings(d.files)
+
+	for {
+		fs.seqDir++
+
+		id = fuseops.HandleID(fs.seqDir)
+
+		if _, ok := fs.dirs[id]; !ok {
+			fs.dirs[id] = d
+			break
+		}
+	}
+
+	return id
+
 }
 
 func (fs *Filesystem) lookupInodeID(dir, base string, entry *index.Entry) (id fuseops.InodeID) {
@@ -233,6 +275,28 @@ func (fs *Filesystem) getDir(id fuseops.InodeID) (*index.Node, string, error) {
 	return nd, path, nil
 }
 
+func (fs *Filesystem) getDirHandle(id fuseops.InodeID, h fuseops.HandleID) (*index.Node, *dir, string, error) {
+	fs.mu.RLock()
+	path, ok := fs.inodes[id]
+	d, okDir := fs.dirs[h]
+	fs.mu.RUnlock()
+
+	if !ok || !okDir {
+		return nil, nil, "", fuse.ENOENT
+	}
+
+	nd, ok := fs.Remote.Lookup(path)
+	if !ok {
+		return nil, nil, "", fuse.ENOENT
+	}
+
+	if !isdir(nd.Entry) {
+		return nil, nil, "", fuse.EIO
+	}
+
+	return nd, d, path, nil
+}
+
 func (fs *Filesystem) getFile(id fuseops.InodeID) (*index.Node, string, error) {
 	nd, path, ok := fs.get(id)
 	if !ok {
@@ -263,6 +327,12 @@ func (fs *Filesystem) delHandle(id fuseops.HandleID) error {
 	}
 
 	return nil
+}
+
+func (fs *Filesystem) delDirHandle(id fuseops.HandleID) {
+	fs.mu.Lock()
+	delete(fs.dirs, id)
+	fs.mu.Unlock()
 }
 
 func (fs *Filesystem) yield(ctx stdcontext.Context, path string, meta index.ChangeMeta) error {
@@ -365,35 +435,6 @@ func (fs *Filesystem) rm(nd *index.Node, path string) error {
 		return nil
 	}
 	return err
-}
-
-func (fs *Filesystem) readdir(nd *index.Node, path string, off fuseops.DirOffset) ([]*fuseutil.Dirent, error) {
-	names := make([]string, 0, len(nd.Sub))
-
-	for name := range nd.Sub {
-		names = append(names, name)
-	}
-
-	sort.Strings(names)
-
-	if off > fuseops.DirOffset(len(names)) {
-		return nil, fuse.EIO
-	}
-
-	dirent := make([]*fuseutil.Dirent, 0, len(names)-int(off))
-
-	for i, name := range names {
-		sub := nd.Sub[name]
-
-		dirent = append(dirent, &fuseutil.Dirent{
-			Offset: off + fuseops.DirOffset(i),
-			Inode:  fs.lookupInodeID(path, name, sub.Entry),
-			Name:   name,
-			Type:   direntType(sub.Entry),
-		})
-	}
-
-	return dirent, nil
 }
 
 func (fs *Filesystem) open(ctx stdcontext.Context, path string) (*os.File, fuseops.HandleID, error) {
