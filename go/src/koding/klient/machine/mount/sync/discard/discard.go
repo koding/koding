@@ -3,17 +3,8 @@ package discard
 import (
 	"sync"
 
-	"koding/klient/machine/index"
 	msync "koding/klient/machine/mount/sync"
 )
-
-// BuildOpts represents a context that can be used by external syncers to build
-// their own type. Built syncer should update indexes after syncing and manage
-// received events.
-type BuildOpts struct {
-	RemoteIdx *index.Index // known state of remote index.
-	LocalIdx  *index.Index // known state of local index.
-}
 
 // DiscardBuilder is a factory for Discard synchronization objects.
 type DiscardBuilder struct{}
