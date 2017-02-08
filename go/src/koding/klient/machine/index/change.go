@@ -199,6 +199,12 @@ func (c *Change) Coalesce(newer *Change) *Change {
 	}
 }
 
+// String implements fmt.Stringer interface. It pretty prints stored change.
+func (c *Change) String() string {
+	age := time.Now().UTC().Sub(time.Unix(0, atomic.LoadInt64(&c.createdAt)))
+	return c.meta.String() + " " + age.String() + " " + c.name
+}
+
 // ChangeSlice stores multiple changes.
 type ChangeSlice []*Change
 
