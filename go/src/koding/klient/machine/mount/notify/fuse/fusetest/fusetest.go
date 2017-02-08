@@ -1,0 +1,228 @@
+package fusetest
+
+import (
+	"bytes"
+	"context"
+	"io"
+	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
+	"sync"
+
+	"koding/klient/machine/index"
+	"koding/klient/machine/mount/notify"
+)
+
+type BindCache struct {
+	loc  string
+	tmp  string
+	idx  *index.Index
+	ch   chan change
+	done chan struct{}
+	once sync.Once
+	wg   sync.WaitGroup
+}
+
+var _ notify.Cache = (*BindCache)(nil)
+
+func NewBindCache(loc, tmp string) (*BindCache, error) {
+	idx, err := index.NewIndexFiles(loc)
+	if err != nil {
+		return nil, err
+	}
+
+	bc := &BindCache{
+		loc:  loc,
+		tmp:  tmp,
+		idx:  idx,
+		ch:   make(chan change),
+		done: make(chan struct{}),
+	}
+
+	go bc.process()
+
+	return bc, nil
+}
+
+func (bc *BindCache) Commit(change *index.Change) context.Context {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go bc.commit(change, cancel)
+
+	return ctx
+}
+
+func (bc *BindCache) Index() *index.Index {
+	return bc.idx
+}
+
+func (bc *BindCache) Close() error {
+	bc.once.Do(bc.stop)
+	return nil
+}
+
+func (bc *BindCache) stop() {
+	// Ensure all bc.commit goroutines are stopped.
+	close(bc.done)
+	bc.wg.Wait()
+
+	close(bc.ch)
+}
+
+type change struct {
+	*index.Change
+
+	cancel func()
+}
+
+func (bc *BindCache) commit(c *index.Change, cancel func()) {
+	bc.wg.Add(1)
+
+	select {
+	case <-bc.done:
+	case bc.ch <- change{
+		Change: c,
+		cancel: cancel,
+	}:
+	}
+
+	bc.wg.Done()
+}
+
+func (bc *BindCache) process() {
+	for change := range bc.ch {
+		src := filepath.Join(bc.tmp, change.Name()) // cache dir
+		dst := filepath.Join(bc.loc, change.Name()) // bind-mount dir source
+
+		if change.Meta()&index.ChangeMetaRemote != 0 {
+			src, dst = dst, src // bind-mount dir srouce -> cache dir
+		}
+
+		var err error
+
+		switch {
+		case change.Meta()&(index.ChangeMetaAdd|index.ChangeMetaUpdate) != 0:
+			err = copyFilesRecursively(src, dst)
+		case change.Meta()&index.ChangeMetaRemove != 0:
+			err = os.RemoveAll(dst)
+		}
+
+		if err != nil {
+			log.Printf("BindCache: failed to sync files: %s", err)
+		}
+
+		// TODO(rjeczalik): update index
+	}
+}
+
+type CopyError []*FileError
+
+func (ce CopyError) Error() string {
+	var buf bytes.Buffer
+
+	for _, e := range ce {
+		buf.WriteString(e.Error())
+		buf.WriteRune('\n')
+	}
+
+	return buf.String()
+}
+
+type FileError struct {
+	Path string
+	Err  error
+}
+
+func fe(path string, err error) *FileError {
+	return &FileError{
+		Path: path,
+		Err:  err,
+	}
+}
+
+func (fe *FileError) Error() string {
+	return fe.Path + ": " + fe.Err.Error()
+}
+
+func copyFile(src, dst string) error {
+	fsrc, err := os.Open(src)
+	if err != nil {
+		return fe(src, err)
+	}
+	defer fsrc.Close()
+
+	tmp, err := ioutil.TempFile(filepath.Split(dst))
+	if err != nil {
+		return fe(dst, err)
+	}
+
+	if _, err = io.Copy(tmp, fsrc); err != nil {
+		return nonil(fe(tmp.Name(), err), tmp.Close(), os.Remove(tmp.Name()))
+	}
+
+	if err = os.Rename(tmp.Name(), dst); err != nil {
+		return nonil(fe(dst, err), tmp.Close(), os.Remove(tmp.Name()))
+	}
+
+	return nil
+}
+
+func copyFilesRecursively(src, dst string) error {
+	fi, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+
+	if !fi.IsDir() {
+		return copyFile(src, dst)
+	}
+
+	var ce CopyError
+
+	filepath.Walk(src, func(path string, fi os.FileInfo, err error) error {
+		if err != nil {
+			ce = append(ce, fe(path, err))
+			return nil
+		}
+
+		if fi.IsDir() {
+			return nil
+		}
+
+		key, err := filepath.Rel(src, path)
+		if err != nil {
+			ce = append(ce, fe(path, err))
+			return nil
+		}
+
+		dst := filepath.Join(dst, key)
+		dir := filepath.Dir(dst)
+
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			ce = append(ce, fe(dir, err))
+			return nil
+		}
+
+		if fe, ok := copyFile(path, dst).(*FileError); ok {
+			ce = append(ce, fe)
+		}
+
+		return nil
+	})
+
+	if len(ce) != 0 {
+		return ce
+	}
+
+	return nil
+}
+
+func nonil(err ...error) error {
+	for _, e := range err {
+		if e != nil {
+			return e
+		}
+	}
+	return nil
+}
