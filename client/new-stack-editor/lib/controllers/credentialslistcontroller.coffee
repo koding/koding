@@ -9,6 +9,7 @@ AccountCredentialListController = require 'app/views/credentiallist/accountcrede
 
 module.exports = class StackCredentialListController extends AccountCredentialListController
 
+
   constructor: (options = {}, data) ->
 
     options      =
@@ -36,31 +37,29 @@ module.exports = class StackCredentialListController extends AccountCredentialLi
       callback : => @emit Events.CredentialChangesRevertRequested
       title    : 'Revert Changes'
 
-    @filterView  = listView.addSubView new JView
-      cssClass   : 'filter-view hidden'
+    @selectionView = listView.addSubView new JView
+      cssClass   : 'selection-view hidden'
       pistachio  : '
         Currently selected provider: <b>{{#(provider)}}</b> <cite />
       '
-      click      : (event) ->
-        list.emit Events.CredentialFilterChanged
-        kd.utils.stopDOMEvent event
     , { provider : '' }
 
     list.on Events.CredentialFilterChanged, (provider) =>
 
-      return  if provider and not @filterView.hasClass 'hidden'
+      return  if provider and not @selectionView.hasClass 'hidden'
 
-      filter = null
-      filter = { provider }  if provider
+      @_filter = null
+      @_filter = { provider }  if provider
 
-      @filterView.setData filter
+      @selectionView.setData @_filter
 
-      if filter
-      then @filterView.show()
-      else @filterView.hide()
+      if @_filter
+      then @selectionView.show()
+      else @selectionView.hide()
 
-      @filterByProvider filter
+      @selectionView.click = @bound 'handleClearFilter'
 
+      @filterByProvider @_filter
 
 
   showLazyLoader: ->
@@ -82,3 +81,8 @@ module.exports = class StackCredentialListController extends AccountCredentialLi
     super items
 
     @emit Events.CredentialListUpdated
+  handleClearFilter: (event) ->
+
+    @getListView().emit Events.CredentialFilterChanged
+    @_filter = null
+    kd.utils.stopDOMEvent event

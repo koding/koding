@@ -38,11 +38,7 @@ module.exports = class CredentialsController extends BaseController
 
     super stackTemplate
 
-    if not internal and not @listController.filterView.hasClass 'hidden'
-      @listController.filterView.hide()
-      @listController.filterByProvider()
-    else
-      @updateCredentialSelections()
+    @updateCredentialSelections()
 
 
   updateCredentialSelections: ->
