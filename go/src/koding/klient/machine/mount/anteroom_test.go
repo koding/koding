@@ -170,6 +170,13 @@ func TestAnteroomMultiEvents(t *testing.T) {
 		}
 	}
 
+	// Check for excessive events.
+	select {
+	case ev := <-a.Events():
+		t.Fatalf("received excessive event: %v", ev)
+	case <-time.After(20 * time.Millisecond):
+	}
+
 	items, queued := a.Status()
 	if items != eventsN {
 		t.Errorf("want %d items; got %d", eventsN, items)
