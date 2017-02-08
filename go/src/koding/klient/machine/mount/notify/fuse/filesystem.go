@@ -24,6 +24,25 @@ import (
 // allocated but none were looked up, pending list will grow indefinitely.
 // Prune pending list after the remote index was updated.
 
+// Builder provides a default notify.Builder for the FUSE filesystem.
+var Builder notify.Builder = builder{}
+
+type builder struct{}
+
+// Build implements the notify.Builder interface.
+func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
+	o := &Opts{
+		Local:    opts.LocalIdx,
+		Remote:   opts.RemoteIdx,
+		Cache:    opts.Cache,
+		CacheDir: opts.CacheDir,
+		Mount:    filepath.Base(opts.Mount.Path),
+		MountDir: opts.Mount.Path,
+	}
+
+	return NewFilesystem(o)
+}
+
 // Opts configures FUSE filesystem.
 type Opts struct {
 	Local    *index.Index // local metadata index (needed?)
@@ -95,6 +114,11 @@ func NewFilesystem(opts *Opts) (*Filesystem, error) {
 	}
 
 	return fs, nil
+}
+
+// Close implements the notify.Notifier interface.
+func (fs *Filesystem) Close() {
+	fs.Destroy()
 }
 
 func (fs *Filesystem) config() *fuse.MountConfig {
