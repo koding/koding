@@ -114,7 +114,6 @@ module.exports = globals.config.providers =
     defaultTemplate        : replaceUserInputs require './templates/google'
     description            : 'Google compute engine'
     instanceTypes          : require './instance-types/gce'
-    advancedFields         : []
     attributeMapping       :
       image                : 'disk.0.image' # getting the first disk image ~ GG
       instance_type        : 'machine_type'
@@ -264,18 +263,20 @@ module.exports = globals.config.providers =
     description            : 'A container orchestration platform for Mesos and DC/OS'
     advancedFields         : [
       'request_timeout',
-      'deployment_timeout'
+      'deployment_timeout',
+      'basic_auth_password',
+      'basic_auth_user'
     ]
     credentialFields       :
       url                  :
         label              : 'URL'
         placeholder        : 'url of marathon application'
       basic_auth_user      :
-        label              : 'Basic Auth User'
+        label              : 'Auth User'
         placeholder        : 'basic auth user for marathon'
         required           : no
       basic_auth_password  :
-        label              : 'Basic Auth Password'
+        label              : 'Auth Password'
         type               : 'password'
         placeholder        : 'basic auth password for marathon'
         required           : no
