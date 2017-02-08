@@ -1,3 +1,4 @@
+{ Relationship }              = require 'jraphical'
 JUser                         = require '../user'
 JGroup                        = require './index'
 JAccount                      = require '../account'
@@ -572,6 +573,380 @@ runTests = -> describe 'workers.social.group.index', ->
             group.setLimit _client, { overrides }, (err) ->
               expect(err).to.not.exist
               expect(group.getAt 'config.limitOverrides').to.be.equal overrides
+
+              done()
+
+
+  describe 'joinUser()', ->
+
+    describe 'when unregistered invitee with valid data', ->
+
+      # preparation
+      email = generateRandomEmail()
+      username = generateRandomString()
+      password = generateRandomString()
+      slug = generateRandomString()
+
+      groupData =
+        slug: slug
+        title: generateRandomString()
+        isApiEnabled: yes
+
+      options =
+        createGroup: yes
+        context: { group: slug }
+        groupData: groupData
+
+      token = accountId = groupId = null
+
+      # create a team and an invitation.
+      before (done) ->
+        withConvertedUser options, ({ client, group }) ->
+          JInvitation.create client, { invitations: [{ email }] }, (err) ->
+            expect(err).to.not.exist
+            groupId = group._id
+            done()
+
+      it 'should have a valid invitation', (done) ->
+
+        JInvitation.one { email }, (err, invitation) ->
+          expect(err).to.not.exist
+          expect(invitation).to.exist
+          expect(invitation.code).to.exist
+          expect(invitation.email).to.be.equal email
+          expect(invitation.status).to.be.equal 'pending'
+          expect(invitation.groupName).to.be.equal slug
+
+          # get the token
+          token = invitation.code
+          done()
+
+      it 'should actually join user using invitation token', (done) ->
+
+        generateDummyClient { group: slug }, (err, client) ->
+          expect(err).to.not.exist
+
+          joinOptions = { email, username, password, slug, invitationToken: token }
+          JGroup.joinUser client, joinOptions, (err, result) ->
+            expect(err).to.not.exist
+            expect(result.token).to.exist
+
+            done()
+
+      it 'should create a session for new user', (done) ->
+
+        JSession.one { username }, (err, session) ->
+          expect(err).to.not.exist
+          expect(session).to.exist
+          expect(session.username).to.be.equal username
+          done()
+
+      it 'should create an account for new user', (done) ->
+        JAccount.one { 'profile.nickname': username }, (err, account) ->
+          expect(err).to.not.exist
+          expect(account).to.exist
+          accountId = account._id
+          done()
+
+
+      it 'should create add user as member to the group', (done) ->
+
+        params =
+          $and : [
+            { as       : 'member' }
+            { sourceId : groupId }
+            { targetId : accountId }
+          ]
+
+        Relationship.one params, (err, relationship) ->
+          expect(err).to.not.exist
+          expect(relationship).to.exist
+          done()
+
+    describe 'when registered invitee with valid data', ->
+
+      # preparation
+      slug = generateRandomString()
+
+      groupData =
+        slug: slug
+        title: generateRandomString()
+        isApiEnabled: yes
+
+      options =
+        createGroup: yes
+        context: { group: slug }
+        groupData: groupData
+
+      email = username = password = token = accountId = groupId = null
+
+      # first create 1 team (team x) and 1 user (user a)
+      # second create another team (team y)
+      # then create an invitation for (user a) in (team y)
+      before (done) ->
+        # (team x) and (user a)
+        withConvertedUser { createGroup: yes }, ({ userFormData }) ->
+          { email, username, password } = userFormData
+          # (team y)
+          withConvertedUser options, ({ client, group }) ->
+            JInvitation.create client, { invitations: [{ email }] }, (err) ->
+              expect(err).to.not.exist
+              groupId = group._id
+              done()
+
+      it 'should have an account for already registered user', (done) ->
+        JAccount.one { 'profile.nickname': username }, (err, account) ->
+          expect(err).to.not.exist
+          expect(account).to.exist
+          accountId = account._id
+          done()
+
+      it 'should have a valid invitation', (done) ->
+
+        JInvitation.one { email }, (err, invitation) ->
+          expect(err).to.not.exist
+          expect(invitation).to.exist
+          expect(invitation.code).to.exist
+          expect(invitation.email).to.be.equal email
+          expect(invitation.status).to.be.equal 'pending'
+          expect(invitation.groupName).to.be.equal slug
+
+          # get the token
+          token = invitation.code
+          done()
+
+      it 'should actually join user to given group', (done) ->
+
+        generateDummyClient { group: slug }, (err, client) ->
+          expect(err).to.not.exist
+
+          joinOptions = { email, username, password, slug, token }
+          JGroup.joinUser client, joinOptions, (err, result) ->
+            expect(err).to.not.exist
+            expect(result.token).to.exist
+
+            done()
+
+      it 'should create add user as member to the group via relationships', (done) ->
+
+        params =
+          $and : [
+            { as       : 'member' }
+            { sourceId : groupId }
+            { targetId : accountId }
+          ]
+
+        Relationship.one params, (err, relationship) ->
+          expect(err).to.not.exist
+          expect(relationship).to.exist
+          done()
+
+
+    describe 'when an unregistered user with allowed domain', ->
+
+      it 'should join the user to group', (done) ->
+        groupData =
+          slug: generateRandomString()
+          title: generateRandomString()
+          allowedDomains: ['foobar.com']
+
+        options =
+          createGroup: yes
+          context: { group: groupData.slug }
+          groupData: groupData
+
+        joinOptions =
+          username: generateRandomString 8
+          password: generateRandomString()
+          email: "#{generateRandomString 12}@foobar.com"
+          slug: groupData.slug
+
+        withConvertedUser options, ({ group }) ->
+          generateDummyClient { group: group.slug }, (err, client) ->
+            expect(err).to.not.exist
+            JGroup.joinUser client, joinOptions, (err, result) ->
+              expect(err).to.not.exist
+              expect(result.token).to.exist
+              done()
+
+    describe 'when a registered koding user with allowed domain', ->
+
+      it 'should join the user to group', (done) ->
+
+        groupData =
+          slug: generateRandomString()
+          title: generateRandomString()
+          allowedDomains: ['foobar.com']
+
+        options =
+          createGroup: yes
+          context: { group: groupData.slug }
+          groupData: groupData
+
+        userFormData = generateDummyUserFormData()
+        userFormData.email = "#{generateRandomString 12}@foobar.com"
+
+        withConvertedUser { createGroup: yes, userFormData }, ->
+          withConvertedUser options, ({ group }) ->
+            generateDummyClient { group: group.slug }, (err, client) ->
+              expect(err).to.not.exist
+              joinOptions =
+                username: userFormData.username
+                password: userFormData.password
+                email: userFormData.email
+                slug: group.slug
+
+              JGroup.joinUser client, joinOptions, (err, result) ->
+                expect(err).to.not.exist
+                expect(result.token).to.exist
+                done()
+
+    describe 'when user tries to join a group without an allowed email', ->
+
+      it 'should not allow user to join', (done) ->
+
+        groupData =
+          slug: generateRandomString()
+          title: generateRandomString()
+          allowedDomains: ['foobar.com']
+
+        options =
+          createGroup: yes
+          context: { group: groupData.slug }
+          groupData: groupData
+
+        userFormData = generateDummyUserFormData()
+        userFormData.email = "#{generateRandomString 12}@notallowed.com"
+
+        withConvertedUser { createGroup: yes, userFormData }, ->
+          withConvertedUser options, ({ group }) ->
+            generateDummyClient { group: group.slug }, (err, client) ->
+              expect(err).to.not.exist
+              joinOptions =
+                username: userFormData.username
+                password: userFormData.password
+                email: userFormData.email
+                slug: group.slug
+
+              JGroup.joinUser client, joinOptions, (err, result) ->
+                expect(err).to.exist
+                expect(err.message).to.be.equal 'Your email domain is not in allowed domains for this group'
+                done()
+
+
+    describe 'when invitation token is invalid', ->
+
+      # preparation
+      email = generateRandomEmail()
+      username = generateRandomString()
+      password = generateRandomString()
+      slug = generateRandomString()
+
+      groupData =
+        slug: slug
+        title: generateRandomString()
+        isApiEnabled: yes
+
+      options =
+        createGroup: yes
+        context: { group: slug }
+        groupData: groupData
+
+      token = null
+
+      # create a team and an invitation.
+      before (done) ->
+        withConvertedUser options, ({ client, group }) ->
+          JInvitation.create client, { invitations: [{ email }] }, (err) ->
+            expect(err).to.not.exist
+            JInvitation.one { email }, (err, invitation) ->
+              expect(err).to.not.exist
+              expect(invitation.groupName).to.be.equal slug
+              expect(invitation.code).to.exist
+              done()
+
+      it 'should not allow user to join', (done) ->
+
+        generateDummyClient { group: slug }, (err, client) ->
+          expect(err).to.not.exist
+
+          joinOptions = { email, username, password, slug, invitationToken: 'invalid-token' }
+          JGroup.joinUser client, joinOptions, (err, result) ->
+            expect(err).to.exist
+            expect(err.message).to.be.equal 'Invalid invitation code!'
+            done()
+
+
+    describe 'when there is wrong alreadyMember option', ->
+
+      it 'should not allow user to join', (done) ->
+
+        withConvertedUser { createGroup: yes }, ({ group }) ->
+          generateDummyClient { group: group.slug }, (err, client) ->
+            expect(err).to.not.exist
+            JGroup.joinUser client, { alreadyMember: 'true', username: 'foo' }, (err) ->
+              expect(err).to.exist
+              expect(err.message).to.be.equal 'Unknown user name'
+              done()
+
+
+    describe 'when the group has public access to all domains', ->
+
+      it 'should be able to create a user and join them to group', (done) ->
+
+        groupData =
+          slug: generateRandomString()
+          title: generateRandomString()
+          visibility: 'visible'
+          isApiEnabled: yes
+          allowedDomains : ['*']
+
+        options =
+          createGroup: yes
+          context: { group: groupData.slug }
+          groupData: groupData
+
+        joinOptions =
+          username: generateRandomString 8
+          password: generateRandomString()
+          email: "#{generateRandomString 12}@#{generateRandomString 6}.com"
+          slug: groupData.slug
+
+        withConvertedUser options, ({ account, group }) ->
+          generateDummyClient { group: group.slug }, (err, client) ->
+            expect(err).to.not.exist
+            JGroup.joinUser client, joinOptions, (err, result) ->
+              expect(err).to.not.exist
+              expect(result.token).to.exist
+              done()
+
+      it 'should be able to join a registered koding user to group', (done) ->
+
+        groupData =
+          slug: generateRandomString()
+          title: generateRandomString()
+          visibility: 'visible'
+          isApiEnabled: yes
+          allowedDomains : ['*']
+
+        options =
+          createGroup: yes
+          context: { group: groupData.slug }
+          groupData: groupData
+
+        # first create a user
+        withConvertedUser { createGroup: 'yes' }, ({ userFormData }) ->
+          # then create our api enabled group
+          withConvertedUser options, ({ client, group }) ->
+            joinOptions =
+              username: userFormData.username
+              password: userFormData.password
+              email: userFormData.email
+              slug: group.slug
+            # then join the initially created user to our new api enabled group
+            JGroup.joinUser client, joinOptions, (err, result) ->
+              expect(err).to.not.exist
+              expect(result.token).to.exist
 
               done()
 

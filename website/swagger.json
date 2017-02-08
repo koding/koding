@@ -6316,6 +6316,35 @@
         }
       }
     },
+    "/remote.api/JGroup.joinUser": {
+      "post": {
+        "tags": [
+          "JGroup"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "description": "joinUser\n\nJoins user with given options to group either by logging in or converting\nthem.",
+        "responses": {
+          "200": {
+            "schema": {
+              "$ref": "#/definitions/DefaultResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized request",
+            "schema": {
+              "$ref": "#/definitions/UnauthorizedRequest"
+            }
+          }
+        }
+      }
+    },
     "/remote.api/JGroup.join/{id}": {
       "post": {
         "tags": [

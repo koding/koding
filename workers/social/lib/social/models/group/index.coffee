@@ -108,6 +108,7 @@ module.exports = class JGroup extends Module
           (signature String, Function)
           (signature String, Number, Function)
         ]
+        joinUser: (signature Object, Function)
       instance      :
         join: [
           (signature Function)
@@ -383,6 +384,57 @@ module.exports = class JGroup extends Module
         memberData.email = email
         memberData.username = member.data.profile.nickname
         callback null, memberData
+
+
+  # joinUser
+  #
+  # Joins user with given options to group either by logging in or converting
+  # them.
+  #
+  # @return {DefaultResponse}
+  #
+  @joinUser = ->
+  @joinUser = secure (client, options, callback) ->
+
+    JUser = require '../user'
+
+    { username, email, password, slug, alreadyMember } = options
+
+    defaults =
+      username: username
+      email: email
+      password: password
+      passwordConfirm: password
+      agree: 'on'
+      slug: slug
+      # required for JUser.login
+      groupName: slug
+
+    userData = Object.assign {}, defaults, options
+
+    getError = (err, status = 500) ->
+      { message } = err
+      message = "#{err.message}: #{Object.keys err.errors}"  if err.errors?
+
+      return { status, message }
+
+    joinGroupCallback = (err, result) ->
+      return callback getError err, 400  if err?
+      token = result.replacementToken or result.newToken
+      callback null, { token }
+
+    JUser.normalizeLoginId userData.username, (err, username_) ->
+      return callback getError err  if err
+
+      JUser.one { username: username_ }, (err, user) ->
+        return callback getError err  if err
+
+        if alreadyMember and not user
+          return callback getError { message: 'Unknown user name' }, 400
+
+        if user?
+        then JUser.login client.sessionToken, userData, joinGroupCallback
+        else JUser.convert client, userData, joinGroupCallback
 
 
   @create = (client, groupData, owner, callback) ->
