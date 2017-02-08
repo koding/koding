@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 
 	"koding/klient/machine"
@@ -62,6 +63,12 @@ type Syncs struct {
 	sb  msync.Builder
 	log logging.Logger
 
+	once   sync.Once
+	wg     sync.WaitGroup    // wait for workers and streams to stop.
+	exC    chan msync.Execer // channel for synchronization jobs.
+	closed bool              // set to true when syncs was closed.
+	stopC  chan struct{}     // channel used to close any opened exec streams.
+
 	mu  sync.RWMutex
 	scs map[mount.ID]*msync.Sync
 }
@@ -80,6 +87,10 @@ func New(opts SyncsOpts) (*Syncs, error) {
 		wd:  opts.WorkDir,
 		sb:  opts.SyncBuilder,
 		log: opts.Log,
+
+		exC:   make(chan msync.Execer),
+		stopC: make(chan struct{}),
+
 		scs: make(map[mount.ID]*msync.Sync),
 	}
 
@@ -87,13 +98,42 @@ func New(opts SyncsOpts) (*Syncs, error) {
 		s.log = machine.DefaultLogger
 	}
 
+	// Start synchronization workers.
+	for i := 0; i < 2*runtime.NumCPU(); i++ {
+		s.wg.Add(1)
+		go s.worker()
+	}
+
 	return s, nil
+}
+
+// worker consumes and executes synchronization events from all stored mounts.
+func (s *Syncs) worker() {
+	defer s.wg.Done()
+
+	for {
+		select {
+		case ex := <-s.exC:
+			if ex == nil {
+				continue
+			}
+
+			// TODO(ppknap): add logging and verbose logging.
+			_ = ex.Exec()
+		case <-s.stopC:
+			return
+		}
+	}
 }
 
 // Add starts synchronization between remote and local directories. It creates
 // all necessary cache files if they are not present.
 func (s *Syncs) Add(mountID mount.ID, m mount.Mount, dynClient client.DynamicClientFunc) error {
 	s.mu.RLock()
+	if s.closed {
+		s.mu.RUnlock()
+		return fmt.Errorf("syncs is closed")
+	}
 	_, ok := s.scs[mountID]
 	s.mu.RUnlock()
 
@@ -114,12 +154,38 @@ func (s *Syncs) Add(mountID mount.ID, m mount.Mount, dynClient client.DynamicCli
 	s.mu.Lock()
 	if _, ok := s.scs[mountID]; ok {
 		s.mu.Unlock()
+		sc.Close()
 		return fmt.Errorf("sync for mount with ID %s added twice", mountID)
 	}
 	s.scs[mountID] = sc
 	s.mu.Unlock()
 
+	// proxy synchronization events to workers pool.
+	s.wg.Add(1)
+	go s.sink(sc.Stream())
+
 	return nil
+}
+
+// sink routes synchronization from a single mount to execution workers.
+func (s *Syncs) sink(exC <-chan msync.Execer) {
+	defer s.wg.Done()
+
+	for {
+		select {
+		case ex, ok := <-exC:
+			if !ok {
+				return
+			}
+			select {
+			case s.exC <- ex:
+			case <-s.stopC:
+				return
+			}
+		case <-s.stopC:
+			return
+		}
+	}
 }
 
 // Info returns the current state of mount synchronization with provided ID.
@@ -158,11 +224,16 @@ func (s *Syncs) Drop(mountID mount.ID) (err error) {
 
 // Close closes and removes all stored syncs.
 func (s *Syncs) Close() {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.once.Do(func() {
+		s.mu.Lock()
+		s.closed = true
+		for mountID, sc := range s.scs {
+			sc.Close()
+			delete(s.scs, mountID)
+		}
+		s.mu.Unlock()
 
-	for mountID, sc := range s.scs {
-		sc.Close()
-		delete(s.scs, mountID)
-	}
+		close(s.stopC)
+		s.wg.Wait()
+	})
 }
