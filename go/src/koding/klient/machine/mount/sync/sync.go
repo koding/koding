@@ -20,9 +20,9 @@ const (
 	RemoteIndexName = "index.remote" // file name of remote directory index.
 )
 
-// BuildOpts represents a context that can be used by external syncers to build
-// their own type. Built syncer should update indexes after syncing and manage
-// received events.
+// BuildOpts represents the context that can be used by external syncers to
+// build their own type. Built syncer should update indexes after syncing and
+// manage received events.
 type BuildOpts struct {
 	RemoteIdx *index.Index // known state of remote index.
 	LocalIdx  *index.Index // known state of local index.
