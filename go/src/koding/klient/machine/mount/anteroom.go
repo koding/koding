@@ -213,8 +213,8 @@ func (a *Anteroom) Close() {
 // dequeue pops events from the queue and sends them to events channel.
 func (a *Anteroom) dequeue() {
 	var (
-		ev  *Event      = nil
-		evC chan *Event = nil
+		ev  *Event
+		evC chan *Event
 
 		// wakeupTick ensures that dequeue will be always waked up. Even in case
 		// we somehow miss the wakeup event. This is a safety fall-back.
