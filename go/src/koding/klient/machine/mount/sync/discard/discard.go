@@ -30,7 +30,7 @@ func (e *Event) Exec() error {
 
 // Discard is a no-op synchronization object. It can be used as a stub for other
 // non-event-dependent logic. This means that this type should be used only in
-// tests which doesn't care about mount file synchronization.
+// tests which don't care about mount file synchronization.
 type Discard struct {
 	once  sync.Once
 	stopC chan struct{} // channel used to close any opened exec streams.
