@@ -91,3 +91,6 @@ module.exports = class CredentialsController extends BaseController
 
     @listController._createAddCredentialMenuButton
       cssClass : 'plus'
+      diff     :
+        x      : -93
+        y      : -4
