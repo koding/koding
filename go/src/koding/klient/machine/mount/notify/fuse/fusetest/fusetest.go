@@ -92,11 +92,14 @@ func (bc *BindCache) commit(c *index.Change, cancel func()) {
 
 func (bc *BindCache) process() {
 	for change := range bc.ch {
-		src := filepath.Join(bc.tmp, change.Name()) // cache dir
-		dst := filepath.Join(bc.loc, change.Name()) // bind-mount dir source
+		// Default change direction is: (local) -> (remote)
+		src := filepath.Join(bc.tmp, change.Name()) // cache dir (local)
+		dst := filepath.Join(bc.loc, change.Name()) // bind-mount dir source (remote)
 
-		if change.Meta()&index.ChangeMetaRemote != 0 {
-			src, dst = dst, src // bind-mount dir srouce -> cache dir
+		isRemoteSrc := change.Meta()&index.ChangeMetaRemote != 0
+
+		if isRemoteSrc {
+			src, dst = dst, src // (remote) -> (local)
 		}
 
 		var err error
@@ -112,7 +115,10 @@ func (bc *BindCache) process() {
 			log.Printf("BindCache: failed to sync files: %s", err)
 		}
 
-		// TODO(rjeczalik): update index
+		// Update remote index.
+		if !isRemoteSrc {
+			bc.idx.Apply(bc.loc, bc.idx.CompareBranch(change.Name(), bc.loc))
+		}
 	}
 }
 
