@@ -29,6 +29,9 @@ type Info struct {
 
 	SyncDiskSize int64 // Total size of synced files.
 	AllDiskSize  int64 // Size of all files handled by mount.
+
+	Queued  int // Number of files waiting for synchronization.
+	Syncing int // Number of files being synced.
 }
 
 // SupervisorOpts are the options used to configure Supervisor object.
@@ -130,6 +133,8 @@ func NewSupervisor(mountID ID, m Mount, opts SupervisorOpts) (*Supervisor, error
 
 // Info returns the current status of supervised indexes.
 func (s *Supervisor) Info() *Info {
+	items, queued := s.a.Status()
+
 	return &Info{
 		ID:           s.mountID,
 		Mount:        s.m,
@@ -137,6 +142,8 @@ func (s *Supervisor) Info() *Info {
 		AllCount:     s.ridx.Count(-1),
 		SyncDiskSize: s.lidx.DiskSize(-1),
 		AllDiskSize:  s.ridx.DiskSize(-1),
+		Queued:       items,
+		Syncing:      items - queued,
 	}
 }
 

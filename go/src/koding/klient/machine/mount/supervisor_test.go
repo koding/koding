@@ -60,6 +60,8 @@ func TestSupervisorNew(t *testing.T) {
 		AllCount:     1,
 		SyncDiskSize: 0,
 		AllDiskSize:  info.AllDiskSize,
+		Queued:       0,
+		Syncing:      0,
 	}
 
 	if !reflect.DeepEqual(info, expected) {
