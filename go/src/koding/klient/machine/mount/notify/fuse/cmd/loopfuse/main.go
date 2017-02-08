@@ -1,15 +1,24 @@
+// +build !windows
+
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"syscall"
 
+	"github.com/jacobsa/fuse/fuseutil"
+
+	"koding/klient/fs"
 	"koding/klient/machine/mount/notify/fuse"
 	"koding/klient/machine/mount/notify/fuse/fusetest"
+
+	origfuse "github.com/jacobsa/fuse"
 )
 
 var (
@@ -44,11 +53,11 @@ func logf(format string, args ...interface{}) {
 func main() {
 	flag.Parse()
 
-	if len(os.Args) != 3 {
+	if flag.NArg() != 2 {
 		die(usage)
 	}
 
-	dst, src := os.Args[1], os.Args[2]
+	src, dst := flag.Arg(0), flag.Arg(1)
 
 	if _, err := os.Stat(dst); err != nil {
 		die(err)
@@ -67,8 +76,9 @@ func main() {
 	}
 
 	logf("using cache directory: %s", *tmp)
+	logf("building index for: %q", src)
 
-	bc, err := fusetest.NewBindCache(dst, *tmp)
+	bc, err := fusetest.NewBindCache(src, *tmp)
 	if err != nil {
 		die(err)
 	}
@@ -77,9 +87,10 @@ func main() {
 		Cache:    bc,
 		CacheDir: *tmp,
 		Remote:   bc.Index(),
-		Mount:    filepath.Base(src),
-		MountDir: src,
+		Mount:    filepath.Base(dst),
+		MountDir: dst,
 		Debug:    *verbose,
+		Disk:     block(dst),
 	}
 
 	fs, err := fuse.NewFilesystem(opts)
@@ -87,7 +98,37 @@ func main() {
 		die(err)
 	}
 
-	_ = fs
+	logf("mounting %s", dst)
+
+	m, err := origfuse.Mount(dst, fuseutil.NewFileSystemServer(fs), fs.Config())
+	if err != nil {
+		die(err)
+	}
+
+	logf("mounted")
+
+	err = m.Join(context.Background())
+	if err != nil {
+		die("mount join failed:", err)
+	}
 
 	select {}
+}
+
+func block(path string) *fs.DiskInfo {
+	stfs := syscall.Statfs_t{}
+
+	if err := syscall.Statfs(path, &stfs); err != nil {
+		die(err)
+	}
+
+	di := &fs.DiskInfo{
+		BlockSize:   uint32(stfs.Bsize),
+		BlocksTotal: stfs.Blocks,
+		BlocksFree:  stfs.Bfree,
+	}
+
+	di.BlocksUsed = di.BlocksTotal - di.BlocksFree
+
+	return di
 }

@@ -271,31 +271,61 @@ func (fs *Filesystem) Unlink(ctx context.Context, op *fuseops.UnlinkOp) error {
 //
 // Required for fuse.FileSystem.
 func (fs *Filesystem) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) error {
-	_, _, err := fs.getDir(op.Inode)
-	return err
+	dir, _, err := fs.getDir(op.Inode)
+	if err != nil {
+		return err
+	}
+
+	op.Handle = fs.addDirHandle(dir)
+
+	return nil
+}
+
+// ReleaseDirHandle removes a directory under the given handle ID for open ones.
+//
+// Required for fuse.FileSystem.
+func (fs *Filesystem) ReleaseDirHandle(ctx context.Context, op *fuseops.ReleaseDirHandleOp) error {
+	fs.delDirHandle(op.Handle)
+	return nil
 }
 
 // ReadDir reads entries in a specific directory.
 //
 // Required for fuse.FileSystem.
 func (fs *Filesystem) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error {
-	dir, path, err := fs.getDir(op.Inode)
+	dir, d, path, err := fs.getDirHandle(op.Inode, op.Handle)
 	if err != nil {
 		return err
 	}
 
-	dirent, err := fs.readdir(dir, path, op.Offset)
-	if err != nil {
-		return err
+	if op.Offset >= fuseops.DirOffset(len(d.files)) {
+		return fuse.EIO
+	}
+
+	d.files = d.files[int(op.Offset):]
+
+	dirent := make([]*fuseutil.Dirent, 0, len(d.files))
+
+	for i, file := range d.files {
+		sub := dir.Sub[file]
+
+		dirent = append(dirent, &fuseutil.Dirent{
+			Offset: op.Offset + fuseops.DirOffset(d.offset+i+1),
+			Inode:  fs.lookupInodeID(path, file, sub.Entry),
+			Name:   file,
+			Type:   direntType(sub.Entry),
+		})
 	}
 
 	sum := 0
 
 	// TODO(rjeczalik): we can estimate how many entries to return by
 	// looking at op.Dst size.
-	for _, dir := range dirent {
+	for i, dir := range dirent {
 		n := fuseutil.WriteDirent(op.Dst[sum:], *dir)
 		if n == 0 {
+			d.offset += i
+			d.files = d.files[i+1:]
 			break
 		}
 
@@ -373,7 +403,8 @@ func (fs *Filesystem) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) erro
 //
 // Required for fuse.FileSystem.
 func (fs *Filesystem) ReleaseFileHandle(_ context.Context, op *fuseops.ReleaseFileHandleOp) error {
-	return fs.delHandle(op.Handle)
+	_ = fs.delHandle(op.Handle)
+	return nil
 }
 
 func (fs *Filesystem) Destroy() {}
