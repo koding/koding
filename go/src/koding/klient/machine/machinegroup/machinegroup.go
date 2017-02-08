@@ -16,6 +16,7 @@ import (
 	"koding/klient/machine/machinegroup/mounts"
 	"koding/klient/machine/machinegroup/syncs"
 	"koding/klient/machine/mount"
+	msync "koding/klient/machine/mount/sync"
 	"koding/klient/storage"
 
 	"github.com/koding/logging"
@@ -33,6 +34,9 @@ type GroupOpts struct {
 
 	// Builder is a factory used to build clients.
 	Builder client.Builder
+
+	// SyncBuilder defines a factory used to build file synchronization objects.
+	SyncBuilder msync.Builder
 
 	// DynAddrInterval indicates how often dynamic client should look for new
 	// machine addresses.
@@ -55,7 +59,10 @@ func (opts *GroupOpts) Valid() error {
 		return errors.New("nil group options provided")
 	}
 	if opts.Builder == nil {
-		return errors.New("nil client builder")
+		return errors.New("client builder is nil")
+	}
+	if opts.SyncBuilder == nil {
+		return errors.New("synchronization builder is nil")
 	}
 	if opts.DynAddrInterval == 0 {
 		return errors.New("dynamic address check interval is not set")
@@ -119,11 +126,12 @@ func New(opts *GroupOpts) (*Group, error) {
 	}
 
 	// Create syncs object for synced mounts.
-	spvsOpts := syncs.SyncsOpts{
-		WorkDir: opts.WorkDir,
-		Log:     g.log,
+	syncsOpts := syncs.SyncsOpts{
+		WorkDir:     opts.WorkDir,
+		SyncBuilder: opts.SyncBuilder,
+		Log:         g.log,
 	}
-	g.sync, err = syncs.New(spvsOpts)
+	g.sync, err = syncs.New(syncsOpts)
 	if err != nil {
 		g.log.Critical("Cannot create mount syncer: %s", err)
 		return nil, err

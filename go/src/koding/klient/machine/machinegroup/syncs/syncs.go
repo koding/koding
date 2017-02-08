@@ -30,6 +30,9 @@ type SyncsOpts struct {
 	//
 	WorkDir string
 
+	// SyncBuilder defines a factory used to build file synchronization objects.
+	SyncBuilder msync.Builder
+
 	// Log is used for logging. If nil, default logger will be created.
 	Log logging.Logger
 }
@@ -44,6 +47,10 @@ func (opts *SyncsOpts) Valid() error {
 		return errors.New("working directory is not set")
 	}
 
+	if opts.SyncBuilder == nil {
+		return errors.New("synchronization builder is nil")
+	}
+
 	return nil
 }
 
@@ -52,6 +59,7 @@ func (opts *SyncsOpts) Valid() error {
 type Syncs struct {
 	wd string
 
+	sb  msync.Builder
 	log logging.Logger
 
 	mu  sync.RWMutex
@@ -70,6 +78,7 @@ func New(opts SyncsOpts) (*Syncs, error) {
 
 	s := &Syncs{
 		wd:  opts.WorkDir,
+		sb:  opts.SyncBuilder,
 		log: opts.Log,
 		scs: make(map[mount.ID]*msync.Sync),
 	}
@@ -93,9 +102,10 @@ func (s *Syncs) Add(mountID mount.ID, m mount.Mount, dynClient client.DynamicCli
 	}
 
 	sc, err := msync.NewSync(mountID, m, msync.SyncOpts{
-		ClientFunc: dynClient,
-		WorkDir:    filepath.Join(s.wd, "mount-"+string(mountID)),
-		Log:        s.log.New(string(mountID)),
+		ClientFunc:  dynClient,
+		WorkDir:     filepath.Join(s.wd, "mount-"+string(mountID)),
+		SyncBuilder: s.sb,
+		Log:         s.log.New(string(mountID)),
 	})
 	if err != nil {
 		return err

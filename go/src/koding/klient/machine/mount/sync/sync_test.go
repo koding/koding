@@ -11,6 +11,7 @@ import (
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/mounttest"
 	msync "koding/klient/machine/mount/sync"
+	"koding/klient/machine/mount/sync/discard"
 )
 
 func TestSyncNew(t *testing.T) {
@@ -22,13 +23,7 @@ func TestSyncNew(t *testing.T) {
 
 	// Create new Sync.
 	mountID := mount.MakeID()
-	opts := msync.SyncOpts{
-		ClientFunc: func() (client.Client, error) {
-			return clienttest.NewClient(), nil
-		},
-		WorkDir: wd,
-	}
-	sA, err := msync.NewSync(mountID, m, opts)
+	sA, err := msync.NewSync(mountID, m, defaultSyncOpts(wd))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -78,7 +73,7 @@ func TestSyncNew(t *testing.T) {
 	}
 
 	// New add of existing mount.
-	sB, err := msync.NewSync(mountID, m, opts)
+	sB, err := msync.NewSync(mountID, m, defaultSyncOpts(wd))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -108,13 +103,7 @@ func TestSyncDrop(t *testing.T) {
 
 	// Create new Sync.
 	mountID := mount.MakeID()
-	opts := msync.SyncOpts{
-		ClientFunc: func() (client.Client, error) {
-			return clienttest.NewClient(), nil
-		},
-		WorkDir: wd,
-	}
-	s, err := msync.NewSync(mountID, m, opts)
+	s, err := msync.NewSync(mountID, m, defaultSyncOpts(wd))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -127,5 +116,15 @@ func TestSyncDrop(t *testing.T) {
 	// Working directory should not exist.
 	if _, err := os.Stat(wd); !os.IsNotExist(err) {
 		t.Errorf("want err = os.ErrNotExist; got %v", err)
+	}
+}
+
+func defaultSyncOpts(wd string) msync.SyncOpts {
+	return msync.SyncOpts{
+		ClientFunc: func() (client.Client, error) {
+			return clienttest.NewClient(), nil
+		},
+		SyncBuilder: discard.DiscardBuilder{},
+		WorkDir:     wd,
 	}
 }

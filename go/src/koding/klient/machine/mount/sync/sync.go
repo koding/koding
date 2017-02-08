@@ -84,6 +84,10 @@ type SyncOpts struct {
 	//
 	WorkDir string
 
+	// SyncBuilder defines a factory used to build object which will be
+	// responsible for syncing files.
+	SyncBuilder Builder
+
 	// Log is used for logging. If nil, default logger will be created.
 	Log logging.Logger
 }
@@ -93,11 +97,12 @@ func (opts *SyncOpts) Valid() error {
 	if opts == nil {
 		return errors.New("mount sync options are nil")
 	}
-
 	if opts.ClientFunc == nil {
 		return errors.New("nil dynamic client function")
 	}
-
+	if opts.SyncBuilder == nil {
+		return errors.New("synchronization builder is nil")
+	}
 	if opts.WorkDir == "" {
 		return errors.New("working directory is not set")
 	}
@@ -114,6 +119,8 @@ type Sync struct {
 	log     logging.Logger
 
 	a *Anteroom // file system event consumer.
+
+	s Syncer // object responsible for actual file synchronization.
 
 	ridx *index.Index // known state of remote index.
 	lidx *index.Index // known state of local index.
@@ -162,7 +169,22 @@ func NewSync(mountID mount.ID, m mount.Mount, opts SyncOpts) (*Sync, error) {
 	// Create FS event consumer queue.
 	s.a = NewAnteroom()
 
+	// Create file synchronization object.
+	s.s, err = opts.SyncBuilder.Build(&BuildOpts{
+		RemoteIdx: s.ridx,
+		LocalIdx:  s.lidx,
+	})
+	if err != nil {
+		s.a.Close()
+		return nil, err
+	}
+
 	return s, nil
+}
+
+// Stream creates a stream of file synchronization jobs.
+func (s *Sync) Stream() <-chan Execer {
+	return s.s.ExecStream(s.a.Events())
 }
 
 // Info returns the current status of supervised indexes.
@@ -189,6 +211,7 @@ func (s *Sync) Drop() error {
 
 // Close closes memory resources acquired by Sync object.
 func (s *Sync) Close() {
+	s.s.Close()
 	s.a.Close()
 }
 
