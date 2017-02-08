@@ -14,7 +14,7 @@ import (
 	"koding/klient/machine/machinegroup/clients"
 	"koding/klient/machine/machinegroup/idset"
 	"koding/klient/machine/machinegroup/mounts"
-	"koding/klient/machine/machinegroup/supervisors"
+	"koding/klient/machine/machinegroup/syncs"
 	"koding/klient/machine/mount"
 	"koding/klient/storage"
 
@@ -79,8 +79,8 @@ type Group struct {
 	alias   aliases.Aliaser
 	mount   mounts.Mounter
 
-	supervisor *supervisors.Supervisors
-	discover   *discover.Client
+	sync     *syncs.Syncs
+	discover *discover.Client
 }
 
 // New creates a new Group object.
@@ -118,14 +118,14 @@ func New(opts *GroupOpts) (*Group, error) {
 		return nil, err
 	}
 
-	// Create supervisors object for synced mounts.
-	spvsOpts := supervisors.SupervisorsOpts{
+	// Create syncs object for synced mounts.
+	spvsOpts := syncs.SyncsOpts{
 		WorkDir: opts.WorkDir,
 		Log:     g.log,
 	}
-	g.supervisor, err = supervisors.New(spvsOpts)
+	g.sync, err = syncs.New(spvsOpts)
 	if err != nil {
-		g.log.Critical("Cannot create mount supervisors: %s", err)
+		g.log.Critical("Cannot create mount syncer: %s", err)
 		return nil, err
 	}
 
@@ -166,7 +166,7 @@ func New(opts *GroupOpts) (*Group, error) {
 
 // Close closes Group's underlying clients.
 func (g *Group) Close() {
-	g.supervisor.Close()
+	g.sync.Close()
 	g.client.Close()
 }
 
@@ -213,7 +213,7 @@ func (g *Group) bootstrap() {
 	g.mountSync(mountsIDs)
 }
 
-// mountsSync tries to add all available mounts to mount supervisor.
+// mountsSync tries to add all available mounts to mount syncer.
 func (g *Group) mountSync(ids machine.IDSlice) {
 	mountsN, errN := 0, int64(0)
 	var wg sync.WaitGroup
@@ -230,7 +230,7 @@ func (g *Group) mountSync(ids machine.IDSlice) {
 			mountID, m := mountID, m // Capture range variable.
 			go func() {
 				defer wg.Done()
-				if err := g.supervisor.Add(mountID, m, g.dynamicClient(mountID)); err != nil {
+				if err := g.sync.Add(mountID, m, g.dynamicClient(mountID)); err != nil {
 					atomic.AddInt64(&errN, 1)
 					g.log.Error("Cannot start synchronization for mount %s: %s", mountID, err)
 				}

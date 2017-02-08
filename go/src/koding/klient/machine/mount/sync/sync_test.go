@@ -13,22 +13,22 @@ import (
 	msync "koding/klient/machine/mount/sync"
 )
 
-func TestSupervisorNew(t *testing.T) {
+func TestSyncNew(t *testing.T) {
 	wd, m, clean, err := mounttest.MountDirs()
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	defer clean()
 
-	// Create new supervisor.
+	// Create new Sync.
 	mountID := mount.MakeID()
-	opts := msync.SupervisorOpts{
+	opts := msync.SyncOpts{
 		ClientFunc: func() (client.Client, error) {
 			return clienttest.NewClient(), nil
 		},
 		WorkDir: wd,
 	}
-	sA, err := msync.NewSupervisor(mountID, m, opts)
+	sA, err := msync.NewSync(mountID, m, opts)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -78,7 +78,7 @@ func TestSupervisorNew(t *testing.T) {
 	}
 
 	// New add of existing mount.
-	sB, err := msync.NewSupervisor(mountID, m, opts)
+	sB, err := msync.NewSync(mountID, m, opts)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -99,22 +99,22 @@ func TestSupervisorNew(t *testing.T) {
 	}
 }
 
-func TestSupervisorDrop(t *testing.T) {
+func TestSyncDrop(t *testing.T) {
 	wd, m, clean, err := mounttest.MountDirs()
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	defer clean()
 
-	// Create new supervisor.
+	// Create new Sync.
 	mountID := mount.MakeID()
-	opts := msync.SupervisorOpts{
+	opts := msync.SyncOpts{
 		ClientFunc: func() (client.Client, error) {
 			return clienttest.NewClient(), nil
 		},
 		WorkDir: wd,
 	}
-	s, err := msync.NewSupervisor(mountID, m, opts)
+	s, err := msync.NewSync(mountID, m, opts)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}

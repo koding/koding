@@ -1,4 +1,4 @@
-package supervisors_test
+package syncs_test
 
 import (
 	"os"
@@ -7,12 +7,12 @@ import (
 
 	"koding/klient/machine/client"
 	"koding/klient/machine/client/clienttest"
-	"koding/klient/machine/machinegroup/supervisors"
+	"koding/klient/machine/machinegroup/syncs"
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/mounttest"
 )
 
-func TestSupervisorsAdd(t *testing.T) {
+func TestSyncsAdd(t *testing.T) {
 	wd, m, clean, err := mounttest.MountDirs()
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
@@ -21,7 +21,7 @@ func TestSupervisorsAdd(t *testing.T) {
 
 	// Create new supervisor.
 	mountID := mount.MakeID()
-	s, err := supervisors.New(supervisors.SupervisorsOpts{WorkDir: wd})
+	s, err := syncs.New(syncs.SyncsOpts{WorkDir: wd})
 	if err != nil {
 		t.Fatalf("want err != nil; got nil")
 	}
@@ -44,16 +44,16 @@ func TestSupervisorsAdd(t *testing.T) {
 	}
 }
 
-func TestSupervisorsDrop(t *testing.T) {
+func TestSyncsDrop(t *testing.T) {
 	wd, m, clean, err := mounttest.MountDirs()
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	defer clean()
 
-	// Create new supervisor.
+	// Create new sync.
 	mountID := mount.MakeID()
-	s, err := supervisors.New(supervisors.SupervisorsOpts{WorkDir: wd})
+	s, err := syncs.New(syncs.SyncsOpts{WorkDir: wd})
 	if err != nil {
 		t.Fatalf("want err != nil; got nil")
 	}
@@ -74,7 +74,7 @@ func TestSupervisorsDrop(t *testing.T) {
 		t.Errorf("want err = nil; got %v", err)
 	}
 
-	// Mount supervisor working directory should not exist.
+	// Mount sync working directory should not exist.
 	mountWD := filepath.Join(wd, "mount-"+string(mountID))
 	if _, err := os.Stat(mountWD); !os.IsNotExist(err) {
 		t.Errorf("want err = os.ErrNotExist; got %v", err)

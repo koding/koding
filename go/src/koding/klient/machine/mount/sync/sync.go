@@ -68,8 +68,8 @@ type Info struct {
 	Syncing int // Number of files being synced.
 }
 
-// SupervisorOpts are the options used to configure Supervisor object.
-type SupervisorOpts struct {
+// SyncOpts are the options used to configure Sync object.
+type SyncOpts struct {
 	// ClientFunc is a factory for dynamic clients.
 	ClientFunc client.DynamicClientFunc
 
@@ -89,9 +89,9 @@ type SupervisorOpts struct {
 }
 
 // Valid checks if provided options are correct.
-func (opts *SupervisorOpts) Valid() error {
+func (opts *SyncOpts) Valid() error {
 	if opts == nil {
-		return errors.New("mount supervisor options are nil")
+		return errors.New("mount sync options are nil")
 	}
 
 	if opts.ClientFunc == nil {
@@ -105,10 +105,10 @@ func (opts *SupervisorOpts) Valid() error {
 	return nil
 }
 
-// Supervisor stores and synchronizes single mount. The main goal of its logic
+// Sync stores and synchronizes single mount. The main goal of its logic
 // is to make remote and local indexes similar.
-type Supervisor struct {
-	opts    SupervisorOpts
+type Sync struct {
+	opts    SyncOpts
 	mountID mount.ID    // identifier of synced mount.
 	m       mount.Mount // single mount with absolute paths.
 	log     logging.Logger
@@ -119,23 +119,23 @@ type Supervisor struct {
 	lidx *index.Index // known state of local index.
 }
 
-// NewSupervisor creates a new supervisor instance for a given mount. It ensures
-// basic mount directory structure. This function is blocking.
-func NewSupervisor(mountID mount.ID, m mount.Mount, opts SupervisorOpts) (*Supervisor, error) {
+// NewSync creates a new sync instance for a given mount. It ensures basic mount
+// directory structure. This function is blocking.
+func NewSync(mountID mount.ID, m mount.Mount, opts SyncOpts) (*Sync, error) {
 	if err := opts.Valid(); err != nil {
 		return nil, err
 	}
 
-	s := &Supervisor{
+	s := &Sync{
 		opts:    opts,
 		mountID: mountID,
 		m:       m,
 	}
 
 	if opts.Log != nil {
-		s.log = opts.Log.New("supervisor")
+		s.log = opts.Log.New("sync")
 	} else {
-		s.log = machine.DefaultLogger.New("supervisor")
+		s.log = machine.DefaultLogger.New("sync")
 	}
 
 	// Create directory structure if it doesn't exist.
@@ -166,7 +166,7 @@ func NewSupervisor(mountID mount.ID, m mount.Mount, opts SupervisorOpts) (*Super
 }
 
 // Info returns the current status of supervised indexes.
-func (s *Supervisor) Info() *Info {
+func (s *Sync) Info() *Info {
 	items, queued := s.a.Status()
 
 	return &Info{
@@ -182,20 +182,20 @@ func (s *Supervisor) Info() *Info {
 }
 
 // Drop closes synced mount and cleans up all resources acquired by it.
-func (s *Supervisor) Drop() error {
+func (s *Sync) Drop() error {
 	s.Close()
 	return os.RemoveAll(s.opts.WorkDir)
 }
 
-// Close closes memory resources acquired by Supervisor object.
-func (s *Supervisor) Close() {
+// Close closes memory resources acquired by Sync object.
+func (s *Sync) Close() {
 	s.a.Close()
 }
 
 // loadIdx reads named index from synced working directory. If index file does
 // not exist, it is fetched by calling provided `fetchIdx` function and saved to
 // provided path.
-func (s *Supervisor) loadIdx(name string, fetchIdx idxFunc) (*index.Index, error) {
+func (s *Sync) loadIdx(name string, fetchIdx idxFunc) (*index.Index, error) {
 	path := filepath.Join(s.opts.WorkDir, name)
 	f, err := os.Open(path)
 	if os.IsNotExist(err) {
@@ -217,18 +217,18 @@ func (s *Supervisor) loadIdx(name string, fetchIdx idxFunc) (*index.Index, error
 type idxFunc func() (*index.Index, error)
 
 // fetchRemoteIdx downloads remote index.
-func (s *Supervisor) fetchRemoteIdx() (*index.Index, error) {
+func (s *Sync) fetchRemoteIdx() (*index.Index, error) {
 	spv := client.NewSupervised(s.opts.ClientFunc, 30*time.Second)
 	return spv.MountGetIndex(s.m.RemotePath)
 }
 
 // fetchLocalIdx always scans mount cache directory and creates new index.
-func (s *Supervisor) fetchLocalIdx() (*index.Index, error) {
+func (s *Sync) fetchLocalIdx() (*index.Index, error) {
 	return index.NewIndexFiles(filepath.Join(s.opts.WorkDir, "data"))
 }
 
 // updateLocal updates local index and saves it to cache directory.
-func (s *Supervisor) updateLocal() error {
+func (s *Sync) updateLocal() error {
 	dataPath := filepath.Join(s.opts.WorkDir, "data")
 	cs := s.lidx.Compare(dataPath)
 
