@@ -1,4 +1,4 @@
-package mount
+package sync
 
 import (
 	"encoding/json"
@@ -10,6 +10,7 @@ import (
 	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/index"
+	"koding/klient/machine/mount"
 
 	"github.com/koding/logging"
 )
@@ -21,8 +22,8 @@ const (
 
 // Info stores information about current mount status.
 type Info struct {
-	ID    ID    // Mount ID.
-	Mount Mount // Mount paths stored in absolute form.
+	ID    mount.ID    // Mount ID.
+	Mount mount.Mount // Mount paths stored in absolute form.
 
 	SyncCount int // Number of synced files.
 	AllCount  int // Number of all files handled by mount.
@@ -75,8 +76,8 @@ func (opts *SupervisorOpts) Valid() error {
 // is to make remote and local indexes similar.
 type Supervisor struct {
 	opts    SupervisorOpts
-	mountID ID    // identifier of synced mount.
-	m       Mount // single mount with absolute paths.
+	mountID mount.ID    // identifier of synced mount.
+	m       mount.Mount // single mount with absolute paths.
 	log     logging.Logger
 
 	a *Anteroom // file system event consumer.
@@ -87,7 +88,7 @@ type Supervisor struct {
 
 // NewSupervisor creates a new supervisor instance for a given mount. It ensures
 // basic mount directory structure. This function is blocking.
-func NewSupervisor(mountID ID, m Mount, opts SupervisorOpts) (*Supervisor, error) {
+func NewSupervisor(mountID mount.ID, m mount.Mount, opts SupervisorOpts) (*Supervisor, error) {
 	if err := opts.Valid(); err != nil {
 		return nil, err
 	}

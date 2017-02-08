@@ -1,4 +1,4 @@
-package mount_test
+package sync_test
 
 import (
 	"os"
@@ -10,6 +10,7 @@ import (
 	"koding/klient/machine/client/clienttest"
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/mounttest"
+	msync "koding/klient/machine/mount/sync"
 )
 
 func TestSupervisorNew(t *testing.T) {
@@ -21,13 +22,13 @@ func TestSupervisorNew(t *testing.T) {
 
 	// Create new supervisor.
 	mountID := mount.MakeID()
-	opts := mount.SupervisorOpts{
+	opts := msync.SupervisorOpts{
 		ClientFunc: func() (client.Client, error) {
 			return clienttest.NewClient(), nil
 		},
 		WorkDir: wd,
 	}
-	sA, err := mount.NewSupervisor(mountID, m, opts)
+	sA, err := msync.NewSupervisor(mountID, m, opts)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -37,10 +38,10 @@ func TestSupervisorNew(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(wd, "data")); err != nil {
 		t.Errorf("want err = nil; got %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(wd, mount.LocalIndexName)); err != nil {
+	if _, err := os.Stat(filepath.Join(wd, msync.LocalIndexName)); err != nil {
 		t.Errorf("want err = nil; got %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(wd, mount.RemoteIndexName)); err != nil {
+	if _, err := os.Stat(filepath.Join(wd, msync.RemoteIndexName)); err != nil {
 		t.Errorf("want err = nil; got %v", err)
 	}
 
@@ -53,7 +54,7 @@ func TestSupervisorNew(t *testing.T) {
 		t.Error("want all disk size > 0")
 	}
 
-	expected := &mount.Info{
+	expected := &msync.Info{
 		ID:           mountID,
 		Mount:        m,
 		SyncCount:    0,
@@ -77,7 +78,7 @@ func TestSupervisorNew(t *testing.T) {
 	}
 
 	// New add of existing mount.
-	sB, err := mount.NewSupervisor(mountID, m, opts)
+	sB, err := msync.NewSupervisor(mountID, m, opts)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
@@ -107,13 +108,13 @@ func TestSupervisorDrop(t *testing.T) {
 
 	// Create new supervisor.
 	mountID := mount.MakeID()
-	opts := mount.SupervisorOpts{
+	opts := msync.SupervisorOpts{
 		ClientFunc: func() (client.Client, error) {
 			return clienttest.NewClient(), nil
 		},
 		WorkDir: wd,
 	}
-	s, err := mount.NewSupervisor(mountID, m, opts)
+	s, err := msync.NewSupervisor(mountID, m, opts)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}

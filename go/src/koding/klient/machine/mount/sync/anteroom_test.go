@@ -1,4 +1,4 @@
-package mount_test
+package sync_test
 
 import (
 	"reflect"
@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"koding/klient/machine/index"
-	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/mounttest"
+	msync "koding/klient/machine/mount/sync"
 )
 
 func TestAnteroom(t *testing.T) {
-	a := mount.NewAnteroom()
+	a := msync.NewAnteroom()
 	defer a.Close()
 
 	c := index.NewChange("a/test.txt", index.ChangeMetaAdd)
@@ -27,7 +27,7 @@ func TestAnteroom(t *testing.T) {
 		t.Errorf("want 1 queued event; got %d", queued)
 	}
 
-	var ev *mount.Event
+	var ev *msync.Event
 	select {
 	case ev = <-a.Events():
 	case <-time.After(time.Second):
@@ -62,7 +62,7 @@ func TestAnteroom(t *testing.T) {
 }
 
 func TestAnteroomCoalescing(t *testing.T) {
-	a := mount.NewAnteroom()
+	a := msync.NewAnteroom()
 	defer a.Close()
 
 	cs := [2]*index.Change{
@@ -107,7 +107,7 @@ func TestAnteroomCoalescing(t *testing.T) {
 }
 
 func TestAnteroomPopChange(t *testing.T) {
-	a := mount.NewAnteroom()
+	a := msync.NewAnteroom()
 	defer a.Close()
 
 	var (
@@ -117,7 +117,7 @@ func TestAnteroomPopChange(t *testing.T) {
 
 	a.Commit(cA)
 
-	var ev *mount.Event
+	var ev *msync.Event
 	select {
 	case ev = <-a.Events():
 	case <-time.After(time.Second):
@@ -145,7 +145,7 @@ func TestAnteroomPopChange(t *testing.T) {
 }
 
 func TestAnteroomMultiEvents(t *testing.T) {
-	a := mount.NewAnteroom()
+	a := msync.NewAnteroom()
 	defer a.Close()
 
 	const eventsN = 1000

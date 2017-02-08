@@ -1,4 +1,4 @@
-package mount
+package sync
 
 import (
 	"sync"

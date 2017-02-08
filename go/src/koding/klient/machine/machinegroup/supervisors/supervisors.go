@@ -10,6 +10,7 @@ import (
 	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/mount"
+	msync "koding/klient/machine/mount/sync"
 
 	"github.com/koding/logging"
 )
@@ -54,7 +55,7 @@ type Supervisors struct {
 	log logging.Logger
 
 	mu   sync.RWMutex
-	spvs map[mount.ID]*mount.Supervisor
+	spvs map[mount.ID]*msync.Supervisor
 }
 
 // New creates a new Supervisors instance from the given options.
@@ -70,7 +71,7 @@ func New(opts SupervisorsOpts) (*Supervisors, error) {
 	s := &Supervisors{
 		wd:   opts.WorkDir,
 		log:  opts.Log,
-		spvs: make(map[mount.ID]*mount.Supervisor),
+		spvs: make(map[mount.ID]*msync.Supervisor),
 	}
 
 	if s.log == nil {
@@ -91,7 +92,7 @@ func (s *Supervisors) Add(mountID mount.ID, m mount.Mount, dynClient client.Dyna
 		return fmt.Errorf("supervisor for mount with ID %s already exists", mountID)
 	}
 
-	spv, err := mount.NewSupervisor(mountID, m, mount.SupervisorOpts{
+	spv, err := msync.NewSupervisor(mountID, m, msync.SupervisorOpts{
 		ClientFunc: dynClient,
 		WorkDir:    filepath.Join(s.wd, "mount-"+string(mountID)),
 		Log:        s.log.New(string(mountID)),
@@ -112,7 +113,7 @@ func (s *Supervisors) Add(mountID mount.ID, m mount.Mount, dynClient client.Dyna
 }
 
 // Info returns the current state of mount supervisor with provided ID.
-func (s *Supervisors) Info(mountID mount.ID) (*mount.Info, error) {
+func (s *Supervisors) Info(mountID mount.ID) (*msync.Info, error) {
 	s.mu.RLock()
 	spv, ok := s.spvs[mountID]
 	s.mu.RUnlock()
