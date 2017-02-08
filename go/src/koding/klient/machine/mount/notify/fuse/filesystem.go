@@ -53,6 +53,7 @@ type Opts struct {
 	Mount    string       // name of the mount
 	MountDir string       // path of the mount directory
 	User     *config.User // owner of the mount; if nil, config.CurrentUser is used
+	Debug    bool         // turns on fuse debug logging
 }
 
 func (opts *Opts) user() *config.User {
