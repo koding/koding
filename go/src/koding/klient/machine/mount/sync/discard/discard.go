@@ -61,7 +61,11 @@ func (d *Discard) ExecStream(evC <-chan *msync.Event) <-chan msync.Execer {
 		defer close(exC)
 		for {
 			select {
-			case ev := <-evC:
+			case ev, ok := <-evC:
+				if !ok {
+					return
+				}
+
 				ex := &Event{ev: ev}
 				select {
 				case exC <- ex:
