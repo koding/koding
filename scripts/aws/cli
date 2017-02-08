@@ -10,52 +10,52 @@ USER=ec2-user
 HOSTS=$(./get-instance-addresses --environment $ENVIRONMENT)
 
 if [ -z "$HOSTS" ]; then
-    echo 'error: no hosts found'
-    exit 1
+	echo 'error: no hosts found'
+	exit 1
 fi
 
 PSSH_PROGRAM=$(which pssh || which parallel-ssh)
 BROWSER=$()
 
 function run_i2cssh() {
-    MACHINES=$(echo $HOSTS | tr ' ' ',')
-    i2cssh --login $USER --machines $MACHINES $COMMAND_OPTIONS
+	MACHINES=$(echo $HOSTS | tr ' ' ',')
+	i2cssh --login $USER --machines $MACHINES $COMMAND_OPTIONS
 }
 
 function pssh_host_option() {
-    for HOST in $HOSTS; do
-        echo -n "--host $HOST "
-    done
+	for HOST in $HOSTS; do
+		echo -n "--host $HOST "
+	done
 }
 
 function run_pssh() {
-    if [ -z $PSSH_PROGRAM ]; then
-        echo 'error: pssh not found'
-        exit 1
-    fi
+	if [ -z $PSSH_PROGRAM ]; then
+		echo 'error: pssh not found'
+		exit 1
+	fi
 
-    $PSSH_PROGRAM --inline --user $USER $(pssh_host_option) $COMMAND_OPTIONS
+	$PSSH_PROGRAM --inline --user $USER $(pssh_host_option) $COMMAND_OPTIONS
 }
 
 function run_browse() {
-    PATH=${COMMAND_OPTIONS[0]}
+	PATH=${COMMAND_OPTIONS[0]}
 
-    for HOST in $HOSTS; do
-        URL=http://$HOST/$PATH
-        echo $URL
-    done
+	for HOST in $HOSTS; do
+		URL=http://$HOST/$PATH
+		echo $URL
+	done
 }
 
 case $COMMAND in
-    i2cssh)
-        run_i2cssh
-        ;;
-    pssh)
-        run_pssh
-        ;;
-    browse)
-        run_browse
-        ;;
+	i2cssh)
+		run_i2cssh
+		;;
+	pssh)
+		run_pssh
+		;;
+	browse)
+		run_browse
+		;;
 esac
 
 exit 0

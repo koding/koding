@@ -5,10 +5,10 @@ SCRIPTS=$(dirname $0)/../../scripts/test-instance
 INSTANCE_DATA_FILE=$1
 
 function destroy_user_machines() {
-  HOST=$1
-  $SCRIPTS/ssh $HOST "sudo /opt/koding/scripts/test-instance/destroy-user-machines"
+	HOST=$1
+	$SCRIPTS/ssh $HOST "sudo /opt/koding/scripts/test-instance/destroy-user-machines"
 }
 
 for HOST in $(cat $INSTANCE_DATA_FILE | awk '{print $2}'); do
-  destroy_user_machines $HOST
+	destroy_user_machines $HOST
 done

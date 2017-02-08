@@ -6,7 +6,7 @@ go test -v koding/klientctl/... koding/mountcli/...
 
 # Manually testing individual functions because Fuse is having issues
 # on wercker currently.
-cat << EOF
+cat <<EOF
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!Partial fuseklient tests run!!!
 
