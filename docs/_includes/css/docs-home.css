@@ -1,3 +1,8 @@
+:root {
+  --icon-docsBackground: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAAXNSR0IArs4c6QAAANFJREFUKBV9kYtxwzAMQ/mRM3hWyAzdsqaCR0eu3buWZ/0BEoT9+fqa5mbb9rCIsP+iarcAbFOfDnNq80fwRuaRuWmpBs8qUxlzJ8tPNJikIo0xUptQhbKjpIAX0gLXLAsPG+TpjALRwZXEGyoXmMJN4OE3yUEqI8rJDBjMzRYuHKe07vt3D7pZYBLfCFwQ7qlJT9Ldmo7rnk9JnFaDyMjEDNeQg6U6HyNOwgIfDUor0ixb1tWIJtzBcitQfkTm0F/aT/cGzdHKcuMKXqSQPIJKb66+effPDPYoAAAAAElFTkSuQmCC');
+  --icon-docsBackground-2: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAATFJREFUSA2llQuywiAMRUPQnbuFt4W3SQXMTZtOrfyCcRRKh3MItDE8/v5LzoUoEHG8UQhBv7y3tBClFMrpRWgZcP3sg+D9Asd8LBKLRTBWfoQkIurj8ucOR+JjW8TEvNksvVWBbpHsCEJ2I1C83SlGSUb6iPMe6oDjx+BoEZuAWSUmwI0VyRWuAjtQO5hVSQ2uzDNwVdKBy1N0Ca+kB1fWha+Xs5IRHLCvDEw4kszAuwLcbEnS60kpZ33SPhZUKS/NDD4m7jUKY1h5SpkgQR+hC6nAcW8oOAB7bfHWrikBJBpSW7y1a0pgBwqJt3YNBQY/77endnUFVzgywIFGR+1qClpwb+2qCkZwZIJovSfn/5MvwSx8U4wlDKCFF27zepmwpbMKH0k0A09tMWCtrWXyBuRwYwHWLdw8AAAAAElFTkSuQmCC');
+}
+
 .docs__index {
   text-align: center;
   float: none !important;
@@ -9,7 +14,7 @@
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 }
 .docs__index__hero {
-  background-color: #b0b0b0;
+  background-image: var(--icon-docsBackground);
   padding-bottom: 105px;
 }
 .docs__index__title {
@@ -65,11 +70,7 @@
     border-bottom: 1px solid #f6f6f9;
   }
 }
-@media screen and (max-width: 875px) {
-  .docs__index__item {
-    width: 100%;
-  }
-}
+
 .docs__index__item__icon {
   margin: 0.375rem auto 0.75rem;
 }
@@ -111,6 +112,7 @@
 .docs__index__body__content {
   background-color: #ffffff;
   width: 1174px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 21px 61px;
   box-sizing: border-box;
@@ -170,6 +172,7 @@
   position: absolute;
   top: 5px;
   right: 3px;
+  overflow: hidden;
 }
 
 .docs__index__body__content a.icon-magnify-link svg {
@@ -255,5 +258,64 @@
   .docs__index__item {
     width: 50%;
   }
+}
 
+@media screen and (max-width: 660px) {
+  .docs__index {
+    margin: -177px 19px -222px;
+  }
+
+  .docs__index__hero {
+    padding-bottom: 176px;
+  }
+
+  .docs__index__body {
+    padding-top: 233px;
+    padding-left: 19px;
+    padding-right: 19px;
+  }
+
+  .docs__index__body__content {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+
+  .docs__index__items {
+    padding: 0 40px;
+  }
+
+  .docs__index__item {
+    width: 100%;
+    padding: 33px 0 23px;
+    border-bottom: 1px solid #E8E8E8;
+  }
+
+  .docs__index__item:before {
+    display: none;
+  }
+
+  .docs__index__item:last-child {
+    border-bottom: 0;
+  }
+
+  .docs__index__item__icon {
+    float: left;
+    margin: 0;
+  }
+
+  .docs__index__item__content {
+    float: left;
+    text-align: left;
+    margin-left: 27px;
+  }
+
+  .docs__index__item__title {
+    margin-top: 0;
+    font-size: 20px;
+  }
+
+  .docs__index__item__links {
+    width: auto;
+    margin-top: 0;
+  }
 }

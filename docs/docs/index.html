@@ -11,6 +11,11 @@ redirect_from:
 {% include header.html with_signup_form='true' has_sticky_navigation='true' background_color='#7F7E9E' %}
 
 <style type="text/css">{% include css/docs-home.css %}</style>
+<script type="text/javascript">
+  window.TERRAFORM_DOCS = [{% for p in site.pages %}{% if p.url contains "docs/terraform/" %}{ url: "{{ p.url }}", title: "{{ p.page_title }}", sidebar_current: "{{ p.sidebar_current }}"},{% endif %}{% endfor %}''];
+  TERRAFORM_DOCS.pop();
+  window.PAGE_URL = "{{ page.url }}";
+</script>
 
 {% include docs-svgs.html %}
 
@@ -23,36 +28,44 @@ redirect_from:
         <div class="docs__index__item__icon">
           <a href="/docs/product-walkthrough"><svg data-icon-name="icon-product" class="icon"><use xlink:href="#icon-product"></use></svg></a>
         </div>
-        <div class="docs__index__item__title">Watch Product</div>
-        <div class="docs__index__item__links">
-          New to cloud computing? Watch the curated videos.
+        <div class="docs__index__item__content">
+          <div class="docs__index__item__title">Watch Product</div>
+          <div class="docs__index__item__links">
+            New to cloud computing? Watch the curated videos.
+          </div>
         </div>
       </div>
       <div class="docs__index__item">
         <div class="docs__index__item__icon">
           <a href="/docs/creating-an-aws-stack"><svg data-icon-name="icon-train" class="icon"><use xlink:href="#icon-train"></use></svg></a>
         </div>
-        <div class="docs__index__item__title">Train Yourself</div>
-        <div class="docs__index__item__links">
-          New to cloud computing? Watch the curated videos.
+        <div class="docs__index__item__content">
+          <div class="docs__index__item__title">Train Yourself</div>
+          <div class="docs__index__item__links">
+            New to cloud computing? Watch the curated videos.
+          </div>
         </div>
       </div>
       <div class="docs__index__item">
         <div class="docs__index__item__icon">
           <a href="/docs/connect-your-own-machine"><svg data-icon-name="icon-blocks" class="icon"><use xlink:href="#icon-blocks"></use></svg></a>
         </div>
-        <div class="docs__index__item__title">Koding 101</div>
-        <div class="docs__index__item__links">
-          New to Koding? Start from the basics.
+        <div class="docs__index__item__content">
+          <div class="docs__index__item__title">Koding 101</div>
+          <div class="docs__index__item__links">
+            New to Koding? Start from the basics.
+          </div>
         </div>
       </div>
       <div class="docs__index__item">
         <div class="docs__index__item__icon">
           <a href="/docs/how-to-share-your-vm-with-someone"><svg data-icon-name="icon-collaborate" class="icon"><use xlink:href="#icon-collaborate"></use></svg></a>
         </div>
-        <div class="docs__index__item__title">Collaborate</div>
-        <div class="docs__index__item__links">
-          Want to work together? Invite your teammates.
+        <div class="docs__index__item__content">
+          <div class="docs__index__item__title">Collaborate</div>
+          <div class="docs__index__item__links">
+            Want to work together? Invite your teammates.
+          </div>
         </div>
       </div>
     </div>
@@ -62,7 +75,6 @@ redirect_from:
       <div class="docs__index__body__header clearfix">
         <div class="docs__index__body__title">All Topics</div>
         <input placeholder="Search any keyword or topic..." />
-        <div class="docs__index__results"></div>
         <a class="icon-magnify-link" href="#"><svg data-icon-name="icon-magnify" class="icon"><use xlink:href="#icon-magnify"></use></svg></a>
       </div>
       <div class="docs__index__body__sections">
@@ -79,6 +91,7 @@ redirect_from:
           </li>
         </ul>
         {% endfor %}
+        <ul id="terraform-docs"></ul>
       </div>
     </div>
   </div>
@@ -88,24 +101,26 @@ redirect_from:
     <button>GET STARTED</button>
   </div>
 </section>
+<script type="text/javascript" src="{{ site.url }}/js/nav-terraform.js"></script>
 <script>
 
   var navDocs = {{ site.data.nav-docs | jsonify }}
+  var results = null;
 
   $('.docs__index__body__header input')
     .focus(function() {
       $(this).addClass('expanded');
     }).blur(function() {
       $(this).removeClass('expanded');
+      if (results) results.remove();
     }).keyup(function() {
     var value = $.trim($(this).val());
 
-    var results = $('.docs__index__results');
-    results.html('');
+    if (results) results.remove();
+    $('.docs__index__body__header').append('<div class="docs__index__results"></div>');
 
-    if (value.length < 3) {
-      return;
-    }
+
+    results = $('.docs__index__body__header').find('.docs__index__results');
 
     navDocs.forEach(function(doc) {
 
