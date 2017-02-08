@@ -76,6 +76,8 @@ type Supervisor struct {
 	m       Mount // single mount with absolute paths.
 	log     logging.Logger
 
+	a *Anteroom // file system event consumer.
+
 	ridx *index.Index // known state of remote index.
 	lidx *index.Index // known state of local index.
 }
@@ -120,6 +122,9 @@ func NewSupervisor(mountID ID, m Mount, opts SupervisorOpts) (*Supervisor, error
 		return nil, err
 	}
 
+	// Create FS event consumer queue.
+	s.a = NewAnteroom()
+
 	return s, nil
 }
 
@@ -137,7 +142,13 @@ func (s *Supervisor) Info() *Info {
 
 // Drop closes synced mount and cleans up all resources acquired by it.
 func (s *Supervisor) Drop() error {
+	s.Close()
 	return os.RemoveAll(s.opts.WorkDir)
+}
+
+// Close closes memory resources acquired by Supervisor object.
+func (s *Supervisor) Close() {
+	s.a.Close()
 }
 
 // loadIdx reads named index from synced working directory. If index file does

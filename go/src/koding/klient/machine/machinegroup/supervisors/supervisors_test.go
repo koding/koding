@@ -25,6 +25,8 @@ func TestSupervisorsAdd(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want err != nil; got nil")
 	}
+	defer s.Close()
+
 	dynClient := func() (client.Client, error) {
 		return clienttest.NewClient(), nil
 	}
@@ -55,6 +57,8 @@ func TestSupervisorsDrop(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want err != nil; got nil")
 	}
+	defer s.Close()
+
 	if err := s.Add(mountID, m, func() (client.Client, error) {
 		return clienttest.NewClient(), nil
 	}); err != nil {

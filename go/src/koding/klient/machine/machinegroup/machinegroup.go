@@ -166,6 +166,7 @@ func New(opts *GroupOpts) (*Group, error) {
 
 // Close closes Group's underlying clients.
 func (g *Group) Close() {
+	g.supervisor.Close()
 	g.client.Close()
 }
 

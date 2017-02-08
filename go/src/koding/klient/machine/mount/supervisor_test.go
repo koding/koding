@@ -27,10 +27,11 @@ func TestSupervisorNew(t *testing.T) {
 		},
 		WorkDir: wd,
 	}
-	s, err := mount.NewSupervisor(mountID, m, opts)
+	sA, err := mount.NewSupervisor(mountID, m, opts)
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
+	defer sA.Close()
 
 	// Check file structure.
 	if _, err := os.Stat(filepath.Join(wd, "data")); err != nil {
@@ -44,7 +45,7 @@ func TestSupervisorNew(t *testing.T) {
 	}
 
 	// Check indexes.
-	info := s.Info()
+	info := sA.Info()
 	if info == nil {
 		t.Fatalf("want info != nil; got nil")
 	}
@@ -74,11 +75,13 @@ func TestSupervisorNew(t *testing.T) {
 	}
 
 	// New add of existing mount.
-	if s, err = mount.NewSupervisor(mountID, m, opts); err != nil {
+	sB, err := mount.NewSupervisor(mountID, m, opts)
+	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
+	defer sB.Close()
 
-	if info = s.Info(); info == nil {
+	if info = sB.Info(); info == nil {
 		t.Fatalf("want info != nil; got nil")
 	}
 
@@ -112,6 +115,7 @@ func TestSupervisorDrop(t *testing.T) {
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
+	defer s.Close()
 
 	if err := s.Drop(); err != nil {
 		t.Fatalf("want err = nil; got %v", err)

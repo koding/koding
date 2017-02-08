@@ -144,3 +144,14 @@ func (s *Supervisors) Drop(mountID mount.ID) (err error) {
 
 	return err
 }
+
+// Close closes and removes all stored supervisors.
+func (s *Supervisors) Close() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for mountID, spv := range s.spvs {
+		spv.Close()
+		delete(s.spvs, mountID)
+	}
+}
