@@ -9,12 +9,12 @@ import (
 type ChangeMeta uint64
 
 const (
-	ChangeMetaLocal  ChangeMeta = 1 << iota // local->remote synchronization.
-	ChangeMetaRemote                        // remote->local synchronization.
-	ChangeMetaAdd                           // File was added.
-	ChangeMetaRemove                        // File was removed.
-	ChangeMetaUpdate                        // File was updated.
-	ChangeMetaLarge                         // File size is above 4GB.
+	ChangeMetaLocal  ChangeMeta = 1 << iota // L: local->remote synchronization.
+	ChangeMetaRemote                        // R: remote->local synchronization.
+	ChangeMetaAdd                           // a: File was added.
+	ChangeMetaRemove                        // d: File was removed.
+	ChangeMetaUpdate                        // u: File was updated.
+	ChangeMetaHuge                          // H: File size is above 4GB.
 )
 
 // Followed constants are helpers for ChangeMeta.Coalesce method.
@@ -101,6 +101,25 @@ func (cm *ChangeMeta) Coalesce(newer ChangeMeta) ChangeMeta {
 			return older
 		}
 	}
+}
+
+// String implements fmt.Stringer interface and pretty prints stored change.
+func (cm *ChangeMeta) String() string {
+	cpy := atomic.LoadUint64((*uint64)(cm))
+
+	const cmstr = "LRaduH"
+	var buf [8]byte // Meta is uint64 but we don't need more than 8.
+	w := 0
+	for i, c := range cmstr {
+		if cpy&(1<<uint(i)) != 0 {
+			buf[w] = byte(c)
+		} else {
+			buf[w] = '-'
+		}
+		w++
+	}
+
+	return string(buf[:w])
 }
 
 // Similar checks if provided meta changes can be considered similar. This means
