@@ -85,12 +85,12 @@ title: Apply for Koding Credits
       </div>
 
       <div class="SignupFieldset">
-        <label>URL for your Koding Stack for your project (you can copy/paste this to a gist or push it back to your repository) *</label>
+        <label>URL for your Koding Stack for your project (you can copy/paste this to a gist or push it back to your repository)</label>
         <input type="text" name="Field7">
       </div>
 
       <div class="SignupFieldset">
-        <label>Can you tell us why you would like to use Koding? How does it help you? *</label>
+        <label>Can you tell us why you would like to use Koding? How does it help you?</label>
         <input type="text" name="Field10">
       </div>
 
@@ -150,9 +150,13 @@ title: Apply for Koding Credits
       if (responseText) {
         FieldErrors = responseText.FieldErrors;
         results = [];
+        $("input[type=text]").removeClass('error');
+        $(".errorTooltip").addClass('fadeOut');
         for (i = 0, len = FieldErrors.length; i < len; i++) {
           err = FieldErrors[i];
-          results.push($("input[name=" + err.ID + "]").addClass('error'));
+          var inputField = $("input[name=" + err.ID + "]");
+          results.push(inputField.addClass('error'));
+          inputField.siblings('.errorTooltip').removeClass('fadeOut');
         }
         return results;
       }

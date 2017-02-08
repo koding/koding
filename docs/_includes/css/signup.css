@@ -47,6 +47,7 @@
 }
 .SignupFieldset {
     margin-bottom: 10px;
+    position:relative;
 }
 .Micropage--container form div > button {
     width: 100%;
@@ -221,7 +222,8 @@
 .SignupFieldset.double > div input::-webkit-input-placeholder {
    color: #8D8D8D;
 }
-.SignupFieldset > div input.error {
+.SignupFieldset > div input.error,
+.SignupFieldset > div textarea.error {
     border-color: #F2778A !important;
 }
 
@@ -272,3 +274,39 @@
     text-rendering: geometricPrecision;
     opacity: .99;
 }
+
+.SignupFieldset .errorTooltip {
+  background-color: #f2778a;
+  box-shadow: none;
+  padding: 10px 15px;
+  min-height: auto;
+  min-width: auto;
+  border-radius: 4px;
+  color: #ffffff;
+  position: absolute;
+  bottom: 3px;
+  right: -101px;
+  transition: opacity .5s;
+  display: block;
+  opacity: 1;
+}
+
+.SignupFieldset .errorTooltip.fadeOut {
+  opacity: 0;
+}
+
+.SignupFieldset .errorTooltip:after {
+  top: 13px;
+  left: -5px;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  border-color: rgba(136, 183, 213, 0);
+  border-right-color: #f2778a;
+  border-width: 5px;
+  margin-left: -5px;
+}
+
