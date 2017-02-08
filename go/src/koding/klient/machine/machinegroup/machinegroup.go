@@ -16,6 +16,7 @@ import (
 	"koding/klient/machine/machinegroup/mounts"
 	"koding/klient/machine/machinegroup/syncs"
 	"koding/klient/machine/mount"
+	"koding/klient/machine/mount/notify"
 	msync "koding/klient/machine/mount/sync"
 	"koding/klient/storage"
 
@@ -34,6 +35,9 @@ type GroupOpts struct {
 
 	// Builder is a factory used to build clients.
 	Builder client.Builder
+
+	// NotifyBuilder defines a factory used to build FS notification objects.
+	NotifyBuilder notify.Builder
 
 	// SyncBuilder defines a factory used to build file synchronization objects.
 	SyncBuilder msync.Builder
@@ -60,6 +64,9 @@ func (opts *GroupOpts) Valid() error {
 	}
 	if opts.Builder == nil {
 		return errors.New("client builder is nil")
+	}
+	if opts.NotifyBuilder == nil {
+		return errors.New("file system notification builder is nil")
 	}
 	if opts.SyncBuilder == nil {
 		return errors.New("synchronization builder is nil")
@@ -127,9 +134,10 @@ func New(opts *GroupOpts) (*Group, error) {
 
 	// Create syncs object for synced mounts.
 	syncsOpts := syncs.SyncsOpts{
-		WorkDir:     opts.WorkDir,
-		SyncBuilder: opts.SyncBuilder,
-		Log:         g.log,
+		WorkDir:       opts.WorkDir,
+		NotifyBuilder: opts.NotifyBuilder,
+		SyncBuilder:   opts.SyncBuilder,
+		Log:           g.log,
 	}
 	g.sync, err = syncs.New(syncsOpts)
 	if err != nil {
