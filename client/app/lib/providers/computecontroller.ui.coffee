@@ -153,17 +153,17 @@ module.exports = class ComputeControllerUI
     saveButtonTitle = 'Save This & Continue'  if noCredFound
 
     buttons      =
-      Cancel     :
-        style    : 'solid medium cancel'
-        type     : 'button'
-        callback : -> form.emit 'Cancel'
-
       Save       :
         title    : saveButtonTitle
         type     : 'submit'
-        style    : 'solid primary medium save-btn'
+        style    : 'solid primary green compact save-btn'
         loader   : { color : '#444444' }
         callback : -> @hideLoader()
+
+      Cancel     :
+        style    : 'solid compact cancel'
+        type     : 'button'
+        callback : -> form.emit 'Cancel'
 
     if requiredFields
       buttons = injectCustomActions requiredFields, buttons, (generatedKeys) ->
@@ -184,7 +184,7 @@ module.exports = class ComputeControllerUI
 
       buttons['Advanced Mode'] =
         title    : 'Advanced Mode'
-        style    : 'solid medium advanced-mode-btn'
+        style    : 'solid compact advanced-mode-btn'
         type     : 'button'
         callback : ->
           form.toggleClass 'in-advanced-mode'
@@ -193,8 +193,8 @@ module.exports = class ComputeControllerUI
           else @setTitle 'Advanced Mode'
 
 
-    kiteQueryPath = new kd.CustomHTMLView
-      cssClass : 'kite-query-path'
+    kiteQueryPath = new kd.View
+      cssClass : 'formline help-line'
       partial : "<a href='https://www.koding.com/docs/creating-a-vagrant-stack'>Where do I get my Kite Query Path?</a>"
 
     form = new KDFormViewWithFields

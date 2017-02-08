@@ -22,7 +22,7 @@ module.exports = class VariablesController extends BaseController
   reviveCredential: (identifier, templateId) ->
 
     @editor.setClass 'loading'
-    @emit Events.Log, 'loading custom variables'
+    @logs.add 'loading custom variables'
 
     remote.api.JCredential.one identifier, (err, credential) =>
       return kd.warn err  if err
@@ -38,7 +38,7 @@ module.exports = class VariablesController extends BaseController
           console.warn "You don't have access to custom variables"
           return kd.warn err
 
-        @emit Events.Log, 'custom variables loaded'
+        @logs.add 'custom variables loaded'
 
         { meta } = data
         if (Object.keys meta).length
