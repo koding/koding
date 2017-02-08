@@ -218,9 +218,12 @@ module.exports = class AccountCredentialListController extends KodingListControl
     Providers._getSupportedProviders().forEach (provider) =>
 
       return  if provider is 'custom'
-      return  if Object.keys(Providers[provider].credentialFields).length is 0
 
-      providerList[Providers[provider].title] =
+      providerData = Providers[provider]
+      return  unless providerData.enabled
+      return  if Object.keys(providerData.credentialFields).length is 0
+
+      providerList[providerData.title] =
         callback : =>
           @_addButtonMenu.destroy()
           @showAddCredentialFormFor provider
@@ -228,7 +231,6 @@ module.exports = class AccountCredentialListController extends KodingListControl
     addButton = new KDButtonView
       cssClass  : options.cssClass ? 'add-big-btn'
       title     : options.title
-      icon      : yes
       callback  : =>
         @_addButtonMenu = new KDContextMenu
           delegate    : addButton
@@ -322,11 +324,9 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
       if noCredFound
       then @addItem(credential).verifyCredential()
-      else
-        @addItem credential, 0
+      else @addItem credential, 0
 
       computeController.emit 'CredentialAdded', credential
-
 
     # Notify all registered listeners because we need to re-calculate width / height of the KDCustomScroll which in Credentials tab.
     # The KDCustomScroll was hidden while Stacks screen is rendering.
@@ -334,3 +334,5 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
     view.scrollView.wrapper.addSubView view.form
     view.addSubView view.scrollView
+
+    return view
