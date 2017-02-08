@@ -24,6 +24,8 @@ module.exports = class SideView extends BaseView
 
     super
 
+    @_loaderView.destroy()
+
     for name, { view, controls = {} } of @getOption 'views'
 
       @wrapper.addSubView view
@@ -35,6 +37,8 @@ module.exports = class SideView extends BaseView
         @controls.addSubView generator()
 
       view.hide()
+
+    @_createLoaderView()
 
 
   show: (viewName) ->
