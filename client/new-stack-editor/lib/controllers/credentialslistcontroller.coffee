@@ -81,6 +81,30 @@ module.exports = class StackCredentialListController extends AccountCredentialLi
     super items
 
     @emit Events.CredentialListUpdated
+
+
+  showAddCredentialFormFor: (provider) ->
+
+    view = super provider
+    view.setClass 'has-markdown'
+
+    @selectionView.setData { provider }
+    @selectionView.show()
+
+    @selectionView.click = (event) ->
+      view.form.emit 'Cancel'
+      kd.utils.stopDOMEvent event
+
+    view.form.on 'KDObjectWillBeDestroyed', =>
+      if @_filter
+        @selectionView.setData @_filter
+        @selectionView.click = @bound 'handleClearFilter'
+      else
+        @selectionView.hide()
+
+    return view
+
+
   handleClearFilter: (event) ->
 
     @getListView().emit Events.CredentialFilterChanged

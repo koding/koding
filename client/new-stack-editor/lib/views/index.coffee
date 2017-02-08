@@ -93,7 +93,7 @@ module.exports = class StackEditor extends kd.View
       views         :
         credentials :
           title     : 'Credentials'
-          cssClass  : 'credentials show-controls'
+          cssClass  : 'credentials show-controls has-markdown'
           view      : @credentialsController.getView()
           controls  :
             plus    : =>
