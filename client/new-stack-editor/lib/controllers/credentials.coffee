@@ -93,4 +93,4 @@ module.exports = class CredentialsController extends BaseController
       cssClass : 'plus'
       diff     :
         x      : -93
-        y      : -4
+        y      : 12

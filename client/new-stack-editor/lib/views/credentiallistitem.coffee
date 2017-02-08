@@ -62,10 +62,13 @@ module.exports = class CredentialListItem extends kd.ListItemView
     @checkBox.getValue()
 
 
+  verifyCredential: ->
+
+
   pistachio: ->
 
     '''
     {{> @checkBox}} {span.title{#(title)}}
-    {{> @edit}} {{> @delete}} {{> @preview}}
+    {{> @delete}} {{> @preview}}
     {{> @provider}}
     '''

@@ -24,6 +24,9 @@ module.exports = class StackCredentialListController extends AccountCredentialLi
     list = @getListView()
     listView = @getView()
 
+    @getOption('noItemFoundWidget').addSubView @_createAddCredentialMenuButton
+      title    : 'Create New'
+
     statusView = list.addSubView new kd.CustomHTMLView
       cssClass : 'status-view'
 
@@ -44,6 +47,8 @@ module.exports = class StackCredentialListController extends AccountCredentialLi
       '
     , { provider : '' }
 
+    list.on 'ItemDeleted', => @emit Events.CredentialListUpdated
+
     list.on Events.CredentialFilterChanged, (provider) =>
 
       return  if provider and not @selectionView.hasClass 'hidden'
@@ -60,6 +65,7 @@ module.exports = class StackCredentialListController extends AccountCredentialLi
       @selectionView.click = @bound 'handleClearFilter'
 
       @filterByProvider @_filter
+
 
 
   showLazyLoader: ->

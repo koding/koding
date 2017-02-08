@@ -234,7 +234,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
       callback  : =>
         @_addButtonMenu = new KDContextMenu
           delegate    : addButton
-          y           : addButton.getY() + (options.diff?.y ? 0)
+          y           : addButton.getY() + addButton.getHeight() + (options.diff?.y ? 0)
           x           : addButton.getX() + (options.diff?.x ? 0)
           width       : 240
         , providerList
