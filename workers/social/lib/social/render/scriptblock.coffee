@@ -164,35 +164,6 @@ module.exports = (options = {}, callback) ->
   ]
 
   async.parallel queue, ->
-
-    # do corrections to data here - if required.
-    async.series [
-
-      (next) ->
-        return next()  unless currentGroup
-
-        if currentGroup.socialApiChannelId and currentGroup.socialApiDefaultChannelId
-          return next()
-
-        console.log "#{currentGroup.slug} does not have socialapi data"
-
-        # if we somehow dont have required socialapi channels, create them
-        currentGroup.createSocialApiChannels client, (err) ->
-          if err
-            console.log "Couldnt create socialapi channels for #{currentGroup.slug}"
-            return next()
-
-          currentGroup.fetchMembers (err, members) ->
-            if err
-              console.log "Couldnt fetch members of #{currentGroup.slug}", err
-              return next()
-
-            return next() unless members?.length
-
-            # this is fire and forget
-            members.forEach (member) ->
-              SocialAccount.addParticipant { group: currentGroup, member: member }
-
-            next()
-
-    ], -> callback null, createHTML()
+    # datafixes is noop if there no op is required. (pun intended)
+    require('./datafixes') client, currentGroup, (err, data) ->
+      callback null, createHTML()
