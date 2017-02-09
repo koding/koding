@@ -18,7 +18,10 @@ module.exports = class DeleteTeamOverlay extends kd.OverlayView
     @addSubView new kd.CustomHTMLView
       cssClass: 'content'
       partial: '''
-          <img class='blackhole' />
+          <img class='blackhole' src='/a/images/black_hole.png' srcset='/a/images/black_hole.png 1x, /a/images/black_hole@2x.png 2x' />
+          <img class="spaceship spaceship1" src='/a/images/UFO.png'  srcset='/a/images/UFO.png 1x, /a/images/UFO@2x.png 2x' />
+          <img class="spaceship spaceship2" src='/a/images/UFO.png'  srcset='/a/images/UFO.png 1x, /a/images/UFO@2x.png 2x' />
+          <img class="spaceship spaceship3" src='/a/images/UFO.png'  srcset='/a/images/UFO.png 1x, /a/images/UFO@2x.png 2x' />
           <div class='content-header'>
             The end of an era!
           </div>
@@ -26,4 +29,9 @@ module.exports = class DeleteTeamOverlay extends kd.OverlayView
             Your team is gone but we hope the memories were stellar.
             Next, you can login to another team or create a new one.
           </div>
+          <a href="/Teams/Select">Close</a>
         '''
+
+    setTimeout ->
+      window.location = '/Teams/Select'
+    , 10000
