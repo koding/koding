@@ -14,8 +14,8 @@ koding = new Bongo
   models : '../../workers/social/lib/social/models'
 
 koding.once 'dbClientReady', ->
-
-  JAccount.someData {}, { _id: 1 }, {}, (err, cursor) ->
+  selector = { "socialApiId": { $exists: false }}
+  JAccount.someData selector, { _id: 1 }, {}, (err, cursor) ->
     return console.error err  if err
 
     iterate = do (i = 0) ->

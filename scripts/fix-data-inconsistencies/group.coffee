@@ -3,8 +3,9 @@ koding = require '../../servers/lib/server/bongo'
 
 koding.once 'dbClientReady', ->
   { JGroup } = koding.models
-
-  JGroup.someData {}, { _id: 1 }, {}, (err, cursor) ->
+  
+  selector = { "socialApiChannelId" : { $exists: false } }
+  JGroup.someData selector, { _id: 1 }, {}, (err, cursor) ->
     return console.error err  if err
 
     iterate = do (i = 0) ->
