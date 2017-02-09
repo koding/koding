@@ -20,6 +20,22 @@ const (
 	statusDone                         // Event is completed.
 )
 
+// String returns textual representation of event status.
+func (s status) String() string {
+	switch s {
+	case statusPush:
+		return "PUSH"
+	case statusPop:
+		return "POP_"
+	case statusDeprecated:
+		return "DEPR"
+	case statusDone:
+		return "DONE"
+	}
+
+	return "UNKN"
+}
+
 // Event wraps index change with context.Context. When more index.Changes arrive
 // to anteroom, they are coalesced and have the same context.
 type Event struct {
@@ -82,4 +98,9 @@ func (e *Event) Done() {
 		e.parent.detach(e.change.Name(), e.id)
 		e.cancel()
 	}
+}
+
+// String implements fmt.Stringer interface it pretty prints stored event.
+func (e *Event) String() string {
+	return status(atomic.LoadUint64((*uint64)(&e.stat))).String() + " " + e.change.String()
 }
