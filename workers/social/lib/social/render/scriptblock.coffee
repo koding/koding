@@ -164,6 +164,7 @@ module.exports = (options = {}, callback) ->
   ]
 
   async.parallel queue, ->
-    # datafixes is noop if there no op is required. (pun intended)
-    require('./datafixes') client, currentGroup, (err, data) ->
+    # datafixes is noop if no op is required. (pun intended)
+    account = client?.connection?.delegate
+    require('./datafixes') account, currentGroup, (err, data) ->
       callback null, createHTML()

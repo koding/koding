@@ -1,11 +1,9 @@
-module.exports = (client, currentGroup, callback) ->
+module.exports = (account, currentGroup, callback) ->
 
   async     = require 'async'
   SocialAccount = require '../../../../../servers/models/socialapi/socialaccount'
 
-
   accountCreated = no
-  account = client?.connection?.delegate
   who = account?.profile?.nickname or account?._id
 
   # do corrections to data here - if required.
@@ -62,6 +60,7 @@ module.exports = (client, currentGroup, callback) ->
       # get in this block. but we might do. ¯\_(ツ)_/¯
 
       return next()  unless accountCreated
+      return next()  unless currentGroup
 
       SocialAccount.addParticipant { group: currentGroup, member: account }
       console.log "Created socialapi channels for #{currentGroup.slug}"
