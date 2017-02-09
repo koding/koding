@@ -166,7 +166,7 @@ generateMethodPaths = (model, definitions, paths, docs) ->
   for method, signatures of methods.statik
 
     response      =
-      description : 'Request processed succesfully'
+      description : 'Request processed successfully'
       schema      :
         $ref      : '#/definitions/DefaultResponse'
 
