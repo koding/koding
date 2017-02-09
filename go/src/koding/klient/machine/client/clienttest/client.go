@@ -88,6 +88,8 @@ type Client struct {
 	ctx context.Context
 }
 
+var _ client.Client = (*Client)(nil)
+
 // NewClient create a new Client instance with background context.
 func NewClient() *Client {
 	return &Client{

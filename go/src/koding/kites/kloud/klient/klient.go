@@ -377,7 +377,9 @@ func (k *Klient) MountGetIndex(path string) (*index.Index, error) {
 		return nil, err
 	}
 
-	resp := index.GetResponse{}
+	resp := index.GetResponse{
+		Index: index.NewIndex(),
+	}
 	if err := raw.Unmarshal(&resp); err != nil {
 		return nil, err
 	}
