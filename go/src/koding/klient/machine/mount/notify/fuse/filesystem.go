@@ -16,6 +16,7 @@ import (
 	"koding/klient/machine/mount/notify"
 
 	"github.com/jacobsa/fuse"
+	origfuse "github.com/jacobsa/fuse"
 	"github.com/jacobsa/fuse/fuseops"
 	"github.com/jacobsa/fuse/fuseutil"
 	"golang.org/x/net/context"
@@ -121,6 +122,13 @@ func NewFilesystem(opts *Opts) (*Filesystem, error) {
 		dirs:      make(map[fuseops.HandleID]*dir),
 		pending:   make(map[string]fuseops.InodeID),
 	}
+
+	m, err := origfuse.Mount(opts.MountDir, fuseutil.NewFileSystemServer(fs), fs.Config())
+	if err != nil {
+		return nil, err
+	}
+
+	go m.Join(context.Background())
 
 	return fs, nil
 }
