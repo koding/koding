@@ -1,20 +1,10 @@
-path = require 'path'
-Bongo   = require 'bongo'
-KONFIG = require 'koding-config-manager'
-
-modelPath = '../../workers/social/lib/social'
-rekuire   = (p) -> require path.join modelPath, p
-
-fixdata = rekuire 'render/datafixes'
-JAccount = rekuire 'models/account'
-
-koding = new Bongo
-  root   : __dirname
-  mongo  : "mongodb://#{KONFIG.mongo}"
-  models : '../../workers/social/lib/social/models'
+koding = require '../../servers/lib/server/bongo'
+fixdata = require '../../workers/social/lib/social/render/datafixes'
 
 koding.once 'dbClientReady', ->
-  selector = { "socialApiId": { $exists: false }}
+  { JAccount, JSession } = koding.models
+
+  selector = { 'socialApiId': { $exists: false } }
   JAccount.someData selector, { _id: 1 }, {}, (err, cursor) ->
     return console.error err  if err
 
@@ -33,11 +23,18 @@ koding.once 'dbClientReady', ->
             console.log 'finished'
             return process.exit 0
 
-          JAccount.one { _id: account._id }, ( err, acc ) ->
+          JAccount.one { _id: account._id }, (err, acc) ->
             if err
               console.log 'err while getting acc', account._id, err
               next()
             else
-              fixdata acc, null, next
+              sessionData = { username: acc.profile.nickname, groupName: 'koding' }
+              JSession.fetchSessionByData sessionData, (err, session) ->
+                return console.error 'err while fetching session', err  if err
+                return console.error 'couldnt find a session'  unless session
+
+                context = { group: 'koding' }
+                koding.fetchClient session.clientId, context, (client) ->
+                  fixdata client, null, next
 
     iterate()
