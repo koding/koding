@@ -22,7 +22,7 @@ type Node struct {
 func newNode() *Node {
 	return &Node{
 		Sub:   make(map[string]*Node),
-		Entry: NewEntry(0, 0755|os.ModeDir),
+		Entry: NewEntry(10, 0700|os.ModeDir),
 	}
 }
 
