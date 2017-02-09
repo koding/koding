@@ -246,17 +246,19 @@ func tabListMountFormatter(w io.Writer, mounts map[string][]sync.Info) {
 	tw := tabwriter.NewWriter(w, 2, 0, 2, ' ', 0)
 
 	// TODO: keep the mounts list sorted.
-	fmt.Fprintf(tw, "ID\tMACHINE\tMOUNT\tFILES\tSIZE\n")
+	fmt.Fprintf(tw, "ID\tMACHINE\tMOUNT\tFILES\tQUEUED\tSYNCING\tSIZE\n")
 	for alias, infos := range mounts {
 		for _, info := range infos {
-			fmt.Fprintf(tw, "%s\t%s\t%s\t%d/%d\t%s/%s\n",
+			fmt.Fprintf(tw, "%s\t%s\t%s\t%d/%d\t%d\t%d\t%s/%s\n",
 				info.ID,
 				alias,
 				info.Mount,
 				info.SyncCount,
 				info.AllCount,
-				humanize.IBytes(uint64(info.SyncDiskSize)),
+				info.Queued,
+				info.Syncing,
 				humanize.IBytes(uint64(info.AllDiskSize)),
+				humanize.IBytes(uint64(info.SyncDiskSize)),
 			)
 		}
 	}
