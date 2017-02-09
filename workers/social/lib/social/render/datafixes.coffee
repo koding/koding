@@ -1,9 +1,10 @@
-module.exports = (account, currentGroup, callback) ->
+module.exports = (client, currentGroup, callback) ->
 
   async     = require 'async'
   SocialAccount = require '../../../../../servers/models/socialapi/socialaccount'
 
   accountCreated = no
+  account = client?.connection?.delegate
   who = account?.profile?.nickname or account?._id
 
   # do corrections to data here - if required.
