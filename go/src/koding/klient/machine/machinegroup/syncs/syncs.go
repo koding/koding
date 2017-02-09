@@ -237,7 +237,7 @@ func (s *Syncs) Drop(mountID mount.ID) (err error) {
 }
 
 // Close closes and removes all stored syncs.
-func (s *Syncs) Close() {
+func (s *Syncs) Close() error {
 	s.once.Do(func() {
 		s.mu.Lock()
 		s.closed = true
@@ -250,4 +250,6 @@ func (s *Syncs) Close() {
 		close(s.stopC)
 		s.wg.Wait()
 	})
+
+	return nil
 }

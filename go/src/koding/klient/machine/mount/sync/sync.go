@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"time"
@@ -55,7 +56,7 @@ type Syncer interface {
 	ExecStream(<-chan *Event) <-chan Execer
 
 	// Close cleans up syncer resources.
-	Close()
+	io.Closer
 }
 
 // Info stores information about current mount status.
@@ -192,8 +193,7 @@ func NewSync(mountID mount.ID, m mount.Mount, opts SyncOpts) (*Sync, error) {
 		LocalIdx:  s.lidx,
 	})
 	if err != nil {
-		s.a.Close()
-		return nil, err
+		return nil, nonil(err, s.a.Close())
 	}
 
 	// Create file synchronization object.
@@ -202,9 +202,7 @@ func NewSync(mountID mount.ID, m mount.Mount, opts SyncOpts) (*Sync, error) {
 		LocalIdx:  s.lidx,
 	})
 	if err != nil {
-		s.n.Close()
-		s.a.Close()
-		return nil, err
+		return nil, nonil(err, s.n.Close(), s.a.Close())
 	}
 
 	return s, nil
@@ -238,10 +236,8 @@ func (s *Sync) Drop() error {
 }
 
 // Close closes memory resources acquired by Sync object.
-func (s *Sync) Close() {
-	s.n.Close()
-	s.s.Close()
-	s.a.Close()
+func (s *Sync) Close() error {
+	return nonil(s.n.Close(), s.s.Close(), s.a.Close())
 }
 
 // loadIdx reads named index from synced working directory. If index file does
@@ -290,4 +286,13 @@ func (s *Sync) updateLocal() error {
 
 	s.lidx.Apply(dataPath, cs)
 	return index.SaveIndex(s.lidx, filepath.Join(s.opts.WorkDir, LocalIndexName))
+}
+
+func nonil(err ...error) error {
+	for _, e := range err {
+		if e != nil {
+			return e
+		}
+	}
+	return nil
 }

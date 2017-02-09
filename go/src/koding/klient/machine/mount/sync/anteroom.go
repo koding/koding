@@ -115,7 +115,7 @@ func (a *Anteroom) Status() (items int, queued int) {
 
 // Close stops the dynamic client. After this function is called, client is
 // in disconnected state and each contexts returned by it are closed.
-func (a *Anteroom) Close() {
+func (a *Anteroom) Close() error {
 	a.once.Do(func() {
 		a.mu.Lock()
 		defer a.mu.Unlock()
@@ -131,6 +131,8 @@ func (a *Anteroom) Close() {
 		a.closed = true
 		close(a.stopC) // Stop dispatching go-routine.
 	})
+
+	return nil
 }
 
 // dequeue pops events from the queue and sends them to events channel.

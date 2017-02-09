@@ -80,8 +80,10 @@ func (d *Discard) ExecStream(evC <-chan *msync.Event) <-chan msync.Execer {
 }
 
 // Close stops all created synchronization streams.
-func (d *Discard) Close() {
+func (d *Discard) Close() error {
 	d.once.Do(func() {
 		close(d.stopC)
 	})
+
+	return nil
 }
