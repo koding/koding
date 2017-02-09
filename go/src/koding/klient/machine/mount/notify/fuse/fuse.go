@@ -302,11 +302,11 @@ func (fs *Filesystem) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error 
 		return fuse.EIO
 	}
 
-	d.files = d.files[int(op.Offset):]
+	files := d.files[int(op.Offset):]
 
-	dirent := make([]*fuseutil.Dirent, 0, len(d.files))
+	dirent := make([]*fuseutil.Dirent, 0, len(files))
 
-	for i, file := range d.files {
+	for i, file := range files {
 		sub := dir.Sub[file]
 
 		dirent = append(dirent, &fuseutil.Dirent{
@@ -325,7 +325,6 @@ func (fs *Filesystem) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error 
 		n := fuseutil.WriteDirent(op.Dst[sum:], *dir)
 		if n == 0 {
 			d.offset += i
-			d.files = d.files[i+1:]
 			break
 		}
 

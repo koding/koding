@@ -95,28 +95,33 @@ func (bc *BindCache) process() {
 		isRemoteSrc := change.Meta()&index.ChangeMetaRemote != 0
 
 		var src, dst string
+		var err error
 
 		if isRemoteSrc {
-			base, err := filepath.Rel(bc.loc, change.Name())
-			if err != nil {
-				log.Printf("BindCache: failed to preprare files for sync: %s", err)
+			base := change.Name()
+
+			if filepath.IsAbs(base) {
+				if base, err = filepath.Rel(bc.tmp, base); err != nil {
+					log.Printf("BindCache: failed to preprare files for sync: %s", err)
+				}
 			}
 
 			// bind-mount dir source (remote) -> cache dir (local)
 			src = filepath.Join(bc.loc, base)
 			dst = filepath.Join(bc.tmp, base)
 		} else {
-			base, err := filepath.Rel(bc.tmp, change.Name())
-			if err != nil {
-				log.Printf("BindCache: failed to preprare files for sync: %s", err)
+			base := change.Name()
+
+			if filepath.IsAbs(base) {
+				if base, err = filepath.Rel(bc.loc, base); err != nil {
+					log.Printf("BindCache: failed to preprare files for sync: %s", err)
+				}
 			}
 
 			// cache dir (local) -> bind-mount dir source (remote)
 			src = filepath.Join(bc.tmp, base)
 			dst = filepath.Join(bc.loc, base)
 		}
-
-		var err error
 
 		switch {
 		case change.Meta()&(index.ChangeMetaAdd|index.ChangeMetaUpdate) != 0:
@@ -133,6 +138,8 @@ func (bc *BindCache) process() {
 		if !isRemoteSrc {
 			bc.idx.Apply(bc.loc, bc.idx.CompareBranch(change.Name(), bc.loc))
 		}
+
+		change.cancel()
 	}
 }
 
