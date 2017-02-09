@@ -36,6 +36,7 @@ import (
 	mclient "koding/klient/machine/client"
 	"koding/klient/machine/index"
 	"koding/klient/machine/machinegroup"
+	"koding/klient/machine/mount/sync/discard"
 	kos "koding/klient/os"
 	"koding/klient/remote"
 	"koding/klient/sshkeys"
@@ -324,6 +325,7 @@ func NewKlient(conf *KlientConfig) (*Klient, error) {
 	machinesOpts := &machinegroup.GroupOpts{
 		Storage:         storage.NewEncodingStorage(db, []byte("machines")),
 		Builder:         mclient.NewKiteBuilder(k),
+		SyncBuilder:     discard.DiscardBuilder{},
 		DynAddrInterval: 2 * time.Second,
 		PingInterval:    15 * time.Second,
 		WorkDir:         cfg.KodingCacheHome(),
