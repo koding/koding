@@ -604,7 +604,7 @@ func (c *MountCommand) cacheWithProgress(cacheReq req.Cache) (err error) {
 		bar.Set(p.Progress)
 
 		// TODO: Disable the callback here, so that it's impossible to double call
-		// the progress after competition - to avoid weird/bad UX and errors.
+		// the progress after completion - to avoid weird/bad UX and errors.
 		if p.Progress == 100 {
 			doneErr <- nil
 		}
@@ -821,7 +821,7 @@ func (c *MountCommand) AutocompleteRemotePath(machineName, remotePath string) er
 			// meaning we need to return a potential match including the entire string.
 			//
 			// IMPORTANT: The ending slash causes Fish to not add a space at the end
-			// of the competition, making the UX much better.
+			// of the completion, making the UX much better.
 			c.printfln("%s:%s/", machineName, f.FullPath)
 		}
 	}
