@@ -1576,75 +1576,84 @@ module.exports = class JGroup extends Module
       account = client?.connection?.delegate
       { sessionToken } = client
 
-      @checkUserPassword account, password, (err) =>
+      # mark this team as deleted
+      @update { $set: { markAs: 'deleted' } }, (err) =>
 
         return callback new KodingError err  if err
 
-        slug = @getAt 'slug'
-        JName = require '../name'
+        @checkUserPassword account, password, (err) =>
 
-        removeHelper = (model, err, next) ->
-          return next err  if err
-          return next()  unless model
+          return callback new KodingError err  if err
 
-          model.remove (err) -> next err
+          slug = @getAt 'slug'
+          JName = require '../name'
 
-        removeHelperMany = (klass, models, err, next) ->
-          return next err  if err
-          return next()    if not models or models.length < 1
+          removeHelper = (model, err, next) ->
+            return next err  if err
+            return next()  unless model
 
-          ids = (model._id for model in models)
-          klass.remove ({ _id: { $in: ids } }), (err) -> next err
+            model.remove (err) -> next err
 
-        async.series [
+          removeHelperMany = (klass, models, err, next) ->
+            return next err  if err
+            return next()    if not models or models.length < 1
 
-          (next) ->
-            JName.one { name: slug }, (err, name) ->
-              removeHelper name, err, next
+            ids = (model._id for model in models)
+            klass.remove ({ _id: { $in: ids } }), (err) -> next err
 
-          (next) =>
-            @fetchPermissionSet (err, permSet) ->
-              removeHelper permSet, err, next
+          async.series [
 
-          (next) =>
-            @fetchDefaultPermissionSet (err, permSet) ->
-              removeHelper permSet, err, next
+            (next) ->
+              JName.one { name: slug }, (err, name) ->
+                removeHelper name, err, next
 
-          (next) ->
-            JInvitation = require '../invitation'
-            JInvitation.remove { groupName: slug }, (err) ->
-              next err
+            (next) =>
+              @fetchPermissionSet (err, permSet) ->
+                removeHelper permSet, err, next
 
-          (next) =>
-            ComputeProvider = require '../computeproviders/computeprovider'
-            ComputeProvider.destroyGroupResources this, -> next()
+            (next) =>
+              @fetchDefaultPermissionSet (err, permSet) ->
+                removeHelper permSet, err, next
 
-          (next) ->
-            url = '/api/social/payment/subscription/delete'
-            { deleteReq } = require '../socialapi/requests'
-
-            deleteReq url, { sessionToken }, (err, body) ->
-              next err
-
-          (next) =>
-            JSession = require '../session'
-            @sendNotification 'GroupDestroyed', slug, ->
-              JSession.remove { groupName: slug }, (err) ->
+            (next) ->
+              JInvitation = require '../invitation'
+              JInvitation.remove { groupName: slug }, (err) ->
                 next err
 
-          (next) ->
-            JApiToken = require '../apitoken'
-            JApiToken.remove { group: slug }, (err) ->
-              next err
+            (next) =>
+              ComputeProvider = require '../computeproviders/computeprovider'
+              ComputeProvider.destroyGroupResources this, -> next()
 
-          (next) =>
-            @constructor.emit 'GroupDestroyed', this
-            next()
+            (next) ->
+              url = '/api/social/payment/subscription/delete'
+              { deleteReq } = require '../socialapi/requests'
 
-          (next) =>
-            @remove (err) -> next err
+              deleteReq url, { sessionToken }, (err, body) ->
+                next err
 
-        ], callback
+            (next) =>
+              JSession = require '../session'
+              @sendNotification 'GroupDestroyed', slug, ->
+                JSession.remove { groupName: slug }, (err) ->
+                  next err
+
+            (next) ->
+              JApiToken = require '../apitoken'
+              JApiToken.remove { group: slug }, (err) ->
+                next err
+
+            (next) =>
+              @constructor.emit 'GroupDestroyed', this
+              next()
+
+            (next) =>
+              @remove (err) -> next err
+
+          ], (err) =>
+            if err
+              @sendNotification 'GroupDestroyed'
+              @remove()
+            callback()
 
 
   sendNotificationToAdmins: (event, contents) ->
