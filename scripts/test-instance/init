@@ -2,7 +2,7 @@
 
 set -o errexit
 
-HOSTNAME="`ec2metadata --instance-id`.test.ci.koding.io"
+HOSTNAME="$(ec2metadata --instance-id).test.ci.koding.io"
 
 export HOME=/root/
 export REPOSITORY_PATH='/opt/koding'
@@ -22,13 +22,13 @@ git config user.email 'sysops@koding.com'
 git config user.name 'Koding Bot'
 
 export KONFIG_SNEAKERS3_AWSSECRETACCESSKEY="" \
-       KONFIG_SNEAKERS3_AWSACCESSKEYID="" \
-       KONFIG_SNEAKERS3_SNEAKERS3PATH="" \
-       KONFIG_SNEAKERS3_SNEAKERMASTERKEY="" \
-       KONFIG_SNEAKERS3_AWSREGION="" \
-       KONFIG_KLOUD_CREDENTIALENDPOINT="" \
-       KONFIG_SENDEVENTSTOSEGMENT="false" \
-       KONFIG_CLIENT_RUNTIMEOPTIONS_SENDEVENTSTOSEGMENT="false"
+	KONFIG_SNEAKERS3_AWSACCESSKEYID="" \
+	KONFIG_SNEAKERS3_SNEAKERS3PATH="" \
+	KONFIG_SNEAKERS3_SNEAKERMASTERKEY="" \
+	KONFIG_SNEAKERS3_AWSREGION="" \
+	KONFIG_KLOUD_CREDENTIALENDPOINT="" \
+	KONFIG_SENDEVENTSTOSEGMENT="false" \
+	KONFIG_CLIENT_RUNTIMEOPTIONS_SENDEVENTSTOSEGMENT="false"
 
 npm install --unsafe-perm
 ./configure --config dev --host $HOSTNAME --hostname $HOSTNAME --publicPort 80 --disable-segment
@@ -36,7 +36,7 @@ go/build.sh
 make -C client dist
 
 TEST_EXTRAS="--no-start-selenium --url http://$HOST" \
-  make -C client/test build
+	make -C client/test build
 
 ./run buildservices force
 
@@ -49,18 +49,18 @@ export TEST_VENDOR=$REPOSITORY_PATH/client/test/vendor
 export DISPLAY=:0
 Xvfb $DISPLAY -shmem -screen 0 1440x900x16 &
 java -jar $TEST_VENDOR/selenium-server-standalone.jar \
-     -host 0.0.0.0 \
-     -port 42420 \
-     -Dwebdriver.gecko.driver=$TEST_VENDOR/geckodriver/linux64/geckodriver \
-     &> $REPOSITORY_PATH/.logs/selenium-host.log &
+	-host 0.0.0.0 \
+	-port 42420 \
+	-Dwebdriver.gecko.driver=$TEST_VENDOR/geckodriver/linux64/geckodriver \
+	&>$REPOSITORY_PATH/.logs/selenium-host.log &
 
 export DISPLAY=:1
 Xvfb $DISPLAY -shmem -screen 1 1440x900x16 &
 java -jar $TEST_VENDOR/selenium-server-standalone.jar \
-     -host 0.0.0.0 \
-     -port 42421 \
-     -Dwebdriver.gecko.driver=$TEST_VENDOR/geckodriver/linux64/geckodriver \
-     &> $REPOSITORY_PATH/.logs/selenium-participant.log &
+	-host 0.0.0.0 \
+	-port 42421 \
+	-Dwebdriver.gecko.driver=$TEST_VENDOR/geckodriver/linux64/geckodriver \
+	&>$REPOSITORY_PATH/.logs/selenium-participant.log &
 
 sleep 10
 

@@ -23,7 +23,6 @@ if [[ ! -f "${KLOUD_DIR}/kloud.pem" ]]; then
 	mv "${KLOUD_DIR}"/kloud{.pem,}.pub
 fi
 
-
 if [[ ! -f "${KITE_DIR}/kite.key" ]]; then
 	mkdir -p "${KITE_DIR}"
 	go run "${REPO_HOME}/go/src/koding/kites/kloud/scripts/kitekey/main.go" \

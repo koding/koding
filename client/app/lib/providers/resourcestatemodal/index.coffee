@@ -1,5 +1,5 @@
 kd = require 'kd'
-ResurceStateController = require './controllers/resourcestatecontroller'
+ResourceStateController = require './controllers/resourcestatecontroller'
 BaseModalView = require 'app/commonviews/basemodalview'
 
 module.exports = class ResourceStateModal extends BaseModalView
@@ -15,7 +15,7 @@ module.exports = class ResourceStateModal extends BaseModalView
     @off 'childAppended'
 
     { initial } = @getOptions()
-    @controller = new ResurceStateController { container: this, initial }, @getData()
+    @controller = new ResourceStateController { container: this, initial }, @getData()
     @controller.on 'PaneDidShow', @bound 'setPositions'
     @controller.on 'ClosingRequested', @bound 'destroy'
     @forwardEvent @controller, 'IDEBecameReady'

@@ -12,8 +12,8 @@ PREFIX=$1
 DESTINATION="s3://$BUCKET/$PREFIX/$INSTANCE_ID"
 
 if [ -z "$PREFIX" ]; then
-  echo 'error: prefix parameter is not given'
-  exit 1
+	echo 'error: prefix parameter is not given'
+	exit 1
 fi
 
 S3CMD_OPTIONS="--human-readable-sizes --follow-symlinks --quiet"

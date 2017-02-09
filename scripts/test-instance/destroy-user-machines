@@ -6,12 +6,12 @@ SCRIPTS_DIR=$REPOSITORY_DIR/scripts/test-instance
 KLOUD_DESTROY_COMMAND="$REPOSITORY_DIR/go/bin/kloudctl destroy"
 
 if [ -z "$MONGODB_URL" ]; then
-  MONGODB_URL=localhost/koding
+	MONGODB_URL=localhost/koding
 fi
 
 MACHINE_IDS=$(mongo --quiet $MONGODB_URL $SCRIPTS_DIR/print-machine-ids.js)
 
-echo "$MACHINE_IDS" | \
-  xargs -n 1 \
-        -I MACHINE_ID \
-        $KLOUD_DESTROY_COMMAND --ids=MACHINE_ID
+echo "$MACHINE_IDS" \
+	| xargs -n 1 \
+		-I MACHINE_ID \
+		$KLOUD_DESTROY_COMMAND --ids=MACHINE_ID

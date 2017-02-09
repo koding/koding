@@ -17,8 +17,7 @@ module.exports = class KodingListController extends KDListViewController
     else
       options.viewOptions           ?= {}
       options.viewOptions.itemClass ?= options.itemClass
-
-      options.view  ?= new KodingListView options.viewOptions
+      options.view ?= new (options.viewClass ? KodingListView) options.viewOptions
 
     options.itemClass              ?= KDListItemView
 
@@ -48,7 +47,7 @@ module.exports = class KodingListController extends KDListViewController
     @filterStates =
       skip        : 0
       busy        : no
-      query       : {}
+      query       : options.baseQuery ? {}
       page        : 0
 
     super options, data

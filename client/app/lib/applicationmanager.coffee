@@ -108,9 +108,12 @@ class ApplicationManager extends KDObject
       appParams = options.params or {}
 
       if appOptions?.multiple
-        if options.forceNew or appOptions.openWith is 'forceNew'
+        { forceNew, showInstance = yes } = options
+        if forceNew or appOptions.openWith is 'forceNew'
           return @create name, appParams, (appInstance) =>
-            @showInstance appInstance, callback
+            if showInstance
+            then @showInstance appInstance, callback
+            else kd.utils.defer -> callback appInstance
 
         switch appOptions.openWith
           when 'lastActive' then do defaultCallback

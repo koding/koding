@@ -40,15 +40,6 @@ module.exports = class StackEditor extends kd.View
     @toolbar = new Toolbar
     @forwardEvent @toolbar, Events.InitializeRequested
 
-    # SideView for Search and Credentials
-    @credentialsController = new CredentialsController
-    @sideView       = new SideView
-      title         : yes
-      views         :
-        credentials :
-          title     : 'Credentials'
-          view      : @credentialsController.listView
-
     # Status bar
     @statusbar = new Statusbar
 
@@ -70,9 +61,6 @@ module.exports = class StackEditor extends kd.View
       @statusbar
     }
 
-    @logsController = new LogsController
-      editor: @logs
-
     @variables = new Editor {
       cssClass: 'variables'
       title: 'Custom Variables'
@@ -81,10 +69,6 @@ module.exports = class StackEditor extends kd.View
       @statusbar
     }
 
-    @variablesController = new VariablesController
-      editor: @variables
-    @variablesController.on Events.Log, @logsController.bound 'add'
-
     @readme = new Editor {
       cssClass: 'readme'
       title: 'Readme'
@@ -92,6 +76,28 @@ module.exports = class StackEditor extends kd.View
       help: Help.readme
       @statusbar
     }
+
+    @logsController = new LogsController
+      editor: @logs
+
+    @variablesController = new VariablesController
+      editor: @variables
+      logs  : @logsController
+
+    # SideView for Search and Credentials
+    @credentialsController = new CredentialsController
+      logs  : @logsController
+
+    @sideView       = new SideView
+      title         : yes
+      views         :
+        credentials :
+          title     : 'Credentials'
+          cssClass  : 'credentials show-controls has-markdown'
+          view      : @credentialsController.getView()
+          controls  :
+            plus    : =>
+              @credentialsController.getCredentialAddButton()
 
     @emit 'ready'
 
