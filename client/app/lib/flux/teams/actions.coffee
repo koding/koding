@@ -17,6 +17,7 @@ VerifyPasswordModal = require 'app/commonviews/verifypasswordmodal'
 KodingKontrol = require 'app/kite/kodingkontrol'
 globals = require 'globals'
 showError = require 'app/util/showError'
+DeleteTeamOverlay = require 'app/components/deleteteamoverlay'
 
 loadTeam = ->
 
@@ -312,6 +313,9 @@ deleteTeam = (partial) ->
 
           return reject err.message  if err
           return reject 'Current password cannot be confirmed'  unless confirmed
+
+          # show delete team overlay
+          new DeleteTeamOverlay()
 
           { groupsController, reactor } = kd.singletons
           team = groupsController.getCurrentGroup()
