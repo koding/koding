@@ -3,6 +3,7 @@ package sync
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -42,6 +43,9 @@ type Execer interface {
 	// Exec starts synchronization of stored syncing job. It should update
 	// indexes and clean up synced Event.
 	Exec() error
+
+	// fmt.Stringer defines human readable information about the event.
+	fmt.Stringer
 }
 
 // Syncer is an interface which must be implemented by external syncer.

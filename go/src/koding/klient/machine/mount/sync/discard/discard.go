@@ -23,9 +23,16 @@ type Event struct {
 // Exec satisfies msync.Execer interface. The only thing this method does is
 // closing internal sync event.
 func (e *Event) Exec() error {
-	e.ev.Done()
+	if e.ev.Valid() {
+		e.ev.Done()
+	}
 
 	return nil
+}
+
+// String implements fmt.Stringer interface. It pretty prints internal event.
+func (e *Event) String() string {
+	return e.ev.String() + " - " + "discarded"
 }
 
 // Discard is a no-op synchronization object. It can be used as a stub for other
