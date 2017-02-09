@@ -311,7 +311,7 @@ unless module.parent
       try
         oldDataInJson = (fs.readFileSync swaggerFilePath).toString()
         oldData = JSON.parse oldDataInJson
-        expect(oldData).to.deep.equal swagger
+        expect(oldData).to.deep.equal JSON.parse swaggerInJson
         console.log 'Swagger.json is up-to-date'
       catch e
         console.error '''
