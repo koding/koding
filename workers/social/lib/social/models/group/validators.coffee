@@ -55,9 +55,24 @@ module.exports = Validators =
 
       else
         ownerSelector =
-          sourceId    : delegateId
-          targetId    : @getId()
-          as          : 'owner'
+          $or : [
+            {
+              sourceId    : delegateId
+              targetId    : @getId()
+              as          : 'owner'
+            }
+            # cc: ~GG
+            # there is a misdirected relationship between JGroup and JAccount
+            # which prevents previous logic to work for ownership validation
+            # this additional query will cover that one for JGroup only
+            # this must be removed once relationship is updated ~ Hakan
+            {
+              sourceName  : 'JGroup'
+              sourceId    : @getId()
+              targetId    : delegateId
+              as          : 'owner'
+            }
+          ]
 
         Relationship.count ownerSelector, createExistenceCallback callback
 
