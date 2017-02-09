@@ -225,7 +225,7 @@ func (c *Client) commitMetadata(m Metadata, fn metadataCommitFunc) error {
 // at home to the owner user, if it's not a root.
 func (c *Client) FixOwner() error {
 	// Don't change owner
-	if c.owner().Uid == "0" {
+	if c.owner().User.Uid == "0" {
 		return nil
 	}
 

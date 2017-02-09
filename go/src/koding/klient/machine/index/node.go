@@ -18,14 +18,15 @@ func newNode() *Node {
 }
 
 func (nd *Node) Add(name string, entry *Entry) {
-	for {
-		node := name
+	if name == "/" {
+		nd.Entry = entry
+		return
+	}
 
-		if i := strings.IndexRune(name, '/'); i != -1 {
-			node, name = name[:i], name[i+1:]
-		} else {
-			name = ""
-		}
+	var node string
+
+	for {
+		node, name = split(name)
 
 		sub, ok := nd.Sub[node]
 		if !ok {
@@ -43,14 +44,10 @@ func (nd *Node) Add(name string, entry *Entry) {
 }
 
 func (nd *Node) Del(name string) {
-	for {
-		node := name
+	var node string
 
-		if i := strings.IndexRune(name, '/'); i != -1 {
-			node, name = name[:i], name[i+1:]
-		} else {
-			name = ""
-		}
+	for {
+		node, name = split(name)
 
 		if name == "" {
 			delete(nd.Sub, node)
@@ -140,14 +137,14 @@ func (nd *Node) ForEach(fn func(string, *Entry)) {
 }
 
 func (nd *Node) Lookup(name string) (*Node, bool) {
-	for {
-		node := name
+	if name == "/" {
+		return nd, true
+	}
 
-		if i := strings.IndexRune(name, '/'); i != -1 {
-			node, name = name[:i], name[i+1:]
-		} else {
-			name = ""
-		}
+	var node string
+
+	for {
+		node, name = split(name)
 
 		sub, ok := nd.Sub[node]
 		if !ok {
@@ -160,4 +157,16 @@ func (nd *Node) Lookup(name string) (*Node, bool) {
 
 		nd = sub
 	}
+}
+
+func split(path string) (string, string) {
+	if path[0] == '/' {
+		path = path[1:]
+	}
+
+	if i := strings.IndexRune(path, '/'); i != -1 {
+		return path[:i], path[i+1:]
+	}
+
+	return path, ""
 }

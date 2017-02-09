@@ -191,10 +191,15 @@ func fixture() *index.Node {
 
 func TestNodeLookup(t *testing.T) {
 	cases := map[string]int64{
-		"addresses":              0,
-		"addresses/addresses.go": 2428,
-		"machinegroup.go":        6839,
-		"idset/idset_test.go":    4231,
+		"/":                       0,
+		"addresses":               0,
+		"addresses/addresses.go":  2428,
+		"machinegroup.go":         6839,
+		"idset/idset_test.go":     4231,
+		"/addresses":              0,
+		"/addresses/addresses.go": 2428,
+		"/machinegroup.go":        6839,
+		"/idset/idset_test.go":    4231,
 	}
 
 	root := fixture()
@@ -264,8 +269,10 @@ func TestNodeAdd(t *testing.T) {
 		{"notify.go", 34},
 		{"notify/notify.go", 36},
 		{"proxy/fuse/fuse.go", 39},
-		{"notify", 39},
-		{"notify/", 39},
+		{"notify", 39},   // no-op
+		{"notify/", 39},  // no-op
+		{"/notify/", 39}, // no-op
+		{"/notify", 39},  // no-op
 	}
 
 	root := fixture()
@@ -306,6 +313,7 @@ func TestNodeDel(t *testing.T) {
 		{"id.go", 21},
 		{"id.go", 21},          // no-op
 		{"nonexisting.go", 21}, // no-op
+		{"/kite.go", 20},
 	}
 
 	root := fixture()
