@@ -27,4 +27,4 @@ module.exports = class Toolbar extends JView
 
 
   pistachio: ->
-    '{h3{#(title)}} {div.controls{> @expandButton}} {{> @actionButton}}'
+    '{cite{}}{h3{#(title)}} {div.controls{> @expandButton}} {{> @actionButton}}'
