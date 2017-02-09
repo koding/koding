@@ -47,6 +47,10 @@ module.exports = class StackCredentialListController extends AccountCredentialLi
       '
     , { provider : '' }
 
+    @on 'NewItemAdded', (item) =>
+      if @_filter and @_filter.provider isnt item.getData().provider
+        @handleClearFilter()
+
     list.on 'ItemDeleted', => @emit Events.CredentialListUpdated
 
     list.on Events.CredentialFilterChanged, (provider) =>

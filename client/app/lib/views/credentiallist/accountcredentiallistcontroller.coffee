@@ -322,11 +322,13 @@ module.exports = class AccountCredentialListController extends KodingListControl
       view.scrollView?.destroy()
       view.form.destroy()
 
-      if noCredFound
+      item = if noCredFound
       then @addItem(credential).verifyCredential()
       else @addItem credential, 0
 
       computeController.emit 'CredentialAdded', credential
+
+      @emit 'NewItemAdded', item
 
     # Notify all registered listeners because we need to re-calculate width / height of the KDCustomScroll which in Credentials tab.
     # The KDCustomScroll was hidden while Stacks screen is rendering.
