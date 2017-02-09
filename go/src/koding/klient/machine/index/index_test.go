@@ -116,8 +116,8 @@ func TestIndex(t *testing.T) {
 
 			// Copy time from result to tests.
 			for i, tc := range test.Changes {
-				if cs[i].Name() != tc.Name() {
-					t.Errorf("want index.Change name = %q; got %q", tc.Name, cs[i].Name)
+				if cs[i].Path() != tc.Path() {
+					t.Errorf("want index.Change path = %q; got %q", tc.Path(), cs[i].Path())
 				}
 				if cs[i].Meta() != tc.Meta() {
 					t.Errorf("want index.Change meta = %bb; got %bb", tc.Meta, cs[i].Meta)

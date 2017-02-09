@@ -151,10 +151,10 @@ func TestAnteroomMultiEvents(t *testing.T) {
 	const eventsN = 1000
 	sent := make(map[string]struct{})
 	for i := 0; i < eventsN; i++ {
-		name := "file" + strconv.Itoa(i) + ".txt"
+		path := "file" + strconv.Itoa(i) + ".txt"
 
-		a.Commit(index.NewChange(name, index.ChangeMetaRemove))
-		sent[name] = struct{}{}
+		a.Commit(index.NewChange(path, index.ChangeMetaRemove))
+		sent[path] = struct{}{}
 	}
 
 	got := make(map[string]struct{})
@@ -164,7 +164,7 @@ func TestAnteroomMultiEvents(t *testing.T) {
 			if ev == nil {
 				t.Fatalf("received nil event")
 			}
-			got[ev.Change().Name()] = struct{}{}
+			got[ev.Change().Path()] = struct{}{}
 		case <-time.After(time.Second):
 			t.Fatalf("timed out after %s", time.Second)
 		}
@@ -186,6 +186,6 @@ func TestAnteroomMultiEvents(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(sent, got) {
-		t.Fatalf("sent event names are not equal to received ones")
+		t.Fatalf("sent event paths are not equal to received ones")
 	}
 }

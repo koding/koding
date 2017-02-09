@@ -54,11 +54,11 @@ func (a *Anteroom) Commit(c *index.Change) context.Context {
 		return ctx
 	}
 
-	ev, ok := a.evs[c.Name()]
+	ev, ok := a.evs[c.Path()]
 	if !ok {
 		// Event for the file doesn't exist. Add new one to evs and queue.
 		ev = NewEvent(context.Background(), a, c)
-		a.evs[c.Name()] = ev
+		a.evs[c.Path()] = ev
 		a.queue.Push(ev)
 		a.wakeup()
 
@@ -88,7 +88,7 @@ func (a *Anteroom) Commit(c *index.Change) context.Context {
 		// Change is deprecated. Re-push new change to the queue but keep
 		// context from old event.
 		newEv := NewEventCopy(ev)
-		a.evs[c.Name()] = newEv
+		a.evs[c.Path()] = newEv
 		a.queue.Push(newEv)
 		a.wakeup()
 	}
@@ -121,11 +121,11 @@ func (a *Anteroom) Close() {
 		defer a.mu.Unlock()
 
 		// Mark all events as deprecated and detach them from the queue.
-		for name, ev := range a.evs {
+		for path, ev := range a.evs {
 			atomic.StoreUint64((*uint64)(&ev.stat), uint64(statusDeprecated))
 			ev.cancel()
 
-			delete(a.evs, name)
+			delete(a.evs, path)
 		}
 
 		a.closed = true
@@ -190,11 +190,11 @@ func (a *Anteroom) wakeup() {
 
 // detach removes the change from coalescing events map only if stored id
 // is equal to provided one.
-func (a *Anteroom) detach(name string, id uint64) {
+func (a *Anteroom) detach(path string, id uint64) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
-	if ev, ok := a.evs[name]; ok && ev.ID() == id {
-		delete(a.evs, name)
+	if ev, ok := a.evs[path]; ok && ev.ID() == id {
+		delete(a.evs, path)
 	}
 }
