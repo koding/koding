@@ -8,6 +8,7 @@ import (
 	"sort"
 	"sync"
 	"sync/atomic"
+	"syscall"
 	"time"
 
 	"koding/kites/config"
@@ -31,8 +32,27 @@ var Builder notify.Builder = builder{}
 
 type builder struct{}
 
+func block(path string) *fs.DiskInfo {
+	stfs := syscall.Statfs_t{}
+
+	if err := syscall.Statfs(path, &stfs); err != nil {
+		return nil
+	}
+
+	di := &fs.DiskInfo{
+		BlockSize:   uint32(stfs.Bsize),
+		BlocksTotal: stfs.Blocks,
+		BlocksFree:  stfs.Bfree,
+	}
+
+	di.BlocksUsed = di.BlocksTotal - di.BlocksFree
+
+	return di
+}
+
 // Build implements the notify.Builder interface.
 func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
+
 	o := &Opts{
 		Local:    opts.LocalIdx,
 		Remote:   opts.RemoteIdx,
@@ -40,6 +60,11 @@ func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
 		CacheDir: opts.CacheDir,
 		Mount:    filepath.Base(opts.Mount.Path),
 		MountDir: opts.Mount.Path,
+		Disk:     opts.Disk,
+	}
+
+	if o.Disk == nil {
+		Disk = block(opts.CacheDir)
 	}
 
 	return NewFilesystem(o)

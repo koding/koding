@@ -98,7 +98,7 @@ func (bc *BindCache) process() {
 		var err error
 
 		if isRemoteSrc {
-			base := change.Name()
+			base := change.Path()
 
 			if filepath.IsAbs(base) {
 				if base, err = filepath.Rel(bc.tmp, base); err != nil {
@@ -110,7 +110,7 @@ func (bc *BindCache) process() {
 			src = filepath.Join(bc.loc, base)
 			dst = filepath.Join(bc.tmp, base)
 		} else {
-			base := change.Name()
+			base := change.Path()
 
 			if filepath.IsAbs(base) {
 				if base, err = filepath.Rel(bc.loc, base); err != nil {
@@ -136,7 +136,8 @@ func (bc *BindCache) process() {
 
 		// Update remote index.
 		if !isRemoteSrc {
-			bc.idx.Apply(bc.loc, bc.idx.CompareBranch(change.Name(), bc.loc))
+			// TODO: fix branch
+			bc.idx.Apply(bc.loc, bc.idx.CompareBranch(change.Path(), bc.loc))
 		}
 
 		change.cancel()

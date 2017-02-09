@@ -21,16 +21,20 @@ type Node struct {
 }
 
 func newNode() *Node {
+	return &Node{
+		Sub:   make(map[string]*Node),
+		Entry: newEntry(),
+	}
+}
+
+func newEntry() *Entry {
 	t := time.Now().UTC().UnixNano()
 
-	return &Node{
-		Sub: make(map[string]*Node),
-		Entry: &Entry{
-			CTime: t,
-			MTime: t,
-			Mode:  0700 | os.ModeDir,
-			Size:  10,
-		},
+	return &Entry{
+		CTime: t,
+		MTime: t,
+		Mode:  0700 | os.ModeDir,
+		Size:  10,
 	}
 }
 
