@@ -3,7 +3,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -12,13 +11,9 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/jacobsa/fuse/fuseutil"
-
 	"koding/klient/fs"
 	"koding/klient/machine/mount/notify/fuse"
 	"koding/klient/machine/mount/notify/fuse/fusetest"
-
-	origfuse "github.com/jacobsa/fuse"
 )
 
 var (
@@ -98,19 +93,7 @@ func main() {
 		die(err)
 	}
 
-	logf("mounting %s", dst)
-
-	m, err := origfuse.Mount(dst, fuseutil.NewFileSystemServer(fs), fs.Config())
-	if err != nil {
-		die(err)
-	}
-
-	logf("mounted")
-
-	err = m.Join(context.Background())
-	if err != nil {
-		die("mount join failed:", err)
-	}
+	_ = fs
 
 	select {}
 }
