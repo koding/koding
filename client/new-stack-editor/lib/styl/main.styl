@@ -22,6 +22,7 @@ $stack-fg-color             = #59595C
 $stack-fg-color-bright      = #DDDDDD
 $stack-fg-color-yellow      = #FCC34E
 $stack-border-color         = #000000
+$stack-bg-color-dark        = #111111
 
 $stack-sideview-width       = 420px
 $stack-border-width         = 2px
@@ -119,7 +120,7 @@ $stack-border-width         = 2px
     &.ondrag
       vendor                transition, none
 
-    &:hover
+    &:hover, &.show-controls
       .controls .kdbutton
         &.expand, &.help, &.pin, &.close
           display           block
@@ -150,9 +151,6 @@ $stack-border-width         = 2px
       height                inherit
       borderBox()
 
-      &.expanding
-        height              100vh
-
       > .title
         padding             15px 20px
         font-size           13px
@@ -175,7 +173,8 @@ $stack-border-width         = 2px
         .kdloader
           width             14px
           display           none
-          top               4px
+          top               3px
+          margin-left       10px
 
       .help-content
         height              100%
@@ -227,6 +226,10 @@ $stack-border-width         = 2px
 
 
   .editor-view
+
+    .wrapper
+      &.expanding
+        height              100vh
 
     .ace-find-replace-view
       bottom                0
@@ -285,7 +288,7 @@ $stack-border-width         = 2px
     z-index                 100
     box-shadow              0 0 30px -5px
     vendor                  transition, all 400ms ease-in
-    border-left             $stack-border-width solid $stack-bg-color
+    border-left             $stack-border-width solid $stack-border-color
     visibility              visible
     borderBox()
 
@@ -298,19 +301,115 @@ $stack-border-width         = 2px
     &.expanded
       width                 100%
       min-width             100%
+      border-left           none
 
     &.pinned
       position              inherit
       box-shadow            none
-      border-color          $stack-fg-color
 
       .controls .kdbutton.pin
         display             block
         color               $stack-fg-color-yellow
 
+    .controls .kdbutton.plus
+      fa                    plus
+      color                 $stack-fg-color-yellow
+      display               none
+
+    .wrapper
+      min-width             $stack-sideview-width
+
+
+  .side-view
+
+    .kdscrolltrack.vertical
+      right                 -10px
+
+    .kdscrolltrack.horizontal
+      bottom                -10px
+
+    .kdcustomscrollview.has-vertical
+      padding-right         0
+
+    .kdcustomscrollview.has-vertical
+      padding-bottom        0
+
+    .kdscrollthumb
+      background-color      #444
+
+
+  .credentials
+
+    .controls .kdbutton.plus
+      display               block
+
+    .listview-wrapper
+      height                calc(100% \- 42px)
+
+      .lazy-loader
+        display             none
+
+      .selection-view
+        width               auto
+        height              auto
+        color               #fff
+        font-size           12px
+        padding             8px 15px 5px 20px
+        background          #3c3c3c
+        z-index             10
+
+        b
+          font-weight       600
+
+        cite
+          fa                times
+          cursor            pointer
+          fr()
+
+    .button-field
+      border                none
+      bottom                30px
+      padding               10px 20px !important
+      background            $stack-bg-color-dark
+      z-index               10
+      position              fixed
+      right                 0
+      min-width             $stack-sideview-width
+      borderBox()
+
+      .kdbutton
+        span.kdloader
+          left              40% !important
+          top               25% !important
+
 
   .credential-list
-    min-width               $stack-sideview-width - $stack-border-width
+    width                   inherit
+    min-width               $stack-sideview-width - $stack-border-width - 2
+
+    &.has-change
+      padding-bottom        55px
+      .status-view
+        display             block
+
+    .status-view
+      height                55px
+      width                 100%
+      position              fixed
+      bottom                30px
+      background            $stack-bg-color-dark
+      z-index               7
+      display               none
+
+    .save-button
+    .revert-button
+      position              fixed
+      bottom                42px
+      right                 15px
+      z-index               10
+
+    .revert-button
+      right                 150px
 
     .kdlistitemview.credential
       font-size             14px
@@ -349,6 +448,78 @@ $stack-border-width         = 2px
 
         &.delete
           fa                trash
+
+      .provider
+        padding             2px
+        font-size           10px
+        margin-right        5px
+        border-radius       3px
+        color               #FFF
+        text-shadow         0px 1px 1px #333
+        cursor              pointer
+        fr()
+
+
+  .add-credential-scroll
+    top                     44px
+    background              $stack-bg-color
+    font-size               13px
+    color                   $stack-fg-color
+    border-bottom           90px solid $stack-bg-color-dark
+    abs()
+
+    .kdformview
+
+      margin-top            50px
+
+      .advanced-field
+        display             none
+
+      &.in-advanced-mode
+        .advanced-field
+          display           block
+
+    .formline
+      padding               0 20px
+
+      &.help-line
+        margin-left         130px
+
+      label
+        min-width           110px
+        line-height         13px
+        margin-top          8px
+        margin-right        20px
+        text-align          right
+
+      input, textarea
+        padding             2px 6px
+        font-size           13px
+        border-radius       4px
+
+      .kdselectbox
+        width               100%
+        height              28px
+        border-radius       4px
+        borderBox()
+
+        .title
+          line-height       28px
+          padding           0 40px 0 5px
+
+        .arrows
+          top               6px
+
+      .validation-error
+        border              1px solid #963624
+        background          #423133
+
+    .credential-creation-intro
+      padding               20px
+      background            $stack-bg-color-dark
+      margin-top            30px
+      margin-bottom        -30px
+      borderBox()
 
 
 #kdmaincontainer.hover

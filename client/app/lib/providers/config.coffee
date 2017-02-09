@@ -29,7 +29,7 @@ module.exports = globals.config.providers =
     title                  : 'AWS Credential'
     supported              : yes
     enabled                : yes
-    color                  : '#F9A900'
+    color                  : '#e69d01'
     description            : 'Amazon Web Services'
     instanceTypes          : require './instance-types/aws'
     defaultTemplate        : replaceUserInputs require './templates/aws'
@@ -74,7 +74,7 @@ module.exports = globals.config.providers =
     name                   : 'Vagrant'
     link                   : 'http://www.vagrantup.com'
     title                  : 'KD Host Query ID'
-    color                  : '#B52025'
+    color                  : '#6768a9'
     supported              : yes
     enabled                : 'beta'
     defaultTemplate        : replaceUserInputs require './templates/vagrant'
@@ -114,7 +114,6 @@ module.exports = globals.config.providers =
     defaultTemplate        : replaceUserInputs require './templates/google'
     description            : 'Google compute engine'
     instanceTypes          : require './instance-types/gce'
-    advancedFields         : []
     attributeMapping       :
       image                : 'disk.0.image' # getting the first disk image ~ GG
       instance_type        : 'machine_type'
@@ -146,7 +145,7 @@ module.exports = globals.config.providers =
     name                   : 'Digital Ocean'
     link                   : 'https://digitalocean.com'
     title                  : 'Digital Ocean Credential'
-    color                  : '#7abad7'
+    color                  : '#0080ff'
     supported              : yes
     slug                   : 'do'
     enabled                : 'beta'
@@ -168,7 +167,7 @@ module.exports = globals.config.providers =
     name                   : 'Azure'
     link                   : 'https://azure.microsoft.com/'
     title                  : 'Azure Credential'
-    color                  : '#ec06be'
+    color                  : '#6391a9'
     supported              : yes
     enabled                : 'beta'
     defaultTemplate        : replaceUserInputs require './templates/azure'
@@ -257,25 +256,27 @@ module.exports = globals.config.providers =
     name                   : 'Marathon'
     link                   : 'https://mesosphere.github.io/marathon/'
     title                  : 'Marathon Credential'
-    color                  : '#B52025'
+    color                  : '#03b19e'
     supported              : yes
     enabled                : 'beta'
     defaultTemplate        : replaceUserInputs require './templates/marathon'
     description            : 'A container orchestration platform for Mesos and DC/OS'
     advancedFields         : [
       'request_timeout',
-      'deployment_timeout'
+      'deployment_timeout',
+      'basic_auth_password',
+      'basic_auth_user'
     ]
     credentialFields       :
       url                  :
         label              : 'URL'
         placeholder        : 'url of marathon application'
       basic_auth_user      :
-        label              : 'Basic Auth User'
+        label              : 'Auth User'
         placeholder        : 'basic auth user for marathon'
         required           : no
       basic_auth_password  :
-        label              : 'Basic Auth Password'
+        label              : 'Auth Password'
         type               : 'password'
         placeholder        : 'basic auth password for marathon'
         required           : no

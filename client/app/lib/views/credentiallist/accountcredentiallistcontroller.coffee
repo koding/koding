@@ -30,7 +30,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
     options.lazyLoadThreshold  or= options.limit
     options.model               ?= remote.api.JCredential
     options.noItemFoundText     ?= "You don't have any credentials"
-    options.showCredentialMenu  ?= yes
+    options.showCredentialMenu  ?= no
     options.useCustomScrollView ?= yes
 
     super options, data
@@ -168,10 +168,10 @@ module.exports = class AccountCredentialListController extends KodingListControl
     super
 
 
-  filterByProvider: (query = {}) ->
+  filterByProvider: (query) ->
 
     @filterStates.skip  = 0
-    @filterStates.query = query
+    @filterStates.query = query ? @getOption('baseQuery') ? {}
 
     @removeAllItems()
     @showLazyLoader no
@@ -218,22 +218,24 @@ module.exports = class AccountCredentialListController extends KodingListControl
     Providers._getSupportedProviders().forEach (provider) =>
 
       return  if provider is 'custom'
-      return  if Object.keys(Providers[provider].credentialFields).length is 0
 
-      providerList[Providers[provider].title] =
+      providerData = Providers[provider]
+      return  unless providerData.enabled
+      return  if Object.keys(providerData.credentialFields).length is 0
+
+      providerList[providerData.title] =
         callback : =>
           @_addButtonMenu.destroy()
           @showAddCredentialFormFor provider
 
     addButton = new KDButtonView
       cssClass  : options.cssClass ? 'add-big-btn'
-      title     : options.title ? 'Add new credentials'
-      icon      : yes
+      title     : options.title
       callback  : =>
         @_addButtonMenu = new KDContextMenu
           delegate    : addButton
-          y           : addButton.getY() + 35
-          x           : addButton.getX() + addButton.getWidth() / 2 - 120
+          y           : addButton.getY()
+          x           : addButton.getX() + addButton.getWidth() / 2 - 100
           width       : 240
         , providerList
 
@@ -300,9 +302,6 @@ module.exports = class AccountCredentialListController extends KodingListControl
           else
             return yes
 
-
-
-
     { computeController } = kd.singletons
 
     noCredFound = not listView.items.length
@@ -325,11 +324,9 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
       if noCredFound
       then @addItem(credential).verifyCredential()
-      else
-        @addItem credential, 0
+      else @addItem credential, 0
 
       computeController.emit 'CredentialAdded', credential
-
 
     # Notify all registered listeners because we need to re-calculate width / height of the KDCustomScroll which in Credentials tab.
     # The KDCustomScroll was hidden while Stacks screen is rendering.
@@ -337,3 +334,5 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
     view.scrollView.wrapper.addSubView view.form
     view.addSubView view.scrollView
+
+    return view

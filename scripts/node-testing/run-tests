@@ -10,25 +10,25 @@ INSTANCE_COUNT=$(wc -l $INSTANCE_DATA_FILE | awk '{print $1}')
 OUTPUT_DIR=$(mktemp -d)
 
 function run_task() {
-  TASK=$1
-  HOST=$(echo $2 | awk '{print $2}')
-  OUTFILE=$OUTPUT_DIR/$TASK.log
+	TASK=$1
+	HOST=$(echo $2 | awk '{print $2}')
+	OUTFILE=$OUTPUT_DIR/$TASK.log
 
-  $SCRIPTS/test-instance/ssh \
-    $HOST "MOCHA_VERBOSE=1 /opt/koding/run $TASK" \
-    2>&1 > $OUTFILE
+	$SCRIPTS/test-instance/ssh \
+		$HOST "MOCHA_VERBOSE=1 /opt/koding/run $TASK" \
+		2>&1 >$OUTFILE
 
-  EXIT_CODE=$?
-  echo $EXIT_CODE > $OUTPUT_DIR/$TASK.exit_code
+	EXIT_CODE=$?
+	echo $EXIT_CODE >$OUTPUT_DIR/$TASK.exit_code
 }
 
 LINE_NUMBER=0
 
 for TASK in $TASKS; do
-  LINE_NUMBER=$(($LINE_NUMBER + 1))
-  INSTANCE=$(sed -n "${LINE_NUMBER}p" $INSTANCE_DATA_FILE)
-  run_task $TASK "$INSTANCE" &
-  LINE_NUMBER=$(($LINE_NUMBER % $INSTANCE_COUNT))
+	LINE_NUMBER=$(($LINE_NUMBER + 1))
+	INSTANCE=$(sed -n "${LINE_NUMBER}p" $INSTANCE_DATA_FILE)
+	run_task $TASK "$INSTANCE" &
+	LINE_NUMBER=$(($LINE_NUMBER % $INSTANCE_COUNT))
 done
 
 wait
@@ -36,10 +36,10 @@ wait
 EXIT_CODE=0
 
 for TASK in $TASKS; do
-  cat $OUTPUT_DIR/$TASK.log
-  TASK_EXIT_CODE=$(cat $OUTPUT_DIR/$TASK.exit_code)
-  [ $TASK_EXIT_CODE -eq 0 ] && continue
-  EXIT_CODE=$TASK_EXIT_CODE
+	cat $OUTPUT_DIR/$TASK.log
+	TASK_EXIT_CODE=$(cat $OUTPUT_DIR/$TASK.exit_code)
+	[ $TASK_EXIT_CODE -eq 0 ] && continue
+	EXIT_CODE=$TASK_EXIT_CODE
 done
 
 exit $EXIT_CODE
