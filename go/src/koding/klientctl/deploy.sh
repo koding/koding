@@ -42,7 +42,7 @@ s3rm "s3://${BUCKET}/${CHANNEL}/kd.darwin_amd64.gz" || true
 s3cp "s3://${BUCKET}/${CHANNEL}/kd-0.1.${VERSION}.darwin_amd64.gz" "s3://${BUCKET}/${CHANNEL}/kd.darwin_amd64.gz"
 
 cp -f go/src/koding/klientctl/install-kd.sh install-kd.sh
-sed -i "" -e "s|\%RELEASE_CHANNEL\%|${CHANNEL}|g" install-kd.sh
+sed -i"" -e "s|\%RELEASE_CHANNEL\%|${CHANNEL}|g" install-kd.sh
 s3rm "s3://${BUCKET}/${CHANNEL}/install-kd.sh"
 s3cp install-kd.sh "s3://${BUCKET}/${CHANNEL}/install-kd.sh"
 rm -f install-kd.sh
