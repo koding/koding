@@ -30,7 +30,7 @@ koding.once 'dbClientReady', ->
 
           console.log account
           unless account
-            console.log "finished"
+            console.log 'finished'
             return process.exit 0
 
           JAccount.one { _id: account._id }, ( err, acc ) ->
