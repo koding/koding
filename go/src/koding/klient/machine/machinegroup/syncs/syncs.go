@@ -11,6 +11,7 @@ import (
 	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/mount"
+	"koding/klient/machine/mount/notify"
 	msync "koding/klient/machine/mount/sync"
 
 	"github.com/koding/logging"
@@ -31,6 +32,9 @@ type SyncsOpts struct {
 	//
 	WorkDir string
 
+	// NotifyBuilder defines a factory used to build FS notification objects.
+	NotifyBuilder notify.Builder
+
 	// SyncBuilder defines a factory used to build file synchronization objects.
 	SyncBuilder msync.Builder
 
@@ -43,11 +47,12 @@ func (opts *SyncsOpts) Valid() error {
 	if opts == nil {
 		return errors.New("mount syncs options are nil")
 	}
-
 	if opts.WorkDir == "" {
 		return errors.New("working directory is not set")
 	}
-
+	if opts.NotifyBuilder == nil {
+		return errors.New("file system notification builder is nil")
+	}
 	if opts.SyncBuilder == nil {
 		return errors.New("synchronization builder is nil")
 	}
@@ -60,6 +65,7 @@ func (opts *SyncsOpts) Valid() error {
 type Syncs struct {
 	wd string
 
+	nb  notify.Builder
 	sb  msync.Builder
 	log logging.Logger
 
@@ -85,6 +91,7 @@ func New(opts SyncsOpts) (*Syncs, error) {
 
 	s := &Syncs{
 		wd:  opts.WorkDir,
+		nb:  opts.NotifyBuilder,
 		sb:  opts.SyncBuilder,
 		log: opts.Log,
 
@@ -142,10 +149,11 @@ func (s *Syncs) Add(mountID mount.ID, m mount.Mount, dynClient client.DynamicCli
 	}
 
 	sc, err := msync.NewSync(mountID, m, msync.SyncOpts{
-		ClientFunc:  dynClient,
-		WorkDir:     filepath.Join(s.wd, "mount-"+string(mountID)),
-		SyncBuilder: s.sb,
-		Log:         s.log.New(string(mountID)),
+		ClientFunc:    dynClient,
+		WorkDir:       filepath.Join(s.wd, "mount-"+string(mountID)),
+		NotifyBuilder: s.nb,
+		SyncBuilder:   s.sb,
+		Log:           s.log.New(string(mountID)),
 	})
 	if err != nil {
 		return err
