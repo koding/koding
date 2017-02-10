@@ -31,12 +31,13 @@ const (
 
 // Entry represents a single file registered to index.
 type Entry struct {
-	CTime int64       `json:"c"` // Metadata change time since EPOCH.
-	MTime int64       `json:"m"` // File data change time since EPOCH.
-	Mode  os.FileMode `json:"o"` // File mode and permission bits.
-	Size  int64       `json:"s"` // Size of the file.
-	Hash  []byte      `json:"h"` // Hash of file content.
-	Aux   uint64      `json:"-"` // Auxiliary data, fuse uses it to store fuseops.InodeID.
+	Hash  []byte      `json:"h"`          // Hash of file content.
+	CTime int64       `json:"c"`          // Metadata change time since EPOCH.
+	MTime int64       `json:"m"`          // File data change time since EPOCH.
+	Size  int64       `json:"s"`          // Size of the file.
+	Aux   uint64      `json:"-"`          // Auxiliary data, fuse uses it to store fuseops.InodeID.
+	Mode  os.FileMode `json:"o"`          // File mode and permission bits.
+	Meta  EntryMeta   `json:"t,omitempy"` // Entry metadata.
 }
 
 // NewEntryFile creates new Entry from a file stored under path argument.
@@ -177,35 +178,11 @@ func (idx *Index) addEntryWorker(root string, wg *sync.WaitGroup, fC <-chan *fil
 	}
 }
 
-// PromiseAdd adds a node under the given path marked as newly added.
-//
-// If mode is non-zero, the node's mode is overwritten with the value.
-// If the node already exists, it'd be only marked with EntryPromiseAdd flag.
-// If the node is already marked as newly added, the method is a no-op.
-func (idx *Index) PromiseAdd(path string, entry *Entry) {
+// UpsertEntry
+func (idx *Index) UpsertEntry(path string, meta EntryMeta, mode os.FileMode) {
 	idx.mu.Lock()
-	idx.root.PromiseAdd(path, entry)
-	idx.mu.Unlock()
-}
+	defer idx.mu.Unlock()
 
-// PromiseDel marks a node under the given path as deleted.
-//
-// If the node does not exist or is already marked as deleted, the
-// method is no-op.
-func (idx *Index) PromiseDel(path string) {
-	idx.mu.Lock()
-	idx.root.PromiseDel(path)
-	idx.mu.Unlock()
-}
-
-// PromiseUnlink marks a node under the given path as unlinked.
-//
-// If the node does not exist or is already marked as unlinked,
-// the method is a no-op.
-func (idx *Index) PromiseUnlink(path string) {
-	idx.mu.Lock()
-	idx.root.PromiseUnlink(path)
-	idx.mu.Unlock()
 }
 
 // Count returns the number of entries stored in index. Only items which size is
