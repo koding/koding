@@ -77,16 +77,18 @@ module.exports = class StackEditor extends kd.View
       @statusbar
     }
 
-    @logsController = new LogsController
+    @controllers = {}
+
+    @controllers.logs = new LogsController
       editor: @logs
 
-    @variablesController = new VariablesController
+    @controllers.variables = new VariablesController
       editor: @variables
-      logs  : @logsController
+      logs  : @controllers.logs
 
     # SideView for Search and Credentials
-    @credentialsController = new CredentialsController
-      logs  : @logsController
+    @controllers.credentials = new CredentialsController
+      logs  : @controllers.logs
 
     @sideView       = new SideView
       title         : yes
@@ -94,15 +96,17 @@ module.exports = class StackEditor extends kd.View
         credentials :
           title     : 'Credentials'
           cssClass  : 'credentials show-controls has-markdown'
-          view      : @credentialsController.getView()
+          view      : @controllers.credentials.getView()
           controls  :
             plus    : =>
-              @credentialsController.getCredentialAddButton()
+              @controllers.credentials.getCredentialAddButton()
 
     @emit 'ready'
 
 
   setTemplateData: (data, reset = no) ->
+
+    debug 'setTemplateData with args:', data, reset
 
     { _id: id, title, description, template } = data
     unless id or description or template
@@ -110,8 +114,8 @@ module.exports = class StackEditor extends kd.View
 
     @setData data
     @toolbar.setData data
-    @variablesController.setData data
-    @credentialsController.setData data
+    @controllers.variables.setData data
+    @controllers.credentials.setData data
 
     @_saveSnapshot @_current  if @_current
     @_deleteSnapshot id  if reset
@@ -123,7 +127,7 @@ module.exports = class StackEditor extends kd.View
       @editor.setContent Encoder.htmlDecode template.rawContent
       @readme.setContent description
       @variables.setContent ''
-      @logsController.set 'stack template loaded'
+      @controllers.logs.set 'stack template loaded'
 
       @_saveSnapshot id
       @_current = id
