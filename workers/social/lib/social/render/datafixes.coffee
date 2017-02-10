@@ -48,12 +48,14 @@ module.exports = (client, currentGroup, callback) ->
           return next() unless members?.length
 
           # this is fire and forget
-          members.forEach (member) ->
-            SocialAccount.addParticipant { group: currentGroup, member: member }
+          mq = members.map (member) -> (pass) ->
+            SocialAccount.addParticipant { group: currentGroup, member: member }, (err) ->
+              console.log "Added #{member.profile.nickname} into #{currentGroup.slug}"
+              pass()
+
+          async.parallel mq, next
 
           console.log "Created socialapi channels for #{currentGroup.slug}"
-
-          next()
 
     (next) ->
       # this fixer is special case, where a user might not have a socialapi id
@@ -61,10 +63,20 @@ module.exports = (client, currentGroup, callback) ->
       # get in this block. but we might do. ¯\_(ツ)_/¯
 
       return next()  unless accountCreated
-      return next()  unless currentGroup
+      return next()  unless account
 
-      SocialAccount.addParticipant { group: currentGroup, member: account }
-      console.log "Created socialapi channels for #{currentGroup.slug}"
-      next()
+      account.fetchAllParticipatedGroups (err, groups) ->
+        if err
+          console.log "Couldnt fetch groups of #{who}", err
+          return next()
+
+        return next() unless groups?.length
+
+        gq = groups.map (group) -> (pass) ->
+          SocialAccount.addParticipant { group: group, member: account }, (err) ->
+            console.log "Added #{who} into #{group.slug}"
+            pass()
+
+        async.parallel gq, next
 
   ], -> callback null
