@@ -257,7 +257,7 @@ func markLargeMeta(n int64) ChangeMeta {
 		return 0
 	}
 
-	return ChangeMetaLarge
+	return ChangeMetaHuge
 }
 
 // ctime gets file's change time in UNIX Nano format.
