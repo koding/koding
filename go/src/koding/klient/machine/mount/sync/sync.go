@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"koding/klient/fs"
 	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/index"
@@ -185,12 +186,13 @@ func NewSync(mountID mount.ID, m mount.Mount, opts SyncOpts) (*Sync, error) {
 
 	// Create file system notification object.
 	s.n, err = opts.NotifyBuilder.Build(&notify.BuildOpts{
-		MountID:   mountID,
-		Mount:     m,
-		Cache:     s.a,
-		CacheDir:  filepath.Join(s.opts.WorkDir, "data"),
-		RemoteIdx: s.ridx,
-		LocalIdx:  s.lidx,
+		MountID:    mountID,
+		Mount:      m,
+		Cache:      s.a,
+		CacheDir:   filepath.Join(s.opts.WorkDir, "data"),
+		DiskBlocks: s.diskBlocks(),
+		RemoteIdx:  s.ridx,
+		LocalIdx:   s.lidx,
 	})
 	if err != nil {
 		return nil, nonil(err, s.a.Close())
@@ -286,6 +288,19 @@ func (s *Sync) updateLocal() error {
 
 	s.lidx.Apply(dataPath, cs)
 	return index.SaveIndex(s.lidx, filepath.Join(s.opts.WorkDir, LocalIndexName))
+}
+
+func (s *Sync) diskBlocks() notify.DiskBlocks {
+	const (
+		rt = 10 * time.Second // How long client should wait for valid connection.
+		ct = 5 * time.Minute  // How long client responses will be cached.
+	)
+
+	cached := client.NewCached(client.NewSupervised(s.opts.ClientFunc, rt), ct)
+
+	return func() (fs.DiskInfo, error) {
+		return cached.DiskInfo(s.m.RemotePath)
+	}
 }
 
 func nonil(err ...error) error {
