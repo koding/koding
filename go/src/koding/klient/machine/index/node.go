@@ -324,7 +324,7 @@ func (nd *Node) lookup(path string, deleted bool) (*Node, bool) {
 		}
 
 		if path == "" {
-			return sub.shallowCopy(), true
+			return sub, true
 		}
 
 		nd = sub
