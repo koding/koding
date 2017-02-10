@@ -38,8 +38,12 @@ func newEntry() *Entry {
 	}
 }
 
-func (nd *Node) Add(name string, entry *Entry) {
-	if name == "/" || name == "" {
+// Add adds the given entry under the given path.
+//
+// Any deleted node, encountered on the tree path that, is going to
+// be undeleted (having the EntryPromiseDel flag removed).
+func (nd *Node) Add(path string, entry *Entry) {
+	if path == "/" || path == "" {
 		nd.Entry = entry
 		return
 	}
@@ -47,11 +51,11 @@ func (nd *Node) Add(name string, entry *Entry) {
 	var node string
 
 	for {
-		if nd.deleted() {
+		if nd.Deleted() {
 			nd.undelete()
 		}
 
-		node, name = split(name)
+		node, path = split(path)
 
 		node, path = split(path)
 
@@ -70,15 +74,16 @@ func (nd *Node) Add(name string, entry *Entry) {
 	}
 }
 
-func (nd *Node) Del(name string) {
+// Del disconnected a whole subtree rooted at a node given by the path.
+//
+// Del will ignore and do not disconnect nodes which are marked as deleted.
+func (nd *Node) Del(path string) {
 	var node string
 
 	for {
-		if nd.deleted() {
+		if nd.Deleted() {
 			return
 		}
-
-		node, name = split(name)
 
 		node, path = split(path)
 
@@ -94,71 +99,6 @@ func (nd *Node) Del(name string) {
 
 		nd = sub
 	}
-}
-
-// PromiseAdd adds a node under the given path marked as newly added.
-//
-// If the node already exists, it'd be only marked with EntryPromiseAdd flag.
-//
-// If the node is already marked as newly added, the method is a no-op.
-//
-// If entry.Mode is non-zero, the effictive node's entry is overwritten
-// with this value.
-//
-// If entry.Aux is non-zero, the effictive node's Aux is overwritten
-// with this value.
-//
-// Rest of entry's fields are currently ignored.
-func (nd *Node) PromiseAdd(path string, entry *Entry) {
-	var newE *Entry
-
-	if nd, ok := nd.lookup(path, true); ok {
-		newE = nd.Entry
-
-		if entry.Inode != 0 {
-			newE.SetInode(entry.Inode)
-		}
-
-		if entry.Mode != 0 {
-			// BUG(rjeczalik): this is not safe when nd is read elsewhere.
-			//
-			// This field is read by fuse.ReadDir and PromiseAdd is called
-			// by fuse.CreateFile or fuse.MkDir, and fuse.ReadDir is not
-			// called until one of the former returns.
-			//
-			// However this should be changed to an atomic op once the field
-			// is read by something else.
-			newE.Mode = entry.Mode
-		}
-
-	} else {
-		newE = newEntry()
-		newE.Mode = entry.Mode
-		newE.Inode = entry.Inode
-	}
-
-	if entry.Aux != 0 {
-		newE.Aux = entry.Aux
-	}
-
-	newE.Meta = newE.Meta | EntryPromiseAdd
-	newE.Meta = newE.Meta & (^EntryPromiseDel)
-
-	nd.Add(path, newE)
-}
-
-// PromiseDel marks a node under the given path as deleted.
-//
-// If the node does not exist or is already marked as deleted, then
-// method is no-op.
-func (nd *Node) PromiseDel(path string) {
-	nd, ok := nd.Lookup(path)
-	if !ok {
-		return
-	}
-
-	nd.Entry.Meta = nd.Entry.Meta | EntryPromiseDel
-	nd.Entry.Meta = nd.Entry.Meta & (^EntryPromiseAdd)
 }
 
 // Count counts nodes which Entry.Size is at most maxsize.
@@ -177,7 +117,7 @@ func (nd *Node) Count(maxsize int64) (count int) {
 	for len(stack) != 0 {
 		cur, stack = stack[0], stack[1:]
 
-		if cur.deleted() {
+		if cur.Deleted() {
 			continue
 		}
 
@@ -210,7 +150,7 @@ func (nd *Node) DiskSize(maxsize int64) (size int64) {
 	for len(stack) != 0 {
 		nd, stack = stack[0], stack[1:]
 
-		if nd.deleted() {
+		if nd.Deleted() {
 			continue
 		}
 
@@ -247,7 +187,7 @@ func (nd *Node) ForEach(fn func(string, *Entry)) {
 	for len(stack) != 0 {
 		n, stack = stack[0], stack[1:]
 
-		if n.node.deleted() {
+		if n.node.Deleted() {
 			continue
 		}
 
@@ -262,23 +202,25 @@ func (nd *Node) ForEach(fn func(string, *Entry)) {
 	}
 }
 
-func (nd *Node) Lookup(name string) (*Node, bool) {
-	return nd.lookup(name, false)
+// Lookup looks up a node given by the path ignoring any of the node
+// that is marked as deleted.
+func (nd *Node) Lookup(path string) (*Node, bool) {
+	return nd.lookup(path, false)
 }
 
-func (nd *Node) lookup(name string, all bool) (*Node, bool) {
-	if name == "/" || name == "" {
+func (nd *Node) lookup(path string, all bool) (*Node, bool) {
+	if path == "/" || path == "" {
 		return nd, true
 	}
 
 	var node string
 
 	for {
-		if nd.deleted() {
+		if nd.Deleted() {
 			return nil, false
 		}
 
-		node, name = split(name)
+		node, path = split(path)
 
 		node, path = split(path)
 
@@ -288,14 +230,20 @@ func (nd *Node) lookup(name string, all bool) (*Node, bool) {
 		}
 
 		if path == "" {
-			return sub.shallowCopy(), true
+			return sub, true
 		}
 
 		nd = sub
 	}
 }
 
-func (nd *Node) deleted() bool {
+// IsDir tells whether a node is a directory.
+func (nd *Node) IsDir() bool {
+	return nd.Entry.Mode&os.ModeDir != 0
+}
+
+// Deleted tells whether node is marked as deleted.
+func (nd *Node) Deleted() bool {
 	return nd.Entry.Meta&EntryPromiseDel != 0
 }
 
