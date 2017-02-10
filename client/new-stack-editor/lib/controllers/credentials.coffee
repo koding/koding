@@ -84,7 +84,7 @@ module.exports = class CredentialsController extends BaseController
       return @logs.handleError err  if err
 
       @logs.add 'Stack template updated successfully!'
-      @setData updatedTemplate, internal = yes
+      @emit Events.TemplateDataChanged, updatedTemplate
 
 
   getCredentialAddButton: ->

@@ -7,6 +7,7 @@ module.exports = {
   'CredentialListUpdated'
   'StackWizardCancelled'
   'InitializeRequested'
+  'TemplateDataChanged'
   'ProviderSelected'
   'LazyLoadFinished'
   'LazyLoadStarted'

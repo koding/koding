@@ -1,3 +1,5 @@
+debug = (require 'debug') 'nse:stackeditor'
+
 kd = require 'kd'
 bowser = require 'bowser'
 Encoder = require 'htmlencode'
@@ -100,6 +102,9 @@ module.exports = class StackEditor extends kd.View
           controls  :
             plus    : =>
               @controllers.credentials.getCredentialAddButton()
+
+    for _, controller of @controllers
+      controller.on Events.TemplateDataChanged, @bound 'setTemplateData'
 
     @emit 'ready'
 
