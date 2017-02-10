@@ -95,6 +95,7 @@ func sak(c Client, interval time.Duration) func(string, ...string) error {
 		err = c.SSHAddKeys(username, keys...)
 
 		mu.Lock()
+		aUsername, aKeys = username, keys
 		rErr = err
 		lastCall = time.Now()
 		mu.Unlock()
@@ -128,6 +129,7 @@ func mhi(c Client, interval time.Duration) func(string) (string, int, int64, err
 		absPath, count, diskSize, err = c.MountHeadIndex(path)
 
 		mu.Lock()
+		aPath = path
 		rAbsPath, rCount, rDiskSize, rErr = absPath, count, diskSize, err
 		lastCall = time.Now()
 		mu.Unlock()
@@ -161,6 +163,7 @@ func mgi(c Client, interval time.Duration) func(string) (*index.Index, error) {
 		idx, err = c.MountGetIndex(path)
 
 		mu.Lock()
+		aPath = path
 		rIdx, rErr = idx, err
 		lastCall = time.Now()
 		mu.Unlock()
@@ -194,6 +197,7 @@ func db(c Client, interval time.Duration) func(string) (uint64, uint64, uint64, 
 		size, total, free, used, err = c.DiskBlocks(path)
 
 		mu.Lock()
+		aPath = path
 		rSize, rTotal, rFree, rUsed, rErr = size, total, free, used, err
 		lastCall = time.Now()
 		mu.Unlock()

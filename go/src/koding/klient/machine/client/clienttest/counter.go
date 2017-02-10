@@ -12,7 +12,7 @@ import (
 type invCounter int64
 
 func (ic invCounter) Error() string {
-	return fmt.Sprintf("count number is %v", ic)
+	return fmt.Sprintf("count number is %v", int64(ic))
 }
 
 // CountNumber retrieves the number of Counter calls from provided error. If
