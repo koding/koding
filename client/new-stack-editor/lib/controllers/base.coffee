@@ -12,3 +12,15 @@ module.exports = class BaseController extends kd.Object
 
     if logs = @getOption 'logs'
       @logs = logs
+
+
+  save: (callback) ->
+
+    console.log '::save not implemented yet', this.constructor.name
+    callback null
+
+
+  check: (callback) ->
+
+    console.log '::check not implemented yet', this.constructor.name
+    callback null

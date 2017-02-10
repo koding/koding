@@ -19,7 +19,13 @@ module.exports = class Editor extends BaseView
     super options, data
 
 
+  getContent: ->
+
+    @aceView.ace.getContents()
+
+
   setContent: (content, type = 'text') -> @ready =>
+
     @_getSession().setValue content
 
 
