@@ -22,11 +22,12 @@ koding.once 'dbClientReady', ->
             console.log 'finished'
             return process.exit 0
 
-          JGroup.one { _id: group._id }, ( err, gr ) ->
+          JGroup.one { _id: group._id }, (err, gr) ->
             if err
               console.log 'err while getting acc', group._id, err
               next()
             else
+              return next() unless gr
               return next() if gr.slug in [ 'guests', 'koding' ]
               console.log "processing #{gr.slug}"
               gr.fetchAdmin (err, admin) ->

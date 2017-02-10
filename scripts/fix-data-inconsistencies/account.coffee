@@ -28,6 +28,7 @@ koding.once 'dbClientReady', ->
               console.log 'err while getting acc', account._id, err
               next()
             else
+              return next() unless acc
               sessionData = { username: acc.profile.nickname, groupName: 'koding' }
               JSession.fetchSessionByData sessionData, (err, session) ->
                 return console.error 'err while fetching session', err  if err
