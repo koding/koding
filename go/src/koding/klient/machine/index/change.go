@@ -103,23 +103,38 @@ func (cm *ChangeMeta) Coalesce(newer ChangeMeta) ChangeMeta {
 	}
 }
 
+var cmMapping = map[byte]ChangeMeta{
+	'L': ChangeMetaLocal,
+	'R': ChangeMetaRemote,
+	'a': ChangeMetaAdd,
+	'd': ChangeMetaRemove,
+	'u': ChangeMetaUpdate,
+	'H': ChangeMetaHuge,
+}
+
 // String implements fmt.Stringer interface and pretty prints stored change.
 func (cm *ChangeMeta) String() string {
 	cpy := atomic.LoadUint64((*uint64)(cm))
 
-	const cmstr = "LRaduH"
 	var buf [8]byte // Meta is uint64 but we don't need more than 8.
-	w := 0
-	for i, c := range cmstr {
-		if cpy&(1<<uint(i)) != 0 {
-			buf[w] = byte(c)
+	for c, i := range cmMapping {
+		w := getPowerof2(uint64(i))
+		if cpy&uint64(i) != 0 {
+			buf[w] = c
 		} else {
 			buf[w] = '-'
 		}
-		w++
 	}
 
-	return string(buf[:w])
+	return string(buf[:len(cmMapping)])
+}
+
+func getPowerof2(i uint64) (count int) {
+	for ; i > 1; count++ {
+		i = i >> 1
+	}
+
+	return count
 }
 
 // Similar checks if provided meta changes can be considered similar. This means
