@@ -4,11 +4,11 @@
 # dont want it to be listed first item while searching for account.coffe in
 # sublime ~ CS
 
-removeParticipantHandler = (data) ->
-  participantHandler 'removeParticipants', data
+removeParticipantHandler = (rest...) ->
+  participantHandler 'removeParticipants', rest...
 
-addParticipantHandler = (data) ->
-  participantHandler 'addParticipants', data
+addParticipantHandler = (rest...) ->
+  participantHandler 'addParticipants', rest...
 
 # SocialAccount
 module.exports = class SocialAccount extends Base
@@ -68,20 +68,30 @@ module.exports = class SocialAccount extends Base
 
 
 
-participantHandler = (funcName, data) ->
+participantHandler = (funcName, data, callback = ->) ->
 
   JSession          = require '../session'
   SocialChannel     = require './channel'
   { group, member } = data
 
   group.fetchAdmin (err, admin) ->
-    return console.error 'err while fetching admin', err  if err
-    return console.error 'couldnt find admin'  unless admin
+    if err
+      console.error 'err while fetching admin', err
+      return callback err
+
+    unless admin
+      console.error 'couldnt find admin'
+      return callback new Error 'couldnt find admin'
 
     sessionData = { username: admin.profile.nickname, groupName: group.slug }
     JSession.fetchSessionByData sessionData, (err, session) ->
-      return console.error 'err while fetching session', err  if err
-      return console.error 'couldnt find a session'  unless session
+      if err
+        console.error 'err while fetching session', err
+        return callback err
+
+      unless session
+        console.error 'couldnt find a session'
+        return callback new Error 'couldnt find a session'
 
       client = {}
       client.sessionToken = session.clientId
@@ -93,12 +103,17 @@ participantHandler = (funcName, data) ->
       client.connection.groupName = group.slug
 
       group.createSocialApiChannels client, (err, socialApiChannels) ->
-        return console.error 'couldnt create socialapi channels', err  if err
+        if err
+          console.error 'couldnt create socialapi channels', err
+          return callback err
+
         { socialApiChannelId, socialApiAnnouncementChannelId } = socialApiChannels
 
         # ensure member has socialapi id
         member.createSocialApiId (err, socialApiId) ->
-          return console.error 'couldnt create socialapi id', err  if err
+          if err
+            console.error 'couldnt create socialapi id', err
+            return callback new Error 'couldnt create socialapi id'
 
           options = {
             channelId  : socialApiChannelId
@@ -106,11 +121,12 @@ participantHandler = (funcName, data) ->
           }
 
           SocialChannel[funcName] client, options, (err, participants) ->
-
-            return console.error "couldnt #{funcName} user into group socialapi chan", err, options  if err
+            if err
+              console.error "couldnt #{funcName} user into group socialapi chan", err, options
+              return new Error "couldnt #{funcName} user into group socialapi chan"
 
             # only add koding's members to announcement channel
-            return if group.slug isnt 'koding'
+            return callback null if group.slug isnt 'koding'
 
             options = {
               channelId  : socialApiAnnouncementChannelId
@@ -118,4 +134,5 @@ participantHandler = (funcName, data) ->
             }
 
             SocialChannel[funcName] client, options, (err) ->
-              return console.error "couldnt #{funcName} user into group socialapi chan", err, options  if err
+              console.error "couldnt #{funcName} user into group socialapi chan", err, options  if err
+              return callback err
