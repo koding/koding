@@ -14,8 +14,9 @@ import (
 	"koding/klient/machine/machinegroup/clients"
 	"koding/klient/machine/machinegroup/idset"
 	"koding/klient/machine/machinegroup/mounts"
-	"koding/klient/machine/machinegroup/supervisors"
+	"koding/klient/machine/machinegroup/syncs"
 	"koding/klient/machine/mount"
+	msync "koding/klient/machine/mount/sync"
 	"koding/klient/storage"
 
 	"github.com/koding/logging"
@@ -33,6 +34,9 @@ type GroupOpts struct {
 
 	// Builder is a factory used to build clients.
 	Builder client.Builder
+
+	// SyncBuilder defines a factory used to build file synchronization objects.
+	SyncBuilder msync.Builder
 
 	// DynAddrInterval indicates how often dynamic client should look for new
 	// machine addresses.
@@ -55,7 +59,10 @@ func (opts *GroupOpts) Valid() error {
 		return errors.New("nil group options provided")
 	}
 	if opts.Builder == nil {
-		return errors.New("nil client builder")
+		return errors.New("client builder is nil")
+	}
+	if opts.SyncBuilder == nil {
+		return errors.New("synchronization builder is nil")
 	}
 	if opts.DynAddrInterval == 0 {
 		return errors.New("dynamic address check interval is not set")
@@ -79,8 +86,8 @@ type Group struct {
 	alias   aliases.Aliaser
 	mount   mounts.Mounter
 
-	supervisor *supervisors.Supervisors
-	discover   *discover.Client
+	sync     *syncs.Syncs
+	discover *discover.Client
 }
 
 // New creates a new Group object.
@@ -118,14 +125,15 @@ func New(opts *GroupOpts) (*Group, error) {
 		return nil, err
 	}
 
-	// Create supervisors object for synced mounts.
-	spvsOpts := supervisors.SupervisorsOpts{
-		WorkDir: opts.WorkDir,
-		Log:     g.log,
+	// Create syncs object for synced mounts.
+	syncsOpts := syncs.SyncsOpts{
+		WorkDir:     opts.WorkDir,
+		SyncBuilder: opts.SyncBuilder,
+		Log:         g.log,
 	}
-	g.supervisor, err = supervisors.New(spvsOpts)
+	g.sync, err = syncs.New(syncsOpts)
 	if err != nil {
-		g.log.Critical("Cannot create mount supervisors: %s", err)
+		g.log.Critical("Cannot create mount syncer: %s", err)
 		return nil, err
 	}
 
@@ -166,6 +174,7 @@ func New(opts *GroupOpts) (*Group, error) {
 
 // Close closes Group's underlying clients.
 func (g *Group) Close() {
+	g.sync.Close()
 	g.client.Close()
 }
 
@@ -212,7 +221,7 @@ func (g *Group) bootstrap() {
 	g.mountSync(mountsIDs)
 }
 
-// mountsSync tries to add all available mounts to mount supervisor.
+// mountsSync tries to add all available mounts to mount syncer.
 func (g *Group) mountSync(ids machine.IDSlice) {
 	mountsN, errN := 0, int64(0)
 	var wg sync.WaitGroup
@@ -229,7 +238,7 @@ func (g *Group) mountSync(ids machine.IDSlice) {
 			mountID, m := mountID, m // Capture range variable.
 			go func() {
 				defer wg.Done()
-				if err := g.supervisor.Add(mountID, m, g.dynamicClient(mountID)); err != nil {
+				if err := g.sync.Add(mountID, m, g.dynamicClient(mountID)); err != nil {
 					atomic.AddInt64(&errN, 1)
 					g.log.Error("Cannot start synchronization for mount %s: %s", mountID, err)
 				}

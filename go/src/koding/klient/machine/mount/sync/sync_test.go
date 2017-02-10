@@ -1,4 +1,4 @@
-package mount_test
+package sync_test
 
 import (
 	"os"
@@ -10,41 +10,38 @@ import (
 	"koding/klient/machine/client/clienttest"
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/mounttest"
+	msync "koding/klient/machine/mount/sync"
+	"koding/klient/machine/mount/sync/discard"
 )
 
-func TestSupervisorNew(t *testing.T) {
+func TestSyncNew(t *testing.T) {
 	wd, m, clean, err := mounttest.MountDirs()
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	defer clean()
 
-	// Create new supervisor.
+	// Create new Sync.
 	mountID := mount.MakeID()
-	opts := mount.SupervisorOpts{
-		ClientFunc: func() (client.Client, error) {
-			return clienttest.NewClient(), nil
-		},
-		WorkDir: wd,
-	}
-	s, err := mount.NewSupervisor(mountID, m, opts)
+	sA, err := msync.NewSync(mountID, m, defaultSyncOpts(wd))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
+	defer sA.Close()
 
 	// Check file structure.
 	if _, err := os.Stat(filepath.Join(wd, "data")); err != nil {
 		t.Errorf("want err = nil; got %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(wd, mount.LocalIndexName)); err != nil {
+	if _, err := os.Stat(filepath.Join(wd, msync.LocalIndexName)); err != nil {
 		t.Errorf("want err = nil; got %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(wd, mount.RemoteIndexName)); err != nil {
+	if _, err := os.Stat(filepath.Join(wd, msync.RemoteIndexName)); err != nil {
 		t.Errorf("want err = nil; got %v", err)
 	}
 
 	// Check indexes.
-	info := s.Info()
+	info := sA.Info()
 	if info == nil {
 		t.Fatalf("want info != nil; got nil")
 	}
@@ -52,13 +49,15 @@ func TestSupervisorNew(t *testing.T) {
 		t.Error("want all disk size > 0")
 	}
 
-	expected := &mount.Info{
+	expected := &msync.Info{
 		ID:           mountID,
 		Mount:        m,
 		SyncCount:    0,
 		AllCount:     1,
 		SyncDiskSize: 0,
 		AllDiskSize:  info.AllDiskSize,
+		Queued:       0,
+		Syncing:      0,
 	}
 
 	if !reflect.DeepEqual(info, expected) {
@@ -74,11 +73,13 @@ func TestSupervisorNew(t *testing.T) {
 	}
 
 	// New add of existing mount.
-	if s, err = mount.NewSupervisor(mountID, m, opts); err != nil {
+	sB, err := msync.NewSync(mountID, m, defaultSyncOpts(wd))
+	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
+	defer sB.Close()
 
-	if info = s.Info(); info == nil {
+	if info = sB.Info(); info == nil {
 		t.Fatalf("want info != nil; got nil")
 	}
 
@@ -93,25 +94,20 @@ func TestSupervisorNew(t *testing.T) {
 	}
 }
 
-func TestSupervisorDrop(t *testing.T) {
+func TestSyncDrop(t *testing.T) {
 	wd, m, clean, err := mounttest.MountDirs()
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 	defer clean()
 
-	// Create new supervisor.
+	// Create new Sync.
 	mountID := mount.MakeID()
-	opts := mount.SupervisorOpts{
-		ClientFunc: func() (client.Client, error) {
-			return clienttest.NewClient(), nil
-		},
-		WorkDir: wd,
-	}
-	s, err := mount.NewSupervisor(mountID, m, opts)
+	s, err := msync.NewSync(mountID, m, defaultSyncOpts(wd))
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
+	defer s.Close()
 
 	if err := s.Drop(); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
@@ -120,5 +116,15 @@ func TestSupervisorDrop(t *testing.T) {
 	// Working directory should not exist.
 	if _, err := os.Stat(wd); !os.IsNotExist(err) {
 		t.Errorf("want err = os.ErrNotExist; got %v", err)
+	}
+}
+
+func defaultSyncOpts(wd string) msync.SyncOpts {
+	return msync.SyncOpts{
+		ClientFunc: func() (client.Client, error) {
+			return clienttest.NewClient(), nil
+		},
+		SyncBuilder: discard.DiscardBuilder{},
+		WorkDir:     wd,
 	}
 }
