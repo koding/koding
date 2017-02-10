@@ -1,5 +1,6 @@
 kd = require 'kd'
 JView = require 'app/jview'
+remote = require 'app/remote'
 Events = require '../events'
 
 CredentialListItem              = require '../views/credentiallistitem'
@@ -12,12 +13,13 @@ module.exports = class StackCredentialListController extends AccountCredentialLi
 
   constructor: (options = {}, data) ->
 
-    options      =
-      limit      : 15
-      viewClass  : AccountCredentialList
-      itemClass  : CredentialListItem
-      baseQuery  :
-        provider : { $ne: 'custom' }
+    options         =
+      limit         : 15
+      viewClass     : AccountCredentialList
+      itemClass     : CredentialListItem
+      fetcherMethod : remote.api.JCredential.some$
+      baseQuery     :
+        provider    : { $ne: 'custom' }
 
     super options, data
 
