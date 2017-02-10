@@ -78,7 +78,32 @@ $stack-border-width         = 2px
       margin-left           10px
 
     cite
-      fa                    th-list
+      fa                    server
+
+    .tag
+      font-size             11px
+      background            #515151
+      color                 white
+      padding               1px 4px
+      box-sizing            border-box
+      font-variant          small-caps
+      margin-left           5px
+      vertical-align        top
+      cursor                pointer
+      display               inline-block
+      width                 auto
+
+      &.level
+        background          #727272
+        cursor              default
+
+    &.team
+      .tag.level
+        background          #E47E8B
+
+    &.missing-credential
+      .tag.credential
+        vendor              animation, shake .6s
 
 
   .content

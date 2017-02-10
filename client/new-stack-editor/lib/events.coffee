@@ -1,6 +1,7 @@
 module.exports = {
   'CredentialChangesRevertRequested'
   'CredentialChangesSaveRequested'
+  'WarnAboutMissingCredentials'
   'CredentialSelectionChanged'
   'CredentialFilterChanged'
   'SelectedProviderChanged'
@@ -11,6 +12,7 @@ module.exports = {
   'ProviderSelected'
   'LazyLoadFinished'
   'LazyLoadStarted'
+  'ShowCredentials'
   'GotFocus'
   'Log'
 }

@@ -41,6 +41,7 @@ module.exports = class StackEditor extends kd.View
     # Toolbar
     @toolbar = new Toolbar
     @forwardEvent @toolbar, Events.InitializeRequested
+    @toolbar.on Events.ShowCredentials, => @sideView.show 'credentials'
 
     # Status bar
     @statusbar = new Statusbar
@@ -91,6 +92,9 @@ module.exports = class StackEditor extends kd.View
     # SideView for Search and Credentials
     @controllers.credentials = new CredentialsController
       logs  : @controllers.logs
+
+    @controllers.credentials.on Events.WarnAboutMissingCredentials, =>
+      @toolbar.showMissingCredentialWarning()
 
     @sideView       = new SideView
       title         : yes
