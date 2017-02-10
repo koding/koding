@@ -632,7 +632,7 @@ module.exports = class StackEditorView extends kd.View
             .add 'Credentials are ready!'
             .add 'Starting to process the template...'
 
-          @processTemplate _stackTemplate, callback
+          @processTemplate _stackTemplate ? stackTemplate, callback
 
 
   afterProcessTemplate: (method) ->
