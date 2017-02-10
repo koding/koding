@@ -53,7 +53,7 @@ module.exports = (client, currentGroup, callback) ->
               console.log "Added #{member.profile.nickname} into #{currentGroup.slug}"
               pass()
 
-          async.parallel mq, next
+          async.parallel mq, -> next()
 
           console.log "Created socialapi channels for #{currentGroup.slug}"
 
@@ -77,6 +77,6 @@ module.exports = (client, currentGroup, callback) ->
             console.log "Added #{who} into #{group.slug}"
             pass()
 
-        async.parallel gq, next
+        async.parallel gq, -> next()
 
   ], -> callback null
