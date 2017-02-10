@@ -1,7 +1,7 @@
 module.exports = (client, currentGroup, callback) ->
 
   async     = require 'async'
-  SocialAccount = require '../../../../../servers/models/socialapi/socialaccount'
+  SocialAccount = require '../models/socialapi/socialaccount'
 
   accountCreated = no
   account = client?.connection?.delegate
