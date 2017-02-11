@@ -44,16 +44,20 @@ module.exports = class CredentialListItem extends kd.ListItemView
         @getDelegate().emit Events.CredentialFilterChanged, provider
         kd.utils.stopDOMEvent event
 
-
     @on 'click', (event) =>
       unless 'checkbox' in event.target.classList
         @select not @isSelected(), userAction = yes
         kd.utils.stopDOMEvent event
 
 
-
   select: (state = yes, userAction = no) ->
+
     @checkBox.setValue state
+
+    if state
+    then @setClass   'selected'
+    else @unsetClass 'selected'
+
     if userAction
       @getDelegate().emit Events.CredentialSelectionChanged, this, state
 
