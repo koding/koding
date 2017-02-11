@@ -7,7 +7,6 @@ remote = require 'app/remote'
 Events = require '../events'
 BaseController = require './base'
 
-
 { yamlToJson, jsonToYaml } = require 'app/util/stacks/yamlutils'
 updateCustomVariable = require 'app/util/stacks/updatecustomvariable'
 
@@ -28,15 +27,14 @@ module.exports = class VariablesController extends BaseController
 
     if cred = @getData()?.credentials?.custom?.first
     then @reviveCredential cred, @getData()._id
-    else @editor.unsetClass 'loading'
+    else @editor.stopLoading()
 
 
   reviveCredential: (identifier, templateId) ->
 
     return  if templateId in @_loadedTemplates
 
-    @editor.setClass 'loading'
-    @logs.add 'loading custom variables'
+    @editor.startLoading()
 
     remote.api.JCredential.one identifier, (err, credential) =>
       return kd.warn err  if err
@@ -46,7 +44,7 @@ module.exports = class VariablesController extends BaseController
 
         return  if templateId isnt @getData()._id
 
-        @editor.unsetClass 'loading'
+        @editor.stopLoading()
 
         if err
           console.warn "You don't have access to custom variables"
@@ -58,7 +56,6 @@ module.exports = class VariablesController extends BaseController
         { meta } = data
         if (Object.keys meta).length > 1
           content = meta.__rawContent ? (jsonToYaml meta).content
-
           @editor.setContent unescape content
 
 

@@ -75,6 +75,12 @@ module.exports = class BaseView extends kd.View
     @addSubView @wrapper
 
 
+  startLoading: -> @setClass 'loading'
+
+
+  stopLoading: -> @unsetClass 'loading'
+
+
   _createLoaderView: ->
 
     @controls.addSubView @_loaderView = new kd.LoaderView
