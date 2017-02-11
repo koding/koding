@@ -41,7 +41,7 @@ module.exports = class StackEditor extends kd.View
     # Toolbar
     @toolbar = new Toolbar
     @forwardEvent @toolbar, Events.InitializeRequested
-    @toolbar.on Events.ShowCredentials, => @sideView.show 'credentials'
+    @toolbar.on Events.ToggleCredentials, => @sideView.toggle 'credentials'
 
     # Status bar
     @statusbar = new Statusbar

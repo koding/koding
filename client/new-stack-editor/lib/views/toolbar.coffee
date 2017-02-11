@@ -38,7 +38,7 @@ module.exports = class Toolbar extends JView
   click: (event) ->
 
     if event.target.classList.contains 'credential'
-      @emit Events.ShowCredentials
+      @emit Events.ToggleCredentials
       kd.utils.stopDOMEvent event
 
 

@@ -9,6 +9,7 @@ module.exports = {
   'StackWizardCancelled'
   'InitializeRequested'
   'TemplateDataChanged'
+  'ToggleCredentials'
   'ProviderSelected'
   'LazyLoadFinished'
   'LazyLoadStarted'

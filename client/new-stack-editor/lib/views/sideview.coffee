@@ -57,3 +57,11 @@ module.exports = class SideView extends BaseView
       else
         @unsetClass item.cssClass
         item.view.hide()
+
+
+  toggle: (viewName) ->
+
+    if @hasClass 'hidden'
+    then @show viewName
+    else @hide()
+
