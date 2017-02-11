@@ -64,4 +64,3 @@ module.exports = class SideView extends BaseView
     if @hasClass 'hidden'
     then @show viewName
     else @hide()
-
