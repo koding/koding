@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"koding/klient/fs"
 	"koding/klient/machine/index"
 )
 
@@ -79,12 +80,12 @@ func (s *Supervised) MountGetIndex(path string) (idx *index.Index, err error) {
 	return
 }
 
-// DiskBlocks calls registered Client's DiskBlocks method and returns its
-// result if it's not produced by Disconnected client. If it is, this function
-// will wait until valid client is available or timeout is reached.
-func (s *Supervised) DiskBlocks(path string) (size, total, free, used uint64, err error) {
+// DiskInfo calls registered Client's DiskInfo method and returns its result if
+// it's not produced by Disconnected client. If it is, this function will wait
+// until valid client is available or timeout is reached.
+func (s *Supervised) DiskInfo(path string) (di fs.DiskInfo, err error) {
 	fn := func(c Client) error {
-		size, total, free, used, err = c.DiskBlocks(path)
+		di, err = c.DiskInfo(path)
 		return err
 	}
 

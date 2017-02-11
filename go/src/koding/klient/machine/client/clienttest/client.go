@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"koding/klient/fs"
 	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/index"
@@ -133,11 +134,17 @@ func (c *Client) MountGetIndex(path string) (*index.Index, error) {
 	return index.NewIndexFiles(path)
 }
 
-// DiskBlocks gets faked information about file-system.
-func (c *Client) DiskBlocks(path string) (size, total, free, used uint64, err error) {
+// DiskInfo gets faked information about file-system.
+func (c *Client) DiskInfo(path string) (di fs.DiskInfo, err error) {
 	// TODO(ppknap): replace with non-faked data when we have platform
 	// independent logic for disk stat operation.
-	size, total, free, used = 512, 1e9, 9e8, 1e9-9e8
+	di = fs.DiskInfo{
+		BlockSize:   512,
+		BlocksTotal: 1e9,
+		BlocksFree:  9e8,
+		BlocksUsed:  1e9 - 9e8,
+	}
+
 	return
 }
 

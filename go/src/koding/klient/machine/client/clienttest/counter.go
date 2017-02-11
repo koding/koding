@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync/atomic"
 
+	"koding/klient/fs"
 	"koding/klient/machine/client"
 	"koding/klient/machine/index"
 )
@@ -15,9 +16,9 @@ func (ic invCounter) Error() string {
 	return fmt.Sprintf("count number is %v", int64(ic))
 }
 
-// CountNumber retrieves the number of Counter calls from provided error. If
+// CallCount retrieves the number of Counter calls from provided error. If
 // error doesn't have the correct type, -1 is returned.
-func CountNumber(err error) int {
+func CallCount(err error) int {
 	if ic, ok := err.(invCounter); ok {
 		return int(ic)
 	}
@@ -27,7 +28,7 @@ func CountNumber(err error) int {
 
 // Counter satisfies machine.Client interface. It counts all method invocations
 // and returns the current number in function error. The actual number can be
-// obtained by calling CountNumber function on received error.
+// obtained by calling CallCount function on received error.
 type Counter struct {
 	curr int64
 }
@@ -54,9 +55,9 @@ func (c *Counter) MountGetIndex(path string) (*index.Index, error) {
 	return nil, invCounter(atomic.AddInt64(&c.curr, 1))
 }
 
-// DiskBlocks increases function call counter and returns it as an error.
-func (c *Counter) DiskBlocks(path string) (size, total, free, used uint64, err error) {
-	return 0, 0, 0, 0, invCounter(atomic.AddInt64(&c.curr, 1))
+// DiskInfo increases function call counter and returns it as an error.
+func (c *Counter) DiskInfo(path string) (fs.DiskInfo, error) {
+	return fs.DiskInfo{}, invCounter(atomic.AddInt64(&c.curr, 1))
 }
 
 // Context increases function call counter and returns background context.

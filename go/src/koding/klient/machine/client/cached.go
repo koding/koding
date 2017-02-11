@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"koding/klient/fs"
 	"koding/klient/machine/index"
 )
 
@@ -14,11 +15,11 @@ import (
 // invocations. This type is thread safe but will not cache its results until
 // first ones are available.
 type Cached struct {
-	cu  func() (string, error)                               // CurrentUser.
-	sak func(string, ...string) error                        // SSHAddKeys.
-	mhi func(string) (string, int, int64, error)             // MountHeadIndex.
-	mgi func(string) (*index.Index, error)                   // MountGetIndex.
-	db  func(string) (uint64, uint64, uint64, uint64, error) // DiskBlocks
+	currentUser    func() (string, error)                   // CurrentUser.
+	sshAddKeys     func(string, ...string) error            // SSHAddKeys.
+	mountHeadIndex func(string) (string, int, int64, error) // MountHeadIndex.
+	mountGetIndex  func(string) (*index.Index, error)       // MountGetIndex.
+	diskInfo       func(string) (fs.DiskInfo, error)        // DiskBlocks
 
 	c Client // Client used by Context method.
 }
@@ -28,12 +29,12 @@ var _ Client = (*Cached)(nil)
 // NewCached creates a new Cached client instance.
 func NewCached(c Client, interval time.Duration) *Cached {
 	return &Cached{
-		cu:  cu(c, interval),
-		sak: sak(c, interval),
-		mhi: mhi(c, interval),
-		mgi: mgi(c, interval),
-		db:  db(c, interval),
-		c:   c,
+		currentUser:    currentUser(c, interval),
+		sshAddKeys:     sshAddKeys(c, interval),
+		mountHeadIndex: mountHeadIndex(c, interval),
+		mountGetIndex:  mountGetIndex(c, interval),
+		diskInfo:       diskInfo(c, interval),
+		c:              c,
 	}
 }
 
@@ -41,10 +42,10 @@ func NewCached(c Client, interval time.Duration) *Cached {
 // result for the specified interval. It doesn't cache results from disconnected
 // client.
 func (c *Cached) CurrentUser() (string, error) {
-	return c.cu()
+	return c.currentUser()
 }
 
-func cu(c Client, interval time.Duration) func() (string, error) {
+func currentUser(c Client, interval time.Duration) func() (string, error) {
 	lastCall, mu := time.Now().Add(-interval-time.Second), sync.Mutex{}
 
 	rUser, rErr := "", error(nil)
@@ -73,10 +74,10 @@ func cu(c Client, interval time.Duration) func() (string, error) {
 // for the specified interval. It doesn't cache results from disconnected
 // client. If call arguments change, the cache will be invalidated.
 func (c *Cached) SSHAddKeys(username string, keys ...string) error {
-	return c.sak(username, keys...)
+	return c.sshAddKeys(username, keys...)
 }
 
-func sak(c Client, interval time.Duration) func(string, ...string) error {
+func sshAddKeys(c Client, interval time.Duration) func(string, ...string) error {
 	lastCall, mu := time.Now().Add(-interval-time.Second), sync.Mutex{}
 
 	aUsername, aKeys := "", []string(nil)
@@ -108,10 +109,10 @@ func sak(c Client, interval time.Duration) func(string, ...string) error {
 // result for the specified interval. It doesn't cache results from disconnected
 // client. If call arguments change, the cache will be invalidated.
 func (c *Cached) MountHeadIndex(path string) (string, int, int64, error) {
-	return c.mhi(path)
+	return c.mountHeadIndex(path)
 }
 
-func mhi(c Client, interval time.Duration) func(string) (string, int, int64, error) {
+func mountHeadIndex(c Client, interval time.Duration) func(string) (string, int, int64, error) {
 	lastCall, mu := time.Now().Add(-interval-time.Second), sync.Mutex{}
 
 	aPath := ""
@@ -142,10 +143,10 @@ func mhi(c Client, interval time.Duration) func(string) (string, int, int64, err
 // result for the specified interval. It doesn't cache results from disconnected
 // client. If call arguments change, the cache will be invalidated.
 func (c *Cached) MountGetIndex(path string) (*index.Index, error) {
-	return c.mgi(path)
+	return c.mountGetIndex(path)
 }
 
-func mgi(c Client, interval time.Duration) func(string) (*index.Index, error) {
+func mountGetIndex(c Client, interval time.Duration) func(string) (*index.Index, error) {
 	lastCall, mu := time.Now().Add(-interval-time.Second), sync.Mutex{}
 
 	aPath := ""
@@ -172,33 +173,33 @@ func mgi(c Client, interval time.Duration) func(string) (*index.Index, error) {
 	}
 }
 
-// DiskBlocks calls registered Client's DiskBlocks method and caches its result
-// for the specified interval. It doesn't cache results from disconnected
-// client. If call arguments change, the cache will be invalidated.
-func (c *Cached) DiskBlocks(path string) (uint64, uint64, uint64, uint64, error) {
-	return c.db(path)
+// DiskInfo calls registered Client's DiskInfo method and caches its result for
+// the specified interval. It doesn't cache results from disconnected client. If
+// call arguments change, the cache will be invalidated.
+func (c *Cached) DiskInfo(path string) (fs.DiskInfo, error) {
+	return c.diskInfo(path)
 }
 
-func db(c Client, interval time.Duration) func(string) (uint64, uint64, uint64, uint64, error) {
+func diskInfo(c Client, interval time.Duration) func(string) (fs.DiskInfo, error) {
 	lastCall, mu := time.Now().Add(-interval-time.Second), sync.Mutex{}
 
 	aPath := ""
-	rSize, rTotal, rFree, rUsed, rErr := uint64(0), uint64(0), uint64(0), uint64(0), error(nil)
+	rDi, rErr := fs.DiskInfo{}, error(nil)
 
-	return func(path string) (size, total, free, used uint64, err error) {
+	return func(path string) (di fs.DiskInfo, err error) {
 		mu.Lock()
 		if time.Since(lastCall) < interval && aPath == path && rErr != ErrDisconnected {
-			size, total, free, used, err = rSize, rTotal, rFree, rUsed, rErr
+			di, err = rDi, rErr
 			mu.Unlock()
 			return
 		}
 		mu.Unlock()
 
-		size, total, free, used, err = c.DiskBlocks(path)
+		di, err = c.DiskInfo(path)
 
 		mu.Lock()
 		aPath = path
-		rSize, rTotal, rFree, rUsed, rErr = size, total, free, used, err
+		rDi, rErr = di, err
 		lastCall = time.Now()
 		mu.Unlock()
 

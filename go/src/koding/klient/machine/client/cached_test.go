@@ -41,9 +41,9 @@ func TestCached(t *testing.T) {
 			},
 			Arguments: true,
 		},
-		"disk blocks": {
+		"disk info": {
 			Method: func(i int, c client.Client) (err error) {
-				_, _, _, _, err = c.DiskBlocks(strings.Repeat("s", i))
+				_, err = c.DiskInfo(strings.Repeat("s", i))
 				return
 			},
 			Arguments: true,
@@ -61,7 +61,7 @@ func TestCached(t *testing.T) {
 			cached := client.NewCached(&clienttest.Counter{}, time.Hour)
 			for i := 0; i < callsN; i++ {
 				err := test.Method(1, cached)
-				if count := clienttest.CountNumber(err); count != 1 {
+				if count := clienttest.CallCount(err); count != 1 {
 					t.Fatalf("want call counts = 1; got %d", count)
 				}
 			}
@@ -70,7 +70,7 @@ func TestCached(t *testing.T) {
 			cached = client.NewCached(&clienttest.Counter{}, 0)
 			for i := 0; i < callsN; i++ {
 				err := test.Method(1, cached)
-				if count := clienttest.CountNumber(err); count != (i + 1) {
+				if count := clienttest.CallCount(err); count != (i + 1) {
 					t.Fatalf("want call counts = %d; got %d", (i + 1), count)
 				}
 			}
@@ -80,7 +80,7 @@ func TestCached(t *testing.T) {
 				cached = client.NewCached(&clienttest.Counter{}, time.Hour)
 				for i := 0; i < callsN; i++ {
 					err := test.Method(i, cached)
-					if count := clienttest.CountNumber(err); count != (i + 1) {
+					if count := clienttest.CallCount(err); count != (i + 1) {
 						t.Fatalf("want call counts = %d; got %d", (i + 1), count)
 					}
 				}
