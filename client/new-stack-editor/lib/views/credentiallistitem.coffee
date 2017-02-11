@@ -20,7 +20,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
     handle = (action) => =>
       @getDelegate().emit 'ItemAction', { action, item: this }
 
-    @checkBox = new kd.CustomCheckBox
+    @checkBox = new kd.CheckBox
       defaultValue : off
 
     @preview = new kd.ButtonView

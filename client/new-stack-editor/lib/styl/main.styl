@@ -450,6 +450,14 @@ $stack-border-width         = 2px
       margin-left           -86px
       display               block
 
+    .kdinput.checkbox
+      opacity               .5
+      margin-right          5px
+
+      &:checked
+        opacity             1
+
+
     .kdlistitemview.credential
       font-size             14px
       padding               10px 15px 10px 20px
@@ -460,6 +468,8 @@ $stack-border-width         = 2px
 
       &:hover
         background          $stack-bg-color-bright
+        .kdinput.checkbox
+          opacity           1
 
       .kdcustomcheckbox
         margin              -4px 5px -3px -3px
