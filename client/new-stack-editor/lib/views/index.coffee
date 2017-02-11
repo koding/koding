@@ -19,6 +19,7 @@ LogsController = require '../controllers/logs'
 VariablesController = require '../controllers/variables'
 CredentialsController = require '../controllers/credentials'
 
+{ yamlToJson } = require 'app/util/stacks/yamlutils'
 Help = require './help'
 
 
@@ -134,7 +135,7 @@ module.exports = class StackEditor extends kd.View
     unless @_loadSnapshot id
 
       @editor.setContent Encoder.htmlDecode template.rawContent
-      @readme.setContent description
+      @readme.setContent Encoder.htmlDecode description
       @variables.setContent ''
       @controllers.logs.set 'stack template loaded'
 
@@ -142,6 +143,21 @@ module.exports = class StackEditor extends kd.View
       @_current = id
 
     kd.utils.defer @editor.bound 'focus'
+
+
+  check: (callback) ->
+
+    [ err ] = @getConvertedContent()
+    callback err
+
+
+  getConvertedContent: ->
+
+    convertedDoc = yamlToJson @editor.getContent()
+
+    return if convertedDoc.err
+    then [ 'Failed to convert YAML to JSON, fix the document and try again.' ]
+    else [ null, convertedDoc ]
 
 
   _loadSnapshot: (id) ->
