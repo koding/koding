@@ -20,8 +20,8 @@ module.exports = class CredentialsController extends BaseController
       Events.CredentialChangesRevertRequested
     ], @bound 'updateCredentialSelections'
 
-    @listController.on Events.CredentialChangesSaveRequested, \
-      @bound 'handleSaveChanges'
+    @listController.on Events.CredentialChangesSaveRequested, =>
+      @handleSaveChanges()
 
     @list = @listController.getListView()
     @list.on Events.CredentialSelectionChanged, =>
@@ -41,8 +41,11 @@ module.exports = class CredentialsController extends BaseController
       provider isnt 'custom'
 
     if credentials.length is 0
-      @emit Events.WarnAboutMissingCredentials
-      callback { error: 'Missing Credentials' }
+      if Object.keys(selectedCredentials = @getSelectedCredentials()).length
+        @handleSaveChanges selectedCredentials, callback
+      else
+        @emit Events.WarnAboutMissingCredentials
+        callback { error: 'Missing Credentials' }
     else
       callback null
 
@@ -88,16 +91,21 @@ module.exports = class CredentialsController extends BaseController
     return credentials
 
 
-  handleSaveChanges: ->
+  handleSaveChanges: (credentials, callback = kd.noop) ->
 
-    credentials   = @getSelectedCredentials()
+    credentials  ?= @getSelectedCredentials()
     stackTemplate = @getData()
 
     stackTemplate.update { credentials }, (err, updatedTemplate) =>
-      return @logs.handleError err  if err
+
+      if err
+        callback err
+        @logs.handleError err
+        return
 
       @logs.add 'Stack template updated successfully!'
       @emit Events.TemplateDataChanged, updatedTemplate
+      callback null
 
 
   getCredentialAddButton: ->
