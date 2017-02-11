@@ -46,7 +46,7 @@ module.exports = class CredentialsController extends BaseController
       @save selectedCredentials, callback
     else if templateCredentials.length is 0
       @emit Events.WarnAboutMissingCredentials
-      callback { error: 'Missing Credentials' }
+      callback 'Missing Credentials'
     else
       callback null
 
@@ -92,7 +92,10 @@ module.exports = class CredentialsController extends BaseController
     return credentials
 
 
-  save: (credentials, callback = kd.noop) ->
+  save: (credentials, callback) ->
+
+    [credentials, callback] = [callback, credentials]  unless callback
+    callback ?= kd.noop
 
     unless @isSelectionChanged()
       return callback null
