@@ -74,6 +74,10 @@ module.exports = class VariablesController extends BaseController
       debug 'nothing to save, passing out'
       return callback null
 
+    unless @editor.hasChange()
+      debug 'nothing changed, passing out'
+      return callback null
+
     @logs.add 'setting up custom variables...'
 
     updateCustomVariable data, (err, updatedStackTemplate) =>

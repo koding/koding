@@ -59,8 +59,7 @@ module.exports = updateCustomVariable = (options, callback) ->
         createAndUpdate { provider, title, meta, stackTemplate }, callback
       else
         credential.update { meta, title }, (err) ->
-          shareWithGroup credential, ->
-            callback err, stackTemplate
+          shareWithGroup credential, callback
 
   else
     createAndUpdate { provider, title, meta, stackTemplate }, callback

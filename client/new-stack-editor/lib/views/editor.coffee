@@ -18,6 +18,8 @@ module.exports = class Editor extends BaseView
 
     super options, data
 
+    @_initialContent = ''
+
 
   getContent: ->
 
@@ -26,7 +28,12 @@ module.exports = class Editor extends BaseView
 
   setContent: (content, type = 'text') -> @ready =>
 
+    @_initialContent = content
     @_getSession().setValue content
+
+
+  hasChange: ->
+    @getContent() isnt @_initialContent
 
 
   addContent: (content) -> @ready =>
