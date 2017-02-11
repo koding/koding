@@ -20,6 +20,8 @@ VariablesController = require '../controllers/variables'
 CredentialsController = require '../controllers/credentials'
 
 { yamlToJson } = require 'app/util/stacks/yamlutils'
+updateStackTemplate = require 'app/util/stacks/updatestacktemplate'
+
 Help = require './help'
 
 
@@ -143,6 +145,29 @@ module.exports = class StackEditor extends kd.View
       @_current = id
 
     kd.utils.defer @editor.bound 'focus'
+
+
+  save: (callback) ->
+
+    { title, config = {} } = stackTemplate = @getData()
+
+    rawContent  = @editor.getContent()
+    description = @readme.getContent()
+
+    [ err, convertedDoc ] = @getConvertedContent()
+    return callback err  if err
+
+    { contentObject, content } = convertedDoc
+
+    config.buildDuration = contentObject.koding?.buildDuration
+    template = convertedDoc.content
+
+    dataToSave = {
+      title, stackTemplate, template, description, rawContent
+    }
+
+    debug 'saving data', dataToSave
+    updateStackTemplate dataToSave, callback
 
 
   check: (callback) ->
