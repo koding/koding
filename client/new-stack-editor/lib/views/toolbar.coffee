@@ -12,7 +12,7 @@ module.exports = class Toolbar extends JView
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'toolbar', options.cssClass
-    data ?= { title: '', accessLevel: 'private' }
+    data ?= { title: '', accessLevel: 'private', _initial: yes }
 
     super options, data
 
@@ -44,7 +44,7 @@ module.exports = class Toolbar extends JView
 
   setData: (data) ->
 
-    { accessLevel, credentials, title } = data
+    { _id, accessLevel, credentials, title } = data
 
     if data.accessLevel is 'group'
       accessLevel = 'team'
@@ -58,7 +58,11 @@ module.exports = class Toolbar extends JView
     then "#{count} credential#{if count > 1 then 's' else ''} is set"
     else 'missing credentials'
 
-    super { accessLevel, credentials, title }
+    if data._initial
+      credentials = '-'
+      accessLevel = '-'
+
+    super { _id, accessLevel, credentials, title }
 
 
   render: ->
