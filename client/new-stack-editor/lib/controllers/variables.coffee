@@ -1,10 +1,15 @@
+debug = (require 'debug') 'nse:variables:controller'
+
 kd = require 'kd'
 remote = require 'app/remote'
+{ unescape } = require 'lodash'
 
 Events = require '../events'
 BaseController = require './base'
-{ unescape } = require 'lodash'
+
+
 { yamlToJson, jsonToYaml } = require 'app/util/stacks/yamlutils'
+updateCustomVariable = require 'app/util/stacks/updatecustomvariable'
 
 
 module.exports = class VariablesController extends BaseController
@@ -55,3 +60,50 @@ module.exports = class VariablesController extends BaseController
           content = meta.__rawContent ? (jsonToYaml meta).content
 
           @editor.setContent unescape content
+
+
+  save: (callback) ->
+
+    meta = @getProvidedData()
+    stackTemplate = @getData()
+    data = { stackTemplate, meta }
+
+    debug 'save requested, current data:', data
+
+    if Object.keys(meta).length <= 1
+      debug 'nothing to save, passing out'
+      return callback null
+
+    @logs.add 'setting up custom variables...'
+
+    updateCustomVariable data, (err, updatedStackTemplate) =>
+      debug 'updateCustomVariable returned', err, updatedStackTemplate
+
+      @logs.add 'custom variables update failed', err  if err
+      return callback err  if err
+
+      if updatedStackTemplate
+        @logs.add 'custom variables added to template'
+        @emit Events.TemplateDataChanged, updatedStackTemplate
+
+      @logs.add 'custom variables updated successfully'
+
+      callback null, updatedStackTemplate
+
+
+  getProvidedData: ->
+
+    content   = @editor.getContent()
+    converted = yamlToJson content, silent = yes
+
+    providedData = {}
+
+    unless error = converted.err
+      { contentObject: providedData } = converted
+      unless 'object' is typeof providedData
+        providedData = {}
+      providedData.__rawContent = content
+    else
+      debug 'failed to convert yaml content', error
+
+    return providedData
