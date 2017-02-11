@@ -1,4 +1,7 @@
+debug = (require 'debug') 'nse:controller:credentials'
+
 kd = require 'kd'
+_ = require 'lodash'
 JView = require 'app/jview'
 Events = require '../events'
 BaseController = require './base'
@@ -37,15 +40,14 @@ module.exports = class CredentialsController extends BaseController
   check: (callback) ->
 
     stackTemplate = @getData()
-    credentials = Object.keys(stackTemplate.credentials).filter (provider) ->
-      provider isnt 'custom'
+    selectedCredentials = @getSelectedCredentials()
+    templateCredentials = stackTemplate.getCredentialProviders()
 
-    if credentials.length is 0
-      if Object.keys(selectedCredentials = @getSelectedCredentials()).length
-        @handleSaveChanges selectedCredentials, callback
-      else
-        @emit Events.WarnAboutMissingCredentials
-        callback { error: 'Missing Credentials' }
+    if @isSelectionChanged() and _.size selectedCredentials
+      @handleSaveChanges selectedCredentials, callback
+    else if templateCredentials.length is 0
+      @emit Events.WarnAboutMissingCredentials
+      callback { error: 'Missing Credentials' }
     else
       callback null
 
