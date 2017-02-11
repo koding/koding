@@ -46,13 +46,8 @@ module.exports = class Toolbar extends JView
 
     { _id, accessLevel, credentials, title } = data
 
-    if data.accessLevel is 'group'
-      accessLevel = 'team'
-
-    if credentials and (providers = Object.keys credentials).length
-      count = 0
-      for provider in providers when provider isnt 'custom'
-        count += credentials[provider].length
+    accessLevel = 'team'  if data.accessLevel is 'group'
+    count = data.getCredentialIdentifiers?().length ? 0
 
     credentials = if count
     then "#{count} credential#{if count > 1 then 's' else ''} is set"
