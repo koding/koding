@@ -10,6 +10,13 @@ BaseController = require './base'
 module.exports = class VariablesController extends BaseController
 
 
+  constructor: (options = {}, data ) ->
+
+    super options, data
+
+    @_loadedTemplates = []
+
+
   setData: (data) ->
 
     super data
@@ -20,6 +27,8 @@ module.exports = class VariablesController extends BaseController
 
 
   reviveCredential: (identifier, templateId) ->
+
+    return  if templateId in @_loadedTemplates
 
     @editor.setClass 'loading'
     @logs.add 'loading custom variables'
@@ -39,11 +48,10 @@ module.exports = class VariablesController extends BaseController
           return kd.warn err
 
         @logs.add 'custom variables loaded'
+        @_loadedTemplates.push templateId
 
         { meta } = data
-        if (Object.keys meta).length
-          content = if rawContent = meta.__rawContent
-          then rawContent
-          else (jsonToYaml meta).content
+        if (Object.keys meta).length > 1
+          content = meta.__rawContent ? (jsonToYaml meta).content
 
           @editor.setContent unescape content
