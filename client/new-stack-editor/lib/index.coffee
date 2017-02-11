@@ -1,3 +1,5 @@
+debug = (require 'debug') 'nse'
+
 kd = require 'kd'
 AppController = require 'app/appcontroller'
 showErrorNotification = require 'app/util/showErrorNotification'
@@ -7,7 +9,6 @@ EnvironmentFlux = require 'app/flux/environment'
 Events = require './events'
 StackEditor = require './views'
 StackWizardModal = require './views/wizard/stackwizardmodal'
-
 
 { markAsLoaded, log } = require './helpers'
 
@@ -48,15 +49,22 @@ module.exports = class StackEditorAppController extends AppController
     @stackEditor.on Events.InitializeRequested, @bound 'initializeStack'
 
 
-  openEditor: (templateId, reset = no) ->
+  openEditor: (templateId, options = {}, callback = kd.noop) ->
+
+    { reset = no } = options
 
     unless templateId
       do @openStackWizard
-      return
+      return callback { message: 'No template provided' }
 
     @fetchStackTemplate templateId, (err, template) =>
-      return showErrorNotification err  if err
+
+      if err
+        showErrorNotification err
+        return callback err
+
       @stackEditor.setTemplateData template, reset
+      callback null
 
     markAsLoaded templateId
 
@@ -72,7 +80,7 @@ module.exports = class StackEditorAppController extends AppController
     return  unless @templates[templateId]
 
     delete @templates[templateId]
-    @openEditor templateId, reset = yes
+    @openEditor templateId, { reset: yes }
 
 
   fetchStackTemplate: (templateId, callback) ->
