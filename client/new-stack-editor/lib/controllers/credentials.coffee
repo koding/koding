@@ -34,7 +34,20 @@ module.exports = class CredentialsController extends BaseController
   getView: -> @listController.getView()
 
 
-  setData: (stackTemplate, internal = no) ->
+  check: (callback) ->
+
+    stackTemplate = @getData()
+    credentials = Object.keys(stackTemplate.credentials).filter (provider) ->
+      provider isnt 'custom'
+
+    if credentials.length is 0
+      @emit Events.WarnAboutMissingCredentials
+      callback { error: 'Missing Credentials' }
+    else
+      callback null
+
+
+  setData: (stackTemplate) ->
 
     super stackTemplate
 
