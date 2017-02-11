@@ -29,7 +29,6 @@ module.exports = class DeleteTeamOverlay extends kd.OverlayView
             Your team is gone but we hope the memories were stellar.
             Next, you can login to another team or create a new one.
           </div>
-          <a href="/Teams/Select">Close</a>
         '''
 
     setTimeout ->
