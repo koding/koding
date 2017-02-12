@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync/atomic"
 
 	"koding/klient/machine/index"
 
@@ -136,11 +137,11 @@ func (fs *Filesystem) MkDir(ctx context.Context, op *fuseops.MkDirOp) error {
 
 	path = filepath.Join(path, op.Name)
 
-	if err := fs.mkdir(path, op.Mode); err != nil {
+	op.Entry.Child, err = fs.mkdir(path, op.Mode)
+	if err != nil {
 		return err
 	}
 
-	op.Entry.Child = fs.mkInodeID(path)
 	op.Entry.Attributes = fs.newAttr(op.Mode)
 
 	return fs.yield(ctx, path, index.ChangeMetaAdd|index.ChangeMetaLocal)
@@ -163,11 +164,11 @@ func (fs *Filesystem) CreateFile(ctx context.Context, op *fuseops.CreateFileOp) 
 
 	path = filepath.Join(path, op.Name)
 
-	if err := fs.touch(ctx, path, op.Mode); err != nil {
+	op.Entry.Child, err = fs.mkfile(path, op.Mode)
+	if err != nil {
 		return err
 	}
 
-	op.Entry.Child = fs.mkInodeID(path)
 	op.Entry.Attributes = fs.newAttr(op.Mode)
 
 	return fs.yield(ctx, path, index.ChangeMetaAdd|index.ChangeMetaLocal)
@@ -192,7 +193,8 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) error {
 		return err
 	}
 
-	if _, ok := oldDir.Sub[op.OldName]; !ok {
+	oldNd, ok := oldDir.Sub[op.OldName]
+	if !ok {
 		return fuse.ENOENT
 	}
 
@@ -207,11 +209,26 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) error {
 		return err
 	}
 
-	if err := fs.yield(ctx, oldPath, index.ChangeMetaLocal|index.ChangeMetaRemove); err != nil {
-		return err
+	entry := &index.Entry{
+		Mode: oldDir.Entry.Mode,
 	}
 
-	return fs.yield(ctx, newPath, index.ChangeMetaLocal|index.ChangeMetaAdd)
+	id := fuseops.InodeID(atomic.LoadUint64(&oldNd.Entry.Aux))
+
+	fs.mu.Lock()
+	delete(fs.inodes, id)
+	id = fs.add(newPath)
+	fs.mu.Unlock()
+
+	entry.Aux = uint64(id)
+
+	fs.Remote.PromiseDel(oldPath)
+	fs.Remote.PromiseAdd(newPath, entry)
+
+	return nonil(
+		fs.yield(ctx, oldPath, index.ChangeMetaLocal|index.ChangeMetaRemove),
+		fs.yield(ctx, newPath, index.ChangeMetaLocal|index.ChangeMetaAdd),
+	)
 }
 
 // RmDir deletes a directory from remote and list of live nodes.
