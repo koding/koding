@@ -77,9 +77,11 @@ func Get(req *Request) (*GetResponse, error) {
 // preparePath performs basic checks and makes a given path usable for local
 // file system.
 func preparePath(path string) (string, error) {
+	const tilde = "~" + string(os.PathSeparator)
+
 	switch isAbs := filepath.IsAbs(path); {
 	case isAbs:
-	case !isAbs && len(path) > 1 && path[:2] == "~/":
+	case !isAbs && len(path) > 1 && path[:2] == tilde:
 		path = strings.Replace(path, "~", config.CurrentUser.HomeDir, 1)
 	default:
 		return "", fmt.Errorf("remote path format is invalid: %s", path)
