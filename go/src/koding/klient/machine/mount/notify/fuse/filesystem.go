@@ -54,17 +54,19 @@ func block(path string) *fs.DiskInfo {
 func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
 
 	o := &Opts{
-		Local:    opts.LocalIdx,
 		Remote:   opts.RemoteIdx,
 		Cache:    opts.Cache,
 		CacheDir: opts.CacheDir,
 		Mount:    filepath.Base(opts.Mount.Path),
 		MountDir: opts.Mount.Path,
 		Disk:     opts.Disk,
+		// intentionally separate env to not enable fuse logging
+		// for regular kd debug
+		Debug: os.Getenv("KD_MOUNT_DEBUG") == "1",
 	}
 
 	if o.Disk == nil {
-		Disk = block(opts.CacheDir)
+		o.Disk = block(opts.CacheDir)
 	}
 
 	return NewFilesystem(o)
@@ -72,7 +74,6 @@ func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
 
 // Opts configures FUSE filesystem.
 type Opts struct {
-	Local    *index.Index // local metadata index (needed?)
 	Remote   *index.Index // remote metadata index
 	Disk     *fs.DiskInfo // remote filesystem informartion
 	Cache    notify.Cache // used to request cache updates
@@ -112,6 +113,8 @@ type Filesystem struct {
 	fuseutil.NotImplementedFileSystem
 	Opts
 
+	cancel func()
+
 	mu        sync.RWMutex
 	seq       uint64
 	inodes    map[fuseops.InodeID]string
@@ -119,13 +122,6 @@ type Filesystem struct {
 	handles   map[fuseops.HandleID]*os.File
 	seqDir    uint64
 	dirs      map[fuseops.HandleID]*dir
-
-	// pending list is used to temporarily cache new inodes,
-	// created by MkDir, MkFile etc. methods until the Inode
-	// is looked up for the first time. There's no guarantee
-	// what will happen first - index get updated or the Inode
-	// looked up.
-	pending map[string]fuseops.InodeID
 }
 
 var _ fuseutil.FileSystem = (*Filesystem)(nil)
@@ -136,16 +132,18 @@ func NewFilesystem(opts *Opts) (*Filesystem, error) {
 		return nil, err
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+
 	fs := &Filesystem{
-		Opts: *opts,
-		seq:  uint64(fuseops.RootInodeID),
+		Opts:   *opts,
+		cancel: cancel,
+		seq:    uint64(fuseops.RootInodeID),
 		inodes: map[fuseops.InodeID]string{
 			fuseops.RootInodeID: "",
 		},
 		seqHandle: uint64(fuseops.RootInodeID),
 		handles:   make(map[fuseops.HandleID]*os.File),
 		dirs:      make(map[fuseops.HandleID]*dir),
-		pending:   make(map[string]fuseops.InodeID),
 	}
 
 	m, err := origfuse.Mount(opts.MountDir, fuseutil.NewFileSystemServer(fs), fs.Config())
@@ -153,14 +151,17 @@ func NewFilesystem(opts *Opts) (*Filesystem, error) {
 		return nil, err
 	}
 
-	go m.Join(context.Background())
+	go m.Join(ctx)
 
 	return fs, nil
 }
 
 // Close implements the notify.Notifier interface.
 func (fs *Filesystem) Close() {
+	fs.cancel()
 	fs.Destroy()
+
+	return nil
 }
 
 func (fs *Filesystem) Config() *fuse.MountConfig {
@@ -250,29 +251,8 @@ func (fs *Filesystem) lookupInodeID(dir, base string, entry *index.Entry) (id fu
 	path := filepath.Join(dir, base)
 
 	fs.mu.Lock()
-	// Slow path.
-	//
-	// Firstly see pending list to check if entry was recently created.
-	// If yes,associate the InodeID with index' node.
-	// If not, create new InodeID only if it was not written in the
-	// meantime.
-	var ok bool
-	if id, ok = fs.pending[path]; ok {
-		atomic.StoreUint64(&entry.Aux, uint64(id))
-		delete(fs.pending, path)
-	} else if id = fuseops.InodeID(atomic.LoadUint64(&entry.Aux)); id == 0 {
-		id = fs.add(path)
-		atomic.StoreUint64(&entry.Aux, uint64(id))
-	}
-	fs.mu.Unlock()
-
-	return id
-}
-
-func (fs *Filesystem) mkInodeID(path string) (id fuseops.InodeID) {
-	fs.mu.Lock()
 	id = fs.add(path)
-	fs.pending[path] = id
+	atomic.StoreUint64(&entry.Aux, uint64(id))
 	fs.mu.Unlock()
 
 	return id
@@ -414,54 +394,74 @@ func (fs *Filesystem) path(loc string) string {
 	return filepath.Join(fs.CacheDir, loc)
 }
 
-func (fs *Filesystem) mkdir(path string, mode os.FileMode) error {
-	return os.MkdirAll(fs.path(path), mode)
+func (fs *Filesystem) mkdir(path string, mode os.FileMode) (id fuseops.InodeID, err error) {
+	if err = os.MkdirAll(fs.path(path), mode); err != nil {
+		return 0, err
+	}
+
+	entry := &index.Entry{
+		Mode: mode | os.ModeDir,
+	}
+
+	fs.mu.Lock()
+	id = fs.add(path)
+	fs.mu.Unlock()
+
+	entry.Aux = uint64(id)
+
+	fs.Remote.PromiseAdd(path, entry)
+
+	return id, nil
 }
 
-func (fs *Filesystem) touch(ctx stdcontext.Context, path string, mode os.FileMode) error {
-	path = fs.path(path)
+func (fs *Filesystem) mkfile(path string, mode os.FileMode) (id fuseops.InodeID, err error) {
+	absPath := fs.path(path)
 
-	dir := filepath.Dir(path)
-
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		// Best-effort attempt of synchronizing the destination directory,
-		// it may not exist on remote.
-		_ = fs.yield(ctx, dir, index.ChangeMetaRemote|index.ChangeMetaAdd)
+	if err := os.MkdirAll(filepath.Dir(absPath), 0755); err != nil {
+		return 0, err
 	}
 
-	f, err := os.Create(path)
-	if os.IsExist(err) {
-		return nil
-	}
+	f, err := os.Create(absPath)
 	if err != nil {
-		return err
+		return 0, err
 	}
+
+	entry := &index.Entry{
+		Mode: mode,
+	}
+
+	fs.mu.Lock()
+	id = fs.add(path)
+	fs.mu.Unlock()
+
+	entry.Aux = uint64(id)
+
+	fs.Remote.PromiseAdd(path, entry)
 
 	_ = f.Chmod(mode)
 
-	return f.Close()
+	return id, f.Close()
 }
 
 func (fs *Filesystem) move(ctx stdcontext.Context, oldpath, newpath string) error {
-	if _, err := os.Stat(oldpath); os.IsNotExist(err) {
+	absOld := fs.path(oldpath)
+	absNew := fs.path(newpath)
+
+	if _, err := os.Stat(absOld); os.IsNotExist(err) {
 		if err = fs.yield(ctx, oldpath, index.ChangeMetaRemote|index.ChangeMetaAdd); err != nil {
 			return err
 		}
 	}
 
-	newDir := filepath.Dir(newpath)
-
-	if _, err := os.Stat(newDir); os.IsNotExist(err) {
-		// Best-effort attempt of synchronizing the destination directory,
-		// it may not exist on remote.
-		_ = fs.yield(ctx, newDir, index.ChangeMetaRemote|index.ChangeMetaAdd)
+	if err := os.MkdirAll(filepath.Dir(absNew), 0755); err != nil {
+		return err
 	}
 
 	return os.Rename(fs.path(oldpath), fs.path(newpath))
 }
 
 func (fs *Filesystem) rm(nd *index.Node, path string) error {
-	atomic.StoreUint64(&nd.Entry.Aux, 0)
+	fs.Remote.PromiseDel(path)
 
 	err := os.Remove(fs.path(path))
 	if os.IsNotExist(err) {

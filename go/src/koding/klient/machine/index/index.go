@@ -18,6 +18,12 @@ import (
 	"github.com/djherbis/times"
 )
 
+// TODO:
+//
+// - PromiseAdd / PromiseDel
+// - copy Sub on Lookup
+//
+
 // Version stores current version of index.
 const Version = 1
 
@@ -178,11 +184,27 @@ func (idx *Index) addEntryWorker(root string, wg *sync.WaitGroup, fC <-chan *fil
 	}
 }
 
-// UpsertEntry
-func (idx *Index) UpsertEntry(path string, meta EntryMeta, mode os.FileMode) {
+// PromiseAdd adds a node under the given path marked as newly added.
+//
+// If mode is non-zero, the node's mode is overwritten with the value.
+// If the node already exists, it'd be only marked with EntryPromiseAdd flag.
+// If the node is already marked as newly added, the method is a no-op.
+func (idx *Index) PromiseAdd(path string, entry *Entry) {
 	idx.mu.Lock()
 	defer idx.mu.Unlock()
 
+	idx.root.PromiseAdd(path, entry)
+}
+
+// PromiseDel marks a node under the given path as deleted.
+//
+// If the node does not exist or is already marked as deleted, the
+// method is no-op.
+func (idx *Index) PromiseDel(path string) {
+	idx.mu.Lock()
+	defer idx.mu.Unlock()
+
+	idx.root.PromiseDel(path)
 }
 
 // Count returns the number of entries stored in index. Only items which size is
