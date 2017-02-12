@@ -9,8 +9,8 @@ import (
 	"koding/klient/machine/mount"
 )
 
-// DiskBlocks retrieves information about remote directory volume.
-type DiskBlocks func() (fs.DiskInfo, err error)
+// DiskInfo retrieves information about remote directory volume.
+type DiskInfo func() (fs.DiskInfo, error)
 
 // BuildOpts represents the context that can be used by external notifiers to
 // build their own type. Built notifier should only read from provided indexes
@@ -22,7 +22,7 @@ type BuildOpts struct {
 	Cache    Cache  // index file system change consumer.
 	CacheDir string // absolute path to locally cached files.
 
-	DiskBlocks DiskBlocks // remote directory volume info.
+	DiskInfo DiskInfo // remote directory volume info.
 
 	RemoteIdx *index.Index // known state of remote index.
 	LocalIdx  *index.Index // known state of local index.

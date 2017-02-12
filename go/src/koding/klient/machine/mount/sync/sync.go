@@ -186,13 +186,13 @@ func NewSync(mountID mount.ID, m mount.Mount, opts SyncOpts) (*Sync, error) {
 
 	// Create file system notification object.
 	s.n, err = opts.NotifyBuilder.Build(&notify.BuildOpts{
-		MountID:    mountID,
-		Mount:      m,
-		Cache:      s.a,
-		CacheDir:   filepath.Join(s.opts.WorkDir, "data"),
-		DiskBlocks: s.diskBlocks(),
-		RemoteIdx:  s.ridx,
-		LocalIdx:   s.lidx,
+		MountID:   mountID,
+		Mount:     m,
+		Cache:     s.a,
+		CacheDir:  filepath.Join(s.opts.WorkDir, "data"),
+		DiskInfo:  s.diskInfo(),
+		RemoteIdx: s.ridx,
+		LocalIdx:  s.lidx,
 	})
 	if err != nil {
 		return nil, nonil(err, s.a.Close())
@@ -290,7 +290,7 @@ func (s *Sync) updateLocal() error {
 	return index.SaveIndex(s.lidx, filepath.Join(s.opts.WorkDir, LocalIndexName))
 }
 
-func (s *Sync) diskBlocks() notify.DiskBlocks {
+func (s *Sync) diskInfo() notify.DiskInfo {
 	const (
 		rt = 10 * time.Second // How long client should wait for valid connection.
 		ct = 5 * time.Minute  // How long client responses will be cached.
@@ -309,5 +309,6 @@ func nonil(err ...error) error {
 			return e
 		}
 	}
+
 	return nil
 }
