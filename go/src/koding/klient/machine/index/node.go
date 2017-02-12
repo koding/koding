@@ -101,6 +101,52 @@ func (nd *Node) Del(path string) {
 	}
 }
 
+// PromiseAdd adds a node under the given path marked as newly added.
+//
+// If the node already exists, it'd be only marked with EntryPromiseAdd flag.
+//
+// If the node is already marked as newly added, the method is a no-op.
+//
+// If entry.Mode is non-zero, the effictive node's entry is overwritten
+// with this value.
+//
+// If entry.Aux is non-zero, the effictive node's Aux is overwritten
+// with this value.
+//
+// Rest of entry's fields are currently ignored.
+func (nd *Node) PromiseAdd(path string, entry *Entry) {
+	var newE *Entry
+
+	if nd, ok := nd.lookup(path, true); ok {
+		newE = nd.Entry
+	} else {
+		newE = newEntry()
+	}
+
+	if entry.Mode != 0 {
+		newE.Mode = entry.Mode
+	}
+
+	if entry.Aux != 0 {
+		newE.Aux = entry.Aux
+	}
+
+	nd.Add(path, newE)
+}
+
+// PromiseDel marks a node under the given path as deleted.
+//
+// If the node does not exist or is already marked as deleted, the
+// method is no-op.
+func (nd *Node) PromiseDel(path string) {
+	nd, ok := nd.Lookup(path)
+	if !ok {
+		return
+	}
+
+	nd.Entry.Meta = nd.Entry.Meta | EntryPromiseDel
+}
+
 // Count counts nodes which Entry.Size is at most maxsize.
 //
 // If maxsize is 0, the method is a no-op.
@@ -208,7 +254,7 @@ func (nd *Node) Lookup(path string) (*Node, bool) {
 	return nd.lookup(path, false)
 }
 
-func (nd *Node) lookup(path string, all bool) (*Node, bool) {
+func (nd *Node) lookup(path string, deleted bool) (*Node, bool) {
 	if path == "/" || path == "" {
 		return nd, true
 	}
@@ -216,7 +262,7 @@ func (nd *Node) lookup(path string, all bool) (*Node, bool) {
 	var node string
 
 	for {
-		if nd.Deleted() {
+		if nd.Deleted() && !deleted {
 			return nil, false
 		}
 
