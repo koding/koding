@@ -1,6 +1,7 @@
 package index_test
 
 import (
+	"fmt"
 	"math/rand"
 	"sync"
 	"testing"
@@ -131,9 +132,9 @@ func TestChangeMetaCoalesce(t *testing.T) {
 			Result: index.ChangeMetaAdd | index.ChangeMetaLocal,
 		},
 		"AL_AL_OTHER META": {
-			A:      index.ChangeMetaAdd | index.ChangeMetaLocal | index.ChangeMetaLarge,
+			A:      index.ChangeMetaAdd | index.ChangeMetaLocal | index.ChangeMetaHuge,
 			B:      index.ChangeMetaAdd | index.ChangeMetaLocal,
-			Result: index.ChangeMetaAdd | index.ChangeMetaLocal | index.ChangeMetaLarge,
+			Result: index.ChangeMetaAdd | index.ChangeMetaLocal | index.ChangeMetaHuge,
 		},
 	}
 
@@ -284,6 +285,50 @@ func TestSimilar(t *testing.T) {
 
 			if similar := index.Similar(test.A, test.B); similar != test.Result {
 				t.Errorf("want similar = %t; got %t", test.Result, similar)
+			}
+		})
+	}
+}
+
+func TestChangeMetaString(t *testing.T) {
+	tests := []struct {
+		CM     index.ChangeMeta
+		Result string
+	}{
+		{
+			// 0 //
+			CM:     index.ChangeMetaUpdate | index.ChangeMetaLocal,
+			Result: "L---u-",
+		},
+		{
+			// 1 //
+			CM:     index.ChangeMetaUpdate | index.ChangeMetaLocal | index.ChangeMetaRemote,
+			Result: "LR--u-",
+		},
+		{
+			// 2 //
+			CM:     index.ChangeMetaAdd | index.ChangeMetaHuge | index.ChangeMetaRemote,
+			Result: "-Ra--H",
+		},
+		{
+			// 3 //
+			CM:     0,
+			Result: "------",
+		},
+		{
+			// 4 //
+			CM:     index.ChangeMetaRemove,
+			Result: "---d--",
+		},
+	}
+
+	for i, test := range tests {
+		test := test // Capture range variable.
+		t.Run(fmt.Sprintf("test_no_%d", i), func(t *testing.T) {
+			t.Parallel()
+
+			if got := test.CM.String(); got != test.Result {
+				t.Errorf("want cm string = %q; got %q", test.Result, got)
 			}
 		})
 	}

@@ -10,6 +10,7 @@ import (
 	"koding/klient/machine/client/clienttest"
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/mounttest"
+	"koding/klient/machine/mount/notify/silent"
 	msync "koding/klient/machine/mount/sync"
 	"koding/klient/machine/mount/sync/discard"
 )
@@ -124,7 +125,8 @@ func defaultSyncOpts(wd string) msync.SyncOpts {
 		ClientFunc: func() (client.Client, error) {
 			return clienttest.NewClient(), nil
 		},
-		SyncBuilder: discard.DiscardBuilder{},
-		WorkDir:     wd,
+		NotifyBuilder: silent.SilentBuilder{},
+		SyncBuilder:   discard.DiscardBuilder{},
+		WorkDir:       wd,
 	}
 }

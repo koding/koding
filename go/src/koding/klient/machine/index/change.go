@@ -9,12 +9,12 @@ import (
 type ChangeMeta uint64
 
 const (
-	ChangeMetaLocal  ChangeMeta = 1 << iota // local->remote synchronization.
-	ChangeMetaRemote                        // remote->local synchronization.
-	ChangeMetaAdd                           // File was added.
-	ChangeMetaRemove                        // File was removed.
-	ChangeMetaUpdate                        // File was updated.
-	ChangeMetaLarge                         // File size is above 4GB.
+	ChangeMetaLocal  ChangeMeta = 1 << iota // L: local->remote synchronization.
+	ChangeMetaRemote                        // R: remote->local synchronization.
+	ChangeMetaAdd                           // a: File was added.
+	ChangeMetaRemove                        // d: File was removed.
+	ChangeMetaUpdate                        // u: File was updated.
+	ChangeMetaHuge                          // H: File size is above 4GB.
 )
 
 // Followed constants are helpers for ChangeMeta.Coalesce method.
@@ -103,6 +103,40 @@ func (cm *ChangeMeta) Coalesce(newer ChangeMeta) ChangeMeta {
 	}
 }
 
+var cmMapping = map[byte]ChangeMeta{
+	'L': ChangeMetaLocal,
+	'R': ChangeMetaRemote,
+	'a': ChangeMetaAdd,
+	'd': ChangeMetaRemove,
+	'u': ChangeMetaUpdate,
+	'H': ChangeMetaHuge,
+}
+
+// String implements fmt.Stringer interface and pretty prints stored change.
+func (cm *ChangeMeta) String() string {
+	cpy := atomic.LoadUint64((*uint64)(cm))
+
+	var buf [8]byte // Meta is uint64 but we don't need more than 8.
+	for c, i := range cmMapping {
+		w := getPowerof2(uint64(i))
+		if cpy&uint64(i) != 0 {
+			buf[w] = c
+		} else {
+			buf[w] = '-'
+		}
+	}
+
+	return string(buf[:len(cmMapping)])
+}
+
+func getPowerof2(i uint64) (count int) {
+	for ; i > 1; count++ {
+		i = i >> 1
+	}
+
+	return count
+}
+
 // Similar checks if provided meta changes can be considered similar. This means
 // if the same synchronization logic can be applied to provided meta changes.
 func Similar(a, b ChangeMeta) bool {
@@ -178,6 +212,12 @@ func (c *Change) Coalesce(newer *Change) *Change {
 			return old
 		}
 	}
+}
+
+// String implements fmt.Stringer interface. It pretty prints stored change.
+func (c *Change) String() string {
+	age := time.Now().UTC().Sub(time.Unix(0, c.CreatedAtUnixNano()))
+	return c.meta.String() + " " + age.String() + " " + c.name
 }
 
 // ChangeSlice stores multiple changes.
