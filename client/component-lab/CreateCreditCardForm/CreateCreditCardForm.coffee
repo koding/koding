@@ -2,6 +2,8 @@ _ = require 'lodash'
 { PropTypes } = React = require 'react'
 { Grid, Row, Col } = require 'react-flexbox-grid'
 
+KeyboardKeys = require 'app/constants/keyboardKeys'
+
 Input = require 'lab/Input/Input'
 CreditCardInput = require 'lab/Input/CreditCardInput'
 CreditCard = require 'lab/CreditCard'
@@ -10,7 +12,7 @@ styles = require './CreateCreditCardForm.stylus'
 
 module.exports = CreateCreditCardForm = (props) ->
 
-  { isDirty, handleSubmit, formValues: values, placeholders, loading } = props
+  { isDirty, handleSubmit, formValues: values, placeholders, loading, onEnter } = props
 
 
   if isDirty
@@ -20,7 +22,12 @@ module.exports = CreateCreditCardForm = (props) ->
     brand = placeholders.brand
     cardProps = placeholders
 
-  <form className={styles.main} onSubmit={handleSubmit}>
+  onKeyDown = (event) ->
+    if event.which is KeyboardKeys.ENTER
+      onEnter()
+
+
+  <form className={styles.main} onSubmit={handleSubmit} onKeyDown={onKeyDown}>
     <Row bottom='xs' between='xs'>
       <Col xs className={styles.mainCol}>
         <Row>
