@@ -1,6 +1,7 @@
 module.exports = (client, currentGroup, callback) ->
 
-  async     = require 'async'
+  async = require 'async'
+  JGroup = require '../models/group'
   SocialAccount = require '../models/socialapi/socialaccount'
 
   accountCreated = no
@@ -37,7 +38,7 @@ module.exports = (client, currentGroup, callback) ->
       # if we somehow dont have required socialapi channels, create them
       currentGroup.createSocialApiChannels client, (err) ->
         if err
-          console.log "Couldnt create socialapi channels for #{currentGroup.slug}"
+          console.log "Couldnt create socialapi channels for #{currentGroup.slug}", err
           return next()
 
         currentGroup.fetchMembers (err, members) ->
@@ -49,13 +50,36 @@ module.exports = (client, currentGroup, callback) ->
 
           # this is fire and forget
           mq = members.map (member) -> (pass) ->
+            console.log "Processing #{member.profile.nickname} into #{currentGroup.slug}"
             SocialAccount.addParticipant { group: currentGroup, member: member }, (err) ->
-              console.log "Added #{member.profile.nickname} into #{currentGroup.slug}"
+              console.log "err while adding #{member.profile.nickname} into #{currentGroup.slug}", err if err
               pass()
 
           async.parallel mq, -> next()
 
           console.log "Created socialapi channels for #{currentGroup.slug}"
+    (next) ->
+      # if team does not have "defaultChannels" add it back
+      return next()  unless currentGroup
+
+      return next() if currentGroup.defaultChannels?.length > 0
+
+      # we might have created the group channel ids' above
+      JGroup.one { _id: currentGroup.getId() }, (err, group) ->
+        if err
+          console.error "err while trying to fetch group again", err
+          next()
+
+        channels = []
+        channels.push group.socialApiChannelId if group.socialApiChannelId
+        channels.push group.socialApiDefaultChannelId if group.socialApiDefaultChannelId
+
+        group.update { $set: { 'defaultChannels': channels } }, (err) ->
+          if err
+            console.log "err while updating group with defaultChannels", err
+
+          console.log "Created defaultChannels for #{group.slug}"
+          return next()
 
     (next) ->
       # this fixer is special case, where a user might not have a socialapi id
