@@ -17,6 +17,11 @@ import (
 	"github.com/koding/logging"
 )
 
+// debugAll must be set in order to debug print all synced events. Worker
+// events may produce a lot of events so we keep logging disabled even in
+// "normal" debug mode.
+var debugAll = os.Getenv("KD_DEBUG_MOUNT") != ""
+
 // SyncsOpts are the options used to configure Syncs object.
 type SyncsOpts struct {
 	// WorkDir is a working directory that will be used by Syncs object. The
@@ -117,11 +122,6 @@ func New(opts SyncsOpts) (*Syncs, error) {
 // worker consumes and executes synchronization events from all stored mounts.
 func (s *Syncs) worker() {
 	defer s.wg.Done()
-
-	// debugAll must be set in order to debug print all synced events. Worker
-	// events may produce a lot of events so we keep logging disabled even in
-	// "normal" debug mode.
-	debugAll := os.Getenv("KD_DEBUG_MOUNT") != ""
 
 	for {
 		select {
