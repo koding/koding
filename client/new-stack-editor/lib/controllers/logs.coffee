@@ -27,6 +27,7 @@ module.exports = class LogsController extends BaseController
     @editor.addContent content
     debug 'log', content
 
+    # if log content ends with ... show loading indicator automagically
     if content[content.length - 3..] is '...'
     then @editor.startLoading()
     else @editor.stopLoading()
