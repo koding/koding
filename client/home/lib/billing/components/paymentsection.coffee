@@ -104,7 +104,10 @@ module.exports = class PaymentSection extends React.Component
           <hr className='divider' /> }
 
         {(not hasCard or formVisible) and
-          <CreateCreditCardForm loading={loading} ref={(f) => @_form = f} />}
+          <CreateCreditCardForm
+            ref={(f) => @_form = f}
+            onEnter={@onSubmit.bind this}
+            loading={loading} />}
 
         <Footer border>
           <Row style={{margin: '0'}} between='xs'>
