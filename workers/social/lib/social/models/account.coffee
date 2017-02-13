@@ -301,8 +301,9 @@ module.exports = class JAccount extends jraphical.Module
 
 
   fetchRelativeGroups$: secure (client, callback) ->
-
-    @fetchRelativeGroups callback
+    delegate = client?.connection?.delegate
+    return callback new Error 'malformed request' unless delegate
+    delegate.fetchRelativeGroups callback
 
 
   fetchRelativeGroups: (callback) ->
