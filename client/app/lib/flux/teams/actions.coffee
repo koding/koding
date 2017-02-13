@@ -322,6 +322,7 @@ deleteTeam = (partial) ->
 
           team.destroy currentPassword, (err) ->
             reject err  if err
+            resolve()
 
 
 
