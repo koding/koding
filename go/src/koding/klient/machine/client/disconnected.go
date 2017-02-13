@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"koding/klient/fs"
 	"koding/klient/machine"
 	"koding/klient/machine/index"
 )
@@ -66,9 +67,9 @@ func (*Disconnected) MountGetIndex(_ string) (*index.Index, error) {
 	return nil, ErrDisconnected
 }
 
-// DiskBlocks always returns ErrDisconnected error.
-func (*Disconnected) DiskBlocks(_ string) (_, _, _, _ uint64, _ error) {
-	return 0, 0, 0, 0, ErrDisconnected
+// DiskInfo always returns ErrDisconnected error.
+func (*Disconnected) DiskInfo(_ string) (fs.DiskInfo, error) {
+	return fs.DiskInfo{}, ErrDisconnected
 }
 
 // Context returns disconnected client's context.

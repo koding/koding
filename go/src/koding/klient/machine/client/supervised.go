@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"koding/klient/fs"
 	"koding/klient/machine/index"
 )
 
@@ -18,6 +19,8 @@ type Supervised struct {
 	dcf     DynamicClientFunc
 	timeout time.Duration
 }
+
+var _ Client = (*Supervised)(nil)
 
 // NewSupervised creates a new Supervised client instance.
 func NewSupervised(dcf DynamicClientFunc, timeout time.Duration) *Supervised {
@@ -70,6 +73,19 @@ func (s *Supervised) MountHeadIndex(path string) (absPath string, count int, dis
 func (s *Supervised) MountGetIndex(path string) (idx *index.Index, err error) {
 	fn := func(c Client) error {
 		idx, err = c.MountGetIndex(path)
+		return err
+	}
+
+	err = s.call(fn)
+	return
+}
+
+// DiskInfo calls registered Client's DiskInfo method and returns its result if
+// it's not produced by Disconnected client. If it is, this function will wait
+// until valid client is available or timeout is reached.
+func (s *Supervised) DiskInfo(path string) (di fs.DiskInfo, err error) {
+	fn := func(c Client) error {
+		di, err = c.DiskInfo(path)
 		return err
 	}
 
