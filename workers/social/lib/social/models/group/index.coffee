@@ -48,9 +48,6 @@ module.exports = class JGroup extends Module
       'grant permissions'                 : []
       'open group'                        : ['member', 'moderator']
       'list members'                      : ['moderator', 'member']
-      'read group activity'               :
-        public                            : ['guest', 'member', 'moderator']
-        private                           : ['member', 'moderator']
       'create groups'                     : ['moderator']
       'edit groups'                       : ['moderator']
       'edit own groups'                   : ['member', 'moderator']
@@ -1268,9 +1265,6 @@ module.exports = class JGroup extends Module
     failure: (client, callback) ->
       callback null, no
 
-
-  @canReadGroupActivity = permit 'read group activity'
-  canReadGroupActivity  : permit 'read group activity'
   @canListMembers       = permit
     advanced: [
       { permission: 'list members' }
@@ -1284,9 +1278,9 @@ module.exports = class JGroup extends Module
       sourceId  : @getId()
       targetId  : account._id
       as        : 'member'
-    Relationship.count selector, (err, count) ->
+    Relationship.one selector, (err, rel) ->
       if err then callback err
-      else callback null, (if count is 0 then no else yes)
+      else callback null, rel?
 
 
   countMembers: (callback) ->
