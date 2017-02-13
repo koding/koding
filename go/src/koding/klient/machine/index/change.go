@@ -153,22 +153,22 @@ func Similar(a, b ChangeMeta) bool {
 
 // Change describes single file change.
 type Change struct {
-	name      string     // The relative name of the file.
+	path      string     // The relative path of the file.
 	createdAt int64      // Change creation time since EPOCH.
 	meta      ChangeMeta // The type of operation made on file entry.
 }
 
 // NewChange creates a new Change object.
-func NewChange(name string, meta ChangeMeta) *Change {
+func NewChange(path string, meta ChangeMeta) *Change {
 	return &Change{
-		name:      name,
+		path:      path,
 		meta:      meta,
 		createdAt: time.Now().UTC().UnixNano(),
 	}
 }
 
-// Name returns the relative slashed path to changed file.
-func (c *Change) Name() string { return c.name }
+// Path returns the relative slashed path to changed file.
+func (c *Change) Path() string { return c.path }
 
 // CreatedAtUnixNano returns creation time since EPOCH in UTC time zone.
 func (c *Change) CreatedAtUnixNano() int64 {
@@ -180,7 +180,7 @@ func (c *Change) Meta() ChangeMeta {
 	return ChangeMeta(atomic.LoadUint64((*uint64)(&c.meta)))
 }
 
-// Coalesce merges two changes with the same name. If change names are different
+// Coalesce merges two changes with the same path. If change paths are different
 // this method panics. Meta data will be updated according to ChangeMeta
 // coalescing rules. Higher creation time is always chosen. This method is
 // thread safe. Return value is the Change which was replaced.
@@ -189,14 +189,14 @@ func (c *Change) Coalesce(newer *Change) *Change {
 		return &Change{}
 	}
 
-	if c.name != newer.name {
+	if c.path != newer.path {
 		panic("coalesce of different changes is prohibited")
 	}
 
 	// Data races between change meta and made time doesn't matter since the
 	// time will end up being the lowest value.
 	old := &Change{
-		name: c.name,
+		path: c.path,
 		meta: c.meta.Coalesce(newer.Meta()),
 	}
 
@@ -217,7 +217,7 @@ func (c *Change) Coalesce(newer *Change) *Change {
 // String implements fmt.Stringer interface. It pretty prints stored change.
 func (c *Change) String() string {
 	age := time.Now().UTC().Sub(time.Unix(0, c.CreatedAtUnixNano()))
-	return c.meta.String() + " " + age.String() + " " + c.name
+	return c.meta.String() + " " + age.String() + " " + c.path
 }
 
 // ChangeSlice stores multiple changes.
@@ -225,4 +225,4 @@ type ChangeSlice []*Change
 
 func (cs ChangeSlice) Len() int           { return len(cs) }
 func (cs ChangeSlice) Swap(i, j int)      { cs[i], cs[j] = cs[j], cs[i] }
-func (cs ChangeSlice) Less(i, j int) bool { return cs[i].name < cs[j].name }
+func (cs ChangeSlice) Less(i, j int) bool { return cs[i].path < cs[j].path }

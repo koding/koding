@@ -181,9 +181,8 @@ func New(opts *GroupOpts) (*Group, error) {
 }
 
 // Close closes Group's underlying clients.
-func (g *Group) Close() {
-	g.sync.Close()
-	g.client.Close()
+func (g *Group) Close() error {
+	return nonil(g.sync.Close(), g.client.Close())
 }
 
 // bootstrap initializes machine group workers and checks loaded data for
@@ -276,4 +275,13 @@ func (g *Group) dynamicClient(mountID mount.ID) client.DynamicClientFunc {
 
 		return g.client.Client(id)
 	}
+}
+
+func nonil(err ...error) error {
+	for _, e := range err {
+		if e != nil {
+			return e
+		}
+	}
+	return nil
 }

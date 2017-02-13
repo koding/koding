@@ -118,6 +118,11 @@ func New(opts SyncsOpts) (*Syncs, error) {
 func (s *Syncs) worker() {
 	defer s.wg.Done()
 
+	// debugAll must be set in order to debug print all synced events. Worker
+	// events may produce a lot of events so we keep logging disabled even in
+	// "normal" debug mode.
+	debugAll := os.Getenv("KD_DEBUG_MOUNT") != ""
+
 	for {
 		select {
 		case ex := <-s.exC:
@@ -125,8 +130,9 @@ func (s *Syncs) worker() {
 				continue
 			}
 
-			// TODO(ppknap): add logging and verbose logging.
-			_ = ex.Exec()
+			if err := ex.Exec(); err != nil || debugAll {
+				s.log.Debug("%s: %v", ex, err)
+			}
 		case <-s.stopC:
 			return
 		}
@@ -231,7 +237,7 @@ func (s *Syncs) Drop(mountID mount.ID) (err error) {
 }
 
 // Close closes and removes all stored syncs.
-func (s *Syncs) Close() {
+func (s *Syncs) Close() error {
 	s.once.Do(func() {
 		s.mu.Lock()
 		s.closed = true
@@ -244,4 +250,6 @@ func (s *Syncs) Close() {
 		close(s.stopC)
 		s.wg.Wait()
 	})
+
+	return nil
 }
