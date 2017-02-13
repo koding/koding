@@ -17,4 +17,4 @@ func (SilentBuilder) Build(_ *notify.BuildOpts) (notify.Notifier, error) {
 type Silent struct{}
 
 // Close satisfies notify.Notifier interface. It does nothing.
-func (Silent) Close() {}
+func (Silent) Close() error { return nil }
