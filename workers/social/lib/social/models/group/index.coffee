@@ -1603,8 +1603,23 @@ module.exports = class JGroup extends Module
         queue = [
 
           (next) ->
-            JName.one { name: slug }, (err, name) ->
-              removeHelper name, err, next, 'JName'
+            JApiToken = require '../apitoken'
+            JApiToken.remove { group: slug }, (err) ->
+              kallback 'JApiToken', next, err
+
+          (next) =>
+            ComputeProvider = require '../computeproviders/computeprovider'
+            ComputeProvider.destroyGroupResources this, -> next()
+
+          (next) ->
+            JGroupData = require './groupdata'
+            JGroupData.remove { slug }, (err) ->
+              kallback 'JGroupData', next, err
+
+          (next) ->
+            JInvitation = require '../invitation'
+            JInvitation.remove { groupName: slug }, (err) ->
+              kallback 'JInvitation', next, err
 
           (next) =>
             @fetchPermissionSet (err, permSet) ->
@@ -1615,13 +1630,11 @@ module.exports = class JGroup extends Module
               removeHelper permSet, err, next, 'DefaultPermissionSet'
 
           (next) ->
-            JInvitation = require '../invitation'
-            JInvitation.remove { groupName: slug }, (err) ->
-              kallback 'JInvitation', next, err
+            JName.one { name: slug }, (err, name) ->
+              removeHelper name, err, next, 'JName'
 
           (next) =>
-            ComputeProvider = require '../computeproviders/computeprovider'
-            ComputeProvider.destroyGroupResources this, -> next()
+            Relationship.remove { sourceId : @getId() }, next
 
           (next) ->
             url = '/api/social/payment/subscription/delete'
@@ -1629,21 +1642,16 @@ module.exports = class JGroup extends Module
 
             deleteReq url, { sessionToken }, (err, body) ->
               err = null  if err?.description is 'not found'
-              kallback 'Subscription', next, err
+              kallback 'Subscription', next, err?.error
 
-          (next) ->
-            JApiToken = require '../apitoken'
-            JApiToken.remove { group: slug }, (err) ->
-              kallback 'JApiToken', next, err
+          (next) =>
+            @remove (err) -> kallback 'JGroup', next, err
 
           (next) =>
             JSession = require '../session'
             @sendNotification 'GroupDestroyed'
             JSession.remove { groupName: slug }, (err) ->
               kallback 'JSession', next, err
-
-          (next) =>
-            @remove (err) -> kallback 'JGroup', next, err
 
         ]
 
