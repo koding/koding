@@ -7,6 +7,7 @@ import (
 
 	"koding/klient/machine"
 	"koding/klient/machine/mount"
+	msync "koding/klient/machine/mount/sync"
 )
 
 // MountRequest defines machine group mount request.
@@ -130,8 +131,8 @@ func (g *Group) AddMount(req *AddMountRequest) (res *AddMountResponse, err error
 		}
 	}()
 
-	// Start mount supervisor.
-	if err = g.supervisor.Add(mountID, req.Mount, g.dynamicClient(mountID)); err != nil {
+	// Start mount syncer.
+	if err = g.sync.Add(mountID, req.Mount, g.dynamicClient(mountID)); err != nil {
 		g.log.Error("Synchronization of %s mount failed: %s", mountID, err)
 		return nil, err
 	}
@@ -157,7 +158,7 @@ type ListMountRequest struct {
 type ListMountResponse struct {
 	// Mounts is a map that contains machine aliases as keys and created mount
 	// infos which store the current synchronization status of mount.
-	Mounts map[string][]mount.Info `json:"mounts"`
+	Mounts map[string][]msync.Info `json:"mounts"`
 }
 
 // ListMount checks the status of mounts and returns their infos. This function
@@ -170,7 +171,7 @@ func (g *Group) ListMount(req *ListMountRequest) (*ListMountResponse, error) {
 	}
 
 	res := &ListMountResponse{
-		Mounts: make(map[string][]mount.Info),
+		Mounts: make(map[string][]msync.Info),
 	}
 
 	// Get machine aliases.
@@ -192,11 +193,11 @@ func (g *Group) ListMount(req *ListMountRequest) (*ListMountResponse, error) {
 
 	// Get mount infos.
 	for mountID, mm := range mms {
-		info, err := g.supervisor.Info(mountID)
+		info, err := g.sync.Info(mountID)
 		alias := id2alias[mm.id]
 		if err != nil {
 			// Add mount to the list but log not synchronized mount.
-			res.Mounts[alias] = append(res.Mounts[alias], mount.Info{
+			res.Mounts[alias] = append(res.Mounts[alias], msync.Info{
 				ID:    mountID,
 				Mount: mm.m,
 			})
@@ -304,7 +305,7 @@ func (g *Group) Umount(req *UmountRequest) (res *UmountResponse, err error) {
 	}
 
 	// Stop mount synchronization routine.
-	if err := g.supervisor.Drop(mountID); err != nil {
+	if err := g.sync.Drop(mountID); err != nil {
 		g.log.Error("Cannot remove synced mount %s: %s", mountID, err)
 		return nil, err
 	}
