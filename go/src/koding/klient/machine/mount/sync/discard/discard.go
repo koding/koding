@@ -6,12 +6,12 @@ import (
 	msync "koding/klient/machine/mount/sync"
 )
 
-// DiscardBuilder is a factory for Discard synchronization objects.
-type DiscardBuilder struct{}
+// Builder is a factory for Discard synchronization objects.
+type Builder struct{}
 
 // Build satisfies msync.Builder interface. It produces Discard objects and
 // always returns nil error.
-func (DiscardBuilder) Build(_ *msync.BuildOpts) (msync.Syncer, error) {
+func (Builder) Build(_ *msync.BuildOpts) (msync.Syncer, error) {
 	return NewDiscard(), nil
 }
 
@@ -51,7 +51,7 @@ func NewDiscard() *Discard {
 }
 
 // ExecStream wraps incoming msync events with discard event logic which is
-// basically no-op.
+// basically a no-op.
 func (d *Discard) ExecStream(evC <-chan *msync.Event) <-chan msync.Execer {
 	exC := make(chan msync.Execer)
 

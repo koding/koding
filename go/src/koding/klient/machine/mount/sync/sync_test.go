@@ -128,8 +128,8 @@ func defaultSyncOpts(wd string) msync.SyncOpts {
 		ClientFunc: func() (client.Client, error) {
 			return clienttest.NewClient(), nil
 		},
-		NotifyBuilder: silent.SilentBuilder{},
-		SyncBuilder:   discard.DiscardBuilder{},
+		NotifyBuilder: silent.Builder{},
+		SyncBuilder:   discard.Builder{},
 		WorkDir:       wd,
 	}
 }

@@ -212,8 +212,8 @@ func testOptionsStorage(wd string, b client.Builder, st storage.ValueInterface) 
 	return &GroupOpts{
 		Storage:         st,
 		Builder:         b,
-		NotifyBuilder:   silent.SilentBuilder{},
-		SyncBuilder:     discard.DiscardBuilder{},
+		NotifyBuilder:   silent.Builder{},
+		SyncBuilder:     discard.Builder{},
 		DynAddrInterval: 10 * time.Millisecond,
 		PingInterval:    50 * time.Millisecond,
 		WorkDir:         wd,

@@ -25,8 +25,8 @@ func TestSyncsAdd(t *testing.T) {
 	mountID := mount.MakeID()
 	s, err := syncs.New(syncs.SyncsOpts{
 		WorkDir:       wd,
-		NotifyBuilder: silent.SilentBuilder{},
-		SyncBuilder:   discard.DiscardBuilder{},
+		NotifyBuilder: silent.Builder{},
+		SyncBuilder:   discard.Builder{},
 	})
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
@@ -61,8 +61,8 @@ func TestSyncsDrop(t *testing.T) {
 	mountID := mount.MakeID()
 	s, err := syncs.New(syncs.SyncsOpts{
 		WorkDir:       wd,
-		NotifyBuilder: silent.SilentBuilder{},
-		SyncBuilder:   discard.DiscardBuilder{},
+		NotifyBuilder: silent.Builder{},
+		SyncBuilder:   discard.Builder{},
 	})
 	if err != nil {
 		t.Fatalf("want err = nil; got %v", err)
