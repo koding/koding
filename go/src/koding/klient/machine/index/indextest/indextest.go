@@ -1,13 +1,17 @@
 package indextest
 
 import (
+<<<<<<< HEAD
 	"fmt"
+=======
+>>>>>>> klient/machine: move index test helpers to reusable test package
 	"io"
 	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
 	"time"
+<<<<<<< HEAD
 
 	"koding/klient/machine/index"
 
@@ -91,6 +95,10 @@ func makeSimilarTimes(rootA, rootB, path string) error {
 	return os.Chtimes(filepath.Join(rootA, path), t.AccessTime(), t.ModTime())
 }
 
+=======
+)
+
+>>>>>>> klient/machine: move index test helpers to reusable test package
 // GenerateTree generates a file tree inside a temporary directory. The filetree
 // map has relative paths as keys and file size as value. Clean function must
 // be called in order to clean up resources.
