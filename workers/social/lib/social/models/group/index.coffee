@@ -4,7 +4,7 @@ KONFIG         = require 'koding-config-manager'
 async          = require 'async'
 { Module }     = require 'jraphical'
 { difference } = require 'underscore'
-
+backoff = require 'backoff'
 
 module.exports = class JGroup extends Module
 
@@ -1655,23 +1655,39 @@ module.exports = class JGroup extends Module
 
         ]
 
-        do deleteTeam = =>
+        call = null
+
+        deleteTeam = (cb) =>
 
           async.series queue, =>
 
-            callback()  if index is 0
-            return  unless errors.length
+            # execute the callback on the first try
+            # even there is an error or not
+            callback()  if call.getNumRetries() is 0
 
-            index++
+            return  if not errors.length
+
             @sendNotification 'GroupDestroyed'
 
-            errors.forEach (error) ->
-              console.log "[GROUP_DESTROY_FAILED]: Attempt: #{index}
-              for #{slug} in #{error.label} with error #{error.err}"
-
+            cb errors
             errors = []
 
-            deleteTeam()  if 0 < index < 3
+        call = backoff.call deleteTeam, ->
+
+        call.retryIf (errors) ->
+
+          errors.forEach (error) ->
+            console.log "[GROUP_DESTROY_FAILED]: Attempt: #{call.getNumRetries()}
+            for #{slug} in #{error.label} with error #{error.err}"
+
+          errors.length
+
+        call.setStrategy new backoff.ExponentialStrategy
+          initialDelay: 1000
+          maxDelay    : 10000
+
+        call.failAfter 2
+        call.start()
 
 
   sendNotificationToAdmins: (event, contents) ->
