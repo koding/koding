@@ -1556,14 +1556,15 @@ module.exports = class JGroup extends Module
   checkUserPassword: (account, password, callback) ->
 
     unless account or password
-      return callback 'Error occured while deleting team'
+      return callback 'Couldn\'t verify user'
 
     account.fetchUser (err, user) ->
-      unless err
-        unless user.checkPassword password
-          return callback 'Your password didn\'t match with our records'
-        else
-          callback()
+      return callback 'Couldn\'t verify user'  if err
+
+      unless user.checkPassword password
+        return callback 'Your password didn\'t match with our records'
+      else
+        callback()
 
 
   destroy    : permit
