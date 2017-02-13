@@ -132,10 +132,12 @@ func (dc *Dynamic) Addr(network string) (machine.Addr, error) {
 
 // Close stops the dynamic client. After this function is called, client is
 // in disconnected state and each contexts returned by it are closed.
-func (dc *Dynamic) Close() {
+func (dc *Dynamic) Close() error {
 	dc.once.Do(func() {
 		close(dc.stop)
 	})
+
+	return nil
 }
 
 func (dc *Dynamic) cron() {

@@ -397,6 +397,7 @@ module.exports = class JGroup extends Module
   @joinUser = secure (client, options, callback) ->
 
     JUser = require '../user'
+    JSession = require '../session'
 
     { username, email, password, slug, alreadyMember } = options
 
@@ -432,9 +433,15 @@ module.exports = class JGroup extends Module
         if alreadyMember and not user
           return callback getError { message: 'Unknown user name' }, 400
 
-        if user?
-        then JUser.login client.sessionToken, userData, joinGroupCallback
-        else JUser.convert client, userData, joinGroupCallback
+        JSession.createSession { group: slug }, (err, { session, account }) ->
+          return callback getError err  if err
+
+          client.connection.delegate = account
+          client.sessionToken = session.clientId
+
+          if user?
+          then JUser.login client.sessionToken, userData, joinGroupCallback
+          else JUser.convert client, userData, joinGroupCallback
 
 
   @create = (client, groupData, owner, callback) ->

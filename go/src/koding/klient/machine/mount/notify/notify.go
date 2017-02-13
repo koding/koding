@@ -2,6 +2,7 @@ package notify
 
 import (
 	"context"
+	"io"
 
 	"koding/klient/machine/index"
 	"koding/klient/machine/mount"
@@ -31,7 +32,7 @@ type Builder interface {
 // Notifier is an interface which must be implemented by external notifiers.
 type Notifier interface {
 	// Close cleans up notifier resources, if any.
-	Close()
+	io.Closer
 }
 
 // Cache represents external synchronization devices that can apply provided

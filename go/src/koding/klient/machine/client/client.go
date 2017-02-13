@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 
+	"koding/klient/fs"
 	"koding/klient/machine/index"
 )
 
@@ -22,8 +23,8 @@ type Client interface {
 	// directory.
 	MountGetIndex(string) (*index.Index, error)
 
-	// DiskBlocks gets basic information about volume pointed by provided path.
-	DiskBlocks(string) (uint64, uint64, uint64, uint64, error)
+	// DiskInfo gets basic information about volume pointed by provided path.
+	DiskInfo(string) (fs.DiskInfo, error)
 
 	// Context returns client's Context.
 	Context() context.Context

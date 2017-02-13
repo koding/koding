@@ -377,7 +377,9 @@ func (k *Klient) MountGetIndex(path string) (*index.Index, error) {
 		return nil, err
 	}
 
-	resp := index.GetResponse{}
+	resp := index.GetResponse{
+		Index: index.NewIndex(),
+	}
 	if err := raw.Unmarshal(&resp); err != nil {
 		return nil, err
 	}
@@ -389,23 +391,23 @@ func (k *Klient) MountGetIndex(path string) (*index.Index, error) {
 	return resp.Index, nil
 }
 
-// DiskBlocks gets basic information about volume pointed by provided path.
-func (k *Klient) DiskBlocks(path string) (size, total, free, used uint64, err error) {
+// DiskInfo gets basic information about volume pointed by provided path.
+func (k *Klient) DiskInfo(path string) (fs.DiskInfo, error) {
 	req := fs.GetInfoOptions{
 		Path: path,
 	}
 
 	raw, err := k.Client.TellWithTimeout("fs.getDiskInfo", k.timeout(), req)
 	if err != nil {
-		return
+		return fs.DiskInfo{}, err
 	}
 
 	resp := fs.DiskInfo{}
-	if err = raw.Unmarshal(&resp); err != nil {
-		return
+	if err := raw.Unmarshal(&resp); err != nil {
+		return fs.DiskInfo{}, err
 	}
 
-	return uint64(resp.BlockSize), resp.BlocksTotal, resp.BlocksFree, resp.BlocksUsed, nil
+	return resp, nil
 }
 
 // SetContext sets provided context to Klient.
