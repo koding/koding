@@ -435,3 +435,32 @@ func (idx *Index) UnmarshalJSON(data []byte) error {
 	return nil
 
 }
+
+// DebugString dumps content of the index as a string, suitable for debugging.
+func (idx *Index) DebugString() string {
+	m := make(map[string]*Entry)
+
+	fn := func(path string, entry *Entry) {
+		m[path] = entry
+	}
+
+	idx.mu.RLock()
+	idx.root.ForEach(fn)
+	idx.mu.RUnlock()
+
+	paths := make([]string, 0, len(m))
+
+	for path := range m {
+		paths = append(paths, path)
+	}
+
+	sort.Strings(paths)
+
+	var buf bytes.Buffer
+
+	for _, path := range paths {
+		fmt.Fprintf(&buf, "%s => %#v\n", path, m[path])
+	}
+
+	return buf.String()
+}
