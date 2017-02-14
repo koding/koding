@@ -324,7 +324,7 @@ func (nd *Node) lookup(path string, deleted bool) (*Node, bool) {
 		}
 
 		if path == "" {
-			return sub, true
+			return sub.shallowCopy(), true
 		}
 
 		nd = sub
@@ -348,6 +348,20 @@ func (nd *Node) Virtual() bool {
 
 func (nd *Node) undelete() {
 	nd.Entry.SwapPromise(0, EntryPromiseDel|EntryPromiseUnlink)
+}
+
+func (nd *Node) shallowCopy() *Node {
+	if len(nd.Sub) != 0 {
+		sub := make(map[string]*Node, len(nd.Sub))
+
+		for k, v := range nd.Sub {
+			sub[k] = v
+		}
+
+		nd.Sub = sub
+	}
+
+	return nd
 }
 
 func (nd *Node) shallowCopy() *Node {
