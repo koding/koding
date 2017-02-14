@@ -39,7 +39,9 @@ ensureGroupPayment = ->
 
 ensureCreditCard = ({ dispatch }) ->
 
-  if globals.hasCreditCard
+  { payment } = globals.currentGroup
+
+  if payment.customer.hasCard
   then Promise.resolve()
   else Promise.reject Status.NEEDS_UPGRADE
 
