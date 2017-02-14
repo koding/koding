@@ -5,7 +5,6 @@ module.exports = (options = {}, callback) ->
   encoder   = require 'htmlencode'
   { argv }  = require 'optimist'
   _         = require 'lodash'
-  { hasCreditCard } = require '../../../../../servers/models/socialapi/requests'
   SocialAccount = require '../../../../../servers/models/socialapi/socialaccount'
 
   options.client               or= {}
@@ -23,7 +22,6 @@ module.exports = (options = {}, callback) ->
   roles               = null
   permissions         = null
   combinedStorage     = null
-  hasCard             = no
 
   { bongoModels, client, session } = options
 
@@ -67,7 +65,6 @@ module.exports = (options = {}, callback) ->
         userRoles: #{userRoles},
         userPermissions: #{userPermissions},
         currentGroup: #{currentGroup},
-        hasCreditCard: #{hasCard},
         isLoggedInOnLoad: true,
         userEnvironmentData: #{userEnvironmentData}
       };
@@ -106,13 +103,7 @@ module.exports = (options = {}, callback) ->
 
         currentGroup = group  if group
 
-        if currentGroup?.payment?.customer?.hasCard?
-          hasCard = yes
-          return fin()
-
-        hasCreditCard client, (err) ->
-          hasCard = not err?
-          return fin()
+        fin()
 
     (fin) ->
       { delegate : account } = client.connection

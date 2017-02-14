@@ -1,0 +1,95 @@
+version: 2
+
+executorType: docker
+
+containerInfo:
+  - image: koding/base@sha256:c53151cedd1a7cd86a66189742835a761d54f1d23c72422832fac69a0916a176
+
+stages:
+
+  build:
+    workDir: ~/koding
+    steps:
+
+      - type: checkout
+
+      - type: cache-restore
+        keys:
+          - node_modules-{{ checksum "package.json" }}
+      - type: cache-restore
+        keys:
+          - client-node_modules-{{ checksum "client/package.json" }}
+      - type: cache-restore
+        keys:
+          - landing-node_modules-{{ checksum "client/landing/package.json" }}
+
+      - type: shell
+        name: npm install
+        command: npm install --unsafe-perm
+
+      - type: cache-save
+        key: node_modules-{{ checksum "package.json" }}
+        paths:
+          - node_modules
+
+      - type: cache-save
+        key: client-node_modules-{{ checksum "client/package.json" }}
+        paths:
+          - client/node_modules
+
+      - type: cache-save
+        key: landing-node_modules-{{ checksum "client/landing/package.json" }}
+        paths:
+          - client/landing/node_modules
+
+      - type: shell
+        name: coffeelint
+        command: $(npm bin)/coffeelint --quiet .
+
+      - type: shell
+        name: configure
+        command: ./configure
+
+      - type: shell
+        name: check client code quality
+        command: scripts/check_client_code_quality.sh
+
+      - type: cache-restore
+        keys:
+          - client-happypack-{{ .Branch }}-{{ .Revision }}
+          - client-happypack-{{ .Branch }}
+          - client-happypack-master
+
+      - type: shell
+        name: build client
+        command: make -C client dist
+
+      - type: cache-save
+        key: client-happypack-{{ .Branch }}-{{ .Revision }}-{{ epoch }}
+        paths:
+          - client/.happypack
+      - type: cache-save
+        key: client-happypack-{{ .Branch }}-{{ epoch }}
+        paths:
+          - client/.happypack
+
+      - type: cache-restore
+        keys:
+          - go-{{ .Branch }}-{{ .Revision }}
+          - go-{{ .Branch }}
+          - go-master
+
+      - type: shell
+        name: go build
+        command: go/build.sh
+
+      - type: cache-save
+        key: go-{{ .Branch }}-{{ .Revision }}-{{ epoch }}
+        paths:
+          - go/bin
+          - go/pkg
+      - type: cache-save
+        key: go-{{ .Branch }}-{{ epoch }}
+        paths:
+          - go/bin
+          - go/pkg

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"koding/klient/fs"
 	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/index"
@@ -189,6 +190,7 @@ func NewSync(mountID mount.ID, m mount.Mount, opts SyncOpts) (*Sync, error) {
 		Mount:     m,
 		Cache:     s.a,
 		CacheDir:  filepath.Join(s.opts.WorkDir, "data"),
+		DiskInfo:  s.diskInfo(),
 		RemoteIdx: s.ridx,
 		LocalIdx:  s.lidx,
 	})
@@ -288,11 +290,25 @@ func (s *Sync) updateLocal() error {
 	return index.SaveIndex(s.lidx, filepath.Join(s.opts.WorkDir, LocalIndexName))
 }
 
+func (s *Sync) diskInfo() notify.DiskInfo {
+	const (
+		rt = 10 * time.Second // How long client should wait for valid connection.
+		ct = 5 * time.Minute  // How long client responses will be cached.
+	)
+
+	cached := client.NewCached(client.NewSupervised(s.opts.ClientFunc, rt), ct)
+
+	return func() (fs.DiskInfo, error) {
+		return cached.DiskInfo(s.m.RemotePath)
+	}
+}
+
 func nonil(err ...error) error {
 	for _, e := range err {
 		if e != nil {
 			return e
 		}
 	}
+
 	return nil
 }
