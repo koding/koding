@@ -8,7 +8,9 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"runtime"
 	"syscall"
 
 	"koding/klient/fs"
@@ -93,7 +95,17 @@ func main() {
 		die(err)
 	}
 
-	_ = fs
+	ch := make(chan os.Signal, 1)
+
+	signal.Notify(ch, syscall.SIGQUIT)
+
+	go func() {
+		for range ch {
+			fmt.Print(fs.DebugString())
+		}
+	}()
+
+	runtime.KeepAlive(fs)
 
 	select {}
 }

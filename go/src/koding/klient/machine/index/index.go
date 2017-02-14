@@ -405,7 +405,7 @@ func (idx *Index) DebugString() string {
 	}
 
 	idx.mu.RLock()
-	idx.root.forEach(fn, true)
+	idx.root.ForEach(fn)
 	idx.mu.RUnlock()
 
 	paths := make([]string, 0, len(m))
