@@ -15,11 +15,11 @@ while IFS=".", read major minor revision; do
 	else
 		echo 'error: mongo version must be 3.x'
 		echo ''
-        echo 'for mac you might use to upgrade: '
-        echo '  curl -O http://downloads.mongodb.org/osx/mongodb-osx-x86_64-3.2.8.tgz'
-        echo '  tar -zxvf mongodb-osx-x86_64-3.2.8.tgz'
-        echo '  cp -R ./mongodb-osx-x86_64-3.2.8/bin/* /usr/local/bin'
-        echo '  rm -rf ./mongodb-osx-x86_64-3.2.8'
+		echo 'for mac you might use to upgrade: '
+		echo '  curl -O http://downloads.mongodb.org/osx/mongodb-osx-x86_64-3.2.8.tgz'
+		echo '  tar -zxvf mongodb-osx-x86_64-3.2.8.tgz'
+		echo '  cp -R ./mongodb-osx-x86_64-3.2.8/bin/* /usr/local/bin'
+		echo '  rm -rf ./mongodb-osx-x86_64-3.2.8'
 		exit 1
 	fi
 done < <(echo $version)
