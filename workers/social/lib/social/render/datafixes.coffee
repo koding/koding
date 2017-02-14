@@ -67,7 +67,7 @@ module.exports = (client, currentGroup, callback) ->
       # we might have created the group channel ids' above
       JGroup.one { _id: currentGroup.getId() }, (err, group) ->
         if err
-          console.error "err while trying to fetch group again", err
+          console.error 'err while trying to fetch group again', err
           next()
 
         channels = []
@@ -76,7 +76,7 @@ module.exports = (client, currentGroup, callback) ->
 
         group.update { $set: { 'defaultChannels': channels } }, (err) ->
           if err
-            console.log "err while updating group with defaultChannels", err
+            console.log 'err while updating group with defaultChannels', err
 
           console.log "Created defaultChannels for #{group.slug}"
           return next()
