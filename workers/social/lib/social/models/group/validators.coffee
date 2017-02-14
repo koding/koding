@@ -3,7 +3,7 @@
 getRoles = (permission, permissionSet) ->
   return []  unless permissionSet
   roles = ( perm.role for perm in permissionSet.permissions \
-                      when permission in perm?.permissions   )
+                      when permission in perm?.permissions or [] )
   roles.push 'admin' # admin can do anything!
   return roles
 
