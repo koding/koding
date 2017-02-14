@@ -9,6 +9,8 @@ subscription = require 'app/redux/modules/payment/subscription'
 customer = require 'app/redux/modules/payment/customer'
 info = require 'app/redux/modules/payment/info'
 bongo = require 'app/redux/modules/bongo'
+addon = require 'app/redux/modules/payment/addon'
+supportplans = require 'app/redux/modules/payment/supportplans'
 
 SubscriptionSection = require './subscriptionsection'
 
@@ -64,6 +66,9 @@ mapStateToProps = (state) ->
     isSurveyTaken: yes # !!customer.coupon(state)
     isEmailVerified: isEmailVerified(state)
     hasCreditCard: globals.hasCreditCard
+    addons: addon.isActivated state
+    addonsPrice: addon.getAddonPrice state
+    supportPlan: supportplans.getActiveSupportPlan state
   }
 
 

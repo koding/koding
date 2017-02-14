@@ -15,14 +15,14 @@ module.exports = class Modal extends Component
   render: ->
 
     { isOpen, onAfterOpen, onRequestClose, children,
-      shouldCloseOnOverlayClick, width, height, showAlien } = @props
+      shouldCloseOnOverlayClick, width, height, showAlien, className } = @props
 
     className = classnames [
       styles.modal
       styles[width]
       styles[height]
-    ]
-
+      className
+    ].join ' '
     <ReactModal
       className={className}
       overlayClassName={styles.overlay}
@@ -43,9 +43,14 @@ Modal.defaultProps =
   showAlien: no
 
 
-exports.Header = Modal.Header = ({ title }) ->
-  <div className={styles.header}>
-    <Label size='xlarge' type="info">{title}</Label>
+exports.Header = Modal.Header = ({ title, className }) ->
+  className = [
+    styles.header
+    className
+  ].join ' '
+
+  <div className={className}>
+    <Label type="info">{title}</Label>
   </div>
 
 
@@ -56,20 +61,18 @@ exports.Content = Modal.Content = ({ children }) ->
 
 
 exports.Footer = Modal.Footer = (props) ->
-  { primaryButtonType, primaryButtonSize
-    primaryButtonTitle, onPrimaryButtonClick } = props
-
-  { secondaryButtonType, secondaryButtonSize
-    secondaryButtonTitle, onSecondaryButtonClick } = props
-
-  <div className={styles.footer}>
+  { primaryButtonType, primaryButtonTitle, onPrimaryButtonClick,
+    secondaryButtonType, secondaryButtonTitle, onSecondaryButtonClick, className, size } = props
+  className = [
+    styles.footer
+    className
+  ].join ' '
+  <div className={className}>
     <div className={styles.footerContainer}>
-
-      <Button type={secondaryButtonType} size={primaryButtonSize} onClick={onSecondaryButtonClick}>
+      <Button type={secondaryButtonType} size={'small' if not size} onClick={onSecondaryButtonClick}>
         {secondaryButtonTitle}
       </Button>
-
-      <Button type={primaryButtonType} size={secondaryButtonSize} onClick={onPrimaryButtonClick}>
+      <Button type={primaryButtonType} size={'small' if not size} onClick={onPrimaryButtonClick}>
         {primaryButtonTitle}
       </Button>
 

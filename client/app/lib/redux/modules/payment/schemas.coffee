@@ -20,6 +20,10 @@ invoices = defineSchema 'invoices', [
     data: defineSchema 'items', []
 ]
 
+addon = defineSchema 'addon'
+
+supportPlan = defineSchema 'supportPlan'
+
 
 module.exports = {
   plan
@@ -27,4 +31,5 @@ module.exports = {
   customer
   info
   invoices
+  addon
 }
