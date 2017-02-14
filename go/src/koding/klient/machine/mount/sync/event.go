@@ -95,7 +95,9 @@ func (e *Event) Valid() bool {
 // event should be GC if it haven't been yet.
 func (e *Event) Done() {
 	if atomic.SwapUint64((*uint64)(&e.stat), uint64(statusDone)) != uint64(statusDeprecated) {
-		e.parent.detach(e.change.Path(), e.id)
+		if e.parent != nil {
+			e.parent.detach(e.change.Path(), e.id)
+		}
 		e.cancel()
 	}
 }

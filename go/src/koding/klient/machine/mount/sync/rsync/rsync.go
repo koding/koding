@@ -1,5 +1,3 @@
-// +build ignore
-
 package rsync
 
 import (
@@ -29,6 +27,11 @@ func (e *Event) Exec() error {
 	e.ev.Done()
 
 	return nil
+}
+
+// String implements fmt.Stringer interface. It pretty prints internal event.
+func (e *Event) String() string {
+	return e.ev.String() + " - " + "rsynced"
 }
 
 // Rsync uses rsync(1) file-copying tool to provide synchronization between
@@ -75,8 +78,10 @@ func (r *Rsync) ExecStream(evC <-chan *msync.Event) <-chan msync.Execer {
 }
 
 // Close stops all created synchronization streams.
-func (r *Rsync) Close() {
+func (r *Rsync) Close() error {
 	r.once.Do(func() {
 		close(r.stopC)
 	})
+
+	return nil
 }
