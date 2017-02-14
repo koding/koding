@@ -48,7 +48,9 @@ isEmailVerified = createSelector(
 
 mapStateToProps = (state) ->
 
-  title = if globals.hasCreditCard
+  { payment } = globals.currentGroup
+
+  title = if payment.customer.hasCard
   then subscriptionTitle(state)
   else 'Cancelled Subscription'
 
@@ -63,7 +65,7 @@ mapStateToProps = (state) ->
     # TODO(umut): activate this when we have coupon support.
     isSurveyTaken: yes # !!customer.coupon(state)
     isEmailVerified: isEmailVerified(state)
-    hasCreditCard: globals.hasCreditCard
+    hasCreditCard: payment.customer.hasCard
   }
 
 
