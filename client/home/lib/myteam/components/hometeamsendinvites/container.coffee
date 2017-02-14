@@ -89,6 +89,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
         break
 
     if title isnt ''
+      $('.send-invites').addClass 'send-attempt'
       return new kd.NotificationView
         title    : title
         duration : 5000

@@ -233,6 +233,9 @@ homemyteam.styl
 .HomeAppView--section.send-invites
   overflow                  hidden
 
+  &.send-attempt .invite-inputs input.kdinput.user-email.error
+    border-color            #f00
+
   .information
     padding                 30px 0 4px
     .invite-labels
@@ -295,13 +298,14 @@ homemyteam.styl
 
     input.kdinput.user-email
       width                 242px
-      border-right          none
       border-top-left-radius    3px
       border-bottom-left-radius 3px
+      transition            border-color 0.5s
 
     input.kdinput.firstname
       width                 152px
       border-right          none
+      border-left           none
 
     input.kdinput.lastname
       border-right          none
