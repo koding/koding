@@ -24,7 +24,7 @@ $stack-fg-color-yellow      = #FCC34E
 $stack-border-color         = #000000
 $stack-bg-color-dark        = #111111
 
-$stack-sideview-width       = 420px
+$stack-sideview-width       = 400px
 $stack-border-width         = 2px
 
 .new-stack-editor
@@ -367,9 +367,6 @@ $stack-border-width         = 2px
       color                 $stack-fg-color-yellow
       display               none
 
-    .wrapper
-      min-width             $stack-sideview-width
-
 
   .side-view
 
@@ -403,11 +400,13 @@ $stack-border-width         = 2px
       .selection-view
         width               auto
         height              auto
+        min-width           $stack-sideview-width
         color               #fff
         font-size           12px
         padding             8px 15px 5px 20px
         background          #3c3c3c
         z-index             10
+        borderBox()
 
         b
           font-weight       600
@@ -519,12 +518,12 @@ $stack-border-width         = 2px
           fa                trash
 
       .provider
-        padding             2px
+        padding             2px 3px
+        margin              2px 5px 0 0
         font-size           10px
-        margin-right        5px
-        border-radius       3px
+        border-radius       2px
         color               #FFF
-        text-shadow         0px 1px 1px #333
+        text-shadow         0px 0px 1px #000
         cursor              pointer
         fr()
 
@@ -532,6 +531,7 @@ $stack-border-width         = 2px
   .add-credential-scroll
     top                     44px
     background              $stack-bg-color
+    min-width               $stack-sideview-width
     font-size               13px
     color                   $stack-fg-color
     border-bottom           93px solid $stack-bg-color-dark

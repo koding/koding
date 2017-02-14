@@ -26,11 +26,16 @@ module.exports = class CredentialsController extends BaseController
     @listController.on Events.CredentialChangesSaveRequested, => @save()
 
     @list = @listController.getListView()
-    @list.on Events.CredentialSelectionChanged, =>
+    @list.on Events.CredentialSelectionChanged, (item, state) =>
+
+      debug 'credential selection changed', item, state
 
       if @isSelectionChanged()
-      then @list.setClass 'has-change'
-      else @list.unsetClass 'has-change'
+        @list.setClass 'has-change'
+        debug 'has changes in list'
+      else
+        @list.unsetClass 'has-change'
+        debug 'nothing has changed in list'
 
 
   getView: -> @listController.getView()
