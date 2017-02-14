@@ -70,6 +70,13 @@ $stack-border-width         = 2px
         color               white
         fa                  play
 
+    .menu-icon
+      fa                    caret-down
+      cursor                pointer
+      margin                0 7px 0 6px
+      color                 $dark-active-tab-color
+      height                20px
+
     .kdbutton.expand
       abs                   13px, 120px !important
 
@@ -77,7 +84,7 @@ $stack-border-width         = 2px
       display               inline-block
       margin-left           10px
 
-    cite
+    cite.stack
       fa                    server
 
     .tag
@@ -87,7 +94,7 @@ $stack-border-width         = 2px
       padding               1px 4px
       box-sizing            border-box
       font-variant          small-caps
-      margin-left           5px
+      margin-right          5px
       vertical-align        top
       cursor                pointer
       display               inline-block
@@ -105,6 +112,18 @@ $stack-border-width         = 2px
       .tag.credential
         vendor              animation, shake .6s
 
+    cite.credential
+      fa                    cog
+      margin-left           -10px
+      background            #515151
+      font-size             10px
+      width                 13px
+      height                13px
+      line-height           13px
+      vertical-align        top
+      padding-left          2px
+      color                 #fff
+      cursor                pointer
 
   .content
     background              $stack-bg-color
@@ -570,6 +589,82 @@ $stack-border-width         = 2px
       margin-top            30px
       margin-bottom        -30px
       borderBox()
+
+
+  .kdcontextmenu
+
+    box-shadow              0px 0px 30px rgba(0,0,0,.4)
+
+    ul
+      bg                    color, dark-tab-header-bg !important
+      padding               2px !important
+      rounded               0 !important
+
+    li
+      color                 #E6E1DC !important
+      rounded               0 !important
+
+      &:hover
+        bg                  color, dark-panel-bg !important
+
+      &.selected
+        bg                  color, dark-panel-bg !important
+
+    > span.arrow.bottom
+      margin-top            -2px
+      border-top-color      #131313
+      border-left-color     transparent !important
+
+    > span.arrow.top
+      margin-top            -2px
+      border-bottom-color   #131313
+      border-left-color     transparent !important
+
+    span.arrow
+      border-left-color     #fff !important
+
+    .kdlistview-contextmenu.default
+      bg                    color #131313
+      rel()
+
+    .kdlistitemview-contextitem
+      font-size             .8em
+      line-height           1.4em
+      color                 #aaa
+      padding               6px 10px
+      text-overflow         ellipsis
+      overflow              hidden
+      pointer()
+      borderBox()
+
+      &.separator
+        padding             0
+        &:last-child
+          border-bottom     none
+
+      &.selected
+      &.active
+        color               white
+        bg                  color, #131313 !important
+
+      &.disabled
+      &.selected.disabled
+        color               #aaa
+        pointer-events      none
+
+      &:hover
+        background-color    #2b2b2b !important
+
+
+    .kdlistitemview-contextitem.default.separator
+      border-bottom         1px solid #444
+
+
+  .stack-menu
+
+    top                     40px !important
+    margin-left            -20px
+
 
 
 #kdmaincontainer.hover

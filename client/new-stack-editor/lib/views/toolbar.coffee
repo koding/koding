@@ -27,6 +27,11 @@ module.exports = class Toolbar extends JView
       callback: ->
         kd.singletons.mainView.toggleSidebar()
 
+    @menuIcon = new kd.CustomHTMLView
+      tagName  : 'span'
+      cssClass : 'menu-icon'
+      click    : @bound 'handleMenu'
+
 
   showMissingCredentialWarning: ->
 
@@ -50,14 +55,46 @@ module.exports = class Toolbar extends JView
     count = data.getCredentialIdentifiers?().length ? 0
 
     credentials = if count
-    then "#{count} credential#{if count > 1 then 's' else ''} is set"
-    else 'missing credentials'
+    then "#{count} credential#{if count > 1 then 's' else ''}"
+    else 'select credentials'
 
     if data._initial
       credentials = '-'
       accessLevel = '-'
 
     super { _id, accessLevel, credentials, title }
+
+
+  handleMenu: (event) ->
+
+    menu = new kd.ContextMenu {
+      event               : event
+      delegate            : @menuIcon
+      cssClass            : 'stack-menu'
+    }, {
+      'Test'              :
+        action            : Events.Menu.Test
+      'Initialize'        :
+        action            : Events.Menu.Initialize
+      'Make Team Default' :
+        action            : Events.Menu.MakeTeamDefault
+      'Rename Stack'      :
+        action            : Events.Menu.Rename
+      'Clone Stack'       :
+        action            : Events.Menu.Clone
+      'Credentials'       :
+        action            : Events.Menu.Credentials
+      'Logs'              :
+        action            : Events.Menu.Logs
+        separator         : yes
+      'Delete'            :
+        action            : Events.Menu.Delete
+    }
+
+    menu.on 'ContextMenuItemReceivedClick', (menuItem) =>
+      debug 'menu item clicked', menuItem
+      @emit Events.MenuAction, menuItem.getData().action
+      kd.utils.defer menu.bound 'destroy'
 
 
   render: ->
@@ -72,7 +109,7 @@ module.exports = class Toolbar extends JView
   pistachio: ->
 
     '''
-    {cite{}} {h3{#(title)}}
-    {.tag.level{#(accessLevel)}} {div.tag.credential{#(credentials)}}
+    {cite.stack{}} {h3{#(title)}} {{> @menuIcon}}
+    {.tag.level{#(accessLevel)}} {div.tag.credential{#(credentials)}} {cite.credential{}}
     {div.controls{> @expandButton}} {{> @actionButton}}
     '''

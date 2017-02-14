@@ -45,6 +45,7 @@ module.exports = class StackEditor extends kd.View
     @toolbar = new Toolbar
     @forwardEvent @toolbar, Events.InitializeRequested
     @toolbar.on Events.ToggleCredentials, => @sideView.toggle 'credentials'
+    @toolbar.on Events.MenuAction, @bound 'handleMenuActions'
 
     # Status bar
     @statusbar = new Statusbar
@@ -183,6 +184,15 @@ module.exports = class StackEditor extends kd.View
     return if convertedDoc.err
     then [ 'Failed to convert YAML to JSON, fix the document and try again.' ]
     else [ null, convertedDoc ]
+
+
+  handleMenuActions: (event) ->
+
+    switch event
+      when Events.Menu.Logs
+        @logs.resize { percentage: 40, store: yes }
+      when Events.Menu.Credentials
+        @sideView.show 'credentials'
 
 
   _loadSnapshot: (id) ->
