@@ -81,6 +81,11 @@ module.exports = class BaseView extends kd.View
   stopLoading: -> @unsetClass 'loading'
 
 
+  resize: (percentage) ->
+
+    @emit FlexSplit.EVENT_RESIZE, percentage
+
+
   _createLoaderView: ->
 
     @controls.addSubView @_loaderView = new kd.LoaderView
