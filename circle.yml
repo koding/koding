@@ -5,6 +5,15 @@ executorType: docker
 containerInfo:
   - image: koding/base@sha256:c53151cedd1a7cd86a66189742835a761d54f1d23c72422832fac69a0916a176
 
+  - image: mongo:2.6
+    cmd: ["--nojournal", "--noprealloc", "--smallfiles"]
+
+  - image: koding/postgres
+
+  - image: rabbitmq:3
+
+  - image: redis
+
 stages:
 
   build:
