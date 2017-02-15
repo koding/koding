@@ -365,16 +365,16 @@ func (fs *Filesystem) mkdir(path string, mode os.FileMode) (id fuseops.InodeID, 
 	return id, nil
 }
 
-func (fs *Filesystem) mkfile(path string, mode os.FileMode) (id fuseops.InodeID, err error) {
+func (fs *Filesystem) mkfile(path string, mode os.FileMode) (id fuseops.InodeID, h fuseops.HandleID, err error) {
 	absPath := fs.path(path)
 
 	if err := os.MkdirAll(filepath.Dir(absPath), 0755); err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	f, err := os.Create(absPath)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	if err := f.Close(); err != nil {
@@ -391,6 +391,7 @@ func (fs *Filesystem) mkfile(path string, mode os.FileMode) (id fuseops.InodeID,
 
 	fs.mu.Lock()
 	id = fs.add(path)
+	h = fs.addHandle(f)
 	fs.mu.Unlock()
 
 	entry.Aux = uint64(id)
@@ -399,7 +400,7 @@ func (fs *Filesystem) mkfile(path string, mode os.FileMode) (id fuseops.InodeID,
 
 	_ = f.Chmod(mode)
 
-	return id, f.Close()
+	return id, h, nil
 }
 
 func (fs *Filesystem) move(ctx stdcontext.Context, oldpath, newpath string) error {
@@ -448,14 +449,14 @@ func (fs *Filesystem) openFile(ctx stdcontext.Context, path string) (*os.File, e
 	flag := os.O_RDWR
 	path = fs.path(path)
 
-	f, err := os.OpenFile(path, flag, 0755)
+	f, err := os.OpenFile(path, flag, 0644)
 	if os.IsNotExist(err) {
 		err = fs.yield(ctx, path, index.ChangeMetaAdd|index.ChangeMetaRemote)
 		if err != nil {
 			return nil, err
 		}
 
-		f, err = os.OpenFile(path, flag, 0755)
+		f, err = os.OpenFile(path, flag, 0644)
 	}
 
 	return f, err
