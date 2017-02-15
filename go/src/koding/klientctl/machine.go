@@ -263,8 +263,8 @@ func tabListMountFormatter(w io.Writer, mounts map[string][]sync.Info) {
 				info.AllCount,
 				info.Queued,
 				info.Syncing,
-				humanize.IBytes(uint64(info.AllDiskSize)),
 				humanize.IBytes(uint64(info.SyncDiskSize)),
+				humanize.IBytes(uint64(info.AllDiskSize)),
 			)
 		}
 	}

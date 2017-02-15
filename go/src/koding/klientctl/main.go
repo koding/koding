@@ -600,7 +600,7 @@ func run(args []string) {
 						Flags: []cli.Flag{
 							cli.StringFlag{
 								Name:  "filter",
-								Usage: "Limits the output to a specific `MOUNT_ID`.",
+								Usage: "Limits the output to a specific `<mount-id>`.",
 							},
 							cli.BoolFlag{
 								Name:  "json",

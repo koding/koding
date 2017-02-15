@@ -28,11 +28,12 @@ var cmdDescriptions = map[string]string{
     use --oneway-sync.`),
 	),
 	"mount-new": fmtDesc(
-		"((<machine-id>|<alias>|<ip>):<remote-path> <local-path> | <command>) [<options>...]",
+		"(<machine-identifier>:<remote-path> <local-path> | <command>) [<options>...]",
 		fmt.Sprintf(`Mount <remote-path> from remote machine to <local-path>.
 
-   With either <machine-id>, <alias> or <ip> argument, kd machine mount identifies
-   requested machine. All of them can by find by running "kd machine list" command"
+   With <machine-identifier> argument, kd machine mount identifies requested machine.
+   Either machine ID, machine alias or IP can be used as identifier and all of them
+   can by obtained by running "kd machine list" command.
 
    <local-path> can be relative or absolute, if the folder does not exit, it will be created.`),
 	),
@@ -127,10 +128,25 @@ COMMANDS:
 `
 
 	cli.CommandHelpTemplate = `USAGE:
-   kd {{.FullName}}{{if .Description}} {{.Description}}{{end}}{{if .Flags}}
+   kd {{.FullName}}{{if .Description}} {{.Description}}{{else if .Usage}} - {{.Usage}}{{end}}{{if .Flags}}
 
 OPTIONS:
    {{range .Flags}}{{.}}
+   {{end}}{{end}}
+`
+
+	cli.SubcommandHelpTemplate = `NAME:
+   {{.HelpName}} - {{.Usage}}
+
+USAGE:
+   {{.HelpName}} command{{if .VisibleFlags}} [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}
+
+COMMANDS:{{range .VisibleCategories}}{{if .Name}}
+   {{.Name}}:{{end}}{{range .VisibleCommands}}
+   {{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}
+{{end}}{{if .VisibleFlags}}
+OPTIONS:
+   {{range .VisibleFlags}}{{.}}
    {{end}}{{end}}
 `
 }
