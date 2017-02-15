@@ -170,7 +170,7 @@ func (fs *Filesystem) CreateFile(ctx context.Context, op *fuseops.CreateFileOp) 
 
 	path = filepath.Join(path, op.Name)
 
-	op.Entry.Child, err = fs.mkfile(path, op.Mode)
+	op.Entry.Child, op.Handle, err = fs.mkfile(path, op.Mode)
 	if err != nil {
 		return err
 	}
