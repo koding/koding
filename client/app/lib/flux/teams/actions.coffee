@@ -18,6 +18,7 @@ KodingKontrol = require 'app/kite/kodingkontrol'
 globals = require 'globals'
 showError = require 'app/util/showError'
 DeleteTeamOverlay = require 'app/components/deleteteamoverlay'
+DeleteAccountOverlay = require 'app/components/deleteaccountoverlay'
 
 loadTeam = ->
 
@@ -278,28 +279,30 @@ handlePermanentlyDeleteMember = (member) ->
 
 leaveTeam = (partial) ->
 
-  new Promise (resolve, reject) ->
-    new VerifyPasswordModal 'Confirm', partial, (currentPassword) ->
+  new DeleteAccountOverlay()
 
-      whoami().fetchEmail (err, email) ->
-        options = { password: currentPassword, email }
-        remote.api.JUser.verifyPassword options, (err, confirmed) ->
+  # new Promise (resolve, reject) ->
+  #   new VerifyPasswordModal 'Confirm', partial, (currentPassword) ->
 
-          return reject err.message  if err
-          return reject 'Current password cannot be confirmed'  unless confirmed
+  #     whoami().fetchEmail (err, email) ->
+  #       options = { password: currentPassword, email }
+  #       remote.api.JUser.verifyPassword options, (err, confirmed) ->
 
-          resolve confirmed
+  #         return reject err.message  if err
+  #         return reject 'Current password cannot be confirmed'  unless confirmed
 
-          { groupsController, reactor } = kd.singletons
-          team = groupsController.getCurrentGroup()
+  #         resolve confirmed
 
-          team.leave { password: currentPassword }, (err) ->
-            if err
-              return new kd.NotificationView { title : err.message }
+  #         { groupsController, reactor } = kd.singletons
+  #         team = groupsController.getCurrentGroup()
 
-            Tracker.track Tracker.USER_LEFT_TEAM
-            kookies.expire 'clientId'
-            global.location.replace '/'
+  #         team.leave { password: currentPassword }, (err) ->
+  #           if err
+  #             return new kd.NotificationView { title : err.message }
+
+  #           Tracker.track Tracker.USER_LEFT_TEAM
+  #           kookies.expire 'clientId'
+  #           global.location.replace '/'
 
 
 deleteTeam = (partial) ->
