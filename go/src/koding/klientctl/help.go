@@ -27,12 +27,25 @@ var cmdDescriptions = map[string]string{
     that does a lot of filesystem operations like git,
     use --oneway-sync.`),
 	),
+	"mount-new": fmtDesc(
+		"((<machine-id>|<alias>|<ip>):<remote-path> <local-path> | <command>) [<options>...]",
+		fmt.Sprintf(`Mount <remote-path> from remote machine to <local-path>.
+
+   With either <machine-id>, <alias> or <ip> argument, kd machine mount identifies
+   requested machine. All of them can by find by running "kd machine list" command"
+
+   <local-path> can be relative or absolute, if the folder does not exit, it will be created.`),
+	),
 	"ssh": fmtDesc(
 		"<alias>", "SSH into the machine.",
 	),
 	"unmount": fmtDesc(
 		"<alias>",
 		"Unmount folder which was previously mounted.",
+	),
+	"umount-new": fmtDesc(
+		"<mount-id>",
+		"Unmount existing mount with given ID.",
 	),
 	"remount": fmtDesc(
 		"<alias>",
@@ -114,13 +127,40 @@ COMMANDS:
 `
 
 	cli.CommandHelpTemplate = `USAGE:
-    kd {{.FullName}}{{if .Description}} {{.Description}}{{end}}{{if .Flags}}
+   kd {{.FullName}}{{if .Description}} {{.Description}}{{end}}{{if .Flags}}
+
 OPTIONS:
-    {{range .Flags}}{{.}}
-    {{end}}{{end}}
+   {{range .Flags}}{{.}}
+   {{end}}{{end}}
 `
 }
 
+// fixDescription is a hacky way of dealing with current CLI package. The
+// problem is that for codegangsta subcommands .Usage field has value defined
+// in .Description field and the real .Usage value is ignored. This makes
+// the api invalid when we need to print proper help descriptions.
+func fixDescription(usage string) func() {
+	tmp := cli.SubcommandHelpTemplate
+
+	cli.SubcommandHelpTemplate = `NAME:
+   {{.HelpName}} - ` + usage + `
+
+USAGE:
+   {{.HelpName}} {{.Usage}}
+COMMANDS:{{range .VisibleCategories}}{{if .Name}}
+   {{.Name}}:{{end}}{{range .VisibleCommands}}
+   {{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}
+{{end}}{{if .VisibleFlags}}
+OPTIONS:
+   {{range .VisibleFlags}}{{.}}
+   {{end}}{{end}}
+`
+
+	return func() {
+		cli.SubcommandHelpTemplate = tmp
+	}
+}
+
 func fmtDesc(opts, description string) string {
-	return fmt.Sprintf("%s\nDESCRIPTION\n    %s", opts, description)
+	return fmt.Sprintf("%s\n\nDESCRIPTION\n   %s\n", opts, description)
 }

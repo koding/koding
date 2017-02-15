@@ -76,9 +76,16 @@ func MachineSSHCommand(c *cli.Context, log logging.Logger, _ string) (int, error
 
 // MachineMountCommand allows to create mount between remote and local machines.
 func MachineMountCommand(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	defer fixDescription("Mount remote folder to a local directory.")()
 	// Mount command has two identifiers - remote machine:path and local path.
 	idents, err := getIdentifiers(c)
 	if err != nil {
+		return 1, err
+	}
+	if len(idents) == 0 {
+		return 0, cli.ShowSubcommandHelp(c)
+	}
+	if err := identifiersLimit(idents, "argument", 2, 2); err != nil {
 		return 1, err
 	}
 	ident, remotePath, path, err := mountAddress(idents)
@@ -112,8 +119,7 @@ func MachineListMountCommand(c *cli.Context, log logging.Logger, _ string) (int,
 	}
 
 	opts := &machine.ListMountOptions{
-		ID:      c.String("filter-machine"),
-		MountID: c.String("filter-mount"),
+		MountID: c.String("filter"),
 		Log:     log.New("machine:mount:list"),
 	}
 

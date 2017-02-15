@@ -50,7 +50,6 @@ func Mount(options *MountOptions) (err error) {
 	}
 
 	if err := k.Dial(); err != nil {
-		fmt.Fprintln(os.Stderr, "Error dialing klient:", err)
 		return err
 	}
 
@@ -150,7 +149,6 @@ func ListMount(options *ListMountOptions) (map[string][]sync.Info, error) {
 	}
 
 	if err := k.Dial(); err != nil {
-		fmt.Fprintln(os.Stderr, "Error dialing klient:", err)
 		return nil, err
 	}
 
@@ -191,7 +189,6 @@ func Umount(options *UmountOptions) (err error) {
 	}
 
 	if err := k.Dial(); err != nil {
-		fmt.Fprintln(os.Stderr, "Error dialing klient:", err)
 		return err
 	}
 

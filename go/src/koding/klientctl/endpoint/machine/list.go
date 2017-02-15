@@ -47,7 +47,6 @@ func List(options *ListOptions) ([]*Info, error) {
 	}
 
 	if err := k.Dial(); err != nil {
-		fmt.Fprintln(os.Stderr, "Error dialing klient:", err)
 		return nil, err
 	}
 

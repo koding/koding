@@ -586,24 +586,21 @@ func run(args []string) {
 						},
 					},
 				}, {
-					Name:      "mount",
-					ShortName: "m",
-					Usage:     "Mount remote folder to local directory.",
-					Action:    ctlcli.ExitErrAction(MachineMountCommand, log, "mount"),
-					Flags:     []cli.Flag{},
+					Name:        "mount",
+					Aliases:     []string{"m"},
+					Usage:       "",
+					Description: cmdDescriptions["mount-new"],
+					Action:      ctlcli.ExitErrAction(MachineMountCommand, log, "mount"),
+					Flags:       []cli.Flag{},
 					Subcommands: []cli.Command{{
-						Name:      "list",
-						ShortName: "ls",
-						Usage:     "List available mounts.",
-						Action:    ctlcli.ExitErrAction(MachineListMountCommand, log, "mount list"),
+						Name:    "list",
+						Aliases: []string{"ls"},
+						Usage:   "List available mounts.",
+						Action:  ctlcli.ExitErrAction(MachineListMountCommand, log, "mount list"),
 						Flags: []cli.Flag{
 							cli.StringFlag{
-								Name:  "filter-machine",
-								Usage: "Limits the output to all mounts bound to machine ID.",
-							},
-							cli.StringFlag{
-								Name:  "filter-mount",
-								Usage: "Limits the output to a specific mount ID.",
+								Name:  "filter",
+								Usage: "Limits the output to a specific `MOUNT_ID`.",
 							},
 							cli.BoolFlag{
 								Name:  "json",
@@ -612,11 +609,12 @@ func run(args []string) {
 						},
 					}},
 				}, {
-					Name:      "umount",
-					ShortName: "u",
-					Usage:     "Unmount remote directory.",
-					Action:    ctlcli.ExitErrAction(MachineUmountCommand, log, "umount"),
-					Flags:     []cli.Flag{},
+					Name:        "umount",
+					ShortName:   "u",
+					Usage:       "Unmount remote directory.",
+					Description: cmdDescriptions["umount-new"],
+					Action:      ctlcli.ExitErrAction(MachineUmountCommand, log, "umount"),
+					Flags:       []cli.Flag{},
 				}},
 			},
 			cli.Command{
@@ -711,7 +709,6 @@ func run(args []string) {
 					},
 				}},
 			},
-
 			cli.Command{
 				Name:  "team",
 				Usage: "List available teams and set team context.",

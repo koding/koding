@@ -36,7 +36,6 @@ func SSH(options *SSHOptions) error {
 	}
 
 	if err := k.Dial(); err != nil {
-		fmt.Fprintln(os.Stderr, "Error dialing klient:", err)
 		return err
 	}
 
