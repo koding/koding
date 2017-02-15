@@ -42,6 +42,39 @@ func TestChannelDeleteWithPostgreRecord(t *testing.T) {
 	})
 }
 
+func createChannelWithParticipants(groupName string) (*models.Channel, []*models.Account) {
+	account1 := models.CreateAccountWithTest()
+	account2 := models.CreateAccountWithTest()
+	account3 := models.CreateAccountWithTest()
+	accounts := []*models.Account{account1, account2, account3}
+
+	channel := models.CreateTypedGroupedChannelWithTest(account1.Id, models.Channel_TYPE_DEFAULT, groupName)
+	models.AddParticipantsWithTest(channel.Id, account1.Id, account2.Id, account3.Id)
+
+	return channel, accounts
+}
+
+func createGroupDataWithChecksInBothDB(groupName string) (*models.Channel, *models.Account) {
+	account := models.CreateAccountInBothDbsWithCheck()
+
+	groupChannel := models.CreateTypedGroupedChannelWithTest(
+		account.Id,
+		models.Channel_TYPE_GROUP,
+		groupName,
+	)
+
+	_, err := groupChannel.AddParticipant(account.Id)
+	So(err, ShouldBeNil)
+
+	// we recommend you to not ignore errors.
+	// In this case we need to try to create same named group in mongo.
+	// then it gives key duplication error, so err checking is disabled here.
+	models.CreateGroupInMongo(groupName, groupChannel.Id)
+	// So(err, ShouldBeNil)
+
+	return groupChannel, account
+}
+
 //
 // func accountCreatorWithCount(count int) error {
 // 	for i := 0; i < count; i++ {
