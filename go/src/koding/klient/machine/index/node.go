@@ -57,8 +57,6 @@ func (nd *Node) Add(path string, entry *Entry) {
 
 		node, path = split(path)
 
-		node, path = split(path)
-
 		sub, ok := nd.Sub[node]
 		if !ok {
 			sub = newNode()
@@ -265,8 +263,6 @@ func (nd *Node) lookup(path string, deleted bool) (*Node, bool) {
 		if nd.Deleted() && !deleted {
 			return nil, false
 		}
-
-		node, path = split(path)
 
 		node, path = split(path)
 
