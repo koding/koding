@@ -31,35 +31,13 @@ const (
 
 // Entry represents a single file registered to index.
 type Entry struct {
-	Hash  []byte      `json:"h"` // Hash of file content.
-	CTime int64       `json:"c"` // Metadata change time since EPOCH.
-	MTime int64       `json:"m"` // File data change time since EPOCH.
-	Size  int64       `json:"s"` // Size of the file.
-	Inode uint64      `json:"-"` // fuseops.InodeID
-	Ref   int32       `json:"-"` // inode's reference count
-	Mode  os.FileMode `json:"o"` // File mode and permission bits.
-	Meta  int32       `json:"-"` // Entry metadata; written under (*Index).mu, read with atomic op
-}
-
-// The following methods are conveniance helpers for a lock-free
-// access of Entry's fields.
-func (e *Entry) GetInode() uint64      { return atomic.LoadUint64(&e.Inode) }
-func (e *Entry) SetInode(inode uint64) { atomic.StoreUint64(&e.Inode, inode) }
-func (e *Entry) IncRef() int32         { return atomic.AddInt32(&e.Ref, 1) }
-func (e *Entry) DecRef() int32         { return atomic.AddInt32(&e.Ref, -1) }
-func (e *Entry) Has(meta int32) bool   { return atomic.LoadInt32(&e.Meta)&meta == meta }
-
-// SwapMeta flips the value of a Meta field, setting the set
-// bits and unsetting the unset ones.
-func (e *Entry) SwapMeta(set, unset int32) int32 {
-	for {
-		older := atomic.LoadInt32(&e.Meta)
-		updated := (older | set) &^ unset
-
-		if atomic.CompareAndSwapInt32(&e.Meta, older, updated) {
-			return updated
-		}
-	}
+	Hash  []byte      `json:"h"`          // Hash of file content.
+	CTime int64       `json:"c"`          // Metadata change time since EPOCH.
+	MTime int64       `json:"m"`          // File data change time since EPOCH.
+	Size  int64       `json:"s"`          // Size of the file.
+	Aux   uint64      `json:"-"`          // Auxiliary data, fuse uses it to store fuseops.InodeID.
+	Mode  os.FileMode `json:"o"`          // File mode and permission bits.
+	Meta  EntryMeta   `json:"t,omitempy"` // Entry metadata.
 }
 
 // NewEntryFile creates new Entry from a file stored under path argument.
