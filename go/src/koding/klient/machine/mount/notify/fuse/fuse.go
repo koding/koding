@@ -1,9 +1,13 @@
 package fuse
 
 import (
+	"bytes"
+	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"sync/atomic"
 
 	"koding/klient/machine/index"
@@ -423,4 +427,26 @@ func (fs *Filesystem) ReleaseFileHandle(_ context.Context, op *fuseops.ReleaseFi
 	return nil
 }
 
-func (fs *Filesystem) Destroy() {}
+func (fs *Filesystem) Destroy() {
+	fs.mu.Lock()
+	for _, f := range fs.handles {
+		_ = f.Close()
+	}
+	fs.handles = make(map[fuseops.HandleID]*os.File)
+	fs.mu.Unlock()
+}
+
+func Umount(dir string) error {
+	if runtime.GOOS == "linux" {
+		return fuse.Unmount(dir)
+	}
+
+	// Under Darwin fuse.Umount uses syscall.Umount without syscall.MNT_FORCE flag,
+	// so we replace that implementation with diskutil.
+	p, err := exec.Command("diskutil", "unmount", "force", dir).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%s: %s", err, bytes.TrimSpace(p))
+	}
+
+	return nil
+}
