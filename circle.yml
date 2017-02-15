@@ -132,3 +132,7 @@ stages:
         command: ./run exec scripts/gotests.sh kites \
           koding/kites/kloud/provider/... koding/kites/kloud/credential/... \
           koding/kites/kloud/stack/... koding/kites/kloud/kloud/...
+
+      - type: shell
+        name: test mongo models
+        command: ./run exec go test koding/db/mongodb/modelhelper
