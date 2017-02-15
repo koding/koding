@@ -132,8 +132,7 @@ func (nd *Node) PromiseAdd(path string, entry *Entry) {
 		newE.Aux = entry.Aux
 	}
 
-	newE.Meta = newE.Meta | EntryPromiseAdd
-	newE.Meta = newE.Meta & (^EntryPromiseDel)
+	newE.Meta = (newE.Meta | EntryPromiseAdd) &^ EntryPromiseDel
 
 	nd.Add(path, newE)
 }
@@ -151,8 +150,7 @@ func (nd *Node) PromiseDel(path string) {
 		return
 	}
 
-	nd.Entry.Meta = nd.Entry.Meta | EntryPromiseDel
-	nd.Entry.Meta = nd.Entry.Meta & (^EntryPromiseAdd)
+	nd.Entry.Meta = (nd.Entry.Meta | EntryPromiseDel) &^ EntryPromiseAdd
 }
 
 // Count counts nodes which Entry.Size is at most maxsize.
@@ -220,7 +218,7 @@ func (nd *Node) DiskSize(maxsize int64) (size int64) {
 	return size
 }
 
-// ForEach traverses the truu and calls fn on every node's entry.
+// ForEach traverses the tree and calls fn on every node's entry.
 //
 // It ignored nodes marked as deleted.
 func (nd *Node) ForEach(fn func(string, *Entry)) {
@@ -300,7 +298,7 @@ func (nd *Node) Deleted() bool {
 }
 
 func (nd *Node) undelete() {
-	nd.Entry.Meta = nd.Entry.Meta & (^EntryPromiseDel)
+	nd.Entry.Meta &^= EntryPromiseDel
 }
 
 func (nd *Node) shallowCopy() *Node {
