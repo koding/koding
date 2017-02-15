@@ -157,3 +157,9 @@ stages:
           ./run exec supervisord -c supervisord.conf
           nginx -c $(pwd)/nginx.conf
           ./run health-check 30 600
+
+      - type: shell
+        name: test social API
+        environment:
+          EXTRAS: -convey-story=true
+        command: ./run exec make -C go/src/socialapi testapi
