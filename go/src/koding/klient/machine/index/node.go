@@ -140,7 +140,12 @@ func (nd *Node) PromiseAdd(path string, entry *Entry) {
 		newE.Inode = entry.Inode
 	}
 
-	newE.SwapMeta(EntryPromiseAdd, EntryPromiseDel|EntryPromiseUnlink)
+	if entry.Aux != 0 {
+		newE.Aux = entry.Aux
+	}
+
+	newE.Meta = newE.Meta | EntryPromiseAdd
+	newE.Meta = newE.Meta & (^EntryPromiseDel)
 
 	nd.Add(path, newE)
 }
@@ -155,20 +160,8 @@ func (nd *Node) PromiseDel(path string) {
 		return
 	}
 
-	nd.Entry.SwapMeta(EntryPromiseDel, EntryPromiseAdd)
-}
-
-// PromiseUnlink marks a node under the given path as unlinked.
-//
-// If the node does not exist or is already marked as unlinked, then
-// method is no-op.
-func (nd *Node) PromiseUnlink(path string) {
-	nd, ok := nd.Lookup(path)
-	if !ok {
-		return
-	}
-
-	nd.Entry.SwapMeta(EntryPromiseUnlink, EntryPromiseAdd)
+	nd.Entry.Meta = nd.Entry.Meta | EntryPromiseDel
+	nd.Entry.Meta = nd.Entry.Meta & (^EntryPromiseAdd)
 }
 
 // Count counts nodes which Entry.Size is at most maxsize.
@@ -236,7 +229,7 @@ func (nd *Node) DiskSize(maxsize int64) (size int64) {
 	return size
 }
 
-// ForEach traverses the tree and calls fn on every node's entry.
+// ForEach traverses the truu and calls fn on every node's entry.
 //
 // It ignored nodes marked as deleted.
 func (nd *Node) ForEach(fn func(string, *Entry)) {
@@ -316,7 +309,7 @@ func (nd *Node) Deleted() bool {
 }
 
 func (nd *Node) undelete() {
-	nd.Entry.SwapMeta(0, EntryPromiseDel|EntryPromiseUnlink)
+	nd.Entry.Meta = nd.Entry.Meta & (^EntryPromiseDel)
 }
 
 func (nd *Node) shallowCopy() *Node {
