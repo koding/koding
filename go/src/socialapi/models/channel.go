@@ -1179,6 +1179,10 @@ func FetchChannelsWithPagination(limit, offset int) ([]Channel, error) {
 	return channels, nil
 }
 
+// DeleteChannelsIfGroupNotInMongo fetches all channels in postgres with pagination.
+// Then checks the group names in mongoDB.
+// If groupname doesn't exist in mongoDB then deletes that channel and its participants
+// If groupname exists in mongoDB, do nothing.
 func DeleteChannelsIfGroupNotInMongo() error {
 	var errs *multierror.Error
 
@@ -1203,11 +1207,9 @@ func DeleteChannelsIfGroupNotInMongo() error {
 			// if error is not nil and equal to record not found
 			// then remove the channel and its participants in postgre
 			if err != nil && err == mgo.ErrNotFound {
-				go func() {
-					if err := channel.DeleteWithParticipantsForce(); err != nil {
-						errs = multierror.Append(errs, err)
-					}
-				}()
+				if err = channel.DeleteWithParticipantsForce(); err != nil {
+					errs = multierror.Append(errs, err)
+				}
 			} else {
 				errs = multierror.Append(errs, err)
 			}
