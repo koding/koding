@@ -22,14 +22,10 @@ module.exports = class HomeTeamSendInvitesView extends React.Component
     inviteInput = @props.inputValues.toList().get(rowIndex)
     checked = inviteInput.get('canEdit')
 
-    hasError = false
-    unless inviteInput.get('email') is ''
-      hasError = !isEmailValid inviteInput.get 'email'
-
-    userEmailClassName = "kdinput text user-email #{if hasError then 'error' else ''}"
+    userEmailClassName = "kdinput text user-email"
 
     <div className='kdview invite-inputs'>
-      <input type='text' className={userEmailClassName} placeholder='mail@example.com' value={inviteInput.get 'email'} onChange={@props.onInputChange.bind(this, rowIndex, 'email')} />
+      <input type='text' className={userEmailClassName} placeholder='mail@example.com' value={inviteInput.get 'email'} onChange={@props.onInputChange.bind(this, rowIndex, 'email')} onBlur={@props.onInputEmailBlur.bind(this, rowIndex)} />
       <input type='text' className='kdinput text firstname' placeholder='Optional' value={inviteInput.get 'firstName'} onChange={@props.onInputChange.bind(this, rowIndex, 'firstName')}/>
       <input type='text' className='kdinput text lastname' placeholder='Optional' value={inviteInput.get 'lastName'} onChange={@props.onInputChange.bind(this, rowIndex, 'lastName')}/>
       <CheckBoxOrEmpty

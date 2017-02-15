@@ -66,6 +66,15 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
 
     TeamFlux.actions.updateInvitationInputValue index, inputName, value
 
+  onInputEmailBlur: (index, event) ->
+
+    value = event.target.value
+
+    unless value is ""
+      unless isEmailValid value
+        event.target.classList.add("error")
+      else
+        event.target.classList.remove("error")
 
   onSendInvites: ->
 
@@ -89,7 +98,6 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
         break
 
     if title isnt ''
-      $('.send-invites').addClass 'send-attempt'
       return new kd.NotificationView
         title    : title
         duration : 5000
@@ -227,6 +235,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
       inputValues={@state.inputValues}
       onUploadCSV={@bound 'onUploadCSV'}
       onInputChange={@bound 'onInputChange'}
+      onInputEmailBlur={@bound 'onInputEmailBlur'}
       onSendInvites={@bound 'onSendInvites'} />
 
 
