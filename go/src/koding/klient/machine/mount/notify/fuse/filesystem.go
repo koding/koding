@@ -146,6 +146,9 @@ func NewFilesystem(opts *Opts) (*Filesystem, error) {
 		dirs:      make(map[fuseops.HandleID]*dir),
 	}
 
+	// Best-effort attempt of unmounting already existing mount.
+	_ = Umount(opts.MountDir)
+
 	m, err := origfuse.Mount(opts.MountDir, fuseutil.NewFileSystemServer(fs), fs.Config())
 	if err != nil {
 		return nil, err
