@@ -180,6 +180,10 @@ func copyFile(src, dst string) error {
 	}
 	defer fsrc.Close()
 
+	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
+		return err
+	}
+
 	tmp, err := ioutil.TempFile(filepath.Split(dst))
 	if err != nil {
 		return fe(dst, err)
