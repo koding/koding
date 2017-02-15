@@ -60,6 +60,10 @@ stages:
         command: ./configure
 
       - type: shell
+        name: check remote API consistency
+        command: ./run exec scripts/api-generator.coffee --check
+
+      - type: shell
         name: check client code quality
         command: scripts/check_client_code_quality.sh
 
