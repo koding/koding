@@ -44,8 +44,8 @@ module.exports = class StackEditor extends kd.View
     # Toolbar
     @toolbar = new Toolbar
     @forwardEvent @toolbar, Events.InitializeRequested
-    @toolbar.on Events.ToggleCredentials, => @sideView.toggle 'credentials'
-    @toolbar.on Events.MenuAction, @bound 'handleMenuActions'
+    @toolbar.on Events.MenuAction,    @bound 'handleMenuActions'
+    @toolbar.on Events.ToolbarAction, @bound 'emit'
 
     # Status bar
     @statusbar = new Statusbar
@@ -97,9 +97,6 @@ module.exports = class StackEditor extends kd.View
     @controllers.credentials = new CredentialsController
       logs  : @controllers.logs
 
-    @controllers.credentials.on Events.WarnAboutMissingCredentials, =>
-      @toolbar.showMissingCredentialWarning()
-
     @sideView       = new SideView
       title         : yes
       views         :
@@ -110,9 +107,17 @@ module.exports = class StackEditor extends kd.View
           controls  :
             plus    : =>
               @controllers.credentials.getCredentialAddButton()
+        docs        :
+          title     : 'API Docs'
+          cssClass  : 'docs show-controls has-markdown'
+          view      : new kd.View { partial: 'WIP' }
+
+    @on Events.ShowSideView,   @sideView.bound 'show'
+    @on Events.ToggleSideView, @sideView.bound 'toggle'
 
     for _, controller of @controllers
       controller.on Events.TemplateDataChanged, @bound 'setTemplateData'
+      controller.on Events.WarnUser, @toolbar.bound 'handleWarnings'
 
     @emit 'ready'
 
@@ -192,7 +197,7 @@ module.exports = class StackEditor extends kd.View
       when Events.Menu.Logs
         @logs.resize { percentage: 40, store: yes }
       when Events.Menu.Credentials
-        @sideView.show 'credentials'
+        @emit Events.ShowSideView, 'credentials'
 
 
   _loadSnapshot: (id) ->

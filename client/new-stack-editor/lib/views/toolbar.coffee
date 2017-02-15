@@ -32,12 +32,6 @@ module.exports = class Toolbar extends JView
       cssClass : 'menu-icon'
       click    : @bound 'handleMenu'
 
-
-  showMissingCredentialWarning: ->
-
-    @unsetClass 'missing-credential'
-    kd.utils.defer =>
-      @setClass 'missing-credential'
     @banner = new kd.View
       cssClass : 'banner'
     @banner.addSubView @message = new kd.CustomHTMLView
@@ -51,11 +45,25 @@ module.exports = class Toolbar extends JView
       callback : => @unsetClass 'has-warning'
 
 
+  handleWarnings: (warning, actionEvent, rest...) ->
+
+    debug 'handling warnings', warning, actionEvent
+    @setClass 'has-warning'
+    @message.updatePartial warning
+
+    if actionEvent
+      @messageButton.setCallback =>
+        @unsetClass 'has-warning'
+        @emit Events.ToolbarAction, actionEvent, rest...
+      @messageButton.show()
+    else
+      @messageButton.hide()
+
 
   click: (event) ->
 
     if event.target.classList.contains 'credential'
-      @emit Events.ToggleCredentials
+      @emit Events.ToolbarAction, Events.ToggleSideView, 'credentials'
       kd.utils.stopDOMEvent event
 
 

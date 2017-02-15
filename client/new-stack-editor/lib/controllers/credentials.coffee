@@ -50,7 +50,8 @@ module.exports = class CredentialsController extends BaseController
     if @isSelectionChanged() and _.size selectedCredentials
       @save selectedCredentials, callback
     else if templateCredentials.length is 0
-      @emit Events.WarnAboutMissingCredentials
+      @emit Events.WarnUser, \
+        'Credentials missing', Events.ShowSideView, 'credentials'
       callback 'Missing Credentials'
     else
       callback null
