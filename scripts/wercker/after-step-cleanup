@@ -3,14 +3,14 @@
 INSTANCE_DATA_FILE=$1
 
 if [ "$WERCKER_RESULT" = "failed" ]; then
-  if [ -z "$TERMINATE_FAILED_TEST_INSTANCE" ]; then
-    exit 0
-  fi
+	if [ -z "$TERMINATE_FAILED_TEST_INSTANCE" ]; then
+		exit 0
+	fi
 fi
 
 SCRIPTS=$(dirname $0)/..
 
 while read INSTANCE_DATA; do
-  $SCRIPTS/test-instance/unprotect $INSTANCE_DATA
-  $SCRIPTS/test-instance/terminate $INSTANCE_DATA
-done < $INSTANCE_DATA_FILE
+	$SCRIPTS/test-instance/unprotect $INSTANCE_DATA
+	$SCRIPTS/test-instance/terminate $INSTANCE_DATA
+done <$INSTANCE_DATA_FILE

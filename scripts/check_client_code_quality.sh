@@ -6,7 +6,7 @@ set -o errexit
 cd $(dirname $0)/..
 
 git diff-tree -r --exit-code --name-only --no-commit-id HEAD \
-    client && exit 0
+	client && exit 0
 
 echo "checking unused variables"
 node node_modules/coffee-unused --src client --skip-parse-error

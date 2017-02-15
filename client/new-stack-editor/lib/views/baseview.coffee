@@ -70,10 +70,15 @@ module.exports = class BaseView extends kd.View
           @toggleClass 'pinned'
           @emit Events.GotFocus
 
-    @controls.addSubView new kd.LoaderView
+    @_createLoaderView()
+
+    @addSubView @wrapper
+
+
+  _createLoaderView: ->
+
+    @controls.addSubView @_loaderView = new kd.LoaderView
       size           : { width: 14 }
       showLoader     : yes
       loaderOptions  :
         color        : '#a4a4a4'
-
-    @addSubView @wrapper

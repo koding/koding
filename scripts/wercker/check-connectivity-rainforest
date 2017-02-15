@@ -2,36 +2,36 @@
 
 set -o errexit
 
-function repeat () {
-  INTERVAL=$1
-  TRY_COUNT=$2
-  COUNTER=0
+function repeat() {
+	INTERVAL=$1
+	TRY_COUNT=$2
+	COUNTER=0
 
-  shift 2
+	shift 2
 
-  until "$@"; do
-    COUNTER=$((COUNTER + 1))
-    if [ $COUNTER -eq $TRY_COUNT ]; then
-      echo "failed: $@"
-      return 1
-    fi
-    echo "pending: $@"
-    sleep $INTERVAL
-  done
+	until "$@"; do
+		COUNTER=$((COUNTER + 1))
+		if [ $COUNTER -eq $TRY_COUNT ]; then
+			echo "failed: $@"
+			return 1
+		fi
+		echo "pending: $@"
+		sleep $INTERVAL
+	done
 
-  echo "succeeded: $@"
-  return 0
+	echo "succeeded: $@"
+	return 0
 }
 
-function health_check () {
-  HOST=$3
-  STATUS_CODE=$(curl --silent --output /dev/null --write-out "%{http_code}\n" "http://$HOST/-/healthCheck")
+function health_check() {
+	HOST=$3
+	STATUS_CODE=$(curl --silent --output /dev/null --write-out "%{http_code}\n" "http://$HOST/-/healthCheck")
 
-  if [[ $? != 0 || $STATUS_CODE != '200' ]]; then
-    return 1
-  fi
+	if [[ $? != 0 || $STATUS_CODE != '200' ]]; then
+		return 1
+	fi
 
-  return 0
+	return 0
 }
 
 repeat 1m 20 health_check $(cat $1)

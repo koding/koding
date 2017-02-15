@@ -15,6 +15,8 @@ import (
 	"koding/klient/machine/machinegroup/mounts"
 	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/mounttest"
+	"koding/klient/machine/mount/notify/silent"
+	"koding/klient/machine/mount/sync/discard"
 	"koding/klient/storage"
 
 	"github.com/boltdb/bolt"
@@ -210,6 +212,8 @@ func testOptionsStorage(wd string, b client.Builder, st storage.ValueInterface) 
 	return &GroupOpts{
 		Storage:         st,
 		Builder:         b,
+		NotifyBuilder:   silent.SilentBuilder{},
+		SyncBuilder:     discard.DiscardBuilder{},
 		DynAddrInterval: 10 * time.Millisecond,
 		PingInterval:    50 * time.Millisecond,
 		WorkDir:         wd,

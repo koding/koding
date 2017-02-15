@@ -1,10 +1,13 @@
 package mounttest
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 
 	"koding/klient/machine/mount"
 )
@@ -144,4 +147,15 @@ func TempFile(root string) (string, error) {
 	}
 
 	return f.Name(), nil
+}
+
+// WaitForContextClose waits until context is done. It times out after specified
+// duration.
+func WaitForContextClose(ctx context.Context, timeout time.Duration) error {
+	select {
+	case <-ctx.Done():
+		return nil
+	case <-time.After(timeout):
+		return fmt.Errorf("timed out after %s", timeout)
+	}
 }

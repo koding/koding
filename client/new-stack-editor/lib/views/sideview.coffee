@@ -24,20 +24,36 @@ module.exports = class SideView extends BaseView
 
     super
 
-    for view, item of @getOption 'views'
-      @wrapper.addSubView item.view
-      item.view.hide()
+    @_loaderView.destroy()
+
+    for name, { view, controls = {} } of @getOption 'views'
+
+      @wrapper.addSubView view
+
+      view.on Events.LazyLoadStarted,  @lazyBound 'setClass',   'loading'
+      view.on Events.LazyLoadFinished, @lazyBound 'unsetClass', 'loading'
+
+      for control, generator of controls when controls
+        @controls.addSubView generator()
+
+      view.hide()
+
+    @_createLoaderView()
 
 
-  show: (view) ->
+  show: (viewName) ->
 
     super
 
-    view ?= @getOption 'defaultView'
+    viewName ?= @getOption 'defaultView'
 
     for _view, item of @getOption 'views'
-      if _view is view
+
+      if _view is viewName
         @title.updatePartial item.title
+        @setClass item.cssClass
         item.view.show()
+
       else
+        @unsetClass item.cssClass
         item.view.hide()

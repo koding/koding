@@ -138,7 +138,7 @@ title: Apply for Koding Credits
         $(".errorTooltip").addClass('fadeOut');
         for (i = 0, len = FieldErrors.length; i < len; i++) {
           err = FieldErrors[i];
-          var inputField = $("input[name=" + err.ID + "]")
+          var inputField = $("input[name=" + err.ID + "]");
           results.push(inputField.addClass('error'));
           inputField.siblings('.errorTooltip').removeClass('fadeOut');
         }

@@ -9,12 +9,12 @@ import (
 type ChangeMeta uint64
 
 const (
-	ChangeMetaLocal  ChangeMeta = 1 << iota // local->remote synchronization.
-	ChangeMetaRemote                        // remote->local synchronization.
-	ChangeMetaAdd                           // File was added.
-	ChangeMetaRemove                        // File was removed.
-	ChangeMetaUpdate                        // File was updated.
-	ChangeMetaLarge                         // File size is above 4GB.
+	ChangeMetaLocal  ChangeMeta = 1 << iota // L: local->remote synchronization.
+	ChangeMetaRemote                        // R: remote->local synchronization.
+	ChangeMetaAdd                           // a: File was added.
+	ChangeMetaRemove                        // d: File was removed.
+	ChangeMetaUpdate                        // u: File was updated.
+	ChangeMetaHuge                          // H: File size is above 4GB.
 )
 
 // Followed constants are helpers for ChangeMeta.Coalesce method.
@@ -46,7 +46,9 @@ var udarlMap = [32]ChangeMeta{
 }
 
 // Coalesce coalesces two meta-data changes and saves the result to called
-// object. The rules of coalescing are:
+// object. Return value is the Change meta which was replaced.
+//
+// The rules of coalescing are:
 //
 //  U - update; D - remove(delete); A - add; L - local; R - remote.
 //
@@ -70,7 +72,7 @@ var udarlMap = [32]ChangeMeta{
 //          local updated file should overwrite remotely added one.
 //
 // All other flags are OR-ed. The coalesce matrix must be kept triangular.
-func (cm *ChangeMeta) Coalesce(newer ChangeMeta) {
+func (cm *ChangeMeta) Coalesce(newer ChangeMeta) ChangeMeta {
 	for {
 		older := ChangeMeta(atomic.LoadUint64((*uint64)(cm)))
 
@@ -96,29 +98,77 @@ func (cm *ChangeMeta) Coalesce(newer ChangeMeta) {
 
 		updated := uint64(withoutEvent | partial)
 		if atomic.CompareAndSwapUint64((*uint64)(cm), uint64(older), updated) {
-			return
+			return older
 		}
 	}
 }
 
+var cmMapping = map[byte]ChangeMeta{
+	'L': ChangeMetaLocal,
+	'R': ChangeMetaRemote,
+	'a': ChangeMetaAdd,
+	'd': ChangeMetaRemove,
+	'u': ChangeMetaUpdate,
+	'H': ChangeMetaHuge,
+}
+
+// String implements fmt.Stringer interface and pretty prints stored change.
+func (cm *ChangeMeta) String() string {
+	cpy := atomic.LoadUint64((*uint64)(cm))
+
+	var buf [8]byte // Meta is uint64 but we don't need more than 8.
+	for c, i := range cmMapping {
+		w := getPowerof2(uint64(i))
+		if cpy&uint64(i) != 0 {
+			buf[w] = c
+		} else {
+			buf[w] = '-'
+		}
+	}
+
+	return string(buf[:len(cmMapping)])
+}
+
+func getPowerof2(i uint64) (count int) {
+	for ; i > 1; count++ {
+		i = i >> 1
+	}
+
+	return count
+}
+
+// Similar checks if provided meta changes can be considered similar. This means
+// if the same synchronization logic can be applied to provided meta changes.
+func Similar(a, b ChangeMeta) bool {
+	// Default to local change direction when not set.
+	if a&(ChangeMetaRemote|ChangeMetaLocal) == 0 {
+		a |= ChangeMetaLocal
+	}
+	if b&(ChangeMetaRemote|ChangeMetaLocal) == 0 {
+		b |= ChangeMetaLocal
+	}
+
+	return (a^b)&cmAll == 0
+}
+
 // Change describes single file change.
 type Change struct {
-	name      string     // The relative name of the file.
+	path      string     // The relative path of the file.
 	createdAt int64      // Change creation time since EPOCH.
 	meta      ChangeMeta // The type of operation made on file entry.
 }
 
 // NewChange creates a new Change object.
-func NewChange(name string, meta ChangeMeta) *Change {
+func NewChange(path string, meta ChangeMeta) *Change {
 	return &Change{
-		name:      name,
+		path:      path,
 		meta:      meta,
 		createdAt: time.Now().UTC().UnixNano(),
 	}
 }
 
-// Name returns the relative slashed path to changed file.
-func (c *Change) Name() string { return c.name }
+// Path returns the relative slashed path to changed file.
+func (c *Change) Path() string { return c.path }
 
 // CreatedAtUnixNano returns creation time since EPOCH in UTC time zone.
 func (c *Change) CreatedAtUnixNano() int64 {
@@ -130,35 +180,44 @@ func (c *Change) Meta() ChangeMeta {
 	return ChangeMeta(atomic.LoadUint64((*uint64)(&c.meta)))
 }
 
-// Coalesce merges two changes with the same name. If change names are different
+// Coalesce merges two changes with the same path. If change paths are different
 // this method panics. Meta data will be updated according to ChangeMeta
-// coalescing rules. Lower creation time is always chosen. This method is thread
-// safe.
-func (c *Change) Coalesce(newer *Change) {
+// coalescing rules. Higher creation time is always chosen. This method is
+// thread safe. Return value is the Change which was replaced.
+func (c *Change) Coalesce(newer *Change) *Change {
 	if newer == nil {
-		return
+		return &Change{}
 	}
 
-	if c.name != newer.name {
+	if c.path != newer.path {
 		panic("coalesce of different changes is prohibited")
 	}
 
 	// Data races between change meta and made time doesn't matter since the
 	// time will end up being the lowest value.
-	c.meta.Coalesce(newer.Meta())
+	old := &Change{
+		path: c.path,
+		meta: c.meta.Coalesce(newer.Meta()),
+	}
 
 	for {
-		oldt := atomic.LoadInt64(&c.createdAt)
+		old.createdAt = atomic.LoadInt64(&c.createdAt)
 
 		newt := newer.CreatedAtUnixNano()
-		if newt > oldt {
-			return
+		if newt <= old.createdAt {
+			return old
 		}
 
-		if atomic.CompareAndSwapInt64(&c.createdAt, oldt, newt) {
-			return
+		if atomic.CompareAndSwapInt64(&c.createdAt, old.createdAt, newt) {
+			return old
 		}
 	}
+}
+
+// String implements fmt.Stringer interface. It pretty prints stored change.
+func (c *Change) String() string {
+	age := time.Now().UTC().Sub(time.Unix(0, c.CreatedAtUnixNano()))
+	return c.meta.String() + " " + age.String() + " " + c.path
 }
 
 // ChangeSlice stores multiple changes.
@@ -166,4 +225,4 @@ type ChangeSlice []*Change
 
 func (cs ChangeSlice) Len() int           { return len(cs) }
 func (cs ChangeSlice) Swap(i, j int)      { cs[i], cs[j] = cs[j], cs[i] }
-func (cs ChangeSlice) Less(i, j int) bool { return cs[i].name < cs[j].name }
+func (cs ChangeSlice) Less(i, j int) bool { return cs[i].path < cs[j].path }

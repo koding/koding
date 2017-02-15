@@ -257,7 +257,7 @@ func markLargeMeta(n int64) ChangeMeta {
 		return 0
 	}
 
-	return ChangeMetaLarge
+	return ChangeMetaHuge
 }
 
 // ctime gets file's change time in UNIX Nano format.
@@ -287,7 +287,7 @@ func (idx *Index) Apply(root string, cs ChangeSlice) {
 			// Check if the event is still valid or if it was replaced by newer
 			// change.
 			idx.mu.RLock()
-			nd, ok := idx.root.Lookup(cs[i].Name())
+			nd, ok := idx.root.Lookup(cs[i].Path())
 			idx.mu.RUnlock()
 
 			// Entry was updated/added after the event was created.
@@ -299,11 +299,11 @@ func (idx *Index) Apply(root string, cs ChangeSlice) {
 			// Check if the file still exists, since it could be removed before
 			// Apply was called. If the file exists, create new entry from it
 			// and replace its value inside index map.
-			path := filepath.Join(root, filepath.FromSlash(cs[i].Name()))
+			path := filepath.Join(root, filepath.FromSlash(cs[i].Path()))
 			info, err := os.Lstat(path)
 			if os.IsNotExist(err) {
 				idx.mu.Lock()
-				idx.root.Del(cs[i].Name())
+				idx.root.Del(cs[i].Path())
 				idx.mu.Unlock()
 				continue
 			}
