@@ -2,8 +2,11 @@ package models
 
 import (
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"strings"
 	"time"
+
+	mgo "gopkg.in/mgo.v2"
 
 	"socialapi/request"
 
@@ -1160,4 +1163,63 @@ func (c *Channel) ShowUnreadCount() bool {
 // IsGroup checks if the channel type is a group channel
 func (c *Channel) IsGroup() bool {
 	return c.TypeConstant == Channel_TYPE_GROUP
+}
+
+// FetchChannelsWithPagination fetches the channels with pagination via limit & offset
+func FetchChannelsWithPagination(limit, offset int) ([]Channel, error) {
+	acc := &Channel{}
+	var channels []Channel
+	query := &bongo.Query{
+		Pagination: *bongo.NewPagination(limit, offset),
+	}
+	if err := acc.Some(&channels, query); err != nil {
+		return nil, err
+	}
+
+	return channels, nil
+}
+
+func DeleteChannelsIfGroupNotInMongo() error {
+	var errs *multierror.Error
+
+	limit := 100
+	offset := 0
+
+	for {
+		// counter := 0
+		channels, err := FetchChannelsWithPagination(limit, offset)
+		if err != nil {
+			errs = multierror.Append(errs, err)
+		}
+
+		for _, channel := range channels {
+			_, err := modelhelper.GetGroup(channel.GroupName)
+			// if group already exists in mongo, then we don't need to fecth the same data
+			// while fetching channels
+			if err == nil {
+				offset++
+				continue
+			}
+			// if error is not nil and equal to record not found
+			// then remove the channel and its participants in postgre
+			if err != nil && err == mgo.ErrNotFound {
+				go func() {
+					if err := channel.DeleteWithParticipantsForce(); err != nil {
+						errs = multierror.Append(errs, err)
+					}
+				}()
+			} else {
+				errs = multierror.Append(errs, err)
+			}
+		}
+
+		// This check provide us to break the loop if there is no data left that need
+		// to be processed fetch tolerance is limit/2, if fetched channels count is
+		// less than limited number then break the loop.
+		if len(channels) < (limit / 2) {
+			break
+		}
+	}
+
+	return errs.ErrorOrNil()
 }
