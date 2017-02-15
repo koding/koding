@@ -68,13 +68,9 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
 
   onInputEmailBlur: (index, event) ->
 
-    value = event.target.value
+    { value, classList } = event.target
 
-    unless value is ""
-      unless isEmailValid value
-        event.target.classList.add("error")
-      else
-        event.target.classList.remove("error")
+    classList.toggle("error", !isEmailValid value)  if value
 
   onSendInvites: ->
 
