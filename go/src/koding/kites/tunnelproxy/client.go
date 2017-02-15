@@ -511,7 +511,7 @@ func (c *Client) tryRegister() error {
 	return c.handleReg(&resp, nil)
 }
 
-// fetchIdent registeres to tunnelserver and gives identifier for the session.
+// fetchIdent registers to tunnelserver and gives identifier for the session.
 func (c *Client) fetchIdent() (string, error) {
 	if err := c.tryRegister(); err != nil {
 		return "", err

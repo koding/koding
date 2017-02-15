@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -585,8 +584,8 @@ func (c *MountCommand) cacheWithProgress(cacheReq req.Cache) (err error) {
 	// The callback, used to update the progress bar as remote.cache downloads
 	cacheProgressCallback := func(par *dnode.Partial) {
 		type Progress struct {
-			Progress int        `json:progress`
-			Error    kite.Error `json:error`
+			Progress int        `json:"progress"`
+			Error    kite.Error `json:"error"`
 		}
 
 		// TODO: Why is this an array from Klient? How can this be written cleaner?
@@ -605,7 +604,7 @@ func (c *MountCommand) cacheWithProgress(cacheReq req.Cache) (err error) {
 		bar.Set(p.Progress)
 
 		// TODO: Disable the callback here, so that it's impossible to double call
-		// the progress after competion - to avoid weird/bad UX and errors.
+		// the progress after completion - to avoid weird/bad UX and errors.
 		if p.Progress == 100 {
 			doneErr <- nil
 		}
@@ -822,7 +821,7 @@ func (c *MountCommand) AutocompleteRemotePath(machineName, remotePath string) er
 			// meaning we need to return a potential match including the entire string.
 			//
 			// IMPORTANT: The ending slash causes Fish to not add a space at the end
-			// of the competion, making the UX much better.
+			// of the completion, making the UX much better.
 			c.printfln("%s:%s/", machineName, f.FullPath)
 		}
 	}
@@ -846,65 +845,6 @@ func (c *MountCommand) AutocompleteMachineName() error {
 	}
 
 	return nil
-}
-
-// askToCreate checks if the folder does not exist, and creates it
-// if the user chooses to. If the user does *not* choose to create it,
-// we return an IsNotExist error.
-//
-// TODO: Handle the case where a user types stuff in before being prompted,
-// and then the prompt uses that. Ie, flush the input so that what we
-// read is new input from the user. Not tested :)
-func askToCreate(p string, r io.Reader, w io.Writer) error {
-	_, err := os.Stat(p)
-
-	// If we fail to stat the file, and it's *not* IsNotExist, we may be
-	// having permission issues or some other related issue. Return
-	// the error.
-	if err != nil && !os.IsNotExist(err) {
-		return err
-	}
-
-	// If there was no error stating the path, it already exists -
-	// we can return, as there's nothing we need to do.
-	if err == nil {
-		return nil
-	}
-
-	fmt.Fprint(w,
-		"The mount folder does not exist, would you like to create it? [Y/n]",
-	)
-
-	// To understand why we're creating a bReader here, please see
-	// the docstring on YesNoConfirmWithDefault().
-	bReader := bufio.NewReader(r)
-
-	// Retry YesNo confirmation 3 times if needed
-	var createFolder bool
-	for i := 0; i < 3; i++ {
-		createFolder, err = util.YesNoConfirmWithDefault(bReader, true)
-		// If the user supplied an accepted value, stop trying
-		if err == nil {
-			break
-		}
-		// If err != nil, then the error did not provide an understood
-		// response.
-		fmt.Fprintln(w, "Invalid response, please type 'yes' or 'no'")
-	}
-
-	// If the retry loop exited with an error, the user failed to give
-	// a meaningful response to the YesNo confirmation.
-	if err != nil {
-		return err
-	}
-
-	// The user chose not to create the folder. We cannot mount something that
-	// doesn't exist - so we must fail here with an error.
-	if !createFolder {
-		return klientctlerrors.ErrUserCancelled
-	}
-
-	return os.Mkdir(p, 0755)
 }
 
 func getLocalDiskSize(path string) (uint64, error) {

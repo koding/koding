@@ -167,7 +167,7 @@ func (meta *Cred) Valid() error {
 		return err
 	}
 
-	// If SubscriptionID was not explicitely provided and the publish
+	// If SubscriptionID was not explicitly provided and the publish
 	// settings file contains only one subscription, we default to it.
 	if meta.SubscriptionID == "" {
 		if n := len(pb.Subscriptions); n != 1 {

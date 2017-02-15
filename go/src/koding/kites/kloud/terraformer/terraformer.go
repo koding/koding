@@ -91,7 +91,7 @@ func (t *Terraformer) Destroy(req *terraformer.TerraformRequest) (*terraform.Sta
 }
 
 // Ping checks if the given terraformer response with "pong" to the "ping" we send.
-// A nil error means a successfull pong result.
+// A nil error means a successful pong result.
 func (t *Terraformer) Ping() error {
 	resp, err := t.Client.TellWithTimeout("kite.ping", 10*time.Second)
 	if err != nil {

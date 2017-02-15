@@ -49,7 +49,7 @@ func NewPostRemoteAPIJWorkspaceCreateOK() *PostRemoteAPIJWorkspaceCreateOK {
 
 /*PostRemoteAPIJWorkspaceCreateOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJWorkspaceCreateOK struct {
 	Payload *models.DefaultResponse

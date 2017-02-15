@@ -49,7 +49,7 @@ func NewPostRemoteAPIJCredentialSomeOK() *PostRemoteAPIJCredentialSomeOK {
 
 /*PostRemoteAPIJCredentialSomeOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJCredentialSomeOK struct {
 	Payload *models.DefaultResponse

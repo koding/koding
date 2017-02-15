@@ -116,7 +116,7 @@ func (c *PubSub) Publish(r *kite.Request) (interface{}, error) {
 	}
 
 	// This condition should never occur - Subscription() should remove
-	// all of the subs manually. If it doesn't, something wrong occured
+	// all of the subs manually. If it doesn't, something wrong occurred
 	// during the removal attempt.
 	if len(subs) == 0 {
 		c.Log.Info("client.Publish: The event %q was found empty, when it should have  been removed\n", params.EventName)

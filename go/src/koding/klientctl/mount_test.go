@@ -15,7 +15,6 @@ import (
 	"koding/klient/remote/restypes"
 	klienttestutil "koding/klient/testutil"
 	"koding/klient/util"
-	"koding/klientctl/klientctlerrors"
 	"koding/klientctl/list"
 	"koding/klientctl/util/testutil"
 
@@ -92,89 +91,6 @@ func exists(p string) bool {
 	}
 
 	return true
-}
-
-func TestAskToCreate(t *testing.T) {
-	tmpDir := filepath.Join("_test", "tmp")
-	askDir := filepath.Join(tmpDir, "asktocreate")
-
-	Convey("askToCreate", t, func() {
-		Convey("Should not do anything if the folder already exists", func() {
-			os.RemoveAll(askDir)
-			os.MkdirAll(askDir, 0755)
-
-			var out bytes.Buffer
-			in := NewBlockingIO()
-			// We're giving it an invalid input, so it would normally error out.
-			// But, because the directory exists, it should *not* error out.
-			go in.SleepyWriteStringAndClose(
-				10*time.Millisecond,
-				"foo\n", "bar\n", "baz\n", "bam\n",
-			)
-			err := askToCreate(askDir, in, &out)
-			So(err, ShouldBeNil)
-		})
-
-		Convey("Should create the folder if the user chooses yes", func() {
-			os.RemoveAll(askDir)
-
-			var out bytes.Buffer
-			in := NewBlockingIO()
-			go in.SleepyWriteStringAndClose(
-				10*time.Millisecond,
-				"yes\n",
-			)
-			err := askToCreate(askDir, in, &out)
-			So(err, ShouldBeNil)
-			So(exists(askDir), ShouldBeTrue)
-
-			fi, err := os.Stat(askDir)
-			So(err, ShouldBeNil)
-			So(fi.Mode(), ShouldEqual, os.FileMode(0755)|os.ModeDir)
-		})
-
-		Convey("Should not create the folder and error, if the user chooses no", func() {
-			os.RemoveAll(askDir)
-
-			var out bytes.Buffer
-			in := NewBlockingIO()
-			go in.SleepyWriteStringAndClose(
-				10*time.Millisecond,
-				"no\n",
-			)
-			err := askToCreate(askDir, in, &out)
-			So(err, ShouldEqual, klientctlerrors.ErrUserCancelled)
-			So(exists(askDir), ShouldBeFalse)
-		})
-
-		Convey("Should retry asking the user if unexpected input, 3 times", func() {
-			os.RemoveAll(askDir)
-
-			var out bytes.Buffer
-			in := NewBlockingIO()
-			go in.SleepyWriteStringAndClose(
-				10*time.Millisecond,
-				"foo\n", "bar\n", "yes\n",
-			)
-			err := askToCreate(askDir, in, &out)
-			So(err, ShouldBeNil)
-			So(exists(askDir), ShouldBeTrue)
-		})
-
-		Convey("Should fail after retrying 4 times", func() {
-			os.RemoveAll(askDir)
-
-			var out bytes.Buffer
-			in := NewBlockingIO()
-			go in.SleepyWriteStringAndClose(
-				10*time.Millisecond,
-				"foo\n", "bar\n", "baz\n", "yes\n",
-			)
-			err := askToCreate(askDir, in, &out)
-			So(err, ShouldNotBeNil)
-			So(exists(askDir), ShouldBeFalse)
-		})
-	})
 }
 
 func TestCachePath(t *testing.T) {

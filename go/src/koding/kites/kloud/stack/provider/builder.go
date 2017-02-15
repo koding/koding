@@ -129,7 +129,7 @@ func NewBuilder(opts *BuilderOptions) *Builder {
 // BuildTeam fetches team details from MongoDB.
 //
 // When it returns with nil error, the b.Team field is
-// guranteed to be non-nil.
+// guaranteed to be non-nil.
 func (b *Builder) BuildTeam(team string) error {
 	g, err := modelhelper.GetGroup(team)
 	if err != nil {
@@ -232,7 +232,7 @@ func (b *Builder) Authorize(username string) error {
 }
 
 // FindMachine looks for a jMachine document in b.Machines which meta.assignedLabel
-// matches the given paramter.
+// matches the given parameter.
 //
 // If assignedLabel is empty, FindMachine returns nil.
 // If no machine was found, FindMachine returns nil.

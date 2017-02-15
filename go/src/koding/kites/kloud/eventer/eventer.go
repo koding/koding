@@ -46,7 +46,7 @@ func NewContext(ctx context.Context, eventer Eventer) context.Context {
 }
 
 type Event struct {
-	// EventId is the id of the whole proces.
+	// EventId is the id of the whole process.
 	EventId string `json:"eventId"`
 
 	// Message explains the current event's behaviour/content.

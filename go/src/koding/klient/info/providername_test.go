@@ -183,7 +183,7 @@ func TestCheckProvider(t *testing.T) {
 
 		// We can't check the DigitalOcean provider in this func,
 		// because the func that implements ProviderChecker makes impure
-		// http calls. This func is independantly tested inside of
+		// http calls. This func is independently tested inside of
 		// TestCheckDigitalOcean
 		//DigitalOcean,
 	}

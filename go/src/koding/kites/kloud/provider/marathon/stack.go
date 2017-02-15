@@ -22,14 +22,6 @@ var klientPort = map[string]interface{}{
 	"protocol":       "tcp",
 }
 
-var healthCheck = map[string]interface{}{
-	"command": map[string]interface{}{
-		"value": "curl -f -X GET http://$$HOST:$${PORT_56789}/kite",
-	},
-	"max_consecutive_failures": 3,
-	"protocol":                 "COMMAND",
-}
-
 // Label represents a single app's label.
 type Label struct {
 	Label string

@@ -174,7 +174,7 @@ func TestAccountTesting(t *testing.T) {
 					for i := 0; i < 10; i++ {
 						ac, _, _ := models.CreateRandomGroupDataWithChecks()
 
-						err := handler.AccountCreated(ac)
+						err = handler.AccountCreated(ac)
 						So(err, ShouldBeNil)
 
 						selector := bson.M{"username": ac.Nick}
@@ -193,44 +193,32 @@ func TestAccountTesting(t *testing.T) {
 					_, err = modelhelper.GetUser(acc.Nick)
 					So(err, ShouldBeNil)
 
-					_, err := handler.indexes.GetIndex(IndexAccounts)
+					_, err = handler.indexes.GetIndex(IndexAccounts)
 					So(err, ShouldBeNil)
 
 					usernames := make([]string, 0)
 					objects := make([]string, 0)
 
-					nbHits, _ := record.(map[string]interface{})["nbHits"]
-					nbPages, _ := record.(map[string]interface{})["nbPages"]
-
-					var pages float64 = nbPages.(float64)
-					var nbHit float64 = nbHits.(float64)
+					nbHit := record.NbHits
+					pages := record.NbPages
 
 					for pages > 0 && nbHit != 0 {
-						record, err := index.Search("mehmetali-test", params)
-						hist, ok := record.(map[string]interface{})["hits"]
+						record, _ := index.Search("mehmetali-test", params)
+						hist := record.Hits
 
-						// fmt.Println("hist is :", hist)
-						nbHits, _ := record.(map[string]interface{})["nbHits"]
-						nbPages, _ := record.(map[string]interface{})["nbPages"]
-
-						pages = nbPages.(float64)
-						nbHit = nbHits.(float64)
+						pages = record.NbPages
+						nbHit = record.NbHits
 
 						if ok {
-							hinter, ok := hist.([]interface{})
 							if ok {
-								for _, v := range hinter {
-									val, k := v.(map[string]interface{})
-									if k {
-										object := val["objectID"].(string)
-										value := val["nick"].(string)
+								for _, val := range hist {
+									object := val["objectID"].(string)
+									value := val["nick"].(string)
 
-										usernames = append(usernames, value)
-										objects = append(objects, object)
-										_, err = index.DeleteObject(object)
-										So(err, ShouldBeNil)
-									}
-
+									usernames = append(usernames, value)
+									objects = append(objects, object)
+									_, err = index.DeleteObject(object)
+									So(err, ShouldBeNil)
 								}
 							}
 						}

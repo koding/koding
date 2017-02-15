@@ -114,7 +114,7 @@ func New(conf *Config, log logging.Logger) (*Terraformer, error) {
 	return t, nil
 }
 
-// Close closes the embeded properties of terraformer
+// Close closes the embedded properties of terraformer
 func (t *Terraformer) Close() error {
 	t.rwmu.Lock()
 	if t.closing {
@@ -156,7 +156,7 @@ func (t *Terraformer) handleSignals() {
 		signal.Stop(signalCh)
 		switch s {
 		case syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL:
-			t.Log.Info("%s signal recieved, closing terraformer", s)
+			t.Log.Info("%s signal received, closing terraformer", s)
 			t.Close()
 		}
 	}()

@@ -22,7 +22,7 @@ import (
 // EventType represents a single mounting/unmounting event type.
 //
 // When mounter transitions state of the mount it emits two events
-// - one describing begining of the operation, second describing
+// - one describing beginning of the operation, second describing
 // its result.
 //
 // On successful mount operation the following events are emitted:
@@ -62,10 +62,6 @@ const (
 	// "Socket is not connected" to the user. So if that message is seen, this value
 	// likely needs to be lowered.
 	fuseTellTimeout = 55 * time.Second
-
-	// Messages displayed to the user about the machines status.
-	autoRemountFailed = "Error auto-mounting. Please unmount & mount again."
-	autoRemounting    = "Remounting after extended disconnect. Please wait..."
 )
 
 var (
@@ -391,24 +387,6 @@ func (m *Mounter) emit(ev *Event) {
 	if m.EventSub != nil {
 		m.EventSub <- ev
 	}
-}
-
-// changeSummaryToBool is a simple func that converts a ChangeSummary channel to a
-// bool channel, based on Success or Failure (success is true, failure is false).
-func changeSummaryToBool(s chan kitepinger.ChangeSummary) <-chan bool {
-	b := make(chan bool)
-	go func() {
-		for change := range s {
-			switch change.NewStatus {
-			case kitepinger.Success:
-				b <- true
-			case kitepinger.Failure:
-				b <- false
-			}
-		}
-		close(b)
-	}()
-	return b
 }
 
 func isRemotePathError(err error) bool {

@@ -13,7 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
-// PermAllPorts is a conveniance value for opening all ports for inbound
+// PermAllPorts is a convenience value for opening all ports for inbound
 // requests.
 //
 // For use with AuthorizeSecurityGroup method.
@@ -106,7 +106,7 @@ func StatusToState(status string) machinestate.State {
 	}
 }
 
-// NewTags is a conveniance function for building AWS tag slice from the m map.
+// NewTags is a convenience function for building AWS tag slice from the m map.
 //
 // If the m is empty, the function returns nil.
 func NewTags(tags map[string]string) []*ec2.Tag {
@@ -149,7 +149,7 @@ func FromTags(tags []*ec2.Tag) map[string]string {
 	return m
 }
 
-// NewFilters is a conveniance function for building AWS fitler slice from the
+// NewFilters is a convenience function for building AWS fitler slice from the
 // given values.
 //
 // The resulting filters slice has all elements sorted by key name.

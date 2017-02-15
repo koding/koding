@@ -108,7 +108,7 @@ func (r *RecordManager) fetchHostedZone(hostedZoneLogger logging.Logger) error {
 		}
 
 		if listHostedZonesResp == nil || listHostedZonesResp.HostedZones == nil {
-			return errors.New("malformed response - reponse or hosted zone is nil")
+			return errors.New("malformed response - response or hosted zone is nil")
 		}
 
 		for _, hostedZone := range listHostedZonesResp.HostedZones {

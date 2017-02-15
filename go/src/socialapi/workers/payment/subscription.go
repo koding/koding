@@ -21,7 +21,7 @@ const (
 )
 
 // CancelSubscriptionForGroup cancels the subscription for a team. In order to
-// achive that, first deletes the current subscription then subscribes to new
+// achieve that, first deletes the current subscription then subscribes to new
 // plan with new quantity, ( reasoning behind that is subscribing to a new plan
 // charges immediately ) Then deletes the current subscription again. All these
 // reqiured because we charge our users at the end of the month based  on the

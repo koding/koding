@@ -65,24 +65,24 @@ func TestCollaboration(t *testing.T) {
 		}
 
 		Convey("while testing Ping", func() {
-			Convey("reponse should be success with valid ping", func() {
+			Convey("response should be success with valid ping", func() {
 				err = handler.Ping(req)
 				So(err, ShouldBeNil)
 			})
 
-			Convey("reponse should be success with invalid FileId", func() {
+			Convey("response should be success with invalid FileId", func() {
 				req.FileId = ""
 				err = handler.Ping(req)
 				So(err, ShouldBeNil)
 			})
 
-			Convey("reponse should be success with invalid AccountId", func() {
+			Convey("response should be success with invalid AccountId", func() {
 				req.AccountId = 0
 				err = handler.Ping(req)
 				So(err, ShouldBeNil)
 			})
 
-			Convey("reponse should be success with invalid session", func() {
+			Convey("response should be success with invalid session", func() {
 				req := req
 				// prepare an invalid session here
 				req.CreatedAt = time.Now().UTC()
@@ -245,12 +245,12 @@ func testPingTimes(
 		UTC().
 		Add(-pingDuration * time.Duration(pingCount))
 
-	err := mongoCache.SetEx(
+	mongoCache.SetEx(
 		PrepareFileKey(req.FileId),
 		ExpireSessionKeyDuration, // expire the key after this period
 		req.CreatedAt.Unix(),
 	)
 
-	err = handler.checkIfKeyIsValid(req)
+	err := handler.checkIfKeyIsValid(req)
 	So(err, ShouldEqual, expectedErr)
 }

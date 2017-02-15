@@ -49,7 +49,7 @@ func NewPostRemoteAPIJUserConvertOK() *PostRemoteAPIJUserConvertOK {
 
 /*PostRemoteAPIJUserConvertOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJUserConvertOK struct {
 	Payload *models.DefaultResponse

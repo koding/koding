@@ -531,7 +531,7 @@ func (c *Client) CreateUser(username, groupname string) (*singleUser, error) {
 		Email:         username + "@" + username + ".com",
 		LastLoginDate: time.Now().UTC(),
 		RegisteredAt:  time.Now().UTC(),
-		Name:          username, // bson equivelant is username
+		Name:          username, // bson equivalent is username
 		Password:      "somerandomnumbers",
 		Status:        "confirmed",
 		SshKeys: []struct {
@@ -1104,7 +1104,7 @@ func providers() (*awsprovider.Provider, *softlayer.Provider) {
 		Log:         logging.NewCustom("koding", true),
 	}
 
-	ec2clients, err := amazon.NewClients(opts)
+	_, err := amazon.NewClients(opts)
 	if err != nil {
 		panic(err)
 	}

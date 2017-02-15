@@ -61,7 +61,7 @@ func TestCollaborationSesionEnd(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(ownerSession, ShouldNotBeNil)
 
-		Convey("reponse should be success", func() {
+		Convey("response should be success", func() {
 			p := &models.Ping{
 				AccountId: 1,
 				FileId:    "hello",

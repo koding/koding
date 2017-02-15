@@ -124,7 +124,7 @@ type Remote struct {
 type RemoteOptions struct {
 	Kite     *kite.Kite          // local kite, used to communicate with Kontrol
 	Log      kite.Logger         // used for logging
-	Storage  storage.Interface   // persistance layer for Remote
+	Storage  storage.Interface   // persistence layer for Remote
 	EventSub chan<- *mount.Event // receives events when path gets unmounted
 }
 
@@ -278,7 +278,7 @@ func (r *Remote) GetMachinesWithoutCache() (*machine.Machines, error) {
 		return nil, err
 	}
 
-	// Locking here, rather than at the begining of the function, allows the
+	// Locking here, rather than at the beginning of the function, allows the
 	// lock to only exist during the faster and racey operations within
 	// GetMachinesWithoutCache. The only downside with locking here, rather
 	// than at the top of the method, is that we're hitting Kontrol X times

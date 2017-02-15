@@ -49,7 +49,7 @@ func NewPostRemoteAPIJSessionActiveSessionOK() *PostRemoteAPIJSessionActiveSessi
 
 /*PostRemoteAPIJSessionActiveSessionOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJSessionActiveSessionOK struct {
 	Payload *models.DefaultResponse

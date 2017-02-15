@@ -171,7 +171,7 @@ func (t *Tunnel) hostPort(guestPort int) int {
 	return 0
 }
 
-// buildServices gives route infromation of tunnelclient kite services.
+// buildServices gives route information of tunnelclient kite services.
 //
 // If the kite server runs inside a VirtualBox machine, localRoute
 // returns a route to the forwarded port on the host network.

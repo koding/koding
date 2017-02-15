@@ -49,7 +49,7 @@ func NewPostRemoteAPIGithubAPIOK() *PostRemoteAPIGithubAPIOK {
 
 /*PostRemoteAPIGithubAPIOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIGithubAPIOK struct {
 	Payload *models.DefaultResponse

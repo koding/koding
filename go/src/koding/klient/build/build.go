@@ -4,23 +4,20 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
-	"text/template"
 
 	"koding/klient/build/build"
 )
 
 var (
-	flagEnvironment    = flag.String("e", "", "Define environment profile to be included")
-	flagBuildNumber    = flag.Int("b", 0, "Build number is added to the generated file if specified")
-	flagDisableUpstart = flag.Bool("u", false, "Disable including upstart script")
-	flagDebug          = flag.Bool("d", false, "Enable debug mode")
+	flagEnvironment = flag.String("e", "", "Define environment profile to be included")
+	flagBuildNumber = flag.Int("b", 0, "Build number is added to the generated file if specified")
+	flagDebug       = flag.Bool("d", false, "Enable debug mode")
 )
 
 type pkg struct {
@@ -127,23 +124,4 @@ func (p *pkg) build() error {
 	fmt.Printf("  install to machine : dpkg -i %s\n\n", newname)
 
 	return nil
-}
-
-func prepareUpstart(path string, v interface{}) (string, error) {
-	file, err := ioutil.TempFile(".", "gopackage_")
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	t, err := template.ParseFiles(path)
-	if err != nil {
-		return "", err
-	}
-
-	if err := t.Execute(file, v); err != nil {
-		return "", err
-	}
-
-	return file.Name(), nil
 }

@@ -30,7 +30,7 @@ func (ms Mounts) FindByName(name string) (*Mount, bool) {
 	return nil, false
 }
 
-// RemoveByName returns a new list with the first occurence given name removed.
+// RemoveByName returns a new list with the first occurrence given name removed.
 func (ms Mounts) RemoveByName(name string) (Mounts, error) {
 	for i, m := range ms {
 		if m.MountName == name {

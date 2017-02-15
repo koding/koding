@@ -127,7 +127,7 @@ func resourceMachineCreate(d *schema.ResourceData, meta interface{}) error {
 
 	c.Log.Debug(`Calling "vagrant.create" on %q with %+v`, queryString, createReq)
 
-	// the "vagrant.create" method returns the same paramaters back. However if
+	// the "vagrant.create" method returns the same parameters back. However if
 	// we previously passed empty options, such as hostname, it returns the
 	// final response.
 	resp, err := c.Vagrant.Create(queryString, createReq)

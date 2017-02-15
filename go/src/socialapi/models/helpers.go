@@ -170,18 +170,6 @@ func CreateAccountWithTest() *Account {
 	return account
 }
 
-func createChannel(accountId int64) (*Channel, error) {
-	// create and account instance
-	channel := NewChannel()
-	channel.CreatorId = accountId
-
-	if err := channel.Create(); err != nil {
-		return nil, err
-	}
-
-	return channel, nil
-}
-
 func CreateMessageWithTest() *ChannelMessage {
 	account := CreateAccountWithTest()
 	channel := CreateChannelWithTest(account.Id)
@@ -264,9 +252,9 @@ func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {
 		}
 	}
 
-	oldUser, err := modelhelper.GetUser(nick)
+	_, err = modelhelper.GetUser(nick)
 	if err == mgo.ErrNotFound {
-		oldUser = &kodingmodels.User{
+		oldUser := &kodingmodels.User{
 			ObjectId:       bson.NewObjectId(),
 			Password:       accHex,
 			Salt:           accHex,

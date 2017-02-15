@@ -49,7 +49,7 @@ func NewPostRemoteAPIJKiteListOK() *PostRemoteAPIJKiteListOK {
 
 /*PostRemoteAPIJKiteListOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJKiteListOK struct {
 	Payload *models.DefaultResponse
