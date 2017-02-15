@@ -38,6 +38,18 @@ module.exports = class Toolbar extends JView
     @unsetClass 'missing-credential'
     kd.utils.defer =>
       @setClass 'missing-credential'
+    @banner = new kd.View
+      cssClass : 'banner'
+    @banner.addSubView @message = new kd.CustomHTMLView
+      cssClass : 'message'
+      partial  : 'Hello world!'
+    @banner.addSubView @messageButton = new kd.ButtonView
+      cssClass : 'message-button solid blue small'
+      title    : 'Fix'
+    @banner.addSubView @closeButton = new kd.ButtonView
+      cssClass : 'close-button'
+      callback : => @unsetClass 'has-warning'
+
 
 
   click: (event) ->
@@ -105,6 +117,8 @@ module.exports = class Toolbar extends JView
     then @setClass   'team'
     else @unsetClass 'team'
 
+    @unsetClass 'has-warning'
+
 
   pistachio: ->
 
@@ -112,4 +126,5 @@ module.exports = class Toolbar extends JView
     {cite.stack{}} {h3{#(title)}} {{> @menuIcon}}
     {.tag.level{#(accessLevel)}} {div.tag.credential{#(credentials)}} {cite.credential{}}
     {div.controls{> @expandButton}} {{> @actionButton}}
+    {{> @banner}}
     '''

@@ -104,14 +104,6 @@ $stack-border-width         = 2px
         background          #727272
         cursor              default
 
-    &.team
-      .tag.level
-        background          #E47E8B
-
-    &.missing-credential
-      .tag.credential
-        vendor              animation, shake .6s
-
     cite.credential
       fa                    cog
       margin-left           -10px
@@ -124,6 +116,45 @@ $stack-border-width         = 2px
       padding-left          2px
       color                 #fff
       cursor                pointer
+
+    .banner
+      background            #515151
+      padding               14px
+      height                40px
+      abs                   40px, 0px
+      borderBox()
+
+      .message
+        width               auto
+        color               #fff
+        fl()
+
+      .message-button
+        margin-left         16px
+        top                 -5px
+        height              20px
+
+      .close-button
+        fa                  times
+        top                 10px
+        right               10px
+        background          none
+        border              none
+        color               white
+        abs()
+
+    &.team
+      .tag.level
+        background          #E47E8B
+
+    &.missing-credential
+      .tag.credential
+        vendor              animation, shake .6s
+
+    &.has-warning
+      height                80px
+      min-height            80px !important
+
 
   .content
     background              $stack-bg-color
