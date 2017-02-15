@@ -34,6 +34,7 @@ func TestIndex(t *testing.T) {
 	tests := map[string]struct {
 		Op      func(string) error
 		Changes index.ChangeSlice
+		Branch  string
 	}{
 		"add file": {
 			Op: writeFile("d/test.bin", 40*1024),
@@ -62,6 +63,7 @@ func TestIndex(t *testing.T) {
 				index.NewChange("c/ca.txt", index.ChangeMetaRemove),
 				index.NewChange("c/cb.bin", index.ChangeMetaRemove),
 			},
+			Branch: "c/",
 		},
 		"rename file": {
 			Op: mvFile("b.bin", "c/cc.bin"),
@@ -82,6 +84,7 @@ func TestIndex(t *testing.T) {
 			Changes: index.ChangeSlice{
 				index.NewChange("d/dc/dca.txt", index.ChangeMetaUpdate),
 			},
+			Branch: "d/dc",
 		},
 	}
 
@@ -108,7 +111,7 @@ func TestIndex(t *testing.T) {
 			// Synchronize underlying file-system.
 			Sync()
 
-			cs := idx.Compare(root)
+			cs := idx.CompareBranch(test.Branch, root)
 			sort.Sort(cs)
 			if len(cs) != len(test.Changes) {
 				t.Fatalf("want index.Changes count = %d; got %d", len(test.Changes), len(cs))
@@ -125,7 +128,7 @@ func TestIndex(t *testing.T) {
 			}
 
 			idx.Apply(root, cs)
-			if cs = idx.Compare(root); len(cs) != 0 {
+			if cs = idx.CompareBranch(test.Branch, root); len(cs) != 0 {
 				t.Errorf("want no index.Changes after apply; got %#v", cs)
 			}
 		})
