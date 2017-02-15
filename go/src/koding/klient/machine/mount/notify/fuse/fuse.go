@@ -46,6 +46,7 @@ func (fs *Filesystem) LookUpInode(ctx context.Context, op *fuseops.LookUpInodeOp
 	}
 
 	nd, ok := dir.Sub[op.Name]
+
 	if !ok {
 		return fuse.ENOENT
 	}
