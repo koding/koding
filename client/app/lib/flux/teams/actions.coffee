@@ -279,30 +279,28 @@ handlePermanentlyDeleteMember = (member) ->
 
 leaveTeam = (partial) ->
 
-  new DeleteAccountOverlay()
+  new Promise (resolve, reject) ->
+    new VerifyPasswordModal 'Confirm', partial, (currentPassword) ->
 
-  # new Promise (resolve, reject) ->
-  #   new VerifyPasswordModal 'Confirm', partial, (currentPassword) ->
+      whoami().fetchEmail (err, email) ->
+        options = { password: currentPassword, email }
+        remote.api.JUser.verifyPassword options, (err, confirmed) ->
 
-  #     whoami().fetchEmail (err, email) ->
-  #       options = { password: currentPassword, email }
-  #       remote.api.JUser.verifyPassword options, (err, confirmed) ->
+          return reject err.message  if err
+          return reject 'Current password cannot be confirmed'  unless confirmed
 
-  #         return reject err.message  if err
-  #         return reject 'Current password cannot be confirmed'  unless confirmed
+          resolve confirmed
 
-  #         resolve confirmed
+          { groupsController, reactor } = kd.singletons
+          team = groupsController.getCurrentGroup()
 
-  #         { groupsController, reactor } = kd.singletons
-  #         team = groupsController.getCurrentGroup()
+          team.leave { password: currentPassword }, (err) ->
+            if err
+              return new kd.NotificationView { title : err.message }
 
-  #         team.leave { password: currentPassword }, (err) ->
-  #           if err
-  #             return new kd.NotificationView { title : err.message }
-
-  #           Tracker.track Tracker.USER_LEFT_TEAM
-  #           kookies.expire 'clientId'
-  #           global.location.replace '/'
+            Tracker.track Tracker.USER_LEFT_TEAM
+            kookies.expire 'clientId'
+            global.location.replace '/'
 
 
 deleteTeam = (partial) ->

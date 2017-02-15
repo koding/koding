@@ -28,6 +28,6 @@ module.exports = class DeleteAccountOverlay extends kd.OverlayView
           </div>
         '''
 
-    # setTimeout ->
-    #   window.location = '/Teams/Select'
-    # , 10000
+    setTimeout ->
+      window.location = '/Teams/Select'
+    , 10000
