@@ -5,6 +5,7 @@ import (
 	"socialapi/workers/common/tests"
 	"testing"
 
+	"github.com/koding/bongo"
 	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -34,6 +35,38 @@ func TestChannelDeleteWithPostgreRecord(t *testing.T) {
 							fetchedChannels, err := models.NewChannel().FetchByIds([]int64{channel.Id})
 							So(err, ShouldBeNil)
 							So(len(fetchedChannels), ShouldEqual, 0)
+						})
+					})
+				})
+			})
+		})
+	})
+}
+
+func TestChannelDeleteInBothDB(t *testing.T) {
+	tests.WithRunner(t, func(r *runner.Runner) {
+		Convey("while  creating account", t, func() {
+			Convey("First Create User", func() {
+				Convey("channel creation in both db should be successfully", func() {
+					groupName := "Groups_Mongo_Postgre"
+					channel, account := createGroupDataWithChecksInBothDB(groupName)
+					So(channel, ShouldNotBeNil)
+					So(account, ShouldNotBeNil)
+					Convey("participant should be in the channel", func() {
+						participants, err := channel.FetchChannelParticipants()
+						So(err, ShouldBeNil)
+						So(len(participants), ShouldBeGreaterThan, 0)
+					})
+					Convey("channel should not be deleted if groups are not in both db", func() {
+						err := models.DeleteChannelsIfGroupNotInMongo()
+						So(err, ShouldBeNil)
+						Convey("participants&channel should not be in postgres", func() {
+							participants, err := channel.FetchChannelParticipants()
+							So(err, ShouldBeNil)
+							So(len(participants), ShouldBeGreaterThan, 0)
+							fetchedChannels, err := models.NewChannel().FetchByIds([]int64{channel.Id})
+							So(err, ShouldBeNil)
+							So(len(fetchedChannels), ShouldBeGreaterThan, 0)
 						})
 					})
 				})
