@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"sync/atomic"
 
 	"koding/klient/machine/index"
@@ -292,21 +293,14 @@ func (fs *Filesystem) Unlink(ctx context.Context, op *fuseops.UnlinkOp) error {
 //
 // Required for fuse.FileSystem.
 func (fs *Filesystem) OpenDir(ctx context.Context, op *fuseops.OpenDirOp) error {
-	dir, _, err := fs.getDir(op.Inode)
-	if err != nil {
-		return err
-	}
-
-	op.Handle = fs.addDirHandle(dir)
-
-	return nil
+	_, _, err := fs.getDir(op.Inode)
+	return err
 }
 
 // ReleaseDirHandle removes a directory under the given handle ID for open ones.
 //
 // Required for fuse.FileSystem.
 func (fs *Filesystem) ReleaseDirHandle(ctx context.Context, op *fuseops.ReleaseDirHandleOp) error {
-	fs.delDirHandle(op.Handle)
 	return nil
 }
 
@@ -314,16 +308,24 @@ func (fs *Filesystem) ReleaseDirHandle(ctx context.Context, op *fuseops.ReleaseD
 //
 // Required for fuse.FileSystem.
 func (fs *Filesystem) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error {
-	dir, d, path, err := fs.getDirHandle(op.Inode, op.Handle)
+	dir, path, err := fs.getDir(op.Inode)
 	if err != nil {
 		return err
 	}
 
-	if op.Offset >= fuseops.DirOffset(len(d.files)) {
+	if op.Offset >= fuseops.DirOffset(len(dir.Sub)) {
 		return fuse.EIO
 	}
 
-	files := d.files[int(op.Offset):]
+	files := make([]string, 0, len(dir.Sub))
+
+	for name := range dir.Sub {
+		files = append(files, name)
+	}
+
+	sort.Strings(files)
+
+	files = files[int(op.Offset):]
 
 	dirent := make([]*fuseutil.Dirent, 0, len(files))
 
@@ -331,7 +333,7 @@ func (fs *Filesystem) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error 
 		sub := dir.Sub[file]
 
 		dirent = append(dirent, &fuseutil.Dirent{
-			Offset: op.Offset + fuseops.DirOffset(d.offset+i+1),
+			Offset: op.Offset + fuseops.DirOffset(i+1),
 			Inode:  fs.lookupInodeID(path, file, sub.Entry),
 			Name:   file,
 			Type:   direntType(sub.Entry),
@@ -342,10 +344,9 @@ func (fs *Filesystem) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error 
 
 	// TODO(rjeczalik): we can estimate how many entries to return by
 	// looking at op.Dst size.
-	for i, dir := range dirent {
+	for _, dir := range dirent {
 		n := fuseutil.WriteDirent(op.Dst[sum:], *dir)
 		if n == 0 {
-			d.offset += i
 			break
 		}
 

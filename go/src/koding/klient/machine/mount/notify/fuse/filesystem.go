@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sort"
 	"sync"
 	"sync/atomic"
 	"syscall"
@@ -120,8 +119,6 @@ type Filesystem struct {
 	inodes    map[fuseops.InodeID]string
 	seqHandle uint64
 	handles   map[fuseops.HandleID]*os.File
-	seqDir    uint64
-	dirs      map[fuseops.HandleID]*dir
 }
 
 var _ fuseutil.FileSystem = (*Filesystem)(nil)
@@ -143,7 +140,6 @@ func NewFilesystem(opts *Opts) (*Filesystem, error) {
 		},
 		seqHandle: uint64(fuseops.RootInodeID),
 		handles:   make(map[fuseops.HandleID]*os.File),
-		dirs:      make(map[fuseops.HandleID]*dir),
 	}
 
 	// Best-effort attempt of unmounting already existing mount.
@@ -223,32 +219,6 @@ func (fs *Filesystem) addHandle(f *os.File) (id fuseops.HandleID) {
 	return id
 }
 
-func (fs *Filesystem) addDirHandle(nd *index.Node) (id fuseops.HandleID) {
-	d := &dir{
-		files: make([]string, 0, len(nd.Sub)),
-	}
-
-	for file := range nd.Sub {
-		d.files = append(d.files, file)
-	}
-
-	sort.Strings(d.files)
-
-	for {
-		fs.seqDir++
-
-		id = fuseops.HandleID(fs.seqDir)
-
-		if _, ok := fs.dirs[id]; !ok {
-			fs.dirs[id] = d
-			break
-		}
-	}
-
-	return id
-
-}
-
 func (fs *Filesystem) lookupInodeID(dir, base string, entry *index.Entry) (id fuseops.InodeID) {
 	// Fast path - check if InodeID was already associated with index node.
 	if id = fuseops.InodeID(atomic.LoadUint64(&entry.Aux)); id != 0 {
@@ -295,28 +265,6 @@ func (fs *Filesystem) getDir(id fuseops.InodeID) (*index.Node, string, error) {
 	return nd, path, nil
 }
 
-func (fs *Filesystem) getDirHandle(id fuseops.InodeID, h fuseops.HandleID) (*index.Node, *dir, string, error) {
-	fs.mu.RLock()
-	path, ok := fs.inodes[id]
-	d, okDir := fs.dirs[h]
-	fs.mu.RUnlock()
-
-	if !ok || !okDir {
-		return nil, nil, "", fuse.ENOENT
-	}
-
-	nd, ok := fs.Remote.Lookup(path)
-	if !ok {
-		return nil, nil, "", fuse.ENOENT
-	}
-
-	if !isdir(nd.Entry) {
-		return nil, nil, "", fuse.EIO
-	}
-
-	return nd, d, path, nil
-}
-
 func (fs *Filesystem) getFile(id fuseops.InodeID) (*index.Node, string, error) {
 	nd, path, ok := fs.get(id)
 	if !ok {
@@ -347,12 +295,6 @@ func (fs *Filesystem) delHandle(id fuseops.HandleID) error {
 	}
 
 	return nil
-}
-
-func (fs *Filesystem) delDirHandle(id fuseops.HandleID) {
-	fs.mu.Lock()
-	delete(fs.dirs, id)
-	fs.mu.Unlock()
 }
 
 func (fs *Filesystem) yield(ctx stdcontext.Context, path string, meta index.ChangeMeta) error {
