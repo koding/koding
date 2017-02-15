@@ -314,6 +314,7 @@ func (fs *Filesystem) attr(entry *index.Entry) fuseops.InodeAttributes {
 
 	return fuseops.InodeAttributes{
 		Size:   uint64(entry.Size),
+		Nlink:  1, // TODO(rjeczalik): symlink / hardlink implementation
 		Mode:   entry.Mode,
 		Atime:  mtime,
 		Mtime:  mtime,
@@ -329,6 +330,7 @@ func (fs *Filesystem) newAttr(mode os.FileMode) fuseops.InodeAttributes {
 
 	return fuseops.InodeAttributes{
 		Size:   0,
+		Nlink:  1,
 		Mode:   mode,
 		Atime:  t,
 		Mtime:  t,
@@ -375,6 +377,14 @@ func (fs *Filesystem) mkfile(path string, mode os.FileMode) (id fuseops.InodeID,
 		return 0, err
 	}
 
+	if err := f.Close(); err != nil {
+		return 0, 0, err
+	}
+
+	if f, err = os.OpenFile(absPath, os.O_RDWR, 0644); err != nil {
+		return 0, 0, err
+	}
+
 	entry := &index.Entry{
 		Mode: mode,
 	}
@@ -411,11 +421,13 @@ func (fs *Filesystem) move(ctx stdcontext.Context, oldpath, newpath string) erro
 
 func (fs *Filesystem) rm(nd *index.Node, path string) error {
 	fs.Remote.PromiseDel(path)
+	atomic.StoreUint64(&nd.Entry.Aux, 0)
 
 	err := os.Remove(fs.path(path))
 	if os.IsNotExist(err) {
 		return nil
 	}
+
 	return err
 }
 
