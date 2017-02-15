@@ -99,7 +99,6 @@ func Mount(options *MountOptions) (err error) {
 		return nil
 	}
 
-	// TODO: go-humanize.
 	fmt.Fprintf(os.Stdout, "Mounted remote directory %s has %d file(s) of total size %s\n",
 		headMountRes.AbsRemotePath, headMountRes.AllCount, humanize.IBytes(uint64(headMountRes.AllDiskSize)))
 
@@ -192,7 +191,7 @@ func Umount(options *UmountOptions) (err error) {
 		return err
 	}
 
-	// TODO: ask - are you sure.
+	// TODO: ask user to confirm unmounting.
 	fmt.Fprintf(os.Stdout, "Unmounting %s...\n", options.Identifier)
 
 	// Remove mount.

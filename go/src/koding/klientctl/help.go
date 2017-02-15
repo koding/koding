@@ -152,9 +152,9 @@ OPTIONS:
 }
 
 // fixDescription is a hacky way of dealing with current CLI package. The
-// problem is that for codegangsta subcommands .Usage field has value defined
+// problem is that for codegangsta subcommands .Usage field holds value defined
 // in .Description field and the real .Usage value is ignored. This makes
-// the api invalid when we need to print proper help descriptions.
+// the CLI API invalid when we need to print proper help description.
 func fixDescription(usage string) func() {
 	tmp := cli.SubcommandHelpTemplate
 
