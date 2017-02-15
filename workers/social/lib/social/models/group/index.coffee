@@ -1598,8 +1598,6 @@ module.exports = class JGroup extends Module
 
           model.remove (err) -> kallback label, next, err
 
-        index = 0
-
         queue = [
 
           (next) ->
@@ -1647,15 +1645,14 @@ module.exports = class JGroup extends Module
           (next) =>
             @remove (err) -> kallback 'JGroup', next, err
 
-          (next) =>
+          (next) ->
             JSession = require '../session'
-            @sendNotification 'GroupDestroyed'
             JSession.remove { groupName: slug }, (err) ->
               kallback 'JSession', next, err
 
         ]
 
-        call = null
+        call  = null
 
         deleteTeam = (cb) =>
 
@@ -1663,11 +1660,11 @@ module.exports = class JGroup extends Module
 
             # execute the callback on the first try
             # even there is an error or not
-            callback()  if call.getNumRetries() is 0
+            if call.getNumRetries() is 0
+              @sendNotification 'GroupDestroyed'
+              callback()
 
             return  if not errors.length
-
-            @sendNotification 'GroupDestroyed'
 
             cb errors
             errors = []
