@@ -56,6 +56,13 @@ func main() {
 
 	src, dst := flag.Arg(0), flag.Arg(1)
 
+	if !filepath.IsAbs(src) {
+		var err error
+		if src, err = filepath.Abs(src); err != nil {
+			die(err)
+		}
+	}
+
 	if _, err := os.Stat(dst); err != nil {
 		die(err)
 	}
