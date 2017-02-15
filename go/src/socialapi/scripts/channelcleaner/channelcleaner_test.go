@@ -11,16 +11,31 @@ import (
 
 // var AccountOldId = bson.NewObjectId()
 
-func TestChannelDelete(t *testing.T) {
+func TestChannelDeleteWithPostgreRecord(t *testing.T) {
 	tests.WithRunner(t, func(r *runner.Runner) {
 		Convey("while  creating account", t, func() {
 			Convey("First Create User", func() {
-				Convey("Should not error if you pass old id", func() {
-					channel, accounts := models.CreateChannelWithParticipants()
+				Convey("channel creation should be successfully", func() {
+					channel, accounts := createChannelWithParticipants("Group_Only_postgre")
 					So(channel, ShouldNotBeNil)
 					So(accounts, ShouldNotBeNil)
-					err := models.DeleteChannelsIfGroupNotInMongo()
-					So(err, ShouldBeNil)
+					Convey("participant should be in the channel", func() {
+						participants, err := channel.FetchChannelParticipants()
+						So(err, ShouldBeNil)
+						So(len(participants), ShouldBeGreaterThan, 0)
+					})
+					Convey("channel deletion should be successfully if groups are not in mongodb", func() {
+						err := models.DeleteChannelsIfGroupNotInMongo()
+						So(err, ShouldBeNil)
+						Convey("participants&channel should not be in postgres", func() {
+							_, err := channel.FetchChannelParticipants()
+							So(err, ShouldNotBeNil)
+							So(err, ShouldEqual, bongo.RecordNotFound)
+							fetchedChannels, err := models.NewChannel().FetchByIds([]int64{channel.Id})
+							So(err, ShouldBeNil)
+							So(len(fetchedChannels), ShouldEqual, 0)
+						})
+					})
 				})
 			})
 		})
