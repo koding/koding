@@ -364,20 +364,6 @@ func (nd *Node) shallowCopy() *Node {
 	return nd
 }
 
-func (nd *Node) shallowCopy() *Node {
-	if len(nd.Sub) != 0 {
-		sub := make(map[string]*Node, len(nd.Sub))
-
-		for k, v := range nd.Sub {
-			sub[k] = v
-		}
-
-		nd.Sub = sub
-	}
-
-	return nd
-}
-
 func split(path string) (string, string) {
 	if path[0] == '/' {
 		path = path[1:]
