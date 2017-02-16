@@ -168,9 +168,11 @@ module.exports = (options) ->
     userPublicKey: '$KONFIG_PROJECTROOT/generated/private_keys/kloud/kloud.pub'
     userPrivateKey: '$KONFIG_PROJECTROOT/generated/private_keys/kloud/kloud.pem'
   dummyAdmins = ['superadmin', 'admin', 'koding']
+
+  countlyApiPort = '32768'
   countly  =
-    host: "#{options.serviceHost}"
-    apiPort: '32768'
+    host: "http://#{options.serviceHost}:#{countlyApiPort}"
+    apiPort: countlyApiPort
   clearbit = '9d961e7ac862a6bc430f783da5cf9422'
   intercomAppId = ''
   wufoo = ''
