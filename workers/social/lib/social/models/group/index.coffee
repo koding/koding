@@ -200,7 +200,7 @@ module.exports = class JGroup extends Module
           (signature Object, Function)
         ]
         transferOwnership:
-          (signature String, Function)
+          (signature Object, Function)
         destroy:
           (signature String, Function)
         addSubscription:
@@ -1471,10 +1471,13 @@ module.exports = class JGroup extends Module
       { permission: 'grant permissions' }
       { permission: 'grant permissions', superadmin: yes }
     ]
-    success: (client, accountId, callback) ->
-      JAccount = require '../account'
+    success: (client, options, callback) ->
 
       { delegate } = client.connection
+      { accountId, currentPassword, slug } = options
+
+      return callback new KodingError 'User is not selected!'  unless accountId
+
       if delegate.getId().equals accountId
         return callback new KodingError 'You cannot transfer ownership to yourself, concentrate and try again!'
 
