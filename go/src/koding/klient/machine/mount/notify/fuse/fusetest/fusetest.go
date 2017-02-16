@@ -136,8 +136,8 @@ func (bc *BindCache) process() {
 
 		// Update remote index.
 		if !isRemoteSrc {
-			// TODO: fix branch
-			bc.idx.Apply(bc.loc, bc.idx.CompareBranch(change.Path(), bc.loc))
+			// BUG(rjeczalik): Use when index respects promise ops.
+			// bc.idx.Apply(bc.loc, bc.idx.CompareBranch(change.Path(), bc.loc))
 		}
 
 		change.cancel()

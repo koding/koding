@@ -46,8 +46,7 @@ func (fs *Filesystem) LookUpInode(ctx context.Context, op *fuseops.LookUpInodeOp
 	}
 
 	nd, ok := dir.Sub[op.Name]
-
-	if !ok {
+	if !ok || nd.Deleted() {
 		return fuse.ENOENT
 	}
 
@@ -164,7 +163,7 @@ func (fs *Filesystem) CreateFile(ctx context.Context, op *fuseops.CreateFileOp) 
 		return err
 	}
 
-	if _, ok := dir.Sub[op.Name]; ok {
+	if nd, ok := dir.Sub[op.Name]; ok && !nd.Deleted() {
 		return fuse.EEXIST
 	}
 
@@ -227,7 +226,7 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) error {
 	atomic.StoreUint64(&entry.Inode, uint64(id))
 	fs.mu.Unlock()
 
-	fs.Remote.PromiseDel(oldPath)
+	fs.Remote.PromiseDel(oldPath, oldNd)
 	fs.Remote.PromiseAdd(newPath, entry)
 
 	return nonil(
@@ -248,7 +247,7 @@ func (fs *Filesystem) RmDir(ctx context.Context, op *fuseops.RmDirOp) error {
 	}
 
 	nd, ok := dir.Sub[op.Name]
-	if !ok {
+	if !ok || nd.Deleted() {
 		return fuse.ENOENT
 	}
 
@@ -258,7 +257,7 @@ func (fs *Filesystem) RmDir(ctx context.Context, op *fuseops.RmDirOp) error {
 
 	path = filepath.Join(path, op.Name)
 
-	if err := fs.rm(nd, path); err != nil {
+	if err := fs.rm(ctx, nd, path); err != nil {
 		return err
 	}
 
@@ -275,17 +274,25 @@ func (fs *Filesystem) Unlink(ctx context.Context, op *fuseops.UnlinkOp) error {
 	}
 
 	nd, ok := dir.Sub[op.Name]
-	if !ok {
+	if !ok || nd.Deleted() {
 		return fuse.ENOENT
 	}
 
-	path = filepath.Join(path, op.Name)
+	return fs.unlink(ctx, nd, filepath.Join(path, op.Name))
+}
 
-	if err := fs.rm(nd, path); err != nil {
-		return err
+// ForgetInode
+func (fs *Filesystem) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp) error {
+	nd, path, ok := fs.get(op.Inode)
+	if !ok {
+		return nil // no-op
 	}
 
-	return fs.yield(ctx, path, index.ChangeMetaLocal|index.ChangeMetaRemove)
+	if nd.Entry.Has(index.EntryPromiseUnlink) {
+		return fs.rm(ctx, nd, path)
+	}
+
+	return nil
 }
 
 // OpenDir opens a directory, ie. indicates operations are to be done on this
@@ -313,14 +320,16 @@ func (fs *Filesystem) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error 
 		return err
 	}
 
-	if op.Offset >= fuseops.DirOffset(len(dir.Sub)) {
-		return fuse.EIO
-	}
-
 	files := make([]string, 0, len(dir.Sub))
 
-	for name := range dir.Sub {
-		files = append(files, name)
+	for name, nd := range dir.Sub {
+		if !nd.Deleted() {
+			files = append(files, name)
+		}
+	}
+
+	if int(op.Offset) >= len(files) {
+		return fuse.EIO
 	}
 
 	sort.Strings(files)
@@ -417,7 +426,23 @@ func (fs *Filesystem) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) erro
 		return err
 	}
 
-	return f.Sync()
+	return fs.update(ctx, f)
+}
+
+// FlushFile yields file updates on a locally cached file.
+//
+// Required for fuse.FileSystem.
+func (fs *Filesystem) FlushFile(ctx context.Context, op *fuseops.FlushFileOp) error {
+	if op.Handle == 0 {
+		return nil
+	}
+
+	f, err := fs.openHandle(op.Handle)
+	if err != nil {
+		return err
+	}
+
+	return fs.update(ctx, f)
 }
 
 // ReleaseFileHandle releases file handle. It does not return errors even if it
@@ -425,6 +450,7 @@ func (fs *Filesystem) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) erro
 //
 // Required for fuse.FileSystem.
 func (fs *Filesystem) ReleaseFileHandle(_ context.Context, op *fuseops.ReleaseFileHandleOp) error {
+	// TODO(rjeczalik): unlink
 	_ = fs.delHandle(op.Handle)
 	return nil
 }

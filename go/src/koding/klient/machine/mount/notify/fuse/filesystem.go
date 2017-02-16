@@ -2,6 +2,7 @@ package fuse
 
 import (
 	stdcontext "context"
+	"errors"
 	"log"
 	"os"
 	"path/filepath"
@@ -22,9 +23,11 @@ import (
 	"golang.org/x/net/context"
 )
 
-// TODO(rjeczalik): TTL for items on pending list; if a lot inodes were
-// allocated but none were looked up, pending list will grow indefinitely.
-// Prune pending list after the remote index was updated.
+// TODO(rjeczalik): add promise update ops, so attrs updates are served
+// right away, without waiting for remote index update.
+
+// TODO(rjeczalik): symlink support: add index.Entry.Nlink field and
+// add support for in Unlink, ForgotInode and CreateSymlink methods.
 
 // Builder provides a default notify.Builder for the FUSE filesystem.
 var Builder notify.Builder = builder{}
@@ -68,6 +71,10 @@ func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
 		o.Disk = block(opts.CacheDir)
 	}
 
+	if err := o.Valid(); err != nil {
+		return nil, err
+	}
+
 	return NewFilesystem(o)
 }
 
@@ -81,6 +88,23 @@ type Opts struct {
 	MountDir string       // path of the mount directory
 	User     *config.User // owner of the mount; if nil, config.CurrentUser is used
 	Debug    bool         // turns on fuse debug logging
+}
+
+// Valid implements the stack.Validator interface.
+func (o *Opts) Valid() error {
+	if o.Remote == nil {
+		return errors.New("remote index is nil")
+	}
+	if o.Cache == nil {
+		return errors.New("cache is nil")
+	}
+	if o.MountDir == "" {
+		return errors.New("mount directory is empty")
+	}
+	if o.CacheDir == "" {
+		return errors.New("cache directory is empty")
+	}
+	return nil
 }
 
 func (opts *Opts) user() *config.User {
@@ -105,8 +129,6 @@ type Filesystem struct {
 	//
 	//   - MkNode
 	//   - CreateSymlink
-	//   - FlushFile
-	//   - ForgetInode
 	//   - ReadSymlink
 	//
 	fuseutil.NotImplementedFileSystem
@@ -143,7 +165,7 @@ func NewFilesystem(opts *Opts) (*Filesystem, error) {
 	}
 
 	// Best-effort attempt of unmounting already existing mount.
-	_ = Umount(opts.MountDir)
+	_ = Umount(fs.MountDir)
 
 	m, err := origfuse.Mount(opts.MountDir, fuseutil.NewFileSystemServer(fs), fs.Config())
 	if err != nil {
@@ -160,7 +182,7 @@ func (fs *Filesystem) Close() {
 	fs.cancel()
 	fs.Destroy()
 
-	return nil
+	return Umount(fs.MountDir)
 }
 
 func (fs *Filesystem) Config() *fuse.MountConfig {
@@ -285,6 +307,8 @@ func (fs *Filesystem) del(id fuseops.InodeID) {
 }
 
 func (fs *Filesystem) delHandle(id fuseops.HandleID) error {
+	// TODO(rjeczalik): nd.Entry.DecRef()
+
 	fs.mu.Lock()
 	f, ok := fs.handles[id]
 	delete(fs.handles, id)
@@ -352,12 +376,14 @@ func (fs *Filesystem) mkdir(path string, mode os.FileMode) (id fuseops.InodeID, 
 
 	entry := &index.Entry{
 		Mode: mode | os.ModeDir,
+		Ref:  1,
 	}
 
 	fs.mu.Lock()
 	id = fs.add(path)
-	atomic.StoreUint64(&entry.Inode, uint64(id))
 	fs.mu.Unlock()
+
+	entry.Inode = uint64(id)
 
 	fs.Remote.PromiseAdd(path, entry)
 
@@ -386,13 +412,15 @@ func (fs *Filesystem) mkfile(path string, mode os.FileMode) (id fuseops.InodeID,
 
 	entry := &index.Entry{
 		Mode: mode,
+		Ref:  1,
 	}
 
 	fs.mu.Lock()
 	id = fs.add(path)
 	h = fs.addHandle(f)
-	atomic.StoreUint64(&entry.Inode, uint64(id))
 	fs.mu.Unlock()
+
+	entry.Inode = uint64(id)
 
 	fs.Remote.PromiseAdd(path, entry)
 
@@ -418,19 +446,38 @@ func (fs *Filesystem) move(ctx stdcontext.Context, oldpath, newpath string) erro
 	return os.Rename(fs.path(oldpath), fs.path(newpath))
 }
 
-func (fs *Filesystem) rm(nd *index.Node, path string) error {
-	fs.Remote.PromiseDel(path)
-	atomic.StoreUint64(&nd.Entry.Inode, 0)
+func (fs *Filesystem) unlink(ctx stdcontext.Context, nd *index.Node, path string) error {
+	fs.Remote.PromiseUnlink(path, nd)
 
-	err := os.Remove(fs.path(path))
-	if os.IsNotExist(err) {
+	if n := nd.Entry.DecRef(); n > 0 {
 		return nil
 	}
 
-	return err
+	return fs.rm(ctx, nd, path)
 }
 
-func (fs *Filesystem) open(ctx stdcontext.Context, path string) (*os.File, fuseops.HandleID, error) {
+func (fs *Filesystem) rm(ctx stdcontext.Context, nd *index.Node, path string) error {
+	fs.Remote.PromiseDel(path, nd)
+	atomic.StoreUint64(&nd.Entry.Inode, 0)
+
+	path = fs.path(path)
+
+	if err := os.Remove(path); os.IsNotExist(err) {
+		return nil
+	}
+
+	return fs.yield(ctx, path, index.ChangeMetaLocal|index.ChangeMetaRemove)
+}
+
+func (fs *Filesystem) update(ctx stdcontext.Context, f *os.File) error {
+	if err := f.Sync(); err != nil {
+		return err
+	}
+
+	return fs.yield(ctx, f.Name(), index.ChangeMetaLocal|index.ChangeMetaUpdate)
+}
+
+func (fs *Filesystem) open(ctx stdcontext.Context, nd *index.Node, path string) (*os.File, fuseops.HandleID, error) {
 	f, err := fs.openFile(ctx, path)
 	if err != nil {
 		return nil, 0, err
@@ -439,6 +486,8 @@ func (fs *Filesystem) open(ctx stdcontext.Context, path string) (*os.File, fuseo
 	fs.mu.Lock()
 	id := fs.addHandle(f)
 	fs.mu.Unlock()
+
+	nd.Entry.IncRef()
 
 	return f, id, nil
 }
@@ -461,12 +510,12 @@ func (fs *Filesystem) openFile(ctx stdcontext.Context, path string) (*os.File, e
 }
 
 func (fs *Filesystem) openInode(ctx stdcontext.Context, id fuseops.InodeID) (*os.File, fuseops.HandleID, error) {
-	_, path, err := fs.getFile(id)
+	nd, path, err := fs.getFile(id)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	return fs.open(ctx, path)
+	return fs.open(ctx, nd, path)
 }
 
 func (fs *Filesystem) openHandle(id fuseops.HandleID) (*os.File, error) {
