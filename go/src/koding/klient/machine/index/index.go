@@ -51,13 +51,15 @@ func (e *Entry) Has(meta int32) bool   { return atomic.LoadInt32(&e.Meta)&meta =
 
 // SwapMeta flips the value of a Meta field, setting the set
 // bits and unsetting the unset ones.
-//
-// As it uses multiple atomic ops, it is safe to call only
-// when protected by (*Index).mu.
 func (e *Entry) SwapMeta(set, unset int32) int32 {
-	meta := (atomic.LoadInt32(&e.Meta) | set) &^ unset
-	atomic.StoreInt32(&e.Meta, meta)
-	return meta
+	for {
+		older := atomic.LoadInt32(&e.Meta)
+		updated := (older | set) &^ unset
+
+		if atomic.CompareAndSwapInt32(&e.Meta, older, updated) {
+			return updated
+		}
+	}
 }
 
 // NewEntryFile creates new Entry from a file stored under path argument.
