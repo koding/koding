@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -153,8 +154,8 @@ func makeSureWithSearch(
 	handler *Controller,
 	indexName string,
 	query string,
-	param interface{},
-	f func(map[string]interface{}, error) bool,
+	param algoliasearch.Map,
+	f func(algoliasearch.QueryRes, error) bool,
 ) error {
 	index, err := handler.indexes.GetIndex(indexName)
 	if err != nil {
@@ -167,7 +168,7 @@ func makeSureWithSearch(
 		select {
 		case <-tick:
 			record, err := index.Search(query, param)
-			if f(record.(map[string]interface{}), err) {
+			if f(record, err) {
 				return nil
 			}
 		case <-deadLine:
