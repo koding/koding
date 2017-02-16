@@ -1489,24 +1489,31 @@ module.exports = class JGroup extends Module
         return callback err if err
         return callback new KodingError 'You must be the owner to perform this action!' unless owner
 
-        JAccount.one { _id:accountId }, (err, account) =>
-          return callback err if err
+        @checkUserPassword delegate, currentPassword, (err) =>
 
-          @fetchRolesByAccount account, (err, newOwnersRoles) =>
+          return callback new KodingError err  if err
+
+          JAccount = require '../account'
+          JAccount.one { _id: accountId }, (err, account) =>
             return callback err if err
 
-            kallback = (err) ->
-              callback err
+            unless account.type is 'registered'
+              return callback new KodingError 'You cannot transfer ownership to this account'
 
-            # give rights to new owner
-            queue = difference(['member', 'admin'], newOwnersRoles).map (role) => (fin) =>
-              @addMember account, role, fin
+            @fetchRolesByAccount account, (err, newOwnersRoles) =>
+              return callback err if err
 
-            async.parallel queue, (err) ->
-              return kallback err  if err
-              # transfer ownership
-              owner.update { $set: { targetId: account.getId() } }, kallback
+              kallback = (err) ->
+                callback err
 
+              # give rights to new owner
+              queue = difference(['member', 'admin'], newOwnersRoles).map (role) => (fin) =>
+                @addMember account, role, fin
+
+              async.parallel queue, (err) ->
+                return kallback err  if err
+                  # transfer ownership
+                  owner.update { $set: { targetId: account.getId() } }, kallback
   ensureUniquenessOfRoleRelationship:(target, options, fallbackRole, roleUnique, callback) ->
     unless callback
       callback   = roleUnique
