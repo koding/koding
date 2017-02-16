@@ -1,6 +1,7 @@
 package machine
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -23,8 +24,10 @@ type SSHOptions struct {
 
 // SSH connects to remote machine using SSH protocol.
 func SSH(options *SSHOptions) error {
-	// Translate identifier to machine ID.
-	//
+	if options == nil {
+		return errors.New("invalid nil options")
+	}
+
 	// TODO(ppknap): this is copied from klientctl old list and will be reworked.
 	k, err := klient.CreateKlientWithDefaultOpts()
 	if err != nil {
@@ -33,19 +36,17 @@ func SSH(options *SSHOptions) error {
 	}
 
 	if err := k.Dial(); err != nil {
-		fmt.Fprintln(os.Stderr, "Error dialing klient:", err)
 		return err
 	}
 
+	// Translate identifier to machine ID.
 	idReq := machinegroup.IDRequest{
 		Identifier: options.Identifier,
 	}
-
 	idRaw, err := k.Tell("machine.id", idReq)
 	if err != nil {
 		return err
 	}
-
 	idRes := machinegroup.IDResponse{}
 	if err := idRaw.Unmarshal(&idRes); err != nil {
 		return err
@@ -80,12 +81,10 @@ func SSH(options *SSHOptions) error {
 		Username:  options.Username,
 		PublicKey: pubkey,
 	}
-
 	sshRaw, err := k.Tell("machine.ssh", sshReq)
 	if err != nil {
 		return err
 	}
-
 	sshRes := machinegroup.SSHResponse{}
 	if err := sshRaw.Unmarshal(&sshRes); err != nil {
 		return err
