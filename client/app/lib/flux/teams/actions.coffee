@@ -18,6 +18,8 @@ KodingKontrol = require 'app/kite/kodingkontrol'
 globals = require 'globals'
 showError = require 'app/util/showError'
 DeleteTeamOverlay = require 'app/components/deleteteamoverlay'
+fetchMyRelativeGroups = require 'app/util/fetchMyRelativeGroups'
+DeleteAccountModal = require 'home/account/deleteaccount/deleteaccountmodal'
 verifyPassword = require 'app/util/verifyPassword'
 
 loadTeam = ->
@@ -318,6 +320,15 @@ deleteTeam = (partial) ->
             reject err  if err
             resolve()
 
+deleteAccount = (partial) ->
+
+  fetchMyRelativeGroups (err, groups) ->
+
+    return  if showError err
+
+    groups = groups.filter (group) -> 'owner' in group.roles
+
+    new DeleteAccountModal {}, groups
 
 
 fetchApiTokens = ->
@@ -385,6 +396,7 @@ module.exports = {
   loadTeam
   leaveTeam
   deleteTeam
+  deleteAccount
   updateTeam
   updateInvitationInputValue
   fetchMembers
