@@ -11,7 +11,7 @@ import (
 func NewDefaultRateLimiter() *throttled.HTTPRateLimiter {
 	memStore, err := memstore.New(65536)
 	if err != nil {
-		// errors only for non positve numbers, so no worries :)
+		// errors only for non positive numbers, so no worries :)
 		log.Fatal(err)
 	}
 

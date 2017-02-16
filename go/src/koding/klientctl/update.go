@@ -243,14 +243,14 @@ func downloadRemoteToLocal(remotePath, destPath string) error {
 		return fmt.Errorf("%s: %s", remotePath, http.StatusText(res.StatusCode))
 	}
 
-	var buf bytes.Buffer // to restore begining of a response body consumed by gzip.NewReader
+	var buf bytes.Buffer // to restore beginning of a response body consumed by gzip.NewReader
 	var body io.Reader = io.MultiReader(&buf, res.Body)
 
 	// If body contains gzip header, it means the payload was compressed.
 	// Relying solely on Content-Type == "application/gzip" check
 	// was not reliable.
-	if r, err := gzip.NewReader(io.TeeReader(res.Body, &buf)); err == nil {
-		if r, err = gzip.NewReader(body); err == nil {
+	if _, err := gzip.NewReader(io.TeeReader(res.Body, &buf)); err == nil {
+		if r, err := gzip.NewReader(body); err == nil {
 			body = r
 		}
 	}

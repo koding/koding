@@ -49,7 +49,7 @@ func NewPostRemoteAPIOAuthGetURLOK() *PostRemoteAPIOAuthGetURLOK {
 
 /*PostRemoteAPIOAuthGetURLOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIOAuthGetURLOK struct {
 	Payload *models.DefaultResponse

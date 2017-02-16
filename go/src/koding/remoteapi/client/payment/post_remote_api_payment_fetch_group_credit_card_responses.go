@@ -49,7 +49,7 @@ func NewPostRemoteAPIPaymentFetchGroupCreditCardOK() *PostRemoteAPIPaymentFetchG
 
 /*PostRemoteAPIPaymentFetchGroupCreditCardOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIPaymentFetchGroupCreditCardOK struct {
 	Payload *models.DefaultResponse

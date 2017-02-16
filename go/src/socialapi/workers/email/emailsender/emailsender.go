@@ -54,7 +54,7 @@ func Send(m *Mail) error {
 }
 
 // Process creates and sets the message that will be sent,
-// and sends the message according to the mail adress
+// and sends the message according to the mail address
 // its a helper method to send message
 func (c *Controller) Process(m *Mail) error {
 	if m.Properties == nil {

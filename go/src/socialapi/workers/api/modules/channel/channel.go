@@ -112,7 +112,7 @@ func handleChannelListResponse(channelList []models.Channel, q *request.Query) (
 	return response.HandleResultAndError(cc, cc.Err())
 }
 
-// Search searchs database against given channel name
+// Search searches database against given channel name
 // but only returns topic channels
 func Search(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	q := request.GetQuery(u)

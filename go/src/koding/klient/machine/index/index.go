@@ -5,11 +5,13 @@ import (
 	"compress/gzip"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"hash/crc32"
 	"io"
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"sync"
 
 	"github.com/djherbis/times"
@@ -18,13 +20,24 @@ import (
 // Version stores current version of index.
 const Version = 1
 
+// EntryMeta describes entry metadata.
+type EntryMeta int32
+
+const (
+	EntryPromiseAdd EntryMeta = iota << 1
+	EntryPromiseUpdate
+	EntryPromiseDel
+)
+
 // Entry represents a single file registered to index.
 type Entry struct {
+	Hash  []byte      `json:"h"` // Hash of file content.
 	CTime int64       `json:"c"` // Metadata change time since EPOCH.
 	MTime int64       `json:"m"` // File data change time since EPOCH.
-	Mode  os.FileMode `json:"o"` // File mode and permission bits.
 	Size  int64       `json:"s"` // Size of the file.
-	Hash  []byte      `json:"h"` // Hash of file content.
+	Aux   uint64      `json:"-"` // Auxiliary data, fuse uses it to store fuseops.InodeID.
+	Mode  os.FileMode `json:"o"` // File mode and permission bits.
+	Meta  EntryMeta   `json:"-"` // Entry metadata.
 }
 
 // NewEntryFile creates new Entry from a file stored under path argument.
@@ -165,6 +178,29 @@ func (idx *Index) addEntryWorker(root string, wg *sync.WaitGroup, fC <-chan *fil
 	}
 }
 
+// PromiseAdd adds a node under the given path marked as newly added.
+//
+// If mode is non-zero, the node's mode is overwritten with the value.
+// If the node already exists, it'd be only marked with EntryPromiseAdd flag.
+// If the node is already marked as newly added, the method is a no-op.
+func (idx *Index) PromiseAdd(path string, entry *Entry) {
+	idx.mu.Lock()
+	defer idx.mu.Unlock()
+
+	idx.root.PromiseAdd(path, entry)
+}
+
+// PromiseDel marks a node under the given path as deleted.
+//
+// If the node does not exist or is already marked as deleted, the
+// method is no-op.
+func (idx *Index) PromiseDel(path string) {
+	idx.mu.Lock()
+	defer idx.mu.Unlock()
+
+	idx.root.PromiseDel(path)
+}
+
 // Count returns the number of entries stored in index. Only items which size is
 // below provided value are counted. If provided argument is negative, this
 // function will return the number of all entries.
@@ -185,6 +221,7 @@ func (idx *Index) DiskSize(maxsize int64) int64 {
 	return idx.root.DiskSize(maxsize)
 }
 
+// Lookup looks up a node by the given name.
 func (idx *Index) Lookup(name string) (*Node, bool) {
 	idx.mu.RLock()
 	defer idx.mu.RUnlock()
@@ -195,8 +232,27 @@ func (idx *Index) Lookup(name string) (*Node, bool) {
 // Compare rereads the given file tree roted at root and compares its entries
 // to previous state of the index. All detected changes will be stored in
 // returned Change slice.
-func (idx *Index) Compare(root string) (cs ChangeSlice) {
+func (idx *Index) Compare(root string) ChangeSlice {
+	return idx.CompareBranch("", root)
+}
+
+// CompareBranch rereads the given file tree roted at root and compares its entries
+// with index state roted at branch node.
+//
+// All detected changes will be stored in returned Change slice.
+// If branch is empty, the comparison is made against root of the index.
+func (idx *Index) CompareBranch(branch, root string) (cs ChangeSlice) {
+	idx.mu.RLock()
+	rt, ok := idx.root.Lookup(branch)
+	idx.mu.RUnlock()
+
+	if !ok {
+		rt = newNode()
+	}
+
 	visited := make(map[string]struct{})
+
+	rootBranch := filepath.Join(root, branch)
 
 	// Walk over current root path and check it files.
 	walkFn := func(path string, info os.FileInfo, err error) error {
@@ -204,15 +260,18 @@ func (idx *Index) Compare(root string) (cs ChangeSlice) {
 			return nil
 		}
 
-		name, err := filepath.Rel(root, path)
+		name, err := filepath.Rel(rootBranch, path)
 		if err != nil || name == "." {
 			return nil
 		}
+
 		name = filepath.ToSlash(name)
 
 		idx.mu.RLock()
-		nd, ok := idx.root.Lookup(name)
+		nd, ok := rt.Lookup(name)
 		idx.mu.RUnlock()
+
+		name = filepath.Join(branch, name)
 
 		// Not found in current index - file was added.
 		if !ok {
@@ -231,7 +290,7 @@ func (idx *Index) Compare(root string) (cs ChangeSlice) {
 		return nil
 	}
 
-	if err := filepath.Walk(root, walkFn); err != nil {
+	if err := filepath.Walk(rootBranch, walkFn); err != nil {
 		return nil
 	}
 
@@ -365,5 +424,43 @@ func (idx *Index) UnmarshalJSON(data []byte) error {
 	}
 	defer r.Close()
 
-	return json.NewDecoder(r).Decode(&idx.root)
+	if err = json.NewDecoder(r).Decode(&idx.root); err != nil {
+		return err
+	}
+
+	// BUG(rjeczalik): Something overwrites the root entry
+	// with a zero value elsewhere. Fix me.
+	idx.root.Entry = newEntry()
+
+	return nil
+
+}
+
+// DebugString dumps content of the index as a string, suitable for debugging.
+func (idx *Index) DebugString() string {
+	m := make(map[string]*Entry)
+
+	fn := func(path string, entry *Entry) {
+		m[path] = entry
+	}
+
+	idx.mu.RLock()
+	idx.root.ForEach(fn)
+	idx.mu.RUnlock()
+
+	paths := make([]string, 0, len(m))
+
+	for path := range m {
+		paths = append(paths, path)
+	}
+
+	sort.Strings(paths)
+
+	var buf bytes.Buffer
+
+	for _, path := range paths {
+		fmt.Fprintf(&buf, "%s => %#v\n", path, m[path])
+	}
+
+	return buf.String()
 }

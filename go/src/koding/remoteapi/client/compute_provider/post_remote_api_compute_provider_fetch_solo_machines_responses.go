@@ -49,7 +49,7 @@ func NewPostRemoteAPIComputeProviderFetchSoloMachinesOK() *PostRemoteAPIComputeP
 
 /*PostRemoteAPIComputeProviderFetchSoloMachinesOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIComputeProviderFetchSoloMachinesOK struct {
 	Payload *models.DefaultResponse

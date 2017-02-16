@@ -9,7 +9,7 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-// iterOptions holds the related config paramters for Iter operation
+// iterOptions holds the related config parameters for Iter operation
 type iterOptions struct {
 	// Starting offset
 	Skip int

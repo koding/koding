@@ -176,7 +176,7 @@ var _ httpTransport = (*Transport)(nil)
 // NewSingleUser returns a HTTP transport that authenticates all
 // requests for the given user.
 //
-// This is usefull for api clients that give no control over HTTP requests,
+// This is useful for api clients that give no control over HTTP requests,
 // like the swagger-generated ones (remote.api).
 func (t *Transport) NewSingleUser(u *User) http.RoundTripper {
 	return &Transport{

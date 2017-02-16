@@ -49,7 +49,7 @@ func NewPostRemoteAPIJNameClaimNamesOK() *PostRemoteAPIJNameClaimNamesOK {
 
 /*PostRemoteAPIJNameClaimNamesOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJNameClaimNamesOK struct {
 	Payload *models.DefaultResponse

@@ -49,7 +49,7 @@ func NewPostRemoteAPIJAccountSomeOK() *PostRemoteAPIJAccountSomeOK {
 
 /*PostRemoteAPIJAccountSomeOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJAccountSomeOK struct {
 	Payload *models.DefaultResponse

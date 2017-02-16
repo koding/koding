@@ -232,7 +232,7 @@ func doRegisterRequest(r *RegisterRequest, client *http.Client, host string) (st
 
 	form := createForm(r)
 
-	req, err := http.NewRequest("POST", endpoint, strings.NewReader(form.Encode()))
+	req, _ := http.NewRequest("POST", endpoint, strings.NewReader(form.Encode()))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := client.Do(req)

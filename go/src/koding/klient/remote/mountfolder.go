@@ -6,34 +6,18 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"regexp"
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
 
 	"koding/fuseklient"
-	"koding/klient/remote/kitepinger"
 	"koding/klient/remote/machine"
 	"koding/klient/remote/mount"
 	"koding/klient/remote/req"
 )
 
-const (
-	// 1024MB
-	recommendedRemoteFolderSize = 1024
-)
-
 var (
-	digitRegex       = regexp.MustCompile(`\d+`)
 	ErrExistingMount = errors.New("There's already a mount on that folder.")
-
-	// errGetSizeMissingRemotePath is returned when the getSizeOfRemoteFolder method
-	// is missing the remote path argument.
-	errGetSizeMissingRemotePath = errors.New("A remote path is required.")
-
-	// errGetSizeMissingMachine is returned when the getSizeOfRemoteFolder method
-	// is missing the machine argument.
-	errGetSizeMissingMachine = errors.New("A machine instance is required.")
 )
 
 // MountFolderHandler implements klient's remote.mountFolder method. Mounting
@@ -141,29 +125,6 @@ func checkIfUserHasFolderPerms(folderPath string) error {
 	return err
 }
 
-// checkSizeOfRemoteFolder asks remote machine for size of specified remote folder
-// and returns warning if size if greater than 100MB.
-//
-// Note we return a warning since you can technically mount any size you want,
-// however the performance will degrade.
-func checkSizeOfRemoteFolder(remoteMachine *machine.Machine, remotePath string) (interface{}, error) {
-	sizeInB, err := remoteMachine.GetFolderSize(remotePath)
-	if err != nil {
-		return nil, err
-	}
-
-	sizeInMB := sizeInB / (1024 * 1000)
-
-	if sizeInMB > recommendedRemoteFolderSize {
-		return fmt.Sprintf(
-			"Specified remote folder size is '%dMB', recommended is '%dMB' or less.",
-			sizeInMB, recommendedRemoteFolderSize,
-		), nil
-	}
-
-	return nil, nil
-}
-
 // getSizeOfLocalFolder asks remote machine for size of specified remote folder
 // and returns it in bytes.
 func getSizeOfLocalPath(localPath string) (int64, error) {
@@ -176,22 +137,4 @@ func getSizeOfLocalPath(localPath string) (int64, error) {
 	})
 
 	return size, err
-}
-
-// changeSummaryToBool is a simple func that converts a ChangeSummary channel to a
-// bool channel, based on Success or Failure (success is true, failure is false).
-func changeSummaryToBool(s chan kitepinger.ChangeSummary) <-chan bool {
-	b := make(chan bool)
-	go func() {
-		for change := range s {
-			switch change.NewStatus {
-			case kitepinger.Success:
-				b <- true
-			case kitepinger.Failure:
-				b <- false
-			}
-		}
-		close(b)
-	}()
-	return b
 }

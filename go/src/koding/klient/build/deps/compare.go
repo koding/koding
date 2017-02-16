@@ -87,7 +87,7 @@ func compare(version1, version2, operator string) bool {
 //     version.CompareSimple("1.0rc1", "1.0")
 //     Returns: -1
 func compareSimple(version1, version2 string) int {
-	var x, r, l int = 0, 0, 0
+	var x, r, l int
 
 	v1, v2 := prepVersion(version1), prepVersion(version2)
 	len1, len2 := len(v1), len(v2)

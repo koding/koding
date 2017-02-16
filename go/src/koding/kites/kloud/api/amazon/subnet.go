@@ -66,7 +66,7 @@ func (a *Amazon) CreateOrGetSecurityGroup(groupName, vpcID string) (*ec2.Securit
 	}
 
 	// We loop and retry this a few times because sometimes the security
-	// group isn't available immediately because AWS resources are eventaully
+	// group isn't available immediately because AWS resources are eventually
 	// consistent.
 	for i := 0; i < 5; i++ {
 		err = a.Client.AuthorizeSecurityGroup(groupID, PermAllPorts)

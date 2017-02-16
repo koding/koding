@@ -49,7 +49,7 @@ func NewPostRemoteAPIJUserEmailAvailableOK() *PostRemoteAPIJUserEmailAvailableOK
 
 /*PostRemoteAPIJUserEmailAvailableOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJUserEmailAvailableOK struct {
 	Payload *models.DefaultResponse

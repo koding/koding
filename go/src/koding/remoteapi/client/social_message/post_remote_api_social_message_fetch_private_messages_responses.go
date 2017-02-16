@@ -49,7 +49,7 @@ func NewPostRemoteAPISocialMessageFetchPrivateMessagesOK() *PostRemoteAPISocialM
 
 /*PostRemoteAPISocialMessageFetchPrivateMessagesOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPISocialMessageFetchPrivateMessagesOK struct {
 	Payload *models.DefaultResponse

@@ -12,7 +12,7 @@ import (
 // ExistingVolume retrieves the volume for the given existing volume ID. This
 // can be used instead of the plain a.Client.Volumes, because the plain method
 // returns "(InvalidVolume.NotFound)" even if the volume exists. This method
-// tries for one minute to get a successfull response(errors are neglected), so
+// tries for one minute to get a successful response(errors are neglected), so
 // try this only if the Volume exists.
 func (a *Amazon) ExistingVolume(volumeID string) (vol *ec2.Volume, err error) {
 	getVolume := func(currentPercentage int) (machinestate.State, error) {

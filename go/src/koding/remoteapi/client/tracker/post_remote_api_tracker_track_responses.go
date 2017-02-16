@@ -49,7 +49,7 @@ func NewPostRemoteAPITrackerTrackOK() *PostRemoteAPITrackerTrackOK {
 
 /*PostRemoteAPITrackerTrackOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully.
 */
 type PostRemoteAPITrackerTrackOK struct {
 	Payload *models.DefaultResponse

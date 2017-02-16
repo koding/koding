@@ -428,7 +428,7 @@ func (f *Controller) ChannelMessageListUpdated(cml *models.ChannelMessageList) e
 		// We need parentChannelMessage for calculating the unread count of it's replies
 		ParentChannelMessage: cm,
 
-		// ChannelParticipant is the reciever of this event
+		// ChannelParticipant is the receiver of this event
 		ChannelParticipant: cp,
 
 		// Assign event type
@@ -484,7 +484,7 @@ func (f *Controller) PinnedChannelListUpdated(pclue *models.PinnedChannelListUpd
 		// We need to find out that if the reply is created by a troll
 		ReplyChannelMessage: &pclue.Reply,
 
-		// ChannelParticipant is the reciever of this event
+		// ChannelParticipant is the receiver of this event
 		ChannelParticipant: cp,
 
 		// Assign event type
@@ -555,7 +555,7 @@ func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, cm *models
 	return f.publishToChannel(cml.ChannelId, eventName, cmc)
 }
 
-// publishToChannel recieves channelId eventName and data to be published
+// publishToChannel receives channelId eventName and data to be published
 // it fechessecret names from mongo db a publihes to each of them
 // message is sent as a json message
 // this function is not idempotent

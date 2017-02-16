@@ -146,9 +146,9 @@ func (f *Controller) RemoveGuestAccounts() error {
 }
 
 func (f *Controller) DeleteNicksWithQuery(queryName string) error {
-	index, err := f.indexes.GetIndex(IndexAccounts)
+	index, _ := f.indexes.GetIndex(IndexAccounts)
 	params := map[string]interface{}{"restrictSearchableAttributes": "nick"}
-	_, err = index.Search(queryName, params)
+	_, err := index.Search(queryName, params)
 	if err != nil {
 		return err
 	}
@@ -157,8 +157,7 @@ func (f *Controller) DeleteNicksWithQuery(queryName string) error {
 	var pages int
 
 	for pages > 0 && nbHit != 0 {
-		record, err := index.Search(queryName, params)
-		hist := record.Hits
+		record, _ := index.Search(queryName, params)
 
 		pages = record.NbPages
 		nbHit = record.NbHits
@@ -173,7 +172,7 @@ func (f *Controller) DeleteNicksWithQuery(queryName string) error {
 			return err
 		}
 
-		hist = record.Hits
+		hist := record.Hits
 		for _, val := range hist {
 			object := val["objectID"].(string)
 			_, err := modelhelper.GetAccountById(object)
@@ -224,11 +223,11 @@ func (f *Controller) deleteAllGuestNicks(indexName string, objectIDs []string) e
 }
 
 func (f *Controller) DeleteNicksWithQueryBrowseAll(queryName string) error {
-	index, err := f.indexes.GetIndex(IndexAccounts)
+	index, _ := f.indexes.GetIndex(IndexAccounts)
 	params := map[string]interface{}{
 		"restrictSearchableAttributes": "nick",
 	}
-	_, err = index.Search(queryName, params)
+	_, err := index.Search(queryName, params)
 	if err != nil {
 		return err
 	}

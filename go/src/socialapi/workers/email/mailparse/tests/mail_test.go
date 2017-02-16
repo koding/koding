@@ -29,7 +29,7 @@ func TestMailParse(t *testing.T) {
 
 	Convey("while sending mail", t, func() {
 
-		Convey("reponse should be success", func() {
+		Convey("response should be success", func() {
 			acc, err := socialapimodels.CreateAccountInBothDbs()
 			So(err, ShouldBeNil)
 

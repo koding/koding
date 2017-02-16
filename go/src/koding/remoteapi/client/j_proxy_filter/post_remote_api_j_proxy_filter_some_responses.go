@@ -49,7 +49,7 @@ func NewPostRemoteAPIJProxyFilterSomeOK() *PostRemoteAPIJProxyFilterSomeOK {
 
 /*PostRemoteAPIJProxyFilterSomeOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJProxyFilterSomeOK struct {
 	Payload *models.DefaultResponse

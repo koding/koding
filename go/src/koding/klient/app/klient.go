@@ -63,10 +63,6 @@ const (
 )
 
 var (
-	// we also could use an atomic boolean this is simple for now.
-	updating   = false
-	updatingMu sync.Mutex // protects updating
-
 	// the implementation of New() doesn't have any error to be returned yet it
 	// returns, so it's totally safe to neglect the error
 	cookieJar, _ = cookiejar.New(nil)

@@ -49,7 +49,7 @@ func NewPostRemoteAPIJAccountFetchEmailsByUsernameOK() *PostRemoteAPIJAccountFet
 
 /*PostRemoteAPIJAccountFetchEmailsByUsernameOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJAccountFetchEmailsByUsernameOK struct {
 	Payload *models.DefaultResponse

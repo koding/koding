@@ -123,7 +123,7 @@ func getKey(ping *Ping, today time.Time) string {
 	)
 }
 
-// verifyRecord checks if the daily occurence is in the db, if not found creates
+// verifyRecord checks if the daily occurrence is in the db, if not found creates
 // a new record, if found and it is greater than today's beginning time returns
 // nil. If it is smaller than today, creates a new record in the db
 func verifyRecord(ping *Ping, today time.Time) error {

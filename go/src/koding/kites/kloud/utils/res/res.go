@@ -153,7 +153,7 @@ func (res *Resource) Help() string {
 	return buf.String()
 }
 
-// Synposis returns description of the resource.
+// Synopsis returns description of the resource.
 func (res *Resource) Synopsis() string {
 	return res.Description
 }
@@ -245,10 +245,6 @@ func ishelp(s string) bool {
 	default:
 		return false
 	}
-}
-
-func background([]string) context.Context {
-	return context.Background()
 }
 
 type resByName []*Resource

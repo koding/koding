@@ -460,7 +460,7 @@ func TestPrivateMesssages(t *testing.T) {
 
 			})
 
-			Convey("targetted account should be able to list private message channel of himself", nil)
+			Convey("targeted account should be able to list private message channel of himself", nil)
 		})
 	})
 }

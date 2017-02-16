@@ -49,7 +49,7 @@ func NewPostRemoteAPIJGroupCountOK() *PostRemoteAPIJGroupCountOK {
 
 /*PostRemoteAPIJGroupCountOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJGroupCountOK struct {
 	Payload *models.DefaultResponse

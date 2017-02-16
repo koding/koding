@@ -49,7 +49,7 @@ func NewPostRemoteAPIJProxyRestrictionCreateOK() *PostRemoteAPIJProxyRestriction
 
 /*PostRemoteAPIJProxyRestrictionCreateOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJProxyRestrictionCreateOK struct {
 	Payload *models.DefaultResponse

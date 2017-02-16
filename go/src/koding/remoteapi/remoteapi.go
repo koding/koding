@@ -58,7 +58,7 @@ func Unmarshal(resp *models.DefaultResponse, v interface{}) error {
 // externally.
 //
 // TODO(rjeczalik): Add admin mode for remote.api for it's possible
-// for kloud to use one persistant session to interact with
+// for kloud to use one persistent session to interact with
 // remote.api on behalf of the users. See discussion #9667.
 type Client struct {
 	// Endpoint is URL of remote.api endpoint.

@@ -40,7 +40,7 @@ type Deps struct {
 	// Packages is written as the importPath of a given package(s).
 	Packages []Pkg `json:"packages"`
 
-	// GoVersion defines the Go version needed at least as a minumum.
+	// GoVersion defines the Go version needed at least as a minimum.
 	GoVersion string `json:"goVersion"`
 
 	// Dependencies defines the dependency of the given Packages. If multiple

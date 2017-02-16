@@ -11,8 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-var defaultKlientBucket = "klient/production"
-
 var ErrNoContents = errors.New("no contents")
 
 type Bucket struct {

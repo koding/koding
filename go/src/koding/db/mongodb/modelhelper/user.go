@@ -19,7 +19,7 @@ const UserColl = "jUsers"
 var ErrNotParticipant = errors.New("not a participant of group")
 
 // CheckAndGetUser validates the user with the given password. If not
-// successfull it returns nil
+// successful it returns nil
 func CheckAndGetUser(username string, password string) (*models.User, error) {
 	user, err := GetUser(username)
 	if err != nil {
@@ -326,7 +326,7 @@ func GetPermittedUser(requesterName string, users []models.MachineUser) (*models
 }
 
 // UserLogin checks if the given username is participant of the given group. On
-// successfull validation returns a session for the user in the context of the
+// successful validation returns a session for the user in the context of the
 // given group.
 //
 // There are multiple ways to login in Koding but does not hadle all the cases.

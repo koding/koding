@@ -119,7 +119,7 @@ func CreateUser(opts *UserOptions) (*User, error) {
 			Email:         username + "@" + username + ".com",
 			LastLoginDate: time.Now().UTC(),
 			RegisteredAt:  time.Now().UTC(),
-			Name:          username, // bson equivelant is username
+			Name:          username, // bson equivalent is username
 			Password:      "somerandomnumbers",
 			Status:        "confirmed",
 			SshKeys: []struct {

@@ -296,7 +296,7 @@ func migrateKonfigBolt(cache *config.Cache) error {
 				oldKonfig.Endpoints.Tunnel = config.NewEndpoint(oldKonfig.TunnelURL)
 			}
 
-			// Best-effort attemp to ensure /etc/kite/kite.key is stored
+			// Best-effort attempt to ensure /etc/kite/kite.key is stored
 			// in ~/.config/koding/konfig.bolt, so it is possible to
 			// use kd / konfig with koding deployments that sign with
 			// different kontrol keys, e.g. production <-> sandbox or
@@ -325,7 +325,7 @@ func migrateKonfigBolt(cache *config.Cache) error {
 
 func migrateKiteKey(konfig *config.Konfig) error {
 	// KiteKey already exists in the DB - we don't care
-	// whether it's our one or user overriden it explictely
+	// whether it's our one or user overridden it explictely
 	// as long as it's there.
 	if konfig.KiteKey != "" {
 		return nil

@@ -49,7 +49,7 @@ func NewPostRemoteAPIJAPITokenCreateOK() *PostRemoteAPIJAPITokenCreateOK {
 
 /*PostRemoteAPIJAPITokenCreateOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJAPITokenCreateOK struct {
 	Payload *models.DefaultResponse
