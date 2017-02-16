@@ -1466,6 +1466,20 @@ module.exports = class JGroup extends Module
           @addMember account, {}, callback  unless removeUserFromTeam
 
 
+  checkUserPassword: (account, password, callback) ->
+
+    unless account or password
+      return callback "Couldn't verify user"
+
+    account.fetchUser (err, user) ->
+      return callback "Couldn't verify user"  if err
+
+      unless user.checkPassword password
+        return callback "Your password didn't match with our records"
+      else
+        callback()
+
+
   transferOwnership: permit
     advanced: [
       { permission: 'grant permissions' }
@@ -1486,6 +1500,7 @@ module.exports = class JGroup extends Module
         sourceId: @getId(),
         as      : 'owner'
       }, (err, owner) =>
+
         return callback err if err
         return callback new KodingError 'You must be the owner to perform this action!' unless owner
 
@@ -1512,8 +1527,22 @@ module.exports = class JGroup extends Module
 
               async.parallel queue, (err) ->
                 return kallback err  if err
+
+                # notify group for new owner
+                contents =
+                  role: 'owner'
+                  id: accountId
+                  group: slug
+                  adminNick: account.profile.nickname
+
+                JGroup.one { slug }, (err, group) ->
+                  if group
+                    group.sendNotification 'MembershipRoleChanged', contents
+
                   # transfer ownership
                   owner.update { $set: { targetId: account.getId() } }, kallback
+
+
   ensureUniquenessOfRoleRelationship:(target, options, fallbackRole, roleUnique, callback) ->
     unless callback
       callback   = roleUnique
