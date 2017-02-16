@@ -1556,18 +1556,18 @@ module.exports = class JGroup extends Module
   checkUserPassword: (account, password, callback) ->
 
     unless account or password
-      return callback 'Couldn\'t verify user'
+      return callback "Couldn't verify user"
 
     account.fetchUser (err, user) ->
-      return callback 'Couldn\'t verify user'  if err
+      return callback "Couldn't verify user"  if err
 
       unless user.checkPassword password
-        return callback 'Your password didn\'t match with our records'
+        return callback "Your password didn't match with our records"
       else
         callback()
 
 
-  destroy    : permit
+  destroy$   : permit
     advanced : [
       { permission: 'edit own groups', validateWith : Validators.own }
       { permission: 'edit groups',     superadmin   : yes }
@@ -1575,116 +1575,132 @@ module.exports = class JGroup extends Module
     success  : (client, password, callback) ->
 
       account = client?.connection?.delegate
-      { sessionToken } = client
 
       @checkUserPassword account, password, (err) =>
 
         return callback new KodingError err  if err
 
-        slug = @getAt 'slug'
-        JName = require '../name'
+        @destroy client, (err) ->
+          console.log '[GROUP_DESTROY_FAILED] Ignoring errors:', err
+          callback null
 
+
+  destroy: (client, callback) ->
+
+    [ client, callback ] = [ callback, client ]  unless callback
+
+    slug = @getAt 'slug'
+    errors = []
+
+    kallback = (label, next, err) ->
+
+      errors.push { label, err }  if err
+      next()
+
+    removeHelper = (model, err, next, label) ->
+
+      if err or not model
+        return kallback label, next, err
+
+      model.remove (err) -> kallback label, next, err
+
+    queue = [
+
+      (next) ->
+        JApiToken = require '../apitoken'
+        JApiToken.remove { group: slug }, (err) ->
+          kallback 'JApiToken', next, err
+
+      (next) =>
+        ComputeProvider = require '../computeproviders/computeprovider'
+        ComputeProvider.destroyGroupResources this, -> next()
+
+      (next) ->
+        JGroupData = require './groupdata'
+        JGroupData.remove { slug }, (err) ->
+          kallback 'JGroupData', next, err
+
+      (next) ->
+        JInvitation = require '../invitation'
+        JInvitation.remove { groupName: slug }, (err) ->
+          kallback 'JInvitation', next, err
+
+      (next) =>
+        @fetchPermissionSet (err, permSet) ->
+          removeHelper permSet, err, next, 'PermissionSet'
+
+      (next) =>
+        @fetchDefaultPermissionSet (err, permSet) ->
+          removeHelper permSet, err, next, 'DefaultPermissionSet'
+
+      (next) ->
+        JName = require '../name'
+        JName.one { name: slug }, (err, name) ->
+          removeHelper name, err, next, 'JName'
+
+      (next) =>
+        Relationship.remove { sourceId : @getId() }, next
+
+      (next) ->
+        return next()  unless client
+
+        url = '/api/social/payment/subscription/delete'
+        { deleteReq } = require '../socialapi/requests'
+        { sessionToken } = client
+        console.log 'sessionToken ', sessionToken
+        deleteReq url, { sessionToken }, (err, body) ->
+          if err?.description is 'not admin of the group'
+            console.log "[GROUP_DESTROY_FAILED] for #{slug} please notify Admins"
+          err = null  if err?.description is 'not found'
+          kallback 'Subscription', next, err?.error
+
+      (next) =>
+        @remove (err) -> kallback 'JGroup', next, err
+
+      (next) ->
+        JSession = require '../session'
+        JSession.remove { groupName: slug }, (err) ->
+          kallback 'JSession', next, err
+
+    ]
+
+    call  = null
+
+    deleteTeam = (cb) =>
+
+      async.series queue, =>
+
+        # execute the callback on the first try
+        # even there is an error or not
+        if call.getNumRetries() is 0
+          @sendNotification 'GroupDestroyed'
+          if errors.length
+            callback new KodingError \
+              'Group Destroy Failed', 'GroupDestroyFailed', errors
+          else
+            callback null
+
+        return  if not errors.length
+
+        cb errors
         errors = []
 
-        kallback = (label, next, err) ->
+    call = backoff.call deleteTeam, ->
 
-          errors.push { label, err }  if err
-          next()
+    call.retryIf (errors) ->
 
-        removeHelper = (model, err, next, label) ->
+      errors.forEach (error) ->
+        console.log "[GROUP_DESTROY_FAILED]: Attempt: #{call.getNumRetries()}
+        for #{slug} in #{error.label} with error #{error.err}"
 
-          if err or not model
-            return kallback label, next, err
+      errors.length
 
-          model.remove (err) -> kallback label, next, err
+    call.setStrategy new backoff.ExponentialStrategy
+      initialDelay: 1000
+      maxDelay    : 10000
 
-        queue = [
-
-          (next) ->
-            JApiToken = require '../apitoken'
-            JApiToken.remove { group: slug }, (err) ->
-              kallback 'JApiToken', next, err
-
-          (next) =>
-            ComputeProvider = require '../computeproviders/computeprovider'
-            ComputeProvider.destroyGroupResources this, -> next()
-
-          (next) ->
-            JGroupData = require './groupdata'
-            JGroupData.remove { slug }, (err) ->
-              kallback 'JGroupData', next, err
-
-          (next) ->
-            JInvitation = require '../invitation'
-            JInvitation.remove { groupName: slug }, (err) ->
-              kallback 'JInvitation', next, err
-
-          (next) =>
-            @fetchPermissionSet (err, permSet) ->
-              removeHelper permSet, err, next, 'PermissionSet'
-
-          (next) =>
-            @fetchDefaultPermissionSet (err, permSet) ->
-              removeHelper permSet, err, next, 'DefaultPermissionSet'
-
-          (next) ->
-            JName.one { name: slug }, (err, name) ->
-              removeHelper name, err, next, 'JName'
-
-          (next) =>
-            Relationship.remove { sourceId : @getId() }, next
-
-          (next) ->
-            url = '/api/social/payment/subscription/delete'
-            { deleteReq } = require '../socialapi/requests'
-
-            deleteReq url, { sessionToken }, (err, body) ->
-              err = null  if err?.description is 'not found'
-              kallback 'Subscription', next, err?.error
-
-          (next) =>
-            @remove (err) -> kallback 'JGroup', next, err
-
-          (next) ->
-            JSession = require '../session'
-            JSession.remove { groupName: slug }, (err) ->
-              kallback 'JSession', next, err
-
-        ]
-
-        call  = null
-
-        deleteTeam = (cb) =>
-
-          async.series queue, =>
-
-            # execute the callback on the first try
-            # even there is an error or not
-            if call.getNumRetries() is 0
-              @sendNotification 'GroupDestroyed'
-              callback()
-
-            return  if not errors.length
-
-            cb errors
-            errors = []
-
-        call = backoff.call deleteTeam, ->
-
-        call.retryIf (errors) ->
-
-          errors.forEach (error) ->
-            console.log "[GROUP_DESTROY_FAILED]: Attempt: #{call.getNumRetries()}
-            for #{slug} in #{error.label} with error #{error.err}"
-
-          errors.length
-
-        call.setStrategy new backoff.ExponentialStrategy
-          initialDelay: 1000
-          maxDelay    : 10000
-
-        call.failAfter 2
-        call.start()
+    call.failAfter 2
+    call.start()
 
 
   sendNotificationToAdmins: (event, contents) ->
