@@ -117,24 +117,37 @@ func (nd *Node) PromiseAdd(path string, entry *Entry) {
 
 	if nd, ok := nd.lookup(path, true); ok {
 		newE = nd.Entry
+
+		if entry.Inode != 0 {
+			newE.SetInode(entry.Inode)
+		}
+
+		if entry.Mode != 0 {
+			// BUG(rjeczalik): this is not safe when nd is read elsewhere.
+			//
+			// This field is read by fuse.ReadDir and PromiseAdd is called
+			// by fuse.CreateFile or fuse.MkDir, and fuse.ReadDir is not
+			// called until one of the former returns.
+			//
+			// However this should be changed to an atomic op once the field
+			// is read by something else.
+			newE.Mode = entry.Mode
+		}
+
 	} else {
 		newE = newEntry()
-	}
-
-	if entry.Mode != 0 {
 		newE.Mode = entry.Mode
-	}
-
-	if entry.Inode != 0 {
 		newE.Inode = entry.Inode
 	}
+
+	newE.SwapMeta(EntryPromiseAdd, EntryPromiseDel|EntryPromiseUnlink)
 
 	nd.Add(path, newE)
 }
 
 // PromiseDel marks a node under the given path as deleted.
 //
-// If the node does not exist or is already marked as deleted, the
+// If the node does not exist or is already marked as deleted, then
 // method is no-op.
 func (nd *Node) PromiseDel(path string) {
 	nd, ok := nd.Lookup(path)
@@ -142,7 +155,20 @@ func (nd *Node) PromiseDel(path string) {
 		return
 	}
 
-	nd.Entry.Meta = nd.Entry.Meta | EntryPromiseDel
+	nd.Entry.SwapMeta(EntryPromiseDel, EntryPromiseAdd)
+}
+
+// PromiseUnlink marks a node under the given path as unlinked.
+//
+// If the node does not exist or is already marked as unlinked, then
+// method is no-op.
+func (nd *Node) PromiseUnlink(path string) {
+	nd, ok := nd.Lookup(path)
+	if !ok {
+		return
+	}
+
+	nd.Entry.Meta = (nd.Entry.Meta | EntryPromiseUnlink) &^ EntryPromiseAdd
 }
 
 // Count counts nodes which Entry.Size is at most maxsize.
@@ -286,11 +312,11 @@ func (nd *Node) IsDir() bool {
 
 // Deleted tells whether node is marked as deleted.
 func (nd *Node) Deleted() bool {
-	return nd.Entry.Meta&EntryPromiseDel != 0
+	return nd.Entry.Has(EntryPromiseDel)
 }
 
 func (nd *Node) undelete() {
-	nd.Entry.Meta = nd.Entry.Meta & (^EntryPromiseDel)
+	nd.Entry.SwapMeta(0, EntryPromiseDel|EntryPromiseUnlink)
 }
 
 func (nd *Node) shallowCopy() *Node {

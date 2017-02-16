@@ -35,9 +35,29 @@ type Entry struct {
 	CTime int64       `json:"c"` // Metadata change time since EPOCH.
 	MTime int64       `json:"m"` // File data change time since EPOCH.
 	Size  int64       `json:"s"` // Size of the file.
-	Inode uint64      `json:"-"` // Auxiliary data, fuse uses it to store fuseops.InodeID.
+	Inode uint64      `json:"-"` // fuseops.InodeID
+	Ref   int32       `json:"-"` // inode's reference count
 	Mode  os.FileMode `json:"o"` // File mode and permission bits.
-	Meta  EntryMeta   `json:"-"` // Entry metadata.
+	Meta  int32       `json:"-"` // Entry metadata; written under (*Index).mu, read with atomic op
+}
+
+// The following methods are conveniance helpers for a lock-free
+// access of Entry's fields.
+func (e *Entry) GetInode() uint64      { return atomic.LoadUint64(&e.Inode) }
+func (e *Entry) SetInode(inode uint64) { atomic.StoreUint64(&e.Inode, inode) }
+func (e *Entry) IncRef() int32         { return atomic.AddInt32(&e.Ref, 1) }
+func (e *Entry) DecRef() int32         { return atomic.AddInt32(&e.Ref, -1) }
+func (e *Entry) Has(meta int32) bool   { return atomic.LoadInt32(&e.Meta)&meta == meta }
+
+// SwapMeta flips the value of a Meta field, setting the set
+// bits and unsetting the unset ones.
+//
+// As it uses multiple atomic ops, it is safe to call only
+// when protected by (*Index).mu.
+func (e *Entry) SwapMeta(set, unset int32) int32 {
+	meta := (atomic.LoadInt32(&e.Meta) | set) &^ unset
+	atomic.StoreInt32(&e.Meta, meta)
+	return meta
 }
 
 // NewEntryFile creates new Entry from a file stored under path argument.
@@ -185,9 +205,8 @@ func (idx *Index) addEntryWorker(root string, wg *sync.WaitGroup, fC <-chan *fil
 // If the node is already marked as newly added, the method is a no-op.
 func (idx *Index) PromiseAdd(path string, entry *Entry) {
 	idx.mu.Lock()
-	defer idx.mu.Unlock()
-
 	idx.root.PromiseAdd(path, entry)
+	idx.mu.Unlock()
 }
 
 // PromiseDel marks a node under the given path as deleted.
@@ -196,9 +215,18 @@ func (idx *Index) PromiseAdd(path string, entry *Entry) {
 // method is no-op.
 func (idx *Index) PromiseDel(path string) {
 	idx.mu.Lock()
-	defer idx.mu.Unlock()
-
 	idx.root.PromiseDel(path)
+	idx.mu.Unlock()
+}
+
+// PromiseUnlink marks a node under the given path as unlinked.
+//
+// If the node does not exist or is already marked as unlinked,
+// the method is a no-op.
+func (idx *Index) PromiseUnlink(path string) {
+	idx.mu.Lock()
+	idx.root.PromiseUnlink(path)
+	idx.mu.Unlock()
 }
 
 // Count returns the number of entries stored in index. Only items which size is
