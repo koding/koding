@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"syscall"
@@ -83,7 +84,7 @@ type Opts struct {
 	Remote   *index.Index // remote metadata index
 	Disk     *fs.DiskInfo // remote filesystem informartion
 	Cache    notify.Cache // used to request cache updates
-	CacheDir string       // path of the cache directory of the mount
+	CacheDir string       // path of the cache directory of the mount; must end with a dangling /
 	Mount    string       // name of the mount
 	MountDir string       // path of the mount directory
 	User     *config.User // owner of the mount; if nil, config.CurrentUser is used
@@ -92,6 +93,8 @@ type Opts struct {
 
 // Valid implements the stack.Validator interface.
 func (o *Opts) Valid() error {
+	const sep = string(os.PathSeparator)
+
 	if o.Remote == nil {
 		return errors.New("remote index is nil")
 	}
@@ -103,6 +106,9 @@ func (o *Opts) Valid() error {
 	}
 	if o.CacheDir == "" {
 		return errors.New("cache directory is empty")
+	}
+	if !strings.HasSuffix(o.CacheDir, sep) {
+		o.CacheDir = o.CacheDir + sep
 	}
 	return nil
 }
@@ -178,7 +184,7 @@ func NewFilesystem(opts *Opts) (*Filesystem, error) {
 }
 
 // Close implements the notify.Notifier interface.
-func (fs *Filesystem) Close() {
+func (fs *Filesystem) Close() error {
 	fs.cancel()
 	fs.Destroy()
 
@@ -307,18 +313,38 @@ func (fs *Filesystem) del(id fuseops.InodeID) {
 }
 
 func (fs *Filesystem) delHandle(id fuseops.HandleID) error {
-	// TODO(rjeczalik): nd.Entry.DecRef()
-
 	fs.mu.Lock()
-	f, ok := fs.handles[id]
+	f, nd, ok := fs.getHandle(id)
 	delete(fs.handles, id)
 	fs.mu.Unlock()
 
-	if ok {
-		return f.Close()
+	if !ok {
+		return nil
 	}
 
-	return nil
+	nd.Entry.DecRef()
+
+	return f.Close()
+}
+
+func (fs *Filesystem) getHandle(id fuseops.HandleID) (*os.File, *index.Node, bool) {
+	f, ok := fs.handles[id]
+	if !ok {
+		return nil, nil, false
+	}
+
+	path := f.Name()
+
+	if strings.HasPrefix(path, fs.CacheDir) {
+		path = path[len(fs.CacheDir):]
+	}
+
+	nd, ok := fs.Remote.Lookup(path)
+	if !ok || nd.Deleted() {
+		return nil, nil, false
+	}
+
+	return f, nd, true
 }
 
 func (fs *Filesystem) yield(ctx stdcontext.Context, path string, meta index.ChangeMeta) error {
@@ -337,7 +363,7 @@ func (fs *Filesystem) attr(entry *index.Entry) fuseops.InodeAttributes {
 	ctime := time.Unix(0, entry.CTime)
 
 	return fuseops.InodeAttributes{
-		Size:   uint64(entry.Size),
+		Size:   uint64(entry.GetSize()),
 		Nlink:  1, // TODO(rjeczalik): symlink / hardlink implementation
 		Mode:   entry.Mode,
 		Atime:  mtime,
@@ -469,10 +495,12 @@ func (fs *Filesystem) rm(ctx stdcontext.Context, nd *index.Node, path string) er
 	return fs.yield(ctx, path, index.ChangeMetaLocal|index.ChangeMetaRemove)
 }
 
-func (fs *Filesystem) update(ctx stdcontext.Context, f *os.File) error {
+func (fs *Filesystem) update(ctx stdcontext.Context, f *os.File, nd *index.Node) error {
 	if err := f.Sync(); err != nil {
 		return err
 	}
+
+	updateSize(f, nd)
 
 	return fs.yield(ctx, f.Name(), index.ChangeMetaLocal|index.ChangeMetaUpdate)
 }
@@ -530,6 +558,18 @@ func (fs *Filesystem) openHandle(id fuseops.HandleID) (*os.File, error) {
 	return f, nil
 }
 
+func (fs *Filesystem) openHandleNode(id fuseops.HandleID) (*os.File, *index.Node, error) {
+	fs.mu.RLock()
+	f, nd, ok := fs.getHandle(id)
+	fs.mu.RUnlock()
+
+	if !ok {
+		return nil, nil, fuse.ENOENT
+	}
+
+	return f, nd, nil
+}
+
 func trimRightNull(p []byte) []byte {
 	for i := len(p) - 1; i >= 0; i-- {
 		if p[i] != 0 {
@@ -540,6 +580,17 @@ func trimRightNull(p []byte) []byte {
 	}
 
 	return p
+}
+
+func updateSize(f *os.File, nd *index.Node) error {
+	fi, err := f.Stat()
+	if err != nil {
+		return err
+	}
+
+	nd.Entry.SetSize(fi.Size())
+
+	return nil
 }
 
 func direntType(entry *index.Entry) fuseutil.DirentType {

@@ -405,7 +405,7 @@ func (fs *Filesystem) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) erro
 //
 // Required for fuse.FileSystem.
 func (fs *Filesystem) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) error {
-	f, err := fs.openHandle(op.Handle)
+	f, nd, err := fs.openHandleNode(op.Handle)
 	if err != nil {
 		return err
 	}
@@ -414,6 +414,8 @@ func (fs *Filesystem) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) er
 		return err
 	}
 
+	updateSize(f, nd)
+
 	return fs.yield(ctx, f.Name(), index.ChangeMetaLocal|index.ChangeMetaUpdate)
 }
 
@@ -421,12 +423,12 @@ func (fs *Filesystem) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) er
 //
 // Required for fuse.FileSystem.
 func (fs *Filesystem) SyncFile(ctx context.Context, op *fuseops.SyncFileOp) error {
-	f, err := fs.openHandle(op.Handle)
+	f, nd, err := fs.openHandleNode(op.Handle)
 	if err != nil {
 		return err
 	}
 
-	return fs.update(ctx, f)
+	return fs.update(ctx, f, nd)
 }
 
 // FlushFile yields file updates on a locally cached file.
@@ -437,12 +439,12 @@ func (fs *Filesystem) FlushFile(ctx context.Context, op *fuseops.FlushFileOp) er
 		return nil
 	}
 
-	f, err := fs.openHandle(op.Handle)
+	f, nd, err := fs.openHandleNode(op.Handle)
 	if err != nil {
 		return err
 	}
 
-	return fs.update(ctx, f)
+	return fs.update(ctx, f, nd)
 }
 
 // ReleaseFileHandle releases file handle. It does not return errors even if it
@@ -450,7 +452,6 @@ func (fs *Filesystem) FlushFile(ctx context.Context, op *fuseops.FlushFileOp) er
 //
 // Required for fuse.FileSystem.
 func (fs *Filesystem) ReleaseFileHandle(_ context.Context, op *fuseops.ReleaseFileHandleOp) error {
-	// TODO(rjeczalik): unlink
 	_ = fs.delHandle(op.Handle)
 	return nil
 }
