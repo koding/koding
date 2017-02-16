@@ -23,7 +23,7 @@ const Version = 1
 
 // Entry group describes values of an Entry.Meta field.
 const (
-	EntryPromiseAdd = iota << 1
+	EntryPromiseAdd = 1 << iota
 	EntryPromiseUpdate
 	EntryPromiseDel
 	EntryPromiseUnlink
@@ -55,9 +55,14 @@ func (e *Entry) Has(meta int32) bool   { return atomic.LoadInt32(&e.Meta)&meta =
 // As it uses multiple atomic ops, it is safe to call only
 // when protected by (*Index).mu.
 func (e *Entry) SwapMeta(set, unset int32) int32 {
-	meta := (atomic.LoadInt32(&e.Meta) | set) &^ unset
-	atomic.StoreInt32(&e.Meta, meta)
-	return meta
+	for {
+		older := atomic.LoadInt32(&e.Meta)
+		updated := (older | set) &^ unset
+
+		if atomic.CompareAndSwapInt32(&e.Meta, older, updated) {
+			return updated
+		}
+	}
 }
 
 // NewEntryFile creates new Entry from a file stored under path argument.
@@ -213,9 +218,12 @@ func (idx *Index) PromiseAdd(path string, entry *Entry) {
 //
 // If the node does not exist or is already marked as deleted, the
 // method is no-op.
-func (idx *Index) PromiseDel(path string) {
+//
+// If node is non-nil, then it's used instead of looking it up
+// by the given path.
+func (idx *Index) PromiseDel(path string, node *Node) {
 	idx.mu.Lock()
-	idx.root.PromiseDel(path)
+	idx.root.PromiseDel(path, node)
 	idx.mu.Unlock()
 }
 
@@ -223,9 +231,12 @@ func (idx *Index) PromiseDel(path string) {
 //
 // If the node does not exist or is already marked as unlinked,
 // the method is a no-op.
-func (idx *Index) PromiseUnlink(path string) {
+//
+// If node is non-nil, then it's used instead of looking it up
+// by the given path.
+func (idx *Index) PromiseUnlink(path string, node *Node) {
 	idx.mu.Lock()
-	idx.root.PromiseUnlink(path)
+	idx.root.PromiseUnlink(path, node)
 	idx.mu.Unlock()
 }
 
@@ -473,7 +484,7 @@ func (idx *Index) DebugString() string {
 	}
 
 	idx.mu.RLock()
-	idx.root.ForEach(fn)
+	idx.root.forEach(fn, true)
 	idx.mu.RUnlock()
 
 	paths := make([]string, 0, len(m))
