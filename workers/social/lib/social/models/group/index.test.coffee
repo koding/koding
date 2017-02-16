@@ -159,7 +159,7 @@ runTests = -> describe 'workers.social.group.index', ->
           async.series queue, done
 
 
-  describe.only '#destroy()', ->
+  describe '#destroy()', ->
 
     describe 'create a team', ->
       group = {}

@@ -1592,6 +1592,9 @@ module.exports = class JGroup extends Module
     slug = @getAt 'slug'
     errors = []
 
+    if slug in ['koding', 'guest']
+      return callback new KodingError "You can't delete this team"
+
     kallback = (label, next, err) ->
 
       errors.push { label, err }  if err
@@ -1647,7 +1650,7 @@ module.exports = class JGroup extends Module
         url = '/api/social/payment/subscription/delete'
         { deleteReq } = require '../socialapi/requests'
         { sessionToken } = client
-        console.log 'sessionToken ', sessionToken
+
         deleteReq url, { sessionToken }, (err, body) ->
           if err?.description is 'not admin of the group'
             console.log "[GROUP_DESTROY_FAILED] for #{slug} please notify Admins"
