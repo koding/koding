@@ -106,7 +106,13 @@ module.exports = class StackEditor extends kd.View
           view      : @controllers.credentials.getView()
           controls  :
             plus    : =>
-              @controllers.credentials.getCredentialAddButton()
+              { listController } = @controllers.credentials
+              listController._createAddCredentialMenuButton
+                cssClass : 'plus'
+                diff     :
+                  x      : -93
+                  y      : 12
+
         docs        :
           title     : 'API Docs'
           cssClass  : 'docs show-controls has-markdown'

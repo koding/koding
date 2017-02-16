@@ -6,7 +6,7 @@ JView = require 'app/jview'
 Events = require '../events'
 BaseController = require './base'
 
-StackCredentialListController = require './credentialslistcontroller'
+CredentialsListController = require './credentialslistcontroller'
 
 
 module.exports = class CredentialsController extends BaseController
@@ -16,7 +16,7 @@ module.exports = class CredentialsController extends BaseController
 
     super options, data
 
-    @listController = new StackCredentialListController
+    @listController = new CredentialsListController
 
     @listController.on [
       Events.CredentialListUpdated
@@ -122,12 +122,3 @@ module.exports = class CredentialsController extends BaseController
       @logs.add 'Stack template updated successfully!'
       @emit Events.TemplateDataChanged, updatedTemplate
       callback null
-
-
-  getCredentialAddButton: ->
-
-    @listController._createAddCredentialMenuButton
-      cssClass : 'plus'
-      diff     :
-        x      : -93
-        y      : 12

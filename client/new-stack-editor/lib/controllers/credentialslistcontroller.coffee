@@ -8,7 +8,7 @@ AccountCredentialList           = require 'app/views/credentiallist/accountcrede
 AccountCredentialListController = require 'app/views/credentiallist/accountcredentiallistcontroller'
 
 
-module.exports = class StackCredentialListController extends AccountCredentialListController
+module.exports = class CredentialsListController extends AccountCredentialListController
 
 
   constructor: (options = {}, data) ->
