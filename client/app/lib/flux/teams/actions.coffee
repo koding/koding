@@ -18,6 +18,7 @@ KodingKontrol = require 'app/kite/kodingkontrol'
 globals = require 'globals'
 showError = require 'app/util/showError'
 DeleteTeamOverlay = require 'app/components/deleteteamoverlay'
+verifyPassword = require 'app/util/verifyPassword'
 
 loadTeam = ->
 
@@ -280,26 +281,19 @@ leaveTeam = (partial) ->
 
   new Promise (resolve, reject) ->
     new VerifyPasswordModal 'Confirm', partial, (currentPassword) ->
+      verifyPassword currentPassword, (err) ->
+        return reject err  if err
 
-      whoami().fetchEmail (err, email) ->
-        options = { password: currentPassword, email }
-        remote.api.JUser.verifyPassword options, (err, confirmed) ->
+        { groupsController, reactor } = kd.singletons
+        team = groupsController.getCurrentGroup()
 
-          return reject err.message  if err
-          return reject 'Current password cannot be confirmed'  unless confirmed
+        team.leave { password: currentPassword }, (err) ->
+          if err
+            return new kd.NotificationView { title : err.message }
 
-          resolve confirmed
-
-          { groupsController, reactor } = kd.singletons
-          team = groupsController.getCurrentGroup()
-
-          team.leave { password: currentPassword }, (err) ->
-            if err
-              return new kd.NotificationView { title : err.message }
-
-            Tracker.track Tracker.USER_LEFT_TEAM
-            kookies.expire 'clientId'
-            global.location.replace '/'
+          Tracker.track Tracker.USER_LEFT_TEAM
+          kookies.expire 'clientId'
+          global.location.replace '/'
 
 
 deleteTeam = (partial) ->
