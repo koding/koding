@@ -219,14 +219,13 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) error {
 		Mode: oldDir.Entry.Mode,
 	}
 
-	id := fuseops.InodeID(atomic.LoadUint64(&oldNd.Entry.Aux))
+	id := fuseops.InodeID(atomic.LoadUint64(&oldNd.Entry.Inode))
 
 	fs.mu.Lock()
 	delete(fs.inodes, id)
 	id = fs.add(newPath)
+	atomic.StoreUint64(&entry.Inode, uint64(id))
 	fs.mu.Unlock()
-
-	entry.Aux = uint64(id)
 
 	fs.Remote.PromiseDel(oldPath)
 	fs.Remote.PromiseAdd(newPath, entry)
