@@ -1,4 +1,8 @@
 {
+  "Concurrency": 16,
+  "Fast": true,
+  "EnableGC": true,
+  "Deadline": "60s",
   "DisableAll": true,
   "Enable": [
     "deadcode",
@@ -7,9 +11,5 @@
     "gosimple",
     "misspell",
     "unconvert"
-  ],
-  "Concurrency": 16,
-  "Fast": true,
-  "EnableGC": true,
-  "Deadline": "60s"
+  ]
 }
