@@ -149,12 +149,9 @@ module.exports = class ComputeControllerUI
 
         selectOptions.push { field, values }
 
-    saveButtonTitle = 'Save'
-    saveButtonTitle = 'Save This & Continue'  if noCredFound
-
     buttons      =
       Save       :
-        title    : saveButtonTitle
+        title    : 'Save'
         type     : 'submit'
         style    : 'solid primary green compact save-btn'
         loader   : { color : '#444444' }
@@ -195,7 +192,7 @@ module.exports = class ComputeControllerUI
 
     kiteQueryPath = new kd.View
       cssClass : 'formline help-line'
-      partial : "<a href='https://www.koding.com/docs/creating-a-vagrant-stack'>Where do I get my Kite Query Path?</a>"
+      partial : "<a href='https://www.koding.com/docs/creating-a-vagrant-stack'>Where do I get my Kite Query ID?</a>"
 
     form = new KDFormViewWithFields
       cssClass     : 'form-view'

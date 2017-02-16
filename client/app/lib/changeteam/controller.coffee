@@ -27,6 +27,7 @@ module.exports = class ChangeTeamController extends KodingListController
         groups.unshift currentGroup
 
         callback null, groups
+
     options.noItemFoundWidget = new kd.CustomHTMLView
       tagName  : 'p'
       cssClass : 'no-item-found'

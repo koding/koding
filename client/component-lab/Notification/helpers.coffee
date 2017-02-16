@@ -1,6 +1,8 @@
+
 class Timer
 
-  constructor: (callback, delay) ->
+
+  constructor: (callback, delay = 0) ->
 
     @callback = callback
     @delay = delay
@@ -9,22 +11,22 @@ class Timer
     @remaining = delay
     @resume()
 
-  @pause = ->
+  pause: ->
 
     clearTimeout @timerId
     @remaining -= new Date - @start
 
 
-  @resume = ->
+  resume: ->
 
     @start = new Date
     clearTimeout @timerId
-    @timerId = setTimeout(@callback, @remaining)
+    @timerId = setTimeout @callback, @remaining
 
 
-  @clear = ->
-
+  clear: ->
     clearTimeout @timerId
+
 
 validateProps = (notification, types) ->
 

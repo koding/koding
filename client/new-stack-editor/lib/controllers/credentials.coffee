@@ -1,9 +1,12 @@
+debug = (require 'debug') 'nse:controller:credentials'
+
 kd = require 'kd'
+_ = require 'lodash'
 JView = require 'app/jview'
 Events = require '../events'
 BaseController = require './base'
 
-StackCredentialListController = require './credentialslistcontroller'
+CredentialsListController = require './credentialslistcontroller'
 
 
 module.exports = class CredentialsController extends BaseController
@@ -13,28 +16,53 @@ module.exports = class CredentialsController extends BaseController
 
     super options, data
 
-    @listController = new StackCredentialListController
+    @listController = new CredentialsListController
 
     @listController.on [
       Events.CredentialListUpdated
       Events.CredentialChangesRevertRequested
     ], @bound 'updateCredentialSelections'
 
-    @listController.on Events.CredentialChangesSaveRequested, \
-      @bound 'handleSaveChanges'
+    @listController.on Events.CredentialChangesSaveRequested, => @save()
 
     @list = @listController.getListView()
-    @list.on Events.CredentialSelectionChanged, =>
+    @list.on Events.CredentialSelectionChanged, (item, state) =>
+
+      debug 'credential selection changed', item, state
 
       if @isSelectionChanged()
-      then @list.setClass 'has-change'
-      else @list.unsetClass 'has-change'
+        @list.setClass 'has-change'
+        debug 'has changes in list'
+      else
+        @list.unsetClass 'has-change'
+        debug 'nothing has changed in list'
 
 
   getView: -> @listController.getView()
 
 
-  setData: (stackTemplate, internal = no) ->
+  check: (callback) ->
+
+    stackTemplate = @getData()
+    selectedCredentials = @getSelectedCredentials()
+    templateCredentials = stackTemplate.getCredentialProviders()
+
+    if @isSelectionChanged() and _.size selectedCredentials
+      @save selectedCredentials, callback
+    else if templateCredentials.length is 0
+      @emit Events.WarnUser, {
+        message : 'Credentials missing, you need to provide a credential first.'
+        action  :
+          title : 'Select'
+          event : Events.ShowSideView
+          args  : [ 'credentials' ]
+      }
+      callback 'Missing Credentials'
+    else
+      callback null
+
+
+  setData: (stackTemplate) ->
 
     super stackTemplate
 
@@ -75,19 +103,27 @@ module.exports = class CredentialsController extends BaseController
     return credentials
 
 
-  handleSaveChanges: ->
+  save: (credentials, callback) ->
 
-    credentials   = @getSelectedCredentials()
+    [credentials, callback] = [callback, credentials]  unless callback
+    callback ?= kd.noop
+
+    unless @isSelectionChanged()
+      return callback null
+
+    credentials  ?= @getSelectedCredentials()
     stackTemplate = @getData()
 
+    if customVariables = stackTemplate.credentials.custom
+      credentials.custom = customVariables
+
     stackTemplate.update { credentials }, (err, updatedTemplate) =>
-      return @logs.handleError err  if err
+
+      if err
+        callback err
+        @logs.handleError err
+        return
 
       @logs.add 'Stack template updated successfully!'
-      @setData updatedTemplate, internal = yes
-
-
-  getCredentialAddButton: ->
-
-    @listController._createAddCredentialMenuButton
-      cssClass : 'plus'
+      @emit Events.TemplateDataChanged, updatedTemplate
+      callback null

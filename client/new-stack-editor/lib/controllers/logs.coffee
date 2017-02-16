@@ -1,3 +1,5 @@
+debug = (require 'debug') 'nse:controller:logs'
+
 kd = require 'kd'
 
 BaseController = require './base'
@@ -21,7 +23,14 @@ module.exports = class LogsController extends BaseController
 
     content = stringify content
     content = "[#{dateFormat Date.now(), 'HH:MM:ss'}] #{content}"
+
     @editor.addContent content
+    debug 'log', content
+
+    # if log content ends with ... show loading indicator automagically
+    if content[content.length - 3..] is '...'
+    then @editor.startLoading()
+    else @editor.stopLoading()
 
     return this
 

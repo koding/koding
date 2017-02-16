@@ -1,3 +1,5 @@
+debug   = (require 'debug') 'kitelogger'
+
 kd      = require 'kd'
 globals = require 'globals'
 
@@ -14,8 +16,8 @@ module.exports = class KiteLogger
     # for all the kite calls from client side ~ GG
     #
     key = "#{kiteName}.#{rpcCall}"
-    kd.info  "[KITELOGGER][#{state}]", key, args
-    kd.error "[KITELOGGER][#{state}]", err  if err
+    debug "#{state}", key, args
+    debug "#{state} failed", err  if err
 
     key = "#{kiteName}.#{rpcCall}:#{state}"
 

@@ -29,11 +29,11 @@ setStackTemplateCredential = (options, callback) ->
 createAndUpdate = (options, callback) ->
 
   { provider, title, meta, stackTemplate } = options
+
+  if not meta or (Object.keys meta).length is 1
+    return callback null
+
   { JCredential } = remote.api
-
-  if not meta or (Object.keys meta).length is 0
-    return callback null, stackTemplate
-
   JCredential.create { provider, title, meta }, (err, credential) ->
     return callback err  if err
 
@@ -59,8 +59,8 @@ module.exports = updateCustomVariable = (options, callback) ->
         createAndUpdate { provider, title, meta, stackTemplate }, callback
       else
         credential.update { meta, title }, (err) ->
-          shareWithGroup credential, ->
-            callback err, stackTemplate
+          return callback err  if err
+          shareWithGroup credential, callback
 
   else
     createAndUpdate { provider, title, meta, stackTemplate }, callback
