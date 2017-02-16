@@ -1218,7 +1218,7 @@ func DeleteChannelsIfGroupNotInMongo() error {
 		// This check provide us to break the loop if there is no data left that need
 		// to be processed fetch tolerance is limit/2, if fetched channels count is
 		// less than limited number then break the loop.
-		if len(channels) < (limit / 2) {
+		if len(channels) < limit {
 			break
 		}
 	}
