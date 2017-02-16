@@ -125,8 +125,8 @@ func (nd *Node) PromiseAdd(path string, entry *Entry) {
 		newE.Mode = entry.Mode
 	}
 
-	if entry.Aux != 0 {
-		newE.Aux = entry.Aux
+	if entry.Inode != 0 {
+		newE.Inode = entry.Inode
 	}
 
 	nd.Add(path, newE)

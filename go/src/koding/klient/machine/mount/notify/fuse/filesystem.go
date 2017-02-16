@@ -221,7 +221,7 @@ func (fs *Filesystem) addHandle(f *os.File) (id fuseops.HandleID) {
 
 func (fs *Filesystem) lookupInodeID(dir, base string, entry *index.Entry) (id fuseops.InodeID) {
 	// Fast path - check if InodeID was already associated with index node.
-	if id = fuseops.InodeID(atomic.LoadUint64(&entry.Aux)); id != 0 {
+	if id = fuseops.InodeID(atomic.LoadUint64(&entry.Inode)); id != 0 {
 		return id
 	}
 
@@ -229,7 +229,7 @@ func (fs *Filesystem) lookupInodeID(dir, base string, entry *index.Entry) (id fu
 
 	fs.mu.Lock()
 	id = fs.add(path)
-	atomic.StoreUint64(&entry.Aux, uint64(id))
+	atomic.StoreUint64(&entry.Inode, uint64(id))
 	fs.mu.Unlock()
 
 	return id
@@ -356,9 +356,8 @@ func (fs *Filesystem) mkdir(path string, mode os.FileMode) (id fuseops.InodeID, 
 
 	fs.mu.Lock()
 	id = fs.add(path)
+	atomic.StoreUint64(&entry.Inode, uint64(id))
 	fs.mu.Unlock()
-
-	entry.Aux = uint64(id)
 
 	fs.Remote.PromiseAdd(path, entry)
 
@@ -392,9 +391,8 @@ func (fs *Filesystem) mkfile(path string, mode os.FileMode) (id fuseops.InodeID,
 	fs.mu.Lock()
 	id = fs.add(path)
 	h = fs.addHandle(f)
+	atomic.StoreUint64(&entry.Inode, uint64(id))
 	fs.mu.Unlock()
-
-	entry.Aux = uint64(id)
 
 	fs.Remote.PromiseAdd(path, entry)
 
@@ -422,7 +420,7 @@ func (fs *Filesystem) move(ctx stdcontext.Context, oldpath, newpath string) erro
 
 func (fs *Filesystem) rm(nd *index.Node, path string) error {
 	fs.Remote.PromiseDel(path)
-	atomic.StoreUint64(&nd.Entry.Aux, 0)
+	atomic.StoreUint64(&nd.Entry.Inode, 0)
 
 	err := os.Remove(fs.path(path))
 	if os.IsNotExist(err) {
