@@ -150,3 +150,10 @@ stages:
         command: |
           service dnsmasq start
           echo nameserver 127.0.0.1 > /etc/resolv.conf
+
+      - type: shell
+        name: run
+        command: |
+          ./run exec supervisord -c supervisord.conf
+          nginx -c $(pwd)/nginx.conf
+          ./run health-check 30 600
