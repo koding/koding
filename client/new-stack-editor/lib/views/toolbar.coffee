@@ -45,16 +45,22 @@ module.exports = class Toolbar extends JView
       callback : => @unsetClass 'has-warning'
 
 
-  handleWarnings: (warning, actionEvent, rest...) ->
+  handleWarnings: (options) ->
 
-    debug 'handling warnings', warning, actionEvent
+    { message, action } = options
+
+    debug 'handling warnings', message, action
     @setClass 'has-warning'
-    @message.updatePartial warning
+    @message.updatePartial message
 
-    if actionEvent
-      @messageButton.setCallback =>
-        @unsetClass 'has-warning'
-        @emit Events.ToolbarAction, actionEvent, rest...
+    if action
+      if typeof action is 'function'
+        @messageButton.setCallback action
+      else if actionEvent = action.event
+        @messageButton.setCallback =>
+          @unsetClass 'has-warning'
+          @emit Events.ToolbarAction, actionEvent, (action.args ? [])...
+      @messageButton.setTitle action.title ? 'Fix'
       @messageButton.show()
     else
       @messageButton.hide()

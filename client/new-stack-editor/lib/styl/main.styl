@@ -83,6 +83,11 @@ $stack-border-width         = 2px
     h3
       display               inline-block
       margin-left           10px
+      max-width             calc(100% - 320px)
+      text-overflow         ellipsis
+      overflow              hidden
+      white-space           nowrap
+      vertical-align        middle
 
     cite.stack
       fa                    server
@@ -99,6 +104,10 @@ $stack-border-width         = 2px
       cursor                pointer
       display               inline-block
       width                 auto
+      max-width             70px
+      text-overflow         ellipsis
+      overflow              hidden
+      white-space           nowrap
 
       &.level
         background          #727272
@@ -127,6 +136,10 @@ $stack-border-width         = 2px
       .message
         width               auto
         color               #fff
+        max-width           calc(100% - 140px)
+        text-overflow       ellipsis
+        overflow            hidden
+        white-space         nowrap
         fl()
 
       .message-button
@@ -178,8 +191,6 @@ $stack-border-width         = 2px
 
     h3
       margin-right          12px
-
-    h3
       fl()
 
   .logs
