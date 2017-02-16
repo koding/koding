@@ -481,6 +481,18 @@ func (fs *Filesystem) openHandle(id fuseops.HandleID) (*os.File, error) {
 	return f, nil
 }
 
+func trimRightNull(p []byte) []byte {
+	for i := len(p) - 1; i >= 0; i-- {
+		if p[i] != 0 {
+			break
+		}
+
+		p = p[:i]
+	}
+
+	return p
+}
+
 func direntType(entry *index.Entry) fuseutil.DirentType {
 	if isdir(entry) {
 		return fuseutil.DT_Directory

@@ -113,7 +113,7 @@ func (bc *BindCache) process() {
 			base := change.Path()
 
 			if filepath.IsAbs(base) {
-				if base, err = filepath.Rel(bc.loc, base); err != nil {
+				if base, err = filepath.Rel(bc.tmp, base); err != nil {
 					log.Printf("BindCache: failed to preprare files for sync: %s", err)
 				}
 			}
