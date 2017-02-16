@@ -76,6 +76,17 @@ module.exports = (KONFIG, options, credentials) ->
       healthCheckURLs   : [ "http://localhost:#{KONFIG.kontrol.port}/healthCheck" ]
       versionURL        : "http://localhost:#{KONFIG.kontrol.port}/version"
 
+    countly             :
+      group             : "webserver"
+      nginx             :
+        websocket       : yes
+        locations       : [
+          {
+            location    : '/countly/'
+            proxyPass   : "#{credentials.countly.host}"
+          }
+        ]
+
     kloud               :
       group             : 'environment'
       ports             :
