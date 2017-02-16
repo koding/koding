@@ -1,14 +1,15 @@
 kd = require 'kd'
+globals = require 'globals'
 headerize = require '../commons/headerize'
 sectionize = require '../commons/sectionize'
 hasIntegration = require 'app/util/hasIntegration'
-
 HomeAccountEditProfile = require './homeaccounteditprofile'
 HomeAccountChangePassword = require './homeaccountchangepassword'
 HomeAccountSecurityView = require './homeaccountsecurityview'
 HomeAccountIntegrationsView = require './homeaccountintegrationsview'
 HomeAccountSessionsView = require './homeaccountsessionsview'
-
+TeamFlux = require 'app/flux/teams'
+TransferOwnershipButton = require './transferownershipbutton'
 
 module.exports = class HomeAccount extends kd.CustomScrollView
 
@@ -38,6 +39,25 @@ module.exports = class HomeAccount extends kd.CustomScrollView
 
     @wrapper.addSubView headerize 'Sessions'
     @wrapper.addSubView sectionize 'Sessions', HomeAccountSessionsView
+
+    @wrapper.addSubView actionWrapper = new kd.CustomHTMLView
+      cssClass : 'action-wrapper'
+    actionWrapper.addSubView new kd.CustomHTMLView
+      cssClass : 'delete-account'
+      partial : 'DELETE ACCOUNT'
+      click : ->
+        partial = '<p>
+            <strong>CAUTION! </strong>You are going to delete your team. You and your
+            team members will not be able to access this team again.
+            This action <strong>CANNOT</strong> be undone.
+          </p> <br>
+          <p>Please enter <strong>current password</strong> into the field below to continue: </p>'
+
+        TeamFlux.actions.deleteAccount(partial)
+
+    if 'owner' in globals.userRoles
+      team = kd.singletons.groupsController.getCurrentGroup()
+      actionWrapper.addSubView new TransferOwnershipButton {}, team
 
 
   checkIntegrations: ->
