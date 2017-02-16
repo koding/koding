@@ -45,6 +45,8 @@ type Entry struct {
 // access of Entry's fields.
 func (e *Entry) GetInode() uint64      { return atomic.LoadUint64(&e.Inode) }
 func (e *Entry) SetInode(inode uint64) { atomic.StoreUint64(&e.Inode, inode) }
+func (e *Entry) GetSize() int64        { return atomic.LoadInt64(&e.Size) }
+func (e *Entry) SetSize(n int64)       { atomic.StoreInt64(&e.Size, n) }
 func (e *Entry) IncRef() int32         { return atomic.AddInt32(&e.Ref, 1) }
 func (e *Entry) DecRef() int32         { return atomic.AddInt32(&e.Ref, -1) }
 func (e *Entry) Has(meta int32) bool   { return atomic.LoadInt32(&e.Meta)&meta == meta }
