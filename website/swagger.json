@@ -7211,7 +7211,7 @@
         "consumes": [
           "application/json"
         ],
-        "description": "",
+        "description": "Method JGroup.destroy",
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
