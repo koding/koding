@@ -388,6 +388,7 @@ func (fs *Filesystem) ReadFile(ctx context.Context, op *fuseops.ReadFileOp) erro
 	if err == io.EOF {
 		err = nil // ignore io.EOF errors
 	}
+
 	return err
 }
 
@@ -400,7 +401,7 @@ func (fs *Filesystem) WriteFile(ctx context.Context, op *fuseops.WriteFileOp) er
 		return err
 	}
 
-	if _, err = f.WriteAt(op.Data, op.Offset); err != nil {
+	if _, err = f.WriteAt(trimRightNull(op.Data), op.Offset); err != nil {
 		return err
 	}
 
