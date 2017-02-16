@@ -75,7 +75,7 @@ func TestPresenceDailyVerifyRecord(t *testing.T) {
 		groupName1 := models.RandomGroupName()
 		Convey("With given presence data", t, func() {
 
-			Convey("should work properly with non existant data", func() {
+			Convey("should work properly with non existent data", func() {
 				today := time.Now().UTC()
 				ping := &Ping{
 					AccountID:     1, // non existing user
@@ -152,7 +152,7 @@ func TestPresenceDailyPing(t *testing.T) {
 		groupName1 := models.RandomGroupName()
 		Convey("With given presence data", t, func() {
 
-			Convey("should work properly with non existant data", func() {
+			Convey("should work properly with non existent data", func() {
 				today := time.Now().UTC()
 				ping := &Ping{
 					AccountID:     1, // non existing user

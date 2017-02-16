@@ -12,7 +12,7 @@ import (
 	konfig "koding/klient/config"
 )
 
-// StatusError describes a HTTP reponse error.
+// StatusError describes a HTTP response error.
 type StatusError struct {
 	StatusCode int
 }

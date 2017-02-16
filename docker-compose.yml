@@ -17,6 +17,7 @@ services:
       - postgres
       - rabbitmq
       - redis
+      - countly
 
   client:
     image: koding/base
@@ -37,11 +38,14 @@ services:
       - .:/opt/koding
 
   mongo:
-    image: mongo:2.6
+    image: mongo:3.2.8
     command: --nojournal --noprealloc --smallfiles
 
   postgres:
     image: koding/postgres
+
+  countly:
+    image: countly/countly-server:16.06
 
   rabbitmq:
     image: rabbitmq:3-management

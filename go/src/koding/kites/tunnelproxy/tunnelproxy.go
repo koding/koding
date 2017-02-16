@@ -276,12 +276,6 @@ type callbacks struct {
 	m  map[string][]func() error
 }
 
-func newCallbacks() *callbacks {
-	return &callbacks{
-		m: make(map[string][]func() error),
-	}
-}
-
 func (c *callbacks) add(ident string, fn func() error) {
 	c.mu.Lock()
 	c.m[ident] = append(c.m[ident], fn)

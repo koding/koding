@@ -49,7 +49,7 @@ func NewPostRemoteAPIComputeProviderRemoveOK() *PostRemoteAPIComputeProviderRemo
 
 /*PostRemoteAPIComputeProviderRemoveOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIComputeProviderRemoveOK struct {
 	Payload *models.DefaultResponse

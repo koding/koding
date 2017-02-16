@@ -8,7 +8,6 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"strconv"
-	"time"
 
 	"github.com/google/go-querystring/query"
 )
@@ -137,15 +136,6 @@ func DeleteChannel(creatorId, channelId int64) error {
 		return err
 	}
 	return nil
-}
-
-// buildChannelWithRandomGroup creates a channel with group name "koding[randonnumber]"
-func buildChannelWithRandomGroup(creatorId int64) *models.Channel {
-	c := models.NewChannel()
-	rand.Seed(time.Now().UnixNano())
-	c.GroupName = c.GroupName + strconv.Itoa(rand.Intn(100000000))
-
-	return c
 }
 
 func CreateChannelByGroupNameAndType(creatorId int64, groupName, typeConstant, token string) (*models.Channel, error) {

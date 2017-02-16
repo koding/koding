@@ -9,24 +9,6 @@ import (
 	"koding/kites/kloud/stack/provider"
 )
 
-// validRegions shows the valid DigitalOcean regions can be obtained via:
-// https://developers.digitalocean.com/documentation/v2/#list-all-regions
-var validRegions = []string{
-	"ams1",
-	"ams2",
-	"ams3",
-	"blr1",
-	"fra1",
-	"lon1",
-	"nyc1",
-	"nyc2",
-	"nyc3",
-	"sfo1",
-	"sfo2",
-	"sgp1",
-	"tor1",
-}
-
 // Credential stores the necessary credentials needed to interact with
 // DigitalOcean API
 type Credential struct {

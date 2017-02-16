@@ -130,7 +130,7 @@ func (c *Controller) Ping(ping *models.Ping) error {
 		return c.EndSession(ping)
 	}
 
-	err = c.wait(ping) // wait syncronously
+	err = c.wait(ping) // wait synchronously
 	if err != nil && err != errSessionInvalid {
 		c.log.Error("err while waiting %+v", err)
 		return err

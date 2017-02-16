@@ -220,7 +220,7 @@ func (c *HealthChecker) LocalRequirements() error {
 		)}
 	}
 
-	// TODO: Identify varing Dial errors to produce meaningful health
+	// TODO: Identify varying Dial errors to produce meaningful health
 	// responses.
 	if err = k.Dial(); err != nil {
 		return ErrHealthDialFailed{Message: fmt.Sprintf(

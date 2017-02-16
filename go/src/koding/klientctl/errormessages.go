@@ -55,12 +55,6 @@ the following command to start it:
 		config.Name, retryNewCode,
 	)
 
-	// FailedVerifyingInstall is used when verifying the install fails.
-	FailedVerifyingInstall = fmt.Sprintf(
-		"Error: Unable to verify the installation of %s.\n%s",
-		config.Name, retryNewCode,
-	)
-
 	// FailedStartKlient is used when starting klient fails.
 	FailedStartKlient = fmt.Sprintf(
 		"Error: Failed to start the %s within the expected time.\n", config.KlientName,
@@ -90,10 +84,6 @@ Please wait a few minutes and try again.`,
 		config.Name,
 	)
 
-	// CannotMountDirNotExist is used when the user chooses not to make the dir on
-	// mount. Can't mount to something that doesn't exist.
-	CannotMountDirNotExist = "Error: Cannot mount a directory that does not exist, exiting..."
-
 	// CannotMountPathExists is used when the user provides a path that already
 	// exists.
 	CannotMountPathExists = "Error: given path already exists. Please remove and try again."
@@ -105,12 +95,6 @@ Please wait a few minutes and try again.`,
 	//
 	// TODO: Write meaningful message.
 	CannotMountUnableToOpenPath = "Error: Unable to open the given path"
-
-	// FailedToCreateMountDir is used when the user chose to create the dir, but it
-	// failed for some reason.
-	FailedToCreateMountDir = fmt.Sprintf(
-		"Error: Failed to create the given mount directory.\n",
-	)
 
 	// FailedToMount is a generic failed to mount error.
 	FailedToMount = fmt.Sprintf(

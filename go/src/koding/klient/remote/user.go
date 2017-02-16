@@ -4,13 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"koding/klient/remote/req"
-	"os/user"
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
 )
-
-var currentLookup = user.Current
 
 // CurrentUsername is the remote variant of klient's os.currentUsername method,
 // requesting the currentUsername from the remote machine.

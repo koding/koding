@@ -49,7 +49,7 @@ func NewPostRemoteAPIJSnapshotSomeOK() *PostRemoteAPIJSnapshotSomeOK {
 
 /*PostRemoteAPIJSnapshotSomeOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJSnapshotSomeOK struct {
 	Payload *models.DefaultResponse

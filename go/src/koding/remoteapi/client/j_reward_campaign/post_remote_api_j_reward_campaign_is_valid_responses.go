@@ -49,7 +49,7 @@ func NewPostRemoteAPIJRewardCampaignIsValidOK() *PostRemoteAPIJRewardCampaignIsV
 
 /*PostRemoteAPIJRewardCampaignIsValidOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJRewardCampaignIsValidOK struct {
 	Payload *models.DefaultResponse

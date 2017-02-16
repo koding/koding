@@ -49,7 +49,7 @@ func NewPostRemoteAPIJUserFetchUserOK() *PostRemoteAPIJUserFetchUserOK {
 
 /*PostRemoteAPIJUserFetchUserOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJUserFetchUserOK struct {
 	Payload *models.DefaultResponse

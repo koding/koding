@@ -91,7 +91,7 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 	}
 
 	// assign client request id back to message response because
-	// client uses it for latency compansation
+	// client uses it for latency compensation
 	cmc.Message.ClientRequestId = req.ClientRequestId
 	return response.HandleResultAndError(cmc, err)
 }
@@ -254,7 +254,7 @@ func Delete(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, h
 		}
 
 		// delete the message here
-		err = cm.DeleteMessageAndDependencies(false)
+		cm.DeleteMessageAndDependencies(false)
 		// then invalidate the cache of the parent message
 		bongo.B.AddToCache(parent)
 

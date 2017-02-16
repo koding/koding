@@ -9,7 +9,8 @@ import (
 )
 
 func args() []string {
-	var arg, args = "", os.Args
+	var arg string
+	var args = os.Args
 
 	for len(args) > 0 {
 		arg, args = args[0], args[1:]

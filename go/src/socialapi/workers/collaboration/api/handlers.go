@@ -22,7 +22,7 @@ type CacheStore struct {
 
 // Ping handles the pings coming from client side
 //
-// TOOD add throttling here
+// TODO add throttling here
 func (mgoCache *CacheStore) Ping(u *url.URL, h http.Header, req *models.Ping, context *apimodels.Context) (int, http.Header, interface{}, error) {
 	if err := validateOperation(req, context); err != nil {
 		return response.NewBadRequest(err)

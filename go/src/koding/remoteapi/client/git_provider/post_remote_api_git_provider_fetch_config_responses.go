@@ -49,7 +49,7 @@ func NewPostRemoteAPIGitProviderFetchConfigOK() *PostRemoteAPIGitProviderFetchCo
 
 /*PostRemoteAPIGitProviderFetchConfigOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIGitProviderFetchConfigOK struct {
 	Payload *models.DefaultResponse

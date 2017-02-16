@@ -49,7 +49,7 @@ func NewPostRemoteAPIComputeProviderFetchAvailableOK() *PostRemoteAPIComputeProv
 
 /*PostRemoteAPIComputeProviderFetchAvailableOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIComputeProviderFetchAvailableOK struct {
 	Payload *models.DefaultResponse

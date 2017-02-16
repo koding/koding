@@ -49,7 +49,7 @@ func NewPostRemoteAPIComputeProviderUpdateTeamCountersOK() *PostRemoteAPICompute
 
 /*PostRemoteAPIComputeProviderUpdateTeamCountersOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIComputeProviderUpdateTeamCountersOK struct {
 	Payload *models.DefaultResponse

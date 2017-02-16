@@ -118,14 +118,15 @@ npm install # install client dependencies
 make # this will run a client watcher for you
 ```
 
-Right now you should have 2 different watchers for (1) your backend files, 
+Right now you should have 2 different watchers for (1) your backend files,
 (2)for your frontend client files.
 Now you can navigate to [](http://localhost:8090) to see your local Koding
 instance. Enjoy!
 
 ## License
 
-Koding is licensed under [Apache 2.0](https://github.com/koding/koding/blob/master/LICENSE).
+This repository is licensed under [GNU AGPL V3](https://github.com/koding/koding/blob/master/LICENSE)
+Koding Community Edition is licensed under [Apache 2.0](https://github.com/koding-ce/koding)
 
 ## Contribute
 

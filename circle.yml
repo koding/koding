@@ -5,6 +5,15 @@ executorType: docker
 containerInfo:
   - image: koding/base@sha256:c53151cedd1a7cd86a66189742835a761d54f1d23c72422832fac69a0916a176
 
+  - image: mongo:2.6
+    cmd: ["--nojournal", "--noprealloc", "--smallfiles"]
+
+  - image: koding/postgres
+
+  - image: rabbitmq:3
+
+  - image: redis
+
 stages:
 
   build:
@@ -93,3 +102,33 @@ stages:
         paths:
           - go/bin
           - go/pkg
+
+      - type: shell
+        name: check kite configuration
+        command: ./run exec scripts/gotests.sh kites koding/kites/config
+
+      - type: shell
+        name: check generated JSON files
+        command: ./run exec scripts/check-generated-files.sh
+
+      - type: shell
+        name: test kites
+        command: ./run exec go/src/koding/kites/e2etest/e2etest.sh
+
+      - type: shell
+        name: test klient
+        command: ./run exec scripts/test-klient.sh
+
+      - type: shell
+        name: test kd
+        command: ./run exec scripts/test-kd.sh
+
+      - type: shell
+        name: test kontrol
+        command: ./run exec scripts/gotests.sh koding/kites/kontrol/kontrol
+
+      - type: shell
+        name: test kloud
+        command: ./run exec scripts/gotests.sh kites \
+          koding/kites/kloud/provider/... koding/kites/kloud/credential/... \
+          koding/kites/kloud/stack/... koding/kites/kloud/kloud/...

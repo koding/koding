@@ -70,7 +70,7 @@ func (e *InstanceEntry) decode() {
 	e.Tags = NewTagsFromRefs(e.TagReferences)
 }
 
-// Instances is a conveniance type for a list of instances that supports
+// Instances is a convenience type for a list of instances that supports
 // filtering.
 type Instances []*Instance
 
@@ -137,7 +137,7 @@ func (i Instances) Len() int           { return len(i) }
 func (i Instances) Less(j, k int) bool { return i[j].CreateDate.After(i[k].CreateDate) }
 func (i Instances) Swap(j, k int)      { i[j], i[k] = i[k], i[j] }
 
-// InstanceEntries is a conveniance type for a list of instance entries
+// InstanceEntries is a convenience type for a list of instance entries
 // that support filtering.
 type InstanceEntries []*InstanceEntry
 

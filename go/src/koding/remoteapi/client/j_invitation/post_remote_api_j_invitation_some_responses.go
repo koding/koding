@@ -49,7 +49,7 @@ func NewPostRemoteAPIJInvitationSomeOK() *PostRemoteAPIJInvitationSomeOK {
 
 /*PostRemoteAPIJInvitationSomeOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJInvitationSomeOK struct {
 	Payload *models.DefaultResponse

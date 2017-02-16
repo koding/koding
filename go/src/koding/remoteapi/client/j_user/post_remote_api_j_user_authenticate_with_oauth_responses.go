@@ -49,7 +49,7 @@ func NewPostRemoteAPIJUserAuthenticateWithOauthOK() *PostRemoteAPIJUserAuthentic
 
 /*PostRemoteAPIJUserAuthenticateWithOauthOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJUserAuthenticateWithOauthOK struct {
 	Payload *models.DefaultResponse

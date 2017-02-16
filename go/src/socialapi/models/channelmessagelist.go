@@ -287,7 +287,7 @@ func (c *ChannelMessageList) FetchMessageIdsByChannelId(channelId int64, q *requ
 	return messageIds, nil
 }
 
-// seperate this fucntion into modelhelper
+// separate this function into modelhelper
 // as setting it to a variadic function
 func (c *ChannelMessageList) DeleteMessagesBySelector(selector map[string]interface{}) error {
 	var cmls []ChannelMessageList

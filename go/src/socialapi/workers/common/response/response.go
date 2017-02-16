@@ -76,7 +76,7 @@ func NewAccessDenied(err error) (int, http.Header, interface{}, error) {
 	return NewNotFound()
 }
 
-// HandleResultAndError wraps the function calls and get its reponse,
+// HandleResultAndError wraps the function calls and get its response,
 // assuming the second parameter as error checks it if it is null or not
 // if err nor found, returns OK response
 func HandleResultAndError(res interface{}, err error) (int, http.Header, interface{}, error) {

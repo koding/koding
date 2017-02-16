@@ -18,7 +18,6 @@ import (
 	"koding/klientctl/open"
 	"koding/klientctl/remount"
 	"koding/klientctl/repair"
-	"koding/klientctl/sync"
 	"koding/mountcli"
 	"os"
 	"strings"
@@ -157,41 +156,6 @@ func AutocompleteCommandFactory(c *cli.Context, log logging.Logger, cmdName stri
 		return ctlcli.NewErrorCommand(
 			os.Stdout, log, err,
 			"Unable to create autocomplete command",
-		)
-	}
-
-	return cmd
-}
-
-func SyncCommandFactory(c *cli.Context, log logging.Logger, cmdName string) ctlcli.Command {
-	log = log.New(fmt.Sprintf("command:%s", cmdName))
-
-	// Fill our repair options from the CLI. Any empty options are okay, as
-	// the command struct is responsible for verifying valid opts.
-	opts := sync.Options{
-		Debug:         c.Bool("debug") || config.Konfig.Debug,
-		MountName:     c.Args().First(),
-		SyncDirection: c.Args().Get(1), // Get the 2nd arg
-
-		// Used for prefetch
-		SSHDefaultKeyDir:  config.SSHDefaultKeyDir,
-		SSHDefaultKeyName: config.SSHDefaultKeyName,
-	}
-
-	init := sync.Init{
-		Stdout:        os.Stdout,
-		Log:           log,
-		KlientOptions: klient.NewKlientOptions(),
-		Helper:        ctlcli.CommandHelper(c, cmdName),
-		HomeDirGetter: homeDirGetter,
-		HealthChecker: defaultHealthChecker,
-	}
-
-	cmd, err := sync.NewCommand(init, opts)
-	if err != nil {
-		return ctlcli.NewErrorCommand(
-			os.Stdout, log, err,
-			"Unable to create sync command",
 		)
 	}
 

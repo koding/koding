@@ -125,7 +125,7 @@ func ID(kodingURL string) string {
 	}
 	if u, err := url.Parse(kodingURL); err == nil {
 		// Since id is input sensitive we clean the path so "example.com/koding"
-		// "example.com/koding/" are effecitvely the same urls.
+		// "example.com/koding/" are effectively the same urls.
 		u.Path = strings.TrimRight(path.Clean(u.Path), "/")
 		kodingURL = u.String()
 	}
@@ -203,7 +203,7 @@ func (kfg Konfigs) Slice() []*Konfig {
 	return slice
 }
 
-// Enviroment is a hacky workaround for kd <-> klient environments.
+// Environment is a hacky workaround for kd <-> klient environments.
 // The managed klient expects to have kd from production channel,
 // and devmanaged klient - from development. Depending from which
 // app we load the the default Koding configuration, we need

@@ -17,7 +17,7 @@ const (
 	// and was not built once. It's waits to be initialized
 	NotInitialized
 
-	// Building is in progress of creating the machine A successfull Booting
+	// Building is in progress of creating the machine A successful Booting
 	// state results in a Running state.
 	Building
 
@@ -54,7 +54,7 @@ const (
 	// Pending defines the state where the machine is in a work-in-progress
 	// state. A pending state might be a state between two stable states of a
 	// machine such as Stopped and Starting where we resized a disk. A Machine
-	// could be in a pending state when an ongoign maintanance is in progress.
+	// could be in a pending state when an ongoign maintenance is in progress.
 	Pending
 )
 

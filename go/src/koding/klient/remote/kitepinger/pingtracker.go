@@ -37,10 +37,10 @@ type Pinger interface {
 //	Stop()
 //
 //	// Subscribe to *changes* of kitepinger status. Changes occur only if a ping was
-//	// succeeding, and now failed - or if it was failing, and now succedded.
+//	// succeeding, and now failed - or if it was failing, and now succeeded.
 //	Subscribe(chan<- ChangeSummary)
 //
-//	// Unsubscrube from ChangeSummary notifications.
+//	// Unsubscribe from ChangeSummary notifications.
 //	Unsubscribe(chan<- ChangeSummary)
 //
 //	// Get the CurrentSummary of the previous pings.
@@ -165,7 +165,7 @@ func (p *PingTracker) Start() {
 	// pings after this are accurate to the current state (not from an hour ago,
 	// for example)
 	//
-	// Do this on the same goroutine as the caller to avoid any subtle race conditon.
+	// Do this on the same goroutine as the caller to avoid any subtle race condition.
 	p.lastStatus = Unknown
 	p.Ping()
 	go p.startPinging(p.ticker.C)
@@ -180,7 +180,7 @@ func (p *PingTracker) startPinging(c <-chan time.Time) {
 
 		// If the last status was Success, but it was too long ago, the
 		// Kite OS process itself may have been put to sleep. Because of this,
-		// we need to inform the KitePinger user that we have *not* been succesfully
+		// we need to inform the KitePinger user that we have *not* been successfully
 		// pinging the entire time. We do that here.
 		if p.lastStatus == Success && pingedAgo > p.statusExpiration {
 			// Because the old status is invalid, we need to subtract the "invalid time"
@@ -252,7 +252,7 @@ func (p *PingTracker) GetSummary() CurrentSummary {
 }
 
 // Subscribe to *changes* of kitepinger status. Changes occur only if a ping was
-// succeeding, and now failed - or if it was failing, and now succedded.
+// succeeding, and now failed - or if it was failing, and now succeeded.
 //
 // It's worth noting that the given channel is unable to block the KitePinger if
 // it is unable to receive. Any ChangeSummaries not being actively received (ie,

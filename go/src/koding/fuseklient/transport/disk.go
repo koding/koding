@@ -1,7 +1,6 @@
 package transport
 
 import (
-	"errors"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -120,20 +119,6 @@ func (d *DiskTransport) fullPath(path string) string {
 // used when cleaning up responses.
 func (d *DiskTransport) relativePath(path string) string {
 	return strings.TrimPrefix(path, d.DiskPath)
-}
-
-func readFileMarshal(resp map[string]interface{}) (*ReadFileRes, error) {
-	content, ok := resp["content"]
-	if !ok {
-		return nil, errors.New("'content' is not a byte slice")
-	}
-
-	byteContent, ok := content.([]byte)
-	if !ok {
-		return nil, errors.New("no 'content' in response")
-	}
-
-	return &ReadFileRes{Content: byteContent}, nil
 }
 
 ///// COPIED FROM KLIENT. TODO: fix this.

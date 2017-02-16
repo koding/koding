@@ -1,0 +1,11 @@
+{
+  "DisableAll": true,
+  "Enable": [
+    "deadcode",
+    "ineffassign",
+    "structcheck",
+    "gosimple",
+    "misspell",
+    "unconvert"
+  ]
+}

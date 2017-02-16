@@ -342,10 +342,10 @@ func TestCreditCardAuthRetryFail(t *testing.T) {
 				req, err := json.Marshal(cp)
 				tests.ResultedWithNoErrorCheck(req, err)
 
-				res, err := rest.DoRequestWithAuth("POST", endpoint+EndpointCreditCardAuth, req, ses.ClientId)
+				_, err = rest.DoRequestWithAuth("POST", endpoint+EndpointCreditCardAuth, req, ses.ClientId)
 				So(err, ShouldBeNil)
 
-				res, err = rest.DoRequestWithAuth("POST", endpoint+EndpointCreditCardAuth, req, ses.ClientId)
+				res, err := rest.DoRequestWithAuth("POST", endpoint+EndpointCreditCardAuth, req, ses.ClientId)
 				So(err, ShouldNotBeNil)
 				So(res, ShouldBeNil)
 			})

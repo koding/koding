@@ -21,7 +21,7 @@ var (
 	// ErrNoMountName happens when no mount there's mount on given path.
 	ErrNoMountPath = errors.New("No mount found with given path.")
 
-	// folderSeparator is the os specific seperator for dividing folders.
+	// folderSeparator is the os specific separator for dividing folders.
 	folderSeparator = string(filepath.Separator)
 )
 

@@ -61,7 +61,7 @@ func (c *Client) ListTemplates(tf *TemplateFilter) ([]*models.JStackTemplate, er
 	return templates, nil
 }
 
-// DeleteTemplate deletes a tempalte given by the id.
+// DeleteTemplate deletes a template given by the id.
 func (c *Client) DeleteTemplate(id string) error {
 	c.init()
 
@@ -108,7 +108,7 @@ func ListTemplates(tf *TemplateFilter) ([]*models.JStackTemplate, error) {
 	return DefaultClient.ListTemplates(tf)
 }
 
-// DeleteTemplate deletes a tempalte given by the id.
+// DeleteTemplate deletes a template given by the id.
 //
 // The functions uses DefaultClient.
 func DeleteTemplate(id string) error {

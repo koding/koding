@@ -66,7 +66,7 @@ func (k *Kloud) NewEventer(id string) eventer.Eventer {
 	k.mu.Lock()
 	defer k.mu.Unlock()
 
-	ev, ok := k.Eventers[id]
+	_, ok := k.Eventers[id]
 	if ok {
 		// for now we delete old events, but in the future we might store them
 		// in the db for history/logging.
@@ -74,7 +74,7 @@ func (k *Kloud) NewEventer(id string) eventer.Eventer {
 		delete(k.Eventers, id)
 	}
 
-	ev = eventer.New(id)
+	ev := eventer.New(id)
 	k.Eventers[id] = ev
 	return ev
 }

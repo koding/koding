@@ -49,7 +49,7 @@ func NewPostRemoteAPIComputeProviderUpdateOK() *PostRemoteAPIComputeProviderUpda
 
 /*PostRemoteAPIComputeProviderUpdateOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIComputeProviderUpdateOK struct {
 	Payload *models.DefaultResponse

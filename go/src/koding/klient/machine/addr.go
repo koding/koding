@@ -128,9 +128,9 @@ func (ab *AddrBook) Latest(network string) (Addr, error) {
 	ab.mu.RLock()
 	defer ab.mu.RUnlock()
 
-	t, addr, timeok := time.Time{}, (*Addr)(nil), false
+	t, addr := time.Time{}, (*Addr)(nil)
 	for i := range ab.addrs {
-		timeok = !ab.addrs[i].UpdatedAt.Before(t)
+		timeok := !ab.addrs[i].UpdatedAt.Before(t)
 		if network == ab.addrs[i].Network && timeok {
 			addr = &ab.addrs[i]
 			t = ab.addrs[i].UpdatedAt

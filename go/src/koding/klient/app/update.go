@@ -150,7 +150,7 @@ func (u *Updater) updateBinary(url string, latest *version.Version) error {
 	// we need to call it here now too, because syscall.Exec will prevent to
 	// call the defer that we've defined in the beginning.
 
-	u.Log.Info("Updating was successfull. Replacing current process with args: %v\n=====> RESTARTING...\n\n", args)
+	u.Log.Info("Updating was successful. Replacing current process with args: %v\n=====> RESTARTING...\n\n", args)
 
 	execErr := syscall.Exec(self, args, env)
 	if execErr != nil {

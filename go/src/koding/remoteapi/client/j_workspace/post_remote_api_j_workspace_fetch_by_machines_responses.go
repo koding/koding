@@ -49,7 +49,7 @@ func NewPostRemoteAPIJWorkspaceFetchByMachinesOK() *PostRemoteAPIJWorkspaceFetch
 
 /*PostRemoteAPIJWorkspaceFetchByMachinesOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJWorkspaceFetchByMachinesOK struct {
 	Payload *models.DefaultResponse

@@ -49,7 +49,7 @@ func NewPostRemoteAPIJLocationImportStatesOK() *PostRemoteAPIJLocationImportStat
 
 /*PostRemoteAPIJLocationImportStatesOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJLocationImportStatesOK struct {
 	Payload *models.DefaultResponse

@@ -49,7 +49,7 @@ func NewPostRemoteAPIJGroupByRelevanceOK() *PostRemoteAPIJGroupByRelevanceOK {
 
 /*PostRemoteAPIJGroupByRelevanceOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJGroupByRelevanceOK struct {
 	Payload *models.DefaultResponse

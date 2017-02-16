@@ -84,7 +84,7 @@ func glob(glob string) ([]string, error) {
 	return files, nil
 }
 
-// readFile reads file at path and returns content. It optinally takes offset
+// readFile reads file at path and returns content. It optionally takes offset
 // and blockSize as args. One difference between this and other generic Read
 // ops is this method optimizes returning empty bytes. For example if the
 // file size is only 1, but blockSize specified is 10, resulting byte slice will

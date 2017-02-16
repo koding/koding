@@ -136,7 +136,7 @@ func (t *Template) JsonOutput() (string, error) {
 // etc.. user variables. It returns a list of found variables with, example:
 // []string{"foo", "bar"}. The returned list only contains unique names, so any
 // user variable which declared multiple times is neglected, only the last
-// occurence is being added.
+// occurrence is being added.
 func (t *Template) DetectUserVariables(prefix string) (map[string]string, error) {
 	if !strings.HasSuffix(prefix, "_") {
 		prefix = prefix + "_"

@@ -49,7 +49,7 @@ func NewPostRemoteAPIJProvisionerOneOK() *PostRemoteAPIJProvisionerOneOK {
 
 /*PostRemoteAPIJProvisionerOneOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJProvisionerOneOK struct {
 	Payload *models.DefaultResponse

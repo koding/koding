@@ -177,7 +177,7 @@ func TestSubscribe(t *testing.T) {
 
 	// Should store the proper callback
 	successC := make(chan struct{}, 1)
-	pRes, err = c1.Tell("client.Subscribe", SubscribeRequest{
+	pRes, _ = c1.Tell("client.Subscribe", SubscribeRequest{
 		EventName: "test",
 		OnPublish: dnode.Callback(func(f *dnode.Partial) {
 			select {
@@ -546,7 +546,7 @@ func TestUnsubscribe(t *testing.T) {
 	expected := map[string]bool{"c1:1": true, "c2:3": true, "c1:4": true}
 	if !reflect.DeepEqual(expected, calls) {
 		t.Errorf(
-			"client.Unsubscribe should prevent callbacks from receving calls. Wanted:%s, Got:%s",
+			"client.Unsubscribe should prevent callbacks from receiving calls. Wanted:%s, Got:%s",
 			expected, calls,
 		)
 	}
@@ -580,7 +580,7 @@ func TestUnsubscribe(t *testing.T) {
 	expected = map[string]bool{"c1:1": true, "c2:3": true}
 	if !reflect.DeepEqual(expected, calls) {
 		t.Errorf(
-			"client.Unsubscribe should prevent callbacks from receving calls. Wanted:%s, Got:%s",
+			"client.Unsubscribe should prevent callbacks from receiving calls. Wanted:%s, Got:%s",
 			expected, calls,
 		)
 	}
