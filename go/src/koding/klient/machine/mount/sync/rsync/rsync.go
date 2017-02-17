@@ -1,6 +1,9 @@
 package rsync
 
 import (
+	"context"
+	"fmt"
+	"os/exec"
 	"sync"
 
 	msync "koding/klient/machine/mount/sync"
@@ -10,8 +13,12 @@ import (
 type Builder struct{}
 
 // Build satisfies msync.Builder interface. It produces Rsync objects from a
-// given options.
+// given options if rsync executable is present in $PATH.
 func (Builder) Build(opts *msync.BuildOpts) (msync.Syncer, error) {
+	if _, err := exec.LookPath("rsync"); err != nil {
+		return nil, fmt.Errorf("rsync: %v", err)
+	}
+
 	return NewRsync(), nil
 }
 
@@ -37,6 +44,8 @@ func (e *Event) String() string {
 // Rsync uses rsync(1) file-copying tool to provide synchronization between
 // remote and local files.
 type Rsync struct {
+	Cmd func(ctx context.Context, args ...string) *exec.Cmd // Comand factory.
+
 	once  sync.Once
 	stopC chan struct{} // channel used to close any opened exec streams.
 }
@@ -44,6 +53,10 @@ type Rsync struct {
 // NewRsync creates a new Rsync synchronization object.
 func NewRsync() *Rsync {
 	return &Rsync{
+		Cmd: func(ctx context.Context, args ...string) *exec.Cmd {
+			return exec.CommandContext(ctx, "rsync", args...)
+		},
+
 		stopC: make(chan struct{}),
 	}
 }
