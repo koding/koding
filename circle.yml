@@ -60,6 +60,10 @@ stages:
         command: ./configure
 
       - type: shell
+        name: check remote API consistency
+        command: ./run exec scripts/api-generator.coffee --check
+
+      - type: shell
         name: check client code quality
         command: scripts/check_client_code_quality.sh
 
@@ -132,3 +136,7 @@ stages:
         command: ./run exec scripts/gotests.sh kites \
           koding/kites/kloud/provider/... koding/kites/kloud/credential/... \
           koding/kites/kloud/stack/... koding/kites/kloud/kloud/...
+
+      - type: shell
+        name: test mongo models
+        command: ./run exec go test koding/db/mongodb/modelhelper

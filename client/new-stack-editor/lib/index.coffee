@@ -1,4 +1,7 @@
+debug = (require 'debug') 'nse'
+
 kd = require 'kd'
+async = require 'async'
 AppController = require 'app/appcontroller'
 showErrorNotification = require 'app/util/showErrorNotification'
 
@@ -7,7 +10,6 @@ EnvironmentFlux = require 'app/flux/environment'
 Events = require './events'
 StackEditor = require './views'
 StackWizardModal = require './views/wizard/stackwizardmodal'
-
 
 { markAsLoaded, log } = require './helpers'
 
@@ -48,15 +50,22 @@ module.exports = class StackEditorAppController extends AppController
     @stackEditor.on Events.InitializeRequested, @bound 'initializeStack'
 
 
-  openEditor: (templateId, reset = no) ->
+  openEditor: (templateId, options = {}, callback = kd.noop) ->
+
+    { reset = no } = options
 
     unless templateId
       do @openStackWizard
-      return
+      return callback { message: 'No template provided' }
 
     @fetchStackTemplate templateId, (err, template) =>
-      return showErrorNotification err  if err
+
+      if err
+        showErrorNotification err
+        return callback err
+
       @stackEditor.setTemplateData template, reset
+      callback null
 
     markAsLoaded templateId
 
@@ -72,7 +81,7 @@ module.exports = class StackEditorAppController extends AppController
     return  unless @templates[templateId]
 
     delete @templates[templateId]
-    @openEditor templateId, reset = yes
+    @openEditor templateId, { reset: yes }
 
 
   fetchStackTemplate: (templateId, callback) ->
@@ -88,14 +97,56 @@ module.exports = class StackEditorAppController extends AppController
       callback null, @templates[templateId] = template
 
 
-  initializeStack: (template) ->
+  initializeStack: (templateId) ->
 
-    console.trace()
-    log '::initializeStack', template
+    debug 'initializeStack called for', templateId
 
-    if @stackEditor.sideView.hasClass 'hidden'
-    then @stackEditor.sideView.show 'credentials'
-    else @stackEditor.sideView.hide()
+    { controllers: { logs, credentials, variables } } = @stackEditor
+    currentTemplate = @stackEditor.getData()
+
+    logs.add 'updating stack template...'
+
+    queue = [
+
+      (next) =>
+        if @stackEditor.getData()._id isnt templateId
+          logs.add 'loading template first...'
+          @openEditor templateId, {}, next
+        else
+          next()
+
+      (next) =>
+        logs.add 'checking template...'
+        @stackEditor.check next
+
+      (next) ->
+        logs.add 'checking credentials...'
+        credentials.check next
+
+      (next) ->
+        logs.add 'saving variables...'
+        variables.save next
+
+      (next) ->
+        logs.add 'saving credentials...'
+        credentials.save next
+
+      (next) =>
+        logs.add 'saving template...'
+        @stackEditor.save next
+
+    ]
+
+    async.series queue, (err, result) ->
+
+      debug 'initializeStack result', err, result
+
+      if err
+        logs.handleError err
+      else
+        [ ..., updatedTemplate ] = result
+        logs.add 'stack template updated successfully'
+        debug 'updated template instance', updatedTemplate
 
 
   createStackTemplate: (provider) ->

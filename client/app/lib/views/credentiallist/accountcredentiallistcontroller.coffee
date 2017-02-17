@@ -2,17 +2,6 @@ _                           = require 'lodash'
 kd                          = require 'kd'
 hljs                        = require 'highlight.js'
 
-KDView                      = kd.View
-KDButtonView                = kd.ButtonView
-KDContextMenu               = kd.ContextMenu
-KDCustomScrollView          = kd.CustomScrollView
-KDNotificationView          = kd.NotificationView
-KDFormViewWithFields        = kd.FormViewWithFields
-
-KodingSwitch                = require 'app/commonviews/kodingswitch'
-MemberAutoCompleteItemView  = require 'app/commonviews/memberautocompleteitemview'
-MemberAutoCompletedItemView = require 'app/commonviews/memberautocompleteditemview'
-
 KodingListController        = require 'app/kodinglist/kodinglistcontroller'
 
 remote                      = require 'app/remote'
@@ -198,7 +187,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
 
   createAddDataButton: ->
 
-    @getView().parent.prepend addButton = new KDButtonView
+    @getView().parent.prepend addButton = new kd.ButtonView
       cssClass  : 'add-big-btn'
       title     : 'Add a New Credential'
       icon      : yes
@@ -228,14 +217,14 @@ module.exports = class AccountCredentialListController extends KodingListControl
           @_addButtonMenu.destroy()
           @showAddCredentialFormFor provider
 
-    addButton = new KDButtonView
+    addButton = new kd.ButtonView
       cssClass  : options.cssClass ? 'add-big-btn'
       title     : options.title
       callback  : =>
-        @_addButtonMenu = new KDContextMenu
+        @_addButtonMenu = new kd.ContextMenu
           delegate    : addButton
-          y           : addButton.getY()
-          x           : addButton.getX() + addButton.getWidth() / 2 - 100
+          y           : addButton.getY() + addButton.getHeight() + (options.diff?.y ? 0)
+          x           : addButton.getX() + (options.diff?.x ? 0)
           width       : 240
         , providerList
 
@@ -266,7 +255,7 @@ module.exports = class AccountCredentialListController extends KodingListControl
     view.setClass 'form-open'
     @isAddCredentialFormOpen = yes
 
-    view.scrollView = new KDCustomScrollView { cssClass : 'add-credential-scroll' }
+    view.scrollView = new kd.CustomScrollView { cssClass : 'add-credential-scroll' }
 
     options                 = { provider }
     options.defaultTitle    = defaultTitle    if defaultTitle?
@@ -322,11 +311,13 @@ module.exports = class AccountCredentialListController extends KodingListControl
       view.scrollView?.destroy()
       view.form.destroy()
 
-      if noCredFound
+      item = if noCredFound
       then @addItem(credential).verifyCredential()
       else @addItem credential, 0
 
       computeController.emit 'CredentialAdded', credential
+
+      @emit 'NewItemAdded', item
 
     # Notify all registered listeners because we need to re-calculate width / height of the KDCustomScroll which in Credentials tab.
     # The KDCustomScroll was hidden while Stacks screen is rendering.

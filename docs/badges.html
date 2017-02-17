@@ -1,7 +1,6 @@
 ---
 layout: default
 title: Badges
-permalink: /badges
 ---
 
 <!-- HEADER -->
@@ -62,8 +61,17 @@ permalink: /badges
 <script type="text/javascript">
   var clipboard = new Clipboard('.BadgeRow--copyClipboard');
 
+  var timer = null;
   clipboard.on('success', function(e) {
+    if (timer) {
+      $('.BadgeRow--copyClipboard').html("Copy");
+      clearTimeout(timer);
+    }
+
     e.trigger.innerHTML = "Copied!"
+    timer = setTimeout(function() {
+      e.trigger.innerHTML = "Copy"
+    }, 1000);
   });
 </script>
 

@@ -27,12 +27,26 @@ var cmdDescriptions = map[string]string{
     that does a lot of filesystem operations like git,
     use --oneway-sync.`),
 	),
+	"mount-new": fmtDesc(
+		"(<machine-identifier>:<remote-path> <local-path> | <command>) [<options>...]",
+		fmt.Sprintf(`Mount <remote-path> from remote machine to <local-path>.
+
+   With <machine-identifier> argument, kd machine mount identifies requested machine.
+   Either machine ID, machine alias or IP can be used as identifier and all of them
+   can by obtained by running "kd machine list" command.
+
+   <local-path> can be relative or absolute, if the folder does not exit, it will be created.`),
+	),
 	"ssh": fmtDesc(
 		"<alias>", "SSH into the machine.",
 	),
 	"unmount": fmtDesc(
 		"<alias>",
 		"Unmount folder which was previously mounted.",
+	),
+	"umount-new": fmtDesc(
+		"<mount-id>",
+		"Unmount existing mount with given ID.",
 	),
 	"remount": fmtDesc(
 		"<alias>",
@@ -114,13 +128,55 @@ COMMANDS:
 `
 
 	cli.CommandHelpTemplate = `USAGE:
-    kd {{.FullName}}{{if .Description}} {{.Description}}{{end}}{{if .Flags}}
+   kd {{.FullName}}{{if .Description}} {{.Description}}{{else if .Usage}} - {{.Usage}}{{end}}{{if .Flags}}
+
 OPTIONS:
-    {{range .Flags}}{{.}}
-    {{end}}{{end}}
+   {{range .Flags}}{{.}}
+   {{end}}{{end}}
+`
+
+	cli.SubcommandHelpTemplate = `NAME:
+   {{.HelpName}} - {{.Usage}}
+
+USAGE:
+   {{.HelpName}} command{{if .VisibleFlags}} [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}
+
+COMMANDS:{{range .VisibleCategories}}{{if .Name}}
+   {{.Name}}:{{end}}{{range .VisibleCommands}}
+   {{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}
+{{end}}{{if .VisibleFlags}}
+OPTIONS:
+   {{range .VisibleFlags}}{{.}}
+   {{end}}{{end}}
 `
 }
 
+// fixDescription is a hacky way of dealing with current CLI package. The
+// problem is that for codegangsta subcommands .Usage field holds value defined
+// in .Description field and the real .Usage value is ignored. This makes
+// the CLI API invalid when we need to print proper help description.
+func fixDescription(usage string) func() {
+	tmp := cli.SubcommandHelpTemplate
+
+	cli.SubcommandHelpTemplate = `NAME:
+   {{.HelpName}} - ` + usage + `
+
+USAGE:
+   {{.HelpName}} {{.Usage}}
+COMMANDS:{{range .VisibleCategories}}{{if .Name}}
+   {{.Name}}:{{end}}{{range .VisibleCommands}}
+   {{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}
+{{end}}{{if .VisibleFlags}}
+OPTIONS:
+   {{range .VisibleFlags}}{{.}}
+   {{end}}{{end}}
+`
+
+	return func() {
+		cli.SubcommandHelpTemplate = tmp
+	}
+}
+
 func fmtDesc(opts, description string) string {
-	return fmt.Sprintf("%s\nDESCRIPTION\n    %s", opts, description)
+	return fmt.Sprintf("%s\n\nDESCRIPTION\n   %s\n", opts, description)
 }

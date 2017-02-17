@@ -1,3 +1,4 @@
+# TODO move this to backend ~GG
 # This function checks koding section of template,
 # exracts user input options from there and adds them to userInput data
 module.exports = addUserInputOptions = (template, requiredData) ->
