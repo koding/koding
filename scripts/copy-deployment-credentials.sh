@@ -1,9 +1,9 @@
 #!/bin/bash
 
 function clone() {
-	declare REPOSITORY=$1
-	declare BRANCH=$2
-	git clone --branch $BRANCH --depth 1 git@github.com:koding/$REPOSITORY.git
+	declare repository=$1
+	declare branch=$2
+	git clone --branch $branch --depth 1 git@github.com:koding/$repository.git
 }
 
 BRANCH=${BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
