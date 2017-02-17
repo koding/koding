@@ -6,8 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"hash/crc32"
-	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -31,34 +29,36 @@ const (
 
 // Entry represents a single file registered to index.
 type Entry struct {
-	Hash  []byte      `json:"h"` // Hash of file content.
+	// File disk state fields.
 	CTime int64       `json:"c"` // Metadata change time since EPOCH.
 	MTime int64       `json:"m"` // File data change time since EPOCH.
 	Size  int64       `json:"s"` // Size of the file.
-	Inode uint64      `json:"-"` // fuseops.InodeID
-	Ref   int32       `json:"-"` // inode's reference count
 	Mode  os.FileMode `json:"o"` // File mode and permission bits.
-	Meta  int32       `json:"-"` // Entry metadata; written under (*Index).mu, read with atomic op
+
+	// File dynamic state fields.
+	inode uint64 // Inode ID of a mounted file.
+	ref   int32  // Reference count of file handlers.
+	meta  int32  // Metadata of files's memory state.
 }
 
-// The following methods are conveniance helpers for a lock-free
+// The following methods are convenience helpers for a lock-free
 // access of Entry's fields.
-func (e *Entry) GetInode() uint64      { return atomic.LoadUint64(&e.Inode) }
-func (e *Entry) SetInode(inode uint64) { atomic.StoreUint64(&e.Inode, inode) }
+func (e *Entry) GetInode() uint64      { return atomic.LoadUint64(&e.inode) }
+func (e *Entry) SetInode(inode uint64) { atomic.StoreUint64(&e.inode, inode) }
 func (e *Entry) GetSize() int64        { return atomic.LoadInt64(&e.Size) }
 func (e *Entry) SetSize(n int64)       { atomic.StoreInt64(&e.Size, n) }
-func (e *Entry) IncRef() int32         { return atomic.AddInt32(&e.Ref, 1) }
-func (e *Entry) DecRef() int32         { return atomic.AddInt32(&e.Ref, -1) }
-func (e *Entry) Has(meta int32) bool   { return atomic.LoadInt32(&e.Meta)&meta == meta }
+func (e *Entry) IncRef() int32         { return atomic.AddInt32(&e.ref, 1) }
+func (e *Entry) DecRef() int32         { return atomic.AddInt32(&e.ref, -1) }
+func (e *Entry) Has(meta int32) bool   { return atomic.LoadInt32(&e.meta)&meta == meta }
 
 // SwapMeta flips the value of a Meta field, setting the set
 // bits and unsetting the unset ones.
 func (e *Entry) SwapMeta(set, unset int32) int32 {
 	for {
-		older := atomic.LoadInt32(&e.Meta)
+		older := atomic.LoadInt32(&e.meta)
 		updated := (older | set) &^ unset
 
-		if atomic.CompareAndSwapInt32(&e.Meta, older, updated) {
+		if atomic.CompareAndSwapInt32(&e.meta, older, updated) {
 			return updated
 		}
 	}
@@ -79,48 +79,12 @@ func NewEntryFile(root, path string, info os.FileInfo) (name string, e *Entry, e
 		return "", nil, err
 	}
 
-	// Compute file's hash sum.
-	var sum []byte
-	if !info.IsDir() {
-		if sum, err = readCRC32(path); err != nil {
-			return "", nil, err
-		}
-	}
-
 	return filepath.ToSlash(name), &Entry{
 		CTime: ctime(info),
 		MTime: info.ModTime().UnixNano(),
 		Mode:  info.Mode(),
 		Size:  info.Size(),
-		Hash:  sum,
 	}, nil
-}
-
-var copyBufPool = sync.Pool{
-	New: func() interface{} {
-		b := make([]byte, 64*1024)
-		return &b
-	},
-}
-
-// readCRC32 computes CRC-32 checksum of a given file content.
-func readCRC32(path string) ([]byte, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	hash := crc32.NewIEEE()
-
-	bufp := copyBufPool.Get().(*[]byte)
-	defer copyBufPool.Put(bufp)
-
-	if _, err := io.CopyBuffer(hash, file, *bufp); err != nil {
-		return nil, err
-	}
-
-	return hash.Sum(nil), nil
 }
 
 // Index stores a virtual working tree state. It recursively records objects in

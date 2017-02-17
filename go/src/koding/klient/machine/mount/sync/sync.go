@@ -26,8 +26,7 @@ const IndexFileName = "index"
 // build their own type. Built syncer should update the index after syncing and
 // manage received events.
 type BuildOpts struct {
-	RemoteIdx *index.Index // known state of remote index.
-	LocalIdx  *index.Index // known state of local index.
+	Index *index.Index // known state of synchronized index.
 }
 
 // Builder represents a factory method which external syncers must implement in

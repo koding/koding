@@ -108,10 +108,10 @@ func (nd *Node) Del(path string) {
 //
 // If the node is already marked as newly added, the method is a no-op.
 //
-// If entry.Mode is non-zero, the effictive node's entry is overwritten
+// If entry.Mode is non-zero, the effective node's entry is overwritten
 // with this value.
 //
-// If entry.Aux is non-zero, the effictive node's Aux is overwritten
+// If entry.Aux is non-zero, the effective node's Aux is overwritten
 // with this value.
 //
 // Rest of entry's fields are currently ignored.
@@ -121,8 +121,8 @@ func (nd *Node) PromiseAdd(path string, entry *Entry) {
 	if nd, ok := nd.lookup(path, true); ok {
 		newE = nd.Entry
 
-		if entry.Inode != 0 {
-			newE.SetInode(entry.Inode)
+		if entry.inode != 0 {
+			newE.SetInode(entry.inode)
 		}
 
 		if entry.Mode != 0 {
@@ -142,7 +142,7 @@ func (nd *Node) PromiseAdd(path string, entry *Entry) {
 		if entry.Mode != 0 {
 			newE.Mode = entry.Mode
 		}
-		newE.Inode = entry.Inode
+		newE.inode = entry.inode
 	}
 
 	newE.SwapMeta(EntryPromiseAdd, EntryPromiseDel|EntryPromiseUnlink)
@@ -333,7 +333,7 @@ func (nd *Node) IsDir() bool {
 
 // Deleted tells whether node is marked as deleted.
 func (nd *Node) Deleted() bool {
-	return atomic.LoadInt32(&nd.Entry.Meta)&(EntryPromiseDel|EntryPromiseUnlink) != 0
+	return atomic.LoadInt32(&nd.Entry.meta)&(EntryPromiseDel|EntryPromiseUnlink) != 0
 }
 
 func (nd *Node) undelete() {
