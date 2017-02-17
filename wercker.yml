@@ -261,6 +261,12 @@ deploy:
         name: notify-cebeci with eb trigger
         code: |
           $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "triggered $EB_ENV_NAME EB" "deploying" 95
+    - wercker/s3sync@2.0.3:
+        source-dir: website/a/p/p
+        bucket-url: s3://koding-assets/a/p/p/
+        key-id: $S3_KEY_ID
+        key-secret: $S3_KEY_SECRET
+        opts: "--no-mime-magic --guess-mime-type --acl-public"
 
   after-steps:
     - jessefulton/slack-notify:
@@ -273,12 +279,6 @@ deploy:
         name: notify-cebeci with result
         code: |
           $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "wercker is done with the <$WERCKER_DEPLOY_URL|deploy> of $WERCKER_GIT_BRANCH result: $WERCKER_RESULT" $WERCKER_RESULT 100
-    - wercker/s3sync@2.0.3:
-        source-dir: website/a/p/p
-        bucket-url: s3://koding-assets/a/p/p/
-        key-id: $S3_KEY_ID
-        key-secret: $S3_KEY_SECRET
-        opts: "--no-mime-magic --guess-mime-type"
 
   s3-klient-production:
     - script:
