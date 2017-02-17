@@ -44,7 +44,6 @@ module.exports = (options = {}, callback) ->
     userEnvironmentData  = JSON.stringify userEnvironmentData, replacer
     userId               = JSON.stringify userId, replacer
 
-
     # coffeelint: disable=space_operators
     # coffeelint: disable=no_unnecessary_double_quotes
     """
@@ -70,8 +69,8 @@ module.exports = (options = {}, callback) ->
       };
     </script>
 
-    <script src="/a/p/p/#{KONFIG.version}/bundle.vendor.js"></script>
-    <script src="/a/p/p/#{KONFIG.version}/bundle.main.js"></script>
+    <script src="/a/p/p/#{KONFIG._CLIENTVERSION}/bundle.vendor.js"></script>
+    <script src="/a/p/p/#{KONFIG._CLIENTVERSION}/bundle.main.js"></script>
 
     #{if argv.t then "<script src=\"/a/js/tests.js\"></script>" else ''}
 
