@@ -30,7 +30,15 @@ func main() {
 	// create message handler
 	handler := algoliaconnector.New(r.Log, algolia, appConfig.Algolia.IndexSuffix)
 
-	index, ok = indexes.(map[string]interface{})
+	indexes, err := handler.ListIndexes()
+	if err != nil {
+		log.Fatal(err)
+	}
+	index, ok := indexes.(map[string]interface{})
+	if !ok {
+		return
+	}
+
 	items, ok := index["items"].([]interface{})
 	if !ok {
 		return
