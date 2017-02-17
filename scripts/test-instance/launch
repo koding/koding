@@ -49,7 +49,7 @@ git_checkout = "git checkout -fq #{revision}"
 git_clone_vault = (branchName = 'master') ->
   "git clone --branch #{branchName} --depth 1 git@github.com:koding/vault.git"
 
-argv.count ?= 1
+argv.count ?= require('./parallel-sets').length
 
 if typeof argv.count isnt 'number'
   console.error 'error: Non-number value is given as instance count'
