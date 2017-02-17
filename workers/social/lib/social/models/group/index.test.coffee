@@ -159,6 +159,94 @@ runTests = -> describe 'workers.social.group.index', ->
           async.series queue, done
 
 
+  describe '#transferOwnership()', ->
+
+    describe 'create a team', ->
+
+      group        = {}
+      groupSlug    = generateRandomString()
+      adminClient  = {}
+      adminAccount = {}
+      member1 = {}
+      member2 = {}
+
+      # before running test cases creating a group
+      before (done) ->
+
+        options = { createGroup : yes, context : { group : groupSlug } }
+        withConvertedUser options, (data) ->
+          { group, client : adminClient, account : adminAccount } = data
+          group.fetchMyRoles adminClient, (err, roles) ->
+            done()
+
+      it 'should be able to add member to team', (done) ->
+
+        options = { context : { group : groupSlug } }
+        withConvertedUser options, (data) ->
+          { account: member1 } = data
+          done()
+
+      it 'should be able to add member to team', (done) ->
+
+        options = { context : { group : groupSlug } }
+        withConvertedUser options, (data) ->
+          { account: member2 } = data
+          done()
+
+      it 'should not be able to transferOwnership to kicked member', (done) ->
+
+        accountId = member2._id
+
+        queue = [
+          (next) ->
+            group.kickMember adminClient, accountId, (err) ->
+              expect(err).to.not.exist
+              next()
+
+          (next) ->
+            group.transferOwnership { accountId, slug: groupSlug }, (err) ->
+              expect(err.message).to.be.equal 'You cannot transfer ownership to blocked account'
+              next()
+        ]
+
+        async.series queue, done
+
+      it 'should throw error for not provided account', (done) ->
+
+        group.transferOwnership {}, (err) ->
+          expect(err.message).to.be.equal 'Account is not provided'
+          done()
+
+      it 'should be able to transfer the ownership to the member', (done) ->
+
+        accountId = member1._id
+        slug = group.slug
+        queue = [
+
+          (next) ->
+            group.transferOwnership { accountId, slug }, (err) ->
+              expect(err).to.not.exist
+              next()
+
+          (next) ->
+            group.fetchRolesByAccount adminAccount, (err, roles) ->
+              expect(err).to.not.exist
+              expect(false).to.be.equal 'owner' in roles
+              next()
+
+          (next) ->
+            # member1 is new owner
+            group.fetchRolesByAccount member1, (err, roles) ->
+              expect(err).to.not.exist
+              expect(true).to.be.equal 'owner' in roles
+              next()
+
+        ]
+
+        async.series queue, done
+
+
+
   describe '#destroy()', ->
 
     describe 'create a team', ->
