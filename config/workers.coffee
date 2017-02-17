@@ -77,7 +77,7 @@ module.exports = (KONFIG, options, credentials) ->
       versionURL        : "http://localhost:#{KONFIG.kontrol.port}/version"
 
     countly             :
-      group             : "webserver"
+      group             : 'webserver'
       nginx             :
         websocket       : yes
         locations       : [
