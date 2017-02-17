@@ -472,6 +472,7 @@ func (idx *Index) UnmarshalJSON(data []byte) error {
 	// BUG(rjeczalik): Something overwrites the root entry
 	// with a zero value elsewhere. Fix me.
 	idx.root.Entry = newEntry()
+	idx.root.Entry.Mode |= os.ModeDir
 
 	return nil
 

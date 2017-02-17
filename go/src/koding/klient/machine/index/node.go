@@ -22,9 +22,12 @@ type Node struct {
 }
 
 func newNode() *Node {
+	e := newEntry()
+	e.Mode = 0755 | os.ModeDir
+
 	return &Node{
 		Sub:   make(map[string]*Node),
-		Entry: newEntry(),
+		Entry: e,
 	}
 }
 
@@ -34,7 +37,7 @@ func newEntry() *Entry {
 	return &Entry{
 		CTime: t,
 		MTime: t,
-		Mode:  0700 | os.ModeDir,
+		Mode:  0644,
 	}
 }
 
@@ -136,7 +139,9 @@ func (nd *Node) PromiseAdd(path string, entry *Entry) {
 
 	} else {
 		newE = newEntry()
-		newE.Mode = entry.Mode
+		if entry.Mode != 0 {
+			newE.Mode = entry.Mode
+		}
 		newE.Inode = entry.Inode
 	}
 
