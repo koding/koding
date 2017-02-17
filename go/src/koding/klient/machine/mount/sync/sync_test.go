@@ -34,10 +34,7 @@ func TestSyncNew(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(wd, "data")); err != nil {
 		t.Errorf("want err = nil; got %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(wd, msync.LocalIndexName)); err != nil {
-		t.Errorf("want err = nil; got %v", err)
-	}
-	if _, err := os.Stat(filepath.Join(wd, msync.RemoteIndexName)); err != nil {
+	if _, err := os.Stat(filepath.Join(wd, msync.IndexFileName)); err != nil {
 		t.Errorf("want err = nil; got %v", err)
 	}
 
@@ -87,7 +84,7 @@ func TestSyncNew(t *testing.T) {
 	// TODO: All count should be two, since synced file is not the one from
 	// remote directory. This is temporary state since sync will balance
 	// indexes, but should be handled anyway.
-	expected.SyncCount = 1
+	expected.SyncCount = 0
 	expected.SyncDiskSize = info.SyncDiskSize
 
 	if !reflect.DeepEqual(info, expected) {

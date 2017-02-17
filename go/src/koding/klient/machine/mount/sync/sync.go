@@ -19,13 +19,11 @@ import (
 	"github.com/koding/logging"
 )
 
-const (
-	LocalIndexName  = "index.local"  // file name of local directory index.
-	RemoteIndexName = "index.remote" // file name of remote directory index.
-)
+// IndexFileName is a file name of managed directory index.
+const IndexFileName = "index"
 
 // BuildOpts represents the context that can be used by external syncers to
-// build their own type. Built syncer should update indexes after syncing and
+// build their own type. Built syncer should update the index after syncing and
 // manage received events.
 type BuildOpts struct {
 	RemoteIdx *index.Index // known state of remote index.
@@ -86,8 +84,7 @@ type SyncOpts struct {
 	//   WorkDir
 	//   |-data
 	//   | +-... // mounted directory cache.
-	//   |-index.remote
-	//   +-index.local
+	//   +-index
 	//
 	WorkDir string
 
@@ -125,7 +122,7 @@ func (opts *SyncOpts) Valid() error {
 }
 
 // Sync stores and synchronizes single mount. The main goal of its logic
-// is to make remote and local indexes similar.
+// is to make stored index and cache directory consistent.
 type Sync struct {
 	opts    SyncOpts
 	mountID mount.ID    // identifier of synced mount.
@@ -137,8 +134,7 @@ type Sync struct {
 	n notify.Notifier // object responsible for file system notifications.
 	s Syncer          // object responsible for actual file synchronization.
 
-	ridx *index.Index // known state of remote index.
-	lidx *index.Index // known state of local index.
+	idx *index.Index // known state of managed index.
 }
 
 // NewSync creates a new sync instance for a given mount. It ensures basic mount
@@ -165,34 +161,25 @@ func NewSync(mountID mount.ID, m mount.Mount, opts SyncOpts) (*Sync, error) {
 		return nil, err
 	}
 
-	// Fetch or load remote index.
+	// Fetch remote index which will become managed one.
 	var err error
-	if s.ridx, err = s.loadIdx(RemoteIndexName, s.fetchRemoteIdx); err != nil {
+	if s.idx, err = s.loadIdx(IndexFileName); err != nil {
 		return nil, err
 	}
 
-	// Create or load local index.
-	if s.lidx, err = s.loadIdx(LocalIndexName, s.fetchLocalIdx); err != nil {
-		return nil, err
-	}
-
-	// Update local index if needed.
-	if err := s.updateLocal(); err != nil {
-		return nil, err
-	}
+	// TODO(ppknap): refresh loaded index with current state.
 
 	// Create FS event consumer queue.
 	s.a = NewAnteroom()
 
 	// Create file system notification object.
 	s.n, err = opts.NotifyBuilder.Build(&notify.BuildOpts{
-		MountID:   mountID,
-		Mount:     m,
-		Cache:     s.a,
-		CacheDir:  filepath.Join(s.opts.WorkDir, "data"),
-		DiskInfo:  s.diskInfo(),
-		RemoteIdx: s.ridx,
-		LocalIdx:  s.lidx,
+		MountID:  mountID,
+		Mount:    m,
+		Cache:    s.a,
+		CacheDir: filepath.Join(s.opts.WorkDir, "data"),
+		DiskInfo: s.diskInfo(),
+		Index:    s.idx,
 	})
 	if err != nil {
 		return nil, nonil(err, s.a.Close())
@@ -200,8 +187,7 @@ func NewSync(mountID mount.ID, m mount.Mount, opts SyncOpts) (*Sync, error) {
 
 	// Create file synchronization object.
 	s.s, err = opts.SyncBuilder.Build(&BuildOpts{
-		RemoteIdx: s.ridx,
-		LocalIdx:  s.lidx,
+		Index: s.idx,
 	})
 	if err != nil {
 		return nil, nonil(err, s.n.Close(), s.a.Close())
@@ -215,17 +201,17 @@ func (s *Sync) Stream() <-chan Execer {
 	return s.s.ExecStream(s.a.Events())
 }
 
-// Info returns the current status of supervised indexes.
+// Info returns the current mount synchronization status.
 func (s *Sync) Info() *Info {
 	items, queued := s.a.Status()
 
 	return &Info{
 		ID:           s.mountID,
 		Mount:        s.m,
-		SyncCount:    s.lidx.Count(-1),
-		AllCount:     s.ridx.Count(-1),
-		SyncDiskSize: s.lidx.DiskSize(-1),
-		AllDiskSize:  s.ridx.DiskSize(-1),
+		SyncCount:    0, // TODO(ppknap) s.lidx.Count(-1),
+		AllCount:     s.idx.Count(-1),
+		SyncDiskSize: 0, // TODO(ppknap) s.lidx.DiskSize(-1),
+		AllDiskSize:  s.idx.DiskSize(-1),
 		Queued:       items,
 		Syncing:      items - queued,
 	}
@@ -243,16 +229,18 @@ func (s *Sync) Close() error {
 }
 
 // loadIdx reads named index from synced working directory. If index file does
-// not exist, it is fetched by calling provided `fetchIdx` function and saved to
-// provided path.
-func (s *Sync) loadIdx(name string, fetchIdx idxFunc) (*index.Index, error) {
+// not exist, it will be downloaded from remote machine and saved.
+func (s *Sync) loadIdx(name string) (*index.Index, error) {
 	path := filepath.Join(s.opts.WorkDir, name)
 	f, err := os.Open(path)
 	if os.IsNotExist(err) {
-		idx, err := fetchIdx()
+		// Downloads remote index.
+		spv := client.NewSupervised(s.opts.ClientFunc, 30*time.Second)
+		idx, err := spv.MountGetIndex(s.m.RemotePath)
 		if err != nil {
 			return nil, err
 		}
+
 		return idx, index.SaveIndex(idx, path)
 	} else if err != nil {
 		return nil, err
@@ -261,33 +249,6 @@ func (s *Sync) loadIdx(name string, fetchIdx idxFunc) (*index.Index, error) {
 
 	idx := index.NewIndex()
 	return idx, json.NewDecoder(f).Decode(idx)
-}
-
-// idxFunc is a function used to fetch or update index.
-type idxFunc func() (*index.Index, error)
-
-// fetchRemoteIdx downloads remote index.
-func (s *Sync) fetchRemoteIdx() (*index.Index, error) {
-	spv := client.NewSupervised(s.opts.ClientFunc, 30*time.Second)
-	return spv.MountGetIndex(s.m.RemotePath)
-}
-
-// fetchLocalIdx always scans mount cache directory and creates new index.
-func (s *Sync) fetchLocalIdx() (*index.Index, error) {
-	return index.NewIndexFiles(filepath.Join(s.opts.WorkDir, "data"))
-}
-
-// updateLocal updates local index and saves it to cache directory.
-func (s *Sync) updateLocal() error {
-	dataPath := filepath.Join(s.opts.WorkDir, "data")
-	cs := s.lidx.Compare(dataPath)
-
-	if len(cs) == 0 {
-		return nil
-	}
-
-	s.lidx.Apply(dataPath, cs)
-	return index.SaveIndex(s.lidx, filepath.Join(s.opts.WorkDir, LocalIndexName))
 }
 
 func (s *Sync) diskInfo() notify.DiskInfo {
