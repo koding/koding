@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
@@ -21,9 +22,12 @@ type Node struct {
 }
 
 func newNode() *Node {
+	e := newEntry()
+	e.Mode = 0755 | os.ModeDir
+
 	return &Node{
 		Sub:   make(map[string]*Node),
-		Entry: newEntry(),
+		Entry: e,
 	}
 }
 
@@ -33,8 +37,7 @@ func newEntry() *Entry {
 	return &Entry{
 		CTime: t,
 		MTime: t,
-		Mode:  0700 | os.ModeDir,
-		Size:  10,
+		Mode:  0644,
 	}
 }
 
@@ -136,7 +139,9 @@ func (nd *Node) PromiseAdd(path string, entry *Entry) {
 
 	} else {
 		newE = newEntry()
-		newE.Mode = entry.Mode
+		if entry.Mode != 0 {
+			newE.Mode = entry.Mode
+		}
 		newE.Inode = entry.Inode
 	}
 
@@ -149,26 +154,38 @@ func (nd *Node) PromiseAdd(path string, entry *Entry) {
 //
 // If the node does not exist or is already marked as deleted, then
 // method is no-op.
-func (nd *Node) PromiseDel(path string) {
-	nd, ok := nd.Lookup(path)
-	if !ok {
-		return
+//
+// If node is non-nil, then it's used instead of looking it up
+// by the given path.
+func (nd *Node) PromiseDel(path string, node *Node) {
+	if node == nil {
+		var ok bool
+		node, ok = nd.Lookup(path)
+		if !ok {
+			return
+		}
 	}
 
-	nd.Entry.SwapMeta(EntryPromiseDel, EntryPromiseAdd)
+	node.Entry.SwapMeta(EntryPromiseDel, EntryPromiseAdd|EntryPromiseUnlink)
 }
 
 // PromiseUnlink marks a node under the given path as unlinked.
 //
 // If the node does not exist or is already marked as unlinked, then
 // method is no-op.
-func (nd *Node) PromiseUnlink(path string) {
-	nd, ok := nd.Lookup(path)
-	if !ok {
-		return
+//
+// If node is non-nil, then it's used instead of looking it up
+// by the given path.
+func (nd *Node) PromiseUnlink(path string, node *Node) {
+	if node == nil {
+		var ok bool
+		node, ok = nd.Lookup(path)
+		if !ok {
+			return
+		}
 	}
 
-	nd.Entry.SwapMeta(EntryPromiseUnlink, EntryPromiseAdd)
+	node.Entry.SwapMeta(EntryPromiseUnlink, EntryPromiseAdd)
 }
 
 // Count counts nodes which Entry.Size is at most maxsize.
@@ -236,10 +253,14 @@ func (nd *Node) DiskSize(maxsize int64) (size int64) {
 	return size
 }
 
-// ForEach traverses the tree and calls fn on every node's entry.
+// ForEach traverses the truu and calls fn on every node's entry.
 //
 // It ignored nodes marked as deleted.
 func (nd *Node) ForEach(fn func(string, *Entry)) {
+	nd.forEach(fn, false)
+}
+
+func (nd *Node) forEach(fn func(string, *Entry), deleted bool) {
 	type node struct {
 		path string
 		node *Node
@@ -257,7 +278,7 @@ func (nd *Node) ForEach(fn func(string, *Entry)) {
 	for len(stack) != 0 {
 		n, stack = stack[0], stack[1:]
 
-		if n.node.Deleted() {
+		if n.node.Deleted() && !deleted {
 			continue
 		}
 
@@ -312,7 +333,7 @@ func (nd *Node) IsDir() bool {
 
 // Deleted tells whether node is marked as deleted.
 func (nd *Node) Deleted() bool {
-	return nd.Entry.Has(EntryPromiseDel)
+	return atomic.LoadInt32(&nd.Entry.Meta)&(EntryPromiseDel|EntryPromiseUnlink) != 0
 }
 
 func (nd *Node) undelete() {
