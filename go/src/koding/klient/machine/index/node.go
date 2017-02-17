@@ -253,7 +253,7 @@ func (nd *Node) DiskSize(maxsize int64) (size int64) {
 	return size
 }
 
-// ForEach traverses the truu and calls fn on every node's entry.
+// ForEach traverses the tree and calls fn on every node's entry.
 //
 // It ignored nodes marked as deleted.
 func (nd *Node) ForEach(fn func(string, *Entry)) {
