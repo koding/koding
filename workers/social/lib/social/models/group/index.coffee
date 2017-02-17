@@ -4,7 +4,7 @@ KONFIG         = require 'koding-config-manager'
 async          = require 'async'
 { Module }     = require 'jraphical'
 { difference } = require 'underscore'
-
+backoff = require 'backoff'
 
 module.exports = class JGroup extends Module
 
@@ -202,7 +202,7 @@ module.exports = class JGroup extends Module
         transferOwnership:
           (signature String, Function)
         destroy:
-          (signature Function)
+          (signature String, Function)
         addSubscription:
           (signature String, Function)
         fetchDataAt:
@@ -1552,65 +1552,158 @@ module.exports = class JGroup extends Module
       if err then callback err
       else oldAddOwner.call this, target, options, callback
 
-  destroy    : permit
+
+  checkUserPassword: (account, password, callback) ->
+
+    unless account or password
+      return callback "Couldn't verify user"
+
+    account.fetchUser (err, user) ->
+      return callback "Couldn't verify user"  if err
+
+      unless user.checkPassword password
+        return callback "Your password didn't match with our records"
+      else
+        callback()
+
+
+  destroy$   : permit
     advanced : [
       { permission: 'edit own groups', validateWith : Validators.own }
       { permission: 'edit groups',     superadmin   : yes }
     ]
-    success  : (client, callback) ->
+    success  : (client, password, callback) ->
 
-      JName = require '../name'
+      account = client?.connection?.delegate
 
-      removeHelper = (model, err, next) ->
-        return next err  if err
-        return next()  unless model
+      @checkUserPassword account, password, (err) =>
 
-        model.remove (err) -> next err
+        return callback new KodingError err  if err
 
-      removeHelperMany = (klass, models, err, next) ->
-        return next err  if err
-        return next()    if not models or models.length < 1
+        @destroy client, (err) ->
+          console.log '[GROUP_DESTROY_FAILED] Ignoring errors:', err
+          callback null
 
-        ids = (model._id for model in models)
-        klass.remove ({ _id: { $in: ids } }), (err) -> next err
 
-      async.series [
+  destroy: (client, callback) ->
 
-        (next) =>
-          JName.one { name: @slug }, (err, name) ->
-            removeHelper name, err, next
+    [ client, callback ] = [ callback, client ]  unless callback
 
-        (next) =>
-          @fetchPermissionSet (err, permSet) ->
-            removeHelper permSet, err, next
+    slug = @getAt 'slug'
+    errors = []
 
-        (next) =>
-          @fetchDefaultPermissionSet (err, permSet) ->
-            removeHelper permSet, err, next
+    if slug in ['koding', 'guest']
+      return callback new KodingError "You can't delete this team"
 
-        (next) =>
-          JInvitation = require '../invitation'
-          JInvitation.remove { groupName: @slug }, (err) ->
-            next err
+    kallback = (label, next, err) ->
 
-        (next) =>
-          ComputeProvider = require '../computeproviders/computeprovider'
-          ComputeProvider.destroyGroupResources this, -> next()
+      errors.push { label, err }  if err
+      next()
 
-        (next) =>
-          JSession = require '../session'
-          @sendNotification 'GroupDestroyed', @slug, =>
-            JSession.remove { groupName: @slug }, (err) ->
-              next err
+    removeHelper = (model, err, next, label) ->
 
-        (next) =>
-          @constructor.emit 'GroupDestroyed', this
-          next()
+      if err or not model
+        return kallback label, next, err
 
-        (next) =>
-          @remove (err) -> next err
+      model.remove (err) -> kallback label, next, err
 
-      ], callback
+    queue = [
+
+      (next) ->
+        JApiToken = require '../apitoken'
+        JApiToken.remove { group: slug }, (err) ->
+          kallback 'JApiToken', next, err
+
+      (next) =>
+        ComputeProvider = require '../computeproviders/computeprovider'
+        ComputeProvider.destroyGroupResources this, -> next()
+
+      (next) ->
+        JGroupData = require './groupdata'
+        JGroupData.remove { slug }, (err) ->
+          kallback 'JGroupData', next, err
+
+      (next) ->
+        JInvitation = require '../invitation'
+        JInvitation.remove { groupName: slug }, (err) ->
+          kallback 'JInvitation', next, err
+
+      (next) =>
+        @fetchPermissionSet (err, permSet) ->
+          removeHelper permSet, err, next, 'PermissionSet'
+
+      (next) =>
+        @fetchDefaultPermissionSet (err, permSet) ->
+          removeHelper permSet, err, next, 'DefaultPermissionSet'
+
+      (next) ->
+        JName = require '../name'
+        JName.one { name: slug }, (err, name) ->
+          removeHelper name, err, next, 'JName'
+
+      (next) =>
+        Relationship.remove { sourceId : @getId() }, next
+
+      (next) ->
+        return next()  unless client
+
+        url = '/api/social/payment/subscription/delete'
+        { deleteReq } = require '../socialapi/requests'
+        { sessionToken } = client
+
+        deleteReq url, { sessionToken }, (err, body) ->
+          if err?.description is 'not admin of the group'
+            console.log "[GROUP_DESTROY_FAILED] for #{slug} please notify Admins"
+          err = null  if err?.description is 'not found'
+          kallback 'Subscription', next, err?.error
+
+      (next) =>
+        @remove (err) -> kallback 'JGroup', next, err
+
+      (next) ->
+        JSession = require '../session'
+        JSession.remove { groupName: slug }, (err) ->
+          kallback 'JSession', next, err
+
+    ]
+
+    call  = null
+
+    deleteTeam = (cb) =>
+
+      async.series queue, =>
+
+        # execute the callback on the first try
+        # even there is an error or not
+        if call.getNumRetries() is 0
+          @sendNotification 'GroupDestroyed'
+          if errors.length
+            callback new KodingError \
+              'Group Destroy Failed', 'GroupDestroyFailed', errors
+          else
+            callback null
+
+        return  if not errors.length
+
+        cb errors
+        errors = []
+
+    call = backoff.call deleteTeam, ->
+
+    call.retryIf (errors) ->
+
+      errors.forEach (error) ->
+        console.log "[GROUP_DESTROY_FAILED]: Attempt: #{call.getNumRetries()}
+        for #{slug} in #{error.label} with error #{error.err}"
+
+      errors.length
+
+    call.setStrategy new backoff.ExponentialStrategy
+      initialDelay: 1000
+      maxDelay    : 10000
+
+    call.failAfter 2
+    call.start()
 
 
   sendNotificationToAdmins: (event, contents) ->

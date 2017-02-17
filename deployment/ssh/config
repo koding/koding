@@ -1,5 +1,0 @@
-# Use deployment key to clone private repositories via npm
-Host github.com
-  IdentityFile ~/.ssh/deployment_rsa
-  User git
-  StrictHostKeyChecking no

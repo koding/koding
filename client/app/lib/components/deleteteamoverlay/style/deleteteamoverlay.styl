@@ -1,0 +1,85 @@
+.delete-team-overlay
+  background                #000
+  z-index                   10001
+
+.delete-team-overlay .content
+  color                     #FFF
+  position                  absolute
+  top                       0
+  right                     0
+  left                      0
+  text-align                center
+  line-height               20px
+  margin                    101px auto 0
+  width                     500px
+
+.delete-team-overlay .blackhole
+  margin-bottom             18px
+
+.delete-team-overlay .spaceship
+  position                  absolute
+  transform                 rotate(-50deg)
+  transition                opacity 7s
+
+.delete-team-overlay .spaceship1
+  top                       188px
+  left                      -23px
+  animation                 spaceship1Drift 7s 1 ease
+  animation-fill-mode       forwards 
+
+.delete-team-overlay .spaceship2
+  top                       225px
+  left                      -95px
+  height                    48px
+  opacity                   0.80
+  animation                 spaceship2Drift 7s 1 ease
+  animation-fill-mode       forwards 
+
+.delete-team-overlay .spaceship3
+  top                       260px
+  left                      -40px
+  height                    24px
+  opacity                   0.50
+  animation                 spaceship3Drift 7s 1 ease
+  animation-fill-mode       forwards 
+
+@keyframes spaceship1Drift
+  0%
+    transform               rotate(-50deg)
+  100%
+    transform               rotate(-76deg) translate(5px, -280px) scale(0.3)
+    opacity                 0
+
+@keyframes spaceship2Drift
+  0%
+    transform               rotate(-50deg)
+  100%
+    transform               rotate(-76deg) translate(35px, -256px) scale(0.3)
+    opacity                 0
+
+@keyframes spaceship3Drift
+  0%
+    transform               rotate(-50deg)
+  100%
+    transform               rotate(-76deg) translate(45px, -275px) scale(0.3)
+    opacity                 0
+
+.delete-team-overlay .content-header
+  font-size                 42px
+  margin-bottom             22px
+
+.delete-team-overlay .content-description
+  font-size                 18px
+  font-weight               200
+  line-height               20px
+  margin                    0 auto 37px
+  width                     480px
+
+.delete-team-overlay a
+  display                   inline-block
+  margin                    0 auto
+  border                    1px solid #ffffff
+  border-radius             4px
+  padding                   9px 30px
+  color                     #F2778A
+  text-decoration           none

@@ -3,9 +3,19 @@ remote = require('../remote')
 module.exports = class JStackTemplate extends remote.api.JStackTemplate
 
 
-  getCredentialIdentifiers: ->
+  getCredentialIdentifiers: (exclude = ['custom']) ->
 
     ids = []
-    ids = ids.concat id  for provider, id of (@credentials ? {})
+    for provider, id of (@credentials ? {}) when provider not in exclude
+      ids = ids.concat id
 
     return ids
+
+
+  getCredentialProviders: (exclude = ['custom']) ->
+
+    providers = []
+    for provider, id of (@credentials ? {}) when provider not in exclude
+      providers = providers.concat provider
+
+    return providers

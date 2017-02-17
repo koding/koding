@@ -2,7 +2,6 @@ package modeltesthelper
 
 import (
 	"os"
-	"strings"
 	"testing"
 
 	"koding/db/mongodb"
@@ -16,26 +15,16 @@ type MongoDB struct {
 	DB *mongodb.MongoDB
 }
 
-var mongoEnvs = []string{
-	"WERCKER_MONGODB_URL",
-	"MONGODB_URL",
-}
-
-// NewMongoDB looks up environment variables for mongo configuration URL. If
-// configuration is found, this function creates a new session and replaces
-// modeltesthelper Mongo singleton. If not, fails the test.
+// NewMongoDB looks up environment variable for mongo configuration
+// URL. If configuration is found, this function creates a new session
+// and replaces modeltesthelper Mongo singleton. If not, fails the
+// test.
 //
 // Test will Fatal if connection to database is broken.
 func NewMongoDB(t *testing.T) *MongoDB {
-	var mongoURL string
-	for _, mongoEnv := range mongoEnvs {
-		if mongoURL = os.Getenv(mongoEnv); mongoURL != "" {
-			break
-		}
-	}
-
+	mongoURL := os.Getenv("KONFIG_MONGO")
 	if mongoURL == "" {
-		t.Fatalf("mongodb: one of env variables must be set: %s", strings.Join(mongoEnvs, ", "))
+		t.Fatalf("error: KONFIG_MONGO is not set")
 	}
 
 	modelhelper.Initialize(mongoURL)

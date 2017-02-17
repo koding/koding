@@ -1,3 +1,5 @@
+debug = (require 'debug') 'nse:stackeditor'
+
 kd = require 'kd'
 bowser = require 'bowser'
 Encoder = require 'htmlencode'
@@ -16,6 +18,9 @@ SideView = require './sideview'
 LogsController = require '../controllers/logs'
 VariablesController = require '../controllers/variables'
 CredentialsController = require '../controllers/credentials'
+
+{ yamlToJson } = require 'app/util/stacks/yamlutils'
+updateStackTemplate = require 'app/util/stacks/updatestacktemplate'
 
 Help = require './help'
 
@@ -39,6 +44,8 @@ module.exports = class StackEditor extends kd.View
     # Toolbar
     @toolbar = new Toolbar
     @forwardEvent @toolbar, Events.InitializeRequested
+    @toolbar.on Events.MenuAction,    @bound 'handleMenuActions'
+    @toolbar.on Events.ToolbarAction, @bound 'emit'
 
     # Status bar
     @statusbar = new Statusbar
@@ -77,16 +84,18 @@ module.exports = class StackEditor extends kd.View
       @statusbar
     }
 
-    @logsController = new LogsController
+    @controllers = {}
+
+    @controllers.logs = new LogsController
       editor: @logs
 
-    @variablesController = new VariablesController
+    @controllers.variables = new VariablesController
       editor: @variables
-      logs  : @logsController
+      logs  : @controllers.logs
 
     # SideView for Search and Credentials
-    @credentialsController = new CredentialsController
-      logs  : @logsController
+    @controllers.credentials = new CredentialsController
+      logs  : @controllers.logs
 
     @sideView       = new SideView
       title         : yes
@@ -94,15 +103,34 @@ module.exports = class StackEditor extends kd.View
         credentials :
           title     : 'Credentials'
           cssClass  : 'credentials show-controls has-markdown'
-          view      : @credentialsController.getView()
+          view      : @controllers.credentials.getView()
           controls  :
             plus    : =>
-              @credentialsController.getCredentialAddButton()
+              { listController } = @controllers.credentials
+              listController._createAddCredentialMenuButton
+                cssClass : 'plus'
+                diff     :
+                  x      : -93
+                  y      : 12
+
+        docs        :
+          title     : 'API Docs'
+          cssClass  : 'docs show-controls has-markdown'
+          view      : new kd.View { partial: 'WIP' }
+
+    @on Events.ShowSideView,   @sideView.bound 'show'
+    @on Events.ToggleSideView, @sideView.bound 'toggle'
+
+    for _, controller of @controllers
+      controller.on Events.TemplateDataChanged, @bound 'setTemplateData'
+      controller.on Events.WarnUser, @toolbar.bound 'handleWarnings'
 
     @emit 'ready'
 
 
   setTemplateData: (data, reset = no) ->
+
+    debug 'setTemplateData with args:', data, reset
 
     { _id: id, title, description, template } = data
     unless id or description or template
@@ -110,8 +138,8 @@ module.exports = class StackEditor extends kd.View
 
     @setData data
     @toolbar.setData data
-    @variablesController.setData data
-    @credentialsController.setData data
+    @controllers.variables.setData data
+    @controllers.credentials.setData data
 
     @_saveSnapshot @_current  if @_current
     @_deleteSnapshot id  if reset
@@ -121,14 +149,61 @@ module.exports = class StackEditor extends kd.View
     unless @_loadSnapshot id
 
       @editor.setContent Encoder.htmlDecode template.rawContent
-      @readme.setContent description
+      @readme.setContent Encoder.htmlDecode description
       @variables.setContent ''
-      @logsController.set 'stack template loaded'
+      @controllers.logs.set 'stack template loaded'
 
       @_saveSnapshot id
       @_current = id
 
     kd.utils.defer @editor.bound 'focus'
+
+
+  save: (callback) ->
+
+    { title, config = {} } = stackTemplate = @getData()
+
+    rawContent  = @editor.getContent()
+    description = @readme.getContent()
+
+    [ err, convertedDoc ] = @getConvertedContent()
+    return callback err  if err
+
+    { contentObject, content } = convertedDoc
+
+    config.buildDuration = contentObject.koding?.buildDuration
+    template = convertedDoc.content
+
+    dataToSave = {
+      title, stackTemplate, template, description, rawContent
+    }
+
+    debug 'saving data', dataToSave
+    updateStackTemplate dataToSave, callback
+
+
+  check: (callback) ->
+
+    [ err ] = @getConvertedContent()
+    callback err
+
+
+  getConvertedContent: ->
+
+    convertedDoc = yamlToJson @editor.getContent()
+
+    return if convertedDoc.err
+    then [ 'Failed to convert YAML to JSON, fix the document and try again.' ]
+    else [ null, convertedDoc ]
+
+
+  handleMenuActions: (event) ->
+
+    switch event
+      when Events.Menu.Logs
+        @logs.resize { percentage: 40, store: yes }
+      when Events.Menu.Credentials
+        @emit Events.ShowSideView, 'credentials'
 
 
   _loadSnapshot: (id) ->

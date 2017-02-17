@@ -5,13 +5,16 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"text/tabwriter"
 	"time"
 
+	"koding/klient/machine/mount/sync"
 	"koding/klientctl/endpoint/machine"
 
 	"github.com/codegangsta/cli"
+	"github.com/dustin/go-humanize"
 	"github.com/koding/logging"
 )
 
@@ -23,7 +26,7 @@ func MachineListCommand(c *cli.Context, log logging.Logger, _ string) (int, erro
 	if err != nil {
 		return 1, err
 	}
-	if err := identifiersLimit(idents, 0, 0); err != nil {
+	if err := identifiersLimit(idents, "machine", 0, 0); err != nil {
 		return 1, err
 	}
 
@@ -43,7 +46,7 @@ func MachineListCommand(c *cli.Context, log logging.Logger, _ string) (int, erro
 		return 0, nil
 	}
 
-	tabFormatter(os.Stdout, infos)
+	tabListFormatter(os.Stdout, infos)
 	return 0, nil
 }
 
@@ -54,7 +57,7 @@ func MachineSSHCommand(c *cli.Context, log logging.Logger, _ string) (int, error
 	if err != nil {
 		return 1, err
 	}
-	if err := identifiersLimit(idents, 1, 1); err != nil {
+	if err := identifiersLimit(idents, "machine", 1, 1); err != nil {
 		return 1, err
 	}
 
@@ -65,6 +68,95 @@ func MachineSSHCommand(c *cli.Context, log logging.Logger, _ string) (int, error
 	}
 
 	if err := machine.SSH(opts); err != nil {
+		return 1, err
+	}
+
+	return 0, nil
+}
+
+// MachineMountCommand allows to create mount between remote and local machines.
+func MachineMountCommand(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	defer fixDescription("Mount remote folder to a local directory.")()
+	// Mount command has two identifiers - remote machine:path and local path.
+	idents, err := getIdentifiers(c)
+	if err != nil {
+		return 1, err
+	}
+	if len(idents) == 0 {
+		return 0, cli.ShowSubcommandHelp(c)
+	}
+	if err := identifiersLimit(idents, "argument", 2, 2); err != nil {
+		return 1, err
+	}
+	ident, remotePath, path, err := mountAddress(idents)
+	if err != nil {
+		return 1, err
+	}
+
+	opts := &machine.MountOptions{
+		Identifier: ident,
+		Path:       path,
+		RemotePath: remotePath,
+		Log:        log.New("machine:mount"),
+	}
+
+	if err := machine.Mount(opts); err != nil {
+		return 1, err
+	}
+
+	return 0, nil
+}
+
+// MachineListMountCommand lists available mounts.
+func MachineListMountCommand(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	// Mount list command doesn't need identifiers.
+	idents, err := getIdentifiers(c)
+	if err != nil {
+		return 1, err
+	}
+	if err := identifiersLimit(idents, "mount", 0, 0); err != nil {
+		return 1, err
+	}
+
+	opts := &machine.ListMountOptions{
+		MountID: c.String("filter"),
+		Log:     log.New("machine:mount:list"),
+	}
+
+	mounts, err := machine.ListMount(opts)
+	if err != nil {
+		return 1, err
+	}
+
+	if c.Bool("json") {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "\t")
+		enc.Encode(mounts)
+		return 0, nil
+	}
+
+	tabListMountFormatter(os.Stdout, mounts)
+	return 0, nil
+}
+
+// MachineUmountCommand removes the mount.
+func MachineUmountCommand(c *cli.Context, log logging.Logger, _ string) (int, error) {
+	// Umount command needs exactly one identifier. Either mount ID or
+	// mount local path.
+	idents, err := getIdentifiers(c)
+	if err != nil {
+		return 1, err
+	}
+	if err := identifiersLimit(idents, "mount", 1, 1); err != nil {
+		return 1, err
+	}
+
+	opts := &machine.UmountOptions{
+		Identifier: idents[0],
+		Log:        log.New("machine:umount"),
+	}
+
+	if err := machine.Umount(opts); err != nil {
 		return 1, err
 	}
 
@@ -98,21 +190,43 @@ func getIdentifiers(c *cli.Context) (idents []string, err error) {
 
 // identifiersLimit checks if the number of identifiers is in specified limits.
 // If max is -1, there are no limits for the maximum number of identifiers.
-func identifiersLimit(idents []string, min, max int) error {
+func identifiersLimit(idents []string, kind string, min, max int) error {
 	l := len(idents)
 	switch {
 	case l > 0 && min == 0:
-		return fmt.Errorf("this command does not use machine identifiers")
+		return fmt.Errorf("this command does not use %s identifiers", kind)
 	case l < min:
-		return fmt.Errorf("required at least %d machines", min)
+		return fmt.Errorf("required at least %d %ss", min, kind)
 	case max != -1 && l > max:
-		return fmt.Errorf("too many machines: %s", strings.Join(idents, ", "))
+		return fmt.Errorf("too many %ss: %s", kind, strings.Join(idents, ", "))
 	}
 
 	return nil
 }
 
-func tabFormatter(w io.Writer, infos []*machine.Info) {
+// mountAddress checks if provided identifiers are valid from the mount
+// perspective. The identifiers should satisfy the following format:
+//
+//  [ID|Alias|IP]:remote_directory/path local_directory/path
+//
+func mountAddress(idents []string) (ident, remotePath, path string, err error) {
+	if len(idents) != 2 {
+		return "", "", "", fmt.Errorf("invalid number of arguments: %s", strings.Join(idents, ", "))
+	}
+
+	remote := strings.Split(idents[0], ":")
+	if len(remote) != 2 {
+		return "", "", "", fmt.Errorf("invalid remote address format: %s", idents[0])
+	}
+
+	if path, err = filepath.Abs(idents[1]); err != nil {
+		return "", "", "", fmt.Errorf("invalid format of local path %q: %s", idents[1], err)
+	}
+
+	return remote[0], remote[1], path, nil
+}
+
+func tabListFormatter(w io.Writer, infos []*machine.Info) {
 	now := time.Now()
 	tw := tabwriter.NewWriter(w, 2, 0, 2, ' ', 0)
 
@@ -130,6 +244,29 @@ func tabFormatter(w io.Writer, infos []*machine.Info) {
 			info.IP,
 			machine.PrettyStatus(info.Status, now),
 		)
+	}
+	tw.Flush()
+}
+
+func tabListMountFormatter(w io.Writer, mounts map[string][]sync.Info) {
+	tw := tabwriter.NewWriter(w, 2, 0, 2, ' ', 0)
+
+	// TODO: keep the mounts list sorted.
+	fmt.Fprintf(tw, "ID\tMACHINE\tMOUNT\tFILES\tQUEUED\tSYNCING\tSIZE\n")
+	for alias, infos := range mounts {
+		for _, info := range infos {
+			fmt.Fprintf(tw, "%s\t%s\t%s\t%d/%d\t%d\t%d\t%s/%s\n",
+				info.ID,
+				alias,
+				info.Mount,
+				info.SyncCount,
+				info.AllCount,
+				info.Queued,
+				info.Syncing,
+				humanize.IBytes(uint64(info.SyncDiskSize)),
+				humanize.IBytes(uint64(info.AllDiskSize)),
+			)
+		}
 	}
 	tw.Flush()
 }
