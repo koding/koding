@@ -12,7 +12,7 @@ import (
 
 // CancelSubscription cancels the subscription of group
 func CancelSubscription(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
-	if err := context.IsGroupAdmin(); err != nil {
+	if err := context.CanManage(); err != nil {
 		return response.NewBadRequest(err)
 	}
 
