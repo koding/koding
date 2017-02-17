@@ -57,7 +57,7 @@ stages:
 
       - type: shell
         name: configure
-        command: ./configure
+        command: ./configure --host localhost:8090 --hostname localhost
 
       - type: shell
         name: check remote API consistency
