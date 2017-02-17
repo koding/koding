@@ -37,6 +37,13 @@ func FetchAdminAccounts(groupName string) ([]models.Account, error) {
 	return GetAccountsByIds(ids)
 }
 
+// CanManage checks if the given username is an admin or owner of the given
+// groupName
+// Owner role is a greater role than admin.
+func CanManage(username, groupName string) (bool, error) {
+	return HasAnyRole(username, groupName, "owner", "admin")
+}
+
 // IsAdmin checks if the given username is an admin of the given groupName
 func IsAdmin(username, groupName string) (bool, error) {
 	return HasAnyRole(username, groupName, "admin")

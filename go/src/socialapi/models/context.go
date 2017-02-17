@@ -77,21 +77,21 @@ func (c *Context) IsAdmin() bool {
 	return IsIn(c.Client.Account.Nick, superAdmins...)
 }
 
-// IsGroupAdmin checks if the current context is the admin of the context's
+// CanManage checks if the current context is the admin of the context's
 // group.
 // mongo connection is required.
-func (c *Context) IsGroupAdmin() error {
+func (c *Context) CanManage() error {
 	if !c.IsLoggedIn() {
 		return ErrNotLoggedIn
 	}
 
-	isAdmin, err := modelhelper.IsAdmin(c.Client.Account.Nick, c.GroupName)
+	canManage, err := modelhelper.CanManage(c.Client.Account.Nick, c.GroupName)
 	if err != nil {
 		return err
 	}
 
-	if !isAdmin {
-		return ErrNotAdmin
+	if !canManage {
+		return ErrCannotManageGroup
 	}
 
 	return nil
