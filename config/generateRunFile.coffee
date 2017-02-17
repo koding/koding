@@ -156,6 +156,7 @@ generateDev = (KONFIG, options) ->
       echo "  run nodeservertests       : to run tests for node.js web server"
       echo "  run socialworkertests     : to run tests for social worker"
       echo "  run nodetestfiles         : to run a single test or all test files in a directory"
+      echo "  run switch [version]      : to switch client version to provided revision (version: [default|rev])"
       echo "  run help                  : to show this list"
       echo ""
 
@@ -429,6 +430,19 @@ generateDev = (KONFIG, options) ->
       fi
     }
 
+    function switch_client_version () {
+      if [ "$1" == "default" ]; then
+        rm $KONFIG_PROJECTROOT/CLIENTVERSION
+        pkill -SIGPIPE koding-webserver
+      elif [ -d "./website/a/p/p/$1" ]; then
+        echo $1 > $KONFIG_PROJECTROOT/CLIENTVERSION
+        pkill -SIGPIPE koding-webserver
+      else
+        echo "error: no such version"
+        exit 1
+      fi
+    }
+
     function build_services () {
       run_docker_wrapper
 
@@ -659,6 +673,9 @@ generateDev = (KONFIG, options) ->
     elif [ "$1" == "health-check" ]; then
       shift
       health_check "$@"
+
+    elif [ "$1" == "switch" ]; then
+      switch_client_version $2
 
     else
       echo "Unknown command: $1"
