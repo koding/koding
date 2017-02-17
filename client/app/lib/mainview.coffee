@@ -165,7 +165,7 @@ module.exports = class MainView extends kd.View
     # We are making sure that the compared version is a string. ~Umut
     currentVersion = String globals.config.version
 
-    endPoint = '/-/version'
+    endPoint = '/-/clientVersion'
     type = 'GET'
 
     doXhrRequest { endPoint, type }, (err, res) =>

@@ -91,6 +91,7 @@ app.get  '/humans.txt'                           , generateHumanstxt
 app.get  '/-/healthCheck'                        , require './handlers/healthcheck'
 app.get  '/-/versionCheck'                       , require './handlers/versioncheck'
 app.get  '/-/version'                            , (req, res) -> res.jsonp { version: KONFIG.version }
+app.get  '/-/clientVersion'                      , (req, res) -> res.jsonp { version: KONFIG._CLIENTVERSION }
 app.get  '/-/jobs'                               , require './handlers/jobs'
 app.post '/recaptcha'                            , require './handlers/recaptcha'
 app.get  '/-/presence/:service'                  , (req, res) -> res.status(200).end()
