@@ -480,7 +480,7 @@ module.exports = class ComputeProvider extends Base
     # A stack template without machines in it? ~ GG
     return callback null  if group.slug is 'koding' or amount is 0
 
-    limitConfig   = helpers.getLimitConfig group
+    limitConfig  = helpers.getLimitConfig group
     maxAllowed   = MAX_INT
 
     teamutils.fetchLimitData limitConfig, (err, limits) =>
@@ -733,14 +733,27 @@ module.exports = class ComputeProvider extends Base
         res.template.config.groupStack = yes
 
         ComputeProvider.generateStackFromTemplate res, options, (err, stack) ->
+
           if err
             # swallowing errors for followings since we need the real error ~GG
             account.removeStackTemplate template, ->
               ComputeProvider.updateGroupResourceUsage {
                 group, change: 'decrement', instanceCount
               }, -> next err
+            return
+
+          createdStack = stack
+
+          { machines = [] } = stack?.results ? []
+          if failedMachines = (machines.filter (m) -> m.err).length
+            ComputeProvider.updateGroupResourceUsage {
+              instanceCount: failedMachines
+              instanceOnly: yes
+              change: 'decrement'
+              group
+            }, (err) ->
+              next err
           else
-            createdStack = stack
             next()
 
     ], (err) ->
