@@ -514,6 +514,36 @@ generateDev = (KONFIG, options) ->
       runCountlyDocker
     }
 
+    function health_check () {
+      declare interval=${1:-10}
+      declare timeout=${2:-60}
+      declare duration=0
+
+      declare response_code=$(curl --silent --output /dev/null \
+        --write-out "%{http_code}\\n" \
+        $KONFIG_PUBLICHOSTNAME/-/healthCheck)
+
+      echo -n 'health-check: '
+
+      until [[ $response_code -eq 200 ]]; do
+        if [ $duration -eq $timeout ]; then
+          echo ' timed out!'
+          exit 255
+        fi
+
+        echo -n '.'
+
+        sleep $interval
+        duration=$((duration + interval))
+
+        response_code=$(curl --silent --output /dev/null \
+          --write-out "%{http_code}\\n" \
+          $KONFIG_PUBLICHOSTNAME/-/healthCheck)
+      done
+
+      echo ' succeeded!'
+    }
+
     if [ "$#" == "0" ]; then
       checkrunfile
       run $1
@@ -625,6 +655,10 @@ generateDev = (KONFIG, options) ->
 
     elif [ "$1" == "migrations" ]; then
       migrations $2 $3
+
+    elif [ "$1" == "health-check" ]; then
+      shift
+      health_check "$@"
 
     else
       echo "Unknown command: $1"
