@@ -559,7 +559,27 @@ module.exports = class JStackTemplate extends Module
         return callback err  if err
 
         details = { account, user, group, client, template }
-        ComputeProvider.generateStackFromTemplate details, {}, callback
+
+        ComputeProvider.generateStackFromTemplate details, {}, (err, res) ->
+
+          resourceOptions = {
+            details : { account, template }
+            change  : 'decrement'
+            group, instanceCount
+          }
+
+          if err
+            return ComputeProvider.updateGroupResourceUsage resourceOptions, ->
+              callback err
+
+          { machines = [] } = res?.results ? []
+          if failedMachines = (machines.filter (m) -> m.err).length
+            resourceOptions.instanceCount = failedMachines
+            resourceOptions.instanceOnly = yes
+            ComputeProvider.updateGroupResourceUsage resourceOptions, (err) ->
+              callback err, res
+          else
+            callback null, res
 
 
   update$: permit
