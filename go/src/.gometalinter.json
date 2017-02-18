@@ -5,6 +5,7 @@
   "Deadline": "60s",
   "DisableAll": true,
   "Tests": true,
+  "Vendor": true,
   "Enable": [
     "deadcode",
     "ineffassign",
