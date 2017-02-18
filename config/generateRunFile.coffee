@@ -156,7 +156,7 @@ generateDev = (KONFIG, options) ->
       echo "  run nodeservertests       : to run tests for node.js web server"
       echo "  run socialworkertests     : to run tests for social worker"
       echo "  run nodetestfiles         : to run a single test or all test files in a directory"
-      echo "  run switch [version]      : to switch client version to provided revision (version: [default|rev])"
+      echo "  run switchclient [rev]    : to switch client version to provided revision (revision: [default|rev])"
       echo "  run help                  : to show this list"
       echo ""
 
@@ -434,12 +434,9 @@ generateDev = (KONFIG, options) ->
       if [ "$1" == "default" ]; then
         rm $KONFIG_PROJECTROOT/CLIENTVERSION
         pkill -SIGPIPE koding-webserver
-      elif [ -d "./website/a/p/p/$1" ]; then
+      else
         echo $1 > $KONFIG_PROJECTROOT/CLIENTVERSION
         pkill -SIGPIPE koding-webserver
-      else
-        echo "error: no such version"
-        exit 1
       fi
     }
 
@@ -674,7 +671,7 @@ generateDev = (KONFIG, options) ->
       shift
       health_check "$@"
 
-    elif [ "$1" == "switch" ]; then
+    elif [ "$1" == "switchclient" ]; then
       switch_client_version $2
 
     else
