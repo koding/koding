@@ -236,7 +236,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
           async.series [
 
             (next) ->
-              stackTemplate.generateStack client, (err) ->
+              stackTemplate.generateStack client, {}, (err) ->
                 expect(err.message).to.be.equal 'Stack is not verified yet'
                 next()
 
@@ -247,7 +247,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
                 next()
 
             (next) ->
-              stackTemplate.generateStack client, (err, res) ->
+              stackTemplate.generateStack client, {}, (err, res) ->
                 expect(err).to.not.exist
 
                 { stack, results: { machines } } = res
@@ -304,7 +304,7 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
                 next()
 
             (next) ->
-              stackTemplate.generateStack client, (err, res) ->
+              stackTemplate.generateStack client, {}, (err, res) ->
                 expect(err).to.exist
                 expect(err.message).to.be.equal 'Provided limit has been reached'
                 expect(res).to.not.exist

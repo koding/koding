@@ -14,6 +14,8 @@ module.exports = class JStackTemplate extends Module
   { permit }  = require '../group/permissionset'
   Validators  = require '../group/validators'
 
+  ComputeProvider = require './computeprovider'
+
   {
     revive
     flattenPayload
@@ -81,7 +83,7 @@ module.exports = class JStackTemplate extends Module
         clone         :
           (signature Function)
         generateStack :
-          (signature Function)
+          (signature Object, Function)
         forceStacksToReinit :
           (signature String, Function)
         hasStacks     :
@@ -525,14 +527,12 @@ module.exports = class JStackTemplate extends Module
       shouldReviveProvider  : no
       shouldFetchGroupLimit : yes
 
-    , (client, callback) ->
-
       unless @getAt 'config.verified'
         return callback new KodingError 'Stack is not verified yet'
+    , (client, options, callback) ->
 
       { account, group, user } = client.r
 
-      ComputeProvider = require './computeprovider'
 
       instanceCount = @machines?.length or 0
       change        = 'increment'
@@ -721,7 +721,7 @@ module.exports = class JStackTemplate extends Module
       unless clonedTemplate
         return callback new KodingError 'Failed to clone template'
 
-      clonedTemplate.generateStack client, (err, res) ->
+      clonedTemplate.generateStack client, {}, (err, res) ->
         return callback err  if err
         unless res.stack
           return callback new KodingError 'Failed to generate stack'
