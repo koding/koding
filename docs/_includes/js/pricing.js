@@ -32,17 +32,6 @@ var ready = function($) {
     return false;
   });
 
-  $('.contact').click(function(event){
-    event.stopPropagation();
-    event.preventDefault();
-
-    if (Intercom) {
-      Intercom('show')
-    }
-
-    return false;
-  });
-
   dropdownOptions.click(function() {
     var $self = $(this);
     var val    = $self.attr('attr-value');
