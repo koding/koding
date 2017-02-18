@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"strconv"
 
 	"koding/klient/storage"
 	"koding/tools/util"
@@ -105,12 +106,21 @@ func KodingCacheHome() string {
 
 type User struct {
 	*user.User
-	Groups []*user.Group
+	Uid, Gid int
+	Groups   []*user.Group
 }
 
 func currentUser() *User {
 	u := &User{
 		User: currentStdUser(),
+	}
+
+	if uid, err := strconv.Atoi(u.User.Uid); err == nil {
+		u.Uid = uid
+	}
+
+	if gid, err := strconv.Atoi(u.User.Gid); err == nil {
+		u.Gid = gid
 	}
 
 	ids, err := u.GroupIds()
