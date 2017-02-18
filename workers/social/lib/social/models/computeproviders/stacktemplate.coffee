@@ -527,32 +527,39 @@ module.exports = class JStackTemplate extends Module
       shouldReviveProvider  : no
       shouldFetchGroupLimit : yes
 
-      unless @getAt 'config.verified'
-        return callback new KodingError 'Stack is not verified yet'
     , (client, options, callback) ->
 
       { account, group, user } = client.r
 
+      instanceCount = (@getAt 'machines')?.length or 0
+      template = this
 
-      instanceCount = @machines?.length or 0
-      change        = 'increment'
+      queue = [
 
-      details = { account, template: this }
+        (next) =>
 
-      ComputeProvider.updateGroupResourceUsage {
-        group, change, instanceCount, details
-      }, (err) =>
+          next unless @getAt 'config.verified'
+          then new KodingError 'Stack is not verified yet'
+          else null
+
+        (next) =>
+
+          change  = 'increment'
+          ComputeProvider.updateGroupResourceUsage {
+            group, change, instanceCount, details: { account, template }
+          }, (err) =>
+            return next err  if err
+            checkTemplateUsage this, account, (err) =>
+              return next err  if err
+              account.addStackTemplate this, next
+
+      ]
+
+      async.series queue, (err) ->
         return callback err  if err
 
-        checkTemplateUsage this, account, (err) =>
-          return callback err  if err
-
-          account.addStackTemplate this, (err) =>
-
-            details = { account, user, group, client }
-            details.template = this
-
-            ComputeProvider.generateStackFromTemplate details, {}, callback
+        details = { account, user, group, client, template }
+        ComputeProvider.generateStackFromTemplate details, {}, callback
 
 
   update$: permit
