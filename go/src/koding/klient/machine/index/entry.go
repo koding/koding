@@ -1,6 +1,7 @@
 package index
 
 import (
+	"encoding/json"
 	"os"
 	"sync/atomic"
 	"time"
@@ -59,6 +60,11 @@ type virtualEntry struct {
 	refCount int32        // Reference count of file handlers.
 	promise  EntryPromise // Metadata of files's memory state.
 }
+
+var (
+	_ json.Marshaler   = (*Index)(nil)
+	_ json.Unmarshaler = (*Index)(nil)
+)
 
 // Entry represents a single file registered to index.
 type Entry struct {
@@ -187,6 +193,25 @@ func (e *Entry) SwapPromise(set, unset EntryPromise) EntryPromise {
 			return EntryPromise(updated)
 		}
 	}
+}
+
+// MarshalJSON satisfies json.Marshaler interface. It safely marshals entry
+// real data to JSON format.
+func (e *Entry) MarshalJSON() ([]byte, error) {
+	real := realEntry{
+		CTime: e.CTime(),
+		MTime: e.MTime(),
+		Size:  e.Size(),
+		Mode:  e.Mode(),
+	}
+
+	return json.Marshal(real)
+}
+
+// UnmarshalJSON satisfies json.Unmarshaler interface. It is used to unmarshal
+// data into private entry fields.
+func (e *Entry) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &e.real)
 }
 
 // ctime gets file's change time in UNIX Nano format.
