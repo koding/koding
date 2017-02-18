@@ -200,7 +200,7 @@ func TestIndexJSON(t *testing.T) {
 	}
 
 	if cs := idx.Compare(root); len(cs) != 0 {
-		t.Errorf("want no changes after apply; got %#v", cs)
+		t.Errorf("want no changes after apply; got %v", cs)
 	}
 }
 

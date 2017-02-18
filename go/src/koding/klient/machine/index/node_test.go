@@ -11,179 +11,113 @@ import (
 
 func fixture() *index.Node {
 	return &index.Node{
-		Entry: &index.Entry{
-			Size: 0,
-		},
+		Entry: index.NewEntry(0, 0),
 		Sub: map[string]*index.Node{
 			"addresses": {
-				Entry: &index.Entry{
-					Size: 0,
-				},
+				Entry: index.NewEntry(0, 0),
 				Sub: map[string]*index.Node{
 					"addresser.go": {
-						Entry: &index.Entry{
-							Size: 714,
-						},
+						Entry: index.NewEntry(714, 0),
 					},
 					"addresses.go": {
-						Entry: &index.Entry{
-							Size: 2428,
-						},
+						Entry: index.NewEntry(2428, 0),
 					},
 					"addresses_test.go": {
-						Entry: &index.Entry{
-							Size: 3095,
-						},
+						Entry: index.NewEntry(3095, 0),
 					},
 					"cached.go": {
-						Entry: &index.Entry{
-							Size: 2036,
-						},
+						Entry: index.NewEntry(2036, 0),
 					},
 				},
 			},
 			"aliases": {
-				Entry: &index.Entry{
-					Size: 0,
-				},
+				Entry: index.NewEntry(0, 0),
 				Sub: map[string]*index.Node{
 					"aliaser.go": {
-						Entry: &index.Entry{
-							Size: 596,
-						},
+						Entry: index.NewEntry(596, 0),
 					},
 					"aliases.go": {
-						Entry: &index.Entry{
-							Size: 3218,
-						},
+						Entry: index.NewEntry(3218, 0),
 					},
 					"aliases_test.go": {
-						Entry: &index.Entry{
-							Size: 1831,
-						},
+						Entry: index.NewEntry(1831, 0),
 					},
 					"cached.go": {
-						Entry: &index.Entry{
-							Size: 2196,
-						},
+						Entry: index.NewEntry(2196, 0),
 					},
 				},
 			},
 			"clients": {
-				Entry: &index.Entry{
-					Size: 0,
-				},
+				Entry: index.NewEntry(0, 0),
 				Sub: map[string]*index.Node{
 					"clients.go": {
-						Entry: &index.Entry{
-							Size: 4003,
-						},
+						Entry: index.NewEntry(4003, 0),
 					},
 					"clients_test.go": {
-						Entry: &index.Entry{
-							Size: 1783,
-						},
+						Entry: index.NewEntry(1783, 0),
 					},
 				},
 			},
 			"create.go": {
-				Entry: &index.Entry{
-					Size: 3660,
-				},
+				Entry: index.NewEntry(3660, 0),
 			},
 			"create_test.go": {
-				Entry: &index.Entry{
-					Size: 4582,
-				},
+				Entry: index.NewEntry(4582, 0),
 			},
 			"id.go": {
-				Entry: &index.Entry{
-					Size: 1272,
-				},
+				Entry: index.NewEntry(1272, 0),
 			},
 			"id_test.go": {
-				Entry: &index.Entry{
-					Size: 1979,
-				},
+				Entry: index.NewEntry(1979, 0),
 			},
 			"idset": {
-				Entry: &index.Entry{
-					Size: 0,
-				},
+				Entry: index.NewEntry(0, 0),
 				Sub: map[string]*index.Node{
 					"idset.go": {
-						Entry: &index.Entry{
-							Size: 1288,
-						},
+						Entry: index.NewEntry(1288, 0),
 					},
 					"idset_test.go": {
-						Entry: &index.Entry{
-							Size: 4231,
-						},
+						Entry: index.NewEntry(4231, 0),
 					},
 				},
 			},
 			"kite.go": {
-				Entry: &index.Entry{
-					Size: 4152,
-				},
+				Entry: index.NewEntry(4152, 0),
 			},
 			"machinegroup.go": {
-				Entry: &index.Entry{
-					Size: 6839,
-				},
+				Entry: index.NewEntry(6839, 0),
 			},
 			"machinegroup_test.go": {
-				Entry: &index.Entry{
-					Size: 6592,
-				},
+				Entry: index.NewEntry(6592, 0),
 			},
 			"mount.go": {
-				Entry: &index.Entry{
-					Size: 9346,
-				},
+				Entry: index.NewEntry(9346, 0),
 			},
 			"mount_test.go": {
-				Entry: &index.Entry{
-					Size: 8824,
-				},
+				Entry: index.NewEntry(8824, 0),
 			},
 			"mounts": {
-				Entry: &index.Entry{
-					Size: 0,
-				},
+				Entry: index.NewEntry(0, 0),
 				Sub: map[string]*index.Node{
 					"cached.go": {
-						Entry: &index.Entry{
-							Size: 2465,
-						},
+						Entry: index.NewEntry(2465, 0),
 					},
 					"mounter.go": {
-						Entry: &index.Entry{
-							Size: 1000,
-						},
+						Entry: index.NewEntry(1000, 0),
 					},
 					"mounts.go": {
-						Entry: &index.Entry{
-							Size: 4133,
-						},
+						Entry: index.NewEntry(4133, 0),
 					},
 					"mounts_test.go": {
-						Entry: &index.Entry{
-							Size: 5330,
-						},
+						Entry: index.NewEntry(5330, 0),
 					},
 				},
 			},
 			"ssh.go": {
-				Entry: &index.Entry{
-					Size: 2831,
-				},
+				Entry: index.NewEntry(2831, 0),
 			},
 			"ssh_test.go": {
-				Entry: &index.Entry{
-					Size: 3567,
-				},
+				Entry: index.NewEntry(3567, 0),
 			},
 		},
 	}
@@ -211,8 +145,8 @@ func TestNodeLookup(t *testing.T) {
 				t.Fatalf("Lookup(%q) failed", name)
 			}
 
-			if nd.Entry.Size != size {
-				t.Fatalf("got %d, want %d", size, nd.Entry.Size)
+			if nd.Entry.Size() != size {
+				t.Fatalf("got %d, want %d", size, nd.Entry.Size())
 			}
 		})
 	}
@@ -276,9 +210,7 @@ func TestNodeAdd(t *testing.T) {
 	}
 
 	root := fixture()
-	entry := &index.Entry{
-		Size: 0xD,
-	}
+	entry := index.NewEntry(0xD, 0)
 
 	for _, cas := range cases {
 		t.Run(cas.name, func(t *testing.T) {
@@ -295,8 +227,8 @@ func TestNodeAdd(t *testing.T) {
 				t.Fatalf("got %d, want %d", count, cas.count)
 			}
 
-			if nd.Entry.Size != entry.Size {
-				t.Fatalf("got %d, want %d", nd.Entry.Size, entry.Size)
+			if nd.Entry.Size() != entry.Size() {
+				t.Fatalf("got %d, want %d", nd.Entry.Size(), entry.Size())
 			}
 		})
 	}

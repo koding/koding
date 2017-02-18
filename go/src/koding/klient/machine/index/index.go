@@ -11,81 +11,10 @@ import (
 	"runtime"
 	"sort"
 	"sync"
-	"sync/atomic"
-
-	"github.com/djherbis/times"
 )
 
 // Version stores current version of index.
 const Version = 1
-
-// Entry group describes values of an Entry.Meta field.
-const (
-	EntryPromiseAdd = 1 << iota
-	EntryPromiseUpdate
-	EntryPromiseDel
-	EntryPromiseUnlink
-)
-
-// Entry represents a single file registered to index.
-type Entry struct {
-	// File disk state fields.
-	CTime int64       `json:"c"` // Metadata change time since EPOCH.
-	MTime int64       `json:"m"` // File data change time since EPOCH.
-	Size  int64       `json:"s"` // Size of the file.
-	Mode  os.FileMode `json:"o"` // File mode and permission bits.
-
-	// File dynamic state fields.
-	inode uint64 // Inode ID of a mounted file.
-	ref   int32  // Reference count of file handlers.
-	meta  int32  // Metadata of files's memory state.
-}
-
-// The following methods are convenience helpers for a lock-free
-// access of Entry's fields.
-func (e *Entry) GetInode() uint64      { return atomic.LoadUint64(&e.inode) }
-func (e *Entry) SetInode(inode uint64) { atomic.StoreUint64(&e.inode, inode) }
-func (e *Entry) GetSize() int64        { return atomic.LoadInt64(&e.Size) }
-func (e *Entry) SetSize(n int64)       { atomic.StoreInt64(&e.Size, n) }
-func (e *Entry) IncRef() int32         { return atomic.AddInt32(&e.ref, 1) }
-func (e *Entry) DecRef() int32         { return atomic.AddInt32(&e.ref, -1) }
-func (e *Entry) Has(meta int32) bool   { return atomic.LoadInt32(&e.meta)&meta == meta }
-
-// SwapMeta flips the value of a Meta field, setting the set
-// bits and unsetting the unset ones.
-func (e *Entry) SwapMeta(set, unset int32) int32 {
-	for {
-		older := atomic.LoadInt32(&e.meta)
-		updated := (older | set) &^ unset
-
-		if atomic.CompareAndSwapInt32(&e.meta, older, updated) {
-			return updated
-		}
-	}
-}
-
-// NewEntryFile creates new Entry from a file stored under path argument.
-// Info is optional and, if given, should store LStat result on the given file.
-func NewEntryFile(root, path string, info os.FileInfo) (name string, e *Entry, err error) {
-	if info == nil {
-		if info, err = os.Lstat(path); err != nil {
-			return "", nil, err
-		}
-	}
-
-	// Get relative file name.
-	name, err = filepath.Rel(root, path)
-	if err != nil {
-		return "", nil, err
-	}
-
-	return filepath.ToSlash(name), &Entry{
-		CTime: ctime(info),
-		MTime: info.ModTime().UnixNano(),
-		Mode:  info.Mode(),
-		Size:  info.Size(),
-	}, nil
-}
 
 // Index stores a virtual working tree state. It recursively records objects in
 // a given root path and allows to efficiently detect changes on it.
@@ -155,13 +84,14 @@ func (idx *Index) addEntryWorker(root string, wg *sync.WaitGroup, fC <-chan *fil
 	defer wg.Done()
 
 	for f := range fC {
-		name, entry, err := NewEntryFile(root, f.path, f.info)
+		// Get relative file name.
+		name, err := filepath.Rel(root, f.path)
 		if err != nil {
 			continue
 		}
 
 		idx.mu.Lock()
-		idx.root.Add(name, entry)
+		idx.root.Add(name, NewEntryFileInfo(f.info))
 		idx.mu.Unlock()
 	}
 }
@@ -231,15 +161,15 @@ func (idx *Index) Lookup(name string) (*Node, bool) {
 	return idx.root.Lookup(name)
 }
 
-// Compare rereads the given file tree roted at root and compares its entries
+// Compare rereads the given file tree rooted at root and compares its entries
 // to previous state of the index. All detected changes will be stored in
 // returned Change slice.
 func (idx *Index) Compare(root string) ChangeSlice {
 	return idx.CompareBranch("", root)
 }
 
-// CompareBranch rereads the given file tree roted at root and compares its entries
-// with index state roted at branch node.
+// CompareBranch rereads the given file tree rooted at root and compares its
+// entries with index state rooted at branch node.
 //
 // All detected changes will be stored in returned Change slice.
 // If branch is empty, the comparison is made against root of the index.
@@ -283,9 +213,10 @@ func (idx *Index) CompareBranch(branch, root string) (cs ChangeSlice) {
 
 		// Entry is read only-now. Check for changes.
 		visited[name] = struct{}{}
-		if nd.Entry.MTime != info.ModTime().UnixNano() ||
-			nd.Entry.CTime != ctime(info) ||
-			nd.Entry.Size != info.Size() {
+		if nd.Entry.MTime() != info.ModTime().UnixNano() ||
+			nd.Entry.CTime() != ctime(info) ||
+			nd.Entry.Size() != info.Size() ||
+			nd.Entry.Mode() != info.Mode() {
 			cs = append(cs, NewChange(name, ChangeMetaUpdate|markLargeMeta(info.Size())))
 		}
 
@@ -303,7 +234,7 @@ func (idx *Index) CompareBranch(branch, root string) (cs ChangeSlice) {
 			path := filepath.Join(root, filepath.FromSlash(name))
 
 			if _, err := os.Lstat(path); os.IsNotExist(err) {
-				cs = append(cs, NewChange(name, ChangeMetaRemove|markLargeMeta(entry.Size)))
+				cs = append(cs, NewChange(name, ChangeMetaRemove|markLargeMeta(entry.Size())))
 			}
 		}
 	})
@@ -319,15 +250,6 @@ func markLargeMeta(n int64) ChangeMeta {
 	}
 
 	return ChangeMetaHuge
-}
-
-// ctime gets file's change time in UNIX Nano format.
-func ctime(fi os.FileInfo) int64 {
-	if tspec := times.Get(fi); tspec.HasChangeTime() {
-		return tspec.ChangeTime().UnixNano()
-	}
-
-	return 0
 }
 
 // Apply modifies index according to provided changes. This function doesn't
@@ -352,7 +274,7 @@ func (idx *Index) Apply(root string, cs ChangeSlice) {
 			idx.mu.RUnlock()
 
 			// Entry was updated/added after the event was created.
-			if ok && nd.Entry.MTime > cs[i].CreatedAtUnixNano() {
+			if ok && nd.Entry.MTime() > cs[i].CreatedAtUnixNano() {
 				continue
 			}
 			fallthrough
@@ -432,8 +354,7 @@ func (idx *Index) UnmarshalJSON(data []byte) error {
 
 	// BUG(rjeczalik): Something overwrites the root entry
 	// with a zero value elsewhere. Fix me.
-	idx.root.Entry = newEntry()
-	idx.root.Entry.Mode |= os.ModeDir
+	idx.root.Entry = NewEntry(0, 0644|os.ModeDir)
 
 	return nil
 
@@ -442,7 +363,6 @@ func (idx *Index) UnmarshalJSON(data []byte) error {
 // DebugString dumps content of the index as a string, suitable for debugging.
 func (idx *Index) DebugString() string {
 	m := make(map[string]*Entry)
-
 	fn := func(path string, entry *Entry) {
 		m[path] = entry
 	}
@@ -452,15 +372,12 @@ func (idx *Index) DebugString() string {
 	idx.mu.RUnlock()
 
 	paths := make([]string, 0, len(m))
-
 	for path := range m {
 		paths = append(paths, path)
 	}
-
 	sort.Strings(paths)
 
 	var buf bytes.Buffer
-
 	for _, path := range paths {
 		fmt.Fprintf(&buf, "%s => %#v\n", path, m[path])
 	}

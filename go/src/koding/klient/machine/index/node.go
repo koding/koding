@@ -4,8 +4,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync/atomic"
-	"time"
 )
 
 // Node represents a file tree.
@@ -22,22 +20,9 @@ type Node struct {
 }
 
 func newNode() *Node {
-	e := newEntry()
-	e.Mode = 0755 | os.ModeDir
-
 	return &Node{
 		Sub:   make(map[string]*Node),
-		Entry: e,
-	}
-}
-
-func newEntry() *Entry {
-	t := time.Now().UTC().UnixNano()
-
-	return &Entry{
-		CTime: t,
-		MTime: t,
-		Mode:  0644,
+		Entry: NewEntry(0, 0755|os.ModeDir),
 	}
 }
 
@@ -111,9 +96,6 @@ func (nd *Node) Del(path string) {
 // If entry.Mode is non-zero, the effective node's entry is overwritten
 // with this value.
 //
-// If entry.Aux is non-zero, the effective node's Aux is overwritten
-// with this value.
-//
 // Rest of entry's fields are currently ignored.
 func (nd *Node) PromiseAdd(path string, entry *Entry) {
 	var newE *Entry
@@ -121,32 +103,19 @@ func (nd *Node) PromiseAdd(path string, entry *Entry) {
 	if nd, ok := nd.lookup(path, true); ok {
 		newE = nd.Entry
 
-		if entry.inode != 0 {
-			newE.SetInode(entry.inode)
+		if entry.Inode() != 0 {
+			newE.SetInode(entry.Inode())
 		}
-
-		if entry.Mode != 0 {
-			// BUG(rjeczalik): this is not safe when nd is read elsewhere.
-			//
-			// This field is read by fuse.ReadDir and PromiseAdd is called
-			// by fuse.CreateFile or fuse.MkDir, and fuse.ReadDir is not
-			// called until one of the former returns.
-			//
-			// However this should be changed to an atomic op once the field
-			// is read by something else.
-			newE.Mode = entry.Mode
+		if entry.Mode() != 0 {
+			newE.SetMode(entry.Mode())
 		}
 
 	} else {
-		newE = newEntry()
-		if entry.Mode != 0 {
-			newE.Mode = entry.Mode
-		}
-		newE.inode = entry.inode
+		newE = NewEntry(entry.Size(), entry.Mode())
+		newE.SetInode(entry.Inode())
 	}
 
-	newE.SwapMeta(EntryPromiseAdd, EntryPromiseDel|EntryPromiseUnlink)
-
+	newE.SwapPromise(EntryPromiseAdd, EntryPromiseDel|EntryPromiseUnlink)
 	nd.Add(path, newE)
 }
 
@@ -166,7 +135,7 @@ func (nd *Node) PromiseDel(path string, node *Node) {
 		}
 	}
 
-	node.Entry.SwapMeta(EntryPromiseDel, EntryPromiseAdd|EntryPromiseUnlink)
+	node.Entry.SwapPromise(EntryPromiseDel, EntryPromiseAdd|EntryPromiseUnlink)
 }
 
 // PromiseUnlink marks a node under the given path as unlinked.
@@ -185,7 +154,7 @@ func (nd *Node) PromiseUnlink(path string, node *Node) {
 		}
 	}
 
-	node.Entry.SwapMeta(EntryPromiseUnlink, EntryPromiseAdd)
+	node.Entry.SwapPromise(EntryPromiseUnlink, EntryPromiseAdd)
 }
 
 // Count counts nodes which Entry.Size is at most maxsize.
@@ -208,7 +177,7 @@ func (nd *Node) Count(maxsize int64) (count int) {
 			continue
 		}
 
-		if cur.Entry != nil && (maxsize < 0 || cur.Entry.Size <= maxsize) && cur != nd {
+		if cur.Entry != nil && (maxsize < 0 || cur.Entry.Size() <= maxsize) && cur != nd {
 			count++
 		}
 
@@ -241,8 +210,8 @@ func (nd *Node) DiskSize(maxsize int64) (size int64) {
 			continue
 		}
 
-		if nd.Entry != nil && (maxsize < 0 || nd.Entry.Size <= maxsize) {
-			size += nd.Entry.Size
+		if nd.Entry != nil && (maxsize < 0 || nd.Entry.Size() <= maxsize) {
+			size += nd.Entry.Size()
 		}
 
 		for _, nd := range nd.Sub {
@@ -328,16 +297,16 @@ func (nd *Node) lookup(path string, deleted bool) (*Node, bool) {
 
 // IsDir tells whether a node is a directory.
 func (nd *Node) IsDir() bool {
-	return nd.Entry.Mode&os.ModeDir != 0
+	return nd.Entry.Mode().IsDir()
 }
 
 // Deleted tells whether node is marked as deleted.
 func (nd *Node) Deleted() bool {
-	return atomic.LoadInt32(&nd.Entry.meta)&(EntryPromiseDel|EntryPromiseUnlink) != 0
+	return nd.Entry.Deleted()
 }
 
 func (nd *Node) undelete() {
-	nd.Entry.SwapMeta(0, EntryPromiseDel|EntryPromiseUnlink)
+	nd.Entry.SwapPromise(0, EntryPromiseDel|EntryPromiseUnlink)
 }
 
 func (nd *Node) shallowCopy() *Node {
