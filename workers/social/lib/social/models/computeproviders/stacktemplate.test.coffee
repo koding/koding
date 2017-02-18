@@ -1,5 +1,6 @@
 ComputeProvider = require './computeprovider'
 JStackTemplate = require './stacktemplate'
+JCounter = require '../counter'
 
 { async
   expect
@@ -273,6 +274,57 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
           ], done
 
 
+      it 'should keep limits as is if generating fails', (done) ->
+
+        options       =
+          machines    : generateStackMachineData 2
+          createGroup : yes
+
+        options.machines[0].provider = 'nosuchprovider'
+
+        withConvertedUserAndStackTemplate options, ({ client, group, stackTemplate }) ->
+
+          counterOptions =
+            namespace : group.getAt 'slug'
+            type      : ComputeProvider.COUNTER_TYPE.instances
+
+          async.series [
+
+            (next) ->
+              JCounter.count counterOptions, (err, count) ->
+                expect(err).to.not.exist
+                expect(count).to.equal 0
+                next()
+
+            (next) ->
+              stackTemplate.generateStack client, {}, (err) ->
+                expect(err.message).to.be.equal 'Stack is not verified yet'
+                next()
+
+            (next) ->
+              config = { verified: yes }
+              stackTemplate.update$ client, { config }, (err) ->
+                expect(err).to.not.exist
+                next()
+
+            (next) ->
+              stackTemplate.generateStack client, {}, (err, res) ->
+                expect(err).to.not.exist
+                expect(res.results.machines[0].err).to.exist
+                expect(res.results.machines[0].obj).to.not.exist
+                expect(res.results.machines[0].err.name).to.equal 'ProviderNotFound'
+                next()
+
+            (next) ->
+              JCounter.count counterOptions, (err, count) ->
+                expect(err).to.not.exist
+                expect(count).to.equal 1
+                next()
+
+          ], done
+
+
+
     describe 'when team limit has been reached', ->
 
       it 'should fail to generate a stack from the template', (done) ->
@@ -291,7 +343,6 @@ runTests = -> describe 'workers.social.models.computeproviders.stacktemplate', -
                 next()
 
             (next) ->
-              ComputeProvider   = require './computeprovider'
               ComputeProvider.updateGroupStackUsage group, 'increment', (err) ->
                 expect(err).to.not.exist
                 next()
