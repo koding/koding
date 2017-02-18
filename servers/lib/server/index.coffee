@@ -21,6 +21,8 @@ webPort               = argv.p ? webserver.port
 csrf                  = require './csrf'
 setCrsfToken          = require './setcsrftoken'
 
+do require './readclientversion'
+
 do ->
   cookieParser = require 'cookie-parser'
   app.set 'case sensitive routing', on
@@ -33,7 +35,6 @@ do ->
   app.use helmet.ieNoOpen()
   app.use helmet.hidePoweredBy()
   app.use metrics.send
-
 
 # handle basic auth
 app.use express.basicAuth basicAuth.username, basicAuth.password  if basicAuth
@@ -89,7 +90,7 @@ app.post '/:name?/Unregister'                    , require './handlers/unregiste
 app.get  '/humans.txt'                           , generateHumanstxt
 app.get  '/-/healthCheck'                        , require './handlers/healthcheck'
 app.get  '/-/versionCheck'                       , require './handlers/versioncheck'
-app.get  '/-/version'                            , (req, res) -> res.jsonp { version: KONFIG.version }
+app.get  '/-/version'                            , (req, res) -> res.jsonp { version: KONFIG.version, client_version: KONFIG._CLIENTVERSION }
 app.get  '/-/jobs'                               , require './handlers/jobs'
 app.post '/recaptcha'                            , require './handlers/recaptcha'
 app.get  '/-/presence/:service'                  , (req, res) -> res.status(200).end()
