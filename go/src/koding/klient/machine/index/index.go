@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"sort"
 	"sync"
+	"text/tabwriter"
 )
 
 // Version stores current version of index.
@@ -357,7 +358,6 @@ func (idx *Index) UnmarshalJSON(data []byte) error {
 	idx.root.Entry = NewEntry(0, 0644|os.ModeDir)
 
 	return nil
-
 }
 
 // DebugString dumps content of the index as a string, suitable for debugging.
@@ -378,9 +378,11 @@ func (idx *Index) DebugString() string {
 	sort.Strings(paths)
 
 	var buf bytes.Buffer
+	tw := tabwriter.NewWriter(&buf, 0, 0, 1, ' ', 0)
 	for _, path := range paths {
-		fmt.Fprintf(&buf, "%s => %#v\n", path, m[path])
+		fmt.Fprintf(tw, "%s\t%v\n", path, m[path])
 	}
+	tw.Flush()
 
 	return buf.String()
 }

@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"fmt"
 	"github.com/djherbis/times"
 )
 
@@ -162,14 +163,24 @@ func (e *Entry) SetInode(inode uint64) {
 	atomic.StoreUint64(&e.virtual.inode, inode)
 }
 
-// IncRefCounter increments entry reference counter.
-func (e *Entry) IncRefCounter() int32 {
+// RefCount returns the current state of Entry's reference counter.
+func (e *Entry) RefCount() int32 {
+	return atomic.LoadInt32(&e.virtual.refCount)
+}
+
+// IncRefCount increments entry reference counter.
+func (e *Entry) IncRefCount() int32 {
 	return atomic.AddInt32(&e.virtual.refCount, 1)
 }
 
-// DecRefCounter decrements entry reference counter.
-func (e *Entry) DecRefCounter() int32 {
+// DecRefCount decrements entry reference counter.
+func (e *Entry) DecRefCount() int32 {
 	return atomic.AddInt32(&e.virtual.refCount, -1)
+}
+
+// Promise returns Entry's promise state.
+func (e *Entry) Promise() EntryPromise {
+	return EntryPromise(atomic.LoadUint32((*uint32)(&e.virtual.promise)))
 }
 
 // HasPromise checks if provider promise is set in given entry.
@@ -193,6 +204,19 @@ func (e *Entry) SwapPromise(set, unset EntryPromise) EntryPromise {
 			return EntryPromise(updated)
 		}
 	}
+}
+
+// String implements fmt.Stringer interface. It pretty prints entry.
+func (e *Entry) String() string {
+	var (
+		ctime = time.Unix(0, e.CTime())
+		mtime = time.Unix(0, e.MTime())
+	)
+
+	return fmt.Sprintf("[INODE %d, REFS %d, PROMISE %s][CTIME %s, MTIME %s, SIZE %d, MODE %s]",
+		e.Inode(), e.RefCount(), e.Promise(),
+		ctime.Format(time.StampMilli), mtime.Format(time.StampMilli), e.Size(), e.Mode(),
+	)
 }
 
 // MarshalJSON satisfies json.Marshaler interface. It safely marshals entry
