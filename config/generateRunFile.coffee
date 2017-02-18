@@ -433,11 +433,10 @@ generateDev = (KONFIG, options) ->
     function switch_client_version () {
       if [ "$1" == "default" ]; then
         rm $KONFIG_PROJECTROOT/CLIENTVERSION
-        pkill -SIGPIPE koding-webserver
       else
         echo $1 > $KONFIG_PROJECTROOT/CLIENTVERSION
-        pkill -SIGPIPE koding-webserver
       fi
+      pkill -SIGPIPE koding-webserver
     }
 
     function build_services () {
