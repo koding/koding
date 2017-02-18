@@ -5,7 +5,7 @@ module.exports = (options = {}, callback) ->
   encoder   = require 'htmlencode'
   { argv }  = require 'optimist'
   _         = require 'lodash'
-  SocialAccount = require '../../../../../servers/models/socialapi/socialaccount'
+  SocialAccount = require '../models/socialapi/socialaccount'
 
   options.client               or= {}
   options.client.context       or= {}
