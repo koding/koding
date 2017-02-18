@@ -4,6 +4,7 @@
   "EnableGC": true,
   "Deadline": "60s",
   "DisableAll": true,
+  "Tests": true,
   "Enable": [
     "deadcode",
     "ineffassign",
