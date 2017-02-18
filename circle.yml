@@ -140,3 +140,7 @@ stages:
       - type: shell
         name: test mongo models
         command: ./run exec go test koding/db/mongodb/modelhelper
+
+      - type: shell
+        name: run database migration
+        command: ./run migrations up
