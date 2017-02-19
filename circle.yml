@@ -3,7 +3,7 @@ version: 2
 executorType: docker
 
 containerInfo:
-  - image: koding/base@sha256:c53151cedd1a7cd86a66189742835a761d54f1d23c72422832fac69a0916a176
+  - image: koding/base@sha256:55cf1b683bde71eac3a162775d8adad1e6061832cb55fe8b39866ea98c3df74a
 
   - image: mongo:2.6
     cmd: ["--nojournal", "--noprealloc", "--smallfiles"]
