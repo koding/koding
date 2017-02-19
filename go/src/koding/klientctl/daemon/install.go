@@ -4,9 +4,12 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/url"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -86,7 +89,7 @@ func (c *Client) Install(opts *Opts) error {
 
 	var merr error
 	for _, step := range c.script()[start:] {
-		fmt.Fprintf(os.Stderr, "Installing %q ...\n", step.Name)
+		fmt.Fprintf(os.Stderr, "Installing %q ...\n\n", step.Name)
 
 		result := InstallResult{
 			Name: step.Name,
@@ -107,6 +110,10 @@ func (c *Client) Install(opts *Opts) error {
 
 				merr = multierror.Append(merr, err)
 			}
+		}
+
+		if result.Skipped {
+			fmt.Fprintf(os.Stderr, "\tAlready installed, skipping.\n\n")
 		}
 
 		c.d.Installation = append(c.d.Installation, result)
@@ -221,12 +228,17 @@ var script = []InstallStep{{
 		}
 
 		c.log().SetHandler(logging.NewWriterHandler(f))
-		fmt.Fprintf(os.Stderr, "Created log file: %s\n", kd)
+		fmt.Fprintf(os.Stderr, "\tCreated log file: %s\n", kd)
 
-		if f, err := os.Create(klient); err == nil {
-			err = nonil(f.Chown(uid, gid), f.Close())
-			fmt.Fprintf(os.Stderr, "Created log file: %s\n", klient)
+		fk, err := os.Create(klient)
+		if err == nil {
+			err = nonil(fk.Chown(uid, gid), fk.Close())
 		}
+		if err != nil {
+			return "", err
+		}
+
+		fmt.Fprintf(os.Stderr, "\tCreated log file: %s\n\n", klient)
 
 		return "", err
 	},
@@ -313,7 +325,7 @@ var script = []InstallStep{{
 
 			}
 
-			run, err := wgetTemp(vbox.String())
+			run, err := wgetTemp(vbox.String(), 0755)
 			if err != nil {
 				return "", err
 			}
@@ -358,7 +370,7 @@ var script = []InstallStep{{
 
 			vagrant := c.d.Vagrant[runtime.GOOS]
 
-			deb, err := wgetTemp(vagrant.String())
+			deb, err := wgetTemp(vagrant.String(), 0755)
 			if err != nil {
 				return "", err
 			}
@@ -382,18 +394,17 @@ var script = []InstallStep{{
 			return "", err
 		}
 
-		resp, err := f.Login(&auth.LoginOptions{
-			Team:  opts.Team,
-			Token: opts.Token,
+		fmt.Printf("\tSign in to your account:\n\n")
+
+		_, err = f.Login(&auth.LoginOptions{
+			Team:   opts.Team,
+			Token:  opts.Token,
+			Prefix: "\t",
 		})
 
-		if err != nil {
-			return "", err
-		}
+		fmt.Println()
 
-		_ = resp
-
-		return "", nil
+		return "", err
 	},
 }, {
 	Name: "KD Daemon",
@@ -420,7 +431,7 @@ var script = []InstallStep{{
 		// Best-effort attempt at stopping the running klient, if any.
 		_ = svc.Stop()
 
-		if err := wget(c.klient(newVersion), c.d.Files["klient"]); err != nil {
+		if err := wget(c.klient(newVersion), c.d.Files["klient"], 0755); err != nil {
 			return "", err
 		}
 
@@ -465,19 +476,29 @@ var script = []InstallStep{{
 }, {
 	Name: "KD",
 	Install: func(c *Client, _ *Opts) (string, error) {
-		var newVersion int
+		var version, newVersion int
+
+		if n, err := parseVersion(c.d.Files["kd"]); err == nil {
+			version = n
+		}
 
 		if err := curl(c.kdLatest(), "%d", &newVersion); err != nil {
 			return "", err
 		}
 
-		kd := c.d.Files["kd"]
+		if version != 0 && version < config.VersionNum() {
+			if err := copyFile(os.Args[0], c.d.Files["kd"], 0755); err != nil {
+				return "", err
+			}
 
-		if _, err := os.Stat(kd); err == nil && newVersion <= config.VersionNum() {
 			return config.Version, nil
 		}
 
-		if err := wget(c.kd(newVersion), kd); err != nil {
+		if version != 0 && newVersion <= version {
+			return strconv.Itoa(version), nil
+		}
+
+		if err := wget(c.kd(newVersion), c.d.Files["kd"], 0755); err != nil {
 			return "", err
 		}
 
@@ -520,4 +541,44 @@ func hasVagrant() bool {
 	}
 
 	return strings.Contains(string(p), s)
+}
+
+func copyFile(src, dst string, mode os.FileMode) error {
+	fsrc, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer fsrc.Close()
+
+	if mode == 0 {
+		fi, err := fsrc.Stat()
+		if err != nil {
+			return err
+		}
+
+		mode = fi.Mode()
+	}
+
+	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
+		return err
+	}
+
+	tmp, err := ioutil.TempFile(filepath.Split(dst))
+	if err != nil {
+		return err
+	}
+
+	if _, err = io.Copy(tmp, fsrc); err != nil {
+		return nonil(err, tmp.Close(), os.Remove(tmp.Name()))
+	}
+
+	if err = nonil(tmp.Chmod(mode), tmp.Close()); err != nil {
+		return nonil(err, os.Remove(tmp.Name()))
+	}
+
+	if err = os.Rename(tmp.Name(), dst); err != nil {
+		return nonil(err, os.Remove(tmp.Name()))
+	}
+
+	return nil
 }

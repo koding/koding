@@ -15,24 +15,20 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/mitchellh/ioprogress"
+
 	"koding/kites/config"
 	conf "koding/klientctl/config"
 )
 
-// TODO:
-//
-//   - kd/daemon: add more logs
-//   - koding/homebrew-kd
-//   - remove old code
-//
 type Package struct {
-	*config.URL `json:"url"`
-	Version     string `json:"version"`
+	config.URL `json:"url"`
+	Version    string `json:"version"`
 }
 
 type Details struct {
 	Username     string                       `json:"username"`
-	Base         *config.URL                  `json:"baseURL"`
+	Base         *config.URL                  `json:"baseURL,omitempty"`
 	Osxfuse      *Package                     `json:"osxfuse"`
 	Virtualbox   map[string]*Package          `json:"virtualbox"`
 	Vagrant      map[string]*Package          `json:"vagrant"`
@@ -97,12 +93,12 @@ func newDetails() *Details {
 	}
 }
 
-func mustURL(s string) *config.URL {
+func mustURL(s string) config.URL {
 	u, err := url.Parse(s)
 	if err != nil {
 		panic(s + ": " + err.Error())
 	}
-	return &config.URL{
+	return config.URL{
 		URL: u,
 	}
 }
@@ -139,7 +135,7 @@ func cmd(name string, args ...string) *exec.Cmd {
 }
 
 func dmgInstall(url, volume, pkg string) error {
-	dmg, err := wgetTemp(url)
+	dmg, err := wgetTemp(url, 0755)
 	if err != nil {
 		return err
 	}
@@ -167,7 +163,7 @@ func parseVersion(bin string) (int, error) {
 		return 0, errors.New("invalid version string")
 	}
 
-	n, err := strconv.Atoi(string(q[2]))
+	n, err := strconv.Atoi(string(bytes.TrimSpace(q[2])))
 	if err != nil {
 		return 0, err
 	}
@@ -175,7 +171,7 @@ func parseVersion(bin string) (int, error) {
 	return n, nil
 }
 
-func wget(url, output string) error {
+func wget(url, output string, mode os.FileMode) error {
 	if err := os.MkdirAll(filepath.Dir(output), 0755); err != nil {
 		return err
 	}
@@ -197,7 +193,24 @@ func wget(url, output string) error {
 	}
 
 	var buf bytes.Buffer // to restore begining of a response body consumed by gzip.NewReader
-	var body io.Reader = io.MultiReader(&buf, resp.Body)
+	var body io.Reader
+
+	if resp.ContentLength > 0 {
+		file := path.Base(url)
+
+		fn := func(progress, total int64) string {
+			return "\tDownloading " + file + ": " + ioprogress.DrawTextFormatBytes(progress, total)
+		}
+
+		body = io.MultiReader(&buf, &ioprogress.Reader{
+			Reader:   resp.Body,
+			Size:     resp.ContentLength,
+			DrawFunc: ioprogress.DrawTerminalf(os.Stdout, fn),
+		})
+		defer fmt.Println()
+	} else {
+		body = io.MultiReader(&buf, resp.Body)
+	}
 
 	// If body contains gzip header, it means the payload was compressed.
 	// Relying solely on Content-Type == "application/gzip" check
@@ -212,10 +225,10 @@ func wget(url, output string) error {
 		return err
 	}
 
-	return f.Close()
+	return nonil(f.Chmod(mode), f.Close())
 }
 
-func wgetTemp(s string) (string, error) {
+func wgetTemp(s string, mode os.FileMode) (string, error) {
 	u, err := url.Parse(s)
 	if err != nil {
 		return "", err
@@ -228,7 +241,7 @@ func wgetTemp(s string) (string, error) {
 
 	tmp := filepath.Join(dir, path.Base(u.Path))
 
-	if err := wget(s, tmp); err != nil {
+	if err := wget(s, tmp, mode); err != nil {
 		return "", nonil(err, os.RemoveAll(dir))
 	}
 
