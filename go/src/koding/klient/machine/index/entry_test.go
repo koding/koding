@@ -14,13 +14,13 @@ func TestEntryPromiseString(t *testing.T) {
 	}{
 		{
 			// 0 //
-			EP:     index.EntryPromiseSync,
-			Result: "S----",
+			EP:     index.EntryPromiseExist,
+			Result: "E----",
 		},
 		{
 			// 1 //
-			EP:     index.EntryPromiseSync | index.EntryPromiseDel | index.EntryPromiseUnlink,
-			Result: "S--DN",
+			EP:     index.EntryPromiseExist | index.EntryPromiseDel | index.EntryPromiseUnlink,
+			Result: "E--DN",
 		},
 		{
 			// 2 //
