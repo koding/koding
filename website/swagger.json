@@ -7177,7 +7177,7 @@
         "consumes": [
           "application/json"
         ],
-        "description": "",
+        "description": "Method JGroup.transferOwnership",
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
