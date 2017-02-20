@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+set -o errexit
+
+if [[ -z "$GITHUB_TOKEN" ]]; then
+	echo 'error: GitHub token is not set'
+	exit 255
+fi
+
+function github_api() {
+	response=$(mktemp)
+	response_code=$(curl --silent \
+		--header "Authorization: token $GITHUB_TOKEN" \
+		--output $response \
+		--write-out "%{http_code}" \
+		https://api.github.com/$1)
+
+	cat $response
+
+	if [[ $response_code -ne 200 ]]; then
+		exit 255
+	fi
+}
+
+user=${GITHUB_USER:-koding}
+repo=${GITHUB_REPO:-koding}
+head=${1:-$(git rev-parse HEAD)}
+
+response=$(github_api search/issues?q=$head+type:pr+repo:$user/$repo)
+pull_request_numbers=$(echo $response | jq '.items[].number')
+if [[ -z "$pull_request_numbers" ]]; then
+	exit 0
+fi
+
+for number in $pull_request_numbers; do
+	response=$(github_api repos/$user/$repo/pulls/$number)
+	pr_head=$(echo $response | jq -r '.head.sha')
+	if [[ $head == "$pr_head" ]]; then
+		echo $number
+	fi
+done
+
+exit 0
