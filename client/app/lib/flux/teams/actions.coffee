@@ -18,6 +18,7 @@ KodingKontrol = require 'app/kite/kodingkontrol'
 globals = require 'globals'
 showError = require 'app/util/showError'
 DeleteTeamOverlay = require 'app/components/deleteteamoverlay'
+DeleteAccountOverlay = require 'app/components/deleteaccountoverlay'
 fetchMyRelativeGroups = require 'app/util/fetchMyRelativeGroups'
 DeleteAccountModal = require 'home/account/deleteaccount/deleteaccountmodal'
 verifyPassword = require 'app/util/verifyPassword'
@@ -344,9 +345,11 @@ deleteAccountVerifyModal = ->
   new VerifyPasswordModal 'Confirm', partial, (currentPassword) ->
     verifyPassword currentPassword, (err) ->
 
-      whoami().destroyAccount currentPassword, (err) ->
+      return if showError err?.message
 
-        return if showError err?.message
+      new DeleteAccountOverlay()
+
+      whoami().destroyAccount currentPassword
 
 
 fetchApiTokens = ->
