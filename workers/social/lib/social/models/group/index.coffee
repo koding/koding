@@ -5,6 +5,7 @@ async          = require 'async'
 { Module }     = require 'jraphical'
 { difference } = require 'underscore'
 backoff = require 'backoff'
+{ checkUserPassword } = require '../utils'
 
 module.exports = class JGroup extends Module
 
@@ -1466,19 +1467,6 @@ module.exports = class JGroup extends Module
           @addMember account, {}, callback  unless removeUserFromTeam
 
 
-  checkUserPassword: (account, password, callback) ->
-
-    unless account or password
-      return callback "Couldn't verify user"
-
-    account.fetchUser (err, user) ->
-      return callback "Couldn't verify user"  if err
-
-      unless user.checkPassword password
-        return callback "Your password didn't match with our records"
-      else
-        callback()
-
   transferOwnership$: permit
     advanced: [
       { permission: 'grant permissions' }
@@ -1496,7 +1484,7 @@ module.exports = class JGroup extends Module
       if clientAccountId.equals accountId
         return callback new KodingError 'You cannot transfer ownership to yourself, concentrate and try again!'
 
-      @checkUserPassword delegate, currentPassword, (err) =>
+      checkUserPassword delegate, currentPassword, (err) =>
 
         return callback new KodingError err  if err
 
@@ -1619,7 +1607,7 @@ module.exports = class JGroup extends Module
 
       account = client?.connection?.delegate
 
-      @checkUserPassword account, password, (err) =>
+      checkUserPassword account, password, (err) =>
 
         return callback new KodingError err  if err
 
