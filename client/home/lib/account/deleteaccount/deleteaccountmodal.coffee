@@ -53,8 +53,6 @@ module.exports = class DeleteAccountModal extends ContentModal
       callback       : ->
         fetchMyRelativeGroups (err, groups) ->
 
-          groups = groups.filter (group) -> 'owner' in group.roles
-
           return showError 'You are the owner of some groups.'  if groups.length
 
           TeamFlux.actions.destroyAccountVerifyModal()

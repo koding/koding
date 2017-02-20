@@ -191,7 +191,7 @@ runTests = -> describe 'workers.social.user.account', ->
             expect(err).to.not.exist
             group1 = group_
 
-            account.fetchRelativeGroups (err, groups) ->
+            account.fetchRelativeGroups {}, (err, groups) ->
 
               groups = groups.filter (group) -> group.slug isnt 'koding'
 

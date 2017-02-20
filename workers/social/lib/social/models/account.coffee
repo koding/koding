@@ -132,7 +132,7 @@ module.exports = class JAccount extends jraphical.Module
         fetchMetaInformation :
           (signature Function)
         fetchRelativeGroups:
-          (signature Function)
+          (signature Object, Function)
         expireSubscription:
           (signature Function)
         fetchOtaToken:
@@ -305,17 +305,30 @@ module.exports = class JAccount extends jraphical.Module
     async.waterfall queue, callback
 
 
-  fetchRelativeGroups$: secure (client, callback) ->
+  fetchRelativeGroups$: secure (client, options = {}, callback) ->
     delegate = client?.connection?.delegate
     return callback new Error 'malformed request' unless delegate
-    delegate.fetchRelativeGroups callback
+
+    { currentGroup } = options
+    delete options.currentGroup
+
+    delegate.fetchRelativeGroups options, (err, groups) ->
+
+      return callback err  if err
+
+      rejectedSlugs = [ 'koding', currentGroup ]
+
+      groups = _.reject groups, (group) -> group.slug in rejectedSlugs
+      groups = _.sortBy groups, 'slug'
+
+      callback null, groups
 
 
-  fetchRelativeGroups: (callback) ->
+  fetchRelativeGroups: (options = {}, callback) ->
 
     queue =
       participated: (next) =>
-        @fetchAllParticipatedGroups {}, (err, groups) =>
+        @fetchAllParticipatedGroups options, (err, groups) =>
           return next err  if err
           JUser = require './user'
           username = @profile.nickname

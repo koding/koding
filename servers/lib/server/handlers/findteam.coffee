@@ -35,7 +35,7 @@ module.exports = (req, res) ->
         next null, account, { lastLoginDate : user.lastLoginDate }
 
     (account, userInfo, next) ->
-      account.fetchRelativeGroups (err, groups) ->
+      account.fetchRelativeGroups {}, (err, groups) ->
         userInfo.nickname = account.profile.nickname
         next err, account, groups, userInfo
 
