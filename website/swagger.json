@@ -3016,6 +3016,40 @@
         }
       }
     },
+    "/remote.api/JAccount.destroyAccount/{id}": {
+      "post": {
+        "tags": [
+          "JAccount"
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "description": "Method JAccount.destroyAccount",
+        "parameters": [
+          {
+            "$ref": "#/parameters/instanceParam"
+          },
+          {
+            "$ref": "#/parameters/bodyParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/JAccount"
+                },
+                {
+                  "$ref": "#/definitions/DefaultResponse"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
     "/remote.api/JApiToken.create": {
       "post": {
         "tags": [
