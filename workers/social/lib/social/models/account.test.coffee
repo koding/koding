@@ -5,6 +5,7 @@
   withConvertedUser
   generateDummyClient
   generateRandomString
+  generateRandomEmail
   checkBongoConnectivity } = require '../../../testhelper'
 
 JUser            = require './user'
@@ -163,6 +164,85 @@ runTests = -> describe 'workers.social.user.account', ->
               expect(permissions).to.exist
               expect(permissions).to.be.an 'object'
               done()
+
+  describe '#destroyAccount()', ->
+
+    group  = {}
+    group1 = {}
+    group2 = {}
+    client = {}
+    account = {}
+
+    describe 'create group with user', ->
+
+      group1Slug = generateRandomString()
+
+      groupData1         =
+        slug           : group1Slug
+        title          : generateRandomString()
+        visibility     : 'visible'
+
+      before (done) ->
+        withConvertedUser { createGroup: yes }, (data) ->
+          { client, account, group } = data
+
+          # creating a new group
+          JGroup.create client, groupData1, account, (err, group_) ->
+            expect(err).to.not.exist
+            group1 = group_
+
+            account.fetchRelativeGroups (err, groups) ->
+
+              groups = groups.filter (group) -> group.slug isnt 'koding'
+
+              expect(err).to.not.exist
+              expect(groups.length).to.be.equal 2
+
+              groups.forEach (group) ->
+                expect(true).to.be.equal 'owner' in group.roles
+              done()
+
+
+      it 'should not be able to delete account when there more than one ownership', (done) ->
+
+        account.destroyAccount client, (err) ->
+          expect(err).to.exist
+          expect(err.message).to.be.equal 'You cannot delete your account when you have ownership in other team'
+          done()
+
+
+    describe 'delete team and account', ->
+
+      before (done) ->
+
+        queue = [
+          (next) ->
+            group1.destroy client, -> next()
+
+          (next) ->
+            account.destroyAccount client, -> next()
+        ]
+
+        async.series queue, done
+
+      it 'should account and group be deleted', (done) ->
+        queue = [
+          (next) ->
+            username = account.profile.nickname
+            JAccount.one { 'profile.nickname' : username }, (err, account_) ->
+              expect(err).to.not.exist
+              expect(account_).to.not.exist
+              next()
+
+          (next) ->
+            JGroup.one { slug: group.slug }, (err, group_) ->
+              expect(err).to.not.exist
+              expect(group_).to.not.exist
+              next()
+        ]
+
+        async.series queue, done
+
 
   describe '#leaveFromAllGroups()', ->
 
