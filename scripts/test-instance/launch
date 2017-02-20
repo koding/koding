@@ -50,8 +50,8 @@ if argv['pull-request']
 git_fetch    = "git fetch origin #{refspec or ''}"
 git_checkout = "git checkout -fq #{revision}"
 
-git_clone_vault = (branchName = 'master') ->
-  "git clone --branch #{branchName} --depth 1 git@github.com:koding/vault.git"
+git_clone_vault = (branch = 'master') ->
+  "git clone --branch #{branch} --depth 1 git@github.com:koding/vault.git"
 
 argv.count ?= require('./parallel-sets').length
 
@@ -73,7 +73,7 @@ userData =
     - #{git_fetch}
     - #{git_checkout}
     - rm -rf ./vault # delete vault folder if exists
-    - #{git_clone_vault argv['branch-name']} || #{git_clone_vault()}
+    - #{git_clone_vault argv['branch']} || #{git_clone_vault()}
     - git submodule update --recursive
     - /opt/koding/scripts/test-instance/init
     - echo $(git rev-parse HEAD) > REVISION
