@@ -84,6 +84,12 @@ build:
         code: |
           make -C client dist
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
+    - wercker/s3sync@2.0.3:
+        source-dir: website/a/p/p/$(cat VERSION)/
+        bucket-url: s3://koding-assets/a/p/p/$(cat VERSION)/
+        key-id: $S3_KEY_ID
+        key-secret: $S3_KEY_SECRET
+        opts: "--no-mime-magic --guess-mime-type --acl-public"
     - script:
         name: build go binaries
         code: go/build.sh
@@ -261,12 +267,6 @@ deploy:
         name: notify-cebeci with eb trigger
         code: |
           $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "triggered $EB_ENV_NAME EB" "deploying" 95
-    - wercker/s3sync@2.0.3:
-        source-dir: website/a/p/p
-        bucket-url: s3://koding-assets/a/p/p/
-        key-id: $S3_KEY_ID
-        key-secret: $S3_KEY_SECRET
-        opts: "--no-mime-magic --guess-mime-type --acl-public"
 
   after-steps:
     - jessefulton/slack-notify:
