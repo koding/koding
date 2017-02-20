@@ -87,15 +87,18 @@ module.exports = class StackEditor extends kd.View
     @controllers = {}
 
     @controllers.logs = new LogsController
-      editor: @logs
+      shared   :
+        editor : @logs
 
     @controllers.variables = new VariablesController
-      editor: @variables
-      logs  : @controllers.logs
+      shared   :
+        editor : @variables
+        logs   : @controllers.logs
 
     # SideView for Search and Credentials
     @controllers.credentials = new CredentialsController
-      logs  : @controllers.logs
+      shared   :
+        logs   : @controllers.logs
 
     @sideView       = new SideView
       title         : yes
