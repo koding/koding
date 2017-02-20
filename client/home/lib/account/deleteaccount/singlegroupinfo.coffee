@@ -5,7 +5,7 @@ whoami = require 'app/util/whoami'
 showError = require 'app/util/showError'
 capitalizeFirstLetter = require 'app/util/capitalizefirstletter'
 globals = require 'globals'
-TransferOwnershipButton = require '../transferownershipbutton'
+TransferOwnershipButton = require 'home/myteam/components/transferownershipbutton'
 
 
 module.exports = class SingleGroupInfo extends kd.CustomHTMLView

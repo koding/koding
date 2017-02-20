@@ -15,6 +15,7 @@ canSeeMembers = require 'app/util/canSeeMembers'
 isAdmin = require 'app/util/isAdmin'
 showError = require 'app/util/showError'
 globals = require 'globals'
+TransferOwnershipButton = require './components/transferownershipbutton'
 
 SECTIONS =
   'Invite Using Slack' : HomeTeamConnectSlack
@@ -123,8 +124,10 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
 
 
       if 'owner' in globals.userRoles
+        @wrapper.addSubView actionWrapper = new kd.CustomHTMLView
+          cssClass : 'myteam-action-wrapper'
 
-        @wrapper.addSubView new kd.CustomHTMLView
+        actionWrapper.addSubView new kd.CustomHTMLView
           cssClass : 'delete-team'
           partial : 'DELETE TEAM'
           click : ->
@@ -137,3 +140,6 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
 
             TeamFlux.actions.deleteTeam(partial).catch (err) ->
               showError err
+
+        actionWrapper.addSubView new TransferOwnershipButton {}, team
+

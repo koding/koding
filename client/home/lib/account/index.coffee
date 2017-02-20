@@ -9,7 +9,7 @@ HomeAccountSecurityView = require './homeaccountsecurityview'
 HomeAccountIntegrationsView = require './homeaccountintegrationsview'
 HomeAccountSessionsView = require './homeaccountsessionsview'
 TeamFlux = require 'app/flux/teams'
-TransferOwnershipButton = require './transferownershipbutton'
+
 
 module.exports = class HomeAccount extends kd.CustomScrollView
 
@@ -41,8 +41,6 @@ module.exports = class HomeAccount extends kd.CustomScrollView
     @wrapper.addSubView sectionize 'Sessions', HomeAccountSessionsView
 
     @wrapper.addSubView actionWrapper = new kd.CustomHTMLView
-      cssClass : 'action-wrapper'
-    actionWrapper.addSubView new kd.CustomHTMLView
       cssClass : 'delete-account'
       partial : 'DELETE ACCOUNT'
       click : ->
@@ -54,10 +52,6 @@ module.exports = class HomeAccount extends kd.CustomScrollView
           <p>Please enter <strong>current password</strong> into the field below to continue: </p>'
 
         TeamFlux.actions.deleteAccount(partial)
-
-    if 'owner' in globals.userRoles
-      team = kd.singletons.groupsController.getCurrentGroup()
-      actionWrapper.addSubView new TransferOwnershipButton {}, team
 
 
   checkIntegrations: ->
