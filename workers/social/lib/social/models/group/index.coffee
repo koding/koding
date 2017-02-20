@@ -1481,9 +1481,6 @@ module.exports = class JGroup extends Module
 
       return callback new KodingError 'User is not selected!'  unless accountId
 
-      if clientAccountId.equals accountId
-        return callback new KodingError 'You cannot transfer ownership to yourself, concentrate and try again!'
-
       checkUserPassword delegate, currentPassword, (err) =>
 
         return callback new KodingError err  if err
@@ -1501,52 +1498,73 @@ module.exports = class JGroup extends Module
 
       return callback err if err
 
-      if clientAccountId and JSON.stringify(clientAccountId) isnt JSON.stringify(owner.getId())
-
+      if clientAccountId and not owner.getId().equals clientAccountId
         return callback new KodingError 'You must be the owner to perform this action!'
 
-      Relationship.one {
-        targetId: owner.getId()
-        sourceId: @getId(),
-        as      : 'owner'
-      }, (err, ownershipRelation) =>
+      if owner.getId().equals accountId
+        return callback new KodingError 'You cannot transfer ownership to yourself, concentrate and try again!'
 
-        JAccount = require '../account'
-        JAccount.one { _id: accountId }, (err, account) =>
+      JAccount = require '../account'
+      JAccount.one { _id: accountId }, (err, account) =>
+
+        return callback err if err
+
+        @fetchRolesByAccount account, (err, newOwnersRoles) =>
 
           return callback err if err
 
-          @fetchRolesByAccount account, (err, newOwnersRoles) =>
+          if 'blockedAccount' in newOwnersRoles
+            return callback new KodingError 'You cannot transfer ownership to blocked account'
 
-            return callback err if err
+          kallback = (err) ->
+            callback err
 
-            if 'blockedAccount' in newOwnersRoles
-              return callback new KodingError 'You cannot transfer ownership to blocked account'
+          # give rights to new owner
+          queue = difference(['member', 'admin'], newOwnersRoles).map (role) => (fin) =>
+            @addMember account, role, fin
 
-            kallback = (err) ->
-              callback err
+          async.parallel queue, (err) =>
+            return kallback err  if err
 
-            # give rights to new owner
-            queue = difference(['member', 'admin'], newOwnersRoles).map (role) => (fin) =>
-              @addMember account, role, fin
+            slug ?= 'koding'
 
-            async.parallel queue, (err) ->
-              return kallback err  if err
+            async.series [
 
-              slug ?= 'koding'
+              (next) =>
+                # update relationship for old owner as an admin
+                 Relationship.one {
+                  targetId: owner.getId(),
+                  sourceId: @getId(),
+                  as      : 'owner'
+                }, (err, owner) ->
+                  owner.update { $set: { as: 'admin' } }
+                  next()
 
-              # notify group for new owner
-              contents =
-                role: 'owner'
-                id: accountId
-                group: slug
-                adminNick: owner.profile.nickname
+              (next) =>
+                # add new relationship to new owner
+                (new Relationship
+                  targetName  : 'JAccount'
+                  targetId    : account.getId()
+                  sourceName  : 'JGroup'
+                  sourceId    : @getId()
+                  as          : 'owner'
+                ).save next
 
-              JGroup.one { slug }, (err, group) ->
-                if group
-                  group.sendNotification 'MembershipRoleChanged', contents
+              (next) ->
+                # notify the team for new owner
+                contents =
+                  role: 'owner'
+                  id: account.getId()
+                  group: slug
+                  adminNick: owner.profile.nickname
 
-                ownershipRelation.update { $set: { targetId: account.getId() } }, kallback
+                JGroup.one { slug }, (err, group) ->
+                  if group
+                    group.sendNotification 'MembershipRoleChanged', contents
+
+                  next()
+
+            ], kallback
 
 
   ensureUniquenessOfRoleRelationship:(target, options, fallbackRole, roleUnique, callback) ->

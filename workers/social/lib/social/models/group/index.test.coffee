@@ -217,6 +217,18 @@ runTests = -> describe 'workers.social.group.index', ->
           expect(err.message).to.be.equal 'Account is not provided'
           done()
 
+      it 'should not transfer if client is not the owner of the group', (done) ->
+
+        group.transferOwnership { clientAccountId: member1.getId(), accountId: member1.getId() }, (err) ->
+          expect(err.message).to.be.equal 'You must be the owner to perform this action!'
+          done()
+
+      it 'should not transfer the ownership to group owner', (done) ->
+
+        group.transferOwnership { accountId: adminAccount.getId() }, (err) ->
+          expect(err.message).to.be.equal 'You cannot transfer ownership to yourself, concentrate and try again!'
+          done()
+
       it 'should be able to transfer the ownership to the member', (done) ->
 
         accountId = member1._id
@@ -244,7 +256,6 @@ runTests = -> describe 'workers.social.group.index', ->
         ]
 
         async.series queue, done
-
 
 
   describe '#destroy()', ->
