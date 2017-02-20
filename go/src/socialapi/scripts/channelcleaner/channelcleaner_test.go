@@ -103,20 +103,6 @@ func createGroupDataWithChecksInBothDB(groupName string) (*models.Channel, *mode
 	// In this case we need to try to create same named group in mongo.
 	// then it gives key duplication error, so err checking is disabled here.
 	models.CreateGroupInMongo(groupName, groupChannel.Id)
-	// So(err, ShouldBeNil)
 
 	return groupChannel, account
 }
-
-//
-// func accountCreatorWithCount(count int) error {
-// 	for i := 0; i < count; i++ {
-// 		account := models.NewAccount()
-// 		account.OldId = bson.NewObjectId().Hex()
-// 		account, err := rest.CreateAccount(account)
-// 		if err != nil {
-// 			return err
-// 		}
-// 	}
-// 	return nil
-// }
