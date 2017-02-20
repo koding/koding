@@ -1,9 +1,15 @@
 #!/bin/bash
 
 function clone() {
-	declare REPOSITORY=$1
-	declare BRANCH=$2
-	git clone --branch $BRANCH --depth 1 git@github.com:koding/$REPOSITORY.git
+	declare repository=$1
+	declare branch=$2
+	declare repository_url="git@github.com:koding/$repository.git"
+
+	if [[ -n "$GITHUB_ACCESS_TOKEN" ]]; then
+		repository_url="https://$GITHUB_ACCESS_TOKEN:x-oauth-basic@github.com/koding/$repository.git"
+	fi
+
+	git clone --branch $branch --depth 1 $repository_url
 }
 
 BRANCH=${BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
