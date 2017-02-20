@@ -5,7 +5,10 @@ KodingError = require '../error'
 ApiError    = require './socialapi/error'
 Tracker     = require './tracker'
 KONFIG      = require 'koding-config-manager'
+backoff     = require 'backoff'
 { dummyAdmins } = KONFIG
+{ checkUserPassword } = require './utils'
+
 
 module.exports = class JAccount extends jraphical.Module
 
@@ -140,6 +143,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         pushNotification:
           (signature Object, Function)
+        destroyAccount:
+          (signature String, Function)
 
 
     schema                  :
@@ -1239,3 +1244,94 @@ module.exports = class JAccount extends jraphical.Module
     options  = { limit, skip, sort }
     JSession = require './session'
     JSession.some selector, options, callback
+
+
+  destroyAccount$: secure (client, password, callback) ->
+
+    { delegate } = client.connection
+    { profile: { nickname } } = delegate
+
+    checkUserPassword delegate, password, (err) =>
+
+      return callback new KodingError err  if err
+
+      @destroyAccount client, callback
+
+
+  destroyAccount: (client, callback) ->
+
+    @fetchRelativeGroups (err, groups) =>
+
+      # remove koding team
+      groups = groups.filter (group) -> group.slug isnt 'koding'
+
+      ownerOfGroups = groups.filter (group) -> 'owner' in group.roles
+
+      if ownerOfGroups.length > 1
+        return callback new KodingError 'You cannot delete your account when you have ownership in other team', ownerOfGroups
+
+      kallback = (label, next, err) ->
+
+        errors.push { label, err }  if err
+        next()
+
+      group = groups[0]
+
+      errors = []
+
+      # delete the team and delete the account
+      username = @profile.nickname
+
+      queue = [
+
+        (next) ->
+          group.destroy client, (err) ->
+            kallback 'GroupDestroy', next, err
+
+        (next) ->
+          JUser = require './user'
+          JUser.unregister client, username, (err) ->
+            kallback 'JUser', next, err
+
+        (next) ->
+          JSession = require './session'
+          JSession.remove { username }, (err) ->
+            kallback 'JSession', next, err
+
+        (next) =>
+          @remove (err) -> kallback 'JAccount', next, err
+
+      ]
+
+      call  = null
+
+      deleteAccount = (cb) ->
+
+        async.series queue, ->
+
+          # execute the callback on the first try
+          # even there is an error or not
+          if call.getNumRetries() is 0
+            callback null
+
+          return  if not errors.length
+
+          cb errors
+          errors = []
+
+      call = backoff.call deleteAccount, ->
+
+      call.retryIf (errors) ->
+
+        errors.forEach (error) ->
+          console.log "[ACCOUNT_DESTROY_FAILED]: Attempt: #{call.getNumRetries()}
+          for #{username} in #{error.label} with error #{error.err}"
+
+        errors.length
+
+      call.setStrategy new backoff.ExponentialStrategy
+        initialDelay: 1000
+        maxDelay    : 10000
+
+      call.failAfter 2
+      call.start()
