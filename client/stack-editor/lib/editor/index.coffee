@@ -1046,7 +1046,7 @@ module.exports = class StackEditorView extends kd.View
 
     @outputView.add 'Generating stack from template...'
 
-    stackTemplate.generateStack (err, result) =>
+    stackTemplate.generateStack {}, (err, result) =>
       @generateStackButton.hideLoader()
 
       return  if @outputView.handleError err
