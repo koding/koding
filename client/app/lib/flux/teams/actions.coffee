@@ -328,7 +328,25 @@ deleteAccount = (partial) ->
 
     groups = groups.filter (group) -> 'owner' in group.roles
 
-    new DeleteAccountModal {}, groups
+    return new DeleteAccountModal {}, groups  if groups.length
+
+    deleteAccountVerifyModal()
+
+
+deleteAccountVerifyModal = ->
+
+  partial = '<p>
+      <strong>CAUTION! </strong>You are about to delete your account.
+      This operation will also delete this current team.
+    </p> <br>
+    <p>Please enter <strong>current password</strong> into the field below to continue: </p>'
+
+  new VerifyPasswordModal 'Confirm', partial, (currentPassword) ->
+    verifyPassword currentPassword, (err) ->
+
+      whoami().destroyAccount currentPassword, (err) ->
+
+        return if showError err?.message
 
 
 fetchApiTokens = ->
@@ -397,6 +415,7 @@ module.exports = {
   leaveTeam
   deleteTeam
   deleteAccount
+  deleteAccountVerifyModal
   updateTeam
   updateInvitationInputValue
   fetchMembers

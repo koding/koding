@@ -3,6 +3,10 @@ ContentModal = require 'app/components/contentModal'
 SingleGroupInfo = require './singlegroupinfo'
 whoami = require 'app/util/whoami'
 fetchMyRelativeGroups = require 'app/util/fetchMyRelativeGroups'
+VerifyPasswordModal = require 'app/commonviews/verifypasswordmodal'
+verifyPassword = require 'app/util/verifyPassword'
+showError = require 'app/util/showError'
+TeamFlux = require 'app/flux/teams'
 require('./styl/deleteaccount.styl')
 
 module.exports = class DeleteAccountModal extends ContentModal
@@ -50,4 +54,7 @@ module.exports = class DeleteAccountModal extends ContentModal
         fetchMyRelativeGroups (err, groups) ->
 
           groups = groups.filter (group) -> 'owner' in group.roles
-          whoami().destroyAccount()  unless groups.length
+
+          return showError 'You are the owner of some groups.'  if groups.length
+
+          TeamFlux.actions.destroyAccountVerifyModal()

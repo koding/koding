@@ -142,4 +142,3 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
               showError err
 
         actionWrapper.addSubView new TransferOwnershipButton {}, team
-
