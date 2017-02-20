@@ -295,13 +295,17 @@ homemyteam.styl
 
     input.kdinput.user-email
       width                 242px
-      border-right          none
       border-top-left-radius    3px
       border-bottom-left-radius 3px
+      transition            border-color 0.5s
+
+      &.error
+        border-color        #F2778A
 
     input.kdinput.firstname
       width                 152px
       border-right          none
+      border-left           none
 
     input.kdinput.lastname
       border-right          none

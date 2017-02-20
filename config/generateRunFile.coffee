@@ -156,6 +156,7 @@ generateDev = (KONFIG, options) ->
       echo "  run nodeservertests       : to run tests for node.js web server"
       echo "  run socialworkertests     : to run tests for social worker"
       echo "  run nodetestfiles         : to run a single test or all test files in a directory"
+      echo "  run switchclient [rev]    : to switch client version to provided revision (revision: [default|rev])"
       echo "  run help                  : to show this list"
       echo ""
 
@@ -429,6 +430,15 @@ generateDev = (KONFIG, options) ->
       fi
     }
 
+    function switch_client_version () {
+      if [ "$1" == "default" ]; then
+        rm $KONFIG_PROJECTROOT/CLIENTVERSION
+      else
+        echo $1 > $KONFIG_PROJECTROOT/CLIENTVERSION
+      fi
+      pkill -SIGPIPE koding-webserver
+    }
+
     function build_services () {
       run_docker_wrapper
 
@@ -512,6 +522,36 @@ generateDev = (KONFIG, options) ->
     function restorecountly () {
       removeDockerByName countly
       runCountlyDocker
+    }
+
+    function health_check () {
+      declare interval=${1:-10}
+      declare timeout=${2:-60}
+      declare duration=0
+
+      declare response_code=$(curl --silent --output /dev/null \
+        --write-out "%{http_code}\\n" \
+        $KONFIG_PUBLICHOSTNAME/-/healthCheck)
+
+      echo -n 'health-check: '
+
+      until [[ $response_code -eq 200 ]]; do
+        if [ $duration -eq $timeout ]; then
+          echo ' timed out!'
+          exit 255
+        fi
+
+        echo -n '.'
+
+        sleep $interval
+        duration=$((duration + interval))
+
+        response_code=$(curl --silent --output /dev/null \
+          --write-out "%{http_code}\\n" \
+          $KONFIG_PUBLICHOSTNAME/-/healthCheck)
+      done
+
+      echo ' succeeded!'
     }
 
     if [ "$#" == "0" ]; then
@@ -625,6 +665,13 @@ generateDev = (KONFIG, options) ->
 
     elif [ "$1" == "migrations" ]; then
       migrations $2 $3
+
+    elif [ "$1" == "health-check" ]; then
+      shift
+      health_check "$@"
+
+    elif [ "$1" == "switchclient" ]; then
+      switch_client_version $2
 
     else
       echo "Unknown command: $1"
