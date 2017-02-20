@@ -16,11 +16,9 @@ Statusbar = require './statusbar'
 SideView = require './sideview'
 
 LogsController = require '../controllers/logs'
+EditorController = require '../controllers/editor'
 VariablesController = require '../controllers/variables'
 CredentialsController = require '../controllers/credentials'
-
-{ yamlToJson } = require 'app/util/stacks/yamlutils'
-updateStackTemplate = require 'app/util/stacks/updatestacktemplate'
 
 Help = require './help'
 
@@ -86,6 +84,11 @@ module.exports = class StackEditor extends kd.View
 
     @controllers = {}
 
+    @controllers.editor = new EditorController
+      shared   :
+        editor : @editor
+        readme : @readme
+
     @controllers.logs = new LogsController
       shared   :
         editor : @logs
@@ -131,23 +134,32 @@ module.exports = class StackEditor extends kd.View
     @emit 'ready'
 
 
+  handleMenuActions: (event) ->
+
+    switch event
+      when Events.Menu.Logs
+        @logs.resize { percentage: 40, store: yes }
+      when Events.Menu.Credentials
+        @emit Events.ShowSideView, 'credentials'
+
+
   setTemplateData: (data, reset = no) ->
 
     debug 'setTemplateData with args:', data, reset
 
-    { _id: id, title, description, template } = data
+    { _id: id, description, template } = data
     unless id or description or template
       throw { message: 'A valid JStackTemplate is required!' }
 
     @setData data
     @toolbar.setData data
+
+    @controllers.editor.setData data
     @controllers.variables.setData data
     @controllers.credentials.setData data
 
     @_saveSnapshot @_current  if @_current
     @_deleteSnapshot id  if reset
-
-    @editor.setOption 'title', title
 
     unless @_loadSnapshot id
 
@@ -160,53 +172,6 @@ module.exports = class StackEditor extends kd.View
       @_current = id
 
     kd.utils.defer @editor.bound 'focus'
-
-
-  save: (callback) ->
-
-    { title, config = {} } = stackTemplate = @getData()
-
-    rawContent  = @editor.getContent()
-    description = @readme.getContent()
-
-    [ err, convertedDoc ] = @getConvertedContent()
-    return callback err  if err
-
-    { contentObject, content } = convertedDoc
-
-    config.buildDuration = contentObject.koding?.buildDuration
-    template = convertedDoc.content
-
-    dataToSave = {
-      title, stackTemplate, template, description, rawContent
-    }
-
-    debug 'saving data', dataToSave
-    updateStackTemplate dataToSave, callback
-
-
-  check: (callback) ->
-
-    [ err ] = @getConvertedContent()
-    callback err
-
-
-  getConvertedContent: ->
-
-    convertedDoc = yamlToJson @editor.getContent()
-
-    return if convertedDoc.err
-    then [ 'Failed to convert YAML to JSON, fix the document and try again.' ]
-    else [ null, convertedDoc ]
-
-
-  handleMenuActions: (event) ->
-
-    switch event
-      when Events.Menu.Logs
-        @logs.resize { percentage: 40, store: yes }
-      when Events.Menu.Credentials
-        @emit Events.ShowSideView, 'credentials'
 
 
   _loadSnapshot: (id) ->
