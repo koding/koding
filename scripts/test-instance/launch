@@ -38,7 +38,11 @@ AWS = require './aws'
 EC2 = new AWS.EC2()
 R53 = new AWS.Route53()
 
-revision = 'FETCH_HEAD'  unless revision = argv.commit
+unless revision = argv.commit
+  revision = try
+    require('git-rev-sync').long()
+  catch
+    'FETCH_HEAD'
 
 if argv['pull-request']
   refspec = "+refs/pull/#{argv['pull-request']}/head"
