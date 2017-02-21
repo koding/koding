@@ -271,6 +271,7 @@ func TestNodeForEach(t *testing.T) {
 	root := fixture()
 
 	want := []string{
+		"",
 		"addresses",
 		"addresses/addresser.go",
 		"addresses/addresses.go",

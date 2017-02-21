@@ -72,7 +72,6 @@ func (nd *Node) Del(path string) {
 		}
 
 		node, path = split(path)
-
 		if path == "" {
 			delete(nd.Sub, node)
 			return
@@ -162,8 +161,22 @@ func (nd *Node) PromiseUnlink(path string, node *Node) {
 // If maxsize is 0, the method is a no-op.
 // If maxsize is < 0, the method counts all nodes.
 //
-// Count ignored nodes marked as deleted.
-func (nd *Node) Count(maxsize int64) (count int) {
+// Count ignores nodes marked as deleted and/or virtual.
+func (nd *Node) Count(maxsize int64) int {
+	return nd.count(maxsize, false)
+}
+
+// CountAll counts nodes which Entry.Size is at most maxsize.
+//
+// If maxsize is 0, the method is a no-op.
+// If maxsize is < 0, the method counts all nodes.
+//
+// CountAll does not ignore nodes marked as deleted and/or virtual.
+func (nd *Node) CountAll(maxsize int64) int {
+	return nd.count(maxsize, true)
+}
+
+func (nd *Node) count(maxsize int64, all bool) (count int) {
 	if maxsize == 0 {
 		return 0 // no-op
 	}
@@ -173,7 +186,7 @@ func (nd *Node) Count(maxsize int64) (count int) {
 	for len(stack) != 0 {
 		cur, stack = stack[0], stack[1:]
 
-		if cur.Deleted() {
+		if !all && (cur.Deleted() || cur.Virtual()) {
 			continue
 		}
 
@@ -193,10 +206,25 @@ func (nd *Node) Count(maxsize int64) (count int) {
 // is at most maxsize.
 //
 // If maxsize is 0, the method is a no-op.
+// If maxsize is <0, all the nodes are summed up.
+//
+// DiskSize ignores nodes marked as deleted and/or virtual.
+func (nd *Node) DiskSize(maxsize int64) (size int64) {
+	return nd.diskSize(maxsize, false)
+}
+
+// DiskSizeAll sums all Entry.Size of the nodes, given the condition the size
+// is at most maxsize.
+//
+// If maxsize is 0, the method is a no-op.
 // If maxsize is <0, all the nodes are sumed up.
 //
-// DiskSize ignores nodes marked as deleted.
-func (nd *Node) DiskSize(maxsize int64) (size int64) {
+// DiskSizeAll does not ignore nodes marked as deleted and/or virtual.
+func (nd *Node) DiskSizeAll(maxsize int64) (size int64) {
+	return nd.diskSize(maxsize, true)
+}
+
+func (nd *Node) diskSize(maxsize int64, all bool) (size int64) {
 	if maxsize == 0 {
 		return 0 // no-op
 	}
@@ -206,7 +234,7 @@ func (nd *Node) DiskSize(maxsize int64) (size int64) {
 	for len(stack) != 0 {
 		nd, stack = stack[0], stack[1:]
 
-		if nd.Deleted() {
+		if !all && (nd.Deleted() || nd.Virtual()) {
 			continue
 		}
 
@@ -229,6 +257,11 @@ func (nd *Node) ForEach(fn func(string, *Entry)) {
 	nd.forEach(fn, false)
 }
 
+// ForEachAll traverses the tree and calls fn on every node's entry.
+func (nd *Node) ForEachAll(fn func(string, *Entry)) {
+	nd.forEach(fn, true)
+}
+
 func (nd *Node) forEach(fn func(string, *Entry), deleted bool) {
 	type node struct {
 		path string
@@ -237,13 +270,11 @@ func (nd *Node) forEach(fn func(string, *Entry), deleted bool) {
 
 	n, stack := node{}, make([]node, 0, len(nd.Sub))
 
-	for path, nd := range nd.Sub {
-		stack = append(stack, node{
-			path: path,
-			node: nd,
-		})
-	}
-
+	// Add root node to stack.
+	stack = append(stack, node{
+		path: "",
+		node: nd,
+	})
 	for len(stack) != 0 {
 		n, stack = stack[0], stack[1:]
 
@@ -266,6 +297,11 @@ func (nd *Node) forEach(fn func(string, *Entry), deleted bool) {
 // that is marked as deleted.
 func (nd *Node) Lookup(path string) (*Node, bool) {
 	return nd.lookup(path, false)
+}
+
+// LookupAll looks up a node given by the path.
+func (nd *Node) LookupAll(path string) (*Node, bool) {
+	return nd.lookup(path, true)
 }
 
 func (nd *Node) lookup(path string, deleted bool) (*Node, bool) {
@@ -303,6 +339,11 @@ func (nd *Node) IsDir() bool {
 // Deleted tells whether node is marked as deleted.
 func (nd *Node) Deleted() bool {
 	return nd.Entry.Deleted()
+}
+
+// Virtual tells whether node is marked as virtual.
+func (nd *Node) Virtual() bool {
+	return nd.Entry.HasPromise(EntryPromiseVirtual)
 }
 
 func (nd *Node) undelete() {

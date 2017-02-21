@@ -14,15 +14,15 @@ import (
 type EntryPromise uint32
 
 const (
-	EntryPromiseExist  EntryPromise = 1 << iota // E: promise that file exists, doesn't exist locally.
-	EntryPromiseAdd                             // A: promise after adding, exists locally.
-	EntryPromiseUpdate                          // U: promise after updating, exists locally.
-	EntryPromiseDel                             // D: promise after deleting, doesn't exist locally.
-	EntryPromiseUnlink                          // N: promise after hard delete, doesn't exist locally.
+	EntryPromiseVirtual EntryPromise = 1 << iota // E: promise that file exists, doesn't exist locally.
+	EntryPromiseAdd                              // A: promise after adding, exists locally.
+	EntryPromiseUpdate                           // U: promise after updating, exists locally.
+	EntryPromiseDel                              // D: promise after deleting, doesn't exist locally.
+	EntryPromiseUnlink                           // N: promise after hard delete, doesn't exist locally.
 )
 
 var epMapping = map[byte]EntryPromise{
-	'E': EntryPromiseExist,
+	'V': EntryPromiseVirtual,
 	'A': EntryPromiseAdd,
 	'U': EntryPromiseUpdate,
 	'D': EntryPromiseDel,
