@@ -306,6 +306,7 @@ import:
 - package: github.com/jacobsa/oglemock
 - package: github.com/jacobsa/reqtrace
 - package: github.com/kylelemons/godebug
+- package: github.com/mitchellh/ioprogress
 ignore:
 - koding/tools/logger
 - config
