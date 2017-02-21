@@ -429,6 +429,12 @@ module.exports = class ComputeProvider extends Base
           originId: account.getId()
         }, skip 'JCredential', next
 
+      (next) ->
+        JCredentialData = require './credentialdata'
+        JCredentialData.remove {
+          originId: account.getId()
+        }, skip 'JCredentialData', next
+
     ], ->
 
       callback null
