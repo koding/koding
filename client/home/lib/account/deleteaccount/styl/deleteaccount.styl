@@ -14,6 +14,9 @@
 
     border                  1px solid #ececec
     margin-top              30px
+    max-height              400px
+    overflow                hidden
+    overflow-y              visible
 
   .single-group-info
     display                 flex
@@ -21,6 +24,11 @@
     border-bottom           1px solid #ececec
     padding                 10px
     align-items             center
+
+    .teamlogo-wrapper
+      display               flex
+      align-items           center
+
     .team-logo
       size                  40px, 40px
       dFlex()
@@ -35,10 +43,14 @@
         flex                0 0 auto
         rounded             4px
 
-
     .default
       margin-right          10px
       r-sprite              app, team_logo
+
+    .team-name
+      max-width             110px
+      text-overflow         ellipsis
+      overflow              hidden
 
     .action-wrapper
       display               flex
@@ -48,7 +60,7 @@
       cursor                pointer
 
       .delete-team-button
-        margin-left         20px
+        margin-left         10px
 
     .select-box
       flex                  1 0 auto

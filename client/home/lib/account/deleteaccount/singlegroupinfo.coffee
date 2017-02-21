@@ -22,7 +22,10 @@ module.exports = class SingleGroupInfo extends kd.CustomHTMLView
 
     selectOptions = null
 
-    @addSubView teamlogo = new kd.CustomHTMLView
+    @addSubView teamlogowrapper = new kd.CustomHTMLView
+      cssClass: 'teamlogo-wrapper'
+
+    teamlogowrapper.addSubView teamlogo = new kd.CustomHTMLView
       cssClass: 'default'
 
     logoPath = cdnize group.customize?.logo
@@ -31,16 +34,9 @@ module.exports = class SingleGroupInfo extends kd.CustomHTMLView
       teamlogo.setClass 'team-logo'
       teamlogo.setPartial "<img src='#{logoPath}'/>"
 
-    @addSubView teamname = new kd.CustomHTMLView
+    teamlogowrapper.addSubView teamname = new kd.CustomHTMLView
       cssClass: 'team-name'
       partial: capitalizeFirstLetter group.slug
-
-    @addSubView selection = new kd.SelectBox
-      cssClass: 'select-box hidden'
-      selectOptions: selectOptions
-      callback: ->
-        if selection.getValue()
-          transferOwnership.unsetClass 'inactive'
 
     @addSubView buttonwrapper = new kd.CustomHTMLView
       cssClass: 'action-wrapper'
