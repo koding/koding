@@ -1298,14 +1298,32 @@ module.exports = class JAccount extends jraphical.Module
 
       errors = []
 
-      # delete the team and delete the account
       username = @getAt 'profile.nickname'
+      accountId = @getId()
 
+      # delete the team and delete the account
       queue = [
 
         (next) ->
           group.destroy client, (err) ->
             kallback 'GroupDestroy', next, err
+
+        (next) ->
+          # delete apitokens
+          JApiToken = require './apitoken'
+          JApiToken.remove { originId: accountId }, ->
+            kallback 'JApiToken', next, err
+
+        (next) =>
+          # delete user's resources (credentials, stack templates, stacks, machines)
+          ComputeProvider = require './computeproviders/computeprovider'
+          ComputeProvider.destroyAccountResources this, -> next()
+
+        (next) ->
+          # delete invitations
+          JInvitation = require './invitation'
+          JInvitation.remove { inviterId: accountId }, (err) ->
+            kallback 'JInvitation', next, err
 
         (next) ->
           JUser = require './user'
