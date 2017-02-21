@@ -219,7 +219,7 @@ runTests = -> describe 'workers.social.group.index', ->
               next()
 
           (next) ->
-            stackTemplate.generateStack client, (err, res) ->
+            stackTemplate.generateStack client, {}, (err, res) ->
               { stack, results: { machines } } = res
               expect(err).to.not.exist
               expect(machines).to.exist

@@ -1,19 +1,30 @@
 AWS = require 'aws-sdk'
-unless process.env.TEST_AWS_REGION
-  console.error 'error: TEST_AWS_REGION is not set'
+
+KONFIG = require 'koding-config-manager'
+
+unless KONFIG.test?.credentials?.AWS
+  console.error 'error: test aws credentials are not set'
   process.exit 1
 
-unless process.env.TEST_AWS_ACCESS_KEY
-  console.error 'error: TEST_AWS_ACCESS_KEY is not set'
+{
+  region
+  accessKeyId
+  secretAccessKey
+} = KONFIG.test.credentials.AWS
+
+unless region
+  console.error 'error: region is not set'
   process.exit 1
 
-unless process.env.TEST_AWS_SECRET_KEY
-  console.error 'error: TEST_AWS_SECRET_KEY is not set'
+unless accessKeyId
+  console.error 'error: access key id is not set'
   process.exit 1
 
-AWS.config.region = process.env.TEST_AWS_REGION
-AWS.config.update
-  accessKeyId     : process.env.TEST_AWS_ACCESS_KEY
-  secretAccessKey : process.env.TEST_AWS_SECRET_KEY
+unless secretAccessKey
+  console.error 'error: secret access key is not set'
+  process.exit 1
+
+AWS.config.region = region
+AWS.config.update { accessKeyId, secretAccessKey }
 
 module.exports = AWS

@@ -71,8 +71,8 @@ module.exports = class FlexSplit extends kd.View
           @createResizer view, size
 
 
-  setFractions: (fractions, updateViews = yes) ->
-    @resizer?.setFractions fractions, updateViews
+  setFractions: (fractions, options) ->
+    @resizer?.setFractions fractions, options
 
 
   @isInstance = (instance) ->
