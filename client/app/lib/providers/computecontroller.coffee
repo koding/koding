@@ -429,7 +429,7 @@ module.exports = class ComputeController extends KDController
     mainController.ready =>
 
       if template
-        template.generateStack handleStackCreate
+        template.generateStack {}, handleStackCreate
       else if force or groupsController.currentGroupHasStack()
         for stack in @stacks
           return  if stack.config?.groupStack

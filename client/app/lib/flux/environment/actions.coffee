@@ -655,7 +655,7 @@ generateStackFromTemplate = (template) ->
 
     reactor.dispatch actions.GENERATE_STACK_BEGIN, { template }
 
-    template.generateStack (err, stack) ->
+    template.generateStack {}, (err, stack) ->
       if err
         reactor.dispatch actions.GENERATE_STACK_FAIL, { template, err }
         reject err

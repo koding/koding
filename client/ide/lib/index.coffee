@@ -158,19 +158,8 @@ module.exports = class IDEAppController extends AppController
     @finderPane.on 'ChangeHappened', @bound 'syncChange'
     @finderPane.mountedMachine = @mountedMachine
 
-    @bindRouteHandler()
     @initiateAutoSave()
     @emit 'ready'
-
-
-  bindRouteHandler: ->
-
-    { router, mainView } = kd.singletons
-
-    router.on 'RouteInfoHandled', (routeInfo) ->
-      if routeInfo.path.indexOf('/IDE') is -1
-        if mainView.isSidebarCollapsed
-          mainView.toggleSidebar()
 
 
   bindCollapseEvents: ->
@@ -728,9 +717,6 @@ module.exports = class IDEAppController extends AppController
 
 
   createMachineStateModal: (options = {}) ->
-
-    { mainView } = kd.singletons
-    mainView.toggleSidebar()  if mainView.isSidebarCollapsed
 
     { state, container, machineItem, initial } = options
 

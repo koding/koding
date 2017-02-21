@@ -55,7 +55,7 @@ func TestSyncNew(t *testing.T) {
 		Mount:        m,
 		SyncCount:    0,
 		AllCount:     1,
-		SyncDiskSize: 10,
+		SyncDiskSize: 0,
 		AllDiskSize:  info.AllDiskSize,
 		Queued:       0,
 		Syncing:      0,

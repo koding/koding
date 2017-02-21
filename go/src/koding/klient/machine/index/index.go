@@ -23,7 +23,7 @@ const Version = 1
 
 // Entry group describes values of an Entry.Meta field.
 const (
-	EntryPromiseAdd = iota << 1
+	EntryPromiseAdd = 1 << iota
 	EntryPromiseUpdate
 	EntryPromiseDel
 	EntryPromiseUnlink
@@ -45,6 +45,8 @@ type Entry struct {
 // access of Entry's fields.
 func (e *Entry) GetInode() uint64      { return atomic.LoadUint64(&e.Inode) }
 func (e *Entry) SetInode(inode uint64) { atomic.StoreUint64(&e.Inode, inode) }
+func (e *Entry) GetSize() int64        { return atomic.LoadInt64(&e.Size) }
+func (e *Entry) SetSize(n int64)       { atomic.StoreInt64(&e.Size, n) }
 func (e *Entry) IncRef() int32         { return atomic.AddInt32(&e.Ref, 1) }
 func (e *Entry) DecRef() int32         { return atomic.AddInt32(&e.Ref, -1) }
 func (e *Entry) Has(meta int32) bool   { return atomic.LoadInt32(&e.Meta)&meta == meta }
@@ -215,9 +217,12 @@ func (idx *Index) PromiseAdd(path string, entry *Entry) {
 //
 // If the node does not exist or is already marked as deleted, the
 // method is no-op.
-func (idx *Index) PromiseDel(path string) {
+//
+// If node is non-nil, then it's used instead of looking it up
+// by the given path.
+func (idx *Index) PromiseDel(path string, node *Node) {
 	idx.mu.Lock()
-	idx.root.PromiseDel(path)
+	idx.root.PromiseDel(path, node)
 	idx.mu.Unlock()
 }
 
@@ -225,9 +230,12 @@ func (idx *Index) PromiseDel(path string) {
 //
 // If the node does not exist or is already marked as unlinked,
 // the method is a no-op.
-func (idx *Index) PromiseUnlink(path string) {
+//
+// If node is non-nil, then it's used instead of looking it up
+// by the given path.
+func (idx *Index) PromiseUnlink(path string, node *Node) {
 	idx.mu.Lock()
-	idx.root.PromiseUnlink(path)
+	idx.root.PromiseUnlink(path, node)
 	idx.mu.Unlock()
 }
 
@@ -461,6 +469,7 @@ func (idx *Index) UnmarshalJSON(data []byte) error {
 	// BUG(rjeczalik): Something overwrites the root entry
 	// with a zero value elsewhere. Fix me.
 	idx.root.Entry = newEntry()
+	idx.root.Entry.Mode |= os.ModeDir
 
 	return nil
 
@@ -475,7 +484,7 @@ func (idx *Index) DebugString() string {
 	}
 
 	idx.mu.RLock()
-	idx.root.ForEach(fn)
+	idx.root.forEach(fn, true)
 	idx.mu.RUnlock()
 
 	paths := make([]string, 0, len(m))

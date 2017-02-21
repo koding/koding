@@ -1081,6 +1081,8 @@ imports:
   version: 245c9e0234cb2ad542483a336324e982f1a22934
 - name: github.com/kylelemons/godebug
   version: d99083b96f422f8fd5a93bc02040acec769e178f
+- name: github.com/mitchellh/ioprogress
+  version: 8163955264568045f462ae7e2d6d07b2001fc997
 testImports:
 - name: github.com/vaughan0/go-ini
   version: a98ad7ee00ec53921f08832bc06ecf7fd600e6a1

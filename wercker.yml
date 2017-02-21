@@ -62,10 +62,6 @@ build:
         name: run coffeelint
         code: scripts/wercker/run-command node_modules/coffeelint/bin/coffeelint --quiet .
     - script:
-        name: launch test hosts
-        code: |
-          scripts/wercker/run-command scripts/wercker/launch-test-hosts | tee INSTANCE_DATA
-    - script:
         name: check configs
         code: |
           ./configure --config sandbox
@@ -76,6 +72,10 @@ build:
           # dev build is here just for creating dev.toml for socialapi
           ./configure --config dev     --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
           ./configure --config sandbox --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
+    - script:
+        name: launch test hosts
+        code: |
+          scripts/wercker/run-command ./run exec scripts/wercker/launch-test-hosts | tee INSTANCE_DATA
     - script:
         name: check api consistency
         code: scripts/wercker/run-command ./run exec scripts/api-generator.coffee --check
@@ -158,7 +158,7 @@ build:
     - script:
         name: check connectivity
         code: |
-          scripts/wercker/run-command scripts/wercker/check-connectivity INSTANCE_DATA
+          scripts/wercker/run-command ./run exec scripts/wercker/check-connectivity INSTANCE_DATA
     - script:
         name: test nodejs
         code: scripts/wercker/run-command scripts/node-testing/run-tests INSTANCE_DATA
@@ -185,10 +185,10 @@ build:
           nvm use 6
     - script:
         name: upload logs
-        code: scripts/wercker/upload-logs INSTANCE_DATA
+        code: ./run exec scripts/wercker/upload-logs INSTANCE_DATA
     - script:
         name: cleanup
-        code: scripts/wercker/cleanup INSTANCE_DATA
+        code: ./run exec scripts/wercker/cleanup INSTANCE_DATA
     - jessefulton/slack-notify:
         subdomain: koding
         token: $SLACK_TOKEN
