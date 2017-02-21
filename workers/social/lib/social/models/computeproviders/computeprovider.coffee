@@ -394,6 +394,46 @@ module.exports = class ComputeProvider extends Base
     async.series queue, -> callback null
 
 
+  @destroyAccountResources = (account, callback) ->
+
+    skip = (type, next) -> (err) ->
+      console.log "[#{type}] Failed to destroy account resource:", err  if err
+      next()
+
+    async.series [
+
+      # Remove all machines associated with account
+      (next) ->
+        JMachine.remove {
+          users: { $elemMatch: { id: account.getId(), sudo: yes, owner: yes } }
+        }, skip 'JMachine', next
+
+      # Remove all stacks associated with account
+      (next) ->
+        JComputeStack = require '../stack'
+        JComputeStack.remove {
+          originId: account.getId()
+        }, skip 'JComputeStack', next
+
+      # Remove all stack templates associated with account
+      (next) ->
+        JStackTemplate = require './stacktemplate'
+        JStackTemplate.remove {
+          originId: account.getId()
+        }, skip 'JStackTemplate', next
+
+      # Remove all credentials associated with account
+      (next) ->
+        JCredential = require './credential'
+        JCredential.remove {
+          originId: account.getId()
+        }, skip 'JCredential', next
+
+    ], ->
+
+      callback null
+
+
   # WARNING! This will destroy all the resources related with given group!
   #
   # We are just logging all errors in this flow, and not interrupting
