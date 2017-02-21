@@ -143,7 +143,7 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         pushNotification:
           (signature Object, Function)
-        destroyAccount:
+        destroy:
           (signature String, Function)
 
 
@@ -1259,7 +1259,7 @@ module.exports = class JAccount extends jraphical.Module
     JSession.some selector, options, callback
 
 
-  destroyAccount$: secure (client, password, callback) ->
+  destroy$: secure (client, password, callback) ->
 
     { delegate } = client.connection
     { profile: { nickname } } = delegate
@@ -1268,32 +1268,30 @@ module.exports = class JAccount extends jraphical.Module
 
       return callback new KodingError err  if err
 
-      @destroyAccount client, callback
+      @destroy client, callback
 
 
-  destroyAccount: (client, callback) ->
+  destroy: (client, callback) ->
 
-    @fetchRelativeGroups (err, groups) =>
+    @fetchRelativeGroups { roles: ['owner'] }, (err, groups) =>
 
       # remove koding team
       groups = groups.filter (group) -> group.slug isnt 'koding'
 
-      ownerOfGroups = groups.filter (group) -> 'owner' in group.roles
-
-      if ownerOfGroups.length > 1
-        return callback new KodingError 'You cannot delete your account when you have ownership in other team', ownerOfGroups
+      if groups.length > 1
+        return callback new KodingError 'You cannot delete your account when you have ownership in other team', groups
 
       kallback = (label, next, err) ->
 
         errors.push { label, err }  if err
         next()
 
-      group = groups[0]
+      [ group ] = groups
 
       errors = []
 
       # delete the team and delete the account
-      username = @profile.nickname
+      username = @getAt 'profile.nickname'
 
       queue = [
 
@@ -1306,13 +1304,13 @@ module.exports = class JAccount extends jraphical.Module
           JUser.unregister client, username, (err) ->
             kallback 'JUser', next, err
 
+        (next) =>
+          @remove (err) -> kallback 'JAccount', next, err
+
         (next) ->
           JSession = require './session'
           JSession.remove { username }, (err) ->
             kallback 'JSession', next, err
-
-        (next) =>
-          @remove (err) -> kallback 'JAccount', next, err
 
       ]
 

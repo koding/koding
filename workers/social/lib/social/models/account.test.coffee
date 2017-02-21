@@ -165,7 +165,7 @@ runTests = -> describe 'workers.social.user.account', ->
               expect(permissions).to.be.an 'object'
               done()
 
-  describe '#destroyAccount()', ->
+  describe '#destroy()', ->
 
     group  = {}
     group1 = {}
@@ -205,7 +205,7 @@ runTests = -> describe 'workers.social.user.account', ->
 
       it 'should not be able to delete account when there more than one ownership', (done) ->
 
-        account.destroyAccount client, (err) ->
+        account.destroy client, (err) ->
           expect(err).to.exist
           expect(err.message).to.be.equal 'You cannot delete your account when you have ownership in other team'
           done()
@@ -220,7 +220,7 @@ runTests = -> describe 'workers.social.user.account', ->
             group1.destroy client, -> next()
 
           (next) ->
-            account.destroyAccount client, -> next()
+            account.destroy client, -> next()
         ]
 
         async.series queue, done
