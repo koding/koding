@@ -106,6 +106,8 @@ module.exports = class StackEditorAppController extends AppController
 
     logs.add 'updating stack template...'
 
+    @stackEditor.setBusy yes
+
     queue = [
 
       (next) =>
@@ -137,7 +139,9 @@ module.exports = class StackEditorAppController extends AppController
 
     ]
 
-    async.series queue, (err, result) ->
+    async.series queue, (err, result) =>
+
+      @stackEditor.setBusy no
 
       debug 'initializeStack result', err, result
 

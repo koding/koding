@@ -177,6 +177,17 @@ module.exports = class StackEditor extends kd.View
 
     return data
 
+
+  setBusy: (busy = yes) ->
+
+    if busy
+      @setClass 'loading'
+      @toolbar.actionButton.showLoader()
+    else
+      @unsetClass 'loading'
+      @toolbar.actionButton.hideLoader()
+
+
   _loadSnapshot: (id) ->
 
     return no  unless id
