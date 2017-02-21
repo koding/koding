@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"sort"
-	"sync/atomic"
 
 	"koding/klient/machine/index"
 
@@ -214,20 +213,18 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) error {
 		return err
 	}
 
-	entry := &index.Entry{
-		Mode: oldDir.Entry.Mode,
-	}
+	entry := index.NewEntry(0, oldDir.Entry.Mode())
 
-	id := fuseops.InodeID(atomic.LoadUint64(&oldNd.Entry.Inode))
+	id := fuseops.InodeID(oldNd.Entry.Inode())
 
 	fs.mu.Lock()
 	delete(fs.inodes, id)
 	id = fs.add(newPath)
-	atomic.StoreUint64(&entry.Inode, uint64(id))
+	entry.SetInode(uint64(id))
 	fs.mu.Unlock()
 
-	fs.Remote.PromiseDel(oldPath, oldNd)
-	fs.Remote.PromiseAdd(newPath, entry)
+	fs.Index.PromiseDel(oldPath, oldNd)
+	fs.Index.PromiseAdd(newPath, entry)
 
 	return nonil(
 		fs.yield(ctx, oldPath, index.ChangeMetaLocal|index.ChangeMetaRemove),
@@ -288,7 +285,7 @@ func (fs *Filesystem) ForgetInode(ctx context.Context, op *fuseops.ForgetInodeOp
 		return nil // no-op
 	}
 
-	if nd.Entry.Has(index.EntryPromiseUnlink) {
+	if nd.Entry.HasPromise(index.EntryPromiseUnlink) {
 		return fs.rm(ctx, nd, path)
 	}
 

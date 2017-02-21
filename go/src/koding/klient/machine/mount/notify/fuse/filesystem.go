@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -25,7 +24,7 @@ import (
 )
 
 // TODO(rjeczalik): add promise update ops, so attrs updates are served
-// right away, without waiting for remote index update.
+// right away, without waiting for index update.
 
 // TODO(rjeczalik): symlink support: add index.Entry.Nlink field and
 // add support for in Unlink, ForgotInode and CreateSymlink methods.
@@ -57,17 +56,17 @@ func block(path string) *fs.DiskInfo {
 func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
 
 	o := &Opts{
-		Remote:   opts.RemoteIdx,
+		Index:    opts.Index,
 		Cache:    opts.Cache,
 		CacheDir: opts.CacheDir,
 		Mount:    filepath.Base(opts.Mount.Path),
 		MountDir: opts.Mount.Path,
-		Disk:     opts.Disk,
 		// intentionally separate env to not enable fuse logging
 		// for regular kd debug
 		Debug: os.Getenv("KD_MOUNT_DEBUG") == "1",
 	}
 
+	// TODO(ppknap) get disk info from client.
 	if o.Disk == nil {
 		o.Disk = block(opts.CacheDir)
 	}
@@ -81,8 +80,8 @@ func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
 
 // Opts configures FUSE filesystem.
 type Opts struct {
-	Remote   *index.Index // remote metadata index
-	Disk     *fs.DiskInfo // remote filesystem informartion
+	Index    *index.Index // metadata index
+	Disk     *fs.DiskInfo // filesystem information
 	Cache    notify.Cache // used to request cache updates
 	CacheDir string       // path of the cache directory of the mount; must end with a dangling /
 	Mount    string       // name of the mount
@@ -95,8 +94,8 @@ type Opts struct {
 func (o *Opts) Valid() error {
 	const sep = string(os.PathSeparator)
 
-	if o.Remote == nil {
-		return errors.New("remote index is nil")
+	if o.Index == nil {
+		return errors.New("index is nil")
 	}
 	if o.Cache == nil {
 		return errors.New("cache is nil")
@@ -127,7 +126,7 @@ type dir struct {
 
 // Filesystem implements fuseutil.FileSystem.
 //
-// List operations are backend by remote index.
+// List operations are backend by index.
 // Write and read operations are backed by cache,
 // which is populated lazily by notify.Cache.
 type Filesystem struct {
@@ -210,7 +209,7 @@ func (fs *Filesystem) Config() *fuse.MountConfig {
 }
 
 func (fs *Filesystem) DebugString() string {
-	return fs.Remote.DebugString()
+	return fs.Index.DebugString()
 }
 
 func (fs *Filesystem) add(path string) (id fuseops.InodeID) {
@@ -249,7 +248,7 @@ func (fs *Filesystem) addHandle(f *os.File) (id fuseops.HandleID) {
 
 func (fs *Filesystem) lookupInodeID(dir, base string, entry *index.Entry) (id fuseops.InodeID) {
 	// Fast path - check if InodeID was already associated with index node.
-	if id = fuseops.InodeID(atomic.LoadUint64(&entry.Inode)); id != 0 {
+	if id = fuseops.InodeID(entry.Inode()); id != 0 {
 		return id
 	}
 
@@ -257,7 +256,7 @@ func (fs *Filesystem) lookupInodeID(dir, base string, entry *index.Entry) (id fu
 
 	fs.mu.Lock()
 	id = fs.add(path)
-	atomic.StoreUint64(&entry.Inode, uint64(id))
+	entry.SetInode(uint64(id))
 	fs.mu.Unlock()
 
 	return id
@@ -272,7 +271,7 @@ func (fs *Filesystem) get(id fuseops.InodeID) (*index.Node, string, bool) {
 		return nil, "", false
 	}
 
-	nd, ok := fs.Remote.Lookup(path)
+	nd, ok := fs.Index.Lookup(path)
 	if !ok {
 		return nil, "", false
 	}
@@ -322,7 +321,7 @@ func (fs *Filesystem) delHandle(id fuseops.HandleID) error {
 		return nil
 	}
 
-	nd.Entry.DecRef()
+	nd.Entry.DecRefCount()
 
 	return f.Close()
 }
@@ -339,7 +338,7 @@ func (fs *Filesystem) getHandle(id fuseops.HandleID) (*os.File, *index.Node, boo
 		path = path[len(fs.CacheDir):]
 	}
 
-	nd, ok := fs.Remote.Lookup(path)
+	nd, ok := fs.Index.Lookup(path)
 	if !ok || nd.Deleted() {
 		return nil, nil, false
 	}
@@ -359,13 +358,13 @@ func (fs *Filesystem) yield(ctx stdcontext.Context, path string, meta index.Chan
 }
 
 func (fs *Filesystem) attr(entry *index.Entry) fuseops.InodeAttributes {
-	mtime := time.Unix(0, entry.MTime)
-	ctime := time.Unix(0, entry.CTime)
+	mtime := time.Unix(0, entry.MTime())
+	ctime := time.Unix(0, entry.CTime())
 
 	return fuseops.InodeAttributes{
-		Size:   uint64(entry.GetSize()),
+		Size:   uint64(entry.Size()),
 		Nlink:  1, // TODO(rjeczalik): symlink / hardlink implementation
-		Mode:   entry.Mode,
+		Mode:   entry.Mode(),
 		Atime:  mtime,
 		Mtime:  mtime,
 		Ctime:  ctime,
@@ -400,18 +399,16 @@ func (fs *Filesystem) mkdir(path string, mode os.FileMode) (id fuseops.InodeID, 
 		return 0, err
 	}
 
-	entry := &index.Entry{
-		Mode: mode | os.ModeDir,
-		Ref:  1,
-	}
+	entry := index.NewEntry(0, mode|os.ModeDir)
+	entry.IncRefCount()
 
 	fs.mu.Lock()
 	id = fs.add(path)
 	fs.mu.Unlock()
 
-	entry.Inode = uint64(id)
+	entry.SetInode(uint64(id))
 
-	fs.Remote.PromiseAdd(path, entry)
+	fs.Index.PromiseAdd(path, entry)
 
 	return id, nil
 }
@@ -436,19 +433,17 @@ func (fs *Filesystem) mkfile(path string, mode os.FileMode) (id fuseops.InodeID,
 		return 0, 0, err
 	}
 
-	entry := &index.Entry{
-		Mode: mode,
-		Ref:  1,
-	}
+	entry := index.NewEntry(0, mode)
+	entry.IncRefCount()
 
 	fs.mu.Lock()
 	id = fs.add(path)
 	h = fs.addHandle(f)
 	fs.mu.Unlock()
 
-	entry.Inode = uint64(id)
+	entry.SetInode(uint64(id))
 
-	fs.Remote.PromiseAdd(path, entry)
+	fs.Index.PromiseAdd(path, entry)
 
 	_ = f.Chmod(mode)
 
@@ -473,9 +468,9 @@ func (fs *Filesystem) move(ctx stdcontext.Context, oldpath, newpath string) erro
 }
 
 func (fs *Filesystem) unlink(ctx stdcontext.Context, nd *index.Node, path string) error {
-	fs.Remote.PromiseUnlink(path, nd)
+	fs.Index.PromiseUnlink(path, nd)
 
-	if n := nd.Entry.DecRef(); n > 0 {
+	if n := nd.Entry.DecRefCount(); n > 0 {
 		return nil
 	}
 
@@ -483,8 +478,8 @@ func (fs *Filesystem) unlink(ctx stdcontext.Context, nd *index.Node, path string
 }
 
 func (fs *Filesystem) rm(ctx stdcontext.Context, nd *index.Node, path string) error {
-	fs.Remote.PromiseDel(path, nd)
-	atomic.StoreUint64(&nd.Entry.Inode, 0)
+	fs.Index.PromiseDel(path, nd)
+	nd.Entry.SetInode(0)
 
 	path = fs.path(path)
 
@@ -515,7 +510,7 @@ func (fs *Filesystem) open(ctx stdcontext.Context, nd *index.Node, path string) 
 	id := fs.addHandle(f)
 	fs.mu.Unlock()
 
-	nd.Entry.IncRef()
+	nd.Entry.IncRefCount()
 
 	return f, id, nil
 }
@@ -601,7 +596,7 @@ func direntType(entry *index.Entry) fuseutil.DirentType {
 }
 
 func isdir(entry *index.Entry) bool {
-	return entry.Mode&os.ModeDir == os.ModeDir
+	return entry.Mode()&os.ModeDir == os.ModeDir
 }
 
 func nonil(err ...error) error {

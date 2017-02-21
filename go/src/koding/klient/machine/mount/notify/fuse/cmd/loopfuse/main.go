@@ -90,7 +90,7 @@ func main() {
 	opts := &fuse.Opts{
 		Cache:    bc,
 		CacheDir: *tmp,
-		Remote:   bc.Index(),
+		Index:    bc.Index(),
 		Mount:    filepath.Base(dst),
 		MountDir: dst,
 		Debug:    *verbose,
