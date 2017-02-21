@@ -1,13 +1,10 @@
-whoami = require 'app/util/whoami'
 remote = require 'app/remote'
 
 module.exports = (password, callback) ->
 
-  whoami().fetchEmail (err, email) ->
-    options = { password, email }
-    remote.api.JUser.verifyPassword options, (err, confirmed) ->
+  remote.api.JUser.verifyPassword { password }, (err, confirmed) ->
 
-      return callback err.message  if err
-      return callback 'Current password cannot be confirmed'  unless confirmed
+    return callback err.message  if err
+    return callback 'Current password cannot be confirmed'  unless confirmed
 
-      callback()
+    callback()

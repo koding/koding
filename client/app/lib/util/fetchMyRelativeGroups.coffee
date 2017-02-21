@@ -3,9 +3,10 @@ kd = require 'kd'
 whoami = require 'app/util/whoami'
 
 ###
-  Fetches all groups that are associated with you
-  Removes current group
-  Sort them by group name
+  Fetches all groups that are you are owner of.
+  Results:
+    - doesn't include currentGroup
+    - sorted by slug
 ###
 
 module.exports = (callback) ->

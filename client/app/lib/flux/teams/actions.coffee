@@ -327,8 +327,6 @@ deleteAccount = (partial) ->
 
     return  if showError err
 
-    groups = groups.filter (group) -> 'owner' in group.roles
-
     return new DeleteAccountModal {}, groups  if groups.length
 
     deleteAccountVerifyModal()
@@ -345,11 +343,11 @@ deleteAccountVerifyModal = ->
   new VerifyPasswordModal 'Confirm', partial, (currentPassword) ->
     verifyPassword currentPassword, (err) ->
 
-      return if showError err?.message
+      return if showError err
 
       new DeleteAccountOverlay()
 
-      whoami().destroyAccount currentPassword
+      whoami().destroy currentPassword
 
 
 fetchApiTokens = ->
