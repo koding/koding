@@ -22,6 +22,7 @@ module.exports = class CredentialListItem extends kd.ListItemView
 
     @checkBox = new kd.CheckBox
       defaultValue : off
+      click: @bound 'handleChanges'
 
     @preview = new kd.ButtonView
       cssClass: 'show'
@@ -58,8 +59,11 @@ module.exports = class CredentialListItem extends kd.ListItemView
     then @setClass   'selected'
     else @unsetClass 'selected'
 
-    if userAction
-      @getDelegate().emit Events.CredentialSelectionChanged, this, state
+    @handleChanges()  if userAction
+
+
+  handleChanges: ->
+    @getDelegate().emit Events.CredentialSelectionChanged, this, @isSelected()
 
 
   isSelected: ->

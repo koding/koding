@@ -30,6 +30,8 @@ module.exports = do ->
     'Menu.Credentials'
     'Menu.Logs'
     'Menu.Delete'
+    'Banner.ActionClicked'
+    'Banner.Closed'
   ]
 
   obj = {}
