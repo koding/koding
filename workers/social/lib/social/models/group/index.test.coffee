@@ -353,7 +353,7 @@ runTests = -> describe 'workers.social.group.index', ->
 
           queue = [
             (next) ->
-              JApiToken.some client, { group : groupSlug }, (err, apiTokens) ->
+              JApiToken.some { group : groupSlug }, {}, (err, apiTokens) ->
                 expect(err).to.not.exist
                 expect(apiTokens.length).to.be.equal 0
                 next()
