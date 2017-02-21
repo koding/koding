@@ -1,6 +1,7 @@
 debug = (require 'debug') 'nse:controller:template'
 
 kd = require 'kd'
+Events = require '../events'
 BaseController = require './base'
 { yamlToJson } = require 'app/util/stacks/yamlutils'
 updateStackTemplate = require 'app/util/stacks/updatestacktemplate'
@@ -29,7 +30,14 @@ module.exports = class EditorController extends BaseController
     }
 
     debug 'saving data', dataToSave
-    updateStackTemplate dataToSave, callback
+    updateStackTemplate dataToSave, (err, rest...) =>
+
+      @emit Events.WarnUser, {
+        message  : 'Stack template updated successfully!'
+        autohide : 1500
+      }
+
+      callback err, rest...
 
 
   setData: (data) ->

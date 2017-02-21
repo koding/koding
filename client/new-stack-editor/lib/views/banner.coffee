@@ -28,15 +28,14 @@ module.exports = class Banner extends JView
 
     @closeButton = new kd.ButtonView
       cssClass : 'close-button'
-      callback : =>
-        @emit Events.Banner.Closed
+      callback : @bound 'close'
 
 
   setData: (data) ->
 
     super data
 
-    { action, _initial } = @getData()
+    { action, autohide, _initial } = @getData()
 
     unless data._initial
 
@@ -52,7 +51,14 @@ module.exports = class Banner extends JView
       else
         @messageButton.hide()
 
+      if autohide
+        kd.utils.wait autohide, @bound 'close'
+
     return data
+
+
+  close: ->
+    @emit Events.Banner.Closed
 
 
   pistachio: ->
