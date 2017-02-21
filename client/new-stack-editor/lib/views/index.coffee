@@ -129,7 +129,7 @@ module.exports = class StackEditor extends kd.View
 
     for _, controller of @controllers
       controller.on Events.TemplateDataChanged, @bound 'setTemplateData'
-      controller.on Events.WarnUser, @toolbar.bound 'handleWarnings'
+      controller.on Events.WarnUser, @toolbar.bound 'setBanner'
 
     @emit 'ready'
 
