@@ -8,10 +8,26 @@
   generateRandomEmail
   checkBongoConnectivity } = require '../../../testhelper'
 
+{ generateMetaData } = require \
+  '../../../testhelper/models/computeproviders/credentialhelper'
+
+{ withConvertedUserAnd } = require  \
+  '../../../testhelper/models/computeproviders/computeproviderhelper'
+
 JUser            = require './user'
 JGroup           = require './group'
 JAccount         = require './account'
 { Relationship } = require 'jraphical'
+JInvitation      = require './invitation'
+JApiToken        = require './apitoken'
+JComputeStack    = require './stack'
+
+JStackTemplate   = require './computeproviders/stacktemplate'
+JCredential      = require './computeproviders/credential'
+
+{ generateStackTemplateData } = require \
+  '../../../testhelper/models/computeproviders/stacktemplatehelper'
+
 
 
 # making sure we have db connection before tests
@@ -170,37 +186,174 @@ runTests = -> describe 'workers.social.user.account', ->
     group  = {}
     group1 = {}
     group2 = {}
-    client = {}
+
+    adminClient  = {}
+
+    email = generateRandomEmail()
+
+    group2Slug = null
+
+    client  = {}
     account = {}
 
-    describe 'create group with user', ->
+    stackTemplate = null
 
-      group1Slug = generateRandomString()
+    describe 'create groups as owner and admin', ->
 
       groupData1         =
-        slug           : group1Slug
+        slug           : generateRandomString()
         title          : generateRandomString()
         visibility     : 'visible'
 
       before (done) ->
-        withConvertedUser { createGroup: yes }, (data) ->
-          { client, account, group } = data
 
-          # creating a new group
-          JGroup.create client, groupData1, account, (err, group_) ->
-            expect(err).to.not.exist
-            group1 = group_
+        withConvertedUser { createGroup: true }, (data) ->
+          { account, client, group } = data
 
-            account.fetchRelativeGroups {}, (err, groups) ->
+          queue = [
+            (next) ->
+              # creating a new group as owner
+              JGroup.create client, groupData1, account, (err, group_) ->
+                expect(err).to.not.exist
+                group1 = group_
+                next()
 
-              groups = groups.filter (group) -> group.slug isnt 'koding'
+            (next) ->
+              # creeate new group and add account as an admin to this team
+              withConvertedUser { createGroup: true }, (data) ->
+                { group: group2 } = data
+                group2Slug = group2.getAt 'slug'
+                group2.addAdmin account, next
+
+            (next) ->
+              # create a session for AdminAccount to be able to create resources
+              JSession = require './session'
+              sessionOptions =
+                username  : account.getAt 'profile.nickname'
+                groupName : group2Slug
+
+              JSession.createNewSession sessionOptions, (err, session) ->
+                expect(err).to.not.exist
+
+                adminClient =
+                  sessionToken : session.clientId
+                  context      : { group: group2Slug }
+                  clientIP     : '127.0.0.1'
+                  connection   :
+                    delegate   : account
+
+                next()
+
+            (next) ->
+              # creating resources for group2 for adminAccount
+              createResourcesQueue = [
+                (next) ->
+                  provider = 'aws'
+
+                  options =
+                    meta     : generateMetaData provider
+                    title    : 'someCredentialTitle'
+                    provider : provider
+
+                  options.meta.foobar = '  trim this white space   '
+                  JCredential.create adminClient, options, (err, credential) ->
+                    expect(err).to.not.exist
+                    expect(credential).to.exist
+                    next()
+
+                (next) ->
+                  stackTemplateData = generateStackTemplateData adminClient
+                  JStackTemplate.create adminClient, stackTemplateData, (err, template) ->
+                    expect(err).to.not.exist
+                    expect(template).to.exist
+                    stackTemplate = template
+                    next()
+
+                (next) ->
+                  config = { verified: yes }
+                  stackTemplate.update$ adminClient, { config }, (err) ->
+                    expect(err).to.not.exist
+                    next()
+
+                (next) ->
+                  stackTemplate.generateStack adminClient, (err, res) ->
+                    { stack, results: { machines } } = res
+                    expect(err).to.not.exist
+                    expect(machines).to.exist
+                    expect(stack).to.exist
+                    next()
+
+                (next) ->
+                  JInvitation.create adminClient, { invitations: [{ email }] }, (err) ->
+                    expect(err).to.not.exist
+                    next()
+
+                (next) ->
+                  group2.modify adminClient, { isApiEnabled : yes }, (err) ->
+                    expect(err).to.not.exist
+
+                    JApiToken.create { account, group : group2Slug }, (err, apiToken) ->
+                      expect(err).to.not.exist
+                      expect(apiToken).to.exist
+                      next()
+              ]
+
+              async.series createResourcesQueue, next
+          ]
+
+          async.series queue, ->
+            # number of groups that I am owner of
+            account.fetchRelativeGroups (err, groups) ->
 
               expect(err).to.not.exist
+
+              groups = groups.filter (group) -> group.slug isnt 'koding'
+              expect(groups.length).to.be.equal 3
+
+              groups = groups.filter (group) -> 'owner' in group.roles
               expect(groups.length).to.be.equal 2
 
-              groups.forEach (group) ->
-                expect(true).to.be.equal 'owner' in group.roles
               done()
+
+      it 'should ensure that group2 have resources for adminAccount', (done) ->
+
+        queue = [
+          (next) ->
+            JComputeStack.some { originId: account.getId(), group: group2Slug }, {}, (err, stacks) ->
+              expect(err).to.not.exist
+              expect(stacks.length).to.be.equal 1
+              expect(group2Slug).to.be.equal stacks[0].group
+              next()
+
+          (next) ->
+            JCredential.some$ adminClient, { originId: account.getId() }, (err, creds) ->
+              expect(err).to.not.exist
+              expect(creds.length).to.be.equal 1
+              next()
+
+          (next) ->
+            JApiToken.some { originId: account.getId() }, {}, (err, apiTokens) ->
+              expect(err).to.not.exist
+              expect(apiTokens.length).to.be.equal 1
+              expect(group2Slug).to.be.equal apiTokens[0].group
+              next()
+
+          (next) ->
+            JStackTemplate.some$ adminClient, { originId: account.getId() }, (err, stackTemplates) ->
+              expect(err).to.not.exist
+              expect(stackTemplates.length).to.be.equal 1
+              expect(group2Slug).to.be.equal stackTemplates[0].group
+              next()
+
+          (next) ->
+            JInvitation.some { inviterId: account.getId() }, {}, (err, invitations) ->
+              expect(err).to.not.exist
+              expect(invitations.length).to.be.equal 1
+              expect(group2Slug).to.be.equal invitations[0].groupName
+              next()
+        ]
+
+        async.series queue, done
 
 
       it 'should not be able to delete account when there more than one ownership', (done) ->
@@ -211,7 +364,7 @@ runTests = -> describe 'workers.social.user.account', ->
           done()
 
 
-    describe 'delete team and account', ->
+    describe 'delete team that I am owner of and account will clean all resources', ->
 
       before (done) ->
 
@@ -225,7 +378,41 @@ runTests = -> describe 'workers.social.user.account', ->
 
         async.series queue, done
 
-      it 'should account and group be deleted', (done) ->
+
+      it 'should delete resources of the adminAccount', (done) ->
+
+        queue = [
+          (next) ->
+            JApiToken.some { originId: account.getId() }, {}, (err, apiTokens) ->
+              expect(err).to.not.exist
+              expect(apiTokens.length).to.be.equal 0
+              next()
+
+          (next) ->
+            JCredential.some { originId: account.getId() }, {}, (err, creds) ->
+              expect(err).to.not.exist
+              expect(creds.length).to.be.equal 0
+              next()
+
+
+          (next) ->
+            JStackTemplate.some { originId: account.getId() }, {}, (err, stackTemplates) ->
+              expect(err).to.not.exist
+              expect(stackTemplates.length).to.be.equal 0
+              next()
+
+          (next) ->
+            JInvitation.some { inviterId: account.getId() }, {}, (err, invitations) ->
+              expect(err).to.not.exist
+              expect(invitations.length).to.be.equal 0
+              next()
+        ]
+
+        async.series queue, done
+
+
+      it 'should ensure that account and group are deleted', (done) ->
+
         queue = [
           (next) ->
             username = account.profile.nickname
