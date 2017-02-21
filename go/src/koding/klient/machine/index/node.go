@@ -190,7 +190,7 @@ func (nd *Node) count(maxsize int64, all bool) (count int) {
 			continue
 		}
 
-		if cur.Entry != nil && (maxsize < 0 || cur.Entry.Size() <= maxsize) && cur != nd {
+		if cur.Entry != nil && (maxsize < 0 || cur.Entry.Size() <= maxsize) {
 			count++
 		}
 

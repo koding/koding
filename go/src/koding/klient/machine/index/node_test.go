@@ -154,10 +154,10 @@ func TestNodeLookup(t *testing.T) {
 
 func TestNodeCount(t *testing.T) {
 	cases := map[int64]int{
-		-1:   32,
+		-1:   33,
 		0:    0,
-		4000: 22,
-		6000: 28,
+		4000: 23,
+		6000: 29,
 	}
 
 	root := fixture()
@@ -199,14 +199,14 @@ func TestNodeAdd(t *testing.T) {
 		name  string
 		count int
 	}{
-		{"addresses/cached_test.go", 33},
-		{"notify.go", 34},
-		{"notify/notify.go", 36},
-		{"proxy/fuse/fuse.go", 39},
-		{"notify", 39},   // no-op
-		{"notify/", 39},  // no-op
-		{"/notify/", 39}, // no-op
-		{"/notify", 39},  // no-op
+		{"addresses/cached_test.go", 34},
+		{"notify.go", 35},
+		{"notify/notify.go", 37},
+		{"proxy/fuse/fuse.go", 40},
+		{"notify", 40},   // no-op
+		{"notify/", 40},  // no-op
+		{"/notify/", 40}, // no-op
+		{"/notify", 40},  // no-op
 	}
 
 	root := fixture()
@@ -239,13 +239,13 @@ func TestNodeDel(t *testing.T) {
 		name  string
 		count int
 	}{
-		{"addresses/addresser.go", 31},
-		{"addresses/", 27},
-		{"aliases", 22},
-		{"id.go", 21},
-		{"id.go", 21},          // no-op
-		{"nonexisting.go", 21}, // no-op
-		{"/kite.go", 20},
+		{"addresses/addresser.go", 32},
+		{"addresses/", 28},
+		{"aliases", 23},
+		{"id.go", 22},
+		{"id.go", 22},          // no-op
+		{"nonexisting.go", 22}, // no-op
+		{"/kite.go", 21},
 	}
 
 	root := fixture()

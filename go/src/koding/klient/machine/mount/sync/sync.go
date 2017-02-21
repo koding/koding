@@ -62,11 +62,11 @@ type Info struct {
 	ID    mount.ID    // Mount ID.
 	Mount mount.Mount // Mount paths stored in absolute form.
 
-	SyncCount int // Number of synced files.
-	AllCount  int // Number of all files handled by mount.
+	Count    int // Number of synced files.
+	CountAll int // Number of all files handled by mount.
 
-	SyncDiskSize int64 // Total size of synced files.
-	AllDiskSize  int64 // Size of all files handled by mount.
+	DiskSize    int64 // Total size of synced files.
+	DiskSizeAll int64 // Size of all files handled by mount.
 
 	Queued  int // Number of files waiting for synchronization.
 	Syncing int // Number of files being synced.
@@ -156,7 +156,8 @@ func NewSync(mountID mount.ID, m mount.Mount, opts SyncOpts) (*Sync, error) {
 	}
 
 	// Create directory structure if it doesn't exist.
-	if err := os.MkdirAll(filepath.Join(s.opts.WorkDir, "data"), 0755); err != nil {
+	cacheDir := filepath.Join(s.opts.WorkDir, "data")
+	if err := os.MkdirAll(cacheDir, 0755); err != nil {
 		return nil, err
 	}
 
@@ -166,7 +167,8 @@ func NewSync(mountID mount.ID, m mount.Mount, opts SyncOpts) (*Sync, error) {
 		return nil, err
 	}
 
-	// TODO(ppknap): refresh loaded index with current state.
+	// Check current state of synchronization and set promises.
+	s.idx.Merge(cacheDir)
 
 	// Create FS event consumer queue.
 	s.a = NewAnteroom()
@@ -205,14 +207,14 @@ func (s *Sync) Info() *Info {
 	items, queued := s.a.Status()
 
 	return &Info{
-		ID:           s.mountID,
-		Mount:        s.m,
-		SyncCount:    0, // TODO(ppknap) s.lidx.Count(-1),
-		AllCount:     s.idx.Count(-1),
-		SyncDiskSize: 0, // TODO(ppknap) s.lidx.DiskSize(-1),
-		AllDiskSize:  s.idx.DiskSize(-1),
-		Queued:       items,
-		Syncing:      items - queued,
+		ID:          s.mountID,
+		Mount:       s.m,
+		Count:       s.idx.Count(-1),
+		CountAll:    s.idx.CountAll(-1),
+		DiskSize:    s.idx.DiskSize(-1),
+		DiskSizeAll: s.idx.DiskSizeAll(-1),
+		Queued:      items,
+		Syncing:     items - queued,
 	}
 }
 

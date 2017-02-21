@@ -146,11 +146,11 @@ func TestIndexCount(t *testing.T) {
 	}{
 		"all items": {
 			MaxSize:  -1,
-			Expected: 11,
+			Expected: 12,
 		},
 		"less than 100kiB": {
 			MaxSize:  100 * 1024,
-			Expected: 9,
+			Expected: 10,
 		},
 		"zero": {
 			MaxSize:  0,
