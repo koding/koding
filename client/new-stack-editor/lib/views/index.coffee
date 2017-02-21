@@ -27,7 +27,7 @@ module.exports = class StackEditor extends kd.View
 
   EDITORS = ['editor', 'readme', 'variables', 'logs']
 
-  constructor: (options = {}, data = {}) ->
+  constructor: (options = {}, data = { _initial: yes }) ->
 
     super options, data
 
@@ -128,7 +128,7 @@ module.exports = class StackEditor extends kd.View
     @on Events.ToggleSideView, @sideView.bound 'toggle'
 
     for _, controller of @controllers
-      controller.on Events.TemplateDataChanged, @bound 'setTemplateData'
+      controller.on Events.TemplateDataChanged, @bound 'setData'
       controller.on Events.WarnUser, @toolbar.bound 'setBanner'
 
     @emit 'ready'
@@ -143,15 +143,17 @@ module.exports = class StackEditor extends kd.View
         @emit Events.ShowSideView, 'credentials'
 
 
-  setTemplateData: (data, reset = no) ->
+  setData: (data, reset = no) ->
 
-    debug 'setTemplateData with args:', data, reset
+    super data
+
+    debug 'setData with args:', data, reset
+    return data  if data._initial
 
     { _id: id, description, template } = data
     unless id or description or template
       throw { message: 'A valid JStackTemplate is required!' }
 
-    @setData data
     @toolbar.setData data
 
     @controllers.editor.setData data
@@ -173,6 +175,7 @@ module.exports = class StackEditor extends kd.View
 
     kd.utils.defer @editor.bound 'focus'
 
+    return data
 
   _loadSnapshot: (id) ->
 

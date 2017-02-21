@@ -64,7 +64,7 @@ module.exports = class StackEditorAppController extends AppController
         showErrorNotification err
         return callback err
 
-      @stackEditor.setTemplateData template, reset
+      @stackEditor.setData template, reset
       callback null
 
     markAsLoaded templateId
