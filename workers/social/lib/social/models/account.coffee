@@ -131,8 +131,10 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         fetchMetaInformation :
           (signature Function)
-        fetchRelativeGroups:
+        fetchRelativeGroups: [
+          (signature Function)
           (signature Object, Function)
+        ]
         expireSubscription:
           (signature Function)
         fetchOtaToken:
@@ -306,13 +308,16 @@ module.exports = class JAccount extends jraphical.Module
 
 
   fetchRelativeGroups$: secure (client, options = {}, callback) ->
+
     delegate = client?.connection?.delegate
+    currentGroup = client.context.group
+
     return callback new Error 'malformed request' unless delegate
 
-    { currentGroup } = options
-    delete options.currentGroup
+    [ callback, options ] = [ options, callback ]  unless callback
+    options ?= {}
 
-    delegate.fetchRelativeGroups options, (err, groups) ->
+    delegate.fetchRelativeGroups { roles: options?.roles ? null }, (err, groups) ->
 
       return callback err  if err
 
@@ -324,7 +329,10 @@ module.exports = class JAccount extends jraphical.Module
       callback null, groups
 
 
-  fetchRelativeGroups: (options = {}, callback) ->
+  fetchRelativeGroups: (options, callback) ->
+
+    [ callback, options ] = [ options, callback ]  unless callback
+    options ?= {}
 
     queue =
       participated: (next) =>
