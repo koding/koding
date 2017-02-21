@@ -10,14 +10,10 @@ module.exports = class ChangeTeamController extends KodingListController
 
   constructor: (options = {}, data) ->
 
-    { groupsController } = kd.singletons
-    currentGroup = groupsController.getCurrentGroup().slug
-
-
     options.itemClass      = ChangeTeamListItem
     options.loadWithScroll = no
     options.fetcherMethod  = (query, options, callback) ->
-      whoami().fetchRelativeGroups { currentGroup }, (err, groups) ->
+      whoami().fetchRelativeGroups (err, groups) ->
         return  if showError err
 
         callback null, groups

@@ -12,13 +12,12 @@ module.exports = class SingleGroupInfo extends kd.CustomHTMLView
 
   constructor: (options, data) ->
 
-    options = _.assign {}, options,
-      cssClass : 'single-group-info'
+    options.cssClass = kd.utils.curry 'single-group-info', options.cssClass
 
     super options, data
 
-    group = data
-    roles = data.roles
+    group = @getData()
+    roles = group.roles
 
     selectOptions = null
 
@@ -42,7 +41,7 @@ module.exports = class SingleGroupInfo extends kd.CustomHTMLView
       cssClass: 'action-wrapper'
 
     buttonwrapper.addSubView ownershipBtn = new TransferOwnershipButton {}, group
-    ownershipBtn.once 'destroy', =>
+    ownershipBtn.once 'KDObjectWillBeDestroyed', =>
       @destroy()
 
     buttonwrapper.addSubView deleteTeamButton = new kd.ButtonView

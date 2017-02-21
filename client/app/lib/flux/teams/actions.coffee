@@ -283,14 +283,14 @@ handlePermanentlyDeleteMember = (member) ->
 leaveTeam = (partial) ->
 
   new Promise (resolve, reject) ->
-    new VerifyPasswordModal 'Confirm', partial, (currentPassword) ->
-      verifyPassword currentPassword, (err) ->
+    new VerifyPasswordModal 'Confirm', partial, (password) ->
+      verifyPassword password, (err) ->
         return reject err  if err
 
         { groupsController, reactor } = kd.singletons
         team = groupsController.getCurrentGroup()
 
-        team.leave { password: currentPassword }, (err) ->
+        team.leave { password }, (err) ->
           if err
             return new kd.NotificationView { title : err.message }
 
@@ -302,24 +302,20 @@ leaveTeam = (partial) ->
 deleteTeam = (partial) ->
 
   new Promise (resolve, reject) ->
-    new VerifyPasswordModal 'Confirm', partial, (currentPassword) ->
+    new VerifyPasswordModal 'Confirm', partial, (password) ->
+      verifyPassword password, (err) ->
 
-      whoami().fetchEmail (err, email) ->
-        options = { password: currentPassword, email }
-        remote.api.JUser.verifyPassword options, (err, confirmed) ->
+        return reject err  if err
 
-          return reject err.message  if err
-          return reject 'Current password cannot be confirmed'  unless confirmed
+        new DeleteTeamOverlay()
 
-          # show delete team overlay
-          new DeleteTeamOverlay()
+        { groupsController, reactor } = kd.singletons
+        team = groupsController.getCurrentGroup()
 
-          { groupsController, reactor } = kd.singletons
-          team = groupsController.getCurrentGroup()
+        team.destroy password, (err) ->
+          reject err  if err
+          resolve()
 
-          team.destroy currentPassword, (err) ->
-            reject err  if err
-            resolve()
 
 deleteAccount = (partial) ->
 
@@ -334,20 +330,22 @@ deleteAccount = (partial) ->
 
 deleteAccountVerifyModal = ->
 
-  partial = '<p>
+  modalContent = '''
+    <p>
       <strong>CAUTION! </strong>You are about to delete your account.
       This operation will also delete this current team.
     </p> <br>
-    <p>Please enter <strong>current password</strong> into the field below to continue: </p>'
+    <p>Please enter your <strong>current password</strong> into the field below to continue: </p>
+  '''
 
-  new VerifyPasswordModal 'Confirm', partial, (currentPassword) ->
-    verifyPassword currentPassword, (err) ->
+  new VerifyPasswordModal 'Confirm', modalContent, (password) ->
+    verifyPassword password, (err) ->
 
       return if showError err
 
       new DeleteAccountOverlay()
 
-      whoami().destroy currentPassword
+      whoami().destroy password
 
 
 fetchApiTokens = ->

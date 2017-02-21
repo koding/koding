@@ -1,6 +1,5 @@
 $ = require 'jquery'
 kd = require 'kd'
-whoami = require 'app/util/whoami'
 showError = require 'app/util/showError'
 VerifyPasswordModal = require 'app/commonviews/verifypasswordmodal'
 verifyPassword = require 'app/util/verifyPassword'
@@ -11,12 +10,11 @@ module.exports = class TransferOwnershipButton extends kd.CustomHTMLView
 
   constructor: (options, data) ->
 
-    options = _.assign {}, options,
-      cssClass : 'transferownershipbutton'
+    options.cssClass = kd.utils.curry 'transferownershipbutton', options.cssClass
 
     super options, data
 
-    group = data
+    group = @getData
 
     selectOptions = null
 
@@ -40,7 +38,7 @@ module.exports = class TransferOwnershipButton extends kd.CustomHTMLView
         selection.removeSelectOptions()
 
     @addSubView ownershipBtn = new kd.CustomHTMLView
-      partial : 'Transfer Ownership'
+      partial : 'TRANSFER OWNERSHIP'
       cssClass : 'transfer-ownership'
       click : =>
 
@@ -73,16 +71,18 @@ module.exports = class TransferOwnershipButton extends kd.CustomHTMLView
 
     username = $("[value='#{accountId}']").text()
 
-    partial = "<p>
+    partial = "
+      <p>
         <strong>CAUTION! </strong>You are going to transfer the ownership
         of your team with <strong>#{username}</strong>
       </p> <br>
-      <p>Please enter <strong>current password</strong> into the field below to continue: </p>"
+      <p>Please enter <strong>current password</strong> into the field below to continue: </p>
+    "
 
     new VerifyPasswordModal 'Confirm', partial, (currentPassword) =>
       verifyPassword currentPassword, (err) =>
         return  if showError err
 
-        group.transferOwnership { accountId, currentPassword, slug: group.slug }, (res) =>
-          @emit 'destroy'
+        group.transferOwnership { accountId, currentPassword, slug: group.slug }, (err) =>
+          return if showError err
           @destroy()

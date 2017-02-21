@@ -136,7 +136,7 @@ module.exports = class HomeMyTeam extends kd.CustomScrollView
                 team members will not be able to access this team again.
                 This action <strong>CANNOT</strong> be undone.
               </p> <br>
-              <p>Please enter <strong>current password</strong> into the field below to continue: </p>'
+              <p>Please enter your <strong>current password</strong> into the field below to continue: </p>'
 
             TeamFlux.actions.deleteTeam(partial).catch (err) ->
               showError err

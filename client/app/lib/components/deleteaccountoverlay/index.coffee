@@ -27,7 +27,3 @@ module.exports = class DeleteAccountOverlay extends kd.OverlayView
             It's been a pleasure to have you at Koding. Hope to see you soon.
           </div>
         '''
-
-    # setTimeout ->
-    #   window.location = '/Teams/Select'
-    # , 10000

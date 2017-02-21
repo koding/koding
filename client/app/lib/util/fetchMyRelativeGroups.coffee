@@ -13,7 +13,7 @@ module.exports = (callback) ->
 
   { groupsController } = kd.singletons
   currentGroup = groupsController.getCurrentGroup().slug
-  whoami().fetchRelativeGroups { currentGroup, roles: ['owner'] }, (err, groups) ->
+  whoami().fetchRelativeGroups { roles: ['owner'] }, (err, groups) ->
 
     return callback err  if err
 
