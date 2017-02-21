@@ -3016,7 +3016,7 @@
         }
       }
     },
-    "/remote.api/JAccount.destroyAccount/{id}": {
+    "/remote.api/JAccount.destroy/{id}": {
       "post": {
         "tags": [
           "JAccount"
@@ -3024,7 +3024,7 @@
         "consumes": [
           "application/json"
         ],
-        "description": "Method JAccount.destroyAccount",
+        "description": "Method JAccount.destroy",
         "parameters": [
           {
             "$ref": "#/parameters/instanceParam"
