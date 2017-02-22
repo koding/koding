@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"koding/kites/config"
 	"koding/klient/fs"
 	"koding/klient/machine"
 	"koding/klient/machine/client"
@@ -33,11 +34,13 @@ type IndexSyncFunc func(*index.Change)
 // build their own type. Built syncer should update the index after syncing and
 // manage received events.
 type BuildOpts struct {
-	Mount mount.Mount // single mount with absolute paths.
+	Mount    mount.Mount // single mount with absolute paths.
+	CacheDir string      // absolute path to locally cached files.
 
-	CacheDir string                 // absolute path to locally cached files.
-	Username string                 // remote machine username.
-	AddrFunc client.DynamicAddrFunc // dynamic getter for machine address.
+	PrivateKeyPath string                 // SSH private key path.
+	SSHAuthSock    string                 // SSH_AUTH_SOCK value needed for different users.
+	Username       string                 // remote machine username.
+	AddrFunc       client.DynamicAddrFunc // dynamic getter for machine address.
 
 	IndexSyncFunc IndexSyncFunc // callback used to update index.
 }
@@ -213,11 +216,13 @@ func NewSync(mountID mount.ID, m mount.Mount, opts SyncOpts) (*Sync, error) {
 
 	// Create file synchronization object.
 	s.s, err = opts.SyncBuilder.Build(&BuildOpts{
-		Mount:         m,
-		CacheDir:      cacheDir,
-		Username:      user,
-		AddrFunc:      s.opts.AddrFunc,
-		IndexSyncFunc: s.indexSync(),
+		Mount:          m,
+		CacheDir:       cacheDir,
+		PrivateKeyPath: filepath.Join(config.CurrentUser.HomeDir, ".ssh", "kd-ssh-key"),
+		SSHAuthSock:    fmt.Sprintf("/run/user/%d/keyring/ssh", config.CurrentUser.Uid),
+		Username:       user,
+		AddrFunc:       s.opts.AddrFunc,
+		IndexSyncFunc:  s.indexSync(),
 	})
 	if err != nil {
 		return nil, nonil(err, s.n.Close(), s.a.Close())

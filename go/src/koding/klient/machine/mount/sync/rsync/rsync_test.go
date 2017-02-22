@@ -15,7 +15,9 @@ import (
 	"koding/klient/machine"
 	"koding/klient/machine/index"
 	"koding/klient/machine/index/indextest"
+	"koding/klient/machine/mount"
 	"koding/klient/machine/mount/mounttest"
+	msync "koding/klient/machine/mount/sync"
 	"koding/klient/machine/mount/sync/rsync"
 	"koding/klient/machine/mount/sync/synctest"
 )
@@ -69,7 +71,16 @@ func TestRsyncArgs(t *testing.T) {
 				}, nil
 			}
 
-			s := rsync.NewRsync("/remote", "/local", "user", dynAddr, func(*index.Change) {})
+			opts := &msync.BuildOpts{
+				Mount:          mount.Mount{RemotePath: "/r"},
+				CacheDir:       "/c",
+				PrivateKeyPath: "/home/pk",
+				Username:       "user",
+				AddrFunc:       dynAddr,
+				IndexSyncFunc:  func(*index.Change) {},
+			}
+
+			s := rsync.NewRsync(opts)
 			s.Cmd = dumpArgs(&buf)
 
 			change := index.NewChange("a/b.txt", test.Meta)
@@ -87,7 +98,6 @@ func TestRsyncArgs(t *testing.T) {
 
 func TestRsyncExec(t *testing.T) {
 	t.Skip("TODO")
-
 	if !testHasRsync {
 		t.Skip("rsync executable not found, skipping")
 	}
@@ -120,14 +130,11 @@ func TestRsyncExec(t *testing.T) {
 				if err != nil {
 					t.Fatalf("want err = nil; got %v", err)
 				}
-				defer clean()
+				defer clean
 
 				idx, err := index.NewIndexFiles(rootA)
 				if err != nil {
 					t.Fatalf("want err = nil; got %v", err)
-				}
-				syncFunc := func(c *index.Change) {
-					idx.Sync(rootA, c)
 				}
 
 				// Make change on first file tree.
@@ -138,8 +145,18 @@ func TestRsyncExec(t *testing.T) {
 				// Synchronize underlying file-system.
 				indextest.Sync()
 
-				dynAddr := func(string) (a machine.Addr, err error) { return }
-				s := rsync.NewRsync(rootA, rootB, "", dynAddr, syncFunc)
+				opts := &msync.BuildOpts{
+					Mount:    mount.Mount{RemotePath: rootA},
+					CacheDir: rootB,
+					AddrFunc: func(string) (_ machine.Addr, _ error) { return },
+					IndexSyncFunc: func(c *index.Change) {
+						fmt.Println(idx.DebugString())
+						fmt.Println(c.Path())
+						idx.Sync(rootA, c)
+					},
+				}
+
+				s := rsync.NewRsync(opts)
 				ctx, cancel, err := synctest.SyncLocal(s, rootA, rootB, dir)
 				if err != nil {
 					t.Fatalf("want err = nil; got %v", err)

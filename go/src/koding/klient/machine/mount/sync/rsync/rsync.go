@@ -2,7 +2,7 @@ package rsync
 
 import (
 	"context"
-	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"sync"
@@ -18,12 +18,7 @@ type Builder struct{}
 // Build satisfies msync.Builder interface. It produces Rsync objects from a
 // given options if rsync executable is present in $PATH.
 func (Builder) Build(opts *msync.BuildOpts) (msync.Syncer, error) {
-	if _, err := exec.LookPath("rsync"); err != nil {
-		return nil, fmt.Errorf("rsync: %v", err)
-	}
-
-	return NewRsync(opts.Mount.RemotePath, opts.CacheDir,
-		opts.Username, opts.AddrFunc, opts.IndexSyncFunc), nil
+	return NewRsync(opts), nil
 }
 
 // Event is a rsync synchronization object that utilizes rsync executable.
@@ -40,25 +35,40 @@ func (e *Event) Exec() error {
 	}
 	defer e.ev.Done()
 
+	addr, err := e.parent.dynAddr("ip")
+	if err != nil {
+		return err
+	}
+
 	change := e.ev.Change()
-	err := e.parent.Cmd(e.ev.Context(), e.makeArgs(change)...).Run()
+	err = e.parent.Cmd(e.ev.Context(), e.makeArgs(addr.Value, change)...).Run()
 	e.parent.indexSync(change)
 
 	return err
 }
 
 // makeArgs transforms provided index change to rsync executable arguments.
-func (e *Event) makeArgs(c *index.Change) []string {
-
-	from := filepath.Join(e.parent.local, c.Path())
-	to := filepath.Join(e.parent.remote, c.Path())
-
-	meta := c.Meta()
-	if meta&index.ChangeMetaRemote != 0 {
-		from, to = to, from // Swap sync directions.
+func (e *Event) makeArgs(ip string, c *index.Change) []string {
+	remote := e.parent.user + "@" + ip + ":"
+	if e.parent.user == "" && ip == "" {
+		remote = ""
 	}
 
-	return []string{"a", "b", "c"}
+	var (
+		src  = filepath.Join(e.parent.local, c.Path())
+		dst  = remote + filepath.Join(e.parent.remote, c.Path())
+		meta = c.Meta()
+	)
+	if meta&index.ChangeMetaRemote != 0 {
+		src, dst = dst, src // Swap sync directions.
+	}
+
+	var rsyncAgent []string
+	if e.parent.privKey != "" {
+		rsyncAgent = append(rsyncAgent, "-e", "ssh -i "+e.parent.privKey+" -oStrictHostKeyChecking=n")
+	}
+
+	return append(rsyncAgent, "--delete", "-zav", src, dst)
 }
 
 // String implements fmt.Stringer interface. It pretty prints internal event.
@@ -73,6 +83,7 @@ type Rsync struct {
 
 	remote    string                 // remote directory root.
 	local     string                 // local directory root.
+	privKey   string                 // ssh private key path.
 	user      string                 // remote username.
 	dynAddr   client.DynamicAddrFunc // address of connected machine.
 	indexSync msync.IndexSyncFunc    // callback used to update index.
@@ -81,18 +92,22 @@ type Rsync struct {
 	stopC chan struct{} // channel used to close any opened exec streams.
 }
 
-// NewRsync creates a new Rsync synchronization object.
-func NewRsync(remote, local, user string, dynAddr client.DynamicAddrFunc, indexSync msync.IndexSyncFunc) *Rsync {
+// NewRsync creates a new Rsync object from given options.
+func NewRsync(opts *msync.BuildOpts) *Rsync {
+	env := append(os.Environ(), "SSH_AUTH_SOCK="+opts.SSHAuthSock)
 	return &Rsync{
 		Cmd: func(ctx context.Context, args ...string) *exec.Cmd {
-			return exec.CommandContext(ctx, "rsync", args...)
+			cmd := exec.CommandContext(ctx, "rsync", args...)
+			cmd.Env = env
+			return cmd
 		},
 
-		remote:    remote,
-		local:     local,
-		user:      user,
-		dynAddr:   dynAddr,
-		indexSync: indexSync,
+		remote:    opts.Mount.RemotePath,
+		local:     opts.CacheDir,
+		privKey:   opts.PrivateKeyPath,
+		user:      opts.Username,
+		dynAddr:   opts.AddrFunc,
+		indexSync: opts.IndexSyncFunc,
 		stopC:     make(chan struct{}),
 	}
 }
