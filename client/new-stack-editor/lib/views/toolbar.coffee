@@ -4,6 +4,7 @@ kd = require 'kd'
 JView = require 'app/jview'
 
 Events = require '../events'
+Banner = require './banner'
 
 
 module.exports = class Toolbar extends JView
@@ -19,8 +20,10 @@ module.exports = class Toolbar extends JView
     @actionButton = new kd.ButtonView
       cssClass : 'action-button solid green compact'
       title    : 'Initialize'
+      loader   : yes
       icon     : yes
-      callback : => @emit Events.InitializeRequested, @getData()._id
+      callback : =>
+        @emit Events.InitializeRequested, @getData()._id
 
     @expandButton = new kd.ButtonView
       cssClass: 'expand'
@@ -32,38 +35,17 @@ module.exports = class Toolbar extends JView
       cssClass : 'menu-icon'
       click    : @bound 'handleMenu'
 
-    @banner = new kd.View
-      cssClass : 'banner'
-    @banner.addSubView @message = new kd.CustomHTMLView
-      cssClass : 'message'
-      partial  : 'Hello world!'
-    @banner.addSubView @messageButton = new kd.ButtonView
-      cssClass : 'message-button solid blue small'
-      title    : 'Fix'
-    @banner.addSubView @closeButton = new kd.ButtonView
-      cssClass : 'close-button'
-      callback : => @unsetClass 'has-warning'
+    @banner = new Banner
+    @banner.on Events.Banner.Closed, @lazyBound 'unsetClass', 'has-message'
+    @forwardEvent @banner, Events.ToolbarAction
 
 
-  handleWarnings: (options) ->
+  setBanner: (data) ->
 
-    { message, action } = options
+    debug 'handling banner message', data.message, data.action
 
-    debug 'handling warnings', message, action
-    @setClass 'has-warning'
-    @message.updatePartial message
-
-    if action
-      if typeof action is 'function'
-        @messageButton.setCallback action
-      else if actionEvent = action.event
-        @messageButton.setCallback =>
-          @unsetClass 'has-warning'
-          @emit Events.ToolbarAction, actionEvent, (action.args ? [])...
-      @messageButton.setTitle action.title ? 'Fix'
-      @messageButton.show()
-    else
-      @messageButton.hide()
+    @setClass 'has-message'
+    @banner.setData data
 
 
   click: (event) ->
@@ -131,7 +113,7 @@ module.exports = class Toolbar extends JView
     then @setClass   'team'
     else @unsetClass 'team'
 
-    @unsetClass 'has-warning'
+    @unsetClass 'has-message'
 
 
   pistachio: ->

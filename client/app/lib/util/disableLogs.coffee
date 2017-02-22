@@ -1,6 +1,7 @@
 dateFormat = require 'dateformat'
 globals = require 'globals'
 objectToString = require './objectToString'
+sendDataDogEvent = require 'app/util/sendDataDogEvent'
 kd = require 'kd'
 
 module.exports = ->
@@ -24,6 +25,7 @@ module.exports = ->
 
   global.onerror = (err, url, line) ->
     (_log 'error') "#{err} at #{url} line #{line}"
+    sendDataDogEvent 'ApplicationError', { prefix: 'app-error' }
     return true
 
   for method in ['trace', 'time', 'timeEnd']

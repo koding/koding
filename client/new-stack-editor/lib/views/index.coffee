@@ -16,11 +16,9 @@ Statusbar = require './statusbar'
 SideView = require './sideview'
 
 LogsController = require '../controllers/logs'
+EditorController = require '../controllers/editor'
 VariablesController = require '../controllers/variables'
 CredentialsController = require '../controllers/credentials'
-
-{ yamlToJson } = require 'app/util/stacks/yamlutils'
-updateStackTemplate = require 'app/util/stacks/updatestacktemplate'
 
 Help = require './help'
 
@@ -29,7 +27,7 @@ module.exports = class StackEditor extends kd.View
 
   EDITORS = ['editor', 'readme', 'variables', 'logs']
 
-  constructor: (options = {}, data = {}) ->
+  constructor: (options = {}, data = { _initial: yes }) ->
 
     super options, data
 
@@ -86,16 +84,24 @@ module.exports = class StackEditor extends kd.View
 
     @controllers = {}
 
+    @controllers.editor = new EditorController
+      shared   :
+        editor : @editor
+        readme : @readme
+
     @controllers.logs = new LogsController
-      editor: @logs
+      shared   :
+        editor : @logs
 
     @controllers.variables = new VariablesController
-      editor: @variables
-      logs  : @controllers.logs
+      shared   :
+        editor : @variables
+        logs   : @controllers.logs
 
     # SideView for Search and Credentials
     @controllers.credentials = new CredentialsController
-      logs  : @controllers.logs
+      shared   :
+        logs   : @controllers.logs
 
     @sideView       = new SideView
       title         : yes
@@ -122,29 +128,40 @@ module.exports = class StackEditor extends kd.View
     @on Events.ToggleSideView, @sideView.bound 'toggle'
 
     for _, controller of @controllers
-      controller.on Events.TemplateDataChanged, @bound 'setTemplateData'
-      controller.on Events.WarnUser, @toolbar.bound 'handleWarnings'
+      controller.on Events.TemplateDataChanged, @bound 'setData'
+      controller.on Events.WarnUser, @toolbar.bound 'setBanner'
 
     @emit 'ready'
 
 
-  setTemplateData: (data, reset = no) ->
+  handleMenuActions: (event) ->
 
-    debug 'setTemplateData with args:', data, reset
+    switch event
+      when Events.Menu.Logs
+        @logs.resize { percentage: 40, store: yes }
+      when Events.Menu.Credentials
+        @emit Events.ShowSideView, 'credentials'
 
-    { _id: id, title, description, template } = data
+
+  setData: (data, reset = no) ->
+
+    super data
+
+    debug 'setData with args:', data, reset
+    return data  if data._initial
+
+    { _id: id, description, template } = data
     unless id or description or template
       throw { message: 'A valid JStackTemplate is required!' }
 
-    @setData data
     @toolbar.setData data
+
+    @controllers.editor.setData data
     @controllers.variables.setData data
     @controllers.credentials.setData data
 
     @_saveSnapshot @_current  if @_current
     @_deleteSnapshot id  if reset
-
-    @editor.setOption 'title', title
 
     unless @_loadSnapshot id
 
@@ -158,52 +175,17 @@ module.exports = class StackEditor extends kd.View
 
     kd.utils.defer @editor.bound 'focus'
 
-
-  save: (callback) ->
-
-    { title, config = {} } = stackTemplate = @getData()
-
-    rawContent  = @editor.getContent()
-    description = @readme.getContent()
-
-    [ err, convertedDoc ] = @getConvertedContent()
-    return callback err  if err
-
-    { contentObject, content } = convertedDoc
-
-    config.buildDuration = contentObject.koding?.buildDuration
-    template = convertedDoc.content
-
-    dataToSave = {
-      title, stackTemplate, template, description, rawContent
-    }
-
-    debug 'saving data', dataToSave
-    updateStackTemplate dataToSave, callback
+    return data
 
 
-  check: (callback) ->
+  setBusy: (busy = yes) ->
 
-    [ err ] = @getConvertedContent()
-    callback err
-
-
-  getConvertedContent: ->
-
-    convertedDoc = yamlToJson @editor.getContent()
-
-    return if convertedDoc.err
-    then [ 'Failed to convert YAML to JSON, fix the document and try again.' ]
-    else [ null, convertedDoc ]
-
-
-  handleMenuActions: (event) ->
-
-    switch event
-      when Events.Menu.Logs
-        @logs.resize { percentage: 40, store: yes }
-      when Events.Menu.Credentials
-        @emit Events.ShowSideView, 'credentials'
+    if busy
+      @setClass 'loading'
+      @toolbar.actionButton.showLoader()
+    else
+      @unsetClass 'loading'
+      @toolbar.actionButton.hideLoader()
 
 
   _loadSnapshot: (id) ->

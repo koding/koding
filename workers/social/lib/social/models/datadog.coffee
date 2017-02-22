@@ -55,6 +55,12 @@ module.exports = class DataDog extends Base
       notify : '@slack-alerts'
       tags   : ['user:%nickname%', 'team:%team%', 'version:%version%', 'context:pubnub-channel', 'channel-token:%channelToken%']
 
+    ApplicationError:
+      title  : 'app.error'
+      text   : 'An unknown error occurred for user %nickname% on %team% team'
+      notify : '@slack-alerts'
+      tags   : ['user:%nickname%', 'team:%team%', 'version:%version%', 'context:app']
+
     MachineTurnedOn:
       title         : 'machine.turnedon'
       text          : 'turned on VM'
