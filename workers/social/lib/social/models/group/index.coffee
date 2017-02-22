@@ -1494,22 +1494,22 @@ module.exports = class JGroup extends Module
 
     return callback new KodingError 'Account is not provided'  unless accountId
 
-    @fetchOwner (err, owner) =>
+    @fetchOwner (err, oldOwner) =>
 
       return callback err if err
 
-      if clientAccountId and not owner.getId().equals clientAccountId
+      if clientAccountId and not oldOwner.getId().equals clientAccountId
         return callback new KodingError 'You must be the owner to perform this action!'
 
-      if owner.getId().equals accountId
+      if oldOwner.getId().equals accountId
         return callback new KodingError 'You cannot transfer ownership to yourself, concentrate and try again!'
 
       JAccount = require '../account'
-      JAccount.one { _id: accountId }, (err, account) =>
+      JAccount.one { _id: accountId }, (err, newOwnerAccount) =>
 
         return callback err if err
 
-        @fetchRolesByAccount account, (err, newOwnersRoles) =>
+        @fetchRolesByAccount newOwnerAccount, (err, newOwnersRoles) =>
 
           return callback err if err
 
@@ -1521,7 +1521,7 @@ module.exports = class JGroup extends Module
 
           # give rights to new owner
           queue = difference(['member', 'admin'], newOwnersRoles).map (role) => (fin) =>
-            @addMember account, role, fin
+            @addMember newOwnerAccount, role, fin
 
           async.parallel queue, (err) =>
             return kallback err  if err
@@ -1533,18 +1533,18 @@ module.exports = class JGroup extends Module
               (next) =>
                 # update relationship for old owner as an admin
                  Relationship.one {
-                  targetId: owner.getId(),
+                  targetId: oldOwner.getId(),
                   sourceId: @getId(),
                   as      : 'owner'
-                }, (err, owner) ->
-                  owner.update { $set: { as: 'admin' } }
+                }, (err, ownerRelation) ->
+                  ownerRelation.update { $set: { as: 'admin' } }
                   next()
 
               (next) =>
                 # add new relationship to new owner
                 (new Relationship
                   targetName  : 'JAccount'
-                  targetId    : account.getId()
+                  targetId    : newOwnerAccount.getId()
                   sourceName  : 'JGroup'
                   sourceId    : @getId()
                   as          : 'owner'
@@ -1554,9 +1554,9 @@ module.exports = class JGroup extends Module
                 # notify the team for new owner
                 contents =
                   role: 'owner'
-                  id: account.getId()
+                  id: newOwnerAccount.getId()
                   group: slug
-                  adminNick: owner.profile.nickname
+                  adminNick: oldOwner.profile.nickname
 
                 JGroup.one { slug }, (err, group) ->
                   if group

@@ -101,7 +101,7 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
 
   onLeaveTeam: (event) ->
 
-    partial = '
+    modalContent = '
       <p>
         <strong>CAUTION! </strong>You are going to leave your team and you will not be able to login again.
         This action <strong>CANNOT</strong> be undone.
@@ -109,7 +109,7 @@ module.exports = class HomeTeamSettingsContainer extends React.Component
       <p>Please enter your <strong>current password</strong> into the field below to continue: </p>
     '
 
-    TeamFlux.actions.leaveTeam(partial).catch (err) ->
+    TeamFlux.actions.leaveTeam(modalContent).catch (err) ->
       showError err
 
 

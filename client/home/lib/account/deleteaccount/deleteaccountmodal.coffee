@@ -52,6 +52,9 @@ module.exports = class DeleteAccountModal extends ContentModal
       callback       : ->
         fetchMyRelativeGroups (err, groups) ->
 
-          return showError 'You are the owner of some groups.'  if groups.length
+          return if showError err
+
+          return showError 'You are still owner in other groups.'  if groups.length
+
           { deleteAccountVerifyModal } = require 'app/flux/teams/actions'
           deleteAccountVerifyModal()

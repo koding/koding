@@ -280,10 +280,10 @@ handlePermanentlyDeleteMember = (member) ->
     reactor.dispatch actions.REMOVE_ENABLED_MEMBER, { memberId }
 
 
-leaveTeam = (partial) ->
+leaveTeam = (modalContent) ->
 
   new Promise (resolve, reject) ->
-    new VerifyPasswordModal 'Confirm', partial, (password) ->
+    new VerifyPasswordModal 'Confirm', modalContent, (password) ->
       verifyPassword password, (err) ->
         return reject err  if err
 
@@ -299,10 +299,10 @@ leaveTeam = (partial) ->
           global.location.replace '/'
 
 
-deleteTeam = (partial) ->
+deleteTeam = (modalContent) ->
 
   new Promise (resolve, reject) ->
-    new VerifyPasswordModal 'Confirm', partial, (password) ->
+    new VerifyPasswordModal 'Confirm', modalContent, (password) ->
       verifyPassword password, (err) ->
 
         return reject err  if err
@@ -317,7 +317,7 @@ deleteTeam = (partial) ->
           resolve()
 
 
-deleteAccount = (partial) ->
+deleteAccount = ->
 
   fetchMyRelativeGroups (err, groups) ->
 
@@ -345,7 +345,11 @@ deleteAccountVerifyModal = ->
 
       new DeleteAccountOverlay()
 
-      whoami().destroy password
+      whoami().destroy password, (err) ->
+        if err
+          showError err
+          window.location = '/IDE'
+
 
 
 fetchApiTokens = ->
