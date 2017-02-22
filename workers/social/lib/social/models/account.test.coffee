@@ -4,9 +4,13 @@
   withDummyClient
   withConvertedUser
   generateDummyClient
+  generateUserInfo
+  createCustomClient
   generateRandomString
   generateRandomEmail
   checkBongoConnectivity } = require '../../../testhelper'
+
+{ createUserAndMachine } = require '../../../testhelper/models/computeproviders/machinehelper'
 
 { generateMetaData } = require \
   '../../../testhelper/models/computeproviders/credentialhelper'
@@ -21,11 +25,12 @@ JAccount         = require './account'
 JInvitation      = require './invitation'
 JApiToken        = require './apitoken'
 JComputeStack    = require './stack'
-
+JMachine         = require './computeproviders/machine'
 JStackTemplate   = require './computeproviders/stacktemplate'
 JCredential      = require './computeproviders/credential'
 
-{ generateStackTemplateData } = require \
+{ generateStackTemplateData
+  generateStackMachineData } = require \
   '../../../testhelper/models/computeproviders/stacktemplatehelper'
 
 
@@ -200,10 +205,10 @@ runTests = -> describe 'workers.social.user.account', ->
 
     describe 'create groups as owner and admin', ->
 
-      groupData1         =
-        slug           : generateRandomString()
-        title          : generateRandomString()
-        visibility     : 'visible'
+      groupData1 =
+        slug       : generateRandomString()
+        title      : generateRandomString()
+        visibility : 'visible'
 
       before (done) ->
 
@@ -227,42 +232,30 @@ runTests = -> describe 'workers.social.user.account', ->
 
             (next) ->
               # create a session for AdminAccount to be able to create resources
-              JSession = require './session'
-              sessionOptions =
-                username  : account.getAt 'profile.nickname'
-                groupName : group2Slug
-
-              JSession.createNewSession sessionOptions, (err, session) ->
+              createCustomClient group2Slug, account, (err, client_) ->
+                adminClient = client_
                 expect(err).to.not.exist
-
-                adminClient =
-                  sessionToken : session.clientId
-                  context      : { group: group2Slug }
-                  clientIP     : '127.0.0.1'
-                  connection   :
-                    delegate   : account
-
                 next()
 
             (next) ->
               # creating resources for group2 for adminAccount
               createResourcesQueue = [
                 (next) ->
-                  provider = 'aws'
 
-                  options =
+                  provider = 'aws'
+                  options  =
                     meta     : generateMetaData provider
                     title    : 'someCredentialTitle'
                     provider : provider
 
-                  options.meta.foobar = '  trim this white space   '
                   JCredential.create adminClient, options, (err, credential) ->
                     expect(err).to.not.exist
                     expect(credential).to.exist
                     next()
 
                 (next) ->
-                  stackTemplateData = generateStackTemplateData adminClient
+                  data = { machines: generateStackMachineData 1 }
+                  stackTemplateData = generateStackTemplateData adminClient, data
                   JStackTemplate.create adminClient, stackTemplateData, (err, template) ->
                     expect(err).to.not.exist
                     expect(template).to.exist
@@ -276,10 +269,12 @@ runTests = -> describe 'workers.social.user.account', ->
                     next()
 
                 (next) ->
-                  stackTemplate.generateStack adminClient, (err, res) ->
+                  stackTemplate.generateStack adminClient, {}, (err, res) ->
                     { stack, results: { machines } } = res
                     expect(err).to.not.exist
                     expect(machines).to.exist
+                    expect(machines[0].err).to.not.exist
+                    expect(machines[0].obj).to.exist
                     expect(stack).to.exist
                     next()
 
@@ -295,6 +290,17 @@ runTests = -> describe 'workers.social.user.account', ->
                     JApiToken.create { account, group : group2Slug }, (err, apiToken) ->
                       expect(err).to.not.exist
                       expect(apiToken).to.exist
+                      next()
+
+                (next) ->
+                  # create a user with machine and share it with Admin Client
+                  userInfo = generateUserInfo()
+                  createUserAndMachine userInfo, (err, data) ->
+                    expect(err).to.not.exist
+                    { machine } = data
+                    params = { target : [ account.getAt 'profile.nickname' ], asUser : yes }
+                    machine.shareWith params, (err) ->
+                      expect(err).to.not.exist
                       next()
               ]
 
@@ -332,6 +338,12 @@ runTests = -> describe 'workers.social.user.account', ->
               next()
 
           (next) ->
+            JMachine.some { 'users.username': account.getAt('profile.nickname') }, {}, (err, machines) ->
+              expect(err).to.not.exist
+              expect(machines.length).to.be.equal 3
+              next()
+
+          (next) ->
             JApiToken.some { originId: account.getId() }, {}, (err, apiTokens) ->
               expect(err).to.not.exist
               expect(apiTokens.length).to.be.equal 1
@@ -356,7 +368,7 @@ runTests = -> describe 'workers.social.user.account', ->
         async.series queue, done
 
 
-      it 'should not be able to delete account when there more than one ownership', (done) ->
+      it 'should not allow to delete account when there more than one ownership', (done) ->
 
         account.destroy client, (err) ->
           expect(err).to.exist
@@ -394,6 +406,12 @@ runTests = -> describe 'workers.social.user.account', ->
               expect(creds.length).to.be.equal 0
               next()
 
+          (next) ->
+            selector = { 'users.username' : account.getAt('profile.nickname') }
+            JMachine.some selector, {}, (err, machines) ->
+              expect(err).to.not.exist
+              expect(machines.length).to.be.equal 0
+              next()
 
           (next) ->
             JStackTemplate.some { originId: account.getId() }, {}, (err, stackTemplates) ->
@@ -413,9 +431,10 @@ runTests = -> describe 'workers.social.user.account', ->
 
       it 'should ensure that account and group are deleted', (done) ->
 
+        username = account.getAt 'profile.nickname'
+
         queue = [
           (next) ->
-            username = account.profile.nickname
             JAccount.one { 'profile.nickname' : username }, (err, account_) ->
               expect(err).to.not.exist
               expect(account_).to.not.exist
