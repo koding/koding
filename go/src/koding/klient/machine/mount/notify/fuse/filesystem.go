@@ -164,7 +164,7 @@ func NewFilesystem(opts *Opts) (*Filesystem, error) {
 		inodes: map[fuseops.InodeID]string{
 			fuseops.RootInodeID: "",
 		},
-		seqHandle: uint64(fuseops.RootInodeID),
+		seqHandle: uint64(3),
 		handles:   make(map[fuseops.HandleID]*os.File),
 	}
 
@@ -233,6 +233,10 @@ func (fs *Filesystem) add(path string) (id fuseops.InodeID) {
 func (fs *Filesystem) addHandle(f *os.File) (id fuseops.HandleID) {
 	for {
 		fs.seqHandle++
+
+		if fs.seqHandle < 3 {
+			fs.seqHandle = 3
+		}
 
 		id = fuseops.HandleID(fs.seqHandle)
 

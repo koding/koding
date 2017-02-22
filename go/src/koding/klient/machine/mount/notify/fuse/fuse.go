@@ -213,15 +213,18 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) error {
 		return err
 	}
 
-	entry := index.NewEntry(0, oldDir.Entry.Mode())
+	entry := index.NewEntry(oldDir.Entry.Size(), oldDir.Entry.Mode())
+	entry.SetMTime(oldDir.Entry.MTime())
+	entry.SetCTime(oldDir.Entry.CTime())
 
 	id := fuseops.InodeID(oldNd.Entry.Inode())
 
 	fs.mu.Lock()
 	delete(fs.inodes, id)
 	id = fs.add(newPath)
-	entry.SetInode(uint64(id))
 	fs.mu.Unlock()
+
+	entry.SetInode(uint64(id))
 
 	fs.Index.PromiseDel(oldPath, oldNd)
 	fs.Index.PromiseAdd(newPath, entry)
