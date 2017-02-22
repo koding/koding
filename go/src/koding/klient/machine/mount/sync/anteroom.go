@@ -164,7 +164,7 @@ func (a *Anteroom) dequeue() {
 		select {
 		case evC <- ev:
 			if ev = a.queue.Pop(); ev == nil {
-				evC = nil // ueue is empty - turn off event channel.
+				evC = nil // queue is empty - turn off event channel.
 			} else {
 				atomic.StoreUint64((*uint64)(&ev.stat), uint64(statusPop))
 			}
