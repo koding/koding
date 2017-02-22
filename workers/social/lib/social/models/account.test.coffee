@@ -445,6 +445,13 @@ runTests = -> describe 'workers.social.user.account', ->
               expect(err).to.not.exist
               expect(group_).to.not.exist
               next()
+
+          (next) ->
+            JName = require './name'
+            JName.one { name: username }, (err, name) ->
+              expect(err).to.not.exist
+              expect(name).to.not.exist
+              next()
         ]
 
         async.series queue, done
