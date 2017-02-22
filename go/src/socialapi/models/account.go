@@ -318,14 +318,21 @@ func (a *Account) DeleteIfNotInMongo() error {
 	}
 
 	_, err := modelhelper.GetAccountById(a.OldId)
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			return a.Delete()
-		}
+	if err != mgo.ErrNotFound {
 		return err
 	}
 
-	return nil
+	query := fmt.Sprintf("DELETE FROM %s WHERE account_id = ?", NewChannelParticipant().BongoName())
+	if err := bongo.B.DB.Exec(query, a.Id).Error; err != nil {
+		return err
+	}
+
+	query = fmt.Sprintf("DELETE FROM %s WHERE creator_id = ?", NewChannel().BongoName())
+	if err := bongo.B.DB.Exec(query, a.Id).Error; err != nil {
+		return err
+	}
+
+	return a.Delete()
 }
 
 // FetchAccountsWithBongoOffset fetches the accounts with bongo
