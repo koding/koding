@@ -20,9 +20,6 @@ type Node struct {
 }
 
 func newNode() *Node {
-	e := newEntry()
-	e.Mode = 0755 | os.ModeDir
-
 	return &Node{
 		Sub:   make(map[string]*Node),
 		Entry: NewEntry(0, 0755|os.ModeDir),
