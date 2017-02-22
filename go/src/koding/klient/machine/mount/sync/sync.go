@@ -36,6 +36,7 @@ type BuildOpts struct {
 	Mount mount.Mount // single mount with absolute paths.
 
 	CacheDir string                 // absolute path to locally cached files.
+	Username string                 // remote machine username.
 	AddrFunc client.DynamicAddrFunc // dynamic getter for machine address.
 
 	IndexSyncFunc IndexSyncFunc // callback used to update index.
@@ -185,6 +186,12 @@ func NewSync(mountID mount.ID, m mount.Mount, opts SyncOpts) (*Sync, error) {
 		return nil, err
 	}
 
+	// Get remote machine user name.
+	user, err := client.NewSupervised(s.opts.ClientFunc, 10*time.Second).CurrentUser()
+	if err != nil {
+		return nil, err
+	}
+
 	// Check current state of synchronization and set promises.
 	s.idx.Merge(cacheDir)
 
@@ -208,6 +215,7 @@ func NewSync(mountID mount.ID, m mount.Mount, opts SyncOpts) (*Sync, error) {
 	s.s, err = opts.SyncBuilder.Build(&BuildOpts{
 		Mount:         m,
 		CacheDir:      cacheDir,
+		Username:      user,
 		AddrFunc:      s.opts.AddrFunc,
 		IndexSyncFunc: s.indexSync(),
 	})
