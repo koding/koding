@@ -54,7 +54,6 @@ func block(path string) *fs.DiskInfo {
 
 // Build implements the notify.Builder interface.
 func (builder) Build(opts *notify.BuildOpts) (notify.Notifier, error) {
-
 	o := &Opts{
 		Index:    opts.Index,
 		Cache:    opts.Cache,
@@ -425,13 +424,7 @@ func (fs *Filesystem) mkfile(path string, mode os.FileMode) (id fuseops.InodeID,
 		return 0, 0, err
 	}
 
-	if err := f.Close(); err != nil {
-		return 0, 0, err
-	}
-
-	if f, err = os.OpenFile(absPath, os.O_RDWR, mode); err != nil {
-		return 0, 0, err
-	}
+	_ = f.Chmod(mode)
 
 	entry := index.NewEntry(0, mode)
 	entry.IncRefCount()
@@ -444,8 +437,6 @@ func (fs *Filesystem) mkfile(path string, mode os.FileMode) (id fuseops.InodeID,
 	entry.SetInode(uint64(id))
 
 	fs.Index.PromiseAdd(path, entry)
-
-	_ = f.Chmod(mode)
 
 	return id, h, nil
 }
