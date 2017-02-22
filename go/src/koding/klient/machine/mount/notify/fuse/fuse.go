@@ -329,8 +329,10 @@ func (fs *Filesystem) ReadDir(ctx context.Context, op *fuseops.ReadDirOp) error 
 		}
 	}
 
-	if int(op.Offset) >= len(files) {
+	if n := int(op.Offset); n > len(files) {
 		return fuse.EIO
+	} else if n == len(files) {
+		return nil
 	}
 
 	sort.Strings(files)
