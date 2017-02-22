@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"sync"
 
+	"koding/klient/machine/client"
 	"koding/klient/machine/index"
 	msync "koding/klient/machine/mount/sync"
 )
@@ -20,7 +21,7 @@ func (Builder) Build(opts *msync.BuildOpts) (msync.Syncer, error) {
 		return nil, fmt.Errorf("rsync: %v", err)
 	}
 
-	return NewRsync(opts.IndexSyncFunc), nil
+	return NewRsync(opts.Mount.RemotePath, opts.CacheDir, opts.AddrFunc, opts.IndexSyncFunc), nil
 }
 
 // Event is a rsync synchronization object that utilizes rsync executable.
@@ -59,19 +60,25 @@ func (e *Event) String() string {
 type Rsync struct {
 	Cmd func(ctx context.Context, args ...string) *exec.Cmd // Comand factory.
 
-	indexSync msync.IndexSyncFunc // callback used to update index.
+	remote    string                 // remote directory root.
+	local     string                 // local directory root.
+	dynAddr   client.DynamicAddrFunc // address of connected machine.
+	indexSync msync.IndexSyncFunc    // callback used to update index.
 
 	once  sync.Once
 	stopC chan struct{} // channel used to close any opened exec streams.
 }
 
 // NewRsync creates a new Rsync synchronization object.
-func NewRsync(indexSync msync.IndexSyncFunc) *Rsync {
+func NewRsync(remote, local string, dynAddr client.DynamicAddrFunc, indexSync msync.IndexSyncFunc) *Rsync {
 	return &Rsync{
 		Cmd: func(ctx context.Context, args ...string) *exec.Cmd {
 			return exec.CommandContext(ctx, "rsync", args...)
 		},
 
+		remote:    remote,
+		local:     local,
+		dynAddr:   dynAddr,
 		indexSync: indexSync,
 		stopC:     make(chan struct{}),
 	}

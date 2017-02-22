@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"koding/klient/machine"
 	"koding/klient/machine/index"
 	"koding/klient/machine/index/indextest"
 	"koding/klient/machine/mount/mounttest"
@@ -61,7 +62,14 @@ func TestRsyncArgs(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			var buf bytes.Buffer
 
-			s := rsync.NewRsync(func(*index.Change) {})
+			dynAddr := func(string) (machine.Addr, error) {
+				return machine.Addr{
+					Network: "ip",
+					Value:   "127.0.0.1",
+				}, nil
+			}
+
+			s := rsync.NewRsync("/remote", "/local", dynAddr, func(*index.Change) {})
 			s.Cmd = dumpArgs(&buf)
 
 			change := index.NewChange("a/b.txt", test.Meta)
@@ -130,7 +138,8 @@ func TestRsyncExec(t *testing.T) {
 				// Synchronize underlying file-system.
 				indextest.Sync()
 
-				s := rsync.NewRsync(syncFunc)
+				dynAddr := func(string) (a machine.Addr, err error) { return }
+				s := rsync.NewRsync(rootA, rootB, dynAddr, syncFunc)
 				ctx, cancel, err := synctest.SyncLocal(s, rootA, rootB, dir)
 				if err != nil {
 					t.Fatalf("want err = nil; got %v", err)
