@@ -310,14 +310,14 @@ module.exports = class JAccount extends jraphical.Module
   fetchRelativeGroups$: secure (client, options = {}, callback) ->
 
     delegate = client?.connection?.delegate
-    currentGroup = client.context.group
+    currentGroup = client?.context?.group
 
-    return callback new Error 'malformed request' unless delegate
+    return callback new Error 'malformed request' unless delegate or currentGroup
 
     [ callback, options ] = [ options, callback ]  unless callback
     options ?= {}
 
-    delegate.fetchRelativeGroups { roles: options?.roles ? null }, (err, groups) ->
+    delegate.fetchRelativeGroups { roles: options.roles }, (err, groups) ->
 
       return callback err  if err
 
@@ -339,7 +339,7 @@ module.exports = class JAccount extends jraphical.Module
         @fetchAllParticipatedGroups options, (err, groups) =>
           return next err  if err
           JUser = require './user'
-          username = @profile.nickname
+          username = @getAt 'profile.nickname'
           for group in groups
             group.jwtToken = JUser.createJWT { username, groupName : group.slug }
           next null, groups
@@ -1272,6 +1272,10 @@ module.exports = class JAccount extends jraphical.Module
     { delegate } = client.connection
     { profile: { nickname } } = delegate
 
+    if nickname isnt @getAt 'profile.nickname'
+      return callback new KodingError \
+        'You are trying to delete the account that does not belong to you'
+
     checkUserPassword delegate, password, (err) =>
 
       return callback new KodingError err  if err
@@ -1283,7 +1287,7 @@ module.exports = class JAccount extends jraphical.Module
 
     @fetchRelativeGroups { roles: ['owner'] }, (err, groups) =>
 
-      # remove koding team
+      # filter out the koding team
       groups = groups.filter (group) -> group.slug isnt 'koding'
 
       if groups.length > 1
@@ -1301,8 +1305,30 @@ module.exports = class JAccount extends jraphical.Module
       username = @getAt 'profile.nickname'
       accountId = @getId()
 
-      # delete the team and delete the account
+      # delete resources of the account, team and account itself
       queue = [
+        (next) ->
+          # deny from all machines that are shared with the account
+          JMachine = require './computeproviders/machine'
+          selector = { 'users.username' : username }
+          JMachine.some selector, {}, (err, machines) ->
+
+            deleteMachines = machines.map (machine) -> (fin) ->
+              machine.deny client, fin
+
+            async.parallel deleteMachines, ->
+              kallback 'JMachine', next, err
+
+        (next) ->
+          # delete the credentials that are associated with the account
+          JCredential = require './computeproviders/credential'
+          JCredential.some$ client, { originId: accountId }, {}, (err, credentials) ->
+
+            deleteCredentials = credentials.map (credential) -> (fin) ->
+              credential.delete client, fin
+
+            async.parallel deleteCredentials, ->
+              kallback 'JCredential', next, err
 
         (next) ->
           group.destroy client, (err) ->
@@ -1317,7 +1343,7 @@ module.exports = class JAccount extends jraphical.Module
         (next) =>
           # delete user's resources (credentials, stack templates, stacks, machines)
           ComputeProvider = require './computeproviders/computeprovider'
-          ComputeProvider.destroyAccountResources this, -> next()
+          ComputeProvider.destroyAccountResources this, next
 
         (next) ->
           # delete invitations
