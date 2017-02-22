@@ -63,7 +63,7 @@ stages:
 
       - type: shell
         name: configure
-        command: ./configure --host dev.koding.com:8090 --hostname dev.koding.com
+        command: ./configure --config dev --host dev.koding.com:8090 --hostname dev.koding.com
 
       - type: shell
         name: check remote API consistency
