@@ -1,1 +1,1 @@
-module.exports = hasCreditCard = (payment) -> !!payment.customer?.hasCard
+module.exports = hasCreditCard = (payment) -> !!payment?.customer?.hasCard
