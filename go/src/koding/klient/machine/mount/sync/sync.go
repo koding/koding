@@ -33,6 +33,11 @@ type IndexSyncFunc func(*index.Change)
 // build their own type. Built syncer should update the index after syncing and
 // manage received events.
 type BuildOpts struct {
+	Mount mount.Mount // single mount with absolute paths.
+
+	CacheDir string                 // absolute path to locally cached files.
+	AddrFunc client.DynamicAddrFunc // dynamic getter for machine address.
+
 	IndexSyncFunc IndexSyncFunc // callback used to update index.
 }
 
@@ -81,6 +86,9 @@ type Info struct {
 
 // SyncOpts are the options used to configure Sync object.
 type SyncOpts struct {
+	// AddrFunc is a factory for client addresses.
+	AddrFunc client.DynamicAddrFunc
+
 	// ClientFunc is a factory for dynamic clients.
 	ClientFunc client.DynamicClientFunc
 
@@ -110,6 +118,9 @@ type SyncOpts struct {
 func (opts *SyncOpts) Valid() error {
 	if opts == nil {
 		return errors.New("mount sync options are nil")
+	}
+	if opts.AddrFunc == nil {
+		return errors.New("nil dynamic client function")
 	}
 	if opts.ClientFunc == nil {
 		return errors.New("nil dynamic client function")
@@ -195,6 +206,9 @@ func NewSync(mountID mount.ID, m mount.Mount, opts SyncOpts) (*Sync, error) {
 
 	// Create file synchronization object.
 	s.s, err = opts.SyncBuilder.Build(&BuildOpts{
+		Mount:         m,
+		CacheDir:      cacheDir,
+		AddrFunc:      s.opts.AddrFunc,
 		IndexSyncFunc: s.indexSync(),
 	})
 	if err != nil {

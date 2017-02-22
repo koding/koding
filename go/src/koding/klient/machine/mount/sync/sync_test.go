@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"testing"
 
+	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/client/clienttest"
 	"koding/klient/machine/mount"
@@ -125,6 +126,9 @@ func TestSyncDrop(t *testing.T) {
 
 func defaultSyncOpts(wd string) msync.SyncOpts {
 	return msync.SyncOpts{
+		AddrFunc: func(string) (machine.Addr, error) {
+			return machine.Addr{}, nil
+		},
 		ClientFunc: func() (client.Client, error) {
 			return clienttest.NewClient(), nil
 		},

@@ -102,6 +102,11 @@ func (e *Event) Done() {
 	}
 }
 
+// Context returns context associated with called event.
+func (e *Event) Context() context.Context {
+	return e.ctx
+}
+
 // String implements fmt.Stringer interface it pretty prints stored event.
 func (e *Event) String() string {
 	return status(atomic.LoadUint64((*uint64)(&e.stat))).String() + " " + e.change.String()

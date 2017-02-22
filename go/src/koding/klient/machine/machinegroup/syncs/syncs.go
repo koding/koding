@@ -141,7 +141,8 @@ func (s *Syncs) worker() {
 
 // Add starts synchronization between remote and local directories. It creates
 // all necessary cache files if they are not present.
-func (s *Syncs) Add(mountID mount.ID, m mount.Mount, dynClient client.DynamicClientFunc) error {
+func (s *Syncs) Add(mountID mount.ID, m mount.Mount,
+	dynAddr client.DynamicAddrFunc, dynClient client.DynamicClientFunc) error {
 	s.mu.RLock()
 	if s.closed {
 		s.mu.RUnlock()
@@ -155,6 +156,7 @@ func (s *Syncs) Add(mountID mount.ID, m mount.Mount, dynClient client.DynamicCli
 	}
 
 	sc, err := msync.NewSync(mountID, m, msync.SyncOpts{
+		AddrFunc:      dynAddr,
 		ClientFunc:    dynClient,
 		WorkDir:       filepath.Join(s.wd, "mount-"+string(mountID)),
 		NotifyBuilder: s.nb,

@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"koding/klient/machine"
 	"koding/klient/machine/client"
 	"koding/klient/machine/client/clienttest"
 	"koding/klient/machine/machinegroup/syncs"
@@ -33,13 +34,16 @@ func TestSyncsAdd(t *testing.T) {
 	}
 	defer s.Close()
 
+	dynAddr := func(string) (machine.Addr, error) {
+		return machine.Addr{}, nil
+	}
 	dynClient := func() (client.Client, error) {
 		return clienttest.NewClient(), nil
 	}
-	if err := s.Add(mountID, m, dynClient); err != nil {
+	if err := s.Add(mountID, m, dynAddr, dynClient); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
-	if err := s.Add(mountID, m, dynClient); err == nil {
+	if err := s.Add(mountID, m, dynAddr, dynClient); err == nil {
 		t.Error("want err != nil; got nil")
 	}
 
@@ -69,9 +73,14 @@ func TestSyncsDrop(t *testing.T) {
 	}
 	defer s.Close()
 
-	if err := s.Add(mountID, m, func() (client.Client, error) {
+	dynAddr := func(string) (machine.Addr, error) {
+		return machine.Addr{}, nil
+	}
+	dynClient := func() (client.Client, error) {
 		return clienttest.NewClient(), nil
-	}); err != nil {
+	}
+
+	if err := s.Add(mountID, m, dynAddr, dynClient); err != nil {
 		t.Fatalf("want err = nil; got %v", err)
 	}
 

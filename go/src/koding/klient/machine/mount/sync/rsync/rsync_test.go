@@ -1,11 +1,13 @@
 package rsync_test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -40,6 +42,38 @@ func dumpArgs(w io.Writer) func(_ context.Context, args ...string) *exec.Cmd {
 		cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
 		cmd.Stdout = w
 		return cmd
+	}
+}
+
+func TestRsyncArgs(t *testing.T) {
+	tests := map[string]struct {
+		Meta     index.ChangeMeta
+		Expected []string
+	}{
+		"file added locally": {
+			Meta:     index.ChangeMetaAdd | index.ChangeMetaLocal,
+			Expected: []string{"a", "b", "c"},
+		},
+	}
+
+	for name, test := range tests {
+		test := test // Capture range variable.
+		t.Run(name, func(t *testing.T) {
+			var buf bytes.Buffer
+
+			s := rsync.NewRsync(func(*index.Change) {})
+			s.Cmd = dumpArgs(&buf)
+
+			change := index.NewChange("a/b.txt", test.Meta)
+			if err := synctest.ExecChange(s, change, time.Second); err != nil {
+				t.Fatalf("want err = nil; got %v", err)
+			}
+
+			got := strings.Split(buf.String(), "\n")
+			if !reflect.DeepEqual(got, test.Expected) {
+				t.Fatalf("want exec args = %v; got %v", test.Expected, got)
+			}
+		})
 	}
 }
 
@@ -80,6 +114,14 @@ func TestRsyncExec(t *testing.T) {
 				}
 				defer clean()
 
+				idx, err := index.NewIndexFiles(rootA)
+				if err != nil {
+					t.Fatalf("want err = nil; got %v", err)
+				}
+				syncFunc := func(c *index.Change) {
+					idx.Sync(rootA, c)
+				}
+
 				// Make change on first file tree.
 				if err := test(rootA); err != nil {
 					t.Fatalf("want err = nil; got %v", err)
@@ -88,8 +130,8 @@ func TestRsyncExec(t *testing.T) {
 				// Synchronize underlying file-system.
 				indextest.Sync()
 
-				s := rsync.NewRsync()
-				ctx, cancel, err := synctest.SyncLocal(rootA, rootB, dir, s)
+				s := rsync.NewRsync(syncFunc)
+				ctx, cancel, err := synctest.SyncLocal(s, rootA, rootB, dir)
 				if err != nil {
 					t.Fatalf("want err = nil; got %v", err)
 				}

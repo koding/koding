@@ -242,10 +242,10 @@ func (g *Group) mountSync(ids machine.IDSlice) {
 		mountsN += len(mountMap)
 		wg.Add(len(mountMap))
 		for mountID, m := range mountMap {
-			mountID, m := mountID, m // Capture range variable.
+			id, mountID, m := id, mountID, m // Capture range variable.
 			go func() {
 				defer wg.Done()
-				if err := g.sync.Add(mountID, m, g.dynamicClient(mountID)); err != nil {
+				if err := g.sync.Add(mountID, m, g.dynamicAddr(id), g.dynamicClient(mountID)); err != nil {
 					atomic.AddInt64(&errN, 1)
 					g.log.Error("Cannot start synchronization for mount %s: %s", mountID, err)
 				}

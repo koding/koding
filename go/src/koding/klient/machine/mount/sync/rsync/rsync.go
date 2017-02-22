@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"sync"
 
+	"koding/klient/machine/index"
 	msync "koding/klient/machine/mount/sync"
 )
 
@@ -19,21 +20,33 @@ func (Builder) Build(opts *msync.BuildOpts) (msync.Syncer, error) {
 		return nil, fmt.Errorf("rsync: %v", err)
 	}
 
-	return NewRsync(), nil
+	return NewRsync(opts.IndexSyncFunc), nil
 }
 
-// Event is a no-op for synchronization object.
-// TODO
+// Event is a rsync synchronization object that utilizes rsync executable.
 type Event struct {
-	ev *msync.Event
+	ev     *msync.Event
+	parent *Rsync
 }
 
-// Exec satisfies msync.Execer interface.
-// TODO
+// Exec satisfies msync.Execer interface. It executes rsync executable with
+// arguments available to sync stored change.
 func (e *Event) Exec() error {
-	e.ev.Done()
+	if !e.ev.Valid() {
+		return nil
+	}
+	defer e.ev.Done()
 
-	return nil
+	change := e.ev.Change()
+	err := e.parent.Cmd(e.ev.Context(), e.makeArgs(change)...).Run()
+	e.parent.indexSync(change)
+
+	return err
+}
+
+// makeArgs transforms provided index change to rsync executable arguments.
+func (e *Event) makeArgs(c *index.Change) []string {
+	return []string{"a", "b", "c"}
 }
 
 // String implements fmt.Stringer interface. It pretty prints internal event.
@@ -46,18 +59,21 @@ func (e *Event) String() string {
 type Rsync struct {
 	Cmd func(ctx context.Context, args ...string) *exec.Cmd // Comand factory.
 
+	indexSync msync.IndexSyncFunc // callback used to update index.
+
 	once  sync.Once
 	stopC chan struct{} // channel used to close any opened exec streams.
 }
 
 // NewRsync creates a new Rsync synchronization object.
-func NewRsync() *Rsync {
+func NewRsync(indexSync msync.IndexSyncFunc) *Rsync {
 	return &Rsync{
 		Cmd: func(ctx context.Context, args ...string) *exec.Cmd {
 			return exec.CommandContext(ctx, "rsync", args...)
 		},
 
-		stopC: make(chan struct{}),
+		indexSync: indexSync,
+		stopC:     make(chan struct{}),
 	}
 }
 
@@ -75,7 +91,10 @@ func (r *Rsync) ExecStream(evC <-chan *msync.Event) <-chan msync.Execer {
 					return
 				}
 
-				ex := &Event{ev: ev}
+				ex := &Event{
+					ev:     ev,
+					parent: r,
+				}
 				select {
 				case exC <- ex:
 				case <-r.stopC:
