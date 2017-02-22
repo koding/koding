@@ -49,7 +49,7 @@ func NewPostRemoteAPISharedMachineKickOK() *PostRemoteAPISharedMachineKickOK {
 
 /*PostRemoteAPISharedMachineKickOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPISharedMachineKickOK struct {
 	Payload *models.DefaultResponse

@@ -20,7 +20,7 @@ type Mail struct {
 	From string
 
 	// OriginalRecipient holds the inbound mail
-	// adress which user sent the message
+	// address which user sent the message
 	OriginalRecipient string
 
 	// MailboxHash holds the data according to OriginalRecipient As an example
@@ -109,7 +109,7 @@ func channelPermission(channelId int64, accountId int64) (*socialapimodels.Chann
 	}
 
 	if !canOpen {
-		return nil, errCannotOpen //silently sucess here, we dont want retries here
+		return nil, errCannotOpen //silently success here, we dont want retries here
 	}
 
 	return c, nil

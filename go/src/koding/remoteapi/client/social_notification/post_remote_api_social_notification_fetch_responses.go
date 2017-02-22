@@ -49,7 +49,7 @@ func NewPostRemoteAPISocialNotificationFetchOK() *PostRemoteAPISocialNotificatio
 
 /*PostRemoteAPISocialNotificationFetchOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPISocialNotificationFetchOK struct {
 	Payload *models.DefaultResponse

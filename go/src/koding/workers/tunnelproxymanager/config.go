@@ -11,7 +11,7 @@ type Config struct {
 	Route53AccessKeyID     string `required:"true"`
 	Route53SecretAccessKey string `required:"true"`
 
-	// can be overriden
+	// can be overridden
 	Region          string
 	EBEnvName       string
 	AutoScalingName string

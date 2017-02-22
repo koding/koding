@@ -22,7 +22,7 @@ var (
 	)
 )
 
-// remote is requried interface to talk to remote machine.
+// remote is required interface to talk to remote machine.
 type remote interface {
 	ReadFileAt([]byte, string, int64, int64) (int, error)
 	WriteFile(string, []byte) error

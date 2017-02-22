@@ -49,7 +49,7 @@ func NewPostRemoteAPIComputeProviderPingOK() *PostRemoteAPIComputeProviderPingOK
 
 /*PostRemoteAPIComputeProviderPingOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIComputeProviderPingOK struct {
 	Payload *models.DefaultResponse

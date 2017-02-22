@@ -224,9 +224,9 @@ func (t *Tunnel) updateOptions(reg *tunnelproxy.RegisterResult) {
 }
 
 func (t *Tunnel) initServices() {
-	s, err := t.db.Services()
+	_, err := t.db.Services()
 	if err == storage.ErrKeyNotFound {
-		s = tunnelproxy.Services{
+		s := tunnelproxy.Services{
 			"ssh": &tunnelproxy.Service{
 				Name:      "ssh",
 				LocalAddr: "127.0.0.1:22",

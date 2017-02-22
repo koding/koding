@@ -101,7 +101,7 @@ func (cb *CacheCallback) Callback(par *dnode.Partial) {
 	cb.Bar.Set(p.Progress)
 
 	// TODO: Disable the callback here, so that it's impossible to double call
-	// the progress after competion - to avoid weird/bad UX and errors.
+	// the progress after completion - to avoid weird/bad UX and errors.
 	if p.Progress == 100 {
 		cb.doneErr <- nil
 	}

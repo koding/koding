@@ -3,7 +3,16 @@ version: 2
 executorType: docker
 
 containerInfo:
-  - image: koding/base@sha256:c53151cedd1a7cd86a66189742835a761d54f1d23c72422832fac69a0916a176
+  - image: koding/base@sha256:55cf1b683bde71eac3a162775d8adad1e6061832cb55fe8b39866ea98c3df74a
+
+  - image: mongo:2.6
+    cmd: ["--nojournal", "--noprealloc", "--smallfiles"]
+
+  - image: koding/postgres
+
+  - image: rabbitmq:3
+
+  - image: redis
 
 stages:
 
@@ -51,6 +60,10 @@ stages:
         command: ./configure
 
       - type: shell
+        name: check remote API consistency
+        command: ./run exec scripts/api-generator.coffee --check
+
+      - type: shell
         name: check client code quality
         command: scripts/check_client_code_quality.sh
 
@@ -93,3 +106,47 @@ stages:
         paths:
           - go/bin
           - go/pkg
+
+      - type: shell
+        name: check kite configuration
+        command: ./run exec scripts/gotests.sh kites koding/kites/config
+
+      - type: shell
+        name: check generated JSON files
+        command: ./run exec scripts/check-generated-files.sh
+
+      - type: shell
+        name: test kites
+        command: ./run exec go/src/koding/kites/e2etest/e2etest.sh
+
+      - type: shell
+        name: test klient
+        command: ./run exec scripts/test-klient.sh
+
+      - type: shell
+        name: test kd
+        command: ./run exec scripts/test-kd.sh
+
+      - type: shell
+        name: test kontrol
+        command: ./run exec scripts/gotests.sh koding/kites/kontrol/kontrol
+
+      - type: shell
+        name: test kloud
+        command: ./run exec scripts/gotests.sh kites \
+          koding/kites/kloud/provider/... koding/kites/kloud/credential/... \
+          koding/kites/kloud/stack/... koding/kites/kloud/kloud/...
+
+      - type: shell
+        name: test mongo models
+        command: ./run exec go test koding/db/mongodb/modelhelper
+
+      - type: shell
+        name: run database migration
+        command: ./run migrations up
+
+      - type: shell
+        name: set up dnsmasq
+        command: |
+          service dnsmasq start
+          echo nameserver 127.0.0.1 > /etc/resolv.conf

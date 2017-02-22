@@ -49,7 +49,7 @@ func NewPostRemoteAPIJRewardFetchCustomDataOK() *PostRemoteAPIJRewardFetchCustom
 
 /*PostRemoteAPIJRewardFetchCustomDataOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJRewardFetchCustomDataOK struct {
 	Payload *models.DefaultResponse

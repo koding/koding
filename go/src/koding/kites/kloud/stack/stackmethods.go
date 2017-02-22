@@ -198,7 +198,7 @@ type ApplyRequest struct {
 	// Variables are used to directly inject variables into jStackTemplate.
 	Variables map[string]string `json:"variables,omitempty"`
 
-	// Destroy, when true, destroys the terraform tempalte associated with the
+	// Destroy, when true, destroys the terraform template associated with the
 	// given StackId.
 	Destroy bool
 }
@@ -296,7 +296,7 @@ type PlanRequest struct {
 	Variables       map[string]string `json:"variables,omitempty"`
 }
 
-// PlanResponse represents a reponse type of the plan kite method.
+// PlanResponse represents a response type of the plan kite method.
 type PlanResponse struct {
 	Machines interface{} `json:"machines"`
 }

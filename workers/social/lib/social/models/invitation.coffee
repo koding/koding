@@ -14,7 +14,6 @@ emailsanitize = require './user/emailsanitize'
 
 module.exports = class JInvitation extends jraphical.Module
 
-  @trait __dirname, '../traits/grouprelated'
   @trait __dirname, '../traits/protected'
 
 

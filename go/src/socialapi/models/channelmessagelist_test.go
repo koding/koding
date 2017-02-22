@@ -165,7 +165,7 @@ func TestChannelMessageListUpdateAddedAt(t *testing.T) {
 				So(err, ShouldEqual, bongo.RecordNotFound)
 			})
 
-			Convey("it should not have error if update is done successfuly", func() {
+			Convey("it should not have error if update is done successfully", func() {
 				acc := CreateAccountWithTest()
 				c := CreateChannelWithTest(acc.Id)
 

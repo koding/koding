@@ -49,7 +49,7 @@ func NewPostRemoteAPIJGroupEachOK() *PostRemoteAPIJGroupEachOK {
 
 /*PostRemoteAPIJGroupEachOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJGroupEachOK struct {
 	Payload *models.DefaultResponse

@@ -49,7 +49,7 @@ func NewPostRemoteAPIS3GeneratePolicyOK() *PostRemoteAPIS3GeneratePolicyOK {
 
 /*PostRemoteAPIS3GeneratePolicyOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIS3GeneratePolicyOK struct {
 	Payload *models.DefaultResponse

@@ -86,7 +86,7 @@ func registerSignalHandler(l *asgd.LifeCycle, log logging.Logger) chan struct{} 
 		signal := <-signals
 		switch signal {
 		case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP, syscall.SIGKILL:
-			log.Info("recieved exit signal, closing...")
+			log.Info("received exit signal, closing...")
 			err := l.Close()
 			if err != nil {
 				log.Critical(err.Error())

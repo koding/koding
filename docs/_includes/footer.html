@@ -34,7 +34,7 @@
     <div class="Footer--col">
       <h3>Contact</h3>
       <ul>
-        <li><a href="#" onclick='javascript:Intercom("show");'>Support</a></li>
+        <li><a href="mailto:support@koding.com" class='contact'>Support</a></li>
         <li><a href="http://facebook.com/koding" target='_blank'>Facebook</a></li>
         <li><a href="http://twitter.com/koding" target='_blank'>Twitter</a></li>
         <li><a href="http://linkedin.com/company/koding" target='_blank'>LinkedIn</a></li>
@@ -71,5 +71,7 @@
       $(this).parent().addClass('active');
   });
 </script>
-
+<script type="text/javascript">
+  {% include js/intercomLauncher.js %}
+</script>
 {% include analytics.html %}

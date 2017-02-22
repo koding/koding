@@ -19,7 +19,7 @@ import (
 	"github.com/koding/kite/dnode"
 )
 
-// MachineStatus representes our understanding of a machines status. Whether or not
+// MachineStatus represents our understanding of a machines status. Whether or not
 // we can communicate with it, and etc.
 type MachineStatus int
 

@@ -62,10 +62,6 @@ build:
         name: run coffeelint
         code: scripts/wercker/run-command node_modules/coffeelint/bin/coffeelint --quiet .
     - script:
-        name: launch test hosts
-        code: |
-          scripts/wercker/run-command scripts/wercker/launch-test-hosts | tee INSTANCE_DATA
-    - script:
         name: check configs
         code: |
           ./configure --config sandbox
@@ -77,6 +73,10 @@ build:
           ./configure --config dev     --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
           ./configure --config sandbox --projectRoot $WERCKER_SOURCE_DIR --ebEnvName $EB_ENV_NAME --version $(cat $WERCKER_ROOT/VERSION)
     - script:
+        name: launch test hosts
+        code: |
+          scripts/wercker/run-command ./run exec scripts/wercker/launch-test-hosts | tee INSTANCE_DATA
+    - script:
         name: check api consistency
         code: scripts/wercker/run-command ./run exec scripts/api-generator.coffee --check
     - script:
@@ -84,6 +84,12 @@ build:
         code: |
           make -C client dist
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
+    - wercker/s3sync@2.0.3:
+        source-dir: website/a/p/p/$(cat VERSION)/
+        bucket-url: s3://koding-assets/a/p/p/$(cat VERSION)/
+        key-id: $S3_KEY_ID
+        key-secret: $S3_KEY_SECRET
+        opts: "--no-mime-magic --guess-mime-type --acl-public"
     - script:
         name: build go binaries
         code: go/build.sh
@@ -114,6 +120,9 @@ build:
     - script:
         name: check social api code quality
         code: scripts/wercker/run-command scripts/check_socialapi_code_quality.sh
+    - script:
+        name: check go codes with gometalinter
+        code: scripts/wercker/run-command scripts/gometalinter.sh
     - script:
         name: check client code quality
         code: scripts/wercker/run-command scripts/check_client_code_quality.sh
@@ -149,7 +158,7 @@ build:
     - script:
         name: check connectivity
         code: |
-          scripts/wercker/run-command scripts/wercker/check-connectivity INSTANCE_DATA
+          scripts/wercker/run-command ./run exec scripts/wercker/check-connectivity INSTANCE_DATA
     - script:
         name: test nodejs
         code: scripts/wercker/run-command scripts/node-testing/run-tests INSTANCE_DATA
@@ -176,10 +185,10 @@ build:
           nvm use 6
     - script:
         name: upload logs
-        code: scripts/wercker/upload-logs INSTANCE_DATA
+        code: ./run exec scripts/wercker/upload-logs INSTANCE_DATA
     - script:
         name: cleanup
-        code: scripts/wercker/cleanup INSTANCE_DATA
+        code: ./run exec scripts/wercker/cleanup INSTANCE_DATA
     - jessefulton/slack-notify:
         subdomain: koding
         token: $SLACK_TOKEN
@@ -270,12 +279,6 @@ deploy:
         name: notify-cebeci with result
         code: |
           $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "wercker is done with the <$WERCKER_DEPLOY_URL|deploy> of $WERCKER_GIT_BRANCH result: $WERCKER_RESULT" $WERCKER_RESULT 100
-    - wercker/s3sync@2.0.3:
-        source-dir: website/a/p/p
-        bucket-url: s3://koding-assets/a/p/p/
-        key-id: $S3_KEY_ID
-        key-secret: $S3_KEY_SECRET
-        opts: "--no-mime-magic --guess-mime-type"
 
   s3-klient-production:
     - script:

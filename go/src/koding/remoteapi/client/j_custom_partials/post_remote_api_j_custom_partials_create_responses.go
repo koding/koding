@@ -49,7 +49,7 @@ func NewPostRemoteAPIJCustomPartialsCreateOK() *PostRemoteAPIJCustomPartialsCrea
 
 /*PostRemoteAPIJCustomPartialsCreateOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJCustomPartialsCreateOK struct {
 	Payload *models.DefaultResponse

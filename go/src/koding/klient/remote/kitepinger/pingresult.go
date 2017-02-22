@@ -20,7 +20,7 @@ type ChangeSummary struct {
 	// The new/current status.
 	NewStatus Status
 
-	// The time that the NewStatus occured. Ie, when a Failed ping first occured.
+	// The time that the NewStatus occurred. Ie, when a Failed ping first occurred.
 	NewStatusTime time.Time
 
 	// The previous status.
@@ -36,7 +36,7 @@ type CurrentSummary struct {
 	// The state of the KitePingers ping attempts
 	Status Status
 
-	// The duration that the current status has been occuring for.
+	// The duration that the current status has been occurring for.
 	StatusDur time.Duration
 }
 

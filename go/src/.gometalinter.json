@@ -1,0 +1,15 @@
+{
+  "Concurrency": 16,
+  "Fast": true,
+  "EnableGC": true,
+  "Deadline": "60s",
+  "DisableAll": true,
+  "Enable": [
+    "deadcode",
+    "ineffassign",
+    "structcheck",
+    "gosimple",
+    "misspell",
+    "unconvert"
+  ]
+}

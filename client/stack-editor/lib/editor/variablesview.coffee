@@ -175,10 +175,8 @@ module.exports = class VariablesView extends kd.View
         @_activeCredential = credential
 
         { meta } = data
-        if (Object.keys meta).length
-          content = if rawContent = meta.__rawContent
-          then rawContent
-          else (jsonToYaml meta).content
+        if (Object.keys meta).length > 1
+          content = meta.__rawContent ? (jsonToYaml meta).content
 
           @getAce().setContent _.unescape content
 

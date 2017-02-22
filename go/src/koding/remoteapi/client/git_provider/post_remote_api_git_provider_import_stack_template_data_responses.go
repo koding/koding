@@ -49,7 +49,7 @@ func NewPostRemoteAPIGitProviderImportStackTemplateDataOK() *PostRemoteAPIGitPro
 
 /*PostRemoteAPIGitProviderImportStackTemplateDataOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIGitProviderImportStackTemplateDataOK struct {
 	Payload *models.DefaultResponse

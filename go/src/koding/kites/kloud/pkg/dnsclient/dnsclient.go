@@ -293,7 +293,7 @@ func (r *Route53) Rename(oldDomain, newDomain string) error {
 func (r *Route53) Delete(domain string) error {
 	rec, err := r.Get(domain)
 	if err != nil {
-		// domains can be removed via other bussiness logics, so this can
+		// domains can be removed via other business logics, so this can
 		// happen
 		if err == ErrNoRecord {
 			return nil

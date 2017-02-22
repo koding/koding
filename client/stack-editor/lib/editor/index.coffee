@@ -632,7 +632,7 @@ module.exports = class StackEditorView extends kd.View
             .add 'Credentials are ready!'
             .add 'Starting to process the template...'
 
-          @processTemplate _stackTemplate, callback
+          @processTemplate _stackTemplate ? stackTemplate, callback
 
 
   afterProcessTemplate: (method) ->
@@ -1046,7 +1046,7 @@ module.exports = class StackEditorView extends kd.View
 
     @outputView.add 'Generating stack from template...'
 
-    stackTemplate.generateStack (err, result) =>
+    stackTemplate.generateStack {}, (err, result) =>
       @generateStackButton.hideLoader()
 
       return  if @outputView.handleError err

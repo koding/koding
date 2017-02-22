@@ -1,5 +1,6 @@
 kd = require 'kd'
 JView = require 'app/jview'
+remote = require 'app/remote'
 Events = require '../events'
 
 CredentialListItem              = require '../views/credentiallistitem'
@@ -7,22 +8,26 @@ AccountCredentialList           = require 'app/views/credentiallist/accountcrede
 AccountCredentialListController = require 'app/views/credentiallist/accountcredentiallistcontroller'
 
 
-module.exports = class StackCredentialListController extends AccountCredentialListController
+module.exports = class CredentialsListController extends AccountCredentialListController
 
 
   constructor: (options = {}, data) ->
 
-    options      =
-      limit      : 15
-      viewClass  : AccountCredentialList
-      itemClass  : CredentialListItem
-      baseQuery  :
-        provider : { $ne: 'custom' }
+    options         =
+      limit         : 15
+      viewClass     : AccountCredentialList
+      itemClass     : CredentialListItem
+      fetcherMethod : remote.api.JCredential.some$
+      baseQuery     :
+        provider    : { $ne: 'custom' }
 
     super options, data
 
     list = @getListView()
     listView = @getView()
+
+    @getOption('noItemFoundWidget').addSubView @_createAddCredentialMenuButton
+      title    : 'Create New'
 
     statusView = list.addSubView new kd.CustomHTMLView
       cssClass : 'status-view'
@@ -44,6 +49,12 @@ module.exports = class StackCredentialListController extends AccountCredentialLi
       '
     , { provider : '' }
 
+    @on 'NewItemAdded', (item) =>
+      if @_filter and @_filter.provider isnt item.getData().provider
+        @handleClearFilter()
+
+    list.on 'ItemDeleted', => @emit Events.CredentialListUpdated
+
     list.on Events.CredentialFilterChanged, (provider) =>
 
       return  if provider and not @selectionView.hasClass 'hidden'
@@ -60,6 +71,7 @@ module.exports = class StackCredentialListController extends AccountCredentialLi
       @selectionView.click = @bound 'handleClearFilter'
 
       @filterByProvider @_filter
+
 
 
   showLazyLoader: ->

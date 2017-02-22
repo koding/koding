@@ -17,9 +17,6 @@ import (
 const (
 	mountsStorageKey = "mounted_folders"
 
-	// Messages displayed to the user about the machines status.
-	autoRemountFailed = "Error remounting during restart. Please unmount & mount again."
-
 	// The first autoremount message.
 	autoRemounting = "Remounting after restart. Please wait..."
 
@@ -100,7 +97,7 @@ func (r *Remote) loadMounts() error {
 func (r *Remote) restoreMounts() error {
 	log := r.log.New("restoreMounts queue")
 
-	// Store our mounts locally, so that modificatons to the slice
+	// Store our mounts locally, so that modifications to the slice
 	// don't propagate to the actual mounts slice
 	remountQueue := append([]*mount.Mount(nil), r.mounts...)
 	totalMounts := len(remountQueue)

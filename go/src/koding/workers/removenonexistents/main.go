@@ -30,7 +30,6 @@ var (
 	existingAccountByNick = cache.NewLRU(10000)
 	deletedAccountByNick  = cache.NewLRU(10000)
 
-	deletedUserByID    = cache.NewLRU(10000)
 	existingUserByID   = cache.NewLRU(10000)
 	existingUserByNick = cache.NewLRU(10000)
 	deletedUserByNick  = cache.NewLRU(10000)

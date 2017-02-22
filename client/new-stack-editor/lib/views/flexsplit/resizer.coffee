@@ -89,6 +89,26 @@ module.exports = class FlexSplitResizer extends kd.View
       @emit Flex.EVENT_HIDDEN, fractions
       view._windowDidResize?()
 
+    # Custom Resize events for programatically resize the view based on the
+    # given percentage, the other side will be resized to Flex.MAX -
+    # Triggering storage is optional and disabled by default ~ GG
+    view.on Flex.EVENT_RESIZE, (options) =>
+
+      { percentage = Flex.MIN, store = no } = options
+
+      leftOver  = Flex.MAX - percentage
+      fractions = [leftOver, leftOver]
+      viewIndex = @_getViewIndex view
+      fractions[viewIndex] = percentage
+
+      for i in [0..1]
+        @_setViewFraction @views[i], fractions[i]
+
+      if store
+        @emit Flex.EVENT_RESIZED, fractions
+
+      view._windowDidResize?()
+
 
   _updateViewSizes: ->
     # This will get height or width of given views. This height or width
@@ -149,12 +169,17 @@ module.exports = class FlexSplitResizer extends kd.View
     @_updateViewSizes()
 
 
-  setFractions: (fractions, updateViews = yes) ->
+  setFractions: (fractions, options = {}) ->
 
-    @_fractions = [fractions[0], fractions[1]]
+    { updateViews = yes, initialFractions = [50, 50] } = options
+
+    @_fractions = initialFractions
     return  unless updateViews
-    @_setViewFraction @views[0], fractions[0]
-    @_setViewFraction @views[1], fractions[1]
+
+    for index in [0..1]
+      @_setViewFraction @views[index], fractions[index]
+      if fractions[index] is Flex.MAX
+        @views[index].setClass 'expanded'
 
 
   _setViewFraction: (view, fraction) ->

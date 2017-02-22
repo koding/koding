@@ -20,8 +20,9 @@ module.exports = class CredentialListItem extends kd.ListItemView
     handle = (action) => =>
       @getDelegate().emit 'ItemAction', { action, item: this }
 
-    @checkBox = new kd.CustomCheckBox
+    @checkBox = new kd.CheckBox
       defaultValue : off
+      click: @bound 'handleChanges'
 
     @preview = new kd.ButtonView
       cssClass: 'show'
@@ -44,28 +45,38 @@ module.exports = class CredentialListItem extends kd.ListItemView
         @getDelegate().emit Events.CredentialFilterChanged, provider
         kd.utils.stopDOMEvent event
 
-
     @on 'click', (event) =>
       unless 'checkbox' in event.target.classList
         @select not @isSelected(), userAction = yes
         kd.utils.stopDOMEvent event
 
 
-
   select: (state = yes, userAction = no) ->
+
     @checkBox.setValue state
-    if userAction
-      @getDelegate().emit Events.CredentialSelectionChanged, this, state
+
+    if state
+    then @setClass   'selected'
+    else @unsetClass 'selected'
+
+    @handleChanges()  if userAction
+
+
+  handleChanges: ->
+    @getDelegate().emit Events.CredentialSelectionChanged, this, @isSelected()
 
 
   isSelected: ->
     @checkBox.getValue()
 
 
+  verifyCredential: ->
+
+
   pistachio: ->
 
     '''
     {{> @checkBox}} {span.title{#(title)}}
-    {{> @edit}} {{> @delete}} {{> @preview}}
+    {{> @delete}} {{> @preview}}
     {{> @provider}}
     '''

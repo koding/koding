@@ -66,6 +66,11 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
 
     TeamFlux.actions.updateInvitationInputValue index, inputName, value
 
+  onInputEmailBlur: (index, event) ->
+
+    { value, classList } = event.target
+
+    classList.toggle("error", !isEmailValid value)  if value
 
   onSendInvites: ->
 
@@ -226,6 +231,7 @@ module.exports = class HomeTeamSendInvitesContainer extends React.Component
       inputValues={@state.inputValues}
       onUploadCSV={@bound 'onUploadCSV'}
       onInputChange={@bound 'onInputChange'}
+      onInputEmailBlur={@bound 'onInputEmailBlur'}
       onSendInvites={@bound 'onSendInvites'} />
 
 

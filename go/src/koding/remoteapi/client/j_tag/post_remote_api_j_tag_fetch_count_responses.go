@@ -49,7 +49,7 @@ func NewPostRemoteAPIJTagFetchCountOK() *PostRemoteAPIJTagFetchCountOK {
 
 /*PostRemoteAPIJTagFetchCountOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPIJTagFetchCountOK struct {
 	Payload *models.DefaultResponse

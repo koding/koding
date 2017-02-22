@@ -1,10 +1,15 @@
-{ Relationship }              = require 'jraphical'
-JUser                         = require '../user'
-JGroup                        = require './index'
-JAccount                      = require '../account'
-JSession                      = require '../session'
-JApiToken                     = require '../apitoken'
-JInvitation                   = require '../invitation'
+{ Relationship } = require 'jraphical'
+JUser            = require '../user'
+JGroup           = require './index'
+JAccount         = require '../account'
+JSession         = require '../session'
+JApiToken        = require '../apitoken'
+JInvitation      = require '../invitation'
+JStackTemplate   = require '../computeproviders/stacktemplate'
+JName            = require '../name'
+JComputeStack    = require '../stack'
+JMachine         = require '../computeproviders/machine'
+JGroupData       = require './groupdata'
 { async
   expect
   expectRelation
@@ -17,6 +22,9 @@ JInvitation                   = require '../invitation'
   generateRandomUsername
   checkBongoConnectivity
   generateDummyUserFormData } = require '../../../../testhelper'
+
+{ generateStackTemplateData } = require \
+  '../../../../testhelper/models/computeproviders/stacktemplatehelper'
 
 
 # making sure we have mongo connection before tests
@@ -149,6 +157,181 @@ runTests = -> describe 'workers.social.group.index', ->
           ]
 
           async.series queue, done
+
+
+  describe '#destroy()', ->
+
+    describe 'create a team', ->
+      group = {}
+      client = {}
+      account = {}
+
+      groupId = null
+
+      groupSlug = generateRandomString()
+
+      email = generateRandomEmail()
+
+      userFormData = {}
+      stackTemplate = {}
+
+      before (done) ->
+        options = { createGroup : yes, context : { group : groupSlug } }
+        withConvertedUser options, (data) ->
+          { group, client, account, userFormData } = data
+          groupId = group._id
+          done()
+
+      it 'should add resources, invitations, apiToken, groupData to team', (done) ->
+
+        queue = [
+          (next) ->
+            JInvitation.create client, { invitations: [{ email }] }, (err) ->
+              expect(err).to.not.exist
+              next()
+
+          (next) ->
+            group.modify client, { isApiEnabled : yes }, (err) ->
+              expect(err).to.not.exist
+
+              JApiToken.create { account, group : groupSlug }, (err, apiToken) ->
+                expect(err).to.not.exist
+                expect(apiToken).to.exist
+                next()
+
+          (next) ->
+            group.modifyData client, { 'foo': 'bar' }, (err) ->
+              expect(err).to.exist
+              next()
+
+          (next) ->
+            stackTemplateData = generateStackTemplateData client
+            JStackTemplate.create client, stackTemplateData, (err, template) ->
+              expect(err).to.not.exist
+              expect(template).to.exist
+              stackTemplate = template
+              next()
+
+          (next) ->
+            config = { verified: yes }
+            stackTemplate.update$ client, { config }, (err) ->
+              expect(err).to.not.exist
+              next()
+
+          (next) ->
+            stackTemplate.generateStack client, {}, (err, res) ->
+              { stack, results: { machines } } = res
+              expect(err).to.not.exist
+              expect(machines).to.exist
+              expect(stack).to.exist
+              next()
+
+          (next) ->
+            params =
+              $and : [
+                { as       : 'owner' }
+                { sourceId : group._id }
+                { targetId : account._id }
+              ]
+
+            # expecting relationship to be created
+            expectRelation.toExist params, ->
+              next()
+
+        ]
+
+        async.series queue, done
+
+
+      describe 'delete team and ensure the data is deleted', ->
+
+        before (done) ->
+          group.destroy client, ->
+            done()
+
+
+        it 'should clear team data and resources', (done) ->
+
+          queue = [
+            (next) ->
+              JApiToken.some client, { group : groupSlug }, (err, apiTokens) ->
+                expect(err).to.not.exist
+                expect(apiTokens.length).to.be.equal 0
+                next()
+
+            (next) ->
+              account.fetchMySessions client, {}, (err, sessions) ->
+                expect(err).to.not.exist
+                expect(sessions.length).to.be.equal 0
+                next()
+
+            (next) ->
+              JName.one { name: groupSlug }, (err, name) ->
+                expect(err).to.not.exist
+                expect(name).to.not.exist
+                next()
+
+            (next) ->
+              JGroupData.one { slug: groupSlug }, (err, data) ->
+                expect(err).to.not.exist
+                expect(data).to.not.exist
+                next()
+
+            (next) ->
+              JComputeStack.some client, { group: groupSlug }, (err, stacks) ->
+                expect(err).to.not.exist
+                expect(stacks.length).to.be.equal 0
+                next()
+
+            (next) ->
+              JStackTemplate.some client, { group: groupSlug }, (err, stackTemplates) ->
+                expect(err).to.not.exist
+                expect(stackTemplates.length).to.be.equal 0
+                next()
+
+            (next) ->
+              JMachine.some client, {}, (err, machines) ->
+                expect(err).to.not.exist
+                expect(machines.length).to.be.equal 0
+                next()
+
+            (next) ->
+              { sessionToken } = client
+              url = '/api/social/payment/subscription/delete'
+              { deleteReq } = require '../socialapi/requests'
+              deleteReq url, { sessionToken }, (err, body) ->
+                expect(err.error).to.be.equal 'koding.BadRequest'
+                expect(err.description).to.be.equal 'not found'
+                next()
+
+            (next) ->
+              params =
+                $and : [
+                  { as       : 'owner' }
+                  { sourceId : groupId }
+                  { targetId : account._id }
+                ]
+
+              # expecting relationship to be created
+              expectRelation.toNotExist params, next
+
+            (next) ->
+              JGroup.one { slug: groupSlug }, (err, group) ->
+                expect(err).to.not.exist
+                expect(group).to.not.exist
+                next()
+
+            (next) ->
+              JSession.one { groupName: groupSlug }, (err, session) ->
+                expect(err).to.not.exist
+                expect(session).to.not.exist
+                next()
+
+          ]
+
+          async.series queue, ->
+            done()
+
 
   describe '#leave()', ->
 

@@ -457,7 +457,7 @@ func (c *Command) initDefaultRepairers() error {
 
 // runRepairers executes the given repairers. First running Statuses, and then
 // Repair() on any of the Statuses that don't succeed. If any Repairs fail,
-// the error is returned. It is the responsibility of the Repairer (usualy via the
+// the error is returned. It is the responsibility of the Repairer (usually via the
 // RetryRepairer) to repeat repair attempts on failures.
 func (c *Command) runRepairers(repairers []Repairer) error {
 	for _, r := range repairers {

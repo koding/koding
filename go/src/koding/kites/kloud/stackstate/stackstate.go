@@ -23,7 +23,7 @@ const (
 	// Destroying is in progress of destroying the stack.
 	Destroying
 
-	// Building is in progress of creating the stack. A successfull building
+	// Building is in progress of creating the stack. A successful building
 	// state results in an Initialized state.
 	Building
 )

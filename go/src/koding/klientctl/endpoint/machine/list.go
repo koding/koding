@@ -1,6 +1,7 @@
 package machine
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -24,6 +25,10 @@ type ListOptions struct {
 
 // List retrieves user's machines from kloud.
 func List(options *ListOptions) ([]*Info, error) {
+	if options == nil {
+		return nil, errors.New("invalid nil options")
+	}
+
 	var (
 		listReq = stack.MachineListRequest{}
 		listRes = stack.MachineListResponse{}
@@ -34,8 +39,6 @@ func List(options *ListOptions) ([]*Info, error) {
 		return nil, err
 	}
 
-	// Register machines to klient and get aliases.
-	//
 	// TODO(ppknap): this is copied from klientctl old list and will be reworked.
 	k, err := klient.CreateKlientWithDefaultOpts()
 	if err != nil {
@@ -44,10 +47,10 @@ func List(options *ListOptions) ([]*Info, error) {
 	}
 
 	if err := k.Dial(); err != nil {
-		fmt.Fprintln(os.Stderr, "Error dialing klient:", err)
 		return nil, err
 	}
 
+	// Register machines to klient and get aliases.
 	createReq := machinegroup.CreateRequest{
 		Addresses: make(map[kmachine.ID][]kmachine.Addr),
 	}
@@ -74,7 +77,6 @@ func List(options *ListOptions) ([]*Info, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	createRes := machinegroup.CreateResponse{}
 	if err := createRaw.Unmarshal(&createRes); err != nil {
 		return nil, err

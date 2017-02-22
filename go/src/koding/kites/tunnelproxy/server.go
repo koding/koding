@@ -707,7 +707,7 @@ func isLocal(tun *Tunnel, r *http.Request) bool {
 	return ok
 }
 
-// TOOD(rjeczalik): make it possible for services to register custom
+// TODO(rjeczalik): make it possible for services to register custom
 // protocol type.
 func (s *Server) discover(service string, r *http.Request) ([]*Endpoint, error) {
 	s.mu.Lock()

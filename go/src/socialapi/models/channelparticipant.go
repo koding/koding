@@ -475,7 +475,7 @@ func (c *ChannelParticipant) ensureParticipation(accountId int64, channels []Cha
 		cp.ChannelId = channel.Id
 		cp.AccountId = accountId
 		// create is idempotent, multiple calls wont cause any problem, if the
-		// user is already a participant, will return as if a succesful request
+		// user is already a participant, will return as if a successful request
 		if err := cp.Create(); err != nil {
 			return err
 		}

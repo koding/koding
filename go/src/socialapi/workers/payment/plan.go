@@ -59,7 +59,7 @@ var plans = map[string]*stripe.PlanParams{
 	},
 }
 
-// GetPlan returns the plan by its name. User should check for existance.
+// GetPlan returns the plan by its name. User should check for existence.
 func GetPlan(name string) *stripe.PlanParams {
 	return plans[name]
 }

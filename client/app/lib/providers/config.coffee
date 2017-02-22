@@ -73,7 +73,7 @@ module.exports = globals.config.providers =
   vagrant                  :
     name                   : 'Vagrant'
     link                   : 'http://www.vagrantup.com'
-    title                  : 'KD Host Query ID'
+    title                  : 'Vagrant Credential'
     color                  : '#6768a9'
     supported              : yes
     enabled                : 'beta'
@@ -290,7 +290,7 @@ module.exports = globals.config.providers =
   softlayer                :
     name                   : 'Softlayer'
     link                   : 'http://www.softlayer.com'
-    title                  : 'Softlayer'
+    title                  : 'Softlayer Credential'
     color                  : '#B52025'
     supported              : yes
     enabled                : 'beta'

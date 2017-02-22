@@ -49,7 +49,7 @@ func NewPostRemoteAPISocialChannelFetchFollowedChannelCountOK() *PostRemoteAPISo
 
 /*PostRemoteAPISocialChannelFetchFollowedChannelCountOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPISocialChannelFetchFollowedChannelCountOK struct {
 	Payload *models.DefaultResponse

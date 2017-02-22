@@ -5,12 +5,15 @@ import (
 	"compress/gzip"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"hash/crc32"
 	"io"
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"sync"
+	"sync/atomic"
 
 	"github.com/djherbis/times"
 )
@@ -18,13 +21,47 @@ import (
 // Version stores current version of index.
 const Version = 1
 
+// Entry group describes values of an Entry.Meta field.
+const (
+	EntryPromiseAdd = 1 << iota
+	EntryPromiseUpdate
+	EntryPromiseDel
+	EntryPromiseUnlink
+)
+
 // Entry represents a single file registered to index.
 type Entry struct {
+	Hash  []byte      `json:"h"` // Hash of file content.
 	CTime int64       `json:"c"` // Metadata change time since EPOCH.
 	MTime int64       `json:"m"` // File data change time since EPOCH.
-	Mode  os.FileMode `json:"o"` // File mode and permission bits.
 	Size  int64       `json:"s"` // Size of the file.
-	Hash  []byte      `json:"h"` // Hash of file content.
+	Inode uint64      `json:"-"` // fuseops.InodeID
+	Ref   int32       `json:"-"` // inode's reference count
+	Mode  os.FileMode `json:"o"` // File mode and permission bits.
+	Meta  int32       `json:"-"` // Entry metadata; written under (*Index).mu, read with atomic op
+}
+
+// The following methods are conveniance helpers for a lock-free
+// access of Entry's fields.
+func (e *Entry) GetInode() uint64      { return atomic.LoadUint64(&e.Inode) }
+func (e *Entry) SetInode(inode uint64) { atomic.StoreUint64(&e.Inode, inode) }
+func (e *Entry) GetSize() int64        { return atomic.LoadInt64(&e.Size) }
+func (e *Entry) SetSize(n int64)       { atomic.StoreInt64(&e.Size, n) }
+func (e *Entry) IncRef() int32         { return atomic.AddInt32(&e.Ref, 1) }
+func (e *Entry) DecRef() int32         { return atomic.AddInt32(&e.Ref, -1) }
+func (e *Entry) Has(meta int32) bool   { return atomic.LoadInt32(&e.Meta)&meta == meta }
+
+// SwapMeta flips the value of a Meta field, setting the set
+// bits and unsetting the unset ones.
+func (e *Entry) SwapMeta(set, unset int32) int32 {
+	for {
+		older := atomic.LoadInt32(&e.Meta)
+		updated := (older | set) &^ unset
+
+		if atomic.CompareAndSwapInt32(&e.Meta, older, updated) {
+			return updated
+		}
+	}
 }
 
 // NewEntryFile creates new Entry from a file stored under path argument.
@@ -165,6 +202,43 @@ func (idx *Index) addEntryWorker(root string, wg *sync.WaitGroup, fC <-chan *fil
 	}
 }
 
+// PromiseAdd adds a node under the given path marked as newly added.
+//
+// If mode is non-zero, the node's mode is overwritten with the value.
+// If the node already exists, it'd be only marked with EntryPromiseAdd flag.
+// If the node is already marked as newly added, the method is a no-op.
+func (idx *Index) PromiseAdd(path string, entry *Entry) {
+	idx.mu.Lock()
+	idx.root.PromiseAdd(path, entry)
+	idx.mu.Unlock()
+}
+
+// PromiseDel marks a node under the given path as deleted.
+//
+// If the node does not exist or is already marked as deleted, the
+// method is no-op.
+//
+// If node is non-nil, then it's used instead of looking it up
+// by the given path.
+func (idx *Index) PromiseDel(path string, node *Node) {
+	idx.mu.Lock()
+	idx.root.PromiseDel(path, node)
+	idx.mu.Unlock()
+}
+
+// PromiseUnlink marks a node under the given path as unlinked.
+//
+// If the node does not exist or is already marked as unlinked,
+// the method is a no-op.
+//
+// If node is non-nil, then it's used instead of looking it up
+// by the given path.
+func (idx *Index) PromiseUnlink(path string, node *Node) {
+	idx.mu.Lock()
+	idx.root.PromiseUnlink(path, node)
+	idx.mu.Unlock()
+}
+
 // Count returns the number of entries stored in index. Only items which size is
 // below provided value are counted. If provided argument is negative, this
 // function will return the number of all entries.
@@ -185,6 +259,7 @@ func (idx *Index) DiskSize(maxsize int64) int64 {
 	return idx.root.DiskSize(maxsize)
 }
 
+// Lookup looks up a node by the given name.
 func (idx *Index) Lookup(name string) (*Node, bool) {
 	idx.mu.RLock()
 	defer idx.mu.RUnlock()
@@ -195,8 +270,27 @@ func (idx *Index) Lookup(name string) (*Node, bool) {
 // Compare rereads the given file tree roted at root and compares its entries
 // to previous state of the index. All detected changes will be stored in
 // returned Change slice.
-func (idx *Index) Compare(root string) (cs ChangeSlice) {
+func (idx *Index) Compare(root string) ChangeSlice {
+	return idx.CompareBranch("", root)
+}
+
+// CompareBranch rereads the given file tree roted at root and compares its entries
+// with index state roted at branch node.
+//
+// All detected changes will be stored in returned Change slice.
+// If branch is empty, the comparison is made against root of the index.
+func (idx *Index) CompareBranch(branch, root string) (cs ChangeSlice) {
+	idx.mu.RLock()
+	rt, ok := idx.root.Lookup(branch)
+	idx.mu.RUnlock()
+
+	if !ok {
+		rt = newNode()
+	}
+
 	visited := make(map[string]struct{})
+
+	rootBranch := filepath.Join(root, branch)
 
 	// Walk over current root path and check it files.
 	walkFn := func(path string, info os.FileInfo, err error) error {
@@ -204,15 +298,18 @@ func (idx *Index) Compare(root string) (cs ChangeSlice) {
 			return nil
 		}
 
-		name, err := filepath.Rel(root, path)
+		name, err := filepath.Rel(rootBranch, path)
 		if err != nil || name == "." {
 			return nil
 		}
+
 		name = filepath.ToSlash(name)
 
 		idx.mu.RLock()
-		nd, ok := idx.root.Lookup(name)
+		nd, ok := rt.Lookup(name)
 		idx.mu.RUnlock()
+
+		name = filepath.Join(branch, name)
 
 		// Not found in current index - file was added.
 		if !ok {
@@ -231,7 +328,7 @@ func (idx *Index) Compare(root string) (cs ChangeSlice) {
 		return nil
 	}
 
-	if err := filepath.Walk(root, walkFn); err != nil {
+	if err := filepath.Walk(rootBranch, walkFn); err != nil {
 		return nil
 	}
 
@@ -365,5 +462,44 @@ func (idx *Index) UnmarshalJSON(data []byte) error {
 	}
 	defer r.Close()
 
-	return json.NewDecoder(r).Decode(&idx.root)
+	if err = json.NewDecoder(r).Decode(&idx.root); err != nil {
+		return err
+	}
+
+	// BUG(rjeczalik): Something overwrites the root entry
+	// with a zero value elsewhere. Fix me.
+	idx.root.Entry = newEntry()
+	idx.root.Entry.Mode |= os.ModeDir
+
+	return nil
+
+}
+
+// DebugString dumps content of the index as a string, suitable for debugging.
+func (idx *Index) DebugString() string {
+	m := make(map[string]*Entry)
+
+	fn := func(path string, entry *Entry) {
+		m[path] = entry
+	}
+
+	idx.mu.RLock()
+	idx.root.forEach(fn, true)
+	idx.mu.RUnlock()
+
+	paths := make([]string, 0, len(m))
+
+	for path := range m {
+		paths = append(paths, path)
+	}
+
+	sort.Strings(paths)
+
+	var buf bytes.Buffer
+
+	for _, path := range paths {
+		fmt.Fprintf(&buf, "%s => %#v\n", path, m[path])
+	}
+
+	return buf.String()
 }

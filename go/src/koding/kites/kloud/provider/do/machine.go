@@ -21,9 +21,8 @@ const (
 	// The statuses of a DigitalOcean action. The value of this attribute can be
 	// one of the following: "in-progress", "completed", or "errored"
 	// https://developers.digitalocean.com/documentation/v2/#droplet-actions
-	actionErrored    = "errored"
-	actionCompleted  = "completed"
-	actionInProgress = "in-progress"
+	actionErrored   = "errored"
+	actionCompleted = "completed"
 
 	// A droplet status string indicates the state of a Droplet instance.
 	// This may be "new", "active", "off", or "archive".

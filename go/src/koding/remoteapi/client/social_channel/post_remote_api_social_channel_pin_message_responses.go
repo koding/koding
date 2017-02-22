@@ -49,7 +49,7 @@ func NewPostRemoteAPISocialChannelPinMessageOK() *PostRemoteAPISocialChannelPinM
 
 /*PostRemoteAPISocialChannelPinMessageOK handles this case with default header values.
 
-Request processed succesfully
+Request processed successfully
 */
 type PostRemoteAPISocialChannelPinMessageOK struct {
 	Payload *models.DefaultResponse
