@@ -1307,11 +1307,18 @@ module.exports = class JAccount extends jraphical.Module
 
       # delete resources of the account, team and account itself
       queue = [
+        (next) =>
+          # delete user's resources (stack templates, stacks, machines)
+          ComputeProvider = require './computeproviders/computeprovider'
+          ComputeProvider.destroyAccountResources this, next
+
         (next) ->
           # deny from all machines that are shared with the account
           JMachine = require './computeproviders/machine'
           selector = { 'users.username' : username }
           JMachine.some selector, {}, (err, machines) ->
+
+            return next()  unless machines
 
             deleteMachines = machines.map (machine) -> (fin) ->
               machine.deny client, fin
@@ -1323,6 +1330,8 @@ module.exports = class JAccount extends jraphical.Module
           # delete the credentials that are associated with the account
           JCredential = require './computeproviders/credential'
           JCredential.some$ client, { originId: accountId }, {}, (err, credentials) ->
+
+            return next()  unless credentials
 
             deleteCredentials = credentials.map (credential) -> (fin) ->
               credential.delete client, fin
@@ -1340,10 +1349,6 @@ module.exports = class JAccount extends jraphical.Module
           JApiToken.remove { originId: accountId }, ->
             kallback 'JApiToken', next, err
 
-        (next) =>
-          # delete user's resources (credentials, stack templates, stacks, machines)
-          ComputeProvider = require './computeproviders/computeprovider'
-          ComputeProvider.destroyAccountResources this, next
 
         (next) ->
           # delete invitations
