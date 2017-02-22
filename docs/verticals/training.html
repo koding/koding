@@ -12,7 +12,7 @@ permalink: /verticals/training
 <div class="Hero Training-hero">
   <h1>Skip configuring, get right to training</h1>
   <h2>Spend more time training and less time configuring dev environments</h2>
-  <a href="#" onclick='javascript:Intercom("show");' class="Button contact">CONTACT US</a>
+  <a href="mailto:support@koding.com" class="Button contact">CONTACT US</a>
   <div class="imgContainer">
   </div>
 </div>
@@ -114,23 +114,10 @@ permalink: /verticals/training
 </div>
 <div class="Section-4 Section">
   <h3>Let your customers easily try out your software in minutes without the hassle of installation</h3>
-  <a href="#" onclick='javascript:Intercom("show");' class="contact">CONTACT US</a>
+  <a href="mailto:support@koding.com" class="contact">CONTACT US</a>
 </div>
 <script>
-  (function() {
-    var contact = document.querySelectorAll('.contact');
-
-    [].forEach.call(contact, function(el) {
-      el.addEventListener('click', function(evt) {
-        evt.preventDefault();
-
-        if (Intercom) {
-          Intercom('show')
-        }
-      });
-    });
-
-  })();
+  {% include js/intercomLauncher.js %}
 </script>
 
 <!-- FOOTER -->
