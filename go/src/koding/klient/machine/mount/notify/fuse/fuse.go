@@ -30,6 +30,7 @@ func (fs *Filesystem) StatFS(ctx context.Context, op *fuseops.StatFSOp) error {
 	op.BlockSize = fs.Disk.BlockSize
 	op.BlocksFree = fs.Disk.BlocksFree
 	op.BlocksAvailable = fs.Disk.BlocksTotal - fs.Disk.BlocksUsed
+	op.IoSize = uint32(fs.Disk.IOSize)
 
 	return nil
 }

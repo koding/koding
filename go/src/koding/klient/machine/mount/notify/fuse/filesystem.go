@@ -45,6 +45,7 @@ func block(path string) *fs.DiskInfo {
 		BlockSize:   uint32(stfs.Bsize),
 		BlocksTotal: stfs.Blocks,
 		BlocksFree:  stfs.Bfree,
+		IOSize:      stfs.Iosize,
 	}
 
 	di.BlocksUsed = di.BlocksTotal - di.BlocksFree
