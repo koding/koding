@@ -66,15 +66,23 @@ module.exports = class VerifyPasswordModal extends ContentModal
     super options
 
   doRecover: (email) ->
+
+    { notificationViewController: { addNotification } } = kd.singletons
+
+
     $.ajax
       url         : '/Recover'
       data        : { email, _csrf : Cookies.get '_csrf' }
       type        : 'POST'
       error       : (xhr) ->
         { responseText } = xhr
-        new KDNotificationView { title : responseText }
+        addNotification
+          type: 'caution'
+          duration: 5000
+          content: responseText
+
       success     : ->
-        new KDNotificationView
-          title     : 'Check your email'
-          content   : "We've sent you a password recovery code."
-          duration  : 4500
+        addNotification
+          type: 'success'
+          content: "Check your email... We've sent you a password recovery code."
+          duration: 5000

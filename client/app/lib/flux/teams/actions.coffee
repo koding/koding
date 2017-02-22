@@ -189,14 +189,16 @@ handleRoleChange = (account, newRole) ->
 
 handlePendingInvitationUpdate = (account, action) ->
 
-  { reactor } = kd.singletons
+  { reactor, notificationViewController: { addNotification } } = kd.singletons
 
   if action is 'revoke'
     remote.api.JInvitation.revokeInvitation account, (err) ->
 
-      title = 'You are not authorized to revoke this invite.'
-
-      return new kd.NotificationView { title, duration: 5000 }  if err
+      if err
+        addNotification
+          type: 'warning'
+          content: 'You are not authorized to revoke this invite.'
+          dismissible : yes
 
       reactor.dispatch actions.DELETE_PENDING_INVITATION_SUCCESS, { account }
 
@@ -205,10 +207,12 @@ handlePendingInvitationUpdate = (account, action) ->
 
       title = 'Invitation is resent.'
       duration = 5000
+      type = 'success'
       if err
+        type = 'warning'
         title = 'Unable to resend the invitation. Please try again.'
 
-      return new kd.NotificationView { title, duration }
+      addNotification { type, content: title, duration }
 
 
 handleKickMember = (member) ->
@@ -278,6 +282,8 @@ handlePermanentlyDeleteMember = (member) ->
 
 leaveTeam = (partial) ->
 
+  { notificationViewController: { addNotification } } = kd.singletons
+
   new Promise (resolve, reject) ->
     new VerifyPasswordModal 'Confirm', partial, (currentPassword) ->
 
@@ -295,7 +301,10 @@ leaveTeam = (partial) ->
 
           team.leave { password: currentPassword }, (err) ->
             if err
-              return new kd.NotificationView { title : err.message }
+              addNotification
+                type: 'caution'
+                content: err.message
+                duration: 5000
 
             Tracker.track Tracker.USER_LEFT_TEAM
             kookies.expire 'clientId'

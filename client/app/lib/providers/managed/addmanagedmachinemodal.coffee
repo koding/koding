@@ -130,10 +130,17 @@ module.exports = class AddManagedMachineModal extends ContentModal
 
   handleError: (err) ->
 
+    { notificationViewController: { addNotification } } = kd.singletons
+
     console.warn "Couldn't fetch otatoken:", err  if err
 
     if err.message.indexOf('confirm your email address') > -1
-      new kd.NotificationView { title : err.message }
+
+      addNotification
+        type: 'caution'
+        content: err.message
+        duration: 5000
+
       return @destroy()
 
     @loader.destroy()
