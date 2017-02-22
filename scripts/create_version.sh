@@ -37,12 +37,10 @@ fi
 # "koding-proxy-dev-us-e-1"
 #
 
-version=$(git rev-parse HEAD)
-
-SHA=${version:0:8}
+version=$(git rev-parse --short HEAD)
 
 # output version file
-echo $SHA >$WERCKER_ROOT/VERSION
+echo $version >$WERCKER_ROOT/VERSION
 
 # output archive name, that will be used for version archive name
-echo $(date "+%Y-%m-%dT%H:%M:%S")_$SHA.zip >$WERCKER_ROOT/ARCHIVE_NAME
+echo $(date "+%Y-%m-%dT%H:%M:%S")_$version.zip >$WERCKER_ROOT/ARCHIVE_NAME
