@@ -487,13 +487,11 @@ func (fs *Filesystem) rm(ctx stdcontext.Context, nd *index.Node, path string) er
 }
 
 func (fs *Filesystem) update(ctx stdcontext.Context, f *os.File, nd *index.Node) error {
-	if err := f.Sync(); err != nil {
-		return err
-	}
+	err := f.Sync()
 
-	updateSize(f, nd)
+	_ = updateSize(f, nd)
 
-	return fs.yield(ctx, f.Name(), index.ChangeMetaLocal|index.ChangeMetaUpdate)
+	return nonil(err, fs.yield(ctx, f.Name(), index.ChangeMetaLocal|index.ChangeMetaUpdate))
 }
 
 func (fs *Filesystem) open(ctx stdcontext.Context, nd *index.Node, path string) (*os.File, fuseops.HandleID, error) {

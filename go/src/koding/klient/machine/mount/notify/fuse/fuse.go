@@ -86,20 +86,22 @@ func (fs *Filesystem) SetInodeAttributes(ctx context.Context, op *fuseops.SetIno
 
 	op.Attributes = fs.attr(nd.Entry)
 
-	if op.Size != nil {
+	if op.Size != nil && *op.Size != 0 {
 		if err := f.Truncate(int64(*op.Size)); err != nil {
 			return nonil(err, f.Close())
 		}
 
 		op.Attributes.Size = *op.Size
+		nd.Entry.SetSize(int64(*op.Size))
 	}
 
-	if op.Mode != nil {
+	if op.Mode != nil && *op.Mode != 0 {
 		if err := f.Chmod(*op.Mode); err != nil {
 			return nonil(err, f.Close())
 		}
 
 		op.Attributes.Mode = *op.Mode
+		nd.Entry.SetMode(*op.Mode)
 	}
 
 	if err := f.Close(); err != nil {
@@ -113,9 +115,10 @@ func (fs *Filesystem) SetInodeAttributes(ctx context.Context, op *fuseops.SetIno
 
 		if op.Mtime != nil {
 			op.Attributes.Mtime = *op.Mtime
+			nd.Entry.SetMTime(op.Mtime.UnixNano())
 		}
 
-		if err := os.Chtimes(path, op.Attributes.Atime, op.Attributes.Mtime); err != nil {
+		if err := os.Chtimes(f.Name(), op.Attributes.Atime, op.Attributes.Mtime); err != nil {
 			return err
 		}
 	}
@@ -199,11 +202,11 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) error {
 	}
 
 	oldNd, ok := oldDir.Sub[op.OldName]
-	if !ok {
+	if !ok || oldNd.Deleted() {
 		return fuse.ENOENT
 	}
 
-	if _, ok := newDir.Sub[op.NewName]; ok {
+	if newNd, ok := newDir.Sub[op.NewName]; ok && newNd.IsDir() {
 		return fuse.EEXIST
 	}
 
@@ -214,18 +217,11 @@ func (fs *Filesystem) Rename(ctx context.Context, op *fuseops.RenameOp) error {
 		return err
 	}
 
-	entry := index.NewEntry(oldDir.Entry.Size(), oldDir.Entry.Mode())
-	entry.SetMTime(oldDir.Entry.MTime())
-	entry.SetCTime(oldDir.Entry.CTime())
-
-	id := fuseops.InodeID(oldNd.Entry.Inode())
+	entry := oldNd.Entry.Copy()
 
 	fs.mu.Lock()
-	delete(fs.inodes, id)
-	id = fs.add(newPath)
+	fs.inodes[fuseops.InodeID(entry.Inode())] = newPath
 	fs.mu.Unlock()
-
-	entry.SetInode(uint64(id))
 
 	fs.Index.PromiseDel(oldPath, oldNd)
 	fs.Index.PromiseAdd(newPath, entry)

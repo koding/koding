@@ -101,17 +101,10 @@ func (nd *Node) PromiseAdd(path string, entry *Entry) {
 
 	if nd, ok := nd.lookup(path, true); ok {
 		newE = nd.Entry
-
-		if entry.Inode() != 0 {
-			newE.SetInode(entry.Inode())
-		}
-		if entry.Mode() != 0 {
-			newE.SetMode(entry.Mode())
-		}
-
+		newE.MergeIn(entry)
 	} else {
 		newE = NewEntry(entry.Size(), entry.Mode())
-		newE.SetInode(entry.Inode())
+		newE.MergeIn(entry)
 	}
 
 	newE.SwapPromise(EntryPromiseAdd, EntryPromiseDel|EntryPromiseUnlink)
