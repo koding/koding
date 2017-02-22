@@ -405,7 +405,7 @@ module.exports = class ComputeProvider extends Base
       # Remove all machines associated with account
       (next) ->
         JMachine.remove {
-          users: { $elemMatch: { id: account.getId(), sudo: yes, owner: yes } }
+          users: { $elemMatch: { username: account.getAt('profile.nickname'), sudo: yes, owner: yes } }
         }, skip 'JMachine', next
 
       # Remove all stacks associated with account
@@ -421,19 +421,6 @@ module.exports = class ComputeProvider extends Base
         JStackTemplate.remove {
           originId: account.getId()
         }, skip 'JStackTemplate', next
-
-      # Remove all credentials associated with account
-      (next) ->
-        JCredential = require './credential'
-        JCredential.remove {
-          originId: account.getId()
-        }, skip 'JCredential', next
-
-      (next) ->
-        JCredentialData = require './credentialdata'
-        JCredentialData.remove {
-          originId: account.getId()
-        }, skip 'JCredentialData', next
 
     ], ->
 
